@@ -29,7 +29,8 @@ public final class ForgeweaveCreativeTab {
             ForgeweaveItems.PART_SHOVEL_HEAD,
             ForgeweaveItems.PART_AXE_HEAD,
             ForgeweaveItems.PART_TOOL_BINDING,
-            ForgeweaveItems.PART_TOOL_HANDLE);
+            ForgeweaveItems.PART_TOOL_HANDLE,
+            ForgeweaveItems.SHARD);
 
     public static final DeferredHolder<CreativeModeTab, CreativeModeTab> MAIN = TABS.register("main", () -> CreativeModeTab.builder()
             .title(Component.translatable("itemGroup.forgeweave"))

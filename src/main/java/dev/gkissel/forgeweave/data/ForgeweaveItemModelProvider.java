@@ -48,6 +48,7 @@ public class ForgeweaveItemModelProvider extends ItemModelProvider {
         singleLayerModel(ForgeweaveItems.PART_AXE_HEAD, derivedItem("axe_head"));
         singleLayerModel(ForgeweaveItems.PART_TOOL_BINDING, derivedItem("tool_binding"));
         singleLayerModel(ForgeweaveItems.PART_TOOL_HANDLE, derivedItem("tool_handle"));
+        singleLayerModel(ForgeweaveItems.SHARD, derivedItem("shard"));
 
         toolModel(ForgeweaveItems.TOOL_PICKAXE, "pickaxe");
         toolModel(ForgeweaveItems.TOOL_SHOVEL, "shovel");

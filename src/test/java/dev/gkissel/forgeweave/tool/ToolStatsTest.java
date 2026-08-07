@@ -3,6 +3,8 @@ package dev.gkissel.forgeweave.tool;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.List;
+
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
@@ -62,6 +64,7 @@ class ToolStatsTest {
                 extraDurability,
                 TagKey.create(Registries.BLOCK, ResourceLocation.withDefaultNamespace("incorrect_for_wooden_tool")),
                 ResourceLocation.fromNamespaceAndPath("forgeweave", "test"),
+                List.of(new Material.CraftingItem(Ingredient.of(Items.STICK), 1)),
                 Ingredient.of(Items.STICK),
                 TextColor.fromRgb(0xFFFFFF));
     }

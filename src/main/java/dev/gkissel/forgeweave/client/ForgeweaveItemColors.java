@@ -34,7 +34,8 @@ public final class ForgeweaveItemColors {
                 ForgeweaveItems.PART_SHOVEL_HEAD.get(),
                 ForgeweaveItems.PART_AXE_HEAD.get(),
                 ForgeweaveItems.PART_TOOL_BINDING.get(),
-                ForgeweaveItems.PART_TOOL_HANDLE.get());
+                ForgeweaveItems.PART_TOOL_HANDLE.get(),
+                ForgeweaveItems.SHARD.get());
 
         event.register(ForgeweaveItemColors::toolMaterialTint,
                 ForgeweaveItems.TOOL_PICKAXE.get(),

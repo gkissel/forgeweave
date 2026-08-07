@@ -11,6 +11,11 @@
   "extra_durability": 15,
   "incorrect_for_tool": "minecraft:incorrect_for_wooden_tool",
   "trait": "forgeweave:ecological",
+  "crafting_items": [
+    { "ingredient": { "item": "minecraft:stick" }, "value": 1 },
+    { "ingredient": { "tag": "minecraft:planks" }, "value": 2 },
+    { "ingredient": { "tag": "minecraft:logs" }, "value": 8 }
+  ],
   "repair_item": {
     "tag": "minecraft:planks"
   },
