@@ -19,5 +19,6 @@
   "material.forgeweave.bone": "Bone",
   "material.forgeweave.flint": "Flint",
   "material.forgeweave.stone": "Stone",
-  "material.forgeweave.wood": "Wood"
+  "material.forgeweave.wood": "Wood",
+  "tooltip.forgeweave.broken": "Broken"
 }

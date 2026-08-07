@@ -1,5 +1,6 @@
 package dev.gkissel.forgeweave.item;
 
+import net.minecraft.tags.BlockTags;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
 
@@ -39,14 +40,22 @@ public final class ForgeweaveItems {
 
     public static final DeferredItem<BlockItem> PART_BUILDER = ITEMS.registerSimpleBlockItem("part_builder", ForgeweaveBlocks.PART_BUILDER);
 
-    // Assembled tools (docs/SCOPE.md M1 issue #10): plain Item, not DiggerItem/TieredItem -- mining
-    // and combat behavior is issue #11. stacksTo(1) like every other Forgeweave equipment item.
-    public static final DeferredItem<ToolItem> TOOL_PICKAXE =
-            ITEMS.registerItem("pickaxe", ToolItem::new, new Item.Properties().stacksTo(1));
-    public static final DeferredItem<ToolItem> TOOL_SHOVEL =
-            ITEMS.registerItem("shovel", ToolItem::new, new Item.Properties().stacksTo(1));
-    public static final DeferredItem<ToolItem> TOOL_HATCHET =
-            ITEMS.registerItem("hatchet", ToolItem::new, new Item.Properties().stacksTo(1));
+    // Assembled tools (docs/SCOPE.md M1 issues #10/#11). Deliberately not DiggerItem/TieredItem:
+    // a Tier is a fixed table of durability/speed/tier-tag, and a Forgeweave tool's are all derived
+    // per stack from its parts' materials, so the vanilla `tool` and `max_damage` components are
+    // written at assembly time instead (ToolAssemblyRecipes). What stays fixed per tool type lives
+    // here: the mineable/* tag it is meant for, and upstream 1.12's attack speed and damage
+    // potential (ToolCore#attackSpeed/#damagePotential in tools/tools/{Pickaxe,Shovel,Hatchet}).
+    // stacksTo(1) like every other Forgeweave equipment item.
+    public static final DeferredItem<ToolItem> TOOL_PICKAXE = ITEMS.registerItem("pickaxe",
+            properties -> new ToolItem(properties, BlockTags.MINEABLE_WITH_PICKAXE, 1.2f, 1.0f),
+            new Item.Properties().stacksTo(1));
+    public static final DeferredItem<ToolItem> TOOL_SHOVEL = ITEMS.registerItem("shovel",
+            properties -> new ToolItem(properties, BlockTags.MINEABLE_WITH_SHOVEL, 1.0f, 0.9f),
+            new Item.Properties().stacksTo(1));
+    public static final DeferredItem<ToolItem> TOOL_HATCHET = ITEMS.registerItem("hatchet",
+            properties -> new ToolItem(properties, BlockTags.MINEABLE_WITH_AXE, 1.1f, 1.1f),
+            new Item.Properties().stacksTo(1));
 
     public static final DeferredItem<BlockItem> TOOL_STATION = ITEMS.registerSimpleBlockItem("tool_station", ForgeweaveBlocks.TOOL_STATION);
 

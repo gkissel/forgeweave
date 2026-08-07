@@ -19,11 +19,10 @@ import dev.gkissel.forgeweave.block.ForgeweaveBlocks;
  * inventory. Same "recompute output every broadcast, only consume on take" shape as
  * {@link dev.gkissel.forgeweave.menu.PartBuilderMenu}.
  *
- * <p>Assembly-only for M1 (docs/SCOPE.md issue #10). CONTEXT.md assigns repair to this same
- * station ("Tool Station -- Block + GUI where Parts are assembled into a Tool and where Tools are
- * repaired"), so all crafting logic funnels through {@link ToolAssemblyRecipes}; adding repair
- * (issue #11) means adding a parallel resolve method there and branching on it in
- * {@link #updateResult()}, not restructuring the slot/broadcast plumbing here.
+ * <p>Assembly and repair (docs/SCOPE.md issues #10 and #11) share the same four slots: which recipe
+ * is running depends only on whether the first slot holds a head part or an assembled tool, so the
+ * decision -- and the per-slot cost of taking the output -- lives entirely in
+ * {@link ToolAssemblyRecipes}. All this class knows is "ask, show, and charge what you're told".
  */
 public class ToolStationMenu extends AbstractContainerMenu {
     public static final int CONTAINER_SLOTS = 4;
@@ -53,19 +52,21 @@ public class ToolStationMenu extends AbstractContainerMenu {
         addSlot(new Slot(container, HEAD_SLOT, 20, 35) {
             @Override
             public boolean mayPlace(ItemStack stack) {
-                return ToolAssemblyRecipes.isHeadPart(stack);
+                return ToolAssemblyRecipes.isHeadSlotInput(stack);
             }
         });
+        // Binding and handle double as the repair-item slots, so what they accept depends on the
+        // head slot: parts while assembling, the head material's repair item while repairing.
         addSlot(new Slot(container, BINDING_SLOT, 38, 35) {
             @Override
             public boolean mayPlace(ItemStack stack) {
-                return ToolAssemblyRecipes.isBindingPart(stack);
+                return ToolAssemblyRecipes.isBindingPart(stack) || isRepairItem(stack);
             }
         });
         addSlot(new Slot(container, HANDLE_SLOT, 56, 35) {
             @Override
             public boolean mayPlace(ItemStack stack) {
-                return ToolAssemblyRecipes.isHandlePart(stack);
+                return ToolAssemblyRecipes.isHandlePart(stack) || isRepairItem(stack);
             }
         });
         addSlot(new OutputSlot(container, OUTPUT_SLOT, 116, 35));
@@ -94,9 +95,16 @@ public class ToolStationMenu extends AbstractContainerMenu {
         if (access == ContainerLevelAccess.NULL) {
             return; // client: the server pushes slot contents down instead of computing locally.
         }
-        Optional<ItemStack> result = ToolAssemblyRecipes.resolve(registries,
+        slots.get(OUTPUT_SLOT).set(resolve().map(ToolAssemblyRecipes.Result::output).orElse(ItemStack.EMPTY));
+    }
+
+    private Optional<ToolAssemblyRecipes.Result> resolve() {
+        return ToolAssemblyRecipes.resolve(registries,
                 slots.get(HEAD_SLOT).getItem(), slots.get(BINDING_SLOT).getItem(), slots.get(HANDLE_SLOT).getItem());
-        slots.get(OUTPUT_SLOT).set(result.orElse(ItemStack.EMPTY));
+    }
+
+    private boolean isRepairItem(ItemStack stack) {
+        return ToolAssemblyRecipes.isRepairItemFor(registries, container.getItem(HEAD_SLOT), stack);
     }
 
     @Override
@@ -112,7 +120,7 @@ public class ToolStationMenu extends AbstractContainerMenu {
             if (!moveItemStackTo(stackInSlot, CONTAINER_SLOTS, slots.size(), true)) {
                 return ItemStack.EMPTY;
             }
-        } else if (ToolAssemblyRecipes.isHeadPart(stackInSlot)) {
+        } else if (ToolAssemblyRecipes.isHeadSlotInput(stackInSlot)) {
             if (!moveItemStackTo(stackInSlot, HEAD_SLOT, HEAD_SLOT + 1, false)) {
                 return ItemStack.EMPTY;
             }
@@ -122,6 +130,10 @@ public class ToolStationMenu extends AbstractContainerMenu {
             }
         } else if (ToolAssemblyRecipes.isHandlePart(stackInSlot)) {
             if (!moveItemStackTo(stackInSlot, HANDLE_SLOT, HANDLE_SLOT + 1, false)) {
+                return ItemStack.EMPTY;
+            }
+        } else if (isRepairItem(stackInSlot)) {
+            if (!moveItemStackTo(stackInSlot, BINDING_SLOT, HANDLE_SLOT + 1, false)) {
                 return ItemStack.EMPTY;
             }
         } else {
@@ -163,13 +175,21 @@ public class ToolStationMenu extends AbstractContainerMenu {
 
         @Override
         public void onTake(Player player, ItemStack stack) {
-            slots.get(HEAD_SLOT).remove(1);
-            slots.get(HEAD_SLOT).setChanged();
-            slots.get(BINDING_SLOT).remove(1);
-            slots.get(BINDING_SLOT).setChanged();
-            slots.get(HANDLE_SLOT).remove(1);
-            slots.get(HANDLE_SLOT).setChanged();
+            // Recomputed rather than remembered from updateResult(): the inputs haven't changed
+            // since the output was built, and a stateless read can't go stale.
+            resolve().ifPresent(result -> {
+                consume(HEAD_SLOT, result.headSlotUsed());
+                consume(BINDING_SLOT, result.bindingSlotUsed());
+                consume(HANDLE_SLOT, result.handleSlotUsed());
+            });
             super.onTake(player, stack);
+        }
+
+        private void consume(int slotIndex, int count) {
+            if (count > 0) {
+                slots.get(slotIndex).remove(count);
+                slots.get(slotIndex).setChanged();
+            }
         }
     }
 }

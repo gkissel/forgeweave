@@ -42,6 +42,9 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         addItem(ForgeweaveItems.TOOL_SHOVEL, "Shovel");
         addItem(ForgeweaveItems.TOOL_HATCHET, "Hatchet");
 
+        // Shown on a tool that ran out of durability (CONTEXT.md: Broken -- unusable, never destroyed).
+        add("tooltip.forgeweave.broken", "Broken");
+
         add("material.forgeweave.wood", "Wood");
         add("material.forgeweave.stone", "Stone");
         add("material.forgeweave.flint", "Flint");
