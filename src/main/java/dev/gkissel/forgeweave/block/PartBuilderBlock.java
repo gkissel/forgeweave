@@ -27,8 +27,8 @@ import net.minecraft.world.phys.BlockHitResult;
  * upstream 1.12's saved-inventory `TilePartBuilder` rather than a transient crafting-table-style
  * container: contents survive re-opening the GUI, and spill into the world (not preserved onto the
  * mined block) when the block is broken, same as upstream's `BlockToolTable#keepInventory()`
- * returning {@code false} for the part builder variant (see issue #9 PR report for citation; no
- * NOTICE.md row -- this is a design fact, not copied code or assets).
+ * returning {@code false} for the part builder variant. No NOTICE.md row for this fact -- it's a
+ * design decision read from upstream's source, not copied code or assets.
  */
 public class PartBuilderBlock extends HorizontalDirectionalBlock implements EntityBlock {
     public static final MapCodec<PartBuilderBlock> CODEC = simpleCodec(PartBuilderBlock::new);
