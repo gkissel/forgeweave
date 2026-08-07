@@ -3,6 +3,7 @@ package dev.gkissel.forgeweave.client;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.util.FastColor;
 import net.minecraft.world.item.ItemStack;
 
 import net.neoforged.api.distmarker.Dist;
@@ -43,7 +44,10 @@ public final class ForgeweaveItemColors {
             return -1;
         }
         Material material = level.registryAccess().registryOrThrow(Material.REGISTRY).get(materialId);
-        return material != null ? material.color().getValue() : -1;
+        // Material.color() (TextColor) is a bare 0xRRGGBB with alpha 0; ItemColor needs opaque ARGB
+        // or the tinted layer renders fully transparent. Same fixup vanilla uses for potion/spawn-egg
+        // item colors (see ItemColors#register uses of FastColor.ARGB32.opaque).
+        return material != null ? FastColor.ARGB32.opaque(material.color().getValue()) : -1;
     }
 
     private ForgeweaveItemColors() {}
