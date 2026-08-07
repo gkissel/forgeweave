@@ -1,6 +1,7 @@
 {
   "parent": "minecraft:item/generated",
   "textures": {
-    "layer0": "forgeweave:item/pattern"
+    "layer0": "forgeweave:item/pattern",
+    "layer1": "forgeweave:item/tool_binding"
   }
 }
