@@ -41,6 +41,12 @@ One row per derived file (ADR-0003). Maintained in PR review: a PR introducing d
 | `src/main/java/dev/gkissel/forgeweave/item/ForgeweaveItems.java` (per-tool attack speed and damage potential) | `src/main/java/slimeknights/tconstruct/tools/tools/Pickaxe.java`, `Shovel.java`, `Hatchet.java` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
 | `src/main/java/dev/gkissel/forgeweave/tool/ToolRepair.java` (repair-amount formula) | `src/main/java/slimeknights/tconstruct/library/tinkering/TinkersItem.java` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
 | `src/main/java/dev/gkissel/forgeweave/menu/ToolAssemblyRecipes.java` (repair recipe resolution) | `src/main/java/slimeknights/tconstruct/library/tinkering/TinkersItem.java`, `src/main/java/slimeknights/tconstruct/library/utils/ToolHelper.java` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
+| `src/main/java/dev/gkissel/forgeweave/trait/ForgeweaveTraits.java` (`ECOLOGICAL` behavior) | `src/main/java/slimeknights/tconstruct/tools/traits/TraitEcological.java` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
+| `src/main/java/dev/gkissel/forgeweave/trait/ForgeweaveTraits.java` (`CHEAP` behavior) | `src/main/java/slimeknights/tconstruct/tools/traits/TraitCheap.java` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
+| `src/main/java/dev/gkissel/forgeweave/trait/ForgeweaveTraits.java` (`CRUDE` behavior) | `src/main/java/slimeknights/tconstruct/tools/traits/TraitCrude.java` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
+| `src/main/java/dev/gkissel/forgeweave/trait/ForgeweaveTraits.java` (`FRACTURED` behavior) | `src/main/java/slimeknights/tconstruct/tools/traits/TraitBonusDamage.java`, `src/main/java/slimeknights/tconstruct/tools/TinkerTraits.java` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
+| `src/main/java/dev/gkissel/forgeweave/trait/ForgeweaveTraits.java` (same-trait-applies-once stacking rule) | `src/main/java/slimeknights/tconstruct/library/traits/AbstractTraitLeveled.java` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
+| `src/main/java/dev/gkissel/forgeweave/data/ForgeweaveLanguageProvider.java` (trait names and descriptions) | `resources/assets/tconstruct/lang/en_us.lang` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
 
 Each material JSON derives its stat values and tint color from that file; the Java that loads them is an
 independent reimplementation against NeoForge's datapack registry API and carries no row.
@@ -74,3 +80,13 @@ Assembled tool item models (`ToolItem`) are three-layer composites of the five e
 textures (`pickaxe_head.png`/`shovel_head.png`/`axe_head.png`/`tool_binding.png`/`tool_handle.png`,
 already rowed above), tinted per layer by `ForgeweaveItemColors`; no new texture files were added for
 tools, so there is nothing further to row.
+
+Trait behavior (issue #12) is ported semantics, not copied code: the rates, conditions and magnitudes
+are upstream's, the `Trait` interface and its registry are written fresh against 1.21's data
+components and NeoForge events. Two deliberate deviations, both forced by ADR-0002's one-trait-id-per-
+material data model: upstream's flint grants `crude2` on the head part plus `crude` elsewhere, which
+stacks to level 3 (+15% vs unarmored), while Forgeweave's flint grants plain `crude` (level 1, +5%);
+and upstream's stone grants `cheapskate` on the head part on top of `cheap`, a durability *penalty*
+Forgeweave does not ship (stone's lower durability is already in its material JSON). `Trait.java`
+carries only the four hooks the four shipped traits use rather than upstream's full `ITrait` surface,
+so it is not a derived file and carries no row.

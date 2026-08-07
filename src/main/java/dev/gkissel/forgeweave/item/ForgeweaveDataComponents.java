@@ -1,5 +1,7 @@
 package dev.gkissel.forgeweave.item;
 
+import java.util.List;
+
 import com.mojang.serialization.Codec;
 
 import net.minecraft.core.component.DataComponentType;
@@ -43,6 +45,18 @@ public final class ForgeweaveDataComponents {
     public static final DeferredHolder<DataComponentType<?>, DataComponentType<ToolStats.Stats>> TOOL_STATS =
             DATA_COMPONENTS.registerComponentType("tool_stats",
                     builder -> builder.persistent(ToolStats.Stats.CODEC).networkSynchronized(ToolStats.Stats.STREAM_CODEC));
+
+    /**
+     * The ids of the {@code Trait}s an assembled tool has, resolved from its three materials at
+     * assembly time and de-duplicated ({@code ForgeweaveTraits#resolve}). Stored rather than looked
+     * up per use because the seams traits hook into -- notably
+     * {@code ToolItem#getDefaultAttributeModifiers}, which receives only an {@code ItemStack} -- have
+     * no registry access to resolve materials with.
+     */
+    public static final DeferredHolder<DataComponentType<?>, DataComponentType<List<ResourceLocation>>> TRAITS =
+            DATA_COMPONENTS.registerComponentType("traits",
+                    builder -> builder.persistent(ResourceLocation.CODEC.listOf())
+                            .networkSynchronized(ResourceLocation.STREAM_CODEC.apply(ByteBufCodecs.list())));
 
     /**
      * Set once a tool runs out of durability. CONTEXT.md: a Broken tool is unusable but never

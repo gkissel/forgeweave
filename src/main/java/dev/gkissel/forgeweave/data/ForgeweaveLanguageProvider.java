@@ -49,5 +49,18 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("material.forgeweave.stone", "Stone");
         add("material.forgeweave.flint", "Flint");
         add("material.forgeweave.bone", "Bone");
+
+        // Trait names and descriptions, keyed by trait id like materials are by material id -- traits
+        // are Java behavior selected by data (ADR-0002), so nothing derives these keys for us. The
+        // tool info panel (issue #47) is what will display them; wording follows upstream 1.12's
+        // modifier.<id>.name/.desc entries.
+        add("trait.forgeweave.ecological.name", "Ecological");
+        add("trait.forgeweave.ecological.description", "Renewable resources are so good, they regenerate by themselves!");
+        add("trait.forgeweave.cheap.name", "Cheap");
+        add("trait.forgeweave.cheap.description", "Increases durability gained when repairing the tool.");
+        add("trait.forgeweave.crude.name", "Crude");
+        add("trait.forgeweave.crude.description", "Bonus damage against unarmored targets.");
+        add("trait.forgeweave.fractured.name", "Fractured");
+        add("trait.forgeweave.fractured.description", "Your tool's damage is increased.");
     }
 }
