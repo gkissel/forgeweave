@@ -1,0 +1,61 @@
+name: Bug report
+description: Report reproducible incorrect Forgeweave behavior
+title: "[Bug]: "
+labels:
+  - needs-triage
+body:
+  - type: markdown
+    attributes:
+      value: Thanks for reporting a Forgeweave problem. Do not report it to the Tinkers' Construct team.
+  - type: input
+    id: forgeweave-version
+    attributes:
+      label: Forgeweave version
+      placeholder: 0.1.0
+    validations:
+      required: true
+  - type: input
+    id: minecraft-version
+    attributes:
+      label: Minecraft and NeoForge versions
+      placeholder: Minecraft 1.21.1, NeoForge 21.x.x
+    validations:
+      required: true
+  - type: textarea
+    id: description
+    attributes:
+      label: What happened?
+      description: Describe the observed behavior and what you expected instead.
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Reproduction steps
+      placeholder: |
+        1. Start a world with...
+        2. Build or craft...
+        3. Observe...
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs and crash reports
+      description: Attach files or provide a link. Do not paste secrets or private server credentials.
+  - type: input
+    id: mod-list
+    attributes:
+      label: Other installed mods
+      description: Link a mod list or write "Forgeweave only".
+    validations:
+      required: true
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Before submitting
+      options:
+        - label: I searched for an existing issue covering this problem.
+          required: true
+        - label: I reproduced this without OptiFine or unsupported core modifications.
+          required: true

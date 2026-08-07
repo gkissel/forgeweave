@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Security vulnerability
+    url: https://github.com/gkissel/forgeweave/security/advisories/new
+    about: Report security problems privately instead of opening a public issue.
+  - name: Tinkers' Construct support
+    url: https://slimeknights.github.io/faq/
+    about: Forgeweave cannot provide support for the official Tinkers' Construct mod.

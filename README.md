@@ -23,4 +23,10 @@ Forgeweave maintains its own issue tracker and support channels. It is not endor
 
 Forgeweave's original code is available under the [MIT License](LICENSE). Derived portions retain their applicable upstream copyright and license notices.
 
+## Contributing and security
+
+Contributions are welcome through pull requests. Read [CONTRIBUTING.md](CONTRIBUTING.md) before starting substantial work.
+
+Report vulnerabilities privately according to [SECURITY.md](SECURITY.md), not through public issues.
+
 Minecraft is a trademark of Microsoft Corporation. This project is not affiliated with or endorsed by Microsoft or Mojang Studios.
