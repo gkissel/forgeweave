@@ -57,9 +57,24 @@ Each milestone ships a playable release under the tag scheme in [releasing.md](r
 | M4 | Armors (Construct's Armory-inspired) | M2 (reuses parts/traits/modifiers) |
 | M5 | Gadgets: slingshot, slime boots | M2 |
 | M6 | Material expansion at TAIGA scale; modded metals become tool materials via the datapack registry | Stable material data model (M1), metals (M2) |
-| M7 | Tool leveling (Tool Leveling addon-inspired) | M3 |
+| M7 | Tool leveling (derived from Tinkers' Tool Leveling) | M3 |
 | M8 | Deep compat: Apotheosis, Curios, Jade/WTHIT, EMI, Mekanism, and other major mods by adoption | M4 (Curios needs armors/gadgets) |
 | M9 | Original-asset rewrite (removes upstream-derived assets) | Content freeze of M1–M8 |
+
+### Milestone sources
+
+Per-milestone source policy, decided from the [addon ecosystem survey](research/tic2-addon-ecosystem.md). **Derive** = MIT upstream, code/assets may be ported with `NOTICE.md` rows per ADR-0003. **Inspire** = design lessons only, no code or assets copied, regardless of how good the reference is.
+
+| Milestone | Derive from | Inspire from |
+| --- | --- | --- |
+| M2 | — | Tinkers' Complement (decomposed Melter / Alloy Tank / High Oven smeltery — unlicensed, strictly read-only), TAIGA (alloy table), Tinkers' Addons (modifier worked examples) |
+| M3 | — | PlusTiC: katana (damage scales with kills) and an energy-consuming ranged tool as the modern-era shapes |
+| M4 | — | Construct's Armory (LGPL): two-station split, exactly four armor slots, variety carried by traits and modifiers |
+| M6 | — | TAIGA + Moar Tinkers progression ladders. Sizing target: the material schema and picker UI stay usable at 50–70 materials / 30–45 traits |
+| M7 | **Tinkers' Tool Leveling** (MIT, 16 classes — direct port allowed) | Ships behind a config flag; interaction with the modifier cap is decided at M7 planning, not discovered in play |
+| M1/M8 | **Tinker's JEI** (MIT, 4 classes — reference for the JEI plugin) | — |
+
+**Excluded source**: Ceramics — MIT and derivation-eligible, but its content (clay fluid handling, cisterns) is not on Forgeweave's roadmap; not used as a source.
 
 ## Testing strategy
 
