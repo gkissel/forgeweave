@@ -10,7 +10,7 @@ Target: Minecraft 1.21.1 / NeoForge 21.1 / Java 21 (ADR-0001).
 
 In a fresh 1.21.1 survival world on a **dedicated server**, without cheats, a player can:
 
-1. Craft a blank pattern at a vanilla crafting table and convert it into part patterns.
+1. Craft a blank pattern at a vanilla crafting table and convert it into part patterns at a Stencil Table.
 2. Craft parts from at least 3 different materials at a Part Builder.
 3. Assemble a working pickaxe at a Tool Station.
 4. Mine with it; durability drops; at 0 durability the tool becomes Broken, not destroyed.
@@ -25,15 +25,15 @@ All part, assembly, and repair recipes are visible in JEI.
 | Tools (3) | pickaxe, shovel, hatchet |
 | Materials (4) | wood, stone, flint, bone — one Trait each |
 | Parts (5) | pickaxe head, shovel head, axe head, tool binding, tool handle |
-| Blocks (3) | Part Builder, Tool Station, Crafting Station |
-| Items | blank pattern + 5 part patterns |
-| UI (3) | Part Builder GUI, Tool Station GUI, Crafting Station GUI — each with an attached-chest side panel |
+| Blocks (4) | Part Builder, Tool Station, Crafting Station, Stencil Table |
+| Items | blank pattern + 5 part patterns + per-material shards |
+| UI (4) | Part Builder GUI, Tool Station GUI, Crafting Station GUI (each with an attached-chest side panel), Stencil Table GUI (pattern selection) |
 | Config | `allowVanillaEnchanting` (default `false`) |
 | Recipes | vanilla-table recipes for blocks/patterns; part, assembly, and repair recipes in-station |
 
 ### In scope (systems)
 
-Stations, patterns, parts, tool assembly, material stats, traits, durability, broken state, repair, vanilla tool-tier tags, datapack-driven materials (ADR-0002), datagen, JEI integration (including recipe-click transfer into open stations), attached-chest side inventory in station GUIs, dedicated-server multiplayer.
+Stations, patterns, parts, tool assembly, material stats, material item values with shard change (1.12 mechanic: e.g. plank=1, log=4; excess returned as shards), traits, durability, broken state, repair, vanilla tool-tier tags, datapack-driven materials (ADR-0002), datagen, JEI integration (including recipe-click transfer into open stations), attached-chest side inventory in station GUIs, dedicated-server multiplayer.
 
 ### Non-goals for M1
 
