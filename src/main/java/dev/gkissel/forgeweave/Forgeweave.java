@@ -14,11 +14,14 @@ import net.neoforged.neoforge.registries.DataPackRegistryEvent;
 
 import net.minecraft.core.Registry;
 
+import dev.gkissel.forgeweave.block.ForgeweaveBlockEntities;
+import dev.gkissel.forgeweave.block.ForgeweaveBlocks;
 import dev.gkissel.forgeweave.data.ForgeweaveDataGenerators;
 import dev.gkissel.forgeweave.item.ForgeweaveCreativeTab;
 import dev.gkissel.forgeweave.item.ForgeweaveDataComponents;
 import dev.gkissel.forgeweave.item.ForgeweaveItems;
 import dev.gkissel.forgeweave.material.Material;
+import dev.gkissel.forgeweave.menu.ForgeweaveMenus;
 
 // The value here must match the modId in META-INF/neoforge.mods.toml.
 @Mod(Forgeweave.MODID)
@@ -28,7 +31,10 @@ public class Forgeweave {
 
     public Forgeweave(IEventBus modEventBus, ModContainer modContainer) {
         ForgeweaveDataComponents.DATA_COMPONENTS.register(modEventBus);
+        ForgeweaveBlocks.BLOCKS.register(modEventBus);
+        ForgeweaveBlockEntities.BLOCK_ENTITIES.register(modEventBus);
         ForgeweaveItems.ITEMS.register(modEventBus);
+        ForgeweaveMenus.MENUS.register(modEventBus);
         ForgeweaveCreativeTab.TABS.register(modEventBus);
         modEventBus.addListener(this::registerDataPackRegistries);
         modEventBus.addListener(this::commonSetup);

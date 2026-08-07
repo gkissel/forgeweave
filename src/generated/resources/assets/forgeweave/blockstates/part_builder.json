@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=east": {
+      "model": "forgeweave:block/part_builder",
+      "y": 90
+    },
+    "facing=north": {
+      "model": "forgeweave:block/part_builder"
+    },
+    "facing=south": {
+      "model": "forgeweave:block/part_builder",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "forgeweave:block/part_builder",
+      "y": 270
+    }
+  }
+}

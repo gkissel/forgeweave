@@ -5,6 +5,7 @@ import net.minecraft.data.PackOutput;
 import net.neoforged.neoforge.common.data.LanguageProvider;
 
 import dev.gkissel.forgeweave.Forgeweave;
+import dev.gkissel.forgeweave.block.ForgeweaveBlocks;
 import dev.gkissel.forgeweave.item.ForgeweaveItems;
 
 /**
@@ -20,6 +21,8 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
     @Override
     protected void addTranslations() {
         add("itemGroup.forgeweave", "Forgeweave");
+
+        addBlock(ForgeweaveBlocks.PART_BUILDER, "Part Builder");
 
         addItem(ForgeweaveItems.PATTERN_BLANK, "Blank Pattern");
         addItem(ForgeweaveItems.PATTERN_PICKAXE_HEAD, "Pickaxe Head Pattern");
