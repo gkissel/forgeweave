@@ -1,0 +1,18 @@
+{
+  "head": {
+    "durability": 120,
+    "mining_speed": 4.0,
+    "attack_damage": 3.0
+  },
+  "handle": {
+    "durability_modifier": 0.5,
+    "durability": -50
+  },
+  "extra_durability": 20,
+  "incorrect_for_tool": "minecraft:incorrect_for_stone_tool",
+  "trait": "forgeweave:cheap",
+  "repair_item": {
+    "tag": "minecraft:stone_tool_materials"
+  },
+  "color": "#999999"
+}

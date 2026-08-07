@@ -1,0 +1,18 @@
+{
+  "head": {
+    "durability": 150,
+    "mining_speed": 5.0,
+    "attack_damage": 2.9
+  },
+  "handle": {
+    "durability_modifier": 0.6,
+    "durability": -60
+  },
+  "extra_durability": 40,
+  "incorrect_for_tool": "minecraft:incorrect_for_stone_tool",
+  "trait": "forgeweave:crude",
+  "repair_item": {
+    "item": "minecraft:flint"
+  },
+  "color": "#696969"
+}

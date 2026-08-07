@@ -22,7 +22,8 @@ sourceSets.main.resources {
 }
 
 repositories {
-    // Add here additional repositories if required by some of the dependencies below.
+    // JUnit and its transitive dependencies for the unit test source set.
+    mavenCentral()
 }
 
 base {
@@ -92,6 +93,12 @@ neoForge {
             sourceSet(sourceSets.main)
         }
     }
+
+    // Runs `src/test/java` on a bootstrapped Minecraft, so codecs that need registries work in plain JUnit.
+    unitTest {
+        enable()
+        testedMod = mods."${mod_id}"
+    }
 }
 
 // Sets up a dependency configuration called 'localRuntime'.
@@ -106,6 +113,17 @@ dependencies {
     // For more info:
     // http://www.gradle.org/docs/current/userguide/artifact_dependencies_tutorial.html
     // http://www.gradle.org/docs/current/userguide/dependency_management.html
+
+    testImplementation platform('org.junit:junit-bom:5.11.4')
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+
+tasks.named('test', Test) {
+    useJUnitPlatform()
+    testLogging {
+        events 'passed', 'failed', 'skipped'
+    }
 }
 
 // This block of code expands all declared replace properties in the specified resource targets.
