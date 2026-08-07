@@ -1,6 +1,6 @@
 {
   "parent": "minecraft:item/generated",
   "textures": {
-    "layer0": "forgeweave:item/axe_head"
+    "layer0": "forgeweave:item/tool_handle"
   }
 }
