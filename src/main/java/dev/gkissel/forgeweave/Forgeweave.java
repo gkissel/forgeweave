@@ -14,6 +14,7 @@ import net.neoforged.neoforge.registries.DataPackRegistryEvent;
 
 import net.minecraft.core.Registry;
 
+import dev.gkissel.forgeweave.data.ForgeweaveDataGenerators;
 import dev.gkissel.forgeweave.item.ForgeweaveCreativeTab;
 import dev.gkissel.forgeweave.item.ForgeweaveDataComponents;
 import dev.gkissel.forgeweave.item.ForgeweaveItems;
@@ -31,6 +32,7 @@ public class Forgeweave {
         ForgeweaveCreativeTab.TABS.register(modEventBus);
         modEventBus.addListener(this::registerDataPackRegistries);
         modEventBus.addListener(this::commonSetup);
+        modEventBus.addListener(ForgeweaveDataGenerators::gatherData);
         NeoForge.EVENT_BUS.addListener(this::onServerStarted);
     }
 
