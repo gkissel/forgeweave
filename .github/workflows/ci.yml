@@ -43,3 +43,27 @@ jobs:
             git diff -- src/generated/resources
             exit 1
           fi
+
+  gametest:
+    name: GameTest
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Check out source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Set up Java
+        uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961 # v5.7.0
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@9c971963bec38e04b3d30dcc455b5382be2fdbfb # v6.3.0
+
+      - name: Run GameTest suite
+        # Headless by design (type = "gameTestServer" in build.gradle); no display server needed.
+        # ModDevGradle's runGameTestServer task fails the Gradle process (nonzero exit) when any
+        # required GameTest fails, so this step fails the job on a GameTest regression.
+        run: ./gradlew runGameTestServer
