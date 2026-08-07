@@ -38,6 +38,7 @@ public final class ForgeweaveCreativeTab {
             .build());
 
     private static void addDisplayItems(CreativeModeTab.ItemDisplayParameters parameters, CreativeModeTab.Output output) {
+        output.accept(ForgeweaveItems.PART_BUILDER.get());
         output.accept(ForgeweaveItems.PATTERN_BLANK.get());
         output.accept(ForgeweaveItems.PATTERN_PICKAXE_HEAD.get());
         output.accept(ForgeweaveItems.PATTERN_SHOVEL_HEAD.get());

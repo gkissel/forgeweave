@@ -28,6 +28,11 @@ One row per derived file (ADR-0003). Maintained in PR review: a PR introducing d
 | `src/main/resources/assets/forgeweave/textures/item/axe_head.png` | `resources/assets/tconstruct/textures/items/hatchet/head.png` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
 | `src/main/resources/assets/forgeweave/textures/item/tool_binding.png` | `resources/assets/tconstruct/textures/items/parts/binding.png` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
 | `src/main/resources/assets/forgeweave/textures/item/tool_handle.png` | `resources/assets/tconstruct/textures/items/parts/tool_rod.png` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
+| `src/main/resources/assets/forgeweave/textures/block/part_builder_top.png` | `resources/assets/tconstruct/textures/blocks/partbuilder_top.png` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
+| `src/main/resources/assets/forgeweave/textures/block/part_builder_side.png` | `resources/assets/tconstruct/textures/blocks/table_side.png` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
+| `src/main/java/dev/gkissel/forgeweave/data/ForgeweaveRecipeProvider.java` (blank pattern recipe) | `resources/assets/tconstruct/recipes/tools/pattern.json` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
+| `src/main/java/dev/gkissel/forgeweave/data/ForgeweaveRecipeProvider.java` (Part Builder block recipe) | `resources/assets/tconstruct/recipes/tools/table/part_builder.json` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
+| `src/main/java/dev/gkissel/forgeweave/menu/PartBuilderRecipes.java` (per-part material costs) | `src/main/java/slimeknights/tconstruct/tools/TinkerTools.java` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
 
 Each material JSON derives its stat values and tint color from that file; the Java that loads them is an
 independent reimplementation against NeoForge's datapack registry API and carries no row.
@@ -39,3 +44,13 @@ the M1 issue brief because they are designed for client-side tinting rather than
 color, matching Forgeweave's `RegisterColorHandlersEvent.Item`-based tint approach. All item model
 JSONs referencing these textures are written fresh for 1.21's `item/generated` format and carry no
 row of their own.
+
+The Part Builder block model is a plain top/side/bottom cube (`cube_bottom_top`), not upstream's
+compound "tabletop + 4 legs" model (`models/block/table.json`) -- upstream's own top/side textures
+for this block are near-solid-color placeholders, so the extra leg geometry wasn't worth porting for
+the same visual payoff; the bottom face reuses vanilla's `oak_log` texture directly (as upstream's
+model does too), so it isn't copied and carries no row. The Part Builder GUI background
+(`assets/forgeweave/textures/gui/part_builder.png`) is freshly authored, not derived from upstream's
+`partbuilder.png` -- that texture's non-rectangular (rounded-corner) panel and 5-slot layout didn't
+fit this GUI's simpler 3-slot layout, so per the issue #9 brief it uses a plain generic background
+instead. Neither carries a NOTICE row.

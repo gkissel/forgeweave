@@ -1,17 +1,19 @@
 package dev.gkissel.forgeweave.item;
 
+import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
 
 import net.neoforged.neoforge.registries.DeferredItem;
 import net.neoforged.neoforge.registries.DeferredRegister;
 
 import dev.gkissel.forgeweave.Forgeweave;
+import dev.gkissel.forgeweave.block.ForgeweaveBlocks;
 
 /**
- * The blank pattern, the five part patterns, and the five part items (CONTEXT.md glossary;
- * docs/SCOPE.md M1 content manifest). Patterns are reusable templates, so they stack to 1 like
- * upstream Tinkers' 1.12 patterns; parts stack normally since their material is a plain data
- * component rather than per-instance stats.
+ * The blank pattern, the five part patterns, the five part items, and the Part Builder block item
+ * (CONTEXT.md glossary; docs/SCOPE.md M1 content manifest). Patterns are reusable templates, so
+ * they stack to 1 like upstream Tinkers' 1.12 patterns; parts stack normally since their material
+ * is a plain data component rather than per-instance stats.
  */
 public final class ForgeweaveItems {
     public static final DeferredRegister.Items ITEMS = DeferredRegister.createItems(Forgeweave.MODID);
@@ -34,6 +36,8 @@ public final class ForgeweaveItems {
     public static final DeferredItem<PartItem> PART_AXE_HEAD = ITEMS.registerItem("axe_head", PartItem::new);
     public static final DeferredItem<PartItem> PART_TOOL_BINDING = ITEMS.registerItem("tool_binding", PartItem::new);
     public static final DeferredItem<PartItem> PART_TOOL_HANDLE = ITEMS.registerItem("tool_handle", PartItem::new);
+
+    public static final DeferredItem<BlockItem> PART_BUILDER = ITEMS.registerSimpleBlockItem("part_builder", ForgeweaveBlocks.PART_BUILDER);
 
     private ForgeweaveItems() {}
 }
