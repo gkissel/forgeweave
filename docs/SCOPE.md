@@ -52,14 +52,45 @@ Each milestone ships a playable release under the tag scheme in [releasing.md](r
 | # | Milestone | Depends on |
 | --- | --- | --- |
 | M1 | Tools slice (this document) | — |
-| M2 | Smeltery, metal materials, modifiers | M1 |
+| M2 | Smeltery, metal materials, modifiers. Melts/casts any mod's ores and ingots via standard `c:` tags, so modded metals (Mekanism, Create, Thermal, …) work without per-mod code | M1 |
 | M3 | Full tool roster incl. modern-era tools (mace-alike), sword and combat tuning | M2 |
 | M4 | Armors (Construct's Armory-inspired) | M2 (reuses parts/traits/modifiers) |
 | M5 | Gadgets: slingshot, slime boots | M2 |
-| M6 | Material expansion at TAIGA scale | Stable material data model (M1), metals (M2) |
+| M6 | Material expansion at TAIGA scale; modded metals become tool materials via the datapack registry | Stable material data model (M1), metals (M2) |
 | M7 | Tool leveling (Tool Leveling addon-inspired) | M3 |
-| M8 | Deep compat: Apotheosis, Curios, Jade/WTHIT, EMI | M4 (Curios needs armors/gadgets) |
+| M8 | Deep compat: Apotheosis, Curios, Jade/WTHIT, EMI, Mekanism, and other major mods by adoption | M4 (Curios needs armors/gadgets) |
 | M9 | Original-asset rewrite (removes upstream-derived assets) | Content freeze of M1–M8 |
+
+## Testing strategy
+
+Applies across all milestones; the M1 CI/release gates above are the first instance.
+
+### Save compatibility
+
+- Alpha releases (0.x before the first beta tag) may break world saves; every alpha's release notes state this.
+- From the first beta tag onward, saves must survive every Forgeweave upgrade within the same Minecraft line.
+- Enforcement: a **fixture decode corpus** — each release adds its serialized formats (tool item components, material data) as test resources; CI must decode the entire corpus on every PR thereafter. Plus one manual load of a previous-release world in the release checklist. A golden-world CI boot is added only if a save break ever escapes the corpus.
+
+### Performance budgets
+
+- Idle stations and idle smeltery cost ~zero tick time: block entities tick only while doing work.
+- The material sync packet stays trivially small even at M6 scale (hundreds of materials).
+- Checked by a manual spark profile on the release-checklist dedicated server from M2 onward. No automated performance gates unless a shipped regression proves the need.
+
+### Regression rule
+
+Every bug-fix PR whose defect is automatable includes a regression test that fails before the fix and passes after; a PR without one must state why the defect is not automatable. Pure GUI/rendering/feel bugs are exempt and go to the manual release checklist if they recur. Enforced in PR review.
+
+### Per-milestone gate template
+
+Each milestone M2–M9 must define, at its planning session and before implementation starts:
+
+1. A written acceptance test in this document (fresh world, dedicated server, no cheats), like M1's.
+2. Which new mechanics get GameTest coverage.
+3. New manual release-checklist lines — including a JEI-installed sanity check every release, and from M8 on, a check with each integrated compat mod present.
+4. Any new save-compat fixtures the milestone's serialized formats require.
+
+No milestone-specific CI infrastructure beyond that.
 
 ## Open questions
 
