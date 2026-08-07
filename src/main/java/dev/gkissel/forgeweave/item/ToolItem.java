@@ -33,6 +33,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 
+import dev.gkissel.forgeweave.config.ForgeweaveConfig;
 import dev.gkissel.forgeweave.material.Material;
 import dev.gkissel.forgeweave.tool.ToolMaterials;
 import dev.gkissel.forgeweave.tool.ToolStats;
@@ -84,6 +85,18 @@ public class ToolItem extends Item {
 
     public static boolean isBroken(ItemStack stack) {
         return stack.getOrDefault(ForgeweaveDataComponents.BROKEN.get(), false);
+    }
+
+    /**
+     * CONTEXT.md invariant: not enchantable at the vanilla enchanting table unless
+     * {@code allowVanillaEnchanting} is on. {@code ItemStack#isEnchantable()} (consulted by
+     * {@code EnchantmentMenu#slotsChanged} to decide whether to offer enchantments at all) calls
+     * straight through to this method, so gating it here rejects the item from the table outright
+     * when off rather than merely offering zero applicable enchantments.
+     */
+    @Override
+    public boolean isEnchantable(ItemStack stack) {
+        return ForgeweaveConfig.ALLOW_VANILLA_ENCHANTING.get() && super.isEnchantable(stack);
     }
 
     /**
