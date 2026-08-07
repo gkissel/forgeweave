@@ -15,24 +15,33 @@ import net.minecraft.world.item.ItemStack;
 import dev.gkissel.forgeweave.block.ForgeweaveBlocks;
 
 /**
- * The Part Builder's menu: pattern slot + material slot + output slot, plus the player's inventory.
- * All crafting logic is resolved server-side here (docs/SCOPE.md issue #9 design constraints) --
- * {@link #broadcastChanges()} recomputes the output slot from the current pattern/material every
- * tick the menu is open (same "always up to date" pattern as vanilla's furnace/crafting menus), and
- * taking the output only consumes the material slot's cost; the pattern is never consumed here
- * (matches upstream 1.12: stencils are reusable). The blank pattern is the one-way-consumed step
- * instead, via the blank-to-part-pattern conversion recipes in {@code ForgeweaveRecipeProvider}.
+ * The Part Builder's menu: pattern slot + material slot + output slot + change slot, plus the
+ * player's inventory. All crafting logic is resolved server-side here (docs/SCOPE.md issue #9
+ * design constraints) -- {@link #broadcastChanges()} recomputes the output slot from the current
+ * pattern/material every tick the menu is open (same "always up to date" pattern as vanilla's
+ * furnace/crafting menus), and taking the output only consumes the material slot's cost; the
+ * pattern is never consumed here (matches upstream 1.12: stencils are reusable). The blank pattern
+ * is the one-way-consumed step instead, via the blank-to-part-pattern conversion recipes in {@code
+ * ForgeweaveRecipeProvider}.
+ *
+ * <p>The change slot (issue #45) is real, persistent container storage, not a live preview: it's
+ * only ever written by {@link OutputSlot#onTake} depositing the shard change for the craft that
+ * just happened, matching upstream 1.12's {@code ContainerPartBuilder#onCrafting}/{@code
+ * SlotOut} -- this is what stops a player from grabbing "pending" shard change without actually
+ * completing the craft.
  */
 public class PartBuilderMenu extends AbstractContainerMenu {
-    public static final int CONTAINER_SLOTS = 3;
+    public static final int CONTAINER_SLOTS = 4;
     private static final int PATTERN_SLOT = 0;
     private static final int MATERIAL_SLOT = 1;
     private static final int OUTPUT_SLOT = 2;
+    private static final int CHANGE_SLOT = 3;
 
     private final Container container;
     private final ContainerLevelAccess access;
     private final HolderLookup.Provider registries;
-    private int pendingMaterialCost;
+    private int pendingMaterialItemsConsumed;
+    private ItemStack pendingChange = ItemStack.EMPTY;
 
     /** Client-side: constructed from the open-menu packet, with a throwaway local container. */
     public PartBuilderMenu(int containerId, Inventory playerInventory) {
@@ -51,8 +60,8 @@ public class PartBuilderMenu extends AbstractContainerMenu {
         // Slot coordinates match upstream 1.12's ContainerPartBuilder (issue #43: derived
         // partbuilder.png background) -- pattern at its stencil-slot spot, material at the first of
         // upstream's two stacked input slots (the second, at (48, 44), stays visible on the
-        // background but unused since we only have one material slot), output at upstream's main
-        // output spot (its secondary output at (132, 35) likewise stays unused).
+        // background but unused since we only have one material slot), main output at upstream's
+        // main output spot, and the shard change at upstream's secondary output spot (issue #45).
         addSlot(new Slot(container, PATTERN_SLOT, 26, 35) {
             @Override
             public boolean mayPlace(ItemStack stack) {
@@ -66,6 +75,12 @@ public class PartBuilderMenu extends AbstractContainerMenu {
         });
         addSlot(new Slot(container, MATERIAL_SLOT, 48, 26));
         addSlot(new OutputSlot(container, OUTPUT_SLOT, 106, 35));
+        addSlot(new Slot(container, CHANGE_SLOT, 132, 35) {
+            @Override
+            public boolean mayPlace(ItemStack stack) {
+                return false;
+            }
+        });
 
         layoutPlayerInventorySlots(playerInventory);
     }
@@ -93,7 +108,10 @@ public class PartBuilderMenu extends AbstractContainerMenu {
         }
         Optional<PartBuilderRecipes.Match> match =
                 PartBuilderRecipes.resolve(registries, slots.get(PATTERN_SLOT).getItem(), slots.get(MATERIAL_SLOT).getItem());
-        pendingMaterialCost = match.map(PartBuilderRecipes.Match::materialCost).orElse(0);
+        pendingMaterialItemsConsumed = match.map(PartBuilderRecipes.Match::materialItemsConsumed).orElse(0);
+        pendingChange = match.map(PartBuilderRecipes.Match::change).orElse(ItemStack.EMPTY);
+        // Only the main output slot reflects the live preview; the change slot is real storage
+        // (see class javadoc) and is untouched here.
         slots.get(OUTPUT_SLOT).set(match.map(PartBuilderRecipes.Match::result).orElse(ItemStack.EMPTY));
     }
 
@@ -154,9 +172,30 @@ public class PartBuilderMenu extends AbstractContainerMenu {
         @Override
         public void onTake(Player player, ItemStack stack) {
             Slot materialSlot = slots.get(MATERIAL_SLOT);
-            materialSlot.remove(pendingMaterialCost);
+            materialSlot.remove(pendingMaterialItemsConsumed);
             materialSlot.setChanged();
+            depositChange();
             super.onTake(player, stack);
+        }
+
+        /**
+         * Deposits this craft's shard change into the change slot, stacking onto whatever's already
+         * there if it's the same material's shards (upstream {@code ContainerPartBuilder#onCrafting}:
+         * a different material's leftover shards already sitting there are left alone -- the player
+         * clears the slot first).
+         */
+        private void depositChange() {
+            if (pendingChange.isEmpty()) {
+                return;
+            }
+            Slot changeSlot = slots.get(CHANGE_SLOT);
+            ItemStack existing = changeSlot.getItem();
+            if (existing.isEmpty()) {
+                changeSlot.set(pendingChange.copy());
+            } else if (ItemStack.isSameItemSameComponents(existing, pendingChange)) {
+                existing.grow(pendingChange.getCount());
+                changeSlot.setChanged();
+            }
         }
     }
 }

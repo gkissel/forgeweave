@@ -38,6 +38,12 @@ public final class ForgeweaveItems {
     public static final DeferredItem<PartItem> PART_TOOL_BINDING = ITEMS.registerItem("tool_binding", PartItem::new);
     public static final DeferredItem<PartItem> PART_TOOL_HANDLE = ITEMS.registerItem("tool_handle", PartItem::new);
 
+    // The Part Builder's crafting change (issue #45): leftover material value below a part's cost,
+    // paid out as shards. One item id shared by every material -- like the parts above, per-material
+    // rendering is the MATERIAL data component plus a client-side tint, not a distinct item/texture
+    // per material (PartItem already provides that machinery, so this just reuses it).
+    public static final DeferredItem<PartItem> SHARD = ITEMS.registerItem("shard", PartItem::new);
+
     public static final DeferredItem<BlockItem> PART_BUILDER = ITEMS.registerSimpleBlockItem("part_builder", ForgeweaveBlocks.PART_BUILDER);
 
     // Assembled tools (docs/SCOPE.md M1 issues #10/#11). Deliberately not DiggerItem/TieredItem:

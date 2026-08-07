@@ -37,6 +37,7 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         addItem(ForgeweaveItems.PART_AXE_HEAD, "Axe Head");
         addItem(ForgeweaveItems.PART_TOOL_BINDING, "Tool Binding");
         addItem(ForgeweaveItems.PART_TOOL_HANDLE, "Tool Handle");
+        addItem(ForgeweaveItems.SHARD, "Shard");
 
         addItem(ForgeweaveItems.TOOL_PICKAXE, "Pickaxe");
         addItem(ForgeweaveItems.TOOL_SHOVEL, "Shovel");

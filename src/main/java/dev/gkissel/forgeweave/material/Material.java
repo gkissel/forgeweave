@@ -1,5 +1,7 @@
 package dev.gkissel.forgeweave.material;
 
+import java.util.List;
+
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 
@@ -29,6 +31,7 @@ public record Material(
         int extraDurability,
         TagKey<Block> incorrectForTool,
         ResourceLocation trait,
+        List<CraftingItem> craftingItems,
         Ingredient repairItem,
         TextColor color) {
 
@@ -55,6 +58,19 @@ public record Material(
                 .apply(instance, Handle::new));
     }
 
+    /**
+     * A raw item usable as Part Builder crafting input, and how much of a part's cost one of it
+     * pays off (upstream 1.12's `Material#addItem`/`addItemIngot`, {@code TinkerMaterials}).
+     * {@code value} is expressed in shard-units -- see {@code PartBuilderRecipes}'s class javadoc
+     * for the shard-unit normalization this whole schema is denominated in.
+     */
+    public record CraftingItem(Ingredient ingredient, int value) {
+        public static final Codec<CraftingItem> CODEC = RecordCodecBuilder.create(instance -> instance.group(
+                Ingredient.CODEC.fieldOf("ingredient").forGetter(CraftingItem::ingredient),
+                ExtraCodecs.POSITIVE_INT.fieldOf("value").forGetter(CraftingItem::value))
+                .apply(instance, CraftingItem::new));
+    }
+
     public static final Codec<Material> CODEC = RecordCodecBuilder.create(instance -> instance.group(
             Head.CODEC.fieldOf("head").forGetter(Material::head),
             Handle.CODEC.fieldOf("handle").forGetter(Material::handle),
@@ -63,6 +79,9 @@ public record Material(
             TagKey.codec(Registries.BLOCK).fieldOf("incorrect_for_tool").forGetter(Material::incorrectForTool),
             // Trait behavior is Java (ADR-0002); data only names which trait this material grants.
             ResourceLocation.CODEC.fieldOf("trait").forGetter(Material::trait),
+            // Part Builder crafting inputs and their shard-unit values (issue #45); repair_item below
+            // is a separate, single-ingredient concept used only for Tool Station repair.
+            CraftingItem.CODEC.listOf().fieldOf("crafting_items").forGetter(Material::craftingItems),
             Ingredient.CODEC.fieldOf("repair_item").forGetter(Material::repairItem),
             TextColor.CODEC.fieldOf("color").forGetter(Material::color))
             .apply(instance, Material::new));
