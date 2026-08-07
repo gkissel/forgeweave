@@ -1,0 +1,18 @@
+{
+  "head": {
+    "durability": 200,
+    "mining_speed": 5.09,
+    "attack_damage": 2.5
+  },
+  "handle": {
+    "durability_modifier": 1.1,
+    "durability": 50
+  },
+  "extra_durability": 65,
+  "incorrect_for_tool": "minecraft:incorrect_for_stone_tool",
+  "trait": "forgeweave:fractured",
+  "repair_item": {
+    "item": "minecraft:bone"
+  },
+  "color": "#EDE6BF"
+}

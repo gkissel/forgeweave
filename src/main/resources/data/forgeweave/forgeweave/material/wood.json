@@ -1,0 +1,18 @@
+{
+  "head": {
+    "durability": 35,
+    "mining_speed": 2.0,
+    "attack_damage": 2.0
+  },
+  "handle": {
+    "durability_modifier": 1.0,
+    "durability": 25
+  },
+  "extra_durability": 15,
+  "incorrect_for_tool": "minecraft:incorrect_for_wooden_tool",
+  "trait": "forgeweave:ecological",
+  "repair_item": {
+    "tag": "minecraft:planks"
+  },
+  "color": "#8E661B"
+}
