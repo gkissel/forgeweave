@@ -33,6 +33,10 @@ One row per derived file (ADR-0003). Maintained in PR review: a PR introducing d
 | `src/main/java/dev/gkissel/forgeweave/data/ForgeweaveRecipeProvider.java` (blank pattern recipe) | `resources/assets/tconstruct/recipes/tools/pattern.json` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
 | `src/main/java/dev/gkissel/forgeweave/data/ForgeweaveRecipeProvider.java` (Part Builder block recipe) | `resources/assets/tconstruct/recipes/tools/table/part_builder.json` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
 | `src/main/java/dev/gkissel/forgeweave/menu/PartBuilderRecipes.java` (per-part material costs) | `src/main/java/slimeknights/tconstruct/tools/TinkerTools.java` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
+| `src/main/resources/assets/forgeweave/textures/block/tool_station_top.png` | `resources/assets/tconstruct/textures/blocks/toolstation_top.png` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
+| `src/main/java/dev/gkissel/forgeweave/tool/ToolStats.java` (durability/mining-speed/attack formula) | `src/main/java/slimeknights/tconstruct/library/tools/ToolNBT.java` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
+| `src/main/java/dev/gkissel/forgeweave/menu/ToolAssemblyRecipes.java` (head/binding/handle part composition) | `src/main/java/slimeknights/tconstruct/tools/tools/Pickaxe.java`, `Shovel.java`, `Hatchet.java` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
+| `src/main/java/dev/gkissel/forgeweave/data/ForgeweaveRecipeProvider.java` (Tool Station block recipe shape) | `resources/assets/tconstruct/recipes/tools/table/tool_station.json` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
 
 Each material JSON derives its stat values and tint color from that file; the Java that loads them is an
 independent reimplementation against NeoForge's datapack registry API and carries no row.
@@ -54,3 +58,15 @@ model does too), so it isn't copied and carries no row. The Part Builder GUI bac
 `partbuilder.png` -- that texture's non-rectangular (rounded-corner) panel and 5-slot layout didn't
 fit this GUI's simpler 3-slot layout, so per the issue #9 brief it uses a plain generic background
 instead. Neither carries a NOTICE row.
+
+The Tool Station block model (issue #10) is the same plain top/side/bottom cube approach, reusing
+`part_builder_side.png` directly for its side texture rather than duplicating the file -- upstream's
+own `toolstation.json` and `partbuilder.json` both point at the same `table_side.png`, so this isn't
+a new derivation and carries no additional row. The Tool Station GUI background
+(`assets/forgeweave/textures/gui/tool_station.png`) is likewise freshly authored, not derived from
+upstream's `toolstation.png`, for the same reason as the Part Builder's: this GUI has a different
+slot count/layout (4 slots vs. upstream's 5) and upstream's texture is a non-rectangular panel.
+Assembled tool item models (`ToolItem`) are three-layer composites of the five existing derived part
+textures (`pickaxe_head.png`/`shovel_head.png`/`axe_head.png`/`tool_binding.png`/`tool_handle.png`,
+already rowed above), tinted per layer by `ForgeweaveItemColors`; no new texture files were added for
+tools, so there is nothing further to row.

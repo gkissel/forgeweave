@@ -39,12 +39,21 @@ public final class ForgeweaveCreativeTab {
 
     private static void addDisplayItems(CreativeModeTab.ItemDisplayParameters parameters, CreativeModeTab.Output output) {
         output.accept(ForgeweaveItems.PART_BUILDER.get());
+        output.accept(ForgeweaveItems.TOOL_STATION.get());
         output.accept(ForgeweaveItems.PATTERN_BLANK.get());
         output.accept(ForgeweaveItems.PATTERN_PICKAXE_HEAD.get());
         output.accept(ForgeweaveItems.PATTERN_SHOVEL_HEAD.get());
         output.accept(ForgeweaveItems.PATTERN_AXE_HEAD.get());
         output.accept(ForgeweaveItems.PATTERN_TOOL_BINDING.get());
         output.accept(ForgeweaveItems.PATTERN_TOOL_HANDLE.get());
+
+        // Shown component-less (no TOOL_MATERIALS set): unlike parts, a tool has three independent
+        // material slots, so there's no small fixed set of "one per material" variants to enumerate
+        // -- the creative tab shows the plain (untinted) base tool; assembled variants come from the
+        // Tool Station.
+        output.accept(ForgeweaveItems.TOOL_PICKAXE.get());
+        output.accept(ForgeweaveItems.TOOL_SHOVEL.get());
+        output.accept(ForgeweaveItems.TOOL_HATCHET.get());
 
         List<Holder.Reference<Material>> materials =
                 parameters.holders().lookupOrThrow(Material.REGISTRY).listElements().toList();

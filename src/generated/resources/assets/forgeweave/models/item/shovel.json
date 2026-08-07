@@ -1,0 +1,8 @@
+{
+  "parent": "minecraft:item/generated",
+  "textures": {
+    "layer0": "forgeweave:item/shovel_head",
+    "layer1": "forgeweave:item/tool_binding",
+    "layer2": "forgeweave:item/tool_handle"
+  }
+}

@@ -66,6 +66,19 @@ public class ForgeweaveRecipeProvider extends RecipeProvider {
         patternConversion(recipeOutput, ForgeweaveItems.PATTERN_AXE_HEAD, Items.WOODEN_AXE, 1);
         patternConversion(recipeOutput, ForgeweaveItems.PATTERN_TOOL_HANDLE, Items.STICK, 1);
         patternConversion(recipeOutput, ForgeweaveItems.PATTERN_TOOL_BINDING, Items.STICK, 2);
+
+        // Tool Station (docs/SCOPE.md M1 issue #10): same 1x2 "pattern over a material tag" shape as
+        // the Part Builder above, but planks instead of logs -- upstream's own tool_station.json
+        // instead crafts over the ore-dict "workbench" tag (a crafting table), which Forgeweave has
+        // no equivalent of; using planks keeps this recipe visually and structurally consistent with
+        // the Part Builder's, per the issue #10 brief.
+        ShapedRecipeBuilder.shaped(RecipeCategory.MISC, ForgeweaveItems.TOOL_STATION.get())
+                .pattern("A")
+                .pattern("B")
+                .define('A', ForgeweaveItems.PATTERN_BLANK.get())
+                .define('B', ItemTags.PLANKS)
+                .unlockedBy("has_pattern_blank", has(ForgeweaveItems.PATTERN_BLANK.get()))
+                .save(recipeOutput);
     }
 
     private void patternConversion(RecipeOutput recipeOutput, DeferredItem<Item> result, Item marker, int markerCount) {
