@@ -19,8 +19,9 @@ import dev.gkissel.forgeweave.block.ForgeweaveBlocks;
  * All crafting logic is resolved server-side here (docs/SCOPE.md issue #9 design constraints) --
  * {@link #broadcastChanges()} recomputes the output slot from the current pattern/material every
  * tick the menu is open (same "always up to date" pattern as vanilla's furnace/crafting menus), and
- * taking the output only consumes the material slot's cost; the pattern is never consumed
- * (CONTEXT.md: patterns are reusable).
+ * taking the output only consumes the material slot's cost; the pattern is never consumed here
+ * (matches upstream 1.12: stencils are reusable). The blank pattern is the one-way-consumed step
+ * instead, via the blank-to-part-pattern conversion recipes in {@code ForgeweaveRecipeProvider}.
  */
 public class PartBuilderMenu extends AbstractContainerMenu {
     public static final int CONTAINER_SLOTS = 3;

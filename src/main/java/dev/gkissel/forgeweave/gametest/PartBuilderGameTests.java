@@ -21,8 +21,9 @@ import dev.gkissel.forgeweave.item.ForgeweaveItems;
 import dev.gkissel.forgeweave.menu.PartBuilderMenu;
 
 /**
- * Covers docs/SCOPE.md M1 issue #9's verification: pattern + material -> correct part item.
- * Exercises the real {@link PartBuilderMenu} crafting resolution (not a duplicate of its logic).
+ * Covers docs/SCOPE.md M1 issue #9's verification: pattern + material -> correct part item, and
+ * that the pattern stays in the slot afterward (upstream 1.12 stencils are reusable; see
+ * {@link PartBuilderMenu} class javadoc). Exercises the real menu (not a duplicate of its logic).
  */
 @GameTestHolder(Forgeweave.MODID)
 @PrefixGameTestTemplate(false)
@@ -52,6 +53,12 @@ public class PartBuilderGameTests {
                         .equals(output.get(ForgeweaveDataComponents.MATERIAL.get())),
                 "expected the pickaxe head's material to be forgeweave:stone, got "
                         + output.get(ForgeweaveDataComponents.MATERIAL.get()));
+
+        // Simulates taking the crafted item: the pattern is reusable (upstream 1.12 behavior), only
+        // the material is consumed.
+        menu.getSlot(2).onTake(player, output);
+        helper.assertFalse(menu.getSlot(0).getItem().isEmpty(), "expected the pattern to remain (reusable)");
+        helper.assertTrue(menu.getSlot(1).getItem().isEmpty(), "expected the material to be fully consumed");
 
         helper.succeed();
     }
