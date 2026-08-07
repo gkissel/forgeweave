@@ -1,0 +1,21 @@
+{
+  "itemGroup.forgeweave": "Forgeweave",
+
+  "item.forgeweave.pattern_blank": "Blank Pattern",
+  "item.forgeweave.pattern_pickaxe_head": "Pickaxe Head Pattern",
+  "item.forgeweave.pattern_shovel_head": "Shovel Head Pattern",
+  "item.forgeweave.pattern_axe_head": "Axe Head Pattern",
+  "item.forgeweave.pattern_tool_binding": "Tool Binding Pattern",
+  "item.forgeweave.pattern_tool_handle": "Tool Handle Pattern",
+
+  "item.forgeweave.pickaxe_head": "Pickaxe Head",
+  "item.forgeweave.shovel_head": "Shovel Head",
+  "item.forgeweave.axe_head": "Axe Head",
+  "item.forgeweave.tool_binding": "Tool Binding",
+  "item.forgeweave.tool_handle": "Tool Handle",
+
+  "material.forgeweave.wood": "Wood",
+  "material.forgeweave.stone": "Stone",
+  "material.forgeweave.flint": "Flint",
+  "material.forgeweave.bone": "Bone"
+}

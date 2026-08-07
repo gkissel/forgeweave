@@ -14,6 +14,9 @@ import net.neoforged.neoforge.registries.DataPackRegistryEvent;
 
 import net.minecraft.core.Registry;
 
+import dev.gkissel.forgeweave.item.ForgeweaveCreativeTab;
+import dev.gkissel.forgeweave.item.ForgeweaveDataComponents;
+import dev.gkissel.forgeweave.item.ForgeweaveItems;
 import dev.gkissel.forgeweave.material.Material;
 
 // The value here must match the modId in META-INF/neoforge.mods.toml.
@@ -23,6 +26,9 @@ public class Forgeweave {
     private static final Logger LOGGER = LogUtils.getLogger();
 
     public Forgeweave(IEventBus modEventBus, ModContainer modContainer) {
+        ForgeweaveDataComponents.DATA_COMPONENTS.register(modEventBus);
+        ForgeweaveItems.ITEMS.register(modEventBus);
+        ForgeweaveCreativeTab.TABS.register(modEventBus);
         modEventBus.addListener(this::registerDataPackRegistries);
         modEventBus.addListener(this::commonSetup);
         NeoForge.EVENT_BUS.addListener(this::onServerStarted);
