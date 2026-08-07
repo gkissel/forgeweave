@@ -25,15 +25,15 @@ All part, assembly, and repair recipes are visible in JEI.
 | Tools (3) | pickaxe, shovel, hatchet |
 | Materials (4) | wood, stone, flint, bone — one Trait each |
 | Parts (5) | pickaxe head, shovel head, axe head, tool binding, tool handle |
-| Blocks (2) | Part Builder, Tool Station |
+| Blocks (3) | Part Builder, Tool Station, Crafting Station |
 | Items | blank pattern + 5 part patterns |
-| UI (2) | Part Builder GUI, Tool Station GUI |
+| UI (3) | Part Builder GUI, Tool Station GUI, Crafting Station GUI — each with an attached-chest side panel |
 | Config | `allowVanillaEnchanting` (default `false`) |
 | Recipes | vanilla-table recipes for blocks/patterns; part, assembly, and repair recipes in-station |
 
 ### In scope (systems)
 
-Stations, patterns, parts, tool assembly, material stats, traits, durability, broken state, repair, vanilla tool-tier tags, datapack-driven materials (ADR-0002), datagen, JEI integration, dedicated-server multiplayer.
+Stations, patterns, parts, tool assembly, material stats, traits, durability, broken state, repair, vanilla tool-tier tags, datapack-driven materials (ADR-0002), datagen, JEI integration (including recipe-click transfer into open stations), attached-chest side inventory in station GUIs, dedicated-server multiplayer.
 
 ### Non-goals for M1
 
