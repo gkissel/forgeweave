@@ -18,5 +18,8 @@ public final class ForgeweaveMenus {
     public static final DeferredHolder<MenuType<?>, MenuType<PartBuilderMenu>> PART_BUILDER =
             MENUS.register("part_builder", () -> IMenuTypeExtension.create((windowId, inventory, buf) -> new PartBuilderMenu(windowId, inventory)));
 
+    public static final DeferredHolder<MenuType<?>, MenuType<ToolStationMenu>> TOOL_STATION =
+            MENUS.register("tool_station", () -> IMenuTypeExtension.create((windowId, inventory, buf) -> new ToolStationMenu(windowId, inventory)));
+
     private ForgeweaveMenus() {}
 }

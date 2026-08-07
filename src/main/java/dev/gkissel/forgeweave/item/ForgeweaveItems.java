@@ -39,5 +39,16 @@ public final class ForgeweaveItems {
 
     public static final DeferredItem<BlockItem> PART_BUILDER = ITEMS.registerSimpleBlockItem("part_builder", ForgeweaveBlocks.PART_BUILDER);
 
+    // Assembled tools (docs/SCOPE.md M1 issue #10): plain Item, not DiggerItem/TieredItem -- mining
+    // and combat behavior is issue #11. stacksTo(1) like every other Forgeweave equipment item.
+    public static final DeferredItem<ToolItem> TOOL_PICKAXE =
+            ITEMS.registerItem("pickaxe", ToolItem::new, new Item.Properties().stacksTo(1));
+    public static final DeferredItem<ToolItem> TOOL_SHOVEL =
+            ITEMS.registerItem("shovel", ToolItem::new, new Item.Properties().stacksTo(1));
+    public static final DeferredItem<ToolItem> TOOL_HATCHET =
+            ITEMS.registerItem("hatchet", ToolItem::new, new Item.Properties().stacksTo(1));
+
+    public static final DeferredItem<BlockItem> TOOL_STATION = ITEMS.registerSimpleBlockItem("tool_station", ForgeweaveBlocks.TOOL_STATION);
+
     private ForgeweaveItems() {}
 }

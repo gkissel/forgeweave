@@ -1,0 +1,175 @@
+package dev.gkissel.forgeweave.menu;
+
+import java.util.Optional;
+
+import net.minecraft.core.HolderLookup;
+import net.minecraft.world.Container;
+import net.minecraft.world.SimpleContainer;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.inventory.ContainerLevelAccess;
+import net.minecraft.world.inventory.Slot;
+import net.minecraft.world.item.ItemStack;
+
+import dev.gkissel.forgeweave.block.ForgeweaveBlocks;
+
+/**
+ * The Tool Station's menu: head + binding + handle input slots, an output slot, and the player's
+ * inventory. Same "recompute output every broadcast, only consume on take" shape as
+ * {@link dev.gkissel.forgeweave.menu.PartBuilderMenu}.
+ *
+ * <p>Assembly-only for M1 (docs/SCOPE.md issue #10). CONTEXT.md assigns repair to this same
+ * station ("Tool Station -- Block + GUI where Parts are assembled into a Tool and where Tools are
+ * repaired"), so all crafting logic funnels through {@link ToolAssemblyRecipes}; adding repair
+ * (issue #11) means adding a parallel resolve method there and branching on it in
+ * {@link #updateResult()}, not restructuring the slot/broadcast plumbing here.
+ */
+public class ToolStationMenu extends AbstractContainerMenu {
+    public static final int CONTAINER_SLOTS = 4;
+    private static final int HEAD_SLOT = 0;
+    private static final int BINDING_SLOT = 1;
+    private static final int HANDLE_SLOT = 2;
+    private static final int OUTPUT_SLOT = 3;
+
+    private final Container container;
+    private final ContainerLevelAccess access;
+    private final HolderLookup.Provider registries;
+
+    /** Client-side: constructed from the open-menu packet, with a throwaway local container. */
+    public ToolStationMenu(int containerId, Inventory playerInventory) {
+        this(containerId, playerInventory, new SimpleContainer(CONTAINER_SLOTS), ContainerLevelAccess.NULL);
+    }
+
+    /** Server-side: constructed by {@code ToolStationBlockEntity} with the block's real inventory. */
+    public ToolStationMenu(int containerId, Inventory playerInventory, Container container, ContainerLevelAccess access) {
+        super(ForgeweaveMenus.TOOL_STATION.get(), containerId);
+        checkContainerSize(container, CONTAINER_SLOTS);
+        this.container = container;
+        this.access = access;
+        this.registries = playerInventory.player.level().registryAccess();
+        container.startOpen(playerInventory.player);
+
+        addSlot(new Slot(container, HEAD_SLOT, 20, 35) {
+            @Override
+            public boolean mayPlace(ItemStack stack) {
+                return ToolAssemblyRecipes.isHeadPart(stack);
+            }
+        });
+        addSlot(new Slot(container, BINDING_SLOT, 38, 35) {
+            @Override
+            public boolean mayPlace(ItemStack stack) {
+                return ToolAssemblyRecipes.isBindingPart(stack);
+            }
+        });
+        addSlot(new Slot(container, HANDLE_SLOT, 56, 35) {
+            @Override
+            public boolean mayPlace(ItemStack stack) {
+                return ToolAssemblyRecipes.isHandlePart(stack);
+            }
+        });
+        addSlot(new OutputSlot(container, OUTPUT_SLOT, 116, 35));
+
+        layoutPlayerInventorySlots(playerInventory);
+    }
+
+    private void layoutPlayerInventorySlots(Inventory playerInventory) {
+        for (int row = 0; row < 3; row++) {
+            for (int col = 0; col < 9; col++) {
+                addSlot(new Slot(playerInventory, col + row * 9 + 9, 8 + col * 18, 84 + row * 18));
+            }
+        }
+        for (int col = 0; col < 9; col++) {
+            addSlot(new Slot(playerInventory, col, 8 + col * 18, 142));
+        }
+    }
+
+    @Override
+    public void broadcastChanges() {
+        updateResult();
+        super.broadcastChanges();
+    }
+
+    private void updateResult() {
+        if (access == ContainerLevelAccess.NULL) {
+            return; // client: the server pushes slot contents down instead of computing locally.
+        }
+        Optional<ItemStack> result = ToolAssemblyRecipes.resolve(registries,
+                slots.get(HEAD_SLOT).getItem(), slots.get(BINDING_SLOT).getItem(), slots.get(HANDLE_SLOT).getItem());
+        slots.get(OUTPUT_SLOT).set(result.orElse(ItemStack.EMPTY));
+    }
+
+    @Override
+    public ItemStack quickMoveStack(Player player, int index) {
+        Slot slot = slots.get(index);
+        if (slot == null || !slot.hasItem()) {
+            return ItemStack.EMPTY;
+        }
+        ItemStack stackInSlot = slot.getItem();
+        ItemStack result = stackInSlot.copy();
+
+        if (index < CONTAINER_SLOTS) {
+            if (!moveItemStackTo(stackInSlot, CONTAINER_SLOTS, slots.size(), true)) {
+                return ItemStack.EMPTY;
+            }
+        } else if (ToolAssemblyRecipes.isHeadPart(stackInSlot)) {
+            if (!moveItemStackTo(stackInSlot, HEAD_SLOT, HEAD_SLOT + 1, false)) {
+                return ItemStack.EMPTY;
+            }
+        } else if (ToolAssemblyRecipes.isBindingPart(stackInSlot)) {
+            if (!moveItemStackTo(stackInSlot, BINDING_SLOT, BINDING_SLOT + 1, false)) {
+                return ItemStack.EMPTY;
+            }
+        } else if (ToolAssemblyRecipes.isHandlePart(stackInSlot)) {
+            if (!moveItemStackTo(stackInSlot, HANDLE_SLOT, HANDLE_SLOT + 1, false)) {
+                return ItemStack.EMPTY;
+            }
+        } else {
+            return ItemStack.EMPTY;
+        }
+
+        if (stackInSlot.isEmpty()) {
+            slot.setByPlayer(ItemStack.EMPTY);
+        } else {
+            slot.setChanged();
+        }
+        if (stackInSlot.getCount() == result.getCount()) {
+            return ItemStack.EMPTY;
+        }
+        slot.onTake(player, stackInSlot);
+        return result;
+    }
+
+    @Override
+    public boolean stillValid(Player player) {
+        return stillValid(access, player, ForgeweaveBlocks.TOOL_STATION.get());
+    }
+
+    @Override
+    public void removed(Player player) {
+        super.removed(player);
+        container.stopOpen(player);
+    }
+
+    private final class OutputSlot extends Slot {
+        OutputSlot(Container container, int index, int x, int y) {
+            super(container, index, x, y);
+        }
+
+        @Override
+        public boolean mayPlace(ItemStack stack) {
+            return false;
+        }
+
+        @Override
+        public void onTake(Player player, ItemStack stack) {
+            slots.get(HEAD_SLOT).remove(1);
+            slots.get(HEAD_SLOT).setChanged();
+            slots.get(BINDING_SLOT).remove(1);
+            slots.get(BINDING_SLOT).setChanged();
+            slots.get(HANDLE_SLOT).remove(1);
+            slots.get(HANDLE_SLOT).setChanged();
+            super.onTake(player, stack);
+        }
+    }
+}

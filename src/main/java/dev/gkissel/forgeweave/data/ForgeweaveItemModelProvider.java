@@ -20,6 +20,11 @@ import dev.gkissel.forgeweave.item.ForgeweaveItems;
  * other, without a dynamic texture/model system (see NOTICE.md for why upstream's runtime-composited
  * imprint wasn't ported). The five part items each get their own texture named after the item
  * (upstream hand-written models this replaces used the same convention).
+ *
+ * <p>Tools (docs/SCOPE.md issue #10) layer their head/binding/handle textures the same way patterns
+ * do, three layers deep instead of two, tinted per-layer by {@code ForgeweaveItemColors}
+ * (tintIndex 0/1/2 = head/binding/handle -- matches {@code ToolMaterials}'s field order). This
+ * reuses the five existing part textures rather than authoring new per-tool art.
  */
 public class ForgeweaveItemModelProvider extends ItemModelProvider {
     public ForgeweaveItemModelProvider(PackOutput output, ExistingFileHelper existingFileHelper) {
@@ -41,6 +46,10 @@ public class ForgeweaveItemModelProvider extends ItemModelProvider {
         basicItem(ForgeweaveItems.PART_AXE_HEAD.get());
         basicItem(ForgeweaveItems.PART_TOOL_BINDING.get());
         basicItem(ForgeweaveItems.PART_TOOL_HANDLE.get());
+
+        toolModel(ForgeweaveItems.TOOL_PICKAXE, modLoc("item/pickaxe_head"));
+        toolModel(ForgeweaveItems.TOOL_SHOVEL, modLoc("item/shovel_head"));
+        toolModel(ForgeweaveItems.TOOL_HATCHET, modLoc("item/axe_head"));
     }
 
     // Unchecked parent, matching basicItem()'s approach: "item/generated" is a vanilla builtin
@@ -52,5 +61,13 @@ public class ForgeweaveItemModelProvider extends ItemModelProvider {
         if (overlayTexture != null) {
             builder.texture("layer1", overlayTexture);
         }
+    }
+
+    private void toolModel(DeferredItem<? extends Item> item, ResourceLocation headTexture) {
+        getBuilder(item.getId().toString())
+                .parent(new ModelFile.UncheckedModelFile("item/generated"))
+                .texture("layer0", headTexture)
+                .texture("layer1", modLoc("item/tool_binding"))
+                .texture("layer2", modLoc("item/tool_handle"));
     }
 }

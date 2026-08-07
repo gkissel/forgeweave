@@ -23,6 +23,7 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("itemGroup.forgeweave", "Forgeweave");
 
         addBlock(ForgeweaveBlocks.PART_BUILDER, "Part Builder");
+        addBlock(ForgeweaveBlocks.TOOL_STATION, "Tool Station");
 
         addItem(ForgeweaveItems.PATTERN_BLANK, "Blank Pattern");
         addItem(ForgeweaveItems.PATTERN_PICKAXE_HEAD, "Pickaxe Head Pattern");
@@ -36,6 +37,10 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         addItem(ForgeweaveItems.PART_AXE_HEAD, "Axe Head");
         addItem(ForgeweaveItems.PART_TOOL_BINDING, "Tool Binding");
         addItem(ForgeweaveItems.PART_TOOL_HANDLE, "Tool Handle");
+
+        addItem(ForgeweaveItems.TOOL_PICKAXE, "Pickaxe");
+        addItem(ForgeweaveItems.TOOL_SHOVEL, "Shovel");
+        addItem(ForgeweaveItems.TOOL_HATCHET, "Hatchet");
 
         add("material.forgeweave.wood", "Wood");
         add("material.forgeweave.stone", "Stone");

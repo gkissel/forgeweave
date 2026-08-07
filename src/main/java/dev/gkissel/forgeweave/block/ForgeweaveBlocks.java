@@ -9,12 +9,18 @@ import net.neoforged.neoforge.registries.DeferredRegister;
 
 import dev.gkissel.forgeweave.Forgeweave;
 
-/** Forgeweave's blocks: the Part Builder (docs/SCOPE.md M1 issue #9). */
+/** Forgeweave's blocks: the Part Builder (docs/SCOPE.md M1 issue #9) and Tool Station (issue #10). */
 public final class ForgeweaveBlocks {
     public static final DeferredRegister.Blocks BLOCKS = DeferredRegister.createBlocks(Forgeweave.MODID);
 
     public static final DeferredBlock<PartBuilderBlock> PART_BUILDER = BLOCKS.register("part_builder",
             () -> new PartBuilderBlock(BlockBehaviour.Properties.of()
+                    .mapColor(MapColor.WOOD)
+                    .strength(2.5F)
+                    .sound(SoundType.WOOD)));
+
+    public static final DeferredBlock<ToolStationBlock> TOOL_STATION = BLOCKS.register("tool_station",
+            () -> new ToolStationBlock(BlockBehaviour.Properties.of()
                     .mapColor(MapColor.WOOD)
                     .strength(2.5F)
                     .sound(SoundType.WOOD)));

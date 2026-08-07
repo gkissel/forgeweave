@@ -9,7 +9,7 @@ import net.minecraft.world.level.block.Block;
 
 import dev.gkissel.forgeweave.block.ForgeweaveBlocks;
 
-/** The Part Builder drops itself, keeping its inventory contents dropped separately on removal. */
+/** The Part Builder and Tool Station drop themselves, keeping their inventory contents dropped separately on removal. */
 public class ForgeweaveBlockLootSubProvider extends BlockLootSubProvider {
     public ForgeweaveBlockLootSubProvider(HolderLookup.Provider registries) {
         super(Set.of(), FeatureFlags.REGISTRY.allFlags(), registries);
@@ -18,6 +18,7 @@ public class ForgeweaveBlockLootSubProvider extends BlockLootSubProvider {
     @Override
     protected void generate() {
         dropSelf(ForgeweaveBlocks.PART_BUILDER.get());
+        dropSelf(ForgeweaveBlocks.TOOL_STATION.get());
     }
 
     @Override
