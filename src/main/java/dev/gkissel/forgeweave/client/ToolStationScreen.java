@@ -17,13 +17,16 @@ import dev.gkissel.forgeweave.menu.ToolStationMenu;
 
 /**
  * The Tool Station's GUI. Background is upstream 1.12's real {@code toolstation.png} panel (issue
- * #43), cropped to its 176x166 base region. Unlike the Part Builder, upstream draws that station's
- * input slots at runtime-computed positions (its slot count/layout depends on the tool being
- * built) rather than baking them into the panel at fixed coordinates, so there's no single
- * "upstream slot layout" to copy for our fixed 4-slot (head/binding/handle/output) design; instead
- * this composites upstream's own reusable slot-background/slot-border sprite pieces (same atlas, at
- * (176,0) and (194,0) in {@code toolstation.png}) onto our four fixed {@link ToolStationMenu} slot
- * coordinates -- see NOTICE.md. {@link AbstractContainerScreen}'s default title/inventory-label
+ * #43), derived as-is: a straight 176x166 crop of the base panel region with no compositing on top
+ * (a first cut tried pasting upstream's reusable slot-background/slot-border sprite pieces onto our
+ * slot coordinates, using the wrong alpha, which rendered as solid black boxes -- regression fixed
+ * by dropping that entirely). Unlike the Part Builder, upstream draws that station's input slots at
+ * runtime-computed positions (its slot count/layout depends on the tool being built), so there's no
+ * baked-in slot art anywhere in the panel to align to; our four {@link ToolStationMenu} slots just
+ * sit in the panel's open area, avoiding upstream's baked-in item-preview icon/arrow decoration
+ * (around x 90-150) and its name-textfield/button-tab chrome (flattened to plain panel gray at
+ * export time -- see NOTICE.md -- since Forgeweave's Tool Station has neither renaming nor
+ * tool-selection buttons). {@link AbstractContainerScreen}'s default title/inventory-label
  * positions already match upstream's.
  */
 @EventBusSubscriber(modid = Forgeweave.MODID, bus = EventBusSubscriber.Bus.MOD, value = Dist.CLIENT)
