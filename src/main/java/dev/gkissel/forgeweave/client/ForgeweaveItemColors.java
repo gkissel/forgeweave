@@ -49,17 +49,19 @@ public final class ForgeweaveItemColors {
         return opaqueMaterialColor(stack.get(ForgeweaveDataComponents.MATERIAL.get()));
     }
 
-    // Layer0 = head texture (tintIndex 0), layer1 = binding (1), layer2 = handle (2) -- matches
-    // ForgeweaveItemModelProvider's tool item models and ToolMaterials's field order.
+    // Layer0 = handle texture (tintIndex 0), layer1 = head (1), layer2 = binding (2) -- matches
+    // upstream 1.12's own tool item models (issue #43: ForgeweaveItemModelProvider's toolModel now
+    // uses the per-tool layer art in that order), not ToolMaterials's head/binding/handle field
+    // order.
     private static int toolMaterialTint(ItemStack stack, int tintIndex) {
         ToolMaterials materials = stack.get(ForgeweaveDataComponents.TOOL_MATERIALS.get());
         if (materials == null) {
             return -1;
         }
         ResourceLocation materialId = switch (tintIndex) {
-            case 0 -> materials.head();
-            case 1 -> materials.binding();
-            case 2 -> materials.handle();
+            case 0 -> materials.handle();
+            case 1 -> materials.head();
+            case 2 -> materials.binding();
             default -> null;
         };
         return opaqueMaterialColor(materialId);

@@ -1,5 +1,6 @@
 package dev.gkissel.forgeweave.block;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 import net.minecraft.core.BlockPos;
@@ -14,8 +15,12 @@ import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.ContainerLevelAccess;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
+
+import net.neoforged.neoforge.client.model.data.ModelData;
 
 import dev.gkissel.forgeweave.menu.PartBuilderMenu;
 
@@ -25,11 +30,16 @@ import dev.gkissel.forgeweave.menu.PartBuilderMenu;
  * PartBuilderBlock#onRemove}; the block entity itself has no ticking logic (docs/SCOPE.md testing
  * strategy: "idle stations... cost ~zero tick time" -- part crafting resolves instantly when the
  * player takes the output, there's nothing to tick).
+ *
+ * <p>Also retains the wood block it was crafted from ({@link WoodTexturedBlockEntity}, issue #43),
+ * defaulting to oak (upstream's Part Builder is crafted from {@code #minecraft:logs}).
  */
-public class PartBuilderBlockEntity extends BlockEntity implements MenuProvider {
+public class PartBuilderBlockEntity extends BlockEntity implements MenuProvider, WoodTexturedBlockEntity {
     private static final String TAG_INVENTORY = "inventory";
 
     private final SimpleContainer container = new SimpleContainer(PartBuilderMenu.CONTAINER_SLOTS);
+    @Nonnull
+    private Block texture = Blocks.OAK_LOG;
 
     public PartBuilderBlockEntity(BlockPos pos, BlockState state) {
         super(ForgeweaveBlockEntities.PART_BUILDER.get(), pos, state);
@@ -41,15 +51,43 @@ public class PartBuilderBlockEntity extends BlockEntity implements MenuProvider 
     }
 
     @Override
+    public Block getTexture() {
+        return texture;
+    }
+
+    @Override
+    public void setTexture(Block texture) {
+        if (this.texture == texture) {
+            return;
+        }
+        this.texture = texture;
+        WoodTexturedBlockEntity.notifyTextureChanged(this);
+    }
+
+    @Nonnull
+    @Override
+    public ModelData getModelData() {
+        return WoodTexturedBlockEntity.modelData(texture);
+    }
+
+    @Override
+    protected void collectImplicitComponents(net.minecraft.core.component.DataComponentMap.Builder builder) {
+        super.collectImplicitComponents(builder);
+        WoodTexturedBlockEntity.collectTextureComponent(this, builder);
+    }
+
+    @Override
     protected void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
         super.saveAdditional(tag, registries);
         tag.put(TAG_INVENTORY, container.createTag(registries));
+        WoodTexturedBlockEntity.writeTexture(tag, texture);
     }
 
     @Override
     protected void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
         super.loadAdditional(tag, registries);
         container.fromTag(tag.getList(TAG_INVENTORY, Tag.TAG_COMPOUND), registries);
+        texture = WoodTexturedBlockEntity.readTexture(tag, Blocks.OAK_LOG);
     }
 
     @Override

@@ -48,7 +48,12 @@ public class PartBuilderMenu extends AbstractContainerMenu {
         this.registries = playerInventory.player.level().registryAccess();
         container.startOpen(playerInventory.player);
 
-        addSlot(new Slot(container, PATTERN_SLOT, 20, 35) {
+        // Slot coordinates match upstream 1.12's ContainerPartBuilder (issue #43: derived
+        // partbuilder.png background) -- pattern at its stencil-slot spot, material at the first of
+        // upstream's two stacked input slots (the second, at (48, 44), stays visible on the
+        // background but unused since we only have one material slot), output at upstream's main
+        // output spot (its secondary output at (132, 35) likewise stays unused).
+        addSlot(new Slot(container, PATTERN_SLOT, 26, 35) {
             @Override
             public boolean mayPlace(ItemStack stack) {
                 return PartBuilderRecipes.isPattern(stack);
@@ -59,8 +64,8 @@ public class PartBuilderMenu extends AbstractContainerMenu {
                 return 1;
             }
         });
-        addSlot(new Slot(container, MATERIAL_SLOT, 52, 35));
-        addSlot(new OutputSlot(container, OUTPUT_SLOT, 116, 35));
+        addSlot(new Slot(container, MATERIAL_SLOT, 48, 26));
+        addSlot(new OutputSlot(container, OUTPUT_SLOT, 106, 35));
 
         layoutPlayerInventorySlots(playerInventory);
     }

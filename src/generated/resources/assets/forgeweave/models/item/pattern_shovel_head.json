@@ -1,7 +1,6 @@
 {
   "parent": "minecraft:item/generated",
   "textures": {
-    "layer0": "forgeweave:item/pattern",
-    "layer1": "forgeweave:item/shovel_head"
+    "layer0": "forgeweave:derived/item/pattern_shovel_head"
   }
 }

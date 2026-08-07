@@ -16,15 +16,16 @@ import dev.gkissel.forgeweave.menu.ForgeweaveMenus;
 import dev.gkissel.forgeweave.menu.PartBuilderMenu;
 
 /**
- * The Part Builder's GUI. The background is a freshly-authored panel, not a crop of upstream's
- * `partbuilder.png` -- that texture's non-rectangular (rounded-corner) shape and 5-slot layout
- * didn't fit this GUI's simpler 3-slot (pattern/material/output) layout cleanly, so per the issue
- * #9 brief this uses a plain generic background instead (no NOTICE.md row: nothing was copied).
+ * The Part Builder's GUI. The background is upstream 1.12's real {@code partbuilder.png} (issue
+ * #43, replacing the flat placeholder panel from issue #9), cropped to its 176x166 panel region
+ * (NOTICE.md); {@link PartBuilderMenu}'s slot coordinates were moved to match its baked-in slot
+ * art. {@link AbstractContainerScreen}'s default title/inventory-label positions already match
+ * upstream's, so this class only needs the background blit.
  */
 @EventBusSubscriber(modid = Forgeweave.MODID, bus = EventBusSubscriber.Bus.MOD, value = Dist.CLIENT)
 public class PartBuilderScreen extends AbstractContainerScreen<PartBuilderMenu> {
     private static final ResourceLocation TEXTURE =
-            ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "textures/gui/part_builder.png");
+            ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "textures/derived/gui/part_builder.png");
 
     public PartBuilderScreen(PartBuilderMenu menu, Inventory playerInventory, Component title) {
         super(menu, playerInventory, title);
