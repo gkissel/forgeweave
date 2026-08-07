@@ -1,8 +1,0 @@
-{
-  "parent": "minecraft:block/cube_bottom_top",
-  "textures": {
-    "bottom": "minecraft:block/oak_planks",
-    "side": "forgeweave:block/part_builder_side",
-    "top": "forgeweave:block/tool_station_top"
-  }
-}

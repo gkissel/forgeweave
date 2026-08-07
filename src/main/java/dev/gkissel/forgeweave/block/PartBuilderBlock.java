@@ -6,11 +6,17 @@ import com.mojang.serialization.MapCodec;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.Containers;
 import net.minecraft.world.InteractionResult;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.BlockPlaceContext;
+import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.LevelReader;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.EntityBlock;
 import net.minecraft.world.level.block.HorizontalDirectionalBlock;
@@ -19,6 +25,11 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.shapes.CollisionContext;
+import net.minecraft.world.phys.shapes.Shapes;
+import net.minecraft.world.phys.shapes.VoxelShape;
+
+import dev.gkissel.forgeweave.item.ForgeweaveDataComponents;
 
 /**
  * The Part Builder: a horizontal-facing block whose GUI turns a part pattern plus material items
@@ -29,9 +40,23 @@ import net.minecraft.world.phys.BlockHitResult;
  * mined block) when the block is broken, same as upstream's `BlockToolTable#keepInventory()`
  * returning {@code false} for the part builder variant. No NOTICE.md row for this fact -- it's a
  * design decision read from upstream's source, not copied code or assets.
+ *
+ * <p>Table-shaped (tabletop + 4 legs, hollow underside) and retains the wood block it was crafted
+ * from (issue #43): the {@code TABLE_SHAPE} collision box mirrors the 1.20.1 reference clone's
+ * {@code shared.block.TableBlock} ("top + 4 legs" boxes via {@code Shapes.or().optimize()}, adjusted
+ * to this block's shorter legs -- NOTICE.md), and {@link #setPlacedBy}/{@link #getCloneItemStack}
+ * move the {@link ForgeweaveDataComponents#TEXTURE} component between the crafted item and the
+ * placed block entity the same way Mantle's real (out-of-clone) {@code RetexturedBlock} does.
  */
 public class PartBuilderBlock extends HorizontalDirectionalBlock implements EntityBlock {
     public static final MapCodec<PartBuilderBlock> CODEC = simpleCodec(PartBuilderBlock::new);
+
+    private static final VoxelShape TABLE_SHAPE = Shapes.or(
+            Block.box(0.0D, 12.0D, 0.0D, 16.0D, 16.0D, 16.0D), // top
+            Block.box(0.0D, 0.0D, 0.0D, 4.0D, 12.0D, 4.0D), // leg
+            Block.box(12.0D, 0.0D, 0.0D, 16.0D, 12.0D, 4.0D), // leg
+            Block.box(12.0D, 0.0D, 12.0D, 16.0D, 12.0D, 16.0D), // leg
+            Block.box(0.0D, 0.0D, 12.0D, 4.0D, 12.0D, 16.0D)).optimize(); // leg
 
     public PartBuilderBlock(Properties properties) {
         super(properties);
@@ -54,6 +79,11 @@ public class PartBuilderBlock extends HorizontalDirectionalBlock implements Enti
     }
 
     @Override
+    protected VoxelShape getShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
+        return TABLE_SHAPE;
+    }
+
+    @Override
     public RenderShape getRenderShape(BlockState state) {
         return RenderShape.MODEL;
     }
@@ -62,6 +92,26 @@ public class PartBuilderBlock extends HorizontalDirectionalBlock implements Enti
     @Override
     public BlockEntity newBlockEntity(BlockPos pos, BlockState state) {
         return new PartBuilderBlockEntity(pos, state);
+    }
+
+    @Override
+    public void setPlacedBy(Level level, BlockPos pos, BlockState state, @Nullable LivingEntity placer, ItemStack stack) {
+        super.setPlacedBy(level, pos, state, placer, stack);
+        if (level.getBlockEntity(pos) instanceof PartBuilderBlockEntity partBuilder) {
+            ResourceLocation textureId = stack.get(ForgeweaveDataComponents.TEXTURE.get());
+            if (textureId != null && BuiltInRegistries.BLOCK.containsKey(textureId)) {
+                partBuilder.setTexture(BuiltInRegistries.BLOCK.get(textureId));
+            }
+        }
+    }
+
+    @Override
+    public ItemStack getCloneItemStack(LevelReader level, BlockPos pos, BlockState state) {
+        ItemStack stack = super.getCloneItemStack(level, pos, state);
+        if (level.getBlockEntity(pos) instanceof PartBuilderBlockEntity partBuilder) {
+            stack.set(ForgeweaveDataComponents.TEXTURE.get(), BuiltInRegistries.BLOCK.getKey(partBuilder.getTexture()));
+        }
+        return stack;
     }
 
     @Override

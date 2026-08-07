@@ -4,7 +4,6 @@ import net.minecraft.data.PackOutput;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Item;
 
-import net.neoforged.neoforge.client.model.generators.ItemModelBuilder;
 import net.neoforged.neoforge.client.model.generators.ItemModelProvider;
 import net.neoforged.neoforge.client.model.generators.ModelFile;
 import net.neoforged.neoforge.common.data.ExistingFileHelper;
@@ -15,16 +14,20 @@ import dev.gkissel.forgeweave.item.ForgeweaveItems;
 
 /**
  * Item models for every Forgeweave item (docs/adr/0002): a plain {@code minecraft:item/generated}
- * model per item. Part patterns layer their part's greyscale texture (layer1) over the shared paper
- * base (layer0) so the five part patterns are visually distinct from the blank pattern and from each
- * other, without a dynamic texture/model system (see NOTICE.md for why upstream's runtime-composited
- * imprint wasn't ported). The five part items each get their own texture named after the item
- * (upstream hand-written models this replaces used the same convention).
+ * model per item.
  *
- * <p>Tools (docs/SCOPE.md issue #10) layer their head/binding/handle textures the same way patterns
- * do, three layers deep instead of two, tinted per-layer by {@code ForgeweaveItemColors}
- * (tintIndex 0/1/2 = head/binding/handle -- matches {@code ToolMaterials}'s field order). This
- * reuses the five existing part textures rather than authoring new per-tool art.
+ * <p>Part patterns (issue #43) are single-layer now: each is a committed static composite PNG under
+ * {@code textures/derived/item/pattern_<part>.png} (the part's silhouette darkened onto the pattern
+ * base -- see {@code scripts/generate_pattern_textures.py} and NOTICE.md), replacing the old
+ * two-layer "pattern base + faint greyscale overlay" look. The blank pattern has no part to etch, so
+ * it stays the plain base texture.
+ *
+ * <p>Tools (issue #10, reworked by issue #43) use dedicated per-tool layer art positioned for the
+ * assembled item -- {@code textures/derived/tools/<tool>_{handle,head,binding}.png} -- rather than
+ * the standalone part sprites (those are centered for a loose inventory item, not an assembled
+ * tool). Layer order matches upstream 1.12's own tool models ({@code models/item/tools/*.tcon.json}:
+ * layer0 = handle, layer1 = head, layer2 = binding); {@code ForgeweaveItemColors#toolMaterialTint}'s
+ * tintIndex-to-material mapping matches this order, not {@code ToolMaterials}'s field order.
  */
 public class ForgeweaveItemModelProvider extends ItemModelProvider {
     public ForgeweaveItemModelProvider(PackOutput output, ExistingFileHelper existingFileHelper) {
@@ -33,41 +36,45 @@ public class ForgeweaveItemModelProvider extends ItemModelProvider {
 
     @Override
     protected void registerModels() {
-        ResourceLocation patternTexture = modLoc("item/pattern");
-        patternModel(ForgeweaveItems.PATTERN_BLANK, patternTexture, null);
-        patternModel(ForgeweaveItems.PATTERN_PICKAXE_HEAD, patternTexture, modLoc("item/pickaxe_head"));
-        patternModel(ForgeweaveItems.PATTERN_SHOVEL_HEAD, patternTexture, modLoc("item/shovel_head"));
-        patternModel(ForgeweaveItems.PATTERN_AXE_HEAD, patternTexture, modLoc("item/axe_head"));
-        patternModel(ForgeweaveItems.PATTERN_TOOL_BINDING, patternTexture, modLoc("item/tool_binding"));
-        patternModel(ForgeweaveItems.PATTERN_TOOL_HANDLE, patternTexture, modLoc("item/tool_handle"));
+        singleLayerModel(ForgeweaveItems.PATTERN_BLANK, derivedItem("pattern"));
+        singleLayerModel(ForgeweaveItems.PATTERN_PICKAXE_HEAD, derivedItem("pattern_pickaxe_head"));
+        singleLayerModel(ForgeweaveItems.PATTERN_SHOVEL_HEAD, derivedItem("pattern_shovel_head"));
+        singleLayerModel(ForgeweaveItems.PATTERN_AXE_HEAD, derivedItem("pattern_axe_head"));
+        singleLayerModel(ForgeweaveItems.PATTERN_TOOL_BINDING, derivedItem("pattern_tool_binding"));
+        singleLayerModel(ForgeweaveItems.PATTERN_TOOL_HANDLE, derivedItem("pattern_tool_handle"));
 
-        basicItem(ForgeweaveItems.PART_PICKAXE_HEAD.get());
-        basicItem(ForgeweaveItems.PART_SHOVEL_HEAD.get());
-        basicItem(ForgeweaveItems.PART_AXE_HEAD.get());
-        basicItem(ForgeweaveItems.PART_TOOL_BINDING.get());
-        basicItem(ForgeweaveItems.PART_TOOL_HANDLE.get());
+        singleLayerModel(ForgeweaveItems.PART_PICKAXE_HEAD, derivedItem("pickaxe_head"));
+        singleLayerModel(ForgeweaveItems.PART_SHOVEL_HEAD, derivedItem("shovel_head"));
+        singleLayerModel(ForgeweaveItems.PART_AXE_HEAD, derivedItem("axe_head"));
+        singleLayerModel(ForgeweaveItems.PART_TOOL_BINDING, derivedItem("tool_binding"));
+        singleLayerModel(ForgeweaveItems.PART_TOOL_HANDLE, derivedItem("tool_handle"));
 
-        toolModel(ForgeweaveItems.TOOL_PICKAXE, modLoc("item/pickaxe_head"));
-        toolModel(ForgeweaveItems.TOOL_SHOVEL, modLoc("item/shovel_head"));
-        toolModel(ForgeweaveItems.TOOL_HATCHET, modLoc("item/axe_head"));
+        toolModel(ForgeweaveItems.TOOL_PICKAXE, "pickaxe");
+        toolModel(ForgeweaveItems.TOOL_SHOVEL, "shovel");
+        toolModel(ForgeweaveItems.TOOL_HATCHET, "hatchet");
+    }
+
+    private ResourceLocation derivedItem(String name) {
+        return modLoc("derived/item/" + name);
+    }
+
+    private ResourceLocation derivedTool(String tool, String layer) {
+        return modLoc("derived/tools/" + tool + "_" + layer);
     }
 
     // Unchecked parent, matching basicItem()'s approach: "item/generated" is a vanilla builtin
     // model that isn't guaranteed to resolve through ExistingFileHelper in every datagen run mode.
-    private void patternModel(DeferredItem<Item> item, ResourceLocation baseTexture, ResourceLocation overlayTexture) {
-        ItemModelBuilder builder = getBuilder(item.getId().toString())
-                .parent(new ModelFile.UncheckedModelFile("item/generated"))
-                .texture("layer0", baseTexture);
-        if (overlayTexture != null) {
-            builder.texture("layer1", overlayTexture);
-        }
-    }
-
-    private void toolModel(DeferredItem<? extends Item> item, ResourceLocation headTexture) {
+    private void singleLayerModel(DeferredItem<? extends Item> item, ResourceLocation texture) {
         getBuilder(item.getId().toString())
                 .parent(new ModelFile.UncheckedModelFile("item/generated"))
-                .texture("layer0", headTexture)
-                .texture("layer1", modLoc("item/tool_binding"))
-                .texture("layer2", modLoc("item/tool_handle"));
+                .texture("layer0", texture);
+    }
+
+    private void toolModel(DeferredItem<? extends Item> item, String tool) {
+        getBuilder(item.getId().toString())
+                .parent(new ModelFile.UncheckedModelFile("item/generated"))
+                .texture("layer0", derivedTool(tool, "handle"))
+                .texture("layer1", derivedTool(tool, "head"))
+                .texture("layer2", derivedTool(tool, "binding"));
     }
 }

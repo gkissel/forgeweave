@@ -1,21 +1,35 @@
 package dev.gkissel.forgeweave.data;
 
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
+import net.minecraft.advancements.AdvancementHolder;
+import net.minecraft.advancements.AdvancementRequirements;
+import net.minecraft.advancements.AdvancementRewards;
+import net.minecraft.advancements.critereon.RecipeUnlockedTrigger;
 import net.minecraft.core.HolderLookup;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.data.PackOutput;
 import net.minecraft.data.recipes.RecipeCategory;
 import net.minecraft.data.recipes.RecipeOutput;
 import net.minecraft.data.recipes.RecipeProvider;
 import net.minecraft.data.recipes.ShapedRecipeBuilder;
 import net.minecraft.data.recipes.ShapelessRecipeBuilder;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.ItemTags;
+import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.item.crafting.CraftingBookCategory;
+import net.minecraft.world.item.crafting.Ingredient;
+import net.minecraft.world.item.crafting.ShapedRecipePattern;
+import net.minecraft.world.level.ItemLike;
 
 import net.neoforged.neoforge.registries.DeferredItem;
 
 import dev.gkissel.forgeweave.item.ForgeweaveItems;
+import dev.gkissel.forgeweave.recipe.RetexturedShapedRecipe;
 
 /**
  * Vanilla crafting-table recipes for the blank pattern, the Part Builder block, and converting the
@@ -53,13 +67,9 @@ public class ForgeweaveRecipeProvider extends RecipeProvider {
                 .unlockedBy("has_planks", has(ItemTags.PLANKS))
                 .save(recipeOutput);
 
-        ShapedRecipeBuilder.shaped(RecipeCategory.MISC, ForgeweaveItems.PART_BUILDER.get())
-                .pattern("A")
-                .pattern("B")
-                .define('A', ForgeweaveItems.PATTERN_BLANK.get())
-                .define('B', ItemTags.LOGS)
-                .unlockedBy("has_pattern_blank", has(ForgeweaveItems.PATTERN_BLANK.get()))
-                .save(recipeOutput);
+        // Retextured (issue #43): the placed block keeps the appearance of whichever log was used,
+        // via RetexturedShapedRecipe -- see that class's javadoc.
+        retexturedTableRecipe(recipeOutput, ForgeweaveItems.PART_BUILDER.get(), ForgeweaveItems.PATTERN_BLANK.get(), ItemTags.LOGS);
 
         patternConversion(recipeOutput, ForgeweaveItems.PATTERN_PICKAXE_HEAD, Items.WOODEN_PICKAXE, 1);
         patternConversion(recipeOutput, ForgeweaveItems.PATTERN_SHOVEL_HEAD, Items.WOODEN_SHOVEL, 1);
@@ -72,13 +82,7 @@ public class ForgeweaveRecipeProvider extends RecipeProvider {
         // instead crafts over the ore-dict "workbench" tag (a crafting table), which Forgeweave has
         // no equivalent of; using planks keeps this recipe visually and structurally consistent with
         // the Part Builder's, per the issue #10 brief.
-        ShapedRecipeBuilder.shaped(RecipeCategory.MISC, ForgeweaveItems.TOOL_STATION.get())
-                .pattern("A")
-                .pattern("B")
-                .define('A', ForgeweaveItems.PATTERN_BLANK.get())
-                .define('B', ItemTags.PLANKS)
-                .unlockedBy("has_pattern_blank", has(ForgeweaveItems.PATTERN_BLANK.get()))
-                .save(recipeOutput);
+        retexturedTableRecipe(recipeOutput, ForgeweaveItems.TOOL_STATION.get(), ForgeweaveItems.PATTERN_BLANK.get(), ItemTags.PLANKS);
     }
 
     private void patternConversion(RecipeOutput recipeOutput, DeferredItem<Item> result, Item marker, int markerCount) {
@@ -87,5 +91,26 @@ public class ForgeweaveRecipeProvider extends RecipeProvider {
                 .requires(marker, markerCount)
                 .unlockedBy("has_pattern_blank", has(ForgeweaveItems.PATTERN_BLANK.get()))
                 .save(recipeOutput);
+    }
+
+    /**
+     * A 1x2 "pattern over a wood tag" shaped recipe (same layout as the plain
+     * {@code ShapedRecipeBuilder} shape it replaces) whose result also carries the crafting-with
+     * wood block as a {@code TEXTURE} component (see {@link RetexturedShapedRecipe}).
+     */
+    private void retexturedTableRecipe(RecipeOutput recipeOutput, ItemLike result, ItemLike patternItem, TagKey<Item> woodTag) {
+        ResourceLocation id = BuiltInRegistries.ITEM.getKey(result.asItem());
+        ShapedRecipePattern pattern = ShapedRecipePattern.of(
+                Map.of('A', Ingredient.of(patternItem), 'B', Ingredient.of(woodTag)), "A", "B");
+        RetexturedShapedRecipe recipe =
+                new RetexturedShapedRecipe("", CraftingBookCategory.MISC, pattern, new ItemStack(result));
+
+        AdvancementHolder advancement = recipeOutput.advancement()
+                .addCriterion("has_the_recipe", RecipeUnlockedTrigger.unlocked(id))
+                .addCriterion("has_pattern_blank", has(ForgeweaveItems.PATTERN_BLANK.get()))
+                .rewards(AdvancementRewards.Builder.recipe(id))
+                .requirements(AdvancementRequirements.Strategy.OR)
+                .build(id.withPrefix("recipes/misc/"));
+        recipeOutput.accept(id, recipe, advancement);
     }
 }

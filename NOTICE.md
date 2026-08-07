@@ -22,18 +22,18 @@ One row per derived file (ADR-0003). Maintained in PR review: a PR introducing d
 | `src/main/resources/data/forgeweave/forgeweave/material/stone.json` | `src/main/java/slimeknights/tconstruct/tools/TinkerMaterials.java` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
 | `src/main/resources/data/forgeweave/forgeweave/material/flint.json` | `src/main/java/slimeknights/tconstruct/tools/TinkerMaterials.java` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
 | `src/main/resources/data/forgeweave/forgeweave/material/bone.json` | `src/main/java/slimeknights/tconstruct/tools/TinkerMaterials.java` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
-| `src/main/resources/assets/forgeweave/textures/item/pattern.png` | `resources/assets/tconstruct/textures/items/pattern.png` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
-| `src/main/resources/assets/forgeweave/textures/item/pickaxe_head.png` | `resources/assets/tconstruct/textures/items/pickaxe/head.png` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
-| `src/main/resources/assets/forgeweave/textures/item/shovel_head.png` | `resources/assets/tconstruct/textures/items/shovel/head.png` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
-| `src/main/resources/assets/forgeweave/textures/item/axe_head.png` | `resources/assets/tconstruct/textures/items/hatchet/head.png` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
-| `src/main/resources/assets/forgeweave/textures/item/tool_binding.png` | `resources/assets/tconstruct/textures/items/parts/binding.png` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
-| `src/main/resources/assets/forgeweave/textures/item/tool_handle.png` | `resources/assets/tconstruct/textures/items/parts/tool_rod.png` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
-| `src/main/resources/assets/forgeweave/textures/block/part_builder_top.png` | `resources/assets/tconstruct/textures/blocks/partbuilder_top.png` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
-| `src/main/resources/assets/forgeweave/textures/block/part_builder_side.png` | `resources/assets/tconstruct/textures/blocks/table_side.png` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
+| `src/main/resources/assets/forgeweave/textures/derived/item/pattern.png` | `resources/assets/tconstruct/textures/items/pattern.png` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
+| `src/main/resources/assets/forgeweave/textures/derived/item/pickaxe_head.png` | `resources/assets/tconstruct/textures/items/pickaxe/head.png` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
+| `src/main/resources/assets/forgeweave/textures/derived/item/shovel_head.png` | `resources/assets/tconstruct/textures/items/shovel/head.png` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
+| `src/main/resources/assets/forgeweave/textures/derived/item/axe_head.png` | `resources/assets/tconstruct/textures/items/hatchet/head.png` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
+| `src/main/resources/assets/forgeweave/textures/derived/item/tool_binding.png` | `resources/assets/tconstruct/textures/items/parts/binding.png` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
+| `src/main/resources/assets/forgeweave/textures/derived/item/tool_handle.png` | `resources/assets/tconstruct/textures/items/parts/tool_rod.png` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
+| `src/main/resources/assets/forgeweave/textures/derived/block/part_builder_top.png` (unused since issue #43; kept rowed for history) | `resources/assets/tconstruct/textures/blocks/partbuilder_top.png` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
+| `src/main/resources/assets/forgeweave/textures/derived/block/part_builder_side.png` (unused since issue #43; kept rowed for history) | `resources/assets/tconstruct/textures/blocks/table_side.png` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
 | `src/main/java/dev/gkissel/forgeweave/data/ForgeweaveRecipeProvider.java` (blank pattern recipe) | `resources/assets/tconstruct/recipes/tools/pattern.json` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
 | `src/main/java/dev/gkissel/forgeweave/data/ForgeweaveRecipeProvider.java` (Part Builder block recipe) | `resources/assets/tconstruct/recipes/tools/table/part_builder.json` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
 | `src/main/java/dev/gkissel/forgeweave/menu/PartBuilderRecipes.java` (per-part material costs) | `src/main/java/slimeknights/tconstruct/tools/TinkerTools.java` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
-| `src/main/resources/assets/forgeweave/textures/block/tool_station_top.png` | `resources/assets/tconstruct/textures/blocks/toolstation_top.png` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
+| `src/main/resources/assets/forgeweave/textures/derived/block/tool_station_top.png` (unused since issue #43; kept rowed for history) | `resources/assets/tconstruct/textures/blocks/toolstation_top.png` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
 | `src/main/java/dev/gkissel/forgeweave/tool/ToolStats.java` (durability/mining-speed/attack formula) | `src/main/java/slimeknights/tconstruct/library/tools/ToolNBT.java` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
 | `src/main/java/dev/gkissel/forgeweave/menu/ToolAssemblyRecipes.java` (head/binding/handle part composition) | `src/main/java/slimeknights/tconstruct/tools/tools/Pickaxe.java`, `Shovel.java`, `Hatchet.java` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
 | `src/main/java/dev/gkissel/forgeweave/data/ForgeweaveRecipeProvider.java` (Tool Station block recipe shape) | `resources/assets/tconstruct/recipes/tools/table/tool_station.json` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
@@ -47,6 +47,26 @@ One row per derived file (ADR-0003). Maintained in PR review: a PR introducing d
 | `src/main/java/dev/gkissel/forgeweave/trait/ForgeweaveTraits.java` (`FRACTURED` behavior) | `src/main/java/slimeknights/tconstruct/tools/traits/TraitBonusDamage.java`, `src/main/java/slimeknights/tconstruct/tools/TinkerTraits.java` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
 | `src/main/java/dev/gkissel/forgeweave/trait/ForgeweaveTraits.java` (same-trait-applies-once stacking rule) | `src/main/java/slimeknights/tconstruct/library/traits/AbstractTraitLeveled.java` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
 | `src/main/java/dev/gkissel/forgeweave/data/ForgeweaveLanguageProvider.java` (trait names and descriptions) | `resources/assets/tconstruct/lang/en_us.lang` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
+| `src/main/resources/assets/forgeweave/models/block/part_builder.json` (table element geometry) | `resources/assets/tconstruct/models/block/table.json` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
+| `src/main/resources/assets/forgeweave/models/block/tool_station.json` (table element geometry) | `resources/assets/tconstruct/models/block/table.json` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
+| `src/main/java/dev/gkissel/forgeweave/block/PartBuilderBlock.java` (`TABLE_SHAPE` collision box shape) | `src/main/java/slimeknights/tconstruct/shared/block/TableBlock.java` | `de26560d26c15edf93e6078520202d1c0518394e` | MIT |
+| `src/main/java/dev/gkissel/forgeweave/block/ToolStationBlock.java` (`TABLE_SHAPE` collision box shape) | `src/main/java/slimeknights/tconstruct/shared/block/TableBlock.java` | `de26560d26c15edf93e6078520202d1c0518394e` | MIT |
+| `src/main/resources/assets/forgeweave/textures/derived/item/pattern_pickaxe_head.png` (composite: pattern.png + pickaxe_head.png, darkened per `PatternTexture.java`'s algorithm via `scripts/generate_pattern_textures.py`) | `src/main/java/slimeknights/tconstruct/library/client/texture/PatternTexture.java` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
+| `src/main/resources/assets/forgeweave/textures/derived/item/pattern_shovel_head.png` (composite, same algorithm) | `src/main/java/slimeknights/tconstruct/library/client/texture/PatternTexture.java` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
+| `src/main/resources/assets/forgeweave/textures/derived/item/pattern_axe_head.png` (composite, same algorithm) | `src/main/java/slimeknights/tconstruct/library/client/texture/PatternTexture.java` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
+| `src/main/resources/assets/forgeweave/textures/derived/item/pattern_tool_binding.png` (composite, same algorithm) | `src/main/java/slimeknights/tconstruct/library/client/texture/PatternTexture.java` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
+| `src/main/resources/assets/forgeweave/textures/derived/item/pattern_tool_handle.png` (composite, same algorithm) | `src/main/java/slimeknights/tconstruct/library/client/texture/PatternTexture.java` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
+| `src/main/resources/assets/forgeweave/textures/derived/gui/part_builder.png` (cropped to the 176x166 panel region) | `resources/assets/tconstruct/textures/gui/partbuilder.png` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
+| `src/main/resources/assets/forgeweave/textures/derived/gui/tool_station.png` (176x166 panel region, composited with the same file's slot-background/slot-border sprite pieces at our four fixed slot positions) | `resources/assets/tconstruct/textures/gui/toolstation.png` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
+| `src/main/resources/assets/forgeweave/textures/derived/tools/pickaxe_head.png` | `resources/assets/tconstruct/textures/items/pickaxe/head.png` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
+| `src/main/resources/assets/forgeweave/textures/derived/tools/pickaxe_handle.png` | `resources/assets/tconstruct/textures/items/pickaxe/handle.png` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
+| `src/main/resources/assets/forgeweave/textures/derived/tools/pickaxe_binding.png` | `resources/assets/tconstruct/textures/items/pickaxe/binding.png` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
+| `src/main/resources/assets/forgeweave/textures/derived/tools/shovel_head.png` | `resources/assets/tconstruct/textures/items/shovel/head.png` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
+| `src/main/resources/assets/forgeweave/textures/derived/tools/shovel_handle.png` | `resources/assets/tconstruct/textures/items/shovel/handle.png` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
+| `src/main/resources/assets/forgeweave/textures/derived/tools/shovel_binding.png` | `resources/assets/tconstruct/textures/items/shovel/binding.png` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
+| `src/main/resources/assets/forgeweave/textures/derived/tools/hatchet_head.png` | `resources/assets/tconstruct/textures/items/hatchet/head.png` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
+| `src/main/resources/assets/forgeweave/textures/derived/tools/hatchet_handle.png` (upstream's hatchet reuses the pickaxe's handle art) | `resources/assets/tconstruct/textures/items/pickaxe/handle.png` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
+| `src/main/resources/assets/forgeweave/textures/derived/tools/hatchet_binding.png` | `resources/assets/tconstruct/textures/items/hatchet/binding.png` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
 
 Each material JSON derives its stat values and tint color from that file; the Java that loads them is an
 independent reimplementation against NeoForge's datapack registry API and carries no row.
@@ -59,27 +79,12 @@ color, matching Forgeweave's `RegisterColorHandlersEvent.Item`-based tint approa
 JSONs referencing these textures are written fresh for 1.21's `item/generated` format and carry no
 row of their own.
 
-The Part Builder block model is a plain top/side/bottom cube (`cube_bottom_top`), not upstream's
-compound "tabletop + 4 legs" model (`models/block/table.json`) -- upstream's own top/side textures
-for this block are near-solid-color placeholders, so the extra leg geometry wasn't worth porting for
-the same visual payoff; the bottom face reuses vanilla's `oak_log` texture directly (as upstream's
-model does too), so it isn't copied and carries no row. The Part Builder GUI background
-(`assets/forgeweave/textures/gui/part_builder.png`) is freshly authored, not derived from upstream's
-`partbuilder.png` -- that texture's non-rectangular (rounded-corner) panel and 5-slot layout didn't
-fit this GUI's simpler 3-slot layout, so per the issue #9 brief it uses a plain generic background
-instead. Neither carries a NOTICE row.
-
-The Tool Station block model (issue #10) is the same plain top/side/bottom cube approach, reusing
-`part_builder_side.png` directly for its side texture rather than duplicating the file -- upstream's
-own `toolstation.json` and `partbuilder.json` both point at the same `table_side.png`, so this isn't
-a new derivation and carries no additional row. The Tool Station GUI background
-(`assets/forgeweave/textures/gui/tool_station.png`) is likewise freshly authored, not derived from
-upstream's `toolstation.png`, for the same reason as the Part Builder's: this GUI has a different
-slot count/layout (4 slots vs. upstream's 5) and upstream's texture is a non-rectangular panel.
-Assembled tool item models (`ToolItem`) are three-layer composites of the five existing derived part
-textures (`pickaxe_head.png`/`shovel_head.png`/`axe_head.png`/`tool_binding.png`/`tool_handle.png`,
-already rowed above), tinted per layer by `ForgeweaveItemColors`; no new texture files were added for
-tools, so there is nothing further to row.
+**Superseded by issue #43** (station and item visual fidelity): the Part Builder and Tool Station
+block models are no longer plain top/side/bottom cubes, and their GUI backgrounds are no longer
+freshly-authored flat panels -- see the rows above (table geometry, GUI crops, tool layer art) and
+below for what replaced them. The `part_builder_top.png`/`part_builder_side.png`/
+`tool_station_top.png` textures those old cube models used are unreferenced now but stay rowed
+(moved to `textures/derived/block/`, not deleted) since NOTICE.md is append-only.
 
 Trait behavior (issue #12) is ported semantics, not copied code: the rates, conditions and magnitudes
 are upstream's, the `Trait` interface and its registry are written fresh against 1.21's data
@@ -90,3 +95,29 @@ and upstream's stone grants `cheapskate` on the head part on top of `cheap`, a d
 Forgeweave does not ship (stone's lower durability is already in its material JSON). `Trait.java`
 carries only the four hooks the four shipped traits use rather than upstream's full `ITrait` surface,
 so it is not a derived file and carries no row.
+
+Both stations are now table-shaped (tabletop + 4 legs, hollow underside) and retain the appearance
+of the wood block they were crafted from: `WoodTexturedBlockEntity` stores the crafting wood as a
+`Block`, `RetexturedShapedRecipe` copies it from whichever `BlockItem` ingredient was used onto the
+crafted item's `TEXTURE` data component, and `RetexturedTableBakedModel`
+(`dev.gkissel.forgeweave.client.model`) remaps the table model's baked quads from the default
+(oak) sprite to the stored wood's particle sprite at render time -- the standard NeoForge
+`IGeometryLoader`/`IUnbakedGeometry`/`ModelData` approach, since Mantle's real
+`RetexturedBlock`/`RetexturedHelper`/`IRetexturedBlockEntity` (which this would otherwise port) is
+not in the 1.20.1 reference clone. None of that machinery is copied from either clone, so it carries
+no additional row beyond the table-geometry/collision-shape rows above.
+
+Part pattern items are single-layer now: the five composite PNGs above replace the old two-layer
+"pattern base (layer0) + faint greyscale part overlay (layer1)" item models. The blank pattern has
+no part to etch onto it, so it stays the plain `pattern.png` base with no composite.
+
+Assembled tool item models (`ToolItem`) now use the dedicated per-tool layer textures rowed above
+(`textures/derived/tools/<tool>_{handle,head,binding}.png`), positioned for the assembled tool,
+instead of the standalone part sprites (`pickaxe_head.png` etc., still used for the loose `PartItem`
+icons) -- those are centered for a loose inventory item and looked jumbled/overlapping when reused
+as tool layers. `ForgeweaveItemColors#toolMaterialTint`'s tintIndex-to-material mapping was updated
+to match the new layer0=handle/layer1=head/layer2=binding order (upstream's own tool models use the
+same order); this is a code change, not a new derived file, so it carries no row of its own.
+
+The `pattern.png` texture is shared by the blank pattern's item model and as the base every composite
+pattern PNG above is built from.

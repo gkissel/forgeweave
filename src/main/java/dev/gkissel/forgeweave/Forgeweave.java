@@ -22,6 +22,7 @@ import dev.gkissel.forgeweave.item.ForgeweaveDataComponents;
 import dev.gkissel.forgeweave.item.ForgeweaveItems;
 import dev.gkissel.forgeweave.material.Material;
 import dev.gkissel.forgeweave.menu.ForgeweaveMenus;
+import dev.gkissel.forgeweave.recipe.ForgeweaveRecipeSerializers;
 import dev.gkissel.forgeweave.trait.ForgeweaveTraits;
 
 // The value here must match the modId in META-INF/neoforge.mods.toml.
@@ -37,6 +38,7 @@ public class Forgeweave {
         ForgeweaveItems.ITEMS.register(modEventBus);
         ForgeweaveMenus.MENUS.register(modEventBus);
         ForgeweaveCreativeTab.TABS.register(modEventBus);
+        ForgeweaveRecipeSerializers.RECIPE_SERIALIZERS.register(modEventBus);
         modEventBus.addListener(this::registerDataPackRegistries);
         modEventBus.addListener(this::commonSetup);
         modEventBus.addListener(ForgeweaveDataGenerators::gatherData);

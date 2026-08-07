@@ -71,5 +71,14 @@ public final class ForgeweaveDataComponents {
             DATA_COMPONENTS.registerComponentType("repair_count",
                     builder -> builder.persistent(ExtraCodecs.NON_NEGATIVE_INT).networkSynchronized(ByteBufCodecs.VAR_INT));
 
+    /**
+     * The registry id of the {@code Block} (a log or planks) a table station item was crafted from,
+     * so the placed block can retain that wood's appearance (issue #43). Absent means "unspecified"
+     * (e.g. a creative-tab/pick-block item) -- {@code WoodTexturedBlockEntity} falls back to oak.
+     */
+    public static final DeferredHolder<DataComponentType<?>, DataComponentType<ResourceLocation>> TEXTURE =
+            DATA_COMPONENTS.registerComponentType("texture",
+                    builder -> builder.persistent(ResourceLocation.CODEC).networkSynchronized(ResourceLocation.STREAM_CODEC));
+
     private ForgeweaveDataComponents() {}
 }

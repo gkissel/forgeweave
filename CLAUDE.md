@@ -29,3 +29,7 @@ Rules (see ADR-0003 and CONTEXT.md):
 - Reading upstream code is always fine. Any file **derived** from either branch (code or asset) gets a `NOTICE.md` row — Forgeweave path, upstream path, pinned commit above, MIT — in the same PR.
 - All identifiers, file names, and player-facing text use Forgeweave vocabulary; never "tinker"/"tic" (CONTEXT.md avoided terminology).
 - If the clones are missing, re-create them: `git clone --depth 1 --branch <branch> https://github.com/SlimeKnights/TinkersConstruct.git <path>` and checkout the pinned commit.
+
+## Derived texture organization
+
+All upstream-derived art lives under `assets/forgeweave/textures/derived/` (`derived/item/`, `derived/tools/`, `derived/block/`, `derived/gui/`), one `NOTICE.md` row per file. Freshly-authored/original art lives in the standard `textures/item|block|gui` folders alongside it. M9 executes by replacing/emptying the `derived/` tree.
