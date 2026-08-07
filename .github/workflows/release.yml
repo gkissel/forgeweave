@@ -1,0 +1,98 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "mc*-v*"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    name: Publish ${{ github.ref_name }}
+    runs-on: ubuntu-latest
+    environment: release
+
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Read release tag
+        id: release
+        shell: bash
+        run: |
+          if [[ "${GITHUB_REF_NAME}" =~ ^mc([0-9]+\.[0-9]+(\.[0-9]+)?)-v(.+)$ ]]; then
+            minecraft_version="${BASH_REMATCH[1]}"
+            mod_version="${BASH_REMATCH[3]}"
+          else
+            echo "Expected a tag such as mc1.21.1-v0.1.0" >&2
+            exit 1
+          fi
+
+          case "${mod_version}" in
+            *alpha*) release_type="alpha" ;;
+            *beta*|*rc*) release_type="beta" ;;
+            *) release_type="release" ;;
+          esac
+
+          echo "minecraft_version=${minecraft_version}" >> "${GITHUB_OUTPUT}"
+          echo "mod_version=${mod_version}" >> "${GITHUB_OUTPUT}"
+          echo "release_type=${release_type}" >> "${GITHUB_OUTPUT}"
+
+      - name: Validate publishing configuration
+        shell: bash
+        env:
+          MODRINTH_PROJECT_ID: ${{ vars.MODRINTH_PROJECT_ID }}
+          CURSEFORGE_PROJECT_ID: ${{ vars.CURSEFORGE_PROJECT_ID }}
+          MODRINTH_TOKEN: ${{ secrets.MODRINTH_TOKEN }}
+          CURSEFORGE_TOKEN: ${{ secrets.CURSEFORGE_TOKEN }}
+        run: |
+          test -n "${MODRINTH_PROJECT_ID}" || { echo "Missing MODRINTH_PROJECT_ID repository variable" >&2; exit 1; }
+          test -n "${CURSEFORGE_PROJECT_ID}" || { echo "Missing CURSEFORGE_PROJECT_ID repository variable" >&2; exit 1; }
+          test -n "${MODRINTH_TOKEN}" || { echo "Missing MODRINTH_TOKEN release secret" >&2; exit 1; }
+          test -n "${CURSEFORGE_TOKEN}" || { echo "Missing CURSEFORGE_TOKEN release secret" >&2; exit 1; }
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Build
+        run: ./gradlew build -Pmod_version=${{ steps.release.outputs.mod_version }}
+
+      - name: Publish everywhere
+        uses: Kira-NT/mc-publish@v3
+        with:
+          files: build/libs/!(*-@(dev|sources|javadoc)).jar
+
+          name: Forgeweave ${{ steps.release.outputs.mod_version }} for Minecraft ${{ steps.release.outputs.minecraft_version }}
+          version: ${{ github.ref_name }}
+          version-type: ${{ steps.release.outputs.release_type }}
+
+          loaders: neoforge
+          game-versions: ${{ steps.release.outputs.minecraft_version }}
+          java: Java 21
+
+          modrinth-id: ${{ vars.MODRINTH_PROJECT_ID }}
+          modrinth-token: ${{ secrets.MODRINTH_TOKEN }}
+
+          curseforge-id: ${{ vars.CURSEFORGE_PROJECT_ID }}
+          curseforge-token: ${{ secrets.CURSEFORGE_TOKEN }}
+
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          github-tag: ${{ github.ref_name }}
+          github-draft: false
+          github-prerelease: ${{ steps.release.outputs.release_type != 'release' }}
+          github-generate-changelog: true
+
+          retry-attempts: 2
+          fail-mode: fail
