@@ -138,18 +138,18 @@ public class TraitGameTests {
         BlockPos pos = new BlockPos(1, 1, 1);
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
 
-        helper.assertTrue(Math.abs(attackDamage(ToolAssembly.pickaxe(helper, player, pos, "bone", "wood", "wood")) - 4.0)
-                        < 0.001,
-                "expected bone's 2.5 attack damage + fractured's 1.5 = 4.0, got "
-                        + attackDamage(ToolAssembly.pickaxe(helper, player, pos, "bone", "wood", "wood")));
-        helper.assertTrue(Math.abs(attackDamage(ToolAssembly.pickaxe(helper, player, pos, "stone", "wood", "wood")) - 3.0)
-                        < 0.001,
-                "a tool without fractured should read its head material's attack damage unchanged");
+        ItemStack bone = ToolAssembly.pickaxe(helper, player, pos, "bone", "wood", "wood");
+        helper.assertTrue(Math.abs(attackDamage(bone) - 4.0) < 0.001,
+                "expected bone's 2.5 attack damage + fractured's 1.5 = 4.0, got " + attackDamage(bone));
+
+        double withoutFractured = attackDamage(ToolAssembly.pickaxe(helper, player, pos, "stone", "wood", "wood"));
+        helper.assertTrue(Math.abs(withoutFractured - 3.0) < 0.001,
+                "a tool without fractured should read its head material's attack damage unchanged, got "
+                        + withoutFractured);
 
         // A Broken tool has no attack modifiers at all, so the bonus cannot leak through one.
-        ItemStack broken = ToolAssembly.pickaxe(helper, player, pos, "bone", "wood", "wood");
-        broken.hurtAndBreak(10_000, helper.getLevel(), player, brokenItem -> {});
-        helper.assertTrue(broken.getAttributeModifiers().modifiers().isEmpty(),
+        bone.hurtAndBreak(10_000, helper.getLevel(), player, brokenItem -> {});
+        helper.assertTrue(bone.getAttributeModifiers().modifiers().isEmpty(),
                 "a Broken tool should carry no attack modifiers, trait or otherwise");
 
         helper.succeed();
