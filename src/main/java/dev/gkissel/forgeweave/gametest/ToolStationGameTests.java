@@ -91,8 +91,10 @@ public class ToolStationGameTests {
      * is {@code #minecraft:stone_tool_materials}.
      *
      * <p>One repair item is worth the head material's head durability, so 120 of the 159 damage comes
-     * off and the tool lands at 39 damage, unbroken and usable again ({@code ToolRepair}, ported from
-     * upstream 1.12's {@code TinkersItem#calculateRepairAmount}/{@code #calculateRepair}).
+     * off ({@code ToolRepair}, ported from upstream 1.12's
+     * {@code TinkersItem#calculateRepairAmount}/{@code #calculateRepair}), plus the 5% stone's
+     * {@code forgeweave:cheap} trait adds -- 126 in all, leaving the tool at 33 damage, unbroken and
+     * usable again. The trait's own test is {@link TraitGameTests#cheapRepairsMoreThanTheBaseAmount}.
      */
     @GameTest(template = "empty")
     public static void repairRestoresDurabilityAndClearsBroken(GameTestHelper helper) {
@@ -113,8 +115,9 @@ public class ToolStationGameTests {
         ItemStack repaired = menu.getSlot(3).getItem();
         helper.assertTrue(repaired.is(ForgeweaveItems.TOOL_PICKAXE.get()), "expected the repaired pickaxe, got " + repaired);
         helper.assertFalse(ToolItem.isBroken(repaired), "repair must clear the Broken state");
-        helper.assertTrue(repaired.getDamageValue() == 39,
-                "expected 159 - 120 = 39 damage left after one cobblestone, got " + repaired.getDamageValue());
+        helper.assertTrue(repaired.getDamageValue() == 33,
+                "expected 159 - (120 + cheap's 5%) = 33 damage left after one cobblestone, got "
+                        + repaired.getDamageValue());
         helper.assertTrue(repaired.isCorrectToolForDrops(Blocks.STONE.defaultBlockState()),
                 "a repaired tool should harvest again");
         helper.assertTrue(new ToolMaterials(

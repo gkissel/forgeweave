@@ -18,6 +18,7 @@ import dev.gkissel.forgeweave.material.Material;
 import dev.gkissel.forgeweave.tool.ToolMaterials;
 import dev.gkissel.forgeweave.tool.ToolRepair;
 import dev.gkissel.forgeweave.tool.ToolStats;
+import dev.gkissel.forgeweave.trait.ForgeweaveTraits;
 
 /**
  * Everything the Tool Station can produce from its three input slots. Two recipes share those
@@ -116,6 +117,10 @@ final class ToolAssemblyRecipes {
         ItemStack result = new ItemStack(tool);
         result.set(ForgeweaveDataComponents.TOOL_MATERIALS.get(), new ToolMaterials(headId, bindingId, handleId));
         result.set(ForgeweaveDataComponents.TOOL_STATS.get(), stats);
+        // Trait ids come along as data so every later trait hook works off the stack alone
+        // (ForgeweaveTraits: same id from two parts still counts once, as upstream 1.12 does).
+        result.set(ForgeweaveDataComponents.TRAITS.get(),
+                ForgeweaveTraits.resolve(head.get(), binding.get(), handle.get()));
         // Mining tier, mining speed, and the durability bar all ride on vanilla components, so
         // vanilla's own block-breaking and rendering paths need no Forgeweave-specific handling.
         result.set(DataComponents.TOOL, tool.toolComponent(head.get(), stats));
@@ -152,7 +157,9 @@ final class ToolAssemblyRecipes {
         int repairCount = toolStack.getOrDefault(ForgeweaveDataComponents.REPAIR_COUNT.get(), 0);
         int used = 0;
         while (damage > 0 && used < available) {
-            damage -= ToolRepair.repairIncrement(headDurability, maxDamage, repairCount + used);
+            int increment = ToolRepair.repairIncrement(headDurability, maxDamage, repairCount + used);
+            // Traits get to top the repair up (upstream 1.12 fires ITrait#onToolHeal on every heal).
+            damage -= increment + ForgeweaveTraits.repairBonus(toolStack, increment);
             used++;
         }
 

@@ -22,6 +22,7 @@ import dev.gkissel.forgeweave.item.ForgeweaveDataComponents;
 import dev.gkissel.forgeweave.item.ForgeweaveItems;
 import dev.gkissel.forgeweave.material.Material;
 import dev.gkissel.forgeweave.menu.ForgeweaveMenus;
+import dev.gkissel.forgeweave.trait.ForgeweaveTraits;
 
 // The value here must match the modId in META-INF/neoforge.mods.toml.
 @Mod(Forgeweave.MODID)
@@ -40,6 +41,8 @@ public class Forgeweave {
         modEventBus.addListener(this::commonSetup);
         modEventBus.addListener(ForgeweaveDataGenerators::gatherData);
         NeoForge.EVENT_BUS.addListener(this::onServerStarted);
+        // Traits that key off what is being hit have no Item hook to live in (see ForgeweaveTraits).
+        NeoForge.EVENT_BUS.addListener(ForgeweaveTraits::onIncomingDamage);
     }
 
     private void onServerStarted(final ServerStartedEvent event) {

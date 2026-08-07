@@ -20,5 +20,13 @@
   "material.forgeweave.flint": "Flint",
   "material.forgeweave.stone": "Stone",
   "material.forgeweave.wood": "Wood",
-  "tooltip.forgeweave.broken": "Broken"
+  "tooltip.forgeweave.broken": "Broken",
+  "trait.forgeweave.cheap.description": "Increases durability gained when repairing the tool.",
+  "trait.forgeweave.cheap.name": "Cheap",
+  "trait.forgeweave.crude.description": "Bonus damage against unarmored targets.",
+  "trait.forgeweave.crude.name": "Crude",
+  "trait.forgeweave.ecological.description": "Renewable resources are so good, they regenerate by themselves!",
+  "trait.forgeweave.ecological.name": "Ecological",
+  "trait.forgeweave.fractured.description": "Your tool's damage is increased.",
+  "trait.forgeweave.fractured.name": "Fractured"
 }

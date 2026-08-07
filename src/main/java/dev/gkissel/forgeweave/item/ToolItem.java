@@ -15,8 +15,10 @@ import net.minecraft.network.chat.Style;
 import net.minecraft.network.chat.TextColor;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.tags.TagKey;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.EquipmentSlotGroup;
 import net.minecraft.world.entity.LivingEntity;
@@ -34,6 +36,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import dev.gkissel.forgeweave.material.Material;
 import dev.gkissel.forgeweave.tool.ToolMaterials;
 import dev.gkissel.forgeweave.tool.ToolStats;
+import dev.gkissel.forgeweave.trait.ForgeweaveTraits;
 
 /**
  * An assembled tool (pickaxe, shovel, hatchet -- CONTEXT.md glossary). Everything specific to one
@@ -105,6 +108,10 @@ public class ToolItem extends Item {
      * no component present NeoForge falls back to this method on every query, so clearing the flag
      * at the Tool Station is all a repair has to do. Upstream 1.12 gates the same two modifiers on
      * {@code !isBroken} in {@code ToolCore#getAttributeModifiers}.
+     *
+     * <p>Flat trait damage (upstream's {@code TraitBonusDamage}, which adds to the tool's own attack
+     * stat at build time) is folded into this one modifier rather than added as a second one, so the
+     * tooltip shows a single Attack Damage line as it would without traits.
      */
     @Override
     public ItemAttributeModifiers getDefaultAttributeModifiers(ItemStack stack) {
@@ -114,7 +121,8 @@ public class ToolItem extends Item {
         }
         return ItemAttributeModifiers.builder()
                 .add(Attributes.ATTACK_DAMAGE,
-                        new AttributeModifier(BASE_ATTACK_DAMAGE_ID, stats.attackDamage() * damagePotential,
+                        new AttributeModifier(BASE_ATTACK_DAMAGE_ID,
+                                stats.attackDamage() * damagePotential + ForgeweaveTraits.attackDamageBonus(stack),
                                 AttributeModifier.Operation.ADD_VALUE),
                         EquipmentSlotGroup.MAINHAND)
                 .add(Attributes.ATTACK_SPEED,
@@ -143,6 +151,19 @@ public class ToolItem extends Item {
             }
         }
         return applied;
+    }
+
+    /**
+     * The seam for traits that act while the tool is simply carried (upstream 1.12's
+     * {@code ITrait#onUpdate}, reached from {@code ToolCore#onUpdate}). Server side only, and never
+     * while Broken -- upstream's healing path {@code ToolHelper#damageTool} returns early on a broken
+     * tool, and no M1 trait is meant to work on one.
+     */
+    @Override
+    public void inventoryTick(ItemStack stack, Level level, Entity entity, int slotId, boolean isSelected) {
+        if (level instanceof ServerLevel serverLevel && entity instanceof LivingEntity holder && !isBroken(stack)) {
+            ForgeweaveTraits.inventoryTick(stack, serverLevel, holder);
+        }
     }
 
     @Override
