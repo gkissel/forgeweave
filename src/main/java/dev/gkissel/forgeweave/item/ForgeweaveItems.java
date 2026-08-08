@@ -53,17 +53,19 @@ public final class ForgeweaveItems {
     // a Tier is a fixed table of durability/speed/tier-tag, and a Forgeweave tool's are all derived
     // per stack from its parts' materials, so the vanilla `tool` and `max_damage` components are
     // written at assembly time instead (ToolAssemblyRecipes). What stays fixed per tool type lives
-    // here: the mineable/* tag it is meant for, and upstream 1.12's attack speed and damage
-    // potential (ToolCore#attackSpeed/#damagePotential in tools/tools/{Pickaxe,Shovel,Hatchet}).
+    // here: the mineable/* tag it is meant for, upstream 1.12's attack speed and damage potential
+    // (ToolCore#attackSpeed/#damagePotential in tools/tools/{Pickaxe,Shovel,Hatchet}), and whether
+    // that class adds Category.WEAPON -- only Hatchet does, and it halves what a hit costs the tool
+    // (ToolCore#reduceDurabilityOnHit, see ToolItem#postHurtEnemy).
     // stacksTo(1) like every other Forgeweave equipment item.
     public static final DeferredItem<ToolItem> TOOL_PICKAXE = ITEMS.registerItem("pickaxe",
-            properties -> new ToolItem(properties, BlockTags.MINEABLE_WITH_PICKAXE, 1.2f, 1.0f),
+            properties -> new ToolItem(properties, BlockTags.MINEABLE_WITH_PICKAXE, 1.2f, 1.0f, false),
             new Item.Properties().stacksTo(1));
     public static final DeferredItem<ToolItem> TOOL_SHOVEL = ITEMS.registerItem("shovel",
-            properties -> new ToolItem(properties, BlockTags.MINEABLE_WITH_SHOVEL, 1.0f, 0.9f),
+            properties -> new ToolItem(properties, BlockTags.MINEABLE_WITH_SHOVEL, 1.0f, 0.9f, false),
             new Item.Properties().stacksTo(1));
     public static final DeferredItem<ToolItem> TOOL_HATCHET = ITEMS.registerItem("hatchet",
-            properties -> new ToolItem(properties, BlockTags.MINEABLE_WITH_AXE, 1.1f, 1.1f),
+            properties -> new ToolItem(properties, BlockTags.MINEABLE_WITH_AXE, 1.1f, 1.1f, true),
             new Item.Properties().stacksTo(1));
 
     public static final DeferredItem<BlockItem> TOOL_STATION = ITEMS.registerSimpleBlockItem("tool_station", ForgeweaveBlocks.TOOL_STATION);

@@ -15,6 +15,7 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.EquipmentSlotGroup;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.ai.attributes.AttributeInstance;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.item.Item;
@@ -61,18 +62,23 @@ public class ToolItem extends Item {
     private final TagKey<Block> mineableBlocks;
     private final float attackSpeed;
     private final float damagePotential;
+    private final boolean weapon;
 
     /**
      * @param mineableBlocks the vanilla {@code mineable/*} tag this tool type is for
      * @param attackSpeed attacks per second, upstream 1.12's {@code ToolCore#attackSpeed()}
      * @param damagePotential multiplier on the head material's attack damage, upstream 1.12's
      *     {@code ToolCore#damagePotential()}
+     * @param weapon whether upstream gives this tool {@code Category.WEAPON} (only the hatchet
+     *     does), which halves what a hit costs it -- see {@link #postHurtEnemy}
      */
-    public ToolItem(Properties properties, TagKey<Block> mineableBlocks, float attackSpeed, float damagePotential) {
+    public ToolItem(Properties properties, TagKey<Block> mineableBlocks, float attackSpeed, float damagePotential,
+            boolean weapon) {
         super(properties);
         this.mineableBlocks = mineableBlocks;
         this.attackSpeed = attackSpeed;
         this.damagePotential = damagePotential;
+        this.weapon = weapon;
     }
 
     public static boolean isBroken(ItemStack stack) {
@@ -218,10 +224,37 @@ public class ToolItem extends Item {
         return !isBroken(stack) && stack.get(ForgeweaveDataComponents.TOOL_STATS.get()) != null;
     }
 
-    /** Vanilla's flat 2 per hit, which is also what upstream 1.12's {@code reduceDurabilityOnHit} lands on for these tools. */
+    /**
+     * Upstream 1.12's {@code ToolCore#reduceDurabilityOnHit}, not vanilla's flat 2:
+     *
+     * <pre>
+     * damage = Math.max(1f, damage / 10f);
+     * if(!hasCategory(Category.WEAPON)) damage *= 2;
+     * ToolHelper.damageTool(stack, (int) damage, player);
+     * </pre>
+     *
+     * <p>Only the hatchet is {@code Category.WEAPON} upstream ({@code tools/tools/Hatchet.java}
+     * adds it; {@code Pickaxe}/{@code Shovel} are {@code HARVEST} only), so a hatchet pays half what
+     * the other two do -- 1 per hit at M1 damage values rather than 2. The float order matters: the
+     * doubling happens before the truncation, so a 15-damage pickaxe costs 3, not 2.
+     *
+     * @see #attackDurabilityCost
+     */
     @Override
     public void postHurtEnemy(ItemStack stack, LivingEntity target, LivingEntity attacker) {
-        stack.hurtAndBreak(2, attacker, EquipmentSlot.MAINHAND);
+        // Upstream feeds the fully resolved hit damage; 1.21 does not hand that to this hook, so this
+        // is the attacker's ATTACK_DAMAGE attribute -- upstream's own `baseDamage`, before its crit
+        // and cooldown scaling. Nullable because not every LivingEntity has that attribute; such an
+        // attacker lands on the formula's floor, which is where every M1 material lands anyway.
+        AttributeInstance attackDamage = attacker.getAttribute(Attributes.ATTACK_DAMAGE);
+        float damage = attackDamage == null ? 0.0F : (float) attackDamage.getValue();
+        stack.hurtAndBreak(attackDurabilityCost(damage, weapon), attacker, EquipmentSlot.MAINHAND);
+    }
+
+    /** See {@link #postHurtEnemy}. Package-private and pure so the formula is unit-testable. */
+    static int attackDurabilityCost(float damage, boolean weapon) {
+        float cost = Math.max(1.0F, damage / 10.0F);
+        return (int) (weapon ? cost : cost * 2.0F);
     }
 
     /**

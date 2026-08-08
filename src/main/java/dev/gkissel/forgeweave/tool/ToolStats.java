@@ -10,6 +10,7 @@ import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.util.ExtraCodecs;
 
 import dev.gkissel.forgeweave.material.Material;
+import dev.gkissel.forgeweave.trait.ForgeweaveTraits;
 
 /**
  * Derives an assembled tool's base stats from its head/binding/handle materials. Ported from
@@ -22,9 +23,15 @@ import dev.gkissel.forgeweave.material.Material;
  * <pre>
  * durability = round((headDurability + bindingExtraDurability) * handleDurabilityModifier)
  *              + handleDurabilityBonus, minimum 1
+ *              then adjusted by the HEAD material's trait (Trait#headDurability)
  * miningSpeed = headMiningSpeed
  * attackDamage = headAttackDamage
  * </pre>
+ *
+ * <p>The trait step is upstream's {@code TinkerEvent.OnItemBuilding} listeners, which fire once on
+ * the finished stat block at assembly -- for M1 that is stone's {@code cheapskate} taking 20% off
+ * (see {@code ForgeweaveTraits#CHEAP}). It belongs here rather than in the Tool Station because
+ * every caller that wants an assembled tool's stats goes through this method.
  *
  * <p>ponytail: kept intentionally small and pure (materials in, stats out; no item plumbing) so
  * it's easy to extend or replace piecemeal. {@link Stats} is codec'd because it is stored on the
@@ -54,6 +61,7 @@ public final class ToolStats {
         int durability = head.head().durability() + binding.extraDurability();
         durability = Math.round(durability * handle.handle().durabilityModifier()) + handle.handle().durability();
         durability = Math.max(1, durability);
+        durability = ForgeweaveTraits.headDurability(head.trait(), durability);
 
         return new Stats(durability, head.head().miningSpeed(), head.head().attackDamage());
     }

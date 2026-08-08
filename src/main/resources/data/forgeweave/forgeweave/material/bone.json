@@ -9,7 +9,7 @@
     "durability": 50
   },
   "extra_durability": 65,
-  "incorrect_for_tool": "minecraft:incorrect_for_stone_tool",
+  "incorrect_for_tool": "minecraft:incorrect_for_iron_tool",
   "trait": "forgeweave:fractured",
   "crafting_items": [
     { "ingredient": { "item": "minecraft:bone" }, "value": 2 }
