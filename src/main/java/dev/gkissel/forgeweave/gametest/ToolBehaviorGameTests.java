@@ -40,7 +40,7 @@ public class ToolBehaviorGameTests {
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         ItemStack pickaxe = ToolAssembly.pickaxe(helper, player, pos, "stone", "wood", "wood");
 
-        helper.assertTrue(pickaxe.getMaxDamage() == 160, "expected the 160-durability pickaxe, got " + pickaxe.getMaxDamage());
+        helper.assertTrue(pickaxe.getMaxDamage() == 128, "expected the 128-durability pickaxe, got " + pickaxe.getMaxDamage());
         helper.assertTrue(pickaxe.getDamageValue() == 0, "a freshly assembled tool must be undamaged");
 
         mine(helper, player, pickaxe, pos, Blocks.STONE.defaultBlockState());
@@ -97,8 +97,11 @@ public class ToolBehaviorGameTests {
 
     /**
      * Tool tier is the head material's vanilla {@code incorrect_for_*_tool} block tag (CONTEXT.md:
-     * never a numeric harvest level), so a wood-headed pickaxe cannot harvest iron ore and a
-     * stone-headed one can.
+     * never a numeric harvest level), and the tier each material maps to is upstream 1.12's harvest
+     * level for it ({@code TinkerMaterials#registerToolMaterialStats}, issue #79): wood is
+     * {@code HarvestLevels.STONE} and stone/flint/bone are {@code HarvestLevels.IRON}. So a
+     * wood-headed pickaxe harvests iron ore but not diamond ore, and a stone-headed one harvests
+     * both.
      */
     @GameTest(template = "empty")
     public static void headMaterialDecidesTier(GameTestHelper helper) {
@@ -106,14 +109,18 @@ public class ToolBehaviorGameTests {
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         BlockState stone = Blocks.STONE.defaultBlockState();
         BlockState ironOre = Blocks.IRON_ORE.defaultBlockState();
+        BlockState diamondOre = Blocks.DIAMOND_ORE.defaultBlockState();
 
         ItemStack wooden = ToolAssembly.pickaxe(helper, player, pos, "wood", "wood", "wood");
-        helper.assertTrue(wooden.isCorrectToolForDrops(stone), "a wooden-tier pickaxe should harvest stone");
-        helper.assertFalse(wooden.isCorrectToolForDrops(ironOre),
-                "a wooden-tier pickaxe must not harvest iron ore (minecraft:incorrect_for_wooden_tool)");
+        helper.assertTrue(wooden.isCorrectToolForDrops(stone), "a wood-headed pickaxe should harvest stone");
+        helper.assertTrue(wooden.isCorrectToolForDrops(ironOre),
+                "wood is upstream's STONE harvest level, so a wood-headed pickaxe should harvest iron ore");
+        helper.assertFalse(wooden.isCorrectToolForDrops(diamondOre),
+                "a wood-headed pickaxe must not harvest diamond ore (minecraft:incorrect_for_stone_tool)");
 
         ItemStack stony = ToolAssembly.pickaxe(helper, player, pos, "stone", "wood", "wood");
-        helper.assertTrue(stony.isCorrectToolForDrops(ironOre), "a stone-tier pickaxe should harvest iron ore");
+        helper.assertTrue(stony.isCorrectToolForDrops(diamondOre),
+                "stone is upstream's IRON harvest level, so a stone-headed pickaxe should harvest diamond ore");
 
         helper.succeed();
     }

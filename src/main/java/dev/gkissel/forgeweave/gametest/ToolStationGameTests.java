@@ -36,7 +36,8 @@ import dev.gkissel.forgeweave.tool.ToolMaterials;
  * <p>Expected durability is {@code ToolStats}'s ported 1.12 formula (see its javadoc), computed by
  * hand from the shipped material JSONs: stone's head durability (120) + wood's extra_durability
  * (15, as the binding) = 135; * wood's handle durability_modifier (1.0) = 135; + wood's handle
- * durability (25) = 160.
+ * durability (25) = 160; * stone's head trait {@code cheap} carrying upstream's {@code cheapskate}
+ * penalty (160 * 80 / 100) = 128.
  */
 @GameTestHolder(Forgeweave.MODID)
 @PrefixGameTestTemplate(false)
@@ -75,8 +76,8 @@ public class ToolStationGameTests {
                 "expected head=stone binding=wood handle=wood, got " + materials);
 
         Integer maxDamage = output.get(DataComponents.MAX_DAMAGE);
-        helper.assertTrue(maxDamage != null && maxDamage == 160,
-                "expected max durability 160 ((120 + 15) * 1.0 + 25), got " + maxDamage);
+        helper.assertTrue(maxDamage != null && maxDamage == 128,
+                "expected max durability 128 (((120 + 15) * 1.0 + 25) * 80 / 100), got " + maxDamage);
 
         // Simulates taking the crafted tool: all three parts are consumed (unlike the Part Builder's
         // reusable pattern, there's nothing here that survives the craft).
@@ -89,14 +90,14 @@ public class ToolStationGameTests {
     }
 
     /**
-     * docs/SCOPE.md M1 issue #11's repair verification. The pickaxe above (durability pool 160, stone
+     * docs/SCOPE.md M1 issue #11's repair verification. The pickaxe above (durability pool 128, stone
      * head) is broken outright, then repaired with a single cobblestone -- stone's {@code repair_item}
      * is {@code #minecraft:stone_tool_materials}.
      *
-     * <p>One repair item is worth the head material's head durability, so 120 of the 159 damage comes
+     * <p>One repair item is worth the head material's head durability, so 120 of the 127 damage comes
      * off ({@code ToolRepair}, ported from upstream 1.12's
      * {@code TinkersItem#calculateRepairAmount}/{@code #calculateRepair}), plus the 5% stone's
-     * {@code forgeweave:cheap} trait adds -- 126 in all, leaving the tool at 33 damage, unbroken and
+     * {@code forgeweave:cheap} trait adds -- 126 in all, leaving the tool at 1 damage, unbroken and
      * usable again. The trait's own test is {@link TraitGameTests#cheapRepairsMoreThanTheBaseAmount}.
      */
     @GameTest(template = "empty")
@@ -118,8 +119,8 @@ public class ToolStationGameTests {
         ItemStack repaired = menu.getSlot(3).getItem();
         helper.assertTrue(repaired.is(ForgeweaveItems.TOOL_PICKAXE.get()), "expected the repaired pickaxe, got " + repaired);
         helper.assertFalse(ToolItem.isBroken(repaired), "repair must clear the Broken state");
-        helper.assertTrue(repaired.getDamageValue() == 33,
-                "expected 159 - (120 + cheap's 5%) = 33 damage left after one cobblestone, got "
+        helper.assertTrue(repaired.getDamageValue() == 1,
+                "expected 127 - (120 + cheap's 5%) = 1 damage left after one cobblestone, got "
                         + repaired.getDamageValue());
         helper.assertTrue(repaired.isCorrectToolForDrops(Blocks.STONE.defaultBlockState()),
                 "a repaired tool should harvest again");

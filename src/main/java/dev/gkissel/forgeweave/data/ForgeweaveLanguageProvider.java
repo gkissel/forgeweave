@@ -91,8 +91,10 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         // material's incorrect_for_tool points at (ToolTooltip#tierName) -- only the tiers M1's
         // materials actually use; an unmapped tier degrades to a visible untranslated key, same as an
         // unknown trait id (MaterialDisplay).
-        add("tooltip.forgeweave.tier.wooden", "Wood");
+        // Issue #79: M1's four materials are upstream's STONE (wood) and IRON (stone/flint/bone)
+        // harvest levels, so `wooden` is no longer among them.
         add("tooltip.forgeweave.tier.stone", "Stone");
+        add("tooltip.forgeweave.tier.iron", "Iron");
 
         add("material.forgeweave.wood", "Wood");
         add("material.forgeweave.stone", "Stone");
@@ -106,7 +108,10 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("trait.forgeweave.ecological.name", "Ecological");
         add("trait.forgeweave.ecological.description", "Renewable resources are so good, they regenerate by themselves!");
         add("trait.forgeweave.cheap.name", "Cheap");
-        add("trait.forgeweave.cheap.description", "Increases durability gained when repairing the tool.");
+        // Upstream's cheap and cheapskate descriptions, joined because stone's one Forgeweave trait id
+        // carries both behaviors (issue #79; see ForgeweaveTraits#CHEAP and NOTICE.md).
+        add("trait.forgeweave.cheap.description",
+                "Increases durability gained when repairing the tool, but the tool has less durability.");
         add("trait.forgeweave.crude.name", "Crude");
         add("trait.forgeweave.crude.description", "Bonus damage against unarmored targets.");
         add("trait.forgeweave.fractured.name", "Fractured");

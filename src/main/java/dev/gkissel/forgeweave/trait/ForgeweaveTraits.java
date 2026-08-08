@@ -56,11 +56,15 @@ public final class ForgeweaveTraits {
      * regenerate one durability, skipped while the holder is actively using the tool. Upstream
      * routes this through {@code ToolHelper#healTool} -&gt; {@code #damageTool}, which returns early on
      * a broken tool; the {@code ToolItem} seam applies that same guard to every trait.
+     *
+     * <p>Healing an already-undamaged tool needs no guard of its own: 1.21's
+     * {@code ItemStack#setDamageValue} clamps to {@code [0, maxDamage]}, exactly as 1.12's
+     * {@code Item#setDamage} clamped at 0 before upstream's own heal path could go negative.
      */
     public static final Trait ECOLOGICAL = new Trait() {
         @Override
         public void inventoryTick(ItemStack stack, ServerLevel level, LivingEntity holder) {
-            if (holder.getUseItem() == stack || stack.getDamageValue() == 0) {
+            if (holder.getUseItem() == stack) {
                 return;
             }
             if (level.getRandom().nextInt(20 * ECOLOGICAL_PERIOD_SECONDS) == 0) {
@@ -73,13 +77,27 @@ public final class ForgeweaveTraits {
     private static final int ECOLOGICAL_PERIOD_SECONDS = 40;
 
     /**
-     * Stone. Upstream {@code TraitCheap#onToolHeal}: {@code newAmount + amount * 5 / 100}, i.e. 5%
-     * more durability per repair, integer-truncated exactly as upstream truncates it.
+     * Stone. Two upstream traits in one id, because stone grants both and ADR-0002 gives a material
+     * exactly one:
+     *
+     * <ul>
+     *   <li>{@code TraitCheap#onToolHeal}: {@code newAmount + amount * 5 / 100}, i.e. 5% more
+     *       durability per repair, integer-truncated exactly as upstream truncates it.
+     *   <li>{@code TraitCheapskate#onToolBuilding} (upstream assigns it to the head part only:
+     *       {@code stone.addTrait(cheapskate, HEAD)}): {@code max(1, durability * 80 / 100)} on the
+     *       assembled tool, i.e. a 20% durability penalty. Head-only upstream, head-only here --
+     *       hence {@link Trait#headDurability} rather than a hook every part could trigger.
+     * </ul>
      */
     public static final Trait CHEAP = new Trait() {
         @Override
         public int repairBonus(int amount) {
             return amount * 5 / 100;
+        }
+
+        @Override
+        public int headDurability(int durability) {
+            return Math.max(1, durability * 80 / 100);
         }
     };
 
@@ -113,6 +131,17 @@ public final class ForgeweaveTraits {
             id("cheap"), CHEAP,
             id("crude"), CRUDE,
             id("fractured"), FRACTURED);
+
+    /**
+     * The assembled tool's durability after the <b>head</b> material's trait adjusted it
+     * ({@link Trait#headDurability}). Called from {@code ToolStats#compute} with the head material's
+     * trait id; an id no version of Forgeweave implements simply leaves the durability alone, same as
+     * every other hook.
+     */
+    public static int headDurability(ResourceLocation traitId, int durability) {
+        Trait trait = REGISTRY.get(traitId);
+        return trait == null ? durability : trait.headDurability(durability);
+    }
 
     /** The trait ids an assembled tool gets from its three materials, de-duplicated (see class javadoc). */
     public static List<ResourceLocation> resolve(Material head, Material binding, Material handle) {

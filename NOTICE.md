@@ -45,12 +45,12 @@ One row per derived file (ADR-0003). Maintained in PR review: a PR introducing d
 | `src/main/java/dev/gkissel/forgeweave/tool/ToolStats.java` (durability/mining-speed/attack formula) | `src/main/java/slimeknights/tconstruct/library/tools/ToolNBT.java` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
 | `src/main/java/dev/gkissel/forgeweave/menu/ToolAssemblyRecipes.java` (head/binding/handle part composition) | `src/main/java/slimeknights/tconstruct/tools/tools/Pickaxe.java`, `Shovel.java`, `Hatchet.java` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
 | `src/main/java/dev/gkissel/forgeweave/data/ForgeweaveRecipeProvider.java` (Tool Station block recipe shape) | `resources/assets/tconstruct/recipes/tools/table/tool_station.json` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
-| `src/main/java/dev/gkissel/forgeweave/item/ToolItem.java` (broken-state semantics, per-block durability cost) | `src/main/java/slimeknights/tconstruct/library/utils/ToolHelper.java`, `src/main/java/slimeknights/tconstruct/library/tools/ToolCore.java` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
+| `src/main/java/dev/gkissel/forgeweave/item/ToolItem.java` (broken-state semantics, per-block durability cost, per-hit durability cost `attackDurabilityCost`) | `src/main/java/slimeknights/tconstruct/library/utils/ToolHelper.java`, `src/main/java/slimeknights/tconstruct/library/tools/ToolCore.java` (`reduceDurabilityOnHit`) | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
 | `src/main/java/dev/gkissel/forgeweave/item/ForgeweaveItems.java` (per-tool attack speed and damage potential) | `src/main/java/slimeknights/tconstruct/tools/tools/Pickaxe.java`, `Shovel.java`, `Hatchet.java` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
 | `src/main/java/dev/gkissel/forgeweave/tool/ToolRepair.java` (repair-amount formula) | `src/main/java/slimeknights/tconstruct/library/tinkering/TinkersItem.java` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
 | `src/main/java/dev/gkissel/forgeweave/menu/ToolAssemblyRecipes.java` (repair recipe resolution) | `src/main/java/slimeknights/tconstruct/library/tinkering/TinkersItem.java`, `src/main/java/slimeknights/tconstruct/library/utils/ToolHelper.java` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
 | `src/main/java/dev/gkissel/forgeweave/trait/ForgeweaveTraits.java` (`ECOLOGICAL` behavior) | `src/main/java/slimeknights/tconstruct/tools/traits/TraitEcological.java` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
-| `src/main/java/dev/gkissel/forgeweave/trait/ForgeweaveTraits.java` (`CHEAP` behavior) | `src/main/java/slimeknights/tconstruct/tools/traits/TraitCheap.java` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
+| `src/main/java/dev/gkissel/forgeweave/trait/ForgeweaveTraits.java` (`CHEAP` behavior: the repair bonus from `TraitCheap`, the head-only 20% durability penalty from `TraitCheapskate`) | `src/main/java/slimeknights/tconstruct/tools/traits/TraitCheap.java`, `src/main/java/slimeknights/tconstruct/tools/traits/TraitCheapskate.java` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
 | `src/main/java/dev/gkissel/forgeweave/trait/ForgeweaveTraits.java` (`CRUDE` behavior) | `src/main/java/slimeknights/tconstruct/tools/traits/TraitCrude.java` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
 | `src/main/java/dev/gkissel/forgeweave/trait/ForgeweaveTraits.java` (`FRACTURED` behavior) | `src/main/java/slimeknights/tconstruct/tools/traits/TraitBonusDamage.java`, `src/main/java/slimeknights/tconstruct/tools/TinkerTraits.java` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
 | `src/main/java/dev/gkissel/forgeweave/trait/ForgeweaveTraits.java` (same-trait-applies-once stacking rule) | `src/main/java/slimeknights/tconstruct/library/traits/AbstractTraitLeveled.java` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
@@ -110,6 +110,7 @@ One row per derived file (ADR-0003). Maintained in PR review: a PR introducing d
 | `src/main/resources/assets/forgeweave/textures/derived/block/part_chest_side.png` | `resources/assets/tconstruct/textures/blocks/chest/part_side.png` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
 | `src/main/resources/assets/forgeweave/textures/derived/block/part_chest_top.png` | `resources/assets/tconstruct/textures/blocks/chest/part_top.png` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
 | `src/main/java/dev/gkissel/forgeweave/data/ForgeweaveRecipeProvider.java` (Pattern Chest recipe shape: blank pattern over a vanilla chest) | `resources/assets/tconstruct/recipes/tools/table/chest/pattern.json` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
+| `src/main/java/dev/gkissel/forgeweave/data/ForgeweaveRecipeProvider.java` (Pattern Chest second recipe shape: a ring of 8 planks around a blank pattern, same `pattern_chest` recipe group as the row above) | `resources/assets/tconstruct/recipes/tools/table/chest/pattern_simple.json` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
 | `src/main/java/dev/gkissel/forgeweave/data/ForgeweaveRecipeProvider.java` (Part Chest recipe shape: blank pattern + 2 sticks over a vanilla chest, plank below) | `resources/assets/tconstruct/recipes/tools/table/chest/part.json` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
 
 Each material JSON derives its stat values and tint color from that file; the Java that loads them is an
@@ -134,13 +135,30 @@ retextured every quad, including these).
 
 Trait behavior (issue #12) is ported semantics, not copied code: the rates, conditions and magnitudes
 are upstream's, the `Trait` interface and its registry are written fresh against 1.21's data
-components and NeoForge events. Two deliberate deviations, both forced by ADR-0002's one-trait-id-per-
-material data model: upstream's flint grants `crude2` on the head part plus `crude` elsewhere, which
-stacks to level 3 (+15% vs unarmored), while Forgeweave's flint grants plain `crude` (level 1, +5%);
-and upstream's stone grants `cheapskate` on the head part on top of `cheap`, a durability *penalty*
-Forgeweave does not ship (stone's lower durability is already in its material JSON). `Trait.java`
-carries only the four hooks the four shipped traits use rather than upstream's full `ITrait` surface,
-so it is not a derived file and carries no row.
+components and NeoForge events. Three deliberate deviations, all forced by ADR-0002's
+one-trait-id-per-material data model, which cannot express upstream's per-part trait assignment:
+
+- **Flint's `crude2`**: upstream's flint grants `crude2` on the head part plus `crude` elsewhere,
+  which stacks to level 3 (+15% vs unarmored), while Forgeweave's flint grants plain `crude`
+  (level 1, +5%).
+- **Stone's `cheapskate`**: upstream's stone grants `cheapskate` on the head part
+  (`TinkerMaterials`: `stone.addTrait(cheapskate, HEAD)`) on top of `cheap`. Both behaviors ship,
+  folded into the single `forgeweave:cheap` id (`ForgeweaveTraits#CHEAP`): `cheap`'s +5% repair from
+  `TraitCheap#onToolHeal`, and `cheapskate`'s `max(1, durability * 80 / 100)` from
+  `TraitCheapskate#onToolBuilding`, applied at assembly through `Trait#headDurability` so it stays
+  head-only exactly as upstream's assignment is. (Issue #79 corrected this entry, which previously
+  claimed the penalty was already baked into stone's material JSON stats and so did not need to
+  ship. It was not: those stats are upstream's `HeadMaterialStats`/`HandleMaterialStats`/
+  `ExtraMaterialStats` values verbatim, which upstream itself then multiplies by 0.8 at build time,
+  so every stone-headed tool was about 25% too durable.)
+- **Bone's `splintering`**: upstream's bone grants `splintering` on the head part plus `fractured`
+  everywhere; Forgeweave's bone grants plain `fractured`, so the stacking `splinter` potion effect
+  `TraitSplintering` applies on hit (+0.3 damage per stack, up to 5) is not shipped. Upstream's third
+  bone trait, `splitting` on the SHAFT part, is a bow doubleshot chance with nothing to act on in M1
+  and is not counted as a deviation.
+
+`Trait.java` carries only the five hooks the four shipped traits use rather than upstream's full
+`ITrait` surface, so it is not a derived file and carries no row.
 
 Both stations are now table-shaped (tabletop + 4 legs, hollow underside) and retain the appearance
 of the wood block they were crafted from: `WoodTexturedBlockEntity` stores the crafting wood as a
@@ -197,8 +215,18 @@ own `craftingstation_top.png`/`craftingstation_side.png`/`stenciltable_top.png` 
 Its *recipe* no longer uses that machinery, though: issue #68 fix 7 restored upstream's own
 `crafting_station.json`, a bare shapeless "any workbench", so a crafted Crafting Station carries no
 `TEXTURE` component at all and renders in the model's default wood -- which is exactly what
-upstream's does (`crafting_station.json` and `tool_station.json` are plain recipes; only
-`part_builder.json` and `stencil_table.json` use upstream's retexturing `table_recipe` type).
+upstream's does.
+
+Upstream splits its four station recipes two ways: `part_builder.json` and `stencil_table.json` use
+its retexturing `tconstruct:table_recipe` type, while `crafting_station.json` and `tool_station.json`
+are plain recipes whose output has no wood variant at all. Forgeweave matches that split for three of
+the four. **The Tool Station is the remaining deviation** (clarified in issue #79, which found this
+paragraph reading as though all four matched): Forgeweave builds it with
+`RetexturedShapedRecipe`, so a Tool Station crafted from a crafting table carries a `TEXTURE`
+component and keeps that wood, where upstream's is a plain `forge:ore_shaped` recipe and upstream's
+Tool Station has no per-wood variant. The recipe's *ingredients* are upstream's (blank pattern over a
+crafting table, restored by #68 fix 7); only the retexturing is added, and it makes the Tool Station
+consistent with the Part Builder and Stencil Table standing beside it.
 
 Restoring the two upstream ingredients was not cosmetic. The Tool Station recipe had been deviated
 from upstream's `workbench` to `#planks` and the Crafting Station from upstream's shapeless form to
@@ -242,10 +270,25 @@ carries no row.
 
 The Stencil Table (issue #44) reuses issue #43's table-shape/wood-retexture machinery verbatim
 (`WoodTexturedBlockEntity`, `RetexturedTableGeometry`, `RetexturedShapedRecipe`) for family
-consistency with the other three stations, same as the Crafting Station paragraph above -- its
-crafting recipe (blank pattern + planks) matches upstream's real `#STENCIL_TABLE` tag resolution
-(`plankWood`) exactly. Since issue #68 fix 7 the other three station recipes are upstream-literal
-too, so no station recipe carries a maintainer deviation any more.
+consistency with the other three stations, same as the Crafting Station paragraph above.
+
+**Deviation, corrected in issue #79**: this used to claim the Stencil Table recipe matched upstream's
+`#STENCIL_TABLE` tag "exactly". It does not, and neither does the Part Builder's. Upstream's
+`recipes/_constants.json` defines both as an ore dict *plus* three hand-listed extras:
+
+| Upstream constant | Upstream ingredient | Forgeweave ingredient |
+| --- | --- | --- |
+| `#STENCIL_TABLE` | `plankWood`, `minecraft:rail`, `minecraft:melon_block`, `tconstruct:firewood` | `#minecraft:planks` |
+| `#PART_BUILDER` | `logWood`, `minecraft:golden_rail`, `minecraft:cactus`, `tconstruct:firewood` (variant 1) | `#minecraft:logs` |
+
+The vanilla tags cover the ore-dict half (`plankWood`/`logWood` resolve to vanilla planks/logs, and
+modded planks and logs join `#minecraft:planks`/`#minecraft:logs` by the same convention). The three
+extras per recipe are not covered: two of them are joke ingredients for a block that has nothing to
+do with rails or melons, and `firewood` is a TinkersConstruct block Forgeweave does not have. They
+are deliberately **not** added — a recipe that accepts a rail is a worse recipe, and every station
+recipe already collided once over shape (issue #68 fix 7, below), so widening ingredients is a risk
+with no gameplay payoff. Apart from these two ingredient sets, every station recipe is
+upstream-literal.
 
 Selecting a pattern (issue #44) is ported semantics, not copied code: upstream's `TinkerRegistry`
 dynamically registers one stencil-table candidate per material variant of each part pattern (since

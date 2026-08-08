@@ -25,6 +25,7 @@ import net.minecraft.world.item.crafting.ShapedRecipePattern;
 import net.minecraft.world.level.ItemLike;
 import net.minecraft.world.level.block.Blocks;
 
+import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.item.ForgeweaveItems;
 import dev.gkissel.forgeweave.recipe.RetexturedShapedRecipe;
 
@@ -86,16 +87,30 @@ public class ForgeweaveRecipeProvider extends RecipeProvider {
         // is "blank pattern + #STENCIL_TABLE" where that tag resolves to plankWood (NOTICE.md).
         retexturedTableRecipe(recipeOutput, ForgeweaveItems.STENCIL_TABLE.get(), ForgeweaveItems.PATTERN_BLANK.get(), Ingredient.of(ItemTags.PLANKS));
 
-        // Pattern Chest (docs/SCOPE.md M1 issue #66): upstream's real pattern.json is a blank
-        // pattern stacked directly on a vanilla chest -- ported verbatim (NOTICE.md); no
-        // RetexturedShapedRecipe here since ChestBlock carries no TEXTURE component.
+        // Pattern Chest (docs/SCOPE.md M1 issue #66): upstream ships two recipes for it, both in the
+        // `tconstruct:pattern_chest` group -- chest/pattern.json (blank pattern stacked directly on a
+        // chest) and chest/pattern_simple.json (a ring of 8 planks around a blank pattern, for
+        // players who have not built a chest). Both ported verbatim (NOTICE.md); no
+        // RetexturedShapedRecipe for either, since ChestBlock carries no TEXTURE component.
         ShapedRecipeBuilder.shaped(RecipeCategory.MISC, ForgeweaveItems.PATTERN_CHEST.get())
                 .pattern("A")
                 .pattern("B")
                 .define('A', ForgeweaveItems.PATTERN_BLANK.get())
                 .define('B', Items.CHEST)
+                .group("pattern_chest")
                 .unlockedBy("has_pattern_blank", has(ForgeweaveItems.PATTERN_BLANK.get()))
                 .save(recipeOutput);
+
+        ShapedRecipeBuilder.shaped(RecipeCategory.MISC, ForgeweaveItems.PATTERN_CHEST.get())
+                .pattern("BBB")
+                .pattern("BAB")
+                .pattern("BBB")
+                .define('A', ForgeweaveItems.PATTERN_BLANK.get())
+                .define('B', ItemTags.PLANKS)
+                .group("pattern_chest")
+                .unlockedBy("has_pattern_blank", has(ForgeweaveItems.PATTERN_BLANK.get()))
+                .save(recipeOutput,
+                        ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "pattern_chest_from_planks"));
 
         // Part Chest (docs/SCOPE.md M1 issue #66): upstream's real part.json shape (a blank pattern
         // over a chest flanked by sticks, with a plank below) -- ported verbatim (NOTICE.md).

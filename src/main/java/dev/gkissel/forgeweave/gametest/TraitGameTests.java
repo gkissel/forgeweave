@@ -75,9 +75,10 @@ public class TraitGameTests {
     }
 
     /**
-     * Stone -&gt; {@code forgeweave:cheap}: 5% more durability per repair item. The stone-headed pickaxe
-     * repairs for its head material's 120 durability plus {@code 120 * 5 / 100 = 6}, so one
-     * cobblestone takes 126 off instead of 120.
+     * Stone -&gt; {@code forgeweave:cheap}: 5% more durability per repair item, and (upstream's
+     * head-only {@code cheapskate}, folded into the same id) 20% off the assembled durability pool.
+     * The stone-headed pickaxe's pool is 128 rather than 160, and it repairs for its head material's
+     * 120 durability plus {@code 120 * 5 / 100 = 6}, so one cobblestone takes 126 off instead of 120.
      */
     @GameTest(template = "empty")
     public static void cheapRepairsMoreThanTheBaseAmount(GameTestHelper helper) {
@@ -85,7 +86,7 @@ public class TraitGameTests {
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         ItemStack pickaxe = ToolAssembly.pickaxe(helper, player, pos, "stone", "wood", "wood");
         pickaxe.hurtAndBreak(1_000, helper.getLevel(), player, brokenItem -> {});
-        helper.assertTrue(pickaxe.getDamageValue() == 159, "expected the 160-durability pickaxe Broken at 159 damage");
+        helper.assertTrue(pickaxe.getDamageValue() == 127, "expected the 128-durability pickaxe Broken at 127 damage");
 
         ToolStationBlockEntity blockEntity = helper.getBlockEntity(pos);
         blockEntity.container().setItem(0, pickaxe);
@@ -95,8 +96,8 @@ public class TraitGameTests {
         ToolStationMenu menu = ToolAssembly.menu(helper, player, pos, blockEntity);
         menu.broadcastChanges();
 
-        helper.assertTrue(menu.getSlot(3).getItem().getDamageValue() == 33,
-                "expected 159 - (120 + 5%) = 33 damage left with cheap, got "
+        helper.assertTrue(menu.getSlot(3).getItem().getDamageValue() == 1,
+                "expected 127 - (120 + 5%) = 1 damage left with cheap, got "
                         + menu.getSlot(3).getItem().getDamageValue());
 
         helper.succeed();
