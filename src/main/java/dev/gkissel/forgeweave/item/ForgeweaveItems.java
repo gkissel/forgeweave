@@ -76,5 +76,10 @@ public final class ForgeweaveItems {
     // stations above.
     public static final DeferredItem<BlockItem> STENCIL_TABLE = ITEMS.registerSimpleBlockItem("stencil_table", ForgeweaveBlocks.STENCIL_TABLE);
 
+    // The Pattern Chest and Part Chest (docs/SCOPE.md M1 issue #66): plain block items, not
+    // retextured-table items -- neither chest carries a TEXTURE component (ChestBlock javadoc).
+    public static final DeferredItem<BlockItem> PATTERN_CHEST = ITEMS.registerSimpleBlockItem("pattern_chest", ForgeweaveBlocks.PATTERN_CHEST);
+    public static final DeferredItem<BlockItem> PART_CHEST = ITEMS.registerSimpleBlockItem("part_chest", ForgeweaveBlocks.PART_CHEST);
+
     private ForgeweaveItems() {}
 }

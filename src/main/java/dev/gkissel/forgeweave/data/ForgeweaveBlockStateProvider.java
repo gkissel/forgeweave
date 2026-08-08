@@ -44,5 +44,18 @@ public class ForgeweaveBlockStateProvider extends BlockStateProvider {
         ModelFile stencilTableModel = models().getExistingFile(modLoc("block/stencil_table"));
         horizontalBlock(ForgeweaveBlocks.STENCIL_TABLE.get(), stencilTableModel);
         simpleBlockItem(ForgeweaveBlocks.STENCIL_TABLE.get(), stencilTableModel);
+
+        // The Pattern Chest and Part Chest (docs/SCOPE.md M1 issue #66): plain facing-aware cubes
+        // (ChestBlock javadoc), generated via the vanilla "orientable" model (front/side/top faces,
+        // same shape furnaces use) instead of hand-authored table JSON.
+        ModelFile patternChestModel = models().orientable("pattern_chest",
+                modLoc("derived/block/pattern_chest_side"), modLoc("derived/block/pattern_chest_front"), modLoc("derived/block/pattern_chest_top"));
+        horizontalBlock(ForgeweaveBlocks.PATTERN_CHEST.get(), patternChestModel);
+        simpleBlockItem(ForgeweaveBlocks.PATTERN_CHEST.get(), patternChestModel);
+
+        ModelFile partChestModel = models().orientable("part_chest",
+                modLoc("derived/block/part_chest_side"), modLoc("derived/block/part_chest_front"), modLoc("derived/block/part_chest_top"));
+        horizontalBlock(ForgeweaveBlocks.PART_CHEST.get(), partChestModel);
+        simpleBlockItem(ForgeweaveBlocks.PART_CHEST.get(), partChestModel);
     }
 }

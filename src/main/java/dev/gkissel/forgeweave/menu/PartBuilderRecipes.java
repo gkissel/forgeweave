@@ -63,8 +63,13 @@ public final class PartBuilderRecipes {
             new Entry(ForgeweaveItems.PATTERN_TOOL_BINDING, ForgeweaveItems.PART_TOOL_BINDING, SMALL_PART_COST),
             new Entry(ForgeweaveItems.PATTERN_TOOL_HANDLE, ForgeweaveItems.PART_TOOL_HANDLE, SMALL_PART_COST));
 
-    /** Whether the pattern slot should accept this stack at all. */
-    static boolean isPattern(ItemStack stack) {
+    /**
+     * Whether the pattern slot should accept this stack at all (the five part patterns only -- not
+     * {@link ForgeweaveItems#PATTERN_BLANK}, which has no {@link Entry}). Public so {@link
+     * dev.gkissel.forgeweave.block.ChestKind#PATTERN} (issue #66) can reuse the same check for the
+     * Pattern Chest's slot filter instead of re-deriving the pattern-to-part table.
+     */
+    public static boolean isPattern(ItemStack stack) {
         return findEntry(stack).isPresent();
     }
 

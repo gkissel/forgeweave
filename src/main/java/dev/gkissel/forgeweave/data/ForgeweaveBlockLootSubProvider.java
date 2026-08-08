@@ -35,6 +35,11 @@ public class ForgeweaveBlockLootSubProvider extends BlockLootSubProvider {
         add(ForgeweaveBlocks.TOOL_STATION.get(), retexturedTableDrop(ForgeweaveBlocks.TOOL_STATION.get()));
         add(ForgeweaveBlocks.CRAFTING_STATION.get(), retexturedTableDrop(ForgeweaveBlocks.CRAFTING_STATION.get()));
         add(ForgeweaveBlocks.STENCIL_TABLE.get(), retexturedTableDrop(ForgeweaveBlocks.STENCIL_TABLE.get()));
+
+        // The Pattern Chest and Part Chest (issue #66) carry no TEXTURE component, so they use a
+        // plain self-drop rather than retexturedTableDrop's component-copying loot function.
+        dropSelf(ForgeweaveBlocks.PATTERN_CHEST.get());
+        dropSelf(ForgeweaveBlocks.PART_CHEST.get());
     }
 
     private LootTable.Builder retexturedTableDrop(Block block) {
