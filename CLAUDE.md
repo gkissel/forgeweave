@@ -30,6 +30,10 @@ Rules (see ADR-0003 and CONTEXT.md):
 - All identifiers, file names, and player-facing text use Forgeweave vocabulary; never "tinker"/"tic" (CONTEXT.md avoided terminology).
 - If the clones are missing, re-create them: `git clone --depth 1 --branch <branch> https://github.com/SlimeKnights/TinkersConstruct.git <path>` and checkout the pinned commit.
 
+## 1.12 parity is the default (maintainer directive)
+
+For any feature that exists in Tinkers' Construct 2 (the 1.12 clone), the default is **1:1 parity**: derive its actual textures (blocks, items, GUIs — never freshly-authored approximations when upstream art exists) and mirror its implementation semantics (layouts, slot positions, behaviors, magnitudes), adapted only as far as modern NeoForge APIs force. The 1.20 clone is a fallback reference for how upstream itself adapted a mechanic to modern Minecraft — not an alternative design source. Deviations require an explicit maintainer decision recorded in the PR; "close enough" substitutions have repeatedly failed playtest review.
+
 ## Derived texture organization
 
 All upstream-derived art lives under `assets/forgeweave/textures/derived/` (`derived/item/`, `derived/tools/`, `derived/block/`, `derived/gui/`), one `NOTICE.md` row per file. Freshly-authored/original art lives in the standard `textures/item|block|gui` folders alongside it. M9 executes by replacing/emptying the `derived/` tree.
