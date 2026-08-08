@@ -29,8 +29,6 @@ import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
 
-import net.neoforged.neoforge.items.IItemHandler;
-
 import dev.gkissel.forgeweave.item.ForgeweaveDataComponents;
 
 /**
@@ -122,11 +120,10 @@ public class CraftingStationBlock extends HorizontalDirectionalBlock implements 
         if (!level.isClientSide && level.getBlockEntity(pos) instanceof CraftingStationBlockEntity craftingStation) {
             // The client-side menu needs to know how many side-inventory slots to build (issue #40:
             // an adjacent item-handler block's inventory shows in a side panel) before it can even
-            // construct matching Slot objects, so that count rides along on the open-menu packet --
-            // see ForgeweaveMenus's registration and CraftingStationMenu's buf-reading constructor.
-            IItemHandler sideInventory = craftingStation.findSideInventory();
-            int sideInventorySlots = sideInventory == null ? 0 : sideInventory.getSlots();
-            player.openMenu(craftingStation, buf -> buf.writeVarInt(sideInventorySlots));
+            // construct matching Slot objects, so that count rides along on the open-menu packet,
+            // followed by the station-group tab row (issue #78). Both are written by the block
+            // entity (see StationMenuHost) because a tab click has to open this station the same way.
+            craftingStation.open(player);
         }
         return InteractionResult.SUCCESS;
     }

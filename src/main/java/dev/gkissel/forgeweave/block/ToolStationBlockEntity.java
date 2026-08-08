@@ -10,9 +10,9 @@ import net.minecraft.nbt.Tag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
+import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 import net.minecraft.world.Container;
-import net.minecraft.world.MenuProvider;
 import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
@@ -26,6 +26,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.neoforge.client.model.data.ModelData;
 import net.neoforged.neoforge.items.IItemHandler;
 
+import dev.gkissel.forgeweave.menu.StationGroup;
 import dev.gkissel.forgeweave.menu.ToolStationMenu;
 
 /**
@@ -40,7 +41,7 @@ import dev.gkissel.forgeweave.menu.ToolStationMenu;
  * <p>Also retains the wood block it was crafted from ({@link WoodTexturedBlockEntity}, issue #43),
  * defaulting to oak (upstream's Tool Station is crafted from {@code #minecraft:planks}).
  */
-public class ToolStationBlockEntity extends BlockEntity implements MenuProvider, WoodTexturedBlockEntity {
+public class ToolStationBlockEntity extends BlockEntity implements StationMenuHost, WoodTexturedBlockEntity {
     private static final String TAG_INVENTORY = "inventory";
 
     private final SimpleContainer container = new SimpleContainer(ToolStationMenu.CONTAINER_SLOTS);
@@ -129,5 +130,13 @@ public class ToolStationBlockEntity extends BlockEntity implements MenuProvider,
     public AbstractContainerMenu createMenu(int containerId, Inventory playerInventory, Player player) {
         return new ToolStationMenu(containerId, playerInventory, container,
                 ContainerLevelAccess.create(level, worldPosition), findSideInventory());
+    }
+
+    /** Side-inventory slot count first, then the station-group tab row (issue #78). */
+    @Override
+    public void writeMenuData(RegistryFriendlyByteBuf buf) {
+        IItemHandler sideInventory = findSideInventory();
+        buf.writeVarInt(sideInventory == null ? 0 : sideInventory.getSlots());
+        StationGroup.STREAM_CODEC.encode(buf, StationGroup.tabsFor(level, worldPosition));
     }
 }

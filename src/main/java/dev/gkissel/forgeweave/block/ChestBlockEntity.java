@@ -7,9 +7,9 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.Tag;
+import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.Container;
-import net.minecraft.world.MenuProvider;
 import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
@@ -25,6 +25,7 @@ import net.neoforged.neoforge.items.IItemHandler;
 import net.neoforged.neoforge.items.wrapper.InvWrapper;
 
 import dev.gkissel.forgeweave.menu.ChestMenu;
+import dev.gkissel.forgeweave.menu.StationGroup;
 
 /**
  * Holds a Pattern Chest or Part Chest's persistent, filtered inventory (docs/SCOPE.md M1 issue
@@ -45,7 +46,7 @@ import dev.gkissel.forgeweave.menu.ChestMenu;
  * so any adjacent station's side-inventory panel ({@link SideInventory#find}) picks it up
  * automatically, the same as a vanilla chest already does.
  */
-public class ChestBlockEntity extends BlockEntity implements MenuProvider {
+public class ChestBlockEntity extends BlockEntity implements StationMenuHost {
     /** Double-chest-sized fixed grid; see the class javadoc's capacity note. */
     public static final int SLOTS = 54;
 
@@ -92,6 +93,12 @@ public class ChestBlockEntity extends BlockEntity implements MenuProvider {
     @Override
     public AbstractContainerMenu createMenu(int containerId, Inventory playerInventory, Player player) {
         return new ChestMenu(kind, containerId, playerInventory, container, ContainerLevelAccess.create(level, worldPosition));
+    }
+
+    /** A chest has no side inventory of its own, so the tab row is the whole payload (issue #78). */
+    @Override
+    public void writeMenuData(RegistryFriendlyByteBuf buf) {
+        StationGroup.STREAM_CODEC.encode(buf, StationGroup.tabsFor(level, worldPosition));
     }
 
     /** Wires {@link Capabilities.ItemHandler#BLOCK} for both chest types; called from {@code Forgeweave}'s constructor. */

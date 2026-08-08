@@ -39,7 +39,7 @@ public class ChestScreen extends StationScreen<ChestMenu> {
     }
 
     @Override
-    protected void renderBg(GuiGraphics guiGraphics, float partialTick, int mouseX, int mouseY) {
+    protected void renderPanel(GuiGraphics guiGraphics, float partialTick, int mouseX, int mouseY) {
         // Same defect issue #68 fix 1 found in CraftingStationScreen: passing the panel size as the
         // source sheet size squeezes the whole 256x256 file into the panel's footprint.
         guiGraphics.blit(TEXTURE, leftPos, topPos, 0, 0, BASE_WIDTH, BASE_HEIGHT, SHEET, SHEET);

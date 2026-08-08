@@ -10,9 +10,11 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.renderer.Rect2i;
+import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.item.ItemStack;
 
@@ -27,6 +29,7 @@ import dev.gkissel.forgeweave.material.MaterialDisplay;
 import dev.gkissel.forgeweave.menu.ForgeweaveMenus;
 import dev.gkissel.forgeweave.menu.PartBuilderMenu;
 import dev.gkissel.forgeweave.menu.PartBuilderRecipes;
+import dev.gkissel.forgeweave.menu.StencilTableMenu;
 
 /**
  * The Part Builder's GUI. The background is upstream 1.12's real {@code partbuilder.png} (issue
@@ -85,6 +88,15 @@ public class PartBuilderScreen extends StationScreen<PartBuilderMenu> implements
      * #79: this station had picked up the Tool Station's 2px gap, which is not upstream's.
      */
     private static final int PANEL_GAP = 0;
+
+    /** Upstream {@code GuiPartBuilder.Column_Count} and {@code GuiSideButtons}' own grid metrics (issue #78). */
+    private static final int BUTTON_COLUMNS = 4;
+    private static final int BUTTON_SIZE = 18;
+    private static final int BUTTON_SPACING = 4;
+    /** The wood-style button row of {@code icons.png}, same constants {@link StencilTableScreen} uses. */
+    private static final int BUTTON_V = 234;
+    private static final int BUTTON_IDLE_U = 180;
+    private static final int BUTTON_HOVER_U = 216;
     private static final int PANEL_TOP = 0;
     /** Upstream gives this station's single panel the full GUI height ({@code info.ySize = this.ySize}). */
     private static final int PANEL_HEIGHT = BASE_HEIGHT;
@@ -165,13 +177,96 @@ public class PartBuilderScreen extends StationScreen<PartBuilderMenu> implements
     }
 
     @Override
-    protected void renderBg(GuiGraphics graphics, float partialTick, int mouseX, int mouseY) {
+    protected void renderPanel(GuiGraphics graphics, float partialTick, int mouseX, int mouseY) {
         graphics.blit(TEXTURE, leftPos, topPos, 0, 0, BASE_WIDTH, BASE_HEIGHT, BASE_WIDTH, BASE_HEIGHT);
         renderSlotIcons(graphics);
         renderMaterialValue(graphics);
         InfoPanel.render(graphics, font, leftPos + BASE_WIDTH + PANEL_GAP, topPos + PANEL_TOP,
                 InfoPanel.WIDTH, PANEL_HEIGHT, PANEL_STYLE, caption, lines, scroll);
-        sidePanel.render(graphics, menu, leftPos, topPos, imageHeight, menu.sideSlots);
+        if (menu.partCrafter) {
+            renderPatternButtons(graphics, mouseX, mouseY);
+        } else {
+            sidePanel.render(graphics, menu, leftPos, topPos, imageHeight, menu.sideSlots);
+        }
+    }
+
+    // ------------------------------------------------------------ pattern chest sidebar (issue #78)
+
+    /**
+     * Upstream's {@code GuiButtonsPartCrafter}: with a Pattern Chest attached (and the Stencil Table
+     * and Crafting Station its {@code partCrafter} check also wants), the chest's slots are replaced
+     * by one button per pattern it holds, and clicking one swaps that pattern into the pattern slot.
+     * Same {@code GuiSideButtons} grid rule {@link StencilTableScreen} already draws -- {@code
+     * GuiPartBuilder.Column_Count} is 4 there too, and {@code GuiPartBuilder} likewise sets no module
+     * offsets, so the grid is flush with the panel's left edge at its top.
+     *
+     * <p>{@link PartBuilderMenu#patternButtons} decides <em>which</em> patterns appear; this only
+     * draws them. The button's id is its index into the fixed pattern list, so a click identifies a
+     * pattern rather than a screen position.
+     */
+    private void renderPatternButtons(GuiGraphics graphics, int mouseX, int mouseY) {
+        List<Integer> buttons = menu.patternButtons();
+        for (int i = 0; i < buttons.size(); i++) {
+            int x = leftPos + buttonX(i);
+            int y = topPos + buttonY(i);
+            int u = isHovering(buttonX(i), buttonY(i), BUTTON_SIZE, BUTTON_SIZE, mouseX, mouseY)
+                    ? BUTTON_HOVER_U : BUTTON_IDLE_U;
+            graphics.blit(ICONS, x, y, u, BUTTON_V, BUTTON_SIZE, BUTTON_SIZE, SHEET, SHEET);
+            graphics.renderItem(patternStack(buttons.get(i)), x + 1, y + 1);
+        }
+    }
+
+    private static ItemStack patternStack(int patternId) {
+        return new ItemStack(StencilTableMenu.PATTERNS.get(patternId).get());
+    }
+
+    private int sidebarColumns() {
+        return Math.min(Math.max(menu.patternButtons().size(), 1), BUTTON_COLUMNS);
+    }
+
+    private int sidebarWidth() {
+        int columns = sidebarColumns();
+        return columns * BUTTON_SIZE + (columns - 1) * BUTTON_SPACING;
+    }
+
+    private int sidebarHeight() {
+        int rows = (menu.patternButtons().size() + BUTTON_COLUMNS - 1) / BUTTON_COLUMNS;
+        return Math.max(rows, 1) * BUTTON_SIZE + (Math.max(rows, 1) - 1) * BUTTON_SPACING;
+    }
+
+    private int buttonX(int index) {
+        return -sidebarWidth() + (index % BUTTON_COLUMNS) * (BUTTON_SIZE + BUTTON_SPACING);
+    }
+
+    private static int buttonY(int index) {
+        return (index / BUTTON_COLUMNS) * (BUTTON_SIZE + BUTTON_SPACING);
+    }
+
+    @Override
+    public boolean mouseClicked(double mouseX, double mouseY, int button) {
+        List<Integer> buttons = menu.patternButtons();
+        for (int i = 0; i < buttons.size(); i++) {
+            if (isHovering(buttonX(i), buttonY(i), BUTTON_SIZE, BUTTON_SIZE, mouseX, mouseY) && minecraft != null) {
+                // Server-authoritative: the swap happens in PartBuilderMenu#clickMenuButton and comes
+                // back as ordinary slot syncs, so nothing is applied locally first.
+                minecraft.getSoundManager().play(SimpleSoundInstance.forUI(SoundEvents.UI_STONECUTTER_SELECT_RECIPE, 1.0F));
+                minecraft.gameMode.handleInventoryButtonClick(menu.containerId, buttons.get(i));
+                return true;
+            }
+        }
+        return super.mouseClicked(mouseX, mouseY, button);
+    }
+
+    @Override
+    protected void renderTooltip(GuiGraphics graphics, int mouseX, int mouseY) {
+        super.renderTooltip(graphics, mouseX, mouseY);
+        List<Integer> buttons = menu.patternButtons();
+        for (int i = 0; i < buttons.size(); i++) {
+            if (isHovering(buttonX(i), buttonY(i), BUTTON_SIZE, BUTTON_SIZE, mouseX, mouseY)) {
+                graphics.renderTooltip(font, patternStack(buttons.get(i)), mouseX, mouseY);
+                return;
+            }
+        }
     }
 
     /** Upstream's {@code drawIconEmpty}: a hint glyph in each empty slot, never over a real item. */
@@ -221,9 +316,13 @@ public class PartBuilderScreen extends StationScreen<PartBuilderMenu> implements
     /** Issue #68 fix 4: the info panel and side panel hang outside {@code imageWidth}; JEI has to be told. */
     @Override
     public List<Rect2i> extraGuiAreas() {
-        List<Rect2i> areas = new ArrayList<>(2);
+        List<Rect2i> areas = super.extraGuiAreas(); // the station-group tab row (issue #78)
         areas.add(new Rect2i(leftPos + BASE_WIDTH + PANEL_GAP, topPos + PANEL_TOP, InfoPanel.WIDTH, PANEL_HEIGHT));
-        if (!menu.sideSlots.isEmpty()) {
+        if (menu.partCrafter) {
+            if (!menu.patternButtons().isEmpty()) {
+                areas.add(new Rect2i(leftPos + buttonX(0), topPos, sidebarWidth(), sidebarHeight()));
+            }
+        } else if (!menu.sideSlots.isEmpty()) {
             areas.add(sidePanel.bounds());
         }
         return areas;

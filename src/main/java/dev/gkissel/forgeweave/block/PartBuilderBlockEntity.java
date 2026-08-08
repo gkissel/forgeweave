@@ -1,5 +1,7 @@
 package dev.gkissel.forgeweave.block;
 
+import java.util.List;
+
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
@@ -11,8 +13,8 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
+import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.world.Container;
-import net.minecraft.world.MenuProvider;
 import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
@@ -27,6 +29,7 @@ import net.neoforged.neoforge.client.model.data.ModelData;
 import net.neoforged.neoforge.items.IItemHandler;
 
 import dev.gkissel.forgeweave.menu.PartBuilderMenu;
+import dev.gkissel.forgeweave.menu.StationGroup;
 
 /**
  * Holds the Part Builder's persistent 3-slot inventory (pattern, material, output) and opens its
@@ -42,7 +45,7 @@ import dev.gkissel.forgeweave.menu.PartBuilderMenu;
  * <p>Also retains the wood block it was crafted from ({@link WoodTexturedBlockEntity}, issue #43),
  * defaulting to oak (upstream's Part Builder is crafted from {@code #minecraft:logs}).
  */
-public class PartBuilderBlockEntity extends BlockEntity implements MenuProvider, WoodTexturedBlockEntity {
+public class PartBuilderBlockEntity extends BlockEntity implements StationMenuHost, WoodTexturedBlockEntity {
     private static final String TAG_INVENTORY = "inventory";
 
     private final SimpleContainer container = new SimpleContainer(PartBuilderMenu.CONTAINER_SLOTS);
@@ -62,6 +65,23 @@ public class PartBuilderBlockEntity extends BlockEntity implements MenuProvider,
     @Nullable
     public IItemHandler findSideInventory() {
         return SideInventory.find(this);
+    }
+
+    /**
+     * Upstream {@code ContainerPartBuilder#partCrafter} (issue #78): the side panel turns into a
+     * pattern-selection button sidebar when the neighbour feeding it is a Pattern Chest
+     * <em>and</em> the station group also has a Stencil Table and a Crafting Station. All three are
+     * upstream's conditions verbatim -- the chest from its {@code detectTE(TilePatternChest.class)}
+     * adjacent-only scan, the other two from the group it walks in the same constructor.
+     */
+    public boolean isPartCrafter() {
+        BlockPos sidePos = SideInventory.findPos(this);
+        if (level == null || sidePos == null || !level.getBlockState(sidePos).is(ForgeweaveBlocks.PATTERN_CHEST.get())) {
+            return false;
+        }
+        List<BlockPos> group = StationGroup.resolve(level, worldPosition);
+        return StationGroup.contains(level, group, ForgeweaveBlocks.CRAFTING_STATION.get())
+                && StationGroup.contains(level, group, ForgeweaveBlocks.STENCIL_TABLE.get());
     }
 
     @Override
@@ -131,5 +151,14 @@ public class PartBuilderBlockEntity extends BlockEntity implements MenuProvider,
     public AbstractContainerMenu createMenu(int containerId, Inventory playerInventory, Player player) {
         return new PartBuilderMenu(containerId, playerInventory, container,
                 ContainerLevelAccess.create(level, worldPosition), findSideInventory());
+    }
+
+    /** Side-inventory slot count, then the station-group tab row, then the pattern-sidebar flag (issue #78). */
+    @Override
+    public void writeMenuData(RegistryFriendlyByteBuf buf) {
+        IItemHandler sideInventory = findSideInventory();
+        buf.writeVarInt(sideInventory == null ? 0 : sideInventory.getSlots());
+        StationGroup.STREAM_CODEC.encode(buf, StationGroup.tabsFor(level, worldPosition));
+        buf.writeBoolean(isPartCrafter());
     }
 }

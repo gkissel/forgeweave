@@ -4,7 +4,6 @@ import net.minecraft.world.Container;
 import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.ContainerLevelAccess;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
@@ -19,7 +18,7 @@ import dev.gkissel.forgeweave.block.ForgeweaveBlocks;
  * {@code ChestMenu}) whose slots only accept what {@link ChestKind#accepts} allows, plus the
  * player's inventory. One class for both chest kinds -- see {@link ChestKind}'s javadoc.
  */
-public class ChestMenu extends AbstractContainerMenu {
+public class ChestMenu extends StationMenu {
     private static final int COLUMNS = 9;
     private static final int ROWS = ChestBlockEntity.SLOTS / COLUMNS;
     private static final int SLOT_SIZE = 18;
@@ -30,13 +29,20 @@ public class ChestMenu extends AbstractContainerMenu {
     private final ContainerLevelAccess access;
 
     /** Client-side: constructed from the open-menu packet, with a throwaway local container. */
-    public ChestMenu(ChestKind kind, int containerId, Inventory playerInventory) {
-        this(kind, containerId, playerInventory, new SimpleContainer(ChestBlockEntity.SLOTS), ContainerLevelAccess.NULL);
+    public ChestMenu(ChestKind kind, int containerId, Inventory playerInventory, StationGroup stationGroup) {
+        this(kind, containerId, playerInventory, new SimpleContainer(ChestBlockEntity.SLOTS), ContainerLevelAccess.NULL,
+                stationGroup);
     }
 
     /** Server-side: constructed by {@link ChestBlockEntity} with the block's real inventory. */
     public ChestMenu(ChestKind kind, int containerId, Inventory playerInventory, Container container, ContainerLevelAccess access) {
-        super(kind == ChestKind.PATTERN ? ForgeweaveMenus.PATTERN_CHEST.get() : ForgeweaveMenus.PART_CHEST.get(), containerId);
+        this(kind, containerId, playerInventory, container, access, groupAt(access));
+    }
+
+    private ChestMenu(ChestKind kind, int containerId, Inventory playerInventory, Container container,
+            ContainerLevelAccess access, StationGroup stationGroup) {
+        super(kind == ChestKind.PATTERN ? ForgeweaveMenus.PATTERN_CHEST.get() : ForgeweaveMenus.PART_CHEST.get(),
+                containerId, stationGroup);
         checkContainerSize(container, ChestBlockEntity.SLOTS);
         this.kind = kind;
         this.container = container;

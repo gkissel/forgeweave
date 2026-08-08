@@ -72,10 +72,22 @@ public final class SideInventorySlots {
      * @param y the panel's first slot's top edge, in GUI pixels from the screen's top-left
      */
     public static List<SideSlot> create(@Nullable IItemHandler sideInventory, int slotCount, int x, int y) {
+        return create(sideInventory, slotCount, x, y, true);
+    }
+
+    /**
+     * @param visible {@code false} to build the slots hidden: they still exist for shift-click
+     *     transfers, but nothing draws or clicks them. The Part Builder's pattern-chest sidebar
+     *     (issue #78) uses this -- upstream's {@code GuiPartBuilder} likewise keeps the chest's slots
+     *     in its container while its {@code drawSlot}/{@code isMouseOverSlot} pair hides them behind
+     *     {@code GuiButtonsPartCrafter}'s buttons.
+     */
+    public static List<SideSlot> create(@Nullable IItemHandler sideInventory, int slotCount, int x, int y,
+            boolean visible) {
         IItemHandler handler = sideInventory != null ? sideInventory : new ItemStackHandler(slotCount);
         List<SideSlot> slots = new ArrayList<>(slotCount);
         for (int i = 0; i < slotCount; i++) {
-            slots.add(new SideSlot(handler, i, x + (i % COLUMNS) * SLOT_SIZE, y + (i / COLUMNS) * SLOT_SIZE));
+            slots.add(new SideSlot(handler, i, x + (i % COLUMNS) * SLOT_SIZE, y + (i / COLUMNS) * SLOT_SIZE, visible));
         }
         return slots;
     }

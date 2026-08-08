@@ -25,18 +25,38 @@ public final class SideInventory {
     /** The adjacent block's item handler to expose in a station GUI's side panel, or {@code null} if none qualifies. */
     @Nullable
     public static IItemHandler find(BlockEntity blockEntity) {
-        Level level = blockEntity.getLevel();
-        if (level == null) {
+        Direction direction = findDirection(blockEntity);
+        return direction == null ? null : handlerAt(blockEntity, direction);
+    }
+
+    /**
+     * Where {@link #find}'s handler came from, or {@code null} if there is none -- so a caller can ask
+     * what kind of block it actually is (the Part Builder's pattern-chest sidebar, issue #78, only
+     * appears when the neighbour feeding the side panel is a Pattern Chest).
+     */
+    @Nullable
+    public static BlockPos findPos(BlockEntity blockEntity) {
+        Direction direction = findDirection(blockEntity);
+        return direction == null ? null : blockEntity.getBlockPos().relative(direction);
+    }
+
+    @Nullable
+    private static Direction findDirection(BlockEntity blockEntity) {
+        if (blockEntity.getLevel() == null) {
             return null;
         }
-        BlockPos pos = blockEntity.getBlockPos();
         for (Direction direction : Direction.Plane.HORIZONTAL) {
-            BlockPos neighborPos = pos.relative(direction);
-            IItemHandler handler = level.getCapability(Capabilities.ItemHandler.BLOCK, neighborPos, direction.getOpposite());
-            if (handler != null) {
-                return handler;
+            if (handlerAt(blockEntity, direction) != null) {
+                return direction;
             }
         }
         return null;
+    }
+
+    @Nullable
+    private static IItemHandler handlerAt(BlockEntity blockEntity, Direction direction) {
+        Level level = blockEntity.getLevel();
+        BlockPos neighborPos = blockEntity.getBlockPos().relative(direction);
+        return level.getCapability(Capabilities.ItemHandler.BLOCK, neighborPos, direction.getOpposite());
     }
 }
