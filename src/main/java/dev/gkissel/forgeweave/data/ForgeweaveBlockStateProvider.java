@@ -10,9 +10,10 @@ import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.block.ForgeweaveBlocks;
 
 /**
- * Blockstate and item model for the Part Builder (docs/SCOPE.md M1 issue #9) and the Tool Station
- * (issue #10): table-shaped (tabletop + 4 legs, hollow underside) rather than a solid cube (issue
- * #43). The block models themselves are hand-authored JSON under {@code models/block/} using the
+ * Blockstate and item model for the Part Builder (docs/SCOPE.md M1 issue #9), the Tool Station
+ * (issue #10), the Crafting Station (issue #40), and the Stencil Table (issue #44): table-shaped (tabletop + 4 legs, hollow
+ * underside) rather than a solid cube (issue #43). The block models themselves are hand-authored
+ * JSON under {@code models/block/} using the
  * {@code forgeweave:retextured_table} custom geometry loader ({@code
  * dev.gkissel.forgeweave.client.model}) -- not datagen'd, since NeoForge's model-builder DSL has no
  * first-class support for custom-loader models -- so this provider only wires blockstate rotation
@@ -35,5 +36,13 @@ public class ForgeweaveBlockStateProvider extends BlockStateProvider {
         ModelFile toolStationModel = models().getExistingFile(modLoc("block/tool_station"));
         horizontalBlock(ForgeweaveBlocks.TOOL_STATION.get(), toolStationModel);
         simpleBlockItem(ForgeweaveBlocks.TOOL_STATION.get(), toolStationModel);
+
+        ModelFile craftingStationModel = models().getExistingFile(modLoc("block/crafting_station"));
+        horizontalBlock(ForgeweaveBlocks.CRAFTING_STATION.get(), craftingStationModel);
+        simpleBlockItem(ForgeweaveBlocks.CRAFTING_STATION.get(), craftingStationModel);
+
+        ModelFile stencilTableModel = models().getExistingFile(modLoc("block/stencil_table"));
+        horizontalBlock(ForgeweaveBlocks.STENCIL_TABLE.get(), stencilTableModel);
+        simpleBlockItem(ForgeweaveBlocks.STENCIL_TABLE.get(), stencilTableModel);
     }
 }

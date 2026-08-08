@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "forgeweave:pattern_tool_binding"
+        "recipe": "forgeweave:crafting_station"
       },
       "trigger": "minecraft:recipe_unlocked"
     }
@@ -26,7 +26,7 @@
   ],
   "rewards": {
     "recipes": [
-      "forgeweave:pattern_tool_binding"
+      "forgeweave:crafting_station"
     ]
   }
 }

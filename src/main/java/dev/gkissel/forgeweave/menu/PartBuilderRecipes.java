@@ -41,10 +41,15 @@ import dev.gkissel.forgeweave.material.Material;
  * whose {@code crafting_items} list has an ingredient matching the input stack" (mirrors {@code
  * repair_item}'s matching rule elsewhere; ADR-0002). A {@link ForgeweaveItems#SHARD} stack instead
  * carries its material directly via {@link ForgeweaveDataComponents#MATERIAL}.
+ *
+ * <p>The cost constants and {@link #computeCost} are {@code public} so the JEI plugin
+ * ({@code jei.PartCraftingRecipes}) can enumerate the same crafting-item-to-part math the station
+ * actually uses instead of re-deriving it; everything else here (pattern/part wiring, live-slot
+ * resolution) stays package-private since only the menu needs it.
  */
 public final class PartBuilderRecipes {
-    private static final int HEAD_COST = 4;
-    private static final int SMALL_PART_COST = 2;
+    public static final int HEAD_COST = 4;
+    public static final int SMALL_PART_COST = 2;
 
     /** The value of one shard item, and the atomic unit every other value above is denominated in. */
     public static final int SHARD_VALUE = 1;
@@ -74,9 +79,9 @@ public final class PartBuilderRecipes {
     record Match(ItemStack result, int materialItemsConsumed, ItemStack change) {}
 
     /** Pure value math: how many whole items of {@code unitValue} it takes to cover {@code cost}, and the leftover. */
-    record CostResult(int itemsNeeded, int changeUnits) {}
+    public record CostResult(int itemsNeeded, int changeUnits) {}
 
-    static CostResult computeCost(int cost, int unitValue) {
+    public static CostResult computeCost(int cost, int unitValue) {
         int itemsNeeded = Math.ceilDiv(cost, unitValue);
         return new CostResult(itemsNeeded, itemsNeeded * unitValue - cost);
     }

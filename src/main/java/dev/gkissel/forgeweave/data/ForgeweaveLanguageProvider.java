@@ -24,6 +24,8 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
 
         addBlock(ForgeweaveBlocks.PART_BUILDER, "Part Builder");
         addBlock(ForgeweaveBlocks.TOOL_STATION, "Tool Station");
+        addBlock(ForgeweaveBlocks.CRAFTING_STATION, "Crafting Station");
+        addBlock(ForgeweaveBlocks.STENCIL_TABLE, "Stencil Table");
 
         addItem(ForgeweaveItems.PATTERN_BLANK, "Blank Pattern");
         addItem(ForgeweaveItems.PATTERN_PICKAXE_HEAD, "Pickaxe Head Pattern");
@@ -76,6 +78,13 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("gui.forgeweave.part_builder.cost", "Cost: %s");
         add("gui.forgeweave.part_builder.material_value", "Material Value: %s");
 
+        // Assembled tool tooltip stat labels (issue #54), ported from upstream 1.12's
+        // stat.head.*.name entries (NOTICE.md).
+        add("tooltip.forgeweave.durability", "Durability");
+        add("tooltip.forgeweave.mining_speed", "Mining Speed");
+        add("tooltip.forgeweave.attack_damage", "Attack Damage");
+        add("tooltip.forgeweave.tool_tier", "Tool Tier");
+
         add("material.forgeweave.wood", "Wood");
         add("material.forgeweave.stone", "Stone");
         add("material.forgeweave.flint", "Flint");
@@ -93,5 +102,11 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("trait.forgeweave.crude.description", "Bonus damage against unarmored targets.");
         add("trait.forgeweave.fractured.name", "Fractured");
         add("trait.forgeweave.fractured.description", "Your tool's damage is increased.");
+
+        // JEI recipe category titles (issue #11); only shown when JEI is installed, since the
+        // integration is optional (neoforge.mods.toml).
+        add("jei.category.forgeweave.part_crafting", "Part Crafting");
+        add("jei.category.forgeweave.tool_assembly", "Tool Assembly");
+        add("jei.category.forgeweave.tool_repair", "Tool Repair");
     }
 }
