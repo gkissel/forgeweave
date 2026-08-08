@@ -25,12 +25,12 @@ import dev.gkissel.forgeweave.menu.ForgeweaveMenus;
  * blit lines up pixel-for-pixel.
  *
  * <p>When an adjacent block exposes an item handler ({@code CraftingStationBlockEntity#findSideInventory}),
- * its slots render in a panel to the right, composited at render time from repeated blits of the same
- * vanilla texture's own crafting-grid slot tile (matching the "reuse upstream's own reusable
- * slot-background sprite pieces" approach {@code ToolStationScreen} already uses) rather than a
- * pre-baked image, since the panel's slot count varies per placement. {@link AbstractContainerScreen}'s
- * default {@code render()} already calls {@code renderTooltip} for hovered slots, so slot tooltips
- * (including side-panel ones) work without any extra override here.
+ * its slots render in a panel to the right via {@link SideInventoryPanel} (shared with {@link
+ * PartBuilderScreen}/{@link ToolStationScreen}'s own side panels, issue #40's follow-up), composited
+ * at render time from repeated blits of the same vanilla texture's own crafting-grid slot tile rather
+ * than a pre-baked image, since the panel's slot count varies per placement. {@link
+ * AbstractContainerScreen}'s default {@code render()} already calls {@code renderTooltip} for hovered
+ * slots, so slot tooltips (including side-panel ones) work without any extra override here.
  */
 @EventBusSubscriber(modid = Forgeweave.MODID, bus = EventBusSubscriber.Bus.MOD, value = Dist.CLIENT)
 public class CraftingStationScreen extends AbstractContainerScreen<CraftingStationMenu> {
@@ -44,41 +44,16 @@ public class CraftingStationScreen extends AbstractContainerScreen<CraftingStati
 
     public CraftingStationScreen(CraftingStationMenu menu, Inventory playerInventory, Component title) {
         super(menu, playerInventory, title);
-        int sideColumns = Math.min(menu.sideInventorySlotCount, CraftingStationMenu.SIDE_INVENTORY_COLUMNS);
-        int sideRows = menu.sideInventorySlotCount == 0 ? 0
-                : (menu.sideInventorySlotCount + CraftingStationMenu.SIDE_INVENTORY_COLUMNS - 1) / CraftingStationMenu.SIDE_INVENTORY_COLUMNS;
-        int panelWidth = sideColumns * CraftingStationMenu.SLOT_SIZE;
-        imageWidth = menu.sideInventorySlotCount == 0 ? BASE_WIDTH : CraftingStationMenu.SIDE_PANEL_X + panelWidth + 4;
-        imageHeight = Math.max(BASE_HEIGHT, CraftingStationMenu.SIDE_PANEL_Y + sideRows * CraftingStationMenu.SLOT_SIZE + 7);
+        int slotCount = menu.sideInventorySlotCount;
+        imageWidth = slotCount == 0 ? BASE_WIDTH : CraftingStationMenu.SIDE_PANEL_X + SideInventoryPanel.panelWidth(slotCount) + 4;
+        imageHeight = Math.max(BASE_HEIGHT, CraftingStationMenu.SIDE_PANEL_Y + SideInventoryPanel.panelHeight(slotCount) + 7);
     }
 
     @Override
     protected void renderBg(GuiGraphics guiGraphics, float partialTick, int mouseX, int mouseY) {
         guiGraphics.blit(TEXTURE, leftPos, topPos, 0, 0, BASE_WIDTH, BASE_HEIGHT, BASE_WIDTH, BASE_HEIGHT);
-        renderSideInventoryBackground(guiGraphics);
-    }
-
-    private void renderSideInventoryBackground(GuiGraphics guiGraphics) {
-        int slotCount = menu.sideInventorySlotCount;
-        if (slotCount == 0) {
-            return;
-        }
-        int columns = CraftingStationMenu.SIDE_INVENTORY_COLUMNS;
-        int size = CraftingStationMenu.SLOT_SIZE;
-        int panelWidth = Math.min(slotCount, columns) * size;
-        int rows = (slotCount + columns - 1) / columns;
-        int panelHeight = rows * size;
-
-        // A backdrop so the side panel reads as a distinct region rather than floating slot tiles.
-        int backdropLeft = leftPos + CraftingStationMenu.SIDE_PANEL_X - 3;
-        int backdropTop = topPos + CraftingStationMenu.SIDE_PANEL_Y - 3;
-        guiGraphics.fill(backdropLeft, backdropTop, backdropLeft + panelWidth + 6, backdropTop + panelHeight + 6, 0x88000000);
-
-        for (int i = 0; i < slotCount; i++) {
-            int x = leftPos + CraftingStationMenu.SIDE_PANEL_X + (i % columns) * size;
-            int y = topPos + CraftingStationMenu.SIDE_PANEL_Y + (i / columns) * size;
-            guiGraphics.blit(TEXTURE, x, y, SLOT_TILE_U, SLOT_TILE_V, size, size, BASE_WIDTH, BASE_HEIGHT);
-        }
+        SideInventoryPanel.render(guiGraphics, TEXTURE, BASE_WIDTH, BASE_HEIGHT, SLOT_TILE_U, SLOT_TILE_V,
+                leftPos, topPos, CraftingStationMenu.SIDE_PANEL_X, CraftingStationMenu.SIDE_PANEL_Y, menu.sideInventorySlotCount);
     }
 
     @SubscribeEvent

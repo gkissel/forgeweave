@@ -2,89 +2,229 @@ package dev.gkissel.forgeweave.menu;
 
 import java.util.Optional;
 
+import javax.annotation.Nullable;
+
 import net.minecraft.core.HolderLookup;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.chat.Component;
+import net.minecraft.util.StringUtil;
 import net.minecraft.world.Container;
 import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.ContainerLevelAccess;
+import net.minecraft.world.inventory.DataSlot;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 
+import net.neoforged.neoforge.items.IItemHandler;
+
 import dev.gkissel.forgeweave.block.ForgeweaveBlocks;
+import dev.gkissel.forgeweave.item.ToolItem;
+import dev.gkissel.forgeweave.menu.ToolStationTabs.Pos;
+import dev.gkissel.forgeweave.menu.ToolStationTabs.Tab;
 
 /**
- * The Tool Station's menu: head + binding + handle input slots, an output slot, and the player's
- * inventory. Same "recompute output every broadcast, only consume on take" shape as
+ * The Tool Station's menu: three input slots, an output slot, and the player's inventory, plus the
+ * selected {@link ToolStationTabs.Tab} that decides where those input slots sit and what each one
+ * accepts. Same "recompute output every broadcast, only consume on take" shape as
  * {@link dev.gkissel.forgeweave.menu.PartBuilderMenu}.
  *
- * <p>Assembly and repair (docs/SCOPE.md issues #10 and #11) share the same four slots: which recipe
- * is running depends only on whether the first slot holds a head part or an assembled tool, so the
- * decision -- and the per-slot cost of taking the output -- lives entirely in
- * {@link ToolAssemblyRecipes}. All this class knows is "ask, show, and charge what you're told".
+ * <p>Assembly and repair (docs/SCOPE.md issues #10 and #11) share the same three input slots: which
+ * recipe is running depends only on whether the first slot holds a head part or an assembled tool,
+ * so the decision -- and the per-slot cost of taking the output -- lives entirely in
+ * {@link ToolAssemblyRecipes}, unchanged by the tabs. All this class knows is "ask, show, and charge
+ * what you're told".
+ *
+ * <h2>Tabs (issue #47)</h2>
+ *
+ * <p>The tab index is a synced {@link DataSlot} set from {@link #clickMenuButton} -- the vanilla
+ * stonecutter/loom mechanism, the same one {@code StencilTableMenu} uses -- so the server is the
+ * only writer and a dedicated server stays authoritative. Two things follow from it:
+ *
+ * <ul>
+ *   <li><b>What each slot accepts.</b> {@link #accepts} reads the live tab, so the head slot takes
+ *       only the selected tool's head part (or, on the repair tab, only an assembled tool) and shift-
+ *       clicking obeys the same rule for free ({@code moveItemStackTo} consults {@code mayPlace}).
+ *   <li><b>Where each slot is drawn.</b> {@link Slot#x}/{@link Slot#y} are final in modern
+ *       Minecraft, so {@link #applyLayout} swaps the three input {@link Slot} objects for fresh ones
+ *       at the tab's coordinates, keeping the same container, menu index and order. Positions are
+ *       read only by the client's screen, but both sides rebuild identically -- the server from
+ *       {@link #clickMenuButton}, the client from {@link #setData} when the data slot arrives -- so
+ *       there is no third state to keep in sync.
+ * </ul>
+ *
+ * <p>A tab switch deliberately leaves whatever is already in the slots alone: ejecting items on a
+ * button press is how a menu loses a player's stack, and {@link ToolAssemblyRecipes} already refuses
+ * to build anything from a mismatched set.
+ *
+ * <h2>Side inventory (issue #40's follow-up)</h2>
+ *
+ * <p>When the station has a qualifying neighbor ({@code ToolStationBlockEntity#findSideInventory}),
+ * its {@link IItemHandler} is exposed as extra slots after the output slot via {@link
+ * SideInventorySlots#create} -- same shape as {@link CraftingStationMenu}'s own side panel; see that
+ * class's javadoc for the client/server slot-count handshake.
  */
 public class ToolStationMenu extends AbstractContainerMenu {
     public static final int CONTAINER_SLOTS = 4;
-    private static final int HEAD_SLOT = 0;
-    private static final int BINDING_SLOT = 1;
-    private static final int HANDLE_SLOT = 2;
-    private static final int OUTPUT_SLOT = 3;
+    public static final int HEAD_SLOT = 0;
+    public static final int BINDING_SLOT = 1;
+    public static final int HANDLE_SLOT = 2;
+    public static final int OUTPUT_SLOT = 3;
+    /** The three tab-positioned input slots; the output slot is fixed. */
+    public static final int INPUT_SLOTS = 3;
+
+    /** Upstream's own output-slot spot in {@code ContainerToolStation} ({@code SlotToolStationOut}). */
+    private static final int OUTPUT_X = 124;
+    private static final int OUTPUT_Y = 38;
+
+    /** Vanilla's rename cap, and the same order of magnitude as upstream's 40-character field. */
+    private static final int MAX_NAME_LENGTH = 50;
+
+    /**
+     * Side-panel layout (issue #40's follow-up): positioned just right of the 176px-wide base panel
+     * and the info panels next to it -- {@code 176 (base) + 2 (gap) + 126 (client.InfoPanel#WIDTH,
+     * mirrored rather than referenced: the menu package can't depend on the client package) + 2 (gap)}.
+     */
+    public static final int SIDE_PANEL_X = 176 + 2 + 126 + 2;
+    public static final int SIDE_PANEL_Y = 17;
 
     private final Container container;
     private final ContainerLevelAccess access;
     private final HolderLookup.Provider registries;
+    private final DataSlot selectedTab = DataSlot.standalone();
+    public final int sideInventorySlotCount;
+    private String toolName = "";
 
-    /** Client-side: constructed from the open-menu packet, with a throwaway local container. */
-    public ToolStationMenu(int containerId, Inventory playerInventory) {
-        this(containerId, playerInventory, new SimpleContainer(CONTAINER_SLOTS), ContainerLevelAccess.NULL);
+    /** Client-side: constructed from the open-menu packet, which carries the side-inventory slot count. */
+    public ToolStationMenu(int containerId, Inventory playerInventory, RegistryFriendlyByteBuf buf) {
+        this(containerId, playerInventory, new SimpleContainer(CONTAINER_SLOTS), ContainerLevelAccess.NULL, null, buf.readVarInt());
     }
 
-    /** Server-side: constructed by {@code ToolStationBlockEntity} with the block's real inventory. */
-    public ToolStationMenu(int containerId, Inventory playerInventory, Container container, ContainerLevelAccess access) {
+    /** Server-side: constructed by {@code ToolStationBlockEntity} with the block's real inventory and detected neighbor. */
+    public ToolStationMenu(int containerId, Inventory playerInventory, Container container, ContainerLevelAccess access,
+            @Nullable IItemHandler sideInventory) {
+        this(containerId, playerInventory, container, access, sideInventory, sideInventory == null ? 0 : sideInventory.getSlots());
+    }
+
+    private ToolStationMenu(int containerId, Inventory playerInventory, Container container, ContainerLevelAccess access,
+            @Nullable IItemHandler sideInventory, int sideInventorySlotCount) {
         super(ForgeweaveMenus.TOOL_STATION.get(), containerId);
         checkContainerSize(container, CONTAINER_SLOTS);
         this.container = container;
         this.access = access;
         this.registries = playerInventory.player.level().registryAccess();
+        this.sideInventorySlotCount = sideInventorySlotCount;
         container.startOpen(playerInventory.player);
 
-        addSlot(new Slot(container, HEAD_SLOT, 20, 35) {
-            @Override
-            public boolean mayPlace(ItemStack stack) {
-                return ToolAssemblyRecipes.isHeadSlotInput(stack);
-            }
-        });
-        // Binding and handle double as the repair-item slots, so what they accept depends on the
-        // head slot: parts while assembling, the head material's repair item while repairing.
-        addSlot(new Slot(container, BINDING_SLOT, 38, 35) {
-            @Override
-            public boolean mayPlace(ItemStack stack) {
-                return ToolAssemblyRecipes.isBindingPart(stack) || isRepairItem(stack);
-            }
-        });
-        addSlot(new Slot(container, HANDLE_SLOT, 56, 35) {
-            @Override
-            public boolean mayPlace(ItemStack stack) {
-                return ToolAssemblyRecipes.isHandlePart(stack) || isRepairItem(stack);
-            }
-        });
-        // x=152 (not the Part Builder's x=116): upstream's toolstation.png bakes in an item-preview
-        // icon/arrow decoration around x=90-150 (issue #43 regression fix) that the output slot
-        // would otherwise sit on top of.
-        addSlot(new OutputSlot(container, OUTPUT_SLOT, 152, 35));
+        addDataSlot(selectedTab);
+        selectedTab.set(ToolStationTabs.REPAIR);
 
+        Tab tab = tab();
+        for (int i = 0; i < INPUT_SLOTS; i++) {
+            Pos pos = tab.slots().get(i);
+            addSlot(inputSlot(i, pos.x(), pos.y()));
+        }
+        addSlot(new OutputSlot(container, OUTPUT_SLOT, OUTPUT_X, OUTPUT_Y));
+
+        SideInventorySlots.create(sideInventory, sideInventorySlotCount, SIDE_PANEL_X, SIDE_PANEL_Y).forEach(this::addSlot);
         layoutPlayerInventorySlots(playerInventory);
     }
 
+    /**
+     * The player's inventory sits 8px lower than a stock 166px-tall GUI's, because the Tool Station
+     * panel is upstream's full 176x174 one (issue #47 restored the whole panel, chrome included,
+     * where issue #43 had used a 176x166 crop of it).
+     */
     private void layoutPlayerInventorySlots(Inventory playerInventory) {
         for (int row = 0; row < 3; row++) {
             for (int col = 0; col < 9; col++) {
-                addSlot(new Slot(playerInventory, col + row * 9 + 9, 8 + col * 18, 84 + row * 18));
+                addSlot(new Slot(playerInventory, col + row * 9 + 9, 8 + col * 18, 92 + row * 18));
             }
         }
         for (int col = 0; col < 9; col++) {
-            addSlot(new Slot(playerInventory, col, 8 + col * 18, 142));
+            addSlot(new Slot(playerInventory, col, 8 + col * 18, 150));
+        }
+    }
+
+    private Slot inputSlot(int index, int x, int y) {
+        return new Slot(container, index, x, y) {
+            @Override
+            public boolean mayPlace(ItemStack stack) {
+                return accepts(index, stack);
+            }
+        };
+    }
+
+    /** What the currently selected tab lets the player put in slot {@code index}. */
+    private boolean accepts(int index, ItemStack stack) {
+        Tab tab = tab();
+        if (tab.isRepair()) {
+            return index == HEAD_SLOT
+                    ? stack.getItem() instanceof ToolItem
+                    : ToolAssemblyRecipes.isRepairItemFor(registries, container.getItem(HEAD_SLOT), stack);
+        }
+        return switch (index) {
+            case HEAD_SLOT -> stack.is(tab.headPart().get());
+            case BINDING_SLOT -> ToolAssemblyRecipes.isBindingPart(stack);
+            default -> ToolAssemblyRecipes.isHandlePart(stack);
+        };
+    }
+
+    /** The selected tab; the screen reads it to pick the sidebar highlight, icons and info text. */
+    public Tab tab() {
+        return ToolStationTabs.get(selectedTab.get());
+    }
+
+    public int getSelectedTab() {
+        return selectedTab.get();
+    }
+
+    /** The current contents of the rename field, so the screen can restore it on reopen. */
+    public String getToolName() {
+        return toolName;
+    }
+
+    /**
+     * Renames the assembled output, like a vanilla anvil: the name is applied to the freshly built
+     * stack in {@link #updateResult}, so it travels to the client on the ordinary slot-sync packet
+     * and there is nothing extra to keep consistent. Reached from the screen's text field over
+     * {@link RenameStationItemPayload}, and validated here because that payload is player input.
+     */
+    public void setToolName(String name) {
+        String filtered = StringUtil.filterText(name);
+        this.toolName = filtered.length() > MAX_NAME_LENGTH ? filtered.substring(0, MAX_NAME_LENGTH) : filtered;
+        broadcastChanges();
+    }
+
+    @Override
+    public boolean clickMenuButton(Player player, int id) {
+        if (id < 0 || id >= ToolStationTabs.TABS.size()) {
+            return false;
+        }
+        selectedTab.set(id);
+        applyLayout();
+        updateResult();
+        return true;
+    }
+
+    /** Client side: the tab arrives as a data-slot update, and the layout follows it. */
+    @Override
+    public void setData(int id, int data) {
+        super.setData(id, data);
+        applyLayout();
+    }
+
+    /** Rebuilds the three input slots at the selected tab's coordinates (see the class javadoc). */
+    private void applyLayout() {
+        Tab tab = tab();
+        for (int i = 0; i < INPUT_SLOTS; i++) {
+            Pos pos = tab.slots().get(i);
+            Slot slot = inputSlot(i, pos.x(), pos.y());
+            slot.index = i;
+            slots.set(i, slot);
         }
     }
 
@@ -98,16 +238,16 @@ public class ToolStationMenu extends AbstractContainerMenu {
         if (access == ContainerLevelAccess.NULL) {
             return; // client: the server pushes slot contents down instead of computing locally.
         }
-        slots.get(OUTPUT_SLOT).set(resolve().map(ToolAssemblyRecipes.Result::output).orElse(ItemStack.EMPTY));
+        ItemStack output = resolve().map(ToolAssemblyRecipes.Result::output).orElse(ItemStack.EMPTY);
+        if (!output.isEmpty() && !toolName.isBlank()) {
+            output.set(DataComponents.CUSTOM_NAME, Component.literal(toolName));
+        }
+        slots.get(OUTPUT_SLOT).set(output);
     }
 
     private Optional<ToolAssemblyRecipes.Result> resolve() {
         return ToolAssemblyRecipes.resolve(registries,
                 slots.get(HEAD_SLOT).getItem(), slots.get(BINDING_SLOT).getItem(), slots.get(HANDLE_SLOT).getItem());
-    }
-
-    private boolean isRepairItem(ItemStack stack) {
-        return ToolAssemblyRecipes.isRepairItemFor(registries, container.getItem(HEAD_SLOT), stack);
     }
 
     @Override
@@ -118,28 +258,20 @@ public class ToolStationMenu extends AbstractContainerMenu {
         }
         ItemStack stackInSlot = slot.getItem();
         ItemStack result = stackInSlot.copy();
+        int sideEnd = CONTAINER_SLOTS + sideInventorySlotCount;
+        int playerInvEnd = sideEnd + 36;
 
-        if (index < CONTAINER_SLOTS) {
-            if (!moveItemStackTo(stackInSlot, CONTAINER_SLOTS, slots.size(), true)) {
+        if (index < CONTAINER_SLOTS) { // head/binding/handle/output -> player inventory
+            if (!moveItemStackTo(stackInSlot, CONTAINER_SLOTS, playerInvEnd, true)) {
                 return ItemStack.EMPTY;
             }
-        } else if (ToolAssemblyRecipes.isHeadSlotInput(stackInSlot)) {
-            if (!moveItemStackTo(stackInSlot, HEAD_SLOT, HEAD_SLOT + 1, false)) {
+        } else if (index < sideEnd) { // side inventory -> player inventory
+            if (!moveItemStackTo(stackInSlot, sideEnd, playerInvEnd, false)) {
                 return ItemStack.EMPTY;
             }
-        } else if (ToolAssemblyRecipes.isBindingPart(stackInSlot)) {
-            if (!moveItemStackTo(stackInSlot, BINDING_SLOT, BINDING_SLOT + 1, false)) {
-                return ItemStack.EMPTY;
-            }
-        } else if (ToolAssemblyRecipes.isHandlePart(stackInSlot)) {
-            if (!moveItemStackTo(stackInSlot, HANDLE_SLOT, HANDLE_SLOT + 1, false)) {
-                return ItemStack.EMPTY;
-            }
-        } else if (isRepairItem(stackInSlot)) {
-            if (!moveItemStackTo(stackInSlot, BINDING_SLOT, HANDLE_SLOT + 1, false)) {
-                return ItemStack.EMPTY;
-            }
-        } else {
+        } else if (!moveItemStackTo(stackInSlot, HEAD_SLOT, INPUT_SLOTS, false)) {
+            // The per-slot filters live in mayPlace, which moveItemStackTo already consults, so the
+            // selected tab decides where (and whether) a shift-clicked stack lands.
             return ItemStack.EMPTY;
         }
 

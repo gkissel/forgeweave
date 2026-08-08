@@ -39,7 +39,7 @@ final class ToolAssembly {
 
     static ToolStationMenu menu(GameTestHelper helper, Player player, BlockPos pos, ToolStationBlockEntity blockEntity) {
         return new ToolStationMenu(0, player.getInventory(), blockEntity.container(),
-                ContainerLevelAccess.create(helper.getLevel(), helper.absolutePos(pos)));
+                ContainerLevelAccess.create(helper.getLevel(), helper.absolutePos(pos)), blockEntity.findSideInventory());
     }
 
     static ItemStack part(Item item, String material) {

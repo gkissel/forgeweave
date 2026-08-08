@@ -43,7 +43,16 @@ import org.junit.jupiter.api.Test;
  */
 class TextureReferenceAuditTest {
 
-    private static final Pattern GUI_TEXTURE_LITERAL = Pattern.compile("\"(textures/[^\"]+\\.png)\"");
+    /**
+     * Only matches literals passed to {@code ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, ...)}
+     * -- the convention every forgeweave-owned GUI texture constant uses (see {@code PartBuilderScreen},
+     * {@code ToolStationScreen}, {@code StencilTableScreen}, {@code InfoPanel}). {@code CraftingStationScreen}
+     * (issue #40/#59) instead points at vanilla's own {@code textures/gui/container/crafting_table.png}
+     * via {@code ResourceLocation.withDefaultNamespace(...)}, deliberately -- there is no forgeweave asset
+     * to derive or audit for that path, so this pattern must not match it (or its javadoc mention).
+     */
+    private static final Pattern GUI_TEXTURE_LITERAL =
+            Pattern.compile("fromNamespaceAndPath\\(Forgeweave\\.MODID,\\s*\"(textures/[^\"]+\\.png)\"");
 
     /**
      * Prefixes the block atlas stitches by default, with no {@code atlases/blocks.json} of our own
@@ -194,6 +203,21 @@ class TextureReferenceAuditTest {
         }
 
         assertTrue(missing.isEmpty(), "missing texture files referenced by hardcoded GUI literals:\n" + String.join("\n", missing));
+    }
+
+    /**
+     * {@code ToolStationScreen} builds a part's ghost-icon path from the part item's registry id
+     * ({@code textures/derived/item/<id>.png}, issue #47). That path is assembled at runtime, so the
+     * literal scan above cannot see it; this is the guard that the id-equals-texture-name convention
+     * holds for every part the station can ask a ghost for.
+     */
+    @Test
+    void everyToolPartHasAGhostIconTexture() {
+        Path items = projectRoot().resolve("src/main/resources/assets/forgeweave/textures/derived/item");
+        for (String part : List.of("pickaxe_head", "shovel_head", "axe_head", "tool_binding", "tool_handle")) {
+            assertTrue(Files.isRegularFile(items.resolve(part + ".png")),
+                    "the Tool Station's ghost icon for forgeweave:" + part + " has no texture under " + items);
+        }
     }
 
     /** Sanity check that the scan actually exercises the GUI textures the regression was about. */

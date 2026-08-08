@@ -2,7 +2,10 @@ package dev.gkissel.forgeweave.menu;
 
 import java.util.Optional;
 
+import javax.annotation.Nullable;
+
 import net.minecraft.core.HolderLookup;
+import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.world.Container;
 import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.entity.player.Inventory;
@@ -11,6 +14,8 @@ import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.ContainerLevelAccess;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
+
+import net.neoforged.neoforge.items.IItemHandler;
 
 import dev.gkissel.forgeweave.block.ForgeweaveBlocks;
 
@@ -29,32 +34,53 @@ import dev.gkissel.forgeweave.block.ForgeweaveBlocks;
  * just happened, matching upstream 1.12's {@code ContainerPartBuilder#onCrafting}/{@code
  * SlotOut} -- this is what stops a player from grabbing "pending" shard change without actually
  * completing the craft.
+ *
+ * <p>When the station has a qualifying neighbor ({@code PartBuilderBlockEntity#findSideInventory},
+ * issue #40's follow-up), its {@link IItemHandler} is exposed as extra slots after the change slot
+ * via {@link SideInventorySlots#create} -- same shape as {@link CraftingStationMenu}'s own side
+ * panel; see that class's javadoc for the client/server slot-count handshake.
  */
 public class PartBuilderMenu extends AbstractContainerMenu {
     public static final int CONTAINER_SLOTS = 4;
-    private static final int PATTERN_SLOT = 0;
-    private static final int MATERIAL_SLOT = 1;
-    private static final int OUTPUT_SLOT = 2;
-    private static final int CHANGE_SLOT = 3;
+    public static final int PATTERN_SLOT = 0;
+    public static final int MATERIAL_SLOT = 1;
+    public static final int OUTPUT_SLOT = 2;
+    public static final int CHANGE_SLOT = 3;
+
+    /**
+     * Side-panel layout (issue #40's follow-up): positioned just right of the 176px-wide base panel
+     * and the info panel next to it -- {@code 176 (base) + 2 (gap) + 126 (client.InfoPanel#WIDTH,
+     * mirrored rather than referenced: the menu package can't depend on the client package) + 2 (gap)}.
+     */
+    public static final int SIDE_PANEL_X = 176 + 2 + 126 + 2;
+    public static final int SIDE_PANEL_Y = 17;
 
     private final Container container;
     private final ContainerLevelAccess access;
     private final HolderLookup.Provider registries;
+    public final int sideInventorySlotCount;
     private int pendingMaterialItemsConsumed;
     private ItemStack pendingChange = ItemStack.EMPTY;
 
-    /** Client-side: constructed from the open-menu packet, with a throwaway local container. */
-    public PartBuilderMenu(int containerId, Inventory playerInventory) {
-        this(containerId, playerInventory, new SimpleContainer(CONTAINER_SLOTS), ContainerLevelAccess.NULL);
+    /** Client-side: constructed from the open-menu packet, which carries the side-inventory slot count. */
+    public PartBuilderMenu(int containerId, Inventory playerInventory, RegistryFriendlyByteBuf buf) {
+        this(containerId, playerInventory, new SimpleContainer(CONTAINER_SLOTS), ContainerLevelAccess.NULL, null, buf.readVarInt());
     }
 
-    /** Server-side: constructed by {@code PartBuilderBlockEntity} with the block's real inventory. */
-    public PartBuilderMenu(int containerId, Inventory playerInventory, Container container, ContainerLevelAccess access) {
+    /** Server-side: constructed by {@code PartBuilderBlockEntity} with the block's real inventory and detected neighbor. */
+    public PartBuilderMenu(int containerId, Inventory playerInventory, Container container, ContainerLevelAccess access,
+            @Nullable IItemHandler sideInventory) {
+        this(containerId, playerInventory, container, access, sideInventory, sideInventory == null ? 0 : sideInventory.getSlots());
+    }
+
+    private PartBuilderMenu(int containerId, Inventory playerInventory, Container container, ContainerLevelAccess access,
+            @Nullable IItemHandler sideInventory, int sideInventorySlotCount) {
         super(ForgeweaveMenus.PART_BUILDER.get(), containerId);
         checkContainerSize(container, CONTAINER_SLOTS);
         this.container = container;
         this.access = access;
         this.registries = playerInventory.player.level().registryAccess();
+        this.sideInventorySlotCount = sideInventorySlotCount;
         container.startOpen(playerInventory.player);
 
         // Slot coordinates match upstream 1.12's ContainerPartBuilder (issue #43: derived
@@ -82,6 +108,7 @@ public class PartBuilderMenu extends AbstractContainerMenu {
             }
         });
 
+        SideInventorySlots.create(sideInventory, sideInventorySlotCount, SIDE_PANEL_X, SIDE_PANEL_Y).forEach(this::addSlot);
         layoutPlayerInventorySlots(playerInventory);
     }
 
@@ -123,12 +150,18 @@ public class PartBuilderMenu extends AbstractContainerMenu {
         }
         ItemStack stackInSlot = slot.getItem();
         ItemStack result = stackInSlot.copy();
+        int sideEnd = CONTAINER_SLOTS + sideInventorySlotCount;
+        int playerInvEnd = sideEnd + 36;
 
-        if (index < CONTAINER_SLOTS) {
-            if (!moveItemStackTo(stackInSlot, CONTAINER_SLOTS, slots.size(), true)) {
+        if (index < CONTAINER_SLOTS) { // pattern/material/output/change -> player inventory
+            if (!moveItemStackTo(stackInSlot, CONTAINER_SLOTS, playerInvEnd, true)) {
                 return ItemStack.EMPTY;
             }
-        } else if (PartBuilderRecipes.isPattern(stackInSlot)) {
+        } else if (index < sideEnd) { // side inventory -> player inventory
+            if (!moveItemStackTo(stackInSlot, sideEnd, playerInvEnd, false)) {
+                return ItemStack.EMPTY;
+            }
+        } else if (PartBuilderRecipes.isPattern(stackInSlot)) { // player inventory -> pattern slot
             if (!moveItemStackTo(stackInSlot, PATTERN_SLOT, PATTERN_SLOT + 1, false)) {
                 return ItemStack.EMPTY;
             }

@@ -29,6 +29,8 @@ import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
 
+import net.neoforged.neoforge.items.IItemHandler;
+
 import dev.gkissel.forgeweave.item.ForgeweaveDataComponents;
 
 /**
@@ -117,7 +119,11 @@ public class PartBuilderBlock extends HorizontalDirectionalBlock implements Enti
     @Override
     protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hit) {
         if (!level.isClientSide && level.getBlockEntity(pos) instanceof PartBuilderBlockEntity partBuilder) {
-            player.openMenu(partBuilder);
+            // The client-side menu needs the side-inventory slot count before it can construct
+            // matching Slot objects (issue #40's follow-up, same pattern as CraftingStationBlock).
+            IItemHandler sideInventory = partBuilder.findSideInventory();
+            int sideInventorySlots = sideInventory == null ? 0 : sideInventory.getSlots();
+            player.openMenu(partBuilder, buf -> buf.writeVarInt(sideInventorySlots));
         }
         return InteractionResult.SUCCESS;
     }

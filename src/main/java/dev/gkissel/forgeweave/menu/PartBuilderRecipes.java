@@ -87,7 +87,20 @@ public final class PartBuilderRecipes {
     }
 
     /** A material identified for the current material-slot stack, and that stack's per-item value. */
-    private record MaterialMatch(ResourceLocation id, int unitValue) {}
+    public record MaterialMatch(ResourceLocation id, int unitValue) {}
+
+    /**
+     * What one of {@code pattern} costs in shard-units, or empty if it isn't a part pattern. Public
+     * so the Part Builder's info panel (issue #47) can quote the cost without restating the table.
+     */
+    public static Optional<Integer> patternCost(ItemStack pattern) {
+        return findEntry(pattern).map(Entry::cost);
+    }
+
+    /** The part {@code pattern} makes, or empty if it isn't a part pattern. */
+    public static Optional<PartItem> patternPart(ItemStack pattern) {
+        return findEntry(pattern).map(entry -> entry.part().get());
+    }
 
     /**
      * Resolves what the part builder should produce for the current pattern and material slots, or
@@ -98,7 +111,7 @@ public final class PartBuilderRecipes {
         if (pattern.isEmpty() || material.isEmpty()) {
             return Optional.empty();
         }
-        return findEntry(pattern).flatMap(entry -> matchMaterial(registries, material).flatMap(matched -> {
+        return findEntry(pattern).flatMap(entry -> materialValue(registries, material).flatMap(matched -> {
             CostResult cost = computeCost(entry.cost(), matched.unitValue());
             if (material.getCount() < cost.itemsNeeded()) {
                 return Optional.empty();
@@ -116,7 +129,12 @@ public final class PartBuilderRecipes {
         }));
     }
 
-    private static Optional<MaterialMatch> matchMaterial(HolderLookup.Provider registries, ItemStack stack) {
+    /**
+     * Which material {@code stack} counts as in the material slot, and what one item of it is worth
+     * in shard-units. Public for the same reason as {@link #patternCost}: the info panel needs the
+     * answer, and there must be exactly one place that decides it.
+     */
+    public static Optional<MaterialMatch> materialValue(HolderLookup.Provider registries, ItemStack stack) {
         if (stack.is(ForgeweaveItems.SHARD.get())) {
             ResourceLocation materialId = stack.get(ForgeweaveDataComponents.MATERIAL.get());
             return Optional.ofNullable(materialId).map(id -> new MaterialMatch(id, SHARD_VALUE));

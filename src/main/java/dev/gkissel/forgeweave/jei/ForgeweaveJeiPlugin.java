@@ -87,11 +87,11 @@ public final class ForgeweaveJeiPlugin implements IModPlugin {
     }
 
     /**
-     * Recipe-click [+] transfer (docs/SCOPE.md M1 issue #40): vanilla crafting recipes into the
-     * Crafting Station, and Part Crafting recipes into the Part Builder. Deliberately does *not*
-     * register a handler for the Tool Station/Assembly recipes -- that depends on the tab/dynamic
-     * slot-layout UI issue #47 is building for that screen; wiring transfer against today's fixed
-     * head/binding/handle slots would just need to be redone there.
+     * Recipe-click [+] transfer (docs/SCOPE.md M1 issue #40, extended to Tool Assembly by the same
+     * issue's follow-up): vanilla crafting recipes into the Crafting Station, Part Crafting recipes
+     * into the Part Builder, and Tool Assembly recipes into the Tool Station -- the last one also
+     * selects the recipe's tool tab first ({@link AssemblyTransferHandler}), since the tab decides
+     * where the input slots sit and what each one accepts.
      */
     @Override
     public void registerRecipeTransferHandlers(IRecipeTransferRegistration registration) {
@@ -102,6 +102,8 @@ public final class ForgeweaveJeiPlugin implements IModPlugin {
         // are the next contiguous 36 (PartBuilderMenu#layoutPlayerInventorySlots) -- exactly what the
         // basic transfer handler needs, so no custom IRecipeTransferInfo is needed here.
         registration.addRecipeTransferHandler(PartBuilderMenu.class, ForgeweaveMenus.PART_BUILDER.get(), PartCraftingCategory.TYPE, 0, 2, 4, 36);
+
+        registration.addRecipeTransferHandler(new AssemblyTransferHandler(registration.getTransferHelper()), AssemblyCategory.TYPE);
     }
 
     /** Empty (not an error) at the title screen, before any world is joined and materials are synced. */
