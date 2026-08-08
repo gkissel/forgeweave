@@ -1,11 +1,11 @@
 {
   "parent": "minecraft:recipes/root",
   "criteria": {
-    "has_pattern_blank": {
+    "has_crafting_table": {
       "conditions": {
         "items": [
           {
-            "items": "forgeweave:pattern_blank"
+            "items": "minecraft:crafting_table"
           }
         ]
       },
@@ -21,7 +21,7 @@
   "requirements": [
     [
       "has_the_recipe",
-      "has_pattern_blank"
+      "has_crafting_table"
     ]
   ],
   "rewards": {

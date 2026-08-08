@@ -13,12 +13,17 @@ import mezz.jei.api.IModPlugin;
 import mezz.jei.api.JeiPlugin;
 import mezz.jei.api.constants.RecipeTypes;
 import mezz.jei.api.helpers.IGuiHelper;
+import mezz.jei.api.registration.IGuiHandlerRegistration;
 import mezz.jei.api.registration.IRecipeCatalystRegistration;
 import mezz.jei.api.registration.IRecipeCategoryRegistration;
 import mezz.jei.api.registration.IRecipeRegistration;
 import mezz.jei.api.registration.IRecipeTransferRegistration;
 
 import dev.gkissel.forgeweave.Forgeweave;
+import dev.gkissel.forgeweave.client.CraftingStationScreen;
+import dev.gkissel.forgeweave.client.PartBuilderScreen;
+import dev.gkissel.forgeweave.client.StencilTableScreen;
+import dev.gkissel.forgeweave.client.ToolStationScreen;
 import dev.gkissel.forgeweave.item.ForgeweaveItems;
 import dev.gkissel.forgeweave.material.Material;
 import dev.gkissel.forgeweave.menu.ForgeweaveMenus;
@@ -84,6 +89,19 @@ public final class ForgeweaveJeiPlugin implements IModPlugin {
         // target as the station itself (issue #45's Part Crafting rework).
         registration.addRecipeCatalyst(ForgeweaveItems.SHARD.get(), PartCraftingCategory.TYPE);
         registration.addRecipeCatalyst(ForgeweaveItems.CRAFTING_STATION.get(), RecipeTypes.CRAFTING);
+    }
+
+    /**
+     * Keeps JEI's overlay off the stations' side chrome (docs/SCOPE.md issue #68 fix 4). All four
+     * station screens draw tabs, information panels and/or side-inventory panels outside the
+     * rectangle {@code AbstractContainerScreen} advertises, which is all JEI would otherwise see.
+     */
+    @Override
+    public void registerGuiHandlers(IGuiHandlerRegistration registration) {
+        registration.addGuiContainerHandler(CraftingStationScreen.class, new StationGuiHandler<>());
+        registration.addGuiContainerHandler(PartBuilderScreen.class, new StationGuiHandler<>());
+        registration.addGuiContainerHandler(ToolStationScreen.class, new StationGuiHandler<>());
+        registration.addGuiContainerHandler(StencilTableScreen.class, new StationGuiHandler<>());
     }
 
     /**

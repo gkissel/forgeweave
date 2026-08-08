@@ -6,7 +6,7 @@
       "item": "forgeweave:pattern_blank"
     },
     "B": {
-      "tag": "minecraft:planks"
+      "item": "minecraft:crafting_table"
     }
   },
   "pattern": [

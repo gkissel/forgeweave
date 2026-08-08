@@ -44,11 +44,12 @@ import dev.gkissel.forgeweave.item.ForgeweaveDataComponents;
  * <p>Table-shaped and wood-retexturing the same way as {@link PartBuilderBlock}/{@link
  * ToolStationBlock} (issue #43's machinery, reused verbatim per issue #40's brief) -- see {@code
  * PartBuilderBlock}'s javadoc for the {@code TABLE_SHAPE}/texture-component rationale. Unlike those
- * two, this block's crafting recipe has no wood-tagged ingredient (see {@code
- * ForgeweaveRecipeProvider}), so a crafted Crafting Station always ends up textured with whatever
- * {@link ForgeweaveDataComponents#TEXTURE} its sole non-pattern ingredient (a vanilla crafting
- * table) resolves to -- the machinery is still fully wired in (creative-tab items and future
- * recipes/dyes could vary it), it just has one practical outcome today.
+ * two, this block's crafting recipe sets no {@link ForgeweaveDataComponents#TEXTURE} at all: issue
+ * #68 fix 7 restored upstream's own shapeless "any workbench" recipe (see {@code
+ * ForgeweaveRecipeProvider}), which -- like upstream -- carries no wood variant, so a crafted
+ * Crafting Station renders in the model's default wood. The retexturing machinery stays fully wired
+ * in (a placed block that <em>does</em> carry the component still honours it, and creative-tab items
+ * or a future recipe/dye could set one), it simply has no producer today.
  */
 public class CraftingStationBlock extends HorizontalDirectionalBlock implements EntityBlock {
     public static final MapCodec<CraftingStationBlock> CODEC = simpleCodec(CraftingStationBlock::new);

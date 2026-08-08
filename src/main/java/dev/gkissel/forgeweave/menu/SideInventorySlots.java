@@ -5,11 +5,11 @@ import java.util.List;
 
 import javax.annotation.Nullable;
 
-import net.minecraft.world.Container;
-import net.minecraft.world.SimpleContainer;
+import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.Slot;
 
 import net.neoforged.neoforge.items.IItemHandler;
+import net.neoforged.neoforge.items.ItemStackHandler;
 import net.neoforged.neoforge.items.SlotItemHandler;
 
 /**
@@ -22,11 +22,17 @@ import net.neoforged.neoforge.items.SlotItemHandler;
  * <p>Callers add the returned slots with their own {@code addSlot} (a menu's own inherited, protected
  * method -- this helper can't call it for them) right after their station's own container slots and
  * before the player inventory, matching {@link dev.gkissel.forgeweave.menu.CraftingStationMenu}'s
- * existing layout.
+ * existing layout, and keep the list so the client-side panel can lay them out (see {@code
+ * client.SideInventoryPanel}).
+ *
+ * <p>{@link #COLUMNS} is upstream 1.12's: both {@code ContainerCraftingStation} and {@code
+ * ContainerStencilTable} build their {@code ContainerSideInventory} six columns wide, and {@code
+ * GuiSideInventory} sizes the drawn panel from that same number. Issue #68 fix 3: this used to be 9,
+ * which made a double chest render as a 9x6 unstyled grid sprawling across the screen.
  */
 public final class SideInventorySlots {
     public static final int SLOT_SIZE = 18;
-    public static final int MAX_COLUMNS = 9;
+    public static final int COLUMNS = 6;
 
     private SideInventorySlots() {}
 
@@ -35,27 +41,74 @@ public final class SideInventorySlots {
      *     client-side placeholder (its contents sync down via the normal container-slot-sync
      *     packets, same as every other slot -- the real {@link IItemHandler} only exists server-side)
      * @param slotCount how many slots to build -- 0 if there is no qualifying neighbor
-     * @param x the panel's left edge, in GUI pixels from the screen's top-left
-     * @param y the panel's top edge, in GUI pixels from the screen's top-left
+     * @param x the panel's first slot's left edge, in GUI pixels from the screen's top-left
+     * @param y the panel's first slot's top edge, in GUI pixels from the screen's top-left
      */
-    public static List<Slot> create(@Nullable IItemHandler sideInventory, int slotCount, int x, int y) {
-        List<Slot> slots = new ArrayList<>(slotCount);
-        Container placeholder = sideInventory == null ? new SimpleContainer(slotCount) : null;
+    public static List<SideSlot> create(@Nullable IItemHandler sideInventory, int slotCount, int x, int y) {
+        IItemHandler handler = sideInventory != null ? sideInventory : new ItemStackHandler(slotCount);
+        List<SideSlot> slots = new ArrayList<>(slotCount);
         for (int i = 0; i < slotCount; i++) {
-            int slotX = x + (i % MAX_COLUMNS) * SLOT_SIZE;
-            int slotY = y + (i / MAX_COLUMNS) * SLOT_SIZE;
-            slots.add(sideInventory != null
-                    ? new SlotItemHandler(sideInventory, i, slotX, slotY)
-                    : new Slot(placeholder, i, slotX, slotY));
+            slots.add(new SideSlot(handler, i, x + (i % COLUMNS) * SLOT_SIZE, y + (i / COLUMNS) * SLOT_SIZE));
         }
         return slots;
     }
 
-    public static int columns(int slotCount) {
-        return Math.min(slotCount, MAX_COLUMNS);
+    public static int rows(int slotCount) {
+        return slotCount == 0 ? 0 : (slotCount + COLUMNS - 1) / COLUMNS;
     }
 
-    public static int rows(int slotCount) {
-        return slotCount == 0 ? 0 : (slotCount + MAX_COLUMNS - 1) / MAX_COLUMNS;
+    /**
+     * Moves the panel's slots to show only rows {@code [firstVisible, lastVisible)}, hiding the rest
+     * -- what upstream's {@code GuiSideInventory#updateSlots}/{@code shouldDrawSlot} pair does when
+     * its slider moves. Called by the client-side panel every frame; a slot that is already where it
+     * should be is left alone, so a panel that isn't scrolling allocates nothing.
+     *
+     * <p>{@link Slot#x}/{@link Slot#y} are final, so "moving" a slot means substituting a new one at
+     * the same menu index -- the same substitution {@code ToolStationMenu#applyLayout} already does
+     * when a tab change moves its input slots.
+     */
+    public static void layout(AbstractContainerMenu menu, List<SideSlot> slots,
+            int firstVisible, int lastVisible, int x, int y) {
+        for (int i = 0; i < slots.size(); i++) {
+            SideSlot slot = slots.get(i);
+            boolean visible = i >= firstVisible && i < lastVisible;
+            int offset = i - firstVisible;
+            int targetX = visible ? x + (offset % COLUMNS) * SLOT_SIZE : slot.x;
+            int targetY = visible ? y + (offset / COLUMNS) * SLOT_SIZE : slot.y;
+            if (slot.visible == visible && slot.x == targetX && slot.y == targetY) {
+                continue;
+            }
+            SideSlot replacement = new SideSlot(slot.getItemHandler(), slot.getSlotIndex(), targetX, targetY, visible);
+            // Casts because SlotItemHandler shadows Slot's public menu-position `index` with a
+            // protected field of its own holding the *item handler* index; the two are unrelated.
+            int menuIndex = ((Slot) slot).index;
+            ((Slot) replacement).index = menuIndex;
+            menu.slots.set(menuIndex, replacement);
+            slots.set(i, replacement);
+        }
+    }
+
+    /**
+     * A side-panel slot the client-side panel can hide when it scrolls out of view. {@link
+     * Slot#isActive} is a client render/click concern only -- the server never consults it -- so
+     * shift-click transfers still reach scrolled-away slots, exactly as upstream's client-only
+     * {@code shouldDrawSlot} leaves its container's transfers alone.
+     */
+    public static final class SideSlot extends SlotItemHandler {
+        private final boolean visible;
+
+        SideSlot(IItemHandler handler, int index, int x, int y) {
+            this(handler, index, x, y, true);
+        }
+
+        SideSlot(IItemHandler handler, int index, int x, int y, boolean visible) {
+            super(handler, index, x, y);
+            this.visible = visible;
+        }
+
+        @Override
+        public boolean isActive() {
+            return visible;
+        }
     }
 }

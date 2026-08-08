@@ -1,59 +1,156 @@
 package dev.gkissel.forgeweave.client;
 
-import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.resources.ResourceLocation;
+import java.util.List;
 
+import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.renderer.Rect2i;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.inventory.AbstractContainerMenu;
+
+import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.menu.SideInventorySlots;
+import dev.gkissel.forgeweave.menu.SideInventorySlots.SideSlot;
 
 /**
- * Shared side-inventory panel rendering for the three stations that show a neighboring block's
- * items in a GUI side panel (docs/SCOPE.md issue #40, extended from the Crafting Station to the
- * Part Builder and Tool Station in the same issue's follow-up). Originally {@code
- * CraftingStationScreen#renderSideInventoryBackground}; extracted here (paired with {@link
- * SideInventorySlots} on the menu side) so the other two screens reuse the same panel-sizing and
- * -drawing logic instead of a third copy. Each screen still supplies its own backing texture and
- * slot-tile sprite -- there's no single shared source of that art across the three stations.
+ * Shared side-inventory panel rendering for the three stations that show a neighboring block's items
+ * in a GUI side panel (docs/SCOPE.md issue #40, extended from the Crafting Station to the Part
+ * Builder and Tool Station in the same issue's follow-up).
+ *
+ * <p>Issue #68 fix 3 rebuilt this as upstream 1.12's {@code GuiSideInventory} module: a nine-sliced
+ * border from {@code textures/gui/generic.png} (NOTICE.md) around a six-column grid of that same
+ * sheet's slot tile, capped to as many rows as fit next to the parent GUI and scrolled with the
+ * mouse wheel. It previously drew a translucent rectangle behind a nine-column grid of whatever slot
+ * sprite each screen happened to have lying around, which with a double chest adjacent produced the
+ * unstyled 9x6 sprawl the maintainer screenshotted. Geometry constants are upstream's own: 7px
+ * border ({@code GuiWidgetBorder}), 18px slots, at most 10 rows and never taller than the parent GUI
+ * less 10px ({@code GuiSideInventory#calcCappedYSize}).
+ *
+ * <p>Stateful, one instance per screen, because the scroll offset is per-open-GUI state. Upstream's
+ * slider widget is replaced by plain mouse-wheel scrolling, the same trade {@link InfoPanel} already
+ * makes for upstream's panel scrollbar -- fewer moving parts, and the only visible difference is the
+ * missing slider track.
  */
 final class SideInventoryPanel {
-    private static final int BACKDROP_COLOR = 0x88000000;
-    private static final int BACKDROP_MARGIN = 3;
+    /** Upstream's {@code GuiGeneric} sheet: 7px border pieces, an 18px slot tile and an 18px "no slot here" tile. */
+    private static final ResourceLocation TEXTURE =
+            ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "textures/derived/gui/generic.png");
+    private static final int SHEET = 64;
+    private static final int BORDER = 7;
+    private static final int SLOT = SideInventorySlots.SLOT_SIZE;
+    private static final int COLUMNS = SideInventorySlots.COLUMNS;
+    private static final int SLOT_U = 7;
+    private static final int SLOT_V = 7;
+    private static final int SLOT_EMPTY_U = 7 + 18;
 
-    private SideInventoryPanel() {}
+    /** Upstream {@code GuiSideInventory}: at most ten rows, and at most the parent's height less 10px. */
+    private static final int MAX_ROWS = 10;
+    private static final int PARENT_MARGIN = 10;
 
-    static int panelWidth(int slotCount) {
-        return SideInventorySlots.columns(slotCount) * SideInventorySlots.SLOT_SIZE;
+    private final int slotX;
+    private final int slotY;
+    private int scrollRow;
+    private Rect2i bounds = new Rect2i(0, 0, 0, 0);
+
+    /** @param slotX,slotY where the menu put the panel's <em>first slot</em>, relative to the screen's top-left. */
+    SideInventoryPanel(int slotX, int slotY) {
+        this.slotX = slotX;
+        this.slotY = slotY;
     }
 
-    static int panelHeight(int slotCount) {
-        return SideInventorySlots.rows(slotCount) * SideInventorySlots.SLOT_SIZE;
+    /** The panel's on-screen rectangle after the last {@link #render}; empty while there is no side inventory. */
+    Rect2i bounds() {
+        return bounds;
     }
 
     /**
-     * Draws a backdrop (so the panel reads as a distinct region rather than floating slot tiles)
-     * plus one repeated blit of {@code (tileU, tileV)} per slot from {@code texture}.
+     * Draws the panel and (re)places the slots it shows, hiding the ones scrolled out of view.
      *
-     * @param panelX the panel's left edge and {@code panelY} its top edge, in GUI pixels from the
-     *     screen's top-left (i.e. relative to {@code leftPos}/{@code topPos}, matching the same
-     *     coordinates the menu built its {@link SideInventorySlots} at)
+     * @param parentHeight the parent screen's {@code imageHeight}, which caps how tall the panel gets
      */
-    static void render(GuiGraphics graphics, ResourceLocation texture, int textureWidth, int textureHeight,
-            int tileU, int tileV, int leftPos, int topPos, int panelX, int panelY, int slotCount) {
-        if (slotCount == 0) {
+    void render(GuiGraphics graphics, AbstractContainerMenu menu, int leftPos, int topPos, int parentHeight,
+            List<SideSlot> slots) {
+        if (slots.isEmpty()) {
+            bounds = new Rect2i(0, 0, 0, 0);
             return;
         }
-        int size = SideInventorySlots.SLOT_SIZE;
-        int width = panelWidth(slotCount);
-        int height = panelHeight(slotCount);
+        int totalRows = SideInventorySlots.rows(slots.size());
+        int visibleRows = visibleRows(totalRows, parentHeight);
+        scrollRow = Math.clamp(scrollRow, 0, totalRows - visibleRows);
 
-        int backdropLeft = leftPos + panelX - BACKDROP_MARGIN;
-        int backdropTop = topPos + panelY - BACKDROP_MARGIN;
-        graphics.fill(backdropLeft, backdropTop, backdropLeft + width + BACKDROP_MARGIN * 2,
-                backdropTop + height + BACKDROP_MARGIN * 2, BACKDROP_COLOR);
+        int width = COLUMNS * SLOT + BORDER * 2;
+        int height = visibleRows * SLOT + BORDER * 2;
+        int x = leftPos + slotX - BORDER;
+        int y = topPos + slotY - BORDER;
+        bounds = new Rect2i(x, y, width, height);
 
-        for (int i = 0; i < slotCount; i++) {
-            int x = leftPos + panelX + (i % SideInventorySlots.MAX_COLUMNS) * size;
-            int y = topPos + panelY + (i / SideInventorySlots.MAX_COLUMNS) * size;
-            graphics.blit(texture, x, y, tileU, tileV, size, size, textureWidth, textureHeight);
+        renderBorder(graphics, x, y, width, height);
+
+        int firstSlot = scrollRow * COLUMNS;
+        int lastSlot = Math.min(slots.size(), firstSlot + visibleRows * COLUMNS);
+        for (int row = 0; row < visibleRows; row++) {
+            for (int col = 0; col < COLUMNS; col++) {
+                // Upstream draws its "slotEmpty" tile past the end of a partial last row, so the
+                // panel stays a full rectangle instead of ending mid-row.
+                boolean filled = firstSlot + row * COLUMNS + col < lastSlot;
+                graphics.blit(TEXTURE, x + BORDER + col * SLOT, y + BORDER + row * SLOT,
+                        filled ? SLOT_U : SLOT_EMPTY_U, SLOT_V, SLOT, SLOT, SHEET, SHEET);
+            }
         }
+
+        SideInventorySlots.layout(menu, slots, firstSlot, lastSlot, slotX, slotY);
+    }
+
+    /** @return true when the wheel was over this panel and consumed, so the screen shouldn't scroll anything else. */
+    boolean mouseScrolled(double mouseX, double mouseY, double scrollY, int parentHeight, List<SideSlot> slots) {
+        if (slots.isEmpty() || !bounds.contains((int) mouseX, (int) mouseY)) {
+            return false;
+        }
+        int totalRows = SideInventorySlots.rows(slots.size());
+        int visibleRows = visibleRows(totalRows, parentHeight);
+        if (visibleRows >= totalRows) {
+            return false;
+        }
+        scrollRow = Math.clamp(scrollRow - (int) Math.signum(scrollY), 0, totalRows - visibleRows);
+        return true;
+    }
+
+    /** Upstream {@code GuiSideInventory#calcCappedYSize}: shed whole rows until the panel fits. */
+    private static int visibleRows(int totalRows, int parentHeight) {
+        int rows = Math.min(totalRows, MAX_ROWS);
+        int available = parentHeight - PARENT_MARGIN;
+        while (rows > 1 && rows * SLOT + BORDER * 2 > available) {
+            rows--;
+        }
+        return rows;
+    }
+
+    private static void renderBorder(GuiGraphics graphics, int x, int y, int width, int height) {
+        int innerW = width - BORDER * 2;
+        int innerH = height - BORDER * 2;
+        int right = x + width - BORDER;
+        int bottom = y + height - BORDER;
+        int sheetRight = SHEET - BORDER;
+        int edgeW = SHEET - BORDER * 2;
+
+        blit(graphics, x, y, BORDER, BORDER, 0, 0, BORDER, BORDER);
+        blit(graphics, x + BORDER, y, innerW, BORDER, BORDER, 0, edgeW, BORDER);
+        blit(graphics, right, y, BORDER, BORDER, sheetRight, 0, BORDER, BORDER);
+
+        blit(graphics, x, y + BORDER, BORDER, innerH, 0, BORDER, BORDER, edgeW);
+        blit(graphics, right, y + BORDER, BORDER, innerH, sheetRight, BORDER, BORDER, edgeW);
+
+        blit(graphics, x, bottom, BORDER, BORDER, 0, sheetRight, BORDER, BORDER);
+        blit(graphics, x + BORDER, bottom, innerW, BORDER, BORDER, sheetRight, edgeW, BORDER);
+        blit(graphics, right, bottom, BORDER, BORDER, sheetRight, sheetRight, BORDER, BORDER);
+    }
+
+    /**
+     * Stretching blit ({@code (uWidth, vHeight)} of the sheet drawn into {@code (width, height)}),
+     * same helper {@link InfoPanel} uses. The border strips are uniform, so stretching them reads
+     * identically to upstream's tiling and costs one draw call instead of a loop.
+     */
+    private static void blit(GuiGraphics graphics, int x, int y, int width, int height,
+            int u, int v, int uWidth, int vHeight) {
+        graphics.blit(TEXTURE, x, y, width, height, u, v, uWidth, vHeight, SHEET, SHEET);
     }
 }

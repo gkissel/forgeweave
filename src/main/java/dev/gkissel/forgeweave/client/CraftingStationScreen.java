@@ -1,7 +1,10 @@
 package dev.gkissel.forgeweave.client;
 
+import java.util.List;
+
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
+import net.minecraft.client.renderer.Rect2i;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Inventory;
@@ -21,39 +24,52 @@ import dev.gkissel.forgeweave.menu.ForgeweaveMenus;
  * texture: upstream 1.12's {@code GuiCraftingStation} does exactly this too ({@code new
  * ResourceLocation("textures/gui/container/crafting_table.png")}, no TinkersConstruct-original art of
  * its own), so there is nothing to derive -- no NOTICE.md row, see that class for reference. Slot
- * coordinates in {@link CraftingStationMenu} match vanilla's {@code CraftingMenu} exactly so this
- * blit lines up pixel-for-pixel.
+ * coordinates in {@link CraftingStationMenu} match upstream's {@code ContainerCraftingStation}
+ * (which in turn matches vanilla's {@code CraftingMenu}) exactly so this blit lines up pixel-for-pixel.
+ *
+ * <p>Issue #68 fix 1: that blit used to pass the <em>panel</em> size (176x166) as the source sheet
+ * size. Vanilla's file is a 256x256 sheet with the panel in its top-left corner, so the whole sheet
+ * was being squeezed into the panel's footprint -- a shrunken, washed-out crafting table with every
+ * slot off its drawn position. {@link #SHEET} is the sheet's real size.
  *
  * <p>When an adjacent block exposes an item handler ({@code CraftingStationBlockEntity#findSideInventory}),
- * its slots render in a panel to the right via {@link SideInventoryPanel} (shared with {@link
- * PartBuilderScreen}/{@link ToolStationScreen}'s own side panels, issue #40's follow-up), composited
- * at render time from repeated blits of the same vanilla texture's own crafting-grid slot tile rather
- * than a pre-baked image, since the panel's slot count varies per placement. {@link
- * AbstractContainerScreen}'s default {@code render()} already calls {@code renderTooltip} for hovered
- * slots, so slot tooltips (including side-panel ones) work without any extra override here.
+ * its slots render in a bordered panel to the right via {@link SideInventoryPanel} (shared with
+ * {@link PartBuilderScreen}/{@link ToolStationScreen}'s own side panels, issue #40's follow-up).
+ * {@link AbstractContainerScreen}'s default {@code render()} already calls {@code renderTooltip} for
+ * hovered slots, so slot tooltips (including side-panel ones) work without any extra override here.
  */
 @EventBusSubscriber(modid = Forgeweave.MODID, bus = EventBusSubscriber.Bus.MOD, value = Dist.CLIENT)
-public class CraftingStationScreen extends AbstractContainerScreen<CraftingStationMenu> {
+public class CraftingStationScreen extends AbstractContainerScreen<CraftingStationMenu> implements StationExtraAreas {
     private static final ResourceLocation TEXTURE = ResourceLocation.withDefaultNamespace("textures/gui/container/crafting_table.png");
     private static final int BASE_WIDTH = 176;
     private static final int BASE_HEIGHT = 166;
+    /** Vanilla container backgrounds are 256x256 sheets; the panel is only their top-left corner. */
+    private static final int SHEET = 256;
 
-    /** The base texture's own crafting-grid slot tile (background + border), reused for the side panel. */
-    private static final int SLOT_TILE_U = 30;
-    private static final int SLOT_TILE_V = 17;
+    private final SideInventoryPanel sidePanel =
+            new SideInventoryPanel(CraftingStationMenu.SIDE_PANEL_X, CraftingStationMenu.SIDE_PANEL_Y);
 
     public CraftingStationScreen(CraftingStationMenu menu, Inventory playerInventory, Component title) {
         super(menu, playerInventory, title);
-        int slotCount = menu.sideInventorySlotCount;
-        imageWidth = slotCount == 0 ? BASE_WIDTH : CraftingStationMenu.SIDE_PANEL_X + SideInventoryPanel.panelWidth(slotCount) + 4;
-        imageHeight = Math.max(BASE_HEIGHT, CraftingStationMenu.SIDE_PANEL_Y + SideInventoryPanel.panelHeight(slotCount) + 7);
+        imageWidth = BASE_WIDTH;
+        imageHeight = BASE_HEIGHT;
     }
 
     @Override
     protected void renderBg(GuiGraphics guiGraphics, float partialTick, int mouseX, int mouseY) {
-        guiGraphics.blit(TEXTURE, leftPos, topPos, 0, 0, BASE_WIDTH, BASE_HEIGHT, BASE_WIDTH, BASE_HEIGHT);
-        SideInventoryPanel.render(guiGraphics, TEXTURE, BASE_WIDTH, BASE_HEIGHT, SLOT_TILE_U, SLOT_TILE_V,
-                leftPos, topPos, CraftingStationMenu.SIDE_PANEL_X, CraftingStationMenu.SIDE_PANEL_Y, menu.sideInventorySlotCount);
+        guiGraphics.blit(TEXTURE, leftPos, topPos, 0, 0, BASE_WIDTH, BASE_HEIGHT, SHEET, SHEET);
+        sidePanel.render(guiGraphics, menu, leftPos, topPos, imageHeight, menu.sideSlots);
+    }
+
+    @Override
+    public boolean mouseScrolled(double mouseX, double mouseY, double scrollX, double scrollY) {
+        return sidePanel.mouseScrolled(mouseX, mouseY, scrollY, imageHeight, menu.sideSlots)
+                || super.mouseScrolled(mouseX, mouseY, scrollX, scrollY);
+    }
+
+    @Override
+    public List<Rect2i> extraGuiAreas() {
+        return menu.sideSlots.isEmpty() ? List.of() : List.of(sidePanel.bounds());
     }
 
     @SubscribeEvent

@@ -1,5 +1,7 @@
 {
   "loader": "forgeweave:retextured_table",
+  "__comment": "parent block/block only for its display transforms -- without a parent this model has ItemTransforms.NO_TRANSFORMS and the block item renders unrotated/unscaled (issue #68 fix 6)",
+  "parent": "minecraft:block/block",
   "ambientocclusion": true,
   "textures": {
     "top": "forgeweave:derived/block/tool_station_top",

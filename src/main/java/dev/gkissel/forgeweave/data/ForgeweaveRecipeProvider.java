@@ -14,6 +14,7 @@ import net.minecraft.data.recipes.RecipeCategory;
 import net.minecraft.data.recipes.RecipeOutput;
 import net.minecraft.data.recipes.RecipeProvider;
 import net.minecraft.data.recipes.ShapedRecipeBuilder;
+import net.minecraft.data.recipes.ShapelessRecipeBuilder;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.ItemTags;
 import net.minecraft.world.item.ItemStack;
@@ -63,26 +64,30 @@ public class ForgeweaveRecipeProvider extends RecipeProvider {
         // via RetexturedShapedRecipe -- see that class's javadoc.
         retexturedTableRecipe(recipeOutput, ForgeweaveItems.PART_BUILDER.get(), ForgeweaveItems.PATTERN_BLANK.get(), Ingredient.of(ItemTags.LOGS));
 
-        // Tool Station (docs/SCOPE.md M1 issue #10): same 1x2 "pattern over a material tag" shape as
-        // the Part Builder above, but planks instead of logs -- upstream's own tool_station.json
-        // instead crafts over the ore-dict "workbench" tag (a crafting table), which Forgeweave has
-        // no equivalent of; using planks keeps this recipe visually and structurally consistent with
-        // the Part Builder's, per the issue #10 brief.
-        retexturedTableRecipe(recipeOutput, ForgeweaveItems.TOOL_STATION.get(), ForgeweaveItems.PATTERN_BLANK.get(), Ingredient.of(ItemTags.PLANKS));
+        // Tool Station (docs/SCOPE.md M1 issue #10): upstream's tool_station.json is "blank pattern
+        // over the ore-dict `workbench`", i.e. over a vanilla crafting table. It used to be over
+        // #planks here, on the reasoning that 1.21 has no `workbench` equivalent -- it does,
+        // minecraft:crafting_table is exactly what that ore dict resolved to -- and the deviation
+        // made this recipe *character for character* the Stencil Table's, so the recipe manager
+        // resolved that shared shape to whichever it happened to index first and the Stencil Table
+        // became uncraftable (issue #68 fix 7). Upstream's own ingredients keep all four distinct.
+        retexturedTableRecipe(recipeOutput, ForgeweaveItems.TOOL_STATION.get(), ForgeweaveItems.PATTERN_BLANK.get(), Ingredient.of(Blocks.CRAFTING_TABLE));
 
-        // Crafting Station (docs/SCOPE.md M1 issue #40): same 1x2 family shape as the two stations
-        // above, but over a vanilla crafting table -- upstream's real crafting_station.json recipe
-        // *is* just a bare "any workbench" ore-dict ingredient (shapeless, no pattern), but folding it
-        // into the same "pattern + retextured ingredient" shape keeps all three station recipes
-        // structurally consistent (maintainer decision, matches the Tool Station precedent above of
-        // preferring family consistency over an upstream-literal ingredient).
-        retexturedTableRecipe(recipeOutput, ForgeweaveItems.CRAFTING_STATION.get(), ForgeweaveItems.PATTERN_BLANK.get(), Ingredient.of(Blocks.CRAFTING_TABLE));
+        // Crafting Station (docs/SCOPE.md M1 issue #40): upstream's crafting_station.json is a bare
+        // shapeless "any workbench", with no pattern and -- unlike part_builder.json and
+        // stencil_table.json, the only two upstream table recipes that use its retexturing
+        // `table_recipe` type -- no wood variant either. It was folded into the 1x2 "pattern over a
+        // retextured ingredient" family shape for consistency; issue #68 fix 7 unfolds it, both
+        // because upstream is the default and because the family shape is what collided above. A
+        // Crafting Station therefore no longer carries a TEXTURE component and renders in the
+        // model's default wood, which is also what upstream's does.
+        ShapelessRecipeBuilder.shapeless(RecipeCategory.DECORATIONS, ForgeweaveItems.CRAFTING_STATION.get())
+                .requires(Blocks.CRAFTING_TABLE)
+                .unlockedBy("has_crafting_table", has(Blocks.CRAFTING_TABLE))
+                .save(recipeOutput);
 
         // Stencil Table (docs/SCOPE.md M1 issue #44): upstream 1.12's real stencil_table.json recipe
-        // is "blank pattern + #STENCIL_TABLE" where that tag resolves to plankWood (NOTICE.md) --
-        // the same ingredient the Tool Station uses above, so this keeps the family's "pattern +
-        // retexturing ingredient" shape while matching upstream exactly (no maintainer deviation
-        // needed here, unlike the Tool Station/Crafting Station rows above).
+        // is "blank pattern + #STENCIL_TABLE" where that tag resolves to plankWood (NOTICE.md).
         retexturedTableRecipe(recipeOutput, ForgeweaveItems.STENCIL_TABLE.get(), ForgeweaveItems.PATTERN_BLANK.get(), Ingredient.of(ItemTags.PLANKS));
     }
 

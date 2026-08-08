@@ -64,6 +64,8 @@ public class CraftingStationMenu extends AbstractContainerMenu {
     private final Container container;
     private final ContainerLevelAccess access;
     public final int sideInventorySlotCount;
+    /** The side panel's own slots, kept so the client-side panel can lay them out and scroll them (issue #68). */
+    public final List<SideInventorySlots.SideSlot> sideSlots;
 
     /** Client-side: constructed from the open-menu packet, which carries the side-inventory slot count. */
     public CraftingStationMenu(int containerId, Inventory playerInventory, RegistryFriendlyByteBuf buf) {
@@ -92,7 +94,8 @@ public class CraftingStationMenu extends AbstractContainerMenu {
         }
         addSlot(new OutputSlot(container, OUTPUT_SLOT, 124, 35));
 
-        SideInventorySlots.create(sideInventory, sideInventorySlotCount, SIDE_PANEL_X, SIDE_PANEL_Y).forEach(this::addSlot);
+        this.sideSlots = SideInventorySlots.create(sideInventory, sideInventorySlotCount, SIDE_PANEL_X, SIDE_PANEL_Y);
+        this.sideSlots.forEach(this::addSlot);
         layoutPlayerInventorySlots(playerInventory);
     }
 

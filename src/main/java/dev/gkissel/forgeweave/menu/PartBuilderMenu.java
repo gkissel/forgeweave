@@ -1,5 +1,6 @@
 package dev.gkissel.forgeweave.menu;
 
+import java.util.List;
 import java.util.Optional;
 
 import javax.annotation.Nullable;
@@ -59,6 +60,8 @@ public class PartBuilderMenu extends AbstractContainerMenu {
     private final ContainerLevelAccess access;
     private final HolderLookup.Provider registries;
     public final int sideInventorySlotCount;
+    /** The side panel's own slots, kept so the client-side panel can lay them out and scroll them (issue #68). */
+    public final List<SideInventorySlots.SideSlot> sideSlots;
     private int pendingMaterialItemsConsumed;
     private ItemStack pendingChange = ItemStack.EMPTY;
 
@@ -108,7 +111,8 @@ public class PartBuilderMenu extends AbstractContainerMenu {
             }
         });
 
-        SideInventorySlots.create(sideInventory, sideInventorySlotCount, SIDE_PANEL_X, SIDE_PANEL_Y).forEach(this::addSlot);
+        this.sideSlots = SideInventorySlots.create(sideInventory, sideInventorySlotCount, SIDE_PANEL_X, SIDE_PANEL_Y);
+        this.sideSlots.forEach(this::addSlot);
         layoutPlayerInventorySlots(playerInventory);
     }
 

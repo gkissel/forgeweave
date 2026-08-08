@@ -1,5 +1,6 @@
 package dev.gkissel.forgeweave.menu;
 
+import java.util.List;
 import java.util.Optional;
 
 import javax.annotation.Nullable;
@@ -96,6 +97,8 @@ public class ToolStationMenu extends AbstractContainerMenu {
     private final HolderLookup.Provider registries;
     private final DataSlot selectedTab = DataSlot.standalone();
     public final int sideInventorySlotCount;
+    /** The side panel's own slots, kept so the client-side panel can lay them out and scroll them (issue #68). */
+    public final List<SideInventorySlots.SideSlot> sideSlots;
     private String toolName = "";
 
     /** Client-side: constructed from the open-menu packet, which carries the side-inventory slot count. */
@@ -129,7 +132,8 @@ public class ToolStationMenu extends AbstractContainerMenu {
         }
         addSlot(new OutputSlot(container, OUTPUT_SLOT, OUTPUT_X, OUTPUT_Y));
 
-        SideInventorySlots.create(sideInventory, sideInventorySlotCount, SIDE_PANEL_X, SIDE_PANEL_Y).forEach(this::addSlot);
+        this.sideSlots = SideInventorySlots.create(sideInventory, sideInventorySlotCount, SIDE_PANEL_X, SIDE_PANEL_Y);
+        this.sideSlots.forEach(this::addSlot);
         layoutPlayerInventorySlots(playerInventory);
     }
 
