@@ -46,6 +46,13 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         // Shown on a tool that ran out of durability (CONTEXT.md: Broken -- unusable, never destroyed).
         add("tooltip.forgeweave.broken", "Broken");
 
+        // Assembled tool tooltip stat labels (issue #54), ported from upstream 1.12's
+        // stat.head.*.name entries (NOTICE.md).
+        add("tooltip.forgeweave.durability", "Durability");
+        add("tooltip.forgeweave.mining_speed", "Mining Speed");
+        add("tooltip.forgeweave.attack_damage", "Attack Damage");
+        add("tooltip.forgeweave.tool_tier", "Tool Tier");
+
         add("material.forgeweave.wood", "Wood");
         add("material.forgeweave.stone", "Stone");
         add("material.forgeweave.flint", "Flint");
