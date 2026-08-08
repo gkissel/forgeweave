@@ -11,6 +11,7 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
+import net.minecraft.client.renderer.Rect2i;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -81,7 +82,7 @@ import dev.gkissel.forgeweave.tool.ToolMaterials;
  * side panels.
  */
 @EventBusSubscriber(modid = Forgeweave.MODID, bus = EventBusSubscriber.Bus.MOD, value = Dist.CLIENT)
-public class ToolStationScreen extends AbstractContainerScreen<ToolStationMenu> {
+public class ToolStationScreen extends AbstractContainerScreen<ToolStationMenu> implements StationExtraAreas {
     private static final ResourceLocation TEXTURE =
             ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "textures/derived/gui/tool_station.png");
     private static final ResourceLocation ICONS =
@@ -154,6 +155,8 @@ public class ToolStationScreen extends AbstractContainerScreen<ToolStationMenu> 
     private List<Component> traitLines = List.of();
     private int toolScroll;
     private int traitScroll;
+    private final SideInventoryPanel sidePanel =
+            new SideInventoryPanel(ToolStationMenu.SIDE_PANEL_X, ToolStationMenu.SIDE_PANEL_Y);
 
     public ToolStationScreen(ToolStationMenu menu, Inventory playerInventory, Component title) {
         super(menu, playerInventory, title);
@@ -280,10 +283,7 @@ public class ToolStationScreen extends AbstractContainerScreen<ToolStationMenu> 
         renderSlots(graphics);
         renderSidebar(graphics, mouseX, mouseY);
         renderInfoPanels(graphics);
-        // Side-inventory panel (issue #40's follow-up): reuses this sheet's own slot-border tile,
-        // the same reusable sprite piece renderSlots draws under the tab-positioned input slots.
-        SideInventoryPanel.render(graphics, TEXTURE, SHEET, SHEET, SLOT_BORDER_U, SLOT_SPRITE_V,
-                leftPos, topPos, ToolStationMenu.SIDE_PANEL_X, ToolStationMenu.SIDE_PANEL_Y, menu.sideInventorySlotCount);
+        sidePanel.render(graphics, menu, leftPos, topPos, imageHeight, menu.sideSlots);
         if (nameField != null && nameField.isFocused()) {
             graphics.blit(TEXTURE, leftPos + NAME_FIELD_X - 2, topPos + NAME_FIELD_Y - 1,
                     TEXT_FIELD_U, TEXT_FIELD_V, TEXT_FIELD_W, TEXT_FIELD_H, SHEET, SHEET);
@@ -406,6 +406,20 @@ public class ToolStationScreen extends AbstractContainerScreen<ToolStationMenu> 
         renderTooltip(graphics, mouseX, mouseY);
     }
 
+    /** Issue #68 fix 4: the tab sidebar, both info panels and the side panel all hang outside {@code imageWidth}. */
+    @Override
+    public List<Rect2i> extraGuiAreas() {
+        List<Rect2i> areas = new ArrayList<>(3);
+        areas.add(new Rect2i(leftPos + buttonX(0), topPos, sidebarWidth(),
+                buttonY(ToolStationTabs.TABS.size() - 1) + BUTTON_SIZE));
+        areas.add(new Rect2i(leftPos + BASE_WIDTH + PANEL_GAP, topPos,
+                InfoPanel.WIDTH, PANEL_TOP + InfoPanel.HEIGHT * 2 + PANEL_SPACING));
+        if (!menu.sideSlots.isEmpty()) {
+            areas.add(sidePanel.bounds());
+        }
+        return areas;
+    }
+
     @Override
     protected void renderTooltip(GuiGraphics graphics, int mouseX, int mouseY) {
         super.renderTooltip(graphics, mouseX, mouseY);
@@ -435,6 +449,9 @@ public class ToolStationScreen extends AbstractContainerScreen<ToolStationMenu> 
 
     @Override
     public boolean mouseScrolled(double mouseX, double mouseY, double scrollX, double scrollY) {
+        if (sidePanel.mouseScrolled(mouseX, mouseY, scrollY, imageHeight, menu.sideSlots)) {
+            return true;
+        }
         int panelX = BASE_WIDTH + PANEL_GAP;
         if (isHovering(panelX, PANEL_TOP, InfoPanel.WIDTH, InfoPanel.HEIGHT, mouseX, mouseY)) {
             toolScroll = clampScroll(toolScroll - (int) Math.signum(scrollY), true, toolLines);

@@ -9,6 +9,7 @@ import javax.annotation.Nullable;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
+import net.minecraft.client.renderer.Rect2i;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
@@ -60,7 +61,7 @@ import dev.gkissel.forgeweave.menu.PartBuilderRecipes;
  * side panels.
  */
 @EventBusSubscriber(modid = Forgeweave.MODID, bus = EventBusSubscriber.Bus.MOD, value = Dist.CLIENT)
-public class PartBuilderScreen extends AbstractContainerScreen<PartBuilderMenu> {
+public class PartBuilderScreen extends AbstractContainerScreen<PartBuilderMenu> implements StationExtraAreas {
     private static final ResourceLocation TEXTURE =
             ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "textures/derived/gui/part_builder.png");
     private static final ResourceLocation ICONS =
@@ -69,16 +70,6 @@ public class PartBuilderScreen extends AbstractContainerScreen<PartBuilderMenu> 
 
     private static final int BASE_WIDTH = 176;
     private static final int BASE_HEIGHT = 166;
-
-    // Side-inventory panel (issue #40's follow-up): part_builder.png is cropped to its 176x166 panel
-    // region (NOTICE.md) and has no spare "generic slot" tile of its own to repeat, so -- same
-    // "reuse vanilla art when nothing local fits" precedent CraftingStationScreen already sets --
-    // this borrows vanilla's own generic_54.png single-slot tile instead of deriving a new sprite.
-    private static final ResourceLocation SIDE_SLOT_TEXTURE = ResourceLocation.withDefaultNamespace("textures/gui/container/generic_54.png");
-    private static final int SIDE_SLOT_TEXTURE_WIDTH = 176;
-    private static final int SIDE_SLOT_TEXTURE_HEIGHT = 222;
-    private static final int SIDE_SLOT_TILE_U = 7;
-    private static final int SIDE_SLOT_TILE_V = 17;
 
     /** Upstream {@code Icons}: the pattern, ingot and shard glyphs, in slot order. */
     private static final int[] SLOT_ICON_U = {0, 54, -1, 18};
@@ -95,6 +86,8 @@ public class PartBuilderScreen extends AbstractContainerScreen<PartBuilderMenu> 
     private Component caption;
     private List<Component> lines = List.of();
     private int scroll;
+    private final SideInventoryPanel sidePanel =
+            new SideInventoryPanel(PartBuilderMenu.SIDE_PANEL_X, PartBuilderMenu.SIDE_PANEL_Y);
 
     public PartBuilderScreen(PartBuilderMenu menu, Inventory playerInventory, Component title) {
         super(menu, playerInventory, title);
@@ -168,9 +161,7 @@ public class PartBuilderScreen extends AbstractContainerScreen<PartBuilderMenu> 
         renderMaterialValue(graphics);
         InfoPanel.render(graphics, font, leftPos + BASE_WIDTH + PANEL_GAP, topPos + PANEL_TOP,
                 InfoPanel.WIDTH, PANEL_HEIGHT, caption, lines, scroll);
-        SideInventoryPanel.render(graphics, SIDE_SLOT_TEXTURE, SIDE_SLOT_TEXTURE_WIDTH, SIDE_SLOT_TEXTURE_HEIGHT,
-                SIDE_SLOT_TILE_U, SIDE_SLOT_TILE_V, leftPos, topPos,
-                PartBuilderMenu.SIDE_PANEL_X, PartBuilderMenu.SIDE_PANEL_Y, menu.sideInventorySlotCount);
+        sidePanel.render(graphics, menu, leftPos, topPos, imageHeight, menu.sideSlots);
     }
 
     /** Upstream's {@code drawIconEmpty}: a hint glyph in each empty slot, never over a real item. */
@@ -206,6 +197,9 @@ public class PartBuilderScreen extends AbstractContainerScreen<PartBuilderMenu> 
 
     @Override
     public boolean mouseScrolled(double mouseX, double mouseY, double scrollX, double scrollY) {
+        if (sidePanel.mouseScrolled(mouseX, mouseY, scrollY, imageHeight, menu.sideSlots)) {
+            return true;
+        }
         if (isHovering(BASE_WIDTH + PANEL_GAP, PANEL_TOP, InfoPanel.WIDTH, PANEL_HEIGHT, mouseX, mouseY)) {
             scroll = Math.clamp(scroll - (int) Math.signum(scrollY), 0,
                     InfoPanel.maxScroll(font, InfoPanel.WIDTH, PANEL_HEIGHT, caption != null, lines));
@@ -218,6 +212,17 @@ public class PartBuilderScreen extends AbstractContainerScreen<PartBuilderMenu> 
     public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
         super.render(graphics, mouseX, mouseY, partialTick);
         renderTooltip(graphics, mouseX, mouseY);
+    }
+
+    /** Issue #68 fix 4: the info panel and side panel hang outside {@code imageWidth}; JEI has to be told. */
+    @Override
+    public List<Rect2i> extraGuiAreas() {
+        List<Rect2i> areas = new ArrayList<>(2);
+        areas.add(new Rect2i(leftPos + BASE_WIDTH + PANEL_GAP, topPos + PANEL_TOP, InfoPanel.WIDTH, PANEL_HEIGHT));
+        if (!menu.sideSlots.isEmpty()) {
+            areas.add(sidePanel.bounds());
+        }
+        return areas;
     }
 
     @SubscribeEvent

@@ -29,7 +29,15 @@ One row per derived file (ADR-0003). Maintained in PR review: a PR introducing d
 | `src/main/resources/assets/forgeweave/textures/derived/item/tool_binding.png` | `resources/assets/tconstruct/textures/items/parts/binding.png` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
 | `src/main/resources/assets/forgeweave/textures/derived/item/tool_handle.png` | `resources/assets/tconstruct/textures/items/parts/tool_rod.png` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
 | `src/main/resources/assets/forgeweave/textures/derived/block/part_builder_top.png` (the table model's {@code #top} face -- own top art, never retextured) | `resources/assets/tconstruct/textures/blocks/partbuilder_top.png` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
-| `src/main/resources/assets/forgeweave/textures/derived/block/part_builder_side.png` (the table model's {@code #side} face -- fixed trim, shared by both stations, never retextured) | `resources/assets/tconstruct/textures/blocks/table_side.png` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
+| `src/main/resources/assets/forgeweave/textures/derived/block/part_builder_side.png` (the table model's {@code #side} face -- fixed trim, shared by the Part Builder, Tool Station and Stencil Table, never retextured) | `resources/assets/tconstruct/textures/blocks/table_side.png` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
+| `src/main/resources/assets/forgeweave/textures/derived/block/crafting_station_top.png` (the table model's `#top` face -- own top art, never retextured; issue #68 fix 2) | `resources/assets/tconstruct/textures/blocks/craftingstation_top.png` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
+| `src/main/resources/assets/forgeweave/textures/derived/block/crafting_station_side.png` (the table model's `#side` face -- the Crafting Station has its own trim upstream, unlike the other three tables; issue #68 fix 2) | `resources/assets/tconstruct/textures/blocks/craftingstation_side.png` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
+| `src/main/resources/assets/forgeweave/textures/derived/block/stencil_table_top.png` (the table model's `#top` face -- own top art, never retextured; issue #68 fix 2) | `resources/assets/tconstruct/textures/blocks/stenciltable_top.png` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
+| `src/main/resources/assets/forgeweave/textures/derived/gui/generic.png` (copied unmodified; the nine-sliced border, slot tile and empty-slot tile every station's side-inventory panel is drawn from; issue #68 fix 3) | `resources/assets/tconstruct/textures/gui/generic.png` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
+| `src/main/java/dev/gkissel/forgeweave/client/SideInventoryPanel.java` (border/slot/empty-slot sprite regions, 6-column grid, row cap and scroll-by-row behaviour) | `src/main/java/slimeknights/tconstruct/tools/common/client/module/GuiSideInventory.java`, `src/main/java/slimeknights/tconstruct/tools/common/client/module/GuiGeneric.java`, `src/main/java/slimeknights/tconstruct/tools/common/client/module/GuiWidgetBorder.java` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
+| `src/main/resources/assets/forgeweave/models/block/crafting_station.json` (`#top`/`#side`/`#texture` slot split and which upstream texture fills each) | `resources/assets/tconstruct/models/block/craftingstation.json` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
+| `src/main/resources/assets/forgeweave/models/block/stencil_table.json` (`#top`/`#side`/`#texture` slot split and which upstream texture fills each) | `resources/assets/tconstruct/models/block/stenciltable.json` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
+| `src/main/java/dev/gkissel/forgeweave/client/StencilTableScreen.java` (pattern buttons as a left-hand 4-column side-button grid drawn from the wood-style button sprites) | `src/main/java/slimeknights/tconstruct/tools/common/client/module/GuiButtonsStencilTable.java`, `src/main/java/slimeknights/tconstruct/tools/common/client/module/GuiSideButtons.java` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
 | `src/main/java/dev/gkissel/forgeweave/data/ForgeweaveRecipeProvider.java` (blank pattern recipe) | `resources/assets/tconstruct/recipes/tools/pattern.json` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
 | `src/main/java/dev/gkissel/forgeweave/data/ForgeweaveRecipeProvider.java` (Part Builder block recipe) | `resources/assets/tconstruct/recipes/tools/table/part_builder.json` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
 | `src/main/java/dev/gkissel/forgeweave/menu/PartBuilderRecipes.java` (per-part material costs) | `src/main/java/slimeknights/tconstruct/tools/TinkerTools.java` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
@@ -169,21 +177,46 @@ deliberate deviations, none of which change what is derived:
 
 The Crafting Station (issue #40) reuses issue #43's table-shape/wood-retexture machinery verbatim
 (`WoodTexturedBlockEntity`, `RetexturedTableGeometry`, `RetexturedShapedRecipe`) for family
-consistency with the Part Builder and Tool Station, rather than porting upstream's unique
-`craftingstation_top.png`/`craftingstation_side.png` block textures -- this project's own precedent
-already consolidates every table face onto one retexturing `#texture` slot (see the "Both stations"
-paragraph above), so there is no unique block art to derive and no new `textures/derived/block/`
-directory or block atlas entry is needed. Its crafting recipe (a vanilla crafting table, not a wood
-tag) means a crafted Crafting Station's `TEXTURE` component resolves to `minecraft:crafting_table`
-rather than a log/plank block -- CraftingStationBlock's javadoc covers this outcome.
+consistency with the Part Builder and Tool Station. Issue #68 fix 2 finished that consistency: the
+Crafting Station and Stencil Table models had kept every face on the single retexturing `#texture`
+slot, which meant the crafting wood painted over their table tops, so both now use the same
+`#top`/`#side`/`#texture` split the Part Builder and Tool Station got in #57 and derive upstream's
+own `craftingstation_top.png`/`craftingstation_side.png`/`stenciltable_top.png` art (rowed above).
+Its *recipe* no longer uses that machinery, though: issue #68 fix 7 restored upstream's own
+`crafting_station.json`, a bare shapeless "any workbench", so a crafted Crafting Station carries no
+`TEXTURE` component at all and renders in the model's default wood -- which is exactly what
+upstream's does (`crafting_station.json` and `tool_station.json` are plain recipes; only
+`part_builder.json` and `stencil_table.json` use upstream's retexturing `table_recipe` type).
+
+Restoring the two upstream ingredients was not cosmetic. The Tool Station recipe had been deviated
+from upstream's `workbench` to `#planks` and the Crafting Station from upstream's shapeless form to
+the family's "pattern over an ingredient" shape; the first deviation made the Tool Station recipe
+byte-for-byte identical to the Stencil Table's, so the recipe manager resolved that one shape to
+whichever it indexed first and **the Stencil Table became uncraftable**. Both stations now use
+upstream's ingredients, which are all distinct. `gametest.RecipeShapeGameTests` is the regression
+guard.
+
+All four table models carry `"parent": "minecraft:block/block"` solely for its display transforms
+(issue #68 fix 6): a custom-loader model with no parent bakes with `ItemTransforms.NO_TRANSFORMS`,
+which made every station's *item* form render unrotated and unscaled -- a flat slab in the creative
+tab, inventory, hotbar and JEI outputs. Station items render as the model's default (oak) wood in
+every item context; per-stack retexture of the item form would need an `ItemOverrides`-resolved
+model variant per wood and was judged disproportionate to the defect, which the maintainer's issue
+#68 note explicitly allows.
 
 The Crafting Station's GUI background is vanilla's own `textures/gui/container/crafting_table.png`,
 referenced by resource location at render time rather than copied into `textures/derived/gui/`:
 upstream 1.12's `GuiCraftingStation` does exactly this too (no TinkersConstruct-original art of its
-own for this screen), so there is nothing to derive and no NOTICE.md row for it. The side-inventory
-panel (when an adjacent item-handler block is present) is composited at render time from repeated
-blits of that same texture's own crafting-grid slot tile rather than a second pre-baked image, since
-its slot count varies per placement -- see `CraftingStationScreen`.
+own for this screen), so there is nothing to derive and no NOTICE.md row for it. (Issue #68 fix 1 was
+that this blit passed the 176x166 *panel* size as the source sheet size; vanilla's file is a 256x256
+sheet, so the whole sheet was being squashed into the panel's footprint.)
+
+The side-inventory panel every station shows next to an adjacent item-handler block is now upstream's
+`GuiSideInventory` module, drawn from the derived `generic.png` rowed above (issue #68 fix 3); it
+used to be a translucent rectangle behind a nine-column grid of whatever slot sprite each screen had
+to hand, which with a double chest produced an unstyled 9x6 grid sprawling across the screen.
+Upstream's slider widget is replaced with mouse-wheel scrolling, the same substitution `InfoPanel`
+already makes for upstream's panel scrollbar.
 
 The two `jei/` rows above (issue #11) cite **`PssbleTrngle/TinkersJEI`**, a separate MIT-licensed
 repository from the TinkersConstruct clones the rest of this document cites -- docs/SCOPE.md names it
@@ -199,8 +232,8 @@ The Stencil Table (issue #44) reuses issue #43's table-shape/wood-retexture mach
 (`WoodTexturedBlockEntity`, `RetexturedTableGeometry`, `RetexturedShapedRecipe`) for family
 consistency with the other three stations, same as the Crafting Station paragraph above -- its
 crafting recipe (blank pattern + planks) matches upstream's real `#STENCIL_TABLE` tag resolution
-(`plankWood`) exactly, so no maintainer deviation was needed for the recipe shape, unlike the Tool
-Station and Crafting Station recipes.
+(`plankWood`) exactly. Since issue #68 fix 7 the other three station recipes are upstream-literal
+too, so no station recipe carries a maintainer deviation any more.
 
 Selecting a pattern (issue #44) is ported semantics, not copied code: upstream's `TinkerRegistry`
 dynamically registers one stencil-table candidate per material variant of each part pattern (since
@@ -210,10 +243,12 @@ dynamically registers one stencil-table candidate per material variant of each p
 registry, and the selection syncs through the standard vanilla menu-button/`DataSlot` mechanism
 (`AbstractContainerMenu#clickMenuButton`, the same one `StonecutterMenu`/`LoomMenu` use) rather
 than a custom packet -- no NOTICE.md row for that substitution since it carries no upstream code.
-The five pattern-selection buttons in `StencilTableScreen` have no baked art to derive (upstream's
-`GuiButtonsStencilTable` draws them from its own button-icon sprite sheet, which isn't part of the
-cropped `stenciltable.png` panel), so they're drawn procedurally from `GuiGraphics` primitives
-instead, the same approach `CraftingStationScreen` uses for its side-inventory panel.
+The five pattern-selection buttons in `StencilTableScreen` were originally drawn as procedural
+coloured rectangles on top of the panel art. Issue #68 fix 5 replaced that with upstream's own
+arrangement: `GuiButtonsStencilTable` is a `GuiSideButtons` grid `GuiStencilTable.Column_Count` (4)
+wide sitting to the *left* of the panel, drawn from the wood-style button sprites in `icons.png` --
+already derived here as `station_icons.png` for the Tool Station's tab sidebar, which is the same
+upstream widget with the same 18px/4px geometry.
 
 The five blank-pattern-to-part-pattern vanilla-table conversion recipes issue #42 shipped in
 `ForgeweaveRecipeProvider` (blank + matching wooden tool/stick, shapeless) are removed by issue #44:

@@ -1,17 +1,10 @@
 {
-  "type": "forgeweave:retextured_shaped",
+  "type": "minecraft:crafting_shapeless",
   "category": "misc",
-  "key": {
-    "A": {
-      "item": "forgeweave:pattern_blank"
-    },
-    "B": {
+  "ingredients": [
+    {
       "item": "minecraft:crafting_table"
     }
-  },
-  "pattern": [
-    "A",
-    "B"
   ],
   "result": {
     "count": 1,
