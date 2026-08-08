@@ -118,9 +118,23 @@ public class ToolStationScreen extends AbstractContainerScreen<ToolStationMenu> 
     private static final int BUTTON_PRESSED_U = 144;
     private static final int ANVIL_U = 54;
     private static final int ANVIL_V = 0;
-    /** Upstream's repair-slot icons: a tool, then two "repair material" glyphs. */
-    private static final int[] REPAIR_ICON_U = {0, 54, 36};
-    private static final int[] REPAIR_ICON_V = {234, 234, 216};
+    /**
+     * Upstream's repair-slot glyphs for its first three repair positions, in its own order:
+     * {@code Icons.ICON_Pickaxe}, {@code ICON_Dust}, {@code ICON_Lapis} ({@code GuiButtonRepair}
+     * pairs them with the six positions in {@code GuiToolStation#drawRepairSlotIcons}).
+     */
+    private static final int[] REPAIR_ICON_U = {0, 18, 36};
+    private static final int REPAIR_ICON_V = 234;
+
+    /**
+     * The layers of a tool's item model, and the fixed colours upstream tints them with when it
+     * renders a tool purely as a picture: {@code ClientProxy.RenderMaterials}' {@code MaterialGUI}
+     * entries, which is what {@code TinkersItem#buildItemForRenderingInGui} feeds
+     * {@code GuiToolStation}'s preview and {@code GuiButtonItem}'s icons. The preview deliberately
+     * ignores what is actually in the slots, exactly as upstream's does.
+     */
+    private static final String[] TOOL_LAYERS = {"handle", "head", "binding"};
+    private static final int[] TOOL_LAYER_COLORS = {0x684E1E, 0xC1C1C1, 0x2376DD};
 
     private static final int BUTTON_SIZE = 18;
     private static final int BUTTON_SPACING = 4;
@@ -239,7 +253,10 @@ public class ToolStationScreen extends AbstractContainerScreen<ToolStationMenu> 
         toolLines = lines;
 
         traitCaption = Component.translatable("gui.forgeweave.tool_station.traits");
-        List<Component> traits = StationText.traits(StationText.traitIdsOf(tool));
+        // Each trait in its granting material's colour, as upstream's info panel does (issue #64).
+        List<Component> traits = materials == null
+                ? List.of()
+                : StationText.toolTraits(registries(), materials, StationText.traitIdsOf(tool));
         traitLines = traits.isEmpty()
                 ? List.of(Component.translatable("gui.forgeweave.tool_station.no_traits").withStyle(ChatFormatting.GRAY))
                 : traits;
@@ -291,28 +308,47 @@ public class ToolStationScreen extends AbstractContainerScreen<ToolStationMenu> 
     }
 
     /**
-     * Upstream's oversized preview of what the selected tab builds (an anvil glyph for repair),
-     * dimmed by the panel's own translucent cover so the slots on top of it stay legible.
+     * Upstream's oversized preview of what the selected tab builds, dimmed by the panel's own
+     * translucent cover so the slots on top of it stay legible. Both branches are drawn at
+     * upstream's own {@code 3.7x} from its own {@code (10, 22)} origin -- including the repair tab's
+     * anvil, which upstream blows up to the same size as a tool rather than leaving slot-sized.
      */
     private void renderToolPreview(GuiGraphics graphics) {
         Tab tab = menu.tab();
-        if (!tab.isRepair()) {
-            graphics.pose().pushPose();
-            graphics.pose().translate(leftPos + 9.0F, topPos + 20.0F, 0.0F);
-            graphics.pose().scale(PREVIEW_SCALE, PREVIEW_SCALE, 1.0F);
-            graphics.renderItem(new ItemStack(tab.tool().get()), 0, 0);
-            graphics.pose().popPose();
-        }
-
         graphics.pose().pushPose();
-        graphics.pose().translate(0.0F, 0.0F, 250.0F); // above the item render, which draws with depth
+        graphics.pose().translate(leftPos + 10.0F, topPos + 22.0F, 0.0F);
+        graphics.pose().scale(PREVIEW_SCALE, PREVIEW_SCALE, 1.0F);
         if (tab.isRepair()) {
-            graphics.blit(ICONS, leftPos + 38, topPos + 41, ANVIL_U, ANVIL_V, 18, 18, SHEET, SHEET);
+            graphics.blit(ICONS, 0, 0, ANVIL_U, ANVIL_V, SLOT_SPRITE_SIZE, SLOT_SPRITE_SIZE, SHEET, SHEET);
+        } else {
+            renderToolLayers(graphics, tab.tool().get(), 0, 0);
         }
+        graphics.pose().popPose();
+
         graphics.setColor(1.0F, 1.0F, 1.0F, COVER_ALPHA);
         graphics.blit(TEXTURE, leftPos + 7, topPos + 18, COVER_U, COVER_V, COVER_W, COVER_H, SHEET, SHEET);
         graphics.setColor(1.0F, 1.0F, 1.0F, 1.0F);
-        graphics.pose().popPose();
+    }
+
+    /**
+     * A tool drawn the way upstream draws it as a picture: its three model layers blitted in order
+     * and tinted with the fixed GUI material colours, never with whatever is in the slots. Blitting
+     * the layer files directly rather than rendering the item stack is what makes that tinting
+     * possible at all -- the item's own colour handler reads the {@code TOOL_MATERIALS} component,
+     * which a preview stack has never had (GUI blits bypass the block atlas, so no atlas entry is
+     * needed for these).
+     */
+    private static void renderToolLayers(GuiGraphics graphics, Item tool, int x, int y) {
+        String path = BuiltInRegistries.ITEM.getKey(tool).getPath();
+        for (int layer = 0; layer < TOOL_LAYERS.length; layer++) {
+            int color = TOOL_LAYER_COLORS[layer];
+            graphics.setColor((color >> 16 & 0xFF) / 255.0F, (color >> 8 & 0xFF) / 255.0F, (color & 0xFF) / 255.0F, 1.0F);
+            graphics.blit(
+                    ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID,
+                            "textures/derived/tools/" + path + "_" + TOOL_LAYERS[layer] + ".png"),
+                    x, y, 0, 0, 16, 16, 16, 16);
+        }
+        graphics.setColor(1.0F, 1.0F, 1.0F, 1.0F);
     }
 
     /** Slot plate, border and -- while empty -- the ghost of whatever belongs in that slot. */
@@ -334,7 +370,7 @@ public class ToolStationScreen extends AbstractContainerScreen<ToolStationMenu> 
                 continue;
             }
             if (tab.isRepair()) {
-                graphics.blit(ICONS, x, y, REPAIR_ICON_U[i], REPAIR_ICON_V[i],
+                graphics.blit(ICONS, x, y, REPAIR_ICON_U[i], REPAIR_ICON_V,
                         SLOT_SPRITE_SIZE, SLOT_SPRITE_SIZE, SHEET, SHEET);
             } else {
                 graphics.setColor(1.0F, 1.0F, 1.0F, GHOST_ALPHA);
@@ -363,7 +399,7 @@ public class ToolStationScreen extends AbstractContainerScreen<ToolStationMenu> 
             if (tab.isRepair()) {
                 graphics.blit(ICONS, x, y, ANVIL_U, ANVIL_V, BUTTON_SIZE, BUTTON_SIZE, SHEET, SHEET);
             } else {
-                graphics.renderItem(new ItemStack(tab.tool().get()), x + 1, y + 1);
+                renderToolLayers(graphics, tab.tool().get(), x + 1, y + 1);
             }
         }
         beam(graphics, leftPos + buttonX(0) - BEAM_END_W, topPos, sidebarWidth());

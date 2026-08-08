@@ -131,7 +131,7 @@ public class PartBuilderScreen extends AbstractContainerScreen<PartBuilderMenu> 
             caption = MaterialDisplay.name(registries(), materialId(material).orElseThrow());
             body.addAll(StationText.materialStats(loaded.get()));
             body.add(null);
-            body.addAll(StationText.traits(List.of(loaded.get().trait())));
+            body.addAll(StationText.traits(loaded.get().color(), List.of(loaded.get().trait())));
         } else {
             caption = title;
             if (body.isEmpty()) {

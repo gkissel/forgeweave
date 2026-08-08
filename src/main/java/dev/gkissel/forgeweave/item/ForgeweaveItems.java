@@ -12,31 +12,34 @@ import dev.gkissel.forgeweave.block.ForgeweaveBlocks;
 
 /**
  * The blank pattern, the five part patterns, the five part items, and the Part Builder block item
- * (CONTEXT.md glossary; docs/SCOPE.md M1 content manifest). Patterns are reusable templates, so
- * they stack to 1 like upstream Tinkers' 1.12 patterns; parts stack normally since their material
- * is a plain data component rather than per-instance stats.
+ * (CONTEXT.md glossary; docs/SCOPE.md M1 content manifest). Patterns and parts all stack normally:
+ * upstream 1.12's {@code library/tools/Pattern} never calls {@code setMaxStackSize}, so every
+ * pattern -- blank and part alike -- stacks to the vanilla 64 there, and neither patterns nor parts
+ * carry per-instance state beyond a plain data component (issue #64).
+ *
+ * <p>Each {@link PartItem} declares the {@link PartItem.Kind} it plays in a build, which is what its
+ * tooltip shows stats for -- upstream derives the same thing from the {@code PartMaterialType}s the
+ * part appears in, but every Forgeweave part appears in exactly one role.
  */
 public final class ForgeweaveItems {
     public static final DeferredRegister.Items ITEMS = DeferredRegister.createItems(Forgeweave.MODID);
 
-    public static final DeferredItem<Item> PATTERN_BLANK =
-            ITEMS.registerSimpleItem("pattern_blank", new Item.Properties().stacksTo(1));
-    public static final DeferredItem<Item> PATTERN_PICKAXE_HEAD =
-            ITEMS.registerSimpleItem("pattern_pickaxe_head", new Item.Properties().stacksTo(1));
-    public static final DeferredItem<Item> PATTERN_SHOVEL_HEAD =
-            ITEMS.registerSimpleItem("pattern_shovel_head", new Item.Properties().stacksTo(1));
-    public static final DeferredItem<Item> PATTERN_AXE_HEAD =
-            ITEMS.registerSimpleItem("pattern_axe_head", new Item.Properties().stacksTo(1));
-    public static final DeferredItem<Item> PATTERN_TOOL_BINDING =
-            ITEMS.registerSimpleItem("pattern_tool_binding", new Item.Properties().stacksTo(1));
-    public static final DeferredItem<Item> PATTERN_TOOL_HANDLE =
-            ITEMS.registerSimpleItem("pattern_tool_handle", new Item.Properties().stacksTo(1));
+    public static final DeferredItem<Item> PATTERN_BLANK = ITEMS.registerSimpleItem("pattern_blank");
+    public static final DeferredItem<Item> PATTERN_PICKAXE_HEAD = ITEMS.registerSimpleItem("pattern_pickaxe_head");
+    public static final DeferredItem<Item> PATTERN_SHOVEL_HEAD = ITEMS.registerSimpleItem("pattern_shovel_head");
+    public static final DeferredItem<Item> PATTERN_AXE_HEAD = ITEMS.registerSimpleItem("pattern_axe_head");
+    public static final DeferredItem<Item> PATTERN_TOOL_BINDING = ITEMS.registerSimpleItem("pattern_tool_binding");
+    public static final DeferredItem<Item> PATTERN_TOOL_HANDLE = ITEMS.registerSimpleItem("pattern_tool_handle");
 
-    public static final DeferredItem<PartItem> PART_PICKAXE_HEAD = ITEMS.registerItem("pickaxe_head", PartItem::new);
-    public static final DeferredItem<PartItem> PART_SHOVEL_HEAD = ITEMS.registerItem("shovel_head", PartItem::new);
-    public static final DeferredItem<PartItem> PART_AXE_HEAD = ITEMS.registerItem("axe_head", PartItem::new);
-    public static final DeferredItem<PartItem> PART_TOOL_BINDING = ITEMS.registerItem("tool_binding", PartItem::new);
-    public static final DeferredItem<PartItem> PART_TOOL_HANDLE = ITEMS.registerItem("tool_handle", PartItem::new);
+    public static final DeferredItem<PartItem> PART_PICKAXE_HEAD = part("pickaxe_head", PartItem.Kind.HEAD);
+    public static final DeferredItem<PartItem> PART_SHOVEL_HEAD = part("shovel_head", PartItem.Kind.HEAD);
+    public static final DeferredItem<PartItem> PART_AXE_HEAD = part("axe_head", PartItem.Kind.HEAD);
+    public static final DeferredItem<PartItem> PART_TOOL_BINDING = part("tool_binding", PartItem.Kind.EXTRA);
+    public static final DeferredItem<PartItem> PART_TOOL_HANDLE = part("tool_handle", PartItem.Kind.HANDLE);
+
+    private static DeferredItem<PartItem> part(String name, PartItem.Kind kind) {
+        return ITEMS.registerItem(name, properties -> new PartItem(properties, kind));
+    }
 
     // The Part Builder's crafting change (issue #45): leftover material value below a part's cost,
     // paid out as shards. One item id shared by every material -- like the parts above, per-material
