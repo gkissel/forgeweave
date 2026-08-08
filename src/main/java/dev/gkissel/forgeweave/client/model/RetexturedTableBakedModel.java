@@ -64,10 +64,17 @@ public class RetexturedTableBakedModel implements IDynamicBakedModel {
                 key -> retexture(base.getQuads(state, side, rand, extraData, renderType), targetSprite));
     }
 
+    /**
+     * Only quads baked against {@link #defaultSprite} -- i.e. the model's {@code #texture} slot
+     * (the legs/frame/underside) -- get remapped. Upstream tables keep their own top art (the
+     * {@code #top} slot) regardless of crafting wood, so quads baked with any other sprite pass
+     * through untouched (issue #43 regression: the first cut retextured every quad, including the
+     * station's own top decal).
+     */
     private List<BakedQuad> retexture(List<BakedQuad> quads, TextureAtlasSprite targetSprite) {
         List<BakedQuad> remapped = new ArrayList<>(quads.size());
         for (BakedQuad quad : quads) {
-            remapped.add(remapSprite(quad, defaultSprite, targetSprite));
+            remapped.add(quad.getSprite() == defaultSprite ? remapSprite(quad, defaultSprite, targetSprite) : quad);
         }
         return remapped;
     }

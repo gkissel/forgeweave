@@ -1,0 +1,7 @@
+{
+  "sources": [
+    {"type": "directory", "source": "derived/item", "prefix": "derived/item/"},
+    {"type": "directory", "source": "derived/tools", "prefix": "derived/tools/"},
+    {"type": "directory", "source": "derived/block", "prefix": "derived/block/"}
+  ]
+}

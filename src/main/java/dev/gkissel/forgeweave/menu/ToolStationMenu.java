@@ -69,7 +69,10 @@ public class ToolStationMenu extends AbstractContainerMenu {
                 return ToolAssemblyRecipes.isHandlePart(stack) || isRepairItem(stack);
             }
         });
-        addSlot(new OutputSlot(container, OUTPUT_SLOT, 116, 35));
+        // x=152 (not the Part Builder's x=116): upstream's toolstation.png bakes in an item-preview
+        // icon/arrow decoration around x=90-150 (issue #43 regression fix) that the output slot
+        // would otherwise sit on top of.
+        addSlot(new OutputSlot(container, OUTPUT_SLOT, 152, 35));
 
         layoutPlayerInventorySlots(playerInventory);
     }

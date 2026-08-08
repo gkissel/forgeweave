@@ -21,6 +21,11 @@ import dev.gkissel.forgeweave.menu.PartBuilderMenu;
  * (NOTICE.md); {@link PartBuilderMenu}'s slot coordinates were moved to match its baked-in slot
  * art. {@link AbstractContainerScreen}'s default title/inventory-label positions already match
  * upstream's, so this class only needs the background blit.
+ *
+ * <p>{@link AbstractContainerScreen#render} does <em>not</em> call {@link #renderTooltip} on its
+ * own (unlike the label/slot rendering, that call is left to subclasses) -- every vanilla container
+ * screen overrides {@code render} to add it, and this one previously didn't, so item tooltips never
+ * showed (issue #43 regression fix).
  */
 @EventBusSubscriber(modid = Forgeweave.MODID, bus = EventBusSubscriber.Bus.MOD, value = Dist.CLIENT)
 public class PartBuilderScreen extends AbstractContainerScreen<PartBuilderMenu> {
@@ -36,6 +41,12 @@ public class PartBuilderScreen extends AbstractContainerScreen<PartBuilderMenu> 
     @Override
     protected void renderBg(GuiGraphics guiGraphics, float partialTick, int mouseX, int mouseY) {
         guiGraphics.blit(TEXTURE, leftPos, topPos, 0, 0, imageWidth, imageHeight, imageWidth, imageHeight);
+    }
+
+    @Override
+    public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
+        super.render(guiGraphics, mouseX, mouseY, partialTick);
+        renderTooltip(guiGraphics, mouseX, mouseY);
     }
 
     @SubscribeEvent

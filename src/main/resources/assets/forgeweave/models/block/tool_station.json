@@ -2,12 +2,14 @@
   "loader": "forgeweave:retextured_table",
   "ambientocclusion": true,
   "textures": {
+    "top": "forgeweave:derived/block/tool_station_top",
+    "side": "forgeweave:derived/block/part_builder_side",
     "texture": "minecraft:block/oak_planks",
-    "particle": "minecraft:block/oak_planks"
+    "particle": "forgeweave:derived/block/tool_station_top"
   },
   "elements": [
     {
-      "__comment": "Table top plate",
+      "__comment": "Table top plate: own top art (never retextured), fixed trim on the rim/underside",
       "from": [
         0,
         12,
@@ -26,7 +28,7 @@
             16,
             16
           ],
-          "texture": "#texture",
+          "texture": "#top",
           "cullface": "up"
         },
         "down": {
@@ -36,7 +38,7 @@
             16,
             16
           ],
-          "texture": "#texture"
+          "texture": "#side"
         },
         "north": {
           "uv": [
@@ -45,7 +47,7 @@
             16,
             4
           ],
-          "texture": "#texture",
+          "texture": "#side",
           "cullface": "north"
         },
         "south": {
@@ -55,7 +57,7 @@
             16,
             4
           ],
-          "texture": "#texture",
+          "texture": "#side",
           "cullface": "south"
         },
         "west": {
@@ -65,7 +67,7 @@
             16,
             4
           ],
-          "texture": "#texture",
+          "texture": "#side",
           "cullface": "west"
         },
         "east": {
@@ -75,7 +77,7 @@
             16,
             4
           ],
-          "texture": "#texture",
+          "texture": "#side",
           "cullface": "east"
         }
       }
