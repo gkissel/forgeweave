@@ -1,5 +1,6 @@
 package dev.gkissel.forgeweave.material;
 
+import java.util.List;
 import java.util.Optional;
 
 import javax.annotation.Nullable;
@@ -31,6 +32,26 @@ public final class MaterialDisplay {
         return registries.lookup(Material.REGISTRY)
                 .flatMap(lookup -> lookup.get(ResourceKey.create(Material.REGISTRY, materialId)))
                 .map(holder -> holder.value());
+    }
+
+    /**
+     * The colour of the first of {@code materialIds} whose trait is {@code traitId}, or {@code null}
+     * when none of them granted it (or the registry is unreachable). Upstream 1.12 renders a trait
+     * name in its granting material's colour ({@code Material#getTextColor}, applied by
+     * {@code ToolPart#getTooltipTraitInfo} and {@code GuiPartBuilder#setDisplayForMaterial}); issue
+     * #64 wants that everywhere a trait is named, so the lookup lives here rather than once per
+     * tooltip and once per info panel.
+     */
+    @Nullable
+    public static TextColor traitColor(@Nullable HolderLookup.Provider registries, List<ResourceLocation> materialIds,
+            ResourceLocation traitId) {
+        for (ResourceLocation materialId : materialIds) {
+            Optional<Material> material = lookup(registries, materialId);
+            if (material.isPresent() && material.get().trait().equals(traitId)) {
+                return material.get().color();
+            }
+        }
+        return null;
     }
 
     /** The material's translated name, tinted with its own colour when the registry is reachable. */

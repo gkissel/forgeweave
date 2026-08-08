@@ -46,13 +46,9 @@ public class ForgeweaveRecipeProvider extends RecipeProvider {
 
     @Override
     protected void buildRecipes(RecipeOutput recipeOutput) {
-        // Upstream's pattern.json outputs 4 at once, but Forgeweave's PATTERN_BLANK stacks to 1
-        // (ForgeweaveItems: patterns are reusable templates), so the recipe can only output 1 --
-        // stacksTo(1) is shared by every pattern item (issue #8's design); bumping just this one
-        // would break that. Not doubled: part patterns stay reusable at the Part Builder (unlike the
-        // blank, which each conversion recipe below consumes one-way), so re-converting a blank is a
-        // one-time cost per pattern owned, not a per-craft tax -- output 1 doesn't feel punishing.
-        ShapedRecipeBuilder.shaped(RecipeCategory.MISC, ForgeweaveItems.PATTERN_BLANK.get())
+        // Upstream's tools/pattern.json outputs 4 from two planks and two sticks, and upstream's
+        // pattern item stacks (issue #64 restored both here -- see ForgeweaveItems).
+        ShapedRecipeBuilder.shaped(RecipeCategory.MISC, ForgeweaveItems.PATTERN_BLANK.get(), 4)
                 .pattern("AB")
                 .pattern("BA")
                 .define('A', ItemTags.PLANKS)

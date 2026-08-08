@@ -1,32 +1,105 @@
 package dev.gkissel.forgeweave.item;
 
 import java.util.List;
+import java.util.Optional;
 
+import javax.annotation.Nullable;
+
+import net.minecraft.core.HolderLookup;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
 
+import dev.gkissel.forgeweave.client.StationText;
+import dev.gkissel.forgeweave.material.Material;
 import dev.gkissel.forgeweave.material.MaterialDisplay;
 
 /**
  * A tool part item (pickaxe head, tool binding, ...). Carries the material it was crafted from as
- * a {@link ForgeweaveDataComponents#MATERIAL} data component and shows that material's name in its
- * tooltip. Per-material rendering is a client-side color tint (see {@code ForgeweaveItemColors}),
- * not a distinct texture per material.
+ * a {@link ForgeweaveDataComponents#MATERIAL} data component and shows that material's name, the
+ * stats that material contributes <em>through this kind of part</em>, and its trait. Per-material
+ * rendering is a client-side color tint (see {@code ForgeweaveItemColors}), not a distinct texture
+ * per material.
+ *
+ * <h2>Hover stats (issue #64, NOTICE.md)</h2>
+ *
+ * <p>Upstream 1.12's {@code library/tools/ToolPart#addInformation} shows the part's traits always
+ * and, behind Shift, only the stat blocks the part actually uses -- {@code hasUseForStat} filters
+ * {@code material.getAllStats()} down by the {@code PartMaterialType}s that part appears in, so a
+ * pickaxe head shows the Head block and a tool rod shows the Handle block. Forgeweave's parts each
+ * appear in exactly one role, so {@link Kind} names that role at registration instead of being
+ * derived from a recipe table, and the lines themselves come straight from {@link StationText} --
+ * the same methods the Part Builder's info panel renders, so the two can't drift apart.
+ *
+ * <p>ponytail: no "Hold Shift for stats" hint line -- {@code ToolItem} doesn't ship one either, and
+ * adding it would mean a lang key whose only job is to describe a key the player already pressed.
  */
 public class PartItem extends Item {
+
+    /** Which of upstream's three part-stat blocks a part draws from ({@code PartMaterialType}). */
+    public enum Kind {
+        HEAD,
+        HANDLE,
+        /** Upstream's "extra" stat block: bindings, and anything else that only adds durability. */
+        EXTRA,
+        /** No stat block of its own -- the shard, which is a leftover rather than a buildable part. */
+        NONE
+    }
+
+    private final Kind kind;
+
     public PartItem(Properties properties) {
+        this(properties, Kind.NONE);
+    }
+
+    public PartItem(Properties properties, Kind kind) {
         super(properties);
+        this.kind = kind;
     }
 
     @Override
     public void appendHoverText(ItemStack stack, TooltipContext context, List<Component> tooltip, TooltipFlag flag) {
         super.appendHoverText(stack, context, tooltip, flag);
+        append(stack, context.registries(), flag.hasShiftDown(), tooltip);
+    }
+
+    /**
+     * The hover lines, with {@code detailed} taken as a parameter rather than read from the Shift key
+     * so unit tests can drive both tiers (same split as {@code ToolTooltip#append}).
+     *
+     * @param registries nullable -- without it the material can't be resolved, so the tooltip stays
+     *     at the plain, uncolored material-name line
+     */
+    void append(ItemStack stack, @Nullable HolderLookup.Provider registries, boolean detailed,
+            List<Component> tooltip) {
         ResourceLocation materialId = stack.get(ForgeweaveDataComponents.MATERIAL.get());
-        if (materialId != null) {
-            tooltip.add(MaterialDisplay.name(context.registries(), materialId));
+        if (materialId == null) {
+            return;
         }
+        tooltip.add(MaterialDisplay.name(registries, materialId));
+
+        Optional<Material> material = MaterialDisplay.lookup(registries, materialId);
+        if (material.isEmpty()) {
+            return;
+        }
+        List<Component> stats = detailed ? stats(material.get()) : List.of();
+        if (!stats.isEmpty()) {
+            tooltip.add(Component.empty());
+            tooltip.addAll(stats);
+        }
+        tooltip.add(Component.empty());
+        // Never contains the null spacers InfoPanel understands: one trait means one name/desc pair.
+        tooltip.addAll(StationText.traits(material.get().color(), List.of(material.get().trait())));
+    }
+
+    private List<Component> stats(Material material) {
+        return switch (kind) {
+            case HEAD -> StationText.headStats(material);
+            case HANDLE -> StationText.handleStats(material);
+            case EXTRA -> StationText.extraStats(material);
+            case NONE -> List.of();
+        };
     }
 }
