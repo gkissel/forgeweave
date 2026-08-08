@@ -4,7 +4,6 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.Tag;
@@ -21,7 +20,6 @@ import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 
-import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.client.model.data.ModelData;
 import net.neoforged.neoforge.items.IItemHandler;
 
@@ -34,11 +32,9 @@ import dev.gkissel.forgeweave.menu.CraftingStationMenu;
  * matches upstream 1.12's {@code TileCraftingStation}, which likewise wraps a saved {@code
  * InventoryCraftingPersistent} instead of the vanilla workbench's throwaway grid.
  *
- * <p>{@link #findSideInventory} ports upstream {@code ContainerCraftingStation}'s neighbor scan
- * (issue #40): the first of the four horizontal neighbors exposing an item-handler capability wins
- * (NOTICE.md) -- there is no "is this neighbor also part of the station" exclusion to port, since
- * unlike upstream's multi-block chest/table cluster, Forgeweave's Crafting Station is always a
- * single block.
+ * <p>{@link #findSideInventory} delegates to {@link SideInventory#find}, the horizontal-neighbor
+ * scan shared with {@link PartBuilderBlockEntity} and {@link ToolStationBlockEntity} (issue #40's
+ * side panel extended to all three stations) -- see that class's javadoc for the upstream port.
  *
  * <p>Also retains the wood block it was crafted from ({@link WoodTexturedBlockEntity}, issue #43),
  * defaulting to oak (see {@link CraftingStationBlock}'s javadoc for why this is currently a fixed
@@ -63,17 +59,7 @@ public class CraftingStationBlockEntity extends BlockEntity implements MenuProvi
     /** The adjacent block's item handler to expose in the GUI's side panel, or {@code null} if none qualifies. */
     @Nullable
     public IItemHandler findSideInventory() {
-        if (level == null) {
-            return null;
-        }
-        for (Direction direction : Direction.Plane.HORIZONTAL) {
-            BlockPos neighborPos = worldPosition.relative(direction);
-            IItemHandler handler = level.getCapability(Capabilities.ItemHandler.BLOCK, neighborPos, direction.getOpposite());
-            if (handler != null) {
-                return handler;
-            }
-        }
-        return null;
+        return SideInventory.find(this);
     }
 
     @Override

@@ -2,8 +2,11 @@ package dev.gkissel.forgeweave.menu;
 
 import java.util.Optional;
 
+import javax.annotation.Nullable;
+
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.component.DataComponents;
+import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.util.StringUtil;
 import net.minecraft.world.Container;
@@ -15,6 +18,8 @@ import net.minecraft.world.inventory.ContainerLevelAccess;
 import net.minecraft.world.inventory.DataSlot;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
+
+import net.neoforged.neoforge.items.IItemHandler;
 
 import dev.gkissel.forgeweave.block.ForgeweaveBlocks;
 import dev.gkissel.forgeweave.item.ToolItem;
@@ -54,6 +59,13 @@ import dev.gkissel.forgeweave.menu.ToolStationTabs.Tab;
  * <p>A tab switch deliberately leaves whatever is already in the slots alone: ejecting items on a
  * button press is how a menu loses a player's stack, and {@link ToolAssemblyRecipes} already refuses
  * to build anything from a mismatched set.
+ *
+ * <h2>Side inventory (issue #40's follow-up)</h2>
+ *
+ * <p>When the station has a qualifying neighbor ({@code ToolStationBlockEntity#findSideInventory}),
+ * its {@link IItemHandler} is exposed as extra slots after the output slot via {@link
+ * SideInventorySlots#create} -- same shape as {@link CraftingStationMenu}'s own side panel; see that
+ * class's javadoc for the client/server slot-count handshake.
  */
 public class ToolStationMenu extends AbstractContainerMenu {
     public static final int CONTAINER_SLOTS = 4;
@@ -71,24 +83,40 @@ public class ToolStationMenu extends AbstractContainerMenu {
     /** Vanilla's rename cap, and the same order of magnitude as upstream's 40-character field. */
     private static final int MAX_NAME_LENGTH = 50;
 
+    /**
+     * Side-panel layout (issue #40's follow-up): positioned just right of the 176px-wide base panel
+     * and the info panels next to it -- {@code 176 (base) + 2 (gap) + 126 (client.InfoPanel#WIDTH,
+     * mirrored rather than referenced: the menu package can't depend on the client package) + 2 (gap)}.
+     */
+    public static final int SIDE_PANEL_X = 176 + 2 + 126 + 2;
+    public static final int SIDE_PANEL_Y = 17;
+
     private final Container container;
     private final ContainerLevelAccess access;
     private final HolderLookup.Provider registries;
     private final DataSlot selectedTab = DataSlot.standalone();
+    public final int sideInventorySlotCount;
     private String toolName = "";
 
-    /** Client-side: constructed from the open-menu packet, with a throwaway local container. */
-    public ToolStationMenu(int containerId, Inventory playerInventory) {
-        this(containerId, playerInventory, new SimpleContainer(CONTAINER_SLOTS), ContainerLevelAccess.NULL);
+    /** Client-side: constructed from the open-menu packet, which carries the side-inventory slot count. */
+    public ToolStationMenu(int containerId, Inventory playerInventory, RegistryFriendlyByteBuf buf) {
+        this(containerId, playerInventory, new SimpleContainer(CONTAINER_SLOTS), ContainerLevelAccess.NULL, null, buf.readVarInt());
     }
 
-    /** Server-side: constructed by {@code ToolStationBlockEntity} with the block's real inventory. */
-    public ToolStationMenu(int containerId, Inventory playerInventory, Container container, ContainerLevelAccess access) {
+    /** Server-side: constructed by {@code ToolStationBlockEntity} with the block's real inventory and detected neighbor. */
+    public ToolStationMenu(int containerId, Inventory playerInventory, Container container, ContainerLevelAccess access,
+            @Nullable IItemHandler sideInventory) {
+        this(containerId, playerInventory, container, access, sideInventory, sideInventory == null ? 0 : sideInventory.getSlots());
+    }
+
+    private ToolStationMenu(int containerId, Inventory playerInventory, Container container, ContainerLevelAccess access,
+            @Nullable IItemHandler sideInventory, int sideInventorySlotCount) {
         super(ForgeweaveMenus.TOOL_STATION.get(), containerId);
         checkContainerSize(container, CONTAINER_SLOTS);
         this.container = container;
         this.access = access;
         this.registries = playerInventory.player.level().registryAccess();
+        this.sideInventorySlotCount = sideInventorySlotCount;
         container.startOpen(playerInventory.player);
 
         addDataSlot(selectedTab);
@@ -101,6 +129,7 @@ public class ToolStationMenu extends AbstractContainerMenu {
         }
         addSlot(new OutputSlot(container, OUTPUT_SLOT, OUTPUT_X, OUTPUT_Y));
 
+        SideInventorySlots.create(sideInventory, sideInventorySlotCount, SIDE_PANEL_X, SIDE_PANEL_Y).forEach(this::addSlot);
         layoutPlayerInventorySlots(playerInventory);
     }
 
@@ -229,9 +258,15 @@ public class ToolStationMenu extends AbstractContainerMenu {
         }
         ItemStack stackInSlot = slot.getItem();
         ItemStack result = stackInSlot.copy();
+        int sideEnd = CONTAINER_SLOTS + sideInventorySlotCount;
+        int playerInvEnd = sideEnd + 36;
 
-        if (index < CONTAINER_SLOTS) {
-            if (!moveItemStackTo(stackInSlot, CONTAINER_SLOTS, slots.size(), true)) {
+        if (index < CONTAINER_SLOTS) { // head/binding/handle/output -> player inventory
+            if (!moveItemStackTo(stackInSlot, CONTAINER_SLOTS, playerInvEnd, true)) {
+                return ItemStack.EMPTY;
+            }
+        } else if (index < sideEnd) { // side inventory -> player inventory
+            if (!moveItemStackTo(stackInSlot, sideEnd, playerInvEnd, false)) {
                 return ItemStack.EMPTY;
             }
         } else if (!moveItemStackTo(stackInSlot, HEAD_SLOT, INPUT_SLOTS, false)) {

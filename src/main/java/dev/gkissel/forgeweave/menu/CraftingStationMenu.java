@@ -38,15 +38,17 @@ import dev.gkissel.forgeweave.block.ForgeweaveBlocks;
  *
  * <p>When the station has a qualifying neighbor ({@code CraftingStationBlockEntity#findSideInventory},
  * issue #40's chest side panel), its {@link IItemHandler} is exposed as extra {@link SlotItemHandler}
- * slots after the grid+output -- upstream 1.12's {@code ContainerCraftingStation} does the same via a
- * {@code ContainerSideInventory} sub-container; ours is flattened directly into this menu instead
- * since NeoForge menus have no equivalent sub-container concept (design decision, no NOTICE.md row).
- * The slot *count* is decided once, server-side, when the block opens the menu, and is carried to the
- * client-side constructor over the open-menu packet ({@code CraftingStationBlock#useWithoutItem}) so
- * both sides build the same number of {@code Slot}s -- the client's copy is backed by a throwaway
- * {@link SimpleContainer} (same "server pushes contents down" pattern {@link PartBuilderMenu}/{@link
- * ToolStationMenu} use for their own client-side placeholder containers) since the real {@link
- * IItemHandler} only exists server-side.
+ * slots after the grid+output via {@link SideInventorySlots#create}, shared with {@link
+ * PartBuilderMenu}/{@link ToolStationMenu}'s own side panels (issue #40's follow-up) -- upstream
+ * 1.12's {@code ContainerCraftingStation} does the same via a {@code ContainerSideInventory}
+ * sub-container; ours is flattened directly into this menu instead since NeoForge menus have no
+ * equivalent sub-container concept (design decision, no NOTICE.md row). The slot *count* is decided
+ * once, server-side, when the block opens the menu, and is carried to the client-side constructor
+ * over the open-menu packet ({@code CraftingStationBlock#useWithoutItem}) so both sides build the
+ * same number of {@code Slot}s -- the client's copy is backed by a throwaway placeholder container
+ * (same "server pushes contents down" pattern {@link PartBuilderMenu}/{@link ToolStationMenu} use
+ * for their own client-side placeholder containers) since the real {@link IItemHandler} only exists
+ * server-side.
  */
 public class CraftingStationMenu extends AbstractContainerMenu {
     public static final int GRID_WIDTH = 3;
@@ -55,9 +57,7 @@ public class CraftingStationMenu extends AbstractContainerMenu {
     public static final int CONTAINER_SLOTS = GRID_SLOTS + 1;
     private static final int OUTPUT_SLOT = GRID_SLOTS;
 
-    /** Side-panel layout (issue #40): fixed columns, positioned just right of the 176px-wide base panel. */
-    public static final int SIDE_INVENTORY_COLUMNS = 9;
-    public static final int SLOT_SIZE = 18;
+    /** Side-panel layout (issue #40): positioned just right of the 176px-wide base panel; columns/slot size are {@link SideInventorySlots}'s. */
     public static final int SIDE_PANEL_X = 176 + 4;
     public static final int SIDE_PANEL_Y = 17;
 
@@ -87,24 +87,13 @@ public class CraftingStationMenu extends AbstractContainerMenu {
 
         for (int row = 0; row < GRID_HEIGHT; row++) {
             for (int col = 0; col < GRID_WIDTH; col++) {
-                addSlot(new Slot(container, col + row * GRID_WIDTH, 30 + col * SLOT_SIZE, 17 + row * SLOT_SIZE));
+                addSlot(new Slot(container, col + row * GRID_WIDTH, 30 + col * SideInventorySlots.SLOT_SIZE, 17 + row * SideInventorySlots.SLOT_SIZE));
             }
         }
         addSlot(new OutputSlot(container, OUTPUT_SLOT, 124, 35));
 
-        addSideInventorySlots(sideInventory, sideInventorySlotCount);
+        SideInventorySlots.create(sideInventory, sideInventorySlotCount, SIDE_PANEL_X, SIDE_PANEL_Y).forEach(this::addSlot);
         layoutPlayerInventorySlots(playerInventory);
-    }
-
-    private void addSideInventorySlots(@Nullable IItemHandler sideInventory, int slotCount) {
-        // Client-side placeholder when the real handler isn't available locally; contents sync down
-        // via the normal container-slot-sync packets, same as every other slot here.
-        Container placeholder = sideInventory == null ? new SimpleContainer(slotCount) : null;
-        for (int i = 0; i < slotCount; i++) {
-            int x = SIDE_PANEL_X + (i % SIDE_INVENTORY_COLUMNS) * SLOT_SIZE;
-            int y = SIDE_PANEL_Y + (i / SIDE_INVENTORY_COLUMNS) * SLOT_SIZE;
-            addSlot(sideInventory != null ? new SlotItemHandler(sideInventory, i, x, y) : new Slot(placeholder, i, x, y));
-        }
     }
 
     private void layoutPlayerInventorySlots(Inventory playerInventory) {

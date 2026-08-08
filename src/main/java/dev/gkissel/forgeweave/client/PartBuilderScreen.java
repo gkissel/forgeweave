@@ -53,6 +53,11 @@ import dev.gkissel.forgeweave.menu.PartBuilderRecipes;
  * own (unlike the label/slot rendering, that call is left to subclasses) -- every vanilla container
  * screen overrides {@code render} to add it, and this one previously didn't, so item tooltips never
  * showed (issue #43 regression fix).
+ *
+ * <p>When a neighboring block exposes an item handler ({@code PartBuilderBlockEntity#findSideInventory},
+ * issue #40's follow-up), its slots render in a panel to the right of the info panel via {@link
+ * SideInventoryPanel} -- shared with {@link CraftingStationScreen}/{@link ToolStationScreen}'s own
+ * side panels.
  */
 @EventBusSubscriber(modid = Forgeweave.MODID, bus = EventBusSubscriber.Bus.MOD, value = Dist.CLIENT)
 public class PartBuilderScreen extends AbstractContainerScreen<PartBuilderMenu> {
@@ -64,6 +69,16 @@ public class PartBuilderScreen extends AbstractContainerScreen<PartBuilderMenu> 
 
     private static final int BASE_WIDTH = 176;
     private static final int BASE_HEIGHT = 166;
+
+    // Side-inventory panel (issue #40's follow-up): part_builder.png is cropped to its 176x166 panel
+    // region (NOTICE.md) and has no spare "generic slot" tile of its own to repeat, so -- same
+    // "reuse vanilla art when nothing local fits" precedent CraftingStationScreen already sets --
+    // this borrows vanilla's own generic_54.png single-slot tile instead of deriving a new sprite.
+    private static final ResourceLocation SIDE_SLOT_TEXTURE = ResourceLocation.withDefaultNamespace("textures/gui/container/generic_54.png");
+    private static final int SIDE_SLOT_TEXTURE_WIDTH = 176;
+    private static final int SIDE_SLOT_TEXTURE_HEIGHT = 222;
+    private static final int SIDE_SLOT_TILE_U = 7;
+    private static final int SIDE_SLOT_TILE_V = 17;
 
     /** Upstream {@code Icons}: the pattern, ingot and shard glyphs, in slot order. */
     private static final int[] SLOT_ICON_U = {0, 54, -1, 18};
@@ -153,6 +168,9 @@ public class PartBuilderScreen extends AbstractContainerScreen<PartBuilderMenu> 
         renderMaterialValue(graphics);
         InfoPanel.render(graphics, font, leftPos + BASE_WIDTH + PANEL_GAP, topPos + PANEL_TOP,
                 InfoPanel.WIDTH, PANEL_HEIGHT, caption, lines, scroll);
+        SideInventoryPanel.render(graphics, SIDE_SLOT_TEXTURE, SIDE_SLOT_TEXTURE_WIDTH, SIDE_SLOT_TEXTURE_HEIGHT,
+                SIDE_SLOT_TILE_U, SIDE_SLOT_TILE_V, leftPos, topPos,
+                PartBuilderMenu.SIDE_PANEL_X, PartBuilderMenu.SIDE_PANEL_Y, menu.sideInventorySlotCount);
     }
 
     /** Upstream's {@code drawIconEmpty}: a hint glyph in each empty slot, never over a real item. */

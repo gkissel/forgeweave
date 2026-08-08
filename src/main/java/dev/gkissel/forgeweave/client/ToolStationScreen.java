@@ -74,6 +74,11 @@ import dev.gkissel.forgeweave.tool.ToolMaterials;
  * <p>{@link AbstractContainerScreen#render} does <em>not</em> call {@link #renderTooltip} on its
  * own -- every vanilla container screen overrides {@code render} to add it (issue #43 regression
  * fix, kept here); the {@code renderTooltip} override adds the sidebar buttons, which aren't slots.
+ *
+ * <p>When a neighboring block exposes an item handler ({@code ToolStationBlockEntity#findSideInventory},
+ * issue #40's follow-up), its slots render in a panel to the right of the info panels via {@link
+ * SideInventoryPanel} -- shared with {@link CraftingStationScreen}/{@link PartBuilderScreen}'s own
+ * side panels.
  */
 @EventBusSubscriber(modid = Forgeweave.MODID, bus = EventBusSubscriber.Bus.MOD, value = Dist.CLIENT)
 public class ToolStationScreen extends AbstractContainerScreen<ToolStationMenu> {
@@ -275,6 +280,10 @@ public class ToolStationScreen extends AbstractContainerScreen<ToolStationMenu> 
         renderSlots(graphics);
         renderSidebar(graphics, mouseX, mouseY);
         renderInfoPanels(graphics);
+        // Side-inventory panel (issue #40's follow-up): reuses this sheet's own slot-border tile,
+        // the same reusable sprite piece renderSlots draws under the tab-positioned input slots.
+        SideInventoryPanel.render(graphics, TEXTURE, SHEET, SHEET, SLOT_BORDER_U, SLOT_SPRITE_V,
+                leftPos, topPos, ToolStationMenu.SIDE_PANEL_X, ToolStationMenu.SIDE_PANEL_Y, menu.sideInventorySlotCount);
         if (nameField != null && nameField.isFocused()) {
             graphics.blit(TEXTURE, leftPos + NAME_FIELD_X - 2, topPos + NAME_FIELD_Y - 1,
                     TEXT_FIELD_U, TEXT_FIELD_V, TEXT_FIELD_W, TEXT_FIELD_H, SHEET, SHEET);

@@ -21,6 +21,7 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 
 import net.neoforged.neoforge.client.model.data.ModelData;
+import net.neoforged.neoforge.items.IItemHandler;
 
 import dev.gkissel.forgeweave.menu.ToolStationMenu;
 
@@ -28,6 +29,10 @@ import dev.gkissel.forgeweave.menu.ToolStationMenu;
  * Holds the Tool Station's persistent 4-slot inventory (head, binding, handle, output) and opens
  * its menu. Same shape as {@link PartBuilderBlockEntity} -- see that class's javadoc for why there
  * is no ticking logic.
+ *
+ * <p>{@link #findSideInventory} exposes a neighboring item-handler block's inventory in the GUI's
+ * side panel (issue #40's follow-up, matching {@link CraftingStationBlockEntity}); see {@link
+ * SideInventory} for the shared neighbor scan.
  *
  * <p>Also retains the wood block it was crafted from ({@link WoodTexturedBlockEntity}, issue #43),
  * defaulting to oak (upstream's Tool Station is crafted from {@code #minecraft:planks}).
@@ -46,6 +51,12 @@ public class ToolStationBlockEntity extends BlockEntity implements MenuProvider,
 
     public Container container() {
         return container;
+    }
+
+    /** The adjacent block's item handler to expose in the GUI's side panel, or {@code null} if none qualifies. */
+    @Nullable
+    public IItemHandler findSideInventory() {
+        return SideInventory.find(this);
     }
 
     @Override
@@ -96,6 +107,7 @@ public class ToolStationBlockEntity extends BlockEntity implements MenuProvider,
     @Nullable
     @Override
     public AbstractContainerMenu createMenu(int containerId, Inventory playerInventory, Player player) {
-        return new ToolStationMenu(containerId, playerInventory, container, ContainerLevelAccess.create(level, worldPosition));
+        return new ToolStationMenu(containerId, playerInventory, container,
+                ContainerLevelAccess.create(level, worldPosition), findSideInventory());
     }
 }

@@ -13,17 +13,15 @@ import dev.gkissel.forgeweave.Forgeweave;
 public final class ForgeweaveMenus {
     public static final DeferredRegister<MenuType<?>> MENUS = DeferredRegister.create(Registries.MENU, Forgeweave.MODID);
 
-    // No block position needs syncing to the client: the client-side menu only exists to hold
-    // slots whose contents the server pushes down via the normal container sync packets.
+    // The client-side menu needs the side-inventory slot count from the open-menu packet (issue #40's
+    // follow-up) so it builds the same number of Slots the server did -- see each menu's buf-reading
+    // constructor, same shape as CraftingStationMenu below.
     public static final DeferredHolder<MenuType<?>, MenuType<PartBuilderMenu>> PART_BUILDER =
-            MENUS.register("part_builder", () -> IMenuTypeExtension.create((windowId, inventory, buf) -> new PartBuilderMenu(windowId, inventory)));
+            MENUS.register("part_builder", () -> IMenuTypeExtension.create(PartBuilderMenu::new));
 
     public static final DeferredHolder<MenuType<?>, MenuType<ToolStationMenu>> TOOL_STATION =
-            MENUS.register("tool_station", () -> IMenuTypeExtension.create((windowId, inventory, buf) -> new ToolStationMenu(windowId, inventory)));
+            MENUS.register("tool_station", () -> IMenuTypeExtension.create(ToolStationMenu::new));
 
-    // Unlike the two above, the Crafting Station's client-side menu does need data from the open-menu
-    // packet: the side-inventory slot count (issue #40), so it builds the same number of Slots the
-    // server did -- see CraftingStationMenu's buf-reading constructor.
     public static final DeferredHolder<MenuType<?>, MenuType<CraftingStationMenu>> CRAFTING_STATION =
             MENUS.register("crafting_station", () -> IMenuTypeExtension.create(CraftingStationMenu::new));
 

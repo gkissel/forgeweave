@@ -37,7 +37,7 @@ public class PartBuilderGameTests {
         helper.setBlock(pos, ForgeweaveBlocks.PART_BUILDER.get());
         PartBuilderBlockEntity blockEntity = helper.getBlockEntity(pos);
         return new PartBuilderMenu(0, player.getInventory(), blockEntity.container(),
-                ContainerLevelAccess.create(helper.getLevel(), helper.absolutePos(pos)));
+                ContainerLevelAccess.create(helper.getLevel(), helper.absolutePos(pos)), blockEntity.findSideInventory());
     }
 
     private static ResourceLocation materialId(String name) {

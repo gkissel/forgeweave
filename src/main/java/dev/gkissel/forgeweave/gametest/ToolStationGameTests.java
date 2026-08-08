@@ -12,6 +12,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.entity.ChestBlockEntity;
 
 import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
@@ -63,7 +64,7 @@ public class ToolStationGameTests {
 
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         ToolStationMenu menu = new ToolStationMenu(0, player.getInventory(), blockEntity.container(),
-                ContainerLevelAccess.create(helper.getLevel(), helper.absolutePos(pos)));
+                ContainerLevelAccess.create(helper.getLevel(), helper.absolutePos(pos)), blockEntity.findSideInventory());
         menu.broadcastChanges();
 
         ItemStack output = menu.getSlot(3).getItem();
@@ -242,6 +243,44 @@ public class ToolStationGameTests {
         menu.setToolName("");
         helper.assertTrue(menu.getSlot(ToolStationMenu.OUTPUT_SLOT).getItem().get(DataComponents.CUSTOM_NAME) == null,
                 "clearing the field must leave the output with its default name");
+        helper.succeed();
+    }
+
+    /**
+     * Issue #40's follow-up: the side-inventory panel extended from the Crafting Station to the Tool
+     * Station (and the Part Builder, {@code PartBuilderGameTests}'s own coverage isn't duplicated
+     * here). Same shape as {@code CraftingStationGameTests#adjacentChestInventoryIsExposedThroughTheMenu}.
+     */
+    @GameTest(template = "empty")
+    public static void adjacentChestInventoryIsExposedThroughTheMenu(GameTestHelper helper) {
+        BlockPos stationPos = new BlockPos(1, 1, 1);
+        BlockPos chestPos = stationPos.east();
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+
+        helper.setBlock(chestPos, Blocks.CHEST);
+        helper.setBlock(stationPos, ForgeweaveBlocks.TOOL_STATION.get());
+
+        if (!(helper.getBlockEntity(chestPos) instanceof ChestBlockEntity chest)) {
+            helper.fail("expected a chest block entity next to the station");
+            return;
+        }
+        chest.setItem(0, new ItemStack(Items.DIAMOND));
+
+        ToolStationBlockEntity blockEntity = helper.getBlockEntity(stationPos);
+        ToolStationMenu menu = new ToolStationMenu(0, player.getInventory(), blockEntity.container(),
+                ContainerLevelAccess.create(helper.getLevel(), helper.absolutePos(stationPos)), blockEntity.findSideInventory());
+
+        helper.assertTrue(menu.sideInventorySlotCount > 0, "expected the adjacent chest to be detected as a side inventory");
+
+        boolean foundDiamond = false;
+        for (int i = ToolStationMenu.CONTAINER_SLOTS; i < ToolStationMenu.CONTAINER_SLOTS + menu.sideInventorySlotCount; i++) {
+            if (menu.getSlot(i).getItem().is(Items.DIAMOND)) {
+                foundDiamond = true;
+                break;
+            }
+        }
+        helper.assertTrue(foundDiamond, "expected the chest's diamond to be visible through a side-inventory slot");
+
         helper.succeed();
     }
 }
