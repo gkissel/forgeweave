@@ -35,9 +35,11 @@ import dev.gkissel.forgeweave.menu.StencilTableMenu;
  * panel. They are now upstream's own arrangement -- {@code GuiButtonsStencilTable} is a {@code
  * GuiSideButtons} grid {@link #BUTTON_COLUMNS} wide, sitting to the <em>left</em> of the panel and
  * drawn from the wood-style button sprites in {@code icons.png} with the pattern's item on top. The
- * geometry constants below are the same ones {@link ToolStationScreen}'s tab sidebar already uses
- * (both are upstream's {@code GuiSideButtons}: 18px buttons, 4px spacing, immediately left of the
- * parent panel), so the two stations' sidebars line up with each other.
+ * grid rule below is the same one {@link ToolStationScreen}'s tab sidebar uses, because both are
+ * upstream's {@code GuiSideButtons}: 18px buttons, 4px spacing, immediately left of the parent
+ * panel. The two sidebars' <em>offsets</em> from that panel are not shared, though -- issue #79:
+ * this one had copied the Tool Station's, which {@code GuiToolStation#initGui} sets to clear that
+ * station's beam and decorations. {@code GuiStencilTable} sets none, so this sidebar is flush.
  *
  * <p>Clicking one follows the vanilla stonecutter/loom path: {@link #mouseClicked} calls {@link
  * StencilTableMenu#clickMenuButton} for immediate client-side feedback, then sends the real
