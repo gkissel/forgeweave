@@ -45,6 +45,7 @@ jobs:
           echo "release_type=${release_type}" >> "${GITHUB_OUTPUT}"
 
       - name: Validate publishing configuration
+        id: publish-config
         shell: bash
         env:
           MODRINTH_PROJECT_ID: ${{ vars.MODRINTH_PROJECT_ID }}
@@ -52,10 +53,21 @@ jobs:
           MODRINTH_TOKEN: ${{ secrets.MODRINTH_TOKEN }}
           CURSEFORGE_TOKEN: ${{ secrets.CURSEFORGE_TOKEN }}
         run: |
-          test -n "${MODRINTH_PROJECT_ID}" || { echo "Missing MODRINTH_PROJECT_ID repository variable" >&2; exit 1; }
-          test -n "${CURSEFORGE_PROJECT_ID}" || { echo "Missing CURSEFORGE_PROJECT_ID repository variable" >&2; exit 1; }
-          test -n "${MODRINTH_TOKEN}" || { echo "Missing MODRINTH_TOKEN release secret" >&2; exit 1; }
-          test -n "${CURSEFORGE_TOKEN}" || { echo "Missing CURSEFORGE_TOKEN release secret" >&2; exit 1; }
+          present=0
+          for value in "${MODRINTH_PROJECT_ID}" "${CURSEFORGE_PROJECT_ID}" "${MODRINTH_TOKEN}" "${CURSEFORGE_TOKEN}"; do
+            test -n "${value}" && present=$((present + 1))
+          done
+
+          if [[ "${present}" -eq 4 ]]; then
+            echo "Modrinth and CurseForge are fully configured; publishing to both." >&2
+            echo "publish_external=true" >> "${GITHUB_OUTPUT}"
+          elif [[ "${present}" -eq 0 ]]; then
+            echo "Modrinth and CurseForge are not configured; publishing to GitHub only." >&2
+            echo "publish_external=false" >> "${GITHUB_OUTPUT}"
+          else
+            echo "Partial Modrinth/CurseForge configuration: set MODRINTH_PROJECT_ID, CURSEFORGE_PROJECT_ID, MODRINTH_TOKEN, and CURSEFORGE_TOKEN together, or leave all four unset." >&2
+            exit 1
+          fi
 
       - name: Set up Java
         uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961 # v5.7.0
