@@ -7,16 +7,18 @@
     "top": "forgeweave:derived/block/crafting_station_top",
     "side": "forgeweave:derived/block/crafting_station_side",
     "texture": "minecraft:block/oak_planks",
+    "bottom": "minecraft:block/oak_planks",
+    "legBottom": "minecraft:block/oak_planks",
     "particle": "forgeweave:derived/block/crafting_station_top"
   },
   "elements": [
     {
-      "__comment": "Table top plate: own top art (never retextured), fixed trim on the rim/underside",
+      "__comment": "Table top plate: own top art (never retextured), station trim on the rim, retextured underside",
       "from": [0, 12, 0],
       "to": [16, 16, 16],
       "faces": {
         "up": {"uv": [0, 0, 16, 16], "texture": "#top", "cullface": "up"},
-        "down": {"uv": [0, 0, 16, 16], "texture": "#side"},
+        "down": {"uv": [0, 0, 16, 16], "texture": "#bottom"},
         "north": {"uv": [0, 0, 16, 4], "texture": "#side", "cullface": "north"},
         "south": {"uv": [0, 0, 16, 4], "texture": "#side", "cullface": "south"},
         "west": {"uv": [0, 0, 16, 4], "texture": "#side", "cullface": "west"},
@@ -28,7 +30,7 @@
       "from": [0, 0, 0],
       "to": [4, 12, 4],
       "faces": {
-        "down": {"uv": [0, 12, 4, 16], "texture": "#texture", "cullface": "down"},
+        "down": {"uv": [0, 12, 4, 16], "texture": "#legBottom", "cullface": "down"},
         "north": {"uv": [12, 4, 16, 16], "texture": "#texture", "cullface": "north"},
         "south": {"uv": [12, 4, 16, 16], "texture": "#texture"},
         "west": {"uv": [0, 4, 4, 16], "texture": "#texture", "cullface": "west"},
@@ -40,7 +42,7 @@
       "from": [12, 0, 0],
       "to": [16, 12, 4],
       "faces": {
-        "down": {"uv": [12, 12, 16, 16], "texture": "#texture", "cullface": "down"},
+        "down": {"uv": [12, 12, 16, 16], "texture": "#legBottom", "cullface": "down"},
         "east": {"uv": [12, 4, 16, 16], "texture": "#texture", "cullface": "east"},
         "west": {"uv": [12, 4, 16, 16], "texture": "#texture"},
         "north": {"uv": [0, 4, 4, 16], "texture": "#texture", "cullface": "north"},
@@ -52,7 +54,7 @@
       "from": [12, 0, 12],
       "to": [16, 12, 16],
       "faces": {
-        "down": {"uv": [12, 0, 16, 4], "texture": "#texture", "cullface": "down"},
+        "down": {"uv": [12, 0, 16, 4], "texture": "#legBottom", "cullface": "down"},
         "south": {"uv": [12, 4, 16, 16], "texture": "#texture", "cullface": "south"},
         "north": {"uv": [12, 4, 16, 16], "texture": "#texture"},
         "east": {"uv": [0, 4, 4, 16], "texture": "#texture", "cullface": "east"},
@@ -64,7 +66,7 @@
       "from": [0, 0, 12],
       "to": [4, 12, 16],
       "faces": {
-        "down": {"uv": [0, 0, 4, 4], "texture": "#texture", "cullface": "down"},
+        "down": {"uv": [0, 0, 4, 4], "texture": "#legBottom", "cullface": "down"},
         "west": {"uv": [12, 4, 16, 16], "texture": "#texture", "cullface": "west"},
         "east": {"uv": [12, 4, 16, 16], "texture": "#texture"},
         "south": {"uv": [0, 4, 4, 16], "texture": "#texture", "cullface": "south"},

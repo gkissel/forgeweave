@@ -34,6 +34,33 @@ public final class SideInventorySlots {
     public static final int SLOT_SIZE = 18;
     public static final int COLUMNS = 6;
 
+    /** Upstream {@code GuiWidgetBorder}: the panel's nine-sliced frame is 7px on every side. */
+    public static final int BORDER = 7;
+    /** The whole panel, frame included -- upstream's {@code columns * slot.w + border.w * 2}. */
+    public static final int PANEL_WIDTH = COLUMNS * SLOT_SIZE + BORDER * 2;
+
+    /**
+     * Where the first slot sits relative to the panel's top-left corner. Upstream {@code
+     * GuiSideInventory#updateSlots} is {@code slot.xPos = border.w + x + 1}: the extra pixel is
+     * there because {@code generic.png}'s 18x18 slot tile is a 1px bevel drawn <em>around</em> a
+     * 16x16 socket interior, so an item drawn at the tile's own corner sits one pixel up and left
+     * of the hole it belongs in (issue #79). {@code client.SideInventoryPanel} draws the tiles at
+     * {@code slot - SLOT_INSET + BORDER}, i.e. one pixel out from the slot, to match.
+     */
+    public static final int SLOT_INSET = BORDER + 1;
+
+    /**
+     * The first slot's x for a panel on the <em>left</em> of its station, which is where upstream
+     * puts the Crafting Station's and Part Builder's ({@code GuiSideInventory}'s two-arg
+     * constructor passes {@code rightSide = false}). Upstream's {@code slot.xPos -= this.xSize}
+     * lands the panel's right edge flush on the station panel's left edge, so the offset from the
+     * station's own top-left is negative.
+     */
+    public static final int LEFT_SLOT_X = SLOT_INSET - PANEL_WIDTH;
+
+    /** Upstream sets {@code yOffset = 0} for a side inventory, putting its first slot row at the frame. */
+    public static final int SLOT_Y = SLOT_INSET;
+
     private SideInventorySlots() {}
 
     /**

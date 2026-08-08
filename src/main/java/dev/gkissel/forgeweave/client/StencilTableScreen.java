@@ -35,9 +35,11 @@ import dev.gkissel.forgeweave.menu.StencilTableMenu;
  * panel. They are now upstream's own arrangement -- {@code GuiButtonsStencilTable} is a {@code
  * GuiSideButtons} grid {@link #BUTTON_COLUMNS} wide, sitting to the <em>left</em> of the panel and
  * drawn from the wood-style button sprites in {@code icons.png} with the pattern's item on top. The
- * geometry constants below are the same ones {@link ToolStationScreen}'s tab sidebar already uses
- * (both are upstream's {@code GuiSideButtons}: 18px buttons, 4px spacing, immediately left of the
- * parent panel), so the two stations' sidebars line up with each other.
+ * grid rule below is the same one {@link ToolStationScreen}'s tab sidebar uses, because both are
+ * upstream's {@code GuiSideButtons}: 18px buttons, 4px spacing, immediately left of the parent
+ * panel. The two sidebars' <em>offsets</em> from that panel are not shared, though -- issue #79:
+ * this one had copied the Tool Station's, which {@code GuiToolStation#initGui} sets to clear that
+ * station's beam and decorations. {@code GuiStencilTable} sets none, so this sidebar is flush.
  *
  * <p>Clicking one follows the vanilla stonecutter/loom path: {@link #mouseClicked} calls {@link
  * StencilTableMenu#clickMenuButton} for immediate client-side feedback, then sends the real
@@ -64,8 +66,15 @@ public class StencilTableScreen extends StationScreen<StencilTableMenu> implemen
     private static final int BUTTON_COLUMNS = 4;
     private static final int BUTTON_SIZE = 18;
     private static final int BUTTON_SPACING = 4;
-    private static final int BUTTONS_Y = 9;
-    private static final int PANEL_GAP = 2;
+    /**
+     * Issue #79: both of these were 9/2, copied from {@link ToolStationScreen}. Those are that
+     * station's own {@code buttons.yOffset = beamC.h + buttonDecorationTop.h} and {@code xOffset =
+     * -2}, set in {@code GuiToolStation#initGui} to clear its beam and slot-space decorations.
+     * {@code GuiStencilTable} sets neither, so its sidebar sits flush against the panel's left edge
+     * at the panel's own top.
+     */
+    private static final int BUTTONS_Y = 0;
+    private static final int PANEL_GAP = 0;
 
     /**
      * Regions of icons.png. Upstream {@code Icons} puts its buttons at {@code ICON_Button = (180,

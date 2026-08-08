@@ -85,12 +85,18 @@ public class ToolStationMenu extends AbstractContainerMenu {
     private static final int MAX_NAME_LENGTH = 50;
 
     /**
-     * Side-panel layout (issue #40's follow-up): positioned just right of the 176px-wide base panel
-     * and the info panels next to it -- {@code 176 (base) + 2 (gap) + 126 (client.InfoPanel#WIDTH,
-     * mirrored rather than referenced: the menu package can't depend on the client package) + 2 (gap)}.
+     * Side-panel layout (issue #40's follow-up). Unlike the Crafting Station's and Part Builder's,
+     * this side inventory is a Forgeweave addition -- upstream's {@code GuiToolStation} has no
+     * {@code GuiSideInventory} at all -- so it cannot simply copy upstream's left-hand placement:
+     * the left of this station is occupied by its own tab sidebar, which upstream's {@code
+     * GuiButtonsToolStation} puts at {@code -(5*18 + 4*4) - 2 = -108}. It therefore stays on the
+     * right, past both info panels: {@code 176 (base) + 2 (gap) + 126 (client.InfoPanel#WIDTH,
+     * mirrored rather than referenced: the menu package can't depend on the client package)} puts
+     * the panel's frame flush against the info panels' right edge (issue #79: the old {@code + 2}
+     * gap left the frame 5px inside them instead). Row offset is upstream's {@code yOffset = 0}.
      */
-    public static final int SIDE_PANEL_X = 176 + 2 + 126 + 2;
-    public static final int SIDE_PANEL_Y = 17;
+    public static final int SIDE_PANEL_X = 176 + 2 + 126 + SideInventorySlots.SLOT_INSET;
+    public static final int SIDE_PANEL_Y = SideInventorySlots.SLOT_Y;
 
     private final Container container;
     private final ContainerLevelAccess access;

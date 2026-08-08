@@ -33,8 +33,10 @@ import dev.gkissel.forgeweave.menu.ForgeweaveMenus;
  * slot off its drawn position. {@link #SHEET} is the sheet's real size.
  *
  * <p>When an adjacent block exposes an item handler ({@code CraftingStationBlockEntity#findSideInventory}),
- * its slots render in a bordered panel to the right via {@link SideInventoryPanel} (shared with
- * {@link PartBuilderScreen}/{@link ToolStationScreen}'s own side panels, issue #40's follow-up).
+ * its slots render in a bordered panel off the <em>left</em> edge via {@link SideInventoryPanel},
+ * where upstream's {@code GuiCraftingStation} puts it (shared with {@link PartBuilderScreen}/{@link
+ * ToolStationScreen}'s own side panels, issue #40's follow-up; {@link CraftingStationMenu} owns the
+ * coordinates).
  * <p>Item tooltips come from {@link StationScreen}, which owns the {@code render()} override that
  * calls {@code renderTooltip}. This class used to claim {@link AbstractContainerScreen} did that on
  * its own -- it does not, and issue #75 is the playtest report of the resulting screen with no hover
