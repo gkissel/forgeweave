@@ -65,5 +65,9 @@ public final class ForgeweaveItems {
 
     public static final DeferredItem<BlockItem> TOOL_STATION = ITEMS.registerSimpleBlockItem("tool_station", ForgeweaveBlocks.TOOL_STATION);
 
+    // The Crafting Station (docs/SCOPE.md M1 issue #40): same retextured-table item shape as the two
+    // blocks above (ForgeweaveDataComponents#TEXTURE carries the crafting wood).
+    public static final DeferredItem<BlockItem> CRAFTING_STATION = ITEMS.registerSimpleBlockItem("crafting_station", ForgeweaveBlocks.CRAFTING_STATION);
+
     private ForgeweaveItems() {}
 }

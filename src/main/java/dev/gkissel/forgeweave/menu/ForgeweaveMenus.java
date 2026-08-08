@@ -21,5 +21,11 @@ public final class ForgeweaveMenus {
     public static final DeferredHolder<MenuType<?>, MenuType<ToolStationMenu>> TOOL_STATION =
             MENUS.register("tool_station", () -> IMenuTypeExtension.create((windowId, inventory, buf) -> new ToolStationMenu(windowId, inventory)));
 
+    // Unlike the two above, the Crafting Station's client-side menu does need data from the open-menu
+    // packet: the side-inventory slot count (issue #40), so it builds the same number of Slots the
+    // server did -- see CraftingStationMenu's buf-reading constructor.
+    public static final DeferredHolder<MenuType<?>, MenuType<CraftingStationMenu>> CRAFTING_STATION =
+            MENUS.register("crafting_station", () -> IMenuTypeExtension.create(CraftingStationMenu::new));
+
     private ForgeweaveMenus() {}
 }

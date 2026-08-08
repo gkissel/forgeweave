@@ -24,6 +24,7 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
 
         addBlock(ForgeweaveBlocks.PART_BUILDER, "Part Builder");
         addBlock(ForgeweaveBlocks.TOOL_STATION, "Tool Station");
+        addBlock(ForgeweaveBlocks.CRAFTING_STATION, "Crafting Station");
 
         addItem(ForgeweaveItems.PATTERN_BLANK, "Blank Pattern");
         addItem(ForgeweaveItems.PATTERN_PICKAXE_HEAD, "Pickaxe Head Pattern");

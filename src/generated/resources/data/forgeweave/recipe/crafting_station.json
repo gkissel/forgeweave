@@ -1,0 +1,20 @@
+{
+  "type": "forgeweave:retextured_shaped",
+  "category": "misc",
+  "key": {
+    "A": {
+      "item": "forgeweave:pattern_blank"
+    },
+    "B": {
+      "item": "minecraft:crafting_table"
+    }
+  },
+  "pattern": [
+    "A",
+    "B"
+  ],
+  "result": {
+    "count": 1,
+    "id": "forgeweave:crafting_station"
+  }
+}
