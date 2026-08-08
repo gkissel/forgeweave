@@ -6,7 +6,6 @@ import net.minecraft.world.Container;
 import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.ContainerLevelAccess;
 import net.minecraft.world.inventory.DataSlot;
 import net.minecraft.world.inventory.Slot;
@@ -31,7 +30,7 @@ import dev.gkissel.forgeweave.item.ForgeweaveItems;
  * set from {@link #clickMenuButton}, exactly the vanilla stonecutter/loom mechanism ({@code
  * StonecutterMenu#clickMenuButton}) the screen's button clicks route through.
  */
-public class StencilTableMenu extends AbstractContainerMenu {
+public class StencilTableMenu extends StationMenu {
     public static final int CONTAINER_SLOTS = 2;
     public static final int INPUT_SLOT = 0;
     public static final int OUTPUT_SLOT = 1;
@@ -49,13 +48,18 @@ public class StencilTableMenu extends AbstractContainerMenu {
     private final DataSlot selectedPattern = DataSlot.standalone();
 
     /** Client-side: constructed from the open-menu packet, with a throwaway local container. */
-    public StencilTableMenu(int containerId, Inventory playerInventory) {
-        this(containerId, playerInventory, new SimpleContainer(CONTAINER_SLOTS), ContainerLevelAccess.NULL);
+    public StencilTableMenu(int containerId, Inventory playerInventory, StationGroup stationGroup) {
+        this(containerId, playerInventory, new SimpleContainer(CONTAINER_SLOTS), ContainerLevelAccess.NULL, stationGroup);
     }
 
     /** Server-side: constructed by {@code StencilTableBlockEntity} with the block's real inventory. */
     public StencilTableMenu(int containerId, Inventory playerInventory, Container container, ContainerLevelAccess access) {
-        super(ForgeweaveMenus.STENCIL_TABLE.get(), containerId);
+        this(containerId, playerInventory, container, access, groupAt(access));
+    }
+
+    private StencilTableMenu(int containerId, Inventory playerInventory, Container container,
+            ContainerLevelAccess access, StationGroup stationGroup) {
+        super(ForgeweaveMenus.STENCIL_TABLE.get(), containerId, stationGroup);
         checkContainerSize(container, CONTAINER_SLOTS);
         this.container = container;
         this.access = access;
@@ -93,6 +97,9 @@ public class StencilTableMenu extends AbstractContainerMenu {
 
     @Override
     public boolean clickMenuButton(Player player, int id) {
+        if (super.clickMenuButton(player, id)) {
+            return true; // a station-group tab (issue #78), handled by StationMenu
+        }
         if (id < 0 || id >= PATTERNS.size()) {
             return false;
         }

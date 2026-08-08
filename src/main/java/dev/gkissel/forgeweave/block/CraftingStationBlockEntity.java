@@ -10,9 +10,9 @@ import net.minecraft.nbt.Tag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
+import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 import net.minecraft.world.Container;
-import net.minecraft.world.MenuProvider;
 import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
@@ -27,6 +27,7 @@ import net.neoforged.neoforge.client.model.data.ModelData;
 import net.neoforged.neoforge.items.IItemHandler;
 
 import dev.gkissel.forgeweave.menu.CraftingStationMenu;
+import dev.gkissel.forgeweave.menu.StationGroup;
 
 /**
  * Holds the Crafting Station's persistent 3x3 grid (+ 1 transient output slot -- see {@code
@@ -43,7 +44,7 @@ import dev.gkissel.forgeweave.menu.CraftingStationMenu;
  * defaulting to oak (see {@link CraftingStationBlock}'s javadoc for why this is currently a fixed
  * outcome rather than a per-craft variable one).
  */
-public class CraftingStationBlockEntity extends BlockEntity implements MenuProvider, WoodTexturedBlockEntity {
+public class CraftingStationBlockEntity extends BlockEntity implements StationMenuHost, WoodTexturedBlockEntity {
     private static final String TAG_INVENTORY = "inventory";
 
     private final SimpleContainer container = new SimpleContainer(CraftingStationMenu.CONTAINER_SLOTS);
@@ -132,5 +133,13 @@ public class CraftingStationBlockEntity extends BlockEntity implements MenuProvi
     public AbstractContainerMenu createMenu(int containerId, Inventory playerInventory, Player player) {
         return new CraftingStationMenu(containerId, playerInventory, container,
                 ContainerLevelAccess.create(level, worldPosition), findSideInventory());
+    }
+
+    /** Side-inventory slot count first, then the station-group tab row (issue #78). */
+    @Override
+    public void writeMenuData(RegistryFriendlyByteBuf buf) {
+        IItemHandler sideInventory = findSideInventory();
+        buf.writeVarInt(sideInventory == null ? 0 : sideInventory.getSlots());
+        StationGroup.STREAM_CODEC.encode(buf, StationGroup.tabsFor(level, worldPosition));
     }
 }

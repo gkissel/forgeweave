@@ -310,7 +310,7 @@ public class ToolStationScreen extends StationScreen<ToolStationMenu> implements
     // ------------------------------------------------------------------ rendering
 
     @Override
-    protected void renderBg(GuiGraphics graphics, float partialTick, int mouseX, int mouseY) {
+    protected void renderPanel(GuiGraphics graphics, float partialTick, int mouseX, int mouseY) {
         graphics.blit(TEXTURE, leftPos, topPos, 0, 0, BASE_WIDTH, BASE_HEIGHT, SHEET, SHEET);
         renderToolPreview(graphics);
         renderSlots(graphics);
@@ -462,7 +462,7 @@ public class ToolStationScreen extends StationScreen<ToolStationMenu> implements
      */
     @Override
     public List<Rect2i> extraGuiAreas() {
-        List<Rect2i> areas = new ArrayList<>(3);
+        List<Rect2i> areas = super.extraGuiAreas(); // the station-group tab row (issue #78)
         areas.add(new Rect2i(leftPos + buttonX(0) - BEAM_END_W, topPos, sidebarWidth() + BEAM_END_W * 2,
                 buttonY(ToolStationTabs.TABS.size() - 1) + BUTTON_SIZE));
         areas.add(new Rect2i(leftPos + BASE_WIDTH + PANEL_GAP - BEAM_END_W, topPos,

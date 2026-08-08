@@ -64,7 +64,7 @@ public class ChestBlock extends HorizontalDirectionalBlock implements EntityBloc
     @Override
     protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hit) {
         if (!level.isClientSide && level.getBlockEntity(pos) instanceof ChestBlockEntity chest) {
-            player.openMenu(chest);
+            chest.open(player); // carries the station-group tab row (issue #78)
         }
         return InteractionResult.SUCCESS;
     }

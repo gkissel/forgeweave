@@ -1,5 +1,6 @@
 package dev.gkissel.forgeweave.menu;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -11,14 +12,15 @@ import net.minecraft.world.Container;
 import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.ContainerLevelAccess;
 import net.minecraft.world.inventory.Slot;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 
 import net.neoforged.neoforge.items.IItemHandler;
 
 import dev.gkissel.forgeweave.block.ForgeweaveBlocks;
+import dev.gkissel.forgeweave.block.PartBuilderBlockEntity;
 
 /**
  * The Part Builder's menu: pattern slot + material slot + output slot + change slot, plus the
@@ -41,7 +43,7 @@ import dev.gkissel.forgeweave.block.ForgeweaveBlocks;
  * via {@link SideInventorySlots#create} -- same shape as {@link CraftingStationMenu}'s own side
  * panel; see that class's javadoc for the client/server slot-count handshake.
  */
-public class PartBuilderMenu extends AbstractContainerMenu {
+public class PartBuilderMenu extends StationMenu {
     public static final int CONTAINER_SLOTS = 4;
     public static final int PATTERN_SLOT = 0;
     public static final int MATERIAL_SLOT = 1;
@@ -65,23 +67,36 @@ public class PartBuilderMenu extends AbstractContainerMenu {
     public final int sideInventorySlotCount;
     /** The side panel's own slots, kept so the client-side panel can lay them out and scroll them (issue #68). */
     public final List<SideInventorySlots.SideSlot> sideSlots;
+    /**
+     * Upstream {@code ContainerPartBuilder#partCrafter} (issue #78): the side panel is replaced by a
+     * pattern-selection button sidebar. Resolved server-side by {@code
+     * PartBuilderBlockEntity#isPartCrafter} and synced, because it depends on which block the side
+     * inventory came from -- something the slot contents alone don't say.
+     */
+    public final boolean partCrafter;
     private int pendingMaterialItemsConsumed;
     private ItemStack pendingChange = ItemStack.EMPTY;
 
-    /** Client-side: constructed from the open-menu packet, which carries the side-inventory slot count. */
+    /** Client-side: constructed from the open-menu packet ({@code PartBuilderBlockEntity#writeMenuData}). */
     public PartBuilderMenu(int containerId, Inventory playerInventory, RegistryFriendlyByteBuf buf) {
-        this(containerId, playerInventory, new SimpleContainer(CONTAINER_SLOTS), ContainerLevelAccess.NULL, null, buf.readVarInt());
+        this(containerId, playerInventory, new SimpleContainer(CONTAINER_SLOTS), ContainerLevelAccess.NULL, null,
+                buf.readVarInt(), StationGroup.STREAM_CODEC.decode(buf), buf.readBoolean());
     }
 
     /** Server-side: constructed by {@code PartBuilderBlockEntity} with the block's real inventory and detected neighbor. */
     public PartBuilderMenu(int containerId, Inventory playerInventory, Container container, ContainerLevelAccess access,
             @Nullable IItemHandler sideInventory) {
-        this(containerId, playerInventory, container, access, sideInventory, sideInventory == null ? 0 : sideInventory.getSlots());
+        this(containerId, playerInventory, container, access, sideInventory,
+                sideInventory == null ? 0 : sideInventory.getSlots(), groupAt(access),
+                access.evaluate((level, pos) -> level.getBlockEntity(pos) instanceof PartBuilderBlockEntity partBuilder
+                        && partBuilder.isPartCrafter()).orElse(false));
     }
 
     private PartBuilderMenu(int containerId, Inventory playerInventory, Container container, ContainerLevelAccess access,
-            @Nullable IItemHandler sideInventory, int sideInventorySlotCount) {
-        super(ForgeweaveMenus.PART_BUILDER.get(), containerId);
+            @Nullable IItemHandler sideInventory, int sideInventorySlotCount, StationGroup stationGroup,
+            boolean partCrafter) {
+        super(ForgeweaveMenus.PART_BUILDER.get(), containerId, stationGroup);
+        this.partCrafter = partCrafter;
         checkContainerSize(container, CONTAINER_SLOTS);
         this.container = container;
         this.access = access;
@@ -114,7 +129,10 @@ public class PartBuilderMenu extends AbstractContainerMenu {
             }
         });
 
-        this.sideSlots = SideInventorySlots.create(sideInventory, sideInventorySlotCount, SIDE_PANEL_X, SIDE_PANEL_Y);
+        // With a Pattern Chest attached the chest's slots are hidden behind the pattern buttons
+        // (issue #78, upstream's GuiPartBuilder#drawSlot) -- they stay in the menu for shift-clicks.
+        this.sideSlots = SideInventorySlots.create(sideInventory, sideInventorySlotCount, SIDE_PANEL_X, SIDE_PANEL_Y,
+                !partCrafter);
         this.sideSlots.forEach(this::addSlot);
         layoutPlayerInventorySlots(playerInventory);
     }
@@ -147,6 +165,68 @@ public class PartBuilderMenu extends AbstractContainerMenu {
         // Only the main output slot reflects the live preview; the change slot is real storage
         // (see class javadoc) and is untouched here.
         slots.get(OUTPUT_SLOT).set(match.map(PartBuilderRecipes.Match::result).orElse(ItemStack.EMPTY));
+    }
+
+    // ------------------------------------------------------------------ pattern chest sidebar (#78)
+
+    /**
+     * Which patterns the sidebar offers: upstream's stencil-table candidate list ({@link
+     * StencilTableMenu#PATTERNS}, in that same fixed order) filtered down to the ones actually in the
+     * attached Pattern Chest -- plus whichever is already loaded, so the current selection never
+     * disappears from the row while it is in use. That last clause is upstream's own
+     * {@code GuiButtonsPartCrafter} check against {@code inventorySlots.getSlot(2)}.
+     *
+     * <p>Both sides compute this from synced slot contents, so no extra sync is needed and the index
+     * a click sends ({@link #clickMenuButton}) is into the fixed {@code PATTERNS} list, not into this
+     * filtered view -- a chest whose contents changed mid-click can therefore never select the wrong
+     * pattern, only fail to find one.
+     */
+    public List<Integer> patternButtons() {
+        if (!partCrafter) {
+            return List.of();
+        }
+        List<Integer> available = new ArrayList<>(StencilTableMenu.PATTERNS.size());
+        ItemStack loaded = slots.get(PATTERN_SLOT).getItem();
+        for (int id = 0; id < StencilTableMenu.PATTERNS.size(); id++) {
+            Item item = StencilTableMenu.PATTERNS.get(id).get();
+            if (loaded.is(item) || sideSlots.stream().anyMatch(slot -> slot.getItem().is(item))) {
+                available.add(id);
+            }
+        }
+        return available;
+    }
+
+    @Override
+    public boolean clickMenuButton(Player player, int id) {
+        if (super.clickMenuButton(player, id)) {
+            return true; // a station-group tab (issue #78), handled by StationMenu
+        }
+        if (!partCrafter || id < 0 || id >= StencilTableMenu.PATTERNS.size()) {
+            return false;
+        }
+        return setPattern(StencilTableMenu.PATTERNS.get(id).get());
+    }
+
+    /**
+     * Upstream {@code ContainerPartBuilder#setPattern}: find {@code wanted} in the attached Pattern
+     * Chest and <em>exchange</em> it with whatever the pattern slot holds, so the pattern currently
+     * loaded goes back into the chest rather than being dropped or duplicated. An empty pattern slot
+     * simply leaves the chest slot empty.
+     */
+    private boolean setPattern(Item wanted) {
+        Slot patternSlot = slots.get(PATTERN_SLOT);
+        for (Slot chestSlot : sideSlots) {
+            if (!chestSlot.getItem().is(wanted)) {
+                continue;
+            }
+            ItemStack fromChest = chestSlot.getItem().copy();
+            ItemStack loaded = patternSlot.getItem().copy();
+            chestSlot.set(loaded);
+            patternSlot.set(fromChest);
+            patternSlot.setChanged();
+            return true;
+        }
+        return false;
     }
 
     @Override

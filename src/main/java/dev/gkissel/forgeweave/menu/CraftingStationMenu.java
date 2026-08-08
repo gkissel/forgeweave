@@ -12,7 +12,6 @@ import net.minecraft.world.Container;
 import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.ContainerLevelAccess;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
@@ -50,7 +49,7 @@ import dev.gkissel.forgeweave.block.ForgeweaveBlocks;
  * for their own client-side placeholder containers) since the real {@link IItemHandler} only exists
  * server-side.
  */
-public class CraftingStationMenu extends AbstractContainerMenu {
+public class CraftingStationMenu extends StationMenu {
     public static final int GRID_WIDTH = 3;
     public static final int GRID_HEIGHT = 3;
     public static final int GRID_SLOTS = GRID_WIDTH * GRID_HEIGHT;
@@ -74,20 +73,22 @@ public class CraftingStationMenu extends AbstractContainerMenu {
     /** The side panel's own slots, kept so the client-side panel can lay them out and scroll them (issue #68). */
     public final List<SideInventorySlots.SideSlot> sideSlots;
 
-    /** Client-side: constructed from the open-menu packet, which carries the side-inventory slot count. */
+    /** Client-side: constructed from the open-menu packet, which carries the side-inventory slot count and tab row. */
     public CraftingStationMenu(int containerId, Inventory playerInventory, RegistryFriendlyByteBuf buf) {
-        this(containerId, playerInventory, new SimpleContainer(CONTAINER_SLOTS), ContainerLevelAccess.NULL, null, buf.readVarInt());
+        this(containerId, playerInventory, new SimpleContainer(CONTAINER_SLOTS), ContainerLevelAccess.NULL, null,
+                buf.readVarInt(), StationGroup.STREAM_CODEC.decode(buf));
     }
 
     /** Server-side: constructed by {@code CraftingStationBlockEntity} with the block's real grid and detected neighbor. */
     public CraftingStationMenu(int containerId, Inventory playerInventory, Container container,
             ContainerLevelAccess access, @Nullable IItemHandler sideInventory) {
-        this(containerId, playerInventory, container, access, sideInventory, sideInventory == null ? 0 : sideInventory.getSlots());
+        this(containerId, playerInventory, container, access, sideInventory,
+                sideInventory == null ? 0 : sideInventory.getSlots(), groupAt(access));
     }
 
     private CraftingStationMenu(int containerId, Inventory playerInventory, Container container, ContainerLevelAccess access,
-            @Nullable IItemHandler sideInventory, int sideInventorySlotCount) {
-        super(ForgeweaveMenus.CRAFTING_STATION.get(), containerId);
+            @Nullable IItemHandler sideInventory, int sideInventorySlotCount, StationGroup stationGroup) {
+        super(ForgeweaveMenus.CRAFTING_STATION.get(), containerId, stationGroup);
         checkContainerSize(container, CONTAINER_SLOTS);
         this.container = container;
         this.access = access;

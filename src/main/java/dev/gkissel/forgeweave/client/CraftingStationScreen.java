@@ -60,7 +60,7 @@ public class CraftingStationScreen extends StationScreen<CraftingStationMenu> im
     }
 
     @Override
-    protected void renderBg(GuiGraphics guiGraphics, float partialTick, int mouseX, int mouseY) {
+    protected void renderPanel(GuiGraphics guiGraphics, float partialTick, int mouseX, int mouseY) {
         guiGraphics.blit(TEXTURE, leftPos, topPos, 0, 0, BASE_WIDTH, BASE_HEIGHT, SHEET, SHEET);
         sidePanel.render(guiGraphics, menu, leftPos, topPos, imageHeight, menu.sideSlots);
     }
@@ -73,7 +73,11 @@ public class CraftingStationScreen extends StationScreen<CraftingStationMenu> im
 
     @Override
     public List<Rect2i> extraGuiAreas() {
-        return menu.sideSlots.isEmpty() ? List.of() : List.of(sidePanel.bounds());
+        List<Rect2i> areas = super.extraGuiAreas(); // the station-group tab row (issue #78)
+        if (!menu.sideSlots.isEmpty()) {
+            areas.add(sidePanel.bounds());
+        }
+        return areas;
     }
 
     @SubscribeEvent

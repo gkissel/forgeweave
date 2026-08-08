@@ -14,7 +14,6 @@ import net.minecraft.world.Container;
 import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.ContainerLevelAccess;
 import net.minecraft.world.inventory.DataSlot;
 import net.minecraft.world.inventory.Slot;
@@ -68,7 +67,7 @@ import dev.gkissel.forgeweave.menu.ToolStationTabs.Tab;
  * SideInventorySlots#create} -- same shape as {@link CraftingStationMenu}'s own side panel; see that
  * class's javadoc for the client/server slot-count handshake.
  */
-public class ToolStationMenu extends AbstractContainerMenu {
+public class ToolStationMenu extends StationMenu {
     public static final int CONTAINER_SLOTS = 4;
     public static final int HEAD_SLOT = 0;
     public static final int BINDING_SLOT = 1;
@@ -107,20 +106,22 @@ public class ToolStationMenu extends AbstractContainerMenu {
     public final List<SideInventorySlots.SideSlot> sideSlots;
     private String toolName = "";
 
-    /** Client-side: constructed from the open-menu packet, which carries the side-inventory slot count. */
+    /** Client-side: constructed from the open-menu packet, which carries the side-inventory slot count and tab row. */
     public ToolStationMenu(int containerId, Inventory playerInventory, RegistryFriendlyByteBuf buf) {
-        this(containerId, playerInventory, new SimpleContainer(CONTAINER_SLOTS), ContainerLevelAccess.NULL, null, buf.readVarInt());
+        this(containerId, playerInventory, new SimpleContainer(CONTAINER_SLOTS), ContainerLevelAccess.NULL, null,
+                buf.readVarInt(), StationGroup.STREAM_CODEC.decode(buf));
     }
 
     /** Server-side: constructed by {@code ToolStationBlockEntity} with the block's real inventory and detected neighbor. */
     public ToolStationMenu(int containerId, Inventory playerInventory, Container container, ContainerLevelAccess access,
             @Nullable IItemHandler sideInventory) {
-        this(containerId, playerInventory, container, access, sideInventory, sideInventory == null ? 0 : sideInventory.getSlots());
+        this(containerId, playerInventory, container, access, sideInventory,
+                sideInventory == null ? 0 : sideInventory.getSlots(), groupAt(access));
     }
 
     private ToolStationMenu(int containerId, Inventory playerInventory, Container container, ContainerLevelAccess access,
-            @Nullable IItemHandler sideInventory, int sideInventorySlotCount) {
-        super(ForgeweaveMenus.TOOL_STATION.get(), containerId);
+            @Nullable IItemHandler sideInventory, int sideInventorySlotCount, StationGroup stationGroup) {
+        super(ForgeweaveMenus.TOOL_STATION.get(), containerId, stationGroup);
         checkContainerSize(container, CONTAINER_SLOTS);
         this.container = container;
         this.access = access;
@@ -211,6 +212,9 @@ public class ToolStationMenu extends AbstractContainerMenu {
 
     @Override
     public boolean clickMenuButton(Player player, int id) {
+        if (super.clickMenuButton(player, id)) {
+            return true; // a station-group tab (issue #78), handled by StationMenu
+        }
         if (id < 0 || id >= ToolStationTabs.TABS.size()) {
             return false;
         }

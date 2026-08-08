@@ -101,7 +101,7 @@ public class StencilTableScreen extends StationScreen<StencilTableMenu> implemen
     }
 
     @Override
-    protected void renderBg(GuiGraphics guiGraphics, float partialTick, int mouseX, int mouseY) {
+    protected void renderPanel(GuiGraphics guiGraphics, float partialTick, int mouseX, int mouseY) {
         guiGraphics.blit(TEXTURE, leftPos, topPos, 0, 0, BASE_WIDTH, BASE_HEIGHT, BASE_WIDTH, BASE_HEIGHT);
         renderInputIcon(guiGraphics);
         renderPatternButtons(guiGraphics, mouseX, mouseY);
@@ -178,7 +178,9 @@ public class StencilTableScreen extends StationScreen<StencilTableMenu> implemen
     /** Issue #68 fix 4: the button sidebar hangs left of {@code imageWidth}; JEI has to be told. */
     @Override
     public List<Rect2i> extraGuiAreas() {
-        return List.of(new Rect2i(leftPos + buttonX(0), topPos + BUTTONS_Y, sidebarWidth(), sidebarHeight()));
+        List<Rect2i> areas = super.extraGuiAreas(); // the station-group tab row (issue #78)
+        areas.add(new Rect2i(leftPos + buttonX(0), topPos + BUTTONS_Y, sidebarWidth(), sidebarHeight()));
+        return areas;
     }
 
     @SubscribeEvent

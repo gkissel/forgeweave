@@ -20,6 +20,7 @@ import mezz.jei.api.registration.IRecipeRegistration;
 import mezz.jei.api.registration.IRecipeTransferRegistration;
 
 import dev.gkissel.forgeweave.Forgeweave;
+import dev.gkissel.forgeweave.client.ChestScreen;
 import dev.gkissel.forgeweave.client.CraftingStationScreen;
 import dev.gkissel.forgeweave.client.PartBuilderScreen;
 import dev.gkissel.forgeweave.client.StencilTableScreen;
@@ -102,6 +103,8 @@ public final class ForgeweaveJeiPlugin implements IModPlugin {
         registration.addGuiContainerHandler(PartBuilderScreen.class, new StationGuiHandler<>());
         registration.addGuiContainerHandler(ToolStationScreen.class, new StationGuiHandler<>());
         registration.addGuiContainerHandler(StencilTableScreen.class, new StationGuiHandler<>());
+        // Issue #78: the chests have no chrome of their own, but they do get the station-group tab row.
+        registration.addGuiContainerHandler(ChestScreen.class, new StationGuiHandler<>());
     }
 
     /**
