@@ -37,3 +37,7 @@ For any feature that exists in Tinkers' Construct 2 (the 1.12 clone), the defaul
 ## Derived texture organization
 
 All upstream-derived art lives under `assets/forgeweave/textures/derived/` (`derived/item/`, `derived/tools/`, `derived/block/`, `derived/gui/`), one `NOTICE.md` row per file. Freshly-authored/original art lives in the standard `textures/item|block|gui` folders alongside it. M9 executes by replacing/emptying the `derived/` tree.
+
+## Localization
+
+Every player-facing string is a `Component.translatable` lang key added to `ForgeweaveLanguageProvider` — never `Component.literal` for real text (numeric/glue literals like `"/"`, `": "`, or a `DecimalFormat` pattern are fine; so is wrapping player-typed input, e.g. a renamed tool). Follow existing key families rather than inventing new ones: `item.forgeweave.*`/`block.forgeweave.*` (registered names, via `addItem`/`addBlock`), `material.forgeweave.*` (datapack material names), `trait.forgeweave.<id>.name`/`.description`, `tooltip.forgeweave.*` (item hover text), `gui.forgeweave.*` (station/screen labels), `jei.category.forgeweave.*`. `LocalizationAuditTest` scans `client/`, `menu/`, `item/`, and `jei/` for stray `Component.literal("...")` calls containing a letter and fails the build on new ones.

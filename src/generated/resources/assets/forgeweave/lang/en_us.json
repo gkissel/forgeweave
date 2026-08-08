@@ -51,6 +51,8 @@
   "tooltip.forgeweave.broken": "Broken",
   "tooltip.forgeweave.durability": "Durability",
   "tooltip.forgeweave.mining_speed": "Mining Speed",
+  "tooltip.forgeweave.tier.stone": "Stone",
+  "tooltip.forgeweave.tier.wooden": "Wood",
   "tooltip.forgeweave.tool_tier": "Tool Tier",
   "trait.forgeweave.cheap.description": "Increases durability gained when repairing the tool.",
   "trait.forgeweave.cheap.name": "Cheap",

@@ -110,7 +110,8 @@ class ToolTooltipTest {
                 durabilityLine(120, 160),
                 attackLine(3.0F),
                 statLine("tooltip.forgeweave.mining_speed", "4", SPEED_COLOR),
-                Component.translatable("tooltip.forgeweave.tool_tier").append(": ").append(Component.literal("Stone")),
+                Component.translatable("tooltip.forgeweave.tool_tier").append(": ")
+                        .append(Component.translatable("tooltip.forgeweave.tier.stone")),
                 Component.empty(),
                 Component.translatable("material.forgeweave.stone").withStyle(Style.EMPTY.withColor(STONE_COLOR)),
                 Component.translatable("material.forgeweave.wood").withStyle(Style.EMPTY.withColor(WOOD_COLOR)),
