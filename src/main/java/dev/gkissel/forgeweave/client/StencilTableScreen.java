@@ -44,11 +44,13 @@ import dev.gkissel.forgeweave.menu.StencilTableMenu;
  * server-bound button-click packet via {@code handleInventoryButtonClick} ({@code
  * StonecutterScreen#mouseClicked} does exactly this).
  *
- * <p>{@link AbstractContainerScreen}'s default {@code render()} already calls {@link
- * #renderTooltip}; it's overridden here only to add tooltips for the buttons, which aren't slots.
+ * <p>Item tooltips come from {@link StationScreen}, which owns the {@code render()} override that
+ * calls {@link #renderTooltip}. This class used to claim {@link AbstractContainerScreen} did that on
+ * its own -- it does not, so neither slot tooltips nor this screen's own button tooltips below ever
+ * appeared (issue #75 defect 2).
  */
 @EventBusSubscriber(modid = Forgeweave.MODID, bus = EventBusSubscriber.Bus.MOD, value = Dist.CLIENT)
-public class StencilTableScreen extends AbstractContainerScreen<StencilTableMenu> implements StationExtraAreas {
+public class StencilTableScreen extends StationScreen<StencilTableMenu> implements StationExtraAreas {
     private static final ResourceLocation TEXTURE =
             ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "textures/derived/gui/stencil_table.png");
     private static final ResourceLocation ICONS =
@@ -65,11 +67,23 @@ public class StencilTableScreen extends AbstractContainerScreen<StencilTableMenu
     private static final int BUTTONS_Y = 9;
     private static final int PANEL_GAP = 2;
 
-    // Regions of icons.png, the wood-style button row (Icons#ICON_Button and friends, shifted +18y).
-    private static final int BUTTON_V = 180;
+    /**
+     * Regions of icons.png. Upstream {@code Icons} puts its buttons at {@code ICON_Button = (180,
+     * 216)}, {@code ICON_ButtonHover = (180 + 36, 216)}, {@code ICON_ButtonPressed = (180 - 36,
+     * 216)}, and {@code GuiButtonsStencilTable#shiftButton} shifts them {@code (0, 18)} for the wood
+     * style -- so the wood button row is at v = 234. Issue #75: this said 180, which is 54px too
+     * high and lands on a decorative plank tile with no button bevel at all, which is why the
+     * buttons rendered as flat wooden squares instead of buttons.
+     */
+    private static final int BUTTON_V = 234;
     private static final int BUTTON_IDLE_U = 180;
     private static final int BUTTON_HOVER_U = 216;
     private static final int BUTTON_PRESSED_U = 144;
+
+    /** Upstream {@code Icons#ICON_Pattern}, drawn in the input slot by {@code GuiStencilTable}. */
+    private static final int PATTERN_ICON_U = 0;
+    private static final int PATTERN_ICON_V = 216;
+    private static final int ICON_SIZE = 18;
 
     public StencilTableScreen(StencilTableMenu menu, Inventory playerInventory, Component title) {
         super(menu, playerInventory, title);
@@ -80,7 +94,20 @@ public class StencilTableScreen extends AbstractContainerScreen<StencilTableMenu
     @Override
     protected void renderBg(GuiGraphics guiGraphics, float partialTick, int mouseX, int mouseY) {
         guiGraphics.blit(TEXTURE, leftPos, topPos, 0, 0, BASE_WIDTH, BASE_HEIGHT, BASE_WIDTH, BASE_HEIGHT);
+        renderInputIcon(guiGraphics);
         renderPatternButtons(guiGraphics, mouseX, mouseY);
+    }
+
+    /**
+     * Upstream {@code GuiStencilTable#drawGuiContainerBackgroundLayer}'s {@code drawIcon(slot(0),
+     * Icons.ICON_Pattern)}: a hint glyph in the input socket telling you it wants a blank pattern.
+     * Drawn unconditionally, as upstream does -- this is the background layer, so a real item in the
+     * slot is painted over it afterwards.
+     */
+    private void renderInputIcon(GuiGraphics guiGraphics) {
+        var slot = menu.getSlot(StencilTableMenu.INPUT_SLOT);
+        guiGraphics.blit(ICONS, leftPos + slot.x - 1, topPos + slot.y - 1,
+                PATTERN_ICON_U, PATTERN_ICON_V, ICON_SIZE, ICON_SIZE, SHEET, SHEET);
     }
 
     private void renderPatternButtons(GuiGraphics guiGraphics, int mouseX, int mouseY) {

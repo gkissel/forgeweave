@@ -1,7 +1,6 @@
 package dev.gkissel.forgeweave.client;
 
 import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Inventory;
@@ -25,10 +24,12 @@ import dev.gkissel.forgeweave.menu.ForgeweaveMenus;
  * CraftingStationScreen} already uses for vanilla's crafting-table background -- no NOTICE.md row.
  */
 @EventBusSubscriber(modid = Forgeweave.MODID, bus = EventBusSubscriber.Bus.MOD, value = Dist.CLIENT)
-public class ChestScreen extends AbstractContainerScreen<ChestMenu> {
+public class ChestScreen extends StationScreen<ChestMenu> {
     private static final ResourceLocation TEXTURE = ResourceLocation.withDefaultNamespace("textures/gui/container/generic_54.png");
     private static final int BASE_WIDTH = 176;
     private static final int BASE_HEIGHT = 222;
+    /** Vanilla container backgrounds are 256x256 sheets; the panel is only their top-left corner. */
+    private static final int SHEET = 256;
 
     public ChestScreen(ChestMenu menu, Inventory playerInventory, Component title) {
         super(menu, playerInventory, title);
@@ -39,7 +40,9 @@ public class ChestScreen extends AbstractContainerScreen<ChestMenu> {
 
     @Override
     protected void renderBg(GuiGraphics guiGraphics, float partialTick, int mouseX, int mouseY) {
-        guiGraphics.blit(TEXTURE, leftPos, topPos, 0, 0, BASE_WIDTH, BASE_HEIGHT, BASE_WIDTH, BASE_HEIGHT);
+        // Same defect issue #68 fix 1 found in CraftingStationScreen: passing the panel size as the
+        // source sheet size squeezes the whole 256x256 file into the panel's footprint.
+        guiGraphics.blit(TEXTURE, leftPos, topPos, 0, 0, BASE_WIDTH, BASE_HEIGHT, SHEET, SHEET);
     }
 
     @SubscribeEvent

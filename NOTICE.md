@@ -37,7 +37,7 @@ One row per derived file (ADR-0003). Maintained in PR review: a PR introducing d
 | `src/main/java/dev/gkissel/forgeweave/client/SideInventoryPanel.java` (border/slot/empty-slot sprite regions, 6-column grid, row cap and scroll-by-row behaviour) | `src/main/java/slimeknights/tconstruct/tools/common/client/module/GuiSideInventory.java`, `src/main/java/slimeknights/tconstruct/tools/common/client/module/GuiGeneric.java`, `src/main/java/slimeknights/tconstruct/tools/common/client/module/GuiWidgetBorder.java` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
 | `src/main/resources/assets/forgeweave/models/block/crafting_station.json` (`#top`/`#side`/`#texture` slot split and which upstream texture fills each) | `resources/assets/tconstruct/models/block/craftingstation.json` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
 | `src/main/resources/assets/forgeweave/models/block/stencil_table.json` (`#top`/`#side`/`#texture` slot split and which upstream texture fills each) | `resources/assets/tconstruct/models/block/stenciltable.json` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
-| `src/main/java/dev/gkissel/forgeweave/client/StencilTableScreen.java` (pattern buttons as a left-hand 4-column side-button grid drawn from the wood-style button sprites) | `src/main/java/slimeknights/tconstruct/tools/common/client/module/GuiButtonsStencilTable.java`, `src/main/java/slimeknights/tconstruct/tools/common/client/module/GuiSideButtons.java` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
+| `src/main/java/dev/gkissel/forgeweave/client/StencilTableScreen.java` (pattern buttons as a left-hand 4-column side-button grid drawn from the wood-style button sprites; the pattern hint glyph in the input slot) | `src/main/java/slimeknights/tconstruct/tools/common/client/module/GuiButtonsStencilTable.java`, `src/main/java/slimeknights/tconstruct/tools/common/client/module/GuiSideButtons.java`, `src/main/java/slimeknights/tconstruct/tools/common/client/GuiStencilTable.java`, `src/main/java/slimeknights/tconstruct/library/client/Icons.java` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
 | `src/main/java/dev/gkissel/forgeweave/data/ForgeweaveRecipeProvider.java` (blank pattern recipe) | `resources/assets/tconstruct/recipes/tools/pattern.json` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
 | `src/main/java/dev/gkissel/forgeweave/data/ForgeweaveRecipeProvider.java` (Part Builder block recipe) | `resources/assets/tconstruct/recipes/tools/table/part_builder.json` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
 | `src/main/java/dev/gkissel/forgeweave/menu/PartBuilderRecipes.java` (per-part material costs) | `src/main/java/slimeknights/tconstruct/tools/TinkerTools.java` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
@@ -261,6 +261,14 @@ arrangement: `GuiButtonsStencilTable` is a `GuiSideButtons` grid `GuiStencilTabl
 wide sitting to the *left* of the panel, drawn from the wood-style button sprites in `icons.png` --
 already derived here as `station_icons.png` for the Tool Station's tab sidebar, which is the same
 upstream widget with the same 18px/4px geometry.
+
+Issue #75 corrected where those button sprites actually live on that sheet. Upstream's `Icons` puts
+`ICON_Button` at `(180, 216)` with hover/pressed at `±36` in x, and `GuiButtonsStencilTable#shiftButton`
+shifts the set `(0, 18)` for the wood style, so the wood button row is at **v = 234**. Both
+`StencilTableScreen` and `ToolStationScreen` had `v = 180`, 54px too high, which lands on a plain
+decorative plank tile with no button bevel -- the sidebars rendered as flat wooden squares with no
+idle/hover/pressed distinction. Issue #75 also added the pattern hint glyph `GuiStencilTable` draws
+in its input slot (`Icons#ICON_Pattern`, `(0, 216)`).
 
 The five blank-pattern-to-part-pattern vanilla-table conversion recipes issue #42 shipped in
 `ForgeweaveRecipeProvider` (blank + matching wooden tool/stick, shapeless) are removed by issue #44:
