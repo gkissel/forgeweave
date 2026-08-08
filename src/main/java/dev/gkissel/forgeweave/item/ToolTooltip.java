@@ -113,7 +113,7 @@ final class ToolTooltip {
     private static Component tierLine(Material head) {
         return Component.translatable("tooltip.forgeweave.tool_tier")
                 .append(": ")
-                .append(Component.literal(tierName(head)));
+                .append(tierName(head));
     }
 
     private static Component traitLine(HolderLookup.Provider registries, ToolMaterials materials,
@@ -131,12 +131,17 @@ final class ToolTooltip {
                 .append(Component.translatable(descKey).withStyle(ChatFormatting.GRAY));
     }
 
-    /** {@code "incorrect_for_stone_tool"} -&gt; {@code "Stone"}; the tag path already names the tier. */
-    private static String tierName(Material head) {
+    /**
+     * {@code "incorrect_for_stone_tool"} -&gt; {@code tooltip.forgeweave.tier.stone}; the tag path
+     * already names the tier, so this is a lookup key rather than player-facing text of its own
+     * (issue #65 -- the previous version capitalized the stripped tag path directly, which was
+     * untranslatable and, for wood, worded differently than {@code material.forgeweave.wood}).
+     */
+    private static Component tierName(Material head) {
         String stripped = head.incorrectForTool().location().getPath()
                 .replace("incorrect_for_", "")
                 .replace("_tool", "");
-        return stripped.isEmpty() ? stripped : Character.toUpperCase(stripped.charAt(0)) + stripped.substring(1);
+        return Component.translatable("tooltip.forgeweave.tier." + stripped);
     }
 
     private static String formatNumber(float value) {

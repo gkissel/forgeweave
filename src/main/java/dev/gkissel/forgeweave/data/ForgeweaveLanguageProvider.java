@@ -87,6 +87,13 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("tooltip.forgeweave.attack_damage", "Attack Damage");
         add("tooltip.forgeweave.tool_tier", "Tool Tier");
 
+        // Tool tier names (issue #65), keyed off the vanilla incorrect_for_<tier>_tool block tag each
+        // material's incorrect_for_tool points at (ToolTooltip#tierName) -- only the tiers M1's
+        // materials actually use; an unmapped tier degrades to a visible untranslated key, same as an
+        // unknown trait id (MaterialDisplay).
+        add("tooltip.forgeweave.tier.wooden", "Wood");
+        add("tooltip.forgeweave.tier.stone", "Stone");
+
         add("material.forgeweave.wood", "Wood");
         add("material.forgeweave.stone", "Stone");
         add("material.forgeweave.flint", "Flint");
