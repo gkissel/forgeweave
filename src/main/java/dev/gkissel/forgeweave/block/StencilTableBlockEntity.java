@@ -8,6 +8,9 @@ import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.protocol.Packet;
+import net.minecraft.network.protocol.game.ClientGamePacketListener;
+import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 import net.minecraft.world.Container;
 import net.minecraft.world.MenuProvider;
 import net.minecraft.world.SimpleContainer;
@@ -87,6 +90,23 @@ public class StencilTableBlockEntity extends BlockEntity implements MenuProvider
         super.loadAdditional(tag, registries);
         container.fromTag(tag.getList(TAG_INVENTORY, Tag.TAG_COMPOUND), registries);
         texture = WoodTexturedBlockEntity.readTexture(tag, Blocks.OAK_PLANKS);
+    }
+
+    /**
+     * Full-state update tag so the texture (and inventory) reach already-tracking clients on a
+     * dedicated server -- without this override the default {@code getUpdateTag} returns an empty
+     * tag and placed stations keep rendering their default wood until the client reloads the chunk
+     * (issue #79).
+     */
+    @Override
+    public CompoundTag getUpdateTag(HolderLookup.Provider registries) {
+        return saveWithoutMetadata(registries);
+    }
+
+    @Nonnull
+    @Override
+    public Packet<ClientGamePacketListener> getUpdatePacket() {
+        return ClientboundBlockEntityDataPacket.create(this);
     }
 
     @Override

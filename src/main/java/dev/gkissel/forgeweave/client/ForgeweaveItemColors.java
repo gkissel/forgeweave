@@ -74,10 +74,18 @@ public final class ForgeweaveItemColors {
             return -1;
         }
         Material material = level.registryAccess().registryOrThrow(Material.REGISTRY).get(materialId);
-        // Material.color() (TextColor) is a bare 0xRRGGBB with alpha 0; ItemColor needs opaque ARGB
-        // or the tinted layer renders fully transparent. Same fixup vanilla uses for potion/spawn-egg
-        // item colors (see ItemColors#register uses of FastColor.ARGB32.opaque).
-        return material != null ? FastColor.ARGB32.opaque(material.color().getValue()) : -1;
+        return material != null ? opaqueColor(material.color().getValue()) : -1;
+    }
+
+    /**
+     * {@code Material.color()} (TextColor) is a bare 0xRRGGBB with alpha 0; ItemColor needs opaque
+     * ARGB or the tinted layer renders fully transparent (#8). Same fixup vanilla uses for
+     * potion/spawn-egg item colors (see {@code ItemColors#register} uses of {@code
+     * FastColor.ARGB32.opaque}). Split out from {@link #opaqueMaterialColor} so it can be exercised
+     * directly by a test without a live {@code ClientLevel}/material registry (#79).
+     */
+    static int opaqueColor(int rawColor) {
+        return FastColor.ARGB32.opaque(rawColor);
     }
 
     private ForgeweaveItemColors() {}

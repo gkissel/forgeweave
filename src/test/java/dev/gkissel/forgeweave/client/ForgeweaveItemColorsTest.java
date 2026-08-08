@@ -53,7 +53,12 @@ class ForgeweaveItemColorsTest {
     @ValueSource(strings = { "wood", "stone", "flint", "bone" })
     void tintIsFullyOpaqueForEveryShippedMaterial(String name) {
         int rawColor = shipped(name).color().getValue();
-        int tint = FastColor.ARGB32.opaque(rawColor);
+
+        // The production conversion ForgeweaveItemColors#opaqueMaterialColor applies to every
+        // material lookup -- exercised directly here (rather than through opaqueMaterialColor
+        // itself) because that method also needs a live ClientLevel/material registry that isn't
+        // available outside a running client.
+        int tint = ForgeweaveItemColors.opaqueColor(rawColor);
 
         assertEquals(0xFF, FastColor.ARGB32.alpha(tint), name + ": tint must be fully opaque or the part renders invisible");
     }

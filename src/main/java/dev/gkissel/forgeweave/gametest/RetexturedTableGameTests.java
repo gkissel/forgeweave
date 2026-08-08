@@ -4,6 +4,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Blocks;
@@ -75,6 +76,38 @@ public class RetexturedTableGameTests {
         ToolStationBlockEntity blockEntity = helper.getBlockEntity(pos);
         helper.assertTrue(blockEntity.getTexture() == Blocks.OAK_PLANKS,
                 "expected the default (unspecified input) texture to be oak_planks, got " + blockEntity.getTexture());
+
+        helper.succeed();
+    }
+
+    /**
+     * Covers issue #79's multiplayer texture sync bug: on a dedicated server, an already-tracking
+     * client only learns of a block entity change through {@code getUpdateTag}/{@code
+     * handleUpdateTag} (the {@code sendBlockUpdated} call in {@link
+     * dev.gkissel.forgeweave.block.WoodTexturedBlockEntity#notifyTextureChanged} triggers that
+     * exchange). Before the fix, {@code getUpdateTag} used {@code BlockEntity}'s default (an empty
+     * tag), so a freshly-tracked block entity on the "client" side of this round-trip would never
+     * pick up the texture. This drives that exact exchange without a real network connection: take
+     * the update tag off a block entity with a non-default texture, and feed it into a fresh block
+     * entity's {@code handleUpdateTag} the way {@code ClientPacketListener#handleBlockEntityData}
+     * would.
+     */
+    @GameTest(template = "empty")
+    public static void updateTagRoundTripRestoresTexture(GameTestHelper helper) {
+        BlockPos pos = new BlockPos(1, 1, 1);
+        helper.setBlock(pos, ForgeweaveBlocks.PART_BUILDER.get());
+
+        PartBuilderBlockEntity source = helper.getBlockEntity(pos);
+        source.setTexture(Blocks.SPRUCE_LOG);
+
+        CompoundTag updateTag = source.getUpdateTag(helper.getLevel().registryAccess());
+        helper.assertTrue(!updateTag.isEmpty(), "expected a non-empty update tag once a non-default texture is set");
+
+        PartBuilderBlockEntity restored = new PartBuilderBlockEntity(source.getBlockPos(), source.getBlockState());
+        restored.handleUpdateTag(updateTag, helper.getLevel().registryAccess());
+
+        helper.assertTrue(restored.getTexture() == Blocks.SPRUCE_LOG,
+                "expected the update tag round-trip to restore spruce_log, got " + restored.getTexture());
 
         helper.succeed();
     }
