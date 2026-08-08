@@ -51,9 +51,10 @@ import dev.gkissel.forgeweave.menu.PartBuilderRecipes;
  * from the material registry; nothing is restated here.
  *
  * <p>{@link AbstractContainerScreen#render} does <em>not</em> call {@link #renderTooltip} on its
- * own (unlike the label/slot rendering, that call is left to subclasses) -- every vanilla container
- * screen overrides {@code render} to add it, and this one previously didn't, so item tooltips never
- * showed (issue #43 regression fix).
+ * own (unlike the label/slot rendering, that call is left to subclasses), so this screen once
+ * showed no item tooltips at all (issue #43). That override now lives in {@link StationScreen},
+ * shared by every station screen, because copying it per screen let the same defect reappear in
+ * three later ones (issue #75).
  *
  * <p>When a neighboring block exposes an item handler ({@code PartBuilderBlockEntity#findSideInventory},
  * issue #40's follow-up), its slots render in a panel to the right of the info panel via {@link
@@ -61,7 +62,7 @@ import dev.gkissel.forgeweave.menu.PartBuilderRecipes;
  * side panels.
  */
 @EventBusSubscriber(modid = Forgeweave.MODID, bus = EventBusSubscriber.Bus.MOD, value = Dist.CLIENT)
-public class PartBuilderScreen extends AbstractContainerScreen<PartBuilderMenu> implements StationExtraAreas {
+public class PartBuilderScreen extends StationScreen<PartBuilderMenu> implements StationExtraAreas {
     private static final ResourceLocation TEXTURE =
             ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "textures/derived/gui/part_builder.png");
     private static final ResourceLocation ICONS =
@@ -206,12 +207,6 @@ public class PartBuilderScreen extends AbstractContainerScreen<PartBuilderMenu> 
             return true;
         }
         return super.mouseScrolled(mouseX, mouseY, scrollX, scrollY);
-    }
-
-    @Override
-    public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
-        super.render(graphics, mouseX, mouseY, partialTick);
-        renderTooltip(graphics, mouseX, mouseY);
     }
 
     /** Issue #68 fix 4: the info panel and side panel hang outside {@code imageWidth}; JEI has to be told. */

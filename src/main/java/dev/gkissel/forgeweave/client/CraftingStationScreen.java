@@ -35,11 +35,13 @@ import dev.gkissel.forgeweave.menu.ForgeweaveMenus;
  * <p>When an adjacent block exposes an item handler ({@code CraftingStationBlockEntity#findSideInventory}),
  * its slots render in a bordered panel to the right via {@link SideInventoryPanel} (shared with
  * {@link PartBuilderScreen}/{@link ToolStationScreen}'s own side panels, issue #40's follow-up).
- * {@link AbstractContainerScreen}'s default {@code render()} already calls {@code renderTooltip} for
- * hovered slots, so slot tooltips (including side-panel ones) work without any extra override here.
+ * <p>Item tooltips come from {@link StationScreen}, which owns the {@code render()} override that
+ * calls {@code renderTooltip}. This class used to claim {@link AbstractContainerScreen} did that on
+ * its own -- it does not, and issue #75 is the playtest report of the resulting screen with no hover
+ * text anywhere.
  */
 @EventBusSubscriber(modid = Forgeweave.MODID, bus = EventBusSubscriber.Bus.MOD, value = Dist.CLIENT)
-public class CraftingStationScreen extends AbstractContainerScreen<CraftingStationMenu> implements StationExtraAreas {
+public class CraftingStationScreen extends StationScreen<CraftingStationMenu> implements StationExtraAreas {
     private static final ResourceLocation TEXTURE = ResourceLocation.withDefaultNamespace("textures/gui/container/crafting_table.png");
     private static final int BASE_WIDTH = 176;
     private static final int BASE_HEIGHT = 166;

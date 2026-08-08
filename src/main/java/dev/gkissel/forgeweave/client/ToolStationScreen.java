@@ -73,8 +73,9 @@ import dev.gkissel.forgeweave.tool.ToolMaterials;
  * </ul>
  *
  * <p>{@link AbstractContainerScreen#render} does <em>not</em> call {@link #renderTooltip} on its
- * own -- every vanilla container screen overrides {@code render} to add it (issue #43 regression
- * fix, kept here); the {@code renderTooltip} override adds the sidebar buttons, which aren't slots.
+ * own (issue #43); that override now lives in {@link StationScreen}, shared by every station
+ * screen, because copying it per screen let the same defect reappear in three later ones (issue
+ * #75). The {@code renderTooltip} override below adds the sidebar buttons, which aren't slots.
  *
  * <p>When a neighboring block exposes an item handler ({@code ToolStationBlockEntity#findSideInventory},
  * issue #40's follow-up), its slots render in a panel to the right of the info panels via {@link
@@ -82,7 +83,7 @@ import dev.gkissel.forgeweave.tool.ToolMaterials;
  * side panels.
  */
 @EventBusSubscriber(modid = Forgeweave.MODID, bus = EventBusSubscriber.Bus.MOD, value = Dist.CLIENT)
-public class ToolStationScreen extends AbstractContainerScreen<ToolStationMenu> implements StationExtraAreas {
+public class ToolStationScreen extends StationScreen<ToolStationMenu> implements StationExtraAreas {
     private static final ResourceLocation TEXTURE =
             ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "textures/derived/gui/tool_station.png");
     private static final ResourceLocation ICONS =
@@ -112,8 +113,12 @@ public class ToolStationScreen extends AbstractContainerScreen<ToolStationMenu> 
     private static final int BEAM_CENTER_W = 129;
     private static final int BEAM_RIGHT_U = 131;
 
-    // Regions of icons.png. Buttons are Icons#ICON_Button and friends shifted to the wood style.
-    private static final int BUTTON_V = 180;
+    // Regions of icons.png. Buttons are Icons#ICON_Button and friends shifted to the wood style:
+    // upstream's ICON_Button is (180, 216) and the wood style is that row shifted +18y, so v = 234.
+    // Issue #75: this said 180 -- 54px too high, landing on a decorative plank tile with no button
+    // bevel -- which is why the tab buttons rendered as flat wooden squares. Same constant was wrong
+    // in StencilTableScreen; both are fixed together since both come from upstream's GuiSideButtons.
+    private static final int BUTTON_V = 234;
     private static final int BUTTON_IDLE_U = 180;
     private static final int BUTTON_HOVER_U = 216;
     private static final int BUTTON_PRESSED_U = 144;
@@ -434,12 +439,6 @@ public class ToolStationScreen extends AbstractContainerScreen<ToolStationMenu> 
 
     private static int buttonY(int index) {
         return BUTTONS_Y + (index / BUTTON_COLUMNS) * (BUTTON_SIZE + BUTTON_SPACING);
-    }
-
-    @Override
-    public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
-        super.render(graphics, mouseX, mouseY, partialTick);
-        renderTooltip(graphics, mouseX, mouseY);
     }
 
     /** Issue #68 fix 4: the tab sidebar, both info panels and the side panel all hang outside {@code imageWidth}. */
