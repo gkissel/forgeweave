@@ -8,6 +8,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import javax.annotation.Nullable;
 
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.block.model.BakedQuad;
 import net.minecraft.client.renderer.block.model.ItemOverrides;
@@ -15,7 +16,11 @@ import net.minecraft.client.renderer.block.model.ItemTransforms;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.client.resources.model.BakedModel;
 import net.minecraft.core.Direction;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.RandomSource;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
@@ -25,6 +30,7 @@ import net.neoforged.neoforge.client.model.IQuadTransformer;
 import net.neoforged.neoforge.client.model.data.ModelData;
 
 import dev.gkissel.forgeweave.block.WoodTexturedBlockEntity;
+import dev.gkissel.forgeweave.item.ForgeweaveDataComponents;
 
 /**
  * Wraps a table station's baked geometry (all quads baked against a default/oak sprite) and, when
@@ -39,6 +45,28 @@ public class RetexturedTableBakedModel implements IDynamicBakedModel {
     private final BakedModel base;
     private final TextureAtlasSprite defaultSprite;
     private final Map<CacheKey, List<BakedQuad>> cache = new ConcurrentHashMap<>();
+
+    /**
+     * Per-wood item-form model variants (issue #77), keyed by the resolved {@code texture} block so
+     * a wood is only ever wrapped once no matter how many stacks of it exist.
+     */
+    private final Map<Block, BakedModel> itemVariants = new ConcurrentHashMap<>();
+
+    private final ItemOverrides overrides = new ItemOverrides() {
+        @Nullable
+        @Override
+        public BakedModel resolve(BakedModel model, ItemStack stack, @Nullable ClientLevel level, @Nullable LivingEntity entity, int seed) {
+            ResourceLocation textureId = stack.get(ForgeweaveDataComponents.TEXTURE.get());
+            if (textureId == null) {
+                return model;
+            }
+            Block texture = BuiltInRegistries.BLOCK.getOptional(textureId).orElse(null);
+            if (texture == null || texture == Blocks.AIR) {
+                return model;
+            }
+            return itemVariants.computeIfAbsent(texture, ItemVariant::new);
+        }
+    };
 
     public RetexturedTableBakedModel(BakedModel base, TextureAtlasSprite defaultSprite) {
         this.base = base;
@@ -145,8 +173,69 @@ public class RetexturedTableBakedModel implements IDynamicBakedModel {
 
     @Override
     public ItemOverrides getOverrides() {
-        return base.getOverrides();
+        return overrides;
     }
 
     private record CacheKey(Block block, @Nullable Direction side) {}
+
+    /**
+     * The item-form model for one specific crafted wood (issue #77): item rendering calls {@code
+     * getQuads}/{@code getParticleIcon} with {@link ModelData#EMPTY} rather than the placed block
+     * entity's model data, so this fixes the requested wood in place of that empty data and delegates
+     * everything else to the outer {@link RetexturedTableBakedModel} -- reusing its existing
+     * per-(wood, side) quad cache and UV-remap logic rather than re-baking.
+     */
+    private final class ItemVariant implements IDynamicBakedModel {
+        private final ModelData data;
+
+        private ItemVariant(Block texture) {
+            this.data = WoodTexturedBlockEntity.modelData(texture);
+        }
+
+        @Override
+        public List<BakedQuad> getQuads(@Nullable BlockState state, @Nullable Direction side, RandomSource rand,
+                ModelData extraData, @Nullable RenderType renderType) {
+            return RetexturedTableBakedModel.this.getQuads(state, side, rand, data, renderType);
+        }
+
+        @Override
+        public TextureAtlasSprite getParticleIcon(ModelData extraData) {
+            return RetexturedTableBakedModel.this.getParticleIcon(data);
+        }
+
+        @Override
+        public boolean useAmbientOcclusion() {
+            return base.useAmbientOcclusion();
+        }
+
+        @Override
+        public boolean isGui3d() {
+            return base.isGui3d();
+        }
+
+        @Override
+        public boolean usesBlockLight() {
+            return base.usesBlockLight();
+        }
+
+        @Override
+        public boolean isCustomRenderer() {
+            return base.isCustomRenderer();
+        }
+
+        @Override
+        public TextureAtlasSprite getParticleIcon() {
+            return RetexturedTableBakedModel.this.getParticleIcon(data);
+        }
+
+        @Override
+        public ItemTransforms getTransforms() {
+            return base.getTransforms();
+        }
+
+        @Override
+        public ItemOverrides getOverrides() {
+            return ItemOverrides.EMPTY;
+        }
+    }
 }

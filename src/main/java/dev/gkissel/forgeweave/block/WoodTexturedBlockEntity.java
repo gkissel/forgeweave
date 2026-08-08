@@ -55,7 +55,7 @@ public interface WoodTexturedBlockEntity {
         Level level = blockEntity.getLevel();
         if (level != null) {
             blockEntity.requestModelDataUpdate();
-            if (level.isClientSide) {
+            if (!level.isClientSide) {
                 level.sendBlockUpdated(blockEntity.getBlockPos(), blockEntity.getBlockState(), blockEntity.getBlockState(), 3);
             }
         }

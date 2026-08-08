@@ -39,10 +39,16 @@ import dev.gkissel.forgeweave.trait.ForgeweaveTraits;
  * math in {@code ToolStats}, and {@code TinkersItem.java} for the repair math in
  * {@code ToolRepair}.
  */
-final class ToolAssemblyRecipes {
-    private record Entry(Supplier<? extends PartItem> headPart, Supplier<? extends ToolItem> tool) {}
+public final class ToolAssemblyRecipes {
+    /**
+     * Public, and {@link #ENTRIES} likewise, so {@code jei.AssemblyRecipes} can enumerate the exact
+     * head-part-to-tool table the station itself builds from instead of hand-copying it (issue #79:
+     * a hand-copy can update one and miss the other) -- same "expose the table, keep resolution
+     * package-private" pattern as {@link PartBuilderRecipes}'s public cost constants.
+     */
+    public record Entry(Supplier<? extends PartItem> headPart, Supplier<? extends ToolItem> tool) {}
 
-    private static final List<Entry> ENTRIES = List.of(
+    public static final List<Entry> ENTRIES = List.of(
             new Entry(ForgeweaveItems.PART_PICKAXE_HEAD, ForgeweaveItems.TOOL_PICKAXE),
             new Entry(ForgeweaveItems.PART_SHOVEL_HEAD, ForgeweaveItems.TOOL_SHOVEL),
             new Entry(ForgeweaveItems.PART_AXE_HEAD, ForgeweaveItems.TOOL_HATCHET));

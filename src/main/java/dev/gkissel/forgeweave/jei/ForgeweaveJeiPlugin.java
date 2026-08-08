@@ -105,11 +105,12 @@ public final class ForgeweaveJeiPlugin implements IModPlugin {
     }
 
     /**
-     * Recipe-click [+] transfer (docs/SCOPE.md M1 issue #40, extended to Tool Assembly by the same
-     * issue's follow-up): vanilla crafting recipes into the Crafting Station, Part Crafting recipes
-     * into the Part Builder, and Tool Assembly recipes into the Tool Station -- the last one also
-     * selects the recipe's tool tab first ({@link AssemblyTransferHandler}), since the tab decides
-     * where the input slots sit and what each one accepts.
+     * Recipe-click [+] transfer (docs/SCOPE.md M1 issue #40, extended to Tool Assembly and Tool
+     * Repair by that issue's follow-ups): vanilla crafting recipes into the Crafting Station, Part
+     * Crafting recipes into the Part Builder, and Tool Assembly/Repair recipes into the Tool Station
+     * -- the latter two also select the recipe's tool tab first ({@link AssemblyTransferHandler},
+     * {@link RepairTransferHandler}), since the tab decides where the input slots sit and what each
+     * one accepts.
      */
     @Override
     public void registerRecipeTransferHandlers(IRecipeTransferRegistration registration) {
@@ -122,6 +123,7 @@ public final class ForgeweaveJeiPlugin implements IModPlugin {
         registration.addRecipeTransferHandler(PartBuilderMenu.class, ForgeweaveMenus.PART_BUILDER.get(), PartCraftingCategory.TYPE, 0, 2, 4, 36);
 
         registration.addRecipeTransferHandler(new AssemblyTransferHandler(registration.getTransferHelper()), AssemblyCategory.TYPE);
+        registration.addRecipeTransferHandler(new RepairTransferHandler(registration.getTransferHelper()), RepairCategory.TYPE);
     }
 
     /** Empty (not an error) at the title screen, before any world is joined and materials are synced. */
