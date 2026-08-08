@@ -25,7 +25,7 @@ All part, assembly, and repair recipes are visible in JEI.
 | Tools (3) | pickaxe, shovel, hatchet |
 | Materials (4) | wood, stone, flint, bone — one Trait each |
 | Parts (5) | pickaxe head, shovel head, axe head, tool binding, tool handle |
-| Blocks (4) | Part Builder, Tool Station, Crafting Station, Stencil Table |
+| Blocks (6) | Part Builder, Tool Station, Crafting Station, Stencil Table, Pattern Chest, Part Chest |
 | Items | blank pattern + 5 part patterns + per-material shards |
 | UI (4) | Part Builder GUI, Tool Station GUI, Crafting Station GUI (each with an attached-chest side panel), Stencil Table GUI (pattern selection) |
 | Config | `allowVanillaEnchanting` (default `false`) |
