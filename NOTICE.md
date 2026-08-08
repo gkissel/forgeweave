@@ -72,6 +72,12 @@ One row per derived file (ADR-0003). Maintained in PR review: a PR introducing d
 | `src/main/java/dev/gkissel/forgeweave/jei/ForgeweaveJeiPlugin.java` (plugin structure: registering categories separately from recipes, pairing each station item with its recipe category as a recipe catalyst) | `src/main/java/com/possibletriangle/tinkersjei/TConstructModule.java` | `47240382a962caaae023bfd3051c7d05f62587b7` | MIT |
 | `src/main/java/dev/gkissel/forgeweave/jei/AssemblyRecipes.java` (showing a representative/cycling material set per tool type instead of enumerating every head x binding x handle combination) | `src/main/java/com/possibletriangle/tinkersjei/StatsWrapper.java`, `StatsCategory.java` | `47240382a962caaae023bfd3051c7d05f62587b7` | MIT |
 | `src/main/java/dev/gkissel/forgeweave/item/ToolTooltip.java` (compact-vs-Shift tooltip structure; green-to-red durability color formula) | `src/main/java/slimeknights/tconstruct/library/tinkering/TinkersItem.java` (`addInformation`), `src/main/java/slimeknights/tconstruct/library/tools/ToolCore.java` (`getTooltip`/`getInformation`/`getTooltipComponents`), `src/main/java/slimeknights/tconstruct/library/utils/TooltipBuilder.java`, `src/main/java/slimeknights/tconstruct/library/client/CustomFontColor.java` (`valueToColorCode`) | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
+| `src/main/resources/assets/forgeweave/models/block/crafting_station.json` (table element geometry) | `resources/assets/tconstruct/models/block/table.json` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
+| `src/main/java/dev/gkissel/forgeweave/block/CraftingStationBlock.java` (`TABLE_SHAPE` collision box shape) | `src/main/java/slimeknights/tconstruct/shared/block/TableBlock.java` | `de26560d26c15edf93e6078520202d1c0518394e` | MIT |
+| `src/main/java/dev/gkissel/forgeweave/data/ForgeweaveRecipeProvider.java` (Crafting Station block recipe shape) | `resources/assets/tconstruct/recipes/tools/table/crafting_station.json` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
+| `src/main/java/dev/gkissel/forgeweave/block/CraftingStationBlockEntity.java` (persistent 3x3 grid instead of vanilla's transient one; `findSideInventory`'s horizontal-neighbor scan for an item-handler block) | `src/main/java/slimeknights/tconstruct/tools/common/tileentity/TileCraftingStation.java`, `src/main/java/slimeknights/tconstruct/tools/common/inventory/ContainerCraftingStation.java` (neighbor scan), `src/main/java/slimeknights/tconstruct/tools/common/inventory/CraftingStationItemHandler.java` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
+| `src/main/java/dev/gkissel/forgeweave/menu/CraftingStationMenu.java` (grid + output + side-inventory slot composition; real `RecipeManager` resolution against the persistent grid) | `src/main/java/slimeknights/tconstruct/tools/common/inventory/ContainerCraftingStation.java`, `src/main/java/slimeknights/tconstruct/shared/inventory/InventoryCraftingPersistent.java` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
+| `src/main/java/dev/gkissel/forgeweave/jei/CraftingStationTransferInfo.java` (recipe slots = the 3x3 grid; inventory/fill-source slots = everything after the station's own slots, including the side inventory) | `src/main/java/slimeknights/tconstruct/plugin/jei/CraftingStationRecipeTransferInfo.java` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
 
 Each material JSON derives its stat values and tint color from that file; the Java that loads them is an
 independent reimplementation against NeoForge's datapack registry API and carries no row.
@@ -126,6 +132,24 @@ same order); this is a code change, not a new derived file, so it carries no row
 
 The `pattern.png` texture is shared by the blank pattern's item model and as the base every composite
 pattern PNG above is built from.
+
+The Crafting Station (issue #40) reuses issue #43's table-shape/wood-retexture machinery verbatim
+(`WoodTexturedBlockEntity`, `RetexturedTableGeometry`, `RetexturedShapedRecipe`) for family
+consistency with the Part Builder and Tool Station, rather than porting upstream's unique
+`craftingstation_top.png`/`craftingstation_side.png` block textures -- this project's own precedent
+already consolidates every table face onto one retexturing `#texture` slot (see the "Both stations"
+paragraph above), so there is no unique block art to derive and no new `textures/derived/block/`
+directory or block atlas entry is needed. Its crafting recipe (a vanilla crafting table, not a wood
+tag) means a crafted Crafting Station's `TEXTURE` component resolves to `minecraft:crafting_table`
+rather than a log/plank block -- CraftingStationBlock's javadoc covers this outcome.
+
+The Crafting Station's GUI background is vanilla's own `textures/gui/container/crafting_table.png`,
+referenced by resource location at render time rather than copied into `textures/derived/gui/`:
+upstream 1.12's `GuiCraftingStation` does exactly this too (no TinkersConstruct-original art of its
+own for this screen), so there is nothing to derive and no NOTICE.md row for it. The side-inventory
+panel (when an adjacent item-handler block is present) is composited at render time from repeated
+blits of that same texture's own crafting-grid slot tile rather than a second pre-baked image, since
+its slot count varies per placement -- see `CraftingStationScreen`.
 
 The two `jei/` rows above (issue #11) cite **`PssbleTrngle/TinkersJEI`**, a separate MIT-licensed
 repository from the TinkersConstruct clones the rest of this document cites -- docs/SCOPE.md names it

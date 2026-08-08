@@ -23,5 +23,10 @@ public final class ForgeweaveBlockEntities {
                     .of(ToolStationBlockEntity::new, ForgeweaveBlocks.TOOL_STATION.get())
                     .build(null));
 
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<CraftingStationBlockEntity>> CRAFTING_STATION =
+            BLOCK_ENTITIES.register("crafting_station", () -> BlockEntityType.Builder
+                    .of(CraftingStationBlockEntity::new, ForgeweaveBlocks.CRAFTING_STATION.get())
+                    .build(null));
+
     private ForgeweaveBlockEntities() {}
 }

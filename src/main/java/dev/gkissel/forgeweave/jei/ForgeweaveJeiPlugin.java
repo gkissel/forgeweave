@@ -11,14 +11,18 @@ import net.minecraft.resources.ResourceLocation;
 
 import mezz.jei.api.IModPlugin;
 import mezz.jei.api.JeiPlugin;
+import mezz.jei.api.constants.RecipeTypes;
 import mezz.jei.api.helpers.IGuiHelper;
 import mezz.jei.api.registration.IRecipeCatalystRegistration;
 import mezz.jei.api.registration.IRecipeCategoryRegistration;
 import mezz.jei.api.registration.IRecipeRegistration;
+import mezz.jei.api.registration.IRecipeTransferRegistration;
 
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.item.ForgeweaveItems;
 import dev.gkissel.forgeweave.material.Material;
+import dev.gkissel.forgeweave.menu.ForgeweaveMenus;
+import dev.gkissel.forgeweave.menu.PartBuilderMenu;
 
 /**
  * JEI integration (docs/SCOPE.md M1 issue #11): three display-only recipe categories -- part
@@ -79,6 +83,25 @@ public final class ForgeweaveJeiPlugin implements IModPlugin {
         // SMALL_PART_COST with no remainder), so it's as legitimate a "what can this craft" lookup
         // target as the station itself (issue #45's Part Crafting rework).
         registration.addRecipeCatalyst(ForgeweaveItems.SHARD.get(), PartCraftingCategory.TYPE);
+        registration.addRecipeCatalyst(ForgeweaveItems.CRAFTING_STATION.get(), RecipeTypes.CRAFTING);
+    }
+
+    /**
+     * Recipe-click [+] transfer (docs/SCOPE.md M1 issue #40): vanilla crafting recipes into the
+     * Crafting Station, and Part Crafting recipes into the Part Builder. Deliberately does *not*
+     * register a handler for the Tool Station/Assembly recipes -- that depends on the tab/dynamic
+     * slot-layout UI issue #47 is building for that screen; wiring transfer against today's fixed
+     * head/binding/handle slots would just need to be redone there.
+     */
+    @Override
+    public void registerRecipeTransferHandlers(IRecipeTransferRegistration registration) {
+        registration.addRecipeTransferHandler(new CraftingStationTransferInfo());
+
+        // Part Builder's pattern (slot 0) and material (slot 1) slots are contiguous and in the same
+        // order PartCraftingCategory lays its two input slots out in, and its player-inventory slots
+        // are the next contiguous 36 (PartBuilderMenu#layoutPlayerInventorySlots) -- exactly what the
+        // basic transfer handler needs, so no custom IRecipeTransferInfo is needed here.
+        registration.addRecipeTransferHandler(PartBuilderMenu.class, ForgeweaveMenus.PART_BUILDER.get(), PartCraftingCategory.TYPE, 0, 2, 4, 36);
     }
 
     /** Empty (not an error) at the title screen, before any world is joined and materials are synced. */

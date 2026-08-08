@@ -17,7 +17,6 @@ import net.minecraft.data.recipes.ShapedRecipeBuilder;
 import net.minecraft.data.recipes.ShapelessRecipeBuilder;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.ItemTags;
-import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -25,6 +24,7 @@ import net.minecraft.world.item.crafting.CraftingBookCategory;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.item.crafting.ShapedRecipePattern;
 import net.minecraft.world.level.ItemLike;
+import net.minecraft.world.level.block.Blocks;
 
 import net.neoforged.neoforge.registries.DeferredItem;
 
@@ -69,7 +69,7 @@ public class ForgeweaveRecipeProvider extends RecipeProvider {
 
         // Retextured (issue #43): the placed block keeps the appearance of whichever log was used,
         // via RetexturedShapedRecipe -- see that class's javadoc.
-        retexturedTableRecipe(recipeOutput, ForgeweaveItems.PART_BUILDER.get(), ForgeweaveItems.PATTERN_BLANK.get(), ItemTags.LOGS);
+        retexturedTableRecipe(recipeOutput, ForgeweaveItems.PART_BUILDER.get(), ForgeweaveItems.PATTERN_BLANK.get(), Ingredient.of(ItemTags.LOGS));
 
         patternConversion(recipeOutput, ForgeweaveItems.PATTERN_PICKAXE_HEAD, Items.WOODEN_PICKAXE, 1);
         patternConversion(recipeOutput, ForgeweaveItems.PATTERN_SHOVEL_HEAD, Items.WOODEN_SHOVEL, 1);
@@ -82,7 +82,15 @@ public class ForgeweaveRecipeProvider extends RecipeProvider {
         // instead crafts over the ore-dict "workbench" tag (a crafting table), which Forgeweave has
         // no equivalent of; using planks keeps this recipe visually and structurally consistent with
         // the Part Builder's, per the issue #10 brief.
-        retexturedTableRecipe(recipeOutput, ForgeweaveItems.TOOL_STATION.get(), ForgeweaveItems.PATTERN_BLANK.get(), ItemTags.PLANKS);
+        retexturedTableRecipe(recipeOutput, ForgeweaveItems.TOOL_STATION.get(), ForgeweaveItems.PATTERN_BLANK.get(), Ingredient.of(ItemTags.PLANKS));
+
+        // Crafting Station (docs/SCOPE.md M1 issue #40): same 1x2 family shape as the two stations
+        // above, but over a vanilla crafting table -- upstream's real crafting_station.json recipe
+        // *is* just a bare "any workbench" ore-dict ingredient (shapeless, no pattern), but folding it
+        // into the same "pattern + retextured ingredient" shape keeps all three station recipes
+        // structurally consistent (maintainer decision, matches the Tool Station precedent above of
+        // preferring family consistency over an upstream-literal ingredient).
+        retexturedTableRecipe(recipeOutput, ForgeweaveItems.CRAFTING_STATION.get(), ForgeweaveItems.PATTERN_BLANK.get(), Ingredient.of(Blocks.CRAFTING_TABLE));
     }
 
     private void patternConversion(RecipeOutput recipeOutput, DeferredItem<Item> result, Item marker, int markerCount) {
@@ -94,14 +102,14 @@ public class ForgeweaveRecipeProvider extends RecipeProvider {
     }
 
     /**
-     * A 1x2 "pattern over a wood tag" shaped recipe (same layout as the plain
-     * {@code ShapedRecipeBuilder} shape it replaces) whose result also carries the crafting-with
-     * wood block as a {@code TEXTURE} component (see {@link RetexturedShapedRecipe}).
+     * A 1x2 "pattern over a retexturing ingredient" shaped recipe (same layout as the plain
+     * {@code ShapedRecipeBuilder} shape it replaces) whose result also carries whichever ingredient
+     * was a {@code BlockItem} as a {@code TEXTURE} component (see {@link RetexturedShapedRecipe}).
      */
-    private void retexturedTableRecipe(RecipeOutput recipeOutput, ItemLike result, ItemLike patternItem, TagKey<Item> woodTag) {
+    private void retexturedTableRecipe(RecipeOutput recipeOutput, ItemLike result, ItemLike patternItem, Ingredient ingredient) {
         ResourceLocation id = BuiltInRegistries.ITEM.getKey(result.asItem());
         ShapedRecipePattern pattern = ShapedRecipePattern.of(
-                Map.of('A', Ingredient.of(patternItem), 'B', Ingredient.of(woodTag)), "A", "B");
+                Map.of('A', Ingredient.of(patternItem), 'B', ingredient), "A", "B");
         RetexturedShapedRecipe recipe =
                 new RetexturedShapedRecipe("", CraftingBookCategory.MISC, pattern, new ItemStack(result));
 

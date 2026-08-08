@@ -1,0 +1,32 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_pattern_blank": {
+      "conditions": {
+        "items": [
+          {
+            "items": "forgeweave:pattern_blank"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "forgeweave:crafting_station"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_the_recipe",
+      "has_pattern_blank"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "forgeweave:crafting_station"
+    ]
+  }
+}
