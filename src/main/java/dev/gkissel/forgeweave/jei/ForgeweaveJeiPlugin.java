@@ -23,10 +23,11 @@ import dev.gkissel.forgeweave.material.Material;
 /**
  * JEI integration (docs/SCOPE.md M1 issue #11): three display-only recipe categories -- part
  * crafting, tool assembly, and repair -- built from the same rules {@code menu.PartBuilderRecipes}
- * and {@code menu.ToolAssemblyRecipes} apply live at the stations. Those classes are package-private
- * to {@code menu}, so their small integer/mapping constants are re-declared in this package's
- * {@code *Recipes} builders rather than exposed cross-package, keeping this optional, JEI-only
- * package a one-way dependency on the mod (never the reverse).
+ * and {@code menu.ToolAssemblyRecipes} apply live at the stations. {@code PartBuilderRecipes} makes
+ * its cost constants and value math ({@code computeCost}, issue #45) {@code public} specifically so
+ * this package can reuse them instead of re-deriving; the pattern/part/tool wiring those classes keep
+ * package-private is re-declared here instead, since exposing it would widen the menu package's API
+ * for no reuse benefit. This package still only ever depends on the mod, never the reverse.
  *
  * <p>Materials are a datapack registry (ADR-0002), not a static Java list, so they are only known
  * once a world is joined and the server has synced them. JEI calls {@link #registerRecipes} again
@@ -74,6 +75,10 @@ public final class ForgeweaveJeiPlugin implements IModPlugin {
     public void registerRecipeCatalysts(IRecipeCatalystRegistration registration) {
         registration.addRecipeCatalyst(ForgeweaveItems.PART_BUILDER.get(), PartCraftingCategory.TYPE);
         registration.addRecipeCatalyst(ForgeweaveItems.TOOL_STATION.get(), AssemblyCategory.TYPE, RepairCategory.TYPE);
+        // A shard always pays a part's cost exactly (SHARD_VALUE divides both HEAD_COST and
+        // SMALL_PART_COST with no remainder), so it's as legitimate a "what can this craft" lookup
+        // target as the station itself (issue #45's Part Crafting rework).
+        registration.addRecipeCatalyst(ForgeweaveItems.SHARD.get(), PartCraftingCategory.TYPE);
     }
 
     /** Empty (not an error) at the title screen, before any world is joined and materials are synced. */

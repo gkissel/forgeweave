@@ -15,7 +15,12 @@ import mezz.jei.api.recipe.category.IRecipeCategory;
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.item.ForgeweaveItems;
 
-/** Part Builder recipes: pattern + material items -> part. Icon is the Part Builder block item. */
+/**
+ * Part Builder recipes: pattern + material input -> part + shard change (issue #45). Mirrors
+ * {@code menu.PartBuilderMenu}'s four slots (pattern, material, output, change) as a 2x2 grid; the
+ * material and change slots cycle together through every crafting-item option the material accepts.
+ * Icon is the Part Builder block item.
+ */
 final class PartCraftingCategory implements IRecipeCategory<PartCraftingRecipe> {
     static final RecipeType<PartCraftingRecipe> TYPE =
             RecipeType.create(Forgeweave.MODID, "part_crafting", PartCraftingRecipe.class);
@@ -59,8 +64,9 @@ final class PartCraftingCategory implements IRecipeCategory<PartCraftingRecipe> 
     @Override
     public void setRecipe(IRecipeLayoutBuilder builder, PartCraftingRecipe recipe, IFocusGroup focuses) {
         builder.addInputSlot(0, 0).addItemStack(recipe.pattern());
-        builder.addInputSlot(0, 20).addItemStack(recipe.material());
-        builder.addOutputSlot(WIDTH - 18, (HEIGHT - 18) / 2).addItemStack(recipe.result());
+        builder.addInputSlot(0, 20).addItemStacks(recipe.materialInputs());
+        builder.addOutputSlot(WIDTH - 18, 0).addItemStack(recipe.result());
+        builder.addOutputSlot(WIDTH - 18, 20).addItemStacks(recipe.changeOutputs());
     }
 
     @Override
