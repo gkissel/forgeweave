@@ -50,6 +50,8 @@ Create a GitHub environment named `release`. Add these repository or environment
 
 The built-in `GITHUB_TOKEN` creates the matching GitHub Release. Protecting the `release` environment with required reviewers adds a final approval gate before any external publication.
 
+Until the table above is configured, `release.yml` publishes to GitHub Releases alone: the workflow detects that Modrinth and CurseForge are unset and skips them rather than failing. A tag pushed with only some of the four values set still fails the workflow, since a half-configured platform is treated as a mistake, not an intentional skip.
+
 ## Publishing
 
 From the branch or commit being released:
