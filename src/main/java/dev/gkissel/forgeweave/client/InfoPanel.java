@@ -127,9 +127,9 @@ public final class InfoPanel {
 
     /**
      * Upstream keeps drawing while {@code y + textHeight - 0.5f <= lowerBound}, i.e. while the
-     * glyph box itself still fits under {@code guiTop + ySize - 5} -- so the last line may overhang
-     * the half-pixel of leading, and a panel fits one more line than {@code textHeight / 9.5} would
-     * suggest.
+     * <em>glyph box</em> still fits under {@code guiTop + ySize - 5} -- the trailing half-pixel of
+     * leading is allowed to overhang. So the last line fits whenever there is {@code FONT_HEIGHT}
+     * left, not a whole {@link #lineStep}, which is why this is not a plain division.
      */
     private static int visibleLines(Font font, int textHeight) {
         return textHeight < font.lineHeight ? 0 : (int) ((textHeight - font.lineHeight) / lineStep(font)) + 1;
