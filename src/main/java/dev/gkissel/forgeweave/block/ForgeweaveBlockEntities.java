@@ -28,5 +28,10 @@ public final class ForgeweaveBlockEntities {
                     .of(CraftingStationBlockEntity::new, ForgeweaveBlocks.CRAFTING_STATION.get())
                     .build(null));
 
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<StencilTableBlockEntity>> STENCIL_TABLE =
+            BLOCK_ENTITIES.register("stencil_table", () -> BlockEntityType.Builder
+                    .of(StencilTableBlockEntity::new, ForgeweaveBlocks.STENCIL_TABLE.get())
+                    .build(null));
+
     private ForgeweaveBlockEntities() {}
 }

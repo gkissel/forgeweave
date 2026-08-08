@@ -78,6 +78,11 @@ One row per derived file (ADR-0003). Maintained in PR review: a PR introducing d
 | `src/main/java/dev/gkissel/forgeweave/block/CraftingStationBlockEntity.java` (persistent 3x3 grid instead of vanilla's transient one; `findSideInventory`'s horizontal-neighbor scan for an item-handler block) | `src/main/java/slimeknights/tconstruct/tools/common/tileentity/TileCraftingStation.java`, `src/main/java/slimeknights/tconstruct/tools/common/inventory/ContainerCraftingStation.java` (neighbor scan), `src/main/java/slimeknights/tconstruct/tools/common/inventory/CraftingStationItemHandler.java` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
 | `src/main/java/dev/gkissel/forgeweave/menu/CraftingStationMenu.java` (grid + output + side-inventory slot composition; real `RecipeManager` resolution against the persistent grid) | `src/main/java/slimeknights/tconstruct/tools/common/inventory/ContainerCraftingStation.java`, `src/main/java/slimeknights/tconstruct/shared/inventory/InventoryCraftingPersistent.java` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
 | `src/main/java/dev/gkissel/forgeweave/jei/CraftingStationTransferInfo.java` (recipe slots = the 3x3 grid; inventory/fill-source slots = everything after the station's own slots, including the side inventory) | `src/main/java/slimeknights/tconstruct/plugin/jei/CraftingStationRecipeTransferInfo.java` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
+| `src/main/resources/assets/forgeweave/models/block/stencil_table.json` (table element geometry) | `resources/assets/tconstruct/models/block/table.json` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
+| `src/main/java/dev/gkissel/forgeweave/block/StencilTableBlock.java` (`TABLE_SHAPE` collision box shape) | `src/main/java/slimeknights/tconstruct/shared/block/TableBlock.java` | `de26560d26c15edf93e6078520202d1c0518394e` | MIT |
+| `src/main/resources/assets/forgeweave/textures/derived/gui/stencil_table.png` (cropped to the 176x166 panel region) | `resources/assets/tconstruct/textures/gui/stenciltable.png` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
+| `src/main/java/dev/gkissel/forgeweave/data/ForgeweaveRecipeProvider.java` (Stencil Table block recipe: blank pattern + planks) | `resources/assets/tconstruct/recipes/tools/table/stencil_table.json` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
+| `src/main/java/dev/gkissel/forgeweave/menu/StencilTableMenu.java` (input/output slot layout and coordinates; selecting a pattern determines the output, taking it consumes one blank pattern -- one-way) | `src/main/java/slimeknights/tconstruct/tools/common/inventory/ContainerStencilTable.java`, `src/main/java/slimeknights/tconstruct/tools/common/inventory/SlotStencil.java`, `src/main/java/slimeknights/tconstruct/tools/common/tileentity/TileStencilTable.java` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
 
 Each material JSON derives its stat values and tint color from that file; the Java that loads them is an
 independent reimplementation against NeoForge's datapack registry API and carries no row.
@@ -160,6 +165,32 @@ cycling material set instead of every combination), not code: `ForgeweaveJeiPlug
 package are written fresh against the modern API. Every other Forgeweave file in `jei/` (the
 `*Category`/`*Recipe`/`*Recipes` classes not rowed above) is fresh code with no upstream analog and
 carries no row.
+
+The Stencil Table (issue #44) reuses issue #43's table-shape/wood-retexture machinery verbatim
+(`WoodTexturedBlockEntity`, `RetexturedTableGeometry`, `RetexturedShapedRecipe`) for family
+consistency with the other three stations, same as the Crafting Station paragraph above -- its
+crafting recipe (blank pattern + planks) matches upstream's real `#STENCIL_TABLE` tag resolution
+(`plankWood`) exactly, so no maintainer deviation was needed for the recipe shape, unlike the Tool
+Station and Crafting Station recipes.
+
+Selecting a pattern (issue #44) is ported semantics, not copied code: upstream's `TinkerRegistry`
+dynamically registers one stencil-table candidate per material variant of each part pattern (since
+1.12 patterns carry an NBT material tag) and syncs the selection with a bespoke
+`StencilTableSelectionPacket`. Forgeweave's five part patterns are plain, material-less items
+(`ForgeweaveItems`), so `StencilTableMenu#PATTERNS` is a fixed, ordered list instead of a dynamic
+registry, and the selection syncs through the standard vanilla menu-button/`DataSlot` mechanism
+(`AbstractContainerMenu#clickMenuButton`, the same one `StonecutterMenu`/`LoomMenu` use) rather
+than a custom packet -- no NOTICE.md row for that substitution since it carries no upstream code.
+The five pattern-selection buttons in `StencilTableScreen` have no baked art to derive (upstream's
+`GuiButtonsStencilTable` draws them from its own button-icon sprite sheet, which isn't part of the
+cropped `stenciltable.png` panel), so they're drawn procedurally from `GuiGraphics` primitives
+instead, the same approach `CraftingStationScreen` uses for its side-inventory panel.
+
+The five blank-pattern-to-part-pattern vanilla-table conversion recipes issue #42 shipped in
+`ForgeweaveRecipeProvider` (blank + matching wooden tool/stick, shapeless) are removed by issue #44:
+the Stencil Table's GUI is now the only conversion path, matching upstream 1.12's real
+stencil-shaping flow (a dedicated GUI, not a vanilla-table recipe) instead of the vanilla-table
+stand-in #42 shipped before the Stencil Table existed.
 
 Tool tooltips (issue #54) port upstream 1.12's compact-by-default/Shift-for-detail structure
 (`TinkersItem#addInformation`) and its durability green-to-red color math (`CustomFontColor

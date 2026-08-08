@@ -27,5 +27,10 @@ public final class ForgeweaveMenus {
     public static final DeferredHolder<MenuType<?>, MenuType<CraftingStationMenu>> CRAFTING_STATION =
             MENUS.register("crafting_station", () -> IMenuTypeExtension.create(CraftingStationMenu::new));
 
+    // Same "no block position needs syncing" shape as PART_BUILDER/TOOL_STATION above; the selection
+    // state (issue #44) rides the menu's own DataSlot, not the open-menu packet.
+    public static final DeferredHolder<MenuType<?>, MenuType<StencilTableMenu>> STENCIL_TABLE =
+            MENUS.register("stencil_table", () -> IMenuTypeExtension.create((windowId, inventory, buf) -> new StencilTableMenu(windowId, inventory)));
+
     private ForgeweaveMenus() {}
 }

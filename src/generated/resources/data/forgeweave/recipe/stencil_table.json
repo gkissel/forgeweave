@@ -1,0 +1,20 @@
+{
+  "type": "forgeweave:retextured_shaped",
+  "category": "misc",
+  "key": {
+    "A": {
+      "item": "forgeweave:pattern_blank"
+    },
+    "B": {
+      "tag": "minecraft:planks"
+    }
+  },
+  "pattern": [
+    "A",
+    "B"
+  ],
+  "result": {
+    "count": 1,
+    "id": "forgeweave:stencil_table"
+  }
+}
