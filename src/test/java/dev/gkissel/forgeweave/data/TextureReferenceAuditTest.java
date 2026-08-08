@@ -43,7 +43,16 @@ import org.junit.jupiter.api.Test;
  */
 class TextureReferenceAuditTest {
 
-    private static final Pattern GUI_TEXTURE_LITERAL = Pattern.compile("\"(textures/[^\"]+\\.png)\"");
+    /**
+     * Only matches literals passed to {@code ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, ...)}
+     * -- the convention every forgeweave-owned GUI texture constant uses (see {@code PartBuilderScreen},
+     * {@code ToolStationScreen}, {@code StencilTableScreen}, {@code InfoPanel}). {@code CraftingStationScreen}
+     * (issue #40/#59) instead points at vanilla's own {@code textures/gui/container/crafting_table.png}
+     * via {@code ResourceLocation.withDefaultNamespace(...)}, deliberately -- there is no forgeweave asset
+     * to derive or audit for that path, so this pattern must not match it (or its javadoc mention).
+     */
+    private static final Pattern GUI_TEXTURE_LITERAL =
+            Pattern.compile("fromNamespaceAndPath\\(Forgeweave\\.MODID,\\s*\"(textures/[^\"]+\\.png)\"");
 
     /**
      * Prefixes the block atlas stitches by default, with no {@code atlases/blocks.json} of our own
