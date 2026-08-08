@@ -80,7 +80,10 @@ import dev.gkissel.forgeweave.tool.ToolMaterials;
  * <p>When a neighboring block exposes an item handler ({@code ToolStationBlockEntity#findSideInventory},
  * issue #40's follow-up), its slots render in a panel to the right of the info panels via {@link
  * SideInventoryPanel} -- shared with {@link CraftingStationScreen}/{@link PartBuilderScreen}'s own
- * side panels.
+ * side panels, which upstream instead puts on the <em>left</em>. This station keeps its on the
+ * right because the left is already its tab sidebar, and because upstream's Tool Station has no
+ * side inventory at all for the placement to be copied from (issue #79; see
+ * {@link ToolStationMenu#SIDE_PANEL_X}).
  */
 @EventBusSubscriber(modid = Forgeweave.MODID, bus = EventBusSubscriber.Bus.MOD, value = Dist.CLIENT)
 public class ToolStationScreen extends StationScreen<ToolStationMenu> implements StationExtraAreas {
@@ -147,9 +150,17 @@ public class ToolStationScreen extends StationScreen<ToolStationMenu> implements
     private static final int BUTTON_COLUMNS = 5;
     private static final int BUTTONS_Y = 9;
 
+    /**
+     * Upstream {@code GuiToolStation#initGui}: {@code buttons.xOffset = -2}, {@code toolInfo.xOffset
+     * = 2}, {@code toolInfo.yOffset = beamC.h + panelDecorationL.h} (7 + 4), {@code traitInfo.yOffset
+     * = toolInfo.yOffset + toolInfo.ySize + 4}. This is the one station upstream gives module offsets
+     * to -- see {@link PartBuilderScreen}/{@link StencilTableScreen}, which get none (issue #79).
+     */
     private static final int PANEL_GAP = 2;
     private static final int PANEL_TOP = 11;
     private static final int PANEL_SPACING = 4;
+    /** Upstream's {@code wood()} call in {@code GuiToolStation}'s constructor -- the only one in the mod. */
+    private static final InfoPanel.Style PANEL_STYLE = InfoPanel.Style.WOOD;
 
     private static final int NAME_FIELD_X = 70;
     private static final int NAME_FIELD_Y = 7;
@@ -414,9 +425,10 @@ public class ToolStationScreen extends StationScreen<ToolStationMenu> implements
         int x = leftPos + BASE_WIDTH + PANEL_GAP;
         int top = topPos + PANEL_TOP;
         beam(graphics, x - BEAM_END_W, topPos, InfoPanel.WIDTH);
-        InfoPanel.render(graphics, font, x, top, InfoPanel.WIDTH, InfoPanel.HEIGHT, toolCaption, toolLines, toolScroll);
+        InfoPanel.render(graphics, font, x, top, InfoPanel.WIDTH, InfoPanel.HEIGHT,
+                PANEL_STYLE, toolCaption, toolLines, toolScroll);
         InfoPanel.render(graphics, font, x, top + InfoPanel.HEIGHT + PANEL_SPACING,
-                InfoPanel.WIDTH, InfoPanel.HEIGHT, traitCaption, traitLines, traitScroll);
+                InfoPanel.WIDTH, InfoPanel.HEIGHT, PANEL_STYLE, traitCaption, traitLines, traitScroll);
     }
 
     /** Upstream's horizontal beam that visually ties a side module to the main panel. */
@@ -441,14 +453,20 @@ public class ToolStationScreen extends StationScreen<ToolStationMenu> implements
         return BUTTONS_Y + (index / BUTTON_COLUMNS) * (BUTTON_SIZE + BUTTON_SPACING);
     }
 
-    /** Issue #68 fix 4: the tab sidebar, both info panels and the side panel all hang outside {@code imageWidth}. */
+    /**
+     * Issue #68 fix 4: the tab sidebar, both info panels and the side panel all hang outside {@code
+     * imageWidth}. Issue #79: each of the first two is also topped by a {@link #beam}, which starts
+     * {@link #BEAM_END_W} left of the module and ends the same distance past its right edge -- so
+     * both rectangles are 2px wider on each side than the module they cover, or JEI draws its item
+     * list over the beam end-caps.
+     */
     @Override
     public List<Rect2i> extraGuiAreas() {
         List<Rect2i> areas = new ArrayList<>(3);
-        areas.add(new Rect2i(leftPos + buttonX(0), topPos, sidebarWidth(),
+        areas.add(new Rect2i(leftPos + buttonX(0) - BEAM_END_W, topPos, sidebarWidth() + BEAM_END_W * 2,
                 buttonY(ToolStationTabs.TABS.size() - 1) + BUTTON_SIZE));
-        areas.add(new Rect2i(leftPos + BASE_WIDTH + PANEL_GAP, topPos,
-                InfoPanel.WIDTH, PANEL_TOP + InfoPanel.HEIGHT * 2 + PANEL_SPACING));
+        areas.add(new Rect2i(leftPos + BASE_WIDTH + PANEL_GAP - BEAM_END_W, topPos,
+                InfoPanel.WIDTH + BEAM_END_W * 2, PANEL_TOP + InfoPanel.HEIGHT * 2 + PANEL_SPACING));
         if (!menu.sideSlots.isEmpty()) {
             areas.add(sidePanel.bounds());
         }

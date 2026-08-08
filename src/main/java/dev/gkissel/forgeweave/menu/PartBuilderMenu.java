@@ -49,12 +49,15 @@ public class PartBuilderMenu extends AbstractContainerMenu {
     public static final int CHANGE_SLOT = 3;
 
     /**
-     * Side-panel layout (issue #40's follow-up): positioned just right of the 176px-wide base panel
-     * and the info panel next to it -- {@code 176 (base) + 2 (gap) + 126 (client.InfoPanel#WIDTH,
-     * mirrored rather than referenced: the menu package can't depend on the client package) + 2 (gap)}.
+     * Side-panel layout (issue #40's follow-up). Upstream's {@code GuiPartBuilder} builds its
+     * {@code GuiSideInventory} with the two-arg constructor, i.e. {@code rightSide = false}, so the
+     * pattern chest's slots hang off the <em>left</em> edge with their first row at the frame
+     * ({@code yOffset = 0}) -- the right-hand side is where its single info panel goes. Issue #79:
+     * this used to sit right of the info panel and 5px inside it. Geometry is
+     * {@link SideInventorySlots}'s.
      */
-    public static final int SIDE_PANEL_X = 176 + 2 + 126 + 2;
-    public static final int SIDE_PANEL_Y = 17;
+    public static final int SIDE_PANEL_X = SideInventorySlots.LEFT_SLOT_X;
+    public static final int SIDE_PANEL_Y = SideInventorySlots.SLOT_Y;
 
     private final Container container;
     private final ContainerLevelAccess access;

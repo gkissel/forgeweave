@@ -65,9 +65,12 @@ public class RetexturedTableBakedModel implements IDynamicBakedModel {
     }
 
     /**
-     * Only quads baked against {@link #defaultSprite} -- i.e. the model's {@code #texture} slot
-     * (the legs/frame/underside) -- get remapped. Upstream tables keep their own top art (the
-     * {@code #top} slot) regardless of crafting wood, so quads baked with any other sprite pass
+     * Only quads baked against {@link #defaultSprite} get remapped -- i.e. the model's {@code
+     * #texture}, {@code #bottom} and {@code #legBottom} slots, which every station JSON points at
+     * the same default wood precisely so this identity check catches all three. Those are upstream's
+     * own retexture set ({@code BakedTableModel#getActualModel} rebuilds {@code bottom}/{@code
+     * leg}/{@code legBottom}); its tables keep their own top art and rim trim (the {@code #top} and
+     * {@code #side} slots) regardless of crafting wood, so quads baked with any other sprite pass
      * through untouched (issue #43 regression: the first cut retextured every quad, including the
      * station's own top decal).
      */

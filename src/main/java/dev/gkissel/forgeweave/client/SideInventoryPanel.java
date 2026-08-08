@@ -14,7 +14,8 @@ import dev.gkissel.forgeweave.menu.SideInventorySlots.SideSlot;
 /**
  * Shared side-inventory panel rendering for the three stations that show a neighboring block's items
  * in a GUI side panel (docs/SCOPE.md issue #40, extended from the Crafting Station to the Part
- * Builder and Tool Station in the same issue's follow-up).
+ * Builder and Tool Station in the same issue's follow-up). Which side it hangs off is the calling
+ * menu's {@code SIDE_PANEL_X}, negative for upstream's left-hand placement.
  *
  * <p>Issue #68 fix 3 rebuilt this as upstream 1.12's {@code GuiSideInventory} module: a nine-sliced
  * border from {@code textures/gui/generic.png} (NOTICE.md) around a six-column grid of that same
@@ -35,7 +36,7 @@ final class SideInventoryPanel {
     private static final ResourceLocation TEXTURE =
             ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "textures/derived/gui/generic.png");
     private static final int SHEET = 64;
-    private static final int BORDER = 7;
+    private static final int BORDER = SideInventorySlots.BORDER;
     private static final int SLOT = SideInventorySlots.SLOT_SIZE;
     private static final int COLUMNS = SideInventorySlots.COLUMNS;
     private static final int SLOT_U = 7;
@@ -77,10 +78,13 @@ final class SideInventoryPanel {
         int visibleRows = visibleRows(totalRows, parentHeight);
         scrollRow = Math.clamp(scrollRow, 0, totalRows - visibleRows);
 
-        int width = COLUMNS * SLOT + BORDER * 2;
+        int width = SideInventorySlots.PANEL_WIDTH;
         int height = visibleRows * SLOT + BORDER * 2;
-        int x = leftPos + slotX - BORDER;
-        int y = topPos + slotY - BORDER;
+        // Issue #79: the panel corner is SLOT_INSET (= BORDER + 1) out from the first slot, not
+        // BORDER. generic.png's 18x18 slot tile is a 1px bevel wrapped around a 16x16 socket, so
+        // laying tiles flush with the slots left every item one pixel up and left of its socket.
+        int x = leftPos + slotX - SideInventorySlots.SLOT_INSET;
+        int y = topPos + slotY - SideInventorySlots.SLOT_INSET;
         bounds = new Rect2i(x, y, width, height);
 
         renderBorder(graphics, x, y, width, height);

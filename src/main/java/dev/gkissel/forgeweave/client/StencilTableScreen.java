@@ -64,8 +64,15 @@ public class StencilTableScreen extends StationScreen<StencilTableMenu> implemen
     private static final int BUTTON_COLUMNS = 4;
     private static final int BUTTON_SIZE = 18;
     private static final int BUTTON_SPACING = 4;
-    private static final int BUTTONS_Y = 9;
-    private static final int PANEL_GAP = 2;
+    /**
+     * Issue #79: both of these were 9/2, copied from {@link ToolStationScreen}. Those are that
+     * station's own {@code buttons.yOffset = beamC.h + buttonDecorationTop.h} and {@code xOffset =
+     * -2}, set in {@code GuiToolStation#initGui} to clear its beam and slot-space decorations.
+     * {@code GuiStencilTable} sets neither, so its sidebar sits flush against the panel's left edge
+     * at the panel's own top.
+     */
+    private static final int BUTTONS_Y = 0;
+    private static final int PANEL_GAP = 0;
 
     /**
      * Regions of icons.png. Upstream {@code Icons} puts its buttons at {@code ICON_Button = (180,

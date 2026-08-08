@@ -57,9 +57,11 @@ import dev.gkissel.forgeweave.menu.PartBuilderRecipes;
  * three later ones (issue #75).
  *
  * <p>When a neighboring block exposes an item handler ({@code PartBuilderBlockEntity#findSideInventory},
- * issue #40's follow-up), its slots render in a panel to the right of the info panel via {@link
- * SideInventoryPanel} -- shared with {@link CraftingStationScreen}/{@link ToolStationScreen}'s own
- * side panels.
+ * issue #40's follow-up), its slots render in a panel off the station's <em>left</em> edge via
+ * {@link SideInventoryPanel} -- where upstream's {@code GuiPartBuilder} puts its pattern chest,
+ * the right-hand side being taken by the info panel. Shared with {@link CraftingStationScreen}/
+ * {@link ToolStationScreen}'s own side panels; {@link dev.gkissel.forgeweave.menu.PartBuilderMenu}
+ * owns the coordinates.
  */
 @EventBusSubscriber(modid = Forgeweave.MODID, bus = EventBusSubscriber.Bus.MOD, value = Dist.CLIENT)
 public class PartBuilderScreen extends StationScreen<PartBuilderMenu> implements StationExtraAreas {
@@ -77,10 +79,17 @@ public class PartBuilderScreen extends StationScreen<PartBuilderMenu> implements
     private static final int[] SLOT_ICON_V = {216, 234, -1, 216};
     private static final int ICON_SIZE = 18;
 
-    private static final int PANEL_GAP = 2;
+    /**
+     * Upstream's {@code GuiPartBuilder} never touches its info panel's {@code xOffset}/{@code
+     * yOffset} -- only {@code GuiToolStation} does, to clear its beam and panel decorations. Issue
+     * #79: this station had picked up the Tool Station's 2px gap, which is not upstream's.
+     */
+    private static final int PANEL_GAP = 0;
     private static final int PANEL_TOP = 0;
-    /** Upstream gives this station's single panel the full GUI height. */
+    /** Upstream gives this station's single panel the full GUI height ({@code info.ySize = this.ySize}). */
     private static final int PANEL_HEIGHT = BASE_HEIGHT;
+    /** Upstream leaves {@code GuiPartBuilder}'s panel on the default dark frame; only the Tool Station calls {@code wood()}. */
+    private static final InfoPanel.Style PANEL_STYLE = InfoPanel.Style.DEFAULT;
     private static final int MATERIAL_VALUE_Y = 63;
 
     @Nullable
@@ -161,7 +170,7 @@ public class PartBuilderScreen extends StationScreen<PartBuilderMenu> implements
         renderSlotIcons(graphics);
         renderMaterialValue(graphics);
         InfoPanel.render(graphics, font, leftPos + BASE_WIDTH + PANEL_GAP, topPos + PANEL_TOP,
-                InfoPanel.WIDTH, PANEL_HEIGHT, caption, lines, scroll);
+                InfoPanel.WIDTH, PANEL_HEIGHT, PANEL_STYLE, caption, lines, scroll);
         sidePanel.render(graphics, menu, leftPos, topPos, imageHeight, menu.sideSlots);
     }
 

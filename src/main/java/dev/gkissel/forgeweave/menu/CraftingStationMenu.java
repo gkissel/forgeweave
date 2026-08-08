@@ -57,9 +57,16 @@ public class CraftingStationMenu extends AbstractContainerMenu {
     public static final int CONTAINER_SLOTS = GRID_SLOTS + 1;
     private static final int OUTPUT_SLOT = GRID_SLOTS;
 
-    /** Side-panel layout (issue #40): positioned just right of the 176px-wide base panel; columns/slot size are {@link SideInventorySlots}'s. */
-    public static final int SIDE_PANEL_X = 176 + 4;
-    public static final int SIDE_PANEL_Y = 17;
+    /**
+     * Side-panel layout (issue #40). Upstream's {@code GuiCraftingStation} builds its {@code
+     * GuiSideInventory} with the two-arg constructor, i.e. {@code rightSide = false}, so the panel
+     * hangs off the <em>left</em> edge of the crafting panel with its first slot row at the frame
+     * ({@code yOffset = 0}). Issue #79: this used to sit on the right at {@code 176 + 4}, which put
+     * the panel's frame 3px <em>inside</em> the 176-wide crafting background it was supposed to
+     * abut. Geometry constants are {@link SideInventorySlots}'s.
+     */
+    public static final int SIDE_PANEL_X = SideInventorySlots.LEFT_SLOT_X;
+    public static final int SIDE_PANEL_Y = SideInventorySlots.SLOT_Y;
 
     private final Container container;
     private final ContainerLevelAccess access;
