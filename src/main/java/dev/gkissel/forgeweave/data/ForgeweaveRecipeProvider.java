@@ -84,6 +84,30 @@ public class ForgeweaveRecipeProvider extends RecipeProvider {
         // retexturing ingredient" shape while matching upstream exactly (no maintainer deviation
         // needed here, unlike the Tool Station/Crafting Station rows above).
         retexturedTableRecipe(recipeOutput, ForgeweaveItems.STENCIL_TABLE.get(), ForgeweaveItems.PATTERN_BLANK.get(), Ingredient.of(ItemTags.PLANKS));
+
+        // Pattern Chest (docs/SCOPE.md M1 issue #66): upstream's real pattern.json is a blank
+        // pattern stacked directly on a vanilla chest -- ported verbatim (NOTICE.md); no
+        // RetexturedShapedRecipe here since ChestBlock carries no TEXTURE component.
+        ShapedRecipeBuilder.shaped(RecipeCategory.MISC, ForgeweaveItems.PATTERN_CHEST.get())
+                .pattern("A")
+                .pattern("B")
+                .define('A', ForgeweaveItems.PATTERN_BLANK.get())
+                .define('B', Items.CHEST)
+                .unlockedBy("has_pattern_blank", has(ForgeweaveItems.PATTERN_BLANK.get()))
+                .save(recipeOutput);
+
+        // Part Chest (docs/SCOPE.md M1 issue #66): upstream's real part.json shape (a blank pattern
+        // over a chest flanked by sticks, with a plank below) -- ported verbatim (NOTICE.md).
+        ShapedRecipeBuilder.shaped(RecipeCategory.MISC, ForgeweaveItems.PART_CHEST.get())
+                .pattern(" A ")
+                .pattern("BCB")
+                .pattern(" D ")
+                .define('A', ForgeweaveItems.PATTERN_BLANK.get())
+                .define('B', Items.STICK)
+                .define('C', Items.CHEST)
+                .define('D', ItemTags.PLANKS)
+                .unlockedBy("has_pattern_blank", has(ForgeweaveItems.PATTERN_BLANK.get()))
+                .save(recipeOutput);
     }
 
     /**

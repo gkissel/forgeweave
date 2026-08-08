@@ -1,0 +1,8 @@
+{
+  "parent": "minecraft:block/orientable",
+  "textures": {
+    "front": "forgeweave:derived/block/pattern_chest_front",
+    "side": "forgeweave:derived/block/pattern_chest_side",
+    "top": "forgeweave:derived/block/pattern_chest_top"
+  }
+}

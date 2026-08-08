@@ -91,6 +91,14 @@ One row per derived file (ADR-0003). Maintained in PR review: a PR introducing d
 | `src/main/resources/assets/forgeweave/textures/derived/gui/stencil_table.png` (cropped to the 176x166 panel region) | `resources/assets/tconstruct/textures/gui/stenciltable.png` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
 | `src/main/java/dev/gkissel/forgeweave/data/ForgeweaveRecipeProvider.java` (Stencil Table block recipe: blank pattern + planks) | `resources/assets/tconstruct/recipes/tools/table/stencil_table.json` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
 | `src/main/java/dev/gkissel/forgeweave/menu/StencilTableMenu.java` (input/output slot layout and coordinates; selecting a pattern determines the output, taking it consumes one blank pattern -- one-way) | `src/main/java/slimeknights/tconstruct/tools/common/inventory/ContainerStencilTable.java`, `src/main/java/slimeknights/tconstruct/tools/common/inventory/SlotStencil.java`, `src/main/java/slimeknights/tconstruct/tools/common/tileentity/TileStencilTable.java` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
+| `src/main/resources/assets/forgeweave/textures/derived/block/pattern_chest_front.png` | `resources/assets/tconstruct/textures/blocks/chest/pattern_front.png` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
+| `src/main/resources/assets/forgeweave/textures/derived/block/pattern_chest_side.png` | `resources/assets/tconstruct/textures/blocks/chest/pattern_side.png` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
+| `src/main/resources/assets/forgeweave/textures/derived/block/pattern_chest_top.png` | `resources/assets/tconstruct/textures/blocks/chest/pattern_top.png` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
+| `src/main/resources/assets/forgeweave/textures/derived/block/part_chest_front.png` | `resources/assets/tconstruct/textures/blocks/chest/part_front.png` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
+| `src/main/resources/assets/forgeweave/textures/derived/block/part_chest_side.png` | `resources/assets/tconstruct/textures/blocks/chest/part_side.png` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
+| `src/main/resources/assets/forgeweave/textures/derived/block/part_chest_top.png` | `resources/assets/tconstruct/textures/blocks/chest/part_top.png` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
+| `src/main/java/dev/gkissel/forgeweave/data/ForgeweaveRecipeProvider.java` (Pattern Chest recipe shape: blank pattern over a vanilla chest) | `resources/assets/tconstruct/recipes/tools/table/chest/pattern.json` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
+| `src/main/java/dev/gkissel/forgeweave/data/ForgeweaveRecipeProvider.java` (Part Chest recipe shape: blank pattern + 2 sticks over a vanilla chest, plank below) | `resources/assets/tconstruct/recipes/tools/table/chest/part.json` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
 
 Each material JSON derives its stat values and tint color from that file; the Java that loads them is an
 independent reimplementation against NeoForge's datapack registry API and carries no row.
@@ -220,6 +228,29 @@ The five blank-pattern-to-part-pattern vanilla-table conversion recipes issue #4
 the Stencil Table's GUI is now the only conversion path, matching upstream 1.12's real
 stencil-shaping flow (a dedicated GUI, not a vanilla-table recipe) instead of the vanilla-table
 stand-in #42 shipped before the Stencil Table existed.
+
+The Pattern Chest and Part Chest (issue #66) port upstream 1.12's `TilePatternChest`/`TilePartChest`
+filter semantics (`isItemValidForSlot`, NOTICE.md rows above cite the block textures and recipe
+shapes; the filter logic itself is ported semantics, not copied code, so it carries no additional
+row) with two deliberate M1 simplifications, both called out in the issue #66 brief itself:
+
+- **Block shape**: a plain facing-aware cube (vanilla `orientable` front/side/top model, the same
+  shape furnaces use) instead of upstream's table-with-drawers geometry (`models/block/
+  patternchest.json`: legs, a drawer front/back, and handles on the same 1x1 footprint). The
+  upstream chest textures above are reused on the plain cube's front/side/top faces; the
+  drawer-specific texture regions (`*_drawer_front.png`/`*_drawer_side.png`) have no cube face to
+  map onto and are not derived.
+- **Capacity**: a fixed 54-slot (6x9, double-chest-sized) grid instead of upstream's `TileTinkerChest`
+  virtual list (up to 256 items behind a GUI window that dynamically grows/shrinks with content,
+  `GuiScalingChest`). `ChestBlockEntity`'s javadoc covers the reasoning; `ChestScreen` reuses vanilla's
+  own double-chest `generic_54.png` background rather than cropping upstream's chest GUI art, which is
+  drawn for that dynamic window and has no matching fixed-grid panel to crop.
+
+Upstream's Pattern Chest additionally accepts `ICast` items ("cast chest" mode) -- Forgeweave has no
+smeltery/casting system in scope yet, so that branch, and the "no duplicate item across slots"
+polish upstream's `isItemValidForSlot` also applies to both chests, are not ported; a chest here can
+hold multiple stacks of the same pattern/part across different slots, which is a strict superset of
+what upstream allowed rather than a capability gap.
 
 Tool tooltips (issue #54) port upstream 1.12's compact-by-default/Shift-for-detail structure
 (`TinkersItem#addInformation`) and its durability green-to-red color math (`CustomFontColor

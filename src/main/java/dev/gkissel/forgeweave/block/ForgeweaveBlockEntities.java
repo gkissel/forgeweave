@@ -33,5 +33,17 @@ public final class ForgeweaveBlockEntities {
                     .of(StencilTableBlockEntity::new, ForgeweaveBlocks.STENCIL_TABLE.get())
                     .build(null));
 
+    // docs/SCOPE.md M1 issue #66. Two BlockEntityType registrations sharing one ChestBlockEntity
+    // class (see ChestKind's javadoc for why): each factory bakes in which ChestKind it builds.
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<ChestBlockEntity>> PATTERN_CHEST =
+            BLOCK_ENTITIES.register("pattern_chest", () -> BlockEntityType.Builder
+                    .of((pos, state) -> new ChestBlockEntity(pos, state, ChestKind.PATTERN), ForgeweaveBlocks.PATTERN_CHEST.get())
+                    .build(null));
+
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<ChestBlockEntity>> PART_CHEST =
+            BLOCK_ENTITIES.register("part_chest", () -> BlockEntityType.Builder
+                    .of((pos, state) -> new ChestBlockEntity(pos, state, ChestKind.PART), ForgeweaveBlocks.PART_CHEST.get())
+                    .build(null));
+
     private ForgeweaveBlockEntities() {}
 }

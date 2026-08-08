@@ -9,6 +9,7 @@ import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.config.ModConfig;
 import net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent;
+import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.server.ServerStartedEvent;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
@@ -16,6 +17,7 @@ import net.neoforged.neoforge.registries.DataPackRegistryEvent;
 
 import net.minecraft.core.Registry;
 
+import dev.gkissel.forgeweave.block.ChestBlockEntity;
 import dev.gkissel.forgeweave.block.ForgeweaveBlockEntities;
 import dev.gkissel.forgeweave.block.ForgeweaveBlocks;
 import dev.gkissel.forgeweave.config.ForgeweaveConfig;
@@ -48,6 +50,9 @@ public class Forgeweave {
         modEventBus.addListener(this::registerDataPackRegistries);
         modEventBus.addListener(this::commonSetup);
         modEventBus.addListener(this::registerPayloads);
+        // The Pattern Chest/Part Chest (issue #66) expose their inventory as an IItemHandler so
+        // adjacent stations' side-inventory panels pick them up (SideInventory#find).
+        modEventBus.addListener(ChestBlockEntity::registerCapabilities);
         modEventBus.addListener(ForgeweaveDataGenerators::gatherData);
         NeoForge.EVENT_BUS.addListener(this::onServerStarted);
         // Traits that key off what is being hit have no Item hook to live in (see ForgeweaveTraits).

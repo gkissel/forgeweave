@@ -11,7 +11,8 @@ import dev.gkissel.forgeweave.Forgeweave;
 
 /**
  * Forgeweave's blocks: the Part Builder (docs/SCOPE.md M1 issue #9), Tool Station (issue #10),
- * Crafting Station (issue #40), and Stencil Table (issue #44).
+ * Crafting Station (issue #40), Stencil Table (issue #44), and the Pattern Chest/Part Chest
+ * (issue #66).
  */
 public final class ForgeweaveBlocks {
     public static final DeferredRegister.Blocks BLOCKS = DeferredRegister.createBlocks(Forgeweave.MODID);
@@ -39,6 +40,18 @@ public final class ForgeweaveBlocks {
                     .mapColor(MapColor.WOOD)
                     .strength(2.5F)
                     .sound(SoundType.WOOD)));
+
+    public static final DeferredBlock<ChestBlock> PATTERN_CHEST = BLOCKS.register("pattern_chest",
+            () -> new ChestBlock(BlockBehaviour.Properties.of()
+                    .mapColor(MapColor.WOOD)
+                    .strength(2.5F)
+                    .sound(SoundType.WOOD), ChestKind.PATTERN));
+
+    public static final DeferredBlock<ChestBlock> PART_CHEST = BLOCKS.register("part_chest",
+            () -> new ChestBlock(BlockBehaviour.Properties.of()
+                    .mapColor(MapColor.WOOD)
+                    .strength(2.5F)
+                    .sound(SoundType.WOOD), ChestKind.PART));
 
     private ForgeweaveBlocks() {}
 }

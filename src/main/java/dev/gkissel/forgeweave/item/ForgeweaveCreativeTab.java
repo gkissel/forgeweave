@@ -43,6 +43,8 @@ public final class ForgeweaveCreativeTab {
         output.accept(ForgeweaveItems.TOOL_STATION.get());
         output.accept(ForgeweaveItems.CRAFTING_STATION.get());
         output.accept(ForgeweaveItems.STENCIL_TABLE.get());
+        output.accept(ForgeweaveItems.PATTERN_CHEST.get());
+        output.accept(ForgeweaveItems.PART_CHEST.get());
         output.accept(ForgeweaveItems.PATTERN_BLANK.get());
         output.accept(ForgeweaveItems.PATTERN_PICKAXE_HEAD.get());
         output.accept(ForgeweaveItems.PATTERN_SHOVEL_HEAD.get());

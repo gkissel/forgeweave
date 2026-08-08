@@ -1,6 +1,8 @@
 {
   "block.forgeweave.crafting_station": "Crafting Station",
   "block.forgeweave.part_builder": "Part Builder",
+  "block.forgeweave.part_chest": "Part Chest",
+  "block.forgeweave.pattern_chest": "Pattern Chest",
   "block.forgeweave.stencil_table": "Stencil Table",
   "block.forgeweave.tool_station": "Tool Station",
   "gui.forgeweave.part_builder.cost": "Cost: %s",
