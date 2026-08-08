@@ -5,16 +5,9 @@ import java.util.function.Consumer;
 
 import org.jetbrains.annotations.Nullable;
 
-import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.HolderLookup;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.MutableComponent;
-import net.minecraft.network.chat.Style;
-import net.minecraft.network.chat.TextColor;
-import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.tags.TagKey;
@@ -35,7 +28,6 @@ import net.minecraft.world.level.block.state.BlockState;
 
 import dev.gkissel.forgeweave.config.ForgeweaveConfig;
 import dev.gkissel.forgeweave.material.Material;
-import dev.gkissel.forgeweave.tool.ToolMaterials;
 import dev.gkissel.forgeweave.tool.ToolStats;
 import dev.gkissel.forgeweave.trait.ForgeweaveTraits;
 
@@ -128,14 +120,12 @@ public class ToolItem extends Item {
      */
     @Override
     public ItemAttributeModifiers getDefaultAttributeModifiers(ItemStack stack) {
-        ToolStats.Stats stats = stack.get(ForgeweaveDataComponents.TOOL_STATS.get());
-        if (stats == null || isBroken(stack)) {
+        if (stack.get(ForgeweaveDataComponents.TOOL_STATS.get()) == null || isBroken(stack)) {
             return ItemAttributeModifiers.EMPTY;
         }
         return ItemAttributeModifiers.builder()
                 .add(Attributes.ATTACK_DAMAGE,
-                        new AttributeModifier(BASE_ATTACK_DAMAGE_ID,
-                                stats.attackDamage() * damagePotential + ForgeweaveTraits.attackDamageBonus(stack),
+                        new AttributeModifier(BASE_ATTACK_DAMAGE_ID, attackDamage(stack),
                                 AttributeModifier.Operation.ADD_VALUE),
                         EquipmentSlotGroup.MAINHAND)
                 .add(Attributes.ATTACK_SPEED,
@@ -143,6 +133,21 @@ public class ToolItem extends Item {
                                 AttributeModifier.Operation.ADD_VALUE),
                         EquipmentSlotGroup.MAINHAND)
                 .build();
+    }
+
+    /**
+     * This stack's currently effective attack damage: 0 while Broken (matching
+     * {@link #getDefaultAttributeModifiers} returning {@code EMPTY} then) or unassembled, otherwise
+     * the head material's attack stat scaled by this tool type's damage potential plus flat trait
+     * bonus damage. Shared by the attribute modifier above and {@link ToolTooltip}'s Attack Damage
+     * line so the tooltip never shows a number the tool doesn't actually hit for.
+     */
+    private float attackDamage(ItemStack stack) {
+        ToolStats.Stats stats = stack.get(ForgeweaveDataComponents.TOOL_STATS.get());
+        if (stats == null || isBroken(stack)) {
+            return 0.0F;
+        }
+        return stats.attackDamage() * damagePotential + ForgeweaveTraits.attackDamageBonus(stack);
     }
 
     /** See the class javadoc: the one place that keeps a Forgeweave tool from ever being destroyed. */
@@ -219,36 +224,16 @@ public class ToolItem extends Item {
         stack.hurtAndBreak(2, attacker, EquipmentSlot.MAINHAND);
     }
 
+    /**
+     * Durability/broken state, mining speed, attack damage, tool tier, the three parts and their
+     * traits -- see {@link ToolTooltip} for the compact-vs-Shift structure ported from upstream
+     * 1.12 (NOTICE.md). {@code flag.hasShiftDown()} is NeoForge's {@code TooltipFlagExtension},
+     * real on the client and {@code false} otherwise; {@link ToolTooltip#append} takes that as a
+     * plain {@code boolean} so it stays callable with an explicit value from unit tests.
+     */
     @Override
     public void appendHoverText(ItemStack stack, TooltipContext context, List<Component> tooltip, TooltipFlag flag) {
         super.appendHoverText(stack, context, tooltip, flag);
-        if (isBroken(stack)) {
-            tooltip.add(Component.translatable("tooltip.forgeweave.broken")
-                    .withStyle(ChatFormatting.DARK_RED, ChatFormatting.BOLD));
-        }
-        ToolMaterials materials = stack.get(ForgeweaveDataComponents.TOOL_MATERIALS.get());
-        if (materials == null) {
-            return;
-        }
-        tooltip.add(materialName(context.registries(), materials.head()));
-        tooltip.add(materialName(context.registries(), materials.binding()));
-        tooltip.add(materialName(context.registries(), materials.handle()));
-    }
-
-    private static MutableComponent materialName(HolderLookup.Provider registries, ResourceLocation materialId) {
-        MutableComponent name =
-                Component.translatable("material." + materialId.getNamespace() + "." + materialId.getPath());
-        TextColor color = lookupColor(registries, materialId);
-        return color != null ? name.withStyle(Style.EMPTY.withColor(color)) : name;
-    }
-
-    private static TextColor lookupColor(HolderLookup.Provider registries, ResourceLocation materialId) {
-        if (registries == null) {
-            return null;
-        }
-        return registries.lookup(Material.REGISTRY)
-                .flatMap(lookup -> lookup.get(ResourceKey.create(Material.REGISTRY, materialId)))
-                .map(holder -> holder.value().color())
-                .orElse(null);
+        ToolTooltip.append(stack, context.registries(), flag.hasShiftDown(), attackDamage(stack), tooltip);
     }
 }

@@ -71,6 +71,7 @@ One row per derived file (ADR-0003). Maintained in PR review: a PR introducing d
 | `src/main/java/dev/gkissel/forgeweave/menu/PartBuilderRecipes.java` (crafting-item value table and shard-unit normalization) and `src/main/resources/data/forgeweave/forgeweave/material/{wood,stone,flint,bone}.json` (`crafting_items` values) | `src/main/java/slimeknights/tconstruct/tools/TinkerMaterials.java` (`setupMaterials`), `src/main/java/slimeknights/tconstruct/library/materials/Material.java` (`VALUE_Ingot`/`VALUE_Shard` constants) | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
 | `src/main/java/dev/gkissel/forgeweave/jei/ForgeweaveJeiPlugin.java` (plugin structure: registering categories separately from recipes, pairing each station item with its recipe category as a recipe catalyst) | `src/main/java/com/possibletriangle/tinkersjei/TConstructModule.java` | `47240382a962caaae023bfd3051c7d05f62587b7` | MIT |
 | `src/main/java/dev/gkissel/forgeweave/jei/AssemblyRecipes.java` (showing a representative/cycling material set per tool type instead of enumerating every head x binding x handle combination) | `src/main/java/com/possibletriangle/tinkersjei/StatsWrapper.java`, `StatsCategory.java` | `47240382a962caaae023bfd3051c7d05f62587b7` | MIT |
+| `src/main/java/dev/gkissel/forgeweave/item/ToolTooltip.java` (compact-vs-Shift tooltip structure; green-to-red durability color formula) | `src/main/java/slimeknights/tconstruct/library/tinkering/TinkersItem.java` (`addInformation`), `src/main/java/slimeknights/tconstruct/library/tools/ToolCore.java` (`getTooltip`/`getInformation`/`getTooltipComponents`), `src/main/java/slimeknights/tconstruct/library/utils/TooltipBuilder.java`, `src/main/java/slimeknights/tconstruct/library/client/CustomFontColor.java` (`valueToColorCode`) | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
 
 Each material JSON derives its stat values and tint color from that file; the Java that loads them is an
 independent reimplementation against NeoForge's datapack registry API and carries no row.
@@ -135,3 +136,12 @@ cycling material set instead of every combination), not code: `ForgeweaveJeiPlug
 package are written fresh against the modern API. Every other Forgeweave file in `jei/` (the
 `*Category`/`*Recipe`/`*Recipes` classes not rowed above) is fresh code with no upstream analog and
 carries no row.
+
+Tool tooltips (issue #54) port upstream 1.12's compact-by-default/Shift-for-detail structure
+(`TinkersItem#addInformation`) and its durability green-to-red color math (`CustomFontColor
+#valueToColorCode`), but not its third Ctrl-held components view (`ToolCore#getTooltipComponents`)
+or its modifier lines (`TooltipBuilder#addModifierInfo`/`#addFreeModifiers`) -- Forgeweave has no
+modifier system yet (M2) and no separate Ctrl view, so the parts/traits content upstream shows on
+Ctrl is folded into Forgeweave's Shift view instead. Tool tier is displayed by deriving a word from
+each material's `incorrect_for_<tier>_tool` block tag path rather than porting upstream's numeric
+`HarvestLevels` name table, since CONTEXT.md already requires the vanilla-tag tier system.
