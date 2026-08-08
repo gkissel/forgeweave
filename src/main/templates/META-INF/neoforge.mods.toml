@@ -29,3 +29,12 @@ Forgeweave brings modular tool building, material traits, modifiers, melting, al
     versionRange="${minecraft_version_range}"
     ordering="NONE"
     side="BOTH"
+
+# JEI integration (docs/SCOPE.md M1 issue #11) is optional: the mod works without it, it only adds
+# recipe categories when JEI happens to be installed on the client.
+[[dependencies.${mod_id}]]
+    modId="jei"
+    type="optional"
+    versionRange="[19,)"
+    ordering="AFTER"
+    side="CLIENT"

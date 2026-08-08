@@ -63,5 +63,11 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("trait.forgeweave.crude.description", "Bonus damage against unarmored targets.");
         add("trait.forgeweave.fractured.name", "Fractured");
         add("trait.forgeweave.fractured.description", "Your tool's damage is increased.");
+
+        // JEI recipe category titles (issue #11); only shown when JEI is installed, since the
+        // integration is optional (neoforge.mods.toml).
+        add("jei.category.forgeweave.part_crafting", "Part Crafting");
+        add("jei.category.forgeweave.tool_assembly", "Tool Assembly");
+        add("jei.category.forgeweave.tool_repair", "Tool Repair");
     }
 }

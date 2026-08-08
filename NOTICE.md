@@ -69,6 +69,8 @@ One row per derived file (ADR-0003). Maintained in PR review: a PR introducing d
 | `src/main/resources/assets/forgeweave/textures/derived/tools/hatchet_binding.png` | `resources/assets/tconstruct/textures/items/hatchet/binding.png` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
 | `src/main/resources/assets/forgeweave/textures/derived/item/shard.png` | `resources/assets/tconstruct/textures/items/parts/shard.png` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
 | `src/main/java/dev/gkissel/forgeweave/menu/PartBuilderRecipes.java` (crafting-item value table and shard-unit normalization) and `src/main/resources/data/forgeweave/forgeweave/material/{wood,stone,flint,bone}.json` (`crafting_items` values) | `src/main/java/slimeknights/tconstruct/tools/TinkerMaterials.java` (`setupMaterials`), `src/main/java/slimeknights/tconstruct/library/materials/Material.java` (`VALUE_Ingot`/`VALUE_Shard` constants) | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
+| `src/main/java/dev/gkissel/forgeweave/jei/ForgeweaveJeiPlugin.java` (plugin structure: registering categories separately from recipes, pairing each station item with its recipe category as a recipe catalyst) | `src/main/java/com/possibletriangle/tinkersjei/TConstructModule.java` | `47240382a962caaae023bfd3051c7d05f62587b7` | MIT |
+| `src/main/java/dev/gkissel/forgeweave/jei/AssemblyRecipes.java` (showing a representative/cycling material set per tool type instead of enumerating every head x binding x handle combination) | `src/main/java/com/possibletriangle/tinkersjei/StatsWrapper.java`, `StatsCategory.java` | `47240382a962caaae023bfd3051c7d05f62587b7` | MIT |
 
 Each material JSON derives its stat values and tint color from that file; the Java that loads them is an
 independent reimplementation against NeoForge's datapack registry API and carries no row.
@@ -123,3 +125,13 @@ same order); this is a code change, not a new derived file, so it carries no row
 
 The `pattern.png` texture is shared by the blank pattern's item model and as the base every composite
 pattern PNG above is built from.
+
+The two `jei/` rows above (issue #11) cite **`PssbleTrngle/TinkersJEI`**, a separate MIT-licensed
+repository from the TinkersConstruct clones the rest of this document cites -- docs/SCOPE.md names it
+"Tinker's JEI" and marks it derivation-eligible for M1/M8's JEI plugin. Its 1.12 Forge `IModPlugin`/
+`IRecipeCategory` API is unrelated to and incompatible with JEI's current NeoForge 1.21 API, so what
+carries over is structure and design choices (how the plugin registers itself, and rendering a
+cycling material set instead of every combination), not code: `ForgeweaveJeiPlugin`/the `jei/`
+package are written fresh against the modern API. Every other Forgeweave file in `jei/` (the
+`*Category`/`*Recipe`/`*Recipes` classes not rowed above) is fresh code with no upstream analog and
+carries no row.
