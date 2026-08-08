@@ -57,7 +57,14 @@ One row per derived file (ADR-0003). Maintained in PR review: a PR introducing d
 | `src/main/resources/assets/forgeweave/textures/derived/item/pattern_tool_binding.png` (composite, same algorithm) | `src/main/java/slimeknights/tconstruct/library/client/texture/PatternTexture.java` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
 | `src/main/resources/assets/forgeweave/textures/derived/item/pattern_tool_handle.png` (composite, same algorithm) | `src/main/java/slimeknights/tconstruct/library/client/texture/PatternTexture.java` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
 | `src/main/resources/assets/forgeweave/textures/derived/gui/part_builder.png` (cropped to the 176x166 panel region) | `resources/assets/tconstruct/textures/gui/partbuilder.png` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
-| `src/main/resources/assets/forgeweave/textures/derived/gui/tool_station.png` (176x166 panel region, cropped as-is; the baked-in name-textfield/button-tab chrome at x 67-174, y 2-19 -- meaningless without upstream's renaming/tool-selection buttons -- is flattened to the panel's own plain gray, no other pixels touched) | `resources/assets/tconstruct/textures/gui/toolstation.png` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
+| `src/main/resources/assets/forgeweave/textures/derived/gui/tool_station.png` (the whole 256x256 sheet, copied unmodified: issue #47 puts every region back in use -- the 176x174 panel, the rename field's highlight strip, the translucent item cover, the slot background/border sprites and the beam pieces -- so issue #43's cropped-and-flattened variant of this file is gone) | `resources/assets/tconstruct/textures/gui/toolstation.png` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
+| `src/main/resources/assets/forgeweave/textures/derived/gui/station_icons.png` (copied unmodified; used for the Tool Station's sidebar button sprites, its anvil glyph, and both stations' empty-slot hint icons) | `resources/assets/tconstruct/textures/gui/icons.png` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
+| `src/main/resources/assets/forgeweave/textures/derived/gui/info_panel.png` (copied unmodified; the nine-sliced frame both stations' information panels are drawn from) | `resources/assets/tconstruct/textures/gui/panel.png` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
+| `src/main/java/dev/gkissel/forgeweave/menu/ToolStationTabs.java` (per-tool slot-position tables and the repair layout) | `src/main/java/slimeknights/tconstruct/library/client/ToolBuildGuiInfo.java`, `src/main/java/slimeknights/tconstruct/tools/harvest/HarvestClientProxy.java`, `src/main/java/slimeknights/tconstruct/tools/common/client/GuiButtonRepair.java` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
+| `src/main/java/dev/gkissel/forgeweave/client/InfoPanel.java` (nine-slice geometry, wood-style sheet offset, caption/body text layout) | `src/main/java/slimeknights/tconstruct/tools/common/client/module/GuiInfoPanel.java` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
+| `src/main/java/dev/gkissel/forgeweave/client/ToolStationScreen.java` (texture regions, sidebar grid rule, item-preview/cover/slot-sprite draw order, rename-field placement, info-panel content split) | `src/main/java/slimeknights/tconstruct/tools/common/client/GuiToolStation.java`, `src/main/java/slimeknights/tconstruct/tools/common/client/module/GuiSideButtons.java`, `src/main/java/slimeknights/tconstruct/library/client/Icons.java` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
+| `src/main/java/dev/gkissel/forgeweave/client/PartBuilderScreen.java` (information panel, "Material Value" readout, empty-slot hint icons) | `src/main/java/slimeknights/tconstruct/tools/common/client/GuiPartBuilder.java`, `src/main/java/slimeknights/tconstruct/library/client/Icons.java` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
+| `src/main/java/dev/gkissel/forgeweave/data/ForgeweaveLanguageProvider.java` (station info-panel and material-value wording) | `resources/assets/tconstruct/lang/en_us.lang` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
 | `src/main/resources/assets/forgeweave/textures/derived/tools/pickaxe_head.png` | `resources/assets/tconstruct/textures/items/pickaxe/head.png` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
 | `src/main/resources/assets/forgeweave/textures/derived/tools/pickaxe_handle.png` | `resources/assets/tconstruct/textures/items/pickaxe/handle.png` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
 | `src/main/resources/assets/forgeweave/textures/derived/tools/pickaxe_binding.png` | `resources/assets/tconstruct/textures/items/pickaxe/binding.png` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
@@ -125,3 +132,22 @@ same order); this is a code change, not a new derived file, so it carries no row
 
 The `pattern.png` texture is shared by the blank pattern's item model and as the base every composite
 pattern PNG above is built from.
+
+The station GUIs (issue #47) follow upstream 1.12's layout, geometry and texture regions, with four
+deliberate deviations, none of which change what is derived:
+
+- **Tab selection travels as a `DataSlot` set from `AbstractContainerMenu#clickMenuButton`**, not as
+  upstream's bespoke `ToolStationSelectionPacket`. Upstream needed a packet because its selection also
+  carried a slot *count* for a container whose slot count varies per tool; every Forgeweave tool is a
+  three-part tool and repair reuses the same three slots, so a single synced index is the whole state.
+  This is the same mechanism the Stencil Table already uses.
+- **Slot repositioning replaces `Slot` objects instead of mutating `Slot.xPos`/`yPos`**, because those
+  fields are final in modern Minecraft. Same result, same coordinates.
+- **Ghost part icons are the part's own item sprite blitted at 40% alpha**, where upstream renders a
+  real item stack of an internal "GUI material" whose texture is generated at stitch time by
+  `GuiOutlineTexture`. Forgeweave has no runtime texture-generation system (the same reason the
+  pattern composites above are pre-baked), so the visible difference is a translucent part instead of
+  a dark outline.
+- **The information panels sit to the right of the main panel rather than the left**, per issue #47's
+  brief; upstream's own stacked tool-info-over-traits structure, geometry and content split are
+  otherwise unchanged. Upstream's scrollbar widget is replaced with mouse-wheel scrolling.

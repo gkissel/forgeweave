@@ -32,10 +32,10 @@ import dev.gkissel.forgeweave.block.ForgeweaveBlocks;
  */
 public class PartBuilderMenu extends AbstractContainerMenu {
     public static final int CONTAINER_SLOTS = 4;
-    private static final int PATTERN_SLOT = 0;
-    private static final int MATERIAL_SLOT = 1;
-    private static final int OUTPUT_SLOT = 2;
-    private static final int CHANGE_SLOT = 3;
+    public static final int PATTERN_SLOT = 0;
+    public static final int MATERIAL_SLOT = 1;
+    public static final int OUTPUT_SLOT = 2;
+    public static final int CHANGE_SLOT = 3;
 
     private final Container container;
     private final ContainerLevelAccess access;

@@ -4,6 +4,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
+import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.ContainerLevelAccess;
@@ -22,6 +23,7 @@ import dev.gkissel.forgeweave.item.ForgeweaveDataComponents;
 import dev.gkissel.forgeweave.item.ForgeweaveItems;
 import dev.gkissel.forgeweave.item.ToolItem;
 import dev.gkissel.forgeweave.menu.ToolStationMenu;
+import dev.gkissel.forgeweave.menu.ToolStationTabs;
 import dev.gkissel.forgeweave.tool.ToolMaterials;
 
 /**
@@ -131,6 +133,115 @@ public class ToolStationGameTests {
         helper.assertTrue(menu.getSlot(0).getItem().isEmpty(), "expected the repaired tool to leave the input slot");
         helper.assertTrue(menu.getSlot(1).getItem().isEmpty(), "expected the one cobblestone to be consumed");
 
+        helper.succeed();
+    }
+
+    /**
+     * Issue #47's tab-based menu: selecting a tool's tab through the vanilla menu-button path moves
+     * the three input slots to that tool's layout, narrows what each one accepts to that tool's parts,
+     * and still assembles the same tool the pre-tab menu did.
+     */
+    @GameTest(template = "empty")
+    public static void pickaxeTabRepositionsSlotsAndStillAssembles(GameTestHelper helper) {
+        BlockPos pos = new BlockPos(1, 1, 1);
+        helper.setBlock(pos, ForgeweaveBlocks.TOOL_STATION.get());
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        ToolStationBlockEntity blockEntity = helper.getBlockEntity(pos);
+        ToolStationMenu menu = ToolAssembly.menu(helper, player, pos, blockEntity);
+
+        helper.assertTrue(menu.getSelectedTab() == ToolStationTabs.REPAIR,
+                "a freshly opened station starts on the repair tab, as upstream's does");
+
+        int pickaxeTab = ToolStationTabs.TABS.indexOf(ToolStationTabs.TABS.stream()
+                .filter(tab -> !tab.isRepair() && tab.tool().get() == ForgeweaveItems.TOOL_PICKAXE.get())
+                .findFirst().orElseThrow());
+        helper.assertTrue(menu.clickMenuButton(player, pickaxeTab), "selecting the pickaxe tab must be accepted");
+        helper.assertFalse(menu.clickMenuButton(player, ToolStationTabs.TABS.size()),
+                "an out-of-range tab index must be rejected server-side");
+
+        ToolStationTabs.Pos headPos = ToolStationTabs.get(pickaxeTab).slots().get(ToolStationMenu.HEAD_SLOT);
+        helper.assertTrue(menu.getSlot(ToolStationMenu.HEAD_SLOT).x == headPos.x()
+                        && menu.getSlot(ToolStationMenu.HEAD_SLOT).y == headPos.y(),
+                "the head slot must move to the pickaxe layout's position");
+
+        ItemStack head = ToolAssembly.part(ForgeweaveItems.PART_PICKAXE_HEAD.get(), "stone");
+        ItemStack wrongHead = ToolAssembly.part(ForgeweaveItems.PART_SHOVEL_HEAD.get(), "stone");
+        helper.assertTrue(menu.getSlot(ToolStationMenu.HEAD_SLOT).mayPlace(head),
+                "the pickaxe tab's head slot must accept a pickaxe head");
+        helper.assertFalse(menu.getSlot(ToolStationMenu.HEAD_SLOT).mayPlace(wrongHead),
+                "the pickaxe tab's head slot must reject another tool's head");
+
+        menu.getSlot(ToolStationMenu.HEAD_SLOT).set(head);
+        menu.getSlot(ToolStationMenu.BINDING_SLOT).set(ToolAssembly.part(ForgeweaveItems.PART_TOOL_BINDING.get(), "wood"));
+        menu.getSlot(ToolStationMenu.HANDLE_SLOT).set(ToolAssembly.part(ForgeweaveItems.PART_TOOL_HANDLE.get(), "wood"));
+        menu.broadcastChanges();
+
+        ItemStack output = menu.getSlot(ToolStationMenu.OUTPUT_SLOT).getItem();
+        helper.assertTrue(output.is(ForgeweaveItems.TOOL_PICKAXE.get()),
+                "assembly through the pickaxe tab must still produce a pickaxe, got " + output);
+        helper.succeed();
+    }
+
+    /**
+     * The repair tab is the same three slots with the other filter: a tool in the middle and its head
+     * material's repair item beside it (issue #47), reaching the unchanged repair path from #11.
+     */
+    @GameTest(template = "empty")
+    public static void repairTabAcceptsToolsAndTheirRepairItem(GameTestHelper helper) {
+        BlockPos pos = new BlockPos(1, 1, 1);
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        ItemStack pickaxe = ToolAssembly.pickaxe(helper, player, pos, "stone", "wood", "wood");
+        pickaxe.hurtAndBreak(1_000, helper.getLevel(), player, brokenItem -> {});
+
+        ToolStationBlockEntity blockEntity = helper.getBlockEntity(pos);
+        ToolStationMenu menu = ToolAssembly.menu(helper, player, pos, blockEntity);
+        helper.assertTrue(menu.clickMenuButton(player, ToolStationTabs.REPAIR), "the repair tab must be selectable");
+
+        helper.assertTrue(menu.getSlot(ToolStationMenu.HEAD_SLOT).mayPlace(pickaxe),
+                "the repair tab's first slot must accept an assembled tool");
+        helper.assertFalse(menu.getSlot(ToolStationMenu.HEAD_SLOT)
+                        .mayPlace(ToolAssembly.part(ForgeweaveItems.PART_PICKAXE_HEAD.get(), "stone")),
+                "the repair tab's first slot must reject loose parts");
+
+        menu.getSlot(ToolStationMenu.HEAD_SLOT).set(pickaxe);
+        helper.assertTrue(menu.getSlot(ToolStationMenu.BINDING_SLOT).mayPlace(new ItemStack(Items.COBBLESTONE)),
+                "with a stone-headed tool loaded, the repair slots must accept cobblestone");
+        helper.assertFalse(menu.getSlot(ToolStationMenu.BINDING_SLOT).mayPlace(new ItemStack(Items.DIAMOND)),
+                "the repair slots must reject an item that is not the head material's repair item");
+
+        menu.getSlot(ToolStationMenu.BINDING_SLOT).set(new ItemStack(Items.COBBLESTONE, 1));
+        menu.broadcastChanges();
+        ItemStack repaired = menu.getSlot(ToolStationMenu.OUTPUT_SLOT).getItem();
+        helper.assertTrue(repaired.is(ForgeweaveItems.TOOL_PICKAXE.get()), "expected the repaired pickaxe, got " + repaired);
+        helper.assertFalse(ToolItem.isBroken(repaired), "repair through the repair tab must clear the Broken state");
+        helper.succeed();
+    }
+
+    /**
+     * The rename field (issue #47) reaches the output stack server-side, exactly like a vanilla anvil,
+     * and the menu -- not the client -- is what filters and length-caps the text.
+     */
+    @GameTest(template = "empty")
+    public static void renamingTheOutputSetsItsCustomName(GameTestHelper helper) {
+        BlockPos pos = new BlockPos(1, 1, 1);
+        helper.setBlock(pos, ForgeweaveBlocks.TOOL_STATION.get());
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        ToolStationBlockEntity blockEntity = helper.getBlockEntity(pos);
+        blockEntity.container().setItem(0, ToolAssembly.part(ForgeweaveItems.PART_PICKAXE_HEAD.get(), "stone"));
+        blockEntity.container().setItem(1, ToolAssembly.part(ForgeweaveItems.PART_TOOL_BINDING.get(), "wood"));
+        blockEntity.container().setItem(2, ToolAssembly.part(ForgeweaveItems.PART_TOOL_HANDLE.get(), "wood"));
+
+        ToolStationMenu menu = ToolAssembly.menu(helper, player, pos, blockEntity);
+        menu.setToolName("Rockbiter");
+
+        ItemStack output = menu.getSlot(ToolStationMenu.OUTPUT_SLOT).getItem();
+        Component name = output.get(DataComponents.CUSTOM_NAME);
+        helper.assertTrue(name != null && "Rockbiter".equals(name.getString()),
+                "expected the output to be renamed, got " + name);
+
+        menu.setToolName("");
+        helper.assertTrue(menu.getSlot(ToolStationMenu.OUTPUT_SLOT).getItem().get(DataComponents.CUSTOM_NAME) == null,
+                "clearing the field must leave the output with its default name");
         helper.succeed();
     }
 }

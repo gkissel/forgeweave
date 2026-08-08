@@ -196,6 +196,21 @@ class TextureReferenceAuditTest {
         assertTrue(missing.isEmpty(), "missing texture files referenced by hardcoded GUI literals:\n" + String.join("\n", missing));
     }
 
+    /**
+     * {@code ToolStationScreen} builds a part's ghost-icon path from the part item's registry id
+     * ({@code textures/derived/item/<id>.png}, issue #47). That path is assembled at runtime, so the
+     * literal scan above cannot see it; this is the guard that the id-equals-texture-name convention
+     * holds for every part the station can ask a ghost for.
+     */
+    @Test
+    void everyToolPartHasAGhostIconTexture() {
+        Path items = projectRoot().resolve("src/main/resources/assets/forgeweave/textures/derived/item");
+        for (String part : List.of("pickaxe_head", "shovel_head", "axe_head", "tool_binding", "tool_handle")) {
+            assertTrue(Files.isRegularFile(items.resolve(part + ".png")),
+                    "the Tool Station's ghost icon for forgeweave:" + part + " has no texture under " + items);
+        }
+    }
+
     /** Sanity check that the scan actually exercises the GUI textures the regression was about. */
     @Test
     void guiTextureLiteralScanFindsTheStationBackgrounds() throws IOException {

@@ -7,14 +7,8 @@ import org.jetbrains.annotations.Nullable;
 
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.HolderLookup;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.MutableComponent;
-import net.minecraft.network.chat.Style;
-import net.minecraft.network.chat.TextColor;
-import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.tags.TagKey;
@@ -35,6 +29,7 @@ import net.minecraft.world.level.block.state.BlockState;
 
 import dev.gkissel.forgeweave.config.ForgeweaveConfig;
 import dev.gkissel.forgeweave.material.Material;
+import dev.gkissel.forgeweave.material.MaterialDisplay;
 import dev.gkissel.forgeweave.tool.ToolMaterials;
 import dev.gkissel.forgeweave.tool.ToolStats;
 import dev.gkissel.forgeweave.trait.ForgeweaveTraits;
@@ -230,25 +225,8 @@ public class ToolItem extends Item {
         if (materials == null) {
             return;
         }
-        tooltip.add(materialName(context.registries(), materials.head()));
-        tooltip.add(materialName(context.registries(), materials.binding()));
-        tooltip.add(materialName(context.registries(), materials.handle()));
-    }
-
-    private static MutableComponent materialName(HolderLookup.Provider registries, ResourceLocation materialId) {
-        MutableComponent name =
-                Component.translatable("material." + materialId.getNamespace() + "." + materialId.getPath());
-        TextColor color = lookupColor(registries, materialId);
-        return color != null ? name.withStyle(Style.EMPTY.withColor(color)) : name;
-    }
-
-    private static TextColor lookupColor(HolderLookup.Provider registries, ResourceLocation materialId) {
-        if (registries == null) {
-            return null;
-        }
-        return registries.lookup(Material.REGISTRY)
-                .flatMap(lookup -> lookup.get(ResourceKey.create(Material.REGISTRY, materialId)))
-                .map(holder -> holder.value().color())
-                .orElse(null);
+        tooltip.add(MaterialDisplay.name(context.registries(), materials.head()));
+        tooltip.add(MaterialDisplay.name(context.registries(), materials.binding()));
+        tooltip.add(MaterialDisplay.name(context.registries(), materials.handle()));
     }
 }

@@ -46,6 +46,36 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         // Shown on a tool that ran out of durability (CONTEXT.md: Broken -- unusable, never destroyed).
         add("tooltip.forgeweave.broken", "Broken");
 
+        // Tool descriptions, shown in the Tool Station's info panel while that tool's tab is selected
+        // but nothing is built yet (issue #47). Wording follows upstream 1.12's tool.<id>.desc lines.
+        add("item.forgeweave.pickaxe.description", "A basic mining tool. Digs stone, ores and anything else a pickaxe is meant for.");
+        add("item.forgeweave.shovel.description", "Moves dirt, sand and gravel faster than your hands ever will.");
+        add("item.forgeweave.hatchet.description", "Fells trees, and doubles as a weapon in a pinch.");
+
+        // The stations' information panels (issue #47).
+        add("gui.forgeweave.tool_station.name", "Tool name");
+        add("gui.forgeweave.tool_station.repair", "Repair");
+        add("gui.forgeweave.tool_station.repair.description",
+                "Place a damaged tool in the middle slot and the material its head is made of alongside it "
+                        + "to restore durability. A repaired tool keeps its parts, its stats and its traits.");
+        add("gui.forgeweave.tool_station.components", "Components");
+        add("gui.forgeweave.tool_station.materials", "Materials");
+        add("gui.forgeweave.tool_station.traits", "Traits");
+        add("gui.forgeweave.tool_station.no_traits", "None");
+
+        add("gui.forgeweave.stat.durability", "Durability: %s");
+        add("gui.forgeweave.stat.mining_speed", "Mining Speed: %s");
+        add("gui.forgeweave.stat.attack_damage", "Attack Damage: %s");
+        add("gui.forgeweave.stat.handle_modifier", "Handle Modifier: %sx");
+        add("gui.forgeweave.stat.handle_durability", "Handle Durability: %s");
+        add("gui.forgeweave.stat.extra_durability", "Binding Durability: %s");
+
+        add("gui.forgeweave.part_builder.info",
+                "Put a pattern in the left slot and a material next to it. The part comes out on the right, "
+                        + "and any material value left over comes back as shards.");
+        add("gui.forgeweave.part_builder.cost", "Cost: %s");
+        add("gui.forgeweave.part_builder.material_value", "Material Value: %s");
+
         add("material.forgeweave.wood", "Wood");
         add("material.forgeweave.stone", "Stone");
         add("material.forgeweave.flint", "Flint");

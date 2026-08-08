@@ -11,6 +11,7 @@ import net.neoforged.fml.config.ModConfig;
 import net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.server.ServerStartedEvent;
+import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 import net.neoforged.neoforge.registries.DataPackRegistryEvent;
 
 import net.minecraft.core.Registry;
@@ -24,6 +25,7 @@ import dev.gkissel.forgeweave.item.ForgeweaveDataComponents;
 import dev.gkissel.forgeweave.item.ForgeweaveItems;
 import dev.gkissel.forgeweave.material.Material;
 import dev.gkissel.forgeweave.menu.ForgeweaveMenus;
+import dev.gkissel.forgeweave.menu.RenameStationItemPayload;
 import dev.gkissel.forgeweave.recipe.ForgeweaveRecipeSerializers;
 import dev.gkissel.forgeweave.trait.ForgeweaveTraits;
 
@@ -45,6 +47,7 @@ public class Forgeweave {
         modContainer.registerConfig(ModConfig.Type.SERVER, ForgeweaveConfig.SPEC);
         modEventBus.addListener(this::registerDataPackRegistries);
         modEventBus.addListener(this::commonSetup);
+        modEventBus.addListener(this::registerPayloads);
         modEventBus.addListener(ForgeweaveDataGenerators::gatherData);
         NeoForge.EVENT_BUS.addListener(this::onServerStarted);
         // Traits that key off what is being hit have no Item hook to live in (see ForgeweaveTraits).
@@ -60,6 +63,11 @@ public class Forgeweave {
     private void registerDataPackRegistries(final DataPackRegistryEvent.NewRegistry event) {
         // Passing the codec as the network codec too makes NeoForge sync materials server -> client.
         event.dataPackRegistry(Material.REGISTRY, Material.CODEC, Material.CODEC);
+    }
+
+    /** The Tool Station's rename field is the mod's only message that a menu button can't carry. */
+    private void registerPayloads(final RegisterPayloadHandlersEvent event) {
+        RenameStationItemPayload.register(event.registrar("1"));
     }
 
     private void commonSetup(final FMLCommonSetupEvent event) {
