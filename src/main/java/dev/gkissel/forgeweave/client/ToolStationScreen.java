@@ -78,12 +78,11 @@ import dev.gkissel.forgeweave.tool.ToolMaterials;
  * #75). The {@code renderTooltip} override below adds the sidebar buttons, which aren't slots.
  *
  * <p>When a neighboring block exposes an item handler ({@code ToolStationBlockEntity#findSideInventory},
- * issue #40's follow-up), its slots render in a panel to the right of the info panels via {@link
- * SideInventoryPanel} -- shared with {@link CraftingStationScreen}/{@link PartBuilderScreen}'s own
- * side panels, which upstream instead puts on the <em>left</em>. This station keeps its on the
- * right because the left is already its tab sidebar, and because upstream's Tool Station has no
- * side inventory at all for the placement to be copied from (issue #79; see
- * {@link ToolStationMenu#SIDE_PANEL_X}).
+ * issue #40's follow-up), its slots render via {@link SideInventoryPanel} on the station's
+ * <em>left</em> edge, below the tool-tab column -- the same edge {@link CraftingStationScreen} and
+ * {@link PartBuilderScreen} use, stacked under the tabs rather than beside them because that edge is
+ * shared here. Issue #79 had put it right of the info panels instead; issue #88 is the playtest
+ * report of what that cost, and {@link ToolStationMenu#SIDE_PANEL_X} carries the measurements.
  */
 @EventBusSubscriber(modid = Forgeweave.MODID, bus = EventBusSubscriber.Bus.MOD, value = Dist.CLIENT)
 public class ToolStationScreen extends StationScreen<ToolStationMenu> implements StationExtraAreas {

@@ -75,7 +75,7 @@ final class SideInventoryPanel {
             return;
         }
         int totalRows = SideInventorySlots.rows(slots.size());
-        int visibleRows = visibleRows(totalRows, parentHeight);
+        int visibleRows = visibleRows(totalRows, parentHeight, slotY);
         scrollRow = Math.clamp(scrollRow, 0, totalRows - visibleRows);
 
         int width = SideInventorySlots.PANEL_WIDTH;
@@ -83,9 +83,11 @@ final class SideInventoryPanel {
         // Issue #79: the panel corner is SLOT_INSET (= BORDER + 1) out from the first slot, not
         // BORDER. generic.png's 18x18 slot tile is a 1px bevel wrapped around a 16x16 socket, so
         // laying tiles flush with the slots left every item one pixel up and left of its socket.
-        int x = leftPos + slotX - SideInventorySlots.SLOT_INSET;
+        int x = onScreen(leftPos + slotX - SideInventorySlots.SLOT_INSET, width, graphics.guiWidth());
         int y = topPos + slotY - SideInventorySlots.SLOT_INSET;
         bounds = new Rect2i(x, y, width, height);
+        // The slots follow the (possibly shifted) panel, so items stay in their sockets.
+        int laidOutSlotX = x - leftPos + SideInventorySlots.SLOT_INSET;
 
         renderBorder(graphics, x, y, width, height);
 
@@ -101,7 +103,21 @@ final class SideInventoryPanel {
             }
         }
 
-        SideInventorySlots.layout(menu, slots, firstSlot, lastSlot, slotX, slotY);
+        SideInventorySlots.layout(menu, slots, firstSlot, lastSlot, laidOutSlotX, slotY);
+    }
+
+    /**
+     * Keeps the panel inside the window (issue #88). A station's chrome is laid out relative to its
+     * own panel, which vanilla centres without knowing the chrome exists, so at small window widths
+     * a side panel can end up partly or wholly past an edge. Shifting it back is strictly better
+     * than losing it: the worst case is that it overlaps its own station's other chrome, which is
+     * still readable and still clickable.
+     *
+     * <p>The caller re-derives the slot coordinates from the returned x, so tiles and items shift
+     * together -- moving one without the other is the issue #79 misalignment all over again.
+     */
+    static int onScreen(int x, int width, int screenWidth) {
+        return Math.clamp(x, 0, Math.max(0, screenWidth - width));
     }
 
     /** @return true when the wheel was over this panel and consumed, so the screen shouldn't scroll anything else. */
@@ -110,7 +126,7 @@ final class SideInventoryPanel {
             return false;
         }
         int totalRows = SideInventorySlots.rows(slots.size());
-        int visibleRows = visibleRows(totalRows, parentHeight);
+        int visibleRows = visibleRows(totalRows, parentHeight, slotY);
         if (visibleRows >= totalRows) {
             return false;
         }
@@ -118,10 +134,17 @@ final class SideInventoryPanel {
         return true;
     }
 
-    /** Upstream {@code GuiSideInventory#calcCappedYSize}: shed whole rows until the panel fits. */
-    private static int visibleRows(int totalRows, int parentHeight) {
+    /**
+     * Upstream {@code GuiSideInventory#calcCappedYSize}: shed whole rows until the panel fits.
+     *
+     * <p>The space a panel has is what is left of the parent <em>below its own top edge</em>, not
+     * the whole parent (issue #88). Upstream never had to say so because its side inventories always
+     * start at {@code yOffset = 0}; the Tool Station's starts below the tool-tab column, and without
+     * this a 54-slot chest next to it drew nine rows out through the bottom of the GUI.
+     */
+    static int visibleRows(int totalRows, int parentHeight, int slotY) {
         int rows = Math.min(totalRows, MAX_ROWS);
-        int available = parentHeight - PARENT_MARGIN;
+        int available = parentHeight - PARENT_MARGIN - (slotY - SideInventorySlots.SLOT_INSET);
         while (rows > 1 && rows * SLOT + BORDER * 2 > available) {
             rows--;
         }

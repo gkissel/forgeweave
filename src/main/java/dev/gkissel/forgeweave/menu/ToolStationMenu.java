@@ -84,18 +84,51 @@ public class ToolStationMenu extends StationMenu {
     private static final int MAX_NAME_LENGTH = 50;
 
     /**
-     * Side-panel layout (issue #40's follow-up). Unlike the Crafting Station's and Part Builder's,
-     * this side inventory is a Forgeweave addition -- upstream's {@code GuiToolStation} has no
-     * {@code GuiSideInventory} at all -- so it cannot simply copy upstream's left-hand placement:
-     * the left of this station is occupied by its own tab sidebar, which upstream's {@code
-     * GuiButtonsToolStation} puts at {@code -(5*18 + 4*4) - 2 = -108}. It therefore stays on the
-     * right, past both info panels: {@code 176 (base) + 2 (gap) + 126 (client.InfoPanel#WIDTH,
-     * mirrored rather than referenced: the menu package can't depend on the client package)} puts
-     * the panel's frame flush against the info panels' right edge (issue #79: the old {@code + 2}
-     * gap left the frame 5px inside them instead). Row offset is upstream's {@code yOffset = 0}.
+     * The tool-tab column's own geometry, mirrored from {@code client.ToolStationScreen} rather than
+     * referenced: the menu package cannot depend on the client package, the same trade the info
+     * panel width below already makes. Upstream's {@code GuiSideButtons} grid -- 18px buttons, 4px
+     * spacing, {@code buttons.yOffset = beamC.h + buttonDecorationTop.h} = 9.
      */
-    public static final int SIDE_PANEL_X = 176 + 2 + 126 + SideInventorySlots.SLOT_INSET;
-    public static final int SIDE_PANEL_Y = SideInventorySlots.SLOT_Y;
+    private static final int TAB_BUTTON_SIZE = 18;
+    private static final int TAB_BUTTON_SPACING = 4;
+    private static final int TAB_BUTTON_COLUMNS = 5;
+    private static final int TAB_BUTTONS_Y = 9;
+
+    /** Where the tool-tab column ends, so the side panel can start below it. */
+    private static final int TAB_COLUMN_BOTTOM = TAB_BUTTONS_Y
+            + tabRows() * TAB_BUTTON_SIZE + (tabRows() - 1) * TAB_BUTTON_SPACING;
+
+    private static int tabRows() {
+        return (ToolStationTabs.TABS.size() + TAB_BUTTON_COLUMNS - 1) / TAB_BUTTON_COLUMNS;
+    }
+
+    /**
+     * Side-panel layout (issue #40's follow-up, re-placed by issue #88).
+     *
+     * <p>This side inventory is a Forgeweave addition -- upstream's {@code GuiToolStation} has no
+     * {@code GuiSideInventory} at all, so there is no upstream placement to copy. Issue #79 put it
+     * on the right, past both info panels, because the station's left edge is taken by its tool-tab
+     * column. That was sound in isolation and wrong in practice: it pushed the station's total
+     * chrome to 536px against a window that vanilla only guarantees to be 320 wide, so the panel
+     * was still 124px off the right edge at a 427px window and 18px off at 640.
+     *
+     * <p>It now goes where the Crafting Station's and Part Builder's do -- upstream's left-hand
+     * {@code rightSide = false} placement -- but <em>below</em> the tab column rather than beside
+     * it, which is what the collision actually required. That column is one row of buttons ending
+     * at y {@value #TAB_COLUMN_BOTTOM}; the panel starts a {@link #SIDE_PANEL_GAP}px gap under it,
+     * stacked on the same edge the way upstream's own modules stack via {@code yOffset}.
+     *
+     * <p>The move costs nothing horizontally, which is what makes it the right answer rather than a
+     * trade: the tab column already reaches x -110, and the panel only needs -122, so total chrome
+     * goes 536 -> 428px -- within 12px of the 416px the station occupies with no side panel at all.
+     * It fits a 480px window outright, where the old placement needed 640 and still overflowed.
+     *
+     * <p>Vertically the panel now has less room than a full-height one, so tall neighbours shed rows
+     * ({@code client.SideInventoryPanel#visibleRows}) instead of drawing out through the bottom.
+     */
+    private static final int SIDE_PANEL_GAP = 4;
+    public static final int SIDE_PANEL_X = SideInventorySlots.LEFT_SLOT_X;
+    public static final int SIDE_PANEL_Y = TAB_COLUMN_BOTTOM + SIDE_PANEL_GAP + SideInventorySlots.SLOT_INSET;
 
     private final Container container;
     private final ContainerLevelAccess access;
