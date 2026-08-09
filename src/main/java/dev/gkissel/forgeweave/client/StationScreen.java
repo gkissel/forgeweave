@@ -3,6 +3,8 @@ package dev.gkissel.forgeweave.client;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.mojang.blaze3d.systems.RenderSystem;
+
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.renderer.Rect2i;
@@ -94,8 +96,35 @@ public abstract class StationScreen<T extends StationMenu> extends AbstractConta
     @Override
     protected final void renderBg(GuiGraphics graphics, float partialTick, int mouseX, int mouseY) {
         renderTabs(graphics, false);
+        restoreBlending();
         renderPanel(graphics, partialTick, mouseX, mouseY);
         renderTabs(graphics, true);
+    }
+
+    /**
+     * Turns blending back on for the panel, because {@link #renderTabs} just drew item stacks and
+     * that leaves it off (issue #84).
+     *
+     * <p>{@link GuiGraphics#renderItem} calls {@code flush()} and draws through the item render
+     * types, whose {@code clearRenderState} ends in {@code RenderSystem.disableBlend()}. Anything
+     * translucent drawn afterwards lands at full opacity instead. That is not a hypothetical: the
+     * Tool Station's repair slots turned into solid black squares, because upstream's {@code
+     * SlotBackground} is an opaque black mask sprite only ever meant to be seen at 28%, and its dark
+     * grey hint glyphs then had no contrast left to sit on.
+     *
+     * <p>Upstream hits exactly this and handles it the same way -- {@code
+     * GuiToolStation#drawGuiContainerBackgroundLayer} re-enables blending immediately after its own
+     * item draw, under the comment "reset state after item drawing". We had never needed the port
+     * because nothing rendered an item before the panel until the tab row (#83) did.
+     *
+     * <p>Here rather than in each {@code renderPanel}: the tab row is what clobbers the state, so
+     * this is the one place all five screens route through. Blending is deliberately left on
+     * afterwards -- the slots, labels and tooltips {@code AbstractContainerScreen} draws next all
+     * expect it, and it is what {@code renderBg} is entered with on the first frame.
+     */
+    private static void restoreBlending() {
+        RenderSystem.enableBlend();
+        RenderSystem.defaultBlendFunc();
     }
 
     private void renderTabs(GuiGraphics graphics, boolean selectedPass) {
