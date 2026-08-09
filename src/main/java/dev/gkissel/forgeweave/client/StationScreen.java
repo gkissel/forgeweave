@@ -80,8 +80,50 @@ public abstract class StationScreen<T extends StationMenu> extends AbstractConta
     private static final int ICON_X = 5;
     private static final int ICON_Y = 9;
 
+    /** How far above the panel the tab row reaches -- the strip vanilla's centring does not know about. */
+    private static final int TAB_STRIP = -TAB_TOP;
+
     protected StationScreen(T menu, Inventory playerInventory, Component title) {
         super(menu, playerInventory, title);
+    }
+
+    /**
+     * Re-centres the screen on the panel <em>plus</em> its tab row (issue #86).
+     *
+     * <p>{@link AbstractContainerScreen#init} centres on {@code imageHeight} alone, which is the
+     * panel and nothing else. The tab row is 28px of chrome hanging above that box, so what actually
+     * gets centred is 28px shorter than what is drawn, and the whole thing sits 14px too high. On
+     * the short stations there is enough headroom for that to go unnoticed; on the 222px-tall
+     * Pattern/Part Chest there is not, and the tab row rendered off the top of the window -- at
+     * vanilla's own minimum scaled height of 240 the panel alone leaves 9px of headroom for a 28px
+     * strip, so the tabs were three-quarters gone and their item icons entirely so.
+     *
+     * <p>Only when there is a tab row: without one there is no extra chrome, and vanilla's centring
+     * is already right.
+     *
+     * <p>Subclasses that place widgets from {@code topPos} ({@code ToolStationScreen}'s rename field)
+     * call {@code super.init()} first, so they see the corrected value.
+     */
+    @Override
+    protected void init() {
+        super.init();
+        if (!menu.stationGroup().isEmpty()) {
+            topPos = centreWithTabStrip(height, imageHeight);
+        }
+    }
+
+    /**
+     * {@code topPos} for a screen whose drawn height is {@code imageHeight + TAB_STRIP}, keeping the
+     * panel itself below the strip. Split out from {@link #init} so the arithmetic is testable
+     * without a client -- see {@code StationScreenTabLayoutTest}.
+     *
+     * <p>When the two together genuinely exceed the window -- the chest at a 240px scaled height
+     * needs 250 -- this spreads the overflow across both edges instead of dumping all of it on the
+     * tab row. Nothing interactive is lost at that point: the clipped pixels are the tab sprites'
+     * top rows and the panel's bottom border, not the icons, slots or hotbar.
+     */
+    static int centreWithTabStrip(int screenHeight, int imageHeight) {
+        return TAB_STRIP + (screenHeight - (imageHeight + TAB_STRIP)) / 2;
     }
 
     @Override
