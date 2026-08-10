@@ -89,9 +89,11 @@ public class ForgeweaveBlockStateProvider extends BlockStateProvider {
         // The smeltery multiblock (docs/SCOPE.md M2 issue #95). Upstream 1.12's smeltery_controller
         // blockstate is the vanilla "orientable" shape with seared brick on every face but the front,
         // and the front swapping between a lit and an unlit texture on its `active` property
-        // (NOTICE.md) -- reproduced here for both core tiers.
-        coreBlock("standard_core", ForgeweaveBlocks.STANDARD_CORE.get());
-        coreBlock("nether_core", ForgeweaveBlocks.NETHER_CORE.get());
+        // (NOTICE.md) -- reproduced here for both core tiers. The Nether Core additionally gets its
+        // own side/top texture (issue #143: the tiers must read as distinct from any angle, not just
+        // the front) instead of the shared seared brick.
+        coreBlock("standard_core", ForgeweaveBlocks.STANDARD_CORE.get(), "seared_bricks");
+        coreBlock("nether_core", ForgeweaveBlocks.NETHER_CORE.get(), "nether_core_side");
 
         // Upstream's seared_tank blockstate: one cube per tank type, side and top textures per type.
         tankBlock("seared_tank", ForgeweaveBlocks.SEARED_TANK.get(), "seared_tank_side", "seared_tank_top");
@@ -137,10 +139,10 @@ public class ForgeweaveBlockStateProvider extends BlockStateProvider {
         cubeAllBlock("ardite_ore", ForgeweaveBlocks.ARDITE_ORE.get());
     }
 
-    private void coreBlock(String name, Block block) {
-        ResourceLocation seared = modLoc("derived/block/seared_bricks");
-        ModelFile inactive = models().orientable(name, seared, modLoc("derived/block/" + name + "_front_inactive"), seared);
-        ModelFile active = models().orientable(name + "_active", seared, modLoc("derived/block/" + name + "_front_active"), seared);
+    private void coreBlock(String name, Block block, String sideTexture) {
+        ResourceLocation side = modLoc("derived/block/" + sideTexture);
+        ModelFile inactive = models().orientable(name, side, modLoc("derived/block/" + name + "_front_inactive"), side);
+        ModelFile active = models().orientable(name + "_active", side, modLoc("derived/block/" + name + "_front_active"), side);
         horizontalBlock(block, state -> state.getValue(SmelteryControllerBlock.ACTIVE) ? active : inactive);
         simpleBlockItem(block, inactive);
     }

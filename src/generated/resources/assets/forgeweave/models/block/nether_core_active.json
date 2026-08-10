@@ -2,7 +2,7 @@
   "parent": "minecraft:block/orientable",
   "textures": {
     "front": "forgeweave:derived/block/nether_core_front_active",
-    "side": "forgeweave:derived/block/seared_bricks",
-    "top": "forgeweave:derived/block/seared_bricks"
+    "side": "forgeweave:derived/block/nether_core_side",
+    "top": "forgeweave:derived/block/nether_core_side"
   }
 }
