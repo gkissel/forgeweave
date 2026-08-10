@@ -1,0 +1,24 @@
+{
+  "station": "table",
+  "cast": [
+    {
+      "tag": "c:ingots"
+    },
+    {
+      "item": "forgeweave:seared_brick"
+    },
+    {
+      "item": "minecraft:brick"
+    },
+    {
+      "item": "minecraft:nether_brick"
+    }
+  ],
+  "fluid": "forgeweave:molten_gold",
+  "amount": 288,
+  "result": {
+    "id": "forgeweave:cast_ingot"
+  },
+  "consumes_cast": true,
+  "result_in_input": true
+}

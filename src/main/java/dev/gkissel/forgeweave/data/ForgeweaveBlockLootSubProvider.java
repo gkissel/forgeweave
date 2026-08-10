@@ -66,6 +66,13 @@ public class ForgeweaveBlockLootSubProvider extends BlockLootSubProvider {
         add(ForgeweaveBlocks.SEARED_TANK.get(), tankDrop(ForgeweaveBlocks.SEARED_TANK.get()));
         add(ForgeweaveBlocks.SEARED_GAUGE.get(), tankDrop(ForgeweaveBlocks.SEARED_GAUGE.get()));
         add(ForgeweaveBlocks.SEARED_WINDOW.get(), tankDrop(ForgeweaveBlocks.SEARED_WINDOW.get()));
+
+        // #100 -- casting (docs/SCOPE.md M2 issue #100). Held items and any in-flight fluid are
+        // dropped by the block entity itself (CastingBlock#onRemove, FaucetBlockEntity), so the
+        // blocks themselves just drop as blocks.
+        dropSelf(ForgeweaveBlocks.CASTING_TABLE.get());
+        dropSelf(ForgeweaveBlocks.CASTING_BASIN.get());
+        dropSelf(ForgeweaveBlocks.FAUCET.get());
     }
 
     private LootTable.Builder tankDrop(Block block) {

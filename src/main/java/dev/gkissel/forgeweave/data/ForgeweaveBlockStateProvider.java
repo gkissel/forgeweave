@@ -5,10 +5,12 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.block.Block;
 
 import net.neoforged.neoforge.client.model.generators.BlockStateProvider;
+import net.neoforged.neoforge.client.model.generators.ConfiguredModel;
 import net.neoforged.neoforge.client.model.generators.ModelFile;
 import net.neoforged.neoforge.common.data.ExistingFileHelper;
 
 import dev.gkissel.forgeweave.Forgeweave;
+import dev.gkissel.forgeweave.block.FaucetBlock;
 import dev.gkissel.forgeweave.block.ForgeweaveBlocks;
 import dev.gkissel.forgeweave.block.SmelteryControllerBlock;
 
@@ -100,6 +102,30 @@ public class ForgeweaveBlockStateProvider extends BlockStateProvider {
                 .texture("particle", drainSide);
         horizontalBlock(ForgeweaveBlocks.SEARED_DRAIN.get(), drainModel);
         simpleBlockItem(ForgeweaveBlocks.SEARED_DRAIN.get(), drainModel);
+
+        // #100 -- casting (docs/SCOPE.md M2 issue #100). All four models are hand-authored JSON under
+        // models/block/, transcribed from upstream 1.12's own casting_table/casting_basin/faucet/
+        // faucet_top models (NOTICE.md) with the texture slots pointed at derived/block/*; the
+        // rotations below are upstream's blockstates/faucet.json y-values, with the faucet model
+        // authored facing south.
+        ModelFile castingTable = models().getExistingFile(modLoc("block/casting_table"));
+        simpleBlock(ForgeweaveBlocks.CASTING_TABLE.get(), castingTable);
+        simpleBlockItem(ForgeweaveBlocks.CASTING_TABLE.get(), castingTable);
+
+        ModelFile castingBasin = models().getExistingFile(modLoc("block/casting_basin"));
+        simpleBlock(ForgeweaveBlocks.CASTING_BASIN.get(), castingBasin);
+        simpleBlockItem(ForgeweaveBlocks.CASTING_BASIN.get(), castingBasin);
+
+        ModelFile faucet = models().getExistingFile(modLoc("block/faucet"));
+        ModelFile faucetTop = models().getExistingFile(modLoc("block/faucet_top"));
+        getVariantBuilder(ForgeweaveBlocks.FAUCET.get()).forAllStates(state -> switch (state.getValue(FaucetBlock.FACING)) {
+            case UP -> ConfiguredModel.builder().modelFile(faucetTop).build();
+            case NORTH -> ConfiguredModel.builder().modelFile(faucet).rotationY(180).build();
+            case EAST -> ConfiguredModel.builder().modelFile(faucet).rotationY(270).build();
+            case WEST -> ConfiguredModel.builder().modelFile(faucet).rotationY(90).build();
+            default -> ConfiguredModel.builder().modelFile(faucet).build();
+        });
+        simpleBlockItem(ForgeweaveBlocks.FAUCET.get(), faucet);
     }
 
     private void coreBlock(String name, Block block) {

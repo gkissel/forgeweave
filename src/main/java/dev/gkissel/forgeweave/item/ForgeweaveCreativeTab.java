@@ -84,6 +84,18 @@ public final class ForgeweaveCreativeTab {
         output.accept(ForgeweaveItems.SEARED_TILE.get());
         output.accept(ForgeweaveItems.SEARED_CREEPER.get());
 
+        // #100 -- casting (docs/SCOPE.md M2 issue #100).
+        output.accept(ForgeweaveItems.CASTING_TABLE.get());
+        output.accept(ForgeweaveItems.CASTING_BASIN.get());
+        output.accept(ForgeweaveItems.FAUCET.get());
+        output.accept(ForgeweaveItems.CAST_INGOT.get());
+        output.accept(ForgeweaveItems.CAST_NUGGET.get());
+        output.accept(ForgeweaveItems.CAST_PICKAXE_HEAD.get());
+        output.accept(ForgeweaveItems.CAST_SHOVEL_HEAD.get());
+        output.accept(ForgeweaveItems.CAST_AXE_HEAD.get());
+        output.accept(ForgeweaveItems.CAST_TOOL_BINDING.get());
+        output.accept(ForgeweaveItems.CAST_TOOL_HANDLE.get());
+
         List<Holder.Reference<Material>> materials =
                 parameters.holders().lookupOrThrow(Material.REGISTRY).listElements().toList();
         for (DeferredItem<PartItem> partItem : PART_ITEMS) {

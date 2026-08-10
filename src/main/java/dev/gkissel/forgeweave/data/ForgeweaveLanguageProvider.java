@@ -273,5 +273,18 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("fluid_type.forgeweave.molten_rose_gold", "Molten Rose Gold");
         add("fluid_type.forgeweave.molten_netherite_scrap", "Molten Netherite Scrap");
         add("fluid_type.forgeweave.molten_netherite", "Molten Netherite");
+
+        // #100 -- casting (docs/SCOPE.md M2 issue #100). Names follow upstream 1.12's
+        // tile.casting.{table,basin}.name / tile.faucet.name and its cast item names.
+        addBlock(ForgeweaveBlocks.CASTING_TABLE, "Casting Table");
+        addBlock(ForgeweaveBlocks.CASTING_BASIN, "Casting Basin");
+        addBlock(ForgeweaveBlocks.FAUCET, "Faucet");
+        addItem(ForgeweaveItems.CAST_INGOT, "Ingot Cast");
+        addItem(ForgeweaveItems.CAST_NUGGET, "Nugget Cast");
+        addItem(ForgeweaveItems.CAST_PICKAXE_HEAD, "Pickaxe Head Cast");
+        addItem(ForgeweaveItems.CAST_SHOVEL_HEAD, "Shovel Head Cast");
+        addItem(ForgeweaveItems.CAST_AXE_HEAD, "Axe Head Cast");
+        addItem(ForgeweaveItems.CAST_TOOL_BINDING, "Tool Binding Cast");
+        addItem(ForgeweaveItems.CAST_TOOL_HANDLE, "Tool Handle Cast");
     }
 }

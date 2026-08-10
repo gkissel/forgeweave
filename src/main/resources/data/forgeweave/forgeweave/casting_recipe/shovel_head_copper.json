@@ -1,0 +1,14 @@
+{
+  "station": "table",
+  "cast": {
+    "item": "forgeweave:cast_shovel_head"
+  },
+  "fluid": "forgeweave:molten_copper",
+  "amount": 288,
+  "result": {
+    "id": "forgeweave:shovel_head",
+    "components": {
+      "forgeweave:material": "forgeweave:copper"
+    }
+  }
+}

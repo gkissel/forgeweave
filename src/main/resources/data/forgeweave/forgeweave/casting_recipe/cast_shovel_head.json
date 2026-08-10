@@ -1,0 +1,13 @@
+{
+  "station": "table",
+  "cast": {
+    "item": "forgeweave:shovel_head"
+  },
+  "fluid": "forgeweave:molten_gold",
+  "amount": 288,
+  "result": {
+    "id": "forgeweave:cast_shovel_head"
+  },
+  "consumes_cast": true,
+  "result_in_input": true
+}

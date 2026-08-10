@@ -294,6 +294,25 @@ public class ForgeweaveRecipeProvider extends RecipeProvider {
         tankRecipe(recipeOutput, ForgeweaveItems.SEARED_TANK.get(), "AAA", "ABA", "AAA");
         tankRecipe(recipeOutput, ForgeweaveItems.SEARED_GAUGE.get(), "ABA", "BBB", "ABA");
         tankRecipe(recipeOutput, ForgeweaveItems.SEARED_WINDOW.get(), "ABA", "ABA", "ABA");
+
+        // #100 -- casting (docs/SCOPE.md M2 issue #100). Shapes ported 1:1 from upstream 1.12's
+        // recipes/smeltery/{casting_table,casting_basin,faucet}.json (NOTICE.md). The casts
+        // themselves have no crafting recipe in either mod -- pouring molten gold over the thing you
+        // want a cast of is how you get one.
+        searedBrickShape(recipeOutput, ForgeweaveItems.CASTING_TABLE.get(), "AAA", "A A", "A A");
+        searedBrickShape(recipeOutput, ForgeweaveItems.CASTING_BASIN.get(), "A A", "A A", "AAA");
+        searedBrickShape(recipeOutput, ForgeweaveItems.FAUCET.get(), "A A", " A ");
+    }
+
+    /** A shape made purely of seared bricks. */
+    private void searedBrickShape(RecipeOutput recipeOutput, ItemLike result, String... rows) {
+        ShapedRecipeBuilder builder = ShapedRecipeBuilder.shaped(RecipeCategory.MISC, result);
+        for (String row : rows) {
+            builder.pattern(row);
+        }
+        builder.define('A', ForgeweaveItems.SEARED_BRICK.get())
+                .unlockedBy("has_seared_brick", has(ForgeweaveItems.SEARED_BRICK.get()))
+                .save(recipeOutput);
     }
 
     /** A tank-family shape: {@code A} seared bricks, {@code B} any glass block. */

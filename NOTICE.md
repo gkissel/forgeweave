@@ -205,6 +205,28 @@ One row per derived file (ADR-0003). Maintained in PR review: a PR introducing d
 | `src/main/resources/data/forgeweave/forgeweave/modifier_recipe/sharpness.json` (quartz, 72 per level, 5 levels) | `src/main/java/slimeknights/tconstruct/tools/TinkerModifiers.java` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
 | `src/main/resources/data/forgeweave/forgeweave/modifier_recipe/diamond.json` (one diamond, one-shot) | `src/main/java/slimeknights/tconstruct/tools/TinkerModifiers.java` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
 | `src/main/resources/data/forgeweave/forgeweave/modifier_recipe/emerald.json` (one emerald, one-shot) | `src/main/java/slimeknights/tconstruct/tools/TinkerModifiers.java` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
+| `src/main/java/dev/gkissel/forgeweave/casting/CastingRecipe.java` (cast/fluid/amount/result/time/`consumes_cast`/`result_in_input` (upstream's `switchOutputs`) recipe shape, the `24 + (temperature - 300) * amount / 1600` cooldown formula, and the table/basin split into two recipe sets) | `src/main/java/slimeknights/tconstruct/library/smeltery/CastingRecipe.java`, `src/main/java/slimeknights/tconstruct/library/smeltery/ICastingRecipe.java` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
+| `src/main/java/dev/gkissel/forgeweave/block/CastingBlockEntity.java` (two-slot input/output model, the interact rules, the recipe-sized tank whose fill is refused unless a recipe matches, and the finish sequence incl. `consumesCast`/`switchOutputs` and the comparator output) | `src/main/java/slimeknights/tconstruct/smeltery/tileentity/TileCasting.java`, `.../TileCastingTable.java`, `.../TileCastingBasin.java`, `src/main/java/slimeknights/tconstruct/library/fluid/FluidHandlerCasting.java` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
+| `src/main/java/dev/gkissel/forgeweave/block/CastingBlock.java` (the table and basin collision/outline boxes, the right-click-to-swap-item behaviour, the comparator override) | `src/main/java/slimeknights/tconstruct/smeltery/block/BlockCasting.java` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
+| `src/main/java/dev/gkissel/forgeweave/block/FaucetBlockEntity.java` (`LIQUID_TRANSFER = 6`, `TRANSACTION_AMOUNT = Material.VALUE_Ingot`, the simulate-drain/simulate-fill/drain-what-was-accepted transaction, the buffered trickle, the second-click stop, and the rising-edge redstone delay) | `src/main/java/slimeknights/tconstruct/smeltery/tileentity/TileFaucet.java` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
+| `src/main/java/dev/gkissel/forgeweave/block/FaucetBlock.java` (`FACING` = input side, never down; placement facing the clicked block; the per-facing outline boxes) | `src/main/java/slimeknights/tconstruct/smeltery/block/BlockFaucet.java` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
+| `src/main/resources/data/forgeweave/forgeweave/casting_recipe/*.json` (52 rows: cast creation at `Material.VALUE_Ingot * 2` of molten gold; part casting at each part's `ToolPart` cost; ingot/nugget/block casting at `VALUE_Ingot`/`VALUE_Nugget`/`VALUE_Block`) | `src/main/java/slimeknights/tconstruct/smeltery/TinkerSmeltery.java`, `src/main/java/slimeknights/tconstruct/library/materials/Material.java`, `src/main/java/slimeknights/tconstruct/tools/TinkerTools.java` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
+| `src/main/resources/assets/forgeweave/models/block/casting_table.json` | `resources/assets/tconstruct/models/block/casting_table.json` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
+| `src/main/resources/assets/forgeweave/models/block/casting_basin.json` | `resources/assets/tconstruct/models/block/casting_basin.json` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
+| `src/main/resources/assets/forgeweave/models/block/faucet.json` | `resources/assets/tconstruct/models/block/faucet.json` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
+| `src/main/resources/assets/forgeweave/models/block/faucet_top.json` | `resources/assets/tconstruct/models/block/faucet_top.json` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
+| `src/main/resources/assets/forgeweave/textures/derived/item/cast.png` (the blank cast, layer0 of the five part-cast item models) | `resources/assets/tconstruct/textures/items/cast.png` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
+| `src/main/resources/assets/forgeweave/textures/derived/item/cast_ingot.png` | `resources/assets/tconstruct/textures/items/cast_ingot.png` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
+| `src/main/resources/assets/forgeweave/textures/derived/item/cast_nugget.png` | `resources/assets/tconstruct/textures/items/cast_nugget.png` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
+| `src/main/resources/assets/forgeweave/textures/derived/block/casting_table_top.png` | `resources/assets/tconstruct/textures/blocks/smeltery/castingtable_top.png` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
+| `src/main/resources/assets/forgeweave/textures/derived/block/casting_table_side.png` | `resources/assets/tconstruct/textures/blocks/smeltery/castingtable_side.png` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
+| `src/main/resources/assets/forgeweave/textures/derived/block/casting_table_bottom.png` | `resources/assets/tconstruct/textures/blocks/smeltery/castingtable_bottom.png` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
+| `src/main/resources/assets/forgeweave/textures/derived/block/casting_basin_top.png` | `resources/assets/tconstruct/textures/blocks/smeltery/blockcast_top.png` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
+| `src/main/resources/assets/forgeweave/textures/derived/block/casting_basin_side.png` | `resources/assets/tconstruct/textures/blocks/smeltery/blockcast_side.png` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
+| `src/main/resources/assets/forgeweave/textures/derived/block/casting_basin_bottom.png` | `resources/assets/tconstruct/textures/blocks/smeltery/blockcast_bottom.png` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
+| `src/main/resources/assets/forgeweave/textures/derived/block/faucet.png` | `resources/assets/tconstruct/textures/blocks/smeltery/faucet.png` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
+| `src/main/java/dev/gkissel/forgeweave/data/ForgeweaveRecipeProvider.java` (the casting table's, casting basin's and faucet's seared-brick crafting shapes) | `resources/assets/tconstruct/recipes/smeltery/{casting_table,casting_basin,faucet}.json` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
+| `src/main/java/dev/gkissel/forgeweave/data/ForgeweaveBlockStateProvider.java` (the faucet's per-facing model choice and y-rotations) | `resources/assets/tconstruct/blockstates/faucet.json` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
 
 The station tab row uses **vanilla's** creative-inventory tab sprites (`minecraft:container/creative_inventory/tab_top_{selected,unselected}_N`) and so has no derived-asset row. That is upstream's own choice, not a substitution: 1.12's `GuiTinkerTabs` hands its `GuiElement`s to Mantle's `GuiWidgetTabs`, which binds
 `textures/gui/container/creative_inventory/tabs.png` and samples the unselected tab at `(0, 2, 28, 28)` and the selected one at `(*, 32, 28, 32)` -- i.e. the station tabs already *were* vanilla's creative tabs. Modern Minecraft split that sheet into the 26x32 per-column sprites used here.
@@ -521,3 +543,25 @@ until one fails, at least one tank -- with four deliberate deviations:
 
 The Nether Core tier itself is not upstream: 1.12 has one smeltery controller. Its 2x yield, its
 netherite-ingot recipe and its recoloured front texture are SCOPE.md's and Forgeweave's own.
+
+### Casting (issue #100) deviations from upstream 1.12
+
+- **Recipes are data, not code.** Upstream registers casting recipes from Java in
+  `TinkerSmeltery#registerMeltingCasting`; Forgeweave loads the same rows from a datapack registry.
+  Every constant is upstream's; only where they live changed.
+- **One item per cast.** Upstream ships a single `cast` item whose NBT names the part and whose
+  texture is composited at load time by `CustomTextureCreator`. Forgeweave registers seven cast
+  items with plain two-layer models (blank cast + the part's own sprite), which is the same split
+  issue #93 made for the seared brick variants and lets a vanilla `Ingredient` match a cast.
+- **No ticking block entities.** Upstream ticks every casting block and every faucet in the world
+  forever. Forgeweave runs both off vanilla scheduled block ticks, which SCOPE.md's "block entities
+  tick only while doing work" budget requires. Timings are identical.
+- **Nothing is rendered on the table yet.** Upstream draws the held item and the pooling fluid on
+  the casting block; that is block-entity rendering and follows with the smeltery's own fluid
+  rendering in issue #101, the same call already made for the seared gauge and window.
+- **No clay or sand casts** (upstream's clay casts are a config flag, off by default; sand casts are
+  a SCOPE.md M2 non-goal) and **no seared-stone casting**: Forgeweave has no molten seared stone
+  fluid, since SCOPE.md M2's fluid manifest is the nine molten metals.
+- **The drain is not wrapped extract-only.** Upstream wraps its drain's handler only for the
+  side-agnostic (`facing == null`) lookup; a faucet asks with a side and gets the raw tank there
+  too, so Forgeweave's drain matches upstream for every path the faucet uses.

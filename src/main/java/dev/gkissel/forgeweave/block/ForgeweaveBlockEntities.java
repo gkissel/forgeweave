@@ -7,6 +7,7 @@ import net.neoforged.neoforge.registries.DeferredHolder;
 import net.neoforged.neoforge.registries.DeferredRegister;
 
 import dev.gkissel.forgeweave.Forgeweave;
+import dev.gkissel.forgeweave.casting.CastingRecipe;
 
 /** Block entity types for Forgeweave's blocks. */
 public final class ForgeweaveBlockEntities {
@@ -69,6 +70,24 @@ public final class ForgeweaveBlockEntities {
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<SearedDrainBlockEntity>> SEARED_DRAIN =
             BLOCK_ENTITIES.register("seared_drain", () -> BlockEntityType.Builder
                     .of(SearedDrainBlockEntity::new, ForgeweaveBlocks.SEARED_DRAIN.get())
+                    .build(null));
+
+    // #100 -- casting (docs/SCOPE.md M2 issue #100).
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<CastingBlockEntity>> CASTING_TABLE =
+            BLOCK_ENTITIES.register("casting_table", () -> BlockEntityType.Builder
+                    .of((pos, state) -> new CastingBlockEntity(pos, state, CastingRecipe.Station.TABLE),
+                            ForgeweaveBlocks.CASTING_TABLE.get())
+                    .build(null));
+
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<CastingBlockEntity>> CASTING_BASIN =
+            BLOCK_ENTITIES.register("casting_basin", () -> BlockEntityType.Builder
+                    .of((pos, state) -> new CastingBlockEntity(pos, state, CastingRecipe.Station.BASIN),
+                            ForgeweaveBlocks.CASTING_BASIN.get())
+                    .build(null));
+
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<FaucetBlockEntity>> FAUCET =
+            BLOCK_ENTITIES.register("faucet", () -> BlockEntityType.Builder
+                    .of(FaucetBlockEntity::new, ForgeweaveBlocks.FAUCET.get())
                     .build(null));
 
     private ForgeweaveBlockEntities() {}

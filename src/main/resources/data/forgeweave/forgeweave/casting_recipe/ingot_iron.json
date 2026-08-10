@@ -1,0 +1,11 @@
+{
+  "station": "table",
+  "cast": {
+    "item": "forgeweave:cast_ingot"
+  },
+  "fluid": "forgeweave:molten_iron",
+  "amount": 144,
+  "result": {
+    "id": "minecraft:iron_ingot"
+  }
+}

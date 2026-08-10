@@ -1,0 +1,8 @@
+{
+  "station": "basin",
+  "fluid": "forgeweave:molten_netherite",
+  "amount": 1296,
+  "result": {
+    "id": "minecraft:netherite_block"
+  }
+}

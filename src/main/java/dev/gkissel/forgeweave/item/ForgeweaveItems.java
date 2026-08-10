@@ -126,5 +126,26 @@ public final class ForgeweaveItems {
     public static final DeferredItem<Item> SILKY_JEWEL = ITEMS.registerSimpleItem("silky_jewel");
     public static final DeferredItem<Item> EXTRA_MODIFIER = ITEMS.registerSimpleItem("extra_modifier");
 
+    // #100 -- casting (docs/SCOPE.md M2 issue #100). The two casting blocks and the faucet, plus the
+    // seven casts. Upstream 1.12 ships one `cast` item whose NBT names the part it was moulded around
+    // and whose texture is generated at load time by compositing the blank cast with that part's
+    // sprite (CustomTextureCreator); Forgeweave registers one item per cast instead -- the same
+    // one-block-per-variant split issue #93 made for the seared bricks -- so a cast is a plain item
+    // with a plain two-layer model and an Ingredient can match it without NBT.
+    //
+    // Casts are gold-only and reusable, which is upstream parity: no clay casts (upstream gates
+    // those behind a config flag, off by default) and no sand casts (docs/SCOPE.md M2 non-goals).
+    public static final DeferredItem<Item> CAST_INGOT = ITEMS.registerSimpleItem("cast_ingot");
+    public static final DeferredItem<Item> CAST_NUGGET = ITEMS.registerSimpleItem("cast_nugget");
+    public static final DeferredItem<Item> CAST_PICKAXE_HEAD = ITEMS.registerSimpleItem("cast_pickaxe_head");
+    public static final DeferredItem<Item> CAST_SHOVEL_HEAD = ITEMS.registerSimpleItem("cast_shovel_head");
+    public static final DeferredItem<Item> CAST_AXE_HEAD = ITEMS.registerSimpleItem("cast_axe_head");
+    public static final DeferredItem<Item> CAST_TOOL_BINDING = ITEMS.registerSimpleItem("cast_tool_binding");
+    public static final DeferredItem<Item> CAST_TOOL_HANDLE = ITEMS.registerSimpleItem("cast_tool_handle");
+
+    public static final DeferredItem<BlockItem> CASTING_TABLE = ITEMS.registerSimpleBlockItem("casting_table", ForgeweaveBlocks.CASTING_TABLE);
+    public static final DeferredItem<BlockItem> CASTING_BASIN = ITEMS.registerSimpleBlockItem("casting_basin", ForgeweaveBlocks.CASTING_BASIN);
+    public static final DeferredItem<BlockItem> FAUCET = ITEMS.registerSimpleBlockItem("faucet", ForgeweaveBlocks.FAUCET);
+
     private ForgeweaveItems() {}
 }

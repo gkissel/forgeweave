@@ -9,6 +9,7 @@ import net.neoforged.neoforge.registries.DeferredBlock;
 import net.neoforged.neoforge.registries.DeferredRegister;
 
 import dev.gkissel.forgeweave.Forgeweave;
+import dev.gkissel.forgeweave.casting.CastingRecipe;
 
 /**
  * Forgeweave's blocks: the Part Builder (docs/SCOPE.md M1 issue #9), Tool Station (issue #10),
@@ -90,6 +91,17 @@ public final class ForgeweaveBlocks {
 
     public static final DeferredBlock<SearedDrainBlock> SEARED_DRAIN = BLOCKS.register("seared_drain",
             () -> new SearedDrainBlock(searedProperties()));
+
+    // #100 -- casting (docs/SCOPE.md M2 issue #100). Same seared strength/sound as the rest of the
+    // smeltery; none of the three is a full cube, so all three skip occlusion culling.
+    public static final DeferredBlock<CastingBlock> CASTING_TABLE = BLOCKS.register("casting_table",
+            () -> new CastingBlock(searedProperties().noOcclusion(), CastingRecipe.Station.TABLE));
+
+    public static final DeferredBlock<CastingBlock> CASTING_BASIN = BLOCKS.register("casting_basin",
+            () -> new CastingBlock(searedProperties().noOcclusion(), CastingRecipe.Station.BASIN));
+
+    public static final DeferredBlock<FaucetBlock> FAUCET = BLOCKS.register("faucet",
+            () -> new FaucetBlock(searedProperties().noOcclusion()));
 
     private static DeferredBlock<Block> searedBlock(String name) {
         return BLOCKS.registerSimpleBlock(name, searedProperties());
