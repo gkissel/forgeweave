@@ -149,7 +149,13 @@ public class ForgeweaveBlockStateProvider extends BlockStateProvider {
 
     private void tankBlock(String name, Block block, String sideTexture, String topTexture) {
         ResourceLocation top = modLoc("derived/block/" + topTexture);
-        simpleBlockWithItem(block, models().cubeBottomTop(name, modLoc("derived/block/" + sideTexture), top, top));
+        // #145: the derived side/top textures carry real alpha-cutout windows (0 and 255 alpha
+        // values). NeoForge 1.21 declares a block's chunk render type on the model itself rather
+        // than through the legacy ItemBlockRenderTypes.setRenderLayer Java map -- mixing the two
+        // left the block with an empty render-type set and made it disappear entirely.
+        ModelFile model = models().cubeBottomTop(name, modLoc("derived/block/" + sideTexture), top, top)
+                .renderType("minecraft:cutout");
+        simpleBlockWithItem(block, model);
     }
 
     private void cubeAllBlock(String name, Block block) {

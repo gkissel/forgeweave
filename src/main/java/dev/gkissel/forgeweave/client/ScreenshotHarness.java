@@ -16,6 +16,7 @@ import org.slf4j.Logger;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.Screenshot;
 import net.minecraft.client.gui.screens.TitleScreen;
+import net.minecraft.commands.arguments.EntityAnchorArgument;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.RegistryAccess;
@@ -36,6 +37,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.levelgen.WorldDimensions;
 import net.minecraft.world.level.levelgen.WorldOptions;
 import net.minecraft.world.level.levelgen.presets.WorldPresets;
+import net.minecraft.world.phys.Vec3;
 
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
@@ -43,6 +45,7 @@ import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.client.event.ClientTickEvent;
 import net.neoforged.neoforge.fluids.FluidStack;
 import net.neoforged.neoforge.fluids.capability.IFluidHandler;
+import net.neoforged.neoforge.fluids.capability.templates.FluidTank;
 
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.block.ForgeweaveBlocks;
@@ -62,6 +65,11 @@ import dev.gkissel.forgeweave.fluid.ForgeweaveFluids;
  * ever looked at offline PNG compositing, never the running client. This is not a CI gate -- see
  * {@code scripts/screenshots.sh} and docs/releasing.md's release-checklist step -- it is a tool a
  * reviewer runs by hand before a release.
+ *
+ * <p>Before the GUI screens, it also captures one plain world-view PNG with no menu open --
+ * {@code seared_tank_world.png}, a seared tank/gauge/window row at three different fill levels, the
+ * release-checklist artifact for in-world block entity rendering (issue #145) the same way
+ * {@link #SCREENS} is for GUIs.
  *
  * <h2>Why this is inert by default</h2>
  *
@@ -99,6 +107,17 @@ public final class ScreenshotHarness {
      * wall.
      */
     private static final int SCREEN_SPACING = 8;
+    /** How far in +Z the #145 tank/gauge/window row sits from the player's spawn point. */
+    private static final int TANK_SCENE_DISTANCE = 6;
+    /** Blocks apart along +X, wide enough that neighboring tanks don't visually overlap in frame. */
+    private static final int TANK_SCENE_SPACING = 2;
+    /**
+     * Extra distance the camera backs off beyond the row itself, on top of {@link
+     * #TANK_SCENE_DISTANCE}: at 4 blocks back with blocks only 2 apart, the flanking tank/window sit
+     * at a steep enough angle from the gauge-centered lookAt that perspective could plausibly read as
+     * a shorter/taller fill than they actually are. Backing off flattens that angle.
+     */
+    private static final int TANK_SCENE_CAMERA_PULLBACK = 6;
 
     /** One entry per station screen; see "Extending for M2" above. */
     private static final List<HarnessScreen> SCREENS = List.of(
@@ -114,12 +133,16 @@ public final class ScreenshotHarness {
             // like once everything in it has melted away.
             new HarnessScreen("smeltery_empty", ForgeweaveBlocks.STANDARD_CORE, ScreenshotHarness::buildEmptySmeltery));
 
-    private enum Stage { AWAIT_TITLE, AWAIT_WORLD, SETTLE_WORLD, OPEN_SCREEN, SETTLE_SCREEN, DONE }
+    private enum Stage {
+        AWAIT_TITLE, AWAIT_WORLD, SETTLE_WORLD, PLACE_TANK_SCENE, SETTLE_TANK_SCENE, OPEN_SCREEN, SETTLE_SCREEN, DONE
+    }
 
     private static Stage stage = Stage.AWAIT_TITLE;
     private static int stageTicks;
     private static int screenIndex;
     private static BlockPos origin;
+    /** Set by {@link #placeTankScene}, checked by {@link #settleTankScene} before capture. */
+    private static BlockPos[] tankScenePositions;
 
     private ScreenshotHarness() {}
 
@@ -134,6 +157,8 @@ public final class ScreenshotHarness {
             case AWAIT_TITLE -> awaitTitle(mc);
             case AWAIT_WORLD -> awaitWorld(mc);
             case SETTLE_WORLD -> settleWorld();
+            case PLACE_TANK_SCENE -> placeTankScene(mc);
+            case SETTLE_TANK_SCENE -> settleTankScene(mc);
             case OPEN_SCREEN -> openScreen(mc);
             case SETTLE_SCREEN -> settleScreen(mc);
             case DONE -> {}
@@ -176,8 +201,111 @@ public final class ScreenshotHarness {
 
     private static void settleWorld() {
         if (stageTicks >= WORLD_SETTLE_TICKS) {
-            advance(Stage.OPEN_SCREEN);
+            advance(Stage.PLACE_TANK_SCENE);
         }
+    }
+
+    /**
+     * Places a seared tank, gauge and window in a row a few blocks in front of the player at eye
+     * level, each filled to a different level, and points the camera at them -- #145's release-
+     * checklist scene. No GUI opens; {@link #settleTankScene} takes a plain world-view screenshot.
+     */
+    private static void placeTankScene(Minecraft mc) {
+        var server = mc.getSingleplayerServer();
+        LOGGER.info("{}placing seared tank/gauge/window world scene near {}", LOG_PREFIX, origin);
+        server.execute(() -> {
+            ServerPlayer serverPlayer = server.getPlayerList().getPlayers().get(0);
+            ServerLevel level = serverPlayer.serverLevel();
+            // The player's actual position right now, not a value captured earlier -- ties the scene
+            // to where the camera really is instead of an assumption about the flat world's layout.
+            BlockPos feet = serverPlayer.blockPosition();
+            // One block above the player's feet -- close enough to eye level for a level shot, and the
+            // camera below sits at the same height so it looks straight at the row instead of up at it.
+            BlockPos tankPos = feet.offset(0, 1, TANK_SCENE_DISTANCE);
+            BlockPos gaugePos = tankPos.offset(TANK_SCENE_SPACING, 0, 0);
+            BlockPos windowPos = tankPos.offset(2 * TANK_SCENE_SPACING, 0, 0);
+            tankScenePositions = new BlockPos[] {tankPos, gaugePos, windowPos};
+
+            level.setBlockAndUpdate(tankPos, ForgeweaveBlocks.SEARED_TANK.get().defaultBlockState());
+            level.setBlockAndUpdate(gaugePos, ForgeweaveBlocks.SEARED_GAUGE.get().defaultBlockState());
+            level.setBlockAndUpdate(windowPos, ForgeweaveBlocks.SEARED_WINDOW.get().defaultBlockState());
+            // Three different fill fractions in one frame: proves the height math, not just that
+            // something renders. Filled directly on the block entity's tank, same as buildSmeltery --
+            // no bucket needed for a dev-only scene. Fractions are of each BE's own getCapacity(),
+            // not a compile-time constant -- SEARED_TANK/GAUGE/WINDOW all share SearedTankBlockEntity
+            // (one BlockEntityType, see its class javadoc) so they're the same four-bucket capacity
+            // in practice, but computing it live is what actually proves that instead of assuming it.
+            // setBlockAndUpdate() re-placing the *same* block type at a position Minecraft doesn't
+            // recreate the block entity, so an already-loaded save (harness re-run without wiping
+            // run/saves/) would otherwise keep stacking fluid from the previous run on top of this
+            // run's fill -- setFluid(EMPTY) first makes the scene idempotent regardless.
+            fillTankFraction(level, tankPos, 2.0 / 3.0);
+            fillTankFraction(level, gaugePos, 1.0);
+            fillTankFraction(level, windowPos, 1.0 / 4.0);
+            LOGGER.info("{}placed tank={} gauge={} window={}", LOG_PREFIX, tankPos, gaugePos, windowPos);
+
+            BlockPos cameraPos = tankPos.offset(TANK_SCENE_SPACING, -1,
+                    -(TANK_SCENE_DISTANCE + TANK_SCENE_CAMERA_PULLBACK));
+            serverPlayer.teleportTo(cameraPos.getX() + 0.5, cameraPos.getY(), cameraPos.getZ() + 0.5);
+            serverPlayer.lookAt(EntityAnchorArgument.Anchor.EYES,
+                    new Vec3(gaugePos.getX() + 0.5, gaugePos.getY() + 0.5, gaugePos.getZ() + 0.5));
+        });
+        advance(Stage.SETTLE_TANK_SCENE);
+    }
+
+    /** Fills {@code pos}'s tank to {@code fraction} of its own real capacity, from empty every time. */
+    private static void fillTankFraction(ServerLevel level, BlockPos pos, double fraction) {
+        if (!(level.getBlockEntity(pos) instanceof SearedTankBlockEntity tank)) {
+            return;
+        }
+        FluidTank fluidTank = tank.tank();
+        fluidTank.setFluid(FluidStack.EMPTY); // idempotent: wipe whatever a prior harness run left.
+        int amount = (int) Math.round(fluidTank.getCapacity() * fraction);
+        fluidTank.fill(new FluidStack(Fluids.LAVA, amount), IFluidHandler.FluidAction.EXECUTE);
+    }
+
+    /**
+     * Fails loudly in the log, rather than silently, when the client's own world doesn't have a
+     * tank block where the scene placed one -- distinguishes "placed but invisible" (a rendering
+     * bug) from "never placed where the camera looks" (a placement/sync/chunk-load bug). Also logs
+     * the client's own amount/capacity per position so a wrong fill fraction is self-diagnosing
+     * straight from the log, without needing another capture.
+     */
+    private static void verifyTankScenePlaced(Minecraft mc) {
+        if (mc.level == null || tankScenePositions == null) {
+            return;
+        }
+        // Logged unconditionally so a run that only shows one position's check line proves the loop
+        // itself never reached the others, rather than leaving that ambiguous.
+        LOGGER.info("{}#145 scene check: verifying {} positions", LOG_PREFIX, tankScenePositions.length);
+        for (BlockPos pos : tankScenePositions) {
+            // A single position throwing (e.g. an unloaded chunk) must not stop the rest from
+            // checking -- that's exactly the kind of silent early-exit this check exists to rule out.
+            try {
+                var block = mc.level.getBlockState(pos).getBlock();
+                if (block == Blocks.AIR) {
+                    LOGGER.error("{}#145 scene check FAILED: client sees air at {}, expected a seared tank "
+                            + "block -- placement or client sync did not land before capture", LOG_PREFIX, pos);
+                } else if (mc.level.getBlockEntity(pos) instanceof SearedTankBlockEntity tank) {
+                    LOGGER.info("{}#145 scene check: client sees {} at {}, fluid {}/{} mB", LOG_PREFIX, block, pos,
+                            tank.tank().getFluidAmount(), tank.tank().getCapacity());
+                } else {
+                    LOGGER.error("{}#145 scene check FAILED: client sees {} at {} but no SearedTankBlockEntity",
+                            LOG_PREFIX, block, pos);
+                }
+            } catch (RuntimeException e) {
+                LOGGER.error("{}#145 scene check FAILED: exception checking {}", LOG_PREFIX, pos, e);
+            }
+        }
+    }
+
+    private static void settleTankScene(Minecraft mc) {
+        if (stageTicks < SCREEN_SETTLE_TICKS) {
+            return;
+        }
+        verifyTankScenePlaced(mc);
+        capture(mc, "seared_tank_world");
+        advance(Stage.OPEN_SCREEN);
     }
 
     private static void openScreen(Minecraft mc) {
