@@ -83,12 +83,14 @@ public final class ForgeweaveItems {
     public static final DeferredItem<BlockItem> PATTERN_CHEST = ITEMS.registerSimpleBlockItem("pattern_chest", ForgeweaveBlocks.PATTERN_CHEST);
     public static final DeferredItem<BlockItem> PART_CHEST = ITEMS.registerSimpleBlockItem("part_chest", ForgeweaveBlocks.PART_CHEST);
 
-    // Grout (docs/SCOPE.md M2 issue #93): upstream 1.12 ships grout as one state of a multi-purpose
-    // "soil" block shared with graveyard/consecrated soil and slimy mud (BlockSoil.SoilTypes,
-    // NOTICE.md) -- none of those other states are in Forgeweave's scope (no world-content
-    // milestone yet), so grout is unbundled into its own plain item here instead of a block state,
-    // a scope-driven deviation from upstream's block-family shape, not a design substitution.
-    public static final DeferredItem<Item> GROUT = ITEMS.registerSimpleItem("grout");
+    // Grout (docs/SCOPE.md M2 issue #93; placeable block per issue #129, overruling PR #115's
+    // "plain item" deviation). Upstream 1.12 ships grout as one state of a multi-purpose "soil"
+    // block shared with graveyard/consecrated soil and slimy mud (BlockSoil.SoilTypes, NOTICE.md) --
+    // none of those other states are in Forgeweave's scope (no world-content milestone yet), but
+    // grout itself is still a placeable block upstream, so it gets a real ForgeweaveBlocks.GROUT
+    // block instead of being folded into a plain item. Registering the BlockItem under the same id
+    // "grout" keeps existing inventories' stacks decoding fine (save compat).
+    public static final DeferredItem<BlockItem> GROUT = ITEMS.registerSimpleBlockItem("grout", ForgeweaveBlocks.GROUT);
 
     // Seared brick (docs/SCOPE.md M2 issue #93): upstream 1.12's plain crafting-material item
     // (TinkerCommons#searedBrick, "materials" item meta 0, NOTICE.md) -- produced by furnace-smelting

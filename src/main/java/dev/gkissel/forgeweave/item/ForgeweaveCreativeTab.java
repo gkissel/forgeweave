@@ -60,7 +60,8 @@ public final class ForgeweaveCreativeTab {
         output.accept(ForgeweaveItems.TOOL_SHOVEL.get());
         output.accept(ForgeweaveItems.TOOL_HATCHET.get());
 
-        // Grout, seared brick, and the seared brick block family (docs/SCOPE.md M2 issue #93).
+        // Grout (a block since issue #129), seared brick, and the seared brick block family
+        // (docs/SCOPE.md M2 issue #93).
         output.accept(ForgeweaveItems.GROUT.get());
         output.accept(ForgeweaveItems.SEARED_BRICK.get());
 

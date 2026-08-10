@@ -56,6 +56,20 @@ public final class ForgeweaveBlocks {
                     .strength(2.5F)
                     .sound(SoundType.WOOD), ChestKind.PART));
 
+    // Grout (docs/SCOPE.md M2 issue #93; issue #129 fix). Upstream 1.12 ships it as one state of
+    // BlockSoil (SoilTypes.GROUT, NOTICE.md): Material.SAND, hardness 3.0, SoundType.SAND, and a
+    // slipperiness of 0.8 (default is 0.6) -- ported below via strength()/sound()/friction(). Harvest
+    // level ("shovel", -1) means no minimum tool tier is required, so -- matching every other
+    // Forgeweave block, none of which gate tool tier either (see the seared family javadoc below) --
+    // this carries no mineable/* tag. Not a falling block: BlockSoil extends EnumBlock, not
+    // BlockFalling.
+    public static final DeferredBlock<Block> GROUT = BLOCKS.registerSimpleBlock("grout",
+            BlockBehaviour.Properties.of()
+                    .mapColor(MapColor.SAND)
+                    .strength(3.0F)
+                    .sound(SoundType.SAND)
+                    .friction(0.8F));
+
     // The seared brick block family (docs/SCOPE.md M2 issue #93): the 12 variants of upstream
     // 1.12's BlockSeared (BlockSeared.SearedType, NOTICE.md), each split into its own plain block
     // rather than upstream's single PropertyEnum blockstate -- Forgeweave has no smeltery-structure

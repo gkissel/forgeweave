@@ -30,6 +30,10 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         addBlock(ForgeweaveBlocks.PATTERN_CHEST, "Pattern Chest");
         addBlock(ForgeweaveBlocks.PART_CHEST, "Part Chest");
 
+        // Grout (docs/SCOPE.md M2 issue #93; block per issue #129), name ported from upstream 1.12's
+        // tile.tconstruct.soil.grout.name entry (NOTICE.md).
+        addBlock(ForgeweaveBlocks.GROUT, "Grout");
+
         // The seared brick block family (docs/SCOPE.md M2 issue #93), names ported from upstream
         // 1.12's tile.tconstruct.seared.*.name entries (NOTICE.md).
         addBlock(ForgeweaveBlocks.SEARED_STONE, "Seared Stone");
@@ -85,7 +89,6 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         addItem(ForgeweaveItems.TOOL_SHOVEL, "Shovel");
         addItem(ForgeweaveItems.TOOL_HATCHET, "Hatchet");
 
-        addItem(ForgeweaveItems.GROUT, "Grout");
         addItem(ForgeweaveItems.SEARED_BRICK, "Seared Brick");
 
         // #107 batch: modifier reagent items (docs/SCOPE.md M2 issue #107), names ported from upstream

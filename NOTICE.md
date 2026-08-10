@@ -134,7 +134,7 @@ One row per derived file (ADR-0003). Maintained in PR review: a PR introducing d
 | `src/main/java/dev/gkissel/forgeweave/client/StationScreen.java` (tab-row geometry: 4px inset from the panel's left edge, tabs drawn above the panel with the selected one re-drawn on top, block-icon tabs with the block's name as hover text) | `src/main/java/slimeknights/tconstruct/tools/common/client/GuiTinkerStation.java`, `src/main/java/slimeknights/tconstruct/tools/common/client/module/GuiTinkerTabs.java` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
 | `src/main/java/dev/gkissel/forgeweave/client/PartBuilderScreen.java` (pattern-chest button sidebar: which patterns get a button, the four-column button grid, and hiding the chest's slots behind it) | `src/main/java/slimeknights/tconstruct/tools/common/client/module/GuiButtonsPartCrafter.java`, `src/main/java/slimeknights/tconstruct/tools/common/client/GuiPartBuilder.java` (`drawSlot`/`isMouseOverSlot`) | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
 | `src/main/java/dev/gkissel/forgeweave/menu/PartBuilderMenu.java` (`partCrafter` conditions and `setPattern`'s exchange of the loaded pattern with the chest's) and `src/main/java/dev/gkissel/forgeweave/block/PartBuilderBlockEntity.java` (`isPartCrafter`) | `src/main/java/slimeknights/tconstruct/tools/common/inventory/ContainerPartBuilder.java` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
-| `src/main/resources/assets/forgeweave/textures/derived/item/grout.png` (reused as a flat item icon; grout is a plain item here, not a block state -- see `ForgeweaveItems#GROUT`) | `resources/assets/tconstruct/textures/blocks/grout.png` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
+| `src/main/resources/assets/forgeweave/textures/derived/block/grout.png` (cube_all block texture -- see `ForgeweaveBlocks#GROUT`, issue #129) | `resources/assets/tconstruct/textures/blocks/grout.png` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
 | `src/main/resources/assets/forgeweave/textures/derived/item/seared_brick.png` | `resources/assets/tconstruct/textures/items/materials/seared_brick.png` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
 | `src/main/resources/assets/forgeweave/textures/derived/block/seared_stone.png` | `resources/assets/tconstruct/textures/blocks/smeltery/seared_stone.png` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
 | `src/main/resources/assets/forgeweave/textures/derived/block/seared_cobblestone.png` | `resources/assets/tconstruct/textures/blocks/smeltery/seared_cobble.png` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
@@ -479,14 +479,19 @@ each material's `incorrect_for_<tier>_tool` block tag path rather than porting u
 `HarvestLevels` name table, since CONTEXT.md already requires the vanilla-tag tier system.
 
 Grout and the seared brick block family (docs/SCOPE.md M2 issue #93), ported from upstream 1.12's
-smeltery pulse: two deliberate deviations.
+smeltery pulse: one deliberate deviation.
 
-- **Grout is a plain item, not a block state.** Upstream's grout is one state of `BlockSoil`
-  (`SoilTypes.GROUT`), a multi-purpose block it shares with graveyard soil, consecrated soil, and
-  slimy mud -- none of which are in Forgeweave's scope (no world-content milestone yet; see
-  docs/SCOPE.md's open questions). Splitting grout out into its own item avoids either porting that
-  whole unrelated block family early or leaving three dead enum states on a Forgeweave block; the
-  furnace-smelt-into-seared-brick and crafting-table behaviors upstream gives grout are unaffected.
+Grout is its own single-state `Block` (`ForgeweaveBlocks#GROUT`, issue #129), not a state of a
+multi-purpose `BlockSoil` shared with graveyard soil, consecrated soil, and slimy mud -- none of
+which are in Forgeweave's scope (no world-content milestone yet; see docs/SCOPE.md's open
+questions). Splitting grout out into its own block avoids either porting that whole unrelated block
+family early or leaving three dead enum states on it; the furnace-smelt-into-seared-brick and
+crafting-table behaviors upstream gives grout are unaffected. This is parity, not a deviation. (An
+earlier PR, #115, shipped grout as a plain item instead of a block at all -- that deviation was
+overruled by maintainer playtest feedback, issue #129, and is not carried forward.)
+
+The one remaining deviation:
+
 - **The 12 seared block variants are 12 separate `Block`s**, not one block with a 12-value
   `PropertyEnum` blockstate (`BlockSeared.SearedType`, upstream's 1.12-era pattern). Modern
   Minecraft's per-registry-name recipes/loot tables/tags favor one block per variant, matching how

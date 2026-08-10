@@ -66,6 +66,10 @@ public class ForgeweaveBlockStateProvider extends BlockStateProvider {
         horizontalBlock(ForgeweaveBlocks.PART_CHEST.get(), partChestModel);
         simpleBlockItem(ForgeweaveBlocks.PART_CHEST.get(), partChestModel);
 
+        // Grout (docs/SCOPE.md M2 issue #93; issue #129): plain cube_all geometry, same as the
+        // seared brick family below.
+        cubeAllBlock("grout", ForgeweaveBlocks.GROUT.get());
+
         // The seared brick block family (docs/SCOPE.md M2 issue #93): plain cube_all blocks, one
         // derived texture per variant (NOTICE.md) -- unlike the tables above, these have no custom
         // geometry, so simpleBlockWithItem covers both the blockstate and the block-item model.
