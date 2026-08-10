@@ -4,6 +4,7 @@ import java.util.List;
 
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.HolderLookup;
+import net.minecraft.network.chat.CommonComponents;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.network.chat.Style;
@@ -14,6 +15,9 @@ import net.minecraft.world.item.ItemStack;
 import dev.gkissel.forgeweave.client.StationText;
 import dev.gkissel.forgeweave.material.Material;
 import dev.gkissel.forgeweave.material.MaterialDisplay;
+import dev.gkissel.forgeweave.modifier.ForgeweaveModifiers;
+import dev.gkissel.forgeweave.modifier.ModifierApplication;
+import dev.gkissel.forgeweave.modifier.ModifierEntry;
 import dev.gkissel.forgeweave.tool.ToolMaterials;
 import dev.gkissel.forgeweave.tool.ToolStats;
 
@@ -32,14 +36,14 @@ import dev.gkissel.forgeweave.tool.ToolStats;
  * expands to {@code ToolCore#getInformation}'s full stat block
  * ({@code library/utils/TooltipBuilder.java}: durability, harvest level, mining speed, attack) when
  * Shift is held; Ctrl instead reveals {@code ToolCore#getTooltipComponents}'s per-part material and
- * trait breakdown. Forgeweave has no modifier system yet (M2, not shipped) and no
- * separate Ctrl view, so this keeps upstream's two-tier compact/Shift split but folds the Ctrl-only
- * parts/traits content into the Shift tier: compact shows durability (or Broken) and attack damage,
- * Shift adds mining speed, tool tier, the three parts, and their traits.
+ * trait breakdown. Forgeweave has no separate Ctrl view, so this keeps upstream's two-tier
+ * compact/Shift split but folds the Ctrl-only parts/traits content into the Shift tier: compact
+ * shows durability (or Broken), attack damage and -- since issue #105 -- the Modifiers and free
+ * modifier slots upstream's compact tier also shows; Shift adds mining speed, tool tier, the three
+ * parts, and their traits.
  *
- * <p>ponytail: no modifier line (M2, out of scope for this issue) and no third Ctrl view -- one
- * fewer key combo to test and document, and everything upstream's Ctrl view showed still surfaces
- * on Shift.
+ * <p>ponytail: no third Ctrl view -- one fewer key combo to test and document, and everything
+ * upstream's Ctrl view showed still surfaces on Shift.
  */
 final class ToolTooltip {
 
@@ -66,12 +70,13 @@ final class ToolTooltip {
             tooltip.add(durabilityLine(stack));
         }
         tooltip.add(statLine("tooltip.forgeweave.attack_damage", attackDamage, StationText.ATTACK_COLOR));
+        appendModifiers(stack, tooltip);
 
         if (!detailed) {
             return;
         }
 
-        ToolStats.Stats stats = stack.get(ForgeweaveDataComponents.TOOL_STATS.get());
+        ToolStats.Stats stats = ForgeweaveModifiers.effectiveStats(stack);
         if (stats != null) {
             tooltip.add(statLine("tooltip.forgeweave.mining_speed", stats.miningSpeed(), StationText.SPEED_COLOR));
         }
@@ -89,6 +94,42 @@ final class ToolTooltip {
                 tooltip.add(traitLine(registries, materials, traitId));
             }
         }
+    }
+
+    /**
+     * The tool's Modifiers and how many slots it has left, in the compact tier -- where upstream
+     * 1.12 puts them ({@code ToolCore#getTooltip} lists each modifier then the free-modifier count,
+     * and shows the count only while it is above zero).
+     */
+    private static void appendModifiers(ItemStack stack, List<Component> tooltip) {
+        for (ModifierEntry entry : ForgeweaveModifiers.of(stack)) {
+            tooltip.add(modifierLine(entry));
+        }
+        int free = ForgeweaveModifiers.freeSlots(stack);
+        if (free > 0) {
+            tooltip.add(Component.translatable("tooltip.forgeweave.modifier_slots", free)
+                    .withStyle(Style.EMPTY.withColor(StationText.MODIFIER_COLOR)));
+        }
+    }
+
+    /**
+     * {@code Haste II (51/100)}: the modifier's name, its level in vanilla's own roman-numeral keys
+     * once past level 1, and -- for a modifier whose levels take several applications -- how far into
+     * the current one it is, which is upstream's {@code ModifierNBT.IntegerNBT#extraInfo}.
+     */
+    private static Component modifierLine(ModifierEntry entry) {
+        MutableComponent line = ModifierApplication.name(entry.id())
+                .copy().withStyle(Style.EMPTY.withColor(StationText.MODIFIER_COLOR));
+        int level = ForgeweaveModifiers.displayLevel(entry.id(), entry.level());
+        if (level > 1) {
+            line.append(CommonComponents.SPACE).append(Component.translatable("enchantment.level." + level));
+        }
+        int levelEnd = ForgeweaveModifiers.unitsForDisplayLevel(entry.id(), entry.level());
+        if (levelEnd > 1) {
+            line.append(Component.literal(" (" + entry.level() + "/" + levelEnd + ")")
+                    .withStyle(ChatFormatting.GRAY));
+        }
+        return line;
     }
 
     private static Component durabilityLine(ItemStack stack) {

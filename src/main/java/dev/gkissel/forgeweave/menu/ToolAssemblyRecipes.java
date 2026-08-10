@@ -15,6 +15,7 @@ import dev.gkissel.forgeweave.item.ForgeweaveItems;
 import dev.gkissel.forgeweave.item.PartItem;
 import dev.gkissel.forgeweave.item.ToolItem;
 import dev.gkissel.forgeweave.material.Material;
+import dev.gkissel.forgeweave.modifier.ModifierApplication;
 import dev.gkissel.forgeweave.tool.ToolMaterials;
 import dev.gkissel.forgeweave.tool.ToolRepair;
 import dev.gkissel.forgeweave.tool.ToolStats;
@@ -33,6 +34,9 @@ import dev.gkissel.forgeweave.trait.ForgeweaveTraits;
  *   <li><b>Repair</b> -- a damaged or Broken tool in the head slot, plus items matching its head
  *       material's {@code repair_item} in the other two. CONTEXT.md puts repair at this station and
  *       makes the head material the one that determines the repair item.
+ *   <li><b>Modifier application</b> (issue #105) -- a tool in the head slot plus a
+ *       {@code modifier.ModifierRecipe}'s reagents in the other two, tried after repair so the two
+ *       never fight over an item that is both.
  * </ul>
  *
  * <p>NOTICE.md cites the tool classes for the part composition, {@code ToolNBT.java} for the stat
@@ -89,9 +93,25 @@ public final class ToolAssemblyRecipes {
      * either recipe.
      */
     static Optional<Result> resolve(HolderLookup.Provider registries, ItemStack headStack, ItemStack bindingStack, ItemStack handleStack) {
-        return headStack.getItem() instanceof ToolItem
-                ? resolveRepair(registries, headStack, bindingStack, handleStack)
-                : resolveAssembly(registries, headStack, bindingStack, handleStack);
+        if (!(headStack.getItem() instanceof ToolItem)) {
+            return resolveAssembly(registries, headStack, bindingStack, handleStack);
+        }
+        Optional<Result> repair = resolveRepair(registries, headStack, bindingStack, handleStack);
+        return repair.isPresent() ? repair : resolveModifier(registries, headStack, bindingStack, handleStack);
+    }
+
+    /**
+     * Modifier application (issue #105, ADR-0004) rides the same repair-tab slots: a tool in the
+     * first one, reagents in the other two. Repair is tried first, so an item that is both a repair
+     * item and some modifier's reagent still repairs -- and a rejected application (slots full, level
+     * cap) produces no output here, only the message the screen reads from
+     * {@link ToolStationMenu#modifierRejection}.
+     */
+    private static Optional<Result> resolveModifier(HolderLookup.Provider registries, ItemStack toolStack,
+            ItemStack bindingStack, ItemStack handleStack) {
+        return ModifierApplication.resolve(registries, toolStack, bindingStack, handleStack)
+                .filter(outcome -> !outcome.output().isEmpty())
+                .map(outcome -> new Result(outcome.output(), 1, outcome.firstUsed(), outcome.secondUsed()));
     }
 
     private static Optional<Result> resolveAssembly(HolderLookup.Provider registries, ItemStack headStack, ItemStack bindingStack, ItemStack handleStack) {

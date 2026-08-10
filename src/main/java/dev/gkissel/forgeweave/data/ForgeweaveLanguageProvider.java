@@ -79,11 +79,22 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("gui.forgeweave.tool_station.repair", "Repair");
         add("gui.forgeweave.tool_station.repair.description",
                 "Place a damaged tool in the middle slot and the material its head is made of alongside it "
-                        + "to restore durability. A repaired tool keeps its parts, its stats and its traits.");
+                        + "to restore durability. A repaired tool keeps its parts, its stats and its traits. "
+                        + "The same slots take modifier reagents: a tool has three modifier slots, and levelling "
+                        + "a modifier up stays inside the slot it already occupies.");
         add("gui.forgeweave.tool_station.components", "Components");
         add("gui.forgeweave.tool_station.materials", "Materials");
         add("gui.forgeweave.tool_station.traits", "Traits");
         add("gui.forgeweave.tool_station.no_traits", "None");
+        add("gui.forgeweave.tool_station.modifiers", "Modifiers");
+        add("gui.forgeweave.tool_station.modifier_slots", "Free slots: %s");
+
+        // Why an attempted modifier application was refused (issue #105), shown in the Tool Station's
+        // tool info panel where upstream 1.12 shows its TinkerGuiException text.
+        add("gui.forgeweave.modifier.no_slots", "This tool has no modifier slots left (%s to start with).");
+        add("gui.forgeweave.modifier.max_level", "%s is already at its maximum level on this tool.");
+        add("gui.forgeweave.modifier.invalid_reagent", "Apply one modifier at a time -- the other slot holds something else.");
+        add("gui.forgeweave.modifier.not_enough_reagents", "Not enough of that reagent: %s are needed per step.");
 
         add("gui.forgeweave.stat.durability", "Durability: %s");
         add("gui.forgeweave.stat.mining_speed", "Mining Speed: %s");
@@ -104,6 +115,8 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("tooltip.forgeweave.mining_speed", "Mining Speed");
         add("tooltip.forgeweave.attack_damage", "Attack Damage");
         add("tooltip.forgeweave.tool_tier", "Tool Tier");
+        // Upstream 1.12's "Modifiers: %d" line, shown on a tool that still has slots free.
+        add("tooltip.forgeweave.modifier_slots", "Modifiers: %s");
 
         // Tool tier names (issue #65), keyed off the vanilla incorrect_for_<tier>_tool block tag each
         // material's incorrect_for_tool points at (ToolTooltip#tierName) -- only the tiers M1's
@@ -134,6 +147,12 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("trait.forgeweave.crude.description", "Bonus damage against unarmored targets.");
         add("trait.forgeweave.fractured.name", "Fractured");
         add("trait.forgeweave.fractured.description", "Your tool's damage is increased.");
+
+        // Modifier names and descriptions, keyed by modifier id the same way (issue #105, ADR-0004:
+        // behavior is Java, the recipe that applies it is data). Wording follows upstream 1.12's
+        // modifier.<id>.name/.desc entries.
+        add("modifier.forgeweave.haste.name", "Haste");
+        add("modifier.forgeweave.haste.description", "Redstone speeds the tool up. Every 50 pieces is another level.");
 
         // JEI recipe category titles (issue #11); only shown when JEI is installed, since the
         // integration is optional (neoforge.mods.toml).
