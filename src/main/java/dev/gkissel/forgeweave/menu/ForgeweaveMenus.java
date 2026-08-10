@@ -42,5 +42,13 @@ public final class ForgeweaveMenus {
             MENUS.register("part_chest", () -> IMenuTypeExtension.create(
                     (windowId, inventory, buf) -> new ChestMenu(ChestKind.PART, windowId, inventory, StationGroup.STREAM_CODEC.decode(buf))));
 
+    // #101: the smeltery controller (docs/SCOPE.md M2). Its whole payload is the controller's
+    // position -- the tank contents the screen draws ride the block entity's own sync, not this
+    // menu; see SmelteryMenu.
+    public static final DeferredHolder<MenuType<?>, MenuType<SmelteryMenu>> SMELTERY =
+            MENUS.register("smeltery", () -> IMenuTypeExtension.create(
+                    (windowId, inventory, buf) -> new SmelteryMenu(
+                            windowId, inventory, buf.readBlockPos(), buf.readVarInt())));
+
     private ForgeweaveMenus() {}
 }

@@ -1,0 +1,62 @@
+{
+    block: "forgeweave:standard_core",
+    decoder: "block_entity",
+    expect: {
+        id: "forgeweave:standard_core",
+        melting: {
+            Items: [
+                {
+                    Slot: 0b,
+                    count: 1,
+                    id: "minecraft:iron_ingot"
+                }
+            ]
+        },
+        structure: {
+            interior_max: [I; 0, 1, 1],
+            interior_min: [I; 0, 0, 1]
+        },
+        tank: {
+            fluids: [
+                {
+                    amount: 1152,
+                    id: "forgeweave:molten_iron"
+                },
+                {
+                    amount: 576,
+                    id: "forgeweave:molten_copper"
+                }
+            ]
+        }
+    },
+    nbt: {
+        id: "forgeweave:standard_core",
+        melt_progress: [I; 0, 0],
+        melting: {
+            Items: [
+                {
+                    Slot: 0b,
+                    count: 1,
+                    id: "minecraft:iron_ingot"
+                }
+            ]
+        },
+        structure: {
+            interior_max: [I; 0, 1, 1],
+            interior_min: [I; 0, 0, 1]
+        },
+        tank: {
+            fluids: [
+                {
+                    amount: 1152,
+                    id: "forgeweave:molten_iron"
+                },
+                {
+                    amount: 576,
+                    id: "forgeweave:molten_copper"
+                }
+            ]
+        }
+    },
+    what: "M2 (#101): a formed standard-core smeltery holding two molten metals at once, in the ordered `tank.fluids` shape that replaced #95's single-fluid tank. Order is the assertion that matters: index 0 is the bottom of the melt and therefore what a drain pours, which is what the GUI's click-to-select changes. Also carries #96's melting inventory alongside, since the two share one block entity."
+}

@@ -1,0 +1,384 @@
+package dev.gkissel.forgeweave.menu;
+
+import java.util.List;
+
+import javax.annotation.Nullable;
+
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.Container;
+import net.minecraft.world.SimpleContainer;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.inventory.ContainerLevelAccess;
+import net.minecraft.world.inventory.Slot;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.Level;
+
+import net.neoforged.neoforge.fluids.FluidStack;
+
+import dev.gkissel.forgeweave.block.SmelteryControllerBlockEntity;
+
+/**
+ * The smeltery controller's menu (docs/SCOPE.md M2 issue #101), ported from upstream 1.12's
+ * {@code ContainerSmeltery} (NOTICE.md).
+ *
+ * <h2>Where the displayed state comes from</h2>
+ *
+ * <p>Not from this menu. The smeltery's tank is a list of fluids with amounts, and vanilla's menu
+ * sync carries item stacks and {@code int} data slots -- neither can express it. Upstream's own
+ * screen has the same problem and solves it the same way: it holds the tile entity and reads
+ * {@code smeltery.getTank()} straight out of it, letting the block entity's own sync carry the
+ * contents. {@link SmelteryControllerBlockEntity#getUpdateTag} already ships tank and structure to
+ * every watching client (issue #95 wired that for this issue), so this menu carries only the
+ * controller's {@link BlockPos} and resolves the block entity on both sides from it.
+ *
+ * <p>That keeps the client strictly a reader. The one thing a player can change from this screen --
+ * which fluid sits at the bottom and therefore drains -- goes back as a vanilla container button
+ * click ({@link #clickMenuButton}), is range-checked against the server's own tank, and comes back
+ * as a block update. Nothing is applied client-side first.
+ *
+ * <h2>No item slots yet</h2>
+ *
+ * <p>Upstream's smeltery menu also carries a side inventory of melting slots, one per interior
+ * block. That inventory is issue #96's; the seam is {@link #meltSlotCount()} plus the empty slot
+ * range this menu currently adds, so #96 adds its slots here and {@code SmelteryScreen} hangs them
+ * off the existing {@code SideInventoryPanel} the way the M1 stations do.
+ */
+public class SmelteryMenu extends StationMenu {
+    /** Player inventory origin, upstream {@code ContainerSmeltery}'s {@code addPlayerInventory(inv, 8, 84)}. */
+    private static final int PLAYER_INVENTORY_X = 8;
+    private static final int PLAYER_INVENTORY_Y = 84;
+    private static final int HOTBAR_Y = 142;
+
+    /** How far a player may stray from the core before the screen closes; vanilla's own container reach. */
+    private static final double MAX_DISTANCE_SQR = 64.0D;
+
+    /**
+     * Melt-grid geometry, upstream {@code GuiSmelterySideInventory} over {@code GuiSideInventory}: a
+     * three-column grid of 22px cells -- a 4px heat bar then an 18px slot -- inside a 7px border,
+     * hanging in the notch of the L-shaped panel at x = {@value #GRID_X}.
+     */
+    public static final int MELT_COLUMNS = 3;
+    public static final int CELL_WIDTH = 22;
+    public static final int HEAT_BAR_WIDTH = 4;
+    public static final int SLOT_SIZE = 18;
+    public static final int GRID_BORDER = 7;
+    /** Where upstream's main smeltery module ends and the melt grid begins; the panel art's notch. */
+    public static final int GRID_X = 93;
+    public static final int GRID_Y = 0;
+    /** As many rows as fit above the player inventory at y = {@value #PLAYER_INVENTORY_Y}. */
+    public static final int MELT_VISIBLE_ROWS = 3;
+
+    private final ContainerLevelAccess access;
+    private final BlockPos corePos;
+    private final Container meltingInventory;
+    /** Index of this menu's first melt slot; the grid is added before the player inventory. */
+    private final int firstMeltSlot;
+    /** Client-only scroll offset in whole rows; see {@link MeltSlot}. */
+    private int scrollRow;
+
+    /**
+     * Client-side: built from the open-menu packet, which carries the controller's position and how
+     * many melting slots to build -- the client must add exactly as many {@link Slot}s as the server
+     * did, in the same order, or every index after the grid is off by the difference. The throwaway
+     * container behind them is filled by vanilla's own slot sync.
+     */
+    public SmelteryMenu(int containerId, Inventory playerInventory, BlockPos corePos, int meltSlots) {
+        this(containerId, playerInventory, ContainerLevelAccess.NULL, corePos, new SimpleContainer(meltSlots));
+    }
+
+    /** Server-side: built by {@link SmelteryControllerBlockEntity#createMenu} over the real melt inventory. */
+    public SmelteryMenu(int containerId, Inventory playerInventory, ContainerLevelAccess access, BlockPos corePos,
+            Container meltingInventory) {
+        // A smeltery core is not a station block, so it never has a station-group tab row; upstream's
+        // smeltery has none either. Passing EMPTY rather than resolving one keeps the base class's
+        // tab-button range reserved but unused.
+        super(ForgeweaveMenus.SMELTERY.get(), containerId, StationGroup.EMPTY);
+        this.access = access;
+        this.corePos = corePos;
+        this.meltingInventory = meltingInventory;
+        this.firstMeltSlot = 0;
+        layoutMeltSlots();
+        layoutPlayerInventorySlots(playerInventory);
+    }
+
+    /**
+     * One slot per interior block, in the same order the controller stores them.
+     *
+     * <p>All of them are added, not just the visible three rows: the server validates clicks against
+     * slot indices, so a scrolled-out slot still has to exist. {@link MeltSlot#isActive} is what
+     * hides the ones outside the scroll window, which is vanilla's own hook for exactly this -- an
+     * inactive slot is neither drawn nor hit-tested ({@code AbstractContainerScreen#findSlot}).
+     */
+    private void layoutMeltSlots() {
+        for (int index = 0; index < meltingInventory.getContainerSize(); index++) {
+            addSlot(new MeltSlot(meltingInventory, index, meltSlotX(index), meltSlotY(index)));
+        }
+    }
+
+    /** Slot {@code index}'s x, relative to the panel: the cell's heat bar, then a 1px socket bevel. */
+    public static int meltSlotX(int index) {
+        return GRID_X + GRID_BORDER + (index % MELT_COLUMNS) * CELL_WIDTH + HEAT_BAR_WIDTH + 1;
+    }
+
+    /** Slot {@code index}'s y before scrolling; the screen shifts by whole rows. */
+    public static int meltSlotY(int index) {
+        return GRID_Y + GRID_BORDER + (index / MELT_COLUMNS) * SLOT_SIZE + 1;
+    }
+
+    public static int meltRows(int slotCount) {
+        return (slotCount + MELT_COLUMNS - 1) / MELT_COLUMNS;
+    }
+
+    /**
+     * A melting slot: holds one item, only something the smeltery can melt, and only while its row is
+     * inside the scroll window.
+     *
+     * <p>{@code scrollRow} is client-only state -- the server's copy of the menu never scrolls and
+     * never consults it when validating a click, which is deliberate: hiding a slot is a rendering
+     * concern, and every melt slot is one the player is legitimately allowed to use either way.
+     */
+    private final class MeltSlot extends Slot {
+        MeltSlot(Container container, int index, int x, int y) {
+            super(container, index, x, y);
+        }
+
+        @Override
+        public boolean mayPlace(ItemStack stack) {
+            return meltingInventory.canPlaceItem(getSlotIndex(), stack);
+        }
+
+        @Override
+        public int getMaxStackSize() {
+            return 1; // one item per interior block, upstream's own rule
+        }
+
+        @Override
+        public boolean isActive() {
+            int row = getSlotIndex() / MELT_COLUMNS;
+            return row >= scrollRow && row < scrollRow + MELT_VISIBLE_ROWS;
+        }
+    }
+
+    /**
+     * Scrolls the melt grid by whole rows (client-side only; see {@link MeltSlot}).
+     *
+     * <p>{@link Slot#x}/{@link Slot#y} are final, so "moving" a slot means substituting a new one at
+     * the same menu index -- the same substitution {@code SideInventorySlots#layout} does for the
+     * station side panels, and {@code ToolStationMenu#applyLayout} for its tab changes.
+     */
+    public void setScrollRow(int row) {
+        int maxRow = Math.max(0, meltRows(meltSlotCount()) - MELT_VISIBLE_ROWS);
+        int clamped = Math.clamp(row, 0, maxRow);
+        if (clamped == scrollRow) {
+            return;
+        }
+        scrollRow = clamped;
+        for (int index = 0; index < meltSlotCount(); index++) {
+            int menuIndex = firstMeltSlot + index;
+            MeltSlot replacement = new MeltSlot(meltingInventory, index,
+                    meltSlotX(index), meltSlotY(index) - scrollRow * SLOT_SIZE);
+            replacement.index = menuIndex;
+            slots.set(menuIndex, replacement);
+        }
+    }
+
+    public int scrollRow() {
+        return scrollRow;
+    }
+
+    /** How many melting slots this smeltery has -- one per interior block, upstream's own rule. */
+    public int meltSlotCount() {
+        return meltingInventory.getContainerSize();
+    }
+
+    /** The menu index of melt slot {@code index}, for the screen's heat-bar and hit-test maths. */
+    public Slot meltSlot(int index) {
+        return slots.get(firstMeltSlot + index);
+    }
+
+    private void layoutPlayerInventorySlots(Inventory playerInventory) {
+        for (int row = 0; row < 3; row++) {
+            for (int col = 0; col < 9; col++) {
+                addSlot(new Slot(playerInventory, col + row * 9 + 9,
+                        PLAYER_INVENTORY_X + col * 18, PLAYER_INVENTORY_Y + row * 18));
+            }
+        }
+        for (int col = 0; col < 9; col++) {
+            addSlot(new Slot(playerInventory, col, PLAYER_INVENTORY_X + col * 18, HOTBAR_Y));
+        }
+    }
+
+    /** The controller this screen belongs to. */
+    public BlockPos corePos() {
+        return corePos;
+    }
+
+    /**
+     * The controller block entity, resolved from {@code level}. Both sides call this: the server
+     * against its own world, the screen against the client copy the block-entity sync maintains.
+     *
+     * @return {@code null} when the chunk is gone or the core has been broken out from under the
+     *         open screen
+     */
+    @Nullable
+    public SmelteryControllerBlockEntity core(@Nullable Level level) {
+        return level != null && level.getBlockEntity(corePos) instanceof SmelteryControllerBlockEntity core
+                ? core
+                : null;
+    }
+
+    /** The melt, bottom fluid first; empty when the core is gone. Index 0 is what a drain pours. */
+    public List<FluidStack> fluids(@Nullable Level level) {
+        SmelteryControllerBlockEntity core = core(level);
+        return core == null ? List.of() : core.tank().fluids();
+    }
+
+    /**
+     * What is currently melting, in slot order, read off the block entity the same way the fluid
+     * column is. The menu's own slots carry the items too, but their <em>progress</em> only exists on
+     * the block entity, so the grid reads both from one place.
+     */
+    public List<ItemStack> meltingItems(@Nullable Level level) {
+        SmelteryControllerBlockEntity core = core(level);
+        return core == null ? List.of() : core.meltingItems();
+    }
+
+    /** How far along melt slot {@code index} is, 0 to 1; 0 when the core is gone. */
+    public float meltProgress(@Nullable Level level, int index) {
+        SmelteryControllerBlockEntity core = core(level);
+        return core == null ? 0f : core.meltProgress(index);
+    }
+
+    /** Total capacity of the melt, which scales with the interior; 0 when the core is gone. */
+    public int capacity(@Nullable Level level) {
+        SmelteryControllerBlockEntity core = core(level);
+        return core == null ? 0 : core.tank().getCapacity();
+    }
+
+    /**
+     * The fuel liquid the gauge draws, upstream's {@code TileSmeltery#getFuelDisplay}.
+     *
+     * <p><b>Still empty, and deliberately so.</b> #131 landed the fuel system, but the wall tank it
+     * burns from is found on demand and explicitly <em>not</em> saved ("fuelTank itself is not
+     * saved, it is re-found"), so the client has no reference to the tank whose contents this would
+     * draw. Rendering the liquid needs one synced field in {@code SmelteryControllerBlockEntity} --
+     * a change to #131's just-merged code that belongs in a follow-up agreed with its author, not
+     * bolted on here. Until then the gauge frame renders empty and {@link #fuelTemperature} carries
+     * the real state into the tooltip, which is synced today.
+     */
+    public FluidStack fuel(@Nullable Level level) {
+        return FluidStack.EMPTY;
+    }
+
+    /** Capacity the fuel gauge is drawn against; see {@link #fuel}. */
+    public int fuelCapacity(@Nullable Level level) {
+        return 0;
+    }
+
+    /**
+     * The smeltery's working heat (#131), or 0 when nothing is burning and no fuel is in reach.
+     *
+     * <p>Read off the block entity's synced copy: {@code fuel_burn_ticks} and
+     * {@code fuel_temperature} both ride {@code getUpdateTag}, so unlike the fuel liquid this is
+     * genuinely known on the client.
+     */
+    public int fuelTemperature(@Nullable Level level) {
+        SmelteryControllerBlockEntity core = core(level);
+        return core == null ? 0 : core.fuelTemperatureForDisplay();
+    }
+
+    /** Melt ticks left in the current burn; 0 when nothing is burning. */
+    public int fuelBurnTicks(@Nullable Level level) {
+        SmelteryControllerBlockEntity core = core(level);
+        return core == null ? 0 : core.fuelBurnTicksRemaining();
+    }
+
+    /**
+     * Button ids are indices into {@link #fluids}: clicking a fluid in the column moves it to the
+     * bottom of the melt, which is upstream's {@code SmelteryFluidClicked}. The index is untrusted
+     * and range-checked by {@link dev.gkissel.forgeweave.block.SmelteryTank#moveToBottom}.
+     */
+    @Override
+    public boolean clickMenuButton(Player player, int id) {
+        if (super.clickMenuButton(player, id)) {
+            return true; // a station-group tab id, though a smeltery never has one
+        }
+        if (id < 0) {
+            return false;
+        }
+        access.execute((level, pos) -> {
+            SmelteryControllerBlockEntity core = core(level);
+            if (core != null) {
+                core.selectDrainFluid(id);
+            }
+        });
+        return true;
+    }
+
+    /**
+     * Shift-click moves meltable items from the player's inventory into the melt grid, and anything
+     * in the grid back out. One item per slot, so a stack of ore spreads across the free slots the
+     * way {@link SmelteryControllerBlockEntity#insertForMelting} spreads a dropped stack.
+     */
+    @Override
+    public ItemStack quickMoveStack(Player player, int index) {
+        Slot slot = slots.get(index);
+        if (slot == null || !slot.hasItem()) {
+            return ItemStack.EMPTY;
+        }
+        ItemStack inSlot = slot.getItem();
+        ItemStack original = inSlot.copy();
+        int meltEnd = firstMeltSlot + meltSlotCount();
+
+        if (index < meltEnd) { // melt grid -> player inventory
+            if (!moveItemStackTo(inSlot, meltEnd, slots.size(), true)) {
+                return ItemStack.EMPTY;
+            }
+        } else if (!moveIntoMeltGrid(inSlot, meltEnd)) { // player inventory -> melt grid
+            return ItemStack.EMPTY;
+        }
+
+        if (inSlot.isEmpty()) {
+            slot.setByPlayer(ItemStack.EMPTY);
+        } else {
+            slot.setChanged();
+        }
+        if (inSlot.getCount() == original.getCount()) {
+            return ItemStack.EMPTY;
+        }
+        slot.onTake(player, inSlot);
+        return original;
+    }
+
+    /**
+     * One item into each free, accepting melt slot. {@code moveItemStackTo} cannot do this: it stops
+     * at the first slot when {@code getMaxStackSize()} is 1 rather than spreading across the grid.
+     */
+    private boolean moveIntoMeltGrid(ItemStack stack, int meltEnd) {
+        boolean moved = false;
+        for (int index = firstMeltSlot; index < meltEnd && !stack.isEmpty(); index++) {
+            Slot target = slots.get(index);
+            if (!target.hasItem() && target.mayPlace(stack)) {
+                target.setByPlayer(stack.split(1));
+                target.setChanged();
+                moved = true;
+            }
+        }
+        return moved;
+    }
+
+    /**
+     * Closes the screen when the player walks off, when the core is broken, and -- upstream's own
+     * behaviour, {@code GuiSmeltery#updateScreen} -- when the structure stops being formed, since
+     * every number on the screen is a function of an interior that no longer exists.
+     */
+    @Override
+    public boolean stillValid(Player player) {
+        return access.evaluate((level, pos) -> {
+            SmelteryControllerBlockEntity core = core(level);
+            return core != null && core.isFormed()
+                    && player.distanceToSqr(pos.getX() + 0.5D, pos.getY() + 0.5D, pos.getZ() + 0.5D) <= MAX_DISTANCE_SQR;
+        }, true);
+    }
+}

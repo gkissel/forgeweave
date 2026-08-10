@@ -16,6 +16,7 @@ import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.Container;
 import net.minecraft.world.ContainerHelper;
 import net.minecraft.world.Containers;
 import net.minecraft.world.item.ItemStack;
@@ -25,7 +26,16 @@ import net.minecraft.world.level.block.state.BlockState;
 
 import net.neoforged.neoforge.fluids.FluidStack;
 import net.neoforged.neoforge.fluids.capability.IFluidHandler;
-import net.neoforged.neoforge.fluids.capability.templates.FluidTank;
+
+// #101: the smeltery GUI. The block entity is the menu's host, so the controller opens its own
+// screen the same way every M1 station does.
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.inventory.ContainerLevelAccess;
+
+import dev.gkissel.forgeweave.menu.SmelteryMenu;
 
 import dev.gkissel.forgeweave.advancement.ForgeweaveCriteriaTriggers;
 import dev.gkissel.forgeweave.recipe.MeltingRecipe;
@@ -54,7 +64,7 @@ import dev.gkissel.forgeweave.recipe.SmelteryFuel;
  * wall break directly. Revalidation-on-read costs one scan per second of active work instead, which
  * is still strictly less often than upstream's own 15-second full recheck.
  */
-public class SmelteryControllerBlockEntity extends BlockEntity {
+public class SmelteryControllerBlockEntity extends BlockEntity implements StationMenuHost {
     /**
      * Fluid capacity each interior block contributes, upstream's {@code CAPACITY_PER_BLOCK} of eight
      * ingots at 144 mB each.
@@ -76,7 +86,12 @@ public class SmelteryControllerBlockEntity extends BlockEntity {
     private static final String TAG_TANK = "tank";
 
     private final SmelteryCore core;
-    private final FluidTank tank = new FluidTank(CAPACITY_PER_BLOCK);
+    /**
+     * #101: was a single-fluid {@code FluidTank}. A smeltery holds a stack of different molten
+     * metals whose order the player picks in the GUI; see {@link SmelteryTank}. Every content or
+     * order change syncs to the client, which is where the GUI reads its fluid column from.
+     */
+    private final SmelteryTank tank = new SmelteryTank(CAPACITY_PER_BLOCK, this::onTankChanged);
 
     @Nullable
     private SmelteryStructure structure;
@@ -107,7 +122,7 @@ public class SmelteryControllerBlockEntity extends BlockEntity {
     }
 
     /** The molten-metal tank. Its capacity tracks the interior size; it is filled by melting (#96) and drained through a {@link SearedDrainBlock}. */
-    public FluidTank tank() {
+    public SmelteryTank tank() {
         return tank;
     }
 
@@ -187,10 +202,10 @@ public class SmelteryControllerBlockEntity extends BlockEntity {
 
     /** Capacity follows the interior size; an interior that shrank spills nothing but caps what is held. */
     private void resizeTank() {
+        // #101: no overflow trim here any more -- SmelteryTank#setCapacity does it internally, and
+        // does it from the *top* of the melt, so the bottom (drain) fluid the player selected is the
+        // last thing lost rather than the first thing truncated.
         tank.setCapacity(structure == null ? CAPACITY_PER_BLOCK : structure.interiorVolume() * CAPACITY_PER_BLOCK);
-        if (tank.getFluidAmount() > tank.getCapacity()) {
-            tank.getFluid().setAmount(tank.getCapacity());
-        }
         // #96: the melting inventory tracks the same interior, and the cached fuel tank may no
         // longer be part of it.
         fuelTank = null;
@@ -288,6 +303,18 @@ public class SmelteryControllerBlockEntity extends BlockEntity {
     }
 
     /**
+     * #101: the temperature the GUI's fuel tooltip shows, readable on the client.
+     *
+     * <p>{@link #currentTemperature()} is server-only -- it peeks into a wall tank, which the client
+     * has no business walking -- but the temperature of an <em>in-progress burn</em> is synced with
+     * the rest of this block entity, so the screen can show it. Zero means "not currently burning",
+     * which on the client is all that can honestly be said.
+     */
+    public int fuelTemperatureForDisplay() {
+        return fuelBurnTicksRemaining > 0 ? fuelTemperature : 0;
+    }
+
+    /**
      * The smeltery's working heat, on the same scale a melting recipe's {@code temperature} uses.
      *
      * <p>Ported from upstream's {@code TileHeatingStructureFuelTank#getFuelDisplay}/{@code
@@ -353,7 +380,12 @@ public class SmelteryControllerBlockEntity extends BlockEntity {
             if (fuelBurnTicksRemaining > 0) {
                 fuelBurnTicksRemaining--;
             }
-            setChanged();
+            // #101: was setChanged(). The GUI's heat bars and fuel gauge read melt progress and the
+            // remaining burn off the client-side copy of this block entity, so a melt that never
+            // syncs renders as a grid of frozen bars over a full fuel gauge. Coalesced here rather
+            // than in setMeltingItem so it costs one packet per melt tick (every
+            // MELT_INTERVAL_TICKS) regardless of how many of a 9x9x9's slots advanced.
+            syncToClients();
         }
         return working;
     }
@@ -399,7 +431,36 @@ public class SmelteryControllerBlockEntity extends BlockEntity {
         }
     }
 
+    /**
+     * Whether any slot holds something this smeltery can actually melt.
+     *
+     * <p>#101: this used to answer "any slot holds anything", which was safe only while {@link
+     * #insertForMelting} -- which rejects items with no recipe -- was the sole way in. It is not any
+     * more: #97 made this gate {@link #consumeFuel()}, and the GUI's melt slots are a second entry
+     * path. An unmeltable item sitting in the grid therefore armed a melt tick, burned a whole fuel
+     * charge, found nothing to heat, and returned without decrementing it -- so every poke of the
+     * controller drained the tank another charge for nothing.
+     *
+     * <p>{@link #recipeFor} is cached per slot and this short-circuits on the first hit, so the
+     * normal case is one lookup; the full scan only happens when there is nothing meltable at all,
+     * which is exactly the case that must stop ticking.
+     */
     private boolean hasMeltableItem() {
+        for (int slot = 0; slot < meltingItems.size(); slot++) {
+            if (recipeFor(slot) != null) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Whether any slot holds anything at all, meltable or not -- what {@link Container#isEmpty}
+     * means. Deliberately <em>not</em> {@link #hasMeltableItem()}: a grid holding one unmeltable
+     * item is not an empty container, and reporting it as one would mislead every vanilla consumer
+     * of the container (hoppers, comparators).
+     */
+    private boolean hasAnyItem() {
         for (ItemStack stack : meltingItems) {
             if (!stack.isEmpty()) {
                 return true;
@@ -584,5 +645,154 @@ public class SmelteryControllerBlockEntity extends BlockEntity {
     @Override
     public Packet<ClientGamePacketListener> getUpdatePacket() {
         return ClientboundBlockEntityDataPacket.create(this);
+    }
+
+    // ---------------------------------------------------------------- #101: the smeltery GUI
+
+    /**
+     * Pushes a tank change to every client watching this core, which is how the GUI's fluid column
+     * stays live -- {@link #getUpdateTag} already carries the tank, so this is the only trigger it
+     * was missing.
+     *
+     * <p>ponytail: one block-update packet per tank change, no throttling. That is fine while the
+     * things that change a tank are a completed melt (#96), a drain pour and a GUI click; if #97's
+     * fuel loop ever fills per tick, throttle here rather than at every call site.
+     */
+    private void onTankChanged() {
+        syncToClients();
+    }
+
+    /**
+     * Marks dirty and pushes this block entity's state to every client watching it. {@link
+     * #getUpdateTag} already carries the tank, the structure and (since #96) the melting inventory
+     * and its progress, so this is the one trigger all of the GUI's live state rides on.
+     */
+    private void syncToClients() {
+        setChanged();
+        if (level != null && !level.isClientSide) {
+            level.sendBlockUpdated(worldPosition, getBlockState(), getBlockState(), Block.UPDATE_CLIENTS);
+        }
+    }
+
+    /**
+     * Moves the fluid the player clicked in the GUI to the bottom of the melt, making it the fluid a
+     * drain pours (upstream's {@code SmelteryFluidClicked} packet handler).
+     *
+     * <p>Server-side only, reached from {@link SmelteryMenu#clickMenuButton} -- the index is
+     * untrusted and {@link SmelteryTank#moveToBottom} range-checks it.
+     */
+    public void selectDrainFluid(int index) {
+        if (level != null && !level.isClientSide) {
+            tank.moveToBottom(index);
+        }
+    }
+
+    @Override
+    public Component getDisplayName() {
+        return getBlockState().getBlock().getName();
+    }
+
+    @Nullable
+    @Override
+    public AbstractContainerMenu createMenu(int containerId, Inventory playerInventory, Player player) {
+        return new SmelteryMenu(containerId, playerInventory,
+                ContainerLevelAccess.create(level, worldPosition), worldPosition, meltingContainer());
+    }
+
+    @Override
+    public void writeMenuData(RegistryFriendlyByteBuf buf) {
+        buf.writeBlockPos(worldPosition);
+        buf.writeVarInt(meltingItems.size());
+    }
+
+    /**
+     * The melting inventory as a vanilla {@link Container}, so {@link SmelteryMenu} can put real
+     * {@link net.minecraft.world.inventory.Slot}s over it.
+     *
+     * <p>Real slots rather than a bespoke click packet: vanilla's own container click handling is
+     * already server-authoritative, already handles pick-up/place/split/shift-click, and already
+     * validates against the server's copy of the inventory. {@link #insertForMelting} stays as the
+     * non-GUI path (hoppers, dropped items) -- this is the same inventory seen through the interface
+     * slots need.
+     *
+     * <p>Reads {@link #meltingItems} live rather than capturing it, because {@link
+     * #resizeMeltingInventory} <em>replaces</em> the list when the interior changes. A menu open
+     * across such a resize closes on its next {@code stillValid} ({@link SmelteryMenu}), which is
+     * upstream's {@code GuiSmeltery#updateScreen} behaviour.
+     */
+    public Container meltingContainer() {
+        return new MeltingContainer();
+    }
+
+    /** @see #meltingContainer() */
+    private final class MeltingContainer implements Container {
+        @Override
+        public int getContainerSize() {
+            return meltingItems.size();
+        }
+
+        @Override
+        public boolean isEmpty() {
+            return !hasAnyItem();
+        }
+
+        @Override
+        public ItemStack getItem(int slot) {
+            return slot >= 0 && slot < meltingItems.size() ? meltingItems.get(slot) : ItemStack.EMPTY;
+        }
+
+        @Override
+        public ItemStack removeItem(int slot, int count) {
+            ItemStack removed = ContainerHelper.removeItem(meltingItems, slot, count);
+            if (!removed.isEmpty()) {
+                // Progress belongs to the stack that earned it, so taking the item back resets it.
+                setMeltingItem(slot, meltingItems.get(slot));
+            }
+            return removed;
+        }
+
+        @Override
+        public ItemStack removeItemNoUpdate(int slot) {
+            ItemStack removed = getItem(slot);
+            setMeltingItem(slot, ItemStack.EMPTY);
+            return removed;
+        }
+
+        @Override
+        public void setItem(int slot, ItemStack stack) {
+            setMeltingItem(slot, stack);
+        }
+
+        /**
+         * Only what the smeltery can actually melt, which is what keeps the GUI honest about the
+         * grid being a melting inventory and not general storage. Checked on both sides: the client
+         * greys the placement, the server refuses it.
+         */
+        @Override
+        public boolean canPlaceItem(int slot, ItemStack stack) {
+            return level != null && MeltingRecipe.find(level.registryAccess(), stack).isPresent();
+        }
+
+        @Override
+        public int getMaxStackSize() {
+            return 1; // Upstream melts one item per interior block; a slot never holds a stack.
+        }
+
+        @Override
+        public void setChanged() {
+            SmelteryControllerBlockEntity.this.setChanged();
+        }
+
+        @Override
+        public boolean stillValid(Player player) {
+            return !isRemoved();
+        }
+
+        @Override
+        public void clearContent() {
+            for (int slot = 0; slot < meltingItems.size(); slot++) {
+                setMeltingItem(slot, ItemStack.EMPTY);
+            }
+        }
     }
 }

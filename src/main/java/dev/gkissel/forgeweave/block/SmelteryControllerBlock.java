@@ -95,25 +95,36 @@ public class SmelteryControllerBlock extends HorizontalDirectionalBlock implemen
     }
 
     /**
-     * Rescans and reports the outcome in chat. The smeltery GUI is issue #101; until then this is
-     * how SCOPE.md M2's "the controller reports why an invalid structure fails to form" is met, and
-     * it stays useful afterwards as the "why won't it form" affordance.
+     * Rescans, then either opens the smeltery GUI or -- when nothing formed -- reports why in chat.
+     *
+     * <p>The chat report was the whole interaction until issue #101 added the screen, and it stays
+     * as the unformed case's affordance: it is how SCOPE.md M2's "the controller reports why an
+     * invalid structure fails to form" is met, and a GUI showing an empty tank would say nothing
+     * about the hole in the wall.
      */
     @Override
     protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hit) {
         if (!level.isClientSide && level.getBlockEntity(pos) instanceof SmelteryControllerBlockEntity core) {
             core.updateStructure();
-            player.displayClientMessage(core.lastResult(), false);
+            boolean formed = core.isFormed();
             // #110 -- first-interaction hook for the advancement chain and the Ponder soft dependency
             // (docs/SCOPE.md M2 issue #110): grants "build smeltery" the first time a player's own
             // interaction finds the structure formed, and shows the one-time Ponder chat hint on every
             // first interaction regardless of outcome (ForgeweavePonderHint is itself a no-op after
             // the first call, or whenever Ponder is installed).
             if (player instanceof ServerPlayer serverPlayer) {
-                if (core.isFormed()) {
+                if (formed) {
                     ForgeweaveCriteriaTriggers.SMELTERY_FORMED.get().trigger(serverPlayer);
                 }
                 ForgeweavePonderHint.maybeShow(serverPlayer);
+            }
+            // #101: a formed smeltery opens its GUI; an unformed one keeps #95's chat report, which
+            // is the only thing that can explain the hole in the wall. Both #110 hooks above run
+            // either way, so the advancement and the hint are unaffected by which branch is taken.
+            if (formed) {
+                core.open(player);
+            } else {
+                player.displayClientMessage(core.lastResult(), false);
             }
         }
         return InteractionResult.SUCCESS;
