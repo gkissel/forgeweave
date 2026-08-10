@@ -23,6 +23,7 @@ import net.neoforged.neoforge.items.IItemHandler;
 
 import dev.gkissel.forgeweave.block.ForgeweaveBlocks;
 import dev.gkissel.forgeweave.item.ToolItem;
+import dev.gkissel.forgeweave.modifier.ModifierApplication;
 import dev.gkissel.forgeweave.menu.ToolStationTabs.Pos;
 import dev.gkissel.forgeweave.menu.ToolStationTabs.Tab;
 
@@ -206,15 +207,32 @@ public class ToolStationMenu extends StationMenu {
     private boolean accepts(int index, ItemStack stack) {
         Tab tab = tab();
         if (tab.isRepair()) {
+            // The repair tab is also the modify tab (issue #105): its two free slots take either the
+            // loaded tool's repair item or any modifier recipe's reagent.
             return index == HEAD_SLOT
                     ? stack.getItem() instanceof ToolItem
-                    : ToolAssemblyRecipes.isRepairItemFor(registries, container.getItem(HEAD_SLOT), stack);
+                    : ToolAssemblyRecipes.isRepairItemFor(registries, container.getItem(HEAD_SLOT), stack)
+                            || ModifierApplication.isReagent(registries, stack);
         }
         return switch (index) {
             case HEAD_SLOT -> stack.is(tab.headPart().get());
             case BINDING_SLOT -> ToolAssemblyRecipes.isBindingPart(stack);
             default -> ToolAssemblyRecipes.isHandlePart(stack);
         };
+    }
+
+    /**
+     * Why the loaded reagents can't be applied to the loaded tool, or {@code null} when there is
+     * nothing to say. Read by the screen for the info panel: modifier recipes are a synced datapack
+     * registry, so the client resolves the same answer the server did and no extra payload is needed.
+     * The server stays authoritative regardless -- it simply produces no output.
+     */
+    @Nullable
+    public Component modifierRejection() {
+        return ModifierApplication.resolve(registries, slots.get(HEAD_SLOT).getItem(),
+                        slots.get(BINDING_SLOT).getItem(), slots.get(HANDLE_SLOT).getItem())
+                .map(ModifierApplication.Outcome::rejection)
+                .orElse(null);
     }
 
     /** The selected tab; the screen reads it to pick the sidebar highlight, icons and info text. */

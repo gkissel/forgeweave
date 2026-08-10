@@ -14,6 +14,7 @@ import net.neoforged.neoforge.registries.DeferredHolder;
 import net.neoforged.neoforge.registries.DeferredRegister;
 
 import dev.gkissel.forgeweave.Forgeweave;
+import dev.gkissel.forgeweave.modifier.ModifierEntry;
 import dev.gkissel.forgeweave.tool.ToolMaterials;
 import dev.gkissel.forgeweave.tool.ToolStats;
 
@@ -57,6 +58,18 @@ public final class ForgeweaveDataComponents {
             DATA_COMPONENTS.registerComponentType("traits",
                     builder -> builder.persistent(ResourceLocation.CODEC.listOf())
                             .networkSynchronized(ResourceLocation.STREAM_CODEC.apply(ByteBufCodecs.list())));
+
+    /**
+     * The Modifiers applied to a tool at the Tool Station, in application order. ADR-0004's hard
+     * rule: each entry is nothing but an {@code id} and a {@code level}
+     * ({@code modifier.ModifierEntry}) -- never a class reference -- so every save and fixture stays
+     * decodable across the M6 migration to datapack-defined modifiers. An id this version doesn't
+     * implement is kept as inert data rather than dropped ({@code ForgeweaveModifiers#get}).
+     */
+    public static final DeferredHolder<DataComponentType<?>, DataComponentType<List<ModifierEntry>>> MODIFIERS =
+            DATA_COMPONENTS.registerComponentType("modifiers",
+                    builder -> builder.persistent(ModifierEntry.CODEC.listOf())
+                            .networkSynchronized(ModifierEntry.STREAM_CODEC.apply(ByteBufCodecs.list())));
 
     /**
      * Set once a tool runs out of durability. CONTEXT.md: a Broken tool is unusable but never

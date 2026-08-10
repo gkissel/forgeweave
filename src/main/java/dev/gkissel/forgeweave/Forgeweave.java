@@ -28,6 +28,7 @@ import dev.gkissel.forgeweave.item.ForgeweaveItems;
 import dev.gkissel.forgeweave.material.Material;
 import dev.gkissel.forgeweave.menu.ForgeweaveMenus;
 import dev.gkissel.forgeweave.menu.RenameStationItemPayload;
+import dev.gkissel.forgeweave.modifier.ModifierRecipe;
 import dev.gkissel.forgeweave.recipe.ForgeweaveRecipeSerializers;
 import dev.gkissel.forgeweave.trait.ForgeweaveTraits;
 
@@ -68,6 +69,9 @@ public class Forgeweave {
     private void registerDataPackRegistries(final DataPackRegistryEvent.NewRegistry event) {
         // Passing the codec as the network codec too makes NeoForge sync materials server -> client.
         event.dataPackRegistry(Material.REGISTRY, Material.CODEC, Material.CODEC);
+        // Modifier application recipes, same deal (ADR-0004): the client needs them so the Tool
+        // Station screen can explain a rejection without a payload of its own.
+        event.dataPackRegistry(ModifierRecipe.REGISTRY, ModifierRecipe.CODEC, ModifierRecipe.CODEC);
     }
 
     /** The Tool Station's rename field is the mod's only message that a menu button can't carry. */

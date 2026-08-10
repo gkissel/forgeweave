@@ -19,6 +19,7 @@ import net.minecraft.core.MappedRegistry;
 import net.minecraft.core.RegistrationInfo;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.Registries;
+import net.minecraft.network.chat.CommonComponents;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.Style;
 import net.minecraft.network.chat.TextColor;
@@ -35,6 +36,7 @@ import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.level.block.Block;
 
 import dev.gkissel.forgeweave.material.Material;
+import dev.gkissel.forgeweave.modifier.ModifierEntry;
 import dev.gkissel.forgeweave.tool.ToolMaterials;
 import dev.gkissel.forgeweave.tool.ToolStats;
 
@@ -57,6 +59,7 @@ class ToolTooltipTest {
     private static final TextColor WOOD_COLOR = TextColor.fromRgb(0x8E661B);
     private static final TextColor ATTACK_COLOR = TextColor.fromRgb(0xD76464);
     private static final TextColor SPEED_COLOR = TextColor.fromRgb(0x78A0CD);
+    private static final TextColor MODIFIER_COLOR = TextColor.fromRgb(0xB9B95A);
 
     @BeforeAll
     static void bootstrapMinecraft() {
@@ -75,13 +78,39 @@ class ToolTooltipTest {
     }
 
     @Test
-    void compactTooltipShowsOnlyDurabilityThenAttackDamage() {
+    void compactTooltipShowsDurabilityAttackDamageAndFreeModifierSlots() {
         ItemStack stack = assembledPickaxe(40, List.of());
 
         List<Component> tooltip = new ArrayList<>();
         ToolTooltip.append(stack, null, false, 3.0F, tooltip);
 
-        assertEquals(List.of(durabilityLine(120, 160), attackLine(3.0F)), tooltip);
+        assertEquals(List.of(durabilityLine(120, 160), attackLine(3.0F), slotsLine(3)), tooltip);
+    }
+
+    /**
+     * Issue #105: an applied Modifier shows its name and level, and the free-slot count drops by the
+     * one it occupies. Haste's level is in redstone, so 51 of them read as level 2 with the current
+     * level 51/100 full -- upstream's {@code ModifierNBT.IntegerNBT#extraInfo}.
+     */
+    @Test
+    void compactTooltipListsModifiersWithTheirLevelAndProgress() {
+        ItemStack stack = assembledPickaxe(40, List.of());
+        stack.set(ForgeweaveDataComponents.MODIFIERS.get(),
+                List.of(new ModifierEntry(ResourceLocation.fromNamespaceAndPath("forgeweave", "haste"), 51)));
+
+        List<Component> tooltip = new ArrayList<>();
+        ToolTooltip.append(stack, null, false, 3.0F, tooltip);
+
+        assertEquals(List.of(
+                durabilityLine(120, 160),
+                attackLine(3.0F),
+                Component.translatable("modifier.forgeweave.haste.name")
+                        .withStyle(Style.EMPTY.withColor(MODIFIER_COLOR))
+                        .append(CommonComponents.SPACE)
+                        .append(Component.translatable("enchantment.level.2"))
+                        .append(Component.literal(" (51/100)").withStyle(ChatFormatting.GRAY)),
+                slotsLine(2)),
+                tooltip);
     }
 
     @Test
@@ -94,7 +123,8 @@ class ToolTooltipTest {
 
         assertEquals(List.of(
                 Component.translatable("tooltip.forgeweave.broken").withStyle(ChatFormatting.DARK_RED, ChatFormatting.BOLD),
-                attackLine(0.0F)),
+                attackLine(0.0F),
+                slotsLine(3)),
                 tooltip);
     }
 
@@ -109,6 +139,7 @@ class ToolTooltipTest {
         assertEquals(List.of(
                 durabilityLine(120, 160),
                 attackLine(3.0F),
+                slotsLine(3),
                 statLine("tooltip.forgeweave.mining_speed", "4", SPEED_COLOR),
                 Component.translatable("tooltip.forgeweave.tool_tier").append(": ")
                         .append(Component.translatable("tooltip.forgeweave.tier.stone")),
@@ -136,6 +167,7 @@ class ToolTooltipTest {
         assertEquals(List.of(
                 durabilityLine(120, 160),
                 attackLine(3.0F),
+                slotsLine(3),
                 statLine("tooltip.forgeweave.mining_speed", "4", SPEED_COLOR),
                 Component.empty(),
                 Component.translatable("material.forgeweave.stone"),
@@ -156,7 +188,7 @@ class ToolTooltipTest {
         ForgeweaveItems.TOOL_PICKAXE.get().appendHoverText(stack, Item.TooltipContext.EMPTY, tooltip, TooltipFlag.NORMAL);
 
         // TooltipFlag.NORMAL.hasShiftDown() is NeoForge's TooltipFlagExtension default (false off-client).
-        assertEquals(List.of(durabilityLine(120, 160), attackLine(3.0F)), tooltip);
+        assertEquals(List.of(durabilityLine(120, 160), attackLine(3.0F), slotsLine(3)), tooltip);
     }
 
     private static ItemStack assembledPickaxe(int damage, List<ResourceLocation> traits) {
@@ -211,6 +243,12 @@ class ToolTooltipTest {
                         .withStyle(Style.EMPTY.withColor(durabilityColor((float) current / max))))
                 .append(Component.literal("/").withStyle(ChatFormatting.GRAY))
                 .append(Component.literal(Integer.toString(max)).withStyle(Style.EMPTY.withColor(durabilityColor(1.0F))));
+    }
+
+    /** Upstream 1.12's "Modifiers: %d" line, shown while the tool still has slots free. */
+    private static Component slotsLine(int free) {
+        return Component.translatable("tooltip.forgeweave.modifier_slots", free)
+                .withStyle(Style.EMPTY.withColor(MODIFIER_COLOR));
     }
 
     private static Component attackLine(float value) {

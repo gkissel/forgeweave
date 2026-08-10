@@ -249,6 +249,16 @@ public class ToolStationScreen extends StationScreen<ToolStationMenu> implements
                 traitLines = componentLines(tab);
             }
         }
+        // Why the loaded reagents can't be applied (issue #105). Upstream shows its
+        // TinkerGuiException text in this same panel; the menu resolves the answer from the synced
+        // modifier-recipe registry, so no packet is involved.
+        Component rejection = menu.modifierRejection();
+        if (rejection != null) {
+            List<Component> withError = new ArrayList<>(toolLines);
+            withError.add(null);
+            withError.add(rejection.copy().withStyle(ChatFormatting.RED));
+            toolLines = withError;
+        }
         toolScroll = Math.min(toolScroll, InfoPanel.maxScroll(font, InfoPanel.WIDTH, InfoPanel.HEIGHT, true, toolLines));
         traitScroll = Math.min(traitScroll,
                 InfoPanel.maxScroll(font, InfoPanel.WIDTH, InfoPanel.HEIGHT, traitCaption != null, traitLines));
@@ -264,6 +274,9 @@ public class ToolStationScreen extends StationScreen<ToolStationMenu> implements
             lines.add(Component.translatable("gui.forgeweave.tool_station.materials").withStyle(ChatFormatting.UNDERLINE));
             lines.addAll(StationText.toolMaterials(registries(), materials));
         }
+        lines.add(null);
+        lines.add(Component.translatable("gui.forgeweave.tool_station.modifiers").withStyle(ChatFormatting.UNDERLINE));
+        lines.addAll(StationText.toolModifiers(tool));
         if (ToolItem.isBroken(tool)) {
             lines.add(null);
             lines.add(Component.translatable("tooltip.forgeweave.broken").withStyle(ChatFormatting.DARK_RED));

@@ -29,6 +29,7 @@ import net.minecraft.world.level.block.state.BlockState;
 
 import dev.gkissel.forgeweave.config.ForgeweaveConfig;
 import dev.gkissel.forgeweave.material.Material;
+import dev.gkissel.forgeweave.modifier.ForgeweaveModifiers;
 import dev.gkissel.forgeweave.tool.ToolStats;
 import dev.gkissel.forgeweave.trait.ForgeweaveTraits;
 
@@ -135,10 +136,19 @@ public class ToolItem extends Item {
                                 AttributeModifier.Operation.ADD_VALUE),
                         EquipmentSlotGroup.MAINHAND)
                 .add(Attributes.ATTACK_SPEED,
-                        new AttributeModifier(BASE_ATTACK_SPEED_ID, attackSpeed - 4.0,
+                        new AttributeModifier(BASE_ATTACK_SPEED_ID, effectiveAttackSpeed(stack) - 4.0,
                                 AttributeModifier.Operation.ADD_VALUE),
                         EquipmentSlotGroup.MAINHAND)
                 .build();
+    }
+
+    /**
+     * This stack's attack speed with its modifiers applied. Upstream 1.12 gates the haste-family
+     * attack-speed bonus on {@code Category.WEAPON}, which of Forgeweave's three tools only the
+     * hatchet has, so the multiplier applies here only ({@code ForgeweaveModifiers#HASTE}).
+     */
+    private float effectiveAttackSpeed(ItemStack stack) {
+        return weapon ? attackSpeed * ForgeweaveModifiers.attackSpeedMultiplier(stack) : attackSpeed;
     }
 
     /**

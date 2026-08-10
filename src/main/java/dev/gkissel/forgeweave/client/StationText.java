@@ -11,6 +11,7 @@ import javax.annotation.Nullable;
 
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.HolderLookup;
+import net.minecraft.network.chat.CommonComponents;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.network.chat.Style;
@@ -22,6 +23,9 @@ import net.minecraft.world.item.ItemStack;
 import dev.gkissel.forgeweave.item.ForgeweaveDataComponents;
 import dev.gkissel.forgeweave.material.Material;
 import dev.gkissel.forgeweave.material.MaterialDisplay;
+import dev.gkissel.forgeweave.modifier.ForgeweaveModifiers;
+import dev.gkissel.forgeweave.modifier.ModifierApplication;
+import dev.gkissel.forgeweave.modifier.ModifierEntry;
 import dev.gkissel.forgeweave.tool.ToolMaterials;
 import dev.gkissel.forgeweave.tool.ToolStats;
 
@@ -65,9 +69,13 @@ public final class StationText {
     private static final DecimalFormat FORMAT =
             new DecimalFormat("#.##", DecimalFormatSymbols.getInstance(Locale.ROOT));
 
-    /** Durability, mining speed and attack damage of an assembled tool, in upstream's order. */
+    /**
+     * Durability, mining speed and attack damage of an assembled tool, in upstream's order and with
+     * its Modifiers applied ({@code ForgeweaveModifiers#effectiveStats}) -- the panel shows what the
+     * tool actually does, not what its materials alone would have given it.
+     */
     public static List<Component> toolStats(ItemStack tool) {
-        ToolStats.Stats stats = tool.get(ForgeweaveDataComponents.TOOL_STATS.get());
+        ToolStats.Stats stats = ForgeweaveModifiers.effectiveStats(tool);
         if (stats == null) {
             return List.of();
         }
@@ -76,6 +84,28 @@ public final class StationText {
                 durabilityStat(remaining, stats.durability()),
                 stat("mining_speed", stats.miningSpeed(), SPEED_COLOR),
                 stat("attack_damage", stats.attackDamage(), ATTACK_COLOR));
+    }
+
+    /**
+     * The Modifiers on an assembled tool and the slots it has left, for the Tool Station's second
+     * info panel. Names come from {@code modifier.<namespace>.<path>.name}, keyed by the ids on the
+     * stack exactly as trait lines are, so an id this version doesn't implement still shows up
+     * (as a visible untranslated key) rather than vanishing.
+     */
+    public static List<Component> toolModifiers(ItemStack tool) {
+        List<Component> lines = new ArrayList<>();
+        for (ModifierEntry entry : ForgeweaveModifiers.of(tool)) {
+            MutableComponent line = ModifierApplication.name(entry.id()).copy()
+                    .withStyle(Style.EMPTY.withColor(MODIFIER_COLOR));
+            int level = ForgeweaveModifiers.displayLevel(entry.id(), entry.level());
+            if (level > 1) {
+                line.append(CommonComponents.SPACE).append(Component.translatable("enchantment.level." + level));
+            }
+            lines.add(line);
+        }
+        lines.add(Component.translatable("gui.forgeweave.tool_station.modifier_slots",
+                ForgeweaveModifiers.freeSlots(tool)).withStyle(ChatFormatting.GRAY));
+        return List.copyOf(lines);
     }
 
     /** The three materials an assembled tool is made of, each in its own tint. */
