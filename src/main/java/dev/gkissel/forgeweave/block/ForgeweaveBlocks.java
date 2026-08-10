@@ -117,6 +117,27 @@ public final class ForgeweaveBlocks {
     public static final DeferredBlock<FaucetBlock> FAUCET = BLOCKS.register("faucet",
             () -> new FaucetBlock(searedProperties().noOcclusion()));
 
+    // #104 -- cobalt + ardite nether ore (docs/SCOPE.md M2 issue #104). Upstream 1.12's BlockOre
+    // (NOTICE.md) sets only setHardness(10f) and setHarvestLevel("pickaxe", HarvestLevels.COBALT) --
+    // its own above-diamond tool tier (TinkerMaterials: obsidian's tools mine at COBALT level, so an
+    // obsidian-tier tool is upstream's entry point). CONTEXT.md forbids a custom numeric harvest
+    // level, so this maps onto the vanilla tag ladder's tightest tier below netherite:
+    // needs_diamond_tool (a plain diamond pickaxe suffices) -- the PR body records this adaptation.
+    // Upstream never calls setResistance, so its blast resistance is Block's own unset default;
+    // strength(10.0F) applies that same 10 to both hardness and resistance, matching how every other
+    // Forgeweave block with no upstream resistance override (searedProperties et al.) uses the
+    // single-argument form. Material.ROCK's implicit sound is STONE, same as vanilla ore blocks.
+    public static final DeferredBlock<Block> COBALT_ORE = oreBlock("cobalt_ore");
+    public static final DeferredBlock<Block> ARDITE_ORE = oreBlock("ardite_ore");
+
+    private static DeferredBlock<Block> oreBlock(String name) {
+        return BLOCKS.registerSimpleBlock(name, BlockBehaviour.Properties.of()
+                .mapColor(MapColor.NETHER)
+                .strength(10.0F)
+                .sound(SoundType.STONE)
+                .requiresCorrectToolForDrops());
+    }
+
     private static DeferredBlock<Block> searedBlock(String name) {
         return BLOCKS.registerSimpleBlock(name, searedProperties());
     }

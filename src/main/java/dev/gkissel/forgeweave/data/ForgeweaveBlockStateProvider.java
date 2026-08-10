@@ -130,6 +130,11 @@ public class ForgeweaveBlockStateProvider extends BlockStateProvider {
             default -> ConfiguredModel.builder().modelFile(faucet).build();
         });
         simpleBlockItem(ForgeweaveBlocks.FAUCET.get(), faucet);
+
+        // #104 -- cobalt + ardite nether ore (docs/SCOPE.md M2 issue #104): plain cube_all geometry,
+        // like the seared brick family, with one composited derived texture per ore (NOTICE.md).
+        cubeAllBlock("cobalt_ore", ForgeweaveBlocks.COBALT_ORE.get());
+        cubeAllBlock("ardite_ore", ForgeweaveBlocks.ARDITE_ORE.get());
     }
 
     private void coreBlock(String name, Block block) {

@@ -112,6 +112,10 @@ public final class ForgeweaveCreativeTab {
         output.accept(ForgeweaveItems.NUGGET_ROSE_GOLD.get());
         output.accept(ForgeweaveItems.RAW_ROSE_GOLD.get());
 
+        // #104 -- cobalt + ardite nether ore (docs/SCOPE.md M2 issue #104).
+        output.accept(ForgeweaveItems.COBALT_ORE.get());
+        output.accept(ForgeweaveItems.ARDITE_ORE.get());
+
         List<Holder.Reference<Material>> materials =
                 parameters.holders().lookupOrThrow(Material.REGISTRY).listElements().toList();
         for (DeferredItem<PartItem> partItem : PART_ITEMS) {

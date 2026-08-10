@@ -5,6 +5,7 @@ import java.util.Set;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.data.loot.BlockLootSubProvider;
 import net.minecraft.world.flag.FeatureFlags;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.storage.loot.LootPool;
 import net.minecraft.world.level.storage.loot.LootTable;
@@ -14,6 +15,7 @@ import net.minecraft.world.level.storage.loot.providers.number.ConstantValue;
 
 import dev.gkissel.forgeweave.block.ForgeweaveBlocks;
 import dev.gkissel.forgeweave.item.ForgeweaveDataComponents;
+import dev.gkissel.forgeweave.item.ForgeweaveItems;
 
 /**
  * The Part Builder and Tool Station drop themselves, keeping their inventory contents dropped
@@ -77,6 +79,21 @@ public class ForgeweaveBlockLootSubProvider extends BlockLootSubProvider {
         dropSelf(ForgeweaveBlocks.CASTING_TABLE.get());
         dropSelf(ForgeweaveBlocks.CASTING_BASIN.get());
         dropSelf(ForgeweaveBlocks.FAUCET.get());
+
+        // #104 -- cobalt + ardite nether ore (docs/SCOPE.md M2 issue #104): always drops one raw
+        // item, matching upstream 1.12's BlockOre (no getDrops override there -- unconditional
+        // self-drop, no fortune scaling). Forgeweave's adaptation (#103) is dropping the raw-ore item
+        // rather than the ore block itself, and SCOPE.md's "no separate silk-touch yield axis" means
+        // that stays true even under Silk Touch -- createOreDrop's silk-touch/fortune split is
+        // deliberately not used here.
+        add(ForgeweaveBlocks.COBALT_ORE.get(), oreDrop(ForgeweaveBlocks.COBALT_ORE.get(), ForgeweaveItems.RAW_COBALT.get()));
+        add(ForgeweaveBlocks.ARDITE_ORE.get(), oreDrop(ForgeweaveBlocks.ARDITE_ORE.get(), ForgeweaveItems.RAW_ARDITE.get()));
+    }
+
+    private LootTable.Builder oreDrop(Block block, Item item) {
+        return LootTable.lootTable().withPool(applyExplosionCondition(block, LootPool.lootPool()
+                .setRolls(ConstantValue.exactly(1.0F))
+                .add(LootItem.lootTableItem(item))));
     }
 
     private LootTable.Builder tankDrop(Block block) {

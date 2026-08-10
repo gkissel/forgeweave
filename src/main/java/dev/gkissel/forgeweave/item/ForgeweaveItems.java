@@ -168,5 +168,9 @@ public final class ForgeweaveItems {
     public static final DeferredItem<Item> NUGGET_ROSE_GOLD = ITEMS.registerSimpleItem("rose_gold_nugget");
     public static final DeferredItem<Item> RAW_ROSE_GOLD = ITEMS.registerSimpleItem("raw_rose_gold");
 
+    // #104 -- cobalt + ardite nether ore block items (docs/SCOPE.md M2 issue #104).
+    public static final DeferredItem<BlockItem> COBALT_ORE = ITEMS.registerSimpleBlockItem("cobalt_ore", ForgeweaveBlocks.COBALT_ORE);
+    public static final DeferredItem<BlockItem> ARDITE_ORE = ITEMS.registerSimpleBlockItem("ardite_ore", ForgeweaveBlocks.ARDITE_ORE);
+
     private ForgeweaveItems() {}
 }

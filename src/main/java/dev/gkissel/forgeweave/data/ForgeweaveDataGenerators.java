@@ -6,7 +6,6 @@ import java.util.concurrent.CompletableFuture;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.data.DataGenerator;
 import net.minecraft.data.PackOutput;
-import net.minecraft.data.tags.TagsProvider;
 
 import net.neoforged.neoforge.common.data.AdvancementProvider;
 import net.neoforged.neoforge.common.data.ExistingFileHelper;
@@ -29,11 +28,15 @@ public final class ForgeweaveDataGenerators {
         generator.addProvider(event.includeClient(), new ForgeweaveLanguageProvider(output));
         generator.addProvider(event.includeServer(), new ForgeweaveRecipeProvider(output, lookupProvider));
         generator.addProvider(event.includeServer(), new ForgeweaveLootTableProvider(output, lookupProvider));
+        // #104 -- the cobalt + ardite nether ore blocks' tool-tier tags (ForgeweaveBlockTagsProvider
+        // javadoc); the first Forgeweave block tags, so ForgeweaveItemTagsProvider's block-tag future
+        // now feeds off it instead of staying empty.
+        ForgeweaveBlockTagsProvider blockTags = generator.addProvider(event.includeServer(),
+                new ForgeweaveBlockTagsProvider(output, lookupProvider, existingFileHelper));
         // #103 -- puts the four metal materials with no vanilla item form into the c: convention tags
-        // MeltingRecipe's tag-keyed rows expect (ForgeweaveItemTagsProvider javadoc). No block tags of
-        // our own to copy in, so the block-tag future stays empty.
+        // MeltingRecipe's tag-keyed rows expect (ForgeweaveItemTagsProvider javadoc).
         generator.addProvider(event.includeServer(), new ForgeweaveItemTagsProvider(output, lookupProvider,
-                CompletableFuture.completedFuture(TagsProvider.TagLookup.empty()), existingFileHelper));
+                blockTags.contentsGetter(), existingFileHelper));
         // #110 -- the M2 advancement chain (docs/SCOPE.md M2 issue #110): build smeltery -> first
         // melt -> first cast -> first alloy -> first modifier.
         generator.addProvider(event.includeServer(),
