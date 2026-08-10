@@ -38,7 +38,9 @@ public final class ForgeweaveCreativeTab {
             .displayItems(ForgeweaveCreativeTab::addDisplayItems)
             .build());
 
-    private static void addDisplayItems(CreativeModeTab.ItemDisplayParameters parameters, CreativeModeTab.Output output) {
+    // Package-private (not private) so ForgeweaveCreativeTabTest (issue #139) can build the tab's
+    // contents directly, without depending on the NeoForge mod event bus being live in unit tests.
+    static void addDisplayItems(CreativeModeTab.ItemDisplayParameters parameters, CreativeModeTab.Output output) {
         output.accept(ForgeweaveItems.PART_BUILDER.get());
         output.accept(ForgeweaveItems.TOOL_STATION.get());
         output.accept(ForgeweaveItems.CRAFTING_STATION.get());
@@ -84,6 +86,15 @@ public final class ForgeweaveCreativeTab {
         output.accept(ForgeweaveItems.SEARED_ROAD.get());
         output.accept(ForgeweaveItems.SEARED_TILE.get());
         output.accept(ForgeweaveItems.SEARED_CREEPER.get());
+
+        // The smeltery multiblock's own blocks (docs/SCOPE.md M2 issue #95; issue #139 fix -- these
+        // were never added here, so the maintainer couldn't find the smeltery in the creative tab).
+        output.accept(ForgeweaveItems.STANDARD_CORE.get());
+        output.accept(ForgeweaveItems.NETHER_CORE.get());
+        output.accept(ForgeweaveItems.SEARED_TANK.get());
+        output.accept(ForgeweaveItems.SEARED_GAUGE.get());
+        output.accept(ForgeweaveItems.SEARED_WINDOW.get());
+        output.accept(ForgeweaveItems.SEARED_DRAIN.get());
 
         // #100 -- casting (docs/SCOPE.md M2 issue #100).
         output.accept(ForgeweaveItems.CASTING_TABLE.get());
