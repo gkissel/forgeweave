@@ -1,0 +1,8 @@
+{
+  "modifier": "forgeweave:soulbound",
+  "reagent": {
+    "item": "minecraft:nether_star"
+  },
+  "cost": 1,
+  "max_level": 1
+}

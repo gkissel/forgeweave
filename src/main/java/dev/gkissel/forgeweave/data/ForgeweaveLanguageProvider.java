@@ -88,6 +88,15 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         addItem(ForgeweaveItems.GROUT, "Grout");
         addItem(ForgeweaveItems.SEARED_BRICK, "Seared Brick");
 
+        // #107 batch: modifier reagent items (docs/SCOPE.md M2 issue #107), names ported from upstream
+        // 1.12's item.materials.*.name entries (NOTICE.md).
+        addItem(ForgeweaveItems.MOSS, "Moss");
+        addItem(ForgeweaveItems.MENDING_MOSS, "Mending Moss");
+        addItem(ForgeweaveItems.REINFORCED_PLATE, "Reinforced Plate");
+        addItem(ForgeweaveItems.SILKY_CLOTH, "Silky Cloth");
+        addItem(ForgeweaveItems.SILKY_JEWEL, "Silky Jewel");
+        addItem(ForgeweaveItems.EXTRA_MODIFIER, "Extra Modifier");
+
         // Shown on a tool that ran out of durability (CONTEXT.md: Broken -- unusable, never destroyed).
         add("tooltip.forgeweave.broken", "Broken");
 
@@ -211,6 +220,25 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("modifier.forgeweave.resonant.description", "Bonus experience from blocks that drop it. Every level adds 50%.");
         add("modifier.forgeweave.far_reach.name", "Far Reach");
         add("modifier.forgeweave.far_reach.description", "Extends how far you can reach to mine blocks. Every level adds one block.");
+
+        // #107 batch: reinforced, mending moss, silky, soulbound, extra-slot (docs/SCOPE.md M2 issue
+        // #107), wording ported from upstream 1.12's modifier.<id>.name/.desc entries.
+        add("modifier.forgeweave.reinforced.name", "Reinforced");
+        add("modifier.forgeweave.reinforced.description",
+                "Gives a chance to completely negate durability damage. Every level is another 20% chance.");
+        add("modifier.forgeweave.mending_moss.name", "Mending Moss");
+        add("modifier.forgeweave.mending_moss.description",
+                "Stores experience and slowly uses it to repair the tool while it is carried.");
+        add("modifier.forgeweave.silky.name", "Silky");
+        add("modifier.forgeweave.silky.description", "Grants Silk Touch, at the cost of some mining speed and attack damage.");
+        add("modifier.forgeweave.soulbound.name", "Soulbound");
+        add("modifier.forgeweave.soulbound.description", "The tool stays with you even after you die.");
+        add("modifier.forgeweave.extra_slot.name", "Extra Modifier");
+        add("modifier.forgeweave.extra_slot.description", "Adds an extra modifier slot to the tool.");
+
+        // Mending moss's acquisition (issue #107): shown when a player right-clicks a bookshelf with
+        // moss but fewer than 10 XP levels, ported from upstream's message.mending_moss.not_enough_levels.
+        add("message.forgeweave.mending_moss.not_enough_levels", "You need at least %s experience levels.");
 
         // JEI recipe category titles (issue #11); only shown when JEI is installed, since the
         // integration is optional (neoforge.mods.toml).

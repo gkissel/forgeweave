@@ -173,6 +173,26 @@ One row per derived file (ADR-0003). Maintained in PR review: a PR introducing d
 | `src/main/java/dev/gkissel/forgeweave/block/SearedDrainBlock.java` and `SearedDrainBlockEntity.java` (a wall block re-exposing the smeltery's own tank to its neighbours) | `src/main/java/slimeknights/tconstruct/smeltery/block/BlockSmelteryIO.java`, `src/main/java/slimeknights/tconstruct/smeltery/tileentity/TileDrain.java` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
 | `src/main/java/dev/gkissel/forgeweave/data/ForgeweaveBlockStateProvider.java` (the core's orientable shape with seared brick on every face but the front, front swapping on `active`; one cube per tank type with its own side/top textures) | `resources/assets/tconstruct/blockstates/smeltery_controller.json`, `resources/assets/tconstruct/blockstates/seared_tank.json` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
 | `src/main/java/dev/gkissel/forgeweave/data/ForgeweaveRecipeProvider.java` (the smeltery core's brick ring, the drain's two brick columns, and the tank/gauge/window brick-and-glass shapes) | `resources/assets/tconstruct/recipes/smeltery/{smeltery_controller,smeltery_drain}.json`, `resources/assets/tconstruct/recipes/smeltery/seared/{tank,gauge,window}.json` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
+| `src/main/java/dev/gkissel/forgeweave/modifier/ForgeweaveModifiers.java` (`REINFORCED` behavior: 20% per level chance to negate durability damage, level 5 reads unbreakable) | `src/main/java/slimeknights/tconstruct/tools/modifiers/ModReinforced.java` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
+| `src/main/java/dev/gkissel/forgeweave/modifier/ForgeweaveModifiers.java` (`MENDING_MOSS` behavior: durability-per-XP and storage-cap formulas, XP banking on pickup, periodic self-repair) | `src/main/java/slimeknights/tconstruct/tools/modifiers/ModMendingMoss.java` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
+| `src/main/java/dev/gkissel/forgeweave/modifier/ForgeweaveModifiers.java` (`onRightClickBookshelf`: moss + 10 XP levels at a bookshelf yields mending moss) | `src/main/java/slimeknights/tconstruct/tools/ToolEvents.java` (`onInteract`) | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
+| `src/main/java/dev/gkissel/forgeweave/modifier/ForgeweaveModifiers.java` (`SILKY` behavior: grants Silk Touch, flat -3 mining speed and attack damage floored at 1) | `src/main/java/slimeknights/tconstruct/tools/modifiers/ModSilktouch.java` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
+| `src/main/java/dev/gkissel/forgeweave/modifier/ForgeweaveModifiers.java` (`SOULBOUND` behavior: pull the item out of death drops, restore it on respawn) | `src/main/java/slimeknights/tconstruct/tools/modifiers/ModSoulbound.java` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
+| `src/main/java/dev/gkissel/forgeweave/modifier/ForgeweaveModifiers.java` (`EXTRA_SLOT` behavior: each application's own `bonusSlots` returns `level + 1`, netting +1 free slot per level) | `src/main/java/slimeknights/tconstruct/tools/modifiers/ModCreative.java` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
+| `src/main/resources/data/forgeweave/forgeweave/modifier_recipe/reinforced.json` (reinforced plate, 1 per level, 5 levels) | `src/main/java/slimeknights/tconstruct/tools/TinkerModifiers.java` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
+| `src/main/resources/data/forgeweave/forgeweave/modifier_recipe/mending_moss.json` (mending moss, 1 per level, 3 levels) | `src/main/java/slimeknights/tconstruct/tools/TinkerModifiers.java` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
+| `src/main/resources/data/forgeweave/forgeweave/modifier_recipe/silky.json` (silky jewel, 1 level) | `src/main/java/slimeknights/tconstruct/tools/TinkerModifiers.java` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
+| `src/main/resources/data/forgeweave/forgeweave/modifier_recipe/soulbound.json` (nether star, 1 level) | `src/main/java/slimeknights/tconstruct/tools/TinkerModifiers.java` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
+| `src/main/java/dev/gkissel/forgeweave/data/ForgeweaveRecipeProvider.java` (moss recipe shape: 9x mossy cobblestone) | `resources/assets/tconstruct/recipes/tools/materials/ball_of_moss.json` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
+| `src/main/java/dev/gkissel/forgeweave/data/ForgeweaveRecipeProvider.java` (reinforced plate recipe shape: obsidian ring around a gold ingot) | `resources/assets/tconstruct/recipes/tools/materials/reinforcement.json` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
+| `src/main/java/dev/gkissel/forgeweave/data/ForgeweaveRecipeProvider.java` (silky cloth recipe shape: string ring around a gold ingot) | `resources/assets/tconstruct/recipes/tools/materials/silky_cloth.json` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
+| `src/main/java/dev/gkissel/forgeweave/data/ForgeweaveRecipeProvider.java` (silky jewel recipe shape: four silky cloth in a plus around an emerald) | `resources/assets/tconstruct/recipes/tools/materials/silky_jewel.json` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
+| `src/main/resources/assets/forgeweave/textures/derived/item/moss.png` | `resources/assets/tconstruct/textures/items/materials/moss.png` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
+| `src/main/resources/assets/forgeweave/textures/derived/item/mending_moss.png` | `resources/assets/tconstruct/textures/items/materials/mending_moss.png` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
+| `src/main/resources/assets/forgeweave/textures/derived/item/reinforced_plate.png` | `resources/assets/tconstruct/textures/items/materials/reinforcement.png` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
+| `src/main/resources/assets/forgeweave/textures/derived/item/silky_cloth.png` | `resources/assets/tconstruct/textures/items/materials/silky_cloth.png` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
+| `src/main/resources/assets/forgeweave/textures/derived/item/silky_jewel.png` | `resources/assets/tconstruct/textures/items/materials/silky_jewel.png` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
+| `src/main/resources/assets/forgeweave/textures/derived/item/extra_modifier.png` (upstream's own `creative_modifier` blockstate variant points at this file, not a `materials`-sheet icon) | `resources/assets/tconstruct/textures/items/skull_char_gold.png` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
 
 The station tab row uses **vanilla's** creative-inventory tab sprites (`minecraft:container/creative_inventory/tab_top_{selected,unselected}_N`) and so has no derived-asset row. That is upstream's own choice, not a substitution: 1.12's `GuiTinkerTabs` hands its `GuiElement`s to Mantle's `GuiWidgetTabs`, which binds
 `textures/gui/container/creative_inventory/tabs.png` and samples the unselected tab at `(0, 2, 28, 28)` and the selected one at `(*, 32, 28, 32)` -- i.e. the station tabs already *were* vanilla's creative tabs. Modern Minecraft split that sheet into the 26x32 per-column sprites used here.
@@ -433,6 +453,30 @@ smeltery pulse: two deliberate deviations.
   every other Forgeweave block is already registered (`ForgeweaveBlocks`); no upstream behavior is
   lost by the split; each variant's crafting/smelting recipe just names a different block instead of
   a different blockstate value.
+
+Reinforced, mending moss, silky, soulbound and extra-slot (docs/SCOPE.md M2 issue #107), ported from
+upstream 1.12's `tools/modifiers/` (NOTICE.md rows above), with four deliberate deviations flagged for
+maintainer review:
+
+- **The extra-slot reagent has a real survival crafting recipe.** Upstream's `creative_modifier`
+  reagent (`ModCreative#isHidden`) has no crafting recipe at all -- it is admin/creative-tool only, and
+  its slot bonus is uncapped. Forgeweave gives it a shapeless gold-block-plus-diamond recipe and a
+  finite cap of 5 levels so docs/SCOPE.md acceptance test 5 ("an extra-slot item raises the cap") is
+  reachable in survival at all.
+- **Silky's Fortune/Looting/`luck`-modifier exclusion is not ported.** Forgeweave ships no
+  Fortune-granting modifier in this PR, so `ModSilktouch#canApplyTogether`'s refusal has nothing to
+  conflict with yet; left for whichever future issue adds one.
+- **Mending moss heals from any inventory slot, not hotbar/offhand only.** Upstream's
+  `ModMendingMoss#onUpdate` restricts healing to the hotbar and off hand; NeoForge's
+  `Inventory#tick`/`Item#inventoryTick` seam doesn't expose the global slot index in a form
+  `ForgeweaveModifiers#inventoryTick` can cheaply check against, so this is a minor QoL buff over
+  upstream rather than a restriction, and the 150-tick delay between heals is an equal-average per-tick
+  chance rather than a stored timestamp, matching the roll-instead-of-timer idiom
+  `ForgeweaveTraits#ECOLOGICAL` already uses (ADR-0004 keeps modifier-adjacent state to a minimum).
+- **Mending moss's bookshelf check is the concrete block, not a generic enchant-power query.**
+  Upstream's `ToolEvents#onInteract` accepts any block whose `getEnchantPowerBonus >= 1.0f`; 1.21 has no
+  equivalent query, and the vanilla bookshelf is the only block that ever qualified there, so
+  `state.is(Blocks.BOOKSHELF)` is behaviorally identical for every vanilla or modded world in practice.
 
 Seared cobblestone has no vanilla-table recipe in either direction, matching upstream exactly:
 `BlockSeared.SearedType.COBBLE` never appears in any `recipes/smeltery/seared/**` file, so the block

@@ -1,0 +1,32 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_silky_cloth": {
+      "conditions": {
+        "items": [
+          {
+            "items": "forgeweave:silky_cloth"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "forgeweave:silky_jewel"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_the_recipe",
+      "has_silky_cloth"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "forgeweave:silky_jewel"
+    ]
+  }
+}

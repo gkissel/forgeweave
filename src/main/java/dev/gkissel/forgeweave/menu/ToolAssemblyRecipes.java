@@ -4,17 +4,22 @@ import java.util.List;
 import java.util.Optional;
 import java.util.function.Supplier;
 
+import net.minecraft.core.Holder;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.component.DataComponents;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.enchantment.Enchantment;
+import net.minecraft.world.item.enchantment.Enchantments;
 
 import dev.gkissel.forgeweave.item.ForgeweaveDataComponents;
 import dev.gkissel.forgeweave.item.ForgeweaveItems;
 import dev.gkissel.forgeweave.item.PartItem;
 import dev.gkissel.forgeweave.item.ToolItem;
 import dev.gkissel.forgeweave.material.Material;
+import dev.gkissel.forgeweave.modifier.ForgeweaveModifiers;
 import dev.gkissel.forgeweave.modifier.ModifierApplication;
 import dev.gkissel.forgeweave.tool.ToolMaterials;
 import dev.gkissel.forgeweave.tool.ToolRepair;
@@ -111,7 +116,29 @@ public final class ToolAssemblyRecipes {
             ItemStack bindingStack, ItemStack handleStack) {
         return ModifierApplication.resolve(registries, toolStack, bindingStack, handleStack)
                 .filter(outcome -> !outcome.output().isEmpty())
-                .map(outcome -> new Result(outcome.output(), 1, outcome.firstUsed(), outcome.secondUsed()));
+                .map(outcome -> new Result(
+                        grantEnchantments(registries, outcome.output()), 1, outcome.firstUsed(), outcome.secondUsed()));
+    }
+
+    /**
+     * Silky (issue #107) grants vanilla Silk Touch the moment it's applied rather than through the
+     * enchanting table (CONTEXT.md: Forgeweave tools aren't enchantable there by default), upstream
+     * {@code ModSilktouch#applyEffect}'s {@code ToolBuilder#addEnchantment}. This is the one modifier
+     * effect that lands on a vanilla component and needs registry access to do it, which is exactly
+     * why {@link ModifierApplication} -- deliberately registry-free, see its own javadoc -- doesn't do
+     * it itself; this caller already threads {@code registries} through for everything else here.
+     */
+    private static ItemStack grantEnchantments(HolderLookup.Provider registries, ItemStack stack) {
+        if (!ForgeweaveModifiers.grantsSilkTouch(stack)) {
+            return stack;
+        }
+        Optional<Holder.Reference<Enchantment>> silkTouch = registries.lookup(Registries.ENCHANTMENT)
+                .flatMap(lookup -> lookup.get(Enchantments.SILK_TOUCH));
+        if (silkTouch.isEmpty()) {
+            return stack;
+        }
+        stack.enchant(silkTouch.get(), 1);
+        return stack;
     }
 
     private static Optional<Result> resolveAssembly(HolderLookup.Provider registries, ItemStack headStack, ItemStack bindingStack, ItemStack handleStack) {

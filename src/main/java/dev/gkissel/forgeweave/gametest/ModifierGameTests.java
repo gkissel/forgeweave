@@ -49,6 +49,8 @@ public class ModifierGameTests {
     private static final ResourceLocation MAGNETIC_PULL =
             ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "magnetic_pull");
     private static final ResourceLocation RESONANT = ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "resonant");
+    // #107 batch: parity modifiers (issue #107).
+    private static final ResourceLocation EXTRA_SLOT = ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "extra_slot");
 
     @GameTest(template = "empty")
     public static void oneRedstoneFillsOneModifierSlot(GameTestHelper helper) {
@@ -254,6 +256,45 @@ public class ModifierGameTests {
     private static BlockDropsEvent dropsEvent(GameTestHelper helper, ItemStack tool, Entity breaker, ItemEntity... drops) {
         return new BlockDropsEvent(helper.getLevel(), BlockPos.ZERO, Blocks.STONE.defaultBlockState(), null,
                 new ArrayList<>(List.of(drops)), breaker, tool);
+    }
+
+    // #107 batch: parity modifiers (issue #107).
+
+    /**
+     * Issue #107's extra-slot modifier: docs/SCOPE.md's M2 gate names this scenario directly ("slot
+     * cap + extra-slot"). One extra modifier item nets +1 free slot ({@code ForgeweaveModifiers
+     * #EXTRA_SLOT}'s {@code bonusSlots} trap: it returns {@code level + 1} because its own entry
+     * spends one of the three slots every tool starts with), so a tool that could take at most 3
+     * distinct modifiers can take 4 after this application (its own entry plus the +1 it nets).
+     */
+    @GameTest(template = "empty")
+    public static void anExtraSlotItemRaisesTheCap(GameTestHelper helper) {
+        BlockPos pos = new BlockPos(1, 1, 1);
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        ItemStack pickaxe = ToolAssembly.pickaxe(helper, player, pos, "stone", "wood", "wood");
+
+        ItemStack widened = applyReagent(helper, player, pos, pickaxe, new ItemStack(ForgeweaveItems.EXTRA_MODIFIER.get(), 1));
+
+        ModifierEntry entry = ForgeweaveModifiers.entry(widened, EXTRA_SLOT);
+        helper.assertTrue(entry != null && entry.level() == 1,
+                "one extra modifier item must record extra_slot at level 1, got " + entry);
+        helper.assertTrue(ForgeweaveModifiers.freeSlots(widened) == ForgeweaveModifiers.DEFAULT_SLOTS + 1,
+                "one application must net exactly +1 free slot (its own entry spends one of its +2), got "
+                        + ForgeweaveModifiers.freeSlots(widened) + " free");
+
+        // Without extra_slot a tool fits exactly 3 distinct modifiers; with it applied (occupying one
+        // of the widened cap's 4 slots itself) it fits 4 more on top -- a 4th distinct modifier that
+        // would have been rejected before this application now fits.
+        List<ModifierEntry> filled = new ArrayList<>(ForgeweaveModifiers.of(widened));
+        filled.add(new ModifierEntry(ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "test_one"), 1));
+        filled.add(new ModifierEntry(ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "test_two"), 1));
+        filled.add(new ModifierEntry(ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "test_three"), 1));
+        filled.add(new ModifierEntry(ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "test_four"), 1));
+        widened.set(ForgeweaveDataComponents.MODIFIERS.get(), List.copyOf(filled));
+        helper.assertTrue(ForgeweaveModifiers.freeSlots(widened) == 0,
+                "extra_slot plus four other distinct modifiers must exactly fill the widened cap, got "
+                        + ForgeweaveModifiers.freeSlots(widened) + " free");
+        helper.succeed();
     }
 
     /** Runs one application through the station and returns the modified tool. */

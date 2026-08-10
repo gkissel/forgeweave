@@ -132,6 +132,68 @@ public class ForgeweaveRecipeProvider extends RecipeProvider {
                 .save(recipeOutput);
 
         buildSearedRecipes(recipeOutput);
+        buildModifierRecipes(recipeOutput);
+    }
+
+    /**
+     * Reagent items for the M2-16 modifiers batch (docs/SCOPE.md issue #107), ported from upstream
+     * 1.12's {@code recipes/tools/materials/*.json} (NOTICE.md) with the ore-dict alternation folded
+     * to the one vanilla item each resolved to for M2's scope (no smeltery/tag-melting equivalent
+     * exists yet). Mending moss itself has no table recipe -- it's obtained by right-clicking a
+     * bookshelf while holding moss with 10+ XP levels banked ({@code ForgeweaveModifiers
+     * #onRightClickBookshelf}), same as upstream's {@code ToolEvents#onInteract}. Soulbound reuses the
+     * vanilla nether star directly and needs no recipe here either.
+     */
+    private void buildModifierRecipes(RecipeOutput recipeOutput) {
+        // Moss (upstream ball_of_moss.json: 9x the ore-dict blockMossy, here narrowed to mossy
+        // cobblestone, the item that dict resolved to for a vanilla-only crafting table).
+        ShapedRecipeBuilder.shaped(RecipeCategory.MISC, ForgeweaveItems.MOSS.get())
+                .pattern("AAA")
+                .pattern("AAA")
+                .pattern("AAA")
+                .define('A', Blocks.MOSSY_COBBLESTONE)
+                .unlockedBy("has_mossy_cobblestone", has(Blocks.MOSSY_COBBLESTONE))
+                .save(recipeOutput);
+
+        // Reinforced plate (upstream reinforcement.json: obsidian ring around #REINFORCEMENT_CENTER,
+        // which resolves to a gold ingot without TinkerSmeltery loaded -- recipes/_constants.json).
+        ShapedRecipeBuilder.shaped(RecipeCategory.MISC, ForgeweaveItems.REINFORCED_PLATE.get())
+                .pattern("AAA")
+                .pattern("ABA")
+                .pattern("AAA")
+                .define('A', Items.OBSIDIAN)
+                .define('B', Items.GOLD_INGOT)
+                .unlockedBy("has_obsidian", has(Items.OBSIDIAN))
+                .save(recipeOutput);
+
+        // Silky cloth (upstream silky_cloth.json: string ring around a gold ingot).
+        ShapedRecipeBuilder.shaped(RecipeCategory.MISC, ForgeweaveItems.SILKY_CLOTH.get())
+                .pattern("AAA")
+                .pattern("ABA")
+                .pattern("AAA")
+                .define('A', Items.STRING)
+                .define('B', Items.GOLD_INGOT)
+                .unlockedBy("has_string", has(Items.STRING))
+                .save(recipeOutput);
+
+        // Silky jewel (upstream silky_jewel.json: four silky cloth in a plus around an emerald).
+        ShapedRecipeBuilder.shaped(RecipeCategory.MISC, ForgeweaveItems.SILKY_JEWEL.get())
+                .pattern(" A ")
+                .pattern("ABA")
+                .pattern(" A ")
+                .define('A', ForgeweaveItems.SILKY_CLOTH.get())
+                .define('B', Items.EMERALD)
+                .unlockedBy("has_silky_cloth", has(ForgeweaveItems.SILKY_CLOTH.get()))
+                .save(recipeOutput);
+
+        // Extra modifier (deviation, recorded in the issue #107 PR): upstream's creative_modifier
+        // reagent is admin/creative-only (ModCreative#isHidden) and has no survival recipe at all.
+        // Forgeweave gives it one so docs/SCOPE.md acceptance test 5 is reachable in survival.
+        ShapelessRecipeBuilder.shapeless(RecipeCategory.MISC, ForgeweaveItems.EXTRA_MODIFIER.get())
+                .requires(Items.GOLD_BLOCK)
+                .requires(Items.DIAMOND)
+                .unlockedBy("has_gold_block", has(Items.GOLD_BLOCK))
+                .save(recipeOutput);
     }
 
     /**

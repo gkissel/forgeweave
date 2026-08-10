@@ -1,0 +1,8 @@
+{
+  "modifier": "forgeweave:mending_moss",
+  "reagent": {
+    "item": "forgeweave:mending_moss"
+  },
+  "cost": 1,
+  "max_level": 3
+}

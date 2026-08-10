@@ -12,18 +12,29 @@ import org.slf4j.Logger;
 
 import com.mojang.logging.LogUtils;
 
+import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.ExperienceOrb;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.item.ItemEntity;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.world.item.crafting.SingleRecipeInput;
+import net.minecraft.world.level.block.Blocks;
 
+import net.neoforged.neoforge.common.util.TriState;
+import net.neoforged.neoforge.event.entity.living.LivingDropsEvent;
+import net.neoforged.neoforge.event.entity.player.PlayerEvent;
+import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
+import net.neoforged.neoforge.event.entity.player.PlayerXpEvent;
 import net.neoforged.neoforge.event.level.BlockDropsEvent;
 
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.item.ForgeweaveDataComponents;
+import dev.gkissel.forgeweave.item.ForgeweaveItems;
 import dev.gkissel.forgeweave.item.ToolItem;
 import dev.gkissel.forgeweave.tool.ToolStats;
 
@@ -160,13 +171,149 @@ public final class ForgeweaveModifiers {
         }
     };
 
-    private static final Map<ResourceLocation, Modifier> REGISTRY = Map.of(
-            id("haste"), HASTE,
-            id("searing"), SEARING,
-            id("magnetic_pull"), MAGNETIC_PULL,
-            id("aquadynamic"), AQUADYNAMIC,
-            id("resonant"), RESONANT,
-            id("far_reach"), FAR_REACH);
+    // #107 batch: parity modifiers (issue #107), ported from tinkers-1.12 (NOTICE.md); appended after
+    // the #108 batch above per this PR's rebase.
+
+    /** Upstream {@code ModReinforced#chancePerLevel}: 20% per level, so level 5 rolls unbreakable. */
+    private static final float REINFORCED_CHANCE_PER_LEVEL = 0.20F;
+
+    /**
+     * Obsidian + reinforced plate (issue #107). Upstream {@code ModReinforced}, ported whole: each
+     * level is a flat 20% chance to negate a point of durability damage outright
+     * ({@link Modifier#durabilityNegationChance}, rolled in {@code ToolItem#damageItem}); at the
+     * level-5 cap the chance is {@code 1.0}, which always succeeds and so reads as unbreakable without
+     * upstream's separate {@code Unbreakable} flag.
+     */
+    public static final Modifier REINFORCED = new Modifier() {
+        @Override
+        public float durabilityNegationChance(int level) {
+            return Math.min(1.0F, REINFORCED_CHANCE_PER_LEVEL * level);
+        }
+    };
+
+    /**
+     * Upstream {@code ModMendingMoss#getDurabilityPerXP}: {@code 2 + level} durability per stored XP.
+     * Package-private and pure so it's unit-testable, {@code ToolItem#attackDurabilityCost}'s precedent.
+     */
+    static int mendingMossDurabilityPerXp(int level) {
+        return 2 + level;
+    }
+
+    /** Upstream {@code ModMendingMoss#getMaxXp}: {@code 100 * 3^(level-1)}, recursive in the original. */
+    static int mendingMossXpCap(int level) {
+        int cap = 100;
+        for (int step = 1; step < level; step++) {
+            cap *= 3;
+        }
+        return cap;
+    }
+
+    /** Upstream {@code ModMendingMoss#DELAY}: 7.5s between heals (150 ticks), 20 * 7 + 10 in ticks. */
+    private static final int MENDING_MOSS_HEAL_PERIOD_TICKS = 20 * 7 + 10;
+
+    /**
+     * Mending moss (issue #107, item obtained by right-clicking a bookshelf while holding moss with
+     * 10+ XP levels -- {@link #onRightClickBookshelf}). Upstream {@code ModMendingMoss}: while an XP
+     * orb is picked up, the tool banks some of it ({@link #onXpPickup}, capped at
+     * {@link #mendingMossXpCap}); while carried and damaged, it spends one banked point roughly every
+     * 7.5s to heal {@link #mendingMossDurabilityPerXp} durability ({@link #inventoryTick}, called from
+     * {@code ToolItem#inventoryTick} alongside traits).
+     *
+     * <p>No {@link Modifier} hook carries this behavior -- it needs the XP-pickup and per-tick seams
+     * traits and other modifiers don't reach, so it lives in the two static handlers instead, gated by
+     * this id the same way a hook would be. The banked amount is state beyond {@code id + level}, which
+     * ADR-0004 forbids adding to {@link ModifierEntry}; it lives on the stack as its own component
+     * ({@code ForgeweaveDataComponents#MENDING_MOSS_XP}) instead, the same pattern {@code BROKEN} and
+     * {@code REPAIR_COUNT} already use for state that isn't the modifier list itself.
+     *
+     * <p>ponytail: heals from any inventory slot each tick rather than upstream's hotbar/offhand-only
+     * restriction (that needs the global slot index NeoForge's {@code Inventory#tick} doesn't expose
+     * to {@code Item#inventoryTick} in a directly reusable form) -- a minor buff, not a correctness gap,
+     * flagged in the PR for review. The exact 150-tick timer is also replaced with an equal-average
+     * per-tick roll ({@code 1/150} chance) rather than a stored last-heal timestamp, for the same
+     * ADR-0004 reason: one component of state (banked XP) is the minimum this modifier needs, and
+     * {@code ForgeweaveTraits#ECOLOGICAL} already establishes the roll-instead-of-timer idiom.
+     */
+    public static final Modifier MENDING_MOSS = new Modifier() {};
+
+    /** Upstream {@code ModSilktouch#applyEffect}: a flat 3 off both stats, floored at 1. */
+    private static final float SILKY_STAT_PENALTY = 3.0F;
+
+    /**
+     * Silky jewel (issue #107). Upstream {@code ModSilktouch}: grants vanilla Silk Touch outright
+     * ({@link Modifier#grantsSilkTouch}, applied in {@code ToolAssemblyRecipes#resolveModifier} since
+     * it needs registry access {@code ModifierApplication} deliberately doesn't have), at the cost of
+     * a flat 3 off mining speed and attack damage (each floored at 1) the moment it's applied.
+     *
+     * <p>Not ported: upstream also refuses to apply alongside Fortune/Looting or its {@code luck}
+     * modifier. Forgeweave ships no Fortune-granting modifier in this PR, so the interaction has
+     * nothing to conflict with yet; left for whichever issue adds one (flagged in the PR).
+     */
+    public static final Modifier SILKY = new Modifier() {
+        @Override
+        public float miningSpeed(int level, float miningSpeed) {
+            return level > 0 ? Math.max(1.0F, miningSpeed - SILKY_STAT_PENALTY) : miningSpeed;
+        }
+
+        @Override
+        public float attackDamage(int level, float attackDamage) {
+            return level > 0 ? Math.max(1.0F, attackDamage - SILKY_STAT_PENALTY) : attackDamage;
+        }
+
+        @Override
+        public boolean grantsSilkTouch(int level) {
+            return level > 0;
+        }
+    };
+
+    /**
+     * Nether star (issue #107). Upstream {@code ModSoulbound}: a soulbound tool survives death instead
+     * of dropping. No {@link Modifier} hook carries this either -- {@link #onLivingDrops} pulls the
+     * item back out of the death drops and parks it on the dying {@code Player} instance's own
+     * inventory, and {@link #onPlayerClone} copies it across to the respawned player, mirroring
+     * upstream's own corpse-inventory trick ({@code PlayerDropsEvent} + {@code PlayerEvent.Clone}) with
+     * no extra state of Forgeweave's own.
+     */
+    public static final Modifier SOULBOUND = new Modifier() {};
+
+    /**
+     * Upstream {@code ModCreative}: each application adds its own level to the tool's free-slot pool,
+     * with no {@code FreeModifierAspect} of its own -- i.e. the application is effectively free. Every
+     * Forgeweave modifier's entry occupies one slot regardless ({@link #freeSlots}), so returning
+     * {@code level + 1} nets the same +1-per-level upstream grants (the trap {@link Modifier#bonusSlots}
+     * documents).
+     *
+     * <p>Deviation (issue #107, recorded for maintainer review): upstream's {@code creative_modifier}
+     * reagent has no survival crafting recipe -- {@code ModCreative#isHidden} marks it admin/creative
+     * only, and it is also uncapped. Forgeweave gives it a real recipe (gold block + diamond, shapeless)
+     * and a finite cap of 5 so docs/SCOPE.md acceptance test 5 ("an extra-slot item raises the cap") is
+     * actually reachable in survival.
+     */
+    public static final Modifier EXTRA_SLOT = new Modifier() {
+        @Override
+        public int bonusSlots(int level) {
+            return level + 1;
+        }
+    };
+
+    private static final Map<ResourceLocation, Modifier> REGISTRY = Map.ofEntries(
+            Map.entry(id("haste"), HASTE),
+            Map.entry(id("searing"), SEARING),
+            Map.entry(id("magnetic_pull"), MAGNETIC_PULL),
+            Map.entry(id("aquadynamic"), AQUADYNAMIC),
+            Map.entry(id("resonant"), RESONANT),
+            Map.entry(id("far_reach"), FAR_REACH),
+            Map.entry(id("reinforced"), REINFORCED),
+            Map.entry(id("mending_moss"), MENDING_MOSS),
+            Map.entry(id("silky"), SILKY),
+            Map.entry(id("soulbound"), SOULBOUND),
+            Map.entry(id("extra_slot"), EXTRA_SLOT));
+
+    private static final ResourceLocation MENDING_MOSS_ID = id("mending_moss");
+    private static final ResourceLocation SOULBOUND_ID = id("soulbound");
+
+    /** Upstream {@code ModMendingMoss.MENDING_MOSS_LEVELS}: 10 XP levels per moss -> mending moss. */
+    private static final int MENDING_MOSS_ACQUIRE_LEVELS = 10;
 
     /**
      * The behavior for {@code id}, or {@code null} if this version doesn't implement it.
@@ -251,15 +398,17 @@ public final class ForgeweaveModifiers {
             return null;
         }
         float miningSpeed = base.miningSpeed();
+        float attackDamage = base.attackDamage();
         for (ModifierEntry entry : of(stack)) {
             Modifier modifier = get(entry.id());
             if (modifier != null) {
                 miningSpeed = modifier.miningSpeed(entry.level(), miningSpeed);
+                attackDamage = modifier.attackDamage(entry.level(), attackDamage);
             }
         }
-        return miningSpeed == base.miningSpeed()
+        return miningSpeed == base.miningSpeed() && attackDamage == base.attackDamage()
                 ? base
-                : new ToolStats.Stats(base.durability(), miningSpeed, base.attackDamage());
+                : new ToolStats.Stats(base.durability(), miningSpeed, attackDamage);
     }
 
     /** Combined attack-speed multiplier of the tool's modifiers; 1 when nothing touches it. */
@@ -383,6 +532,147 @@ public final class ForgeweaveModifiers {
         for (Iterator<ItemEntity> iterator = event.getDrops().iterator(); iterator.hasNext();) {
             if (player.getInventory().add(iterator.next().getItem())) {
                 iterator.remove();
+            }
+        }
+    }
+
+    // #107 batch: parity modifiers (issue #107), appended after the #108 batch above.
+
+    /**
+     * Combined chance {@code [0, 1]} that a hit of durability damage is negated outright (issue #107,
+     * reinforced); 0 when nothing grants it. Summed rather than combined as independent probabilities
+     * -- only one shipped modifier uses this hook, so the distinction has no observable effect yet, and
+     * summing keeps the level-5 cap's {@code 1.0} exact.
+     */
+    public static float durabilityNegationChance(ItemStack stack) {
+        float chance = 0.0F;
+        for (ModifierEntry entry : of(stack)) {
+            Modifier modifier = get(entry.id());
+            if (modifier != null) {
+                chance += modifier.durabilityNegationChance(entry.level());
+            }
+        }
+        return Math.min(1.0F, chance);
+    }
+
+    /** Whether any of this tool's modifiers grant vanilla Silk Touch (issue #107, silky). */
+    public static boolean grantsSilkTouch(ItemStack stack) {
+        for (ModifierEntry entry : of(stack)) {
+            Modifier modifier = get(entry.id());
+            if (modifier != null && modifier.grantsSilkTouch(entry.level())) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Mending moss's periodic self-repair (issue #107, see {@link #MENDING_MOSS}'s javadoc). Called
+     * from {@code ToolItem#inventoryTick} alongside {@code ForgeweaveTraits#inventoryTick}, which has
+     * already ruled out clients and Broken tools -- a no-op for a tool without the modifier, without
+     * banked XP, or already at full durability.
+     */
+    public static void inventoryTick(ItemStack stack, ServerLevel level, LivingEntity holder) {
+        ModifierEntry entry = entry(stack, MENDING_MOSS_ID);
+        if (entry == null || stack.getDamageValue() <= 0) {
+            return;
+        }
+        int stored = stack.getOrDefault(ForgeweaveDataComponents.MENDING_MOSS_XP.get(), 0);
+        if (stored <= 0 || level.getRandom().nextInt(MENDING_MOSS_HEAL_PERIOD_TICKS) != 0) {
+            return;
+        }
+        stack.set(ForgeweaveDataComponents.MENDING_MOSS_XP.get(), stored - 1);
+        stack.setDamageValue(Math.max(0, stack.getDamageValue() - mendingMossDurabilityPerXp(entry.level())));
+    }
+
+    /**
+     * Mending moss banking XP as it's picked up (issue #107), upstream {@code ModMendingMoss#onPickupXp}
+     * ported whole: tries the main hand then the off hand, and only ever takes as much of the orb's
+     * value as the tool still has room for ({@link #mendingMossXpCap}), leaving the remainder for the
+     * vanilla pickup that runs right after this event ({@code ExperienceOrb#playerTouch} reads
+     * {@code value} again once the event returns).
+     */
+    public static void onXpPickup(PlayerXpEvent.PickupXp event) {
+        Player player = event.getEntity();
+        ExperienceOrb orb = event.getOrb();
+        for (ItemStack stack : List.of(player.getMainHandItem(), player.getOffhandItem())) {
+            ModifierEntry entry = entry(stack, MENDING_MOSS_ID);
+            if (entry == null) {
+                continue;
+            }
+            int stored = stack.getOrDefault(ForgeweaveDataComponents.MENDING_MOSS_XP.get(), 0);
+            int change = Math.min(orb.value, mendingMossXpCap(entry.level()) - stored);
+            if (change > 0) {
+                stack.set(ForgeweaveDataComponents.MENDING_MOSS_XP.get(), stored + change);
+                orb.value -= change;
+            }
+        }
+    }
+
+    /**
+     * Mending moss's acquisition (issue #107): right-click a bookshelf while holding moss, with 10+ XP
+     * levels banked, to trade both for one mending moss. Upstream {@code ToolEvents#onInteract} checks
+     * any block whose {@code getEnchantPowerBonus >= 1.0} (a generic "bookshelf-like power" query 1.21
+     * has no equivalent for); ponytail: checking the bookshelf block directly is the only vanilla block
+     * that ever qualified there, so the behavior is unchanged.
+     */
+    public static void onRightClickBookshelf(PlayerInteractEvent.RightClickBlock event) {
+        ItemStack held = event.getItemStack();
+        if (!held.is(ForgeweaveItems.MOSS.get()) || !event.getLevel().getBlockState(event.getPos()).is(Blocks.BOOKSHELF)) {
+            return;
+        }
+        Player player = event.getEntity();
+        if (player.experienceLevel < MENDING_MOSS_ACQUIRE_LEVELS) {
+            if (!event.getLevel().isClientSide) {
+                player.displayClientMessage(Component.translatable("message.forgeweave.mending_moss.not_enough_levels",
+                        MENDING_MOSS_ACQUIRE_LEVELS), true);
+            }
+            event.setCanceled(true);
+            return;
+        }
+        if (!event.getLevel().isClientSide) {
+            held.shrink(1);
+            player.giveExperienceLevels(-MENDING_MOSS_ACQUIRE_LEVELS);
+            player.getInventory().add(new ItemStack(ForgeweaveItems.MENDING_MOSS.get()));
+        }
+        event.setUseBlock(TriState.FALSE);
+        event.setUseItem(TriState.FALSE);
+        event.setCanceled(true);
+    }
+
+    /**
+     * Soulbound (issue #107), upstream {@code ModSoulbound#onPlayerDeath} ported whole: pulls a
+     * soulbound tool back out of the death drops before they spawn as world entities, and parks it in
+     * the dying player's own (still-live) inventory object instead. {@link #onPlayerClone} then copies
+     * it across to the respawned player. Nothing to do when {@code keepInventory} is on -- vanilla
+     * never populates the drops in the first place, so there is nothing here to find.
+     */
+    public static void onLivingDrops(LivingDropsEvent event) {
+        if (!(event.getEntity() instanceof Player player)) {
+            return;
+        }
+        Iterator<ItemEntity> iterator = event.getDrops().iterator();
+        while (iterator.hasNext()) {
+            ItemStack stack = iterator.next().getItem();
+            if (entry(stack, SOULBOUND_ID) != null) {
+                iterator.remove();
+                player.getInventory().add(stack);
+            }
+        }
+    }
+
+    /** The other half of {@link #onLivingDrops}: copies any soulbound tools onto the respawned player. */
+    public static void onPlayerClone(PlayerEvent.Clone event) {
+        if (!event.isWasDeath()) {
+            return;
+        }
+        Player original = event.getOriginal();
+        Player respawned = event.getEntity();
+        for (int slot = 0; slot < original.getInventory().getContainerSize(); slot++) {
+            ItemStack stack = original.getInventory().getItem(slot);
+            if (!stack.isEmpty() && entry(stack, SOULBOUND_ID) != null) {
+                respawned.getInventory().add(stack);
+                original.getInventory().setItem(slot, ItemStack.EMPTY);
             }
         }
     }

@@ -12,12 +12,14 @@ package dev.gkissel.forgeweave.modifier;
  * version decodes in any other. Every method below therefore takes the level as a plain {@code int}
  * rather than reading state of its own.
  *
- * <p>ponytail: exactly the three hooks the framework and its one shipped modifier need, following
- * {@code trait.Trait}'s precedent of adding a hook when a behavior needs it rather than porting
- * upstream's twenty-method {@code IModifier}. ADR-0004's M6 commitment (these classes become the
- * first entries of a parameterized behavior library) is why they stay this narrow: each is a pure
- * function of level, so a JSON-configured generic implementation can replace it without touching a
- * caller.
+ * <p>ponytail: only the hooks a shipped modifier actually needs, following {@code trait.Trait}'s
+ * precedent of adding a hook when a behavior needs it rather than porting upstream's twenty-method
+ * {@code IModifier}. ADR-0004's M6 commitment (these classes become the first entries of a
+ * parameterized behavior library) is why they stay this narrow: each is a pure function of level, so
+ * a JSON-configured generic implementation can replace it without touching a caller. Issue #107 added
+ * {@link #attackDamage}, {@link #durabilityNegationChance} and {@link #grantsSilkTouch} for reinforced
+ * and silky; soulbound and mending moss need no hook here at all -- their behavior is event-driven and
+ * lives in {@code ForgeweaveModifiers}' static handlers instead (see that class's javadoc).
  */
 public interface Modifier {
 
@@ -50,6 +52,46 @@ public interface Modifier {
      */
     default float attackSpeedMultiplier(int level) {
         return 1.0F;
+    }
+
+    /**
+     * The tool's attack damage after this modifier has adjusted it -- silky's only shipped user
+     * (issue #107): upstream {@code ModSilktouch#applyEffect} takes a flat 3 off both {@code speed}
+     * and {@code attack} (floored at 1) the moment the modifier is applied. Same shape as
+     * {@link #miningSpeed}: a pure function of the running total, folded in by
+     * {@code ForgeweaveModifiers#effectiveStats}.
+     *
+     * @param level accumulated application units (see {@link ModifierEntry#level})
+     * @param attackDamage the damage the tool's materials and traits alone produced, plus whatever
+     *     earlier modifiers in the list already did to it
+     */
+    default float attackDamage(int level, float attackDamage) {
+        return attackDamage;
+    }
+
+    /**
+     * Chance in {@code [0, 1]} that a point of durability damage is negated outright -- reinforced's
+     * only shipped user (issue #107): upstream {@code ModReinforced#onToolDamage} rolls this chance
+     * per hit, and a chance {@code >= 1} (its level-5 cap) reads as unbreakable without a separate
+     * flag, since the roll then always succeeds. The chance itself is pure; the roll happens in
+     * {@code ToolItem#damageItem}, the single choke point for every durability loss (its class
+     * javadoc).
+     */
+    default float durabilityNegationChance(int level) {
+        return 0.0F;
+    }
+
+    /**
+     * Whether this modifier grants vanilla Silk Touch outright -- silky's only shipped user (issue
+     * #107). Upstream's {@code ModSilktouch#applyEffect} calls {@code ToolBuilder#addEnchantment}
+     * directly rather than routing through the enchanting table (CONTEXT.md: Forgeweave tools aren't
+     * enchantable there by default), so {@code ToolAssemblyRecipes} grants the enchantment the same
+     * way once a modifier reports it here -- the one hook whose effect lands on a vanilla component
+     * ({@code DataComponents#ENCHANTMENTS}) rather than a Forgeweave one, which needs registry access
+     * {@link ModifierApplication} deliberately does not have (its own javadoc).
+     */
+    default boolean grantsSilkTouch(int level) {
+        return false;
     }
 
     /**

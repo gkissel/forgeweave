@@ -87,6 +87,17 @@ public final class ForgeweaveDataComponents {
                     builder -> builder.persistent(ExtraCodecs.NON_NEGATIVE_INT).networkSynchronized(ByteBufCodecs.VAR_INT));
 
     /**
+     * XP banked on a mending-moss-modified tool, spent one at a time to self-repair (issue #107, ADR
+     * -0004: this is state beyond {@code id + level}, so it can't live on {@code ModifierEntry} and
+     * instead sits here, the same way {@code BROKEN} and {@code REPAIR_COUNT} carry state that isn't
+     * the modifier list itself -- see {@code modifier.ForgeweaveModifiers#MENDING_MOSS}). Absent means
+     * zero, same as {@code REPAIR_COUNT}.
+     */
+    public static final DeferredHolder<DataComponentType<?>, DataComponentType<Integer>> MENDING_MOSS_XP =
+            DATA_COMPONENTS.registerComponentType("mending_moss_xp",
+                    builder -> builder.persistent(ExtraCodecs.NON_NEGATIVE_INT).networkSynchronized(ByteBufCodecs.VAR_INT));
+
+    /**
      * The registry id of the {@code Block} (a log or planks) a table station item was crafted from,
      * so the placed block can retain that wood's appearance (issue #43). Absent means "unspecified"
      * (e.g. a creative-tab/pick-block item) -- {@code WoodTexturedBlockEntity} falls back to oak.
