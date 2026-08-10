@@ -159,5 +159,18 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("jei.category.forgeweave.part_crafting", "Part Crafting");
         add("jei.category.forgeweave.tool_assembly", "Tool Assembly");
         add("jei.category.forgeweave.tool_repair", "Tool Repair");
+
+        // The nine molten metal fluids (docs/SCOPE.md M2 issue #92). FluidType's default description
+        // id is "fluid_type.<namespace>.<path>" (no addFluidType helper on LanguageProvider), shown
+        // wherever a fluid stack's name is displayed (tanks, JEI).
+        add("fluid_type.forgeweave.molten_iron", "Molten Iron");
+        add("fluid_type.forgeweave.molten_copper", "Molten Copper");
+        add("fluid_type.forgeweave.molten_gold", "Molten Gold");
+        add("fluid_type.forgeweave.molten_cobalt", "Molten Cobalt");
+        add("fluid_type.forgeweave.molten_ardite", "Molten Ardite");
+        add("fluid_type.forgeweave.molten_manyullyn", "Molten Manyullyn");
+        add("fluid_type.forgeweave.molten_rose_gold", "Molten Rose Gold");
+        add("fluid_type.forgeweave.molten_netherite_scrap", "Molten Netherite Scrap");
+        add("fluid_type.forgeweave.molten_netherite", "Molten Netherite");
     }
 }
