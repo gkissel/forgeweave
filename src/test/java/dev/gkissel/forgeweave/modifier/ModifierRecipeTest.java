@@ -1,6 +1,7 @@
 package dev.gkissel.forgeweave.modifier;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -24,6 +25,7 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.RegistryOps;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.Bootstrap;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 
@@ -219,6 +221,76 @@ class ModifierRecipeTest {
         assertEquals(1.004F, ForgeweaveModifiers.HASTE.attackSpeedMultiplier(1), 1.0e-5F);
         assertEquals(1.2F, ForgeweaveModifiers.HASTE.attackSpeedMultiplier(50), 1.0e-5F);
         assertEquals(0, ForgeweaveModifiers.HASTE.bonusSlots(250), "haste grants no extra slots");
+    }
+
+    // ------------------------------------------------------------------ #108 batch: modern-vanilla modifiers
+
+    /**
+     * Every issue #108 recipe ships with the numbers this PR records as its own decisions (1 reagent
+     * per unit; single-level modifiers cap at 1, Resonant at 3, Far Reach at 2).
+     */
+    @Test
+    void theShippedModernVanillaRecipesMatchThisPrsNumbers() {
+        assertShippedRecipe("searing.json", "searing", Items.MAGMA_CREAM, 1);
+        assertShippedRecipe("magnetic_pull.json", "magnetic_pull", Items.ENDER_PEARL, 1);
+        assertShippedRecipe("aquadynamic.json", "aquadynamic", Items.TURTLE_SCUTE, 1);
+        assertShippedRecipe("resonant.json", "resonant", Items.ECHO_SHARD, 3);
+        assertShippedRecipe("far_reach.json", "far_reach", Items.AMETHYST_SHARD, 2);
+    }
+
+    private static void assertShippedRecipe(String fileName, String modifierPath, Item reagent, int expectedMaxLevel) {
+        String path = "/data/forgeweave/forgeweave/modifier_recipe/" + fileName;
+        JsonElement json;
+        try (InputStream in = ModifierRecipeTest.class.getResourceAsStream(path)) {
+            assertNotNull(in, "missing shipped modifier recipe: " + path);
+            json = JsonParser.parseReader(new InputStreamReader(in, StandardCharsets.UTF_8));
+        } catch (Exception e) {
+            throw new AssertionError("could not read " + path, e);
+        }
+
+        ModifierRecipe recipe = ModifierRecipe.CODEC.parse(ops, json).getOrThrow();
+
+        assertEquals(ResourceLocation.fromNamespaceAndPath("forgeweave", modifierPath), recipe.modifier());
+        assertEquals(1, recipe.cost());
+        assertEquals(expectedMaxLevel, recipe.maxLevel());
+        assertTrue(recipe.reagent().test(new ItemStack(reagent)));
+    }
+
+    /** Searing and Magnetic Pull are simple on/off switches, and each answers only its own hook. */
+    @Test
+    void searingAndMagneticPullAreSingleLevelSwitches() {
+        assertTrue(ForgeweaveModifiers.SEARING.autoSmelt(1));
+        assertFalse(ForgeweaveModifiers.SEARING.magnetic(1), "one modifier's hooks must not leak into another's");
+        assertTrue(ForgeweaveModifiers.MAGNETIC_PULL.magnetic(1));
+        assertFalse(ForgeweaveModifiers.MAGNETIC_PULL.autoSmelt(1));
+    }
+
+    /** Resonant: our chosen +50% bonus experience per level, capped at 3 in the shipped recipe. */
+    @Test
+    void resonantAddsFiftyPercentBonusExperiencePerLevel() {
+        assertEquals(0.5F, ForgeweaveModifiers.RESONANT.bonusExperienceFraction(1), 1.0e-5F);
+        assertEquals(1.5F, ForgeweaveModifiers.RESONANT.bonusExperienceFraction(3), 1.0e-5F);
+    }
+
+    /**
+     * Aquadynamic: our chosen +0.8 bonus to {@code player.submerged_mining_speed}, which defaults to
+     * 0.2 (vanilla's submerged mining penalty) -- together they restore the unpenalized 1.0x.
+     */
+    @Test
+    void aquadynamicCancelsTheSubmergedMiningPenalty() {
+        assertEquals(0.8F, ForgeweaveModifiers.AQUADYNAMIC.submergedMiningSpeedBonus(1), 1.0e-5F);
+    }
+
+    /** Far Reach: our chosen +1 block interaction range per level, aggregated across a tool's entries. */
+    @Test
+    void farReachAddsOneBlockOfRangePerLevel() {
+        assertEquals(1.0F, ForgeweaveModifiers.FAR_REACH.blockInteractionRangeBonus(1), 1.0e-5F);
+        assertEquals(2.0F, ForgeweaveModifiers.FAR_REACH.blockInteractionRangeBonus(2), 1.0e-5F);
+
+        ItemStack tool = pickaxe();
+        tool.set(ForgeweaveDataComponents.MODIFIERS.get(),
+                List.of(new ModifierEntry(ResourceLocation.fromNamespaceAndPath("forgeweave", "far_reach"), 2)));
+        assertEquals(2.0F, ForgeweaveModifiers.blockInteractionRangeBonus(tool), 1.0e-5F);
     }
 
     /** An id with no Java behind it applies and serializes; it simply does nothing (ADR-0004). */

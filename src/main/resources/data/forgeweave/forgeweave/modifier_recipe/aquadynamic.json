@@ -1,0 +1,8 @@
+{
+  "modifier": "forgeweave:aquadynamic",
+  "reagent": {
+    "item": "minecraft:turtle_scute"
+  },
+  "cost": 1,
+  "max_level": 1
+}

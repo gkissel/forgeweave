@@ -1,0 +1,8 @@
+{
+  "modifier": "forgeweave:far_reach",
+  "reagent": {
+    "item": "minecraft:amethyst_shard"
+  },
+  "cost": 1,
+  "max_level": 2
+}

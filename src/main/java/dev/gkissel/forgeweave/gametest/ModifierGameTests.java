@@ -1,5 +1,6 @@
 package dev.gkissel.forgeweave.gametest;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import net.minecraft.core.BlockPos;
@@ -7,12 +8,16 @@ import net.minecraft.core.component.DataComponents;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.block.Blocks;
 
+import net.neoforged.neoforge.event.level.BlockDropsEvent;
 import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 
@@ -39,6 +44,11 @@ import dev.gkissel.forgeweave.modifier.ModifierEntry;
 public class ModifierGameTests {
 
     private static final ResourceLocation HASTE = ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "haste");
+    // #108 batch: modern-vanilla modifiers (issue #108).
+    private static final ResourceLocation SEARING = ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "searing");
+    private static final ResourceLocation MAGNETIC_PULL =
+            ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "magnetic_pull");
+    private static final ResourceLocation RESONANT = ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "resonant");
 
     @GameTest(template = "empty")
     public static void oneRedstoneFillsOneModifierSlot(GameTestHelper helper) {
@@ -179,6 +189,71 @@ public class ModifierGameTests {
         helper.assertTrue(output.isCorrectToolForDrops(Blocks.STONE.defaultBlockState()),
                 "a modified tool must still harvest what it did before");
         helper.succeed();
+    }
+
+    // #108 batch: modern-vanilla modifiers (issue #108). Searing and Magnetic Pull key off NeoForge's
+    // block-drops event ({@code ForgeweaveModifiers#onBlockDrops}), which needs a real
+    // {@code ServerLevel} (Searing's furnace-recipe lookup) and a real {@code ServerPlayer} (Magnetic
+    // Pull's inventory insert) -- both of which only a GameTest, not a plain unit test, provides.
+
+    /** Searing (issue #108): a mined block's drop becomes its furnace-smelted result, count preserved. */
+    @GameTest(template = "empty")
+    public static void searingSmeltsWhatItMines(GameTestHelper helper) {
+        ItemStack pickaxe = withModifier(SEARING);
+        ItemEntity drop = drop(helper, new ItemStack(Items.IRON_ORE, 2));
+
+        ForgeweaveModifiers.onBlockDrops(dropsEvent(helper, pickaxe, null, drop));
+
+        helper.assertTrue(drop.getItem().is(Items.IRON_INGOT) && drop.getItem().getCount() == 2,
+                "expected 2 iron ingot (the furnace result of iron ore), got " + drop.getItem());
+        helper.succeed();
+    }
+
+    /** Magnetic Pull (issue #108): drops the player's inventory can hold go straight into it. */
+    @GameTest(template = "empty")
+    public static void magneticPullSendsDropsToTheBreakersInventory(GameTestHelper helper) {
+        ItemStack pickaxe = withModifier(MAGNETIC_PULL);
+        ServerPlayer player = helper.makeMockServerPlayerInLevel();
+        ItemEntity drop = drop(helper, new ItemStack(Items.COBBLESTONE, 4));
+
+        BlockDropsEvent event = dropsEvent(helper, pickaxe, player, drop);
+        ForgeweaveModifiers.onBlockDrops(event);
+
+        helper.assertTrue(event.getDrops().isEmpty(),
+                "a drop the inventory can fully absorb must not spawn in the world");
+        helper.assertTrue(player.getInventory().contains(new ItemStack(Items.COBBLESTONE, 4)),
+                "expected the cobblestone in the breaker's inventory instead of the ground");
+        helper.succeed();
+    }
+
+    /** Resonant (issue #108): +50% dropped experience at level 1. */
+    @GameTest(template = "empty")
+    public static void resonantAddsBonusExperience(GameTestHelper helper) {
+        ItemStack pickaxe = withModifier(RESONANT);
+        BlockDropsEvent event = dropsEvent(helper, pickaxe, null, drop(helper, new ItemStack(Items.COAL)));
+        event.setDroppedExperience(10);
+
+        ForgeweaveModifiers.onBlockDrops(event);
+
+        helper.assertTrue(event.getDroppedExperience() == 15,
+                "expected 10 XP plus level 1's +50%, got " + event.getDroppedExperience());
+        helper.succeed();
+    }
+
+    /** A bare pickaxe carrying one level of {@code id}; these three modifiers don't need an assembled tool. */
+    private static ItemStack withModifier(ResourceLocation id) {
+        ItemStack pickaxe = new ItemStack(ForgeweaveItems.TOOL_PICKAXE.get());
+        pickaxe.set(ForgeweaveDataComponents.MODIFIERS.get(), List.of(new ModifierEntry(id, 1)));
+        return pickaxe;
+    }
+
+    private static ItemEntity drop(GameTestHelper helper, ItemStack stack) {
+        return new ItemEntity(helper.getLevel(), 0, 0, 0, stack);
+    }
+
+    private static BlockDropsEvent dropsEvent(GameTestHelper helper, ItemStack tool, Entity breaker, ItemEntity... drops) {
+        return new BlockDropsEvent(helper.getLevel(), BlockPos.ZERO, Blocks.STONE.defaultBlockState(), null,
+                new ArrayList<>(List.of(drops)), breaker, tool);
     }
 
     /** Runs one application through the station and returns the modified tool. */
