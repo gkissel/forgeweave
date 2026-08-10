@@ -63,6 +63,14 @@ public final class ForgeweaveCreativeTab {
         // Grout, seared brick, and the seared brick block family (docs/SCOPE.md M2 issue #93).
         output.accept(ForgeweaveItems.GROUT.get());
         output.accept(ForgeweaveItems.SEARED_BRICK.get());
+
+        // #107 batch: modifier reagent items (docs/SCOPE.md M2 issue #107).
+        output.accept(ForgeweaveItems.MOSS.get());
+        output.accept(ForgeweaveItems.MENDING_MOSS.get());
+        output.accept(ForgeweaveItems.REINFORCED_PLATE.get());
+        output.accept(ForgeweaveItems.SILKY_CLOTH.get());
+        output.accept(ForgeweaveItems.SILKY_JEWEL.get());
+        output.accept(ForgeweaveItems.EXTRA_MODIFIER.get());
         output.accept(ForgeweaveItems.SEARED_STONE.get());
         output.accept(ForgeweaveItems.SEARED_COBBLESTONE.get());
         output.accept(ForgeweaveItems.SEARED_PAVER.get());

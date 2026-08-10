@@ -198,7 +198,9 @@ public class ToolItem extends Item {
      * line so the tooltip never shows a number the tool doesn't actually hit for.
      */
     private float attackDamage(ItemStack stack) {
-        ToolStats.Stats stats = stack.get(ForgeweaveDataComponents.TOOL_STATS.get());
+        // Modifier-adjusted, not the raw base component (issue #107: silky takes a flat 3 off this at
+        // apply time -- ForgeweaveModifiers#effectiveStats is exactly the seam for that).
+        ToolStats.Stats stats = ForgeweaveModifiers.effectiveStats(stack);
         if (stats == null || isBroken(stack)) {
             return 0.0F;
         }
@@ -210,6 +212,12 @@ public class ToolItem extends Item {
     public <T extends LivingEntity> int damageItem(ItemStack stack, int amount, @Nullable T entity, Consumer<Item> onBroken) {
         if (amount <= 0) {
             return amount; // healing; nothing to cap.
+        }
+        // Reinforced (issue #107): a per-level chance to negate the hit outright, upstream
+        // ModReinforced#onToolDamage -- level 5's 100% chance always succeeds, which is what reads as
+        // unbreakable rather than a separate flag (ForgeweaveModifiers#REINFORCED's javadoc).
+        if (entity != null && negatesDurabilityDamage(stack, entity)) {
+            return 0;
         }
         int brokenAt = stack.getMaxDamage() - 1;
         int applied = Math.max(0, Math.min(amount, brokenAt - stack.getDamageValue()));
@@ -226,16 +234,24 @@ public class ToolItem extends Item {
         return applied;
     }
 
+    /** See {@link #damageItem}'s reinforced check. Package-private and pure-ish so it's easy to unit test. */
+    static boolean negatesDurabilityDamage(ItemStack stack, LivingEntity entity) {
+        float chance = ForgeweaveModifiers.durabilityNegationChance(stack);
+        return chance > 0.0F && entity.getRandom().nextFloat() < chance;
+    }
+
     /**
      * The seam for traits that act while the tool is simply carried (upstream 1.12's
      * {@code ITrait#onUpdate}, reached from {@code ToolCore#onUpdate}). Server side only, and never
      * while Broken -- upstream's healing path {@code ToolHelper#damageTool} returns early on a broken
-     * tool, and no M1 trait is meant to work on one.
+     * tool, and no M1 trait is meant to work on one. Mending moss's self-repair (issue #107) rides the
+     * same seam, one call below traits.
      */
     @Override
     public void inventoryTick(ItemStack stack, Level level, Entity entity, int slotId, boolean isSelected) {
         if (level instanceof ServerLevel serverLevel && entity instanceof LivingEntity holder && !isBroken(stack)) {
             ForgeweaveTraits.inventoryTick(stack, serverLevel, holder);
+            ForgeweaveModifiers.inventoryTick(stack, serverLevel, holder);
         }
     }
 

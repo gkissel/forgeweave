@@ -1,0 +1,8 @@
+{
+  "modifier": "forgeweave:reinforced",
+  "reagent": {
+    "item": "forgeweave:reinforced_plate"
+  },
+  "cost": 1,
+  "max_level": 5
+}

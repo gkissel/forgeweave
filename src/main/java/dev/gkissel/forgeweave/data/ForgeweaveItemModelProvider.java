@@ -59,6 +59,17 @@ public class ForgeweaveItemModelProvider extends ItemModelProvider {
         toolModel(ForgeweaveItems.TOOL_PICKAXE, "pickaxe");
         toolModel(ForgeweaveItems.TOOL_SHOVEL, "shovel");
         toolModel(ForgeweaveItems.TOOL_HATCHET, "hatchet");
+
+        // Modifier reagents (docs/SCOPE.md M2 issue #107), each a straight upstream texture port
+        // (NOTICE.md): moss.png, mending_moss.png, reinforcement.png, silky_cloth.png, silky_jewel.png
+        // and -- for the extra-slot item -- skull_char_gold.png, which is what upstream's own
+        // materials.json blockstate points the creative_modifier variant at.
+        singleLayerModel(ForgeweaveItems.MOSS, derivedItem("moss"));
+        singleLayerModel(ForgeweaveItems.MENDING_MOSS, derivedItem("mending_moss"));
+        singleLayerModel(ForgeweaveItems.REINFORCED_PLATE, derivedItem("reinforced_plate"));
+        singleLayerModel(ForgeweaveItems.SILKY_CLOTH, derivedItem("silky_cloth"));
+        singleLayerModel(ForgeweaveItems.SILKY_JEWEL, derivedItem("silky_jewel"));
+        singleLayerModel(ForgeweaveItems.EXTRA_MODIFIER, derivedItem("extra_modifier"));
     }
 
     private ResourceLocation derivedItem(String name) {

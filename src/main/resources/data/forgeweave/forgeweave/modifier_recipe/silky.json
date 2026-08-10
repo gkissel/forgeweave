@@ -1,0 +1,8 @@
+{
+  "modifier": "forgeweave:silky",
+  "reagent": {
+    "item": "forgeweave:silky_jewel"
+  },
+  "cost": 1,
+  "max_level": 1
+}
