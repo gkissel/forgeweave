@@ -65,6 +65,13 @@ public class ToolItem extends Item {
     /** Id for the trait-driven attack speed modifier {@link #getDefaultAttributeModifiers} adds (issue #102). */
     private static final ResourceLocation TRAIT_ATTACK_SPEED_ID =
             ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "trait_attack_speed");
+    // #108 batch: modern-vanilla attribute modifiers (Aquadynamic, Far Reach -- ForgeweaveModifiers),
+    // same idiom as vanilla Item's own BASE_ATTACK_DAMAGE_ID/BASE_ATTACK_SPEED_ID this class already
+    // keys its two attribute modifiers on above.
+    private static final ResourceLocation SUBMERGED_MINING_SPEED_ID =
+            ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "aquadynamic");
+    private static final ResourceLocation BLOCK_INTERACTION_RANGE_ID =
+            ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "far_reach");
 
     private final TagKey<Block> mineableBlocks;
     private final float attackSpeed;
@@ -150,6 +157,24 @@ public class ToolItem extends Item {
         if (speedBonus != 0.0F) {
             builder.add(Attributes.ATTACK_SPEED,
                     new AttributeModifier(TRAIT_ATTACK_SPEED_ID, attackSpeed * speedBonus,
+                            AttributeModifier.Operation.ADD_VALUE),
+                    EquipmentSlotGroup.MAINHAND);
+        }
+
+        // #108 batch: Aquadynamic/Far Reach add their own attribute modifiers only when a tool
+        // actually carries them, so an unmodified tool's merged-attribute tooltip stays exactly as
+        // it was (contrast with ATTACK_DAMAGE/ATTACK_SPEED above, which every tool always carries).
+        float submergedMiningSpeedBonus = ForgeweaveModifiers.submergedMiningSpeedBonus(stack);
+        if (submergedMiningSpeedBonus != 0.0F) {
+            builder.add(Attributes.SUBMERGED_MINING_SPEED,
+                    new AttributeModifier(SUBMERGED_MINING_SPEED_ID, submergedMiningSpeedBonus,
+                            AttributeModifier.Operation.ADD_VALUE),
+                    EquipmentSlotGroup.MAINHAND);
+        }
+        float blockInteractionRangeBonus = ForgeweaveModifiers.blockInteractionRangeBonus(stack);
+        if (blockInteractionRangeBonus != 0.0F) {
+            builder.add(Attributes.BLOCK_INTERACTION_RANGE,
+                    new AttributeModifier(BLOCK_INTERACTION_RANGE_ID, blockInteractionRangeBonus,
                             AttributeModifier.Operation.ADD_VALUE),
                     EquipmentSlotGroup.MAINHAND);
         }

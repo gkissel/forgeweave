@@ -64,4 +64,54 @@ public interface Modifier {
     default int bonusSlots(int level) {
         return 0;
     }
+
+    // #108 batch: modern-vanilla modifiers (issue #108) -- Forgeweave originals, not upstream ports,
+    // so unlike HASTE's numbers above these are recorded as this PR's own decision rather than cited
+    // from a clone. Each is still a pure function of level, same rule as every hook above.
+
+    /**
+     * Whether a block this tool mines drops its furnace-smelted result instead of its raw drop
+     * (Searing). Checked from {@link ForgeweaveModifiers#onBlockDrops}, which has no Item hook to live
+     * in -- NeoForge's block-drops event is the only seam that sees the drops before they hit the
+     * ground.
+     */
+    default boolean autoSmelt(int level) {
+        return false;
+    }
+
+    /**
+     * Whether this tool's block drops go straight into the breaking player's inventory instead of the
+     * ground (Magnetic Pull -- distinct from issue #102's {@code magnetic} trait, which pulls item
+     * entities already on the ground toward the holder rather than skipping the drop entirely).
+     */
+    default boolean magnetic(int level) {
+        return false;
+    }
+
+    /**
+     * Extra fraction of a mined block's dropped experience this modifier adds, e.g. {@code 0.5} for
+     * +50% (Resonant). Summed across a tool's modifiers in
+     * {@link ForgeweaveModifiers#bonusExperienceFraction}.
+     */
+    default float bonusExperienceFraction(int level) {
+        return 0.0F;
+    }
+
+    /**
+     * Bonus added to the holder's {@code minecraft:player.submerged_mining_speed} attribute while this
+     * tool is held (Aquadynamic). That attribute defaults to 0.2 -- vanilla's {@code Player#getDigSpeed}
+     * multiplies mining speed by it whenever the player's eyes are in water -- so {@code +0.8} restores
+     * full (1.0x) speed underwater.
+     */
+    default float submergedMiningSpeedBonus(int level) {
+        return 0.0F;
+    }
+
+    /**
+     * Bonus added to the holder's {@code minecraft:player.block_interaction_range} attribute, in
+     * blocks, while this tool is held (Far Reach).
+     */
+    default float blockInteractionRangeBonus(int level) {
+        return 0.0F;
+    }
 }

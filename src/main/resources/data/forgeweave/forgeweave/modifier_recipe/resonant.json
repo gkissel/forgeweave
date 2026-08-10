@@ -1,0 +1,8 @@
+{
+  "modifier": "forgeweave:resonant",
+  "reagent": {
+    "item": "minecraft:echo_shard"
+  },
+  "cost": 1,
+  "max_level": 3
+}

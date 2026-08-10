@@ -1,5 +1,6 @@
 package dev.gkissel.forgeweave.modifier;
 
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -12,10 +13,18 @@ import org.slf4j.Logger;
 import com.mojang.logging.LogUtils;
 
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.crafting.RecipeType;
+import net.minecraft.world.item.crafting.SingleRecipeInput;
+
+import net.neoforged.neoforge.event.level.BlockDropsEvent;
 
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.item.ForgeweaveDataComponents;
+import dev.gkissel.forgeweave.item.ToolItem;
 import dev.gkissel.forgeweave.tool.ToolStats;
 
 /**
@@ -99,7 +108,65 @@ public final class ForgeweaveModifiers {
         }
     };
 
-    private static final Map<ResourceLocation, Modifier> REGISTRY = Map.of(id("haste"), HASTE);
+    // #108 batch: modern-vanilla modifiers (issue #108). Forgeweave originals -- no clone to cite, so
+    // every constant below records this PR's own numbers instead of an upstream one.
+
+    /** Magma cream. Auto-smelts every block this tool mines ({@link #onBlockDrops}). Single level. */
+    public static final Modifier SEARING = new Modifier() {
+        @Override
+        public boolean autoSmelt(int level) {
+            return true;
+        }
+    };
+
+    /**
+     * Ender pearl. Sends this tool's block drops straight into the breaking player's inventory
+     * instead of the ground ({@link #onBlockDrops}). Single level; id kept distinct from issue #102's
+     * item-pulling {@code magnetic} trait (see {@link Modifier#magnetic} javadoc).
+     */
+    public static final Modifier MAGNETIC_PULL = new Modifier() {
+        @Override
+        public boolean magnetic(int level) {
+            return true;
+        }
+    };
+
+    /**
+     * Turtle scute. Cancels the vanilla submerged mining penalty by restoring
+     * {@code player.submerged_mining_speed} to its unpenalized 1.0x (see {@link Modifier#submergedMiningSpeedBonus}).
+     * Single level.
+     */
+    public static final Modifier AQUADYNAMIC = new Modifier() {
+        @Override
+        public float submergedMiningSpeedBonus(int level) {
+            return 0.8F;
+        }
+    };
+
+    /** Echo shard. +50% block-drop experience per level, our chosen number, capped at 3 levels. */
+    private static final float RESONANT_XP_PER_LEVEL = 0.5F;
+    public static final Modifier RESONANT = new Modifier() {
+        @Override
+        public float bonusExperienceFraction(int level) {
+            return RESONANT_XP_PER_LEVEL * level;
+        }
+    };
+
+    /** Amethyst shard. +1 block interaction range per level, our chosen number, capped at 2 levels. */
+    public static final Modifier FAR_REACH = new Modifier() {
+        @Override
+        public float blockInteractionRangeBonus(int level) {
+            return level;
+        }
+    };
+
+    private static final Map<ResourceLocation, Modifier> REGISTRY = Map.of(
+            id("haste"), HASTE,
+            id("searing"), SEARING,
+            id("magnetic_pull"), MAGNETIC_PULL,
+            id("aquadynamic"), AQUADYNAMIC,
+            id("resonant"), RESONANT,
+            id("far_reach"), FAR_REACH);
 
     /**
      * The behavior for {@code id}, or {@code null} if this version doesn't implement it.
@@ -205,6 +272,119 @@ public final class ForgeweaveModifiers {
             }
         }
         return multiplier;
+    }
+
+    // #108 batch: modern-vanilla modifiers (issue #108).
+
+    /** Whether any of the tool's modifiers auto-smelt what it mines ({@link Modifier#autoSmelt}). */
+    public static boolean hasAutoSmelt(ItemStack stack) {
+        for (ModifierEntry entry : of(stack)) {
+            Modifier modifier = get(entry.id());
+            if (modifier != null && modifier.autoSmelt(entry.level())) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /** Whether any of the tool's modifiers redirect its drops to the player's inventory ({@link Modifier#magnetic}). */
+    public static boolean isMagnetic(ItemStack stack) {
+        for (ModifierEntry entry : of(stack)) {
+            Modifier modifier = get(entry.id());
+            if (modifier != null && modifier.magnetic(entry.level())) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /** Combined bonus experience fraction of the tool's modifiers; 0 when nothing touches it. */
+    public static float bonusExperienceFraction(ItemStack stack) {
+        float bonus = 0.0F;
+        for (ModifierEntry entry : of(stack)) {
+            Modifier modifier = get(entry.id());
+            if (modifier != null) {
+                bonus += modifier.bonusExperienceFraction(entry.level());
+            }
+        }
+        return bonus;
+    }
+
+    /** Combined submerged-mining-speed attribute bonus of the tool's modifiers; 0 when nothing touches it. */
+    public static float submergedMiningSpeedBonus(ItemStack stack) {
+        float bonus = 0.0F;
+        for (ModifierEntry entry : of(stack)) {
+            Modifier modifier = get(entry.id());
+            if (modifier != null) {
+                bonus += modifier.submergedMiningSpeedBonus(entry.level());
+            }
+        }
+        return bonus;
+    }
+
+    /** Combined block-interaction-range attribute bonus of the tool's modifiers; 0 when nothing touches it. */
+    public static float blockInteractionRangeBonus(ItemStack stack) {
+        float bonus = 0.0F;
+        for (ModifierEntry entry : of(stack)) {
+            Modifier modifier = get(entry.id());
+            if (modifier != null) {
+                bonus += modifier.blockInteractionRangeBonus(entry.level());
+            }
+        }
+        return bonus;
+    }
+
+    /**
+     * Searing, Magnetic Pull and Resonant all key off what a mined block drops, and none of upstream
+     * 1.12's {@code IModifier}/{@code ITrait} hooks (nor anything on {@code Item}) sees drops before
+     * they hit the ground -- {@link BlockDropsEvent} is the seam. Registered on the game event bus in
+     * {@code Forgeweave}, same idiom as {@code ForgeweaveTraits#onIncomingDamage}. Fires server side
+     * only ({@link BlockDropsEvent#getLevel()} returns a {@code ServerLevel}), so every behavior below
+     * is dedicated-server correct by construction.
+     */
+    public static void onBlockDrops(BlockDropsEvent event) {
+        ItemStack tool = event.getTool();
+        if (!(tool.getItem() instanceof ToolItem) || ToolItem.isBroken(tool)) {
+            return;
+        }
+        if (hasAutoSmelt(tool)) {
+            smelt(event);
+        }
+        float bonusXp = bonusExperienceFraction(tool);
+        if (bonusXp > 0.0F) {
+            event.setDroppedExperience(Math.round(event.getDroppedExperience() * (1.0F + bonusXp)));
+        }
+        if (isMagnetic(tool) && event.getBreaker() instanceof ServerPlayer player) {
+            pullToInventory(event, player);
+        }
+    }
+
+    /** Searing: each drop becomes its furnace-smelted result, count preserved, or itself if none exists. */
+    private static void smelt(BlockDropsEvent event) {
+        ServerLevel level = event.getLevel();
+        for (ItemEntity itemEntity : event.getDrops()) {
+            ItemStack drop = itemEntity.getItem();
+            level.getRecipeManager()
+                    .getRecipeFor(RecipeType.SMELTING, new SingleRecipeInput(drop), level)
+                    .ifPresent(recipe -> {
+                        ItemStack smelted = recipe.value().getResultItem(level.registryAccess()).copy();
+                        smelted.setCount(drop.getCount());
+                        itemEntity.setItem(smelted);
+                    });
+        }
+    }
+
+    /**
+     * Magnetic Pull: whatever {@code player}'s inventory can take is removed from the drop list before
+     * it ever spawns in the world; a drop the inventory can't fully absorb is left in the list to fall
+     * as usual (upstream's own fallback for a full inventory).
+     */
+    private static void pullToInventory(BlockDropsEvent event, ServerPlayer player) {
+        for (Iterator<ItemEntity> iterator = event.getDrops().iterator(); iterator.hasNext();) {
+            if (player.getInventory().add(iterator.next().getItem())) {
+                iterator.remove();
+            }
+        }
     }
 
     private static ResourceLocation id(String path) {

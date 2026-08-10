@@ -29,6 +29,7 @@ import dev.gkissel.forgeweave.item.ForgeweaveItems;
 import dev.gkissel.forgeweave.material.Material;
 import dev.gkissel.forgeweave.menu.ForgeweaveMenus;
 import dev.gkissel.forgeweave.menu.RenameStationItemPayload;
+import dev.gkissel.forgeweave.modifier.ForgeweaveModifiers;
 import dev.gkissel.forgeweave.modifier.ModifierRecipe;
 import dev.gkissel.forgeweave.recipe.ForgeweaveRecipeSerializers;
 import dev.gkissel.forgeweave.trait.ForgeweaveTraits;
@@ -64,6 +65,9 @@ public class Forgeweave {
         NeoForge.EVENT_BUS.addListener(ForgeweaveTraits::onIncomingDamage);
         // established's kill-XP bonus (issue #102): no Item hook for a kill's dropped XP either.
         NeoForge.EVENT_BUS.addListener(ForgeweaveTraits::onExperienceDrop);
+        // #108 batch: Searing/Magnetic Pull/Resonant key off what a mined block drops, which has no
+        // Item hook either (see ForgeweaveModifiers#onBlockDrops).
+        NeoForge.EVENT_BUS.addListener(ForgeweaveModifiers::onBlockDrops);
     }
 
     private void onServerStarted(final ServerStartedEvent event) {

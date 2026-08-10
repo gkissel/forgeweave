@@ -176,6 +176,19 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("trait.forgeweave.established.name", "Established");
         add("trait.forgeweave.established.description", "Grants bonus experience from kills.");
 
+        // #108 batch: modern-vanilla modifiers (issue #108) -- Forgeweave originals, not upstream
+        // ports, so these names and descriptions are this PR's own wording rather than a translation.
+        add("modifier.forgeweave.searing.name", "Searing");
+        add("modifier.forgeweave.searing.description", "Blocks this tool mines drop their furnace-smelted result.");
+        add("modifier.forgeweave.magnetic_pull.name", "Magnetic Pull");
+        add("modifier.forgeweave.magnetic_pull.description", "Block drops go straight into your inventory.");
+        add("modifier.forgeweave.aquadynamic.name", "Aquadynamic");
+        add("modifier.forgeweave.aquadynamic.description", "No mining speed penalty while your head is underwater.");
+        add("modifier.forgeweave.resonant.name", "Resonant");
+        add("modifier.forgeweave.resonant.description", "Bonus experience from blocks that drop it. Every level adds 50%.");
+        add("modifier.forgeweave.far_reach.name", "Far Reach");
+        add("modifier.forgeweave.far_reach.description", "Extends how far you can reach to mine blocks. Every level adds one block.");
+
         // JEI recipe category titles (issue #11); only shown when JEI is installed, since the
         // integration is optional (neoforge.mods.toml).
         add("jei.category.forgeweave.part_crafting", "Part Crafting");
