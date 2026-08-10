@@ -155,20 +155,28 @@ public class SmelteryScreen extends StationScreen<SmelteryMenu> {
      * <p>Slot tiles come from the same sheet as everything else: {@code (0, 166, 22, 18)} for a cell
      * that has a slot and {@code (22, 166, 22, 18)} for the "no slot here" filler upstream draws past
      * the end of a partial last row, so the grid stays a rectangle.
+     *
+     * <p><b>Always the full {@value SmelteryMenu#MELT_VISIBLE_ROWS} rows</b> (issue #146). Upstream
+     * sizes its side inventory to its slot count, which it can afford because that inventory is a
+     * free-floating module hanging off the <em>side</em> of a rectangular GUI. Forgeweave's grid
+     * instead sits in the notch of the L-shaped panel art -- a hole of fixed size -- so a grid sized
+     * to the slot count leaves the rest of that hole see-through: a smeltery with a 1x1x2 interior
+     * drew a one-row, two-slot frame floating over a transparent gap the size of the notch, which is
+     * the "corrupted fragment" the playtest reported (and which any minimum-size smeltery shows the
+     * moment its contents finish melting and the items stop papering over it). Drawing the frame at
+     * the notch's size and filling the cells past the end with the filler tile is upstream's own
+     * partial-row behaviour applied to whole rows, and it makes the drawn grid the same rectangle
+     * {@link #mouseScrolled} already hit-tests.
      */
     private void renderMeltGrid(GuiGraphics graphics) {
         int slots = menu.meltSlotCount();
-        if (slots == 0) {
-            return; // an unformed smeltery has no interior, so no grid -- upstream draws none either
-        }
-        int rows = Math.min(SmelteryMenu.MELT_VISIBLE_ROWS, SmelteryMenu.meltRows(slots) - menu.scrollRow());
         int gridLeft = leftPos + SmelteryMenu.GRID_X + SmelteryMenu.GRID_BORDER;
         int gridTop = topPos + SmelteryMenu.GRID_Y + SmelteryMenu.GRID_BORDER;
         // Upstream wraps its side inventories in generic.png's nine-sliced frame; the panel art's
         // notch is cut to exactly this width so the two read as one window.
         SideInventoryPanel.renderBorder(graphics, leftPos + SmelteryMenu.GRID_X, topPos + SmelteryMenu.GRID_Y,
-                gridWidth(), rows * SmelteryMenu.SLOT_SIZE + SmelteryMenu.GRID_BORDER * 2);
-        for (int row = 0; row < rows; row++) {
+                gridWidth(), gridHeight());
+        for (int row = 0; row < SmelteryMenu.MELT_VISIBLE_ROWS; row++) {
             for (int col = 0; col < SmelteryMenu.MELT_COLUMNS; col++) {
                 int index = (menu.scrollRow() + row) * SmelteryMenu.MELT_COLUMNS + col;
                 graphics.blit(TEXTURE,
@@ -177,7 +185,7 @@ public class SmelteryScreen extends StationScreen<SmelteryMenu> {
                         SmelteryMenu.CELL_WIDTH, SmelteryMenu.SLOT_SIZE, SHEET, SHEET);
             }
         }
-        renderHeatBars(graphics, slots, gridLeft, gridTop, rows);
+        renderHeatBars(graphics, slots, gridLeft, gridTop);
     }
 
     /**
@@ -185,9 +193,9 @@ public class SmelteryScreen extends StationScreen<SmelteryMenu> {
      * {@code GuiElementScalable(176..185, 150, 3, 16)} variants, chosen by why a slot is or is not
      * progressing so the bar doubles as the explanation.
      */
-    private void renderHeatBars(GuiGraphics graphics, int slots, int gridLeft, int gridTop, int rows) {
+    private void renderHeatBars(GuiGraphics graphics, int slots, int gridLeft, int gridTop) {
         List<ItemStack> items = menu.meltingItems(level());
-        for (int row = 0; row < rows; row++) {
+        for (int row = 0; row < SmelteryMenu.MELT_VISIBLE_ROWS; row++) {
             for (int col = 0; col < SmelteryMenu.MELT_COLUMNS; col++) {
                 int index = (menu.scrollRow() + row) * SmelteryMenu.MELT_COLUMNS + col;
                 if (index >= slots || index >= items.size() || items.get(index).isEmpty()) {
@@ -217,11 +225,17 @@ public class SmelteryScreen extends StationScreen<SmelteryMenu> {
         return super.mouseScrolled(mouseX, mouseY, scrollX, scrollY);
     }
 
-    private static int gridWidth() {
+    /**
+     * The melt grid's drawn frame -- one rectangle, sized to the panel art's notch rather than to the
+     * smeltery, so it is also the box {@link #mouseScrolled} hit-tests and the box
+     * {@link #renderMeltGrid} paints. {@code SmelteryMeltGridTest} pins both against the art.
+     */
+    static int gridWidth() {
         return SmelteryMenu.MELT_COLUMNS * SmelteryMenu.CELL_WIDTH + SmelteryMenu.GRID_BORDER * 2;
     }
 
-    private static int gridHeight() {
+    /** @see #gridWidth() */
+    static int gridHeight() {
         return SmelteryMenu.MELT_VISIBLE_ROWS * SmelteryMenu.SLOT_SIZE + SmelteryMenu.GRID_BORDER * 2;
     }
 

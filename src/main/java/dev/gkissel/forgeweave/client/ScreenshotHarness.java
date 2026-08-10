@@ -6,6 +6,8 @@ import java.util.List;
 import java.util.function.BiConsumer;
 import java.util.function.Supplier;
 
+import javax.annotation.Nullable;
+
 import com.mojang.blaze3d.platform.NativeImage;
 import com.mojang.logging.LogUtils;
 
@@ -89,8 +91,14 @@ public final class ScreenshotHarness {
     private static final int WORLD_SETTLE_TICKS = 40;
     /** Ticks to let a just-opened screen render before capture -- the issue's own "wait N ticks for render". */
     private static final int SCREEN_SETTLE_TICKS = 15;
-    /** Blocks apart along +X so no station's GUI-open range ever spans a neighbor (issue #78 tabs). */
-    private static final int SCREEN_SPACING = 4;
+    /** Ticks between closing one screen and opening the next; see {@link #openScreen}. */
+    private static final int SCREEN_GAP_TICKS = 10;
+    /**
+     * Blocks apart along +X so no station's GUI-open range ever spans a neighbor (issue #78 tabs),
+     * and -- since #146 added a second smeltery -- so two 5x5-footprint multiblocks never share a
+     * wall.
+     */
+    private static final int SCREEN_SPACING = 8;
 
     /** One entry per station screen; see "Extending for M2" above. */
     private static final List<HarnessScreen> SCREENS = List.of(
@@ -100,7 +108,11 @@ public final class ScreenshotHarness {
             new HarnessScreen("stencil_table", ForgeweaveBlocks.STENCIL_TABLE),
             // #101: the smeltery is a multiblock, so unlike every M1 station it needs a structure
             // around the placed block before its GUI will open at all -- see buildSmeltery.
-            new HarnessScreen("smeltery", ForgeweaveBlocks.STANDARD_CORE, ScreenshotHarness::buildSmeltery));
+            new HarnessScreen("smeltery", ForgeweaveBlocks.STANDARD_CORE, ScreenshotHarness::buildSmeltery),
+            // #146: the state the melt-grid defect was reported in -- a minimum-size smeltery (two
+            // melt slots, one row) with nothing in the grid, which is what a playtest smeltery looks
+            // like once everything in it has melted away.
+            new HarnessScreen("smeltery_empty", ForgeweaveBlocks.STANDARD_CORE, ScreenshotHarness::buildEmptySmeltery));
 
     private enum Stage { AWAIT_TITLE, AWAIT_WORLD, SETTLE_WORLD, OPEN_SCREEN, SETTLE_SCREEN, DONE }
 
@@ -132,6 +144,12 @@ public final class ScreenshotHarness {
         if (!(mc.screen instanceof TitleScreen)) {
             return;
         }
+        // A harness run is unattended, so its window is routinely not the focused one, and vanilla
+        // pauses a singleplayer client the moment an unfocused window has no screen open -- which is
+        // exactly the gap between closing one station's GUI and the next one's open packet arriving.
+        // The pause screen then owns the screen slot and the next capture is a picture of the pause
+        // menu. Seen once while capturing #146's second smeltery.
+        mc.options.pauseOnLostFocus = false;
         LOGGER.info("{}creating flat world '{}'", LOG_PREFIX, LEVEL_NAME);
         LevelSettings levelSettings = new LevelSettings(
                 LEVEL_NAME, GameType.CREATIVE, false, Difficulty.PEACEFUL, true, new GameRules(), WorldDataConfiguration.DEFAULT);
@@ -163,6 +181,13 @@ public final class ScreenshotHarness {
     }
 
     private static void openScreen(Minecraft mc) {
+        // Let the previous screen's container-close packet reach the server before asking it to open
+        // the next one. Vanilla's handleContainerClose closes whatever container is open regardless
+        // of the id the packet names, so a close that lands after the next station's menu opened
+        // takes that menu down with it -- which is what an empty capture in this harness looks like.
+        if (stageTicks < SCREEN_GAP_TICKS) {
+            return;
+        }
         if (screenIndex >= SCREENS.size()) {
             LOGGER.info("{}all {} screens captured, exiting", LOG_PREFIX, SCREENS.size());
             mc.stop();
@@ -239,15 +264,55 @@ public final class ScreenshotHarness {
      * flagged when this harness landed: the check is against the <em>core's</em> position, not the
      * multiblock's, so an adjacent camera is well within it.
      *
-     * <p>1x1 interior two blocks tall over a seared floor, one seared tank in a wall (the scan
-     * requires at least one) -- the same fixture {@code SmelteryGameTests} builds.
+     * <p>Seared shell over a seared floor with one seared tank in a wall (the scan requires at least
+     * one) -- the same fixture {@code SmelteryGameTests} builds, sized by the shared builder below.
      */
     private static void buildSmeltery(ServerLevel level, BlockPos corePos) {
-        BlockState brick = ForgeweaveBlocks.SEARED_BRICKS.get().defaultBlockState();
         // A 3x3x2 interior rather than the 1x1x2 minimum: 18 melting slots is six rows of the melt
         // grid, so the capture shows a full grid and its scroll window instead of a single slot.
-        BlockPos interiorMin = corePos.offset(-1, 0, -3);
-        BlockPos interiorMax = corePos.offset(1, 1, -1);
+        SmelteryControllerBlockEntity controller = buildSmeltery(level, corePos, 1, 3);
+        if (controller == null) {
+            return;
+        }
+
+        // Two metals, so the capture shows what this screen is actually for: the stacked fluid
+        // column, its per-fluid bands and the bottom (drain) fluid. An empty tank would prove only
+        // that the background blits -- and a screenshot that cannot fail is the review gap issues
+        // #75/#85/#89 slipped through.
+        controller.tank().fill(new FluidStack(ForgeweaveFluids.IRON.still().get(), 4 * 1152),
+                IFluidHandler.FluidAction.EXECUTE);
+        controller.tank().fill(new FluidStack(ForgeweaveFluids.COPPER.still().get(), 2 * 576),
+                IFluidHandler.FluidAction.EXECUTE);
+        // Items mid-melt, so the grid shows occupied slots with heat bars rather than an empty frame.
+        for (int i = 0; i < 5; i++) {
+            controller.insertForMelting(new ItemStack(Items.IRON_INGOT));
+        }
+        controller.insertForMelting(new ItemStack(Items.COPPER_INGOT));
+    }
+
+    /**
+     * Issue #146's capture: the smallest smeltery there is (a 1x1x2 interior, so two melt slots)
+     * with an empty grid -- the state the melt grid rendered as a floating two-slot fragment in,
+     * because the grid was sized from the slot count while the panel art's notch it sits in is a
+     * fixed-size hole. Nothing is put in the tank or the grid: an empty smeltery is precisely what a
+     * playtester sees once the last thing in it has melted.
+     */
+    private static void buildEmptySmeltery(ServerLevel level, BlockPos corePos) {
+        buildSmeltery(level, corePos, 0, 1);
+    }
+
+    /**
+     * The shared structure builder: seared shell around an interior {@code 2 * halfWidth + 1} blocks
+     * wide, {@code depth} blocks deep and always two tall, with a lava-filled tank in a wall.
+     *
+     * @return the formed core, or {@code null} if the block entity did not come back
+     */
+    @Nullable
+    private static SmelteryControllerBlockEntity buildSmeltery(ServerLevel level, BlockPos corePos,
+            int halfWidth, int depth) {
+        BlockState brick = ForgeweaveBlocks.SEARED_BRICKS.get().defaultBlockState();
+        BlockPos interiorMin = corePos.offset(-halfWidth, 0, -depth);
+        BlockPos interiorMax = corePos.offset(halfWidth, 1, -1);
 
         for (int x = interiorMin.getX(); x <= interiorMax.getX(); x++) {
             for (int z = interiorMin.getZ(); z <= interiorMax.getZ(); z++) {
@@ -281,24 +346,11 @@ public final class ScreenshotHarness {
         level.setBlockAndUpdate(corePos, ForgeweaveBlocks.STANDARD_CORE.get().defaultBlockState()
                 .setValue(SmelteryControllerBlock.FACING, Direction.SOUTH));
         if (!(level.getBlockEntity(corePos) instanceof SmelteryControllerBlockEntity controller)) {
-            return;
+            return null;
         }
         controller.updateStructure();
         LOGGER.info("{}smeltery structure: {}", LOG_PREFIX, controller.lastResult().getString());
-
-        // Two metals, so the capture shows what this screen is actually for: the stacked fluid
-        // column, its per-fluid bands and the bottom (drain) fluid. An empty tank would prove only
-        // that the background blits -- and a screenshot that cannot fail is the review gap issues
-        // #75/#85/#89 slipped through.
-        controller.tank().fill(new FluidStack(ForgeweaveFluids.IRON.still().get(), 4 * 1152),
-                IFluidHandler.FluidAction.EXECUTE);
-        controller.tank().fill(new FluidStack(ForgeweaveFluids.COPPER.still().get(), 2 * 576),
-                IFluidHandler.FluidAction.EXECUTE);
-        // Items mid-melt, so the grid shows occupied slots with heat bars rather than an empty frame.
-        for (int i = 0; i < 5; i++) {
-            controller.insertForMelting(new ItemStack(Items.IRON_INGOT));
-        }
-        controller.insertForMelting(new ItemStack(Items.COPPER_INGOT));
+        return controller;
     }
 
     /**
