@@ -151,7 +151,12 @@ final class SideInventoryPanel {
         return rows;
     }
 
-    private static void renderBorder(GuiGraphics graphics, int x, int y, int width, int height) {
+    /**
+     * The nine-sliced {@code generic.png} frame upstream wraps every side inventory in. Shared with
+     * {@link SmelteryScreen}'s melt grid (issue #101), which is the same upstream widget
+     * ({@code GuiWidgetBorder}) around a different grid.
+     */
+    static void renderBorder(GuiGraphics graphics, int x, int y, int width, int height) {
         int innerW = width - BORDER * 2;
         int innerH = height - BORDER * 2;
         int right = x + width - BORDER;

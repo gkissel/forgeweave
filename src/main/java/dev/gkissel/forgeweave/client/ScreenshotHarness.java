@@ -3,6 +3,7 @@ package dev.gkissel.forgeweave.client;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
+import java.util.function.BiConsumer;
 import java.util.function.Supplier;
 
 import com.mojang.blaze3d.platform.NativeImage;
@@ -14,6 +15,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.Screenshot;
 import net.minecraft.client.gui.screens.TitleScreen;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.server.level.ServerLevel;
@@ -23,7 +25,12 @@ import net.minecraft.world.level.GameRules;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.LevelSettings;
 import net.minecraft.world.level.WorldDataConfiguration;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.material.Fluids;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.levelgen.WorldDimensions;
 import net.minecraft.world.level.levelgen.WorldOptions;
 import net.minecraft.world.level.levelgen.presets.WorldPresets;
@@ -32,10 +39,16 @@ import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.client.event.ClientTickEvent;
+import net.neoforged.neoforge.fluids.FluidStack;
+import net.neoforged.neoforge.fluids.capability.IFluidHandler;
 
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.block.ForgeweaveBlocks;
+import dev.gkissel.forgeweave.block.SearedTankBlockEntity;
+import dev.gkissel.forgeweave.block.SmelteryControllerBlock;
+import dev.gkissel.forgeweave.block.SmelteryControllerBlockEntity;
 import dev.gkissel.forgeweave.block.StationMenuHost;
+import dev.gkissel.forgeweave.fluid.ForgeweaveFluids;
 
 /**
  * Dev-only screenshot harness (docs/SCOPE.md issue #112): boots straight from the title screen into
@@ -84,7 +97,10 @@ public final class ScreenshotHarness {
             new HarnessScreen("part_builder", ForgeweaveBlocks.PART_BUILDER),
             new HarnessScreen("tool_station", ForgeweaveBlocks.TOOL_STATION),
             new HarnessScreen("crafting_station", ForgeweaveBlocks.CRAFTING_STATION),
-            new HarnessScreen("stencil_table", ForgeweaveBlocks.STENCIL_TABLE));
+            new HarnessScreen("stencil_table", ForgeweaveBlocks.STENCIL_TABLE),
+            // #101: the smeltery is a multiblock, so unlike every M1 station it needs a structure
+            // around the placed block before its GUI will open at all -- see buildSmeltery.
+            new HarnessScreen("smeltery", ForgeweaveBlocks.STANDARD_CORE, ScreenshotHarness::buildSmeltery));
 
     private enum Stage { AWAIT_TITLE, AWAIT_WORLD, SETTLE_WORLD, OPEN_SCREEN, SETTLE_SCREEN, DONE }
 
@@ -163,6 +179,7 @@ public final class ScreenshotHarness {
             ServerPlayer serverPlayer = server.getPlayerList().getPlayers().get(0);
             ServerLevel level = serverPlayer.serverLevel();
             level.setBlockAndUpdate(pos, screen.block().get().defaultBlockState());
+            screen.prepare().accept(level, pos);
             // Within the menu's stillValid distance (vanilla's 8-block cap) so it doesn't auto-close.
             serverPlayer.teleportTo(pos.getX() + 0.5, pos.getY(), pos.getZ() + 1.5);
             if (level.getBlockEntity(pos) instanceof StationMenuHost host) {
@@ -211,6 +228,88 @@ public final class ScreenshotHarness {
         stageTicks = 0;
     }
 
-    /** One harness entry: the PNG's base filename, and the station block to place and open. */
-    private record HarnessScreen(String fileName, Supplier<? extends Block> block) {}
+    /**
+     * Builds the minimum 3x3x3 smeltery around a core the harness has just placed, and points the
+     * core at the camera (issue #101).
+     *
+     * <p>A core's {@code FACING} points <em>out</em> of its structure, so facing it south puts the
+     * interior on the north side and leaves the harness's own camera spot -- one block south of the
+     * placed block -- outside the walls and looking at the core's front face. That also keeps the
+     * player inside {@code SmelteryMenu}'s reach check, which is the "stillValid distance" concern
+     * flagged when this harness landed: the check is against the <em>core's</em> position, not the
+     * multiblock's, so an adjacent camera is well within it.
+     *
+     * <p>1x1 interior two blocks tall over a seared floor, one seared tank in a wall (the scan
+     * requires at least one) -- the same fixture {@code SmelteryGameTests} builds.
+     */
+    private static void buildSmeltery(ServerLevel level, BlockPos corePos) {
+        BlockState brick = ForgeweaveBlocks.SEARED_BRICKS.get().defaultBlockState();
+        // A 3x3x2 interior rather than the 1x1x2 minimum: 18 melting slots is six rows of the melt
+        // grid, so the capture shows a full grid and its scroll window instead of a single slot.
+        BlockPos interiorMin = corePos.offset(-1, 0, -3);
+        BlockPos interiorMax = corePos.offset(1, 1, -1);
+
+        for (int x = interiorMin.getX(); x <= interiorMax.getX(); x++) {
+            for (int z = interiorMin.getZ(); z <= interiorMax.getZ(); z++) {
+                level.setBlockAndUpdate(new BlockPos(x, interiorMin.getY() - 1, z), brick); // floor
+                for (int y = interiorMin.getY(); y <= interiorMax.getY(); y++) {
+                    level.setBlockAndUpdate(new BlockPos(x, y, z), Blocks.AIR.defaultBlockState());
+                }
+            }
+        }
+        for (int y = interiorMin.getY(); y <= interiorMax.getY(); y++) {
+            for (int x = interiorMin.getX(); x <= interiorMax.getX(); x++) {
+                level.setBlockAndUpdate(new BlockPos(x, y, interiorMin.getZ() - 1), brick); // north wall
+                level.setBlockAndUpdate(new BlockPos(x, y, interiorMax.getZ() + 1), brick); // south wall
+            }
+            for (int z = interiorMin.getZ(); z <= interiorMax.getZ(); z++) {
+                level.setBlockAndUpdate(new BlockPos(interiorMin.getX() - 1, y, z), brick); // west wall
+                level.setBlockAndUpdate(new BlockPos(interiorMax.getX() + 1, y, z), brick); // east wall
+            }
+        }
+
+        // A smeltery needs at least one tank in its walls, and #96's heat model burns the lava in it.
+        BlockPos tankPos = new BlockPos(interiorMin.getX(), interiorMin.getY(), interiorMin.getZ() - 1);
+        level.setBlockAndUpdate(tankPos, ForgeweaveBlocks.SEARED_TANK.get().defaultBlockState());
+        if (level.getBlockEntity(tankPos) instanceof SearedTankBlockEntity tank) {
+            tank.tank().fill(new FluidStack(Fluids.LAVA, SearedTankBlockEntity.CAPACITY),
+                    IFluidHandler.FluidAction.EXECUTE);
+        }
+
+        // Re-placing the core with the right facing does not re-trigger its own scan (the block skips
+        // that when the old state is already itself), so ask for one directly.
+        level.setBlockAndUpdate(corePos, ForgeweaveBlocks.STANDARD_CORE.get().defaultBlockState()
+                .setValue(SmelteryControllerBlock.FACING, Direction.SOUTH));
+        if (!(level.getBlockEntity(corePos) instanceof SmelteryControllerBlockEntity controller)) {
+            return;
+        }
+        controller.updateStructure();
+        LOGGER.info("{}smeltery structure: {}", LOG_PREFIX, controller.lastResult().getString());
+
+        // Two metals, so the capture shows what this screen is actually for: the stacked fluid
+        // column, its per-fluid bands and the bottom (drain) fluid. An empty tank would prove only
+        // that the background blits -- and a screenshot that cannot fail is the review gap issues
+        // #75/#85/#89 slipped through.
+        controller.tank().fill(new FluidStack(ForgeweaveFluids.IRON.still().get(), 4 * 1152),
+                IFluidHandler.FluidAction.EXECUTE);
+        controller.tank().fill(new FluidStack(ForgeweaveFluids.COPPER.still().get(), 2 * 576),
+                IFluidHandler.FluidAction.EXECUTE);
+        // Items mid-melt, so the grid shows occupied slots with heat bars rather than an empty frame.
+        for (int i = 0; i < 5; i++) {
+            controller.insertForMelting(new ItemStack(Items.IRON_INGOT));
+        }
+        controller.insertForMelting(new ItemStack(Items.COPPER_INGOT));
+    }
+
+    /**
+     * One harness entry: the PNG's base filename, the station block to place and open, and anything
+     * that has to exist around it first ({@link #buildSmeltery}; a no-op for the M1 stations, which
+     * are all single blocks).
+     */
+    private record HarnessScreen(String fileName, Supplier<? extends Block> block,
+            BiConsumer<ServerLevel, BlockPos> prepare) {
+        HarnessScreen(String fileName, Supplier<? extends Block> block) {
+            this(fileName, block, (level, pos) -> {});
+        }
+    }
 }

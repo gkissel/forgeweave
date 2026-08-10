@@ -8,10 +8,12 @@
             interior_min: [I; -1, 64, -1]
         },
         tank: {
-            Fluid: {
-                amount: 2304,
-                id: "forgeweave:molten_iron"
-            }
+            fluids: [
+                {
+                    amount: 2304,
+                    id: "forgeweave:molten_iron"
+                }
+            ]
         }
     },
     nbt: {
@@ -27,5 +29,5 @@
             }
         }
     },
-    what: "M2 (#95): a formed standard-core smeltery -- interior bounds plus a partly full tank. #96 (melt state + fuel) and #101 (ordered multi-fluid tank) each add a follow-up entry."
+    what: "M2 (#95): a formed standard-core smeltery -- interior bounds plus a partly full tank, in the single-fluid `tank.Fluid` shape #95 shipped. `nbt` is untouched and must stay so: it is the snapshot every pre-#101 world on disk actually contains. Only `expect` moved, in #101, because the tank became an ordered multi-fluid list (`tank.fluids`) -- the contents survive the migration exactly (2304 mB of molten iron, still the bottom/drain fluid), but re-encoding now writes the list shape. #96 (melt state + fuel) adds a follow-up entry."
 }

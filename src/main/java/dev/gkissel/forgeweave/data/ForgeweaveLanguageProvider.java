@@ -71,6 +71,24 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add(SmelteryScan.KEY_NO_TANK, "The smeltery needs at least one seared tank in its walls");
         add(SmelteryScan.KEY_CORE_OUTSIDE, "The core has to sit in a wall of the smeltery");
 
+        // #101: the smeltery GUI's tank and fuel tooltips, following upstream 1.12's gui.smeltery.*
+        // entries word for word -- the unit abbreviations are deliberately lowercase and terse
+        // because they trail a number in a dense tooltip ("3 Ingots", "144 mb").
+        add("gui.forgeweave.smeltery.capacity", "Capacity:");
+        add("gui.forgeweave.smeltery.capacity_available", "Free:");
+        add("gui.forgeweave.smeltery.capacity_used", "Used:");
+        add("gui.forgeweave.smeltery.liquid.block", "Blocks");
+        add("gui.forgeweave.smeltery.liquid.ingot", "Ingots");
+        add("gui.forgeweave.smeltery.liquid.nugget", "Nuggets");
+        add("gui.forgeweave.smeltery.liquid.kilobucket", "kb");
+        add("gui.forgeweave.smeltery.liquid.bucket", "b");
+        add("gui.forgeweave.smeltery.liquid.millibucket", "mb");
+        add("gui.forgeweave.smeltery.fuel", "Fuel");
+        add("gui.forgeweave.smeltery.fuel.empty", "No fuel found");
+        // Upstream's gui.smeltery.fuel.heat, shown while a burn is under way (#131).
+        add("gui.forgeweave.smeltery.fuel.heat", "Temperature: %s");
+        add("tooltip.forgeweave.hold_shift", "Hold Shift for buckets");
+
         addItem(ForgeweaveItems.PATTERN_BLANK, "Blank Pattern");
         addItem(ForgeweaveItems.PATTERN_PICKAXE_HEAD, "Pickaxe Head Pattern");
         addItem(ForgeweaveItems.PATTERN_SHOVEL_HEAD, "Shovel Head Pattern");
