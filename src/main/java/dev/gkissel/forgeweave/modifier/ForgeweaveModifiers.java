@@ -422,14 +422,16 @@ public final class ForgeweaveModifiers {
     // ---------------------------------------------------------------- #106 batch (luck, sharpness, diamond, emerald)
 
     /**
-     * Upstream {@code ModLuck}: {@code baseCount = 60}, 3 levels -- but upstream's own
+     * Upstream {@code ModLuck}: {@code baseCount = 60}, 3 levels, and upstream's own
      * {@code LuckAspect#getMaxForLevel} is triangular ({@code countPerLevel * level * (level + 1) / 2}:
-     * 60/180/360 lapis cumulative for levels 1/2/3), where every other Forgeweave modifier -- and
-     * {@link #displayLevel}/{@link #unitsForDisplayLevel} themselves -- assume a uniform per-level
-     * cost (haste's precedent). Reproducing the triangular curve would need a second, non-uniform
-     * leveling scheme in the shared framework, which is out of scope for this batch; Luck instead
-     * uses a flat 60 lapis/level here (180 total for level 3), and this simplification is flagged for
-     * maintainer review in the PR.
+     * 60/180/360 lapis cumulative for levels 1/2/3) rather than uniform like haste's. That curve is
+     * datapack data now, not a Java constant here (issue #106 review, ADR-0004 decision 1): the shipped
+     * {@code luck.json}'s {@code cost_per_level: [60, 120, 180]} reproduces it exactly
+     * ({@code ModifierRecipe#levelsReached}). This constant remains only as the uniform fallback
+     * {@link #unitsPerLevel} feeds the tooltip's generic "Luck II (65/180)" readout
+     * ({@link #displayLevel}/{@link #unitsForDisplayLevel}, haste's shipped precedent) -- a cosmetic
+     * approximation, since that display doesn't consult the recipe; the actual Fortune/Looting grant
+     * always uses the recipe's real thresholds via {@code ModifierApplication#applyEnchantmentGrants}.
      */
     private static final int LUCK_LAPIS_PER_LEVEL = 60;
 
@@ -437,7 +439,8 @@ public final class ForgeweaveModifiers {
      * Luck. Upstream {@code ModLuck#applyEnchantments}: grants Fortune to every harvest tool (every
      * Forgeweave tool) and Looting to weapon tools (the hatchet) up to the modifier's display level --
      * see {@link Modifier#fortuneLevel}/{@link Modifier#lootingLevel}'s javadoc for where the
-     * registry-dependent half of this lives.
+     * registry-dependent half of this lives, and {@code ModifierRecipe#levelsReached} for how the raw
+     * lapis count becomes the level passed in here.
      */
     public static final Modifier LUCK = new Modifier() {
         @Override
@@ -447,12 +450,12 @@ public final class ForgeweaveModifiers {
 
         @Override
         public int fortuneLevel(int level) {
-            return 1 + (Math.max(1, level) - 1) / LUCK_LAPIS_PER_LEVEL;
+            return level;
         }
 
         @Override
         public int lootingLevel(int level) {
-            return fortuneLevel(level);
+            return level;
         }
     };
 

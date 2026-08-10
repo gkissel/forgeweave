@@ -246,7 +246,7 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         // #106 batch: luck, sharpness, diamond, emerald.
         add("modifier.forgeweave.luck.name", "Luck");
         add("modifier.forgeweave.luck.description",
-                "Lapis lazuli grants Fortune, and Looting to weapons. Every 60 pieces is another level.");
+                "Lapis lazuli grants Fortune, and Looting to weapons. Each level takes more than the last.");
         add("modifier.forgeweave.sharpness.name", "Sharpness");
         add("modifier.forgeweave.sharpness.description",
                 "Quartz increases attack damage. Every 72 pieces is another level.");

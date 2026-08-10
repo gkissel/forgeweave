@@ -107,40 +107,38 @@ public final class ModifierApplication {
             // #106 batch: luck's Fortune/Looting grant. This is the one call in the whole class that
             // needs registry access (resolving the Enchantment holders), which is why it lives here
             // rather than in the registry-free apply()/modified() below -- see Modifier#fortuneLevel.
-            applyEnchantmentGrants(registries, outcome.output());
+            applyEnchantmentGrants(registries, recipe, outcome.output());
         }
         return Optional.of(outcome);
     }
 
     /**
-     * Rewrites {@code tool}'s stored {@code minecraft:enchantments} to the strongest Fortune/Looting
-     * any of its modifiers currently grant (issue #106's luck). Full overwrite rather than a merge is
-     * correct here: CONTEXT.md's default {@code allowVanillaEnchanting = false} means Forgeweave
-     * modifiers are the only source of enchantments a tool has, so recomputing from scratch every call
-     * can never lose a level a player earned some other way, and it self-corrects if luck is ever
-     * un-leveled by a future feature.
+     * Upgrades {@code tool}'s stored {@code minecraft:enchantments} to whatever Fortune/Looting the
+     * modifier just applied now grants (issue #106's luck; #106 review: the level this reads is
+     * {@code recipe.levelsReached}, not raw application units, so a non-uniform per-level cost like
+     * luck's triangular one is honored). {@code upgrade} rather than {@code set} because fortune/
+     * looting only ever increase as more reagent is applied, so taking the max with whatever is
+     * already there is exactly as correct as a full recompute and needs neither a loop over every
+     * other entry on the tool nor a recipe-by-id lookup for entries this call didn't touch.
      */
-    private static void applyEnchantmentGrants(HolderLookup.Provider registries, ItemStack tool) {
-        boolean weapon = tool.getItem() instanceof ToolItem toolItem && toolItem.isWeapon();
-        int fortune = 0;
-        int looting = 0;
-        for (ModifierEntry entry : ForgeweaveModifiers.of(tool)) {
-            Modifier modifier = ForgeweaveModifiers.get(entry.id());
-            if (modifier != null) {
-                fortune = Math.max(fortune, modifier.fortuneLevel(entry.level()));
-                if (weapon) {
-                    looting = Math.max(looting, modifier.lootingLevel(entry.level()));
-                }
-            }
+    private static void applyEnchantmentGrants(HolderLookup.Provider registries, ModifierRecipe recipe, ItemStack tool) {
+        Modifier modifier = ForgeweaveModifiers.get(recipe.modifier());
+        ModifierEntry entry = ForgeweaveModifiers.entry(tool, recipe.modifier());
+        if (modifier == null || entry == null) {
+            return;
         }
+        int level = recipe.levelsReached(entry.level());
+        boolean weapon = tool.getItem() instanceof ToolItem toolItem && toolItem.isWeapon();
+        int fortune = modifier.fortuneLevel(level);
+        int looting = weapon ? modifier.lootingLevel(level) : 0;
         if (fortune == 0 && looting == 0) {
             return;
         }
         HolderGetter<Enchantment> enchantments = registries.lookupOrThrow(Registries.ENCHANTMENT);
         ItemEnchantments.Mutable mutable =
                 new ItemEnchantments.Mutable(tool.getOrDefault(DataComponents.ENCHANTMENTS, ItemEnchantments.EMPTY));
-        mutable.set(enchantments.getOrThrow(Enchantments.FORTUNE), fortune);
-        mutable.set(enchantments.getOrThrow(Enchantments.LOOTING), looting);
+        mutable.upgrade(enchantments.getOrThrow(Enchantments.FORTUNE), fortune);
+        mutable.upgrade(enchantments.getOrThrow(Enchantments.LOOTING), looting);
         tool.set(DataComponents.ENCHANTMENTS, mutable.toImmutable());
     }
 

@@ -4,5 +4,6 @@
     "item": "minecraft:lapis_lazuli"
   },
   "cost": 1,
-  "max_level": 180
+  "cost_per_level": [60, 120, 180],
+  "max_level": 360
 }

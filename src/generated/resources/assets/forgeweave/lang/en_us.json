@@ -101,7 +101,7 @@
   "modifier.forgeweave.far_reach.name": "Far Reach",
   "modifier.forgeweave.haste.description": "Redstone speeds the tool up. Every 50 pieces is another level.",
   "modifier.forgeweave.haste.name": "Haste",
-  "modifier.forgeweave.luck.description": "Lapis lazuli grants Fortune, and Looting to weapons. Every 60 pieces is another level.",
+  "modifier.forgeweave.luck.description": "Lapis lazuli grants Fortune, and Looting to weapons. Each level takes more than the last.",
   "modifier.forgeweave.luck.name": "Luck",
   "modifier.forgeweave.magnetic_pull.description": "Block drops go straight into your inventory.",
   "modifier.forgeweave.magnetic_pull.name": "Magnetic Pull",

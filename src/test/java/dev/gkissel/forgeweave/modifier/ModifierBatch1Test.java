@@ -85,28 +85,62 @@ class ModifierBatch1Test {
 
     /**
      * Upstream {@code ModLuck}: {@code baseCount = 60}, 3 levels, granting Fortune to every harvest
-     * tool and Looting to weapon tools up to the display level. Forgeweave simplifies upstream's
-     * triangular per-level cost to a uniform one (see {@code ForgeweaveModifiers#LUCK}'s javadoc).
+     * tool and Looting to weapon tools up to the display level -- {@link Modifier#fortuneLevel}'s
+     * contract is that it receives that already-resolved level, so LUCK's own hooks are a pass-through
+     * and the real threshold logic is {@link ModifierRecipe#levelsReached}'s (tested below).
      */
     @Test
-    void luckGrantsFortuneAndLootingTheWayUpstreamDoes() {
-        assertEquals(60, ForgeweaveModifiers.LUCK.unitsPerLevel(), "upstream ModLuck.baseCount");
-        assertEquals(1, ForgeweaveModifiers.LUCK.fortuneLevel(1));
-        assertEquals(1, ForgeweaveModifiers.LUCK.fortuneLevel(60));
-        assertEquals(2, ForgeweaveModifiers.LUCK.fortuneLevel(61));
-        assertEquals(3, ForgeweaveModifiers.LUCK.fortuneLevel(180), "upstream ModLuck.maxLevel");
-        assertEquals(ForgeweaveModifiers.LUCK.fortuneLevel(120), ForgeweaveModifiers.LUCK.lootingLevel(120),
+    void luckGrantsFortuneAndLootingAtWhateverLevelItIsGiven() {
+        assertEquals(2, ForgeweaveModifiers.LUCK.fortuneLevel(2));
+        assertEquals(ForgeweaveModifiers.LUCK.fortuneLevel(3), ForgeweaveModifiers.LUCK.lootingLevel(3),
                 "upstream grants the same level of both enchantments");
     }
 
-    /** The shipped recipe: 60 lapis per level, capped at level 3 (180 application units). */
+    /**
+     * The shipped recipe matches {@code ModLuck}'s triangular schedule 1:1 (issue #106 review):
+     * {@code LuckAspect#getMaxForLevel(level) = 60 * level * (level + 1) / 2} gives cumulative
+     * thresholds 60/180/360 for levels 1/2/3, which {@code cost_per_level: [60, 120, 180]} reproduces.
+     */
     @Test
-    void theShippedLuckRecipeMatchesTheAdaptedNumbers() {
+    void theShippedLuckRecipeMatchesUpstreamsTriangularSchedule() {
         ModifierRecipe recipe = shippedRecipe("luck.json");
 
         assertEquals(1, recipe.cost());
-        assertEquals(180, recipe.maxLevel(), "3 levels of 60 lapis, uniform per-level cost");
+        assertEquals(List.of(60, 120, 180), recipe.costPerLevel());
+        assertEquals(360, recipe.maxLevel(), "upstream's cumulative total for level 3");
         assertTrue(recipe.reagent().test(new ItemStack(Items.LAPIS_LAZULI)));
+    }
+
+    /**
+     * The exact level-up boundaries {@code LuckAspect#getLevel} crosses at, mirrored by
+     * {@link ModifierRecipe#levelsReached}: 0 below 60, 1 from 60 to 179, 2 from 180 to 359, 3 at 360+.
+     */
+    @Test
+    void luckRecipeLevelsReachedMatchesUpstreamsThresholdsExactly() {
+        ModifierRecipe recipe = shippedRecipe("luck.json");
+
+        assertEquals(0, recipe.levelsReached(59), "one short of the first threshold");
+        assertEquals(1, recipe.levelsReached(60), "the first threshold itself");
+        assertEquals(1, recipe.levelsReached(179));
+        assertEquals(2, recipe.levelsReached(180), "the second threshold");
+        assertEquals(2, recipe.levelsReached(359));
+        assertEquals(3, recipe.levelsReached(360), "the third threshold, upstream's maxLevel");
+    }
+
+    /** End to end: applying lapis through the shipped recipe grants Fortune at the right lapis counts. */
+    @Test
+    void applyingLapisGrantsFortuneAtTheTriangularThresholds() {
+        ModifierRecipe recipe = shippedRecipe("luck.json");
+        ItemStack tool = assembledPickaxe();
+
+        ModifierApplication.Outcome fiftyNine = ModifierApplication.apply(recipe, tool, 59, 0);
+        assertEquals(0, recipe.levelsReached(entryLevel(fiftyNine.output())), "not enough for Fortune I yet");
+
+        ModifierApplication.Outcome sixty = ModifierApplication.apply(recipe, tool, 60, 0);
+        assertEquals(1, recipe.levelsReached(entryLevel(sixty.output())));
+
+        ModifierApplication.Outcome oneEighty = ModifierApplication.apply(recipe, tool, 180, 0);
+        assertEquals(2, recipe.levelsReached(entryLevel(oneEighty.output())));
     }
 
     // ------------------------------------------------------------------ diamond (1 diamond)
@@ -176,6 +210,11 @@ class ModifierBatch1Test {
                         Tool.Rule.minesAndDrops(BlockTags.MINEABLE_WITH_PICKAXE, PICKAXE_STATS.miningSpeed())),
                 1.0F, 1));
         return stack;
+    }
+
+    private static int entryLevel(ItemStack stack) {
+        List<ModifierEntry> entries = ForgeweaveModifiers.of(stack);
+        return entries.isEmpty() ? 0 : entries.get(entries.size() - 1).level();
     }
 
     private static Tool.Rule denyRule(ItemStack stack) {

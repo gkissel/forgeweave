@@ -200,7 +200,11 @@ public interface Modifier {
      * {@code ModLuck#applyEnchantments} grants Fortune to every harvest-category tool; every
      * Forgeweave tool mines, so that gate is unconditional here. Default 0 (no fortune).
      *
-     * @param level accumulated application units
+     * @param level the display level already resolved from raw application units by
+     *     {@code ModifierRecipe#levelsReached} -- unlike every other hook's raw-unit {@code level},
+     *     because upstream's per-level cost isn't always uniform (luck's triangular schedule; issue
+     *     #106 review) and resolving that is squarely a recipe/data concern (ADR-0004 decision 1),
+     *     not something this registry-free interface can do itself
      */
     default int fortuneLevel(int level) {
         return 0;
@@ -211,7 +215,7 @@ public interface Modifier {
      * (of Forgeweave's three tools, only the hatchet: {@code ForgeweaveModifiers#HASTE}'s attack-speed
      * bonus is gated the same way, via {@code ToolItem}). Default 0 (no looting).
      *
-     * @param level accumulated application units
+     * @param level see {@link #fortuneLevel}'s javadoc -- an already-resolved display level
      */
     default int lootingLevel(int level) {
         return 0;

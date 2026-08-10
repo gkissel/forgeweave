@@ -1,5 +1,7 @@
 package dev.gkissel.forgeweave.modifier;
 
+import java.util.List;
+
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 
@@ -34,6 +36,12 @@ import dev.gkissel.forgeweave.Forgeweave;
  *       redstone is one unit. Optional, default 1.
  *   <li>{@code max_level} -- the cap, in the same application units as {@link ModifierEntry#level}:
  *       haste's 250 is upstream's 5 levels of 50 redstone.
+ *   <li>{@code cost_per_level} -- optional, default empty. Application-unit increments for each
+ *       display level, for a modifier whose per-level cost isn't uniform -- upstream's
+ *       {@code LuckAspect#getMaxForLevel}, a triangular {@code countPerLevel * level * (level + 1) / 2}
+ *       schedule, is the one shipped case: {@code [60, 120, 180]} reproduces its 60/180/360 cumulative
+ *       thresholds exactly (issue #106 review). Empty means "uniform", i.e. whatever
+ *       {@link Modifier#unitsPerLevel} says (haste's shipped precedent) -- see {@link #levelsReached}.
  * </ul>
  *
  * <p>Registered as a NeoForge datapack registry with a network codec, exactly as
@@ -41,7 +49,8 @@ import dev.gkissel.forgeweave.Forgeweave;
  * connecting clients get the same table the server resolved against -- which is what lets the Tool
  * Station screen explain a rejection without a packet of its own.
  */
-public record ModifierRecipe(ResourceLocation modifier, Ingredient reagent, int cost, int maxLevel) {
+public record ModifierRecipe(
+        ResourceLocation modifier, Ingredient reagent, int cost, int maxLevel, List<Integer> costPerLevel) {
 
     public static final ResourceKey<Registry<ModifierRecipe>> REGISTRY = ResourceKey.createRegistryKey(
             ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "modifier_recipe"));
@@ -50,6 +59,33 @@ public record ModifierRecipe(ResourceLocation modifier, Ingredient reagent, int 
             ResourceLocation.CODEC.fieldOf("modifier").forGetter(ModifierRecipe::modifier),
             Ingredient.CODEC.fieldOf("reagent").forGetter(ModifierRecipe::reagent),
             ExtraCodecs.POSITIVE_INT.optionalFieldOf("cost", 1).forGetter(ModifierRecipe::cost),
-            ExtraCodecs.POSITIVE_INT.fieldOf("max_level").forGetter(ModifierRecipe::maxLevel))
+            ExtraCodecs.POSITIVE_INT.fieldOf("max_level").forGetter(ModifierRecipe::maxLevel),
+            ExtraCodecs.POSITIVE_INT.listOf().optionalFieldOf("cost_per_level", List.of())
+                    .forGetter(ModifierRecipe::costPerLevel))
             .apply(instance, ModifierRecipe::new));
+
+    /**
+     * How many display levels {@code units} application units reach, 0-indexed (issue #106 review:
+     * datapack-retunable per-level cost, not a hardcoded Java constant -- ADR-0004 decision 1). With
+     * {@code cost_per_level} present, walks its cumulative thresholds exactly as upstream's
+     * {@code LuckAspect#getLevel} does; 0 below the first threshold is correct and deliberate (unlike
+     * {@link ForgeweaveModifiers#displayLevel}'s tooltip-oriented floor of 1, this is the raw count of
+     * levels actually reached, e.g. the Fortune/Looting level luck grants). Falls back to
+     * {@link ForgeweaveModifiers#displayLevel} (uniform, {@link Modifier#unitsPerLevel}) when empty.
+     */
+    public int levelsReached(int units) {
+        if (costPerLevel.isEmpty()) {
+            return ForgeweaveModifiers.displayLevel(modifier, units);
+        }
+        int level = 0;
+        int cumulative = 0;
+        for (int increment : costPerLevel) {
+            cumulative += increment;
+            if (units < cumulative) {
+                break;
+            }
+            level++;
+        }
+        return level;
+    }
 }
