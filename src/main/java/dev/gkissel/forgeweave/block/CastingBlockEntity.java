@@ -9,6 +9,7 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.InteractionHand;
@@ -27,6 +28,7 @@ import net.neoforged.neoforge.fluids.capability.IFluidHandler;
 import net.neoforged.neoforge.fluids.capability.templates.FluidTank;
 import net.neoforged.neoforge.items.ItemHandlerHelper;
 
+import dev.gkissel.forgeweave.advancement.ForgeweaveCriteriaTriggers;
 import dev.gkissel.forgeweave.casting.CastingRecipe;
 
 /**
@@ -103,6 +105,13 @@ public class CastingBlockEntity extends BlockEntity {
             ItemHandlerHelper.giveItemToPlayer(player, fromOutput ? output : input);
             if (fromOutput) {
                 output = ItemStack.EMPTY;
+                // #110 -- "first cast" advancement (docs/SCOPE.md M2 issue #110): fires whenever a
+                // player collects a finished casting result, cast creation and part casting alike --
+                // "casting table produces output" is the issue's own wording, and the chain doesn't
+                // distinguish the two.
+                if (player instanceof ServerPlayer serverPlayer) {
+                    ForgeweaveCriteriaTriggers.FIRST_CAST.get().trigger(serverPlayer);
+                }
             } else {
                 input = ItemStack.EMPTY;
             }

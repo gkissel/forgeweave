@@ -286,5 +286,29 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         addItem(ForgeweaveItems.CAST_AXE_HEAD, "Axe Head Cast");
         addItem(ForgeweaveItems.CAST_TOOL_BINDING, "Tool Binding Cast");
         addItem(ForgeweaveItems.CAST_TOOL_HANDLE, "Tool Handle Cast");
+
+        // #110 -- the M2 advancement chain (docs/SCOPE.md M2 issue #110): build smeltery -> first
+        // melt -> first cast -> first alloy -> first modifier. Keys follow vanilla's own
+        // advancements.<namespace>.<path>.title/.description convention (see
+        // ForgeweaveAdvancementProvider) rather than one of this file's usual families, none of which
+        // cover advancements.
+        add("advancements.forgeweave.smeltery_root.title", "Playing with Fire");
+        add("advancements.forgeweave.smeltery_root.description", "Craft a seared brick");
+        add("advancements.forgeweave.build_smeltery.title", "Under Construction");
+        add("advancements.forgeweave.build_smeltery.description", "Form a working smeltery structure");
+        add("advancements.forgeweave.first_melt.title", "Liquid Assets");
+        add("advancements.forgeweave.first_melt.description", "Melt an ore in the smeltery");
+        add("advancements.forgeweave.first_cast.title", "Cast in Metal");
+        add("advancements.forgeweave.first_cast.description", "Collect a finished casting table result");
+        add("advancements.forgeweave.first_alloy.title", "Mixed Metallurgy");
+        add("advancements.forgeweave.first_alloy.description", "Alloy two molten metals together");
+        add("advancements.forgeweave.first_modifier.title", "Fine Tuning");
+        add("advancements.forgeweave.first_modifier.description", "Apply a modifier at the Tool Station");
+
+        // The Ponder soft dependency's one-time chat hint (issue #110): shown on a player's first
+        // smeltery controller interaction only when Ponder isn't installed (ForgeweavePonderHint).
+        // A new "chat" family, following vanilla's own chat.* namespace -- none of this file's usual
+        // families cover a directly-displayed player chat message.
+        add("chat.forgeweave.ponder_hint", "Install Ponder for in-game build tutorials -- recipes are in JEI");
     }
 }

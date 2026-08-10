@@ -1,0 +1,26 @@
+{
+  "parent": "forgeweave:smeltery/first_cast",
+  "criteria": {
+    "triggered": {
+      "trigger": "forgeweave:first_alloy"
+    }
+  },
+  "display": {
+    "description": {
+      "translate": "advancements.forgeweave.first_alloy.description"
+    },
+    "icon": {
+      "count": 1,
+      "id": "minecraft:netherite_ingot"
+    },
+    "title": {
+      "translate": "advancements.forgeweave.first_alloy.title"
+    }
+  },
+  "requirements": [
+    [
+      "triggered"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

@@ -1,0 +1,26 @@
+{
+  "parent": "forgeweave:smeltery/root",
+  "criteria": {
+    "triggered": {
+      "trigger": "forgeweave:smeltery_formed"
+    }
+  },
+  "display": {
+    "description": {
+      "translate": "advancements.forgeweave.build_smeltery.description"
+    },
+    "icon": {
+      "count": 1,
+      "id": "forgeweave:standard_core"
+    },
+    "title": {
+      "translate": "advancements.forgeweave.build_smeltery.title"
+    }
+  },
+  "requirements": [
+    [
+      "triggered"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

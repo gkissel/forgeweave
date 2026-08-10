@@ -1,0 +1,26 @@
+{
+  "parent": "forgeweave:smeltery/build_smeltery",
+  "criteria": {
+    "triggered": {
+      "trigger": "forgeweave:first_melt"
+    }
+  },
+  "display": {
+    "description": {
+      "translate": "advancements.forgeweave.first_melt.description"
+    },
+    "icon": {
+      "count": 1,
+      "id": "minecraft:raw_iron"
+    },
+    "title": {
+      "translate": "advancements.forgeweave.first_melt.title"
+    }
+  },
+  "requirements": [
+    [
+      "triggered"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

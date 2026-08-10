@@ -7,6 +7,7 @@ import com.mojang.serialization.MapCodec;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
@@ -20,6 +21,9 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.minecraft.world.phys.BlockHitResult;
+
+import dev.gkissel.forgeweave.advancement.ForgeweaveCriteriaTriggers;
+import dev.gkissel.forgeweave.ponder.ForgeweavePonderHint;
 
 /**
  * The Standard Core and Nether Core (docs/SCOPE.md M2 issue #95), one class parameterized by {@link
@@ -100,6 +104,17 @@ public class SmelteryControllerBlock extends HorizontalDirectionalBlock implemen
         if (!level.isClientSide && level.getBlockEntity(pos) instanceof SmelteryControllerBlockEntity core) {
             core.updateStructure();
             player.displayClientMessage(core.lastResult(), false);
+            // #110 -- first-interaction hook for the advancement chain and the Ponder soft dependency
+            // (docs/SCOPE.md M2 issue #110): grants "build smeltery" the first time a player's own
+            // interaction finds the structure formed, and shows the one-time Ponder chat hint on every
+            // first interaction regardless of outcome (ForgeweavePonderHint is itself a no-op after
+            // the first call, or whenever Ponder is installed).
+            if (player instanceof ServerPlayer serverPlayer) {
+                if (core.isFormed()) {
+                    ForgeweaveCriteriaTriggers.SMELTERY_FORMED.get().trigger(serverPlayer);
+                }
+                ForgeweavePonderHint.maybeShow(serverPlayer);
+            }
         }
         return InteractionResult.SUCCESS;
     }
