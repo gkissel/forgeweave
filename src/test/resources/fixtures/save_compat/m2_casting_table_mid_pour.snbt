@@ -1,0 +1,31 @@
+{
+    block: "forgeweave:casting_table",
+    decoder: "block_entity",
+    expect: {
+        id: "forgeweave:casting_table",
+        input: {
+            count: 1,
+            id: "forgeweave:cast_pickaxe_head"
+        },
+        tank: {
+            Fluid: {
+                amount: 144,
+                id: "forgeweave:molten_iron"
+            }
+        }
+    },
+    nbt: {
+        id: "forgeweave:casting_table",
+        input: {
+            count: 1,
+            id: "forgeweave:cast_pickaxe_head"
+        },
+        tank: {
+            Fluid: {
+                amount: 144,
+                id: "forgeweave:molten_iron"
+            }
+        }
+    },
+    what: "M2 (#100): a casting table half way through a pour -- a cast in the input slot and part of the molten iron the recipe needs already in the tank."
+}

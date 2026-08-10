@@ -134,6 +134,7 @@ Applies across all milestones; the M1 CI/release gates above are the first insta
 - Alpha releases (0.x before the first beta tag) may break world saves; every alpha's release notes state this. **First-beta intent (decided at M2 planning): end of M3**, once combat/roster work settles tool components — stated as intent, not a promise; confirmed or moved at M3 planning.
 - From the first beta tag onward, saves must survive every Forgeweave upgrade within the same Minecraft line.
 - Enforcement: a **fixture decode corpus** — each release adds its serialized formats (tool item components, material data) as test resources; CI must decode the entire corpus on every PR thereafter. Plus one manual load of a previous-release world in the release checklist. A golden-world CI boot is added only if a save break ever escapes the corpus.
+- Where it lives: SNBT snapshots in `src/test/resources/fixtures/save_compat/`, walked by `SaveCompatCorpusTest` under `./gradlew build`. That class's javadoc is the how-to for adding a release's formats; a deliberately corrupt sample in `fixtures/corrupt/` keeps the walk honest.
 
 ### Performance budgets
 
