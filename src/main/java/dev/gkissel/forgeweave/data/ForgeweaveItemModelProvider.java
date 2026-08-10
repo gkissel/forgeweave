@@ -56,6 +56,19 @@ public class ForgeweaveItemModelProvider extends ItemModelProvider {
         singleLayerModel(ForgeweaveItems.GROUT, derivedItem("grout"));
         singleLayerModel(ForgeweaveItems.SEARED_BRICK, derivedItem("seared_brick"));
 
+        // #100 -- casting (docs/SCOPE.md M2 issue #100). The ingot and nugget casts have their own
+        // upstream sprite; the five part casts are the blank cast with the part's own sprite laid over
+        // it, which is a two-layer model here where upstream composites the same two images into one
+        // generated texture at load time (CustomTextureCreator -- see ForgeweaveItems#CAST_INGOT).
+        // Neither layer is tinted: a cast has no material.
+        singleLayerModel(ForgeweaveItems.CAST_INGOT, derivedItem("cast_ingot"));
+        singleLayerModel(ForgeweaveItems.CAST_NUGGET, derivedItem("cast_nugget"));
+        castModel(ForgeweaveItems.CAST_PICKAXE_HEAD, "pickaxe_head");
+        castModel(ForgeweaveItems.CAST_SHOVEL_HEAD, "shovel_head");
+        castModel(ForgeweaveItems.CAST_AXE_HEAD, "axe_head");
+        castModel(ForgeweaveItems.CAST_TOOL_BINDING, "tool_binding");
+        castModel(ForgeweaveItems.CAST_TOOL_HANDLE, "tool_handle");
+
         toolModel(ForgeweaveItems.TOOL_PICKAXE, "pickaxe");
         toolModel(ForgeweaveItems.TOOL_SHOVEL, "shovel");
         toolModel(ForgeweaveItems.TOOL_HATCHET, "hatchet");
@@ -86,6 +99,13 @@ public class ForgeweaveItemModelProvider extends ItemModelProvider {
         getBuilder(item.getId().toString())
                 .parent(new ModelFile.UncheckedModelFile("item/generated"))
                 .texture("layer0", texture);
+    }
+
+    private void castModel(DeferredItem<? extends Item> item, String part) {
+        getBuilder(item.getId().toString())
+                .parent(new ModelFile.UncheckedModelFile("item/generated"))
+                .texture("layer0", derivedItem("cast"))
+                .texture("layer1", derivedItem(part));
     }
 
     private void toolModel(DeferredItem<? extends Item> item, String tool) {

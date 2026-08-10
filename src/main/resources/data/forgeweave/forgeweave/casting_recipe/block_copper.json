@@ -1,0 +1,8 @@
+{
+  "station": "basin",
+  "fluid": "forgeweave:molten_copper",
+  "amount": 1296,
+  "result": {
+    "id": "minecraft:copper_block"
+  }
+}

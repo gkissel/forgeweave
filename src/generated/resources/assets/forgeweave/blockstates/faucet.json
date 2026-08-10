@@ -1,0 +1,22 @@
+{
+  "variants": {
+    "facing=east": {
+      "model": "forgeweave:block/faucet",
+      "y": 270
+    },
+    "facing=north": {
+      "model": "forgeweave:block/faucet",
+      "y": 180
+    },
+    "facing=south": {
+      "model": "forgeweave:block/faucet"
+    },
+    "facing=up": {
+      "model": "forgeweave:block/faucet_top"
+    },
+    "facing=west": {
+      "model": "forgeweave:block/faucet",
+      "y": 90
+    }
+  }
+}

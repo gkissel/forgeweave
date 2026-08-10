@@ -17,11 +17,13 @@ import net.neoforged.neoforge.registries.DataPackRegistryEvent;
 
 import net.minecraft.core.Registry;
 
+import dev.gkissel.forgeweave.block.CastingBlockEntity;
 import dev.gkissel.forgeweave.block.ChestBlockEntity;
 import dev.gkissel.forgeweave.block.ForgeweaveBlockEntities;
 import dev.gkissel.forgeweave.block.ForgeweaveBlocks;
 import dev.gkissel.forgeweave.block.SearedDrainBlockEntity;
 import dev.gkissel.forgeweave.block.SearedTankBlockEntity;
+import dev.gkissel.forgeweave.casting.CastingRecipe;
 import dev.gkissel.forgeweave.config.ForgeweaveConfig;
 import dev.gkissel.forgeweave.data.ForgeweaveDataGenerators;
 import dev.gkissel.forgeweave.fluid.ForgeweaveFluids;
@@ -64,6 +66,8 @@ public class Forgeweave {
         // The smeltery's seared tanks hold fluids directly; a drain re-exposes its core's tank (#95).
         modEventBus.addListener(SearedTankBlockEntity::registerCapabilities);
         modEventBus.addListener(SearedDrainBlockEntity::registerCapabilities);
+        // #100 -- a faucet pours into a casting table/basin through its fluid handler.
+        modEventBus.addListener(CastingBlockEntity::registerCapabilities);
         modEventBus.addListener(ForgeweaveDataGenerators::gatherData);
         NeoForge.EVENT_BUS.addListener(this::onServerStarted);
         // Traits that key off what is being hit have no Item hook to live in (see ForgeweaveTraits).
@@ -95,6 +99,9 @@ public class Forgeweave {
         // Modifier application recipes, same deal (ADR-0004): the client needs them so the Tool
         // Station screen can explain a rejection without a payload of its own.
         event.dataPackRegistry(ModifierRecipe.REGISTRY, ModifierRecipe.CODEC, ModifierRecipe.CODEC);
+        // #100 -- casting recipes, same deal: the client needs them for JEI (#109) and for showing
+        // what a casting block is currently making.
+        event.dataPackRegistry(CastingRecipe.REGISTRY, CastingRecipe.CODEC, CastingRecipe.CODEC);
     }
 
     /** The Tool Station's rename field is the mod's only message that a menu button can't carry. */
