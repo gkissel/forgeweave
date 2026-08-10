@@ -6,6 +6,8 @@ import com.mojang.serialization.MapCodec;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.util.RandomSource;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.context.BlockPlaceContext;
@@ -100,6 +102,18 @@ public class SmelteryControllerBlock extends HorizontalDirectionalBlock implemen
             player.displayClientMessage(core.lastResult(), false);
         }
         return InteractionResult.SUCCESS;
+    }
+
+    /**
+     * #96: one melt step, then re-arm only if there is still something to melt. This is the whole
+     * "the smeltery ticks" story -- a scheduled block tick rather than a {@code BlockEntityTicker},
+     * so a core with nothing in it is on no tick list at all (see {@link SmelteryControllerBlockEntity}).
+     */
+    @Override
+    protected void tick(BlockState state, ServerLevel level, BlockPos pos, RandomSource random) {
+        if (level.getBlockEntity(pos) instanceof SmelteryControllerBlockEntity core && core.meltTick()) {
+            level.scheduleTick(pos, this, SmelteryControllerBlockEntity.MELT_INTERVAL_TICKS);
+        }
     }
 
     private static void updateStructure(Level level, BlockPos pos) {

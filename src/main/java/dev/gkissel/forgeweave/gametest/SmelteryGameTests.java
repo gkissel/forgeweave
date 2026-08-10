@@ -40,7 +40,10 @@ import dev.gkissel.forgeweave.block.SmelteryStructure;
 @PrefixGameTestTemplate(false)
 public class SmelteryGameTests {
     /** Where the core always goes: the middle of the -X wall, on the lowest wall layer. */
-    private static final BlockPos CORE_POS = new BlockPos(0, 2, 1);
+    static final BlockPos CORE_POS = new BlockPos(0, 2, 1);
+
+    /** The one seared tank {@link #buildWalls} puts in the walls; issue #96's tests fill it with lava. */
+    static final BlockPos TANK_POS = new BlockPos(1, 2, 0);
 
     @GameTest(template = "smeltery")
     public static void minimumStructureForms(GameTestHelper helper) {
@@ -163,7 +166,7 @@ public class SmelteryGameTests {
      * {@code height}, with the interior starting at relative (1, 2, 1). The core's slot in the -X
      * wall is left open for {@link #placeCore}.
      */
-    private static void buildWalls(GameTestHelper helper, int width, int depth, int height) {
+    static void buildWalls(GameTestHelper helper, int width, int depth, int height) {
         for (int x = 1; x <= width; x++) {
             for (int z = 1; z <= depth; z++) {
                 helper.setBlock(new BlockPos(x, 1, z), ForgeweaveBlocks.SEARED_BRICKS.get());
@@ -180,11 +183,11 @@ public class SmelteryGameTests {
             }
         }
         // A smeltery needs at least one tank in its walls (upstream's hasTank check).
-        helper.setBlock(new BlockPos(1, 2, 0), ForgeweaveBlocks.SEARED_TANK.get());
+        helper.setBlock(TANK_POS, ForgeweaveBlocks.SEARED_TANK.get());
     }
 
     /** Placed last so the scan runs off the real placement event with the structure already complete. */
-    private static BlockPos placeCore(GameTestHelper helper, Block core) {
+    static BlockPos placeCore(GameTestHelper helper, Block core) {
         helper.setBlock(CORE_POS, core.defaultBlockState()
                 .setValue(HorizontalDirectionalBlock.FACING, Direction.WEST));
         return CORE_POS;

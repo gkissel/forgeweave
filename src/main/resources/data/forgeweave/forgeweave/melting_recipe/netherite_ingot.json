@@ -1,0 +1,7 @@
+{
+  "input": {
+    "tag": "c:ingots/netherite"
+  },
+  "fluid": "forgeweave:molten_netherite",
+  "amount": 144
+}

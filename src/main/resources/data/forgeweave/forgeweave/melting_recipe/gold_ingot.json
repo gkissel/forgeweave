@@ -1,0 +1,7 @@
+{
+  "input": {
+    "tag": "c:ingots/gold"
+  },
+  "fluid": "forgeweave:molten_gold",
+  "amount": 144
+}

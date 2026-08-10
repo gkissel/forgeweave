@@ -1,0 +1,7 @@
+{
+  "input": {
+    "tag": "c:ores/netherite_scrap"
+  },
+  "fluid": "forgeweave:molten_netherite_scrap",
+  "amount": 144
+}
