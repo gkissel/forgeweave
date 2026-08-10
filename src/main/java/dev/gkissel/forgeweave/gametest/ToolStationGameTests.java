@@ -208,7 +208,8 @@ public class ToolStationGameTests {
         menu.getSlot(ToolStationMenu.HEAD_SLOT).set(pickaxe);
         helper.assertTrue(menu.getSlot(ToolStationMenu.BINDING_SLOT).mayPlace(new ItemStack(Items.COBBLESTONE)),
                 "with a stone-headed tool loaded, the repair slots must accept cobblestone");
-        helper.assertFalse(menu.getSlot(ToolStationMenu.BINDING_SLOT).mayPlace(new ItemStack(Items.DIAMOND)),
+        // Dirt, not diamond (issue #106): diamond became a valid modifier reagent (forgeweave:diamond).
+        helper.assertFalse(menu.getSlot(ToolStationMenu.BINDING_SLOT).mayPlace(new ItemStack(Items.DIRT)),
                 "the repair slots must reject an item that is not the head material's repair item");
 
         menu.getSlot(ToolStationMenu.BINDING_SLOT).set(new ItemStack(Items.COBBLESTONE, 1));

@@ -100,6 +100,15 @@ public class ToolItem extends Item {
     }
 
     /**
+     * Whether upstream gives this tool type {@code Category.WEAPON} -- see the constructor javadoc.
+     * #106 batch: also gates luck's Looting grant ({@code ModifierApplication#applyEnchantmentGrants}),
+     * the same split {@link #effectiveAttackSpeed} already uses for haste's attack-speed bonus.
+     */
+    public boolean isWeapon() {
+        return weapon;
+    }
+
+    /**
      * CONTEXT.md invariant: not enchantable at the vanilla enchanting table unless
      * {@code allowVanillaEnchanting} is on. {@code ItemStack#isEnchantable()} (consulted by
      * {@code EnchantmentMenu#slotsChanged} to decide whether to offer enchantments at all) calls
@@ -193,9 +202,11 @@ public class ToolItem extends Item {
     /**
      * This stack's currently effective attack damage: 0 while Broken (matching
      * {@link #getDefaultAttributeModifiers} returning {@code EMPTY} then) or unassembled, otherwise
-     * the head material's attack stat scaled by this tool type's damage potential plus flat trait
-     * bonus damage. Shared by the attribute modifier above and {@link ToolTooltip}'s Attack Damage
-     * line so the tooltip never shows a number the tool doesn't actually hit for.
+     * the head material's attack stat -- with sharpness's bonus already folded in
+     * ({@link ForgeweaveModifiers#effectiveStats}, #106 batch) -- scaled by this tool type's damage
+     * potential plus flat trait bonus damage. Shared by the attribute modifier above and
+     * {@link ToolTooltip}'s Attack Damage line so the tooltip never shows a number the tool doesn't
+     * actually hit for.
      */
     private float attackDamage(ItemStack stack) {
         // Modifier-adjusted, not the raw base component (issue #107: silky takes a flat 3 off this at
