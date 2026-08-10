@@ -36,19 +36,13 @@ import dev.gkissel.forgeweave.Forgeweave;
  *       taken output came from a modifier application rather than assembly or repair.
  * </ul>
  *
- * <p>{@link #FIRST_ALLOY} has no such call site: alloying (#98) is not merged yet, so it is a seam
- * only. When it lands, add one line at the point an alloy recipe finishes, guarded server-side with a
- * real {@code ServerPlayer} the same way the four above are:
- *
- * <pre>{@code
- * ForgeweaveCriteriaTriggers.FIRST_ALLOY.get().trigger(serverPlayer);  // #98, first in-tank alloy
- * }</pre>
- *
- * <p>In-tank alloying has no player in the loop the way a fresh insert does either -- it happens
- * whenever the tank's own contents satisfy an alloy recipe, which can be ticks after the player who
- * caused it last touched the smeltery -- so #98 may need to resolve one (the smeltery's placer,
- * tracked NBT-side, or simply skip the trigger when no player is nearby) rather than reuse an existing
- * parameter; that call is left to that PR.
+ * <p>The fifth, {@link #FIRST_ALLOY}, fires from {@code
+ * SmelteryControllerBlockEntity#grantFirstAlloy} (issue #98) whenever an alloy forms in a smeltery's
+ * tank. Alloying genuinely has no player in its call chain -- it happens because the tank's own
+ * contents became alloyable, which can be many ticks after the player who caused it last touched the
+ * smeltery -- so of the options this javadoc originally left open (an NBT-tracked owner, or skipping
+ * the trigger), #98 took the proximity one: every {@code ServerPlayer} within 16 blocks of the core is
+ * credited. See that method's javadoc for the reasoning and its documented gap.
  */
 public final class ForgeweaveCriteriaTriggers {
     public static final DeferredRegister<CriterionTrigger<?>> TRIGGERS =

@@ -1,0 +1,16 @@
+{
+  "inputs": [
+    {
+      "fluid": "forgeweave:molten_netherite_scrap",
+      "amount": 4
+    },
+    {
+      "fluid": "forgeweave:molten_gold",
+      "amount": 4
+    }
+  ],
+  "result": {
+    "fluid": "forgeweave:molten_netherite",
+    "amount": 1
+  }
+}

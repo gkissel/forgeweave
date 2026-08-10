@@ -1,0 +1,16 @@
+{
+  "inputs": [
+    {
+      "fluid": "forgeweave:molten_cobalt",
+      "amount": 2
+    },
+    {
+      "fluid": "forgeweave:molten_ardite",
+      "amount": 2
+    }
+  ],
+  "result": {
+    "fluid": "forgeweave:molten_manyullyn",
+    "amount": 2
+  }
+}

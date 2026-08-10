@@ -23,6 +23,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.AABB; // #98
 
 import net.neoforged.neoforge.fluids.FluidStack;
 import net.neoforged.neoforge.fluids.capability.IFluidHandler;
@@ -38,6 +39,7 @@ import net.minecraft.world.inventory.ContainerLevelAccess;
 import dev.gkissel.forgeweave.menu.SmelteryMenu;
 
 import dev.gkissel.forgeweave.advancement.ForgeweaveCriteriaTriggers;
+import dev.gkissel.forgeweave.recipe.AlloyRecipe; // #98
 import dev.gkissel.forgeweave.recipe.MeltingRecipe;
 import dev.gkissel.forgeweave.recipe.SmelteryFuel;
 
@@ -717,7 +719,131 @@ public class SmelteryControllerBlockEntity extends BlockEntity implements Statio
      * fuel loop ever fills per tick, throttle here rather than at every call site.
      */
     private void onTankChanged() {
+        // #98: the alloying pass's own drains and fills come back through here; it syncs once at the
+        // end rather than once per fluid it moved.
+        if (alloying) {
+            return;
+        }
         syncToClients();
+        alloyTankContents();
+    }
+
+    // ------------------------------------------------------------------ #98: in-tank alloying
+
+    /**
+     * How far a player may be from the core and still be credited with an alloy for the {@code
+     * first_alloy} advancement (#110's seam; see {@link #alloyTankContents()}). Sixteen blocks is
+     * vanilla's usual "in the room with it" distance and comfortably covers standing at a 9x9's wall.
+     */
+    private static final int ALLOY_ADVANCEMENT_RADIUS = 16;
+
+    /**
+     * How many times {@link #alloyOnce()} may fire before the pass gives up.
+     *
+     * <p>ponytail: a stop for a datapack that writes a volume-preserving alloy cycle (A+B to C,
+     * C+D to A), which would otherwise spin here forever and hang the server thread. Every shipped
+     * recipe shrinks or preserves volume and needs one pass; sixteen is room for a deep cascade
+     * without being a real bound anybody hits. Replace with proper cycle detection at load time if a
+     * pack ever legitimately needs deeper chains.
+     */
+    private static final int MAX_ALLOY_PASSES = 16;
+
+    /** Guards {@link #alloyTankContents()} against its own {@link SmelteryTank} writes calling back in. */
+    private boolean alloying;
+
+    /**
+     * Combines whatever the tank holds into every alloy the loaded {@link AlloyRecipe}s allow, then
+     * repeats until nothing more combines -- upstream's {@code TileSmeltery#alloyAlloys}.
+     *
+     * <p>Two deliberate differences from upstream, both forced by Forgeweave having no smeltery
+     * ticker at all (see this class's javadoc):
+     *
+     * <ul>
+     *   <li><b>It runs on tank change, not on a tick.</b> Upstream calls {@code alloyAlloys} from
+     *       {@code update()} every fourth tick forever. This hangs off {@link #onTankChanged()}, which
+     *       is the one place every content change funnels through: a completed melt (#96), a faucet or
+     *       pipe filling through a drain (#95), a GUI drain-fluid pick (#101). An untouched tank does
+     *       no work and schedules nothing, which is what the SCOPE.md M2 "idle smeltery ~= zero tick"
+     *       budget asks for.
+     *   <li><b>It applies the whole available multiple at once</b> rather than upstream's {@code
+     *       ALLOYING_PER_TICK = 10} millibuckets per pass. That cap is a rate limit that only means
+     *       anything when something runs every four ticks to lift it; with no ticker it would just
+     *       leave alloyable fluid sitting in the tank forever. The ratio and the result are identical
+     *       either way -- only the number of ticks upstream takes to get there differs.
+     * </ul>
+     */
+    private void alloyTankContents() {
+        if (level == null || level.isClientSide || alloying) {
+            return;
+        }
+        boolean alloyed = false;
+        alloying = true;
+        try {
+            for (int pass = 0; pass < MAX_ALLOY_PASSES && alloyOnce(); pass++) {
+                alloyed = true;
+            }
+        } finally {
+            alloying = false;
+        }
+        if (alloyed) {
+            syncToClients();
+            grantFirstAlloy();
+        }
+    }
+
+    /** One sweep over every alloy recipe; returns whether any of them applied. */
+    private boolean alloyOnce() {
+        boolean alloyed = false;
+        for (AlloyRecipe recipe : level.registryAccess().registryOrThrow(AlloyRecipe.REGISTRY)) {
+            int times = alloyableTimes(recipe);
+            if (times <= 0) {
+                continue;
+            }
+            for (FluidStack input : recipe.inputs()) {
+                tank.drain(input.copyWithAmount(input.getAmount() * times), IFluidHandler.FluidAction.EXECUTE);
+            }
+            tank.fill(recipe.result().copyWithAmount(recipe.result().getAmount() * times),
+                    IFluidHandler.FluidAction.EXECUTE);
+            alloyed = true;
+        }
+        return alloyed;
+    }
+
+    /**
+     * {@link AlloyRecipe#matches} capped so the result still fits.
+     *
+     * <p>Only bites on an alloy whose output is <em>larger</em> than its inputs, which no shipped
+     * recipe is; without it such a recipe in a nearly full smeltery would drain its inputs and then
+     * have its result silently truncated by {@link SmelteryTank#fill}, i.e. delete fluid.
+     */
+    private int alloyableTimes(AlloyRecipe recipe) {
+        int times = recipe.matches(tank.fluids());
+        int growth = recipe.result().getAmount() - recipe.inputVolume();
+        if (times <= 0 || growth <= 0) {
+            return times;
+        }
+        return Math.min(times, (tank.getCapacity() - tank.getFluidAmount()) / growth);
+    }
+
+    /**
+     * #110's {@code first_alloy} seam, fired for every player near the core when an alloy forms.
+     *
+     * <p>Alloying is the one M2 milestone with no player in its call chain at all -- it happens
+     * because the tank's own contents became alloyable, which can be many ticks after the player who
+     * caused it last touched anything (the melt that completes it runs off a scheduled block tick).
+     * Rather than track an "owner" through NBT for one advancement, this grants it to every {@link
+     * ServerPlayer} within {@value #ALLOY_ADVANCEMENT_RADIUS} blocks, which is the player watching
+     * their smeltery in every case the advancement chain is meant to gate on.
+     *
+     * <p>Known gap, the same shape as {@link #insertForMelting(ItemStack, ServerPlayer)}'s: a player
+     * who loads a smeltery and walks off before the melt completes is not credited. Alloying again
+     * later while nearby grants it, so the chain is never permanently stuck.
+     */
+    private void grantFirstAlloy() {
+        for (ServerPlayer player : level.getEntitiesOfClass(ServerPlayer.class,
+                new AABB(worldPosition).inflate(ALLOY_ADVANCEMENT_RADIUS))) {
+            ForgeweaveCriteriaTriggers.FIRST_ALLOY.get().trigger(player);
+        }
     }
 
     /**

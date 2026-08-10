@@ -1,0 +1,16 @@
+{
+  "inputs": [
+    {
+      "fluid": "forgeweave:molten_copper",
+      "amount": 1
+    },
+    {
+      "fluid": "forgeweave:molten_gold",
+      "amount": 1
+    }
+  ],
+  "result": {
+    "fluid": "forgeweave:molten_rose_gold",
+    "amount": 2
+  }
+}
