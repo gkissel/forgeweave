@@ -54,6 +54,18 @@ neoForge {
             systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id
         }
 
+        // Runs a real client that captures a PNG of every M1+ station screen to build/screenshots/
+        // for pre-release review, then exits (docs/SCOPE.md issue #112; see scripts/screenshots.sh
+        // and dev.gkissel.forgeweave.client.ScreenshotHarness). Not part of the CI/build gate.
+        screenshotHarness {
+            client()
+            systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id
+            systemProperty 'forgeweave.screenshot_harness', 'true'
+            systemProperty 'forgeweave.screenshot_output_dir', file('build/screenshots').getAbsolutePath()
+            // A fixed, deterministic window size, per the issue's requirement.
+            programArguments.addAll '--width', '854', '--height', '480'
+        }
+
         server {
             server()
             programArgument '--nogui'

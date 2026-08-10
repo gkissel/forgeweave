@@ -52,6 +52,16 @@ The built-in `GITHUB_TOKEN` creates the matching GitHub Release. Protecting the 
 
 Until the table above is configured, `release.yml` publishes to GitHub Releases alone: the workflow detects that Modrinth and CurseForge are unset and skips them rather than failing. A tag pushed with only some of the four values set still fails the workflow, since a half-configured platform is treated as a mistake, not an intentional skip.
 
+## Release-checklist: screenshot review
+
+Before tagging a release, run `scripts/screenshots.sh` (or `./gradlew runScreenshotHarness` directly)
+to launch a real client, open every M1+ station screen in turn, and write a PNG of each to
+`build/screenshots/`. Eyeball them for layout defects -- three shipped in M1 (issues #75, #85, #89)
+past review that only ever looked at offline PNG compositing, never the actual running game. This is
+a manual step, not a CI gate; it requires a display (or `xvfb` on a headless box -- the script detects
+and uses `xvfb-run` automatically). New screens register themselves in
+`dev.gkissel.forgeweave.client.ScreenshotHarness`.
+
 ## Publishing
 
 From the branch or commit being released:
