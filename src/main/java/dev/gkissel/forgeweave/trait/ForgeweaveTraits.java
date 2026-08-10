@@ -11,11 +11,20 @@ import org.slf4j.Logger;
 
 import com.mojang.logging.LogUtils;
 
+import net.minecraft.core.component.DataComponentType;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.tags.BlockTags;
+import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.item.ItemEntity;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.Vec3;
 
+import net.neoforged.neoforge.event.entity.living.LivingExperienceDropEvent;
 import net.neoforged.neoforge.event.entity.living.LivingIncomingDamageEvent;
 
 import dev.gkissel.forgeweave.Forgeweave;
@@ -23,6 +32,7 @@ import dev.gkissel.forgeweave.item.ForgeweaveDataComponents;
 import dev.gkissel.forgeweave.item.PartItem;
 import dev.gkissel.forgeweave.item.ToolItem;
 import dev.gkissel.forgeweave.material.Material;
+import dev.gkissel.forgeweave.tool.ToolStats;
 
 /**
  * The trait ids Forgeweave ships and the behavior behind each, plus the aggregation the seams in
@@ -114,7 +124,7 @@ public final class ForgeweaveTraits {
      */
     public static final Trait CRUDE = new Trait() {
         @Override
-        public float bonusDamageAgainst(LivingEntity target, float damage) {
+        public float bonusDamageAgainst(ItemStack stack, LivingEntity target, float damage) {
             return target.getArmorValue() > 0 ? 0.0F : damage * 0.05F;
         }
     };
@@ -132,11 +142,259 @@ public final class ForgeweaveTraits {
         }
     };
 
-    private static final Map<ResourceLocation, Trait> REGISTRY = Map.of(
-            id("ecological"), ECOLOGICAL,
-            id("cheap"), CHEAP,
-            id("crude"), CRUDE,
-            id("fractured"), FRACTURED);
+    // -- M2 metal traits (issue #102). Material -> trait wiring is issue #103, not here.
+    private static final float MAGNETIC_STRENGTH = 0.035F;
+    private static final int MAGNETIC_MAX_PULLED = 200;
+
+    /**
+     * Iron. Upstream {@code TraitMagnetic}'s {@code MagneticPotion#performEffect}: pulls every item
+     * drop within {@code 1.8 + level * 0.3} blocks toward the holder at a constant 0.07 blocks/tick,
+     * at most 200 items, applied every other tick ({@code isReady}: {@code duration & 1 == 0}).
+     *
+     * <p>Upstream reaches this through a hidden potion effect re-applied from {@code afterBlockBreak}
+     * and {@code onHit} every 30 ticks; Forgeweave has no potion-effect plumbing to port that
+     * through, so this runs the same pull directly from {@link Trait#inventoryTick} every tick the
+     * tool is carried, at half strength (0.035) rather than gating on tick parity -- the same average
+     * pull rate without depending on when the tool entered the world. Recorded in the PR.
+     *
+     * <p>Iron grants both this (general) and {@link #MAGNETIC2} (head only, upstream's separately
+     * identified {@code magnetic2}); on an all-iron tool both ids apply at once and their pulls add,
+     * whereas upstream's single potion effect would keep only the higher amplifier. Also recorded in
+     * the PR.
+     */
+    public static final Trait MAGNETIC = magnetic(1);
+
+    /** Iron, head part only. Upstream's {@code magnetic2}: the same trait at level 2. */
+    public static final Trait MAGNETIC2 = magnetic(2);
+
+    private static Trait magnetic(int level) {
+        double range = 1.8 + level * 0.3;
+        return new Trait() {
+            @Override
+            public void inventoryTick(ItemStack stack, ServerLevel serverLevel, LivingEntity holder) {
+                Vec3 center = holder.position();
+                List<ItemEntity> items = serverLevel.getEntitiesOfClass(ItemEntity.class,
+                        new AABB(center.x - range, center.y - range, center.z - range,
+                                center.x + range, center.y + range, center.z + range));
+                int pulled = 0;
+                for (ItemEntity item : items) {
+                    if (item.getItem().isEmpty() || item.isRemoved()) {
+                        continue;
+                    }
+                    if (pulled > MAGNETIC_MAX_PULLED) {
+                        break;
+                    }
+                    Vec3 delta = center.subtract(item.position());
+                    if (delta.lengthSqr() > 1.0e-6) {
+                        item.setDeltaMovement(item.getDeltaMovement().add(delta.normalize().scale(MAGNETIC_STRENGTH)));
+                    }
+                    pulled++;
+                }
+            }
+        };
+    }
+
+    /**
+     * Cobalt, head part only. Upstream {@code TraitMomentum}: mining speed grows by
+     * {@code level / 80} (max 40% at level 32) while continuously breaking blocks with it. The
+     * buildup decays like a potion effect whose duration ({@code afterBlockBreak}) is
+     * {@code (10 / actualMiningSpeed) * 1.5 * 20} ticks -- roughly the time to mine 10 more blocks at
+     * the tool's current speed, with a 50% buffer.
+     *
+     * <p>Upstream stores the buildup as a potion effect on the player, shared by every Momentum tool
+     * they hold; this stores {@code {level, ticksRemaining}} on the tool's own {@code ItemStack}
+     * instead ({@link ForgeweaveDataComponents#MOMENTUM_STACKS}), decayed one tick at a time from
+     * {@link Trait#inventoryTick} -- same player-scoped-potion-to-tool-data-component adaptation as
+     * {@link #INSATIABLE}. Recorded in the PR.
+     */
+    public static final Trait MOMENTUM = new Trait() {
+        @Override
+        public float miningSpeed(ItemStack stack, boolean effective, float originalSpeed, float speed) {
+            int level = stackLevel(stack, ForgeweaveDataComponents.MOMENTUM_STACKS.get());
+            return speed + originalSpeed * (level / 80.0F);
+        }
+
+        @Override
+        public void afterBlockBreak(ItemStack stack, ServerLevel level, BlockState state, LivingEntity breaker) {
+            int next = Math.min(32, stackLevel(stack, ForgeweaveDataComponents.MOMENTUM_STACKS.get()) + 1);
+            ToolStats.Stats stats = stack.get(ForgeweaveDataComponents.TOOL_STATS.get());
+            float speed = stats == null ? 1.0F : stats.miningSpeed();
+            int duration = (int) (10.0F / speed * 1.5F * 20.0F);
+            stack.set(ForgeweaveDataComponents.MOMENTUM_STACKS.get(), new TraitStacks(next, duration));
+        }
+
+        @Override
+        public void inventoryTick(ItemStack stack, ServerLevel level, LivingEntity holder) {
+            decayStack(stack, ForgeweaveDataComponents.MOMENTUM_STACKS.get());
+        }
+    };
+
+    private static final float LIGHTWEIGHT_BONUS = 0.1F;
+
+    /**
+     * Cobalt. Upstream {@code TraitLightweight}: flat +10% mining speed ({@code miningSpeed}) and
+     * +10% attack speed ({@code applyEffect} scaling {@code attackSpeedMultiplier} at build time),
+     * unconditional -- unlike {@link #STONEBOUND}, no effectiveness check.
+     *
+     * <p>Upstream scales the tool's own computed attack-speed stat; Forgeweave's attack speed is a
+     * fixed per-tool-type constant with no material contribution ({@code ToolItem}), so this instead
+     * adds a second flat {@code ATTACK_SPEED} attribute modifier worth 10% of that constant
+     * ({@code ToolItem#getDefaultAttributeModifiers} via {@link #attackSpeedBonus}). Recorded in the PR.
+     */
+    public static final Trait LIGHTWEIGHT = new Trait() {
+        @Override
+        public float miningSpeed(ItemStack stack, boolean effective, float originalSpeed, float speed) {
+            return speed * (1.0F + LIGHTWEIGHT_BONUS);
+        }
+
+        @Override
+        public float attackSpeedBonus() {
+            return LIGHTWEIGHT_BONUS;
+        }
+    };
+
+    /**
+     * Ardite, head part only. Upstream {@code TraitStonebound}:
+     * {@code log((maxDurability - durability) / 72d + 1d) * 2} bonus mining speed, added only when
+     * the tool is effective for the block being mined -- i.e. rises as the tool wears down. The
+     * #102 issue text also describes a damage penalty; the clone source
+     * ({@code TraitStonebound.java}, pinned commit c01173c0) has none, so none is ported here.
+     *
+     * <p>"Effective" is approximated as "this tool type's {@code mineable/*} tag", the same rule
+     * {@code ToolItem#toolComponent} already gates drops on; 1.21 has no direct equivalent of
+     * upstream's {@code ToolHelper#isToolEffective2}. Recorded in the PR.
+     */
+    public static final Trait STONEBOUND = new Trait() {
+        @Override
+        public float miningSpeed(ItemStack stack, boolean effective, float originalSpeed, float speed) {
+            if (!effective) {
+                return speed;
+            }
+            // stack.getDamageValue() is the durability already lost, i.e. upstream's
+            // (maxDurability - currentDurability): getMaxDamage() - getDamageValue() would be
+            // durability remaining, the opposite of what the formula wants.
+            int missing = stack.getDamageValue();
+            return (float) (speed + Math.log(missing / 72.0 + 1.0) * 2.0);
+        }
+    };
+
+    private static final float PETRAMOR_CHANCE = 0.1F;
+    private static final int PETRAMOR_HEAL = 5;
+
+    /**
+     * Ardite. Upstream {@code TraitPetramor}: 10% chance per stone-material block mined to restore 5
+     * durability ({@code ToolHelper.healTool}), server side only.
+     *
+     * <p>1.21 removed the {@code Material.ROCK} block classification upstream tested against;
+     * {@code BlockTags.MINEABLE_WITH_PICKAXE} is the closest modern stand-in for "stone-type block".
+     * Recorded in the PR.
+     */
+    public static final Trait PETRAMOR = new Trait() {
+        @Override
+        public void afterBlockBreak(ItemStack stack, ServerLevel level, BlockState state, LivingEntity breaker) {
+            if (state.is(BlockTags.MINEABLE_WITH_PICKAXE) && level.getRandom().nextFloat() < PETRAMOR_CHANCE) {
+                stack.setDamageValue(Math.max(0, stack.getDamageValue() - PETRAMOR_HEAL));
+            }
+        }
+    };
+
+    /**
+     * Manyullyn, head part only. Upstream {@code TraitInsatiable}: a hit adds {@code level / 3} bonus
+     * damage from the current stack (checked in {@code damage}, before the stack grows), then
+     * {@code afterHit} grows the stack by one (capped at 10) with a 5-second (100-tick) refresh, and
+     * {@code onToolDamage} adds {@code level / 3} extra durability loss to that same hit.
+     *
+     * <p>Same player-scoped-potion-to-tool-data-component adaptation as {@link #MOMENTUM}, stored in
+     * {@link ForgeweaveDataComponents#INSATIABLE_STACKS}. Recorded in the PR.
+     */
+    public static final Trait INSATIABLE = new Trait() {
+        @Override
+        public float bonusDamageAgainst(ItemStack stack, LivingEntity target, float damage) {
+            return stackLevel(stack, ForgeweaveDataComponents.INSATIABLE_STACKS.get()) / 3.0F;
+        }
+
+        @Override
+        public void afterHit(ItemStack stack, ServerLevel level, LivingEntity attacker, LivingEntity target) {
+            int next = Math.min(10, stackLevel(stack, ForgeweaveDataComponents.INSATIABLE_STACKS.get()) + 1);
+            stack.set(ForgeweaveDataComponents.INSATIABLE_STACKS.get(), new TraitStacks(next, 5 * 20));
+        }
+
+        @Override
+        public int attackDurabilityBonus(ItemStack stack) {
+            return stackLevel(stack, ForgeweaveDataComponents.INSATIABLE_STACKS.get()) / 3;
+        }
+
+        @Override
+        public void inventoryTick(ItemStack stack, ServerLevel level, LivingEntity holder) {
+            decayStack(stack, ForgeweaveDataComponents.INSATIABLE_STACKS.get());
+        }
+    };
+
+    /**
+     * Manyullyn. Upstream {@code TraitColdblooded}: {@code +damage / 2} (50% bonus) against a target
+     * at full health -- despite the name, this has nothing to do with cold biomes or temperature. The
+     * #102 issue text's "cold biomes/conditions" description does not match the clone source
+     * ({@code TraitColdblooded.java}, pinned commit c01173c0) and is not implemented; "cold-blooded"
+     * describes striking prey before it can react, not the environment. Recorded in the PR.
+     */
+    public static final Trait COLDBLOODED = new Trait() {
+        @Override
+        public float bonusDamageAgainst(ItemStack stack, LivingEntity target, float damage) {
+            return target.getHealth() == target.getMaxHealth() ? damage / 2.0F : 0.0F;
+        }
+    };
+
+    /**
+     * Copper. Upstream {@code TraitEstablished}'s kill-XP bonus ({@code onXpDrop}/{@code getUpdateXP}):
+     * 0 XP has a 3% chance of becoming 1, otherwise {@code round(xp * 1.25 + random * 0.25) + 1}.
+     *
+     * <p>Upstream also grants bonus XP on ordinary block breaking ({@code onBlockBreak}, a flat
+     * 30%/3% chance of +1 via {@code BlockEvent.BreakEvent#getExpToDrop}/{@code #setExpToDrop}); this
+     * NeoForge version's {@code BlockEvent.BreakEvent} carries no XP field any more -- block XP drops
+     * are resolved through loot tables with no per-tool interception point -- so only the kill-XP half
+     * is ported. Recorded in the PR.
+     */
+    public static final Trait ESTABLISHED = new Trait() {
+        @Override
+        public int killExperience(RandomSource random, int xp) {
+            if (xp == 0) {
+                return random.nextFloat() < 0.03F ? 1 : 0;
+            }
+            return 1 + Math.round(xp * 1.25F + random.nextFloat() * 0.25F);
+        }
+    };
+
+    private static int stackLevel(ItemStack stack, DataComponentType<TraitStacks> component) {
+        TraitStacks stacks = stack.get(component);
+        return stacks == null ? 0 : stacks.level();
+    }
+
+    private static void decayStack(ItemStack stack, DataComponentType<TraitStacks> component) {
+        TraitStacks stacks = stack.get(component);
+        if (stacks == null || stacks.level() == 0) {
+            return;
+        }
+        if (stacks.ticksRemaining() <= 1) {
+            stack.remove(component);
+        } else {
+            stack.set(component, new TraitStacks(stacks.level(), stacks.ticksRemaining() - 1));
+        }
+    }
+
+    private static final Map<ResourceLocation, Trait> REGISTRY = Map.ofEntries(
+            Map.entry(id("ecological"), ECOLOGICAL),
+            Map.entry(id("cheap"), CHEAP),
+            Map.entry(id("crude"), CRUDE),
+            Map.entry(id("fractured"), FRACTURED),
+            Map.entry(id("magnetic"), MAGNETIC),
+            Map.entry(id("magnetic2"), MAGNETIC2),
+            Map.entry(id("momentum"), MOMENTUM),
+            Map.entry(id("lightweight"), LIGHTWEIGHT),
+            Map.entry(id("stonebound"), STONEBOUND),
+            Map.entry(id("petramor"), PETRAMOR),
+            Map.entry(id("insatiable"), INSATIABLE),
+            Map.entry(id("coldblooded"), COLDBLOODED),
+            Map.entry(id("established"), ESTABLISHED));
 
     /**
      * The assembled tool's durability after the <b>head</b> material's head-scoped traits adjusted it
@@ -226,12 +484,82 @@ public final class ForgeweaveTraits {
         if (weapon == null || !(weapon.getItem() instanceof ToolItem) || ToolItem.isBroken(weapon)) {
             return;
         }
-        float bonus = 0.0F;
-        for (Trait trait : of(weapon)) {
-            bonus += trait.bonusDamageAgainst(event.getEntity(), event.getOriginalAmount());
-        }
+        float bonus = bonusDamageAgainst(weapon, event.getEntity(), event.getOriginalAmount());
         if (bonus != 0.0F) {
             event.setAmount(event.getAmount() + bonus);
+        }
+    }
+
+    /** Extra damage this weapon's traits deal to {@code target}, on top of its own attack damage. */
+    public static float bonusDamageAgainst(ItemStack weapon, LivingEntity target, float damage) {
+        float bonus = 0.0F;
+        for (Trait trait : of(weapon)) {
+            bonus += trait.bonusDamageAgainst(weapon, target, damage);
+        }
+        return bonus;
+    }
+
+    /** This block's destroy speed after every trait on {@code stack} has adjusted it in order. */
+    public static float miningSpeed(ItemStack stack, boolean effective, float speed) {
+        float result = speed;
+        for (Trait trait : of(stack)) {
+            result = trait.miningSpeed(stack, effective, speed, result);
+        }
+        return result;
+    }
+
+    /** Called from {@code ToolItem#mineBlock} once a block is actually destroyed, server side only. */
+    public static void afterBlockBreak(ItemStack stack, ServerLevel level, BlockState state, LivingEntity breaker) {
+        for (Trait trait : of(stack)) {
+            trait.afterBlockBreak(stack, level, state, breaker);
+        }
+    }
+
+    /** Flat attack speed the tool's traits add, as a fraction of its base attack speed. */
+    public static float attackSpeedBonus(ItemStack stack) {
+        float bonus = 0.0F;
+        for (Trait trait : of(stack)) {
+            bonus += trait.attackSpeedBonus();
+        }
+        return bonus;
+    }
+
+    /** Called from {@code ToolItem#postHurtEnemy} after this tool lands a hit, server side only. */
+    public static void afterHit(ItemStack stack, ServerLevel level, LivingEntity attacker, LivingEntity target) {
+        for (Trait trait : of(stack)) {
+            trait.afterHit(stack, level, attacker, target);
+        }
+    }
+
+    /** Extra durability this hit costs the tool, on top of {@code ToolItem#attackDurabilityCost}. */
+    public static int attackDurabilityBonus(ItemStack stack) {
+        int bonus = 0;
+        for (Trait trait : of(stack)) {
+            bonus += trait.attackDurabilityBonus(stack);
+        }
+        return bonus;
+    }
+
+    /**
+     * {@code forgeweave:established}'s kill-XP bonus (see its javadoc). Registered on the game event
+     * bus in {@code Forgeweave}, same pattern as {@link #onIncomingDamage}.
+     */
+    public static void onExperienceDrop(LivingExperienceDropEvent event) {
+        Player player = event.getAttackingPlayer();
+        if (player == null) {
+            return;
+        }
+        ItemStack weapon = player.getMainHandItem();
+        if (!(weapon.getItem() instanceof ToolItem) || ToolItem.isBroken(weapon)) {
+            return;
+        }
+        int xp = event.getDroppedExperience();
+        int updated = xp;
+        for (Trait trait : of(weapon)) {
+            updated = trait.killExperience(player.getRandom(), updated);
+        }
+        if (updated != xp) {
+            event.setDroppedExperience(updated);
         }
     }
 

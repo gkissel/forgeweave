@@ -62,6 +62,8 @@ public class Forgeweave {
         NeoForge.EVENT_BUS.addListener(this::onServerStarted);
         // Traits that key off what is being hit have no Item hook to live in (see ForgeweaveTraits).
         NeoForge.EVENT_BUS.addListener(ForgeweaveTraits::onIncomingDamage);
+        // established's kill-XP bonus (issue #102): no Item hook for a kill's dropped XP either.
+        NeoForge.EVENT_BUS.addListener(ForgeweaveTraits::onExperienceDrop);
     }
 
     private void onServerStarted(final ServerStartedEvent event) {

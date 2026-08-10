@@ -83,6 +83,14 @@ One row per derived file (ADR-0003). Maintained in PR review: a PR introducing d
 | `src/main/java/dev/gkissel/forgeweave/client/StationText.java` (per-stat text colors, the durability wear ramp, and trait names in the granting material's color) | `src/main/java/slimeknights/tconstruct/library/materials/HeadMaterialStats.java`, `HandleMaterialStats.java`, `ExtraMaterialStats.java`, `AbstractMaterialStats.java`, `src/main/java/slimeknights/tconstruct/library/client/CustomFontColor.java` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
 | `src/main/java/dev/gkissel/forgeweave/client/ToolStationScreen.java` (per-tab tool preview built from fixed GUI material colors, oversized repair anvil, repair-slot glyph order) | `src/main/java/slimeknights/tconstruct/tools/common/client/GuiToolStation.java`, `src/main/java/slimeknights/tconstruct/tools/common/client/GuiButtonRepair.java`, `src/main/java/slimeknights/tconstruct/tools/ToolClientProxy.java`, `src/main/java/slimeknights/tconstruct/library/tinkering/TinkersItem.java` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
 | `src/main/java/dev/gkissel/forgeweave/item/PartItem.java` (per-part-kind stat block plus trait on the hover text, gated behind Shift) | `src/main/java/slimeknights/tconstruct/library/tools/ToolPart.java`, `src/main/java/slimeknights/tconstruct/library/materials/PartMaterialType.java` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
+| `src/main/java/dev/gkissel/forgeweave/trait/ForgeweaveTraits.java` (`MAGNETIC`/`MAGNETIC2` behavior) | `src/main/java/slimeknights/tconstruct/tools/traits/TraitMagnetic.java` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
+| `src/main/java/dev/gkissel/forgeweave/trait/ForgeweaveTraits.java` (`MOMENTUM` behavior) | `src/main/java/slimeknights/tconstruct/tools/traits/TraitMomentum.java` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
+| `src/main/java/dev/gkissel/forgeweave/trait/ForgeweaveTraits.java` (`LIGHTWEIGHT` behavior) | `src/main/java/slimeknights/tconstruct/tools/traits/TraitLightweight.java` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
+| `src/main/java/dev/gkissel/forgeweave/trait/ForgeweaveTraits.java` (`STONEBOUND` behavior) | `src/main/java/slimeknights/tconstruct/tools/traits/TraitStonebound.java` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
+| `src/main/java/dev/gkissel/forgeweave/trait/ForgeweaveTraits.java` (`PETRAMOR` behavior) | `src/main/java/slimeknights/tconstruct/tools/traits/TraitPetramor.java` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
+| `src/main/java/dev/gkissel/forgeweave/trait/ForgeweaveTraits.java` (`INSATIABLE` behavior) | `src/main/java/slimeknights/tconstruct/tools/traits/TraitInsatiable.java` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
+| `src/main/java/dev/gkissel/forgeweave/trait/ForgeweaveTraits.java` (`COLDBLOODED` behavior) | `src/main/java/slimeknights/tconstruct/tools/traits/TraitColdblooded.java` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
+| `src/main/java/dev/gkissel/forgeweave/trait/ForgeweaveTraits.java` (`ESTABLISHED` behavior, kill-XP half only) | `src/main/java/slimeknights/tconstruct/tools/traits/TraitEstablished.java` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
 | `src/main/java/dev/gkissel/forgeweave/item/ForgeweaveItems.java` (patterns stack to the vanilla maximum) | `src/main/java/slimeknights/tconstruct/library/tools/Pattern.java` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
 | `src/main/resources/assets/forgeweave/textures/derived/block/molten_metal.png` (shared greyscale still texture, tinted per fluid -- issue #92) | `resources/assets/tconstruct/textures/blocks/fluids/molten_metal.png` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
 | `src/main/resources/assets/forgeweave/textures/derived/block/molten_metal_flow.png` (shared greyscale flowing texture, tinted per fluid -- issue #92) | `resources/assets/tconstruct/textures/blocks/fluids/molten_metal_flow.png` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
@@ -193,8 +201,11 @@ one-trait-id-per-material data model, which cannot express upstream's per-part t
   bone trait, `splitting` on the SHAFT part, is a bow doubleshot chance with nothing to act on in M1
   and is not counted as a deviation.
 
-`Trait.java` carries only the five hooks the four shipped traits use rather than upstream's full
-`ITrait` surface, so it is not a derived file and carries no row.
+`Trait.java` carries only the hooks the shipped traits use rather than upstream's full `ITrait`
+surface (five as of M1, widened for M2's metal traits per issue #102 -- see its class javadoc), so
+it is not a derived file and carries no row. Nor does `TraitStacks.java`: the tool-data-component
+storage `ForgeweaveTraits#MOMENTUM`/`#INSATIABLE` use in place of upstream's player-scoped potion
+effects (see their javadocs) is original engineering, not ported semantics.
 
 Both stations are now table-shaped (tabletop + 4 legs, hollow underside) and retain the appearance
 of the wood block they were crafted from: `WoodTexturedBlockEntity` stores the crafting wood as a
