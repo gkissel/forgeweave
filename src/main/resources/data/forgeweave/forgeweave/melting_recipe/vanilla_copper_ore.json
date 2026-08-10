@@ -8,5 +8,6 @@
     }
   ],
   "fluid": "forgeweave:molten_copper",
-  "amount": 504
+  "amount": 504,
+  "ore": true
 }

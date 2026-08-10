@@ -52,9 +52,14 @@ import dev.gkissel.forgeweave.Forgeweave;
  *       override that {@link #find} prefers (vanilla copper ore, vanilla nether gold ore).
  *   <li>{@code temperature} -- optional. Left out, it is derived from the output fluid's own
  *       temperature by {@link #calcTemperature}, exactly as upstream's two-argument constructor does.
+ *   <li>{@code ore} -- optional, defaults to {@code false}. Marks an ore-class input (a mined ore
+ *       block or its raw-material drop): {@link dev.gkissel.forgeweave.block.SmelteryControllerBlockEntity}
+ *       multiplies only these by the core's {@code yieldMultiplier} (issue #99). Ingot, nugget, and
+ *       storage-block recipes leave this {@code false} so re-melting a refined metal always stays 1:1,
+ *       per docs/SCOPE.md M2 ("core tier is the ONLY yield axis; ingot re-melts 1:1").
  * </ul>
  */
-public record MeltingRecipe(Ingredient input, Fluid fluid, int amount, int temperature) {
+public record MeltingRecipe(Ingredient input, Fluid fluid, int amount, int temperature, boolean ore) {
 
     /** Upstream {@code Material.VALUE_Nugget}: a ninth of an ingot. */
     public static final int VALUE_NUGGET = 16;
@@ -86,12 +91,13 @@ public record MeltingRecipe(Ingredient input, Fluid fluid, int amount, int tempe
             Ingredient.CODEC.fieldOf("input").forGetter(MeltingRecipe::input),
             BuiltInRegistries.FLUID.byNameCodec().fieldOf("fluid").forGetter(MeltingRecipe::fluid),
             ExtraCodecs.POSITIVE_INT.fieldOf("amount").forGetter(MeltingRecipe::amount),
-            ExtraCodecs.POSITIVE_INT.optionalFieldOf("temperature").forGetter(recipe -> Optional.of(recipe.temperature())))
+            ExtraCodecs.POSITIVE_INT.optionalFieldOf("temperature").forGetter(recipe -> Optional.of(recipe.temperature())),
+            Codec.BOOL.optionalFieldOf("ore", Boolean.FALSE).forGetter(MeltingRecipe::ore))
             .apply(instance, MeltingRecipe::withDerivedTemperature));
 
-    private static MeltingRecipe withDerivedTemperature(Ingredient input, Fluid fluid, int amount, Optional<Integer> temperature) {
+    private static MeltingRecipe withDerivedTemperature(Ingredient input, Fluid fluid, int amount, Optional<Integer> temperature, boolean ore) {
         return new MeltingRecipe(input, fluid, amount,
-                temperature.orElseGet(() -> calcTemperature(fluid.getFluidType().getTemperature(), amount)));
+                temperature.orElseGet(() -> calcTemperature(fluid.getFluidType().getTemperature(), amount)), ore);
     }
 
     /**

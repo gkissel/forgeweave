@@ -3,5 +3,6 @@
     "item": "minecraft:nether_gold_ore"
   },
   "fluid": "forgeweave:molten_gold",
-  "amount": 64
+  "amount": 64,
+  "ore": true
 }

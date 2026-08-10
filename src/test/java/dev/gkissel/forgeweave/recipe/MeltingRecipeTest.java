@@ -88,8 +88,35 @@ class MeltingRecipeTest {
         assertEquals(recipe.fluid(), decoded.fluid());
         assertEquals(recipe.amount(), decoded.amount());
         assertEquals(recipe.temperature(), decoded.temperature());
+        assertEquals(recipe.ore(), decoded.ore());
         assertTrue(decoded.input().test(new ItemStack(Items.IRON_INGOT)));
         assertTrue(!decoded.input().test(new ItemStack(Items.GOLD_INGOT)));
+    }
+
+    /**
+     * Issue #99's field: a JSON with no {@code ore} key -- every recipe written before #99, and any
+     * third-party datapack recipe -- must still parse, defaulting to {@code false} so an unmarked
+     * recipe stays 1:1 rather than picking up a yield multiplier nobody asked for.
+     */
+    @Test
+    void oreDefaultsToFalseForDatapackCompatibility() {
+        MeltingRecipe recipe = parse("""
+                {"input": {"item": "minecraft:iron_ingot"}, "fluid": "minecraft:lava", "amount": 144}
+                """);
+
+        assertTrue(!recipe.ore(), "a recipe with no ore key must default to false");
+    }
+
+    @Test
+    void oreCanBeMarkedTrueAndRoundTrips() {
+        MeltingRecipe recipe = parse("""
+                {"input": {"tag": "c:ores/iron"}, "fluid": "minecraft:lava", "amount": 144, "ore": true}
+                """);
+
+        assertTrue(recipe.ore());
+
+        JsonElement encoded = MeltingRecipe.CODEC.encodeStart(ops, recipe).getOrThrow();
+        assertTrue(MeltingRecipe.CODEC.parse(ops, encoded).getOrThrow().ore(), "ore: true must survive a codec round trip");
     }
 
     /** Leaving {@code temperature} out is upstream's two-argument constructor: derive it from the output fluid. */
@@ -127,7 +154,8 @@ class MeltingRecipeTest {
     /**
      * docs/SCOPE.md M2: "Ore blocks melt as their raw-drop equivalent" and "melting recipes hold base
      * amounts, the core multiplies" -- so the shipped iron ore recipe is one ingot's worth keyed off
-     * the {@code c:} tag, with no 1.5x baked in.
+     * the {@code c:} tag, with no 1.5x baked in, and marked {@code ore: true} so issue #99's core
+     * multiplier applies to it at melt time.
      */
     @Test
     void theShippedIronOreRecipeHoldsTheBaseAmountAndIsTagKeyed() {
@@ -136,13 +164,22 @@ class MeltingRecipeTest {
         assertEquals("c:ores/iron", json.getAsJsonObject("input").get("tag").getAsString());
         assertEquals("forgeweave:molten_iron", json.get("fluid").getAsString());
         assertEquals(MeltingRecipe.VALUE_INGOT, json.get("amount").getAsInt(), "one raw iron, not the Standard Core's 1.5x of it");
+        assertTrue(json.get("ore").getAsBoolean(), "an ore-class input, so issue #99's core multiplier applies");
     }
 
+    /**
+     * SCOPE.md M2: "core tier is the ONLY yield axis; ingot re-melts 1:1" -- the shipped ingot/nugget/
+     * block recipes are not marked {@code ore: true} (issue #99 leaves the JSON key out entirely,
+     * relying on {@link MeltingRecipe.CODEC}'s default-false), so they never pick up a core multiplier.
+     */
     @Test
     void theShippedIngotRecipeRemeltsOneForOne() {
         assertEquals(MeltingRecipe.VALUE_INGOT, shipped("iron_ingot").get("amount").getAsInt());
         assertEquals(MeltingRecipe.VALUE_BLOCK, shipped("iron_block").get("amount").getAsInt());
         assertEquals(MeltingRecipe.VALUE_NUGGET, shipped("iron_nugget").get("amount").getAsInt());
+        assertTrue(!shipped("iron_ingot").has("ore"), "an ingot re-melt must not be marked ore-class");
+        assertTrue(!shipped("iron_block").has("ore"), "a metal storage block re-melt must not be marked ore-class");
+        assertTrue(!shipped("iron_nugget").has("ore"), "a nugget re-melt must not be marked ore-class");
     }
 
     /**
@@ -167,10 +204,12 @@ class MeltingRecipeTest {
         assertEquals(504, copper.get("amount").getAsInt(), "3.5 raw copper x 144 mB");
         assertEquals("forgeweave:molten_copper", copper.get("fluid").getAsString());
         assertEquals(2, copper.getAsJsonArray("input").size(), "stone and deepslate variants in one recipe");
+        assertTrue(copper.get("ore").getAsBoolean(), "an ore block override is still ore-class");
 
         JsonObject netherGold = shipped("vanilla_nether_gold_ore");
         assertEquals(64, netherGold.get("amount").getAsInt(), "4 gold nuggets x 16 mB");
         assertEquals("forgeweave:molten_gold", netherGold.get("fluid").getAsString());
+        assertTrue(netherGold.get("ore").getAsBoolean(), "an ore block override is still ore-class");
     }
 
     /**

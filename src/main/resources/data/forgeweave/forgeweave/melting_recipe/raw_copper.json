@@ -3,5 +3,6 @@
     "tag": "c:raw_materials/copper"
   },
   "fluid": "forgeweave:molten_copper",
-  "amount": 144
+  "amount": 144,
+  "ore": true
 }

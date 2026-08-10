@@ -18,6 +18,7 @@ import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.block.ForgeweaveBlocks;
 import dev.gkissel.forgeweave.block.SearedTankBlockEntity;
 import dev.gkissel.forgeweave.block.SmelteryControllerBlockEntity;
+import dev.gkissel.forgeweave.block.SmelteryCore;
 import dev.gkissel.forgeweave.fluid.ForgeweaveFluids;
 import dev.gkissel.forgeweave.recipe.MeltingRecipe;
 
@@ -39,30 +40,61 @@ import dev.gkissel.forgeweave.recipe.MeltingRecipe;
 public class SmelteryMeltingGameTests {
 
     /**
-     * SCOPE.md M2: "melting recipes hold base amounts, the core multiplies" -- so iron ore melts here
-     * as one raw iron's worth, 144 mB, <b>not</b> the Standard Core's 1.5x of it. Issue #99 owns the
-     * multiplier.
+     * SCOPE.md M2: "melting recipes hold base amounts, the core multiplies" -- so the recipe itself
+     * ({@code iron_ore.json}) still holds one raw iron's worth, 144 mB, but a Standard Core (#99)
+     * scales that to its 1.5x, 216 mB, because iron ore is an ore-class ({@code ore: true}) input.
      */
     @GameTest(template = "smeltery", timeoutTicks = 1600)
-    public static void vanillaIronOreMeltsAtItsBaseAmount(GameTestHelper helper) {
+    public static void vanillaIronOreMeltsAtStandardCoresOneAndAHalfTimesYield(GameTestHelper helper) {
         SmelteryControllerBlockEntity core = lavaFuelledSmeltery(helper);
         insert(helper, core, Items.IRON_ORE);
 
-        helper.succeedWhen(() -> assertTankHolds(helper, core, ForgeweaveFluids.IRON.still().get(), MeltingRecipe.VALUE_INGOT));
+        helper.succeedWhen(() -> assertTankHolds(helper, core, ForgeweaveFluids.IRON.still().get(),
+                (int) (MeltingRecipe.VALUE_INGOT * SmelteryCore.STANDARD.yieldMultiplier())));
     }
 
     /**
      * The other half of "ore blocks melt as their raw-drop equivalent": vanilla copper ore drops 2-5
-     * raw copper (expected 3.5), so it melts at 504 mB and not the {@code c:ores/copper} default of
-     * 144. This is also the live proof that {@code MeltingRecipe#find} prefers the item-keyed
-     * override over the tag both recipes match.
+     * raw copper (expected 3.5), so its base amount is 504 mB, not the {@code c:ores/copper} default
+     * of 144 -- live proof that {@code MeltingRecipe#find} prefers the item-keyed override over the
+     * tag both recipes match. The Standard Core (#99) then scales that base by 1.5x, to 756 mB.
      */
     @GameTest(template = "smeltery", timeoutTicks = 1600)
-    public static void vanillaCopperOreMeltsAtItsPerItemOverride(GameTestHelper helper) {
+    public static void vanillaCopperOreMeltsAtItsPerItemOverrideTimesTheCoreYield(GameTestHelper helper) {
         SmelteryControllerBlockEntity core = lavaFuelledSmeltery(helper);
         insert(helper, core, Items.COPPER_ORE);
 
-        helper.succeedWhen(() -> assertTankHolds(helper, core, ForgeweaveFluids.COPPER.still().get(), 504));
+        helper.succeedWhen(() -> assertTankHolds(helper, core, ForgeweaveFluids.COPPER.still().get(),
+                (int) (504 * SmelteryCore.STANDARD.yieldMultiplier())));
+    }
+
+    /**
+     * docs/SCOPE.md M2 acceptance test step 4 ("replace the Standard Core with a Nether Core... and
+     * observe 2x yields"): the same iron ore that yields 216 mB under a Standard Core (see
+     * {@link #vanillaIronOreMeltsAtStandardCoresOneAndAHalfTimesYield}) yields 288 mB, its 2x, under a
+     * Nether Core. Issue #99.
+     */
+    @GameTest(template = "smeltery", timeoutTicks = 1600)
+    public static void vanillaIronOreMeltsAtNetherCoresTwiceYield(GameTestHelper helper) {
+        SmelteryControllerBlockEntity core = lavaFuelledSmeltery(helper, ForgeweaveBlocks.NETHER_CORE.get());
+        insert(helper, core, Items.IRON_ORE);
+
+        helper.succeedWhen(() -> assertTankHolds(helper, core, ForgeweaveFluids.IRON.still().get(),
+                (int) (MeltingRecipe.VALUE_INGOT * SmelteryCore.NETHER.yieldMultiplier())));
+    }
+
+    /**
+     * SCOPE.md M2: "core tier is the ONLY yield axis; ingot re-melts 1:1" -- so an iron ingot under a
+     * Nether Core (2x on ore-class inputs) still melts back to exactly one ingot's worth, because
+     * {@code iron_ingot.json} is not {@code ore: true}. Proves the flag, not just the multiplier,
+     * gates correctly. Issue #99.
+     */
+    @GameTest(template = "smeltery", timeoutTicks = 1600)
+    public static void ingotReMeltStaysOneToOneEvenUnderANetherCore(GameTestHelper helper) {
+        SmelteryControllerBlockEntity core = lavaFuelledSmeltery(helper, ForgeweaveBlocks.NETHER_CORE.get());
+        insert(helper, core, Items.IRON_INGOT);
+
+        helper.succeedWhen(() -> assertTankHolds(helper, core, ForgeweaveFluids.IRON.still().get(), MeltingRecipe.VALUE_INGOT));
     }
 
     /**
@@ -123,10 +155,15 @@ public class SmelteryMeltingGameTests {
 
     // ------------------------------------------------------------------ helpers
 
-    /** The 1x1x2 minimum smeltery of {@link SmelteryGameTests}, with its one wall tank full of lava. */
+    /** The 1x1x2 minimum smeltery of {@link SmelteryGameTests}, with a Standard Core and its one wall tank full of lava. */
     private static SmelteryControllerBlockEntity lavaFuelledSmeltery(GameTestHelper helper) {
+        return lavaFuelledSmeltery(helper, ForgeweaveBlocks.STANDARD_CORE.get());
+    }
+
+    /** As above, with {@code coreBlock} in place of the Standard Core -- #99's Standard/Nether yield comparisons need both tiers. */
+    private static SmelteryControllerBlockEntity lavaFuelledSmeltery(GameTestHelper helper, Block coreBlock) {
         SmelteryGameTests.buildWalls(helper, 1, 1, 2);
-        BlockPos corePos = SmelteryGameTests.placeCore(helper, ForgeweaveBlocks.STANDARD_CORE.get());
+        BlockPos corePos = SmelteryGameTests.placeCore(helper, coreBlock);
 
         SearedTankBlockEntity tank = helper.getBlockEntity(SmelteryGameTests.TANK_POS);
         tank.tank().fill(new FluidStack(Fluids.LAVA, SearedTankBlockEntity.CAPACITY), IFluidHandler.FluidAction.EXECUTE);
