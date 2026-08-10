@@ -55,18 +55,20 @@ public class ForgeweaveItemModelProvider extends ItemModelProvider {
         // cubeAllBlock, not a flat single-layer model like this one.
         singleLayerModel(ForgeweaveItems.SEARED_BRICK, derivedItem("seared_brick"));
 
-        // #100 -- casting (docs/SCOPE.md M2 issue #100). The ingot and nugget casts have their own
-        // upstream sprite; the five part casts are the blank cast with the part's own sprite laid over
-        // it, which is a two-layer model here where upstream composites the same two images into one
-        // generated texture at load time (CustomTextureCreator -- see ForgeweaveItems#CAST_INGOT).
-        // Neither layer is tinted: a cast has no material.
+        // #100/#140 -- casting (docs/SCOPE.md M2 issue #100; art fix issue #140). The ingot and nugget
+        // casts have their own upstream sprite. The five part casts are pre-composited, single-layer
+        // PNGs (scripts/generate_cast_textures.py): the blank cast base with a transparent hole
+        // punched in the part's silhouette and a darkened bevel rim around it, matching upstream's
+        // gold-cast-with-a-mold-cavity look (upstream instead composites this at texture-stitch time
+        // via CustomTextureCreator/CastTexture -- see NOTICE.md). Neither the base nor the part shape
+        // is tinted: a cast has no material.
         singleLayerModel(ForgeweaveItems.CAST_INGOT, derivedItem("cast_ingot"));
         singleLayerModel(ForgeweaveItems.CAST_NUGGET, derivedItem("cast_nugget"));
-        castModel(ForgeweaveItems.CAST_PICKAXE_HEAD, "pickaxe_head");
-        castModel(ForgeweaveItems.CAST_SHOVEL_HEAD, "shovel_head");
-        castModel(ForgeweaveItems.CAST_AXE_HEAD, "axe_head");
-        castModel(ForgeweaveItems.CAST_TOOL_BINDING, "tool_binding");
-        castModel(ForgeweaveItems.CAST_TOOL_HANDLE, "tool_handle");
+        singleLayerModel(ForgeweaveItems.CAST_PICKAXE_HEAD, derivedItem("cast_pickaxe_head"));
+        singleLayerModel(ForgeweaveItems.CAST_SHOVEL_HEAD, derivedItem("cast_shovel_head"));
+        singleLayerModel(ForgeweaveItems.CAST_AXE_HEAD, derivedItem("cast_axe_head"));
+        singleLayerModel(ForgeweaveItems.CAST_TOOL_BINDING, derivedItem("cast_tool_binding"));
+        singleLayerModel(ForgeweaveItems.CAST_TOOL_HANDLE, derivedItem("cast_tool_handle"));
 
         toolModel(ForgeweaveItems.TOOL_PICKAXE, "pickaxe");
         toolModel(ForgeweaveItems.TOOL_SHOVEL, "shovel");
@@ -85,10 +87,11 @@ public class ForgeweaveItemModelProvider extends ItemModelProvider {
 
         // #103 -- metal materials (docs/SCOPE.md M2 issue #103). Cobalt/ardite/manyullyn ingots and
         // nuggets are straight upstream texture ports (NOTICE.md); rose gold's are a recoloured
-        // derivation of upstream's manyullyn art (NOTICE.md, no 1.12 counterpart otherwise). The raw
-        // forms have no upstream art to derive from at all, so they are plain items with fresh,
-        // non-derived placeholder icons under the standard item texture folder (see
-        // ForgeweaveItems#RAW_COBALT).
+        // derivation of upstream's manyullyn art (NOTICE.md, no 1.12 counterpart otherwise). Raw
+        // cobalt/ardite have no upstream art to derive from (1.12 predates raw ores), so per issue
+        // #140 they are vanilla recolors instead (raw_gold/netherite_scrap, NOTICE.md); raw
+        // manyullyn/rose gold stay fresh, non-derived placeholder icons (ForgeweaveItems#RAW_MANYULLYN).
+        // All four live under the standard item texture folder either way.
         singleLayerModel(ForgeweaveItems.INGOT_COBALT, derivedItem("cobalt_ingot"));
         singleLayerModel(ForgeweaveItems.NUGGET_COBALT, derivedItem("cobalt_nugget"));
         singleLayerModel(ForgeweaveItems.RAW_COBALT, itemTexture("raw_cobalt"));
@@ -121,13 +124,6 @@ public class ForgeweaveItemModelProvider extends ItemModelProvider {
         getBuilder(item.getId().toString())
                 .parent(new ModelFile.UncheckedModelFile("item/generated"))
                 .texture("layer0", texture);
-    }
-
-    private void castModel(DeferredItem<? extends Item> item, String part) {
-        getBuilder(item.getId().toString())
-                .parent(new ModelFile.UncheckedModelFile("item/generated"))
-                .texture("layer0", derivedItem("cast"))
-                .texture("layer1", derivedItem(part));
     }
 
     private void toolModel(DeferredItem<? extends Item> item, String tool) {
