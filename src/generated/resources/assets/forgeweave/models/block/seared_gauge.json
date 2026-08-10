@@ -1,5 +1,6 @@
 {
   "parent": "minecraft:block/cube_bottom_top",
+  "render_type": "minecraft:cutout",
   "textures": {
     "bottom": "forgeweave:derived/block/seared_window_top",
     "side": "forgeweave:derived/block/seared_gauge_side",

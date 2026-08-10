@@ -133,6 +133,8 @@ public final class ScreenshotHarness {
     private static int stageTicks;
     private static int screenIndex;
     private static BlockPos origin;
+    /** Set by {@link #placeTankScene}, checked by {@link #settleTankScene} before capture. */
+    private static BlockPos[] tankScenePositions;
 
     private ScreenshotHarness() {}
 
@@ -202,15 +204,20 @@ public final class ScreenshotHarness {
      */
     private static void placeTankScene(Minecraft mc) {
         var server = mc.getSingleplayerServer();
-        // One block above the player's feet -- close enough to eye level for a level shot, and the
-        // camera below sits at the same height so it looks straight at the row instead of up at it.
-        BlockPos tankPos = origin.offset(0, 1, TANK_SCENE_DISTANCE);
-        BlockPos gaugePos = tankPos.offset(TANK_SCENE_SPACING, 0, 0);
-        BlockPos windowPos = tankPos.offset(2 * TANK_SCENE_SPACING, 0, 0);
-        LOGGER.info("{}placing seared tank/gauge/window world scene at {}", LOG_PREFIX, tankPos);
+        LOGGER.info("{}placing seared tank/gauge/window world scene near {}", LOG_PREFIX, origin);
         server.execute(() -> {
             ServerPlayer serverPlayer = server.getPlayerList().getPlayers().get(0);
             ServerLevel level = serverPlayer.serverLevel();
+            // The player's actual position right now, not a value captured earlier -- ties the scene
+            // to where the camera really is instead of an assumption about the flat world's layout.
+            BlockPos feet = serverPlayer.blockPosition();
+            // One block above the player's feet -- close enough to eye level for a level shot, and the
+            // camera below sits at the same height so it looks straight at the row instead of up at it.
+            BlockPos tankPos = feet.offset(0, 1, TANK_SCENE_DISTANCE);
+            BlockPos gaugePos = tankPos.offset(TANK_SCENE_SPACING, 0, 0);
+            BlockPos windowPos = tankPos.offset(2 * TANK_SCENE_SPACING, 0, 0);
+            tankScenePositions = new BlockPos[] {tankPos, gaugePos, windowPos};
+
             level.setBlockAndUpdate(tankPos, ForgeweaveBlocks.SEARED_TANK.get().defaultBlockState());
             level.setBlockAndUpdate(gaugePos, ForgeweaveBlocks.SEARED_GAUGE.get().defaultBlockState());
             level.setBlockAndUpdate(windowPos, ForgeweaveBlocks.SEARED_WINDOW.get().defaultBlockState());
@@ -220,6 +227,7 @@ public final class ScreenshotHarness {
             fillTank(level, tankPos, SearedTankBlockEntity.CAPACITY * 2 / 3);
             fillTank(level, gaugePos, SearedTankBlockEntity.CAPACITY);
             fillTank(level, windowPos, SearedTankBlockEntity.CAPACITY / 4);
+            LOGGER.info("{}placed tank={} gauge={} window={}", LOG_PREFIX, tankPos, gaugePos, windowPos);
 
             BlockPos cameraPos = tankPos.offset(TANK_SCENE_SPACING, -1, -TANK_SCENE_DISTANCE);
             serverPlayer.teleportTo(cameraPos.getX() + 0.5, cameraPos.getY(), cameraPos.getZ() + 0.5);
@@ -235,10 +243,31 @@ public final class ScreenshotHarness {
         }
     }
 
+    /**
+     * Fails loudly in the log, rather than silently, when the client's own world doesn't have a
+     * tank block where the scene placed one -- distinguishes "placed but invisible" (a rendering
+     * bug) from "never placed where the camera looks" (a placement/sync/chunk-load bug).
+     */
+    private static void verifyTankScenePlaced(Minecraft mc) {
+        if (mc.level == null || tankScenePositions == null) {
+            return;
+        }
+        for (BlockPos pos : tankScenePositions) {
+            var block = mc.level.getBlockState(pos).getBlock();
+            if (block == Blocks.AIR) {
+                LOGGER.error("{}#145 scene check FAILED: client sees air at {}, expected a seared tank "
+                        + "block -- placement or client sync did not land before capture", LOG_PREFIX, pos);
+            } else {
+                LOGGER.info("{}#145 scene check: client sees {} at {}", LOG_PREFIX, block, pos);
+            }
+        }
+    }
+
     private static void settleTankScene(Minecraft mc) {
         if (stageTicks < SCREEN_SETTLE_TICKS) {
             return;
         }
+        verifyTankScenePlaced(mc);
         capture(mc, "seared_tank_world");
         advance(Stage.OPEN_SCREEN);
     }
