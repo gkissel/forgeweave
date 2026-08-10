@@ -1,0 +1,7 @@
+{
+  "input": {
+    "tag": "c:ores/iron"
+  },
+  "fluid": "forgeweave:molten_iron",
+  "amount": 144
+}

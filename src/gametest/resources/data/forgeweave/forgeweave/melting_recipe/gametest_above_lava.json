@@ -1,0 +1,8 @@
+{
+  "input": {
+    "item": "minecraft:blaze_rod"
+  },
+  "fluid": "forgeweave:molten_iron",
+  "amount": 144,
+  "temperature": 1400
+}

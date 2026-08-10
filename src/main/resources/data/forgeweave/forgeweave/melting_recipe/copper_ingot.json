@@ -1,0 +1,7 @@
+{
+  "input": {
+    "tag": "c:ingots/copper"
+  },
+  "fluid": "forgeweave:molten_copper",
+  "amount": 144
+}

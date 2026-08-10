@@ -1,0 +1,7 @@
+{
+  "input": {
+    "tag": "c:raw_materials/iron"
+  },
+  "fluid": "forgeweave:molten_iron",
+  "amount": 144
+}

@@ -36,6 +36,7 @@ import dev.gkissel.forgeweave.menu.RenameStationItemPayload;
 import dev.gkissel.forgeweave.modifier.ForgeweaveModifiers;
 import dev.gkissel.forgeweave.modifier.ModifierRecipe;
 import dev.gkissel.forgeweave.recipe.ForgeweaveRecipeSerializers;
+import dev.gkissel.forgeweave.recipe.MeltingRecipe;
 import dev.gkissel.forgeweave.trait.ForgeweaveTraits;
 
 // The value here must match the modId in META-INF/neoforge.mods.toml.
@@ -102,6 +103,9 @@ public class Forgeweave {
         // #100 -- casting recipes, same deal: the client needs them for JEI (#109) and for showing
         // what a casting block is currently making.
         event.dataPackRegistry(CastingRecipe.REGISTRY, CastingRecipe.CODEC, CastingRecipe.CODEC);
+        // #96 -- melting recipes, same idiom again: the client needs them for JEI's melting category
+        // and the smeltery screen's "what is this turning into" readout.
+        event.dataPackRegistry(MeltingRecipe.REGISTRY, MeltingRecipe.CODEC, MeltingRecipe.CODEC);
     }
 
     /** The Tool Station's rename field is the mod's only message that a menu button can't carry. */
