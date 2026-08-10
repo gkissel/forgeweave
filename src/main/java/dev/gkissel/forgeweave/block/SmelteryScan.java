@@ -65,11 +65,12 @@ public final class SmelteryScan {
     public static final String KEY_CORE_OUTSIDE = PREFIX + "core_outside";
 
     /**
-     * Outcome of one scan: the interior when it formed, the drain positions found in its walls (so
-     * the core can point them back at itself), and a player-facing message that is a success line
-     * when {@link #formed()} and the reason for failure otherwise.
+     * Outcome of one scan: the interior when it formed, the drain and wall-tank positions found in
+     * its walls (so the core can point them back at itself -- {@code tanks} is #97's, for waking a
+     * melt that stopped for want of fuel when one gets refilled), and a player-facing message that is
+     * a success line when {@link #formed()} and the reason for failure otherwise.
      */
-    public record Result(@Nullable SmelteryStructure structure, List<BlockPos> drains, Component message) {
+    public record Result(@Nullable SmelteryStructure structure, List<BlockPos> drains, List<BlockPos> tanks, Component message) {
         public boolean formed() {
             return structure != null;
         }
@@ -112,7 +113,7 @@ public final class SmelteryScan {
         }
 
         List<BlockPos> drains = new ArrayList<>();
-        boolean hasTank = false;
+        List<BlockPos> tanks = new ArrayList<>();
         Component layerFailure = null;
         int height = 0;
         for (int y = bottom.getY(); y < level.getMaxBuildHeight(); y++) {
@@ -122,7 +123,7 @@ public final class SmelteryScan {
                 break;
             }
             drains.addAll(layer.drains());
-            hasTank |= layer.hasTank();
+            tanks.addAll(layer.tanks());
             height++;
         }
 
@@ -131,18 +132,18 @@ public final class SmelteryScan {
         if (height < 1 + corePos.getY() - bottom.getY()) {
             return failure(layerFailure != null ? layerFailure : Component.translatable(KEY_CORE_OUTSIDE));
         }
-        if (!hasTank) {
+        if (tanks.isEmpty()) {
             return failure(Component.translatable(KEY_NO_TANK));
         }
 
         SmelteryStructure structure = new SmelteryStructure(
                 new BlockPos(west + 1, bottom.getY(), north + 1),
                 new BlockPos(east - 1, bottom.getY() + height - 1, south - 1));
-        return new Result(structure, List.copyOf(drains), Component.translatable(KEY_FORMED, width, depth, height));
+        return new Result(structure, List.copyOf(drains), List.copyOf(tanks), Component.translatable(KEY_FORMED, width, depth, height));
     }
 
     /** One wall layer's verdict, plus what it contributed to the structure. */
-    private record Layer(@Nullable Component failure, List<BlockPos> drains, boolean hasTank) {}
+    private record Layer(@Nullable Component failure, List<BlockPos> drains, List<BlockPos> tanks) {}
 
     @Nullable
     private static Component detectFloor(Level level, int y, int west, int east, int north, int south) {
@@ -162,14 +163,14 @@ public final class SmelteryScan {
 
     private static Layer detectLayer(Level level, BlockPos corePos, int y, int west, int east, int north, int south) {
         if (!level.hasChunksAt(new BlockPos(west, y, north), new BlockPos(east, y, south))) {
-            return new Layer(Component.translatable(KEY_NOT_LOADED), List.of(), false);
+            return new Layer(Component.translatable(KEY_NOT_LOADED), List.of(), List.of());
         }
 
         for (int x = west + 1; x < east; x++) {
             for (int z = north + 1; z < south; z++) {
                 BlockPos pos = new BlockPos(x, y, z);
                 if (!isInterior(level, pos)) {
-                    return new Layer(at(KEY_BLOCKED_INTERIOR, pos), List.of(), false);
+                    return new Layer(at(KEY_BLOCKED_INTERIOR, pos), List.of(), List.of());
                 }
             }
         }
@@ -186,24 +187,24 @@ public final class SmelteryScan {
         }
 
         List<BlockPos> drains = new ArrayList<>();
-        boolean hasTank = false;
+        List<BlockPos> tanks = new ArrayList<>();
         for (BlockPos pos : walls) {
             Block block = level.getBlockState(pos).getBlock();
             if (block instanceof SmelteryControllerBlock) {
                 // A second core would have its own structure state; only ours belongs in this wall.
                 if (!pos.equals(corePos)) {
-                    return new Layer(at(KEY_INVALID_WALL, pos), List.of(), false);
+                    return new Layer(at(KEY_INVALID_WALL, pos), List.of(), List.of());
                 }
             } else if (!Valid.WALL.contains(block)) {
-                return new Layer(at(KEY_INVALID_WALL, pos), List.of(), false);
+                return new Layer(at(KEY_INVALID_WALL, pos), List.of(), List.of());
             }
             if (Valid.TANKS.contains(block)) {
-                hasTank = true;
+                tanks.add(pos);
             } else if (block instanceof SearedDrainBlock) {
                 drains.add(pos);
             }
         }
-        return new Layer(null, drains, hasTank);
+        return new Layer(null, drains, tanks);
     }
 
     /** Upstream's {@code getOuterPos}: step along {@code dir} while inside, returning the first block that is not. */
@@ -221,7 +222,7 @@ public final class SmelteryScan {
     }
 
     private static Result failure(Component message) {
-        return new Result(null, List.of(), message);
+        return new Result(null, List.of(), List.of(), message);
     }
 
     private static Component at(String key, BlockPos pos) {

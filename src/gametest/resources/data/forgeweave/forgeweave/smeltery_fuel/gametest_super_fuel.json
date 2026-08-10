@@ -1,0 +1,6 @@
+{
+  "fluid": "minecraft:water",
+  "amount": 50,
+  "duration": 100,
+  "temperature": 5000
+}

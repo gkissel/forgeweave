@@ -37,6 +37,7 @@ import dev.gkissel.forgeweave.modifier.ForgeweaveModifiers;
 import dev.gkissel.forgeweave.modifier.ModifierRecipe;
 import dev.gkissel.forgeweave.recipe.ForgeweaveRecipeSerializers;
 import dev.gkissel.forgeweave.recipe.MeltingRecipe;
+import dev.gkissel.forgeweave.recipe.SmelteryFuel;
 import dev.gkissel.forgeweave.trait.ForgeweaveTraits;
 
 // The value here must match the modId in META-INF/neoforge.mods.toml.
@@ -106,6 +107,9 @@ public class Forgeweave {
         // #96 -- melting recipes, same idiom again: the client needs them for JEI's melting category
         // and the smeltery screen's "what is this turning into" readout.
         event.dataPackRegistry(MeltingRecipe.REGISTRY, MeltingRecipe.CODEC, MeltingRecipe.CODEC);
+        // #97 -- smeltery fuels, same idiom again: the client needs them for the smeltery screen's
+        // fuel gauge (#101).
+        event.dataPackRegistry(SmelteryFuel.REGISTRY, SmelteryFuel.CODEC, SmelteryFuel.CODEC);
     }
 
     /** The Tool Station's rename field is the mod's only message that a menu button can't carry. */

@@ -1,0 +1,112 @@
+package dev.gkissel.forgeweave.gametest;
+
+import net.minecraft.core.BlockPos;
+import net.minecraft.gametest.framework.GameTest;
+import net.minecraft.gametest.framework.GameTestHelper;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.level.material.Fluids;
+
+import net.neoforged.neoforge.fluids.FluidStack;
+import net.neoforged.neoforge.fluids.capability.IFluidHandler;
+import net.neoforged.neoforge.gametest.GameTestHolder;
+import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
+
+import dev.gkissel.forgeweave.Forgeweave;
+import dev.gkissel.forgeweave.block.ForgeweaveBlocks;
+import dev.gkissel.forgeweave.block.SearedTankBlockEntity;
+import dev.gkissel.forgeweave.block.SmelteryControllerBlockEntity;
+import dev.gkissel.forgeweave.fluid.ForgeweaveFluids;
+
+/**
+ * docs/SCOPE.md M2 issue #97's verification on a headless dedicated server: lava is consumed exactly
+ * at the clone's own mB-per-cycle and cycle-duration numbers, an idle-but-fuelled smeltery never
+ * touches its tank, and a datapack fuel hotter than lava unlocks a recipe lava cannot reach.
+ *
+ * <p>The last test leans on the GameTest-only datapack in {@code src/gametest/resources} (see its
+ * README): a 5000-degree fuel riding inert {@code minecraft:water}, and issue #96's 1400-degree
+ * fixture recipe that no shipped M2 recipe needs and lava alone can never melt.
+ */
+@GameTestHolder(Forgeweave.MODID)
+@PrefixGameTestTemplate(false)
+public class SmelteryFuelGameTests {
+
+    /**
+     * Pins the clone constants (NOTICE.md): {@code registerSmelteryFuel(new FluidStack(LAVA, 50), 100)}
+     * -- 50 mB drained per cycle, one cycle lasting 100 melt ticks (400 real ticks, {@link
+     * SmelteryControllerBlockEntity#MELT_INTERVAL_TICKS}). An iron ore recipe (1872 melt-progress
+     * needed, far more than one cycle covers) keeps the smeltery working across both checkpoints:
+     * still mid-cycle-one at tick 380 (~95 melt ticks), into cycle two by tick 500 (~125 melt ticks).
+     */
+    @GameTest(template = "smeltery", timeoutTicks = 600)
+    public static void lavaIsConsumedAtTheCloneRate(GameTestHelper helper) {
+        SmelteryControllerBlockEntity core = lavaFuelledSmeltery(helper);
+        helper.assertTrue(core.insertForMelting(new ItemStack(Items.IRON_ORE)).isEmpty(),
+                "expected the iron ore to go into the smeltery");
+
+        helper.runAfterDelay(380, () -> helper.assertValueEqual(drainedLava(helper), 50,
+                "lava drained after less than one fuel cycle's worth of melt ticks"));
+        helper.runAfterDelay(500, () -> {
+            helper.assertValueEqual(drainedLava(helper), 100, "lava drained one cycle into the second burn");
+            helper.succeed();
+        });
+    }
+
+    /** SCOPE.md M2's idle-tick invariant, the fuel half of it: a formed, fuelled, empty smeltery never drains its tank. */
+    @GameTest(template = "smeltery", timeoutTicks = 200)
+    public static void noFuelIsConsumedWhileNothingIsMelting(GameTestHelper helper) {
+        lavaFuelledSmeltery(helper);
+
+        helper.runAfterDelay(100, () -> {
+            helper.assertValueEqual(drainedLava(helper), 0, "an idle smeltery must never drain its fuel tank");
+            helper.succeed();
+        });
+    }
+
+    /**
+     * The other half of temperature gating: a datapack fuel hotter than lava melts a recipe lava
+     * cannot reach, without any Forgeweave code change -- the M2 acceptance test for issue #97's
+     * "hotter fuel unlocks higher-temperature recipes".
+     */
+    @GameTest(template = "smeltery", timeoutTicks = 1000)
+    public static void aHotterDatapackFuelMeltsARecipeLavaCannotReach(GameTestHelper helper) {
+        SmelteryGameTests.buildWalls(helper, 1, 1, 2);
+        BlockPos corePos = SmelteryGameTests.placeCore(helper, ForgeweaveBlocks.STANDARD_CORE.get());
+
+        SearedTankBlockEntity tank = helper.getBlockEntity(SmelteryGameTests.TANK_POS);
+        tank.tank().fill(new FluidStack(Fluids.WATER, SearedTankBlockEntity.CAPACITY), IFluidHandler.FluidAction.EXECUTE);
+
+        SmelteryControllerBlockEntity core = helper.getBlockEntity(corePos);
+        helper.assertTrue(core.isFormed(), "expected the test smeltery to form: " + core.lastResult().getString());
+        helper.assertValueEqual(core.currentTemperature(), 5000, "smeltery temperature with the GameTest superfuel in the wall tank");
+
+        helper.assertTrue(core.insertForMelting(new ItemStack(Items.BLAZE_ROD)).isEmpty(),
+                "expected the blaze rod to go into the smeltery");
+
+        helper.succeedWhen(() -> {
+            helper.assertValueEqual(core.tank().getFluidAmount(), 144, "molten iron from the 1400-degree fixture recipe");
+            helper.assertTrue(core.tank().getFluid().getFluid() == ForgeweaveFluids.IRON.still().get(),
+                    "expected molten iron, lava's own 1300 degrees can never reach this recipe");
+        });
+    }
+
+    // ------------------------------------------------------------------ helpers
+
+    /** The 1x1x2 minimum smeltery of {@link SmelteryGameTests}, with its one wall tank full of lava. */
+    private static SmelteryControllerBlockEntity lavaFuelledSmeltery(GameTestHelper helper) {
+        SmelteryGameTests.buildWalls(helper, 1, 1, 2);
+        BlockPos corePos = SmelteryGameTests.placeCore(helper, ForgeweaveBlocks.STANDARD_CORE.get());
+
+        SearedTankBlockEntity tank = helper.getBlockEntity(SmelteryGameTests.TANK_POS);
+        tank.tank().fill(new FluidStack(Fluids.LAVA, SearedTankBlockEntity.CAPACITY), IFluidHandler.FluidAction.EXECUTE);
+
+        SmelteryControllerBlockEntity core = helper.getBlockEntity(corePos);
+        helper.assertTrue(core.isFormed(), "expected the test smeltery to form: " + core.lastResult().getString());
+        return core;
+    }
+
+    private static int drainedLava(GameTestHelper helper) {
+        SearedTankBlockEntity tank = helper.getBlockEntity(SmelteryGameTests.TANK_POS);
+        return SearedTankBlockEntity.CAPACITY - tank.tank().getFluidAmount();
+    }
+}
