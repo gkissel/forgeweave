@@ -26,9 +26,8 @@ import dev.gkissel.forgeweave.ponder.ForgeweavePonderHint;
 /**
  * Issue #110's GameTest coverage: the advancement grants that have a real hook to exercise
  * headlessly (structure forming, a melted item, a modifier application), and the Ponder chat hint's
- * one-time-per-player behavior. {@code first_alloy} has no coverage here since nothing fires it yet
- * ({@link dev.gkissel.forgeweave.advancement.ForgeweaveCriteriaTriggers}'s javadoc); #98 adds its own
- * GameTest alongside the trigger call it adds.
+ * one-time-per-player behavior. {@code first_alloy} is covered in {@link SmelteryAlloyGameTests}
+ * instead, next to the alloying pass that fires it (#98).
  *
  * <p>A real {@link ServerPlayer} (not the plain mock {@code Player} most other GameTests use) is
  * required throughout: {@code PlayerAdvancements} only tracks progress for a player registered with
