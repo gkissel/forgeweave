@@ -1,0 +1,31 @@
+{
+    block: "forgeweave:standard_core",
+    decoder: "block_entity",
+    expect: {
+        id: "forgeweave:standard_core",
+        structure: {
+            interior_max: [I; 1, 66, 1],
+            interior_min: [I; -1, 64, -1]
+        },
+        tank: {
+            Fluid: {
+                amount: 2304,
+                id: "forgeweave:molten_iron"
+            }
+        }
+    },
+    nbt: {
+        id: "forgeweave:standard_core",
+        structure: {
+            interior_max: [I; 1, 66, 1],
+            interior_min: [I; -1, 64, -1]
+        },
+        tank: {
+            Fluid: {
+                amount: 2304,
+                id: "forgeweave:molten_iron"
+            }
+        }
+    },
+    what: "M2 (#95): a formed standard-core smeltery -- interior bounds plus a partly full tank. #96 (melt state + fuel) and #101 (ordered multi-fluid tank) each add a follow-up entry."
+}

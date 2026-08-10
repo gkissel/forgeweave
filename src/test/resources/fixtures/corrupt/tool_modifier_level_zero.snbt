@@ -1,0 +1,22 @@
+{
+    decoder: "item_stack",
+    expect: {},
+    nbt: {
+        components: {
+            "forgeweave:modifiers": [
+                {
+                    id: "forgeweave:haste",
+                    level: 0
+                }
+            ],
+            "forgeweave:tool_stats": {
+                attack_damage: 2.9f,
+                durability: 33,
+                mining_speed: 5.0f
+            }
+        },
+        count: 1,
+        id: "forgeweave:pickaxe"
+    },
+    what: "NEGATIVE CONTROL, deliberately corrupt -- m2_tool_pickaxe_modifiers with a level-0 modifier, which ModifierEntry's POSITIVE_INT rejects. Kept out of fixtures/save_compat so the corpus walk never sees it; SaveCompatCorpusTest asserts it fails to decode, which is what proves the walk is not vacuously passing."
+}

@@ -1,0 +1,19 @@
+{
+    block: "forgeweave:casting_basin",
+    decoder: "block_entity",
+    expect: {
+        id: "forgeweave:casting_basin",
+        output: {
+            id: "minecraft:iron_block"
+        }
+    },
+    nbt: {
+        id: "forgeweave:casting_basin",
+        output: {
+            count: 1,
+            id: "minecraft:iron_block"
+        },
+        tank: {}
+    },
+    what: "M2 (#100): a casting basin whose pour finished -- empty tank, result waiting to be taken."
+}

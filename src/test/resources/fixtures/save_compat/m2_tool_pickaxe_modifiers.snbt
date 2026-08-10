@@ -1,0 +1,79 @@
+{
+    decoder: "item_stack",
+    expect: {
+        components: {
+            "forgeweave:modifiers": [
+                {
+                    id: "forgeweave:haste",
+                    level: 51
+                },
+                {
+                    id: "forgeweave:reinforced",
+                    level: 2
+                },
+                {
+                    id: "forgeweave:not_implemented_here",
+                    level: 1
+                }
+            ],
+            "forgeweave:repair_count": 2,
+            "forgeweave:tool_materials": {
+                binding: "forgeweave:wood",
+                handle: "forgeweave:stone",
+                head: "forgeweave:flint"
+            },
+            "forgeweave:tool_stats": {
+                attack_damage: 2.9f,
+                durability: 33,
+                mining_speed: 5.0f
+            },
+            "forgeweave:traits": [
+                "forgeweave:crude",
+                "forgeweave:ecological",
+                "forgeweave:cheap"
+            ],
+            "minecraft:damage": 12,
+            "minecraft:max_damage": 33
+        },
+        id: "forgeweave:pickaxe"
+    },
+    nbt: {
+        components: {
+            "forgeweave:modifiers": [
+                {
+                    id: "forgeweave:haste",
+                    level: 51
+                },
+                {
+                    id: "forgeweave:reinforced",
+                    level: 2
+                },
+                {
+                    id: "forgeweave:not_implemented_here",
+                    level: 1
+                }
+            ],
+            "forgeweave:repair_count": 2,
+            "forgeweave:tool_materials": {
+                binding: "forgeweave:wood",
+                handle: "forgeweave:stone",
+                head: "forgeweave:flint"
+            },
+            "forgeweave:tool_stats": {
+                attack_damage: 2.9f,
+                durability: 33,
+                mining_speed: 5.0f
+            },
+            "forgeweave:traits": [
+                "forgeweave:crude",
+                "forgeweave:ecological",
+                "forgeweave:cheap"
+            ],
+            "minecraft:damage": 12,
+            "minecraft:max_damage": 33
+        },
+        count: 1,
+        id: "forgeweave:pickaxe"
+    },
+    what: "M2 (#105-#108): an assembled pickaxe carrying materials, stats, traits and an ordered modifier list -- leveled, multiple, and one id this version does not implement."
+}
