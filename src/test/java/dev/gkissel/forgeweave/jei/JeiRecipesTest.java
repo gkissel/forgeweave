@@ -47,7 +47,7 @@ class JeiRecipesTest {
                 new Material.Handle(1.0f, 10),
                 5,
                 TagKey.create(Registries.BLOCK, ResourceLocation.withDefaultNamespace("incorrect_for_wooden_tool")),
-                ResourceLocation.fromNamespaceAndPath("forgeweave", "ecological"),
+                Material.Traits.general(ResourceLocation.fromNamespaceAndPath("forgeweave", "ecological")),
                 craftingItems,
                 repairItem,
                 TextColor.fromRgb(0xFFFFFF));

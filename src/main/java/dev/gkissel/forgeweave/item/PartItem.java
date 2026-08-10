@@ -59,6 +59,11 @@ public class PartItem extends Item {
         this.kind = kind;
     }
 
+    /** Which stat block -- and so which of a material's trait scopes -- this part draws from. */
+    public Kind kind() {
+        return kind;
+    }
+
     @Override
     public void appendHoverText(ItemStack stack, TooltipContext context, List<Component> tooltip, TooltipFlag flag) {
         super.appendHoverText(stack, context, tooltip, flag);
@@ -90,8 +95,13 @@ public class PartItem extends Item {
             tooltip.addAll(stats);
         }
         tooltip.add(Component.empty());
-        // Never contains the null spacers InfoPanel understands: one trait means one name/desc pair.
-        tooltip.addAll(StationText.traits(material.get().color(), List.of(material.get().trait())));
+        // The traits this material grants through this kind of part, which is upstream's own filter
+        // (ToolPart#getTooltipTraitInfo passes the part's stat type to getAllTraitsForStats).
+        // StationText separates entries with the null spacer InfoPanel understands; a tooltip list
+        // must not carry nulls, so they become blank lines here.
+        for (Component line : StationText.traits(material.get().color(), material.get().traits().forPart(kind))) {
+            tooltip.add(line == null ? Component.empty() : line);
+        }
     }
 
     private List<Component> stats(Material material) {

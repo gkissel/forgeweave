@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Stream;
 
 import org.slf4j.Logger;
 
@@ -19,6 +20,7 @@ import net.neoforged.neoforge.event.entity.living.LivingIncomingDamageEvent;
 
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.item.ForgeweaveDataComponents;
+import dev.gkissel.forgeweave.item.PartItem;
 import dev.gkissel.forgeweave.item.ToolItem;
 import dev.gkissel.forgeweave.material.Material;
 
@@ -36,7 +38,8 @@ import dev.gkissel.forgeweave.material.Material;
  *
  * <h2>Stacking</h2>
  *
- * <p>A tool has three materials, so up to three trait ids -- but the <b>same id applies once</b>, no
+ * <p>A tool has three materials, each contributing the traits it scopes to that part -- but the
+ * <b>same id applies once</b>, no
  * matter how many parts grant it. That is upstream's rule too: {@code TraitBonusDamage#applyEffect}
  * guards on {@code !TinkerUtil.hasTrait(...)} and {@code AbstractTraitLeveled#applyEffect} on a
  * per-identifier {@code boolean} tag, so a second application of the same trait is a no-op.
@@ -77,8 +80,10 @@ public final class ForgeweaveTraits {
     private static final int ECOLOGICAL_PERIOD_SECONDS = 40;
 
     /**
-     * Stone. Two upstream traits in one id, because stone grants both and ADR-0002 gives a material
-     * exactly one:
+     * Stone. Two upstream traits in one id, because stone grants both and M1's material schema gave a
+     * material exactly one. Issue #94 lifted that limit; splitting this back into upstream's separate
+     * {@code cheap} + head-scoped {@code cheapskate} ids is a trait change (new id, new lang keys),
+     * not a schema one, so it waits for the milestone that revisits stone's traits:
      *
      * <ul>
      *   <li>{@code TraitCheap#onToolHeal}: {@code newAmount + amount * 5 / 100}, i.e. 5% more
@@ -103,8 +108,9 @@ public final class ForgeweaveTraits {
 
     /**
      * Flint. Upstream {@code TraitCrude#damage}: {@code newDamage += damage * 0.05f * level} when
-     * {@code target.getTotalArmorValue() == 0}. Forgeweave materials carry one trait id each
-     * (ADR-0002), so flint grants level 1 -- see the PR/NOTICE note on upstream's {@code crude2}.
+     * {@code target.getTotalArmorValue() == 0}. Flint grants level 1 only -- upstream's head-scoped
+     * {@code crude2} has no Forgeweave id yet, which issue #94's schema now leaves room for; see the
+     * PR/NOTICE note.
      */
     public static final Trait CRUDE = new Trait() {
         @Override
@@ -133,19 +139,34 @@ public final class ForgeweaveTraits {
             id("fractured"), FRACTURED);
 
     /**
-     * The assembled tool's durability after the <b>head</b> material's trait adjusted it
-     * ({@link Trait#headDurability}). Called from {@code ToolStats#compute} with the head material's
-     * trait id; an id no version of Forgeweave implements simply leaves the durability alone, same as
-     * every other hook.
+     * The assembled tool's durability after the <b>head</b> material's head-scoped traits adjusted it
+     * ({@link Trait#headDurability}), applied in order. Called from {@code ToolStats#compute} with
+     * {@code head.traits().forPart(HEAD)}; an id no version of Forgeweave implements simply leaves the
+     * durability alone, same as every other hook.
      */
-    public static int headDurability(ResourceLocation traitId, int durability) {
-        Trait trait = REGISTRY.get(traitId);
-        return trait == null ? durability : trait.headDurability(durability);
+    public static int headDurability(List<ResourceLocation> traitIds, int durability) {
+        for (ResourceLocation id : traitIds) {
+            Trait trait = REGISTRY.get(id);
+            if (trait != null) {
+                durability = trait.headDurability(durability);
+            }
+        }
+        return durability;
     }
 
-    /** The trait ids an assembled tool gets from its three materials, de-duplicated (see class javadoc). */
+    /**
+     * The trait ids an assembled tool gets from its three materials, each material contributing the
+     * traits it scopes to the part it was used as ({@link Material.Traits#forPart}), de-duplicated
+     * head-first (see class javadoc).
+     */
     public static List<ResourceLocation> resolve(Material head, Material binding, Material handle) {
-        return List.of(head.trait(), binding.trait(), handle.trait()).stream().distinct().toList();
+        return Stream.of(
+                head.traits().forPart(PartItem.Kind.HEAD),
+                binding.traits().forPart(PartItem.Kind.EXTRA),
+                handle.traits().forPart(PartItem.Kind.HANDLE))
+                .flatMap(List::stream)
+                .distinct()
+                .toList();
     }
 
     /** The traits of an assembled tool, in the order {@link #resolve} stored them. */

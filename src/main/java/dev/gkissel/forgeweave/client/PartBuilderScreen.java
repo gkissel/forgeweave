@@ -24,6 +24,7 @@ import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.client.event.RegisterMenuScreensEvent;
 
 import dev.gkissel.forgeweave.Forgeweave;
+import dev.gkissel.forgeweave.item.PartItem;
 import dev.gkissel.forgeweave.material.Material;
 import dev.gkissel.forgeweave.material.MaterialDisplay;
 import dev.gkissel.forgeweave.menu.ForgeweaveMenus;
@@ -134,7 +135,8 @@ public class PartBuilderScreen extends StationScreen<PartBuilderMenu> implements
         ItemStack material = menu.getSlot(PartBuilderMenu.MATERIAL_SLOT).getItem();
         List<Component> body = new ArrayList<>();
 
-        PartBuilderRecipes.patternPart(pattern).ifPresent(part -> {
+        Optional<PartItem> patternPart = PartBuilderRecipes.patternPart(pattern);
+        patternPart.ifPresent(part -> {
             body.add(new ItemStack(part).getHoverName().copy().withStyle(ChatFormatting.UNDERLINE));
             PartBuilderRecipes.patternCost(pattern)
                     .ifPresent(cost -> body.add(Component.translatable("gui.forgeweave.part_builder.cost", cost)));
@@ -146,7 +148,10 @@ public class PartBuilderScreen extends StationScreen<PartBuilderMenu> implements
             caption = MaterialDisplay.name(registries(), materialId(material).orElseThrow());
             body.addAll(StationText.materialStats(loaded.get()));
             body.add(null);
-            body.addAll(StationText.traits(loaded.get().color(), List.of(loaded.get().trait())));
+            // Scoped to the part the loaded pattern makes, as upstream's GuiPartBuilder is (it renders
+            // the part's own tooltip trait info); with no pattern in, the material's general traits.
+            PartItem.Kind kind = patternPart.map(PartItem::kind).orElse(PartItem.Kind.NONE);
+            body.addAll(StationText.traits(loaded.get().color(), loaded.get().traits().forPart(kind)));
         } else {
             caption = title;
             if (body.isEmpty()) {

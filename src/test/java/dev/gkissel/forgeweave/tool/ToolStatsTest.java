@@ -98,7 +98,7 @@ class ToolStatsTest {
                 new Material.Handle(handleDurabilityModifier, handleDurability),
                 extraDurability,
                 TagKey.create(Registries.BLOCK, ResourceLocation.withDefaultNamespace("incorrect_for_stone_tool")),
-                ResourceLocation.fromNamespaceAndPath("forgeweave", trait),
+                Material.Traits.general(ResourceLocation.fromNamespaceAndPath("forgeweave", trait)),
                 List.of(new Material.CraftingItem(Ingredient.of(Items.STICK), 1)),
                 Ingredient.of(Items.STICK),
                 TextColor.fromRgb(0xFFFFFF));

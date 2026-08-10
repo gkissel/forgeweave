@@ -8,7 +8,10 @@ import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 
+import javax.annotation.Nullable;
+
 import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.mojang.serialization.DataResult;
 import com.mojang.serialization.JsonOps;
@@ -16,6 +19,7 @@ import com.mojang.serialization.JsonOps;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.ValueSource;
 
 import net.minecraft.SharedConstants;
@@ -29,6 +33,8 @@ import net.minecraft.server.Bootstrap;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.Ingredient;
+
+import dev.gkissel.forgeweave.item.PartItem;
 
 class MaterialTest {
 
@@ -62,7 +68,8 @@ class MaterialTest {
                 new Material.Handle(1.1f, 50),
                 65,
                 TagKey.create(Registries.BLOCK, ResourceLocation.withDefaultNamespace("incorrect_for_stone_tool")),
-                ResourceLocation.fromNamespaceAndPath("forgeweave", "fractured"),
+                new Material.Traits(List.of(ResourceLocation.fromNamespaceAndPath("forgeweave", "fractured")),
+                        List.of(ResourceLocation.fromNamespaceAndPath("forgeweave", "splintering"))),
                 List.of(new Material.CraftingItem(Ingredient.of(Items.BONE), 2)),
                 Ingredient.of(Items.BONE),
                 TextColor.parseColor("#EDE6BF").getOrThrow());
@@ -74,7 +81,7 @@ class MaterialTest {
         assertEquals(material.handle(), decoded.handle());
         assertEquals(material.extraDurability(), decoded.extraDurability());
         assertEquals(material.incorrectForTool(), decoded.incorrectForTool());
-        assertEquals(material.trait(), decoded.trait());
+        assertEquals(material.traits(), decoded.traits());
         assertEquals(material.color(), decoded.color());
         assertEquals(material.repairItem().getItems()[0].getItem(), decoded.repairItem().getItems()[0].getItem());
         assertEquals(1, decoded.craftingItems().size());
@@ -96,8 +103,96 @@ class MaterialTest {
         assertEquals(new Material.Head(35, 2.0f, 2.0f), wood.head());
         assertEquals(new Material.Handle(1.0f, 25), wood.handle());
         assertEquals(15, wood.extraDurability());
-        assertEquals(ResourceLocation.fromNamespaceAndPath("forgeweave", "ecological"), wood.trait());
+        assertEquals(List.of(ResourceLocation.fromNamespaceAndPath("forgeweave", "ecological")),
+                wood.traits().general());
         assertEquals(0x8E661B, wood.color().getValue());
+    }
+
+    /**
+     * The four M1 materials each carry their one trait as a general trait, i.e. every part they make
+     * grants it -- which is what the pre-#94 single {@code trait} field meant.
+     */
+    @ParameterizedTest
+    @CsvSource({ "wood,ecological", "stone,cheap", "flint,crude", "bone,fractured" })
+    void shippedMaterialsGrantTheirTraitThroughEveryPart(String name, String trait) {
+        Material material = Material.CODEC.parse(ops, shipped(name)).getOrThrow();
+        ResourceLocation id = ResourceLocation.fromNamespaceAndPath("forgeweave", trait);
+
+        assertEquals(List.of(id), material.traits().all());
+        for (PartItem.Kind kind : PartItem.Kind.values()) {
+            assertEquals(List.of(id), material.traits().forPart(kind), name + " through a " + kind + " part");
+        }
+    }
+
+    /** Pre-#94 packs keep loading: one {@code trait} id means one trait on every part (ADR-0002). */
+    @Test
+    void acceptsTheLegacySingleTraitField() {
+        Material material = Material.CODEC.parse(ops, parse(withTraits("\"trait\": \"forgeweave:ecological\""))).getOrThrow();
+
+        ResourceLocation ecological = ResourceLocation.fromNamespaceAndPath("forgeweave", "ecological");
+        assertEquals(List.of(ecological), material.traits().general());
+        assertEquals(List.of(), material.traits().head());
+        assertEquals(List.of(ecological), material.traits().forPart(PartItem.Kind.HEAD));
+    }
+
+    /**
+     * The upstream 1.12 scoping rule ({@code Material#getAllTraitsForStats}): a part-scoped list
+     * replaces the general one for that part rather than adding to it -- iron's {@code magnetic2} on
+     * the head, {@code magnetic} everywhere else.
+     */
+    @Test
+    void headScopedTraitsReplaceTheGeneralOnesOnHeadPartsOnly() {
+        Material material = Material.CODEC.parse(ops, parse(withTraits("""
+                "traits": {
+                  "general": ["forgeweave:magnetic"],
+                  "head": ["forgeweave:magnetic2"]
+                }"""))).getOrThrow();
+
+        ResourceLocation magnetic = ResourceLocation.fromNamespaceAndPath("forgeweave", "magnetic");
+        ResourceLocation magnetic2 = ResourceLocation.fromNamespaceAndPath("forgeweave", "magnetic2");
+
+        assertEquals(List.of(magnetic2), material.traits().forPart(PartItem.Kind.HEAD));
+        assertEquals(List.of(magnetic), material.traits().forPart(PartItem.Kind.HANDLE));
+        assertEquals(List.of(magnetic), material.traits().forPart(PartItem.Kind.EXTRA));
+        assertEquals(List.of(magnetic, magnetic2), material.traits().all());
+    }
+
+    /** Both shapes decode to the same {@link Material.Traits}, and encoding always writes the new one. */
+    @Test
+    void encodesTheNewShapeAndOmitsEmptyScopes() {
+        Material legacy = Material.CODEC.parse(ops, parse(withTraits("\"trait\": \"forgeweave:ecological\""))).getOrThrow();
+
+        JsonElement encoded = Material.CODEC.encodeStart(ops, legacy).getOrThrow();
+        JsonObject traits = encoded.getAsJsonObject().getAsJsonObject("traits");
+
+        assertTrue(!encoded.getAsJsonObject().has("trait"), "the legacy field must not be re-emitted");
+        assertEquals(1, traits.getAsJsonArray("general").size());
+        // Empty scopes stay off the wire, so registry sync carries only what a material actually has.
+        assertTrue(!traits.has("head"), "an empty head scope must not be encoded, got " + traits);
+        assertEquals(legacy.traits(), Material.CODEC.parse(ops, encoded).getOrThrow().traits());
+    }
+
+    /** A material naming neither {@code trait} nor {@code traits} is still rejected. */
+    @Test
+    void rejectsAMaterialWithNoTraitsAtAll() {
+        DataResult<Material> result = Material.CODEC.parse(ops, parse(withTraits(null)));
+
+        assertTrue(result.isError(), "a material without traits must not parse");
+    }
+
+    /** A whole material JSON with {@code traitsField} spliced in (or omitted entirely when null). */
+    private static String withTraits(@Nullable String traitsField) {
+        return """
+                {
+                  "head": {"durability": 35, "mining_speed": 2.0, "attack_damage": 2.0},
+                  "handle": {"durability_modifier": 1.0, "durability": 25},
+                  "extra_durability": 15,
+                  "incorrect_for_tool": "minecraft:incorrect_for_wooden_tool",
+                  %s
+                  "crafting_items": [{"ingredient": {"tag": "minecraft:planks"}, "value": 2}],
+                  "repair_item": {"tag": "minecraft:planks"},
+                  "color": "#8E661B"
+                }""".formatted(traitsField == null ? "" : traitsField + ",");
     }
 
     // Verified against upstream 1.12's slimeknights.tconstruct.tools.TinkerMaterials#setupMaterials
@@ -143,24 +238,6 @@ class MaterialTest {
         DataResult<Material> result = Material.CODEC.parse(ops, bad);
 
         assertTrue(result.isError(), "negative head durability must not parse");
-    }
-
-    @Test
-    void rejectsMissingField() {
-        JsonElement bad = parse("""
-                {
-                  "head": {"durability": 35, "mining_speed": 2.0, "attack_damage": 2.0},
-                  "handle": {"durability_modifier": 1.0, "durability": 25},
-                  "extra_durability": 15,
-                  "incorrect_for_tool": "minecraft:incorrect_for_wooden_tool",
-                  "crafting_items": [{"ingredient": {"tag": "minecraft:planks"}, "value": 2}],
-                  "repair_item": {"tag": "minecraft:planks"},
-                  "color": "#8E661B"
-                }""");
-
-        DataResult<Material> result = Material.CODEC.parse(ops, bad);
-
-        assertTrue(result.isError(), "material without a trait must not parse");
     }
 
     @Test

@@ -9,6 +9,7 @@ import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.util.ExtraCodecs;
 
+import dev.gkissel.forgeweave.item.PartItem;
 import dev.gkissel.forgeweave.material.Material;
 import dev.gkissel.forgeweave.trait.ForgeweaveTraits;
 
@@ -61,7 +62,7 @@ public final class ToolStats {
         int durability = head.head().durability() + binding.extraDurability();
         durability = Math.round(durability * handle.handle().durabilityModifier()) + handle.handle().durability();
         durability = Math.max(1, durability);
-        durability = ForgeweaveTraits.headDurability(head.trait(), durability);
+        durability = ForgeweaveTraits.headDurability(head.traits().forPart(PartItem.Kind.HEAD), durability);
 
         return new Stats(durability, head.head().miningSpeed(), head.head().attackDamage());
     }

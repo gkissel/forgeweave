@@ -10,7 +10,9 @@
   },
   "extra_durability": 15,
   "incorrect_for_tool": "minecraft:incorrect_for_stone_tool",
-  "trait": "forgeweave:ecological",
+  "traits": {
+    "general": ["forgeweave:ecological"]
+  },
   "crafting_items": [
     { "ingredient": { "item": "minecraft:stick" }, "value": 1 },
     { "ingredient": { "tag": "minecraft:planks" }, "value": 2 },

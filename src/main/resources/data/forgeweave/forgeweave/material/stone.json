@@ -10,7 +10,9 @@
   },
   "extra_durability": 20,
   "incorrect_for_tool": "minecraft:incorrect_for_iron_tool",
-  "trait": "forgeweave:cheap",
+  "traits": {
+    "general": ["forgeweave:cheap"]
+  },
   "crafting_items": [
     { "ingredient": { "item": "minecraft:cobblestone" }, "value": 2 },
     { "ingredient": { "item": "minecraft:stone" }, "value": 2 }

@@ -6,7 +6,7 @@ Forgeweave is an independent NeoForge mod inspired by the Minecraft 1.12.2 gener
 
 | Term | Meaning |
 | --- | --- |
-| **Material** | A substance (wood, stone, flint, bone, …) that parts are made from. Defined in datapack JSON: stats, trait, repair item, colors. See ADR-0002. |
+| **Material** | A substance (wood, stone, flint, bone, …) that parts are made from. Defined in datapack JSON: stats, traits (general plus per-part), repair item, colors. See ADR-0002. |
 | **Part** | A component of a tool (pickaxe head, shovel head, axe head, tool binding, tool handle), crafted from one Material at a Part Builder. |
 | **Pattern** | A physical item that selects which Part the Part Builder produces. A **blank pattern** is crafted at a vanilla crafting table and converted into part-specific patterns. |
 | **Part Builder** | Block + GUI where a Pattern plus Material input produces a Part. |
