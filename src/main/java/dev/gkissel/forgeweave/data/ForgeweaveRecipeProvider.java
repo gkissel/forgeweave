@@ -3,6 +3,8 @@ package dev.gkissel.forgeweave.data;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
+import javax.annotation.Nullable;
+
 import net.minecraft.advancements.AdvancementHolder;
 import net.minecraft.advancements.AdvancementRequirements;
 import net.minecraft.advancements.AdvancementRewards;
@@ -15,6 +17,7 @@ import net.minecraft.data.recipes.RecipeOutput;
 import net.minecraft.data.recipes.RecipeProvider;
 import net.minecraft.data.recipes.ShapedRecipeBuilder;
 import net.minecraft.data.recipes.ShapelessRecipeBuilder;
+import net.minecraft.data.recipes.SimpleCookingRecipeBuilder;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.ItemTags;
 import net.minecraft.world.item.ItemStack;
@@ -26,6 +29,7 @@ import net.minecraft.world.level.ItemLike;
 import net.minecraft.world.level.block.Blocks;
 
 import dev.gkissel.forgeweave.Forgeweave;
+import dev.gkissel.forgeweave.block.ForgeweaveBlocks;
 import dev.gkissel.forgeweave.item.ForgeweaveItems;
 import dev.gkissel.forgeweave.recipe.RetexturedShapedRecipe;
 
@@ -124,6 +128,77 @@ public class ForgeweaveRecipeProvider extends RecipeProvider {
                 .define('D', ItemTags.PLANKS)
                 .unlockedBy("has_pattern_blank", has(ForgeweaveItems.PATTERN_BLANK.get()))
                 .save(recipeOutput);
+
+        buildSearedRecipes(recipeOutput);
+    }
+
+    /**
+     * Grout, the furnace smelt into seared brick, and the seared brick block family
+     * (docs/SCOPE.md M2 issue #93), ported from upstream 1.12 (NOTICE.md):
+     *
+     * <ul>
+     *   <li>{@code recipes/smeltery/grout_simple.json} -- clay ball + sand (or red sand, upstream's
+     *       ore-dict {@code sand} alternation) + gravel, shapeless, yields 2 grout.
+     *   <li>{@code TinkerSmeltery#registerSmelting} -- grout smelts into one seared brick (item,
+     *       0.4 xp); a seared bricks block smelts into a cracked seared bricks block (0.1 xp).
+     *   <li>{@code recipes/smeltery/seared/bricks/bricks.json} -- four seared brick items, 2x2,
+     *       craft one seared bricks block.
+     *   <li>The ten remaining {@code seared/bricks/*.json} files are all shapeless 1:1 conversions
+     *       between two block variants; chained together they form one loop (stone -> paver ->
+     *       bricks -> fancy -> square -> triangle -> creeper -> small -> tile -> road -> paver).
+     *       Cobblestone has no vanilla-table recipe in either direction upstream -- that gap is
+     *       parity, not an omission; upstream only ever produces it via the smeltery/casting system
+     *       (issue #95), same as the loop's own entry point (nothing here can produce the first
+     *       seared stone block either, until #95 ships).
+     * </ul>
+     */
+    private void buildSearedRecipes(RecipeOutput recipeOutput) {
+        ShapelessRecipeBuilder.shapeless(RecipeCategory.MISC, ForgeweaveItems.GROUT.get(), 2)
+                .requires(Items.CLAY_BALL)
+                .requires(Ingredient.of(Items.SAND, Items.RED_SAND))
+                .requires(Items.GRAVEL)
+                .unlockedBy("has_clay_ball", has(Items.CLAY_BALL))
+                .save(recipeOutput);
+
+        SimpleCookingRecipeBuilder.smelting(Ingredient.of(ForgeweaveItems.GROUT.get()), RecipeCategory.MISC,
+                        ForgeweaveItems.SEARED_BRICK.get(), 0.4F, 200)
+                .unlockedBy("has_grout", has(ForgeweaveItems.GROUT.get()))
+                .save(recipeOutput, ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "seared_brick_from_smelting"));
+
+        SimpleCookingRecipeBuilder.smelting(Ingredient.of(ForgeweaveItems.SEARED_BRICKS.get()), RecipeCategory.BUILDING_BLOCKS,
+                        ForgeweaveItems.SEARED_CRACKED_BRICKS.get(), 0.1F, 200)
+                .unlockedBy("has_seared_bricks", has(ForgeweaveItems.SEARED_BRICKS.get()))
+                .save(recipeOutput, ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "seared_cracked_bricks_from_smelting"));
+
+        ShapedRecipeBuilder.shaped(RecipeCategory.BUILDING_BLOCKS, ForgeweaveItems.SEARED_BRICKS.get())
+                .pattern("AA")
+                .pattern("AA")
+                .define('A', ForgeweaveItems.SEARED_BRICK.get())
+                .unlockedBy("has_seared_brick", has(ForgeweaveItems.SEARED_BRICK.get()))
+                .save(recipeOutput);
+
+        searedConversion(recipeOutput, ForgeweaveBlocks.SEARED_STONE.get(), ForgeweaveBlocks.SEARED_PAVER.get(), "seared_paver_from_stone");
+        searedConversion(recipeOutput, ForgeweaveBlocks.SEARED_PAVER.get(), ForgeweaveBlocks.SEARED_BRICKS.get(), "seared_bricks_from_paver");
+        searedConversion(recipeOutput, ForgeweaveBlocks.SEARED_BRICKS.get(), ForgeweaveBlocks.SEARED_FANCY_BRICKS.get(), null);
+        searedConversion(recipeOutput, ForgeweaveBlocks.SEARED_FANCY_BRICKS.get(), ForgeweaveBlocks.SEARED_SQUARE_BRICKS.get(), null);
+        searedConversion(recipeOutput, ForgeweaveBlocks.SEARED_SQUARE_BRICKS.get(), ForgeweaveBlocks.SEARED_TRIANGLE_BRICKS.get(), null);
+        searedConversion(recipeOutput, ForgeweaveBlocks.SEARED_TRIANGLE_BRICKS.get(), ForgeweaveBlocks.SEARED_CREEPER.get(), null);
+        searedConversion(recipeOutput, ForgeweaveBlocks.SEARED_CREEPER.get(), ForgeweaveBlocks.SEARED_SMALL_BRICKS.get(), null);
+        searedConversion(recipeOutput, ForgeweaveBlocks.SEARED_SMALL_BRICKS.get(), ForgeweaveBlocks.SEARED_TILE.get(), null);
+        searedConversion(recipeOutput, ForgeweaveBlocks.SEARED_TILE.get(), ForgeweaveBlocks.SEARED_ROAD.get(), null);
+        searedConversion(recipeOutput, ForgeweaveBlocks.SEARED_ROAD.get(), ForgeweaveBlocks.SEARED_PAVER.get(), "seared_paver_from_road");
+    }
+
+    /** A shapeless 1:1 block-variant conversion; {@code id} disambiguates when two conversions share a result (paver). */
+    private void searedConversion(RecipeOutput recipeOutput, ItemLike from, ItemLike to, @Nullable String id) {
+        ShapelessRecipeBuilder builder = ShapelessRecipeBuilder.shapeless(RecipeCategory.BUILDING_BLOCKS, to)
+                .requires(from)
+                .unlockedBy("has_" + BuiltInRegistries.ITEM.getKey(from.asItem()).getPath(), has(from));
+        if (id != null) {
+            builder.save(recipeOutput, ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, id));
+        } else {
+            builder.save(recipeOutput);
+        }
     }
 
     /**

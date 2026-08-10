@@ -29,6 +29,21 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         addBlock(ForgeweaveBlocks.PATTERN_CHEST, "Pattern Chest");
         addBlock(ForgeweaveBlocks.PART_CHEST, "Part Chest");
 
+        // The seared brick block family (docs/SCOPE.md M2 issue #93), names ported from upstream
+        // 1.12's tile.tconstruct.seared.*.name entries (NOTICE.md).
+        addBlock(ForgeweaveBlocks.SEARED_STONE, "Seared Stone");
+        addBlock(ForgeweaveBlocks.SEARED_COBBLESTONE, "Seared Cobblestone");
+        addBlock(ForgeweaveBlocks.SEARED_PAVER, "Seared Paver");
+        addBlock(ForgeweaveBlocks.SEARED_BRICKS, "Seared Bricks");
+        addBlock(ForgeweaveBlocks.SEARED_CRACKED_BRICKS, "Cracked Seared Bricks");
+        addBlock(ForgeweaveBlocks.SEARED_FANCY_BRICKS, "Fancy Seared Bricks");
+        addBlock(ForgeweaveBlocks.SEARED_SQUARE_BRICKS, "Square Seared Bricks");
+        addBlock(ForgeweaveBlocks.SEARED_TRIANGLE_BRICKS, "Triangle Seared Bricks");
+        addBlock(ForgeweaveBlocks.SEARED_SMALL_BRICKS, "Small Seared Bricks");
+        addBlock(ForgeweaveBlocks.SEARED_ROAD, "Seared Road");
+        addBlock(ForgeweaveBlocks.SEARED_TILE, "Seared Tiles");
+        addBlock(ForgeweaveBlocks.SEARED_CREEPER, "Seared Creeperface");
+
         addItem(ForgeweaveItems.PATTERN_BLANK, "Blank Pattern");
         addItem(ForgeweaveItems.PATTERN_PICKAXE_HEAD, "Pickaxe Head Pattern");
         addItem(ForgeweaveItems.PATTERN_SHOVEL_HEAD, "Shovel Head Pattern");
@@ -46,6 +61,9 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         addItem(ForgeweaveItems.TOOL_PICKAXE, "Pickaxe");
         addItem(ForgeweaveItems.TOOL_SHOVEL, "Shovel");
         addItem(ForgeweaveItems.TOOL_HATCHET, "Hatchet");
+
+        addItem(ForgeweaveItems.GROUT, "Grout");
+        addItem(ForgeweaveItems.SEARED_BRICK, "Seared Brick");
 
         // Shown on a tool that ran out of durability (CONTEXT.md: Broken -- unusable, never destroyed).
         add("tooltip.forgeweave.broken", "Broken");

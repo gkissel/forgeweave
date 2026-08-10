@@ -50,6 +50,12 @@ public class ForgeweaveItemModelProvider extends ItemModelProvider {
         singleLayerModel(ForgeweaveItems.PART_TOOL_HANDLE, derivedItem("tool_handle"));
         singleLayerModel(ForgeweaveItems.SHARD, derivedItem("shard"));
 
+        // Grout and seared brick (docs/SCOPE.md M2 issue #93). Grout reuses upstream's block-form
+        // texture as a flat item icon (NOTICE.md) -- see ForgeweaveItems#GROUT for why grout is a
+        // plain item here rather than a block.
+        singleLayerModel(ForgeweaveItems.GROUT, derivedItem("grout"));
+        singleLayerModel(ForgeweaveItems.SEARED_BRICK, derivedItem("seared_brick"));
+
         toolModel(ForgeweaveItems.TOOL_PICKAXE, "pickaxe");
         toolModel(ForgeweaveItems.TOOL_SHOVEL, "shovel");
         toolModel(ForgeweaveItems.TOOL_HATCHET, "hatchet");

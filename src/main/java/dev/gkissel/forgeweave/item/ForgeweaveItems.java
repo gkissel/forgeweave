@@ -83,5 +83,30 @@ public final class ForgeweaveItems {
     public static final DeferredItem<BlockItem> PATTERN_CHEST = ITEMS.registerSimpleBlockItem("pattern_chest", ForgeweaveBlocks.PATTERN_CHEST);
     public static final DeferredItem<BlockItem> PART_CHEST = ITEMS.registerSimpleBlockItem("part_chest", ForgeweaveBlocks.PART_CHEST);
 
+    // Grout (docs/SCOPE.md M2 issue #93): upstream 1.12 ships grout as one state of a multi-purpose
+    // "soil" block shared with graveyard/consecrated soil and slimy mud (BlockSoil.SoilTypes,
+    // NOTICE.md) -- none of those other states are in Forgeweave's scope (no world-content
+    // milestone yet), so grout is unbundled into its own plain item here instead of a block state,
+    // a scope-driven deviation from upstream's block-family shape, not a design substitution.
+    public static final DeferredItem<Item> GROUT = ITEMS.registerSimpleItem("grout");
+
+    // Seared brick (docs/SCOPE.md M2 issue #93): upstream 1.12's plain crafting-material item
+    // (TinkerCommons#searedBrick, "materials" item meta 0, NOTICE.md) -- produced by furnace-smelting
+    // grout, and itself crafted 2x2 into the Seared Bricks block below.
+    public static final DeferredItem<Item> SEARED_BRICK = ITEMS.registerSimpleItem("seared_brick");
+
+    public static final DeferredItem<BlockItem> SEARED_STONE = ITEMS.registerSimpleBlockItem("seared_stone", ForgeweaveBlocks.SEARED_STONE);
+    public static final DeferredItem<BlockItem> SEARED_COBBLESTONE = ITEMS.registerSimpleBlockItem("seared_cobblestone", ForgeweaveBlocks.SEARED_COBBLESTONE);
+    public static final DeferredItem<BlockItem> SEARED_PAVER = ITEMS.registerSimpleBlockItem("seared_paver", ForgeweaveBlocks.SEARED_PAVER);
+    public static final DeferredItem<BlockItem> SEARED_BRICKS = ITEMS.registerSimpleBlockItem("seared_bricks", ForgeweaveBlocks.SEARED_BRICKS);
+    public static final DeferredItem<BlockItem> SEARED_CRACKED_BRICKS = ITEMS.registerSimpleBlockItem("seared_cracked_bricks", ForgeweaveBlocks.SEARED_CRACKED_BRICKS);
+    public static final DeferredItem<BlockItem> SEARED_FANCY_BRICKS = ITEMS.registerSimpleBlockItem("seared_fancy_bricks", ForgeweaveBlocks.SEARED_FANCY_BRICKS);
+    public static final DeferredItem<BlockItem> SEARED_SQUARE_BRICKS = ITEMS.registerSimpleBlockItem("seared_square_bricks", ForgeweaveBlocks.SEARED_SQUARE_BRICKS);
+    public static final DeferredItem<BlockItem> SEARED_TRIANGLE_BRICKS = ITEMS.registerSimpleBlockItem("seared_triangle_bricks", ForgeweaveBlocks.SEARED_TRIANGLE_BRICKS);
+    public static final DeferredItem<BlockItem> SEARED_SMALL_BRICKS = ITEMS.registerSimpleBlockItem("seared_small_bricks", ForgeweaveBlocks.SEARED_SMALL_BRICKS);
+    public static final DeferredItem<BlockItem> SEARED_ROAD = ITEMS.registerSimpleBlockItem("seared_road", ForgeweaveBlocks.SEARED_ROAD);
+    public static final DeferredItem<BlockItem> SEARED_TILE = ITEMS.registerSimpleBlockItem("seared_tile", ForgeweaveBlocks.SEARED_TILE);
+    public static final DeferredItem<BlockItem> SEARED_CREEPER = ITEMS.registerSimpleBlockItem("seared_creeper", ForgeweaveBlocks.SEARED_CREEPER);
+
     private ForgeweaveItems() {}
 }
