@@ -217,7 +217,7 @@ public class ForgeweaveRecipeProvider extends RecipeProvider {
      * </ul>
      */
     private void buildSearedRecipes(RecipeOutput recipeOutput) {
-        ShapelessRecipeBuilder.shapeless(RecipeCategory.MISC, ForgeweaveItems.GROUT.get(), 2)
+        ShapelessRecipeBuilder.shapeless(RecipeCategory.BUILDING_BLOCKS, ForgeweaveItems.GROUT.get(), 2)
                 .requires(Items.CLAY_BALL)
                 .requires(Ingredient.of(Items.SAND, Items.RED_SAND))
                 .requires(Items.GRAVEL)
