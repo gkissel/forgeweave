@@ -108,5 +108,13 @@ public final class ForgeweaveItems {
     public static final DeferredItem<BlockItem> SEARED_TILE = ITEMS.registerSimpleBlockItem("seared_tile", ForgeweaveBlocks.SEARED_TILE);
     public static final DeferredItem<BlockItem> SEARED_CREEPER = ITEMS.registerSimpleBlockItem("seared_creeper", ForgeweaveBlocks.SEARED_CREEPER);
 
+    // The smeltery multiblock's blocks (docs/SCOPE.md M2 issue #95).
+    public static final DeferredItem<BlockItem> STANDARD_CORE = ITEMS.registerSimpleBlockItem("standard_core", ForgeweaveBlocks.STANDARD_CORE);
+    public static final DeferredItem<BlockItem> NETHER_CORE = ITEMS.registerSimpleBlockItem("nether_core", ForgeweaveBlocks.NETHER_CORE);
+    public static final DeferredItem<BlockItem> SEARED_TANK = ITEMS.registerSimpleBlockItem("seared_tank", ForgeweaveBlocks.SEARED_TANK);
+    public static final DeferredItem<BlockItem> SEARED_GAUGE = ITEMS.registerSimpleBlockItem("seared_gauge", ForgeweaveBlocks.SEARED_GAUGE);
+    public static final DeferredItem<BlockItem> SEARED_WINDOW = ITEMS.registerSimpleBlockItem("seared_window", ForgeweaveBlocks.SEARED_WINDOW);
+    public static final DeferredItem<BlockItem> SEARED_DRAIN = ITEMS.registerSimpleBlockItem("seared_drain", ForgeweaveBlocks.SEARED_DRAIN);
+
     private ForgeweaveItems() {}
 }

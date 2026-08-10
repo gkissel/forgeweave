@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=east": {
+      "model": "forgeweave:block/seared_drain",
+      "y": 90
+    },
+    "facing=north": {
+      "model": "forgeweave:block/seared_drain"
+    },
+    "facing=south": {
+      "model": "forgeweave:block/seared_drain",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "forgeweave:block/seared_drain",
+      "y": 270
+    }
+  }
+}

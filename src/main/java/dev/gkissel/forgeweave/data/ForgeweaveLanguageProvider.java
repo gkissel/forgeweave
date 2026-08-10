@@ -6,6 +6,7 @@ import net.neoforged.neoforge.common.data.LanguageProvider;
 
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.block.ForgeweaveBlocks;
+import dev.gkissel.forgeweave.block.SmelteryScan;
 import dev.gkissel.forgeweave.item.ForgeweaveItems;
 
 /**
@@ -43,6 +44,28 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         addBlock(ForgeweaveBlocks.SEARED_ROAD, "Seared Road");
         addBlock(ForgeweaveBlocks.SEARED_TILE, "Seared Tiles");
         addBlock(ForgeweaveBlocks.SEARED_CREEPER, "Seared Creeperface");
+
+        // The smeltery multiblock (docs/SCOPE.md M2 issue #95). Tank/drain names follow upstream
+        // 1.12's tile.tconstruct.*.name entries; the two core tiers are SCOPE.md's own vocabulary.
+        addBlock(ForgeweaveBlocks.STANDARD_CORE, "Standard Core");
+        addBlock(ForgeweaveBlocks.NETHER_CORE, "Nether Core");
+        addBlock(ForgeweaveBlocks.SEARED_TANK, "Seared Tank");
+        addBlock(ForgeweaveBlocks.SEARED_GAUGE, "Seared Gauge");
+        addBlock(ForgeweaveBlocks.SEARED_WINDOW, "Seared Window");
+        addBlock(ForgeweaveBlocks.SEARED_DRAIN, "Seared Drain");
+
+        // What a core reports when a player uses it (issue #95: "the controller reports why an
+        // invalid structure fails to form"). Positions are passed as three numbers so the message
+        // reads naturally in any language.
+        add(SmelteryScan.KEY_FORMED, "Smeltery formed: %s x %s interior, %s high");
+        add(SmelteryScan.KEY_NOT_SCANNED, "Smeltery not checked yet");
+        add(SmelteryScan.KEY_NOT_LOADED, "Part of the smeltery is not loaded");
+        add(SmelteryScan.KEY_BLOCKED_INTERIOR, "The inside of the smeltery is blocked at %s, %s, %s");
+        add(SmelteryScan.KEY_TOO_LARGE, "The smeltery interior is %s x %s, larger than the maximum of %s");
+        add(SmelteryScan.KEY_INVALID_FLOOR, "The floor needs a seared block at %s, %s, %s");
+        add(SmelteryScan.KEY_INVALID_WALL, "The wall needs a seared block, tank or drain at %s, %s, %s");
+        add(SmelteryScan.KEY_NO_TANK, "The smeltery needs at least one seared tank in its walls");
+        add(SmelteryScan.KEY_CORE_OUTSIDE, "The core has to sit in a wall of the smeltery");
 
         addItem(ForgeweaveItems.PATTERN_BLANK, "Blank Pattern");
         addItem(ForgeweaveItems.PATTERN_PICKAXE_HEAD, "Pickaxe Head Pattern");

@@ -28,6 +28,8 @@ import net.minecraft.world.item.crafting.ShapedRecipePattern;
 import net.minecraft.world.level.ItemLike;
 import net.minecraft.world.level.block.Blocks;
 
+import net.neoforged.neoforge.common.Tags;
+
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.block.ForgeweaveBlocks;
 import dev.gkissel.forgeweave.item.ForgeweaveItems;
@@ -187,6 +189,61 @@ public class ForgeweaveRecipeProvider extends RecipeProvider {
         searedConversion(recipeOutput, ForgeweaveBlocks.SEARED_SMALL_BRICKS.get(), ForgeweaveBlocks.SEARED_TILE.get(), null);
         searedConversion(recipeOutput, ForgeweaveBlocks.SEARED_TILE.get(), ForgeweaveBlocks.SEARED_ROAD.get(), null);
         searedConversion(recipeOutput, ForgeweaveBlocks.SEARED_ROAD.get(), ForgeweaveBlocks.SEARED_PAVER.get(), "seared_paver_from_road");
+
+        smelteryRecipes(recipeOutput);
+    }
+
+    /**
+     * The smeltery multiblock's blocks (docs/SCOPE.md M2 issue #95). Shapes ported 1:1 from upstream
+     * 1.12's {@code recipes/smeltery/{smeltery_controller,smeltery_drain}.json} and {@code
+     * recipes/smeltery/seared/{tank,gauge,window}.json} (NOTICE.md), with upstream's {@code
+     * blockGlass} ore-dict entry becoming the modern {@code c:glass_blocks} tag.
+     *
+     * <p>The Nether Core has no upstream shape -- tiered cores are SCOPE.md's own addition -- so it
+     * is the Standard Core's ring with a netherite ingot at its heart, matching SCOPE.md's
+     * "netherite-built" and the tank's own brick-ring-around-a-core layout.
+     */
+    private void smelteryRecipes(RecipeOutput recipeOutput) {
+        ShapedRecipeBuilder.shaped(RecipeCategory.MISC, ForgeweaveItems.STANDARD_CORE.get())
+                .pattern("AAA")
+                .pattern("A A")
+                .pattern("AAA")
+                .define('A', ForgeweaveItems.SEARED_BRICK.get())
+                .unlockedBy("has_seared_brick", has(ForgeweaveItems.SEARED_BRICK.get()))
+                .save(recipeOutput);
+
+        ShapedRecipeBuilder.shaped(RecipeCategory.MISC, ForgeweaveItems.NETHER_CORE.get())
+                .pattern("AAA")
+                .pattern("ABA")
+                .pattern("AAA")
+                .define('A', ForgeweaveItems.SEARED_BRICK.get())
+                .define('B', Items.NETHERITE_INGOT)
+                .unlockedBy("has_netherite_ingot", has(Items.NETHERITE_INGOT))
+                .save(recipeOutput);
+
+        ShapedRecipeBuilder.shaped(RecipeCategory.MISC, ForgeweaveItems.SEARED_DRAIN.get())
+                .pattern("A A")
+                .pattern("A A")
+                .pattern("A A")
+                .define('A', ForgeweaveItems.SEARED_BRICK.get())
+                .unlockedBy("has_seared_brick", has(ForgeweaveItems.SEARED_BRICK.get()))
+                .save(recipeOutput);
+
+        tankRecipe(recipeOutput, ForgeweaveItems.SEARED_TANK.get(), "AAA", "ABA", "AAA");
+        tankRecipe(recipeOutput, ForgeweaveItems.SEARED_GAUGE.get(), "ABA", "BBB", "ABA");
+        tankRecipe(recipeOutput, ForgeweaveItems.SEARED_WINDOW.get(), "ABA", "ABA", "ABA");
+    }
+
+    /** A tank-family shape: {@code A} seared bricks, {@code B} any glass block. */
+    private void tankRecipe(RecipeOutput recipeOutput, ItemLike result, String top, String middle, String bottom) {
+        ShapedRecipeBuilder.shaped(RecipeCategory.MISC, result)
+                .pattern(top)
+                .pattern(middle)
+                .pattern(bottom)
+                .define('A', ForgeweaveItems.SEARED_BRICK.get())
+                .define('B', Tags.Items.GLASS_BLOCKS)
+                .unlockedBy("has_seared_brick", has(ForgeweaveItems.SEARED_BRICK.get()))
+                .save(recipeOutput);
     }
 
     /** A shapeless 1:1 block-variant conversion; {@code id} disambiguates when two conversions share a result (paver). */

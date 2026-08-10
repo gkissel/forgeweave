@@ -45,5 +45,31 @@ public final class ForgeweaveBlockEntities {
                     .of((pos, state) -> new ChestBlockEntity(pos, state, ChestKind.PART), ForgeweaveBlocks.PART_CHEST.get())
                     .build(null));
 
+    // The smeltery multiblock (docs/SCOPE.md M2 issue #95). The two cores get one type each so a
+    // SmelteryControllerBlockEntity always knows which SmelteryCore tier it is (same pattern as the
+    // chests above); the three tank blocks share one type because they behave identically.
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<SmelteryControllerBlockEntity>> STANDARD_CORE =
+            BLOCK_ENTITIES.register("standard_core", () -> BlockEntityType.Builder
+                    .of((pos, state) -> new SmelteryControllerBlockEntity(pos, state, SmelteryCore.STANDARD),
+                            ForgeweaveBlocks.STANDARD_CORE.get())
+                    .build(null));
+
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<SmelteryControllerBlockEntity>> NETHER_CORE =
+            BLOCK_ENTITIES.register("nether_core", () -> BlockEntityType.Builder
+                    .of((pos, state) -> new SmelteryControllerBlockEntity(pos, state, SmelteryCore.NETHER),
+                            ForgeweaveBlocks.NETHER_CORE.get())
+                    .build(null));
+
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<SearedTankBlockEntity>> SEARED_TANK =
+            BLOCK_ENTITIES.register("seared_tank", () -> BlockEntityType.Builder
+                    .of(SearedTankBlockEntity::new, ForgeweaveBlocks.SEARED_TANK.get(),
+                            ForgeweaveBlocks.SEARED_GAUGE.get(), ForgeweaveBlocks.SEARED_WINDOW.get())
+                    .build(null));
+
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<SearedDrainBlockEntity>> SEARED_DRAIN =
+            BLOCK_ENTITIES.register("seared_drain", () -> BlockEntityType.Builder
+                    .of(SearedDrainBlockEntity::new, ForgeweaveBlocks.SEARED_DRAIN.get())
+                    .build(null));
+
     private ForgeweaveBlockEntities() {}
 }

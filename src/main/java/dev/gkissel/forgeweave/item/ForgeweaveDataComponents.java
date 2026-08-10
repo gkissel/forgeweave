@@ -10,6 +10,7 @@ import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.ExtraCodecs;
 
+import net.neoforged.neoforge.fluids.SimpleFluidContent;
 import net.neoforged.neoforge.registries.DeferredHolder;
 import net.neoforged.neoforge.registries.DeferredRegister;
 
@@ -108,6 +109,15 @@ public final class ForgeweaveDataComponents {
     public static final DeferredHolder<DataComponentType<?>, DataComponentType<TraitStacks>> INSATIABLE_STACKS =
             DATA_COMPONENTS.registerComponentType("insatiable_stacks",
                     builder -> builder.persistent(TraitStacks.CODEC).networkSynchronized(TraitStacks.STREAM_CODEC));
+
+    /**
+     * The fluid a broken seared tank/gauge/window was holding, so placing it back restores its
+     * contents (docs/SCOPE.md M2 issue #95). Upstream 1.12 stores the same thing as raw stack NBT in
+     * {@code BlockTank#getDrops}; this is vanilla 1.21's implicit block-entity component equivalent.
+     */
+    public static final DeferredHolder<DataComponentType<?>, DataComponentType<SimpleFluidContent>> FLUID_CONTENT =
+            DATA_COMPONENTS.registerComponentType("fluid_content",
+                    builder -> builder.persistent(SimpleFluidContent.CODEC).networkSynchronized(SimpleFluidContent.STREAM_CODEC));
 
     private ForgeweaveDataComponents() {}
 }

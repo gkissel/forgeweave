@@ -1,6 +1,7 @@
 package dev.gkissel.forgeweave.data;
 
 import net.minecraft.data.PackOutput;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.block.Block;
 
 import net.neoforged.neoforge.client.model.generators.BlockStateProvider;
@@ -9,6 +10,7 @@ import net.neoforged.neoforge.common.data.ExistingFileHelper;
 
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.block.ForgeweaveBlocks;
+import dev.gkissel.forgeweave.block.SmelteryControllerBlock;
 
 /**
  * Blockstate and item model for the Part Builder (docs/SCOPE.md M1 issue #9), the Tool Station
@@ -77,6 +79,40 @@ public class ForgeweaveBlockStateProvider extends BlockStateProvider {
         cubeAllBlock("seared_road", ForgeweaveBlocks.SEARED_ROAD.get());
         cubeAllBlock("seared_tile", ForgeweaveBlocks.SEARED_TILE.get());
         cubeAllBlock("seared_creeper", ForgeweaveBlocks.SEARED_CREEPER.get());
+
+        // The smeltery multiblock (docs/SCOPE.md M2 issue #95). Upstream 1.12's smeltery_controller
+        // blockstate is the vanilla "orientable" shape with seared brick on every face but the front,
+        // and the front swapping between a lit and an unlit texture on its `active` property
+        // (NOTICE.md) -- reproduced here for both core tiers.
+        coreBlock("standard_core", ForgeweaveBlocks.STANDARD_CORE.get());
+        coreBlock("nether_core", ForgeweaveBlocks.NETHER_CORE.get());
+
+        // Upstream's seared_tank blockstate: one cube per tank type, side and top textures per type.
+        tankBlock("seared_tank", ForgeweaveBlocks.SEARED_TANK.get(), "seared_tank_side", "seared_tank_top");
+        tankBlock("seared_gauge", ForgeweaveBlocks.SEARED_GAUGE.get(), "seared_gauge_side", "seared_window_top");
+        tankBlock("seared_window", ForgeweaveBlocks.SEARED_WINDOW.get(), "seared_window_side", "seared_window_top");
+
+        // The drain has distinct front and back faces, so it needs the full six-face cube rather than
+        // "orientable" (which would repeat the side texture on the back).
+        ResourceLocation drainSide = modLoc("derived/block/seared_bricks");
+        ModelFile drainModel = models().cube("seared_drain", drainSide, drainSide,
+                        modLoc("derived/block/seared_drain_front"), modLoc("derived/block/seared_drain_back"), drainSide, drainSide)
+                .texture("particle", drainSide);
+        horizontalBlock(ForgeweaveBlocks.SEARED_DRAIN.get(), drainModel);
+        simpleBlockItem(ForgeweaveBlocks.SEARED_DRAIN.get(), drainModel);
+    }
+
+    private void coreBlock(String name, Block block) {
+        ResourceLocation seared = modLoc("derived/block/seared_bricks");
+        ModelFile inactive = models().orientable(name, seared, modLoc("derived/block/" + name + "_front_inactive"), seared);
+        ModelFile active = models().orientable(name + "_active", seared, modLoc("derived/block/" + name + "_front_active"), seared);
+        horizontalBlock(block, state -> state.getValue(SmelteryControllerBlock.ACTIVE) ? active : inactive);
+        simpleBlockItem(block, inactive);
+    }
+
+    private void tankBlock(String name, Block block, String sideTexture, String topTexture) {
+        ResourceLocation top = modLoc("derived/block/" + topTexture);
+        simpleBlockWithItem(block, models().cubeBottomTop(name, modLoc("derived/block/" + sideTexture), top, top));
     }
 
     private void cubeAllBlock(String name, Block block) {

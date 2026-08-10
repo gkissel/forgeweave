@@ -56,6 +56,24 @@ public class ForgeweaveBlockLootSubProvider extends BlockLootSubProvider {
         dropSelf(ForgeweaveBlocks.SEARED_ROAD.get());
         dropSelf(ForgeweaveBlocks.SEARED_TILE.get());
         dropSelf(ForgeweaveBlocks.SEARED_CREEPER.get());
+
+        // The smeltery multiblock (docs/SCOPE.md M2 issue #95). The cores and the drain carry no
+        // component worth keeping, but a broken tank keeps whatever fluid it held -- upstream 1.12's
+        // BlockTank#getDrops writes the same thing onto the dropped stack (NOTICE.md).
+        dropSelf(ForgeweaveBlocks.STANDARD_CORE.get());
+        dropSelf(ForgeweaveBlocks.NETHER_CORE.get());
+        dropSelf(ForgeweaveBlocks.SEARED_DRAIN.get());
+        add(ForgeweaveBlocks.SEARED_TANK.get(), tankDrop(ForgeweaveBlocks.SEARED_TANK.get()));
+        add(ForgeweaveBlocks.SEARED_GAUGE.get(), tankDrop(ForgeweaveBlocks.SEARED_GAUGE.get()));
+        add(ForgeweaveBlocks.SEARED_WINDOW.get(), tankDrop(ForgeweaveBlocks.SEARED_WINDOW.get()));
+    }
+
+    private LootTable.Builder tankDrop(Block block) {
+        return LootTable.lootTable().withPool(applyExplosionCondition(block, LootPool.lootPool()
+                .setRolls(ConstantValue.exactly(1.0F))
+                .add(LootItem.lootTableItem(block)
+                        .apply(CopyComponentsFunction.copyComponents(CopyComponentsFunction.Source.BLOCK_ENTITY)
+                                .include(ForgeweaveDataComponents.FLUID_CONTENT.get())))));
     }
 
     private LootTable.Builder retexturedTableDrop(Block block) {
