@@ -343,6 +343,11 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         addItem(ForgeweaveItems.NUGGET_ROSE_GOLD, "Rose Gold Nugget");
         addItem(ForgeweaveItems.RAW_ROSE_GOLD, "Raw Rose Gold");
 
+        // #104 -- cobalt + ardite nether ore (docs/SCOPE.md M2 issue #104), names ported from
+        // upstream 1.12's tile.tconstruct.ore.{cobalt,ardite}.name entries (NOTICE.md).
+        addBlock(ForgeweaveBlocks.COBALT_ORE, "Cobalt Ore");
+        addBlock(ForgeweaveBlocks.ARDITE_ORE, "Ardite Ore");
+
         // #110 -- the M2 advancement chain (docs/SCOPE.md M2 issue #110): build smeltery -> first
         // melt -> first cast -> first alloy -> first modifier. Keys follow vanilla's own
         // advancements.<namespace>.<path>.title/.description convention (see

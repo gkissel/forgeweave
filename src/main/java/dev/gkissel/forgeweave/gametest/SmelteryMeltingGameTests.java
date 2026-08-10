@@ -20,6 +20,7 @@ import dev.gkissel.forgeweave.block.SearedTankBlockEntity;
 import dev.gkissel.forgeweave.block.SmelteryControllerBlockEntity;
 import dev.gkissel.forgeweave.block.SmelteryCore;
 import dev.gkissel.forgeweave.fluid.ForgeweaveFluids;
+import dev.gkissel.forgeweave.item.ForgeweaveItems;
 import dev.gkissel.forgeweave.recipe.MeltingRecipe;
 
 /**
@@ -109,6 +110,35 @@ public class SmelteryMeltingGameTests {
         insert(helper, core, Items.BRICK);
 
         helper.succeedWhen(() -> assertTankHolds(helper, core, ForgeweaveFluids.COPPER.still().get(), MeltingRecipe.VALUE_INGOT));
+    }
+
+    /**
+     * docs/SCOPE.md M2 issue #104: mined cobalt ore drops one raw cobalt (#103's raw-ore item split),
+     * which melts via {@code raw_cobalt.json}'s {@code c:raw_materials/cobalt} tag row at its 144 mB
+     * base, scaled by the Standard Core's 1.5x like any other ore-class input.
+     */
+    @GameTest(template = "smeltery", timeoutTicks = 1600)
+    public static void rawCobaltMeltsAtStandardCoresOneAndAHalfTimesYield(GameTestHelper helper) {
+        SmelteryControllerBlockEntity core = lavaFuelledSmeltery(helper);
+        insert(helper, core, ForgeweaveItems.RAW_COBALT.get());
+
+        helper.succeedWhen(() -> assertTankHolds(helper, core, ForgeweaveFluids.COBALT.still().get(),
+                (int) (MeltingRecipe.VALUE_INGOT * SmelteryCore.STANDARD.yieldMultiplier())));
+    }
+
+    /**
+     * "No separate silk-touch yield axis" (SCOPE.md M2), proven on the ore block itself rather than
+     * its raw drop: the cobalt ore block's own item form melts at the exact same base 144 mB as
+     * {@link #rawCobaltMeltsAtStandardCoresOneAndAHalfTimesYield} via {@code cobalt_ore.json}'s
+     * {@code c:ores/cobalt} tag row (issue #104), not a distinct bonus amount.
+     */
+    @GameTest(template = "smeltery", timeoutTicks = 1600)
+    public static void arditeOreBlockMeltsAtTheSameBaseAsItsRawDrop(GameTestHelper helper) {
+        SmelteryControllerBlockEntity core = lavaFuelledSmeltery(helper);
+        insert(helper, core, ForgeweaveItems.ARDITE_ORE.get());
+
+        helper.succeedWhen(() -> assertTankHolds(helper, core, ForgeweaveFluids.ARDITE.still().get(),
+                (int) (MeltingRecipe.VALUE_INGOT * SmelteryCore.STANDARD.yieldMultiplier())));
     }
 
     /** A recipe above what the fuel can reach never progresses, and the core stops ticking rather than spinning on it. */

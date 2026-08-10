@@ -48,6 +48,13 @@ public class ForgeweaveItemTagsProvider extends ItemTagsProvider {
         tag("ingots/rose_gold").add(ForgeweaveItems.INGOT_ROSE_GOLD.get());
         tag("nuggets/rose_gold").add(ForgeweaveItems.NUGGET_ROSE_GOLD.get());
         tag("raw_materials/rose_gold").add(ForgeweaveItems.RAW_ROSE_GOLD.get());
+
+        // #104 -- the cobalt + ardite nether ore blocks' own item forms into c:ores/*, the same
+        // convention vanilla iron/copper ore already carry (see the shipped iron_ore.json/
+        // copper_ore.json melting rows, issue #96) -- lets a smeltery melt the ore block itself
+        // (e.g. via /give or a future silk-touch path) at the same base amount as its raw drop.
+        tag("ores/cobalt").add(ForgeweaveItems.COBALT_ORE.get());
+        tag("ores/ardite").add(ForgeweaveItems.ARDITE_ORE.get());
     }
 
     private IntrinsicTagAppender<Item> tag(String path) {

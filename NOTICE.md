@@ -253,6 +253,12 @@ One row per derived file (ADR-0003). Maintained in PR review: a PR introducing d
 | `src/main/java/dev/gkissel/forgeweave/recipe/AlloyRecipe.java` (an alloy as a list of input fluid amounts plus one result, the amounts read as a ratio rather than a batch, `matches` returning the largest whole multiple the tank allows and 0 when any input is missing or short, and the at-least-two-inputs/result-not-an-input validation) | `src/main/java/slimeknights/tconstruct/library/smeltery/AlloyRecipe.java` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
 | `src/main/java/dev/gkissel/forgeweave/block/SmelteryControllerBlockEntity.java` (the alloying pass: sweeping every alloy recipe against the tank, draining each input at the matched multiple and filling the result back into the same tank; run on tank change instead of upstream's every-fourth-tick call, and without upstream's `ALLOYING_PER_TICK` rate cap, which only means something to a smeltery that ticks) | `src/main/java/slimeknights/tconstruct/smeltery/tileentity/TileSmeltery.java` (`alloyAlloys`, `ALLOYING_PER_TICK`) | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
 | `src/main/resources/data/forgeweave/forgeweave/alloy_recipe/manyullyn.json` (2 mB cobalt + 2 mB ardite = 2 mB manyullyn, i.e. one ingot of each into one ingot of manyullyn, in upstream's own minimal ratio units) | `src/main/java/slimeknights/tconstruct/smeltery/TinkerSmeltery.java` (`registerAlloys`: `registerAlloy(new FluidStack(manyullyn, 2), new FluidStack(cobalt, 2), new FluidStack(ardite, 2))`) | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
+| `src/main/resources/assets/forgeweave/textures/derived/block/cobalt_ore.png` (upstream's overlay sprite composited onto vanilla's own `netherrack.png`, since Forgeweave has no `cube_overlay_all`-style runtime compositing loader and 1.21's own nether ore blocks -- e.g. `nether_gold_ore.png` -- already ship as one baked texture) | `resources/assets/tconstruct/textures/blocks/ore_cobalt.png` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
+| `src/main/resources/assets/forgeweave/textures/derived/block/ardite_ore.png` (same netherrack-composite treatment) | `resources/assets/tconstruct/textures/blocks/ore_ardite.png` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
+| `src/main/java/dev/gkissel/forgeweave/block/ForgeweaveBlocks.java` (`COBALT_ORE`/`ARDITE_ORE` properties: 10.0 hardness, `Material.ROCK`'s implicit `SoundType.STONE`) | `src/main/java/slimeknights/tconstruct/shared/block/BlockOre.java` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
+| `src/main/resources/data/forgeweave/forgeweave/worldgen/configured_feature/cobalt_ore.json`, `.../placed_feature/cobalt_ore.json` (vein size 5, netherrack target) | `src/main/java/slimeknights/tconstruct/shared/worldgen/NetherOreGenerator.java` (`cobaltGen = new WorldGenMinable(..., 5, BlockMatcher.forBlock(Blocks.NETHERRACK))`) | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
+| `src/main/resources/data/forgeweave/forgeweave/worldgen/configured_feature/ardite_ore.json`, `.../placed_feature/ardite_ore.json` (same vein size/target) | `src/main/java/slimeknights/tconstruct/shared/worldgen/NetherOreGenerator.java` (`arditeGen`) | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
+| `src/main/resources/data/forgeweave/forgeweave/worldgen/placed_feature/{cobalt,ardite}_ore.json` (count 20 per chunk) | `src/main/java/slimeknights/tconstruct/common/config/Config.java` (`cobaltRate = 20`, `arditeRate = 20`, both commented "max. * per chunk") | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
 
 The station tab row uses **vanilla's** creative-inventory tab sprites (`minecraft:container/creative_inventory/tab_top_{selected,unselected}_N`) and so has no derived-asset row. That is upstream's own choice, not a substitution: 1.12's `GuiTinkerTabs` hands its `GuiElement`s to Mantle's `GuiWidgetTabs`, which binds
 `textures/gui/container/creative_inventory/tabs.png` and samples the unselected tab at `(0, 2, 28, 28)` and the selected one at `(*, 32, 28, 32)` -- i.e. the station tabs already *were* vanilla's creative tabs. Modern Minecraft split that sheet into the 26x32 per-column sprites used here.
@@ -673,3 +679,52 @@ rather than upstream ports, per the maintainer decision comment on issue #103 (2
   (`cobalt_ingot.json` and friends) resolve, the same convention NeoForge itself already applies to
   vanilla iron/copper/gold/netherite (see the shipped `iron_ingot.json`/`netherite_ingot.json`
   melting rows, issue #96).
+
+### Cobalt + ardite nether ore (issue #104) deviations from upstream 1.12
+
+- **Tool tier maps onto `minecraft:needs_diamond_tool`, not a custom "cobalt tier".**
+  `BlockOre#<init>` sets `setHarvestLevel("pickaxe", HarvestLevels.COBALT)`, upstream's own
+  five-rung ladder's top rung (`STONE, IRON, DIAMOND, OBSIDIAN, COBALT = 4`) -- reachable in 1.12
+  because the `obsidian` tool material's own `HeadMaterialStats` is pinned to `COBALT`
+  (`TinkerMaterials`), i.e. an obsidian-tier tool, not a cobalt one, is upstream's actual entry
+  point. CONTEXT.md forbids a custom numeric harvest level, so this PR maps straight onto the
+  vanilla tag ladder's tightest tier below netherite: `minecraft:needs_diamond_tool` (a plain
+  diamond pickaxe). `ForgeweaveBlockTagsProvider` is new -- the first Forgeweave block tags
+  provider -- solely to carry this and the paired `minecraft:mineable/pickaxe` tag.
+- **Drops one raw item, not the ore block itself, and never a different amount under Silk Touch.**
+  Upstream's `BlockOre` has no `getDrops`/`quantityDropped` override at all: it unconditionally
+  self-drops the block, once, with no fortune scaling. Forgeweave's raw-ore item split (#103) means
+  the equivalent drop is one raw cobalt/ardite rather than the block; SCOPE.md M2's "ore blocks melt
+  as their raw-drop equivalent -- no separate silk-touch yield axis" is read here as applying to the
+  *loot table* too, so `ForgeweaveBlockLootSubProvider`'s new `oreDrop` helper is a plain
+  unconditional one-item pool -- deliberately not vanilla `BlockLootSubProvider#createOreDrop`'s
+  silk-touch/fortune branch, which would let a silk-touched block skip the raw-item conversion.
+- **Blast resistance is invented, not ported.** `BlockOre` never calls `setResistance`, so its
+  resistance is whatever `Block`'s own unset default is -- not a value upstream chose. This PR uses
+  NeoForge's single-argument `strength(10.0F)`, applying hardness 10 to resistance too, matching how
+  every other Forgeweave block with no upstream resistance override (e.g. `searedProperties()`)
+  already uses the one-argument form.
+- **Also tagged into `c:ores/cobalt`/`c:ores/ardite`.** Not read by upstream at all (1.12 predates
+  the raw-ore split and the `c:` tag convention); added so a smeltery melts the ore block's own item
+  form at the same 144 mB base as its raw drop (`cobalt_ore.json`/`ardite_ore.json`, mirroring the
+  shipped `c:ores/iron`/`c:ores/copper` rows, issue #96) for any path that nets the block itself
+  (creative, `/give`, a future silk-touch change) -- consistent with the loot-table point above, not
+  a second yield axis.
+- **World generation adapts 1.12's `IWorldGenerator` to 1.21's data-driven configured/placed feature
+  + NeoForge biome modifier pipeline**, which has no like-for-like Java hook to port:
+  `NetherOreGenerator#generate` runs unconditionally whenever `WorldProviderHell` is the current
+  dimension, so `"biomes": "#minecraft:is_nether"` on the biome modifier is the direct translation
+  (every Nether biome, not a subset). Vein size (5) and per-chunk count (20 for each metal,
+  `Config.cobaltRate`/`arditeRate`) are ported as-is into `minecraft:ore`'s `size` and
+  `minecraft:count`'s `count`. **Simplified**: upstream's `generateNetherOre` loop places attempts
+  across two overlapping y-ranges (`y 32-96` and `y 0-128`, weighting the middle band slightly
+  higher); this PR uses one `minecraft:height_range` uniform across the Nether's full `y 0-127`,
+  which 1.21's placement API expresses far more simply and only trades away that middle-band
+  weighting, not the overall range. `Config.genCobalt`/`genArdite` (both default-on toggles) have no
+  Forgeweave equivalent -- M2 has no per-feature worldgen config surface yet.
+- **No headless GameTest for actual chunk generation.** `NetherOreGameTests` covers the block's own
+  tool-tier gate and drop identity (loot table + `isCorrectToolForDrops`); `SmelteryMeltingGameTests`
+  covers melting. The configured/placed feature and biome modifier JSON are only verified by datapack
+  loading succeeding at all (a malformed file fails datapack load, which `./gradlew build`'s
+  `runGameTestServer` already boots) plus their datagen-freshness check; actually finding ore in a
+  generated Nether is left to the manual release checklist per docs/SCOPE.md M2's testing strategy.

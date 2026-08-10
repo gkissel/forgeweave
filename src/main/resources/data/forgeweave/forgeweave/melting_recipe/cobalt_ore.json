@@ -1,0 +1,8 @@
+{
+  "input": {
+    "tag": "c:ores/cobalt"
+  },
+  "fluid": "forgeweave:molten_cobalt",
+  "amount": 144,
+  "ore": true
+}
