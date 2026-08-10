@@ -1,0 +1,8 @@
+{
+  "modifier": "forgeweave:extra_slot",
+  "reagent": {
+    "item": "minecraft:netherite_ingot"
+  },
+  "cost": 1,
+  "max_level": 5
+}

@@ -189,6 +189,15 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("material.forgeweave.flint", "Flint");
         add("material.forgeweave.bone", "Bone");
 
+        // #103 -- the seven metal materials (docs/SCOPE.md M2 issue #103).
+        add("material.forgeweave.iron", "Iron");
+        add("material.forgeweave.copper", "Copper");
+        add("material.forgeweave.cobalt", "Cobalt");
+        add("material.forgeweave.ardite", "Ardite");
+        add("material.forgeweave.manyullyn", "Manyullyn");
+        add("material.forgeweave.rose_gold", "Rose Gold");
+        add("material.forgeweave.netherite", "Netherite");
+
         // Trait names and descriptions, keyed by trait id like materials are by material id -- traits
         // are Java behavior selected by data (ADR-0002), so nothing derives these keys for us. The
         // tool info panel (issue #47) is what will display them; wording follows upstream 1.12's
@@ -232,6 +241,15 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("trait.forgeweave.coldblooded.description", "Bonus damage against undamaged targets.");
         add("trait.forgeweave.established.name", "Established");
         add("trait.forgeweave.established.description", "Grants bonus experience from kills.");
+
+        // Rose gold and netherite (issue #103): maintainer decision recorded on the issue, no upstream
+        // 1.12 counterpart for either material or trait, so wording is this PR's own.
+        add("trait.forgeweave.quick.name", "Quick");
+        add("trait.forgeweave.quick.description", "Greatly increases mining and attack speed.");
+        add("trait.forgeweave.fireproof.name", "Fireproof");
+        add("trait.forgeweave.fireproof.description", "Survives fire and lava like a vanilla netherite item.");
+        add("trait.forgeweave.reinforced_core.name", "Reinforced Core");
+        add("trait.forgeweave.reinforced_core.description", "Adds an extra modifier slot to the tool.");
 
         // #108 batch: modern-vanilla modifiers (issue #108) -- Forgeweave originals, not upstream
         // ports, so these names and descriptions are this PR's own wording rather than a translation.
@@ -307,6 +325,23 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         addItem(ForgeweaveItems.CAST_AXE_HEAD, "Axe Head Cast");
         addItem(ForgeweaveItems.CAST_TOOL_BINDING, "Tool Binding Cast");
         addItem(ForgeweaveItems.CAST_TOOL_HANDLE, "Tool Handle Cast");
+
+        // #103 -- metal materials (docs/SCOPE.md M2 issue #103): item names for the four metals with
+        // no vanilla item forms. Ingot/nugget names follow upstream 1.12's item.materials.*.name
+        // entries (NOTICE.md); the raw forms have no upstream counterpart to name after and follow
+        // vanilla's own "Raw <Metal>" convention instead.
+        addItem(ForgeweaveItems.INGOT_COBALT, "Cobalt Ingot");
+        addItem(ForgeweaveItems.NUGGET_COBALT, "Cobalt Nugget");
+        addItem(ForgeweaveItems.RAW_COBALT, "Raw Cobalt");
+        addItem(ForgeweaveItems.INGOT_ARDITE, "Ardite Ingot");
+        addItem(ForgeweaveItems.NUGGET_ARDITE, "Ardite Nugget");
+        addItem(ForgeweaveItems.RAW_ARDITE, "Raw Ardite");
+        addItem(ForgeweaveItems.INGOT_MANYULLYN, "Manyullyn Ingot");
+        addItem(ForgeweaveItems.NUGGET_MANYULLYN, "Manyullyn Nugget");
+        addItem(ForgeweaveItems.RAW_MANYULLYN, "Raw Manyullyn");
+        addItem(ForgeweaveItems.INGOT_ROSE_GOLD, "Rose Gold Ingot");
+        addItem(ForgeweaveItems.NUGGET_ROSE_GOLD, "Rose Gold Nugget");
+        addItem(ForgeweaveItems.RAW_ROSE_GOLD, "Raw Rose Gold");
 
         // #110 -- the M2 advancement chain (docs/SCOPE.md M2 issue #110): build smeltery -> first
         // melt -> first cast -> first alloy -> first modifier. Keys follow vanilla's own

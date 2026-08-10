@@ -1,0 +1,24 @@
+{
+  "head": {
+    "durability": 780,
+    "mining_speed": 12.0,
+    "attack_damage": 4.1
+  },
+  "handle": {
+    "durability_modifier": 0.9,
+    "durability": 100
+  },
+  "extra_durability": 300,
+  "incorrect_for_tool": "minecraft:incorrect_for_netherite_tool",
+  "traits": {
+    "general": ["forgeweave:lightweight"],
+    "head": ["forgeweave:momentum"]
+  },
+  "crafting_items": [
+    { "ingredient": { "item": "forgeweave:cobalt_ingot" }, "value": 2 }
+  ],
+  "repair_item": {
+    "tag": "c:ingots/cobalt"
+  },
+  "color": "#2882D4"
+}

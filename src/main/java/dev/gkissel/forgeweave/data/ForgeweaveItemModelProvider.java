@@ -82,10 +82,33 @@ public class ForgeweaveItemModelProvider extends ItemModelProvider {
         singleLayerModel(ForgeweaveItems.SILKY_CLOTH, derivedItem("silky_cloth"));
         singleLayerModel(ForgeweaveItems.SILKY_JEWEL, derivedItem("silky_jewel"));
         singleLayerModel(ForgeweaveItems.EXTRA_MODIFIER, derivedItem("extra_modifier"));
+
+        // #103 -- metal materials (docs/SCOPE.md M2 issue #103). Cobalt/ardite/manyullyn ingots and
+        // nuggets are straight upstream texture ports (NOTICE.md); rose gold's are a recoloured
+        // derivation of upstream's manyullyn art (NOTICE.md, no 1.12 counterpart otherwise). The raw
+        // forms have no upstream art to derive from at all, so they are plain items with fresh,
+        // non-derived placeholder icons under the standard item texture folder (see
+        // ForgeweaveItems#RAW_COBALT).
+        singleLayerModel(ForgeweaveItems.INGOT_COBALT, derivedItem("cobalt_ingot"));
+        singleLayerModel(ForgeweaveItems.NUGGET_COBALT, derivedItem("cobalt_nugget"));
+        singleLayerModel(ForgeweaveItems.RAW_COBALT, itemTexture("raw_cobalt"));
+        singleLayerModel(ForgeweaveItems.INGOT_ARDITE, derivedItem("ardite_ingot"));
+        singleLayerModel(ForgeweaveItems.NUGGET_ARDITE, derivedItem("ardite_nugget"));
+        singleLayerModel(ForgeweaveItems.RAW_ARDITE, itemTexture("raw_ardite"));
+        singleLayerModel(ForgeweaveItems.INGOT_MANYULLYN, derivedItem("manyullyn_ingot"));
+        singleLayerModel(ForgeweaveItems.NUGGET_MANYULLYN, derivedItem("manyullyn_nugget"));
+        singleLayerModel(ForgeweaveItems.RAW_MANYULLYN, itemTexture("raw_manyullyn"));
+        singleLayerModel(ForgeweaveItems.INGOT_ROSE_GOLD, derivedItem("rose_gold_ingot"));
+        singleLayerModel(ForgeweaveItems.NUGGET_ROSE_GOLD, derivedItem("rose_gold_nugget"));
+        singleLayerModel(ForgeweaveItems.RAW_ROSE_GOLD, itemTexture("raw_rose_gold"));
     }
 
     private ResourceLocation derivedItem(String name) {
         return modLoc("derived/item/" + name);
+    }
+
+    private ResourceLocation itemTexture(String name) {
+        return modLoc("item/" + name);
     }
 
     private ResourceLocation derivedTool(String tool, String layer) {

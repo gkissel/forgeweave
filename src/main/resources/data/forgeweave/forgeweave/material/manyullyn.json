@@ -1,0 +1,24 @@
+{
+  "head": {
+    "durability": 820,
+    "mining_speed": 7.02,
+    "attack_damage": 8.72
+  },
+  "handle": {
+    "durability_modifier": 0.5,
+    "durability": 250
+  },
+  "extra_durability": 50,
+  "incorrect_for_tool": "minecraft:incorrect_for_netherite_tool",
+  "traits": {
+    "general": ["forgeweave:coldblooded"],
+    "head": ["forgeweave:insatiable"]
+  },
+  "crafting_items": [
+    { "ingredient": { "item": "forgeweave:manyullyn_ingot" }, "value": 2 }
+  ],
+  "repair_item": {
+    "tag": "c:ingots/manyullyn"
+  },
+  "color": "#A15CF8"
+}

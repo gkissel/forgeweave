@@ -42,6 +42,8 @@ import dev.gkissel.forgeweave.item.ForgeweaveDataComponents;
 import dev.gkissel.forgeweave.item.ForgeweaveItems;
 import dev.gkissel.forgeweave.item.ToolItem;
 import dev.gkissel.forgeweave.tool.ToolStats;
+import dev.gkissel.forgeweave.trait.ForgeweaveTraits;
+import dev.gkissel.forgeweave.trait.Trait;
 
 /**
  * The modifier ids Forgeweave ships, the behavior behind each, and the slot accounting the Tool
@@ -64,6 +66,10 @@ import dev.gkissel.forgeweave.tool.ToolStats;
  *
  * <p>{@link #freeSlots} is {@value #DEFAULT_SLOTS} plus whatever {@link Modifier#bonusSlots} grants,
  * minus the slots in use, so issue #107's extra-slot items raise the cap without this class changing.
+ * Issue #103 adds a second source on top: a tool's <em>traits</em> can grant bonus slots too
+ * ({@link Trait#bonusSlots}, netherite's {@code reinforced_core}) -- summed in alongside the modifier
+ * total, since a trait comes from a material rather than a modifier application and so never occupies
+ * a slot of its own.
  */
 public final class ForgeweaveModifiers {
     private static final Logger LOGGER = LogUtils.getLogger();
@@ -524,6 +530,11 @@ public final class ForgeweaveModifiers {
             if (modifier != null) {
                 bonus += modifier.bonusSlots(entry.level());
             }
+        }
+        // #103 -- netherite's reinforced_core: a trait-granted bonus, not a modifier-granted one, so
+        // it is summed in on top rather than tied to any ModifierEntry.
+        for (Trait trait : ForgeweaveTraits.of(stack)) {
+            bonus += trait.bonusSlots();
         }
         return DEFAULT_SLOTS + bonus - entries.size();
     }

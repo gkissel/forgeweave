@@ -149,5 +149,24 @@ public final class ForgeweaveItems {
     public static final DeferredItem<BlockItem> CASTING_BASIN = ITEMS.registerSimpleBlockItem("casting_basin", ForgeweaveBlocks.CASTING_BASIN);
     public static final DeferredItem<BlockItem> FAUCET = ITEMS.registerSimpleBlockItem("faucet", ForgeweaveBlocks.FAUCET);
 
+    // #103 -- the four metal materials with no vanilla item forms yet (docs/SCOPE.md M2 issue #103):
+    // cobalt, ardite, manyullyn (upstream 1.12 ingot/nugget art, NOTICE.md) and rose gold (no 1.12
+    // counterpart -- its ingot/nugget are a recoloured derivation of upstream's copper ones, NOTICE.md).
+    // Iron/copper/gold/netherite are vanilla items already; netherite scrap is vanilla too. Raw forms
+    // have no 1.12 counterpart at all (1.12 predates the raw-ore item split) and no ore block source
+    // in this PR's scope, so they are freshly authored placeholders, not derived (CLAUDE.md).
+    public static final DeferredItem<Item> INGOT_COBALT = ITEMS.registerSimpleItem("cobalt_ingot");
+    public static final DeferredItem<Item> NUGGET_COBALT = ITEMS.registerSimpleItem("cobalt_nugget");
+    public static final DeferredItem<Item> RAW_COBALT = ITEMS.registerSimpleItem("raw_cobalt");
+    public static final DeferredItem<Item> INGOT_ARDITE = ITEMS.registerSimpleItem("ardite_ingot");
+    public static final DeferredItem<Item> NUGGET_ARDITE = ITEMS.registerSimpleItem("ardite_nugget");
+    public static final DeferredItem<Item> RAW_ARDITE = ITEMS.registerSimpleItem("raw_ardite");
+    public static final DeferredItem<Item> INGOT_MANYULLYN = ITEMS.registerSimpleItem("manyullyn_ingot");
+    public static final DeferredItem<Item> NUGGET_MANYULLYN = ITEMS.registerSimpleItem("manyullyn_nugget");
+    public static final DeferredItem<Item> RAW_MANYULLYN = ITEMS.registerSimpleItem("raw_manyullyn");
+    public static final DeferredItem<Item> INGOT_ROSE_GOLD = ITEMS.registerSimpleItem("rose_gold_ingot");
+    public static final DeferredItem<Item> NUGGET_ROSE_GOLD = ITEMS.registerSimpleItem("rose_gold_nugget");
+    public static final DeferredItem<Item> RAW_ROSE_GOLD = ITEMS.registerSimpleItem("raw_rose_gold");
+
     private ForgeweaveItems() {}
 }

@@ -1,0 +1,24 @@
+{
+  "head": {
+    "durability": 990,
+    "mining_speed": 3.5,
+    "attack_damage": 3.6
+  },
+  "handle": {
+    "durability_modifier": 1.4,
+    "durability": -200
+  },
+  "extra_durability": 450,
+  "incorrect_for_tool": "minecraft:incorrect_for_netherite_tool",
+  "traits": {
+    "general": ["forgeweave:petramor"],
+    "head": ["forgeweave:stonebound"]
+  },
+  "crafting_items": [
+    { "ingredient": { "item": "forgeweave:ardite_ingot" }, "value": 2 }
+  ],
+  "repair_item": {
+    "tag": "c:ingots/ardite"
+  },
+  "color": "#D14210"
+}

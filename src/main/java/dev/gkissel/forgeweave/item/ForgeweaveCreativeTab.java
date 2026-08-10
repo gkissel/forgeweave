@@ -97,6 +97,21 @@ public final class ForgeweaveCreativeTab {
         output.accept(ForgeweaveItems.CAST_TOOL_BINDING.get());
         output.accept(ForgeweaveItems.CAST_TOOL_HANDLE.get());
 
+        // #103 -- metal materials (docs/SCOPE.md M2 issue #103): the item forms with no vanilla
+        // counterpart, for the four metals that lacked them.
+        output.accept(ForgeweaveItems.INGOT_COBALT.get());
+        output.accept(ForgeweaveItems.NUGGET_COBALT.get());
+        output.accept(ForgeweaveItems.RAW_COBALT.get());
+        output.accept(ForgeweaveItems.INGOT_ARDITE.get());
+        output.accept(ForgeweaveItems.NUGGET_ARDITE.get());
+        output.accept(ForgeweaveItems.RAW_ARDITE.get());
+        output.accept(ForgeweaveItems.INGOT_MANYULLYN.get());
+        output.accept(ForgeweaveItems.NUGGET_MANYULLYN.get());
+        output.accept(ForgeweaveItems.RAW_MANYULLYN.get());
+        output.accept(ForgeweaveItems.INGOT_ROSE_GOLD.get());
+        output.accept(ForgeweaveItems.NUGGET_ROSE_GOLD.get());
+        output.accept(ForgeweaveItems.RAW_ROSE_GOLD.get());
+
         List<Holder.Reference<Material>> materials =
                 parameters.holders().lookupOrThrow(Material.REGISTRY).listElements().toList();
         for (DeferredItem<PartItem> partItem : PART_ITEMS) {

@@ -1,0 +1,11 @@
+{
+  "station": "table",
+  "cast": {
+    "item": "forgeweave:cast_ingot"
+  },
+  "fluid": "forgeweave:molten_manyullyn",
+  "amount": 144,
+  "result": {
+    "id": "forgeweave:manyullyn_ingot"
+  }
+}

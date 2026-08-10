@@ -1,0 +1,11 @@
+{
+  "station": "table",
+  "cast": {
+    "item": "forgeweave:cast_nugget"
+  },
+  "fluid": "forgeweave:molten_cobalt",
+  "amount": 16,
+  "result": {
+    "id": "forgeweave:cobalt_nugget"
+  }
+}
