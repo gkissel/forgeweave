@@ -20,31 +20,35 @@ import dev.gkissel.forgeweave.Forgeweave;
  * trigger -- a {@link DeferredRegister} on it works exactly like one on {@code Registries.BLOCK} or
  * {@code Registries.ITEM}.
  *
- * <p>Three of the five fire from code that already exists on master:
+ * <p>Four of the five fire from code that already exists on master:
  *
  * <ul>
  *   <li>{@link #SMELTERY_FORMED} from {@code SmelteryControllerBlock#useWithoutItem} (issue #95),
  *       once the structure scan the player just triggered finds the smeltery formed.
+ *   <li>{@link #FIRST_MELT} from {@code SmelteryControllerBlockEntity#insertForMelting(ItemStack,
+ *       ServerPlayer)} (issue #96), when a player inserts an item with a valid melting recipe into a
+ *       formed, hot smeltery -- see that overload's javadoc for why insertion, not completion, is the
+ *       chosen moment, and its documented gap (a cold insert that only starts melting once fuel later
+ *       arrives doesn't retroactively grant it).
  *   <li>{@link #FIRST_CAST} from {@code CastingBlockEntity#interact} (issue #100), when a player
  *       collects a finished casting result.
  *   <li>{@link #FIRST_MODIFIER} from {@code ToolStationMenu.OutputSlot#onTake} (issue #105), when the
  *       taken output came from a modifier application rather than assembly or repair.
  * </ul>
  *
- * <p>{@link #FIRST_MELT} and {@link #FIRST_ALLOY} have no such call site: melting (#96) and alloying
- * (#98) are not merged yet, so both are seams only. When those land, add one line each at the point
- * each recipe finishes, guarded server-side with a real {@code ServerPlayer} the same way the three
- * above are:
+ * <p>{@link #FIRST_ALLOY} has no such call site: alloying (#98) is not merged yet, so it is a seam
+ * only. When it lands, add one line at the point an alloy recipe finishes, guarded server-side with a
+ * real {@code ServerPlayer} the same way the four above are:
  *
  * <pre>{@code
- * ForgeweaveCriteriaTriggers.FIRST_MELT.get().trigger(serverPlayer);   // #96, first item melted
  * ForgeweaveCriteriaTriggers.FIRST_ALLOY.get().trigger(serverPlayer);  // #98, first in-tank alloy
  * }</pre>
  *
- * <p>Melting today has no player in the loop at all -- ore goes in through a faucet pour, not a
- * player interaction -- so #96/#98 may need to resolve one (the smeltery's placer, tracked NBT-side,
- * or simply skip the trigger when no player is nearby) rather than reuse an existing parameter; that
- * call is left to those PRs.
+ * <p>In-tank alloying has no player in the loop the way a fresh insert does either -- it happens
+ * whenever the tank's own contents satisfy an alloy recipe, which can be ticks after the player who
+ * caused it last touched the smeltery -- so #98 may need to resolve one (the smeltery's placer,
+ * tracked NBT-side, or simply skip the trigger when no player is nearby) rather than reuse an existing
+ * parameter; that call is left to that PR.
  */
 public final class ForgeweaveCriteriaTriggers {
     public static final DeferredRegister<CriterionTrigger<?>> TRIGGERS =

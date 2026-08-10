@@ -37,9 +37,9 @@ import dev.gkissel.forgeweave.item.ForgeweaveItems;
  * CLAUDE.md's named families (none of which cover advancements) -- see {@code
  * ForgeweaveLanguageProvider}'s comment at the same keys.
  *
- * <p>Two criteria are seams, not real hooks: {@code first_melt} and {@code first_alloy} use {@link
- * ForgeweaveCriteriaTriggers#FIRST_MELT}/{@link ForgeweaveCriteriaTriggers#FIRST_ALLOY}, neither of
- * which anything fires yet (melting/#96 and alloying/#98 aren't merged) -- see that class's javadoc.
+ * <p>One criterion is a seam, not a real hook: {@code first_alloy} uses {@link
+ * ForgeweaveCriteriaTriggers#FIRST_ALLOY}, which nothing fires yet (alloying/#98 isn't merged) -- see
+ * that class's javadoc. The other four, including {@code first_melt}, fire from real gameplay hooks.
  */
 public final class ForgeweaveAdvancementProvider implements AdvancementProvider.AdvancementGenerator {
     private static final String ROOT_BACKGROUND = "textures/gui/advancements/backgrounds/stone.png";
