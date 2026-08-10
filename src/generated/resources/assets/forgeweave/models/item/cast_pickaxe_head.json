@@ -1,7 +1,6 @@
 {
   "parent": "minecraft:item/generated",
   "textures": {
-    "layer0": "forgeweave:derived/item/cast",
-    "layer1": "forgeweave:derived/item/pickaxe_head"
+    "layer0": "forgeweave:derived/item/cast_pickaxe_head"
   }
 }

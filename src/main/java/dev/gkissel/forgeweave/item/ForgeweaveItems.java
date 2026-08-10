@@ -153,8 +153,11 @@ public final class ForgeweaveItems {
     // cobalt, ardite, manyullyn (upstream 1.12 ingot/nugget art, NOTICE.md) and rose gold (no 1.12
     // counterpart -- its ingot/nugget are a recoloured derivation of upstream's copper ones, NOTICE.md).
     // Iron/copper/gold/netherite are vanilla items already; netherite scrap is vanilla too. Raw forms
-    // have no 1.12 counterpart at all (1.12 predates the raw-ore item split) and no ore block source
-    // in this PR's scope, so they are freshly authored placeholders, not derived (CLAUDE.md).
+    // have no 1.12 counterpart at all (1.12 predates the raw-ore item split). Raw cobalt/ardite are
+    // maintainer-specified vanilla recolors (issue #140, NOTICE.md: raw_gold hue-shifted blue, and
+    // netherite_scrap recoloured yellowish-orange, both preserving source shading -- see
+    // scripts/recolor_raw_ore.py). Raw manyullyn/rose gold have no ore block source in this PR's
+    // scope either, so they stay freshly authored placeholders, not derived (CLAUDE.md).
     public static final DeferredItem<Item> INGOT_COBALT = ITEMS.registerSimpleItem("cobalt_ingot");
     public static final DeferredItem<Item> NUGGET_COBALT = ITEMS.registerSimpleItem("cobalt_nugget");
     public static final DeferredItem<Item> RAW_COBALT = ITEMS.registerSimpleItem("raw_cobalt");

@@ -235,6 +235,11 @@ One row per derived file (ADR-0003). Maintained in PR review: a PR introducing d
 | `src/main/resources/assets/forgeweave/textures/derived/item/cast.png` (the blank cast, layer0 of the five part-cast item models) | `resources/assets/tconstruct/textures/items/cast.png` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
 | `src/main/resources/assets/forgeweave/textures/derived/item/cast_ingot.png` | `resources/assets/tconstruct/textures/items/cast_ingot.png` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
 | `src/main/resources/assets/forgeweave/textures/derived/item/cast_nugget.png` | `resources/assets/tconstruct/textures/items/cast_nugget.png` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
+| `src/main/resources/assets/forgeweave/textures/derived/item/cast_pickaxe_head.png` (issue #140 art fix: `cast.png` with a hole punched through it in the part's silhouette and a darkened bevel around the hole, pre-composited by `scripts/generate_cast_textures.py`, replacing the old flat two-layer gold-square-plus-grey-part-sprite model) | `resources/assets/tconstruct/textures/items/cast.png`, `resources/assets/tconstruct/textures/items/pickaxe/head.png`, `src/main/java/slimeknights/tconstruct/library/client/texture/CastTexture.java` (compositing technique the script approximates offline) | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
+| `src/main/resources/assets/forgeweave/textures/derived/item/cast_shovel_head.png` (same issue #140 treatment) | `resources/assets/tconstruct/textures/items/cast.png`, `resources/assets/tconstruct/textures/items/shovel/head.png`, `src/main/java/slimeknights/tconstruct/library/client/texture/CastTexture.java` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
+| `src/main/resources/assets/forgeweave/textures/derived/item/cast_axe_head.png` (same issue #140 treatment) | `resources/assets/tconstruct/textures/items/cast.png`, `resources/assets/tconstruct/textures/items/hatchet/head.png`, `src/main/java/slimeknights/tconstruct/library/client/texture/CastTexture.java` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
+| `src/main/resources/assets/forgeweave/textures/derived/item/cast_tool_binding.png` (same issue #140 treatment) | `resources/assets/tconstruct/textures/items/cast.png`, `resources/assets/tconstruct/textures/items/parts/binding.png`, `src/main/java/slimeknights/tconstruct/library/client/texture/CastTexture.java` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
+| `src/main/resources/assets/forgeweave/textures/derived/item/cast_tool_handle.png` (same issue #140 treatment) | `resources/assets/tconstruct/textures/items/cast.png`, `resources/assets/tconstruct/textures/items/parts/tool_rod.png`, `src/main/java/slimeknights/tconstruct/library/client/texture/CastTexture.java` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
 | `src/main/resources/assets/forgeweave/textures/derived/block/casting_table_top.png` | `resources/assets/tconstruct/textures/blocks/smeltery/castingtable_top.png` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
 | `src/main/resources/assets/forgeweave/textures/derived/block/casting_table_side.png` | `resources/assets/tconstruct/textures/blocks/smeltery/castingtable_side.png` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
 | `src/main/resources/assets/forgeweave/textures/derived/block/casting_table_bottom.png` | `resources/assets/tconstruct/textures/blocks/smeltery/castingtable_bottom.png` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
@@ -588,8 +593,14 @@ netherite-ingot recipe and its recoloured front texture are SCOPE.md's and Forge
   Every constant is upstream's; only where they live changed.
 - **One item per cast.** Upstream ships a single `cast` item whose NBT names the part and whose
   texture is composited at load time by `CustomTextureCreator`. Forgeweave registers seven cast
-  items with plain two-layer models (blank cast + the part's own sprite), which is the same split
-  issue #93 made for the seared brick variants and lets a vanilla `Ingredient` match a cast.
+  items, which is the same split issue #93 made for the seared brick variants and lets a vanilla
+  `Ingredient` match a cast. The blank/ingot/nugget casts use upstream's own sprites unmodified; the
+  five part casts (issue #140 art fix) are plain single-layer models pointed at a pre-composited PNG
+  -- the blank cast with a hole punched through it in the part's silhouette and a darkened bevel
+  around the hole -- approximating offline what upstream's `CustomTextureCreator`/`CastTexture` build
+  at texture-stitch time (`scripts/generate_cast_textures.py`, NOTICE.md rows above). The original
+  two-layer model (blank cast + the part's own grey/white sprite laid flat on top, uncomposited)
+  rendered as a solid yellow square with a white silhouette floating on it instead of a mold cavity.
 - **No ticking block entities.** Upstream ticks every casting block and every faucet in the world
   forever. Forgeweave runs both off vanilla scheduled block ticks, which SCOPE.md's "block entities
   tick only while doing work" budget requires. Timings are identical.
@@ -667,13 +678,20 @@ rather than upstream ports, per the maintainer decision comment on issue #103 (2
   nugget and raw-ore item forms. Ingot/nugget art for cobalt/ardite/manyullyn is a straight upstream
   port (table rows above); rose gold's is a recolour of upstream's manyullyn ingot/nugget art (no
   1.12 material to derive rose gold's own shape from, per the issue body). The raw-ore forms have no
-  upstream counterpart at all -- 1.12 predates the raw-ore item split introduced in vanilla 1.17 --
-  and no ore-block source in this PR's scope (adding cobalt/ardite/manyullyn/rose-gold ore blocks is
-  out of scope for a materials-and-items issue), so they are freshly authored placeholder icons under
-  the standard `textures/item/` folder rather than `textures/derived/`, and carry no NOTICE row
-  (CLAUDE.md: only derived art gets one). Their melting recipes and `c:raw_materials/*` tags exist
-  for a future ore-block issue to make reachable in survival; they are not obtainable through any
-  recipe shipped in this PR.
+  upstream counterpart at all -- 1.12 predates the raw-ore item split introduced in vanilla 1.17.
+  Raw manyullyn and raw rose gold have no ore-block source in this PR's scope either, so they stay
+  freshly authored placeholder icons under the standard `textures/item/` folder rather than
+  `textures/derived/`, and carry no NOTICE row (CLAUDE.md: only derived art gets one). Raw cobalt and
+  raw ardite were switched to maintainer-specified **vanilla** recolors by issue #140 (not an
+  upstream/TiC derivation, so the license table above doesn't apply -- noted here per repo convention
+  since no prior vanilla-derived row exists to follow): `raw_cobalt.png` is vanilla's own
+  `raw_gold.png` hue-shifted to cobalt's blue, `raw_ardite.png` is vanilla's own
+  `netherite_scrap.png` recoloured yellowish-orange and brightened, both via
+  `scripts/recolor_raw_ore.py`, which scales saturation/value by the ratio of a target average
+  (matched to this repo's own cobalt/ardite ingot art) to the source average so each source pixel's
+  shading and highlights are preserved. Their melting recipes and `c:raw_materials/*` tags exist for
+  a future ore-block issue to make reachable in survival; they are not obtainable through any recipe
+  shipped in this PR.
 - **`ForgeweaveItemTagsProvider` is new** (issue #103): puts the four metals' ingot/nugget/raw items
   into `c:ingots/*`, `c:nuggets/*` and `c:raw_materials/*` so `MeltingRecipe`'s tag-keyed rows
   (`cobalt_ingot.json` and friends) resolve, the same convention NeoForge itself already applies to
