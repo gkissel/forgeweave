@@ -19,3 +19,4 @@ The roadmap (docs/SCOPE.md) includes a TAIGA-scale material expansion (M6) and d
 - Pack authors and M6 get material extensibility from day one; material data must be synced server→client.
 - New trait behaviors and new tool types require a mod update — accepted until a milestone proves otherwise.
 - Revisit the code/data boundary if M6 or addon demand pushes against it; do not widen it speculatively.
+- **Amended at M2 planning (2026-08-09)**: the revisit clause is now exercised — [ADR-0004](0004-modifier-architecture.md) commits trait and modifier *definitions* to becoming datapack-creatable at M6 via a parameterized behavior library.
