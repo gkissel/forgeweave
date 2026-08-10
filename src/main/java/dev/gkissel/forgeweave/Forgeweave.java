@@ -20,6 +20,8 @@ import net.minecraft.core.Registry;
 import dev.gkissel.forgeweave.block.ChestBlockEntity;
 import dev.gkissel.forgeweave.block.ForgeweaveBlockEntities;
 import dev.gkissel.forgeweave.block.ForgeweaveBlocks;
+import dev.gkissel.forgeweave.block.SearedDrainBlockEntity;
+import dev.gkissel.forgeweave.block.SearedTankBlockEntity;
 import dev.gkissel.forgeweave.config.ForgeweaveConfig;
 import dev.gkissel.forgeweave.data.ForgeweaveDataGenerators;
 import dev.gkissel.forgeweave.fluid.ForgeweaveFluids;
@@ -58,6 +60,9 @@ public class Forgeweave {
         // The Pattern Chest/Part Chest (issue #66) expose their inventory as an IItemHandler so
         // adjacent stations' side-inventory panels pick them up (SideInventory#find).
         modEventBus.addListener(ChestBlockEntity::registerCapabilities);
+        // The smeltery's seared tanks hold fluids directly; a drain re-exposes its core's tank (#95).
+        modEventBus.addListener(SearedTankBlockEntity::registerCapabilities);
+        modEventBus.addListener(SearedDrainBlockEntity::registerCapabilities);
         modEventBus.addListener(ForgeweaveDataGenerators::gatherData);
         NeoForge.EVENT_BUS.addListener(this::onServerStarted);
         // Traits that key off what is being hit have no Item hook to live in (see ForgeweaveTraits).

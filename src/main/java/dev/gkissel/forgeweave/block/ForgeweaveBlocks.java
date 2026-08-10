@@ -13,7 +13,8 @@ import dev.gkissel.forgeweave.Forgeweave;
 /**
  * Forgeweave's blocks: the Part Builder (docs/SCOPE.md M1 issue #9), Tool Station (issue #10),
  * Crafting Station (issue #40), Stencil Table (issue #44), the Pattern Chest/Part Chest
- * (issue #66), and the seared brick block family (docs/SCOPE.md M2 issue #93).
+ * (issue #66), the seared brick block family (docs/SCOPE.md M2 issue #93), and the smeltery
+ * multiblock's cores, tanks and drain (issue #95).
  */
 public final class ForgeweaveBlocks {
     public static final DeferredRegister.Blocks BLOCKS = DeferredRegister.createBlocks(Forgeweave.MODID);
@@ -73,11 +74,36 @@ public final class ForgeweaveBlocks {
     public static final DeferredBlock<Block> SEARED_TILE = searedBlock("seared_tile");
     public static final DeferredBlock<Block> SEARED_CREEPER = searedBlock("seared_creeper");
 
+    // The smeltery multiblock's own blocks (docs/SCOPE.md M2 issue #95). All share BlockSeared's
+    // strength and sound so a smeltery mines as one material.
+    public static final DeferredBlock<SmelteryControllerBlock> STANDARD_CORE = BLOCKS.register("standard_core",
+            () -> new SmelteryControllerBlock(searedProperties(), SmelteryCore.STANDARD));
+
+    public static final DeferredBlock<SmelteryControllerBlock> NETHER_CORE = BLOCKS.register("nether_core",
+            () -> new SmelteryControllerBlock(searedProperties(), SmelteryCore.NETHER));
+
+    // The gauge and window are see-through, so all three skip occlusion culling (upstream's BlockTank
+    // is likewise not a full/opaque cube).
+    public static final DeferredBlock<SearedTankBlock> SEARED_TANK = tankBlock("seared_tank");
+    public static final DeferredBlock<SearedTankBlock> SEARED_GAUGE = tankBlock("seared_gauge");
+    public static final DeferredBlock<SearedTankBlock> SEARED_WINDOW = tankBlock("seared_window");
+
+    public static final DeferredBlock<SearedDrainBlock> SEARED_DRAIN = BLOCKS.register("seared_drain",
+            () -> new SearedDrainBlock(searedProperties()));
+
     private static DeferredBlock<Block> searedBlock(String name) {
-        return BLOCKS.registerSimpleBlock(name, BlockBehaviour.Properties.of()
+        return BLOCKS.registerSimpleBlock(name, searedProperties());
+    }
+
+    private static DeferredBlock<SearedTankBlock> tankBlock(String name) {
+        return BLOCKS.register(name, () -> new SearedTankBlock(searedProperties().noOcclusion()));
+    }
+
+    private static BlockBehaviour.Properties searedProperties() {
+        return BlockBehaviour.Properties.of()
                 .mapColor(MapColor.STONE)
                 .strength(3.0F, 20.0F)
-                .sound(SoundType.METAL));
+                .sound(SoundType.METAL);
     }
 
     private ForgeweaveBlocks() {}

@@ -153,6 +153,26 @@ One row per derived file (ADR-0003). Maintained in PR review: a PR introducing d
 | `src/main/java/dev/gkissel/forgeweave/data/ForgeweaveRecipeProvider.java` (four seared brick items, 2x2, craft one seared bricks block) | `resources/assets/tconstruct/recipes/smeltery/seared/bricks/bricks.json` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
 | `src/main/java/dev/gkissel/forgeweave/data/ForgeweaveRecipeProvider.java` (the ten shapeless 1:1 block-variant conversions forming the stone->paver->bricks->fancy->square->triangle->creeper->small->tile->road->paver loop) | `resources/assets/tconstruct/recipes/smeltery/seared/bricks/{bricks_simple,paver_bricks_default,fancy_bricks,square_bricks,triangle_bricks,creeper_bricks,small_bricks,tile_bricks,road_bricks,paver_bricks}.json` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
 | `src/main/java/dev/gkissel/forgeweave/block/ForgeweaveBlocks.java` (the 12-variant seared brick block family: stone, cobblestone, paver, bricks, cracked/fancy/square/triangle/small bricks, road, tile, creeper) | `src/main/java/slimeknights/tconstruct/smeltery/block/BlockSeared.java` (`SearedType`) | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
+| `src/main/resources/assets/forgeweave/textures/derived/block/standard_core_front_active.png` | `resources/assets/tconstruct/textures/blocks/smeltery/smeltery_active.png` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
+| `src/main/resources/assets/forgeweave/textures/derived/block/standard_core_front_inactive.png` | `resources/assets/tconstruct/textures/blocks/smeltery/smeltery_inactive.png` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
+| `src/main/resources/assets/forgeweave/textures/derived/block/nether_core_front_active.png` (recoloured to a netherite palette; the Nether Core tier has no upstream equivalent, so its art is a hue/value shift of the Standard Core's) | `resources/assets/tconstruct/textures/blocks/smeltery/smeltery_active.png` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
+| `src/main/resources/assets/forgeweave/textures/derived/block/nether_core_front_inactive.png` (recoloured, as above) | `resources/assets/tconstruct/textures/blocks/smeltery/smeltery_inactive.png` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
+| `src/main/resources/assets/forgeweave/textures/derived/block/seared_tank_side.png` | `resources/assets/tconstruct/textures/blocks/smeltery/seared_tank_side.png` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
+| `src/main/resources/assets/forgeweave/textures/derived/block/seared_tank_top.png` | `resources/assets/tconstruct/textures/blocks/smeltery/seared_tank_top.png` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
+| `src/main/resources/assets/forgeweave/textures/derived/block/seared_gauge_side.png` | `resources/assets/tconstruct/textures/blocks/smeltery/seared_gauge_side.png` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
+| `src/main/resources/assets/forgeweave/textures/derived/block/seared_window_side.png` | `resources/assets/tconstruct/textures/blocks/smeltery/seared_window_side.png` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
+| `src/main/resources/assets/forgeweave/textures/derived/block/seared_window_top.png` | `resources/assets/tconstruct/textures/blocks/smeltery/seared_window_top.png` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
+| `src/main/resources/assets/forgeweave/textures/derived/block/seared_drain_front.png` | `resources/assets/tconstruct/textures/blocks/smeltery/drain_front.png` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
+| `src/main/resources/assets/forgeweave/textures/derived/block/seared_drain_back.png` | `resources/assets/tconstruct/textures/blocks/smeltery/drain_back.png` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
+| `src/main/java/dev/gkissel/forgeweave/block/SmelteryScan.java` (rectangular-interior detection: the wall walks, the 9x9 maximum, floor-then-layers order, corner-free wall checks and the at-least-one-tank requirement) | `src/main/java/slimeknights/tconstruct/smeltery/multiblock/{MultiblockDetection,MultiblockCuboid,MultiblockTinker,MultiblockSmeltery}.java` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
+| `src/main/java/dev/gkissel/forgeweave/block/SmelteryScan.java` (`Result`: a failure position plus a translatable reason, instead of 1.12's bare `null`) | `src/main/java/slimeknights/tconstruct/smeltery/block/entity/multiblock/MultiblockResult.java` | `de26560d26c15edf93e6078520202d1c0518394e` | MIT |
+| `src/main/java/dev/gkissel/forgeweave/block/SmelteryStructure.java` (the interior bounds a formed structure records) | `src/main/java/slimeknights/tconstruct/smeltery/multiblock/MultiblockDetection.java` (`MultiblockStructure`) | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
+| `src/main/java/dev/gkissel/forgeweave/block/SmelteryControllerBlockEntity.java` (formed/bounds state, its NBT shape, and the eight-ingots-per-interior-block tank capacity) | `src/main/java/slimeknights/tconstruct/smeltery/tileentity/TileMultiblock.java`, `src/main/java/slimeknights/tconstruct/smeltery/tileentity/TileSmeltery.java` (`CAPACITY_PER_BLOCK`, `updateStructureInfo`) | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
+| `src/main/java/dev/gkissel/forgeweave/block/SmelteryControllerBlock.java` (horizontal `facing` pointing out of the structure, the `active` property, and rescanning on placement) | `src/main/java/slimeknights/tconstruct/smeltery/block/BlockMultiblockController.java`, `src/main/java/slimeknights/tconstruct/smeltery/block/BlockSmelteryController.java` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
+| `src/main/java/dev/gkissel/forgeweave/block/SearedTankBlock.java` and `SearedTankBlockEntity.java` (four-bucket capacity, bucket interaction, comparator scaling, keeping contents through a break) | `src/main/java/slimeknights/tconstruct/smeltery/block/BlockTank.java`, `src/main/java/slimeknights/tconstruct/smeltery/tileentity/TileTank.java` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
+| `src/main/java/dev/gkissel/forgeweave/block/SearedDrainBlock.java` and `SearedDrainBlockEntity.java` (a wall block re-exposing the smeltery's own tank to its neighbours) | `src/main/java/slimeknights/tconstruct/smeltery/block/BlockSmelteryIO.java`, `src/main/java/slimeknights/tconstruct/smeltery/tileentity/TileDrain.java` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
+| `src/main/java/dev/gkissel/forgeweave/data/ForgeweaveBlockStateProvider.java` (the core's orientable shape with seared brick on every face but the front, front swapping on `active`; one cube per tank type with its own side/top textures) | `resources/assets/tconstruct/blockstates/smeltery_controller.json`, `resources/assets/tconstruct/blockstates/seared_tank.json` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
+| `src/main/java/dev/gkissel/forgeweave/data/ForgeweaveRecipeProvider.java` (the smeltery core's brick ring, the drain's two brick columns, and the tank/gauge/window brick-and-glass shapes) | `resources/assets/tconstruct/recipes/smeltery/{smeltery_controller,smeltery_drain}.json`, `resources/assets/tconstruct/recipes/smeltery/seared/{tank,gauge,window}.json` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
 
 The station tab row uses **vanilla's** creative-inventory tab sprites (`minecraft:container/creative_inventory/tab_top_{selected,unselected}_N`) and so has no derived-asset row. That is upstream's own choice, not a substitution: 1.12's `GuiTinkerTabs` hands its `GuiElement`s to Mantle's `GuiWidgetTabs`, which binds
 `textures/gui/container/creative_inventory/tabs.png` and samples the unselected tab at `(0, 2, 28, 28)` and the selected one at `(*, 32, 28, 32)` -- i.e. the station tabs already *were* vanilla's creative tabs. Modern Minecraft split that sheet into the 26x32 per-column sprites used here.
@@ -420,3 +440,28 @@ here is likewise craftable from nothing yet -- both are entirely dependent on th
 system (issue #95). The same is true of the chain's own entry point, seared stone: nothing in this
 issue can produce the first one either. These are not gaps introduced by this port; they are exactly
 upstream's shape, ahead of the milestone that fills them in.
+
+The smeltery multiblock (docs/SCOPE.md M2 issue #95) ports upstream 1.12's structure semantics
+exactly -- rectangular 1x1 to 9x9 interior, seared floor, no frame, no ceiling, walls scanned upward
+until one fails, at least one tank -- with four deliberate deviations:
+
+- **The core has no ticker.** Upstream's `TileSmeltery.update` polls `checkMultiblockStructure`
+  once a second while unformed and re-runs it every 15 seconds while formed, plus a one-block-per
+  -second interior sweep. SCOPE.md's M2 performance budget requires an idle smeltery to cost
+  approximately zero ticks, so every scan here is driven by an event on the core (placement,
+  neighbour change, player use) or by revalidation the first time something reads the structure in a
+  given second. See `SmelteryControllerBlockEntity`'s javadoc.
+- **No servant block entities.** Upstream gives every structure block a `MultiServantLogic` tile
+  entity pointing back at its master, which is how a distant wall break notifies the controller and
+  how a drain finds its smeltery. Issue #93 already shipped the seared blocks as plain blocks, so
+  Forgeweave keeps only the interior bounds, and the core hands each drain its position when a scan
+  succeeds.
+- **Failures carry a reason.** 1.12 returns `null` for every failure. The reason model is taken from
+  the 1.20 clone's `MultiblockResult` (row above), which is what issue #95's "the controller reports
+  why an invalid structure fails to form" needs.
+- **Wall walks run one block further than upstream's.** `MultiblockCuboid` walks exactly `MAX_SIZE`
+  blocks looking for a wall, which lets a 10-wide interior seeded from its own edge measure as a
+  passing 9. Forgeweave walks `MAX_SIZE + 1` so the oversized case is always reported.
+
+The Nether Core tier itself is not upstream: 1.12 has one smeltery controller. Its 2x yield, its
+netherite-ingot recipe and its recoloured front texture are SCOPE.md's and Forgeweave's own.
