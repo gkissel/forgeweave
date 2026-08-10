@@ -1,6 +1,7 @@
 package dev.gkissel.forgeweave.data;
 
 import net.minecraft.data.PackOutput;
+import net.minecraft.world.level.block.Block;
 
 import net.neoforged.neoforge.client.model.generators.BlockStateProvider;
 import net.neoforged.neoforge.client.model.generators.ModelFile;
@@ -21,6 +22,9 @@ import dev.gkissel.forgeweave.block.ForgeweaveBlocks;
  * near-literal transcription of upstream 1.12's {@code models/block/table.json} (NOTICE.md), with
  * every face's texture variable consolidated onto a single {@code #texture} slot (upstream splits
  * top/side/leg/legBottom) so the whole table retextures as one piece from the crafting wood.
+ *
+ * <p>The seared brick block family (docs/SCOPE.md M2 issue #93) is plain {@code cube_all}
+ * geometry, one derived texture per variant -- see {@link #cubeAllBlock}.
  */
 public class ForgeweaveBlockStateProvider extends BlockStateProvider {
     public ForgeweaveBlockStateProvider(PackOutput output, ExistingFileHelper existingFileHelper) {
@@ -57,5 +61,26 @@ public class ForgeweaveBlockStateProvider extends BlockStateProvider {
                 modLoc("derived/block/part_chest_side"), modLoc("derived/block/part_chest_front"), modLoc("derived/block/part_chest_top"));
         horizontalBlock(ForgeweaveBlocks.PART_CHEST.get(), partChestModel);
         simpleBlockItem(ForgeweaveBlocks.PART_CHEST.get(), partChestModel);
+
+        // The seared brick block family (docs/SCOPE.md M2 issue #93): plain cube_all blocks, one
+        // derived texture per variant (NOTICE.md) -- unlike the tables above, these have no custom
+        // geometry, so simpleBlockWithItem covers both the blockstate and the block-item model.
+        cubeAllBlock("seared_stone", ForgeweaveBlocks.SEARED_STONE.get());
+        cubeAllBlock("seared_cobblestone", ForgeweaveBlocks.SEARED_COBBLESTONE.get());
+        cubeAllBlock("seared_paver", ForgeweaveBlocks.SEARED_PAVER.get());
+        cubeAllBlock("seared_bricks", ForgeweaveBlocks.SEARED_BRICKS.get());
+        cubeAllBlock("seared_cracked_bricks", ForgeweaveBlocks.SEARED_CRACKED_BRICKS.get());
+        cubeAllBlock("seared_fancy_bricks", ForgeweaveBlocks.SEARED_FANCY_BRICKS.get());
+        cubeAllBlock("seared_square_bricks", ForgeweaveBlocks.SEARED_SQUARE_BRICKS.get());
+        cubeAllBlock("seared_triangle_bricks", ForgeweaveBlocks.SEARED_TRIANGLE_BRICKS.get());
+        cubeAllBlock("seared_small_bricks", ForgeweaveBlocks.SEARED_SMALL_BRICKS.get());
+        cubeAllBlock("seared_road", ForgeweaveBlocks.SEARED_ROAD.get());
+        cubeAllBlock("seared_tile", ForgeweaveBlocks.SEARED_TILE.get());
+        cubeAllBlock("seared_creeper", ForgeweaveBlocks.SEARED_CREEPER.get());
+    }
+
+    private void cubeAllBlock(String name, Block block) {
+        ModelFile model = models().cubeAll(name, modLoc("derived/block/" + name));
+        simpleBlockWithItem(block, model);
     }
 }

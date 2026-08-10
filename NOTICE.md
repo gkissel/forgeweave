@@ -116,6 +116,25 @@ One row per derived file (ADR-0003). Maintained in PR review: a PR introducing d
 | `src/main/java/dev/gkissel/forgeweave/client/StationScreen.java` (tab-row geometry: 4px inset from the panel's left edge, tabs drawn above the panel with the selected one re-drawn on top, block-icon tabs with the block's name as hover text) | `src/main/java/slimeknights/tconstruct/tools/common/client/GuiTinkerStation.java`, `src/main/java/slimeknights/tconstruct/tools/common/client/module/GuiTinkerTabs.java` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
 | `src/main/java/dev/gkissel/forgeweave/client/PartBuilderScreen.java` (pattern-chest button sidebar: which patterns get a button, the four-column button grid, and hiding the chest's slots behind it) | `src/main/java/slimeknights/tconstruct/tools/common/client/module/GuiButtonsPartCrafter.java`, `src/main/java/slimeknights/tconstruct/tools/common/client/GuiPartBuilder.java` (`drawSlot`/`isMouseOverSlot`) | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
 | `src/main/java/dev/gkissel/forgeweave/menu/PartBuilderMenu.java` (`partCrafter` conditions and `setPattern`'s exchange of the loaded pattern with the chest's) and `src/main/java/dev/gkissel/forgeweave/block/PartBuilderBlockEntity.java` (`isPartCrafter`) | `src/main/java/slimeknights/tconstruct/tools/common/inventory/ContainerPartBuilder.java` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
+| `src/main/resources/assets/forgeweave/textures/derived/item/grout.png` (reused as a flat item icon; grout is a plain item here, not a block state -- see `ForgeweaveItems#GROUT`) | `resources/assets/tconstruct/textures/blocks/grout.png` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
+| `src/main/resources/assets/forgeweave/textures/derived/item/seared_brick.png` | `resources/assets/tconstruct/textures/items/materials/seared_brick.png` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
+| `src/main/resources/assets/forgeweave/textures/derived/block/seared_stone.png` | `resources/assets/tconstruct/textures/blocks/smeltery/seared_stone.png` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
+| `src/main/resources/assets/forgeweave/textures/derived/block/seared_cobblestone.png` | `resources/assets/tconstruct/textures/blocks/smeltery/seared_cobble.png` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
+| `src/main/resources/assets/forgeweave/textures/derived/block/seared_paver.png` | `resources/assets/tconstruct/textures/blocks/smeltery/seared_paver.png` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
+| `src/main/resources/assets/forgeweave/textures/derived/block/seared_bricks.png` | `resources/assets/tconstruct/textures/blocks/smeltery/seared_brick.png` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
+| `src/main/resources/assets/forgeweave/textures/derived/block/seared_cracked_bricks.png` | `resources/assets/tconstruct/textures/blocks/smeltery/seared_brick_cracked.png` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
+| `src/main/resources/assets/forgeweave/textures/derived/block/seared_fancy_bricks.png` | `resources/assets/tconstruct/textures/blocks/smeltery/seared_brick_fancy.png` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
+| `src/main/resources/assets/forgeweave/textures/derived/block/seared_square_bricks.png` | `resources/assets/tconstruct/textures/blocks/smeltery/seared_brick_square.png` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
+| `src/main/resources/assets/forgeweave/textures/derived/block/seared_triangle_bricks.png` | `resources/assets/tconstruct/textures/blocks/smeltery/seared_brick_triangle.png` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
+| `src/main/resources/assets/forgeweave/textures/derived/block/seared_small_bricks.png` | `resources/assets/tconstruct/textures/blocks/smeltery/seared_brick_small.png` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
+| `src/main/resources/assets/forgeweave/textures/derived/block/seared_road.png` | `resources/assets/tconstruct/textures/blocks/smeltery/seared_road.png` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
+| `src/main/resources/assets/forgeweave/textures/derived/block/seared_tile.png` | `resources/assets/tconstruct/textures/blocks/smeltery/seared_tile.png` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
+| `src/main/resources/assets/forgeweave/textures/derived/block/seared_creeper.png` | `resources/assets/tconstruct/textures/blocks/smeltery/seared_creeper.png` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
+| `src/main/java/dev/gkissel/forgeweave/data/ForgeweaveRecipeProvider.java` (grout recipe shape: clay ball + sand/red sand + gravel, shapeless, yields 2) | `resources/assets/tconstruct/recipes/smeltery/grout_simple.json` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
+| `src/main/java/dev/gkissel/forgeweave/data/ForgeweaveRecipeProvider.java` (grout smelts into seared brick, 0.4 xp; seared bricks smelts into cracked seared bricks, 0.1 xp) | `src/main/java/slimeknights/tconstruct/smeltery/TinkerSmeltery.java` (`registerSmelting`) | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
+| `src/main/java/dev/gkissel/forgeweave/data/ForgeweaveRecipeProvider.java` (four seared brick items, 2x2, craft one seared bricks block) | `resources/assets/tconstruct/recipes/smeltery/seared/bricks/bricks.json` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
+| `src/main/java/dev/gkissel/forgeweave/data/ForgeweaveRecipeProvider.java` (the ten shapeless 1:1 block-variant conversions forming the stone->paver->bricks->fancy->square->triangle->creeper->small->tile->road->paver loop) | `resources/assets/tconstruct/recipes/smeltery/seared/bricks/{bricks_simple,paver_bricks_default,fancy_bricks,square_bricks,triangle_bricks,creeper_bricks,small_bricks,tile_bricks,road_bricks,paver_bricks}.json` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
+| `src/main/java/dev/gkissel/forgeweave/block/ForgeweaveBlocks.java` (the 12-variant seared brick block family: stone, cobblestone, paver, bricks, cracked/fancy/square/triangle/small bricks, road, tile, creeper) | `src/main/java/slimeknights/tconstruct/smeltery/block/BlockSeared.java` (`SearedType`) | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
 
 The station tab row uses **vanilla's** creative-inventory tab sprites (`minecraft:container/creative_inventory/tab_top_{selected,unselected}_N`) and so has no derived-asset row. That is upstream's own choice, not a substitution: 1.12's `GuiTinkerTabs` hands its `GuiElement`s to Mantle's `GuiWidgetTabs`, which binds
 `textures/gui/container/creative_inventory/tabs.png` and samples the unselected tab at `(0, 2, 28, 28)` and the selected one at `(*, 32, 28, 32)` -- i.e. the station tabs already *were* vanilla's creative tabs. Modern Minecraft split that sheet into the 26x32 per-column sprites used here.
@@ -357,3 +376,26 @@ modifier system yet (M2) and no separate Ctrl view, so the parts/traits content 
 Ctrl is folded into Forgeweave's Shift view instead. Tool tier is displayed by deriving a word from
 each material's `incorrect_for_<tier>_tool` block tag path rather than porting upstream's numeric
 `HarvestLevels` name table, since CONTEXT.md already requires the vanilla-tag tier system.
+
+Grout and the seared brick block family (docs/SCOPE.md M2 issue #93), ported from upstream 1.12's
+smeltery pulse: two deliberate deviations.
+
+- **Grout is a plain item, not a block state.** Upstream's grout is one state of `BlockSoil`
+  (`SoilTypes.GROUT`), a multi-purpose block it shares with graveyard soil, consecrated soil, and
+  slimy mud -- none of which are in Forgeweave's scope (no world-content milestone yet; see
+  docs/SCOPE.md's open questions). Splitting grout out into its own item avoids either porting that
+  whole unrelated block family early or leaving three dead enum states on a Forgeweave block; the
+  furnace-smelt-into-seared-brick and crafting-table behaviors upstream gives grout are unaffected.
+- **The 12 seared block variants are 12 separate `Block`s**, not one block with a 12-value
+  `PropertyEnum` blockstate (`BlockSeared.SearedType`, upstream's 1.12-era pattern). Modern
+  Minecraft's per-registry-name recipes/loot tables/tags favor one block per variant, matching how
+  every other Forgeweave block is already registered (`ForgeweaveBlocks`); no upstream behavior is
+  lost by the split; each variant's crafting/smelting recipe just names a different block instead of
+  a different blockstate value.
+
+Seared cobblestone has no vanilla-table recipe in either direction, matching upstream exactly:
+`BlockSeared.SearedType.COBBLE` never appears in any `recipes/smeltery/seared/**` file, so the block
+here is likewise craftable from nothing yet -- both are entirely dependent on the smeltery/casting
+system (issue #95). The same is true of the chain's own entry point, seared stone: nothing in this
+issue can produce the first one either. These are not gaps introduced by this port; they are exactly
+upstream's shape, ahead of the milestone that fills them in.

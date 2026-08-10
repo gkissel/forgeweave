@@ -40,6 +40,22 @@ public class ForgeweaveBlockLootSubProvider extends BlockLootSubProvider {
         // plain self-drop rather than retexturedTableDrop's component-copying loot function.
         dropSelf(ForgeweaveBlocks.PATTERN_CHEST.get());
         dropSelf(ForgeweaveBlocks.PART_CHEST.get());
+
+        // The seared brick block family (docs/SCOPE.md M2 issue #93): plain decorative blocks, no
+        // tool-tier gating (ForgeweaveBlocks javadoc), so every variant just drops itself -- matching
+        // upstream 1.12's own BlockSeared, which never overrides loot ("Safe for decoration").
+        dropSelf(ForgeweaveBlocks.SEARED_STONE.get());
+        dropSelf(ForgeweaveBlocks.SEARED_COBBLESTONE.get());
+        dropSelf(ForgeweaveBlocks.SEARED_PAVER.get());
+        dropSelf(ForgeweaveBlocks.SEARED_BRICKS.get());
+        dropSelf(ForgeweaveBlocks.SEARED_CRACKED_BRICKS.get());
+        dropSelf(ForgeweaveBlocks.SEARED_FANCY_BRICKS.get());
+        dropSelf(ForgeweaveBlocks.SEARED_SQUARE_BRICKS.get());
+        dropSelf(ForgeweaveBlocks.SEARED_TRIANGLE_BRICKS.get());
+        dropSelf(ForgeweaveBlocks.SEARED_SMALL_BRICKS.get());
+        dropSelf(ForgeweaveBlocks.SEARED_ROAD.get());
+        dropSelf(ForgeweaveBlocks.SEARED_TILE.get());
+        dropSelf(ForgeweaveBlocks.SEARED_CREEPER.get());
     }
 
     private LootTable.Builder retexturedTableDrop(Block block) {

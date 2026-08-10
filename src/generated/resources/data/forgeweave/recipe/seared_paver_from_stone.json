@@ -1,0 +1,13 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "building",
+  "ingredients": [
+    {
+      "item": "forgeweave:seared_stone"
+    }
+  ],
+  "result": {
+    "count": 1,
+    "id": "forgeweave:seared_paver"
+  }
+}

@@ -60,6 +60,22 @@ public final class ForgeweaveCreativeTab {
         output.accept(ForgeweaveItems.TOOL_SHOVEL.get());
         output.accept(ForgeweaveItems.TOOL_HATCHET.get());
 
+        // Grout, seared brick, and the seared brick block family (docs/SCOPE.md M2 issue #93).
+        output.accept(ForgeweaveItems.GROUT.get());
+        output.accept(ForgeweaveItems.SEARED_BRICK.get());
+        output.accept(ForgeweaveItems.SEARED_STONE.get());
+        output.accept(ForgeweaveItems.SEARED_COBBLESTONE.get());
+        output.accept(ForgeweaveItems.SEARED_PAVER.get());
+        output.accept(ForgeweaveItems.SEARED_BRICKS.get());
+        output.accept(ForgeweaveItems.SEARED_CRACKED_BRICKS.get());
+        output.accept(ForgeweaveItems.SEARED_FANCY_BRICKS.get());
+        output.accept(ForgeweaveItems.SEARED_SQUARE_BRICKS.get());
+        output.accept(ForgeweaveItems.SEARED_TRIANGLE_BRICKS.get());
+        output.accept(ForgeweaveItems.SEARED_SMALL_BRICKS.get());
+        output.accept(ForgeweaveItems.SEARED_ROAD.get());
+        output.accept(ForgeweaveItems.SEARED_TILE.get());
+        output.accept(ForgeweaveItems.SEARED_CREEPER.get());
+
         List<Holder.Reference<Material>> materials =
                 parameters.holders().lookupOrThrow(Material.REGISTRY).listElements().toList();
         for (DeferredItem<PartItem> partItem : PART_ITEMS) {
