@@ -22,6 +22,7 @@ import dev.gkissel.forgeweave.block.ForgeweaveBlockEntities;
 import dev.gkissel.forgeweave.block.ForgeweaveBlocks;
 import dev.gkissel.forgeweave.config.ForgeweaveConfig;
 import dev.gkissel.forgeweave.data.ForgeweaveDataGenerators;
+import dev.gkissel.forgeweave.fluid.ForgeweaveFluids;
 import dev.gkissel.forgeweave.item.ForgeweaveCreativeTab;
 import dev.gkissel.forgeweave.item.ForgeweaveDataComponents;
 import dev.gkissel.forgeweave.item.ForgeweaveItems;
@@ -42,6 +43,9 @@ public class Forgeweave {
         ForgeweaveDataComponents.DATA_COMPONENTS.register(modEventBus);
         ForgeweaveBlocks.BLOCKS.register(modEventBus);
         ForgeweaveBlockEntities.BLOCK_ENTITIES.register(modEventBus);
+        ForgeweaveFluids.FLUID_TYPES.register(modEventBus);
+        ForgeweaveFluids.FLUIDS.register(modEventBus);
+        ForgeweaveFluids.BLOCKS.register(modEventBus);
         ForgeweaveItems.ITEMS.register(modEventBus);
         ForgeweaveMenus.MENUS.register(modEventBus);
         ForgeweaveCreativeTab.TABS.register(modEventBus);
