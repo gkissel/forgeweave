@@ -16,6 +16,7 @@ import org.slf4j.Logger;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.Screenshot;
 import net.minecraft.client.gui.screens.TitleScreen;
+import net.minecraft.commands.arguments.EntityAnchorArgument;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.RegistryAccess;
@@ -36,6 +37,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.levelgen.WorldDimensions;
 import net.minecraft.world.level.levelgen.WorldOptions;
 import net.minecraft.world.level.levelgen.presets.WorldPresets;
+import net.minecraft.world.phys.Vec3;
 
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
@@ -62,6 +64,11 @@ import dev.gkissel.forgeweave.fluid.ForgeweaveFluids;
  * ever looked at offline PNG compositing, never the running client. This is not a CI gate -- see
  * {@code scripts/screenshots.sh} and docs/releasing.md's release-checklist step -- it is a tool a
  * reviewer runs by hand before a release.
+ *
+ * <p>Before the GUI screens, it also captures one plain world-view PNG with no menu open --
+ * {@code seared_tank_world.png}, a seared tank/gauge/window row at three different fill levels, the
+ * release-checklist artifact for in-world block entity rendering (issue #145) the same way
+ * {@link #SCREENS} is for GUIs.
  *
  * <h2>Why this is inert by default</h2>
  *
@@ -99,6 +106,10 @@ public final class ScreenshotHarness {
      * wall.
      */
     private static final int SCREEN_SPACING = 8;
+    /** How far in +Z the #145 tank/gauge/window row sits from the player's spawn point. */
+    private static final int TANK_SCENE_DISTANCE = 6;
+    /** Blocks apart along +X, wide enough that neighboring tanks don't visually overlap in frame. */
+    private static final int TANK_SCENE_SPACING = 2;
 
     /** One entry per station screen; see "Extending for M2" above. */
     private static final List<HarnessScreen> SCREENS = List.of(
@@ -114,7 +125,9 @@ public final class ScreenshotHarness {
             // like once everything in it has melted away.
             new HarnessScreen("smeltery_empty", ForgeweaveBlocks.STANDARD_CORE, ScreenshotHarness::buildEmptySmeltery));
 
-    private enum Stage { AWAIT_TITLE, AWAIT_WORLD, SETTLE_WORLD, OPEN_SCREEN, SETTLE_SCREEN, DONE }
+    private enum Stage {
+        AWAIT_TITLE, AWAIT_WORLD, SETTLE_WORLD, PLACE_TANK_SCENE, SETTLE_TANK_SCENE, OPEN_SCREEN, SETTLE_SCREEN, DONE
+    }
 
     private static Stage stage = Stage.AWAIT_TITLE;
     private static int stageTicks;
@@ -134,6 +147,8 @@ public final class ScreenshotHarness {
             case AWAIT_TITLE -> awaitTitle(mc);
             case AWAIT_WORLD -> awaitWorld(mc);
             case SETTLE_WORLD -> settleWorld();
+            case PLACE_TANK_SCENE -> placeTankScene(mc);
+            case SETTLE_TANK_SCENE -> settleTankScene(mc);
             case OPEN_SCREEN -> openScreen(mc);
             case SETTLE_SCREEN -> settleScreen(mc);
             case DONE -> {}
@@ -176,8 +191,56 @@ public final class ScreenshotHarness {
 
     private static void settleWorld() {
         if (stageTicks >= WORLD_SETTLE_TICKS) {
-            advance(Stage.OPEN_SCREEN);
+            advance(Stage.PLACE_TANK_SCENE);
         }
+    }
+
+    /**
+     * Places a seared tank, gauge and window in a row a few blocks in front of the player at eye
+     * level, each filled to a different level, and points the camera at them -- #145's release-
+     * checklist scene. No GUI opens; {@link #settleTankScene} takes a plain world-view screenshot.
+     */
+    private static void placeTankScene(Minecraft mc) {
+        var server = mc.getSingleplayerServer();
+        // One block above the player's feet -- close enough to eye level for a level shot, and the
+        // camera below sits at the same height so it looks straight at the row instead of up at it.
+        BlockPos tankPos = origin.offset(0, 1, TANK_SCENE_DISTANCE);
+        BlockPos gaugePos = tankPos.offset(TANK_SCENE_SPACING, 0, 0);
+        BlockPos windowPos = tankPos.offset(2 * TANK_SCENE_SPACING, 0, 0);
+        LOGGER.info("{}placing seared tank/gauge/window world scene at {}", LOG_PREFIX, tankPos);
+        server.execute(() -> {
+            ServerPlayer serverPlayer = server.getPlayerList().getPlayers().get(0);
+            ServerLevel level = serverPlayer.serverLevel();
+            level.setBlockAndUpdate(tankPos, ForgeweaveBlocks.SEARED_TANK.get().defaultBlockState());
+            level.setBlockAndUpdate(gaugePos, ForgeweaveBlocks.SEARED_GAUGE.get().defaultBlockState());
+            level.setBlockAndUpdate(windowPos, ForgeweaveBlocks.SEARED_WINDOW.get().defaultBlockState());
+            // Three different fill fractions in one frame: proves the height math, not just that
+            // something renders. Filled directly on the block entity's tank, same as buildSmeltery --
+            // no bucket needed for a dev-only scene.
+            fillTank(level, tankPos, SearedTankBlockEntity.CAPACITY * 2 / 3);
+            fillTank(level, gaugePos, SearedTankBlockEntity.CAPACITY);
+            fillTank(level, windowPos, SearedTankBlockEntity.CAPACITY / 4);
+
+            BlockPos cameraPos = tankPos.offset(TANK_SCENE_SPACING, -1, -TANK_SCENE_DISTANCE);
+            serverPlayer.teleportTo(cameraPos.getX() + 0.5, cameraPos.getY(), cameraPos.getZ() + 0.5);
+            serverPlayer.lookAt(EntityAnchorArgument.Anchor.EYES,
+                    new Vec3(gaugePos.getX() + 0.5, gaugePos.getY() + 0.5, gaugePos.getZ() + 0.5));
+        });
+        advance(Stage.SETTLE_TANK_SCENE);
+    }
+
+    private static void fillTank(ServerLevel level, BlockPos pos, int amount) {
+        if (level.getBlockEntity(pos) instanceof SearedTankBlockEntity tank) {
+            tank.tank().fill(new FluidStack(Fluids.LAVA, amount), IFluidHandler.FluidAction.EXECUTE);
+        }
+    }
+
+    private static void settleTankScene(Minecraft mc) {
+        if (stageTicks < SCREEN_SETTLE_TICKS) {
+            return;
+        }
+        capture(mc, "seared_tank_world");
+        advance(Stage.OPEN_SCREEN);
     }
 
     private static void openScreen(Minecraft mc) {
