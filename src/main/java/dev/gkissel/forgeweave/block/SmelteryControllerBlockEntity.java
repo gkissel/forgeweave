@@ -444,6 +444,14 @@ public class SmelteryControllerBlockEntity extends BlockEntity implements Statio
      * <p>{@link #recipeFor} is cached per slot and this short-circuits on the first hit, so the
      * normal case is one lookup; the full scan only happens when there is nothing meltable at all,
      * which is exactly the case that must stop ticking.
+     *
+     * <p><b>Known consequence, not a bug:</b> because {@link #armMeltTick()} now needs a recipe
+     * too, an item already sitting in the grid that <em>gains</em> one via a datapack {@code
+     * /reload} does not re-arm by itself -- it waits for the next insert, structure scan
+     * (right-click or neighbour change) or chunk load. Same shape as fuel arriving in a distant tank
+     * after the items went in, and it wants the same fix: whatever ends up re-arming on fuel arrival
+     * should re-arm on reload too. ponytail: not worth its own hook until one of the two actually
+     * bites in a playtest.
      */
     private boolean hasMeltableItem() {
         for (int slot = 0; slot < meltingItems.size(); slot++) {
