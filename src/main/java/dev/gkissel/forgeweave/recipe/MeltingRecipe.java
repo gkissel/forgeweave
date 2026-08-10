@@ -170,4 +170,27 @@ public record MeltingRecipe(Ingredient input, Fluid fluid, int amount, int tempe
                         .thenComparing(entry -> entry.getKey().location()))
                 .map(Map.Entry::getValue);
     }
+
+    /**
+     * Same "most specific wins" resolution as {@link #find}, but over an explicit snapshot map
+     * rather than live {@link RegistryAccess} -- what the JEI plugin already has from its own
+     * per-session registry read ({@code dev.gkissel.forgeweave.jei.ForgeweaveJeiPlugin}, the same
+     * shape {@code material.Material} is read into for the M1 categories). This is what lets the
+     * melting JEI category (issue #109) dedupe an item that both a tag recipe and a more specific
+     * item-keyed override match -- e.g. vanilla copper ore under both {@code c:ores/copper} (144)
+     * and its own item-keyed override (504) -- without a second copy of {@link #find}'s tie-break
+     * rule that could drift from it.
+     */
+    // #109
+    public static Optional<MeltingRecipe> resolve(Map<ResourceLocation, MeltingRecipe> recipes, ItemStack stack) {
+        if (stack.isEmpty()) {
+            return Optional.empty();
+        }
+        return recipes.entrySet().stream()
+                .filter(entry -> entry.getValue().input.test(stack))
+                .min(Comparator.<Map.Entry<ResourceLocation, MeltingRecipe>, Boolean>comparing(
+                                entry -> entry.getValue().isTagInput())
+                        .thenComparing(Map.Entry::getKey))
+                .map(Map.Entry::getValue);
+    }
 }

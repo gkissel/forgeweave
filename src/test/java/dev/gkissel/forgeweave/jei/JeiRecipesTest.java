@@ -7,6 +7,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -21,11 +22,18 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.Ingredient;
+import net.minecraft.world.level.material.Fluids;
 
+import net.neoforged.neoforge.fluids.FluidStack;
+
+import dev.gkissel.forgeweave.casting.CastingRecipe;
 import dev.gkissel.forgeweave.item.ForgeweaveDataComponents;
 import dev.gkissel.forgeweave.item.ForgeweaveItems;
 import dev.gkissel.forgeweave.material.Material;
 import dev.gkissel.forgeweave.menu.PartBuilderRecipes;
+import dev.gkissel.forgeweave.modifier.ModifierRecipe;
+import dev.gkissel.forgeweave.recipe.AlloyRecipe;
+import dev.gkissel.forgeweave.recipe.MeltingRecipe;
 
 /**
  * Pins the pure recipe-building logic behind the JEI plugin's three categories: given a set of
@@ -178,5 +186,146 @@ class JeiRecipesTest {
         assertTrue(PartCraftingRecipes.build(none).isEmpty());
         assertTrue(AssemblyRecipes.build(none).isEmpty());
         assertTrue(RepairRecipes.build(none).isEmpty());
+    }
+
+    // ------------------------------------------------------------------ #109: melting, alloying, casting, modifiers
+
+    @Test
+    void meltingBuildsOneDisplayPerNonCollidingRecipe() {
+        Map<ResourceLocation, MeltingRecipe> recipes = new LinkedHashMap<>();
+        recipes.put(id("iron_ingot"), new MeltingRecipe(Ingredient.of(Items.IRON_INGOT), Fluids.LAVA, 144, 534, false));
+
+        List<MeltingDisplay> displays = MeltingRecipes.build(recipes);
+
+        assertEquals(1, displays.size());
+        MeltingDisplay display = displays.get(0);
+        assertEquals(144, display.amount());
+        assertEquals(534, display.temperature());
+        assertTrue(!display.ore());
+        assertEquals(1, display.inputs().size());
+        assertTrue(display.inputs().get(0).is(Items.IRON_INGOT));
+    }
+
+    /**
+     * The scenario #96's PR #124 warns about: an item can match both a broad "default" recipe and a
+     * more specific override, and a naive JEI view that enumerates each recipe's {@code Ingredient}
+     * independently would show the item under both -- copper ore reading 144 <em>and</em> 504. This
+     * pins the fix at the JEI layer: {@link MeltingRecipes#build} must never let the same item appear
+     * in two different displayed recipes, and whichever recipe it does show under must be the one
+     * {@link MeltingRecipe#resolve} -- the shared "most specific wins" resolver {@code
+     * recipe.MeltingRecipe#find} also uses at melt time -- actually picks.
+     *
+     * <p>Uses two item-list {@code Ingredient}s rather than a real {@code c:} tag for the broad
+     * recipe: {@code recipe.MeltingRecipeTest} already documents that tag contents aren't bound
+     * without a running server in a plain unit test, so a tag-based {@code Ingredient} would never
+     * match anything here and the collision this test exists to catch couldn't happen at all. The
+     * tie-break rule itself (item beats tag) is pinned separately by {@code
+     * recipe.MeltingRecipeTest#itemInputsAreMoreSpecificThanTagInputs}; this test's job is only to
+     * prove the JEI view correctly reflects whichever recipe {@link MeltingRecipe#resolve} decides.
+     */
+    @Test
+    void meltingViewDedupesAnItemMatchedByTwoOverlappingRecipes() {
+        Map<ResourceLocation, MeltingRecipe> recipes = new LinkedHashMap<>();
+        MeltingRecipe broadDefault = new MeltingRecipe(
+                Ingredient.of(Items.COPPER_INGOT, Items.GOLD_INGOT), Fluids.LAVA, 144, 500, true);
+        MeltingRecipe specificOverride = new MeltingRecipe(Ingredient.of(Items.COPPER_INGOT), Fluids.LAVA, 504, 500, true);
+        // Ids picked so specificOverride wins resolve()'s key tie-break (both inputs are item lists
+        // here, so isTagInput() ties -- see the class javadoc above for why a real tag can't be used).
+        recipes.put(id("aaa_specific_override"), specificOverride);
+        recipes.put(id("zzz_broad_default"), broadDefault);
+
+        List<MeltingDisplay> displays = MeltingRecipes.build(recipes);
+
+        MeltingRecipe winner = MeltingRecipe.resolve(recipes, new ItemStack(Items.COPPER_INGOT)).orElseThrow();
+        List<MeltingDisplay> showingCopper = displays.stream()
+                .filter(display -> display.inputs().stream().anyMatch(stack -> stack.is(Items.COPPER_INGOT)))
+                .toList();
+        assertEquals(1, showingCopper.size(), "copper ingot must show under exactly one recipe -- never both amounts");
+        assertEquals(winner.amount(), showingCopper.get(0).amount(), "the one display showing it must be resolve()'s winner");
+
+        // Gold ingot only ever matched the broad recipe, so a real collision on the shared item must
+        // not suppress an unrelated item that recipe also covers.
+        assertTrue(displays.stream().anyMatch(display -> display.amount() == 144
+                && display.inputs().stream().anyMatch(stack -> stack.is(Items.GOLD_INGOT))));
+    }
+
+    @Test
+    void meltingViewOmitsARecipeThatLosesEveryCandidateItem() {
+        Map<ResourceLocation, MeltingRecipe> recipes = new LinkedHashMap<>();
+        // Both recipes claim only copper ingot; "loses_entirely" always loses the tie-break to
+        // "always_wins" since a plain equal-specificity tie still needs a deterministic pick.
+        recipes.put(id("loses_entirely"), new MeltingRecipe(Ingredient.of(Items.COPPER_INGOT), Fluids.LAVA, 100, 500, false));
+        recipes.put(id("always_wins"), new MeltingRecipe(Ingredient.of(Items.COPPER_INGOT), Fluids.WATER, 200, 500, false));
+
+        List<MeltingDisplay> displays = MeltingRecipes.build(recipes);
+
+        assertEquals(1, displays.size(), "the recipe that loses every one of its candidate items shows no display at all");
+    }
+
+    @Test
+    void alloyingCarriesTheRecipesRatioAndResultUnchanged() {
+        Map<ResourceLocation, AlloyRecipe> recipes = new LinkedHashMap<>();
+        AlloyRecipe manyullyn = new AlloyRecipe(
+                List.of(new FluidStack(Fluids.LAVA, 2), new FluidStack(Fluids.WATER, 2)),
+                new FluidStack(Fluids.FLOWING_LAVA, 2));
+        recipes.put(id("manyullyn"), manyullyn);
+
+        List<AlloyRecipe> displays = AlloyingRecipes.build(recipes);
+
+        assertEquals(1, displays.size());
+        assertEquals(manyullyn, displays.get(0), "no display wrapper is needed -- the domain record already is the display shape");
+    }
+
+    @Test
+    void castingSplitsOneRegistryIntoTableAndBasinByStation() {
+        Map<ResourceLocation, CastingRecipe> recipes = new LinkedHashMap<>();
+        CastingRecipe tableRecipe = new CastingRecipe(CastingRecipe.Station.TABLE, Optional.of(Ingredient.of(Items.STICK)),
+                Fluids.LAVA, 144, new ItemStack(Items.IRON_INGOT), Optional.empty(), false, false);
+        CastingRecipe basinRecipe = new CastingRecipe(CastingRecipe.Station.BASIN, Optional.empty(),
+                Fluids.LAVA, 1296, new ItemStack(Items.IRON_BLOCK), Optional.empty(), false, false);
+        recipes.put(id("table_one"), tableRecipe);
+        recipes.put(id("basin_one"), basinRecipe);
+
+        assertEquals(List.of(tableRecipe), CastingRecipes.table(recipes));
+        assertEquals(List.of(basinRecipe), CastingRecipes.basin(recipes));
+    }
+
+    /**
+     * Modifier application: reagent + resulting modifier + level cap (docs/SCOPE.md M2 issue #109).
+     * Two recipes may legitimately target the same modifier id with different reagents -- extra_slot's
+     * shipped crafted-item and netherite-ingot recipes -- and both must show up as their own row
+     * rather than being collapsed, unlike melting's item-level collision.
+     */
+    @Test
+    void modifierApplicationShowsBothRecipesThatTargetTheSameModifier() {
+        Map<ResourceLocation, ModifierRecipe> recipes = new LinkedHashMap<>();
+        ModifierRecipe crafted = new ModifierRecipe(
+                ResourceLocation.fromNamespaceAndPath("forgeweave", "extra_slot"),
+                Ingredient.of(ForgeweaveItems.EXTRA_MODIFIER.get()), 1, 5, List.of());
+        ModifierRecipe netherite = new ModifierRecipe(
+                ResourceLocation.fromNamespaceAndPath("forgeweave", "extra_slot"),
+                Ingredient.of(Items.NETHERITE_INGOT), 1, 5, List.of());
+        recipes.put(id("extra_slot"), crafted);
+        recipes.put(id("extra_slot_netherite"), netherite);
+
+        List<ModifierRecipe> displays = ModifierApplicationRecipes.build(recipes);
+
+        assertEquals(2, displays.size(), "both extra_slot recipes must show, not just one");
+        assertTrue(displays.stream().anyMatch(recipe -> recipe.reagent().test(new ItemStack(ForgeweaveItems.EXTRA_MODIFIER.get()))));
+        assertTrue(displays.stream().anyMatch(recipe -> recipe.reagent().test(new ItemStack(Items.NETHERITE_INGOT))));
+    }
+
+    @Test
+    void modifierApplicationLevelCapFollowsTheRecipesOwnSchedule() {
+        ModifierRecipe uniform = new ModifierRecipe(
+                ResourceLocation.fromNamespaceAndPath("forgeweave", "haste"), Ingredient.of(Items.REDSTONE), 1, 250, List.of());
+
+        // Haste has no per-level override, so its display level cap comes from ForgeweaveModifiers'
+        // uniform unitsPerLevel (50 redstone per level): 250 units is level 5.
+        assertEquals(5, uniform.levelsReached(uniform.maxLevel()));
+    }
+
+    private static ResourceLocation id(String path) {
+        return ResourceLocation.fromNamespaceAndPath("forgeweave", path);
     }
 }

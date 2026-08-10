@@ -20,6 +20,7 @@ import mezz.jei.api.registration.IRecipeRegistration;
 import mezz.jei.api.registration.IRecipeTransferRegistration;
 
 import dev.gkissel.forgeweave.Forgeweave;
+import dev.gkissel.forgeweave.casting.CastingRecipe;
 import dev.gkissel.forgeweave.client.ChestScreen;
 import dev.gkissel.forgeweave.client.CraftingStationScreen;
 import dev.gkissel.forgeweave.client.PartBuilderScreen;
@@ -29,6 +30,9 @@ import dev.gkissel.forgeweave.item.ForgeweaveItems;
 import dev.gkissel.forgeweave.material.Material;
 import dev.gkissel.forgeweave.menu.ForgeweaveMenus;
 import dev.gkissel.forgeweave.menu.PartBuilderMenu;
+import dev.gkissel.forgeweave.modifier.ModifierRecipe;
+import dev.gkissel.forgeweave.recipe.AlloyRecipe;
+import dev.gkissel.forgeweave.recipe.MeltingRecipe;
 
 /**
  * JEI integration (docs/SCOPE.md M1 issue #11): three display-only recipe categories -- part
@@ -70,7 +74,13 @@ public final class ForgeweaveJeiPlugin implements IModPlugin {
         registration.addRecipeCategories(
                 new PartCraftingCategory(helper),
                 new AssemblyCategory(helper),
-                new RepairCategory(helper));
+                new RepairCategory(helper),
+                // #109 -- smeltery/casting/modifier JEI categories (docs/SCOPE.md M2 issue #109).
+                new MeltingCategory(helper),
+                new AlloyingCategory(helper),
+                new CastingTableCategory(helper),
+                new CastingBasinCategory(helper),
+                new ModifierApplicationCategory(helper));
     }
 
     @Override
@@ -79,17 +89,40 @@ public final class ForgeweaveJeiPlugin implements IModPlugin {
         registration.addRecipes(PartCraftingCategory.TYPE, PartCraftingRecipes.build(materials));
         registration.addRecipes(AssemblyCategory.TYPE, AssemblyRecipes.build(materials));
         registration.addRecipes(RepairCategory.TYPE, RepairRecipes.build(materials));
+
+        // #109 -- smeltery/casting/modifier JEI categories (docs/SCOPE.md M2 issue #109). Same
+        // per-session registry read as currentMaterials() above: melting, alloying, casting and
+        // modifier recipes are also NeoForge datapack registries with network codecs
+        // (Forgeweave#registerDataPackRegistries), so the client's synced copy is exactly what a
+        // joined session actually has -- including whatever #104's nether-ore melting recipes land
+        // mid-milestone, with no special-casing needed here.
+        Map<ResourceLocation, CastingRecipe> castingRecipes = currentCastingRecipes();
+        registration.addRecipes(MeltingCategory.TYPE, MeltingRecipes.build(currentMeltingRecipes()));
+        registration.addRecipes(AlloyingCategory.TYPE, AlloyingRecipes.build(currentAlloyRecipes()));
+        registration.addRecipes(CastingTableCategory.TYPE, CastingRecipes.table(castingRecipes));
+        registration.addRecipes(CastingBasinCategory.TYPE, CastingRecipes.basin(castingRecipes));
+        registration.addRecipes(ModifierApplicationCategory.TYPE, ModifierApplicationRecipes.build(currentModifierRecipes()));
     }
 
     @Override
     public void registerRecipeCatalysts(IRecipeCatalystRegistration registration) {
         registration.addRecipeCatalyst(ForgeweaveItems.PART_BUILDER.get(), PartCraftingCategory.TYPE);
-        registration.addRecipeCatalyst(ForgeweaveItems.TOOL_STATION.get(), AssemblyCategory.TYPE, RepairCategory.TYPE);
+        // #109: the repair tab is also the modify tab (menu.ToolStationMenu's class javadoc), so the
+        // Tool Station is a catalyst for modifier application too.
+        registration.addRecipeCatalyst(ForgeweaveItems.TOOL_STATION.get(),
+                AssemblyCategory.TYPE, RepairCategory.TYPE, ModifierApplicationCategory.TYPE);
         // A shard always pays a part's cost exactly (SHARD_VALUE divides both HEAD_COST and
         // SMALL_PART_COST with no remainder), so it's as legitimate a "what can this craft" lookup
         // target as the station itself (issue #45's Part Crafting rework).
         registration.addRecipeCatalyst(ForgeweaveItems.SHARD.get(), PartCraftingCategory.TYPE);
         registration.addRecipeCatalyst(ForgeweaveItems.CRAFTING_STATION.get(), RecipeTypes.CRAFTING);
+
+        // #109 -- smeltery/casting JEI categories (docs/SCOPE.md M2 issue #109): both core tiers
+        // melt and alloy, so both are catalysts for both categories.
+        registration.addRecipeCatalyst(ForgeweaveItems.STANDARD_CORE.get(), MeltingCategory.TYPE, AlloyingCategory.TYPE);
+        registration.addRecipeCatalyst(ForgeweaveItems.NETHER_CORE.get(), MeltingCategory.TYPE, AlloyingCategory.TYPE);
+        registration.addRecipeCatalyst(ForgeweaveItems.CASTING_TABLE.get(), CastingTableCategory.TYPE);
+        registration.addRecipeCatalyst(ForgeweaveItems.CASTING_BASIN.get(), CastingBasinCategory.TYPE);
     }
 
     /**
@@ -127,6 +160,13 @@ public final class ForgeweaveJeiPlugin implements IModPlugin {
 
         registration.addRecipeTransferHandler(new AssemblyTransferHandler(registration.getTransferHelper()), AssemblyCategory.TYPE);
         registration.addRecipeTransferHandler(new RepairTransferHandler(registration.getTransferHelper()), RepairCategory.TYPE);
+
+        // #109 -- modifier application transfer (docs/SCOPE.md M2 issue #109): melting and alloying
+        // happen automatically inside the smeltery tank and casting has no menu at all (both
+        // in-world mechanics with nothing to transfer into), so only this fifth category gets a [+]
+        // button.
+        registration.addRecipeTransferHandler(
+                new ModifierApplicationTransferHandler(registration.getTransferHelper()), ModifierApplicationCategory.TYPE);
     }
 
     /** Empty (not an error) at the title screen, before any world is joined and materials are synced. */
@@ -142,5 +182,64 @@ public final class ForgeweaveJeiPlugin implements IModPlugin {
             materials.put(entry.getKey().location(), entry.getValue());
         }
         return materials;
+    }
+
+    // #109 -- same per-session synced-registry read as currentMaterials() above, one per datapack
+    // registry this plugin's M2 categories need (docs/SCOPE.md M2 issue #109).
+
+    private static Map<ResourceLocation, MeltingRecipe> currentMeltingRecipes() {
+        ClientLevel level = Minecraft.getInstance().level;
+        if (level == null) {
+            return Map.of();
+        }
+
+        Registry<MeltingRecipe> registry = level.registryAccess().registryOrThrow(MeltingRecipe.REGISTRY);
+        Map<ResourceLocation, MeltingRecipe> recipes = new LinkedHashMap<>();
+        for (Map.Entry<ResourceKey<MeltingRecipe>, MeltingRecipe> entry : registry.entrySet()) {
+            recipes.put(entry.getKey().location(), entry.getValue());
+        }
+        return recipes;
+    }
+
+    private static Map<ResourceLocation, AlloyRecipe> currentAlloyRecipes() {
+        ClientLevel level = Minecraft.getInstance().level;
+        if (level == null) {
+            return Map.of();
+        }
+
+        Registry<AlloyRecipe> registry = level.registryAccess().registryOrThrow(AlloyRecipe.REGISTRY);
+        Map<ResourceLocation, AlloyRecipe> recipes = new LinkedHashMap<>();
+        for (Map.Entry<ResourceKey<AlloyRecipe>, AlloyRecipe> entry : registry.entrySet()) {
+            recipes.put(entry.getKey().location(), entry.getValue());
+        }
+        return recipes;
+    }
+
+    private static Map<ResourceLocation, CastingRecipe> currentCastingRecipes() {
+        ClientLevel level = Minecraft.getInstance().level;
+        if (level == null) {
+            return Map.of();
+        }
+
+        Registry<CastingRecipe> registry = level.registryAccess().registryOrThrow(CastingRecipe.REGISTRY);
+        Map<ResourceLocation, CastingRecipe> recipes = new LinkedHashMap<>();
+        for (Map.Entry<ResourceKey<CastingRecipe>, CastingRecipe> entry : registry.entrySet()) {
+            recipes.put(entry.getKey().location(), entry.getValue());
+        }
+        return recipes;
+    }
+
+    private static Map<ResourceLocation, ModifierRecipe> currentModifierRecipes() {
+        ClientLevel level = Minecraft.getInstance().level;
+        if (level == null) {
+            return Map.of();
+        }
+
+        Registry<ModifierRecipe> registry = level.registryAccess().registryOrThrow(ModifierRecipe.REGISTRY);
+        Map<ResourceLocation, ModifierRecipe> recipes = new LinkedHashMap<>();
+        for (Map.Entry<ResourceKey<ModifierRecipe>, ModifierRecipe> entry : registry.entrySet()) {
+            recipes.put(entry.getKey().location(), entry.getValue());
+        }
+        return recipes;
     }
 }
