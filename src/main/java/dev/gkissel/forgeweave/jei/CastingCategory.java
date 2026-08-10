@@ -1,0 +1,94 @@
+package dev.gkissel.forgeweave.jei;
+
+import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.network.chat.Component;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.ItemLike;
+
+import mezz.jei.api.gui.builder.IRecipeLayoutBuilder;
+import mezz.jei.api.gui.builder.IRecipeSlotBuilder;
+import mezz.jei.api.gui.drawable.IDrawable;
+import mezz.jei.api.gui.ingredient.IRecipeSlotsView;
+import mezz.jei.api.helpers.IGuiHelper;
+import mezz.jei.api.recipe.IFocusGroup;
+import mezz.jei.api.recipe.RecipeType;
+import mezz.jei.api.recipe.category.IRecipeCategory;
+
+import dev.gkissel.forgeweave.casting.CastingRecipe;
+
+/**
+ * Shared layout for the Casting Table and Casting Basin JEI categories (docs/SCOPE.md M2 issue
+ * #100's one-registry-two-stations shape, JEI split per issue #109): cast (if the recipe requires
+ * one -- a basin block-casting recipe like {@code block_iron.json} requires an <em>empty</em> block
+ * instead, so its display recipe just has no cast slot) plus a poured fluid produce the result item.
+ * {@link CastingTableCategory} and {@link CastingBasinCategory} differ only in icon, title and
+ * {@code RecipeType} id, so a shared base is what keeps that identical layout from being copied
+ * twice rather than a speculative abstraction over unrelated categories.
+ *
+ * <p>Casting has no menu at all -- both blocks are operated in-world, by right-clicking with an item
+ * held and pouring a fluid over them, not through a GUI with slots -- so unlike {@link
+ * AssemblyCategory}/{@link RepairCategory} neither casting category gets a recipe-click transfer
+ * button (docs/SCOPE.md M1 issue #40's transfer only applies where a menu has slots to fill).
+ */
+abstract class CastingCategory implements IRecipeCategory<CastingRecipe> {
+    private static final int WIDTH = 90;
+    private static final int HEIGHT = 40;
+    private static final int TANK_SIZE = 16;
+    private static final int ARROW_X = 36;
+
+    private final RecipeType<CastingRecipe> type;
+    private final Component title;
+    private final IDrawable icon;
+    private final IDrawable arrow;
+
+    CastingCategory(IGuiHelper helper, RecipeType<CastingRecipe> type, ItemLike iconItem, String titleKey) {
+        this.type = type;
+        this.title = Component.translatable(titleKey);
+        this.icon = helper.createDrawableItemStack(new ItemStack(iconItem));
+        this.arrow = helper.getRecipeArrow();
+    }
+
+    @Override
+    public RecipeType<CastingRecipe> getRecipeType() {
+        return type;
+    }
+
+    @Override
+    public Component getTitle() {
+        return title;
+    }
+
+    @Override
+    public int getWidth() {
+        return WIDTH;
+    }
+
+    @Override
+    public int getHeight() {
+        return HEIGHT;
+    }
+
+    @Override
+    public IDrawable getIcon() {
+        return icon;
+    }
+
+    @Override
+    public void setRecipe(IRecipeLayoutBuilder builder, CastingRecipe recipe, IFocusGroup focuses) {
+        recipe.cast().ifPresent(cast -> {
+            IRecipeSlotBuilder castSlot = builder.addInputSlot(0, 1).addIngredients(cast);
+            castSlot.addRichTooltipCallback((view, tooltip) -> tooltip.add(Component.translatable(recipe.consumesCast()
+                    ? "jei.category.forgeweave.casting.cast_consumed"
+                    : "jei.category.forgeweave.casting.cast_reusable")));
+        });
+        builder.addInputSlot(0, 21)
+                .setFluidRenderer(recipe.amount(), false, TANK_SIZE, TANK_SIZE)
+                .addFluidStack(recipe.fluid(), recipe.amount());
+        builder.addOutputSlot(WIDTH - 18, 11).addItemStack(recipe.result());
+    }
+
+    @Override
+    public void draw(CastingRecipe recipe, IRecipeSlotsView recipeSlotsView, GuiGraphics guiGraphics, double mouseX, double mouseY) {
+        arrow.draw(guiGraphics, ARROW_X, (HEIGHT - arrow.getHeight()) / 2);
+    }
+}

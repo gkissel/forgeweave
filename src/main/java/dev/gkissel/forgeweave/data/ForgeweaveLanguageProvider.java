@@ -300,6 +300,23 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("jei.category.forgeweave.tool_assembly", "Tool Assembly");
         add("jei.category.forgeweave.tool_repair", "Tool Repair");
 
+        // #109 -- smeltery/casting/modifier JEI categories (docs/SCOPE.md M2 issue #109).
+        add("jei.category.forgeweave.melting", "Melting");
+        // Shown on the melting category's fluid slot only for ore inputs (SmelteryCore#yieldMultiplier,
+        // issue #99) -- ingots, nuggets and blocks always melt 1:1, so they get no note.
+        add("jei.category.forgeweave.melting.core_multiplier",
+                "Base yield -- your smeltery's core tier multiplies ore inputs (Standard 1.5x, Nether 2x).");
+        add("jei.category.forgeweave.melting.temperature", "Temperature: %s");
+        add("jei.category.forgeweave.alloying", "Alloying");
+        add("jei.category.forgeweave.alloying.ratio_note",
+                "Shown as a ratio -- the smeltery alloys as many whole batches as the tank holds.");
+        add("jei.category.forgeweave.casting_table", "Casting Table");
+        add("jei.category.forgeweave.casting_basin", "Casting Basin");
+        add("jei.category.forgeweave.casting.cast_reusable", "Cast is not consumed");
+        add("jei.category.forgeweave.casting.cast_consumed", "Cast is consumed");
+        add("jei.category.forgeweave.modifier_application", "Modifier Application");
+        add("jei.category.forgeweave.modifier_application.level_cap", "Level cap: %s");
+
         // The nine molten metal fluids (docs/SCOPE.md M2 issue #92). FluidType's default description
         // id is "fluid_type.<namespace>.<path>" (no addFluidType helper on LanguageProvider), shown
         // wherever a fluid stack's name is displayed (tanks, JEI).
