@@ -414,6 +414,30 @@ public class SmelteryGameTests {
         helper.succeed();
     }
 
+    /**
+     * #97 follow-up (PR #126's flagged gap): the fuel gauge needs real fluid data, not just the
+     * synced burn temperature. Lava poured before the core forms means the very first scan
+     * ({@code onPlace}) already refreshes the display snapshot, so the menu sees it immediately with
+     * no need to wait for a melt tick.
+     */
+    @GameTest(template = "smeltery")
+    public static void menuExposesFuelGaugeData(GameTestHelper helper) {
+        buildWalls(helper, 1, 1, 2);
+        helper.<SearedTankBlockEntity>getBlockEntity(TANK_POS).tank()
+                .fill(new FluidStack(Fluids.LAVA, SearedTankBlockEntity.CAPACITY), IFluidHandler.FluidAction.EXECUTE);
+        BlockPos core = placeCore(helper, ForgeweaveBlocks.STANDARD_CORE.get());
+        SmelteryControllerBlockEntity blockEntity = helper.getBlockEntity(core);
+        helper.assertTrue(blockEntity.isFormed(), "expected the smeltery to form first: " + reason(helper, core));
+
+        SmelteryMenu menu = openMenu(helper, core);
+        FluidStack fuel = menu.fuel(helper.getLevel());
+        helper.assertTrue(!fuel.isEmpty(), "expected the fuel gauge to see the wall tank's lava");
+        helper.assertTrue(fuel.is(Fluids.LAVA), "expected lava as the displayed fuel fluid");
+        helper.assertValueEqual(fuel.getAmount(), SearedTankBlockEntity.CAPACITY, "fuel gauge amount");
+        helper.assertValueEqual(menu.fuelCapacity(helper.getLevel()), SearedTankBlockEntity.CAPACITY, "fuel gauge capacity");
+        helper.succeed();
+    }
+
     /** The menu the controller's own {@code createMenu} builds, i.e. what a right-click produces. */
     private static SmelteryMenu openMenu(GameTestHelper helper, BlockPos core) {
         SmelteryControllerBlockEntity blockEntity = helper.getBlockEntity(core);

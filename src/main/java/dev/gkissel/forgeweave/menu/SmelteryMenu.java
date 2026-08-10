@@ -16,6 +16,7 @@ import net.minecraft.world.level.Level;
 
 import net.neoforged.neoforge.fluids.FluidStack;
 
+import dev.gkissel.forgeweave.block.SearedTankBlockEntity;
 import dev.gkissel.forgeweave.block.SmelteryControllerBlockEntity;
 
 /**
@@ -259,21 +260,22 @@ public class SmelteryMenu extends StationMenu {
     /**
      * The fuel liquid the gauge draws, upstream's {@code TileSmeltery#getFuelDisplay}.
      *
-     * <p><b>Still empty, and deliberately so.</b> #131 landed the fuel system, but the wall tank it
-     * burns from is found on demand and explicitly <em>not</em> saved ("fuelTank itself is not
-     * saved, it is re-found"), so the client has no reference to the tank whose contents this would
-     * draw. Rendering the liquid needs one synced field in {@code SmelteryControllerBlockEntity} --
-     * a change to #131's just-merged code that belongs in a follow-up agreed with its author, not
-     * bolted on here. Until then the gauge frame renders empty and {@link #fuelTemperature} carries
-     * the real state into the tooltip, which is synced today.
+     * <p>#131's follow-up: reads {@code SmelteryControllerBlockEntity#fuelDisplayFluid()}, a synced
+     * snapshot of the wall tank's real, live contents. This is a deliberate parity deviation from
+     * upstream's own {@code getFuelDisplay}, which zeroes the displayed amount for the entire
+     * duration of an active burn (its {@code hasFuel()} branch) and only shows the real tank level
+     * between burns -- in practice an almost-always-empty gauge while a smeltery is actually melting
+     * something, which is not the "shows the lava fill" behaviour this follow-up exists to restore.
+     * Showing the tank's true level at all times is simpler and matches what a player expects to see.
      */
     public FluidStack fuel(@Nullable Level level) {
-        return FluidStack.EMPTY;
+        SmelteryControllerBlockEntity core = core(level);
+        return core == null ? FluidStack.EMPTY : core.fuelDisplayFluid();
     }
 
-    /** Capacity the fuel gauge is drawn against; see {@link #fuel}. */
+    /** Capacity the fuel gauge is drawn against: a wall tank's real capacity ({@link SearedTankBlockEntity#CAPACITY}); see {@link #fuel}. */
     public int fuelCapacity(@Nullable Level level) {
-        return 0;
+        return SearedTankBlockEntity.CAPACITY;
     }
 
     /**
