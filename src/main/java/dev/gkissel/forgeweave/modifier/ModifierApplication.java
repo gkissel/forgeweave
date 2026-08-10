@@ -6,14 +6,20 @@ import java.util.Optional;
 
 import javax.annotation.Nullable;
 
+import net.minecraft.core.HolderGetter;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.component.DataComponents;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.component.Tool;
+import net.minecraft.world.item.enchantment.Enchantment;
+import net.minecraft.world.item.enchantment.Enchantments;
+import net.minecraft.world.item.enchantment.ItemEnchantments;
 
 import dev.gkissel.forgeweave.item.ForgeweaveDataComponents;
+import dev.gkissel.forgeweave.item.ToolItem;
 import dev.gkissel.forgeweave.tool.ToolStats;
 
 /**
@@ -94,9 +100,48 @@ public final class ModifierApplication {
             // Forgeweave does one at a time and says so.
             return Optional.of(Outcome.rejected(Component.translatable("gui.forgeweave.modifier.invalid_reagent")));
         }
-        return Optional.of(apply(recipe, tool,
+        Outcome outcome = apply(recipe, tool,
                 firstMatches ? first.getCount() : 0,
-                secondMatches ? second.getCount() : 0));
+                secondMatches ? second.getCount() : 0);
+        if (!outcome.output().isEmpty()) {
+            // #106 batch: luck's Fortune/Looting grant. This is the one call in the whole class that
+            // needs registry access (resolving the Enchantment holders), which is why it lives here
+            // rather than in the registry-free apply()/modified() below -- see Modifier#fortuneLevel.
+            applyEnchantmentGrants(registries, outcome.output());
+        }
+        return Optional.of(outcome);
+    }
+
+    /**
+     * Rewrites {@code tool}'s stored {@code minecraft:enchantments} to the strongest Fortune/Looting
+     * any of its modifiers currently grant (issue #106's luck). Full overwrite rather than a merge is
+     * correct here: CONTEXT.md's default {@code allowVanillaEnchanting = false} means Forgeweave
+     * modifiers are the only source of enchantments a tool has, so recomputing from scratch every call
+     * can never lose a level a player earned some other way, and it self-corrects if luck is ever
+     * un-leveled by a future feature.
+     */
+    private static void applyEnchantmentGrants(HolderLookup.Provider registries, ItemStack tool) {
+        boolean weapon = tool.getItem() instanceof ToolItem toolItem && toolItem.isWeapon();
+        int fortune = 0;
+        int looting = 0;
+        for (ModifierEntry entry : ForgeweaveModifiers.of(tool)) {
+            Modifier modifier = ForgeweaveModifiers.get(entry.id());
+            if (modifier != null) {
+                fortune = Math.max(fortune, modifier.fortuneLevel(entry.level()));
+                if (weapon) {
+                    looting = Math.max(looting, modifier.lootingLevel(entry.level()));
+                }
+            }
+        }
+        if (fortune == 0 && looting == 0) {
+            return;
+        }
+        HolderGetter<Enchantment> enchantments = registries.lookupOrThrow(Registries.ENCHANTMENT);
+        ItemEnchantments.Mutable mutable =
+                new ItemEnchantments.Mutable(tool.getOrDefault(DataComponents.ENCHANTMENTS, ItemEnchantments.EMPTY));
+        mutable.set(enchantments.getOrThrow(Enchantments.FORTUNE), fortune);
+        mutable.set(enchantments.getOrThrow(Enchantments.LOOTING), looting);
+        tool.set(DataComponents.ENCHANTMENTS, mutable.toImmutable());
     }
 
     /**
@@ -146,7 +191,8 @@ public final class ModifierApplication {
                 break;
             }
         }
-        if (index < 0) {
+        boolean firstApplication = index < 0;
+        if (firstApplication) {
             entries.add(new ModifierEntry(id, level));
         } else {
             entries.set(index, entries.get(index).withLevel(level));
@@ -154,29 +200,82 @@ public final class ModifierApplication {
 
         ItemStack result = tool.copy();
         result.set(ForgeweaveDataComponents.MODIFIERS.get(), List.copyOf(entries));
-        retuneMiningSpeed(result);
+        retuneStats(result);
+        if (firstApplication) {
+            // #106 batch: diamond/emerald's tier bump. Only on first application -- see
+            // Modifier#toolTierIndex's javadoc for why that is what keeps this from compounding.
+            Modifier modifier = ForgeweaveModifiers.get(id);
+            if (modifier != null) {
+                retuneToolTier(result, modifier, level);
+            }
+        }
         return result;
     }
 
     /**
-     * Rewrites the mining speed inside the stack's existing vanilla {@code tool} component, leaving
-     * every other rule (notably the head material's deny-drops tier rule) exactly as assembly wrote
-     * it. Editing the component in place rather than rebuilding it from the material registry is
-     * what keeps this whole class free of registry access -- and keeps it correct for whatever rules
-     * a later tool type adds.
+     * Rewrites the mining speed inside the stack's existing vanilla {@code tool} component and the
+     * stack's {@code max_damage}, leaving every other rule (notably the head material's deny-drops
+     * tier rule -- {@link #retuneToolTier} is the only thing that touches that one) exactly as
+     * assembly wrote it. Editing the component in place rather than rebuilding it from the material
+     * registry is what keeps this whole class free of registry access -- and keeps it correct for
+     * whatever rules a later tool type adds. Attack damage needs no retuning here: {@code ToolItem}
+     * reads it from {@link ForgeweaveModifiers#effectiveStats} directly, since (unlike mining speed
+     * and durability) it was never baked into a stored vanilla component in the first place.
+     *
+     * <p>#106 batch: durability grew from a mining-speed-only method (issue #105) to also cover
+     * diamond/emerald's durability bonus, on the same {@code effectiveStats} mechanism -- CONTEXT.md's
+     * hard rule that the stored {@code tool_stats} component stays the untouched base means the
+     * <em>pool</em> a durability bonus grows is {@code max_damage}, not {@code tool_stats}, so growing
+     * it costs the player nothing of their current wear.
      */
-    private static void retuneMiningSpeed(ItemStack stack) {
-        Tool component = stack.get(DataComponents.TOOL);
+    private static void retuneStats(ItemStack stack) {
         ToolStats.Stats effective = ForgeweaveModifiers.effectiveStats(stack);
-        if (component == null || effective == null) {
+        if (effective == null) {
             return;
         }
-        List<Tool.Rule> rules = component.rules().stream()
-                .map(rule -> rule.speed().isEmpty()
-                        ? rule
-                        : new Tool.Rule(rule.blocks(), Optional.of(effective.miningSpeed()), rule.correctForDrops()))
-                .toList();
-        stack.set(DataComponents.TOOL, new Tool(rules, component.defaultMiningSpeed(), component.damagePerBlock()));
+        Tool component = stack.get(DataComponents.TOOL);
+        if (component != null) {
+            List<Tool.Rule> rules = component.rules().stream()
+                    .map(rule -> rule.speed().isEmpty()
+                            ? rule
+                            : new Tool.Rule(rule.blocks(), Optional.of(effective.miningSpeed()), rule.correctForDrops()))
+                    .toList();
+            stack.set(DataComponents.TOOL, new Tool(rules, component.defaultMiningSpeed(), component.damagePerBlock()));
+        }
+        stack.set(DataComponents.MAX_DAMAGE, effective.durability());
+    }
+
+    /**
+     * The one-shot tool-tier bump ({@link Modifier#toolTierIndex}, diamond/emerald): finds the
+     * deny-drops rule (the one rule with no speed -- {@link #retuneStats} never touches it, so it is
+     * always exactly what assembly or an earlier bump left), and if the modifier being newly applied
+     * raises its ladder index, replaces it with the higher tag. Left alone if the current tag isn't on
+     * {@code ForgeweaveModifiers}'s ladder at all (a material below wood tier, say) -- nothing to
+     * bump from.
+     */
+    private static void retuneToolTier(ItemStack stack, Modifier modifier, int level) {
+        Tool component = stack.get(DataComponents.TOOL);
+        if (component == null) {
+            return;
+        }
+        List<Tool.Rule> rules = component.rules();
+        for (int i = 0; i < rules.size(); i++) {
+            Tool.Rule rule = rules.get(i);
+            if (rule.speed().isPresent()) {
+                continue; // the mining-speed rule, not the deny-drops one.
+            }
+            int currentIndex = ForgeweaveModifiers.tierIndexOf(rule.blocks());
+            if (currentIndex < 0) {
+                return;
+            }
+            int newIndex = modifier.toolTierIndex(level, currentIndex);
+            if (newIndex != currentIndex) {
+                List<Tool.Rule> updated = new ArrayList<>(rules);
+                updated.set(i, Tool.Rule.deniesDrops(ForgeweaveModifiers.tierTag(newIndex)));
+                stack.set(DataComponents.TOOL, new Tool(updated, component.defaultMiningSpeed(), component.damagePerBlock()));
+            }
+            return;
+        }
     }
 
     /** A modifier's display name, keyed like a trait's: {@code modifier.<namespace>.<path>.name}. */

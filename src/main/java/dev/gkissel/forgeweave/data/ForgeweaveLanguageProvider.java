@@ -158,6 +158,10 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         // harvest levels, so `wooden` is no longer among them.
         add("tooltip.forgeweave.tier.stone", "Stone");
         add("tooltip.forgeweave.tier.iron", "Iron");
+        // #106 batch: diamond/emerald can bump a tool onto these two tiers in play, unlike the pair
+        // above which are the only ones M1's own materials start on.
+        add("tooltip.forgeweave.tier.diamond", "Diamond");
+        add("tooltip.forgeweave.tier.netherite", "Netherite");
 
         add("material.forgeweave.wood", "Wood");
         add("material.forgeweave.stone", "Stone");
@@ -239,6 +243,17 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         // Mending moss's acquisition (issue #107): shown when a player right-clicks a bookshelf with
         // moss but fewer than 10 XP levels, ported from upstream's message.mending_moss.not_enough_levels.
         add("message.forgeweave.mending_moss.not_enough_levels", "You need at least %s experience levels.");
+        // #106 batch: luck, sharpness, diamond, emerald.
+        add("modifier.forgeweave.luck.name", "Luck");
+        add("modifier.forgeweave.luck.description",
+                "Lapis lazuli grants Fortune, and Looting to weapons. Every 60 pieces is another level.");
+        add("modifier.forgeweave.sharpness.name", "Sharpness");
+        add("modifier.forgeweave.sharpness.description",
+                "Quartz increases attack damage. Every 72 pieces is another level.");
+        add("modifier.forgeweave.diamond.name", "Diamond");
+        add("modifier.forgeweave.diamond.description", "Adds 500 durability and raises the tool's tier.");
+        add("modifier.forgeweave.emerald.name", "Emerald");
+        add("modifier.forgeweave.emerald.description", "Adds 50% durability and raises the tool's tier.");
 
         // JEI recipe category titles (issue #11); only shown when JEI is installed, since the
         // integration is optional (neoforge.mods.toml).

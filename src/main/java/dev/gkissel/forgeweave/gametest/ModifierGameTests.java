@@ -175,7 +175,8 @@ public class ModifierGameTests {
 
         helper.assertTrue(menu.getSlot(ToolStationMenu.BINDING_SLOT).mayPlace(new ItemStack(Items.REDSTONE)),
                 "the repair tab's free slots must accept a modifier reagent");
-        helper.assertFalse(menu.getSlot(ToolStationMenu.BINDING_SLOT).mayPlace(new ItemStack(Items.DIAMOND)),
+        // Dirt, not diamond (issue #106): diamond became a valid modifier reagent (forgeweave:diamond).
+        helper.assertFalse(menu.getSlot(ToolStationMenu.BINDING_SLOT).mayPlace(new ItemStack(Items.DIRT)),
                 "they must still reject an item that is neither a repair item nor a reagent");
 
         menu.getSlot(ToolStationMenu.BINDING_SLOT).set(new ItemStack(Items.REDSTONE, 3));

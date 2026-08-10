@@ -1,0 +1,8 @@
+{
+  "modifier": "forgeweave:sharpness",
+  "reagent": {
+    "item": "minecraft:quartz"
+  },
+  "cost": 1,
+  "max_level": 360
+}

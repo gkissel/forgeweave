@@ -156,4 +156,64 @@ public interface Modifier {
     default float blockInteractionRangeBonus(int level) {
         return 0.0F;
     }
+
+    // ---------------------------------------------------------------- #106 batch (luck, sharpness, diamond, emerald)
+    // (sharpness rides the shared attackDamage hook declared above)
+
+    /**
+     * The tool's durability pool after this modifier has adjusted it, threaded like
+     * {@link #miningSpeed} except it also receives the untouched materials-derived durability:
+     * upstream {@code ModEmerald#applyEffect} adds half of {@code getOriginalToolStats}'s durability,
+     * not half of the running total, so a durability hook needs both to stay order-independent the
+     * same way a flat addition (upstream {@code ModDiamond}, {@code +500}) already is.
+     *
+     * @param level accumulated application units
+     * @param durability the durability pool so far (base plus every earlier modifier in the list)
+     * @param baseDurability the tool's untouched materials-derived durability
+     */
+    default int durability(int level, int durability, int baseDurability) {
+        return durability;
+    }
+
+    /**
+     * The tool's tier-ladder index (see {@code ForgeweaveModifiers}'s {@code TIER_TAGS}, the vanilla
+     * {@code incorrect_for_*_tool} tags in ascending power -- CONTEXT.md: no numeric harvest levels)
+     * after this modifier's bump, threaded like {@link #miningSpeed}. Upstream {@code ModDiamond}/
+     * {@code ModEmerald} mutate {@code harvestLevel} imperatively and only once each (both are
+     * one-shot, {@code max_level} 1), so unlike the stat hooks above, {@code ModifierApplication}
+     * calls this only the moment the modifier is first added to the tool -- never on a later,
+     * unrelated modifier application -- which is what keeps a flat "+1, capped" bump from ever
+     * compounding without needing a stored original tag to re-fold from.
+     *
+     * @param level accumulated application units
+     * @param tierIndex the ladder index so far
+     */
+    default int toolTierIndex(int level, int tierIndex) {
+        return tierIndex;
+    }
+
+    /**
+     * The Fortune enchantment level this modifier grants, applied to the tool's stored
+     * {@code minecraft:enchantments} component ({@code ModifierApplication#resolve}, the one call
+     * site with the registry access resolving an enchantment holder needs -- this interface stays as
+     * registry-free as {@link ModifierEntry}'s hard rule requires everywhere else). Upstream
+     * {@code ModLuck#applyEnchantments} grants Fortune to every harvest-category tool; every
+     * Forgeweave tool mines, so that gate is unconditional here. Default 0 (no fortune).
+     *
+     * @param level accumulated application units
+     */
+    default int fortuneLevel(int level) {
+        return 0;
+    }
+
+    /**
+     * As {@link #fortuneLevel}, for Looting -- upstream gates this on {@code Category.WEAPON}
+     * (of Forgeweave's three tools, only the hatchet: {@code ForgeweaveModifiers#HASTE}'s attack-speed
+     * bonus is gated the same way, via {@code ToolItem}). Default 0 (no looting).
+     *
+     * @param level accumulated application units
+     */
+    default int lootingLevel(int level) {
+        return 0;
+    }
 }

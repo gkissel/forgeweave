@@ -12,10 +12,14 @@ import org.slf4j.Logger;
 
 import com.mojang.logging.LogUtils;
 
+import net.minecraft.core.HolderSet;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.tags.BlockTags;
+import net.minecraft.tags.TagKey;
 import net.minecraft.world.entity.ExperienceOrb;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.item.ItemEntity;
@@ -23,6 +27,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.world.item.crafting.SingleRecipeInput;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 
 import net.neoforged.neoforge.common.util.TriState;
@@ -130,6 +135,67 @@ public final class ForgeweaveModifiers {
         }
     };
 
+    // ---------------------------------------------------------------- #106 batch (luck, sharpness, diamond, emerald)
+
+    /**
+     * Vanilla's {@code incorrect_for_*_tool} ladder, ascending tool power -- the vanilla-tag
+     * equivalent of upstream's numeric {@code HarvestLevels} (CONTEXT.md: no numeric harvest levels).
+     * Used only by {@link #DIAMOND}/{@link #EMERALD}'s {@code toolTierIndex}: index {@code n} is "this
+     * tool cannot mine what index {@code n}'s tag denies", so bumping the index is a strict upgrade.
+     * M1's two materials sit at index 0 (wood, {@code incorrect_for_stone_tool}) and index 1
+     * (stone/flint/bone, {@code incorrect_for_iron_tool}); {@code Material#incorrectForTool} has no
+     * "no tag at all" option, so index 3 ({@code incorrect_for_netherite_tool}) is the ladder's top.
+     */
+    static final List<TagKey<Block>> TIER_TAGS = List.of(
+            BlockTags.INCORRECT_FOR_STONE_TOOL,
+            BlockTags.INCORRECT_FOR_IRON_TOOL,
+            BlockTags.INCORRECT_FOR_DIAMOND_TOOL,
+            BlockTags.INCORRECT_FOR_NETHERITE_TOOL);
+
+    /** Upstream {@code ModDiamond}: bumps up to but not past {@code HarvestLevels.OBSIDIAN}, mapped to the ladder's top. */
+    private static final int DIAMOND_TIER_CAP = TIER_TAGS.size() - 1;
+    /** Upstream {@code ModEmerald}: bumps up to but not past {@code HarvestLevels.DIAMOND}, one below diamond's cap. */
+    private static final int EMERALD_TIER_CAP = TIER_TAGS.size() - 2;
+
+    /**
+     * {@link #TIER_TAGS}'s index for a deny-drops rule's block set, or -1 if it isn't on the ladder.
+     * Public: {@code ModifierApplication} uses it to find what to bump, and {@code ToolTooltip} uses
+     * it to display the tool's <em>current</em> tier rather than its material's starting one, since a
+     * diamond/emerald bump changes the stack's rule without changing its head material.
+     */
+    public static int tierIndexOf(HolderSet<Block> blocks) {
+        for (int i = 0; i < TIER_TAGS.size(); i++) {
+            if (blocks.equals(BuiltInRegistries.BLOCK.getOrCreateTag(TIER_TAGS.get(i)))) {
+                return i;
+            }
+        }
+        return -1;
+    }
+
+    public static TagKey<Block> tierTag(int index) {
+        return TIER_TAGS.get(index);
+    }
+
+    /** Upstream {@code ModDiamond}: {@code data.durability += 500}. */
+    private static final int DIAMOND_DURABILITY_BONUS = 500;
+
+    /**
+     * Diamond. Upstream {@code ModDiamond}, ported for durability and tool tier (its extra
+     * {@code +1} attack / {@code +0.5} speed are not in issue #106's scope and are not shipped here --
+     * flagged for maintainer review in the PR).
+     */
+    public static final Modifier DIAMOND = new Modifier() {
+        @Override
+        public int durability(int level, int durability, int baseDurability) {
+            return durability + DIAMOND_DURABILITY_BONUS;
+        }
+
+        @Override
+        public int toolTierIndex(int level, int tierIndex) {
+            return Math.min(tierIndex + 1, DIAMOND_TIER_CAP);
+        }
+    };
+
     /**
      * Ender pearl. Sends this tool's block drops straight into the breaking player's inventory
      * instead of the ground ({@link #onBlockDrops}). Single level; id kept distinct from issue #102's
@@ -139,6 +205,57 @@ public final class ForgeweaveModifiers {
         @Override
         public boolean magnetic(int level) {
             return true;
+        }
+    };
+
+    /**
+     * Emerald. Upstream {@code ModEmerald}: {@code +50%} of the tool's untouched materials-derived
+     * durability (not the running total -- see {@link Modifier#durability}'s javadoc), plus a tool
+     * tier bump capped one rung below diamond's.
+     */
+    public static final Modifier EMERALD = new Modifier() {
+        @Override
+        public int durability(int level, int durability, int baseDurability) {
+            return durability + baseDurability / 2;
+        }
+
+        @Override
+        public int toolTierIndex(int level, int tierIndex) {
+            return Math.min(tierIndex + 1, EMERALD_TIER_CAP);
+        }
+    };
+
+    /** Upstream {@code TinkerModifiers}: {@code new ModSharpness(72)} -- 72 quartz per level, 5 levels. */
+    private static final int SHARPNESS_QUARTZ_PER_LEVEL = 72;
+    /** Upstream {@code ModSharpness#applyEffect}'s two diminishing-returns thresholds. */
+    private static final float SHARPNESS_STEP_1 = 10.0F;
+    private static final float SHARPNESS_STEP_2 = 20.0F;
+
+    /**
+     * Sharpness. Upstream {@code ModSharpness}, ported whole: a diminishing step per quartz --
+     * {@code +0.05} tapering to {@code +0.025} below 10 damage, {@code +0.025} tapering to
+     * {@code +0.015} below 20, a flat {@code +0.015} above -- plus a flat {@code +0.25} per completed
+     * level (72 quartz) on top, undiminished.
+     */
+    public static final Modifier SHARPNESS = new Modifier() {
+        @Override
+        public int unitsPerLevel() {
+            return SHARPNESS_QUARTZ_PER_LEVEL;
+        }
+
+        @Override
+        public float attackDamage(int level, float attackDamage) {
+            float attack = attackDamage;
+            for (int count = level; count > 0; count--) {
+                if (attack <= SHARPNESS_STEP_1) {
+                    attack += 0.05F - 0.025F * attack / SHARPNESS_STEP_1;
+                } else if (attack <= SHARPNESS_STEP_2) {
+                    attack += 0.025F - 0.01F * attack / SHARPNESS_STEP_2;
+                } else {
+                    attack += 0.015F;
+                }
+            }
+            return attack + level / SHARPNESS_QUARTZ_PER_LEVEL * 0.25F;
         }
     };
 
@@ -296,6 +413,49 @@ public final class ForgeweaveModifiers {
         }
     };
 
+    private static final ResourceLocation MENDING_MOSS_ID = id("mending_moss");
+    private static final ResourceLocation SOULBOUND_ID = id("soulbound");
+
+    /** Upstream {@code ModMendingMoss.MENDING_MOSS_LEVELS}: 10 XP levels per moss -> mending moss. */
+    private static final int MENDING_MOSS_ACQUIRE_LEVELS = 10;
+
+    // ---------------------------------------------------------------- #106 batch (luck, sharpness, diamond, emerald)
+
+    /**
+     * Upstream {@code ModLuck}: {@code baseCount = 60}, 3 levels -- but upstream's own
+     * {@code LuckAspect#getMaxForLevel} is triangular ({@code countPerLevel * level * (level + 1) / 2}:
+     * 60/180/360 lapis cumulative for levels 1/2/3), where every other Forgeweave modifier -- and
+     * {@link #displayLevel}/{@link #unitsForDisplayLevel} themselves -- assume a uniform per-level
+     * cost (haste's precedent). Reproducing the triangular curve would need a second, non-uniform
+     * leveling scheme in the shared framework, which is out of scope for this batch; Luck instead
+     * uses a flat 60 lapis/level here (180 total for level 3), and this simplification is flagged for
+     * maintainer review in the PR.
+     */
+    private static final int LUCK_LAPIS_PER_LEVEL = 60;
+
+    /**
+     * Luck. Upstream {@code ModLuck#applyEnchantments}: grants Fortune to every harvest tool (every
+     * Forgeweave tool) and Looting to weapon tools (the hatchet) up to the modifier's display level --
+     * see {@link Modifier#fortuneLevel}/{@link Modifier#lootingLevel}'s javadoc for where the
+     * registry-dependent half of this lives.
+     */
+    public static final Modifier LUCK = new Modifier() {
+        @Override
+        public int unitsPerLevel() {
+            return LUCK_LAPIS_PER_LEVEL;
+        }
+
+        @Override
+        public int fortuneLevel(int level) {
+            return 1 + (Math.max(1, level) - 1) / LUCK_LAPIS_PER_LEVEL;
+        }
+
+        @Override
+        public int lootingLevel(int level) {
+            return fortuneLevel(level);
+        }
+    };
+
     private static final Map<ResourceLocation, Modifier> REGISTRY = Map.ofEntries(
             Map.entry(id("haste"), HASTE),
             Map.entry(id("searing"), SEARING),
@@ -307,13 +467,11 @@ public final class ForgeweaveModifiers {
             Map.entry(id("mending_moss"), MENDING_MOSS),
             Map.entry(id("silky"), SILKY),
             Map.entry(id("soulbound"), SOULBOUND),
-            Map.entry(id("extra_slot"), EXTRA_SLOT));
-
-    private static final ResourceLocation MENDING_MOSS_ID = id("mending_moss");
-    private static final ResourceLocation SOULBOUND_ID = id("soulbound");
-
-    /** Upstream {@code ModMendingMoss.MENDING_MOSS_LEVELS}: 10 XP levels per moss -> mending moss. */
-    private static final int MENDING_MOSS_ACQUIRE_LEVELS = 10;
+            Map.entry(id("extra_slot"), EXTRA_SLOT),
+            Map.entry(id("luck"), LUCK),
+            Map.entry(id("sharpness"), SHARPNESS),
+            Map.entry(id("diamond"), DIAMOND),
+            Map.entry(id("emerald"), EMERALD));
 
     /**
      * The behavior for {@code id}, or {@code null} if this version doesn't implement it.
@@ -399,16 +557,18 @@ public final class ForgeweaveModifiers {
         }
         float miningSpeed = base.miningSpeed();
         float attackDamage = base.attackDamage();
+        int durability = base.durability();
         for (ModifierEntry entry : of(stack)) {
             Modifier modifier = get(entry.id());
             if (modifier != null) {
                 miningSpeed = modifier.miningSpeed(entry.level(), miningSpeed);
                 attackDamage = modifier.attackDamage(entry.level(), attackDamage);
+                durability = modifier.durability(entry.level(), durability, base.durability());
             }
         }
-        return miningSpeed == base.miningSpeed() && attackDamage == base.attackDamage()
+        return miningSpeed == base.miningSpeed() && attackDamage == base.attackDamage() && durability == base.durability()
                 ? base
-                : new ToolStats.Stats(base.durability(), miningSpeed, attackDamage);
+                : new ToolStats.Stats(durability, miningSpeed, attackDamage);
     }
 
     /** Combined attack-speed multiplier of the tool's modifiers; 1 when nothing touches it. */
