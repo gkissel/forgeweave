@@ -154,6 +154,28 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("modifier.forgeweave.haste.name", "Haste");
         add("modifier.forgeweave.haste.description", "Redstone speeds the tool up. Every 50 pieces is another level.");
 
+        // M2 metal traits (issue #102; material wiring is issue #103). Wording follows upstream
+        // 1.12's modifier.<id>.name/.desc entries, same as the M1 traits above.
+        add("trait.forgeweave.magnetic.name", "Magnetic");
+        add("trait.forgeweave.magnetic.description", "Pulls nearby item drops toward you.");
+        add("trait.forgeweave.magnetic2.name", "Magnetic II");
+        add("trait.forgeweave.magnetic2.description", "Pulls nearby item drops toward you, from further away.");
+        add("trait.forgeweave.momentum.name", "Momentum");
+        add("trait.forgeweave.momentum.description", "Mining speed increases the longer you mine continuously.");
+        add("trait.forgeweave.lightweight.name", "Lightweight");
+        add("trait.forgeweave.lightweight.description", "Increases mining and attack speed.");
+        add("trait.forgeweave.stonebound.name", "Stonebound");
+        add("trait.forgeweave.stonebound.description", "Mining speed increases as the tool's durability drops.");
+        add("trait.forgeweave.petramor.name", "Petramor");
+        add("trait.forgeweave.petramor.description", "Chance to repair itself when mining stone.");
+        add("trait.forgeweave.insatiable.name", "Insatiable");
+        add("trait.forgeweave.insatiable.description",
+                "Consecutive hits deal more damage, at the cost of extra durability.");
+        add("trait.forgeweave.coldblooded.name", "Coldblooded");
+        add("trait.forgeweave.coldblooded.description", "Bonus damage against undamaged targets.");
+        add("trait.forgeweave.established.name", "Established");
+        add("trait.forgeweave.established.description", "Grants bonus experience from kills.");
+
         // JEI recipe category titles (issue #11); only shown when JEI is installed, since the
         // integration is optional (neoforge.mods.toml).
         add("jei.category.forgeweave.part_crafting", "Part Crafting");

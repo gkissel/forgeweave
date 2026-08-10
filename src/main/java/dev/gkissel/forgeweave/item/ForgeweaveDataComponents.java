@@ -17,6 +17,7 @@ import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.modifier.ModifierEntry;
 import dev.gkissel.forgeweave.tool.ToolMaterials;
 import dev.gkissel.forgeweave.tool.ToolStats;
+import dev.gkissel.forgeweave.trait.TraitStacks;
 
 /** Data components carried by Forgeweave items. */
 public final class ForgeweaveDataComponents {
@@ -92,6 +93,21 @@ public final class ForgeweaveDataComponents {
     public static final DeferredHolder<DataComponentType<?>, DataComponentType<ResourceLocation>> TEXTURE =
             DATA_COMPONENTS.registerComponentType("texture",
                     builder -> builder.persistent(ResourceLocation.CODEC).networkSynchronized(ResourceLocation.STREAM_CODEC));
+
+    /**
+     * {@code ForgeweaveTraits#MOMENTUM}'s current mining-speed-boost stack and its decay countdown
+     * (issue #102): upstream 1.12 stores this as a hidden potion effect on the player, shared by
+     * every Momentum tool they hold; Forgeweave has no potion-effect plumbing, so it lives on the
+     * tool's own stack instead.
+     */
+    public static final DeferredHolder<DataComponentType<?>, DataComponentType<TraitStacks>> MOMENTUM_STACKS =
+            DATA_COMPONENTS.registerComponentType("momentum_stacks",
+                    builder -> builder.persistent(TraitStacks.CODEC).networkSynchronized(TraitStacks.STREAM_CODEC));
+
+    /** {@code ForgeweaveTraits#INSATIABLE}'s current damage-bonus stack and its decay countdown. */
+    public static final DeferredHolder<DataComponentType<?>, DataComponentType<TraitStacks>> INSATIABLE_STACKS =
+            DATA_COMPONENTS.registerComponentType("insatiable_stacks",
+                    builder -> builder.persistent(TraitStacks.CODEC).networkSynchronized(TraitStacks.STREAM_CODEC));
 
     private ForgeweaveDataComponents() {}
 }

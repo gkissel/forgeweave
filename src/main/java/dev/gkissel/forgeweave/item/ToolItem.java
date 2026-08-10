@@ -8,6 +8,7 @@ import org.jetbrains.annotations.Nullable;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.tags.TagKey;
@@ -27,6 +28,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 
+import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.config.ForgeweaveConfig;
 import dev.gkissel.forgeweave.material.Material;
 import dev.gkissel.forgeweave.modifier.ForgeweaveModifiers;
@@ -60,6 +62,10 @@ import dev.gkissel.forgeweave.trait.ForgeweaveTraits;
  * the only thing that clears the flag.
  */
 public class ToolItem extends Item {
+    /** Id for the trait-driven attack speed modifier {@link #getDefaultAttributeModifiers} adds (issue #102). */
+    private static final ResourceLocation TRAIT_ATTACK_SPEED_ID =
+            ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "trait_attack_speed");
+
     private final TagKey<Block> mineableBlocks;
     private final float attackSpeed;
     private final float damagePotential;
@@ -130,7 +136,7 @@ public class ToolItem extends Item {
         if (stack.get(ForgeweaveDataComponents.TOOL_STATS.get()) == null || isBroken(stack)) {
             return ItemAttributeModifiers.EMPTY;
         }
-        return ItemAttributeModifiers.builder()
+        ItemAttributeModifiers.Builder builder = ItemAttributeModifiers.builder()
                 .add(Attributes.ATTACK_DAMAGE,
                         new AttributeModifier(BASE_ATTACK_DAMAGE_ID, attackDamage(stack),
                                 AttributeModifier.Operation.ADD_VALUE),
@@ -138,8 +144,16 @@ public class ToolItem extends Item {
                 .add(Attributes.ATTACK_SPEED,
                         new AttributeModifier(BASE_ATTACK_SPEED_ID, effectiveAttackSpeed(stack) - 4.0,
                                 AttributeModifier.Operation.ADD_VALUE),
-                        EquipmentSlotGroup.MAINHAND)
-                .build();
+                        EquipmentSlotGroup.MAINHAND);
+        // Upstream's TraitLightweight (issue #102) scales attack speed by 10%; see ForgeweaveTraits#LIGHTWEIGHT.
+        float speedBonus = ForgeweaveTraits.attackSpeedBonus(stack);
+        if (speedBonus != 0.0F) {
+            builder.add(Attributes.ATTACK_SPEED,
+                    new AttributeModifier(TRAIT_ATTACK_SPEED_ID, attackSpeed * speedBonus,
+                            AttributeModifier.Operation.ADD_VALUE),
+                    EquipmentSlotGroup.MAINHAND);
+        }
+        return builder.build();
     }
 
     /**
@@ -200,9 +214,18 @@ public class ToolItem extends Item {
         }
     }
 
+    /**
+     * Mining speed traits ({@code ForgeweaveTraits#MOMENTUM}/{@code #LIGHTWEIGHT}/{@code #STONEBOUND},
+     * issue #102) adjust vanilla's own speed calculation in order, same as upstream 1.12's chained
+     * {@code PlayerEvent.BreakSpeed} handlers.
+     */
     @Override
     public float getDestroySpeed(ItemStack stack, BlockState state) {
-        return isBroken(stack) ? 1.0F : super.getDestroySpeed(stack, state);
+        if (isBroken(stack)) {
+            return 1.0F;
+        }
+        float base = super.getDestroySpeed(stack, state);
+        return ForgeweaveTraits.miningSpeed(stack, state.is(mineableBlocks), base);
     }
 
     @Override
@@ -224,6 +247,10 @@ public class ToolItem extends Item {
         }
         if (!level.isClientSide && state.getDestroySpeed(level, pos) != 0.0F) {
             stack.hurtAndBreak(state.is(mineableBlocks) ? 1 : 2, entity, EquipmentSlot.MAINHAND);
+            if (level instanceof ServerLevel serverLevel) {
+                // Traits that react to an actual block break (issue #102: momentum, petramor).
+                ForgeweaveTraits.afterBlockBreak(stack, serverLevel, state, entity);
+            }
         }
         return true;
     }
@@ -258,7 +285,12 @@ public class ToolItem extends Item {
         // attacker lands on the formula's floor, which is where every M1 material lands anyway.
         AttributeInstance attackDamage = attacker.getAttribute(Attributes.ATTACK_DAMAGE);
         float damage = attackDamage == null ? 0.0F : (float) attackDamage.getValue();
-        stack.hurtAndBreak(attackDurabilityCost(damage, weapon), attacker, EquipmentSlot.MAINHAND);
+        // Insatiable (issue #102) costs extra durability per stack, read before afterHit grows it.
+        int cost = attackDurabilityCost(damage, weapon) + ForgeweaveTraits.attackDurabilityBonus(stack);
+        stack.hurtAndBreak(cost, attacker, EquipmentSlot.MAINHAND);
+        if (attacker.level() instanceof ServerLevel serverLevel) {
+            ForgeweaveTraits.afterHit(stack, serverLevel, attacker, target);
+        }
     }
 
     /** See {@link #postHurtEnemy}. Package-private and pure so the formula is unit-testable. */
