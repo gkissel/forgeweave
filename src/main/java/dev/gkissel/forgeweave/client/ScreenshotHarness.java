@@ -111,6 +111,13 @@ public final class ScreenshotHarness {
     private static final int TANK_SCENE_DISTANCE = 6;
     /** Blocks apart along +X, wide enough that neighboring tanks don't visually overlap in frame. */
     private static final int TANK_SCENE_SPACING = 2;
+    /**
+     * Extra distance the camera backs off beyond the row itself, on top of {@link
+     * #TANK_SCENE_DISTANCE}: at 4 blocks back with blocks only 2 apart, the flanking tank/window sit
+     * at a steep enough angle from the gauge-centered lookAt that perspective could plausibly read as
+     * a shorter/taller fill than they actually are. Backing off flattens that angle.
+     */
+    private static final int TANK_SCENE_CAMERA_PULLBACK = 6;
 
     /** One entry per station screen; see "Extending for M2" above. */
     private static final List<HarnessScreen> SCREENS = List.of(
@@ -237,7 +244,8 @@ public final class ScreenshotHarness {
             fillTankFraction(level, windowPos, 1.0 / 4.0);
             LOGGER.info("{}placed tank={} gauge={} window={}", LOG_PREFIX, tankPos, gaugePos, windowPos);
 
-            BlockPos cameraPos = tankPos.offset(TANK_SCENE_SPACING, -1, -TANK_SCENE_DISTANCE);
+            BlockPos cameraPos = tankPos.offset(TANK_SCENE_SPACING, -1,
+                    -(TANK_SCENE_DISTANCE + TANK_SCENE_CAMERA_PULLBACK));
             serverPlayer.teleportTo(cameraPos.getX() + 0.5, cameraPos.getY(), cameraPos.getZ() + 0.5);
             serverPlayer.lookAt(EntityAnchorArgument.Anchor.EYES,
                     new Vec3(gaugePos.getX() + 0.5, gaugePos.getY() + 0.5, gaugePos.getZ() + 0.5));
@@ -267,17 +275,26 @@ public final class ScreenshotHarness {
         if (mc.level == null || tankScenePositions == null) {
             return;
         }
+        // Logged unconditionally so a run that only shows one position's check line proves the loop
+        // itself never reached the others, rather than leaving that ambiguous.
+        LOGGER.info("{}#145 scene check: verifying {} positions", LOG_PREFIX, tankScenePositions.length);
         for (BlockPos pos : tankScenePositions) {
-            var block = mc.level.getBlockState(pos).getBlock();
-            if (block == Blocks.AIR) {
-                LOGGER.error("{}#145 scene check FAILED: client sees air at {}, expected a seared tank "
-                        + "block -- placement or client sync did not land before capture", LOG_PREFIX, pos);
-            } else if (mc.level.getBlockEntity(pos) instanceof SearedTankBlockEntity tank) {
-                LOGGER.info("{}#145 scene check: client sees {} at {}, fluid {}/{} mB", LOG_PREFIX, block, pos,
-                        tank.tank().getFluidAmount(), tank.tank().getCapacity());
-            } else {
-                LOGGER.error("{}#145 scene check FAILED: client sees {} at {} but no SearedTankBlockEntity",
-                        LOG_PREFIX, block, pos);
+            // A single position throwing (e.g. an unloaded chunk) must not stop the rest from
+            // checking -- that's exactly the kind of silent early-exit this check exists to rule out.
+            try {
+                var block = mc.level.getBlockState(pos).getBlock();
+                if (block == Blocks.AIR) {
+                    LOGGER.error("{}#145 scene check FAILED: client sees air at {}, expected a seared tank "
+                            + "block -- placement or client sync did not land before capture", LOG_PREFIX, pos);
+                } else if (mc.level.getBlockEntity(pos) instanceof SearedTankBlockEntity tank) {
+                    LOGGER.info("{}#145 scene check: client sees {} at {}, fluid {}/{} mB", LOG_PREFIX, block, pos,
+                            tank.tank().getFluidAmount(), tank.tank().getCapacity());
+                } else {
+                    LOGGER.error("{}#145 scene check FAILED: client sees {} at {} but no SearedTankBlockEntity",
+                            LOG_PREFIX, block, pos);
+                }
+            } catch (RuntimeException e) {
+                LOGGER.error("{}#145 scene check FAILED: exception checking {}", LOG_PREFIX, pos, e);
             }
         }
     }

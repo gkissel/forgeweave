@@ -57,7 +57,7 @@ public class SearedTankBlockEntityRenderer implements BlockEntityRenderer<Seared
         float x1 = INSET, x2 = 1f - INSET;
         float z1 = INSET, z2 = 1f - INSET;
         float y1 = INSET;
-        float y2 = INSET + fraction * (1f - 2f * INSET);
+        float y2 = topY(fraction);
 
         Matrix4f pose = poseStack.last().pose();
         VertexConsumer buffer = bufferSource.getBuffer(RenderType.translucent());
@@ -79,6 +79,17 @@ public class SearedTankBlockEntityRenderer implements BlockEntityRenderer<Seared
             quad(buffer, pose, x1, y2, z1, u0, v0, x1, y2, z2, u0, v1, x2, y2, z2, u1, v1, x2, y2, z1, u1, v0,
                     0f, 1f, 0f, tint, packedLight, packedOverlay);
         }
+    }
+
+    /**
+     * The fluid column's top Y in block-local [0,1] space: {@link #INSET} (empty) up to
+     * {@code 1 - INSET} (full), linear in {@code fraction}. Pulled out of {@link #render} so it can
+     * be exercised directly by {@code SearedTankBlockEntityRendererTest} -- the maintainer's #145
+     * capture showed a partial fill (2/3) rendering far too low and another (1/4) too high, and this
+     * is the one place that height math lives.
+     */
+    static float topY(float fraction) {
+        return INSET + fraction * (1f - 2f * INSET);
     }
 
     private static void quad(VertexConsumer buffer, Matrix4f pose,
