@@ -45,6 +45,7 @@ import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.client.event.ClientTickEvent;
 import net.neoforged.neoforge.fluids.FluidStack;
 import net.neoforged.neoforge.fluids.capability.IFluidHandler;
+import net.neoforged.neoforge.fluids.capability.templates.FluidTank;
 
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.block.ForgeweaveBlocks;
@@ -223,10 +224,17 @@ public final class ScreenshotHarness {
             level.setBlockAndUpdate(windowPos, ForgeweaveBlocks.SEARED_WINDOW.get().defaultBlockState());
             // Three different fill fractions in one frame: proves the height math, not just that
             // something renders. Filled directly on the block entity's tank, same as buildSmeltery --
-            // no bucket needed for a dev-only scene.
-            fillTank(level, tankPos, SearedTankBlockEntity.CAPACITY * 2 / 3);
-            fillTank(level, gaugePos, SearedTankBlockEntity.CAPACITY);
-            fillTank(level, windowPos, SearedTankBlockEntity.CAPACITY / 4);
+            // no bucket needed for a dev-only scene. Fractions are of each BE's own getCapacity(),
+            // not a compile-time constant -- SEARED_TANK/GAUGE/WINDOW all share SearedTankBlockEntity
+            // (one BlockEntityType, see its class javadoc) so they're the same four-bucket capacity
+            // in practice, but computing it live is what actually proves that instead of assuming it.
+            // setBlockAndUpdate() re-placing the *same* block type at a position Minecraft doesn't
+            // recreate the block entity, so an already-loaded save (harness re-run without wiping
+            // run/saves/) would otherwise keep stacking fluid from the previous run on top of this
+            // run's fill -- setFluid(EMPTY) first makes the scene idempotent regardless.
+            fillTankFraction(level, tankPos, 2.0 / 3.0);
+            fillTankFraction(level, gaugePos, 1.0);
+            fillTankFraction(level, windowPos, 1.0 / 4.0);
             LOGGER.info("{}placed tank={} gauge={} window={}", LOG_PREFIX, tankPos, gaugePos, windowPos);
 
             BlockPos cameraPos = tankPos.offset(TANK_SCENE_SPACING, -1, -TANK_SCENE_DISTANCE);
@@ -237,16 +245,23 @@ public final class ScreenshotHarness {
         advance(Stage.SETTLE_TANK_SCENE);
     }
 
-    private static void fillTank(ServerLevel level, BlockPos pos, int amount) {
-        if (level.getBlockEntity(pos) instanceof SearedTankBlockEntity tank) {
-            tank.tank().fill(new FluidStack(Fluids.LAVA, amount), IFluidHandler.FluidAction.EXECUTE);
+    /** Fills {@code pos}'s tank to {@code fraction} of its own real capacity, from empty every time. */
+    private static void fillTankFraction(ServerLevel level, BlockPos pos, double fraction) {
+        if (!(level.getBlockEntity(pos) instanceof SearedTankBlockEntity tank)) {
+            return;
         }
+        FluidTank fluidTank = tank.tank();
+        fluidTank.setFluid(FluidStack.EMPTY); // idempotent: wipe whatever a prior harness run left.
+        int amount = (int) Math.round(fluidTank.getCapacity() * fraction);
+        fluidTank.fill(new FluidStack(Fluids.LAVA, amount), IFluidHandler.FluidAction.EXECUTE);
     }
 
     /**
      * Fails loudly in the log, rather than silently, when the client's own world doesn't have a
      * tank block where the scene placed one -- distinguishes "placed but invisible" (a rendering
-     * bug) from "never placed where the camera looks" (a placement/sync/chunk-load bug).
+     * bug) from "never placed where the camera looks" (a placement/sync/chunk-load bug). Also logs
+     * the client's own amount/capacity per position so a wrong fill fraction is self-diagnosing
+     * straight from the log, without needing another capture.
      */
     private static void verifyTankScenePlaced(Minecraft mc) {
         if (mc.level == null || tankScenePositions == null) {
@@ -257,8 +272,12 @@ public final class ScreenshotHarness {
             if (block == Blocks.AIR) {
                 LOGGER.error("{}#145 scene check FAILED: client sees air at {}, expected a seared tank "
                         + "block -- placement or client sync did not land before capture", LOG_PREFIX, pos);
+            } else if (mc.level.getBlockEntity(pos) instanceof SearedTankBlockEntity tank) {
+                LOGGER.info("{}#145 scene check: client sees {} at {}, fluid {}/{} mB", LOG_PREFIX, block, pos,
+                        tank.tank().getFluidAmount(), tank.tank().getCapacity());
             } else {
-                LOGGER.info("{}#145 scene check: client sees {} at {}", LOG_PREFIX, block, pos);
+                LOGGER.error("{}#145 scene check FAILED: client sees {} at {} but no SearedTankBlockEntity",
+                        LOG_PREFIX, block, pos);
             }
         }
     }
