@@ -1,11 +1,13 @@
 package dev.gkissel.forgeweave.data;
 
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 import net.minecraft.core.HolderLookup;
 import net.minecraft.data.DataGenerator;
 import net.minecraft.data.PackOutput;
 
+import net.neoforged.neoforge.common.data.AdvancementProvider;
 import net.neoforged.neoforge.common.data.ExistingFileHelper;
 import net.neoforged.neoforge.data.event.GatherDataEvent;
 
@@ -26,6 +28,10 @@ public final class ForgeweaveDataGenerators {
         generator.addProvider(event.includeClient(), new ForgeweaveLanguageProvider(output));
         generator.addProvider(event.includeServer(), new ForgeweaveRecipeProvider(output, lookupProvider));
         generator.addProvider(event.includeServer(), new ForgeweaveLootTableProvider(output, lookupProvider));
+        // #110 -- the M2 advancement chain (docs/SCOPE.md M2 issue #110): build smeltery -> first
+        // melt -> first cast -> first alloy -> first modifier.
+        generator.addProvider(event.includeServer(),
+                new AdvancementProvider(output, lookupProvider, existingFileHelper, List.of(new ForgeweaveAdvancementProvider())));
     }
 
     private ForgeweaveDataGenerators() {}

@@ -9,6 +9,7 @@ import net.minecraft.core.HolderLookup;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.chat.Component;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.StringUtil;
 import net.minecraft.world.Container;
 import net.minecraft.world.SimpleContainer;
@@ -21,6 +22,7 @@ import net.minecraft.world.item.ItemStack;
 
 import net.neoforged.neoforge.items.IItemHandler;
 
+import dev.gkissel.forgeweave.advancement.ForgeweaveCriteriaTriggers;
 import dev.gkissel.forgeweave.block.ForgeweaveBlocks;
 import dev.gkissel.forgeweave.item.ToolItem;
 import dev.gkissel.forgeweave.modifier.ModifierApplication;
@@ -377,6 +379,17 @@ public class ToolStationMenu extends StationMenu {
         public void onTake(Player player, ItemStack stack) {
             // Recomputed rather than remembered from updateResult(): the inputs haven't changed
             // since the output was built, and a stateless read can't go stale.
+            // #110 -- "first modifier" advancement (docs/SCOPE.md M2 issue #110): only when
+            // ModifierApplication actually resolves an application from the current slots, the same
+            // check modifierRejection() uses to decide whether there's a rejection to report at all.
+            if (player instanceof ServerPlayer serverPlayer
+                    && ModifierApplication.resolve(registries, slots.get(HEAD_SLOT).getItem(),
+                                    slots.get(BINDING_SLOT).getItem(), slots.get(HANDLE_SLOT).getItem())
+                            .map(ModifierApplication.Outcome::output)
+                            .filter(output -> !output.isEmpty())
+                            .isPresent()) {
+                ForgeweaveCriteriaTriggers.FIRST_MODIFIER.get().trigger(serverPlayer);
+            }
             resolve().ifPresent(result -> {
                 consume(HEAD_SLOT, result.headSlotUsed());
                 consume(BINDING_SLOT, result.bindingSlotUsed());

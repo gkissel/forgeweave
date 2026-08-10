@@ -34,6 +34,12 @@ repositories {
         name = 'BlameJared'
         url = 'https://maven.blamejared.com'
     }
+    maven {
+        // Ponder (docs/SCOPE.md M2 issue #110), a soft dependency -- see the compileOnly-only note
+        // on the dependency itself below.
+        name = 'CreateMod'
+        url = 'https://maven.createmod.net'
+    }
 }
 
 base {
@@ -142,6 +148,16 @@ dependencies {
     // transitive dependency of anything depending on this mod.
     compileOnly "mezz.jei:jei-${minecraft_version}-neoforge-api:${jei_version}"
     localRuntime "mezz.jei:jei-${minecraft_version}-neoforge:${jei_version}"
+
+    // Ponder (docs/SCOPE.md M2 issue #110): compileOnly only, deliberately no localRuntime pair like
+    // JEI's above. The mod compiles against Ponder's scene-registration API without hard-requiring it
+    // (see neoforge.mods.toml's "optional" entry and ForgeweavePonderPlugin's javadoc), but this
+    // project's own dev/test runs (client/server/gameTestServer) never load it -- Ponder pulls in
+    // Flywheel's rendering engine, which is unrelated risk to take on just to run this mod's own
+    // GameTest suite, and scene playback is client-rendered content a headless GameTest can't observe
+    // anyway. The "Ponder present" path is exercised by installing it in a real client, per the M2
+    // release checklist ("Ponder present/absent both behave").
+    compileOnly "net.createmod.ponder:ponder-neoforge:${ponder_version}+mc${minecraft_version}"
 
     testImplementation platform('org.junit:junit-bom:5.11.4')
     testImplementation 'org.junit.jupiter:junit-jupiter'

@@ -6,6 +6,7 @@ import com.mojang.logging.LogUtils;
 
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
+import net.neoforged.fml.ModList;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.config.ModConfig;
 import net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent;
@@ -17,6 +18,7 @@ import net.neoforged.neoforge.registries.DataPackRegistryEvent;
 
 import net.minecraft.core.Registry;
 
+import dev.gkissel.forgeweave.advancement.ForgeweaveCriteriaTriggers;
 import dev.gkissel.forgeweave.block.CastingBlockEntity;
 import dev.gkissel.forgeweave.block.ChestBlockEntity;
 import dev.gkissel.forgeweave.block.ForgeweaveBlockEntities;
@@ -35,6 +37,7 @@ import dev.gkissel.forgeweave.menu.ForgeweaveMenus;
 import dev.gkissel.forgeweave.menu.RenameStationItemPayload;
 import dev.gkissel.forgeweave.modifier.ForgeweaveModifiers;
 import dev.gkissel.forgeweave.modifier.ModifierRecipe;
+import dev.gkissel.forgeweave.ponder.ForgeweavePonderPlugin;
 import dev.gkissel.forgeweave.recipe.ForgeweaveRecipeSerializers;
 import dev.gkissel.forgeweave.recipe.MeltingRecipe;
 import dev.gkissel.forgeweave.recipe.SmelteryFuel;
@@ -57,6 +60,8 @@ public class Forgeweave {
         ForgeweaveMenus.MENUS.register(modEventBus);
         ForgeweaveCreativeTab.TABS.register(modEventBus);
         ForgeweaveRecipeSerializers.RECIPE_SERIALIZERS.register(modEventBus);
+        // #110 -- the M2 advancement chain's custom criteria (docs/SCOPE.md M2 issue #110).
+        ForgeweaveCriteriaTriggers.TRIGGERS.register(modEventBus);
         // SERVER type: see ForgeweaveConfig javadoc for why this must sync client<->server.
         modContainer.registerConfig(ModConfig.Type.SERVER, ForgeweaveConfig.SPEC);
         modEventBus.addListener(this::registerDataPackRegistries);
@@ -87,6 +92,12 @@ public class Forgeweave {
         NeoForge.EVENT_BUS.addListener(ForgeweaveModifiers::onRightClickBookshelf);
         NeoForge.EVENT_BUS.addListener(ForgeweaveModifiers::onLivingDrops);
         NeoForge.EVENT_BUS.addListener(ForgeweaveModifiers::onPlayerClone);
+        // #110 -- Ponder is a soft dependency (docs/SCOPE.md M2): only touch its API, and only
+        // register the client-setup listener, when it's actually on the mod list. See
+        // ForgeweavePonderPlugin's javadoc for why this isn't an @EventBusSubscriber instead.
+        if (ModList.get().isLoaded("ponder")) {
+            modEventBus.addListener(ForgeweavePonderPlugin::registerScenes);
+        }
     }
 
     private void onServerStarted(final ServerStartedEvent event) {

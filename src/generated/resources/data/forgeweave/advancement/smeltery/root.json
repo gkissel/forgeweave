@@ -1,0 +1,33 @@
+{
+  "criteria": {
+    "seared_brick": {
+      "conditions": {
+        "items": [
+          {
+            "items": "forgeweave:seared_brick"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    }
+  },
+  "display": {
+    "background": "minecraft:textures/gui/advancements/backgrounds/stone.png",
+    "description": {
+      "translate": "advancements.forgeweave.smeltery_root.description"
+    },
+    "icon": {
+      "count": 1,
+      "id": "forgeweave:seared_brick"
+    },
+    "title": {
+      "translate": "advancements.forgeweave.smeltery_root.title"
+    }
+  },
+  "requirements": [
+    [
+      "seared_brick"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

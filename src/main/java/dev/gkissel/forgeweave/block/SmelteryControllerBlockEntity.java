@@ -15,6 +15,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.ContainerHelper;
 import net.minecraft.world.Containers;
 import net.minecraft.world.item.ItemStack;
@@ -26,6 +27,7 @@ import net.neoforged.neoforge.fluids.FluidStack;
 import net.neoforged.neoforge.fluids.capability.IFluidHandler;
 import net.neoforged.neoforge.fluids.capability.templates.FluidTank;
 
+import dev.gkissel.forgeweave.advancement.ForgeweaveCriteriaTriggers;
 import dev.gkissel.forgeweave.recipe.MeltingRecipe;
 import dev.gkissel.forgeweave.recipe.SmelteryFuel;
 
@@ -231,8 +233,34 @@ public class SmelteryControllerBlockEntity extends BlockEntity {
      * Puts {@code stack} into the melting inventory, one item per free slot, and returns whatever did
      * not fit. Server-side; items with no melting recipe are refused outright, the way upstream's
      * {@code interactWithEntitiesInside} only picks up what {@code getMelting} recognises.
+     *
+     * <p>#110: equivalent to {@link #insertForMelting(ItemStack, ServerPlayer)} with a {@code null}
+     * player -- automation (a hopper feeding a smeltery, once that exists) has no player to attribute
+     * the "first melt" advancement to.
      */
     public ItemStack insertForMelting(ItemStack stack) {
+        return insertForMelting(stack, null);
+    }
+
+    /**
+     * #110: player-aware overload backing the M2 advancement chain's {@code first_melt} step. Fires
+     * {@link ForgeweaveCriteriaTriggers#FIRST_MELT} when {@code player} is non-null, at least one item
+     * actually found a free slot, and the smeltery is hot ({@link #currentTemperature()} {@code > 0})
+     * at the moment of insertion -- "a player inserts an item with a valid melting recipe into a
+     * formed, hot smeltery" is this method's own chosen reading of "first melt", picked because it's
+     * the one moment in the melting flow that already has both a real player and a completed action to
+     * hang the criterion on. {@link #finishMelting} (when an item actually finishes) has neither: it
+     * runs off {@link #meltTick}'s scheduled block tick, with no player anywhere in that call chain,
+     * and attributing it correctly would mean tracking which player inserted each slot's item across
+     * however many ticks it takes to finish -- more bookkeeping than a milestone gate needs.
+     *
+     * <p>Known gap from that choice: inserting into a <em>cold</em> smeltery (no lava yet) and having
+     * it start melting once fuel later arrives does not retroactively grant the advancement. Acceptable
+     * for M2's "the chain completes" bar. Until #101's GUI lands as the real caller (always with a
+     * player) this overload has no production caller either -- see {@code AdvancementGameTests} for
+     * the one exercising it today.
+     */
+    public ItemStack insertForMelting(ItemStack stack, @Nullable ServerPlayer player) {
         if (level == null || level.isClientSide || stack.isEmpty() || !isFormed()
                 || MeltingRecipe.find(level.registryAccess(), stack).isEmpty()) {
             return stack;
@@ -242,6 +270,9 @@ public class SmelteryControllerBlockEntity extends BlockEntity {
             if (meltingItems.get(slot).isEmpty()) {
                 setMeltingItem(slot, remaining.split(1));
             }
+        }
+        if (player != null && remaining.getCount() < stack.getCount() && currentTemperature() > 0) {
+            ForgeweaveCriteriaTriggers.FIRST_MELT.get().trigger(player);
         }
         return remaining;
     }

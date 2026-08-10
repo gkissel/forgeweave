@@ -38,3 +38,13 @@ Forgeweave brings modular tool building, material traits, modifiers, melting, al
     versionRange="[19,)"
     ordering="AFTER"
     side="CLIENT"
+
+# Ponder integration (docs/SCOPE.md M2 issue #110) is optional too: without it, a one-time chat hint
+# takes its place (ForgeweavePonderHint). See ForgeweavePonderPlugin's javadoc for the isolation this
+# soft dependency needs.
+[[dependencies.${mod_id}]]
+    modId="ponder"
+    type="optional"
+    versionRange="[1,)"
+    ordering="AFTER"
+    side="CLIENT"

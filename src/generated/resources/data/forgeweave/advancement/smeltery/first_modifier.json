@@ -1,0 +1,26 @@
+{
+  "parent": "forgeweave:smeltery/first_alloy",
+  "criteria": {
+    "triggered": {
+      "trigger": "forgeweave:first_modifier"
+    }
+  },
+  "display": {
+    "description": {
+      "translate": "advancements.forgeweave.first_modifier.description"
+    },
+    "icon": {
+      "count": 1,
+      "id": "forgeweave:extra_modifier"
+    },
+    "title": {
+      "translate": "advancements.forgeweave.first_modifier.title"
+    }
+  },
+  "requirements": [
+    [
+      "triggered"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

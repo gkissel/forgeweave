@@ -1,0 +1,26 @@
+{
+  "parent": "forgeweave:smeltery/first_melt",
+  "criteria": {
+    "triggered": {
+      "trigger": "forgeweave:first_cast"
+    }
+  },
+  "display": {
+    "description": {
+      "translate": "advancements.forgeweave.first_cast.description"
+    },
+    "icon": {
+      "count": 1,
+      "id": "forgeweave:cast_ingot"
+    },
+    "title": {
+      "translate": "advancements.forgeweave.first_cast.title"
+    }
+  },
+  "requirements": [
+    [
+      "triggered"
+    ]
+  ],
+  "sends_telemetry_event": true
+}
