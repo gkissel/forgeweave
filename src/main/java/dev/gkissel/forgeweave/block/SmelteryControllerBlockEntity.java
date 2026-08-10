@@ -111,6 +111,13 @@ public class SmelteryControllerBlockEntity extends BlockEntity implements Statio
     private int fuelBurnTicksRemaining;
     private int fuelTemperature;
 
+    /**
+     * #97 follow-up (PR #126's flagged gap): a synced snapshot of what the backing wall tank
+     * currently holds, so the smeltery screen's fuel gauge has an actual fluid to draw rather than
+     * always-empty. See {@link #refreshFuelDisplay()}.
+     */
+    private FluidStack fuelDisplayFluid = FluidStack.EMPTY;
+
     public SmelteryControllerBlockEntity(BlockPos pos, BlockState state, SmelteryCore core) {
         super(core.blockEntityType().get(), pos, state);
         this.core = core;
@@ -176,6 +183,10 @@ public class SmelteryControllerBlockEntity extends BlockEntity implements Statio
             // #96: a scan is the one moment the core is guaranteed to hear about the world changing
             // around it, so it is also where melting that stopped for want of heat picks back up.
             armMeltTick();
+            // #97 follow-up: a scan is also the ~once-a-second poll a menu's stillValid keeps alive
+            // while a player has the screen open (see structure()'s rescan-on-read), so this is what
+            // keeps the fuel gauge live even while the smeltery is idle and nothing else is ticking.
+            refreshFuelDisplay();
         }
         if (state.getValue(SmelteryControllerBlock.ACTIVE) != (found != null)) {
             level.setBlock(worldPosition, state.setValue(SmelteryControllerBlock.ACTIVE, found != null), Block.UPDATE_ALL);
@@ -228,6 +239,7 @@ public class SmelteryControllerBlockEntity extends BlockEntity implements Statio
     private static final String TAG_MELT_PROGRESS = "melt_progress";
     private static final String TAG_FUEL_BURN_TICKS = "fuel_burn_ticks";
     private static final String TAG_FUEL_TEMPERATURE = "fuel_temperature";
+    private static final String TAG_FUEL_DISPLAY = "fuel_display";
 
     /**
      * The items currently melting, one per interior block, in slot order. Read-only; insert through
@@ -315,6 +327,16 @@ public class SmelteryControllerBlockEntity extends BlockEntity implements Statio
     }
 
     /**
+     * The fluid currently sitting in the wall tank feeding this smeltery, synced for the fuel gauge
+     * (issue #97 follow-up). Unlike {@link #fuelTemperatureForDisplay()} this reads the tank's real,
+     * live contents rather than the locked-in state of an in-progress burn -- {@code
+     * SmelteryMenu#fuel}'s javadoc has the full story on why.
+     */
+    public FluidStack fuelDisplayFluid() {
+        return fuelDisplayFluid;
+    }
+
+    /**
      * The smeltery's working heat, on the same scale a melting recipe's {@code temperature} uses.
      *
      * <p>Ported from upstream's {@code TileHeatingStructureFuelTank#getFuelDisplay}/{@code
@@ -328,6 +350,7 @@ public class SmelteryControllerBlockEntity extends BlockEntity implements Statio
         if (level == null || level.isClientSide || structure == null) {
             return 0;
         }
+        refreshFuelDisplay();
         if (fuelBurnTicksRemaining > 0) {
             return fuelTemperature;
         }
@@ -569,6 +592,29 @@ public class SmelteryControllerBlockEntity extends BlockEntity implements Statio
     }
 
     /**
+     * Refreshes {@link #fuelDisplayFluid} from whatever the wall tank feeding this smeltery actually
+     * holds right now, and syncs to clients when it changed -- issue #97's follow-up fixing the fuel
+     * gauge. Deliberately the tank's real, live contents rather than upstream's own burn-progress
+     * display (which zeroes out for the whole burn, see {@code SmelteryMenu#fuel}): this is a
+     * conscious parity deviation, recorded in the PR, because upstream's own behaviour renders an
+     * empty gauge for nearly the entire time a smeltery is actively melting.
+     *
+     * <p>Cheap to call opportunistically: {@link #peekFuel()} finds the tank at most once per call
+     * (cached in {@link #fuelTank}), and the sync only fires when the fluid or its amount actually
+     * moved.
+     */
+    private void refreshFuelDisplay() {
+        peekFuel();
+        FluidStack live = fuelTank != null && level != null && level.getBlockEntity(fuelTank) instanceof SearedTankBlockEntity tank
+                ? tank.tank().getFluid()
+                : FluidStack.EMPTY;
+        if (live.getFluid() != fuelDisplayFluid.getFluid() || live.getAmount() != fuelDisplayFluid.getAmount()) {
+            fuelDisplayFluid = live.copy();
+            syncToClients();
+        }
+    }
+
+    /**
      * Drains one burn cycle's worth of fuel from the wall tank holding it and locks in
      * {@link #fuelBurnTicksRemaining}/{@link #fuelTemperature} for that burn -- upstream's {@code
      * consumeFuel}/{@code searchForFuel}. Called only from {@link #meltTick()}, itself only scheduled
@@ -613,6 +659,9 @@ public class SmelteryControllerBlockEntity extends BlockEntity implements Statio
         // #97: the in-progress burn -- fuel state (SCOPE.md M2 save-compat fixture list).
         tag.putInt(TAG_FUEL_BURN_TICKS, fuelBurnTicksRemaining);
         tag.putInt(TAG_FUEL_TEMPERATURE, fuelTemperature);
+        // #97 follow-up: the fuel gauge's live snapshot, so it has something to show the instant a
+        // reopened screen loads rather than waiting for the next refresh.
+        tag.put(TAG_FUEL_DISPLAY, fuelDisplayFluid.saveOptional(registries));
     }
 
     @Override
@@ -633,6 +682,7 @@ public class SmelteryControllerBlockEntity extends BlockEntity implements Statio
         // #97: the in-progress burn, if any -- fuelTank itself is not saved, it is re-found on demand.
         fuelBurnTicksRemaining = tag.getInt(TAG_FUEL_BURN_TICKS);
         fuelTemperature = tag.getInt(TAG_FUEL_TEMPERATURE);
+        fuelDisplayFluid = FluidStack.parseOptional(registries, tag.getCompound(TAG_FUEL_DISPLAY));
     }
 
     /** Structure bounds and tank contents are what the client needs for the smeltery GUI and fluid rendering (#101). */

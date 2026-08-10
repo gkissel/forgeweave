@@ -325,7 +325,7 @@ public class SmelteryScreen extends StationScreen<SmelteryMenu> {
         return Math.max(amount, menu.capacity(level()));
     }
 
-    /* Fuel -- the gauge is real, its contents are issue #97's; see SmelteryMenu#fuel. */
+    /* Fuel -- see SmelteryMenu#fuel for where the fill actually comes from. */
 
     private void renderFuel(GuiGraphics graphics) {
         FluidStack fuel = menu.fuel(level());
