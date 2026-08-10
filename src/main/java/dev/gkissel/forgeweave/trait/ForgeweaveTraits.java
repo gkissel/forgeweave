@@ -15,6 +15,7 @@ import net.minecraft.core.component.DataComponentType;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.tags.BlockTags;
+import net.minecraft.tags.DamageTypeTags;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.item.ItemEntity;
@@ -24,6 +25,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 
+import net.neoforged.neoforge.event.entity.EntityInvulnerabilityCheckEvent;
 import net.neoforged.neoforge.event.entity.living.LivingExperienceDropEvent;
 import net.neoforged.neoforge.event.entity.living.LivingIncomingDamageEvent;
 
@@ -364,6 +366,57 @@ public final class ForgeweaveTraits {
         }
     };
 
+    // -- #103 metal materials: rose gold's quick, netherite's fireproof + reinforced_core. Maintainer
+    // decision recorded on issue #103 (2026-08-10): rose gold gets quick; netherite gets both traits
+    // plus a netherite-ingot application recipe for the existing extra_slot modifier (see the
+    // modifier_recipe/extra_slot_netherite.json shipped alongside this class).
+
+    /** Upstream has no rose gold material at all, so these magnitudes are this PR's own -- see below. */
+    private static final float QUICK_MINING_BONUS = 0.25F;
+    private static final float QUICK_ATTACK_SPEED_BONUS = 0.2F;
+
+    /**
+     * Rose gold. No upstream trait to port -- rose gold has no 1.12 counterpart (issue #103). Follows
+     * {@link #LIGHTWEIGHT}'s pattern (flat mining-speed multiplier plus a flat attack-speed fraction)
+     * but at more than double the magnitude, since "fast" is rose gold's entire identity per the issue
+     * body and the material's own stats trade away durability and attack for it (see rose_gold.json).
+     * Recorded in the PR.
+     */
+    public static final Trait QUICK = new Trait() {
+        @Override
+        public float miningSpeed(ItemStack stack, boolean effective, float originalSpeed, float speed) {
+            return speed * (1.0F + QUICK_MINING_BONUS);
+        }
+
+        @Override
+        public float attackSpeedBonus() {
+            return QUICK_ATTACK_SPEED_BONUS;
+        }
+    };
+
+    /**
+     * Netherite. Vanilla netherite items survive fire and lava ({@code Item.Properties#fireResistant},
+     * checked by {@code ItemEntity#fireImmune}), but that flag is per-{@code Item}, not per-stack --
+     * every Forgeweave pickaxe is one shared {@code Item} instance regardless of material, so it can't
+     * be set on {@code ToolItem} itself without making every pickaxe fire-immune. {@link
+     * #onEntityInvulnerabilityCheck} is the per-stack equivalent: it grants the same immunity only to a
+     * dropped {@code ItemEntity} carrying a tool with this trait. No upstream trait to port -- netherite
+     * has no 1.12 counterpart; the mechanism is a maintainer decision recorded on issue #103.
+     */
+    public static final Trait FIREPROOF = new Trait() {};
+
+    /**
+     * Netherite, the other maintainer-decided trait (issue #103): +1 modifier slot on a tool with a
+     * netherite part, applied through {@link Trait#bonusSlots} -- {@code
+     * modifier.ForgeweaveModifiers#freeSlots}'s trait-consulting term. No upstream trait to port either.
+     */
+    public static final Trait REINFORCED_CORE = new Trait() {
+        @Override
+        public int bonusSlots() {
+            return 1;
+        }
+    };
+
     private static int stackLevel(ItemStack stack, DataComponentType<TraitStacks> component) {
         TraitStacks stacks = stack.get(component);
         return stacks == null ? 0 : stacks.level();
@@ -394,7 +447,11 @@ public final class ForgeweaveTraits {
             Map.entry(id("petramor"), PETRAMOR),
             Map.entry(id("insatiable"), INSATIABLE),
             Map.entry(id("coldblooded"), COLDBLOODED),
-            Map.entry(id("established"), ESTABLISHED));
+            Map.entry(id("established"), ESTABLISHED),
+            // #103 metal materials: rose gold's quick, netherite's fireproof + reinforced_core.
+            Map.entry(id("quick"), QUICK),
+            Map.entry(id("fireproof"), FIREPROOF),
+            Map.entry(id("reinforced_core"), REINFORCED_CORE));
 
     /**
      * The assembled tool's durability after the <b>head</b> material's head-scoped traits adjusted it
@@ -560,6 +617,25 @@ public final class ForgeweaveTraits {
         }
         if (updated != xp) {
             event.setDroppedExperience(updated);
+        }
+    }
+
+    /**
+     * {@code forgeweave:fireproof} (see {@link #FIREPROOF}'s javadoc): fired whenever any entity's
+     * invulnerability to a damage source is checked, on both sides -- the one seam generic enough to
+     * cover an {@link ItemEntity} without a per-{@code Item} flag. Registered on the game event bus in
+     * {@code Forgeweave}, same idiom as {@link #onIncomingDamage}.
+     */
+    public static void onEntityInvulnerabilityCheck(EntityInvulnerabilityCheckEvent event) {
+        if (event.isInvulnerable() || !(event.getEntity() instanceof ItemEntity itemEntity)) {
+            return;
+        }
+        if (!event.getSource().is(DamageTypeTags.IS_FIRE)) {
+            return;
+        }
+        ItemStack stack = itemEntity.getItem();
+        if (stack.getItem() instanceof ToolItem && of(stack).contains(FIREPROOF)) {
+            event.setInvulnerable(true);
         }
     }
 

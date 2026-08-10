@@ -22,6 +22,19 @@ One row per derived file (ADR-0003). Maintained in PR review: a PR introducing d
 | `src/main/resources/data/forgeweave/forgeweave/material/stone.json` | `src/main/java/slimeknights/tconstruct/tools/TinkerMaterials.java` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
 | `src/main/resources/data/forgeweave/forgeweave/material/flint.json` | `src/main/java/slimeknights/tconstruct/tools/TinkerMaterials.java` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
 | `src/main/resources/data/forgeweave/forgeweave/material/bone.json` | `src/main/java/slimeknights/tconstruct/tools/TinkerMaterials.java` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
+| `src/main/resources/data/forgeweave/forgeweave/material/iron.json` (head/handle/extra stats, `magnetic`/`magnetic2` trait wiring) | `src/main/java/slimeknights/tconstruct/tools/TinkerMaterials.java` (`registerToolMaterialStats`, `setupMaterials`) | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
+| `src/main/resources/data/forgeweave/forgeweave/material/copper.json` (head/handle/extra stats, `established` trait wiring) | `src/main/java/slimeknights/tconstruct/tools/TinkerMaterials.java` (`registerToolMaterialStats`, `setupMaterials`) | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
+| `src/main/resources/data/forgeweave/forgeweave/material/cobalt.json` (head/handle/extra stats, `lightweight`/`momentum` trait wiring) | `src/main/java/slimeknights/tconstruct/tools/TinkerMaterials.java` (`registerToolMaterialStats`, `setupMaterials`) | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
+| `src/main/resources/data/forgeweave/forgeweave/material/ardite.json` (head/handle/extra stats, `petramor`/`stonebound` trait wiring) | `src/main/java/slimeknights/tconstruct/tools/TinkerMaterials.java` (`registerToolMaterialStats`, `setupMaterials`) | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
+| `src/main/resources/data/forgeweave/forgeweave/material/manyullyn.json` (head/handle/extra stats, `coldblooded`/`insatiable` trait wiring) | `src/main/java/slimeknights/tconstruct/tools/TinkerMaterials.java` (`registerToolMaterialStats`, `setupMaterials`) | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
+| `src/main/resources/assets/forgeweave/textures/derived/item/cobalt_ingot.png` | `resources/assets/tconstruct/textures/items/materials/ingot_cobalt.png` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
+| `src/main/resources/assets/forgeweave/textures/derived/item/cobalt_nugget.png` | `resources/assets/tconstruct/textures/items/materials/nugget_cobalt.png` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
+| `src/main/resources/assets/forgeweave/textures/derived/item/ardite_ingot.png` | `resources/assets/tconstruct/textures/items/materials/ingot_ardite.png` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
+| `src/main/resources/assets/forgeweave/textures/derived/item/ardite_nugget.png` | `resources/assets/tconstruct/textures/items/materials/nugget_ardite.png` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
+| `src/main/resources/assets/forgeweave/textures/derived/item/manyullyn_ingot.png` | `resources/assets/tconstruct/textures/items/materials/ingot_manyullyn.png` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
+| `src/main/resources/assets/forgeweave/textures/derived/item/manyullyn_nugget.png` | `resources/assets/tconstruct/textures/items/materials/nugget_manyullyn.png` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
+| `src/main/resources/assets/forgeweave/textures/derived/item/rose_gold_ingot.png` (recoloured to rose gold's `#B76E79`; shape only, not upstream's colour -- rose gold has no 1.12 material to derive one from) | `resources/assets/tconstruct/textures/items/materials/ingot_manyullyn.png` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
+| `src/main/resources/assets/forgeweave/textures/derived/item/rose_gold_nugget.png` (same recolour) | `resources/assets/tconstruct/textures/items/materials/nugget_manyullyn.png` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
 | `src/main/resources/assets/forgeweave/textures/derived/item/pattern.png` | `resources/assets/tconstruct/textures/items/pattern.png` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
 | `src/main/resources/assets/forgeweave/textures/derived/item/pickaxe_head.png` | `resources/assets/tconstruct/textures/items/pickaxe/head.png` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
 | `src/main/resources/assets/forgeweave/textures/derived/item/shovel_head.png` | `resources/assets/tconstruct/textures/items/shovel/head.png` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
@@ -580,3 +593,80 @@ netherite-ingot recipe and its recoloured front texture are SCOPE.md's and Forge
 - **The drain is not wrapped extract-only.** Upstream wraps its drain's handler only for the
   side-agnostic (`facing == null`) lookup; a faucet asks with a side and gets the raw tank there
   too, so Forgeweave's drain matches upstream for every path the faucet uses.
+
+### Metal materials (issue #103) deviations from upstream 1.12
+
+Iron, copper, cobalt, ardite and manyullyn are 1:1 ports of `TinkerMaterials`' head/handle/extra
+stats and trait wiring (table rows above). Two deliberate deviations, both forced by 1.21 having
+fewer tool-tier tags than upstream's five-rung `HarvestLevels` ladder:
+
+- **`incorrect_for_tool` collapses upstream's top two rungs into one.** Upstream's
+  `HarvestLevels` has five levels (`STONE`, `IRON`, `DIAMOND`, `OBSIDIAN`, `COBALT`); 1.21 ships
+  vanilla tags for only four tiers (`ForgeweaveModifiers#TIER_TAGS`: stone/iron/diamond/netherite).
+  Iron's `DIAMOND` level and copper's `IRON` level map straight across
+  (`minecraft:incorrect_for_diamond_tool` / `minecraft:incorrect_for_iron_tool`, matching vanilla's
+  own iron/stone-tool ceilings exactly). Cobalt, ardite and manyullyn's `COBALT` level has no vanilla
+  tag at all -- they, and netherite alongside them, all sit on the ladder's top rung
+  (`minecraft:incorrect_for_netherite_tool`), which is as far as `ForgeweaveModifiers`' four-tag
+  ladder goes.
+- **`crafting_items` lists ingot and block, never nugget.** `PartBuilderRecipes`' shard-unit system
+  (NOTICE.md row above) is denominated in units of upstream's `VALUE_Shard = 72`; an ingot is exactly
+  2 shard-units (`VALUE_Ingot = 144`) and a block 18, but a nugget's `VALUE_Nugget = 16` is not a
+  whole number of shard-units and so cannot be listed as one of `CraftingItem`'s integer values.
+  Nuggets remain usable at the Tool Station only as repair reagent input via `c:nuggets/*` melting
+  (issue #96), not as Part Builder crafting input -- the same ceiling M1's shard-unit system already
+  has for anything smaller than 72.
+
+Rose gold and netherite have no 1.12 counterpart at all (issue #92 already recorded this for their
+fluids); their stats, traits, mechanisms and item forms are all maintainer decisions recorded here
+rather than upstream ports, per the maintainer decision comment on issue #103 (2026-08-10):
+
+- **Rose gold's stats are invented** (`rose_gold.json`): low durability (90), high mining speed
+  (10.0) and low attack damage (2.0), a soft handle (0.65x modifier, -40 flat) -- "fast and
+  fragile" per the issue body, roughly gold-tool-shaped rather than matched to any specific upstream
+  number.
+- **Rose gold's `quick` trait is a new id**, not an upstream port: `ForgeweaveTraits#QUICK` follows
+  `LIGHTWEIGHT`'s shape (a flat mining-speed multiplier plus a flat attack-speed fraction) at roughly
+  2.5x lightweight's magnitude (+25%/+20% vs +10%/+10%), since speed is rose gold's whole identity
+  per the issue body.
+- **Netherite's stats sit between cobalt/ardite and manyullyn on durability and mining speed, but
+  below manyullyn on attack damage** (`netherite.json`: 1050 durability, 8.0 speed, 7.0 attack, vs.
+  manyullyn's 820/7.02/8.72) -- manyullyn stays the top attack-damage material, per the issue body's
+  explicit "manyullyn stats buffed above netherite" instruction. Handle (1.0x, +150) and extra
+  durability (350) are likewise invented, chosen to land between ardite's and manyullyn's handle
+  numbers.
+- **Netherite's `fireproof` trait has no per-`Item` equivalent to port.** Vanilla netherite items are
+  fire-immune via `Item.Properties#fireResistant`, a flag on the shared `Item` instance -- every
+  Forgeweave pickaxe is one `Item` regardless of material, so that flag can't vary per stack.
+  `ForgeweaveTraits#onEntityInvulnerabilityCheck` listens on NeoForge's
+  `EntityInvulnerabilityCheckEvent` (fired for every entity's `isInvulnerableTo` check, item entities
+  included) and grants invulnerability to `DamageTypeTags.IS_FIRE` sources only when the dropped
+  `ItemEntity` is carrying a tool with this trait -- the minimal per-stack mechanism the issue asked
+  for.
+- **Netherite's `reinforced_core` trait is a new hook, not an upstream one.**
+  `Trait#bonusSlots` is a new method on the trait interface (mirroring `Modifier#bonusSlots`,
+  ADR-0004's precedent); `ForgeweaveModifiers#freeSlots` sums it in alongside the existing
+  modifier-slot total. Nothing about `ModifierEntry` serialization changes -- slots stay computed,
+  never stored, exactly as issue #103 asked.
+- **A second `modifier_recipe` for `forgeweave:extra_slot`**
+  (`modifier_recipe/extra_slot_netherite.json`, netherite ingot as reagent) needed no code change:
+  `ModifierApplication#recipeFor` already resolves a reagent by scanning every registered recipe and
+  matching on `Ingredient#test`, not by a one-recipe-per-modifier-id assumption, so two registry
+  entries naming the same `modifier` field with different reagents already both apply toward the same
+  `ModifierEntry`'s level. Verified, not fixed.
+- **The four metals with no vanilla item form** (cobalt, ardite, manyullyn, rose gold) get ingot,
+  nugget and raw-ore item forms. Ingot/nugget art for cobalt/ardite/manyullyn is a straight upstream
+  port (table rows above); rose gold's is a recolour of upstream's manyullyn ingot/nugget art (no
+  1.12 material to derive rose gold's own shape from, per the issue body). The raw-ore forms have no
+  upstream counterpart at all -- 1.12 predates the raw-ore item split introduced in vanilla 1.17 --
+  and no ore-block source in this PR's scope (adding cobalt/ardite/manyullyn/rose-gold ore blocks is
+  out of scope for a materials-and-items issue), so they are freshly authored placeholder icons under
+  the standard `textures/item/` folder rather than `textures/derived/`, and carry no NOTICE row
+  (CLAUDE.md: only derived art gets one). Their melting recipes and `c:raw_materials/*` tags exist
+  for a future ore-block issue to make reachable in survival; they are not obtainable through any
+  recipe shipped in this PR.
+- **`ForgeweaveItemTagsProvider` is new** (issue #103): puts the four metals' ingot/nugget/raw items
+  into `c:ingots/*`, `c:nuggets/*` and `c:raw_materials/*` so `MeltingRecipe`'s tag-keyed rows
+  (`cobalt_ingot.json` and friends) resolve, the same convention NeoForge itself already applies to
+  vanilla iron/copper/gold/netherite (see the shipped `iron_ingot.json`/`netherite_ingot.json`
+  melting rows, issue #96).

@@ -1,0 +1,25 @@
+{
+  "head": {
+    "durability": 204,
+    "mining_speed": 6.0,
+    "attack_damage": 4.0
+  },
+  "handle": {
+    "durability_modifier": 0.85,
+    "durability": 60
+  },
+  "extra_durability": 50,
+  "incorrect_for_tool": "minecraft:incorrect_for_diamond_tool",
+  "traits": {
+    "general": ["forgeweave:magnetic"],
+    "head": ["forgeweave:magnetic2"]
+  },
+  "crafting_items": [
+    { "ingredient": { "item": "minecraft:iron_ingot" }, "value": 2 },
+    { "ingredient": { "item": "minecraft:iron_block" }, "value": 18 }
+  ],
+  "repair_item": {
+    "tag": "c:ingots/iron"
+  },
+  "color": "#CACACA"
+}

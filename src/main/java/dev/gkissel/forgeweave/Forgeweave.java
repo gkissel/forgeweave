@@ -81,6 +81,10 @@ public class Forgeweave {
         NeoForge.EVENT_BUS.addListener(ForgeweaveTraits::onIncomingDamage);
         // established's kill-XP bonus (issue #102): no Item hook for a kill's dropped XP either.
         NeoForge.EVENT_BUS.addListener(ForgeweaveTraits::onExperienceDrop);
+        // #103 -- netherite's fireproof: a dropped ItemEntity's fire immunity has no per-stack Item
+        // hook (Item.Properties#fireResistant is per-Item), so this listens on the generic
+        // invulnerability check every entity goes through instead.
+        NeoForge.EVENT_BUS.addListener(ForgeweaveTraits::onEntityInvulnerabilityCheck);
         // #108 batch: Searing/Magnetic Pull/Resonant key off what a mined block drops, which has no
         // Item hook either (see ForgeweaveModifiers#onBlockDrops).
         NeoForge.EVENT_BUS.addListener(ForgeweaveModifiers::onBlockDrops);

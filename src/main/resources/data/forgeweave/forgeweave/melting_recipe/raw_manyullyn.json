@@ -1,0 +1,8 @@
+{
+  "input": {
+    "tag": "c:raw_materials/manyullyn"
+  },
+  "fluid": "forgeweave:molten_manyullyn",
+  "amount": 144,
+  "ore": true
+}

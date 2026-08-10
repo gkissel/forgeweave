@@ -1,0 +1,23 @@
+{
+  "head": {
+    "durability": 90,
+    "mining_speed": 10.0,
+    "attack_damage": 2.0
+  },
+  "handle": {
+    "durability_modifier": 0.65,
+    "durability": -40
+  },
+  "extra_durability": 15,
+  "incorrect_for_tool": "minecraft:incorrect_for_stone_tool",
+  "traits": {
+    "general": ["forgeweave:quick"]
+  },
+  "crafting_items": [
+    { "ingredient": { "item": "forgeweave:rose_gold_ingot" }, "value": 2 }
+  ],
+  "repair_item": {
+    "tag": "c:ingots/rose_gold"
+  },
+  "color": "#B76E79"
+}

@@ -1,0 +1,24 @@
+{
+  "head": {
+    "durability": 210,
+    "mining_speed": 5.3,
+    "attack_damage": 3.0
+  },
+  "handle": {
+    "durability_modifier": 1.05,
+    "durability": 30
+  },
+  "extra_durability": 100,
+  "incorrect_for_tool": "minecraft:incorrect_for_iron_tool",
+  "traits": {
+    "general": ["forgeweave:established"]
+  },
+  "crafting_items": [
+    { "ingredient": { "item": "minecraft:copper_ingot" }, "value": 2 },
+    { "ingredient": { "item": "minecraft:copper_block" }, "value": 18 }
+  ],
+  "repair_item": {
+    "tag": "c:ingots/copper"
+  },
+  "color": "#ED9F07"
+}

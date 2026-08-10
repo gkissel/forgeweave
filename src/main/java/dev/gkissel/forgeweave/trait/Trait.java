@@ -113,4 +113,16 @@ public interface Trait {
     default int killExperience(RandomSource random, int xp) {
         return xp;
     }
+
+    // #103 metal materials -- netherite's reinforced_core.
+
+    /**
+     * Extra modifier slots a tool carrying this trait grants, on top of the tool's base modifier
+     * slots -- {@code modifier.ForgeweaveModifiers#freeSlots}'s trait-consulting term, mirroring how
+     * {@code Modifier#bonusSlots} works for modifiers. Netherite's {@code reinforced_core} is the only
+     * shipped user (issue #103).
+     */
+    default int bonusSlots() {
+        return 0;
+    }
 }
