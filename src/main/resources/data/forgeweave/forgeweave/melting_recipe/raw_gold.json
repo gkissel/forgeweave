@@ -3,5 +3,6 @@
     "tag": "c:raw_materials/gold"
   },
   "fluid": "forgeweave:molten_gold",
-  "amount": 144
+  "amount": 144,
+  "ore": true
 }

@@ -23,6 +23,7 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.material.Fluids;
 
+import net.neoforged.neoforge.fluids.FluidStack;
 import net.neoforged.neoforge.fluids.capability.IFluidHandler;
 import net.neoforged.neoforge.fluids.capability.templates.FluidTank;
 
@@ -93,7 +94,7 @@ public class SmelteryControllerBlockEntity extends BlockEntity {
         this.core = core;
     }
 
-    /** Which core tier this structure has; the melting work (#96/#99) multiplies yields by {@link SmelteryCore#yieldMultiplier()}. */
+    /** Which core tier this structure has; {@link #finishMelting} multiplies ore-class yields by {@link SmelteryCore#yieldMultiplier()} (#99). */
     public SmelteryCore core() {
         return core;
     }
@@ -287,16 +288,21 @@ public class SmelteryControllerBlockEntity extends BlockEntity {
     }
 
     /**
-     * Fills the tank with the recipe's <b>base</b> amount and empties the slot. Issue #99 multiplies
-     * by {@link SmelteryCore#yieldMultiplier()} here; docs/SCOPE.md keeps the two apart on purpose
-     * ("melting recipes hold base amounts, the core multiplies").
+     * Fills the tank and empties the slot. Ore-class recipes ({@link MeltingRecipe#ore()}) are scaled
+     * by {@link SmelteryCore#yieldMultiplier()} -- docs/SCOPE.md M2: "melting recipes hold base
+     * amounts, the core multiplies" and "core tier is the ONLY yield axis; ingot re-melts 1:1", so an
+     * ingot/nugget/block re-melt ({@code ore == false}) is untouched. #99.
      *
      * <p>Upstream refuses a partial melt when the tank is nearly full and re-heats the item instead;
      * leaving the progress where it is has the same effect -- the slot retries every melt tick until
      * a drain makes room.
      */
     private void finishMelting(int slot, MeltingRecipe recipe) {
-        var result = recipe.result();
+        // #99: floor a fractional multiplier x base rather than round, matching an ordinary int cast.
+        // None of the shipped ore-class amounts land fractional at 1.5x/2x (see the PR's amounts
+        // table), so this is currently unexercised by any shipped recipe.
+        int amount = recipe.ore() ? (int) (recipe.amount() * core.yieldMultiplier()) : recipe.amount();
+        var result = new FluidStack(recipe.fluid(), amount);
         if (tank.fill(result, IFluidHandler.FluidAction.SIMULATE) != result.getAmount()) {
             return;
         }
