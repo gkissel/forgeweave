@@ -6,6 +6,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.component.DataComponentMap;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.NbtUtils;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
@@ -37,6 +38,14 @@ public class SearedTankBlockEntity extends BlockEntity {
     public static final int CAPACITY = 4 * 1000;
 
     private static final String TAG_TANK = "tank";
+    private static final String TAG_CORE = "core";
+
+    /** Which smeltery core this tank belongs to, if any -- set by {@link SmelteryControllerBlockEntity} on a scan (#97). */
+    @Nullable
+    private BlockPos corePos;
+
+    /** So {@link #onContentsChanged} can tell a fill from a drain; only a fill needs to wake the core. */
+    private int lastFluidAmount;
 
     private final FluidTank tank = new FluidTank(CAPACITY) {
         @Override
@@ -45,6 +54,15 @@ public class SearedTankBlockEntity extends BlockEntity {
             if (level != null && !level.isClientSide) {
                 level.sendBlockUpdated(worldPosition, getBlockState(), getBlockState(), Block.UPDATE_CLIENTS);
                 level.updateNeighbourForOutputSignal(worldPosition, getBlockState().getBlock());
+                // #97: a fill (not a drain -- the smeltery's own fuel consumption must not re-arm
+                // itself) is what needs to wake a core that stopped ticking for want of fuel. Nothing
+                // else notices a wall tank far from the core changing; see
+                // SmelteryControllerBlockEntity#armMeltTick.
+                if (corePos != null && getFluidAmount() > lastFluidAmount
+                        && level.getBlockEntity(corePos) instanceof SmelteryControllerBlockEntity core) {
+                    core.armMeltTick();
+                }
+                lastFluidAmount = getFluidAmount();
             }
         }
     };
@@ -57,6 +75,14 @@ public class SearedTankBlockEntity extends BlockEntity {
         return tank;
     }
 
+    /** Called by {@link SmelteryControllerBlockEntity} for every wall tank in a structure it just formed (#97). */
+    public void setCore(BlockPos corePos) {
+        if (!corePos.equals(this.corePos)) {
+            this.corePos = corePos;
+            setChanged();
+        }
+    }
+
     /** Upstream's {@code comparatorStrength}. */
     public int comparatorStrength() {
         return tank.getCapacity() == 0 ? 0 : 15 * tank.getFluidAmount() / tank.getCapacity();
@@ -66,12 +92,17 @@ public class SearedTankBlockEntity extends BlockEntity {
     protected void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
         super.saveAdditional(tag, registries);
         tag.put(TAG_TANK, tank.writeToNBT(registries, new CompoundTag()));
+        if (corePos != null) {
+            tag.put(TAG_CORE, NbtUtils.writeBlockPos(corePos));
+        }
     }
 
     @Override
     protected void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
         super.loadAdditional(tag, registries);
         tank.readFromNBT(registries, tag.getCompound(TAG_TANK));
+        lastFluidAmount = tank.getFluidAmount();
+        corePos = tag.contains(TAG_CORE) ? NbtUtils.readBlockPos(tag, TAG_CORE).orElse(null) : null;
     }
 
     @Override

@@ -155,6 +155,7 @@ tasks.named('jar', Jar) {
     exclude 'README.md'
     exclude 'data/c/tags/item/ingots/copper.json'
     exclude 'data/forgeweave/forgeweave/melting_recipe/gametest_above_lava.json'
+    exclude 'data/forgeweave/forgeweave/smeltery_fuel/gametest_super_fuel.json'
 }
 
 tasks.named('test', Test) {

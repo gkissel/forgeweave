@@ -21,13 +21,13 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.material.Fluids;
 
 import net.neoforged.neoforge.fluids.FluidStack;
 import net.neoforged.neoforge.fluids.capability.IFluidHandler;
 import net.neoforged.neoforge.fluids.capability.templates.FluidTank;
 
 import dev.gkissel.forgeweave.recipe.MeltingRecipe;
+import dev.gkissel.forgeweave.recipe.SmelteryFuel;
 
 /**
  * A smeltery core's structure state and molten-metal tank (docs/SCOPE.md M2 issue #95), ported from
@@ -88,6 +88,11 @@ public class SmelteryControllerBlockEntity extends BlockEntity {
     private MeltingRecipe[] meltRecipes = new MeltingRecipe[0];
     @Nullable
     private BlockPos fuelTank;
+
+    // #97 -- fuel. Upstream's own {@code fuel}/{@code temperature} fields on TileHeatingStructure:
+    // how many melt ticks the current burn has left, and the temperature it is burning at.
+    private int fuelBurnTicksRemaining;
+    private int fuelTemperature;
 
     public SmelteryControllerBlockEntity(BlockPos pos, BlockState state, SmelteryCore core) {
         super(core.blockEntityType().get(), pos, state);
@@ -150,6 +155,7 @@ public class SmelteryControllerBlockEntity extends BlockEntity {
         }
         if (found != null) {
             assignDrains(result.drains());
+            assignTanks(result.tanks());
             // #96: a scan is the one moment the core is guaranteed to hear about the world changing
             // around it, so it is also where melting that stopped for want of heat picks back up.
             armMeltTick();
@@ -164,6 +170,15 @@ public class SmelteryControllerBlockEntity extends BlockEntity {
         for (BlockPos pos : drains) {
             if (level != null && level.getBlockEntity(pos) instanceof SearedDrainBlockEntity drain) {
                 drain.setCore(worldPosition);
+            }
+        }
+    }
+
+    /** Points every wall tank back at this core so a fuel pour can wake a melt stuck for want of heat (#97). */
+    private void assignTanks(List<BlockPos> tanks) {
+        for (BlockPos pos : tanks) {
+            if (level != null && level.getBlockEntity(pos) instanceof SearedTankBlockEntity tank) {
+                tank.setCore(worldPosition);
             }
         }
     }
@@ -194,6 +209,8 @@ public class SmelteryControllerBlockEntity extends BlockEntity {
 
     private static final String TAG_MELTING = "melting";
     private static final String TAG_MELT_PROGRESS = "melt_progress";
+    private static final String TAG_FUEL_BURN_TICKS = "fuel_burn_ticks";
+    private static final String TAG_FUEL_TEMPERATURE = "fuel_temperature";
 
     /**
      * The items currently melting, one per interior block, in slot order. Read-only; insert through
@@ -230,22 +247,34 @@ public class SmelteryControllerBlockEntity extends BlockEntity {
     }
 
     /**
+     * How many melt ticks remain in the current fuel burn, {@code 0} if nothing is currently burning
+     * (which does not by itself mean no fuel is available -- see {@link #currentTemperature()}).
+     * Exposed alongside it for the smeltery GUI's fuel gauge (issue #101); no {@code SmelteryMenu}
+     * exists in this tree yet to wire it into, so this is the seam #101 reads from directly.
+     */
+    public int fuelBurnTicksRemaining() {
+        return fuelBurnTicksRemaining;
+    }
+
+    /**
      * The smeltery's working heat, on the same scale a melting recipe's {@code temperature} uses.
      *
-     * <p>ponytail: this is the entire heat model for now -- lava anywhere in the structure's seared
-     * tanks means the smeltery runs at lava's own fluid temperature, and nothing is consumed. Issue
-     * #97 replaces the body with the real fuel system (datapack fuels carrying a temperature and a
-     * burn duration, drained from the tank as they burn); every consumer already goes through this
-     * one method, and the only other thing #97 needs is to re-arm the melt tick when fuel arrives.
+     * <p>Ported from upstream's {@code TileHeatingStructureFuelTank#getFuelDisplay}/{@code
+     * TileHeatingStructure#getTemperature}: while a burn is under way this is the temperature that
+     * burn locked in ({@link #fuelTemperature}); otherwise it is a <b>peek</b> at whatever registered
+     * fuel currently sits in a wall tank, so temperature gating and the GUI see heat is available
+     * before the next {@link #meltTick()} actually drains it (issue #97). A peek never consumes fuel;
+     * only {@link #consumeFuel()} does, and only from inside a melt tick.
      */
     public int currentTemperature() {
         if (level == null || level.isClientSide || structure == null) {
             return 0;
         }
-        if (fuelTank == null || !holdsLava(fuelTank)) {
-            fuelTank = findFuelTank();
+        if (fuelBurnTicksRemaining > 0) {
+            return fuelTemperature;
         }
-        return fuelTank == null ? 0 : Fluids.LAVA.getFluidType().getTemperature();
+        SmelteryFuel fuel = peekFuel();
+        return fuel == null ? 0 : fuel.temperature();
     }
 
     /**
@@ -260,6 +289,12 @@ public class SmelteryControllerBlockEntity extends BlockEntity {
     public boolean meltTick() {
         if (level == null || level.isClientSide || structure() == null) {
             return false;
+        }
+        // #97: refuel before heating, upstream's own needsFuel-driven consumeFuel call. This method
+        // only ever runs while armed (see armMeltTick), i.e. while there is melting work queued, so a
+        // burn never starts for an idle smeltery.
+        if (fuelBurnTicksRemaining <= 0 && hasMeltableItem()) {
+            consumeFuel();
         }
         // Upstream converts the fuel's temperature to its own zero-is-300 scale the moment it burns it.
         int heat = currentTemperature() - MeltingRecipe.AMBIENT_TEMPERATURE;
@@ -282,6 +317,11 @@ public class SmelteryControllerBlockEntity extends BlockEntity {
             }
         }
         if (working) {
+            // Upstream's fuel-- inside heatItems: the burn only counts down on a tick that actually
+            // heated something.
+            if (fuelBurnTicksRemaining > 0) {
+                fuelBurnTicksRemaining--;
+            }
             setChanged();
         }
         return working;
@@ -313,8 +353,12 @@ public class SmelteryControllerBlockEntity extends BlockEntity {
     /**
      * Schedules the next melt tick unless one is already pending or there is nothing to melt. Every
      * path that can create work calls this; nothing polls.
+     *
+     * <p>Package-private rather than {@code private}: {@link SearedTankBlockEntity} calls this too
+     * (#97), to wake a melt that stopped for want of heat when a wall tank gets refilled -- the only
+     * other re-arm points are insertion, a structure scan, and load.
      */
-    private void armMeltTick() {
+    void armMeltTick() {
         if (level == null || level.isClientSide || !hasMeltableItem()) {
             return;
         }
@@ -396,7 +440,7 @@ public class SmelteryControllerBlockEntity extends BlockEntity {
             for (int x = min.getX(); x <= max.getX(); x++) {
                 for (int z : new int[] {min.getZ() - 1, max.getZ() + 1}) {
                     BlockPos pos = new BlockPos(x, y, z);
-                    if (holdsLava(pos)) {
+                    if (holdsFuel(pos)) {
                         return pos;
                     }
                 }
@@ -404,7 +448,7 @@ public class SmelteryControllerBlockEntity extends BlockEntity {
             for (int z = min.getZ(); z <= max.getZ(); z++) {
                 for (int x : new int[] {min.getX() - 1, max.getX() + 1}) {
                     BlockPos pos = new BlockPos(x, y, z);
-                    if (holdsLava(pos)) {
+                    if (holdsFuel(pos)) {
                         return pos;
                     }
                 }
@@ -413,9 +457,45 @@ public class SmelteryControllerBlockEntity extends BlockEntity {
         return null;
     }
 
-    private boolean holdsLava(BlockPos pos) {
+    /** Whether the wall tank at {@code pos} holds a registered {@link SmelteryFuel} (#97), upstream's {@code hasTankWithFuel}. */
+    private boolean holdsFuel(BlockPos pos) {
         return level != null && level.getBlockEntity(pos) instanceof SearedTankBlockEntity tank
-                && tank.tank().getFluidAmount() > 0 && tank.tank().getFluid().getFluid() == Fluids.LAVA;
+                && tank.tank().getFluidAmount() > 0
+                && SmelteryFuel.find(level.registryAccess(), tank.tank().getFluid().getFluid()).isPresent();
+    }
+
+    /** The registered fuel available right now, without consuming it, or {@code null} if none is. */
+    @Nullable
+    private SmelteryFuel peekFuel() {
+        if (fuelTank == null || !holdsFuel(fuelTank)) {
+            fuelTank = findFuelTank();
+        }
+        if (fuelTank == null || !(level.getBlockEntity(fuelTank) instanceof SearedTankBlockEntity tank)) {
+            return null;
+        }
+        return SmelteryFuel.find(level.registryAccess(), tank.tank().getFluid().getFluid()).orElse(null);
+    }
+
+    /**
+     * Drains one burn cycle's worth of fuel from the wall tank holding it and locks in
+     * {@link #fuelBurnTicksRemaining}/{@link #fuelTemperature} for that burn -- upstream's {@code
+     * consumeFuel}/{@code searchForFuel}. Called only from {@link #meltTick()}, itself only scheduled
+     * while there is melting work (see {@link #armMeltTick()}), so an idle or unfuelled smeltery never
+     * touches a tank. A tank with less than a full {@link SmelteryFuel#amount()} simply is not burned
+     * yet -- ponytail: no partial-fuel accounting, matching how upstream itself only bothers with it
+     * once a tank is close to fully drained; add it if a playtest tank ever runs that dry mid-melt.
+     */
+    private void consumeFuel() {
+        SmelteryFuel fuel = peekFuel();
+        if (fuel == null || !(level.getBlockEntity(fuelTank) instanceof SearedTankBlockEntity tank)) {
+            return;
+        }
+        if (tank.tank().drain(fuel.amount(), IFluidHandler.FluidAction.SIMULATE).getAmount() != fuel.amount()) {
+            return;
+        }
+        tank.tank().drain(fuel.amount(), IFluidHandler.FluidAction.EXECUTE);
+        fuelBurnTicksRemaining = fuel.duration();
+        fuelTemperature = fuel.temperature();
     }
 
     @Override
@@ -438,6 +518,9 @@ public class SmelteryControllerBlockEntity extends BlockEntity {
         // #96: what is melting and how far along it is (SCOPE.md M2 save-compat fixture list).
         tag.put(TAG_MELTING, ContainerHelper.saveAllItems(new CompoundTag(), meltingItems, true, registries));
         tag.putIntArray(TAG_MELT_PROGRESS, meltProgress);
+        // #97: the in-progress burn -- fuel state (SCOPE.md M2 save-compat fixture list).
+        tag.putInt(TAG_FUEL_BURN_TICKS, fuelBurnTicksRemaining);
+        tag.putInt(TAG_FUEL_TEMPERATURE, fuelTemperature);
     }
 
     @Override
@@ -455,6 +538,9 @@ public class SmelteryControllerBlockEntity extends BlockEntity {
         ContainerHelper.loadAllItems(tag.getCompound(TAG_MELTING), meltingItems, registries);
         int[] progress = tag.getIntArray(TAG_MELT_PROGRESS);
         System.arraycopy(progress, 0, meltProgress, 0, Math.min(progress.length, meltProgress.length));
+        // #97: the in-progress burn, if any -- fuelTank itself is not saved, it is re-found on demand.
+        fuelBurnTicksRemaining = tag.getInt(TAG_FUEL_BURN_TICKS);
+        fuelTemperature = tag.getInt(TAG_FUEL_TEMPERATURE);
     }
 
     /** Structure bounds and tank contents are what the client needs for the smeltery GUI and fluid rendering (#101). */
