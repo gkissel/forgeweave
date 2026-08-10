@@ -168,7 +168,7 @@ class PartItemTest {
                 new Material.Handle(0.5F, -50),
                 20,
                 TagKey.create(Registries.BLOCK, ResourceLocation.withDefaultNamespace("incorrect_for_stone_tool")),
-                CHEAP_TRAIT,
+                Material.Traits.general(CHEAP_TRAIT),
                 List.of(),
                 Ingredient.of(Items.COBBLESTONE),
                 STONE_COLOR);

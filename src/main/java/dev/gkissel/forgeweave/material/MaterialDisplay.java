@@ -35,7 +35,7 @@ public final class MaterialDisplay {
     }
 
     /**
-     * The colour of the first of {@code materialIds} whose trait is {@code traitId}, or {@code null}
+     * The colour of the first of {@code materialIds} that grants {@code traitId}, or {@code null}
      * when none of them granted it (or the registry is unreachable). Upstream 1.12 renders a trait
      * name in its granting material's colour ({@code Material#getTextColor}, applied by
      * {@code ToolPart#getTooltipTraitInfo} and {@code GuiPartBuilder#setDisplayForMaterial}); issue
@@ -47,7 +47,7 @@ public final class MaterialDisplay {
             ResourceLocation traitId) {
         for (ResourceLocation materialId : materialIds) {
             Optional<Material> material = lookup(registries, materialId);
-            if (material.isPresent() && material.get().trait().equals(traitId)) {
+            if (material.isPresent() && material.get().traits().all().contains(traitId)) {
                 return material.get().color();
             }
         }

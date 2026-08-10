@@ -182,7 +182,7 @@ class ToolTooltipTest {
                 new Material.Handle(0.5F, -50),
                 20,
                 incorrectForTool("stone"),
-                CHEAP_TRAIT,
+                Material.Traits.general(CHEAP_TRAIT),
                 List.of(),
                 Ingredient.of(Items.COBBLESTONE),
                 STONE_COLOR);
@@ -194,7 +194,7 @@ class ToolTooltipTest {
                 new Material.Handle(1.0F, 25),
                 15,
                 incorrectForTool("wooden"),
-                ECOLOGICAL_TRAIT,
+                Material.Traits.general(ECOLOGICAL_TRAIT),
                 List.of(),
                 Ingredient.of(Items.STICK),
                 WOOD_COLOR);

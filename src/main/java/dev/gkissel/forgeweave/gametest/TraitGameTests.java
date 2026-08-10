@@ -1,8 +1,10 @@
 package dev.gkissel.forgeweave.gametest;
 
 import java.util.List;
+import java.util.Map;
 
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Registry;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.resources.ResourceLocation;
@@ -25,7 +27,9 @@ import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.block.ToolStationBlockEntity;
 import dev.gkissel.forgeweave.item.ForgeweaveDataComponents;
+import dev.gkissel.forgeweave.item.PartItem;
 import dev.gkissel.forgeweave.item.ToolItem;
+import dev.gkissel.forgeweave.material.Material;
 import dev.gkissel.forgeweave.menu.ToolStationMenu;
 
 /**
@@ -39,6 +43,47 @@ import dev.gkissel.forgeweave.menu.ToolStationMenu;
 @GameTestHolder(Forgeweave.MODID)
 @PrefixGameTestTemplate(false)
 public class TraitGameTests {
+
+    /**
+     * Issue #94: the per-part trait lists survive the datapack load and the registry sync a connected
+     * client sees, and resolve per part on the way into an assembled tool. Runs on the dedicated
+     * GameTest server against the same {@code Material.REGISTRY} that gets synced, so a schema change
+     * that decoded only in a unit test would fail here.
+     *
+     * <p>All four M1 materials are general-only, so every part of them grants the same one trait --
+     * exactly what the pre-#94 single {@code trait} field meant. The head/general split itself is
+     * covered by {@code MaterialTest} and {@code ForgeweaveTraitsTest}; no shipped material uses it
+     * yet (the metals that do arrive with M2).
+     */
+    @GameTest(template = "empty")
+    public static void shippedMaterialsExposeTheirTraitListsThroughEveryPart(GameTestHelper helper) {
+        Registry<Material> materials = helper.getLevel().registryAccess().registryOrThrow(Material.REGISTRY);
+        Map<String, String> expected = Map.of(
+                "wood", "ecological", "stone", "cheap", "flint", "crude", "bone", "fractured");
+
+        expected.forEach((name, trait) -> {
+            Material material = materials.get(ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, name));
+            helper.assertTrue(material != null, name + " should be in the synced material registry");
+            List<ResourceLocation> only = List.of(traitId(trait));
+            helper.assertTrue(only.equals(material.traits().all()),
+                    name + " should grant exactly " + only + ", got " + material.traits().all());
+            for (PartItem.Kind kind : PartItem.Kind.values()) {
+                helper.assertTrue(only.equals(material.traits().forPart(kind)),
+                        name + " through a " + kind + " part should grant " + only + ", got "
+                                + material.traits().forPart(kind));
+            }
+        });
+
+        // And the resolution the Tool Station does with them: one id per distinct material, head first.
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        ItemStack pickaxe = ToolAssembly.pickaxe(helper, player, new BlockPos(1, 1, 1), "bone", "stone", "wood");
+        List<ResourceLocation> traits = List.of(traitId("fractured"), traitId("cheap"), traitId("ecological"));
+        helper.assertTrue(traits.equals(pickaxe.get(ForgeweaveDataComponents.TRAITS.get())),
+                "expected " + traits + " in head/binding/handle order, got "
+                        + pickaxe.get(ForgeweaveDataComponents.TRAITS.get()));
+
+        helper.succeed();
+    }
 
     /**
      * Wood -&gt; {@code forgeweave:ecological}: a damaged tool carried in an inventory slowly regains
