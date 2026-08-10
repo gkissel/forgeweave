@@ -1,0 +1,7 @@
+{
+  "input": {
+    "item": "minecraft:nether_gold_ore"
+  },
+  "fluid": "forgeweave:molten_gold",
+  "amount": 64
+}

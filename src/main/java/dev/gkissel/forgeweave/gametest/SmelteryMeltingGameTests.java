@@ -52,6 +52,20 @@ public class SmelteryMeltingGameTests {
     }
 
     /**
+     * The other half of "ore blocks melt as their raw-drop equivalent": vanilla copper ore drops 2-5
+     * raw copper (expected 3.5), so it melts at 504 mB and not the {@code c:ores/copper} default of
+     * 144. This is also the live proof that {@code MeltingRecipe#find} prefers the item-keyed
+     * override over the tag both recipes match.
+     */
+    @GameTest(template = "smeltery", timeoutTicks = 1600)
+    public static void vanillaCopperOreMeltsAtItsPerItemOverride(GameTestHelper helper) {
+        SmelteryControllerBlockEntity core = lavaFuelledSmeltery(helper);
+        insert(helper, core, Items.COPPER_ORE);
+
+        helper.succeedWhen(() -> assertTankHolds(helper, core, ForgeweaveFluids.COPPER.still().get(), 504));
+    }
+
+    /**
      * The M2 ladder promise made executable: nothing in Forgeweave names {@code minecraft:brick}, and
      * no recipe was written for it. It melts because the GameTest datapack put it in
      * {@code c:ingots/copper} and Forgeweave's copper ingot recipe keys off that tag -- which is

@@ -1,0 +1,12 @@
+{
+  "input": [
+    {
+      "item": "minecraft:copper_ore"
+    },
+    {
+      "item": "minecraft:deepslate_copper_ore"
+    }
+  ],
+  "fluid": "forgeweave:molten_copper",
+  "amount": 504
+}

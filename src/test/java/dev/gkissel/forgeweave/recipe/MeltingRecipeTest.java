@@ -145,6 +145,53 @@ class MeltingRecipeTest {
         assertEquals(MeltingRecipe.VALUE_NUGGET, shipped("iron_nugget").get("amount").getAsInt());
     }
 
+    /**
+     * The two vanilla ores whose expected un-fortuned drop is not one raw unit, straight off their
+     * 1.21.1 loot tables:
+     *
+     * <ul>
+     *   <li>{@code blocks/copper_ore} and {@code blocks/deepslate_copper_ore} drop {@code raw_copper}
+     *       with {@code set_count} uniform 2..5 -- four equally likely counts averaging 3.5, so
+     *       3.5 x 144 = <b>504</b>.
+     *   <li>{@code blocks/nether_gold_ore} drops {@code gold_nugget} with {@code set_count} uniform
+     *       2..6 -- five counts averaging 4, so 4 x 16 = <b>64</b>.
+     * </ul>
+     *
+     * Melting one ore block therefore matches mining it and melting the raws, which is what
+     * docs/SCOPE.md's "ore blocks melt as their raw-drop equivalent" asks for. Fortune is not in the
+     * expectation: it is an axis melting deliberately does not have, same as silk touch.
+     */
+    @Test
+    void oresThatDropMoreThanOneRawUnitGetAnItemKeyedOverride() {
+        JsonObject copper = shipped("vanilla_copper_ore");
+        assertEquals(504, copper.get("amount").getAsInt(), "3.5 raw copper x 144 mB");
+        assertEquals("forgeweave:molten_copper", copper.get("fluid").getAsString());
+        assertEquals(2, copper.getAsJsonArray("input").size(), "stone and deepslate variants in one recipe");
+
+        JsonObject netherGold = shipped("vanilla_nether_gold_ore");
+        assertEquals(64, netherGold.get("amount").getAsInt(), "4 gold nuggets x 16 mB");
+        assertEquals("forgeweave:molten_gold", netherGold.get("fluid").getAsString());
+    }
+
+    /**
+     * And the tie-break that lets those overrides win: {@link MeltingRecipe#find} sorts item inputs
+     * ahead of tag inputs, so a modded copper ore still falls back on {@code c:ores/copper}'s 144
+     * while {@code minecraft:copper_ore} takes its own 504.
+     */
+    @Test
+    void itemInputsAreMoreSpecificThanTagInputs() {
+        assertTrue(parse("""
+                {"input": {"tag": "c:ores/copper"}, "fluid": "minecraft:lava", "amount": 144}
+                """).isTagInput(), "a c: tag recipe is the family default");
+        assertTrue(!parse("""
+                {"input": {"item": "minecraft:copper_ore"}, "fluid": "minecraft:lava", "amount": 504}
+                """).isTagInput(), "a per-item override is not");
+        assertTrue(!parse("""
+                {"input": [{"item": "minecraft:copper_ore"}, {"item": "minecraft:deepslate_copper_ore"}],
+                 "fluid": "minecraft:lava", "amount": 504}
+                """).isTagInput(), "nor is a list of items, which is how the shipped override is written");
+    }
+
     private static JsonObject shipped(String name) {
         String path = "/data/forgeweave/forgeweave/melting_recipe/" + name + ".json";
         try (InputStream in = MeltingRecipeTest.class.getResourceAsStream(path)) {

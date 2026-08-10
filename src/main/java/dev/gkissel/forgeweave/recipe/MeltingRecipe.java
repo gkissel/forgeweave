@@ -1,5 +1,6 @@
 package dev.gkissel.forgeweave.recipe;
 
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.Map;
 import java.util.Optional;
@@ -45,7 +46,10 @@ import dev.gkissel.forgeweave.Forgeweave;
  *   <li>{@code amount} -- the <b>base</b> output in mB, before any core-tier multiplier. Upstream's
  *       ore recipes bake their 2x ore bonus into this number; docs/SCOPE.md splits the two ("melting
  *       recipes hold base amounts, the core multiplies"), so an ore melts here as its raw-drop
- *       equivalent and {@code SmelteryCore#yieldMultiplier} scales it in issue #99.
+ *       equivalent and {@code SmelteryCore#yieldMultiplier} scales it in issue #99. "Raw-drop
+ *       equivalent" is read off the block's own loot table: the {@code c:ores/*} recipes assume one
+ *       raw unit, and an ore whose expected un-fortuned drop is not one raw unit gets an item-keyed
+ *       override that {@link #find} prefers (vanilla copper ore, vanilla nether gold ore).
  *   <li>{@code temperature} -- optional. Left out, it is derived from the output fluid's own
  *       temperature by {@link #calcTemperature}, exactly as upstream's two-argument constructor does.
  * </ul>
@@ -121,12 +125,31 @@ public record MeltingRecipe(Ingredient input, Fluid fluid, int amount, int tempe
     }
 
     /**
+     * Whether this recipe's input names a tag rather than items. Tag recipes are the family default
+     * that covers every mod's version of a metal; an item recipe is a deliberate override for one
+     * block whose drops are not one raw unit, and {@link #find} lets it win.
+     *
+     * <p>A NeoForge custom ingredient refuses to expose its values at all, and counts as specific --
+     * it was written for a particular case, which is the same side of the tie-break. That covers the
+     * shipped {@code vanilla_copper_ore} recipe, whose two-item list form NeoForge models as one.
+     */
+    public boolean isTagInput() {
+        return !input.isCustom()
+                && Arrays.stream(input.getValues()).anyMatch(value -> value instanceof Ingredient.TagValue);
+    }
+
+    /**
      * The recipe for {@code stack}, or empty if nothing melts it.
+     *
+     * <p>Resolution is <b>most specific wins</b>: an item-keyed recipe beats a tag-keyed one, so
+     * {@code minecraft:copper_ore}'s 2-5 raw-copper override beats the {@code c:ores/copper} default
+     * that every modded copper ore falls back on. Remaining ties break on registry id, so two
+     * equally specific overlapping recipes always pick the same winner -- that case is a datapack
+     * authoring mistake, not something to resolve cleverly.
      *
      * <p>ponytail: a linear scan of a registry holding a few dozen entries, run once per item
      * inserted rather than per tick. Index it by item if a pack ever makes the scan show up in a
-     * profile. Ties are broken by registry id so two overlapping recipes always pick the same winner
-     * -- overlapping inputs are a datapack authoring mistake, not something to resolve cleverly.
+     * profile.
      */
     public static Optional<MeltingRecipe> find(RegistryAccess registries, ItemStack stack) {
         if (stack.isEmpty()) {
@@ -135,7 +158,10 @@ public record MeltingRecipe(Ingredient input, Fluid fluid, int amount, int tempe
         Registry<MeltingRecipe> recipes = registries.registryOrThrow(REGISTRY);
         return recipes.entrySet().stream()
                 .filter(entry -> entry.getValue().input.test(stack))
-                .min(Comparator.comparing(entry -> entry.getKey().location()))
+                // false sorts before true, so item inputs come first.
+                .min(Comparator.<Map.Entry<ResourceKey<MeltingRecipe>, MeltingRecipe>, Boolean>comparing(
+                                entry -> entry.getValue().isTagInput())
+                        .thenComparing(entry -> entry.getKey().location()))
                 .map(Map.Entry::getValue);
     }
 }
