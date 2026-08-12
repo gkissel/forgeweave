@@ -214,6 +214,17 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         // Upstream 1.12's "Modifiers: %d" line, shown on a tool that still has slots free.
         add("tooltip.forgeweave.modifier_slots", "Modifiers: %s");
 
+        // M1 tool innate retrofit (issue #164, maintainer directive 2026-08-12): pickaxe, shovel and
+        // hatchet each carry a fixed combat innate, shown the same name/description shape as a trait
+        // but keyed by tool type instead of material (ForgeweaveInnates#innateId).
+        add("tooltip.forgeweave.innate.pierce.name", "Pierce");
+        add("tooltip.forgeweave.innate.pierce.description", "Deals a small amount of armor-ignoring damage on every hit.");
+        add("tooltip.forgeweave.innate.flatten.name", "Flatten");
+        add("tooltip.forgeweave.innate.flatten.description", "Hits briefly slow the target.");
+        add("tooltip.forgeweave.innate.sunder.name", "Sunder");
+        add("tooltip.forgeweave.innate.sunder.description",
+                "Disables an active shield and deals bonus damage against a blocking target.");
+
         // Tool tier names (issue #65), keyed off the vanilla incorrect_for_<tier>_tool block tag each
         // material's incorrect_for_tool points at (ToolTooltip#tierName) -- only the tiers M1's
         // materials actually use; an unmapped tier degrades to a visible untranslated key, same as an

@@ -27,6 +27,7 @@ import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.block.ToolStationBlockEntity;
 import dev.gkissel.forgeweave.item.ForgeweaveDataComponents;
+import dev.gkissel.forgeweave.item.ForgeweaveItems;
 import dev.gkissel.forgeweave.item.PartItem;
 import dev.gkissel.forgeweave.item.ToolItem;
 import dev.gkissel.forgeweave.material.Material;
@@ -151,14 +152,18 @@ public class TraitGameTests {
     /**
      * Flint -&gt; {@code forgeweave:crude}: 5% bonus damage, but only against a target with no armor.
      * Both comparisons hit an otherwise identical target with an otherwise identical tool (stone's
-     * {@code cheap} touches nothing about damage), so the difference is the trait and nothing else.
+     * {@code cheap} touches nothing about damage), so the difference is the trait and nothing else --
+     * built as shovels rather than pickaxes so the M1 pierce innate (issue #164, a flat rather than
+     * proportional bonus) doesn't skew the 5% ratio this test checks.
      */
     @GameTest(template = "empty")
     public static void crudeAddsDamageOnlyAgainstUnarmoredTargets(GameTestHelper helper) {
         BlockPos pos = new BlockPos(1, 1, 1);
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
-        ItemStack flint = ToolAssembly.pickaxe(helper, player, pos, "flint", "flint", "flint");
-        ItemStack stone = ToolAssembly.pickaxe(helper, player, pos, "stone", "stone", "stone");
+        ItemStack flint = ToolAssembly.tool(helper, player, pos, ForgeweaveItems.PART_SHOVEL_HEAD.get(),
+                "flint", "flint", "flint");
+        ItemStack stone = ToolAssembly.tool(helper, player, pos, ForgeweaveItems.PART_SHOVEL_HEAD.get(),
+                "stone", "stone", "stone");
 
         float unarmoredWithCrude = hit(helper, player, flint, false);
         float unarmoredWithout = hit(helper, player, stone, false);

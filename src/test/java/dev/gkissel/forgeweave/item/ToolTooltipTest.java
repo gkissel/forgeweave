@@ -84,7 +84,7 @@ class ToolTooltipTest {
         List<Component> tooltip = new ArrayList<>();
         ToolTooltip.append(stack, null, false, 3.0F, tooltip);
 
-        assertEquals(List.of(durabilityLine(120, 160), attackLine(3.0F), slotsLine(3)), tooltip);
+        assertEquals(List.of(durabilityLine(120, 160), attackLine(3.0F), pierceLine(), slotsLine(3)), tooltip);
     }
 
     /**
@@ -104,6 +104,7 @@ class ToolTooltipTest {
         assertEquals(List.of(
                 durabilityLine(120, 160),
                 attackLine(3.0F),
+                pierceLine(),
                 Component.translatable("modifier.forgeweave.haste.name")
                         .withStyle(Style.EMPTY.withColor(MODIFIER_COLOR))
                         .append(CommonComponents.SPACE)
@@ -124,6 +125,7 @@ class ToolTooltipTest {
         assertEquals(List.of(
                 Component.translatable("tooltip.forgeweave.broken").withStyle(ChatFormatting.DARK_RED, ChatFormatting.BOLD),
                 attackLine(0.0F),
+                pierceLine(),
                 slotsLine(3)),
                 tooltip);
     }
@@ -139,6 +141,7 @@ class ToolTooltipTest {
         assertEquals(List.of(
                 durabilityLine(120, 160),
                 attackLine(3.0F),
+                pierceLine(),
                 slotsLine(3),
                 statLine("tooltip.forgeweave.mining_speed", "4", SPEED_COLOR),
                 Component.translatable("tooltip.forgeweave.tool_tier").append(": ")
@@ -167,6 +170,7 @@ class ToolTooltipTest {
         assertEquals(List.of(
                 durabilityLine(120, 160),
                 attackLine(3.0F),
+                pierceLine(),
                 slotsLine(3),
                 statLine("tooltip.forgeweave.mining_speed", "4", SPEED_COLOR),
                 Component.empty(),
@@ -188,7 +192,7 @@ class ToolTooltipTest {
         ForgeweaveItems.TOOL_PICKAXE.get().appendHoverText(stack, Item.TooltipContext.EMPTY, tooltip, TooltipFlag.NORMAL);
 
         // TooltipFlag.NORMAL.hasShiftDown() is NeoForge's TooltipFlagExtension default (false off-client).
-        assertEquals(List.of(durabilityLine(120, 160), attackLine(3.0F), slotsLine(3)), tooltip);
+        assertEquals(List.of(durabilityLine(120, 160), attackLine(3.0F), pierceLine(), slotsLine(3)), tooltip);
     }
 
     private static ItemStack assembledPickaxe(int damage, List<ResourceLocation> traits) {
@@ -257,6 +261,17 @@ class ToolTooltipTest {
 
     private static Component statLine(String key, String value, TextColor color) {
         return Component.translatable(key).append(": ").append(Component.literal(value).withStyle(Style.EMPTY.withColor(color)));
+    }
+
+    /**
+     * The M1 pickaxe innate line every {@code assembledPickaxe} stack now carries (issue #164):
+     * same name-colon-description shape as {@link #traitLine}, but gold and not keyed by material.
+     */
+    private static Component pierceLine() {
+        return Component.translatable("tooltip.forgeweave.innate.pierce.name")
+                .withStyle(ChatFormatting.GOLD)
+                .append(Component.literal(": ").withStyle(ChatFormatting.GRAY))
+                .append(Component.translatable("tooltip.forgeweave.innate.pierce.description").withStyle(ChatFormatting.GRAY));
     }
 
     private static Component traitLine(String path, TextColor color) {

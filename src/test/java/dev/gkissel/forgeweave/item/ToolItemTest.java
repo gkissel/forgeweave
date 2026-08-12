@@ -1,6 +1,7 @@
 package dev.gkissel.forgeweave.item;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
@@ -67,6 +68,22 @@ class ToolItemTest {
         assertEquals(1, ToolItem.attackDurabilityCost(15.0F, true));
         assertEquals(2, ToolItem.attackDurabilityCost(20.0F, true));
         assertEquals(9, ToolItem.attackDurabilityCost(99.0F, true));
+    }
+
+    // --------------------------------------------------------------------- #164: M1 innate retrofit
+
+    /**
+     * Sunder's shield-disable half (docs/SCOPE.md M3 issue #164): "make the hatchet count as an axe
+     * for shield-disabling" is {@link ToolItem#canDisableShield} returning {@code true} only for the
+     * hatchet -- the {@link #weapon} flag it already reads is upstream's one {@code Category.WEAPON}
+     * tool. All four parameters are ignored by that override, so {@code null} is fine here.
+     */
+    @Test
+    void onlyTheHatchetCanDisableShields() {
+        assertTrue(ForgeweaveItems.TOOL_HATCHET.get().canDisableShield(null, null, null, null),
+                "the hatchet should count as an axe for vanilla's shield-disable mechanic");
+        assertFalse(ForgeweaveItems.TOOL_PICKAXE.get().canDisableShield(null, null, null, null));
+        assertFalse(ForgeweaveItems.TOOL_SHOVEL.get().canDisableShield(null, null, null, null));
     }
 
     // ------------------------------------------------------------------ #108 batch: modern-vanilla modifiers
