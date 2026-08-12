@@ -152,7 +152,15 @@ public final class ToolStationTabs {
             // found for either to cite pixel positions from, so these are Forgeweave's own, spaced
             // the same way as the M1 three; both are listed in their entry's own part order.
             build(ForgeweaveItems.TOOL_MATTOCK, at(0, 18), at(-20, -14), at(20, -14)),
-            build(ForgeweaveItems.TOOL_KAMA, at(-20, 12), at(0, -20), at(20, 12)));
+            build(ForgeweaveItems.TOOL_KAMA, at(-20, 12), at(0, -20), at(20, 12)),
+            // #159. Upstream has no build layout to copy for either: its battleaxe never shipped (so
+            // its client proxy registers no ToolBuildGuiInfo) and the scimitar is Forgeweave's own
+            // shape. The scimitar reuses the hatchet's arrangement -- head up and slightly left, extra
+            // part to its right, handle down-left -- which is upstream's own layout for a haft-and-head
+            // tool. The battleaxe is the first four-slot tab: haft down-left, its two heads up and
+            // apart (so which slot is which head reads at a glance), binding at the joint between.
+            build(ForgeweaveItems.TOOL_BATTLEAXE, at(-11, 16), at(-16, -16), at(6, -18), at(16, 4)),
+            build(ForgeweaveItems.TOOL_SCIMITAR, at(-11, 11), at(-2, -20), at(18, -8)));
 
     /** The repair tab, which is what a freshly opened station shows (as upstream's does). */
     public static final int REPAIR = 0;

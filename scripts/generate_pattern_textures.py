@@ -53,6 +53,10 @@ PARTS = [
     # M3 issue #161: the warmace's head, itself derived from the clone's hammer head
     # (scripts/derive_warmace_art.py), so it lives in TEXTURE_DIR like every other derived part.
     ("war_mace_head.png", "pattern_war_mace_head.png", TEXTURE_DIR),
+    # The scimitar's head part (issue #159) is the second part with no upstream art at all
+    # (scripts/generate_scimitar_art.py), so like vein_hammer_head its base lives in
+    # ORIGINAL_ITEM_DIR -- the composite over the derived pattern base still gets a NOTICE.md row.
+    ("curved_blade.png", "pattern_curved_blade.png", ORIGINAL_ITEM_DIR),
 ]
 
 ALPHA_THRESHOLD = 64

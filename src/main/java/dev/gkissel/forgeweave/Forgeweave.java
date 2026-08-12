@@ -28,6 +28,7 @@ import dev.gkissel.forgeweave.block.SearedTankBlockEntity;
 import dev.gkissel.forgeweave.casting.CastingRecipe;
 import dev.gkissel.forgeweave.combat.CombatSeams;
 import dev.gkissel.forgeweave.combat.ForgeweaveInnates;
+import dev.gkissel.forgeweave.combat.ForgeweaveMobEffects;
 import dev.gkissel.forgeweave.config.ForgeweaveConfig;
 import dev.gkissel.forgeweave.data.ForgeweaveDataGenerators;
 import dev.gkissel.forgeweave.fluid.ForgeweaveFluids;
@@ -63,6 +64,8 @@ public class Forgeweave {
         ForgeweaveItems.ITEMS.register(modEventBus);
         ForgeweaveMenus.MENUS.register(modEventBus);
         ForgeweaveCreativeTab.TABS.register(modEventBus);
+        // #159 -- the scimitar's lacerate bleed (see LacerateEffect for why it is a status effect).
+        ForgeweaveMobEffects.MOB_EFFECTS.register(modEventBus);
         ForgeweaveRecipeSerializers.RECIPE_SERIALIZERS.register(modEventBus);
         // #110 -- the M2 advancement chain's custom criteria (docs/SCOPE.md M2 issue #110).
         ForgeweaveCriteriaTriggers.TRIGGERS.register(modEventBus);
@@ -101,6 +104,9 @@ public class Forgeweave {
         // so a trait that scales a blow scales the blow the tool was always going to land rather than
         // the innate's bonus on top of it.
         CombatSeams.register(ForgeweaveInnates::collect);
+        // #159 -- the charge a swing was made with, captured before Player#attack zeroes it; the
+        // battleaxe's full-charge-only sweep and every later charged innate read it off CombatHit.
+        NeoForge.EVENT_BUS.addListener(CombatSeams::onPlayerAttack);
         // established's kill-XP bonus (issue #102): no Item hook for a kill's dropped XP either.
         NeoForge.EVENT_BUS.addListener(ForgeweaveTraits::onExperienceDrop);
         // #103 -- netherite's fireproof: a dropped ItemEntity's fire immunity has no per-stack Item

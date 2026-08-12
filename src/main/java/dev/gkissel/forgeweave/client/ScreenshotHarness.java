@@ -23,6 +23,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.Direction;
 import net.minecraft.core.RegistryAccess;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -209,7 +210,10 @@ public final class ScreenshotHarness {
             // Issue #156's two station tools, on the same held-render stage: their art is the
             // per-layer head/binding/handle composite the weapons' is, so the same capture answers
             // the same release-checklist question for them.
-            ForgeweaveItems.TOOL_MATTOCK, ForgeweaveItems.TOOL_KAMA);
+            ForgeweaveItems.TOOL_MATTOCK, ForgeweaveItems.TOOL_KAMA,
+            // #159. The battleaxe is the first four-layer capture (handle, both heads, binding), so
+            // this frame is also where a missing or misnamed second-head layer would show up.
+            ForgeweaveItems.TOOL_BATTLEAXE, ForgeweaveItems.TOOL_SCIMITAR);
 
     /** How far in -Z of spawn the weapon poses stand, clear of the block scenes above. */
     private static final int WEAPON_SCENE_DISTANCE = 6;

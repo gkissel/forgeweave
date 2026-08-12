@@ -7,6 +7,8 @@ import java.util.Optional;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
+import org.jetbrains.annotations.Nullable;
+
 import net.minecraft.core.Holder;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.component.DataComponents;
@@ -183,7 +185,14 @@ public final class ToolAssemblyRecipes {
             // part at all -- HANDLE, HEAD (axe), HEAD (shovel), upstream tools/tools/Mattock.java --
             // which the positional slot matching above already handles with no special case.
             new Entry(ToolConstants.MATTOCK, ForgeweaveItems.TOOL_MATTOCK),
-            new Entry(ToolConstants.KAMA, ForgeweaveItems.TOOL_KAMA));
+            new Entry(ToolConstants.KAMA, ForgeweaveItems.TOOL_KAMA),
+            // #159. The battleaxe is the first four-slot tool: handle, two broad axe heads, binding,
+            // ToolConstants#BATTLEAXE's own order and upstream's own (BattleAxe.java's part list, and
+            // its battleaxe.tcon.json layers them handle/backhead/fronthead/binding to match). Its two
+            // heads take a slot each and so can be different materials -- #159 landed them sharing one
+            // slot only because the pre-#155 station was fixed at three, which this table no longer is.
+            new Entry(ToolConstants.BATTLEAXE, ForgeweaveItems.TOOL_BATTLEAXE),
+            new Entry(ToolConstants.SCIMITAR, ForgeweaveItems.TOOL_SCIMITAR));
 
     /**
      * The "large tool" classification (docs/SCOPE.md M3 issue #152): tools that can only be assembled

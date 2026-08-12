@@ -192,6 +192,30 @@ public final class ForgeweaveInnates {
     /** Hatchet. Bonus damage only -- the shield-disable half lives on {@code ToolItem}. */
     public static final CombatSeam SUNDER = new BonusDamageVsBlocking(SUNDER_BONUS_DAMAGE_FRACTION);
 
+    /**
+     * Battleaxe -- sweeping heavy blow (maintainer decision on issue #159, 2026-08-12): a full-charge
+     * hit strikes all enemies in a short arc for 50% damage, and the primary target takes slowness I
+     * for 1.5 seconds.
+     *
+     * <p>The two numbers that decision left to implementation are the arc's reach and width. 3 blocks
+     * and 120 degrees: reach is one block past a player's own entity-interaction range so a second
+     * rank of mobs behind the one struck is caught, and the wedge is wide enough to hit a flanking
+     * pair without becoming the ring-shaped "everything around me" the word <em>arc</em> rules out.
+     * Both are constructor parameters, so a playtest re-tune is a number here.
+     */
+    public static final SweepingBlow SWEEPING_BLOW_SEAM =
+            new SweepingBlow(0.5F, 3.0, 120.0, MobEffects.MOVEMENT_SLOWDOWN, FLATTEN_SLOWNESS_DURATION_TICKS, 0);
+    public static final Innate SWEEPING_BLOW = new Innate("sweeping_blow", SWEEPING_BLOW_SEAM, null);
+
+    /**
+     * Scimitar -- lacerate (maintainer decision on issue #159, 2026-08-12): 1 damage per second for 4
+     * seconds per application, stacking up to 3 concurrent bleeds. See {@link LacerateEffect} for
+     * where those numbers live and how the stack is carried.
+     */
+    public static final Lacerate LACERATE_SEAM = new Lacerate(
+            ForgeweaveMobEffects.LACERATE, LacerateEffect.DURATION_TICKS, LacerateEffect.MAX_STACKS);
+    public static final Innate LACERATE = new Innate("lacerate", LACERATE_SEAM, null);
+
     // ------------------------------------------------------------------ lookup
 
     /** The innate this stack's tool carries, or {@code null} -- the M3 binding (issue #155). */

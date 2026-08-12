@@ -1,7 +1,9 @@
 package dev.gkissel.forgeweave.client;
 
 import java.util.ArrayList;
+import java.util.EnumMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.annotation.Nullable;
 
@@ -39,6 +41,7 @@ import dev.gkissel.forgeweave.menu.ToolStationMenu;
 import dev.gkissel.forgeweave.menu.ToolStationTabs;
 import dev.gkissel.forgeweave.menu.ToolStationTabs.Tab;
 import dev.gkissel.forgeweave.tool.ToolArt;
+import dev.gkissel.forgeweave.tool.ToolConstants;
 import dev.gkissel.forgeweave.tool.ToolMaterials;
 
 /**
@@ -157,8 +160,15 @@ public class ToolStationScreen extends StationScreen<ToolStationMenu> implements
      * entries, which is what {@code TinkersItem#buildItemForRenderingInGui} feeds
      * {@code GuiToolStation}'s preview and {@code GuiButtonItem}'s icons. The preview deliberately
      * ignores what is actually in the slots, exactly as upstream's does.
+     *
+     * <p>Keyed on the part's role rather than on its slot index, for the same reason
+     * {@link ToolArt#layers} is: a four-part tool's slot 2 is a second head, and a three-part one's
+     * is the binding, so an index would tint the battleaxe's front head binding-blue (issue #159).
      */
-    private static final int[] TOOL_LAYER_COLORS = {0x684E1E, 0xC1C1C1, 0x2376DD};
+    private static final Map<ToolConstants.Role, Integer> TOOL_LAYER_COLORS = new EnumMap<>(Map.of(
+            ToolConstants.Role.HANDLE, 0x684E1E,
+            ToolConstants.Role.HEAD, 0xC1C1C1,
+            ToolConstants.Role.EXTRA, 0x2376DD));
 
     private static final int BUTTON_SIZE = 18;
     private static final int BUTTON_SPACING = 4;
@@ -393,12 +403,15 @@ public class ToolStationScreen extends StationScreen<ToolStationMenu> implements
         String path = BuiltInRegistries.ITEM.getKey(tab.tool()).getPath();
         // One layer per part, which is how every tool's model is built (ToolArt): a two-part weapon
         // (battlesign, frying pan, dagger -- issue #155) simply has no binding layer to draw.
-        for (int layer = 0; layer < tab.slots().size(); layer++) {
-            int color = TOOL_LAYER_COLORS[layer];
+        List<ToolConstants.PartSlot> parts = tab.entry().constants().parts();
+        List<String> layers = ToolArt.layers(parts);
+        List<Integer> layerSlots = ToolArt.layerSlots(parts);
+        for (int layer = 0; layer < layers.size(); layer++) {
+            int color = TOOL_LAYER_COLORS.get(parts.get(layerSlots.get(layer)).role());
             graphics.setColor((color >> 16 & 0xFF) / 255.0F, (color >> 8 & 0xFF) / 255.0F, (color & 0xFF) / 255.0F, 1.0F);
             graphics.blit(
                     ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID,
-                            "textures/" + ToolArt.layer(path, ToolArt.LAYERS.get(layer)) + ".png"),
+                            "textures/" + ToolArt.layer(path, layers.get(layer)) + ".png"),
                     x, y, 0, 0, 16, 16, 16, 16);
         }
         graphics.setColor(1.0F, 1.0F, 1.0F, 1.0F);
