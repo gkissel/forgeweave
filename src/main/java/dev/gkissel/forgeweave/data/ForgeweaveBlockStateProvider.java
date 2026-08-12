@@ -141,6 +141,13 @@ public class ForgeweaveBlockStateProvider extends BlockStateProvider {
         // like the seared brick family, with one composited derived texture per ore (NOTICE.md).
         cubeAllBlock("cobalt_ore", ForgeweaveBlocks.COBALT_ORE.get());
         cubeAllBlock("ardite_ore", ForgeweaveBlocks.ARDITE_ORE.get());
+
+        // #206 -- storage blocks for cobalt/ardite/manyullyn/rose gold: plain cube_all geometry like
+        // the ore blocks above, one derived texture per metal (NOTICE.md).
+        cubeAllBlock("cobalt_block", ForgeweaveBlocks.COBALT_BLOCK.get());
+        cubeAllBlock("ardite_block", ForgeweaveBlocks.ARDITE_BLOCK.get());
+        cubeAllBlock("manyullyn_block", ForgeweaveBlocks.MANYULLYN_BLOCK.get());
+        cubeAllBlock("rose_gold_block", ForgeweaveBlocks.ROSE_GOLD_BLOCK.get());
     }
 
     private void coreBlock(String name, Block block, String sideTexture) {
