@@ -25,6 +25,7 @@ import net.minecraft.core.registries.Registries;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.Difficulty;
+import net.minecraft.world.InteractionHand;
 import net.minecraft.world.level.GameRules;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.LevelSettings;
@@ -43,12 +44,16 @@ import net.minecraft.world.phys.Vec3;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.client.event.ClientTickEvent;
 import net.neoforged.neoforge.fluids.FluidStack;
 import net.neoforged.neoforge.fluids.capability.IFluidHandler;
 import net.neoforged.neoforge.fluids.capability.templates.FluidTank;
 
 import dev.gkissel.forgeweave.Forgeweave;
+import dev.gkissel.forgeweave.block.CastingBlockEntity;
+import dev.gkissel.forgeweave.block.FaucetBlock;
+import dev.gkissel.forgeweave.block.FaucetBlockEntity;
 import dev.gkissel.forgeweave.block.ForgeweaveBlocks;
 import dev.gkissel.forgeweave.block.SearedTankBlockEntity;
 import dev.gkissel.forgeweave.block.SmelteryControllerBlock;
@@ -56,6 +61,7 @@ import dev.gkissel.forgeweave.block.SmelteryControllerBlockEntity;
 import dev.gkissel.forgeweave.block.StationMenuHost;
 import dev.gkissel.forgeweave.block.ToolStationBlockEntity;
 import dev.gkissel.forgeweave.fluid.ForgeweaveFluids;
+import dev.gkissel.forgeweave.item.ForgeweaveItems;
 
 /**
  * Dev-only screenshot harness (docs/SCOPE.md issue #112): boots straight from the title screen into
@@ -72,7 +78,9 @@ import dev.gkissel.forgeweave.fluid.ForgeweaveFluids;
  * {@code seared_tank_world.png}, a seared tank/gauge/window row at three different fill levels
  * (issue #145), {@code tool_forge_world.png}, a Tool Forge beside a Tool Station (issue #152), and
  * {@code smeltery_world.png}, a formed smeltery holding two molten metals seen from over its rim
- * (issue #179). Those are the release-checklist artifacts for in-world block rendering the same way
+ * (issue #179), and {@code casting_world.png}, casting tables and basins with casts, fluid and a
+ * live faucet pour (issue #182). Those are the release-checklist artifacts for in-world block
+ * rendering the same way
  * {@link #SCREENS} is for GUIs.
  *
  * <h2>Why this is inert by default</h2>
@@ -155,9 +163,24 @@ public final class ScreenshotHarness {
             // like once everything in it has melted away.
             new HarnessScreen("smeltery_empty", ForgeweaveBlocks.STANDARD_CORE, ScreenshotHarness::buildEmptySmeltery));
 
+    /**
+     * The #182 casting row sits well out in -X, the one direction nothing else in this harness uses
+     * (the GUI stations march off in +X, the two world scenes sit just in front of spawn): unlike
+     * those, its camera has to look <em>into</em> open-topped blocks, and a stray tank or table from
+     * an earlier scene standing in that line of sight is exactly what makes a capture unreadable.
+     */
+    private static final int CASTING_SCENE_OFFSET_X = 16;
+    private static final int CASTING_SCENE_SPACING = 2;
+    /** Where the camera stands relative to the row's middle: south of it and up, looking down in. */
+    private static final int CASTING_SCENE_CAMERA_BACK = 7;
+    private static final int CASTING_SCENE_CAMERA_HEIGHT = 2;
+    /** Molten iron poured into the mid-pour table, out of the 144 mB an ingot cast wants. */
+    private static final int CASTING_SCENE_PARTIAL_POUR = 72;
+
     private enum Stage {
         AWAIT_TITLE, AWAIT_WORLD, SETTLE_WORLD, PLACE_TANK_SCENE, SETTLE_TANK_SCENE,
         PLACE_TABLE_SCENE, SETTLE_TABLE_SCENE, PLACE_SMELTERY_SCENE, SETTLE_SMELTERY_SCENE,
+        PLACE_CASTING_SCENE, SETTLE_CASTING_SCENE,
         OPEN_SCREEN, SETTLE_SCREEN, DONE
     }
 
@@ -171,6 +194,10 @@ public final class ScreenshotHarness {
     private static BlockPos[] tableScenePositions;
     /** Set by {@link #placeSmelteryScene}, checked by {@link #settleSmelteryScene} before capture (#179). */
     private static BlockPos smelteryScenePos;
+    /** Set by {@link #placeCastingScene}, checked by {@link #settleCastingScene} before capture (#182). */
+    private static BlockPos[] castingScenePositions;
+    /** The #182 scene's faucet, whose pour has to still be running when the shutter opens. */
+    private static BlockPos castingSceneFaucetPos;
 
     private ScreenshotHarness() {}
 
@@ -191,6 +218,8 @@ public final class ScreenshotHarness {
             case SETTLE_TABLE_SCENE -> settleTableScene(mc);
             case PLACE_SMELTERY_SCENE -> placeSmelteryScene(mc);
             case SETTLE_SMELTERY_SCENE -> settleSmelteryScene(mc);
+            case PLACE_CASTING_SCENE -> placeCastingScene(mc);
+            case SETTLE_CASTING_SCENE -> settleCastingScene(mc);
             case OPEN_SCREEN -> openScreen(mc);
             case SETTLE_SCREEN -> settleScreen(mc);
             case DONE -> {}
@@ -492,6 +521,132 @@ public final class ScreenshotHarness {
             }
         }
         capture(mc, "smeltery_world");
+        advance(Stage.PLACE_CASTING_SCENE);
+    }
+
+    /**
+     * Issue #182's in-world scene, captured as {@code casting_world.png}: everything the three
+     * reported defects touch, in one frame.
+     *
+     * <p>Left to right along +X:
+     *
+     * <ol>
+     *   <li>a casting table with an ingot cast lying on it and nothing else -- the plain "the cast is
+     *       invisible" report;
+     *   <li>a casting table holding the same cast half covered in molten iron -- the mid-pour state,
+     *       which is where a cast and the fluid over it have to coexist;
+     *   <li>an empty casting basin -- the transparency report, which is only visible with nothing in
+     *       the way of the interior;
+     *   <li>a casting basin under a faucet fed by a full seared tank, with the pour already running --
+     *       the stream, plus the basin filling underneath it.
+     * </ol>
+     *
+     * <p>The pour is started here and captured {@value #SCREEN_SETTLE_TICKS} ticks later. That lands
+     * well inside the window: the faucet buffers 144 mB and moves 6 mB a tick, so one transaction
+     * alone runs 24 ticks, and a basin casting an iron block wants 1296 mB -- nine of them.
+     */
+    private static void placeCastingScene(Minecraft mc) {
+        var server = mc.getSingleplayerServer();
+        LOGGER.info("{}placing casting table/basin/faucet world scene near {}", LOG_PREFIX, origin);
+        server.execute(() -> {
+            ServerPlayer serverPlayer = server.getPlayerList().getPlayers().get(0);
+            ServerLevel level = serverPlayer.serverLevel();
+            BlockPos castTable = origin.offset(-CASTING_SCENE_OFFSET_X, 0, 0);
+            BlockPos pouringTable = castTable.offset(CASTING_SCENE_SPACING, 0, 0);
+            BlockPos emptyBasin = castTable.offset(2 * CASTING_SCENE_SPACING, 0, 0);
+            BlockPos pouringBasin = castTable.offset(3 * CASTING_SCENE_SPACING, 0, 0);
+            castingScenePositions = new BlockPos[] {castTable, pouringTable, emptyBasin, pouringBasin};
+
+            level.setBlockAndUpdate(castTable, ForgeweaveBlocks.CASTING_TABLE.get().defaultBlockState());
+            level.setBlockAndUpdate(pouringTable, ForgeweaveBlocks.CASTING_TABLE.get().defaultBlockState());
+            level.setBlockAndUpdate(emptyBasin, ForgeweaveBlocks.CASTING_BASIN.get().defaultBlockState());
+            level.setBlockAndUpdate(pouringBasin, ForgeweaveBlocks.CASTING_BASIN.get().defaultBlockState());
+
+            putCast(serverPlayer, level, castTable);
+            putCast(serverPlayer, level, pouringTable);
+            // Through the block's own fluid handler, so the scene can only ever hold fluid the real
+            // casting rules would have let a faucet put there.
+            IFluidHandler pouringTableTank = level.getCapability(
+                    Capabilities.FluidHandler.BLOCK, pouringTable, Direction.UP);
+            if (pouringTableTank != null) {
+                pouringTableTank.fill(new FluidStack(ForgeweaveFluids.IRON.still().get(), CASTING_SCENE_PARTIAL_POUR),
+                        IFluidHandler.FluidAction.EXECUTE);
+            }
+
+            // The faucet draws sideways rather than from a tank straight above it: the horizontal
+            // model is the one with a trough to fill and a rotation to get wrong, so it is the one
+            // worth photographing. Its source tank goes on the far side of the row, where it is out
+            // of the line of sight into the basins.
+            castingSceneFaucetPos = pouringBasin.above();
+            BlockPos sourceTankPos = castingSceneFaucetPos.east();
+            level.setBlockAndUpdate(sourceTankPos, ForgeweaveBlocks.SEARED_TANK.get().defaultBlockState());
+            if (level.getBlockEntity(sourceTankPos) instanceof SearedTankBlockEntity tank) {
+                tank.tank().setFluid(FluidStack.EMPTY);
+                tank.tank().fill(new FluidStack(ForgeweaveFluids.IRON.still().get(), SearedTankBlockEntity.CAPACITY),
+                        IFluidHandler.FluidAction.EXECUTE);
+            }
+            level.setBlockAndUpdate(castingSceneFaucetPos, ForgeweaveBlocks.FAUCET.get().defaultBlockState()
+                    .setValue(FaucetBlock.FACING, Direction.EAST));
+            if (level.getBlockEntity(castingSceneFaucetPos) instanceof FaucetBlockEntity faucet) {
+                LOGGER.info("{}#182 faucet activate -> pouring={}", LOG_PREFIX, faucet.activate());
+            }
+
+            // South of the row and two blocks up: looking north keeps the four in the order they are
+            // described above from left to right, and looking down is the only way an open-topped
+            // block shows what is lying in it.
+            Vec3 rowCentre = new Vec3(castTable.getX() + 1.5 * CASTING_SCENE_SPACING + 0.5,
+                    castTable.getY() + 0.5, castTable.getZ() + 0.5);
+            serverPlayer.teleportTo(rowCentre.x, castTable.getY() + CASTING_SCENE_CAMERA_HEIGHT,
+                    rowCentre.z + CASTING_SCENE_CAMERA_BACK);
+            serverPlayer.lookAt(EntityAnchorArgument.Anchor.EYES, rowCentre);
+        });
+        advance(Stage.SETTLE_CASTING_SCENE);
+    }
+
+    /**
+     * Puts one ingot cast on a casting block through {@link CastingBlockEntity#interact} -- the
+     * player's own path, held stack and all, rather than a back door into the block entity that
+     * would only exist for this harness.
+     */
+    private static void putCast(ServerPlayer serverPlayer, ServerLevel level, BlockPos pos) {
+        if (!(level.getBlockEntity(pos) instanceof CastingBlockEntity casting)) {
+            return;
+        }
+        ItemStack held = serverPlayer.getItemInHand(InteractionHand.MAIN_HAND);
+        serverPlayer.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(ForgeweaveItems.CAST_INGOT.get()));
+        casting.interact(serverPlayer, InteractionHand.MAIN_HAND);
+        serverPlayer.setItemInHand(InteractionHand.MAIN_HAND, held);
+    }
+
+    private static void settleCastingScene(Minecraft mc) {
+        if (stageTicks < SCREEN_SETTLE_TICKS) {
+            return;
+        }
+        // Same self-diagnosing check the other two world scenes do: a PNG cannot tell "rendered
+        // nothing" apart from "there was nothing to render", and #182 is exactly that distinction.
+        if (mc.level != null && castingScenePositions != null) {
+            for (BlockPos pos : castingScenePositions) {
+                var block = mc.level.getBlockState(pos).getBlock();
+                if (mc.level.getBlockEntity(pos) instanceof CastingBlockEntity casting) {
+                    LOGGER.info("{}#182 scene check: client sees {} at {}, input={} output={} fluid {}/{} mB",
+                            LOG_PREFIX, block, pos, casting.input(), casting.output(),
+                            casting.tank().getFluidAmount(), casting.tank().getCapacity());
+                } else {
+                    LOGGER.error("{}#182 scene check FAILED: client sees {} at {} but no casting block entity",
+                            LOG_PREFIX, block, pos);
+                }
+            }
+        }
+        if (mc.level != null && castingSceneFaucetPos != null) {
+            if (mc.level.getBlockEntity(castingSceneFaucetPos) instanceof FaucetBlockEntity faucet) {
+                LOGGER.info("{}#182 scene check: faucet at {} pouring={} buffered={}", LOG_PREFIX,
+                        castingSceneFaucetPos, faucet.isPouring(), faucet.buffered());
+            } else {
+                LOGGER.error("{}#182 scene check FAILED: no faucet block entity at {}",
+                        LOG_PREFIX, castingSceneFaucetPos);
+            }
+        }
+        capture(mc, "casting_world");
         advance(Stage.OPEN_SCREEN);
     }
 

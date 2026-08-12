@@ -8,7 +8,10 @@ import net.neoforged.neoforge.client.event.EntityRenderersEvent;
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.block.ForgeweaveBlockEntities;
 
-/** Registers this mod's block entity renderers (#145: the seared tank family's fluid renderer). */
+/**
+ * Registers this mod's block entity renderers (#145: the seared tank family's fluid renderer; #182:
+ * the casting table/basin contents and the faucet's pour stream).
+ */
 @EventBusSubscriber(modid = Forgeweave.MODID, bus = EventBusSubscriber.Bus.MOD, value = Dist.CLIENT)
 public final class ForgeweaveBlockEntityRenderers {
 
@@ -23,6 +26,14 @@ public final class ForgeweaveBlockEntityRenderers {
                 SmelteryControllerBlockEntityRenderer::new);
         event.registerBlockEntityRenderer(ForgeweaveBlockEntities.NETHER_CORE.get(),
                 SmelteryControllerBlockEntityRenderer::new);
+        // #182: two instances of one renderer rather than two classes -- upstream's Table/Basin
+        // subclasses differ only in the four numbers each passes up its constructor.
+        event.registerBlockEntityRenderer(ForgeweaveBlockEntities.CASTING_TABLE.get(),
+                context -> CastingBlockEntityRenderer.table());
+        event.registerBlockEntityRenderer(ForgeweaveBlockEntities.CASTING_BASIN.get(),
+                context -> CastingBlockEntityRenderer.basin());
+        event.registerBlockEntityRenderer(ForgeweaveBlockEntities.FAUCET.get(),
+                context -> new FaucetBlockEntityRenderer());
     }
 
     // #145's cutout render type moved to the block models themselves (ForgeweaveBlockStateProvider's

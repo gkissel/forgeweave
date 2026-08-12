@@ -37,11 +37,9 @@ import dev.gkissel.forgeweave.casting.CastingRecipe;
  * <p>The cooling delay runs on {@link #tick}, a vanilla scheduled block tick booked by the fill that
  * tops the block up -- see {@link CastingBlockEntity} for why there is no block-entity ticker.
  *
- * <p>ponytail: upstream also draws the held item sitting on the table (and the fluid pooling in it)
- * through its extended-blockstate table model. Both are block-entity rendering, which arrives with
- * the smeltery's own fluid rendering in issue #101 -- the same call {@code SearedTankBlock} already
- * made for the gauge and window. The block entity syncs both slots and its tank to clients already,
- * so that work is a renderer and nothing else.
+ * <p>The held item and the fluid pooling over it are drawn by {@code CastingBlockEntityRenderer}
+ * (#182), off the slots and tank this block entity already syncs; upstream instead routes the items
+ * through an extended-blockstate table model and only the fluid through a renderer.
  */
 public class CastingBlock extends Block implements EntityBlock {
     // Upstream's BOUNDS_Table / BOUNDS_Basin, in sixteenths: a slab on four short legs, the basin's
@@ -83,6 +81,16 @@ public class CastingBlock extends Block implements EntityBlock {
     @Override
     protected VoxelShape getShape(BlockState state, net.minecraft.world.level.BlockGetter level, BlockPos pos, CollisionContext context) {
         return station == CastingRecipe.Station.TABLE ? TABLE_SHAPE : BASIN_SHAPE;
+    }
+
+    /**
+     * Upstream's {@code IFaucetDepth#getFlowDepth}: how far below its own top a faucet draws its
+     * stream sinking into this block. A table's pool is a sheet on the surface, a basin's is deep.
+     * Read by {@code FaucetBlockEntityRenderer} (#182); upstream declares it through a one-method
+     * interface, which for two constants in one class buys nothing here.
+     */
+    public float flowDepth() {
+        return station == CastingRecipe.Station.TABLE ? 0.125f : 0.725f;
     }
 
     @Override
