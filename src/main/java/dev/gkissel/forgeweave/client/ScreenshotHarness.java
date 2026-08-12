@@ -15,6 +15,7 @@ import org.slf4j.Logger;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.Screenshot;
+import net.minecraft.client.gui.screens.AccessibilityOnboardingScreen;
 import net.minecraft.client.gui.screens.TitleScreen;
 import net.minecraft.commands.arguments.EntityAnchorArgument;
 import net.minecraft.core.BlockPos;
@@ -181,6 +182,16 @@ public final class ScreenshotHarness {
     }
 
     private static void awaitTitle(Minecraft mc) {
+        if (mc.screen instanceof AccessibilityOnboardingScreen) {
+            // 1.21 shows accessibility onboarding in front of the title screen on a run dir's
+            // first-ever launch (fresh worktree, CI), and the harness would wait on it forever.
+            // Opting out through the real option -- not a synthetic click -- both dismisses it and
+            // persists to options.txt so the next run in this dir goes straight to the title.
+            mc.options.onboardAccessibility = false;
+            mc.options.save();
+            mc.setScreen(new TitleScreen());
+            return;
+        }
         if (!(mc.screen instanceof TitleScreen)) {
             return;
         }
