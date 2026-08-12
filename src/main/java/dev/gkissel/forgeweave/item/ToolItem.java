@@ -1,5 +1,6 @@
 package dev.gkissel.forgeweave.item;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
 
@@ -81,7 +82,7 @@ public class ToolItem extends Item {
     private static final ResourceLocation BLOCK_INTERACTION_RANGE_ID =
             ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "far_reach");
 
-    private final TagKey<Block> mineableBlocks;
+    private final List<TagKey<Block>> mineableBlocks;
     private final float attackSpeed;
     private final float damagePotential;
     private final float miningSpeedModifier;
@@ -104,6 +105,16 @@ public class ToolItem extends Item {
      */
     public ToolItem(Properties properties, ToolConstants.Entry constants, TagKey<Block> mineableBlocks,
             boolean weapon, @Nullable ForgeweaveInnates.Innate innate) {
+        this(properties, constants, List.of(mineableBlocks), weapon, innate);
+    }
+
+    /**
+     * As above, for a tool effective on more than one {@code mineable/*} family: the M3 mattock is
+     * upstream's axe+shovel dual tool (issue #156, {@code tools/tools/Mattock.java}) and names both.
+     * {@link #toolComponent} adds a rule per tag, so the block's own tag decides which one applies.
+     */
+    public ToolItem(Properties properties, ToolConstants.Entry constants, List<TagKey<Block>> mineableBlocks,
+            boolean weapon, @Nullable ForgeweaveInnates.Innate innate) {
         this(properties, mineableBlocks, constants.attackSpeed(), constants.damagePotential(),
                 constants.miningSpeedModifier(), weapon, innate);
     }
@@ -113,8 +124,8 @@ public class ToolItem extends Item {
      * @param attackSpeed attacks per second, upstream 1.12's {@code ToolCore#attackSpeed()}
      * @param damagePotential multiplier on the head material's attack damage, upstream 1.12's
      *     {@code ToolCore#damagePotential()}
-     * @param weapon whether upstream gives this tool {@code Category.WEAPON} (only the hatchet
-     *     does), which halves what a hit costs it -- see {@link #postHurtEnemy}
+     * @param weapon whether upstream gives this tool {@code Category.WEAPON} (the hatchet and the
+     *     M3 kama do), which halves what a hit costs it -- see {@link #postHurtEnemy}
      * @param innate this tool type's built-in combat behavior (docs/SCOPE.md M3), or {@code null}.
      *     Its {@link CombatSeam} half is picked up by the shared per-hit pipeline through
      *     {@code ForgeweaveInnates#collect}; its {@link ToolUseAction} half is what the four
@@ -122,8 +133,15 @@ public class ToolItem extends Item {
      */
     public ToolItem(Properties properties, TagKey<Block> mineableBlocks, float attackSpeed, float damagePotential,
             float miningSpeedModifier, boolean weapon, @Nullable ForgeweaveInnates.Innate innate) {
+        this(properties, List.of(mineableBlocks), attackSpeed, damagePotential, miningSpeedModifier, weapon, innate);
+    }
+
+    /** See above; the multi-tag form every other constructor funnels into. */
+    public ToolItem(Properties properties, List<TagKey<Block>> mineableBlocks, float attackSpeed,
+            float damagePotential, float miningSpeedModifier, boolean weapon,
+            @Nullable ForgeweaveInnates.Innate innate) {
         super(properties);
-        this.mineableBlocks = mineableBlocks;
+        this.mineableBlocks = List.copyOf(mineableBlocks);
         this.attackSpeed = attackSpeed;
         this.damagePotential = damagePotential;
         this.miningSpeedModifier = miningSpeedModifier;
@@ -176,13 +194,24 @@ public class ToolItem extends Item {
      * drops nothing.
      */
     public Tool toolComponent(Material head, ToolStats.Stats stats) {
-        return new Tool(
-                List.of(Tool.Rule.deniesDrops(head.incorrectForTool()),
-                        // Upstream's ToolCore#miningSpeedModifier, applied at read time there and
-                        // here folded into the vanilla tool component (issue #153's Entry field).
-                        Tool.Rule.minesAndDrops(mineableBlocks, stats.miningSpeed() * miningSpeedModifier)),
-                1.0F,
-                1);
+        List<Tool.Rule> rules = new ArrayList<>();
+        rules.add(Tool.Rule.deniesDrops(head.incorrectForTool()));
+        for (TagKey<Block> tag : mineableBlocks) {
+            // Upstream's ToolCore#miningSpeedModifier, applied at read time there and here folded
+            // into the vanilla tool component (issue #153's Entry field).
+            rules.add(Tool.Rule.minesAndDrops(tag, stats.miningSpeed() * miningSpeedModifier));
+        }
+        return new Tool(rules, 1.0F, 1);
+    }
+
+    /** Whether {@code state} is in any of this tool type's {@link #mineableBlocks} tags. */
+    private boolean isEffective(BlockState state) {
+        for (TagKey<Block> tag : mineableBlocks) {
+            if (state.is(tag)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**
@@ -326,7 +355,7 @@ public class ToolItem extends Item {
             return 1.0F;
         }
         float base = super.getDestroySpeed(stack, state);
-        return ForgeweaveTraits.miningSpeed(stack, state.is(mineableBlocks), base);
+        return ForgeweaveTraits.miningSpeed(stack, isEffective(state), base);
     }
 
     @Override
@@ -347,7 +376,7 @@ public class ToolItem extends Item {
             return false;
         }
         if (!level.isClientSide && state.getDestroySpeed(level, pos) != 0.0F) {
-            stack.hurtAndBreak(state.is(mineableBlocks) ? 1 : 2, entity, EquipmentSlot.MAINHAND);
+            stack.hurtAndBreak(isEffective(state) ? 1 : 2, entity, EquipmentSlot.MAINHAND);
             if (level instanceof ServerLevel serverLevel) {
                 // Traits that react to an actual block break (issue #102: momentum, petramor).
                 ForgeweaveTraits.afterBlockBreak(stack, serverLevel, state, entity);

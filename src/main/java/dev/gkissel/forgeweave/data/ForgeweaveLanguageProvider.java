@@ -195,6 +195,15 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("tooltip.forgeweave.innate.backstab.name", "Backstab");
         add("tooltip.forgeweave.innate.backstab.description",
                 "Striking from behind adds up to double damage, at its strongest directly behind the target.");
+        add("tooltip.forgeweave.innate.heft.name", "Heft");
+        add("tooltip.forgeweave.innate.heft.description",
+                "A blow now and then lands with the tool's full weight behind it, sending the target flying.");
+        add("tooltip.forgeweave.innate.reap.name", "Reap");
+        add("tooltip.forgeweave.innate.reap.description",
+                "Hits against an already badly wounded target bite a quarter deeper.");
+        // M3 station tools (docs/SCOPE.md issue #156).
+        addItem(ForgeweaveItems.TOOL_MATTOCK, "Mattock");
+        addItem(ForgeweaveItems.TOOL_KAMA, "Kama");
 
         addItem(ForgeweaveItems.SEARED_BRICK, "Seared Brick");
 
@@ -221,6 +230,12 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
                 "A heavy flanged mace, forged at the Tool Forge. Strike while falling and the blow lands "
                         + "harder the further you fell, shoves everything nearby away, and leaves you unhurt "
                         + "by the landing.");
+        add("item.forgeweave.mattock.description",
+                "An axe and a shovel in one head. Tills soil like a hoe, and its heft carries a chance "
+                        + "of a strong knockback on hit.");
+        add("item.forgeweave.kama.description",
+                "Shears sheep and harvests+replants mature crops at a right-click. Deals extra damage "
+                        + "against targets already at low health.");
 
         // The stations' information panels (issue #47).
         add("gui.forgeweave.tool_station.name", "Tool name");

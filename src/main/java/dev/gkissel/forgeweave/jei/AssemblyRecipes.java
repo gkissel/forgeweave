@@ -44,6 +44,7 @@ final class AssemblyRecipes {
             recipes.add(new AssemblyRecipe(List.copyOf(parts), entry.tool().get(),
                     new ItemStack(entry.tool().get())));
         }
+
         return recipes;
     }
 

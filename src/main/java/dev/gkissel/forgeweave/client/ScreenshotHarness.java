@@ -53,6 +53,8 @@ import net.neoforged.neoforge.fluids.FluidStack;
 import net.neoforged.neoforge.fluids.capability.IFluidHandler;
 import net.neoforged.neoforge.fluids.capability.templates.FluidTank;
 
+import net.minecraft.resources.ResourceLocation;
+
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.block.CastingBlockEntity;
 import dev.gkissel.forgeweave.block.FaucetBlock;
@@ -195,7 +197,11 @@ public final class ScreenshotHarness {
             ForgeweaveItems.TOOL_BATTLESIGN, ForgeweaveItems.TOOL_FRYING_PAN, ForgeweaveItems.TOOL_DAGGER,
             // #161: the warmace poses the same way -- it is a held weapon like the six above, and
             // assembleForDisplay builds it through the same station call, Tool Forge tier or not.
-            ForgeweaveItems.TOOL_WARMACE);
+            ForgeweaveItems.TOOL_WARMACE,
+            // Issue #156's two station tools, on the same held-render stage: their art is the
+            // per-layer head/binding/handle composite the weapons' is, so the same capture answers
+            // the same release-checklist question for them.
+            ForgeweaveItems.TOOL_MATTOCK, ForgeweaveItems.TOOL_KAMA);
 
     /** How far in -Z of spawn the weapon poses stand, clear of the block scenes above. */
     private static final int WEAPON_SCENE_DISTANCE = 6;
