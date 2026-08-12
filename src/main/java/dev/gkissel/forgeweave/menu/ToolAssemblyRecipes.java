@@ -194,7 +194,11 @@ public final class ToolAssemblyRecipes {
             new Entry(ToolConstants.BATTLEAXE, ForgeweaveItems.TOOL_BATTLEAXE),
             new Entry(ToolConstants.SCIMITAR, ForgeweaveItems.TOOL_SCIMITAR),
             // #160: handle, katana blade, hand guard -- ToolConstants#KATANA's own order.
-            new Entry(ToolConstants.KATANA, ForgeweaveItems.TOOL_KATANA));
+            new Entry(ToolConstants.KATANA, ForgeweaveItems.TOOL_KATANA),
+            // #158: the Tool Forge tier's cleaver -- tough tool rod, large sword blade, large plate,
+            // tough tool rod again. The same part in two different roles (HANDLE and EXTRA) is why
+            // slot matching here is positional rather than by part identity.
+            new Entry(ToolConstants.CLEAVER, ForgeweaveItems.TOOL_CLEAVER));
 
     /**
      * The "large tool" classification (docs/SCOPE.md M3 issue #152): tools that can only be assembled

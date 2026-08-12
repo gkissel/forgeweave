@@ -71,9 +71,12 @@ public class ForgeweaveItemTagsProvider extends ItemTagsProvider {
         // jar (which excludes the fixture) sees exactly what it would have seen with no entry at all.
         // #157 can drop this line along with the fixture.
         //
-        // #161 adds the first real member: the warmace is Tool Forge tier (docs/SCOPE.md M3).
+        // #161 adds the first real member: the warmace is Tool Forge tier (docs/SCOPE.md M3), and
+        // #158's cleaver is the second -- upstream registers it through
+        // TinkerRegistry.registerToolForgeCrafting, i.e. Tool Forge only.
         tag(ToolAssemblyRecipes.LARGE_TOOLS)
                 .add(ForgeweaveItems.TOOL_WARMACE.get())
+                .add(ForgeweaveItems.TOOL_CLEAVER.get())
                 .addOptionalTag(ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "gametest_large_tools"));
 
         // #152 -- what a Tool Forge can be crafted from. Upstream 1.12 keeps this as an ore-dict list

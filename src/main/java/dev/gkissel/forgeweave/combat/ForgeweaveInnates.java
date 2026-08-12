@@ -261,6 +261,12 @@ public final class ForgeweaveInnates {
         if (stack.is(ForgeweaveItems.TOOL_HATCHET.get())) {
             return Optional.of(id("sunder"));
         }
+        // #158 -- the cleaver's innate beheading. Named here but deliberately carried as no
+        // {@link Innate} seam at all: its levels are summed with the applied beheading modifier's
+        // into one roll by {@code Beheading}'s own provider, so a seam here would roll it twice.
+        if (stack.is(ForgeweaveItems.TOOL_CLEAVER.get())) {
+            return Optional.of(id("beheading"));
+        }
         Innate innate = of(stack);
         return innate == null ? Optional.empty() : Optional.of(id(innate.id()));
     }

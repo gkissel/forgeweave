@@ -476,6 +476,18 @@ public final class ForgeweaveModifiers {
     };
 
     /**
+     * Beheading (issue #158). Obsidian. Its whole effect is a chance to drop the victim's head on a
+     * killing blow, which ADR-0005 decision 3 puts on the shared post-kill seam -- see
+     * {@code combat.Beheading}, which holds the clone constants and the head table.
+     *
+     * <p>Deliberately <b>not</b> a {@link Modifier#combatSeam} like #162/#163's batch, even though its
+     * effect is a combat seam: the chance is rolled once off the sum of this modifier's level and the
+     * cleaver's innate levels, and a per-entry seam sees neither the innate nor an unmodified cleaver.
+     * {@code Beheading} registers a provider of its own that reads both.
+     */
+    public static final Modifier BEHEADING = new Modifier() {};
+
+    /**
      * Embossing (issue #154). Every {@code embossment.<material>} id maps here, because a generated
      * per-material id can't be a map key -- materials are datapack data. No hooks: an embossment's
      * whole effect is the traits {@link Embossing} appended to the tool, so there is nothing for a
@@ -702,7 +714,8 @@ public final class ForgeweaveModifiers {
             Map.entry(id("smite"), SMITE),
             Map.entry(id("bane_of_arthropods"), BANE_OF_ARTHROPODS),
             Map.entry(id("fiery"), FIERY),
-            Map.entry(id("necrotic"), NECROTIC));
+            Map.entry(id("necrotic"), NECROTIC),
+            Map.entry(id("beheading"), BEHEADING));
 
     /**
      * The behavior for {@code id}, or {@code null} if this version doesn't implement it.
