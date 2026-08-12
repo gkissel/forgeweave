@@ -526,6 +526,9 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         // integration is optional (neoforge.mods.toml).
         add("jei.category.forgeweave.part_crafting", "Part Crafting");
         add("jei.category.forgeweave.tool_assembly", "Tool Assembly");
+        // #165: the Tool Forge tier's own category (AssemblyCategory#LARGE_TYPE) -- Tool Station
+        // never appears as this one's catalyst, so the title says so up front.
+        add("jei.category.forgeweave.large_tool_assembly", "Tool Assembly (Tool Forge only)");
         add("jei.category.forgeweave.tool_repair", "Tool Repair");
 
         // #109 -- smeltery/casting/modifier JEI categories (docs/SCOPE.md M2 issue #109).
@@ -544,6 +547,9 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("jei.category.forgeweave.casting.cast_consumed", "Cast is consumed");
         add("jei.category.forgeweave.modifier_application", "Modifier Application");
         add("jei.category.forgeweave.modifier_application.level_cap", "Level cap: %s");
+        // #165: embossing category (issue #154's mechanic).
+        add("jei.category.forgeweave.embossing", "Embossing");
+        add("jei.category.forgeweave.embossing.one_per_tool", "One embossment per tool");
 
         // The nine molten metal fluids (docs/SCOPE.md M2 issue #92). FluidType's default description
         // id is "fluid_type.<namespace>.<path>" (no addFluidType helper on LanguageProvider), shown

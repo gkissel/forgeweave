@@ -88,6 +88,24 @@ public class ToolForgeGameTests {
         helper.succeed();
     }
 
+    /**
+     * The split {@code jei.AssemblyRecipes#isLarge} drives (docs/SCOPE.md M3 issue #165): {@code
+     * jei.AssemblyCategory#TYPE} gets the Tool Station's own tools, {@code LARGE_TYPE} gets only
+     * {@code #forgeweave:large_tools}'. Item tags aren't bound outside a running server ({@code
+     * jei.JeiRecipesTest}'s own class javadoc), so this is the one place that predicate is checked
+     * against the real, datapack-bound tag rather than a plain unit test.
+     */
+    @GameTest(template = "empty")
+    public static void exactlySevenToolsAreForgeOnly(GameTestHelper helper) {
+        long large = ToolAssemblyRecipes.ENTRIES.stream().filter(ToolAssemblyRecipes::isLargeTool).count();
+
+        helper.assertTrue(large == 7,
+                "#forgeweave:large_tools tags exactly the Tool Forge tier's seven tools, counted " + large);
+        helper.assertTrue(ToolAssemblyRecipes.ENTRIES.size() - large == 14,
+                "the Tool Station's own tab row is the other fourteen");
+        helper.succeed();
+    }
+
     /** Superset: everything the Tool Station assembles, the Tool Forge assembles too. */
     @GameTest(template = "empty")
     public static void forgeAlsoAssemblesSmallTools(GameTestHelper helper) {
