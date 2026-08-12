@@ -58,5 +58,16 @@ final class AssemblyRecipes {
         return stacks;
     }
 
+    /**
+     * Whether {@code recipe} is one of {@code #forgeweave:large_tools} -- the split {@link
+     * ForgeweaveJeiPlugin} uses to route a recipe into {@link AssemblyCategory#TYPE} (Tool Station)
+     * or {@link AssemblyCategory#LARGE_TYPE} (Tool Forge only) (issue #165). Item tags aren't bound
+     * outside a running server, so this is proven correct against the real tag by {@code
+     * gametest.ToolForgeGameTests#exactlySevenToolsAreForgeOnly} rather than a plain unit test here.
+     */
+    static boolean isLarge(AssemblyRecipe recipe) {
+        return ToolAssemblyRecipes.entryFor(recipe.result()).map(ToolAssemblyRecipes::isLargeTool).orElse(false);
+    }
+
     private AssemblyRecipes() {}
 }

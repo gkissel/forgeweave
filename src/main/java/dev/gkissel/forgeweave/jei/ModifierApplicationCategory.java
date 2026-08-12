@@ -46,8 +46,12 @@ final class ModifierApplicationCategory implements IRecipeCategory<ModifierRecip
     static final RecipeType<ModifierRecipe> TYPE =
             RecipeType.create(Forgeweave.MODID, "modifier_application", ModifierRecipe.class);
 
-    /** Bare tool icons, same set as {@code RepairRecipes}' -- any tool type accepts any modifier. */
-    private static final List<ItemStack> ANY_TOOL = List.of(
+    /**
+     * Bare tool icons, same set as {@code RepairRecipes}' -- any tool type accepts any modifier.
+     * Package-visible so {@link EmbossingCategory} -- the repair tab's third RENDER_ONLY tool
+     * mechanic -- reuses it rather than redeclaring the same three-item list (issue #165).
+     */
+    static final List<ItemStack> ANY_TOOL = List.of(
             new ItemStack(ForgeweaveItems.TOOL_PICKAXE.get()),
             new ItemStack(ForgeweaveItems.TOOL_SHOVEL.get()),
             new ItemStack(ForgeweaveItems.TOOL_HATCHET.get()));

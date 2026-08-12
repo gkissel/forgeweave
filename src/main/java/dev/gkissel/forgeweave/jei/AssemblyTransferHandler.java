@@ -44,12 +44,20 @@ import dev.gkissel.forgeweave.menu.ToolStationTabs;
  * would flicker the open station's slots every frame. The trade-off is that hovering the [+] button
  * for a recipe on the wrong tab may show a misleading "can't transfer" hint until it's actually
  * clicked, at which point the tab always switches first and the transfer then succeeds.
+ *
+ * <p>One instance handles each of {@link AssemblyCategory#TYPE} and {@link
+ * AssemblyCategory#LARGE_TYPE} (issue #165): {@link #canHandle} refuses the large-tool type outright
+ * at a plain Tool Station menu ({@link ToolStationMenu#isForge()}), the same gate {@code
+ * menu.ToolAssemblyRecipes#resolveAssembly} itself enforces server-side, so the [+] button never
+ * offers a transfer the station would only reject.
  */
 final class AssemblyTransferHandler implements IRecipeTransferInfo<ToolStationMenu, AssemblyRecipe>,
         IRecipeTransferHandler<ToolStationMenu, AssemblyRecipe> {
+    private final RecipeType<AssemblyRecipe> type;
     private final IRecipeTransferHandler<ToolStationMenu, AssemblyRecipe> delegate;
 
-    AssemblyTransferHandler(IRecipeTransferHandlerHelper helper) {
+    AssemblyTransferHandler(IRecipeTransferHandlerHelper helper, RecipeType<AssemblyRecipe> type) {
+        this.type = type;
         this.delegate = helper.createUnregisteredRecipeTransferHandler(this);
     }
 
@@ -65,11 +73,14 @@ final class AssemblyTransferHandler implements IRecipeTransferInfo<ToolStationMe
 
     @Override
     public RecipeType<AssemblyRecipe> getRecipeType() {
-        return AssemblyCategory.TYPE;
+        return type;
     }
 
     @Override
     public boolean canHandle(ToolStationMenu container, AssemblyRecipe recipe) {
+        if (type == AssemblyCategory.LARGE_TYPE && !container.isForge()) {
+            return false; // large tools only assemble at the Tool Forge (issue #152)
+        }
         return tabIndexFor(recipe) >= 0;
     }
 

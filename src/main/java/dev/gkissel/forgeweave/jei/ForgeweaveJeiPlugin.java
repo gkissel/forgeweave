@@ -1,13 +1,16 @@
 package dev.gkissel.forgeweave.jei;
 
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.core.Registry;
+import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.item.ItemStack;
 
 import mezz.jei.api.IModPlugin;
 import mezz.jei.api.JeiPlugin;
@@ -30,6 +33,7 @@ import dev.gkissel.forgeweave.item.ForgeweaveItems;
 import dev.gkissel.forgeweave.material.Material;
 import dev.gkissel.forgeweave.menu.ForgeweaveMenus;
 import dev.gkissel.forgeweave.menu.PartBuilderMenu;
+import dev.gkissel.forgeweave.modifier.EmbossingRecipe;
 import dev.gkissel.forgeweave.modifier.ModifierRecipe;
 import dev.gkissel.forgeweave.recipe.AlloyRecipe;
 import dev.gkissel.forgeweave.recipe.MeltingRecipe;
@@ -73,21 +77,39 @@ public final class ForgeweaveJeiPlugin implements IModPlugin {
         IGuiHelper helper = registration.getJeiHelpers().getGuiHelper();
         registration.addRecipeCategories(
                 new PartCraftingCategory(helper),
-                new AssemblyCategory(helper),
+                new AssemblyCategory(helper, AssemblyCategory.TYPE,
+                        Component.translatable("jei.category.forgeweave.tool_assembly"),
+                        new ItemStack(ForgeweaveItems.TOOL_STATION.get())),
+                // #165: the Tool Forge tier gets its own category so its catalyst list can say
+                // "Tool Forge only" instead of the Tool Station -- JEI has no way to vary one
+                // category's catalysts per recipe.
+                new AssemblyCategory(helper, AssemblyCategory.LARGE_TYPE,
+                        Component.translatable("jei.category.forgeweave.large_tool_assembly"),
+                        new ItemStack(ForgeweaveItems.TOOL_FORGE.get())),
                 new RepairCategory(helper),
                 // #109 -- smeltery/casting/modifier JEI categories (docs/SCOPE.md M2 issue #109).
                 new MeltingCategory(helper),
                 new AlloyingCategory(helper),
                 new CastingTableCategory(helper),
                 new CastingBasinCategory(helper),
-                new ModifierApplicationCategory(helper));
+                new ModifierApplicationCategory(helper),
+                // #165: embossing (issue #154's mechanic), the repair tab's fourth recipe.
+                new EmbossingCategory(helper));
     }
 
     @Override
     public void registerRecipes(IRecipeRegistration registration) {
         Map<ResourceLocation, Material> materials = currentMaterials();
         registration.addRecipes(PartCraftingCategory.TYPE, PartCraftingRecipes.build(materials));
-        registration.addRecipes(AssemblyCategory.TYPE, AssemblyRecipes.build(materials));
+
+        // Split by AssemblyRecipes#isLarge (issue #165) so each half lands in the category whose
+        // catalyst list matches where it can actually be built -- see AssemblyCategory's class javadoc.
+        List<AssemblyRecipe> assembly = AssemblyRecipes.build(materials);
+        registration.addRecipes(AssemblyCategory.TYPE,
+                assembly.stream().filter(recipe -> !AssemblyRecipes.isLarge(recipe)).toList());
+        registration.addRecipes(AssemblyCategory.LARGE_TYPE,
+                assembly.stream().filter(AssemblyRecipes::isLarge).toList());
+
         registration.addRecipes(RepairCategory.TYPE, RepairRecipes.build(materials));
 
         // #109 -- smeltery/casting/modifier JEI categories (docs/SCOPE.md M2 issue #109). Same
@@ -102,18 +124,22 @@ public final class ForgeweaveJeiPlugin implements IModPlugin {
         registration.addRecipes(CastingTableCategory.TYPE, CastingRecipes.table(castingRecipes));
         registration.addRecipes(CastingBasinCategory.TYPE, CastingRecipes.basin(castingRecipes));
         registration.addRecipes(ModifierApplicationCategory.TYPE, ModifierApplicationRecipes.build(currentModifierRecipes()));
+        // #165: embossing's own datapack registry, same read shape as the other four above.
+        registration.addRecipes(EmbossingCategory.TYPE, EmbossingRecipes.build(currentEmbossingRecipes(), materials));
     }
 
     @Override
     public void registerRecipeCatalysts(IRecipeCatalystRegistration registration) {
         registration.addRecipeCatalyst(ForgeweaveItems.PART_BUILDER.get(), PartCraftingCategory.TYPE);
-        // #109: the repair tab is also the modify tab (menu.ToolStationMenu's class javadoc), so the
-        // Tool Station is a catalyst for modifier application too.
+        // #109/#165: the repair tab is also the modify tab and the emboss tab (menu.ToolStationMenu's
+        // class javadoc), so the Tool Station is a catalyst for all three alongside plain assembly.
         registration.addRecipeCatalyst(ForgeweaveItems.TOOL_STATION.get(),
-                AssemblyCategory.TYPE, RepairCategory.TYPE, ModifierApplicationCategory.TYPE);
-        // #152: the Tool Forge does everything the Tool Station does, so it catalyses the same three.
+                AssemblyCategory.TYPE, RepairCategory.TYPE, ModifierApplicationCategory.TYPE, EmbossingCategory.TYPE);
+        // #152: the Tool Forge does everything the Tool Station does, so it catalyses the same four,
+        // plus #165's large-tool-only category the Tool Station never appears under.
         registration.addRecipeCatalyst(ForgeweaveItems.TOOL_FORGE.get(),
-                AssemblyCategory.TYPE, RepairCategory.TYPE, ModifierApplicationCategory.TYPE);
+                AssemblyCategory.TYPE, AssemblyCategory.LARGE_TYPE, RepairCategory.TYPE,
+                ModifierApplicationCategory.TYPE, EmbossingCategory.TYPE);
         // A shard always pays a part's cost exactly (SHARD_VALUE divides both HEAD_COST and
         // SMALL_PART_COST with no remainder), so it's as legitimate a "what can this craft" lookup
         // target as the station itself (issue #45's Part Crafting rework).
@@ -161,7 +187,10 @@ public final class ForgeweaveJeiPlugin implements IModPlugin {
         // basic transfer handler needs, so no custom IRecipeTransferInfo is needed here.
         registration.addRecipeTransferHandler(PartBuilderMenu.class, ForgeweaveMenus.PART_BUILDER.get(), PartCraftingCategory.TYPE, 0, 2, 4, 36);
 
-        registration.addRecipeTransferHandler(new AssemblyTransferHandler(registration.getTransferHelper()), AssemblyCategory.TYPE);
+        registration.addRecipeTransferHandler(
+                new AssemblyTransferHandler(registration.getTransferHelper(), AssemblyCategory.TYPE), AssemblyCategory.TYPE);
+        registration.addRecipeTransferHandler(
+                new AssemblyTransferHandler(registration.getTransferHelper(), AssemblyCategory.LARGE_TYPE), AssemblyCategory.LARGE_TYPE);
         registration.addRecipeTransferHandler(new RepairTransferHandler(registration.getTransferHelper()), RepairCategory.TYPE);
 
         // #109 -- modifier application transfer (docs/SCOPE.md M2 issue #109): melting and alloying
@@ -170,6 +199,9 @@ public final class ForgeweaveJeiPlugin implements IModPlugin {
         // button.
         registration.addRecipeTransferHandler(
                 new ModifierApplicationTransferHandler(registration.getTransferHelper()), ModifierApplicationCategory.TYPE);
+        // #165: embossing's own [+] button, the repair tab's fourth and last recipe kind.
+        registration.addRecipeTransferHandler(
+                new EmbossingTransferHandler(registration.getTransferHelper()), EmbossingCategory.TYPE);
     }
 
     /** Empty (not an error) at the title screen, before any world is joined and materials are synced. */
@@ -241,6 +273,20 @@ public final class ForgeweaveJeiPlugin implements IModPlugin {
         Registry<ModifierRecipe> registry = level.registryAccess().registryOrThrow(ModifierRecipe.REGISTRY);
         Map<ResourceLocation, ModifierRecipe> recipes = new LinkedHashMap<>();
         for (Map.Entry<ResourceKey<ModifierRecipe>, ModifierRecipe> entry : registry.entrySet()) {
+            recipes.put(entry.getKey().location(), entry.getValue());
+        }
+        return recipes;
+    }
+
+    private static Map<ResourceLocation, EmbossingRecipe> currentEmbossingRecipes() {
+        ClientLevel level = Minecraft.getInstance().level;
+        if (level == null) {
+            return Map.of();
+        }
+
+        Registry<EmbossingRecipe> registry = level.registryAccess().registryOrThrow(EmbossingRecipe.REGISTRY);
+        Map<ResourceLocation, EmbossingRecipe> recipes = new LinkedHashMap<>();
+        for (Map.Entry<ResourceKey<EmbossingRecipe>, EmbossingRecipe> entry : registry.entrySet()) {
             recipes.put(entry.getKey().location(), entry.getValue());
         }
         return recipes;

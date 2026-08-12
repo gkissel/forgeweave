@@ -32,6 +32,7 @@ import dev.gkissel.forgeweave.item.ForgeweaveItems;
 import dev.gkissel.forgeweave.material.Material;
 import dev.gkissel.forgeweave.menu.ToolAssemblyRecipes;
 import dev.gkissel.forgeweave.menu.PartBuilderRecipes;
+import dev.gkissel.forgeweave.modifier.EmbossingRecipe;
 import dev.gkissel.forgeweave.modifier.ModifierRecipe;
 import dev.gkissel.forgeweave.recipe.AlloyRecipe;
 import dev.gkissel.forgeweave.recipe.MeltingRecipe;
@@ -331,6 +332,71 @@ class JeiRecipesTest {
         // Haste has no per-level override, so its display level cap comes from ForgeweaveModifiers'
         // uniform unitsPerLevel (50 redstone per level): 250 units is level 5.
         assertEquals(5, uniform.levelsReached(uniform.maxLevel()));
+    }
+
+    // ------------------------------------------------------------------ #165: embossing, large-tool split
+
+    /**
+     * Both {@link #twoMaterials()} materials grant traits through every part kind ({@code
+     * Traits.general}), so both must show a display -- one donor stack per material, all carrying
+     * the shared reagent set straight off the datapack recipe.
+     */
+    @Test
+    void embossingBuildsOneDisplayPerMaterialThatGrantsTraits() {
+        Map<ResourceLocation, EmbossingRecipe> recipes = Map.of(id("embossment"),
+                new EmbossingRecipe(List.of(Ingredient.of(Items.SLIME_BLOCK), Ingredient.of(Items.MAGMA_BLOCK))));
+        Map<ResourceLocation, Material> materials = twoMaterials();
+
+        List<EmbossingDisplay> displays = EmbossingRecipes.build(recipes, materials);
+
+        assertEquals(materials.size(), displays.size());
+        for (EmbossingDisplay display : displays) {
+            assertTrue(materials.containsKey(display.material()));
+            assertTrue(!display.donorParts().isEmpty(), "every donor stack must carry a real part");
+            assertTrue(display.donorParts().stream()
+                    .allMatch(stack -> display.material().equals(stack.get(ForgeweaveDataComponents.MATERIAL.get()))));
+            assertEquals(2, display.reagents().size(), "the reagent set comes straight off the recipe");
+        }
+    }
+
+    /** A material with no traits at all grants nothing to emboss with, so it shows no display. */
+    @Test
+    void embossingSkipsAMaterialThatGrantsNoTraits() {
+        Map<ResourceLocation, EmbossingRecipe> recipes =
+                Map.of(id("embossment"), new EmbossingRecipe(List.of(Ingredient.of(Items.SLIME_BLOCK))));
+        Material traitless = new Material(
+                new Material.Head(100, 1.0f, 1.0f), new Material.Handle(1.0f, 10), 5,
+                TagKey.create(Registries.BLOCK, ResourceLocation.withDefaultNamespace("incorrect_for_wooden_tool")),
+                new Material.Traits(List.of(), List.of()), List.of(craftingItem(Items.STICK, 1)),
+                Ingredient.of(Items.STICK), TextColor.fromRgb(0xFFFFFF));
+        Map<ResourceLocation, Material> materials = new LinkedHashMap<>();
+        materials.put(id("traitless"), traitless);
+
+        assertTrue(EmbossingRecipes.build(recipes, materials).isEmpty());
+    }
+
+    /** No datapack {@code embossing_recipe} at all (e.g. the title screen) -- nothing to display. */
+    @Test
+    void embossingWithNoRegistryRecipeProducesNoDisplays() {
+        assertTrue(EmbossingRecipes.build(Map.of(), twoMaterials()).isEmpty());
+    }
+
+    /**
+     * The Tool Forge-only split (docs/SCOPE.md M3 issue #165) reads a real item tag, which isn't
+     * bound outside a running server (see this class's own javadoc on {@code MeltingRecipeTest}), so
+     * {@code AssemblyRecipes#isLarge} answering {@code false} for every tool here is expected --
+     * it just proves the helper resolves each recipe's entry and never throws, rather than the tag
+     * membership itself. The real per-tool true/false answer is pinned by {@code
+     * gametest.ToolForgeGameTests#exactlySevenToolsAreForgeOnly}, against the shipped tag.
+     */
+    @Test
+    void isLargeResolvesEveryRecipesEntryWithoutThrowing() {
+        List<AssemblyRecipe> recipes = AssemblyRecipes.build(twoMaterials());
+
+        assertEquals(ToolAssemblyRecipes.ENTRIES.size(), recipes.size());
+        for (AssemblyRecipe recipe : recipes) {
+            AssemblyRecipes.isLarge(recipe); // must not throw for any tool in the roster
+        }
     }
 
     private static ResourceLocation id(String path) {
