@@ -36,3 +36,7 @@ bin/
 run/
 !**/src/**/run/
 **/src/generated/**/.cache/
+
+# Agent worktree mounts and local scratch checkouts
+.claude/
+wt-rebase62/
