@@ -176,7 +176,8 @@ Each milestone ships a playable release under the tag scheme in [releasing.md](r
 | M1 | Tools slice (this document) | — |
 | M2 | Smeltery, metal materials, modifiers. Melts/casts any mod's ores and ingots via standard `c:` tags, so modded metals (Mekanism, Create, Thermal, …) work without per-mod code | M1 |
 | M3 | Full melee/harvest tool roster incl. modern-era shapes (katana, scimitar, warmace), combat tuning, Tool Forge, embossing (this document, planned 2026-08-12) | M2 |
-| M3.5 | Ranged weapons: shortbow, longbow, crossbow (fires arrows — bolts are cut), shuriken, material arrows; energy-consuming ranged tool | M3 |
+| M3.2 | Material roster: the full 1.12 material set (paper, slime, blue slime, netherrack, obsidian, prismarine, endstone, sponge, firewood, knightslime, pig iron, electrum, alubrass, …) with per-part traits, plus 1.20-branch additions evaluated at planning; scoped at its own planning session (maintainer decision 2026-08-12 — pulled forward from M6) | M3 |
+| M3.5 | Ranged weapons: shortbow, longbow, crossbow (fires arrows — bolts are cut), shuriken, material arrows; energy-consuming ranged tool | M3.2 |
 | M4 | Armors (Construct's Armory-inspired) | M2 (reuses parts/traits/modifiers) |
 | M5 | Gadgets: slingshot, slime boots | M2 |
 | M6 | Material expansion at TAIGA scale; modded metals become tool materials via the datapack registry | Stable material data model (M1), metals (M2) |
