@@ -1,5 +1,6 @@
 {
   "values": [
+    "forgeweave:warmace",
     {
       "id": "#forgeweave:gametest_large_tools",
       "required": false

@@ -51,6 +51,8 @@ public final class ForgeweaveItems {
     public static final DeferredItem<Item> PATTERN_KAMA_HEAD = ITEMS.registerSimpleItem("pattern_kama_head");
     public static final DeferredItem<Item> PATTERN_BROAD_AXE_HEAD = ITEMS.registerSimpleItem("pattern_broad_axe_head");
     public static final DeferredItem<Item> PATTERN_VEIN_HAMMER_HEAD = ITEMS.registerSimpleItem("pattern_vein_hammer_head");
+    // #161's own new-shape head part; see PART_WAR_MACE_HEAD below.
+    public static final DeferredItem<Item> PATTERN_WAR_MACE_HEAD = ITEMS.registerSimpleItem("pattern_war_mace_head");
 
     public static final DeferredItem<PartItem> PART_PICKAXE_HEAD = part("pickaxe_head", PartItem.Kind.HEAD);
     public static final DeferredItem<PartItem> PART_SHOVEL_HEAD = part("shovel_head", PartItem.Kind.HEAD);
@@ -85,6 +87,13 @@ public final class ForgeweaveItems {
     // No 1.12 or 1.20 counterpart (1.20's vein hammer reuses the plain hammer_head part) -- freshly
     // authored art (NOTICE.md has no row for it), unlike every other part above.
     public static final DeferredItem<PartItem> PART_VEIN_HAMMER_HEAD = part("vein_hammer_head", PartItem.Kind.HEAD);
+    // #161: the warmace's head, one of the three new-shape heads #151 deliberately left
+    // unregistered ("their own issues are where the maintainer picks their part composition").
+    // The composition is ToolConstants#WARMACE's -- tough tool rod, this head, tough binding.
+    // Neither clone has a mace-alike, so per issue #198's decision the art is derived from the
+    // closest upstream equivalent -- the 1.12 hammer's head, minimally reshaped into a round knob
+    // (scripts/derive_warmace_art.py, NOTICE.md) -- rather than freshly authored.
+    public static final DeferredItem<PartItem> PART_WAR_MACE_HEAD = part("war_mace_head", PartItem.Kind.HEAD);
 
     private static DeferredItem<PartItem> part(String name, PartItem.Kind kind) {
         return ITEMS.registerItem(name, properties -> new PartItem(properties, kind));
@@ -136,6 +145,13 @@ public final class ForgeweaveItems {
             weapon("frying_pan", ToolConstants.FRYING_PAN, ForgeweaveInnates.HEAVY_SWING);
     public static final DeferredItem<ToolItem> TOOL_DAGGER =
             weapon("dagger", ToolConstants.DAGGER, ForgeweaveInnates.BACKSTAB);
+
+    // #161: the warmace, the Tool Forge tier's smash weapon (docs/SCOPE.md M3). Registered here
+    // rather than through weapon() above because its innate is not a ForgeweaveInnates seam at all:
+    // the smash is vanilla 1.21's mace, called through rather than copied -- see WarmaceItem.
+    public static final DeferredItem<ToolItem> TOOL_WARMACE = ITEMS.registerItem("warmace",
+            properties -> new WarmaceItem(properties, ToolConstants.WARMACE, BlockTags.MINEABLE_WITH_AXE, true, null),
+            new Item.Properties().stacksTo(1));
 
     private static DeferredItem<ToolItem> weapon(String name, ToolConstants.Entry constants,
             ForgeweaveInnates.Innate innate) {

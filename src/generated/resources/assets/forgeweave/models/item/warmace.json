@@ -1,0 +1,8 @@
+{
+  "parent": "minecraft:item/generated",
+  "textures": {
+    "layer0": "forgeweave:derived/tools/warmace_handle",
+    "layer1": "forgeweave:derived/tools/warmace_head",
+    "layer2": "forgeweave:derived/tools/warmace_binding"
+  }
+}

@@ -62,6 +62,16 @@ final class ToolAssembly {
         return assemble(helper, player, pos, ForgeweaveBlocks.TOOL_STATION.get(), entry, materials);
     }
 
+    /**
+     * As {@link #assemble(GameTestHelper, Player, BlockPos, ToolAssemblyRecipes.Entry, List)}, at a
+     * Tool Forge -- the only station that will build a large tool at all (issue #152's gate, which
+     * #161's warmace is the first real member of).
+     */
+    static ItemStack assembleAtForge(GameTestHelper helper, Player player, BlockPos pos,
+            ToolAssemblyRecipes.Entry entry, List<String> materials) {
+        return assemble(helper, player, pos, ForgeweaveBlocks.TOOL_FORGE.get(), entry, materials);
+    }
+
     private static ItemStack assemble(GameTestHelper helper, Player player, BlockPos pos, Block station,
             ToolAssemblyRecipes.Entry entry, List<String> materials) {
         helper.setBlock(pos, station);

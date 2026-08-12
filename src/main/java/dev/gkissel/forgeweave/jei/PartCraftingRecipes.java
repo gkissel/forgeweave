@@ -51,7 +51,8 @@ final class PartCraftingRecipes {
             new Entry(ForgeweaveItems.PATTERN_SCYTHE_HEAD, ForgeweaveItems.PART_SCYTHE_HEAD, PartBuilderRecipes.LARGE_HEAD_COST),
             new Entry(ForgeweaveItems.PATTERN_KAMA_HEAD, ForgeweaveItems.PART_KAMA_HEAD, PartBuilderRecipes.HEAD_COST),
             new Entry(ForgeweaveItems.PATTERN_BROAD_AXE_HEAD, ForgeweaveItems.PART_BROAD_AXE_HEAD, PartBuilderRecipes.LARGE_HEAD_COST),
-            new Entry(ForgeweaveItems.PATTERN_VEIN_HAMMER_HEAD, ForgeweaveItems.PART_VEIN_HAMMER_HEAD, PartBuilderRecipes.LARGE_HEAD_COST));
+            new Entry(ForgeweaveItems.PATTERN_VEIN_HAMMER_HEAD, ForgeweaveItems.PART_VEIN_HAMMER_HEAD, PartBuilderRecipes.LARGE_HEAD_COST),
+            new Entry(ForgeweaveItems.PATTERN_WAR_MACE_HEAD, ForgeweaveItems.PART_WAR_MACE_HEAD, PartBuilderRecipes.LARGE_HEAD_COST));
 
     /** One crafting-item option a material accepts, and the shard-unit value one of it pays off. */
     private record Option(ItemStack representative, int value) {}

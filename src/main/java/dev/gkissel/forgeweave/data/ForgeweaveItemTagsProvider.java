@@ -70,8 +70,11 @@ public class ForgeweaveItemTagsProvider extends ItemTagsProvider {
         // merged tags. An optional reference to a tag nothing defines is an empty set, so a shipped
         // jar (which excludes the fixture) sees exactly what it would have seen with no entry at all.
         // #157 can drop this line along with the fixture.
-        tag(ToolAssemblyRecipes.LARGE_TOOLS).addOptionalTag(
-                ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "gametest_large_tools"));
+        //
+        // #161 adds the first real member: the warmace is Tool Forge tier (docs/SCOPE.md M3).
+        tag(ToolAssemblyRecipes.LARGE_TOOLS)
+                .add(ForgeweaveItems.TOOL_WARMACE.get())
+                .addOptionalTag(ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "gametest_large_tools"));
 
         // #152 -- what a Tool Forge can be crafted from. Upstream 1.12 keeps this as an ore-dict list
         // on BlockToolForge#baseBlocks, filled from TinkerIntegration's `.toolforge()` calls: iron,

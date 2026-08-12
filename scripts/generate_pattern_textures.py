@@ -50,6 +50,9 @@ PARTS = [
     ("kama_head.png", "pattern_kama_head.png", TEXTURE_DIR),
     ("broad_axe_head.png", "pattern_broad_axe_head.png", TEXTURE_DIR),
     ("vein_hammer_head.png", "pattern_vein_hammer_head.png", ORIGINAL_ITEM_DIR),
+    # M3 issue #161: the warmace's head, itself derived from the clone's hammer head
+    # (scripts/derive_warmace_art.py), so it lives in TEXTURE_DIR like every other derived part.
+    ("war_mace_head.png", "pattern_war_mace_head.png", TEXTURE_DIR),
 ]
 
 ALPHA_THRESHOLD = 64

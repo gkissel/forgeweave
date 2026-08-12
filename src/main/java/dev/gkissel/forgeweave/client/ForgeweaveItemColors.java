@@ -55,7 +55,8 @@ public final class ForgeweaveItemColors {
                 ForgeweaveItems.PART_SCYTHE_HEAD.get(),
                 ForgeweaveItems.PART_KAMA_HEAD.get(),
                 ForgeweaveItems.PART_BROAD_AXE_HEAD.get(),
-                ForgeweaveItems.PART_VEIN_HAMMER_HEAD.get());
+                ForgeweaveItems.PART_VEIN_HAMMER_HEAD.get(),
+                ForgeweaveItems.PART_WAR_MACE_HEAD.get());
 
         // Every assemblable tool, straight off the station's table (issue #155) rather than a hand
         // list that a new tool can be left out of.

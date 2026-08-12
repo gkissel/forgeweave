@@ -48,7 +48,8 @@ public final class ForgeweaveCreativeTab {
             ForgeweaveItems.PART_SCYTHE_HEAD,
             ForgeweaveItems.PART_KAMA_HEAD,
             ForgeweaveItems.PART_BROAD_AXE_HEAD,
-            ForgeweaveItems.PART_VEIN_HAMMER_HEAD);
+            ForgeweaveItems.PART_VEIN_HAMMER_HEAD,
+            ForgeweaveItems.PART_WAR_MACE_HEAD);
 
     public static final DeferredHolder<CreativeModeTab, CreativeModeTab> MAIN = TABS.register("main", () -> CreativeModeTab.builder()
             .title(Component.translatable("itemGroup.forgeweave"))
@@ -91,6 +92,7 @@ public final class ForgeweaveCreativeTab {
         output.accept(ForgeweaveItems.PATTERN_KAMA_HEAD.get());
         output.accept(ForgeweaveItems.PATTERN_BROAD_AXE_HEAD.get());
         output.accept(ForgeweaveItems.PATTERN_VEIN_HAMMER_HEAD.get());
+        output.accept(ForgeweaveItems.PATTERN_WAR_MACE_HEAD.get());
 
         // Shown component-less (no TOOL_MATERIALS set): unlike parts, a tool has three independent
         // material slots, so there's no small fixed set of "one per material" variants to enumerate
@@ -106,6 +108,7 @@ public final class ForgeweaveCreativeTab {
         output.accept(ForgeweaveItems.TOOL_BATTLESIGN.get());
         output.accept(ForgeweaveItems.TOOL_FRYING_PAN.get());
         output.accept(ForgeweaveItems.TOOL_DAGGER.get());
+        output.accept(ForgeweaveItems.TOOL_WARMACE.get());
 
         // Grout (a block since issue #129), seared brick, and the seared brick block family
         // (docs/SCOPE.md M2 issue #93).
