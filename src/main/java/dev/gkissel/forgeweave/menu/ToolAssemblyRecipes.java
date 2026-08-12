@@ -1,5 +1,6 @@
 package dev.gkissel.forgeweave.menu;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Supplier;
@@ -19,6 +20,7 @@ import dev.gkissel.forgeweave.item.ForgeweaveItems;
 import dev.gkissel.forgeweave.item.PartItem;
 import dev.gkissel.forgeweave.item.ToolItem;
 import dev.gkissel.forgeweave.material.Material;
+import dev.gkissel.forgeweave.modifier.Embossing;
 import dev.gkissel.forgeweave.modifier.ForgeweaveModifiers;
 import dev.gkissel.forgeweave.modifier.ModifierApplication;
 import dev.gkissel.forgeweave.tool.ToolMaterials;
@@ -27,8 +29,8 @@ import dev.gkissel.forgeweave.tool.ToolStats;
 import dev.gkissel.forgeweave.trait.ForgeweaveTraits;
 
 /**
- * Everything the Tool Station can produce from its three input slots. Two recipes share those
- * slots, told apart by what is in the first one:
+ * Everything the Tool Station can produce from its input slots. Four recipes share those slots, told
+ * apart by what is in the first one and what the rest hold:
  *
  * <ul>
  *   <li><b>Assembly</b> -- head part + binding part + handle part. Which head part is used decides
@@ -42,6 +44,9 @@ import dev.gkissel.forgeweave.trait.ForgeweaveTraits;
  *   <li><b>Modifier application</b> (issue #105) -- a tool in the head slot plus a
  *       {@code modifier.ModifierRecipe}'s reagents in the other two, tried after repair so the two
  *       never fight over an item that is both.
+ *   <li><b>Embossing</b> (issue #154) -- a tool in the head slot plus a donor tool part and an
+ *       {@code modifier.EmbossingRecipe}'s reagent set across all four free slots, which is why the
+ *       repair tab has four of them.
  * </ul>
  *
  * <p>NOTICE.md cites the tool classes for the part composition, {@code ToolNBT.java} for the stat
@@ -63,11 +68,17 @@ public final class ToolAssemblyRecipes {
             new Entry(ForgeweaveItems.PART_AXE_HEAD, ForgeweaveItems.TOOL_HATCHET));
 
     /**
-     * What the station produces and what taking it costs. The per-slot counts are what let the two
-     * recipes share one output slot: assembly always spends one of each part, a repair spends the
-     * tool plus only as many repair items as it actually consumed.
+     * What the station produces and what taking it costs. {@code slotsUsed} is how many items to
+     * spend from each input slot, indexed by slot -- what lets every recipe here share one output
+     * slot: assembly always spends one of each part, a repair spends the tool plus only as many
+     * repair items as it actually consumed, an embossment spends one of everything it matched.
      */
-    record Result(ItemStack output, int headSlotUsed, int bindingSlotUsed, int handleSlotUsed) {}
+    record Result(ItemStack output, List<Integer> slotsUsed) {
+
+        static Result of(ItemStack output, int... slotsUsed) {
+            return new Result(output, Arrays.stream(slotsUsed).boxed().toList());
+        }
+    }
 
     static boolean isHeadPart(ItemStack stack) {
         return ENTRIES.stream().anyMatch(entry -> stack.is(entry.headPart().get()));
@@ -94,15 +105,43 @@ public final class ToolAssemblyRecipes {
     }
 
     /**
-     * Resolves what the Tool Station should currently produce, or empty if the slots don't form
-     * either recipe.
+     * Resolves what the Tool Station should currently produce, or empty if the slots don't form any
+     * of the recipes.
+     *
+     * @param freeSlots every input slot except the first, in slot order. Assembly, repair and
+     *     modifier application read the first two of them (the slots M1 and M2 shipped); embossing
+     *     (issue #154) needs all four, which is why this takes the list rather than two stacks.
      */
-    static Optional<Result> resolve(HolderLookup.Provider registries, ItemStack headStack, ItemStack bindingStack, ItemStack handleStack) {
+    static Optional<Result> resolve(HolderLookup.Provider registries, ItemStack headStack, List<ItemStack> freeSlots) {
+        ItemStack bindingStack = freeSlots.get(0);
+        ItemStack handleStack = freeSlots.get(1);
         if (!(headStack.getItem() instanceof ToolItem)) {
             return resolveAssembly(registries, headStack, bindingStack, handleStack);
         }
         Optional<Result> repair = resolveRepair(registries, headStack, bindingStack, handleStack);
-        return repair.isPresent() ? repair : resolveModifier(registries, headStack, bindingStack, handleStack);
+        if (repair.isPresent()) {
+            return repair;
+        }
+        // Embossing before modifier application: a donor tool part is nothing any modifier recipe
+        // accepts, so the two can never both match, and trying the more specific one first keeps the
+        // modifier path from having to know embossing exists.
+        Optional<Result> embossing = resolveEmbossing(registries, headStack, freeSlots);
+        return embossing.isPresent()
+                ? embossing
+                : resolveModifier(registries, headStack, bindingStack, handleStack);
+    }
+
+    /**
+     * Embossing (issue #154, ADR-0004): a tool in the first slot, a donor part and the reagent set
+     * spread across the four free ones. Every matched slot gives up exactly one item -- upstream's
+     * {@code RecipeMatch.ItemCombination(1, ...)} -- and a rejected embossment produces no output
+     * here, only the message {@link ToolStationMenu#modifierRejection} shows.
+     */
+    private static Optional<Result> resolveEmbossing(HolderLookup.Provider registries, ItemStack toolStack,
+            List<ItemStack> freeSlots) {
+        return Embossing.resolve(registries, toolStack, freeSlots)
+                .filter(outcome -> !outcome.output().isEmpty())
+                .map(outcome -> Result.of(outcome.output(), 1, 1, 1, 1, 1));
     }
 
     /**
@@ -116,7 +155,7 @@ public final class ToolAssemblyRecipes {
             ItemStack bindingStack, ItemStack handleStack) {
         return ModifierApplication.resolve(registries, toolStack, bindingStack, handleStack)
                 .filter(outcome -> !outcome.output().isEmpty())
-                .map(outcome -> new Result(
+                .map(outcome -> Result.of(
                         grantEnchantments(registries, outcome.output()), 1, outcome.firstUsed(), outcome.secondUsed()));
     }
 
@@ -179,7 +218,7 @@ public final class ToolAssemblyRecipes {
         result.set(DataComponents.TOOL, tool.toolComponent(head.get(), stats));
         result.set(DataComponents.MAX_DAMAGE, stats.durability());
         result.set(DataComponents.DAMAGE, 0);
-        return Optional.of(new Result(result, 1, 1, 1));
+        return Optional.of(Result.of(result, 1, 1, 1));
     }
 
     /**
@@ -222,7 +261,7 @@ public final class ToolAssemblyRecipes {
         // Any repair moves the tool off the Broken threshold, since one repair item is always worth
         // at least 1/64 of the durability pool.
         result.remove(ForgeweaveDataComponents.BROKEN.get());
-        return Optional.of(new Result(result, 1, Math.min(used, fromBinding), Math.max(0, used - fromBinding)));
+        return Optional.of(Result.of(result, 1, Math.min(used, fromBinding), Math.max(0, used - fromBinding)));
     }
 
     /** The {@code Material} of an assembled tool's head part, which is what a repair needs. */

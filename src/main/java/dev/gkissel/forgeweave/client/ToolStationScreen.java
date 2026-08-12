@@ -127,11 +127,12 @@ public class ToolStationScreen extends StationScreen<ToolStationMenu> implements
     private static final int ANVIL_U = 54;
     private static final int ANVIL_V = 0;
     /**
-     * Upstream's repair-slot glyphs for its first three repair positions, in its own order:
-     * {@code Icons.ICON_Pickaxe}, {@code ICON_Dust}, {@code ICON_Lapis} ({@code GuiButtonRepair}
-     * pairs them with the six positions in {@code GuiToolStation#drawRepairSlotIcons}).
+     * Upstream's repair-slot glyphs, in its own order: {@code Icons.ICON_Pickaxe}, {@code ICON_Dust},
+     * {@code ICON_Lapis}, {@code ICON_Ingot}, {@code ICON_Gem} ({@code GuiToolStation
+     * #drawRepairSlotIcon} pairs them with {@code GuiButtonRepair}'s positions, one per active slot).
+     * Issue #154 added the 4th and 5th along with the two extra reagent slots embossing needs.
      */
-    private static final int[] REPAIR_ICON_U = {0, 18, 36};
+    private static final int[] REPAIR_ICON_U = {0, 18, 36, 54, 72};
     private static final int REPAIR_ICON_V = 234;
 
     /**
@@ -295,8 +296,8 @@ public class ToolStationScreen extends StationScreen<ToolStationMenu> implements
 
     /** " * Part Name" per required component, red while its slot doesn't hold that part yet. */
     private List<Component> componentLines(Tab tab) {
-        List<Component> lines = new ArrayList<>(ToolStationMenu.INPUT_SLOTS);
-        for (int i = 0; i < ToolStationMenu.INPUT_SLOTS; i++) {
+        List<Component> lines = new ArrayList<>(tab.slots().size());
+        for (int i = 0; i < tab.slots().size(); i++) {
             Item part = requiredPart(tab, i);
             boolean satisfied = menu.getSlot(i).getItem().is(part);
             Component name = Component.literal(" * ").append(new ItemStack(part).getHoverName());
@@ -382,7 +383,9 @@ public class ToolStationScreen extends StationScreen<ToolStationMenu> implements
     /** Slot plate, border and -- while empty -- the ghost of whatever belongs in that slot. */
     private void renderSlots(GuiGraphics graphics) {
         Tab tab = menu.tab();
-        for (int i = 0; i < ToolStationMenu.INPUT_SLOTS; i++) {
+        // The selected tab's own slot count, not the container's: a build tab hides the repair
+        // tab's two extra reagent slots (ToolStationMenu's inputSlot#isActive draws the same line).
+        for (int i = 0; i < tab.slots().size(); i++) {
             var slot = menu.getSlot(i);
             int x = leftPos + slot.x - 1;
             int y = topPos + slot.y - 1;

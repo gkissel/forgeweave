@@ -95,7 +95,8 @@ class SaveCompatCorpusTest {
         assertNotNull(dir, "the corpus directory is missing from the test resources");
         try (Stream<Path> files = Files.list(Path.of(dir.toURI()))) {
             List<Path> snbt = files.filter(path -> path.toString().endsWith(".snbt")).sorted().toList();
-            assertTrue(snbt.size() >= 4, "the M2 corpus is four files; something dropped fixtures");
+            assertTrue(snbt.size() >= 6,
+                    "four M2 fixtures plus #101's tank and #154's embossment; something dropped fixtures");
             return snbt.stream();
         }
     }
@@ -131,6 +132,32 @@ class SaveCompatCorpusTest {
             assertEquals(Set.of("id", "level"), modifiers.getCompound(i).getAllKeys(),
                     "ADR-0004: a serialized modifier is id + level, never a class reference or a cached stat");
         }
+    }
+
+    /**
+     * The same rule for embossing's <em>generated</em> ids (issue #154). Worth pinning separately
+     * from the fixture above: {@code embossment.<material>} is built at application time from a
+     * datapack material rather than picked from a fixed table, so it is the id most likely to grow a
+     * companion field ("which traits did it add?") the day someone finds that convenient -- and the
+     * day it does, every embossed tool in every existing world stops decoding.
+     */
+    @Test
+    void aGeneratedEmbossmentIdIsStillNothingButIdAndLevel() throws Exception {
+        CompoundTag tool = read(Path.of(
+                SaveCompatCorpusTest.class.getResource(CORPUS + "/m3_tool_pickaxe_embossment.snbt").toURI()));
+        ListTag modifiers = tool.getCompound("nbt").getCompound("components")
+                .getList("forgeweave:modifiers", Tag.TAG_COMPOUND);
+
+        CompoundTag embossment = null;
+        for (int i = 0; i < modifiers.size(); i++) {
+            if (modifiers.getCompound(i).getString("id").contains("embossment.")) {
+                embossment = modifiers.getCompound(i);
+            }
+        }
+        assertNotNull(embossment, "the fixture is meant to carry an embossment entry");
+        assertEquals(Set.of("id", "level"), embossment.getAllKeys(),
+                "ADR-0004 applies to generated ids too: an embossment is id + level, nothing more");
+        assertEquals(1, embossment.getInt("level"), "an embossment is always level 1 (upstream's SingleAspect)");
     }
 
     /**

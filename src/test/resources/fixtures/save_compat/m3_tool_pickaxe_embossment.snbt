@@ -1,0 +1,73 @@
+{
+    decoder: "item_stack",
+    expect: {
+        components: {
+            "forgeweave:modifiers": [
+                {
+                    id: "forgeweave:haste",
+                    level: 51
+                },
+                {
+                    id: "forgeweave:embossment.iron",
+                    level: 1
+                }
+            ],
+            "forgeweave:repair_count": 2,
+            "forgeweave:tool_materials": {
+                binding: "forgeweave:wood",
+                handle: "forgeweave:stone",
+                head: "forgeweave:flint"
+            },
+            "forgeweave:tool_stats": {
+                attack_damage: 2.9f,
+                durability: 33,
+                mining_speed: 5.0f
+            },
+            "forgeweave:traits": [
+                "forgeweave:crude",
+                "forgeweave:ecological",
+                "forgeweave:cheap",
+                "forgeweave:magnetic2"
+            ],
+            "minecraft:damage": 12,
+            "minecraft:max_damage": 33
+        },
+        id: "forgeweave:pickaxe"
+    },
+    nbt: {
+        components: {
+            "forgeweave:modifiers": [
+                {
+                    id: "forgeweave:haste",
+                    level: 51
+                },
+                {
+                    id: "forgeweave:embossment.iron",
+                    level: 1
+                }
+            ],
+            "forgeweave:repair_count": 2,
+            "forgeweave:tool_materials": {
+                binding: "forgeweave:wood",
+                handle: "forgeweave:stone",
+                head: "forgeweave:flint"
+            },
+            "forgeweave:tool_stats": {
+                attack_damage: 2.9f,
+                durability: 33,
+                mining_speed: 5.0f
+            },
+            "forgeweave:traits": [
+                "forgeweave:crude",
+                "forgeweave:ecological",
+                "forgeweave:cheap",
+                "forgeweave:magnetic2"
+            ],
+            "minecraft:damage": 12,
+            "minecraft:max_damage": 33
+        },
+        count: 1,
+        id: "forgeweave:pickaxe"
+    },
+    what: "M3 (#154): an embossed pickaxe -- the generated per-material modifier id `embossment.iron` at level 1 alongside an ordinary levelled modifier, and the donor material's trait appended to the trait list, which is where an embossment's whole effect lives."
+}

@@ -334,6 +334,17 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("modifier.forgeweave.emerald.name", "Emerald");
         add("modifier.forgeweave.emerald.description", "Adds 50% durability and raises the tool's tier.");
 
+        // #154 -- embossing. One shared pair of keys for every material, because the modifier ids are
+        // generated per material and a datapack can add materials this mod has never heard of; the
+        // material's own name fills the placeholder, which is upstream's ModExtraTrait#getLocalizedName
+        // ("Embossment (Iron)") reproduced through Component.translatable's argument instead of
+        // string concatenation.
+        add("modifier.forgeweave.embossment.name", "Embossment (%s)");
+        add("modifier.forgeweave.embossment.description",
+                "Carries the traits of %s, without changing anything else about the tool.");
+        add("gui.forgeweave.embossment.already_embossed", "This tool is already embossed. One embossment per tool.");
+        add("gui.forgeweave.embossment.no_traits", "%s grants no traits through that part, so there is nothing to emboss.");
+
         // JEI recipe category titles (issue #11); only shown when JEI is installed, since the
         // integration is optional (neoforge.mods.toml).
         add("jei.category.forgeweave.part_crafting", "Part Crafting");

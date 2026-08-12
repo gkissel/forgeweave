@@ -36,6 +36,7 @@ import dev.gkissel.forgeweave.item.ForgeweaveItems;
 import dev.gkissel.forgeweave.material.Material;
 import dev.gkissel.forgeweave.menu.ForgeweaveMenus;
 import dev.gkissel.forgeweave.menu.RenameStationItemPayload;
+import dev.gkissel.forgeweave.modifier.EmbossingRecipe;
 import dev.gkissel.forgeweave.modifier.ForgeweaveModifiers;
 import dev.gkissel.forgeweave.modifier.ModifierRecipe;
 import dev.gkissel.forgeweave.ponder.ForgeweavePonderPlugin;
@@ -138,6 +139,9 @@ public class Forgeweave {
         // #98 -- alloy recipes, same idiom again: the client needs them for JEI's alloy category
         // (#109) and to explain what a smeltery is about to combine.
         event.dataPackRegistry(AlloyRecipe.REGISTRY, AlloyRecipe.CODEC, AlloyRecipe.CODEC);
+        // #154 -- what an embossment costs, same idiom again: the client needs it so the Tool
+        // Station screen can say "already embossed" without a payload of its own.
+        event.dataPackRegistry(EmbossingRecipe.REGISTRY, EmbossingRecipe.CODEC, EmbossingRecipe.CODEC);
     }
 
     /** The Tool Station's rename field is the mod's only message that a menu button can't carry. */

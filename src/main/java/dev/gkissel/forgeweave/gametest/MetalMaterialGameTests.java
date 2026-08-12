@@ -77,9 +77,9 @@ public class MetalMaterialGameTests {
         ToolStationMenu menu = ToolAssembly.menu(helper, player, pos, blockEntity);
         menu.broadcastChanges();
 
-        helper.assertTrue(menu.getSlot(3).getItem().getDamageValue() == 220,
+        helper.assertTrue(menu.getSlot(ToolStationMenu.OUTPUT_SLOT).getItem().getDamageValue() == 220,
                 "expected 1000 - 780 = 220 damage left after repairing with one cobalt ingot, got "
-                        + menu.getSlot(3).getItem().getDamageValue());
+                        + menu.getSlot(ToolStationMenu.OUTPUT_SLOT).getItem().getDamageValue());
 
         helper.succeed();
     }

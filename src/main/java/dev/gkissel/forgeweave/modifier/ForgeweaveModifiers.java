@@ -465,6 +465,15 @@ public final class ForgeweaveModifiers {
         }
     };
 
+    /**
+     * Embossing (issue #154). Every {@code embossment.<material>} id maps here, because a generated
+     * per-material id can't be a map key -- materials are datapack data. No hooks: an embossment's
+     * whole effect is the traits {@link Embossing} appended to the tool, so there is nothing for a
+     * stat hook to do, and {@link Modifier#unitsPerLevel} staying 1 is what makes the tooltip read
+     * "Embossment (Iron)" with no level or {@code n/m} progress after it.
+     */
+    public static final Modifier EMBOSSMENT = new Modifier() {};
+
     private static final Map<ResourceLocation, Modifier> REGISTRY = Map.ofEntries(
             Map.entry(id("haste"), HASTE),
             Map.entry(id("searing"), SEARING),
@@ -494,6 +503,9 @@ public final class ForgeweaveModifiers {
      */
     @Nullable
     public static Modifier get(ResourceLocation id) {
+        if (Embossing.isEmbossment(id)) {
+            return EMBOSSMENT; // #154: generated per-material, so it can't be in the map above.
+        }
         Modifier modifier = REGISTRY.get(id);
         if (modifier == null && WARNED_UNKNOWN.add(id)) {
             LOGGER.warn("Unknown modifier '{}' on a tool; keeping it as inert data so it works again if a "
@@ -525,7 +537,13 @@ public final class ForgeweaveModifiers {
     public static int freeSlots(ItemStack stack) {
         List<ModifierEntry> entries = of(stack);
         int bonus = 0;
+        int occupied = 0;
         for (ModifierEntry entry : entries) {
+            // #154 -- an embossment occupies no slot: upstream's ModExtraTrait carries a SingleAspect
+            // and a DataAspect but deliberately no FreeModifierAspect, which is what charges one.
+            if (!Embossing.isEmbossment(entry.id())) {
+                occupied++;
+            }
             Modifier modifier = get(entry.id());
             if (modifier != null) {
                 bonus += modifier.bonusSlots(entry.level());
@@ -536,7 +554,7 @@ public final class ForgeweaveModifiers {
         for (Trait trait : ForgeweaveTraits.of(stack)) {
             bonus += trait.bonusSlots();
         }
-        return DEFAULT_SLOTS + bonus - entries.size();
+        return DEFAULT_SLOTS + bonus - occupied;
     }
 
     /**
