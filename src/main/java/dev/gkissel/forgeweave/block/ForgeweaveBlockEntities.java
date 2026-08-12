@@ -21,7 +21,11 @@ public final class ForgeweaveBlockEntities {
 
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<ToolStationBlockEntity>> TOOL_STATION =
             BLOCK_ENTITIES.register("tool_station", () -> BlockEntityType.Builder
-                    .of(ToolStationBlockEntity::new, ForgeweaveBlocks.TOOL_STATION.get())
+                    // One type for both blocks (issue #152): a Tool Forge is a Tool Station with a
+                    // different material and two behaviour tweaks, and ToolStationBlockEntity reads
+                    // which one it is off its own BlockState -- so there is nothing for a second
+                    // block entity class (or type) to hold.
+                    .of(ToolStationBlockEntity::new, ForgeweaveBlocks.TOOL_STATION.get(), ForgeweaveBlocks.TOOL_FORGE.get())
                     .build(null));
 
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<CraftingStationBlockEntity>> CRAFTING_STATION =

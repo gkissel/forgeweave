@@ -46,15 +46,34 @@ public class ToolStationBlockEntity extends BlockEntity implements StationMenuHo
 
     private final SimpleContainer container = new SimpleContainer(ToolStationMenu.CONTAINER_SLOTS);
     @Nonnull
-    private Block texture = Blocks.OAK_PLANKS;
+    private Block texture;
 
     public ToolStationBlockEntity(BlockPos pos, BlockState state) {
         super(ForgeweaveBlockEntities.TOOL_STATION.get(), pos, state);
+        this.texture = defaultTexture();
         container.addListener(c -> setChanged());
     }
 
     public Container container() {
         return container;
+    }
+
+    /**
+     * Whether this is a Tool Forge rather than a Tool Station (issue #152). Read off the block state
+     * rather than stored, because the two blocks share this class and one block entity type: there is
+     * no moment where the state and a stored flag could disagree.
+     */
+    public boolean isForge() {
+        return getBlockState().is(ForgeweaveBlocks.TOOL_FORGE.get());
+    }
+
+    /**
+     * The wood (or metal) a freshly placed station wears before any crafting texture is applied.
+     * Upstream's Tool Station is crafted from {@code #minecraft:planks}; upstream's Tool Forge models
+     * its untextured legs and underside in {@code minecraft:blocks/iron_block}.
+     */
+    private Block defaultTexture() {
+        return isForge() ? Blocks.IRON_BLOCK : Blocks.OAK_PLANKS;
     }
 
     /** The adjacent block's item handler to expose in the GUI's side panel, or {@code null} if none qualifies. */
@@ -100,7 +119,7 @@ public class ToolStationBlockEntity extends BlockEntity implements StationMenuHo
     protected void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
         super.loadAdditional(tag, registries);
         container.fromTag(tag.getList(TAG_INVENTORY, Tag.TAG_COMPOUND), registries);
-        texture = WoodTexturedBlockEntity.readTexture(tag, Blocks.OAK_PLANKS);
+        texture = WoodTexturedBlockEntity.readTexture(tag, defaultTexture());
     }
 
     /**
@@ -129,14 +148,19 @@ public class ToolStationBlockEntity extends BlockEntity implements StationMenuHo
     @Override
     public AbstractContainerMenu createMenu(int containerId, Inventory playerInventory, Player player) {
         return new ToolStationMenu(containerId, playerInventory, container,
-                ContainerLevelAccess.create(level, worldPosition), findSideInventory());
+                ContainerLevelAccess.create(level, worldPosition), findSideInventory(), isForge());
     }
 
-    /** Side-inventory slot count first, then the station-group tab row (issue #78). */
+    /**
+     * Side-inventory slot count first, then the station-group tab row (issue #78), then whether this
+     * is a Tool Forge (issue #152 -- the client menu needs it for the "needs a Tool Forge" message
+     * and the screen for its metal styling).
+     */
     @Override
     public void writeMenuData(RegistryFriendlyByteBuf buf) {
         IItemHandler sideInventory = findSideInventory();
         buf.writeVarInt(sideInventory == null ? 0 : sideInventory.getSlots());
         StationGroup.STREAM_CODEC.encode(buf, StationGroup.tabsFor(level, worldPosition));
+        buf.writeBoolean(isForge());
     }
 }

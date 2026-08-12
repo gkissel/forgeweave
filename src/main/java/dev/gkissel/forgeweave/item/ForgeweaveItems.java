@@ -123,6 +123,7 @@ public final class ForgeweaveItems {
 
     // The Stencil Table (docs/SCOPE.md M1 issue #44): same retextured-table item shape as the three
     // stations above.
+    public static final DeferredItem<BlockItem> TOOL_FORGE = ITEMS.registerSimpleBlockItem("tool_forge", ForgeweaveBlocks.TOOL_FORGE);
     public static final DeferredItem<BlockItem> STENCIL_TABLE = ITEMS.registerSimpleBlockItem("stencil_table", ForgeweaveBlocks.STENCIL_TABLE);
 
     // The Pattern Chest and Part Chest (docs/SCOPE.md M1 issue #66): plain block items, not

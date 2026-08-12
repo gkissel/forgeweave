@@ -111,6 +111,9 @@ public final class ForgeweaveJeiPlugin implements IModPlugin {
         // Tool Station is a catalyst for modifier application too.
         registration.addRecipeCatalyst(ForgeweaveItems.TOOL_STATION.get(),
                 AssemblyCategory.TYPE, RepairCategory.TYPE, ModifierApplicationCategory.TYPE);
+        // #152: the Tool Forge does everything the Tool Station does, so it catalyses the same three.
+        registration.addRecipeCatalyst(ForgeweaveItems.TOOL_FORGE.get(),
+                AssemblyCategory.TYPE, RepairCategory.TYPE, ModifierApplicationCategory.TYPE);
         // A shard always pays a part's cost exactly (SHARD_VALUE divides both HEAD_COST and
         // SMALL_PART_COST with no remainder), so it's as legitimate a "what can this craft" lookup
         // target as the station itself (issue #45's Part Crafting rework).

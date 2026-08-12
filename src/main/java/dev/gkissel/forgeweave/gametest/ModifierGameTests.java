@@ -104,7 +104,7 @@ public class ModifierGameTests {
     /**
      * The cap. Three distinct modifiers fill the tool, so a fourth is refused -- and refused with a
      * message rather than silently, which is what the station's info panel shows
-     * ({@code ToolStationMenu#modifierRejection}).
+     * ({@code ToolStationMenu#rejection}).
      *
      * <p>The three occupying ids are arbitrary: unimplemented ids are kept as inert data by design
      * ({@code ForgeweaveModifiers#get}), and they still occupy their slot, which is exactly the
@@ -133,7 +133,7 @@ public class ModifierGameTests {
 
         helper.assertTrue(menu.getSlot(ToolStationMenu.OUTPUT_SLOT).getItem().isEmpty(),
                 "a fourth distinct modifier must produce no output");
-        helper.assertTrue(menu.modifierRejection() != null,
+        helper.assertTrue(menu.rejection() != null,
                 "a refused application must tell the player why");
         helper.succeed();
     }
@@ -155,7 +155,7 @@ public class ModifierGameTests {
 
         helper.assertTrue(menu.getSlot(ToolStationMenu.OUTPUT_SLOT).getItem().isEmpty(),
                 "a capped modifier must produce no output");
-        helper.assertTrue(menu.modifierRejection() != null, "a capped modifier must say so");
+        helper.assertTrue(menu.rejection() != null, "a capped modifier must say so");
         helper.succeed();
     }
 

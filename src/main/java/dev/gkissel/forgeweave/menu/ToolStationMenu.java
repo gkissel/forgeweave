@@ -32,7 +32,8 @@ import dev.gkissel.forgeweave.menu.ToolStationTabs.Pos;
 import dev.gkissel.forgeweave.menu.ToolStationTabs.Tab;
 
 /**
- * The Tool Station's menu: three input slots, an output slot, and the player's inventory, plus the
+ * The Tool Station's menu -- and the Tool Forge's, which is the same menu with {@link #isForge()}
+ * set (issue #152): three input slots, an output slot, and the player's inventory, plus the
  * selected {@link ToolStationTabs.Tab} that decides where those input slots sit and what each one
  * accepts. Same "recompute output every broadcast, only consume on take" shape as
  * {@link dev.gkissel.forgeweave.menu.PartBuilderMenu}.
@@ -149,30 +150,40 @@ public class ToolStationMenu extends StationMenu {
     private final ContainerLevelAccess access;
     private final HolderLookup.Provider registries;
     private final DataSlot selectedTab = DataSlot.standalone();
+    /**
+     * Whether this menu belongs to a Tool Forge rather than a Tool Station (issue #152). Fixed for
+     * the life of the menu -- it is a property of the block that opened it -- so it rides the
+     * open-menu payload rather than a {@link DataSlot}.
+     */
+    private final boolean forge;
     public final int sideInventorySlotCount;
     /** The side panel's own slots, kept so the client-side panel can lay them out and scroll them (issue #68). */
     public final List<SideInventorySlots.SideSlot> sideSlots;
     private String toolName = "";
 
-    /** Client-side: constructed from the open-menu packet, which carries the side-inventory slot count and tab row. */
+    /**
+     * Client-side: constructed from the open-menu packet, which carries the side-inventory slot
+     * count, the tab row, and the Tool Station/Tool Forge flag (issue #152).
+     */
     public ToolStationMenu(int containerId, Inventory playerInventory, RegistryFriendlyByteBuf buf) {
         this(containerId, playerInventory, new SimpleContainer(CONTAINER_SLOTS), ContainerLevelAccess.NULL, null,
-                buf.readVarInt(), StationGroup.STREAM_CODEC.decode(buf));
+                buf.readVarInt(), StationGroup.STREAM_CODEC.decode(buf), buf.readBoolean());
     }
 
     /** Server-side: constructed by {@code ToolStationBlockEntity} with the block's real inventory and detected neighbor. */
     public ToolStationMenu(int containerId, Inventory playerInventory, Container container, ContainerLevelAccess access,
-            @Nullable IItemHandler sideInventory) {
+            @Nullable IItemHandler sideInventory, boolean forge) {
         this(containerId, playerInventory, container, access, sideInventory,
-                sideInventory == null ? 0 : sideInventory.getSlots(), groupAt(access));
+                sideInventory == null ? 0 : sideInventory.getSlots(), groupAt(access), forge);
     }
 
     private ToolStationMenu(int containerId, Inventory playerInventory, Container container, ContainerLevelAccess access,
-            @Nullable IItemHandler sideInventory, int sideInventorySlotCount, StationGroup stationGroup) {
+            @Nullable IItemHandler sideInventory, int sideInventorySlotCount, StationGroup stationGroup, boolean forge) {
         super(ForgeweaveMenus.TOOL_STATION.get(), containerId, stationGroup);
         checkContainerSize(container, CONTAINER_SLOTS);
         this.container = container;
         this.access = access;
+        this.forge = forge;
         this.registries = playerInventory.player.level().registryAccess();
         this.sideInventorySlotCount = sideInventorySlotCount;
         container.startOpen(playerInventory.player);
@@ -257,15 +268,27 @@ public class ToolStationMenu extends StationMenu {
         };
     }
 
+    /** Whether this menu belongs to a Tool Forge; the screen reads it to pick its metal styling. */
+    public boolean isForge() {
+        return forge;
+    }
+
     /**
-     * Why the loaded reagents can't be applied to the loaded tool, or {@code null} when there is
-     * nothing to say. Read by the screen for the info panel: modifier recipes are a synced datapack
-     * registry, so the client resolves the same answer the server did and no extra payload is needed.
-     * The server stays authoritative regardless -- it simply produces no output.
+     * Why the loaded slots produce nothing, or {@code null} when there is nothing to say. Read by
+     * the screen for the info panel: both answers below are resolved from synced data (the modifier
+     * recipes are a datapack registry, the large-tool classification an item tag), so the client
+     * reaches the same conclusion the server did and no extra payload is needed. The server stays
+     * authoritative regardless -- it simply produces no output.
+     *
+     * <p>The large-tool refusal comes first because it is the harder stop: a large tool cannot be
+     * built here at all, whereas a modifier rejection is about the particular reagents loaded.
      */
     @Nullable
-    public Component modifierRejection() {
+    public Component rejection() {
         ItemStack tool = slots.get(HEAD_SLOT).getItem();
+        if (!forge && ToolAssemblyRecipes.isLargeToolHead(tool)) {
+            return Component.translatable("gui.forgeweave.tool_station.needs_forge");
+        }
         Component embossing = Embossing.resolve(registries, tool, freeSlotContents())
                 .map(Embossing.Outcome::rejection)
                 .orElse(null);
@@ -386,7 +409,7 @@ public class ToolStationMenu extends StationMenu {
     }
 
     private Optional<ToolAssemblyRecipes.Result> resolve() {
-        return ToolAssemblyRecipes.resolve(registries, slots.get(HEAD_SLOT).getItem(), freeSlotContents());
+        return ToolAssemblyRecipes.resolve(registries, slots.get(HEAD_SLOT).getItem(), freeSlotContents(), forge);
     }
 
     @Override
@@ -428,7 +451,10 @@ public class ToolStationMenu extends StationMenu {
 
     @Override
     public boolean stillValid(Player player) {
-        return stillValid(access, player, ForgeweaveBlocks.TOOL_STATION.get());
+        // The flag came from the block entity at exactly this position, so naming one block is enough
+        // -- there is no state in which a forge menu is open over a station block or vice versa.
+        return stillValid(access, player,
+                forge ? ForgeweaveBlocks.TOOL_FORGE.get() : ForgeweaveBlocks.TOOL_STATION.get());
     }
 
     @Override

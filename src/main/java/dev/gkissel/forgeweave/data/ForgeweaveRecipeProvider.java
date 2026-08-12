@@ -1,6 +1,7 @@
 package dev.gkissel.forgeweave.data;
 
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
 import javax.annotation.Nullable;
@@ -75,6 +76,8 @@ public class ForgeweaveRecipeProvider extends RecipeProvider {
         // resolved that shared shape to whichever it happened to index first and the Stencil Table
         // became uncraftable (issue #68 fix 7). Upstream's own ingredients keep all four distinct.
         retexturedTableRecipe(recipeOutput, ForgeweaveItems.TOOL_STATION.get(), ForgeweaveItems.PATTERN_BLANK.get(), Ingredient.of(Blocks.CRAFTING_TABLE));
+
+        toolForgeRecipe(recipeOutput);
 
         // Crafting Station (docs/SCOPE.md M1 issue #40): upstream's crafting_station.json is a bare
         // shapeless "any workbench", with no pattern and -- unlike part_builder.json and
@@ -344,6 +347,42 @@ public class ForgeweaveRecipeProvider extends RecipeProvider {
      * {@code ShapedRecipeBuilder} shape it replaces) whose result also carries whichever ingredient
      * was a {@code BlockItem} as a {@code TEXTURE} component (see {@link RetexturedShapedRecipe}).
      */
+    /**
+     * The Tool Forge (docs/SCOPE.md M3 issue #152). Upstream 1.12 registers one recipe per metal
+     * ore-dict entry ({@code TinkerTools#registerToolForgeRecipe}), all of them the same shape:
+     *
+     * <pre>
+     *   BBB     B = seared brick block
+     *   MTM     M = the metal storage block, which also becomes the forge's texture
+     *   M M     T = a Tool Station
+     * </pre>
+     *
+     * <p>One recipe covers every metal here instead of nineteen, because {@code M} is a tag -- see
+     * {@link ForgeweaveItemTagsProvider#TOOL_FORGE_BLOCKS}, which lists the same metals upstream's
+     * ore-dict calls do. {@code texture_source} points the {@link RetexturedShapedRecipe} at that
+     * tag: the first block in the grid is a seared brick, and the appearance a player expects is the
+     * metal they built it from.
+     */
+    private void toolForgeRecipe(RecipeOutput recipeOutput) {
+        ResourceLocation id = BuiltInRegistries.ITEM.getKey(ForgeweaveItems.TOOL_FORGE.get());
+        Ingredient metal = Ingredient.of(ForgeweaveItemTagsProvider.TOOL_FORGE_BLOCKS);
+        ShapedRecipePattern pattern = ShapedRecipePattern.of(
+                Map.of('B', Ingredient.of(ForgeweaveBlocks.SEARED_BRICKS.get()),
+                        'M', metal,
+                        'T', Ingredient.of(ForgeweaveItems.TOOL_STATION.get())),
+                "BBB", "MTM", "M M");
+        RetexturedShapedRecipe recipe = new RetexturedShapedRecipe("", CraftingBookCategory.MISC, pattern,
+                new ItemStack(ForgeweaveItems.TOOL_FORGE.get()), Optional.of(metal));
+
+        AdvancementHolder advancement = recipeOutput.advancement()
+                .addCriterion("has_the_recipe", RecipeUnlockedTrigger.unlocked(id))
+                .addCriterion("has_tool_station", has(ForgeweaveItems.TOOL_STATION.get()))
+                .rewards(AdvancementRewards.Builder.recipe(id))
+                .requirements(AdvancementRequirements.Strategy.OR)
+                .build(id.withPrefix("recipes/misc/"));
+        recipeOutput.accept(id, recipe, advancement);
+    }
+
     private void retexturedTableRecipe(RecipeOutput recipeOutput, ItemLike result, ItemLike patternItem, Ingredient ingredient) {
         ResourceLocation id = BuiltInRegistries.ITEM.getKey(result.asItem());
         ShapedRecipePattern pattern = ShapedRecipePattern.of(

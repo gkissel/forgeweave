@@ -121,7 +121,7 @@ public class EmbossingGameTests {
 
         helper.assertTrue(menu.getSlot(ToolStationMenu.OUTPUT_SLOT).getItem().isEmpty(),
                 "a second embossment must produce no output");
-        helper.assertTrue(menu.modifierRejection() != null,
+        helper.assertTrue(menu.rejection() != null,
                 "a refused second embossment must tell the player why");
         helper.succeed();
     }

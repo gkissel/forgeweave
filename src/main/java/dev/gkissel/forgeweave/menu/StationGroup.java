@@ -74,14 +74,20 @@ public record StationGroup(List<BlockPos> members, int selected) {
     /**
      * Every station block, in upstream's descending-gui-number tab order. The index into this list
      * is both the dedup key (upstream's {@code getGuiNumber}) and the sort key.
+     *
+     * <p>An entry is a <em>list</em> of blocks because upstream's key is a gui number, not a block,
+     * and {@code BlockToolForge#getGuiNumber} returns 25 -- "same as toolstation", its own comment
+     * says. So a workshop holding both a Tool Station and a Tool Forge shows one tab between them,
+     * exactly as it does in 1.12, and clicking it opens whichever the search reached first (issue
+     * #152).
      */
-    private static final List<Supplier<? extends Block>> KINDS = List.<Supplier<? extends Block>>of(
-            ForgeweaveBlocks.CRAFTING_STATION,
-            ForgeweaveBlocks.TOOL_STATION,
-            ForgeweaveBlocks.PART_BUILDER,
-            ForgeweaveBlocks.PART_CHEST,
-            ForgeweaveBlocks.PATTERN_CHEST,
-            ForgeweaveBlocks.STENCIL_TABLE);
+    private static final List<List<Supplier<? extends Block>>> KINDS = List.of(
+            List.of(ForgeweaveBlocks.CRAFTING_STATION),
+            List.of(ForgeweaveBlocks.TOOL_STATION, ForgeweaveBlocks.TOOL_FORGE),
+            List.of(ForgeweaveBlocks.PART_BUILDER),
+            List.of(ForgeweaveBlocks.PART_CHEST),
+            List.of(ForgeweaveBlocks.PATTERN_CHEST),
+            List.of(ForgeweaveBlocks.STENCIL_TABLE));
 
     /** Upstream's {@code hasCraftingStation} key: the Crafting Station is {@link #KINDS}' first entry. */
     private static final int CRAFTING_STATION = 0;
@@ -150,8 +156,10 @@ public record StationGroup(List<BlockPos> members, int selected) {
     /** Whether {@code state} is a station block, and if so which kind (its index into {@link #KINDS}). */
     public static int kindOf(BlockState state) {
         for (int i = 0; i < KINDS.size(); i++) {
-            if (state.is(KINDS.get(i).get())) {
-                return i;
+            for (Supplier<? extends Block> block : KINDS.get(i)) {
+                if (state.is(block.get())) {
+                    return i;
+                }
             }
         }
         return -1;

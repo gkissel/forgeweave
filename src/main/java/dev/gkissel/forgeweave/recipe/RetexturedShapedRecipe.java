@@ -1,5 +1,7 @@
 package dev.gkissel.forgeweave.recipe;
 
+import java.util.Optional;
+
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
@@ -13,6 +15,7 @@ import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.CraftingBookCategory;
 import net.minecraft.world.item.crafting.CraftingInput;
+import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.item.crafting.ShapedRecipe;
 import net.minecraft.world.item.crafting.ShapedRecipePattern;
@@ -47,7 +50,8 @@ public class RetexturedShapedRecipe extends ShapedRecipe {
             Codec.STRING.optionalFieldOf("group", "").forGetter(RetexturedShapedRecipe::getGroup),
             CraftingBookCategory.CODEC.fieldOf("category").orElse(CraftingBookCategory.MISC).forGetter(RetexturedShapedRecipe::category),
             ShapedRecipePattern.MAP_CODEC.forGetter(recipe -> recipe.pattern),
-            ItemStack.STRICT_CODEC.fieldOf("result").forGetter(RetexturedShapedRecipe::result))
+            ItemStack.STRICT_CODEC.fieldOf("result").forGetter(RetexturedShapedRecipe::result),
+            Ingredient.CODEC.optionalFieldOf("texture_source").forGetter(RetexturedShapedRecipe::textureSource))
             .apply(instance, RetexturedShapedRecipe::new));
 
     public static final StreamCodec<RegistryFriendlyByteBuf, RetexturedShapedRecipe> STREAM_CODEC = StreamCodec.composite(
@@ -55,17 +59,36 @@ public class RetexturedShapedRecipe extends ShapedRecipe {
             CraftingBookCategory.STREAM_CODEC, RetexturedShapedRecipe::category,
             ShapedRecipePattern.STREAM_CODEC, recipe -> recipe.pattern,
             ItemStack.STREAM_CODEC, RetexturedShapedRecipe::result,
+            ByteBufCodecs.optional(Ingredient.CONTENTS_STREAM_CODEC), RetexturedShapedRecipe::textureSource,
             RetexturedShapedRecipe::new);
 
     private final ItemStack result;
+    /**
+     * Which ingredient decides the crafted block's appearance, when "the first block in the grid"
+     * isn't it (issue #152). Every M1 table recipe is a pattern over one block, so the default scan
+     * is unambiguous there; the Tool Forge's is upstream's {@code BBB / MTM / M M} -- seared bricks,
+     * a Tool Station and the metal block that names the forge -- where the first block reached is a
+     * seared brick and the one the player wants to see is the metal.
+     */
+    private final Optional<Ingredient> textureSource;
 
     public RetexturedShapedRecipe(String group, CraftingBookCategory category, ShapedRecipePattern pattern, ItemStack result) {
+        this(group, category, pattern, result, Optional.empty());
+    }
+
+    public RetexturedShapedRecipe(String group, CraftingBookCategory category, ShapedRecipePattern pattern,
+            ItemStack result, Optional<Ingredient> textureSource) {
         super(group, category, pattern, result);
         this.result = result;
+        this.textureSource = textureSource;
     }
 
     private ItemStack result() {
         return result;
+    }
+
+    private Optional<Ingredient> textureSource() {
+        return textureSource;
     }
 
     @Override
@@ -78,10 +101,14 @@ public class RetexturedShapedRecipe extends ShapedRecipe {
         ItemStack crafted = result.copy();
         for (int i = 0; i < input.size(); i++) {
             ItemStack ingredient = input.getItem(i);
-            if (!ingredient.isEmpty() && ingredient.getItem() instanceof BlockItem blockItem) {
-                crafted.set(ForgeweaveDataComponents.TEXTURE.get(), BuiltInRegistries.BLOCK.getKey(blockItem.getBlock()));
-                break;
+            if (ingredient.isEmpty() || !(ingredient.getItem() instanceof BlockItem blockItem)) {
+                continue;
             }
+            if (textureSource.isPresent() && !textureSource.get().test(ingredient)) {
+                continue;
+            }
+            crafted.set(ForgeweaveDataComponents.TEXTURE.get(), BuiltInRegistries.BLOCK.getKey(blockItem.getBlock()));
+            break;
         }
         return crafted;
     }

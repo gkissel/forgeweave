@@ -34,6 +34,7 @@ Toda textura que o jogo renderiza é um PNG real em `src/main/resources/assets/f
 | `grout.png` | Bloco de grout. |
 | `molten_metal.png` (16×320), `molten_metal_flow.png` (32×512) | **T, M** — único par still/flow em tons de cinza compartilhado pelos 9 fluidos fundidos, tingido por fluido no código. Faixas animadas com `.mcmeta`. |
 | `part_builder_top/side`, `tool_station_top`, `crafting_station_top/side`, `stencil_table_top`, `pattern_chest_front/side/top`, `part_chest_front/side/top` | Blocos das estações do M1. |
+| `tool_forge_top` | Tampo da Forja de Ferramentas (M3, issue #152); usado também na borda da mesa. |
 
 ## GUI — `derived/gui/`
 

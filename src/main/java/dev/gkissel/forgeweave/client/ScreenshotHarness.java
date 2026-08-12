@@ -53,6 +53,7 @@ import dev.gkissel.forgeweave.block.SearedTankBlockEntity;
 import dev.gkissel.forgeweave.block.SmelteryControllerBlock;
 import dev.gkissel.forgeweave.block.SmelteryControllerBlockEntity;
 import dev.gkissel.forgeweave.block.StationMenuHost;
+import dev.gkissel.forgeweave.block.ToolStationBlockEntity;
 import dev.gkissel.forgeweave.fluid.ForgeweaveFluids;
 
 /**
@@ -66,9 +67,10 @@ import dev.gkissel.forgeweave.fluid.ForgeweaveFluids;
  * {@code scripts/screenshots.sh} and docs/releasing.md's release-checklist step -- it is a tool a
  * reviewer runs by hand before a release.
  *
- * <p>Before the GUI screens, it also captures one plain world-view PNG with no menu open --
- * {@code seared_tank_world.png}, a seared tank/gauge/window row at three different fill levels, the
- * release-checklist artifact for in-world block entity rendering (issue #145) the same way
+ * <p>Before the GUI screens, it also captures plain world-view PNGs with no menu open --
+ * {@code seared_tank_world.png}, a seared tank/gauge/window row at three different fill levels
+ * (issue #145), and {@code tool_forge_world.png}, a Tool Forge beside a Tool Station (issue #152).
+ * Those are the release-checklist artifacts for in-world block rendering the same way
  * {@link #SCREENS} is for GUIs.
  *
  * <h2>Why this is inert by default</h2>
@@ -118,11 +120,19 @@ public final class ScreenshotHarness {
      * a shorter/taller fill than they actually are. Backing off flattens that angle.
      */
     private static final int TANK_SCENE_CAMERA_PULLBACK = 6;
+    /** The #152 table row's own distance/spacing/pullback; tables are floor-standing, so no +Y. */
+    private static final int TABLE_SCENE_DISTANCE = 4;
+    private static final int TABLE_SCENE_SPACING = 2;
+    private static final int TABLE_SCENE_CAMERA_PULLBACK = 2;
 
     /** One entry per station screen; see "Extending for M2" above. */
     private static final List<HarnessScreen> SCREENS = List.of(
             new HarnessScreen("part_builder", ForgeweaveBlocks.PART_BUILDER),
             new HarnessScreen("tool_station", ForgeweaveBlocks.TOOL_STATION),
+            // #152: the same screen class in its metal style. Captured next to tool_station.png on
+            // purpose -- the two PNGs side by side are how a reviewer checks that only the styling
+            // differs and the layout is still upstream's.
+            new HarnessScreen("tool_forge", ForgeweaveBlocks.TOOL_FORGE),
             new HarnessScreen("crafting_station", ForgeweaveBlocks.CRAFTING_STATION),
             new HarnessScreen("stencil_table", ForgeweaveBlocks.STENCIL_TABLE),
             // #101: the smeltery is a multiblock, so unlike every M1 station it needs a structure
@@ -134,7 +144,8 @@ public final class ScreenshotHarness {
             new HarnessScreen("smeltery_empty", ForgeweaveBlocks.STANDARD_CORE, ScreenshotHarness::buildEmptySmeltery));
 
     private enum Stage {
-        AWAIT_TITLE, AWAIT_WORLD, SETTLE_WORLD, PLACE_TANK_SCENE, SETTLE_TANK_SCENE, OPEN_SCREEN, SETTLE_SCREEN, DONE
+        AWAIT_TITLE, AWAIT_WORLD, SETTLE_WORLD, PLACE_TANK_SCENE, SETTLE_TANK_SCENE,
+        PLACE_TABLE_SCENE, SETTLE_TABLE_SCENE, OPEN_SCREEN, SETTLE_SCREEN, DONE
     }
 
     private static Stage stage = Stage.AWAIT_TITLE;
@@ -143,6 +154,8 @@ public final class ScreenshotHarness {
     private static BlockPos origin;
     /** Set by {@link #placeTankScene}, checked by {@link #settleTankScene} before capture. */
     private static BlockPos[] tankScenePositions;
+    /** Set by {@link #placeTableScene}, checked by {@link #settleTableScene} before capture (#152). */
+    private static BlockPos[] tableScenePositions;
 
     private ScreenshotHarness() {}
 
@@ -159,6 +172,8 @@ public final class ScreenshotHarness {
             case SETTLE_WORLD -> settleWorld();
             case PLACE_TANK_SCENE -> placeTankScene(mc);
             case SETTLE_TANK_SCENE -> settleTankScene(mc);
+            case PLACE_TABLE_SCENE -> placeTableScene(mc);
+            case SETTLE_TABLE_SCENE -> settleTableScene(mc);
             case OPEN_SCREEN -> openScreen(mc);
             case SETTLE_SCREEN -> settleScreen(mc);
             case DONE -> {}
@@ -305,6 +320,73 @@ public final class ScreenshotHarness {
         }
         verifyTankScenePlaced(mc);
         capture(mc, "seared_tank_world");
+        advance(Stage.PLACE_TABLE_SCENE);
+    }
+
+    /**
+     * Issue #152's in-world scene: a Tool Forge beside a Tool Station, a couple of blocks in front of
+     * the player, captured with no GUI open as {@code tool_forge_world.png}.
+     *
+     * <p>Both blocks in one frame for the same reason the {@link #placeTankScene} row holds three
+     * fill levels: a lone forge proves only that <em>something</em> renders. The pair proves the
+     * forge wears its own top art and its iron legs and underside, against a table whose geometry is
+     * known-good -- the two share a model, so a geometry regression would show on both and a texture
+     * regression on only one.
+     *
+     * <p>Deliberately <em>not</em> a third, retextured forge: a table whose texture is set in the
+     * same tick the block is placed renders its default wood/metal in a first capture and the right
+     * one in a second, because the client applies the block-entity payload after the chunk section
+     * has already baked its {@code ModelData} and nothing schedules a rebuild (issue #79's
+     * {@code getUpdateTag} fix covers the chunk-load path, not this one). That race predates #152 and
+     * belongs to every retextured table, so this scene stays on the deterministic default appearance
+     * rather than shipping an artifact that is wrong every time it is captured fresh.
+     */
+    private static void placeTableScene(Minecraft mc) {
+        var server = mc.getSingleplayerServer();
+        LOGGER.info("{}placing Tool Forge / Tool Station world scene near {}", LOG_PREFIX, origin);
+        server.execute(() -> {
+            ServerPlayer serverPlayer = server.getPlayerList().getPlayers().get(0);
+            ServerLevel level = serverPlayer.serverLevel();
+            BlockPos feet = serverPlayer.blockPosition();
+            BlockPos stationPos = feet.offset(0, 0, TABLE_SCENE_DISTANCE);
+            BlockPos forgePos = stationPos.offset(TABLE_SCENE_SPACING, 0, 0);
+            tableScenePositions = new BlockPos[] {stationPos, forgePos};
+
+            level.setBlockAndUpdate(stationPos, ForgeweaveBlocks.TOOL_STATION.get().defaultBlockState());
+            level.setBlockAndUpdate(forgePos, ForgeweaveBlocks.TOOL_FORGE.get().defaultBlockState());
+            LOGGER.info("{}placed station={} forge={}", LOG_PREFIX, stationPos, forgePos);
+
+            // Between the two, so neither is seen edge-on, and far enough back that both fit.
+            BlockPos cameraPos = stationPos.offset(TABLE_SCENE_SPACING / 2, 0,
+                    -(TABLE_SCENE_DISTANCE + TABLE_SCENE_CAMERA_PULLBACK));
+            serverPlayer.teleportTo(cameraPos.getX() + 0.5, cameraPos.getY(), cameraPos.getZ() + 0.5);
+            serverPlayer.lookAt(EntityAnchorArgument.Anchor.EYES,
+                    new Vec3(forgePos.getX(), forgePos.getY() + 0.5, forgePos.getZ() + 0.5));
+        });
+        advance(Stage.SETTLE_TABLE_SCENE);
+    }
+
+    private static void settleTableScene(Minecraft mc) {
+        if (stageTicks < SCREEN_SETTLE_TICKS) {
+            return;
+        }
+        // Same self-diagnosing check the tank scene does: "placed but invisible" and "never placed"
+        // look identical in a PNG and need very different fixes.
+        if (mc.level != null && tableScenePositions != null) {
+            for (BlockPos pos : tableScenePositions) {
+                var block = mc.level.getBlockState(pos).getBlock();
+                if (block == Blocks.AIR) {
+                    LOGGER.error("{}#152 scene check FAILED: client sees air at {}", LOG_PREFIX, pos);
+                } else if (mc.level.getBlockEntity(pos) instanceof ToolStationBlockEntity table) {
+                    LOGGER.info("{}#152 scene check: client sees {} at {}, texture {}, forge={}",
+                            LOG_PREFIX, block, pos, table.getTexture(), table.isForge());
+                } else {
+                    LOGGER.error("{}#152 scene check FAILED: client sees {} at {} but no table block entity",
+                            LOG_PREFIX, block, pos);
+                }
+            }
+        }
+        capture(mc, "tool_forge_world");
         advance(Stage.OPEN_SCREEN);
     }
 

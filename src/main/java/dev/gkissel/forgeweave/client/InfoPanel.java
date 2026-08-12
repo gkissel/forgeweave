@@ -38,24 +38,27 @@ public final class InfoPanel {
     public static final int HEIGHT = CONTENT_HEIGHT + BORDER * 2;
 
     /**
-     * Which of {@code panel.png}'s frames to draw. Upstream ships three side by side on one sheet
-     * and each station picks one: only {@code GuiToolStation} calls {@code wood()}, while {@code
+     * Which of {@code panel.png}'s frames to draw. Upstream ships three on one sheet and each
+     * station picks one: only {@code GuiToolStation} calls {@code wood()}, while {@code
      * GuiPartBuilder} leaves its panel on the default dark frame. Issue #79: this class hardcoded
-     * the wood frame, so the Part Builder wore the Tool Station's skin. ({@code metal()} exists
-     * upstream too; nothing here uses it, so it isn't listed.)
+     * the wood frame, so the Part Builder wore the Tool Station's skin. Issue #152 adds the third,
+     * for the Tool Forge -- upstream's {@code GuiInfoPanel#metal()} is
+     * {@code shift(resW + 8, resH + 8)}, i.e. the wood frame's column, one frame down.
      */
     public enum Style {
-        DEFAULT(0),
-        WOOD(CONTENT_WIDTH + 8);
+        DEFAULT(0, 0),
+        WOOD(CONTENT_WIDTH + 8, 0),
+        METAL(CONTENT_WIDTH + 8, CONTENT_HEIGHT + 8);
 
         private final int u;
+        private final int v;
 
-        Style(int u) {
+        Style(int u, int v) {
             this.u = u;
+            this.v = v;
         }
     }
 
-    private static final int V = 0;
     private static final int SHEET = 256;
 
     /** Upstream's text inset and colour ({@code GuiInfoPanel#drawGuiContainerForegroundLayer}). */
@@ -150,20 +153,21 @@ public final class InfoPanel {
 
     private static void renderFrame(GuiGraphics graphics, int x, int y, int width, int height, Style style) {
         int u = style.u;
+        int v = style.v;
         int innerW = width - BORDER * 2;
         int innerH = height - BORDER * 2;
         int right = x + width - BORDER;
         int bottom = y + height - BORDER;
         int sheetRight = u + CONTENT_WIDTH + BORDER;
-        int sheetBottom = V + CONTENT_HEIGHT + BORDER;
+        int sheetBottom = v + CONTENT_HEIGHT + BORDER;
 
-        blit(graphics, x, y, BORDER, BORDER, u, V, BORDER, BORDER);
-        blit(graphics, x + BORDER, y, innerW, BORDER, u + BORDER, V, CONTENT_WIDTH, BORDER);
-        blit(graphics, right, y, BORDER, BORDER, sheetRight, V, BORDER, BORDER);
+        blit(graphics, x, y, BORDER, BORDER, u, v, BORDER, BORDER);
+        blit(graphics, x + BORDER, y, innerW, BORDER, u + BORDER, v, CONTENT_WIDTH, BORDER);
+        blit(graphics, right, y, BORDER, BORDER, sheetRight, v, BORDER, BORDER);
 
-        tileY(graphics, x, y + BORDER, innerH, u, V + BORDER);
-        blit(graphics, x + BORDER, y + BORDER, innerW, innerH, u + BORDER, V + BORDER, CONTENT_WIDTH, CONTENT_HEIGHT);
-        tileY(graphics, right, y + BORDER, innerH, sheetRight, V + BORDER);
+        tileY(graphics, x, y + BORDER, innerH, u, v + BORDER);
+        blit(graphics, x + BORDER, y + BORDER, innerW, innerH, u + BORDER, v + BORDER, CONTENT_WIDTH, CONTENT_HEIGHT);
+        tileY(graphics, right, y + BORDER, innerH, sheetRight, v + BORDER);
 
         blit(graphics, x, bottom, BORDER, BORDER, u, sheetBottom, BORDER, BORDER);
         blit(graphics, x + BORDER, bottom, innerW, BORDER, u + BORDER, sheetBottom, CONTENT_WIDTH, BORDER);

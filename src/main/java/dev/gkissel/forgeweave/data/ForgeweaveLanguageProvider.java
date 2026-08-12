@@ -25,6 +25,7 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
 
         addBlock(ForgeweaveBlocks.PART_BUILDER, "Part Builder");
         addBlock(ForgeweaveBlocks.TOOL_STATION, "Tool Station");
+        addBlock(ForgeweaveBlocks.TOOL_FORGE, "Tool Forge");
         addBlock(ForgeweaveBlocks.CRAFTING_STATION, "Crafting Station");
         addBlock(ForgeweaveBlocks.STENCIL_TABLE, "Stencil Table");
         addBlock(ForgeweaveBlocks.PATTERN_CHEST, "Pattern Chest");
@@ -180,6 +181,8 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("gui.forgeweave.tool_station.traits", "Traits");
         add("gui.forgeweave.tool_station.no_traits", "None");
         add("gui.forgeweave.tool_station.modifiers", "Modifiers");
+        // #152: why a large tool refuses to assemble at a Tool Station.
+        add("gui.forgeweave.tool_station.needs_forge", "This tool is too large to assemble here. Build it at a Tool Forge.");
         add("gui.forgeweave.tool_station.modifier_slots", "Free slots: %s");
 
         // Why an attempted modifier application was refused (issue #105), shown in the Tool Station's

@@ -1,0 +1,27 @@
+{
+  "type": "forgeweave:retextured_shaped",
+  "category": "misc",
+  "key": {
+    "B": {
+      "item": "forgeweave:seared_bricks"
+    },
+    "M": {
+      "tag": "forgeweave:tool_forge_blocks"
+    },
+    "T": {
+      "item": "forgeweave:tool_station"
+    }
+  },
+  "pattern": [
+    "BBB",
+    "MTM",
+    "M M"
+  ],
+  "result": {
+    "count": 1,
+    "id": "forgeweave:tool_forge"
+  },
+  "texture_source": {
+    "tag": "forgeweave:tool_forge_blocks"
+  }
+}

@@ -34,6 +34,7 @@ Every texture the game renders is a real PNG under `src/main/resources/assets/fo
 | `grout.png` | Grout block. |
 | `molten_metal.png` (16×320), `molten_metal_flow.png` (32×512) | **T, M** — single greyscale still/flow pair shared by all 9 molten fluids, tinted per fluid in code. Animated strips with `.mcmeta`. |
 | `part_builder_top/side`, `tool_station_top`, `crafting_station_top/side`, `stencil_table_top`, `pattern_chest_front/side/top`, `part_chest_front/side/top` | M1 station blocks. |
+| `tool_forge_top` | Tool Forge tabletop (M3 issue #152); also used on the table rim. |
 
 ## GUI — `derived/gui/`
 

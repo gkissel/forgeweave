@@ -32,7 +32,21 @@ final class ToolAssembly {
      * ({@code ToolAssemblyRecipes} maps pickaxe/shovel/axe head to pickaxe/shovel/hatchet).
      */
     static ItemStack tool(GameTestHelper helper, Player player, BlockPos pos, Item headPart, String headMaterial, String bindingMaterial, String handleMaterial) {
-        helper.setBlock(pos, ForgeweaveBlocks.TOOL_STATION.get());
+        return toolAt(helper, player, pos, ForgeweaveBlocks.TOOL_STATION.get(), headPart, headMaterial, bindingMaterial, handleMaterial);
+    }
+
+    /**
+     * As {@link #tool}, but assembled at a Tool Forge. For tests whose tool is caught by issue
+     * #152's large-tool gate fixture (the GameTest datapack marks the hatchet as a synthetic large
+     * tool, which the Tool Station rightly refuses); the Forge assembles everything. Repair-math
+     * tests must NOT use this -- the Forge's 5% repair discount would shift their expectations.
+     */
+    static ItemStack toolAtForge(GameTestHelper helper, Player player, BlockPos pos, Item headPart, String headMaterial, String bindingMaterial, String handleMaterial) {
+        return toolAt(helper, player, pos, ForgeweaveBlocks.TOOL_FORGE.get(), headPart, headMaterial, bindingMaterial, handleMaterial);
+    }
+
+    private static ItemStack toolAt(GameTestHelper helper, Player player, BlockPos pos, net.minecraft.world.level.block.Block station, Item headPart, String headMaterial, String bindingMaterial, String handleMaterial) {
+        helper.setBlock(pos, station);
         ToolStationBlockEntity blockEntity = helper.getBlockEntity(pos);
         blockEntity.container().setItem(0, part(headPart, headMaterial));
         blockEntity.container().setItem(1, part(ForgeweaveItems.PART_TOOL_BINDING.get(), bindingMaterial));
@@ -45,9 +59,11 @@ final class ToolAssembly {
         return tool;
     }
 
+    /** The menu the block at {@code pos} would open -- Tool Station or Tool Forge, per the block entity. */
     static ToolStationMenu menu(GameTestHelper helper, Player player, BlockPos pos, ToolStationBlockEntity blockEntity) {
         return new ToolStationMenu(0, player.getInventory(), blockEntity.container(),
-                ContainerLevelAccess.create(helper.getLevel(), helper.absolutePos(pos)), blockEntity.findSideInventory());
+                ContainerLevelAccess.create(helper.getLevel(), helper.absolutePos(pos)),
+                blockEntity.findSideInventory(), blockEntity.isForge());
     }
 
     static ItemStack part(Item item, String material) {
