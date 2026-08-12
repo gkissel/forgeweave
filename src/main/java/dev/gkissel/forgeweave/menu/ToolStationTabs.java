@@ -27,6 +27,7 @@ import dev.gkissel.forgeweave.item.ToolItem;
  *   battlesign  handle (33-6,  42+18)   sign  (33-6,  42-8)
  *   frying pan  handle (33-21, 42+20)   pan   (33+1,  42-6)
  *   dagger      blade  (33+14, 42-14)   handle (33-14, 42+14)
+ *   warmace     handle (33-18, 42+18)   head  (33+20, 42-20)      binding (33, 42)
  *   repair      tool (33, 42)           item (33-18, 42+20)       item (33-22, 42-5)
  *                                       item (33, 42-23)          item (33+22, 42-5)
  * </pre>
@@ -34,7 +35,10 @@ import dev.gkissel.forgeweave.item.ToolItem;
  * <p>The five 1.12 weapons' rows are upstream's own numbers with its per-tool nudges folded in
  * (e.g. its broadsword handle is {@code 33-20-1, 42+20}). The dagger has no upstream row -- it is a
  * shape from the modern branch (docs/SCOPE.md M3) -- so its two positions are Forgeweave's,
- * mirroring the sword layout's blade-up/handle-down diagonal at the shorter reach the art has.
+ * mirroring the sword layout's blade-up/handle-down diagonal at the shorter reach the art has. The
+ * warmace (issue #161) has no upstream row either and reuses the pickaxe's three positions --
+ * head up-right, binding at the origin, handle down-left -- which is how its own art is laid out;
+ * its slot order is its own part list's (handle, head, binding), not the pickaxe's.
  *
  * <p>The repair tab's last two positions are upstream's 4th and 5th ({@code GuiButtonRepair}'s
  * static initializer lists six of them); issue #154 restored them because embossing costs four items
@@ -127,7 +131,8 @@ public final class ToolStationTabs {
             build(5, at(19, 20), at(-15, -16), at(-1, 2)),     // rapier
             build(6, at(-6, 18), at(-6, -8)),                  // battlesign: handle, sign plate
             build(7, at(-21, 20), at(1, -6)),                  // frying pan: handle, pan
-            build(8, at(14, -14), at(-14, 14)));               // dagger: blade, handle
+            build(8, at(14, -14), at(-14, 14)),                // dagger: blade, handle
+            build(9, at(-18, 18), at(20, -20), at(0, 0)));     // warmace: handle, head, binding
 
     /** The repair tab, which is what a freshly opened station shows (as upstream's does). */
     public static final int REPAIR = 0;

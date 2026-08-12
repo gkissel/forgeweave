@@ -192,7 +192,10 @@ public final class ScreenshotHarness {
      */
     private static final List<Supplier<? extends ToolItem>> WEAPONS = List.of(
             ForgeweaveItems.TOOL_BROADSWORD, ForgeweaveItems.TOOL_LONGSWORD, ForgeweaveItems.TOOL_RAPIER,
-            ForgeweaveItems.TOOL_BATTLESIGN, ForgeweaveItems.TOOL_FRYING_PAN, ForgeweaveItems.TOOL_DAGGER);
+            ForgeweaveItems.TOOL_BATTLESIGN, ForgeweaveItems.TOOL_FRYING_PAN, ForgeweaveItems.TOOL_DAGGER,
+            // #161: the warmace poses the same way -- it is a held weapon like the six above, and
+            // assembleForDisplay builds it through the same station call, Tool Forge tier or not.
+            ForgeweaveItems.TOOL_WARMACE);
 
     /** How far in -Z of spawn the weapon poses stand, clear of the block scenes above. */
     private static final int WEAPON_SCENE_DISTANCE = 6;

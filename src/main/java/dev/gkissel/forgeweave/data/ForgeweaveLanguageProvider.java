@@ -125,6 +125,7 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         addItem(ForgeweaveItems.PATTERN_KAMA_HEAD, "Kama Head Pattern");
         addItem(ForgeweaveItems.PATTERN_BROAD_AXE_HEAD, "Broad Axe Head Pattern");
         addItem(ForgeweaveItems.PATTERN_VEIN_HAMMER_HEAD, "Vein Hammer Head Pattern");
+        addItem(ForgeweaveItems.PATTERN_WAR_MACE_HEAD, "War Mace Head Pattern");
 
         addItem(ForgeweaveItems.PART_SWORD_BLADE, "Sword Blade");
         addItem(ForgeweaveItems.PART_WIDE_GUARD, "Wide Guard");
@@ -143,10 +144,13 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         addItem(ForgeweaveItems.PART_KAMA_HEAD, "Kama Head");
         addItem(ForgeweaveItems.PART_BROAD_AXE_HEAD, "Broad Axe Head");
         addItem(ForgeweaveItems.PART_VEIN_HAMMER_HEAD, "Vein Hammer Head");
+        // #161's own wording; the warmace has no clone counterpart to port a name from.
+        addItem(ForgeweaveItems.PART_WAR_MACE_HEAD, "War Mace Head");
 
         addItem(ForgeweaveItems.TOOL_PICKAXE, "Pickaxe");
         addItem(ForgeweaveItems.TOOL_SHOVEL, "Shovel");
         addItem(ForgeweaveItems.TOOL_HATCHET, "Hatchet");
+        addItem(ForgeweaveItems.TOOL_WARMACE, "Warmace");
 
         // M3 Tool Station weapons (docs/SCOPE.md M3 issue #155). Names follow upstream 1.12's own
         // item.*.name entries for the five it ships; the dagger is Forgeweave's, from the modern
@@ -211,6 +215,12 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("item.forgeweave.pickaxe.description", "A basic mining tool. Digs stone, ores and anything else a pickaxe is meant for.");
         add("item.forgeweave.shovel.description", "Moves dirt, sand and gravel faster than your hands ever will.");
         add("item.forgeweave.hatchet.description", "Fells trees, and doubles as a weapon in a pinch.");
+        // #161: no upstream line to follow. Describes the smash in the terms a player meets it in --
+        // the numbers themselves are vanilla's mace's, so the wording deliberately quotes none.
+        add("item.forgeweave.warmace.description",
+                "A heavy flanged mace, forged at the Tool Forge. Strike while falling and the blow lands "
+                        + "harder the further you fell, shoves everything nearby away, and leaves you unhurt "
+                        + "by the landing.");
 
         // The stations' information panels (issue #47).
         add("gui.forgeweave.tool_station.name", "Tool name");

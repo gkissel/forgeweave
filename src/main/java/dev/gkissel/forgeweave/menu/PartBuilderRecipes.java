@@ -93,7 +93,10 @@ public final class PartBuilderRecipes {
             new Entry(ForgeweaveItems.PATTERN_BROAD_AXE_HEAD, ForgeweaveItems.PART_BROAD_AXE_HEAD, LARGE_HEAD_COST),
             // No upstream cost to read (no 1.12/1.20 counterpart) -- priced like hammer_head, the
             // large-tool head part it's functionally closest to.
-            new Entry(ForgeweaveItems.PATTERN_VEIN_HAMMER_HEAD, ForgeweaveItems.PART_VEIN_HAMMER_HEAD, LARGE_HEAD_COST));
+            new Entry(ForgeweaveItems.PATTERN_VEIN_HAMMER_HEAD, ForgeweaveItems.PART_VEIN_HAMMER_HEAD, LARGE_HEAD_COST),
+            // #161: likewise no upstream cost to read -- priced like the other large-tool heads,
+            // which is the tier the warmace assembles at (ToolAssemblyRecipes#LARGE_TOOLS).
+            new Entry(ForgeweaveItems.PATTERN_WAR_MACE_HEAD, ForgeweaveItems.PART_WAR_MACE_HEAD, LARGE_HEAD_COST));
 
     /**
      * Whether the pattern slot should accept this stack at all (the five part patterns only -- not

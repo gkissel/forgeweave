@@ -174,7 +174,10 @@ public final class ToolAssemblyRecipes {
             new Entry(ToolConstants.RAPIER, ForgeweaveItems.TOOL_RAPIER),
             new Entry(ToolConstants.BATTLESIGN, ForgeweaveItems.TOOL_BATTLESIGN),
             new Entry(ToolConstants.FRYING_PAN, ForgeweaveItems.TOOL_FRYING_PAN),
-            new Entry(ToolConstants.DAGGER, ForgeweaveItems.TOOL_DAGGER));
+            new Entry(ToolConstants.DAGGER, ForgeweaveItems.TOOL_DAGGER),
+            // #161: the Tool Forge tier's warmace -- handle, head, binding, same slot order as
+            // ToolConstants#WARMACE's part list.
+            new Entry(ToolConstants.WARMACE, ForgeweaveItems.TOOL_WARMACE));
 
     /**
      * The "large tool" classification (docs/SCOPE.md M3 issue #152): tools that can only be assembled
