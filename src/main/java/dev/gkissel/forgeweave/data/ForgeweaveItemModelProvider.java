@@ -128,6 +128,12 @@ public class ForgeweaveItemModelProvider extends ItemModelProvider {
             toolModel(entry.tool(), entry.constants().id(), entry.slotCount());
         }
 
+        // The M3 station tools (issue #156) come out of that same loop; their textures are upstream
+        // tools/tools/{Mattock,Kama}.java's own (NOTICE.md), with layer0/1/2 matching each tool's
+        // .tcon.json exactly -- the mattock's "binding" layer is its back.png (the shovel side drawn
+        // behind the axe head, it has no binding part at all), and the kama's handle layer reuses the
+        // pickaxe's handle texture, upstream's own choice (kama.tcon.json has no kama/handle.png).
+
         // Modifier reagents (docs/SCOPE.md M2 issue #107), each a straight upstream texture port
         // (NOTICE.md): moss.png, mending_moss.png, reinforcement.png, silky_cloth.png, silky_jewel.png
         // and -- for the extra-slot item -- skull_char_gold.png, which is what upstream's own

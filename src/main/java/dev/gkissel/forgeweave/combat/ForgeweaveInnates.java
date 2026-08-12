@@ -154,6 +154,17 @@ public final class ForgeweaveInnates {
             new Backstab(BACKSTAB_FULL_DEGREES, BACKSTAB_CONE_DEGREES, BACKSTAB_MAX, BACKSTAB_MIN);
     public static final Innate BACKSTAB = new Innate("backstab", BACKSTAB_SEAM, null);
 
+    // ------------------------------------------------------------------ the two station tools (#156)
+
+    /**
+     * Mattock: a per-hit chance of a strong knockback. Maintainer decision 2026-08-12 -- utility
+     * tools carry a small combat rider too, so this has no 1.12 counterpart. See {@link HeftSeam}.
+     */
+    public static final Innate HEFT = new Innate("heft", HeftSeam.SEAM, null);
+
+    /** Kama: bonus damage against an already-wounded target. See {@link ReapSeam}. */
+    public static final Innate REAP = new Innate("reap", ReapSeam.SEAM, null);
+
     private static Innate parry() {
         Parry behavior = new Parry(PARRY_WINDOW_TICKS, PARRY_SLOW_AMPLIFIER, PARRY_SLOW_TICKS);
         return new Innate("parry", behavior, behavior);

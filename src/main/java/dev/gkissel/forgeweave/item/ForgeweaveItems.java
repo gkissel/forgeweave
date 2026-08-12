@@ -126,6 +126,17 @@ public final class ForgeweaveItems {
             properties -> new ToolItem(properties, BlockTags.MINEABLE_WITH_AXE, 1.1f, 1.1f, true),
             new Item.Properties().stacksTo(1));
 
+    // M3 station tools (docs/SCOPE.md issue #156): mattock (axe+shovel dual tool, tills soil) and
+    // kama (shears, right-click crop harvest). Both take their constants off ToolConstants and their
+    // combat rider off ForgeweaveInnates like every other M3 tool; the subclasses exist only for the
+    // block/entity right-click behaviors, which no innate hook covers (upstream
+    // tools/tools/Mattock.java's Category.HARVEST -> weapon=false; Kama.java's Category.HARVEST +
+    // Category.WEAPON -> weapon=true).
+    public static final DeferredItem<MattockItem> TOOL_MATTOCK = ITEMS.registerItem("mattock",
+            MattockItem::new, new Item.Properties().stacksTo(1));
+    public static final DeferredItem<KamaItem> TOOL_KAMA = ITEMS.registerItem("kama",
+            KamaItem::new, new Item.Properties().stacksTo(1));
+
     // M3 Tool Station weapons (docs/SCOPE.md M3 issue #155). Attack speed and damage potential come
     // from ToolConstants (issue #153) rather than being repeated here, so the numbers the station's
     // stat formula uses and the ones the attribute modifiers use are the same numbers. Every one of

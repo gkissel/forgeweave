@@ -1,11 +1,13 @@
 package dev.gkissel.forgeweave.menu;
 
 import java.util.List;
+import java.util.function.Supplier;
 
 import javax.annotation.Nullable;
 
 import net.minecraft.network.chat.Component;
 
+import dev.gkissel.forgeweave.item.ForgeweaveItems;
 import dev.gkissel.forgeweave.item.PartItem;
 import dev.gkissel.forgeweave.item.ToolItem;
 
@@ -116,23 +118,41 @@ public final class ToolStationTabs {
         return new Pos(ORIGIN_X + dx, ORIGIN_Y + dy);
     }
 
-    /** Index into {@link ToolAssemblyRecipes#ENTRIES}, so the two tables can never disagree. */
-    private static Tab build(int entryIndex, Pos... slots) {
-        return new Tab(ToolAssemblyRecipes.ENTRIES.get(entryIndex), List.of(slots));
+    /**
+     * The {@link ToolAssemblyRecipes#ENTRIES} row that builds {@code tool}, so the two tables can
+     * never disagree. Looked up by the tool itself rather than by position in that list: a tab row
+     * that named a position would silently point at a different tool the moment a new entry landed
+     * ahead of it, and a wrong-but-valid index is exactly the kind of drift no conflict marker
+     * catches. An unknown tool throws at class-init instead.
+     */
+    private static Tab build(Supplier<? extends ToolItem> tool, Pos... slots) {
+        return new Tab(ToolAssemblyRecipes.ENTRIES.stream()
+                .filter(entry -> entry.tool() == tool)
+                .findFirst()
+                .orElseThrow(() -> new IllegalStateException(tool + " has no ToolAssemblyRecipes entry")),
+                List.of(slots));
     }
 
     public static final List<Tab> TABS = List.of(
             new Tab(null, List.of(at(0, 0), at(-18, 20), at(-22, -5), at(0, -23), at(22, -5))),
-            build(0, at(20, -20), at(0, 0), at(-18, 18)),      // pickaxe: head, binding, handle
-            build(1, at(18, -18), at(-20, 20), at(0, 0)),      // shovel
-            build(2, at(-2, -20), at(18, -8), at(-11, 11)),    // hatchet
-            build(3, at(-21, 20), at(15, -16), at(-3, 2)),     // broadsword: handle, blade, guard
-            build(4, at(-21, 20), at(15, -16), at(-3, 2)),     // longsword
-            build(5, at(19, 20), at(-15, -16), at(-1, 2)),     // rapier
-            build(6, at(-6, 18), at(-6, -8)),                  // battlesign: handle, sign plate
-            build(7, at(-21, 20), at(1, -6)),                  // frying pan: handle, pan
-            build(8, at(14, -14), at(-14, 14)),                // dagger: blade, handle
-            build(9, at(-18, 18), at(20, -20), at(0, 0)));     // warmace: handle, head, binding
+            // pickaxe: head, binding, handle
+            build(ForgeweaveItems.TOOL_PICKAXE, at(20, -20), at(0, 0), at(-18, 18)),
+            build(ForgeweaveItems.TOOL_SHOVEL, at(18, -18), at(-20, 20), at(0, 0)),
+            build(ForgeweaveItems.TOOL_HATCHET, at(-2, -20), at(18, -8), at(-11, 11)),
+            // broadsword: handle, blade, guard
+            build(ForgeweaveItems.TOOL_BROADSWORD, at(-21, 20), at(15, -16), at(-3, 2)),
+            build(ForgeweaveItems.TOOL_LONGSWORD, at(-21, 20), at(15, -16), at(-3, 2)),
+            build(ForgeweaveItems.TOOL_RAPIER, at(19, 20), at(-15, -16), at(-1, 2)),
+            build(ForgeweaveItems.TOOL_BATTLESIGN, at(-6, 18), at(-6, -8)),   // handle, sign plate
+            build(ForgeweaveItems.TOOL_FRYING_PAN, at(-21, 20), at(1, -6)),   // handle, pan
+            build(ForgeweaveItems.TOOL_DAGGER, at(14, -14), at(-14, 14)),     // blade, handle
+            // handle, head, binding (#161)
+            build(ForgeweaveItems.TOOL_WARMACE, at(-18, 18), at(20, -20), at(0, 0)),
+            // M3 station tools (docs/SCOPE.md issue #156). No upstream ToolBuildGuiInfo entry was
+            // found for either to cite pixel positions from, so these are Forgeweave's own, spaced
+            // the same way as the M1 three; both are listed in their entry's own part order.
+            build(ForgeweaveItems.TOOL_MATTOCK, at(0, 18), at(-20, -14), at(20, -14)),
+            build(ForgeweaveItems.TOOL_KAMA, at(-20, 12), at(0, -20), at(20, 12)));
 
     /** The repair tab, which is what a freshly opened station shows (as upstream's does). */
     public static final int REPAIR = 0;

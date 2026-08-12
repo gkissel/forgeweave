@@ -5,6 +5,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Supplier;
+import java.util.stream.Stream;
 
 import net.minecraft.core.Holder;
 import net.minecraft.core.HolderLookup;
@@ -177,7 +178,12 @@ public final class ToolAssemblyRecipes {
             new Entry(ToolConstants.DAGGER, ForgeweaveItems.TOOL_DAGGER),
             // #161: the Tool Forge tier's warmace -- handle, head, binding, same slot order as
             // ToolConstants#WARMACE's part list.
-            new Entry(ToolConstants.WARMACE, ForgeweaveItems.TOOL_WARMACE));
+            new Entry(ToolConstants.WARMACE, ForgeweaveItems.TOOL_WARMACE),
+            // M3 station tools (issue #156). The mattock is the one M3 station tool with no binding
+            // part at all -- HANDLE, HEAD (axe), HEAD (shovel), upstream tools/tools/Mattock.java --
+            // which the positional slot matching above already handles with no special case.
+            new Entry(ToolConstants.MATTOCK, ForgeweaveItems.TOOL_MATTOCK),
+            new Entry(ToolConstants.KAMA, ForgeweaveItems.TOOL_KAMA));
 
     /**
      * The "large tool" classification (docs/SCOPE.md M3 issue #152): tools that can only be assembled
