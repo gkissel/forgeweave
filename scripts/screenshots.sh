@@ -14,6 +14,13 @@ cd "$(dirname "$0")/.."
 # costs nothing here -- this run is headless and nobody is watching a progress bar (issue #101).
 EARLY_WINDOW_OFF="-Dfml.earlyprogresswindow=false"
 
+# 1.21 shows an accessibility-onboarding screen on a run dir's first-ever launch, which would sit
+# in front of every capture. Seeding the option before launch skips it at the source -- no
+# synthetic clicks. Only appended when absent so a hand-edited options.txt is left alone.
+mkdir -p run
+touch run/options.txt
+grep -q '^onboardAccessibility:' run/options.txt || echo 'onboardAccessibility:false' >> run/options.txt
+
 if [ -n "${DISPLAY:-}" ] || [ -n "${WAYLAND_DISPLAY:-}" ]; then
     ./gradlew runScreenshotHarness $EARLY_WINDOW_OFF
 elif command -v xvfb-run >/dev/null 2>&1; then
