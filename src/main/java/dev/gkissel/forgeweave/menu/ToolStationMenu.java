@@ -1,5 +1,6 @@
 package dev.gkissel.forgeweave.menu;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -25,6 +26,7 @@ import net.neoforged.neoforge.items.IItemHandler;
 import dev.gkissel.forgeweave.advancement.ForgeweaveCriteriaTriggers;
 import dev.gkissel.forgeweave.block.ForgeweaveBlocks;
 import dev.gkissel.forgeweave.item.ToolItem;
+import dev.gkissel.forgeweave.modifier.Embossing;
 import dev.gkissel.forgeweave.modifier.ModifierApplication;
 import dev.gkissel.forgeweave.menu.ToolStationTabs.Pos;
 import dev.gkissel.forgeweave.menu.ToolStationTabs.Tab;
@@ -71,13 +73,23 @@ import dev.gkissel.forgeweave.menu.ToolStationTabs.Tab;
  * class's javadoc for the client/server slot-count handshake.
  */
 public class ToolStationMenu extends StationMenu {
-    public static final int CONTAINER_SLOTS = 4;
+    public static final int CONTAINER_SLOTS = 6;
     public static final int HEAD_SLOT = 0;
     public static final int BINDING_SLOT = 1;
     public static final int HANDLE_SLOT = 2;
-    public static final int OUTPUT_SLOT = 3;
-    /** The three tab-positioned input slots; the output slot is fixed. */
-    public static final int INPUT_SLOTS = 3;
+    /**
+     * The two extra free slots issue #154 added, upstream's 4th and 5th repair positions. Only the
+     * repair/modify tab has them ({@link ToolStationTabs.Tab#slots}); a build tab needs three.
+     */
+    public static final int EXTRA_SLOT_1 = 3;
+    public static final int EXTRA_SLOT_2 = 4;
+    public static final int OUTPUT_SLOT = 5;
+    /**
+     * How many tab-positioned input slots the container has; the output slot is fixed. How many of
+     * them the <em>selected</em> tab uses is {@code tab().slots().size()}, upstream's
+     * {@code activeSlots} -- the rest are hidden and refuse everything.
+     */
+    public static final int INPUT_SLOTS = 5;
 
     /** Upstream's own output-slot spot in {@code ContainerToolStation} ({@code SlotToolStationOut}). */
     private static final int OUTPUT_X = 124;
@@ -168,9 +180,8 @@ public class ToolStationMenu extends StationMenu {
         addDataSlot(selectedTab);
         selectedTab.set(ToolStationTabs.REPAIR);
 
-        Tab tab = tab();
         for (int i = 0; i < INPUT_SLOTS; i++) {
-            Pos pos = tab.slots().get(i);
+            Pos pos = position(tab(), i);
             addSlot(inputSlot(i, pos.x(), pos.y()));
         }
         addSlot(new OutputSlot(container, OUTPUT_SLOT, OUTPUT_X, OUTPUT_Y));
@@ -202,24 +213,47 @@ public class ToolStationMenu extends StationMenu {
             public boolean mayPlace(ItemStack stack) {
                 return accepts(index, stack);
             }
+
+            /**
+             * Upstream's {@code activeSlots}: a build tab has no use for the repair tab's two extra
+             * reagent slots, so they are neither drawn nor clickable while one is selected. Nothing
+             * can be stranded behind this -- {@link #returnUnusableInputs} hands back whatever a
+             * slot held before the tab that hides it was selected.
+             */
+            @Override
+            public boolean isActive() {
+                return index < tab().slots().size();
+            }
         };
+    }
+
+    /**
+     * Where slot {@code index} sits on {@code tab}. Slots the tab doesn't use borrow its last
+     * position; they are never drawn ({@code Slot#isActive}), so the value only has to be sane.
+     */
+    private static Pos position(Tab tab, int index) {
+        List<Pos> positions = tab.slots();
+        return positions.get(Math.min(index, positions.size() - 1));
     }
 
     /** What the currently selected tab lets the player put in slot {@code index}. */
     private boolean accepts(int index, ItemStack stack) {
         Tab tab = tab();
         if (tab.isRepair()) {
-            // The repair tab is also the modify tab (issue #105): its two free slots take either the
-            // loaded tool's repair item or any modifier recipe's reagent.
+            // The repair tab is also the modify and emboss tab (issues #105, #154): its free slots
+            // take the loaded tool's repair item, any modifier recipe's reagent, or an embossment's
+            // donor part and reagents.
             return index == HEAD_SLOT
                     ? stack.getItem() instanceof ToolItem
                     : ToolAssemblyRecipes.isRepairItemFor(registries, container.getItem(HEAD_SLOT), stack)
-                            || ModifierApplication.isReagent(registries, stack);
+                            || ModifierApplication.isReagent(registries, stack)
+                            || Embossing.isReagent(registries, stack);
         }
         return switch (index) {
             case HEAD_SLOT -> stack.is(tab.headPart().get());
             case BINDING_SLOT -> ToolAssemblyRecipes.isBindingPart(stack);
-            default -> ToolAssemblyRecipes.isHandlePart(stack);
+            case HANDLE_SLOT -> ToolAssemblyRecipes.isHandlePart(stack);
+            default -> false; // the repair tab's extra reagent slots; inactive while building.
         };
     }
 
@@ -231,10 +265,26 @@ public class ToolStationMenu extends StationMenu {
      */
     @Nullable
     public Component modifierRejection() {
-        return ModifierApplication.resolve(registries, slots.get(HEAD_SLOT).getItem(),
+        ItemStack tool = slots.get(HEAD_SLOT).getItem();
+        Component embossing = Embossing.resolve(registries, tool, freeSlotContents())
+                .map(Embossing.Outcome::rejection)
+                .orElse(null);
+        if (embossing != null) {
+            return embossing; // #154: "already embossed" outranks anything the reagents also mean.
+        }
+        return ModifierApplication.resolve(registries, tool,
                         slots.get(BINDING_SLOT).getItem(), slots.get(HANDLE_SLOT).getItem())
                 .map(ModifierApplication.Outcome::rejection)
                 .orElse(null);
+    }
+
+    /** Every input slot except the tool's, in slot order -- what an embossment is matched against. */
+    private List<ItemStack> freeSlotContents() {
+        List<ItemStack> stacks = new ArrayList<>(INPUT_SLOTS - 1);
+        for (int i = HEAD_SLOT + 1; i < INPUT_SLOTS; i++) {
+            stacks.add(slots.get(i).getItem());
+        }
+        return stacks;
     }
 
     /** The selected tab; the screen reads it to pick the sidebar highlight, icons and info text. */
@@ -272,9 +322,32 @@ public class ToolStationMenu extends StationMenu {
             return false;
         }
         selectedTab.set(id);
+        returnUnusableInputs(player);
         applyLayout();
         updateResult();
         return true;
+    }
+
+    /**
+     * Hands back whatever sits in a slot the newly selected tab doesn't have (issue #154, which gave
+     * the repair tab two slots a build tab lacks). A tab switch still leaves the slots both tabs
+     * share alone -- ejecting those on a button press is how a menu loses a player's stack -- but a
+     * slot that is about to become invisible has to give its contents back or they are gone.
+     */
+    private void returnUnusableInputs(Player player) {
+        if (access == ContainerLevelAccess.NULL) {
+            return; // client mirror: the server moves the items and the result syncs back down.
+        }
+        for (int i = tab().slots().size(); i < INPUT_SLOTS; i++) {
+            ItemStack stranded = container.getItem(i);
+            if (stranded.isEmpty()) {
+                continue;
+            }
+            container.setItem(i, ItemStack.EMPTY);
+            if (!player.getInventory().add(stranded)) {
+                player.drop(stranded, false);
+            }
+        }
     }
 
     /** Client side: the tab arrives as a data-slot update, and the layout follows it. */
@@ -284,11 +357,11 @@ public class ToolStationMenu extends StationMenu {
         applyLayout();
     }
 
-    /** Rebuilds the three input slots at the selected tab's coordinates (see the class javadoc). */
+    /** Rebuilds the input slots at the selected tab's coordinates (see the class javadoc). */
     private void applyLayout() {
         Tab tab = tab();
         for (int i = 0; i < INPUT_SLOTS; i++) {
-            Pos pos = tab.slots().get(i);
+            Pos pos = position(tab, i);
             Slot slot = inputSlot(i, pos.x(), pos.y());
             slot.index = i;
             slots.set(i, slot);
@@ -313,8 +386,7 @@ public class ToolStationMenu extends StationMenu {
     }
 
     private Optional<ToolAssemblyRecipes.Result> resolve() {
-        return ToolAssemblyRecipes.resolve(registries,
-                slots.get(HEAD_SLOT).getItem(), slots.get(BINDING_SLOT).getItem(), slots.get(HANDLE_SLOT).getItem());
+        return ToolAssemblyRecipes.resolve(registries, slots.get(HEAD_SLOT).getItem(), freeSlotContents());
     }
 
     @Override
@@ -391,9 +463,10 @@ public class ToolStationMenu extends StationMenu {
                 ForgeweaveCriteriaTriggers.FIRST_MODIFIER.get().trigger(serverPlayer);
             }
             resolve().ifPresent(result -> {
-                consume(HEAD_SLOT, result.headSlotUsed());
-                consume(BINDING_SLOT, result.bindingSlotUsed());
-                consume(HANDLE_SLOT, result.handleSlotUsed());
+                List<Integer> used = result.slotsUsed();
+                for (int i = 0; i < used.size(); i++) {
+                    consume(i, used.get(i));
+                }
             });
             super.onTake(player, stack);
         }

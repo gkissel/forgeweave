@@ -23,7 +23,14 @@ import dev.gkissel.forgeweave.item.ToolItem;
  *   shovel   handle (33, 42)        head (33+18, 42-18)  binding (33-20, 42+20)
  *   hatchet  handle (33-11, 42+11)  head (33-2,  42-20)  binding (33+18, 42-8)
  *   repair   tool   (33, 42)        item (33-18, 42+20)  item (33-22, 42-5)
+ *                                   item (33, 42-23)     item (33+22, 42-5)
  * </pre>
+ *
+ * <p>The repair tab's last two positions are upstream's 4th and 5th ({@code GuiButtonRepair}'s
+ * static initializer lists six of them); issue #154 restored them because embossing costs four items
+ * -- a donor part plus a three-block reagent set -- which the two free slots M1 shipped could not
+ * hold. Upstream's 6th ({@code x+18, y+20}) stays unused: nothing Forgeweave ships needs a fifth
+ * free slot, and an always-empty slot is chrome a player has to learn to ignore.
  *
  * <p>Upstream's layouts are a client-only registry, because there the layout is only ever pixel
  * positions; the same table lives here in {@code menu} because Forgeweave's tabs also decide what
@@ -33,9 +40,10 @@ import dev.gkissel.forgeweave.item.ToolItem;
  * already uses for the Stencil Table -- rather than upstream's bespoke
  * {@code ToolStationSelectionPacket}.
  *
- * <p>Every Forgeweave tool is a three-part tool and repair uses the same three slots (tool + up to
- * two repair items), so unlike upstream there is no per-tab slot <em>count</em>, only per-tab
- * positions and filters. That is why nothing here has to activate or deactivate slots.
+ * <p>Every Forgeweave tool is a three-part tool, so a build tab always lists three positions; the
+ * repair tab lists five (tool + four free slots) since issue #154. The length of {@link Tab#slots}
+ * <em>is</em> the tab's active-slot count -- upstream's {@code ContainerToolStation#activeSlots},
+ * which the station reads to hide and refuse the slots the selected tab doesn't use.
  */
 public final class ToolStationTabs {
 
@@ -48,7 +56,8 @@ public final class ToolStationTabs {
      * @param tool the tool this tab builds, or {@code null} for the repair tab
      * @param headPart the head part the first slot accepts, or {@code null} for the repair tab
      *     (which accepts an assembled tool there instead)
-     * @param slots where the head, binding and handle slots sit, in that order
+     * @param slots where this tab's input slots sit, in slot order (head, binding, handle, then the
+     *     repair tab's two extra reagent slots). Its size is the tab's active-slot count.
      */
     public record Tab(@Nullable Supplier<? extends ToolItem> tool,
                       @Nullable Supplier<? extends PartItem> headPart,
@@ -81,7 +90,7 @@ public final class ToolStationTabs {
     }
 
     public static final List<Tab> TABS = List.of(
-            new Tab(null, null, List.of(at(0, 0), at(-18, 20), at(-22, -5))),
+            new Tab(null, null, List.of(at(0, 0), at(-18, 20), at(-22, -5), at(0, -23), at(22, -5))),
             new Tab(ForgeweaveItems.TOOL_PICKAXE, ForgeweaveItems.PART_PICKAXE_HEAD,
                     List.of(at(20, -20), at(0, 0), at(-18, 18))),
             new Tab(ForgeweaveItems.TOOL_SHOVEL, ForgeweaveItems.PART_SHOVEL_HEAD,

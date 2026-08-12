@@ -1,0 +1,7 @@
+{
+  "reagents": [
+    { "item": "minecraft:slime_block" },
+    { "item": "minecraft:magma_block" },
+    { "item": "minecraft:gold_block" }
+  ]
+}

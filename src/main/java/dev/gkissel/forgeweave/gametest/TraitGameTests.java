@@ -141,9 +141,9 @@ public class TraitGameTests {
         ToolStationMenu menu = ToolAssembly.menu(helper, player, pos, blockEntity);
         menu.broadcastChanges();
 
-        helper.assertTrue(menu.getSlot(3).getItem().getDamageValue() == 1,
+        helper.assertTrue(menu.getSlot(ToolStationMenu.OUTPUT_SLOT).getItem().getDamageValue() == 1,
                 "expected 127 - (120 + 5%) = 1 damage left with cheap, got "
-                        + menu.getSlot(3).getItem().getDamageValue());
+                        + menu.getSlot(ToolStationMenu.OUTPUT_SLOT).getItem().getDamageValue());
 
         helper.succeed();
     }

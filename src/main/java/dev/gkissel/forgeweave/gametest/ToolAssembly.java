@@ -40,8 +40,8 @@ final class ToolAssembly {
 
         ToolStationMenu menu = menu(helper, player, pos, blockEntity);
         menu.broadcastChanges();
-        ItemStack tool = menu.getSlot(3).getItem().copy();
-        menu.getSlot(3).onTake(player, tool);
+        ItemStack tool = menu.getSlot(ToolStationMenu.OUTPUT_SLOT).getItem().copy();
+        menu.getSlot(ToolStationMenu.OUTPUT_SLOT).onTake(player, tool);
         return tool;
     }
 

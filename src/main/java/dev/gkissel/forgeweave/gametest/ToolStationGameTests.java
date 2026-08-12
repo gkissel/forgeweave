@@ -68,7 +68,7 @@ public class ToolStationGameTests {
                 ContainerLevelAccess.create(helper.getLevel(), helper.absolutePos(pos)), blockEntity.findSideInventory());
         menu.broadcastChanges();
 
-        ItemStack output = menu.getSlot(3).getItem();
+        ItemStack output = menu.getSlot(ToolStationMenu.OUTPUT_SLOT).getItem();
         helper.assertTrue(output.is(ForgeweaveItems.TOOL_PICKAXE.get()), "expected a pickaxe, got " + output);
 
         ToolMaterials materials = output.get(ForgeweaveDataComponents.TOOL_MATERIALS.get());
@@ -81,7 +81,7 @@ public class ToolStationGameTests {
 
         // Simulates taking the crafted tool: all three parts are consumed (unlike the Part Builder's
         // reusable pattern, there's nothing here that survives the craft).
-        menu.getSlot(3).onTake(player, output);
+        menu.getSlot(ToolStationMenu.OUTPUT_SLOT).onTake(player, output);
         helper.assertTrue(menu.getSlot(0).getItem().isEmpty(), "expected the head part to be consumed");
         helper.assertTrue(menu.getSlot(1).getItem().isEmpty(), "expected the binding part to be consumed");
         helper.assertTrue(menu.getSlot(2).getItem().isEmpty(), "expected the handle part to be consumed");
@@ -116,7 +116,7 @@ public class ToolStationGameTests {
         ToolStationMenu menu = ToolAssembly.menu(helper, player, pos, blockEntity);
         menu.broadcastChanges();
 
-        ItemStack repaired = menu.getSlot(3).getItem();
+        ItemStack repaired = menu.getSlot(ToolStationMenu.OUTPUT_SLOT).getItem();
         helper.assertTrue(repaired.is(ForgeweaveItems.TOOL_PICKAXE.get()), "expected the repaired pickaxe, got " + repaired);
         helper.assertFalse(ToolItem.isBroken(repaired), "repair must clear the Broken state");
         helper.assertTrue(repaired.getDamageValue() == 1,
@@ -131,7 +131,7 @@ public class ToolStationGameTests {
                         .equals(repaired.get(ForgeweaveDataComponents.TOOL_MATERIALS.get())),
                 "repair must not disturb the tool's materials");
 
-        menu.getSlot(3).onTake(player, repaired);
+        menu.getSlot(ToolStationMenu.OUTPUT_SLOT).onTake(player, repaired);
         helper.assertTrue(menu.getSlot(0).getItem().isEmpty(), "expected the repaired tool to leave the input slot");
         helper.assertTrue(menu.getSlot(1).getItem().isEmpty(), "expected the one cobblestone to be consumed");
 

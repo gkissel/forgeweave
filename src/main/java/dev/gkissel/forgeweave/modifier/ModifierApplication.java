@@ -276,8 +276,22 @@ public final class ModifierApplication {
         }
     }
 
-    /** A modifier's display name, keyed like a trait's: {@code modifier.<namespace>.<path>.name}. */
+    /**
+     * A modifier's display name, keyed like a trait's: {@code modifier.<namespace>.<path>.name}.
+     *
+     * <p>Embossing (issue #154) is the one exception, because its ids are generated per material and
+     * so have no lang key of their own to point at: it reads {@code Embossment (Iron)} from one
+     * shared key plus the material's own name key, which is exactly what upstream's
+     * {@code ModExtraTrait#getLocalizedName} builds ({@code translate(LOC_Name, "extratrait") + " ("
+     * + material.getLocalizedName() + ")"}). Both keys derive from ids alone, which is what keeps
+     * this method registry-free for the tooltips that call it without one.
+     */
     public static Component name(ResourceLocation id) {
+        ResourceLocation material = Embossing.materialOf(id);
+        if (material != null) {
+            return Component.translatable("modifier.forgeweave.embossment.name",
+                    Component.translatable("material." + material.getNamespace() + "." + material.getPath()));
+        }
         return Component.translatable("modifier." + id.getNamespace() + "." + id.getPath() + ".name");
     }
 
