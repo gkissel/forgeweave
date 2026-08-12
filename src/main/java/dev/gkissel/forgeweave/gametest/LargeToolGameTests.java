@@ -226,19 +226,27 @@ public class LargeToolGameTests {
         float before = bystander.getHealth();
         float outOfReachBefore = outOfReach.getHealth();
 
-        DamageSource source = helper.getLevel().damageSources().playerAttack(player);
-        helper.assertTrue(source.getWeaponItem() == player.getMainHandItem(),
-                "the blow must be attributed to the scythe being tested");
-        target.hurt(source, 2.0F);
-
-        helper.assertTrue(bystander.getHealth() < before,
-                "the scythe's area attack must reach a second target, it read " + bystander.getHealth());
-        helper.assertTrue(outOfReach.getHealth() == outOfReachBefore,
-                "the area attack must have an edge; a pig four blocks away took " + (outOfReachBefore - outOfReach.getHealth()));
-        target.discard();
-        bystander.discard();
-        outOfReach.discard();
-        helper.succeed();
+        // A settle tick before the blow and a wait-until after it: freshly spawned entities can
+        // reach the level's entity index a tick late on slow CI runners, which read here as "the
+        // sweep found nobody" (one CI-only failure, 2026-08-12). The edge assertion stays exact.
+        helper.startSequence()
+                .thenExecuteAfter(1, () -> {
+                    DamageSource source = helper.getLevel().damageSources().playerAttack(player);
+                    helper.assertTrue(source.getWeaponItem() == player.getMainHandItem(),
+                            "the blow must be attributed to the scythe being tested");
+                    target.hurt(source, 2.0F);
+                })
+                .thenWaitUntil(() -> helper.assertTrue(bystander.getHealth() < before,
+                        "the scythe's area attack must reach a second target, it read " + bystander.getHealth()))
+                .thenExecute(() -> {
+                    helper.assertTrue(outOfReach.getHealth() == outOfReachBefore,
+                            "the area attack must have an edge; a pig four blocks away took "
+                                    + (outOfReachBefore - outOfReach.getHealth()));
+                    target.discard();
+                    bystander.discard();
+                    outOfReach.discard();
+                })
+                .thenSucceed();
     }
 
     // ------------------------------------------------------------------ combat riders

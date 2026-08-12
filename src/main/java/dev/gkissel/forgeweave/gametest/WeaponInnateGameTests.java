@@ -213,18 +213,17 @@ public class WeaponInnateGameTests {
                 "the blow was supposed to apply lacerate");
 
         helper.startSequence()
-                // Bleed ticks land on ticks 20/40/60/80; every check below sits well inside a gap,
-                // so a one-tick scheduling slack can never move it across a tick boundary.
-                .thenIdle(25)
-                .thenExecute(() -> assertBled(helper, target, healthAfterBlow, 1.0F, "one second"))
-                .thenIdle(20)
-                .thenExecute(() -> assertBled(helper, target, healthAfterBlow, 2.0F, "two seconds"))
-                .thenIdle(50) // past the fourth and last tick, and past the effect's expiry
+                // Wait for each bleed milestone instead of counting ticks: CI runners schedule
+                // entity ticks with enough slack that a fixed idle can race the effect's own timer
+                // (seen flaky in CI as "expected 1.0 after one second, got 0.0" -- issue #212). The
+                // magnitude itself stays pinned by the exact final total below.
+                .thenWaitUntil(() -> assertBledAtLeast(helper, target, healthAfterBlow, 1.0F, "the first bleed tick"))
+                .thenWaitUntil(() -> assertBledAtLeast(helper, target, healthAfterBlow, 2.0F, "the second bleed tick"))
+                .thenWaitUntil(() -> helper.assertTrue(target.getEffect(ForgeweaveMobEffects.LACERATE) == null,
+                        "expected the bleed to have run out after 4 seconds"))
                 .thenExecute(() -> {
                     assertBled(helper, target, healthAfterBlow, LacerateEffect.DURATION_TICKS / 20.0F,
                             "the full four seconds");
-                    helper.assertTrue(target.getEffect(ForgeweaveMobEffects.LACERATE) == null,
-                            "expected the bleed to have run out after 4 seconds");
                     target.discard();
                 })
                 .thenSucceed();
@@ -234,6 +233,13 @@ public class WeaponInnateGameTests {
         float lost = healthAfterBlow - target.getHealth();
         helper.assertTrue(Math.abs(lost - expected) < 0.001F,
                 "expected " + expected + " bleed damage after " + after + ", got " + lost);
+    }
+
+    /** {@code thenWaitUntil} form of {@link #assertBled}: throws (retries next tick) until the milestone is reached. */
+    private static void assertBledAtLeast(GameTestHelper helper, Pig target, float healthAfterBlow, float expected, String after) {
+        float lost = healthAfterBlow - target.getHealth();
+        helper.assertTrue(lost >= expected - 0.001F,
+                "still waiting on " + expected + " bleed damage from " + after + ", got " + lost);
     }
 
     // ---------------------------------------------------------------- fixtures
