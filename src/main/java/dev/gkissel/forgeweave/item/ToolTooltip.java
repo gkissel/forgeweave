@@ -18,6 +18,7 @@ import net.minecraft.world.item.component.Tool;
 import net.minecraft.world.level.block.Block;
 
 import dev.gkissel.forgeweave.client.StationText;
+import dev.gkissel.forgeweave.combat.ForgeweaveInnates;
 import dev.gkissel.forgeweave.material.Material;
 import dev.gkissel.forgeweave.material.MaterialDisplay;
 import dev.gkissel.forgeweave.modifier.ForgeweaveModifiers;
@@ -75,6 +76,9 @@ final class ToolTooltip {
             tooltip.add(durabilityLine(stack));
         }
         tooltip.add(statLine("tooltip.forgeweave.attack_damage", attackDamage, StationText.ATTACK_COLOR));
+        // The M1 tool innate retrofit (issue #164): fixed per-tool-type, so it's shown compact like
+        // Attack Damage rather than gated behind Shift like traits, which are per-material.
+        ForgeweaveInnates.innateId(stack).ifPresent(id -> tooltip.add(innateLine(id)));
         appendModifiers(stack, tooltip);
 
         if (!detailed) {
@@ -135,6 +139,14 @@ final class ToolTooltip {
                     .withStyle(ChatFormatting.GRAY));
         }
         return line;
+    }
+
+    /** {@code Pierce: Deals ...}, same name-colon-description shape as {@link #traitLine} without a material color. */
+    private static Component innateLine(ResourceLocation id) {
+        String base = "tooltip.forgeweave.innate." + id.getPath();
+        return Component.translatable(base + ".name").withStyle(ChatFormatting.GOLD)
+                .append(Component.literal(": ").withStyle(ChatFormatting.GRAY))
+                .append(Component.translatable(base + ".description").withStyle(ChatFormatting.GRAY));
     }
 
     private static Component durabilityLine(ItemStack stack) {

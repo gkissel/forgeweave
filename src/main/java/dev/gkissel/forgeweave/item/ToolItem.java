@@ -352,6 +352,24 @@ public class ToolItem extends Item {
     }
 
     /**
+     * Sunder's shield-disable half (docs/SCOPE.md M3 issue #164): vanilla's shield-disable mechanic is
+     * entirely automatic once an item opts in ({@code IItemExtension#canDisableShield}, default
+     * {@code this instanceof AxeItem}) -- {@code Player#blockUsingShield} calls this on the attacker's
+     * main-hand item and, if it returns true, forces the blocker to drop their shield with a 100-tick
+     * cooldown ({@code Player#disableShield}). There is no {@link dev.gkissel.forgeweave.combat.CombatSeam}
+     * hook for this: it fires before a hit's damage is even resolved (from the shield-block check
+     * inside {@code LivingEntity#hurt}, ahead of {@code preHit}), so it isn't a per-hit adjustment a
+     * seam could make -- it is a capability the item declares, the same kind of thing
+     * {@link #isEnchantable} and {@link #toolComponent} already are. The hatchet opts in here, gated
+     * on the same {@link #weapon} flag that already marks it upstream's one {@code Category.WEAPON}
+     * tool: "make the hatchet count as an axe for shield-disabling", per the issue.
+     */
+    @Override
+    public boolean canDisableShield(ItemStack stack, ItemStack shield, LivingEntity entity, LivingEntity attacker) {
+        return weapon;
+    }
+
+    /**
      * Durability/broken state, mining speed, attack damage, tool tier, the three parts and their
      * traits -- see {@link ToolTooltip} for the compact-vs-Shift structure ported from upstream
      * 1.12 (NOTICE.md). {@code flag.hasShiftDown()} is NeoForge's {@code TooltipFlagExtension},

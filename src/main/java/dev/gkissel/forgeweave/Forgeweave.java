@@ -27,6 +27,7 @@ import dev.gkissel.forgeweave.block.SearedDrainBlockEntity;
 import dev.gkissel.forgeweave.block.SearedTankBlockEntity;
 import dev.gkissel.forgeweave.casting.CastingRecipe;
 import dev.gkissel.forgeweave.combat.CombatSeams;
+import dev.gkissel.forgeweave.combat.ForgeweaveInnates;
 import dev.gkissel.forgeweave.config.ForgeweaveConfig;
 import dev.gkissel.forgeweave.data.ForgeweaveDataGenerators;
 import dev.gkissel.forgeweave.fluid.ForgeweaveFluids;
@@ -92,6 +93,9 @@ public class Forgeweave {
         CombatSeams.register((weapon, out) -> out.accept(ForgeweaveTraits.COMBAT_SEAM));
         // #163 -- knockback, shulking, webbed (docs/SCOPE.md M3 combat modifiers batch 2).
         CombatSeams.register(ForgeweaveModifiers.COMBAT_SEAMS);
+        // #164 -- M1 tool innate retrofit: pickaxe pierce, shovel flatten, hatchet sunder. Same idiom
+        // as materials' traits above, keyed on tool identity instead of stack data.
+        CombatSeams.register(ForgeweaveInnates::collect);
         // established's kill-XP bonus (issue #102): no Item hook for a kill's dropped XP either.
         NeoForge.EVENT_BUS.addListener(ForgeweaveTraits::onExperienceDrop);
         // #103 -- netherite's fireproof: a dropped ItemEntity's fire immunity has no per-stack Item
