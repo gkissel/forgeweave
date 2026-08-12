@@ -14,6 +14,7 @@ import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -26,6 +27,7 @@ import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
 import net.neoforged.neoforge.fluids.FluidStack;
 import net.neoforged.neoforge.fluids.capability.IFluidHandler;
 import net.neoforged.neoforge.fluids.capability.templates.FluidTank;
+import net.neoforged.neoforge.items.IItemHandler;
 import net.neoforged.neoforge.items.ItemHandlerHelper;
 
 import dev.gkissel.forgeweave.advancement.ForgeweaveCriteriaTriggers;
@@ -41,7 +43,9 @@ import dev.gkissel.forgeweave.casting.CastingRecipe;
  * <p>Two item slots, upstream's: slot 0 is the input (a cast, or the crafted part a gold pour is
  * moulded around), slot 1 the finished result. A faucet fills the block through its fluid handler,
  * which only accepts a fluid some recipe matches and only up to that recipe's exact amount -- so a
- * pour into a table with the wrong cast is refused at the faucet rather than swallowed.
+ * pour into a table with the wrong cast is refused at the faucet rather than swallowed. An item
+ * handler exposes the same two slots to automation on upstream's terms (#207, {@link
+ * CastingItemHandler}): a hopper below takes the finished result and leaves the cast.
  *
  * <p><b>No block-entity ticker.</b> Upstream ticks every casting block every tick and returns
  * immediately unless the tank is full, which docs/SCOPE.md's "block entities tick only while doing
@@ -55,10 +59,16 @@ public class CastingBlockEntity extends BlockEntity {
     private static final String TAG_OUTPUT = "output";
     private static final String TAG_TANK = "tank";
 
+    /** Upstream's slot 0: the cast, or the crafted part a gold pour is moulded around. */
+    private static final int SLOT_INPUT = 0;
+    /** Upstream's slot 1: the finished, cooled result. */
+    private static final int SLOT_OUTPUT = 1;
+
     private final CastingRecipe.Station station;
     /** Capacity is whatever the in-progress recipe needs; 0 (and empty) means "nothing being poured". */
     private final FluidTank tank = new FluidTank(0);
     private final IFluidHandler fluidHandler = new CastingFluidHandler();
+    private final IItemHandler itemHandler = new CastingItemHandler();
 
     private ItemStack input = ItemStack.EMPTY;
     private ItemStack output = ItemStack.EMPTY;
@@ -334,11 +344,74 @@ public class CastingBlockEntity extends BlockEntity {
         }
     }
 
-    /** Wires the fluid-handler capability for both casting blocks; called from {@code Forgeweave}'s constructor. */
+    /**
+     * Upstream's {@code SidedInvWrapper} over {@code TileCasting}'s {@code canInsertItem}/{@code
+     * canExtractItem} (#207): automation may put a cast into the input slot and may take the
+     * finished result out of the output slot, and that is all. The cast in use is never extractable
+     * -- a hopper under a table empties its output and leaves the reusable cast where the next pour
+     * needs it -- and neither slot moves at all while there is fluid in the block, which is
+     * upstream's own {@code tank.isEmpty()} guard (1.20's {@code canTakeItemThroughFace}) and the
+     * same rule {@link #interact} applies to a player's hands.
+     */
+    private class CastingItemHandler implements IItemHandler {
+        @Override
+        public int getSlots() {
+            return 2;
+        }
+
+        @Override
+        public ItemStack getStackInSlot(int slot) {
+            return slot == SLOT_OUTPUT ? output : input;
+        }
+
+        /** One item, upstream's {@code stackSizeLimit}; a recipe result may still stack higher. */
+        @Override
+        public int getSlotLimit(int slot) {
+            return slot == SLOT_INPUT ? 1 : Item.ABSOLUTE_MAX_STACK_SIZE;
+        }
+
+        @Override
+        public boolean isItemValid(int slot, ItemStack stack) {
+            return slot == SLOT_INPUT && !stack.isEmpty() && tank.isEmpty() && input.isEmpty() && output.isEmpty();
+        }
+
+        @Override
+        public ItemStack insertItem(int slot, ItemStack stack, boolean simulate) {
+            if (!isItemValid(slot, stack)) {
+                return stack;
+            }
+            if (!simulate) {
+                input = stack.copyWithCount(1);
+                contentsChanged();
+            }
+            return stack.copyWithCount(stack.getCount() - 1);
+        }
+
+        @Override
+        public ItemStack extractItem(int slot, int amount, boolean simulate) {
+            if (slot != SLOT_OUTPUT || amount <= 0 || output.isEmpty() || !tank.isEmpty()) {
+                return ItemStack.EMPTY;
+            }
+            ItemStack extracted = output.copyWithCount(Math.min(amount, output.getCount()));
+            if (!simulate) {
+                output = output.copyWithCount(output.getCount() - extracted.getCount());
+                contentsChanged();
+            }
+            return extracted;
+        }
+    }
+
+    /** Wires the fluid- and item-handler capabilities for both casting blocks; called from {@code Forgeweave}'s constructor. */
     public static void registerCapabilities(RegisterCapabilitiesEvent event) {
         event.registerBlockEntity(Capabilities.FluidHandler.BLOCK, ForgeweaveBlockEntities.CASTING_TABLE.get(),
                 (blockEntity, side) -> blockEntity.fluidHandler);
         event.registerBlockEntity(Capabilities.FluidHandler.BLOCK, ForgeweaveBlockEntities.CASTING_BASIN.get(),
                 (blockEntity, side) -> blockEntity.fluidHandler);
+        // Every side, as upstream does: it builds one SidedInvWrapper for DOWN and hands it back for
+        // any facing, and its own canInsert/canExtract ignore the side entirely.
+        event.registerBlockEntity(Capabilities.ItemHandler.BLOCK, ForgeweaveBlockEntities.CASTING_TABLE.get(),
+                (blockEntity, side) -> blockEntity.itemHandler);
+        event.registerBlockEntity(Capabilities.ItemHandler.BLOCK, ForgeweaveBlockEntities.CASTING_BASIN.get(),
+                (blockEntity, side) -> blockEntity.itemHandler);
     }
 }

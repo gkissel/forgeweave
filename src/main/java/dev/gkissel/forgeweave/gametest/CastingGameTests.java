@@ -14,12 +14,15 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.GameType;
+import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.entity.HopperBlockEntity;
 import net.minecraft.world.level.material.Fluid;
 
 import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.fluids.FluidStack;
 import net.neoforged.neoforge.fluids.capability.IFluidHandler;
+import net.neoforged.neoforge.items.IItemHandler;
 import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 
@@ -52,6 +55,9 @@ public class CastingGameTests {
     private static final BlockPos TANK = new BlockPos(1, 3, 1);
     private static final BlockPos FAUCET = new BlockPos(2, 3, 1);
     private static final BlockPos CASTING = new BlockPos(2, 2, 1);
+    /** #207: a hopper directly under the casting block, and a redstone block on top of the faucet. */
+    private static final BlockPos HOPPER = new BlockPos(2, 1, 1);
+    private static final BlockPos POWER = new BlockPos(2, 4, 1);
 
     // #183: the rig a player actually builds -- a formed smeltery with a drain in its wall, a faucet
     // on the outside of that drain, and a casting block under the faucet. Positions are relative to
@@ -59,6 +65,8 @@ public class CastingGameTests {
     private static final BlockPos DRAIN = new BlockPos(1, 2, 2);
     private static final BlockPos DRAIN_FAUCET = new BlockPos(1, 2, 3);
     private static final BlockPos DRAIN_CASTING = new BlockPos(1, 1, 3);
+    /** #207: the redstone block that powers that faucet, clear of the smeltery's own walls. */
+    private static final BlockPos DRAIN_POWER = new BlockPos(1, 3, 3);
 
     /** {@code shovel_head_iron.json}: two ingots, the amount every part cast in the pack asks for. */
     private static final int PART_CAST_AMOUNT = 288;
@@ -423,6 +431,152 @@ public class CastingGameTests {
         helper.assertValueEqual(clientSide.tank().getCapacity(), PART_CAST_AMOUNT,
                 "the capacity a client draws its fill fraction against");
         helper.succeed();
+    }
+
+    /**
+     * #207: a powered faucet pours by itself. Nobody right-clicks anything here -- a redstone block
+     * goes up next to the faucet hanging off a full smeltery drain, and the basin below has to fill
+     * and finish its gold block on its own, over the nine transactions a block costs.
+     *
+     * <p>A redstone block rather than a lever: same signal, no attachment face to keep valid, and
+     * taking it away is the falling edge the next test needs.
+     */
+    @GameTest(template = "smeltery", timeoutTicks = 600)
+    public static void aPoweredFaucetPoursWithoutAnyInteraction(GameTestHelper helper) {
+        CastingBlockEntity basin = drainRig(helper, ForgeweaveBlocks.CASTING_BASIN.get());
+
+        helper.startSequence()
+                .thenIdle(5)
+                .thenExecute(() -> helper.setBlock(DRAIN_POWER, Blocks.REDSTONE_BLOCK))
+                .thenWaitUntil(() -> helper.assertTrue(basin.output().is(Items.GOLD_BLOCK),
+                        "expected a powered faucet to have filled the basin unaided, found " + basin.output()))
+                .thenSucceed();
+    }
+
+    /**
+     * #207, the half a single rising edge cannot cover: the source is empty when the signal arrives.
+     * A faucet that only reacts to edges gives up there and never notices the metal that shows up
+     * twenty ticks later -- which is every real smeltery, still melting when the lever went up. A
+     * powered one keeps looking, so the basin fills with no second edge and no click.
+     */
+    @GameTest(template = "empty", timeoutTicks = 800)
+    public static void aPoweredFaucetWaitsForASourceThatIsStillEmpty(GameTestHelper helper) {
+        helper.setBlock(TANK, ForgeweaveBlocks.SEARED_TANK.get());
+        helper.setBlock(CASTING, ForgeweaveBlocks.CASTING_BASIN.get());
+        helper.setBlock(FAUCET, ForgeweaveBlocks.FAUCET.get().defaultBlockState()
+                .setValue(FaucetBlock.FACING, Direction.WEST));
+        CastingBlockEntity basin = helper.getBlockEntity(CASTING);
+        SearedTankBlockEntity tank = helper.getBlockEntity(TANK);
+
+        helper.startSequence()
+                .thenExecute(() -> helper.setBlock(POWER, Blocks.REDSTONE_BLOCK))
+                // Long past the two-tick delay the rising edge booked, and nothing to pour yet.
+                .thenExecuteAfter(20, () -> {
+                    helper.assertFalse(faucet(helper).isPouring(), "there is nothing to pour yet");
+                    tank.tank().fill(new FluidStack(ForgeweaveFluids.GOLD.still().get(), SearedTankBlockEntity.CAPACITY),
+                            IFluidHandler.FluidAction.EXECUTE);
+                })
+                .thenWaitUntil(() -> helper.assertTrue(basin.output().is(Items.GOLD_BLOCK),
+                        "expected the still-powered faucet to have picked the gold up by itself, found " + basin.output()))
+                .thenSucceed();
+    }
+
+    /**
+     * #207, the other edge: cutting the signal lets the transaction in flight land and then stops
+     * the faucet, rather than draining the source dry. Checked against the tank, which is the only
+     * thing that can tell a stopped faucet from a resting one.
+     */
+    @GameTest(template = "empty", timeoutTicks = 600)
+    public static void unpoweringAFaucetStopsItAfterTheTransactionInFlight(GameTestHelper helper) {
+        rig(helper, ForgeweaveBlocks.CASTING_BASIN.get(), ForgeweaveFluids.GOLD.still().get());
+        SearedTankBlockEntity tank = helper.getBlockEntity(TANK);
+        FaucetBlockEntity faucet = faucet(helper);
+        int[] atCut = new int[1];
+
+        helper.startSequence()
+                .thenExecute(() -> helper.setBlock(POWER, Blocks.REDSTONE_BLOCK))
+                .thenWaitUntil(() -> helper.assertTrue(faucet.isPouring(), "expected the signal to start a pour"))
+                .thenExecute(() -> {
+                    helper.setBlock(POWER, Blocks.AIR);
+                    atCut[0] = tank.tank().getFluidAmount();
+                })
+                .thenWaitUntil(() -> helper.assertFalse(faucet.isPouring(),
+                        "expected the faucet to stop once its transaction landed"))
+                .thenExecute(() -> {
+                    helper.assertTrue(faucet.buffered().isEmpty(), "expected nothing left buffered in a stopped faucet");
+                    // A basin swallows nine transactions before it is full, so a faucet that carried
+                    // on regardless of the signal would be caught here: only the transaction that was
+                    // already in flight -- at most one, and it had already left the tank -- may show.
+                    helper.assertTrue(atCut[0] - tank.tank().getFluidAmount() <= FaucetBlockEntity.TRANSACTION_AMOUNT,
+                            "expected at most the in-flight transaction to leave the tank after the signal dropped, "
+                                    + "found " + (atCut[0] - tank.tank().getFluidAmount()) + " mB");
+                })
+                .thenExecuteAfter(40, () -> helper.assertFalse(faucet.isPouring(), "and to stay stopped while unpowered"))
+                .thenSucceed();
+    }
+
+    /**
+     * #207: a hopper under a finished casting table takes the result and nothing else. The cast is
+     * the reusable half of the pair (docs/SCOPE.md M2: "casts are gold-only and reusable"), so
+     * automating a table must not eat it -- upstream's {@code canExtractItem} answers for the output
+     * slot only.
+     */
+    @GameTest(template = "empty", timeoutTicks = 600)
+    public static void aHopperUnderATableTakesTheResultAndLeavesTheCast(GameTestHelper helper) {
+        CastingBlockEntity table = rig(helper, ForgeweaveBlocks.CASTING_TABLE.get(), ForgeweaveFluids.IRON.still().get());
+        insert(helper, table, new ItemStack(ForgeweaveItems.CAST_INGOT.get()));
+        helper.setBlock(HOPPER, Blocks.HOPPER);
+        faucet(helper).activate();
+
+        helper.startSequence()
+                .thenWaitUntil(() -> helper.assertTrue(
+                        helper.<HopperBlockEntity>getBlockEntity(HOPPER).getItem(0).is(Items.IRON_INGOT),
+                        "expected the hopper to have pulled the finished ingot out of the table"))
+                .thenExecute(() -> {
+                    helper.assertTrue(table.output().isEmpty(),
+                            "expected the output slot emptied, found " + table.output());
+                    helper.assertTrue(table.input().is(ForgeweaveItems.CAST_INGOT.get()),
+                            "expected the cast to still be in the table, found " + table.input());
+                })
+                // And it stays that way: the cast is not the hopper's next course.
+                .thenExecuteAfter(40, () -> helper.assertTrue(table.input().is(ForgeweaveItems.CAST_INGOT.get()),
+                        "expected the cast to survive the hopper, found " + table.input()))
+                .thenSucceed();
+    }
+
+    /**
+     * #207: nothing comes out of a table that is still being poured into -- not the result (there
+     * isn't one) and not the cast sitting under the fluid. Upstream guards both slots on {@code
+     * tank.isEmpty()}; without it a hopper would pull the cast out from under a live pour.
+     */
+    @GameTest(template = "empty", timeoutTicks = 200)
+    public static void aMidPourTableGivesAHopperNothing(GameTestHelper helper) {
+        helper.setBlock(CASTING, ForgeweaveBlocks.CASTING_TABLE.get());
+        CastingBlockEntity table = helper.getBlockEntity(CASTING);
+        insert(helper, table, new ItemStack(ForgeweaveItems.CAST_INGOT.get()));
+        fill(helper, new FluidStack(ForgeweaveFluids.IRON.still().get(), 72));
+        helper.setBlock(HOPPER, Blocks.HOPPER);
+
+        IItemHandler handler = helper.getLevel().getCapability(Capabilities.ItemHandler.BLOCK,
+                helper.absolutePos(CASTING), Direction.DOWN);
+        helper.assertTrue(handler != null, "expected the casting table to expose an item handler");
+        for (int slot = 0; slot < handler.getSlots(); slot++) {
+            helper.assertTrue(handler.extractItem(slot, 64, true).isEmpty(),
+                    "expected slot " + slot + " of a mid-pour table to be unextractable");
+        }
+        helper.assertFalse(handler.isItemValid(0, new ItemStack(ForgeweaveItems.CAST_INGOT.get())),
+                "and nothing to be insertable into it either");
+
+        // The real hopper agrees, given more than the 8 ticks it waits between transfers.
+        helper.startSequence()
+                .thenExecuteAfter(30, () -> {
+                    helper.assertTrue(helper.<HopperBlockEntity>getBlockEntity(HOPPER).isEmpty(),
+                            "expected the hopper under a mid-pour table to have taken nothing");
+                    helper.assertTrue(table.input().is(ForgeweaveItems.CAST_INGOT.get()),
+                            "expected the cast to still be there, found " + table.input());
+                    helper.assertFalse(table.tank().isEmpty(), "and the pour to be untouched");
+                })
+                .thenSucceed();
     }
 
     /** A tank of {@code fluid}, a faucet on its east side pointing back at it, and a casting block below. */
