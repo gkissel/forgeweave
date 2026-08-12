@@ -148,6 +148,50 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         addItem(ForgeweaveItems.TOOL_SHOVEL, "Shovel");
         addItem(ForgeweaveItems.TOOL_HATCHET, "Hatchet");
 
+        // M3 Tool Station weapons (docs/SCOPE.md M3 issue #155). Names follow upstream 1.12's own
+        // item.*.name entries for the five it ships; the dagger is Forgeweave's, from the modern
+        // branch's shape. The ".description" key next to each is the Tool Station tab blurb
+        // (ToolStationTabs.Tab#descriptionKey), same family the M1 tools' tabs use.
+        addItem(ForgeweaveItems.TOOL_BROADSWORD, "Broadsword");
+        add("item.forgeweave.broadsword.description",
+                "A balanced sword. Right-click to raise a brief parry that turns aside one blow and slows whoever threw it.");
+        addItem(ForgeweaveItems.TOOL_LONGSWORD, "Longsword");
+        add("item.forgeweave.longsword.description",
+                "A long blade with reach. Hold right-click to charge, then release to leap in the direction you are looking.");
+        addItem(ForgeweaveItems.TOOL_RAPIER, "Rapier");
+        add("item.forgeweave.rapier.description",
+                "A quick, light blade. Every hit also tears out a fraction of the target's remaining health, straight through armour.");
+        addItem(ForgeweaveItems.TOOL_BATTLESIGN, "Battlesign");
+        add("item.forgeweave.battlesign.description",
+                "A broad slab on a stick. Hold right-click to block; an arrow caught head-on is sent back at whoever fired it.");
+        addItem(ForgeweaveItems.TOOL_FRYING_PAN, "Frying Pan");
+        add("item.forgeweave.frying_pan.description",
+                "Heavy, flat and loud. Its blows send whatever they land on flying.");
+        addItem(ForgeweaveItems.TOOL_DAGGER, "Dagger");
+        add("item.forgeweave.dagger.description",
+                "A short, fast blade. Strike from behind and it bites far deeper than its size suggests.");
+
+        // Innate names and descriptions (docs/SCOPE.md M3: every tool carries a combat innate).
+        // ToolTooltip shows these on Shift, next to the material traits.
+        add("tooltip.forgeweave.innate.parry.name", "Parry");
+        add("tooltip.forgeweave.innate.parry.description",
+                "Right-click opens a brief window that negates one incoming melee blow and slows the attacker.");
+        add("tooltip.forgeweave.innate.charged_leap.name", "Charged Leap");
+        add("tooltip.forgeweave.innate.charged_leap.description",
+                "Hold right-click to charge, then release to leap; the longer the charge, the further the jump.");
+        add("tooltip.forgeweave.innate.vital_thrust.name", "Vital Thrust");
+        add("tooltip.forgeweave.innate.vital_thrust.description",
+                "Each hit deals a further 5% of the target's remaining health, ignoring armour.");
+        add("tooltip.forgeweave.innate.deflect.name", "Deflect");
+        add("tooltip.forgeweave.innate.deflect.description",
+                "While blocking, a projectile caught head-on is returned to its sender.");
+        add("tooltip.forgeweave.innate.heavy_swing.name", "Heavy Swing");
+        add("tooltip.forgeweave.innate.heavy_swing.description",
+                "Hits knock the target back twice as far as an ordinary blow.");
+        add("tooltip.forgeweave.innate.backstab.name", "Backstab");
+        add("tooltip.forgeweave.innate.backstab.description",
+                "Striking from behind adds up to double damage, at its strongest directly behind the target.");
+
         addItem(ForgeweaveItems.SEARED_BRICK, "Seared Brick");
 
         // #107 batch: modifier reagent items (docs/SCOPE.md M2 issue #107), names ported from upstream

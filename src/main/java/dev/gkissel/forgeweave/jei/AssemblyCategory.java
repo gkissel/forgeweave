@@ -15,13 +15,15 @@ import mezz.jei.api.recipe.category.IRecipeCategory;
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.item.ForgeweaveItems;
 
-/** Tool Station assembly recipes: head + binding + handle parts -> tool. Icon is the Tool Station block item. */
+/** Tool Station assembly recipes: one part slot per part -> tool. Icon is the Tool Station block item. */
 final class AssemblyCategory implements IRecipeCategory<AssemblyRecipe> {
     static final RecipeType<AssemblyRecipe> TYPE =
             RecipeType.create(Forgeweave.MODID, "tool_assembly", AssemblyRecipe.class);
 
     private static final int WIDTH = 64;
-    private static final int HEIGHT = 58;
+    private static final int SLOT_PITCH = 20;
+    /** Tall enough for the longest part list in the roster (four parts, the Tool Forge tier). */
+    private static final int HEIGHT = 4 * SLOT_PITCH - 2;
 
     private final IDrawable icon;
     private final IDrawable arrow;
@@ -58,9 +60,11 @@ final class AssemblyCategory implements IRecipeCategory<AssemblyRecipe> {
 
     @Override
     public void setRecipe(IRecipeLayoutBuilder builder, AssemblyRecipe recipe, IFocusGroup focuses) {
-        builder.addInputSlot(0, 0).addItemStacks(recipe.heads());
-        builder.addInputSlot(0, 20).addItemStacks(recipe.bindings());
-        builder.addInputSlot(0, 40).addItemStacks(recipe.handles());
+        // One slot per part, stacked in the station's own slot order -- two for M3's two-part
+        // weapons, four for the Tool Forge tier (issue #155), so the column grows with the tool.
+        for (int slot = 0; slot < recipe.parts().size(); slot++) {
+            builder.addInputSlot(0, slot * SLOT_PITCH).addItemStacks(recipe.parts().get(slot));
+        }
         builder.addOutputSlot(WIDTH - 18, (HEIGHT - 18) / 2).addItemStack(recipe.result());
     }
 

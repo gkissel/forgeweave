@@ -197,7 +197,8 @@ class ToolTooltipTest {
 
     private static ItemStack assembledPickaxe(int damage, List<ResourceLocation> traits) {
         ItemStack stack = new ItemStack(ForgeweaveItems.TOOL_PICKAXE.get());
-        stack.set(ForgeweaveDataComponents.TOOL_MATERIALS.get(), new ToolMaterials(STONE_ID, WOOD_ID, WOOD_ID));
+        stack.set(ForgeweaveDataComponents.TOOL_MATERIALS.get(), new ToolMaterials(STONE_ID, java.util.Optional.of(WOOD_ID), WOOD_ID,
+                java.util.List.of(STONE_ID, WOOD_ID, WOOD_ID)));
         stack.set(ForgeweaveDataComponents.TOOL_STATS.get(), PICKAXE_STATS);
         stack.set(ForgeweaveDataComponents.TRAITS.get(), traits);
         stack.set(DataComponents.MAX_DAMAGE, PICKAXE_STATS.durability());

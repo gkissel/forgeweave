@@ -51,4 +51,19 @@ public interface CombatSeam {
      * their own (ADR-0005).
      */
     default void postKill(CombatHit hit) {}
+
+    /**
+     * This blow's damage after this seam has adjusted it, for a blow the seam's tool is <em>taking</em>
+     * rather than dealing -- the defensive mirror of {@link #preHit}, called at the same moment on the
+     * same event and chained the same way. Returning {@code 0} (or less) negates the blow outright:
+     * {@link CombatSeams} cancels the damage event when the chain leaves nothing, so a parry or a
+     * reflect stops the hurt animation and the invulnerability window too, not just the number.
+     *
+     * <p>Only reached while the defender is actively using the tool ({@link CombatSeams}), which is
+     * what both M3 defensive innates are gated on anyway -- the broadsword's parry window and the
+     * battlesign's blocking stance.
+     */
+    default float incomingHit(CombatDefense defense, float originalDamage, float damage) {
+        return damage;
+    }
 }

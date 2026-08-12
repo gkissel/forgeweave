@@ -1,9 +1,13 @@
 package dev.gkissel.forgeweave.data;
 
+import java.util.function.Supplier;
+
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.data.PackOutput;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Item;
 
+import net.neoforged.neoforge.client.model.generators.ItemModelBuilder;
 import net.neoforged.neoforge.client.model.generators.ItemModelProvider;
 import net.neoforged.neoforge.client.model.generators.ModelFile;
 import net.neoforged.neoforge.common.data.ExistingFileHelper;
@@ -11,6 +15,8 @@ import net.neoforged.neoforge.registries.DeferredItem;
 
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.item.ForgeweaveItems;
+import dev.gkissel.forgeweave.menu.ToolAssemblyRecipes;
+import dev.gkissel.forgeweave.tool.ToolArt;
 
 /**
  * Item models for every Forgeweave item (docs/adr/0002): a plain {@code minecraft:item/generated}
@@ -110,9 +116,12 @@ public class ForgeweaveItemModelProvider extends ItemModelProvider {
         singleLayerModel(ForgeweaveItems.CAST_TOOL_BINDING, derivedItem("cast_tool_binding"));
         singleLayerModel(ForgeweaveItems.CAST_TOOL_HANDLE, derivedItem("cast_tool_handle"));
 
-        toolModel(ForgeweaveItems.TOOL_PICKAXE, "pickaxe");
-        toolModel(ForgeweaveItems.TOOL_SHOVEL, "shovel");
-        toolModel(ForgeweaveItems.TOOL_HATCHET, "hatchet");
+        // Every assemblable tool, straight off the station's own table (ToolAssemblyRecipes.ENTRIES):
+        // one model layer per part, so a two-part M3 weapon gets two layers and a three-part one gets
+        // three, and no tool can be registered without a model or vice versa.
+        for (ToolAssemblyRecipes.Entry entry : ToolAssemblyRecipes.ENTRIES) {
+            toolModel(entry.tool(), entry.constants().id(), entry.slotCount());
+        }
 
         // Modifier reagents (docs/SCOPE.md M2 issue #107), each a straight upstream texture port
         // (NOTICE.md): moss.png, mending_moss.png, reinforcement.png, silky_cloth.png, silky_jewel.png
@@ -154,8 +163,8 @@ public class ForgeweaveItemModelProvider extends ItemModelProvider {
         return modLoc("item/" + name);
     }
 
-    private ResourceLocation derivedTool(String tool, String layer) {
-        return modLoc("derived/tools/" + tool + "_" + layer);
+    private ResourceLocation toolLayer(String tool, String layer) {
+        return modLoc(ToolArt.layer(tool, layer));
     }
 
     // Unchecked parent, matching basicItem()'s approach: "item/generated" is a vanilla builtin
@@ -166,11 +175,12 @@ public class ForgeweaveItemModelProvider extends ItemModelProvider {
                 .texture("layer0", texture);
     }
 
-    private void toolModel(DeferredItem<? extends Item> item, String tool) {
-        getBuilder(item.getId().toString())
-                .parent(new ModelFile.UncheckedModelFile("item/generated"))
-                .texture("layer0", derivedTool(tool, "handle"))
-                .texture("layer1", derivedTool(tool, "head"))
-                .texture("layer2", derivedTool(tool, "binding"));
+    private void toolModel(Supplier<? extends Item> item, String tool, int layers) {
+        ItemModelBuilder builder = getBuilder(
+                BuiltInRegistries.ITEM.getKey(item.get()).toString())
+                .parent(new ModelFile.UncheckedModelFile("item/generated"));
+        for (int layer = 0; layer < layers; layer++) {
+            builder.texture("layer" + layer, toolLayer(tool, ToolArt.LAYERS.get(layer)));
+        }
     }
 }

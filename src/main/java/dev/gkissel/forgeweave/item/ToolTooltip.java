@@ -92,9 +92,9 @@ final class ToolTooltip {
         MaterialDisplay.lookup(registries, materials.head()).ifPresent(head -> tooltip.add(tierLine(stack, head)));
 
         tooltip.add(Component.empty());
-        tooltip.add(MaterialDisplay.name(registries, materials.head()));
-        tooltip.add(MaterialDisplay.name(registries, materials.binding()));
-        tooltip.add(MaterialDisplay.name(registries, materials.handle()));
+        for (ResourceLocation materialId : materials.all()) {
+            tooltip.add(MaterialDisplay.name(registries, materialId));
+        }
 
         List<ResourceLocation> traits = stack.getOrDefault(ForgeweaveDataComponents.TRAITS.get(), List.of());
         if (!traits.isEmpty()) {
@@ -180,8 +180,7 @@ final class ToolTooltip {
         String descKey = "trait." + traitId.getNamespace() + "." + traitId.getPath() + ".description";
 
         MutableComponent name = Component.translatable(nameKey);
-        TextColor color = MaterialDisplay.traitColor(registries,
-                List.of(materials.head(), materials.binding(), materials.handle()), traitId);
+        TextColor color = MaterialDisplay.traitColor(registries, materials.all(), traitId);
         if (color != null) {
             name = name.withStyle(Style.EMPTY.withColor(color));
         }

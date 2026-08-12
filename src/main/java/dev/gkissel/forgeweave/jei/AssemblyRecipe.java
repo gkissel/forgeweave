@@ -4,9 +4,14 @@ import java.util.List;
 
 import net.minecraft.world.item.ItemStack;
 
+import dev.gkissel.forgeweave.item.ToolItem;
+
 /**
- * One tool assembly display recipe, for one tool type: head/binding/handle part slots each cycle
- * through every registered material (see {@link AssemblyRecipes}) rather than enumerating every
- * material combination.
+ * One tool assembly display recipe, for one tool type: one slot per part, in the station's own slot
+ * order, each cycling through every registered material (see {@link AssemblyRecipes}) rather than
+ * enumerating every material combination.
+ *
+ * @param parts one cycling ingredient list per input slot -- two entries for M3's two-part weapons,
+ *     three for everything else (issue #155)
  */
-record AssemblyRecipe(List<ItemStack> heads, List<ItemStack> bindings, List<ItemStack> handles, ItemStack result) {}
+record AssemblyRecipe(List<List<ItemStack>> parts, ToolItem tool, ItemStack result) {}

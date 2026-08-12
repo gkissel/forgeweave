@@ -96,8 +96,10 @@ public class Forgeweave {
         // each entry's Modifier#combatSeam, the modifier-side counterpart to ForgeweaveTraits#COMBAT_SEAM
         // just above.
         CombatSeams.register(ForgeweaveModifiers.COMBAT_SEAMS);
-        // #164 -- M1 tool innate retrofit: pickaxe pierce, shovel flatten, hatchet sunder. Same idiom
-        // as materials' traits above, keyed on tool identity instead of stack data.
+        // #164/#155 -- per-tool innates: M1's retrofit (pickaxe pierce, shovel flatten, hatchet
+        // sunder) plus every M3 tool's own, one provider for both (ForgeweaveInnates). After traits,
+        // so a trait that scales a blow scales the blow the tool was always going to land rather than
+        // the innate's bonus on top of it.
         CombatSeams.register(ForgeweaveInnates::collect);
         // established's kill-XP bonus (issue #102): no Item hook for a kill's dropped XP either.
         NeoForge.EVENT_BUS.addListener(ForgeweaveTraits::onExperienceDrop);

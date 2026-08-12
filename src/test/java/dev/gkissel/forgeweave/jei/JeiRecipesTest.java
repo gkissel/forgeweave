@@ -30,6 +30,7 @@ import dev.gkissel.forgeweave.casting.CastingRecipe;
 import dev.gkissel.forgeweave.item.ForgeweaveDataComponents;
 import dev.gkissel.forgeweave.item.ForgeweaveItems;
 import dev.gkissel.forgeweave.material.Material;
+import dev.gkissel.forgeweave.menu.ToolAssemblyRecipes;
 import dev.gkissel.forgeweave.menu.PartBuilderRecipes;
 import dev.gkissel.forgeweave.modifier.ModifierRecipe;
 import dev.gkissel.forgeweave.recipe.AlloyRecipe;
@@ -160,11 +161,15 @@ class JeiRecipesTest {
         Map<ResourceLocation, Material> materials = twoMaterials();
         List<AssemblyRecipe> recipes = AssemblyRecipes.build(materials);
 
-        assertEquals(3, recipes.size(), "pickaxe, shovel, hatchet");
+        // One per assemblable tool: M1's three plus M3's six station weapons (issue #155).
+        assertEquals(ToolAssemblyRecipes.ENTRIES.size(), recipes.size());
         for (AssemblyRecipe recipe : recipes) {
-            assertEquals(materials.size(), recipe.heads().size());
-            assertEquals(materials.size(), recipe.bindings().size());
-            assertEquals(materials.size(), recipe.handles().size());
+            ToolAssemblyRecipes.Entry entry = ToolAssemblyRecipes.entryFor(recipe.result()).orElseThrow();
+            assertEquals(entry.slotCount(), recipe.parts().size(),
+                    "one JEI slot per part, so a two-part weapon shows two");
+            for (List<ItemStack> slot : recipe.parts()) {
+                assertEquals(materials.size(), slot.size());
+            }
         }
     }
 
@@ -175,7 +180,8 @@ class JeiRecipesTest {
 
         assertEquals(materials.size(), recipes.size());
         for (RepairRecipe recipe : recipes) {
-            assertEquals(3, recipe.tools().size(), "pickaxe, shovel, hatchet all repair the same way");
+            assertEquals(ToolAssemblyRecipes.ENTRIES.size(), recipe.tools().size(),
+                    "every assemblable tool repairs the same way");
             assertEquals(recipe.tools(), recipe.repairedTools());
         }
     }

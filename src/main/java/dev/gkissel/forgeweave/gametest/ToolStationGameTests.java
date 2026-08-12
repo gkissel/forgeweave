@@ -1,5 +1,7 @@
 package dev.gkissel.forgeweave.gametest;
 
+import java.util.List;
+
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.gametest.framework.GameTest;
@@ -72,7 +74,7 @@ public class ToolStationGameTests {
         helper.assertTrue(output.is(ForgeweaveItems.TOOL_PICKAXE.get()), "expected a pickaxe, got " + output);
 
         ToolMaterials materials = output.get(ForgeweaveDataComponents.TOOL_MATERIALS.get());
-        helper.assertTrue(new ToolMaterials(stone, wood, wood).equals(materials),
+        helper.assertTrue(ToolMaterials.of(ToolAssembly.pickaxeSlots(), List.of(stone, wood, wood)).equals(materials),
                 "expected head=stone binding=wood handle=wood, got " + materials);
 
         Integer maxDamage = output.get(DataComponents.MAX_DAMAGE);
@@ -124,10 +126,10 @@ public class ToolStationGameTests {
                         + repaired.getDamageValue());
         helper.assertTrue(repaired.isCorrectToolForDrops(Blocks.STONE.defaultBlockState()),
                 "a repaired tool should harvest again");
-        helper.assertTrue(new ToolMaterials(
+        helper.assertTrue(ToolMaterials.of(ToolAssembly.pickaxeSlots(), List.of(
                         ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "stone"),
                         ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "wood"),
-                        ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "wood"))
+                        ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "wood")))
                         .equals(repaired.get(ForgeweaveDataComponents.TOOL_MATERIALS.get())),
                 "repair must not disturb the tool's materials");
 
@@ -155,7 +157,7 @@ public class ToolStationGameTests {
                 "a freshly opened station starts on the repair tab, as upstream's does");
 
         int pickaxeTab = ToolStationTabs.TABS.indexOf(ToolStationTabs.TABS.stream()
-                .filter(tab -> !tab.isRepair() && tab.tool().get() == ForgeweaveItems.TOOL_PICKAXE.get())
+                .filter(tab -> !tab.isRepair() && tab.tool() == ForgeweaveItems.TOOL_PICKAXE.get())
                 .findFirst().orElseThrow());
         helper.assertTrue(menu.clickMenuButton(player, pickaxeTab), "selecting the pickaxe tab must be accepted");
         helper.assertFalse(menu.clickMenuButton(player, ToolStationTabs.TABS.size()),

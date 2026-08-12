@@ -108,12 +108,9 @@ public final class StationText {
         return List.copyOf(lines);
     }
 
-    /** The three materials an assembled tool is made of, each in its own tint. */
+    /** The materials an assembled tool is made of, each in its own tint (two or three -- #155). */
     public static List<Component> toolMaterials(@Nullable HolderLookup.Provider registries, ToolMaterials materials) {
-        return List.of(
-                MaterialDisplay.name(registries, materials.head()),
-                MaterialDisplay.name(registries, materials.binding()),
-                MaterialDisplay.name(registries, materials.handle()));
+        return materials.all().stream().map(id -> (Component) MaterialDisplay.name(registries, id)).toList();
     }
 
     /** What one material contributes, whichever part it ends up in (the Part Builder's info panel). */
@@ -164,7 +161,7 @@ public final class StationText {
      */
     public static List<Component> toolTraits(@Nullable HolderLookup.Provider registries, ToolMaterials materials,
             List<ResourceLocation> traitIds) {
-        List<ResourceLocation> materialIds = List.of(materials.head(), materials.binding(), materials.handle());
+        List<ResourceLocation> materialIds = materials.all();
         List<Component> lines = new ArrayList<>();
         for (ResourceLocation id : traitIds) {
             lines.addAll(traitLines(MaterialDisplay.traitColor(registries, materialIds, id), id));
