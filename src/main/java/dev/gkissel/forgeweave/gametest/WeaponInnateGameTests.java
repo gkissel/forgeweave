@@ -212,21 +212,23 @@ public class WeaponInnateGameTests {
         helper.assertTrue(target.getEffect(ForgeweaveMobEffects.LACERATE) != null,
                 "the blow was supposed to apply lacerate");
 
-        helper.startSequence()
-                // Wait for each bleed milestone instead of counting ticks: CI runners schedule
-                // entity ticks with enough slack that a fixed idle can race the effect's own timer
-                // (seen flaky in CI as "expected 1.0 after one second, got 0.0" -- issue #212). The
-                // magnitude itself stays pinned by the exact final total below.
-                .thenWaitUntil(() -> assertBledAtLeast(helper, target, healthAfterBlow, 1.0F, "the first bleed tick"))
-                .thenWaitUntil(() -> assertBledAtLeast(helper, target, healthAfterBlow, 2.0F, "the second bleed tick"))
-                .thenWaitUntil(() -> helper.assertTrue(target.getEffect(ForgeweaveMobEffects.LACERATE) == null,
-                        "expected the bleed to have run out after 4 seconds"))
-                .thenExecute(() -> {
-                    assertBled(helper, target, healthAfterBlow, LacerateEffect.DURATION_TICKS / 20.0F,
-                            "the full four seconds");
-                    target.discard();
-                })
-                .thenSucceed();
+        // The cadence and total are driven through the effect's own tick contract rather than world
+        // ticks: a GameTest plot far from spawn is not reliably entity-ticking, so a test that waits
+        // on the level to tick the pig's effects hangs forever on some runs (issue #212 -- the only
+        // effect test that needs ticks, not just presence; the seam application above stays real).
+        LacerateEffect effect = (LacerateEffect) ForgeweaveMobEffects.LACERATE.value();
+        int fires = 0;
+        for (int duration = LacerateEffect.DURATION_TICKS; duration >= 1; duration--) {
+            if (effect.shouldApplyEffectTickThisTick(duration, 0)) {
+                target.invulnerableTime = 0; // each simulated fire is a full second apart in game time
+                effect.applyEffectTick(target, 0);
+                fires++;
+            }
+        }
+        helper.assertTrue(fires == 4, "1 damage per second for 4 seconds must fire exactly 4 times, fired " + fires);
+        assertBled(helper, target, healthAfterBlow, LacerateEffect.DURATION_TICKS / 20.0F, "the full four seconds");
+        target.discard();
+        helper.succeed();
     }
 
     private static void assertBled(GameTestHelper helper, Pig target, float healthAfterBlow, float expected, String after) {
@@ -235,12 +237,6 @@ public class WeaponInnateGameTests {
                 "expected " + expected + " bleed damage after " + after + ", got " + lost);
     }
 
-    /** {@code thenWaitUntil} form of {@link #assertBled}: throws (retries next tick) until the milestone is reached. */
-    private static void assertBledAtLeast(GameTestHelper helper, Pig target, float healthAfterBlow, float expected, String after) {
-        float lost = healthAfterBlow - target.getHealth();
-        helper.assertTrue(lost >= expected - 0.001F,
-                "still waiting on " + expected + " bleed damage from " + after + ", got " + lost);
-    }
 
     // ---------------------------------------------------------------- fixtures
 
