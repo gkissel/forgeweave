@@ -24,9 +24,17 @@ final class ToolAssembly {
 
     /** Places a Tool Station at {@code pos} and returns the pickaxe it assembles from three materials. */
     static ItemStack pickaxe(GameTestHelper helper, Player player, BlockPos pos, String headMaterial, String bindingMaterial, String handleMaterial) {
+        return tool(helper, player, pos, ForgeweaveItems.PART_PICKAXE_HEAD.get(), headMaterial, bindingMaterial, handleMaterial);
+    }
+
+    /**
+     * As {@link #pickaxe}, for whichever tool the given head part assembles into
+     * ({@code ToolAssemblyRecipes} maps pickaxe/shovel/axe head to pickaxe/shovel/hatchet).
+     */
+    static ItemStack tool(GameTestHelper helper, Player player, BlockPos pos, Item headPart, String headMaterial, String bindingMaterial, String handleMaterial) {
         helper.setBlock(pos, ForgeweaveBlocks.TOOL_STATION.get());
         ToolStationBlockEntity blockEntity = helper.getBlockEntity(pos);
-        blockEntity.container().setItem(0, part(ForgeweaveItems.PART_PICKAXE_HEAD.get(), headMaterial));
+        blockEntity.container().setItem(0, part(headPart, headMaterial));
         blockEntity.container().setItem(1, part(ForgeweaveItems.PART_TOOL_BINDING.get(), bindingMaterial));
         blockEntity.container().setItem(2, part(ForgeweaveItems.PART_TOOL_HANDLE.get(), handleMaterial));
 

@@ -26,6 +26,7 @@ import dev.gkissel.forgeweave.block.ForgeweaveBlocks;
 import dev.gkissel.forgeweave.block.SearedDrainBlockEntity;
 import dev.gkissel.forgeweave.block.SearedTankBlockEntity;
 import dev.gkissel.forgeweave.casting.CastingRecipe;
+import dev.gkissel.forgeweave.combat.CombatSeams;
 import dev.gkissel.forgeweave.config.ForgeweaveConfig;
 import dev.gkissel.forgeweave.data.ForgeweaveDataGenerators;
 import dev.gkissel.forgeweave.fluid.ForgeweaveFluids;
@@ -78,8 +79,16 @@ public class Forgeweave {
         modEventBus.addListener(CastingBlockEntity::registerCapabilities);
         modEventBus.addListener(ForgeweaveDataGenerators::gatherData);
         NeoForge.EVENT_BUS.addListener(this::onServerStarted);
-        // Traits that key off what is being hit have no Item hook to live in (see ForgeweaveTraits).
-        NeoForge.EVENT_BUS.addListener(ForgeweaveTraits::onIncomingDamage);
+        // #150 -- the shared per-hit pipeline (ADR-0005 decision 3): pre-hit, on-hit and post-kill
+        // for every blow struck with a Forgeweave tool, and the only place combat innates and combat
+        // modifiers attach. See CombatSeams for which NeoForge event drives which hook.
+        NeoForge.EVENT_BUS.addListener(CombatSeams::onIncomingDamage);
+        NeoForge.EVENT_BUS.addListener(CombatSeams::onDamageDealt);
+        NeoForge.EVENT_BUS.addListener(CombatSeams::onDeath);
+        // Providers register here, not in their own static initializers, so the order the pipeline
+        // runs them in is visible in one place. Materials' traits are first (see COMBAT_SEAM); M3's
+        // per-tool innates and combat modifiers add theirs below as they land.
+        CombatSeams.register((weapon, out) -> out.accept(ForgeweaveTraits.COMBAT_SEAM));
         // established's kill-XP bonus (issue #102): no Item hook for a kill's dropped XP either.
         NeoForge.EVENT_BUS.addListener(ForgeweaveTraits::onExperienceDrop);
         // #103 -- netherite's fireproof: a dropped ItemEntity's fire immunity has no per-stack Item
