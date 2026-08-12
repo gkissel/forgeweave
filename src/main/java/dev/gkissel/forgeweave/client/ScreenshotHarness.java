@@ -194,6 +194,8 @@ public final class ScreenshotHarness {
     private static final int CASTING_SCENE_CAMERA_HEIGHT = 3;
     /** Molten iron poured into the mid-pour table, out of the 144 mB an ingot cast wants. */
     private static final int CASTING_SCENE_PARTIAL_POUR = 72;
+    /** {@code shovel_head_iron.json}: what the still-pouring table's cast wants, and #204's denominator. */
+    private static final int CASTING_SCENE_PART_CAST_AMOUNT = 288;
 
     /**
      * Issue #155's six Tool Station weapons, one third-person held capture each. Listed rather than
@@ -716,6 +718,11 @@ public final class ScreenshotHarness {
         // of squinting at the PNG would tell a reviewer that apart from a renderer that ignores it.
         checkFaucet(mc, castingSceneStoppedFaucetPos, false);
         checkFaucet(mc, castingSceneFlowingFaucetPos, true);
+        // #204, same reasoning: the fifth table is still being poured into, so what the client has to
+        // hold is a real *fraction* -- the capacity is the recipe's 288 mB however little has arrived
+        // so far. A table reading N/N mid-pour draws itself 100% full, and a PNG of a one-pixel-deep
+        // pool cannot tell a reviewer 204/288 from 204/204.
+        checkPartCastFill(mc, castingScenePositions == null ? null : castingScenePositions[4]);
         capture(mc, "casting_world");
         advance(Stage.HOLD_WEAPON);
     }
@@ -820,6 +827,25 @@ public final class ScreenshotHarness {
             LOGGER.error("{}#200 scene check FAILED: faucet at {} is pouring={} on the client, expected {} -- "
                     + "the capture cannot show the right thing no matter what the renderer does",
                     LOG_PREFIX, pos, faucet.isPouring(), expectPouring);
+        }
+    }
+
+    /** #204: the mid-pour part-cast table must read a fraction of its recipe's amount, never N/N. */
+    private static void checkPartCastFill(Minecraft mc, @Nullable BlockPos pos) {
+        if (mc.level == null || pos == null) {
+            return;
+        }
+        if (!(mc.level.getBlockEntity(pos) instanceof CastingBlockEntity casting)) {
+            return; // Already reported by the loop above.
+        }
+        int amount = casting.tank().getFluidAmount();
+        int capacity = casting.tank().getCapacity();
+        LOGGER.info("{}#204 scene check: client sees the part-cast table at {} at {}/{} mB (expected a fraction of {})",
+                LOG_PREFIX, pos, amount, capacity, CASTING_SCENE_PART_CAST_AMOUNT);
+        if (capacity != CASTING_SCENE_PART_CAST_AMOUNT || amount <= 0 || amount >= capacity) {
+            LOGGER.error("{}#204 scene check FAILED: the part-cast table at {} reads {}/{} mB on the client, "
+                    + "expected a partial pour out of {} -- it will render as a full table",
+                    LOG_PREFIX, pos, amount, capacity, CASTING_SCENE_PART_CAST_AMOUNT);
         }
     }
 

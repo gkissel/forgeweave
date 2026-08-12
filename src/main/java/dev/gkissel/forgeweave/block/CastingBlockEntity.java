@@ -210,15 +210,21 @@ public class CastingBlockEntity extends BlockEntity {
         input = tag.contains(TAG_INPUT) ? ItemStack.parseOptional(registries, tag.getCompound(TAG_INPUT)) : ItemStack.EMPTY;
         output = tag.contains(TAG_OUTPUT) ? ItemStack.parseOptional(registries, tag.getCompound(TAG_OUTPUT)) : ItemStack.EMPTY;
         tank.readFromNBT(registries, tag.getCompound(TAG_TANK));
-        // FluidTank's own NBT carries no capacity, and there is no level here to resolve the recipe
-        // that knows it (see the fill comment below), so this is a placeholder onLoad corrects.
-        tank.setCapacity(tank.getFluidAmount());
+        // FluidTank's own NBT carries no capacity, so the capacity the renderer draws its fill
+        // fraction against is re-derived here, from the recipe the fluid in the tank is being poured
+        // for. #204: doing it in onLoad alone was not enough. A block entity read from disk has no
+        // level yet and so no recipe registry (see the fill comment below), which is why onLoad
+        // exists -- but NeoForge defers onLoad to the end of the tick the block entity appeared in
+        // and never calls it again, while a client gets one of these loads per drop of an
+        // in-progress pour. Every drop after the first therefore left capacity pinned at the amount
+        // poured so far, i.e. a fill fraction of exactly 1: a mid-pour block rendered full.
+        tank.setCapacity(level == null ? tank.getFluidAmount() : recipeAmountFor(tank.getFluid().getFluid()));
     }
 
     /**
-     * Restores the capacity the renderer draws its fill fraction against, which only the in-progress
-     * recipe knows -- and resolving that recipe needs a level, which arrives after
-     * {@link #loadAdditional}. Casting logic itself no longer reads this value.
+     * Restores the capacity for the one load that could not derive it: a block entity read from disk
+     * is handed its level only after {@link #loadAdditional} has run. Casting logic itself no longer
+     * reads this value.
      */
     @Override
     public void onLoad() {
