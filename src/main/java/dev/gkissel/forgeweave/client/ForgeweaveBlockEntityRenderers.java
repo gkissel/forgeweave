@@ -17,6 +17,12 @@ public final class ForgeweaveBlockEntityRenderers {
         // One block entity type backs the tank, gauge and window (SearedTankBlockEntity's javadoc),
         // so one renderer registration covers all three.
         event.registerBlockEntityRenderer(ForgeweaveBlockEntities.SEARED_TANK.get(), SearedTankBlockEntityRenderer::new);
+        // #179: the molten pool inside a formed smeltery. One renderer per core tier because each
+        // tier is its own block entity type (SmelteryCore#blockEntityType).
+        event.registerBlockEntityRenderer(ForgeweaveBlockEntities.STANDARD_CORE.get(),
+                SmelteryControllerBlockEntityRenderer::new);
+        event.registerBlockEntityRenderer(ForgeweaveBlockEntities.NETHER_CORE.get(),
+                SmelteryControllerBlockEntityRenderer::new);
     }
 
     // #145's cutout render type moved to the block models themselves (ForgeweaveBlockStateProvider's
