@@ -1,0 +1,8 @@
+{
+  "modifier": "forgeweave:bane_of_arthropods",
+  "reagent": {
+    "item": "minecraft:fermented_spider_eye"
+  },
+  "cost": 1,
+  "max_level": 120
+}

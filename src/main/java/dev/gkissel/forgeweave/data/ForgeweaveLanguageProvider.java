@@ -356,6 +356,20 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("modifier.forgeweave.webbed.name", "Webbed");
         add("modifier.forgeweave.webbed.description", "Hits slow the target. Every level adds another second.");
 
+        // #162 batch: combat modifiers batch 1 (smite, bane of arthropods, fiery, necrotic), wording
+        // ported from upstream 1.12's modifier.<id>.name/.desc entries.
+        add("modifier.forgeweave.smite.name", "Smite");
+        add("modifier.forgeweave.smite.description", "Bonus damage against undead. Every 24 pieces is another level.");
+        add("modifier.forgeweave.bane_of_arthropods.name", "Bane of Arthropods");
+        add("modifier.forgeweave.bane_of_arthropods.description",
+                "Bonus damage against arthropods. Every 24 pieces is another level.");
+        add("modifier.forgeweave.fiery.name", "Fiery");
+        add("modifier.forgeweave.fiery.description",
+                "Sets targets on fire and deals bonus fire damage. Every 25 pieces is another level.");
+        add("modifier.forgeweave.necrotic.name", "Necrotic");
+        add("modifier.forgeweave.necrotic.description",
+                "Heals you for a portion of the damage you deal. Every level adds 10%.");
+
         // JEI recipe category titles (issue #11); only shown when JEI is installed, since the
         // integration is optional (neoforge.mods.toml).
         add("jei.category.forgeweave.part_crafting", "Part Crafting");

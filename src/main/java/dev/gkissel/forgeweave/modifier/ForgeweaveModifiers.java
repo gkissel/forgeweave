@@ -20,6 +20,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.tags.BlockTags;
+import net.minecraft.tags.EntityTypeTags;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.ExperienceOrb;
@@ -40,9 +41,12 @@ import net.neoforged.neoforge.event.entity.player.PlayerXpEvent;
 import net.neoforged.neoforge.event.level.BlockDropsEvent;
 
 import dev.gkissel.forgeweave.Forgeweave;
+import dev.gkissel.forgeweave.combat.BonusDamageVsSeam;
 import dev.gkissel.forgeweave.combat.CombatSeam;
 import dev.gkissel.forgeweave.combat.CombatSeams;
+import dev.gkissel.forgeweave.combat.IgniteOnHitSeam;
 import dev.gkissel.forgeweave.combat.KnockbackOnHitSeam;
+import dev.gkissel.forgeweave.combat.LifestealOnHitSeam;
 import dev.gkissel.forgeweave.combat.PotionEffectOnHitSeam;
 import dev.gkissel.forgeweave.item.ForgeweaveDataComponents;
 import dev.gkissel.forgeweave.item.ForgeweaveItems;
@@ -570,6 +574,112 @@ public final class ForgeweaveModifiers {
         }
     };
 
+    // ---------------------------------------------------------------- #162 batch (smite, bane of
+    // arthropods, fiery, necrotic), ported from tinkers-1.12 (NOTICE.md). Same shape as issue #163's
+    // batch above: no Modifier stat hook, since their effect needs the target entity a hit sees (bonus
+    // damage keyed on what was struck, an ignite/heal that happens to that entity) -- only
+    // Modifier#combatSeam, consumed by COMBAT_SEAMS above, has access to that.
+
+    /** Upstream {@code ModAntiMonsterType}: {@code countPerLevel} 24, both smite and bane share it. */
+    private static final int SMITE_BANE_UNITS_PER_LEVEL = 24;
+    /** Upstream {@code ModAntiMonsterType}: {@code dmgPerItem = 7f / countPerLevel}, i.e. +7 damage per completed level. */
+    private static final float SMITE_BANE_DAMAGE_PER_LEVEL = 7.0F;
+
+    /** Upstream {@code ModAntiMonsterType#calcIncreasedDamage}: raw application units * (7 / countPerLevel). */
+    static float smiteBaneBonusDamage(int units) {
+        return units * SMITE_BANE_DAMAGE_PER_LEVEL / SMITE_BANE_UNITS_PER_LEVEL;
+    }
+
+    /**
+     * Consecrated soil. Upstream {@code ModAntiMonsterType("smite", ..., 5, 24, UNDEAD)}: bonus damage
+     * against undead, +7 per level, 5 levels, via {@link BonusDamageVsSeam} keyed on 1.21's own
+     * {@code sensitive_to_smite} tag (what vanilla's own Smite enchantment keys off, in place of
+     * upstream's {@code EnumCreatureAttribute}). Upstream's consecrated soil reagent has no Forgeweave
+     * counterpart (M3 has no world-content milestone yet); substituted with glowstone dust -- a
+     * maintainer-pick deviation recorded in the PR, same idiom as issue #107's slime-crystal reagents.
+     */
+    public static final Modifier SMITE = new Modifier() {
+        @Override
+        public int unitsPerLevel() {
+            return SMITE_BANE_UNITS_PER_LEVEL;
+        }
+
+        @Override
+        public Optional<CombatSeam> combatSeam(int level) {
+            return Optional.of(new BonusDamageVsSeam(EntityTypeTags.SENSITIVE_TO_SMITE, smiteBaneBonusDamage(level)));
+        }
+    };
+
+    /**
+     * Fermented spider eye. Upstream {@code ModAntiMonsterType("bane_of_arthopods", ..., 5, 24,
+     * ARTHROPOD)}: same shape as {@link #SMITE}, keyed on {@code sensitive_to_bane_of_arthropods}
+     * instead. Reagent item is unchanged from upstream (a plain vanilla item, no substitution needed).
+     */
+    public static final Modifier BANE_OF_ARTHROPODS = new Modifier() {
+        @Override
+        public int unitsPerLevel() {
+            return SMITE_BANE_UNITS_PER_LEVEL;
+        }
+
+        @Override
+        public Optional<CombatSeam> combatSeam(int level) {
+            return Optional.of(new BonusDamageVsSeam(
+                    EntityTypeTags.SENSITIVE_TO_BANE_OF_ARTHROPODS, smiteBaneBonusDamage(level)));
+        }
+    };
+
+    /** Upstream {@code TinkerModifiers}: {@code new ModFiery()} -> {@code super("fiery", ..., 5, 25)}. */
+    private static final int FIERY_UNITS_PER_LEVEL = 25;
+
+    /** Upstream {@code ModFiery#getFireDamage}: raw application units / 15. */
+    static float fieryDamage(int units) {
+        return units / 15.0F;
+    }
+
+    /** Upstream {@code ModFiery#getFireDuration}: {@code 1 + units / 8} (integer division), in seconds. */
+    static int fieryDurationSeconds(int units) {
+        return 1 + units / 8;
+    }
+
+    /**
+     * Blaze powder. Upstream {@code ModFiery}: ignites the target and deals a small true-fire damage
+     * instance on hit ({@link IgniteOnHitSeam}), 5 levels. Reagent item is unchanged from upstream.
+     */
+    public static final Modifier FIERY = new Modifier() {
+        @Override
+        public int unitsPerLevel() {
+            return FIERY_UNITS_PER_LEVEL;
+        }
+
+        @Override
+        public Optional<CombatSeam> combatSeam(int level) {
+            return Optional.of(new IgniteOnHitSeam(fieryDurationSeconds(level), fieryDamage(level)));
+        }
+    };
+
+    /** Upstream {@code ModNecrotic#lifesteal}: {@code 0.10f * level}. */
+    private static final float NECROTIC_LIFESTEAL_PER_LEVEL = 0.10F;
+
+    /** Upstream {@code ModNecrotic#lifesteal}: {@code 0.10f * level} (raw units == display level here). */
+    static float necroticLifestealFraction(int level) {
+        return NECROTIC_LIFESTEAL_PER_LEVEL * level;
+    }
+
+    /**
+     * Wither skeleton skull. Upstream {@code ModNecrotic}: heals the attacker for a fraction of the
+     * damage dealt ({@link LifestealOnHitSeam}), 10% per level, 10 levels, one item per level
+     * ({@code unitsPerLevel} left at its default of 1, upstream's {@code LevelAspect} rather than a
+     * {@code MultiAspect}). Upstream's reagent ({@code boneWithered}, a Tinkers-only crafting item with
+     * no drop source) has no Forgeweave counterpart; substituted with the vanilla wither skeleton skull
+     * -- a maintainer-pick deviation recorded in the PR, same idiom as smite's.
+     */
+    public static final Modifier NECROTIC = new Modifier() {
+        @Override
+        public Optional<CombatSeam> combatSeam(int level) {
+            return Optional.of(new LifestealOnHitSeam(necroticLifestealFraction(level)));
+        }
+    };
+
     private static final Map<ResourceLocation, Modifier> REGISTRY = Map.ofEntries(
             Map.entry(id("haste"), HASTE),
             Map.entry(id("searing"), SEARING),
@@ -588,7 +698,11 @@ public final class ForgeweaveModifiers {
             Map.entry(id("emerald"), EMERALD),
             Map.entry(id("knockback"), KNOCKBACK),
             Map.entry(id("shulking"), SHULKING),
-            Map.entry(id("webbed"), WEBBED));
+            Map.entry(id("webbed"), WEBBED),
+            Map.entry(id("smite"), SMITE),
+            Map.entry(id("bane_of_arthropods"), BANE_OF_ARTHROPODS),
+            Map.entry(id("fiery"), FIERY),
+            Map.entry(id("necrotic"), NECROTIC));
 
     /**
      * The behavior for {@code id}, or {@code null} if this version doesn't implement it.
