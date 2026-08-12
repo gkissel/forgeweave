@@ -84,7 +84,7 @@ public class CombatGameTests {
     public static void seamsFireExactlyOncePerHitAndPerKill(GameTestHelper helper) {
         BlockPos pos = new BlockPos(1, 1, 1);
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
-        ItemStack hatchet = ToolAssembly.toolAtForge(helper, player, pos, ForgeweaveItems.PART_AXE_HEAD.get(),
+        ItemStack hatchet = ToolAssembly.tool(helper, player, pos, ForgeweaveItems.PART_AXE_HEAD.get(),
                 "stone", "wood", "wood");
         player.setItemInHand(InteractionHand.MAIN_HAND, hatchet);
         Pig target = helper.spawn(EntityType.PIG, new BlockPos(2, 2, 2));
@@ -113,7 +113,7 @@ public class CombatGameTests {
     /** Assembles {@code headPart} from stone/wood/wood and checks both attack attributes on it. */
     private static void assertAttackAttributes(GameTestHelper helper, Player player, BlockPos pos, Item headPart,
             String name, double expectedDamage, double expectedAttackSpeed) {
-        ItemStack tool = ToolAssembly.toolAtForge(helper, player, pos, headPart, "stone", "wood", "wood");
+        ItemStack tool = ToolAssembly.tool(helper, player, pos, headPart, "stone", "wood", "wood");
 
         double damage = modifier(tool, Attributes.ATTACK_DAMAGE.getKey(), name);
         helper.assertTrue(Math.abs(damage - expectedDamage) < 0.001,

@@ -167,7 +167,23 @@ public final class ToolStationTabs {
             // #158. Upstream's cleaver has no ToolBuildGuiInfo row either (it is Tool Forge-only, and
             // its client proxy registers none), so this is Forgeweave's: haft down-left, the big blade
             // up-right with the plate behind it, the second rod at the pommel.
-            build(ForgeweaveItems.TOOL_CLEAVER, at(-18, 18), at(14, -16), at(-4, -4), at(18, 10)));
+            build(ForgeweaveItems.TOOL_CLEAVER, at(-18, 18), at(14, -16), at(-4, -4), at(18, 10)),
+            // #157's five large harvest tools. Positions are upstream's own
+            // HarvestClientProxy#registerToolBuildInfo layouts verbatim (NOTICE.md), listed here in
+            // each tool's ToolConstants part order rather than upstream's -- the numbers are the same
+            // numbers, attached to the same parts.
+            build(ForgeweaveItems.TOOL_HAMMER,      // handle, hammer head, plate, plate
+                    at(-12, 10), at(11, -13), at(24, 6), at(-8, -26)),
+            build(ForgeweaveItems.TOOL_EXCAVATOR,   // handle, excavator head, plate, binding
+                    at(-8, 4), at(12, -16), at(-8, -16), at(-26, 20)),
+            build(ForgeweaveItems.TOOL_LUMBERAXE,   // handle, broad axe head, plate, binding
+                    at(-1, 4), at(0, -20), at(20, -4), at(-20, 20)),
+            build(ForgeweaveItems.TOOL_SCYTHE,      // handle, scythe head, binding, second handle
+                    at(-16, 12), at(3, -23), at(23, -13), at(4, 5)),
+            // No upstream layout (no 1.12 vein hammer): the hammer's, since it is the same silhouette
+            // of parts. Its own order is head, handle, binding, plate.
+            build(ForgeweaveItems.TOOL_VEIN_HAMMER,
+                    at(11, -13), at(-12, 10), at(24, 6), at(-8, -26)));
 
     /** The repair tab, which is what a freshly opened station shows (as upstream's does). */
     public static final int REPAIR = 0;

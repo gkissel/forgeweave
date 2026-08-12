@@ -137,7 +137,9 @@ public class ToolInnateGameTests {
     public static void sunderAddsBonusDamageAndDisablesAnActiveShield(GameTestHelper helper) {
         BlockPos pos = new BlockPos(1, 1, 1);
         Player attacker = helper.makeMockPlayer(GameType.SURVIVAL);
-        ItemStack hatchet = ToolAssembly.toolAtForge(helper, attacker, pos, ForgeweaveItems.PART_AXE_HEAD.get(),
+        // A Tool Station, not a Tool Forge: issue #157 replaced #152's synthetic "the hatchet is a
+        // large tool" fixture with the five real large tools, so the hatchet builds at the station again.
+        ItemStack hatchet = ToolAssembly.tool(helper, attacker, pos, ForgeweaveItems.PART_AXE_HEAD.get(),
                 "stone", "wood", "wood");
         attacker.setItemInHand(InteractionHand.MAIN_HAND, hatchet);
 

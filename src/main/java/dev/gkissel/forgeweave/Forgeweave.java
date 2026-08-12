@@ -47,6 +47,7 @@ import dev.gkissel.forgeweave.recipe.AlloyRecipe; // #98
 import dev.gkissel.forgeweave.recipe.ForgeweaveRecipeSerializers;
 import dev.gkissel.forgeweave.recipe.MeltingRecipe;
 import dev.gkissel.forgeweave.recipe.SmelteryFuel;
+import dev.gkissel.forgeweave.tool.AoeHarvest;
 import dev.gkissel.forgeweave.trait.ForgeweaveTraits;
 
 // The value here must match the modId in META-INF/neoforge.mods.toml.
@@ -112,6 +113,10 @@ public class Forgeweave {
         // it rolls on is the cleaver's innate plus the applied modifier summed into one roll, and a
         // per-entry seam sees neither the innate nor an unmodified cleaver. See Beheading.
         CombatSeams.register(Beheading::collect);
+        // #157 -- area mining (hammer/excavator 3x3, lumber axe tree fell, scythe 3x3x3, vein hammer
+        // vein). NeoForge 1.21 dropped the per-item onBlockStartBreak hook upstream 1.12 uses, so
+        // this is the one break event every player break goes through -- see AoeHarvest.
+        NeoForge.EVENT_BUS.addListener(AoeHarvest::onBlockBreak);
         // established's kill-XP bonus (issue #102): no Item hook for a kill's dropped XP either.
         NeoForge.EVENT_BUS.addListener(ForgeweaveTraits::onExperienceDrop);
         // #103 -- netherite's fireproof: a dropped ItemEntity's fire immunity has no per-stack Item

@@ -348,6 +348,7 @@ public class ToolStationScreen extends StationScreen<ToolStationMenu> implements
         return lines;
     }
 
+
     @Nullable
     private HolderLookup.Provider registries() {
         return minecraft == null || minecraft.level == null ? null : minecraft.level.registryAccess();

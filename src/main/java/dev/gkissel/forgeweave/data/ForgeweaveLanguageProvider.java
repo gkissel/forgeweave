@@ -217,6 +217,14 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         addItem(ForgeweaveItems.TOOL_KATANA, "Katana");
         addItem(ForgeweaveItems.TOOL_CLEAVER, "Cleaver"); // #158
 
+        // The large harvest tools (docs/SCOPE.md M3 issue #157), names ported from upstream 1.12's
+        // item.<tool>.name entries; "Vein Hammer" is this repository's own wording (no 1.12 tool).
+        addItem(ForgeweaveItems.TOOL_HAMMER, "Hammer");
+        addItem(ForgeweaveItems.TOOL_EXCAVATOR, "Excavator");
+        addItem(ForgeweaveItems.TOOL_LUMBERAXE, "Lumber Axe");
+        addItem(ForgeweaveItems.TOOL_SCYTHE, "Scythe");
+        addItem(ForgeweaveItems.TOOL_VEIN_HAMMER, "Vein Hammer");
+
         addItem(ForgeweaveItems.SEARED_BRICK, "Seared Brick");
 
         // #107 batch: modifier reagent items (docs/SCOPE.md M2 issue #107), names ported from upstream
@@ -264,6 +272,11 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("item.forgeweave.katana.description",
                 "A long, single-edged blade. Every blow that lands makes the next one hit harder, "
                         + "until you stop swinging.");
+        add("item.forgeweave.hammer.description", "Breaks a 3x3 of stone at once, slowly. Leaves what it hits reeling.");
+        add("item.forgeweave.excavator.description", "Moves a 3x3 of earth at a time, and knocks anything in the way flat.");
+        add("item.forgeweave.lumberaxe.description", "Fells a whole tree in one swing, and hits hardest on the first blow.");
+        add("item.forgeweave.scythe.description", "Reaps a 3x3x3 of crops and replants them, and cuts everything around what it strikes.");
+        add("item.forgeweave.vein_hammer.description", "Follows an ore vein through the stone, and shrugs armor aside.");
 
         // The stations' information panels (issue #47).
         add("gui.forgeweave.tool_station.name", "Tool name");
@@ -333,6 +346,20 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("tooltip.forgeweave.innate.lacerate.name", "Lacerate");
         add("tooltip.forgeweave.innate.lacerate.description",
                 "Hits open a bleeding wound that keeps dealing damage. Fresh cuts stack on top of it.");
+
+        // The large harvest tools' innates (issue #157, maintainer decision 2026-08-12), same shape.
+        add("tooltip.forgeweave.innate.concussion.name", "Concussion");
+        add("tooltip.forgeweave.innate.concussion.description", "Hits sometimes leave the target badly slowed.");
+        add("tooltip.forgeweave.innate.flat_smack.name", "Flat Smack");
+        add("tooltip.forgeweave.innate.flat_smack.description", "Every hit knocks the target further back.");
+        add("tooltip.forgeweave.innate.timber.name", "Timber");
+        add("tooltip.forgeweave.innate.timber.description", "Deals bonus damage to a target that is still unhurt.");
+        // "Sweep", not the issue's "Reap": the kama already shipped an innate under that id
+        // (issue #156) and an innate's id is its lang key. Behavior and magnitude are unchanged.
+        add("tooltip.forgeweave.innate.sweep.name", "Sweep");
+        add("tooltip.forgeweave.innate.sweep.description", "The blow carries to everything around the target.");
+        add("tooltip.forgeweave.innate.crushing_blow.name", "Crushing Blow");
+        add("tooltip.forgeweave.innate.crushing_blow.description", "Knocks armored targets back harder.");
 
         // Tool tier names (issue #65), keyed off the vanilla incorrect_for_<tier>_tool block tag each
         // material's incorrect_for_tool points at (ToolTooltip#tierName) -- only the tiers M1's

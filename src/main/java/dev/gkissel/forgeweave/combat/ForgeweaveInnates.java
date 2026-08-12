@@ -1,7 +1,9 @@
 package dev.gkissel.forgeweave.combat;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.function.Consumer;
+import java.util.function.Supplier;
 
 import org.jetbrains.annotations.Nullable;
 
@@ -20,6 +22,7 @@ import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.projectile.Projectile;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.UseAnim;
 import net.minecraft.world.phys.Vec3;
@@ -35,6 +38,18 @@ import dev.gkissel.forgeweave.item.ToolItem;
  * weapons' and the {@link Innate} record that carries them.
  *
  * <p>Two ways in, because the two batches bind differently and both are legitimate:
+ * Every tool's combat innate (maintainer directive 2026-08-12: every tool carries one) -- the M1
+ * retrofit's pickaxe pierce, shovel flatten and hatchet sunder (docs/SCOPE.md M3 issue #164), plus
+ * the five large harvest tools' riders (issue #157). Attached the same way materials' traits are
+ * ({@code ForgeweaveTraits#COMBAT_SEAM}): one {@link CombatSeams.Provider}, registered once in
+ * {@code Forgeweave}, keyed on which tool {@code Item} the stack actually is rather than on any data
+ * the stack carries -- these are fixed per-tool-type behavior, not per-material like traits.
+ *
+ * <p>Each innate is a small parameterized behavior class, or a composition of two through
+ * {@link ConditionalSeam} (ADR-0004's M6 library candidates: {@link FlatArmorPiercingDamage},
+ * {@link PotionEffectOnHit}, {@link BonusDamageVsBlocking}, {@link BonusDamageFraction},
+ * {@link KnockbackOnHitSeam}, {@link SweepAttackSeam}), so a future datapack-driven version of this
+ * table needs only new JSON, no Java change to any of them.
  *
  * <ul>
  *   <li>M1's three are keyed on which {@code Item} the stack is ({@link #collect}), because those
@@ -184,6 +199,20 @@ public final class ForgeweaveInnates {
     /** Maintainer decision, issue #164 (2026-08-12): 20% bonus damage vs a blocking target. */
     private static final float SUNDER_BONUS_DAMAGE_FRACTION = 0.2F;
 
+    /** Maintainer decision, issue #157 (2026-08-12): 20% chance of Slowness II for 1s. */
+    private static final float CONCUSSION_CHANCE = 0.2F;
+    private static final int CONCUSSION_DURATION_TICKS = 20;
+    /**
+     * Maintainer decision, issue #157: "+1 flat knockback", i.e. one Knockback-enchantment level.
+     * Vanilla's {@code Player#attack} turns each level into {@code knockback(level * 0.5)}, which is
+     * the same unit {@link KnockbackOnHitSeam#magnitude} takes.
+     */
+    private static final float KNOCKBACK_LEVEL = 0.5F;
+    /** Maintainer decision, issue #157: +15% damage against a target that has lost no health. */
+    private static final float TIMBER_BONUS_DAMAGE_FRACTION = 0.15F;
+    /** Upstream's own scythe sweep covers the same 3x3x3 its harvest does, i.e. {@code (3 - 1) / 2}. */
+    private static final float SCYTHE_SWEEP_RADIUS = 1.0F;
+
     /** Pickaxe. */
     public static final CombatSeam PIERCE = new FlatArmorPiercingDamage(PIERCE_DAMAGE);
     /** Shovel. */
@@ -223,6 +252,37 @@ public final class ForgeweaveInnates {
      */
     public static final Innate DAMAGE_RAMP = new Innate("damage_ramp", DamageRamp.KATANA, null);
 
+    // ---------------------------------------------------- the five large harvest tools (#157)
+
+    /** Hammer: a chance to leave what it hits reeling. */
+    public static final CombatSeam CONCUSSION_SEAM = new ConditionalSeam(HitCondition.ANY, CONCUSSION_CHANCE,
+            new PotionEffectOnHit(MobEffects.MOVEMENT_SLOWDOWN, 1, CONCUSSION_DURATION_TICKS));
+    public static final Innate CONCUSSION = new Innate("concussion", CONCUSSION_SEAM, null);
+
+    /** Excavator: everything it hits goes one Knockback level further. */
+    public static final CombatSeam FLAT_SMACK_SEAM = new KnockbackOnHitSeam(KNOCKBACK_LEVEL);
+    public static final Innate FLAT_SMACK = new Innate("flat_smack", FLAT_SMACK_SEAM, null);
+
+    /** Lumber axe: the first blow is the big one. */
+    public static final CombatSeam TIMBER_SEAM = new ConditionalSeam(HitCondition.FULL_HEALTH, 1.0F,
+            new BonusDamageFraction(TIMBER_BONUS_DAMAGE_FRACTION));
+    public static final Innate TIMBER = new Innate("timber", TIMBER_SEAM, null);
+
+    /**
+     * Scythe: the area attack that is the point of a scythe (upstream {@code Scythe#onLeftClickEntity}).
+     *
+     * <p>Called "sweep" rather than the issue's "reap" only because the kama already shipped an innate
+     * under that name (issue #156, a finishing-damage bonus) and an innate's id is its lang key -- two
+     * different behaviors cannot share one. The behavior and its magnitude are unchanged.
+     */
+    public static final CombatSeam SWEEP_SEAM = new SweepAttackSeam(SCYTHE_SWEEP_RADIUS);
+    public static final Innate SWEEP = new Innate("sweep", SWEEP_SEAM, null);
+
+    /** Vein hammer: armor is what it is for. */
+    public static final CombatSeam CRUSHING_BLOW_SEAM = new ConditionalSeam(HitCondition.ARMORED, 1.0F,
+            new KnockbackOnHitSeam(KNOCKBACK_LEVEL));
+    public static final Innate CRUSHING_BLOW = new Innate("crushing_blow", CRUSHING_BLOW_SEAM, null);
+
     // ------------------------------------------------------------------ lookup
 
     /** The innate this stack's tool carries, or {@code null} -- the M3 binding (issue #155). */
@@ -261,9 +321,9 @@ public final class ForgeweaveInnates {
         if (stack.is(ForgeweaveItems.TOOL_HATCHET.get())) {
             return Optional.of(id("sunder"));
         }
-        // #158 -- the cleaver's innate beheading. Named here but deliberately carried as no
-        // {@link Innate} seam at all: its levels are summed with the applied beheading modifier's
-        // into one roll by {@code Beheading}'s own provider, so a seam here would roll it twice.
+        // #158 -- the cleaver's innate beheading. Named here but deliberately carried as no Innate
+        // seam at all: its levels are summed with the applied beheading modifier's into one roll by
+        // Beheading's own provider, so a seam here would roll it twice.
         if (stack.is(ForgeweaveItems.TOOL_CLEAVER.get())) {
             return Optional.of(id("beheading"));
         }

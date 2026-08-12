@@ -69,26 +69,24 @@ public class ForgeweaveItemTagsProvider extends ItemTagsProvider {
         tag("storage_blocks").addTag(storageBlock("cobalt")).addTag(storageBlock("ardite"))
                 .addTag(storageBlock("manyullyn")).addTag(storageBlock("rose_gold"));
 
-        // #152 -- the "large tool" classification: tools only the Tool Forge can assemble. Ships with
-        // no members of its own, because no M1/M2 tool is large; M3's tool issues (#157-#161) add
-        // `.add(ForgeweaveItems.TOOL_HAMMER.get())` and friends here and inherit the gate with no
-        // code change. See ToolAssemblyRecipes#LARGE_TOOLS.
+        // #152 -- the "large tool" classification: tools only the Tool Forge can assemble. See
+        // ToolAssemblyRecipes#LARGE_TOOLS, which is the whole gate: a tool issue adds its row here and
+        // inherits it with no code change.
         //
-        // The one entry is an optional reference to a tag only the GameTest datapack defines
-        // (src/gametest/resources): #152 has to prove its gate before M3 has a large tool to gate, and
-        // a fixture that redefined *this* file instead would collide with it -- src/generated and
-        // src/gametest are the same resource root, so the two would be duplicate entries rather than
-        // merged tags. An optional reference to a tag nothing defines is an empty set, so a shipped
-        // jar (which excludes the fixture) sees exactly what it would have seen with no entry at all.
-        // #157 can drop this line along with the fixture.
-        //
-        // #161 adds the first real member: the warmace is Tool Forge tier (docs/SCOPE.md M3), and
-        // #158's cleaver is the second -- upstream registers it through
-        // TinkerRegistry.registerToolForgeCrafting, i.e. Tool Forge only.
+        // #152 shipped this tag empty, with an optional reference to a tag only the GameTest datapack
+        // defined, because it had to prove the gate before M3 had anything to gate. #157 fills it with
+        // the five real large harvest tools and drops that fixture, so the reference goes too --
+        // ToolForgeGameTests now proves the gate against a real hammer. The Tool Forge tier's other
+        // two, #161's warmace and #158's cleaver, are here for the same reason upstream registers
+        // them through TinkerRegistry.registerToolForgeCrafting rather than registerToolCrafting.
         tag(ToolAssemblyRecipes.LARGE_TOOLS)
                 .add(ForgeweaveItems.TOOL_WARMACE.get())
                 .add(ForgeweaveItems.TOOL_CLEAVER.get())
-                .addOptionalTag(ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "gametest_large_tools"));
+                .add(ForgeweaveItems.TOOL_HAMMER.get())
+                .add(ForgeweaveItems.TOOL_EXCAVATOR.get())
+                .add(ForgeweaveItems.TOOL_LUMBERAXE.get())
+                .add(ForgeweaveItems.TOOL_SCYTHE.get())
+                .add(ForgeweaveItems.TOOL_VEIN_HAMMER.get());
 
         // #152 -- what a Tool Forge can be crafted from. Upstream 1.12 keeps this as an ore-dict list
         // on BlockToolForge#baseBlocks, filled from TinkerIntegration's `.toolforge()` calls: iron,

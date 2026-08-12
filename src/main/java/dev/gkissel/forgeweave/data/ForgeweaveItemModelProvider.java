@@ -147,6 +147,11 @@ public class ForgeweaveItemModelProvider extends ItemModelProvider {
         // the scimitar's three are freshly authored and live under textures/tools/ rather than
         // derived/tools/, which ToolArt#ORIGINAL_ART is what decides (no NOTICE.md rows).
 
+        // #157's five large harvest tools come out of the same loop. Their layer names are the
+        // role-derived ones ToolArt#layers produces, mapped from upstream's own layerN-draws-partN
+        // convention: the hammer's back/front plates are its second and third HEAD slots, the
+        // scythe's "accessory" is its second HANDLE. NOTICE.md carries a row per file.
+
         // Modifier reagents (docs/SCOPE.md M2 issue #107), each a straight upstream texture port
         // (NOTICE.md): moss.png, mending_moss.png, reinforcement.png, silky_cloth.png, silky_jewel.png
         // and -- for the extra-slot item -- skull_char_gold.png, which is what upstream's own

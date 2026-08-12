@@ -1,5 +1,7 @@
 package dev.gkissel.forgeweave.jei;
 
+import java.util.List;
+
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.ItemStack;
@@ -70,6 +72,6 @@ final class AssemblyCategory implements IRecipeCategory<AssemblyRecipe> {
 
     @Override
     public void draw(AssemblyRecipe recipe, IRecipeSlotsView recipeSlotsView, GuiGraphics guiGraphics, double mouseX, double mouseY) {
-        arrow.draw(guiGraphics, 22, (HEIGHT - arrow.getHeight()) / 2);
+        arrow.draw(guiGraphics, 2 * SLOT_PITCH + 2, (HEIGHT - arrow.getHeight()) / 2);
     }
 }

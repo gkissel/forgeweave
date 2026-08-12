@@ -17,6 +17,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.neoforge.common.IShearable;
 
 import dev.gkissel.forgeweave.combat.ForgeweaveInnates;
+import dev.gkissel.forgeweave.tool.CropHarvest;
 import dev.gkissel.forgeweave.tool.ToolConstants;
 
 /**
@@ -64,31 +65,12 @@ public class KamaItem extends ToolItem {
         return InteractionResult.sidedSuccess(isClient);
     }
 
-    /** Harvests and replants a mature crop under the cursor; see the class javadoc and {@link CropHarvest}. */
+    /**
+     * Harvests and replants the mature crop under the cursor. The rules are {@link CropHarvest}'s --
+     * shared with the scythe (issue #157), whose 3x3x3 harvest is the same port over more blocks.
+     */
     @Override
     public InteractionResult useOn(UseOnContext context) {
-        ItemStack stack = context.getItemInHand();
-        if (isBroken(stack)) {
-            return InteractionResult.PASS;
-        }
-        Level level = context.getLevel();
-        BlockState state = level.getBlockState(context.getClickedPos());
-        if (!CropHarvest.canHarvest(level, context.getClickedPos(), state)) {
-            return InteractionResult.PASS;
-        }
-        Player player = context.getPlayer();
-        if (level instanceof ServerLevel serverLevel) {
-            if (!CropHarvest.harvestAndReplant(serverLevel, context.getClickedPos())) {
-                return InteractionResult.PASS;
-            }
-            if (player != null) {
-                stack.hurtAndBreak(1, player, LivingEntity.getSlotForHand(context.getHand()));
-            }
-            level.playSound(null, player == null ? context.getClickedPos().getX() : player.getX(),
-                    player == null ? context.getClickedPos().getY() : player.getY(),
-                    player == null ? context.getClickedPos().getZ() : player.getZ(),
-                    SoundEvents.PLAYER_ATTACK_SWEEP, SoundSource.PLAYERS, 1.0F, 1.0F);
-        }
-        return InteractionResult.sidedSuccess(level.isClientSide);
+        return isBroken(context.getItemInHand()) ? InteractionResult.PASS : CropHarvest.harvestAt(context);
     }
 }

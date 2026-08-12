@@ -2,6 +2,7 @@ package dev.gkissel.forgeweave.gametest;
 
 import java.util.List;
 
+
 import net.minecraft.core.BlockPos;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.resources.ResourceLocation;
@@ -44,9 +45,8 @@ final class ToolAssembly {
 
     /**
      * As {@link #tool}, but assembled at a Tool Forge. For tests whose tool is caught by issue
-     * #152's large-tool gate fixture (the GameTest datapack marks the hatchet as a synthetic large
-     * tool, which the Tool Station rightly refuses); the Forge assembles everything. Repair-math
-     * tests must NOT use this -- the Forge's 5% repair discount would shift their expectations.
+     * #152's large-tool gate; the Forge assembles everything. Repair-math tests must NOT use this --
+     * the Forge's 5% repair discount would shift their expectations.
      */
     static ItemStack toolAtForge(GameTestHelper helper, Player player, BlockPos pos, Item headPart, String headMaterial, String bindingMaterial, String handleMaterial) {
         return assemble(helper, player, pos, ForgeweaveBlocks.TOOL_FORGE.get(), entryTaking(headPart),
