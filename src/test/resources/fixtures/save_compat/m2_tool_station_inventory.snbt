@@ -1,0 +1,98 @@
+{
+    block: "forgeweave:tool_station",
+    decoder: "block_entity",
+    expect: {
+        id: "forgeweave:tool_station",
+        inventory: [
+            {
+                components: {
+                    "forgeweave:material": "forgeweave:iron"
+                },
+                count: 1,
+                id: "forgeweave:pickaxe_head"
+            },
+            {
+                components: {
+                    "forgeweave:material": "forgeweave:wood"
+                },
+                count: 1,
+                id: "forgeweave:tool_binding"
+            },
+            {
+                components: {
+                    "forgeweave:material": "forgeweave:stone"
+                },
+                count: 1,
+                id: "forgeweave:tool_handle"
+            },
+            {
+                components: {
+                    "forgeweave:tool_materials": {
+                        binding: "forgeweave:wood",
+                        handle: "forgeweave:stone",
+                        head: "forgeweave:iron",
+                        parts: [
+                            "forgeweave:iron",
+                            "forgeweave:wood",
+                            "forgeweave:stone"
+                        ]
+                    },
+                    "forgeweave:tool_stats": {
+                        attack_damage: 4.0f,
+                        durability: 261,
+                        mining_speed: 6.0f
+                    },
+                    "minecraft:max_damage": 261
+                },
+                count: 1,
+                id: "forgeweave:pickaxe"
+            }
+        ],
+        texture: "minecraft:spruce_planks"
+    },
+    nbt: {
+        id: "forgeweave:tool_station",
+        inventory: [
+            {
+                components: {
+                    "forgeweave:material": "forgeweave:iron"
+                },
+                count: 1,
+                id: "forgeweave:pickaxe_head"
+            },
+            {
+                components: {
+                    "forgeweave:material": "forgeweave:wood"
+                },
+                count: 1,
+                id: "forgeweave:tool_binding"
+            },
+            {
+                components: {
+                    "forgeweave:material": "forgeweave:stone"
+                },
+                count: 1,
+                id: "forgeweave:tool_handle"
+            },
+            {
+                components: {
+                    "forgeweave:tool_materials": {
+                        binding: "forgeweave:wood",
+                        handle: "forgeweave:stone",
+                        head: "forgeweave:iron"
+                    },
+                    "forgeweave:tool_stats": {
+                        attack_damage: 4.0f,
+                        durability: 261,
+                        mining_speed: 6.0f
+                    },
+                    "minecraft:max_damage": 261
+                },
+                count: 1,
+                id: "forgeweave:pickaxe"
+            }
+        ],
+        texture: "minecraft:spruce_planks"
+    },
+    what: "M2 (#39, #43): a Tool Station left loaded -- three parts staged and the assembled pickaxe still sitting in the output slot -- saved when the container was four slots wide. #152 grew it to six for the Tool Forge's large tools (three inputs became five, and the output moved from index 3 to index 5), and this is what proves that growth is additive rather than a save break: all four stacks come back, in order, and the nested pickaxe's pre-#196 `tool_materials` gets its `parts` list rebuilt on the way (the migration reaches items inside a container, not just items in a hand). Two things worth knowing about the shape: SimpleContainer's list is positionless -- entries are written in slot order and read back with `addItem`, so an empty slot compacts rather than being preserved -- and because of that the pickaxe reloads into index 3, which is now an input slot rather than the output. It is handed back to the player by ToolStationMenu#returnUnusableInputs on the first tab that does not use that slot; visible relocation, no loss. Also the only fixture carrying a part item's `forgeweave:material` component and a station's crafted-from `texture`."
+}

@@ -72,9 +72,18 @@ import net.minecraft.world.level.block.entity.BlockEntity;
  *       {@code what}/{@code decoder}/{@code expect}, and delete the scratch test.
  * </ol>
  *
- * <p>No test code changes: {@link #corpus()} walks the directory. Follow-ups already queued -- #96
- * (smeltery melt state and fuel) and #101 (the ordered multi-fluid smeltery tank) each add one more
- * file next to the #95 smeltery entry once they merge.
+ * <p>No test code changes: {@link #corpus()} walks the directory.
+ *
+ * <h2>What the corpus is required to cover</h2>
+ *
+ * <p>Issue #167 audited it against every format M3 shipped and made that the standing rule: a PR that
+ * adds a persistent data component, or changes a block entity's saved tag, adds a fixture in the same
+ * PR. The audit's own additions were the four tool components nothing had reached
+ * ({@code broken}, {@code mending_moss_xp}, and the two trait-stack counters), the faucet -- the only
+ * M3 block entity whose tag shape actually moved (#200, #207) -- the Tool Station's inventory across
+ * #152's four-to-six slot growth, the post-#196 {@code parts} list in both its four-part and its
+ * absent-and-reconstructed forms, and the three M3 tool formats decoding together on one stack rather
+ * than one per file.
  */
 class SaveCompatCorpusTest {
 
@@ -95,8 +104,9 @@ class SaveCompatCorpusTest {
         assertNotNull(dir, "the corpus directory is missing from the test resources");
         try (Stream<Path> files = Files.list(Path.of(dir.toURI()))) {
             List<Path> snbt = files.filter(path -> path.toString().endsWith(".snbt")).sorted().toList();
-            assertTrue(snbt.size() >= 6,
-                    "four M2 fixtures plus #101's tank and #154's embossment; something dropped fixtures");
+            assertTrue(snbt.size() >= 11,
+                    "the M2 four, #101's tank, #154's embossment, #160's ramp and #167's audit five; "
+                            + "something dropped fixtures");
             return snbt.stream();
         }
     }

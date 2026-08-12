@@ -1,0 +1,22 @@
+{
+    block: "forgeweave:faucet",
+    decoder: "block_entity",
+    expect: {
+        drained: {
+            amount: 25,
+            id: "forgeweave:molten_iron"
+        },
+        id: "forgeweave:faucet",
+        redstone: 0b,
+        stop: 0b
+    },
+    nbt: {
+        drained: {
+            amount: 25,
+            id: "forgeweave:molten_iron"
+        },
+        id: "forgeweave:faucet",
+        stop: 0b
+    },
+    what: "M2 (#100): a faucet caught mid-pour, in the shape M2 wrote it -- a buffered drain of molten iron and no `redstone` key at all, because redstone activation (#207) had not been added yet. This is the one M3 block-entity format whose tag actually changed shape, and it changed twice: #200 made `drained` unconditional so an idle faucet's update packet stops being empty, and #207 added `redstone`. Both are read back through defaults (`getCompound` of a missing key is empty, `getBoolean` of a missing key is false), and the `expect` above is what M3 writes for this same faucet -- the migration, pinned."
+}

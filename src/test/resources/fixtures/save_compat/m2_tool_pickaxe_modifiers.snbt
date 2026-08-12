@@ -20,7 +20,12 @@
             "forgeweave:tool_materials": {
                 binding: "forgeweave:wood",
                 handle: "forgeweave:stone",
-                head: "forgeweave:flint"
+                head: "forgeweave:flint",
+                parts: [
+                    "forgeweave:flint",
+                    "forgeweave:wood",
+                    "forgeweave:stone"
+                ]
             },
             "forgeweave:tool_stats": {
                 attack_damage: 2.9f,
@@ -75,5 +80,5 @@
         count: 1,
         id: "forgeweave:pickaxe"
     },
-    what: "M2 (#105-#108): an assembled pickaxe carrying materials, stats, traits and an ordered modifier list -- leveled, multiple, and one id this version does not implement."
+    what: "M2 (#105-#108): an assembled pickaxe carrying materials, stats, traits and an ordered modifier list -- leveled, multiple, and one id this version does not implement. The `nbt` is untouched M2, so it is also the corpus's pre-#196 tool: no `parts` list, which is the shape every world written before M3 has. The `parts` in `expect` is therefore an assertion about the migration rather than about the snapshot -- ToolMaterials#legacyOrder must rebuild head/binding/handle in M1's slot order, which is the order this tool was actually built in (#167)."
 }
