@@ -191,37 +191,37 @@ public class SmelteryControllerBlockEntityRenderer implements BlockEntityRendere
                     float vz1 = v(sprite, frac(cz1)), vz2 = v(sprite, frac(cz1) + cz2 - cz1);
 
                     if (xi == 0) {
-                        SearedTankBlockEntityRenderer.quad(buffer, pose,
+                        FluidRenderUtil.quad(buffer, pose,
                                 cx1, cy1, cz1, uz1, vy1, cx1, cy1, cz2, uz2, vy1,
                                 cx1, cy2, cz2, uz2, vy2, cx1, cy2, cz1, uz1, vy2,
                                 -1f, 0f, 0f, tint, light, overlay);
                     }
                     if (xi == xs.length - 2) {
-                        SearedTankBlockEntityRenderer.quad(buffer, pose,
+                        FluidRenderUtil.quad(buffer, pose,
                                 cx2, cy1, cz1, uz1, vy1, cx2, cy2, cz1, uz1, vy2,
                                 cx2, cy2, cz2, uz2, vy2, cx2, cy1, cz2, uz2, vy1,
                                 1f, 0f, 0f, tint, light, overlay);
                     }
                     if (zi == 0) {
-                        SearedTankBlockEntityRenderer.quad(buffer, pose,
+                        FluidRenderUtil.quad(buffer, pose,
                                 cx1, cy1, cz1, ux1, vy1, cx1, cy2, cz1, ux1, vy2,
                                 cx2, cy2, cz1, ux2, vy2, cx2, cy1, cz1, ux2, vy1,
                                 0f, 0f, -1f, tint, light, overlay);
                     }
                     if (zi == zs.length - 2) {
-                        SearedTankBlockEntityRenderer.quad(buffer, pose,
+                        FluidRenderUtil.quad(buffer, pose,
                                 cx1, cy1, cz2, ux1, vy1, cx2, cy1, cz2, ux2, vy1,
                                 cx2, cy2, cz2, ux2, vy2, cx1, cy2, cz2, ux1, vy2,
                                 0f, 0f, 1f, tint, light, overlay);
                     }
                     if (floor && yi == 0) {
-                        SearedTankBlockEntityRenderer.quad(buffer, pose,
+                        FluidRenderUtil.quad(buffer, pose,
                                 cx1, cy1, cz1, ux1, vz1, cx2, cy1, cz1, ux2, vz1,
                                 cx2, cy1, cz2, ux2, vz2, cx1, cy1, cz2, ux1, vz2,
                                 0f, -1f, 0f, tint, light, overlay);
                     }
                     if (lid && yi == ys.length - 2) {
-                        SearedTankBlockEntityRenderer.quad(buffer, pose,
+                        FluidRenderUtil.quad(buffer, pose,
                                 cx1, cy2, cz1, ux1, vz1, cx1, cy2, cz2, ux1, vz2,
                                 cx2, cy2, cz2, ux2, vz2, cx2, cy2, cz1, ux2, vz1,
                                 0f, 1f, 0f, tint, light, overlay);
