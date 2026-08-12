@@ -70,8 +70,9 @@ import dev.gkissel.forgeweave.fluid.ForgeweaveFluids;
  *
  * <p>Before the GUI screens, it also captures plain world-view PNGs with no menu open --
  * {@code seared_tank_world.png}, a seared tank/gauge/window row at three different fill levels
- * (issue #145), and {@code tool_forge_world.png}, a Tool Forge beside a Tool Station (issue #152).
- * Those are the release-checklist artifacts for in-world block rendering the same way
+ * (issue #145), {@code tool_forge_world.png}, a Tool Forge beside a Tool Station (issue #152), and
+ * {@code smeltery_world.png}, a formed smeltery holding two molten metals seen from over its rim
+ * (issue #179). Those are the release-checklist artifacts for in-world block rendering the same way
  * {@link #SCREENS} is for GUIs.
  *
  * <h2>Why this is inert by default</h2>
@@ -121,6 +122,16 @@ public final class ScreenshotHarness {
      * a shorter/taller fill than they actually are. Backing off flattens that angle.
      */
     private static final int TANK_SCENE_CAMERA_PULLBACK = 6;
+    /** How far in -Z the #179 smeltery scene's core sits from the player's spawn point, clear of every other scene. */
+    private static final int SMELTERY_SCENE_DISTANCE = 12;
+    /**
+     * How far above the core the #179 camera sits, and how far back from it. Both are dictated by the
+     * near wall: the sightline to the middle of the pool has to clear the top of the two-block wall
+     * between the camera and it, so a low camera sees seared brick and nothing else however well the
+     * pool renders. These clear it by about a block.
+     */
+    private static final int SMELTERY_SCENE_CAMERA_HEIGHT = 10;
+    private static final int SMELTERY_SCENE_CAMERA_PULLBACK = 4;
     /** The #152 table row's own distance/spacing/pullback; tables are floor-standing, so no +Y. */
     private static final int TABLE_SCENE_DISTANCE = 4;
     private static final int TABLE_SCENE_SPACING = 2;
@@ -146,7 +157,8 @@ public final class ScreenshotHarness {
 
     private enum Stage {
         AWAIT_TITLE, AWAIT_WORLD, SETTLE_WORLD, PLACE_TANK_SCENE, SETTLE_TANK_SCENE,
-        PLACE_TABLE_SCENE, SETTLE_TABLE_SCENE, OPEN_SCREEN, SETTLE_SCREEN, DONE
+        PLACE_TABLE_SCENE, SETTLE_TABLE_SCENE, PLACE_SMELTERY_SCENE, SETTLE_SMELTERY_SCENE,
+        OPEN_SCREEN, SETTLE_SCREEN, DONE
     }
 
     private static Stage stage = Stage.AWAIT_TITLE;
@@ -157,6 +169,8 @@ public final class ScreenshotHarness {
     private static BlockPos[] tankScenePositions;
     /** Set by {@link #placeTableScene}, checked by {@link #settleTableScene} before capture (#152). */
     private static BlockPos[] tableScenePositions;
+    /** Set by {@link #placeSmelteryScene}, checked by {@link #settleSmelteryScene} before capture (#179). */
+    private static BlockPos smelteryScenePos;
 
     private ScreenshotHarness() {}
 
@@ -175,6 +189,8 @@ public final class ScreenshotHarness {
             case SETTLE_TANK_SCENE -> settleTankScene(mc);
             case PLACE_TABLE_SCENE -> placeTableScene(mc);
             case SETTLE_TABLE_SCENE -> settleTableScene(mc);
+            case PLACE_SMELTERY_SCENE -> placeSmelteryScene(mc);
+            case SETTLE_SMELTERY_SCENE -> settleSmelteryScene(mc);
             case OPEN_SCREEN -> openScreen(mc);
             case SETTLE_SCREEN -> settleScreen(mc);
             case DONE -> {}
@@ -398,6 +414,84 @@ public final class ScreenshotHarness {
             }
         }
         capture(mc, "tool_forge_world");
+        advance(Stage.PLACE_SMELTERY_SCENE);
+    }
+
+    /**
+     * Issue #179's scene: a formed, partly filled smeltery seen from outside as {@code
+     * smeltery_world.png}, the artifact for "the molten contents render in the world at all".
+     *
+     * <p>Two metals rather than one, filled to a little over half the interior's capacity, because
+     * the defect this captures has three separable failure modes and a single full fluid would only
+     * rule out the first: nothing renders, the layers are not stacked in tank order, and the pool's
+     * height is not proportional to what the smeltery holds.
+     *
+     * <p>A smeltery has no ceiling and opaque walls, so the camera goes <em>above</em> the rim and
+     * looks down into the interior -- from a player's eye level all that is visible is seared brick.
+     */
+    private static void placeSmelteryScene(Minecraft mc) {
+        var server = mc.getSingleplayerServer();
+        LOGGER.info("{}placing smeltery world scene near {}", LOG_PREFIX, origin);
+        server.execute(() -> {
+            ServerPlayer serverPlayer = server.getPlayerList().getPlayers().get(0);
+            ServerLevel level = serverPlayer.serverLevel();
+            // Off the spawn point rather than off wherever the previous scene left the camera: the
+            // other scenes and the GUI captures all sit in +X/+Z from spawn, and a 5x5-footprint
+            // multiblock dropped on top of one of them would rewrite blocks another artifact shows.
+            BlockPos corePos = origin.offset(0, 0, -SMELTERY_SCENE_DISTANCE);
+            smelteryScenePos = corePos;
+
+            // The same 3x3x2 interior the smeltery GUI capture uses, so both artifacts describe the
+            // same structure; buildSmeltery puts the interior on the north (-Z) side of the core.
+            SmelteryControllerBlockEntity controller = buildSmeltery(level, corePos, 1, 3);
+            if (controller == null) {
+                LOGGER.error("{}#179 scene FAILED: no controller block entity at {}", LOG_PREFIX, corePos);
+                return;
+            }
+            // A little over half full, in two metals: the lower (iron) band is much the thicker one,
+            // so a stack rendered in the wrong order is obvious rather than subtle.
+            controller.tank().fill(new FluidStack(ForgeweaveFluids.IRON.still().get(), 4 * 1152),
+                    IFluidHandler.FluidAction.EXECUTE);
+            controller.tank().fill(new FluidStack(ForgeweaveFluids.COPPER.still().get(), 2 * 576),
+                    IFluidHandler.FluidAction.EXECUTE);
+            LOGGER.info("{}smeltery scene core={} holding {}/{} mB in {} fluids", LOG_PREFIX, corePos,
+                    controller.tank().getFluidAmount(), controller.tank().getCapacity(),
+                    controller.tank().fluids().size());
+
+            // Above the rim and back from it, looking down at the middle of the pool. Flight first:
+            // this is the one scene whose camera is off the ground, and a teleported player who is
+            // not flying has fallen back to it long before the capture.
+            serverPlayer.getAbilities().flying = true;
+            serverPlayer.onUpdateAbilities();
+            Vec3 poolCenter = new Vec3(corePos.getX() + 0.5, corePos.getY() + 0.5, corePos.getZ() - 1.5);
+            serverPlayer.teleportTo(corePos.getX() + 0.5, corePos.getY() + SMELTERY_SCENE_CAMERA_HEIGHT,
+                    corePos.getZ() + SMELTERY_SCENE_CAMERA_PULLBACK + 0.5);
+            serverPlayer.lookAt(EntityAnchorArgument.Anchor.EYES, poolCenter);
+        });
+        advance(Stage.SETTLE_SMELTERY_SCENE);
+    }
+
+    private static void settleSmelteryScene(Minecraft mc) {
+        if (stageTicks < SCREEN_SETTLE_TICKS) {
+            return;
+        }
+        // Same self-diagnosing check the other scenes do, against the *client's* copy: an unformed or
+        // empty client-side controller means the sync is at fault, not the renderer.
+        if (mc.level != null && smelteryScenePos != null) {
+            if (mc.level.getBlockEntity(smelteryScenePos) instanceof SmelteryControllerBlockEntity controller) {
+                LOGGER.info("{}#179 scene check: client sees structure={} holding {}/{} mB in {} fluids",
+                        LOG_PREFIX, controller.structure(), controller.tank().getFluidAmount(),
+                        controller.tank().getCapacity(), controller.tank().fluids().size());
+                if (controller.structure() == null || controller.tank().fluids().isEmpty()) {
+                    LOGGER.error("{}#179 scene check FAILED: client-side smeltery is unformed or empty, so the "
+                            + "capture cannot show a pool no matter what the renderer does", LOG_PREFIX);
+                }
+            } else {
+                LOGGER.error("{}#179 scene check FAILED: client sees no smeltery controller at {}",
+                        LOG_PREFIX, smelteryScenePos);
+            }
+        }
+        capture(mc, "smeltery_world");
         advance(Stage.OPEN_SCREEN);
     }
 
