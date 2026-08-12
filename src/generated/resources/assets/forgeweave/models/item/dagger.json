@@ -1,0 +1,7 @@
+{
+  "parent": "minecraft:item/generated",
+  "textures": {
+    "layer0": "forgeweave:tools/dagger_handle",
+    "layer1": "forgeweave:tools/dagger_head"
+  }
+}

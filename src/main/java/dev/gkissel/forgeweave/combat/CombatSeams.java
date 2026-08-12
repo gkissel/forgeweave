@@ -88,8 +88,18 @@ public final class CombatSeams {
         return seams;
     }
 
-    /** Registered on the game event bus in {@code Forgeweave}. See the class javadoc's table. */
+    /**
+     * Registered on the game event bus in {@code Forgeweave}. See the class javadoc's table. Runs
+     * both passes over the one event: first the weapon's seams ({@link CombatSeam#preHit}), then the
+     * defender's ({@link CombatSeam#incomingHit}) -- in that order, so a defensive seam sees the
+     * damage the attacker's tool actually intends to land.
+     */
     public static void onIncomingDamage(LivingIncomingDamageEvent event) {
+        weaponPass(event);
+        defensePass(event);
+    }
+
+    private static void weaponPass(LivingIncomingDamageEvent event) {
         CombatHit hit = hitOf(event.getSource(), event.getEntity());
         if (hit == null) {
             return;
@@ -104,6 +114,32 @@ public final class CombatSeams {
             damage = seam.preHit(hit, original, damage);
         }
         if (damage != event.getAmount()) {
+            event.setAmount(damage);
+        }
+    }
+
+    /**
+     * The defensive half (issue #155). A chain that leaves nothing cancels the event rather than
+     * setting the amount to zero: a parried or reflected blow must not spend the target's
+     * invulnerability window or play a hurt animation, which a zero-damage hit still would.
+     */
+    private static void defensePass(LivingIncomingDamageEvent event) {
+        CombatDefense defense = defenseOf(event.getSource(), event.getEntity());
+        if (defense == null) {
+            return;
+        }
+        List<CombatSeam> seams = seams(defense.tool());
+        if (seams.isEmpty()) {
+            return;
+        }
+        float original = event.getOriginalAmount();
+        float damage = event.getAmount();
+        for (CombatSeam seam : seams) {
+            damage = seam.incomingHit(defense, original, damage);
+        }
+        if (damage <= 0.0F) {
+            event.setCanceled(true);
+        } else if (damage != event.getAmount()) {
             event.setAmount(damage);
         }
     }
@@ -148,6 +184,26 @@ public final class CombatSeams {
         }
         Entity causing = source.getEntity();
         return new CombatHit(level, weapon, causing instanceof LivingEntity living ? living : null, target, source);
+    }
+
+    /**
+     * The blow the defender's own tool gets a say in, or {@code null} when it has none. Same gate as
+     * {@link #hitOf} -- server side, a Forgeweave tool, not Broken -- plus one more: the defender must
+     * be <em>actively using</em> the tool. Both M3 defensive innates are use-gated (the broadsword's
+     * parry is the use action itself; the battlesign reflects only while blocking), and keying off the
+     * active item rather than the hand means merely carrying a tool never changes how damage lands.
+     */
+    @Nullable
+    private static CombatDefense defenseOf(DamageSource source, LivingEntity defender) {
+        if (!(defender.level() instanceof ServerLevel level) || !defender.isUsingItem()) {
+            return null;
+        }
+        ItemStack tool = defender.getUseItem();
+        if (!(tool.getItem() instanceof ToolItem) || ToolItem.isBroken(tool)) {
+            return null;
+        }
+        Entity causing = source.getEntity();
+        return new CombatDefense(level, tool, defender, causing instanceof LivingEntity living ? living : null, source);
     }
 
     private CombatSeams() {}

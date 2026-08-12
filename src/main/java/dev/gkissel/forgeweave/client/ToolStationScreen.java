@@ -38,6 +38,7 @@ import dev.gkissel.forgeweave.menu.RenameStationItemPayload;
 import dev.gkissel.forgeweave.menu.ToolStationMenu;
 import dev.gkissel.forgeweave.menu.ToolStationTabs;
 import dev.gkissel.forgeweave.menu.ToolStationTabs.Tab;
+import dev.gkissel.forgeweave.tool.ToolArt;
 import dev.gkissel.forgeweave.tool.ToolMaterials;
 
 /**
@@ -157,7 +158,6 @@ public class ToolStationScreen extends StationScreen<ToolStationMenu> implements
      * {@code GuiToolStation}'s preview and {@code GuiButtonItem}'s icons. The preview deliberately
      * ignores what is actually in the slots, exactly as upstream's does.
      */
-    private static final String[] TOOL_LAYERS = {"handle", "head", "binding"};
     private static final int[] TOOL_LAYER_COLORS = {0x684E1E, 0xC1C1C1, 0x2376DD};
 
     private static final int BUTTON_SIZE = 18;
@@ -329,21 +329,12 @@ public class ToolStationScreen extends StationScreen<ToolStationMenu> implements
     private List<Component> componentLines(Tab tab) {
         List<Component> lines = new ArrayList<>(tab.slots().size());
         for (int i = 0; i < tab.slots().size(); i++) {
-            Item part = requiredPart(tab, i);
+            Item part = tab.part(i);
             boolean satisfied = menu.getSlot(i).getItem().is(part);
             Component name = Component.literal(" * ").append(new ItemStack(part).getHoverName());
             lines.add(satisfied ? name : name.copy().withStyle(ChatFormatting.RED));
         }
         return lines;
-    }
-
-    /** The part a build tab's slot {@code index} wants: its own head part, then binding, then handle. */
-    private static Item requiredPart(Tab tab, int index) {
-        return switch (index) {
-            case ToolStationMenu.HEAD_SLOT -> tab.headPart().get();
-            case ToolStationMenu.BINDING_SLOT -> ForgeweaveItems.PART_TOOL_BINDING.get();
-            default -> ForgeweaveItems.PART_TOOL_HANDLE.get();
-        };
     }
 
     @Nullable
@@ -381,7 +372,7 @@ public class ToolStationScreen extends StationScreen<ToolStationMenu> implements
         if (tab.isRepair()) {
             graphics.blit(ICONS, 0, 0, ANVIL_U, ANVIL_V, SLOT_SPRITE_SIZE, SLOT_SPRITE_SIZE, SHEET, SHEET);
         } else {
-            renderToolLayers(graphics, tab.tool().get(), 0, 0);
+            renderToolLayers(graphics, tab, 0, 0);
         }
         graphics.pose().popPose();
 
@@ -398,14 +389,16 @@ public class ToolStationScreen extends StationScreen<ToolStationMenu> implements
      * which a preview stack has never had (GUI blits bypass the block atlas, so no atlas entry is
      * needed for these).
      */
-    private static void renderToolLayers(GuiGraphics graphics, Item tool, int x, int y) {
-        String path = BuiltInRegistries.ITEM.getKey(tool).getPath();
-        for (int layer = 0; layer < TOOL_LAYERS.length; layer++) {
+    private static void renderToolLayers(GuiGraphics graphics, Tab tab, int x, int y) {
+        String path = BuiltInRegistries.ITEM.getKey(tab.tool()).getPath();
+        // One layer per part, which is how every tool's model is built (ToolArt): a two-part weapon
+        // (battlesign, frying pan, dagger -- issue #155) simply has no binding layer to draw.
+        for (int layer = 0; layer < tab.slots().size(); layer++) {
             int color = TOOL_LAYER_COLORS[layer];
             graphics.setColor((color >> 16 & 0xFF) / 255.0F, (color >> 8 & 0xFF) / 255.0F, (color & 0xFF) / 255.0F, 1.0F);
             graphics.blit(
                     ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID,
-                            "textures/derived/tools/" + path + "_" + TOOL_LAYERS[layer] + ".png"),
+                            "textures/" + ToolArt.layer(path, ToolArt.LAYERS.get(layer)) + ".png"),
                     x, y, 0, 0, 16, 16, 16, 16);
         }
         graphics.setColor(1.0F, 1.0F, 1.0F, 1.0F);
@@ -436,7 +429,7 @@ public class ToolStationScreen extends StationScreen<ToolStationMenu> implements
                         SLOT_SPRITE_SIZE, SLOT_SPRITE_SIZE, SHEET, SHEET);
             } else {
                 graphics.setColor(1.0F, 1.0F, 1.0F, GHOST_ALPHA);
-                graphics.blit(partTexture(requiredPart(tab, i)), leftPos + slot.x, topPos + slot.y, 0, 0, 16, 16, 16, 16);
+                graphics.blit(partTexture(tab.part(i)), leftPos + slot.x, topPos + slot.y, 0, 0, 16, 16, 16, 16);
                 graphics.setColor(1.0F, 1.0F, 1.0F, 1.0F);
             }
         }
@@ -461,7 +454,7 @@ public class ToolStationScreen extends StationScreen<ToolStationMenu> implements
             if (tab.isRepair()) {
                 graphics.blit(ICONS, x, y, ANVIL_U, ANVIL_V, BUTTON_SIZE, BUTTON_SIZE, SHEET, SHEET);
             } else {
-                renderToolLayers(graphics, tab.tool().get(), x + 1, y + 1);
+                renderToolLayers(graphics, tab, x + 1, y + 1);
             }
         }
         beam(graphics, leftPos + buttonX(0) - BEAM_END_W, topPos, sidebarWidth());

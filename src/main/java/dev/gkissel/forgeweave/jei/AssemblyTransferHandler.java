@@ -75,8 +75,12 @@ final class AssemblyTransferHandler implements IRecipeTransferInfo<ToolStationMe
 
     @Override
     public List<Slot> getRecipeSlots(ToolStationMenu container, AssemblyRecipe recipe) {
-        return List.of(container.getSlot(ToolStationMenu.HEAD_SLOT),
-                container.getSlot(ToolStationMenu.BINDING_SLOT), container.getSlot(ToolStationMenu.HANDLE_SLOT));
+        // As many input slots as the recipe has parts, in the same order the category laid them out.
+        List<Slot> slots = new ArrayList<>(recipe.parts().size());
+        for (int i = 0; i < recipe.parts().size(); i++) {
+            slots.add(container.getSlot(i));
+        }
+        return slots;
     }
 
     @Override
@@ -111,12 +115,6 @@ final class AssemblyTransferHandler implements IRecipeTransferInfo<ToolStationMe
 
     /** The tab index this recipe's tool belongs to, or -1 if none matches (shouldn't happen -- see {@link AssemblyRecipes}). */
     private static int tabIndexFor(AssemblyRecipe recipe) {
-        for (int i = 0; i < ToolStationTabs.TABS.size(); i++) {
-            ToolStationTabs.Tab tab = ToolStationTabs.TABS.get(i);
-            if (!tab.isRepair() && recipe.result().is(tab.tool().get())) {
-                return i;
-            }
-        }
-        return -1;
+        return ToolStationTabs.indexOfTool(recipe.tool());
     }
 }

@@ -12,6 +12,8 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.tags.TagKey;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.EquipmentSlotGroup;
@@ -19,9 +21,11 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.AttributeInstance;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
+import net.minecraft.world.item.UseAnim;
 import net.minecraft.world.item.component.ItemAttributeModifiers;
 import net.minecraft.world.item.component.Tool;
 import net.minecraft.world.level.Level;
@@ -29,9 +33,13 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 
 import dev.gkissel.forgeweave.Forgeweave;
+import dev.gkissel.forgeweave.combat.CombatSeam;
+import dev.gkissel.forgeweave.combat.ForgeweaveInnates;
+import dev.gkissel.forgeweave.combat.ToolUseAction;
 import dev.gkissel.forgeweave.config.ForgeweaveConfig;
 import dev.gkissel.forgeweave.material.Material;
 import dev.gkissel.forgeweave.modifier.ForgeweaveModifiers;
+import dev.gkissel.forgeweave.tool.ToolConstants;
 import dev.gkissel.forgeweave.tool.ToolStats;
 import dev.gkissel.forgeweave.trait.ForgeweaveTraits;
 
@@ -76,7 +84,29 @@ public class ToolItem extends Item {
     private final TagKey<Block> mineableBlocks;
     private final float attackSpeed;
     private final float damagePotential;
+    private final float miningSpeedModifier;
     private final boolean weapon;
+    @Nullable
+    private final ForgeweaveInnates.Innate innate;
+
+    /** A tool with no innate of its own -- M1's three, until issue #164 retrofits theirs. */
+    public ToolItem(Properties properties, TagKey<Block> mineableBlocks, float attackSpeed, float damagePotential,
+            boolean weapon) {
+        this(properties, mineableBlocks, attackSpeed, damagePotential, 1.0F, weapon, null);
+    }
+
+    /**
+     * The M3 shape (issue #155): every per-tool-type number comes off the tool's own
+     * {@link ToolConstants.Entry}, so the constants the station's stat formula uses and the ones the
+     * item's attribute modifiers use are literally the same fields. {@code preAttackMultiplier},
+     * {@code flatAttackBonus} and {@code durabilityMultiplier} are not read here -- those apply once,
+     * at assembly, inside {@link ToolConstants#compute}.
+     */
+    public ToolItem(Properties properties, ToolConstants.Entry constants, TagKey<Block> mineableBlocks,
+            boolean weapon, @Nullable ForgeweaveInnates.Innate innate) {
+        this(properties, mineableBlocks, constants.attackSpeed(), constants.damagePotential(),
+                constants.miningSpeedModifier(), weapon, innate);
+    }
 
     /**
      * @param mineableBlocks the vanilla {@code mineable/*} tag this tool type is for
@@ -85,14 +115,31 @@ public class ToolItem extends Item {
      *     {@code ToolCore#damagePotential()}
      * @param weapon whether upstream gives this tool {@code Category.WEAPON} (only the hatchet
      *     does), which halves what a hit costs it -- see {@link #postHurtEnemy}
+     * @param innate this tool type's built-in combat behavior (docs/SCOPE.md M3), or {@code null}.
+     *     Its {@link CombatSeam} half is picked up by the shared per-hit pipeline through
+     *     {@code ForgeweaveInnates#collect}; its {@link ToolUseAction} half is what the four
+     *     item-use overrides below forward to, so no tool needs a subclass of its own.
      */
     public ToolItem(Properties properties, TagKey<Block> mineableBlocks, float attackSpeed, float damagePotential,
-            boolean weapon) {
+            float miningSpeedModifier, boolean weapon, @Nullable ForgeweaveInnates.Innate innate) {
         super(properties);
         this.mineableBlocks = mineableBlocks;
         this.attackSpeed = attackSpeed;
         this.damagePotential = damagePotential;
+        this.miningSpeedModifier = miningSpeedModifier;
         this.weapon = weapon;
+        this.innate = innate;
+    }
+
+    /** This tool type's innate, or {@code null}. See the constructor. */
+    @Nullable
+    public ForgeweaveInnates.Innate innate() {
+        return innate;
+    }
+
+    @Nullable
+    private ToolUseAction useAction() {
+        return innate == null ? null : innate.use();
     }
 
     public static boolean isBroken(ItemStack stack) {
@@ -131,7 +178,9 @@ public class ToolItem extends Item {
     public Tool toolComponent(Material head, ToolStats.Stats stats) {
         return new Tool(
                 List.of(Tool.Rule.deniesDrops(head.incorrectForTool()),
-                        Tool.Rule.minesAndDrops(mineableBlocks, stats.miningSpeed())),
+                        // Upstream's ToolCore#miningSpeedModifier, applied at read time there and
+                        // here folded into the vanilla tool component (issue #153's Entry field).
+                        Tool.Rule.minesAndDrops(mineableBlocks, stats.miningSpeed() * miningSpeedModifier)),
                 1.0F,
                 1);
     }
@@ -380,5 +429,42 @@ public class ToolItem extends Item {
     public void appendHoverText(ItemStack stack, TooltipContext context, List<Component> tooltip, TooltipFlag flag) {
         super.appendHoverText(stack, context, tooltip, flag);
         ToolTooltip.append(stack, context.registries(), flag.hasShiftDown(), attackDamage(stack), tooltip);
+    }
+
+    // ------------------------------------------------------------------ innate item use (issue #155)
+
+    /**
+     * Right-click starts the innate's use action, if it has one -- the longsword's leap charge, the
+     * broadsword's parry window, the battlesign's blocking stance. Refused while Broken, matching
+     * upstream's own {@code BattleSign#onItemRightClick}.
+     */
+    @Override
+    public InteractionResultHolder<ItemStack> use(Level level, Player player, InteractionHand hand) {
+        ItemStack stack = player.getItemInHand(hand);
+        if (useAction() == null || isBroken(stack)) {
+            return InteractionResultHolder.pass(stack);
+        }
+        player.startUsingItem(hand);
+        return InteractionResultHolder.consume(stack);
+    }
+
+    @Override
+    public UseAnim getUseAnimation(ItemStack stack) {
+        ToolUseAction action = useAction();
+        return action == null ? super.getUseAnimation(stack) : action.animation();
+    }
+
+    @Override
+    public int getUseDuration(ItemStack stack, LivingEntity entity) {
+        ToolUseAction action = useAction();
+        return action == null ? super.getUseDuration(stack, entity) : action.durationTicks();
+    }
+
+    @Override
+    public void releaseUsing(ItemStack stack, Level level, LivingEntity user, int timeLeft) {
+        ToolUseAction action = useAction();
+        if (action != null && level instanceof ServerLevel serverLevel) {
+            action.onRelease(stack, serverLevel, user, action.durationTicks() - timeLeft);
+        }
     }
 }

@@ -101,7 +101,10 @@ public final class ToolConstants {
 
     private static final String TOOL_HANDLE = "tool_handle";
     private static final String TOOL_BINDING = "tool_binding";
-    private static final String TOUGH_TOOL_HANDLE = "tough_tool_handle";
+    // Reconciled against the part items #151 actually registered (issue #155): this read
+    // "tough_tool_handle", which no item has -- the registered id is forgeweave:tough_tool_rod
+    // (ForgeweaveItems#PART_TOUGH_TOOL_ROD, upstream's own `toughToolRod`). Registered id wins.
+    private static final String TOUGH_TOOL_HANDLE = "tough_tool_rod";
     private static final String TOUGH_BINDING = "tough_binding";
 
     /** Upstream {@code tools/melee/item/BroadSword.java}: sweep-attack sword, wide guard. */
@@ -194,7 +197,10 @@ public final class ToolConstants {
      * confirmed unchanged in the issue #153 decision comment.
      */
     public static final Entry VEIN_HAMMER = new Entry("vein_hammer",
-            List.of(new PartSlot(Role.HEAD, "hammer_head", 0.75f), new PartSlot(Role.HANDLE, TOUGH_TOOL_HANDLE),
+            // Reconciled against #151's registered parts (issue #155): the vein hammer has its own
+            // vein_hammer_head part item, not the plain hammer_head this used to name. Weights are
+            // unchanged. Registered id wins.
+            List.of(new PartSlot(Role.HEAD, "vein_hammer_head", 0.75f), new PartSlot(Role.HANDLE, TOUGH_TOOL_HANDLE),
                     new PartSlot(Role.EXTRA, TOUGH_BINDING), new PartSlot(Role.HEAD, "large_plate", 0.25f)),
             0.85f, 1.25f, 1.0f, 3.0f, 5.0f, 0.3f, false, false);
 

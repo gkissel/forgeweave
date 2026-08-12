@@ -9,6 +9,8 @@ import net.neoforged.neoforge.registries.DeferredRegister;
 
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.block.ForgeweaveBlocks;
+import dev.gkissel.forgeweave.combat.ForgeweaveInnates;
+import dev.gkissel.forgeweave.tool.ToolConstants;
 
 /**
  * The blank pattern, the five part patterns, the five part items, and the Part Builder block item
@@ -114,6 +116,33 @@ public final class ForgeweaveItems {
     public static final DeferredItem<ToolItem> TOOL_HATCHET = ITEMS.registerItem("hatchet",
             properties -> new ToolItem(properties, BlockTags.MINEABLE_WITH_AXE, 1.1f, 1.1f, true),
             new Item.Properties().stacksTo(1));
+
+    // M3 Tool Station weapons (docs/SCOPE.md M3 issue #155). Attack speed and damage potential come
+    // from ToolConstants (issue #153) rather than being repeated here, so the numbers the station's
+    // stat formula uses and the ones the attribute modifiers use are the same numbers. Every one of
+    // these is Category.WEAPON upstream (each constructor calls addCategory(Category.WEAPON)), which
+    // is what halves the durability a hit costs -- see ToolItem#postHurtEnemy. None of them is a
+    // mining tool: upstream's melee weapons carry no harvest category at all, so they get the axe tag
+    // only to have a non-null one and their (unmodified) mining speed makes them poor at it anyway.
+    public static final DeferredItem<ToolItem> TOOL_BROADSWORD =
+            weapon("broadsword", ToolConstants.BROADSWORD, ForgeweaveInnates.PARRY);
+    public static final DeferredItem<ToolItem> TOOL_LONGSWORD =
+            weapon("longsword", ToolConstants.LONGSWORD, ForgeweaveInnates.CHARGED_LEAP);
+    public static final DeferredItem<ToolItem> TOOL_RAPIER =
+            weapon("rapier", ToolConstants.RAPIER, ForgeweaveInnates.VITAL_THRUST);
+    public static final DeferredItem<ToolItem> TOOL_BATTLESIGN =
+            weapon("battlesign", ToolConstants.BATTLESIGN, ForgeweaveInnates.DEFLECT);
+    public static final DeferredItem<ToolItem> TOOL_FRYING_PAN =
+            weapon("frying_pan", ToolConstants.FRYING_PAN, ForgeweaveInnates.HEAVY_SWING);
+    public static final DeferredItem<ToolItem> TOOL_DAGGER =
+            weapon("dagger", ToolConstants.DAGGER, ForgeweaveInnates.BACKSTAB);
+
+    private static DeferredItem<ToolItem> weapon(String name, ToolConstants.Entry constants,
+            ForgeweaveInnates.Innate innate) {
+        return ITEMS.registerItem(name,
+                properties -> new ToolItem(properties, constants, BlockTags.MINEABLE_WITH_AXE, true, innate),
+                new Item.Properties().stacksTo(1));
+    }
 
     public static final DeferredItem<BlockItem> TOOL_STATION = ITEMS.registerSimpleBlockItem("tool_station", ForgeweaveBlocks.TOOL_STATION);
 

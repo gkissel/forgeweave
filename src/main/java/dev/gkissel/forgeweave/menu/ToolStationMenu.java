@@ -260,12 +260,10 @@ public class ToolStationMenu extends StationMenu {
                             || ModifierApplication.isReagent(registries, stack)
                             || Embossing.isReagent(registries, stack);
         }
-        return switch (index) {
-            case HEAD_SLOT -> stack.is(tab.headPart().get());
-            case BINDING_SLOT -> ToolAssemblyRecipes.isBindingPart(stack);
-            case HANDLE_SLOT -> ToolAssemblyRecipes.isHandlePart(stack);
-            default -> false; // the repair tab's extra reagent slots; inactive while building.
-        };
+        // Since issue #155 the per-slot filter is the tab's own entry: M3's swords each take a
+        // different guard as their extra part, and three of its weapons have no extra part at all,
+        // in which case the surplus slots are inactive and accept nothing.
+        return index < tab.slots().size() && stack.is(tab.part(index));
     }
 
     /** Whether this menu belongs to a Tool Forge; the screen reads it to pick its metal styling. */

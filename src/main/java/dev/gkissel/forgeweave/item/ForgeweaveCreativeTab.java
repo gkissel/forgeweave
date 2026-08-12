@@ -99,6 +99,13 @@ public final class ForgeweaveCreativeTab {
         output.accept(ForgeweaveItems.TOOL_PICKAXE.get());
         output.accept(ForgeweaveItems.TOOL_SHOVEL.get());
         output.accept(ForgeweaveItems.TOOL_HATCHET.get());
+        // M3 Tool Station weapons (docs/SCOPE.md M3 issue #155), same component-less shape.
+        output.accept(ForgeweaveItems.TOOL_BROADSWORD.get());
+        output.accept(ForgeweaveItems.TOOL_LONGSWORD.get());
+        output.accept(ForgeweaveItems.TOOL_RAPIER.get());
+        output.accept(ForgeweaveItems.TOOL_BATTLESIGN.get());
+        output.accept(ForgeweaveItems.TOOL_FRYING_PAN.get());
+        output.accept(ForgeweaveItems.TOOL_DAGGER.get());
 
         // Grout (a block since issue #129), seared brick, and the seared brick block family
         // (docs/SCOPE.md M2 issue #93).

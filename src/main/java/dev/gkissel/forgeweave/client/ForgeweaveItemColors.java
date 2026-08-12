@@ -4,6 +4,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.FastColor;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 
 import net.neoforged.api.distmarker.Dist;
@@ -15,6 +16,7 @@ import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.item.ForgeweaveDataComponents;
 import dev.gkissel.forgeweave.item.ForgeweaveItems;
 import dev.gkissel.forgeweave.material.Material;
+import dev.gkissel.forgeweave.menu.ToolAssemblyRecipes;
 import dev.gkissel.forgeweave.tool.ToolMaterials;
 
 /**
@@ -55,10 +57,10 @@ public final class ForgeweaveItemColors {
                 ForgeweaveItems.PART_BROAD_AXE_HEAD.get(),
                 ForgeweaveItems.PART_VEIN_HAMMER_HEAD.get());
 
+        // Every assemblable tool, straight off the station's table (issue #155) rather than a hand
+        // list that a new tool can be left out of.
         event.register(ForgeweaveItemColors::toolMaterialTint,
-                ForgeweaveItems.TOOL_PICKAXE.get(),
-                ForgeweaveItems.TOOL_SHOVEL.get(),
-                ForgeweaveItems.TOOL_HATCHET.get());
+                ToolAssemblyRecipes.ENTRIES.stream().map(entry -> entry.tool().get()).toArray(Item[]::new));
     }
 
     private static int materialTint(ItemStack stack, int tintIndex) {
@@ -80,7 +82,9 @@ public final class ForgeweaveItemColors {
         ResourceLocation materialId = switch (tintIndex) {
             case 0 -> materials.handle();
             case 1 -> materials.head();
-            case 2 -> materials.binding();
+            // Absent on a two-part tool (battlesign, frying pan, dagger -- issue #155), whose model
+            // has no layer2 to tint in the first place.
+            case 2 -> materials.binding().orElse(null);
             default -> null;
         };
         return opaqueMaterialColor(materialId);

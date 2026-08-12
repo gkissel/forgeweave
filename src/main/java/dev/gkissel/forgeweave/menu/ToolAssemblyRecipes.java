@@ -1,5 +1,6 @@
 package dev.gkissel.forgeweave.menu;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -8,6 +9,7 @@ import java.util.function.Supplier;
 import net.minecraft.core.Holder;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.component.DataComponents;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
@@ -26,6 +28,7 @@ import dev.gkissel.forgeweave.material.Material;
 import dev.gkissel.forgeweave.modifier.Embossing;
 import dev.gkissel.forgeweave.modifier.ForgeweaveModifiers;
 import dev.gkissel.forgeweave.modifier.ModifierApplication;
+import dev.gkissel.forgeweave.tool.ToolConstants;
 import dev.gkissel.forgeweave.tool.ToolMaterials;
 import dev.gkissel.forgeweave.tool.ToolRepair;
 import dev.gkissel.forgeweave.tool.ToolStats;
@@ -36,11 +39,13 @@ import dev.gkissel.forgeweave.trait.ForgeweaveTraits;
  * apart by what is in the first one and what the rest hold:
  *
  * <ul>
- *   <li><b>Assembly</b> -- head part + binding part + handle part. Which head part is used decides
- *       which tool comes out; binding and handle are shared across every M1 tool, because upstream
- *       1.12's pickaxe/shovel/hatchet all use {@code TinkerTools.binding}/{@code toolRod} for those
- *       two slots (see each tool class's constructor, e.g. {@code tools/tools/Pickaxe.java}:
- *       {@code PartMaterialType.handle(toolRod)}, {@code .head(pickHead)}, {@code .extra(binding)}).
+ *   <li><b>Assembly</b> -- one part per slot, in the selected tool's own part order. Which tool
+ *       comes out is decided by the whole set, not by one slot: {@link #ENTRIES} is the table, one
+ *       {@link Entry} per assemblable tool, and slot {@code i} accepts the part its
+ *       {@link ToolConstants.Entry#parts()} names at that index (issue #155). M1's three all took
+ *       the same head/binding/handle triple; M3's roster does not -- its swords each take a
+ *       different guard, three of its weapons have no extra part at all, and the Tool Forge tier
+ *       takes four parts, two of them in the same role.
  *   <li><b>Repair</b> -- a damaged or Broken tool in the head slot, plus items matching its head
  *       material's {@code repair_item} in the other two. CONTEXT.md puts repair at this station and
  *       makes the head material the one that determines the repair item.
@@ -58,17 +63,118 @@ import dev.gkissel.forgeweave.trait.ForgeweaveTraits;
  */
 public final class ToolAssemblyRecipes {
     /**
-     * Public, and {@link #ENTRIES} likewise, so {@code jei.AssemblyRecipes} can enumerate the exact
-     * head-part-to-tool table the station itself builds from instead of hand-copying it (issue #79:
-     * a hand-copy can update one and miss the other) -- same "expose the table, keep resolution
-     * package-private" pattern as {@link PartBuilderRecipes}'s public cost constants.
+     * One assemblable tool: its {@link ToolConstants} entry and the item the station produces.
+     * Nothing else -- the ordered part list, the slot count, every slot's role and weight and the
+     * stat constants all already live on {@link ToolConstants.Entry} (issue #153), so a tool issue
+     * registers a row by naming those two things and no third table can drift out of sync with them.
+     *
+     * <p>Slot {@code i} accepts the {@code PartItem} registered under
+     * {@code forgeweave:<constants.parts().get(i).partId()>}, and that slot's material feeds part slot
+     * {@code i} of {@link ToolConstants#compute}. Matching is positional, never by part identity: the
+     * cleaver takes the same {@code tough_tool_rod} in two different roles, and the hammer takes
+     * {@code large_plate} in two separate HEAD slots.
+     *
+     * <p>Public, and {@link #ENTRIES} likewise, so {@code jei.AssemblyRecipes} and
+     * {@link ToolStationTabs} enumerate the exact table the station itself builds from instead of
+     * hand-copying it (issue #79: a hand-copy can update one and miss the other) -- same "expose the
+     * table, keep resolution package-private" pattern as {@link PartBuilderRecipes}'s public cost
+     * constants.
      */
-    public record Entry(Supplier<? extends PartItem> headPart, Supplier<? extends ToolItem> tool) {}
+    public record Entry(ToolConstants.Entry constants, Supplier<? extends ToolItem> tool) {
+
+        /** How many of the station's input slots this tool uses (2 to 4 across the M3 roster). */
+        public int slotCount() {
+            return constants.parts().size();
+        }
+
+        /**
+         * The part item slot {@code slot} takes, looked up by id. Resolved on call rather than at
+         * class-init, because {@link #ENTRIES} is a static table built while the item registry is
+         * still being populated.
+         */
+        public PartItem part(int slot) {
+            String id = constants.parts().get(slot).partId();
+            Item item = BuiltInRegistries.ITEM.get(ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, id));
+            if (!(item instanceof PartItem partItem)) {
+                throw new IllegalStateException(constants.id() + " slot " + slot + " names part '" + id
+                        + "', which is not a registered part item");
+            }
+            return partItem;
+        }
+
+        /** Every part item this tool takes, in slot order. */
+        public List<PartItem> parts() {
+            List<PartItem> items = new ArrayList<>(slotCount());
+            for (int i = 0; i < slotCount(); i++) {
+                items.add(part(i));
+            }
+            return List.copyOf(items);
+        }
+
+        /** The slot holding the tool's first head part -- the one repair reads its repair item from. */
+        public int headSlot() {
+            List<ToolConstants.PartSlot> slots = constants.parts();
+            for (int i = 0; i < slots.size(); i++) {
+                if (slots.get(i).role() == ToolConstants.Role.HEAD) {
+                    return i;
+                }
+            }
+            throw new IllegalStateException(constants.id() + " has no head part");
+        }
+
+        /** Whether the given input slots hold exactly this tool's parts, in order. */
+        boolean matches(List<ItemStack> inputs) {
+            if (inputs.size() < slotCount()) {
+                return false;
+            }
+            for (int i = 0; i < inputs.size(); i++) {
+                ItemStack stack = inputs.get(i);
+                if (i < slotCount() ? !stack.is(part(i)) : !stack.isEmpty()) {
+                    return false;
+                }
+            }
+            return true;
+        }
+    }
+
+    /**
+     * M1's three tools have no {@link ToolConstants} entry -- that class is M3's roster (issue #153)
+     * -- so their compositions live here, in the (head, binding, handle) slot order the station has
+     * used since M1 and every existing GameTest and JEI recipe assumes. Every stat field is the
+     * identity value, which makes {@link ToolConstants#compute} reproduce {@code ToolStats#compute}
+     * exactly for them; the attack speed and damage potential are the ones {@code ForgeweaveItems}
+     * already gives the items, repeated here only so the entry reads as a complete tool.
+     */
+    private static final ToolConstants.Entry PICKAXE = new ToolConstants.Entry("pickaxe",
+            List.of(new ToolConstants.PartSlot(ToolConstants.Role.HEAD, "pickaxe_head"),
+                    new ToolConstants.PartSlot(ToolConstants.Role.EXTRA, "tool_binding"),
+                    new ToolConstants.PartSlot(ToolConstants.Role.HANDLE, "tool_handle")),
+            1.2f, 1.0f, 1.0f, 0.0f, 1.0f, 1.0f, false, false);
+
+    private static final ToolConstants.Entry SHOVEL = new ToolConstants.Entry("shovel",
+            List.of(new ToolConstants.PartSlot(ToolConstants.Role.HEAD, "shovel_head"),
+                    new ToolConstants.PartSlot(ToolConstants.Role.EXTRA, "tool_binding"),
+                    new ToolConstants.PartSlot(ToolConstants.Role.HANDLE, "tool_handle")),
+            1.0f, 0.9f, 1.0f, 0.0f, 1.0f, 1.0f, false, false);
+
+    private static final ToolConstants.Entry HATCHET = new ToolConstants.Entry("hatchet",
+            List.of(new ToolConstants.PartSlot(ToolConstants.Role.HEAD, "axe_head"),
+                    new ToolConstants.PartSlot(ToolConstants.Role.EXTRA, "tool_binding"),
+                    new ToolConstants.PartSlot(ToolConstants.Role.HANDLE, "tool_handle")),
+            1.1f, 1.1f, 1.0f, 0.0f, 1.0f, 1.0f, false, false);
 
     public static final List<Entry> ENTRIES = List.of(
-            new Entry(ForgeweaveItems.PART_PICKAXE_HEAD, ForgeweaveItems.TOOL_PICKAXE),
-            new Entry(ForgeweaveItems.PART_SHOVEL_HEAD, ForgeweaveItems.TOOL_SHOVEL),
-            new Entry(ForgeweaveItems.PART_AXE_HEAD, ForgeweaveItems.TOOL_HATCHET));
+            new Entry(PICKAXE, ForgeweaveItems.TOOL_PICKAXE),
+            new Entry(SHOVEL, ForgeweaveItems.TOOL_SHOVEL),
+            new Entry(HATCHET, ForgeweaveItems.TOOL_HATCHET),
+            // M3 station weapons (issue #155). Slot order is ToolConstants' own, which is upstream's
+            // PartMaterialType order in each tool's constructor -- handle, head, then the guard.
+            new Entry(ToolConstants.BROADSWORD, ForgeweaveItems.TOOL_BROADSWORD),
+            new Entry(ToolConstants.LONGSWORD, ForgeweaveItems.TOOL_LONGSWORD),
+            new Entry(ToolConstants.RAPIER, ForgeweaveItems.TOOL_RAPIER),
+            new Entry(ToolConstants.BATTLESIGN, ForgeweaveItems.TOOL_BATTLESIGN),
+            new Entry(ToolConstants.FRYING_PAN, ForgeweaveItems.TOOL_FRYING_PAN),
+            new Entry(ToolConstants.DAGGER, ForgeweaveItems.TOOL_DAGGER));
 
     /**
      * The "large tool" classification (docs/SCOPE.md M3 issue #152): tools that can only be assembled
@@ -111,21 +217,9 @@ public final class ToolAssemblyRecipes {
         }
     }
 
-    static boolean isHeadPart(ItemStack stack) {
-        return ENTRIES.stream().anyMatch(entry -> stack.is(entry.headPart().get()));
-    }
-
-    static boolean isBindingPart(ItemStack stack) {
-        return stack.is(ForgeweaveItems.PART_TOOL_BINDING.get());
-    }
-
-    static boolean isHandlePart(ItemStack stack) {
-        return stack.is(ForgeweaveItems.PART_TOOL_HANDLE.get());
-    }
-
-    /** Whether the head slot holds something the station can work on at all. */
-    static boolean isHeadSlotInput(ItemStack stack) {
-        return isHeadPart(stack) || stack.getItem() instanceof ToolItem;
+    /** The entry that produces {@code tool}, or empty for an item no tab builds. */
+    public static Optional<Entry> entryFor(ItemStack tool) {
+        return ENTRIES.stream().filter(entry -> tool.is(entry.tool().get())).findFirst();
     }
 
     /** Whether {@code stack} repairs the tool currently in the head slot. */
@@ -150,7 +244,10 @@ public final class ToolAssemblyRecipes {
         ItemStack bindingStack = freeSlots.get(0);
         ItemStack handleStack = freeSlots.get(1);
         if (!(headStack.getItem() instanceof ToolItem)) {
-            return resolveAssembly(registries, headStack, bindingStack, handleStack, forge);
+            List<ItemStack> inputs = new ArrayList<>(freeSlots.size() + 1);
+            inputs.add(headStack);
+            inputs.addAll(freeSlots);
+            return resolveAssembly(registries, inputs, forge);
         }
         Optional<Result> repair = resolveRepair(registries, headStack, bindingStack, handleStack, forge);
         if (repair.isPresent()) {
@@ -185,8 +282,13 @@ public final class ToolAssemblyRecipes {
      */
     public static boolean isLargeToolHead(ItemStack headStack) {
         return ENTRIES.stream()
-                .filter(entry -> headStack.is(entry.headPart().get()))
-                .anyMatch(entry -> entry.tool().get().builtInRegistryHolder().is(LARGE_TOOLS));
+                .filter(entry -> headStack.is(entry.part(entry.headSlot())))
+                .anyMatch(ToolAssemblyRecipes::isLargeTool);
+    }
+
+    /** Whether this tool can only be assembled at the Tool Forge (issue #152's {@link #LARGE_TOOLS}). */
+    public static boolean isLargeTool(Entry entry) {
+        return entry.tool().get().builtInRegistryHolder().is(LARGE_TOOLS);
     }
 
     /**
@@ -225,49 +327,105 @@ public final class ToolAssemblyRecipes {
         return stack;
     }
 
-    private static Optional<Result> resolveAssembly(HolderLookup.Provider registries, ItemStack headStack,
-            ItemStack bindingStack, ItemStack handleStack, boolean forge) {
-        if (!isBindingPart(bindingStack) || !isHandlePart(handleStack)) {
+    private static Optional<Result> resolveAssembly(HolderLookup.Provider registries, List<ItemStack> inputs,
+            boolean forge) {
+        Optional<Entry> match = ENTRIES.stream().filter(entry -> entry.matches(inputs)).findFirst();
+        if (match.isEmpty()) {
             return Optional.empty();
         }
-        if (!forge && isLargeToolHead(headStack)) {
+        Entry entry = match.get();
+        if (!forge && isLargeTool(entry)) {
             return Optional.empty(); // a large tool needs the Tool Forge; ToolStationMenu#rejection says so
         }
-        Optional<Entry> entry = ENTRIES.stream().filter(candidate -> headStack.is(candidate.headPart().get())).findFirst();
-        if (entry.isEmpty()) {
-            return Optional.empty();
+
+        List<ResourceLocation> materialIds = new ArrayList<>(entry.slotCount());
+        for (int i = 0; i < entry.slotCount(); i++) {
+            ResourceLocation id = inputs.get(i).get(ForgeweaveDataComponents.MATERIAL.get());
+            if (id == null) {
+                return Optional.empty();
+            }
+            materialIds.add(id);
         }
 
-        ResourceLocation headId = headStack.get(ForgeweaveDataComponents.MATERIAL.get());
-        ResourceLocation bindingId = bindingStack.get(ForgeweaveDataComponents.MATERIAL.get());
-        ResourceLocation handleId = handleStack.get(ForgeweaveDataComponents.MATERIAL.get());
-        if (headId == null || bindingId == null || handleId == null) {
-            return Optional.empty();
+        // One of every part it used, and nothing from a slot this tool doesn't have.
+        int[] used = new int[entry.slotCount()];
+        Arrays.fill(used, 1);
+        return assemble(registries, entry, materialIds).map(output -> Result.of(output, used));
+    }
+
+    /**
+     * Builds the assembled tool one set of part materials produces, or empty when a material id
+     * doesn't resolve. Public so a GameTest and the dev screenshot harness can build the same stack
+     * the station does without staging a menu.
+     *
+     * @param materialIds one per {@link Entry#slotCount()} slot, in that order
+     */
+    public static Optional<ItemStack> assemble(HolderLookup.Provider registries, Entry entry,
+            List<ResourceLocation> materialIds) {
+        List<Material> materials = new ArrayList<>(materialIds.size());
+        for (ResourceLocation id : materialIds) {
+            Optional<Material> material = lookupMaterial(registries, id);
+            if (material.isEmpty()) {
+                return Optional.empty();
+            }
+            materials.add(material.get());
         }
 
-        Optional<Material> head = lookupMaterial(registries, headId);
-        Optional<Material> binding = lookupMaterial(registries, bindingId);
-        Optional<Material> handle = lookupMaterial(registries, handleId);
-        if (head.isEmpty() || binding.isEmpty() || handle.isEmpty()) {
-            return Optional.empty();
-        }
+        Material head = materials.get(entry.headSlot());
+        ToolStats.Stats stats = statsOf(entry, materials, head);
 
-        ToolStats.Stats stats = ToolStats.compute(head.get(), binding.get(), handle.get());
-
-        ToolItem tool = entry.get().tool().get();
+        ToolItem tool = entry.tool().get();
         ItemStack result = new ItemStack(tool);
-        result.set(ForgeweaveDataComponents.TOOL_MATERIALS.get(), new ToolMaterials(headId, bindingId, handleId));
+        result.set(ForgeweaveDataComponents.TOOL_MATERIALS.get(),
+                ToolMaterials.of(entry.constants().parts(), materialIds));
         result.set(ForgeweaveDataComponents.TOOL_STATS.get(), stats);
         // Trait ids come along as data so every later trait hook works off the stack alone
         // (ForgeweaveTraits: same id from two parts still counts once, as upstream 1.12 does).
-        result.set(ForgeweaveDataComponents.TRAITS.get(),
-                ForgeweaveTraits.resolve(head.get(), binding.get(), handle.get()));
+        result.set(ForgeweaveDataComponents.TRAITS.get(), resolveTraits(entry, materials));
         // Mining tier, mining speed, and the durability bar all ride on vanilla components, so
         // vanilla's own block-breaking and rendering paths need no Forgeweave-specific handling.
-        result.set(DataComponents.TOOL, tool.toolComponent(head.get(), stats));
+        result.set(DataComponents.TOOL, tool.toolComponent(head, stats));
         result.set(DataComponents.MAX_DAMAGE, stats.durability());
         result.set(DataComponents.DAMAGE, 0);
-        return Optional.of(Result.of(result, 1, 1, 1));
+        return Optional.of(result);
+    }
+
+    /**
+     * {@link ToolConstants#compute}'s stored stat block plus the head material's own durability
+     * trait. Upstream fires that trait step ({@code TinkerEvent.OnItemBuilding}) after the tool
+     * class's {@code buildTagData}, which is exactly this order; {@code ToolStats#compute} applies
+     * the same step for M1's three-material shape, and reproduces this one exactly for those three.
+     */
+    private static ToolStats.Stats statsOf(Entry entry, List<Material> materials, Material head) {
+        ToolStats.Stats base = ToolConstants.compute(entry.constants(), materials);
+        int durability = ForgeweaveTraits.headDurability(head.traits().forPart(PartItem.Kind.HEAD), base.durability());
+        return new ToolStats.Stats(durability, base.miningSpeed(), base.attackDamage());
+    }
+
+    /**
+     * Every part's traits, deduplicated, in the same head/extra/handle precedence M1 used. A tool
+     * with more than one HEAD part contributes each of them, still deduplicated by id -- upstream
+     * 1.12 counts a repeated trait once regardless of how many parts granted it.
+     */
+    private static List<ResourceLocation> resolveTraits(Entry entry, List<Material> materials) {
+        List<ToolConstants.PartSlot> slots = entry.constants().parts();
+        List<ResourceLocation> traits = new ArrayList<>();
+        for (ToolConstants.Role role : ToolConstants.Role.values()) {
+            for (int i = 0; i < slots.size(); i++) {
+                if (slots.get(i).role() == role) {
+                    traits.addAll(materials.get(i).traits().forPart(kindOf(role)));
+                }
+            }
+        }
+        return traits.stream().distinct().toList();
+    }
+
+    private static PartItem.Kind kindOf(ToolConstants.Role role) {
+        return switch (role) {
+            case HEAD -> PartItem.Kind.HEAD;
+            case EXTRA -> PartItem.Kind.EXTRA;
+            case HANDLE -> PartItem.Kind.HANDLE;
+        };
     }
 
     /**

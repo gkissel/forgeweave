@@ -1,5 +1,7 @@
 package dev.gkissel.forgeweave.gametest;
 
+import java.util.List;
+
 import net.minecraft.core.BlockPos;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.resources.ResourceLocation;
@@ -7,13 +9,17 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.ContainerLevelAccess;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.block.Block;
 
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.block.ForgeweaveBlocks;
 import dev.gkissel.forgeweave.block.ToolStationBlockEntity;
 import dev.gkissel.forgeweave.item.ForgeweaveDataComponents;
 import dev.gkissel.forgeweave.item.ForgeweaveItems;
+import dev.gkissel.forgeweave.item.ToolItem;
+import dev.gkissel.forgeweave.menu.ToolAssemblyRecipes;
 import dev.gkissel.forgeweave.menu.ToolStationMenu;
+import dev.gkissel.forgeweave.tool.ToolConstants;
 
 /**
  * Builds tools for the GameTests the way a player would: through a real Tool Station and its real
@@ -28,11 +34,12 @@ final class ToolAssembly {
     }
 
     /**
-     * As {@link #pickaxe}, for whichever tool the given head part assembles into
-     * ({@code ToolAssemblyRecipes} maps pickaxe/shovel/axe head to pickaxe/shovel/hatchet).
+     * As {@link #pickaxe}, for whichever M1 tool the given head part assembles into -- those three
+     * all take the same (head, binding, handle) slots.
      */
     static ItemStack tool(GameTestHelper helper, Player player, BlockPos pos, Item headPart, String headMaterial, String bindingMaterial, String handleMaterial) {
-        return toolAt(helper, player, pos, ForgeweaveBlocks.TOOL_STATION.get(), headPart, headMaterial, bindingMaterial, handleMaterial);
+        return assemble(helper, player, pos, ForgeweaveBlocks.TOOL_STATION.get(), entryTaking(headPart),
+                List.of(headMaterial, bindingMaterial, handleMaterial));
     }
 
     /**
@@ -42,21 +49,51 @@ final class ToolAssembly {
      * tests must NOT use this -- the Forge's 5% repair discount would shift their expectations.
      */
     static ItemStack toolAtForge(GameTestHelper helper, Player player, BlockPos pos, Item headPart, String headMaterial, String bindingMaterial, String handleMaterial) {
-        return toolAt(helper, player, pos, ForgeweaveBlocks.TOOL_FORGE.get(), headPart, headMaterial, bindingMaterial, handleMaterial);
+        return assemble(helper, player, pos, ForgeweaveBlocks.TOOL_FORGE.get(), entryTaking(headPart),
+                List.of(headMaterial, bindingMaterial, handleMaterial));
     }
 
-    private static ItemStack toolAt(GameTestHelper helper, Player player, BlockPos pos, net.minecraft.world.level.block.Block station, Item headPart, String headMaterial, String bindingMaterial, String handleMaterial) {
+    /**
+     * Assembles {@code entry}'s tool at the Tool Station from one material name per part slot, in the
+     * entry's own slot order -- the M3 shape (issue #155), where both order and count are per-tool.
+     */
+    static ItemStack assemble(GameTestHelper helper, Player player, BlockPos pos,
+            ToolAssemblyRecipes.Entry entry, List<String> materials) {
+        return assemble(helper, player, pos, ForgeweaveBlocks.TOOL_STATION.get(), entry, materials);
+    }
+
+    private static ItemStack assemble(GameTestHelper helper, Player player, BlockPos pos, Block station,
+            ToolAssemblyRecipes.Entry entry, List<String> materials) {
         helper.setBlock(pos, station);
         ToolStationBlockEntity blockEntity = helper.getBlockEntity(pos);
-        blockEntity.container().setItem(0, part(headPart, headMaterial));
-        blockEntity.container().setItem(1, part(ForgeweaveItems.PART_TOOL_BINDING.get(), bindingMaterial));
-        blockEntity.container().setItem(2, part(ForgeweaveItems.PART_TOOL_HANDLE.get(), handleMaterial));
+        for (int i = 0; i < ToolStationMenu.INPUT_SLOTS; i++) {
+            blockEntity.container().setItem(i,
+                    i < entry.slotCount() ? part(entry.part(i), materials.get(i)) : ItemStack.EMPTY);
+        }
 
         ToolStationMenu menu = menu(helper, player, pos, blockEntity);
         menu.broadcastChanges();
         ItemStack tool = menu.getSlot(ToolStationMenu.OUTPUT_SLOT).getItem().copy();
         menu.getSlot(ToolStationMenu.OUTPUT_SLOT).onTake(player, tool);
         return tool;
+    }
+
+    /** The station entry that builds {@code tool}. */
+    static ToolAssemblyRecipes.Entry entryFor(ToolItem tool) {
+        return ToolAssemblyRecipes.entryFor(new ItemStack(tool))
+                .orElseThrow(() -> new AssertionError("no Tool Station entry builds " + tool));
+    }
+
+    /** The M1 pickaxe's part slots, for a test asserting the shape of its {@code ToolMaterials}. */
+    static List<ToolConstants.PartSlot> pickaxeSlots() {
+        return entryTaking(ForgeweaveItems.PART_PICKAXE_HEAD.get()).constants().parts();
+    }
+
+    private static ToolAssemblyRecipes.Entry entryTaking(Item headPart) {
+        return ToolAssemblyRecipes.ENTRIES.stream()
+                .filter(candidate -> candidate.slotCount() == 3 && candidate.part(0) == headPart)
+                .findFirst()
+                .orElseThrow(() -> new AssertionError("no M1-shaped tool takes " + headPart + " in its first slot"));
     }
 
     /** The menu the block at {@code pos} would open -- Tool Station or Tool Forge, per the block entity. */

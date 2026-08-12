@@ -13,17 +13,20 @@ import com.mojang.logging.LogUtils;
 
 import org.slf4j.Logger;
 
+import net.minecraft.client.CameraType;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.Screenshot;
 import net.minecraft.client.gui.screens.AccessibilityOnboardingScreen;
 import net.minecraft.client.gui.screens.TitleScreen;
 import net.minecraft.commands.arguments.EntityAnchorArgument;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.Direction;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.Difficulty;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.level.GameRules;
@@ -61,7 +64,11 @@ import dev.gkissel.forgeweave.block.SmelteryControllerBlockEntity;
 import dev.gkissel.forgeweave.block.StationMenuHost;
 import dev.gkissel.forgeweave.block.ToolStationBlockEntity;
 import dev.gkissel.forgeweave.fluid.ForgeweaveFluids;
+import dev.gkissel.forgeweave.item.ForgeweaveDataComponents;
 import dev.gkissel.forgeweave.item.ForgeweaveItems;
+import dev.gkissel.forgeweave.item.ToolItem;
+import dev.gkissel.forgeweave.menu.ToolAssemblyRecipes;
+import dev.gkissel.forgeweave.tool.ToolConstants;
 
 /**
  * Dev-only screenshot harness (docs/SCOPE.md issue #112): boots straight from the title screen into
@@ -177,10 +184,23 @@ public final class ScreenshotHarness {
     /** Molten iron poured into the mid-pour table, out of the 144 mB an ingot cast wants. */
     private static final int CASTING_SCENE_PARTIAL_POUR = 72;
 
+    /**
+     * Issue #155's six Tool Station weapons, one third-person held capture each. Listed rather than
+     * walked off {@code ToolAssemblyRecipes.ENTRIES} on purpose: this is the release-checklist
+     * artifact for <em>these</em> tools' art, and a later tool issue adding a row should decide for
+     * itself whether its tool needs a frame here.
+     */
+    private static final List<Supplier<? extends ToolItem>> WEAPONS = List.of(
+            ForgeweaveItems.TOOL_BROADSWORD, ForgeweaveItems.TOOL_LONGSWORD, ForgeweaveItems.TOOL_RAPIER,
+            ForgeweaveItems.TOOL_BATTLESIGN, ForgeweaveItems.TOOL_FRYING_PAN, ForgeweaveItems.TOOL_DAGGER);
+
+    /** How far in -Z of spawn the weapon poses stand, clear of the block scenes above. */
+    private static final int WEAPON_SCENE_DISTANCE = 6;
+
     private enum Stage {
         AWAIT_TITLE, AWAIT_WORLD, SETTLE_WORLD, PLACE_TANK_SCENE, SETTLE_TANK_SCENE,
         PLACE_TABLE_SCENE, SETTLE_TABLE_SCENE, PLACE_SMELTERY_SCENE, SETTLE_SMELTERY_SCENE,
-        PLACE_CASTING_SCENE, SETTLE_CASTING_SCENE,
+        PLACE_CASTING_SCENE, SETTLE_CASTING_SCENE, HOLD_WEAPON, SETTLE_WEAPON,
         OPEN_SCREEN, SETTLE_SCREEN, DONE
     }
 
@@ -190,6 +210,8 @@ public final class ScreenshotHarness {
     private static BlockPos origin;
     /** Set by {@link #placeTankScene}, checked by {@link #settleTankScene} before capture. */
     private static BlockPos[] tankScenePositions;
+    /** Which of {@link #WEAPONS} is being posed. */
+    private static int weaponIndex;
     /** Set by {@link #placeTableScene}, checked by {@link #settleTableScene} before capture (#152). */
     private static BlockPos[] tableScenePositions;
     /** Set by {@link #placeSmelteryScene}, checked by {@link #settleSmelteryScene} before capture (#179). */
@@ -220,6 +242,8 @@ public final class ScreenshotHarness {
             case SETTLE_SMELTERY_SCENE -> settleSmelteryScene(mc);
             case PLACE_CASTING_SCENE -> placeCastingScene(mc);
             case SETTLE_CASTING_SCENE -> settleCastingScene(mc);
+            case HOLD_WEAPON -> holdWeapon(mc);
+            case SETTLE_WEAPON -> settleWeapon(mc);
             case OPEN_SCREEN -> openScreen(mc);
             case SETTLE_SCREEN -> settleScreen(mc);
             case DONE -> {}
@@ -647,7 +671,92 @@ public final class ScreenshotHarness {
             }
         }
         capture(mc, "casting_world");
-        advance(Stage.OPEN_SCREEN);
+        advance(Stage.HOLD_WEAPON);
+    }
+
+    /**
+     * Issue #155's in-world scene: one third-person capture per M3 station weapon, the assembled
+     * tool held in the player's main hand, as {@code weapon_<tool>.png}.
+     *
+     * <p>A held-item render is the only thing that exercises a tool's layered model the way a player
+     * actually sees it -- the inventory sprite, the Tool Station's preview and the JEI icon all draw
+     * the layer PNGs by other paths, and a two-layer weapon (battlesign, frying pan, dagger) is
+     * exactly where a wrong layer count would surface. Third person rather than first so the whole
+     * silhouette is in frame rather than a corner of the blade.
+     *
+     * <p>The tools are built with {@code ToolAssemblyRecipes#assemble}, which is the same call the
+     * station's own menu makes, so the captured stack carries the real components (materials, stats,
+     * the vanilla tool component) and the per-layer material tint is real rather than staged.
+     */
+    private static void holdWeapon(Minecraft mc) {
+        if (stageTicks < SCREEN_GAP_TICKS) {
+            return;
+        }
+        if (weaponIndex >= WEAPONS.size()) {
+            mc.options.setCameraType(CameraType.FIRST_PERSON);
+            advance(Stage.OPEN_SCREEN);
+            return;
+        }
+        ToolItem weapon = WEAPONS.get(weaponIndex).get();
+        var server = mc.getSingleplayerServer();
+        LOGGER.info("{}holding {} for its third-person capture", LOG_PREFIX, weaponName(weapon));
+        mc.options.setCameraType(CameraType.THIRD_PERSON_BACK);
+        server.execute(() -> {
+            ServerPlayer serverPlayer = server.getPlayerList().getPlayers().get(0);
+            ItemStack stack = assembleForDisplay(serverPlayer, weapon);
+            if (stack.isEmpty()) {
+                LOGGER.error("{}#155 scene check FAILED: could not assemble {}", LOG_PREFIX, weaponName(weapon));
+            }
+            serverPlayer.setItemInHand(InteractionHand.MAIN_HAND, stack);
+            // Away from the blocks the earlier scenes left standing, so the silhouette reads against
+            // flat ground rather than against a Tool Forge.
+            BlockPos stand = origin.offset(0, 0, -WEAPON_SCENE_DISTANCE);
+            serverPlayer.teleportTo(stand.getX() + 0.5, stand.getY(), stand.getZ() + 0.5);
+            serverPlayer.setYRot(180.0F);
+            serverPlayer.setXRot(0.0F);
+        });
+        advance(Stage.SETTLE_WEAPON);
+    }
+
+    private static void settleWeapon(Minecraft mc) {
+        if (stageTicks < SCREEN_SETTLE_TICKS) {
+            return;
+        }
+        ToolItem weapon = WEAPONS.get(weaponIndex).get();
+        // Self-diagnosing, like the block scenes: an empty hand and a wrongly-rendered tool look the
+        // same in a PNG and need very different fixes.
+        if (mc.player != null) {
+            ItemStack held = mc.player.getMainHandItem();
+            if (held.isEmpty() || !held.is(weapon)) {
+                LOGGER.error("{}#155 scene check FAILED: client sees {} in hand, expected {}",
+                        LOG_PREFIX, held, weaponName(weapon));
+            } else {
+                LOGGER.info("{}#155 scene check: client holds {} with materials {}", LOG_PREFIX,
+                        weaponName(weapon), held.get(ForgeweaveDataComponents.TOOL_MATERIALS.get()));
+            }
+        }
+        capture(mc, "weapon_" + weaponName(weapon));
+        weaponIndex++;
+        advance(Stage.HOLD_WEAPON);
+    }
+
+    /** The tool the Tool Station would build from an iron head and wooden everything else. */
+    private static ItemStack assembleForDisplay(ServerPlayer player, ToolItem weapon) {
+        return ToolAssemblyRecipes.entryFor(new ItemStack(weapon))
+                .flatMap(entry -> ToolAssemblyRecipes.assemble(player.registryAccess(), entry,
+                        entry.constants().parts().stream()
+                                .map(slot -> slot.role() == ToolConstants.Role.HEAD
+                                        ? material("iron") : material("wood"))
+                                .toList()))
+                .orElse(ItemStack.EMPTY);
+    }
+
+    private static ResourceLocation material(String name) {
+        return ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, name);
+    }
+
+    private static String weaponName(ToolItem weapon) {
+        return BuiltInRegistries.ITEM.getKey(weapon).getPath();
     }
 
     private static void openScreen(Minecraft mc) {

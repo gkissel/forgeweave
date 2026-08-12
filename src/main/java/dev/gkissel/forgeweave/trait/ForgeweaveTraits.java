@@ -7,6 +7,7 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Stream;
 
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 
 import com.mojang.logging.LogUtils;
@@ -476,10 +477,12 @@ public final class ForgeweaveTraits {
      * traits it scopes to the part it was used as ({@link Material.Traits#forPart}), de-duplicated
      * head-first (see class javadoc).
      */
-    public static List<ResourceLocation> resolve(Material head, Material binding, Material handle) {
+    public static List<ResourceLocation> resolve(Material head, @Nullable Material binding, Material handle) {
         return Stream.of(
                 head.traits().forPart(PartItem.Kind.HEAD),
-                binding.traits().forPart(PartItem.Kind.EXTRA),
+                // Nullable since issue #155: battlesign, frying pan and dagger have no EXTRA part at
+                // all, so there is no binding material to take traits from (see ToolMaterials).
+                binding == null ? List.<ResourceLocation>of() : binding.traits().forPart(PartItem.Kind.EXTRA),
                 handle.traits().forPart(PartItem.Kind.HANDLE))
                 .flatMap(List::stream)
                 .distinct()
