@@ -92,6 +92,81 @@ End/Ancient cores, End ore, slime islands (world-content milestone, scoped at M6
 - **Save-compat fixtures**: tool components with modifier lists; smeltery block-entity NBT (tank fluids, structure bounds, fuel state); casting table/basin NBT.
 - Alpha tags throughout M2; release notes carry the save-break warning. **First beta intent: end of M3** (see testing strategy).
 
+## Milestone 3 — full tool roster, sword and combat tuning
+
+Planned 2026-08-12. Combat-model decision in [ADR-0005](adr/0005-combat-model.md). Ranged weapons moved to M3.5 (maintainer, in-session); bolts are cut from the roadmap entirely — crossbows fire arrows.
+
+### Acceptance test
+
+In a fresh 1.21.1 survival world on a **dedicated server**, without cheats, a player can:
+
+1. Craft a Tool Forge (seared bricks + any `c:storage_blocks` metal block, any-metal recipe like upstream); it does everything a Tool Station does, repairs cost 5% less material there, and it is required to assemble large tools — the Tool Station visibly rejects large-tool assembly.
+2. Assemble every M3 tool from parts: broadsword, longsword, rapier, battlesign, frying pan, mattock, kama, dagger, battleaxe, scimitar, katana at the Tool Station; hammer, excavator, lumberaxe, scythe, cleaver, vein hammer, warmace (mace-alike; final name is a maintainer pick on its issue) at the Tool Forge.
+3. Observe each tool's combat innate (table below): the longsword leap, rapier %-health strike, katana ramping in combat and resetting out of it, scimitar's damage-over-time, warmace smash after a fall, cleaver dropping a head, dagger backstab, hammer mining 3×3, vein hammer taking a whole ore vein, lumberaxe felling a tree — and the M1 retrofits: pickaxe pierce, shovel flatten, hatchet sunder.
+4. Apply all 8 combat modifiers at a station and observe each effect: smite (vs undead), bane of arthropods (vs arthropods), fiery (ignite), necrotic (lifesteal), knockback, shulking (levitation), webbed (slow), beheading (head drop, including the actual player's head on a PvP kill).
+5. Emboss a tool: one donor part + the substituted reagent set adds the donor material's traits without changing stats; a second embossment on the same tool is rejected.
+6. Load a world saved on the previous alpha (fixture corpus in CI + manual load). At milestone end, the first **beta** tags — the save-compat promise activates.
+
+All assembly, embossing, and modifier recipes are visible in JEI, including the Tool Forge as a crafting location.
+
+### Content manifest
+
+| Kind | Contents |
+| --- | --- |
+| Tools (18) | broadsword, longsword, rapier, battlesign, frying pan, mattock, kama, dagger (station) · battleaxe (deviation: upstream code exists but never shipped — maintainer decision 2026-08-12) · scimitar, katana, warmace (new modern-era shapes, ours) · hammer, excavator, lumberaxe, scythe, cleaver, vein hammer (Tool Forge tier). Dagger and vein hammer are shapes from upstream's modern branch — recorded deviation from the 1.12 generation (maintainer, 2026-08-12, addon/upstream survey in-session) |
+| Parts (~11 new) | sword blade, wide/hand/cross guards, sign plate, pan, knife blade, large sword blade, tough tool rod, tough binding, large plate, hammer head, excavator head, scythe head, kama head, broad axe head — exact set derived from the clone's per-tool part lists at issue time; patterns for each |
+| Blocks (1) | Tool Forge (station superset; large-tool gate; 5% repair discount — recorded deviation) |
+| Modifiers (8) | smite, bane of arthropods, fiery, necrotic, knockback, shulking, webbed, beheading — clone constants |
+| Embossing | 1.12 `ModExtraTrait` semantics: one per tool, consumes a donor part + reagent set, adds the donor material's traits only (stats unchanged). Reagent substitution: the clone's green/blue/magma slime crystals are unavailable until slime content ships; substituted with obtainable 1.21 items (exact reagents are a maintainer pick on the issue). **Revert note**: when the world-content milestone adds slime crystals, the recipe reverts to parity — tracked in the deferred backlog. |
+| Serialization | katana combat-ramp state (new tool component); embossment stored as a generated per-material modifier id at level 1 (`embossment.<material>`), staying inside ADR-0004's id+level rule like upstream's generated identifiers |
+| UI | Tool Forge GUI (clone parity layout); JEI: embossing category, Tool Forge crafting location |
+| Recipes | Tool Forge vanilla-table recipe; assembly recipes for all 16 tools; embossing; modifier application (datapack JSON per ADR-0004) |
+
+### Combat innates
+
+Every tool carries a unique combat/utility innate (maintainer directive 2026-08-12). Parity innates come from the clone; new shapes get proposals that are **named maintainer-decision points on their issues** (M2's #103 pattern).
+
+Utility tools (mattock, kama, hammer, excavator, lumberaxe, vein hammer) additionally carry a **small combat rider** proposed on their issues (maintainer, 2026-08-12) — e.g. vein hammer "crushing blow" (bonus knockback vs armored targets).
+
+| Tool | Innate | Source |
+| --- | --- | --- |
+| pickaxe (M1 retrofit) | pierce — a small flat amount of damage ignores armor | new (mirrors upstream 1.20 piercing) |
+| shovel (M1 retrofit) | flatten — hits briefly slow the target | new |
+| hatchet (M1 retrofit) | sunder — disables shields (vanilla-axe rule) + bonus damage vs blocking targets | new |
+| dagger | backstab — bonus damage when striking from behind | new (shape from upstream 1.20) |
+| vein hammer | vein-mines a connected ore vein; combat rider on issue | new (shape from upstream 1.20) |
+| broadsword | proposal on issue (upstream's 1.12 innate was sword-blocking, gone from modern Minecraft) | decision |
+| longsword | charged leap attack | parity |
+| rapier | deals a % of the target's current health as armor-bypassing damage (magnitude on issue) | maintainer redesign |
+| battlesign | blocking reflects projectiles | parity |
+| frying pan | heavy knockback | parity |
+| battleaxe | proposal on issue | decision |
+| scimitar | applies damage-over-time on hit (magnitude/duration on issue) | new |
+| katana | damage builds up while in combat, resets when combat ends (serialized ramp state) | new |
+| warmace | smash: bonus damage scaling with fall distance, riding vanilla 1.21 mace mechanics | new |
+| cleaver | innate beheading levels | parity |
+| hammer | 3×3 mining | parity |
+| excavator | 3×3 digging | parity |
+| lumberaxe | fells the whole tree | parity |
+| scythe | 3×3×3 harvest + AoE attack | parity |
+| kama | shears; right-click crop harvest | parity |
+| mattock | axe+shovel dual tool; tills soil | parity |
+
+### In scope (systems)
+
+Combat model per ADR-0005: vanilla 1.21 attack cooldown and attribute system; clone damage/attack-speed constants ported as attribute modifiers; innates and combat modifiers hang off shared per-hit event seams (which ADR-0004's M6 extraction treats as future parameterized-library entry points). Tool Forge tier gating. Embossing. Large-tool AoE behaviors. Beheading head-drop utility covering the six vanilla head items plus player heads on PvP kills; mobs without a head item drop nothing.
+
+### Non-goals for M3
+
+Ranged family — shortbow, longbow, crossbow, shuriken, material arrows, javelin, throwing axe, energy-consuming ranged tool (all M3.5) · bolts (cut from the roadmap; crossbows fire arrows) · pickadze and hand axe (surveyed 2026-08-12, cut) · fishing rod, flint & brick, melting pan (gadget-shaped, revisit at M5) · staffs · tool leveling (M7) · armors (M4) · slime-crystal embossing cost (reverts at the world-content milestone) · dual-wielding · new materials.
+
+### CI and release gates
+
+- **GameTest coverage**: Tool Forge gates large-tool assembly (station rejects, forge accepts); 5% repair discount math; one test per combat innate (leap, %-health strike, ramp build+reset, DoT tick, smash-after-fall, head drop, backstab, vein-mine, 3×3/tree-fell/AoE, and the M1 retrofits pierce/flatten/sunder); one test per combat modifier's effect; embossing adds traits without stat change + second embossment rejected; embossment and ramp components survive the fixture-corpus decode.
+- **Save-compat fixtures (in the same PR as the format, corpus is CI-gating)**: katana ramp component; embossment modifier entries; any new tool component fields.
+- **Manual release checklist adds**: screenshot-harness review of the Tool Forge GUI and in-world scenes for every new tool's held/third-person render; JEI sanity; previous-release world load.
+- Alpha tags during the milestone; an explicit post-alpha playtest-fix round is budgeted before the final tag. **At milestone end the first beta tags** (`mc1.21.1-v0.3.0-beta.1`) — confirmed at M3 planning (2026-08-12); from that tag the save-compat promise is binding.
+
 ## Milestone ladder
 
 Each milestone ships a playable release under the tag scheme in [releasing.md](releasing.md).
@@ -100,7 +175,8 @@ Each milestone ships a playable release under the tag scheme in [releasing.md](r
 | --- | --- | --- |
 | M1 | Tools slice (this document) | — |
 | M2 | Smeltery, metal materials, modifiers. Melts/casts any mod's ores and ingots via standard `c:` tags, so modded metals (Mekanism, Create, Thermal, …) work without per-mod code | M1 |
-| M3 | Full tool roster incl. modern-era tools (mace-alike), sword and combat tuning | M2 |
+| M3 | Full melee/harvest tool roster incl. modern-era shapes (katana, scimitar, warmace), combat tuning, Tool Forge, embossing (this document, planned 2026-08-12) | M2 |
+| M3.5 | Ranged weapons: shortbow, longbow, crossbow (fires arrows — bolts are cut), shuriken, material arrows; energy-consuming ranged tool | M3 |
 | M4 | Armors (Construct's Armory-inspired) | M2 (reuses parts/traits/modifiers) |
 | M5 | Gadgets: slingshot, slime boots | M2 |
 | M6 | Material expansion at TAIGA scale; modded metals become tool materials via the datapack registry | Stable material data model (M1), metals (M2) |
@@ -117,7 +193,8 @@ Per-milestone source policy, decided from the [addon ecosystem survey](research/
 | Milestone | Derive from | Inspire from |
 | --- | --- | --- |
 | M2 | Tinkers' Construct 1.12 (smeltery, casting, metals, modifiers — full assets/code as needed) | TAIGA (alloy table), Tinkers' Addons (modifier worked examples) |
-| M3 | — | PlusTiC: katana (damage scales with kills) and an energy-consuming ranged tool as the modern-era shapes |
+| M3 | — | PlusTiC: katana as a modern-era shape (Forgeweave's design differs: damage builds while in combat, decided 2026-08-12) · TiC 1.20 branch: vein hammer + dagger shapes and pickaxe-pierce idea (feature-scope deviation authorized by maintainer 2026-08-12 — the standing "1.20 never sets feature scope" rule is explicitly overridden for these three, by name) |
+| M3.5 | — | PlusTiC: energy-consuming ranged tool |
 | M4 | — | Construct's Armory (LGPL): two-station split, exactly four armor slots, variety carried by traits and modifiers |
 | M6 | — | TAIGA + Moar Tinkers progression ladders. Sizing target: the material schema and picker UI stay usable at 50–70 materials / 30–45 traits |
 | M7 | **Tinkers' Tool Leveling** (MIT, 16 classes — direct port allowed) | Ships behind a config flag; interaction with the modifier cap is decided at M7 planning, not discovered in play |
@@ -131,7 +208,7 @@ Applies across all milestones; the M1 CI/release gates above are the first insta
 
 ### Save compatibility
 
-- Alpha releases (0.x before the first beta tag) may break world saves; every alpha's release notes state this. **First-beta intent (decided at M2 planning): end of M3**, once combat/roster work settles tool components — stated as intent, not a promise; confirmed or moved at M3 planning.
+- Alpha releases (0.x before the first beta tag) may break world saves; every alpha's release notes state this. **First beta: end of M3 — confirmed at M3 planning (2026-08-12)**, once combat/roster work settles tool components. Every serialized format M3 adds ships its save-compat fixture in the same PR.
 - From the first beta tag onward, saves must survive every Forgeweave upgrade within the same Minecraft line.
 - Enforcement: a **fixture decode corpus** — each release adds its serialized formats (tool item components, material data) as test resources; CI must decode the entire corpus on every PR thereafter. Plus one manual load of a previous-release world in the release checklist. A golden-world CI boot is added only if a save break ever escapes the corpus.
 - Where it lives: SNBT snapshots in `src/test/resources/fixtures/save_compat/`, walked by `SaveCompatCorpusTest` under `./gradlew build`. That class's javadoc is the how-to for adding a release's formats; a deliberately corrupt sample in `fixtures/corrupt/` keeps the walk honest.
@@ -170,6 +247,7 @@ No milestone-specific CI infrastructure beyond that.
 - Per-smeltery GUI toggle to enable/disable auto-alloying (M2 planning, 2026-08-09).
 - Sand casts (single-use) if playtests find the gold-cast gate too steep.
 - Electric/tiered smeltery heating (M8, alongside Create/Mekanism compat).
+- Embossing reagent revert (M3 planning, 2026-08-12): M3 substitutes obtainable 1.21 items for the clone's green/blue/magma slime crystals. When the world-content milestone ships slime crystals, revert the embossing recipe to 1.12 parity.
 
 ## M1 issue-ready roadmap
 
