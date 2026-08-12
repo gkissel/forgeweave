@@ -4,13 +4,16 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.GameType;
+import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.material.Fluid;
 
 import net.neoforged.neoforge.capabilities.Capabilities;
@@ -104,6 +107,141 @@ public class CastingGameTests {
 
         helper.succeedWhen(() -> helper.assertTrue(basin.output().is(Items.GOLD_BLOCK),
                 "expected a gold block, found " + basin.output()));
+    }
+
+    /**
+     * #183 regression: the basin fed the way a player feeds it -- a faucet above it, one
+     * {@value FaucetBlockEntity#TRANSACTION_AMOUNT} mB transaction at a time -- rather than through
+     * one capability call that hands it the whole recipe amount at once.
+     */
+    @GameTest(template = "empty", timeoutTicks = 800)
+    public static void theBasinCastsABlockFromAPouredFaucet(GameTestHelper helper) {
+        CastingBlockEntity basin = rig(helper, ForgeweaveBlocks.CASTING_BASIN.get(), ForgeweaveFluids.GOLD.still().get());
+        faucet(helper).activate();
+
+        helper.succeedWhen(() -> helper.assertTrue(basin.output().is(Items.GOLD_BLOCK),
+                "expected a gold block, found " + basin.output()));
+    }
+
+    /**
+     * #183 regression: a basin that was poured into, then reloaded from disk, keeps taking fluid and
+     * still finishes. A block entity's {@code loadAdditional} runs before it has a level, so nothing
+     * resolved from a recipe can be restored there.
+     */
+    @GameTest(template = "empty", timeoutTicks = 800)
+    public static void aPartlyPouredBasinStillFinishesAfterAReload(GameTestHelper helper) {
+        helper.setBlock(CASTING, ForgeweaveBlocks.CASTING_BASIN.get());
+        fill(helper, new FluidStack(ForgeweaveFluids.GOLD.still().get(), FaucetBlockEntity.TRANSACTION_AMOUNT));
+
+        helper.startSequence()
+                .thenExecute(() -> reload(helper, CASTING))
+                .thenIdle(2)
+                .thenExecute(() -> helper.assertValueEqual(
+                        fill(helper, new FluidStack(ForgeweaveFluids.GOLD.still().get(), 4000)),
+                        1296 - FaucetBlockEntity.TRANSACTION_AMOUNT, "the rest of the gold block still fits"))
+                .thenWaitUntil(() -> helper.assertTrue(
+                        helper.<CastingBlockEntity>getBlockEntity(CASTING).output().is(Items.GOLD_BLOCK),
+                        "expected a gold block after the reload"))
+                .thenSucceed();
+    }
+
+    /**
+     * #186 regression: the other half of the same defect -- a table left holding a partial pour by a
+     * source that ran dry must not be sealed shut by a reload, with its cast trapped inside.
+     */
+    @GameTest(template = "empty", timeoutTicks = 800)
+    public static void aPartlyPouredTableGivesItsCastBackAfterAReload(GameTestHelper helper) {
+        helper.setBlock(CASTING, ForgeweaveBlocks.CASTING_TABLE.get());
+        insert(helper, helper.getBlockEntity(CASTING), new ItemStack(ForgeweaveItems.CAST_INGOT.get()));
+        fill(helper, new FluidStack(ForgeweaveFluids.IRON.still().get(), 72));
+
+        helper.startSequence()
+                .thenExecute(() -> reload(helper, CASTING))
+                .thenIdle(2)
+                .thenExecute(() -> helper.assertValueEqual(
+                        fill(helper, new FluidStack(ForgeweaveFluids.IRON.still().get(), 4000)), 72,
+                        "the rest of the ingot still fits"))
+                .thenWaitUntil(() -> helper.assertTrue(
+                        helper.<CastingBlockEntity>getBlockEntity(CASTING).output().is(Items.IRON_INGOT),
+                        "expected an iron ingot after the reload"))
+                .thenExecute(() -> {
+                    Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+                    helper.useBlock(CASTING, player);
+                    helper.useBlock(CASTING, player);
+                    helper.assertTrue(player.getInventory().contains(new ItemStack(Items.IRON_INGOT)),
+                            "expected the ingot back");
+                    helper.assertTrue(player.getInventory().contains(new ItemStack(ForgeweaveItems.CAST_INGOT.get())),
+                            "expected the cast back");
+                })
+                .thenSucceed();
+    }
+
+    /** Pours into the casting block through its own capability, the way a faucet does. */
+    private static int fill(GameTestHelper helper, FluidStack fluid) {
+        IFluidHandler handler = helper.getLevel().getCapability(Capabilities.FluidHandler.BLOCK,
+                helper.absolutePos(CASTING), Direction.UP);
+        helper.assertTrue(handler != null, "expected the casting block to expose a fluid handler");
+        return handler.fill(fluid, IFluidHandler.FluidAction.EXECUTE);
+    }
+
+    /**
+     * Puts the block entity through the exact round trip a chunk load does: saved to NBT, rebuilt by
+     * {@link BlockEntity#loadStatic} with no level, and only then handed one.
+     */
+    private static void reload(GameTestHelper helper, BlockPos pos) {
+        ServerLevel level = helper.getLevel();
+        BlockPos absolute = helper.absolutePos(pos);
+        CompoundTag saved = level.getBlockEntity(absolute).saveWithFullMetadata(level.registryAccess());
+        level.removeBlockEntity(absolute);
+        BlockEntity reloaded = BlockEntity.loadStatic(absolute, level.getBlockState(absolute), saved,
+                level.registryAccess());
+        helper.assertTrue(reloaded != null, "expected the block entity to load back");
+        level.setBlockEntity(reloaded);
+    }
+
+    /**
+     * #186 regression: the whole right-click path through the block, not {@link
+     * CastingBlockEntity#interact} directly -- a cast goes in, comes back out, and the finished
+     * result comes out after it.
+     */
+    @GameTest(template = "empty", timeoutTicks = 400)
+    public static void rightClickingTheTablePutsItemsInAndTakesThemBackOut(GameTestHelper helper) {
+        helper.setBlock(CASTING, ForgeweaveBlocks.CASTING_TABLE.get());
+        CastingBlockEntity table = helper.getBlockEntity(CASTING);
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        player.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(ForgeweaveItems.CAST_INGOT.get()));
+
+        helper.useBlock(CASTING, player);
+        helper.assertTrue(table.input().is(ForgeweaveItems.CAST_INGOT.get()),
+                "expected the right-click to put the cast in, found " + table.input());
+
+        player.setItemInHand(InteractionHand.MAIN_HAND, ItemStack.EMPTY);
+        helper.useBlock(CASTING, player);
+        helper.assertTrue(table.input().isEmpty(), "expected the cast to come back out, found " + table.input());
+        helper.assertTrue(player.getInventory().contains(new ItemStack(ForgeweaveItems.CAST_INGOT.get())),
+                "expected the cast in the player's inventory");
+        helper.succeed();
+    }
+
+    /** #186 regression, second half: a finished result is retrievable by right-clicking too. */
+    @GameTest(template = "empty", timeoutTicks = 400)
+    public static void rightClickingTheTableTakesOutAFinishedResult(GameTestHelper helper) {
+        CastingBlockEntity table = rig(helper, ForgeweaveBlocks.CASTING_TABLE.get(), ForgeweaveFluids.IRON.still().get());
+        insert(helper, table, new ItemStack(ForgeweaveItems.CAST_INGOT.get()));
+        faucet(helper).activate();
+
+        helper.startSequence()
+                .thenWaitUntil(() -> helper.assertTrue(table.output().is(Items.IRON_INGOT),
+                        "expected an iron ingot, found " + table.output()))
+                .thenExecute(() -> {
+                    Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+                    helper.useBlock(CASTING, player);
+                    helper.assertTrue(table.output().isEmpty(),
+                            "expected the ingot to come back out, found " + table.output());
+                    helper.assertTrue(player.getInventory().contains(new ItemStack(Items.IRON_INGOT)),
+                            "expected the ingot in the player's inventory");
+                })
+                .thenSucceed();
     }
 
     /**

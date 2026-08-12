@@ -142,11 +142,11 @@ public class CastingBlockEntity extends BlockEntity {
      * stale tick (fluid drained back out, cast taken) harmless.
      */
     void finishCasting() {
-        if (level == null || level.isClientSide || tank.getFluidAmount() < tank.getCapacity() || tank.isEmpty()) {
+        if (level == null || level.isClientSide || tank.isEmpty()) {
             return;
         }
         CastingRecipe recipe = currentRecipe();
-        if (recipe == null) {
+        if (recipe == null || tank.getFluidAmount() < recipe.amount()) {
             return;
         }
 
@@ -210,9 +210,22 @@ public class CastingBlockEntity extends BlockEntity {
         input = tag.contains(TAG_INPUT) ? ItemStack.parseOptional(registries, tag.getCompound(TAG_INPUT)) : ItemStack.EMPTY;
         output = tag.contains(TAG_OUTPUT) ? ItemStack.parseOptional(registries, tag.getCompound(TAG_OUTPUT)) : ItemStack.EMPTY;
         tank.readFromNBT(registries, tag.getCompound(TAG_TANK));
-        // FluidTank's own NBT carries no capacity; a half-poured block reloads with the capacity its
-        // recipe asks for, which is also what stops a reload from counting as "full" too early.
-        tank.setCapacity(tank.isEmpty() ? 0 : recipeAmountFor(tank.getFluid().getFluid()));
+        // FluidTank's own NBT carries no capacity, and there is no level here to resolve the recipe
+        // that knows it (see the fill comment below), so this is a placeholder onLoad corrects.
+        tank.setCapacity(tank.getFluidAmount());
+    }
+
+    /**
+     * Restores the capacity the renderer draws its fill fraction against, which only the in-progress
+     * recipe knows -- and resolving that recipe needs a level, which arrives after
+     * {@link #loadAdditional}. Casting logic itself no longer reads this value.
+     */
+    @Override
+    public void onLoad() {
+        super.onLoad();
+        if (!tank.isEmpty()) {
+            tank.setCapacity(recipeAmountFor(tank.getFluid().getFluid()));
+        }
     }
 
     private int recipeAmountFor(Fluid fluid) {
@@ -263,24 +276,33 @@ public class CastingBlockEntity extends BlockEntity {
             if (resource.isEmpty() || !output.isEmpty()) {
                 return 0;
             }
-            if (tank.isEmpty()) {
-                CastingRecipe recipe = findRecipe(resource.getFluid());
-                if (recipe == null) {
-                    return 0;
-                }
-                if (action.simulate()) {
-                    return Math.min(resource.getAmount(), recipe.amount());
-                }
-                tank.setCapacity(recipe.amount());
+            if (!tank.isEmpty() && !FluidStack.isSameFluidSameComponents(tank.getFluid(), resource)) {
+                return 0;
             }
+            // #183/#186 -- the recipe is asked how much fits on every drop, not just on the one that
+            // starts the pour. A block entity reloaded from disk has no level while its NBT is read
+            // (LevelChunk#promotePendingBlockEntity hands it one only afterwards), so it cannot
+            // resolve a recipe there and cannot know its own capacity; a half-poured block used to
+            // come back capped at whatever it was holding, refuse every further drop -- basin output
+            // never arrived -- and, since nothing can be taken out of a block with fluid in it, seal
+            // its own cast in with it.
+            CastingRecipe recipe = findRecipe(resource.getFluid());
+            if (recipe == null) {
+                return 0;
+            }
+            int room = recipe.amount() - tank.getFluidAmount();
+            if (room <= 0) {
+                return 0;
+            }
+            if (action.simulate()) {
+                return Math.min(resource.getAmount(), room);
+            }
+            tank.setCapacity(recipe.amount());
             int filled = tank.fill(resource, action);
-            if (filled > 0 && action.execute()) {
+            if (filled > 0) {
                 contentsChanged();
-                if (tank.getFluidAmount() >= tank.getCapacity() && level != null && !level.isClientSide) {
-                    CastingRecipe recipe = currentRecipe();
-                    if (recipe != null) {
-                        level.scheduleTick(worldPosition, getBlockState().getBlock(), recipe.cooldownTicks());
-                    }
+                if (tank.getFluidAmount() >= recipe.amount() && level != null && !level.isClientSide) {
+                    level.scheduleTick(worldPosition, getBlockState().getBlock(), recipe.cooldownTicks());
                 }
             }
             return filled;
