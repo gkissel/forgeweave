@@ -195,18 +195,21 @@ public class FaucetBlockEntity extends BlockEntity {
     @Override
     protected void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
         super.saveAdditional(tag, registries);
-        if (!buffered.isEmpty()) {
-            tag.put(TAG_DRAINED, buffered.save(registries));
-            tag.putBoolean(TAG_STOP, stopRequested);
-        }
+        // Both keys go in unconditionally, empty buffer and all. This same tag is what getUpdateTag
+        // sends, and NeoForge's IBlockEntityExtension#onDataPacket drops any packet whose tag is
+        // empty -- so an idle faucet, which had nothing else to write, was telling every client
+        // exactly nothing when its pour ended, and they went on drawing the stream forever (#200).
+        // saveOptional/parseOptional is the same never-empty pair SmelteryControllerBlockEntity
+        // already uses for its fuel-gauge fluid, and it still reads a pre-#200 save that has no
+        // "drained" key at all: getCompound returns an empty tag and parseOptional makes it EMPTY.
+        tag.put(TAG_DRAINED, buffered.saveOptional(registries));
+        tag.putBoolean(TAG_STOP, stopRequested);
     }
 
     @Override
     protected void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
         super.loadAdditional(tag, registries);
-        buffered = tag.contains(TAG_DRAINED)
-                ? FluidStack.parseOptional(registries, tag.getCompound(TAG_DRAINED))
-                : FluidStack.EMPTY;
+        buffered = FluidStack.parseOptional(registries, tag.getCompound(TAG_DRAINED));
         pouring = !buffered.isEmpty();
         stopRequested = pouring && tag.getBoolean(TAG_STOP);
     }

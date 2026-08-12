@@ -2,6 +2,7 @@ package dev.gkissel.forgeweave.gametest;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.nbt.CompoundTag;
@@ -341,6 +342,44 @@ public class CastingGameTests {
             helper.assertValueEqual(tank.tank().getFluidAmount(), before - FaucetBlockEntity.TRANSACTION_AMOUNT,
                     "exactly one ingot left the tank in total");
             helper.assertFalse(faucet.isPouring(), "and the faucet stopped once the table stopped accepting");
+        });
+    }
+
+    /**
+     * #200 regression: the packet that ends a pour has to actually say so. A faucet's whole state is
+     * its buffered fluid, so once that emptied it saved nothing, {@link
+     * net.minecraft.world.level.block.entity.BlockEntity#getUpdateTag} returned an empty tag, and
+     * NeoForge's {@code IBlockEntityExtension#onDataPacket} throws empty tags away -- leaving every
+     * client stuck on the last mid-pour state it heard about, drawing the stream forever.
+     *
+     * <p>Checked at the level it broke: the tag really leaving the block entity, and what happens
+     * when a faucet that is already mid-pour is handed it -- which is exactly a client's situation.
+     */
+    @GameTest(template = "empty", timeoutTicks = 400)
+    public static void aFinishedPourTellsClientsToStopDrawingTheStream(GameTestHelper helper) {
+        CastingBlockEntity table = rig(helper, ForgeweaveBlocks.CASTING_TABLE.get(), ForgeweaveFluids.IRON.still().get());
+        insert(helper, table, new ItemStack(ForgeweaveItems.CAST_INGOT.get()));
+        FaucetBlockEntity faucet = faucet(helper);
+        faucet.activate();
+
+        HolderLookup.Provider registries = helper.getLevel().registryAccess();
+        BlockPos absolute = helper.absolutePos(FAUCET);
+        CompoundTag midPour = faucet.getUpdateTag(registries);
+        helper.assertFalse(midPour.isEmpty(), "a pouring faucet has something to tell clients");
+
+        helper.succeedWhen(() -> {
+            helper.assertFalse(faucet.isPouring(), "the faucet stops once the table stops accepting");
+            CompoundTag idle = faucet.getUpdateTag(registries);
+            helper.assertFalse(idle.isEmpty(),
+                    "an idle faucet's update tag must not be empty -- an empty one is dropped unread");
+
+            // A client already holds the mid-pour state when the idle packet lands on top of it.
+            FaucetBlockEntity clientSide = new FaucetBlockEntity(absolute, helper.getLevel().getBlockState(absolute));
+            clientSide.loadWithComponents(midPour, registries);
+            helper.assertTrue(clientSide.isPouring(), "expected the client to have been drawing a stream");
+            clientSide.loadWithComponents(idle, registries);
+            helper.assertFalse(clientSide.isPouring(), "and to stop once the pour-ended update arrives");
+            helper.assertTrue(clientSide.buffered().isEmpty(), "with nothing left for the renderer to draw");
         });
     }
 

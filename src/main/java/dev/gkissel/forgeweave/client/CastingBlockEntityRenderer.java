@@ -42,11 +42,20 @@ import dev.gkissel.forgeweave.block.CastingBlockEntity;
  * so both are skipped rather than invented.
  */
 public class CastingBlockEntityRenderer implements BlockEntityRenderer<CastingBlockEntity> {
-    /** A generated item model is 1/16 deep, so a flat-laid item is that thick after scaling. */
-    private static final float ITEM_THICKNESS = 1f / 16f;
+    /** A generated item model's own depth, which becomes its height once it is laid flat. */
+    private static final float ITEM_MODEL_DEPTH = 1f / 16f;
+    /**
+     * What a flat-laid item is squashed to. A casting table's recess is a single pixel deep, so an
+     * unsquashed 1/16 item fills it edge to edge and leaves the pour nowhere to go but through the
+     * cast -- #200's second defect. Upstream never hits this because its table items ride the chunk
+     * mesh, where the fluid's translucent pass cannot tint them; ours share one pass, so the cast
+     * has to physically sit above the pool.
+     */
+    private static final float FLAT_ITEM_THICKNESS = 1f / 64f;
 
     private final float surfaceY;
     private final float fluidTopY;
+    private final float itemBaseY;
     private final float xzMin;
     private final float xzMax;
     private final float itemScale;
@@ -54,18 +63,23 @@ public class CastingBlockEntityRenderer implements BlockEntityRenderer<CastingBl
     /** Upstream's {@code CastingRenderer.Table}. */
     static CastingBlockEntityRenderer table() {
         // The fluid sheet's ceiling is a hair above the block so a full table reads as brimming
-        // rather than flush with its own rim -- upstream's `1f + 0.001f`.
-        return new CastingBlockEntityRenderer(15f / 16f, 1f + 0.001f, 1f / 16f, 15f / 16f, 0.875f);
+        // rather than flush with its own rim -- upstream's `1f + 0.001f`. A cast tucks up under the
+        // rim instead, its top flush with the block, so the pour fills the recess beneath it.
+        return new CastingBlockEntityRenderer(15f / 16f, 1f + 0.001f, 1f - FLAT_ITEM_THICKNESS,
+                1f / 16f, 15f / 16f, 0.875f);
     }
 
     /** Upstream's {@code CastingRenderer.Basin}. */
     static CastingBlockEntityRenderer basin() {
-        return new CastingBlockEntityRenderer(4f / 16f, 1f, 2f / 16f, 14f / 16f, 12f / 16f);
+        // A basin is deep enough that whatever it holds simply sits on its floor.
+        return new CastingBlockEntityRenderer(4f / 16f, 1f, 4f / 16f, 2f / 16f, 14f / 16f, 12f / 16f);
     }
 
-    private CastingBlockEntityRenderer(float surfaceY, float fluidTopY, float xzMin, float xzMax, float itemScale) {
+    private CastingBlockEntityRenderer(float surfaceY, float fluidTopY, float itemBaseY,
+            float xzMin, float xzMax, float itemScale) {
         this.surfaceY = surfaceY;
         this.fluidTopY = fluidTopY;
+        this.itemBaseY = itemBaseY;
         this.xzMin = xzMin;
         this.xzMax = xzMax;
         this.itemScale = itemScale;
@@ -91,23 +105,32 @@ public class CastingBlockEntityRenderer implements BlockEntityRenderer<CastingBl
             float fraction = Mth.clamp(fluid.getAmount() / (float) tank.getCapacity(), 0f, 1f);
             TextureAtlasSprite sprite = FluidRenderUtil.stillSprite(fluid);
             FluidRenderUtil.cuboid(bufferSource.getBuffer(RenderType.translucent()), poseStack.last().pose(),
-                    xzMin, surfaceY, xzMin, xzMax, topY(fraction), xzMax,
+                    xzMin, surfaceY, xzMin, xzMax, topY(fraction, !input.isEmpty() || !output.isEmpty()), xzMax,
                     sprite, FluidRenderUtil.tint(fluid), packedLight, packedOverlay);
         }
     }
 
     /**
-     * The fluid's top face in block-local space: {@code surfaceY} when empty up to the station's own
-     * ceiling when full. Split out for {@code CastingBlockEntityRendererTest} the same way {@link
+     * The fluid's top face in block-local space: {@code surfaceY} when empty, rising to the station's
+     * own ceiling when full -- or only to the underside of whatever is lying in the block, so a cast
+     * being poured into always reads above its own metal instead of being tinted and z-fought by it
+     * (#200). Split out for {@code CastingBlockEntityRendererTest} the same way {@link
      * SearedTankBlockEntityRenderer#topY} was, since #145 showed fill-height math is exactly what
      * goes wrong unwatched.
+     *
+     * <p>ponytail: {@code hasItem} does not ask whether the item is lying flat. A standing block item
+     * would be submerged rather than a lid, but a basin is the only station that stands one up and it
+     * never holds fluid and an item at once -- block casting takes no cast, and its result only
+     * appears on the tick the pour is consumed.
      */
-    float topY(float fraction) {
-        return surfaceY + (fluidTopY - surfaceY) * Mth.clamp(fraction, 0f, 1f);
+    float topY(float fraction, boolean hasItem) {
+        float ceiling = hasItem ? itemBaseY : fluidTopY;
+        return surfaceY + (ceiling - surfaceY) * Mth.clamp(fraction, 0f, 1f);
     }
 
     /**
-     * One stack lying on the station's surface. Upstream's rule for orientation: a block lies as a
+     * One stack lying in the station, on its floor for a basin and tucked up under the rim for a
+     * table (see {@link #itemBaseY}). Upstream's rule for orientation: a block lies as a
      * block (a casting basin full of iron shows an iron block), anything else -- a cast, a tool part,
      * an ingot, or a pane, which has no cube to show -- is laid flat like a sheet of paper.
      *
@@ -121,13 +144,17 @@ public class CastingBlockEntityRenderer implements BlockEntityRenderer<CastingBl
         }
         boolean flat = !(stack.getItem() instanceof BlockItem blockItem)
                 || blockItem.getBlock() instanceof IronBarsBlock;
-        float height = (flat ? ITEM_THICKNESS : 1f) * itemScale;
+        float height = flat ? FLAT_ITEM_THICKNESS : itemScale;
 
         poseStack.pushPose();
-        poseStack.translate(0.5f, surfaceY + height * (0.5f + layer), 0.5f);
-        poseStack.scale(itemScale, itemScale, itemScale);
+        poseStack.translate(0.5f, itemBaseY + height * (0.5f + layer), 0.5f);
         if (flat) {
+            // After the rotation the model's own depth axis is the block's vertical one, so the
+            // third scale is the item's thickness -- squashed to FLAT_ITEM_THICKNESS, see there.
             poseStack.mulPose(Axis.XP.rotationDegrees(-90f));
+            poseStack.scale(itemScale, itemScale, FLAT_ITEM_THICKNESS / ITEM_MODEL_DEPTH);
+        } else {
+            poseStack.scale(itemScale, itemScale, itemScale);
         }
         // ItemDisplayContext.NONE applies no display transform, so the model arrives centred on the
         // pose above -- upstream renders the raw baked model for the same reason.
