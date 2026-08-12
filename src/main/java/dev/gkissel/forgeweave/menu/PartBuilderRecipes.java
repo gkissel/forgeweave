@@ -51,6 +51,17 @@ public final class PartBuilderRecipes {
     public static final int HEAD_COST = 4;
     public static final int SMALL_PART_COST = 2;
 
+    // M3 part costs (docs/SCOPE.md M3 issue #151), read off the clone's own registerToolPart calls
+    // (TinkerTools#registerToolParts) and normalized the same way as the constants above: upstream's
+    // {@code Material.VALUE_Ingot} is 144, exactly 2 of this class's shard-units, so a cost of
+    // {@code VALUE_Ingot * n} becomes {@code n * 2} shard-units here.
+    //   sign_head/pan_head/tough_tool_rod/tough_binding = VALUE_Ingot * 3 -> 6
+    //   large_sword_blade/large_plate/hammer_head/excavator_head/scythe_head/broad_axe_head = VALUE_Ingot * 8 -> 16
+    // sword_blade and kama_head are VALUE_Ingot * 2, same as HEAD_COST; wide/hand/cross guard and
+    // knife_blade are VALUE_Ingot * 1, same as SMALL_PART_COST -- both reuse the constants above.
+    public static final int MEDIUM_PART_COST = 6;
+    public static final int LARGE_HEAD_COST = 16;
+
     /** The value of one shard item, and the atomic unit every other value above is denominated in. */
     public static final int SHARD_VALUE = 1;
 
@@ -61,7 +72,28 @@ public final class PartBuilderRecipes {
             new Entry(ForgeweaveItems.PATTERN_SHOVEL_HEAD, ForgeweaveItems.PART_SHOVEL_HEAD, HEAD_COST),
             new Entry(ForgeweaveItems.PATTERN_AXE_HEAD, ForgeweaveItems.PART_AXE_HEAD, HEAD_COST),
             new Entry(ForgeweaveItems.PATTERN_TOOL_BINDING, ForgeweaveItems.PART_TOOL_BINDING, SMALL_PART_COST),
-            new Entry(ForgeweaveItems.PATTERN_TOOL_HANDLE, ForgeweaveItems.PART_TOOL_HANDLE, SMALL_PART_COST));
+            new Entry(ForgeweaveItems.PATTERN_TOOL_HANDLE, ForgeweaveItems.PART_TOOL_HANDLE, SMALL_PART_COST),
+
+            // M3 roster (docs/SCOPE.md issue #151).
+            new Entry(ForgeweaveItems.PATTERN_SWORD_BLADE, ForgeweaveItems.PART_SWORD_BLADE, HEAD_COST),
+            new Entry(ForgeweaveItems.PATTERN_WIDE_GUARD, ForgeweaveItems.PART_WIDE_GUARD, SMALL_PART_COST),
+            new Entry(ForgeweaveItems.PATTERN_HAND_GUARD, ForgeweaveItems.PART_HAND_GUARD, SMALL_PART_COST),
+            new Entry(ForgeweaveItems.PATTERN_CROSS_GUARD, ForgeweaveItems.PART_CROSS_GUARD, SMALL_PART_COST),
+            new Entry(ForgeweaveItems.PATTERN_SIGN_PLATE, ForgeweaveItems.PART_SIGN_PLATE, MEDIUM_PART_COST),
+            new Entry(ForgeweaveItems.PATTERN_PAN, ForgeweaveItems.PART_PAN, MEDIUM_PART_COST),
+            new Entry(ForgeweaveItems.PATTERN_KNIFE_BLADE, ForgeweaveItems.PART_KNIFE_BLADE, SMALL_PART_COST),
+            new Entry(ForgeweaveItems.PATTERN_LARGE_SWORD_BLADE, ForgeweaveItems.PART_LARGE_SWORD_BLADE, LARGE_HEAD_COST),
+            new Entry(ForgeweaveItems.PATTERN_TOUGH_TOOL_ROD, ForgeweaveItems.PART_TOUGH_TOOL_ROD, MEDIUM_PART_COST),
+            new Entry(ForgeweaveItems.PATTERN_TOUGH_BINDING, ForgeweaveItems.PART_TOUGH_BINDING, MEDIUM_PART_COST),
+            new Entry(ForgeweaveItems.PATTERN_LARGE_PLATE, ForgeweaveItems.PART_LARGE_PLATE, LARGE_HEAD_COST),
+            new Entry(ForgeweaveItems.PATTERN_HAMMER_HEAD, ForgeweaveItems.PART_HAMMER_HEAD, LARGE_HEAD_COST),
+            new Entry(ForgeweaveItems.PATTERN_EXCAVATOR_HEAD, ForgeweaveItems.PART_EXCAVATOR_HEAD, LARGE_HEAD_COST),
+            new Entry(ForgeweaveItems.PATTERN_SCYTHE_HEAD, ForgeweaveItems.PART_SCYTHE_HEAD, LARGE_HEAD_COST),
+            new Entry(ForgeweaveItems.PATTERN_KAMA_HEAD, ForgeweaveItems.PART_KAMA_HEAD, HEAD_COST),
+            new Entry(ForgeweaveItems.PATTERN_BROAD_AXE_HEAD, ForgeweaveItems.PART_BROAD_AXE_HEAD, LARGE_HEAD_COST),
+            // No upstream cost to read (no 1.12/1.20 counterpart) -- priced like hammer_head, the
+            // large-tool head part it's functionally closest to.
+            new Entry(ForgeweaveItems.PATTERN_VEIN_HAMMER_HEAD, ForgeweaveItems.PART_VEIN_HAMMER_HEAD, LARGE_HEAD_COST));
 
     /**
      * Whether the pattern slot should accept this stack at all (the five part patterns only -- not

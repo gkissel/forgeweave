@@ -35,13 +35,34 @@ public class StencilTableMenu extends StationMenu {
     public static final int INPUT_SLOT = 0;
     public static final int OUTPUT_SLOT = 1;
 
-    /** Fixed, ordered candidate list for the selection buttons (docs/SCOPE.md M1 issue #44 brief: "the five part patterns"). */
+    /**
+     * Fixed, ordered candidate list for the selection buttons (docs/SCOPE.md M1 issue #44 brief: "the
+     * five part patterns"; M3 issue #151 adds the roster's 17 more -- the sidebar grid in {@code
+     * StencilTableScreen} sizes itself off {@link #PATTERNS}' length, so no layout change was needed).
+     */
     public static final List<DeferredItem<Item>> PATTERNS = List.of(
             ForgeweaveItems.PATTERN_PICKAXE_HEAD,
             ForgeweaveItems.PATTERN_SHOVEL_HEAD,
             ForgeweaveItems.PATTERN_AXE_HEAD,
             ForgeweaveItems.PATTERN_TOOL_BINDING,
-            ForgeweaveItems.PATTERN_TOOL_HANDLE);
+            ForgeweaveItems.PATTERN_TOOL_HANDLE,
+            ForgeweaveItems.PATTERN_SWORD_BLADE,
+            ForgeweaveItems.PATTERN_WIDE_GUARD,
+            ForgeweaveItems.PATTERN_HAND_GUARD,
+            ForgeweaveItems.PATTERN_CROSS_GUARD,
+            ForgeweaveItems.PATTERN_SIGN_PLATE,
+            ForgeweaveItems.PATTERN_PAN,
+            ForgeweaveItems.PATTERN_KNIFE_BLADE,
+            ForgeweaveItems.PATTERN_LARGE_SWORD_BLADE,
+            ForgeweaveItems.PATTERN_TOUGH_TOOL_ROD,
+            ForgeweaveItems.PATTERN_TOUGH_BINDING,
+            ForgeweaveItems.PATTERN_LARGE_PLATE,
+            ForgeweaveItems.PATTERN_HAMMER_HEAD,
+            ForgeweaveItems.PATTERN_EXCAVATOR_HEAD,
+            ForgeweaveItems.PATTERN_SCYTHE_HEAD,
+            ForgeweaveItems.PATTERN_KAMA_HEAD,
+            ForgeweaveItems.PATTERN_BROAD_AXE_HEAD,
+            ForgeweaveItems.PATTERN_VEIN_HAMMER_HEAD);
 
     private final Container container;
     private final ContainerLevelAccess access;

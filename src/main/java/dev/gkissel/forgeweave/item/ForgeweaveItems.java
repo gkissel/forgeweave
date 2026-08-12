@@ -31,11 +31,58 @@ public final class ForgeweaveItems {
     public static final DeferredItem<Item> PATTERN_TOOL_BINDING = ITEMS.registerSimpleItem("pattern_tool_binding");
     public static final DeferredItem<Item> PATTERN_TOOL_HANDLE = ITEMS.registerSimpleItem("pattern_tool_handle");
 
+    // M3 tool part patterns (docs/SCOPE.md M3 issue #151), one per part below.
+    public static final DeferredItem<Item> PATTERN_SWORD_BLADE = ITEMS.registerSimpleItem("pattern_sword_blade");
+    public static final DeferredItem<Item> PATTERN_WIDE_GUARD = ITEMS.registerSimpleItem("pattern_wide_guard");
+    public static final DeferredItem<Item> PATTERN_HAND_GUARD = ITEMS.registerSimpleItem("pattern_hand_guard");
+    public static final DeferredItem<Item> PATTERN_CROSS_GUARD = ITEMS.registerSimpleItem("pattern_cross_guard");
+    public static final DeferredItem<Item> PATTERN_SIGN_PLATE = ITEMS.registerSimpleItem("pattern_sign_plate");
+    public static final DeferredItem<Item> PATTERN_PAN = ITEMS.registerSimpleItem("pattern_pan");
+    public static final DeferredItem<Item> PATTERN_KNIFE_BLADE = ITEMS.registerSimpleItem("pattern_knife_blade");
+    public static final DeferredItem<Item> PATTERN_LARGE_SWORD_BLADE = ITEMS.registerSimpleItem("pattern_large_sword_blade");
+    public static final DeferredItem<Item> PATTERN_TOUGH_TOOL_ROD = ITEMS.registerSimpleItem("pattern_tough_tool_rod");
+    public static final DeferredItem<Item> PATTERN_TOUGH_BINDING = ITEMS.registerSimpleItem("pattern_tough_binding");
+    public static final DeferredItem<Item> PATTERN_LARGE_PLATE = ITEMS.registerSimpleItem("pattern_large_plate");
+    public static final DeferredItem<Item> PATTERN_HAMMER_HEAD = ITEMS.registerSimpleItem("pattern_hammer_head");
+    public static final DeferredItem<Item> PATTERN_EXCAVATOR_HEAD = ITEMS.registerSimpleItem("pattern_excavator_head");
+    public static final DeferredItem<Item> PATTERN_SCYTHE_HEAD = ITEMS.registerSimpleItem("pattern_scythe_head");
+    public static final DeferredItem<Item> PATTERN_KAMA_HEAD = ITEMS.registerSimpleItem("pattern_kama_head");
+    public static final DeferredItem<Item> PATTERN_BROAD_AXE_HEAD = ITEMS.registerSimpleItem("pattern_broad_axe_head");
+    public static final DeferredItem<Item> PATTERN_VEIN_HAMMER_HEAD = ITEMS.registerSimpleItem("pattern_vein_hammer_head");
+
     public static final DeferredItem<PartItem> PART_PICKAXE_HEAD = part("pickaxe_head", PartItem.Kind.HEAD);
     public static final DeferredItem<PartItem> PART_SHOVEL_HEAD = part("shovel_head", PartItem.Kind.HEAD);
     public static final DeferredItem<PartItem> PART_AXE_HEAD = part("axe_head", PartItem.Kind.HEAD);
     public static final DeferredItem<PartItem> PART_TOOL_BINDING = part("tool_binding", PartItem.Kind.EXTRA);
     public static final DeferredItem<PartItem> PART_TOOL_HANDLE = part("tool_handle", PartItem.Kind.HANDLE);
+
+    // M3 tool parts (docs/SCOPE.md M3 issue #151): the roster's part list, exactly as read off the
+    // clone's per-tool constructors (tools/melee/item/*, tools/tools/*) plus the two modern-branch
+    // shapes docs/SCOPE.md authorizes (knife blade for the dagger, vein hammer head for the vein
+    // hammer -- see NOTICE.md and ForgeweaveItemModelProvider for which of these have upstream art
+    // and which don't). Not registered: distinct heads for scimitar/katana/warmace -- those three are
+    // Forgeweave's own new-shape tools (docs/SCOPE.md: "new modern-era shapes, ours") with no clone
+    // part list to read and no design decided yet; their own issues (#159/#160/#161) are where the
+    // maintainer picks their part composition, so inventing parts for them here would be speculative.
+    public static final DeferredItem<PartItem> PART_SWORD_BLADE = part("sword_blade", PartItem.Kind.HEAD);
+    public static final DeferredItem<PartItem> PART_WIDE_GUARD = part("wide_guard", PartItem.Kind.EXTRA);
+    public static final DeferredItem<PartItem> PART_HAND_GUARD = part("hand_guard", PartItem.Kind.EXTRA);
+    public static final DeferredItem<PartItem> PART_CROSS_GUARD = part("cross_guard", PartItem.Kind.EXTRA);
+    public static final DeferredItem<PartItem> PART_SIGN_PLATE = part("sign_plate", PartItem.Kind.HEAD);
+    public static final DeferredItem<PartItem> PART_PAN = part("pan", PartItem.Kind.HEAD);
+    public static final DeferredItem<PartItem> PART_KNIFE_BLADE = part("knife_blade", PartItem.Kind.HEAD);
+    public static final DeferredItem<PartItem> PART_LARGE_SWORD_BLADE = part("large_sword_blade", PartItem.Kind.HEAD);
+    public static final DeferredItem<PartItem> PART_TOUGH_TOOL_ROD = part("tough_tool_rod", PartItem.Kind.HANDLE);
+    public static final DeferredItem<PartItem> PART_TOUGH_BINDING = part("tough_binding", PartItem.Kind.EXTRA);
+    public static final DeferredItem<PartItem> PART_LARGE_PLATE = part("large_plate", PartItem.Kind.HEAD);
+    public static final DeferredItem<PartItem> PART_HAMMER_HEAD = part("hammer_head", PartItem.Kind.HEAD);
+    public static final DeferredItem<PartItem> PART_EXCAVATOR_HEAD = part("excavator_head", PartItem.Kind.HEAD);
+    public static final DeferredItem<PartItem> PART_SCYTHE_HEAD = part("scythe_head", PartItem.Kind.HEAD);
+    public static final DeferredItem<PartItem> PART_KAMA_HEAD = part("kama_head", PartItem.Kind.HEAD);
+    public static final DeferredItem<PartItem> PART_BROAD_AXE_HEAD = part("broad_axe_head", PartItem.Kind.HEAD);
+    // No 1.12 or 1.20 counterpart (1.20's vein hammer reuses the plain hammer_head part) -- freshly
+    // authored art (NOTICE.md has no row for it), unlike every other part above.
+    public static final DeferredItem<PartItem> PART_VEIN_HAMMER_HEAD = part("vein_hammer_head", PartItem.Kind.HEAD);
 
     private static DeferredItem<PartItem> part(String name, PartItem.Kind kind) {
         return ITEMS.registerItem(name, properties -> new PartItem(properties, kind));

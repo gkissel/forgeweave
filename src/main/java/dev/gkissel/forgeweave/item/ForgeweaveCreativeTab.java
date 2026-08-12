@@ -30,7 +30,25 @@ public final class ForgeweaveCreativeTab {
             ForgeweaveItems.PART_AXE_HEAD,
             ForgeweaveItems.PART_TOOL_BINDING,
             ForgeweaveItems.PART_TOOL_HANDLE,
-            ForgeweaveItems.SHARD);
+            ForgeweaveItems.SHARD,
+            // M3 roster (docs/SCOPE.md issue #151).
+            ForgeweaveItems.PART_SWORD_BLADE,
+            ForgeweaveItems.PART_WIDE_GUARD,
+            ForgeweaveItems.PART_HAND_GUARD,
+            ForgeweaveItems.PART_CROSS_GUARD,
+            ForgeweaveItems.PART_SIGN_PLATE,
+            ForgeweaveItems.PART_PAN,
+            ForgeweaveItems.PART_KNIFE_BLADE,
+            ForgeweaveItems.PART_LARGE_SWORD_BLADE,
+            ForgeweaveItems.PART_TOUGH_TOOL_ROD,
+            ForgeweaveItems.PART_TOUGH_BINDING,
+            ForgeweaveItems.PART_LARGE_PLATE,
+            ForgeweaveItems.PART_HAMMER_HEAD,
+            ForgeweaveItems.PART_EXCAVATOR_HEAD,
+            ForgeweaveItems.PART_SCYTHE_HEAD,
+            ForgeweaveItems.PART_KAMA_HEAD,
+            ForgeweaveItems.PART_BROAD_AXE_HEAD,
+            ForgeweaveItems.PART_VEIN_HAMMER_HEAD);
 
     public static final DeferredHolder<CreativeModeTab, CreativeModeTab> MAIN = TABS.register("main", () -> CreativeModeTab.builder()
             .title(Component.translatable("itemGroup.forgeweave"))
@@ -53,6 +71,25 @@ public final class ForgeweaveCreativeTab {
         output.accept(ForgeweaveItems.PATTERN_AXE_HEAD.get());
         output.accept(ForgeweaveItems.PATTERN_TOOL_BINDING.get());
         output.accept(ForgeweaveItems.PATTERN_TOOL_HANDLE.get());
+
+        // M3 roster (docs/SCOPE.md issue #151).
+        output.accept(ForgeweaveItems.PATTERN_SWORD_BLADE.get());
+        output.accept(ForgeweaveItems.PATTERN_WIDE_GUARD.get());
+        output.accept(ForgeweaveItems.PATTERN_HAND_GUARD.get());
+        output.accept(ForgeweaveItems.PATTERN_CROSS_GUARD.get());
+        output.accept(ForgeweaveItems.PATTERN_SIGN_PLATE.get());
+        output.accept(ForgeweaveItems.PATTERN_PAN.get());
+        output.accept(ForgeweaveItems.PATTERN_KNIFE_BLADE.get());
+        output.accept(ForgeweaveItems.PATTERN_LARGE_SWORD_BLADE.get());
+        output.accept(ForgeweaveItems.PATTERN_TOUGH_TOOL_ROD.get());
+        output.accept(ForgeweaveItems.PATTERN_TOUGH_BINDING.get());
+        output.accept(ForgeweaveItems.PATTERN_LARGE_PLATE.get());
+        output.accept(ForgeweaveItems.PATTERN_HAMMER_HEAD.get());
+        output.accept(ForgeweaveItems.PATTERN_EXCAVATOR_HEAD.get());
+        output.accept(ForgeweaveItems.PATTERN_SCYTHE_HEAD.get());
+        output.accept(ForgeweaveItems.PATTERN_KAMA_HEAD.get());
+        output.accept(ForgeweaveItems.PATTERN_BROAD_AXE_HEAD.get());
+        output.accept(ForgeweaveItems.PATTERN_VEIN_HAMMER_HEAD.get());
 
         // Shown component-less (no TOOL_MATERIALS set): unlike parts, a tool has three independent
         // material slots, so there's no small fixed set of "one per material" variants to enumerate
