@@ -220,9 +220,9 @@ public class LargeToolGameTests {
     @GameTest(template = "empty")
     public static void scytheAttackHitsEveryoneAroundTheTarget(GameTestHelper helper) {
         ServerPlayer player = holdingLargeTool(helper, ForgeweaveItems.TOOL_SCYTHE.get(), "stone");
-        Pig target = helper.spawn(EntityType.PIG, new BlockPos(2, 2, 2));
-        Pig bystander = helper.spawn(EntityType.PIG, new BlockPos(2, 2, 3));
-        Pig outOfReach = helper.spawn(EntityType.PIG, new BlockPos(2, 2, 6));
+        Pig target = staticAdultPig(helper, new BlockPos(2, 2, 2));
+        Pig bystander = staticAdultPig(helper, new BlockPos(2, 2, 3));
+        Pig outOfReach = staticAdultPig(helper, new BlockPos(2, 2, 6));
         float before = bystander.getHealth();
         float outOfReachBefore = outOfReach.getHealth();
 
@@ -351,5 +351,21 @@ public class LargeToolGameTests {
         List<CombatSeam> seams = CombatSeams.seams(tool);
         helper.assertTrue(seams.stream().anyMatch(seam -> seam == expected),
                 "the " + name + " must carry its innate through the combat seams, got " + seams);
+    }
+
+    /**
+     * A pig with every source of spawn randomness removed: no AI (it cannot wander off its block
+     * between spawn and blow) and forced adult (a randomly-spawned baby's hitbox is small enough to
+     * slip out of an AoE reach assertion). The scythe sweep test failed on every CI run and almost
+     * never locally, which is what per-run spawn randomness looks like across differently-seeded
+     * machines.
+     */
+    private static Pig staticAdultPig(GameTestHelper helper, BlockPos pos) {
+        Pig pig = helper.spawn(EntityType.PIG, pos);
+        pig.setNoAi(true);
+        pig.setBaby(false);
+        pig.moveTo(helper.absoluteVec(new net.minecraft.world.phys.Vec3(
+                pos.getX() + 0.5, pos.getY(), pos.getZ() + 0.5)));
+        return pig;
     }
 }
