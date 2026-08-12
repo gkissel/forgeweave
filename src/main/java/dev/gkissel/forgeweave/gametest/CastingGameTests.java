@@ -28,6 +28,7 @@ import dev.gkissel.forgeweave.block.FaucetBlock;
 import dev.gkissel.forgeweave.block.FaucetBlockEntity;
 import dev.gkissel.forgeweave.block.ForgeweaveBlocks;
 import dev.gkissel.forgeweave.block.SearedTankBlockEntity;
+import dev.gkissel.forgeweave.block.SmelteryControllerBlockEntity;
 import dev.gkissel.forgeweave.fluid.ForgeweaveFluids;
 import dev.gkissel.forgeweave.item.ForgeweaveDataComponents;
 import dev.gkissel.forgeweave.item.ForgeweaveItems;
@@ -49,6 +50,73 @@ public class CastingGameTests {
     private static final BlockPos TANK = new BlockPos(1, 3, 1);
     private static final BlockPos FAUCET = new BlockPos(2, 3, 1);
     private static final BlockPos CASTING = new BlockPos(2, 2, 1);
+
+    // #183: the rig a player actually builds -- a formed smeltery with a drain in its wall, a faucet
+    // on the outside of that drain, and a casting block under the faucet. Positions are relative to
+    // SmelteryGameTests' 1x1x2 minimum structure (core (0,2,1), wall tank (1,2,0)).
+    private static final BlockPos DRAIN = new BlockPos(1, 2, 2);
+    private static final BlockPos DRAIN_FAUCET = new BlockPos(1, 2, 3);
+    private static final BlockPos DRAIN_CASTING = new BlockPos(1, 1, 3);
+
+    /**
+     * #183 regression: right-click the faucet hanging off a smeltery drain and the molten metal has
+     * to reach the basin underneath. Every other casting test feeds the faucet from a seared tank,
+     * so nothing covered the drain -- the only way fluid leaves a smeltery, and so the only way a
+     * player ever fills a basin.
+     */
+    @GameTest(template = "smeltery", timeoutTicks = 200)
+    public static void aFaucetOnASmelteryDrainPoursIntoTheBasin(GameTestHelper helper) {
+        CastingBlockEntity basin = drainRig(helper, ForgeweaveBlocks.CASTING_BASIN.get());
+
+        helper.useBlock(DRAIN_FAUCET, helper.makeMockPlayer(GameType.SURVIVAL));
+
+        helper.succeedWhen(() -> helper.assertTrue(!basin.tank().isEmpty(),
+                "expected molten gold to have reached the basin"));
+    }
+
+    /**
+     * #183, the order a player actually builds in: the smeltery is put up and formed first, and only
+     * then is a wall block swapped for a drain. The drain is not next to the core, so nothing tells
+     * the core to look at its walls again.
+     */
+    @GameTest(template = "smeltery", timeoutTicks = 200)
+    public static void aDrainAddedToAFormedSmelteryStillPours(GameTestHelper helper) {
+        SmelteryGameTests.buildWalls(helper, 1, 1, 2);
+        BlockPos corePos = SmelteryGameTests.placeCore(helper, ForgeweaveBlocks.STANDARD_CORE.get());
+        SmelteryControllerBlockEntity core = helper.getBlockEntity(corePos);
+        helper.assertTrue(core.isFormed(), "expected the smeltery to form first: " + core.lastResult().getString());
+        core.tank().fill(new FluidStack(ForgeweaveFluids.GOLD.still().get(), 4000), IFluidHandler.FluidAction.EXECUTE);
+
+        // Only now the drain, the faucet and the basin -- the smeltery is already built and idle.
+        helper.setBlock(DRAIN, ForgeweaveBlocks.SEARED_DRAIN.get());
+        helper.setBlock(DRAIN_CASTING, ForgeweaveBlocks.CASTING_BASIN.get());
+        helper.setBlock(DRAIN_FAUCET, ForgeweaveBlocks.FAUCET.get().defaultBlockState()
+                .setValue(FaucetBlock.FACING, Direction.NORTH));
+        CastingBlockEntity basin = helper.getBlockEntity(DRAIN_CASTING);
+
+        // A few ticks between building and right-clicking, as a player takes.
+        helper.startSequence()
+                .thenIdle(5)
+                .thenExecute(() -> helper.useBlock(DRAIN_FAUCET, helper.makeMockPlayer(GameType.SURVIVAL)))
+                .thenWaitUntil(() -> helper.assertTrue(!basin.tank().isEmpty(),
+                        "expected molten gold to have reached the basin"))
+                .thenSucceed();
+    }
+
+    /** A smeltery full of molten gold, a drain in its wall, a faucet on the drain, {@code casting} below it. */
+    private static CastingBlockEntity drainRig(GameTestHelper helper, net.minecraft.world.level.block.Block casting) {
+        SmelteryGameTests.buildWalls(helper, 1, 1, 2);
+        helper.setBlock(DRAIN, ForgeweaveBlocks.SEARED_DRAIN.get());
+        BlockPos corePos = SmelteryGameTests.placeCore(helper, ForgeweaveBlocks.STANDARD_CORE.get());
+        SmelteryControllerBlockEntity core = helper.getBlockEntity(corePos);
+        helper.assertTrue(core.isFormed(), "expected the drain smeltery to form: " + core.lastResult().getString());
+        core.tank().fill(new FluidStack(ForgeweaveFluids.GOLD.still().get(), 4000), IFluidHandler.FluidAction.EXECUTE);
+
+        helper.setBlock(DRAIN_CASTING, casting);
+        helper.setBlock(DRAIN_FAUCET, ForgeweaveBlocks.FAUCET.get().defaultBlockState()
+                .setValue(FaucetBlock.FACING, Direction.NORTH));
+        return helper.getBlockEntity(DRAIN_CASTING);
+    }
 
     /**
      * SCOPE.md M2's acceptance step 2: "pour molten gold over a crafted part to create a reusable
