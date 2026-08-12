@@ -117,7 +117,7 @@ All assembly, embossing, and modifier recipes are visible in JEI, including the 
 | Parts (~11 new) | sword blade, wide/hand/cross guards, sign plate, pan, knife blade, large sword blade, tough tool rod, tough binding, large plate, hammer head, excavator head, scythe head, kama head, broad axe head — exact set derived from the clone's per-tool part lists at issue time; patterns for each |
 | Blocks (1) | Tool Forge (station superset; large-tool gate; 5% repair discount — recorded deviation) |
 | Modifiers (8) | smite, bane of arthropods, fiery, necrotic, knockback, shulking, webbed, beheading — clone constants |
-| Embossing | 1.12 `ModExtraTrait` semantics: one per tool, consumes a donor part + reagent set, adds the donor material's traits only (stats unchanged). Reagent substitution: the clone's green/blue/magma slime crystals are unavailable until slime content ships; substituted with obtainable 1.21 items (exact reagents are a maintainer pick on the issue). **Revert note**: when the world-content milestone adds slime crystals, the recipe reverts to parity — tracked in the deferred backlog. |
+| Embossing | 1.12 `ModExtraTrait` semantics: one per tool, consumes a donor part + reagent set, adds the donor material's traits only (stats unchanged). Reagent substitution: the clone's green/blue/magma slime crystals are unavailable until slime content ships; substituted with **slime block + magma block + gold block** (maintainer decision on issue #154, 2026-08-12). **Revert note**: when the world-content milestone adds slime crystals, the recipe reverts to parity — tracked in the deferred backlog. |
 | Serialization | katana combat-ramp state (new tool component); embossment stored as a generated per-material modifier id at level 1 (`embossment.<material>`), staying inside ADR-0004's id+level rule like upstream's generated identifiers |
 | UI | Tool Forge GUI (clone parity layout); JEI: embossing category, Tool Forge crafting location |
 | Recipes | Tool Forge vanilla-table recipe; assembly recipes for all 16 tools; embossing; modifier application (datapack JSON per ADR-0004) |
@@ -247,7 +247,8 @@ No milestone-specific CI infrastructure beyond that.
 - Per-smeltery GUI toggle to enable/disable auto-alloying (M2 planning, 2026-08-09).
 - Sand casts (single-use) if playtests find the gold-cast gate too steep.
 - Electric/tiered smeltery heating (M8, alongside Create/Mekanism compat).
-- Embossing reagent revert (M3 planning, 2026-08-12): M3 substitutes obtainable 1.21 items for the clone's green/blue/magma slime crystals. When the world-content milestone ships slime crystals, revert the embossing recipe to 1.12 parity.
+- Embossing reagent revert (M3 planning, 2026-08-12): M3 substitutes **slime block + magma block + gold block** (maintainer decision on issue #154, 2026-08-12) for the clone's green/blue/magma slime crystals + gold block. When the world-content milestone ships slime crystals, revert `data/forgeweave/forgeweave/embossing_recipe/embossment.json` to 1.12 parity — it is datapack JSON, so the revert is a data edit, not a code change.
+- Embossing's per-tool donor-part gate (#154): upstream refuses a donor part the tool itself does not use (`ModExtraTrait#canApplyCustom`). Forgeweave accepts any buildable part until the tool roster's per-tool part table exists; add the gate with that table.
 
 ## M1 issue-ready roadmap
 

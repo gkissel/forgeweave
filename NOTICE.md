@@ -223,6 +223,12 @@ One row per derived file (ADR-0003). Maintained in PR review: a PR introducing d
 | `src/main/resources/data/forgeweave/forgeweave/modifier_recipe/sharpness.json` (quartz, 72 per level, 5 levels) | `src/main/java/slimeknights/tconstruct/tools/TinkerModifiers.java` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
 | `src/main/resources/data/forgeweave/forgeweave/modifier_recipe/diamond.json` (one diamond, one-shot) | `src/main/java/slimeknights/tconstruct/tools/TinkerModifiers.java` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
 | `src/main/resources/data/forgeweave/forgeweave/modifier_recipe/emerald.json` (one emerald, one-shot) | `src/main/java/slimeknights/tconstruct/tools/TinkerModifiers.java` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
+| `src/main/java/dev/gkissel/forgeweave/modifier/Embossing.java` (embossing whole: generated per-material identifier, one-embossment-per-tool scan, donor traits scoped by the donor part's kind and appended to the tool's trait list with no stat change, one of each reagent consumed) | `src/main/java/slimeknights/tconstruct/tools/modifiers/ModExtraTrait.java` (`generateIdentifier`, `ExtraTraitAspect#canApply`, `applyEffect`, `addCombination`, `EMBOSSMENT_ITEMS`), `src/main/java/slimeknights/tconstruct/tools/TinkerModifiers.java` (`registerExtraTraitModifiers`, `PartMaterialType#getApplicableTraitsForMaterial`) | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
+| `src/main/java/dev/gkissel/forgeweave/modifier/ForgeweaveModifiers.java` (`EMBOSSMENT` behavior and the free-slot exemption: an embossment occupies no modifier slot) | `src/main/java/slimeknights/tconstruct/tools/modifiers/ModExtraTrait.java` (its aspect list carries no `FreeModifierAspect`) | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
+| `src/main/java/dev/gkissel/forgeweave/modifier/ModifierApplication.java` (`name`: an embossment reads `Embossment (<material>)` from one shared key plus the material's own name) | `src/main/java/slimeknights/tconstruct/tools/modifiers/ModExtraTrait.java` (`getLocalizedName`, `getLocalizedDesc`) | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
+| `src/main/resources/data/forgeweave/forgeweave/embossing_recipe/embossment.json` (one of each reagent alongside the donor part; the three slime crystals are **substituted** with slime/magma/gold blocks -- maintainer decision on issue #154, revert tracked in docs/SCOPE.md's deferred backlog) | `src/main/java/slimeknights/tconstruct/tools/modifiers/ModExtraTrait.java` (`getEmbossmentItems`) | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
+| `src/main/java/dev/gkissel/forgeweave/menu/ToolStationTabs.java` (the repair tab's 4th and 5th slot positions) and `ToolStationScreen.java` (their `ICON_Ingot`/`ICON_Gem` glyphs) | `src/main/java/slimeknights/tconstruct/tools/common/client/GuiButtonRepair.java` (static initializer), `src/main/java/slimeknights/tconstruct/tools/common/client/GuiToolStation.java` (`drawRepairSlotIcon`), `src/main/java/slimeknights/tconstruct/library/client/Icons.java` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
+| `src/main/java/dev/gkissel/forgeweave/menu/ToolStationMenu.java` (per-tab active input-slot count: slots the selected tab doesn't use are hidden and refuse everything) | `src/main/java/slimeknights/tconstruct/tools/common/inventory/ContainerToolStation.java` (`activeSlots`) | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
 | `src/main/java/dev/gkissel/forgeweave/casting/CastingRecipe.java` (cast/fluid/amount/result/time/`consumes_cast`/`result_in_input` (upstream's `switchOutputs`) recipe shape, the `24 + (temperature - 300) * amount / 1600` cooldown formula, and the table/basin split into two recipe sets) | `src/main/java/slimeknights/tconstruct/library/smeltery/CastingRecipe.java`, `src/main/java/slimeknights/tconstruct/library/smeltery/ICastingRecipe.java` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
 | `src/main/java/dev/gkissel/forgeweave/block/CastingBlockEntity.java` (two-slot input/output model, the interact rules, the recipe-sized tank whose fill is refused unless a recipe matches, and the finish sequence incl. `consumesCast`/`switchOutputs` and the comparator output) | `src/main/java/slimeknights/tconstruct/smeltery/tileentity/TileCasting.java`, `.../TileCastingTable.java`, `.../TileCastingBasin.java`, `src/main/java/slimeknights/tconstruct/library/fluid/FluidHandlerCasting.java` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
 | `src/main/java/dev/gkissel/forgeweave/block/CastingBlock.java` (the table and basin collision/outline boxes, the right-click-to-swap-item behaviour, the comparator override) | `src/main/java/slimeknights/tconstruct/smeltery/block/BlockCasting.java` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
@@ -800,3 +806,38 @@ rather than upstream ports, per the maintainer decision comment on issue #103 (2
   loading succeeding at all (a malformed file fails datapack load, which `./gradlew build`'s
   `runGameTestServer` already boots) plus their datagen-freshness check; actually finding ore in a
   generated Nether is left to the manual release checklist per docs/SCOPE.md M2's testing strategy.
+
+### Embossing (issue #154) deviations from upstream 1.12
+
+- **Reagent substitution, by maintainer decision on the issue (2026-08-12).** Upstream's
+  `ModExtraTrait.EMBOSSMENT_ITEMS` is green + blue + magma slime crystal plus a gold block. Slime
+  crystals are world content Forgeweave has not shipped yet (docs/SCOPE.md defers slime islands to
+  the world-content milestone), so `embossment.json` substitutes slime block + magma block + gold
+  block, one block loosely standing in for each crystal colour. The revert to parity is in
+  docs/SCOPE.md's deferred backlog and, because the cost is datapack JSON, is a data edit rather
+  than a code change when the crystals ship.
+- **One generated identifier per *material*, where upstream generates one per material *and trait
+  set*.** Upstream's `generateIdentifier` concatenates the material id with the sorted trait ids, so
+  an iron pickaxe head and an iron tool rod produce two distinct `ModExtraTrait`s. Issue #154 fixes
+  Forgeweave's on `embossment.<material>`, which is what keeps a modifier entry inside ADR-0004's
+  strict `id + level` rule with nothing derived stuffed into it. The consequence is deliberate and
+  harmless: both iron parts serialize `forgeweave:embossment.iron` while granting the trait set
+  their own part kind scopes, because the traits live in the tool's own `forgeweave:traits`
+  component (exactly as upstream's `ToolBuilder#addTrait` puts them in the tool's NBT) rather than
+  being re-derived from the id at read time. Nothing decodes ambiguously; the id is a label for the
+  material the player spent, which is also all the tooltip claims.
+- **No per-tool donor-part gate yet.** Upstream's `ModExtraTrait#canApplyCustom` refuses a tool that
+  does not itself use the donor part (`toolCores.contains`), built up from `addCombination` as each
+  tool registers its `PartMaterialType`s. Forgeweave accepts any buildable part of any material
+  (shards excluded -- they are `PartItem.Kind.NONE`, not a part). With M3-5's three shipped tools all
+  using the same three part kinds the gate would be a no-op, and the per-tool part table it needs is
+  what the tool-roster issues are adding; wiring a throwaway half-table here would be undone by them.
+  **Flagged for maintainer review** in the PR for this issue: the gate belongs with that table.
+- **The Tool Station gained two input slots, restoring upstream's 4th and 5th repair positions.**
+  Upstream's `TileToolStation` has six input slots and `ContainerToolStation` shows `activeSlots` of
+  them per tab; M1 shipped three, which is enough for assembly and repair but two short of what a
+  four-item embossment costs. This PR restores positions 4 and 5 (`GuiButtonRepair`'s static
+  initializer) with upstream's own per-tab active-slot rule and its `ICON_Ingot`/`ICON_Gem` glyphs.
+  Upstream's 6th position stays unused -- nothing Forgeweave ships needs a fifth free slot. Switching
+  to a tab that hides a slot hands its contents back to the player rather than stranding them, which
+  upstream does not have to solve because its slot count never shrinks below what is filled.
