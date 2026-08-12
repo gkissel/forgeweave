@@ -91,7 +91,10 @@ public class Forgeweave {
         // runs them in is visible in one place. Materials' traits are first (see COMBAT_SEAM); M3's
         // per-tool innates and combat modifiers add theirs below as they land.
         CombatSeams.register((weapon, out) -> out.accept(ForgeweaveTraits.COMBAT_SEAM));
-        // #163 -- knockback, shulking, webbed (docs/SCOPE.md M3 combat modifiers batch 2).
+        // #162/#163 -- combat modifiers batches 1 and 2 (smite, bane of arthropods, fiery, necrotic;
+        // knockback, shulking, webbed): one shared provider walking the modifier list and consuming
+        // each entry's Modifier#combatSeam, the modifier-side counterpart to ForgeweaveTraits#COMBAT_SEAM
+        // just above.
         CombatSeams.register(ForgeweaveModifiers.COMBAT_SEAMS);
         // #164 -- M1 tool innate retrofit: pickaxe pierce, shovel flatten, hatchet sunder. Same idiom
         // as materials' traits above, keyed on tool identity instead of stack data.
