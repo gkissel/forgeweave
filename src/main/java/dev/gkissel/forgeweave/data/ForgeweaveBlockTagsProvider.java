@@ -3,8 +3,12 @@ package dev.gkissel.forgeweave.data;
 import java.util.concurrent.CompletableFuture;
 
 import net.minecraft.core.HolderLookup;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.data.PackOutput;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.BlockTags;
+import net.minecraft.tags.TagKey;
+import net.minecraft.world.level.block.Block;
 
 import net.neoforged.neoforge.common.data.BlockTagsProvider;
 import net.neoforged.neoforge.common.data.ExistingFileHelper;
@@ -37,5 +41,19 @@ public class ForgeweaveBlockTagsProvider extends BlockTagsProvider {
         tag(BlockTags.NEEDS_DIAMOND_TOOL)
                 .add(ForgeweaveBlocks.COBALT_ORE.get())
                 .add(ForgeweaveBlocks.ARDITE_ORE.get());
+
+        // #206 -- the block-side counterpart of ForgeweaveItemTagsProvider's c:storage_blocks/*
+        // additions (same reasoning: NeoForge's own storage_blocks tag only unions the metals it
+        // knows about).
+        tag(cTag("storage_blocks/cobalt")).add(ForgeweaveBlocks.COBALT_BLOCK.get());
+        tag(cTag("storage_blocks/ardite")).add(ForgeweaveBlocks.ARDITE_BLOCK.get());
+        tag(cTag("storage_blocks/manyullyn")).add(ForgeweaveBlocks.MANYULLYN_BLOCK.get());
+        tag(cTag("storage_blocks/rose_gold")).add(ForgeweaveBlocks.ROSE_GOLD_BLOCK.get());
+        tag(cTag("storage_blocks")).addTag(cTag("storage_blocks/cobalt")).addTag(cTag("storage_blocks/ardite"))
+                .addTag(cTag("storage_blocks/manyullyn")).addTag(cTag("storage_blocks/rose_gold"));
+    }
+
+    private static TagKey<Block> cTag(String path) {
+        return TagKey.create(Registries.BLOCK, ResourceLocation.fromNamespaceAndPath("c", path));
     }
 }

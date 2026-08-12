@@ -1,0 +1,8 @@
+{
+  "station": "basin",
+  "fluid": "forgeweave:molten_rose_gold",
+  "amount": 1296,
+  "result": {
+    "id": "forgeweave:rose_gold_block"
+  }
+}

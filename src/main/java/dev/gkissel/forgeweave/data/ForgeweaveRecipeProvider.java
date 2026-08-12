@@ -136,6 +136,43 @@ public class ForgeweaveRecipeProvider extends RecipeProvider {
 
         buildSearedRecipes(recipeOutput);
         buildModifierRecipes(recipeOutput);
+        buildStorageBlockRecipes(recipeOutput);
+    }
+
+    /**
+     * #206 -- vanilla's own 9-ingot &lt;-&gt; storage-block conversion (block &lt;-&gt; ingots), for
+     * the four M2 metals that had no block form at all. Iron/copper/gold/netherite already have this
+     * both ways courtesy of vanilla's own recipes. Hand-rolled rather than the vanilla {@code
+     * RecipeProvider#nineBlockStorageRecipes} datagen helper -- which does the same shapes but saves
+     * both recipe ids under the plain {@code minecraft:} namespace -- so these land under {@code
+     * forgeweave:}, like every other recipe in this file; not an upstream 1.12 port (upstream keyed
+     * its version off the ore dictionary instead), so this carries no NOTICE.md row.
+     */
+    private void buildStorageBlockRecipes(RecipeOutput recipeOutput) {
+        storageBlockRecipes(recipeOutput, ForgeweaveItems.INGOT_COBALT.get(), ForgeweaveItems.COBALT_BLOCK.get());
+        storageBlockRecipes(recipeOutput, ForgeweaveItems.INGOT_ARDITE.get(), ForgeweaveItems.ARDITE_BLOCK.get());
+        storageBlockRecipes(recipeOutput, ForgeweaveItems.INGOT_MANYULLYN.get(), ForgeweaveItems.MANYULLYN_BLOCK.get());
+        storageBlockRecipes(recipeOutput, ForgeweaveItems.INGOT_ROSE_GOLD.get(), ForgeweaveItems.ROSE_GOLD_BLOCK.get());
+    }
+
+    /** 9 {@code ingot} &lt;-&gt; 1 {@code block}, vanilla's own storage-block shape, both directions. */
+    private void storageBlockRecipes(RecipeOutput recipeOutput, ItemLike ingot, ItemLike block) {
+        ResourceLocation blockId = BuiltInRegistries.ITEM.getKey(block.asItem());
+        ResourceLocation ingotId = BuiltInRegistries.ITEM.getKey(ingot.asItem());
+
+        ShapedRecipeBuilder.shaped(RecipeCategory.BUILDING_BLOCKS, block)
+                .pattern("###")
+                .pattern("###")
+                .pattern("###")
+                .define('#', ingot)
+                .unlockedBy("has_" + ingotId.getPath(), has(ingot))
+                .save(recipeOutput, blockId);
+
+        ShapelessRecipeBuilder.shapeless(RecipeCategory.MISC, ingot, 9)
+                .requires(block)
+                .unlockedBy("has_" + blockId.getPath(), has(block))
+                .save(recipeOutput, ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID,
+                        ingotId.getPath() + "_from_" + blockId.getPath()));
     }
 
     /**

@@ -186,6 +186,12 @@ public final class ForgeweaveCreativeTab {
         output.accept(ForgeweaveItems.COBALT_ORE.get());
         output.accept(ForgeweaveItems.ARDITE_ORE.get());
 
+        // #206 -- storage blocks for cobalt, ardite, manyullyn and rose gold.
+        output.accept(ForgeweaveItems.COBALT_BLOCK.get());
+        output.accept(ForgeweaveItems.ARDITE_BLOCK.get());
+        output.accept(ForgeweaveItems.MANYULLYN_BLOCK.get());
+        output.accept(ForgeweaveItems.ROSE_GOLD_BLOCK.get());
+
         List<Holder.Reference<Material>> materials =
                 parameters.holders().lookupOrThrow(Material.REGISTRY).listElements().toList();
         for (DeferredItem<PartItem> partItem : PART_ITEMS) {

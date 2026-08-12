@@ -169,6 +169,24 @@ public class SmelteryMeltingGameTests {
         helper.succeed();
     }
 
+    /**
+     * #206 regression: the basin's new storage-block casting round-trips through the smeltery too --
+     * a manyullyn block (docs/SCOPE.md M2 metals) melts back at its flat 1296 mB, the same as any
+     * other storage block, with no ore-class multiplier (it carries no {@code ore: true} flag, unlike
+     * the ore/raw-material rows above). A full block melts at its fluid's own temperature rather than
+     * an ingot's halfway point ({@link dev.gkissel.forgeweave.recipe.MeltingRecipe#calcTemperature}),
+     * so this needs a longer timeout than the ingot/ore tests above: manyullyn's 1000-degree fluid
+     * costs {@code (1000 - 300) * 8 / 10 = 560} melt ticks, each {@value
+     * dev.gkissel.forgeweave.block.SmelteryControllerBlockEntity#MELT_INTERVAL_TICKS} game ticks.
+     */
+    @GameTest(template = "smeltery", timeoutTicks = 2600)
+    public static void manyullynBlockMeltsBackAtItsFlatStorageBlockAmount(GameTestHelper helper) {
+        SmelteryControllerBlockEntity core = lavaFuelledSmeltery(helper);
+        insert(helper, core, ForgeweaveItems.MANYULLYN_BLOCK.get());
+
+        helper.succeedWhen(() -> assertTankHolds(helper, core, ForgeweaveFluids.MANYULLYN.still().get(), 1296));
+    }
+
     /** A recipe above what the fuel can reach never progresses, and the core stops ticking rather than spinning on it. */
     @GameTest(template = "smeltery", timeoutTicks = 200)
     public static void aRecipeHotterThanTheFuelDoesNotMelt(GameTestHelper helper) {

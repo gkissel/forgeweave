@@ -89,6 +89,13 @@ public class ForgeweaveBlockLootSubProvider extends BlockLootSubProvider {
         // deliberately not used here.
         add(ForgeweaveBlocks.COBALT_ORE.get(), oreDrop(ForgeweaveBlocks.COBALT_ORE.get(), ForgeweaveItems.RAW_COBALT.get()));
         add(ForgeweaveBlocks.ARDITE_ORE.get(), oreDrop(ForgeweaveBlocks.ARDITE_ORE.get(), ForgeweaveItems.RAW_ARDITE.get()));
+
+        // #206 -- storage blocks for cobalt/ardite/manyullyn/rose gold: plain self-drops, matching
+        // vanilla's own iron/gold/copper/netherite storage blocks (no component worth keeping).
+        dropSelf(ForgeweaveBlocks.COBALT_BLOCK.get());
+        dropSelf(ForgeweaveBlocks.ARDITE_BLOCK.get());
+        dropSelf(ForgeweaveBlocks.MANYULLYN_BLOCK.get());
+        dropSelf(ForgeweaveBlocks.ROSE_GOLD_BLOCK.get());
     }
 
     private LootTable.Builder oreDrop(Block block, Item item) {

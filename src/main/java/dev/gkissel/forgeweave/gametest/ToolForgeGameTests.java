@@ -1,12 +1,17 @@
 package dev.gkissel.forgeweave.gametest;
 
+import java.util.List;
+
 import net.minecraft.core.BlockPos;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.network.chat.Component;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.item.crafting.CraftingInput;
+import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.block.Block;
 
@@ -154,6 +159,32 @@ public class ToolForgeGameTests {
         ItemStack repaired = menu.getSlot(ToolStationMenu.OUTPUT_SLOT).getItem();
         helper.assertTrue(repaired.is(ForgeweaveItems.TOOL_PICKAXE.get()), "expected the repaired pickaxe, got " + repaired);
         return repaired.getDamageValue();
+    }
+
+    /**
+     * #206 regression: the Tool Forge's own crafting recipe accepts a cobalt storage block as the
+     * "M" ingredient -- the new {@code c:storage_blocks/cobalt} tag member -- exactly as it already
+     * does for iron/gold/copper, proving the tag additions actually reach the recipe rather than just
+     * existing on paper.
+     */
+    @GameTest(template = "empty")
+    public static void forgeCraftsFromACobaltStorageBlock(GameTestHelper helper) {
+        ServerLevel level = helper.getLevel();
+        ItemStack brick = new ItemStack(ForgeweaveBlocks.SEARED_BRICKS.get());
+        ItemStack cobalt = new ItemStack(ForgeweaveBlocks.COBALT_BLOCK.get());
+        ItemStack station = new ItemStack(ForgeweaveItems.TOOL_STATION.get());
+        CraftingInput input = CraftingInput.of(3, 3, List.of(
+                brick, brick, brick,
+                cobalt, station, cobalt,
+                cobalt, ItemStack.EMPTY, cobalt));
+
+        ItemStack crafted = level.getRecipeManager().getRecipeFor(RecipeType.CRAFTING, input, level)
+                .map(match -> match.value().assemble(input, level.registryAccess()))
+                .orElse(ItemStack.EMPTY);
+
+        helper.assertTrue(crafted.is(ForgeweaveItems.TOOL_FORGE.get()),
+                "expected the Tool Forge crafted from a cobalt block, got " + crafted);
+        helper.succeed();
     }
 
     /** Loads a full set of hatchet parts into a freshly placed {@code station} and returns its menu. */

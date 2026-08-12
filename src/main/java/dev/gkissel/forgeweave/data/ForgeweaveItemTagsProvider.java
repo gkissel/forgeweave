@@ -58,6 +58,17 @@ public class ForgeweaveItemTagsProvider extends ItemTagsProvider {
         tag("ores/cobalt").add(ForgeweaveItems.COBALT_ORE.get());
         tag("ores/ardite").add(ForgeweaveItems.ARDITE_ORE.get());
 
+        // #206 -- the four new storage blocks' own c:storage_blocks/* membership (item side), plus
+        // this pack's own extension of the parent c:storage_blocks tag: NeoForge's own tag only
+        // unions the child tags it knows about (iron/gold/copper/netherite/...), so a Forgeweave-only
+        // metal has to add itself in, exactly like any other mod's storage block would.
+        tag("storage_blocks/cobalt").add(ForgeweaveItems.COBALT_BLOCK.get());
+        tag("storage_blocks/ardite").add(ForgeweaveItems.ARDITE_BLOCK.get());
+        tag("storage_blocks/manyullyn").add(ForgeweaveItems.MANYULLYN_BLOCK.get());
+        tag("storage_blocks/rose_gold").add(ForgeweaveItems.ROSE_GOLD_BLOCK.get());
+        tag("storage_blocks").addTag(storageBlock("cobalt")).addTag(storageBlock("ardite"))
+                .addTag(storageBlock("manyullyn")).addTag(storageBlock("rose_gold"));
+
         // #152 -- the "large tool" classification: tools only the Tool Forge can assemble. Ships with
         // no members of its own, because no M1/M2 tool is large; M3's tool issues (#157-#161) add
         // `.add(ForgeweaveItems.TOOL_HAMMER.get())` and friends here and inherit the gate with no

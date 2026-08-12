@@ -149,6 +149,25 @@ public final class ForgeweaveBlocks {
                 .requiresCorrectToolForDrops());
     }
 
+    // #206 -- storage blocks for the four M2 metals with no vanilla block form (parity gap: the
+    // basin had no metal block to cast for them at all). Upstream 1.12's BlockMetal (NOTICE.md)
+    // registers all of its metal types on one Material.IRON block: hardness 5, no harvest level
+    // ("we're generous. no harvest level required"), which is vanilla's own iron_block strength
+    // (5.0F, 6.0F) with no tool-tier gate -- matching how no other Forgeweave block gates tool tier
+    // either (see this class's javadoc). Rose gold has no 1.12 counterpart; its block follows the
+    // same maintainer recolor-of-manyullyn precedent as its ingot/nugget (issue #103, NOTICE.md).
+    public static final DeferredBlock<Block> COBALT_BLOCK = metalBlock("cobalt_block");
+    public static final DeferredBlock<Block> ARDITE_BLOCK = metalBlock("ardite_block");
+    public static final DeferredBlock<Block> MANYULLYN_BLOCK = metalBlock("manyullyn_block");
+    public static final DeferredBlock<Block> ROSE_GOLD_BLOCK = metalBlock("rose_gold_block");
+
+    private static DeferredBlock<Block> metalBlock(String name) {
+        return BLOCKS.registerSimpleBlock(name, BlockBehaviour.Properties.of()
+                .mapColor(MapColor.METAL)
+                .strength(5.0F, 6.0F)
+                .sound(SoundType.METAL));
+    }
+
     private static DeferredBlock<Block> searedBlock(String name) {
         return BLOCKS.registerSimpleBlock(name, searedProperties());
     }

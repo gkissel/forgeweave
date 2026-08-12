@@ -81,12 +81,29 @@ public class CastingGameTests {
      */
     @GameTest(template = "smeltery", timeoutTicks = 200)
     public static void aFaucetOnASmelteryDrainPoursIntoTheBasin(GameTestHelper helper) {
-        CastingBlockEntity basin = drainRig(helper, ForgeweaveBlocks.CASTING_BASIN.get());
+        CastingBlockEntity basin = drainRig(helper, ForgeweaveBlocks.CASTING_BASIN.get(), ForgeweaveFluids.GOLD.still().get());
 
         helper.useBlock(DRAIN_FAUCET, helper.makeMockPlayer(GameType.SURVIVAL));
 
         helper.succeedWhen(() -> helper.assertTrue(!basin.tank().isEmpty(),
                 "expected molten gold to have reached the basin"));
+    }
+
+    /**
+     * #206 regression: the basin refused every metal but iron/copper/gold/netherite for lack of a
+     * storage block to cast -- proven end to end through the same real rig #183 proved for gold: a
+     * formed smeltery, a drain in its wall, a faucet on the drain, right-clicked exactly as a player
+     * would (not fed through the fluid-handler capability directly, unlike {@link
+     * #theBasinCastsAMetalBlock}).
+     */
+    @GameTest(template = "smeltery", timeoutTicks = 800)
+    public static void theBasinCastsACobaltBlockViaTheDrainFaucet(GameTestHelper helper) {
+        CastingBlockEntity basin = drainRig(helper, ForgeweaveBlocks.CASTING_BASIN.get(), ForgeweaveFluids.COBALT.still().get());
+
+        helper.useBlock(DRAIN_FAUCET, helper.makeMockPlayer(GameType.SURVIVAL));
+
+        helper.succeedWhen(() -> helper.assertTrue(basin.output().is(ForgeweaveItems.COBALT_BLOCK.get()),
+                "expected a cobalt block, found " + basin.output()));
     }
 
     /**
@@ -118,14 +135,14 @@ public class CastingGameTests {
                 .thenSucceed();
     }
 
-    /** A smeltery full of molten gold, a drain in its wall, a faucet on the drain, {@code casting} below it. */
-    private static CastingBlockEntity drainRig(GameTestHelper helper, net.minecraft.world.level.block.Block casting) {
+    /** A smeltery full of {@code fluid}, a drain in its wall, a faucet on the drain, {@code casting} below it. */
+    private static CastingBlockEntity drainRig(GameTestHelper helper, net.minecraft.world.level.block.Block casting, Fluid fluid) {
         SmelteryGameTests.buildWalls(helper, 1, 1, 2);
         helper.setBlock(DRAIN, ForgeweaveBlocks.SEARED_DRAIN.get());
         BlockPos corePos = SmelteryGameTests.placeCore(helper, ForgeweaveBlocks.STANDARD_CORE.get());
         SmelteryControllerBlockEntity core = helper.getBlockEntity(corePos);
         helper.assertTrue(core.isFormed(), "expected the drain smeltery to form: " + core.lastResult().getString());
-        core.tank().fill(new FluidStack(ForgeweaveFluids.GOLD.still().get(), 4000), IFluidHandler.FluidAction.EXECUTE);
+        core.tank().fill(new FluidStack(fluid, 4000), IFluidHandler.FluidAction.EXECUTE);
 
         helper.setBlock(DRAIN_CASTING, casting);
         helper.setBlock(DRAIN_FAUCET, ForgeweaveBlocks.FAUCET.get().defaultBlockState()
@@ -443,7 +460,7 @@ public class CastingGameTests {
      */
     @GameTest(template = "smeltery", timeoutTicks = 600)
     public static void aPoweredFaucetPoursWithoutAnyInteraction(GameTestHelper helper) {
-        CastingBlockEntity basin = drainRig(helper, ForgeweaveBlocks.CASTING_BASIN.get());
+        CastingBlockEntity basin = drainRig(helper, ForgeweaveBlocks.CASTING_BASIN.get(), ForgeweaveFluids.GOLD.still().get());
 
         helper.startSequence()
                 .thenIdle(5)

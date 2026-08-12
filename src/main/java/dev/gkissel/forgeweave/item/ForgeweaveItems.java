@@ -340,5 +340,12 @@ public final class ForgeweaveItems {
     public static final DeferredItem<BlockItem> COBALT_ORE = ITEMS.registerSimpleBlockItem("cobalt_ore", ForgeweaveBlocks.COBALT_ORE);
     public static final DeferredItem<BlockItem> ARDITE_ORE = ITEMS.registerSimpleBlockItem("ardite_ore", ForgeweaveBlocks.ARDITE_ORE);
 
+    // #206 -- storage blocks for cobalt, ardite, manyullyn and rose gold: the basin refused every
+    // metal but iron/copper/gold/netherite for lack of a block to cast (docs/SCOPE.md M2 metals).
+    public static final DeferredItem<BlockItem> COBALT_BLOCK = ITEMS.registerSimpleBlockItem("cobalt_block", ForgeweaveBlocks.COBALT_BLOCK);
+    public static final DeferredItem<BlockItem> ARDITE_BLOCK = ITEMS.registerSimpleBlockItem("ardite_block", ForgeweaveBlocks.ARDITE_BLOCK);
+    public static final DeferredItem<BlockItem> MANYULLYN_BLOCK = ITEMS.registerSimpleBlockItem("manyullyn_block", ForgeweaveBlocks.MANYULLYN_BLOCK);
+    public static final DeferredItem<BlockItem> ROSE_GOLD_BLOCK = ITEMS.registerSimpleBlockItem("rose_gold_block", ForgeweaveBlocks.ROSE_GOLD_BLOCK);
+
     private ForgeweaveItems() {}
 }

@@ -566,6 +566,14 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         addBlock(ForgeweaveBlocks.COBALT_ORE, "Cobalt Ore");
         addBlock(ForgeweaveBlocks.ARDITE_ORE, "Ardite Ore");
 
+        // #206 -- storage blocks for cobalt/ardite/manyullyn, names ported from upstream 1.12's
+        // tile.tconstruct.metal.{cobalt,ardite,manyullyn}.name entries (NOTICE.md). Rose gold has no
+        // upstream row; "Block of Rose Gold" follows the same vanilla "Block of <Metal>" convention.
+        addBlock(ForgeweaveBlocks.COBALT_BLOCK, "Block of Cobalt");
+        addBlock(ForgeweaveBlocks.ARDITE_BLOCK, "Block of Ardite");
+        addBlock(ForgeweaveBlocks.MANYULLYN_BLOCK, "Block of Manyullyn");
+        addBlock(ForgeweaveBlocks.ROSE_GOLD_BLOCK, "Block of Rose Gold");
+
         // #110 -- the M2 advancement chain (docs/SCOPE.md M2 issue #110): build smeltery -> first
         // melt -> first cast -> first alloy -> first modifier. Keys follow vanilla's own
         // advancements.<namespace>.<path>.title/.description convention (see
