@@ -250,10 +250,13 @@ public final class ScreenshotHarness {
     /** How far in -Z of spawn the weapon poses stand, clear of the block scenes above. */
     private static final int WEAPON_SCENE_DISTANCE = 6;
 
+    /** Ceiling on the attack-cooldown wait before a first-person weapon frame; see {@link #settleWeaponFirstPerson}. */
+    private static final int WEAPON_SWING_RESET_TICKS = 60;
+
     private enum Stage {
         AWAIT_TITLE, AWAIT_WORLD, SETTLE_WORLD, PLACE_TANK_SCENE, SETTLE_TANK_SCENE,
         PLACE_TABLE_SCENE, SETTLE_TABLE_SCENE, PLACE_SMELTERY_SCENE, SETTLE_SMELTERY_SCENE,
-        PLACE_CASTING_SCENE, SETTLE_CASTING_SCENE, HOLD_WEAPON, SETTLE_WEAPON,
+        PLACE_CASTING_SCENE, SETTLE_CASTING_SCENE, HOLD_WEAPON, SETTLE_WEAPON, SETTLE_WEAPON_FIRST_PERSON,
         OPEN_SCREEN, SETTLE_SCREEN, DONE
     }
 
@@ -299,6 +302,7 @@ public final class ScreenshotHarness {
             case SETTLE_CASTING_SCENE -> settleCastingScene(mc);
             case HOLD_WEAPON -> holdWeapon(mc);
             case SETTLE_WEAPON -> settleWeapon(mc);
+            case SETTLE_WEAPON_FIRST_PERSON -> settleWeaponFirstPerson(mc);
             case OPEN_SCREEN -> openScreen(mc);
             case SETTLE_SCREEN -> settleScreen(mc);
             case DONE -> {}
@@ -767,8 +771,10 @@ public final class ScreenshotHarness {
      * <p>A held-item render is the only thing that exercises a tool's layered model the way a player
      * actually sees it -- the inventory sprite, the Tool Station's preview and the JEI icon all draw
      * the layer PNGs by other paths, and a two-layer weapon (battlesign, frying pan, dagger) is
-     * exactly where a wrong layer count would surface. Third person rather than first so the whole
-     * silhouette is in frame rather than a corner of the blade.
+     * exactly where a wrong layer count would surface. Third person for the whole silhouette and
+     * because it is what other players (and a dedicated server's clients) see; {@link
+     * #settleWeaponFirstPerson} takes the companion first-person frame, which since issue #217 is
+     * the one that actually shows the blade face.
      *
      * <p>The tools are built with {@code ToolAssemblyRecipes#assemble}, which is the same call the
      * station's own menu makes, so the captured stack carries the real components (materials, stats,
@@ -786,7 +792,7 @@ public final class ScreenshotHarness {
         ToolItem weapon = WEAPONS.get(weaponIndex).get();
         var server = mc.getSingleplayerServer();
         LOGGER.info("{}holding {} for its third-person capture", LOG_PREFIX, weaponName(weapon));
-        mc.options.setCameraType(CameraType.THIRD_PERSON_BACK);
+        mc.options.setCameraType(CameraType.FIRST_PERSON);
         server.execute(() -> {
             ServerPlayer serverPlayer = server.getPlayerList().getPlayers().get(0);
             ItemStack stack = assembleForDisplay(serverPlayer, weapon);
@@ -801,7 +807,7 @@ public final class ScreenshotHarness {
             serverPlayer.setYRot(180.0F);
             serverPlayer.setXRot(0.0F);
         });
-        advance(Stage.SETTLE_WEAPON);
+        advance(Stage.SETTLE_WEAPON_FIRST_PERSON);
     }
 
     private static void settleWeapon(Minecraft mc) {
@@ -824,6 +830,32 @@ public final class ScreenshotHarness {
         capture(mc, "weapon_" + weaponName(weapon));
         weaponIndex++;
         advance(Stage.HOLD_WEAPON);
+    }
+
+    /**
+     * Issue #217's second frame per weapon, {@code weapon_<tool>_firstperson.png}.
+     *
+     * <p>The third-person capture above is the "what other players see" artifact, but it cannot be
+     * the one a reviewer judges the art from: {@code item/handheld}'s third-person pose lays a flat
+     * item in the player's own sagittal plane, and {@code CameraType.THIRD_PERSON_BACK} looks
+     * straight down that plane, so the blade is edge-on -- a one-pixel-thick sliver. That is vanilla
+     * behaviour, not a Forgeweave bug: a vanilla iron sword held in the same frame renders as the
+     * same sliver (issue #217 verification). First person is where {@code item/handheld} actually
+     * shows a blade, so every weapon now gets both frames.
+     */
+    private static void settleWeaponFirstPerson(Minecraft mc) {
+        // Putting a new tool in hand resets the attack cooldown, and ItemInHandRenderer ties the
+        // first-person hand's height to getAttackStrengthScale -- so until the swing has refilled
+        // the tool is still on its way up from off-screen and the frame catches a stump of handle.
+        // A slow tool (the hammer) takes longer to refill than SCREEN_SETTLE_TICKS, hence the wait,
+        // capped so a future tool with an absurd attack speed cannot hang the harness.
+        boolean swingReady = mc.player == null || mc.player.getAttackStrengthScale(1.0F) >= 1.0F;
+        if (stageTicks < SCREEN_SETTLE_TICKS || (!swingReady && stageTicks < WEAPON_SWING_RESET_TICKS)) {
+            return;
+        }
+        capture(mc, "weapon_" + weaponName(WEAPONS.get(weaponIndex).get()) + "_firstperson");
+        mc.options.setCameraType(CameraType.THIRD_PERSON_BACK);
+        advance(Stage.SETTLE_WEAPON);
     }
 
     /** The tool the Tool Station would build from an iron head and wooden everything else. */
