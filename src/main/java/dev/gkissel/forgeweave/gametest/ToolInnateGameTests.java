@@ -137,7 +137,7 @@ public class ToolInnateGameTests {
     public static void sunderAddsBonusDamageAndDisablesAnActiveShield(GameTestHelper helper) {
         BlockPos pos = new BlockPos(1, 1, 1);
         Player attacker = helper.makeMockPlayer(GameType.SURVIVAL);
-        ItemStack hatchet = ToolAssembly.tool(helper, attacker, pos, ForgeweaveItems.PART_AXE_HEAD.get(),
+        ItemStack hatchet = ToolAssembly.toolAtForge(helper, attacker, pos, ForgeweaveItems.PART_AXE_HEAD.get(),
                 "stone", "wood", "wood");
         attacker.setItemInHand(InteractionHand.MAIN_HAND, hatchet);
 
