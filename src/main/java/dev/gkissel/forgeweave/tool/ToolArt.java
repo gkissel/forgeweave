@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 /**
  * Where an assembled tool's layer art lives, and in what order the layers stack. One place, because
@@ -67,15 +66,6 @@ public final class ToolArt {
     }
 
     /**
-     * Tools whose layer art is freshly authored rather than derived from the clone, so it lives in
-     * {@code textures/tools/} instead of {@code textures/derived/tools/} (CLAUDE.md's derived-art
-     * rule; M9 empties the derived tree). The dagger is a shape from upstream's modern branch with
-     * no 1.12 art to derive and a recorded no-copy deviation on issue #155; the scimitar (issue #159)
-     * and the katana (issue #160) are Forgeweave's own new shapes with no upstream counterpart at all.
-     */
-    private static final Set<String> ORIGINAL_ART = Set.of("dagger", "scimitar", "katana");
-
-    /**
      * One layer name per model layer, in {@link #layerSlots} order -- what {@link #layer} takes as
      * its second argument, and the list whose size is the tool's model layer count.
      */
@@ -97,7 +87,7 @@ public final class ToolArt {
      * @param layer one of the names {@link #layers} produced for that tool
      */
     public static String layer(String tool, String layer) {
-        return (ORIGINAL_ART.contains(tool) ? "tools/" : "derived/tools/") + tool + "_" + layer;
+        return "derived/tools/" + tool + "_" + layer;
     }
 
     private ToolArt() {}

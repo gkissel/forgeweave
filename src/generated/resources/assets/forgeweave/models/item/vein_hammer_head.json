@@ -1,6 +1,6 @@
 {
   "parent": "minecraft:item/generated",
   "textures": {
-    "layer0": "forgeweave:item/vein_hammer_head"
+    "layer0": "forgeweave:derived/item/vein_hammer_head"
   }
 }

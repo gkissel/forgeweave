@@ -224,18 +224,20 @@ class TextureReferenceAuditTest {
     }
 
     /**
-     * The other half of that convention since issue #160: a tool with no upstream original to derive
-     * (the dagger, the scimitar, the katana -- {@code ToolArt#ORIGINAL_ART}) keeps its assembled-tool
-     * layers under {@code textures/tools/} rather than {@code textures/derived/tools/}, and its
-     * ghost-icon part sprite under {@code textures/item/}. Both folders are real atlas sources
-     * ({@code assets/minecraft/atlases/blocks.json}); art in neither renders as a missing-texture
-     * checker on the station's build tab, exactly the way issue #43 did.
+     * Every assembled-tool layer {@link ToolArt#layer} names has to actually exist under
+     * {@code textures/derived/tools/}, a real atlas source ({@code assets/minecraft/atlases/blocks.json}),
+     * or it renders as a missing-texture checker on the station's build tab, exactly the way issue #43
+     * did. Through issue #198, three tools (the dagger, the scimitar, the katana) had no upstream
+     * original to derive from and kept freshly-authored layers under a separate {@code textures/tools/}
+     * folder instead; #198 replaced all three with derived art (scripts/derive_m3_weapon_art.py,
+     * NOTICE.md), so every tool's layers now live under the one derived folder {@link ToolArt#layer}
+     * always points at.
      *
      * <p>Walked off {@code ToolAssemblyRecipes.ENTRIES} rather than listed, so a later new-shape tool
      * that forgets to ship a layer fails here instead of at a playtest.
      */
     @Test
-    void freshlyAuthoredToolArtLivesUnderThePlainToolsFolder() {
+    void everyToolLayerHasArt() {
         Path textures = projectRoot().resolve("src/main/resources/assets/forgeweave/textures");
         for (ToolAssemblyRecipes.Entry entry : ToolAssemblyRecipes.ENTRIES) {
             String tool = entry.constants().id();

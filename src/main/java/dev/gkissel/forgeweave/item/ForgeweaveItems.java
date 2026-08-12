@@ -90,8 +90,10 @@ public final class ForgeweaveItems {
     public static final DeferredItem<PartItem> PART_SCYTHE_HEAD = part("scythe_head", PartItem.Kind.HEAD);
     public static final DeferredItem<PartItem> PART_KAMA_HEAD = part("kama_head", PartItem.Kind.HEAD);
     public static final DeferredItem<PartItem> PART_BROAD_AXE_HEAD = part("broad_axe_head", PartItem.Kind.HEAD);
-    // No 1.12 or 1.20 counterpart (1.20's vein hammer reuses the plain hammer_head part) -- freshly
-    // authored art (NOTICE.md has no row for it), unlike every other part above.
+    // No 1.12 or 1.20 counterpart (1.20's vein hammer reuses the plain hammer_head part). Issue #198
+    // replaced this part's once-freshly-authored icon with the already-derived vein hammer tool-layer
+    // pixels (derived/tools/vein_hammer_head.png, issue #151/#157, NOTICE.md) -- see
+    // scripts/derive_m3_weapon_art.py.
     public static final DeferredItem<PartItem> PART_VEIN_HAMMER_HEAD = part("vein_hammer_head", PartItem.Kind.HEAD);
     // #161: the warmace's head, one of the three new-shape heads #151 deliberately left
     // unregistered ("their own issues are where the maintainer picks their part composition").
@@ -102,15 +104,17 @@ public final class ForgeweaveItems {
     public static final DeferredItem<PartItem> PART_WAR_MACE_HEAD = part("war_mace_head", PartItem.Kind.HEAD);
     // #159: the scimitar's head part -- the "distinct head for scimitar/katana/warmace" the comment
     // above deferred to those tools' own issues. ToolConstants#SCIMITAR (issue #153) already names it
-    // `curved_blade`, and #159 is the issue that decides the scimitar, so it lands here. Like
-    // vein_hammer_head it has no 1.12/1.20 counterpart, so its art is freshly authored with no
-    // NOTICE.md row (scripts/generate_scimitar_art.py).
+    // `curved_blade`, and #159 is the issue that decides the scimitar, so it lands here. Neither
+    // clone has a scimitar/curved-blade shape, so per issue #198's decision the art derives from the
+    // closest upstream equivalent -- the 1.12 sword blade, widened toward the tip by a minimal
+    // reshape (scripts/derive_m3_weapon_art.py, NOTICE.md) -- rather than freshly authored.
     public static final DeferredItem<PartItem> PART_CURVED_BLADE = part("curved_blade", PartItem.Kind.HEAD);
     // The katana's head part (docs/SCOPE.md M3 issue #160). #151 deliberately left the three
     // new-shape tools' heads unregistered until their own issues decided a part composition;
     // ToolConstants#KATANA names `katana_blade` + the existing hand_guard + tool_handle, so this is
-    // the one part that issue adds. Freshly authored art like the vein hammer head above (no 1.12 or
-    // 1.20 katana exists at all), so no NOTICE.md row and the plain item/ texture folder.
+    // the one part that issue adds. No 1.12 or 1.20 katana exists either, so per issue #198's
+    // decision this reuses the 1.12 large sword blade unmodified -- the closest upstream equivalent's
+    // silhouette already reads as a long straight blade (scripts/derive_m3_weapon_art.py, NOTICE.md).
     public static final DeferredItem<PartItem> PART_KATANA_BLADE = part("katana_blade", PartItem.Kind.HEAD);
 
     private static DeferredItem<PartItem> part(String name, PartItem.Kind kind) {
