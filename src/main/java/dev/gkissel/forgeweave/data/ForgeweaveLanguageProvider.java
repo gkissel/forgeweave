@@ -126,6 +126,7 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         addItem(ForgeweaveItems.PATTERN_BROAD_AXE_HEAD, "Broad Axe Head Pattern");
         addItem(ForgeweaveItems.PATTERN_VEIN_HAMMER_HEAD, "Vein Hammer Head Pattern");
         addItem(ForgeweaveItems.PATTERN_WAR_MACE_HEAD, "War Mace Head Pattern");
+        addItem(ForgeweaveItems.PATTERN_CURVED_BLADE, "Curved Blade Pattern");
 
         addItem(ForgeweaveItems.PART_SWORD_BLADE, "Sword Blade");
         addItem(ForgeweaveItems.PART_WIDE_GUARD, "Wide Guard");
@@ -146,6 +147,7 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         addItem(ForgeweaveItems.PART_VEIN_HAMMER_HEAD, "Vein Hammer Head");
         // #161's own wording; the warmace has no clone counterpart to port a name from.
         addItem(ForgeweaveItems.PART_WAR_MACE_HEAD, "War Mace Head");
+        addItem(ForgeweaveItems.PART_CURVED_BLADE, "Curved Blade");
 
         addItem(ForgeweaveItems.TOOL_PICKAXE, "Pickaxe");
         addItem(ForgeweaveItems.TOOL_SHOVEL, "Shovel");
@@ -204,6 +206,11 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         // M3 station tools (docs/SCOPE.md issue #156).
         addItem(ForgeweaveItems.TOOL_MATTOCK, "Mattock");
         addItem(ForgeweaveItems.TOOL_KAMA, "Kama");
+        // M3 station-tier weapons (docs/SCOPE.md M3 issue #159).
+        addItem(ForgeweaveItems.TOOL_BATTLEAXE, "Battleaxe");
+        addItem(ForgeweaveItems.TOOL_SCIMITAR, "Scimitar");
+        // The scimitar's bleed (issue #159); see combat.LacerateEffect.
+        add("effect.forgeweave.lacerate", "Lacerated");
 
         addItem(ForgeweaveItems.SEARED_BRICK, "Seared Brick");
 
@@ -236,6 +243,12 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("item.forgeweave.kama.description",
                 "Shears sheep and harvests+replants mature crops at a right-click. Deals extra damage "
                         + "against targets already at low health.");
+        add("item.forgeweave.battleaxe.description",
+                "Two heavy heads on one haft. A fully charged swing carries through everything in a "
+                        + "short arc in front of you, and staggers whatever it lands on.");
+        add("item.forgeweave.scimitar.description",
+                "A light curved blade. Its cuts keep bleeding after the swing, and fresh cuts stack "
+                        + "on top of the ones already open.");
 
         // The stations' information panels (issue #47).
         add("gui.forgeweave.tool_station.name", "Tool name");
@@ -293,6 +306,14 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("tooltip.forgeweave.innate.sunder.name", "Sunder");
         add("tooltip.forgeweave.innate.sunder.description",
                 "Disables an active shield and deals bonus damage against a blocking target.");
+        // The two M3 station weapons' innates (issue #159), same key family.
+        add("tooltip.forgeweave.innate.sweeping_blow.name", "Sweeping Heavy Blow");
+        add("tooltip.forgeweave.innate.sweeping_blow.description",
+                "A fully charged hit strikes every enemy in a short arc for half damage, and briefly "
+                        + "slows the target it lands on.");
+        add("tooltip.forgeweave.innate.lacerate.name", "Lacerate");
+        add("tooltip.forgeweave.innate.lacerate.description",
+                "Hits open a bleeding wound that keeps dealing damage. Fresh cuts stack on top of it.");
 
         // Tool tier names (issue #65), keyed off the vanilla incorrect_for_<tier>_tool block tag each
         // material's incorrect_for_tool points at (ToolTooltip#tierName) -- only the tiers M1's

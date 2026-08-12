@@ -19,10 +19,35 @@ import net.minecraft.world.item.ItemStack;
  * @param target what was hit
  * @param source the damage source of the blow, for seams that need its type tags (M3's smite, bane
  *     of arthropods and the armor-bypassing innates all key off it -- docs/SCOPE.md M3)
+ * @param attackStrengthScale how charged vanilla's attack cooldown was when this blow was swung, 0
+ *     to 1 -- the number vanilla itself scales attack damage by, and what "a full-charge hit" means
+ *     for the innates keyed on it (the battleaxe's sweeping heavy blow, #159; the longsword leap and
+ *     the frying pan's charged knockback when they land). {@code 1.0} for a blow that did not come
+ *     from a player swing, since only players have an attack cooldown. See {@link
+ *     CombatSeams#onPlayerAttack} for why this has to be captured rather than read at hook time.
  */
 public record CombatHit(
         ServerLevel level,
         ItemStack weapon,
         @Nullable LivingEntity attacker,
         LivingEntity target,
-        DamageSource source) {}
+        DamageSource source,
+        float attackStrengthScale) {
+
+    /** Vanilla's own threshold for a fully-charged swing ({@code Player#attack}'s sweep condition). */
+    public static final float FULL_CHARGE = 0.9F;
+
+    /**
+     * A blow whose charge is not in question -- the default {@link CombatSeams} itself uses for
+     * anything that did not come from a player swing, and what a test staging a hit directly wants
+     * unless it is specifically exercising a partial charge.
+     */
+    public CombatHit(ServerLevel level, ItemStack weapon, @Nullable LivingEntity attacker, LivingEntity target,
+            DamageSource source) {
+        this(level, weapon, attacker, target, source, 1.0F);
+    }
+
+    public boolean isFullCharge() {
+        return attackStrengthScale > FULL_CHARGE;
+    }
+}

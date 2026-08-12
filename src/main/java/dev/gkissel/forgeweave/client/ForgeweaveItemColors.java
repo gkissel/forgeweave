@@ -17,6 +17,7 @@ import dev.gkissel.forgeweave.item.ForgeweaveDataComponents;
 import dev.gkissel.forgeweave.item.ForgeweaveItems;
 import dev.gkissel.forgeweave.material.Material;
 import dev.gkissel.forgeweave.menu.ToolAssemblyRecipes;
+import dev.gkissel.forgeweave.tool.ToolArt;
 import dev.gkissel.forgeweave.tool.ToolMaterials;
 
 /**
@@ -71,24 +72,25 @@ public final class ForgeweaveItemColors {
         return opaqueMaterialColor(stack.get(ForgeweaveDataComponents.MATERIAL.get()));
     }
 
-    // Layer0 = handle texture (tintIndex 0), layer1 = head (1), layer2 = binding (2) -- matches
-    // upstream 1.12's own tool item models (issue #43: ForgeweaveItemModelProvider's toolModel now
-    // uses the per-tool layer art in that order), not ToolMaterials's head/binding/handle field
-    // order.
+    /**
+     * Each model layer takes the colour of the part it draws. Which part that is comes from
+     * {@link ToolArt#layerSlots} -- the same mapping {@code ForgeweaveItemModelProvider} used to pick
+     * that layer's texture, so the two cannot disagree about, say, whether layer2 is a battleaxe's
+     * second head or a broadsword's guard (issue #159). Layer order is upstream's own drawing order
+     * (handle behind, then heads, then the extra part), which is not every tool's part order.
+     */
     private static int toolMaterialTint(ItemStack stack, int tintIndex) {
         ToolMaterials materials = stack.get(ForgeweaveDataComponents.TOOL_MATERIALS.get());
         if (materials == null) {
             return -1;
         }
-        ResourceLocation materialId = switch (tintIndex) {
-            case 0 -> materials.handle();
-            case 1 -> materials.head();
-            // Absent on a two-part tool (battlesign, frying pan, dagger -- issue #155), whose model
-            // has no layer2 to tint in the first place.
-            case 2 -> materials.binding().orElse(null);
-            default -> null;
-        };
-        return opaqueMaterialColor(materialId);
+        return ToolAssemblyRecipes.entryFor(stack)
+                .map(entry -> ToolArt.layerSlots(entry.constants().parts()))
+                // A layer with no part behind it tints nothing; likewise a stack whose materials
+                // list is shorter than its entry says (a tool saved before that entry changed).
+                .filter(slots -> tintIndex < slots.size() && slots.get(tintIndex) < materials.parts().size())
+                .map(slots -> opaqueMaterialColor(materials.parts().get(slots.get(tintIndex))))
+                .orElse(-1);
     }
 
     private static int opaqueMaterialColor(ResourceLocation materialId) {

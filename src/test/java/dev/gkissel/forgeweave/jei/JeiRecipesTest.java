@@ -85,8 +85,8 @@ class JeiRecipesTest {
         List<PartCraftingRecipe> recipes = PartCraftingRecipes.build(twoMaterials());
 
         // 5 M1 part types + 17 M3 part types (docs/SCOPE.md issue #151) + the war mace head
-        // (issue #161) x 2 materials.
-        assertEquals(23 * 2, recipes.size(), "23 part types x 2 materials");
+        // (issue #161) + the curved blade (issue #159) x 2 materials.
+        assertEquals(24 * 2, recipes.size(), "24 part types x 2 materials");
         assertTrue(recipes.stream().allMatch(r -> r.result().has(ForgeweaveDataComponents.MATERIAL.get())));
     }
 

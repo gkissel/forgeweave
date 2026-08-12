@@ -7,6 +7,7 @@ import java.util.function.Consumer;
 import org.jetbrains.annotations.Nullable;
 
 import net.neoforged.neoforge.event.entity.living.LivingDamageEvent;
+import net.neoforged.neoforge.event.entity.player.AttackEntityEvent;
 import net.neoforged.neoforge.event.entity.living.LivingDeathEvent;
 import net.neoforged.neoforge.event.entity.living.LivingIncomingDamageEvent;
 
@@ -183,7 +184,38 @@ public final class CombatSeams {
             return null;
         }
         Entity causing = source.getEntity();
-        return new CombatHit(level, weapon, causing instanceof LivingEntity living ? living : null, target, source);
+        LivingEntity attacker = causing instanceof LivingEntity living ? living : null;
+        return new CombatHit(level, weapon, attacker, target, source, attackStrengthScale(attacker));
+    }
+
+    /**
+     * How charged the swing that produced this blow was -- see {@link CombatHit#attackStrengthScale}.
+     *
+     * <p>This cannot be read at hook time: {@code Player#attack} calls {@code
+     * resetAttackStrengthTicker()} <em>before</em> {@code target.hurt(...)}, so by the time any of
+     * the three hooks runs the player's own attack-strength scale has already been zeroed for the
+     * next swing. NeoForge's {@link AttackEntityEvent} fires at the very top of {@code Player#attack},
+     * before that reset, which is the last moment the real value exists -- so {@link #onPlayerAttack}
+     * records it there and this reads it back.
+     *
+     * <p>ponytail: one remembered attacker, not a map. The event and the damage it leads to happen
+     * back-to-back on the server thread within a single {@code Player#attack} call, so a second
+     * attacker can never interleave between them; matching on identity is only there so an unrelated
+     * later blow (a mob's, a dispenser's) doesn't inherit a stale number and instead falls back to
+     * the "not a player swing" default.
+     */
+    private static float attackStrengthScale(@Nullable LivingEntity attacker) {
+        return attacker != null && attacker == lastAttacker ? lastAttackStrengthScale : 1.0F;
+    }
+
+    @Nullable
+    private static Entity lastAttacker;
+    private static float lastAttackStrengthScale = 1.0F;
+
+    /** Registered on the game event bus in {@code Forgeweave}. See {@link #attackStrengthScale}. */
+    public static void onPlayerAttack(AttackEntityEvent event) {
+        lastAttacker = event.getEntity();
+        lastAttackStrengthScale = event.getEntity().getAttackStrengthScale(0.5F);
     }
 
     /**

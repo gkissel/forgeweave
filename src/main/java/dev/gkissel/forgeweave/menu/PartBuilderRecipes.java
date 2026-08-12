@@ -96,7 +96,10 @@ public final class PartBuilderRecipes {
             new Entry(ForgeweaveItems.PATTERN_VEIN_HAMMER_HEAD, ForgeweaveItems.PART_VEIN_HAMMER_HEAD, LARGE_HEAD_COST),
             // #161: likewise no upstream cost to read -- priced like the other large-tool heads,
             // which is the tier the warmace assembles at (ToolAssemblyRecipes#LARGE_TOOLS).
-            new Entry(ForgeweaveItems.PATTERN_WAR_MACE_HEAD, ForgeweaveItems.PART_WAR_MACE_HEAD, LARGE_HEAD_COST));
+            new Entry(ForgeweaveItems.PATTERN_WAR_MACE_HEAD, ForgeweaveItems.PART_WAR_MACE_HEAD, LARGE_HEAD_COST),
+            // #159's new part. No upstream cost to read either (Forgeweave's own shape) -- priced
+            // like sword_blade, the one-handed sword blade it stands in for.
+            new Entry(ForgeweaveItems.PATTERN_CURVED_BLADE, ForgeweaveItems.PART_CURVED_BLADE, HEAD_COST));
 
     /**
      * Whether the pattern slot should accept this stack at all (the five part patterns only -- not

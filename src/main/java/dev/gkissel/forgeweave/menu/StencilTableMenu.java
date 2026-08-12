@@ -63,7 +63,8 @@ public class StencilTableMenu extends StationMenu {
             ForgeweaveItems.PATTERN_KAMA_HEAD,
             ForgeweaveItems.PATTERN_BROAD_AXE_HEAD,
             ForgeweaveItems.PATTERN_VEIN_HAMMER_HEAD,
-            ForgeweaveItems.PATTERN_WAR_MACE_HEAD);
+            ForgeweaveItems.PATTERN_WAR_MACE_HEAD,
+            ForgeweaveItems.PATTERN_CURVED_BLADE);
 
     private final Container container;
     private final ContainerLevelAccess access;

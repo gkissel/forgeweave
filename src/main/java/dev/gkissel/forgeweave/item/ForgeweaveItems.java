@@ -53,6 +53,9 @@ public final class ForgeweaveItems {
     public static final DeferredItem<Item> PATTERN_VEIN_HAMMER_HEAD = ITEMS.registerSimpleItem("pattern_vein_hammer_head");
     // #161's own new-shape head part; see PART_WAR_MACE_HEAD below.
     public static final DeferredItem<Item> PATTERN_WAR_MACE_HEAD = ITEMS.registerSimpleItem("pattern_war_mace_head");
+    // #159: the scimitar's own head part. See PART_CURVED_BLADE below for why it lands here rather
+    // than with #151's batch.
+    public static final DeferredItem<Item> PATTERN_CURVED_BLADE = ITEMS.registerSimpleItem("pattern_curved_blade");
 
     public static final DeferredItem<PartItem> PART_PICKAXE_HEAD = part("pickaxe_head", PartItem.Kind.HEAD);
     public static final DeferredItem<PartItem> PART_SHOVEL_HEAD = part("shovel_head", PartItem.Kind.HEAD);
@@ -94,6 +97,12 @@ public final class ForgeweaveItems {
     // closest upstream equivalent -- the 1.12 hammer's head, minimally reshaped into a round knob
     // (scripts/derive_warmace_art.py, NOTICE.md) -- rather than freshly authored.
     public static final DeferredItem<PartItem> PART_WAR_MACE_HEAD = part("war_mace_head", PartItem.Kind.HEAD);
+    // #159: the scimitar's head part -- the "distinct head for scimitar/katana/warmace" the comment
+    // above deferred to those tools' own issues. ToolConstants#SCIMITAR (issue #153) already names it
+    // `curved_blade`, and #159 is the issue that decides the scimitar, so it lands here. Like
+    // vein_hammer_head it has no 1.12/1.20 counterpart, so its art is freshly authored with no
+    // NOTICE.md row (scripts/generate_scimitar_art.py).
+    public static final DeferredItem<PartItem> PART_CURVED_BLADE = part("curved_blade", PartItem.Kind.HEAD);
 
     private static DeferredItem<PartItem> part(String name, PartItem.Kind kind) {
         return ITEMS.registerItem(name, properties -> new PartItem(properties, kind));
@@ -170,6 +179,23 @@ public final class ForgeweaveItems {
                 properties -> new ToolItem(properties, constants, BlockTags.MINEABLE_WITH_AXE, true, innate),
                 new Item.Properties().stacksTo(1));
     }
+
+    // M3 station-tier weapons (docs/SCOPE.md M3 issue #159). Same ToolItem shape as the M1 three:
+    // the per-type constants come from ToolConstants (issue #153), which is where their provenance
+    // and the maintainer's rebalance decision are documented. Both are Category.WEAPON upstream-style
+    // (`weapon = true`) -- upstream's BattleAxe calls addCategory(Category.WEAPON), and the scimitar
+    // is a sword by construction -- so a hit costs them half the durability a harvest tool pays and
+    // haste's attack-speed bonus applies (ToolItem#effectiveAttackSpeed).
+    public static final DeferredItem<ToolItem> TOOL_BATTLEAXE = ITEMS.registerItem("battleaxe",
+            properties -> new ToolItem(properties, ToolConstants.BATTLEAXE, BlockTags.MINEABLE_WITH_AXE,
+                    true, ForgeweaveInnates.SWEEPING_BLOW),
+            new Item.Properties().stacksTo(1));
+    // SWORD_EFFICIENT rather than a mineable/* tag: the scimitar is a pure weapon, and that is the
+    // tag vanilla's own swords carry (cobwebs, bamboo, plants) -- there is no mining role to gate.
+    public static final DeferredItem<ToolItem> TOOL_SCIMITAR = ITEMS.registerItem("scimitar",
+            properties -> new ToolItem(properties, ToolConstants.SCIMITAR, BlockTags.SWORD_EFFICIENT,
+                    true, ForgeweaveInnates.LACERATE),
+            new Item.Properties().stacksTo(1));
 
     public static final DeferredItem<BlockItem> TOOL_STATION = ITEMS.registerSimpleBlockItem("tool_station", ForgeweaveBlocks.TOOL_STATION);
 
