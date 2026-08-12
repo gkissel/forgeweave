@@ -160,7 +160,10 @@ public final class ToolStationTabs {
             // tool. The battleaxe is the first four-slot tab: haft down-left, its two heads up and
             // apart (so which slot is which head reads at a glance), binding at the joint between.
             build(ForgeweaveItems.TOOL_BATTLEAXE, at(-11, 16), at(-16, -16), at(6, -18), at(16, 4)),
-            build(ForgeweaveItems.TOOL_SCIMITAR, at(-11, 11), at(-2, -20), at(18, -8)));
+            build(ForgeweaveItems.TOOL_SCIMITAR, at(-11, 11), at(-2, -20), at(18, -8)),
+            // #160. Another Forgeweave-own shape with no upstream layout to cite, so it takes the
+            // longsword's -- a long blade up-right, its guard at the joint, the grip down-left.
+            build(ForgeweaveItems.TOOL_KATANA, at(-21, 20), at(15, -16), at(-3, 2)));
 
     /** The repair tab, which is what a freshly opened station shows (as upstream's does). */
     public static final int REPAIR = 0;

@@ -70,10 +70,10 @@ public final class ToolArt {
      * Tools whose layer art is freshly authored rather than derived from the clone, so it lives in
      * {@code textures/tools/} instead of {@code textures/derived/tools/} (CLAUDE.md's derived-art
      * rule; M9 empties the derived tree). The dagger is a shape from upstream's modern branch with
-     * no 1.12 art to derive and a recorded no-copy deviation on issue #155; the scimitar is
-     * Forgeweave's own new shape with no upstream counterpart at all (issue #159).
+     * no 1.12 art to derive and a recorded no-copy deviation on issue #155; the scimitar (issue #159)
+     * and the katana (issue #160) are Forgeweave's own new shapes with no upstream counterpart at all.
      */
-    private static final Set<String> ORIGINAL_ART = Set.of("dagger", "scimitar");
+    private static final Set<String> ORIGINAL_ART = Set.of("dagger", "scimitar", "katana");
 
     /**
      * One layer name per model layer, in {@link #layerSlots} order -- what {@link #layer} takes as

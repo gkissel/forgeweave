@@ -1,0 +1,53 @@
+{
+    decoder: "item_stack",
+    expect: {
+        components: {
+            "forgeweave:katana_ramp": {
+                last_hit: 123456L,
+                stacks: 5
+            },
+            "forgeweave:tool_materials": {
+                binding: "forgeweave:iron",
+                handle: "forgeweave:wood",
+                head: "forgeweave:iron"
+            },
+            "forgeweave:tool_stats": {
+                attack_damage: 5.75f,
+                durability: 261,
+                mining_speed: 6.0f
+            },
+            "forgeweave:traits": [
+                "forgeweave:ecological"
+            ],
+            "minecraft:damage": 7,
+            "minecraft:max_damage": 261
+        },
+        id: "forgeweave:katana"
+    },
+    nbt: {
+        components: {
+            "forgeweave:katana_ramp": {
+                last_hit: 123456L,
+                stacks: 5
+            },
+            "forgeweave:tool_materials": {
+                binding: "forgeweave:iron",
+                handle: "forgeweave:wood",
+                head: "forgeweave:iron"
+            },
+            "forgeweave:tool_stats": {
+                attack_damage: 5.75f,
+                durability: 261,
+                mining_speed: 6.0f
+            },
+            "forgeweave:traits": [
+                "forgeweave:ecological"
+            ],
+            "minecraft:damage": 7,
+            "minecraft:max_damage": 261
+        },
+        count: 1,
+        id: "forgeweave:katana"
+    },
+    what: "M3 (#160): an assembled katana carrying a live in-combat damage ramp -- mid-ramp (5 of the 8 stacks the +75% cap allows) with the game-time stamp of the hit that produced it, which is the whole of the ramp's serialized state."
+}

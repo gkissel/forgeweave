@@ -216,6 +216,13 @@ public final class ForgeweaveInnates {
             ForgeweaveMobEffects.LACERATE, LacerateEffect.DURATION_TICKS, LacerateEffect.MAX_STACKS);
     public static final Innate LACERATE = new Innate("lacerate", LACERATE_SEAM, null);
 
+    /**
+     * Katana -- the in-combat damage ramp (maintainer decision on issue #160, 2026-08-12): +10%
+     * damage per landed melee hit, capped at +75%, lapsing after five seconds without landing one.
+     * See {@link DamageRamp} for where the three magnitudes live and how the state is serialized.
+     */
+    public static final Innate DAMAGE_RAMP = new Innate("damage_ramp", DamageRamp.KATANA, null);
+
     // ------------------------------------------------------------------ lookup
 
     /** The innate this stack's tool carries, or {@code null} -- the M3 binding (issue #155). */

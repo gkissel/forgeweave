@@ -68,7 +68,8 @@ public class M3PartGameTests {
             // #159's curved blade -- the scimitar's head part, added to the same parameterized sweep
             // rather than to a test of its own, since "craftable at the Part Builder from its own
             // pattern" is exactly what this test already asserts for the other seventeen.
-            new Entry(ForgeweaveItems.PATTERN_CURVED_BLADE, ForgeweaveItems.PART_CURVED_BLADE, PartBuilderRecipes.HEAD_COST));
+            new Entry(ForgeweaveItems.PATTERN_CURVED_BLADE, ForgeweaveItems.PART_CURVED_BLADE, PartBuilderRecipes.HEAD_COST),
+            new Entry(ForgeweaveItems.PATTERN_KATANA_BLADE, ForgeweaveItems.PART_KATANA_BLADE, PartBuilderRecipes.MEDIUM_PART_COST));
 
     private static PartBuilderMenu openMenu(GameTestHelper helper, BlockPos pos, Player player) {
         helper.setBlock(pos, ForgeweaveBlocks.PART_BUILDER.get());

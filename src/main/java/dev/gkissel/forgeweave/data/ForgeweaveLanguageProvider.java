@@ -127,6 +127,7 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         addItem(ForgeweaveItems.PATTERN_VEIN_HAMMER_HEAD, "Vein Hammer Head Pattern");
         addItem(ForgeweaveItems.PATTERN_WAR_MACE_HEAD, "War Mace Head Pattern");
         addItem(ForgeweaveItems.PATTERN_CURVED_BLADE, "Curved Blade Pattern");
+        addItem(ForgeweaveItems.PATTERN_KATANA_BLADE, "Katana Blade Pattern");
 
         addItem(ForgeweaveItems.PART_SWORD_BLADE, "Sword Blade");
         addItem(ForgeweaveItems.PART_WIDE_GUARD, "Wide Guard");
@@ -148,6 +149,8 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         // #161's own wording; the warmace has no clone counterpart to port a name from.
         addItem(ForgeweaveItems.PART_WAR_MACE_HEAD, "War Mace Head");
         addItem(ForgeweaveItems.PART_CURVED_BLADE, "Curved Blade");
+        // #160: the katana has no upstream counterpart, so its part and tool names are ours.
+        addItem(ForgeweaveItems.PART_KATANA_BLADE, "Katana Blade");
 
         addItem(ForgeweaveItems.TOOL_PICKAXE, "Pickaxe");
         addItem(ForgeweaveItems.TOOL_SHOVEL, "Shovel");
@@ -211,6 +214,7 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         addItem(ForgeweaveItems.TOOL_SCIMITAR, "Scimitar");
         // The scimitar's bleed (issue #159); see combat.LacerateEffect.
         add("effect.forgeweave.lacerate", "Lacerated");
+        addItem(ForgeweaveItems.TOOL_KATANA, "Katana");
 
         addItem(ForgeweaveItems.SEARED_BRICK, "Seared Brick");
 
@@ -225,6 +229,12 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
 
         // Shown on a tool that ran out of durability (CONTEXT.md: Broken -- unusable, never destroyed).
         add("tooltip.forgeweave.broken", "Broken");
+
+        // #160's innate, in the same name/description family as every other one above.
+        add("tooltip.forgeweave.innate.damage_ramp.name", "Rising Edge");
+        add("tooltip.forgeweave.innate.damage_ramp.description",
+                "Every landed hit adds 10% damage to the next, up to 75%. Stop swinging for five "
+                        + "seconds and it lapses.");
 
         // Tool descriptions, shown in the Tool Station's info panel while that tool's tab is selected
         // but nothing is built yet (issue #47). Wording follows upstream 1.12's tool.<id>.desc lines.
@@ -249,6 +259,10 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("item.forgeweave.scimitar.description",
                 "A light curved blade. Its cuts keep bleeding after the swing, and fresh cuts stack "
                         + "on top of the ones already open.");
+        // #160 -- no upstream tool.katana.desc to follow; this PR's own wording.
+        add("item.forgeweave.katana.description",
+                "A long, single-edged blade. Every blow that lands makes the next one hit harder, "
+                        + "until you stop swinging.");
 
         // The stations' information panels (issue #47).
         add("gui.forgeweave.tool_station.name", "Tool name");
