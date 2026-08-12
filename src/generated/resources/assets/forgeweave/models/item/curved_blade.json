@@ -1,6 +1,6 @@
 {
   "parent": "minecraft:item/generated",
   "textures": {
-    "layer0": "forgeweave:item/curved_blade"
+    "layer0": "forgeweave:derived/item/curved_blade"
   }
 }

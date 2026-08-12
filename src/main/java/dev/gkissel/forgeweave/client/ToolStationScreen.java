@@ -459,12 +459,14 @@ public class ToolStationScreen extends StationScreen<ToolStationMenu> implements
     }
 
     /**
-     * Most part and tool art is ported from the clone and lives under {@code textures/derived/}
-     * (CLAUDE.md); the M3 shapes with no upstream counterpart at all -- the katana (#160) and the
-     * other tools docs/SCOPE.md M3 calls "ours" -- are freshly authored and live under the plain
-     * {@code textures/item/} folder instead, which is also the only folder the block atlas stitches
-     * without an {@code atlases/blocks.json} source of its own. This picks whichever of the two
-     * actually ships, so neither kind of art needs a hardcoded list here or a copy in the wrong tree.
+     * Part and tool art is ported from the clone and lives under {@code textures/derived/}
+     * (CLAUDE.md); a part with no upstream art to derive from would be freshly authored and live
+     * under the plain {@code textures/item/} folder instead, which is also the only folder the block
+     * atlas stitches without an {@code atlases/blocks.json} source of its own. As of issue #198 every
+     * shipped part's base texture is derived (the last three exceptions -- vein_hammer_head,
+     * curved_blade, katana_blade -- were replaced by scripts/derive_m3_weapon_art.py), but this picks
+     * whichever of the two actually ships, so a future part with no upstream counterpart still needs
+     * no hardcoded list here or a copy in the wrong tree.
      */
     private static ResourceLocation derivedOrOriginal(ResourceLocation derived, ResourceLocation original) {
         return Minecraft.getInstance().getResourceManager().getResource(derived).isPresent() ? derived : original;
