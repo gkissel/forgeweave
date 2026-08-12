@@ -3,6 +3,7 @@ package dev.gkissel.forgeweave.modifier;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -20,6 +21,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.tags.TagKey;
+import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.ExperienceOrb;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.item.ItemEntity;
@@ -38,6 +40,10 @@ import net.neoforged.neoforge.event.entity.player.PlayerXpEvent;
 import net.neoforged.neoforge.event.level.BlockDropsEvent;
 
 import dev.gkissel.forgeweave.Forgeweave;
+import dev.gkissel.forgeweave.combat.CombatSeam;
+import dev.gkissel.forgeweave.combat.CombatSeams;
+import dev.gkissel.forgeweave.combat.KnockbackOnHitSeam;
+import dev.gkissel.forgeweave.combat.PotionEffectOnHitSeam;
 import dev.gkissel.forgeweave.item.ForgeweaveDataComponents;
 import dev.gkissel.forgeweave.item.ForgeweaveItems;
 import dev.gkissel.forgeweave.item.ToolItem;
@@ -473,6 +479,96 @@ public final class ForgeweaveModifiers {
      * "Embossment (Iron)" with no level or {@code n/m} progress after it.
      */
     public static final Modifier EMBOSSMENT = new Modifier() {};
+    // ---------------------------------------------------------------- issue #163 (combat modifiers batch 2)
+    // Knockback, shulking and webbed: docs/SCOPE.md M3's second combat-modifier batch (the first,
+    // smite/bane of arthropods/fiery/necrotic, is issue #162). All three are pure Modifier#combatSeam
+    // implementations -- no event listener of their own -- consumed by COMBAT_SEAMS below.
+
+    /** Upstream {@code ModKnockback#calcKnockback}: {@code 0.1} added knockback per application unit. */
+    private static final float KNOCKBACK_MAGNITUDE_PER_UNIT = 0.1F;
+    /** Upstream {@code TinkerModifiers}: {@code new ModKnockback()} -- {@code countPerLevel} 10. */
+    private static final int KNOCKBACK_UNITS_PER_LEVEL = 10;
+
+    /**
+     * Piston (upstream also accepts sticky piston; not ported -- a single reagent item keeps
+     * {@link dev.gkissel.forgeweave.modifier.ModifierRecipe}'s single-{@code Ingredient} shape, flagged
+     * for maintainer review in the PR). Upstream {@code ModKnockback}, ported whole: extra knockback on
+     * every hit, linear in the raw application count with no upstream-defined cap ("the sky is the
+     * limit" -- upstream's own comment) -- {@link KnockbackOnHitSeam} carries the behavior since the
+     * combat modifier this PR ships nothing else to attach it to.
+     */
+    public static final Modifier KNOCKBACK = new Modifier() {
+        @Override
+        public int unitsPerLevel() {
+            return KNOCKBACK_UNITS_PER_LEVEL;
+        }
+
+        @Override
+        public Optional<CombatSeam> combatSeam(int level) {
+            return Optional.of(new KnockbackOnHitSeam(KNOCKBACK_MAGNITUDE_PER_UNIT * level));
+        }
+    };
+
+    /** Upstream {@code ModShulking}: {@code current / 2 + 10} levitation ticks. */
+    private static final int SHULKING_DURATION_OFFSET_TICKS = 10;
+    /** Upstream {@code TinkerModifiers}: {@code new ModShulking()} -- {@code countPerLevel} 50. */
+    private static final int SHULKING_UNITS_PER_LEVEL = 50;
+
+    /**
+     * Shulker shell (upstream: popped chorus fruit -- substituted per issue #163's maintainer
+     * direction, since a shulker shell is obtainable in 1.21 and thematically matches Levitation far
+     * better; recorded deviation). Upstream {@code ModShulking}, ported whole: Levitation I on hit, its
+     * duration a smooth function of the raw application count rather than a stepped display level.
+     */
+    public static final Modifier SHULKING = new Modifier() {
+        @Override
+        public int unitsPerLevel() {
+            return SHULKING_UNITS_PER_LEVEL;
+        }
+
+        @Override
+        public Optional<CombatSeam> combatSeam(int level) {
+            int durationTicks = level / 2 + SHULKING_DURATION_OFFSET_TICKS;
+            return Optional.of(new PotionEffectOnHitSeam(MobEffects.LEVITATION, 0, durationTicks));
+        }
+    };
+
+    /** Upstream {@code ModWebbed}: {@code level * 20} slowness ticks -- 1 second per level. */
+    private static final int WEBBED_DURATION_TICKS_PER_LEVEL = 20;
+    /**
+     * Upstream {@code ModWebbed}'s hardcoded {@code PotionEffect(MobEffects.SLOWNESS, ..., 1)}: Slowness
+     * II -- {@code MobEffects.MOVEMENT_SLOWDOWN} is 1.21's field name for the same effect.
+     */
+    private static final int WEBBED_SLOWNESS_AMPLIFIER = 1;
+
+    /**
+     * Cobweb. Upstream {@code ModWebbed}, ported whole: Slowness II on hit, one second per level (a
+     * plain {@code LevelAspect} upstream, so raw application units already equal the display level --
+     * unlike shulking, no {@link #unitsPerLevel} override is needed).
+     */
+    public static final Modifier WEBBED = new Modifier() {
+        @Override
+        public Optional<CombatSeam> combatSeam(int level) {
+            return Optional.of(new PotionEffectOnHitSeam(
+                    MobEffects.MOVEMENT_SLOWDOWN, WEBBED_SLOWNESS_AMPLIFIER, level * WEBBED_DURATION_TICKS_PER_LEVEL));
+        }
+    };
+
+    /**
+     * Combat modifiers as a consumer of the shared per-hit pipeline (ADR-0005 decision 3), the
+     * modifier-side counterpart to {@code ForgeweaveTraits#COMBAT_SEAM}. Registered once in
+     * {@code Forgeweave}. One provider for the whole modifier list, same reasoning as the trait one:
+     * it keeps modifiers running in {@link #of}'s order and a hit with no combat modifier allocates
+     * nothing beyond the (already-required) entry list walk.
+     */
+    public static final CombatSeams.Provider COMBAT_SEAMS = (weapon, out) -> {
+        for (ModifierEntry entry : of(weapon)) {
+            Modifier modifier = get(entry.id());
+            if (modifier != null) {
+                modifier.combatSeam(entry.level()).ifPresent(out);
+            }
+        }
+    };
 
     private static final Map<ResourceLocation, Modifier> REGISTRY = Map.ofEntries(
             Map.entry(id("haste"), HASTE),
@@ -489,7 +585,10 @@ public final class ForgeweaveModifiers {
             Map.entry(id("luck"), LUCK),
             Map.entry(id("sharpness"), SHARPNESS),
             Map.entry(id("diamond"), DIAMOND),
-            Map.entry(id("emerald"), EMERALD));
+            Map.entry(id("emerald"), EMERALD),
+            Map.entry(id("knockback"), KNOCKBACK),
+            Map.entry(id("shulking"), SHULKING),
+            Map.entry(id("webbed"), WEBBED));
 
     /**
      * The behavior for {@code id}, or {@code null} if this version doesn't implement it.

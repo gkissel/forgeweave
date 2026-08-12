@@ -1,0 +1,8 @@
+{
+  "modifier": "forgeweave:shulking",
+  "reagent": {
+    "item": "minecraft:shulker_shell"
+  },
+  "cost": 1,
+  "max_level": 50
+}

@@ -1,5 +1,9 @@
 package dev.gkissel.forgeweave.modifier;
 
+import java.util.Optional;
+
+import dev.gkissel.forgeweave.combat.CombatSeam;
+
 /**
  * A post-assembly upgrade applied to a finished Tool at the Tool Station (CONTEXT.md glossary --
  * distinct from a {@code Trait}, which a Material grants). Modifier behavior is Java with 1.12-parity
@@ -219,5 +223,24 @@ public interface Modifier {
      */
     default int lootingLevel(int level) {
         return 0;
+    }
+
+    // ---------------------------------------------------------------- issue #163 (combat modifiers batch 2)
+
+    /**
+     * This modifier's contribution to the shared per-hit pipeline (ADR-0005 decision 3), or empty for
+     * a modifier with no combat behavior. Knockback, shulking and webbed (issue #163) are the first
+     * modifiers to use this hook, each handing back one of ADR-0004's M6 parameterized behaviors
+     * ({@code KnockbackOnHitSeam}, {@code PotionEffectOnHitSeam}) rather than a bespoke seam class of
+     * its own -- the modifier-side counterpart to {@code Trait#bonusDamageAgainst} and friends.
+     *
+     * <p>{@link ForgeweaveModifiers#COMBAT_SEAMS} calls this once per hit, per modifier on the weapon,
+     * so an implementation should return a fresh, already-parameterized seam rather than a shared
+     * mutable one.
+     *
+     * @param level accumulated application units (see {@link ModifierEntry#level})
+     */
+    default Optional<CombatSeam> combatSeam(int level) {
+        return Optional.empty();
     }
 }

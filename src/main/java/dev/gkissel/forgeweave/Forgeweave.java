@@ -90,6 +90,8 @@ public class Forgeweave {
         // runs them in is visible in one place. Materials' traits are first (see COMBAT_SEAM); M3's
         // per-tool innates and combat modifiers add theirs below as they land.
         CombatSeams.register((weapon, out) -> out.accept(ForgeweaveTraits.COMBAT_SEAM));
+        // #163 -- knockback, shulking, webbed (docs/SCOPE.md M3 combat modifiers batch 2).
+        CombatSeams.register(ForgeweaveModifiers.COMBAT_SEAMS);
         // established's kill-XP bonus (issue #102): no Item hook for a kill's dropped XP either.
         NeoForge.EVENT_BUS.addListener(ForgeweaveTraits::onExperienceDrop);
         // #103 -- netherite's fireproof: a dropped ItemEntity's fire immunity has no per-stack Item
