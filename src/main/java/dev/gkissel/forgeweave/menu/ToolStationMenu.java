@@ -3,6 +3,7 @@ package dev.gkissel.forgeweave.menu;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Supplier;
 
 import javax.annotation.Nullable;
 
@@ -25,6 +26,7 @@ import net.neoforged.neoforge.items.IItemHandler;
 
 import dev.gkissel.forgeweave.advancement.ForgeweaveCriteriaTriggers;
 import dev.gkissel.forgeweave.block.ForgeweaveBlocks;
+import dev.gkissel.forgeweave.item.PartItem;
 import dev.gkissel.forgeweave.item.ToolItem;
 import dev.gkissel.forgeweave.modifier.Embossing;
 import dev.gkissel.forgeweave.modifier.ModifierApplication;
@@ -284,7 +286,7 @@ public class ToolStationMenu extends StationMenu {
     @Nullable
     public Component rejection() {
         ItemStack tool = slots.get(HEAD_SLOT).getItem();
-        if (!forge && ToolAssemblyRecipes.isLargeToolHead(tool)) {
+        if (!forge && ToolAssemblyRecipes.isLargeToolHead(inputSlots())) {
             return Component.translatable("gui.forgeweave.tool_station.needs_forge");
         }
         Component embossing = Embossing.resolve(registries, tool, freeSlotContents())
@@ -297,6 +299,15 @@ public class ToolStationMenu extends StationMenu {
                         slots.get(BINDING_SLOT).getItem(), slots.get(HANDLE_SLOT).getItem())
                 .map(ModifierApplication.Outcome::rejection)
                 .orElse(null);
+    }
+
+    /** Every input slot, in slot order -- what the large-tool refusal looks at (issue #157). */
+    private List<ItemStack> inputSlots() {
+        List<ItemStack> stacks = new ArrayList<>(INPUT_SLOTS);
+        for (int i = 0; i < INPUT_SLOTS; i++) {
+            stacks.add(slots.get(i).getItem());
+        }
+        return stacks;
     }
 
     /** Every input slot except the tool's, in slot order -- what an embossment is matched against. */

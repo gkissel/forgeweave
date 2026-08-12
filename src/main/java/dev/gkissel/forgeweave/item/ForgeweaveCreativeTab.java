@@ -120,6 +120,12 @@ public final class ForgeweaveCreativeTab {
         output.accept(ForgeweaveItems.TOOL_SCIMITAR.get());
         output.accept(ForgeweaveItems.TOOL_KATANA.get());
         output.accept(ForgeweaveItems.TOOL_CLEAVER.get()); // #158
+        // The large harvest tools (docs/SCOPE.md M3 issue #157), same component-less display.
+        output.accept(ForgeweaveItems.TOOL_HAMMER.get());
+        output.accept(ForgeweaveItems.TOOL_EXCAVATOR.get());
+        output.accept(ForgeweaveItems.TOOL_LUMBERAXE.get());
+        output.accept(ForgeweaveItems.TOOL_SCYTHE.get());
+        output.accept(ForgeweaveItems.TOOL_VEIN_HAMMER.get());
 
         // Grout (a block since issue #129), seared brick, and the seared brick block family
         // (docs/SCOPE.md M2 issue #93).

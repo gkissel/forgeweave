@@ -31,11 +31,10 @@ import dev.gkissel.forgeweave.menu.ToolStationMenu;
  * differences, and both are tested here from the menu a player would actually be looking at.
  *
  * <ul>
- *   <li><b>The large-tool gate.</b> No real large tool exists until issues #157-#161 land, so the
- *       GameTest-only datapack ({@code src/gametest/resources}) puts the hatchet in
- *       {@code #forgeweave:large_tools} and these tests build a hatchet: it comes out of the Tool
- *       Forge and is refused, with a reason, at the Tool Station. The shipped tag is empty, which is
- *       exactly why this fixture exists -- the gate has to be proven before there is anything to gate.
+ *   <li><b>The large-tool gate</b>, against a real large tool since issue #157: that issue filled
+ *       {@code #forgeweave:large_tools} with the five large harvest tools and dropped #152's
+ *       synthetic hatchet fixture, so these tests build a hammer -- it comes out of the Tool Forge
+ *       and is refused, with a reason, at the Tool Station.
  *   <li><b>The 5% repair discount</b> (a Forgeweave deviation, maintainer decision 2026-08-12).
  * </ul>
  *
@@ -50,17 +49,17 @@ public class ToolForgeGameTests {
 
     @GameTest(template = "empty")
     public static void largeToolAssemblesAtTheForge(GameTestHelper helper) {
-        ItemStack output = loadHatchetParts(helper, ForgeweaveBlocks.TOOL_FORGE.get()).getSlot(
+        ItemStack output = loadHammerParts(helper,ForgeweaveBlocks.TOOL_FORGE.get()).getSlot(
                 ToolStationMenu.OUTPUT_SLOT).getItem();
 
-        helper.assertTrue(output.is(ForgeweaveItems.TOOL_HATCHET.get()),
+        helper.assertTrue(output.is(ForgeweaveItems.TOOL_HAMMER.get()),
                 "the Tool Forge must assemble a large tool, got " + output);
         helper.succeed();
     }
 
     @GameTest(template = "empty")
     public static void largeToolRejectedAtTheStationWithAReason(GameTestHelper helper) {
-        ToolStationMenu menu = loadHatchetParts(helper, ForgeweaveBlocks.TOOL_STATION.get());
+        ToolStationMenu menu = loadHammerParts(helper,ForgeweaveBlocks.TOOL_STATION.get());
 
         helper.assertTrue(menu.getSlot(ToolStationMenu.OUTPUT_SLOT).getItem().isEmpty(),
                 "the Tool Station must not assemble a large tool, got "
@@ -77,14 +76,14 @@ public class ToolForgeGameTests {
         helper.succeed();
     }
 
-    /** The classification itself, independent of either block: the hatchet is large, the pickaxe isn't. */
+    /** The classification itself, independent of either block: the hammer is large, the pickaxe isn't. */
     @GameTest(template = "empty")
     public static void onlyTaggedToolsAreLarge(GameTestHelper helper) {
         helper.assertTrue(
-                ToolAssemblyRecipes.isLargeToolHead(new ItemStack(ForgeweaveItems.PART_AXE_HEAD.get())),
-                "the GameTest datapack tags the hatchet as a large tool");
+                ToolAssemblyRecipes.isLargeToolHead(List.of(new ItemStack(ForgeweaveItems.PART_HAMMER_HEAD.get()))),
+                "#forgeweave:large_tools holds the hammer (issue #157)");
         helper.assertFalse(
-                ToolAssemblyRecipes.isLargeToolHead(new ItemStack(ForgeweaveItems.PART_PICKAXE_HEAD.get())),
+                ToolAssemblyRecipes.isLargeToolHead(List.of(new ItemStack(ForgeweaveItems.PART_PICKAXE_HEAD.get()))),
                 "an untagged tool must not be gated");
         helper.succeed();
     }
@@ -187,14 +186,16 @@ public class ToolForgeGameTests {
         helper.succeed();
     }
 
-    /** Loads a full set of hatchet parts into a freshly placed {@code station} and returns its menu. */
-    private static ToolStationMenu loadHatchetParts(GameTestHelper helper, Block station) {
+    /** Loads a full set of hammer parts into a freshly placed {@code station} and returns its menu. */
+    private static ToolStationMenu loadHammerParts(GameTestHelper helper, Block station) {
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         helper.setBlock(POS, station);
         ToolStationBlockEntity blockEntity = helper.getBlockEntity(POS);
-        blockEntity.container().setItem(0, ToolAssembly.part(ForgeweaveItems.PART_AXE_HEAD.get(), "stone"));
-        blockEntity.container().setItem(1, ToolAssembly.part(ForgeweaveItems.PART_TOOL_BINDING.get(), "wood"));
-        blockEntity.container().setItem(2, ToolAssembly.part(ForgeweaveItems.PART_TOOL_HANDLE.get(), "wood"));
+        // ToolConstants.HAMMER's own slot order: tough rod, hammer head, then its two large plates.
+        blockEntity.container().setItem(0, ToolAssembly.part(ForgeweaveItems.PART_TOUGH_TOOL_ROD.get(), "wood"));
+        blockEntity.container().setItem(1, ToolAssembly.part(ForgeweaveItems.PART_HAMMER_HEAD.get(), "stone"));
+        blockEntity.container().setItem(2, ToolAssembly.part(ForgeweaveItems.PART_LARGE_PLATE.get(), "stone"));
+        blockEntity.container().setItem(3, ToolAssembly.part(ForgeweaveItems.PART_LARGE_PLATE.get(), "stone"));
 
         ToolStationMenu menu = ToolAssembly.menu(helper, player, POS, blockEntity);
         menu.broadcastChanges();

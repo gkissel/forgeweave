@@ -29,6 +29,7 @@ import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.inventory.ContainerLevelAccess;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.Difficulty;
 import net.minecraft.world.InteractionHand;
@@ -153,6 +154,21 @@ public final class ScreenshotHarness {
      */
     private static final int SMELTERY_SCENE_CAMERA_HEIGHT = 10;
     private static final int SMELTERY_SCENE_CAMERA_PULLBACK = 4;
+    /** How far in -X the #157 tool scene sits from the harness origin, clear of every other scene. */
+    private static final int TOOL_SCENE_OFFSET = 14;
+    /** How far in -Z the #157 tool scene's props sit from the camera. */
+    private static final int TOOL_SCENE_DISTANCE = 5;
+    /**
+     * Longer than {@link #SCREEN_SETTLE_TICKS} for this scene alone: every capture here waits on a
+     * server-side inventory change reaching the client and being drawn, where the other scenes only
+     * wait on blocks that were placed once.
+     */
+    private static final int TOOL_SETTLE_TICKS = 30;
+    /** How far in +X the throwaway Tool Forge that builds the tools sits, out of the camera's view. */
+    private static final int TOOL_SCENE_FORGE_OFFSET = 6;
+    /** Iron head over wooden parts: four tinted layers that read as four different materials. */
+    private static final String TOOL_SCENE_HEAD_MATERIAL = "iron";
+    private static final String TOOL_SCENE_PART_MATERIAL = "wood";
     /** The #152 table row's own distance/spacing/pullback; tables are floor-standing, so no +Y. */
     private static final int TABLE_SCENE_DISTANCE = 4;
     private static final int TABLE_SCENE_SPACING = 2;
@@ -224,7 +240,12 @@ public final class ScreenshotHarness {
             ForgeweaveItems.TOOL_KATANA,
             // #158. The cleaver is the second four-layer capture and the first Tool Forge-tier tool
             // in this list; assembleForDisplay builds it through the same station call regardless.
-            ForgeweaveItems.TOOL_CLEAVER);
+            ForgeweaveItems.TOOL_CLEAVER,
+            // #157's five. Each is four layers, and the hammer is the only tool with three of them
+            // in the same role -- so this row is where a head2/head3 layer that went missing or got
+            // tinted from the wrong part slot shows up.
+            ForgeweaveItems.TOOL_HAMMER, ForgeweaveItems.TOOL_EXCAVATOR, ForgeweaveItems.TOOL_LUMBERAXE,
+            ForgeweaveItems.TOOL_SCYTHE, ForgeweaveItems.TOOL_VEIN_HAMMER);
 
     /** How far in -Z of spawn the weapon poses stand, clear of the block scenes above. */
     private static final int WEAPON_SCENE_DISTANCE = 6;

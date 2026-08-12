@@ -198,7 +198,15 @@ public final class ToolAssemblyRecipes {
             // #158: the Tool Forge tier's cleaver -- tough tool rod, large sword blade, large plate,
             // tough tool rod again. The same part in two different roles (HANDLE and EXTRA) is why
             // slot matching here is positional rather than by part identity.
-            new Entry(ToolConstants.CLEAVER, ForgeweaveItems.TOOL_CLEAVER));
+            new Entry(ToolConstants.CLEAVER, ForgeweaveItems.TOOL_CLEAVER),
+            // #157's five Tool Forge-tier harvest tools, each in ToolConstants' own part order. The
+            // hammer takes large_plate in two separate HEAD slots and the scythe takes tough_tool_rod
+            // in both a HANDLE and a second HANDLE slot -- positional matching, again, with no case.
+            new Entry(ToolConstants.HAMMER, ForgeweaveItems.TOOL_HAMMER),
+            new Entry(ToolConstants.EXCAVATOR, ForgeweaveItems.TOOL_EXCAVATOR),
+            new Entry(ToolConstants.LUMBERAXE, ForgeweaveItems.TOOL_LUMBERAXE),
+            new Entry(ToolConstants.SCYTHE, ForgeweaveItems.TOOL_SCYTHE),
+            new Entry(ToolConstants.VEIN_HAMMER, ForgeweaveItems.TOOL_VEIN_HAMMER));
 
     /**
      * The "large tool" classification (docs/SCOPE.md M3 issue #152): tools that can only be assembled
@@ -300,14 +308,30 @@ public final class ToolAssemblyRecipes {
     }
 
     /**
-     * Whether the tool the head slot would assemble is a large tool, i.e. one only the Tool Forge can
-     * build. Public so {@link ToolStationMenu#rejection} can say so in the info panel and a GameTest
-     * can assert on the classification itself rather than only on its effect.
+     * Whether any part loaded into the input slots belongs only to large tools -- i.e. whether the
+     * player is trying to build one somewhere that cannot. Public so {@link ToolStationMenu#rejection}
+     * can say so in the info panel and a GameTest can assert on the classification itself rather than
+     * only on its effect.
+     *
+     * <p>Asks about every loaded slot rather than about the first one: since issue #155 the head is
+     * not always slot 0 (the hammer's is slot 1, behind its tough rod), so "is the head slot's part a
+     * large tool's head" would answer no for most of the roster. A part that also belongs to a
+     * small tool -- a plain tool handle, say -- says nothing either way, which is why this looks for a
+     * part <em>no</em> small tool uses.
      */
-    public static boolean isLargeToolHead(ItemStack headStack) {
-        return ENTRIES.stream()
-                .filter(entry -> headStack.is(entry.part(entry.headSlot())))
-                .anyMatch(ToolAssemblyRecipes::isLargeTool);
+    public static boolean isLargeToolHead(List<ItemStack> inputs) {
+        for (ItemStack stack : inputs) {
+            if (stack.isEmpty()) {
+                continue;
+            }
+            List<Entry> using = ENTRIES.stream()
+                    .filter(entry -> entry.parts().stream().anyMatch(stack::is))
+                    .toList();
+            if (!using.isEmpty() && using.stream().allMatch(ToolAssemblyRecipes::isLargeTool)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /** Whether this tool can only be assembled at the Tool Forge (issue #152's {@link #LARGE_TOOLS}). */

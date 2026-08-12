@@ -14,6 +14,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResult;
 import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EquipmentSlot;
@@ -29,6 +30,7 @@ import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.UseAnim;
 import net.minecraft.world.item.component.ItemAttributeModifiers;
 import net.minecraft.world.item.component.Tool;
+import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
@@ -40,6 +42,9 @@ import dev.gkissel.forgeweave.combat.ToolUseAction;
 import dev.gkissel.forgeweave.config.ForgeweaveConfig;
 import dev.gkissel.forgeweave.material.Material;
 import dev.gkissel.forgeweave.modifier.ForgeweaveModifiers;
+
+import dev.gkissel.forgeweave.tool.AoeHarvest;
+import dev.gkissel.forgeweave.tool.CropHarvest;
 import dev.gkissel.forgeweave.tool.ToolConstants;
 import dev.gkissel.forgeweave.tool.ToolStats;
 import dev.gkissel.forgeweave.trait.ForgeweaveTraits;
@@ -89,6 +94,7 @@ public class ToolItem extends Item {
     private final boolean weapon;
     @Nullable
     private final ForgeweaveInnates.Innate innate;
+    private final AoeHarvest.Shape aoeShape;
 
     /** A tool with no innate of its own -- M1's three, until issue #164 retrofits theirs. */
     public ToolItem(Properties properties, TagKey<Block> mineableBlocks, float attackSpeed, float damagePotential,
@@ -115,8 +121,25 @@ public class ToolItem extends Item {
      */
     public ToolItem(Properties properties, ToolConstants.Entry constants, List<TagKey<Block>> mineableBlocks,
             boolean weapon, @Nullable ForgeweaveInnates.Innate innate) {
+        this(properties, constants, mineableBlocks, weapon, innate, AoeHarvest.Shape.NONE);
+    }
+
+    /**
+     * As above, for a tool that takes extra blocks along with the one it breaks (issue #157). Every
+     * other per-tool constant still comes off the {@link ToolConstants.Entry}; {@code aoeShape} is the
+     * one thing that is not a number and so has nowhere to live on that record.
+     *
+     * @param aoeShape which extra blocks a break with this tool takes along; see {@link AoeHarvest}
+     */
+    public ToolItem(Properties properties, ToolConstants.Entry constants, TagKey<Block> mineableBlocks,
+            boolean weapon, @Nullable ForgeweaveInnates.Innate innate, AoeHarvest.Shape aoeShape) {
+        this(properties, constants, List.of(mineableBlocks), weapon, innate, aoeShape);
+    }
+
+    public ToolItem(Properties properties, ToolConstants.Entry constants, List<TagKey<Block>> mineableBlocks,
+            boolean weapon, @Nullable ForgeweaveInnates.Innate innate, AoeHarvest.Shape aoeShape) {
         this(properties, mineableBlocks, constants.attackSpeed(), constants.damagePotential(),
-                constants.miningSpeedModifier(), weapon, innate);
+                constants.miningSpeedModifier(), weapon, innate, aoeShape);
     }
 
     /**
@@ -133,13 +156,14 @@ public class ToolItem extends Item {
      */
     public ToolItem(Properties properties, TagKey<Block> mineableBlocks, float attackSpeed, float damagePotential,
             float miningSpeedModifier, boolean weapon, @Nullable ForgeweaveInnates.Innate innate) {
-        this(properties, List.of(mineableBlocks), attackSpeed, damagePotential, miningSpeedModifier, weapon, innate);
+        this(properties, List.of(mineableBlocks), attackSpeed, damagePotential, miningSpeedModifier, weapon, innate,
+                AoeHarvest.Shape.NONE);
     }
 
     /** See above; the multi-tag form every other constructor funnels into. */
     public ToolItem(Properties properties, List<TagKey<Block>> mineableBlocks, float attackSpeed,
             float damagePotential, float miningSpeedModifier, boolean weapon,
-            @Nullable ForgeweaveInnates.Innate innate) {
+            @Nullable ForgeweaveInnates.Innate innate, AoeHarvest.Shape aoeShape) {
         super(properties);
         this.mineableBlocks = List.copyOf(mineableBlocks);
         this.attackSpeed = attackSpeed;
@@ -147,6 +171,12 @@ public class ToolItem extends Item {
         this.miningSpeedModifier = miningSpeedModifier;
         this.weapon = weapon;
         this.innate = innate;
+        this.aoeShape = aoeShape;
+    }
+
+    /** Which extra blocks a break with this tool takes along -- see {@link AoeHarvest#onBlockBreak}. */
+    public AoeHarvest.Shape aoeShape() {
+        return aoeShape;
     }
 
     /** This tool type's innate, or {@code null}. See the constructor. */
@@ -475,6 +505,19 @@ public class ToolItem extends Item {
         }
         player.startUsingItem(hand);
         return InteractionResultHolder.consume(stack);
+    }
+
+    /**
+     * The scythe's right-click harvest (issue #157), upstream 1.12's {@code Kama#onItemRightClick}:
+     * only tools whose {@link #aoeShape} is {@link AoeHarvest.Shape#CUBE_3X3X3} have one, so every
+     * other tool falls through to vanilla's behavior for a right-click on a block. The kama harvests
+     * the same way over one block instead -- {@code KamaItem}, which overrides this.
+     */
+    @Override
+    public InteractionResult useOn(UseOnContext context) {
+        return aoeShape == AoeHarvest.Shape.CUBE_3X3X3 && !isBroken(context.getItemInHand())
+                ? CropHarvest.harvestAround(context)
+                : super.useOn(context);
     }
 
     @Override

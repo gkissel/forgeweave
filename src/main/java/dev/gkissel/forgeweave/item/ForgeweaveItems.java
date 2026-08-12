@@ -10,6 +10,7 @@ import net.neoforged.neoforge.registries.DeferredRegister;
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.block.ForgeweaveBlocks;
 import dev.gkissel.forgeweave.combat.ForgeweaveInnates;
+import dev.gkissel.forgeweave.tool.AoeHarvest;
 import dev.gkissel.forgeweave.tool.ToolConstants;
 
 /**
@@ -230,6 +231,38 @@ public final class ForgeweaveItems {
      */
     public static final DeferredItem<ToolItem> TOOL_CLEAVER = ITEMS.registerItem("cleaver",
             properties -> new ToolItem(properties, ToolConstants.CLEAVER, BlockTags.SWORD_EFFICIENT, true, null),
+            new Item.Properties().stacksTo(1));
+
+    // The large harvest tools (docs/SCOPE.md M3 issue #157): Tool Forge tier, four parts each, and
+    // the only tools that break more than one block at a time. Everything numeric comes from their
+    // ToolConstants.Entry (issue #153) rather than being repeated here; what stays per registration
+    // is the mineable/* tag upstream's tool class sits on, whether that class adds Category.WEAPON,
+    // and which extra blocks a break takes along (AoeHarvest.Shape).
+    //
+    // Tag choices, from each upstream class's own harvest type: Hammer extends Pickaxe, Excavator
+    // extends Shovel, LumberAxe sets `setHarvestLevel("axe", 0)`, and Kama/Scythe register as
+    // "shears" -- whose 1.21 counterpart for blocks is mineable/hoe (leaves, plants, sculk), since
+    // vanilla has no shears mining tag. The vein hammer has no 1.12 class; it is a hammer variant,
+    // so it takes the hammer's pickaxe tag and weapon category (docs/SCOPE.md M3 sources table).
+    public static final DeferredItem<ToolItem> TOOL_HAMMER = ITEMS.registerItem("hammer",
+            properties -> new ToolItem(properties, ToolConstants.HAMMER, BlockTags.MINEABLE_WITH_PICKAXE, true,
+                    ForgeweaveInnates.CONCUSSION, AoeHarvest.Shape.PLANE_3X3),
+            new Item.Properties().stacksTo(1));
+    public static final DeferredItem<ToolItem> TOOL_EXCAVATOR = ITEMS.registerItem("excavator",
+            properties -> new ToolItem(properties, ToolConstants.EXCAVATOR, BlockTags.MINEABLE_WITH_SHOVEL, false,
+                    ForgeweaveInnates.FLAT_SMACK, AoeHarvest.Shape.PLANE_3X3),
+            new Item.Properties().stacksTo(1));
+    public static final DeferredItem<ToolItem> TOOL_LUMBERAXE = ITEMS.registerItem("lumberaxe",
+            properties -> new ToolItem(properties, ToolConstants.LUMBERAXE, BlockTags.MINEABLE_WITH_AXE, false,
+                    ForgeweaveInnates.TIMBER, AoeHarvest.Shape.TREE_FELL),
+            new Item.Properties().stacksTo(1));
+    public static final DeferredItem<ToolItem> TOOL_SCYTHE = ITEMS.registerItem("scythe",
+            properties -> new ToolItem(properties, ToolConstants.SCYTHE, BlockTags.MINEABLE_WITH_HOE, true,
+                    ForgeweaveInnates.SWEEP, AoeHarvest.Shape.CUBE_3X3X3),
+            new Item.Properties().stacksTo(1));
+    public static final DeferredItem<ToolItem> TOOL_VEIN_HAMMER = ITEMS.registerItem("vein_hammer",
+            properties -> new ToolItem(properties, ToolConstants.VEIN_HAMMER, BlockTags.MINEABLE_WITH_PICKAXE, true,
+                    ForgeweaveInnates.CRUSHING_BLOW, AoeHarvest.Shape.VEIN),
             new Item.Properties().stacksTo(1));
 
     public static final DeferredItem<BlockItem> TOOL_STATION = ITEMS.registerSimpleBlockItem("tool_station", ForgeweaveBlocks.TOOL_STATION);
