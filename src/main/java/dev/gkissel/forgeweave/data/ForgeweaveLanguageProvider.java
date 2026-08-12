@@ -619,6 +619,17 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("advancements.forgeweave.first_modifier.title", "Fine Tuning");
         add("advancements.forgeweave.first_modifier.description", "Apply a modifier at the Tool Station");
 
+        // #166 -- the M3-17 chain's tail (docs/SCOPE.md M3 issue #166): forge -> large tool -> emboss
+        // -> combat modifier, hung off "first modifier" (see ForgeweaveAdvancementProvider).
+        add("advancements.forgeweave.forge.title", "Bigger Hammer");
+        add("advancements.forgeweave.forge.description", "Build a Tool Forge");
+        add("advancements.forgeweave.large_tool.title", "Go Big");
+        add("advancements.forgeweave.large_tool.description", "Assemble a large tool at the Tool Forge");
+        add("advancements.forgeweave.emboss.title", "Best of Both");
+        add("advancements.forgeweave.emboss.description", "Emboss a tool with a donor part's traits");
+        add("advancements.forgeweave.combat_modifier.title", "Sharpened Edge");
+        add("advancements.forgeweave.combat_modifier.description", "Apply a combat modifier to a tool");
+
         // The Ponder soft dependency's one-time chat hint (issue #110): shown on a player's first
         // smeltery controller interaction only when Ponder isn't installed (ForgeweavePonderHint).
         // A new "chat" family, following vanilla's own chat.* namespace -- none of this file's usual

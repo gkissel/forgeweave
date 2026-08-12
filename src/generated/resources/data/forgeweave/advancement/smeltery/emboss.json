@@ -1,0 +1,26 @@
+{
+  "parent": "forgeweave:smeltery/large_tool",
+  "criteria": {
+    "triggered": {
+      "trigger": "forgeweave:first_embossment"
+    }
+  },
+  "display": {
+    "description": {
+      "translate": "advancements.forgeweave.emboss.description"
+    },
+    "icon": {
+      "count": 1,
+      "id": "forgeweave:tool_handle"
+    },
+    "title": {
+      "translate": "advancements.forgeweave.emboss.title"
+    }
+  },
+  "requirements": [
+    [
+      "triggered"
+    ]
+  ],
+  "sends_telemetry_event": true
+}
