@@ -59,5 +59,27 @@ public final class ForgeweaveCriteriaTriggers {
     public static final DeferredHolder<CriterionTrigger<?>, SimpleForgeweaveTrigger> FIRST_MODIFIER =
             TRIGGERS.register("first_modifier", SimpleForgeweaveTrigger::new);
 
+    /**
+     * The M3-17 chain's tail (docs/SCOPE.md M3 issue #166), hung off {@link #FIRST_MODIFIER}: forge
+     * (having a Tool Forge -- the M2 root's own "own the item" idiom, no new hook needed) -> large
+     * tool -> emboss -> combat modifier. Three of the four need a real hook, all three from the same
+     * place: {@code ToolStationMenu.OutputSlot#onTake}, the one spot that already knows which of
+     * assembly/repair/modifier/embossing just produced the output taken.
+     *
+     * <ul>
+     *   <li>{@link #LARGE_TOOL_ASSEMBLED} when the resolved output is one of {@code
+     *       ToolAssemblyRecipes#LARGE_TOOLS} and the input was a fresh assembly, not a repair of one.
+     *   <li>{@link #FIRST_EMBOSSMENT} when {@code Embossing#resolve} is the outcome that matched.
+     *   <li>{@link #COMBAT_MODIFIER_APPLIED} alongside {@link #FIRST_MODIFIER}, when the applied
+     *       recipe's modifier id is one of {@code ForgeweaveModifiers#isCombatModifier}'s eight.
+     * </ul>
+     */
+    public static final DeferredHolder<CriterionTrigger<?>, SimpleForgeweaveTrigger> LARGE_TOOL_ASSEMBLED =
+            TRIGGERS.register("large_tool_assembled", SimpleForgeweaveTrigger::new);
+    public static final DeferredHolder<CriterionTrigger<?>, SimpleForgeweaveTrigger> FIRST_EMBOSSMENT =
+            TRIGGERS.register("first_embossment", SimpleForgeweaveTrigger::new);
+    public static final DeferredHolder<CriterionTrigger<?>, SimpleForgeweaveTrigger> COMBAT_MODIFIER_APPLIED =
+            TRIGGERS.register("combat_modifier_applied", SimpleForgeweaveTrigger::new);
+
     private ForgeweaveCriteriaTriggers() {}
 }

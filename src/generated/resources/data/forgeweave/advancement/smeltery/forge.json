@@ -1,0 +1,33 @@
+{
+  "parent": "forgeweave:smeltery/first_modifier",
+  "criteria": {
+    "tool_forge": {
+      "conditions": {
+        "items": [
+          {
+            "items": "forgeweave:tool_forge"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    }
+  },
+  "display": {
+    "description": {
+      "translate": "advancements.forgeweave.forge.description"
+    },
+    "icon": {
+      "count": 1,
+      "id": "forgeweave:tool_forge"
+    },
+    "title": {
+      "translate": "advancements.forgeweave.forge.title"
+    }
+  },
+  "requirements": [
+    [
+      "tool_forge"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

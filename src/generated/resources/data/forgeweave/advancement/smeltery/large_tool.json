@@ -1,0 +1,26 @@
+{
+  "parent": "forgeweave:smeltery/forge",
+  "criteria": {
+    "triggered": {
+      "trigger": "forgeweave:large_tool_assembled"
+    }
+  },
+  "display": {
+    "description": {
+      "translate": "advancements.forgeweave.large_tool.description"
+    },
+    "icon": {
+      "count": 1,
+      "id": "forgeweave:hammer"
+    },
+    "title": {
+      "translate": "advancements.forgeweave.large_tool.title"
+    }
+  },
+  "requirements": [
+    [
+      "triggered"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

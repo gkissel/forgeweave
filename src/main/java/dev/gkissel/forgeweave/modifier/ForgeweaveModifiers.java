@@ -718,6 +718,23 @@ public final class ForgeweaveModifiers {
             Map.entry(id("beheading"), BEHEADING));
 
     /**
+     * docs/SCOPE.md's "8 combat modifiers" (M3 acceptance test 4): the #162/#163 batches' seven
+     * {@link Modifier#combatSeam} implementations plus {@link #BEHEADING}, which isn't one (see its
+     * own javadoc) but is still counted among the eight there. Used only by {@link #isCombatModifier}
+     * -- the M3-17 advancement chain's "apply a combat modifier" step -- so a future ninth needs one
+     * line here rather than a parallel table.
+     */
+    private static final Set<ResourceLocation> COMBAT_MODIFIER_IDS = Set.of(
+            id("knockback"), id("shulking"), id("webbed"),
+            id("smite"), id("bane_of_arthropods"), id("fiery"), id("necrotic"),
+            id("beheading"));
+
+    /** Whether {@code id} is one of the eight combat modifiers (docs/SCOPE.md M3 acceptance test 4). */
+    public static boolean isCombatModifier(ResourceLocation id) {
+        return COMBAT_MODIFIER_IDS.contains(id);
+    }
+
+    /**
      * The behavior for {@code id}, or {@code null} if this version doesn't implement it.
      *
      * <p><b>Unknown ids are kept, not dropped</b> (issue #105, favoring save safety): the entry stays

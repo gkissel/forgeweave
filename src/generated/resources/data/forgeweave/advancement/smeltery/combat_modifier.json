@@ -1,0 +1,26 @@
+{
+  "parent": "forgeweave:smeltery/emboss",
+  "criteria": {
+    "triggered": {
+      "trigger": "forgeweave:combat_modifier_applied"
+    }
+  },
+  "display": {
+    "description": {
+      "translate": "advancements.forgeweave.combat_modifier.description"
+    },
+    "icon": {
+      "count": 1,
+      "id": "forgeweave:manyullyn_ingot"
+    },
+    "title": {
+      "translate": "advancements.forgeweave.combat_modifier.title"
+    }
+  },
+  "requirements": [
+    [
+      "triggered"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

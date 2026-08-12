@@ -29,7 +29,9 @@ import dev.gkissel.forgeweave.block.ForgeweaveBlocks;
 import dev.gkissel.forgeweave.item.PartItem;
 import dev.gkissel.forgeweave.item.ToolItem;
 import dev.gkissel.forgeweave.modifier.Embossing;
+import dev.gkissel.forgeweave.modifier.ForgeweaveModifiers;
 import dev.gkissel.forgeweave.modifier.ModifierApplication;
+import dev.gkissel.forgeweave.modifier.ModifierRecipe;
 import dev.gkissel.forgeweave.menu.ToolStationTabs.Pos;
 import dev.gkissel.forgeweave.menu.ToolStationTabs.Tab;
 
@@ -486,16 +488,8 @@ public class ToolStationMenu extends StationMenu {
         public void onTake(Player player, ItemStack stack) {
             // Recomputed rather than remembered from updateResult(): the inputs haven't changed
             // since the output was built, and a stateless read can't go stale.
-            // #110 -- "first modifier" advancement (docs/SCOPE.md M2 issue #110): only when
-            // ModifierApplication actually resolves an application from the current slots, the same
-            // check modifierRejection() uses to decide whether there's a rejection to report at all.
-            if (player instanceof ServerPlayer serverPlayer
-                    && ModifierApplication.resolve(registries, slots.get(HEAD_SLOT).getItem(),
-                                    slots.get(BINDING_SLOT).getItem(), slots.get(HANDLE_SLOT).getItem())
-                            .map(ModifierApplication.Outcome::output)
-                            .filter(output -> !output.isEmpty())
-                            .isPresent()) {
-                ForgeweaveCriteriaTriggers.FIRST_MODIFIER.get().trigger(serverPlayer);
+            if (player instanceof ServerPlayer serverPlayer) {
+                grantAdvancements(serverPlayer);
             }
             resolve().ifPresent(result -> {
                 List<Integer> used = result.slotsUsed();
@@ -504,6 +498,54 @@ public class ToolStationMenu extends StationMenu {
                 }
             });
             super.onTake(player, stack);
+        }
+
+        /**
+         * The M2/M3 advancement chain's four hooks that fire from this station (docs/SCOPE.md issues
+         * #110, #166) -- forge and large tool are the chain's other two steps, but "forge" needs no
+         * hook (owning a Tool Forge, same {@code hasItems} idiom {@code ForgeweaveAdvancementProvider}'s
+         * root uses) and "large tool" is the assembly branch below. Every check here re-resolves from
+         * the current slots rather than remembering a result, same reasoning as this class's other
+         * rejection/result reads.
+         */
+        private void grantAdvancements(ServerPlayer player) {
+            ItemStack head = slots.get(HEAD_SLOT).getItem();
+            ItemStack binding = slots.get(BINDING_SLOT).getItem();
+            ItemStack handle = slots.get(HANDLE_SLOT).getItem();
+
+            // #110 -- "first modifier"; #166 -- "combat modifier", alongside it. Only when
+            // ModifierApplication actually resolves an application from the current slots, the same
+            // check rejection() uses to decide whether there's a rejection to report at all.
+            if (ModifierApplication.resolve(registries, head, binding, handle)
+                    .map(ModifierApplication.Outcome::output)
+                    .filter(output -> !output.isEmpty())
+                    .isPresent()) {
+                ForgeweaveCriteriaTriggers.FIRST_MODIFIER.get().trigger(player);
+                ModifierApplication.recipeFor(registries, binding)
+                        .or(() -> ModifierApplication.recipeFor(registries, handle))
+                        .map(ModifierRecipe::modifier)
+                        .filter(ForgeweaveModifiers::isCombatModifier)
+                        .ifPresent(id -> ForgeweaveCriteriaTriggers.COMBAT_MODIFIER_APPLIED.get().trigger(player));
+            }
+
+            // #166 -- "emboss": Embossing#resolve is the same check rejection() uses.
+            if (Embossing.resolve(registries, head, freeSlotContents())
+                    .map(Embossing.Outcome::output)
+                    .filter(output -> !output.isEmpty())
+                    .isPresent()) {
+                ForgeweaveCriteriaTriggers.FIRST_EMBOSSMENT.get().trigger(player);
+            }
+
+            // #166 -- "large tool": only on a fresh assembly -- the head slot holding a part rather
+            // than an already-assembled tool, ToolAssemblyRecipes#resolve's own assembly-vs-repair
+            // discriminator -- and only when the resolved tool is one ToolAssemblyRecipes#LARGE_TOOLS
+            // gates to the Tool Forge.
+            if (!(head.getItem() instanceof ToolItem)) {
+                resolve().map(ToolAssemblyRecipes.Result::output)
+                        .flatMap(ToolAssemblyRecipes::entryFor)
+                        .filter(ToolAssemblyRecipes::isLargeTool)
+                        .ifPresent(entry -> ForgeweaveCriteriaTriggers.LARGE_TOOL_ASSEMBLED.get().trigger(player));
+            }
         }
 
         private void consume(int slotIndex, int count) {
