@@ -15,6 +15,7 @@ import net.neoforged.neoforge.registries.DeferredHolder;
 import net.neoforged.neoforge.registries.DeferredRegister;
 
 import dev.gkissel.forgeweave.Forgeweave;
+import dev.gkissel.forgeweave.combat.DamageRamp;
 import dev.gkissel.forgeweave.modifier.ModifierEntry;
 import dev.gkissel.forgeweave.tool.ToolMaterials;
 import dev.gkissel.forgeweave.tool.ToolStats;
@@ -115,6 +116,16 @@ public final class ForgeweaveDataComponents {
     public static final DeferredHolder<DataComponentType<?>, DataComponentType<TraitStacks>> MOMENTUM_STACKS =
             DATA_COMPONENTS.registerComponentType("momentum_stacks",
                     builder -> builder.persistent(TraitStacks.CODEC).networkSynchronized(TraitStacks.STREAM_CODEC));
+
+    /**
+     * The katana's in-combat damage ramp (docs/SCOPE.md M3 issue #160): how many hits it has landed
+     * in a row and when the last one was, as a game-time stamp. See {@code combat.DamageRamp} for why
+     * this is a timestamp rather than the countdown {@link #MOMENTUM_STACKS}/{@link
+     * #INSATIABLE_STACKS} use, and for the save-compat promise this shape carries.
+     */
+    public static final DeferredHolder<DataComponentType<?>, DataComponentType<DamageRamp.State>> KATANA_RAMP =
+            DATA_COMPONENTS.registerComponentType("katana_ramp",
+                    builder -> builder.persistent(DamageRamp.State.CODEC).networkSynchronized(DamageRamp.State.STREAM_CODEC));
 
     /** {@code ForgeweaveTraits#INSATIABLE}'s current damage-bonus stack and its decay countdown. */
     public static final DeferredHolder<DataComponentType<?>, DataComponentType<TraitStacks>> INSATIABLE_STACKS =

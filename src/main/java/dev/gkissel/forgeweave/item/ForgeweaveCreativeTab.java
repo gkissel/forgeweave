@@ -51,7 +51,9 @@ public final class ForgeweaveCreativeTab {
             ForgeweaveItems.PART_VEIN_HAMMER_HEAD,
             ForgeweaveItems.PART_WAR_MACE_HEAD,
             // #159's new head part.
-            ForgeweaveItems.PART_CURVED_BLADE);
+            ForgeweaveItems.PART_CURVED_BLADE,
+            // M3 new-shape tools' own parts (issue #160 onwards).
+            ForgeweaveItems.PART_KATANA_BLADE);
 
     public static final DeferredHolder<CreativeModeTab, CreativeModeTab> MAIN = TABS.register("main", () -> CreativeModeTab.builder()
             .title(Component.translatable("itemGroup.forgeweave"))
@@ -96,6 +98,7 @@ public final class ForgeweaveCreativeTab {
         output.accept(ForgeweaveItems.PATTERN_VEIN_HAMMER_HEAD.get());
         output.accept(ForgeweaveItems.PATTERN_WAR_MACE_HEAD.get());
         output.accept(ForgeweaveItems.PATTERN_CURVED_BLADE.get());
+        output.accept(ForgeweaveItems.PATTERN_KATANA_BLADE.get());
 
         // Shown component-less (no TOOL_MATERIALS set): unlike parts, a tool has three independent
         // material slots, so there's no small fixed set of "one per material" variants to enumerate
@@ -115,6 +118,7 @@ public final class ForgeweaveCreativeTab {
         // M3 station-tier weapons (docs/SCOPE.md M3 issue #159).
         output.accept(ForgeweaveItems.TOOL_BATTLEAXE.get());
         output.accept(ForgeweaveItems.TOOL_SCIMITAR.get());
+        output.accept(ForgeweaveItems.TOOL_KATANA.get());
 
         // Grout (a block since issue #129), seared brick, and the seared brick block family
         // (docs/SCOPE.md M2 issue #93).

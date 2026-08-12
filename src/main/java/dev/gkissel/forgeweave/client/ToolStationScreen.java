@@ -10,6 +10,7 @@ import javax.annotation.Nullable;
 import com.mojang.blaze3d.platform.InputConstants;
 
 import net.minecraft.ChatFormatting;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
@@ -451,7 +452,21 @@ public class ToolStationScreen extends StationScreen<ToolStationMenu> implements
     /** A part item's own inventory sprite, blitted straight from its file (GUI draws bypass the atlas). */
     private static ResourceLocation partTexture(Item part) {
         ResourceLocation id = BuiltInRegistries.ITEM.getKey(part);
-        return ResourceLocation.fromNamespaceAndPath(id.getNamespace(), "textures/derived/item/" + id.getPath() + ".png");
+        return derivedOrOriginal(
+                ResourceLocation.fromNamespaceAndPath(id.getNamespace(), "textures/derived/item/" + id.getPath() + ".png"),
+                ResourceLocation.fromNamespaceAndPath(id.getNamespace(), "textures/item/" + id.getPath() + ".png"));
+    }
+
+    /**
+     * Most part and tool art is ported from the clone and lives under {@code textures/derived/}
+     * (CLAUDE.md); the M3 shapes with no upstream counterpart at all -- the katana (#160) and the
+     * other tools docs/SCOPE.md M3 calls "ours" -- are freshly authored and live under the plain
+     * {@code textures/item/} folder instead, which is also the only folder the block atlas stitches
+     * without an {@code atlases/blocks.json} source of its own. This picks whichever of the two
+     * actually ships, so neither kind of art needs a hardcoded list here or a copy in the wrong tree.
+     */
+    private static ResourceLocation derivedOrOriginal(ResourceLocation derived, ResourceLocation original) {
+        return Minecraft.getInstance().getResourceManager().getResource(derived).isPresent() ? derived : original;
     }
 
     private void renderSidebar(GuiGraphics graphics, int mouseX, int mouseY) {

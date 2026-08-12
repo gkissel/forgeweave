@@ -99,7 +99,12 @@ public final class PartBuilderRecipes {
             new Entry(ForgeweaveItems.PATTERN_WAR_MACE_HEAD, ForgeweaveItems.PART_WAR_MACE_HEAD, LARGE_HEAD_COST),
             // #159's new part. No upstream cost to read either (Forgeweave's own shape) -- priced
             // like sword_blade, the one-handed sword blade it stands in for.
-            new Entry(ForgeweaveItems.PATTERN_CURVED_BLADE, ForgeweaveItems.PART_CURVED_BLADE, HEAD_COST));
+            new Entry(ForgeweaveItems.PATTERN_CURVED_BLADE, ForgeweaveItems.PART_CURVED_BLADE, HEAD_COST),
+            // #160's katana blade, also with no upstream cost to read. Priced at MEDIUM_PART_COST:
+            // a longer single-edged blade than the plain sword_blade (HEAD_COST) but nothing like
+            // the two-handed large_sword_blade (LARGE_HEAD_COST), which is exactly the gap upstream
+            // itself prices sign_plate/pan into.
+            new Entry(ForgeweaveItems.PATTERN_KATANA_BLADE, ForgeweaveItems.PART_KATANA_BLADE, MEDIUM_PART_COST));
 
     /**
      * Whether the pattern slot should accept this stack at all (the five part patterns only -- not

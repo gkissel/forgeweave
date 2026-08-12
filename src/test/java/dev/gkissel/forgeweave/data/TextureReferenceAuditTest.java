@@ -24,6 +24,9 @@ import com.google.gson.JsonParser;
 
 import org.junit.jupiter.api.Test;
 
+import dev.gkissel.forgeweave.menu.ToolAssemblyRecipes;
+import dev.gkissel.forgeweave.tool.ToolArt;
+
 /**
  * Guards against the issue #43 regression (maintainer screenshots: missing-texture magenta/black
  * checkers on nearly every item after the {@code textures/derived/} reorganization). Scans every
@@ -217,6 +220,30 @@ class TextureReferenceAuditTest {
         for (String part : List.of("pickaxe_head", "shovel_head", "axe_head", "tool_binding", "tool_handle")) {
             assertTrue(Files.isRegularFile(items.resolve(part + ".png")),
                     "the Tool Station's ghost icon for forgeweave:" + part + " has no texture under " + items);
+        }
+    }
+
+    /**
+     * The other half of that convention since issue #160: a tool with no upstream original to derive
+     * (the dagger, the scimitar, the katana -- {@code ToolArt#ORIGINAL_ART}) keeps its assembled-tool
+     * layers under {@code textures/tools/} rather than {@code textures/derived/tools/}, and its
+     * ghost-icon part sprite under {@code textures/item/}. Both folders are real atlas sources
+     * ({@code assets/minecraft/atlases/blocks.json}); art in neither renders as a missing-texture
+     * checker on the station's build tab, exactly the way issue #43 did.
+     *
+     * <p>Walked off {@code ToolAssemblyRecipes.ENTRIES} rather than listed, so a later new-shape tool
+     * that forgets to ship a layer fails here instead of at a playtest.
+     */
+    @Test
+    void freshlyAuthoredToolArtLivesUnderThePlainToolsFolder() {
+        Path textures = projectRoot().resolve("src/main/resources/assets/forgeweave/textures");
+        for (ToolAssemblyRecipes.Entry entry : ToolAssemblyRecipes.ENTRIES) {
+            String tool = entry.constants().id();
+            for (String layer : ToolArt.layers(entry.constants().parts())) {
+                Path png = textures.resolve(ToolArt.layer(tool, layer) + ".png");
+                assertTrue(Files.isRegularFile(png),
+                        "tool layer art for forgeweave:" + tool + " layer '" + layer + "' is missing: " + png);
+            }
         }
     }
 

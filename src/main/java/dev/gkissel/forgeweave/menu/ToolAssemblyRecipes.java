@@ -192,7 +192,9 @@ public final class ToolAssemblyRecipes {
             // heads take a slot each and so can be different materials -- #159 landed them sharing one
             // slot only because the pre-#155 station was fixed at three, which this table no longer is.
             new Entry(ToolConstants.BATTLEAXE, ForgeweaveItems.TOOL_BATTLEAXE),
-            new Entry(ToolConstants.SCIMITAR, ForgeweaveItems.TOOL_SCIMITAR));
+            new Entry(ToolConstants.SCIMITAR, ForgeweaveItems.TOOL_SCIMITAR),
+            // #160: handle, katana blade, hand guard -- ToolConstants#KATANA's own order.
+            new Entry(ToolConstants.KATANA, ForgeweaveItems.TOOL_KATANA));
 
     /**
      * The "large tool" classification (docs/SCOPE.md M3 issue #152): tools that can only be assembled
@@ -444,6 +446,37 @@ public final class ToolAssemblyRecipes {
             case EXTRA -> PartItem.Kind.EXTRA;
             case HANDLE -> PartItem.Kind.HANDLE;
         };
+    }
+
+    /**
+     * The stat block the station writes. An M1 tool keeps {@link ToolStats#compute}'s plain
+     * head/extra/handle formula; an M3 tool goes through its own {@link ToolConstants} entry
+     * (issue #153), which is that same chain plus the flat per-tool adjustments only M3 tools have
+     * -- fed one {@link Material} per declared part slot, in the entry's own order. The head
+     * material's {@code headDurability} trait step applies either way, so a material's trait cannot
+     * quietly stop working just because the tool is an M3 shape.
+     *
+     * <p>ponytail: replaced by #155's generalized assembly on rebase -- the role-to-slot mapping below
+     * assumes one material per role, which is all the Tool Station's three slots can express. The
+     * multi-head tools (hammer, cleaver, ...) need more slots than this station has at all, which is
+     * exactly the generalization #155 owns.
+     */
+    private static ToolStats.Stats stats(Entry entry, Material head, Material extra, Material handle) {
+        ToolConstants.Entry constants = entry.constants();
+        if (constants == null) {
+            return ToolStats.compute(head, extra, handle);
+        }
+        List<Material> perSlot = constants.parts().stream()
+                .map(slot -> switch (slot.role()) {
+                    case HEAD -> head;
+                    case EXTRA -> extra;
+                    case HANDLE -> handle;
+                })
+                .toList();
+        ToolStats.Stats stats = ToolConstants.compute(constants, perSlot);
+        return new ToolStats.Stats(
+                ForgeweaveTraits.headDurability(head.traits().forPart(PartItem.Kind.HEAD), stats.durability()),
+                stats.miningSpeed(), stats.attackDamage());
     }
 
     /**

@@ -57,6 +57,9 @@ PARTS = [
     # (scripts/generate_scimitar_art.py), so like vein_hammer_head its base lives in
     # ORIGINAL_ITEM_DIR -- the composite over the derived pattern base still gets a NOTICE.md row.
     ("curved_blade.png", "pattern_curved_blade.png", ORIGINAL_ITEM_DIR),
+    # #160's katana blade -- freshly authored like the vein hammer head above, so it too is read
+    # from the plain item folder while the composite still lands under derived/ with a NOTICE row.
+    ("katana_blade.png", "pattern_katana_blade.png", ORIGINAL_ITEM_DIR),
 ]
 
 ALPHA_THRESHOLD = 64

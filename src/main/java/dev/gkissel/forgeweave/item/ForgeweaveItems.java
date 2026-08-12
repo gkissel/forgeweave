@@ -56,6 +56,8 @@ public final class ForgeweaveItems {
     // #159: the scimitar's own head part. See PART_CURVED_BLADE below for why it lands here rather
     // than with #151's batch.
     public static final DeferredItem<Item> PATTERN_CURVED_BLADE = ITEMS.registerSimpleItem("pattern_curved_blade");
+    // #160's katana blade -- see PART_KATANA_BLADE below for why it lands here rather than in #151.
+    public static final DeferredItem<Item> PATTERN_KATANA_BLADE = ITEMS.registerSimpleItem("pattern_katana_blade");
 
     public static final DeferredItem<PartItem> PART_PICKAXE_HEAD = part("pickaxe_head", PartItem.Kind.HEAD);
     public static final DeferredItem<PartItem> PART_SHOVEL_HEAD = part("shovel_head", PartItem.Kind.HEAD);
@@ -103,6 +105,12 @@ public final class ForgeweaveItems {
     // vein_hammer_head it has no 1.12/1.20 counterpart, so its art is freshly authored with no
     // NOTICE.md row (scripts/generate_scimitar_art.py).
     public static final DeferredItem<PartItem> PART_CURVED_BLADE = part("curved_blade", PartItem.Kind.HEAD);
+    // The katana's head part (docs/SCOPE.md M3 issue #160). #151 deliberately left the three
+    // new-shape tools' heads unregistered until their own issues decided a part composition;
+    // ToolConstants#KATANA names `katana_blade` + the existing hand_guard + tool_handle, so this is
+    // the one part that issue adds. Freshly authored art like the vein hammer head above (no 1.12 or
+    // 1.20 katana exists at all), so no NOTICE.md row and the plain item/ texture folder.
+    public static final DeferredItem<PartItem> PART_KATANA_BLADE = part("katana_blade", PartItem.Kind.HEAD);
 
     private static DeferredItem<PartItem> part(String name, PartItem.Kind kind) {
         return ITEMS.registerItem(name, properties -> new PartItem(properties, kind));
@@ -195,6 +203,16 @@ public final class ForgeweaveItems {
     public static final DeferredItem<ToolItem> TOOL_SCIMITAR = ITEMS.registerItem("scimitar",
             properties -> new ToolItem(properties, ToolConstants.SCIMITAR, BlockTags.SWORD_EFFICIENT,
                     true, ForgeweaveInnates.LACERATE),
+            new Item.Properties().stacksTo(1));
+    // The katana (docs/SCOPE.md M3 issue #160): attack speed and damage potential from
+    // ToolConstants#KATANA (issue #153's decision comment), Category.WEAPON like every sword-family
+    // shape, and vanilla's SWORD_EFFICIENT as its mineable tag -- a katana is a weapon, so it gets
+    // the cobweb/plant set vanilla swords get rather than a mining tag. Its innate, the in-combat
+    // damage ramp, is a DamageRamp seam carried on ForgeweaveInnates like every other M3 tool's
+    // (ADR-0005 decision 3), not behavior on this class.
+    public static final DeferredItem<ToolItem> TOOL_KATANA = ITEMS.registerItem("katana",
+            properties -> new ToolItem(properties, ToolConstants.KATANA, BlockTags.SWORD_EFFICIENT,
+                    true, ForgeweaveInnates.DAMAGE_RAMP),
             new Item.Properties().stacksTo(1));
 
     public static final DeferredItem<BlockItem> TOOL_STATION = ITEMS.registerSimpleBlockItem("tool_station", ForgeweaveBlocks.TOOL_STATION);
