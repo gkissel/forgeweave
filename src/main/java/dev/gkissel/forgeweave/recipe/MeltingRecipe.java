@@ -18,9 +18,13 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.level.material.Fluid;
 
+import net.neoforged.neoforge.common.crafting.DataComponentIngredient;
 import net.neoforged.neoforge.fluids.FluidStack;
 
 import dev.gkissel.forgeweave.Forgeweave;
+import dev.gkissel.forgeweave.casting.CastingRecipe;
+import dev.gkissel.forgeweave.item.ForgeweaveDataComponents;
+import dev.gkissel.forgeweave.item.PartItem;
 
 /**
  * What one item melts into inside a smeltery, defined entirely in datapack JSON under
@@ -168,7 +172,44 @@ public record MeltingRecipe(Ingredient input, Fluid fluid, int amount, int tempe
                 .min(Comparator.<Map.Entry<ResourceKey<MeltingRecipe>, MeltingRecipe>, Boolean>comparing(
                                 entry -> entry.getValue().isTagInput())
                         .thenComparing(entry -> entry.getKey().location()))
-                .map(Map.Entry::getValue);
+                .map(Map.Entry::getValue)
+                .or(() -> meltBackOfACastPart(registries, stack));
+    }
+
+    /**
+     * #184 -- upstream 1.12's {@code TinkerSmeltery#registerToolpartMeltingCasting}: a tool part that
+     * was cast from molten metal melts back into exactly what cast it. Upstream registers both
+     * directions from one loop over parts and materials; here the casting registry (issue #100) is
+     * already that table, so melting reads it backwards rather than restating a part-cost table as
+     * another sixty datapack rows that could drift out of step with it.
+     *
+     * <p>Only tool parts, and only the casting <em>table</em>'s recipes. A cast, an ingot or a metal
+     * block has a melting recipe of its own -- this is the last resort, reached only when no datapack
+     * recipe matched -- and a part of a material with no molten form (wood, stone, flint, bone) has no
+     * casting recipe to read backwards, so it stays unmeltable exactly as upstream leaves it.
+     *
+     * <p>The result is <b>not</b> ore-class ({@code ore = false}): upstream returns a part's exact
+     * value, so no core tier turns a pickaxe head into more metal than went into it.
+     *
+     * <p>ponytail: a linear scan of a few dozen casting recipes, on the same path (and behind the same
+     * per-slot cache) as {@link #find}'s own scan.
+     */
+    private static Optional<MeltingRecipe> meltBackOfACastPart(RegistryAccess registries, ItemStack stack) {
+        ResourceLocation material = stack.get(ForgeweaveDataComponents.MATERIAL.get());
+        if (material == null || !(stack.getItem() instanceof PartItem)) {
+            return Optional.empty();
+        }
+        for (CastingRecipe casting : registries.registryOrThrow(CastingRecipe.REGISTRY)) {
+            ItemStack result = casting.result();
+            if (casting.station() == CastingRecipe.Station.TABLE && result.is(stack.getItem())
+                    && material.equals(result.get(ForgeweaveDataComponents.MATERIAL.get()))) {
+                // Non-strict: the part still melts with a custom name or any other component the
+                // casting recipe never asked about.
+                return Optional.of(withDerivedTemperature(DataComponentIngredient.of(false, result),
+                        casting.fluid(), casting.amount(), Optional.empty(), false));
+            }
+        }
+        return Optional.empty();
     }
 
     /**

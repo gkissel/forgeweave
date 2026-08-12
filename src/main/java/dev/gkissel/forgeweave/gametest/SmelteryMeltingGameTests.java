@@ -141,6 +141,34 @@ public class SmelteryMeltingGameTests {
                 (int) (MeltingRecipe.VALUE_INGOT * SmelteryCore.STANDARD.yieldMultiplier())));
     }
 
+    /**
+     * #184 -- upstream's tool-part melting: an iron pickaxe head melts back into exactly the 288 mB
+     * of molten iron that cast it. Run under a <em>Nether</em> Core (2x on ore-class inputs) so the
+     * amount also proves the melt-back is not ore-class: upstream returns a part's exact value with
+     * no smeltery bonus, and this returns two ingots' worth, not four.
+     */
+    @GameTest(template = "smeltery", timeoutTicks = 1600)
+    public static void aMetalToolPartMeltsBackIntoItsOwnMaterialAtItsExactCost(GameTestHelper helper) {
+        SmelteryControllerBlockEntity core = lavaFuelledSmeltery(helper, ForgeweaveBlocks.NETHER_CORE.get());
+        helper.assertTrue(core.insertForMelting(ToolAssembly.part(ForgeweaveItems.PART_PICKAXE_HEAD.get(), "iron")).isEmpty(),
+                "expected an iron pickaxe head to go into the smeltery");
+
+        helper.succeedWhen(() -> assertTankHolds(helper, core, ForgeweaveFluids.IRON.still().get(),
+                MeltingRecipe.VALUE_INGOT * 2));
+    }
+
+    /** #184's other half: a material with no molten form has nothing to melt back into. */
+    @GameTest(template = "smeltery")
+    public static void aWoodenToolPartDoesNotMelt(GameTestHelper helper) {
+        SmelteryControllerBlockEntity core = lavaFuelledSmeltery(helper);
+
+        ItemStack rejected = core.insertForMelting(ToolAssembly.part(ForgeweaveItems.PART_PICKAXE_HEAD.get(), "wood"));
+
+        helper.assertValueEqual(rejected.getCount(), 1, "the wooden pickaxe head should have come straight back");
+        helper.assertTrue(core.meltingItems().stream().allMatch(ItemStack::isEmpty), "and nothing should be in the smeltery");
+        helper.succeed();
+    }
+
     /** A recipe above what the fuel can reach never progresses, and the core stops ticking rather than spinning on it. */
     @GameTest(template = "smeltery", timeoutTicks = 200)
     public static void aRecipeHotterThanTheFuelDoesNotMelt(GameTestHelper helper) {
