@@ -107,20 +107,22 @@ HANDLE_LAYER = [
 ]
 
 # The tsuba: a short bar running down-right, i.e. square across the blade's own up-right axis, and
-# crossing it exactly at the handle/blade seam. Symmetric about that crossing so it reads as a guard
-# rather than as a spur off one side, and -- drawn last of the three layers -- it covers the seam.
+# crossing it at the handle/blade seam. Symmetric about that crossing so it reads as a guard rather
+# than as a spur off one side, and -- drawn last of the three layers -- it covers the seam. Kept to
+# four rows: a longer bar turns the whole silhouette into a checkmark at item-entity render size,
+# with the guard reading as heavier than the blade.
 BINDING_LAYER = [
     "................",
     "................",
     "................",
     "................",
     "................",
-    "....###.........",
-    "....#ebs........",
+    ".....###........",
     ".....#ebs.......",
     "......#ebs......",
-    ".......#ebs.....",
-    "........###.....",
+    ".......###......",
+    "................",
+    "................",
     "................",
     "................",
     "................",

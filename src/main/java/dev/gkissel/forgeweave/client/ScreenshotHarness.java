@@ -25,10 +25,8 @@ import net.minecraft.core.Direction;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.core.registries.Registries;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.Difficulty;
 import net.minecraft.world.InteractionHand;
 
@@ -58,7 +56,6 @@ import net.neoforged.neoforge.fluids.FluidStack;
 import net.neoforged.neoforge.fluids.capability.IFluidHandler;
 import net.neoforged.neoforge.fluids.capability.templates.FluidTank;
 
-import net.minecraft.resources.ResourceLocation;
 
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.block.CastingBlockEntity;
@@ -218,7 +215,11 @@ public final class ScreenshotHarness {
             ForgeweaveItems.TOOL_MATTOCK, ForgeweaveItems.TOOL_KAMA,
             // #159. The battleaxe is the first four-layer capture (handle, both heads, binding), so
             // this frame is also where a missing or misnamed second-head layer would show up.
-            ForgeweaveItems.TOOL_BATTLEAXE, ForgeweaveItems.TOOL_SCIMITAR);
+            ForgeweaveItems.TOOL_BATTLEAXE, ForgeweaveItems.TOOL_SCIMITAR,
+            // #160. The katana's art is freshly authored rather than derived, so its frame is the
+            // one that catches a layer drawn at the wrong contrast or a guard that reads as heavier
+            // than the blade -- both of which the issue's first pass actually shipped.
+            ForgeweaveItems.TOOL_KATANA);
 
     /** How far in -Z of spawn the weapon poses stand, clear of the block scenes above. */
     private static final int WEAPON_SCENE_DISTANCE = 6;
