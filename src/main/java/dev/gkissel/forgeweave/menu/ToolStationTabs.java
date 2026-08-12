@@ -163,7 +163,11 @@ public final class ToolStationTabs {
             build(ForgeweaveItems.TOOL_SCIMITAR, at(-11, 11), at(-2, -20), at(18, -8)),
             // #160. Another Forgeweave-own shape with no upstream layout to cite, so it takes the
             // longsword's -- a long blade up-right, its guard at the joint, the grip down-left.
-            build(ForgeweaveItems.TOOL_KATANA, at(-21, 20), at(15, -16), at(-3, 2)));
+            build(ForgeweaveItems.TOOL_KATANA, at(-21, 20), at(15, -16), at(-3, 2)),
+            // #158. Upstream's cleaver has no ToolBuildGuiInfo row either (it is Tool Forge-only, and
+            // its client proxy registers none), so this is Forgeweave's: haft down-left, the big blade
+            // up-right with the plate behind it, the second rod at the pommel.
+            build(ForgeweaveItems.TOOL_CLEAVER, at(-18, 18), at(14, -16), at(-4, -4), at(18, 10)));
 
     /** The repair tab, which is what a freshly opened station shows (as upstream's does). */
     public static final int REPAIR = 0;

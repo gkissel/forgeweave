@@ -215,6 +215,7 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         // The scimitar's bleed (issue #159); see combat.LacerateEffect.
         add("effect.forgeweave.lacerate", "Lacerated");
         addItem(ForgeweaveItems.TOOL_KATANA, "Katana");
+        addItem(ForgeweaveItems.TOOL_CLEAVER, "Cleaver"); // #158
 
         addItem(ForgeweaveItems.SEARED_BRICK, "Seared Brick");
 
@@ -317,6 +318,10 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("tooltip.forgeweave.innate.pierce.description", "Deals a small amount of armor-ignoring damage on every hit.");
         add("tooltip.forgeweave.innate.flatten.name", "Flatten");
         add("tooltip.forgeweave.innate.flatten.description", "Hits briefly slow the target.");
+        // #158 -- the cleaver's, on the same key family (ForgeweaveInnates#innateId).
+        add("tooltip.forgeweave.innate.beheading.name", "Beheading");
+        add("tooltip.forgeweave.innate.beheading.description",
+                "A killing blow may drop the victim's head. Adds to the Beheading modifier.");
         add("tooltip.forgeweave.innate.sunder.name", "Sunder");
         add("tooltip.forgeweave.innate.sunder.description",
                 "Disables an active shield and deals bonus damage against a blocking target.");
@@ -451,6 +456,11 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("modifier.forgeweave.diamond.description", "Adds 500 durability and raises the tool's tier.");
         add("modifier.forgeweave.emerald.name", "Emerald");
         add("modifier.forgeweave.emerald.description", "Adds 50% durability and raises the tool's tier.");
+
+        // #158 -- beheading. The 10% per level is the clone's own chance curve (combat.Beheading).
+        add("modifier.forgeweave.beheading.name", "Beheading");
+        add("modifier.forgeweave.beheading.description",
+                "A killing blow may drop the victim's head. Every level adds 10%, certain at ten.");
 
         // #154 -- embossing. One shared pair of keys for every material, because the modifier ids are
         // generated per material and a datapack can add materials this mod has never heard of; the

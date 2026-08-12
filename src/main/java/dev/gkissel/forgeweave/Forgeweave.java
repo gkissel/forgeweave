@@ -26,6 +26,7 @@ import dev.gkissel.forgeweave.block.ForgeweaveBlocks;
 import dev.gkissel.forgeweave.block.SearedDrainBlockEntity;
 import dev.gkissel.forgeweave.block.SearedTankBlockEntity;
 import dev.gkissel.forgeweave.casting.CastingRecipe;
+import dev.gkissel.forgeweave.combat.Beheading;
 import dev.gkissel.forgeweave.combat.CombatSeams;
 import dev.gkissel.forgeweave.combat.ForgeweaveInnates;
 import dev.gkissel.forgeweave.combat.ForgeweaveMobEffects;
@@ -107,6 +108,10 @@ public class Forgeweave {
         // #159 -- the charge a swing was made with, captured before Player#attack zeroes it; the
         // battleaxe's full-charge-only sweep and every later charged innate read it off CombatHit.
         NeoForge.EVENT_BUS.addListener(CombatSeams::onPlayerAttack);
+        // #158 -- beheading: a provider of its own rather than a Modifier#combatSeam, because the level
+        // it rolls on is the cleaver's innate plus the applied modifier summed into one roll, and a
+        // per-entry seam sees neither the innate nor an unmodified cleaver. See Beheading.
+        CombatSeams.register(Beheading::collect);
         // established's kill-XP bonus (issue #102): no Item hook for a kill's dropped XP either.
         NeoForge.EVENT_BUS.addListener(ForgeweaveTraits::onExperienceDrop);
         // #103 -- netherite's fireproof: a dropped ItemEntity's fire immunity has no per-stack Item

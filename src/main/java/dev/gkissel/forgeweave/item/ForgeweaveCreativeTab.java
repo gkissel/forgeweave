@@ -119,6 +119,7 @@ public final class ForgeweaveCreativeTab {
         output.accept(ForgeweaveItems.TOOL_BATTLEAXE.get());
         output.accept(ForgeweaveItems.TOOL_SCIMITAR.get());
         output.accept(ForgeweaveItems.TOOL_KATANA.get());
+        output.accept(ForgeweaveItems.TOOL_CLEAVER.get()); // #158
 
         // Grout (a block since issue #129), seared brick, and the seared brick block family
         // (docs/SCOPE.md M2 issue #93).

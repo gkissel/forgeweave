@@ -18,6 +18,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.Screenshot;
 import net.minecraft.client.gui.screens.AccessibilityOnboardingScreen;
 import net.minecraft.client.gui.screens.TitleScreen;
+import net.minecraft.client.tutorial.TutorialSteps;
 import net.minecraft.commands.arguments.EntityAnchorArgument;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -25,6 +26,8 @@ import net.minecraft.core.Direction;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.core.registries.Registries;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.InteractionHand;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.Difficulty;
@@ -154,7 +157,6 @@ public final class ScreenshotHarness {
     private static final int TABLE_SCENE_DISTANCE = 4;
     private static final int TABLE_SCENE_SPACING = 2;
     private static final int TABLE_SCENE_CAMERA_PULLBACK = 2;
-
     /** One entry per station screen; see "Extending for M2" above. */
     private static final List<HarnessScreen> SCREENS = List.of(
             new HarnessScreen("part_builder", ForgeweaveBlocks.PART_BUILDER),
@@ -219,7 +221,10 @@ public final class ScreenshotHarness {
             // #160. The katana's art is freshly authored rather than derived, so its frame is the
             // one that catches a layer drawn at the wrong contrast or a guard that reads as heavier
             // than the blade -- both of which the issue's first pass actually shipped.
-            ForgeweaveItems.TOOL_KATANA);
+            ForgeweaveItems.TOOL_KATANA,
+            // #158. The cleaver is the second four-layer capture and the first Tool Forge-tier tool
+            // in this list; assembleForDisplay builds it through the same station call regardless.
+            ForgeweaveItems.TOOL_CLEAVER);
 
     /** How far in -Z of spawn the weapon poses stand, clear of the block scenes above. */
     private static final int WEAPON_SCENE_DISTANCE = 6;
@@ -299,6 +304,9 @@ public final class ScreenshotHarness {
         // The pause screen then owns the screen slot and the next capture is a picture of the pause
         // menu. Seen once while capturing #146's second smeltery.
         mc.options.pauseOnLostFocus = false;
+        // #158: a fresh run dir is also a fresh "first world", so vanilla's tutorial toast ("Move with
+        // W, A, S and D") floats over the top-right of every world-view capture for its first minute.
+        mc.options.tutorialStep = TutorialSteps.NONE;
         LOGGER.info("{}creating flat world '{}'", LOG_PREFIX, LEVEL_NAME);
         LevelSettings levelSettings = new LevelSettings(
                 LEVEL_NAME, GameType.CREATIVE, false, Difficulty.PEACEFUL, true, new GameRules(), WorldDataConfiguration.DEFAULT);

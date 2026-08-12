@@ -215,6 +215,23 @@ public final class ForgeweaveItems {
                     true, ForgeweaveInnates.DAMAGE_RAMP),
             new Item.Properties().stacksTo(1));
 
+    /**
+     * The cleaver (docs/SCOPE.md M3 issue #158): a Tool Forge-tier weapon whose whole point is its
+     * innate beheading levels ({@code combat.Beheading#CLEAVER_INNATE_LEVELS}). Numbers are
+     * {@code ToolConstants#CLEAVER}, i.e. upstream {@code tools/melee/item/Cleaver.java}'s
+     * {@code attackSpeed() = 0.7} / {@code damagePotential() = 1.2}, and {@code Category.WEAPON} from
+     * its {@code SwordCore} base.
+     *
+     * <p>Its beheading innate is not an {@code Innate} seam: the chance is rolled once off the
+     * innate's two levels <em>plus</em> whatever the beheading modifier added, so a per-tool seam
+     * would roll it a second time. {@code Beheading} owns both halves and reads the level off the
+     * stack; {@link dev.gkissel.forgeweave.combat.ForgeweaveInnates#innateId} still names it, so the
+     * tooltip line is there.
+     */
+    public static final DeferredItem<ToolItem> TOOL_CLEAVER = ITEMS.registerItem("cleaver",
+            properties -> new ToolItem(properties, ToolConstants.CLEAVER, BlockTags.SWORD_EFFICIENT, true, null),
+            new Item.Properties().stacksTo(1));
+
     public static final DeferredItem<BlockItem> TOOL_STATION = ITEMS.registerSimpleBlockItem("tool_station", ForgeweaveBlocks.TOOL_STATION);
 
     // The Crafting Station (docs/SCOPE.md M1 issue #40): same retextured-table item shape as the two

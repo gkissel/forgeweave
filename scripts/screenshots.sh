@@ -21,6 +21,12 @@ mkdir -p run
 touch run/options.txt
 grep -q '^onboardAccessibility:' run/options.txt || echo 'onboardAccessibility:false' >> run/options.txt
 
+# The harness always creates a world by the same name, so a second run lands in the world the first
+# one left behind -- every station, tank and smeltery still standing, in frame behind whatever the
+# new scene places. Two runs in a row produced a head-drop row (#158) with an old smeltery wall
+# across it. Start from bare flat ground every time.
+rm -rf run/saves/forgeweave_screenshot_harness*
+
 if [ -n "${DISPLAY:-}" ] || [ -n "${WAYLAND_DISPLAY:-}" ]; then
     ./gradlew runScreenshotHarness $EARLY_WINDOW_OFF
 elif command -v xvfb-run >/dev/null 2>&1; then
