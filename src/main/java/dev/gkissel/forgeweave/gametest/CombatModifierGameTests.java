@@ -278,10 +278,16 @@ public class CombatModifierGameTests {
         return Math.hypot(dx, dz);
     }
 
-    /** A bare pickaxe carrying one entry of {@code id} at {@code level} raw application units. */
+    /**
+     * A bare shovel carrying one entry of {@code id} at {@code level} raw application units. A
+     * shovel, not a pickaxe: since #164 every M1 tool has a combat innate, and the shovel's
+     * (flatten, slowness on hit) is the only one that never changes damage numbers -- the pickaxe's
+     * pierce adds 1.0 armor-ignoring damage per hit, which broke these tests' control assertions
+     * the moment #162's and #164's branches met on master.
+     */
     private static ItemStack withModifier(ResourceLocation id, int level) {
-        ItemStack pickaxe = new ItemStack(ForgeweaveItems.TOOL_PICKAXE.get());
-        pickaxe.set(ForgeweaveDataComponents.MODIFIERS.get(), List.of(new ModifierEntry(id, level)));
-        return pickaxe;
+        ItemStack shovel = new ItemStack(ForgeweaveItems.TOOL_SHOVEL.get());
+        shovel.set(ForgeweaveDataComponents.MODIFIERS.get(), List.of(new ModifierEntry(id, level)));
+        return shovel;
     }
 }
