@@ -61,6 +61,7 @@ public final class ForgeweaveCreativeTab {
     static void addDisplayItems(CreativeModeTab.ItemDisplayParameters parameters, CreativeModeTab.Output output) {
         output.accept(ForgeweaveItems.PART_BUILDER.get());
         output.accept(ForgeweaveItems.TOOL_STATION.get());
+        output.accept(ForgeweaveItems.TOOL_FORGE.get());
         output.accept(ForgeweaveItems.CRAFTING_STATION.get());
         output.accept(ForgeweaveItems.STENCIL_TABLE.get());
         output.accept(ForgeweaveItems.PATTERN_CHEST.get());

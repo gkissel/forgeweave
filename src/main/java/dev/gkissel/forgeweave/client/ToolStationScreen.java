@@ -83,6 +83,13 @@ import dev.gkissel.forgeweave.tool.ToolMaterials;
  * {@link PartBuilderScreen} use, stacked under the tabs rather than beside them because that edge is
  * shared here. Issue #79 had put it right of the info panels instead; issue #88 is the playtest
  * report of what that cost, and {@link ToolStationMenu#SIDE_PANEL_X} carries the measurements.
+ *
+ * <p>This is also the Tool Forge's GUI (issue #152). Upstream's {@code GuiToolForge} is a
+ * three-line {@code GuiToolStation} subclass whose whole content is a {@code metal()} call plus a
+ * different buildable-tool set; here both blocks open the same {@link ToolStationMenu} type, so
+ * there is one screen registration and the metal styling is picked per-instance from
+ * {@link ToolStationMenu#isForge()} -- see {@link #panelStyle()}, {@link #beamV()} and
+ * {@link #buttonV()}. Which tools each block can build is the menu's business, not the screen's.
  */
 @EventBusSubscriber(modid = Forgeweave.MODID, bus = EventBusSubscriber.Bus.MOD, value = Dist.CLIENT)
 public class ToolStationScreen extends StationScreen<ToolStationMenu> implements StationExtraAreas {
@@ -109,6 +116,8 @@ public class ToolStationScreen extends StationScreen<ToolStationMenu> implements
     private static final int TEXT_FIELD_W = 102;
     private static final int TEXT_FIELD_H = 12;
     private static final int BEAM_V = 180; // the wood-style beam; the metal one sits 7px below it
+    /** Upstream {@code GuiToolStation#metal()}: {@code beamL/R/C.shift(0, beam.h)} (issue #152). */
+    private static final int BEAM_METAL_V = BEAM_V + 7;
     private static final int BEAM_H = 7;
     private static final int BEAM_END_W = 2;
     private static final int BEAM_CENTER_U = 2;
@@ -121,6 +130,12 @@ public class ToolStationScreen extends StationScreen<ToolStationMenu> implements
     // bevel -- which is why the tab buttons rendered as flat wooden squares. Same constant was wrong
     // in StencilTableScreen; both are fixed together since both come from upstream's GuiSideButtons.
     private static final int BUTTON_V = 234;
+    /**
+     * The Tool Forge's button row (issue #152). Upstream's three side-button styles are three rows of
+     * {@code icons.png} 18px apart, and {@code GuiButtonsToolStation#metal()} picks the one between
+     * the default and the wood row -- v 198 against {@code ICON_Button}'s own 216.
+     */
+    private static final int BUTTON_METAL_V = 198;
     private static final int BUTTON_IDLE_U = 180;
     private static final int BUTTON_HOVER_U = 216;
     private static final int BUTTON_PRESSED_U = 144;
@@ -159,8 +174,24 @@ public class ToolStationScreen extends StationScreen<ToolStationMenu> implements
     private static final int PANEL_GAP = 2;
     private static final int PANEL_TOP = 11;
     private static final int PANEL_SPACING = 4;
-    /** Upstream's {@code wood()} call in {@code GuiToolStation}'s constructor -- the only one in the mod. */
-    private static final InfoPanel.Style PANEL_STYLE = InfoPanel.Style.WOOD;
+    /**
+     * Upstream's {@code wood()} call in {@code GuiToolStation}'s constructor, and the {@code metal()}
+     * call {@code GuiToolForge}'s constructor replaces it with (issue #152). That one-line override is
+     * the entire difference between the two screens upstream, which is why the Tool Forge has no
+     * screen class here either: both blocks open the same {@link ToolStationMenu} type, so there is
+     * only one screen to register and it reads {@link ToolStationMenu#isForge()} for its style.
+     */
+    private InfoPanel.Style panelStyle() {
+        return menu.isForge() ? InfoPanel.Style.METAL : InfoPanel.Style.WOOD;
+    }
+
+    private int beamV() {
+        return menu.isForge() ? BEAM_METAL_V : BEAM_V;
+    }
+
+    private int buttonV() {
+        return menu.isForge() ? BUTTON_METAL_V : BUTTON_V;
+    }
 
     private static final int NAME_FIELD_X = 70;
     private static final int NAME_FIELD_Y = 7;
@@ -253,7 +284,7 @@ public class ToolStationScreen extends StationScreen<ToolStationMenu> implements
         // Why the loaded reagents can't be applied (issue #105). Upstream shows its
         // TinkerGuiException text in this same panel; the menu resolves the answer from the synced
         // modifier-recipe registry, so no packet is involved.
-        Component rejection = menu.modifierRejection();
+        Component rejection = menu.rejection();
         if (rejection != null) {
             List<Component> withError = new ArrayList<>(toolLines);
             withError.add(null);
@@ -424,7 +455,7 @@ public class ToolStationScreen extends StationScreen<ToolStationMenu> implements
             int y = topPos + buttonY(i);
             boolean hovered = isHovering(buttonX(i), buttonY(i), BUTTON_SIZE, BUTTON_SIZE, mouseX, mouseY);
             int u = i == selected ? BUTTON_PRESSED_U : hovered ? BUTTON_HOVER_U : BUTTON_IDLE_U;
-            graphics.blit(ICONS, x, y, u, BUTTON_V, BUTTON_SIZE, BUTTON_SIZE, SHEET, SHEET);
+            graphics.blit(ICONS, x, y, u, buttonV(), BUTTON_SIZE, BUTTON_SIZE, SHEET, SHEET);
 
             Tab tab = ToolStationTabs.get(i);
             if (tab.isRepair()) {
@@ -441,16 +472,17 @@ public class ToolStationScreen extends StationScreen<ToolStationMenu> implements
         int top = topPos + PANEL_TOP;
         beam(graphics, x - BEAM_END_W, topPos, InfoPanel.WIDTH);
         InfoPanel.render(graphics, font, x, top, InfoPanel.WIDTH, InfoPanel.HEIGHT,
-                PANEL_STYLE, toolCaption, toolLines, toolScroll);
+                panelStyle(), toolCaption, toolLines, toolScroll);
         InfoPanel.render(graphics, font, x, top + InfoPanel.HEIGHT + PANEL_SPACING,
-                InfoPanel.WIDTH, InfoPanel.HEIGHT, PANEL_STYLE, traitCaption, traitLines, traitScroll);
+                InfoPanel.WIDTH, InfoPanel.HEIGHT, panelStyle(), traitCaption, traitLines, traitScroll);
     }
 
     /** Upstream's horizontal beam that visually ties a side module to the main panel. */
     private void beam(GuiGraphics graphics, int x, int y, int width) {
-        graphics.blit(TEXTURE, x, y, 0, BEAM_V, BEAM_END_W, BEAM_H, SHEET, SHEET);
-        graphics.blit(TEXTURE, x + BEAM_END_W, y, width, BEAM_H, BEAM_CENTER_U, BEAM_V, BEAM_CENTER_W, BEAM_H, SHEET, SHEET);
-        graphics.blit(TEXTURE, x + BEAM_END_W + width, y, BEAM_RIGHT_U, BEAM_V, BEAM_END_W, BEAM_H, SHEET, SHEET);
+        int v = beamV();
+        graphics.blit(TEXTURE, x, y, 0, v, BEAM_END_W, BEAM_H, SHEET, SHEET);
+        graphics.blit(TEXTURE, x + BEAM_END_W, y, width, BEAM_H, BEAM_CENTER_U, v, BEAM_CENTER_W, BEAM_H, SHEET, SHEET);
+        graphics.blit(TEXTURE, x + BEAM_END_W + width, y, BEAM_RIGHT_U, v, BEAM_END_W, BEAM_H, SHEET, SHEET);
     }
 
     // ------------------------------------------------------------------ sidebar geometry & input

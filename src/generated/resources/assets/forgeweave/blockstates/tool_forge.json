@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=east": {
+      "model": "forgeweave:block/tool_forge",
+      "y": 90
+    },
+    "facing=north": {
+      "model": "forgeweave:block/tool_forge"
+    },
+    "facing=south": {
+      "model": "forgeweave:block/tool_forge",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "forgeweave:block/tool_forge",
+      "y": 270
+    }
+  }
+}

@@ -27,7 +27,11 @@ public class ForgeweaveBlockTagsProvider extends BlockTagsProvider {
 
     @Override
     protected void addTags(HolderLookup.Provider registries) {
+        // #152: upstream 1.12 gives the Tool Forge -- and only it, of the tables -- a
+        // setHarvestLevel("pickaxe", 0), so a pickaxe is its correct tool. Level 0 means any
+        // pickaxe, i.e. no needs_*_tool tag alongside it.
         tag(BlockTags.MINEABLE_WITH_PICKAXE)
+                .add(ForgeweaveBlocks.TOOL_FORGE.get())
                 .add(ForgeweaveBlocks.COBALT_ORE.get())
                 .add(ForgeweaveBlocks.ARDITE_ORE.get());
         tag(BlockTags.NEEDS_DIAMOND_TOOL)

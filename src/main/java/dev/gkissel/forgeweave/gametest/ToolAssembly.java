@@ -45,9 +45,11 @@ final class ToolAssembly {
         return tool;
     }
 
+    /** The menu the block at {@code pos} would open -- Tool Station or Tool Forge, per the block entity. */
     static ToolStationMenu menu(GameTestHelper helper, Player player, BlockPos pos, ToolStationBlockEntity blockEntity) {
         return new ToolStationMenu(0, player.getInventory(), blockEntity.container(),
-                ContainerLevelAccess.create(helper.getLevel(), helper.absolutePos(pos)), blockEntity.findSideInventory());
+                ContainerLevelAccess.create(helper.getLevel(), helper.absolutePos(pos)),
+                blockEntity.findSideInventory(), blockEntity.isForge());
     }
 
     static ItemStack part(Item item, String material) {

@@ -1,5 +1,6 @@
 package dev.gkissel.forgeweave.data;
 
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 import net.minecraft.core.HolderLookup;
@@ -16,6 +17,7 @@ import net.neoforged.neoforge.common.data.ExistingFileHelper;
 
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.item.ForgeweaveItems;
+import dev.gkissel.forgeweave.menu.ToolAssemblyRecipes;
 
 /**
  * Puts the four metals that lack a vanilla item form (docs/SCOPE.md M2 issue #103: cobalt, ardite,
@@ -55,6 +57,49 @@ public class ForgeweaveItemTagsProvider extends ItemTagsProvider {
         // (e.g. via /give or a future silk-touch path) at the same base amount as its raw drop.
         tag("ores/cobalt").add(ForgeweaveItems.COBALT_ORE.get());
         tag("ores/ardite").add(ForgeweaveItems.ARDITE_ORE.get());
+
+        // #152 -- the "large tool" classification: tools only the Tool Forge can assemble. Ships with
+        // no members of its own, because no M1/M2 tool is large; M3's tool issues (#157-#161) add
+        // `.add(ForgeweaveItems.TOOL_HAMMER.get())` and friends here and inherit the gate with no
+        // code change. See ToolAssemblyRecipes#LARGE_TOOLS.
+        //
+        // The one entry is an optional reference to a tag only the GameTest datapack defines
+        // (src/gametest/resources): #152 has to prove its gate before M3 has a large tool to gate, and
+        // a fixture that redefined *this* file instead would collide with it -- src/generated and
+        // src/gametest are the same resource root, so the two would be duplicate entries rather than
+        // merged tags. An optional reference to a tag nothing defines is an empty set, so a shipped
+        // jar (which excludes the fixture) sees exactly what it would have seen with no entry at all.
+        // #157 can drop this line along with the fixture.
+        tag(ToolAssemblyRecipes.LARGE_TOOLS).addOptionalTag(
+                ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "gametest_large_tools"));
+
+        // #152 -- what a Tool Forge can be crafted from. Upstream 1.12 keeps this as an ore-dict list
+        // on BlockToolForge#baseBlocks, filled from TinkerIntegration's `.toolforge()` calls: iron,
+        // gold, copper, cobalt, ardite, manyullyn, pig iron, knightslime, bronze, lead, silver,
+        // electrum, steel, brass, alubrass, tin, nickel, zinc, aluminum. The `c:storage_blocks/*`
+        // convention tags are that list's modern equivalent, so naming them here gives a modded
+        // metal's block the same recipe upstream's ore dict did -- and only the metals: the parent
+        // c:storage_blocks tag would also pull in redstone, lapis, coal, diamond, emerald and raw-ore
+        // blocks, none of which upstream's list has.
+        //
+        // addOptionalTag rather than addTag for everything without a vanilla item behind it: a tag
+        // reference that no loaded mod defines is an error, not an empty set, so the required form
+        // would make a single missing metal break the whole file.
+        var toolForge = tag(TOOL_FORGE_BLOCKS);
+        toolForge.addTag(storageBlock("iron")).addTag(storageBlock("gold")).addTag(storageBlock("copper"));
+        for (String metal : List.of("cobalt", "ardite", "manyullyn", "pig_iron", "knightslime", "bronze",
+                "lead", "silver", "electrum", "steel", "brass", "aluminum_brass", "tin", "nickel", "zinc",
+                "aluminum", "rose_gold")) {
+            toolForge.addOptionalTag(storageBlock(metal));
+        }
+    }
+
+    /** The tag naming every block a Tool Forge can be crafted from (issue #152). */
+    public static final TagKey<Item> TOOL_FORGE_BLOCKS =
+            TagKey.create(Registries.ITEM, ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "tool_forge_blocks"));
+
+    private static TagKey<Item> storageBlock(String metal) {
+        return TagKey.create(Registries.ITEM, ResourceLocation.fromNamespaceAndPath("c", "storage_blocks/" + metal));
     }
 
     private IntrinsicTagAppender<Item> tag(String path) {

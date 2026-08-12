@@ -45,6 +45,10 @@ public class ForgeweaveBlockStateProvider extends BlockStateProvider {
         horizontalBlock(ForgeweaveBlocks.TOOL_STATION.get(), toolStationModel);
         simpleBlockItem(ForgeweaveBlocks.TOOL_STATION.get(), toolStationModel);
 
+        ModelFile toolForgeModel = models().getExistingFile(modLoc("block/tool_forge"));
+        horizontalBlock(ForgeweaveBlocks.TOOL_FORGE.get(), toolForgeModel);
+        simpleBlockItem(ForgeweaveBlocks.TOOL_FORGE.get(), toolForgeModel);
+
         ModelFile craftingStationModel = models().getExistingFile(modLoc("block/crafting_station"));
         horizontalBlock(ForgeweaveBlocks.CRAFTING_STATION.get(), craftingStationModel);
         simpleBlockItem(ForgeweaveBlocks.CRAFTING_STATION.get(), craftingStationModel);

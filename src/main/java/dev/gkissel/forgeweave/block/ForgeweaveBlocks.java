@@ -32,6 +32,17 @@ public final class ForgeweaveBlocks {
                     .strength(2.5F)
                     .sound(SoundType.WOOD)));
 
+    // The Tool Forge (docs/SCOPE.md M3 issue #152). Upstream 1.12's BlockToolForge exists as its own
+    // block purely for its material: Material.IRON, SoundType.METAL, hardness 2, resistance 10,
+    // harvest level ("pickaxe", 0) -- ported verbatim below (NOTICE.md). The harvest level is why
+    // this is the first Forgeweave table to carry a mineable/pickaxe tag.
+    public static final DeferredBlock<ToolForgeBlock> TOOL_FORGE = BLOCKS.register("tool_forge",
+            () -> new ToolForgeBlock(BlockBehaviour.Properties.of()
+                    .mapColor(MapColor.METAL)
+                    .destroyTime(2.0F)
+                    .explosionResistance(10.0F)
+                    .sound(SoundType.METAL)));
+
     public static final DeferredBlock<CraftingStationBlock> CRAFTING_STATION = BLOCKS.register("crafting_station",
             () -> new CraftingStationBlock(BlockBehaviour.Properties.of()
                     .mapColor(MapColor.WOOD)

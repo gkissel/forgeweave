@@ -1,0 +1,75 @@
+{
+  "values": [
+    "#c:storage_blocks/iron",
+    "#c:storage_blocks/gold",
+    "#c:storage_blocks/copper",
+    {
+      "id": "#c:storage_blocks/cobalt",
+      "required": false
+    },
+    {
+      "id": "#c:storage_blocks/ardite",
+      "required": false
+    },
+    {
+      "id": "#c:storage_blocks/manyullyn",
+      "required": false
+    },
+    {
+      "id": "#c:storage_blocks/pig_iron",
+      "required": false
+    },
+    {
+      "id": "#c:storage_blocks/knightslime",
+      "required": false
+    },
+    {
+      "id": "#c:storage_blocks/bronze",
+      "required": false
+    },
+    {
+      "id": "#c:storage_blocks/lead",
+      "required": false
+    },
+    {
+      "id": "#c:storage_blocks/silver",
+      "required": false
+    },
+    {
+      "id": "#c:storage_blocks/electrum",
+      "required": false
+    },
+    {
+      "id": "#c:storage_blocks/steel",
+      "required": false
+    },
+    {
+      "id": "#c:storage_blocks/brass",
+      "required": false
+    },
+    {
+      "id": "#c:storage_blocks/aluminum_brass",
+      "required": false
+    },
+    {
+      "id": "#c:storage_blocks/tin",
+      "required": false
+    },
+    {
+      "id": "#c:storage_blocks/nickel",
+      "required": false
+    },
+    {
+      "id": "#c:storage_blocks/zinc",
+      "required": false
+    },
+    {
+      "id": "#c:storage_blocks/aluminum",
+      "required": false
+    },
+    {
+      "id": "#c:storage_blocks/rose_gold",
+      "required": false
+    }
+  ]
+}
