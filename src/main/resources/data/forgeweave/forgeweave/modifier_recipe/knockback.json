@@ -1,0 +1,8 @@
+{
+  "modifier": "forgeweave:knockback",
+  "reagent": {
+    "item": "minecraft:piston"
+  },
+  "cost": 1,
+  "max_level": 990
+}

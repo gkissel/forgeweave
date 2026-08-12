@@ -347,6 +347,14 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
                 "Carries the traits of %s, without changing anything else about the tool.");
         add("gui.forgeweave.embossment.already_embossed", "This tool is already embossed. One embossment per tool.");
         add("gui.forgeweave.embossment.no_traits", "%s grants no traits through that part, so there is nothing to emboss.");
+        // Combat modifiers batch 2 (issue #163, docs/SCOPE.md M3): knockback, shulking, webbed.
+        // Wording follows upstream 1.12's modifier.<id>.name/.desc entries.
+        add("modifier.forgeweave.knockback.name", "Knockback");
+        add("modifier.forgeweave.knockback.description", "Hits push targets back further. Every piston adds more.");
+        add("modifier.forgeweave.shulking.name", "Shulking");
+        add("modifier.forgeweave.shulking.description", "Hits briefly make the target levitate.");
+        add("modifier.forgeweave.webbed.name", "Webbed");
+        add("modifier.forgeweave.webbed.description", "Hits slow the target. Every level adds another second.");
 
         // JEI recipe category titles (issue #11); only shown when JEI is installed, since the
         // integration is optional (neoforge.mods.toml).
