@@ -103,6 +103,46 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         addItem(ForgeweaveItems.PART_TOOL_HANDLE, "Tool Handle");
         addItem(ForgeweaveItems.SHARD, "Shard");
 
+        // M3 tool parts + patterns (docs/SCOPE.md M3 issue #151), names ported from upstream 1.12's
+        // item.materials.*.name entries for the twelve parts with a clone counterpart (NOTICE.md);
+        // "Vein Hammer Head"/"Vein Hammer Head Pattern" are this PR's own wording (no upstream name to
+        // port -- the part itself has no 1.12/1.20 counterpart either).
+        addItem(ForgeweaveItems.PATTERN_SWORD_BLADE, "Sword Blade Pattern");
+        addItem(ForgeweaveItems.PATTERN_WIDE_GUARD, "Wide Guard Pattern");
+        addItem(ForgeweaveItems.PATTERN_HAND_GUARD, "Hand Guard Pattern");
+        addItem(ForgeweaveItems.PATTERN_CROSS_GUARD, "Cross Guard Pattern");
+        addItem(ForgeweaveItems.PATTERN_SIGN_PLATE, "Sign Plate Pattern");
+        addItem(ForgeweaveItems.PATTERN_PAN, "Pan Pattern");
+        addItem(ForgeweaveItems.PATTERN_KNIFE_BLADE, "Knife Blade Pattern");
+        addItem(ForgeweaveItems.PATTERN_LARGE_SWORD_BLADE, "Large Sword Blade Pattern");
+        addItem(ForgeweaveItems.PATTERN_TOUGH_TOOL_ROD, "Tough Tool Rod Pattern");
+        addItem(ForgeweaveItems.PATTERN_TOUGH_BINDING, "Tough Binding Pattern");
+        addItem(ForgeweaveItems.PATTERN_LARGE_PLATE, "Large Plate Pattern");
+        addItem(ForgeweaveItems.PATTERN_HAMMER_HEAD, "Hammer Head Pattern");
+        addItem(ForgeweaveItems.PATTERN_EXCAVATOR_HEAD, "Excavator Head Pattern");
+        addItem(ForgeweaveItems.PATTERN_SCYTHE_HEAD, "Scythe Head Pattern");
+        addItem(ForgeweaveItems.PATTERN_KAMA_HEAD, "Kama Head Pattern");
+        addItem(ForgeweaveItems.PATTERN_BROAD_AXE_HEAD, "Broad Axe Head Pattern");
+        addItem(ForgeweaveItems.PATTERN_VEIN_HAMMER_HEAD, "Vein Hammer Head Pattern");
+
+        addItem(ForgeweaveItems.PART_SWORD_BLADE, "Sword Blade");
+        addItem(ForgeweaveItems.PART_WIDE_GUARD, "Wide Guard");
+        addItem(ForgeweaveItems.PART_HAND_GUARD, "Hand Guard");
+        addItem(ForgeweaveItems.PART_CROSS_GUARD, "Cross Guard");
+        addItem(ForgeweaveItems.PART_SIGN_PLATE, "Sign Plate");
+        addItem(ForgeweaveItems.PART_PAN, "Pan");
+        addItem(ForgeweaveItems.PART_KNIFE_BLADE, "Knife Blade");
+        addItem(ForgeweaveItems.PART_LARGE_SWORD_BLADE, "Large Sword Blade");
+        addItem(ForgeweaveItems.PART_TOUGH_TOOL_ROD, "Tough Tool Rod");
+        addItem(ForgeweaveItems.PART_TOUGH_BINDING, "Tough Binding");
+        addItem(ForgeweaveItems.PART_LARGE_PLATE, "Large Plate");
+        addItem(ForgeweaveItems.PART_HAMMER_HEAD, "Hammer Head");
+        addItem(ForgeweaveItems.PART_EXCAVATOR_HEAD, "Excavator Head");
+        addItem(ForgeweaveItems.PART_SCYTHE_HEAD, "Scythe Head");
+        addItem(ForgeweaveItems.PART_KAMA_HEAD, "Kama Head");
+        addItem(ForgeweaveItems.PART_BROAD_AXE_HEAD, "Broad Axe Head");
+        addItem(ForgeweaveItems.PART_VEIN_HAMMER_HEAD, "Vein Hammer Head");
+
         addItem(ForgeweaveItems.TOOL_PICKAXE, "Pickaxe");
         addItem(ForgeweaveItems.TOOL_SHOVEL, "Shovel");
         addItem(ForgeweaveItems.TOOL_HATCHET, "Hatchet");

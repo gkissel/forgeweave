@@ -35,7 +35,25 @@ public final class ForgeweaveItemColors {
                 ForgeweaveItems.PART_AXE_HEAD.get(),
                 ForgeweaveItems.PART_TOOL_BINDING.get(),
                 ForgeweaveItems.PART_TOOL_HANDLE.get(),
-                ForgeweaveItems.SHARD.get());
+                ForgeweaveItems.SHARD.get(),
+                // M3 roster (docs/SCOPE.md issue #151).
+                ForgeweaveItems.PART_SWORD_BLADE.get(),
+                ForgeweaveItems.PART_WIDE_GUARD.get(),
+                ForgeweaveItems.PART_HAND_GUARD.get(),
+                ForgeweaveItems.PART_CROSS_GUARD.get(),
+                ForgeweaveItems.PART_SIGN_PLATE.get(),
+                ForgeweaveItems.PART_PAN.get(),
+                ForgeweaveItems.PART_KNIFE_BLADE.get(),
+                ForgeweaveItems.PART_LARGE_SWORD_BLADE.get(),
+                ForgeweaveItems.PART_TOUGH_TOOL_ROD.get(),
+                ForgeweaveItems.PART_TOUGH_BINDING.get(),
+                ForgeweaveItems.PART_LARGE_PLATE.get(),
+                ForgeweaveItems.PART_HAMMER_HEAD.get(),
+                ForgeweaveItems.PART_EXCAVATOR_HEAD.get(),
+                ForgeweaveItems.PART_SCYTHE_HEAD.get(),
+                ForgeweaveItems.PART_KAMA_HEAD.get(),
+                ForgeweaveItems.PART_BROAD_AXE_HEAD.get(),
+                ForgeweaveItems.PART_VEIN_HAMMER_HEAD.get());
 
         event.register(ForgeweaveItemColors::toolMaterialTint,
                 ForgeweaveItems.TOOL_PICKAXE.get(),
