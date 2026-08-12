@@ -27,9 +27,11 @@ import net.minecraft.world.phys.Vec3;
 
 import net.neoforged.neoforge.event.entity.EntityInvulnerabilityCheckEvent;
 import net.neoforged.neoforge.event.entity.living.LivingExperienceDropEvent;
-import net.neoforged.neoforge.event.entity.living.LivingIncomingDamageEvent;
 
 import dev.gkissel.forgeweave.Forgeweave;
+import dev.gkissel.forgeweave.combat.CombatHit;
+import dev.gkissel.forgeweave.combat.CombatSeam;
+import dev.gkissel.forgeweave.combat.CombatSeams;
 import dev.gkissel.forgeweave.item.ForgeweaveDataComponents;
 import dev.gkissel.forgeweave.item.PartItem;
 import dev.gkissel.forgeweave.item.ToolItem;
@@ -529,23 +531,30 @@ public final class ForgeweaveTraits {
     }
 
     /**
-     * Applies target-dependent damage traits to an attack made with a Forgeweave tool. Upstream runs
-     * its {@code ITrait#damage} hook inside {@code ToolHelper#attackEntity} before armor is applied
-     * and feeds each trait the untouched original damage; {@link LivingIncomingDamageEvent} is the
-     * 1.21 equivalent point ("after invulnerability checks but before any damage
-     * processing/mitigation"), and {@link LivingIncomingDamageEvent#getOriginalAmount()} is that same
-     * untouched value. Registered on the game event bus in {@code Forgeweave}.
+     * Materials' traits as a consumer of the shared per-hit pipeline (ADR-0005 decision 3) -- the
+     * first {@link CombatSeams} provider, registered in {@code Forgeweave}. Upstream runs its
+     * {@code ITrait#damage} hook inside {@code ToolHelper#attackEntity} before armor is applied and
+     * feeds each trait the untouched original damage, which is what {@link CombatSeam#preHit}'s
+     * {@code originalDamage} is; the pipeline has already ruled out clients, non-Forgeweave weapons
+     * and Broken tools by the time this runs.
+     *
+     * <p>One seam for the whole trait list rather than one per trait, so the traits keep running in
+     * the order {@link #of} established and a hit allocates nothing extra.
+     *
+     * <p>{@link Trait#afterHit} deliberately stays where it is instead of riding
+     * {@link CombatSeam#onHit}: {@code ToolItem#postHurtEnemy} calls it right after reading
+     * {@link #attackDurabilityBonus}, and insatiable (issue #102) depends on that order -- the
+     * durability cost of a hit is the stack size <em>before</em> the hit grew it. The damage event
+     * driving on-hit fires earlier than {@code postHurtEnemy}, so moving the call would quietly
+     * change what a first hit costs. Combat innates and modifiers carry no such ordering tie and
+     * attach to the seam.
      */
-    public static void onIncomingDamage(LivingIncomingDamageEvent event) {
-        ItemStack weapon = event.getSource().getWeaponItem();
-        if (weapon == null || !(weapon.getItem() instanceof ToolItem) || ToolItem.isBroken(weapon)) {
-            return;
+    public static final CombatSeam COMBAT_SEAM = new CombatSeam() {
+        @Override
+        public float preHit(CombatHit hit, float originalDamage, float damage) {
+            return damage + bonusDamageAgainst(hit.weapon(), hit.target(), originalDamage);
         }
-        float bonus = bonusDamageAgainst(weapon, event.getEntity(), event.getOriginalAmount());
-        if (bonus != 0.0F) {
-            event.setAmount(event.getAmount() + bonus);
-        }
-    }
+    };
 
     /** Extra damage this weapon's traits deal to {@code target}, on top of its own attack damage. */
     public static float bonusDamageAgainst(ItemStack weapon, LivingEntity target, float damage) {
