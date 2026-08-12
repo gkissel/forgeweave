@@ -30,6 +30,7 @@ import dev.gkissel.forgeweave.block.FaucetBlockEntity;
 import dev.gkissel.forgeweave.block.ForgeweaveBlocks;
 import dev.gkissel.forgeweave.block.SearedTankBlockEntity;
 import dev.gkissel.forgeweave.block.SmelteryControllerBlockEntity;
+import dev.gkissel.forgeweave.casting.CastingRecipe;
 import dev.gkissel.forgeweave.fluid.ForgeweaveFluids;
 import dev.gkissel.forgeweave.item.ForgeweaveDataComponents;
 import dev.gkissel.forgeweave.item.ForgeweaveItems;
@@ -58,6 +59,11 @@ public class CastingGameTests {
     private static final BlockPos DRAIN = new BlockPos(1, 2, 2);
     private static final BlockPos DRAIN_FAUCET = new BlockPos(1, 2, 3);
     private static final BlockPos DRAIN_CASTING = new BlockPos(1, 1, 3);
+
+    /** {@code shovel_head_iron.json}: two ingots, the amount every part cast in the pack asks for. */
+    private static final int PART_CAST_AMOUNT = 288;
+    /** Enough of it to be unambiguously mid-pour, and the figure the screenshot harness captures. */
+    private static final int PART_POUR = 204;
 
     /**
      * #183 regression: right-click the faucet hanging off a smeltery drain and the molten metal has
@@ -381,6 +387,42 @@ public class CastingGameTests {
             helper.assertFalse(clientSide.isPouring(), "and to stop once the pour-ended update arrives");
             helper.assertTrue(clientSide.buffered().isEmpty(), "with nothing left for the renderer to draw");
         });
+    }
+
+    /**
+     * #204 regression: a client has to keep the capacity it draws its fill fraction against across
+     * the whole pour, not just the first drop of it. The capacity is not in {@code FluidTank}'s NBT
+     * -- only the recipe knows it -- and it used to be re-derived in {@code onLoad} alone, which
+     * NeoForge runs once, at the end of the tick the block entity appeared in. Every update packet
+     * after that left the capacity equal to the amount poured so far, so a mid-pour casting block
+     * rendered as 100% full ({@code 204/204} where the server held {@code 204/288}).
+     *
+     * <p>Checked as the client experiences it: a block entity that has a level, has had its one
+     * {@code onLoad}, and is then handed the same update tag the server sends on every drop.
+     */
+    @GameTest(template = "empty", timeoutTicks = 200)
+    public static void aMidPourUpdateKeepsTheCapacityClientsDrawAgainst(GameTestHelper helper) {
+        helper.setBlock(CASTING, ForgeweaveBlocks.CASTING_TABLE.get());
+        insert(helper, helper.getBlockEntity(CASTING), new ItemStack(ForgeweaveItems.CAST_SHOVEL_HEAD.get()));
+        helper.assertValueEqual(fill(helper, new FluidStack(ForgeweaveFluids.IRON.still().get(), PART_POUR)),
+                PART_POUR, "the partial pour the table takes");
+
+        ServerLevel level = helper.getLevel();
+        HolderLookup.Provider registries = level.registryAccess();
+        BlockPos absolute = helper.absolutePos(CASTING);
+        CompoundTag midPour = helper.<CastingBlockEntity>getBlockEntity(CASTING).getUpdateTag(registries);
+
+        CastingBlockEntity clientSide = new CastingBlockEntity(absolute, level.getBlockState(absolute),
+                CastingRecipe.Station.TABLE);
+        clientSide.setLevel(level);
+        clientSide.loadWithComponents(midPour, registries);
+        clientSide.onLoad();
+        clientSide.loadWithComponents(midPour, registries); // the next drop's packet
+
+        helper.assertValueEqual(clientSide.tank().getFluidAmount(), PART_POUR, "the fluid a client sees");
+        helper.assertValueEqual(clientSide.tank().getCapacity(), PART_CAST_AMOUNT,
+                "the capacity a client draws its fill fraction against");
+        helper.succeed();
     }
 
     /** A tank of {@code fluid}, a faucet on its east side pointing back at it, and a casting block below. */
