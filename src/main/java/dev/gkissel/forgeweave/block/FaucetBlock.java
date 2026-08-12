@@ -31,7 +31,8 @@ import net.minecraft.world.phys.shapes.VoxelShape;
  *
  * <p>{@link #FACING} points at the <em>input</em> -- the drain or tank the faucet draws from -- and
  * can be any side but down, because down is always the output. Right-clicking starts or stops a
- * pour; a rising redstone edge starts one too, on upstream's two-tick delay.
+ * pour; a rising redstone edge starts one too, on upstream's two-tick delay, and while the signal
+ * stays up the faucet keeps pouring on its own (#207 -- see {@link FaucetBlockEntity}).
  */
 public class FaucetBlock extends Block implements EntityBlock {
     public static final MapCodec<FaucetBlock> CODEC = simpleCodec(FaucetBlock::new);
@@ -97,7 +98,11 @@ public class FaucetBlock extends Block implements EntityBlock {
         return InteractionResult.sidedSuccess(level.isClientSide);
     }
 
-    /** Upstream {@code neighborChanged}: a rising redstone edge schedules an {@code activate} two ticks out. */
+    /**
+     * Upstream {@code neighborChanged}: a rising redstone edge schedules an {@code activate} two
+     * ticks out, and (#207) a falling one asks a pour in progress to stop when its current
+     * transaction lands.
+     */
     @Override
     protected void neighborChanged(BlockState state, Level level, BlockPos pos, Block block, BlockPos fromPos, boolean movedByPiston) {
         super.neighborChanged(state, level, pos, block, fromPos, movedByPiston);
@@ -106,10 +111,17 @@ public class FaucetBlock extends Block implements EntityBlock {
         }
     }
 
+    /** Upstream's {@code canConnectRedstone}: dust routed at a faucet connects to it from any side. */
+    @Override
+    public boolean canConnectRedstone(BlockState state, BlockGetter level, BlockPos pos, @Nullable Direction direction) {
+        return true;
+    }
+
     /**
-     * The faucet's only tick source: either the redstone pulse above or the next step of a pour in
-     * progress. A faucet that is already pouring treats the tick as a pour step, so a redstone pulse
-     * mid-pour cannot double up.
+     * The faucet's only tick source: a redstone pulse, the next step of a pour in progress, or
+     * (#207) the next look of a powered faucet waiting for its source or target. A faucet that is
+     * already pouring treats the tick as a pour step, so a redstone pulse mid-pour cannot double up;
+     * vanilla only keeps one scheduled tick per block and position, so neither can two schedules.
      */
     @Override
     protected void tick(BlockState state, ServerLevel level, BlockPos pos, RandomSource random) {
