@@ -1,0 +1,55 @@
+{
+    decoder: "item_stack",
+    expect: {
+        components: {
+            "forgeweave:tool_materials": {
+                handle: "forgeweave:wood",
+                head: "forgeweave:iron",
+                parts: [
+                    "forgeweave:wood",
+                    "forgeweave:iron",
+                    "forgeweave:iron",
+                    "forgeweave:iron"
+                ]
+            },
+            "forgeweave:tool_stats": {
+                attack_damage: 8.4f,
+                durability: 1053,
+                mining_speed: 8.0f
+            },
+            "forgeweave:traits": [
+                "forgeweave:ecological"
+            ],
+            "minecraft:damage": 61,
+            "minecraft:max_damage": 1053
+        },
+        id: "forgeweave:hammer"
+    },
+    nbt: {
+        components: {
+            "forgeweave:tool_materials": {
+                handle: "forgeweave:wood",
+                head: "forgeweave:iron",
+                parts: [
+                    "forgeweave:wood",
+                    "forgeweave:iron",
+                    "forgeweave:iron",
+                    "forgeweave:iron"
+                ]
+            },
+            "forgeweave:tool_stats": {
+                attack_damage: 8.4f,
+                durability: 1053,
+                mining_speed: 8.0f
+            },
+            "forgeweave:traits": [
+                "forgeweave:ecological"
+            ],
+            "minecraft:damage": 61,
+            "minecraft:max_damage": 1053
+        },
+        count: 1,
+        id: "forgeweave:hammer"
+    },
+    what: "M3 (#196, #157): a Tool Forge hammer -- the four-part shape `parts` exists for. Two things are pinned that a three-part tool cannot pin: the list is longer than the head/binding/handle triple and repeats a material across two slots (both large plates are iron, so index is the only thing telling them apart), and the hammer has no EXTRA slot at all, so `binding` is simply absent -- the day someone makes it a required field every binding-less tool in every world stops decoding."
+}

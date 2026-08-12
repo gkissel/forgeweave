@@ -1,0 +1,95 @@
+{
+    decoder: "item_stack",
+    expect: {
+        components: {
+            "forgeweave:katana_ramp": {
+                last_hit: 8675309L,
+                stacks: 8
+            },
+            "forgeweave:modifiers": [
+                {
+                    id: "forgeweave:haste",
+                    level: 51
+                },
+                {
+                    id: "forgeweave:smite",
+                    level: 3
+                },
+                {
+                    id: "forgeweave:embossment.iron",
+                    level: 1
+                }
+            ],
+            "forgeweave:repair_count": 1,
+            "forgeweave:tool_materials": {
+                binding: "forgeweave:iron",
+                handle: "forgeweave:wood",
+                head: "forgeweave:iron",
+                parts: [
+                    "forgeweave:wood",
+                    "forgeweave:iron",
+                    "forgeweave:iron"
+                ]
+            },
+            "forgeweave:tool_stats": {
+                attack_damage: 5.75f,
+                durability: 261,
+                mining_speed: 6.0f
+            },
+            "forgeweave:traits": [
+                "forgeweave:ecological",
+                "forgeweave:magnetic2"
+            ],
+            "minecraft:damage": 44,
+            "minecraft:max_damage": 261
+        },
+        id: "forgeweave:katana"
+    },
+    nbt: {
+        components: {
+            "forgeweave:katana_ramp": {
+                last_hit: 8675309L,
+                stacks: 8
+            },
+            "forgeweave:modifiers": [
+                {
+                    id: "forgeweave:haste",
+                    level: 51
+                },
+                {
+                    id: "forgeweave:smite",
+                    level: 3
+                },
+                {
+                    id: "forgeweave:embossment.iron",
+                    level: 1
+                }
+            ],
+            "forgeweave:repair_count": 1,
+            "forgeweave:tool_materials": {
+                binding: "forgeweave:iron",
+                handle: "forgeweave:wood",
+                head: "forgeweave:iron",
+                parts: [
+                    "forgeweave:wood",
+                    "forgeweave:iron",
+                    "forgeweave:iron"
+                ]
+            },
+            "forgeweave:tool_stats": {
+                attack_damage: 5.75f,
+                durability: 261,
+                mining_speed: 6.0f
+            },
+            "forgeweave:traits": [
+                "forgeweave:ecological",
+                "forgeweave:magnetic2"
+            ],
+            "minecraft:damage": 44,
+            "minecraft:max_damage": 261
+        },
+        count: 1,
+        id: "forgeweave:katana"
+    },
+    what: "M3 (#154 + #160 + #162 + #196): every M3 tool format at once on one katana -- a fully ramped combat state (8 stacks, the +75% cap) alongside a modifier list that mixes a leveled modifier, a combat modifier and a generated embossment id, the donor material's trait appended, and the post-#196 `parts` list. The three M3 formats were fixtured one per file as they landed; nothing pinned that they still decode together on the same stack, which is the only arrangement a real player produces."
+}

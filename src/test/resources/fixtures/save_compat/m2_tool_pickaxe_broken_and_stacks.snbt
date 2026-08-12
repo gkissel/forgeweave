@@ -1,0 +1,83 @@
+{
+    decoder: "item_stack",
+    expect: {
+        components: {
+            "forgeweave:broken": 1b,
+            "forgeweave:insatiable_stacks": {
+                level: 4,
+                ticks_remaining: 63
+            },
+            "forgeweave:mending_moss_xp": 17,
+            "forgeweave:modifiers": [
+                {
+                    id: "forgeweave:mending_moss",
+                    level: 1
+                }
+            ],
+            "forgeweave:momentum_stacks": {
+                level: 12,
+                ticks_remaining: 200
+            },
+            "forgeweave:repair_count": 3,
+            "forgeweave:tool_materials": {
+                binding: "forgeweave:wood",
+                handle: "forgeweave:stone",
+                head: "forgeweave:flint"
+            },
+            "forgeweave:tool_stats": {
+                attack_damage: 2.9f,
+                durability: 33,
+                mining_speed: 5.0f
+            },
+            "forgeweave:traits": [
+                "forgeweave:crude",
+                "forgeweave:momentum",
+                "forgeweave:insatiable"
+            ],
+            "minecraft:damage": 33,
+            "minecraft:max_damage": 33
+        },
+        id: "forgeweave:pickaxe"
+    },
+    nbt: {
+        components: {
+            "forgeweave:broken": 1b,
+            "forgeweave:insatiable_stacks": {
+                level: 4,
+                ticks_remaining: 63
+            },
+            "forgeweave:mending_moss_xp": 17,
+            "forgeweave:modifiers": [
+                {
+                    id: "forgeweave:mending_moss",
+                    level: 1
+                }
+            ],
+            "forgeweave:momentum_stacks": {
+                level: 12,
+                ticks_remaining: 200
+            },
+            "forgeweave:repair_count": 3,
+            "forgeweave:tool_materials": {
+                binding: "forgeweave:wood",
+                handle: "forgeweave:stone",
+                head: "forgeweave:flint"
+            },
+            "forgeweave:tool_stats": {
+                attack_damage: 2.9f,
+                durability: 33,
+                mining_speed: 5.0f
+            },
+            "forgeweave:traits": [
+                "forgeweave:crude",
+                "forgeweave:momentum",
+                "forgeweave:insatiable"
+            ],
+            "minecraft:damage": 33,
+            "minecraft:max_damage": 33
+        },
+        count: 1,
+        id: "forgeweave:pickaxe"
+    },
+    what: "M2 (#106, #107, #102): the four tool components no fixture reached before this audit (#167) -- `broken`, `mending_moss_xp`, and the two live trait-stack counters that Momentum and Insatiable keep on the stack because Forgeweave has no player-scoped potion plumbing to port upstream's hidden effects through. A pickaxe caught exactly where they overlap: fully damaged and Broken (CONTEXT.md -- unusable, never destroyed), XP already banked toward the self-repair that will clear it, and both counters mid-decay. Also a pre-#196 `tool_materials` with no `parts` list, decoded here alongside components a pre-M3 world really would have had next to it."
+}
