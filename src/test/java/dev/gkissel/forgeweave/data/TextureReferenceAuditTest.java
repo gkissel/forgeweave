@@ -1,5 +1,6 @@
 package dev.gkissel.forgeweave.data;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
@@ -247,6 +248,46 @@ class TextureReferenceAuditTest {
                         "tool layer art for forgeweave:" + tool + " layer '" + layer + "' is missing: " + png);
             }
         }
+    }
+
+    /**
+     * Issue #217: every assembled tool's generated model must carry held-render display transforms,
+     * not the flat {@code item/generated} defaults it shipped with (the maintainer's third-person
+     * harness captures showed a near-invisible edge-on held item). The parity source is upstream
+     * 1.12, whose tool models carry no {@code display} block and fall back to Mantle's
+     * {@code DEFAULT_TOOL_STATE} -- numerically vanilla's {@code item/handheld} -- so inheriting that
+     * parent is the check, and three tools additionally mirror upstream's own per-tool block.
+     *
+     * <p>Walked off {@code ToolAssemblyRecipes.ENTRIES} so a tool added later cannot quietly go back
+     * to a flat model.
+     */
+    @Test
+    void everyToolModelInheritsTheHandheldDisplayTransforms() throws IOException {
+        Path models = projectRoot().resolve("src/generated/resources/assets/forgeweave/models/item");
+        Set<String> overriding = Set.of("cleaver", "rapier", "battlesign");
+
+        for (ToolAssemblyRecipes.Entry entry : ToolAssemblyRecipes.ENTRIES) {
+            String tool = entry.constants().id();
+            Path json = models.resolve(tool + ".json");
+            assertTrue(Files.isRegularFile(json), "no generated item model for forgeweave:" + tool + ": " + json);
+
+            JsonObject model = JsonParser.parseString(Files.readString(json, StandardCharsets.UTF_8)).getAsJsonObject();
+            assertEquals("minecraft:item/handheld", model.get("parent").getAsString(),
+                    tool + " must inherit the handheld held-render transforms (issue #217)");
+
+            boolean hasDisplay = model.has("display");
+            assertEquals(overriding.contains(tool), hasDisplay,
+                    tool + (hasDisplay ? " has a display override upstream 1.12 does not"
+                            : " is missing the display override upstream 1.12 gives it"));
+        }
+
+        // The two upstream shapes the override exists for at all: the cleaver's oversized
+        // third-person pose and the rapier's inverted point-forward yaw.
+        JsonObject cleaver = JsonParser.parseString(
+                Files.readString(models.resolve("cleaver.json"), StandardCharsets.UTF_8)).getAsJsonObject();
+        JsonArray cleaverScale = cleaver.getAsJsonObject("display")
+                .getAsJsonObject("thirdperson_righthand").getAsJsonArray("scale");
+        assertEquals(1.5f, cleaverScale.get(0).getAsFloat(), "cleaver third-person scale (upstream cleaver.tcon.json)");
     }
 
     /** Sanity check that the scan actually exercises the GUI textures the regression was about. */

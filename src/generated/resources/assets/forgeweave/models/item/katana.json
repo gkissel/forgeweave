@@ -1,5 +1,5 @@
 {
-  "parent": "minecraft:item/generated",
+  "parent": "minecraft:item/handheld",
   "textures": {
     "layer0": "forgeweave:derived/tools/katana_handle",
     "layer1": "forgeweave:derived/tools/katana_head",

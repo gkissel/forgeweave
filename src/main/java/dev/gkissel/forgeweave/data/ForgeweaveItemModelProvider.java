@@ -1,12 +1,15 @@
 package dev.gkissel.forgeweave.data;
 
 import java.util.List;
+import java.util.Map;
+import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.data.PackOutput;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemDisplayContext;
 
 import net.neoforged.neoforge.client.model.generators.ItemModelBuilder;
 import net.neoforged.neoforge.client.model.generators.ItemModelProvider;
@@ -21,7 +24,8 @@ import dev.gkissel.forgeweave.tool.ToolArt;
 
 /**
  * Item models for every Forgeweave item (docs/adr/0002): a plain {@code minecraft:item/generated}
- * model per item.
+ * model per item, except the assembled tools, which parent {@code minecraft:item/handheld} for their
+ * held-render transforms (issue #217 -- see {@link #TOOL_MODEL_PARENT}).
  *
  * <p>Part patterns (issue #43) are single-layer now: each is a committed static composite PNG under
  * {@code textures/derived/item/pattern_<part>.png} (the part's silhouette darkened onto the pattern
@@ -210,9 +214,79 @@ public class ForgeweaveItemModelProvider extends ItemModelProvider {
     private void toolModel(Supplier<? extends Item> item, String tool, List<String> layers) {
         ItemModelBuilder builder = getBuilder(
                 BuiltInRegistries.ITEM.getKey(item.get()).toString())
-                .parent(new ModelFile.UncheckedModelFile("item/generated"));
+                .parent(new ModelFile.UncheckedModelFile(TOOL_MODEL_PARENT));
         for (int layer = 0; layer < layers.size(); layer++) {
             builder.texture("layer" + layer, toolLayer(tool, layers.get(layer)));
         }
+        Consumer<ItemModelBuilder> override = TOOL_DISPLAY_OVERRIDES.get(tool);
+        if (override != null) {
+            override.accept(builder);
+        }
     }
+
+    /**
+     * The held-render transform set every tool inherits (issue #217). Vanilla's {@code item/handheld}
+     * is numerically the same transform table upstream 1.12 gives every tool: its {@code .tcon.json}
+     * models carry no {@code display} block of their own, and {@code ToolModel#getDefaultState}
+     * returns Mantle's {@code ModelHelper.DEFAULT_TOOL_STATE} -- third person
+     * {@code rotation [0,-/+90,+/-55] translation [0,4,0.5] scale 0.85}, first person
+     * {@code rotation [0,-/+90,+/-25] translation [1.13,3.2,1.13] scale 0.68}, and
+     * {@code item/generated}'s own ground/fixed/head/gui entries underneath. The flat
+     * {@code item/generated} parent this used to carry is what made a held tool read as a
+     * near-invisible edge-on sliver in the third-person harness captures.
+     *
+     * <p>Unchecked for the same reason {@link #singleLayerModel}'s parent is: it is a vanilla builtin
+     * that does not always resolve through {@code ExistingFileHelper}. Layering still works -- the
+     * model's root parent is still {@code item/generated}, which is what makes the item model
+     * generator build geometry from the {@code layerN} textures.
+     */
+    private static final String TOOL_MODEL_PARENT = "item/handheld";
+
+    /**
+     * The three tools upstream 1.12 gives a {@code display} block of their own, mirrored entry for
+     * entry (the only {@code .tcon.json} tool models with one -- the rest, including every large
+     * harvest tool, use the inherited set above unchanged, so hammer/excavator/lumberaxe/scythe/vein
+     * hammer/warmace/battleaxe deliberately get no oversize scale here).
+     *
+     * <p>Not mirrored: {@code battlesign.tcon.json}'s extra {@code overrides} block, a second display
+     * set for the blocking pose. That is 1.12's custom tool-model loader format, not vanilla's
+     * predicate-plus-separate-model {@code overrides}, and a blocking pose is out of issue #217's
+     * scope.
+     */
+    private static final Map<String, Consumer<ItemModelBuilder>> TOOL_DISPLAY_OVERRIDES = Map.of(
+            // cleaver.tcon.json: a two-block slab of a weapon, held bigger and higher than a sword.
+            "cleaver", builder -> builder.transforms()
+                    .transform(ItemDisplayContext.THIRD_PERSON_RIGHT_HAND)
+                    .rotation(0, -90, 55).translation(0, 10.0F, 0.5F).scale(1.5F).end()
+                    .transform(ItemDisplayContext.THIRD_PERSON_LEFT_HAND)
+                    .rotation(0, 90, -55).translation(0, 10.0F, 0.5F).scale(1.5F).end()
+                    .transform(ItemDisplayContext.FIRST_PERSON_RIGHT_HAND)
+                    .rotation(0, -95, 30).translation(2.13F, 6.0F, 0.13F).scale(1.2F).end()
+                    .transform(ItemDisplayContext.FIRST_PERSON_LEFT_HAND)
+                    .rotation(0, 95, -30).translation(2.13F, 6.0F, 0.13F).scale(1.2F).end()
+                    .end(),
+            // rapier.tcon.json: held point-forward for the thrust rather than shouldered like a
+            // sword (note the inverted yaw against handheld's), and laid flat in the inventory.
+            "rapier", builder -> builder.transforms()
+                    .transform(ItemDisplayContext.GUI).rotation(0, 0, 90).end()
+                    .transform(ItemDisplayContext.THIRD_PERSON_RIGHT_HAND)
+                    .rotation(0, 90, 15).translation(0, 4.5F, -1).scale(0.85F).end()
+                    .transform(ItemDisplayContext.THIRD_PERSON_LEFT_HAND)
+                    .rotation(0, -90, -15).translation(0, 4.5F, -1).scale(0.85F).end()
+                    .transform(ItemDisplayContext.FIRST_PERSON_RIGHT_HAND)
+                    .rotation(0, 90, -25).translation(0, 2, 0.8F).scale(0.68F).end()
+                    .transform(ItemDisplayContext.FIRST_PERSON_LEFT_HAND)
+                    .rotation(0, -90, 25).translation(0, 2, 0.8F).scale(0.68F).end()
+                    .end(),
+            // battlesign.tcon.json: a sign, carried face-out and unrotated rather than shouldered.
+            "battlesign", builder -> builder.transforms()
+                    .transform(ItemDisplayContext.THIRD_PERSON_RIGHT_HAND)
+                    .rotation(0, 0, 0).translation(0, 4.0F, 2.5F).scale(1).end()
+                    .transform(ItemDisplayContext.THIRD_PERSON_LEFT_HAND)
+                    .rotation(0, 0, 0).translation(0, 4.0F, 2.5F).scale(1).end()
+                    .transform(ItemDisplayContext.FIRST_PERSON_RIGHT_HAND)
+                    .rotation(0, 0, -5).translation(0, -2, 0.8F).scale(1).end()
+                    .transform(ItemDisplayContext.FIRST_PERSON_LEFT_HAND)
+                    .rotation(0, 0, -5).translation(0, -2, -0.8F).scale(1).end()
+                    .end());
 }
