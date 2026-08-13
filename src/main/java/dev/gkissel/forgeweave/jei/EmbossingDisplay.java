@@ -14,8 +14,8 @@ import net.minecraft.world.item.crafting.Ingredient;
  *
  * @param donorParts one representative stack per donor part kind this material grants traits
  *     through, all carrying {@code material}
- * @param reagents the station's own cost, straight off the datapack recipe -- always three or fewer,
- *     since embossing spans the Tool Station's four free slots and the donor always claims one
+ * @param reagents the station's own cost, straight off the datapack recipe -- always four or fewer,
+ *     since embossing spans the Tool Station's five free slots and the donor always claims one
  * @param material the donor material every stack in {@code donorParts} carries
  */
 record EmbossingDisplay(List<ItemStack> donorParts, List<Ingredient> reagents, ResourceLocation material) {}

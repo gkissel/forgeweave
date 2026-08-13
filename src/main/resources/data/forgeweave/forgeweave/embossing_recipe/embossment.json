@@ -1,7 +1,8 @@
 {
   "reagents": [
-    { "item": "minecraft:slime_block" },
-    { "item": "minecraft:magma_block" },
+    { "item": "forgeweave:green_slime_crystal" },
+    { "item": "forgeweave:blue_slime_crystal" },
+    { "item": "forgeweave:magma_slime_crystal" },
     { "item": "minecraft:gold_block" }
   ]
 }

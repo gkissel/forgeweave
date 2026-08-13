@@ -148,11 +148,13 @@ public class ToolStationScreen extends StationScreen<ToolStationMenu> implements
     private static final int ANVIL_V = 0;
     /**
      * Upstream's repair-slot glyphs, in its own order: {@code Icons.ICON_Pickaxe}, {@code ICON_Dust},
-     * {@code ICON_Lapis}, {@code ICON_Ingot}, {@code ICON_Gem} ({@code GuiToolStation
-     * #drawRepairSlotIcon} pairs them with {@code GuiButtonRepair}'s positions, one per active slot).
-     * Issue #154 added the 4th and 5th along with the two extra reagent slots embossing needs.
+     * {@code ICON_Lapis}, {@code ICON_Ingot}, {@code ICON_Gem}, {@code ICON_Quartz}
+     * ({@code GuiToolStation#drawRepairSlotIcon} pairs them with {@code GuiButtonRepair}'s positions,
+     * one per active slot). Issue #154 added the 4th and 5th along with the extra reagent slots
+     * embossing needs; issue #248 added the 6th with the fifth free slot the four-reagent parity
+     * cost fills.
      */
-    private static final int[] REPAIR_ICON_U = {0, 18, 36, 54, 72};
+    private static final int[] REPAIR_ICON_U = {0, 18, 36, 54, 72, 90};
     private static final int REPAIR_ICON_V = 234;
 
     /**

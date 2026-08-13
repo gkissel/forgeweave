@@ -213,7 +213,7 @@ public final class Embossing {
     /**
      * Whether {@code stacks} is exactly one slot per reagent, in any order.
      *
-     * <p>ponytail: greedy first-match, not a bipartite matching. The shipped cost is three disjoint
+     * <p>ponytail: greedy first-match, not a bipartite matching. The shipped cost is four disjoint
      * single-item ingredients, where greedy is exact; a pack that made two reagents overlap could
      * see a valid loadout refused, and the fix then is a real matching, not a bigger greedy.
      */

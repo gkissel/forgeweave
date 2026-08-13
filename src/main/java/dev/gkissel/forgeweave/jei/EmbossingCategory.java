@@ -28,23 +28,23 @@ import dev.gkissel.forgeweave.modifier.ModifierApplication;
  * ({@link ModifierApplicationCategory#ANY_TOOL} -- embossing has no recipe-specific tool requirement
  * either, only "not already embossed" (see the drawn rule below).
  *
- * <p>At most three reagent slots are ever laid out: embossing spends every one of the station's four
+ * <p>At most four reagent slots are ever laid out: embossing spends every one of the station's five
  * free input slots ({@code menu.ToolAssemblyRecipes}' free-slot javadoc), and the donor part always
- * claims one of them, so {@code modifier.EmbossingRecipe#reagents} can never exceed three entries for
- * any datapack this station's four slots could actually satisfy.
+ * claims one of them, so {@code modifier.EmbossingRecipe#reagents} can never exceed four entries for
+ * any datapack this station's five slots could actually satisfy.
  */
 final class EmbossingCategory implements IRecipeCategory<EmbossingDisplay> {
     static final RecipeType<EmbossingDisplay> TYPE =
             RecipeType.create(Forgeweave.MODID, "embossing", EmbossingDisplay.class);
 
-    private static final int WIDTH = 200;
+    private static final int WIDTH = 220;
     private static final int HEIGHT = 38;
     private static final int SLOT_PITCH = 20;
     private static final int SLOT_Y = 10;
     private static final int TOOL_X = 0;
     private static final int DONOR_X = SLOT_PITCH;
     private static final int REAGENTS_X = DONOR_X + SLOT_PITCH;
-    private static final int MAX_REAGENT_SLOTS = 3;
+    private static final int MAX_REAGENT_SLOTS = 4;
     private static final int ARROW_X = REAGENTS_X + MAX_REAGENT_SLOTS * SLOT_PITCH + 2;
     private static final int TEXT_X = ARROW_X + 24;
     private static final int NAME_Y = 6;

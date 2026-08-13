@@ -28,9 +28,11 @@ import dev.gkissel.forgeweave.tool.ToolStats;
 
 /**
  * Issue #154's verification: embossing driven through the real Tool Station menu against the shipped
- * {@code forgeweave:embossment} recipe JSON (slime block + magma block + gold block, plus the donor
- * part), covering the four things docs/SCOPE.md's M3 gate names -- donor traits present, stats
- * untouched, a second embossment refused, and the modifier slot count unaffected.
+ * {@code forgeweave:embossment} recipe JSON (the 1.12-parity green + blue + magma slime crystals +
+ * gold block per issue #248, plus the donor part), covering the four things docs/SCOPE.md's M3 gate
+ * names -- donor traits present, stats untouched, a second embossment refused, and the modifier slot
+ * count unaffected -- plus #248's own two: all four reagents are consumed, and three of the four
+ * produce nothing.
  *
  * <p>The donor throughout is an <b>iron pickaxe head</b>, whose material scopes {@code magnetic2} to
  * heads and {@code magnetic} to everything else. Embossing it onto a stone/wood/wood pickaxe is
@@ -127,6 +129,39 @@ public class EmbossingGameTests {
     }
 
     /**
+     * Issue #248's incomplete-set gate: three of the four parity reagents (the gold block withheld)
+     * plus the donor part produce nothing -- {@code Embossing#matchesAll} demands exactly one slot
+     * per reagent, so a partial loadout is an ordinary mid-loading state, not a recipe. Silent by
+     * design: no output and no rejection line, the same as any half-loaded assembly.
+     */
+    @GameTest(template = "empty")
+    public static void threeOfTheFourReagentsProduceNoEmbossment(GameTestHelper helper) {
+        BlockPos pos = new BlockPos(1, 1, 1);
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        ItemStack pickaxe = ToolAssembly.pickaxe(helper, player, pos, "stone", "wood", "wood");
+
+        ToolStationBlockEntity blockEntity = helper.getBlockEntity(pos);
+        blockEntity.container().clearContent();
+        blockEntity.container().setItem(ToolStationMenu.HEAD_SLOT, pickaxe);
+        blockEntity.container().setItem(ToolStationMenu.BINDING_SLOT, ironPickaxeHead());
+        blockEntity.container().setItem(ToolStationMenu.HANDLE_SLOT,
+                new ItemStack(ForgeweaveItems.GREEN_SLIME_CRYSTAL.get()));
+        blockEntity.container().setItem(ToolStationMenu.EXTRA_SLOT_1,
+                new ItemStack(ForgeweaveItems.BLUE_SLIME_CRYSTAL.get()));
+        blockEntity.container().setItem(ToolStationMenu.EXTRA_SLOT_2,
+                new ItemStack(ForgeweaveItems.MAGMA_SLIME_CRYSTAL.get()));
+        ToolStationMenu menu = ToolAssembly.menu(helper, player, pos, blockEntity);
+        menu.broadcastChanges();
+
+        helper.assertTrue(menu.getSlot(ToolStationMenu.OUTPUT_SLOT).getItem().isEmpty(),
+                "three of the four reagents must not emboss; got "
+                        + menu.getSlot(ToolStationMenu.OUTPUT_SLOT).getItem());
+        helper.assertTrue(!menu.getSlot(ToolStationMenu.BINDING_SLOT).getItem().isEmpty(),
+                "a refused partial loadout must consume nothing");
+        helper.succeed();
+    }
+
+    /**
      * Parity with upstream, where {@code ModExtraTrait} carries no {@code FreeModifierAspect}: the
      * embossment entry sits on the tool without spending one of the three modifier slots, so all
      * three are still there to spend on real modifiers afterwards.
@@ -171,9 +206,13 @@ public class EmbossingGameTests {
         blockEntity.container().clearContent();
         blockEntity.container().setItem(ToolStationMenu.HEAD_SLOT, tool);
         blockEntity.container().setItem(ToolStationMenu.BINDING_SLOT, donor);
-        blockEntity.container().setItem(ToolStationMenu.HANDLE_SLOT, new ItemStack(Items.SLIME_BLOCK));
-        blockEntity.container().setItem(ToolStationMenu.EXTRA_SLOT_1, new ItemStack(Items.MAGMA_BLOCK));
-        blockEntity.container().setItem(ToolStationMenu.EXTRA_SLOT_2, new ItemStack(Items.GOLD_BLOCK));
+        blockEntity.container().setItem(ToolStationMenu.HANDLE_SLOT,
+                new ItemStack(ForgeweaveItems.GREEN_SLIME_CRYSTAL.get()));
+        blockEntity.container().setItem(ToolStationMenu.EXTRA_SLOT_1,
+                new ItemStack(ForgeweaveItems.BLUE_SLIME_CRYSTAL.get()));
+        blockEntity.container().setItem(ToolStationMenu.EXTRA_SLOT_2,
+                new ItemStack(ForgeweaveItems.MAGMA_SLIME_CRYSTAL.get()));
+        blockEntity.container().setItem(ToolStationMenu.EXTRA_SLOT_3, new ItemStack(Items.GOLD_BLOCK));
 
         ToolStationMenu menu = ToolAssembly.menu(helper, player, pos, blockEntity);
         menu.broadcastChanges();

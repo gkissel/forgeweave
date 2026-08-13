@@ -26,7 +26,7 @@ import dev.gkissel.forgeweave.menu.ToolStationTabs;
  * tab, so this always forces that tab first. Unlike modifier application, embossing does have a
  * recipe-specific input in the tool's own free slots -- the donor part -- so every declared input
  * slot is filled, donor first: {@link EmbossingCategory} lays the donor at the station's binding
- * slot and the (at most three) reagents after it, the same order {@code
+ * slot and the (at most four) reagents after it, the same order {@code
  * menu.ToolAssemblyRecipes#resolveEmbossing} reads the station's free slots in, so the donor always
  * lands where {@code modifier.Embossing#resolve} looks for it first.
  */
@@ -34,7 +34,7 @@ final class EmbossingTransferHandler implements IRecipeTransferInfo<ToolStationM
         IRecipeTransferHandler<ToolStationMenu, EmbossingDisplay> {
     private static final int[] FREE_SLOTS = {
             ToolStationMenu.BINDING_SLOT, ToolStationMenu.HANDLE_SLOT,
-            ToolStationMenu.EXTRA_SLOT_1, ToolStationMenu.EXTRA_SLOT_2};
+            ToolStationMenu.EXTRA_SLOT_1, ToolStationMenu.EXTRA_SLOT_2, ToolStationMenu.EXTRA_SLOT_3};
 
     private final IRecipeTransferHandler<ToolStationMenu, EmbossingDisplay> delegate;
 
