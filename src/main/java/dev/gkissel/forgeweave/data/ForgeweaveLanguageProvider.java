@@ -726,5 +726,42 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         // A new "chat" family, following vanilla's own chat.* namespace -- none of this file's usual
         // families cover a directly-displayed player chat message.
         add("chat.forgeweave.ponder_hint", "Install Ponder for in-game build tutorials -- recipes are in JEI");
+
+        // #229 -- the M3.2 combat-seam trait batch. Wording follows upstream 1.12's
+        // modifier.<id>.name/.desc entries (NOTICE.md), same as the M1/M2 trait families above;
+        // lacerating has no upstream row (nahuatl is a 1.20-branch material) and reuses the
+        // scimitar innate's wording.
+        add("trait.forgeweave.prickly.name", "Prickly");
+        add("trait.forgeweave.prickly.description", "Nobody is safe from those thorns, they always hurt.");
+        add("trait.forgeweave.spiky.name", "Spiky");
+        add("trait.forgeweave.spiky.description", "Blocking and getting hurt deals damage to the attacker.");
+        add("trait.forgeweave.hellish.name", "Hellish");
+        add("trait.forgeweave.hellish.description", "Deal bonus damage to non-Nether mobs.");
+        add("trait.forgeweave.superheat.name", "Superheat");
+        add("trait.forgeweave.superheat.description", "Deal bonus damage to enemies on fire.");
+        add("trait.forgeweave.holy.name", "Holy");
+        add("trait.forgeweave.holy.description", "Deal bonus damage to undead enemies.");
+        add("trait.forgeweave.poisonous.name", "Poisonous");
+        add("trait.forgeweave.poisonous.description", "Poisons enemies on hit.");
+        add("trait.forgeweave.heavy.name", "Heavy");
+        add("trait.forgeweave.heavy.description", "Prevents knockback.");
+        add("trait.forgeweave.stiff.name", "Stiff");
+        add("trait.forgeweave.stiff.description", "Blocking reduces the damage taken even more.");
+        add("trait.forgeweave.sharp.name", "Sharp");
+        add("trait.forgeweave.sharp.description", "Hitting an enemy leaves them bleeding for a short time.");
+        add("trait.forgeweave.splintering.name", "Splintering");
+        add("trait.forgeweave.splintering.description", "Hit them more to deal more damage.");
+        add("trait.forgeweave.flammable.name", "Flammable");
+        add("trait.forgeweave.flammable.description",
+                "Blocking blocks fire damage and getting hit sets the attacker on fire.");
+        add("trait.forgeweave.enderference.name", "Enderference");
+        add("trait.forgeweave.enderference.description", "Prevents Endermen from teleporting around for a short time.");
+        add("trait.forgeweave.lacerating.name", "Lacerating");
+        add("trait.forgeweave.lacerating.description", "Hits open a bleeding wound that stacks and ticks over time.");
+        // The two visible status effects those traits apply (splinter and the enderference mark are
+        // markers, but they still show in the HUD, so they get names too).
+        add("effect.forgeweave.bleed", "Bleeding");
+        add("effect.forgeweave.splinter", "Splintered");
+        add("effect.forgeweave.enderference", "Enderference");
     }
 }

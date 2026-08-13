@@ -59,9 +59,10 @@ public interface CombatSeam {
      * {@link CombatSeams} cancels the damage event when the chain leaves nothing, so a parry or a
      * reflect stops the hurt animation and the invulnerability window too, not just the number.
      *
-     * <p>Only reached while the defender is actively using the tool ({@link CombatSeams}), which is
-     * what both M3 defensive innates are gated on anyway -- the broadsword's parry window and the
-     * battlesign's blocking stance.
+     * <p>Reached while the defender is actively using the tool <em>or</em> merely holding it in the
+     * main hand ({@link CombatSeams}); {@link CombatDefense#blocking()} distinguishes the two, and a
+     * behavior that only exists while blocking (the broadsword's parry window, the battlesign's
+     * stance, stiff's damage shave) gates itself on it.
      */
     default float incomingHit(CombatDefense defense, float originalDamage, float damage) {
         return damage;

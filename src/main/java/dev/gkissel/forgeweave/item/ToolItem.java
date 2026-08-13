@@ -82,6 +82,9 @@ public class ToolItem extends Item {
     /** Id for the trait-driven movement speed modifier (issue #230: vintage's mobility cost). */
     private static final ResourceLocation TRAIT_MOVEMENT_SPEED_ID =
             ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "trait_movement_speed");
+    /** Id for the trait-driven knockback resistance heavy grants (issue #229), same idiom. */
+    private static final ResourceLocation TRAIT_KNOCKBACK_RESISTANCE_ID =
+            ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "trait_knockback_resistance");
     // #108 batch: modern-vanilla attribute modifiers (Aquadynamic, Far Reach -- ForgeweaveModifiers),
     // same idiom as vanilla Item's own BASE_ATTACK_DAMAGE_ID/BASE_ATTACK_SPEED_ID this class already
     // keys its two attribute modifiers on above.
@@ -291,6 +294,15 @@ public class ToolItem extends Item {
                     EquipmentSlotGroup.MAINHAND);
         }
 
+        // heavy (issue #229, upstream TraitHeavy): full knockback resistance while the tool is held.
+        float knockbackResistance = ForgeweaveTraits.knockbackResistance(stack);
+        if (knockbackResistance != 0.0F) {
+            builder.add(Attributes.KNOCKBACK_RESISTANCE,
+                    new AttributeModifier(TRAIT_KNOCKBACK_RESISTANCE_ID, knockbackResistance,
+                            AttributeModifier.Operation.ADD_VALUE),
+                    EquipmentSlotGroup.MAINHAND);
+        }
+
         // #108 batch: Aquadynamic/Far Reach add their own attribute modifiers only when a tool
         // actually carries them, so an unmodified tool's merged-attribute tooltip stays exactly as
         // it was (contrast with ATTACK_DAMAGE/ATTACK_SPEED above, which every tool always carries).
@@ -325,11 +337,13 @@ public class ToolItem extends Item {
      * {@link #getDefaultAttributeModifiers} returning {@code EMPTY} then) or unassembled, otherwise
      * the head material's attack stat -- with sharpness's bonus already folded in
      * ({@link ForgeweaveModifiers#effectiveStats}, #106 batch) -- scaled by this tool type's damage
-     * potential plus flat trait bonus damage. Shared by the attribute modifier above and
-     * {@link ToolTooltip}'s Attack Damage line so the tooltip never shows a number the tool doesn't
-     * actually hit for.
+     * potential plus flat trait bonus damage. Shared by the attribute modifier above,
+     * {@link ToolTooltip}'s Attack Damage line, and spiky's thorns reflect
+     * ({@code combat.ThornsReflectSeam}, issue #229 -- upstream reads the same
+     * {@code ToolHelper.getActualDamage}), so none of them ever shows or deals a number the tool
+     * doesn't actually hit for.
      */
-    private float attackDamage(ItemStack stack) {
+    public float attackDamage(ItemStack stack) {
         // Modifier-adjusted, not the raw base component (issue #107: silky takes a flat 3 off this at
         // apply time -- ForgeweaveModifiers#effectiveStats is exactly the seam for that).
         ToolStats.Stats stats = ForgeweaveModifiers.effectiveStats(stack);
