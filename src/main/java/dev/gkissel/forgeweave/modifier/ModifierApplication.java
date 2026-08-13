@@ -6,6 +6,7 @@ import java.util.Optional;
 
 import javax.annotation.Nullable;
 
+import net.minecraft.core.Holder;
 import net.minecraft.core.HolderGetter;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.component.DataComponents;
@@ -100,6 +101,10 @@ public final class ModifierApplication {
             // Forgeweave does one at a time and says so.
             return Optional.of(Outcome.rejected(Component.translatable("gui.forgeweave.modifier.invalid_reagent")));
         }
+        Optional<Component> unsupported = unsupportedToolReason(registries, recipe, tool);
+        if (unsupported.isPresent()) {
+            return Optional.of(Outcome.rejected(unsupported.get()));
+        }
         Outcome outcome = apply(recipe, tool,
                 firstMatches ? first.getCount() : 0,
                 secondMatches ? second.getCount() : 0);
@@ -110,6 +115,38 @@ public final class ModifierApplication {
             applyEnchantmentGrants(registries, recipe, outcome.output());
         }
         return Optional.of(outcome);
+    }
+
+    /**
+     * Issue #223's wind burst restriction, read off vanilla itself rather than a Forgeweave-side item
+     * check: if the modifier grants a vanilla enchantment ({@link Modifier#grantedEnchantment}), that
+     * enchantment's own {@code supported_items} ({@code Enchantment#getSupportedItems}) is the one
+     * true answer for which tools it works on -- wind burst's is {@code #minecraft:enchantable/mace},
+     * so the warmace has to be a member of that tag ({@code ForgeweaveItemTagsProvider}) for this to
+     * pass. Generic on purpose: a future enchantment-granting modifier is restricted the same way with
+     * no code here to touch. Silky (issue #107) grants Silk Touch through its own
+     * {@link Modifier#grantsSilkTouch} boolean hook, which predates this method and reports no
+     * {@link Modifier#grantedEnchantment}, so it stays unrestricted.
+     */
+    private static Optional<Component> unsupportedToolReason(HolderLookup.Provider registries,
+            ModifierRecipe recipe, ItemStack tool) {
+        Modifier modifier = ForgeweaveModifiers.get(recipe.modifier());
+        if (modifier == null) {
+            return Optional.empty();
+        }
+        // The level passed here only decides whether a grant exists at all (every shipped grant is
+        // present from level 1 on), not what level it would be -- that's resolved again, for real,
+        // once the application actually lands (grantEnchantments).
+        Optional<Modifier.EnchantmentGrant> grant = modifier.grantedEnchantment(1);
+        if (grant.isEmpty()) {
+            return Optional.empty();
+        }
+        Optional<Holder.Reference<Enchantment>> enchantment = registries.lookup(Registries.ENCHANTMENT)
+                .flatMap(lookup -> lookup.get(grant.get().enchantment()));
+        if (enchantment.isEmpty() || tool.is(enchantment.get().value().getSupportedItems())) {
+            return Optional.empty();
+        }
+        return Optional.of(Component.translatable("gui.forgeweave.modifier.unsupported_tool", name(recipe.modifier())));
     }
 
     /**

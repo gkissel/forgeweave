@@ -30,6 +30,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.world.item.crafting.SingleRecipeInput;
+import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 
@@ -692,6 +693,34 @@ public final class ForgeweaveModifiers {
         }
     };
 
+    // ---------------------------------------------------------------- issue #223 (wind burst)
+
+    /** Vanilla {@code minecraft:wind_burst}'s own cap (data/minecraft/enchantment/wind_burst.json). */
+    private static final int WIND_BURST_MAX_LEVEL = 3;
+
+    /**
+     * Breeze rod (issue #223, maintainer decision 2026-08-12: "one breeze rod per level, levels
+     * 1-3"). Grants vanilla Wind Burst outright at the applied level -- silky's Silk Touch idiom
+     * (issue #107), generalized by {@link Modifier#grantedEnchantment} to carry a level rather than
+     * silky's flat on/off. {@code unitsPerLevel} is left at its default of 1, so one breeze rod is one
+     * level and the recipe's own {@code max_level: 3} (wind_burst.json) is what stops a fourth; this
+     * modifier only clamps defensively in case a datapack retunes that cap past vanilla's own.
+     *
+     * <p>No stat hooks of its own: unlike silky, there is no upstream Tinkers modifier to port a
+     * penalty from, and the maintainer request names only the enchantment grant. Which tools accept
+     * it at all is decided by {@code ModifierApplication}, off wind_burst's own vanilla
+     * {@code supported_items} tag ({@code minecraft:enchantable/mace}) rather than a Forgeweave-side
+     * item check -- see {@code ForgeweaveItemTagsProvider}, which adds the warmace to that tag.
+     */
+    public static final Modifier WIND_BURST = new Modifier() {
+        @Override
+        public Optional<EnchantmentGrant> grantedEnchantment(int level) {
+            return level > 0
+                    ? Optional.of(new EnchantmentGrant(Enchantments.WIND_BURST, Math.min(level, WIND_BURST_MAX_LEVEL)))
+                    : Optional.empty();
+        }
+    };
+
     private static final Map<ResourceLocation, Modifier> REGISTRY = Map.ofEntries(
             Map.entry(id("haste"), HASTE),
             Map.entry(id("searing"), SEARING),
@@ -715,7 +744,8 @@ public final class ForgeweaveModifiers {
             Map.entry(id("bane_of_arthropods"), BANE_OF_ARTHROPODS),
             Map.entry(id("fiery"), FIERY),
             Map.entry(id("necrotic"), NECROTIC),
-            Map.entry(id("beheading"), BEHEADING));
+            Map.entry(id("beheading"), BEHEADING),
+            Map.entry(id("wind_burst"), WIND_BURST));
 
     /**
      * docs/SCOPE.md's "8 combat modifiers" (M3 acceptance test 4): the #162/#163 batches' seven

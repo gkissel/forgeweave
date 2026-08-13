@@ -9,6 +9,7 @@ import net.minecraft.data.PackOutput;
 import net.minecraft.data.tags.ItemTagsProvider;
 import net.minecraft.data.tags.TagsProvider;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.tags.ItemTags;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.Block;
@@ -87,6 +88,13 @@ public class ForgeweaveItemTagsProvider extends ItemTagsProvider {
                 .add(ForgeweaveItems.TOOL_LUMBERAXE.get())
                 .add(ForgeweaveItems.TOOL_SCYTHE.get())
                 .add(ForgeweaveItems.TOOL_VEIN_HAMMER.get());
+
+        // #223 -- wind burst's own gate: vanilla's wind_burst enchantment names
+        // `#minecraft:enchantable/mace` as its supported_items, and ModifierApplication reads that
+        // tag directly (no Forgeweave-side item check of its own) to decide what the modifier accepts.
+        // The warmace rides vanilla's mace mechanics (WarmaceItem) but is its own item, so it has to
+        // join the tag the same way vanilla's own mace is already a member of it.
+        tag(ItemTags.MACE_ENCHANTABLE).add(ForgeweaveItems.TOOL_WARMACE.get());
 
         // #152 -- what a Tool Forge can be crafted from. Upstream 1.12 keeps this as an ore-dict list
         // on BlockToolForge#baseBlocks, filled from TinkerIntegration's `.toolforge()` calls: iron,

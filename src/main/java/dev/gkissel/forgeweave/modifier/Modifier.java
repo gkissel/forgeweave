@@ -2,6 +2,9 @@ package dev.gkissel.forgeweave.modifier;
 
 import java.util.Optional;
 
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.world.item.enchantment.Enchantment;
+
 import dev.gkissel.forgeweave.combat.CombatSeam;
 
 /**
@@ -97,6 +100,26 @@ public interface Modifier {
     default boolean grantsSilkTouch(int level) {
         return false;
     }
+
+    /**
+     * A vanilla enchantment (and the level to grant it at) this modifier hands out outright -- issue
+     * #223's wind burst, the general form of {@link #grantsSilkTouch} that ADR-0004 decision 3
+     * anticipates: any later modifier that grants a fixed vanilla enchantment implements this instead
+     * of adding another one-off boolean hook, and a JSON-configured behavior can replace it at M6
+     * without touching a caller. Applied the same way silky's Silk Touch is --
+     * {@code ToolAssemblyRecipes#grantEnchantments}, the one call site with the registry access
+     * resolving an enchantment holder needs, which this registry-free interface deliberately does not
+     * have. Silky predates this hook and keeps its own boolean rather than being folded in -- nothing
+     * needs the generalization to touch code that already works.
+     *
+     * @param level accumulated application units (see {@link ModifierEntry#level})
+     */
+    default Optional<EnchantmentGrant> grantedEnchantment(int level) {
+        return Optional.empty();
+    }
+
+    /** One vanilla enchantment at one level -- {@link #grantedEnchantment}'s return type. */
+    record EnchantmentGrant(ResourceKey<Enchantment> enchantment, int level) {}
 
     /**
      * Extra modifier slots this modifier grants, on top of the {@value ForgeweaveModifiers#DEFAULT_SLOTS}

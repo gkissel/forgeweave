@@ -9,7 +9,7 @@ import java.util.stream.Stream;
 
 import org.jetbrains.annotations.Nullable;
 
-import net.minecraft.core.Holder;
+import net.minecraft.core.HolderGetter;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -30,7 +30,9 @@ import dev.gkissel.forgeweave.item.ToolItem;
 import dev.gkissel.forgeweave.material.Material;
 import dev.gkissel.forgeweave.modifier.Embossing;
 import dev.gkissel.forgeweave.modifier.ForgeweaveModifiers;
+import dev.gkissel.forgeweave.modifier.Modifier;
 import dev.gkissel.forgeweave.modifier.ModifierApplication;
+import dev.gkissel.forgeweave.modifier.ModifierEntry;
 import dev.gkissel.forgeweave.tool.ToolConstants;
 import dev.gkissel.forgeweave.tool.ToolMaterials;
 import dev.gkissel.forgeweave.tool.ToolRepair;
@@ -357,21 +359,32 @@ public final class ToolAssemblyRecipes {
     /**
      * Silky (issue #107) grants vanilla Silk Touch the moment it's applied rather than through the
      * enchanting table (CONTEXT.md: Forgeweave tools aren't enchantable there by default), upstream
-     * {@code ModSilktouch#applyEffect}'s {@code ToolBuilder#addEnchantment}. This is the one modifier
+     * {@code ModSilktouch#applyEffect}'s {@code ToolBuilder#addEnchantment}. This is a modifier
      * effect that lands on a vanilla component and needs registry access to do it, which is exactly
      * why {@link ModifierApplication} -- deliberately registry-free, see its own javadoc -- doesn't do
      * it itself; this caller already threads {@code registries} through for everything else here.
+     *
+     * <p>Issue #223's wind burst is the general form of the same idea: any modifier reporting
+     * {@link Modifier#grantedEnchantment} gets that enchantment upgraded onto the stack the same way,
+     * keyed off whatever it names rather than silky's hardcoded Silk Touch. {@code enchant} upgrades
+     * rather than overwrites (vanilla's own {@code ItemEnchantments.Mutable#upgrade}), so re-applying
+     * a levelled modifier can never downgrade what an earlier application already granted.
      */
     private static ItemStack grantEnchantments(HolderLookup.Provider registries, ItemStack stack) {
-        if (!ForgeweaveModifiers.grantsSilkTouch(stack)) {
-            return stack;
+        if (ForgeweaveModifiers.grantsSilkTouch(stack)) {
+            registries.lookup(Registries.ENCHANTMENT)
+                    .flatMap(lookup -> lookup.get(Enchantments.SILK_TOUCH))
+                    .ifPresent(silkTouch -> stack.enchant(silkTouch, 1));
         }
-        Optional<Holder.Reference<Enchantment>> silkTouch = registries.lookup(Registries.ENCHANTMENT)
-                .flatMap(lookup -> lookup.get(Enchantments.SILK_TOUCH));
-        if (silkTouch.isEmpty()) {
-            return stack;
+        HolderGetter<Enchantment> enchantments = registries.lookupOrThrow(Registries.ENCHANTMENT);
+        for (ModifierEntry entry : ForgeweaveModifiers.of(stack)) {
+            Modifier modifier = ForgeweaveModifiers.get(entry.id());
+            if (modifier == null) {
+                continue;
+            }
+            modifier.grantedEnchantment(entry.level())
+                    .ifPresent(grant -> stack.enchant(enchantments.getOrThrow(grant.enchantment()), grant.level()));
         }
-        stack.enchant(silkTouch.get(), 1);
         return stack;
     }
 
