@@ -1,0 +1,71 @@
+{
+    decoder: "item_stack",
+    expect: {
+        components: {
+            "forgeweave:modifiers": [
+                {
+                    id: "forgeweave:haste",
+                    level: 1
+                }
+            ],
+            "forgeweave:tool_materials": {
+                binding: "forgeweave:paper",
+                handle: "forgeweave:chorus",
+                head: "forgeweave:knightslime",
+                parts: [
+                    "forgeweave:chorus",
+                    "forgeweave:knightslime",
+                    "forgeweave:paper"
+                ]
+            },
+            "forgeweave:tool_stats": {
+                attack_damage: 5.6f,
+                durability: 800,
+                mining_speed: 5.8f
+            },
+            "forgeweave:traits": [
+                "forgeweave:crumbling",
+                "forgeweave:enderference",
+                "forgeweave:writable"
+            ],
+            "minecraft:damage": 123,
+            "minecraft:max_damage": 800
+        },
+        id: "forgeweave:pickaxe"
+    },
+    nbt: {
+        components: {
+            "forgeweave:modifiers": [
+                {
+                    id: "forgeweave:haste",
+                    level: 1
+                }
+            ],
+            "forgeweave:tool_materials": {
+                binding: "forgeweave:paper",
+                handle: "forgeweave:chorus",
+                head: "forgeweave:knightslime",
+                parts: [
+                    "forgeweave:chorus",
+                    "forgeweave:knightslime",
+                    "forgeweave:paper"
+                ]
+            },
+            "forgeweave:tool_stats": {
+                attack_damage: 5.6f,
+                durability: 800,
+                mining_speed: 5.8f
+            },
+            "forgeweave:traits": [
+                "forgeweave:crumbling",
+                "forgeweave:enderference",
+                "forgeweave:writable"
+            ],
+            "minecraft:damage": 123,
+            "minecraft:max_damage": 800
+        },
+        count: 1,
+        id: "forgeweave:pickaxe"
+    },
+    what: "M3.2 (#237 audit): a pickaxe whose parts span the roster's three new families -- knightslime head (Forgeweave-alloyed metal), chorus handle (modern-branch addition), paper binding (vanilla-sourced) -- carrying the baked trait list and a modifier alongside. Pins that new-roster material and trait ids ride the M1/M3 tool_materials, traits, and modifiers shapes as plain ids with no new structure; the day a material or trait id grows a companion field, every M3.2-material tool in every world stops decoding."
+}

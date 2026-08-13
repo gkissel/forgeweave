@@ -1,0 +1,70 @@
+{
+    block: "forgeweave:standard_core",
+    decoder: "block_entity",
+    expect: {
+        id: "forgeweave:standard_core",
+        melting: {
+            Items: [
+                {
+                    Slot: 0b,
+                    count: 3,
+                    id: "minecraft:rotten_flesh"
+                }
+            ]
+        },
+        structure: {
+            interior_max: [I; 0, 1, 1],
+            interior_min: [I; 0, 0, 1]
+        },
+        tank: {
+            fluids: [
+                {
+                    amount: 40,
+                    id: "forgeweave:blood"
+                },
+                {
+                    amount: 250,
+                    id: "forgeweave:molten_slime"
+                },
+                {
+                    amount: 72,
+                    id: "forgeweave:molten_carbon"
+                }
+            ]
+        }
+    },
+    nbt: {
+        id: "forgeweave:standard_core",
+        melt_progress: [I; 0, 0],
+        melting: {
+            Items: [
+                {
+                    Slot: 0b,
+                    count: 3,
+                    id: "minecraft:rotten_flesh"
+                }
+            ]
+        },
+        structure: {
+            interior_max: [I; 0, 1, 1],
+            interior_min: [I; 0, 0, 1]
+        },
+        tank: {
+            fluids: [
+                {
+                    amount: 40,
+                    id: "forgeweave:blood"
+                },
+                {
+                    amount: 250,
+                    id: "forgeweave:molten_slime"
+                },
+                {
+                    amount: 72,
+                    id: "forgeweave:molten_carbon"
+                }
+            ]
+        }
+    },
+    what: "M3.2 (#237 audit): a formed standard core holding three of the milestone's new fluids at once -- blood at 40 mB (the pig iron alloy's exact input quantity), molten slime, and molten carbon -- with rotten flesh mid-melt in the inventory. Pins that M3.2's fluid ids ride M2's ordered tank.fluids shape unchanged, blood's bare (non-molten_) id included."
+}
