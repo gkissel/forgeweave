@@ -19,6 +19,7 @@ import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.Style;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.entity.player.Inventory;
@@ -554,6 +555,15 @@ public class ToolStationScreen extends StationScreen<ToolStationMenu> implements
                 graphics.renderTooltip(font, ToolStationTabs.get(i).title(), mouseX, mouseY);
                 return;
             }
+        }
+        // Hovering a modifier row in the tool info panel explains the effect (issue #258): the rows
+        // StationText#toolModifiers builds carry SHOW_TEXT hover events, so this only asks the panel
+        // which style sits under the mouse and lets vanilla render whatever hover event it carries
+        // (lines without one -- stats, materials, the slots-left line -- no-op inside the call).
+        Style hovered = InfoPanel.hoveredStyle(font, leftPos + BASE_WIDTH + PANEL_GAP, topPos + PANEL_TOP,
+                InfoPanel.WIDTH, InfoPanel.HEIGHT, toolCaption != null, toolLines, toolScroll, mouseX, mouseY);
+        if (hovered != null) {
+            graphics.renderComponentHoverEffect(font, hovered, mouseX, mouseY);
         }
     }
 
