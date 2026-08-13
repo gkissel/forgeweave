@@ -43,7 +43,8 @@ class LocalizationAuditTest {
     /** Literal text explicitly reviewed and exempted from translation; empty until one is needed. */
     private static final Set<String> ALLOWED_LITERALS = Set.of();
 
-    private static Path projectRoot() {
+    /** Shared with {@link MaterialLangCoverageTest}, which audits the same generated lang surface. */
+    static Path projectRoot() {
         Path dir = Path.of("").toAbsolutePath();
         for (Path candidate = dir; candidate != null; candidate = candidate.getParent()) {
             if (Files.exists(candidate.resolve("settings.gradle"))) {
