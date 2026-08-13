@@ -1,8 +1,18 @@
 {
   "modifier": "forgeweave:haste",
-  "reagent": {
-    "item": "minecraft:redstone"
-  },
+  "reagents": [
+    {
+      "ingredient": {
+        "item": "minecraft:redstone"
+      }
+    },
+    {
+      "ingredient": {
+        "item": "minecraft:redstone_block"
+      },
+      "units": 9
+    }
+  ],
   "cost": 1,
   "max_level": 250
 }

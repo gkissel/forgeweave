@@ -160,6 +160,62 @@ public class ModifierGameTests {
     }
 
     /**
+     * Issue #259: a redstone block is worth 9 dust, upstream {@code TinkerModifiers}'
+     * {@code modHaste.addItem("blockRedstone", 1, 9)} -- through the real station menu, against the
+     * shipped haste JSON's {@code reagents} list. Dust-by-1 is {@link #oneRedstoneFillsOneModifierSlot}.
+     */
+    @GameTest(template = "empty")
+    public static void oneRedstoneBlockAdvancesHasteByNine(GameTestHelper helper) {
+        BlockPos pos = new BlockPos(1, 1, 1);
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        ItemStack pickaxe = ToolAssembly.pickaxe(helper, player, pos, "stone", "wood", "wood");
+
+        ItemStack hasted = applyReagent(helper, player, pos, pickaxe, new ItemStack(Items.REDSTONE_BLOCK, 1));
+
+        ModifierEntry entry = ForgeweaveModifiers.entry(hasted, HASTE);
+        helper.assertTrue(entry != null && entry.level() == 9,
+                "one redstone block must record haste at 9 units, got " + entry);
+        helper.assertTrue(ForgeweaveModifiers.freeSlots(hasted) == ForgeweaveModifiers.DEFAULT_SLOTS - 1,
+                "a block application still occupies exactly one slot, got "
+                        + ForgeweaveModifiers.freeSlots(hasted) + " free");
+        helper.succeed();
+    }
+
+    /**
+     * Issue #259's cap behavior: at 245/250 a whole 9-unit block no longer fits and is refused
+     * unconsumed (upstream's all-or-nothing {@code RecipeMatch} rollback), with a message -- while
+     * dust keeps partial-filling the same 5-unit gap.
+     */
+    @GameTest(template = "empty")
+    public static void aBlockThatOvershootsTheHasteCapIsRefused(GameTestHelper helper) {
+        BlockPos pos = new BlockPos(1, 1, 1);
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        ItemStack pickaxe = ToolAssembly.pickaxe(helper, player, pos, "stone", "wood", "wood");
+        pickaxe.set(ForgeweaveDataComponents.MODIFIERS.get(), List.of(new ModifierEntry(HASTE, 245)));
+
+        ToolStationBlockEntity blockEntity = helper.getBlockEntity(pos);
+        blockEntity.container().setItem(0, pickaxe);
+        blockEntity.container().setItem(1, new ItemStack(Items.REDSTONE_BLOCK, 1));
+        blockEntity.container().setItem(2, ItemStack.EMPTY);
+        ToolStationMenu menu = ToolAssembly.menu(helper, player, pos, blockEntity);
+        menu.broadcastChanges();
+
+        helper.assertTrue(menu.getSlot(ToolStationMenu.OUTPUT_SLOT).getItem().isEmpty(),
+                "a 9-unit block must not squeeze into 5 units of room");
+        helper.assertTrue(menu.rejection() != null, "and the station must say why");
+
+        // Dust still partial-fills the same gap to exactly 250.
+        blockEntity.container().setItem(1, new ItemStack(Items.REDSTONE, 8));
+        menu.broadcastChanges();
+        ItemStack output = menu.getSlot(ToolStationMenu.OUTPUT_SLOT).getItem();
+        helper.assertFalse(output.isEmpty(), "dust must still apply where a block cannot");
+        ModifierEntry entry = ForgeweaveModifiers.entry(output, HASTE);
+        helper.assertTrue(entry != null && entry.level() == 250,
+                "dust must fill to the 250 cap exactly, got " + entry);
+        helper.succeed();
+    }
+
+    /**
      * The station's two free slots take reagents as well as repair items, and taking the output
      * spends exactly the reagents the application used.
      */
