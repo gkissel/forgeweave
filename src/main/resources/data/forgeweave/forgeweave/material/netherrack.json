@@ -12,7 +12,7 @@
   "incorrect_for_tool": "minecraft:incorrect_for_iron_tool",
   "traits": {
     "general": ["forgeweave:hellish"],
-    "head": ["forgeweave:aridiculous"]
+    "head": ["forgeweave:aridiculous", "forgeweave:hellish"]
   },
   "crafting_items": [
     { "ingredient": { "item": "minecraft:netherrack" }, "value": 2 }

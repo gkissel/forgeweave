@@ -12,7 +12,7 @@
   "incorrect_for_tool": "minecraft:incorrect_for_iron_tool",
   "traits": {
     "general": ["forgeweave:aquadynamic"],
-    "head": ["forgeweave:jagged"]
+    "head": ["forgeweave:jagged", "forgeweave:aquadynamic"]
   },
   "crafting_items": [
     { "ingredient": { "item": "minecraft:prismarine_shard" }, "value": 1 },

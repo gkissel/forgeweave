@@ -56,9 +56,10 @@ public class VanillaMaterialGameTests {
      * The per-part trait lists of all seven #231 materials, read off the same synced registry the
      * Tool Station resolves from ({@code TraitGameTests#shippedMaterialsExposeTheirTraitListsThroughEveryPart}'s
      * pattern). Head scopes replace the general list on head parts (upstream's {@code addTrait(x,
-     * HEAD)} semantics); upstream's redundant re-registrations (prismarine's second {@code
-     * aquadynamic}, netherrack's second {@code hellish}) are collapsed to the general registration
-     * per the docs/SCOPE.md trait table.
+     * HEAD)} semantics), so upstream's redundant re-registrations (prismarine's second {@code
+     * aquadynamic}, netherrack's second {@code hellish}) must be restated under head too (#282) --
+     * otherwise the head part would silently drop the general trait entirely, as pig_iron's {@code
+     * tasty} + {@code baconlicious} pattern already shows.
      */
     @GameTest(template = "empty")
     public static void vanillaMaterialsExposeTheirCloneTraitWiring(GameTestHelper helper) {
@@ -74,11 +75,11 @@ public class VanillaMaterialGameTests {
         Map<String, List<String>> head = Map.of(
                 "cactus", List.of("prickly"),
                 "obsidian", List.of("duritos"),
-                "prismarine", List.of("jagged"),
+                "prismarine", List.of("jagged", "aquadynamic"),
                 "endstone", List.of("alien"),
                 "paper", List.of("writable2"),
                 "sponge", List.of("squeaky"),
-                "netherrack", List.of("aridiculous"));
+                "netherrack", List.of("aridiculous", "hellish"));
 
         general.forEach((name, generalTraits) -> {
             Material material = materials.get(ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, name));
