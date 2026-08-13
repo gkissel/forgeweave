@@ -28,6 +28,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.InteractionHand;
+import net.minecraft.world.entity.decoration.ItemFrame;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.inventory.ContainerLevelAccess;
 import net.minecraft.server.level.ServerPlayer;
@@ -94,8 +95,10 @@ import dev.gkissel.forgeweave.tool.ToolConstants;
  * (issue #145), {@code tool_forge_world.png}, a Tool Forge beside a Tool Station (issue #152), and
  * {@code smeltery_world.png}, a formed smeltery holding two molten metals seen from over its rim
  * (issue #179), and {@code casting_world.png}, casting tables and basins with casts, fluid, a live
- * faucet pour and a finished one (issues #182 and #200). Those are the release-checklist artifacts
- * for in-world block rendering the same way {@link #SCREENS} is for GUIs.
+ * faucet pour and a finished one (issues #182 and #200), and {@code m3_2_materials_1..3.png}, item
+ * frames holding a tinted pickaxe head and an assembled pickaxe for every M3.2 material (issue
+ * #236). Those are the release-checklist artifacts for in-world block rendering the same way
+ * {@link #SCREENS} is for GUIs.
  *
  * <h2>Why this is inert by default</h2>
  *
@@ -250,13 +253,42 @@ public final class ScreenshotHarness {
     /** How far in -Z of spawn the weapon poses stand, clear of the block scenes above. */
     private static final int WEAPON_SCENE_DISTANCE = 6;
 
+    /**
+     * Issue #236's M3.2 material roster, in milestone order (vanilla-sourced batch, slime family,
+     * metals, modern shapes). Listed rather than walked off the datapack on purpose, like {@link
+     * #WEAPONS}: this is the release-checklist artifact for <em>these</em> materials' tints, and a
+     * later material should decide for itself whether it belongs on this wall.
+     */
+    private static final List<String> M3_2_MATERIALS = List.of(
+            "cactus", "obsidian", "prismarine", "endstone", "paper", "sponge", "netherrack", "firewood",
+            "slime", "blueslime", "magmaslime", "knightslime", "pig_iron", "steel", "bronze", "lead",
+            "silver", "electrum", "amethyst_bronze", "nahuatl", "chorus", "ancient");
+
+    /**
+     * How many materials share one #236 frame: 22 tints in a single 854x480 frame would leave each
+     * item around 30 px -- too small to judge a tint against its neighbor -- so the wall is split
+     * into groups of eight, captured as {@code m3_2_materials_1..3}.
+     */
+    private static final int MATERIAL_SCENE_COLUMNS = 8;
+    /**
+     * The #236 walls sit far out in +Z, past the #145 tank row -- the one line from spawn no other
+     * scene builds in. The wall itself occludes everything behind it, so the frames read against
+     * plain stone whatever the earlier scenes left standing.
+     */
+    private static final int MATERIAL_SCENE_DISTANCE = 18;
+    /** Blocks apart along +X between one group's wall and the next, so no capture shows two walls. */
+    private static final int MATERIAL_SCENE_GROUP_SPACING = 12;
+    /** Camera distance south of a wall: close enough that each framed item is ~65 px across. */
+    private static final int MATERIAL_SCENE_CAMERA_PULLBACK = 5;
+
     /** Ceiling on the attack-cooldown wait before a first-person weapon frame; see {@link #settleWeaponFirstPerson}. */
     private static final int WEAPON_SWING_RESET_TICKS = 60;
 
     private enum Stage {
         AWAIT_TITLE, AWAIT_WORLD, SETTLE_WORLD, PLACE_TANK_SCENE, SETTLE_TANK_SCENE,
         PLACE_TABLE_SCENE, SETTLE_TABLE_SCENE, PLACE_SMELTERY_SCENE, SETTLE_SMELTERY_SCENE,
-        PLACE_CASTING_SCENE, SETTLE_CASTING_SCENE, HOLD_WEAPON, SETTLE_WEAPON, SETTLE_WEAPON_FIRST_PERSON,
+        PLACE_CASTING_SCENE, SETTLE_CASTING_SCENE, PLACE_MATERIAL_SCENE, SETTLE_MATERIAL_SCENE,
+        HOLD_WEAPON, SETTLE_WEAPON, SETTLE_WEAPON_FIRST_PERSON,
         OPEN_SCREEN, SETTLE_SCREEN, DONE
     }
 
@@ -278,6 +310,10 @@ public final class ScreenshotHarness {
     private static BlockPos castingSceneStoppedFaucetPos;
     /** #200: the one still mid-pour, so "nothing renders" cannot pass for "the stream stopped". */
     private static BlockPos castingSceneFlowingFaucetPos;
+    /** Which {@value #MATERIAL_SCENE_COLUMNS}-material group of {@link #M3_2_MATERIALS} is up (#236). */
+    private static int materialSceneIndex;
+    /** Set by {@link #placeMaterialScene}, checked by {@link #settleMaterialScene} before capture. */
+    private static AABB materialSceneBounds;
 
     private ScreenshotHarness() {}
 
@@ -300,6 +336,8 @@ public final class ScreenshotHarness {
             case SETTLE_SMELTERY_SCENE -> settleSmelteryScene(mc);
             case PLACE_CASTING_SCENE -> placeCastingScene(mc);
             case SETTLE_CASTING_SCENE -> settleCastingScene(mc);
+            case PLACE_MATERIAL_SCENE -> placeMaterialScene(mc);
+            case SETTLE_MATERIAL_SCENE -> settleMaterialScene(mc);
             case HOLD_WEAPON -> holdWeapon(mc);
             case SETTLE_WEAPON -> settleWeapon(mc);
             case SETTLE_WEAPON_FIRST_PERSON -> settleWeaponFirstPerson(mc);
@@ -761,7 +799,122 @@ public final class ScreenshotHarness {
         // pool cannot tell a reviewer 204/288 from 204/204.
         checkPartCastFill(mc, castingScenePositions == null ? null : castingScenePositions[4]);
         capture(mc, "casting_world");
-        advance(Stage.HOLD_WEAPON);
+        advance(Stage.PLACE_MATERIAL_SCENE);
+    }
+
+    /**
+     * Issue #236's release-checklist scenes, {@code m3_2_materials_1..3}: every M3.2 material's tint
+     * in real rendering, {@value #MATERIAL_SCENE_COLUMNS} materials per frame. Each material gets a
+     * column of two item frames on a stone wall facing the camera -- a pickaxe head part on top and
+     * an assembled pickaxe (that material's head over wooden binding/handle) below it -- so one
+     * capture shows the same tint through both render paths a player sees it in: the flat part
+     * sprite and the tool's per-layer composite.
+     *
+     * <p>Item frames rather than dropped items because a dropped item spins: a frame holds every
+     * item flat, face-on and at a fixed size, which is what comparing 22 tints side by side needs.
+     * The stacks are built the same way the stations build them -- the part carries the real {@link
+     * ForgeweaveDataComponents#MATERIAL} component and the tool comes out of {@link
+     * ToolAssemblyRecipes#assemble}, the very call the Tool Station's menu makes -- so the tint on
+     * the wall is the tint a player gets, not staged art.
+     */
+    private static void placeMaterialScene(Minecraft mc) {
+        int start = materialSceneIndex * MATERIAL_SCENE_COLUMNS;
+        if (start >= M3_2_MATERIALS.size()) {
+            advance(Stage.HOLD_WEAPON);
+            return;
+        }
+        List<String> group = M3_2_MATERIALS.subList(start,
+                Math.min(start + MATERIAL_SCENE_COLUMNS, M3_2_MATERIALS.size()));
+        var server = mc.getSingleplayerServer();
+        LOGGER.info("{}placing #236 material wall {} ({} materials: {})", LOG_PREFIX,
+                materialSceneIndex + 1, group.size(), group);
+        server.execute(() -> {
+            ServerPlayer serverPlayer = server.getPlayerList().getPlayers().get(0);
+            ServerLevel level = serverPlayer.serverLevel();
+            BlockPos wallBase = origin.offset(
+                    materialSceneIndex * MATERIAL_SCENE_GROUP_SPACING, 0, MATERIAL_SCENE_DISTANCE);
+            // The frames hang one block south of the wall; the box covers both frame rows.
+            materialSceneBounds = new AABB(
+                    wallBase.getX(), wallBase.getY() + 1, wallBase.getZ() + 1,
+                    wallBase.getX() + group.size(), wallBase.getY() + 3, wallBase.getZ() + 2);
+            // Idempotent across harness re-runs on a kept save, as #145's setFluid(EMPTY) is:
+            // without this a re-run would hang a second frame over each of the first run's.
+            level.getEntitiesOfClass(ItemFrame.class, materialSceneBounds).forEach(ItemFrame::discard);
+
+            for (int i = 0; i < group.size(); i++) {
+                String materialName = group.get(i);
+                BlockPos topWall = wallBase.offset(i, 2, 0);
+                BlockPos bottomWall = wallBase.offset(i, 1, 0);
+                level.setBlockAndUpdate(topWall, Blocks.SMOOTH_STONE.defaultBlockState());
+                level.setBlockAndUpdate(bottomWall, Blocks.SMOOTH_STONE.defaultBlockState());
+
+                ItemStack part = new ItemStack(ForgeweaveItems.PART_PICKAXE_HEAD.get());
+                part.set(ForgeweaveDataComponents.MATERIAL.get(), material(materialName));
+                hangFrame(level, topWall.south(), part);
+
+                ItemStack tool = assembleForDisplay(serverPlayer,
+                        ForgeweaveItems.TOOL_PICKAXE.get(), materialName);
+                if (tool.isEmpty()) {
+                    LOGGER.error("{}#236 scene FAILED: could not assemble a {} pickaxe",
+                            LOG_PREFIX, materialName);
+                }
+                hangFrame(level, bottomWall.south(), tool);
+            }
+
+            // South of the wall at ground level, looking at the seam between the two frame rows.
+            double centerX = wallBase.getX() + group.size() / 2.0;
+            BlockPos cameraPos = wallBase.offset(0, 0, 1 + MATERIAL_SCENE_CAMERA_PULLBACK);
+            serverPlayer.teleportTo(centerX, cameraPos.getY(), cameraPos.getZ() + 0.5);
+            serverPlayer.lookAt(EntityAnchorArgument.Anchor.EYES,
+                    new Vec3(centerX, wallBase.getY() + 2.0, wallBase.getZ() + 1.0));
+        });
+        advance(Stage.SETTLE_MATERIAL_SCENE);
+    }
+
+    /** Hangs one item frame at {@code pos}, facing the camera, holding {@code stack}. */
+    private static void hangFrame(ServerLevel level, BlockPos pos, ItemStack stack) {
+        ItemFrame frame = new ItemFrame(level, pos, Direction.SOUTH);
+        frame.setItem(stack);
+        level.addFreshEntity(frame);
+    }
+
+    private static void settleMaterialScene(Minecraft mc) {
+        if (stageTicks < SCREEN_SETTLE_TICKS) {
+            return;
+        }
+        int start = materialSceneIndex * MATERIAL_SCENE_COLUMNS;
+        List<String> group = M3_2_MATERIALS.subList(start,
+                Math.min(start + MATERIAL_SCENE_COLUMNS, M3_2_MATERIALS.size()));
+        // Same self-diagnosing check every world scene logs before its capture: a PNG cannot tell
+        // "rendered nothing" from "nothing to render", and 2xN tiny sprites are especially easy to
+        // miscount by eye. Counts the client's own frame entities and logs each one's item and
+        // material, west to east, so the log doubles as the column legend for the PNG.
+        if (mc.level != null && materialSceneBounds != null) {
+            List<ItemFrame> frames = mc.level.getEntitiesOfClass(ItemFrame.class, materialSceneBounds).stream()
+                    .sorted(java.util.Comparator.comparingDouble((ItemFrame f) -> f.getX())
+                            .thenComparing(f -> -f.getY()))
+                    .toList();
+            int expected = 2 * group.size();
+            if (frames.size() != expected) {
+                LOGGER.error("{}#236 scene check FAILED: client sees {} item frames in {}, expected {}",
+                        LOG_PREFIX, frames.size(), materialSceneBounds, expected);
+            }
+            for (ItemFrame frame : frames) {
+                ItemStack item = frame.getItem();
+                Object materialId = item.get(ForgeweaveDataComponents.MATERIAL.get());
+                Object toolMaterials = item.get(ForgeweaveDataComponents.TOOL_MATERIALS.get());
+                if (item.isEmpty() || (materialId == null && toolMaterials == null)) {
+                    LOGGER.error("{}#236 scene check FAILED: frame at {} holds {} with no material "
+                            + "component -- it renders untinted", LOG_PREFIX, frame.blockPosition(), item);
+                } else {
+                    LOGGER.info("{}#236 scene check: frame at {} holds {} material={}", LOG_PREFIX,
+                            frame.blockPosition(), item, materialId != null ? materialId : toolMaterials);
+                }
+            }
+        }
+        capture(mc, "m3_2_materials_" + (materialSceneIndex + 1));
+        materialSceneIndex++;
+        advance(Stage.PLACE_MATERIAL_SCENE);
     }
 
     /**
@@ -860,11 +1013,16 @@ public final class ScreenshotHarness {
 
     /** The tool the Tool Station would build from an iron head and wooden everything else. */
     private static ItemStack assembleForDisplay(ServerPlayer player, ToolItem weapon) {
+        return assembleForDisplay(player, weapon, "iron");
+    }
+
+    /** As above with the head material chosen by the caller -- #236's wall builds one per material. */
+    private static ItemStack assembleForDisplay(ServerPlayer player, ToolItem weapon, String headMaterial) {
         return ToolAssemblyRecipes.entryFor(new ItemStack(weapon))
                 .flatMap(entry -> ToolAssemblyRecipes.assemble(player.registryAccess(), entry,
                         entry.constants().parts().stream()
                                 .map(slot -> slot.role() == ToolConstants.Role.HEAD
-                                        ? material("iron") : material("wood"))
+                                        ? material(headMaterial) : material("wood"))
                                 .toList()))
                 .orElse(ItemStack.EMPTY);
     }
