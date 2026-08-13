@@ -12,12 +12,15 @@ import org.junit.jupiter.api.Test;
 
 import net.minecraft.SharedConstants;
 import net.minecraft.core.Holder;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.Bootstrap;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.component.ItemAttributeModifiers;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.state.BlockState;
 
 import dev.gkissel.forgeweave.modifier.ModifierEntry;
 import dev.gkissel.forgeweave.tool.ToolStats;
@@ -117,6 +120,45 @@ class ToolItemTest {
         Optional<ItemAttributeModifiers.Entry> entry = attribute(farReach, Attributes.BLOCK_INTERACTION_RANGE);
         assertTrue(entry.isPresent(), "expected a block interaction range attribute modifier");
         assertEquals(1.0, entry.get().modifier().amount(), 1.0e-5);
+    }
+
+    // -------------------------------------------------------------------------- #283: Broken state
+
+    /**
+     * Upstream 1.12's {@code ToolHelper#calcDigSpeed} gives a Broken tool a flat 0.3 dig speed (a
+     * real penalty), not bare-hand (1.0) speed.
+     */
+    @Test
+    void brokenToolMinesAt0Point3Speed() {
+        ItemStack broken = brokenPickaxe();
+        BlockState stone = Blocks.STONE.defaultBlockState();
+        assertEquals(0.3F, ForgeweaveItems.TOOL_PICKAXE.get().getDestroySpeed(broken, stone), 1.0e-5);
+    }
+
+    /**
+     * Upstream's {@code ToolCore#showDurabilityBar} suppresses the durability bar once Broken; ours
+     * kept showing a sliver because damage is clamped to {@code maxDamage - 1}, which vanilla's
+     * default {@code isBarVisible} (damage > 0) still reads as damaged.
+     */
+    @Test
+    void durabilityBarHiddenOnceBrokenButVisibleWhenMerelyDamaged() {
+        ItemStack broken = brokenPickaxe();
+        assertFalse(ForgeweaveItems.TOOL_PICKAXE.get().isBarVisible(broken),
+                "a Broken tool should not show a durability bar");
+
+        ItemStack merelyDamaged = assembledPickaxe();
+        merelyDamaged.set(DataComponents.MAX_DAMAGE, 100);
+        merelyDamaged.set(DataComponents.DAMAGE, 50);
+        assertTrue(ForgeweaveItems.TOOL_PICKAXE.get().isBarVisible(merelyDamaged),
+                "a merely damaged (not Broken) tool should still show its durability bar");
+    }
+
+    private static ItemStack brokenPickaxe() {
+        ItemStack stack = assembledPickaxe();
+        stack.set(DataComponents.MAX_DAMAGE, 100);
+        stack.set(DataComponents.DAMAGE, 99);
+        stack.set(ForgeweaveDataComponents.BROKEN.get(), true);
+        return stack;
     }
 
     private static ItemStack assembledPickaxe() {

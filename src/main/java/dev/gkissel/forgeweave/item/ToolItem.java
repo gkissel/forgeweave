@@ -66,14 +66,15 @@ import dev.gkissel.forgeweave.trait.ForgeweaveTraits;
  * {@code maxDamage}, which makes destruction unreachable from any caller rather than from the two
  * or three we thought to override. At the clamp the tool gets the
  * {@link ForgeweaveDataComponents#BROKEN} flag, and every behavior below reads that flag: mining
- * falls back to bare-hand speed and drops nothing, attack modifiers disappear, and the tooltip says
- * so. Upstream 1.12 does the same thing with an NBT flag plus a {@code ToolCore} that never lets
- * vanilla see a fully-damaged stack ({@code library/utils/ToolHelper.java}
- * {@code #damageTool}/{@code #breakTool}/{@code #isBroken}).
+ * falls back to a flat 0.3 penalty speed and drops nothing, attack modifiers disappear, the
+ * durability bar hides, and the tooltip says so. Upstream 1.12 does the same thing with an NBT flag
+ * plus a {@code ToolCore} that never lets vanilla see a fully-damaged stack
+ * ({@code library/utils/ToolHelper.java} {@code #damageTool}/{@code #breakTool}/{@code #isBroken}).
  *
- * <p>A Broken tool therefore rests at {@code damage == maxDamage - 1}; the durability bar rounds
- * that to zero width, so it reads as empty. Repair (Tool Station, {@code ToolAssemblyRecipes}) is
- * the only thing that clears the flag.
+ * <p>A Broken tool therefore rests at {@code damage == maxDamage - 1}; without the
+ * {@link #isBarVisible} override the durability bar would still round that to a thin sliver rather
+ * than disappearing. Repair (Tool Station, {@code ToolAssemblyRecipes}) is the only thing that
+ * clears the flag.
  */
 public class ToolItem extends Item {
     /** Id for the trait-driven attack speed modifier {@link #getDefaultAttributeModifiers} adds (issue #102). */
@@ -423,7 +424,8 @@ public class ToolItem extends Item {
     @Override
     public float getDestroySpeed(ItemStack stack, BlockState state) {
         if (isBroken(stack)) {
-            return 1.0F;
+            // Upstream 1.12's ToolHelper#calcDigSpeed: a real 0.3 penalty, not bare-hand (1.0) speed.
+            return 0.3F;
         }
         float base = super.getDestroySpeed(stack, state);
         return ForgeweaveTraits.miningSpeed(stack, isEffective(state), base);
@@ -432,6 +434,12 @@ public class ToolItem extends Item {
     @Override
     public boolean isCorrectToolForDrops(ItemStack stack, BlockState state) {
         return !isBroken(stack) && super.isCorrectToolForDrops(stack, state);
+    }
+
+    /** Upstream 1.12's {@code ToolCore#showDurabilityBar}: no bar once Broken, however damage sits. */
+    @Override
+    public boolean isBarVisible(ItemStack stack) {
+        return !isBroken(stack) && super.isBarVisible(stack);
     }
 
     /**

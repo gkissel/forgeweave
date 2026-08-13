@@ -79,11 +79,13 @@ public class ToolBehaviorGameTests {
         helper.assertTrue(ToolItem.isBroken(pickaxe), "expected the tool to be flagged Broken");
         helper.assertTrue(pickaxe.getDamageValue() == pickaxe.getMaxDamage() - 1,
                 "a Broken tool should rest one point short of destruction, got " + pickaxe.getDamageValue());
-        helper.assertTrue(pickaxe.getDestroySpeed(stone) == 1.0F,
-                "a Broken tool should mine at bare-hand speed, got " + pickaxe.getDestroySpeed(stone));
+        helper.assertTrue(pickaxe.getDestroySpeed(stone) == 0.3F,
+                "a Broken tool should mine at the 0.3 penalty speed, got " + pickaxe.getDestroySpeed(stone));
         helper.assertFalse(pickaxe.isCorrectToolForDrops(stone), "a Broken tool should not harvest drops");
         helper.assertTrue(pickaxe.getAttributeModifiers().modifiers().isEmpty(),
                 "a Broken tool should carry no attack modifiers");
+        helper.assertFalse(pickaxe.getItem().isBarVisible(pickaxe),
+                "a Broken tool should not show a durability bar");
 
         // Keep using it: still no destruction, and no further damage to take.
         mine(helper, player, pickaxe, pos, stone);
