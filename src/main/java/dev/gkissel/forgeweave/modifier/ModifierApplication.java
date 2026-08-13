@@ -22,6 +22,7 @@ import net.minecraft.world.item.enchantment.ItemEnchantments;
 import dev.gkissel.forgeweave.item.ForgeweaveDataComponents;
 import dev.gkissel.forgeweave.item.ToolItem;
 import dev.gkissel.forgeweave.tool.ToolStats;
+import dev.gkissel.forgeweave.trait.ForgeweaveTraits;
 
 /**
  * Applying a {@link ModifierRecipe}'s reagents to an assembled tool at the Tool Station. The station
@@ -277,7 +278,11 @@ public final class ModifierApplication {
                     .toList();
             stack.set(DataComponents.TOOL, new Tool(rules, component.defaultMiningSpeed(), component.damagePerBlock()));
         }
-        stack.set(DataComponents.MAX_DAMAGE, effective.durability());
+        // #230: alien's distributed durability growth lives outside both tool_stats and the modifier
+        // list, so it is re-added here the way upstream's TraitProgressiveStats#applyEffect re-adds
+        // its bonus on every rebuild -- without this, applying any modifier would shrink max_damage
+        // back to the materials-plus-modifiers number and wipe the growth.
+        stack.set(DataComponents.MAX_DAMAGE, effective.durability() + ForgeweaveTraits.maxDurabilityBonus(stack));
     }
 
     /**

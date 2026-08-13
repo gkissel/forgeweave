@@ -1,0 +1,59 @@
+{
+    decoder: "item_stack",
+    expect: {
+        components: {
+            "forgeweave:alien_progress": {
+                distributed: {
+                    attack_damage: 0.01f,
+                    durability: 7,
+                    mining_speed: 0.021000002f
+                },
+                pool: {
+                    attack_damage: 1.3249999f,
+                    durability: 270,
+                    mining_speed: 1.855f
+                }
+            },
+            "forgeweave:tool_stats": {
+                attack_damage: 3.0f,
+                durability: 300,
+                mining_speed: 4.0f
+            },
+            "forgeweave:traits": [
+                "forgeweave:alien"
+            ],
+            "minecraft:damage": 12,
+            "minecraft:max_damage": 307
+        },
+        id: "forgeweave:pickaxe"
+    },
+    nbt: {
+        components: {
+            "forgeweave:alien_progress": {
+                distributed: {
+                    attack_damage: 0.01f,
+                    durability: 7,
+                    mining_speed: 0.021000002f
+                },
+                pool: {
+                    attack_damage: 1.3249999f,
+                    durability: 270,
+                    mining_speed: 1.855f
+                }
+            },
+            "forgeweave:tool_stats": {
+                attack_damage: 3.0f,
+                durability: 300,
+                mining_speed: 4.0f
+            },
+            "forgeweave:traits": [
+                "forgeweave:alien"
+            ],
+            "minecraft:damage": 12,
+            "minecraft:max_damage": 307
+        },
+        count: 1,
+        id: "forgeweave:pickaxe"
+    },
+    what: "M3.2 (#230): a pickaxe part way through alien's progressive growth -- the rolled 800-point pool (270 durability + 265 speed + 265 attack steps) with 7 durability, 3 speed and 2 attack steps already distributed; max_damage carries the 7 grown points on top of the 300-durability stat block. Both blocks are the whole of the trait's serialized state."
+}
