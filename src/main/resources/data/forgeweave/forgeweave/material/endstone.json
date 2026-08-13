@@ -1,0 +1,24 @@
+{
+  "head": {
+    "durability": 420,
+    "mining_speed": 3.23,
+    "attack_damage": 3.23
+  },
+  "handle": {
+    "durability_modifier": 0.85,
+    "durability": 0
+  },
+  "extra_durability": 42,
+  "incorrect_for_tool": "minecraft:incorrect_for_netherite_tool",
+  "traits": {
+    "general": ["forgeweave:enderference"],
+    "head": ["forgeweave:alien"]
+  },
+  "crafting_items": [
+    { "ingredient": { "item": "minecraft:end_stone" }, "value": 2 }
+  ],
+  "repair_item": {
+    "item": "minecraft:end_stone"
+  },
+  "color": "#E0D890"
+}

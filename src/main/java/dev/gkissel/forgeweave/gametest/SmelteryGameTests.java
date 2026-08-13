@@ -35,6 +35,7 @@ import dev.gkissel.forgeweave.block.SmelteryCore;
 import dev.gkissel.forgeweave.block.SmelteryControllerBlockEntity;
 import dev.gkissel.forgeweave.block.SmelteryScan;
 import dev.gkissel.forgeweave.block.SmelteryStructure;
+import dev.gkissel.forgeweave.fluid.ForgeweaveFluids;
 import dev.gkissel.forgeweave.menu.SmelteryMenu;
 
 /**
@@ -187,13 +188,15 @@ public class SmelteryGameTests {
         SmelteryControllerBlockEntity blockEntity = helper.getBlockEntity(core);
         helper.assertTrue(blockEntity.isFormed(), "expected the smeltery to form first: " + reason(helper, core));
 
-        blockEntity.tank().fill(new FluidStack(Fluids.WATER, 500), IFluidHandler.FluidAction.EXECUTE);
-        blockEntity.tank().fill(new FluidStack(Fluids.LAVA, 250), IFluidHandler.FluidAction.EXECUTE);
+        // Iron + manyullyn: two fluids no alloy recipe touches (issue #231 made water + lava alloy
+        // into obsidian, upstream's obsidianAlloy, so that pair can no longer sit inert in a tank).
+        blockEntity.tank().fill(new FluidStack(ForgeweaveFluids.IRON.still().get(), 500), IFluidHandler.FluidAction.EXECUTE);
+        blockEntity.tank().fill(new FluidStack(ForgeweaveFluids.MANYULLYN.still().get(), 250), IFluidHandler.FluidAction.EXECUTE);
 
         SmelteryMenu menu = openMenu(helper, core);
         List<FluidStack> fluids = menu.fluids(helper.getLevel());
         helper.assertValueEqual(fluids.size(), 2, "fluids visible in the menu");
-        helper.assertTrue(fluids.get(0).is(Fluids.WATER), "expected the first-filled fluid at the bottom of the melt");
+        helper.assertTrue(fluids.get(0).is(ForgeweaveFluids.IRON.still().get()), "expected the first-filled fluid at the bottom of the melt");
         helper.assertValueEqual(fluids.get(0).getAmount(), 500, "bottom fluid amount");
         helper.assertValueEqual(fluids.get(1).getAmount(), 250, "second fluid amount");
         helper.assertValueEqual(menu.capacity(helper.getLevel()),
@@ -212,22 +215,23 @@ public class SmelteryGameTests {
         buildWalls(helper, 1, 1, 2);
         BlockPos core = placeCore(helper, ForgeweaveBlocks.STANDARD_CORE.get());
         SmelteryControllerBlockEntity blockEntity = helper.getBlockEntity(core);
-        blockEntity.tank().fill(new FluidStack(Fluids.WATER, 500), IFluidHandler.FluidAction.EXECUTE);
-        blockEntity.tank().fill(new FluidStack(Fluids.LAVA, 250), IFluidHandler.FluidAction.EXECUTE);
-        helper.assertTrue(blockEntity.tank().getFluid().is(Fluids.WATER), "expected water at the bottom to begin with");
+        // Same non-alloying pair as menuExposesTheTankContents (see the note there).
+        blockEntity.tank().fill(new FluidStack(ForgeweaveFluids.IRON.still().get(), 500), IFluidHandler.FluidAction.EXECUTE);
+        blockEntity.tank().fill(new FluidStack(ForgeweaveFluids.MANYULLYN.still().get(), 250), IFluidHandler.FluidAction.EXECUTE);
+        helper.assertTrue(blockEntity.tank().getFluid().is(ForgeweaveFluids.IRON.still().get()), "expected iron at the bottom to begin with");
 
         SmelteryMenu menu = openMenu(helper, core);
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         helper.assertTrue(menu.clickMenuButton(player, 1), "expected the menu to accept a fluid click");
 
-        helper.assertTrue(blockEntity.tank().getFluid().is(Fluids.LAVA), "expected the clicked fluid to move to the bottom");
+        helper.assertTrue(blockEntity.tank().getFluid().is(ForgeweaveFluids.MANYULLYN.still().get()), "expected the clicked fluid to move to the bottom");
         helper.assertValueEqual(blockEntity.tank().getFluid().getAmount(), 250, "the moved fluid keeps its amount");
         FluidStack drained = blockEntity.tank().drain(50, IFluidHandler.FluidAction.EXECUTE);
-        helper.assertTrue(drained.is(Fluids.LAVA), "expected a drain to pour the selected fluid");
+        helper.assertTrue(drained.is(ForgeweaveFluids.MANYULLYN.still().get()), "expected a drain to pour the selected fluid");
 
         // An index past the end of the melt is a forged click and must change nothing.
         menu.clickMenuButton(player, 99);
-        helper.assertTrue(blockEntity.tank().getFluid().is(Fluids.LAVA), "expected an out-of-range click to be ignored");
+        helper.assertTrue(blockEntity.tank().getFluid().is(ForgeweaveFluids.MANYULLYN.still().get()), "expected an out-of-range click to be ignored");
         helper.succeed();
     }
 

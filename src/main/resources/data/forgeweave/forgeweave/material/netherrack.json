@@ -1,0 +1,24 @@
+{
+  "head": {
+    "durability": 270,
+    "mining_speed": 4.5,
+    "attack_damage": 3.0
+  },
+  "handle": {
+    "durability_modifier": 0.85,
+    "durability": -150
+  },
+  "extra_durability": 75,
+  "incorrect_for_tool": "minecraft:incorrect_for_iron_tool",
+  "traits": {
+    "general": ["forgeweave:hellish"],
+    "head": ["forgeweave:aridiculous"]
+  },
+  "crafting_items": [
+    { "ingredient": { "item": "minecraft:netherrack" }, "value": 2 }
+  ],
+  "repair_item": {
+    "item": "minecraft:netherrack"
+  },
+  "color": "#B84F4F"
+}

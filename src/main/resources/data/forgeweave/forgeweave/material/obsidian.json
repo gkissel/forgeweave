@@ -1,0 +1,23 @@
+{
+  "head": {
+    "durability": 139,
+    "mining_speed": 7.07,
+    "attack_damage": 4.2
+  },
+  "handle": {
+    "durability_modifier": 0.9,
+    "durability": -100
+  },
+  "extra_durability": 90,
+  "incorrect_for_tool": "minecraft:incorrect_for_netherite_tool",
+  "traits": {
+    "general": ["forgeweave:duritos"]
+  },
+  "crafting_items": [
+    { "ingredient": { "item": "minecraft:obsidian" }, "value": 2 }
+  ],
+  "repair_item": {
+    "item": "minecraft:obsidian"
+  },
+  "color": "#601CC4"
+}

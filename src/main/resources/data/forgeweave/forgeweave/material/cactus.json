@@ -1,0 +1,24 @@
+{
+  "head": {
+    "durability": 210,
+    "mining_speed": 4.0,
+    "attack_damage": 3.4
+  },
+  "handle": {
+    "durability_modifier": 0.85,
+    "durability": 20
+  },
+  "extra_durability": 50,
+  "incorrect_for_tool": "minecraft:incorrect_for_iron_tool",
+  "traits": {
+    "general": ["forgeweave:spiky"],
+    "head": ["forgeweave:prickly"]
+  },
+  "crafting_items": [
+    { "ingredient": { "item": "minecraft:cactus" }, "value": 2 }
+  ],
+  "repair_item": {
+    "item": "minecraft:cactus"
+  },
+  "color": "#00A10F"
+}

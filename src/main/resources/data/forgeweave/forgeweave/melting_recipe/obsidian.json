@@ -1,0 +1,7 @@
+{
+  "input": {
+    "item": "minecraft:obsidian"
+  },
+  "fluid": "forgeweave:molten_obsidian",
+  "amount": 288
+}

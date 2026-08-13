@@ -11,7 +11,8 @@
   "extra_durability": 65,
   "incorrect_for_tool": "minecraft:incorrect_for_iron_tool",
   "traits": {
-    "general": ["forgeweave:fractured"]
+    "general": ["forgeweave:fractured"],
+    "head": ["forgeweave:splintering"]
   },
   "crafting_items": [
     { "ingredient": { "item": "minecraft:bone" }, "value": 2 }

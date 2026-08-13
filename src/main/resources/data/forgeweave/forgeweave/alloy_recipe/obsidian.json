@@ -1,0 +1,16 @@
+{
+  "inputs": [
+    {
+      "fluid": "minecraft:water",
+      "amount": 125
+    },
+    {
+      "fluid": "minecraft:lava",
+      "amount": 125
+    }
+  ],
+  "result": {
+    "fluid": "forgeweave:molten_obsidian",
+    "amount": 36
+  }
+}

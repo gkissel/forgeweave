@@ -173,8 +173,6 @@ tasks.named('jar', Jar) {
     exclude 'data/c/tags/item/ingots/bronze.json'
     exclude 'data/forgeweave/forgeweave/melting_recipe/gametest_above_lava.json'
     exclude 'data/forgeweave/forgeweave/smeltery_fuel/gametest_super_fuel.json'
-    exclude 'data/forgeweave/forgeweave/material/gametest_writable.json'
-    exclude 'data/forgeweave/forgeweave/material/gametest_squeaky.json'
 }
 
 tasks.named('test', Test) {

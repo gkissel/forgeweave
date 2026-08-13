@@ -1,0 +1,14 @@
+{
+  "station": "table",
+  "cast": {
+    "item": "forgeweave:cast_tough_tool_rod"
+  },
+  "fluid": "forgeweave:molten_obsidian",
+  "amount": 432,
+  "result": {
+    "id": "forgeweave:tough_tool_rod",
+    "components": {
+      "forgeweave:material": "forgeweave:obsidian"
+    }
+  }
+}

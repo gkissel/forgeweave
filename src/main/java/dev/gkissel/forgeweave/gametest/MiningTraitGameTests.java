@@ -51,8 +51,9 @@ import dev.gkissel.forgeweave.trait.ForgeweaveTraits;
  * are assembled by hand ({@link #pickaxe}) because the materials that will grant these traits
  * (obsidian, prismarine, paper, sponge, firewood, ...) land in the M3.2 roster batches, not this
  * one. The two behaviors that only exist on the assembly path -- writable's slot math and squeaky's
- * assembly-time Silk Touch grant -- go through a real Tool Station instead, using the GameTest-only
- * datapack materials in {@code src/gametest/resources} (see its README).
+ * assembly-time Silk Touch grant -- go through a real Tool Station instead, using the shipped
+ * {@code paper.json}/{@code sponge.json} materials (issue #231; they used GameTest-only stand-ins
+ * before the roster landed).
  *
  * <p>Magnitudes are upstream 1.12's, cited per trait in {@code ForgeweaveTraits}; deviations forced
  * by the port are cited there too and in the PR body.
@@ -253,14 +254,14 @@ public class MiningTraitGameTests {
     /**
      * Paper -&gt; {@code forgeweave:writable}/{@code writable2} (docs/SCOPE.md M3.2 acceptance: "an
      * all-paper tool shows +2 modifier slots"): assembled through a real Tool Station from the
-     * GameTest-only paper-shaped material, whose head scope carries {@code writable2} and general
+     * shipped {@code paper.json} (issue #231), whose head scope carries {@code writable2} and general
      * scope {@code writable} -- +1 each, +2 together.
      */
     @GameTest(template = "empty")
     public static void writablePairGrantsTwoExtraModifierSlotsOnAnAllPaperTool(GameTestHelper helper) {
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         ItemStack pickaxe = ToolAssembly.pickaxe(helper, player, new BlockPos(1, 1, 1),
-                "gametest_writable", "gametest_writable", "gametest_writable");
+                "paper", "paper", "paper");
         helper.assertTrue(!pickaxe.isEmpty(), "the station must assemble the all-writable pickaxe");
 
         List<ResourceLocation> traits = pickaxe.get(ForgeweaveDataComponents.TRAITS.get());
@@ -274,15 +275,16 @@ public class MiningTraitGameTests {
 
     /**
      * Sponge -&gt; {@code forgeweave:squeaky} (docs/SCOPE.md M3.2 acceptance: "squeaky silk-touch +
-     * zero-damage"): a station-assembled squeaky tool carries vanilla Silk Touch from assembly, its
-     * attack-damage attribute is zero, and the combat seam zeroes the blow itself.
+     * zero-damage"): a tool station-assembled from the shipped {@code sponge.json} (issue #231)
+     * carries vanilla Silk Touch from assembly, its attack-damage attribute is zero, and the combat
+     * seam zeroes the blow itself.
      */
     @GameTest(template = "empty")
     public static void squeakyGrantsSilkTouchAndZeroesAttackDamage(GameTestHelper helper) {
         ServerLevel level = helper.getLevel();
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         ItemStack pickaxe = ToolAssembly.pickaxe(helper, player, new BlockPos(1, 1, 1),
-                "gametest_squeaky", "gametest_squeaky", "gametest_squeaky");
+                "sponge", "sponge", "sponge");
         helper.assertTrue(!pickaxe.isEmpty(), "the station must assemble the all-squeaky pickaxe");
 
         ItemEnchantments enchantments = pickaxe.getOrDefault(DataComponents.ENCHANTMENTS, ItemEnchantments.EMPTY);

@@ -1,0 +1,8 @@
+{
+  "station": "basin",
+  "fluid": "forgeweave:molten_obsidian",
+  "amount": 288,
+  "result": {
+    "id": "minecraft:obsidian"
+  }
+}

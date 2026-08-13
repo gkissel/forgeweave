@@ -48,7 +48,9 @@ public record Material(
         public static final Codec<Head> CODEC = RecordCodecBuilder.create(instance -> instance.group(
                 ExtraCodecs.POSITIVE_INT.fieldOf("durability").forGetter(Head::durability),
                 ExtraCodecs.POSITIVE_FLOAT.fieldOf("mining_speed").forGetter(Head::miningSpeed),
-                ExtraCodecs.POSITIVE_FLOAT.fieldOf("attack_damage").forGetter(Head::attackDamage))
+                // Non-negative rather than positive: upstream sponge's head is exactly 0.00 attack
+                // (TinkerMaterials#registerToolMaterialStats), the stat squeaky then hard-zeroes anyway.
+                Codec.floatRange(0.0F, Float.MAX_VALUE).fieldOf("attack_damage").forGetter(Head::attackDamage))
                 .apply(instance, Head::new));
     }
 
