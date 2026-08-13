@@ -1,0 +1,13 @@
+{
+  "type": "minecraft:smelting",
+  "category": "misc",
+  "cookingtime": 200,
+  "experience": 0.4,
+  "ingredient": {
+    "item": "minecraft:magma_block"
+  },
+  "result": {
+    "count": 1,
+    "id": "forgeweave:magma_slime_crystal"
+  }
+}

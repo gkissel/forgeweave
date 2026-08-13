@@ -163,6 +163,11 @@ public final class ForgeweaveBlocks {
     // #234 -- steel's storage block (M3.2), same upstream BlockMetal-derived properties as the four above.
     public static final DeferredBlock<Block> STEEL_BLOCK = metalBlock("steel_block");
 
+    // #232 -- knightslime's storage block (docs/SCOPE.md M3.2): upstream 1.12's BlockMetal carries
+    // knightslime as one of its types on the same hardness-5 iron-material block, so it shares
+    // metalBlock() with the four above; texture is the clone's block_knightslime (NOTICE.md).
+    public static final DeferredBlock<Block> KNIGHTSLIME_BLOCK = metalBlock("knightslime_block");
+
     private static DeferredBlock<Block> metalBlock(String name) {
         return BLOCKS.registerSimpleBlock(name, BlockBehaviour.Properties.of()
                 .mapColor(MapColor.METAL)

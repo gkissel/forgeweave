@@ -149,6 +149,7 @@ public class ForgeweaveBlockStateProvider extends BlockStateProvider {
         cubeAllBlock("manyullyn_block", ForgeweaveBlocks.MANYULLYN_BLOCK.get());
         cubeAllBlock("rose_gold_block", ForgeweaveBlocks.ROSE_GOLD_BLOCK.get());
         cubeAllBlock("steel_block", ForgeweaveBlocks.STEEL_BLOCK.get());
+        cubeAllBlock("knightslime_block", ForgeweaveBlocks.KNIGHTSLIME_BLOCK.get()); // #232
     }
 
     private void coreBlock(String name, Block block, String sideTexture) {

@@ -213,6 +213,13 @@ public final class ForgeweaveCreativeTab {
         output.accept(ForgeweaveItems.INGOT_STEEL.get());
         output.accept(ForgeweaveItems.NUGGET_STEEL.get());
 
+        // #232 -- slime crystals and knightslime's item forms (docs/SCOPE.md M3.2).
+        output.accept(ForgeweaveItems.GREEN_SLIME_CRYSTAL.get());
+        output.accept(ForgeweaveItems.BLUE_SLIME_CRYSTAL.get());
+        output.accept(ForgeweaveItems.MAGMA_SLIME_CRYSTAL.get());
+        output.accept(ForgeweaveItems.INGOT_KNIGHTSLIME.get());
+        output.accept(ForgeweaveItems.NUGGET_KNIGHTSLIME.get());
+
         // #104 -- cobalt + ardite nether ore (docs/SCOPE.md M2 issue #104).
         output.accept(ForgeweaveItems.COBALT_ORE.get());
         output.accept(ForgeweaveItems.ARDITE_ORE.get());
@@ -223,6 +230,7 @@ public final class ForgeweaveCreativeTab {
         output.accept(ForgeweaveItems.MANYULLYN_BLOCK.get());
         output.accept(ForgeweaveItems.ROSE_GOLD_BLOCK.get());
         output.accept(ForgeweaveItems.STEEL_BLOCK.get());
+        output.accept(ForgeweaveItems.KNIGHTSLIME_BLOCK.get()); // #232
 
         List<Holder.Reference<Material>> materials =
                 parameters.holders().lookupOrThrow(Material.REGISTRY).listElements().toList();

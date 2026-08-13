@@ -402,6 +402,19 @@ public final class ForgeweaveItems {
     // rose gold's, at steel's own upstream color 0xa7a7a7 (NOTICE.md).
     public static final DeferredItem<Item> INGOT_STEEL = ITEMS.registerSimpleItem("steel_ingot");
     public static final DeferredItem<Item> NUGGET_STEEL = ITEMS.registerSimpleItem("steel_nugget");
+    // #232 -- the three slime crystals (docs/SCOPE.md M3.2), the slime-family materials' part-crafting
+    // items, textures ported from upstream 1.12's slimecrystal_{green,blue,magma} (NOTICE.md). Green
+    // and magma are furnace-smelted from their vanilla blocks like upstream's congealed-slime smelts;
+    // blue is crafted from green + lapis (maintainer decision on #232 -- no blue slime world source
+    // until the world-content milestone).
+    public static final DeferredItem<Item> GREEN_SLIME_CRYSTAL = ITEMS.registerSimpleItem("green_slime_crystal");
+    public static final DeferredItem<Item> BLUE_SLIME_CRYSTAL = ITEMS.registerSimpleItem("blue_slime_crystal");
+    public static final DeferredItem<Item> MAGMA_SLIME_CRYSTAL = ITEMS.registerSimpleItem("magma_slime_crystal");
+
+    // #232 -- knightslime's item forms (docs/SCOPE.md M3.2), alloy-only like manyullyn: no ore, no
+    // raw form (upstream 1.12 has none either -- addCommonItems("Knightslime") is ingot/nugget/block).
+    public static final DeferredItem<Item> INGOT_KNIGHTSLIME = ITEMS.registerSimpleItem("knightslime_ingot");
+    public static final DeferredItem<Item> NUGGET_KNIGHTSLIME = ITEMS.registerSimpleItem("knightslime_nugget");
 
     // #104 -- cobalt + ardite nether ore block items (docs/SCOPE.md M2 issue #104).
     public static final DeferredItem<BlockItem> COBALT_ORE = ITEMS.registerSimpleBlockItem("cobalt_ore", ForgeweaveBlocks.COBALT_ORE);
@@ -414,6 +427,9 @@ public final class ForgeweaveItems {
     public static final DeferredItem<BlockItem> MANYULLYN_BLOCK = ITEMS.registerSimpleBlockItem("manyullyn_block", ForgeweaveBlocks.MANYULLYN_BLOCK);
     public static final DeferredItem<BlockItem> ROSE_GOLD_BLOCK = ITEMS.registerSimpleBlockItem("rose_gold_block", ForgeweaveBlocks.ROSE_GOLD_BLOCK);
     public static final DeferredItem<BlockItem> STEEL_BLOCK = ITEMS.registerSimpleBlockItem("steel_block", ForgeweaveBlocks.STEEL_BLOCK);
+
+    // #232 -- knightslime's storage block item (docs/SCOPE.md M3.2).
+    public static final DeferredItem<BlockItem> KNIGHTSLIME_BLOCK = ITEMS.registerSimpleBlockItem("knightslime_block", ForgeweaveBlocks.KNIGHTSLIME_BLOCK);
 
     private ForgeweaveItems() {}
 }

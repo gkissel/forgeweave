@@ -1,0 +1,20 @@
+{
+  "inputs": [
+    {
+      "fluid": "forgeweave:molten_iron",
+      "amount": 72
+    },
+    {
+      "fluid": "forgeweave:molten_slime",
+      "amount": 125
+    },
+    {
+      "fluid": "forgeweave:molten_seared_stone",
+      "amount": 144
+    }
+  ],
+  "result": {
+    "fluid": "forgeweave:molten_knightslime",
+    "amount": 72
+  }
+}

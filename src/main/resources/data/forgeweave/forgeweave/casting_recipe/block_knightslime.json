@@ -1,0 +1,8 @@
+{
+  "station": "basin",
+  "fluid": "forgeweave:molten_knightslime",
+  "amount": 1296,
+  "result": {
+    "id": "forgeweave:knightslime_block"
+  }
+}

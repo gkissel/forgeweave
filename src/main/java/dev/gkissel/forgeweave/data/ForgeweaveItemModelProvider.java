@@ -215,6 +215,14 @@ public class ForgeweaveItemModelProvider extends ItemModelProvider {
         // #234 -- steel (M3.2), recolor-of-manyullyn derivations like rose gold's (NOTICE.md).
         singleLayerModel(ForgeweaveItems.INGOT_STEEL, derivedItem("steel_ingot"));
         singleLayerModel(ForgeweaveItems.NUGGET_STEEL, derivedItem("steel_nugget"));
+
+        // #232 -- slime crystals and knightslime (docs/SCOPE.md M3.2): straight upstream texture
+        // ports, slimecrystal_{green,blue,magma} and ingot/nugget_knightslime (NOTICE.md).
+        singleLayerModel(ForgeweaveItems.GREEN_SLIME_CRYSTAL, derivedItem("green_slime_crystal"));
+        singleLayerModel(ForgeweaveItems.BLUE_SLIME_CRYSTAL, derivedItem("blue_slime_crystal"));
+        singleLayerModel(ForgeweaveItems.MAGMA_SLIME_CRYSTAL, derivedItem("magma_slime_crystal"));
+        singleLayerModel(ForgeweaveItems.INGOT_KNIGHTSLIME, derivedItem("knightslime_ingot"));
+        singleLayerModel(ForgeweaveItems.NUGGET_KNIGHTSLIME, derivedItem("knightslime_nugget"));
     }
 
     private ResourceLocation derivedItem(String name) {

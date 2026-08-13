@@ -1,0 +1,30 @@
+{
+  "head": {
+    "durability": 1000,
+    "mining_speed": 4.24,
+    "attack_damage": 1.8
+  },
+  "handle": {
+    "durability_modifier": 0.7,
+    "durability": 0
+  },
+  "extra_durability": 350,
+  "incorrect_for_tool": "minecraft:incorrect_for_stone_tool",
+  "traits": {
+    "general": [
+      "forgeweave:slimey_green"
+    ]
+  },
+  "crafting_items": [
+    {
+      "ingredient": {
+        "item": "forgeweave:green_slime_crystal"
+      },
+      "value": 2
+    }
+  ],
+  "repair_item": {
+    "item": "forgeweave:green_slime_crystal"
+  },
+  "color": "#82c873"
+}
