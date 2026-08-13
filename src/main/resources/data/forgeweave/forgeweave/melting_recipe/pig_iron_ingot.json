@@ -1,0 +1,7 @@
+{
+  "input": {
+    "tag": "c:ingots/pig_iron"
+  },
+  "fluid": "forgeweave:molten_pig_iron",
+  "amount": 144
+}

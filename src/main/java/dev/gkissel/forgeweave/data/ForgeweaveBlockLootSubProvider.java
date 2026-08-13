@@ -98,6 +98,11 @@ public class ForgeweaveBlockLootSubProvider extends BlockLootSubProvider {
         dropSelf(ForgeweaveBlocks.ROSE_GOLD_BLOCK.get());
         dropSelf(ForgeweaveBlocks.STEEL_BLOCK.get());
         dropSelf(ForgeweaveBlocks.KNIGHTSLIME_BLOCK.get()); // #232
+
+        // #233 -- pig iron's storage block and firewood: plain self-drops (upstream's BlockMetal and
+        // BlockFirewood override no loot either).
+        dropSelf(ForgeweaveBlocks.PIG_IRON_BLOCK.get());
+        dropSelf(ForgeweaveBlocks.FIREWOOD.get());
     }
 
     private LootTable.Builder oreDrop(Block block, Item item) {

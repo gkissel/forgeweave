@@ -155,6 +155,23 @@ public class ForgeweaveRecipeProvider extends RecipeProvider {
         storageBlockRecipes(recipeOutput, ForgeweaveItems.INGOT_MANYULLYN.get(), ForgeweaveItems.MANYULLYN_BLOCK.get());
         storageBlockRecipes(recipeOutput, ForgeweaveItems.INGOT_ROSE_GOLD.get(), ForgeweaveItems.ROSE_GOLD_BLOCK.get());
         storageBlockRecipes(recipeOutput, ForgeweaveItems.INGOT_KNIGHTSLIME.get(), ForgeweaveItems.KNIGHTSLIME_BLOCK.get()); // #232
+        // #233 -- pig iron, same both-ways 9:1 shape.
+        storageBlockRecipes(recipeOutput, ForgeweaveItems.INGOT_PIG_IRON.get(), ForgeweaveItems.PIG_IRON_BLOCK.get());
+
+        // #233 -- firewood. Upstream 1.12's recipes/common/firewood/firewood.json is shapeless
+        // "blaze powder + lavawood + blaze powder", and lavawood itself is basin-cast: any plank
+        // block under 250 mB of lava (TinkerSmeltery's registerBasinCasting). Forgeweave has no
+        // lavawood block (not on docs/SCOPE.md's M3.2 roster), so the chain collapses to its closest
+        // single-step equivalent: the same two blaze powders and the plank, with the lava step
+        // carried by a lava bucket (the bucket comes back as its vanilla crafting remainder).
+        // Substitution flagged for maintainer review in the #233 PR body.
+        ShapelessRecipeBuilder.shapeless(RecipeCategory.BUILDING_BLOCKS, ForgeweaveItems.FIREWOOD.get())
+                .requires(Items.BLAZE_POWDER)
+                .requires(ItemTags.PLANKS)
+                .requires(Items.BLAZE_POWDER)
+                .requires(Items.LAVA_BUCKET)
+                .unlockedBy("has_blaze_powder", has(Items.BLAZE_POWDER))
+                .save(recipeOutput);
     }
 
     /**

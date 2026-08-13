@@ -1,0 +1,8 @@
+{
+  "station": "basin",
+  "fluid": "forgeweave:molten_pig_iron",
+  "amount": 1296,
+  "result": {
+    "id": "forgeweave:pig_iron_block"
+  }
+}

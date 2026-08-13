@@ -81,7 +81,15 @@ public class ForgeweaveItemTagsProvider extends ItemTagsProvider {
         tag("storage_blocks/knightslime").add(ForgeweaveItems.KNIGHTSLIME_BLOCK.get()); // #232
         tag("storage_blocks").addTag(storageBlock("cobalt")).addTag(storageBlock("ardite"))
                 .addTag(storageBlock("manyullyn")).addTag(storageBlock("rose_gold"))
-                .addTag(storageBlock("steel")).addTag(storageBlock("knightslime"));
+                .addTag(storageBlock("steel")).addTag(storageBlock("knightslime"))
+                .addTag(storageBlock("pig_iron"));
+
+        // #233 -- pig iron into the same c: convention tags the other Forgeweave-only metals use.
+        // Note storage_blocks/pig_iron also fills in the tool_forge_blocks optional reference below,
+        // so a pig iron block now crafts a Tool Forge exactly as upstream's ore-dict list intends.
+        tag("ingots/pig_iron").add(ForgeweaveItems.INGOT_PIG_IRON.get());
+        tag("nuggets/pig_iron").add(ForgeweaveItems.NUGGET_PIG_IRON.get());
+        tag("storage_blocks/pig_iron").add(ForgeweaveItems.PIG_IRON_BLOCK.get());
 
         // #152 -- the "large tool" classification: tools only the Tool Forge can assemble. See
         // ToolAssemblyRecipes#LARGE_TOOLS, which is the whole gate: a tool issue adds its row here and

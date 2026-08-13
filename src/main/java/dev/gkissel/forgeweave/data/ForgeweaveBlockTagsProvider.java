@@ -51,9 +51,12 @@ public class ForgeweaveBlockTagsProvider extends BlockTagsProvider {
         tag(cTag("storage_blocks/rose_gold")).add(ForgeweaveBlocks.ROSE_GOLD_BLOCK.get());
         tag(cTag("storage_blocks/steel")).add(ForgeweaveBlocks.STEEL_BLOCK.get());
         tag(cTag("storage_blocks/knightslime")).add(ForgeweaveBlocks.KNIGHTSLIME_BLOCK.get()); // #232
+        // #233 -- pig iron's storage block, block side.
+        tag(cTag("storage_blocks/pig_iron")).add(ForgeweaveBlocks.PIG_IRON_BLOCK.get());
         tag(cTag("storage_blocks")).addTag(cTag("storage_blocks/cobalt")).addTag(cTag("storage_blocks/ardite"))
                 .addTag(cTag("storage_blocks/manyullyn")).addTag(cTag("storage_blocks/rose_gold"))
-                .addTag(cTag("storage_blocks/steel")).addTag(cTag("storage_blocks/knightslime"));
+                .addTag(cTag("storage_blocks/steel")).addTag(cTag("storage_blocks/knightslime"))
+                .addTag(cTag("storage_blocks/pig_iron"));
     }
 
     private static TagKey<Block> cTag(String path) {

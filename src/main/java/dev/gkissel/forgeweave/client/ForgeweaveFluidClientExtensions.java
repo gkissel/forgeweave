@@ -39,6 +39,11 @@ public final class ForgeweaveFluidClientExtensions {
         register(event, ForgeweaveFluids.SLIME);
         register(event, ForgeweaveFluids.SEARED_STONE);
         register(event, ForgeweaveFluids.KNIGHTSLIME);
+        // #233 -- pig iron, plus the two non-metal smeltery fluids, each carrying its own upstream
+        // texture pair on the record (blood's water-like liquid, clay's stone texture; NOTICE.md).
+        register(event, ForgeweaveFluids.PIG_IRON);
+        register(event, ForgeweaveFluids.BLOOD);
+        register(event, ForgeweaveFluids.MOLTEN_CLAY);
     }
 
     private static void register(RegisterClientExtensionsEvent event, ForgeweaveFluids.MoltenMetal metal) {
@@ -49,12 +54,12 @@ public final class ForgeweaveFluidClientExtensions {
         event.registerFluidType(new IClientFluidTypeExtensions() {
             @Override
             public ResourceLocation getStillTexture() {
-                return ForgeweaveFluids.stillTexture();
+                return metal.stillTexture();
             }
 
             @Override
             public ResourceLocation getFlowingTexture() {
-                return ForgeweaveFluids.flowingTexture();
+                return metal.flowingTexture();
             }
 
             @Override

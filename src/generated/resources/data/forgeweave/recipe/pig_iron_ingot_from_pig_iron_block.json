@@ -1,0 +1,13 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    {
+      "item": "forgeweave:pig_iron_block"
+    }
+  ],
+  "result": {
+    "count": 9,
+    "id": "forgeweave:pig_iron_ingot"
+  }
+}

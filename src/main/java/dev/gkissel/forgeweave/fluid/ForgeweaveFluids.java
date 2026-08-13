@@ -47,9 +47,18 @@ public final class ForgeweaveFluids {
     private static final ResourceLocation STILL_TEXTURE = ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "derived/block/molten_metal");
     private static final ResourceLocation FLOWING_TEXTURE = ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "derived/block/molten_metal_flow");
 
-    /** A registered molten metal: its client tint, and the smeltery-fuel-gating temperature that governs it (upstream's {@code FluidType#getTemperature}). */
+    // #233 -- the two non-metal smeltery fluids' own texture pairs, ported the same way the shared
+    // molten metal pair was: upstream's FluidColored.ICON_LiquidStill/Flowing (blood) and
+    // ICON_StoneStill/Flowing (molten clay), each greyscale-ish base tinted per fluid (NOTICE.md).
+    private static final ResourceLocation LIQUID_STILL = ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "derived/block/liquid");
+    private static final ResourceLocation LIQUID_FLOWING = ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "derived/block/liquid_flow");
+    private static final ResourceLocation STONE_STILL = ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "derived/block/liquid_stone");
+    private static final ResourceLocation STONE_FLOWING = ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "derived/block/liquid_stone_flow");
+
+    /** A registered smeltery fluid: its client tint and textures, and the smeltery-fuel-gating temperature that governs it (upstream's {@code FluidType#getTemperature}). */
     public record MoltenMetal(DeferredHolder<FluidType, FluidType> fluidType, DeferredHolder<Fluid, FlowingFluid> still,
-            DeferredHolder<Fluid, FlowingFluid> flowing, DeferredBlock<LiquidBlock> block, int color, int temperature) {}
+            DeferredHolder<Fluid, FlowingFluid> flowing, DeferredBlock<LiquidBlock> block, int color, int temperature,
+            ResourceLocation stillTexture, ResourceLocation flowingTexture) {}
 
     // Ported 1:1 from TinkerFluids#setupFluids (temperature) and TinkerMaterials (materialTextColor).
     public static final MoltenMetal IRON = register("iron", 0xA81212, 769);
@@ -84,9 +93,26 @@ public final class ForgeweaveFluids {
     public static final MoltenMetal SEARED_STONE = register("seared_stone", 0x777777, 800);
     public static final MoltenMetal KNIGHTSLIME = register("knightslime", 0xf18ff0, 520);
 
+    // #233 -- the pig iron alloy chain (docs/SCOPE.md M3.2, maintainer decision on the issue: real
+    // blood, no substitute). Pig iron is a molten metal like the nine above (TinkerFluids: 600,
+    // TinkerMaterials.pigiron's 0xef9e9b). Blood and molten clay are upstream's two non-metal
+    // smeltery fluids: blood is a water-like FluidColored ("classic", 336, 0x540000, no glow) and
+    // clay a stone-textured FluidMolten (700, 0xc67453) -- each keeps its upstream texture pair
+    // rather than the shared metal one (NOTICE.md).
+    public static final MoltenMetal PIG_IRON = register("pig_iron", 0xEF9E9B, 600);
+    public static final MoltenMetal BLOOD = register("blood", 0x540000, 336,
+            () -> new FluidType(FluidType.Properties.create().temperature(336)), LIQUID_STILL, LIQUID_FLOWING);
+    public static final MoltenMetal MOLTEN_CLAY = register("molten_clay", 0xC67453, 700,
+            () -> moltenFluidType(700), STONE_STILL, STONE_FLOWING);
+
     private static MoltenMetal register(String metalId, int color, int temperature) {
-        String name = "molten_" + metalId;
-        DeferredHolder<FluidType, FluidType> type = FLUID_TYPES.register(name, () -> moltenFluidType(temperature));
+        return register("molten_" + metalId, color, temperature, () -> moltenFluidType(temperature),
+                STILL_TEXTURE, FLOWING_TEXTURE);
+    }
+
+    private static MoltenMetal register(String name, int color, int temperature,
+            Supplier<FluidType> typeFactory, ResourceLocation stillTexture, ResourceLocation flowingTexture) {
+        DeferredHolder<FluidType, FluidType> type = FLUID_TYPES.register(name, typeFactory);
 
         // Source, Flowing and the LiquidBlock each need a supplier pointing at one of the other two,
         // none of which exist as Java values yet at this point in the method (BaseFlowingFluid
@@ -117,7 +143,8 @@ public final class ForgeweaveFluids {
                 .pushReaction(PushReaction.DESTROY)
                 .lightLevel(state -> 10)));
 
-        return new MoltenMetal(type, stillRef[0], flowingRef[0], blockRef[0], color, temperature);
+        return new MoltenMetal(type, stillRef[0], flowingRef[0], blockRef[0], color, temperature,
+                stillTexture, flowingTexture);
     }
 
     /** Package-visible so the temperature wiring can be exercised directly without a live registry (see {@code ForgeweaveFluidsTest}). Color is client-only ({@code ForgeweaveFluidClientExtensions}) and plays no part in {@link FluidType} itself. */
@@ -127,14 +154,6 @@ public final class ForgeweaveFluids {
                 .density(2000)
                 .viscosity(10000)
                 .temperature(temperature));
-    }
-
-    public static ResourceLocation stillTexture() {
-        return STILL_TEXTURE;
-    }
-
-    public static ResourceLocation flowingTexture() {
-        return FLOWING_TEXTURE;
     }
 
     private ForgeweaveFluids() {}

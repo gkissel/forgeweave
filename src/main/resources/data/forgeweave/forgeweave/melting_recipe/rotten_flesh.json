@@ -1,0 +1,7 @@
+{
+  "input": {
+    "item": "minecraft:rotten_flesh"
+  },
+  "fluid": "forgeweave:blood",
+  "amount": 40
+}

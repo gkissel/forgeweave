@@ -223,6 +223,11 @@ public class ForgeweaveItemModelProvider extends ItemModelProvider {
         singleLayerModel(ForgeweaveItems.MAGMA_SLIME_CRYSTAL, derivedItem("magma_slime_crystal"));
         singleLayerModel(ForgeweaveItems.INGOT_KNIGHTSLIME, derivedItem("knightslime_ingot"));
         singleLayerModel(ForgeweaveItems.NUGGET_KNIGHTSLIME, derivedItem("knightslime_nugget"));
+
+        // #233 -- pig iron ingot/nugget, straight upstream texture ports (ingot_pigiron.png/
+        // nugget_pigiron.png, NOTICE.md). No raw form (alloy-only metal).
+        singleLayerModel(ForgeweaveItems.INGOT_PIG_IRON, derivedItem("pig_iron_ingot"));
+        singleLayerModel(ForgeweaveItems.NUGGET_PIG_IRON, derivedItem("pig_iron_nugget"));
     }
 
     private ResourceLocation derivedItem(String name) {
