@@ -1,0 +1,39 @@
+{
+  "head": {
+    "durability": 850,
+    "mining_speed": 5.8,
+    "attack_damage": 5.1
+  },
+  "handle": {
+    "durability_modifier": 0.5,
+    "durability": 500
+  },
+  "extra_durability": 125,
+  "incorrect_for_tool": "minecraft:incorrect_for_netherite_tool",
+  "traits": {
+    "general": [
+      "forgeweave:unnatural"
+    ],
+    "head": [
+      "forgeweave:crumbling"
+    ]
+  },
+  "crafting_items": [
+    {
+      "ingredient": {
+        "item": "forgeweave:knightslime_ingot"
+      },
+      "value": 2
+    },
+    {
+      "ingredient": {
+        "item": "forgeweave:knightslime_block"
+      },
+      "value": 18
+    }
+  ],
+  "repair_item": {
+    "tag": "c:ingots/knightslime"
+  },
+  "color": "#f18ff0"
+}

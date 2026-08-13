@@ -35,6 +35,10 @@ public final class ForgeweaveFluidClientExtensions {
         register(event, ForgeweaveFluids.NETHERITE);
         register(event, ForgeweaveFluids.STEEL);
         register(event, ForgeweaveFluids.CARBON);
+        // #232 -- the knightslime alloy chain's three fluids (docs/SCOPE.md M3.2).
+        register(event, ForgeweaveFluids.SLIME);
+        register(event, ForgeweaveFluids.SEARED_STONE);
+        register(event, ForgeweaveFluids.KNIGHTSLIME);
     }
 
     private static void register(RegisterClientExtensionsEvent event, ForgeweaveFluids.MoltenMetal metal) {

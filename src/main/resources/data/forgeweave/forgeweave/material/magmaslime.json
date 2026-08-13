@@ -1,0 +1,33 @@
+{
+  "head": {
+    "durability": 600,
+    "mining_speed": 2.1,
+    "attack_damage": 7.0
+  },
+  "handle": {
+    "durability_modifier": 0.85,
+    "durability": -200
+  },
+  "extra_durability": 150,
+  "incorrect_for_tool": "minecraft:incorrect_for_stone_tool",
+  "traits": {
+    "general": [
+      "forgeweave:flammable"
+    ],
+    "head": [
+      "forgeweave:superheat"
+    ]
+  },
+  "crafting_items": [
+    {
+      "ingredient": {
+        "item": "forgeweave:magma_slime_crystal"
+      },
+      "value": 2
+    }
+  ],
+  "repair_item": {
+    "item": "forgeweave:magma_slime_crystal"
+  },
+  "color": "#ff960d"
+}

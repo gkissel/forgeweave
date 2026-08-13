@@ -58,6 +58,10 @@ public class ForgeweaveItemTagsProvider extends ItemTagsProvider {
         tag("ingots/steel").add(ForgeweaveItems.INGOT_STEEL.get());
         tag("nuggets/steel").add(ForgeweaveItems.NUGGET_STEEL.get());
 
+        // #232 -- knightslime (docs/SCOPE.md M3.2): alloy-only, so ingot/nugget only, no raw form.
+        tag("ingots/knightslime").add(ForgeweaveItems.INGOT_KNIGHTSLIME.get());
+        tag("nuggets/knightslime").add(ForgeweaveItems.NUGGET_KNIGHTSLIME.get());
+
         // #104 -- the cobalt + ardite nether ore blocks' own item forms into c:ores/*, the same
         // convention vanilla iron/copper ore already carry (see the shipped iron_ore.json/
         // copper_ore.json melting rows, issue #96) -- lets a smeltery melt the ore block itself
@@ -74,9 +78,10 @@ public class ForgeweaveItemTagsProvider extends ItemTagsProvider {
         tag("storage_blocks/manyullyn").add(ForgeweaveItems.MANYULLYN_BLOCK.get());
         tag("storage_blocks/rose_gold").add(ForgeweaveItems.ROSE_GOLD_BLOCK.get());
         tag("storage_blocks/steel").add(ForgeweaveItems.STEEL_BLOCK.get());
+        tag("storage_blocks/knightslime").add(ForgeweaveItems.KNIGHTSLIME_BLOCK.get()); // #232
         tag("storage_blocks").addTag(storageBlock("cobalt")).addTag(storageBlock("ardite"))
                 .addTag(storageBlock("manyullyn")).addTag(storageBlock("rose_gold"))
-                .addTag(storageBlock("steel"));
+                .addTag(storageBlock("steel")).addTag(storageBlock("knightslime"));
 
         // #152 -- the "large tool" classification: tools only the Tool Forge can assemble. See
         // ToolAssemblyRecipes#LARGE_TOOLS, which is the whole gate: a tool issue adds its row here and

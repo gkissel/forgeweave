@@ -137,6 +137,7 @@ public class ForgeweaveRecipeProvider extends RecipeProvider {
         buildSearedRecipes(recipeOutput);
         buildModifierRecipes(recipeOutput);
         buildStorageBlockRecipes(recipeOutput);
+        buildSlimeCrystalRecipes(recipeOutput);
     }
 
     /**
@@ -153,6 +154,33 @@ public class ForgeweaveRecipeProvider extends RecipeProvider {
         storageBlockRecipes(recipeOutput, ForgeweaveItems.INGOT_ARDITE.get(), ForgeweaveItems.ARDITE_BLOCK.get());
         storageBlockRecipes(recipeOutput, ForgeweaveItems.INGOT_MANYULLYN.get(), ForgeweaveItems.MANYULLYN_BLOCK.get());
         storageBlockRecipes(recipeOutput, ForgeweaveItems.INGOT_ROSE_GOLD.get(), ForgeweaveItems.ROSE_GOLD_BLOCK.get());
+        storageBlockRecipes(recipeOutput, ForgeweaveItems.INGOT_KNIGHTSLIME.get(), ForgeweaveItems.KNIGHTSLIME_BLOCK.get()); // #232
+    }
+
+    /**
+     * #232 -- the three slime crystals (docs/SCOPE.md M3.2). Upstream 1.12 furnace-smelts a congealed
+     * slime block into its crystal ({@code TinkerCommons}' smelting registrations); Forgeweave has no
+     * congealed blocks, so the vanilla slime/magma blocks stand in (maintainer decision on #232, same
+     * cook time and xp as the seared-brick smelt above). Blue slime has no world source until the
+     * world-content milestone, so its crystal is crafted from a green crystal + lapis instead
+     * (maintainer decision recorded on issue #232).
+     */
+    private void buildSlimeCrystalRecipes(RecipeOutput recipeOutput) {
+        SimpleCookingRecipeBuilder.smelting(Ingredient.of(Items.SLIME_BLOCK), RecipeCategory.MISC,
+                        ForgeweaveItems.GREEN_SLIME_CRYSTAL.get(), 0.4F, 200)
+                .unlockedBy("has_slime_block", has(Items.SLIME_BLOCK))
+                .save(recipeOutput);
+
+        SimpleCookingRecipeBuilder.smelting(Ingredient.of(Items.MAGMA_BLOCK), RecipeCategory.MISC,
+                        ForgeweaveItems.MAGMA_SLIME_CRYSTAL.get(), 0.4F, 200)
+                .unlockedBy("has_magma_block", has(Items.MAGMA_BLOCK))
+                .save(recipeOutput);
+
+        ShapelessRecipeBuilder.shapeless(RecipeCategory.MISC, ForgeweaveItems.BLUE_SLIME_CRYSTAL.get())
+                .requires(ForgeweaveItems.GREEN_SLIME_CRYSTAL.get())
+                .requires(Items.LAPIS_LAZULI)
+                .unlockedBy("has_green_slime_crystal", has(ForgeweaveItems.GREEN_SLIME_CRYSTAL.get()))
+                .save(recipeOutput);
     }
 
     /** 9 {@code ingot} &lt;-&gt; 1 {@code block}, vanilla's own storage-block shape, both directions. */

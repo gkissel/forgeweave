@@ -1,0 +1,7 @@
+{
+  "input": {
+    "item": "minecraft:slime_block"
+  },
+  "fluid": "forgeweave:molten_slime",
+  "amount": 2250
+}

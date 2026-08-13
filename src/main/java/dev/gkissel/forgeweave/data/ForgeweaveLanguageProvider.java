@@ -410,6 +410,12 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("material.forgeweave.paper", "Paper");
         add("material.forgeweave.sponge", "Sponge");
         add("material.forgeweave.netherrack", "Netherrack");
+        // #232 -- the slime-family materials (docs/SCOPE.md M3.2), names ported from upstream 1.12's
+        // material.{slime,blueslime,magmaslime,knightslime}.name entries.
+        add("material.forgeweave.slime", "Slime");
+        add("material.forgeweave.blueslime", "Blue Slime");
+        add("material.forgeweave.magmaslime", "Magma Slime");
+        add("material.forgeweave.knightslime", "Knightslime");
 
         // Trait names and descriptions, keyed by trait id like materials are by material id -- traits
         // are Java behavior selected by data (ADR-0002), so nothing derives these keys for us. The
@@ -654,6 +660,13 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         // #231: upstream 1.12's fluid.tconstruct.obsidian.name.
         add("fluid_type.forgeweave.molten_obsidian", "Molten Obsidian");
 
+        // #232 -- the knightslime alloy chain's three fluids (docs/SCOPE.md M3.2). Upstream calls
+        // its seared stone fluid plainly "Seared Stone"; the molten_ prefix names follow this
+        // family's convention instead.
+        add("fluid_type.forgeweave.molten_slime", "Molten Slime");
+        add("fluid_type.forgeweave.molten_seared_stone", "Molten Seared Stone");
+        add("fluid_type.forgeweave.molten_knightslime", "Molten Knightslime");
+
         // #100 -- casting (docs/SCOPE.md M2 issue #100). Names follow upstream 1.12's
         // tile.casting.{table,basin}.name / tile.faucet.name and its cast item names.
         addBlock(ForgeweaveBlocks.CASTING_TABLE, "Casting Table");
@@ -711,6 +724,14 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         addItem(ForgeweaveItems.INGOT_STEEL, "Steel Ingot");
         addItem(ForgeweaveItems.NUGGET_STEEL, "Steel Nugget");
 
+        // #232 -- slime crystals and knightslime's item forms (docs/SCOPE.md M3.2), names following
+        // upstream 1.12's item.tconstruct.materials.{slimecrystal*,knightslime_*}.name entries.
+        addItem(ForgeweaveItems.GREEN_SLIME_CRYSTAL, "Green Slime Crystal");
+        addItem(ForgeweaveItems.BLUE_SLIME_CRYSTAL, "Blue Slime Crystal");
+        addItem(ForgeweaveItems.MAGMA_SLIME_CRYSTAL, "Magma Slime Crystal");
+        addItem(ForgeweaveItems.INGOT_KNIGHTSLIME, "Knightslime Ingot");
+        addItem(ForgeweaveItems.NUGGET_KNIGHTSLIME, "Knightslime Nugget");
+
         // #104 -- cobalt + ardite nether ore (docs/SCOPE.md M2 issue #104), names ported from
         // upstream 1.12's tile.tconstruct.ore.{cobalt,ardite}.name entries (NOTICE.md).
         addBlock(ForgeweaveBlocks.COBALT_ORE, "Cobalt Ore");
@@ -724,6 +745,7 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         addBlock(ForgeweaveBlocks.MANYULLYN_BLOCK, "Block of Manyullyn");
         addBlock(ForgeweaveBlocks.ROSE_GOLD_BLOCK, "Block of Rose Gold");
         addBlock(ForgeweaveBlocks.STEEL_BLOCK, "Block of Steel");
+        addBlock(ForgeweaveBlocks.KNIGHTSLIME_BLOCK, "Block of Knightslime"); // #232
 
         // #110 -- the M2 advancement chain (docs/SCOPE.md M2 issue #110): build smeltery -> first
         // melt -> first cast -> first alloy -> first modifier. Keys follow vanilla's own

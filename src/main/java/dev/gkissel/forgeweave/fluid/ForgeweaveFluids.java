@@ -74,6 +74,16 @@ public final class ForgeweaveFluids {
     // issue #234, slotted between copper (542) and steel's own 681 on upstream's scale.
     public static final MoltenMetal CARBON = register("carbon", 0x31302E, 600);
 
+    // #232 -- the knightslime alloy chain (docs/SCOPE.md M3.2). Knightslime and seared stone are
+    // straight 1.12 ports: TinkerFluids' knightslime (fluidMetal of TinkerMaterials.knightslime's
+    // 0xf18ff0, temperature 520) and searedStone (0x777777, temperature 800). Molten slime is the
+    // maintainer-decided green substitute for upstream's purple slime alloy input (issue #232): its
+    // color is the slime material's own 0x82c873 and its temperature is upstream's slime-fluid 310
+    // (TinkerFluids#blueslime, the 1.12 generation's slime fluid temperature).
+    public static final MoltenMetal SLIME = register("slime", 0x82c873, 310);
+    public static final MoltenMetal SEARED_STONE = register("seared_stone", 0x777777, 800);
+    public static final MoltenMetal KNIGHTSLIME = register("knightslime", 0xf18ff0, 520);
+
     private static MoltenMetal register(String metalId, int color, int temperature) {
         String name = "molten_" + metalId;
         DeferredHolder<FluidType, FluidType> type = FLUID_TYPES.register(name, () -> moltenFluidType(temperature));
