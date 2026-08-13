@@ -209,6 +209,9 @@ public final class ForgeweaveCreativeTab {
         output.accept(ForgeweaveItems.INGOT_ROSE_GOLD.get());
         output.accept(ForgeweaveItems.NUGGET_ROSE_GOLD.get());
         output.accept(ForgeweaveItems.RAW_ROSE_GOLD.get());
+        // #234 -- steel (M3.2): alloyed, not mined, so ingot/nugget only (no raw form).
+        output.accept(ForgeweaveItems.INGOT_STEEL.get());
+        output.accept(ForgeweaveItems.NUGGET_STEEL.get());
 
         // #104 -- cobalt + ardite nether ore (docs/SCOPE.md M2 issue #104).
         output.accept(ForgeweaveItems.COBALT_ORE.get());
@@ -219,6 +222,7 @@ public final class ForgeweaveCreativeTab {
         output.accept(ForgeweaveItems.ARDITE_BLOCK.get());
         output.accept(ForgeweaveItems.MANYULLYN_BLOCK.get());
         output.accept(ForgeweaveItems.ROSE_GOLD_BLOCK.get());
+        output.accept(ForgeweaveItems.STEEL_BLOCK.get());
 
         List<Holder.Reference<Material>> materials =
                 parameters.holders().lookupOrThrow(Material.REGISTRY).listElements().toList();

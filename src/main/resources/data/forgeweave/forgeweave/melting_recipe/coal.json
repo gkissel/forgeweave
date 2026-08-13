@@ -1,0 +1,7 @@
+{
+  "input": {
+    "tag": "minecraft:coals"
+  },
+  "fluid": "forgeweave:molten_carbon",
+  "amount": 72
+}

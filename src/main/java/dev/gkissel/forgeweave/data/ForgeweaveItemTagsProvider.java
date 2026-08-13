@@ -52,6 +52,12 @@ public class ForgeweaveItemTagsProvider extends ItemTagsProvider {
         tag("nuggets/rose_gold").add(ForgeweaveItems.NUGGET_ROSE_GOLD.get());
         tag("raw_materials/rose_gold").add(ForgeweaveItems.RAW_ROSE_GOLD.get());
 
+        // #234 -- steel: FW's own ingot/nugget into the same c: convention tags, so the shipped
+        // tag-keyed melting rows (steel_ingot.json and friends) pick them up alongside any other
+        // mod's steel. No raw form -- steel is alloyed, not mined.
+        tag("ingots/steel").add(ForgeweaveItems.INGOT_STEEL.get());
+        tag("nuggets/steel").add(ForgeweaveItems.NUGGET_STEEL.get());
+
         // #104 -- the cobalt + ardite nether ore blocks' own item forms into c:ores/*, the same
         // convention vanilla iron/copper ore already carry (see the shipped iron_ore.json/
         // copper_ore.json melting rows, issue #96) -- lets a smeltery melt the ore block itself
@@ -67,8 +73,10 @@ public class ForgeweaveItemTagsProvider extends ItemTagsProvider {
         tag("storage_blocks/ardite").add(ForgeweaveItems.ARDITE_BLOCK.get());
         tag("storage_blocks/manyullyn").add(ForgeweaveItems.MANYULLYN_BLOCK.get());
         tag("storage_blocks/rose_gold").add(ForgeweaveItems.ROSE_GOLD_BLOCK.get());
+        tag("storage_blocks/steel").add(ForgeweaveItems.STEEL_BLOCK.get());
         tag("storage_blocks").addTag(storageBlock("cobalt")).addTag(storageBlock("ardite"))
-                .addTag(storageBlock("manyullyn")).addTag(storageBlock("rose_gold"));
+                .addTag(storageBlock("manyullyn")).addTag(storageBlock("rose_gold"))
+                .addTag(storageBlock("steel"));
 
         // #152 -- the "large tool" classification: tools only the Tool Forge can assemble. See
         // ToolAssemblyRecipes#LARGE_TOOLS, which is the whole gate: a tool issue adds its row here and

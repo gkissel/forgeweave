@@ -160,6 +160,8 @@ public final class ForgeweaveBlocks {
     public static final DeferredBlock<Block> ARDITE_BLOCK = metalBlock("ardite_block");
     public static final DeferredBlock<Block> MANYULLYN_BLOCK = metalBlock("manyullyn_block");
     public static final DeferredBlock<Block> ROSE_GOLD_BLOCK = metalBlock("rose_gold_block");
+    // #234 -- steel's storage block (M3.2), same upstream BlockMetal-derived properties as the four above.
+    public static final DeferredBlock<Block> STEEL_BLOCK = metalBlock("steel_block");
 
     private static DeferredBlock<Block> metalBlock(String name) {
         return BLOCKS.registerSimpleBlock(name, BlockBehaviour.Properties.of()

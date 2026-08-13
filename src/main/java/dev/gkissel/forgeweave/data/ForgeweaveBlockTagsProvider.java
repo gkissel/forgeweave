@@ -49,8 +49,10 @@ public class ForgeweaveBlockTagsProvider extends BlockTagsProvider {
         tag(cTag("storage_blocks/ardite")).add(ForgeweaveBlocks.ARDITE_BLOCK.get());
         tag(cTag("storage_blocks/manyullyn")).add(ForgeweaveBlocks.MANYULLYN_BLOCK.get());
         tag(cTag("storage_blocks/rose_gold")).add(ForgeweaveBlocks.ROSE_GOLD_BLOCK.get());
+        tag(cTag("storage_blocks/steel")).add(ForgeweaveBlocks.STEEL_BLOCK.get());
         tag(cTag("storage_blocks")).addTag(cTag("storage_blocks/cobalt")).addTag(cTag("storage_blocks/ardite"))
-                .addTag(cTag("storage_blocks/manyullyn")).addTag(cTag("storage_blocks/rose_gold"));
+                .addTag(cTag("storage_blocks/manyullyn")).addTag(cTag("storage_blocks/rose_gold"))
+                .addTag(cTag("storage_blocks/steel"));
     }
 
     private static TagKey<Block> cTag(String path) {

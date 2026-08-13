@@ -1,0 +1,8 @@
+{
+  "station": "basin",
+  "fluid": "forgeweave:molten_steel",
+  "amount": 1296,
+  "result": {
+    "id": "forgeweave:steel_block"
+  }
+}

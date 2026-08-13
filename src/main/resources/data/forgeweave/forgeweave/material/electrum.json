@@ -1,0 +1,24 @@
+{
+  "head": {
+    "durability": 50,
+    "mining_speed": 12.0,
+    "attack_damage": 3.0
+  },
+  "handle": {
+    "durability_modifier": 1.1,
+    "durability": -25
+  },
+  "extra_durability": 250,
+  "incorrect_for_tool": "minecraft:incorrect_for_iron_tool",
+  "traits": {
+    "general": ["forgeweave:shocking"]
+  },
+  "crafting_items": [
+    { "ingredient": { "tag": "c:ingots/electrum" }, "value": 2 },
+    { "ingredient": { "tag": "c:storage_blocks/electrum" }, "value": 18 }
+  ],
+  "repair_item": {
+    "tag": "c:ingots/electrum"
+  },
+  "color": "#E8DB49"
+}
