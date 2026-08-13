@@ -765,6 +765,15 @@ public final class ForgeweaveModifiers {
     }
 
     /**
+     * Every registered modifier id (not embossing's generated per-material ids, which have no fixed
+     * registration to enumerate). {@code ModifierLangCoverageTest} walks this so a new modifier
+     * cannot ship without its {@code .name}/{@code .description} lang keys (issue #258).
+     */
+    public static Set<ResourceLocation> ids() {
+        return REGISTRY.keySet();
+    }
+
+    /**
      * The behavior for {@code id}, or {@code null} if this version doesn't implement it.
      *
      * <p><b>Unknown ids are kept, not dropped</b> (issue #105, favoring save safety): the entry stays

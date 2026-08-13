@@ -13,6 +13,7 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.network.chat.CommonComponents;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.HoverEvent;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.network.chat.Style;
 import net.minecraft.network.chat.TextColor;
@@ -101,7 +102,13 @@ public final class StationText {
             if (level > 1) {
                 line.append(CommonComponents.SPACE).append(Component.translatable("enchantment.level." + level));
             }
-            lines.add(line);
+            // Hovering the row explains the effect (issue #258): the row itself as a heading -- name
+            // plus level, in the modifier colour -- over the id's .description key in gray. Carried
+            // as a SHOW_TEXT hover event on the line's style so the screen's hit-testing needs no
+            // parallel list; a HoverEvent is chat-common, so this class stays client-free.
+            Component hover = line.copy().append("\n")
+                    .append(ModifierApplication.description(entry.id()).copy().withStyle(ChatFormatting.GRAY));
+            lines.add(line.withStyle(style -> style.withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, hover))));
         }
         lines.add(Component.translatable("gui.forgeweave.tool_station.modifier_slots",
                 ForgeweaveModifiers.freeSlots(tool)).withStyle(ChatFormatting.GRAY));

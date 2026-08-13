@@ -337,5 +337,20 @@ public final class ModifierApplication {
         return Component.translatable("modifier." + id.getNamespace() + "." + id.getPath() + ".name");
     }
 
+    /**
+     * A modifier's one-line effect description, keyed {@code modifier.<namespace>.<path>.description}
+     * next to {@link #name}'s {@code .name} -- the hover text the Tool Station's modifier rows show
+     * (issue #258). Embossing gets the same per-material treatment as {@link #name}, for the same
+     * reason: its generated ids have no lang key of their own.
+     */
+    public static Component description(ResourceLocation id) {
+        ResourceLocation material = Embossing.materialOf(id);
+        if (material != null) {
+            return Component.translatable("modifier.forgeweave.embossment.description",
+                    Component.translatable("material." + material.getNamespace() + "." + material.getPath()));
+        }
+        return Component.translatable("modifier." + id.getNamespace() + "." + id.getPath() + ".description");
+    }
+
     private ModifierApplication() {}
 }

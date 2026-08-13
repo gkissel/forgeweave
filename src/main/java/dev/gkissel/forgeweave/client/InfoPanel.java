@@ -111,6 +111,39 @@ public final class InfoPanel {
         return maxScroll;
     }
 
+    /**
+     * The text {@link net.minecraft.network.chat.Style} of the character under the mouse (fully
+     * qualified: this class's own {@link Style} is the frame choice above), or {@code null} over the
+     * frame, the caption, a spacer or bare padding -- how a screen finds the hover event a panel
+     * line carries (issue #258: the Tool Station's modifier rows). Repeats {@link #render}'s exact
+     * wrap, clamp and {@link #lineStep} math so hit-testing can never drift from where the text is
+     * drawn.
+     */
+    @Nullable
+    public static net.minecraft.network.chat.Style hoveredStyle(Font font, int x, int y, int width, int height,
+            boolean hasCaption, List<Component> lines, int scroll, double mouseX, double mouseY) {
+        int textLeft = x + TEXT_INSET;
+        float textTop = y + TEXT_INSET;
+        int textHeight = height - TEXT_INSET * 2;
+        if (hasCaption) {
+            textTop += font.lineHeight + CAPTION_GAP;
+            textHeight -= font.lineHeight + CAPTION_GAP;
+        }
+        if (mouseX < textLeft) {
+            return null;
+        }
+        List<FormattedCharSequence> wrapped = wrap(font, lines, width - WRAP_INSET);
+        int visibleLines = visibleLines(font, textHeight);
+        int start = Math.clamp(scroll, 0, Math.max(0, wrapped.size() - visibleLines));
+        for (int i = start; i < Math.min(wrapped.size(), start + visibleLines); i++) {
+            int lineY = Math.round(textTop + (i - start) * lineStep(font));
+            if (mouseY >= lineY && mouseY < lineY + font.lineHeight) {
+                return font.getSplitter().componentStyleAtWidth(wrapped.get(i), (int) mouseX - textLeft);
+            }
+        }
+        return null;
+    }
+
     /** How far {@code lines} can scroll in a panel of this size, without drawing anything. */
     public static int maxScroll(Font font, int width, int height, boolean hasCaption, List<Component> lines) {
         int textHeight = height - TEXT_INSET * 2 - (hasCaption ? font.lineHeight + CAPTION_GAP : 0);
