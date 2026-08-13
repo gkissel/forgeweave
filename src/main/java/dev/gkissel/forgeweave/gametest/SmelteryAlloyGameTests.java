@@ -184,30 +184,43 @@ public class SmelteryAlloyGameTests {
      * call chain, so every player near the core when one forms is credited (see {@code
      * SmelteryControllerBlockEntity#grantFirstAlloy}).
      */
-    @GameTest(template = "smeltery")
+    @GameTest(template = "smeltery", timeoutTicks = 1200)
     public static void anAlloyGrantsFirstAlloyToThePlayerWatchingIt(GameTestHelper helper) {
         SmelteryControllerBlockEntity core = smeltery(helper);
         ServerPlayer player = playerAtTheSmeltery(helper);
 
-        pour(core, ForgeweaveFluids.COBALT.still().get(), MeltingRecipe.VALUE_INGOT);
-        pour(core, ForgeweaveFluids.ARDITE.still().get(), MeltingRecipe.VALUE_INGOT);
+        // grantFirstAlloy finds its audience through an entity-index query, so the alloy must not
+        // form before the index can serve the freshly spawned player (see SpawnCapture -- same
+        // defect class as magnetic's zero pull).
+        helper.startSequence()
+                .thenWaitUntil(() -> SpawnCapture.assertIndexServes(helper, player))
+                .thenExecute(() -> {
+                    pour(core, ForgeweaveFluids.COBALT.still().get(), MeltingRecipe.VALUE_INGOT);
+                    pour(core, ForgeweaveFluids.ARDITE.still().get(), MeltingRecipe.VALUE_INGOT);
 
-        helper.assertTrue(isGranted(helper, player, "smeltery/first_alloy"),
-                "expected an alloy forming next to a player to grant the advancement");
-        helper.succeed();
+                    helper.assertTrue(isGranted(helper, player, "smeltery/first_alloy"),
+                            "expected an alloy forming next to a player to grant the advancement");
+                })
+                .thenSucceed();
     }
 
     /** And the other side of it: pouring in something that alloys with nothing grants nothing. */
-    @GameTest(template = "smeltery")
+    @GameTest(template = "smeltery", timeoutTicks = 1200)
     public static void fluidThatDoesNotAlloyGrantsNothing(GameTestHelper helper) {
         SmelteryControllerBlockEntity core = smeltery(helper);
         ServerPlayer player = playerAtTheSmeltery(helper);
 
-        pour(core, ForgeweaveFluids.IRON.still().get(), MeltingRecipe.VALUE_INGOT);
+        // Same pre-wait as the positive test: with the player invisible to the index, "granted
+        // nothing" would pass vacuously instead of proving iron alloys with nothing.
+        helper.startSequence()
+                .thenWaitUntil(() -> SpawnCapture.assertIndexServes(helper, player))
+                .thenExecute(() -> {
+                    pour(core, ForgeweaveFluids.IRON.still().get(), MeltingRecipe.VALUE_INGOT);
 
-        helper.assertFalse(isGranted(helper, player, "smeltery/first_alloy"),
-                "expected a lone molten metal to grant nothing");
-        helper.succeed();
+                    helper.assertFalse(isGranted(helper, player, "smeltery/first_alloy"),
+                            "expected a lone molten metal to grant nothing");
+                })
+                .thenSucceed();
     }
 
     // ------------------------------------------------------------------ helpers

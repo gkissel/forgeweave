@@ -216,8 +216,18 @@ public class LargeToolGameTests {
         helper.succeed();
     }
 
-    /** The scythe's area attack passes the blow to everything around what it hit (upstream's own sweep). */
-    @GameTest(template = "empty")
+    /**
+     * The scythe's area attack passes the blow to everything around what it hit (upstream's own
+     * sweep).
+     *
+     * <p>timeoutTicks: the sweep needs the level's <em>entity index</em> to serve the pigs, and a
+     * GameTest server runs unthrottled -- game ticks race far ahead of the async chunk promotion
+     * that makes a freshly force-loaded plot's entities query-visible, so the default 100 ticks can
+     * elapse in well under a second of wall time while the index is still empty (reproduced locally
+     * at a plot 12.6M blocks out). The wait below is on the index itself; the budget buys the chunk
+     * system the wall time it needs.
+     */
+    @GameTest(template = "empty", timeoutTicks = 1200)
     public static void scytheAttackHitsEveryoneAroundTheTarget(GameTestHelper helper) {
         ServerPlayer player = holdingLargeTool(helper, ForgeweaveItems.TOOL_SCYTHE.get(), "stone");
         Pig target = staticAdultPig(helper, new BlockPos(2, 2, 2));
@@ -226,11 +236,14 @@ public class LargeToolGameTests {
         float before = bystander.getHealth();
         float outOfReachBefore = outOfReach.getHealth();
 
-        // A settle tick before the blow and a wait-until after it: freshly spawned entities can
-        // reach the level's entity index a tick late on slow CI runners, which read here as "the
-        // sweep found nobody" (one CI-only failure, 2026-08-12). The edge assertion stays exact.
+        // The sweep finds its bystanders through the level's entity index, which registers freshly
+        // spawned entities asynchronously -- in a just-force-loaded plot that can lag several ticks
+        // (one CI-only failure, 2026-08-12; see SpawnCapture for the mechanism). A fixed settle
+        // tick was not a guarantee, so wait until the index actually serves all three pigs before
+        // swinging. The edge assertion stays exact.
         helper.startSequence()
-                .thenExecuteAfter(1, () -> {
+                .thenWaitUntil(() -> SpawnCapture.assertIndexServes(helper, target, bystander, outOfReach))
+                .thenExecute(() -> {
                     DamageSource source = helper.getLevel().damageSources().playerAttack(player);
                     helper.assertTrue(source.getWeaponItem() == player.getMainHandItem(),
                             "the blow must be attributed to the scythe being tested");

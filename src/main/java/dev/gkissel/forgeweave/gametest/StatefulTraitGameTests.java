@@ -218,10 +218,11 @@ public class StatefulTraitGameTests {
         helper.assertTrue(procs > 0 && procs < 100,
                 "0.33% of 10000 seeded rolls should proc a few dozen times, got " + procs);
 
-        // The spawn path, driven deterministically past the roll.
-        ForgeweaveTraits.spawnTraitSlime(level, player, where.getX() + 0.5, where.getY(), where.getZ() + 0.5);
-        List<Slime> slimes = level.getEntitiesOfClass(Slime.class,
-                new AABB(where).inflate(2.0));
+        // The spawn path, driven deterministically past the roll. Captured at the spawn seam rather
+        // than queried from the entity index, which lags behind synchronous spawns in a freshly
+        // force-loaded plot (see SpawnCapture).
+        List<Slime> slimes = SpawnCapture.spawnedDuring(helper, Slime.class,
+                () -> ForgeweaveTraits.spawnTraitSlime(level, player, where.getX() + 0.5, where.getY(), where.getZ() + 0.5));
         helper.assertTrue(slimes.size() == 1, "expected exactly one spawned slime, got " + slimes.size());
         helper.assertTrue(slimes.get(0).getSize() == 1,
                 "upstream spawns the smallest slime, got size " + slimes.get(0).getSize());
@@ -238,9 +239,9 @@ public class StatefulTraitGameTests {
         ServerLevel level = helper.getLevel();
         BlockPos where = helper.absolutePos(new BlockPos(2, 2, 2));
 
-        ForgeweaveTraits.dropBacon(level, where.getX() + 0.5, where.getY(), where.getZ() + 0.5);
-
-        List<ItemEntity> drops = level.getEntitiesOfClass(ItemEntity.class, new AABB(where).inflate(2.0));
+        // Captured at the spawn seam rather than queried from the entity index (see SpawnCapture).
+        List<ItemEntity> drops = SpawnCapture.spawnedDuring(helper, ItemEntity.class,
+                () -> ForgeweaveTraits.dropBacon(level, where.getX() + 0.5, where.getY(), where.getZ() + 0.5));
         helper.assertTrue(drops.size() == 1 && drops.get(0).getItem().is(Items.COOKED_PORKCHOP),
                 "expected one cooked porkchop drop (Forgeweave's bacon stand-in), got " + drops);
 
