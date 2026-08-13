@@ -128,7 +128,7 @@ public class AdvancementGameTests {
         helper.succeed();
     }
 
-    /** #166's "emboss", same reagent set {@link EmbossingGameTests} exercises (iron head, slime/magma/gold). */
+    /** #166's "emboss", same reagent set {@link EmbossingGameTests} exercises (iron head, three slime crystals, gold block -- #248's parity cost). */
     @GameTest(template = "empty")
     public static void embossingAToolGrantsFirstEmbossmentAdvancement(GameTestHelper helper) {
         BlockPos pos = new BlockPos(1, 1, 1);
@@ -140,9 +140,13 @@ public class AdvancementGameTests {
         blockEntity.container().setItem(ToolStationMenu.HEAD_SLOT, pickaxe);
         blockEntity.container().setItem(ToolStationMenu.BINDING_SLOT,
                 ToolAssembly.part(ForgeweaveItems.PART_PICKAXE_HEAD.get(), "iron"));
-        blockEntity.container().setItem(ToolStationMenu.HANDLE_SLOT, new ItemStack(Items.SLIME_BLOCK));
-        blockEntity.container().setItem(ToolStationMenu.EXTRA_SLOT_1, new ItemStack(Items.MAGMA_BLOCK));
-        blockEntity.container().setItem(ToolStationMenu.EXTRA_SLOT_2, new ItemStack(Items.GOLD_BLOCK));
+        blockEntity.container().setItem(ToolStationMenu.HANDLE_SLOT,
+                new ItemStack(ForgeweaveItems.GREEN_SLIME_CRYSTAL.get()));
+        blockEntity.container().setItem(ToolStationMenu.EXTRA_SLOT_1,
+                new ItemStack(ForgeweaveItems.BLUE_SLIME_CRYSTAL.get()));
+        blockEntity.container().setItem(ToolStationMenu.EXTRA_SLOT_2,
+                new ItemStack(ForgeweaveItems.MAGMA_SLIME_CRYSTAL.get()));
+        blockEntity.container().setItem(ToolStationMenu.EXTRA_SLOT_3, new ItemStack(Items.GOLD_BLOCK));
 
         ToolStationMenu menu = ToolAssembly.menu(helper, player, pos, blockEntity);
         menu.broadcastChanges();

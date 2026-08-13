@@ -1,0 +1,169 @@
+{
+    block: "forgeweave:tool_station",
+    decoder: "block_entity",
+    expect: {
+        id: "forgeweave:tool_station",
+        inventory: [
+            {
+                components: {
+                    "forgeweave:tool_materials": {
+                        binding: "forgeweave:wood",
+                        handle: "forgeweave:stone",
+                        head: "forgeweave:iron",
+                        parts: [
+                            "forgeweave:iron",
+                            "forgeweave:wood",
+                            "forgeweave:stone"
+                        ]
+                    },
+                    "forgeweave:tool_stats": {
+                        attack_damage: 4.0f,
+                        durability: 261,
+                        mining_speed: 6.0f
+                    },
+                    "minecraft:max_damage": 261
+                },
+                count: 1,
+                id: "forgeweave:pickaxe"
+            },
+            {
+                components: {
+                    "forgeweave:material": "forgeweave:iron"
+                },
+                count: 1,
+                id: "forgeweave:pickaxe_head"
+            },
+            {
+                count: 1,
+                id: "forgeweave:green_slime_crystal"
+            },
+            {
+                count: 1,
+                id: "forgeweave:blue_slime_crystal"
+            },
+            {
+                count: 1,
+                id: "forgeweave:magma_slime_crystal"
+            },
+            {
+                count: 1,
+                id: "minecraft:gold_block"
+            },
+            {
+                components: {
+                    "forgeweave:modifiers": [
+                        {
+                            id: "forgeweave:embossment.iron",
+                            level: 1
+                        }
+                    ],
+                    "forgeweave:tool_materials": {
+                        binding: "forgeweave:wood",
+                        handle: "forgeweave:stone",
+                        head: "forgeweave:iron",
+                        parts: [
+                            "forgeweave:iron",
+                            "forgeweave:wood",
+                            "forgeweave:stone"
+                        ]
+                    },
+                    "forgeweave:tool_stats": {
+                        attack_damage: 4.0f,
+                        durability: 261,
+                        mining_speed: 6.0f
+                    },
+                    "forgeweave:traits": [
+                        "forgeweave:magnetic2"
+                    ],
+                    "minecraft:max_damage": 261
+                },
+                count: 1,
+                id: "forgeweave:pickaxe"
+            }
+        ],
+        texture: "minecraft:oak_planks"
+    },
+    nbt: {
+        id: "forgeweave:tool_station",
+        inventory: [
+            {
+                components: {
+                    "forgeweave:tool_materials": {
+                        binding: "forgeweave:wood",
+                        handle: "forgeweave:stone",
+                        head: "forgeweave:iron",
+                        parts: [
+                            "forgeweave:iron",
+                            "forgeweave:wood",
+                            "forgeweave:stone"
+                        ]
+                    },
+                    "forgeweave:tool_stats": {
+                        attack_damage: 4.0f,
+                        durability: 261,
+                        mining_speed: 6.0f
+                    },
+                    "minecraft:max_damage": 261
+                },
+                count: 1,
+                id: "forgeweave:pickaxe"
+            },
+            {
+                components: {
+                    "forgeweave:material": "forgeweave:iron"
+                },
+                count: 1,
+                id: "forgeweave:pickaxe_head"
+            },
+            {
+                count: 1,
+                id: "forgeweave:green_slime_crystal"
+            },
+            {
+                count: 1,
+                id: "forgeweave:blue_slime_crystal"
+            },
+            {
+                count: 1,
+                id: "forgeweave:magma_slime_crystal"
+            },
+            {
+                count: 1,
+                id: "minecraft:gold_block"
+            },
+            {
+                components: {
+                    "forgeweave:modifiers": [
+                        {
+                            id: "forgeweave:embossment.iron",
+                            level: 1
+                        }
+                    ],
+                    "forgeweave:tool_materials": {
+                        binding: "forgeweave:wood",
+                        handle: "forgeweave:stone",
+                        head: "forgeweave:iron",
+                        parts: [
+                            "forgeweave:iron",
+                            "forgeweave:wood",
+                            "forgeweave:stone"
+                        ]
+                    },
+                    "forgeweave:tool_stats": {
+                        attack_damage: 4.0f,
+                        durability: 261,
+                        mining_speed: 6.0f
+                    },
+                    "forgeweave:traits": [
+                        "forgeweave:magnetic2"
+                    ],
+                    "minecraft:max_damage": 261
+                },
+                count: 1,
+                id: "forgeweave:pickaxe"
+            }
+        ],
+        texture: "minecraft:oak_planks"
+    },
+    what: "M3.2 (#248): a Tool Station saved with every one of its seven slots full -- a loaded tool, the donor part, the four parity reagents (green/blue/magma slime crystal + gold block) across the five free slots, and the embossed result still in the output slot, which #248 moved from index 5 to index 6 when it grew the container from six slots to seven. This is the seven-entry inventory list only a post-#248 world can write; m2_tool_station_inventory.snbt stays as the old-shape proof that shorter lists keep loading (SimpleContainer's list is positionless -- entries reload in order via addItem, so a six-slot save's stacks all land in the wider container, and anything that reloads into a slot its tab doesn't use is handed back by ToolStationMenu#returnUnusableInputs; visible relocation, no loss)."
+}

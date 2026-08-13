@@ -57,9 +57,9 @@ import dev.gkissel.forgeweave.trait.ForgeweaveTraits;
  *   <li><b>Modifier application</b> (issue #105) -- a tool in the head slot plus a
  *       {@code modifier.ModifierRecipe}'s reagents in the other two, tried after repair so the two
  *       never fight over an item that is both.
- *   <li><b>Embossing</b> (issue #154) -- a tool in the head slot plus a donor tool part and an
- *       {@code modifier.EmbossingRecipe}'s reagent set across all four free slots, which is why the
- *       repair tab has four of them.
+ *   <li><b>Embossing</b> (issue #154; parity cost per issue #248) -- a tool in the head slot plus a
+ *       donor tool part and an {@code modifier.EmbossingRecipe}'s reagent set across all five free
+ *       slots, which is why the repair tab has five of them.
  * </ul>
  *
  * <p>NOTICE.md cites the tool classes for the part composition, {@code ToolNBT.java} for the stat
@@ -269,7 +269,7 @@ public final class ToolAssemblyRecipes {
      *
      * @param freeSlots every input slot except the first, in slot order. Assembly, repair and
      *     modifier application read the first two of them (the slots M1 and M2 shipped); embossing
-     *     (issue #154) needs all four, which is why this takes the list rather than two stacks.
+     *     (issues #154, #248) needs all five, which is why this takes the list rather than two stacks.
      * @param forge whether the station is a Tool Forge (issue #152): gates large-tool assembly and
      *     applies the repair discount. Every other outcome is identical at both blocks.
      */
@@ -298,15 +298,19 @@ public final class ToolAssemblyRecipes {
 
     /**
      * Embossing (issue #154, ADR-0004): a tool in the first slot, a donor part and the reagent set
-     * spread across the four free ones. Every matched slot gives up exactly one item -- upstream's
+     * spread across the five free ones. Every matched slot gives up exactly one item -- upstream's
      * {@code RecipeMatch.ItemCombination(1, ...)} -- and a rejected embossment produces no output
      * here, only the message {@link ToolStationMenu#rejection} shows.
      */
     private static Optional<Result> resolveEmbossing(HolderLookup.Provider registries, ItemStack toolStack,
             List<ItemStack> freeSlots) {
+        // One of everything: a resolved embossment always fills the tool slot plus every free slot
+        // (Embossing#matchesAll requires exactly one slot per reagent beside the donor).
+        int[] oneOfEach = new int[1 + freeSlots.size()];
+        Arrays.fill(oneOfEach, 1);
         return Embossing.resolve(registries, toolStack, freeSlots)
                 .filter(outcome -> !outcome.output().isEmpty())
-                .map(outcome -> Result.of(outcome.output(), 1, 1, 1, 1, 1));
+                .map(outcome -> Result.of(outcome.output(), oneOfEach));
     }
 
     /**

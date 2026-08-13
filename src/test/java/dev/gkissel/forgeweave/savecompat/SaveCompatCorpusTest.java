@@ -104,8 +104,9 @@ class SaveCompatCorpusTest {
         assertNotNull(dir, "the corpus directory is missing from the test resources");
         try (Stream<Path> files = Files.list(Path.of(dir.toURI()))) {
             List<Path> snbt = files.filter(path -> path.toString().endsWith(".snbt")).sorted().toList();
-            assertTrue(snbt.size() >= 12,
-                    "the M2 four, #101's tank, #154's embossment, #160's ramp and #167's audit five; "
+            assertTrue(snbt.size() >= 15,
+                    "the M2 four, #101's tank, #154's embossment, #160's ramp, #167's audit five, "
+                            + "M3.2's two component states and #248's seven-slot station; "
                             + "something dropped fixtures");
             return snbt.stream();
         }

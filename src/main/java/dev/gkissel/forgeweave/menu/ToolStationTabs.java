@@ -32,6 +32,7 @@ import dev.gkissel.forgeweave.item.ToolItem;
  *   warmace     handle (33-18, 42+18)   head  (33+20, 42-20)      binding (33, 42)
  *   repair      tool (33, 42)           item (33-18, 42+20)       item (33-22, 42-5)
  *                                       item (33, 42-23)          item (33+22, 42-5)
+ *                                       item (33+18, 42+20)
  * </pre>
  *
  * <p>The five 1.12 weapons' rows are upstream's own numbers with its per-tool nudges folded in
@@ -42,11 +43,12 @@ import dev.gkissel.forgeweave.item.ToolItem;
  * head up-right, binding at the origin, handle down-left -- which is how its own art is laid out;
  * its slot order is its own part list's (handle, head, binding), not the pickaxe's.
  *
- * <p>The repair tab's last two positions are upstream's 4th and 5th ({@code GuiButtonRepair}'s
- * static initializer lists six of them); issue #154 restored them because embossing costs four items
- * -- a donor part plus a three-block reagent set -- which the two free slots M1 shipped could not
- * hold. Upstream's 6th ({@code x+18, y+20}) stays unused: nothing Forgeweave ships needs a fifth
- * free slot, and an always-empty slot is chrome a player has to learn to ignore.
+ * <p>The repair tab's last three positions are upstream's 4th, 5th and 6th ({@code
+ * GuiButtonRepair}'s static initializer lists six of them). Issue #154 restored the 4th and 5th
+ * because embossing costs a donor part plus a reagent set, which the two free slots M1 shipped
+ * could not hold; issue #248 restored the 6th ({@code x+18, y+20}) along with the full-parity
+ * four-reagent embossing cost (three slime crystals plus a gold block), which needs a fifth free
+ * slot beside the donor part -- the repair layout is now upstream's whole table.
  *
  * <p>Upstream's layouts are a client-only registry, because there the layout is only ever pixel
  * positions; the same table lives here in {@code menu} because Forgeweave's tabs also decide what
@@ -60,7 +62,7 @@ import dev.gkissel.forgeweave.item.ToolItem;
  * {@code ContainerToolStation#activeSlots}, which the station reads to hide and refuse the slots the
  * selected tab doesn't use. Since issue #155 that count is per-tool on the build tabs too: three M3
  * weapons have no extra part, so their tabs list two positions where the M1 tools list three and the
- * repair tab lists five.
+ * repair tab lists six.
  */
 public final class ToolStationTabs {
 
@@ -73,7 +75,7 @@ public final class ToolStationTabs {
      * @param entry the tool this tab builds and the parts it takes (issue #155), or {@code null} for
      *     the repair tab, which accepts an assembled tool in its first slot instead
      * @param slots where this tab's input slots sit, in the entry's own part order (or, on the repair
-     *     tab, tool then the four free slots). Its size is the tab's active-slot count.
+     *     tab, tool then the five free slots). Its size is the tab's active-slot count.
      */
     public record Tab(@Nullable ToolAssemblyRecipes.Entry entry, List<Pos> slots) {
 
@@ -134,7 +136,7 @@ public final class ToolStationTabs {
     }
 
     public static final List<Tab> TABS = List.of(
-            new Tab(null, List.of(at(0, 0), at(-18, 20), at(-22, -5), at(0, -23), at(22, -5))),
+            new Tab(null, List.of(at(0, 0), at(-18, 20), at(-22, -5), at(0, -23), at(22, -5), at(18, 20))),
             // pickaxe: head, binding, handle
             build(ForgeweaveItems.TOOL_PICKAXE, at(20, -20), at(0, 0), at(-18, 18)),
             build(ForgeweaveItems.TOOL_SHOVEL, at(18, -18), at(-20, 20), at(0, 0)),

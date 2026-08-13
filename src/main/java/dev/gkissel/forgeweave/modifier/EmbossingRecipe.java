@@ -21,8 +21,9 @@ import dev.gkissel.forgeweave.Forgeweave;
  * <pre>
  * {
  *   "reagents": [
- *     {"item": "minecraft:slime_block"},
- *     {"item": "minecraft:magma_block"},
+ *     {"item": "forgeweave:green_slime_crystal"},
+ *     {"item": "forgeweave:blue_slime_crystal"},
+ *     {"item": "forgeweave:magma_slime_crystal"},
  *     {"item": "minecraft:gold_block"}
  *   ]
  * }
@@ -36,12 +37,12 @@ import dev.gkissel.forgeweave.Forgeweave;
  * per part/material pair out of a single shared {@code EMBOSSMENT_ITEMS} list, which is exactly this
  * field).
  *
- * <p><b>Reagent substitution</b> (maintainer decision on issue #154, 2026-08-12): upstream's cost is
- * green + blue + magma slime crystal + a gold block. Slime crystals do not exist until the
- * world-content milestone, so the shipped recipe substitutes slime block + magma block + gold block,
- * one block loosely standing in for each crystal colour. The revert to parity is tracked in
- * docs/SCOPE.md's deferred backlog, and because the cost lives here it is a JSON edit rather than a
- * code change when the crystals ship.
+ * <p><b>Reagent parity</b> (issue #248, maintainer decision 2026-08-13): the shipped cost is
+ * upstream's own -- green + blue + magma slime crystal + a gold block ({@code ModExtraTrait}'s
+ * {@code EMBOSSMENT_ITEMS}). M3 had substituted slime block + magma block + gold block while the
+ * crystals didn't exist (maintainer decision on issue #154, 2026-08-12); M3.2's crystals (#232)
+ * made the deferred revert executable, and because the cost lives here it was a JSON edit plus one
+ * more station slot rather than a code change.
  *
  * <p>Registered as a NeoForge datapack registry with a network codec, same as {@link ModifierRecipe}
  * and {@code material.Material}, so {@code /reload} picks up an edit and the client can resolve the

@@ -37,7 +37,7 @@ import dev.gkissel.forgeweave.menu.ToolStationTabs.Tab;
 
 /**
  * The Tool Station's menu -- and the Tool Forge's, which is the same menu with {@link #isForge()}
- * set (issue #152): three input slots, an output slot, and the player's inventory, plus the
+ * set (issue #152): the tab-positioned input slots, an output slot, and the player's inventory, plus the
  * selected {@link ToolStationTabs.Tab} that decides where those input slots sit and what each one
  * accepts. Same "recompute output every broadcast, only consume on take" shape as
  * {@link dev.gkissel.forgeweave.menu.PartBuilderMenu}.
@@ -78,23 +78,27 @@ import dev.gkissel.forgeweave.menu.ToolStationTabs.Tab;
  * class's javadoc for the client/server slot-count handshake.
  */
 public class ToolStationMenu extends StationMenu {
-    public static final int CONTAINER_SLOTS = 6;
+    public static final int CONTAINER_SLOTS = 7;
     public static final int HEAD_SLOT = 0;
     public static final int BINDING_SLOT = 1;
     public static final int HANDLE_SLOT = 2;
     /**
-     * The two extra free slots issue #154 added, upstream's 4th and 5th repair positions. Only the
-     * repair/modify tab has them ({@link ToolStationTabs.Tab#slots}); a build tab needs three.
+     * The extra free slots on the repair/modify tab ({@link ToolStationTabs.Tab#slots}); a build tab
+     * needs at most four. Issue #154 added the first two, upstream's 4th and 5th repair positions;
+     * issue #248 added the third, upstream's 6th, because the full-parity embossing cost is a donor
+     * part plus <em>four</em> reagents (three slime crystals and a gold block), which is one more
+     * free slot than the #154 pair could hold.
      */
     public static final int EXTRA_SLOT_1 = 3;
     public static final int EXTRA_SLOT_2 = 4;
-    public static final int OUTPUT_SLOT = 5;
+    public static final int EXTRA_SLOT_3 = 5;
+    public static final int OUTPUT_SLOT = 6;
     /**
      * How many tab-positioned input slots the container has; the output slot is fixed. How many of
      * them the <em>selected</em> tab uses is {@code tab().slots().size()}, upstream's
      * {@code activeSlots} -- the rest are hidden and refuse everything.
      */
-    public static final int INPUT_SLOTS = 5;
+    public static final int INPUT_SLOTS = 6;
 
     /** Upstream's own output-slot spot in {@code ContainerToolStation} ({@code SlotToolStationOut}). */
     private static final int OUTPUT_X = 124;
@@ -230,7 +234,7 @@ public class ToolStationMenu extends StationMenu {
             }
 
             /**
-             * Upstream's {@code activeSlots}: a build tab has no use for the repair tab's two extra
+             * Upstream's {@code activeSlots}: a build tab has no use for the repair tab's extra
              * reagent slots, so they are neither drawn nor clickable while one is selected. Nothing
              * can be stranded behind this -- {@link #returnUnusableInputs} hands back whatever a
              * slot held before the tab that hides it was selected.
