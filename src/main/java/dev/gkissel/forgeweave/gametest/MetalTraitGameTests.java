@@ -55,7 +55,7 @@ public class MetalTraitGameTests {
      * Iron -&gt; {@code forgeweave:magnetic2}: every tick the tool is carried, nearby item drops are
      * pulled toward the holder.
      */
-    @GameTest(template = "empty")
+    @GameTest(template = "empty", timeoutTicks = 1200)
     public static void magneticPullsNearbyItemsTowardTheHolder(GameTestHelper helper) {
         ServerLevel level = helper.getLevel();
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
@@ -68,12 +68,19 @@ public class MetalTraitGameTests {
         dropped.setDeltaMovement(Vec3.ZERO);
         level.addFreshEntity(dropped);
 
-        pickaxe.getItem().inventoryTick(pickaxe, level, player, 0, false);
-        helper.assertTrue(dropped.getDeltaMovement().x < 0.0,
-                "magnetic should push the item toward the holder (negative x), got " + dropped.getDeltaMovement());
-
-        dropped.discard();
-        helper.succeed();
+        // Magnetic's own pull is an entity-index query, and the index registers fresh spawns
+        // asynchronously -- ticking the trait in the spawn tick reads as "got (0.0, 0.0, 0.0)"
+        // (CI flake at plot -8265235/6470085). Wait for the index to serve the drop first.
+        helper.startSequence()
+                .thenWaitUntil(() -> SpawnCapture.assertIndexServes(helper, dropped))
+                .thenExecute(() -> {
+                    pickaxe.getItem().inventoryTick(pickaxe, level, player, 0, false);
+                    helper.assertTrue(dropped.getDeltaMovement().x < 0.0,
+                            "magnetic should push the item toward the holder (negative x), got "
+                                    + dropped.getDeltaMovement());
+                    dropped.discard();
+                })
+                .thenSucceed();
     }
 
     /** Cobalt, head only -&gt; {@code forgeweave:momentum}: mining speed builds up and decays. */

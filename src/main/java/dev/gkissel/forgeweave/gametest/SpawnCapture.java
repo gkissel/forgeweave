@@ -30,6 +30,30 @@ final class SpawnCapture {
 
     private SpawnCapture() {}
 
+    /**
+     * A {@code thenWaitUntil} condition: fails (and is retried next tick) until the level's entity
+     * index serves every one of {@code entities}.
+     *
+     * <p>For tests whose asserted <em>production</em> behavior queries the index itself -- magnetic's
+     * item pull, the sweep seams' AoE lookup, the smeltery's advancement radius -- capturing at the
+     * spawn seam is not enough: the shipped code runs its own {@code getEntitiesOfClass}, so
+     * triggering it in the same tick the actors spawned races the async registration described above
+     * and quietly finds nobody (PR #249's fourth CI flake, magnetic's "got (0.0, 0.0, 0.0)"). Wait
+     * on this first, then trigger the behavior. Pair it with a generous {@code timeoutTicks} -- the
+     * ticks race wall-clock, so the budget is what buys the chunk system real time.
+     */
+    static void assertIndexServes(GameTestHelper helper, Entity... entities) {
+        AABB box = entities[0].getBoundingBox();
+        for (Entity entity : entities) {
+            box = box.minmax(entity.getBoundingBox());
+        }
+        List<Entity> seen = helper.getLevel().getEntitiesOfClass(Entity.class, box.inflate(1.0));
+        for (Entity entity : entities) {
+            helper.assertTrue(seen.contains(entity),
+                    "the entity index does not yet serve " + entity.getType() + " at " + entity.position());
+        }
+    }
+
     /** Every {@code type} entity that joined this test's level inside its structure while {@code body} ran. */
     static <T extends Entity> List<T> spawnedDuring(GameTestHelper helper, Class<T> type, Runnable body) {
         List<T> captured = new ArrayList<>();

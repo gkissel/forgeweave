@@ -242,13 +242,7 @@ public class LargeToolGameTests {
         // tick was not a guarantee, so wait until the index actually serves all three pigs before
         // swinging. The edge assertion stays exact.
         helper.startSequence()
-                // The "empty" template is a single block, so the query spans the pigs themselves
-                // (the sweep's own production lookup is an AABB around the target, so pig-relative
-                // is also the visibility that actually matters).
-                .thenWaitUntil(() -> helper.assertTrue(
-                        helper.getLevel().getEntitiesOfClass(Pig.class, target.getBoundingBox().inflate(8.0))
-                                .containsAll(java.util.List.of(target, bystander, outOfReach)),
-                        "waiting for the entity index to see the three pigs the sweep needs"))
+                .thenWaitUntil(() -> SpawnCapture.assertIndexServes(helper, target, bystander, outOfReach))
                 .thenExecute(() -> {
                     DamageSource source = helper.getLevel().damageSources().playerAttack(player);
                     helper.assertTrue(source.getWeaponItem() == player.getMainHandItem(),

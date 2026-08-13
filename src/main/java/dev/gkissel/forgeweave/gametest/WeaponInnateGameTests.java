@@ -93,7 +93,7 @@ public class WeaponInnateGameTests {
      * primary target did, the primary takes slowness I for 1.5s, and something outside the wedge is
      * left alone (which is what makes it an arc rather than a radius).
      */
-    @GameTest(template = "empty")
+    @GameTest(template = "empty", timeoutTicks = 1200)
     public static void battleaxeSweepStrikesTheArcAtHalfDamage(GameTestHelper helper) {
         BlockPos stationPos = new BlockPos(1, 1, 1);
         ServerPlayer player = helper.makeMockServerPlayerInLevel();
@@ -113,21 +113,27 @@ public class WeaponInnateGameTests {
         Pig behind = pig(helper, origin.offset(0, 0, -2));
 
         float blow = 4.0F;
-        primary.hurt(helper.getLevel().damageSources().playerAttack(player), blow);
+        // The sweep's wedge lookup is an entity-index query; wait until the index serves the pigs
+        // before swinging (see SpawnCapture -- same defect class as magnetic's zero pull).
+        helper.startSequence()
+                .thenWaitUntil(() -> SpawnCapture.assertIndexServes(helper, primary, flankLeft, flankRight, behind))
+                .thenExecute(() -> {
+                    primary.hurt(helper.getLevel().damageSources().playerAttack(player), blow);
 
-        assertHealthLost(helper, flankLeft, blow * 0.5F, "the pig to the left of the swing");
-        assertHealthLost(helper, flankRight, blow * 0.5F, "the pig to the right of the swing");
-        assertHealthLost(helper, behind, 0.0F, "the pig behind the swing");
+                    assertHealthLost(helper, flankLeft, blow * 0.5F, "the pig to the left of the swing");
+                    assertHealthLost(helper, flankRight, blow * 0.5F, "the pig to the right of the swing");
+                    assertHealthLost(helper, behind, 0.0F, "the pig behind the swing");
 
-        MobEffectInstance slow = primary.getEffect(MobEffects.MOVEMENT_SLOWDOWN);
-        helper.assertTrue(slow != null, "expected the primary target to be slowed by the sweeping blow");
-        helper.assertTrue(slow.getAmplifier() == 0,
-                "expected slowness I on the primary target, got amplifier " + slow.getAmplifier());
-        helper.assertTrue(slow.getDuration() == ForgeweaveInnates.SWEEPING_BLOW_SEAM.primaryEffectTicks(),
-                "expected the decided 1.5s of slowness, got " + slow.getDuration() + " ticks");
+                    MobEffectInstance slow = primary.getEffect(MobEffects.MOVEMENT_SLOWDOWN);
+                    helper.assertTrue(slow != null, "expected the primary target to be slowed by the sweeping blow");
+                    helper.assertTrue(slow.getAmplifier() == 0,
+                            "expected slowness I on the primary target, got amplifier " + slow.getAmplifier());
+                    helper.assertTrue(slow.getDuration() == ForgeweaveInnates.SWEEPING_BLOW_SEAM.primaryEffectTicks(),
+                            "expected the decided 1.5s of slowness, got " + slow.getDuration() + " ticks");
 
-        discard(primary, flankLeft, flankRight, behind);
-        helper.succeed();
+                    discard(primary, flankLeft, flankRight, behind);
+                })
+                .thenSucceed();
     }
 
     /**
@@ -135,7 +141,7 @@ public class WeaponInnateGameTests {
      * so posting the attack event vanilla posts (which is where {@code CombatSeams} captures the
      * charge, before {@code Player#attack} zeroes it) proves a spam-clicked hit does not sweep.
      */
-    @GameTest(template = "empty")
+    @GameTest(template = "empty", timeoutTicks = 1200)
     public static void battleaxeSweepNeedsAFullCharge(GameTestHelper helper) {
         BlockPos stationPos = new BlockPos(1, 1, 1);
         ServerPlayer player = helper.makeMockServerPlayerInLevel();
@@ -149,17 +155,24 @@ public class WeaponInnateGameTests {
         Pig primary = pig(helper, origin.offset(0, 0, 2));
         Pig flank = pig(helper, origin.offset(1, 0, 2));
 
-        player.resetAttackStrengthTicker(); // scale ~0: the swing has had no time to recover
-        helper.assertTrue(player.getAttackStrengthScale(0.5F) < 0.9F,
-                "this test is meaningless unless the mock player's swing really is uncharged");
-        NeoForge.EVENT_BUS.post(new AttackEntityEvent(player, primary));
-        primary.hurt(helper.getLevel().damageSources().playerAttack(player), 4.0F);
+        // Same pre-wait as the arc test: without an index that can serve the flank, "the sweep hit
+        // nobody" would pass vacuously here rather than prove the charge gate.
+        helper.startSequence()
+                .thenWaitUntil(() -> SpawnCapture.assertIndexServes(helper, primary, flank))
+                .thenExecute(() -> {
+                    player.resetAttackStrengthTicker(); // scale ~0: the swing has had no time to recover
+                    helper.assertTrue(player.getAttackStrengthScale(0.5F) < 0.9F,
+                            "this test is meaningless unless the mock player's swing really is uncharged");
+                    NeoForge.EVENT_BUS.post(new AttackEntityEvent(player, primary));
+                    primary.hurt(helper.getLevel().damageSources().playerAttack(player), 4.0F);
 
-        assertHealthLost(helper, flank, 0.0F, "a bystander of an uncharged swing");
-        helper.assertTrue(primary.getEffect(MobEffects.MOVEMENT_SLOWDOWN) == null,
-                "an uncharged swing must not slow its target either");
+                    assertHealthLost(helper, flank, 0.0F, "a bystander of an uncharged swing");
+                    helper.assertTrue(primary.getEffect(MobEffects.MOVEMENT_SLOWDOWN) == null,
+                            "an uncharged swing must not slow its target either");
 
-        discard(primary, flank);
+                    discard(primary, flank);
+                })
+                .thenSucceed();
         helper.succeed();
     }
 
