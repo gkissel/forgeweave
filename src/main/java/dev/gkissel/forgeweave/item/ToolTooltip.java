@@ -1,6 +1,7 @@
 package dev.gkissel.forgeweave.item;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import net.minecraft.ChatFormatting;
@@ -12,6 +13,7 @@ import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.network.chat.Style;
 import net.minecraft.network.chat.TextColor;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.tags.BlockTags;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.component.Tool;
@@ -172,6 +174,30 @@ final class ToolTooltip {
         return Component.translatable("tooltip.forgeweave.tool_tier")
                 .append(": ")
                 .append(tierName(stack, head));
+    }
+
+    /**
+     * Vanilla's full {@code incorrect_for_*_tool} ladder mapped to the {@code tooltip.forgeweave.tier.*}
+     * keys (issue #254). Gold is deliberately absent -- it is a speed tier, not a mining-capability
+     * one -- as is any modded tag, so callers omit the line rather than guess.
+     */
+    private static final Map<TagKey<Block>, String> TIER_LANG_KEYS = Map.of(
+            BlockTags.INCORRECT_FOR_WOODEN_TOOL, "wooden",
+            BlockTags.INCORRECT_FOR_STONE_TOOL, "stone",
+            BlockTags.INCORRECT_FOR_IRON_TOOL, "iron",
+            BlockTags.INCORRECT_FOR_DIAMOND_TOOL, "diamond",
+            BlockTags.INCORRECT_FOR_NETHERITE_TOOL, "netherite");
+
+    /**
+     * The {@code Tool Tier: X} line for a bare {@code incorrect_for_tool} tag -- head-part tooltips
+     * (issue #254), where there is no assembled stack whose Modifiers could have retuned the tier,
+     * so the material's own tag is the whole answer. Empty for a tag off the ladder above.
+     */
+    static Optional<Component> tierLine(TagKey<Block> incorrectForTool) {
+        return Optional.ofNullable(TIER_LANG_KEYS.get(incorrectForTool))
+                .map(tier -> Component.translatable("tooltip.forgeweave.tool_tier")
+                        .append(": ")
+                        .append(Component.translatable("tooltip.forgeweave.tier." + tier)));
     }
 
     private static Component traitLine(HolderLookup.Provider registries, ToolMaterials materials,

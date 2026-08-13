@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import java.awt.Color;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Stream;
 
 import org.junit.jupiter.api.BeforeAll;
@@ -182,6 +183,26 @@ class ToolTooltipTest {
                         .append(Component.literal(": ").withStyle(ChatFormatting.GRAY))
                         .append(Component.translatable("trait.forgeweave.cheap.description").withStyle(ChatFormatting.GRAY))),
                 tooltip);
+    }
+
+    /** Issue #254: the bare-tag tier mapping head-part tooltips use covers the whole vanilla ladder. */
+    @Test
+    void tierLineMapsEveryVanillaLadderTag() {
+        for (String tier : List.of("wooden", "stone", "iron", "diamond", "netherite")) {
+            assertEquals(
+                    Optional.of(Component.translatable("tooltip.forgeweave.tool_tier").append(": ")
+                            .append(Component.translatable("tooltip.forgeweave.tier." + tier))),
+                    ToolTooltip.tierLine(incorrectForTool(tier)),
+                    tier);
+        }
+    }
+
+    /** Gold and modded tags are off the ladder: no line rather than a guessed tier (#254). */
+    @Test
+    void tierLineIsEmptyForGoldAndUnknownTags() {
+        assertEquals(Optional.empty(), ToolTooltip.tierLine(incorrectForTool("gold")));
+        assertEquals(Optional.empty(), ToolTooltip.tierLine(TagKey.create(Registries.BLOCK,
+                ResourceLocation.fromNamespaceAndPath("somemod", "incorrect_for_osmium_tool"))));
     }
 
     @Test

@@ -1,5 +1,6 @@
 package dev.gkissel.forgeweave.item;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -106,10 +107,23 @@ public class PartItem extends Item {
 
     private List<Component> stats(Material material) {
         return switch (kind) {
-            case HEAD -> StationText.headStats(material);
+            case HEAD -> headStats(material);
             case HANDLE -> StationText.handleStats(material);
             case EXTRA -> StationText.extraStats(material);
             case NONE -> List.of();
         };
+    }
+
+    /**
+     * The head stat block plus the tool tier the material grants (issue #254) -- heads are what
+     * decide a tool's mining capability, so the tier sits with the other head stats behind Shift,
+     * in the same {@code Tool Tier: X} shape {@code ToolTooltip} shows for an assembled tool. A
+     * material whose {@code incorrect_for_tool} tag is off the vanilla ladder (gold, modded) gets
+     * no tier line rather than a guess.
+     */
+    private static List<Component> headStats(Material material) {
+        List<Component> lines = new ArrayList<>(StationText.headStats(material));
+        ToolTooltip.tierLine(material.incorrectForTool()).ifPresent(lines::add);
+        return lines;
     }
 }
