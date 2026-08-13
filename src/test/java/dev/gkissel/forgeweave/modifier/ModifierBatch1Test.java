@@ -145,7 +145,10 @@ class ModifierBatch1Test {
 
     // ------------------------------------------------------------------ diamond (1 diamond)
 
-    /** Upstream {@code ModDiamond}: {@code +500} durability, flat, plus a one-tier bump. */
+    /**
+     * Upstream {@code ModDiamond}, whole: {@code +500} durability, a one-tier bump, {@code +1}
+     * attack and {@code +0.5} mining speed (the stat half is issue #265's maintainer call).
+     */
     @Test
     void diamondAddsFiveHundredDurabilityAndBumpsToolTier() {
         ItemStack tool = assembledPickaxe();
@@ -156,6 +159,10 @@ class ModifierBatch1Test {
         ToolStats.Stats effective = ForgeweaveModifiers.effectiveStats(outcome.output());
         assertEquals(PICKAXE_STATS.durability() + 500, effective.durability());
         assertEquals(PICKAXE_STATS.durability() + 500, outcome.output().getMaxDamage(), "max_damage must be retuned too");
+        assertEquals(PICKAXE_STATS.attackDamage() + 1.0F, effective.attackDamage(), 1e-6F,
+                "upstream ModDiamond: data.attack += 1f (#265)");
+        assertEquals(PICKAXE_STATS.miningSpeed() + 0.5F, effective.miningSpeed(), 1e-6F,
+                "upstream ModDiamond: data.speed += 0.5f (#265)");
         assertEquals(1, ForgeweaveModifiers.tierIndexOf(denyRule(outcome.output()).blocks()),
                 "the deny-drops tag must move one rung up the ladder");
 
