@@ -11,7 +11,8 @@
   "extra_durability": 40,
   "incorrect_for_tool": "minecraft:incorrect_for_iron_tool",
   "traits": {
-    "general": ["forgeweave:crude"]
+    "general": ["forgeweave:crude"],
+    "head": ["forgeweave:crude2"]
   },
   "crafting_items": [
     { "ingredient": { "item": "minecraft:flint" }, "value": 2 }

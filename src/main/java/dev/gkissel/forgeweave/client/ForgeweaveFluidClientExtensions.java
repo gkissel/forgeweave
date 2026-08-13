@@ -29,6 +29,7 @@ public final class ForgeweaveFluidClientExtensions {
         register(event, ForgeweaveFluids.COBALT);
         register(event, ForgeweaveFluids.ARDITE);
         register(event, ForgeweaveFluids.MANYULLYN);
+        register(event, ForgeweaveFluids.OBSIDIAN);
         register(event, ForgeweaveFluids.ROSE_GOLD);
         register(event, ForgeweaveFluids.NETHERITE_SCRAP);
         register(event, ForgeweaveFluids.NETHERITE);

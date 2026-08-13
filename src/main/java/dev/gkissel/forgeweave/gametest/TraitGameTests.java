@@ -51,34 +51,40 @@ public class TraitGameTests {
      * GameTest server against the same {@code Material.REGISTRY} that gets synced, so a schema change
      * that decoded only in a unit test would fail here.
      *
-     * <p>All four M1 materials are general-only, so every part of them grants the same one trait --
-     * exactly what the pre-#94 single {@code trait} field meant. The head/general split itself is
-     * covered by {@code MaterialTest} and {@code ForgeweaveTraitsTest}; no shipped material uses it
-     * yet (the metals that do arrive with M2).
+     * <p>Wood and stone are general-only -- exactly what the pre-#94 single {@code trait} field
+     * meant. Flint and bone carry issue #231's retrofits on top: a head-scoped {@code crude2} /
+     * {@code splintering} that replaces the general list on head parts, upstream's own
+     * {@code addTrait(x, HEAD)} semantics.
      */
     @GameTest(template = "empty")
     public static void shippedMaterialsExposeTheirTraitListsThroughEveryPart(GameTestHelper helper) {
         Registry<Material> materials = helper.getLevel().registryAccess().registryOrThrow(Material.REGISTRY);
-        Map<String, String> expected = Map.of(
-                "wood", "ecological", "stone", "cheap", "flint", "crude", "bone", "fractured");
+        Map<String, List<String>> general = Map.of(
+                "wood", List.of("ecological"), "stone", List.of("cheap"),
+                "flint", List.of("crude"), "bone", List.of("fractured"));
+        Map<String, List<String>> head = Map.of(
+                "wood", List.of("ecological"), "stone", List.of("cheap"),
+                "flint", List.of("crude2"), "bone", List.of("splintering"));
 
-        expected.forEach((name, trait) -> {
+        general.forEach((name, generalTraits) -> {
             Material material = materials.get(ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, name));
             helper.assertTrue(material != null, name + " should be in the synced material registry");
-            List<ResourceLocation> only = List.of(traitId(trait));
-            helper.assertTrue(only.equals(material.traits().all()),
-                    name + " should grant exactly " + only + ", got " + material.traits().all());
+            List<ResourceLocation> headIds = head.get(name).stream().map(TraitGameTests::traitId).toList();
             for (PartItem.Kind kind : PartItem.Kind.values()) {
-                helper.assertTrue(only.equals(material.traits().forPart(kind)),
-                        name + " through a " + kind + " part should grant " + only + ", got "
+                List<ResourceLocation> expected = kind == PartItem.Kind.HEAD
+                        ? headIds
+                        : generalTraits.stream().map(TraitGameTests::traitId).toList();
+                helper.assertTrue(expected.equals(material.traits().forPart(kind)),
+                        name + " through a " + kind + " part should grant " + expected + ", got "
                                 + material.traits().forPart(kind));
             }
         });
 
-        // And the resolution the Tool Station does with them: one id per distinct material, head first.
+        // And the resolution the Tool Station does with them: one id per distinct material, head
+        // first -- the bone head grants its head-scoped splintering, not the general fractured.
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         ItemStack pickaxe = ToolAssembly.pickaxe(helper, player, new BlockPos(1, 1, 1), "bone", "stone", "wood");
-        List<ResourceLocation> traits = List.of(traitId("fractured"), traitId("cheap"), traitId("ecological"));
+        List<ResourceLocation> traits = List.of(traitId("splintering"), traitId("cheap"), traitId("ecological"));
         helper.assertTrue(traits.equals(pickaxe.get(ForgeweaveDataComponents.TRAITS.get())),
                 "expected " + traits + " in head/binding/handle order, got "
                         + pickaxe.get(ForgeweaveDataComponents.TRAITS.get()));
@@ -150,11 +156,13 @@ public class TraitGameTests {
     }
 
     /**
-     * Flint -&gt; {@code forgeweave:crude}: 5% bonus damage, but only against a target with no armor.
+     * Flint -&gt; {@code forgeweave:crude}/{@code crude2} (issue #231 retrofit): the head part grants
+     * level-2 {@code crude2} (+10%) and the other flint parts level-1 {@code crude} (+5%), stacking
+     * to upstream flint's level 3 -- +15% bonus damage, but only against a target with no armor.
      * Both comparisons hit an otherwise identical target with an otherwise identical tool (stone's
-     * {@code cheap} touches nothing about damage), so the difference is the trait and nothing else --
-     * built as shovels rather than pickaxes so the M1 pierce innate (issue #164, a flat rather than
-     * proportional bonus) doesn't skew the 5% ratio this test checks.
+     * {@code cheap} touches nothing about damage), so the difference is the traits and nothing else
+     * -- built as shovels rather than pickaxes so the M1 pierce innate (issue #164, a flat rather
+     * than proportional bonus) doesn't skew the ratio this test checks.
      */
     @GameTest(template = "empty")
     public static void crudeAddsDamageOnlyAgainstUnarmoredTargets(GameTestHelper helper) {
@@ -167,9 +175,9 @@ public class TraitGameTests {
 
         float unarmoredWithCrude = hit(helper, player, flint, false);
         float unarmoredWithout = hit(helper, player, stone, false);
-        helper.assertTrue(Math.abs(unarmoredWithCrude - unarmoredWithout * 1.05F) < 0.01F,
-                "crude should deal 5% more to an unarmored target: " + unarmoredWithCrude + " vs "
-                        + unarmoredWithout);
+        helper.assertTrue(Math.abs(unarmoredWithCrude - unarmoredWithout * 1.15F) < 0.01F,
+                "crude2 (head) + crude should deal 15% more to an unarmored target: " + unarmoredWithCrude
+                        + " vs " + unarmoredWithout);
 
         float armoredWithCrude = hit(helper, player, flint, true);
         float armoredWithout = hit(helper, player, stone, true);
@@ -180,18 +188,20 @@ public class TraitGameTests {
     }
 
     /**
-     * Bone -&gt; {@code forgeweave:fractured}: a flat +1.5 attack damage on the tool itself. Bone's head
-     * gives 2.5 attack damage and the pickaxe's damage potential is 1.0, so the assembled tool's one
-     * attack damage modifier reads 4.0 rather than 2.5.
+     * Bone -&gt; {@code forgeweave:fractured}: a flat +1.5 attack damage on the tool itself. Since
+     * issue #231's retrofit a bone <i>head</i> grants {@code splintering} instead (head list
+     * replaces general, upstream's {@code addTrait(splintering, HEAD)}), so fractured comes in
+     * through a bone handle here: stone's head gives 3.0 attack damage, and the assembled tool's one
+     * attack damage modifier reads 4.5 rather than 3.0.
      */
     @GameTest(template = "empty")
     public static void fracturedAddsFlatAttackDamage(GameTestHelper helper) {
         BlockPos pos = new BlockPos(1, 1, 1);
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
 
-        ItemStack bone = ToolAssembly.pickaxe(helper, player, pos, "bone", "wood", "wood");
-        helper.assertTrue(Math.abs(attackDamage(bone) - 4.0) < 0.001,
-                "expected bone's 2.5 attack damage + fractured's 1.5 = 4.0, got " + attackDamage(bone));
+        ItemStack bone = ToolAssembly.pickaxe(helper, player, pos, "stone", "wood", "bone");
+        helper.assertTrue(Math.abs(attackDamage(bone) - 4.5) < 0.001,
+                "expected stone's 3.0 attack damage + fractured's 1.5 = 4.5, got " + attackDamage(bone));
 
         double withoutFractured = attackDamage(ToolAssembly.pickaxe(helper, player, pos, "stone", "wood", "wood"));
         helper.assertTrue(Math.abs(withoutFractured - 3.0) < 0.001,

@@ -1,11 +1,11 @@
 {
   "head": {
-    "durability": 30,
-    "mining_speed": 2.0,
-    "attack_damage": 1.0
+    "durability": 12,
+    "mining_speed": 0.51,
+    "attack_damage": 0.05
   },
   "handle": {
-    "durability_modifier": 0.7,
+    "durability_modifier": 0.1,
     "durability": 5
   },
   "extra_durability": 15,
@@ -15,7 +15,7 @@
     "head": ["forgeweave:writable2"]
   },
   "crafting_items": [
-    { "ingredient": { "item": "minecraft:paper" }, "value": 2 }
+    { "ingredient": { "item": "minecraft:paper" }, "value": 1 }
   ],
   "repair_item": {
     "item": "minecraft:paper"

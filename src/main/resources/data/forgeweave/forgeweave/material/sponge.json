@@ -1,12 +1,12 @@
 {
   "head": {
-    "durability": 550,
-    "mining_speed": 3.0,
-    "attack_damage": 1.0
+    "durability": 1050,
+    "mining_speed": 3.02,
+    "attack_damage": 0.0
   },
   "handle": {
     "durability_modifier": 1.2,
-    "durability": 0
+    "durability": 250
   },
   "extra_durability": 250,
   "incorrect_for_tool": "minecraft:incorrect_for_stone_tool",
@@ -19,5 +19,5 @@
   "repair_item": {
     "item": "minecraft:sponge"
   },
-  "color": "#CACC3A"
+  "color": "#CACC4E"
 }

@@ -158,16 +158,24 @@ public final class ForgeweaveTraits {
 
     /**
      * Flint. Upstream {@code TraitCrude#damage}: {@code newDamage += damage * 0.05f * level} when
-     * {@code target.getTotalArmorValue() == 0}. Flint grants level 1 only -- upstream's head-scoped
-     * {@code crude2} has no Forgeweave id yet, which issue #94's schema now leaves room for; see the
-     * PR/NOTICE note.
+     * {@code target.getTotalArmorValue() == 0}. Upstream flint grants {@code crude2} (level 2) on the
+     * head part and {@code crude} (level 1) elsewhere, so an all-flint tool stacks to level 3 (+15%
+     * vs unarmored) -- issue #231's retrofit ports that pair the way {@link #MAGNETIC}/
+     * {@link #MAGNETIC2} already ports iron's.
      */
-    public static final Trait CRUDE = new Trait() {
-        @Override
-        public float bonusDamageAgainst(ItemStack stack, LivingEntity target, float damage) {
-            return target.getArmorValue() > 0 ? 0.0F : damage * 0.05F;
-        }
-    };
+    public static final Trait CRUDE = crude(1);
+
+    /** Flint, head part only. Upstream's {@code crude2}: the same trait at level 2. */
+    public static final Trait CRUDE2 = crude(2);
+
+    private static Trait crude(int level) {
+        return new Trait() {
+            @Override
+            public float bonusDamageAgainst(ItemStack stack, LivingEntity target, float damage) {
+                return target.getArmorValue() > 0 ? 0.0F : damage * 0.05F * level;
+            }
+        };
+    }
 
     /**
      * Bone. Upstream registers it as {@code new TraitBonusDamage("fractured", 1.5f)}, whose
@@ -1247,6 +1255,7 @@ public final class ForgeweaveTraits {
             Map.entry(id("ecological"), ECOLOGICAL),
             Map.entry(id("cheap"), CHEAP),
             Map.entry(id("crude"), CRUDE),
+            Map.entry(id("crude2"), CRUDE2),
             Map.entry(id("fractured"), FRACTURED),
             Map.entry(id("magnetic"), MAGNETIC),
             Map.entry(id("magnetic2"), MAGNETIC2),

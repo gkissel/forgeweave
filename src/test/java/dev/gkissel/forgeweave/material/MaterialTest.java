@@ -109,11 +109,11 @@ class MaterialTest {
     }
 
     /**
-     * The four M1 materials each carry their one trait as a general trait, i.e. every part they make
-     * grants it -- which is what the pre-#94 single {@code trait} field meant.
+     * Wood and stone carry their one trait as a general trait, i.e. every part they make grants it
+     * -- which is what the pre-#94 single {@code trait} field meant.
      */
     @ParameterizedTest
-    @CsvSource({ "wood,ecological", "stone,cheap", "flint,crude", "bone,fractured" })
+    @CsvSource({ "wood,ecological", "stone,cheap" })
     void shippedMaterialsGrantTheirTraitThroughEveryPart(String name, String trait) {
         Material material = Material.CODEC.parse(ops, shipped(name)).getOrThrow();
         ResourceLocation id = ResourceLocation.fromNamespaceAndPath("forgeweave", trait);
@@ -122,6 +122,23 @@ class MaterialTest {
         for (PartItem.Kind kind : PartItem.Kind.values()) {
             assertEquals(List.of(id), material.traits().forPart(kind), name + " through a " + kind + " part");
         }
+    }
+
+    /**
+     * Issue #231's retrofits: flint and bone gained the head-scoped trait upstream gives them
+     * ({@code crude2} / {@code splintering}), which replaces the general list on head parts only.
+     */
+    @ParameterizedTest
+    @CsvSource({ "flint,crude,crude2", "bone,fractured,splintering" })
+    void retrofittedMaterialsScopeTheirHeadTrait(String name, String general, String head) {
+        Material material = Material.CODEC.parse(ops, shipped(name)).getOrThrow();
+        ResourceLocation generalId = ResourceLocation.fromNamespaceAndPath("forgeweave", general);
+        ResourceLocation headId = ResourceLocation.fromNamespaceAndPath("forgeweave", head);
+
+        assertEquals(List.of(generalId, headId), material.traits().all());
+        assertEquals(List.of(headId), material.traits().forPart(PartItem.Kind.HEAD));
+        assertEquals(List.of(generalId), material.traits().forPart(PartItem.Kind.HANDLE));
+        assertEquals(List.of(generalId), material.traits().forPart(PartItem.Kind.EXTRA));
     }
 
     /** Pre-#94 packs keep loading: one {@code trait} id means one trait on every part (ADR-0002). */

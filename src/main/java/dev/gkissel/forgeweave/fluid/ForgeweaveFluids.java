@@ -61,6 +61,10 @@ public final class ForgeweaveFluids {
     // #234 M3.2: steel, ported the same way (TinkerFluids#setupFluids 681; materialTextColor 0xa7a7a7).
     public static final MoltenMetal STEEL = register("steel", 0xA7A7A7, 681);
 
+    // M3.2 issue #231: upstream's TinkerFluids#setupFluids obsidian (fluidStone, 0x2c0d59, 1000).
+    // Not a metal, but it rides the same shared tinted texture upstream's own FluidColored does.
+    public static final MoltenMetal OBSIDIAN = register("obsidian", 0x2C0D59, 1000);
+
     // No 1.12 counterpart -- deviation recorded in the issue #92 PR (see class javadoc).
     public static final MoltenMetal ROSE_GOLD = register("rose_gold", 0xB76E79, 550);
     public static final MoltenMetal NETHERITE_SCRAP = register("netherite_scrap", 0x6B4A34, 1100);

@@ -400,6 +400,17 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("material.forgeweave.silver", "Silver");
         add("material.forgeweave.electrum", "Electrum");
 
+        // #231 -- the seven vanilla-sourced M3.2 materials. Names are upstream 1.12's
+        // material.<id>.name entries verbatim, including endstone's odd "End" ("End Pickaxe Head"
+        // is how upstream reads).
+        add("material.forgeweave.cactus", "Cactus");
+        add("material.forgeweave.obsidian", "Obsidian");
+        add("material.forgeweave.prismarine", "Prismarine");
+        add("material.forgeweave.endstone", "End");
+        add("material.forgeweave.paper", "Paper");
+        add("material.forgeweave.sponge", "Sponge");
+        add("material.forgeweave.netherrack", "Netherrack");
+
         // Trait names and descriptions, keyed by trait id like materials are by material id -- traits
         // are Java behavior selected by data (ADR-0002), so nothing derives these keys for us. The
         // tool info panel (issue #47) is what will display them; wording follows upstream 1.12's
@@ -413,6 +424,9 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
                 "Increases durability gained when repairing the tool, but the tool has less durability.");
         add("trait.forgeweave.crude.name", "Crude");
         add("trait.forgeweave.crude.description", "Bonus damage against unarmored targets.");
+        // #231 flint retrofit: upstream's head-scoped crude2, named like magnetic2/writable2 are.
+        add("trait.forgeweave.crude2.name", "Crude II");
+        add("trait.forgeweave.crude2.description", "Bonus damage against unarmored targets.");
         add("trait.forgeweave.fractured.name", "Fractured");
         add("trait.forgeweave.fractured.description", "Your tool's damage is increased.");
 
@@ -637,6 +651,8 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         // #234 -- steel and its carbon alloy partner (M3.2).
         add("fluid_type.forgeweave.molten_steel", "Molten Steel");
         add("fluid_type.forgeweave.molten_carbon", "Molten Carbon");
+        // #231: upstream 1.12's fluid.tconstruct.obsidian.name.
+        add("fluid_type.forgeweave.molten_obsidian", "Molten Obsidian");
 
         // #100 -- casting (docs/SCOPE.md M2 issue #100). Names follow upstream 1.12's
         // tile.casting.{table,basin}.name / tile.faucet.name and its cast item names.

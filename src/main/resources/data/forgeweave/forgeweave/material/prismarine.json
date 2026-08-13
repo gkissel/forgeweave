@@ -1,0 +1,27 @@
+{
+  "head": {
+    "durability": 430,
+    "mining_speed": 5.5,
+    "attack_damage": 6.2
+  },
+  "handle": {
+    "durability_modifier": 0.6,
+    "durability": -150
+  },
+  "extra_durability": 100,
+  "incorrect_for_tool": "minecraft:incorrect_for_iron_tool",
+  "traits": {
+    "general": ["forgeweave:aquadynamic"],
+    "head": ["forgeweave:jagged"]
+  },
+  "crafting_items": [
+    { "ingredient": { "item": "minecraft:prismarine_shard" }, "value": 1 },
+    { "ingredient": { "item": "minecraft:prismarine" }, "value": 2 },
+    { "ingredient": { "item": "minecraft:prismarine_bricks" }, "value": 5 },
+    { "ingredient": { "item": "minecraft:dark_prismarine" }, "value": 4 }
+  ],
+  "repair_item": {
+    "item": "minecraft:prismarine"
+  },
+  "color": "#7EDEBC"
+}
