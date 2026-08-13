@@ -338,6 +338,25 @@ public final class ModifierApplication {
     }
 
     /**
+     * Re-applies every modifier's baked effects onto a tool whose base components were just rebuilt
+     * from a new material set -- a part exchange (issue #264), upstream
+     * {@code ToolBuilder#rebuildTool}'s "reapply modifiers" pass. The {@code id + level} entries
+     * themselves are never touched; this recomputes only what they bake into vanilla components: the
+     * mining-speed/durability retune, then each modifier's tool-tier bump in application order.
+     * Re-running the bumps against the fresh material's tier reproduces exactly what first
+     * application wrote, because {@link Modifier#toolTierIndex} only ever raises the index.
+     */
+    public static void rebake(ItemStack stack) {
+        retuneStats(stack);
+        for (ModifierEntry entry : ForgeweaveModifiers.of(stack)) {
+            Modifier modifier = ForgeweaveModifiers.get(entry.id());
+            if (modifier != null) {
+                retuneToolTier(stack, modifier, entry.level());
+            }
+        }
+    }
+
+    /**
      * The one-shot tool-tier bump ({@link Modifier#toolTierIndex}, diamond/emerald): finds the
      * deny-drops rule (the one rule with no speed -- {@link #retuneStats} never touches it, so it is
      * always exactly what assembly or an earlier bump left), and if the modifier being newly applied

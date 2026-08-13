@@ -2,18 +2,22 @@ package dev.gkissel.forgeweave.menu;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 import org.jetbrains.annotations.Nullable;
 
+import net.minecraft.core.Holder;
 import net.minecraft.core.HolderGetter;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
+import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.TagKey;
@@ -21,6 +25,7 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.Enchantments;
+import net.minecraft.world.item.enchantment.ItemEnchantments;
 
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.item.ForgeweaveDataComponents;
@@ -287,6 +292,17 @@ public final class ToolAssemblyRecipes {
         if (repair.isPresent()) {
             return repair;
         }
+        // Part exchange (issue #264) sits exactly where upstream's ContainerToolStation puts it:
+        // after repair, before modify/emboss. It engages only when every loaded free slot is a tool
+        // part, so an embossing loadout (donor part plus reagents) falls through to the resolvers
+        // below untouched -- upstream's tryReplaceToolParts refuses mixed inputs the same way.
+        Optional<Exchange> exchange = resolveExchange(registries, headStack, freeSlots, forge);
+        if (exchange.isPresent()) {
+            Exchange swap = exchange.get();
+            return swap.output().isEmpty()
+                    ? Optional.empty()
+                    : Optional.of(new Result(swap.output(), swap.slotsUsed()));
+        }
         // Embossing before modifier application: a donor tool part is nothing any modifier recipe
         // accepts, so the two can never both match, and trying the more specific one first keeps the
         // modifier path from having to know embossing exists.
@@ -311,6 +327,207 @@ public final class ToolAssemblyRecipes {
         return Embossing.resolve(registries, toolStack, freeSlots)
                 .filter(outcome -> !outcome.output().isEmpty())
                 .map(outcome -> Result.of(outcome.output(), oneOfEach));
+    }
+
+    /**
+     * A part exchange's outcome (issue #264). Same contract as {@code Embossing.Outcome}: exactly one
+     * of {@code output} and {@code rejection} is meaningful, and {@code slotsUsed} is indexed like
+     * {@link Result#slotsUsed} (slot 0 is the tool).
+     */
+    public record Exchange(ItemStack output, List<Integer> slotsUsed, @Nullable Component rejection) {
+
+        static Exchange rejected(String key, Object... args) {
+            return new Exchange(ItemStack.EMPTY, List.of(), Component.translatable(key, args));
+        }
+    }
+
+    /**
+     * Part exchange (issue #264): an assembled tool in the head slot plus replacement part(s) in the
+     * free slots swap those parts in place. A port of upstream 1.12's
+     * {@code ToolBuilder#tryReplaceToolParts} + {@code ToolBuilder#rebuildTool} (the pinned commit),
+     * whose derived semantics are:
+     *
+     * <ul>
+     *   <li><b>Engages only on an all-parts loadout.</b> Upstream returns empty the moment any
+     *       non-empty input is not a tool part; a mixed loadout (an embossing donor plus reagents,
+     *       say) is someone else's recipe.
+     *   <li><b>Assignment is positional, by part shape, and refuses a same-material swap.</b>
+     *       Upstream's slot scan requires {@code pmt.isValid(part)} (the part item the tool's slot
+     *       takes) and a material different from the one already in that slot; a tool with the same
+     *       part in several slots fills them input-order against slot-order, including upstream's
+     *       later-slot preference quirk (the {@code i <= j} early break). A part that fits nowhere
+     *       refuses the whole exchange -- upstream silently, here with a message per the station's
+     *       standing explain-yourself rule.
+     *   <li><b>The damage <em>value</em> carries over</b> against the new maximum: upstream's output
+     *       is {@code toolStack.copy()} and {@code rebuildTool} never touches damage. If the damage
+     *       exceeds the new maximum the exchange is refused ({@code gui.error.not_enough_durability}:
+     *       "Not enough durability to replace parts! %d more durability required.").
+     *   <li><b>Stats and traits are recomputed from the new material set</b> ({@code buildTag} +
+     *       {@code addMaterialTraits}), and whatever the old tool carried beyond its own base --
+     *       an embossment's donor traits -- is re-appended, mirroring how {@code rebuildTool}
+     *       re-applies the modifier list (which is where upstream's embossment traits come from).
+     *   <li><b>Modifiers survive untouched as {@code id + level}</b>; their baked effects are
+     *       re-applied on top of the fresh base ({@link ModifierApplication#rebake}). Upstream also
+     *       re-checks every modifier still {@code canApply} against the new materials; no Forgeweave
+     *       modifier's applicability depends on materials, so that pass has nothing to do here.
+     *   <li><b>Rename, repair count and the Broken flag ride the copy.</b> Upstream keeps the display
+     *       name and repair count outside the rebuilt tool tag (the extra tag) and explicitly
+     *       re-sets {@code Broken}.
+     *   <li><b>Silk touch is re-derived</b>: it is the one enchantment grant that can depend on the
+     *       material set (#228 squeaky's trait grant), so it is present on the output iff the new
+     *       trait set or the silky modifier grants it -- upstream removes the {@code ench} tag and
+     *       lets traits/modifiers re-add it. Every other granted enchantment (wind burst, luck's
+     *       Fortune/Looting) depends only on the modifier list, which an exchange never changes, so
+     *       those carry over on the copy.
+     *   <li><b>Large tools exchange at the Tool Forge only</b> -- a Forgeweave decision matching the
+     *       assembly gate (issue #152); upstream's stations have no such split for exchanges.
+     * </ul>
+     */
+    public static Optional<Exchange> resolveExchange(HolderLookup.Provider registries, ItemStack toolStack,
+            List<ItemStack> freeSlots, boolean forge) {
+        if (!(toolStack.getItem() instanceof ToolItem)) {
+            return Optional.empty();
+        }
+        Optional<Entry> found = entryFor(toolStack);
+        ToolMaterials materials = toolStack.get(ForgeweaveDataComponents.TOOL_MATERIALS.get());
+        if (found.isEmpty() || materials == null) {
+            return Optional.empty();
+        }
+        Entry entry = found.get();
+        List<ResourceLocation> ids = materials.parts();
+        if (ids.size() != entry.slotCount()) {
+            return Optional.empty(); // a materials list this entry's shape can't explain
+        }
+
+        List<Integer> loaded = new ArrayList<>();
+        for (int i = 0; i < freeSlots.size(); i++) {
+            ItemStack stack = freeSlots.get(i);
+            if (stack.isEmpty()) {
+                continue;
+            }
+            if (!(stack.getItem() instanceof PartItem part) || part.kind() == PartItem.Kind.NONE
+                    || stack.get(ForgeweaveDataComponents.MATERIAL.get()) == null) {
+                return Optional.empty(); // mixed loadout: not an exchange attempt
+            }
+            loaded.add(i);
+        }
+        if (loaded.isEmpty()) {
+            return Optional.empty();
+        }
+        if (!forge && isLargeTool(entry)) {
+            return Optional.of(Exchange.rejected("gui.forgeweave.exchange.needs_forge"));
+        }
+
+        // Upstream's assignment loop: each input part claims the first shape-matching slot whose
+        // material differs and which no earlier input claimed -- keeping the later-slot preference
+        // quirk (candidate keeps updating until a slot at or past the input's own index breaks out).
+        Map<Integer, Integer> assigned = new LinkedHashMap<>();
+        for (int input : loaded) {
+            ItemStack part = freeSlots.get(input);
+            ResourceLocation partMaterial = part.get(ForgeweaveDataComponents.MATERIAL.get());
+            int candidate = -1;
+            boolean fitsShape = false;
+            for (int j = 0; j < entry.slotCount(); j++) {
+                if (!part.is(entry.part(j))) {
+                    continue;
+                }
+                fitsShape = true;
+                if (partMaterial.equals(ids.get(j)) || assigned.containsValue(j)) {
+                    continue;
+                }
+                candidate = j;
+                if (input <= j) {
+                    break;
+                }
+            }
+            if (candidate < 0) {
+                return Optional.of(Exchange.rejected(fitsShape
+                        ? "gui.forgeweave.exchange.same_material"
+                        : "gui.forgeweave.exchange.wrong_part"));
+            }
+            assigned.put(input, candidate);
+        }
+
+        List<ResourceLocation> newIds = new ArrayList<>(ids);
+        assigned.forEach((input, slot) ->
+                newIds.set(slot, freeSlots.get(input).get(ForgeweaveDataComponents.MATERIAL.get())));
+        Optional<ItemStack> rebuilt = assemble(registries, entry, newIds);
+        Optional<ItemStack> oldBase = assemble(registries, entry, ids);
+        if (rebuilt.isEmpty() || oldBase.isEmpty()) {
+            return Optional.empty(); // a material this pack no longer defines
+        }
+        ItemStack fresh = rebuilt.get();
+
+        // Upstream's output = toolStack.copy(): everything not explicitly rebuilt below -- modifiers,
+        // enchantments, rename, repair count, Broken, damage, alien's growth component -- rides along.
+        ItemStack result = toolStack.copy();
+        result.set(ForgeweaveDataComponents.TOOL_MATERIALS.get(),
+                fresh.get(ForgeweaveDataComponents.TOOL_MATERIALS.get()));
+        result.set(ForgeweaveDataComponents.TOOL_STATS.get(), fresh.get(ForgeweaveDataComponents.TOOL_STATS.get()));
+        result.set(ForgeweaveDataComponents.TRAITS.get(), mergedTraits(fresh, oldBase.get(), toolStack));
+        result.set(DataComponents.TOOL, fresh.get(DataComponents.TOOL));
+        result.set(DataComponents.MAX_DAMAGE, fresh.get(DataComponents.MAX_DAMAGE));
+        ModifierApplication.rebake(result);
+        retuneSilkTouch(registries, result);
+
+        // Raw component read: ItemStack#getDamageValue clamps to the (new) maximum, which is exactly
+        // the overflow this check exists to catch.
+        int missing = result.getOrDefault(DataComponents.DAMAGE, 0) - result.getMaxDamage();
+        if (missing > 0) {
+            // Upstream's gui.error.not_enough_durability: the damage value survives the swap, so a
+            // tool more worn than the new part set can hold is refused rather than handed out broken.
+            return Optional.of(Exchange.rejected("gui.forgeweave.exchange.not_enough_durability", missing));
+        }
+
+        int[] used = new int[1 + freeSlots.size()];
+        used[0] = 1;
+        for (int input : assigned.keySet()) {
+            used[1 + input] = 1;
+        }
+        return Optional.of(new Exchange(result, Arrays.stream(used).boxed().toList(), null));
+    }
+
+    /**
+     * The exchanged tool's trait list: the fresh base derived from the new material set, plus
+     * whatever the old tool carried beyond its own base -- which today is exactly an embossment's
+     * donor traits ({@code Embossing#embossed} is the only writer that appends). Computed as a diff
+     * against the old base rather than re-derived from the embossment id, because the id names only
+     * the donor material, not the donor part kind the trait scope came from.
+     */
+    private static List<ResourceLocation> mergedTraits(ItemStack fresh, ItemStack oldBase, ItemStack oldTool) {
+        List<ResourceLocation> traits =
+                new ArrayList<>(fresh.getOrDefault(ForgeweaveDataComponents.TRAITS.get(), List.of()));
+        List<ResourceLocation> base = oldBase.getOrDefault(ForgeweaveDataComponents.TRAITS.get(), List.of());
+        List<ResourceLocation> carried = oldTool.getOrDefault(ForgeweaveDataComponents.TRAITS.get(), List.of());
+        for (ResourceLocation trait : carried) {
+            if (!base.contains(trait) && !traits.contains(trait)) {
+                traits.add(trait);
+            }
+        }
+        return List.copyOf(traits);
+    }
+
+    /**
+     * Recomputes the one material-dependent enchantment grant after a part exchange: silk touch is
+     * present iff the new trait set (#228 squeaky) or the silky modifier (#107) grants it. See
+     * {@link #resolveExchange}'s javadoc for why the other grants need no recompute.
+     */
+    private static void retuneSilkTouch(HolderLookup.Provider registries, ItemStack stack) {
+        Optional<Holder.Reference<Enchantment>> silk = registries.lookup(Registries.ENCHANTMENT)
+                .flatMap(lookup -> lookup.get(Enchantments.SILK_TOUCH));
+        if (silk.isEmpty()) {
+            return;
+        }
+        if (ForgeweaveTraits.grantsSilkTouch(stack) || ForgeweaveModifiers.grantsSilkTouch(stack)) {
+            stack.enchant(silk.get(), 1); // enchant upgrades, so an existing level-1 stays level-1
+            return;
+        }
+        ItemEnchantments current = stack.getOrDefault(DataComponents.ENCHANTMENTS, ItemEnchantments.EMPTY);
+        if (current.getLevel(silk.get()) > 0) {
+            ItemEnchantments.Mutable mutable = new ItemEnchantments.Mutable(current);
+            mutable.set(silk.get(), 0);
+            stack.set(DataComponents.ENCHANTMENTS, mutable.toImmutable());
+        }
     }
 
     /**

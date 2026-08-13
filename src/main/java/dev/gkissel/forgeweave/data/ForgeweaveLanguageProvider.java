@@ -308,6 +308,15 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         // support -- e.g. a breeze rod on anything but the warmace.
         add("gui.forgeweave.modifier.unsupported_tool", "%s cannot be applied to this tool.");
 
+        // Why an attempted part exchange was refused (issue #264), same info-panel surface. The
+        // durability line mirrors upstream 1.12's gui.error.not_enough_durability.
+        add("gui.forgeweave.exchange.wrong_part", "This tool has no slot for that part.");
+        add("gui.forgeweave.exchange.same_material", "The tool already has a part of that material there.");
+        add("gui.forgeweave.exchange.not_enough_durability",
+                "Not enough durability to replace parts! %s more durability required.");
+        add("gui.forgeweave.exchange.needs_forge",
+                "This tool is too large to work on here. Exchange its parts at a Tool Forge.");
+
         add("gui.forgeweave.stat.durability", "Durability: %s");
         add("gui.forgeweave.stat.mining_speed", "Mining Speed: %s");
         add("gui.forgeweave.stat.attack_damage", "Attack Damage: %s");
