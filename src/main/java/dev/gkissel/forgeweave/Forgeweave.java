@@ -123,6 +123,10 @@ public class Forgeweave {
         // hook (Item.Properties#fireResistant is per-Item), so this listens on the generic
         // invulnerability check every entity goes through instead.
         NeoForge.EVENT_BUS.addListener(ForgeweaveTraits::onEntityInvulnerabilityCheck);
+        // #228 -- aquadynamic/aridiculous/crumbling/unnatural adjust break speed off the player and
+        // the block, which Item#getDestroySpeed never sees; upstream 1.12 handles this same
+        // PlayerEvent.BreakSpeed per trait (see Trait#breakSpeed).
+        NeoForge.EVENT_BUS.addListener(ForgeweaveTraits::onBreakSpeed);
         // #108 batch: Searing/Magnetic Pull/Resonant key off what a mined block drops, which has no
         // Item hook either (see ForgeweaveModifiers#onBlockDrops).
         NeoForge.EVENT_BUS.addListener(ForgeweaveModifiers::onBlockDrops);

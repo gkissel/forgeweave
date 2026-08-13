@@ -1,0 +1,23 @@
+{
+  "head": {
+    "durability": 550,
+    "mining_speed": 3.0,
+    "attack_damage": 1.0
+  },
+  "handle": {
+    "durability_modifier": 1.2,
+    "durability": 0
+  },
+  "extra_durability": 250,
+  "incorrect_for_tool": "minecraft:incorrect_for_stone_tool",
+  "traits": {
+    "general": ["forgeweave:squeaky"]
+  },
+  "crafting_items": [
+    { "ingredient": { "item": "minecraft:sponge" }, "value": 2 }
+  ],
+  "repair_item": {
+    "item": "minecraft:sponge"
+  },
+  "color": "#CACC3A"
+}
