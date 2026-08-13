@@ -301,6 +301,9 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("gui.forgeweave.modifier.max_level", "%s is already at its maximum level on this tool.");
         add("gui.forgeweave.modifier.invalid_reagent", "Apply one modifier at a time -- the other slot holds something else.");
         add("gui.forgeweave.modifier.not_enough_reagents", "Not enough of that reagent: %s are needed per step.");
+        // Issue #223 (wind burst): the tool the loaded modifier's own vanilla enchantment doesn't
+        // support -- e.g. a breeze rod on anything but the warmace.
+        add("gui.forgeweave.modifier.unsupported_tool", "%s cannot be applied to this tool.");
 
         add("gui.forgeweave.stat.durability", "Durability: %s");
         add("gui.forgeweave.stat.mining_speed", "Mining Speed: %s");
@@ -483,6 +486,11 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("modifier.forgeweave.diamond.description", "Adds 500 durability and raises the tool's tier.");
         add("modifier.forgeweave.emerald.name", "Emerald");
         add("modifier.forgeweave.emerald.description", "Adds 50% durability and raises the tool's tier.");
+
+        // #223 -- wind burst. Breeze rod, one per level, up to vanilla's own Wind Burst III cap.
+        add("modifier.forgeweave.wind_burst.name", "Wind Burst");
+        add("modifier.forgeweave.wind_burst.description",
+                "Grants Wind Burst on the warmace. Each breeze rod raises it another level, up to III.");
 
         // #158 -- beheading. The 10% per level is the clone's own chance curve (combat.Beheading).
         add("modifier.forgeweave.beheading.name", "Beheading");
