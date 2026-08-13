@@ -295,6 +295,14 @@ public class ToolStationMenu extends StationMenu {
         if (!forge && ToolAssemblyRecipes.isLargeToolHead(inputSlots())) {
             return Component.translatable("gui.forgeweave.tool_station.needs_forge");
         }
+        // #264: a part exchange refused for shape, material or durability explains itself. Checked
+        // before embossing because an exchange loadout (tool + parts only) is never an embossing one.
+        Component exchange = ToolAssemblyRecipes.resolveExchange(registries, tool, freeSlotContents(), forge)
+                .map(ToolAssemblyRecipes.Exchange::rejection)
+                .orElse(null);
+        if (exchange != null) {
+            return exchange;
+        }
         Component embossing = Embossing.resolve(registries, tool, freeSlotContents())
                 .map(Embossing.Outcome::rejection)
                 .orElse(null);
