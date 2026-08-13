@@ -5,6 +5,7 @@
     "#c:storage_blocks/manyullyn",
     "#c:storage_blocks/rose_gold",
     "#c:storage_blocks/steel",
-    "#c:storage_blocks/knightslime"
+    "#c:storage_blocks/knightslime",
+    "#c:storage_blocks/pig_iron"
   ]
 }

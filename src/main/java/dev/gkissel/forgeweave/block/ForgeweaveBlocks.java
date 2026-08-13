@@ -168,6 +168,22 @@ public final class ForgeweaveBlocks {
     // metalBlock() with the four above; texture is the clone's block_knightslime (NOTICE.md).
     public static final DeferredBlock<Block> KNIGHTSLIME_BLOCK = metalBlock("knightslime_block");
 
+    // #233 -- pig iron's storage block, same BlockMetal-derived properties as the four above.
+    public static final DeferredBlock<Block> PIG_IRON_BLOCK = metalBlock("pig_iron_block");
+
+    // #233 -- firewood (docs/SCOPE.md M3.2). Upstream 1.12's BlockFirewood (NOTICE.md):
+    // Material.WOOD, hardness 2, resistance 7, SoundType.WOOD, setLightLevel(0.5f) -- i.e. light 7
+    // -- and setHarvestLevel("axe", -1), meaning no tool is required at all, so like grout it
+    // carries no mineable/* tag (see this class's javadoc on tool-tier gating). Only the firewood
+    // half of upstream's two-state block is in scope: lavawood, its precursor, is not on
+    // docs/SCOPE.md's M3.2 roster.
+    public static final DeferredBlock<Block> FIREWOOD = BLOCKS.registerSimpleBlock("firewood",
+            BlockBehaviour.Properties.of()
+                    .mapColor(MapColor.WOOD)
+                    .strength(2.0F, 7.0F)
+                    .sound(SoundType.WOOD)
+                    .lightLevel(state -> 7));
+
     private static DeferredBlock<Block> metalBlock(String name) {
         return BLOCKS.registerSimpleBlock(name, BlockBehaviour.Properties.of()
                 .mapColor(MapColor.METAL)

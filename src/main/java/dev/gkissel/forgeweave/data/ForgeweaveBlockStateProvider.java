@@ -150,6 +150,11 @@ public class ForgeweaveBlockStateProvider extends BlockStateProvider {
         cubeAllBlock("rose_gold_block", ForgeweaveBlocks.ROSE_GOLD_BLOCK.get());
         cubeAllBlock("steel_block", ForgeweaveBlocks.STEEL_BLOCK.get());
         cubeAllBlock("knightslime_block", ForgeweaveBlocks.KNIGHTSLIME_BLOCK.get()); // #232
+
+        // #233 -- pig iron's storage block and firewood, both plain cube_all with one derived
+        // texture each (block_pigiron.png; firewood.png + its animation mcmeta, NOTICE.md).
+        cubeAllBlock("pig_iron_block", ForgeweaveBlocks.PIG_IRON_BLOCK.get());
+        cubeAllBlock("firewood", ForgeweaveBlocks.FIREWOOD.get());
     }
 
     private void coreBlock(String name, Block block, String sideTexture) {

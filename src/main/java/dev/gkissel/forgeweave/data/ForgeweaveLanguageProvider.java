@@ -417,6 +417,11 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("material.forgeweave.magmaslime", "Magma Slime");
         add("material.forgeweave.knightslime", "Knightslime");
 
+        // #233 -- pig iron + firewood (docs/SCOPE.md M3.2). "Pig Iron" is upstream 1.12's own
+        // material.pigiron.name; "Firewood" its material.firewood.name (NOTICE.md).
+        add("material.forgeweave.pig_iron", "Pig Iron");
+        add("material.forgeweave.firewood", "Firewood");
+
         // Trait names and descriptions, keyed by trait id like materials are by material id -- traits
         // are Java behavior selected by data (ADR-0002), so nothing derives these keys for us. The
         // tool info panel (issue #47) is what will display them; wording follows upstream 1.12's
@@ -667,6 +672,14 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("fluid_type.forgeweave.molten_seared_stone", "Molten Seared Stone");
         add("fluid_type.forgeweave.molten_knightslime", "Molten Knightslime");
 
+        // #233 -- the pig iron alloy chain's three fluids. "Molten Pig Iron" spaces upstream's
+        // fluid.tconstruct.pigiron.name ("Molten Pigiron") the way material.pigiron.name already
+        // does; "Blood" follows upstream's fluid.tconstruct.blood.name; molten clay follows the
+        // molten-metal naming family.
+        add("fluid_type.forgeweave.molten_pig_iron", "Molten Pig Iron");
+        add("fluid_type.forgeweave.blood", "Blood");
+        add("fluid_type.forgeweave.molten_clay", "Molten Clay");
+
         // #100 -- casting (docs/SCOPE.md M2 issue #100). Names follow upstream 1.12's
         // tile.casting.{table,basin}.name / tile.faucet.name and its cast item names.
         addBlock(ForgeweaveBlocks.CASTING_TABLE, "Casting Table");
@@ -746,6 +759,15 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         addBlock(ForgeweaveBlocks.ROSE_GOLD_BLOCK, "Block of Rose Gold");
         addBlock(ForgeweaveBlocks.STEEL_BLOCK, "Block of Steel");
         addBlock(ForgeweaveBlocks.KNIGHTSLIME_BLOCK, "Block of Knightslime"); // #232
+
+        // #233 -- pig iron items + firewood. Ingot/nugget/block names space upstream 1.12's
+        // item.tconstruct.{ingots,nuggets}.pigiron.name / tile.tconstruct.metal.pigiron.name the way
+        // material.pigiron.name ("Pig Iron") already does; "Firewood" is upstream's
+        // tile.tconstruct.firewood.firewood.name verbatim (NOTICE.md).
+        addItem(ForgeweaveItems.INGOT_PIG_IRON, "Pig Iron Ingot");
+        addItem(ForgeweaveItems.NUGGET_PIG_IRON, "Pig Iron Nugget");
+        addBlock(ForgeweaveBlocks.PIG_IRON_BLOCK, "Block of Pig Iron");
+        addBlock(ForgeweaveBlocks.FIREWOOD, "Firewood");
 
         // #110 -- the M2 advancement chain (docs/SCOPE.md M2 issue #110): build smeltery -> first
         // melt -> first cast -> first alloy -> first modifier. Keys follow vanilla's own

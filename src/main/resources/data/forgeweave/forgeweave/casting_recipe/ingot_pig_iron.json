@@ -1,0 +1,11 @@
+{
+  "station": "table",
+  "cast": {
+    "item": "forgeweave:cast_ingot"
+  },
+  "fluid": "forgeweave:molten_pig_iron",
+  "amount": 144,
+  "result": {
+    "id": "forgeweave:pig_iron_ingot"
+  }
+}

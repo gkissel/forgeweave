@@ -1,0 +1,25 @@
+{
+  "head": {
+    "durability": 380,
+    "mining_speed": 6.2,
+    "attack_damage": 4.5
+  },
+  "handle": {
+    "durability_modifier": 1.2,
+    "durability": 0
+  },
+  "extra_durability": 170,
+  "incorrect_for_tool": "minecraft:incorrect_for_diamond_tool",
+  "traits": {
+    "general": ["forgeweave:tasty"],
+    "head": ["forgeweave:baconlicious", "forgeweave:tasty"]
+  },
+  "crafting_items": [
+    { "ingredient": { "item": "forgeweave:pig_iron_ingot" }, "value": 2 },
+    { "ingredient": { "item": "forgeweave:pig_iron_block" }, "value": 18 }
+  ],
+  "repair_item": {
+    "tag": "c:ingots/pig_iron"
+  },
+  "color": "#EF9E9B"
+}

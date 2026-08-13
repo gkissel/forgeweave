@@ -1,0 +1,23 @@
+{
+  "head": {
+    "durability": 550,
+    "mining_speed": 6.0,
+    "attack_damage": 5.5
+  },
+  "handle": {
+    "durability_modifier": 1.0,
+    "durability": -200
+  },
+  "extra_durability": 150,
+  "incorrect_for_tool": "minecraft:incorrect_for_stone_tool",
+  "traits": {
+    "general": ["forgeweave:autosmelt"]
+  },
+  "crafting_items": [
+    { "ingredient": { "item": "forgeweave:firewood" }, "value": 2 }
+  ],
+  "repair_item": {
+    "item": "forgeweave:firewood"
+  },
+  "color": "#CC5300"
+}

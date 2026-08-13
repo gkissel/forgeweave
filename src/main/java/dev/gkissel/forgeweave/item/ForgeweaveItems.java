@@ -431,5 +431,15 @@ public final class ForgeweaveItems {
     // #232 -- knightslime's storage block item (docs/SCOPE.md M3.2).
     public static final DeferredItem<BlockItem> KNIGHTSLIME_BLOCK = ITEMS.registerSimpleBlockItem("knightslime_block", ForgeweaveBlocks.KNIGHTSLIME_BLOCK);
 
+    // #233 -- pig iron (docs/SCOPE.md M3.2): ingot/nugget with upstream 1.12 art
+    // (ingot_pigiron.png/nugget_pigiron.png, NOTICE.md) plus its storage block. No raw form: pig
+    // iron is alloy-only, there is no ore to drop one (same reason netherite has none).
+    public static final DeferredItem<Item> INGOT_PIG_IRON = ITEMS.registerSimpleItem("pig_iron_ingot");
+    public static final DeferredItem<Item> NUGGET_PIG_IRON = ITEMS.registerSimpleItem("pig_iron_nugget");
+    public static final DeferredItem<BlockItem> PIG_IRON_BLOCK = ITEMS.registerSimpleBlockItem("pig_iron_block", ForgeweaveBlocks.PIG_IRON_BLOCK);
+
+    // #233 -- firewood (docs/SCOPE.md M3.2), the block item of ForgeweaveBlocks.FIREWOOD.
+    public static final DeferredItem<BlockItem> FIREWOOD = ITEMS.registerSimpleBlockItem("firewood", ForgeweaveBlocks.FIREWOOD);
+
     private ForgeweaveItems() {}
 }

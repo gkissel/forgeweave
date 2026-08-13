@@ -232,6 +232,12 @@ public final class ForgeweaveCreativeTab {
         output.accept(ForgeweaveItems.STEEL_BLOCK.get());
         output.accept(ForgeweaveItems.KNIGHTSLIME_BLOCK.get()); // #232
 
+        // #233 -- pig iron's item forms and firewood (docs/SCOPE.md M3.2).
+        output.accept(ForgeweaveItems.INGOT_PIG_IRON.get());
+        output.accept(ForgeweaveItems.NUGGET_PIG_IRON.get());
+        output.accept(ForgeweaveItems.PIG_IRON_BLOCK.get());
+        output.accept(ForgeweaveItems.FIREWOOD.get());
+
         List<Holder.Reference<Material>> materials =
                 parameters.holders().lookupOrThrow(Material.REGISTRY).listElements().toList();
         for (DeferredItem<PartItem> partItem : PART_ITEMS) {

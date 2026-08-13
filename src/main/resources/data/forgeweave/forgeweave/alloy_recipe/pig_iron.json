@@ -1,0 +1,20 @@
+{
+  "inputs": [
+    {
+      "fluid": "forgeweave:molten_iron",
+      "amount": 144
+    },
+    {
+      "fluid": "forgeweave:blood",
+      "amount": 40
+    },
+    {
+      "fluid": "forgeweave:molten_clay",
+      "amount": 72
+    }
+  ],
+  "result": {
+    "fluid": "forgeweave:molten_pig_iron",
+    "amount": 144
+  }
+}

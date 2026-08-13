@@ -1,0 +1,7 @@
+{
+  "input": {
+    "item": "minecraft:clay"
+  },
+  "fluid": "forgeweave:molten_clay",
+  "amount": 576
+}
