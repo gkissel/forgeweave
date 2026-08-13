@@ -77,6 +77,7 @@ import dev.gkissel.forgeweave.item.ForgeweaveDataComponents;
 import dev.gkissel.forgeweave.item.ForgeweaveItems;
 import dev.gkissel.forgeweave.item.ToolItem;
 import dev.gkissel.forgeweave.menu.ToolAssemblyRecipes;
+import dev.gkissel.forgeweave.modifier.ModifierEntry;
 import dev.gkissel.forgeweave.tool.ToolConstants;
 
 /**
@@ -252,6 +253,22 @@ public final class ScreenshotHarness {
 
     /** How far in -Z of spawn the weapon poses stand, clear of the block scenes above. */
     private static final int WEAPON_SCENE_DISTANCE = 6;
+
+    /**
+     * Issue #257's release-checklist frames, {@code weapon_broadsword_modified(_firstperson).png}:
+     * one extra pose after {@link #WEAPONS}, the broadsword again but carrying three
+     * overlay-bearing modifiers, so the pair of frames next to the unmodified {@code
+     * weapon_broadsword*.png} shows exactly what applying modifiers adds. Three distinct arts on
+     * one blade -- diamond's edge glint, fiery's flames, silky's jewel -- because one overlay
+     * proves only that <em>something</em> renders, while three prove they stack in application
+     * order without hiding each other ({@code ModifierOverlayModels}'s whole job). Fiery's level is
+     * one full display level (25 units, {@code ModFiery}'s own {@code countPerLevel}); the overlay
+     * ignores level, but the component should still look like a stack a station actually built.
+     */
+    private static final List<ModifierEntry> MODIFIED_WEAPON_MODIFIERS = List.of(
+            new ModifierEntry(ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "diamond"), 1),
+            new ModifierEntry(ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "fiery"), 25),
+            new ModifierEntry(ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "silky"), 1));
 
     /**
      * Issue #236's M3.2 material roster, in milestone order (vanilla-sourced batch, slime family,
@@ -1021,20 +1038,25 @@ public final class ScreenshotHarness {
         if (stageTicks < SCREEN_GAP_TICKS) {
             return;
         }
-        if (weaponIndex >= WEAPONS.size()) {
+        // One index past the list is the #257 modified-broadsword pose; see currentWeaponFileName.
+        if (weaponIndex > WEAPONS.size()) {
             mc.options.setCameraType(CameraType.FIRST_PERSON);
             advance(Stage.OPEN_SCREEN);
             return;
         }
-        ToolItem weapon = WEAPONS.get(weaponIndex).get();
+        ToolItem weapon = currentWeapon();
+        boolean modified = weaponIndex == WEAPONS.size();
         var server = mc.getSingleplayerServer();
-        LOGGER.info("{}holding {} for its third-person capture", LOG_PREFIX, weaponName(weapon));
+        LOGGER.info("{}holding {} for its third-person capture", LOG_PREFIX, currentWeaponFileName());
         mc.options.setCameraType(CameraType.FIRST_PERSON);
         server.execute(() -> {
             ServerPlayer serverPlayer = server.getPlayerList().getPlayers().get(0);
             ItemStack stack = assembleForDisplay(serverPlayer, weapon);
             if (stack.isEmpty()) {
                 LOGGER.error("{}#155 scene check FAILED: could not assemble {}", LOG_PREFIX, weaponName(weapon));
+            }
+            if (modified) {
+                stack.set(ForgeweaveDataComponents.MODIFIERS.get(), MODIFIED_WEAPON_MODIFIERS);
             }
             serverPlayer.setItemInHand(InteractionHand.MAIN_HAND, stack);
             // Away from the blocks the earlier scenes left standing, so the silhouette reads against
@@ -1051,22 +1073,36 @@ public final class ScreenshotHarness {
         if (stageTicks < SCREEN_SETTLE_TICKS) {
             return;
         }
-        ToolItem weapon = WEAPONS.get(weaponIndex).get();
+        ToolItem weapon = currentWeapon();
         // Self-diagnosing, like the block scenes: an empty hand and a wrongly-rendered tool look the
-        // same in a PNG and need very different fixes.
+        // same in a PNG and need very different fixes. The #257 pose additionally logs the held
+        // stack's modifier list -- an unmodified broadsword in that frame renders overlay-free and
+        // would otherwise pass for a rendering bug.
         if (mc.player != null) {
             ItemStack held = mc.player.getMainHandItem();
             if (held.isEmpty() || !held.is(weapon)) {
                 LOGGER.error("{}#155 scene check FAILED: client sees {} in hand, expected {}",
                         LOG_PREFIX, held, weaponName(weapon));
             } else {
-                LOGGER.info("{}#155 scene check: client holds {} with materials {}", LOG_PREFIX,
-                        weaponName(weapon), held.get(ForgeweaveDataComponents.TOOL_MATERIALS.get()));
+                LOGGER.info("{}#155 scene check: client holds {} with materials {} modifiers {}", LOG_PREFIX,
+                        weaponName(weapon), held.get(ForgeweaveDataComponents.TOOL_MATERIALS.get()),
+                        held.get(ForgeweaveDataComponents.MODIFIERS.get()));
             }
         }
-        capture(mc, "weapon_" + weaponName(weapon));
+        capture(mc, "weapon_" + currentWeaponFileName());
         weaponIndex++;
         advance(Stage.HOLD_WEAPON);
+    }
+
+    /** {@link #WEAPONS} by index, or the #257 modified pose's broadsword one index past the end. */
+    private static ToolItem currentWeapon() {
+        return weaponIndex < WEAPONS.size()
+                ? WEAPONS.get(weaponIndex).get()
+                : ForgeweaveItems.TOOL_BROADSWORD.get();
+    }
+
+    private static String currentWeaponFileName() {
+        return weaponIndex < WEAPONS.size() ? weaponName(currentWeapon()) : "broadsword_modified";
     }
 
     /**
@@ -1090,7 +1126,7 @@ public final class ScreenshotHarness {
         if (stageTicks < SCREEN_SETTLE_TICKS || (!swingReady && stageTicks < WEAPON_SWING_RESET_TICKS)) {
             return;
         }
-        capture(mc, "weapon_" + weaponName(WEAPONS.get(weaponIndex).get()) + "_firstperson");
+        capture(mc, "weapon_" + currentWeaponFileName() + "_firstperson");
         mc.options.setCameraType(CameraType.THIRD_PERSON_BACK);
         advance(Stage.SETTLE_WEAPON);
     }
