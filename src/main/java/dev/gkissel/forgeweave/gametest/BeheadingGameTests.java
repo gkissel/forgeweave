@@ -85,8 +85,8 @@ public class BeheadingGameTests {
 
         helper.assertTrue(Beheading.headDropFor(EntityType.PIG).isEmpty(), "a pig has no head item");
         withoutMobLoot(helper, () -> {
-            kill(helper, player, EntityType.PIG);
-            List<ItemEntity> drops = drops(helper);
+            List<ItemEntity> drops = SpawnCapture.spawnedDuring(helper, ItemEntity.class,
+                    () -> kill(helper, player, EntityType.PIG));
             helper.assertTrue(drops.isEmpty(),
                     "a beheaded pig must drop nothing at all, got " + drops.size() + " item(s)");
         });
@@ -113,10 +113,15 @@ public class BeheadingGameTests {
         victim.moveTo(stand.x, stand.y, stand.z);
 
         withoutMobLoot(helper, () -> {
-            victim.hurt(helper.getLevel().damageSources().playerAttack(attacker), 1000.0F);
-            helper.assertFalse(victim.isAlive(), "the blow was meant to kill the victim");
+            // Captured at the spawn seam, not queried back out of the level: see SpawnCapture (this
+            // exact assertion flaked CI-only when the plot landed millions of blocks out and the
+            // just-spawned head was not yet visible to the entity index).
+            List<ItemEntity> drops = SpawnCapture.spawnedDuring(helper, ItemEntity.class, () -> {
+                victim.hurt(helper.getLevel().damageSources().playerAttack(attacker), 1000.0F);
+                helper.assertFalse(victim.isAlive(), "the blow was meant to kill the victim");
+            });
 
-            ItemStack head = drops(helper).stream()
+            ItemStack head = drops.stream()
                     .map(ItemEntity::getItem)
                     .filter(stack -> stack.is(Items.PLAYER_HEAD))
                     .findFirst()
@@ -236,8 +241,10 @@ public class BeheadingGameTests {
     private static void assertBeheads(GameTestHelper helper, Player player, EntityType<? extends LivingEntity> type,
             Item expected) {
         withoutMobLoot(helper, () -> {
-            kill(helper, player, type);
-            long heads = drops(helper).stream().filter(drop -> drop.getItem().is(expected)).count();
+            // The drop is captured at the spawn seam rather than queried from the entity index,
+            // which lags behind synchronous spawns in a freshly-loaded plot (see SpawnCapture).
+            long heads = SpawnCapture.spawnedDuring(helper, ItemEntity.class, () -> kill(helper, player, type))
+                    .stream().filter(drop -> drop.getItem().is(expected)).count();
             helper.assertTrue(heads == 1,
                     "expected exactly one " + expected + " from a beheaded " + type.getDescriptionId()
                             + ", got " + heads);

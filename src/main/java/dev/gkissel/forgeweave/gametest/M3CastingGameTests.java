@@ -72,9 +72,13 @@ public class M3CastingGameTests {
      * The cast survives casting a metal part from it and comes out with the poured metal's material.
      * A large-head-cost part's 1152 mB (see class javadoc) takes longer to pour and cool than the
      * 288 mB M1 tests need -- {@link CastingGameTests#theBasinCastsACobaltBlockViaTheDrainFaucet}
-     * sets the same precedent for a cobalt pour of comparable size (1296 mB, 800 ticks).
+     * sets the same precedent for a cobalt pour of comparable size (1296 mB, 1600 ticks).
+     *
+     * <p>Budget: 1152 mB = eight 144-mB transactions at 6 mB/tick = 192 ticks of pouring, plus
+     * cobalt's 24 + (950-300)*1152/1600 = 492 cooling ticks -- a 684-tick floor, so the old
+     * 800-tick budget left only 15% for scheduling slack. 1600 matches the sibling above.
      */
-    @GameTest(template = "empty", timeoutTicks = 800)
+    @GameTest(template = "empty", timeoutTicks = 1600)
     public static void anM3CastSurvivesCastingAndProducesTheMetalPart(GameTestHelper helper) {
         CastingBlockEntity table = rig(helper, ForgeweaveFluids.COBALT.still().get());
         insert(helper, table, new ItemStack(ForgeweaveItems.CAST_HAMMER_HEAD.get()));

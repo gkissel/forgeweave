@@ -95,8 +95,13 @@ public class CastingGameTests {
      * formed smeltery, a drain in its wall, a faucet on the drain, right-clicked exactly as a player
      * would (not fed through the fluid-handler capability directly, unlike {@link
      * #theBasinCastsAMetalBlock}).
+     *
+     * <p>Budget: a cobalt block is 1296 mB = nine 144-mB faucet transactions at 6 mB/tick = 216
+     * ticks of pouring, then {@code CastingRecipe#cooldownTicks}' 24 + (950-300)*1296/1600 = 550
+     * ticks of cooling -- a 766-tick floor before a single tick of scheduling slack. The old
+     * 800-tick budget left 4% headroom and timed out rarely in CI; 1600 is the floor doubled.
      */
-    @GameTest(template = "smeltery", timeoutTicks = 800)
+    @GameTest(template = "smeltery", timeoutTicks = 1600)
     public static void theBasinCastsACobaltBlockViaTheDrainFaucet(GameTestHelper helper) {
         CastingBlockEntity basin = drainRig(helper, ForgeweaveBlocks.CASTING_BASIN.get(), ForgeweaveFluids.COBALT.still().get());
 

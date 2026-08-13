@@ -35,10 +35,12 @@ import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 
 import dev.gkissel.forgeweave.Forgeweave;
+import dev.gkissel.forgeweave.combat.BleedEffect;
 import dev.gkissel.forgeweave.combat.CombatHit;
 import dev.gkissel.forgeweave.combat.CombatSeam;
 import dev.gkissel.forgeweave.combat.CombatSeams;
 import dev.gkissel.forgeweave.combat.ForgeweaveMobEffects;
+import dev.gkissel.forgeweave.combat.LacerateEffect;
 import dev.gkissel.forgeweave.item.ForgeweaveDataComponents;
 import dev.gkissel.forgeweave.item.ForgeweaveItems;
 import dev.gkissel.forgeweave.item.ToolItem;
@@ -289,12 +291,25 @@ public class CombatTraitGameTests {
         helper.assertTrue(pig.hasEffect(ForgeweaveMobEffects.BLEED), "a landed sharp hit must leave the bleed");
         float afterHit = pig.getHealth();
 
-        // Three 1/3-damage ticks land within 45 ticks of the blow; wait for a full point.
-        helper.startSequence()
-                .thenWaitUntil(() -> helper.assertTrue(pig.getHealth() <= afterHit - 0.9F,
-                        "the bleed should have ticked ~1/3 damage per 15 ticks, health still " + pig.getHealth()))
-                .thenExecute(pig::discard)
-                .thenSucceed();
+        // The DoT is driven through the effect's own tick contract rather than by waiting on the
+        // level to tick the pig: a GameTest plot far from spawn is not reliably entity-ticking, so a
+        // wait on the pig's effects can outlive any timeout (issue #212's diagnosis; this test's CI
+        // flake read "health still 9.0"). The hit above still applies the effect through the real
+        // trait seam -- only the cadence is stepped by hand.
+        BleedEffect effect = (BleedEffect) ForgeweaveMobEffects.BLEED.value();
+        int fires = 0;
+        for (int duration = BleedEffect.DURATION_TICKS; duration >= 1; duration--) {
+            if (effect.shouldApplyEffectTickThisTick(duration, 0)) {
+                effect.applyEffectTick(pig, 0);
+                fires++;
+            }
+        }
+        helper.assertValueEqual(fires, 8, "a 121-tick application fires every 15 ticks");
+        float lost = afterHit - pig.getHealth();
+        helper.assertTrue(Math.abs(lost - fires * BleedEffect.DAMAGE_PER_TICK) < 0.01F,
+                "eight 1/3-damage ticks must land in full despite invulnerability windows, got " + lost);
+        pig.discard();
+        helper.succeed();
     }
 
     /** Bone, head (retrofit) -&gt; {@code forgeweave:splintering}: +0.3 per landed hit, capping at +1.8. */
@@ -397,12 +412,17 @@ public class CombatTraitGameTests {
                 "a landed lacerating hit must leave the scimitar's bleed");
         float afterHit = pig.getHealth();
 
-        // The bleed ticks 1 damage per second; wait for the first tick.
-        helper.startSequence()
-                .thenWaitUntil(() -> helper.assertTrue(pig.getHealth() <= afterHit - 1.0F,
-                        "the bleed should have ticked 1 damage, health still " + pig.getHealth()))
-                .thenExecute(pig::discard)
-                .thenSucceed();
+        // The first bleed tick is driven through the effect's own contract rather than by waiting on
+        // the level to tick the pig -- a GameTest plot far from spawn is not reliably entity-ticking
+        // (issue #212), which is what this test's CI flake ("health still 9.0") was. The hit above
+        // still applies the effect through the real trait seam; the cadence and 4-second total are
+        // WeaponInnateGameTests#lacerateBleedsOneDamagePerSecondForFourSeconds's to prove.
+        pig.invulnerableTime = 0; // the first tick lands a full second after the blow (LacerateEffect javadoc)
+        ((LacerateEffect) ForgeweaveMobEffects.LACERATE.value()).applyEffectTick(pig, 0);
+        helper.assertTrue(pig.getHealth() <= afterHit - 1.0F,
+                "the bleed's tick must cost 1 damage, health still " + pig.getHealth());
+        pig.discard();
+        helper.succeed();
     }
 
     // ------------------------------------------------------------------ plumbing
