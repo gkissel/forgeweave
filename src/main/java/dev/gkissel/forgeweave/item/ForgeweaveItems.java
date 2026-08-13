@@ -397,6 +397,12 @@ public final class ForgeweaveItems {
     public static final DeferredItem<Item> NUGGET_ROSE_GOLD = ITEMS.registerSimpleItem("rose_gold_nugget");
     public static final DeferredItem<Item> RAW_ROSE_GOLD = ITEMS.registerSimpleItem("raw_rose_gold");
 
+    // #234 -- steel (M3.2): FW-native ingot/nugget, alloyed from molten iron + carbon rather than
+    // mined, so no raw form and no ore. Textures are the same recolor-of-manyullyn derivation as
+    // rose gold's, at steel's own upstream color 0xa7a7a7 (NOTICE.md).
+    public static final DeferredItem<Item> INGOT_STEEL = ITEMS.registerSimpleItem("steel_ingot");
+    public static final DeferredItem<Item> NUGGET_STEEL = ITEMS.registerSimpleItem("steel_nugget");
+
     // #104 -- cobalt + ardite nether ore block items (docs/SCOPE.md M2 issue #104).
     public static final DeferredItem<BlockItem> COBALT_ORE = ITEMS.registerSimpleBlockItem("cobalt_ore", ForgeweaveBlocks.COBALT_ORE);
     public static final DeferredItem<BlockItem> ARDITE_ORE = ITEMS.registerSimpleBlockItem("ardite_ore", ForgeweaveBlocks.ARDITE_ORE);
@@ -407,6 +413,7 @@ public final class ForgeweaveItems {
     public static final DeferredItem<BlockItem> ARDITE_BLOCK = ITEMS.registerSimpleBlockItem("ardite_block", ForgeweaveBlocks.ARDITE_BLOCK);
     public static final DeferredItem<BlockItem> MANYULLYN_BLOCK = ITEMS.registerSimpleBlockItem("manyullyn_block", ForgeweaveBlocks.MANYULLYN_BLOCK);
     public static final DeferredItem<BlockItem> ROSE_GOLD_BLOCK = ITEMS.registerSimpleBlockItem("rose_gold_block", ForgeweaveBlocks.ROSE_GOLD_BLOCK);
+    public static final DeferredItem<BlockItem> STEEL_BLOCK = ITEMS.registerSimpleBlockItem("steel_block", ForgeweaveBlocks.STEEL_BLOCK);
 
     private ForgeweaveItems() {}
 }

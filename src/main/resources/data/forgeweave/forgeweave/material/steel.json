@@ -1,0 +1,25 @@
+{
+  "head": {
+    "durability": 540,
+    "mining_speed": 7.0,
+    "attack_damage": 6.0
+  },
+  "handle": {
+    "durability_modifier": 0.9,
+    "durability": 150
+  },
+  "extra_durability": 25,
+  "incorrect_for_tool": "minecraft:incorrect_for_netherite_tool",
+  "traits": {
+    "general": ["forgeweave:stiff"],
+    "head": ["forgeweave:sharp"]
+  },
+  "crafting_items": [
+    { "ingredient": { "item": "forgeweave:steel_ingot" }, "value": 2 },
+    { "ingredient": { "item": "forgeweave:steel_block" }, "value": 18 }
+  ],
+  "repair_item": {
+    "tag": "c:ingots/steel"
+  },
+  "color": "#A7A7A7"
+}

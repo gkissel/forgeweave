@@ -58,11 +58,17 @@ public final class ForgeweaveFluids {
     public static final MoltenMetal COBALT = register("cobalt", 0x2882D4, 950);
     public static final MoltenMetal ARDITE = register("ardite", 0xD14210, 860);
     public static final MoltenMetal MANYULLYN = register("manyullyn", 0xA15CF8, 1000);
+    // #234 M3.2: steel, ported the same way (TinkerFluids#setupFluids 681; materialTextColor 0xa7a7a7).
+    public static final MoltenMetal STEEL = register("steel", 0xA7A7A7, 681);
 
     // No 1.12 counterpart -- deviation recorded in the issue #92 PR (see class javadoc).
     public static final MoltenMetal ROSE_GOLD = register("rose_gold", 0xB76E79, 550);
     public static final MoltenMetal NETHERITE_SCRAP = register("netherite_scrap", 0x6B4A34, 1100);
     public static final MoltenMetal NETHERITE = register("netherite", 0x4A3B47, 1200);
+    // #234: molten carbon, steel's alloy partner (coal/charcoal melt into it). Upstream 1.12 has no
+    // steel recipe at all, so this fluid and its 600-degree temperature are a maintainer pick on
+    // issue #234, slotted between copper (542) and steel's own 681 on upstream's scale.
+    public static final MoltenMetal CARBON = register("carbon", 0x31302E, 600);
 
     private static MoltenMetal register(String metalId, int color, int temperature) {
         String name = "molten_" + metalId;

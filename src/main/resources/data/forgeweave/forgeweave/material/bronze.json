@@ -1,0 +1,24 @@
+{
+  "head": {
+    "durability": 430,
+    "mining_speed": 6.8,
+    "attack_damage": 3.5
+  },
+  "handle": {
+    "durability_modifier": 1.1,
+    "durability": 70
+  },
+  "extra_durability": 80,
+  "incorrect_for_tool": "minecraft:incorrect_for_diamond_tool",
+  "traits": {
+    "general": ["forgeweave:dense"]
+  },
+  "crafting_items": [
+    { "ingredient": { "tag": "c:ingots/bronze" }, "value": 2 },
+    { "ingredient": { "tag": "c:storage_blocks/bronze" }, "value": 18 }
+  ],
+  "repair_item": {
+    "tag": "c:ingots/bronze"
+  },
+  "color": "#E3BD68"
+}

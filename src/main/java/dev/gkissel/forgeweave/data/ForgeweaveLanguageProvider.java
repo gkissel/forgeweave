@@ -391,6 +391,15 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("material.forgeweave.rose_gold", "Rose Gold");
         add("material.forgeweave.netherite", "Netherite");
 
+        // #234 -- M3.2: steel (FW-native) plus the four tag-gated compat metals. The four have no
+        // Forgeweave items of their own, but their material names still surface on parts, tools and
+        // the info panel once another mod supplies the c: ingot tag.
+        add("material.forgeweave.steel", "Steel");
+        add("material.forgeweave.bronze", "Bronze");
+        add("material.forgeweave.lead", "Lead");
+        add("material.forgeweave.silver", "Silver");
+        add("material.forgeweave.electrum", "Electrum");
+
         // Trait names and descriptions, keyed by trait id like materials are by material id -- traits
         // are Java behavior selected by data (ADR-0002), so nothing derives these keys for us. The
         // tool info panel (issue #47) is what will display them; wording follows upstream 1.12's
@@ -625,6 +634,9 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("fluid_type.forgeweave.molten_rose_gold", "Molten Rose Gold");
         add("fluid_type.forgeweave.molten_netherite_scrap", "Molten Netherite Scrap");
         add("fluid_type.forgeweave.molten_netherite", "Molten Netherite");
+        // #234 -- steel and its carbon alloy partner (M3.2).
+        add("fluid_type.forgeweave.molten_steel", "Molten Steel");
+        add("fluid_type.forgeweave.molten_carbon", "Molten Carbon");
 
         // #100 -- casting (docs/SCOPE.md M2 issue #100). Names follow upstream 1.12's
         // tile.casting.{table,basin}.name / tile.faucet.name and its cast item names.
@@ -678,6 +690,10 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         addItem(ForgeweaveItems.INGOT_ROSE_GOLD, "Rose Gold Ingot");
         addItem(ForgeweaveItems.NUGGET_ROSE_GOLD, "Rose Gold Nugget");
         addItem(ForgeweaveItems.RAW_ROSE_GOLD, "Raw Rose Gold");
+        // #234 -- steel (M3.2): no upstream item rows to port (1.12 steel items came from other
+        // mods' ore dict), so the names follow the same "<Metal> Ingot/Nugget" convention.
+        addItem(ForgeweaveItems.INGOT_STEEL, "Steel Ingot");
+        addItem(ForgeweaveItems.NUGGET_STEEL, "Steel Nugget");
 
         // #104 -- cobalt + ardite nether ore (docs/SCOPE.md M2 issue #104), names ported from
         // upstream 1.12's tile.tconstruct.ore.{cobalt,ardite}.name entries (NOTICE.md).
@@ -691,6 +707,7 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         addBlock(ForgeweaveBlocks.ARDITE_BLOCK, "Block of Ardite");
         addBlock(ForgeweaveBlocks.MANYULLYN_BLOCK, "Block of Manyullyn");
         addBlock(ForgeweaveBlocks.ROSE_GOLD_BLOCK, "Block of Rose Gold");
+        addBlock(ForgeweaveBlocks.STEEL_BLOCK, "Block of Steel");
 
         // #110 -- the M2 advancement chain (docs/SCOPE.md M2 issue #110): build smeltery -> first
         // melt -> first cast -> first alloy -> first modifier. Keys follow vanilla's own

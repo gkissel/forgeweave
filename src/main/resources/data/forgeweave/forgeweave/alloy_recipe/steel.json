@@ -1,0 +1,16 @@
+{
+  "inputs": [
+    {
+      "fluid": "forgeweave:molten_iron",
+      "amount": 2
+    },
+    {
+      "fluid": "forgeweave:molten_carbon",
+      "amount": 1
+    }
+  ],
+  "result": {
+    "fluid": "forgeweave:molten_steel",
+    "amount": 2
+  }
+}

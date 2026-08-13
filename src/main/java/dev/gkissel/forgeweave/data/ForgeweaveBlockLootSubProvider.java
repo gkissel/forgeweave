@@ -96,6 +96,7 @@ public class ForgeweaveBlockLootSubProvider extends BlockLootSubProvider {
         dropSelf(ForgeweaveBlocks.ARDITE_BLOCK.get());
         dropSelf(ForgeweaveBlocks.MANYULLYN_BLOCK.get());
         dropSelf(ForgeweaveBlocks.ROSE_GOLD_BLOCK.get());
+        dropSelf(ForgeweaveBlocks.STEEL_BLOCK.get());
     }
 
     private LootTable.Builder oreDrop(Block block, Item item) {

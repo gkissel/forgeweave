@@ -1,0 +1,24 @@
+{
+  "head": {
+    "durability": 434,
+    "mining_speed": 5.25,
+    "attack_damage": 3.5
+  },
+  "handle": {
+    "durability_modifier": 0.7,
+    "durability": -50
+  },
+  "extra_durability": 100,
+  "incorrect_for_tool": "minecraft:incorrect_for_iron_tool",
+  "traits": {
+    "general": ["forgeweave:poisonous", "forgeweave:heavy"]
+  },
+  "crafting_items": [
+    { "ingredient": { "tag": "c:ingots/lead" }, "value": 2 },
+    { "ingredient": { "tag": "c:storage_blocks/lead" }, "value": 18 }
+  ],
+  "repair_item": {
+    "tag": "c:ingots/lead"
+  },
+  "color": "#4D4968"
+}

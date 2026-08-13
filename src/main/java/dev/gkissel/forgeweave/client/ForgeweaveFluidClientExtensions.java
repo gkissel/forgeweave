@@ -32,6 +32,8 @@ public final class ForgeweaveFluidClientExtensions {
         register(event, ForgeweaveFluids.ROSE_GOLD);
         register(event, ForgeweaveFluids.NETHERITE_SCRAP);
         register(event, ForgeweaveFluids.NETHERITE);
+        register(event, ForgeweaveFluids.STEEL);
+        register(event, ForgeweaveFluids.CARBON);
     }
 
     private static void register(RegisterClientExtensionsEvent event, ForgeweaveFluids.MoltenMetal metal) {

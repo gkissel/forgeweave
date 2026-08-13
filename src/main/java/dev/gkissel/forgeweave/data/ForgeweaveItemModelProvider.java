@@ -212,6 +212,9 @@ public class ForgeweaveItemModelProvider extends ItemModelProvider {
         singleLayerModel(ForgeweaveItems.INGOT_ROSE_GOLD, derivedItem("rose_gold_ingot"));
         singleLayerModel(ForgeweaveItems.NUGGET_ROSE_GOLD, derivedItem("rose_gold_nugget"));
         singleLayerModel(ForgeweaveItems.RAW_ROSE_GOLD, itemTexture("raw_rose_gold"));
+        // #234 -- steel (M3.2), recolor-of-manyullyn derivations like rose gold's (NOTICE.md).
+        singleLayerModel(ForgeweaveItems.INGOT_STEEL, derivedItem("steel_ingot"));
+        singleLayerModel(ForgeweaveItems.NUGGET_STEEL, derivedItem("steel_nugget"));
     }
 
     private ResourceLocation derivedItem(String name) {
