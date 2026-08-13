@@ -167,6 +167,91 @@ Ranged family — shortbow, longbow, crossbow, shuriken, material arrows, javeli
 - **Manual release checklist adds**: screenshot-harness review of the Tool Forge GUI and in-world scenes for every new tool's held/third-person render; JEI sanity; previous-release world load.
 - Alpha tags during the milestone; an explicit post-alpha playtest-fix round is budgeted before the final tag. **At milestone end the first beta tags** (`mc1.21.1-v0.3.0-beta.1`) — confirmed at M3 planning (2026-08-12); from that tag the save-compat promise is binding.
 
+## Milestone 3.2 — material roster
+
+Planned 2026-08-13 (planning epic #221; original request #180). Pulled forward from M6 by maintainer decision 2026-08-12. Sequencing (maintainer, 2026-08-13): implementation proceeds in parallel with M3's post-alpha playtest round (#169); the `mc1.21.1-v0.3.2` line tags only after `mc1.21.1-v0.3.0-beta.1` exists. Every serialized format M3.2 adds ships its save-compat fixture in the same PR regardless of tag order.
+
+### Acceptance test
+
+In a fresh 1.21.1 survival world on a **dedicated server**, without cheats, a player can:
+
+1. Craft parts at the Part Builder from each vanilla-sourced new material — cactus, obsidian, prismarine, endstone, paper, sponge, netherrack — and assemble an all-paper tool that shows **+2 modifier slots** (writable).
+2. Furnace-smelt a slime block into a **green slime crystal** and a magma block into a **magma slime crystal**; craft a **blue slime crystal** (recipe per its issue); make slime, blue slime, and magma slime parts; observe a slimey tool occasionally spawning a slime and a magma slime head gaining superheat damage vs burning targets.
+3. Alloy **knightslime**, **pig iron**, and **steel** in the smeltery (Forgeweave-substituted inputs, recorded per issue), cast their parts, and assemble tools; craft **firewood** and observe autosmelt replacing drops with furnace results.
+4. With a test mod supplying `c:ingots/bronze`, craft bronze parts at the Part Builder; without any supplying mod, bronze/lead/silver/electrum are unobtainable (tag-gated).
+5. Alloy **amethyst bronze** (copper + molten amethyst), produce **nahuatl** by pouring molten obsidian over wood (composite casting), and craft **chorus** and **ancient** parts; observe crumbling, lacerating, enderference, and vintage.
+6. Emboss a tool and observe the reagent cost is now the three slime crystals + gold block (1.12 parity — the M3 substitute recipe is reverted).
+7. Load a world saved on the previous release (fixture corpus in CI + manual load).
+
+All new part, casting, alloying, and melting recipes are visible in JEI with no JEI code changes.
+
+### Content manifest
+
+| Kind | Contents |
+| --- | --- |
+| Materials (22) | **1.12 parity (18)**: cactus, obsidian, prismarine, endstone, paper, sponge, netherrack, firewood, slime, blue slime, magma slime, knightslime, pig iron, steel + tag-gated bronze, lead, silver, electrum · **modern-branch additions (4, by-name deviation)**: amethyst bronze, nahuatl, chorus, ancient. Stats/traits/colors from the pinned 1.12 clone; additions from the 1.20 clone. **Alubrass is dropped** — it is not a tool material upstream (fluid/cast-only); listing it in #221 was an error. |
+| Traits (~27 new Java) | table below; all parameter-shaped per ADR-0004, combat traits attach via the #150 seams only |
+| Items | green/blue/magma slime crystals (derived textures); ingot/nugget/block for knightslime, pig iron, steel; firewood block |
+| Fluids | molten obsidian, molten slime (alloy input substitutions per issue), knightslime, pig iron, steel, molten amethyst, amethyst bronze |
+| Recipes | crystal smelting/crafting; alloys: knightslime, pig iron, steel (substituted inputs — named decisions per issue), amethyst bronze, obsidian (water + lava → 36 mB, upstream `obsidianAlloy` behavior); nahuatl composite casting; melting/casting rows for every castable new metal; part-builder `crafting_items` for everything craftable |
+| Tag-gating | bronze/lead/silver/electrum materials key `crafting_items`/`repair_item` on `c:` ingot tags; no Forgeweave ores, fluids, or casting for these four (Part Builder path only) — parity with upstream's ore-dict gating |
+| Embossing | reagent recipe reverts to 1.12 parity (three slime crystals + gold block) — executes the deferred-backlog revert note |
+| Serialization | alien progressive-stat state; shocking charge state — both new tool-component surfaces with fixtures in the same PR |
+| Retrofits | bone gains splintering (head); flint's crude reaches upstream level 3 (+15% vs unarmored) |
+
+### Trait table
+
+Magnitudes are clone constants (upstream paths in NOTICE.md rows). Scope `(head)` = head-part-restricted; upstream's redundant double registrations (aquadynamic, hellish, tasty) are collapsed to the general registration.
+
+| Trait | Material | Behavior |
+| --- | --- | --- |
+| prickly (head) | cactus | secondary armor-bypassing hit, mean ≈0.5 |
+| spiky | cactus | thorns: reflects tool damage, halved when held, full when blocking |
+| duritos | obsidian | durability event: 10% double cost, 40% zero cost |
+| jagged (head) | prismarine | +ln((dmg)/72+1)×2 attack as durability drops |
+| aquadynamic | prismarine | mining ≥2× base; +550% of base underwater, rain bonus |
+| alien (head) | endstone | 800-point pool slowly self-assigns durability/speed/attack (serialized) |
+| enderference | endstone, chorus | hitting a teleporter blocks its teleports for 5 s |
+| aridiculous (head) | netherrack | mining/attack scale with biome heat, can go negative in cold/wet |
+| hellish (head) | netherrack | +4 damage vs non-fire-immune targets |
+| writable | paper | +1 free modifier slot per part (paper's pair grants +2 — upstream behavior, not the naming) |
+| squeaky | sponge | Silk Touch always on; attack damage hard 0 |
+| autosmelt | firewood | drops replaced by furnace results (shares Searing's smelt logic) |
+| slimey_green | slime | 0.33% on break/kill: spawns a small slime |
+| slimey_blue | blue slime | same, blue slime entity |
+| superheat (head) | magma slime | +35% base damage vs burning targets |
+| flammable | magma slime | ignites attackers; blocking cancels fire damage for 3 durability |
+| crumbling (head) | knightslime, amethyst bronze | ×1.5 speed on blocks needing no tool |
+| unnatural | knightslime | +1 speed per tool-tier level above the block's requirement |
+| baconlicious (head) | pig iron | bacon: 0.5%/block, 5%/kill |
+| tasty | pig iron | while held and hungry, occasionally feeds the holder for 5 durability |
+| splintering (head) | bone (retrofit) | stacking +0.3/hit bleed-splinter, caps +1.8 |
+| dense | bronze | up to ~42% chance to halve durability cost, scaling as the tool wears |
+| poisonous | lead | Poison I 5 s on hit |
+| heavy | lead | full knockback resistance while held |
+| holy | silver | +5 vs undead + Weakness 2.5 s |
+| shocking | electrum | 0–100 charge from movement/mining/hits; discharge: +5 lightning damage (serialized) |
+| sharp (head) | steel | armor-ignoring bleed DoT (~0.33/15 ticks, 6 s) |
+| stiff | steel | −1 incoming damage while blocking |
+| lacerating | nahuatl | bleed DoT on hit — reuses the scimitar Lacerate seam |
+| vintage | ancient | +1 modifier slot at a mobility cost (magnitude per issue) |
+
+### In scope (systems)
+
+Material datapack batches per ADR-0002 (a material without a new trait is one JSON + one lang line). New trait behaviors as parameter-shaped ADR-0004 library candidates; combat-touching traits consume the ADR-0005 seams only. Tag-gated material pattern (`crafting_items` on `c:` tags, unobtainable until a mod supplies the ingot). Composite casting (pour-over-item) for nahuatl. Crystal items + smelting. New alloy chains. Lang-coverage guard test (every `material/*.json` has its lang line — nothing enforces this today) and a material registry sync encoded-size unit test (SCOPE performance budget at 33 materials).
+
+### Non-goals for M3.2
+
+Forgeweave ores or worldgen for lead/silver/tin (tag-gated only) · slime islands, purple slime, blue slime spawns (world-content milestone; blue slime crystal gets a crafting recipe instead) · bowstring/arrow-shaft/fletching material stats (M3.5) · alubrass as a tool material · modern-branch materials needing mod-only items (slimesteel, queens slime, cinderslime, hepatizon, blazing bone, necrotic bone, venombone, seared/scorched stone, slimewood, whitestone) · Twilight Forest compat materials · mod-compat metals beyond the four tag-gated ones (M8) · bow stat axes (M3.5).
+
+### CI and release gates
+
+- **GameTest coverage**: one test per new trait behavior (all ~27, including retrofits); crystal furnace recipes; each new alloy ratio; nahuatl composite casting; tag-gating both ways (synthetic mod item present → craftable; absent → no part); emboss reagent revert; writable slot math on an all-paper tool; squeaky silk-touch + zero-damage; autosmelt drop replacement.
+- **Unit gates**: material lang-coverage test; material registry sync encoded-size test with an explicit budget.
+- **Save-compat fixtures (same PR as the format; corpus is CI-gating)**: alien progressive-stat component; shocking charge component; a fixture snapshotting a tool built from new-roster materials.
+- **Manual release checklist adds**: screenshot-harness scene rendering parts/tools tinted with every new material, visually inspected; JEI sanity; spark profile; previous-release world load; dedicated-server acceptance playthrough.
+- Alphas during the milestone; a maintainer playtest-fix round (regression tests per the regression rule) precedes the final tag. The line tags only after `mc1.21.1-v0.3.0-beta.1` exists; once that beta is live the save-compat promise is binding for every M3.2 format.
+
 ## Milestone ladder
 
 Each milestone ships a playable release under the tag scheme in [releasing.md](releasing.md).
@@ -176,7 +261,7 @@ Each milestone ships a playable release under the tag scheme in [releasing.md](r
 | M1 | Tools slice (this document) | — |
 | M2 | Smeltery, metal materials, modifiers. Melts/casts any mod's ores and ingots via standard `c:` tags, so modded metals (Mekanism, Create, Thermal, …) work without per-mod code | M1 |
 | M3 | Full melee/harvest tool roster incl. modern-era shapes (katana, scimitar, warmace), combat tuning, Tool Forge, embossing (this document, planned 2026-08-12) | M2 |
-| M3.2 | Material roster: the full 1.12 material set (paper, slime, blue slime, netherrack, obsidian, prismarine, endstone, sponge, firewood, knightslime, pig iron, electrum, alubrass, …) with per-part traits, plus 1.20-branch additions evaluated at planning; scoped at its own planning session (maintainer decision 2026-08-12 — pulled forward from M6) | M3 |
+| M3.2 | Material roster: the full always-on 1.12 material set with per-part traits, tag-gated compat metals, and four by-name modern-branch additions (this document, planned 2026-08-13; pulled forward from M6 by maintainer decision 2026-08-12) | M3 |
 | M3.5 | Ranged weapons: shortbow, longbow, crossbow (fires arrows — bolts are cut), shuriken, material arrows; energy-consuming ranged tool | M3.2 |
 | M4 | Armors (Construct's Armory-inspired) | M2 (reuses parts/traits/modifiers) |
 | M5 | Gadgets: slingshot, slime boots | M2 |
@@ -195,6 +280,7 @@ Per-milestone source policy, decided from the [addon ecosystem survey](research/
 | --- | --- | --- |
 | M2 | Tinkers' Construct 1.12 (smeltery, casting, metals, modifiers — full assets/code as needed) | TAIGA (alloy table), Tinkers' Addons (modifier worked examples) |
 | M3 | — | PlusTiC: katana as a modern-era shape (Forgeweave's design differs: damage builds while in combat, decided 2026-08-12) · TiC 1.20 branch: vein hammer + dagger shapes and pickaxe-pierce idea (feature-scope deviation authorized by maintainer 2026-08-12 — the standing "1.20 never sets feature scope" rule is explicitly overridden for these three, by name) |
+| M3.2 | — | TiC 1.20 branch: **amethyst bronze, nahuatl, chorus, ancient** as material additions (feature-scope deviation authorized by maintainer 2026-08-13, by name — the standing "1.20 never sets feature scope" rule is explicitly overridden for these four) |
 | M3.5 | — | PlusTiC: energy-consuming ranged tool |
 | M4 | — | Construct's Armory (LGPL): two-station split, exactly four armor slots, variety carried by traits and modifiers |
 | M6 | — | TAIGA + Moar Tinkers progression ladders. Sizing target: the material schema and picker UI stay usable at 50–70 materials / 30–45 traits |
@@ -248,7 +334,7 @@ No milestone-specific CI infrastructure beyond that.
 - Per-smeltery GUI toggle to enable/disable auto-alloying (M2 planning, 2026-08-09).
 - Sand casts (single-use) if playtests find the gold-cast gate too steep.
 - Electric/tiered smeltery heating (M8, alongside Create/Mekanism compat).
-- Embossing reagent revert (M3 planning, 2026-08-12): M3 substitutes **slime block + magma block + gold block** (maintainer decision on issue #154, 2026-08-12) for the clone's green/blue/magma slime crystals + gold block. When the world-content milestone ships slime crystals, revert `data/forgeweave/forgeweave/embossing_recipe/embossment.json` to 1.12 parity — it is datapack JSON, so the revert is a data edit, not a code change.
+- ~~Embossing reagent revert~~ **Executed in M3.2** (slime crystals ship there, ahead of the world-content milestone; maintainer decision 2026-08-13): `data/forgeweave/forgeweave/embossing_recipe/embossment.json` reverts to green/blue/magma slime crystals + gold block.
 - Embossing's per-tool donor-part gate (#154): upstream refuses a donor part the tool itself does not use (`ModExtraTrait#canApplyCustom`). Forgeweave accepts any buildable part until the tool roster's per-tool part table exists; add the gate with that table.
 
 ## M1 issue-ready roadmap
