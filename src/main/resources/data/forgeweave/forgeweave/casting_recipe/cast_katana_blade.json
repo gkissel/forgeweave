@@ -1,0 +1,13 @@
+{
+  "station": "table",
+  "cast": {
+    "item": "forgeweave:katana_blade"
+  },
+  "fluid": "forgeweave:molten_gold",
+  "amount": 288,
+  "result": {
+    "id": "forgeweave:cast_katana_blade"
+  },
+  "consumes_cast": true,
+  "result_in_input": true
+}

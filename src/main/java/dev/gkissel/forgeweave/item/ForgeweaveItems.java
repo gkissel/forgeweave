@@ -347,6 +347,30 @@ public final class ForgeweaveItems {
     public static final DeferredItem<Item> CAST_TOOL_BINDING = ITEMS.registerSimpleItem("cast_tool_binding");
     public static final DeferredItem<Item> CAST_TOOL_HANDLE = ITEMS.registerSimpleItem("cast_tool_handle");
 
+    // #222 -- casts for every M3 part (docs/SCOPE.md M3 issue #151/#159/#160/#161's roster), the
+    // same gold-only reusable idiom as the five above: pour molten gold over the crafted part at the
+    // casting table to mould one, then cast any castable metal into that part's shape.
+    public static final DeferredItem<Item> CAST_SWORD_BLADE = ITEMS.registerSimpleItem("cast_sword_blade");
+    public static final DeferredItem<Item> CAST_WIDE_GUARD = ITEMS.registerSimpleItem("cast_wide_guard");
+    public static final DeferredItem<Item> CAST_HAND_GUARD = ITEMS.registerSimpleItem("cast_hand_guard");
+    public static final DeferredItem<Item> CAST_CROSS_GUARD = ITEMS.registerSimpleItem("cast_cross_guard");
+    public static final DeferredItem<Item> CAST_SIGN_PLATE = ITEMS.registerSimpleItem("cast_sign_plate");
+    public static final DeferredItem<Item> CAST_PAN = ITEMS.registerSimpleItem("cast_pan");
+    public static final DeferredItem<Item> CAST_KNIFE_BLADE = ITEMS.registerSimpleItem("cast_knife_blade");
+    public static final DeferredItem<Item> CAST_LARGE_SWORD_BLADE = ITEMS.registerSimpleItem("cast_large_sword_blade");
+    public static final DeferredItem<Item> CAST_TOUGH_TOOL_ROD = ITEMS.registerSimpleItem("cast_tough_tool_rod");
+    public static final DeferredItem<Item> CAST_TOUGH_BINDING = ITEMS.registerSimpleItem("cast_tough_binding");
+    public static final DeferredItem<Item> CAST_LARGE_PLATE = ITEMS.registerSimpleItem("cast_large_plate");
+    public static final DeferredItem<Item> CAST_HAMMER_HEAD = ITEMS.registerSimpleItem("cast_hammer_head");
+    public static final DeferredItem<Item> CAST_EXCAVATOR_HEAD = ITEMS.registerSimpleItem("cast_excavator_head");
+    public static final DeferredItem<Item> CAST_SCYTHE_HEAD = ITEMS.registerSimpleItem("cast_scythe_head");
+    public static final DeferredItem<Item> CAST_KAMA_HEAD = ITEMS.registerSimpleItem("cast_kama_head");
+    public static final DeferredItem<Item> CAST_BROAD_AXE_HEAD = ITEMS.registerSimpleItem("cast_broad_axe_head");
+    public static final DeferredItem<Item> CAST_VEIN_HAMMER_HEAD = ITEMS.registerSimpleItem("cast_vein_hammer_head");
+    public static final DeferredItem<Item> CAST_WAR_MACE_HEAD = ITEMS.registerSimpleItem("cast_war_mace_head");
+    public static final DeferredItem<Item> CAST_CURVED_BLADE = ITEMS.registerSimpleItem("cast_curved_blade");
+    public static final DeferredItem<Item> CAST_KATANA_BLADE = ITEMS.registerSimpleItem("cast_katana_blade");
+
     public static final DeferredItem<BlockItem> CASTING_TABLE = ITEMS.registerSimpleBlockItem("casting_table", ForgeweaveBlocks.CASTING_TABLE);
     public static final DeferredItem<BlockItem> CASTING_BASIN = ITEMS.registerSimpleBlockItem("casting_basin", ForgeweaveBlocks.CASTING_BASIN);
     public static final DeferredItem<BlockItem> FAUCET = ITEMS.registerSimpleBlockItem("faucet", ForgeweaveBlocks.FAUCET);

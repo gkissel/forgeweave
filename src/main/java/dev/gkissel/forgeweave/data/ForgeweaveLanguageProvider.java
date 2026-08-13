@@ -577,6 +577,29 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         addItem(ForgeweaveItems.CAST_TOOL_BINDING, "Tool Binding Cast");
         addItem(ForgeweaveItems.CAST_TOOL_HANDLE, "Tool Handle Cast");
 
+        // #222 -- casts for every M3 part (docs/SCOPE.md M3 issue #151/#159/#160/#161's roster),
+        // named "<part name> Cast" the same way the five above are.
+        addItem(ForgeweaveItems.CAST_SWORD_BLADE, "Sword Blade Cast");
+        addItem(ForgeweaveItems.CAST_WIDE_GUARD, "Wide Guard Cast");
+        addItem(ForgeweaveItems.CAST_HAND_GUARD, "Hand Guard Cast");
+        addItem(ForgeweaveItems.CAST_CROSS_GUARD, "Cross Guard Cast");
+        addItem(ForgeweaveItems.CAST_SIGN_PLATE, "Sign Plate Cast");
+        addItem(ForgeweaveItems.CAST_PAN, "Pan Cast");
+        addItem(ForgeweaveItems.CAST_KNIFE_BLADE, "Knife Blade Cast");
+        addItem(ForgeweaveItems.CAST_LARGE_SWORD_BLADE, "Large Sword Blade Cast");
+        addItem(ForgeweaveItems.CAST_TOUGH_TOOL_ROD, "Tough Tool Rod Cast");
+        addItem(ForgeweaveItems.CAST_TOUGH_BINDING, "Tough Binding Cast");
+        addItem(ForgeweaveItems.CAST_LARGE_PLATE, "Large Plate Cast");
+        addItem(ForgeweaveItems.CAST_HAMMER_HEAD, "Hammer Head Cast");
+        addItem(ForgeweaveItems.CAST_EXCAVATOR_HEAD, "Excavator Head Cast");
+        addItem(ForgeweaveItems.CAST_SCYTHE_HEAD, "Scythe Head Cast");
+        addItem(ForgeweaveItems.CAST_KAMA_HEAD, "Kama Head Cast");
+        addItem(ForgeweaveItems.CAST_BROAD_AXE_HEAD, "Broad Axe Head Cast");
+        addItem(ForgeweaveItems.CAST_VEIN_HAMMER_HEAD, "Vein Hammer Head Cast");
+        addItem(ForgeweaveItems.CAST_WAR_MACE_HEAD, "War Mace Head Cast");
+        addItem(ForgeweaveItems.CAST_CURVED_BLADE, "Curved Blade Cast");
+        addItem(ForgeweaveItems.CAST_KATANA_BLADE, "Katana Blade Cast");
+
         // #103 -- metal materials (docs/SCOPE.md M2 issue #103): item names for the four metals with
         // no vanilla item forms. Ingot/nugget names follow upstream 1.12's item.materials.*.name
         // entries (NOTICE.md); the raw forms have no upstream counterpart to name after and follow

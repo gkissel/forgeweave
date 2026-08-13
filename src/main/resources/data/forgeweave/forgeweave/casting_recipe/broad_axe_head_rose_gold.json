@@ -1,0 +1,14 @@
+{
+  "station": "table",
+  "cast": {
+    "item": "forgeweave:cast_broad_axe_head"
+  },
+  "fluid": "forgeweave:molten_rose_gold",
+  "amount": 1152,
+  "result": {
+    "id": "forgeweave:broad_axe_head",
+    "components": {
+      "forgeweave:material": "forgeweave:rose_gold"
+    }
+  }
+}
