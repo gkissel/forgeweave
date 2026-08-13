@@ -220,22 +220,32 @@ public final class CombatSeams {
 
     /**
      * The blow the defender's own tool gets a say in, or {@code null} when it has none. Same gate as
-     * {@link #hitOf} -- server side, a Forgeweave tool, not Broken -- plus one more: the defender must
-     * be <em>actively using</em> the tool. Both M3 defensive innates are use-gated (the broadsword's
-     * parry is the use action itself; the battlesign reflects only while blocking), and keying off the
-     * active item rather than the hand means merely carrying a tool never changes how damage lands.
+     * {@link #hitOf} -- server side, a Forgeweave tool, not Broken -- keyed on the tool being
+     * <em>actively used</em> first ({@link CombatDefense#blocking()} true: the broadsword's parry
+     * window, the battlesign's stance), falling back to the tool merely <em>held</em> in the main
+     * hand ({@code blocking} false). Issue #155 shipped the use-gated half only; issue #229 added the
+     * held half because upstream 1.12 runs {@code ITrait#onPlayerHurt} for a held tool (spiky's
+     * half-strength thorns, flammable's retaliation fire) -- a seam that only makes sense while
+     * blocking gates itself on {@code blocking()}, the way Parry, Deflect and stiff do.
      */
     @Nullable
     private static CombatDefense defenseOf(DamageSource source, LivingEntity defender) {
-        if (!(defender.level() instanceof ServerLevel level) || !defender.isUsingItem()) {
-            return null;
-        }
-        ItemStack tool = defender.getUseItem();
-        if (!(tool.getItem() instanceof ToolItem) || ToolItem.isBroken(tool)) {
+        if (!(defender.level() instanceof ServerLevel level)) {
             return null;
         }
         Entity causing = source.getEntity();
-        return new CombatDefense(level, tool, defender, causing instanceof LivingEntity living ? living : null, source);
+        LivingEntity attacker = causing instanceof LivingEntity living ? living : null;
+        if (defender.isUsingItem()) {
+            ItemStack used = defender.getUseItem();
+            if (used.getItem() instanceof ToolItem && !ToolItem.isBroken(used)) {
+                return new CombatDefense(level, used, defender, attacker, source, true);
+            }
+        }
+        ItemStack held = defender.getMainHandItem();
+        if (held.getItem() instanceof ToolItem && !ToolItem.isBroken(held)) {
+            return new CombatDefense(level, held, defender, attacker, source, false);
+        }
+        return null;
     }
 
     private CombatSeams() {}

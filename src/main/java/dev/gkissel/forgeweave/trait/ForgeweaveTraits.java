@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Consumer;
 import java.util.stream.Stream;
 
 import org.jetbrains.annotations.Nullable;
@@ -21,6 +22,7 @@ import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.tags.DamageTypeTags;
+import net.minecraft.tags.EntityTypeTags;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
@@ -41,13 +43,30 @@ import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 
 import net.neoforged.neoforge.event.entity.EntityInvulnerabilityCheckEvent;
+import net.neoforged.neoforge.event.entity.EntityTeleportEvent;
 import net.neoforged.neoforge.event.entity.living.LivingExperienceDropEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 
 import dev.gkissel.forgeweave.Forgeweave;
+import dev.gkissel.forgeweave.combat.AbsorbFireWhileBlocking;
+import dev.gkissel.forgeweave.combat.BleedEffect;
+import dev.gkissel.forgeweave.combat.BlockingDamageReduction;
+import dev.gkissel.forgeweave.combat.BonusDamageFraction;
+import dev.gkissel.forgeweave.combat.BonusDamageVsSeam;
 import dev.gkissel.forgeweave.combat.CombatHit;
 import dev.gkissel.forgeweave.combat.CombatSeam;
 import dev.gkissel.forgeweave.combat.CombatSeams;
+import dev.gkissel.forgeweave.combat.ConditionalSeam;
+import dev.gkissel.forgeweave.combat.FlatBonusDamage;
+import dev.gkissel.forgeweave.combat.ForgeweaveInnates;
+import dev.gkissel.forgeweave.combat.ForgeweaveMobEffects;
+import dev.gkissel.forgeweave.combat.GaussianArmorPiercingHit;
+import dev.gkissel.forgeweave.combat.HitCondition;
+import dev.gkissel.forgeweave.combat.IgniteAttackerSeam;
+import dev.gkissel.forgeweave.combat.Lacerate;
+import dev.gkissel.forgeweave.combat.PotionEffectOnHitSeam;
+import dev.gkissel.forgeweave.combat.StackingHitBonus;
+import dev.gkissel.forgeweave.combat.ThornsReflectSeam;
 import dev.gkissel.forgeweave.item.ForgeweaveDataComponents;
 import dev.gkissel.forgeweave.item.PartItem;
 import dev.gkissel.forgeweave.item.ToolItem;
@@ -1044,6 +1063,151 @@ public final class ForgeweaveTraits {
         }
     };
 
+    // -- M3.2 combat-seam trait batch (issue #229). Behavior only; the materials that grant these
+    // (cactus, netherrack, magma slime, silver, lead, steel, bone's retrofit, nahuatl, endstone,
+    // chorus) arrive in later M3.2 issues. Every combat effect below rides the ADR-0005 seams via
+    // Trait#combatSeams -- collected by collectCombatSeams, the same provider slot COMBAT_SEAM has
+    // always occupied -- and each seam is a parameterized ADR-0004 library candidate. Constants are
+    // upstream 1.12's, cited per trait (NOTICE.md rows per class).
+
+    /** Upstream {@code TraitPrickly#causeDamage}: {@code 0.5 + max(-0.5, gaussian * 0.75)}. */
+    private static final float PRICKLY_BASE = 0.5F;
+    private static final float PRICKLY_SPREAD = 0.75F;
+    private static final float PRICKLY_MIN_OFFSET = -0.5F;
+
+    /** Cactus, head part only. See {@link GaussianArmorPiercingHit}. */
+    public static final Trait PRICKLY =
+            seamTrait(new GaussianArmorPiercingHit(PRICKLY_BASE, PRICKLY_SPREAD, PRICKLY_MIN_OFFSET));
+
+    /** Upstream {@code TraitSpiky#dealSpikyDamage}: {@code damage /= 2} when not blocking. */
+    private static final float SPIKY_HELD_FRACTION = 0.5F;
+
+    /** Cactus. See {@link ThornsReflectSeam}. */
+    public static final Trait SPIKY = seamTrait(new ThornsReflectSeam(SPIKY_HELD_FRACTION));
+
+    /** Upstream {@code TraitHellish#bonusDamage}: a flat 4. */
+    private static final float HELLISH_BONUS_DAMAGE = 4.0F;
+
+    /**
+     * Netherrack, head part only. Upstream {@code TraitHellish#damage}: {@code +4} against any
+     * target that is not fire-immune ({@code !target.isImmuneToFire()} -- "non-Nether mobs").
+     */
+    public static final Trait HELLISH = seamTrait(
+            new ConditionalSeam(HitCondition.NOT_FIRE_IMMUNE, 1.0F, new FlatBonusDamage(HELLISH_BONUS_DAMAGE)));
+
+    /** Upstream {@code TraitSuperheat#bonus}: 35% of the blow's own damage. */
+    private static final float SUPERHEAT_BONUS_FRACTION = 0.35F;
+
+    /**
+     * Magma slime, head part only. Upstream {@code TraitSuperheat#damage}:
+     * {@code newDamage += damage * 0.35} while the target is burning.
+     */
+    public static final Trait SUPERHEAT = seamTrait(
+            new ConditionalSeam(HitCondition.BURNING, 1.0F, new BonusDamageFraction(SUPERHEAT_BONUS_FRACTION)));
+
+    /** Upstream {@code TraitHoly#bonusDamage} and its {@code afterHit} weakness: 50 ticks, level I. */
+    private static final float HOLY_BONUS_DAMAGE = 5.0F;
+    private static final int HOLY_WEAKNESS_TICKS = 50;
+
+    /**
+     * Silver. Upstream {@code TraitHoly}: {@code +5} against undead plus Weakness I for 2.5 seconds
+     * on a landed hit. 1.21's {@code minecraft:undead} entity-type tag stands in for upstream's
+     * {@code EnumCreatureAttribute.UNDEAD} in both halves ({@link HitCondition#UNDEAD}).
+     */
+    public static final Trait HOLY = seamTrait(
+            new BonusDamageVsSeam(EntityTypeTags.UNDEAD, HOLY_BONUS_DAMAGE),
+            new ConditionalSeam(HitCondition.UNDEAD, 1.0F,
+                    new PotionEffectOnHitSeam(MobEffects.WEAKNESS, 0, HOLY_WEAKNESS_TICKS)));
+
+    /** Upstream {@code TraitPoisonous#afterHit}: {@code new PotionEffect(POISON, 101)} -- level I. */
+    private static final int POISONOUS_TICKS = 101;
+
+    /** Lead. Upstream {@code TraitPoisonous}: Poison I for ~5 seconds on every landed hit. */
+    public static final Trait POISONOUS = seamTrait(new PotionEffectOnHitSeam(MobEffects.POISON, 0, POISONOUS_TICKS));
+
+    /**
+     * Lead. Upstream {@code TraitHeavy#getAttributeModifiers}: a flat +1 knockback-resistance
+     * attribute modifier while the tool is held -- full immunity, since the attribute caps at 1. An
+     * attribute rather than a seam ({@link Trait#knockbackResistance}), exactly as upstream has it;
+     * {@code ToolItem#getDefaultAttributeModifiers} is what applies it.
+     */
+    public static final Trait HEAVY = new Trait() {
+        @Override
+        public float knockbackResistance() {
+            return 1.0F;
+        }
+    };
+
+    /** Upstream {@code TraitStiff#onBlock}: {@code max(1, amount - 1)}. */
+    private static final float STIFF_REDUCTION = 1.0F;
+    private static final float STIFF_FLOOR = 1.0F;
+
+    /** Steel. See {@link BlockingDamageReduction}. */
+    public static final Trait STIFF = seamTrait(new BlockingDamageReduction(STIFF_REDUCTION, STIFF_FLOOR));
+
+    /**
+     * Steel, head part only. Upstream {@code TraitSharp}: a landed hit leaves a non-stacking,
+     * armor-ignoring bleed -- 1/3 damage every 15 ticks for 121 ticks ({@link BleedEffect}). The
+     * seam is {@link Lacerate} at {@code maxStacks} 1: re-application refreshes, never deepens.
+     */
+    public static final Trait SHARP =
+            seamTrait(new Lacerate(ForgeweaveMobEffects.BLEED, BleedEffect.DURATION_TICKS, 1));
+
+    /** Upstream {@code TraitSplintering}: +0.3 per mark, amplifier capped at 5 (6 stacks), 40-tick marks. */
+    private static final float SPLINTERING_BONUS_PER_STACK = 0.3F;
+    private static final int SPLINTERING_MAX_STACKS = 6;
+    private static final int SPLINTERING_MARK_TICKS = 40;
+
+    /** Bone, head part only (M3.2 retrofit). See {@link StackingHitBonus}. */
+    public static final Trait SPLINTERING = seamTrait(new StackingHitBonus(ForgeweaveMobEffects.SPLINTER,
+            SPLINTERING_BONUS_PER_STACK, SPLINTERING_MAX_STACKS, SPLINTERING_MARK_TICKS));
+
+    /** Upstream {@code TraitFlammable}: 3 seconds of fire, 3 durability per absorbed fire hit. */
+    private static final int FLAMMABLE_FIRE_SECONDS = 3;
+    private static final int FLAMMABLE_DURABILITY_COST = 3;
+
+    /**
+     * Magma slime. Upstream {@code TraitFlammable}: whoever hits the holder catches fire (held or
+     * blocking -- {@link IgniteAttackerSeam}), and blocking negates fire damage outright for 3
+     * durability ({@link AbsorbFireWhileBlocking}). Two seams, one trait.
+     */
+    public static final Trait FLAMMABLE = seamTrait(
+            new IgniteAttackerSeam(FLAMMABLE_FIRE_SECONDS),
+            new AbsorbFireWhileBlocking(FLAMMABLE_DURABILITY_COST));
+
+    /** Upstream {@code TraitEnderference#onHit}: a 100-tick (5 s) mark. */
+    private static final int ENDERFERENCE_TICKS = 100;
+
+    /**
+     * Endstone; chorus later. Upstream {@code TraitEnderference}: a landed hit marks the target and
+     * a marked entity cannot teleport ({@link #onEnderTeleport}/{@link #onChorusFruitTeleport},
+     * upstream's {@code EnderTeleportEvent} cancel). Upstream only marks {@code EntityEnderman};
+     * this marks every target instead -- the mark is inert on anything that never teleports, and
+     * gating on an entity class would put a predicate inside what ADR-0004 wants to stay a plain
+     * {@code potion_effect_on_hit} parameter set. Recorded in the PR.
+     */
+    public static final Trait ENDERFERENCE =
+            seamTrait(new PotionEffectOnHitSeam(ForgeweaveMobEffects.ENDERFERENCE, 0, ENDERFERENCE_TICKS));
+
+    /**
+     * Nahuatl. The scimitar's lacerate innate as a material trait (SCOPE M3.2 trait table:
+     * "reuses the scimitar Lacerate seam"): the very same seam instance, so the magnitudes stay the
+     * issue #159 maintainer decision recorded on {@code LacerateEffect} -- no upstream 1.12
+     * counterpart (nahuatl is a 1.20-branch material; the by-name deviation is recorded in SCOPE).
+     */
+    public static final Trait LACERATING = seamTrait(ForgeweaveInnates.LACERATE_SEAM);
+
+    /** One trait whose whole behavior is riding the combat seams -- see {@link Trait#combatSeams}. */
+    private static Trait seamTrait(CombatSeam... seams) {
+        List<CombatSeam> list = List.of(seams);
+        return new Trait() {
+            @Override
+            public void combatSeams(Consumer<CombatSeam> out) {
+                list.forEach(out);
+            }
+        };
+    }
+
     /** Movement speed the tool's traits add while it is held, as a fraction of the holder's total. */
     public static float movementSpeedBonus(ItemStack stack) {
         float bonus = 0.0F;
@@ -1118,7 +1282,21 @@ public final class ForgeweaveTraits {
             Map.entry(id("writable"), WRITABLE),
             Map.entry(id("writable2"), WRITABLE),
             Map.entry(id("squeaky"), SQUEAKY),
-            Map.entry(id("autosmelt"), AUTOSMELT));
+            Map.entry(id("autosmelt"), AUTOSMELT),
+            // #229 M3.2 combat-seam trait batch; material wiring lands in later M3.2 issues.
+            Map.entry(id("prickly"), PRICKLY),
+            Map.entry(id("spiky"), SPIKY),
+            Map.entry(id("hellish"), HELLISH),
+            Map.entry(id("superheat"), SUPERHEAT),
+            Map.entry(id("holy"), HOLY),
+            Map.entry(id("poisonous"), POISONOUS),
+            Map.entry(id("heavy"), HEAVY),
+            Map.entry(id("stiff"), STIFF),
+            Map.entry(id("sharp"), SHARP),
+            Map.entry(id("splintering"), SPLINTERING),
+            Map.entry(id("flammable"), FLAMMABLE),
+            Map.entry(id("enderference"), ENDERFERENCE),
+            Map.entry(id("lacerating"), LACERATING));
 
 
     /**
@@ -1237,6 +1415,30 @@ public final class ForgeweaveTraits {
             }
         }
     };
+
+    /**
+     * The traits' provider for {@link CombatSeams} (registered in {@code Forgeweave}, in the slot
+     * {@link #COMBAT_SEAM} alone used to fill): the aggregate seam first -- keeping #230's
+     * onCombatHit routing and #228's squeaky zeroing exactly where they were -- then each trait's
+     * own seams ({@link Trait#combatSeams}) in the order {@link #of} established. Issue #229's
+     * combat traits are whole {@link CombatSeam}s (on-hit effects, defensive hooks) rather than
+     * another fold into the aggregate, so they ride the pipeline directly.
+     */
+    public static void collectCombatSeams(ItemStack weapon, Consumer<CombatSeam> out) {
+        out.accept(COMBAT_SEAM);
+        for (Trait trait : of(weapon)) {
+            trait.combatSeams(out);
+        }
+    }
+
+    /** Knockback resistance the tool's traits grant while it is held (heavy, issue #229). */
+    public static float knockbackResistance(ItemStack stack) {
+        float resistance = 0.0F;
+        for (Trait trait : of(stack)) {
+            resistance += trait.knockbackResistance();
+        }
+        return resistance;
+    }
 
     /** Extra damage this weapon's traits deal to {@code target}, on top of its own attack damage. */
     public static float bonusDamageAgainst(ItemStack weapon, LivingEntity target, float damage) {
@@ -1398,6 +1600,31 @@ public final class ForgeweaveTraits {
         ItemStack stack = itemEntity.getItem();
         if (stack.getItem() instanceof ToolItem && of(stack).contains(FIREPROOF)) {
             event.setInvulnerable(true);
+        }
+    }
+
+    /**
+     * {@code forgeweave:enderference}'s teleport block (see {@link #ENDERFERENCE}): an
+     * enderman/shulker teleport by a marked entity is cancelled outright, upstream
+     * {@code TraitEnderference#onEnderTeleport}. Registered on the game event bus in
+     * {@code Forgeweave}, same idiom as {@link #onEntityInvulnerabilityCheck}; the trait itself
+     * stays on the combat seams -- this is the mark being read, not combat behavior attaching to a
+     * new event.
+     */
+    public static void onEnderTeleport(EntityTeleportEvent.EnderEntity event) {
+        if (event.getEntityLiving().hasEffect(ForgeweaveMobEffects.ENDERFERENCE)) {
+            event.setCanceled(true);
+        }
+    }
+
+    /**
+     * The chorus-fruit half of {@link #onEnderTeleport}: 1.12's one {@code EnderTeleportEvent}
+     * covered both paths, NeoForge splits them. (Ender-pearl throws are a player-only teleport no
+     * trait can mark in practice and are left alone.)
+     */
+    public static void onChorusFruitTeleport(EntityTeleportEvent.ChorusFruit event) {
+        if (event.getEntityLiving().hasEffect(ForgeweaveMobEffects.ENDERFERENCE)) {
+            event.setCanceled(true);
         }
     }
 

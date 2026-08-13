@@ -93,9 +93,10 @@ public class Forgeweave {
         NeoForge.EVENT_BUS.addListener(CombatSeams::onDamageDealt);
         NeoForge.EVENT_BUS.addListener(CombatSeams::onDeath);
         // Providers register here, not in their own static initializers, so the order the pipeline
-        // runs them in is visible in one place. Materials' traits are first (see COMBAT_SEAM); M3's
-        // per-tool innates and combat modifiers add theirs below as they land.
-        CombatSeams.register((weapon, out) -> out.accept(ForgeweaveTraits.COMBAT_SEAM));
+        // runs them in is visible in one place. Materials' traits are first (COMBAT_SEAM's damage
+        // fold plus, since #229, each trait's own seams -- see collectCombatSeams); M3's per-tool
+        // innates and combat modifiers add theirs below as they land.
+        CombatSeams.register(ForgeweaveTraits::collectCombatSeams);
         // #162/#163 -- combat modifiers batches 1 and 2 (smite, bane of arthropods, fiery, necrotic;
         // knockback, shulking, webbed): one shared provider walking the modifier list and consuming
         // each entry's Modifier#combatSeam, the modifier-side counterpart to ForgeweaveTraits#COMBAT_SEAM
@@ -127,6 +128,11 @@ public class Forgeweave {
         // the block, which Item#getDestroySpeed never sees; upstream 1.12 handles this same
         // PlayerEvent.BreakSpeed per trait (see Trait#breakSpeed).
         NeoForge.EVENT_BUS.addListener(ForgeweaveTraits::onBreakSpeed);
+        // #229 -- enderference's teleport block: the combat half rides the seams; these listeners
+        // only read the mark the seam left, the same mark-reader idiom as fireproof just above.
+        // NeoForge splits 1.12's one EnderTeleportEvent into per-cause subevents.
+        NeoForge.EVENT_BUS.addListener(ForgeweaveTraits::onEnderTeleport);
+        NeoForge.EVENT_BUS.addListener(ForgeweaveTraits::onChorusFruitTeleport);
         // #108 batch: Searing/Magnetic Pull/Resonant key off what a mined block drops, which has no
         // Item hook either (see ForgeweaveModifiers#onBlockDrops).
         NeoForge.EVENT_BUS.addListener(ForgeweaveModifiers::onBlockDrops);

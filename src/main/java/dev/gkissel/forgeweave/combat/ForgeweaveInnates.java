@@ -445,9 +445,10 @@ public final class ForgeweaveInnates {
 
         @Override
         public float incomingHit(CombatDefense defense, float originalDamage, float damage) {
-            // Reached only while the tool is actively used, and the use lasts exactly the window, so
-            // being here at all means the parry is open (CombatSeams#defenseOf).
-            if (!isMelee(defense.source())) {
+            // The use lasts exactly the window, so an active use means the parry is open. blocking()
+            // is the gate: since issue #229 the defensive pass also runs for a merely-held tool,
+            // which must never parry.
+            if (!defense.blocking() || !isMelee(defense.source())) {
                 return damage;
             }
             LivingEntity attacker = defense.attacker();
@@ -490,12 +491,14 @@ public final class ForgeweaveInnates {
 
         @Override
         public float incomingHit(CombatDefense defense, float originalDamage, float damage) {
-            // No isBlocking() check: upstream's own gate is isActiveItemStackBlocking, which is
-            // "holding the use button on a BLOCK-animation item" with no warm-up -- exactly what
-            // CombatSeams' active-item gate already established before this seam was reached.
-            // Vanilla's isBlocking() additionally demands five ticks held, which would silently make
-            // the first quarter-second of a raised sign not a sign at all.
-            if (!defense.source().is(DamageTypeTags.IS_PROJECTILE)
+            // defense.blocking() rather than vanilla's isBlocking(): upstream's own gate is
+            // isActiveItemStackBlocking, which is "holding the use button on a BLOCK-animation item"
+            // with no warm-up -- exactly what blocking() reports. Vanilla's isBlocking() additionally
+            // demands five ticks held, which would silently make the first quarter-second of a
+            // raised sign not a sign at all. (Since issue #229 the defensive pass also runs for a
+            // merely-held tool, which must never deflect.)
+            if (!defense.blocking()
+                    || !defense.source().is(DamageTypeTags.IS_PROJECTILE)
                     || !(defense.source().getDirectEntity() instanceof Projectile projectile)) {
                 return damage;
             }

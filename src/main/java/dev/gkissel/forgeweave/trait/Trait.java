@@ -1,5 +1,7 @@
 package dev.gkissel.forgeweave.trait;
 
+import java.util.function.Consumer;
+
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.RandomSource;
@@ -9,6 +11,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.state.BlockState;
 
 import dev.gkissel.forgeweave.combat.CombatHit;
+import dev.gkissel.forgeweave.combat.CombatSeam;
 
 /**
  * A behavior a {@code Material} grants to every Tool containing it (CONTEXT.md glossary). Trait
@@ -236,5 +239,25 @@ public interface Trait {
      */
     default boolean autoSmelt() {
         return false;
+    }
+
+    // #229 -- the M3.2 combat trait batch.
+
+    /**
+     * The {@link CombatSeam}s this trait rides the shared per-hit pipeline with (ADR-0005 decision
+     * 3) -- the trait-side mirror of {@code Modifier#combatSeam}, collected per hit by
+     * {@code ForgeweaveTraits#collectCombatSeams}. Implementations hand out pre-built constants, not
+     * fresh objects: a seam is a set of numbers (ADR-0004), so one instance serves every hit.
+     */
+    default void combatSeams(Consumer<CombatSeam> out) {}
+
+    /**
+     * Knockback resistance the tool grants while held, as a flat addition to the vanilla attribute
+     * (1.0 = full immunity) -- heavy's hook (issue #229, upstream {@code TraitHeavy}'s
+     * {@code KNOCKBACK_RESISTANCE} attribute modifier). An attribute, not a seam: knockback is not a
+     * damage adjustment, and upstream applies it exactly this way.
+     */
+    default float knockbackResistance() {
+        return 0.0F;
     }
 }
