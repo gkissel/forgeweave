@@ -1,0 +1,19 @@
+{
+  "station": "table",
+  "cast": {
+    "type": "neoforge:components",
+    "items": "forgeweave:tool_handle",
+    "components": {
+      "forgeweave:material": "forgeweave:wood"
+    }
+  },
+  "fluid": "forgeweave:molten_obsidian",
+  "amount": 250,
+  "result": {
+    "id": "forgeweave:tool_handle",
+    "components": {
+      "forgeweave:material": "forgeweave:nahuatl"
+    }
+  },
+  "consumes_cast": true
+}

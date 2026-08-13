@@ -155,6 +155,8 @@ public class ForgeweaveBlockStateProvider extends BlockStateProvider {
         // texture each (block_pigiron.png; firewood.png + its animation mcmeta, NOTICE.md).
         cubeAllBlock("pig_iron_block", ForgeweaveBlocks.PIG_IRON_BLOCK.get());
         cubeAllBlock("firewood", ForgeweaveBlocks.FIREWOOD.get());
+
+        cubeAllBlock("amethyst_bronze_block", ForgeweaveBlocks.AMETHYST_BRONZE_BLOCK.get());
     }
 
     private void coreBlock(String name, Block block, String sideTexture) {

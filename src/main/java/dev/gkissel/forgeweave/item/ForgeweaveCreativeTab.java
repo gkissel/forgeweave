@@ -212,6 +212,9 @@ public final class ForgeweaveCreativeTab {
         // #234 -- steel (M3.2): alloyed, not mined, so ingot/nugget only (no raw form).
         output.accept(ForgeweaveItems.INGOT_STEEL.get());
         output.accept(ForgeweaveItems.NUGGET_STEEL.get());
+        // #235 -- amethyst bronze (M3.2): alloyed too, so ingot/nugget only.
+        output.accept(ForgeweaveItems.INGOT_AMETHYST_BRONZE.get());
+        output.accept(ForgeweaveItems.NUGGET_AMETHYST_BRONZE.get());
 
         // #232 -- slime crystals and knightslime's item forms (docs/SCOPE.md M3.2).
         output.accept(ForgeweaveItems.GREEN_SLIME_CRYSTAL.get());
@@ -237,6 +240,8 @@ public final class ForgeweaveCreativeTab {
         output.accept(ForgeweaveItems.NUGGET_PIG_IRON.get());
         output.accept(ForgeweaveItems.PIG_IRON_BLOCK.get());
         output.accept(ForgeweaveItems.FIREWOOD.get());
+
+        output.accept(ForgeweaveItems.AMETHYST_BRONZE_BLOCK.get());
 
         List<Holder.Reference<Material>> materials =
                 parameters.holders().lookupOrThrow(Material.REGISTRY).listElements().toList();

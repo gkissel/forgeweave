@@ -62,6 +62,10 @@ public class ForgeweaveItemTagsProvider extends ItemTagsProvider {
         tag("ingots/knightslime").add(ForgeweaveItems.INGOT_KNIGHTSLIME.get());
         tag("nuggets/knightslime").add(ForgeweaveItems.NUGGET_KNIGHTSLIME.get());
 
+        // #235 -- amethyst bronze: same convention, and alloyed rather than mined too, so no raw form.
+        tag("ingots/amethyst_bronze").add(ForgeweaveItems.INGOT_AMETHYST_BRONZE.get());
+        tag("nuggets/amethyst_bronze").add(ForgeweaveItems.NUGGET_AMETHYST_BRONZE.get());
+
         // #104 -- the cobalt + ardite nether ore blocks' own item forms into c:ores/*, the same
         // convention vanilla iron/copper ore already carry (see the shipped iron_ore.json/
         // copper_ore.json melting rows, issue #96) -- lets a smeltery melt the ore block itself
@@ -82,7 +86,7 @@ public class ForgeweaveItemTagsProvider extends ItemTagsProvider {
         tag("storage_blocks").addTag(storageBlock("cobalt")).addTag(storageBlock("ardite"))
                 .addTag(storageBlock("manyullyn")).addTag(storageBlock("rose_gold"))
                 .addTag(storageBlock("steel")).addTag(storageBlock("knightslime"))
-                .addTag(storageBlock("pig_iron"));
+                .addTag(storageBlock("pig_iron")).addTag(storageBlock("amethyst_bronze"));
 
         // #233 -- pig iron into the same c: convention tags the other Forgeweave-only metals use.
         // Note storage_blocks/pig_iron also fills in the tool_forge_blocks optional reference below,
@@ -90,6 +94,9 @@ public class ForgeweaveItemTagsProvider extends ItemTagsProvider {
         tag("ingots/pig_iron").add(ForgeweaveItems.INGOT_PIG_IRON.get());
         tag("nuggets/pig_iron").add(ForgeweaveItems.NUGGET_PIG_IRON.get());
         tag("storage_blocks/pig_iron").add(ForgeweaveItems.PIG_IRON_BLOCK.get());
+
+        // #235 -- amethyst bronze's storage block, item side (parent-chain membership above).
+        tag("storage_blocks/amethyst_bronze").add(ForgeweaveItems.AMETHYST_BRONZE_BLOCK.get());
 
         // #152 -- the "large tool" classification: tools only the Tool Forge can assemble. See
         // ToolAssemblyRecipes#LARGE_TOOLS, which is the whole gate: a tool issue adds its row here and

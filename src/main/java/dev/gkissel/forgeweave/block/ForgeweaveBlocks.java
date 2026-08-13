@@ -162,6 +162,9 @@ public final class ForgeweaveBlocks {
     public static final DeferredBlock<Block> ROSE_GOLD_BLOCK = metalBlock("rose_gold_block");
     // #234 -- steel's storage block (M3.2), same upstream BlockMetal-derived properties as the four above.
     public static final DeferredBlock<Block> STEEL_BLOCK = metalBlock("steel_block");
+    // #235 -- amethyst bronze's storage block (M3.2), same properties; texture is the 1.20 clone's
+    // own storage-block art, copied byte-for-byte (NOTICE.md).
+    public static final DeferredBlock<Block> AMETHYST_BRONZE_BLOCK = metalBlock("amethyst_bronze_block");
 
     // #232 -- knightslime's storage block (docs/SCOPE.md M3.2): upstream 1.12's BlockMetal carries
     // knightslime as one of its types on the same hardness-5 iron-material block, so it shares

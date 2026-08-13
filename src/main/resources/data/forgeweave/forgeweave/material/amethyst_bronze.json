@@ -1,0 +1,36 @@
+{
+  "head": {
+    "durability": 720,
+    "mining_speed": 7.0,
+    "attack_damage": 1.5
+  },
+  "handle": {
+    "durability_modifier": 1.0,
+    "durability": 0
+  },
+  "extra_durability": 72,
+  "incorrect_for_tool": "minecraft:incorrect_for_diamond_tool",
+  "traits": {
+    "general": [
+      "forgeweave:crumbling"
+    ]
+  },
+  "crafting_items": [
+    {
+      "ingredient": {
+        "item": "forgeweave:amethyst_bronze_ingot"
+      },
+      "value": 2
+    },
+    {
+      "ingredient": {
+        "item": "forgeweave:amethyst_bronze_block"
+      },
+      "value": 18
+    }
+  ],
+  "repair_item": {
+    "tag": "c:ingots/amethyst_bronze"
+  },
+  "color": "#C687BD"
+}

@@ -422,6 +422,13 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("material.forgeweave.pig_iron", "Pig Iron");
         add("material.forgeweave.firewood", "Firewood");
 
+        // #235 -- the four by-name modern-branch additions (docs/SCOPE.md M3.2). Names are the 1.20
+        // clone's material.tconstruct.<id> entries verbatim (NOTICE.md).
+        add("material.forgeweave.amethyst_bronze", "Amethyst Bronze");
+        add("material.forgeweave.nahuatl", "Nahuatl");
+        add("material.forgeweave.chorus", "Chorus");
+        add("material.forgeweave.ancient", "Ancient");
+
         // Trait names and descriptions, keyed by trait id like materials are by material id -- traits
         // are Java behavior selected by data (ADR-0002), so nothing derives these keys for us. The
         // tool info panel (issue #47) is what will display them; wording follows upstream 1.12's
@@ -664,6 +671,9 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("fluid_type.forgeweave.molten_carbon", "Molten Carbon");
         // #231: upstream 1.12's fluid.tconstruct.obsidian.name.
         add("fluid_type.forgeweave.molten_obsidian", "Molten Obsidian");
+        // #235 -- amethyst and amethyst bronze (M3.2), the 1.20 clone's fluid.tconstruct.* names.
+        add("fluid_type.forgeweave.molten_amethyst", "Molten Amethyst");
+        add("fluid_type.forgeweave.molten_amethyst_bronze", "Molten Amethyst Bronze");
 
         // #232 -- the knightslime alloy chain's three fluids (docs/SCOPE.md M3.2). Upstream calls
         // its seared stone fluid plainly "Seared Stone"; the molten_ prefix names follow this
@@ -736,6 +746,9 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         // mods' ore dict), so the names follow the same "<Metal> Ingot/Nugget" convention.
         addItem(ForgeweaveItems.INGOT_STEEL, "Steel Ingot");
         addItem(ForgeweaveItems.NUGGET_STEEL, "Steel Nugget");
+        // #235 -- amethyst bronze (M3.2): the 1.20 clone's own item names.
+        addItem(ForgeweaveItems.INGOT_AMETHYST_BRONZE, "Amethyst Bronze Ingot");
+        addItem(ForgeweaveItems.NUGGET_AMETHYST_BRONZE, "Amethyst Bronze Nugget");
 
         // #232 -- slime crystals and knightslime's item forms (docs/SCOPE.md M3.2), names following
         // upstream 1.12's item.tconstruct.materials.{slimecrystal*,knightslime_*}.name entries.
@@ -768,6 +781,8 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         addItem(ForgeweaveItems.NUGGET_PIG_IRON, "Pig Iron Nugget");
         addBlock(ForgeweaveBlocks.PIG_IRON_BLOCK, "Block of Pig Iron");
         addBlock(ForgeweaveBlocks.FIREWOOD, "Firewood");
+
+        addBlock(ForgeweaveBlocks.AMETHYST_BRONZE_BLOCK, "Block of Amethyst Bronze");
 
         // #110 -- the M2 advancement chain (docs/SCOPE.md M2 issue #110): build smeltery -> first
         // melt -> first cast -> first alloy -> first modifier. Keys follow vanilla's own

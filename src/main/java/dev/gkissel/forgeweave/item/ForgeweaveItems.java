@@ -416,6 +416,12 @@ public final class ForgeweaveItems {
     public static final DeferredItem<Item> INGOT_KNIGHTSLIME = ITEMS.registerSimpleItem("knightslime_ingot");
     public static final DeferredItem<Item> NUGGET_KNIGHTSLIME = ITEMS.registerSimpleItem("knightslime_nugget");
 
+    // #235 -- amethyst bronze (M3.2): FW-native ingot/nugget, alloyed from molten copper +
+    // amethyst, so no raw form and no ore. Textures are the 1.20 clone's own amethyst bronze art,
+    // copied byte-for-byte (NOTICE.md) -- the first metal here whose upstream generation ships art.
+    public static final DeferredItem<Item> INGOT_AMETHYST_BRONZE = ITEMS.registerSimpleItem("amethyst_bronze_ingot");
+    public static final DeferredItem<Item> NUGGET_AMETHYST_BRONZE = ITEMS.registerSimpleItem("amethyst_bronze_nugget");
+
     // #104 -- cobalt + ardite nether ore block items (docs/SCOPE.md M2 issue #104).
     public static final DeferredItem<BlockItem> COBALT_ORE = ITEMS.registerSimpleBlockItem("cobalt_ore", ForgeweaveBlocks.COBALT_ORE);
     public static final DeferredItem<BlockItem> ARDITE_ORE = ITEMS.registerSimpleBlockItem("ardite_ore", ForgeweaveBlocks.ARDITE_ORE);
@@ -427,6 +433,7 @@ public final class ForgeweaveItems {
     public static final DeferredItem<BlockItem> MANYULLYN_BLOCK = ITEMS.registerSimpleBlockItem("manyullyn_block", ForgeweaveBlocks.MANYULLYN_BLOCK);
     public static final DeferredItem<BlockItem> ROSE_GOLD_BLOCK = ITEMS.registerSimpleBlockItem("rose_gold_block", ForgeweaveBlocks.ROSE_GOLD_BLOCK);
     public static final DeferredItem<BlockItem> STEEL_BLOCK = ITEMS.registerSimpleBlockItem("steel_block", ForgeweaveBlocks.STEEL_BLOCK);
+    public static final DeferredItem<BlockItem> AMETHYST_BRONZE_BLOCK = ITEMS.registerSimpleBlockItem("amethyst_bronze_block", ForgeweaveBlocks.AMETHYST_BRONZE_BLOCK);
 
     // #232 -- knightslime's storage block item (docs/SCOPE.md M3.2).
     public static final DeferredItem<BlockItem> KNIGHTSLIME_BLOCK = ITEMS.registerSimpleBlockItem("knightslime_block", ForgeweaveBlocks.KNIGHTSLIME_BLOCK);

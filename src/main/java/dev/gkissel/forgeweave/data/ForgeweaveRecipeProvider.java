@@ -198,6 +198,9 @@ public class ForgeweaveRecipeProvider extends RecipeProvider {
                 .requires(Items.LAPIS_LAZULI)
                 .unlockedBy("has_green_slime_crystal", has(ForgeweaveItems.GREEN_SLIME_CRYSTAL.get()))
                 .save(recipeOutput);
+
+        // #235 -- amethyst bronze (M3.2), same #206 shape.
+        storageBlockRecipes(recipeOutput, ForgeweaveItems.INGOT_AMETHYST_BRONZE.get(), ForgeweaveItems.AMETHYST_BRONZE_BLOCK.get());
     }
 
     /** 9 {@code ingot} &lt;-&gt; 1 {@code block}, vanilla's own storage-block shape, both directions. */

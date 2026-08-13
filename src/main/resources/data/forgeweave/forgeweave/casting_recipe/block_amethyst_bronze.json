@@ -1,0 +1,8 @@
+{
+  "station": "basin",
+  "fluid": "forgeweave:molten_amethyst_bronze",
+  "amount": 1296,
+  "result": {
+    "id": "forgeweave:amethyst_bronze_block"
+  }
+}
