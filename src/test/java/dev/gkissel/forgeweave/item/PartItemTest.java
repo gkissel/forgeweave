@@ -109,10 +109,59 @@ class PartItemTest {
                 statLine("durability", "120", DURABILITY_COLOR),
                 statLine("mining_speed", "4", SPEED_COLOR),
                 statLine("attack_damage", "3", ATTACK_COLOR),
+                tierLine("stone"),
                 Component.empty(),
                 Component.translatable("trait.forgeweave.cheap.name").withStyle(Style.EMPTY.withColor(STONE_COLOR)),
                 Component.translatable("trait.forgeweave.cheap.description").withStyle(ChatFormatting.GRAY)),
                 tooltip);
+    }
+
+    /**
+     * Issue #254: head parts decide a tool's mining capability, so their detailed tooltip shows the
+     * tool tier the material's {@code incorrect_for_tool} tag grants. Knightslime ships
+     * {@code incorrect_for_netherite_tool}, i.e. the Netherite tier.
+     */
+    @Test
+    void knightslimeHeadShowsNetheriteToolTierWhenDetailed() {
+        ResourceLocation id = ResourceLocation.fromNamespaceAndPath("forgeweave", "knightslime");
+        ItemStack stack = new ItemStack(pickaxeHead());
+        stack.set(ForgeweaveDataComponents.MATERIAL.get(), id);
+
+        List<Component> tooltip = new ArrayList<>();
+        pickaxeHead().append(stack, registriesWith(id, materialWithTier("netherite")), true, tooltip);
+
+        assertTrue(tooltip.contains(tierLine("netherite")), "expected a Netherite tier line in " + tooltip);
+    }
+
+    /**
+     * The shipped wood material's {@code incorrect_for_tool} is {@code incorrect_for_stone_tool}
+     * (upstream 1.12's wood sits at the STONE harvest level, issue #79), so a wood head reads
+     * {@code Tool Tier: Stone}.
+     */
+    @Test
+    void woodHeadShowsStoneToolTierWhenDetailed() {
+        ResourceLocation id = ResourceLocation.fromNamespaceAndPath("forgeweave", "wood");
+        ItemStack stack = new ItemStack(pickaxeHead());
+        stack.set(ForgeweaveDataComponents.MATERIAL.get(), id);
+
+        List<Component> tooltip = new ArrayList<>();
+        pickaxeHead().append(stack, registriesWith(id, materialWithTier("stone")), true, tooltip);
+
+        assertTrue(tooltip.contains(tierLine("stone")), "expected a Stone tier line in " + tooltip);
+    }
+
+    /** A tag off the vanilla ladder (gold, modded) grants no tier this ladder knows: no line, no guess. */
+    @Test
+    void headWithOffLadderTierTagShowsNoTierLine() {
+        ResourceLocation id = ResourceLocation.fromNamespaceAndPath("forgeweave", "wood");
+        ItemStack stack = new ItemStack(pickaxeHead());
+        stack.set(ForgeweaveDataComponents.MATERIAL.get(), id);
+
+        List<Component> tooltip = new ArrayList<>();
+        pickaxeHead().append(stack, registriesWith(id, materialWithTier("gold")), true, tooltip);
+
+        assertTrue(tooltip.stream().noneMatch(line -> line.toString().contains("tool_tier")),
+                "expected no tier line in " + tooltip);
     }
 
     @Test
@@ -156,10 +205,29 @@ class PartItemTest {
                 Component.literal(value).withStyle(Style.EMPTY.withColor(color)));
     }
 
+    private static Component tierLine(String tier) {
+        return Component.translatable("tooltip.forgeweave.tool_tier")
+                .append(": ")
+                .append(Component.translatable("tooltip.forgeweave.tier." + tier));
+    }
+
     private static HolderLookup.Provider registriesWithStone() {
+        return registriesWith(STONE_ID, stone());
+    }
+
+    private static HolderLookup.Provider registriesWith(ResourceLocation id, Material material) {
         MappedRegistry<Material> registry = new MappedRegistry<>(Material.REGISTRY, Lifecycle.stable());
-        registry.register(ResourceKey.create(Material.REGISTRY, STONE_ID), stone(), RegistrationInfo.BUILT_IN);
+        registry.register(ResourceKey.create(Material.REGISTRY, id), material, RegistrationInfo.BUILT_IN);
         return HolderLookup.Provider.create(Stream.of(registry.asLookup()));
+    }
+
+    /** {@link #stone()}'s stats under a different {@code incorrect_for_tool} tag -- only the tier line changes. */
+    private static Material materialWithTier(String tier) {
+        Material stone = stone();
+        return new Material(stone.head(), stone.handle(), stone.extraDurability(),
+                TagKey.create(Registries.BLOCK,
+                        ResourceLocation.withDefaultNamespace("incorrect_for_" + tier + "_tool")),
+                stone.traits(), stone.craftingItems(), stone.repairItem(), stone.color());
     }
 
     private static Material stone() {

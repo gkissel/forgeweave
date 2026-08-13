@@ -370,6 +370,10 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         // unknown trait id (MaterialDisplay).
         // Issue #79: M1's four materials are upstream's STONE (wood) and IRON (stone/flint/bone)
         // harvest levels, so `wooden` is no longer among them.
+        // #254: head-part tooltips map the whole vanilla ladder (ToolTooltip#tierLine(TagKey)), so
+        // wooden gets a key even though no shipped material starts there yet; worded "Wood" to match
+        // vanilla's tier vocabulary rather than the tag path's "wooden".
+        add("tooltip.forgeweave.tier.wooden", "Wood");
         add("tooltip.forgeweave.tier.stone", "Stone");
         add("tooltip.forgeweave.tier.iron", "Iron");
         // #106 batch: diamond/emerald can bump a tool onto these two tiers in play, unlike the pair
