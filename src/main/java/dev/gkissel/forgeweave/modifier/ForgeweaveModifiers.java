@@ -195,11 +195,16 @@ public final class ForgeweaveModifiers {
 
     /** Upstream {@code ModDiamond}: {@code data.durability += 500}. */
     private static final int DIAMOND_DURABILITY_BONUS = 500;
+    /** Upstream {@code ModDiamond}: {@code data.attack += 1f}. */
+    private static final float DIAMOND_ATTACK_BONUS = 1.0F;
+    /** Upstream {@code ModDiamond}: {@code data.speed += 0.5f}. */
+    private static final float DIAMOND_SPEED_BONUS = 0.5F;
 
     /**
-     * Diamond. Upstream {@code ModDiamond}, ported for durability and tool tier (its extra
-     * {@code +1} attack / {@code +0.5} speed are not in issue #106's scope and are not shipped here --
-     * flagged for maintainer review in the PR).
+     * Diamond. Upstream {@code ModDiamond}, ported whole: {@code +500} durability, a one-tier bump,
+     * {@code +1} attack and {@code +0.5} mining speed -- all flat, single application. The
+     * attack/speed half was left out of issue #106's scope and flagged for maintainer review; issue
+     * #265 (maintainer, 2026-08-13) closed that gap.
      */
     public static final Modifier DIAMOND = new Modifier() {
         @Override
@@ -210,6 +215,16 @@ public final class ForgeweaveModifiers {
         @Override
         public int toolTierIndex(int level, int tierIndex) {
             return Math.min(tierIndex + 1, DIAMOND_TIER_CAP);
+        }
+
+        @Override
+        public float attackDamage(int level, float attackDamage) {
+            return level > 0 ? attackDamage + DIAMOND_ATTACK_BONUS : attackDamage;
+        }
+
+        @Override
+        public float miningSpeed(int level, float miningSpeed) {
+            return level > 0 ? miningSpeed + DIAMOND_SPEED_BONUS : miningSpeed;
         }
     };
 
