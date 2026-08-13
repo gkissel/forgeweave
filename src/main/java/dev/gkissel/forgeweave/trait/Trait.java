@@ -1,10 +1,13 @@
 package dev.gkissel.forgeweave.trait;
 
+import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.state.BlockState;
+
+import dev.gkissel.forgeweave.combat.CombatHit;
 
 /**
  * A behavior a {@code Material} grants to every Tool containing it (CONTEXT.md glossary). Trait
@@ -53,8 +56,13 @@ public interface Trait {
         return 0;
     }
 
-    /** Flat attack damage added to the tool's attack damage attribute modifier. */
-    default float attackDamageBonus() {
+    /**
+     * Flat attack damage added to the tool's attack damage attribute modifier.
+     *
+     * @param stack the tool, so a trait can read per-tool state (issue #230: alien's distributed
+     *     attack bonus); a build-time-flat trait like fractured simply ignores it
+     */
+    default float attackDamageBonus(ItemStack stack) {
         return 0.0F;
     }
 
@@ -85,9 +93,16 @@ public interface Trait {
 
     /**
      * Called once a block is actually destroyed by this tool, server side only (upstream 1.12's
-     * {@code ITrait#afterBlockBreak}).
+     * {@code ITrait#afterBlockBreak}, which also hands its traits the position and
+     * {@code wasEffective} -- issue #230's slimey/baconlicious need both, so the seam carries them
+     * like upstream's does).
+     *
+     * @param pos where the broken block was
+     * @param effective whether this tool type is meant for the block (same approximation as
+     *     {@link #miningSpeed}'s {@code effective})
      */
-    default void afterBlockBreak(ItemStack stack, ServerLevel level, BlockState state, LivingEntity breaker) {}
+    default void afterBlockBreak(ItemStack stack, ServerLevel level, BlockState state, BlockPos pos,
+            LivingEntity breaker, boolean effective) {}
 
     /** Flat attack speed added to the tool's attack speed attribute, as a fraction of it (0.1 = +10%). */
     default float attackSpeedBonus() {
@@ -123,6 +138,40 @@ public interface Trait {
      * shipped user (issue #103).
      */
     default int bonusSlots() {
+        return 0;
+    }
+
+    // #230 stateful/special traits.
+
+    /**
+     * Called once a blow with this tool has landed and health has been lost, riding
+     * {@code ForgeweaveTraits#COMBAT_SEAM}'s {@code onHit} (ADR-0005) rather than
+     * {@code ToolItem#postHurtEnemy} like {@link #afterHit} -- which means it sees the full
+     * {@link CombatHit}, including the captured attack-strength scale shocking's charge formula
+     * needs (upstream {@code TraitShocking#onHit}'s {@code getCooledAttackStrength}). Traits with no
+     * stake in the hit record stay on {@link #afterHit}, whose ordering tie to
+     * {@link #attackDurabilityBonus} is documented at {@code ForgeweaveTraits#COMBAT_SEAM}.
+     */
+    default void onCombatHit(CombatHit hit, float damageDealt) {}
+
+    /**
+     * Movement speed added to the holder while the tool is held, as a fraction of their total speed
+     * (-0.1 = 10% slower) -- vintage's mobility cost (issue #230 maintainer decision). Applied as a
+     * main-hand {@code MOVEMENT_SPEED} attribute modifier by
+     * {@code ToolItem#getDefaultAttributeModifiers}.
+     */
+    default float movementSpeedBonus() {
+        return 0.0F;
+    }
+
+    /**
+     * Extra max durability on top of what the tool's materials and modifiers produce -- alien's
+     * distributed durability growth (issue #230). Read wherever vanilla's {@code max_damage} is
+     * recomputed from stats ({@code ModifierApplication#retuneStats}), which is what keeps the
+     * growth from being wiped by a later modifier application -- the same guarantee upstream's
+     * {@code TraitProgressiveStats#applyEffect} gives by re-adding its bonus on every tool rebuild.
+     */
+    default int maxDurabilityBonus(ItemStack stack) {
         return 0;
     }
 }

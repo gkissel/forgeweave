@@ -19,6 +19,8 @@ import dev.gkissel.forgeweave.combat.DamageRamp;
 import dev.gkissel.forgeweave.modifier.ModifierEntry;
 import dev.gkissel.forgeweave.tool.ToolMaterials;
 import dev.gkissel.forgeweave.tool.ToolStats;
+import dev.gkissel.forgeweave.trait.AlienProgress;
+import dev.gkissel.forgeweave.trait.ShockingCharge;
 import dev.gkissel.forgeweave.trait.TraitStacks;
 
 /** Data components carried by Forgeweave items. */
@@ -131,6 +133,27 @@ public final class ForgeweaveDataComponents {
     public static final DeferredHolder<DataComponentType<?>, DataComponentType<TraitStacks>> INSATIABLE_STACKS =
             DATA_COMPONENTS.registerComponentType("insatiable_stacks",
                     builder -> builder.persistent(TraitStacks.CODEC).networkSynchronized(TraitStacks.STREAM_CODEC));
+
+    /**
+     * {@code ForgeweaveTraits#ALIEN}'s progressive-stat state (M3.2 issue #230): the 800-point pool
+     * rolled the first time the trait ticks and the share of it distributed so far. Upstream 1.12
+     * stores the same pair as {@code alienStatPool}/{@code alienStatBonus} NBT
+     * ({@code TraitProgressiveStats}); see {@code trait.AlienProgress} for the shape and the
+     * save-compat promise it carries.
+     */
+    public static final DeferredHolder<DataComponentType<?>, DataComponentType<AlienProgress>> ALIEN_PROGRESS =
+            DATA_COMPONENTS.registerComponentType("alien_progress",
+                    builder -> builder.persistent(AlienProgress.CODEC).networkSynchronized(AlienProgress.STREAM_CODEC));
+
+    /**
+     * {@code ForgeweaveTraits#SHOCKING}'s 0-100 charge and the last movement sample position (M3.2
+     * issue #230). Upstream 1.12 stores the identical four fields in the tool's modifier tag
+     * ({@code TraitShocking.Data}); see {@code trait.ShockingCharge} for the shape and the
+     * save-compat promise it carries.
+     */
+    public static final DeferredHolder<DataComponentType<?>, DataComponentType<ShockingCharge>> SHOCKING_CHARGE =
+            DATA_COMPONENTS.registerComponentType("shocking_charge",
+                    builder -> builder.persistent(ShockingCharge.CODEC).networkSynchronized(ShockingCharge.STREAM_CODEC));
 
     /**
      * The fluid a broken seared tank/gauge/window was holding, so placing it back restores its

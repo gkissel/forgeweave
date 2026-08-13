@@ -444,6 +444,31 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("trait.forgeweave.reinforced_core.name", "Reinforced Core");
         add("trait.forgeweave.reinforced_core.description", "Adds an extra modifier slot to the tool.");
 
+        // M3.2 stateful/special traits (issue #230). Wording follows upstream 1.12's
+        // modifier.<id>.name/.desc entries where the trait is a port; vintage is a Forgeweave
+        // adaptation (maintainer decision on the issue), so its wording is this PR's own.
+        add("trait.forgeweave.alien.name", "Alien");
+        add("trait.forgeweave.alien.description",
+                "The stats feel off... as if they're changing! Maybe time will tell?");
+        add("trait.forgeweave.shocking.name", "Shocking");
+        add("trait.forgeweave.shocking.description",
+                "Running around, breaking blocks or hitting things charges the tool; "
+                        + "a fully charged hit discharges it as lightning.");
+        // Upstream shows both slimey ids under the one "Slimey" name (TraitSlimey#getLocalizedName);
+        // two Forgeweave keys, same display, so the ids stay distinct for the info panel.
+        add("trait.forgeweave.slimey_green.name", "Slimey");
+        add("trait.forgeweave.slimey_green.description", "Eww, gooey! Sometimes spawns a little slime.");
+        add("trait.forgeweave.slimey_blue.name", "Slimey");
+        add("trait.forgeweave.slimey_blue.description", "Eww, gooey! Sometimes spawns a little slime.");
+        add("trait.forgeweave.baconlicious.name", "Baconlicious");
+        add("trait.forgeweave.baconlicious.description", "Breaking blocks and hitting things sometimes gives bacon.");
+        add("trait.forgeweave.tasty.name", "Tasty");
+        add("trait.forgeweave.tasty.description",
+                "You'd rather eat your tool than starve: it feeds you when you're hungry, at a durability cost.");
+        add("trait.forgeweave.vintage.name", "Vintage");
+        add("trait.forgeweave.vintage.description",
+                "Adds an extra modifier slot, but slows you down while the tool is held.");
+
         // #108 batch: modern-vanilla modifiers (issue #108) -- Forgeweave originals, not upstream
         // ports, so these names and descriptions are this PR's own wording rather than a translation.
         add("modifier.forgeweave.searing.name", "Searing");

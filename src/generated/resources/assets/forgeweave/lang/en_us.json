@@ -382,6 +382,10 @@
   "tooltip.forgeweave.tier.netherite": "Netherite",
   "tooltip.forgeweave.tier.stone": "Stone",
   "tooltip.forgeweave.tool_tier": "Tool Tier",
+  "trait.forgeweave.alien.description": "The stats feel off... as if they're changing! Maybe time will tell?",
+  "trait.forgeweave.alien.name": "Alien",
+  "trait.forgeweave.baconlicious.description": "Breaking blocks and hitting things sometimes gives bacon.",
+  "trait.forgeweave.baconlicious.name": "Baconlicious",
   "trait.forgeweave.cheap.description": "Increases durability gained when repairing the tool, but the tool has less durability.",
   "trait.forgeweave.cheap.name": "Cheap",
   "trait.forgeweave.coldblooded.description": "Bonus damage against undamaged targets.",
@@ -412,6 +416,16 @@
   "trait.forgeweave.quick.name": "Quick",
   "trait.forgeweave.reinforced_core.description": "Adds an extra modifier slot to the tool.",
   "trait.forgeweave.reinforced_core.name": "Reinforced Core",
+  "trait.forgeweave.shocking.description": "Running around, breaking blocks or hitting things charges the tool; a fully charged hit discharges it as lightning.",
+  "trait.forgeweave.shocking.name": "Shocking",
+  "trait.forgeweave.slimey_blue.description": "Eww, gooey! Sometimes spawns a little slime.",
+  "trait.forgeweave.slimey_blue.name": "Slimey",
+  "trait.forgeweave.slimey_green.description": "Eww, gooey! Sometimes spawns a little slime.",
+  "trait.forgeweave.slimey_green.name": "Slimey",
   "trait.forgeweave.stonebound.description": "Mining speed increases as the tool's durability drops.",
-  "trait.forgeweave.stonebound.name": "Stonebound"
+  "trait.forgeweave.stonebound.name": "Stonebound",
+  "trait.forgeweave.tasty.description": "You'd rather eat your tool than starve: it feeds you when you're hungry, at a durability cost.",
+  "trait.forgeweave.tasty.name": "Tasty",
+  "trait.forgeweave.vintage.description": "Adds an extra modifier slot, but slows you down while the tool is held.",
+  "trait.forgeweave.vintage.name": "Vintage"
 }

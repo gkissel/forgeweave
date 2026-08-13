@@ -12,16 +12,27 @@ import org.slf4j.Logger;
 
 import com.mojang.logging.LogUtils;
 
+import net.minecraft.core.BlockPos;
 import net.minecraft.core.component.DataComponentType;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.sounds.SoundSource;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.tags.DamageTypeTags;
 import net.minecraft.util.RandomSource;
+import net.minecraft.world.effect.MobEffectInstance;
+import net.minecraft.world.effect.MobEffects;
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.item.ItemEntity;
+import net.minecraft.world.entity.monster.Slime;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.food.FoodData;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
@@ -142,7 +153,7 @@ public final class ForgeweaveTraits {
      */
     public static final Trait FRACTURED = new Trait() {
         @Override
-        public float attackDamageBonus() {
+        public float attackDamageBonus(ItemStack stack) {
             return 1.5F;
         }
     };
@@ -220,7 +231,8 @@ public final class ForgeweaveTraits {
         }
 
         @Override
-        public void afterBlockBreak(ItemStack stack, ServerLevel level, BlockState state, LivingEntity breaker) {
+        public void afterBlockBreak(ItemStack stack, ServerLevel level, BlockState state, BlockPos pos,
+                LivingEntity breaker, boolean effective) {
             int next = Math.min(32, stackLevel(stack, ForgeweaveDataComponents.MOMENTUM_STACKS.get()) + 1);
             ToolStats.Stats stats = stack.get(ForgeweaveDataComponents.TOOL_STATS.get());
             float speed = stats == null ? 1.0F : stats.miningSpeed();
@@ -296,7 +308,8 @@ public final class ForgeweaveTraits {
      */
     public static final Trait PETRAMOR = new Trait() {
         @Override
-        public void afterBlockBreak(ItemStack stack, ServerLevel level, BlockState state, LivingEntity breaker) {
+        public void afterBlockBreak(ItemStack stack, ServerLevel level, BlockState state, BlockPos pos,
+                LivingEntity breaker, boolean effective) {
             if (state.is(BlockTags.MINEABLE_WITH_PICKAXE) && level.getRandom().nextFloat() < PETRAMOR_CHANCE) {
                 stack.setDamageValue(Math.max(0, stack.getDamageValue() - PETRAMOR_HEAL));
             }
@@ -420,6 +433,392 @@ public final class ForgeweaveTraits {
         }
     };
 
+    // -- M3.2 stateful/special traits (issue #230). Material -> trait wiring is the roster issues'.
+
+    /** Upstream {@code TraitAlien}: one stat step every 3.6 seconds, 1000 applications an hour. */
+    private static final int ALIEN_TICKS_PER_STAT = 72;
+    /** Upstream {@code TraitAlien#getPoolLazily}: "we distribute a whopping X points worth of stats!" */
+    private static final int ALIEN_POOL_POINTS = 800;
+    private static final int ALIEN_DURABILITY_STEP = 1;
+    private static final float ALIEN_SPEED_STEP = 0.007F;
+    private static final float ALIEN_ATTACK_STEP = 0.005F;
+
+    /**
+     * End stone. Upstream {@code TraitAlien} (extends {@code TraitProgressiveStats}): the first time
+     * the trait ticks it rolls a pool of {@value #ALIEN_POOL_POINTS} stat points, each point randomly
+     * a durability ({@code +1}), mining speed ({@code +0.007}) or attack ({@code +0.005}) step; then
+     * every {@value #ALIEN_TICKS_PER_STAT} ticks the tool is carried it distributes one step --
+     * attack on every third application, speed on every second, durability otherwise (upstream's
+     * {@code ticksExisted % (72*3) / % (72*2)} cascade) -- until that stat's share of the pool runs
+     * out. Skipped while the holder is actively using the tool, like upstream skips a block-breaking
+     * player.
+     *
+     * <p>Upstream mutates the tool's own stat NBT and re-applies the distributed bonus on every tool
+     * rebuild ({@code TraitProgressiveStats#applyEffect}); Forgeweave's {@code tool_stats} component
+     * stays the untouched materials-derived base (CONTEXT.md hard rule), so the distributed block is
+     * instead the single source of truth: mining speed and attack ride {@link Trait#miningSpeed} /
+     * {@link Trait#attackDamageBonus} at read time, and durability grows {@code max_damage} directly
+     * plus re-applies through {@link Trait#maxDurabilityBonus} wherever {@code max_damage} is
+     * recomputed. Recorded in the PR.
+     */
+    public static final Trait ALIEN = new Trait() {
+        @Override
+        public void inventoryTick(ItemStack stack, ServerLevel level, LivingEntity holder) {
+            if (holder.tickCount % ALIEN_TICKS_PER_STAT != 0 || holder.getUseItem() == stack) {
+                return;
+            }
+            AlienProgress progress = stack.get(ForgeweaveDataComponents.ALIEN_PROGRESS.get());
+            if (progress == null) {
+                progress = new AlienProgress(rollAlienPool(level.getRandom()), AlienProgress.Portion.ZERO);
+            }
+            AlienProgress.Portion pool = progress.pool();
+            AlienProgress.Portion given = progress.distributed();
+            if (holder.tickCount % (ALIEN_TICKS_PER_STAT * 3) == 0) {
+                if (given.attackDamage() < pool.attackDamage()) {
+                    given = new AlienProgress.Portion(given.durability(), given.miningSpeed(),
+                            given.attackDamage() + ALIEN_ATTACK_STEP);
+                }
+            } else if (holder.tickCount % (ALIEN_TICKS_PER_STAT * 2) == 0) {
+                if (given.miningSpeed() < pool.miningSpeed()) {
+                    given = new AlienProgress.Portion(given.durability(),
+                            given.miningSpeed() + ALIEN_SPEED_STEP, given.attackDamage());
+                }
+            } else if (given.durability() < pool.durability()) {
+                given = new AlienProgress.Portion(given.durability() + ALIEN_DURABILITY_STEP,
+                        given.miningSpeed(), given.attackDamage());
+                stack.set(DataComponents.MAX_DAMAGE, stack.getMaxDamage() + ALIEN_DURABILITY_STEP);
+            }
+            stack.set(ForgeweaveDataComponents.ALIEN_PROGRESS.get(), new AlienProgress(pool, given));
+        }
+
+        @Override
+        public float miningSpeed(ItemStack stack, boolean effective, float originalSpeed, float speed) {
+            return speed + alienDistributed(stack).miningSpeed();
+        }
+
+        @Override
+        public float attackDamageBonus(ItemStack stack) {
+            return alienDistributed(stack).attackDamage();
+        }
+
+        @Override
+        public int maxDurabilityBonus(ItemStack stack) {
+            return alienDistributed(stack).durability();
+        }
+    };
+
+    /** Upstream {@code TraitAlien#getPoolLazily}'s roll, one {@code nextInt(3)} per point. */
+    private static AlienProgress.Portion rollAlienPool(RandomSource random) {
+        int durability = 0;
+        int speed = 0;
+        int attack = 0;
+        for (int point = 0; point < ALIEN_POOL_POINTS; point++) {
+            switch (random.nextInt(3)) {
+                case 0 -> durability++;
+                case 1 -> speed++;
+                default -> attack++;
+            }
+        }
+        return new AlienProgress.Portion(durability * ALIEN_DURABILITY_STEP,
+                speed * ALIEN_SPEED_STEP, attack * ALIEN_ATTACK_STEP);
+    }
+
+    private static AlienProgress.Portion alienDistributed(ItemStack stack) {
+        AlienProgress progress = stack.get(ForgeweaveDataComponents.ALIEN_PROGRESS.get());
+        return progress == null ? AlienProgress.Portion.ZERO : progress.distributed();
+    }
+
+    /** Upstream {@code TraitShocking}'s magnitudes, cited on {@link #SHOCKING}. */
+    private static final float SHOCKING_CHARGE_PER_HIT = 15.0F;
+    private static final float SHOCKING_CHARGE_PER_BREAK = 15.0F;
+    private static final float SHOCKING_CHARGE_PER_BLOCK_MOVED = 2.0F;
+    private static final double SHOCKING_MOVE_CAP = 5.0;
+    private static final double SHOCKING_MOVE_MIN = 0.1;
+    private static final int SHOCKING_MOVE_SAMPLE_TICKS = 5;
+    private static final float SHOCKING_DISCHARGE_DAMAGE = 5.0F;
+
+    /**
+     * Electrum. Upstream {@code TraitShocking}: a 0-100 charge built three ways -- {@code +15 *
+     * attackStrength} per landed hit ({@code onHit}), {@code +15} per block broken
+     * ({@code afterBlockBreak}), and {@code +2} per block moved while the tool is held, sampled every
+     * 5 ticks with each sample's distance capped at 5 ({@code onUpdate}). A hit swung while fully
+     * charged discharges it: 5 bonus lightning-type damage dealt as a secondary blow past the
+     * target's invulnerability window (upstream's {@code attackEntitySecondary} with an
+     * {@code EntityDamageSource("lightningBolt", ...)}) plus Speed VI for 2.5s on the attacker; a
+     * block break that fills the charge discharges immediately into Haste III for 2.5s instead. The
+     * tool shows an enchantment glint while fully charged (upstream's {@code setEnchantEffect}).
+     *
+     * <p>Deviations, recorded in the PR: the hit half rides {@link Trait#onCombatHit} (ADR-0005's
+     * seam) with the {@link CombatHit}'s captured attack-strength scale; movement is sampled on the
+     * holder's own {@code tickCount} rather than world time (world time is constant across one
+     * test-staged tick, holder ticks aren't); charge is clamped at 100 on write so the serialized
+     * range is honest ({@link ShockingCharge}); upstream's custom charge/discharge sounds and
+     * heart-electro particles have no Forgeweave asset and are dropped.
+     */
+    public static final Trait SHOCKING = new Trait() {
+        @Override
+        public void onCombatHit(CombatHit hit, float damageDealt) {
+            LivingEntity attacker = hit.attacker();
+            if (attacker == null) {
+                return;
+            }
+            ItemStack stack = hit.weapon();
+            ShockingCharge charge = shockingCharge(stack, attacker);
+            if (charge.isFull()) {
+                LivingEntity target = hit.target();
+                target.invulnerableTime = 0;
+                target.hurt(hit.level().damageSources().lightningBolt(), SHOCKING_DISCHARGE_DAMAGE);
+                attacker.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SPEED, 50, 5));
+                setShockingCharge(stack, charge.discharged());
+            } else {
+                setShockingCharge(stack, charge.plus(SHOCKING_CHARGE_PER_HIT * hit.attackStrengthScale()));
+            }
+        }
+
+        @Override
+        public void afterBlockBreak(ItemStack stack, ServerLevel level, BlockState state, BlockPos pos,
+                LivingEntity breaker, boolean effective) {
+            ShockingCharge charged = shockingCharge(stack, breaker).plus(SHOCKING_CHARGE_PER_BREAK);
+            if (charged.isFull()) {
+                // Upstream discharges a mining-filled charge on the spot, into haste rather than damage.
+                breaker.addEffect(new MobEffectInstance(MobEffects.DIG_SPEED, 50, 2));
+                setShockingCharge(stack, charged.discharged());
+            } else {
+                setShockingCharge(stack, charged);
+            }
+        }
+
+        @Override
+        public void inventoryTick(ItemStack stack, ServerLevel level, LivingEntity holder) {
+            if (holder.getMainHandItem() != stack || holder.tickCount % SHOCKING_MOVE_SAMPLE_TICKS != 0) {
+                return;
+            }
+            ShockingCharge charge = stack.get(ForgeweaveDataComponents.SHOCKING_CHARGE.get());
+            if (charge == null) {
+                // First sample only establishes the position baseline, like upstream's zero-valued tag.
+                setShockingCharge(stack, new ShockingCharge(0.0F, holder.getX(), holder.getY(), holder.getZ()));
+                return;
+            }
+            if (charge.isFull()) {
+                return;
+            }
+            double dx = holder.getX() - charge.x();
+            double dy = holder.getY() - charge.y();
+            double dz = holder.getZ() - charge.z();
+            double dist = Math.sqrt(dx * dx + dy * dy + dz * dz);
+            if (dist < SHOCKING_MOVE_MIN) {
+                return;
+            }
+            dist = Math.min(dist, SHOCKING_MOVE_CAP);
+            float next = Math.min(ShockingCharge.FULL,
+                    charge.charge() + (float) (dist * SHOCKING_CHARGE_PER_BLOCK_MOVED));
+            setShockingCharge(stack, new ShockingCharge(next, holder.getX(), holder.getY(), holder.getZ()));
+        }
+    };
+
+    /** The stack's charge, initialized at the holder's position if it never had one. */
+    private static ShockingCharge shockingCharge(ItemStack stack, LivingEntity holder) {
+        ShockingCharge charge = stack.get(ForgeweaveDataComponents.SHOCKING_CHARGE.get());
+        return charge != null ? charge : new ShockingCharge(0.0F, holder.getX(), holder.getY(), holder.getZ());
+    }
+
+    /** Writes the charge back, keeping the glint in step with it (upstream's {@code setEnchantEffect}). */
+    private static void setShockingCharge(ItemStack stack, ShockingCharge charge) {
+        stack.set(ForgeweaveDataComponents.SHOCKING_CHARGE.get(), charge);
+        if (charge.isFull()) {
+            stack.set(DataComponents.ENCHANTMENT_GLINT_OVERRIDE, true);
+        } else {
+            stack.remove(DataComponents.ENCHANTMENT_GLINT_OVERRIDE);
+        }
+    }
+
+    /** Upstream {@code TraitSlimey#chance}: 0.33% per effective block break or killing blow. */
+    private static final float SLIMEY_CHANCE = 0.0033F;
+
+    /**
+     * Green slime (this id) and blue slime ({@link #SLIMEY_BLUE}). Upstream {@code TraitSlimey}: a
+     * 0.33% chance on an effective block break or on a killing blow to spawn a size-1 slime that
+     * aggros the tool's holder. Upstream's green variant spawns the vanilla {@code EntitySlime} and
+     * the blue variant its own {@code EntityBlueSlime}; Forgeweave ships no blue slime entity
+     * (docs/SCOPE.md M3.2 non-goals defer it to the world-content milestone), so <b>both ids spawn
+     * the vanilla slime</b> for now -- flagged for maintainer review in the PR, and kept as two ids
+     * so the blue entity can slot in without touching material JSON.
+     */
+    public static final Trait SLIMEY_GREEN = slimey();
+
+    /** See {@link #SLIMEY_GREEN}: upstream's blue slime, vanilla slime until the entity exists. */
+    public static final Trait SLIMEY_BLUE = slimey();
+
+    private static Trait slimey() {
+        return new Trait() {
+            @Override
+            public void afterBlockBreak(ItemStack stack, ServerLevel level, BlockState state, BlockPos pos,
+                    LivingEntity breaker, boolean effective) {
+                if (effective && rollsSlimeyProc(level.getRandom())) {
+                    spawnTraitSlime(level, breaker, pos.getX() + 0.5, pos.getY(), pos.getZ() + 0.5);
+                }
+            }
+
+            @Override
+            public void afterHit(ItemStack stack, ServerLevel level, LivingEntity attacker, LivingEntity target) {
+                if (target.isDeadOrDying() && rollsSlimeyProc(level.getRandom())) {
+                    spawnTraitSlime(level, attacker, target.getX(), target.getY(), target.getZ());
+                }
+            }
+        };
+    }
+
+    /**
+     * Slimey's proc roll, public and pure so the chance is testable off a seeded
+     * {@link RandomSource} without spawn randomness in any assertion (same idiom as
+     * {@code combat.Beheading#rollsHead}).
+     */
+    public static boolean rollsSlimeyProc(RandomSource random) {
+        return random.nextFloat() < SLIMEY_CHANCE;
+    }
+
+    /**
+     * Slimey's spawn path (upstream {@code TraitSlimey#spawnSlime}): a size-1 slime at the given
+     * spot, remembering {@code owner} as its attacker. Public so a GameTest can drive it
+     * deterministically, past the roll above.
+     */
+    public static void spawnTraitSlime(ServerLevel level, LivingEntity owner, double x, double y, double z) {
+        Slime slime = EntityType.SLIME.create(level);
+        if (slime == null) {
+            return;
+        }
+        slime.setSize(1, true);
+        slime.setPos(x, y, z);
+        level.addFreshEntity(slime);
+        slime.setLastHurtByMob(owner);
+        slime.playAmbientSound();
+    }
+
+    /** Upstream {@code TraitBaconlicious}'s two chances: 0.5% per block break, 5% per kill. */
+    private static final float BACON_BREAK_CHANCE = 0.005F;
+    private static final float BACON_KILL_CHANCE = 0.05F;
+
+    /**
+     * Magma slime. Upstream {@code TraitBaconlicious}: a 0.5% chance per block broken and a 5% chance
+     * per killing blow to drop a piece of bacon where it happened. Forgeweave ships no bacon item, so
+     * the drop is {@code minecraft:cooked_porkchop} -- the nearest vanilla bacon; recorded in the PR.
+     */
+    public static final Trait BACONLICIOUS = new Trait() {
+        @Override
+        public void afterBlockBreak(ItemStack stack, ServerLevel level, BlockState state, BlockPos pos,
+                LivingEntity breaker, boolean effective) {
+            if (level.getRandom().nextFloat() < BACON_BREAK_CHANCE) {
+                dropBacon(level, pos.getX(), pos.getY(), pos.getZ());
+            }
+        }
+
+        @Override
+        public void afterHit(ItemStack stack, ServerLevel level, LivingEntity attacker, LivingEntity target) {
+            if (target.isDeadOrDying() && level.getRandom().nextFloat() < BACON_KILL_CHANCE) {
+                dropBacon(level, target.getX(), target.getY(), target.getZ());
+            }
+        }
+    };
+
+    /**
+     * Baconlicious's drop path (upstream {@code TraitBaconlicious#dropBacon}, minus the roll). Public
+     * so a GameTest can drive it deterministically, same split as {@link #spawnTraitSlime}.
+     */
+    public static void dropBacon(ServerLevel level, double x, double y, double z) {
+        level.addFreshEntity(new ItemEntity(level, x, y, z, new ItemStack(Items.COOKED_PORKCHOP)));
+    }
+
+    /** Upstream {@code TraitTasty}: a food point is two "chicken wings"; a bite costs 5 durability. */
+    private static final int TASTY_CHICKENWING = 2;
+    private static final int TASTY_NOM_COST = 5;
+
+    /**
+     * Slime wood. Upstream {@code TraitTasty}: while held by a hungry player, a random chance per
+     * tick to take a bite out of the tool -- +1 food for 5 durability. Base chance 1% (+2% while the
+     * holder is missing health); below 10 food the chance grows by 0.25% per missing food point and
+     * shrinks by 0.5% per saturation point; above 10 food only the base chance applies; at full
+     * hunger ({@code needsFood()} false) it never eats. A bite that the tool lacks the durability
+     * for is skipped ({@code nom}'s guard).
+     */
+    public static final Trait TASTY = new Trait() {
+        @Override
+        public void inventoryTick(ItemStack stack, ServerLevel level, LivingEntity holder) {
+            if (!(holder instanceof Player player) || player.getMainHandItem() != stack) {
+                return;
+            }
+            FoodData food = player.getFoodData();
+            if (!food.needsFood()) {
+                return;
+            }
+            float chance = 0.01F;
+            if (player.getHealth() < player.getMaxHealth()) {
+                chance += 0.02F;
+            }
+            if (food.getFoodLevel() <= 5 * TASTY_CHICKENWING) {
+                chance += (5 * TASTY_CHICKENWING - food.getFoodLevel()) * 0.0025F;
+                chance -= food.getSaturationLevel() * 0.005F;
+            }
+            if (level.getRandom().nextFloat() < chance) {
+                tastyNom(stack, level, player);
+            }
+        }
+    };
+
+    /**
+     * Tasty's bite (upstream {@code TraitTasty#nom}): +1 food, no saturation, 5 durability. Public so
+     * a GameTest can drive it deterministically, past the per-tick roll above.
+     */
+    public static void tastyNom(ItemStack stack, ServerLevel level, Player player) {
+        if (ToolItem.isBroken(stack) || stack.getMaxDamage() - stack.getDamageValue() < TASTY_NOM_COST) {
+            return;
+        }
+        player.getFoodData().eat(1, 0.0F);
+        level.playSound(null, player.blockPosition(), SoundEvents.GENERIC_EAT, SoundSource.PLAYERS, 0.8F, 1.0F);
+        stack.hurtAndBreak(TASTY_NOM_COST, player, EquipmentSlot.MAINHAND);
+    }
+
+    /** Vintage's two magnitudes: the maintainer decision recorded on issue #230 (2026-08-13). */
+    private static final int VINTAGE_BONUS_SLOTS = 1;
+    private static final float VINTAGE_MOVEMENT_MALUS = -0.10F;
+
+    /**
+     * Ancient. Not a 1.12 port -- a Forgeweave adaptation of the 1.20 branch's Vintage modifier
+     * (upstream {@code ModifierProvider}: +1 ability slot, -10% mining/attack/draw speed per level),
+     * reshaped by the maintainer decision on issue #230: <b>+1 modifier slot</b>
+     * ({@link Trait#bonusSlots}, same mechanism as {@link #REINFORCED_CORE}) at the cost of <b>-10%
+     * movement speed while the tool is held</b> ({@link Trait#movementSpeedBonus}, applied as a
+     * main-hand attribute modifier by {@code ToolItem#getDefaultAttributeModifiers}).
+     */
+    public static final Trait VINTAGE = new Trait() {
+        @Override
+        public int bonusSlots() {
+            return VINTAGE_BONUS_SLOTS;
+        }
+
+        @Override
+        public float movementSpeedBonus() {
+            return VINTAGE_MOVEMENT_MALUS;
+        }
+    };
+
+    /** Movement speed the tool's traits add while it is held, as a fraction of the holder's total. */
+    public static float movementSpeedBonus(ItemStack stack) {
+        float bonus = 0.0F;
+        for (Trait trait : of(stack)) {
+            bonus += trait.movementSpeedBonus();
+        }
+        return bonus;
+    }
+
+    /** Extra max durability the tool's traits carry beyond its materials and modifiers (alien). */
+    public static int maxDurabilityBonus(ItemStack stack) {
+        int bonus = 0;
+        for (Trait trait : of(stack)) {
+            bonus += trait.maxDurabilityBonus(stack);
+        }
+        return bonus;
+    }
+
     private static int stackLevel(ItemStack stack, DataComponentType<TraitStacks> component) {
         TraitStacks stacks = stack.get(component);
         return stacks == null ? 0 : stacks.level();
@@ -454,7 +853,15 @@ public final class ForgeweaveTraits {
             // #103 metal materials: rose gold's quick, netherite's fireproof + reinforced_core.
             Map.entry(id("quick"), QUICK),
             Map.entry(id("fireproof"), FIREPROOF),
-            Map.entry(id("reinforced_core"), REINFORCED_CORE));
+            Map.entry(id("reinforced_core"), REINFORCED_CORE),
+            // #230 M3.2 stateful/special traits.
+            Map.entry(id("alien"), ALIEN),
+            Map.entry(id("shocking"), SHOCKING),
+            Map.entry(id("slimey_green"), SLIMEY_GREEN),
+            Map.entry(id("slimey_blue"), SLIMEY_BLUE),
+            Map.entry(id("baconlicious"), BACONLICIOUS),
+            Map.entry(id("tasty"), TASTY),
+            Map.entry(id("vintage"), VINTAGE));
 
     /**
      * The assembled tool's durability after the <b>head</b> material's head-scoped traits adjusted it
@@ -512,7 +919,7 @@ public final class ForgeweaveTraits {
     public static float attackDamageBonus(ItemStack stack) {
         float bonus = 0.0F;
         for (Trait trait : of(stack)) {
-            bonus += trait.attackDamageBonus();
+            bonus += trait.attackDamageBonus(stack);
         }
         return bonus;
     }
@@ -557,6 +964,15 @@ public final class ForgeweaveTraits {
         public float preHit(CombatHit hit, float originalDamage, float damage) {
             return damage + bonusDamageAgainst(hit.weapon(), hit.target(), originalDamage);
         }
+
+        @Override
+        public void onHit(CombatHit hit, float damageDealt) {
+            // #230: traits that need the full hit record (shocking's attack-strength-scaled charge)
+            // ride the seam's own on-hit moment; see Trait#onCombatHit for the split from afterHit.
+            for (Trait trait : of(hit.weapon())) {
+                trait.onCombatHit(hit, damageDealt);
+            }
+        }
     };
 
     /** Extra damage this weapon's traits deal to {@code target}, on top of its own attack damage. */
@@ -578,9 +994,10 @@ public final class ForgeweaveTraits {
     }
 
     /** Called from {@code ToolItem#mineBlock} once a block is actually destroyed, server side only. */
-    public static void afterBlockBreak(ItemStack stack, ServerLevel level, BlockState state, LivingEntity breaker) {
+    public static void afterBlockBreak(ItemStack stack, ServerLevel level, BlockState state, BlockPos pos,
+            LivingEntity breaker, boolean effective) {
         for (Trait trait : of(stack)) {
-            trait.afterBlockBreak(stack, level, state, breaker);
+            trait.afterBlockBreak(stack, level, state, pos, breaker, effective);
         }
     }
 

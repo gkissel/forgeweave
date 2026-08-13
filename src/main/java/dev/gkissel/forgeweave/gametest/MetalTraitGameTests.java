@@ -87,7 +87,7 @@ public class MetalTraitGameTests {
         helper.assertTrue(ForgeweaveTraits.miningSpeed(pickaxe, true, 2.0F) == 2.0F,
                 "no bonus before any blocks are broken");
 
-        ForgeweaveTraits.afterBlockBreak(pickaxe, level, stone, player);
+        ForgeweaveTraits.afterBlockBreak(pickaxe, level, stone, BlockPos.ZERO, player, true);
         // level 1: boost = 1/80; speed = 2 + 2 * 1/80 = 2.025
         float afterOne = ForgeweaveTraits.miningSpeed(pickaxe, true, 2.0F);
         helper.assertTrue(Math.abs(afterOne - 2.025F) < 0.001F, "expected 2.025 after one block, got " + afterOne);
@@ -146,7 +146,7 @@ public class MetalTraitGameTests {
 
         BlockState stone = Blocks.STONE.defaultBlockState();
         for (int i = 0; i < 200; i++) {
-            ForgeweaveTraits.afterBlockBreak(pickaxe, level, stone, player);
+            ForgeweaveTraits.afterBlockBreak(pickaxe, level, stone, BlockPos.ZERO, player, true);
         }
         helper.assertTrue(pickaxe.getDamageValue() < 500,
                 "petramor should have healed at least once in 200 stone breaks (p=1e-9 not), still at "
@@ -155,7 +155,7 @@ public class MetalTraitGameTests {
         int before = pickaxe.getDamageValue();
         BlockState dirt = Blocks.DIRT.defaultBlockState();
         for (int i = 0; i < 200; i++) {
-            ForgeweaveTraits.afterBlockBreak(pickaxe, level, dirt, player);
+            ForgeweaveTraits.afterBlockBreak(pickaxe, level, dirt, BlockPos.ZERO, player, true);
         }
         helper.assertTrue(pickaxe.getDamageValue() == before, "petramor must not trigger on non-stone blocks");
 

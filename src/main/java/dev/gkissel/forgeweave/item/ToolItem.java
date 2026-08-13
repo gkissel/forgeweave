@@ -79,6 +79,9 @@ public class ToolItem extends Item {
     /** Id for the trait-driven attack speed modifier {@link #getDefaultAttributeModifiers} adds (issue #102). */
     private static final ResourceLocation TRAIT_ATTACK_SPEED_ID =
             ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "trait_attack_speed");
+    /** Id for the trait-driven movement speed modifier (issue #230: vintage's mobility cost). */
+    private static final ResourceLocation TRAIT_MOVEMENT_SPEED_ID =
+            ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "trait_movement_speed");
     // #108 batch: modern-vanilla attribute modifiers (Aquadynamic, Far Reach -- ForgeweaveModifiers),
     // same idiom as vanilla Item's own BASE_ATTACK_DAMAGE_ID/BASE_ATTACK_SPEED_ID this class already
     // keys its two attribute modifiers on above.
@@ -277,6 +280,16 @@ public class ToolItem extends Item {
                             AttributeModifier.Operation.ADD_VALUE),
                     EquipmentSlotGroup.MAINHAND);
         }
+        // Vintage's mobility cost (issue #230 maintainer decision): a fraction of the holder's total
+        // movement speed while the tool is in hand, so it composes with Speed/slowness like any
+        // vanilla multiplier.
+        float movementBonus = ForgeweaveTraits.movementSpeedBonus(stack);
+        if (movementBonus != 0.0F) {
+            builder.add(Attributes.MOVEMENT_SPEED,
+                    new AttributeModifier(TRAIT_MOVEMENT_SPEED_ID, movementBonus,
+                            AttributeModifier.Operation.ADD_MULTIPLIED_TOTAL),
+                    EquipmentSlotGroup.MAINHAND);
+        }
 
         // #108 batch: Aquadynamic/Far Reach add their own attribute modifiers only when a tool
         // actually carries them, so an unmodified tool's merged-attribute tooltip stays exactly as
@@ -406,10 +419,12 @@ public class ToolItem extends Item {
             return false;
         }
         if (!level.isClientSide && state.getDestroySpeed(level, pos) != 0.0F) {
-            stack.hurtAndBreak(isEffective(state) ? 1 : 2, entity, EquipmentSlot.MAINHAND);
+            boolean effective = isEffective(state);
+            stack.hurtAndBreak(effective ? 1 : 2, entity, EquipmentSlot.MAINHAND);
             if (level instanceof ServerLevel serverLevel) {
-                // Traits that react to an actual block break (issue #102: momentum, petramor).
-                ForgeweaveTraits.afterBlockBreak(stack, serverLevel, state, entity);
+                // Traits that react to an actual block break (issue #102: momentum, petramor;
+                // issue #230: shocking, slimey, baconlicious -- the latter two need pos/effective).
+                ForgeweaveTraits.afterBlockBreak(stack, serverLevel, state, pos, entity, effective);
             }
         }
         return true;
