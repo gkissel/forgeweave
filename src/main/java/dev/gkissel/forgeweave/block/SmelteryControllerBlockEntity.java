@@ -392,10 +392,10 @@ public class SmelteryControllerBlockEntity extends BlockEntity implements Statio
             if (recipe == null || heat < recipe.heatRequired() / MeltingRecipe.TIME_FACTOR) {
                 continue;
             }
-            working = true;
             if (meltProgress[slot] >= recipe.heatRequired()) {
                 finishMelting(slot, recipe);
             } else {
+                working = true;
                 meltProgress[slot] += step;
             }
         }
