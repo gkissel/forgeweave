@@ -135,6 +135,29 @@ public class ForgeweaveItemModelProvider extends ItemModelProvider {
         singleLayerModel(ForgeweaveItems.CAST_TOOL_BINDING, derivedItem("cast_tool_binding"));
         singleLayerModel(ForgeweaveItems.CAST_TOOL_HANDLE, derivedItem("cast_tool_handle"));
 
+        // #222 -- the M3 roster's own casts, same composited-PNG treatment as the five above
+        // (scripts/generate_cast_textures.py, extended; NOTICE.md).
+        singleLayerModel(ForgeweaveItems.CAST_SWORD_BLADE, derivedItem("cast_sword_blade"));
+        singleLayerModel(ForgeweaveItems.CAST_WIDE_GUARD, derivedItem("cast_wide_guard"));
+        singleLayerModel(ForgeweaveItems.CAST_HAND_GUARD, derivedItem("cast_hand_guard"));
+        singleLayerModel(ForgeweaveItems.CAST_CROSS_GUARD, derivedItem("cast_cross_guard"));
+        singleLayerModel(ForgeweaveItems.CAST_SIGN_PLATE, derivedItem("cast_sign_plate"));
+        singleLayerModel(ForgeweaveItems.CAST_PAN, derivedItem("cast_pan"));
+        singleLayerModel(ForgeweaveItems.CAST_KNIFE_BLADE, derivedItem("cast_knife_blade"));
+        singleLayerModel(ForgeweaveItems.CAST_LARGE_SWORD_BLADE, derivedItem("cast_large_sword_blade"));
+        singleLayerModel(ForgeweaveItems.CAST_TOUGH_TOOL_ROD, derivedItem("cast_tough_tool_rod"));
+        singleLayerModel(ForgeweaveItems.CAST_TOUGH_BINDING, derivedItem("cast_tough_binding"));
+        singleLayerModel(ForgeweaveItems.CAST_LARGE_PLATE, derivedItem("cast_large_plate"));
+        singleLayerModel(ForgeweaveItems.CAST_HAMMER_HEAD, derivedItem("cast_hammer_head"));
+        singleLayerModel(ForgeweaveItems.CAST_EXCAVATOR_HEAD, derivedItem("cast_excavator_head"));
+        singleLayerModel(ForgeweaveItems.CAST_SCYTHE_HEAD, derivedItem("cast_scythe_head"));
+        singleLayerModel(ForgeweaveItems.CAST_KAMA_HEAD, derivedItem("cast_kama_head"));
+        singleLayerModel(ForgeweaveItems.CAST_BROAD_AXE_HEAD, derivedItem("cast_broad_axe_head"));
+        singleLayerModel(ForgeweaveItems.CAST_VEIN_HAMMER_HEAD, derivedItem("cast_vein_hammer_head"));
+        singleLayerModel(ForgeweaveItems.CAST_WAR_MACE_HEAD, derivedItem("cast_war_mace_head"));
+        singleLayerModel(ForgeweaveItems.CAST_CURVED_BLADE, derivedItem("cast_curved_blade"));
+        singleLayerModel(ForgeweaveItems.CAST_KATANA_BLADE, derivedItem("cast_katana_blade"));
+
         // Every assemblable tool, straight off the station's own table (ToolAssemblyRecipes.ENTRIES):
         // one model layer per part, so a two-part M3 weapon gets two layers and a three-part one gets
         // three, and no tool can be registered without a model or vice versa.

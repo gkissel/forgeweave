@@ -1,0 +1,14 @@
+{
+  "station": "table",
+  "cast": {
+    "item": "forgeweave:cast_hammer_head"
+  },
+  "fluid": "forgeweave:molten_copper",
+  "amount": 1152,
+  "result": {
+    "id": "forgeweave:hammer_head",
+    "components": {
+      "forgeweave:material": "forgeweave:copper"
+    }
+  }
+}

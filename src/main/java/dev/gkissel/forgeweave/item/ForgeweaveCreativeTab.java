@@ -173,6 +173,28 @@ public final class ForgeweaveCreativeTab {
         output.accept(ForgeweaveItems.CAST_TOOL_BINDING.get());
         output.accept(ForgeweaveItems.CAST_TOOL_HANDLE.get());
 
+        // #222 -- casts for every M3 part (docs/SCOPE.md M3 issue #151/#159/#160/#161's roster).
+        output.accept(ForgeweaveItems.CAST_SWORD_BLADE.get());
+        output.accept(ForgeweaveItems.CAST_WIDE_GUARD.get());
+        output.accept(ForgeweaveItems.CAST_HAND_GUARD.get());
+        output.accept(ForgeweaveItems.CAST_CROSS_GUARD.get());
+        output.accept(ForgeweaveItems.CAST_SIGN_PLATE.get());
+        output.accept(ForgeweaveItems.CAST_PAN.get());
+        output.accept(ForgeweaveItems.CAST_KNIFE_BLADE.get());
+        output.accept(ForgeweaveItems.CAST_LARGE_SWORD_BLADE.get());
+        output.accept(ForgeweaveItems.CAST_TOUGH_TOOL_ROD.get());
+        output.accept(ForgeweaveItems.CAST_TOUGH_BINDING.get());
+        output.accept(ForgeweaveItems.CAST_LARGE_PLATE.get());
+        output.accept(ForgeweaveItems.CAST_HAMMER_HEAD.get());
+        output.accept(ForgeweaveItems.CAST_EXCAVATOR_HEAD.get());
+        output.accept(ForgeweaveItems.CAST_SCYTHE_HEAD.get());
+        output.accept(ForgeweaveItems.CAST_KAMA_HEAD.get());
+        output.accept(ForgeweaveItems.CAST_BROAD_AXE_HEAD.get());
+        output.accept(ForgeweaveItems.CAST_VEIN_HAMMER_HEAD.get());
+        output.accept(ForgeweaveItems.CAST_WAR_MACE_HEAD.get());
+        output.accept(ForgeweaveItems.CAST_CURVED_BLADE.get());
+        output.accept(ForgeweaveItems.CAST_KATANA_BLADE.get());
+
         // #103 -- metal materials (docs/SCOPE.md M2 issue #103): the item forms with no vanilla
         // counterpart, for the four metals that lacked them.
         output.accept(ForgeweaveItems.INGOT_COBALT.get());

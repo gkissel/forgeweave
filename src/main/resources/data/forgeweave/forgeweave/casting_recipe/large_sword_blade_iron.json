@@ -1,0 +1,14 @@
+{
+  "station": "table",
+  "cast": {
+    "item": "forgeweave:cast_large_sword_blade"
+  },
+  "fluid": "forgeweave:molten_iron",
+  "amount": 1152,
+  "result": {
+    "id": "forgeweave:large_sword_blade",
+    "components": {
+      "forgeweave:material": "forgeweave:iron"
+    }
+  }
+}

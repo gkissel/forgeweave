@@ -31,6 +31,28 @@ PARTS = [
     ("axe_head.png", "cast_axe_head.png"),
     ("tool_binding.png", "cast_tool_binding.png"),
     ("tool_handle.png", "cast_tool_handle.png"),
+    # #222 -- the M3 roster (docs/SCOPE.md M3 issue #151/#159/#160/#161), same treatment: each
+    # part's own already-derived item texture (NOTICE.md) punched into the blank cast base.
+    ("sword_blade.png", "cast_sword_blade.png"),
+    ("wide_guard.png", "cast_wide_guard.png"),
+    ("hand_guard.png", "cast_hand_guard.png"),
+    ("cross_guard.png", "cast_cross_guard.png"),
+    ("sign_plate.png", "cast_sign_plate.png"),
+    ("pan.png", "cast_pan.png"),
+    ("knife_blade.png", "cast_knife_blade.png"),
+    ("large_sword_blade.png", "cast_large_sword_blade.png"),
+    ("tough_tool_rod.png", "cast_tough_tool_rod.png"),
+    ("tough_binding.png", "cast_tough_binding.png"),
+    ("large_plate.png", "cast_large_plate.png"),
+    ("hammer_head.png", "cast_hammer_head.png"),
+    ("excavator_head.png", "cast_excavator_head.png"),
+    ("scythe_head.png", "cast_scythe_head.png"),
+    ("kama_head.png", "cast_kama_head.png"),
+    ("broad_axe_head.png", "cast_broad_axe_head.png"),
+    ("vein_hammer_head.png", "cast_vein_hammer_head.png"),
+    ("war_mace_head.png", "cast_war_mace_head.png"),
+    ("curved_blade.png", "cast_curved_blade.png"),
+    ("katana_blade.png", "cast_katana_blade.png"),
 ]
 
 BEVEL_MULT = 0.78
