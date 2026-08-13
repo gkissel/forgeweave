@@ -1,0 +1,19 @@
+{
+  "station": "table",
+  "cast": {
+    "type": "neoforge:components",
+    "items": "forgeweave:pickaxe_head",
+    "components": {
+      "forgeweave:material": "forgeweave:wood"
+    }
+  },
+  "fluid": "forgeweave:molten_obsidian",
+  "amount": 500,
+  "result": {
+    "id": "forgeweave:pickaxe_head",
+    "components": {
+      "forgeweave:material": "forgeweave:nahuatl"
+    }
+  },
+  "consumes_cast": true
+}

@@ -44,6 +44,9 @@ public final class ForgeweaveFluidClientExtensions {
         register(event, ForgeweaveFluids.PIG_IRON);
         register(event, ForgeweaveFluids.BLOOD);
         register(event, ForgeweaveFluids.MOLTEN_CLAY);
+
+        register(event, ForgeweaveFluids.AMETHYST);
+        register(event, ForgeweaveFluids.AMETHYST_BRONZE);
     }
 
     private static void register(RegisterClientExtensionsEvent event, ForgeweaveFluids.MoltenMetal metal) {

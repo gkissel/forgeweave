@@ -1,0 +1,23 @@
+{
+  "head": {
+    "durability": 350,
+    "mining_speed": 4.5,
+    "attack_damage": 3.0
+  },
+  "handle": {
+    "durability_modifier": 0.9,
+    "durability": 0
+  },
+  "extra_durability": 35,
+  "incorrect_for_tool": "minecraft:incorrect_for_diamond_tool",
+  "traits": {
+    "general": [
+      "forgeweave:lacerating"
+    ]
+  },
+  "crafting_items": [],
+  "repair_item": {
+    "item": "minecraft:obsidian"
+  },
+  "color": "#3B2754"
+}

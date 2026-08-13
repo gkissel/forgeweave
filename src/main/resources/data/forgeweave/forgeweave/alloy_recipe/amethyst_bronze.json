@@ -1,0 +1,16 @@
+{
+  "inputs": [
+    {
+      "fluid": "forgeweave:molten_copper",
+      "amount": 90
+    },
+    {
+      "fluid": "forgeweave:molten_amethyst",
+      "amount": 100
+    }
+  ],
+  "result": {
+    "fluid": "forgeweave:molten_amethyst_bronze",
+    "amount": 90
+  }
+}

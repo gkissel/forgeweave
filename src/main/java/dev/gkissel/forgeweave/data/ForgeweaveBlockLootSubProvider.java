@@ -103,6 +103,8 @@ public class ForgeweaveBlockLootSubProvider extends BlockLootSubProvider {
         // BlockFirewood override no loot either).
         dropSelf(ForgeweaveBlocks.PIG_IRON_BLOCK.get());
         dropSelf(ForgeweaveBlocks.FIREWOOD.get());
+
+        dropSelf(ForgeweaveBlocks.AMETHYST_BRONZE_BLOCK.get());
     }
 
     private LootTable.Builder oreDrop(Block block, Item item) {

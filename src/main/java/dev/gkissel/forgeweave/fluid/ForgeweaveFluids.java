@@ -105,6 +105,15 @@ public final class ForgeweaveFluids {
     public static final MoltenMetal MOLTEN_CLAY = register("molten_clay", 0xC67453, 700,
             () -> moltenFluidType(700), STONE_STILL, STONE_FLOWING);
 
+    // #235 M3.2: amethyst and amethyst bronze, from the 1.20 clone (the by-name modern-branch
+    // additions, docs/SCOPE.md M3.2). The 1.20 branch measures its fluid temperatures 300 degrees
+    // above the 1.12 scale this class uses (its obsidian is 1300 where 1.12's -- and OBSIDIAN
+    // above -- is 1000), so TinkerFluids#moltenAmethyst 1250 and #moltenAmethystBronze 1120 land
+    // here as 950 and 820. Tints are the clone's mantle/colors.json material colours (NOTICE.md);
+    // like OBSIDIAN, amethyst is not a metal but rides the same shared tinted texture.
+    public static final MoltenMetal AMETHYST = register("amethyst", 0xB38EF1, 950);
+    public static final MoltenMetal AMETHYST_BRONZE = register("amethyst_bronze", 0xC687BD, 820);
+
     private static MoltenMetal register(String metalId, int color, int temperature) {
         return register("molten_" + metalId, color, temperature, () -> moltenFluidType(temperature),
                 STILL_TEXTURE, FLOWING_TEXTURE);

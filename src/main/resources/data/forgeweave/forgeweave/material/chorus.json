@@ -1,0 +1,30 @@
+{
+  "head": {
+    "durability": 180,
+    "mining_speed": 3.0,
+    "attack_damage": 1.0
+  },
+  "handle": {
+    "durability_modifier": 1.1,
+    "durability": 0
+  },
+  "extra_durability": 18,
+  "incorrect_for_tool": "minecraft:incorrect_for_stone_tool",
+  "traits": {
+    "general": [
+      "forgeweave:enderference"
+    ]
+  },
+  "crafting_items": [
+    {
+      "ingredient": {
+        "item": "minecraft:popped_chorus_fruit"
+      },
+      "value": 2
+    }
+  ],
+  "repair_item": {
+    "item": "minecraft:popped_chorus_fruit"
+  },
+  "color": "#8F648F"
+}

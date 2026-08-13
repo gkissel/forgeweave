@@ -1,0 +1,36 @@
+{
+  "head": {
+    "durability": 745,
+    "mining_speed": 7.0,
+    "attack_damage": 2.5
+  },
+  "handle": {
+    "durability_modifier": 1.0,
+    "durability": 0
+  },
+  "extra_durability": 75,
+  "incorrect_for_tool": "minecraft:incorrect_for_netherite_tool",
+  "traits": {
+    "general": [
+      "forgeweave:vintage"
+    ]
+  },
+  "crafting_items": [
+    {
+      "ingredient": {
+        "item": "minecraft:netherite_scrap"
+      },
+      "value": 2
+    },
+    {
+      "ingredient": {
+        "tag": "c:ores/netherite_scrap"
+      },
+      "value": 2
+    }
+  ],
+  "repair_item": {
+    "item": "minecraft:netherite_scrap"
+  },
+  "color": "#654740"
+}

@@ -1,0 +1,19 @@
+{
+  "station": "table",
+  "cast": {
+    "type": "neoforge:components",
+    "items": "forgeweave:war_mace_head",
+    "components": {
+      "forgeweave:material": "forgeweave:wood"
+    }
+  },
+  "fluid": "forgeweave:molten_obsidian",
+  "amount": 2000,
+  "result": {
+    "id": "forgeweave:war_mace_head",
+    "components": {
+      "forgeweave:material": "forgeweave:nahuatl"
+    }
+  },
+  "consumes_cast": true
+}

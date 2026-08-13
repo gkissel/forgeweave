@@ -228,6 +228,10 @@ public class ForgeweaveItemModelProvider extends ItemModelProvider {
         // nugget_pigiron.png, NOTICE.md). No raw form (alloy-only metal).
         singleLayerModel(ForgeweaveItems.INGOT_PIG_IRON, derivedItem("pig_iron_ingot"));
         singleLayerModel(ForgeweaveItems.NUGGET_PIG_IRON, derivedItem("pig_iron_nugget"));
+
+        // #235 -- amethyst bronze (M3.2), the 1.20 clone's own art copied byte-for-byte (NOTICE.md).
+        singleLayerModel(ForgeweaveItems.INGOT_AMETHYST_BRONZE, derivedItem("amethyst_bronze_ingot"));
+        singleLayerModel(ForgeweaveItems.NUGGET_AMETHYST_BRONZE, derivedItem("amethyst_bronze_nugget"));
     }
 
     private ResourceLocation derivedItem(String name) {
