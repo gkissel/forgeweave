@@ -310,10 +310,12 @@ class JeiRecipesTest {
         Map<ResourceLocation, ModifierRecipe> recipes = new LinkedHashMap<>();
         ModifierRecipe crafted = new ModifierRecipe(
                 ResourceLocation.fromNamespaceAndPath("forgeweave", "extra_slot"),
-                Ingredient.of(ForgeweaveItems.EXTRA_MODIFIER.get()), 1, 5, List.of());
+                List.of(new ModifierRecipe.Reagent(Ingredient.of(ForgeweaveItems.EXTRA_MODIFIER.get()), 1)),
+                1, 5, List.of());
         ModifierRecipe netherite = new ModifierRecipe(
                 ResourceLocation.fromNamespaceAndPath("forgeweave", "extra_slot"),
-                Ingredient.of(Items.NETHERITE_INGOT), 1, 5, List.of());
+                List.of(new ModifierRecipe.Reagent(Ingredient.of(Items.NETHERITE_INGOT), 1)),
+                1, 5, List.of());
         recipes.put(id("extra_slot"), crafted);
         recipes.put(id("extra_slot_netherite"), netherite);
 
@@ -327,7 +329,8 @@ class JeiRecipesTest {
     @Test
     void modifierApplicationLevelCapFollowsTheRecipesOwnSchedule() {
         ModifierRecipe uniform = new ModifierRecipe(
-                ResourceLocation.fromNamespaceAndPath("forgeweave", "haste"), Ingredient.of(Items.REDSTONE), 1, 250, List.of());
+                ResourceLocation.fromNamespaceAndPath("forgeweave", "haste"),
+                List.of(new ModifierRecipe.Reagent(Ingredient.of(Items.REDSTONE), 1)), 1, 250, List.of());
 
         // Haste has no per-level override, so its display level cap comes from ForgeweaveModifiers'
         // uniform unitsPerLevel (50 redstone per level): 250 units is level 5.

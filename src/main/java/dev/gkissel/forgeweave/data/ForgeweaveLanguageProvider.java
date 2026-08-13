@@ -301,6 +301,9 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("gui.forgeweave.modifier.max_level", "%s is already at its maximum level on this tool.");
         add("gui.forgeweave.modifier.invalid_reagent", "Apply one modifier at a time -- the other slot holds something else.");
         add("gui.forgeweave.modifier.not_enough_reagents", "Not enough of that reagent: %s are needed per step.");
+        // Issue #259 (multi-unit reagents): a whole reagent worth more units than the cap has room
+        // for -- e.g. a 9-unit redstone block against 5 remaining units of haste.
+        add("gui.forgeweave.modifier.reagent_overshoot", "That reagent is worth more than %s has room for on this tool.");
         // Issue #223 (wind burst): the tool the loaded modifier's own vanilla enchantment doesn't
         // support -- e.g. a breeze rod on anything but the warmace.
         add("gui.forgeweave.modifier.unsupported_tool", "%s cannot be applied to this tool.");

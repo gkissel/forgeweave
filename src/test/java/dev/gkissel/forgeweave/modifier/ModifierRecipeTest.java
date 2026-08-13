@@ -63,26 +63,88 @@ class ModifierRecipeTest {
 
     /**
      * The shipped haste recipe carries upstream 1.12's own numbers: one redstone is one application
-     * unit, and the cap is {@code TinkerModifiers}' {@code new ModHaste(50)} at 5 levels, i.e. 250.
+     * unit, a redstone block is nine (issue #259, {@code TinkerModifiers}'
+     * {@code modHaste.addItem("blockRedstone", 1, 9)}), and the cap is {@code new ModHaste(50)} at
+     * 5 levels, i.e. 250.
      */
     @Test
     void theShippedHasteRecipeMatchesUpstreamsNumbers() {
-        String path = "/data/forgeweave/forgeweave/modifier_recipe/haste.json";
-        JsonElement json;
-        try (InputStream in = ModifierRecipeTest.class.getResourceAsStream(path)) {
-            assertNotNull(in, "missing shipped modifier recipe: " + path);
-            json = JsonParser.parseReader(new InputStreamReader(in, StandardCharsets.UTF_8));
-        } catch (Exception e) {
-            throw new AssertionError("could not read " + path, e);
-        }
-
-        ModifierRecipe recipe = ModifierRecipe.CODEC.parse(ops, json).getOrThrow();
+        ModifierRecipe recipe = ModifierRecipe.CODEC.parse(ops, shippedJson()).getOrThrow();
 
         assertEquals(HASTE, recipe.modifier());
         assertEquals(1, recipe.cost());
         assertEquals(250, recipe.maxLevel(), "5 levels of 50 redstone");
         assertTrue(recipe.reagent().test(new ItemStack(Items.REDSTONE)));
         assertTrue(!recipe.reagent().test(new ItemStack(Items.LAPIS_LAZULI)));
+        assertEquals(1, recipe.reagentFor(new ItemStack(Items.REDSTONE)).units());
+        assertEquals(9, recipe.reagentFor(new ItemStack(Items.REDSTONE_BLOCK)).units(),
+                "upstream's addItem(\"blockRedstone\", 1, 9)");
+        assertNull(recipe.reagentFor(new ItemStack(Items.LAPIS_LAZULI)));
+    }
+
+    private static JsonElement shippedJson() {
+        String path = "/data/forgeweave/forgeweave/modifier_recipe/haste.json";
+        try (InputStream in = ModifierRecipeTest.class.getResourceAsStream(path)) {
+            assertNotNull(in, "missing shipped modifier recipe: " + path);
+            return JsonParser.parseReader(new InputStreamReader(in, StandardCharsets.UTF_8));
+        } catch (Exception e) {
+            throw new AssertionError("could not read " + path, e);
+        }
+    }
+
+    // ------------------------------------------------------------------ #259: the two reagent shapes
+
+    /** The pre-#259 single-{@code reagent} shape still decodes, as one reagent worth 1 unit. */
+    @Test
+    void theLegacySingleReagentShapeStillDecodes() {
+        ModifierRecipe recipe = shipped(); // parsed from the legacy shape below
+
+        assertEquals(1, recipe.reagents().size());
+        assertEquals(1, recipe.reagents().get(0).units());
+        assertTrue(recipe.matches(new ItemStack(Items.REDSTONE)));
+        assertTrue(!recipe.matches(new ItemStack(Items.REDSTONE_BLOCK)),
+                "the legacy shape names dust only; the block is the shipped JSON's addition");
+    }
+
+    /** {@code units} is optional in the new shape, defaulting to 1 like the legacy shape. */
+    @Test
+    void reagentUnitsDefaultToOne() {
+        ModifierRecipe recipe = parse("""
+                {"modifier": "forgeweave:haste",
+                 "reagents": [{"ingredient": {"item": "minecraft:redstone"}}],
+                 "max_level": 250}
+                """);
+
+        assertEquals(1, recipe.reagentFor(new ItemStack(Items.REDSTONE)).units());
+    }
+
+    /** A recipe whose reagent list is empty must not parse -- it could never be applied. */
+    @Test
+    void rejectsAnEmptyReagentList() {
+        DataResult<ModifierRecipe> result = ModifierRecipe.CODEC.parse(ops, JsonParser.parseString("""
+                {"modifier": "forgeweave:haste", "reagents": [], "max_level": 250}
+                """));
+
+        assertTrue(result.isError(), "an empty reagents list must not parse");
+    }
+
+    /**
+     * Both shapes re-encode stably: encode always writes the {@code reagents} list (the
+     * accept-old-write-new posture of {@code Material#TRAITS_CODEC}), and what that encode produces
+     * decodes back to the same recipe and encodes identically again. The network codec is this same
+     * codec (synced datapack registry), so this is also the sync-payload round trip.
+     */
+    @Test
+    void bothReagentShapesReencodeStably() {
+        for (ModifierRecipe recipe : List.of(shipped(), ModifierRecipe.CODEC.parse(ops, shippedJson()).getOrThrow())) {
+            JsonElement encoded = ModifierRecipe.CODEC.encodeStart(ops, recipe).getOrThrow();
+            assertTrue(encoded.getAsJsonObject().has("reagents"), "encode always writes the new shape");
+            assertFalse(encoded.getAsJsonObject().has("reagent"), "and never the legacy field");
+
+            ModifierRecipe reDecoded = ModifierRecipe.CODEC.parse(ops, encoded).getOrThrow();
+            assertEquals(encoded, ModifierRecipe.CODEC.encodeStart(ops, reDecoded).getOrThrow(),
+                    "decode -> encode must be a fixed point");
+        }
     }
 
     @Test
@@ -201,6 +263,50 @@ class ModifierRecipeTest {
 
         assertTrue(outcome.output().isEmpty());
         assertEquals("gui.forgeweave.modifier.not_enough_reagents", translationKey(outcome));
+    }
+
+    // ------------------------------------------------------------------ #259: multi-unit reagents
+
+    /** One 9-unit block in the first slot advances haste by 9; dust next to it still adds 1 each. */
+    @Test
+    void aRedstoneBlockIsWorthNineDust() {
+        ModifierRecipe recipe = ModifierRecipe.CODEC.parse(ops, shippedJson()).getOrThrow();
+
+        ModifierApplication.Outcome oneBlock = ModifierApplication.apply(recipe, pickaxe(), 1, 9, 0, 1);
+        assertEquals(9, levelOf(oneBlock));
+        assertEquals(1, oneBlock.firstUsed(), "one block consumed");
+
+        ModifierApplication.Outcome dustAndBlocks = ModifierApplication.apply(recipe, pickaxe(), 3, 1, 2, 9);
+        assertEquals(21, levelOf(dustAndBlocks), "3 dust + 2 blocks = 21 units");
+        assertEquals(3, dustAndBlocks.firstUsed());
+        assertEquals(2, dustAndBlocks.secondUsed());
+    }
+
+    /**
+     * The cap, in whole blocks: a block whose full 9 units no longer fit is refused and left
+     * unconsumed, mirroring upstream's all-or-nothing rollback of a partially applicable
+     * {@code RecipeMatch} ({@code ToolBuilder#tryModifyTool}) -- while an exactly-fitting block, and
+     * dust filling the same gap one unit at a time, both still land.
+     */
+    @Test
+    void aBlockThatOvershootsTheCapIsRefusedWhole() {
+        ModifierRecipe recipe = ModifierRecipe.CODEC.parse(ops, shippedJson()).getOrThrow();
+
+        ItemStack nearCap = pickaxe();
+        nearCap.set(ForgeweaveDataComponents.MODIFIERS.get(), List.of(new ModifierEntry(HASTE, 245)));
+        ModifierApplication.Outcome overshoot = ModifierApplication.apply(recipe, nearCap, 1, 9, 0, 1);
+        assertTrue(overshoot.output().isEmpty(), "5 units of room cannot take a 9-unit block");
+        assertEquals("gui.forgeweave.modifier.reagent_overshoot", translationKey(overshoot));
+
+        ModifierApplication.Outcome dust = ModifierApplication.apply(recipe, nearCap.copy(), 8, 1, 0, 1);
+        assertEquals(250, levelOf(dust), "dust still partial-fills to the cap");
+        assertEquals(5, dust.firstUsed(), "and only the 5 that fit are spent");
+
+        ItemStack exactFit = pickaxe();
+        exactFit.set(ForgeweaveDataComponents.MODIFIERS.get(), List.of(new ModifierEntry(HASTE, 241)));
+        ModifierApplication.Outcome exact = ModifierApplication.apply(recipe, exactFit, 1, 9, 0, 1);
+        assertEquals(250, levelOf(exact), "241 + one block is exactly the cap");
+        assertEquals(1, exact.firstUsed());
     }
 
     // ------------------------------------------------------------------ the shipped behavior

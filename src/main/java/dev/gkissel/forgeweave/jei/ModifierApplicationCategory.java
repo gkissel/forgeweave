@@ -8,6 +8,7 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.ItemStack;
 
+import mezz.jei.api.gui.builder.IIngredientAcceptor;
 import mezz.jei.api.gui.builder.IRecipeLayoutBuilder;
 import mezz.jei.api.gui.drawable.IDrawable;
 import mezz.jei.api.gui.ingredient.IRecipeSlotsView;
@@ -101,7 +102,12 @@ final class ModifierApplicationCategory implements IRecipeCategory<ModifierRecip
     @Override
     public void setRecipe(IRecipeLayoutBuilder builder, ModifierRecipe recipe, IFocusGroup focuses) {
         builder.addSlot(RecipeIngredientRole.RENDER_ONLY, 0, SLOT_Y).addItemStacks(ANY_TOOL);
-        builder.addInputSlot(20, SLOT_Y).addIngredients(recipe.reagent());
+        // Every accepted reagent cycles through the one input slot (issue #259: haste shows redstone
+        // dust and the 9-unit redstone block as alternatives, the way a tag ingredient cycles).
+        IIngredientAcceptor<?> reagentSlot = builder.addInputSlot(20, SLOT_Y);
+        for (ModifierRecipe.Reagent reagent : recipe.reagents()) {
+            reagentSlot.addIngredients(reagent.ingredient());
+        }
     }
 
     @Override
