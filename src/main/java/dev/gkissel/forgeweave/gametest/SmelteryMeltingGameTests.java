@@ -187,18 +187,32 @@ public class SmelteryMeltingGameTests {
         helper.succeedWhen(() -> assertTankHolds(helper, core, ForgeweaveFluids.MANYULLYN.still().get(), 1296));
     }
 
-    /** A recipe above what the fuel can reach never progresses, and the core stops ticking rather than spinning on it. */
+    /**
+     * A recipe above what the fuel can reach never progresses, and the core stops ticking rather than
+     * spinning on it (#96, deflaked in #210).
+     *
+     * <p>"Not ticking" here is a <em>steady</em> state, not a constant one: inserting arms one melt
+     * tick that fires, declines the too-hot recipe, and does not reschedule -- and any later structure
+     * scan re-arms another such one-shot check by design ({@code
+     * SmelteryControllerBlockEntity#armMeltTick} only asks for a recipe, not reachable heat, because a
+     * scan is how refilled hotter fuel wakes a stalled melt). Scheduled block ticks are also not
+     * anchored to the test clock -- a chunk that drops off the tick list mid-run delivers them late.
+     * So this asserts with {@code succeedWhen} (retried every tick until the timeout) after the
+     * observation window, rather than one-shot sampling {@code !isTicking} at a fixed tick, which is
+     * how #210's single merge-queue failure happened. A genuinely spinning core still fails: its
+     * reschedule lands in the same tick it runs, so {@code isTicking} would hold on every retry
+     * through the timeout.
+     */
     @GameTest(template = "smeltery", timeoutTicks = 200)
     public static void aRecipeHotterThanTheFuelDoesNotMelt(GameTestHelper helper) {
         SmelteryControllerBlockEntity core = lavaFuelledSmeltery(helper);
         insert(helper, core, Items.BLAZE_ROD);
 
-        helper.runAfterDelay(100, () -> {
+        helper.runAfterDelay(100, () -> helper.succeedWhen(() -> {
             helper.assertValueEqual(core.tank().getFluidAmount(), 0, "fluid in a smeltery that cannot reach 1400");
             helper.assertTrue(!core.meltingItems().get(0).isEmpty(), "expected the unmeltable item to still be sitting there");
             helper.assertTrue(!isTicking(helper), "expected the core to stop ticking on a recipe it cannot heat");
-            helper.succeed();
-        });
+        }));
     }
 
     /**
