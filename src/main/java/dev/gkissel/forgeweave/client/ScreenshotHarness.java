@@ -288,6 +288,7 @@ public final class ScreenshotHarness {
         AWAIT_TITLE, AWAIT_WORLD, SETTLE_WORLD, PLACE_TANK_SCENE, SETTLE_TANK_SCENE,
         PLACE_TABLE_SCENE, SETTLE_TABLE_SCENE, PLACE_SMELTERY_SCENE, SETTLE_SMELTERY_SCENE,
         PLACE_CASTING_SCENE, SETTLE_CASTING_SCENE, PLACE_MATERIAL_SCENE, SETTLE_MATERIAL_SCENE,
+        PLACE_PART_TINT_SCENE, SETTLE_PART_TINT_SCENE,
         HOLD_WEAPON, SETTLE_WEAPON, SETTLE_WEAPON_FIRST_PERSON,
         OPEN_SCREEN, SETTLE_SCREEN, DONE
     }
@@ -314,6 +315,8 @@ public final class ScreenshotHarness {
     private static int materialSceneIndex;
     /** Set by {@link #placeMaterialScene}, checked by {@link #settleMaterialScene} before capture. */
     private static AABB materialSceneBounds;
+    /** Set by {@link #placePartTintScene}, checked by {@link #settlePartTintScene} before capture (#256). */
+    private static AABB partTintSceneBounds;
 
     private ScreenshotHarness() {}
 
@@ -338,6 +341,8 @@ public final class ScreenshotHarness {
             case SETTLE_CASTING_SCENE -> settleCastingScene(mc);
             case PLACE_MATERIAL_SCENE -> placeMaterialScene(mc);
             case SETTLE_MATERIAL_SCENE -> settleMaterialScene(mc);
+            case PLACE_PART_TINT_SCENE -> placePartTintScene(mc);
+            case SETTLE_PART_TINT_SCENE -> settlePartTintScene(mc);
             case HOLD_WEAPON -> holdWeapon(mc);
             case SETTLE_WEAPON -> settleWeapon(mc);
             case SETTLE_WEAPON_FIRST_PERSON -> settleWeaponFirstPerson(mc);
@@ -820,7 +825,7 @@ public final class ScreenshotHarness {
     private static void placeMaterialScene(Minecraft mc) {
         int start = materialSceneIndex * MATERIAL_SCENE_COLUMNS;
         if (start >= M3_2_MATERIALS.size()) {
-            advance(Stage.HOLD_WEAPON);
+            advance(Stage.PLACE_PART_TINT_SCENE);
             return;
         }
         List<String> group = M3_2_MATERIALS.subList(start,
@@ -915,6 +920,85 @@ public final class ScreenshotHarness {
         capture(mc, "m3_2_materials_" + (materialSceneIndex + 1));
         materialSceneIndex++;
         advance(Stage.PLACE_MATERIAL_SCENE);
+    }
+
+    /**
+     * Issue #256's release-checklist scene, {@code part_tints}: the two head parts that shipped
+     * rendering white (the scimitar's curved blade and the katana's blade -- both missing from the
+     * old hand-maintained part-tint list) framed next to the tools assembled from them, everything
+     * in slime green -- the one tint that cannot be mistaken for an untinted white sprite. Same
+     * wall-of-item-frames staging as the #236 material walls, one wall west of them.
+     */
+    private static void placePartTintScene(Minecraft mc) {
+        var server = mc.getSingleplayerServer();
+        LOGGER.info("{}placing #256 part-tint wall (curved blade, scimitar, katana blade, katana)", LOG_PREFIX);
+        server.execute(() -> {
+            ServerPlayer serverPlayer = server.getPlayerList().getPlayers().get(0);
+            ServerLevel level = serverPlayer.serverLevel();
+            BlockPos wallBase = origin.offset(-MATERIAL_SCENE_GROUP_SPACING, 0, MATERIAL_SCENE_DISTANCE);
+
+            ItemStack curvedBlade = new ItemStack(ForgeweaveItems.PART_CURVED_BLADE.get());
+            curvedBlade.set(ForgeweaveDataComponents.MATERIAL.get(), material("slime"));
+            ItemStack katanaBlade = new ItemStack(ForgeweaveItems.PART_KATANA_BLADE.get());
+            katanaBlade.set(ForgeweaveDataComponents.MATERIAL.get(), material("slime"));
+            List<ItemStack> stacks = List.of(
+                    curvedBlade,
+                    assembleForDisplay(serverPlayer, ForgeweaveItems.TOOL_SCIMITAR.get(), "slime"),
+                    katanaBlade,
+                    assembleForDisplay(serverPlayer, ForgeweaveItems.TOOL_KATANA.get(), "slime"));
+
+            partTintSceneBounds = new AABB(
+                    wallBase.getX(), wallBase.getY() + 1, wallBase.getZ() + 1,
+                    wallBase.getX() + stacks.size(), wallBase.getY() + 2, wallBase.getZ() + 2);
+            // Idempotent across harness re-runs on a kept save, as the #236 walls are.
+            level.getEntitiesOfClass(ItemFrame.class, partTintSceneBounds).forEach(ItemFrame::discard);
+
+            for (int i = 0; i < stacks.size(); i++) {
+                if (stacks.get(i).isEmpty()) {
+                    LOGGER.error("{}#256 scene FAILED: stack {} is empty", LOG_PREFIX, i);
+                }
+                BlockPos wall = wallBase.offset(i, 1, 0);
+                level.setBlockAndUpdate(wall, Blocks.SMOOTH_STONE.defaultBlockState());
+                hangFrame(level, wall.south(), stacks.get(i));
+            }
+
+            double centerX = wallBase.getX() + stacks.size() / 2.0;
+            BlockPos cameraPos = wallBase.offset(0, 0, 1 + MATERIAL_SCENE_CAMERA_PULLBACK);
+            serverPlayer.teleportTo(centerX, cameraPos.getY(), cameraPos.getZ() + 0.5);
+            serverPlayer.lookAt(EntityAnchorArgument.Anchor.EYES,
+                    new Vec3(centerX, wallBase.getY() + 1.5, wallBase.getZ() + 1.0));
+        });
+        advance(Stage.SETTLE_PART_TINT_SCENE);
+    }
+
+    private static void settlePartTintScene(Minecraft mc) {
+        if (stageTicks < SCREEN_SETTLE_TICKS) {
+            return;
+        }
+        // Self-diagnosing like the #236 walls: an item that lost its MATERIAL/TOOL_MATERIALS
+        // component would render untinted white -- exactly the defect this scene exists to catch --
+        // and a PNG alone cannot tell that from the tint bug itself.
+        if (mc.level != null && partTintSceneBounds != null) {
+            List<ItemFrame> frames = mc.level.getEntitiesOfClass(ItemFrame.class, partTintSceneBounds);
+            if (frames.size() != 4) {
+                LOGGER.error("{}#256 scene check FAILED: client sees {} item frames in {}, expected 4",
+                        LOG_PREFIX, frames.size(), partTintSceneBounds);
+            }
+            for (ItemFrame frame : frames) {
+                ItemStack item = frame.getItem();
+                Object materialId = item.get(ForgeweaveDataComponents.MATERIAL.get());
+                Object toolMaterials = item.get(ForgeweaveDataComponents.TOOL_MATERIALS.get());
+                if (item.isEmpty() || (materialId == null && toolMaterials == null)) {
+                    LOGGER.error("{}#256 scene check FAILED: frame at {} holds {} with no material "
+                            + "component -- it renders untinted", LOG_PREFIX, frame.blockPosition(), item);
+                } else {
+                    LOGGER.info("{}#256 scene check: frame at {} holds {} material={}", LOG_PREFIX,
+                            frame.blockPosition(), item, materialId != null ? materialId : toolMaterials);
+                }
+            }
+        }
+        capture(mc, "part_tints");
+        advance(Stage.HOLD_WEAPON);
     }
 
     /**

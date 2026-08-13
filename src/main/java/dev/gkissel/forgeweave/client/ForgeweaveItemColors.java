@@ -11,10 +11,12 @@ import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.client.event.RegisterColorHandlersEvent;
+import net.neoforged.neoforge.registries.DeferredHolder;
 
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.item.ForgeweaveDataComponents;
 import dev.gkissel.forgeweave.item.ForgeweaveItems;
+import dev.gkissel.forgeweave.item.PartItem;
 import dev.gkissel.forgeweave.material.Material;
 import dev.gkissel.forgeweave.menu.ToolAssemblyRecipes;
 import dev.gkissel.forgeweave.tool.ToolArt;
@@ -32,37 +34,31 @@ public final class ForgeweaveItemColors {
 
     @SubscribeEvent
     static void registerItemColors(RegisterColorHandlersEvent.Item event) {
-        event.register(ForgeweaveItemColors::materialTint,
-                ForgeweaveItems.PART_PICKAXE_HEAD.get(),
-                ForgeweaveItems.PART_SHOVEL_HEAD.get(),
-                ForgeweaveItems.PART_AXE_HEAD.get(),
-                ForgeweaveItems.PART_TOOL_BINDING.get(),
-                ForgeweaveItems.PART_TOOL_HANDLE.get(),
-                ForgeweaveItems.SHARD.get(),
-                // M3 roster (docs/SCOPE.md issue #151).
-                ForgeweaveItems.PART_SWORD_BLADE.get(),
-                ForgeweaveItems.PART_WIDE_GUARD.get(),
-                ForgeweaveItems.PART_HAND_GUARD.get(),
-                ForgeweaveItems.PART_CROSS_GUARD.get(),
-                ForgeweaveItems.PART_SIGN_PLATE.get(),
-                ForgeweaveItems.PART_PAN.get(),
-                ForgeweaveItems.PART_KNIFE_BLADE.get(),
-                ForgeweaveItems.PART_LARGE_SWORD_BLADE.get(),
-                ForgeweaveItems.PART_TOUGH_TOOL_ROD.get(),
-                ForgeweaveItems.PART_TOUGH_BINDING.get(),
-                ForgeweaveItems.PART_LARGE_PLATE.get(),
-                ForgeweaveItems.PART_HAMMER_HEAD.get(),
-                ForgeweaveItems.PART_EXCAVATOR_HEAD.get(),
-                ForgeweaveItems.PART_SCYTHE_HEAD.get(),
-                ForgeweaveItems.PART_KAMA_HEAD.get(),
-                ForgeweaveItems.PART_BROAD_AXE_HEAD.get(),
-                ForgeweaveItems.PART_VEIN_HAMMER_HEAD.get(),
-                ForgeweaveItems.PART_WAR_MACE_HEAD.get());
+        event.register(ForgeweaveItemColors::materialTint, tintedPartItems());
+        event.register(ForgeweaveItemColors::toolMaterialTint, tintedToolItems());
+    }
 
-        // Every assemblable tool, straight off the station's table (issue #155) rather than a hand
-        // list that a new tool can be left out of.
-        event.register(ForgeweaveItemColors::toolMaterialTint,
-                ToolAssemblyRecipes.ENTRIES.stream().map(entry -> entry.tool().get()).toArray(Item[]::new));
+    /**
+     * Every item {@link #materialTint} tints: every registered {@link PartItem} (the shard included
+     * -- it is one), straight off the item registry. This used to be a hand list, which is exactly
+     * how #159/#160's curved blade and katana blade shipped rendering white (issue #256): the two
+     * newest parts were never added to it. Derived, a new part item inherits its tint by being
+     * registered, the same way {@link #tintedToolItems} already worked. Package-private so
+     * {@code ItemColorCoverageTest} can pin the coverage.
+     */
+    static Item[] tintedPartItems() {
+        return ForgeweaveItems.ITEMS.getEntries().stream()
+                .<Item>map(DeferredHolder::get)
+                .filter(item -> item instanceof PartItem)
+                .toArray(Item[]::new);
+    }
+
+    /**
+     * Every item {@link #toolMaterialTint} tints: every assemblable tool, straight off the station's
+     * table (issue #155) rather than a hand list that a new tool can be left out of.
+     */
+    static Item[] tintedToolItems() {
+        return ToolAssemblyRecipes.ENTRIES.stream().map(entry -> entry.tool().get()).toArray(Item[]::new);
     }
 
     private static int materialTint(ItemStack stack, int tintIndex) {
