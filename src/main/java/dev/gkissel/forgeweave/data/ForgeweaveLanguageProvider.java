@@ -469,6 +469,35 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("trait.forgeweave.vintage.description",
                 "Adds an extra modifier slot, but slows you down while the tool is held.");
 
+        // M3.2 mining/durability-economy traits (issue #228). Wording follows upstream 1.12's
+        // modifier.<id>.name/.desc entries, same as the trait batches above ("Duritae" is upstream's
+        // own display name for the duritos id).
+        add("trait.forgeweave.duritos.name", "Duritae");
+        add("trait.forgeweave.duritos.description", "Your tool lasts longer... most of the time.");
+        add("trait.forgeweave.jagged.name", "Jagged");
+        add("trait.forgeweave.jagged.description", "Every point of durability lost increases damage.");
+        add("trait.forgeweave.aquadynamic.name", "Aquadynamic");
+        add("trait.forgeweave.aquadynamic.description",
+                "The tool is unhindered by water and loves rainy evenings.");
+        add("trait.forgeweave.aridiculous.name", "Aridiculous");
+        add("trait.forgeweave.aridiculous.description", "The tool works better in hotter environments.");
+        add("trait.forgeweave.crumbling.name", "Crumbling");
+        add("trait.forgeweave.crumbling.description", "The tool breaks soft blocks that don't need a tool faster.");
+        add("trait.forgeweave.unnatural.name", "Unnatural");
+        add("trait.forgeweave.unnatural.description",
+                "The tool mines faster the higher its mining level is above the required one.");
+        add("trait.forgeweave.dense.name", "Dense");
+        add("trait.forgeweave.dense.description", "Your tool lasts longer when it has less durability.");
+        add("trait.forgeweave.writable.name", "Writable");
+        add("trait.forgeweave.writable.description", "More words. More modifiers. It's only logical!");
+        add("trait.forgeweave.writable2.name", "Writable II");
+        add("trait.forgeweave.writable2.description", "More words. More modifiers. It's only logical!");
+        add("trait.forgeweave.squeaky.name", "Squeaky");
+        add("trait.forgeweave.squeaky.description",
+                "Your tool is so soft and squeaky it gained Silk Touch, but deals no damage.");
+        add("trait.forgeweave.autosmelt.name", "Autosmelt");
+        add("trait.forgeweave.autosmelt.description", "Harvested blocks get smelted.");
+
         // #108 batch: modern-vanilla modifiers (issue #108) -- Forgeweave originals, not upstream
         // ports, so these names and descriptions are this PR's own wording rather than a translation.
         add("modifier.forgeweave.searing.name", "Searing");

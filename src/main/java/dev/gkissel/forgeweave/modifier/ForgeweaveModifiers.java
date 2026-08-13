@@ -961,7 +961,9 @@ public final class ForgeweaveModifiers {
         if (!(tool.getItem() instanceof ToolItem) || ToolItem.isBroken(tool)) {
             return;
         }
-        if (hasAutoSmelt(tool)) {
+        // #228: the autosmelt trait (firewood) shares Searing's smelt path outright rather than
+        // duplicating it -- the one trait consulted here, through its own aggregator.
+        if (hasAutoSmelt(tool) || ForgeweaveTraits.autoSmelts(tool)) {
             smelt(event);
         }
         float bonusXp = bonusExperienceFraction(tool);

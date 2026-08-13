@@ -33,12 +33,16 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.food.FoodData;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.item.component.Tool;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 
 import net.neoforged.neoforge.event.entity.EntityInvulnerabilityCheckEvent;
 import net.neoforged.neoforge.event.entity.living.LivingExperienceDropEvent;
+import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.combat.CombatHit;
@@ -48,6 +52,7 @@ import dev.gkissel.forgeweave.item.ForgeweaveDataComponents;
 import dev.gkissel.forgeweave.item.PartItem;
 import dev.gkissel.forgeweave.item.ToolItem;
 import dev.gkissel.forgeweave.material.Material;
+import dev.gkissel.forgeweave.modifier.ForgeweaveModifiers;
 import dev.gkissel.forgeweave.tool.ToolStats;
 
 /**
@@ -801,6 +806,244 @@ public final class ForgeweaveTraits {
         }
     };
 
+    // -- M3.2 mining/durability-economy traits (issue #228). Material -> trait wiring is the roster
+    // batches, not here; magnitudes are clone constants (docs/SCOPE.md M3.2 trait table, NOTICE.md).
+
+    /** Upstream {@code TraitDuritos#onToolDamage}'s two thresholds: 10% double cost, then 40% no cost. */
+    private static final float DURITOS_DOUBLE_CHANCE = 0.1F;
+    private static final float DURITOS_FREE_CHANCE = 0.5F;
+
+    /**
+     * Obsidian. Upstream {@code TraitDuritos#onToolDamage}: per durability loss, a 10% chance to pay
+     * double, a 40% chance to pay nothing, and 50% unchanged -- 70% cost on average, per the class's
+     * own comment.
+     */
+    public static final Trait DURITOS = new Trait() {
+        @Override
+        public int durabilityDamage(ItemStack stack, RandomSource random, int originalAmount, int amount) {
+            float r = random.nextFloat();
+            if (r < DURITOS_DOUBLE_CHANCE) {
+                return amount + originalAmount;
+            }
+            if (r < DURITOS_FREE_CHANCE) {
+                return Math.max(0, amount - originalAmount);
+            }
+            return amount;
+        }
+    };
+
+    /**
+     * Prismarine, head part only. Upstream {@code TraitJagged#calcBonus}:
+     * {@code log((maxDurability - durability) / 72d + 1d) * 2} bonus attack damage -- exactly
+     * {@link #STONEBOUND}'s wear curve pointed at attack instead of mining speed (upstream's two
+     * classes share the "old tcon jagged formula" comment). Same {@code getDamageValue()} reading
+     * as stonebound: durability already lost, not remaining.
+     */
+    public static final Trait JAGGED = new Trait() {
+        @Override
+        public float bonusDamageAgainst(ItemStack stack, LivingEntity target, float damage) {
+            return (float) (Math.log(stack.getDamageValue() / 72.0 + 1.0) * 2.0);
+        }
+    };
+
+    /** Upstream {@code TraitAquadynamic#miningSpeed}: +5.5 coeff in water, + rainfall / 1.6 in rain. */
+    private static final float AQUADYNAMIC_WATER_BONUS = 5.5F;
+    private static final float AQUADYNAMIC_RAINFALL_DIVISOR = 1.6F;
+
+    /**
+     * Prismarine. Upstream {@code TraitAquadynamic#miningSpeed}: adds {@code originalSpeed * coeff}
+     * where {@code coeff} starts at 1 (so the trait always at least doubles the pre-trait speed --
+     * upstream's counter to water's 1/5th mining penalty), +5.5 while the holder is in water, plus
+     * the biome's rainfall / 1.6 while it is raining.
+     */
+    public static final Trait AQUADYNAMIC = new Trait() {
+        @Override
+        public float breakSpeed(ItemStack stack, Player player, BlockState state, float originalSpeed, float speed) {
+            float coeff = 1.0F;
+            if (player.isInWater()) {
+                coeff += AQUADYNAMIC_WATER_BONUS;
+            }
+            if (player.level().isRaining()) {
+                coeff += downfall(player.level(), player.blockPosition()) / AQUADYNAMIC_RAINFALL_DIVISOR;
+            }
+            return speed + originalSpeed * coeff;
+        }
+    };
+
+    /**
+     * Netherrack, head part only. Upstream {@code TraitAridiculous}: mining speed gains
+     * {@code originalSpeed * calc / 10} and every hit gains {@code 2 * calc} flat damage, where
+     * {@code calc} ({@link #aridiculousness}) grows with biome heat and goes negative in cold or wet
+     * ones. Upstream reads the biome at the attacking player's position; this hook only sees the
+     * target, whose position is the same biome for any melee hit -- recorded in the PR.
+     */
+    public static final Trait ARIDICULOUS = new Trait() {
+        @Override
+        public float breakSpeed(ItemStack stack, Player player, BlockState state, float originalSpeed, float speed) {
+            return speed + originalSpeed * (aridiculousness(player.level(), player.blockPosition()) / 10.0F);
+        }
+
+        @Override
+        public float bonusDamageAgainst(ItemStack stack, LivingEntity target, float damage) {
+            return 2.0F * aridiculousness(target.level(), target.blockPosition());
+        }
+    };
+
+    /**
+     * Upstream {@code TraitAridiculous#calcAridiculousness}:
+     * {@code 1.25^(3 * (0.5 + temperature - rainfall)) - 1.25}, minus half the rainfall while it is
+     * raining. 1.12's {@code Biome#getTemperature()}/{@code getRainfall()} map to 1.21's base
+     * temperature and climate downfall.
+     */
+    private static float aridiculousness(Level level, BlockPos pos) {
+        Biome biome = level.getBiome(pos).value();
+        float rainfall = biome.getModifiedClimateSettings().downfall();
+        float rain = level.isRaining() ? rainfall / 2.0F : 0.0F;
+        return (float) (Math.pow(1.25, 3.0 * (0.5F + biome.getBaseTemperature() - rainfall)) - 1.25) - rain;
+    }
+
+    /** The biome's rainfall at {@code pos}, upstream's {@code Biome#getRainfall()}. */
+    private static float downfall(Level level, BlockPos pos) {
+        return level.getBiome(pos).value().getModifiedClimateSettings().downfall();
+    }
+
+    /** Upstream {@code TraitCrumbling#miningSpeed}'s multiplier on the tool's own mining speed. */
+    private static final float CRUMBLING_SPEED_FACTOR = 0.5F;
+
+    /**
+     * Knightslime (and M3.2's amethyst bronze), head part only. Upstream
+     * {@code TraitCrumbling#miningSpeed}: on a block whose material needs no tool, multiplies the
+     * break speed by half the tool's own mining speed ({@code getActualMiningSpeed * 0.5}). 1.21's
+     * "needs no tool" is {@code !BlockState#requiresCorrectToolForDrops} (dirt, wood, ...); the
+     * tool's speed is read off its stored stat block, same as {@link #MOMENTUM} reads it.
+     */
+    public static final Trait CRUMBLING = new Trait() {
+        @Override
+        public float breakSpeed(ItemStack stack, Player player, BlockState state, float originalSpeed, float speed) {
+            if (state.requiresCorrectToolForDrops()) {
+                return speed;
+            }
+            ToolStats.Stats stats = stack.get(ForgeweaveDataComponents.TOOL_STATS.get());
+            return stats == null ? speed : speed * (stats.miningSpeed() * CRUMBLING_SPEED_FACTOR);
+        }
+    };
+
+    /**
+     * Knightslime. Upstream {@code TraitUnnatural#miningSpeed}: +1 break speed per harvest level the
+     * tool sits above the block's requirement. 1.21 has no numeric harvest levels (CONTEXT.md:
+     * vanilla tool-tier tags only), so the tool's level is its index on
+     * {@code ForgeweaveModifiers#TIER_TAGS}' ladder -- read off the stack's own deny-drops rule, so a
+     * diamond-modifier tier bump counts, as upstream's {@code getHarvestLevel} query does -- and the
+     * block's requirement comes from the vanilla {@code needs_*_tool} tags. Both scales are
+     * wood=0/stone=1/iron=2/diamond=3, upstream's own {@code HarvestLevels} numbering.
+     */
+    public static final Trait UNNATURAL = new Trait() {
+        @Override
+        public float breakSpeed(ItemStack stack, Player player, BlockState state, float originalSpeed, float speed) {
+            int dif = toolTierLevel(stack) - blockTierLevel(state);
+            return dif > 0 ? speed + dif : speed;
+        }
+    };
+
+    /** See {@link #UNNATURAL}: the stack's deny-drops rule mapped onto the tier ladder, 0 off-ladder. */
+    private static int toolTierLevel(ItemStack stack) {
+        Tool tool = stack.get(DataComponents.TOOL);
+        if (tool == null) {
+            return 0;
+        }
+        for (Tool.Rule rule : tool.rules()) {
+            if (rule.speed().isEmpty()) {
+                return Math.max(0, ForgeweaveModifiers.tierIndexOf(rule.blocks()));
+            }
+        }
+        return 0;
+    }
+
+    /** See {@link #UNNATURAL}: the vanilla {@code needs_*_tool} tags as upstream's harvest levels. */
+    private static int blockTierLevel(BlockState state) {
+        if (state.is(BlockTags.NEEDS_DIAMOND_TOOL)) {
+            return 3;
+        }
+        if (state.is(BlockTags.NEEDS_IRON_TOOL)) {
+            return 2;
+        }
+        if (state.is(BlockTags.NEEDS_STONE_TOOL)) {
+            return 1;
+        }
+        return 0;
+    }
+
+    /** Upstream {@code TraitDense#onToolDamage}: {@code (0.75 * missingFraction)^3}, ~42% at fully worn. */
+    private static final float DENSE_CHANCE_FACTOR = 0.75F;
+
+    /**
+     * Bronze (M3.2 roster). Upstream {@code TraitDense#onToolDamage}: a chance, growing cubically as
+     * the tool wears down, to halve the durability cost ({@code newDamage -= max(damage / 2, 1)}).
+     */
+    public static final Trait DENSE = new Trait() {
+        @Override
+        public int durabilityDamage(ItemStack stack, RandomSource random, int originalAmount, int amount) {
+            if (stack.getMaxDamage() <= 0) {
+                return amount;
+            }
+            float chance = DENSE_CHANCE_FACTOR * ((float) stack.getDamageValue() / stack.getMaxDamage());
+            chance = chance * chance * chance;
+            return chance > random.nextFloat() ? amount - Math.max(originalAmount / 2, 1) : amount;
+        }
+    };
+
+    /**
+     * Paper. +1 free modifier slot through {@link Trait#bonusSlots}, {@link #REINFORCED_CORE}'s
+     * mechanism. Upstream ships this as the {@code TraitWritable} pair ({@code writable1} general,
+     * {@code writable2} head-scoped, {@code TinkerMaterials}: {@code paper.addTrait(writable2, HEAD);
+     * paper.addTrait(writable)}); Forgeweave keeps the pair-of-ids shape ({@link #MAGNETIC}/
+     * {@link #MAGNETIC2}'s precedent, since {@link #resolve} counts one id once) but each id is a
+     * flat +1, so an all-paper tool lands at the scope table's +2 (docs/SCOPE.md M3.2: "paper's pair
+     * grants +2 -- upstream behavior, not the naming"; upstream's own head registration is level 2 --
+     * the deviation to a flat pair is the scope table's call, recorded in the PR).
+     */
+    public static final Trait WRITABLE = new Trait() {
+        @Override
+        public int bonusSlots() {
+            return 1;
+        }
+    };
+
+    /**
+     * Sponge. Upstream {@code TraitSqueaky}: always-on Silk Touch ({@code applyEffect}'s
+     * {@code ToolBuilder#addEnchantment}, here the assembly-time grant behind
+     * {@link Trait#grantsSilkTouch}) and a hard-zero hit ({@code damage} returns {@code 0f}
+     * unconditionally, here {@link Trait#zeroesAttackDamage}). Upstream's squeak-toy sound on hit has
+     * no Forgeweave sound asset and its {@code canApplyTogether} luck/fortune guards have no modifier
+     * compat surface to land on yet -- both recorded in the PR.
+     */
+    public static final Trait SQUEAKY = new Trait() {
+        @Override
+        public boolean grantsSilkTouch() {
+            return true;
+        }
+
+        @Override
+        public boolean zeroesAttackDamage() {
+            return true;
+        }
+    };
+
+    /**
+     * Firewood. Upstream {@code TraitAutosmelt#blockHarvestDrops}: mined blocks drop their
+     * furnace-smelted result. The smelting itself is the M2 Searing modifier's
+     * ({@code ForgeweaveModifiers#onBlockDrops} -&gt; {@code smelt}), shared rather than duplicated
+     * (issue #228); this trait only opts the tool in through {@link Trait#autoSmelt}. Upstream's
+     * fortune-multiplies-smelted-drops config rider and its silk-touch {@code canApplyTogether} guard
+     * follow Searing's (absent) behavior -- recorded in the PR.
+     */
+    public static final Trait AUTOSMELT = new Trait() {
+        @Override
+        public boolean autoSmelt() {
+            return true;
+        }
+    };
+
     /** Movement speed the tool's traits add while it is held, as a fraction of the holder's total. */
     public static float movementSpeedBonus(ItemStack stack) {
         float bonus = 0.0F;
@@ -861,7 +1104,22 @@ public final class ForgeweaveTraits {
             Map.entry(id("slimey_blue"), SLIMEY_BLUE),
             Map.entry(id("baconlicious"), BACONLICIOUS),
             Map.entry(id("tasty"), TASTY),
-            Map.entry(id("vintage"), VINTAGE));
+            Map.entry(id("vintage"), VINTAGE),
+            // #228 M3.2 mining/durability-economy traits.
+            Map.entry(id("duritos"), DURITOS),
+            Map.entry(id("jagged"), JAGGED),
+            Map.entry(id("aquadynamic"), AQUADYNAMIC),
+            Map.entry(id("aridiculous"), ARIDICULOUS),
+            Map.entry(id("crumbling"), CRUMBLING),
+            Map.entry(id("unnatural"), UNNATURAL),
+            Map.entry(id("dense"), DENSE),
+            // Two ids, one behavior: paper carries writable2 on the head and writable generally, so
+            // an all-paper tool nets +2 despite resolve()'s one-id-once rule -- see WRITABLE.
+            Map.entry(id("writable"), WRITABLE),
+            Map.entry(id("writable2"), WRITABLE),
+            Map.entry(id("squeaky"), SQUEAKY),
+            Map.entry(id("autosmelt"), AUTOSMELT));
+
 
     /**
      * The assembled tool's durability after the <b>head</b> material's head-scoped traits adjusted it
@@ -962,6 +1220,11 @@ public final class ForgeweaveTraits {
     public static final CombatSeam COMBAT_SEAM = new CombatSeam() {
         @Override
         public float preHit(CombatHit hit, float originalDamage, float damage) {
+            // #228 squeaky: upstream TraitSqueaky#damage returns 0f unconditionally, trumping every
+            // other bonus -- so the check runs before, not after, the additive traits.
+            if (zeroesAttackDamage(hit.weapon())) {
+                return 0.0F;
+            }
             return damage + bonusDamageAgainst(hit.weapon(), hit.target(), originalDamage);
         }
 
@@ -1024,6 +1287,76 @@ public final class ForgeweaveTraits {
             bonus += trait.attackDurabilityBonus(stack);
         }
         return bonus;
+    }
+
+    // -- #228 M3.2 mining/durability-economy aggregators, one per new Trait hook.
+
+    /**
+     * This durability loss after every trait on {@code stack} has adjusted it in order
+     * ({@link Trait#durabilityDamage}), floored at zero so a cost-negating roll (duritos) can never
+     * turn a loss into a heal. Called from {@code ToolItem#damageItem}, the single durability choke
+     * point (its class javadoc).
+     */
+    public static int durabilityDamage(ItemStack stack, RandomSource random, int amount) {
+        int result = amount;
+        for (Trait trait : of(stack)) {
+            result = trait.durabilityDamage(stack, random, amount, result);
+        }
+        return Math.max(0, result);
+    }
+
+    /**
+     * {@link Trait#breakSpeed}'s driver: the break-speed traits that need the player or the block
+     * (aquadynamic, aridiculous, crumbling, unnatural), chained over NeoForge's
+     * {@code PlayerEvent.BreakSpeed} -- the same event upstream 1.12 handles per trait, and the only
+     * seam that sees the breaking player ({@code Item#getDestroySpeed}, where
+     * {@link Trait#miningSpeed} runs, does not). Registered on the game event bus in
+     * {@code Forgeweave}, same idiom as {@link #onExperienceDrop}.
+     */
+    public static void onBreakSpeed(PlayerEvent.BreakSpeed event) {
+        Player player = event.getEntity();
+        ItemStack stack = player.getMainHandItem();
+        if (!(stack.getItem() instanceof ToolItem) || ToolItem.isBroken(stack)) {
+            return;
+        }
+        float original = event.getOriginalSpeed();
+        float speed = event.getNewSpeed();
+        for (Trait trait : of(stack)) {
+            speed = trait.breakSpeed(stack, player, event.getState(), original, speed);
+        }
+        if (speed != event.getNewSpeed()) {
+            event.setNewSpeed(speed);
+        }
+    }
+
+    /** Whether any trait on {@code stack} grants vanilla Silk Touch at assembly (squeaky). */
+    public static boolean grantsSilkTouch(ItemStack stack) {
+        for (Trait trait : of(stack)) {
+            if (trait.grantsSilkTouch()) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /** Whether any trait on {@code stack} forces its attack damage to zero (squeaky). */
+    public static boolean zeroesAttackDamage(ItemStack stack) {
+        for (Trait trait : of(stack)) {
+            if (trait.zeroesAttackDamage()) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /** Whether any trait on {@code stack} smelts what it mines (autosmelt; Searing's modifier twin). */
+    public static boolean autoSmelts(ItemStack stack) {
+        for (Trait trait : of(stack)) {
+            if (trait.autoSmelt()) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**

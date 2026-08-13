@@ -336,6 +336,11 @@ public class ToolItem extends Item {
         if (stats == null || isBroken(stack)) {
             return 0.0F;
         }
+        // #228 squeaky: attack damage hard zero (upstream TraitSqueaky#damage). Zeroed here so the
+        // attribute and the tooltip agree with the blow ForgeweaveTraits#COMBAT_SEAM zeroes.
+        if (ForgeweaveTraits.zeroesAttackDamage(stack)) {
+            return 0.0F;
+        }
         return stats.attackDamage() * damagePotential + ForgeweaveTraits.attackDamageBonus(stack);
     }
 
@@ -350,6 +355,15 @@ public class ToolItem extends Item {
         // unbreakable rather than a separate flag (ForgeweaveModifiers#REINFORCED's javadoc).
         if (entity != null && negatesDurabilityDamage(stack, entity)) {
             return 0;
+        }
+        // #228: the durability-economy traits (duritos, dense) reprice the loss at this same choke
+        // point -- upstream ITrait#onToolDamage inside ToolHelper#damageTool. Gated on entity like
+        // the reinforced roll above, which is also where the RandomSource comes from.
+        if (entity != null) {
+            amount = ForgeweaveTraits.durabilityDamage(stack, entity.getRandom(), amount);
+            if (amount <= 0) {
+                return 0;
+            }
         }
         int brokenAt = stack.getMaxDamage() - 1;
         int applied = Math.max(0, Math.min(amount, brokenAt - stack.getDamageValue()));

@@ -4,6 +4,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.state.BlockState;
 
@@ -20,7 +21,9 @@ import dev.gkissel.forgeweave.combat.CombatHit;
  * {@link #miningSpeed}, {@link #afterBlockBreak}, {@link #attackSpeedBonus}, {@link #afterHit} and
  * {@link #attackDurabilityBonus}, and widened {@link #bonusDamageAgainst} to take the stack, because
  * those traits need either the tool's own {@code ItemStack} (to read/write per-tool state a M1 trait
- * never needed) or a seam M1 had no trait for.
+ * never needed) or a seam M1 had no trait for. Issue #228 (M3.2 mining/durability-economy traits)
+ * added {@link #durabilityDamage}, {@link #breakSpeed}, {@link #grantsSilkTouch},
+ * {@link #zeroesAttackDamage} and {@link #autoSmelt} on the same rule.
  *
  * <p>Everything here runs server-side only, from the seams in {@code ToolItem},
  * {@code ToolAssemblyRecipes} and {@link ForgeweaveTraits}'s event-bus listeners -- except
@@ -173,5 +176,65 @@ public interface Trait {
      */
     default int maxDurabilityBonus(ItemStack stack) {
         return 0;
+    }
+
+    // #228 mining/durability-economy traits (duritos, dense, aquadynamic, aridiculous, crumbling,
+    // unnatural, squeaky, autosmelt).
+
+    /**
+     * This durability loss after this trait has adjusted it, rolled inside
+     * {@code ToolItem#damageItem} -- the single choke point every durability loss in the game routes
+     * through (that class's javadoc), so it covers mining, attacking and third-party
+     * {@code hurtAndBreak} calls alike, exactly where upstream 1.12's {@code ITrait#onToolDamage}
+     * sits ({@code ToolHelper#damageTool}). Chained the same way {@link #miningSpeed} is.
+     *
+     * @param originalAmount the loss before any trait touched it, fixed for the whole chain
+     * @param amount the loss as adjusted by every earlier trait in the chain
+     */
+    default int durabilityDamage(ItemStack stack, RandomSource random, int originalAmount, int amount) {
+        return amount;
+    }
+
+    /**
+     * This block's break speed after this trait has adjusted it, for traits whose bonus depends on
+     * where the holder stands or on the block itself -- aquadynamic's water/rain, aridiculous's
+     * biome, crumbling's no-tool-needed check, unnatural's tier difference. Distinct from
+     * {@link #miningSpeed}, which runs inside {@code Item#getDestroySpeed} and therefore never sees
+     * the player; this one chains from NeoForge's {@code PlayerEvent.BreakSpeed}
+     * ({@code ForgeweaveTraits#onBreakSpeed}), the same event upstream 1.12's equivalents handle.
+     *
+     * @param originalSpeed the event's speed before any trait touched it, fixed for the whole chain
+     * @param speed the speed as adjusted by every earlier trait in the chain
+     */
+    default float breakSpeed(ItemStack stack, Player player, BlockState state, float originalSpeed, float speed) {
+        return speed;
+    }
+
+    /**
+     * Whether this trait puts vanilla Silk Touch on the tool at assembly (squeaky) -- the trait
+     * analog of {@code Modifier#grantsSilkTouch}, granted the same way in
+     * {@code ToolAssemblyRecipes#assemble}, the one assembly call site with the registry access an
+     * enchantment holder needs.
+     */
+    default boolean grantsSilkTouch() {
+        return false;
+    }
+
+    /**
+     * Whether this trait forces the tool's attack damage to a hard zero (squeaky, upstream
+     * {@code TraitSqueaky#damage}'s unconditional {@code 0f}). Read by {@code ToolItem} for the
+     * attribute/tooltip and by {@code ForgeweaveTraits#COMBAT_SEAM} for the blow itself.
+     */
+    default boolean zeroesAttackDamage() {
+        return false;
+    }
+
+    /**
+     * Whether blocks mined with this tool drop their furnace-smelted result (autosmelt). Consumed by
+     * {@code ForgeweaveModifiers#onBlockDrops}, sharing the Searing modifier's smelt path -- one
+     * implementation for both, per issue #228.
+     */
+    default boolean autoSmelt() {
+        return false;
     }
 }

@@ -443,6 +443,14 @@ public final class ToolAssemblyRecipes {
         // Trait ids come along as data so every later trait hook works off the stack alone
         // (ForgeweaveTraits: same id from two parts still counts once, as upstream 1.12 does).
         result.set(ForgeweaveDataComponents.TRAITS.get(), resolveTraits(entry, materials));
+        // #228 squeaky: a trait-granted always-on Silk Touch lands at assembly exactly the way
+        // silky's modifier grant lands at application (grantEnchantments below) -- this is the one
+        // assembly call site with the registry access an enchantment holder needs.
+        if (ForgeweaveTraits.grantsSilkTouch(result)) {
+            registries.lookup(Registries.ENCHANTMENT)
+                    .flatMap(lookup -> lookup.get(Enchantments.SILK_TOUCH))
+                    .ifPresent(silkTouch -> result.enchant(silkTouch, 1));
+        }
         // Mining tier, mining speed, and the durability bar all ride on vanilla components, so
         // vanilla's own block-breaking and rendering paths need no Forgeweave-specific handling.
         result.set(DataComponents.TOOL, tool.toolComponent(head, stats));
