@@ -141,6 +141,25 @@ class MaterialTest {
         assertEquals(List.of(generalId), material.traits().forPart(PartItem.Kind.EXTRA));
     }
 
+    /**
+     * Issue #282: upstream restates the general trait under HEAD alongside the head-specific one,
+     * so the head part doesn't lose the general trait entirely (head lists replace, not merge).
+     * pig_iron already does this correctly; prismarine and netherrack must restate
+     * aquadynamic/hellish under head too.
+     */
+    @ParameterizedTest
+    @CsvSource({ "pig_iron,tasty,baconlicious", "prismarine,aquadynamic,jagged", "netherrack,hellish,aridiculous" })
+    void headScopedMaterialsRestateTheGeneralTraitUnderHead(String name, String general, String headOnly) {
+        Material material = Material.CODEC.parse(ops, shipped(name)).getOrThrow();
+        ResourceLocation generalId = ResourceLocation.fromNamespaceAndPath("forgeweave", general);
+        ResourceLocation headOnlyId = ResourceLocation.fromNamespaceAndPath("forgeweave", headOnly);
+
+        assertEquals(List.of(generalId), material.traits().general());
+        assertEquals(List.of(headOnlyId, generalId), material.traits().forPart(PartItem.Kind.HEAD));
+        assertEquals(List.of(generalId), material.traits().forPart(PartItem.Kind.HANDLE));
+        assertEquals(List.of(generalId), material.traits().forPart(PartItem.Kind.EXTRA));
+    }
+
     /** Pre-#94 packs keep loading: one {@code trait} id means one trait on every part (ADR-0002). */
     @Test
     void acceptsTheLegacySingleTraitField() {
