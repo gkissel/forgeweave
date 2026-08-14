@@ -218,8 +218,41 @@ public abstract class StationScreen<T extends StationMenu> extends AbstractConta
         }
     }
 
+    /**
+     * Grabs a panel scrollbar under the cursor, if this station has one there (issue #376). Three
+     * overrides in one place rather than in each of the four screens with a side inventory and the
+     * two with info panels: the drag has to survive the cursor leaving the track, so it needs a
+     * press, a move and a release, and wiring six screens for that is how the issue #75 tooltip
+     * defect happened.
+     *
+     * @return true when the slider took the event
+     */
+    protected boolean sliderClicked(double mouseX, double mouseY) {
+        return false;
+    }
+
+    protected boolean sliderDragged(double mouseX, double mouseY) {
+        return false;
+    }
+
+    protected void sliderReleased() {}
+
+    @Override
+    public boolean mouseDragged(double mouseX, double mouseY, int button, double dragX, double dragY) {
+        return sliderDragged(mouseX, mouseY) || super.mouseDragged(mouseX, mouseY, button, dragX, dragY);
+    }
+
+    @Override
+    public boolean mouseReleased(double mouseX, double mouseY, int button) {
+        sliderReleased();
+        return super.mouseReleased(mouseX, mouseY, button);
+    }
+
     @Override
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
+        if (sliderClicked(mouseX, mouseY)) {
+            return true;
+        }
         int tab = hoveredTab(mouseX, mouseY);
         if (tab >= 0 && minecraft != null) {
             if (tab != menu.stationGroup().selected()) {

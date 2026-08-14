@@ -205,7 +205,13 @@ public class BookScreen extends Screen {
         Component name = Component.translatable("material." + page.id().getNamespace() + "." + page.id().getPath())
                 .withStyle(Style.EMPTY.withColor(page.material().color()));
         int cursor = drawTitle(graphics, name, x, y);
-        for (Component line : StationText.materialStats(page.material())) {
+        // The three stat groups run together, not StationText#materialStats: that one is the info
+        // panel's shape (issue #376's underlined headings and null spacers), and a book page has its
+        // own headings, no room for five more lines, and a drawString that would NPE on a spacer.
+        List<Component> stats = new ArrayList<>(StationText.headStats(page.material()));
+        stats.addAll(StationText.handleStats(page.material()));
+        stats.addAll(StationText.extraStats(page.material()));
+        for (Component line : stats) {
             graphics.drawString(this.font, line, x, cursor, TEXT_COLOR, false);
             cursor += this.font.lineHeight + 1;
         }

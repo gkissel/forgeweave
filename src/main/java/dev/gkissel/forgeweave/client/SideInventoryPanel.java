@@ -26,10 +26,16 @@ import dev.gkissel.forgeweave.menu.SideInventorySlots.SideSlot;
  * border ({@code GuiWidgetBorder}), 18px slots, at most 10 rows and never taller than the parent GUI
  * less 10px ({@code GuiSideInventory#calcCappedYSize}).
  *
- * <p>Stateful, one instance per screen, because the scroll offset is per-open-GUI state. Upstream's
- * slider widget is replaced by plain mouse-wheel scrolling, the same trade {@link InfoPanel} already
- * makes for upstream's panel scrollbar -- fewer moving parts, and the only visible difference is the
- * missing slider track.
+ * <p>Stateful, one instance per screen, because the scroll offset (and, since issue #376, whether a
+ * slider drag is in progress) is per-open-GUI state.
+ *
+ * <p>Issue #68 shipped mouse-wheel scrolling with no visible scrollbar, recorded here as a
+ * deliberate deviation alongside {@link InfoPanel}'s. Issue #376 reverses both (maintainer decision,
+ * 2026-08-14): upstream's slider is back, drawn from {@code generic.png}'s own knob/track sprites
+ * whenever the rows overflow ({@code GuiSideInventory:334-340}), and the wheel still works. As
+ * upstream does ({@code GuiSideInventory:140}), the panel grows by the slider's width when it
+ * appears -- leftwards here, because these panels hang off their station's left edge, so the slots
+ * move with it and the slider ends up in the column next to the station.
  */
 final class SideInventoryPanel {
     /** Upstream's {@code GuiGeneric} sheet: 7px border pieces, an 18px slot tile and an 18px "no slot here" tile. */
@@ -47,10 +53,28 @@ final class SideInventoryPanel {
     private static final int MAX_ROWS = 10;
     private static final int PARENT_MARGIN = 10;
 
+    // Upstream GuiGeneric's slider (issue #376): a 12px track -- 1px caps at (43, 7) and (43, 38)
+    // around a 30px bar at (43, 8) -- with a 10x15 knob at (7, 25), centred in the track.
+    static final int SLIDER_WIDTH = 12;
+    private static final int SLIDER_TRACK_U = 43;
+    private static final int SLIDER_TOP_V = 7;
+    private static final int SLIDER_BAR_V = 8;
+    private static final int SLIDER_BAR_H = 30;
+    private static final int SLIDER_BOTTOM_V = 38;
+    private static final int SLIDER_CAP_H = 1;
+    private static final int SLIDER_KNOB_U = 7;
+    private static final int SLIDER_KNOB_V = 25;
+    private static final int SLIDER_KNOB_W = 10;
+    private static final int SLIDER_KNOB_H = 15;
+
     private final int slotX;
     private final int slotY;
     private int scrollRow;
     private Rect2i bounds = new Rect2i(0, 0, 0, 0);
+    /** The slider's track after the last {@link #render}, empty while there is nothing to scroll. */
+    private Rect2i sliderTrack = new Rect2i(0, 0, 0, 0);
+    private int maxScrollRow;
+    private boolean draggingSlider;
 
     /** @param slotX,slotY where the menu put the panel's <em>first slot</em>, relative to the screen's top-left. */
     SideInventoryPanel(int slotX, int slotY) {
@@ -72,20 +96,33 @@ final class SideInventoryPanel {
             List<SideSlot> slots) {
         if (slots.isEmpty()) {
             bounds = new Rect2i(0, 0, 0, 0);
+            sliderTrack = new Rect2i(0, 0, 0, 0);
+            maxScrollRow = 0;
             return;
         }
         int totalRows = SideInventorySlots.rows(slots.size());
         int visibleRows = visibleRows(totalRows, parentHeight, slotY);
-        scrollRow = Math.clamp(scrollRow, 0, totalRows - visibleRows);
+        maxScrollRow = totalRows - visibleRows;
+        scrollRow = Math.clamp(scrollRow, 0, maxScrollRow);
 
-        int width = SideInventorySlots.PANEL_WIDTH;
+        // Upstream GuiSideInventory:140 widens the panel by the slider when it is needed, always
+        // putting the slider column right of the slots. Which way the panel grows is which edge is
+        // pinned to the station: a left-hand panel keeps its right edge there and so moves left
+        // (slots included, exactly as upstream's `slot.xPos -= xSize` does), a right-hand one keeps
+        // its left edge and does not move at all.
+        int sliderWidth = maxScrollRow > 0 ? SLIDER_WIDTH : 0;
+        int sliderShift = slotX < 0 ? sliderWidth : 0;
+        int width = SideInventorySlots.PANEL_WIDTH + sliderWidth;
         int height = visibleRows * SLOT + BORDER * 2;
         // Issue #79: the panel corner is SLOT_INSET (= BORDER + 1) out from the first slot, not
         // BORDER. generic.png's 18x18 slot tile is a 1px bevel wrapped around a 16x16 socket, so
         // laying tiles flush with the slots left every item one pixel up and left of its socket.
-        int x = onScreen(leftPos + slotX - SideInventorySlots.SLOT_INSET, width, graphics.guiWidth());
+        int x = onScreen(leftPos + slotX - SideInventorySlots.SLOT_INSET - sliderShift, width, graphics.guiWidth());
         int y = topPos + slotY - SideInventorySlots.SLOT_INSET;
         bounds = new Rect2i(x, y, width, height);
+        sliderTrack = sliderWidth == 0
+                ? new Rect2i(0, 0, 0, 0)
+                : new Rect2i(x + BORDER + COLUMNS * SLOT, y + BORDER, SLIDER_WIDTH, height - BORDER * 2);
         // The slots follow the (possibly shifted) panel, so items stay in their sockets.
         int laidOutSlotX = x - leftPos + SideInventorySlots.SLOT_INSET;
 
@@ -103,7 +140,80 @@ final class SideInventoryPanel {
             }
         }
 
+        if (sliderWidth > 0) {
+            renderSlider(graphics);
+        }
+
         SideInventorySlots.layout(menu, slots, firstSlot, lastSlot, laidOutSlotX, slotY);
+    }
+
+    /** Upstream's slider: {@code generic.png}'s two 1px caps around its tiled bar, knob centred on top. */
+    private void renderSlider(GuiGraphics graphics) {
+        int x = sliderTrack.getX();
+        int y = sliderTrack.getY();
+        int trackH = sliderTrack.getHeight();
+        graphics.blit(TEXTURE, x, y, SLIDER_TRACK_U, SLIDER_TOP_V, SLIDER_WIDTH, SLIDER_CAP_H, SHEET, SHEET);
+        for (int drawn = SLIDER_CAP_H; drawn < trackH - SLIDER_CAP_H; drawn += SLIDER_BAR_H) {
+            graphics.blit(TEXTURE, x, y + drawn, SLIDER_TRACK_U, SLIDER_BAR_V, SLIDER_WIDTH,
+                    Math.min(SLIDER_BAR_H, trackH - SLIDER_CAP_H - drawn), SHEET, SHEET);
+        }
+        graphics.blit(TEXTURE, x, y + trackH - SLIDER_CAP_H, SLIDER_TRACK_U, SLIDER_BOTTOM_V,
+                SLIDER_WIDTH, SLIDER_CAP_H, SHEET, SHEET);
+        graphics.blit(TEXTURE, x + (SLIDER_WIDTH - SLIDER_KNOB_W) / 2,
+                knobY(y, trackH, scrollRow, maxScrollRow), SLIDER_KNOB_U, SLIDER_KNOB_V,
+                SLIDER_KNOB_W, SLIDER_KNOB_H, SHEET, SHEET);
+    }
+
+    /** Where the knob sits on a track of this height: against the top at row 0, the bottom at the last row. */
+    static int knobY(int trackY, int trackHeight, int scrollRow, int maxScrollRow) {
+        int span = trackHeight - SLIDER_KNOB_H;
+        if (maxScrollRow <= 0 || span <= 0) {
+            return trackY;
+        }
+        return trackY + span * Math.clamp(scrollRow, 0, maxScrollRow) / maxScrollRow;
+    }
+
+    /** {@link #knobY} inverted: the row that puts the knob's middle under {@code mouseY}. */
+    static int scrollRowAt(int trackY, int trackHeight, int maxScrollRow, double mouseY) {
+        int span = trackHeight - SLIDER_KNOB_H;
+        if (maxScrollRow <= 0 || span <= 0) {
+            return 0;
+        }
+        return (int) Math.clamp(Math.round((mouseY - trackY - SLIDER_KNOB_H / 2.0) * maxScrollRow / span),
+                0, maxScrollRow);
+    }
+
+    /**
+     * Grabs the slider if the press landed on it. Hit-tested against the track the last {@link
+     * #render} placed, so this needs none of that call's arguments -- the panel is drawn every frame
+     * before any input reaches it.
+     *
+     * @return true when the press was the slider's, so the screen shouldn't also act on it
+     */
+    boolean sliderClicked(double mouseX, double mouseY) {
+        if (maxScrollRow <= 0 || !sliderTrack.contains((int) mouseX, (int) mouseY)) {
+            return false;
+        }
+        draggingSlider = true;
+        scrollRow = scrollRowAt(sliderTrack.getY(), sliderTrack.getHeight(), maxScrollRow, mouseY);
+        return true;
+    }
+
+    /**
+     * Follows a grabbed slider, wherever the cursor has since gone. Gated on the press having landed
+     * on the track: a bare "is the cursor over the slider" test would hijack any item drag that
+     * happens to cross the column between the panel's slots and its station.
+     */
+    boolean sliderDragged(double mouseY) {
+        if (!draggingSlider) {
+            return false;
+        }
+        scrollRow = scrollRowAt(sliderTrack.getY(), sliderTrack.getHeight(), maxScrollRow, mouseY);
+        return true;
+    }
+
+    void sliderReleased() {
+        draggingSlider = false;
     }
 
     /**

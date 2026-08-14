@@ -19,6 +19,8 @@ import net.minecraft.core.MappedRegistry;
 import net.minecraft.core.RegistrationInfo;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.HoverEvent;
+import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.network.chat.Style;
 import net.minecraft.network.chat.TextColor;
 import net.minecraft.resources.ResourceKey;
@@ -127,8 +129,7 @@ class PartItemTest {
         assertEquals(List.of(
                 Component.translatable("material.forgeweave.stone").withStyle(Style.EMPTY.withColor(STONE_COLOR)),
                 Component.empty(),
-                Component.translatable("trait.forgeweave.cheap.name").withStyle(Style.EMPTY.withColor(STONE_COLOR)),
-                Component.translatable("trait.forgeweave.cheap.description").withStyle(ChatFormatting.GRAY)),
+                traitLine("cheap", STONE_COLOR)),
                 tooltip);
     }
 
@@ -148,8 +149,7 @@ class PartItemTest {
                 statLine("attack_damage", "3", ATTACK_COLOR),
                 tierLine("stone"),
                 Component.empty(),
-                Component.translatable("trait.forgeweave.cheap.name").withStyle(Style.EMPTY.withColor(STONE_COLOR)),
-                Component.translatable("trait.forgeweave.cheap.description").withStyle(ChatFormatting.GRAY)),
+                traitLine("cheap", STONE_COLOR)),
                 tooltip);
     }
 
@@ -216,8 +216,7 @@ class PartItemTest {
                 statLine("handle_modifier", "0.5", MODIFIER_COLOR),
                 statLine("handle_durability", "-50", DURABILITY_COLOR),
                 Component.empty(),
-                Component.translatable("trait.forgeweave.cheap.name").withStyle(Style.EMPTY.withColor(STONE_COLOR)),
-                Component.translatable("trait.forgeweave.cheap.description").withStyle(ChatFormatting.GRAY)),
+                traitLine("cheap", STONE_COLOR)),
                 tooltip);
     }
 
@@ -230,8 +229,9 @@ class PartItemTest {
 
         assertEquals(statTypeHeading("extra"), tooltip.get(2));
         assertEquals(statLine("extra_durability", "20", DURABILITY_COLOR), tooltip.get(3));
-        assertEquals(7, tooltip.size(),
-                "one heading and one stat line, framed by the material name and the trait pair");
+        assertEquals(6, tooltip.size(),
+                "issue #379's heading and one stat line, framed by the material name and the single "
+                        + "trait row issue #376 left");
     }
 
     private static ItemStack partOf(PartItem part) {
@@ -246,9 +246,27 @@ class PartItemTest {
                 .withStyle(ChatFormatting.WHITE, ChatFormatting.UNDERLINE);
     }
 
+    /**
+     * A stat row as {@code StationText} builds it: label plus coloured value, with the row's
+     * {@code .desc} key hung on it as hover text (issue #376).
+     */
     private static Component statLine(String key, String value, TextColor color) {
-        return Component.translatable("gui.forgeweave.stat." + key,
-                Component.literal(value).withStyle(Style.EMPTY.withColor(color)));
+        return withHover(Component.translatable("gui.forgeweave.stat." + key,
+                Component.literal(value).withStyle(Style.EMPTY.withColor(color))),
+                Component.translatable("gui.forgeweave.stat." + key + ".desc"));
+    }
+
+    /** One line per trait since issue #376, its description carried as hover text rather than a second line. */
+    private static Component traitLine(String trait, TextColor color) {
+        return withHover(
+                Component.translatable("trait.forgeweave." + trait + ".name")
+                        .withStyle(Style.EMPTY.withColor(color)),
+                Component.translatable("trait.forgeweave." + trait + ".description"));
+    }
+
+    private static Component withHover(MutableComponent line, Component description) {
+        Component hover = line.copy().append("\n").append(description.copy().withStyle(ChatFormatting.GRAY));
+        return line.withStyle(style -> style.withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, hover)));
     }
 
     private static Component tierLine(String tier) {

@@ -66,6 +66,21 @@ public class CraftingStationScreen extends StationScreen<CraftingStationMenu> im
     }
 
     @Override
+    protected boolean sliderClicked(double mouseX, double mouseY) {
+        return sidePanel.sliderClicked(mouseX, mouseY);
+    }
+
+    @Override
+    protected boolean sliderDragged(double mouseX, double mouseY) {
+        return sidePanel.sliderDragged(mouseY);
+    }
+
+    @Override
+    protected void sliderReleased() {
+        sidePanel.sliderReleased();
+    }
+
+    @Override
     public boolean mouseScrolled(double mouseX, double mouseY, double scrollX, double scrollY) {
         return sidePanel.mouseScrolled(mouseX, mouseY, scrollY, imageHeight, menu.sideSlots)
                 || super.mouseScrolled(mouseX, mouseY, scrollX, scrollY);

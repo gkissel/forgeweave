@@ -232,6 +232,7 @@ public class ToolStationScreen extends StationScreen<ToolStationMenu> implements
     private List<Component> traitLines = List.of();
     private int toolScroll;
     private int traitScroll;
+    private int draggingPanel = -1;
     private final SideInventoryPanel sidePanel =
             new SideInventoryPanel(ToolStationMenu.SIDE_PANEL_X, ToolStationMenu.SIDE_PANEL_Y);
 
@@ -501,12 +502,10 @@ public class ToolStationScreen extends StationScreen<ToolStationMenu> implements
     }
 
     private void renderInfoPanels(GuiGraphics graphics) {
-        int x = leftPos + BASE_WIDTH + PANEL_GAP;
-        int top = topPos + PANEL_TOP;
-        beam(graphics, x - BEAM_END_W, topPos, InfoPanel.WIDTH);
-        InfoPanel.render(graphics, font, x, top, InfoPanel.WIDTH, InfoPanel.HEIGHT,
+        beam(graphics, panelX() - BEAM_END_W, topPos, InfoPanel.WIDTH);
+        InfoPanel.render(graphics, font, panelX(), panelY(), InfoPanel.WIDTH, InfoPanel.HEIGHT,
                 panelStyle(), toolCaption, toolLines, toolScroll);
-        InfoPanel.render(graphics, font, x, top + InfoPanel.HEIGHT + PANEL_SPACING,
+        InfoPanel.render(graphics, font, panelX(), traitPanelY(),
                 InfoPanel.WIDTH, InfoPanel.HEIGHT, panelStyle(), traitCaption, traitLines, traitScroll);
     }
 
@@ -566,12 +565,79 @@ public class ToolStationScreen extends StationScreen<ToolStationMenu> implements
         // Hovering a modifier row in the tool info panel explains the effect (issue #258): the rows
         // StationText#toolModifiers builds carry SHOW_TEXT hover events, so this only asks the panel
         // which style sits under the mouse and lets vanilla render whatever hover event it carries
-        // (lines without one -- stats, materials, the slots-left line -- no-op inside the call).
-        Style hovered = InfoPanel.hoveredStyle(font, leftPos + BASE_WIDTH + PANEL_GAP, topPos + PANEL_TOP,
+        // (lines without one -- materials, the slots-left line -- no-op inside the call). Issue #376
+        // gives the stat rows and the trait panel's rows the same treatment, so the second panel has
+        // to be asked too.
+        Style hovered = InfoPanel.hoveredStyle(font, panelX(), panelY(),
                 InfoPanel.WIDTH, InfoPanel.HEIGHT, toolCaption != null, toolLines, toolScroll, mouseX, mouseY);
+        if (hovered == null) {
+            hovered = InfoPanel.hoveredStyle(font, panelX(), traitPanelY(), InfoPanel.WIDTH, InfoPanel.HEIGHT,
+                    traitCaption != null, traitLines, traitScroll, mouseX, mouseY);
+        }
         if (hovered != null) {
             graphics.renderComponentHoverEffect(font, hovered, mouseX, mouseY);
         }
+    }
+
+    private int panelX() {
+        return leftPos + BASE_WIDTH + PANEL_GAP;
+    }
+
+    private int panelY() {
+        return topPos + PANEL_TOP;
+    }
+
+    private int traitPanelY() {
+        return topPos + PANEL_TOP + InfoPanel.HEIGHT + PANEL_SPACING;
+    }
+
+    /**
+     * Issue #376: both info panels and the side inventory now carry a draggable slider. {@code -1}
+     * is "nothing grabbed"; the two panels are told apart by index because they share every
+     * dimension but their y.
+     */
+    private static final int NO_PANEL = -1;
+    private static final int TOOL_PANEL = 0;
+    private static final int TRAIT_PANEL = 1;
+
+    @Override
+    protected boolean sliderClicked(double mouseX, double mouseY) {
+        if (sidePanel.sliderClicked(mouseX, mouseY)) {
+            return true;
+        }
+        if (InfoPanel.overSlider(font, panelX(), panelY(), InfoPanel.WIDTH, InfoPanel.HEIGHT,
+                toolCaption != null, toolLines, mouseX, mouseY)) {
+            draggingPanel = TOOL_PANEL;
+        } else if (InfoPanel.overSlider(font, panelX(), traitPanelY(), InfoPanel.WIDTH, InfoPanel.HEIGHT,
+                traitCaption != null, traitLines, mouseX, mouseY)) {
+            draggingPanel = TRAIT_PANEL;
+        } else {
+            return false;
+        }
+        return sliderDragged(mouseX, mouseY);
+    }
+
+    @Override
+    protected boolean sliderDragged(double mouseX, double mouseY) {
+        if (sidePanel.sliderDragged(mouseY)) {
+            return true;
+        }
+        if (draggingPanel == TOOL_PANEL) {
+            toolScroll = InfoPanel.sliderScroll(font, panelY(), InfoPanel.WIDTH, InfoPanel.HEIGHT,
+                    toolCaption != null, toolLines, mouseY);
+        } else if (draggingPanel == TRAIT_PANEL) {
+            traitScroll = InfoPanel.sliderScroll(font, traitPanelY(), InfoPanel.WIDTH, InfoPanel.HEIGHT,
+                    traitCaption != null, traitLines, mouseY);
+        } else {
+            return false;
+        }
+        return true;
+    }
+
+    @Override
+    protected void sliderReleased() {
+        sidePanel.sliderReleased();
+        draggingPanel = NO_PANEL;
     }
 
     @Override

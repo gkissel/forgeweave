@@ -4,6 +4,7 @@ import java.awt.Color;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 
@@ -102,13 +103,7 @@ public final class StationText {
             if (level > 1) {
                 line.append(CommonComponents.SPACE).append(Component.translatable("enchantment.level." + level));
             }
-            // Hovering the row explains the effect (issue #258): the row itself as a heading -- name
-            // plus level, in the modifier colour -- over the id's .description key in gray. Carried
-            // as a SHOW_TEXT hover event on the line's style so the screen's hit-testing needs no
-            // parallel list; a HoverEvent is chat-common, so this class stays client-free.
-            Component hover = line.copy().append("\n")
-                    .append(ModifierApplication.description(entry.id()).copy().withStyle(ChatFormatting.GRAY));
-            lines.add(line.withStyle(style -> style.withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, hover))));
+            lines.add(withHover(line, ModifierApplication.description(entry.id())));
         }
         lines.add(Component.translatable("gui.forgeweave.tool_station.modifier_slots",
                 ForgeweaveModifiers.freeSlots(tool)).withStyle(ChatFormatting.GRAY));
@@ -120,12 +115,34 @@ public final class StationText {
         return materials.all().stream().map(id -> (Component) MaterialDisplay.name(registries, id)).toList();
     }
 
-    /** What one material contributes, whichever part it ends up in (the Part Builder's info panel). */
+    /**
+     * What one material contributes, whichever part it ends up in (the Part Builder's info panel),
+     * grouped as upstream's {@code GuiPartBuilder#setDisplayForMaterial} groups it: one underlined
+     * heading per stat type, its stats under it, and a blank line between groups (with no trailing
+     * one). Issue #376 -- this used to be all six stats run together with nothing to read them by.
+     *
+     * <p>Contains {@code null} spacers, which is what {@link InfoPanel} wants and what any other
+     * caller has to cope with; the three group accessors below are the flat alternative.
+     */
     public static List<Component> materialStats(Material material) {
-        List<Component> lines = new ArrayList<>(headStats(material));
-        lines.addAll(handleStats(material));
-        lines.addAll(extraStats(material));
-        return List.copyOf(lines);
+        List<Component> lines = new ArrayList<>();
+        statGroup(lines, "head", headStats(material));
+        statGroup(lines, "handle", handleStats(material));
+        statGroup(lines, "extra", extraStats(material));
+        lines.remove(lines.size() - 1); // upstream drops the last group's trailing spacer
+        // Not List.copyOf: that rejects the null spacers this list is made of.
+        return Collections.unmodifiableList(lines);
+    }
+
+    /**
+     * The heading key is issue #379's {@code tooltip.forgeweave.stat_type.*}, not a second family of
+     * its own: both surfaces are upstream's one {@code stat.<type>.name}, so a part's item tooltip
+     * and the Part Builder's panel cannot end up calling the same stat block different things.
+     */
+    private static void statGroup(List<Component> lines, String key, List<Component> stats) {
+        lines.add(Component.translatable("tooltip.forgeweave.stat_type." + key).withStyle(ChatFormatting.UNDERLINE));
+        lines.addAll(stats);
+        lines.add(null); // spacer
     }
 
     /** What a head part of this material contributes: the durability pool, mining speed and attack. */
@@ -148,17 +165,17 @@ public final class StationText {
         return List.of(stat("extra_durability", material.extraDurability(), DURABILITY_COLOR));
     }
 
-    /** Each trait's name in {@code color} followed by its description, blank line between entries. */
+    /**
+     * One line per trait: its name in {@code color}, its description as hover text.
+     *
+     * <p>Issue #376 (maintainer decision, 2026-08-14) collapsed this from three lines per trait
+     * (name, grey description, spacer) to one, which is what upstream's {@code GuiPartBuilder} and
+     * {@code GuiToolStation} both show -- a name in the material's colour with
+     * {@code getLocalizedDesc()} handed to the panel as that row's tooltip. It roughly thirds the
+     * scroll length of a many-trait material, which is the point.
+     */
     public static List<Component> traits(@Nullable TextColor color, List<ResourceLocation> traitIds) {
-        List<Component> lines = new ArrayList<>();
-        for (ResourceLocation id : traitIds) {
-            lines.addAll(traitLines(color, id));
-            lines.add(null); // spacer
-        }
-        if (!lines.isEmpty()) {
-            lines.remove(lines.size() - 1);
-        }
-        return lines;
+        return traitIds.stream().map(id -> traitLine(color, id)).toList();
     }
 
     /**
@@ -169,15 +186,9 @@ public final class StationText {
     public static List<Component> toolTraits(@Nullable HolderLookup.Provider registries, ToolMaterials materials,
             List<ResourceLocation> traitIds) {
         List<ResourceLocation> materialIds = materials.all();
-        List<Component> lines = new ArrayList<>();
-        for (ResourceLocation id : traitIds) {
-            lines.addAll(traitLines(MaterialDisplay.traitColor(registries, materialIds, id), id));
-            lines.add(null); // spacer
-        }
-        if (!lines.isEmpty()) {
-            lines.remove(lines.size() - 1);
-        }
-        return lines;
+        return traitIds.stream()
+                .map(id -> traitLine(MaterialDisplay.traitColor(registries, materialIds, id), id))
+                .toList();
     }
 
     /** The trait ids stored on an assembled tool, or an empty list for anything else. */
@@ -186,10 +197,16 @@ public final class StationText {
         return ids == null ? List.of() : ids;
     }
 
-    /** One {@code Label: value} line with only the value coloured, as upstream's {@code formatNumber}. */
+    /**
+     * One {@code Label: value} line with only the value coloured, as upstream's {@code formatNumber},
+     * explaining itself on hover from {@code gui.forgeweave.stat.<key>.desc} (issue #376, ported from
+     * upstream's {@code stat.<type>.<stat>.desc} entries -- {@code IMaterialStats#getLocalizedDesc},
+     * which every panel that shows a stat row hands to the panel as that row's tooltip).
+     */
     public static Component stat(String key, float value, TextColor color) {
-        return Component.translatable("gui.forgeweave.stat." + key,
-                Component.literal(formatNumber(value)).withStyle(Style.EMPTY.withColor(color)));
+        return withHover(Component.translatable("gui.forgeweave.stat." + key,
+                Component.literal(formatNumber(value)).withStyle(Style.EMPTY.withColor(color))),
+                Component.translatable("gui.forgeweave.stat." + key + ".desc"));
     }
 
     /** {@code Durability: 120/160}, the remaining half on upstream's wear ramp and the max on green. */
@@ -199,7 +216,8 @@ public final class StationText {
                 .withStyle(Style.EMPTY.withColor(durabilityColor(ratio)))
                 .append(Component.literal("/").withStyle(ChatFormatting.GRAY))
                 .append(Component.literal(formatNumber(max)).withStyle(Style.EMPTY.withColor(DURABILITY_COLOR)));
-        return Component.translatable("gui.forgeweave.stat.durability", value);
+        return withHover(Component.translatable("gui.forgeweave.stat.durability", value),
+                Component.translatable("gui.forgeweave.stat.durability.desc"));
     }
 
     /**
@@ -215,12 +233,24 @@ public final class StationText {
         return FORMAT.format(value);
     }
 
-    private static List<Component> traitLines(@Nullable TextColor color, ResourceLocation id) {
+    private static Component traitLine(@Nullable TextColor color, ResourceLocation id) {
         String base = "trait." + id.getNamespace() + "." + id.getPath();
         MutableComponent name = Component.translatable(base + ".name");
-        return List.of(
+        return withHover(
                 color == null ? name.withStyle(ChatFormatting.WHITE) : name.withStyle(Style.EMPTY.withColor(color)),
-                Component.translatable(base + ".description").withStyle(ChatFormatting.GRAY));
+                Component.translatable(base + ".description"));
+    }
+
+    /**
+     * A panel row that explains itself on hover (issue #258 for modifier rows, generalised to stat
+     * and trait rows by #376): the row itself as a heading over {@code description} in grey, carried
+     * as a {@code SHOW_TEXT} event on the row's own style so the screen's hit-testing needs no
+     * parallel tooltip list -- which is upstream's shape, a {@code tips} list indexed in lockstep
+     * with the text list. A {@code HoverEvent} is chat-common, so this class stays client-free.
+     */
+    private static Component withHover(MutableComponent line, Component description) {
+        Component hover = line.copy().append("\n").append(description.copy().withStyle(ChatFormatting.GRAY));
+        return line.withStyle(style -> style.withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, hover)));
     }
 
     private StationText() {}

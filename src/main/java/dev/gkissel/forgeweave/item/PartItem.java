@@ -126,12 +126,10 @@ public class PartItem extends Item {
         }
         tooltip.add(Component.empty());
         // The traits this material grants through this kind of part, which is upstream's own filter
-        // (ToolPart#getTooltipTraitInfo passes the part's stat type to getAllTraitsForStats).
-        // StationText separates entries with the null spacer InfoPanel understands; a tooltip list
-        // must not carry nulls, so they become blank lines here.
-        for (Component line : StationText.traits(material.get().color(), material.get().traits().forPart(kind))) {
-            tooltip.add(line == null ? Component.empty() : line);
-        }
+        // (ToolPart#getTooltipTraitInfo passes the part's stat type to getAllTraitsForStats). One
+        // line per trait since issue #376, which is also what upstream's part tooltip shows -- names
+        // only, no descriptions (the descriptions are hover text, which an item tooltip cannot show).
+        tooltip.addAll(StationText.traits(material.get().color(), material.get().traits().forPart(kind)));
     }
 
     /**
