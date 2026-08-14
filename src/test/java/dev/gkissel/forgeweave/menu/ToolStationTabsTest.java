@@ -51,4 +51,37 @@ class ToolStationTabsTest {
         assertTrue(ToolStationTabs.TABS.get(ToolStationTabs.REPAIR).isRepair(),
                 "the station opens on the repair tab, so index REPAIR must be it");
     }
+
+    /**
+     * Issue #304: mattock, kama and cleaver were hand-authored despite upstream shipping exact
+     * coordinates in {@code HarvestClientProxy} (mattock, kama) and {@code MeleeClientProxy}
+     * (cleaver). Pins the three tabs to those upstream-derived positions so a future edit can't
+     * silently drift back to invented numbers.
+     */
+    @Test
+    void mattockKamaAndCleaverMatchUpstreamPositions() {
+        ToolStationTabs.Tab mattock = tabFor("mattock");
+        assertEquals(List.of(new ToolStationTabs.Pos(22, 53), new ToolStationTabs.Pos(31, 22),
+                new ToolStationTabs.Pos(51, 34)), mattock.slots(),
+                "mattock: handle, axe head, shovel head -- HarvestClientProxy verbatim");
+
+        ToolStationTabs.Tab kama = tabFor("kama");
+        assertEquals(List.of(new ToolStationTabs.Pos(22, 53), new ToolStationTabs.Pos(31, 22),
+                new ToolStationTabs.Pos(51, 34)), kama.slots(),
+                "kama: handle, head, binding -- identical to hatchet's HarvestClientProxy row");
+
+        ToolStationTabs.Tab cleaver = tabFor("cleaver");
+        assertEquals(List.of(new ToolStationTabs.Pos(9, 64), new ToolStationTabs.Pos(25, 36),
+                new ToolStationTabs.Pos(47, 30), new ToolStationTabs.Pos(33, 58)), cleaver.slots(),
+                "cleaver: handle, blade, plate, second rod -- MeleeClientProxy verbatim");
+    }
+
+    private static ToolStationTabs.Tab tabFor(String toolId) {
+        for (ToolStationTabs.Tab tab : ToolStationTabs.TABS) {
+            if (!tab.isRepair() && tab.entry().constants().id().equals(toolId)) {
+                return tab;
+            }
+        }
+        throw new IllegalStateException("no Tool Station tab for " + toolId);
+    }
 }

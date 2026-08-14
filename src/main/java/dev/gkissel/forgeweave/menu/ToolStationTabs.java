@@ -150,11 +150,13 @@ public final class ToolStationTabs {
             build(ForgeweaveItems.TOOL_DAGGER, at(14, -14), at(-14, 14)),     // blade, handle
             // handle, head, binding (#161)
             build(ForgeweaveItems.TOOL_WARMACE, at(-18, 18), at(20, -20), at(0, 0)),
-            // M3 station tools (docs/SCOPE.md issue #156). No upstream ToolBuildGuiInfo entry was
-            // found for either to cite pixel positions from, so these are Forgeweave's own, spaced
-            // the same way as the M1 three; both are listed in their entry's own part order.
-            build(ForgeweaveItems.TOOL_MATTOCK, at(0, 18), at(-20, -14), at(20, -14)),
-            build(ForgeweaveItems.TOOL_KAMA, at(-20, 12), at(0, -20), at(20, 12)),
+            // M3 station tools (docs/SCOPE.md issue #156). Positions are upstream's own
+            // HarvestClientProxy#registerToolBuildInfo layouts verbatim (NOTICE.md), listed here in
+            // each tool's ToolConstants part order rather than upstream's -- the numbers are the same
+            // numbers, attached to the same parts. Kama's row is upstream's own copy of hatchet's
+            // (identical rod/head/binding coordinates), so the two share numbers here too.
+            build(ForgeweaveItems.TOOL_MATTOCK, at(-11, 11), at(-2, -20), at(18, -8)), // handle, axe head, shovel head
+            build(ForgeweaveItems.TOOL_KAMA, at(-11, 11), at(-2, -20), at(18, -8)),    // handle, head, binding
             // #159. Upstream has no build layout to copy for either: its battleaxe never shipped (so
             // its client proxy registers no ToolBuildGuiInfo) and the scimitar is Forgeweave's own
             // shape. The scimitar reuses the hatchet's arrangement -- head up and slightly left, extra
@@ -166,10 +168,10 @@ public final class ToolStationTabs {
             // #160. Another Forgeweave-own shape with no upstream layout to cite, so it takes the
             // longsword's -- a long blade up-right, its guard at the joint, the grip down-left.
             build(ForgeweaveItems.TOOL_KATANA, at(-21, 20), at(15, -16), at(-3, 2)),
-            // #158. Upstream's cleaver has no ToolBuildGuiInfo row either (it is Tool Forge-only, and
-            // its client proxy registers none), so this is Forgeweave's: haft down-left, the big blade
-            // up-right with the plate behind it, the second rod at the pommel.
-            build(ForgeweaveItems.TOOL_CLEAVER, at(-18, 18), at(14, -16), at(-4, -4), at(18, 10)),
+            // #158. Positions are upstream's own MeleeClientProxy#registerToolBuildInfo layout
+            // verbatim (NOTICE.md), listed here in ToolConstants#CLEAVER's own part order -- handle,
+            // blade, plate, second rod -- which is also upstream's own registration order.
+            build(ForgeweaveItems.TOOL_CLEAVER, at(-24, 22), at(-8, -6), at(14, -12), at(0, 16)), // handle, blade, plate, second rod
             // #157's five large harvest tools. Positions are upstream's own
             // HarvestClientProxy#registerToolBuildInfo layouts verbatim (NOTICE.md), listed here in
             // each tool's ToolConstants part order rather than upstream's -- the numbers are the same
