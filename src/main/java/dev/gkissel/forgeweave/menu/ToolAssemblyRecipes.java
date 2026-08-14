@@ -473,6 +473,17 @@ public final class ToolAssemblyRecipes {
         ModifierApplication.rebake(result);
         retuneSilkTouch(registries, result);
 
+        // #293, upstream rebuildTool's own last gate (its `freeModifiers -= getBaseModifiersUsed`,
+        // then `if (freeModifiers < 0) throw gui.error.not_enough_modifiers`): the slot budget is
+        // re-derived from the new material set, and a swap can shrink it -- paper's writable traits
+        // are the part-granted slots -- leaving the modifiers already on the tool over budget.
+        // ForgeweaveModifiers#freeSlots is that same subtraction (budget minus #occupiedSlots),
+        // asked of the would-be tool. Checked before the durability gate, upstream's own order.
+        int missingSlots = -ForgeweaveModifiers.freeSlots(result);
+        if (missingSlots > 0) {
+            return Optional.of(Exchange.rejected("gui.forgeweave.exchange.not_enough_slots", missingSlots));
+        }
+
         // Raw component read: ItemStack#getDamageValue clamps to the (new) maximum, which is exactly
         // the overflow this check exists to catch.
         int missing = result.getOrDefault(DataComponents.DAMAGE, 0) - result.getMaxDamage();

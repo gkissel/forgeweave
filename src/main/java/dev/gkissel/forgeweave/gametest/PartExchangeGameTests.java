@@ -1,5 +1,6 @@
 package dev.gkissel.forgeweave.gametest;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -198,6 +199,74 @@ public class PartExchangeGameTests {
         helper.succeed();
     }
 
+    /**
+     * Issue #293, upstream {@code ToolBuilder#rebuildTool}'s own last gate (lines 547-561 of the
+     * pinned commit): the rebuild re-derives the tool's free modifier count from the new material set
+     * and throws {@code gui.error.not_enough_modifiers} ("Not enough Modifiers. (%d needed)") when the
+     * modifiers already on the tool no longer fit. Paper's {@code writable} pair is the slot-granting
+     * part material here, so swapping a paper handle off a tool whose modifiers exactly fill the
+     * widened budget must be refused rather than handed back over budget.
+     */
+    @GameTest(template = "empty")
+    public static void anExchangeThatShrinksTheModifierBudgetIsRejected(GameTestHelper helper) {
+        BlockPos pos = new BlockPos(1, 1, 1);
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        ItemStack pickaxe = ToolAssembly.pickaxe(helper, player, pos, "stone", "wood", "paper");
+        pickaxe.set(ForgeweaveDataComponents.MODIFIERS.get(), modifiers("haste", "searing", "magnetic_pull",
+                "soulbound"));
+        helper.assertTrue(ForgeweaveModifiers.freeSlots(pickaxe) == 0,
+                "precondition: paper's extra slot must be exactly filled, got "
+                        + ForgeweaveModifiers.freeSlots(pickaxe) + " free");
+
+        ToolStationMenu menu = load(helper, player, pos, ForgeweaveBlocks.TOOL_STATION.get(), pickaxe,
+                ToolAssembly.part(ForgeweaveItems.PART_TOOL_HANDLE.get(), "wood"));
+
+        helper.assertTrue(menu.getSlot(ToolStationMenu.OUTPUT_SLOT).getItem().isEmpty(),
+                "swapping the slot-granting part out from under four modifiers must produce no tool, got "
+                        + menu.getSlot(ToolStationMenu.OUTPUT_SLOT).getItem());
+        helper.assertTrue(menu.rejection() != null, "the over-budget refusal must tell the player why");
+        helper.succeed();
+    }
+
+    /** The boundary the gate sits on: a budget that shrinks to exactly the occupied count still swaps. */
+    @GameTest(template = "empty")
+    public static void anExchangeLeavingExactlyEnoughSlotsIsAllowed(GameTestHelper helper) {
+        BlockPos pos = new BlockPos(1, 1, 1);
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        ItemStack pickaxe = ToolAssembly.pickaxe(helper, player, pos, "stone", "wood", "paper");
+        pickaxe.set(ForgeweaveDataComponents.MODIFIERS.get(), modifiers("haste", "searing", "magnetic_pull"));
+
+        ItemStack swapped = take(helper, player,
+                load(helper, player, pos, ForgeweaveBlocks.TOOL_STATION.get(), pickaxe,
+                        ToolAssembly.part(ForgeweaveItems.PART_TOOL_HANDLE.get(), "wood")));
+
+        helper.assertTrue(material("wood").equals(materialsOf(swapped).get(2)),
+                "the handle slot's material must now be wood, got " + materialsOf(swapped));
+        helper.assertTrue(ForgeweaveModifiers.freeSlots(swapped) == 0,
+                "the swapped tool must land at exactly zero free slots, got "
+                        + ForgeweaveModifiers.freeSlots(swapped));
+        helper.succeed();
+    }
+
+    /** And a swap that changes no slot totals is untouched by the gate, modifiers or not. */
+    @GameTest(template = "empty")
+    public static void aBudgetNeutralExchangeStillWorks(GameTestHelper helper) {
+        BlockPos pos = new BlockPos(1, 1, 1);
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        ItemStack pickaxe = ToolAssembly.pickaxe(helper, player, pos, "stone", "wood", "wood");
+        pickaxe.set(ForgeweaveDataComponents.MODIFIERS.get(), modifiers("haste", "searing", "magnetic_pull"));
+
+        ItemStack swapped = take(helper, player,
+                load(helper, player, pos, ForgeweaveBlocks.TOOL_STATION.get(), pickaxe,
+                        ToolAssembly.part(ForgeweaveItems.PART_PICKAXE_HEAD.get(), "iron")));
+
+        helper.assertTrue(IRON.equals(materialsOf(swapped).get(0)),
+                "the head slot's material must now be iron, got " + materialsOf(swapped));
+        helper.assertTrue(ForgeweaveModifiers.occupiedSlots(swapped) == 3,
+                "the three modifiers must survive the swap, got " + ForgeweaveModifiers.of(swapped));
+        helper.succeed();
+    }
+
     /** Issue #152's gate, applied to exchanges: a large tool swaps parts at the Tool Forge only. */
     @GameTest(template = "empty")
     public static void aLargeToolExchangesAtTheForgeOnly(GameTestHelper helper) {
@@ -262,6 +331,13 @@ public class PartExchangeGameTests {
                 + (menu.rejection() == null ? "" : "; it says: " + menu.rejection().getString()));
         menu.getSlot(ToolStationMenu.OUTPUT_SLOT).onTake(player, output);
         return output;
+    }
+
+    /** One level-1 entry per named modifier -- the fixture shape {@code ToolStationGameTests} uses. */
+    private static List<ModifierEntry> modifiers(String... names) {
+        return Arrays.stream(names)
+                .map(name -> new ModifierEntry(ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, name), 1))
+                .toList();
     }
 
     private static ResourceLocation material(String name) {
