@@ -10,17 +10,22 @@ import net.minecraft.core.Registry;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 
 import mezz.jei.api.IModPlugin;
 import mezz.jei.api.JeiPlugin;
 import mezz.jei.api.constants.RecipeTypes;
 import mezz.jei.api.helpers.IGuiHelper;
+import mezz.jei.api.ingredients.subtypes.IIngredientSubtypeInterpreter;
 import mezz.jei.api.registration.IGuiHandlerRegistration;
 import mezz.jei.api.registration.IRecipeCatalystRegistration;
 import mezz.jei.api.registration.IRecipeCategoryRegistration;
 import mezz.jei.api.registration.IRecipeRegistration;
 import mezz.jei.api.registration.IRecipeTransferRegistration;
+import mezz.jei.api.registration.ISubtypeRegistration;
+
+import net.neoforged.neoforge.registries.DeferredHolder;
 
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.casting.CastingRecipe;
@@ -30,9 +35,11 @@ import dev.gkissel.forgeweave.client.PartBuilderScreen;
 import dev.gkissel.forgeweave.client.StencilTableScreen;
 import dev.gkissel.forgeweave.client.ToolStationScreen;
 import dev.gkissel.forgeweave.item.ForgeweaveItems;
+import dev.gkissel.forgeweave.item.PartItem;
 import dev.gkissel.forgeweave.material.Material;
 import dev.gkissel.forgeweave.menu.ForgeweaveMenus;
 import dev.gkissel.forgeweave.menu.PartBuilderMenu;
+import dev.gkissel.forgeweave.menu.ToolAssemblyRecipes;
 import dev.gkissel.forgeweave.modifier.EmbossingRecipe;
 import dev.gkissel.forgeweave.modifier.ModifierRecipe;
 import dev.gkissel.forgeweave.recipe.AlloyRecipe;
@@ -70,6 +77,48 @@ public final class ForgeweaveJeiPlugin implements IModPlugin {
     @Override
     public ResourceLocation getPluginUid() {
         return UID;
+    }
+
+    /**
+     * Issue #307: without this, every material variant of a part or tool -- and every wood variant
+     * of a retextured station (issue #43) -- collapses into a single JEI entry, since a bare
+     * {@code ItemStack} carries no material/texture info in its {@code Item} identity; it is all in
+     * data components. The three interpreters below (a fourth, upstream's pattern/cast interpreter,
+     * has no Forgeweave equivalent -- see {@link SubtypeKeys}'s javadoc) each wrap one
+     * {@link SubtypeKeys} method, mapping its {@code null} ("no component set") to this API's
+     * {@code NONE} sentinel.
+     *
+     * <p>Registration itself walks the live item roster rather than a hand list, so a newly added
+     * part or tool is covered automatically: every {@link PartItem} straight off the item registry
+     * (same idiom as {@code client.ForgeweaveItemColors#tintedPartItems}), every assemblable tool off
+     * {@link ToolAssemblyRecipes#ENTRIES} (ditto {@code #tintedToolItems}). The texture-bearing
+     * station items are a fixed five (issue #43/#44/#40/#152's retextured-table items), so those are
+     * named directly.
+     */
+    @Override
+    public void registerItemSubtypes(ISubtypeRegistration registration) {
+        IIngredientSubtypeInterpreter<ItemStack> partInterpreter = (stack, context) -> orNone(SubtypeKeys.part(stack));
+        IIngredientSubtypeInterpreter<ItemStack> toolInterpreter = (stack, context) -> orNone(SubtypeKeys.tool(stack));
+        IIngredientSubtypeInterpreter<ItemStack> textureInterpreter = (stack, context) -> orNone(SubtypeKeys.texture(stack));
+
+        ForgeweaveItems.ITEMS.getEntries().stream()
+                .<Item>map(DeferredHolder::get)
+                .filter(item -> item instanceof PartItem)
+                .forEach(item -> registration.registerSubtypeInterpreter(item, partInterpreter));
+
+        ToolAssemblyRecipes.ENTRIES.stream()
+                .map(entry -> entry.tool().get())
+                .forEach(tool -> registration.registerSubtypeInterpreter(tool, toolInterpreter));
+
+        registration.registerSubtypeInterpreter(ForgeweaveItems.PART_BUILDER.get(), textureInterpreter);
+        registration.registerSubtypeInterpreter(ForgeweaveItems.TOOL_STATION.get(), textureInterpreter);
+        registration.registerSubtypeInterpreter(ForgeweaveItems.TOOL_FORGE.get(), textureInterpreter);
+        registration.registerSubtypeInterpreter(ForgeweaveItems.CRAFTING_STATION.get(), textureInterpreter);
+        registration.registerSubtypeInterpreter(ForgeweaveItems.STENCIL_TABLE.get(), textureInterpreter);
+    }
+
+    private static String orNone(String key) {
+        return key == null ? IIngredientSubtypeInterpreter.NONE : key;
     }
 
     @Override
