@@ -13,6 +13,7 @@ import net.minecraft.client.renderer.Rect2i;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.Style;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.entity.player.Inventory;
@@ -109,6 +110,7 @@ public class PartBuilderScreen extends StationScreen<PartBuilderMenu> implements
     private Component caption;
     private List<Component> lines = List.of();
     private int scroll;
+    private boolean draggingScroll;
     private final SideInventoryPanel sidePanel =
             new SideInventoryPanel(PartBuilderMenu.SIDE_PANEL_X, PartBuilderMenu.SIDE_PANEL_Y);
 
@@ -194,7 +196,7 @@ public class PartBuilderScreen extends StationScreen<PartBuilderMenu> implements
         graphics.blit(TEXTURE, leftPos, topPos, 0, 0, BASE_WIDTH, BASE_HEIGHT, BASE_WIDTH, BASE_HEIGHT);
         renderSlotIcons(graphics);
         renderMaterialValue(graphics);
-        InfoPanel.render(graphics, font, leftPos + BASE_WIDTH + PANEL_GAP, topPos + PANEL_TOP,
+        InfoPanel.render(graphics, font, panelX(), panelY(),
                 InfoPanel.WIDTH, PANEL_HEIGHT, PANEL_STYLE, caption, lines, scroll);
         if (menu.partCrafter) {
             renderPatternButtons(graphics, mouseX, mouseY);
@@ -280,6 +282,56 @@ public class PartBuilderScreen extends StationScreen<PartBuilderMenu> implements
                 return;
             }
         }
+        // Issue #376: upstream's GuiPartBuilder gives every line of this panel a tooltip
+        // (setDisplayForMaterial passes a `tips` list alongside its `stats`), and this station's
+        // material panel was the biggest hover gap left after issue #258 wired the Tool Station's.
+        // Same machinery: StationText hangs SHOW_TEXT events on the lines, the panel says which
+        // style is under the cursor, and vanilla renders whatever it carries -- lines without one
+        // no-op inside the call.
+        Style hovered = InfoPanel.hoveredStyle(font, panelX(), panelY(), InfoPanel.WIDTH, PANEL_HEIGHT,
+                caption != null, lines, scroll, mouseX, mouseY);
+        if (hovered != null) {
+            graphics.renderComponentHoverEffect(font, hovered, mouseX, mouseY);
+        }
+    }
+
+    private int panelX() {
+        return leftPos + BASE_WIDTH + PANEL_GAP;
+    }
+
+    private int panelY() {
+        return topPos + PANEL_TOP;
+    }
+
+    @Override
+    protected boolean sliderClicked(double mouseX, double mouseY) {
+        if (sidePanel.sliderClicked(mouseX, mouseY)) {
+            return true;
+        }
+        if (!InfoPanel.overSlider(font, panelX(), panelY(), InfoPanel.WIDTH, PANEL_HEIGHT,
+                caption != null, lines, mouseX, mouseY)) {
+            return false;
+        }
+        draggingScroll = true;
+        return sliderDragged(mouseX, mouseY);
+    }
+
+    @Override
+    protected boolean sliderDragged(double mouseX, double mouseY) {
+        if (sidePanel.sliderDragged(mouseY)) {
+            return true;
+        }
+        if (!draggingScroll) {
+            return false;
+        }
+        scroll = InfoPanel.sliderScroll(font, panelY(), InfoPanel.WIDTH, PANEL_HEIGHT, caption != null, lines, mouseY);
+        return true;
+    }
+
+    @Override
+    protected void sliderReleased() {
+        sidePanel.sliderReleased();
+        draggingScroll = false;
     }
 
     /** Upstream's {@code drawIconEmpty}: a hint glyph in each empty slot, never over a real item. */

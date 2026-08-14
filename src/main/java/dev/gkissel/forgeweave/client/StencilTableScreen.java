@@ -186,6 +186,21 @@ public class StencilTableScreen extends StationScreen<StencilTableMenu> implemen
     }
 
     @Override
+    protected boolean sliderClicked(double mouseX, double mouseY) {
+        return sidePanel.sliderClicked(mouseX, mouseY);
+    }
+
+    @Override
+    protected boolean sliderDragged(double mouseX, double mouseY) {
+        return sidePanel.sliderDragged(mouseY);
+    }
+
+    @Override
+    protected void sliderReleased() {
+        sidePanel.sliderReleased();
+    }
+
+    @Override
     public boolean mouseScrolled(double mouseX, double mouseY, double scrollX, double scrollY) {
         if (sidePanel.mouseScrolled(mouseX, mouseY, scrollY, imageHeight, menu.sideSlots)) {
             return true;

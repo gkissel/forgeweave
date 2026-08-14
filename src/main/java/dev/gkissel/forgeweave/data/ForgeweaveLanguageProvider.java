@@ -410,6 +410,26 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("gui.forgeweave.stat.handle_durability", "Handle Durability: %s");
         add("gui.forgeweave.stat.extra_durability", "Binding Durability: %s");
 
+        // What each stat row says on hover (issue #376), ported from upstream 1.12's
+        // stat.head/handle/extra.*.desc entries (NOTICE.md). The underlined heading each group sits
+        // under is issue #379's tooltip.forgeweave.stat_type.* below, shared with the part tooltip.
+        add("gui.forgeweave.stat.durability.desc",
+                "The base value for durability calculations. Usually the largest part of a tool's total durability.");
+        add("gui.forgeweave.stat.mining_speed.desc",
+                "How fast a tool with a head of this material mines blocks. Other parts may influence it.");
+        add("gui.forgeweave.stat.attack_damage.desc",
+                "The base value for attack calculations. The end result depends on the tool and its other parts.");
+        add("gui.forgeweave.stat.handle_modifier.desc",
+                "How well this material serves as a handle. The tool's total durability is multiplied by it.");
+        add("gui.forgeweave.stat.handle_durability.desc",
+                "How well the material can be held. Tool durability is changed by this amount.");
+        add("gui.forgeweave.stat.extra_durability.desc",
+                "How much durability this part contributes when used as a binding.");
+
+        // Upstream's gui.general.hover, shown by the grey "?" every info panel puts in its top-right
+        // corner while some line on it has hover text (issue #376).
+        add("gui.forgeweave.general.hover", "Hover over the entries for more info");
+
         add("gui.forgeweave.part_builder.info",
                 "Put a pattern in the left slot and a material next to it. The part comes out on the right, "
                         + "and any material value left over comes back as shards.");
@@ -441,10 +461,14 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("tooltip.forgeweave.part.missing_material", "Missing material: %s");
         add("tooltip.forgeweave.part.missing_info", "Part has no data");
         // stat.head.name / stat.handle.name / stat.extra.name -- the underlined heading over a
-        // part's Shift-tier stat block, keyed by PartItem.Kind.
+        // part's Shift-tier stat block, keyed by PartItem.Kind, and (issue #376) over the same stat
+        // block in the Part Builder's info panel.
         add("tooltip.forgeweave.stat_type.head", "Head");
         add("tooltip.forgeweave.stat_type.handle", "Handle");
-        add("tooltip.forgeweave.stat_type.extra", "Extra");
+        // "Binding", not upstream's "Extra": the part is PART_TOOL_BINDING and its own stat line
+        // right above reads "Binding Durability", so the heading was the odd one out (CLAUDE.md's
+        // Forgeweave-vocabulary rule). Issue #379 shipped the literal upstream word.
+        add("tooltip.forgeweave.stat_type.extra", "Binding");
         // tooltip.tank.amount -- the fluid a broken seared tank/gauge/window kept on its stack. The
         // fluid's own name is its registered display name, so it needs no key of its own.
         add("tooltip.forgeweave.tank.amount", "%s mb");

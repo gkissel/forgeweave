@@ -9,6 +9,7 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.HoverEvent;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.FormattedCharSequence;
 
@@ -22,9 +23,18 @@ import dev.gkissel.forgeweave.Forgeweave;
  * frame, which each caller picks per {@link Style}.
  *
  * <p>Stateless on purpose: each screen owns its panels' text and scroll offset and passes them in,
- * which is all the state a panel has. Upstream's scrollbar widget is replaced by plain mouse-wheel
- * scrolling ({@link #maxScroll}) -- fewer moving parts for the same job, and the only visible
- * difference is the missing slider track.
+ * which is all the state a panel has.
+ *
+ * <p>Issue #47 shipped mouse-wheel scrolling with no visible scrollbar, recorded here as a
+ * deliberate deviation. Issue #376 reverses it (maintainer decision, 2026-08-14): upstream's slider
+ * is back, drawn from {@code panel.png}'s own knob/track sprites whenever the text overflows
+ * ({@code GuiInfoPanel} lines 47-52, 57, 101-102, 165-188, 372-373), and the wheel still works. A
+ * panel with no overflow draws no slider, exactly as upstream's {@code updateSliderParameters}
+ * hides it.
+ *
+ * <p>Issue #376 also ports upstream's grey "?" bubble in the top-right corner
+ * ({@code GuiInfoPanel:331-333}), shown only when some line carries hover text, and hovering it
+ * explains that the entries are hoverable ({@code GuiInfoPanel:257-262}, {@code gui.general.hover}).
  */
 public final class InfoPanel {
     public static final ResourceLocation TEXTURE =
@@ -44,18 +54,24 @@ public final class InfoPanel {
      * the wood frame, so the Part Builder wore the Tool Station's skin. Issue #152 adds the third,
      * for the Tool Forge -- upstream's {@code GuiInfoPanel#metal()} is
      * {@code shift(resW + 8, resH + 8)}, i.e. the wood frame's column, one frame down.
+     *
+     * <p>The slider sprites are a separate column of the same sheet and shift by their own amount:
+     * {@code wood()} is {@code shiftSlider(6, 0)} and {@code metal()} {@code shiftSlider(12, 0)}
+     * (issue #376), i.e. three 6px-wide slider styles side by side rather than the frame's grid.
      */
     public enum Style {
-        DEFAULT(0, 0),
-        WOOD(CONTENT_WIDTH + 8, 0),
-        METAL(CONTENT_WIDTH + 8, CONTENT_HEIGHT + 8);
+        DEFAULT(0, 0, 0),
+        WOOD(CONTENT_WIDTH + 8, 0, 6),
+        METAL(CONTENT_WIDTH + 8, CONTENT_HEIGHT + 8, 12);
 
         private final int u;
         private final int v;
+        private final int sliderU;
 
-        Style(int u, int v) {
+        Style(int u, int v, int sliderU) {
             this.u = u;
             this.v = v;
+            this.sliderU = sliderU;
         }
     }
 
@@ -77,6 +93,45 @@ public final class InfoPanel {
     private static final int WRAP_INSET = 12;
 
     /**
+     * What the slider costs the text: upstream's {@code getTotalLines} takes {@code slider.width + 3}
+     * off the wrap width while the slider is shown, so an overflowing panel wraps 6px narrower than
+     * the same text in a panel that fits.
+     */
+    private static final int SLIDER_WRAP_INSET = 6;
+
+    // The slider, all of it upstream's own (GuiInfoPanel:47-52 for the sprites, :101-102 for the
+    // geometry). The insets fold in GuiWidgetBorder's 7px `border.w`/`border.h` -- the generic
+    // border's field initialisers, which GuiInfoPanel never reassigns, the same quirk WRAP_INSET
+    // records: x is `guiRight() - border.w - 2`, y is `guiTop + border.h + 12`, and the track is
+    // `ySize - border.h * 2 - 2 - 12` tall.
+    private static final int SLIDER_W = 3;
+    private static final int SLIDER_X_INSET = 9;
+    private static final int SLIDER_Y_INSET = 19;
+    private static final int SLIDER_HEIGHT_INSET = 28;
+    /** {@code sliderNormal} = (0, 83, 3, 5); the knob's own column is the style's base u. */
+    private static final int SLIDER_KNOB_V = 83;
+    private static final int SLIDER_KNOB_H = 5;
+    /** {@code sliderBar} = (0, 88, 3, 8), tiled down the track between the two caps. */
+    private static final int SLIDER_BAR_V = 88;
+    private static final int SLIDER_BAR_H = 8;
+    /** {@code sliderTop} = (3, 88, 3, 4) and {@code sliderBot} = (3, 92, 3, 4) -- one column right of the bar. */
+    private static final int SLIDER_CAP_U = 3;
+    private static final int SLIDER_CAP_H = 4;
+    private static final int SLIDER_BOT_V = 92;
+
+    /**
+     * Upstream's hover hint ({@code GuiInfoPanel:331-333} and {@code :257-262}): a grey "?" in the
+     * top-right corner whenever some line has hover text, whose own hover says so. Drawn at
+     * {@code guiRight() - border.w - charWidth('?') / 2}, unshadowed, in {@code 0xff5f5f5f}.
+     */
+    private static final String HELP_GLYPH = "?";
+    private static final int HELP_COLOR = 0xFF5F5F5F;
+    private static final int HELP_INSET = 7;
+    private static final net.minecraft.network.chat.Style HELP_STYLE =
+            net.minecraft.network.chat.Style.EMPTY.withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT,
+                    Component.translatable("gui.forgeweave.general.hover")));
+
+    /**
      * Draws the frame and as much of {@code lines} as fits, starting {@code scroll} lines in.
      *
      * @param style which of the sheet's frames to draw around it
@@ -89,26 +144,53 @@ public final class InfoPanel {
 
         int textLeft = x + TEXT_INSET;
         float textTop = y + TEXT_INSET;
-        int textHeight = height - TEXT_INSET * 2;
 
         if (caption != null) {
             Component underlined = caption.copy().withStyle(ChatFormatting.UNDERLINE);
             graphics.drawString(font, underlined,
                     x + width / 2 - font.width(underlined) / 2, (int) textTop, TEXT_COLOR, true);
             textTop += font.lineHeight + CAPTION_GAP;
-            textHeight -= font.lineHeight + CAPTION_GAP;
+        }
+        if (hasHover(lines)) {
+            graphics.drawString(font, HELP_GLYPH, helpX(font, x, width), y + TEXT_INSET, HELP_COLOR, false);
         }
 
-        List<FormattedCharSequence> wrapped = wrap(font, lines, width - WRAP_INSET);
-        int visibleLines = visibleLines(font, textHeight);
-        int maxScroll = Math.max(0, wrapped.size() - visibleLines);
-        int start = Math.clamp(scroll, 0, maxScroll);
-
-        for (int i = start; i < Math.min(wrapped.size(), start + visibleLines); i++) {
-            graphics.drawString(font, wrapped.get(i), textLeft,
+        Layout layout = layout(font, width, height, caption != null, lines);
+        int start = Math.clamp(scroll, 0, layout.maxScroll());
+        for (int i = start; i < Math.min(layout.lines().size(), start + layout.visible()); i++) {
+            graphics.drawString(font, layout.lines().get(i), textLeft,
                     Math.round(textTop + (i - start) * lineStep(font)), TEXT_COLOR, true);
         }
-        return maxScroll;
+        if (layout.slider()) {
+            renderSlider(graphics, style, x, y, width, height, start, layout.maxScroll());
+        }
+        return layout.maxScroll();
+    }
+
+    /**
+     * Upstream's slider: the two 4px end caps of {@code panel.png}'s track column with the 8px bar
+     * tiled between them, and the knob positioned along it by {@link #knobY}. Only drawn on
+     * overflow -- {@code GuiInfoPanel#updateSliderParameters} hides it otherwise.
+     *
+     * <p>ponytail: upstream also swaps in a lit knob sprite while the mouse is over it
+     * ({@code sliderHover}); on a 3x5 knob that is not worth threading the cursor through
+     * {@link #render}. Add it if a playtest asks.
+     */
+    private static void renderSlider(GuiGraphics graphics, Style style, int x, int y, int width, int height,
+            int scroll, int maxScroll) {
+        int sliderX = x + width - SLIDER_X_INSET;
+        int trackY = y + SLIDER_Y_INSET;
+        int trackH = height - SLIDER_HEIGHT_INSET;
+        int u = style.sliderU;
+        graphics.blit(TEXTURE, sliderX, trackY, u + SLIDER_CAP_U, SLIDER_BAR_V, SLIDER_W, SLIDER_CAP_H, SHEET, SHEET);
+        for (int drawn = SLIDER_CAP_H; drawn < trackH - SLIDER_CAP_H; drawn += SLIDER_BAR_H) {
+            graphics.blit(TEXTURE, sliderX, trackY + drawn, u, SLIDER_BAR_V, SLIDER_W,
+                    Math.min(SLIDER_BAR_H, trackH - SLIDER_CAP_H - drawn), SHEET, SHEET);
+        }
+        graphics.blit(TEXTURE, sliderX, trackY + trackH - SLIDER_CAP_H, u + SLIDER_CAP_U, SLIDER_BOT_V,
+                SLIDER_W, SLIDER_CAP_H, SHEET, SHEET);
+        graphics.blit(TEXTURE, sliderX, knobY(trackY, trackH, scroll, maxScroll), u, SLIDER_KNOB_V,
+                SLIDER_W, SLIDER_KNOB_H, SHEET, SHEET);
     }
 
     /**
@@ -122,23 +204,21 @@ public final class InfoPanel {
     @Nullable
     public static net.minecraft.network.chat.Style hoveredStyle(Font font, int x, int y, int width, int height,
             boolean hasCaption, List<Component> lines, int scroll, double mouseX, double mouseY) {
-        int textLeft = x + TEXT_INSET;
-        float textTop = y + TEXT_INSET;
-        int textHeight = height - TEXT_INSET * 2;
-        if (hasCaption) {
-            textTop += font.lineHeight + CAPTION_GAP;
-            textHeight -= font.lineHeight + CAPTION_GAP;
+        if (hasHover(lines) && mouseX >= helpX(font, x, width) && mouseX < x + width
+                && mouseY > y + TEXT_INSET && mouseY < y + TEXT_INSET + font.lineHeight) {
+            return HELP_STYLE;
         }
+        int textLeft = x + TEXT_INSET;
+        float textTop = y + TEXT_INSET + (hasCaption ? font.lineHeight + CAPTION_GAP : 0);
         if (mouseX < textLeft) {
             return null;
         }
-        List<FormattedCharSequence> wrapped = wrap(font, lines, width - WRAP_INSET);
-        int visibleLines = visibleLines(font, textHeight);
-        int start = Math.clamp(scroll, 0, Math.max(0, wrapped.size() - visibleLines));
-        for (int i = start; i < Math.min(wrapped.size(), start + visibleLines); i++) {
+        Layout layout = layout(font, width, height, hasCaption, lines);
+        int start = Math.clamp(scroll, 0, layout.maxScroll());
+        for (int i = start; i < Math.min(layout.lines().size(), start + layout.visible()); i++) {
             int lineY = Math.round(textTop + (i - start) * lineStep(font));
             if (mouseY >= lineY && mouseY < lineY + font.lineHeight) {
-                return font.getSplitter().componentStyleAtWidth(wrapped.get(i), (int) mouseX - textLeft);
+                return font.getSplitter().componentStyleAtWidth(layout.lines().get(i), (int) mouseX - textLeft);
             }
         }
         return null;
@@ -146,8 +226,91 @@ public final class InfoPanel {
 
     /** How far {@code lines} can scroll in a panel of this size, without drawing anything. */
     public static int maxScroll(Font font, int width, int height, boolean hasCaption, List<Component> lines) {
+        return layout(font, width, height, hasCaption, lines).maxScroll();
+    }
+
+    /**
+     * True while the mouse is on this panel's slider, i.e. while a press there should start a drag
+     * rather than fall through to whatever is behind the panel.
+     */
+    public static boolean overSlider(Font font, int x, int y, int width, int height, boolean hasCaption,
+            List<Component> lines, double mouseX, double mouseY) {
+        int sliderX = x + width - SLIDER_X_INSET;
+        return mouseX >= sliderX && mouseX < sliderX + SLIDER_W
+                && mouseY >= y + SLIDER_Y_INSET && mouseY < y + SLIDER_Y_INSET + height - SLIDER_HEIGHT_INSET
+                && layout(font, width, height, hasCaption, lines).slider();
+    }
+
+    /** The scroll the knob lands on with the cursor at {@code mouseY}, clamped -- a drag may leave the track. */
+    public static int sliderScroll(Font font, int y, int width, int height, boolean hasCaption,
+            List<Component> lines, double mouseY) {
+        return scrollAt(y + SLIDER_Y_INSET, height - SLIDER_HEIGHT_INSET,
+                layout(font, width, height, hasCaption, lines).maxScroll(), mouseY);
+    }
+
+    /**
+     * The wrapped text of a panel plus what the slider does to it, resolved once so
+     * {@link #render}, {@link #hoveredStyle} and {@link #maxScroll} can never disagree about where a
+     * line is or whether there is a slider next to it.
+     *
+     * <p>The two-pass shape is upstream's ({@code updateSliderParameters} hides the slider, measures,
+     * then shows it and measures again): whether the slider is needed depends on the wrap, and the
+     * wrap depends on whether the slider is there, so the wide wrap decides and the narrow one is
+     * only used once the answer is yes.
+     */
+    private static Layout layout(Font font, int width, int height, boolean hasCaption, List<Component> lines) {
         int textHeight = height - TEXT_INSET * 2 - (hasCaption ? font.lineHeight + CAPTION_GAP : 0);
-        return Math.max(0, wrap(font, lines, width - WRAP_INSET).size() - visibleLines(font, textHeight));
+        int visible = visibleLines(font.lineHeight, textHeight);
+        List<FormattedCharSequence> wrapped = wrap(font, lines, width - WRAP_INSET);
+        if (!needsSlider(font.lineHeight, textHeight, wrapped.size())) {
+            return new Layout(wrapped, visible, 0, false);
+        }
+        wrapped = wrap(font, lines, width - WRAP_INSET - SLIDER_WRAP_INSET);
+        return new Layout(wrapped, visible, Math.max(0, wrapped.size() - visible), true);
+    }
+
+    private record Layout(List<FormattedCharSequence> lines, int visible, int maxScroll, boolean slider) {}
+
+    /**
+     * Whether a panel of this text height overflows {@code totalLines} of wrapped text, which is
+     * exactly when upstream shows its slider. Takes a plain line height rather than a {@link Font}
+     * so the off-by-one that decides whether the slider appears at all is testable without a client
+     * (issue #376), the same seam {@code StationScreen#centreWithTabStrip} uses.
+     */
+    static boolean needsSlider(int lineHeight, int textHeight, int totalLines) {
+        return totalLines > visibleLines(lineHeight, textHeight);
+    }
+
+    /** Where the knob sits on a track of this height: hard against the top at scroll 0, the bottom at the end. */
+    static int knobY(int trackY, int trackHeight, int scroll, int maxScroll) {
+        int span = trackHeight - SLIDER_KNOB_H;
+        if (maxScroll <= 0 || span <= 0) {
+            return trackY;
+        }
+        return trackY + span * Math.clamp(scroll, 0, maxScroll) / maxScroll;
+    }
+
+    /** {@link #knobY} inverted: the scroll that puts the knob's middle under {@code mouseY}. */
+    static int scrollAt(int trackY, int trackHeight, int maxScroll, double mouseY) {
+        int span = trackHeight - SLIDER_KNOB_H;
+        if (maxScroll <= 0 || span <= 0) {
+            return 0;
+        }
+        return (int) Math.clamp(Math.round((mouseY - trackY - SLIDER_KNOB_H / 2.0) * maxScroll / span), 0, maxScroll);
+    }
+
+    /** Whether any line carries hover text, which is what upstream's {@code hasTooltips} gates the "?" on. */
+    private static boolean hasHover(List<Component> lines) {
+        for (Component line : lines) {
+            if (line != null && line.getStyle().getHoverEvent() != null) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private static int helpX(Font font, int x, int width) {
+        return x + width - HELP_INSET - font.width(HELP_GLYPH) / 2;
     }
 
     /**
@@ -158,7 +321,11 @@ public final class InfoPanel {
      * subpixel y; the line <em>positions</em> match, the glyph antialiasing at 1x GUI scale doesn't.
      */
     private static float lineStep(Font font) {
-        return font.lineHeight + 0.5F;
+        return lineStep(font.lineHeight);
+    }
+
+    private static float lineStep(int lineHeight) {
+        return lineHeight + 0.5F;
     }
 
     /**
@@ -167,8 +334,8 @@ public final class InfoPanel {
      * leading is allowed to overhang. So the last line fits whenever there is {@code FONT_HEIGHT}
      * left, not a whole {@link #lineStep}, which is why this is not a plain division.
      */
-    private static int visibleLines(Font font, int textHeight) {
-        return textHeight < font.lineHeight ? 0 : (int) ((textHeight - font.lineHeight) / lineStep(font)) + 1;
+    private static int visibleLines(int lineHeight, int textHeight) {
+        return textHeight < lineHeight ? 0 : (int) ((textHeight - lineHeight) / lineStep(lineHeight)) + 1;
     }
 
     /** A {@code null} entry is a blank spacer line, as upstream's panel text uses. */

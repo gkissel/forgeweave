@@ -22,6 +22,7 @@ import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.CommonComponents;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.HoverEvent;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.network.chat.Style;
 import net.minecraft.network.chat.TextColor;
@@ -436,9 +437,17 @@ class ToolTooltipTest {
     }
 
     /** A {@code StationText#stat} line, the shape the per-part sections reuse (issue #380). */
+    /**
+     * A stat row as {@code StationText#stat} builds it, hover text included: issue #376 hung each
+     * row's {@code .desc} key on it as a SHOW_TEXT event for the station panels. Inert in an item
+     * tooltip, which renders no hover events, but it is part of the component all the same.
+     */
     private static Component guiStat(String key, String value, TextColor color) {
-        return Component.translatable("gui.forgeweave.stat." + key,
+        MutableComponent line = Component.translatable("gui.forgeweave.stat." + key,
                 Component.literal(value).withStyle(Style.EMPTY.withColor(color)));
+        Component hover = line.copy().append("\n").append(
+                Component.translatable("gui.forgeweave.stat." + key + ".desc").withStyle(ChatFormatting.GRAY));
+        return line.withStyle(style -> style.withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, hover)));
     }
 
     private static Component tierLine(String tier) {
