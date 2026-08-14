@@ -75,6 +75,7 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add(SmelteryScan.KEY_INVALID_FLOOR, "The floor needs a seared block at %s, %s, %s");
         add(SmelteryScan.KEY_INVALID_WALL, "The wall needs a seared block, tank or drain at %s, %s, %s");
         add(SmelteryScan.KEY_NO_TANK, "The smeltery needs at least one seared tank in its walls");
+        add(SmelteryScan.KEY_CLAIMED, "Another smeltery already uses the block at %s, %s, %s");
         add(SmelteryScan.KEY_CORE_OUTSIDE, "The core has to sit in a wall of the smeltery");
 
         // #101: the smeltery GUI's tank and fuel tooltips, following upstream 1.12's gui.smeltery.*

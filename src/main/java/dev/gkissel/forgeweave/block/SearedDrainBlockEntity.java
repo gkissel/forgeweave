@@ -39,6 +39,15 @@ public class SearedDrainBlockEntity extends BlockEntity {
         super(ForgeweaveBlockEntities.SEARED_DRAIN.get(), pos, state);
     }
 
+    /**
+     * Which core claimed this drain, or {@code null} if none ever did. Read by {@link SmelteryScan} so
+     * a second smeltery cannot take a drain a still-formed one already owns (#288).
+     */
+    @Nullable
+    public BlockPos core() {
+        return corePos;
+    }
+
     /** Called by {@link SmelteryControllerBlockEntity} for every drain in a structure it just formed. */
     public void setCore(BlockPos corePos) {
         if (!corePos.equals(this.corePos)) {

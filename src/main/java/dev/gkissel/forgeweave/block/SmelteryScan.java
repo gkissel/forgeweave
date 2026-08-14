@@ -62,6 +62,8 @@ public final class SmelteryScan {
     public static final String KEY_INVALID_FLOOR = PREFIX + "invalid_floor";
     public static final String KEY_INVALID_WALL = PREFIX + "invalid_wall";
     public static final String KEY_NO_TANK = PREFIX + "no_tank";
+    /** #288: the block is part of another smeltery that is still standing (upstream {@code isValidSlave}). */
+    public static final String KEY_CLAIMED = PREFIX + "claimed";
     public static final String KEY_CORE_OUTSIDE = PREFIX + "core_outside";
 
     /**
@@ -197,6 +199,8 @@ public final class SmelteryScan {
                 }
             } else if (!Valid.WALL.contains(block)) {
                 return new Layer(at(KEY_INVALID_WALL, pos), List.of(), List.of());
+            } else if (claimedByAnotherCore(level, pos, corePos)) {
+                return new Layer(at(KEY_CLAIMED, pos), List.of(), List.of());
             }
             if (Valid.TANKS.contains(block)) {
                 tanks.add(pos);
@@ -205,6 +209,48 @@ public final class SmelteryScan {
             }
         }
         return new Layer(null, drains, tanks);
+    }
+
+    /**
+     * Whether {@code pos} already belongs to a different smeltery that is still formed -- upstream's
+     * {@code MultiblockTinker#isValidSlave}, which refuses any structure block whose servant tile
+     * already points at another master. Without it the scan silently steals the block, leaving two
+     * formed smelteries fighting over the same tank or drain on every rescan.
+     *
+     * <p>Only tanks and drains can be claimed here: they are the only structure blocks Forgeweave
+     * gives a block entity to remember its core with (see {@link SmelteryControllerBlockEntity}'s
+     * note on upstream's servants), and both are wall-only, so nothing on the floor or in the
+     * interior can carry a claim. A claim from a core that has been broken, or whose structure no
+     * longer forms, is not a claim -- same as upstream's {@code hasValidMaster}, and what keeps a
+     * dead smeltery from locking its tank away from every future one.
+     *
+     * <p>Asking the owner whether it is still formed goes through {@link
+     * SmelteryControllerBlockEntity#isFormed()}, which rescans a stale answer: the owner has no
+     * ticker, so a cached "formed" from before its walls came down would otherwise never be refreshed
+     * and the claim would never lift. That rescan cannot recurse back into this one -- a core stamps
+     * its scan tick before it scans, so re-entering {@code structure()} returns the cached value.
+     */
+    private static boolean claimedByAnotherCore(Level level, BlockPos pos, BlockPos corePos) {
+        BlockPos owner = claimAt(level, pos);
+        if (owner == null || owner.equals(corePos)) {
+            return false;
+        }
+        if (!level.isLoaded(owner)) {
+            // The owner is out of reach to ask, so leave its claim standing rather than take a block
+            // that may well still be part of a working smeltery (#288's other half).
+            return true;
+        }
+        return level.getBlockEntity(owner) instanceof SmelteryControllerBlockEntity other && other.isFormed();
+    }
+
+    /** The core a wall block remembers, or {@code null} if it is not the kind of block that remembers one. */
+    @Nullable
+    private static BlockPos claimAt(Level level, BlockPos pos) {
+        return switch (level.getBlockEntity(pos)) {
+            case SearedTankBlockEntity tank -> tank.core();
+            case SearedDrainBlockEntity drain -> drain.core();
+            case null, default -> null;
+        };
     }
 
     /** Upstream's {@code getOuterPos}: step along {@code dir} while inside, returning the first block that is not. */

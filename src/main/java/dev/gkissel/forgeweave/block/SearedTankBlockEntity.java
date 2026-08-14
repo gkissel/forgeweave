@@ -75,6 +75,15 @@ public class SearedTankBlockEntity extends BlockEntity {
         return tank;
     }
 
+    /**
+     * Which core claimed this tank, or {@code null} if none ever did. Read by {@link SmelteryScan} so
+     * a second smeltery cannot take a tank a still-formed one already owns (#288).
+     */
+    @Nullable
+    public BlockPos core() {
+        return corePos;
+    }
+
     /** Called by {@link SmelteryControllerBlockEntity} for every wall tank in a structure it just formed (#97). */
     public void setCore(BlockPos corePos) {
         if (!corePos.equals(this.corePos)) {
