@@ -59,6 +59,9 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         addBlock(ForgeweaveBlocks.SEARED_WINDOW, "Seared Window");
         addBlock(ForgeweaveBlocks.SEARED_DRAIN, "Seared Drain");
 
+        // Plain seared glass (docs/SCOPE.md M3.3 issue #289), name from upstream's tile.tconstruct.seared_glass.name.
+        addBlock(ForgeweaveBlocks.SEARED_GLASS, "Seared Glass");
+
         // What a core reports when a player uses it (issue #95: "the controller reports why an
         // invalid structure fails to form"). Positions are passed as three numbers so the message
         // reads naturally in any language.

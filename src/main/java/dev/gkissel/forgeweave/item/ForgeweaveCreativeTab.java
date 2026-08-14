@@ -160,6 +160,7 @@ public final class ForgeweaveCreativeTab {
         output.accept(ForgeweaveItems.SEARED_GAUGE.get());
         output.accept(ForgeweaveItems.SEARED_WINDOW.get());
         output.accept(ForgeweaveItems.SEARED_DRAIN.get());
+        output.accept(ForgeweaveItems.SEARED_GLASS.get());
 
         // #100 -- casting (docs/SCOPE.md M2 issue #100).
         output.accept(ForgeweaveItems.CASTING_TABLE.get());

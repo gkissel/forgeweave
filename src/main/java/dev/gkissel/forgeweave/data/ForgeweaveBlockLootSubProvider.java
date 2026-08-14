@@ -74,6 +74,9 @@ public class ForgeweaveBlockLootSubProvider extends BlockLootSubProvider {
         add(ForgeweaveBlocks.SEARED_GAUGE.get(), tankDrop(ForgeweaveBlocks.SEARED_GAUGE.get()));
         add(ForgeweaveBlocks.SEARED_WINDOW.get(), tankDrop(ForgeweaveBlocks.SEARED_WINDOW.get()));
 
+        // Plain seared glass (docs/SCOPE.md M3.3 issue #289): no BlockEntity/held state, plain self-drop.
+        dropSelf(ForgeweaveBlocks.SEARED_GLASS.get());
+
         // #100 -- casting (docs/SCOPE.md M2 issue #100). Held items and any in-flight fluid are
         // dropped by the block entity itself (CastingBlock#onRemove, FaucetBlockEntity), so the
         // blocks themselves just drop as blocks.

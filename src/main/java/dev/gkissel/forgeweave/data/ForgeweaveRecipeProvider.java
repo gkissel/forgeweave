@@ -346,8 +346,9 @@ public class ForgeweaveRecipeProvider extends RecipeProvider {
     /**
      * The smeltery multiblock's blocks (docs/SCOPE.md M2 issue #95). Shapes ported 1:1 from upstream
      * 1.12's {@code recipes/smeltery/{smeltery_controller,smeltery_drain}.json} and {@code
-     * recipes/smeltery/seared/{tank,gauge,window}.json} (NOTICE.md), with upstream's {@code
-     * blockGlass} ore-dict entry becoming the modern {@code c:glass_blocks} tag.
+     * recipes/smeltery/seared/{tank,gauge,window,glass}.json} (NOTICE.md), with upstream's {@code
+     * blockGlass} ore-dict entry becoming the modern {@code c:glass_blocks} tag. Plain seared glass
+     * (issue #289) reuses the same tank-family shape helper: its plus pattern is upstream's own.
      *
      * <p>The Nether Core has no upstream shape -- tiered cores are SCOPE.md's own addition -- so it
      * is the Standard Core's ring with a netherite ingot at its heart, matching SCOPE.md's
@@ -382,6 +383,10 @@ public class ForgeweaveRecipeProvider extends RecipeProvider {
         tankRecipe(recipeOutput, ForgeweaveItems.SEARED_TANK.get(), "AAA", "ABA", "AAA");
         tankRecipe(recipeOutput, ForgeweaveItems.SEARED_GAUGE.get(), "ABA", "BBB", "ABA");
         tankRecipe(recipeOutput, ForgeweaveItems.SEARED_WINDOW.get(), "ABA", "ABA", "ABA");
+
+        // Plain seared glass (docs/SCOPE.md M3.3 issue #289): upstream's recipes/smeltery/seared/
+        // glass.json shape, a plus of 4 seared bricks around a glass block (NOTICE.md).
+        tankRecipe(recipeOutput, ForgeweaveItems.SEARED_GLASS.get(), " A ", "ABA", " A ");
 
         // #100 -- casting (docs/SCOPE.md M2 issue #100). Shapes ported 1:1 from upstream 1.12's
         // recipes/smeltery/{casting_table,casting_basin,faucet}.json (NOTICE.md). The casts

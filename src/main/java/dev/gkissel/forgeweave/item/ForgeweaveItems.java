@@ -320,6 +320,9 @@ public final class ForgeweaveItems {
     public static final DeferredItem<BlockItem> SEARED_WINDOW = ITEMS.registerSimpleBlockItem("seared_window", ForgeweaveBlocks.SEARED_WINDOW);
     public static final DeferredItem<BlockItem> SEARED_DRAIN = ITEMS.registerSimpleBlockItem("seared_drain", ForgeweaveBlocks.SEARED_DRAIN);
 
+    // Plain seared glass (docs/SCOPE.md M3.3 issue #289).
+    public static final DeferredItem<BlockItem> SEARED_GLASS = ITEMS.registerSimpleBlockItem("seared_glass", ForgeweaveBlocks.SEARED_GLASS);
+
     // #107 batch: modifier reagent items (docs/SCOPE.md M2 issue #107) -- silky jewel, reinforced
     // plate, mending moss (plus its "moss" precursor), and the extra-slot item. Soulbound reuses the
     // vanilla nether star (modifier.ForgeweaveModifiers) so it needs no item of its own here.

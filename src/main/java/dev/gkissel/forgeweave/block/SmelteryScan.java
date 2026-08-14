@@ -255,9 +255,13 @@ public final class SmelteryScan {
                 ForgeweaveBlocks.SEARED_TILE.get(),
                 ForgeweaveBlocks.SEARED_CREEPER.get());
 
+        // Plain seared glass (issue #289): a valid wall block, upstream's validSmelteryBlocks
+        // membership, but never a floor block -- upstream's isFloorBlock override only ever accepts
+        // its plain seared blocks (this class's FLOOR set), excluding glass, tanks and the drain
+        // alike.
         static final Set<Block> WALL = Stream.concat(
                         Stream.concat(FLOOR.stream(), TANKS.stream()),
-                        Stream.of(ForgeweaveBlocks.SEARED_DRAIN.get()))
+                        Stream.of(ForgeweaveBlocks.SEARED_DRAIN.get(), ForgeweaveBlocks.SEARED_GLASS.get()))
                 .collect(Collectors.toUnmodifiableSet());
     }
 

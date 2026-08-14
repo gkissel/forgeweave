@@ -104,6 +104,10 @@ public class ForgeweaveBlockStateProvider extends BlockStateProvider {
         tankBlock("seared_gauge", ForgeweaveBlocks.SEARED_GAUGE.get(), "seared_gauge_side", "seared_window_top");
         tankBlock("seared_window", ForgeweaveBlocks.SEARED_WINDOW.get(), "seared_window_side", "seared_window_top");
 
+        // Plain seared glass (docs/SCOPE.md M3.3 issue #289): cube_all like the seared brick family,
+        // but cutout like the tank family -- see cubeAllCutoutBlock.
+        cubeAllCutoutBlock("seared_glass", ForgeweaveBlocks.SEARED_GLASS.get());
+
         // The drain has distinct front and back faces, so it needs the full six-face cube rather than
         // "orientable" (which would repeat the side texture on the back).
         ResourceLocation drainSide = modLoc("derived/block/seared_bricks");
@@ -180,6 +184,16 @@ public class ForgeweaveBlockStateProvider extends BlockStateProvider {
 
     private void cubeAllBlock(String name, Block block) {
         ModelFile model = models().cubeAll(name, modLoc("derived/block/" + name));
+        simpleBlockWithItem(block, model);
+    }
+
+    /**
+     * A cube_all block whose texture carries real alpha-cutout transparency (issue #289's seared
+     * glass) -- same {@code minecraft:cutout} render_type deviation as {@link #tankBlock}, for the
+     * same reason (NeoForge 1.21 declares chunk render type on the model itself).
+     */
+    private void cubeAllCutoutBlock(String name, Block block) {
+        ModelFile model = models().cubeAll(name, modLoc("derived/block/" + name)).renderType("minecraft:cutout");
         simpleBlockWithItem(block, model);
     }
 }
