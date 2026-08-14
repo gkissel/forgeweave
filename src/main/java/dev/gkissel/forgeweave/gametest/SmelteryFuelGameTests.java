@@ -17,6 +17,7 @@ import dev.gkissel.forgeweave.block.ForgeweaveBlocks;
 import dev.gkissel.forgeweave.block.SearedTankBlockEntity;
 import dev.gkissel.forgeweave.block.SmelteryControllerBlockEntity;
 import dev.gkissel.forgeweave.fluid.ForgeweaveFluids;
+import dev.gkissel.forgeweave.recipe.MeltingRecipe;
 
 /**
  * docs/SCOPE.md M2 issue #97's verification on a headless dedicated server: lava is consumed exactly
@@ -88,6 +89,39 @@ public class SmelteryFuelGameTests {
             helper.assertTrue(core.tank().getFluid().getFluid() == ForgeweaveFluids.IRON.still().get(),
                     "expected molten iron, lava's own 1300 degrees can never reach this recipe");
         });
+    }
+
+    /**
+     * #287 regression: upstream's {@code TileHeatingStructure#heatItems} only sets its "did we heat
+     * something" flag in the temperature-increment branch, never in the branch that finishes a melt.
+     * A melt tick whose only work is filling the tank must not also burn a fuel tick -- driven by
+     * calling {@link SmelteryControllerBlockEntity#meltTick()} directly rather than waiting on the
+     * scheduler, so the assertion sits on the exact finishing tick instead of a timing-dependent
+     * sample.
+     */
+    @GameTest(template = "smeltery", timeoutTicks = 100)
+    public static void aFinishOnlyTickConsumesNoFuel(GameTestHelper helper) {
+        SmelteryControllerBlockEntity core = lavaFuelledSmeltery(helper);
+        helper.assertTrue(core.insertForMelting(new ItemStack(Items.IRON_NUGGET)).isEmpty(),
+                "expected the iron nugget to go into the smeltery");
+
+        // Drive the slot right up to (but not through) its finishing tick.
+        while (core.meltProgress(0) < 1.0f) {
+            core.meltTick();
+        }
+
+        int burnTicksBefore = core.fuelBurnTicksRemaining();
+        helper.assertTrue(burnTicksBefore > 0, "expected an in-progress burn heading into the finishing tick");
+
+        core.meltTick(); // finish-only tick: fills the tank, nothing left to increment.
+
+        helper.assertValueEqual(core.tank().getFluidAmount(), MeltingRecipe.VALUE_NUGGET,
+                "expected the nugget to finish melting");
+        helper.assertTrue(core.tank().getFluid().getFluid() == ForgeweaveFluids.IRON.still().get(),
+                "expected molten iron in the tank");
+        helper.assertValueEqual(core.fuelBurnTicksRemaining(), burnTicksBefore,
+                "a finish-only tick must not consume fuel (#287)");
+        helper.succeed();
     }
 
     // ------------------------------------------------------------------ helpers
