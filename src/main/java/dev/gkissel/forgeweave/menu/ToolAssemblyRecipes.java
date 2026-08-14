@@ -121,17 +121,6 @@ public final class ToolAssemblyRecipes {
             return List.copyOf(items);
         }
 
-        /** The slot holding the tool's first head part -- the one repair reads its repair item from. */
-        public int headSlot() {
-            List<ToolConstants.PartSlot> slots = constants.parts();
-            for (int i = 0; i < slots.size(); i++) {
-                if (slots.get(i).role() == ToolConstants.Role.HEAD) {
-                    return i;
-                }
-            }
-            throw new IllegalStateException(constants.id() + " has no head part");
-        }
-
         /** Whether the given input slots hold exactly this tool's parts, in order. */
         boolean matches(List<ItemStack> inputs) {
             if (inputs.size() < slotCount()) {
@@ -667,8 +656,8 @@ public final class ToolAssemblyRecipes {
             materials.add(material.get());
         }
 
-        Material head = materials.get(entry.headSlot());
-        ToolStats.Stats stats = statsOf(entry, materials, head);
+        List<Material> heads = headMaterials(entry, materials);
+        ToolStats.Stats stats = statsOf(entry, materials, heads);
 
         ToolItem tool = entry.tool().get();
         ItemStack result = new ItemStack(tool);
@@ -688,21 +677,77 @@ public final class ToolAssemblyRecipes {
         }
         // Mining tier, mining speed, and the durability bar all ride on vanilla components, so
         // vanilla's own block-breaking and rendering paths need no Forgeweave-specific handling.
-        result.set(DataComponents.TOOL, tool.toolComponent(head, stats));
+        result.set(DataComponents.TOOL, tool.toolComponent(highestTierHead(heads), stats));
         result.set(DataComponents.MAX_DAMAGE, stats.durability());
         result.set(DataComponents.DAMAGE, 0);
         return Optional.of(result);
     }
 
     /**
-     * {@link ToolConstants#compute}'s stored stat block plus the head material's own durability
-     * trait. Upstream fires that trait step ({@code TinkerEvent.OnItemBuilding}) after the tool
+     * Every HEAD-slot material, in slot order -- what upstream 1.12's {@code ToolNBT#head} receives as
+     * its varargs (issue #294). One entry for the 15 single-head tools, two to three for the hammer,
+     * cleaver, battleaxe, excavator, lumber axe, mattock and vein hammer.
+     */
+    private static List<Material> headMaterials(Entry entry, List<Material> materials) {
+        List<ToolConstants.PartSlot> slots = entry.constants().parts();
+        List<Material> heads = new ArrayList<>();
+        for (int i = 0; i < slots.size(); i++) {
+            if (slots.get(i).role() == ToolConstants.Role.HEAD) {
+                heads.add(materials.get(i));
+            }
+        }
+        if (heads.isEmpty()) {
+            throw new IllegalStateException(entry.constants().id() + " has no head part");
+        }
+        return heads;
+    }
+
+    /**
+     * The head material whose tier gates the finished tool: the <b>highest</b> one, never the
+     * first HEAD slot the station used to read this off (issue #294). Upstream {@code ToolNBT#head}
+     * aggregates its
+     * heads by averaging durability/attack/speed but taking {@code harvestLevel} as the max ("use
+     * highest harvestlevel"), so a hammer with a cobalt large plate mines at cobalt's tier however
+     * cheap its hammer head is. {@code Material#incorrectForTool} is Forgeweave's vanilla-tag stand-in
+     * for that number (CONTEXT.md: no numeric harvest levels), ordered by
+     * {@link ForgeweaveModifiers#tierIndexOf(TagKey)}; a tag off that ladder scores -1 and so only
+     * wins if every head is off it, which keeps the first head as the fallback answer.
+     */
+    private static Material highestTierHead(List<Material> heads) {
+        Material best = heads.get(0);
+        int bestTier = ForgeweaveModifiers.tierIndexOf(best.incorrectForTool());
+        for (Material head : heads) {
+            int tier = ForgeweaveModifiers.tierIndexOf(head.incorrectForTool());
+            if (tier > bestTier) {
+                best = head;
+                bestTier = tier;
+            }
+        }
+        return best;
+    }
+
+    /**
+     * {@link ToolConstants#compute}'s stored stat block plus the head materials' own durability
+     * traits. Upstream fires that trait step ({@code TinkerEvent.OnItemBuilding}) after the tool
      * class's {@code buildTagData}, which is exactly this order; {@code ToolStats#compute} applies
      * the same step for M1's three-material shape, and reproduces this one exactly for those three.
+     *
+     * <p>Issue #294's second question, decided here: head-scoped trait effects fold across
+     * <em>every</em> HEAD part, not just the designated slot. That is what upstream does --
+     * {@code TinkersItem#addMaterialTraits} adds each part's applicable traits to the tool, then the
+     * one {@code OnItemBuilding} event fires over the whole trait set -- and {@link #resolveTraits}
+     * already gives the assembled stack traits from all heads, so reading only the first head's here
+     * would have made a hammer show a trait on its tooltip that its durability had never paid for.
+     * De-duplicated, since upstream counts a trait granted by two parts once ({@code
+     * ToolBuilder#addTrait} skips one already present).
      */
-    private static ToolStats.Stats statsOf(Entry entry, List<Material> materials, Material head) {
+    private static ToolStats.Stats statsOf(Entry entry, List<Material> materials, List<Material> heads) {
         ToolStats.Stats base = ToolConstants.compute(entry.constants(), materials);
-        int durability = ForgeweaveTraits.headDurability(head.traits().forPart(PartItem.Kind.HEAD), base.durability());
+        List<ResourceLocation> headTraits = heads.stream()
+                .flatMap(head -> head.traits().forPart(PartItem.Kind.HEAD).stream())
+                .distinct()
+                .toList();
+        int durability = ForgeweaveTraits.headDurability(headTraits, base.durability());
         return new ToolStats.Stats(durability, base.miningSpeed(), base.attackDamage());
     }
 
