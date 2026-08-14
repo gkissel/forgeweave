@@ -32,11 +32,16 @@ Five tools have no upstream *broken* art at all -- the dagger, katana and scimit
 #159/#198/#279), the vein hammer (#157) and the war mace (#161) -- so there is no broken art to port
 for them. Their broken layers are instead an algorithmic transform of their own head layer, the same
 "pixels through a documented transform" treatment `generate_pattern_textures.py` and
-`generate_cast_textures.py` give their outputs. Four of the five chip an already-*derived* head, so
-NOTICE.md carries a row per file: every input pixel is still upstream's. The katana is the
-exception -- issue #279 made its head freshly authored, so chipping it yields authored pixels, and
-its broken layer follows the head out of the derived tree into `textures/tools/` with no NOTICE row
-(see `ORIGINAL_ART` below and `ToolArt#ORIGINAL_ART`, which agree on the routing).
+`generate_cast_textures.py` give their outputs. All five chip an already-*derived* head, so NOTICE.md
+carries a row per file: every input pixel is still some upstream's.
+
+The katana used to be the exception -- issue #279 made its head freshly authored, so chipping it
+yielded authored pixels and its broken layer followed the head out of the derived tree. Issue #375
+re-sourced that head from Spartan Weaponry (Apache-2.0, `scripts/derive_spartan_blade_art.py`), so
+`katana_head_broken.png` is derived again and back under `derived/tools/` with the other four; its
+NOTICE.md row cites Spartan Weaponry rather than the 1.12 clone. The katana's *other* two layers
+stay authored -- see `ToolArt#ORIGINAL_ART`, which is now keyed per layer -- but neither is a
+CHIPPED entry, so nothing here reads them.
 
 The transform, `chip()`: project the layer's opaque pixels onto the shape's principal axis and erase
 the outermost `CHIP_FRACTION` of them at each end. That is what upstream's hand-drawn broken art does
@@ -60,12 +65,6 @@ ROOT = Path(__file__).resolve().parent.parent
 UPSTREAM_1_12 = Path.home() / "development/minecraft/references/tinkers-1.12/resources/assets/tconstruct/textures/items"
 
 DERIVED_TOOLS = ROOT / "src/main/resources/assets/forgeweave/textures/derived/tools"
-# Freshly-authored tool art lives outside the derived tree, and its broken variant has to follow it
-# there -- chipping authored pixels produces authored pixels. Mirrors `ToolArt#ORIGINAL_ART`, which
-# routes the same tools' layer paths on the Java side (issue #279); `BrokenToolModelTest` checks the
-# model actually points at whatever this writes.
-ORIGINAL_TOOLS = ROOT / "src/main/resources/assets/forgeweave/textures/tools"
-ORIGINAL_ART = {"katana"}
 
 # Forgeweave "<tool>_<layer>" -> upstream file, straight ports. See the module docstring's table.
 PORTED = {
@@ -131,11 +130,10 @@ def main() -> None:
     for name, upstream in PORTED.items():
         outputs[DERIVED_TOOLS / f"{name}_broken.png"] = Image.open(UPSTREAM_1_12 / upstream).convert("RGBA")
     for name in CHIPPED:
-        root = ORIGINAL_TOOLS if name.rsplit("_", 1)[0] in ORIGINAL_ART else DERIVED_TOOLS
-        intact = root / f"{name}.png"
+        intact = DERIVED_TOOLS / f"{name}.png"
         if not intact.is_file():
             raise SystemExit(f"expected {intact} to exist")
-        outputs[root / f"{name}_broken.png"] = chip(Image.open(intact).convert("RGBA"))
+        outputs[DERIVED_TOOLS / f"{name}_broken.png"] = chip(Image.open(intact).convert("RGBA"))
 
     for path, image in outputs.items():
         path.parent.mkdir(parents=True, exist_ok=True)

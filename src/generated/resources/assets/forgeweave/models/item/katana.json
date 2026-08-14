@@ -10,7 +10,7 @@
   ],
   "textures": {
     "layer0": "forgeweave:tools/katana_handle",
-    "layer1": "forgeweave:tools/katana_head",
+    "layer1": "forgeweave:derived/tools/katana_head",
     "layer2": "forgeweave:tools/katana_binding"
   }
 }
