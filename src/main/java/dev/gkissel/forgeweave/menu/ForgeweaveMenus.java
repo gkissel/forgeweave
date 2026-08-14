@@ -49,5 +49,11 @@ public final class ForgeweaveMenus {
                     (windowId, inventory, buf) -> new SmelteryMenu(
                             windowId, inventory, buf.readBlockPos(), buf.readVarInt())));
 
+    // #277: the seared duct's one-slot filter GUI (docs/SCOPE.md M3.4). No payload at all -- the
+    // filter slot's contents ride vanilla's own slot sync, and nothing else on the screen is dynamic.
+    public static final DeferredHolder<MenuType<?>, MenuType<SearedDuctMenu>> SEARED_DUCT =
+            MENUS.register("seared_duct", () -> IMenuTypeExtension.create(
+                    (windowId, inventory, buf) -> new SearedDuctMenu(windowId, inventory)));
+
     private ForgeweaveMenus() {}
 }

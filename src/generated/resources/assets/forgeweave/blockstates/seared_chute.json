@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=east": {
+      "model": "forgeweave:block/seared_chute",
+      "y": 270
+    },
+    "facing=north": {
+      "model": "forgeweave:block/seared_chute",
+      "y": 180
+    },
+    "facing=south": {
+      "model": "forgeweave:block/seared_chute"
+    },
+    "facing=west": {
+      "model": "forgeweave:block/seared_chute",
+      "y": 90
+    }
+  }
+}

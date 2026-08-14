@@ -12,11 +12,13 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.ItemTags;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Item;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.Block;
 
 import net.neoforged.neoforge.common.data.ExistingFileHelper;
 
 import dev.gkissel.forgeweave.Forgeweave;
+import dev.gkissel.forgeweave.block.SearedDuctBlockEntity;
 import dev.gkissel.forgeweave.item.ForgeweaveItems;
 import dev.gkissel.forgeweave.menu.ToolAssemblyRecipes;
 
@@ -148,6 +150,9 @@ public class ForgeweaveItemTagsProvider extends ItemTagsProvider {
                 "aluminum", "rose_gold")) {
             toolForge.addOptionalTag(storageBlock(metal));
         }
+
+        // #277 -- what a seared duct takes as a fluid filter; see SearedDuctBlockEntity#DUCT_CONTAINERS.
+        tag(SearedDuctBlockEntity.DUCT_CONTAINERS).add(Items.BUCKET);
     }
 
     /** The tag naming every block a Tool Forge can be crafted from (issue #152). */

@@ -22,7 +22,9 @@ import net.minecraft.data.recipes.SimpleCookingRecipeBuilder;
 import net.minecraft.data.recipes.SingleItemRecipeBuilder;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.ItemTags;
+import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.DyeItem;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.CraftingBookCategory;
@@ -518,6 +520,15 @@ public class ForgeweaveRecipeProvider extends RecipeProvider {
                 .unlockedBy("has_seared_brick", has(ForgeweaveItems.SEARED_BRICK.get()))
                 .save(recipeOutput);
 
+        // #277 -- the duct and chute (docs/SCOPE.md M3.4). Shapes ported 1:1 from the 1.20 clone's
+        // recipes/smeltery/seared/{duct,chute}.json (NOTICE.md): the duct is a drain's ring of bricks
+        // with a pair of gold ingots through the middle, the chute a hollow frame of bricks around a
+        // pair of copper ingots.
+        ioRecipe(recipeOutput, ForgeweaveItems.SEARED_DUCT.get(), Tags.Items.INGOTS_GOLD, "has_gold_ingot",
+                "A A", "B B", "A A");
+        ioRecipe(recipeOutput, ForgeweaveItems.SEARED_CHUTE.get(), Tags.Items.INGOTS_COPPER, "has_copper_ingot",
+                "ABA", "   ", "ABA");
+
         tankRecipe(recipeOutput, ForgeweaveItems.SEARED_TANK.get(), "AAA", "ABA", "AAA");
         tankRecipe(recipeOutput, ForgeweaveItems.SEARED_GAUGE.get(), "ABA", "BBB", "ABA");
         tankRecipe(recipeOutput, ForgeweaveItems.SEARED_WINDOW.get(), "ABA", "ABA", "ABA");
@@ -543,6 +554,19 @@ public class ForgeweaveRecipeProvider extends RecipeProvider {
         }
         builder.define('A', ForgeweaveItems.SEARED_BRICK.get())
                 .unlockedBy("has_seared_brick", has(ForgeweaveItems.SEARED_BRICK.get()))
+                .save(recipeOutput);
+    }
+
+    /** A smeltery I/O shape (#277): {@code A} seared bricks, {@code B} the metal that makes it a duct or a chute. */
+    private void ioRecipe(RecipeOutput recipeOutput, ItemLike result, TagKey<Item> metal, String criterion,
+            String top, String middle, String bottom) {
+        ShapedRecipeBuilder.shaped(RecipeCategory.MISC, result)
+                .pattern(top)
+                .pattern(middle)
+                .pattern(bottom)
+                .define('A', ForgeweaveItems.SEARED_BRICK.get())
+                .define('B', metal)
+                .unlockedBy(criterion, has(metal))
                 .save(recipeOutput);
     }
 

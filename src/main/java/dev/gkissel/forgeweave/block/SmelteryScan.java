@@ -67,12 +67,13 @@ public final class SmelteryScan {
     public static final String KEY_CORE_OUTSIDE = PREFIX + "core_outside";
 
     /**
-     * Outcome of one scan: the interior when it formed, the drain and wall-tank positions found in
-     * its walls (so the core can point them back at itself -- {@code tanks} is #97's, for waking a
-     * melt that stopped for want of fuel when one gets refilled), and a player-facing message that is
-     * a success line when {@link #formed()} and the reason for failure otherwise.
+     * Outcome of one scan: the interior when it formed, the I/O-block ({@code io}: drains, ducts and
+     * chutes) and wall-tank positions found in its walls (so the core can point them back at itself --
+     * {@code tanks} is #97's, for waking a melt that stopped for want of fuel when one gets
+     * refilled), and a player-facing message that is a success line when {@link #formed()} and the
+     * reason for failure otherwise.
      */
-    public record Result(@Nullable SmelteryStructure structure, List<BlockPos> drains, List<BlockPos> tanks, Component message) {
+    public record Result(@Nullable SmelteryStructure structure, List<BlockPos> io, List<BlockPos> tanks, Component message) {
         public boolean formed() {
             return structure != null;
         }
@@ -114,7 +115,7 @@ public final class SmelteryScan {
             return failure(floorFailure);
         }
 
-        List<BlockPos> drains = new ArrayList<>();
+        List<BlockPos> io = new ArrayList<>();
         List<BlockPos> tanks = new ArrayList<>();
         Component layerFailure = null;
         int height = 0;
@@ -124,7 +125,7 @@ public final class SmelteryScan {
                 layerFailure = layer.failure();
                 break;
             }
-            drains.addAll(layer.drains());
+            io.addAll(layer.io());
             tanks.addAll(layer.tanks());
             height++;
         }
@@ -141,11 +142,11 @@ public final class SmelteryScan {
         SmelteryStructure structure = new SmelteryStructure(
                 new BlockPos(west + 1, bottom.getY(), north + 1),
                 new BlockPos(east - 1, bottom.getY() + height - 1, south - 1));
-        return new Result(structure, List.copyOf(drains), List.copyOf(tanks), Component.translatable(KEY_FORMED, width, depth, height));
+        return new Result(structure, List.copyOf(io), List.copyOf(tanks), Component.translatable(KEY_FORMED, width, depth, height));
     }
 
     /** One wall layer's verdict, plus what it contributed to the structure. */
-    private record Layer(@Nullable Component failure, List<BlockPos> drains, List<BlockPos> tanks) {}
+    private record Layer(@Nullable Component failure, List<BlockPos> io, List<BlockPos> tanks) {}
 
     @Nullable
     private static Component detectFloor(Level level, int y, int west, int east, int north, int south) {
@@ -188,7 +189,7 @@ public final class SmelteryScan {
             walls.add(new BlockPos(east, y, z));
         }
 
-        List<BlockPos> drains = new ArrayList<>();
+        List<BlockPos> io = new ArrayList<>();
         List<BlockPos> tanks = new ArrayList<>();
         for (BlockPos pos : walls) {
             Block block = level.getBlockState(pos).getBlock();
@@ -204,11 +205,11 @@ public final class SmelteryScan {
             }
             if (Valid.TANKS.contains(block)) {
                 tanks.add(pos);
-            } else if (block instanceof SearedDrainBlock) {
-                drains.add(pos);
+            } else if (Valid.IO.contains(block)) {
+                io.add(pos);
             }
         }
-        return new Layer(null, drains, tanks);
+        return new Layer(null, io, tanks);
     }
 
     /**
@@ -217,10 +218,10 @@ public final class SmelteryScan {
      * already points at another master. Without it the scan silently steals the block, leaving two
      * formed smelteries fighting over the same tank or drain on every rescan.
      *
-     * <p>Only tanks and drains can be claimed here: they are the only structure blocks Forgeweave
-     * gives a block entity to remember its core with (see {@link SmelteryControllerBlockEntity}'s
-     * note on upstream's servants), and both are wall-only, so nothing on the floor or in the
-     * interior can carry a claim. A claim from a core that has been broken, or whose structure no
+     * <p>Only tanks and I/O blocks (drain, duct, chute) can be claimed here: they are the only
+     * structure blocks Forgeweave gives a block entity to remember its core with (see {@link
+     * SmelteryControllerBlockEntity}'s note on upstream's servants), and all of them are wall-only, so
+     * nothing on the floor or in the interior can carry a claim. A claim from a core that has been broken, or whose structure no
      * longer forms, is not a claim -- same as upstream's {@code hasValidMaster}, and what keeps a
      * dead smeltery from locking its tank away from every future one.
      *
@@ -248,7 +249,7 @@ public final class SmelteryScan {
     private static BlockPos claimAt(Level level, BlockPos pos) {
         return switch (level.getBlockEntity(pos)) {
             case SearedTankBlockEntity tank -> tank.core();
-            case SearedDrainBlockEntity drain -> drain.core();
+            case SmelteryIoBlockEntity io -> io.core();
             case null, default -> null;
         };
     }
@@ -301,13 +302,28 @@ public final class SmelteryScan {
                 ForgeweaveBlocks.SEARED_TILE.get(),
                 ForgeweaveBlocks.SEARED_CREEPER.get());
 
+        /**
+         * The blocks that re-expose something of the core's outside the walls, and which therefore
+         * get pointed back at it once a scan succeeds ({@link SmelteryIoBlockEntity}).
+         *
+         * <p>#277 deviation, flagged on the PR: the 1.20 clone tags its duct and chute into
+         * {@code SMELTERY_FLOOR} as well as {@code SMELTERY_WALL}. Forgeweave keeps all three I/O
+         * blocks wall-only, because the drain already is -- 1.12's {@code isFloorBlock} override
+         * accepts nothing but the plain seared blocks, and a floor that takes a duct but not a drain
+         * would be the odd rule out.
+         */
+        static final Set<Block> IO = Set.of(
+                ForgeweaveBlocks.SEARED_DRAIN.get(),
+                ForgeweaveBlocks.SEARED_DUCT.get(),
+                ForgeweaveBlocks.SEARED_CHUTE.get());
+
         // Plain seared glass (issue #289): a valid wall block, upstream's validSmelteryBlocks
         // membership, but never a floor block -- upstream's isFloorBlock override only ever accepts
-        // its plain seared blocks (this class's FLOOR set), excluding glass, tanks and the drain
+        // its plain seared blocks (this class's FLOOR set), excluding glass, tanks and the I/O blocks
         // alike.
         static final Set<Block> WALL = Stream.concat(
                         Stream.concat(FLOOR.stream(), TANKS.stream()),
-                        Stream.of(ForgeweaveBlocks.SEARED_DRAIN.get(), ForgeweaveBlocks.SEARED_GLASS.get()))
+                        Stream.concat(IO.stream(), Stream.of(ForgeweaveBlocks.SEARED_GLASS.get())))
                 .collect(Collectors.toUnmodifiableSet());
     }
 

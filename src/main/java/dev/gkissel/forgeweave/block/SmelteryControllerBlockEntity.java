@@ -221,7 +221,7 @@ public class SmelteryControllerBlockEntity extends BlockEntity implements Statio
             level.sendBlockUpdated(worldPosition, state, state, Block.UPDATE_CLIENTS);
         }
         if (found != null) {
-            assignDrains(result.drains());
+            assignIoBlocks(result.io());
             assignTanks(result.tanks());
             // #96: a scan is the one moment the core is guaranteed to hear about the world changing
             // around it, so it is also where melting that stopped for want of heat picks back up.
@@ -236,11 +236,14 @@ public class SmelteryControllerBlockEntity extends BlockEntity implements Statio
         }
     }
 
-    /** Points every drain in the walls back at this core so it can serve the smeltery's fluids. */
-    private void assignDrains(List<BlockPos> drains) {
-        for (BlockPos pos : drains) {
-            if (level != null && level.getBlockEntity(pos) instanceof SearedDrainBlockEntity drain) {
-                drain.setCore(worldPosition);
+    /**
+     * Points every I/O block in the walls back at this core so it can serve the smeltery: the drain's
+     * fluids (#95), the duct's filtered fluids and the chute's items (#277).
+     */
+    private void assignIoBlocks(List<BlockPos> io) {
+        for (BlockPos pos : io) {
+            if (level != null && level.getBlockEntity(pos) instanceof SmelteryIoBlockEntity component) {
+                component.setCore(worldPosition);
             }
         }
     }

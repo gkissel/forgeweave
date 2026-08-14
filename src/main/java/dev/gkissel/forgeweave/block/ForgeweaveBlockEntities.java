@@ -76,6 +76,19 @@ public final class ForgeweaveBlockEntities {
                     .of(SearedDrainBlockEntity::new, ForgeweaveBlocks.SEARED_DRAIN.get())
                     .build(null));
 
+    // #277 -- the duct's filter slot and the chute's item port (docs/SCOPE.md M3.4). Both share the
+    // drain's core-linking base (SmelteryIoBlockEntity) but hand out different capabilities, so each
+    // gets its own type.
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<SearedDuctBlockEntity>> SEARED_DUCT =
+            BLOCK_ENTITIES.register("seared_duct", () -> BlockEntityType.Builder
+                    .of(SearedDuctBlockEntity::new, ForgeweaveBlocks.SEARED_DUCT.get())
+                    .build(null));
+
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<SearedChuteBlockEntity>> SEARED_CHUTE =
+            BLOCK_ENTITIES.register("seared_chute", () -> BlockEntityType.Builder
+                    .of(SearedChuteBlockEntity::new, ForgeweaveBlocks.SEARED_CHUTE.get())
+                    .build(null));
+
     // #100 -- casting (docs/SCOPE.md M2 issue #100).
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<CastingBlockEntity>> CASTING_TABLE =
             BLOCK_ENTITIES.register("casting_table", () -> BlockEntityType.Builder

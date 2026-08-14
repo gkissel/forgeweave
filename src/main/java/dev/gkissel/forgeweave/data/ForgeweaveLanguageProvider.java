@@ -93,6 +93,13 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         addBlock(ForgeweaveBlocks.SEARED_WINDOW, "Seared Window");
         addBlock(ForgeweaveBlocks.SEARED_DRAIN, "Seared Drain");
 
+        // #277 -- filtered fluid I/O and item I/O (docs/SCOPE.md M3.4). Names from the 1.20 clone's
+        // block.tconstruct.seared_duct/seared_chute entries. No hover tooltips: Forgeweave has no
+        // tooltip-carrying block item (the drain has none either), and upstream's would be the only
+        // two in the mod.
+        addBlock(ForgeweaveBlocks.SEARED_DUCT, "Seared Duct");
+        addBlock(ForgeweaveBlocks.SEARED_CHUTE, "Seared Chute");
+
         // Plain seared glass (docs/SCOPE.md M3.3 issue #289), name from upstream's tile.tconstruct.seared_glass.name.
         addBlock(ForgeweaveBlocks.SEARED_GLASS, "Seared Glass");
 
@@ -116,7 +123,7 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add(SmelteryScan.KEY_BLOCKED_INTERIOR, "The inside of the smeltery is blocked at %s, %s, %s");
         add(SmelteryScan.KEY_TOO_LARGE, "The smeltery interior is %s x %s, larger than the maximum of %s");
         add(SmelteryScan.KEY_INVALID_FLOOR, "The floor needs a seared block at %s, %s, %s");
-        add(SmelteryScan.KEY_INVALID_WALL, "The wall needs a seared block, tank or drain at %s, %s, %s");
+        add(SmelteryScan.KEY_INVALID_WALL, "The wall needs a seared block, tank, drain, duct or chute at %s, %s, %s");
         add(SmelteryScan.KEY_NO_TANK, "The smeltery needs at least one seared tank in its walls");
         add(SmelteryScan.KEY_CLAIMED, "Another smeltery already uses the block at %s, %s, %s");
         add(SmelteryScan.KEY_CORE_OUTSIDE, "The core has to sit in a wall of the smeltery");
