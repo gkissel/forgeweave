@@ -1,0 +1,8 @@
+{
+  "parent": "minecraft:block/stairs",
+  "textures": {
+    "bottom": "forgeweave:derived/block/seared_creeper",
+    "side": "forgeweave:derived/block/seared_creeper",
+    "top": "forgeweave:derived/block/seared_creeper"
+  }
+}

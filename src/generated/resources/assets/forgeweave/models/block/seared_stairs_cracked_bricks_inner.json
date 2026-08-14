@@ -1,0 +1,8 @@
+{
+  "parent": "minecraft:block/inner_stairs",
+  "textures": {
+    "bottom": "forgeweave:derived/block/seared_cracked_bricks",
+    "side": "forgeweave:derived/block/seared_cracked_bricks",
+    "top": "forgeweave:derived/block/seared_cracked_bricks"
+  }
+}

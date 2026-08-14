@@ -4,6 +4,8 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.data.PackOutput;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.SlabBlock;
+import net.minecraft.world.level.block.StairBlock;
 
 import net.neoforged.neoforge.client.model.generators.BlockStateProvider;
 import net.neoforged.neoforge.client.model.generators.ConfiguredModel;
@@ -29,7 +31,9 @@ import dev.gkissel.forgeweave.block.SmelteryControllerBlock;
  * top/side/leg/legBottom) so the whole table retextures as one piece from the crafting wood.
  *
  * <p>The seared brick block family (docs/SCOPE.md M2 issue #93) is plain {@code cube_all}
- * geometry, one derived texture per variant -- see {@link #cubeAllBlock}.
+ * geometry, one derived texture per variant -- see {@link #cubeAllBlock}. Its stairs and slabs
+ * (docs/SCOPE.md M3.4-5 issue #274) reuse those same textures via vanilla's own stairs/slab model
+ * shapes -- see {@link #searedStairs} and {@link #searedSlab}.
  */
 public class ForgeweaveBlockStateProvider extends BlockStateProvider {
     public ForgeweaveBlockStateProvider(PackOutput output, ExistingFileHelper existingFileHelper) {
@@ -86,6 +90,35 @@ public class ForgeweaveBlockStateProvider extends BlockStateProvider {
         cubeAllBlock("seared_road", ForgeweaveBlocks.SEARED_ROAD.get());
         cubeAllBlock("seared_tile", ForgeweaveBlocks.SEARED_TILE.get());
         cubeAllBlock("seared_creeper", ForgeweaveBlocks.SEARED_CREEPER.get());
+
+        // Seared stairs + slabs (docs/SCOPE.md M3.4-5 issue #274): vanilla's own stairsBlock/slabBlock
+        // blockstate helpers, one derived texture per variant reused from the parent cube_all block
+        // above -- see ForgeweaveBlocks for the parity notes.
+        searedStairs("seared_stairs_stone", ForgeweaveBlocks.SEARED_STAIRS_STONE.get(), "seared_stone");
+        searedStairs("seared_stairs_cobblestone", ForgeweaveBlocks.SEARED_STAIRS_COBBLESTONE.get(), "seared_cobblestone");
+        searedStairs("seared_stairs_paver", ForgeweaveBlocks.SEARED_STAIRS_PAVER.get(), "seared_paver");
+        searedStairs("seared_stairs_bricks", ForgeweaveBlocks.SEARED_STAIRS_BRICKS.get(), "seared_bricks");
+        searedStairs("seared_stairs_cracked_bricks", ForgeweaveBlocks.SEARED_STAIRS_CRACKED_BRICKS.get(), "seared_cracked_bricks");
+        searedStairs("seared_stairs_fancy_bricks", ForgeweaveBlocks.SEARED_STAIRS_FANCY_BRICKS.get(), "seared_fancy_bricks");
+        searedStairs("seared_stairs_square_bricks", ForgeweaveBlocks.SEARED_STAIRS_SQUARE_BRICKS.get(), "seared_square_bricks");
+        searedStairs("seared_stairs_triangle_bricks", ForgeweaveBlocks.SEARED_STAIRS_TRIANGLE_BRICKS.get(), "seared_triangle_bricks");
+        searedStairs("seared_stairs_small_bricks", ForgeweaveBlocks.SEARED_STAIRS_SMALL_BRICKS.get(), "seared_small_bricks");
+        searedStairs("seared_stairs_road", ForgeweaveBlocks.SEARED_STAIRS_ROAD.get(), "seared_road");
+        searedStairs("seared_stairs_tile", ForgeweaveBlocks.SEARED_STAIRS_TILE.get(), "seared_tile");
+        searedStairs("seared_stairs_creeper", ForgeweaveBlocks.SEARED_STAIRS_CREEPER.get(), "seared_creeper");
+
+        searedSlab("seared_slab_stone", ForgeweaveBlocks.SEARED_SLAB_STONE.get(), "seared_stone");
+        searedSlab("seared_slab_cobblestone", ForgeweaveBlocks.SEARED_SLAB_COBBLESTONE.get(), "seared_cobblestone");
+        searedSlab("seared_slab_paver", ForgeweaveBlocks.SEARED_SLAB_PAVER.get(), "seared_paver");
+        searedSlab("seared_slab_bricks", ForgeweaveBlocks.SEARED_SLAB_BRICKS.get(), "seared_bricks");
+        searedSlab("seared_slab_cracked_bricks", ForgeweaveBlocks.SEARED_SLAB_CRACKED_BRICKS.get(), "seared_cracked_bricks");
+        searedSlab("seared_slab_fancy_bricks", ForgeweaveBlocks.SEARED_SLAB_FANCY_BRICKS.get(), "seared_fancy_bricks");
+        searedSlab("seared_slab_square_bricks", ForgeweaveBlocks.SEARED_SLAB_SQUARE_BRICKS.get(), "seared_square_bricks");
+        searedSlab("seared_slab_triangle_bricks", ForgeweaveBlocks.SEARED_SLAB_TRIANGLE_BRICKS.get(), "seared_triangle_bricks");
+        searedSlab("seared_slab_small_bricks", ForgeweaveBlocks.SEARED_SLAB_SMALL_BRICKS.get(), "seared_small_bricks");
+        searedSlab("seared_slab_road", ForgeweaveBlocks.SEARED_SLAB_ROAD.get(), "seared_road");
+        searedSlab("seared_slab_tile", ForgeweaveBlocks.SEARED_SLAB_TILE.get(), "seared_tile");
+        searedSlab("seared_slab_creeper", ForgeweaveBlocks.SEARED_SLAB_CREEPER.get(), "seared_creeper");
 
         // The smeltery multiblock (docs/SCOPE.md M2 issue #95). Upstream 1.12's smeltery_controller
         // blockstate is the vanilla "orientable" shape with seared brick on every face but the front,
@@ -211,6 +244,30 @@ public class ForgeweaveBlockStateProvider extends BlockStateProvider {
     private void cubeAllBlock(String name, Block block) {
         ModelFile model = models().cubeAll(name, modLoc("derived/block/" + name));
         simpleBlockWithItem(block, model);
+    }
+
+    /** A seared stairs block (issue #274), textured from its parent seared block's derived texture. */
+    private void searedStairs(String name, StairBlock block, String parentTexture) {
+        ResourceLocation texture = modLoc("derived/block/" + parentTexture);
+        ModelFile stairs = models().stairs(name, texture, texture, texture);
+        ModelFile inner = models().stairsInner(name + "_inner", texture, texture, texture);
+        ModelFile outer = models().stairsOuter(name + "_outer", texture, texture, texture);
+        stairsBlock(block, stairs, inner, outer);
+        simpleBlockItem(block, stairs);
+    }
+
+    /**
+     * A seared slab block (issue #274), textured from its parent seared block's derived texture. The
+     * double-slab model reuses the parent cube_all block model registered by {@link #cubeAllBlock} --
+     * this must run after that call registers {@code parentTexture}'s block model.
+     */
+    private void searedSlab(String name, SlabBlock block, String parentTexture) {
+        ResourceLocation texture = modLoc("derived/block/" + parentTexture);
+        ModelFile bottom = models().slab(name, texture, texture, texture);
+        ModelFile top = models().slabTop(name + "_top", texture, texture, texture);
+        ModelFile doubleSlab = models().getExistingFile(modLoc("block/" + parentTexture));
+        slabBlock(block, bottom, top, doubleSlab);
+        simpleBlockItem(block, bottom);
     }
 
     /**

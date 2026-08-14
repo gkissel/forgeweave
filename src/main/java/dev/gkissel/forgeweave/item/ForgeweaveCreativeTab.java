@@ -172,6 +172,32 @@ public final class ForgeweaveCreativeTab {
         output.accept(ForgeweaveItems.SEARED_TILE.get());
         output.accept(ForgeweaveItems.SEARED_CREEPER.get());
 
+        // Seared stairs + slabs (docs/SCOPE.md M3.4-5 issue #274).
+        output.accept(ForgeweaveItems.SEARED_STAIRS_STONE.get());
+        output.accept(ForgeweaveItems.SEARED_STAIRS_COBBLESTONE.get());
+        output.accept(ForgeweaveItems.SEARED_STAIRS_PAVER.get());
+        output.accept(ForgeweaveItems.SEARED_STAIRS_BRICKS.get());
+        output.accept(ForgeweaveItems.SEARED_STAIRS_CRACKED_BRICKS.get());
+        output.accept(ForgeweaveItems.SEARED_STAIRS_FANCY_BRICKS.get());
+        output.accept(ForgeweaveItems.SEARED_STAIRS_SQUARE_BRICKS.get());
+        output.accept(ForgeweaveItems.SEARED_STAIRS_TRIANGLE_BRICKS.get());
+        output.accept(ForgeweaveItems.SEARED_STAIRS_SMALL_BRICKS.get());
+        output.accept(ForgeweaveItems.SEARED_STAIRS_ROAD.get());
+        output.accept(ForgeweaveItems.SEARED_STAIRS_TILE.get());
+        output.accept(ForgeweaveItems.SEARED_STAIRS_CREEPER.get());
+        output.accept(ForgeweaveItems.SEARED_SLAB_STONE.get());
+        output.accept(ForgeweaveItems.SEARED_SLAB_COBBLESTONE.get());
+        output.accept(ForgeweaveItems.SEARED_SLAB_PAVER.get());
+        output.accept(ForgeweaveItems.SEARED_SLAB_BRICKS.get());
+        output.accept(ForgeweaveItems.SEARED_SLAB_CRACKED_BRICKS.get());
+        output.accept(ForgeweaveItems.SEARED_SLAB_FANCY_BRICKS.get());
+        output.accept(ForgeweaveItems.SEARED_SLAB_SQUARE_BRICKS.get());
+        output.accept(ForgeweaveItems.SEARED_SLAB_TRIANGLE_BRICKS.get());
+        output.accept(ForgeweaveItems.SEARED_SLAB_SMALL_BRICKS.get());
+        output.accept(ForgeweaveItems.SEARED_SLAB_ROAD.get());
+        output.accept(ForgeweaveItems.SEARED_SLAB_TILE.get());
+        output.accept(ForgeweaveItems.SEARED_SLAB_CREEPER.get());
+
         // The smeltery multiblock's own blocks (docs/SCOPE.md M2 issue #95; issue #139 fix -- these
         // were never added here, so the maintainer couldn't find the smeltery in the creative tab).
         output.accept(ForgeweaveItems.STANDARD_CORE.get());

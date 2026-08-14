@@ -1,0 +1,13 @@
+{
+  "variants": {
+    "type=bottom": {
+      "model": "forgeweave:block/seared_slab_tile"
+    },
+    "type=double": {
+      "model": "forgeweave:block/seared_tile"
+    },
+    "type=top": {
+      "model": "forgeweave:block/seared_slab_tile_top"
+    }
+  }
+}

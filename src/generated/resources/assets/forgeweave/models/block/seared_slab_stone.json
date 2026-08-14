@@ -1,0 +1,8 @@
+{
+  "parent": "minecraft:block/slab",
+  "textures": {
+    "bottom": "forgeweave:derived/block/seared_stone",
+    "side": "forgeweave:derived/block/seared_stone",
+    "top": "forgeweave:derived/block/seared_stone"
+  }
+}

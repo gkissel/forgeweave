@@ -1,0 +1,10 @@
+{
+  "type": "minecraft:stonecutting",
+  "ingredient": {
+    "item": "forgeweave:seared_triangle_bricks"
+  },
+  "result": {
+    "count": 1,
+    "id": "forgeweave:seared_stairs_triangle_bricks"
+  }
+}

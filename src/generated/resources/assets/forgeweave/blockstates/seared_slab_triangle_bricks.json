@@ -1,0 +1,13 @@
+{
+  "variants": {
+    "type=bottom": {
+      "model": "forgeweave:block/seared_slab_triangle_bricks"
+    },
+    "type=double": {
+      "model": "forgeweave:block/seared_triangle_bricks"
+    },
+    "type=top": {
+      "model": "forgeweave:block/seared_slab_triangle_bricks_top"
+    }
+  }
+}
