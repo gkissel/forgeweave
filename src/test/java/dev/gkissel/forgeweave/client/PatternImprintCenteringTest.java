@@ -33,6 +33,15 @@ class PatternImprintCenteringTest {
     private static final String[] OFFENDER_PARTS = {"kama_head", "hammer_head", "pickaxe_head", "shovel_head"};
 
     /**
+     * Issue #278: {@code knife_blade}'s art was swapped from 1.12's (mismatched) knife blade to the
+     * 1.20 clone's {@code small_blade.png}, a differently-shaped silhouette. It isn't one of the
+     * #337 offenders above -- its bounding box already centers at (8, 8), so its offset stays (0, 0)
+     * -- but it's cheap to guard here too so a future re-derivation that shifts the source art off
+     * center fails the build the same way.
+     */
+    private static final String[] CENTERED_PARTS = {"knife_blade"};
+
+    /**
      * Max allowed distance (in pixels) between the imprint's bounding-box center and the 16x16
      * canvas center (8.0, 8.0). Correctly offset imprints land within ~1.1px of center (rounding
      * an odd-width silhouette to the nearest integer offset); a dropped or reverted offset put
@@ -98,6 +107,14 @@ class PatternImprintCenteringTest {
     void offenderPartsImprintCenteredOnCanvas() throws IOException {
         BufferedImage base = image(TEXTURE_DIR + "pattern.png");
         for (String part : OFFENDER_PARTS) {
+            assertImprintCentered(base, part);
+        }
+    }
+
+    @Test
+    void centeredPartsImprintCenteredOnCanvas() throws IOException {
+        BufferedImage base = image(TEXTURE_DIR + "pattern.png");
+        for (String part : CENTERED_PARTS) {
             assertImprintCentered(base, part);
         }
     }
