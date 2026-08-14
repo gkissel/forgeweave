@@ -13,11 +13,13 @@ import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.animal.Pig;
+import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.projectile.Arrow;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.GameType;
+import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 
 import net.neoforged.neoforge.gametest.GameTestHolder;
@@ -148,6 +150,113 @@ public class StationWeaponGameTests {
                 "expected the frying pan to push at least half again as far as a plain tool: "
                         + withPan + " vs " + withoutPan);
         helper.succeed();
+    }
+
+    /**
+     * Frying pan: holding right-click charges, and letting go hits whatever the player is looking at
+     * within 3.2 blocks for a charge-scaled bonus and launches it. Upstream
+     * {@code FryPan#onPlayerStoppedUsing}: {@code progress = min(1, held/30)}, a bonus attack of
+     * {@code 5p} and a launch of {@code look * (0.1 + 2.5p²)} with {@code 0.1 + 0.4p} of lift.
+     *
+     * <p>The two charges' launches are compared as a <em>difference</em> because everything else in
+     * the pig's motion (the blow's own knockback, the heavy-swing seam's extra push) is identical
+     * between them and cancels: {@code 2.6 - 0.725 = 1.875} forward and {@code 0.5 - 0.3 = 0.2} up
+     * is the launch formula and nothing else.
+     */
+    @GameTest(template = "empty")
+    public static void fryingPanChargedReleaseLaunchesWhatItLooksAt(GameTestHelper helper) {
+        BlockPos pos = new BlockPos(1, 1, 1);
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        ItemStack pan = weapon(helper, player, pos, ForgeweaveItems.TOOL_FRYING_PAN.get());
+        player.setItemInHand(InteractionHand.MAIN_HAND, pan);
+        player.setYRot(0.0F); // facing +Z
+        player.setXRot(0.0F);
+        ToolItem tool = (ToolItem) pan.getItem();
+        int duration = pan.getUseDuration(player);
+
+        Pig far = pigInFrontOf(helper, player, 5.0);
+        float farBefore = far.getHealth();
+        tool.releaseUsing(pan, helper.getLevel(), player, 0);
+        helper.assertTrue(far.getHealth() == farBefore,
+                "a pig beyond the 3.2-block reach must not be hit, it lost " + (farBefore - far.getHealth()));
+        helper.assertTrue(far.getDeltaMovement().equals(Vec3.ZERO),
+                "a pig beyond the reach must not be launched, got " + far.getDeltaMovement());
+        far.discard();
+
+        Pig halfTarget = pigInFrontOf(helper, player, 2.0);
+        float halfBefore = halfTarget.getHealth();
+        tool.releaseUsing(pan, helper.getLevel(), player, duration - 15); // progress 0.5
+        float halfDamage = halfBefore - halfTarget.getHealth();
+        Vec3 halfLaunch = halfTarget.getDeltaMovement();
+        halfTarget.discard();
+
+        helper.assertTrue(halfDamage > 0.0F, "a charged release must hit the pig it is aimed at");
+        helper.assertTrue(halfLaunch.z > 0.0, "the launch must throw the pig away from the player, got " + halfLaunch);
+
+        Pig fullTarget = pigInFrontOf(helper, player, 2.0);
+        float fullBefore = fullTarget.getHealth();
+        tool.releaseUsing(pan, helper.getLevel(), player, duration - 40); // past the 30-tick full charge
+        float fullDamage = fullBefore - fullTarget.getHealth();
+        Vec3 fullLaunch = fullTarget.getDeltaMovement();
+        fullTarget.discard();
+
+        helper.assertTrue(fullDamage > halfDamage,
+                "a full charge must add more bonus damage than a half one: " + fullDamage + " vs " + halfDamage);
+        helper.assertTrue(Math.abs((fullLaunch.z - halfLaunch.z) - 1.875) < 1.0E-3,
+                "expected the launch to grow by 2.5*(1 - 0.5^2) = 1.875 forward between a half and a full "
+                        + "charge, got " + (fullLaunch.z - halfLaunch.z));
+        helper.assertTrue(Math.abs((fullLaunch.y - halfLaunch.y) - 0.2) < 1.0E-3,
+                "expected the lift to grow by 0.4*(1 - 0.5) = 0.2 between a half and a full charge, got "
+                        + (fullLaunch.y - halfLaunch.y));
+        helper.assertTrue(Math.abs(fullLaunch.x) < 1.0E-4,
+                "a launch straight down +Z must not drift sideways, got " + fullLaunch.x);
+
+        helper.succeed();
+    }
+
+    /**
+     * Frying pan: a full charge briefly sets its target alight for the blow itself, which is upstream's
+     * own joke -- what it kills at full charge drops cooked. The fire is put back out straight after,
+     * so the kill is the only place it shows.
+     */
+    @GameTest(template = "empty")
+    public static void fryingPanFullChargeCooksWhatItKills(GameTestHelper helper) {
+        BlockPos pos = new BlockPos(1, 1, 1);
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        ItemStack pan = weapon(helper, player, pos, ForgeweaveItems.TOOL_FRYING_PAN.get());
+        player.setItemInHand(InteractionHand.MAIN_HAND, pan);
+        player.setYRot(0.0F);
+        player.setXRot(0.0F);
+        ToolItem tool = (ToolItem) pan.getItem();
+        int duration = pan.getUseDuration(player);
+
+        Pig pig = pigInFrontOf(helper, player, 2.0);
+        pig.setHealth(1.0F);
+        Vec3 where = pig.position();
+
+        tool.releaseUsing(pan, helper.getLevel(), player, duration - 40);
+
+        helper.assertTrue(pig.isDeadOrDying(), "a full-charge release must finish a pig on its last health");
+        List<ItemEntity> drops = helper.getLevel().getEntitiesOfClass(ItemEntity.class, new AABB(where, where).inflate(6.0));
+        boolean cooked = drops.stream().anyMatch(drop -> drop.getItem().is(Items.COOKED_PORKCHOP));
+        boolean raw = drops.stream().anyMatch(drop -> drop.getItem().is(Items.PORKCHOP));
+        drops.forEach(ItemEntity::discard);
+        pig.discard();
+
+        helper.assertTrue(cooked, "a full-charge kill must drop cooked porkchop, got " + drops);
+        helper.assertFalse(raw, "nothing should drop raw from a full-charge kill, got " + drops);
+        helper.succeed();
+    }
+
+    /**
+     * A pig {@code distance} blocks due +Z of {@code player}, with the player set low enough that a
+     * level look-ray runs through the pig's rather short bounding box.
+     */
+    private static Pig pigInFrontOf(GameTestHelper helper, Player player, double distance) {
+        Pig pig = helper.spawn(EntityType.PIG, new BlockPos(2, 2, 2));
+        pig.setDeltaMovement(Vec3.ZERO);
+        player.setPos(pig.getX(), pig.getY() - 1.2, pig.getZ() - distance);
+        return pig;
     }
 
     /** How far a pig is pushed horizontally by one blow with {@code tool}. */

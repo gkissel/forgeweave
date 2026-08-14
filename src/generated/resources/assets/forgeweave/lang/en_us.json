@@ -411,7 +411,7 @@
   "tooltip.forgeweave.innate.flat_smack.name": "Flat Smack",
   "tooltip.forgeweave.innate.flatten.description": "Hits briefly slow the target.",
   "tooltip.forgeweave.innate.flatten.name": "Flatten",
-  "tooltip.forgeweave.innate.heavy_swing.description": "Hits knock the target back twice as far as an ordinary blow.",
+  "tooltip.forgeweave.innate.heavy_swing.description": "Hits knock the target back twice as far as an ordinary blow. Hold right-click to charge, then release to launch whatever you are looking at; a full charge sears it.",
   "tooltip.forgeweave.innate.heavy_swing.name": "Heavy Swing",
   "tooltip.forgeweave.innate.heft.description": "A blow now and then lands with the tool's full weight behind it, sending the target flying.",
   "tooltip.forgeweave.innate.heft.name": "Heft",
