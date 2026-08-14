@@ -1,5 +1,10 @@
 package dev.gkissel.forgeweave.block;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
+import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.state.BlockBehaviour;
@@ -202,6 +207,72 @@ public final class ForgeweaveBlocks {
                     .strength(2.0F, 7.0F)
                     .sound(SoundType.WOOD)
                     .lightLevel(state -> 7));
+
+    // #275 -- clear glass and its 16 clear stained glass colors. Upstream 1.12's TinkerCommons
+    // registers both on shared.block.BlockClearGlass/BlockClearStainedGlass (NOTICE.md): Material.GLASS,
+    // hardness 0.3, SoundType.GLASS, setHarvestLevel("pickaxe", -1) (no tool required -- same "no
+    // mineable tag" reasoning as grout/firewood above), isOpaqueCube/isFullCube false. Upstream ships
+    // no glass pane form of either (grep of TinkerCommons -- verified against the clone), so none is
+    // registered here. Connected-texture rendering is left plain, the same simplification #289 already
+    // made for seared glass (PR body): both blocks use upstream's own "no neighbours" sprite as a
+    // single cube_all texture.
+    public static final DeferredBlock<Block> CLEAR_GLASS = BLOCKS.registerSimpleBlock("clear_glass",
+            BlockBehaviour.Properties.of()
+                    .mapColor(MapColor.NONE)
+                    .strength(0.3F)
+                    .sound(SoundType.GLASS)
+                    .noOcclusion());
+
+    /**
+     * A registered clear stained glass color (issue #275): its {@link DyeColor}, the exact ARGB tint
+     * upstream's {@code BlockClearStainedGlass.EnumGlassColor} paints its one shared texture with
+     * (NOTICE.md), and the block itself. Upstream tints one grayscale texture per color rather than
+     * shipping 16 textures ({@code CommonsClientProxy#init}'s block/item color handlers) -- the same
+     * "one texture + tint" idiom {@code ForgeweaveFluidClientExtensions} already uses for the molten
+     * metals, applied here via {@code dev.gkissel.forgeweave.client.ForgeweaveGlassColors}.
+     */
+    public record StainedGlassColor(DyeColor dye, int tint, DeferredBlock<Block> block) {}
+
+    // Every clear stained glass color, in declaration order -- datagen (blockstate, lang, loot,
+    // recipe) and the client tint handler all walk this instead of a hand list, the same anti-drift
+    // shape ForgeweaveFluids#all uses for the molten metals.
+    private static final List<StainedGlassColor> CLEAR_STAINED_GLASS = new ArrayList<>();
+    private static final List<StainedGlassColor> CLEAR_STAINED_GLASS_VIEW = Collections.unmodifiableList(CLEAR_STAINED_GLASS);
+
+    /** Every registered clear stained glass color, in {@link DyeColor} declaration order. */
+    public static List<StainedGlassColor> clearStainedGlassColors() {
+        return CLEAR_STAINED_GLASS_VIEW;
+    }
+
+    // Ported 1:1 from BlockClearStainedGlass.EnumGlassColor (NOTICE.md); DyeColor.getMapColor()
+    // matches upstream's own per-color MapColor exactly (both are vanilla's 16-wool palette).
+    public static final DeferredBlock<Block> CLEAR_STAINED_GLASS_WHITE = stainedGlassBlock(DyeColor.WHITE, 0xffffff);
+    public static final DeferredBlock<Block> CLEAR_STAINED_GLASS_ORANGE = stainedGlassBlock(DyeColor.ORANGE, 0xd87f33);
+    public static final DeferredBlock<Block> CLEAR_STAINED_GLASS_MAGENTA = stainedGlassBlock(DyeColor.MAGENTA, 0xb24cd8);
+    public static final DeferredBlock<Block> CLEAR_STAINED_GLASS_LIGHT_BLUE = stainedGlassBlock(DyeColor.LIGHT_BLUE, 0x6699d8);
+    public static final DeferredBlock<Block> CLEAR_STAINED_GLASS_YELLOW = stainedGlassBlock(DyeColor.YELLOW, 0xe5e533);
+    public static final DeferredBlock<Block> CLEAR_STAINED_GLASS_LIME = stainedGlassBlock(DyeColor.LIME, 0x7fcc19);
+    public static final DeferredBlock<Block> CLEAR_STAINED_GLASS_PINK = stainedGlassBlock(DyeColor.PINK, 0xf27fa5);
+    public static final DeferredBlock<Block> CLEAR_STAINED_GLASS_GRAY = stainedGlassBlock(DyeColor.GRAY, 0x4c4c4c);
+    public static final DeferredBlock<Block> CLEAR_STAINED_GLASS_LIGHT_GRAY = stainedGlassBlock(DyeColor.LIGHT_GRAY, 0x999999);
+    public static final DeferredBlock<Block> CLEAR_STAINED_GLASS_CYAN = stainedGlassBlock(DyeColor.CYAN, 0x4c7f99);
+    public static final DeferredBlock<Block> CLEAR_STAINED_GLASS_PURPLE = stainedGlassBlock(DyeColor.PURPLE, 0x7f3fb2);
+    public static final DeferredBlock<Block> CLEAR_STAINED_GLASS_BLUE = stainedGlassBlock(DyeColor.BLUE, 0x334cb2);
+    public static final DeferredBlock<Block> CLEAR_STAINED_GLASS_BROWN = stainedGlassBlock(DyeColor.BROWN, 0x664c33);
+    public static final DeferredBlock<Block> CLEAR_STAINED_GLASS_GREEN = stainedGlassBlock(DyeColor.GREEN, 0x667f33);
+    public static final DeferredBlock<Block> CLEAR_STAINED_GLASS_RED = stainedGlassBlock(DyeColor.RED, 0x993333);
+    public static final DeferredBlock<Block> CLEAR_STAINED_GLASS_BLACK = stainedGlassBlock(DyeColor.BLACK, 0x191919);
+
+    private static DeferredBlock<Block> stainedGlassBlock(DyeColor dye, int tint) {
+        DeferredBlock<Block> block = BLOCKS.registerSimpleBlock(dye.getName() + "_stained_clear_glass",
+                BlockBehaviour.Properties.of()
+                        .mapColor(dye.getMapColor())
+                        .strength(0.3F)
+                        .sound(SoundType.GLASS)
+                        .noOcclusion());
+        CLEAR_STAINED_GLASS.add(new StainedGlassColor(dye, tint, block));
+        return block;
+    }
 
     /** Upstream 1.12 {@code BlockSoil}'s block properties, shared by grout and the slimy muds. */
     private static BlockBehaviour.Properties soilProperties(MapColor color) {

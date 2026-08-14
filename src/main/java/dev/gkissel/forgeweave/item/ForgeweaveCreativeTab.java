@@ -13,6 +13,7 @@ import net.neoforged.neoforge.registries.DeferredItem;
 import net.neoforged.neoforge.registries.DeferredRegister;
 
 import dev.gkissel.forgeweave.Forgeweave;
+import dev.gkissel.forgeweave.block.ForgeweaveBlocks;
 import dev.gkissel.forgeweave.config.ForgeweaveClientConfig; // #276
 import dev.gkissel.forgeweave.fluid.ForgeweaveFluids;
 import dev.gkissel.forgeweave.material.Material;
@@ -180,6 +181,12 @@ public final class ForgeweaveCreativeTab {
         output.accept(ForgeweaveItems.SEARED_WINDOW.get());
         output.accept(ForgeweaveItems.SEARED_DRAIN.get());
         output.accept(ForgeweaveItems.SEARED_GLASS.get());
+
+        // #275 -- clear glass and its 16 clear stained glass colors.
+        output.accept(ForgeweaveItems.CLEAR_GLASS.get());
+        for (ForgeweaveBlocks.StainedGlassColor color : ForgeweaveBlocks.clearStainedGlassColors()) {
+            output.accept(color.block().get().asItem());
+        }
 
         // #100 -- casting (docs/SCOPE.md M2 issue #100).
         output.accept(ForgeweaveItems.CASTING_TABLE.get());

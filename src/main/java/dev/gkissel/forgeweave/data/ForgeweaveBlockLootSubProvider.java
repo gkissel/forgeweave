@@ -112,6 +112,13 @@ public class ForgeweaveBlockLootSubProvider extends BlockLootSubProvider {
         dropSelf(ForgeweaveBlocks.FIREWOOD.get());
 
         dropSelf(ForgeweaveBlocks.AMETHYST_BRONZE_BLOCK.get());
+
+        // #275 -- clear glass and its 16 clear stained glass colors: plain self-drops, matching
+        // upstream's BlockClearGlass/BlockClearStainedGlass (neither overrides loot).
+        dropSelf(ForgeweaveBlocks.CLEAR_GLASS.get());
+        for (ForgeweaveBlocks.StainedGlassColor color : ForgeweaveBlocks.clearStainedGlassColors()) {
+            dropSelf(color.block().get());
+        }
     }
 
     private LootTable.Builder oreDrop(Block block, Item item) {

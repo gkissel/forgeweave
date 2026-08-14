@@ -3,7 +3,9 @@ package dev.gkissel.forgeweave.item;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
+import net.minecraft.world.level.block.Block;
 
+import net.neoforged.neoforge.registries.DeferredBlock;
 import net.neoforged.neoforge.registries.DeferredItem;
 import net.neoforged.neoforge.registries.DeferredRegister;
 
@@ -469,6 +471,30 @@ public final class ForgeweaveItems {
 
     // #233 -- firewood (docs/SCOPE.md M3.2), the block item of ForgeweaveBlocks.FIREWOOD.
     public static final DeferredItem<BlockItem> FIREWOOD = ITEMS.registerSimpleBlockItem("firewood", ForgeweaveBlocks.FIREWOOD);
+
+    // #275 -- clear glass and its 16 clear stained glass colors, the block items of
+    // ForgeweaveBlocks.CLEAR_GLASS/CLEAR_STAINED_GLASS_*.
+    public static final DeferredItem<BlockItem> CLEAR_GLASS = ITEMS.registerSimpleBlockItem("clear_glass", ForgeweaveBlocks.CLEAR_GLASS);
+    public static final DeferredItem<BlockItem> CLEAR_STAINED_GLASS_WHITE = stainedGlassItem(ForgeweaveBlocks.CLEAR_STAINED_GLASS_WHITE);
+    public static final DeferredItem<BlockItem> CLEAR_STAINED_GLASS_ORANGE = stainedGlassItem(ForgeweaveBlocks.CLEAR_STAINED_GLASS_ORANGE);
+    public static final DeferredItem<BlockItem> CLEAR_STAINED_GLASS_MAGENTA = stainedGlassItem(ForgeweaveBlocks.CLEAR_STAINED_GLASS_MAGENTA);
+    public static final DeferredItem<BlockItem> CLEAR_STAINED_GLASS_LIGHT_BLUE = stainedGlassItem(ForgeweaveBlocks.CLEAR_STAINED_GLASS_LIGHT_BLUE);
+    public static final DeferredItem<BlockItem> CLEAR_STAINED_GLASS_YELLOW = stainedGlassItem(ForgeweaveBlocks.CLEAR_STAINED_GLASS_YELLOW);
+    public static final DeferredItem<BlockItem> CLEAR_STAINED_GLASS_LIME = stainedGlassItem(ForgeweaveBlocks.CLEAR_STAINED_GLASS_LIME);
+    public static final DeferredItem<BlockItem> CLEAR_STAINED_GLASS_PINK = stainedGlassItem(ForgeweaveBlocks.CLEAR_STAINED_GLASS_PINK);
+    public static final DeferredItem<BlockItem> CLEAR_STAINED_GLASS_GRAY = stainedGlassItem(ForgeweaveBlocks.CLEAR_STAINED_GLASS_GRAY);
+    public static final DeferredItem<BlockItem> CLEAR_STAINED_GLASS_LIGHT_GRAY = stainedGlassItem(ForgeweaveBlocks.CLEAR_STAINED_GLASS_LIGHT_GRAY);
+    public static final DeferredItem<BlockItem> CLEAR_STAINED_GLASS_CYAN = stainedGlassItem(ForgeweaveBlocks.CLEAR_STAINED_GLASS_CYAN);
+    public static final DeferredItem<BlockItem> CLEAR_STAINED_GLASS_PURPLE = stainedGlassItem(ForgeweaveBlocks.CLEAR_STAINED_GLASS_PURPLE);
+    public static final DeferredItem<BlockItem> CLEAR_STAINED_GLASS_BLUE = stainedGlassItem(ForgeweaveBlocks.CLEAR_STAINED_GLASS_BLUE);
+    public static final DeferredItem<BlockItem> CLEAR_STAINED_GLASS_BROWN = stainedGlassItem(ForgeweaveBlocks.CLEAR_STAINED_GLASS_BROWN);
+    public static final DeferredItem<BlockItem> CLEAR_STAINED_GLASS_GREEN = stainedGlassItem(ForgeweaveBlocks.CLEAR_STAINED_GLASS_GREEN);
+    public static final DeferredItem<BlockItem> CLEAR_STAINED_GLASS_RED = stainedGlassItem(ForgeweaveBlocks.CLEAR_STAINED_GLASS_RED);
+    public static final DeferredItem<BlockItem> CLEAR_STAINED_GLASS_BLACK = stainedGlassItem(ForgeweaveBlocks.CLEAR_STAINED_GLASS_BLACK);
+
+    private static DeferredItem<BlockItem> stainedGlassItem(DeferredBlock<Block> block) {
+        return ITEMS.registerSimpleBlockItem(block.getId().getPath(), block);
+    }
 
     private ForgeweaveItems() {}
 }

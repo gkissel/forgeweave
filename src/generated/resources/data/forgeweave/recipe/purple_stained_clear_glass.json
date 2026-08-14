@@ -1,0 +1,21 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "building",
+  "key": {
+    "A": {
+      "item": "forgeweave:clear_glass"
+    },
+    "B": {
+      "item": "minecraft:purple_dye"
+    }
+  },
+  "pattern": [
+    "AAA",
+    "ABA",
+    "AAA"
+  ],
+  "result": {
+    "count": 8,
+    "id": "forgeweave:purple_stained_clear_glass"
+  }
+}
