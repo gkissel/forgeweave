@@ -130,6 +130,84 @@ public class StationWeaponGameTests {
     }
 
     /**
+     * Battlesign (issue #302): a blocked melee blow -- not magic, not an explosion, not a projectile --
+     * takes an extra 30% reduction, and half of the reduced amount reflects onto the attacker as
+     * thorns damage, at a durability cost. Upstream {@code BattleSign#reducedDamageBlocked}.
+     */
+    @GameTest(template = "empty")
+    public static void battlesignReducesAndReflectsABlockedMeleeBlow(GameTestHelper helper) {
+        BlockPos pos = new BlockPos(1, 1, 1);
+        Player defender = helper.makeMockPlayer(GameType.SURVIVAL);
+        ItemStack battlesign = weapon(helper, defender, pos, ForgeweaveItems.TOOL_BATTLESIGN.get());
+        defender.setItemInHand(InteractionHand.MAIN_HAND, battlesign);
+        Pig attacker = helper.spawn(EntityType.PIG, new BlockPos(2, 2, 2));
+        defender.startUsingItem(InteractionHand.MAIN_HAND);
+        helper.assertTrue(defender.isUsingItem(), "raising the battlesign must open its blocking stance");
+
+        float defenderBefore = defender.getHealth();
+        float attackerBefore = attacker.getHealth();
+        int durabilityBefore = battlesign.getDamageValue();
+
+        boolean landed = defender.hurt(helper.getLevel().damageSources().mobAttack(attacker), 10.0F);
+
+        float taken = defenderBefore - defender.getHealth();
+        float reflected = attackerBefore - attacker.getHealth();
+
+        helper.assertTrue(landed, "a blocked melee blow must still land, just reduced");
+        helper.assertTrue(Math.abs(taken - 7.0F) < 0.05F,
+                "expected the extra 30% reduction to leave 10 * 0.7 = 7 damage, got " + taken);
+        helper.assertTrue(Math.abs(reflected - 3.5F) < 0.05F,
+                "expected half the reduced damage (3.5) to reflect onto the attacker as thorns, got " + reflected);
+        // Upstream's odd durability shape: round(10 / 2) = 5, times 3/2 for having an attacker to
+        // reflect onto (integer division) = 7.
+        helper.assertTrue(battlesign.getDamageValue() - durabilityBefore == 7,
+                "expected a durability cost of round(10/2)*3/2 = 7, got "
+                        + (battlesign.getDamageValue() - durabilityBefore));
+
+        attacker.discard();
+        helper.succeed();
+    }
+
+    /**
+     * Battlesign (issue #302): magic and explosion damage are excluded from the melee-block reduction,
+     * upstream's own exclusion list -- a blocked hit of either kind passes through unreduced,
+     * unreflected and free. Projectile damage takes the separate reflect path proven above.
+     */
+    @GameTest(template = "empty")
+    public static void battlesignMeleeBlockExcludesMagicAndExplosionDamage(GameTestHelper helper) {
+        BlockPos pos = new BlockPos(1, 1, 1);
+        Player defender = helper.makeMockPlayer(GameType.SURVIVAL);
+        ItemStack battlesign = weapon(helper, defender, pos, ForgeweaveItems.TOOL_BATTLESIGN.get());
+        defender.setItemInHand(InteractionHand.MAIN_HAND, battlesign);
+
+        assertPassesThroughUnreduced(helper, defender, battlesign, helper.getLevel().damageSources().magic(), "magic");
+        assertPassesThroughUnreduced(helper, defender, battlesign,
+                helper.getLevel().damageSources().explosion(null), "explosion");
+
+        helper.succeed();
+    }
+
+    /** Deals {@code source} to a blocking {@code defender} and asserts it took the full 10 damage. */
+    private static void assertPassesThroughUnreduced(GameTestHelper helper, Player defender, ItemStack battlesign,
+            DamageSource source, String label) {
+        defender.setHealth(defender.getMaxHealth());
+        defender.invulnerableTime = 0;
+        defender.startUsingItem(InteractionHand.MAIN_HAND);
+        int durabilityBefore = battlesign.getDamageValue();
+        float before = defender.getHealth();
+
+        defender.hurt(source, 10.0F);
+
+        float taken = before - defender.getHealth();
+        helper.assertTrue(Math.abs(taken - 10.0F) < 0.05F,
+                "expected " + label + " damage to pass through the melee-block reduction unreduced while "
+                        + "blocking, took " + taken);
+        helper.assertTrue(battlesign.getDamageValue() == durabilityBefore,
+                label + " damage must not cost the battlesign durability");
+        defender.stopUsingItem();
+    }
+
+    /**
      * Frying pan: the same blow pushes a pig roughly twice as far as an ordinary tool's does.
      * Upstream {@code FryPan#knockback()} returns 2 where {@code ToolCore}'s default is 1.
      */

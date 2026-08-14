@@ -1,5 +1,6 @@
 package dev.gkissel.forgeweave.gametest;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import net.minecraft.core.BlockPos;
@@ -11,6 +12,7 @@ import net.minecraft.network.chat.TextColor;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.InteractionHand;
+import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.EntityType;
@@ -36,6 +38,7 @@ import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.combat.BleedEffect;
+import dev.gkissel.forgeweave.combat.CombatDefense;
 import dev.gkissel.forgeweave.combat.CombatHit;
 import dev.gkissel.forgeweave.combat.CombatSeam;
 import dev.gkissel.forgeweave.combat.CombatSeams;
@@ -46,6 +49,8 @@ import dev.gkissel.forgeweave.item.ForgeweaveItems;
 import dev.gkissel.forgeweave.item.ToolItem;
 import dev.gkissel.forgeweave.material.Material;
 import dev.gkissel.forgeweave.tool.ToolStats;
+import dev.gkissel.forgeweave.trait.ForgeweaveTraits;
+import dev.gkissel.forgeweave.trait.Trait;
 
 /**
  * docs/SCOPE.md M3.2 issue #229's verification: one test per combat-seam trait, exercising the
@@ -57,15 +62,18 @@ import dev.gkissel.forgeweave.tool.ToolStats;
  * <p>Offensive traits ride a <b>hatchet</b>: its own innate (sunder, bonus vs a blocking target) is
  * inert against mobs, so nothing pollutes a damage measurement -- unlike the pickaxe, whose pierce
  * subtracts an extra flat 1 health per landed hit. Defensive traits ride the pickaxe (merely held;
- * the attacker swings no Forgeweave tool, so pierce never runs) or the battlesign (blocking; its
- * deflect only touches projectiles). Blows are staged the same tick the stance opens, which is
- * before vanilla's own 5-tick shield warm-up -- so vanilla shield-blocking never swallows a blow the
- * defensive seams are being tested on.
+ * the attacker swings no Forgeweave tool, so pierce never runs) or the battlesign (blocking). Blows
+ * are staged the same tick the stance opens, which is before vanilla's own 5-tick shield warm-up --
+ * so vanilla shield-blocking never swallows a blow the defensive seams are being tested on.
  *
  * <p>Damage-math assertions drive {@link CombatSeams#seams} directly (public for exactly this,
  * per its javadoc); state and side effects (potion marks, fire, reflected health, DoT ticks) go
- * through real {@code LivingEntity#hurt} blows. Waits use {@code thenWaitUntil} -- no fixed-tick
- * idles -- and all mobs are no-AI adults.
+ * through real {@code LivingEntity#hurt} blows. The one exception is a <em>blocking</em> defensive
+ * seam's own math (stiff, spiky, flammable): since issue #302 the battlesign carries its own
+ * melee-block reduction and thorns reflect, which would otherwise compound with the trait under
+ * test on the same blow, so those three drive the trait's {@link Trait#combatSeams} directly
+ * instead ({@link #incomingHit}) rather than the whole stack's. Waits use {@code thenWaitUntil} --
+ * no fixed-tick idles -- and all mobs are no-AI adults.
  */
 @GameTestHolder(Forgeweave.MODID)
 @PrefixGameTestTemplate(false)
@@ -113,15 +121,13 @@ public class CombatTraitGameTests {
         helper.assertTrue(Math.abs(reflectedHeld - expectedHeld) < 0.001F,
                 "expected a held spiky tool to reflect half its damage (" + expectedHeld + "), got " + reflectedHeld);
 
-        // Blocking: the full amount. Struck the same tick the stance opens (see class javadoc).
+        // Blocking: the full amount. Driven through spiky's own seam directly (class javadoc) so the
+        // battlesign's own melee-block reflect (issue #302) does not add onto the same blow.
         ItemStack battlesign = tool(ForgeweaveItems.TOOL_BATTLESIGN.get(), List.of(traitId("spiky")), 3.0F);
-        defender.setItemInHand(InteractionHand.MAIN_HAND, battlesign);
-        defender.startUsingItem(InteractionHand.MAIN_HAND);
-        helper.assertTrue(defender.isUsingItem(), "raising the battlesign must open its blocking stance");
         float expectedBlocking = ((ToolItem) battlesign.getItem()).attackDamage(battlesign);
-        defender.invulnerableTime = 0;
         attackerBefore = attacker.getHealth();
-        defender.hurt(helper.getLevel().damageSources().mobAttack(attacker), 2.0F);
+        incomingHit(helper, defender, battlesign, attacker, ForgeweaveTraits.SPIKY,
+                helper.getLevel().damageSources().mobAttack(attacker), 2.0F);
         float reflectedBlocking = attackerBefore - attacker.getHealth();
         helper.assertTrue(Math.abs(reflectedBlocking - expectedBlocking) < 0.001F,
                 "expected a blocking spiky tool to reflect its full damage (" + expectedBlocking + "), got "
@@ -257,23 +263,17 @@ public class CombatTraitGameTests {
         helper.assertTrue(Math.abs(heldLoss - 5.0F) < 0.001F,
                 "stiff must not reduce damage while merely held, lost " + heldLoss);
 
-        // Blocking: -1. Same-tick blow, before vanilla's shield warm-up (class javadoc).
-        defender.startUsingItem(InteractionHand.MAIN_HAND);
-        defender.invulnerableTime = 0;
-        before = defender.getHealth();
-        defender.hurt(helper.getLevel().damageSources().mobAttack(attacker), 5.0F);
-        float blockedLoss = before - defender.getHealth();
-        helper.assertTrue(Math.abs(blockedLoss - 4.0F) < 0.001F,
-                "expected a blocked 5-damage blow to land for 4, lost " + blockedLoss);
+        // Blocking: -1. Driven through stiff's own seam directly (class javadoc) so the battlesign's
+        // own melee-block reduction (issue #302) does not compound with the number under test here.
+        DamageSource mobAttack = helper.getLevel().damageSources().mobAttack(attacker);
+        float blocked = incomingHit(helper, defender, battlesign, attacker, ForgeweaveTraits.STIFF, mobAttack, 5.0F);
+        helper.assertTrue(Math.abs(blocked - 4.0F) < 0.001F,
+                "expected a blocked 5-damage blow to land for 4, got " + blocked);
 
         // The floor: a small blow still lands for 1, never 0.
-        helper.assertTrue(defender.isUsingItem(), "the stance must still be open");
-        defender.invulnerableTime = 0;
-        before = defender.getHealth();
-        defender.hurt(helper.getLevel().damageSources().mobAttack(attacker), 1.5F);
-        float floored = before - defender.getHealth();
+        float floored = incomingHit(helper, defender, battlesign, attacker, ForgeweaveTraits.STIFF, mobAttack, 1.5F);
         helper.assertTrue(Math.abs(floored - 1.0F) < 0.001F,
-                "expected upstream's 1-damage floor, lost " + floored);
+                "expected upstream's 1-damage floor, got " + floored);
 
         attacker.discard();
         helper.succeed();
@@ -354,14 +354,12 @@ public class CombatTraitGameTests {
         attacker.discard();
 
         // Blocking: fire damage is negated outright, for 3 durability (upstream's onBlock half).
+        // Driven through flammable's own seam directly (class javadoc) so the battlesign's own
+        // melee-block reduction (issue #302) does not also spend durability on the same blow.
         ItemStack battlesign = tool(ForgeweaveItems.TOOL_BATTLESIGN.get(), List.of(traitId("flammable")), 3.0F);
-        defender.setItemInHand(InteractionHand.MAIN_HAND, battlesign);
-        defender.startUsingItem(InteractionHand.MAIN_HAND);
-        defender.invulnerableTime = 0;
-        float before = defender.getHealth();
-        boolean hurt = defender.hurt(helper.getLevel().damageSources().inFire(), 2.0F);
-        helper.assertFalse(hurt, "a blocked fire hit must be cancelled outright");
-        helper.assertTrue(defender.getHealth() == before, "a blocked fire hit must cost no health");
+        float result = incomingHit(helper, defender, battlesign, null, ForgeweaveTraits.FLAMMABLE,
+                helper.getLevel().damageSources().inFire(), 2.0F);
+        helper.assertTrue(result <= 0.0F, "a blocked fire hit must be cancelled outright, got " + result);
         helper.assertTrue(battlesign.getDamageValue() == 3,
                 "the absorb costs 3 durability, tool at " + battlesign.getDamageValue());
 
@@ -446,6 +444,24 @@ public class CombatTraitGameTests {
         for (CombatSeam seam : CombatSeams.seams(weapon)) {
             seam.onHit(hit, 1.0F);
         }
+    }
+
+    /**
+     * The blow's damage while blocking, after only {@code trait}'s own defensive seams adjusted it --
+     * deliberately narrower than {@link CombatSeams#seams}, which would also pull in whatever the
+     * tool's own innate carries (issue #302's battlesign melee-block seam, for every test that calls
+     * this). See the class javadoc.
+     */
+    private static float incomingHit(GameTestHelper helper, Player defender, ItemStack tool, LivingEntity attacker,
+            Trait trait, DamageSource source, float damage) {
+        CombatDefense defense = new CombatDefense(helper.getLevel(), tool, defender, attacker, source, true);
+        List<CombatSeam> seams = new ArrayList<>();
+        trait.combatSeams(seams::add);
+        float result = damage;
+        for (CombatSeam seam : seams) {
+            result = seam.incomingHit(defense, damage, result);
+        }
+        return result;
     }
 
     /** Every mob in these tests is a no-AI adult: nothing wanders, retaliates or panics mid-assert. */

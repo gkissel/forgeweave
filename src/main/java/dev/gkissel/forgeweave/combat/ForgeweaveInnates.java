@@ -7,6 +7,8 @@ import java.util.function.Supplier;
 
 import org.jetbrains.annotations.Nullable;
 
+import net.neoforged.neoforge.common.Tags;
+
 import net.minecraft.core.Holder;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceLocation;
@@ -139,6 +141,14 @@ public final class ForgeweaveInnates {
     private static final double DEFLECT_SPEED_BONUS = 0.2;
 
     /**
+     * Upstream {@code BattleSign#reducedDamageBlocked} (issue #302): a non-magic/non-explosion/
+     * non-projectile hit taken while blocking gets an extra 30% reduction, and half of the reduced
+     * amount reflects onto the attacker as thorns damage.
+     */
+    private static final float DEFLECT_MELEE_REDUCTION = 0.7F;
+    private static final float DEFLECT_MELEE_REFLECT_FRACTION = 0.5F;
+
+    /**
      * Upstream {@code FryPan#knockback()} returns {@code 2f} where {@code ToolCore}'s default is
      * {@code 1f} -- a doubled push.
      *
@@ -196,7 +206,10 @@ public final class ForgeweaveInnates {
     public static final CurrentHealthStrike VITAL_THRUST_SEAM = new CurrentHealthStrike(VITAL_THRUST_FRACTION);
     public static final Innate VITAL_THRUST = new Innate("vital_thrust", VITAL_THRUST_SEAM, new Lunge());
 
-    /** Battlesign: upstream's blocking stance that returns projectiles to their sender. */
+    /**
+     * Battlesign: upstream's blocking stance that returns projectiles to their sender, plus its
+     * melee-block half (issue #302) -- extra reduction and thorns retaliation on a blocked blow.
+     */
     public static final Innate DEFLECT = deflect();
 
     /** Frying pan: upstream's doubled knockback, plus its charged launch (issue #301). */
@@ -225,7 +238,8 @@ public final class ForgeweaveInnates {
     }
 
     private static Innate deflect() {
-        Deflect behavior = new Deflect(DEFLECT_HOLD_TICKS, DEFLECT_MIN_FACING, DEFLECT_SPEED_BONUS);
+        Deflect behavior = new Deflect(DEFLECT_HOLD_TICKS, DEFLECT_MIN_FACING, DEFLECT_SPEED_BONUS,
+                DEFLECT_MELEE_REDUCTION, DEFLECT_MELEE_REFLECT_FRACTION);
         return new Innate("deflect", behavior, behavior);
     }
 
@@ -512,11 +526,23 @@ public final class ForgeweaveInnates {
      * returns {@code EnumAction.BLOCK}), which also gives it vanilla's shield blocking -- the same
      * thing 1.12's BLOCK action gave it there.
      *
-     * <p>The innate proper is the reflect: a projectile stopped while facing it is sent back where it
-     * came from at its own speed plus a little, with the defender as its new owner, and the sign pays
-     * durability for it. Ported from {@code BattleSign#reflectProjectiles}.
+     * <p>Two halves to the innate proper, both ported from upstream and both gated on
+     * {@link CombatDefense#blocking()}:
+     *
+     * <ul>
+     *   <li>a projectile stopped while facing it is sent back where it came from at its own speed
+     *       plus a little, with the defender as its new owner ({@code BattleSign#reflectProjectiles});
+     *   <li>any other blockable hit (issue #302, {@code BattleSign#reducedDamageBlocked}) takes an
+     *       extra {@link #meleeReduction} on top of vanilla's own shield-block halving -- which lands
+     *       after this seam runs, since {@link CombatSeam#incomingHit} fires before mitigation, same
+     *       as upstream's {@code LivingHurtEvent} fires before its own extra halving -- and reflects
+     *       {@link #meleeReflectFraction} of the reduced amount onto the attacker as thorns damage.
+     * </ul>
+     *
+     * <p>Both halves pay durability for what they stopped.
      */
-    public record Deflect(int holdTicks, double minFacing, double speedBonus) implements CombatSeam, ToolUseAction {
+    public record Deflect(int holdTicks, double minFacing, double speedBonus, float meleeReduction,
+            float meleeReflectFraction) implements CombatSeam, ToolUseAction {
 
         @Override
         public UseAnim animation() {
@@ -535,10 +561,21 @@ public final class ForgeweaveInnates {
             // with no warm-up -- exactly what blocking() reports. Vanilla's isBlocking() additionally
             // demands five ticks held, which would silently make the first quarter-second of a
             // raised sign not a sign at all. (Since issue #229 the defensive pass also runs for a
-            // merely-held tool, which must never deflect.)
-            if (!defense.blocking()
-                    || !defense.source().is(DamageTypeTags.IS_PROJECTILE)
-                    || !(defense.source().getDirectEntity() instanceof Projectile projectile)) {
+            // merely-held tool, which must never deflect or reduce.)
+            if (!defense.blocking()) {
+                return damage;
+            }
+            // Upstream splits these two across separate events (LivingAttackEvent for the projectile
+            // half, LivingHurtEvent -- which explicitly excludes isProjectile() -- for the other), but
+            // both read as "blockable" here, so the source's own tag is the split.
+            if (defense.source().is(DamageTypeTags.IS_PROJECTILE)) {
+                return deflectProjectile(defense, originalDamage, damage);
+            }
+            return reduceMeleeBlock(defense, damage);
+        }
+
+        private float deflectProjectile(CombatDefense defense, float originalDamage, float damage) {
+            if (!(defense.source().getDirectEntity() instanceof Projectile projectile)) {
                 return damage;
             }
             Vec3 motion = projectile.getDeltaMovement();
@@ -559,6 +596,38 @@ public final class ForgeweaveInnates {
             defense.tool().hurtAndBreak(Math.max(1, (int) originalDamage), defense.defender(),
                     EquipmentSlot.MAINHAND);
             return 0.0F;
+        }
+
+        /**
+         * Upstream {@code BattleSign#reducedDamageBlocked} verbatim, magnitudes and all: don't affect
+         * unblockable ({@code minecraft:bypasses_invulnerability}, the same tag {@code Parry#isMelee}
+         * reads as "unblockable"), magic ({@code neoforge:is_magic} -- which itself lists
+         * {@code minecraft:thorns}, so a reflect landing on a second blocking battlesign never
+         * re-triggers this same reduction) or explosion damage. The durability cost is upstream's own
+         * odd shape: half the pre-reduction damage rounded (never below 1 -- upstream's
+         * {@code amount < 2f ? 1 : round(amount / 2f)}), times one and a half when there was an
+         * attacker to reflect onto.
+         *
+         * <p>{@code damage <= 0} bails the same way upstream's own handler does on
+         * {@code event.isCanceled()}: a blow an earlier seam already zeroed (flammable's fire absorb,
+         * issue #229) is nothing left to reduce, reflect or pay durability for.
+         */
+        private float reduceMeleeBlock(CombatDefense defense, float damage) {
+            if (damage <= 0.0F
+                    || defense.source().is(DamageTypeTags.IS_EXPLOSION)
+                    || defense.source().is(Tags.DamageTypes.IS_MAGIC)
+                    || defense.source().is(DamageTypeTags.BYPASSES_INVULNERABILITY)) {
+                return damage;
+            }
+            int durability = damage < 2.0F ? 1 : Math.round(damage / 2.0F);
+            float reduced = damage * meleeReduction;
+            LivingEntity attacker = defense.attacker();
+            if (attacker != null) {
+                attacker.hurt(thorns(defense.level(), defense.defender()), reduced * meleeReflectFraction);
+                durability = durability * 3 / 2;
+            }
+            defense.tool().hurtAndBreak(durability, defense.defender(), EquipmentSlot.MAINHAND);
+            return reduced;
         }
     }
 
@@ -759,6 +828,18 @@ public final class ForgeweaveInnates {
                 .registryOrThrow(Registries.DAMAGE_TYPE)
                 .getHolderOrThrow(DamageTypes.GENERIC);
         return new DamageSource(type, null, attacker);
+    }
+
+    /**
+     * A {@code minecraft:thorns}-typed damage source crediting {@code source} without naming a direct
+     * entity -- upstream's {@code DamageSource.causeThornsDamage}, which the battlesign's melee-block
+     * retaliation reuses (issue #302).
+     */
+    static DamageSource thorns(ServerLevel level, LivingEntity source) {
+        Holder<DamageType> type = level.registryAccess()
+                .registryOrThrow(Registries.DAMAGE_TYPE)
+                .getHolderOrThrow(DamageTypes.THORNS);
+        return new DamageSource(type, null, source);
     }
 
     private ForgeweaveInnates() {}
