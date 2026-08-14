@@ -88,6 +88,37 @@ final class ToolTooltip {
     }
 
     /**
+     * Whether the compact tier should close with the "Hold Shift for Stats" hint (issue #379):
+     * Shift is not held and the Shift tier it advertises actually exists.
+     *
+     * <p>Deliberate improvement over upstream 1.12, recorded here because it is a behavior
+     * difference: {@code TinkersItem#addInformation} prints {@code tooltip.tool.holdShift}
+     * unconditionally (:453-456) but only honours Shift when {@code Config.extraTooltips} is on
+     * (:466), so with that option off the hint advertises a key that does nothing. Forgeweave gates
+     * the hint on the same {@link ForgeweaveClientConfig#EXTRA_TOOLTIPS} the tier itself reads.
+     *
+     * <p>Unlike {@link #detailed}, whose {@code hasShiftDown()} is false off-client and
+     * short-circuits before the config, this branch is <em>true</em> off-client -- hence the
+     * {@code isLoaded()} guard, so a dedicated server (and a unit test) never reads a {@code CLIENT}
+     * spec that was never loaded. The line assembly itself is {@link #appendShiftHint}, which takes
+     * the decision as a parameter so tests can drive both answers.
+     */
+    static boolean shiftHint(TooltipFlag flag) {
+        return !flag.hasShiftDown()
+                && ForgeweaveClientConfig.SPEC.isLoaded()
+                && ForgeweaveClientConfig.EXTRA_TOOLTIPS.get();
+    }
+
+    /** Upstream's blank line plus {@code tooltip.tool.holdShift}, appended after the compact block. */
+    static void appendShiftHint(boolean show, List<Component> tooltip) {
+        if (show) {
+            tooltip.add(Component.empty());
+            tooltip.add(Component.translatable("tooltip.forgeweave.hold_shift_stats")
+                    .withStyle(ChatFormatting.GRAY));
+        }
+    }
+
+    /**
      * @param registries nullable -- material names/colors and trait colors degrade to plain
      *     translatable text when unavailable, same as {@link PartItem}
      * @param detailed whether to show the Shift-only stat/parts/traits block
@@ -102,8 +133,13 @@ final class ToolTooltip {
         }
 
         if (ToolItem.isBroken(stack)) {
-            tooltip.add(Component.translatable("tooltip.forgeweave.broken")
-                    .withStyle(ChatFormatting.DARK_RED, ChatFormatting.BOLD));
+            // #379: upstream keeps the "Durability: " label on a broken tool and only swaps the
+            // number for the bold dark-red word (TooltipBuilder#addDurability(true)), so the line
+            // still reads as the durability line it replaces.
+            tooltip.add(Component.translatable("tooltip.forgeweave.durability")
+                    .append(": ")
+                    .append(Component.translatable("tooltip.forgeweave.broken")
+                            .withStyle(ChatFormatting.DARK_RED, ChatFormatting.BOLD)));
         } else {
             tooltip.add(durabilityLine(stack));
         }

@@ -67,6 +67,14 @@ public final class PartBuilderRecipes {
     /** The value of one shard item, and the atomic unit every other value above is denominated in. */
     public static final int SHARD_VALUE = 1;
 
+    /**
+     * One ingot in the shard-units everything above is priced in ({@code VALUE_Ingot = 2 *
+     * VALUE_Shard}, see the class javadoc). Public so the pattern tooltip (issue #379) can quote a
+     * cost in ingots the way upstream's {@code Pattern#addInformation} does -- {@code getCost() /
+     * (float) Material.VALUE_Ingot} -- off these constants rather than a second cost table.
+     */
+    public static final int INGOT_VALUE = 2 * SHARD_VALUE;
+
     private record Entry(Supplier<? extends Item> pattern, Supplier<? extends PartItem> part, int cost) {}
 
     private static final List<Entry> ENTRIES = List.of(

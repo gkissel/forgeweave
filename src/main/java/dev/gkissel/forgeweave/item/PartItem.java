@@ -2,10 +2,12 @@ package dev.gkissel.forgeweave.item;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Optional;
 
 import javax.annotation.Nullable;
 
+import net.minecraft.ChatFormatting;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
@@ -34,8 +36,9 @@ import dev.gkissel.forgeweave.material.MaterialDisplay;
  * derived from a recipe table, and the lines themselves come straight from {@link StationText} --
  * the same methods the Part Builder's info panel renders, so the two can't drift apart.
  *
- * <p>ponytail: no "Hold Shift for stats" hint line -- {@code ToolItem} doesn't ship one either, and
- * adding it would mean a lang key whose only job is to describe a key the player already pressed.
+ * <p>Issue #379 reverses the earlier omission of upstream's "Hold Shift for Stats" hint by
+ * maintainer decision: both this item and {@code ToolItem} now close their compact tier with it,
+ * gated on the same config the Shift tier reads (see {@link ToolTooltip#shiftHint}).
  */
 public class PartItem extends Item {
 
@@ -69,6 +72,7 @@ public class PartItem extends Item {
     public void appendHoverText(ItemStack stack, TooltipContext context, List<Component> tooltip, TooltipFlag flag) {
         super.appendHoverText(stack, context, tooltip, flag);
         append(stack, context.registries(), ToolTooltip.detailed(flag), tooltip);
+        ToolTooltip.appendShiftHint(ToolTooltip.shiftHint(flag), tooltip);
     }
 
     /**
@@ -89,17 +93,35 @@ public class PartItem extends Item {
         }
         ResourceLocation materialId = stack.get(ForgeweaveDataComponents.MATERIAL.get());
         if (materialId == null) {
+            // Issue #379, upstream ToolPart#checkMissingMaterialTooltip: a part carrying no material
+            // at all says so ("Part has no data") instead of hovering as a blank item. Upstream's
+            // errors are plain text, and they *replace* the trait block rather than joining it --
+            // the return below is that suppression.
+            tooltip.add(Component.translatable("tooltip.forgeweave.part.missing_info"));
             return;
         }
         tooltip.add(MaterialDisplay.name(registries, materialId));
 
         Optional<Material> material = MaterialDisplay.lookup(registries, materialId);
         if (material.isEmpty()) {
+            // The same upstream branch's other half: the component names a material this world's
+            // datapack does not define. Only when registries were actually available -- without them
+            // nothing resolves and the plain name line above is the whole tooltip, as before.
+            if (registries != null) {
+                tooltip.add(Component.translatable("tooltip.forgeweave.part.missing_material",
+                        materialId.toString()));
+            }
             return;
         }
         List<Component> stats = detailed ? stats(material.get()) : List.of();
         if (!stats.isEmpty()) {
             tooltip.add(Component.empty());
+            // Issue #379: upstream heads each stat block with its own white underlined type name
+            // (ToolPart#getTooltipStatsInfo reading stat.<type>.name). Forgeweave parts each play
+            // exactly one role, so the heading is this part's Kind -- and Kind.NONE never gets here,
+            // since it contributes no stat lines for a heading to introduce.
+            tooltip.add(Component.translatable("tooltip.forgeweave.stat_type." + kind.name().toLowerCase(Locale.ROOT))
+                    .withStyle(ChatFormatting.WHITE, ChatFormatting.UNDERLINE));
             tooltip.addAll(stats);
         }
         tooltip.add(Component.empty());

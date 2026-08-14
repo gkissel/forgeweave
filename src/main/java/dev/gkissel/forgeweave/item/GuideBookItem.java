@@ -1,10 +1,15 @@
 package dev.gkissel.forgeweave.item;
 
+import java.util.List;
+
+import net.minecraft.ChatFormatting;
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.level.Level;
 
 import dev.gkissel.forgeweave.client.book.BookOpener;
@@ -27,5 +32,16 @@ public class GuideBookItem extends Item {
             BookOpener.open();
         }
         return InteractionResultHolder.sidedSuccess(player.getItemInHand(hand), level.isClientSide);
+    }
+
+    /**
+     * The grey flavour line (issue #379), upstream's {@code ItemTinkerBook#addInformation} printing
+     * {@code item.tconstruct.book.tooltip} in {@code TextFormatting.GRAY}. Upstream's copy wraps over
+     * an embedded newline and names its author; Forgeweave's is one line in its own vocabulary.
+     */
+    @Override
+    public void appendHoverText(ItemStack stack, TooltipContext context, List<Component> tooltip, TooltipFlag flag) {
+        super.appendHoverText(stack, context, tooltip, flag);
+        tooltip.add(Component.translatable("tooltip.forgeweave.guide_book").withStyle(ChatFormatting.GRAY));
     }
 }

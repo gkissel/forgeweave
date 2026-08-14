@@ -38,40 +38,40 @@ public final class ForgeweaveItems {
     // The workshop guide book (issue #273), upstream 1.12's `tconstruct:book` "Materials and You";
     // crafted from a vanilla book plus a blank pattern (recipes/tools/book.json, NOTICE.md).
     public static final DeferredItem<GuideBookItem> GUIDE_BOOK = ITEMS.registerItem("guide_book", GuideBookItem::new);
-    public static final DeferredItem<Item> PATTERN_PICKAXE_HEAD = ITEMS.registerSimpleItem("pattern_pickaxe_head");
-    public static final DeferredItem<Item> PATTERN_SHOVEL_HEAD = ITEMS.registerSimpleItem("pattern_shovel_head");
-    public static final DeferredItem<Item> PATTERN_AXE_HEAD = ITEMS.registerSimpleItem("pattern_axe_head");
-    public static final DeferredItem<Item> PATTERN_TOOL_BINDING = ITEMS.registerSimpleItem("pattern_tool_binding");
-    public static final DeferredItem<Item> PATTERN_TOOL_HANDLE = ITEMS.registerSimpleItem("pattern_tool_handle");
+    public static final DeferredItem<Item> PATTERN_PICKAXE_HEAD = pattern("pattern_pickaxe_head");
+    public static final DeferredItem<Item> PATTERN_SHOVEL_HEAD = pattern("pattern_shovel_head");
+    public static final DeferredItem<Item> PATTERN_AXE_HEAD = pattern("pattern_axe_head");
+    public static final DeferredItem<Item> PATTERN_TOOL_BINDING = pattern("pattern_tool_binding");
+    public static final DeferredItem<Item> PATTERN_TOOL_HANDLE = pattern("pattern_tool_handle");
 
     // M3 tool part patterns (docs/SCOPE.md M3 issue #151), one per part below.
-    public static final DeferredItem<Item> PATTERN_SWORD_BLADE = ITEMS.registerSimpleItem("pattern_sword_blade");
-    public static final DeferredItem<Item> PATTERN_WIDE_GUARD = ITEMS.registerSimpleItem("pattern_wide_guard");
-    public static final DeferredItem<Item> PATTERN_HAND_GUARD = ITEMS.registerSimpleItem("pattern_hand_guard");
-    public static final DeferredItem<Item> PATTERN_CROSS_GUARD = ITEMS.registerSimpleItem("pattern_cross_guard");
-    public static final DeferredItem<Item> PATTERN_SIGN_PLATE = ITEMS.registerSimpleItem("pattern_sign_plate");
-    public static final DeferredItem<Item> PATTERN_PAN = ITEMS.registerSimpleItem("pattern_pan");
-    public static final DeferredItem<Item> PATTERN_KNIFE_BLADE = ITEMS.registerSimpleItem("pattern_knife_blade");
-    public static final DeferredItem<Item> PATTERN_LARGE_SWORD_BLADE = ITEMS.registerSimpleItem("pattern_large_sword_blade");
-    public static final DeferredItem<Item> PATTERN_TOUGH_TOOL_ROD = ITEMS.registerSimpleItem("pattern_tough_tool_rod");
-    public static final DeferredItem<Item> PATTERN_TOUGH_BINDING = ITEMS.registerSimpleItem("pattern_tough_binding");
-    public static final DeferredItem<Item> PATTERN_LARGE_PLATE = ITEMS.registerSimpleItem("pattern_large_plate");
-    public static final DeferredItem<Item> PATTERN_HAMMER_HEAD = ITEMS.registerSimpleItem("pattern_hammer_head");
-    public static final DeferredItem<Item> PATTERN_EXCAVATOR_HEAD = ITEMS.registerSimpleItem("pattern_excavator_head");
-    public static final DeferredItem<Item> PATTERN_SCYTHE_HEAD = ITEMS.registerSimpleItem("pattern_scythe_head");
-    public static final DeferredItem<Item> PATTERN_KAMA_HEAD = ITEMS.registerSimpleItem("pattern_kama_head");
-    public static final DeferredItem<Item> PATTERN_BROAD_AXE_HEAD = ITEMS.registerSimpleItem("pattern_broad_axe_head");
-    public static final DeferredItem<Item> PATTERN_VEIN_HAMMER_HEAD = ITEMS.registerSimpleItem("pattern_vein_hammer_head");
+    public static final DeferredItem<Item> PATTERN_SWORD_BLADE = pattern("pattern_sword_blade");
+    public static final DeferredItem<Item> PATTERN_WIDE_GUARD = pattern("pattern_wide_guard");
+    public static final DeferredItem<Item> PATTERN_HAND_GUARD = pattern("pattern_hand_guard");
+    public static final DeferredItem<Item> PATTERN_CROSS_GUARD = pattern("pattern_cross_guard");
+    public static final DeferredItem<Item> PATTERN_SIGN_PLATE = pattern("pattern_sign_plate");
+    public static final DeferredItem<Item> PATTERN_PAN = pattern("pattern_pan");
+    public static final DeferredItem<Item> PATTERN_KNIFE_BLADE = pattern("pattern_knife_blade");
+    public static final DeferredItem<Item> PATTERN_LARGE_SWORD_BLADE = pattern("pattern_large_sword_blade");
+    public static final DeferredItem<Item> PATTERN_TOUGH_TOOL_ROD = pattern("pattern_tough_tool_rod");
+    public static final DeferredItem<Item> PATTERN_TOUGH_BINDING = pattern("pattern_tough_binding");
+    public static final DeferredItem<Item> PATTERN_LARGE_PLATE = pattern("pattern_large_plate");
+    public static final DeferredItem<Item> PATTERN_HAMMER_HEAD = pattern("pattern_hammer_head");
+    public static final DeferredItem<Item> PATTERN_EXCAVATOR_HEAD = pattern("pattern_excavator_head");
+    public static final DeferredItem<Item> PATTERN_SCYTHE_HEAD = pattern("pattern_scythe_head");
+    public static final DeferredItem<Item> PATTERN_KAMA_HEAD = pattern("pattern_kama_head");
+    public static final DeferredItem<Item> PATTERN_BROAD_AXE_HEAD = pattern("pattern_broad_axe_head");
+    public static final DeferredItem<Item> PATTERN_VEIN_HAMMER_HEAD = pattern("pattern_vein_hammer_head");
     // #161's own new-shape head part; see PART_WAR_MACE_HEAD below.
-    public static final DeferredItem<Item> PATTERN_WAR_MACE_HEAD = ITEMS.registerSimpleItem("pattern_war_mace_head");
+    public static final DeferredItem<Item> PATTERN_WAR_MACE_HEAD = pattern("pattern_war_mace_head");
     // #159: the scimitar's own head part. See PART_CURVED_BLADE below for why it lands here rather
     // than with #151's batch.
-    public static final DeferredItem<Item> PATTERN_CURVED_BLADE = ITEMS.registerSimpleItem("pattern_curved_blade");
+    public static final DeferredItem<Item> PATTERN_CURVED_BLADE = pattern("pattern_curved_blade");
     // #160's katana blade -- see PART_KATANA_BLADE below for why it lands here rather than in #151.
-    public static final DeferredItem<Item> PATTERN_KATANA_BLADE = ITEMS.registerSimpleItem("pattern_katana_blade");
+    public static final DeferredItem<Item> PATTERN_KATANA_BLADE = pattern("pattern_katana_blade");
     // #271's sharpening kit. Upstream stencils it like any other part
     // (TinkerTools#registerItems: registerStencilTableCrafting(Pattern.setTagForPart(pattern, sharpeningKit))).
-    public static final DeferredItem<Item> PATTERN_SHARPENING_KIT = ITEMS.registerSimpleItem("pattern_sharpening_kit");
+    public static final DeferredItem<Item> PATTERN_SHARPENING_KIT = pattern("pattern_sharpening_kit");
 
     public static final DeferredItem<PartItem> PART_PICKAXE_HEAD = part("pickaxe_head", PartItem.Kind.HEAD);
     public static final DeferredItem<PartItem> PART_SHOVEL_HEAD = part("shovel_head", PartItem.Kind.HEAD);
@@ -145,6 +145,14 @@ public final class ForgeweaveItems {
      * only over {@code tool.getRequiredComponents()}).
      */
     public static final DeferredItem<PartItem> PART_SHARPENING_KIT = part("sharpening_kit", PartItem.Kind.HEAD);
+
+    /**
+     * A part pattern: a plain item apart from {@link PatternItem}'s cost tooltip (issue #379).
+     * {@link #PATTERN_BLANK} stays a simple item -- it stamps no part, so it has no cost to quote.
+     */
+    private static DeferredItem<Item> pattern(String name) {
+        return ITEMS.registerItem(name, PatternItem::new);
+    }
 
     private static DeferredItem<PartItem> part(String name, PartItem.Kind kind) {
         return ITEMS.registerItem(name, properties -> new PartItem(properties, kind));
@@ -379,9 +387,12 @@ public final class ForgeweaveItems {
     // The smeltery multiblock's blocks (docs/SCOPE.md M2 issue #95).
     public static final DeferredItem<BlockItem> STANDARD_CORE = ITEMS.registerSimpleBlockItem("standard_core", ForgeweaveBlocks.STANDARD_CORE);
     public static final DeferredItem<BlockItem> NETHER_CORE = ITEMS.registerSimpleBlockItem("nether_core", ForgeweaveBlocks.NETHER_CORE);
-    public static final DeferredItem<BlockItem> SEARED_TANK = ITEMS.registerSimpleBlockItem("seared_tank", ForgeweaveBlocks.SEARED_TANK);
-    public static final DeferredItem<BlockItem> SEARED_GAUGE = ITEMS.registerSimpleBlockItem("seared_gauge", ForgeweaveBlocks.SEARED_GAUGE);
-    public static final DeferredItem<BlockItem> SEARED_WINDOW = ITEMS.registerSimpleBlockItem("seared_window", ForgeweaveBlocks.SEARED_WINDOW);
+    // The three tank blocks keep their contents on the dropped stack (SearedTankBlockEntity's
+    // FLUID_CONTENT component, copied by the loot table), so their item shows what is inside --
+    // upstream's ItemTank, see SearedTankItem.
+    public static final DeferredItem<BlockItem> SEARED_TANK = tankItem(ForgeweaveBlocks.SEARED_TANK);
+    public static final DeferredItem<BlockItem> SEARED_GAUGE = tankItem(ForgeweaveBlocks.SEARED_GAUGE);
+    public static final DeferredItem<BlockItem> SEARED_WINDOW = tankItem(ForgeweaveBlocks.SEARED_WINDOW);
     public static final DeferredItem<BlockItem> SEARED_DRAIN = ITEMS.registerSimpleBlockItem("seared_drain", ForgeweaveBlocks.SEARED_DRAIN);
 
     // #277 -- filtered fluid I/O and item I/O for the smeltery (docs/SCOPE.md M3.4).
@@ -566,6 +577,11 @@ public final class ForgeweaveItems {
     public static final DeferredItem<BlockItem> CLEAR_STAINED_GLASS_GREEN = stainedGlassItem(ForgeweaveBlocks.CLEAR_STAINED_GLASS_GREEN);
     public static final DeferredItem<BlockItem> CLEAR_STAINED_GLASS_RED = stainedGlassItem(ForgeweaveBlocks.CLEAR_STAINED_GLASS_RED);
     public static final DeferredItem<BlockItem> CLEAR_STAINED_GLASS_BLACK = stainedGlassItem(ForgeweaveBlocks.CLEAR_STAINED_GLASS_BLACK);
+
+    private static DeferredItem<BlockItem> tankItem(DeferredBlock<? extends Block> block) {
+        return ITEMS.registerItem(block.getId().getPath(),
+                properties -> new SearedTankItem(block.get(), properties));
+    }
 
     private static DeferredItem<BlockItem> stainedGlassItem(DeferredBlock<Block> block) {
         return ITEMS.registerSimpleBlockItem(block.getId().getPath(), block);

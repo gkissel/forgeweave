@@ -429,6 +429,28 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         // the material after the part can reorder it.
         add("tooltip.forgeweave.part_name", "%s %s");
 
+        // The 1.12 tooltip-parity batch (issue #379), each key naming its upstream original.
+        // tooltip.tool.holdShift -- closes the compact tier of tools and parts alike. The existing
+        // tooltip.forgeweave.hold_shift is the smeltery's unrelated "for buckets" hint, hence the
+        // separate key.
+        add("tooltip.forgeweave.hold_shift_stats", "Hold Shift for Stats");
+        // tooltip.pattern.cost, quoted in ingots off PartBuilderRecipes' own cost constants.
+        add("tooltip.forgeweave.pattern_cost", "Material Cost: %s");
+        // tooltip.part.missing_material / tooltip.part.missing_info -- a part whose material
+        // component names nothing this world defines, and one carrying no material at all.
+        add("tooltip.forgeweave.part.missing_material", "Missing material: %s");
+        add("tooltip.forgeweave.part.missing_info", "Part has no data");
+        // stat.head.name / stat.handle.name / stat.extra.name -- the underlined heading over a
+        // part's Shift-tier stat block, keyed by PartItem.Kind.
+        add("tooltip.forgeweave.stat_type.head", "Head");
+        add("tooltip.forgeweave.stat_type.handle", "Handle");
+        add("tooltip.forgeweave.stat_type.extra", "Extra");
+        // tooltip.tank.amount -- the fluid a broken seared tank/gauge/window kept on its stack. The
+        // fluid's own name is its registered display name, so it needs no key of its own.
+        add("tooltip.forgeweave.tank.amount", "%s mb");
+        // item.tconstruct.book.tooltip, the guide book's grey flavour line.
+        add("tooltip.forgeweave.guide_book", "The book every smith needs");
+
         // M1 tool innate retrofit (issue #164, maintainer directive 2026-08-12): pickaxe, shovel and
         // hatchet each carry a fixed combat innate, shown the same name/description shape as a trait
         // but keyed by tool type instead of material (ForgeweaveInnates#innateId).
