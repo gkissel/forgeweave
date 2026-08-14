@@ -5,6 +5,7 @@ import java.util.List;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.server.level.ServerPlayer;
@@ -16,9 +17,11 @@ import net.minecraft.world.entity.animal.Pig;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.UseOnContext;
+import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.block.CropBlock;
+import net.minecraft.world.level.block.LeavesBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
@@ -262,6 +265,49 @@ public class LargeToolGameTests {
                 .thenSucceed();
     }
 
+    /**
+     * docs/SCOPE.md issue #298: upstream's {@code Scythe#breakBlock}/{@code #breakExtraBlock} only
+     * shear-harvest with Silk Touch; without it every extra block falls to the plain
+     * {@code ToolHelper.breakExtraBlock} path -- the same vanilla-equivalent break {@link AoeHarvest}
+     * already runs for every other large tool. Forgeweave has no block-shearing to fall back to
+     * (deliberately out of scope, {@link dev.gkissel.forgeweave.tool.CropHarvest}'s own javadoc), so
+     * rather than let a silk-touch-less scythe area-mine the full cube at plain speed with nothing to
+     * tell it apart from a silk-touch one, {@link AoeHarvest.Shape#CUBE_3X3X3} takes no extra blocks
+     * at all without the enchantment -- a maintainer-flagged deviation from upstream's own "still
+     * breaks them, just without shearing" (recorded in the PR for issue #298).
+     */
+    @GameTest(template = "empty")
+    public static void scytheAoeMinesNothingExtraWithoutSilkTouch(GameTestHelper helper) {
+        ServerPlayer player = holdingLargeTool(helper, ForgeweaveItems.TOOL_SCYTHE.get(), "stone");
+        // Persistent leaves: in the scythe's own mineable/hoe tag (unlike stone, which the scythe was
+        // never correct-tool-for-drops on regardless of Silk Touch -- this has to be a block the AoE
+        // gate would otherwise take, or the assertion would pass for the wrong reason), and not
+        // subject to natural decay racing the assertion below.
+        fill(helper, ORIGIN, 1, persistentLeaves());
+
+        int broken = breakAndCount(helper, player, ORIGIN, 1);
+
+        helper.assertTrue(broken == 1,
+                "a silk-touch-less scythe must break only the block it targets, broke " + broken);
+        helper.succeed();
+    }
+
+    /** As above, with Silk Touch enchanted onto the assembled scythe: the full 3x3x3 cube goes. */
+    @GameTest(template = "empty")
+    public static void scytheAoeMinesTheFullCubeWithSilkTouch(GameTestHelper helper) {
+        ServerPlayer player = holdingLargeTool(helper, ForgeweaveItems.TOOL_SCYTHE.get(), "stone");
+        ItemStack scythe = player.getMainHandItem();
+        scythe.enchant(helper.getLevel().registryAccess().lookupOrThrow(Registries.ENCHANTMENT)
+                .getOrThrow(Enchantments.SILK_TOUCH), 1);
+        fill(helper, ORIGIN, 1, persistentLeaves());
+
+        int broken = breakAndCount(helper, player, ORIGIN, 1);
+
+        helper.assertTrue(broken == 27,
+                "a silk-touch scythe must break its full 3x3x3 (origin + 26), broke " + broken);
+        helper.succeed();
+    }
+
     // ------------------------------------------------------------------ combat riders
 
     /**
@@ -327,6 +373,11 @@ public class LargeToolGameTests {
         ToolAssemblyRecipes.Entry entry = ToolAssembly.entryFor(tool);
         return ToolAssembly.assembleAtForge(helper, player, STATION, entry,
                 Collections.nCopies(entry.slotCount(), material));
+    }
+
+    /** Oak leaves that won't decay mid-test, so a break count taken right after the swing is exact. */
+    private static BlockState persistentLeaves() {
+        return Blocks.OAK_LEAVES.defaultBlockState().setValue(LeavesBlock.PERSISTENT, true);
     }
 
     /** A solid cube of {@code state} of the given radius, centered on {@code center}. */

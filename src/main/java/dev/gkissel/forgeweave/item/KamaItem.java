@@ -1,10 +1,9 @@
 package dev.gkissel.forgeweave.item;
 
-import java.util.List;
-
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
+import net.minecraft.tags.BlockTags;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.LivingEntity;
@@ -33,14 +32,18 @@ import dev.gkissel.forgeweave.tool.ToolConstants;
  *       {@code doHarvestCrop}, NOTICE.md): {@link CropHarvest}.
  * </ul>
  *
- * <p>The kama names no {@code mineable/*} tag: it isn't a digging tool upstream either (only {@code
- * Category.HARVEST}/{@code WEAPON}), so {@link ToolItem}'s {@code tool} component carries just the
- * tier-denial rule and no effective-block rule -- it never digs at bonus speed.
+ * <p>The kama's {@code mineable/*} tag (docs/SCOPE.md issue #298) is {@code minecraft:mineable/hoe}:
+ * upstream's own {@code Kama#effective_materials} (web, leaves, plants, vine, gourd, cactus, via
+ * {@code setHarvestLevel("shears", 0)}) has no single 1.21 equivalent -- vanilla ships no block tag
+ * for cobweb/vine/gourd/cactus at all -- but every leaf block sits in {@code mineable/hoe}, and it is
+ * the same tag the scythe already registers under ({@link ForgeweaveItems#TOOL_SCYTHE}), so
+ * {@link ToolItem}'s {@code tool} component gets a real effective-block rule and the kama digs
+ * leaves at bonus speed instead of the flat default.
  */
 public class KamaItem extends ToolItem {
 
     public KamaItem(Properties properties) {
-        super(properties, ToolConstants.KAMA, List.of(), true, ForgeweaveInnates.REAP);
+        super(properties, ToolConstants.KAMA, BlockTags.MINEABLE_WITH_HOE, true, ForgeweaveInnates.REAP);
     }
 
     /** Shears {@link IShearable} entities (sheep, mooshroom, snow golem, ...); see the class javadoc. */
