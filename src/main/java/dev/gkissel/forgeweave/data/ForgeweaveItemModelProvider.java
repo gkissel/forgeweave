@@ -50,6 +50,8 @@ public class ForgeweaveItemModelProvider extends ItemModelProvider {
 
     @Override
     protected void registerModels() {
+        // The guide book (issue #273), art derived from upstream 1.12's items/book.png (NOTICE.md).
+        singleLayerModel(ForgeweaveItems.GUIDE_BOOK, derivedItem("guide_book"));
         singleLayerModel(ForgeweaveItems.PATTERN_BLANK, derivedItem("pattern"));
         singleLayerModel(ForgeweaveItems.PATTERN_PICKAXE_HEAD, derivedItem("pattern_pickaxe_head"));
         singleLayerModel(ForgeweaveItems.PATTERN_SHOVEL_HEAD, derivedItem("pattern_shovel_head"));

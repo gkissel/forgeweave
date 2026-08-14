@@ -92,6 +92,21 @@ public class ForgeweaveRecipeProvider extends RecipeProvider {
                 .unlockedBy("has_crafting_table", has(Blocks.CRAFTING_TABLE))
                 .save(recipeOutput);
 
+        // The guide book (issue #273): upstream 1.12's recipes/tools/book.json is shapeless
+        // "vanilla book + blank pattern", and its recipes/common/book.json also lets 3 paper +
+        // string + 2 blank patterns make the vanilla book itself, skipping leather (NOTICE.md).
+        ShapelessRecipeBuilder.shapeless(RecipeCategory.MISC, ForgeweaveItems.GUIDE_BOOK.get())
+                .requires(Items.BOOK)
+                .requires(ForgeweaveItems.PATTERN_BLANK.get())
+                .unlockedBy("has_pattern", has(ForgeweaveItems.PATTERN_BLANK.get()))
+                .save(recipeOutput);
+        ShapelessRecipeBuilder.shapeless(RecipeCategory.MISC, Items.BOOK)
+                .requires(Items.PAPER, 3)
+                .requires(Items.STRING)
+                .requires(ForgeweaveItems.PATTERN_BLANK.get(), 2)
+                .unlockedBy("has_pattern", has(ForgeweaveItems.PATTERN_BLANK.get()))
+                .save(recipeOutput, ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "book_from_patterns"));
+
         // Stencil Table (docs/SCOPE.md M1 issue #44): upstream 1.12's real stencil_table.json recipe
         // is "blank pattern + #STENCIL_TABLE" where that tag resolves to plankWood (NOTICE.md).
         retexturedTableRecipe(recipeOutput, ForgeweaveItems.STENCIL_TABLE.get(), ForgeweaveItems.PATTERN_BLANK.get(), Ingredient.of(ItemTags.PLANKS));
