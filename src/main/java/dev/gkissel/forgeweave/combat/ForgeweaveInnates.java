@@ -590,8 +590,10 @@ public final class ForgeweaveInnates {
      *   <li>the pitch term, which shortens the dash the further from level the player is looking.
      * </ul>
      *
-     * <p>Upstream's shield carve-out is a {@code PASS} so the offhand gets the click; here it also
-     * suppresses the lunge, which is what issue #300 asks for.
+     * <p>Upstream's shield carve-out changes only the <em>answer</em>, not the lunge: it hops first and
+     * then returns {@code PASS} so the offhand shield still goes up. Issue #300's summary reads it as a
+     * suppression; the 1.12 source does not, and parity wins (maintainer decision 2026-08-13). Making
+     * it suppress instead is moving that {@code pass} above the lunge.
      */
     public static final class Lunge implements ToolUseAction {
 
@@ -609,12 +611,6 @@ public final class ForgeweaveInnates {
         @Nullable
         public InteractionResultHolder<ItemStack> onUse(ItemStack stack, Level level, Player player,
                 InteractionHand hand) {
-            // "Shield-like" is upstream's vanilla-shield-or-battlesign test, read off the behavior
-            // rather than a list of items: a raised-block animation is what both have in common.
-            if (hand == InteractionHand.MAIN_HAND
-                    && player.getOffhandItem().getUseAnimation() == UseAnim.BLOCK) {
-                return InteractionResultHolder.pass(stack);
-            }
             if (player.onGround() && !level.isClientSide()) {
                 Vec3 look = Vec3.directionFromRotation(player.getXRot(), player.getYRot());
                 player.setDeltaMovement(-look.x * LUNGE_SPEED,
@@ -623,6 +619,14 @@ public final class ForgeweaveInnates {
                 player.hurtMarked = true; // a player's own client is authoritative; push the motion down.
                 player.causeFoodExhaustion(LUNGE_EXHAUSTION);
                 player.getCooldowns().addCooldown(stack.getItem(), LUNGE_COOLDOWN_TICKS);
+            }
+            // The lunge has already happened either way; the offhand only decides the answer. A
+            // "shield-like" offhand is upstream's vanilla-shield-or-battlesign test, read off the
+            // behavior rather than a list of items: a raised-block animation is what both have in
+            // common. PASS hands the click on so that shield still goes up.
+            if (hand == InteractionHand.MAIN_HAND
+                    && player.getOffhandItem().getUseAnimation() == UseAnim.BLOCK) {
+                return InteractionResultHolder.pass(stack);
             }
             return InteractionResultHolder.sidedSuccess(stack, level.isClientSide());
         }

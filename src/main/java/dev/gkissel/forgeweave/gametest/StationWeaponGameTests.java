@@ -249,11 +249,12 @@ public class StationWeaponGameTests {
     }
 
     /**
-     * Rapier: with a shield-like item in the offhand the click passes through to it instead --
-     * upstream's own carve-out, which names vanilla shields and the battlesign.
+     * Rapier: a shield-like offhand -- upstream's carve-out names vanilla shields and the battlesign --
+     * changes only the answer, not the lunge. Upstream hops first and <em>then</em> returns
+     * {@code PASS} so the offhand shield can still go up (maintainer decision 2026-08-13).
      */
     @GameTest(template = "empty")
-    public static void rapierLungeIsSuppressedByAShieldInTheOffhand(GameTestHelper helper) {
+    public static void rapierLungeStillFiresWithAShieldInTheOffhand(GameTestHelper helper) {
         BlockPos pos = new BlockPos(1, 1, 1);
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         ItemStack rapier = weapon(helper, player, pos, ForgeweaveItems.TOOL_RAPIER.get());
@@ -274,10 +275,13 @@ public class StationWeaponGameTests {
             helper.assertTrue(result.getResult() == InteractionResult.PASS,
                     "the click must pass through to " + offhand.getItem() + " in the offhand, got "
                             + result.getResult());
-            helper.assertTrue(player.getDeltaMovement().equals(Vec3.ZERO),
-                    "a suppressed lunge must not move the player, got " + player.getDeltaMovement());
-            helper.assertFalse(player.getCooldowns().isOnCooldown(rapier.getItem()),
-                    "a suppressed lunge must not cost a cooldown");
+            Vec3 lunge = player.getDeltaMovement();
+            helper.assertTrue(Math.abs(lunge.y - 0.32) < 1.0E-4,
+                    "the lunge must still hop with " + offhand.getItem() + " in the offhand, got " + lunge.y);
+            helper.assertTrue(Math.abs(lunge.z + 0.5) < 1.0E-4,
+                    "the lunge must still dash with " + offhand.getItem() + " in the offhand, got " + lunge.z);
+            helper.assertTrue(player.getCooldowns().isOnCooldown(rapier.getItem()),
+                    "a lunge costs its cooldown whatever the offhand holds");
         }
 
         helper.succeed();
