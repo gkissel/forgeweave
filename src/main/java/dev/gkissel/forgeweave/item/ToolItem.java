@@ -547,12 +547,21 @@ public class ToolItem extends Item {
      * Right-click starts the innate's use action, if it has one -- the longsword's leap charge, the
      * broadsword's parry window, the battlesign's blocking stance. Refused while Broken, matching
      * upstream's own {@code BattleSign#onItemRightClick}.
+     *
+     * <p>An action that answers {@link ToolUseAction#onUse} rather than being held (the rapier's
+     * lunge, issue #300) does its work there and its result is returned as-is; only the held ones
+     * reach {@code startUsingItem}.
      */
     @Override
     public InteractionResultHolder<ItemStack> use(Level level, Player player, InteractionHand hand) {
         ItemStack stack = player.getItemInHand(hand);
-        if (useAction() == null || isBroken(stack)) {
+        ToolUseAction action = useAction();
+        if (action == null || isBroken(stack)) {
             return InteractionResultHolder.pass(stack);
+        }
+        InteractionResultHolder<ItemStack> instant = action.onUse(stack, level, player, hand);
+        if (instant != null) {
+            return instant;
         }
         player.startUsingItem(hand);
         return InteractionResultHolder.consume(stack);

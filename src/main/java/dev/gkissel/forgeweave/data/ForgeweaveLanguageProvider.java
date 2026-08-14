@@ -190,7 +190,8 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
                 "Hold right-click to charge, then release to leap; the longer the charge, the further the jump.");
         add("tooltip.forgeweave.innate.vital_thrust.name", "Vital Thrust");
         add("tooltip.forgeweave.innate.vital_thrust.description",
-                "Each hit deals a further 5% of the target's remaining health, ignoring armour.");
+                "Each hit deals a further 5% of the target's remaining health, ignoring armour. "
+                        + "Right-click on the ground to hop back out of reach.");
         add("tooltip.forgeweave.innate.deflect.name", "Deflect");
         add("tooltip.forgeweave.innate.deflect.description",
                 "While blocking, a projectile caught head-on is returned to its sender.");

@@ -6,6 +6,8 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.EntityType;
@@ -14,6 +16,7 @@ import net.minecraft.world.entity.animal.Pig;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.projectile.Arrow;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.phys.Vec3;
 
@@ -199,6 +202,89 @@ public class StationWeaponGameTests {
         float lost = before - pig.getHealth();
         pig.discard();
         return lost;
+    }
+
+    /**
+     * Rapier: right-clicking on the ground is the fencing hop of upstream
+     * {@code Rapier#onItemRightClick} -- {@code motionY += 0.32} on top of whatever vertical motion is
+     * there, a flat 0.5 horizontal dash, and a 4-tick cooldown. In the air it does nothing at all.
+     *
+     * <p>The dash is upstream's own vector, which is the <em>negation</em> of the look direction: a
+     * backwards disengage, not a forward charge. Facing +Z, that is {@code z = -0.5}.
+     */
+    @GameTest(template = "empty")
+    public static void rapierLungeHopsAndDashesFromTheGround(GameTestHelper helper) {
+        BlockPos pos = new BlockPos(1, 1, 1);
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        ItemStack rapier = weapon(helper, player, pos, ForgeweaveItems.TOOL_RAPIER.get());
+        player.setItemInHand(InteractionHand.MAIN_HAND, rapier);
+        player.setYRot(0.0F); // facing +Z
+        player.setXRot(0.0F);
+        ToolItem tool = (ToolItem) rapier.getItem();
+
+        // Airborne: the lunge is a push off the ground, so there is nothing to push off.
+        player.setOnGround(false);
+        player.setDeltaMovement(Vec3.ZERO);
+        tool.use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
+        helper.assertTrue(player.getDeltaMovement().equals(Vec3.ZERO),
+                "a mid-air right-click must not lunge, got " + player.getDeltaMovement());
+        helper.assertFalse(player.getCooldowns().isOnCooldown(rapier.getItem()),
+                "a lunge that never happened must not cost a cooldown");
+
+        player.setOnGround(true);
+        player.setDeltaMovement(Vec3.ZERO);
+        tool.use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
+
+        Vec3 lunge = player.getDeltaMovement();
+        helper.assertTrue(Math.abs(lunge.y - 0.32) < 1.0E-4,
+                "expected the hop to add 0.32 of vertical motion, got " + lunge.y);
+        helper.assertTrue(Math.abs(lunge.z + 0.5) < 1.0E-4,
+                "expected a 0.5 dash away from a +Z facing, got " + lunge.z);
+        helper.assertTrue(Math.abs(lunge.x) < 1.0E-4,
+                "a lunge along the Z axis must not drift sideways, got " + lunge.x);
+        helper.assertTrue(player.getCooldowns().isOnCooldown(rapier.getItem()),
+                "a lunge must put the rapier on its 4-tick cooldown");
+
+        helper.succeed();
+    }
+
+    /**
+     * Rapier: a shield-like offhand -- upstream's carve-out names vanilla shields and the battlesign --
+     * changes only the answer, not the lunge. Upstream hops first and <em>then</em> returns
+     * {@code PASS} so the offhand shield can still go up (maintainer decision 2026-08-13).
+     */
+    @GameTest(template = "empty")
+    public static void rapierLungeStillFiresWithAShieldInTheOffhand(GameTestHelper helper) {
+        BlockPos pos = new BlockPos(1, 1, 1);
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        ItemStack rapier = weapon(helper, player, pos, ForgeweaveItems.TOOL_RAPIER.get());
+        player.setItemInHand(InteractionHand.MAIN_HAND, rapier);
+        player.setYRot(0.0F);
+        player.setXRot(0.0F);
+        player.setOnGround(true);
+        ToolItem tool = (ToolItem) rapier.getItem();
+
+        for (ItemStack offhand : List.of(new ItemStack(Items.SHIELD),
+                weapon(helper, player, pos, ForgeweaveItems.TOOL_BATTLESIGN.get()))) {
+            player.setItemInHand(InteractionHand.OFF_HAND, offhand);
+            player.setDeltaMovement(Vec3.ZERO);
+
+            InteractionResultHolder<ItemStack> result =
+                    tool.use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
+
+            helper.assertTrue(result.getResult() == InteractionResult.PASS,
+                    "the click must pass through to " + offhand.getItem() + " in the offhand, got "
+                            + result.getResult());
+            Vec3 lunge = player.getDeltaMovement();
+            helper.assertTrue(Math.abs(lunge.y - 0.32) < 1.0E-4,
+                    "the lunge must still hop with " + offhand.getItem() + " in the offhand, got " + lunge.y);
+            helper.assertTrue(Math.abs(lunge.z + 0.5) < 1.0E-4,
+                    "the lunge must still dash with " + offhand.getItem() + " in the offhand, got " + lunge.z);
+            helper.assertTrue(player.getCooldowns().isOnCooldown(rapier.getItem()),
+                    "a lunge costs its cooldown whatever the offhand holds");
+        }
+
+        helper.succeed();
     }
 
     /**
