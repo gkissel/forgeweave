@@ -121,6 +121,44 @@ public class ClayCastGameTests {
         return CastingRecipe.find(recipes, CastingRecipe.Station.TABLE, held, fluid);
     }
 
+    /**
+     * Issue #387: the sharpening kit's clay cast, same creation/single-use coverage as the axe
+     * head's above -- #292 registered one clay cast per gold cast, but #372's sharpening kit (and
+     * its gold cast, {@code cast_sharpening_kit}) landed after #292 had already merged, so
+     * {@code clay_cast_sharpening_kit} was never added to {@link ForgeweaveItems#CLAY_CASTS}.
+     */
+    @GameTest(template = "empty", timeoutTicks = 144 + CastingGameTests.STALL_ALLOWANCE_TICKS)
+    public static void pouringMoltenClayOverASharpeningKitMouldsItsClayCast(GameTestHelper helper) {
+        CastingBlockEntity table = rig(helper, ForgeweaveFluids.MOLTEN_CLAY.still().get());
+        insert(helper, table, new ItemStack(ForgeweaveItems.PART_SHARPENING_KIT.get()));
+        faucet(helper).activate();
+
+        helper.succeedWhen(() -> {
+            helper.assertTrue(table.input().is(sharpeningKitClayCast()),
+                    "expected the finished sharpening kit clay cast in the input slot, found " + table.input());
+            helper.assertTrue(table.output().isEmpty(), "the part is consumed, so nothing lands in the output slot");
+            helper.assertTrue(table.tank().isEmpty(), "and the pour is spent");
+        });
+    }
+
+    @GameTest(template = "empty", timeoutTicks = 156 + CastingGameTests.STALL_ALLOWANCE_TICKS)
+    public static void castingThroughASharpeningKitClayCastConsumesIt(GameTestHelper helper) {
+        CastingBlockEntity table = rig(helper, ForgeweaveFluids.IRON.still().get());
+        insert(helper, table, new ItemStack(sharpeningKitClayCast()));
+        faucet(helper).activate();
+
+        helper.succeedWhen(() -> {
+            helper.assertTrue(table.output().is(ForgeweaveItems.PART_SHARPENING_KIT.get()),
+                    "expected an iron sharpening kit, found " + table.output());
+            helper.assertTrue(table.input().isEmpty(),
+                    "a clay cast is single use, so nothing survives in the input slot: " + table.input());
+        });
+    }
+
+    private static Item sharpeningKitClayCast() {
+        return ForgeweaveItems.CLAY_CASTS.get("cast_sharpening_kit").get();
+    }
+
     /** The clay cast this file works through: the axe head's, the same part {@link M3CastingGameTests} casts. */
     private static Item clayCast() {
         return ForgeweaveItems.CLAY_CASTS.get("cast_axe_head").get();

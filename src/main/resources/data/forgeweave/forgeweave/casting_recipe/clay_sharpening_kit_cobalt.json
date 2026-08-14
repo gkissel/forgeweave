@@ -1,0 +1,15 @@
+{
+  "station": "table",
+  "cast": {
+    "item": "forgeweave:clay_cast_sharpening_kit"
+  },
+  "fluid": "forgeweave:molten_cobalt",
+  "amount": 288,
+  "result": {
+    "id": "forgeweave:sharpening_kit",
+    "components": {
+      "forgeweave:material": "forgeweave:cobalt"
+    }
+  },
+  "consumes_cast": true
+}
