@@ -31,6 +31,7 @@ import dev.gkissel.forgeweave.item.PartItem;
 import dev.gkissel.forgeweave.item.ToolItem;
 import dev.gkissel.forgeweave.modifier.Embossing;
 import dev.gkissel.forgeweave.modifier.ForgeweaveModifiers;
+import dev.gkissel.forgeweave.modifier.Fortification;
 import dev.gkissel.forgeweave.modifier.ModifierApplication;
 import dev.gkissel.forgeweave.modifier.ModifierRecipe;
 import dev.gkissel.forgeweave.menu.ToolStationTabs.Pos;
@@ -274,7 +275,12 @@ public class ToolStationMenu extends StationMenu {
                     ? stack.getItem() instanceof ToolItem
                     : ToolAssemblyRecipes.isRepairItemFor(registries, container.getItem(HEAD_SLOT), stack)
                             || ModifierApplication.isReagent(registries, stack)
-                            || Embossing.isReagent(registries, stack);
+                            || Embossing.isReagent(registries, stack)
+                            // #271: the sharpening kit and its flint. The kit is no longer an
+                            // embossing donor (Embossing#isDonorPart -- it belongs to no tool), and
+                            // the flint's recipe is skipped by ModifierApplication#recipeFor, so
+                            // neither of the two clauses above would let it in.
+                            || Fortification.isReagent(registries, stack);
         }
         // Since issue #155 the per-slot filter is the tab's own entry: M3's swords each take a
         // different guard as their extra part, and three of its weapons have no extra part at all,
@@ -325,6 +331,16 @@ public class ToolStationMenu extends StationMenu {
                 .orElse(null);
         if (embossing != null) {
             return embossing; // #154: "already embossed" outranks anything the reagents also mean.
+        }
+        // #271: same position and same reason as embossing above -- a fortification loadout is never
+        // a generic modifier one, and "already fortified with this material" outranks anything the
+        // flint would otherwise be read as. Mirrors resolve()'s own ordering, which is what keeps the
+        // message and the missing output explaining the same thing.
+        Component fortification = Fortification.resolve(registries, tool, freeSlotContents())
+                .map(Fortification.Outcome::rejection)
+                .orElse(null);
+        if (fortification != null) {
+            return fortification;
         }
         return ModifierApplication.resolve(registries, tool,
                         slots.get(BINDING_SLOT).getItem(), slots.get(HANDLE_SLOT).getItem())

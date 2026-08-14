@@ -72,6 +72,13 @@ public final class ModifierApplication {
         return registries.lookup(ModifierRecipe.REGISTRY)
                 .flatMap(lookup -> lookup.listElements()
                         .map(holder -> holder.value())
+                        // #271: fortification's recipe holds the flint half of its cost so the cost
+                        // stays data and JEI lists it, but its modifier id is a family marker that is
+                        // never stored on a tool -- every real fortification id is generated per
+                        // material. Applying it generically would put the marker itself on the tool
+                        // at level 1, i.e. tier index 0. Fortification#resolve owns that loadout, and
+                        // ToolAssemblyRecipes gives it its turn before this path.
+                        .filter(recipe -> !recipe.modifier().equals(Fortification.RECIPE_ID))
                         .filter(recipe -> recipe.matches(stack))
                         .findFirst());
     }
@@ -464,10 +471,23 @@ public final class ModifierApplication {
     public static Component name(ResourceLocation id) {
         ResourceLocation material = Embossing.materialOf(id);
         if (material != null) {
-            return Component.translatable("modifier.forgeweave.embossment.name",
-                    Component.translatable("material." + material.getNamespace() + "." + material.getPath()));
+            return Component.translatable("modifier.forgeweave.embossment.name", materialName(material));
+        }
+        // #271: fortification ids are generated per material too, and upstream names them the same
+        // way ({@code ModFortify#getLocalizedName}: "Fortified (Cobalt)"). The bare
+        // `forgeweave:fortification` recipe marker is not one of these and falls through to the plain
+        // key below, which is the family name JEI shows.
+        ResourceLocation fortifiedWith = Fortification.materialOf(id);
+        if (fortifiedWith != null) {
+            return Component.translatable("modifier.forgeweave.fortification.material",
+                    materialName(fortifiedWith));
         }
         return Component.translatable("modifier." + id.getNamespace() + "." + id.getPath() + ".name");
+    }
+
+    /** A material's own display key, the placeholder both generated-id families interpolate. */
+    private static Component materialName(ResourceLocation material) {
+        return Component.translatable("material." + material.getNamespace() + "." + material.getPath());
     }
 
     /**
@@ -479,8 +499,12 @@ public final class ModifierApplication {
     public static Component description(ResourceLocation id) {
         ResourceLocation material = Embossing.materialOf(id);
         if (material != null) {
-            return Component.translatable("modifier.forgeweave.embossment.description",
-                    Component.translatable("material." + material.getNamespace() + "." + material.getPath()));
+            return Component.translatable("modifier.forgeweave.embossment.description", materialName(material));
+        }
+        ResourceLocation fortifiedWith = Fortification.materialOf(id);
+        if (fortifiedWith != null) {
+            return Component.translatable("modifier.forgeweave.fortification.material_description",
+                    materialName(fortifiedWith));
         }
         return Component.translatable("modifier." + id.getNamespace() + "." + id.getPath() + ".description");
     }

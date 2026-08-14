@@ -1,0 +1,8 @@
+{
+  "modifier": "forgeweave:fortification",
+  "reagent": {
+    "item": "minecraft:flint"
+  },
+  "cost": 1,
+  "max_level": 1
+}

@@ -35,6 +35,7 @@ import dev.gkissel.forgeweave.item.ToolItem;
 import dev.gkissel.forgeweave.material.Material;
 import dev.gkissel.forgeweave.modifier.Embossing;
 import dev.gkissel.forgeweave.modifier.ForgeweaveModifiers;
+import dev.gkissel.forgeweave.modifier.Fortification;
 import dev.gkissel.forgeweave.modifier.Modifier;
 import dev.gkissel.forgeweave.modifier.ModifierApplication;
 import dev.gkissel.forgeweave.modifier.ModifierEntry;
@@ -65,6 +66,10 @@ import dev.gkissel.forgeweave.trait.ForgeweaveTraits;
  *   <li><b>Embossing</b> (issue #154; parity cost per issue #248) -- a tool in the head slot plus a
  *       donor tool part and an {@code modifier.EmbossingRecipe}'s reagent set across all five free
  *       slots, which is why the repair tab has five of them.
+ *   <li><b>Fortification</b> (issue #271) -- a tool in the head slot plus a sharpening kit and a
+ *       flint, which sets the tool's mining tier to the kit material's
+ *       ({@code modifier.Fortification}). Tried after embossing and before modifier application; the
+ *       flint half of its cost is a modifier recipe that the generic path deliberately skips.
  * </ul>
  *
  * <p>NOTICE.md cites the tool classes for the part composition, {@code ToolNBT.java} for the stat
@@ -299,9 +304,36 @@ public final class ToolAssemblyRecipes {
         // accepts, so the two can never both match, and trying the more specific one first keeps the
         // modifier path from having to know embossing exists.
         Optional<Result> embossing = resolveEmbossing(registries, headStack, freeSlots);
-        return embossing.isPresent()
-                ? embossing
+        if (embossing.isPresent()) {
+            return embossing;
+        }
+        // Fortification (issue #271) before generic modifier application, for the same reason
+        // embossing goes before it: a sharpening kit is nothing any modifier recipe accepts, so the
+        // two can never both match, and resolving the more specific one first keeps the modifier path
+        // from having to know fortification exists. It also has to come first because the flint half
+        // of the cost *is* a modifier recipe's reagent -- ModifierApplication#recipeFor skips that
+        // one recipe so a lone flint is never applied generically.
+        Optional<Result> fortification = resolveFortification(registries, headStack, freeSlots);
+        return fortification.isPresent()
+                ? fortification
                 : resolveModifier(registries, headStack, bindingStack, handleStack);
+    }
+
+    /**
+     * Fortification (issue #271): a tool in the first slot, a sharpening kit and a flint across the
+     * free ones. Every matched slot gives up exactly one item -- upstream {@code ModFortify}'s
+     * {@code RecipeMatch.ItemCombination(1, kit, flint)} -- and a rejected fortification produces no
+     * output here, only the message {@link ToolStationMenu#rejection} shows.
+     */
+    private static Optional<Result> resolveFortification(HolderLookup.Provider registries, ItemStack toolStack,
+            List<ItemStack> freeSlots) {
+        // One of everything, exactly as resolveEmbossing does: Fortification#resolve only returns an
+        // outcome once the kit and every reagent are loaded, one per slot.
+        int[] oneOfEach = new int[1 + freeSlots.size()];
+        Arrays.fill(oneOfEach, 1);
+        return Fortification.resolve(registries, toolStack, freeSlots)
+                .filter(outcome -> !outcome.output().isEmpty())
+                .map(outcome -> Result.of(outcome.output(), oneOfEach));
     }
 
     /**

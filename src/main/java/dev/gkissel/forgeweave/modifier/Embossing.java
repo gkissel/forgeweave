@@ -14,6 +14,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Ingredient;
 
 import dev.gkissel.forgeweave.item.ForgeweaveDataComponents;
+import dev.gkissel.forgeweave.item.ForgeweaveItems;
 import dev.gkissel.forgeweave.item.PartItem;
 import dev.gkissel.forgeweave.material.Material;
 import dev.gkissel.forgeweave.material.MaterialDisplay;
@@ -203,10 +204,23 @@ public final class Embossing {
         return result;
     }
 
-    /** A buildable part carrying a material -- a shard ({@link PartItem.Kind#NONE}) is not one. */
+    /**
+     * A part some tool is actually built from, carrying a material. Two exclusions, both upstream's:
+     * a shard ({@link PartItem.Kind#NONE}) is not a part, and neither is the sharpening kit, because
+     * no tool is built from one. {@code TinkerModifiers#registerExtraTraitModifiers} generates its
+     * modifiers by walking {@code tool.getRequiredComponents()} for every registered tool, so a part
+     * that appears in no tool's component list has no embossing combination to match at all.
+     *
+     * <p>ponytail: named, not derived from a parts table. The sharpening kit (issue #271) is the only
+     * registered part no tool uses, and the two tables that would answer the general question are
+     * split -- {@code ToolConstants.ALL} is M3's roster only, M1's three compositions live in
+     * {@code menu.ToolAssemblyRecipes}, which already imports this class. A second toolless part is
+     * when a shared predicate earns its place.
+     */
     private static boolean isDonorPart(ItemStack stack) {
         return stack.getItem() instanceof PartItem part
                 && part.kind() != PartItem.Kind.NONE
+                && !stack.is(ForgeweaveItems.PART_SHARPENING_KIT.get())
                 && stack.get(ForgeweaveDataComponents.MATERIAL.get()) != null;
     }
 
