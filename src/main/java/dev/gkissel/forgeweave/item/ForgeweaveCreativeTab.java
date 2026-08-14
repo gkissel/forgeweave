@@ -13,6 +13,7 @@ import net.neoforged.neoforge.registries.DeferredItem;
 import net.neoforged.neoforge.registries.DeferredRegister;
 
 import dev.gkissel.forgeweave.Forgeweave;
+import dev.gkissel.forgeweave.config.ForgeweaveClientConfig; // #276
 import dev.gkissel.forgeweave.fluid.ForgeweaveFluids;
 import dev.gkissel.forgeweave.material.Material;
 
@@ -25,7 +26,8 @@ public final class ForgeweaveCreativeTab {
     public static final DeferredRegister<CreativeModeTab> TABS =
             DeferredRegister.create(Registries.CREATIVE_MODE_TAB, Forgeweave.MODID);
 
-    private static final List<DeferredItem<PartItem>> PART_ITEMS = List.of(
+    // Package-private so ForgeweaveCreativeTabTest can count the part x material product (#276).
+    static final List<DeferredItem<PartItem>> PART_ITEMS = List.of(
             ForgeweaveItems.PART_PICKAXE_HEAD,
             ForgeweaveItems.PART_SHOVEL_HEAD,
             ForgeweaveItems.PART_AXE_HEAD,
@@ -65,6 +67,17 @@ public final class ForgeweaveCreativeTab {
     // Package-private (not private) so ForgeweaveCreativeTabTest (issue #139) can build the tab's
     // contents directly, without depending on the NeoForge mod event bus being live in unit tests.
     static void addDisplayItems(CreativeModeTab.ItemDisplayParameters parameters, CreativeModeTab.Output output) {
+        addDisplayItems(parameters, output, ForgeweaveClientConfig.LIST_ALL_PART_MATERIALS.get());
+    }
+
+    /**
+     * Takes {@code listAllPartMaterials} as a parameter rather than reading it (issue #276), so the
+     * unit tests can drive both settings without standing up a {@code CLIENT}-type config spec --
+     * the same split {@code ToolTooltip#append} already uses for its Shift flag. Only the
+     * part-material expansion at the bottom reads it; every plain item here is listed regardless.
+     */
+    static void addDisplayItems(CreativeModeTab.ItemDisplayParameters parameters, CreativeModeTab.Output output,
+            boolean listAllPartMaterials) {
         output.accept(ForgeweaveItems.GUIDE_BOOK.get()); // the guide book leads the tab (issue #273)
         output.accept(ForgeweaveItems.PART_BUILDER.get());
         output.accept(ForgeweaveItems.TOOL_STATION.get());
@@ -262,8 +275,14 @@ public final class ForgeweaveCreativeTab {
             output.accept(fluid.bucket().get());
         }
 
-        List<Holder.Reference<Material>> materials =
+        // #276, upstream 1.12's listAllPartMaterials: with it off, one variant per part instead of
+        // the part x material product -- upstream's own escape hatch for how large that product
+        // gets (26 parts x every datapack material). "The first found material", as upstream words
+        // it, is the registry's own first element here.
+        List<Holder.Reference<Material>> allMaterials =
                 parameters.holders().lookupOrThrow(Material.REGISTRY).listElements().toList();
+        List<Holder.Reference<Material>> materials =
+                listAllPartMaterials ? allMaterials : allMaterials.stream().limit(1).toList();
         for (DeferredItem<PartItem> partItem : PART_ITEMS) {
             for (Holder.Reference<Material> material : materials) {
                 ItemStack stack = new ItemStack(partItem.get());

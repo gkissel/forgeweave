@@ -68,7 +68,7 @@ public class PartItem extends Item {
     @Override
     public void appendHoverText(ItemStack stack, TooltipContext context, List<Component> tooltip, TooltipFlag flag) {
         super.appendHoverText(stack, context, tooltip, flag);
-        append(stack, context.registries(), flag.hasShiftDown(), tooltip);
+        append(stack, context.registries(), ToolTooltip.detailed(flag), tooltip);
     }
 
     /**

@@ -16,6 +16,7 @@ import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.block.ChestBlockEntity;
 import dev.gkissel.forgeweave.block.ForgeweaveBlocks;
 import dev.gkissel.forgeweave.block.StencilTableBlockEntity;
+import dev.gkissel.forgeweave.config.ForgeweaveConfig; // #276
 import dev.gkissel.forgeweave.item.ForgeweaveItems;
 import dev.gkissel.forgeweave.menu.StencilTableMenu;
 
@@ -55,6 +56,50 @@ public class StencilTableGameTests {
         menu.getSlot(StencilTableMenu.OUTPUT_SLOT).onTake(player, output);
         helper.assertTrue(menu.getSlot(StencilTableMenu.INPUT_SLOT).getItem().isEmpty(),
                 "expected the blank pattern to be consumed by taking the output");
+
+        helper.succeed();
+    }
+
+    /**
+     * Issue #276, upstream 1.12's {@code reuseStencils} (its default is on): a pattern that already
+     * carries a shape can go back in and be reshaped into another, consumed 1:1 exactly as a blank
+     * one is. Both flag states, since the whole point of the option is the "off" side.
+     *
+     * <p>Synchronous on purpose -- this mutates a global config value, and GameTests in one batch
+     * tick concurrently, so the set/assert/restore has to complete inside a single test method for
+     * no other test to ever observe the flipped value.
+     */
+    @GameTest(template = "empty")
+    public static void aStampedPatternCanBeReshapedOnlyWhileReuseStencilsIsOn(GameTestHelper helper) {
+        BlockPos pos = new BlockPos(1, 1, 1);
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        StencilTableMenu menu = openMenu(helper, pos, player);
+        ItemStack stamped = new ItemStack(ForgeweaveItems.PATTERN_PICKAXE_HEAD.get());
+
+        ForgeweaveConfig.REUSE_STENCILS.set(false);
+        try {
+            helper.assertFalse(menu.getSlot(StencilTableMenu.INPUT_SLOT).mayPlace(stamped),
+                    "a stamped pattern must be refused by the input slot while reuseStencils is off");
+        } finally {
+            ForgeweaveConfig.REUSE_STENCILS.set(true);
+        }
+
+        helper.assertTrue(menu.getSlot(StencilTableMenu.INPUT_SLOT).mayPlace(stamped),
+                "a stamped pattern must be accepted by the input slot while reuseStencils is on");
+        helper.assertTrue(menu.getSlot(StencilTableMenu.INPUT_SLOT).mayPlace(new ItemStack(ForgeweaveItems.PATTERN_BLANK.get())),
+                "a blank pattern must be accepted regardless of reuseStencils");
+
+        // The reshape itself, end to end: stamped pickaxe head in, axe head out, input consumed.
+        menu.getSlot(StencilTableMenu.INPUT_SLOT).set(stamped);
+        menu.clickMenuButton(player, StencilTableMenu.PATTERNS.indexOf(ForgeweaveItems.PATTERN_AXE_HEAD));
+        menu.broadcastChanges();
+
+        ItemStack output = menu.getSlot(StencilTableMenu.OUTPUT_SLOT).getItem();
+        helper.assertTrue(output.is(ForgeweaveItems.PATTERN_AXE_HEAD.get()),
+                "expected the axe head pattern reshaped out of a pickaxe head pattern, got " + output);
+        menu.getSlot(StencilTableMenu.OUTPUT_SLOT).onTake(player, output);
+        helper.assertTrue(menu.getSlot(StencilTableMenu.INPUT_SLOT).getItem().isEmpty(),
+                "expected the reshaped pattern to be consumed 1:1, like a blank one");
 
         helper.succeed();
     }

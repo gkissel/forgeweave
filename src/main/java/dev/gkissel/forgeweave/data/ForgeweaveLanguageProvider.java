@@ -93,8 +93,12 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("gui.forgeweave.smeltery.liquid.millibucket", "mb");
         add("gui.forgeweave.smeltery.fuel", "Fuel");
         add("gui.forgeweave.smeltery.fuel.empty", "No fuel found");
-        // Upstream's gui.smeltery.fuel.heat, shown while a burn is under way (#131).
+        // Upstream's gui.smeltery.fuel.heat, shown while a burn is under way (#131). Its %s is a
+        // gui.forgeweave.temperature.* component, so the unit follows the temperatureCelsius
+        // preference (#276, upstream's Util#temperatureString).
         add("gui.forgeweave.smeltery.fuel.heat", "Temperature: %s");
+        add("gui.forgeweave.temperature.celsius", "%s°C");
+        add("gui.forgeweave.temperature.kelvin", "%sK");
         add("tooltip.forgeweave.hold_shift", "Hold Shift for buckets");
 
         // The Pattern/Part Chest's page label (issue #305: self-expanding, paged storage).

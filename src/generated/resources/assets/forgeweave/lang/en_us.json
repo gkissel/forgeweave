@@ -157,6 +157,8 @@
   "gui.forgeweave.stat.handle_durability": "Handle Durability: %s",
   "gui.forgeweave.stat.handle_modifier": "Handle Modifier: %sx",
   "gui.forgeweave.stat.mining_speed": "Mining Speed: %s",
+  "gui.forgeweave.temperature.celsius": "%s°C",
+  "gui.forgeweave.temperature.kelvin": "%sK",
   "gui.forgeweave.tool_station.components": "Components",
   "gui.forgeweave.tool_station.materials": "Materials",
   "gui.forgeweave.tool_station.modifier_slots": "Free slots: %s",
