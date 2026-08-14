@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Where an assembled tool's layer art lives, and in what order the layers stack. One place, because
@@ -36,6 +37,16 @@ import java.util.Map;
  * frypan.tcon.json} do.
  */
 public final class ToolArt {
+
+    /**
+     * Tools whose layer art is freshly authored rather than ported from a clone, and so lives under
+     * {@code textures/tools/} instead of {@code textures/derived/tools/} (CLAUDE.md keeps the two
+     * trees apart so M9 can empty the derived one). Only the katana qualifies: neither clone ships
+     * a katana shape, and issue #198's stand-in -- 1.12's large sword blade, copied unchanged --
+     * was rejected at playtest 0.3.2 for not reading as one (issue #279). See
+     * {@code scripts/generate_katana_art.py}.
+     */
+    private static final Set<String> ORIGINAL_ART = Set.of("katana");
 
     /** Back-to-front drawing order of the roles; see the class javadoc. */
     private static final List<ToolConstants.Role> LAYER_ORDER =
@@ -87,7 +98,7 @@ public final class ToolArt {
      * @param layer one of the names {@link #layers} produced for that tool
      */
     public static String layer(String tool, String layer) {
-        return "derived/tools/" + tool + "_" + layer;
+        return (ORIGINAL_ART.contains(tool) ? "tools/" : "derived/tools/") + tool + "_" + layer;
     }
 
     /**

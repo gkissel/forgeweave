@@ -230,9 +230,12 @@ class TextureReferenceAuditTest {
      * or it renders as a missing-texture checker on the station's build tab, exactly the way issue #43
      * did. Through issue #198, three tools (the dagger, the scimitar, the katana) had no upstream
      * original to derive from and kept freshly-authored layers under a separate {@code textures/tools/}
-     * folder instead; #198 replaced all three with derived art (scripts/derive_m3_weapon_art.py,
-     * NOTICE.md), so every tool's layers now live under the one derived folder {@link ToolArt#layer}
-     * always points at.
+     * folder instead; #198 replaced all three with derived art, and #279 sent the katana back (its
+     * derived stand-in did not read as a katana at playtest, and unlike the scimitar -- which #279
+     * matched to 1.12's unregistered cutlass art -- neither clone has any counterpart shape). So the
+     * katana's layers live under {@code textures/tools/} and every other tool's under
+     * {@code textures/derived/tools/}; this resolves whichever {@link ToolArt#layer} names, which is
+     * the point of routing every caller through it.
      *
      * <p>Walked off {@code ToolAssemblyRecipes.ENTRIES} rather than listed, so a later new-shape tool
      * that forgets to ship a layer fails here instead of at a playtest.
