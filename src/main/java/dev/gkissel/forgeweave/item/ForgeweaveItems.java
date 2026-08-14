@@ -1,5 +1,9 @@
 package dev.gkissel.forgeweave.item;
 
+import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.Map;
+
 import net.minecraft.tags.BlockTags;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
@@ -381,8 +385,8 @@ public final class ForgeweaveItems {
     // one-block-per-variant split issue #93 made for the seared bricks -- so a cast is a plain item
     // with a plain two-layer model and an Ingredient can match it without NBT.
     //
-    // Casts are gold-only and reusable, which is upstream parity: no clay casts (upstream gates
-    // those behind a config flag, off by default) and no sand casts (docs/SCOPE.md M2 non-goals).
+    // These casts are gold-only and reusable, which is upstream parity; their single-use clay
+    // counterparts are CLAY_CASTS below (issue #292). No sand casts (docs/SCOPE.md M2 non-goals).
     public static final DeferredItem<Item> CAST_INGOT = ITEMS.registerSimpleItem("cast_ingot");
     public static final DeferredItem<Item> CAST_NUGGET = ITEMS.registerSimpleItem("cast_nugget");
     public static final DeferredItem<Item> CAST_PICKAXE_HEAD = ITEMS.registerSimpleItem("cast_pickaxe_head");
@@ -422,6 +426,22 @@ public final class ForgeweaveItems {
     public static final DeferredItem<Item> CAST_GEM = ITEMS.registerSimpleItem("cast_gem");
     public static final DeferredItem<Item> CAST_PLATE = ITEMS.registerSimpleItem("cast_plate");
     public static final DeferredItem<Item> CAST_GEAR = ITEMS.registerSimpleItem("cast_gear");
+
+    // #292 (M3.4-12) -- one single-use clay counterpart per cast above, keyed by the cast it copies.
+    // Upstream ships a second NBT cast item (TinkerSmeltery `clayCast`) moulded from molten clay
+    // instead of gold and consumed by the pour that uses it, gated behind its `enableClayCasts`
+    // config; the same one-item-per-cast split the gold set made applies, so this is a loop over
+    // their names rather than 30 more fields -- every consumer (models, lang, creative tab) walks
+    // this map. Upstream registers clay creation for tool parts only; issue #292 asks for the
+    // ingot/nugget forms too, so every cast gets one (see the PR body).
+    public static final Map<String, DeferredItem<Item>> CLAY_CASTS = clayCasts(
+            "cast_ingot", "cast_nugget", "cast_gem", "cast_plate", "cast_gear",
+            "cast_pickaxe_head", "cast_shovel_head", "cast_axe_head", "cast_tool_binding", "cast_tool_handle",
+            "cast_sword_blade", "cast_wide_guard", "cast_hand_guard", "cast_cross_guard", "cast_sign_plate",
+            "cast_pan", "cast_knife_blade", "cast_large_sword_blade", "cast_tough_tool_rod", "cast_tough_binding",
+            "cast_large_plate", "cast_hammer_head", "cast_excavator_head", "cast_scythe_head", "cast_kama_head",
+            "cast_broad_axe_head", "cast_vein_hammer_head", "cast_war_mace_head", "cast_curved_blade",
+            "cast_katana_blade");
 
     public static final DeferredItem<BlockItem> CASTING_TABLE = ITEMS.registerSimpleBlockItem("casting_table", ForgeweaveBlocks.CASTING_TABLE);
     public static final DeferredItem<BlockItem> CASTING_BASIN = ITEMS.registerSimpleBlockItem("casting_basin", ForgeweaveBlocks.CASTING_BASIN);
@@ -522,6 +542,15 @@ public final class ForgeweaveItems {
 
     private static DeferredItem<BlockItem> stainedGlassItem(DeferredBlock<Block> block) {
         return ITEMS.registerSimpleBlockItem(block.getId().getPath(), block);
+    }
+
+    /** Registers {@code clay_<cast>} for every cast name given, keeping the order they arrive in. */
+    private static Map<String, DeferredItem<Item>> clayCasts(String... casts) {
+        Map<String, DeferredItem<Item>> clay = new LinkedHashMap<>();
+        for (String cast : casts) {
+            clay.put(cast, ITEMS.registerItem("clay_" + cast, ClayCastItem::new));
+        }
+        return Collections.unmodifiableMap(clay);
     }
 
     private ForgeweaveItems() {}

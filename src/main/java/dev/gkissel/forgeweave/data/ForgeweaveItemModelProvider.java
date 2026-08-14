@@ -173,6 +173,11 @@ public class ForgeweaveItemModelProvider extends ItemModelProvider {
         singleLayerModel(ForgeweaveItems.CAST_CURVED_BLADE, derivedItem("cast_curved_blade"));
         singleLayerModel(ForgeweaveItems.CAST_KATANA_BLADE, derivedItem("cast_katana_blade"));
 
+        // #292 -- one clay counterpart per cast above, the same single-layer model against the
+        // mauve-tinted copy of that cast's sprite (scripts/generate_clay_cast_textures.py; upstream
+        // instead re-bakes the gold model with a colour multiplier at load time, NOTICE.md).
+        ForgeweaveItems.CLAY_CASTS.forEach((cast, clay) -> singleLayerModel(clay, derivedItem("clay_" + cast)));
+
         // Every assemblable tool, straight off the station's own table (ToolAssemblyRecipes.ENTRIES):
         // one model layer per part, so a two-part M3 weapon gets two layers and a three-part one gets
         // three, and no tool can be registered without a model or vice versa.

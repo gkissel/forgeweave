@@ -1,0 +1,15 @@
+{
+  "station": "table",
+  "cast": {
+    "item": "forgeweave:clay_cast_kama_head"
+  },
+  "fluid": "forgeweave:molten_cobalt",
+  "amount": 288,
+  "result": {
+    "id": "forgeweave:kama_head",
+    "components": {
+      "forgeweave:material": "forgeweave:cobalt"
+    }
+  },
+  "consumes_cast": true
+}

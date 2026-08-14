@@ -1,0 +1,13 @@
+{
+  "station": "table",
+  "cast": {
+    "tag": "c:gems/emerald"
+  },
+  "fluid": "forgeweave:molten_clay",
+  "amount": 288,
+  "result": {
+    "id": "forgeweave:clay_cast_gem"
+  },
+  "consumes_cast": true,
+  "result_in_input": true
+}

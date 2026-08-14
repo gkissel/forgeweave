@@ -21,8 +21,8 @@ import net.neoforged.neoforge.common.ModConfigSpec;
  * <p>None of these need a game restart: every one is read at the moment its behavior runs
  * ({@code worldRestart()} is deliberately unused), which is the runtime-check bucket issue #276
  * asks to prefer. The two upstream options that gate <em>registration</em> rather than behavior are
- * handled the same way -- {@link #ENABLE_CLAY_CASTS}'s recipes will be filtered at lookup time by
- * issue #292 -- so no conditional-recipe machinery is needed anywhere.
+ * handled the same way -- {@link #ENABLE_CLAY_CASTS}'s recipes are filtered at lookup time
+ * (issue #292) -- so no conditional-recipe machinery is needed anywhere.
  */
 public final class ForgeweaveConfig {
     /**
@@ -54,9 +54,11 @@ public final class ForgeweaveConfig {
     public static final ModConfigSpec.BooleanValue OBSIDIAN_ALLOY;
 
     /**
-     * Upstream {@code enableClayCasts}. Registered here with upstream's default so the option exists
-     * on the M3.4 config surface; the single-use clay casts it gates are issue #292's work, which
-     * wires this to their recipes. Until then this reads as a no-op.
+     * Upstream {@code enableClayCasts}: the single-use clay casts (issue #292) can be moulded and
+     * cast through. Upstream skips registering their recipes when this is off; casting recipes are
+     * datapack entries here, so {@link dev.gkissel.forgeweave.casting.CastingRecipe#matches} filters
+     * them at lookup instead. The items themselves stay registered either way, exactly as upstream's
+     * do.
      */
     public static final ModConfigSpec.BooleanValue ENABLE_CLAY_CASTS;
 
@@ -88,7 +90,7 @@ public final class ForgeweaveConfig {
                 .comment("Allows the creation of molten obsidian in the smeltery from lava and water.")
                 .define("obsidianAlloy", true);
         ENABLE_CLAY_CASTS = builder
-                .comment("Adds single-use clay casts. Has no effect yet -- the casts themselves are issue #292.")
+                .comment("Allows single-use clay casts to be moulded from molten clay and cast through.")
                 .define("enableClayCasts", true);
 
         builder.comment("World generation options").push("worldgen");

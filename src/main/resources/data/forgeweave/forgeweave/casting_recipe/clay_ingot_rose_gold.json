@@ -1,0 +1,12 @@
+{
+  "station": "table",
+  "cast": {
+    "item": "forgeweave:clay_cast_ingot"
+  },
+  "fluid": "forgeweave:molten_rose_gold",
+  "amount": 144,
+  "result": {
+    "id": "forgeweave:rose_gold_ingot"
+  },
+  "consumes_cast": true
+}

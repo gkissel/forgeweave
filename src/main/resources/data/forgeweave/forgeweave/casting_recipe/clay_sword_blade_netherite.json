@@ -1,0 +1,15 @@
+{
+  "station": "table",
+  "cast": {
+    "item": "forgeweave:clay_cast_sword_blade"
+  },
+  "fluid": "forgeweave:molten_netherite",
+  "amount": 288,
+  "result": {
+    "id": "forgeweave:sword_blade",
+    "components": {
+      "forgeweave:material": "forgeweave:netherite"
+    }
+  },
+  "consumes_cast": true
+}

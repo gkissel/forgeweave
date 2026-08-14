@@ -1,0 +1,15 @@
+{
+  "station": "table",
+  "cast": {
+    "item": "forgeweave:clay_cast_large_sword_blade"
+  },
+  "fluid": "forgeweave:molten_copper",
+  "amount": 1152,
+  "result": {
+    "id": "forgeweave:large_sword_blade",
+    "components": {
+      "forgeweave:material": "forgeweave:copper"
+    }
+  },
+  "consumes_cast": true
+}

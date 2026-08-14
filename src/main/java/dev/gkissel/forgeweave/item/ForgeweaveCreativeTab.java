@@ -253,6 +253,12 @@ public final class ForgeweaveCreativeTab {
         output.accept(ForgeweaveItems.CAST_PLATE.get());
         output.accept(ForgeweaveItems.CAST_GEAR.get());
 
+        // #292 -- the single-use clay counterpart of every cast above. Listed unconditionally:
+        // upstream registers its clay cast item whether or not enableClayCasts is on, and only the
+        // recipes are gated (CastingRecipe#matches), so the option can be flipped in a live world
+        // without items vanishing out of anyone's inventory.
+        ForgeweaveItems.CLAY_CASTS.values().forEach(clay -> output.accept(clay.get()));
+
         // #103 -- metal materials (docs/SCOPE.md M2 issue #103): the item forms with no vanilla
         // counterpart, for the four metals that lacked them.
         output.accept(ForgeweaveItems.INGOT_COBALT.get());
