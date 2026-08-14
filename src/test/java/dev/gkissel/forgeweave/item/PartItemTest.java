@@ -73,14 +73,50 @@ class PartItemTest {
         assertEquals(List.of(Component.translatable("material.forgeweave.wood")), tooltip);
     }
 
+    /**
+     * Issue #379: a part with no material component at all says so rather than hovering blank --
+     * upstream's {@code ToolPart#checkMissingMaterialTooltip} {@code missing_info} branch.
+     */
     @Test
-    void tooltipStaysEmptyWhenNoMaterialComponentIsSet() {
+    void tooltipReportsMissingDataWhenNoMaterialComponentIsSet() {
         ItemStack stack = new ItemStack(pickaxeHead());
 
         List<Component> tooltip = new ArrayList<>();
         pickaxeHead().appendHoverText(stack, Item.TooltipContext.EMPTY, tooltip, TooltipFlag.NORMAL);
 
-        assertTrue(tooltip.isEmpty());
+        assertEquals(List.of(Component.translatable("tooltip.forgeweave.part.missing_info")), tooltip);
+    }
+
+    /**
+     * The other half of that upstream branch: the component names a material this world's datapack
+     * does not define. The error fires <em>instead of</em> the trait block, as upstream's own early
+     * return does.
+     */
+    @Test
+    void tooltipReportsAMaterialTheRegistryDoesNotDefine() {
+        ResourceLocation missing = ResourceLocation.fromNamespaceAndPath("forgeweave", "unobtainium");
+        ItemStack stack = new ItemStack(pickaxeHead());
+        stack.set(ForgeweaveDataComponents.MATERIAL.get(), missing);
+
+        List<Component> tooltip = new ArrayList<>();
+        pickaxeHead().append(stack, registriesWithStone(), false, tooltip);
+
+        assertEquals(List.of(
+                Component.translatable("material.forgeweave.unobtainium"),
+                Component.translatable("tooltip.forgeweave.part.missing_material", missing.toString())),
+                tooltip);
+    }
+
+    /** Without registries nothing can resolve, so the plain name line stays the whole tooltip. */
+    @Test
+    void tooltipStaysAtThePlainNameLineWithoutRegistries() {
+        ItemStack stack = new ItemStack(pickaxeHead());
+        stack.set(ForgeweaveDataComponents.MATERIAL.get(), STONE_ID);
+
+        List<Component> tooltip = new ArrayList<>();
+        pickaxeHead().append(stack, null, true, tooltip);
+
+        assertEquals(List.of(Component.translatable("material.forgeweave.stone")), tooltip);
     }
 
     @Test
@@ -106,6 +142,7 @@ class PartItemTest {
         assertEquals(List.of(
                 Component.translatable("material.forgeweave.stone").withStyle(Style.EMPTY.withColor(STONE_COLOR)),
                 Component.empty(),
+                statTypeHeading("head"),
                 statLine("durability", "120", DURABILITY_COLOR),
                 statLine("mining_speed", "4", SPEED_COLOR),
                 statLine("attack_damage", "3", ATTACK_COLOR),
@@ -175,6 +212,7 @@ class PartItemTest {
         assertEquals(List.of(
                 Component.translatable("material.forgeweave.stone").withStyle(Style.EMPTY.withColor(STONE_COLOR)),
                 Component.empty(),
+                statTypeHeading("handle"),
                 statLine("handle_modifier", "0.5", MODIFIER_COLOR),
                 statLine("handle_durability", "-50", DURABILITY_COLOR),
                 Component.empty(),
@@ -190,14 +228,22 @@ class PartItemTest {
         List<Component> tooltip = new ArrayList<>();
         binding.append(partOf(binding), registriesWithStone(), true, tooltip);
 
-        assertEquals(statLine("extra_durability", "20", DURABILITY_COLOR), tooltip.get(2));
-        assertEquals(6, tooltip.size(), "one stat line, framed by the material name and the trait pair");
+        assertEquals(statTypeHeading("extra"), tooltip.get(2));
+        assertEquals(statLine("extra_durability", "20", DURABILITY_COLOR), tooltip.get(3));
+        assertEquals(7, tooltip.size(),
+                "one heading and one stat line, framed by the material name and the trait pair");
     }
 
     private static ItemStack partOf(PartItem part) {
         ItemStack stack = new ItemStack(part);
         stack.set(ForgeweaveDataComponents.MATERIAL.get(), STONE_ID);
         return stack;
+    }
+
+    /** Issue #379: upstream's white underlined {@code stat.<type>.name} heading over the stat block. */
+    private static Component statTypeHeading(String kind) {
+        return Component.translatable("tooltip.forgeweave.stat_type." + kind)
+                .withStyle(ChatFormatting.WHITE, ChatFormatting.UNDERLINE);
     }
 
     private static Component statLine(String key, String value, TextColor color) {

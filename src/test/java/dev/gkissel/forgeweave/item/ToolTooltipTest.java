@@ -132,8 +132,12 @@ class ToolTooltipTest {
                 tooltip);
     }
 
+    /**
+     * Issue #379: a broken tool keeps the {@code Durability: } label and only swaps the numbers for
+     * the bold dark-red word, which is upstream's {@code TooltipBuilder#addDurability(true)}.
+     */
     @Test
-    void brokenToolShowsOneBrokenLineInsteadOfDurability() {
+    void brokenToolKeepsTheDurabilityLabelWithBrokenAsItsValue() {
         ItemStack stack = assembledPickaxe(159, List.of());
         stack.set(ForgeweaveDataComponents.BROKEN.get(), true);
 
@@ -141,11 +145,47 @@ class ToolTooltipTest {
         ToolTooltip.append(stack, null, false, 0.0F, tooltip);
 
         assertEquals(List.of(
-                Component.translatable("tooltip.forgeweave.broken").withStyle(ChatFormatting.DARK_RED, ChatFormatting.BOLD),
+                Component.translatable("tooltip.forgeweave.durability").append(": ")
+                        .append(Component.translatable("tooltip.forgeweave.broken")
+                                .withStyle(ChatFormatting.DARK_RED, ChatFormatting.BOLD)),
                 attackLine(0.0F),
                 pierceLine(),
                 slotsLine(3)),
                 tooltip);
+    }
+
+    /**
+     * Issue #379: the compact tier closes with upstream's {@code tooltip.tool.holdShift} hint, and
+     * the decision is a parameter so both answers are reachable without a loaded CLIENT config (the
+     * gate itself is {@link ToolTooltip#shiftHint}, see {@code ForgeweaveClientConfig}'s javadoc).
+     */
+    @Test
+    void shiftHintAppendsABlankLineAndTheHintWhenShown() {
+        List<Component> tooltip = new ArrayList<>();
+        ToolTooltip.appendShiftHint(true, tooltip);
+
+        assertEquals(List.of(
+                Component.empty(),
+                Component.translatable("tooltip.forgeweave.hold_shift_stats").withStyle(ChatFormatting.GRAY)),
+                tooltip);
+    }
+
+    @Test
+    void shiftHintAddsNothingWhenNotShown() {
+        List<Component> tooltip = new ArrayList<>();
+        ToolTooltip.appendShiftHint(false, tooltip);
+
+        assertEquals(List.of(), tooltip);
+    }
+
+    /**
+     * The hint is gated on a {@code CLIENT} config that a unit test (like a dedicated server) never
+     * loads, so {@link ToolTooltip#shiftHint} must answer false rather than throw -- otherwise every
+     * {@code appendHoverText} call below would crash instead of returning a tooltip.
+     */
+    @Test
+    void shiftHintIsSilentlyOffWhileTheClientConfigIsUnloaded() {
+        assertEquals(false, ToolTooltip.shiftHint(TooltipFlag.NORMAL));
     }
 
     /**
