@@ -1,0 +1,5 @@
+{
+  "entities": ["minecraft:warden"],
+  "fluid": "forgeweave:deep_blood",
+  "amount": 20
+}
