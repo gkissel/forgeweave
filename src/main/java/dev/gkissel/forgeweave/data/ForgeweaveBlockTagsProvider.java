@@ -48,6 +48,14 @@ public class ForgeweaveBlockTagsProvider extends BlockTagsProvider {
         // the one member missing, so this adds only it rather than replacing the vanilla tag.
         tag(BlockTags.MINEABLE_WITH_AXE).add(Blocks.CACTUS);
 
+        // #339 -- upstream BlockSoil's setHarvestLevel("shovel", -1) applies to every one of its
+        // types, so grout and both slimy muds take mineable/shovel (shovel = the correct, faster
+        // tool). Level -1 means no minimum tier, hence no needs_*_tool tag alongside it.
+        tag(BlockTags.MINEABLE_WITH_SHOVEL)
+                .add(ForgeweaveBlocks.GROUT.get())
+                .add(ForgeweaveBlocks.SLIMY_MUD_GREEN.get())
+                .add(ForgeweaveBlocks.SLIMY_MUD_MAGMA.get());
+
         // #206 -- the block-side counterpart of ForgeweaveItemTagsProvider's c:storage_blocks/*
         // additions (same reasoning: NeoForge's own storage_blocks tag only unions the metals it
         // knows about).

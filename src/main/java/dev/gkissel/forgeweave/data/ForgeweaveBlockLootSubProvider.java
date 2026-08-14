@@ -48,6 +48,10 @@ public class ForgeweaveBlockLootSubProvider extends BlockLootSubProvider {
         // (no getDrops override for the GROUT type).
         dropSelf(ForgeweaveBlocks.GROUT.get());
 
+        // #339 -- the slimy muds, same BlockSoil self-drop as grout.
+        dropSelf(ForgeweaveBlocks.SLIMY_MUD_GREEN.get());
+        dropSelf(ForgeweaveBlocks.SLIMY_MUD_MAGMA.get());
+
         // The seared brick block family (docs/SCOPE.md M2 issue #93): plain decorative blocks, no
         // tool-tier gating (ForgeweaveBlocks javadoc), so every variant just drops itself -- matching
         // upstream 1.12's own BlockSeared, which never overrides loot ("Safe for decoration").

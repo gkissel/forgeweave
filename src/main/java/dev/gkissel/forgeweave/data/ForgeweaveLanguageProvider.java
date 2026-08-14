@@ -34,6 +34,8 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         // Grout (docs/SCOPE.md M2 issue #93; block per issue #129), name ported from upstream 1.12's
         // tile.tconstruct.soil.grout.name entry (NOTICE.md).
         addBlock(ForgeweaveBlocks.GROUT, "Grout");
+        addBlock(ForgeweaveBlocks.SLIMY_MUD_GREEN, "Green Slimy Mud"); // #339
+        addBlock(ForgeweaveBlocks.SLIMY_MUD_MAGMA, "Magma Slimy Mud"); // #339
 
         // The seared brick block family (docs/SCOPE.md M2 issue #93), names ported from upstream
         // 1.12's tile.tconstruct.seared.*.name entries (NOTICE.md).

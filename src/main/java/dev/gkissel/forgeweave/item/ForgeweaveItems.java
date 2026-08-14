@@ -294,6 +294,13 @@ public final class ForgeweaveItems {
     // "grout" keeps existing inventories' stacks decoding fine (save compat).
     public static final DeferredItem<BlockItem> GROUT = ITEMS.registerSimpleBlockItem("grout", ForgeweaveBlocks.GROUT);
 
+    // #339 -- green and magma slimy mud, two more placeable states of the same upstream BlockSoil as
+    // grout (NOTICE.md). Crafted at a table and furnace-smelted into their slime crystals.
+    public static final DeferredItem<BlockItem> SLIMY_MUD_GREEN =
+            ITEMS.registerSimpleBlockItem("slimy_mud_green", ForgeweaveBlocks.SLIMY_MUD_GREEN);
+    public static final DeferredItem<BlockItem> SLIMY_MUD_MAGMA =
+            ITEMS.registerSimpleBlockItem("slimy_mud_magma", ForgeweaveBlocks.SLIMY_MUD_MAGMA);
+
     // Seared brick (docs/SCOPE.md M2 issue #93): upstream 1.12's plain crafting-material item
     // (TinkerCommons#searedBrick, "materials" item meta 0, NOTICE.md) -- produced by furnace-smelting
     // grout, and itself crafted 2x2 into the Seared Bricks block below.

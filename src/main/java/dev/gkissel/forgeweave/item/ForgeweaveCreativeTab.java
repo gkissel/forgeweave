@@ -132,6 +132,10 @@ public final class ForgeweaveCreativeTab {
         output.accept(ForgeweaveItems.GROUT.get());
         output.accept(ForgeweaveItems.SEARED_BRICK.get());
 
+        // #339 -- the slimy muds, next to grout: same upstream BlockSoil, same "smelt me" role.
+        output.accept(ForgeweaveItems.SLIMY_MUD_GREEN.get());
+        output.accept(ForgeweaveItems.SLIMY_MUD_MAGMA.get());
+
         // #107 batch: modifier reagent items (docs/SCOPE.md M2 issue #107).
         output.accept(ForgeweaveItems.MOSS.get());
         output.accept(ForgeweaveItems.MENDING_MOSS.get());

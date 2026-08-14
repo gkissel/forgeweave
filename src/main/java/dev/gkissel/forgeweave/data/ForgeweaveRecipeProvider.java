@@ -175,22 +175,42 @@ public class ForgeweaveRecipeProvider extends RecipeProvider {
     }
 
     /**
-     * #232 -- the three slime crystals (docs/SCOPE.md M3.2). Upstream 1.12 furnace-smelts a congealed
-     * slime block into its crystal ({@code TinkerCommons}' smelting registrations); Forgeweave has no
-     * congealed blocks, so the vanilla slime/magma blocks stand in (maintainer decision on #232, same
-     * cook time and xp as the seared-brick smelt above). Blue slime has no world source until the
-     * world-content milestone, so its crystal is crafted from a green crystal + lapis instead
-     * (maintainer decision recorded on issue #232).
+     * #339 (revising #232) -- the three slime crystals (docs/SCOPE.md M3.2) via upstream 1.12's real
+     * path: craft slimy mud, then furnace-smelt the mud into its crystal
+     * ({@code TinkerTools#registerSmeltingRecipes}, 0.75 xp, NOTICE.md). #232's javadoc miscited the
+     * smelt input as congealed slime and shipped vanilla slime/magma blocks as the shortcut; both are
+     * removed here.
+     *
+     * <p>Green mud is upstream's {@code slimy_mud_green.json} 1:1, with its {@code forge:ore_dict}
+     * "sand"/"dirt" entries read as the modern vanilla tags. Magma mud carries one maintainer-flagged
+     * substitution: upstream's {@code slimy_mud_magma.json} wants 2 magma slime balls + 2 magma
+     * cream, and Forgeweave ships no magma slime ball item, so all four filler slots are magma cream.
+     * Blue mud needs blue slime balls (no world source until #181), so blue keeps #232's interim
+     * green crystal + lapis craft.
      */
     private void buildSlimeCrystalRecipes(RecipeOutput recipeOutput) {
-        SimpleCookingRecipeBuilder.smelting(Ingredient.of(Items.SLIME_BLOCK), RecipeCategory.MISC,
-                        ForgeweaveItems.GREEN_SLIME_CRYSTAL.get(), 0.4F, 200)
-                .unlockedBy("has_slime_block", has(Items.SLIME_BLOCK))
+        ShapelessRecipeBuilder.shapeless(RecipeCategory.MISC, ForgeweaveItems.SLIMY_MUD_GREEN.get())
+                .requires(Items.SLIME_BALL, 4)
+                .requires(ItemTags.SAND)
+                .requires(ItemTags.DIRT)
+                .unlockedBy("has_slime_ball", has(Items.SLIME_BALL))
                 .save(recipeOutput);
 
-        SimpleCookingRecipeBuilder.smelting(Ingredient.of(Items.MAGMA_BLOCK), RecipeCategory.MISC,
-                        ForgeweaveItems.MAGMA_SLIME_CRYSTAL.get(), 0.4F, 200)
-                .unlockedBy("has_magma_block", has(Items.MAGMA_BLOCK))
+        ShapelessRecipeBuilder.shapeless(RecipeCategory.MISC, ForgeweaveItems.SLIMY_MUD_MAGMA.get())
+                .requires(Items.MAGMA_CREAM, 4)
+                .requires(Items.SOUL_SAND)
+                .requires(Items.NETHERRACK)
+                .unlockedBy("has_magma_cream", has(Items.MAGMA_CREAM))
+                .save(recipeOutput);
+
+        SimpleCookingRecipeBuilder.smelting(Ingredient.of(ForgeweaveItems.SLIMY_MUD_GREEN.get()), RecipeCategory.MISC,
+                        ForgeweaveItems.GREEN_SLIME_CRYSTAL.get(), 0.75F, 200)
+                .unlockedBy("has_slimy_mud_green", has(ForgeweaveItems.SLIMY_MUD_GREEN.get()))
+                .save(recipeOutput);
+
+        SimpleCookingRecipeBuilder.smelting(Ingredient.of(ForgeweaveItems.SLIMY_MUD_MAGMA.get()), RecipeCategory.MISC,
+                        ForgeweaveItems.MAGMA_SLIME_CRYSTAL.get(), 0.75F, 200)
+                .unlockedBy("has_slimy_mud_magma", has(ForgeweaveItems.SLIMY_MUD_MAGMA.get()))
                 .save(recipeOutput);
 
         ShapelessRecipeBuilder.shapeless(RecipeCategory.MISC, ForgeweaveItems.BLUE_SLIME_CRYSTAL.get())
