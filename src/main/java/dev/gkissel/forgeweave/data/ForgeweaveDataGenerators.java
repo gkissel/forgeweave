@@ -11,6 +11,8 @@ import net.neoforged.neoforge.common.data.AdvancementProvider;
 import net.neoforged.neoforge.common.data.ExistingFileHelper;
 import net.neoforged.neoforge.data.event.GatherDataEvent;
 
+import dev.gkissel.forgeweave.data.sprite.MaterialPartTextureProvider;
+
 /**
  * Registers Forgeweave's datagen providers (docs/adr/0002: models, blockstates, loot tables,
  * recipes, and lang are generated, not hand-written; generated output is committed and checked for
@@ -24,6 +26,9 @@ public final class ForgeweaveDataGenerators {
         CompletableFuture<HolderLookup.Provider> lookupProvider = event.getLookupProvider();
 
         generator.addProvider(event.includeClient(), new ForgeweaveItemModelProvider(output, existingFileHelper));
+        // #280 -- greyscale texture pipeline proof slice: recolors greyscale part sprites through
+        // per-material palettes into textures/staging/part/ (M9 groundwork, epic #30).
+        generator.addProvider(event.includeClient(), new MaterialPartTextureProvider(output, existingFileHelper));
         generator.addProvider(event.includeClient(), new ForgeweaveBlockStateProvider(output, existingFileHelper));
         generator.addProvider(event.includeClient(), new ForgeweaveLanguageProvider(output));
         generator.addProvider(event.includeServer(), new ForgeweaveRecipeProvider(output, lookupProvider));
