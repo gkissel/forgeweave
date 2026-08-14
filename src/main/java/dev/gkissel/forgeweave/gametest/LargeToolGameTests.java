@@ -98,6 +98,44 @@ public class LargeToolGameTests {
     }
 
     /**
+     * Issue #294: a multi-head tool takes its mining tier from its <b>highest</b> head, not from
+     * whichever HEAD slot the station lists first. Upstream 1.12's {@code ToolNBT#head}
+     * ({@code library/tools/ToolNBT.java}, pinned {@code c01173c}) averages durability/attack/speed
+     * across every head it is handed but keeps the harvest level as the maximum -- its own comment
+     * reads "use highest harvestlevel".
+     *
+     * <p>The hammer's slots are handle, hammer head, large plate, large plate. Wood heads sit at
+     * {@code incorrect_for_stone_tool} and stone ones at {@code incorrect_for_iron_tool}, so diamond
+     * ore separates those two tiers exactly ({@code ToolBehaviorGameTests#headMaterialDecidesTier}
+     * pins the single-head half of the same ladder).
+     */
+    @GameTest(template = "empty")
+    public static void hammerTakesTierFromHighestHead(GameTestHelper helper) {
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        BlockState diamondOre = Blocks.DIAMOND_ORE.defaultBlockState();
+        ToolAssemblyRecipes.Entry hammer = ToolAssembly.entryFor(ForgeweaveItems.TOOL_HAMMER.get());
+
+        ItemStack allWood = ToolAssembly.assembleAtForge(helper, player, STATION, hammer,
+                List.of("wood", "wood", "wood", "wood"));
+        helper.assertFalse(allWood.isCorrectToolForDrops(diamondOre),
+                "an all-wood hammer must not harvest diamond ore -- this test's low-tier baseline");
+
+        // Cheap head slot, better large plate: the plate's tier has to win.
+        ItemStack platedHigh = ToolAssembly.assembleAtForge(helper, player, STATION, hammer,
+                List.of("wood", "wood", "stone", "wood"));
+        helper.assertTrue(platedHigh.isCorrectToolForDrops(diamondOre),
+                "a hammer with a stone large plate must mine at stone's tier however cheap its hammer head");
+
+        // Better head slot, cheap plates: the max must not be dragged back down toward an average.
+        ItemStack headHigh = ToolAssembly.assembleAtForge(helper, player, STATION, hammer,
+                List.of("wood", "stone", "wood", "wood"));
+        helper.assertTrue(headHigh.isCorrectToolForDrops(diamondOre),
+                "a stone hammer head must keep its tier when the large plates are cheaper");
+
+        helper.succeed();
+    }
+
+    /**
      * Durability cost per extra block, upstream's {@code ToolCore#onBlockDestroyed} reached through
      * {@code breakExtraBlock}: 1 for a block the tool is meant for, 2 for anything else. Nine blocks
      * of stone in a pickaxe-tier tool's plane therefore cost exactly 9 -- the same per-block price

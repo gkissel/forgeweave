@@ -192,6 +192,17 @@ public final class ForgeweaveModifiers {
         return -1;
     }
 
+    /**
+     * As {@link #tierIndexOf(HolderSet)}, for a {@code Material#incorrectForTool} tag straight off a
+     * material record, or -1 for a tag off the ladder. Public for {@code ToolAssemblyRecipes}, which
+     * compares a multi-head tool's HEAD materials to find the highest (issue #294 -- upstream's
+     * {@code ToolNBT#head} takes the max harvest level across heads, and this ladder is Forgeweave's
+     * vanilla-tag stand-in for that number).
+     */
+    public static int tierIndexOf(TagKey<Block> incorrectForTool) {
+        return TIER_TAGS.indexOf(incorrectForTool);
+    }
+
     public static TagKey<Block> tierTag(int index) {
         return TIER_TAGS.get(index);
     }
