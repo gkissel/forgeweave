@@ -39,14 +39,21 @@ import java.util.Set;
 public final class ToolArt {
 
     /**
-     * Tools whose layer art is freshly authored rather than ported from a clone, and so lives under
-     * {@code textures/tools/} instead of {@code textures/derived/tools/} (CLAUDE.md keeps the two
-     * trees apart so M9 can empty the derived one). Only the katana qualifies: neither clone ships
-     * a katana shape, and issue #198's stand-in -- 1.12's large sword blade, copied unchanged --
-     * was rejected at playtest 0.3.2 for not reading as one (issue #279). See
-     * {@code scripts/generate_katana_art.py}.
+     * Individual {@code <tool>_<layer>} files whose art is freshly authored rather than ported from
+     * a clone, and so live under {@code textures/tools/} instead of {@code textures/derived/tools/}
+     * (CLAUDE.md keeps the two trees apart so M9 can empty the derived one).
+     *
+     * <p>Issue #375 made this per *layer* rather than per tool. It used to hold {@code "katana"},
+     * the whole tool, because #279 authored all three of the katana's layers from scratch. The
+     * maintainer decision on #375 then re-sourced the katana's blade from Spartan Weaponry
+     * (Apache-2.0 -- {@code licenses/APACHE-2.0-SpartanWeaponry.txt},
+     * {@code scripts/derive_spartan_blade_art.py}), so {@code katana_head} became derived while the
+     * two layers below stayed authored: Spartan Weaponry splits its art by render role rather than
+     * by tool part, so it has no guard or grip layer to port -- its tsuba is three pixels of a
+     * fused body layer and its grip is fixed-colour art that never gets tinted. Those two keep
+     * {@code scripts/generate_katana_art.py} and carry no NOTICE.md row.
      */
-    private static final Set<String> ORIGINAL_ART = Set.of("katana");
+    private static final Set<String> ORIGINAL_ART = Set.of("katana_binding", "katana_handle");
 
     /** Back-to-front drawing order of the roles; see the class javadoc. */
     private static final List<ToolConstants.Role> LAYER_ORDER =
@@ -98,7 +105,8 @@ public final class ToolArt {
      * @param layer one of the names {@link #layers} produced for that tool
      */
     public static String layer(String tool, String layer) {
-        return (ORIGINAL_ART.contains(tool) ? "tools/" : "derived/tools/") + tool + "_" + layer;
+        String file = tool + "_" + layer;
+        return (ORIGINAL_ART.contains(file) ? "tools/" : "derived/tools/") + file;
     }
 
     /**

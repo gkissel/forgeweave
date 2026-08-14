@@ -33,16 +33,21 @@ import org.junit.jupiter.api.Test;
 class CastCompositeHoleTest {
 
     private static final String DERIVED_ITEM_DIR = "src/main/resources/assets/forgeweave/textures/derived/item/";
-    private static final String ORIGINAL_ITEM_DIR = "src/main/resources/assets/forgeweave/textures/item/";
 
-    /** (part source PNG relative to its own directory below, cast composite file name). */
-    private record Part(String partFile, boolean partIsDerived, String castFile) {}
+    /** (part source PNG relative to {@link #DERIVED_ITEM_DIR}, cast composite file name). */
+    private record Part(String partFile, String castFile) {}
 
+    /**
+     * Both parts were re-sourced again by issue #375 -- {@code curved_blade} from Spartan
+     * Weaponry's saber blade, {@code katana_blade} from its katana blade (NOTICE.md,
+     * {@code licenses/APACHE-2.0-SpartanWeaponry.txt}) -- which is the second re-sourcing this test
+     * has had to catch stale casts for. The {@code katana_blade} entry no longer needs the
+     * "authored, so read it from outside the derived tree" flag it carried between #279 and #375:
+     * the blade is derived art again, so both parts live under {@link #DERIVED_ITEM_DIR}.
+     */
     private static final Part[] PARTS = {
-        // Issue #279: re-sourced to upstream's unregistered cutlass blade art (NOTICE.md).
-        new Part("curved_blade.png", true, "cast_curved_blade.png"),
-        // Issue #279: freshly authored, so it lives outside the derived tree (NOTICE.md).
-        new Part("katana_blade.png", false, "cast_katana_blade.png"),
+        new Part("curved_blade.png", "cast_curved_blade.png"),
+        new Part("katana_blade.png", "cast_katana_blade.png"),
     };
 
     private static Path projectRoot() {
@@ -66,8 +71,7 @@ class CastCompositeHoleTest {
     @Test
     void castHoleCoversTheCurrentPartSilhouette() throws IOException {
         for (Part part : PARTS) {
-            String partDir = part.partIsDerived() ? DERIVED_ITEM_DIR : ORIGINAL_ITEM_DIR;
-            BufferedImage partArt = image(partDir + part.partFile());
+            BufferedImage partArt = image(DERIVED_ITEM_DIR + part.partFile());
             BufferedImage cast = image(DERIVED_ITEM_DIR + part.castFile());
 
             for (int y = 0; y < partArt.getHeight(); y++) {

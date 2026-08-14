@@ -119,13 +119,19 @@ public class ForgeweaveItemModelProvider extends ItemModelProvider {
         // blade -- #279 found the curved shape #198 thought was missing, in the art of a tool
         // upstream never registered (the battleaxe's situation exactly).
         singleLayerModel(ForgeweaveItems.PART_VEIN_HAMMER_HEAD, derivedItem("vein_hammer_head"));
+        // #375: curved_blade is Spartan Weaponry's saber blade now, not 1.12's cutlass blade.
+        // Spartan Weaponry ships no scimitar (verified across every branch of the repository), so
+        // the maintainer decision on #375 signs off on the saber -- its only curved single-edged
+        // sword -- as the donor explicitly, rather than substituting one silently.
         singleLayerModel(ForgeweaveItems.PART_CURVED_BLADE, derivedItem("curved_blade"));
-        // #279: the katana is the one shape neither clone has any counterpart for, and #198's
-        // stand-in (the large sword blade, copied unchanged) failed playtest 0.3.2 -- it wears the
-        // same silhouette as the cleaver and broadsword. Its art is freshly authored again, so it
-        // lives under the plain item/ folder and carries no NOTICE.md row
-        // (scripts/generate_katana_art.py; the tool layers are routed by ToolArt#ORIGINAL_ART).
-        singleLayerModel(ForgeweaveItems.PART_KATANA_BLADE, itemTexture("katana_blade"));
+        // #375: the katana blade is derived art again, and back under derived/item/ with a
+        // NOTICE.md row. Neither Tinkers' clone has a katana shape -- #198's stand-in (the large
+        // sword blade, copied unchanged) failed playtest 0.3.2 for wearing the cleaver's
+        // silhouette, and #279 authored one from scratch instead -- so the maintainer decision on
+        // #375 sourced it from a third mod, Spartan Weaponry, under Apache-2.0 rather than MIT
+        // (licenses/APACHE-2.0-SpartanWeaponry.txt, scripts/derive_spartan_blade_art.py). The
+        // katana's guard and grip layers stay authored; ToolArt#ORIGINAL_ART routes per layer now.
+        singleLayerModel(ForgeweaveItems.PART_KATANA_BLADE, derivedItem("katana_blade"));
         // #271: the sharpening kit's own art, copied straight from the clone (NOTICE.md). Tinted per
         // material by ForgeweaveItemColors like every other PartItem, which is why only the grey base
         // is ported and not upstream's three per-material overrides beside it.
@@ -201,8 +207,11 @@ public class ForgeweaveItemModelProvider extends ItemModelProvider {
         // own handle/backhead/fronthead/binding (scripts/generate_battleaxe_head.py -- NOTICE.md).
         // The scimitar's three used to be freshly authored under textures/tools/; issue #198 replaced
         // them with derived art under textures/derived/tools/ (scripts/derive_m3_weapon_art.py,
-        // NOTICE.md) -- same for the dagger's two. The katana's three went the other way at #279:
-        // back to freshly authored under textures/tools/, routed there by ToolArt#ORIGINAL_ART.
+        // NOTICE.md) -- same for the dagger's two, and #375 re-sourced the scimitar's head layer
+        // again, to Spartan Weaponry's saber blade. The katana's three went the other way at #279 --
+        // back to freshly authored under textures/tools/ -- and #375 split them: its head layer is
+        // derived from Spartan Weaponry now, its binding and handle stay authored. That split is why
+        // ToolArt#ORIGINAL_ART is keyed by "<tool>_<layer>" rather than by tool.
 
         // #157's five large harvest tools come out of the same loop. Their layer names are the
         // role-derived ones ToolArt#layers produces, mapped from upstream's own layerN-draws-partN

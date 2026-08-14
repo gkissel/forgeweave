@@ -31,9 +31,6 @@ from PIL import Image
 ROOT = Path(__file__).resolve().parent.parent
 UPSTREAM = Path.home() / "development/minecraft/references/tinkers-1.12"
 TEXTURE_DIR = ROOT / "src/main/resources/assets/forgeweave/textures/derived/item"
-# Freshly-authored part art stays out of the derived tree (CLAUDE.md); katana_blade is the only
-# part base that lives here (issue #279).
-ORIGINAL_ITEM_DIR = ROOT / "src/main/resources/assets/forgeweave/textures/item"
 PATTERN_BASE = TEXTURE_DIR / "pattern.png"
 
 # (part silhouette texture, composite output texture, source directory, (offsetX, offsetY))
@@ -80,16 +77,16 @@ PARTS = [
     # war_mace_head: bbox center (11.0, 5.0) -> (-3, 3) centers it exactly, same hammer lineage
     # (scripts/derive_warmace_art.py derives it from the hammer head).
     ("war_mace_head.png", "pattern_war_mace_head.png", TEXTURE_DIR, (-3, 3)),
-    # curved_blade: 1.12's cutlass blade since #279 (scripts/derive_m3_weapon_art.py). Unlike the
-    # reshaped sword blade it replaced -- which happened to be centered, hence its old (0, 0) --
-    # upstream drew the cutlass blade in the tool position, up in the canvas's top-right corner:
-    # bbox center (10.0, 6.0) -> (-2, 2) centers it.
+    # curved_blade: Spartan Weaponry's saber blade since #375 (scripts/derive_spartan_blade_art.py),
+    # replacing the 1.12 cutlass blade #279 had put here. Both were drawn in the tool position, up
+    # in the canvas's top-right corner, and both center the same: bbox (4, 1)-(15, 9), center
+    # (10.0, 5.5) -> (-2, 2). The offset is unchanged from #279 even though the art is not.
     ("curved_blade.png", "pattern_curved_blade.png", TEXTURE_DIR, (-2, 2)),
-    # katana_blade: freshly authored since #279 (scripts/generate_katana_art.py), and drawn in the
-    # tool position too so the part icon and the katana_head tool layer can be one file. bbox
-    # center (9.5, 4.5) -> (-2, 4) centers it. Read from ORIGINAL_ITEM_DIR, not TEXTURE_DIR: it is
-    # the one part base that is not derived art.
-    ("katana_blade.png", "pattern_katana_blade.png", ORIGINAL_ITEM_DIR, (-2, 4)),
+    # katana_blade: Spartan Weaponry's katana blade since #375, replacing #279's authored one, and
+    # so derived art in TEXTURE_DIR now rather than the lone authored part base it used to be. It
+    # sits one row lower and one column right of the blade it replaces: bbox (5, 1)-(15, 9), center
+    # (10.5, 5.5) -> (-2, 2), where the authored blade's (9.5, 4.5) wanted (-2, 4).
+    ("katana_blade.png", "pattern_katana_blade.png", TEXTURE_DIR, (-2, 2)),
     # Issue #271: the sharpening kit, the one part that belongs to no tool (upstream's SharpeningKit
     # is registered as a tool part but never appears in a ToolCore's required components). Its
     # sharpening_kit.tmat.json carries no "offset" field upstream, so (0, 0), and the art needs none:

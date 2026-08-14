@@ -23,16 +23,12 @@ from PIL import Image
 
 ROOT = Path(__file__).resolve().parent.parent
 TEXTURE_DIR = ROOT / "src/main/resources/assets/forgeweave/textures/derived/item"
-# Freshly-authored part art stays out of the derived tree (CLAUDE.md), so a part base can live in
-# either place; katana_blade (issue #279) is the one that does. Same split generate_pattern_textures.py
-# spells out with a per-part source-directory column.
-ORIGINAL_ITEM_DIR = ROOT / "src/main/resources/assets/forgeweave/textures/item"
 CAST_BASE = TEXTURE_DIR / "cast.png"
 
-
-def part_source(name: str) -> Path:
-    derived = TEXTURE_DIR / name
-    return derived if derived.exists() else ORIGINAL_ITEM_DIR / name
+# Every part base is derived art under TEXTURE_DIR. That was not always so: katana_blade was
+# freshly authored under `textures/item/` between issues #279 and #375, and this script used to
+# fall back to that directory for it. Issue #375 re-sourced the blade from Spartan Weaponry, so the
+# fallback had nothing left to find and went with it.
 
 # (part silhouette texture, composite output texture)
 PARTS = [
@@ -106,7 +102,7 @@ def composite(cast: Image.Image, part: Image.Image) -> Image.Image:
 def main() -> None:
     cast = Image.open(CAST_BASE).convert("RGBA")
     for part_name, output_name in PARTS:
-        part = Image.open(part_source(part_name)).convert("RGBA")
+        part = Image.open(TEXTURE_DIR / part_name).convert("RGBA")
         composite(cast, part).save(TEXTURE_DIR / output_name)
         print(f"wrote {output_name}")
 
