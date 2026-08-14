@@ -4,12 +4,14 @@ import org.slf4j.Logger;
 
 import com.mojang.logging.LogUtils;
 
+import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.ModList;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.config.ModConfig;
 import net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent;
+import net.neoforged.fml.loading.FMLEnvironment;
 import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.server.ServerStartedEvent;
@@ -28,6 +30,7 @@ import dev.gkissel.forgeweave.block.SearedDrainBlockEntity;
 import dev.gkissel.forgeweave.block.SearedDuctBlockEntity;
 import dev.gkissel.forgeweave.block.SearedTankBlockEntity;
 import dev.gkissel.forgeweave.casting.CastingRecipe;
+import dev.gkissel.forgeweave.client.ForgeweaveDarkModeCompat;
 import dev.gkissel.forgeweave.combat.Beheading;
 import dev.gkissel.forgeweave.combat.CombatSeams;
 import dev.gkissel.forgeweave.combat.ForgeweaveInnates;
@@ -166,6 +169,14 @@ public class Forgeweave {
         // ForgeweavePonderPlugin's javadoc for why this isn't an @EventBusSubscriber instead.
         if (ModList.get().isLoaded("ponder")) {
             modEventBus.addListener(ForgeweavePonderPlugin::registerScenes);
+        }
+        // #335 -- DarkModeEverywhere compat is a soft dependency too, same idiom as ponder just above.
+        // Unlike FMLClientSetupEvent (inherently client-only), InterModEnqueueEvent is a mod-bus
+        // lifecycle event that fires on every dist, so this checks FMLEnvironment.dist itself to keep
+        // dist handling consistent with the Dist.CLIENT gating every other client wiring class uses
+        // (see ForgeweaveDarkModeCompat's javadoc).
+        if (ModList.get().isLoaded("darkmodeeverywhere") && FMLEnvironment.dist == Dist.CLIENT) {
+            modEventBus.addListener(ForgeweaveDarkModeCompat::sendShaderBlacklist);
         }
     }
 
