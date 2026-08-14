@@ -117,6 +117,15 @@ public final class ForgeweaveBlocks {
     public static final DeferredBlock<SearedDrainBlock> SEARED_DRAIN = BLOCKS.register("seared_drain",
             () -> new SearedDrainBlock(searedProperties()));
 
+    // Plain seared glass (docs/SCOPE.md M3.3 issue #289): a wall-only smeltery block, upstream's
+    // BlockSearedGlass (NOTICE.md). Upstream's block adds BlockConnectedTexture rendering and no
+    // other behavior -- no BlockEntity, no multiblock role of its own beyond "valid wall, not floor"
+    // (SmelteryScan#Valid) -- so this is a plain non-opaque block, same searedProperties() as the
+    // rest of the family. The connected-texture rendering itself is left plain (PR #289 body); its
+    // single texture is upstream's own "no neighbours" sprite (NOTICE.md).
+    public static final DeferredBlock<Block> SEARED_GLASS = BLOCKS.registerSimpleBlock("seared_glass",
+            searedProperties().noOcclusion());
+
     // #100 -- casting (docs/SCOPE.md M2 issue #100). Same seared strength/sound as the rest of the
     // smeltery; none of the three is a full cube, so all three skip occlusion culling.
     public static final DeferredBlock<CastingBlock> CASTING_TABLE = BLOCKS.register("casting_table",
