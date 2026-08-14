@@ -18,6 +18,7 @@ import dev.gkissel.forgeweave.block.SearedTankBlockEntity;
 import dev.gkissel.forgeweave.block.SmelteryControllerBlockEntity;
 import dev.gkissel.forgeweave.fluid.ForgeweaveFluids;
 import dev.gkissel.forgeweave.recipe.MeltingRecipe;
+import dev.gkissel.forgeweave.recipe.SmelteryFuel;
 
 /**
  * docs/SCOPE.md M2 issue #97's verification on a headless dedicated server: lava is consumed exactly
@@ -121,6 +122,38 @@ public class SmelteryFuelGameTests {
                 "expected molten iron in the tank");
         helper.assertValueEqual(core.fuelBurnTicksRemaining(), burnTicksBefore,
                 "a finish-only tick must not consume fuel (#287)");
+        helper.succeed();
+    }
+
+    /**
+     * #377: the fuel gauge shows what the wall tank holds even when that is something the smeltery
+     * cannot burn, which is what upstream's {@code getFuelDisplay} tail loop does and what makes its
+     * "not a valid smeltery fuel" tooltip line reachable. Before this, the display fluid was sourced
+     * only from a tank that {@code holdsFuel}, so a tank full of the wrong thing synced as empty and
+     * the screen could only say "No fuel found" -- the least useful of the three possible answers.
+     *
+     * <p>Molten iron is the wrong thing here rather than water, because the GameTest datapack
+     * deliberately registers water as a 5000-degree superfuel (see the class javadoc).
+     */
+    @GameTest(template = "smeltery", timeoutTicks = 100)
+    public static void anUnburnableFluidStillReachesTheFuelGauge(GameTestHelper helper) {
+        SmelteryGameTests.buildWalls(helper, 1, 1, 2);
+        BlockPos corePos = SmelteryGameTests.placeCore(helper, ForgeweaveBlocks.STANDARD_CORE.get());
+
+        SearedTankBlockEntity tank = helper.getBlockEntity(SmelteryGameTests.TANK_POS);
+        FluidStack unburnable = new FluidStack(ForgeweaveFluids.IRON.still().get(), 1000);
+        tank.tank().fill(unburnable, IFluidHandler.FluidAction.EXECUTE);
+
+        SmelteryControllerBlockEntity core = helper.getBlockEntity(corePos);
+        helper.assertTrue(core.isFormed(), "expected the test smeltery to form: " + core.lastResult().getString());
+        helper.assertTrue(SmelteryFuel.find(helper.getLevel().registryAccess(), unburnable.getFluid()).isEmpty(),
+                "this test is pointless unless molten iron really is unburnable");
+
+        // The scan the screen's stillValid keeps alive is what refreshes the gauge; force one.
+        helper.assertValueEqual(core.currentTemperature(), 0, "an unburnable fluid must not heat the smeltery");
+        helper.assertTrue(core.fuelDisplayFluid().getFluid() == unburnable.getFluid(),
+                "the fuel gauge must show the unburnable fluid, not nothing: " + core.fuelDisplayFluid());
+        helper.assertValueEqual(core.fuelDisplayFluid().getAmount(), 1000, "the gauge's fill for the unburnable fluid");
         helper.succeed();
     }
 

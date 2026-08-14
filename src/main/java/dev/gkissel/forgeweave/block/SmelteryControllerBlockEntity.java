@@ -4,6 +4,7 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
+import java.util.function.Predicate;
 
 import javax.annotation.Nullable;
 
@@ -766,6 +767,12 @@ public class SmelteryControllerBlockEntity extends BlockEntity implements Statio
     /** Upstream keeps a list of every tank in the walls; Forgeweave walks the shell once and remembers the hit. */
     @Nullable
     private BlockPos findFuelTank() {
+        return findTank(this::holdsFuel);
+    }
+
+    /** @see #findFuelTank() */
+    @Nullable
+    private BlockPos findTank(Predicate<BlockPos> accepts) {
         if (structure == null) {
             return null;
         }
@@ -775,7 +782,7 @@ public class SmelteryControllerBlockEntity extends BlockEntity implements Statio
             for (int x = min.getX(); x <= max.getX(); x++) {
                 for (int z : new int[] {min.getZ() - 1, max.getZ() + 1}) {
                     BlockPos pos = new BlockPos(x, y, z);
-                    if (holdsFuel(pos)) {
+                    if (accepts.test(pos)) {
                         return pos;
                     }
                 }
@@ -783,7 +790,7 @@ public class SmelteryControllerBlockEntity extends BlockEntity implements Statio
             for (int z = min.getZ(); z <= max.getZ(); z++) {
                 for (int x : new int[] {min.getX() - 1, max.getX() + 1}) {
                     BlockPos pos = new BlockPos(x, y, z);
-                    if (holdsFuel(pos)) {
+                    if (accepts.test(pos)) {
                         return pos;
                     }
                 }
@@ -794,9 +801,14 @@ public class SmelteryControllerBlockEntity extends BlockEntity implements Statio
 
     /** Whether the wall tank at {@code pos} holds a registered {@link SmelteryFuel} (#97), upstream's {@code hasTankWithFuel}. */
     private boolean holdsFuel(BlockPos pos) {
-        return level != null && level.getBlockEntity(pos) instanceof SearedTankBlockEntity tank
-                && tank.tank().getFluidAmount() > 0
+        return holdsFluid(pos) && level.getBlockEntity(pos) instanceof SearedTankBlockEntity tank
                 && SmelteryFuel.find(level.registryAccess(), tank.tank().getFluid().getFluid()).isPresent();
+    }
+
+    /** Whether the wall tank at {@code pos} holds anything at all, fuel or not -- see {@link #refreshFuelDisplay}. */
+    private boolean holdsFluid(BlockPos pos) {
+        return level != null && level.getBlockEntity(pos) instanceof SearedTankBlockEntity tank
+                && tank.tank().getFluidAmount() > 0;
     }
 
     /** The registered fuel available right now, without consuming it, or {@code null} if none is. */
@@ -822,10 +834,19 @@ public class SmelteryControllerBlockEntity extends BlockEntity implements Statio
      * <p>Cheap to call opportunistically: {@link #peekFuel()} finds the tank at most once per call
      * (cached in {@link #fuelTank}), and the sync only fires when the fluid or its amount actually
      * moved.
+     *
+     * <p>#377: when no tank holds a registered fuel this falls back to whatever <em>any</em> wall
+     * tank holds, which is upstream's own {@code getFuelDisplay} tail loop ("tank exists and has
+     * something in it"). That fallback is the whole reason upstream's fuel tooltip has a
+     * {@code gui.smeltery.fuel.invalid} branch at all: without it a player who filled the wall tank
+     * with water sees an empty gauge and no explanation, instead of their water and the reason it
+     * will never burn. No new sync -- {@code fuel_display} already ships a whole {@link FluidStack}.
      */
     private void refreshFuelDisplay() {
         peekFuel();
-        FluidStack live = fuelTank != null && level != null && level.getBlockEntity(fuelTank) instanceof SearedTankBlockEntity tank
+        BlockPos displayTank = fuelTank != null ? fuelTank : findTank(this::holdsFluid);
+        FluidStack live = displayTank != null && level != null
+                && level.getBlockEntity(displayTank) instanceof SearedTankBlockEntity tank
                 ? tank.tank().getFluid()
                 : FluidStack.EMPTY;
         if (live.getFluid() != fuelDisplayFluid.getFluid() || live.getAmount() != fuelDisplayFluid.getAmount()) {
