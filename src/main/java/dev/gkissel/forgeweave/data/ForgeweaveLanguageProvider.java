@@ -7,6 +7,7 @@ import net.neoforged.neoforge.common.data.LanguageProvider;
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.block.ForgeweaveBlocks;
 import dev.gkissel.forgeweave.block.SmelteryScan;
+import dev.gkissel.forgeweave.fluid.ForgeweaveFluids;
 import dev.gkissel.forgeweave.item.ForgeweaveItems;
 
 /**
@@ -687,41 +688,40 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("jei.category.forgeweave.embossing", "Embossing");
         add("jei.category.forgeweave.embossing.one_per_tool", "One embossment per tool");
 
-        // The nine molten metal fluids (docs/SCOPE.md M2 issue #92). FluidType's default description
-        // id is "fluid_type.<namespace>.<path>" (no addFluidType helper on LanguageProvider), shown
-        // wherever a fluid stack's name is displayed (tanks, JEI).
-        add("fluid_type.forgeweave.molten_iron", "Molten Iron");
-        add("fluid_type.forgeweave.molten_copper", "Molten Copper");
-        add("fluid_type.forgeweave.molten_gold", "Molten Gold");
-        add("fluid_type.forgeweave.molten_cobalt", "Molten Cobalt");
-        add("fluid_type.forgeweave.molten_ardite", "Molten Ardite");
-        add("fluid_type.forgeweave.molten_manyullyn", "Molten Manyullyn");
-        add("fluid_type.forgeweave.molten_rose_gold", "Molten Rose Gold");
-        add("fluid_type.forgeweave.molten_netherite_scrap", "Molten Netherite Scrap");
-        add("fluid_type.forgeweave.molten_netherite", "Molten Netherite");
+        // The nine molten metal fluids (docs/SCOPE.md M2 issue #92) and everything added since.
+        // See addFluid: each call names both the fluid and its bucket (#286).
+        addFluid(ForgeweaveFluids.IRON, "Molten Iron");
+        addFluid(ForgeweaveFluids.COPPER, "Molten Copper");
+        addFluid(ForgeweaveFluids.GOLD, "Molten Gold");
+        addFluid(ForgeweaveFluids.COBALT, "Molten Cobalt");
+        addFluid(ForgeweaveFluids.ARDITE, "Molten Ardite");
+        addFluid(ForgeweaveFluids.MANYULLYN, "Molten Manyullyn");
+        addFluid(ForgeweaveFluids.ROSE_GOLD, "Molten Rose Gold");
+        addFluid(ForgeweaveFluids.NETHERITE_SCRAP, "Molten Netherite Scrap");
+        addFluid(ForgeweaveFluids.NETHERITE, "Molten Netherite");
         // #234 -- steel and its carbon alloy partner (M3.2).
-        add("fluid_type.forgeweave.molten_steel", "Molten Steel");
-        add("fluid_type.forgeweave.molten_carbon", "Molten Carbon");
+        addFluid(ForgeweaveFluids.STEEL, "Molten Steel");
+        addFluid(ForgeweaveFluids.CARBON, "Molten Carbon");
         // #231: upstream 1.12's fluid.tconstruct.obsidian.name.
-        add("fluid_type.forgeweave.molten_obsidian", "Molten Obsidian");
+        addFluid(ForgeweaveFluids.OBSIDIAN, "Molten Obsidian");
         // #235 -- amethyst and amethyst bronze (M3.2), the 1.20 clone's fluid.tconstruct.* names.
-        add("fluid_type.forgeweave.molten_amethyst", "Molten Amethyst");
-        add("fluid_type.forgeweave.molten_amethyst_bronze", "Molten Amethyst Bronze");
+        addFluid(ForgeweaveFluids.AMETHYST, "Molten Amethyst");
+        addFluid(ForgeweaveFluids.AMETHYST_BRONZE, "Molten Amethyst Bronze");
 
         // #232 -- the knightslime alloy chain's three fluids (docs/SCOPE.md M3.2). Upstream calls
         // its seared stone fluid plainly "Seared Stone"; the molten_ prefix names follow this
         // family's convention instead.
-        add("fluid_type.forgeweave.molten_slime", "Molten Slime");
-        add("fluid_type.forgeweave.molten_seared_stone", "Molten Seared Stone");
-        add("fluid_type.forgeweave.molten_knightslime", "Molten Knightslime");
+        addFluid(ForgeweaveFluids.SLIME, "Molten Slime");
+        addFluid(ForgeweaveFluids.SEARED_STONE, "Molten Seared Stone");
+        addFluid(ForgeweaveFluids.KNIGHTSLIME, "Molten Knightslime");
 
         // #233 -- the pig iron alloy chain's three fluids. "Molten Pig Iron" spaces upstream's
         // fluid.tconstruct.pigiron.name ("Molten Pigiron") the way material.pigiron.name already
         // does; "Blood" follows upstream's fluid.tconstruct.blood.name; molten clay follows the
         // molten-metal naming family.
-        add("fluid_type.forgeweave.molten_pig_iron", "Molten Pig Iron");
-        add("fluid_type.forgeweave.blood", "Blood");
-        add("fluid_type.forgeweave.molten_clay", "Molten Clay");
+        addFluid(ForgeweaveFluids.PIG_IRON, "Molten Pig Iron");
+        addFluid(ForgeweaveFluids.BLOOD, "Blood");
+        addFluid(ForgeweaveFluids.MOLTEN_CLAY, "Molten Clay");
 
         // #100 -- casting (docs/SCOPE.md M2 issue #100). Names follow upstream 1.12's
         // tile.casting.{table,basin}.name / tile.faucet.name and its cast item names.
@@ -888,5 +888,19 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("effect.forgeweave.bleed", "Bleeding");
         add("effect.forgeweave.splinter", "Splintered");
         add("effect.forgeweave.enderference", "Enderference");
+    }
+
+    /**
+     * One molten fluid's two player-facing names. {@code FluidType}'s default description id is
+     * {@code fluid_type.<namespace>.<path>} (no addFluidType helper on {@link LanguageProvider}),
+     * shown wherever a fluid stack's name is displayed (tanks, JEI); its bucket (#286) is
+     * "&lt;fluid&gt; Bucket", the same shape as the 1.20 clone's own generated
+     * {@code item.tconstruct.molten_iron_bucket} = "Molten Iron Bucket".
+     *
+     * <p>Both come off one call so a fluid cannot get a name without its bucket getting one.
+     */
+    private void addFluid(ForgeweaveFluids.MoltenMetal fluid, String name) {
+        add("fluid_type." + Forgeweave.MODID + "." + fluid.name(), name);
+        addItem(fluid.bucket(), name + " Bucket");
     }
 }

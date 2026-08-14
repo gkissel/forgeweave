@@ -23,30 +23,13 @@ public final class ForgeweaveFluidClientExtensions {
 
     @SubscribeEvent
     static void registerFluidClientExtensions(RegisterClientExtensionsEvent event) {
-        register(event, ForgeweaveFluids.IRON);
-        register(event, ForgeweaveFluids.COPPER);
-        register(event, ForgeweaveFluids.GOLD);
-        register(event, ForgeweaveFluids.COBALT);
-        register(event, ForgeweaveFluids.ARDITE);
-        register(event, ForgeweaveFluids.MANYULLYN);
-        register(event, ForgeweaveFluids.OBSIDIAN);
-        register(event, ForgeweaveFluids.ROSE_GOLD);
-        register(event, ForgeweaveFluids.NETHERITE_SCRAP);
-        register(event, ForgeweaveFluids.NETHERITE);
-        register(event, ForgeweaveFluids.STEEL);
-        register(event, ForgeweaveFluids.CARBON);
-        // #232 -- the knightslime alloy chain's three fluids (docs/SCOPE.md M3.2).
-        register(event, ForgeweaveFluids.SLIME);
-        register(event, ForgeweaveFluids.SEARED_STONE);
-        register(event, ForgeweaveFluids.KNIGHTSLIME);
-        // #233 -- pig iron, plus the two non-metal smeltery fluids, each carrying its own upstream
-        // texture pair on the record (blood's water-like liquid, clay's stone texture; NOTICE.md).
-        register(event, ForgeweaveFluids.PIG_IRON);
-        register(event, ForgeweaveFluids.BLOOD);
-        register(event, ForgeweaveFluids.MOLTEN_CLAY);
-
-        register(event, ForgeweaveFluids.AMETHYST);
-        register(event, ForgeweaveFluids.AMETHYST_BRONZE);
+        // #286: walks ForgeweaveFluids#all rather than the hand list this used to be -- exactly the
+        // drift issue #256 fixed for part tints. Each record already carries its own texture pair
+        // (blood's water-like liquid, clay's and seared stone's stone pair; NOTICE.md), and a fluid
+        // missing from here renders untinted -- since #286, its bucket with it.
+        for (ForgeweaveFluids.MoltenMetal fluid : ForgeweaveFluids.all()) {
+            register(event, fluid);
+        }
     }
 
     private static void register(RegisterClientExtensionsEvent event, ForgeweaveFluids.MoltenMetal metal) {

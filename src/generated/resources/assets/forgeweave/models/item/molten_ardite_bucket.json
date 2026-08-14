@@ -1,0 +1,6 @@
+{
+  "parent": "neoforge:item/bucket",
+  "flip_gas": false,
+  "fluid": "forgeweave:molten_ardite",
+  "loader": "neoforge:fluid_container"
+}
