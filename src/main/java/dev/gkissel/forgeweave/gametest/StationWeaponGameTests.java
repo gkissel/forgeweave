@@ -5,12 +5,15 @@ import java.util.List;
 import net.minecraft.core.BlockPos;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.effect.MobEffects;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.animal.Pig;
 import net.minecraft.world.entity.item.ItemEntity;
@@ -22,10 +25,13 @@ import net.minecraft.world.level.GameType;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 
+import net.neoforged.neoforge.common.NeoForge;
+import net.neoforged.neoforge.event.entity.player.AttackEntityEvent;
 import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 
 import dev.gkissel.forgeweave.Forgeweave;
+import dev.gkissel.forgeweave.combat.CombatHit;
 import dev.gkissel.forgeweave.combat.ForgeweaveInnates;
 import dev.gkissel.forgeweave.item.ForgeweaveItems;
 import dev.gkissel.forgeweave.item.ToolItem;
@@ -94,6 +100,35 @@ public class StationWeaponGameTests {
         helper.assertTrue(Math.abs(capped.y - 0.56) < 1.0E-4, "expected the rise to cap at 0.56, got " + capped.y);
         helper.assertTrue(Math.abs(capped.z - 0.925) < 1.0E-4,
                 "expected the horizontal speed to cap at 0.925, got " + capped.z);
+
+        helper.succeed();
+    }
+
+    /**
+     * Longsword (issue #303): upstream {@code LongSword#onItemRightClick} refuses to even start the
+     * charged leap while elytra-flying, since free flight should use fireworks instead -- the click
+     * passes through to the offhand rather than opening the hold. Once no longer elytra-flying the
+     * leap starts normally.
+     */
+    @GameTest(template = "empty")
+    public static void longswordLeapRefusesToStartWhileElytraFlying(GameTestHelper helper) {
+        BlockPos pos = new BlockPos(1, 1, 1);
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        ItemStack longsword = weapon(helper, player, pos, ForgeweaveItems.TOOL_LONGSWORD.get());
+        player.setItemInHand(InteractionHand.MAIN_HAND, longsword);
+        ToolItem tool = (ToolItem) longsword.getItem();
+
+        player.startFallFlying();
+        InteractionResultHolder<ItemStack> declined = tool.use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
+        helper.assertTrue(declined.getResult() == InteractionResult.PASS,
+                "an elytra-flying player must not be able to start the charged leap, got " + declined.getResult());
+        helper.assertFalse(player.isUsingItem(), "the leap must never open its hold while elytra-flying");
+
+        player.stopFallFlying();
+        InteractionResultHolder<ItemStack> started = tool.use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
+        helper.assertTrue(started.getResult() == InteractionResult.CONSUME,
+                "once no longer elytra-flying the leap must start normally, got " + started.getResult());
+        helper.assertTrue(player.isUsingItem(), "the leap must open its hold once elytra-flying stops");
 
         helper.succeed();
     }
@@ -583,6 +618,101 @@ public class StationWeaponGameTests {
 
         attacker.discard();
         helper.succeed();
+    }
+
+    /**
+     * Broadsword (issue #303 re-verify): upstream's own {@code BroadSword#dealDamage} sweep, which an
+     * earlier version of this codebase wrongly said the parry above had "replaced". A full-charge,
+     * grounded hit also strikes a bystander within upstream's 3-block range and 1-block-wider box for
+     * its flat 1 damage, but leaves one further away untouched.
+     */
+    @GameTest(template = "empty", timeoutTicks = 1200)
+    public static void broadswordSweepsNearbyEnemiesOnAFullChargeGroundedHit(GameTestHelper helper) {
+        BlockPos pos = new BlockPos(1, 1, 1);
+        ServerPlayer player = helper.makeMockServerPlayerInLevel();
+        ItemStack broadsword = weapon(helper, player, pos, ForgeweaveItems.TOOL_BROADSWORD.get());
+        player.setItemSlot(EquipmentSlot.MAINHAND, broadsword);
+        player.setOnGround(true);
+
+        BlockPos origin = new BlockPos(3, 2, 3);
+        player.moveTo(helper.absoluteVec(new Vec3(origin.getX() + 0.5, origin.getY(), origin.getZ() + 0.5)));
+        player.setYRot(0.0F);
+        player.setYHeadRot(0.0F);
+        player.setXRot(0.0F);
+
+        Pig primary = broadswordPig(helper, origin.offset(0, 0, 2));
+        Pig nearby = broadswordPig(helper, origin.offset(1, 0, 2));
+        Pig farAway = broadswordPig(helper, origin.offset(0, 0, -2));
+
+        helper.startSequence()
+                .thenWaitUntil(() -> SpawnCapture.assertIndexServes(helper, primary, nearby, farAway))
+                .thenExecute(() -> {
+                    // No AttackEntityEvent posted for this player: CombatHit#attackStrengthScale falls
+                    // back to 1.0 (full charge) for any attacker CombatSeams never captured a swing for
+                    // -- same as WeaponInnateGameTests#battleaxeSweepStrikesTheArcAtHalfDamage, which
+                    // relies on the identical default rather than the mock player's real, untouched
+                    // cooldown ticker (proven low below, in the companion uncharged-swing test).
+                    primary.hurt(helper.getLevel().damageSources().playerAttack(player), 3.0F);
+
+                    helper.assertTrue(nearby.getHealth() < nearby.getMaxHealth(),
+                            "expected the sweep to strike a bystander within upstream's 3-block range");
+                    helper.assertTrue(farAway.getHealth() == farAway.getMaxHealth(),
+                            "a bystander outside the sweep's box must be left alone");
+
+                    discard(primary, nearby, farAway);
+                })
+                .thenSucceed();
+    }
+
+    /**
+     * The decision the sweep gates on is upstream's own: a spam-clicked (uncharged) hit must not sweep
+     * at all, matching {@code getCooledAttackStrength(0.5F) > 0.9f}.
+     */
+    @GameTest(template = "empty", timeoutTicks = 1200)
+    public static void broadswordSweepNeedsAFullCharge(GameTestHelper helper) {
+        BlockPos pos = new BlockPos(1, 1, 1);
+        ServerPlayer player = helper.makeMockServerPlayerInLevel();
+        ItemStack broadsword = weapon(helper, player, pos, ForgeweaveItems.TOOL_BROADSWORD.get());
+        player.setItemSlot(EquipmentSlot.MAINHAND, broadsword);
+        player.setOnGround(true);
+
+        BlockPos origin = new BlockPos(3, 2, 3);
+        player.moveTo(helper.absoluteVec(new Vec3(origin.getX() + 0.5, origin.getY(), origin.getZ() + 0.5)));
+        player.setYRot(0.0F);
+        player.setYHeadRot(0.0F);
+
+        Pig primary = broadswordPig(helper, origin.offset(0, 0, 2));
+        Pig nearby = broadswordPig(helper, origin.offset(1, 0, 2));
+
+        helper.startSequence()
+                .thenWaitUntil(() -> SpawnCapture.assertIndexServes(helper, primary, nearby))
+                .thenExecute(() -> {
+                    player.resetAttackStrengthTicker(); // scale ~0: the swing has had no time to recover
+                    helper.assertTrue(player.getAttackStrengthScale(0.5F) < CombatHit.FULL_CHARGE,
+                            "this test is meaningless unless the mock player's swing really is uncharged");
+                    NeoForge.EVENT_BUS.post(new AttackEntityEvent(player, primary));
+                    primary.hurt(helper.getLevel().damageSources().playerAttack(player), 3.0F);
+
+                    helper.assertTrue(nearby.getHealth() == nearby.getMaxHealth(),
+                            "an uncharged swing must not sweep a bystander");
+
+                    discard(primary, nearby);
+                })
+                .thenSucceed();
+    }
+
+    /** A gravity-free, AI-free pig -- {@link SpawnCapture}'s entity-index defect class applies here too. */
+    private static Pig broadswordPig(GameTestHelper helper, BlockPos pos) {
+        Pig pig = helper.spawn(EntityType.PIG, pos);
+        pig.setNoGravity(true);
+        pig.setNoAi(true);
+        return pig;
+    }
+
+    private static void discard(Entity... entities) {
+        for (Entity entity : entities) {
+            entity.discard();
+        }
     }
 
     /** Assembles {@code tool} from a stone head and wood everywhere else, through a real station. */

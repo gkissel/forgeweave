@@ -190,9 +190,16 @@ public final class ForgeweaveInnates {
 
     // ------------------------------------------------------------------ the six
 
+    /** The broadsword's sweep, public for the same testability reason every other seam field is. */
+    public static final BroadswordSweep BROADSWORD_SWEEP_SEAM = new BroadswordSweep();
+
     /**
-     * Broadsword. Upstream's 1.12 innate was sword-blocking, which modern Minecraft no longer has;
-     * the maintainer's replacement (2026-08-12) is a short parry window opened with the use button.
+     * Broadsword. Issue #303's re-verify: an earlier version of this class (and docs/SCOPE.md) claimed
+     * upstream's 1.12 innate was "sword-blocking, gone from modern Minecraft" -- the clone has no such
+     * thing. {@code BroadSword#dealDamage} sweeps a full-charge, grounded, slow-moving hit onto
+     * everything within 3 blocks for a flat 1 damage ({@link BroadswordSweep}); it never blocks.
+     * The parry window stays -- it is a deliberate maintainer addition (2026-08-12), not a replacement
+     * for anything -- and the sweep it was wrongly said to replace is restored alongside it.
      */
     public static final Innate PARRY = parry();
 
@@ -234,7 +241,23 @@ public final class ForgeweaveInnates {
 
     private static Innate parry() {
         Parry behavior = new Parry(PARRY_WINDOW_TICKS, PARRY_SLOW_AMPLIFIER, PARRY_SLOW_TICKS);
-        return new Innate("parry", behavior, behavior);
+        return new Innate("parry", new BroadswordCombat(behavior, BROADSWORD_SWEEP_SEAM), behavior);
+    }
+
+    /**
+     * The one seam an {@link Innate} carries, for a tool whose defense ({@link Parry#incomingHit}) and
+     * offense ({@link BroadswordSweep#onHit}) are two independently portable behaviors rather than one.
+     */
+    private record BroadswordCombat(Parry parry, BroadswordSweep sweep) implements CombatSeam {
+        @Override
+        public void onHit(CombatHit hit, float damageDealt) {
+            sweep.onHit(hit, damageDealt);
+        }
+
+        @Override
+        public float incomingHit(CombatDefense defense, float originalDamage, float damage) {
+            return parry.incomingHit(defense, originalDamage, damage);
+        }
     }
 
     private static Innate deflect() {
@@ -379,6 +402,13 @@ public final class ForgeweaveInnates {
         // Beheading's own provider, so a seam here would roll it twice.
         if (stack.is(ForgeweaveItems.TOOL_CLEAVER.get())) {
             return Optional.of(id("beheading"));
+        }
+        // #303 -- the warmace's innate is vanilla's own mace, not a seam ({@code WarmaceItem}'s "why
+        // not a combat seam"), so its constructor's innate argument is always null and it would
+        // otherwise show no tooltip line at all, unlike every other weapon. Same carve-out as the
+        // cleaver's above.
+        if (stack.is(ForgeweaveItems.TOOL_WARMACE.get())) {
+            return Optional.of(id("smash"));
         }
         Innate innate = of(stack);
         return innate == null ? Optional.empty() : Optional.of(id(innate.id()));
@@ -646,6 +676,18 @@ public final class ForgeweaveInnates {
         @Override
         public int durationTicks() {
             return LEAP_CHARGE_TICKS;
+        }
+
+        /**
+         * Upstream {@code LongSword#onItemRightClick} verbatim: don't allow free flight while
+         * elytra-flying, should use fireworks instead. {@code pass} leaves the click for the offhand,
+         * the same decline {@link Lunge} uses for its own carve-out.
+         */
+        @Override
+        @Nullable
+        public InteractionResultHolder<ItemStack> onUse(ItemStack stack, Level level, Player player,
+                InteractionHand hand) {
+            return player.isFallFlying() ? InteractionResultHolder.pass(stack) : null;
         }
 
         @Override

@@ -166,7 +166,8 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         // (ToolStationTabs.Tab#descriptionKey), same family the M1 tools' tabs use.
         addItem(ForgeweaveItems.TOOL_BROADSWORD, "Broadsword");
         add("item.forgeweave.broadsword.description",
-                "A balanced sword. Right-click to raise a brief parry that turns aside one blow and slows whoever threw it.");
+                "A balanced sword. A solid, grounded blow carries to everything nearby, and right-click "
+                        + "raises a brief parry that turns aside one blow and slows whoever threw it.");
         addItem(ForgeweaveItems.TOOL_LONGSWORD, "Longsword");
         add("item.forgeweave.longsword.description",
                 "A long blade with reach. Hold right-click to charge, then release to leap in the direction you are looking.");
@@ -187,7 +188,8 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         // ToolTooltip shows these on Shift, next to the material traits.
         add("tooltip.forgeweave.innate.parry.name", "Parry");
         add("tooltip.forgeweave.innate.parry.description",
-                "Right-click opens a brief window that negates one incoming melee blow and slows the attacker.");
+                "A full-strength, grounded blow also strikes everything within reach. Right-click opens "
+                        + "a brief window that negates one incoming melee blow and slows the attacker.");
         add("tooltip.forgeweave.innate.charged_leap.name", "Charged Leap");
         add("tooltip.forgeweave.innate.charged_leap.description",
                 "Hold right-click to charge, then release to leap; the longer the charge, the further the jump.");
@@ -355,6 +357,11 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("tooltip.forgeweave.innate.beheading.name", "Beheading");
         add("tooltip.forgeweave.innate.beheading.description",
                 "A killing blow may drop the victim's head. Adds to the Beheading modifier.");
+        // #303 -- the warmace's, same key family. Its smash is vanilla's own mace (WarmaceItem), so
+        // this is the tooltip half only; the numbers themselves are vanilla's, not restated here.
+        add("tooltip.forgeweave.innate.smash.name", "Smash");
+        add("tooltip.forgeweave.innate.smash.description",
+                "Striking while falling deals more damage the further you fell, and the landing leaves you unhurt.");
         add("tooltip.forgeweave.innate.sunder.name", "Sunder");
         add("tooltip.forgeweave.innate.sunder.description",
                 "Disables an active shield and deals bonus damage against a blocking target.");
