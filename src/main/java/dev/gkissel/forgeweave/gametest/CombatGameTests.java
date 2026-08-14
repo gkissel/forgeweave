@@ -24,7 +24,9 @@ import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.combat.CombatHit;
 import dev.gkissel.forgeweave.combat.CombatSeam;
 import dev.gkissel.forgeweave.combat.CombatSeams;
+import dev.gkissel.forgeweave.item.ForgeweaveDataComponents;
 import dev.gkissel.forgeweave.item.ForgeweaveItems;
+import dev.gkissel.forgeweave.tool.ToolStats;
 
 /**
  * docs/SCOPE.md M3 issue #150's verification (ADR-0005): the attack attributes an assembled tool
@@ -107,6 +109,33 @@ public class CombatGameTests {
         }
 
         target.discard();
+        helper.succeed();
+    }
+
+    /**
+     * Issue #295 sanity check: a real, Tool-Station-assembled pickaxe whose attack damage is pushed
+     * past its (default 15) cutoff shows the curved number, not the raw one, on the actual
+     * {@code ATTACK_DAMAGE} attribute modifier vanilla combat reads. The 20-raw / 15-cutoff / 19.5
+     * expected number is the same one {@code ToolItemTest#calcCutoffDamageMatchesUpstreamsGeometricFalloff}
+     * pins directly against upstream's formula; this test only proves the wiring from a real assembled
+     * stack through {@code ToolItem#getDefaultAttributeModifiers} reaches it.
+     */
+    @GameTest(template = "empty")
+    public static void attackDamageAttributeReflectsTheCutoffCurve(GameTestHelper helper) {
+        BlockPos pos = new BlockPos(1, 1, 1);
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        ItemStack pickaxe = ToolAssembly.pickaxe(helper, player, pos, "stone", "wood", "wood");
+
+        // Force the assembled tool's attack past its cutoff -- easier to pin than hunting for a
+        // material combination that happens to land past 15 on its own.
+        ToolStats.Stats stats = pickaxe.get(ForgeweaveDataComponents.TOOL_STATS.get());
+        pickaxe.set(ForgeweaveDataComponents.TOOL_STATS.get(),
+                new ToolStats.Stats(stats.durability(), stats.miningSpeed(), 20.0F));
+
+        double damage = modifier(pickaxe, Attributes.ATTACK_DAMAGE.getKey(), "pickaxe");
+        helper.assertTrue(Math.abs(damage - 19.5) < 0.001,
+                "20 raw attack on the pickaxe's default 15 cutoff must read 19.5 on the attribute, got " + damage);
+
         helper.succeed();
     }
 

@@ -86,6 +86,11 @@ public final class ToolConstants {
      * @param durabilitySkipsExtraAndHandle Battleaxe only: its durability is the head average plus the
      *     binding's flat percentage (via {@code durabilityMultiplier}), not the usual extra/handle
      *     chain
+     * @param damageCutoff upstream {@code ToolCore#damageCutoff()} (issue #295): the per-hit damage
+     *     value above which {@code ToolItem#attackDamage} starts applying diminishing returns
+     *     ({@link #DEFAULT_DAMAGE_CUTOFF} for every tool that doesn't override it -- Rapier 13,
+     *     LongSword 18, Cleaver 25, BattleAxe 30 are upstream's four overrides, the only tool classes
+     *     in {@code tools/melee}/{@code tools/harvest} that touch {@code damageCutoff()} at all)
      */
     public record Entry(
             String id,
@@ -97,7 +102,20 @@ public final class ToolConstants {
             float durabilityMultiplier,
             float miningSpeedModifier,
             boolean sumHeadsForAttack,
-            boolean durabilitySkipsExtraAndHandle) {}
+            boolean durabilitySkipsExtraAndHandle,
+            float damageCutoff) {
+
+        /** Convenience constructor for the {@link #DEFAULT_DAMAGE_CUTOFF} every tool but the four upstream overrides uses. */
+        public Entry(String id, List<PartSlot> parts, float attackSpeed, float damagePotential,
+                float preAttackMultiplier, float flatAttackBonus, float durabilityMultiplier,
+                float miningSpeedModifier, boolean sumHeadsForAttack, boolean durabilitySkipsExtraAndHandle) {
+            this(id, parts, attackSpeed, damagePotential, preAttackMultiplier, flatAttackBonus, durabilityMultiplier,
+                    miningSpeedModifier, sumHeadsForAttack, durabilitySkipsExtraAndHandle, DEFAULT_DAMAGE_CUTOFF);
+        }
+    }
+
+    /** Upstream {@code ToolCore#damageCutoff()}'s own default -- see {@link Entry#damageCutoff}. */
+    public static final float DEFAULT_DAMAGE_CUTOFF = 15.0f;
 
     private static final String TOOL_HANDLE = "tool_handle";
     private static final String TOOL_BINDING = "tool_binding";
@@ -113,17 +131,23 @@ public final class ToolConstants {
                     new PartSlot(Role.EXTRA, "wide_guard")),
             1.6f, 1.0f, 1.0f, 1.0f, 1.1f, 1.0f, false, false);
 
-    /** Upstream {@code tools/melee/item/LongSword.java}: charged-leap sword, hand guard. */
+    /**
+     * Upstream {@code tools/melee/item/LongSword.java}: charged-leap sword, hand guard.
+     * {@code damageCutoff() = 18f} (issue #295), one of upstream's four overrides.
+     */
     public static final Entry LONGSWORD = new Entry("longsword",
             List.of(new PartSlot(Role.HANDLE, TOOL_HANDLE), new PartSlot(Role.HEAD, "sword_blade"),
                     new PartSlot(Role.EXTRA, "hand_guard")),
-            1.4f, 1.1f, 1.0f, 0.5f, 1.05f, 1.0f, false, false);
+            1.4f, 1.1f, 1.0f, 0.5f, 1.05f, 1.0f, false, false, 18.0f);
 
-    /** Upstream {@code tools/melee/item/Rapier.java}: fast hybrid-damage sword, cross guard. */
+    /**
+     * Upstream {@code tools/melee/item/Rapier.java}: fast hybrid-damage sword, cross guard.
+     * {@code damageCutoff() = 13f} (issue #295), one of upstream's four overrides.
+     */
     public static final Entry RAPIER = new Entry("rapier",
             List.of(new PartSlot(Role.HANDLE, TOOL_HANDLE), new PartSlot(Role.HEAD, "sword_blade"),
                     new PartSlot(Role.EXTRA, "cross_guard")),
-            3.0f, 0.55f, 1.0f, 0.0f, 0.8f, 1.0f, false, false);
+            3.0f, 0.55f, 1.0f, 0.0f, 0.8f, 1.0f, false, false, 13.0f);
 
     /** Upstream {@code tools/melee/item/BattleSign.java}: blocking/reflecting sign, no extra part. */
     public static final Entry BATTLESIGN = new Entry("battlesign",
@@ -153,18 +177,23 @@ public final class ToolConstants {
      * decision 2026-08-12 -- upstream's own unshipped numbers are explicitly not adopted. Damage
      * sums (not averages) its two heads; durability is the head average plus a flat 10% from the
      * binding, skipping the usual extra/handle chain -- see {@link Entry#sumHeadsForAttack}/
-     * {@link Entry#durabilitySkipsExtraAndHandle}.
+     * {@link Entry#durabilitySkipsExtraAndHandle}. {@code damageCutoff} stays at
+     * {@link #DEFAULT_DAMAGE_CUTOFF} (issue #295) rather than upstream's unshipped {@code 30f}: it is
+     * one more damage-tuning number the same "not adopted" decision above already covers.
      */
     public static final Entry BATTLEAXE = new Entry("battleaxe",
             List.of(new PartSlot(Role.HANDLE, TOUGH_TOOL_HANDLE), new PartSlot(Role.HEAD, "broad_axe_head"),
                     new PartSlot(Role.HEAD, "broad_axe_head"), new PartSlot(Role.EXTRA, TOUGH_BINDING)),
             0.95f, 1.0f, 1.2f, 0.0f, 1.10f, 0.6f, true, true);
 
-    /** Upstream {@code tools/melee/item/Cleaver.java}: head+shield average, pre-multiply then bonus. */
+    /**
+     * Upstream {@code tools/melee/item/Cleaver.java}: head+shield average, pre-multiply then bonus.
+     * {@code damageCutoff() = 25f} (issue #295), one of upstream's four overrides.
+     */
     public static final Entry CLEAVER = new Entry("cleaver",
             List.of(new PartSlot(Role.HANDLE, TOUGH_TOOL_HANDLE), new PartSlot(Role.HEAD, "large_sword_blade"),
                     new PartSlot(Role.HEAD, "large_plate"), new PartSlot(Role.EXTRA, TOUGH_TOOL_HANDLE)),
-            0.7f, 1.2f, 1.3f, 3.0f, 2.0f, 1.0f, false, false);
+            0.7f, 1.2f, 1.3f, 3.0f, 2.0f, 1.0f, false, false, 25.0f);
 
     /** Upstream {@code tools/tools/Hammer.java}: hammer head weighted double over two large plates. */
     public static final Entry HAMMER = new Entry("hammer",

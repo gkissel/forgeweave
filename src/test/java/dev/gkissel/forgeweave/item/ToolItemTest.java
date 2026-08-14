@@ -179,4 +179,64 @@ class ToolItemTest {
                 .filter(entry -> entry.attribute() == attribute)
                 .findFirst();
     }
+
+    // --------------------------------------------------------------------------- #295: damage cutoff
+
+    /**
+     * Pins {@link ToolItem#calcCutoffDamage} against upstream 1.12's {@code ToolHelper#calcCutoffDamage}
+     * (tinkers-1.12 {@code library/utils/ToolHelper.java}, pinned commit in NOTICE.md):
+     *
+     * <pre>
+     * float p = 1f;
+     * float d = damage;
+     * damage = 0f;
+     * while(d &gt; cutoff) {
+     *   damage += p * cutoff;
+     *   if(p &gt; 0.001f) { p *= 0.9f; } else { damage += p * cutoff * ((d / cutoff) - 1f); return damage; }
+     *   d -= cutoff;
+     * }
+     * damage += p * d;
+     * return damage;
+     * </pre>
+     *
+     * <p>Values below hand-computed from that formula: 20 raw damage on the default 15 cutoff is one
+     * 15-sized full chunk plus a 5-sized remainder at the first 0.9x step, {@code 15 + 0.9*5 = 19.5}.
+     * Rapier (13) and LongSword (18) get their own worked examples since issue #295 names them
+     * explicitly, and a three-chunk case (cutoff 15, 50 raw) exercises the geometric falloff compounding
+     * across more than one step: {@code 15 + 0.9*15 + 0.81*15 + 0.729*5 = 44.295}.
+     */
+    @Test
+    void calcCutoffDamageMatchesUpstreamsGeometricFalloff() {
+        // At or below the cutoff, the damage is unchanged.
+        assertEquals(10.0F, ToolItem.calcCutoffDamage(10.0F, 15.0F), 1.0e-4F);
+        assertEquals(15.0F, ToolItem.calcCutoffDamage(15.0F, 15.0F), 1.0e-4F);
+
+        // Default 15 cutoff, 20 raw: one full 15 chunk, then a 5-sized remainder at 0.9x.
+        assertEquals(19.5F, ToolItem.calcCutoffDamage(20.0F, 15.0F), 1.0e-4F);
+
+        // Rapier's 13 cutoff, 20 raw: 13 + 0.9*7 = 19.3.
+        assertEquals(19.3F, ToolItem.calcCutoffDamage(20.0F, 13.0F), 1.0e-4F);
+
+        // LongSword's 18 cutoff, 20 raw: 18 + 0.9*2 = 19.8.
+        assertEquals(19.8F, ToolItem.calcCutoffDamage(20.0F, 18.0F), 1.0e-4F);
+
+        // Three full chunks past the default 15 cutoff: 15 + 0.9*15 + 0.81*15 + 0.729*5 = 44.295.
+        assertEquals(44.295F, ToolItem.calcCutoffDamage(50.0F, 15.0F), 1.0e-3F);
+    }
+
+    /**
+     * End to end: {@link ToolItem#attackDamage} runs its result through {@link ToolItem#calcCutoffDamage}
+     * with the tool's own {@code damageCutoff} -- the M1 pickaxe defaults to 15 (no upstream override).
+     */
+    @Test
+    void attackDamageAppliesTheToolsCutoff() {
+        ItemStack overCutoff = assembledPickaxe();
+        overCutoff.set(ForgeweaveDataComponents.TOOL_STATS.get(), new ToolStats.Stats(160, 4.0F, 20.0F));
+        assertEquals(19.5F, ForgeweaveItems.TOOL_PICKAXE.get().attackDamage(overCutoff), 1.0e-4F,
+                "20 raw attack on the default 15 cutoff must fall to 19.5, matching calcCutoffDamage");
+
+        ItemStack underCutoff = assembledPickaxe();
+        assertEquals(3.0F, ForgeweaveItems.TOOL_PICKAXE.get().attackDamage(underCutoff), 1.0e-4F,
+                "below the cutoff, attack damage must be unaffected");
+    }
 }

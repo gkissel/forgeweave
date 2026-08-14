@@ -20,6 +20,7 @@ import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.RegistryOps;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.Bootstrap;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.world.item.ItemStack;
@@ -58,13 +59,64 @@ class ModifierBatch1Test {
     @Test
     void sharpnessRaisesAttackDamageTheWayUpstreamDoes() {
         assertEquals(72, ForgeweaveModifiers.SHARPNESS.unitsPerLevel(), "upstream new ModSharpness(72)");
-        assertEquals(3.0F + 0.05F - 0.025F * 3.0F / 10.0F, ForgeweaveModifiers.SHARPNESS.attackDamage(1, 3.0F), 1.0e-5F);
-        assertTrue(ForgeweaveModifiers.SHARPNESS.attackDamage(72, 3.0F) > ForgeweaveModifiers.SHARPNESS.attackDamage(71, 3.0F),
+        assertEquals(3.0F + 0.05F - 0.025F * 3.0F / 10.0F, ForgeweaveModifiers.SHARPNESS.attackDamage(1, 3.0F, 3.0F), 1.0e-5F);
+        assertTrue(ForgeweaveModifiers.SHARPNESS.attackDamage(72, 3.0F, 3.0F) > ForgeweaveModifiers.SHARPNESS.attackDamage(71, 3.0F, 3.0F),
                 "every quartz is worth something, and the 72nd also completes a level");
         // A completed level adds a flat 0.25 on top of the per-quartz diminishing curve.
-        float justBelowLevel = ForgeweaveModifiers.SHARPNESS.attackDamage(71, 3.0F);
-        float atLevel = ForgeweaveModifiers.SHARPNESS.attackDamage(72, 3.0F);
+        float justBelowLevel = ForgeweaveModifiers.SHARPNESS.attackDamage(71, 3.0F, 3.0F);
+        float atLevel = ForgeweaveModifiers.SHARPNESS.attackDamage(72, 3.0F, 3.0F);
         assertTrue(atLevel - justBelowLevel > 0.25F, "the 72nd quartz's own step plus the flat level bonus");
+    }
+
+    /**
+     * Issue #295: upstream {@code ModSharpness#applyEffect} seeds its diminishing-returns curve from
+     * {@code getOriginalToolStats().attack} -- the tool's untouched materials-derived stat -- never from
+     * the running total other modifiers may already have folded in, then adds only the curve's own
+     * delta on top of that running total:
+     *
+     * <pre>
+     * ToolNBT toolData = TagUtil.getOriginalToolStats(rootCompound);
+     * float attack = toolData.attack;
+     * // ...simulate the curve `data.current` times, starting from toolData.attack...
+     * attack -= toolData.attack;
+     * attack += tag.getFloat(Tags.ATTACK);
+     * tag.setFloat(Tags.ATTACK, attack);
+     * </pre>
+     *
+     * <p>Base 8.0 attack (below the 10-damage threshold), one prior modifier already folded to a
+     * running 9.0 (e.g. diamond's {@code +1}), one quartz applied: the correct seed is the untouched
+     * 8.0, giving a per-quartz step of {@code 0.05 - 0.025*8.0/10 = 0.03}, landing at
+     * {@code 9.0 + 0.03 = 9.03}. Seeding from the already-folded 9.0 instead (the bug) would give
+     * {@code 0.05 - 0.025*9.0/10 = 0.0275}, landing at {@code 9.0275} -- a different, wrong number this
+     * test would catch.
+     */
+    @Test
+    void sharpnessSeedsItsCurveFromTheOriginalBaseNotTheRunningTotal() {
+        float base = 8.0F;
+        float runningAfterEarlierModifiers = 9.0F; // e.g. diamond's flat +1 already folded in
+        assertEquals(9.03F, ForgeweaveModifiers.SHARPNESS.attackDamage(1, runningAfterEarlierModifiers, base), 1.0e-5F,
+                "sharpness must seed its curve from the untouched base (8.0), not the running total (9.0)");
+    }
+
+    /**
+     * End to end, through {@link ForgeweaveModifiers#effectiveStats}: diamond folds first, then
+     * sharpness -- the same 8.0-base / 9.03-expected scenario as the unit test above, but exercised
+     * through the real modifier list and {@code Tool Station}-shaped fixture rather than calling the
+     * hook directly.
+     */
+    @Test
+    void sharpnessAfterDiamondStillSeedsFromTheOriginalBase() {
+        ToolStats.Stats base = new ToolStats.Stats(160, 4.0F, 8.0F);
+        ItemStack tool = new ItemStack(ForgeweaveItems.TOOL_PICKAXE.get());
+        tool.set(ForgeweaveDataComponents.TOOL_STATS.get(), base);
+        tool.set(ForgeweaveDataComponents.MODIFIERS.get(), List.of(
+                new ModifierEntry(ResourceLocation.fromNamespaceAndPath("forgeweave", "diamond"), 1),
+                new ModifierEntry(ResourceLocation.fromNamespaceAndPath("forgeweave", "sharpness"), 1)));
+
+        ToolStats.Stats effective = ForgeweaveModifiers.effectiveStats(tool);
+
+        assertEquals(9.03F, effective.attackDamage(), 1.0e-5F,
+                "diamond's +1 (8.0 -> 9.0) then one quartz seeded from the original 8.0 base -> 9.03");
     }
 
     /** End to end: applying quartz through the shipped recipe raises the tool's effective attack damage. */

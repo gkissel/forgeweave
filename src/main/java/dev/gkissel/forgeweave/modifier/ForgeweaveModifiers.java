@@ -218,7 +218,7 @@ public final class ForgeweaveModifiers {
         }
 
         @Override
-        public float attackDamage(int level, float attackDamage) {
+        public float attackDamage(int level, float attackDamage, float baseAttackDamage) {
             return level > 0 ? attackDamage + DIAMOND_ATTACK_BONUS : attackDamage;
         }
 
@@ -268,6 +268,12 @@ public final class ForgeweaveModifiers {
      * {@code +0.05} tapering to {@code +0.025} below 10 damage, {@code +0.025} tapering to
      * {@code +0.015} below 20, a flat {@code +0.015} above -- plus a flat {@code +0.25} per completed
      * level (72 quartz) on top, undiminished.
+     *
+     * <p>Issue #295: the curve is seeded from {@code baseAttackDamage} -- the tool's untouched
+     * materials-derived stat, upstream's {@code getOriginalToolStats().attack} -- never from
+     * {@code attackDamage}'s running total, which earlier modifiers in the list (diamond, silky) may
+     * already have folded in. Only the curve's own delta rides on top of that running total, matching
+     * upstream's {@code attack -= toolData.attack; attack += tag.getFloat(Tags.ATTACK);}.
      */
     public static final Modifier SHARPNESS = new Modifier() {
         @Override
@@ -276,8 +282,8 @@ public final class ForgeweaveModifiers {
         }
 
         @Override
-        public float attackDamage(int level, float attackDamage) {
-            float attack = attackDamage;
+        public float attackDamage(int level, float attackDamage, float baseAttackDamage) {
+            float attack = baseAttackDamage;
             for (int count = level; count > 0; count--) {
                 if (attack <= SHARPNESS_STEP_1) {
                     attack += 0.05F - 0.025F * attack / SHARPNESS_STEP_1;
@@ -287,7 +293,8 @@ public final class ForgeweaveModifiers {
                     attack += 0.015F;
                 }
             }
-            return attack + level / SHARPNESS_QUARTZ_PER_LEVEL * 0.25F;
+            float delta = attack - baseAttackDamage + level / SHARPNESS_QUARTZ_PER_LEVEL * 0.25F;
+            return attackDamage + delta;
         }
     };
 
@@ -405,7 +412,7 @@ public final class ForgeweaveModifiers {
         }
 
         @Override
-        public float attackDamage(int level, float attackDamage) {
+        public float attackDamage(int level, float attackDamage, float baseAttackDamage) {
             return level > 0 ? Math.max(1.0F, attackDamage - SILKY_STAT_PENALTY) : attackDamage;
         }
 
@@ -901,7 +908,7 @@ public final class ForgeweaveModifiers {
             Modifier modifier = get(entry.id());
             if (modifier != null) {
                 miningSpeed = modifier.miningSpeed(entry.level(), miningSpeed);
-                attackDamage = modifier.attackDamage(entry.level(), attackDamage);
+                attackDamage = modifier.attackDamage(entry.level(), attackDamage, base.attackDamage());
                 durability = modifier.durability(entry.level(), durability, base.durability());
             }
         }
