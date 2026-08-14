@@ -17,6 +17,9 @@ import net.minecraft.world.level.material.Fluids;
 
 import net.neoforged.neoforge.fluids.FluidStack;
 
+import dev.gkissel.forgeweave.menu.SmelteryMenu;
+import dev.gkissel.forgeweave.recipe.MeltingRecipe;
+
 /**
  * Guards the smeltery GUI's two pieces of arithmetic (issue #101), both of which upstream 1.12 ships
  * as loops that are easy to get subtly wrong and impossible to notice in a screenshot.
@@ -43,10 +46,15 @@ class SmelteryTooltipTest {
     private static final int INGOT = 144;
     private static final int NUGGET = 16;
     private static final int BLOCK = 1296;
+    private static final int GEM = 666;
 
     private static List<Component> breakdown(int amount, boolean bucketsOnly) {
+        return breakdown(amount, bucketsOnly, false);
+    }
+
+    private static List<Component> breakdown(int amount, boolean bucketsOnly, boolean gemValued) {
         List<Component> tooltip = new ArrayList<>();
-        SmelteryScreen.addAmount(tooltip, amount, bucketsOnly);
+        SmelteryScreen.addAmount(tooltip, amount, bucketsOnly, gemValued);
         return tooltip;
     }
 
@@ -93,6 +101,41 @@ class SmelteryTooltipTest {
         assertEquals(List.of(), breakdown(0, false));
     }
 
+    /* Gem-valued fluids (#377: molten emerald, live since #361) */
+
+    @Test
+    void aGemFluidIsCountedInGemsNotIngots() {
+        // Upstream Material.VALUE_Gem: one emerald is 666 mB, and the metal cascade has no unit that
+        // divides it -- 666 through blocks/ingots/nuggets reads "4 Ingots, 5 Nuggets, 10 mb".
+        assertEquals(List.of(unit(1, "gem")), breakdown(GEM, false, true));
+    }
+
+    @Test
+    void aGemFluidNeverReportsBlocksOrIngots() {
+        // The regression a flat "add 666 to the shared cascade" would have shipped, from the other
+        // side: nothing casts molten emerald into a block or an ingot, so neither unit may appear.
+        for (int gems = 1; gems <= 20; gems++) {
+            for (Component line : breakdown(gems * GEM, false, true)) {
+                String key = line.getSiblings().get(0).getContents().toString();
+                assertTrue(!key.contains("liquid.block") && !key.contains("liquid.ingot")
+                                && !key.contains("liquid.nugget"),
+                        gems + " gems reported a metal unit: " + key);
+            }
+        }
+    }
+
+    @Test
+    void aMetalFluidIsNeverBrokenIntoGems() {
+        // The regression the gem unit could have shipped: 720 mB of iron is five ingots, and must
+        // not become "1 Gems, 3 Nuggets, 6 mb" just because a gem-valued fluid now exists.
+        assertEquals(List.of(unit(5, "ingot")), breakdown(5 * INGOT, false));
+    }
+
+    @Test
+    void shiftDropsTheGemUnitTheSameWayItDropsTheMetalOnes() {
+        assertEquals(List.of(unit(1, "bucket"), unit(332, "millibucket")), breakdown(2 * GEM, true, true));
+    }
+
     /**
      * The invariant the individual cases above are examples of: whatever units come out, they add
      * back up to what went in. Swept across every amount a smeltery can hold rather than spot-checked,
@@ -101,13 +144,15 @@ class SmelteryTooltipTest {
     @Test
     void everyAmountDecomposesWithoutLosingOrInventingMillibuckets() {
         for (boolean bucketsOnly : new boolean[] {false, true}) {
-            for (int amount = 0; amount <= 20_000; amount++) {
-                int total = 0;
-                for (Component line : breakdown(amount, bucketsOnly)) {
-                    total += valueOf(line, bucketsOnly);
+            for (boolean gemValued : new boolean[] {false, true}) {
+                for (int amount = 0; amount <= 20_000; amount++) {
+                    int total = 0;
+                    for (Component line : breakdown(amount, bucketsOnly, gemValued)) {
+                        total += valueOf(line, bucketsOnly);
+                    }
+                    assertEquals(amount, total, "breakdown of " + amount + " mb (bucketsOnly="
+                            + bucketsOnly + ", gemValued=" + gemValued + ") does not add back up");
                 }
-                assertEquals(amount, total,
-                        "breakdown of " + amount + " mb (bucketsOnly=" + bucketsOnly + ") does not add back up");
             }
         }
     }
@@ -119,13 +164,14 @@ class SmelteryTooltipTest {
         int n = Integer.parseInt(count.replaceAll("\\D", ""));
         String key = line.getSiblings().get(0).getContents().toString();
         int unit = key.contains("liquid.block") ? BLOCK
+                : key.contains("liquid.gem") ? GEM
                 : key.contains("liquid.ingot") ? INGOT
                 : key.contains("liquid.nugget") ? NUGGET
                 : key.contains("liquid.kilobucket") ? 1_000_000
                 : key.contains("liquid.bucket") ? 1_000
                 : 1;
-        assertTrue(!bucketsOnly || (unit != BLOCK && unit != INGOT && unit != NUGGET),
-                "shift is meant to drop the metal units, but got " + key);
+        assertTrue(!bucketsOnly || (unit != BLOCK && unit != GEM && unit != INGOT && unit != NUGGET),
+                "shift is meant to drop the material units, but got " + key);
         return n * unit;
     }
 
@@ -224,5 +270,82 @@ class SmelteryTooltipTest {
     /** A fluid stack of the given amount; which fluid it is never reaches the height maths. */
     private static FluidStack stack(int amount) {
         return new FluidStack(Fluids.WATER, amount);
+    }
+
+    /* Melt-slot stall diagnostics (#377) */
+
+    /** Lava's own working heat, and a recipe that needs more of it than lava has. */
+    private static final int LAVA = 1300;
+    private static final int AMBIENT = MeltingRecipe.AMBIENT_TEMPERATURE;
+
+    @Test
+    void aStalledSlotIsExplainedAsNoSpace() {
+        assertEquals("progress.no_space", SmelteryScreen.stallReason(true, LAVA, 100));
+    }
+
+    @Test
+    void aStalledSlotIsStillExplainedAsNoSpaceWhenTheFuelAlsoRanOut() {
+        // Deliberately not upstream's branch order (it tests no_fuel before its overheat state): the
+        // drawn bar is already the stalled variant here, and a bar saying "full" over a tooltip
+        // saying "no fuel" is worse than either message alone. The melt is done; the tank is the
+        // thing to fix.
+        assertEquals("progress.no_space", SmelteryScreen.stallReason(true, 0, 100));
+    }
+
+    @Test
+    void aSmelteryWithNothingBurnableInReachIsExplainedAsNoFuel() {
+        assertEquals("progress.no_fuel", SmelteryScreen.stallReason(false, 0, 100));
+    }
+
+    @Test
+    void aRecipeHotterThanTheFuelIsExplainedAsNoHeat() {
+        // The GameTest fixture's 1400-degree recipe that "lava's own 1300 degrees can never reach".
+        assertEquals("progress.no_heat", SmelteryScreen.stallReason(false, LAVA, 1400 - AMBIENT));
+    }
+
+    @Test
+    void aSlotTheSmelteryIsExactlyHotEnoughForHasNothingToExplain() {
+        // The boundary SmelteryControllerBlockEntity#meltTick uses: it skips a slot when the
+        // smeltery's heat is strictly less than the recipe's, so equal heat melts and says nothing.
+        assertEquals(null, SmelteryScreen.stallReason(false, LAVA, LAVA - AMBIENT));
+        assertEquals("progress.no_heat", SmelteryScreen.stallReason(false, LAVA, LAVA - AMBIENT + 1));
+    }
+
+    /* Heat-bar hit box (#377) */
+
+    @Test
+    void theHeatBarHitBoxIsTheDrawnBarAndNotTheWholeCell() {
+        assertEquals(0, SmelteryScreen.heatBarAt(0, 1, 1), "the bar's own top-left pixel");
+        assertEquals(0, SmelteryScreen.heatBarAt(0, 3, 16), "the bar's own bottom-right pixel");
+        assertEquals(-1, SmelteryScreen.heatBarAt(0, 0, 0), "the 1px bevel above and left of the bar");
+        assertEquals(-1, SmelteryScreen.heatBarAt(0, 4, 1), "the slot beside the bar is not the bar");
+        assertEquals(-1, SmelteryScreen.heatBarAt(0, 1, 17), "the cell's last row is below the 16px bar");
+        assertEquals(-1, SmelteryScreen.heatBarAt(0, -1, 1), "left of the grid entirely");
+        assertEquals(-1, SmelteryScreen.heatBarAt(0, 1, -1), "above the grid entirely");
+    }
+
+    @Test
+    void everyCellsBarMapsBackToTheSlotDrawnInIt() {
+        for (int row = 0; row < SmelteryMenu.MELT_VISIBLE_ROWS; row++) {
+            for (int col = 0; col < SmelteryMenu.MELT_COLUMNS; col++) {
+                int x = col * SmelteryMenu.CELL_WIDTH + 1;
+                int y = row * SmelteryMenu.SLOT_SIZE + 1;
+                assertEquals(row * SmelteryMenu.MELT_COLUMNS + col, SmelteryScreen.heatBarAt(0, x, y),
+                        "bar at row " + row + ", column " + col);
+            }
+        }
+        assertEquals(-1, SmelteryScreen.heatBarAt(0, SmelteryMenu.MELT_COLUMNS * SmelteryMenu.CELL_WIDTH + 1, 1),
+                "a fourth column is off the grid");
+        assertEquals(-1, SmelteryScreen.heatBarAt(0, 1, SmelteryMenu.MELT_VISIBLE_ROWS * SmelteryMenu.SLOT_SIZE + 1),
+                "a fourth row is off the grid");
+    }
+
+    @Test
+    void scrollingShiftsWhichSlotABarBelongsTo() {
+        // The window shows rows scrollRow..scrollRow+2, so the top-left bar is the first slot of
+        // whichever row is scrolled to -- the same offset renderHeatBars indexes with.
+        assertEquals(SmelteryMenu.MELT_COLUMNS, SmelteryScreen.heatBarAt(1, 1, 1));
+        assertEquals(4 * SmelteryMenu.MELT_COLUMNS + 2,
+                SmelteryScreen.heatBarAt(2, 2 * SmelteryMenu.CELL_WIDTH + 1, 2 * SmelteryMenu.SLOT_SIZE + 1));
     }
 }

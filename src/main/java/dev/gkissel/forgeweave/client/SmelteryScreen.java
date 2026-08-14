@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+import javax.annotation.Nullable;
+
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
@@ -27,8 +29,11 @@ import net.neoforged.neoforge.client.extensions.common.IClientFluidTypeExtension
 import net.neoforged.neoforge.fluids.FluidStack;
 
 import dev.gkissel.forgeweave.Forgeweave;
+import dev.gkissel.forgeweave.casting.CastingRecipe;
+import dev.gkissel.forgeweave.item.ForgeweaveItems;
 import dev.gkissel.forgeweave.menu.ForgeweaveMenus;
 import dev.gkissel.forgeweave.menu.SmelteryMenu;
+import dev.gkissel.forgeweave.recipe.MeltingRecipe;
 
 /**
  * The smeltery controller's GUI (docs/SCOPE.md M2 issue #101), ported from upstream 1.12's {@code
@@ -115,20 +120,27 @@ public class SmelteryScreen extends StationScreen<SmelteryMenu> {
     private static final int BAR_HEIGHT = 16;
 
     /**
-     * Upstream {@code Material.VALUE_Block/VALUE_Ingot/VALUE_Nugget}, the unit sizes its fluid
-     * tooltips break an amount down into.
+     * Upstream {@code Material.VALUE_Block/VALUE_Ingot/VALUE_Nugget/VALUE_Gem}, the unit sizes its
+     * fluid tooltips break an amount down into.
      *
-     * <p>Upstream derives these by scanning every registered casting recipe for one that casts the
-     * fluid with no cast (a block), with an ingot cast, and so on. Casting has since landed (#100),
-     * so that scan is now possible here -- and still not worth it: every recipe it would find uses
-     * exactly these three numbers, so the scan is a per-tooltip registry walk that can only ever
-     * return the constants below. Derive them if a material ever ships with a non-standard ingot
-     * value; until then this is the same answer for less work.
+     * <p>Upstream derives these per fluid by scanning every registered casting recipe for one that
+     * casts it with no cast (a block), with an ingot cast, and so on ({@code
+     * GuiUtil#calcFluidGuiEntries}). Casting has since landed (#100), so that scan is possible here
+     * -- and still not worth doing in full: every recipe it would find uses exactly these numbers, so
+     * a full scan is a per-tooltip registry walk that can only ever return the constants below.
+     *
+     * <p>What the scan does still decide is <em>which</em> of them apply, and #361 made that a real
+     * question: molten emerald casts gems and nothing else, so running the metal cascade over it
+     * would report a gem and a half as "1 Blocks" and change. {@link #gemValued} asks the registry
+     * that one question -- does this fluid cast gems -- and the cascade picks a unit family from the
+     * answer. Split the families further (a fluid that casts both gems and ingots) only when one
+     * ships; today no fluid does.
      *
      * <p>Deliberately not {@code FaucetBlockEntity.TRANSACTION_AMOUNT}, which is also 144: that is a
      * faucet's pour rate, a different quantity that happens to coincide.
      */
     private static final int VALUE_BLOCK = 1296;
+    private static final int VALUE_GEM = 666;
     private static final int VALUE_INGOT = 144;
     private static final int VALUE_NUGGET = 16;
     private static final int VALUE_KILOBUCKET = 1_000_000;
@@ -201,6 +213,11 @@ public class SmelteryScreen extends StationScreen<SmelteryMenu> {
      * and in {@link #BAR_STALLED_U} rather than whatever fraction {@link SmelteryMenu#meltProgress}
      * happens to report, since that fraction pinned itself at 1.0 the instant the melt finished and
      * says nothing about the stall.
+     *
+     * <p>The bar is only half the explanation -- three of upstream's four variants are two shades of
+     * grey apart, and a player who has never seen the sheet cannot tell "no fuel" from "not hot
+     * enough" by looking. {@link #heatBarTooltip} is the other half (#377): hovering a bar says which
+     * of them it is in words.
      */
     private void renderHeatBars(GuiGraphics graphics, int slots, int gridLeft, int gridTop) {
         List<ItemStack> items = menu.meltingItems(level());
@@ -450,12 +467,112 @@ public class SmelteryScreen extends StationScreen<SmelteryMenu> {
             graphics.renderComponentTooltip(font, tankTooltip(mouseX, mouseY), mouseX, mouseY);
         } else if (isHovering(FUEL_X, FUEL_Y, FUEL_WIDTH, FUEL_HEIGHT, mouseX, mouseY)) {
             graphics.renderComponentTooltip(font, fuelTooltip(), mouseX, mouseY);
+        } else {
+            Component stall = heatBarTooltip(mouseX, mouseY);
+            if (stall != null) {
+                graphics.renderTooltip(font, stall, mouseX, mouseY);
+            }
         }
+    }
+
+    /**
+     * What the heat bar under the cursor has to say, or {@code null} -- upstream
+     * {@code GuiSmelterySideInventory}'s {@code tooltipText}, which is set only by the branches that
+     * picked a bar variant <em>because</em> the slot is not progressing. A slot melting normally has
+     * no tooltip there, and neither does an empty one.
+     */
+    @Nullable
+    private Component heatBarTooltip(int mouseX, int mouseY) {
+        Level level = level();
+        if (level == null) {
+            return null;
+        }
+        int index = heatBarAt(menu.scrollRow(),
+                mouseX - leftPos - SmelteryMenu.GRID_X - SmelteryMenu.GRID_BORDER,
+                mouseY - topPos - SmelteryMenu.GRID_Y - SmelteryMenu.GRID_BORDER);
+        List<ItemStack> items = menu.meltingItems(level);
+        if (index < 0 || index >= menu.meltSlotCount() || index >= items.size() || items.get(index).isEmpty()) {
+            return null;
+        }
+        int heatNeeded = MeltingRecipe.find(level.registryAccess(), items.get(index))
+                .map(recipe -> recipe.heatRequired() / MeltingRecipe.TIME_FACTOR)
+                .orElse(0);
+        String reason = stallReason(menu.meltStalled(level, index), menu.smelteryTemperature(level), heatNeeded);
+        return reason == null ? null : translate(reason);
+    }
+
+    /**
+     * Why a melt slot is not progressing, as the {@link #KEY_PREFIX} suffix its bar's hover tooltip
+     * shows, or {@code null} while it is melting normally.
+     *
+     * <p>The three reachable branches of upstream {@code GuiSmelterySideInventory}. Its fourth,
+     * {@code no_recipe}, is not reachable here for the reason {@link #BAR_STALLED_U}'s javadoc gives:
+     * a melt slot only ever holds something it already accepted as meltable.
+     *
+     * <p>The stall check goes first, where upstream tests its {@code no_fuel} branch before its
+     * overheat one. A slot that is both finished-and-stuck and out of fuel is already <em>drawn</em>
+     * in the stalled variant by {@link #renderHeatBars}, and a full-and-stalled bar whose tooltip
+     * says "no fuel" contradicts the picture it is attached to. The melt is done either way; the tank
+     * is the thing to fix.
+     *
+     * @param stalled     {@link SmelteryMenu#meltStalled}, upstream's {@code progress > 2f} overheat
+     *                    state -- the melt is done and the tank has nowhere to put it (#290)
+     * @param temperature the smeltery's working heat, {@code 0} when nothing burnable is in reach --
+     *                    upstream's {@code getFuel() == 0}
+     * @param heatNeeded  the recipe's own {@code heatRequired() / TIME_FACTOR}, which is the exact
+     *                    quantity {@code SmelteryControllerBlockEntity#meltTick} compares the
+     *                    smeltery's heat against before advancing a slot, so this line and the server
+     *                    can never disagree about whether a slot is too cold
+     */
+    @Nullable
+    static String stallReason(boolean stalled, int temperature, int heatNeeded) {
+        if (stalled) {
+            return "progress.no_space";
+        }
+        if (temperature <= 0) {
+            return "progress.no_fuel";
+        }
+        return temperature - MeltingRecipe.AMBIENT_TEMPERATURE < heatNeeded ? "progress.no_heat" : null;
+    }
+
+    /**
+     * The melt slot whose heat bar covers {@code (x, y)}, measured from the grid's first cell, or
+     * {@code -1} -- the inverse of the cell walk {@link #renderHeatBars} draws with, so the hit box
+     * is the drawn bar and not the whole cell (the other 19px of which is the slot itself, whose own
+     * tooltip vanilla already renders).
+     */
+    static int heatBarAt(int scrollRow, int x, int y) {
+        if (x < 0 || y < 0) {
+            return -1;
+        }
+        int col = x / SmelteryMenu.CELL_WIDTH;
+        int row = y / SmelteryMenu.SLOT_SIZE;
+        if (col >= SmelteryMenu.MELT_COLUMNS || row >= SmelteryMenu.MELT_VISIBLE_ROWS) {
+            return -1;
+        }
+        // The bar is drawn 1px in from the cell's top-left corner; see renderHeatBars.
+        int barX = x - col * SmelteryMenu.CELL_WIDTH - 1;
+        int barY = y - row * SmelteryMenu.SLOT_SIZE - 1;
+        if (barX < 0 || barX >= BAR_WIDTH || barY < 0 || barY >= BAR_HEIGHT) {
+            return -1;
+        }
+        return (scrollRow + row) * SmelteryMenu.MELT_COLUMNS + col;
     }
 
     /**
      * Upstream {@code GuiUtil#getTankTooltip}: over a fluid, its name and how much of it there is;
      * over the empty headroom, the tank's capacity, free space and used space.
+     *
+     * <p><b>Recorded deviation, maintainer re-confirmed 2026-08-14 (#377).</b> The
+     * Capacity/Free/Used lines run the full {@link #addAmount} cascade, where upstream runs only
+     * {@code amountToIngotString} (ingots, then buckets) for those three and keeps the block/nugget
+     * breakdown for the hovered-fluid branch. Showing blocks and nuggets there too is strictly more
+     * information about the same number, and the three lines are the screen's answer to "how much
+     * more fits", which a player reads in blocks far more often than in ingots. Kept as-is.
+     *
+     * <p>Those three are also always the metal cascade: they are properties of the <em>tank</em>,
+     * which can hold any mix of fluids at once, so there is no one fluid whose unit family they could
+     * follow. Only the hovered-fluid branch, which does have a fluid, asks {@link #gemValued}.
      */
     private List<Component> tankTooltip(int mouseX, int mouseY) {
         List<FluidStack> fluids = menu.fluids(level());
@@ -464,7 +581,7 @@ public class SmelteryScreen extends StationScreen<SmelteryMenu> {
         if (hovered >= 0) {
             FluidStack fluid = fluids.get(hovered);
             tooltip.add(fluid.getHoverName().copy().withStyle(ChatFormatting.WHITE));
-            addAmount(tooltip, fluid.getAmount(), Screen.hasShiftDown());
+            addAmount(tooltip, fluid.getAmount(), Screen.hasShiftDown(), gemValued(level(), fluid));
             return tooltip;
         }
 
@@ -474,11 +591,11 @@ public class SmelteryScreen extends StationScreen<SmelteryMenu> {
         }
         int capacity = menu.capacity(level());
         tooltip.add(translate("capacity").withStyle(ChatFormatting.WHITE));
-        addAmount(tooltip, capacity, Screen.hasShiftDown());
+        addAmount(tooltip, capacity, Screen.hasShiftDown(), false);
         tooltip.add(translate("capacity_available"));
-        addAmount(tooltip, capacity - used, Screen.hasShiftDown());
+        addAmount(tooltip, capacity - used, Screen.hasShiftDown(), false);
         tooltip.add(translate("capacity_used"));
-        addAmount(tooltip, used, Screen.hasShiftDown());
+        addAmount(tooltip, used, Screen.hasShiftDown(), false);
         if (!Screen.hasShiftDown()) {
             tooltip.add(Component.empty());
             tooltip.add(Component.translatable("tooltip.forgeweave.hold_shift").withStyle(ChatFormatting.GRAY));
@@ -487,25 +604,34 @@ public class SmelteryScreen extends StationScreen<SmelteryMenu> {
     }
 
     /**
-     * Upstream {@code GuiHeatingStructureFuelTank#drawFuelTooltip}. The empty branch is all that can
-     * be reached today; issue #97's fuel state adds the fluid name and temperature lines here.
+     * Upstream {@code GuiHeatingStructureFuelTank#drawFuelTooltip}, all three of its branches (#377):
+     * nothing in reach, a fluid that burns (name, amount, the heat it burns at), or a fluid that does
+     * not (its name and the reason it will never burn, in red).
+     *
+     * <p>The heat line follows the <em>loaded fuel</em>, not an in-progress burn: upstream shows it
+     * whenever the tank holds something {@code TinkerRegistry.isSmelteryFuel} accepts, and a smeltery
+     * sitting idle over a full lava tank is exactly when a player most wants to be told it is hot
+     * enough. {@link SmelteryMenu#smelteryTemperature} is where the burn's temperature and the loaded
+     * fuel's own are reconciled.
      */
     private List<Component> fuelTooltip() {
         List<Component> tooltip = new ArrayList<>();
         tooltip.add(translate("fuel").withStyle(ChatFormatting.WHITE));
         FluidStack fuel = menu.fuel(level());
-        if (!fuel.isEmpty()) {
-            tooltip.add(fuel.getHoverName().copy());
-            addAmount(tooltip, fuel.getAmount(), Screen.hasShiftDown());
-        }
-        // #131's burn state, which unlike the fuel liquid is synced (see SmelteryMenu#fuel).
-        int temperature = menu.fuelTemperature(level());
-        if (temperature > 0) {
-            tooltip.add(Component.translatable(KEY_PREFIX + "fuel.heat", TemperatureText.format(temperature))
-                    .withStyle(ChatFormatting.GRAY));
-        } else if (fuel.isEmpty()) {
+        if (fuel.isEmpty()) {
             tooltip.add(translate("fuel.empty"));
+            return tooltip;
         }
+        if (menu.loadedFuel(level()).isEmpty()) {
+            tooltip.add(Component.translatable(KEY_PREFIX + "fuel.invalid", fuel.getHoverName())
+                    .withStyle(ChatFormatting.DARK_RED));
+            return tooltip;
+        }
+        tooltip.add(fuel.getHoverName().copy());
+        addAmount(tooltip, fuel.getAmount(), Screen.hasShiftDown(), gemValued(level(), fuel));
+        tooltip.add(Component.translatable(KEY_PREFIX + "fuel.heat",
+                        TemperatureText.format(menu.smelteryTemperature(level())))
+                .withStyle(ChatFormatting.GRAY));
         return tooltip;
     }
 
@@ -522,16 +648,41 @@ public class SmelteryScreen extends StationScreen<SmelteryMenu> {
      *
      * @param bucketsOnly the shift state, passed in rather than read from {@link Screen} so the
      *                    cascade is exercisable without a client
+     * @param gemValued   whether this is a gem fluid rather than a metal one ({@link #gemValued}),
+     *                    likewise passed in so the cascade needs no registry to be exercisable
      */
-    static void addAmount(List<Component> tooltip, int amount, boolean bucketsOnly) {
+    static void addAmount(List<Component> tooltip, int amount, boolean bucketsOnly, boolean gemValued) {
         if (!bucketsOnly) {
-            amount = addUnit(tooltip, amount, VALUE_BLOCK, "liquid.block");
-            amount = addUnit(tooltip, amount, VALUE_INGOT, "liquid.ingot");
-            amount = addUnit(tooltip, amount, VALUE_NUGGET, "liquid.nugget");
+            if (gemValued) {
+                amount = addUnit(tooltip, amount, VALUE_GEM, "liquid.gem");
+            } else {
+                amount = addUnit(tooltip, amount, VALUE_BLOCK, "liquid.block");
+                amount = addUnit(tooltip, amount, VALUE_INGOT, "liquid.ingot");
+                amount = addUnit(tooltip, amount, VALUE_NUGGET, "liquid.nugget");
+            }
         }
         amount = addUnit(tooltip, amount, VALUE_KILOBUCKET, "liquid.kilobucket");
         amount = addUnit(tooltip, amount, VALUE_BUCKET, "liquid.bucket");
         addUnit(tooltip, amount, 1, "liquid.millibucket");
+    }
+
+    /**
+     * Whether {@code fluid} is measured in gems rather than in blocks and ingots -- upstream's gem
+     * branch in {@code GuiUtil#calcFluidGuiEntries}, asked as the one registry question the constant
+     * cascade above cannot answer for itself.
+     *
+     * <p>A fluid qualifies by having a table casting recipe that pours it into the gem cast, which is
+     * exactly upstream's own test ({@code recipe.cast.matches(castGem)}). {@link CastingRecipe} is a
+     * synced datapack registry, so this is answerable client-side without a packet of its own; the
+     * walk is a registry scan per hovered tooltip, which is what upstream does too (behind a per-fluid
+     * cache it can afford because its recipe lists never reload).
+     */
+    static boolean gemValued(@Nullable Level level, FluidStack fluid) {
+        if (level == null || fluid.isEmpty()) {
+            return false;
+        }
+        return CastingRecipe.find(level.registryAccess().registryOrThrow(CastingRecipe.REGISTRY),
+                CastingRecipe.Station.TABLE, new ItemStack(ForgeweaveItems.CAST_GEM.get()), fluid.getFluid()) != null;
     }
 
     /** @return what is left of {@code amount} after taking out whole {@code unit}s. */

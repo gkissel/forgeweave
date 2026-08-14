@@ -137,6 +137,9 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("gui.forgeweave.smeltery.liquid.block", "Blocks");
         add("gui.forgeweave.smeltery.liquid.ingot", "Ingots");
         add("gui.forgeweave.smeltery.liquid.nugget", "Nuggets");
+        // #377: upstream's fourth unit, for fluids cast through the gem cast rather than an ingot
+        // one -- molten emerald since #361, at Material.VALUE_Gem = 666 mB apiece.
+        add("gui.forgeweave.smeltery.liquid.gem", "Gems");
         add("gui.forgeweave.smeltery.liquid.kilobucket", "kb");
         add("gui.forgeweave.smeltery.liquid.bucket", "b");
         add("gui.forgeweave.smeltery.liquid.millibucket", "mb");
@@ -146,6 +149,15 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         // gui.forgeweave.temperature.* component, so the unit follows the temperatureCelsius
         // preference (#276, upstream's Util#temperatureString).
         add("gui.forgeweave.smeltery.fuel.heat", "Temperature: %s");
+        // #377: upstream's gui.smeltery.fuel.invalid, shown when the wall tank holds a fluid the
+        // smeltery cannot burn. Its colour comes from the screen (upstream bakes a section sign into
+        // the string, which a Component cannot carry).
+        add("gui.forgeweave.smeltery.fuel.invalid", "%s is not a valid smeltery fuel!");
+        // #377: why a melt slot's heat bar is not advancing, upstream's gui.smeltery.progress.*.
+        // upstream's fourth, no_recipe, has no Forgeweave use -- see SmelteryScreen#stallReason.
+        add("gui.forgeweave.smeltery.progress.no_fuel", "No valid fuel in smeltery");
+        add("gui.forgeweave.smeltery.progress.no_heat", "Not enough heat to melt this item");
+        add("gui.forgeweave.smeltery.progress.no_space", "Not enough free space in the smeltery");
         add("gui.forgeweave.temperature.celsius", "%s°C");
         add("gui.forgeweave.temperature.kelvin", "%sK");
         add("tooltip.forgeweave.hold_shift", "Hold Shift for buckets");

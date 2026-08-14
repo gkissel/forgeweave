@@ -1,6 +1,7 @@
 package dev.gkissel.forgeweave.menu;
 
 import java.util.List;
+import java.util.Optional;
 
 import javax.annotation.Nullable;
 
@@ -18,6 +19,7 @@ import net.neoforged.neoforge.fluids.FluidStack;
 
 import dev.gkissel.forgeweave.block.SearedTankBlockEntity;
 import dev.gkissel.forgeweave.block.SmelteryControllerBlockEntity;
+import dev.gkissel.forgeweave.recipe.SmelteryFuel;
 
 /**
  * The smeltery controller's menu (docs/SCOPE.md M2 issue #101), ported from upstream 1.12's
@@ -294,6 +296,33 @@ public class SmelteryMenu extends StationMenu {
     public int fuelTemperature(@Nullable Level level) {
         SmelteryControllerBlockEntity core = core(level);
         return core == null ? 0 : core.fuelTemperatureForDisplay();
+    }
+
+    /**
+     * The registered fuel for whatever the wall tank in {@link #fuel} holds, or empty when that fluid
+     * cannot be burned -- upstream's {@code TinkerRegistry.isSmelteryFuel} check in
+     * {@code GuiHeatingStructureFuelTank#drawFuelTooltip} (#377).
+     *
+     * <p>Answerable on the client without any new packet: {@code SmelteryFuel} is a datapack registry
+     * registered with a network codec, so the server ships the whole fuel list at login (see
+     * {@code Forgeweave#registerDataPackRegistries}), and {@link #fuel} is already synced.
+     */
+    public Optional<SmelteryFuel> loadedFuel(@Nullable Level level) {
+        FluidStack fuel = fuel(level);
+        return level == null || fuel.isEmpty()
+                ? Optional.empty()
+                : SmelteryFuel.find(level.registryAccess(), fuel.getFluid());
+    }
+
+    /**
+     * The smeltery's working heat as far as the client can tell: the temperature an in-progress burn
+     * locked in, else the temperature the loaded fuel would burn at, else 0 (nothing burnable in
+     * reach) -- the client-visible half of {@link SmelteryControllerBlockEntity#currentTemperature()},
+     * which peeks into a wall tank and so is server-only.
+     */
+    public int smelteryTemperature(@Nullable Level level) {
+        int burning = fuelTemperature(level);
+        return burning > 0 ? burning : loadedFuel(level).map(SmelteryFuel::temperature).orElse(0);
     }
 
     /** Melt ticks left in the current burn; 0 when nothing is burning. */
