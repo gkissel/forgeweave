@@ -17,6 +17,7 @@ import net.minecraft.world.item.component.Tool;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.CropBlock;
+import net.minecraft.world.level.block.SugarCaneBlock;
 import net.minecraft.world.level.block.state.BlockState;
 
 import net.neoforged.neoforge.gametest.GameTestHolder;
@@ -160,6 +161,69 @@ public class MattockKamaGameTests {
 
         helper.assertBlockState(cropPos, state -> state.is(Blocks.WHEAT) && state.getValue(CropBlock.AGE) == 0,
                 () -> "expected the wheat to be replanted at age 0");
+        helper.succeed();
+    }
+
+    /**
+     * docs/SCOPE.md issue #298: the kama's {@code tool} component must carry a {@code mineable/*}
+     * rule (upstream {@code Kama#effective_materials}/{@code setHarvestLevel("shears", 0)}), not the
+     * empty list it shipped M3 with -- {@code minecraft:mineable/hoe} is the closest 1.21 tag to
+     * upstream's web/leaves/plants/vine/gourd/cactus set (it is what every leaf block sits in;
+     * vanilla has no block tag for the rest of that family), and the one the scythe already uses
+     * ({@link ForgeweaveItems#TOOL_SCYTHE}).
+     */
+    @GameTest(template = "empty")
+    public static void kamaIsEffectiveOnLeavesLikeMineableHoe(GameTestHelper helper) {
+        BlockPos pos = new BlockPos(1, 1, 1);
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        ItemStack kama = ToolAssembly.assemble(helper, player, pos, ToolAssembly.entryFor(ForgeweaveItems.TOOL_KAMA.get()), List.of("wood", "stone", "stone"));
+
+        Tool tool = kama.get(net.minecraft.core.component.DataComponents.TOOL);
+        helper.assertTrue(tool != null, "an assembled kama must carry a tool component");
+
+        BlockState leaves = Blocks.OAK_LEAVES.defaultBlockState();
+        helper.assertTrue(tool.isCorrectForDrops(leaves), "the kama must be correct-for-drops on leaves (mineable/hoe)");
+        helper.assertTrue(tool.getMiningSpeed(leaves) > 1.0F, "leaf-cutting speed must be above the default");
+        helper.succeed();
+    }
+
+    /**
+     * docs/SCOPE.md issue #298: {@link dev.gkissel.forgeweave.tool.CropHarvest}'s durability charge
+     * follows upstream's {@code crop != state} guard -- a mid-stalk sugar cane segment "replants" to
+     * the exact state it already had (its {@code AGE} growth-timer resets to the same 0 it started
+     * at), so nothing changed and the swing is free, unlike a mature wheat crop whose replanted age
+     * always differs from age 7.
+     */
+    @GameTest(template = "empty")
+    public static void kamaSkipsDurabilityWhenSugarCaneReplantsUnchanged(GameTestHelper helper) {
+        BlockPos standPos = new BlockPos(1, 2, 1);
+        BlockPos caneBase = new BlockPos(1, 1, 2);
+        BlockPos caneTop = caneBase.above();
+        BlockPos wheatPos = new BlockPos(3, 1, 2);
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        ItemStack kama = ToolAssembly.assemble(helper, player, standPos, ToolAssembly.entryFor(ForgeweaveItems.TOOL_KAMA.get()), List.of("wood", "stone", "stone"));
+        player.setItemInHand(InteractionHand.MAIN_HAND, kama);
+
+        // A two-tall cane stalk: the top segment is harvestable (its own base rule -- a cane block
+        // sitting on another cane block), the bottom one is not (nothing to replant onto).
+        helper.setBlock(caneBase, Blocks.SUGAR_CANE.defaultBlockState().setValue(SugarCaneBlock.AGE, 0));
+        helper.setBlock(caneTop, Blocks.SUGAR_CANE.defaultBlockState().setValue(SugarCaneBlock.AGE, 0));
+
+        helper.useBlock(caneTop, player);
+
+        helper.assertBlockPresent(Blocks.SUGAR_CANE, caneTop);
+        helper.assertTrue(kama.getDamageValue() == 0,
+                "replanting a mid-stalk cane segment to its own state must cost no durability, got "
+                        + kama.getDamageValue());
+
+        // Positive control, same tool: a mature wheat crop always replants to a different age, so it
+        // must still cost the usual 1 durability -- the guard above is selective, not a blanket skip.
+        helper.setBlock(wheatPos.below(), Blocks.FARMLAND);
+        helper.setBlock(wheatPos, Blocks.WHEAT.defaultBlockState().setValue(CropBlock.AGE, 7));
+        helper.useBlock(wheatPos, player);
+
+        helper.assertTrue(kama.getDamageValue() == 1,
+                "harvesting a mature wheat crop must still cost 1 durability, got " + kama.getDamageValue());
         helper.succeed();
     }
 

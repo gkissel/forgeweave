@@ -61,7 +61,12 @@ public final class AoeHarvest {
         PLANE_3X3,
         /** Lumber axe: fells a whole tree, or a 3x3x3 cube when the block is not a tree. */
         TREE_FELL,
-        /** Scythe: a 3x3x3 cube, plus the crop harvest {@link CropHarvest} runs on right-click. */
+        /**
+         * Scythe: a 3x3x3 cube, plus the crop harvest {@link CropHarvest} runs on right-click. Every
+         * extra block breaks regardless of Silk Touch -- see {@link #canBreakExtra}'s javadoc
+         * (docs/SCOPE.md issue #298) for why, upstream's {@code breakExtraBlock}/{@code
+         * shearExtraBlock} split notwithstanding.
+         */
         CUBE_3X3X3,
         /** Vein hammer: the connected run of the same block, capped at {@link #VEIN_LIMIT}. */
         VEIN
@@ -162,7 +167,27 @@ public final class AoeHarvest {
         return out;
     }
 
-    /** Upstream's {@code canBreakExtraBlock}; see the class javadoc for how the checks map over. */
+    /**
+     * Upstream's {@code canBreakExtraBlock}; see the class javadoc for how the checks map over.
+     *
+     * <p>Scythe/Silk Touch note (docs/SCOPE.md issue #298): upstream's {@code Scythe#breakExtraBlock}
+     * is {@code isSilkTouch(stack) ? shearExtraBlock(...) : ToolHelper.breakExtraBlock(...)} -- but
+     * {@code shearExtraBlock}'s own fallback, for any block that isn't {@code IShearable}, is that
+     * exact same {@code breakExtraBlock}. Read plainly, upstream's extra blocks break either way;
+     * Silk Touch only adds a shearing attempt in front for blocks that support it. Forgeweave has no
+     * block-shearing to add in front of anything (deliberate -- {@link CropHarvest}'s own javadoc:
+     * leaves already come off effectively through the {@code mineable/hoe} tag alone), so this method
+     * makes no Silk Touch check at all; every extra block breaks through vanilla's normal
+     * {@code destroyBlock} regardless of the enchantment.
+     *
+     * <p>What Silk Touch still changes, for free: {@code destroyBlock} reads the swinging player's
+     * actual held item -- enchantments included -- when it resolves each block's drops, so a
+     * silk-touch scythe's AoE already gets silk-touch-style drops (a sheared leaf block instead of a
+     * sapling roll, {@code minecraft:cobweb} instead of string) precisely where vanilla's own loot
+     * tables branch on the enchantment, with no Forgeweave code needed for it. That is this
+     * architecture's equivalent of {@code shearExtraBlock}'s intent, adapted from the 1.12
+     * {@code IShearable}-block mechanism upstream used to express it.
+     */
     private static boolean canBreakExtra(ItemStack tool, Level level, Player player, BlockPos pos, BlockPos origin,
             BlockState originState) {
         BlockState state = level.getBlockState(pos);

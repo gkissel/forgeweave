@@ -2,9 +2,11 @@ package dev.gkissel.forgeweave.gametest;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.server.level.ServerPlayer;
@@ -13,13 +15,18 @@ import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.animal.Pig;
+import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.item.context.UseOnContext;
+import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.block.CropBlock;
+import net.minecraft.world.level.block.LeavesBlock;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
 
@@ -262,6 +269,59 @@ public class LargeToolGameTests {
                 .thenSucceed();
     }
 
+    /**
+     * docs/SCOPE.md issue #298: upstream's {@code Scythe#breakExtraBlock} is
+     * {@code isSilkTouch(stack) ? shearExtraBlock(...) : ToolHelper.breakExtraBlock(...)} -- but
+     * {@code shearExtraBlock}'s own fallback, for a block that isn't {@code IShearable}, is that
+     * exact same {@code breakExtraBlock}. Read plainly, upstream's extra blocks break either way;
+     * Silk Touch only adds a shearing attempt in front. So the full cube goes without Silk Touch too
+     * (see {@link AoeHarvest#canBreakExtra}'s javadoc for the drop-side adaptation note) -- this test
+     * pins that against the earlier, incorrect draft of this fix, which nerfed the AoE to nothing
+     * without the enchantment.
+     */
+    @GameTest(template = "empty")
+    public static void scytheAoeBreaksExtraBlocksWithoutSilkTouch(GameTestHelper helper) {
+        ServerPlayer player = holdingLargeTool(helper, ForgeweaveItems.TOOL_SCYTHE.get(), "stone");
+        // Persistent leaves: in the scythe's own mineable/hoe tag (unlike stone, which the scythe was
+        // never correct-tool-for-drops on -- this has to be a block canBreakExtra would otherwise
+        // take), and not subject to natural decay racing the assertions below.
+        fill(helper, ORIGIN, 1, persistentLeaves());
+
+        int broken = breakAndCount(helper, player, ORIGIN, 1);
+
+        helper.assertTrue(broken == 27,
+                "a silk-touch-less scythe must still break its full 3x3x3 (origin + 26), broke " + broken);
+        helper.assertTrue(droppedLeavesItem(helper, ORIGIN).isEmpty(),
+                "without Silk Touch, no leaf block itself should drop -- vanilla's own leaves loot "
+                        + "table only awards that item to a silk-touch tool");
+        helper.succeed();
+    }
+
+    /**
+     * As above, with Silk Touch enchanted onto the assembled scythe: the same full 3x3x3 cube goes
+     * (Silk Touch never changes <em>whether</em> the AoE breaks anything upstream), but the drops
+     * differ -- {@code ServerPlayerGameMode#destroyBlock} reads the swinging player's actual held
+     * item, enchantments included, so a silk-touch scythe's AoE gets the leaf block itself back
+     * (vanilla's leaves loot table's own silk-touch branch) with no Forgeweave-side shearing code
+     * needed. That is this architecture's equivalent of upstream's {@code shearExtraBlock} intent.
+     */
+    @GameTest(template = "empty")
+    public static void scytheAoeDropsTheLeafBlockItselfWithSilkTouch(GameTestHelper helper) {
+        ServerPlayer player = holdingLargeTool(helper, ForgeweaveItems.TOOL_SCYTHE.get(), "stone");
+        ItemStack scythe = player.getMainHandItem();
+        scythe.enchant(helper.getLevel().registryAccess().lookupOrThrow(Registries.ENCHANTMENT)
+                .getOrThrow(Enchantments.SILK_TOUCH), 1);
+        fill(helper, ORIGIN, 1, persistentLeaves());
+
+        int broken = breakAndCount(helper, player, ORIGIN, 1);
+
+        helper.assertTrue(broken == 27,
+                "a silk-touch scythe must break its full 3x3x3 (origin + 26), broke " + broken);
+        helper.assertTrue(droppedLeavesItem(helper, ORIGIN).isPresent(),
+                "with Silk Touch, at least one leaf block itself must drop");
+        helper.succeed();
+    }
+
     // ------------------------------------------------------------------ combat riders
 
     /**
@@ -327,6 +387,23 @@ public class LargeToolGameTests {
         ToolAssemblyRecipes.Entry entry = ToolAssembly.entryFor(tool);
         return ToolAssembly.assembleAtForge(helper, player, STATION, entry,
                 Collections.nCopies(entry.slotCount(), material));
+    }
+
+    /** Oak leaves that won't decay mid-test, so a break count taken right after the swing is exact. */
+    private static BlockState persistentLeaves() {
+        return Blocks.OAK_LEAVES.defaultBlockState().setValue(LeavesBlock.PERSISTENT, true);
+    }
+
+    /**
+     * Whether a dropped {@code minecraft:oak_leaves} item entity exists anywhere in the 3x3x3 area
+     * around {@code center} -- vanilla's own leaves loot table only ever awards the leaf block itself
+     * to a silk-touch tool, never otherwise, which is what makes this a clean silk-touch signal.
+     */
+    private static Optional<ItemEntity> droppedLeavesItem(GameTestHelper helper, BlockPos center) {
+        AABB area = new AABB(helper.absolutePos(center)).inflate(2.0);
+        return helper.getLevel().getEntitiesOfClass(ItemEntity.class, area).stream()
+                .filter(item -> item.getItem().is(Items.OAK_LEAVES))
+                .findAny();
     }
 
     /** A solid cube of {@code state} of the given radius, centered on {@code center}. */

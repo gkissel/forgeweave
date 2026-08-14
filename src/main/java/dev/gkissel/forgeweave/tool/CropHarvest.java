@@ -102,13 +102,20 @@ public final class CropHarvest {
         }
         if (level instanceof ServerLevel serverLevel) {
             List<ItemStack> drops = Block.getDrops(state, serverLevel, pos, null, player, tool);
-            if (!replant(serverLevel, pos, state, drops)) {
+            boolean replanted = replant(serverLevel, pos, state, drops);
+            if (!replanted) {
                 serverLevel.destroyBlock(pos, false);
             }
             for (ItemStack drop : drops) {
                 Block.popResource(serverLevel, pos, drop);
             }
-            tool.hurtAndBreak(1, player, EquipmentSlot.MAINHAND);
+            // Upstream's `crop != state` guard: a mid-stalk sugar cane segment replants to the exact
+            // state it already had (its AGE growth-timer resets to the same 0 it started at), so
+            // nothing actually changed and the swing is free. A replanted wheat/nether wart always
+            // moves to a different age, so this never skips their charge.
+            if (!replanted || !state.equals(state.getBlock().defaultBlockState())) {
+                tool.hurtAndBreak(1, player, EquipmentSlot.MAINHAND);
+            }
         }
         return true;
     }
