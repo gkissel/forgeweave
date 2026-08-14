@@ -85,6 +85,7 @@
   "fluid_type.forgeweave.molten_seared_stone": "Molten Seared Stone",
   "fluid_type.forgeweave.molten_slime": "Molten Slime",
   "fluid_type.forgeweave.molten_steel": "Molten Steel",
+  "gui.forgeweave.chest.page": "Page %s/%s",
   "gui.forgeweave.embossment.already_embossed": "This tool is already embossed. One embossment per tool.",
   "gui.forgeweave.embossment.no_traits": "%s grants no traits through that part, so there is nothing to emboss.",
   "gui.forgeweave.exchange.needs_forge": "This tool is too large to work on here. Exchange its parts at a Tool Forge.",
