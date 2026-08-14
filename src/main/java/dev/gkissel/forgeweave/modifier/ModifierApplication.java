@@ -161,8 +161,13 @@ public final class ModifierApplication {
      * looting only ever increase as more reagent is applied, so taking the max with whatever is
      * already there is exactly as correct as a full recompute and needs neither a loop over every
      * other entry on the tool nor a recipe-by-id lookup for entries this call didn't touch.
+     *
+     * <p>Package-private rather than {@code private}: issue #296's autonomous growth-on-use
+     * ({@code ForgeweaveModifiers#growLuckOnUse}) calls this too, once its own roll bumps luck's raw
+     * level outside the Tool Station, so a level crossed silently in the field takes effect
+     * immediately rather than waiting on the next lapis application.
      */
-    private static void applyEnchantmentGrants(HolderLookup.Provider registries, ModifierRecipe recipe, ItemStack tool) {
+    static void applyEnchantmentGrants(HolderLookup.Provider registries, ModifierRecipe recipe, ItemStack tool) {
         Modifier modifier = ForgeweaveModifiers.get(recipe.modifier());
         ModifierEntry entry = ForgeweaveModifiers.entry(tool, recipe.modifier());
         if (modifier == null || entry == null) {

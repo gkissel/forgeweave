@@ -49,6 +49,7 @@ public class ModifierGameTests {
     private static final ResourceLocation MAGNETIC_PULL =
             ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "magnetic_pull");
     private static final ResourceLocation RESONANT = ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "resonant");
+    private static final ResourceLocation LUCK = ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "luck");
     // #107 batch: parity modifiers (issue #107).
     private static final ResourceLocation EXTRA_SLOT = ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "extra_slot");
 
@@ -296,6 +297,47 @@ public class ModifierGameTests {
 
         helper.assertTrue(event.getDroppedExperience() == 15,
                 "expected 10 XP plus level 1's +50%, got " + event.getDroppedExperience());
+        helper.succeed();
+    }
+
+    /**
+     * Issue #296: luck's growth-on-use, through the real {@code BlockDropsEvent} pipeline
+     * ({@code ForgeweaveModifiers#onBlockDrops}) rather than calling the injectable roll directly --
+     * the progress math and cap arithmetic themselves are unit-tested off a seeded
+     * {@code RandomSource} in {@code ModifierBatch1Test}; this is the seam wiring.
+     *
+     * <p>Two halves, both exact rather than statistical:
+     *
+     * <ul>
+     *   <li>Already at the shipped recipe's 360 cap: however many blocks break, the level must never
+     *       move -- true on every roll outcome, so it needs no real randomness to be deterministic.
+     *   <li>Below the cap: real per-break rolls are 3%, so this drives a bounded number of breaks
+     *       (generous enough that missing every single one is astronomically unlikely, {@code
+     *       0.97^2000 < 1e-25}) and asserts the level actually advanced by exactly one unit and no
+     *       more -- if the block-break seam were never wired to the growth roll at all, this would fail
+     *       on every run rather than flake, which is what makes it a real regression test.
+     * </ul>
+     */
+    @GameTest(template = "empty")
+    public static void luckGrowsFromBlockBreaksUpToTheRecipesCap(GameTestHelper helper) {
+        ItemStack cappedPickaxe = new ItemStack(ForgeweaveItems.TOOL_PICKAXE.get());
+        cappedPickaxe.set(ForgeweaveDataComponents.MODIFIERS.get(), List.of(new ModifierEntry(LUCK, 360)));
+        for (int i = 0; i < 50; i++) {
+            ForgeweaveModifiers.onBlockDrops(dropsEvent(helper, cappedPickaxe, null, drop(helper, new ItemStack(Items.COBBLESTONE))));
+        }
+        ModifierEntry cappedEntry = ForgeweaveModifiers.entry(cappedPickaxe, LUCK);
+        helper.assertTrue(cappedEntry != null && cappedEntry.level() == 360,
+                "luck already at the 360 cap must never grow further, got " + cappedEntry);
+
+        ItemStack pickaxe = withModifier(LUCK);
+        int breaks = 0;
+        while (breaks < 2000 && ForgeweaveModifiers.entry(pickaxe, LUCK).level() == 1) {
+            ForgeweaveModifiers.onBlockDrops(dropsEvent(helper, pickaxe, null, drop(helper, new ItemStack(Items.COBBLESTONE))));
+            breaks++;
+        }
+        ModifierEntry entry = ForgeweaveModifiers.entry(pickaxe, LUCK);
+        helper.assertTrue(entry != null && entry.level() == 2,
+                "luck must grow by exactly one raw unit from block breaks, got " + entry + " after " + breaks + " breaks");
         helper.succeed();
     }
 
