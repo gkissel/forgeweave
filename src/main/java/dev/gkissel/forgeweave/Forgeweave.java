@@ -44,6 +44,7 @@ import dev.gkissel.forgeweave.modifier.ForgeweaveModifiers;
 import dev.gkissel.forgeweave.modifier.ModifierRecipe;
 import dev.gkissel.forgeweave.ponder.ForgeweavePonderPlugin;
 import dev.gkissel.forgeweave.recipe.AlloyRecipe; // #98
+import dev.gkissel.forgeweave.recipe.EntityMeltingRecipe; // #270
 import dev.gkissel.forgeweave.recipe.ForgeweaveRecipeSerializers;
 import dev.gkissel.forgeweave.recipe.MeltingRecipe;
 import dev.gkissel.forgeweave.recipe.SmelteryFuel;
@@ -177,6 +178,8 @@ public class Forgeweave {
         // #97 -- smeltery fuels, same idiom again: the client needs them for the smeltery screen's
         // fuel gauge (#101).
         event.dataPackRegistry(SmelteryFuel.REGISTRY, SmelteryFuel.CODEC, SmelteryFuel.CODEC);
+        // #270 -- what an entity standing in a smeltery melts into, same idiom again.
+        event.dataPackRegistry(EntityMeltingRecipe.REGISTRY, EntityMeltingRecipe.CODEC, EntityMeltingRecipe.CODEC);
         // #98 -- alloy recipes, same idiom again: the client needs them for JEI's alloy category
         // (#109) and to explain what a smeltery is about to combine.
         event.dataPackRegistry(AlloyRecipe.REGISTRY, AlloyRecipe.CODEC, AlloyRecipe.CODEC);

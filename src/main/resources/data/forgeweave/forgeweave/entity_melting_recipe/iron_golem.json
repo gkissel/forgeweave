@@ -1,0 +1,5 @@
+{
+  "entities": ["minecraft:iron_golem"],
+  "fluid": "forgeweave:molten_iron",
+  "amount": 18
+}

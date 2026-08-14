@@ -1,0 +1,5 @@
+{
+  "entities": ["minecraft:snow_golem"],
+  "fluid": "minecraft:water",
+  "amount": 100
+}

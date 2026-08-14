@@ -153,12 +153,34 @@ public final class ForgeweaveFluids {
     public static final MoltenMetal AMETHYST = register("amethyst", 0xB38EF1, 950);
     public static final MoltenMetal AMETHYST_BRONZE = register("amethyst_bronze", 0xC687BD, 820);
 
-    // #270 (M3.4-1) owns molten emerald -- it is the entity-melting parity set's villager/vindicator/
-    // evoker/illusioner drop, and #272 (M3.4-3, this file's caller) only consumes it for the gem
-    // cast. Ported 1:1 from TinkerFluids#setupFluids (fluidMetal("emerald", 0x58e78e), temperature
-    // 999), coordinated with #270 to land the identical line rather than drift -- whichever PR merges
-    // second drops its copy on rebase.
+    // Molten emerald is what the #270 entity-melting parity set's villager/vindicator/evoker/illusioner
+    // row pours, and what #272's gem cast consumes. Ported 1:1 from TinkerFluids#setupFluids
+    // (fluidMetal("emerald", 0x58e78e), setTemperature(999)); like AMETHYST it is a gem rather than a
+    // metal but rides the same shared tinted texture upstream does.
     public static final MoltenMetal EMERALD = register("emerald", 0x58E78E, 999);
+
+    // #270 -- the two blood variants the maintainer added on top of the 1.12 set. Both are bloods, so
+    // both are named without a molten_ prefix the way BLOOD is.
+    //
+    // Blazing blood has no 1.12 counterpart but does exist by name in the 1.20 clone
+    // (TinkerFluids#blazingBlood: temperature 1800, lightLevel 15, density 3500), so it lands the same
+    // way AMETHYST did -- the 1.20 branch's fluid temperatures sit 300 above the 1.12 scale this class
+    // uses, making its 1800 a 1500 here. That is hotter than every other fluid in this file and hotter
+    // than lava's own 1000 on the 1.12 smeltery scale, which is the point (issue #270: "future hot
+    // smeltery fuel, hotter than lava"). Its tint is the 1.20 clone's mantle/colors.json "blaze"
+    // (#FFC100), and it takes the shared molten-metal lava-like FluidType rather than a bespoke one --
+    // ponytail: upstream's lightLevel 15 and density 3500 are cosmetic next to the temperature that
+    // actually gates fuel, so it shares moltenFluidType until something needs them apart.
+    public static final MoltenMetal BLAZING_BLOOD = register("blazing_blood", 0xFFC100, 1500,
+            () -> moltenFluidType(1500), STILL_TEXTURE, FLOWING_TEXTURE);
+
+    // Deep blood has no counterpart in either clone -- the warden it comes from postdates both. It is
+    // a maintainer addition on issue #270 (future Deep-smeltery reagent, see #181), so it inherits
+    // BLOOD's own shape wholesale: the same water-like non-hazardous FluidType at blood's own 1.12
+    // temperature of 336, and the same classic liquid texture pair. Only the tint differs, taken from
+    // the sculk palette the warden is drawn in.
+    public static final MoltenMetal DEEP_BLOOD = register("deep_blood", 0x1B4B4E, 336,
+            () -> new FluidType(FluidType.Properties.create().temperature(336)), LIQUID_STILL, LIQUID_FLOWING);
 
     private static MoltenMetal register(String metalId, int color, int temperature) {
         return register("molten_" + metalId, color, temperature, () -> moltenFluidType(temperature),

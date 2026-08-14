@@ -712,8 +712,12 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         // #235 -- amethyst and amethyst bronze (M3.2), the 1.20 clone's fluid.tconstruct.* names.
         addFluid(ForgeweaveFluids.AMETHYST, "Molten Amethyst");
         addFluid(ForgeweaveFluids.AMETHYST_BRONZE, "Molten Amethyst Bronze");
-        // #270 (M3.4-1) owns this fluid; coordinated dedupe line, see ForgeweaveFluids#EMERALD.
+        // #270 -- what the entity-melting set pours. "Molten Emerald" follows the molten-metal naming
+        // family; the two blood variants follow "Blood" (upstream's fluid.tconstruct.blood.name) and,
+        // for blazing blood, the 1.20 clone's own fluid.tconstruct.blazing_blood name.
         addFluid(ForgeweaveFluids.EMERALD, "Molten Emerald");
+        addFluid(ForgeweaveFluids.BLAZING_BLOOD, "Blazing Blood");
+        addFluid(ForgeweaveFluids.DEEP_BLOOD, "Deep Blood");
 
         // #232 -- the knightslime alloy chain's three fluids (docs/SCOPE.md M3.2). Upstream calls
         // its seared stone fluid plainly "Seared Stone"; the molten_ prefix names follow this

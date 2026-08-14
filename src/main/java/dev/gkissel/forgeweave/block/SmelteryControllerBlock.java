@@ -135,7 +135,7 @@ public class SmelteryControllerBlock extends HorizontalDirectionalBlock implemen
      * {@code BlockEntityTicker}, so an unformed core with nothing in it is on no tick list at all
      * (see {@link SmelteryControllerBlockEntity}). One melt step and one item-pickup sweep attempt
      * (#290) run on every firing, whichever cadence woke it -- {@link
-     * SmelteryControllerBlockEntity#sweepForDroppedItems()} throttles itself against real elapsed
+     * SmelteryControllerBlockEntity#sweepInterior()} throttles itself against real elapsed
      * time, so a firing that is too soon for a sweep is simply a no-op there. Reschedules at the
      * tighter melt cadence while there is melt work, or the item-pickup cadence while merely formed;
      * an unformed core with nothing melting reschedules nothing and falls silent.
@@ -146,7 +146,7 @@ public class SmelteryControllerBlock extends HorizontalDirectionalBlock implemen
             return;
         }
         boolean melting = core.meltTick();
-        core.sweepForDroppedItems();
+        core.sweepInterior();
         if (melting) {
             level.scheduleTick(pos, this, SmelteryControllerBlockEntity.MELT_INTERVAL_TICKS);
         } else if (core.isFormed()) {

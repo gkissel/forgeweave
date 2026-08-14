@@ -1,0 +1,10 @@
+{
+  "entities": [
+    "minecraft:villager",
+    "minecraft:vindicator",
+    "minecraft:evoker",
+    "minecraft:illusioner"
+  ],
+  "fluid": "forgeweave:molten_emerald",
+  "amount": 6
+}

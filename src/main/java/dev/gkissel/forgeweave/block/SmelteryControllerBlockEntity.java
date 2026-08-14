@@ -16,10 +16,15 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
+import net.minecraft.resources.ResourceKey; // #270
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.Container;
 import net.minecraft.world.ContainerHelper;
 import net.minecraft.world.Containers;
+import net.minecraft.world.damagesource.DamageType; // #270
+import net.minecraft.world.damagesource.DamageTypes; // #270
+import net.minecraft.world.entity.Entity; // #270
+import net.minecraft.world.entity.LivingEntity; // #270
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Block;
@@ -42,6 +47,7 @@ import dev.gkissel.forgeweave.menu.SmelteryMenu;
 
 import dev.gkissel.forgeweave.advancement.ForgeweaveCriteriaTriggers;
 import dev.gkissel.forgeweave.recipe.AlloyRecipe; // #98
+import dev.gkissel.forgeweave.recipe.EntityMeltingRecipe; // #270
 import dev.gkissel.forgeweave.recipe.MeltingRecipe;
 import dev.gkissel.forgeweave.recipe.SmelteryFuel;
 
@@ -75,7 +81,7 @@ import dev.gkissel.forgeweave.recipe.SmelteryFuel;
  * smeltery has to keep a once-a-second heartbeat alive too or a dropped item sitting in it would
  * never be noticed. {@link #armMeltTick()} arms that heartbeat at {@link #ITEM_PICKUP_INTERVAL_TICKS}
  * whenever nothing needs the tighter {@link #MELT_INTERVAL_TICKS} melt cadence, and {@link
- * SmelteryControllerBlock#tick} runs {@link #sweepForDroppedItems()} on every firing regardless of
+ * SmelteryControllerBlock#tick} runs {@link #sweepInterior()} on every firing regardless of
  * which cadence woke it.
  */
 public class SmelteryControllerBlockEntity extends BlockEntity implements StationMenuHost {
@@ -508,7 +514,7 @@ public class SmelteryControllerBlockEntity extends BlockEntity implements Statio
      * {@code interactWithEntitiesInside} has no fuel or melt-work gate, only {@code isActive()}), so
      * this arms the tighter {@link #MELT_INTERVAL_TICKS} cadence when there is melting work and falls
      * back to the pickup cadence whenever the core is merely formed. {@link SmelteryControllerBlock#tick}
-     * runs both {@link #meltTick()} and {@link #sweepForDroppedItems()} on every firing regardless of
+     * runs both {@link #meltTick()} and {@link #sweepInterior()} on every firing regardless of
      * which cadence woke it, so this only has to pick how soon the next firing needs to be.
      *
      * <p>Package-private rather than {@code private}: {@link SearedTankBlockEntity} calls this too
@@ -530,20 +536,30 @@ public class SmelteryControllerBlockEntity extends BlockEntity implements Statio
     }
 
     /**
-     * The once-a-second interior sweep for dropped items (#290), upstream's
-     * {@code TileSmeltery#interactWithEntitiesInside}: every {@link ItemEntity} inside the formed
-     * interior gets offered to {@link #insertForMelting(ItemStack)}, and whatever is fully consumed
-     * is discarded the way upstream's own {@code entity.setDead()} does. Only runs while formed --
-     * {@code insertForMelting} would refuse everything anyway, but there is also no interior to scan.
+     * The once-a-second interior sweep, upstream's {@code TileSmeltery#interactWithEntitiesInside} --
+     * one pass over everything standing in the formed interior, doing the two things upstream's single
+     * loop does:
+     *
+     * <ul>
+     *   <li><b>Dropped items</b> (#290): every {@link ItemEntity} gets offered to
+     *       {@link #insertForMelting(ItemStack)}, and whatever is fully consumed is discarded the way
+     *       upstream's own {@code entity.setDead()} does.
+     *   <li><b>Living entities</b> (#270): see {@link #meltEntity}.
+     * </ul>
+     *
+     * Only runs while formed -- {@code insertForMelting} would refuse everything anyway, but there is
+     * also no interior to scan.
      *
      * <p>Called from {@link SmelteryControllerBlock#tick} on <em>every</em> firing, not just the ones
      * {@link #armMeltTick()} scheduled for pickup specifically -- a melt-cadence firing (every
      * {@value #MELT_INTERVAL_TICKS} ticks) is more often than once a second, so this throttles itself
      * against {@link #lastItemPickupTick} rather than assuming its caller only ever fires it on cue.
+     * That throttle is also what makes the entity half match upstream's damage cadence exactly: one
+     * hit per {@link EntityMeltingRecipe#INTERVAL_TICKS}, no matter how often the block ticks.
      *
      * @return whether an actual sweep ran (i.e. whether a second's worth of time had actually passed)
      */
-    boolean sweepForDroppedItems() {
+    public boolean sweepInterior() {
         if (level == null || level.isClientSide || structure == null) {
             return false;
         }
@@ -552,16 +568,74 @@ public class SmelteryControllerBlockEntity extends BlockEntity implements Statio
             return false;
         }
         lastItemPickupTick = now;
-        for (ItemEntity entity : level.getEntitiesOfClass(ItemEntity.class, structure.interiorBounds())) {
-            ItemStack original = entity.getItem();
-            ItemStack remaining = insertForMelting(original);
-            if (remaining.isEmpty()) {
-                entity.discard();
-            } else if (remaining.getCount() != original.getCount()) {
-                entity.setItem(remaining);
+        // #270: upstream gates the living-entity half on the tank already holding something ("we only
+        // melt living entities if we have something in the smeltery"), while the item half runs
+        // unconditionally. Read once for the whole sweep rather than per entity.
+        boolean tankPrimed = tank.getFluidAmount() > 0;
+        for (Entity entity : level.getEntitiesOfClass(Entity.class, structure.interiorBounds())) {
+            if (entity instanceof ItemEntity item) {
+                ItemStack original = item.getItem();
+                ItemStack remaining = insertForMelting(original);
+                if (remaining.isEmpty()) {
+                    item.discard();
+                } else if (remaining.getCount() != original.getCount()) {
+                    item.setItem(remaining);
+                }
+            } else if (tankPrimed && entity instanceof LivingEntity living) {
+                meltEntity(living);
             }
         }
         return true;
+    }
+
+    /**
+     * Burns one living entity standing in the smeltery and pours what comes out of it (#270), upstream
+     * 1.12's {@code TileSmeltery#interactWithEntitiesInside}:
+     *
+     * <pre>
+     * FluidStack fluid = TinkerRegistry.getMeltingForEntity(entity);
+     * if(fluid == null &amp;&amp; entity instanceof EntityLivingBase) {
+     *   if(entity.isEntityAlive() &amp;&amp; !entity.isDead) {
+     *     fluid = new FluidStack(TinkerFluids.blood, 20);
+     *   }
+     * }
+     * if(fluid != null) {
+     *   if(entity.attackEntityFrom(smelteryDamage, 2f)) {
+     *     liquids.fill(fluid.copy(), true);
+     *   }
+     * }
+     * </pre>
+     *
+     * <p>Three things carry over exactly. The fluid comes from an {@link EntityMeltingRecipe} if the
+     * datapack has one and from {@link EntityMeltingRecipe#defaultResult()} otherwise; the damage is a
+     * flat {@link EntityMeltingRecipe#DAMAGE}; and the tank is only filled when the hit actually
+     * <em>landed</em>. That last one is why there is no invulnerability, creative-mode, fire-resistance
+     * or already-dead check here beyond {@link Entity#isAlive()}: {@link LivingEntity#hurt} already
+     * answers false for every one of those cases, exactly as upstream leans on
+     * {@code attackEntityFrom}'s return value to do the same job.
+     *
+     * <p>The one place a modern API forces a change is the damage <em>type</em>. Upstream has a single
+     * bespoke {@code new DamageSource("smeltery").setFireDamage()}, but fire damage cannot hurt a
+     * fire-immune mob -- which would leave the blaze row of the #270 table permanently unmeltable. The
+     * 1.20 clone hit the same wall and split its source in two ({@code TinkerDamageTypes.SMELTERY_HEAT}
+     * for ordinary mobs, {@code SMELTERY_MAGIC} for fire-immune ones); this does the same split onto
+     * vanilla's own {@link DamageTypes#IN_FIRE} and {@link DamageTypes#MAGIC}.
+     *
+     * <p>ponytail: vanilla damage types rather than two registered Forgeweave ones. The only thing a
+     * bespoke type would buy over these is its own death message, and that is a lang key and a
+     * datapack registry entry for a line of chat.
+     */
+    private void meltEntity(LivingEntity entity) {
+        if (level == null || !entity.isAlive()) {
+            return;
+        }
+        FluidStack result = EntityMeltingRecipe.find(level.registryAccess(), entity.getType())
+                .map(EntityMeltingRecipe::result)
+                .orElseGet(EntityMeltingRecipe::defaultResult);
+        ResourceKey<DamageType> type = entity.fireImmune() ? DamageTypes.MAGIC : DamageTypes.IN_FIRE;
+        if (entity.hurt(level.damageSources().source(type), EntityMeltingRecipe.DAMAGE)) {
+            tank.fill(result, IFluidHandler.FluidAction.EXECUTE);
+        }
     }
 
     /**
