@@ -6,6 +6,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.Entity;
@@ -203,13 +204,20 @@ public class BeheadingGameTests {
      * The whole chain through a real station: a Tool Forge-assembled tool, obsidian applied through the
      * station's own menu (so {@code modifier_recipe/beheading.json} is what set the level), and a kill
      * that drops a head.
+     *
+     * <p>Issue #344: beheading charges a slot per level (upstream {@code ModBeheading}'s
+     * {@code freeModifier} + {@code LevelAspect}), so the certain-drop level 10 needs a ten-slot
+     * budget -- an all-paper hatchet (+3, writable pair) already carrying five extra-slot reagents
+     * (+6 gross, one occupied) affords exactly 3 + 3 + 6 - 1 - 10 = 1 to spare.
      */
     @GameTest(template = "empty")
     public static void obsidianAppliedAtTheStationBeheads(GameTestHelper helper) {
         BlockPos pos = new BlockPos(1, 1, 1);
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         ItemStack hatchet = ToolAssembly.toolAtForge(helper, player, pos, ForgeweaveItems.PART_AXE_HEAD.get(),
-                "stone", "wood", "wood");
+                "paper", "paper", "paper");
+        hatchet.set(ForgeweaveDataComponents.MODIFIERS.get(), List.of(new ModifierEntry(
+                ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "extra_slot"), 5)));
 
         ItemStack beheading = applyReagent(helper, player, pos, hatchet, new ItemStack(Items.OBSIDIAN, CERTAIN));
         helper.assertTrue(Beheading.effectiveLevel(beheading) == CERTAIN,

@@ -207,13 +207,17 @@ public class CombatModifierGameTests {
         helper.succeed();
     }
 
-    /** Slot cap: one entry, however far levelled, occupies exactly one of the tool's three slots. */
+    /**
+     * Slot charge (issue #344): one slot per level at upstream's 10-piston steps
+     * ({@code new ModifierTrait("knockback", ..., 99, 10)}'s {@code MultiAspect}) -- ten units are
+     * one level and one slot, an eleventh unit starts the second level and charges a second.
+     */
     @GameTest(template = "empty")
-    public static void knockbackOccupiesExactlyOneSlot(GameTestHelper helper) {
-        ItemStack tool = withModifier(KNOCKBACK, 500);
-        helper.assertTrue(ForgeweaveModifiers.freeSlots(tool) == ForgeweaveModifiers.DEFAULT_SLOTS - 1,
-                "knockback must occupy exactly one modifier slot regardless of level, got "
-                        + ForgeweaveModifiers.freeSlots(tool) + " free");
+    public static void knockbackChargesOneSlotPerTenUnitLevel(GameTestHelper helper) {
+        helper.assertTrue(ForgeweaveModifiers.freeSlots(withModifier(KNOCKBACK, 10)) == ForgeweaveModifiers.DEFAULT_SLOTS - 1,
+                "ten knockback units are one level and one slot");
+        helper.assertTrue(ForgeweaveModifiers.freeSlots(withModifier(KNOCKBACK, 11)) == ForgeweaveModifiers.DEFAULT_SLOTS - 2,
+                "the eleventh unit starts a second level and charges a second slot");
         helper.succeed();
     }
 
@@ -244,8 +248,9 @@ public class CombatModifierGameTests {
         BlockPos pos = new BlockPos(1, 1, 1);
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         ItemStack tool = withModifier(WEBBED, 2);
-        helper.assertTrue(ForgeweaveModifiers.freeSlots(tool) == ForgeweaveModifiers.DEFAULT_SLOTS - 1,
-                "webbed must occupy exactly one modifier slot");
+        helper.assertTrue(ForgeweaveModifiers.freeSlots(tool) == ForgeweaveModifiers.DEFAULT_SLOTS - 2,
+                "two webbed applications are two levels and two slots (issue #344, upstream's "
+                        + "LevelAspect + freeModifier per application)");
 
         Pig target = strike(helper, player, pos, tool);
 

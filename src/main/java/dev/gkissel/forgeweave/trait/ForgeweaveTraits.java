@@ -1048,18 +1048,30 @@ public final class ForgeweaveTraits {
 
     /**
      * Paper. +1 free modifier slot through {@link Trait#bonusSlots}, {@link #REINFORCED_CORE}'s
-     * mechanism. Upstream ships this as the {@code TraitWritable} pair ({@code writable1} general,
-     * {@code writable2} head-scoped, {@code TinkerMaterials}: {@code paper.addTrait(writable2, HEAD);
-     * paper.addTrait(writable)}); Forgeweave keeps the pair-of-ids shape ({@link #MAGNETIC}/
-     * {@link #MAGNETIC2}'s precedent, since {@link #resolve} counts one id once) but each id is a
-     * flat +1, so an all-paper tool lands at the scope table's +2 (docs/SCOPE.md M3.2: "paper's pair
-     * grants +2 -- upstream behavior, not the naming"; upstream's own head registration is level 2 --
-     * the deviation to a flat pair is the scope table's call, recorded in the PR).
+     * mechanism. Upstream ships this as the {@code TraitWritable} pair ({@code TinkerMaterials}:
+     * {@code paper.addTrait(writable2, HEAD); paper.addTrait(writable)}), each {@code new
+     * TraitWritable(levels)} adding its own {@code levels} to {@code Tags.FREE_MODIFIERS} once per
+     * distinct trait id ({@code AbstractTraitLeveled#applyModifierEffect}'s once-per-identifier
+     * guard). Forgeweave keeps the pair-of-ids shape ({@link #MAGNETIC}/{@link #MAGNETIC2}'s
+     * precedent, since {@link #resolve} counts one id once): this id is upstream's
+     * {@code writable} (+1), {@link #WRITABLE2} is {@code writable2} (+2), so an all-paper tool
+     * totals +3 exactly as upstream (issue #344, reversing the flat-pair +2 deviation).
      */
     public static final Trait WRITABLE = new Trait() {
         @Override
         public int bonusSlots() {
             return 1;
+        }
+    };
+
+    /**
+     * Paper's head-scoped half: upstream {@code TinkerTraits.writable2 = new TraitWritable(2)},
+     * a +2 of its own next to {@link #WRITABLE}'s +1 -- see that javadoc for the whole pair.
+     */
+    public static final Trait WRITABLE2 = new Trait() {
+        @Override
+        public int bonusSlots() {
+            return 2;
         }
     };
 
@@ -1313,10 +1325,11 @@ public final class ForgeweaveTraits {
             Map.entry(id("crumbling"), CRUMBLING),
             Map.entry(id("unnatural"), UNNATURAL),
             Map.entry(id("dense"), DENSE),
-            // Two ids, one behavior: paper carries writable2 on the head and writable generally, so
-            // an all-paper tool nets +2 despite resolve()'s one-id-once rule -- see WRITABLE.
+            // Paper carries writable2 (+2) on the head and writable (+1) generally, so an all-paper
+            // tool nets +3 under resolve()'s one-id-once rule -- upstream's TraitWritable pair
+            // exactly (issue #344); see WRITABLE.
             Map.entry(id("writable"), WRITABLE),
-            Map.entry(id("writable2"), WRITABLE),
+            Map.entry(id("writable2"), WRITABLE2),
             Map.entry(id("squeaky"), SQUEAKY),
             Map.entry(id("autosmelt"), AUTOSMELT),
             // #229 M3.2 combat-seam trait batch; material wiring lands in later M3.2 issues.

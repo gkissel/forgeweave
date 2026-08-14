@@ -72,11 +72,12 @@ import dev.gkissel.forgeweave.trait.Trait;
  *
  * <h2>Slots</h2>
  *
- * <p>Upstream 1.12's {@code ToolCore#DEFAULT_MODIFIERS = 3}. One distinct modifier occupies one
- * slot for its lifetime; leveling it up stays inside that slot, so a tool can carry at most three
- * distinct modifiers however far each is leveled (docs/SCOPE.md M2 acceptance test 5). That is the
- * one place Forgeweave deliberately simplifies upstream, whose {@code MultiAspect} charges a fresh
- * slot per level -- see the PR for issue #105.
+ * <p>Upstream 1.12's {@code ToolCore#DEFAULT_MODIFIERS = 3}. Since issue #344 the charge mirrors
+ * upstream exactly: a leveled modifier occupies one slot per displayed <em>level</em>
+ * ({@code MultiAspect} spends a free modifier every time a new level starts -- max Haste is 5
+ * slots), while the handful whose upstream aspect set charges differently override
+ * {@link Modifier#occupiedSlots} (luck flat 1, soulbound 0, extra_slot flat 1). Issue #105's
+ * one-slot-per-modifier simplification is gone.
  *
  * <p>{@link #freeSlots} is {@value #DEFAULT_SLOTS} plus whatever {@link Modifier#bonusSlots} grants,
  * minus the slots in use, so issue #107's extra-slot items raise the cap without this class changing.
@@ -444,7 +445,14 @@ public final class ForgeweaveModifiers {
      * upstream's own corpse-inventory trick ({@code PlayerDropsEvent} + {@code PlayerEvent.Clone}) with
      * no extra state of Forgeweave's own.
      */
-    public static final Modifier SOULBOUND = new Modifier() {};
+    public static final Modifier SOULBOUND = new Modifier() {
+        @Override
+        public int occupiedSlots(int level) {
+            // Issue #344: upstream ModSoulbound's aspects are DataAspect + SingleAspect only -- no
+            // FreeModifierAspect -- so it never spends a modifier slot.
+            return 0;
+        }
+    };
 
     /**
      * Upstream {@code ModCreative}: each application adds its own level to the tool's free-slot pool,
@@ -463,6 +471,15 @@ public final class ForgeweaveModifiers {
         @Override
         public int bonusSlots(int level) {
             return level + 1;
+        }
+
+        @Override
+        public int occupiedSlots(int level) {
+            // Issue #344: upstream ModCreative registers no aspects at all, netting +level free
+            // slots. Forgeweave's entry keeps a flat one-slot charge against bonusSlots' level + 1,
+            // which nets the same +level -- never the default per-level charge, which would cancel
+            // the grant out.
+            return level > 0 ? 1 : 0;
         }
     };
 
@@ -505,6 +522,14 @@ public final class ForgeweaveModifiers {
         @Override
         public int unitsPerLevel() {
             return LUCK_LAPIS_PER_LEVEL;
+        }
+
+        @Override
+        public int occupiedSlots(int level) {
+            // Issue #344: upstream ModLuck.LuckAspect swaps MultiAspect's charge for a
+            // FreeFirstModifierAspect(parent, 1) -- one slot when the modifier first lands, and
+            // every later level (lapis or #296's free growth) stays inside it.
+            return level > 0 ? 1 : 0;
         }
 
         @Override
@@ -982,20 +1007,35 @@ public final class ForgeweaveModifiers {
     }
 
     /**
-     * How many of the tool's modifier slots are occupied: one per distinct modifier entry, except
-     * embossments (issue #154 -- upstream's {@code ModExtraTrait} carries a {@code SingleAspect} and a
-     * {@code DataAspect} but deliberately no {@code FreeModifierAspect}, which is what charges a slot).
-     * Also what upstream's {@code TagUtil#getBaseModifiersUsed} feeds {@code TinkersItem#calculateRepair}'s
-     * modifier-count repair penalty ({@link dev.gkissel.forgeweave.tool.ToolRepair}).
+     * How many of the tool's modifier slots are occupied: each entry's {@link Modifier#occupiedSlots}
+     * (issue #344 -- upstream charges one free modifier per level, so this is the per-level total
+     * upstream's {@code TagUtil#getBaseModifiersUsed} accumulates, which also feeds
+     * {@code TinkersItem#calculateRepair}'s modifier-count repair penalty
+     * ({@link dev.gkissel.forgeweave.tool.ToolRepair})), except embossments (issue #154 -- upstream's
+     * {@code ModExtraTrait} carries a {@code SingleAspect} and a {@code DataAspect} but deliberately
+     * no {@code FreeModifierAspect}, which is what charges slots).
      */
     public static int occupiedSlots(ItemStack stack) {
         int occupied = 0;
         for (ModifierEntry entry : of(stack)) {
             if (!Embossing.isEmbossment(entry.id())) {
-                occupied++;
+                occupied += occupiedSlots(entry.id(), entry.level());
             }
         }
         return occupied;
+    }
+
+    /**
+     * The slots one {@code id + level} entry occupies -- {@link Modifier#occupiedSlots}, or a flat 1
+     * for an id this version doesn't implement: inert data (see {@link #of}) keeps the one slot the
+     * player's version charged, since its unit scale is unknowable here.
+     */
+    public static int occupiedSlots(ResourceLocation id, int level) {
+        Modifier modifier = get(id);
+        if (modifier != null) {
+            return modifier.occupiedSlots(level);
+        }
+        return level > 0 ? 1 : 0;
     }
 
     /**
