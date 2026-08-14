@@ -21,6 +21,7 @@ import net.minecraft.data.recipes.ShapelessRecipeBuilder;
 import net.minecraft.data.recipes.SimpleCookingRecipeBuilder;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.ItemTags;
+import net.minecraft.world.item.DyeItem;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.CraftingBookCategory;
@@ -153,6 +154,33 @@ public class ForgeweaveRecipeProvider extends RecipeProvider {
         buildModifierRecipes(recipeOutput);
         buildStorageBlockRecipes(recipeOutput);
         buildSlimeCrystalRecipes(recipeOutput);
+        buildClearGlassRecipes(recipeOutput);
+    }
+
+    /**
+     * #275 -- clear glass and its 16 clear stained glass colors. Upstream 1.12's {@code
+     * TinkerCommons#addRecipes} furnace-smelts a vanilla glass block into clear glass at 0.1 xp
+     * ({@code GameRegistry.addSmelting(Blocks.GLASS, ...)}, NOTICE.md); each color is then a shaped
+     * craft, upstream's own {@code recipes/common/glass/&lt;color&gt;_stained_clear_glass.json}
+     * (NOTICE.md; every one of the 16 files shares this exact shape, verified against the clone) -- 8
+     * clear glass in a ring around one dye of that color, yielding 8 stained glass.
+     */
+    private void buildClearGlassRecipes(RecipeOutput recipeOutput) {
+        SimpleCookingRecipeBuilder.smelting(Ingredient.of(Blocks.GLASS), RecipeCategory.BUILDING_BLOCKS,
+                        ForgeweaveBlocks.CLEAR_GLASS.get(), 0.1F, 200)
+                .unlockedBy("has_glass", has(Blocks.GLASS))
+                .save(recipeOutput);
+
+        for (ForgeweaveBlocks.StainedGlassColor color : ForgeweaveBlocks.clearStainedGlassColors()) {
+            ShapedRecipeBuilder.shaped(RecipeCategory.BUILDING_BLOCKS, color.block().get(), 8)
+                    .pattern("AAA")
+                    .pattern("ABA")
+                    .pattern("AAA")
+                    .define('A', ForgeweaveBlocks.CLEAR_GLASS.get())
+                    .define('B', DyeItem.byColor(color.dye()))
+                    .unlockedBy("has_clear_glass", has(ForgeweaveBlocks.CLEAR_GLASS.get()))
+                    .save(recipeOutput);
+        }
     }
 
     /**

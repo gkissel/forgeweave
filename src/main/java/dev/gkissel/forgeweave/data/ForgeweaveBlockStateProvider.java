@@ -1,5 +1,6 @@
 package dev.gkissel.forgeweave.data;
 
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.data.PackOutput;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.block.Block;
@@ -157,6 +158,15 @@ public class ForgeweaveBlockStateProvider extends BlockStateProvider {
         cubeAllBlock("firewood", ForgeweaveBlocks.FIREWOOD.get());
 
         cubeAllBlock("amethyst_bronze_block", ForgeweaveBlocks.AMETHYST_BRONZE_BLOCK.get());
+
+        // #275 -- clear glass (cutout, like seared glass above) and its 16 clear stained glass colors
+        // (translucent, matching upstream's BlockClearStainedGlass#getBlockLayer -- see
+        // cubeAllTranslucentBlock). Every color shares the one derived clear_stained_glass texture,
+        // tinted per block instance by ForgeweaveGlassColors.
+        cubeAllCutoutBlock("clear_glass", ForgeweaveBlocks.CLEAR_GLASS.get());
+        for (ForgeweaveBlocks.StainedGlassColor color : ForgeweaveBlocks.clearStainedGlassColors()) {
+            cubeAllTranslucentBlock(color.block().get());
+        }
     }
 
     /**
@@ -210,6 +220,20 @@ public class ForgeweaveBlockStateProvider extends BlockStateProvider {
      */
     private void cubeAllCutoutBlock(String name, Block block) {
         ModelFile model = models().cubeAll(name, modLoc("derived/block/" + name)).renderType("minecraft:cutout");
+        simpleBlockWithItem(block, model);
+    }
+
+    /**
+     * A cube_all block sharing the one derived {@code clear_stained_glass} texture across every color
+     * (issue #275) -- each block still gets its own model file, named off its own registry id, but
+     * they all point at the same texture and are tinted apart client-side ({@code
+     * ForgeweaveGlassColors}). {@code minecraft:translucent} matches upstream's {@code
+     * BlockClearStainedGlass#getBlockLayer}, same NeoForge 1.21 model-level render_type deviation as
+     * {@link #tankBlock}/{@link #cubeAllCutoutBlock}.
+     */
+    private void cubeAllTranslucentBlock(Block block) {
+        String name = BuiltInRegistries.BLOCK.getKey(block).getPath();
+        ModelFile model = models().cubeAll(name, modLoc("derived/block/clear_stained_glass")).renderType("minecraft:translucent");
         simpleBlockWithItem(block, model);
     }
 }

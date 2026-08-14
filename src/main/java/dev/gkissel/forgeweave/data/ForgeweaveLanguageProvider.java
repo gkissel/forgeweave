@@ -1,6 +1,7 @@
 package dev.gkissel.forgeweave.data;
 
 import net.minecraft.data.PackOutput;
+import net.minecraft.world.item.DyeColor;
 
 import net.neoforged.neoforge.common.data.LanguageProvider;
 
@@ -64,6 +65,17 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
 
         // Plain seared glass (docs/SCOPE.md M3.3 issue #289), name from upstream's tile.tconstruct.seared_glass.name.
         addBlock(ForgeweaveBlocks.SEARED_GLASS, "Seared Glass");
+
+        // #275 -- clear glass and its 16 clear stained glass colors, names ported from upstream's
+        // tile.tconstruct.glass_clear.name / the color's own English word (EnumGlassColor has no lang
+        // entry of its own -- upstream's tile.tconstruct.stained_glass_clear.name is unqualified and
+        // relies on the item's damage-bar tooltip for the color, so "<Color> Stained Clear Glass" is
+        // this provider's own name, following the recipe files' own "<color>_stained_clear_glass"
+        // word order).
+        addBlock(ForgeweaveBlocks.CLEAR_GLASS, "Clear Glass");
+        for (ForgeweaveBlocks.StainedGlassColor color : ForgeweaveBlocks.clearStainedGlassColors()) {
+            addBlock(color.block(), titleCase(color.dye().getName()) + " Stained Clear Glass");
+        }
 
         // What a core reports when a player uses it (issue #95: "the controller reports why an
         // invalid structure fails to form"). Positions are passed as three numbers so the message
@@ -963,5 +975,14 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
     private void addFluid(ForgeweaveFluids.MoltenMetal fluid, String name) {
         add("fluid_type." + Forgeweave.MODID + "." + fluid.name(), name);
         addItem(fluid.bucket(), name + " Bucket");
+    }
+
+    /** {@code "light_gray"} to {@code "Light Gray"}, for {@link DyeColor#getName()} (issue #275). */
+    private static String titleCase(String snakeCase) {
+        StringBuilder result = new StringBuilder();
+        for (String word : snakeCase.split("_")) {
+            result.append(Character.toUpperCase(word.charAt(0))).append(word.substring(1)).append(' ');
+        }
+        return result.substring(0, result.length() - 1);
     }
 }
