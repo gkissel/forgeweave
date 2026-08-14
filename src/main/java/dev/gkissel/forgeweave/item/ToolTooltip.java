@@ -25,6 +25,7 @@ import dev.gkissel.forgeweave.config.ForgeweaveClientConfig; // #276
 import dev.gkissel.forgeweave.combat.ForgeweaveInnates;
 import dev.gkissel.forgeweave.material.Material;
 import dev.gkissel.forgeweave.material.MaterialDisplay;
+import dev.gkissel.forgeweave.menu.ToolAssemblyRecipes;
 import dev.gkissel.forgeweave.modifier.ForgeweaveModifiers;
 import dev.gkissel.forgeweave.modifier.ModifierApplication;
 import dev.gkissel.forgeweave.modifier.ModifierEntry;
@@ -47,13 +48,25 @@ import dev.gkissel.forgeweave.tool.ToolStats;
  * ({@code library/utils/TooltipBuilder.java}: durability, harvest level, mining speed, attack) when
  * Shift is held; Ctrl instead reveals {@code ToolCore#getTooltipComponents}'s per-part material and
  * trait breakdown. Forgeweave has no separate Ctrl view, so this keeps upstream's two-tier
- * compact/Shift split but folds the Ctrl-only parts/traits content into the Shift tier: compact
- * shows durability (or Broken), attack damage and -- since issue #105 -- the Modifiers and free
- * modifier slots upstream's compact tier also shows; Shift adds mining speed, tool tier, the three
- * parts, and their traits.
+ * compact/Shift split but folds the Ctrl-only content into the Shift tier: compact shows durability
+ * (or Broken), attack damage and -- since issue #105 -- the Modifiers and free modifier slots
+ * upstream's compact tier also shows; Shift adds mining speed, tool tier, and then one section per
+ * part slot.
+ *
+ * <p>Maintainer decision 2026-08-14 (issue #380) supersedes the flat shape this record described
+ * before: the Shift tier's flat material-name list plus one global trait list carried no part
+ * attribution at all, so a two-material tool never said which part each trait or stat came from and
+ * a multi-head tool could not say so even in principle. It is now upstream {@code
+ * ToolCore#getTooltipComponents} (ToolCore.java:323-364 at the pinned commit) rendered inline: for
+ * each slot in the tool's own part order, the part item's name for that slot's material in the
+ * material colour and underlined, that part's stat block, that part's traits in the material colour
+ * (de-duplicated within the section, upstream's {@code usedTraits} set), one blank line between
+ * sections. Still no third keybind.
  *
  * <p>ponytail: no third Ctrl view -- one fewer key combo to test and document, and everything
- * upstream's Ctrl view showed still surfaces on Shift.
+ * upstream's Ctrl view showed still surfaces on Shift. A trait no part granted -- today only an
+ * embossment's donor trait -- has no section to sit in and so is named by its Modifier line in the
+ * compact tier instead, exactly as upstream's per-component view leaves it.
  */
 final class ToolTooltip {
 
@@ -110,18 +123,62 @@ final class ToolTooltip {
         }
         MaterialDisplay.lookup(registries, materials.head()).ifPresent(head -> tooltip.add(tierLine(stack, head)));
 
-        tooltip.add(Component.empty());
-        for (ResourceLocation materialId : materials.all()) {
-            tooltip.add(MaterialDisplay.name(registries, materialId));
+        appendPartSections(stack, registries, materials, tooltip);
+    }
+
+    /**
+     * Upstream {@code ToolCore#getTooltipComponents} (ToolCore.java:323-364), inline in the Shift
+     * tier per issue #380: one section per part slot, in the tool's own slot order
+     * ({@code ToolAssemblyRecipes.Entry}, which is where the multi-head tools' positional sections
+     * come from -- the hammer's two large plates get a section each because they occupy two slots).
+     *
+     * <p>Bails on a stack whose material list is shorter than its part list, upstream's own guard
+     * (ToolCore.java:328-330), and on a tool no assembly table row explains -- there is no part order
+     * to walk without one.
+     */
+    private static void appendPartSections(ItemStack stack, HolderLookup.Provider registries,
+            ToolMaterials materials, List<Component> tooltip) {
+        Optional<ToolAssemblyRecipes.Entry> found = ToolAssemblyRecipes.entryFor(stack);
+        if (found.isEmpty()) {
+            return;
+        }
+        ToolAssemblyRecipes.Entry entry = found.get();
+        List<ResourceLocation> materialIds = materials.all();
+        if (materialIds.size() < entry.slotCount()) {
+            return;
         }
 
-        List<ResourceLocation> traits = stack.getOrDefault(ForgeweaveDataComponents.TRAITS.get(), List.of());
-        if (!traits.isEmpty()) {
+        for (int slot = 0; slot < entry.slotCount(); slot++) {
+            ResourceLocation materialId = materialIds.get(slot);
+            PartItem part = entry.part(slot);
+            Optional<Material> material = MaterialDisplay.lookup(registries, materialId);
+            TextColor color = material.map(Material::color).orElse(null);
+
             tooltip.add(Component.empty());
-            for (ResourceLocation traitId : traits) {
-                tooltip.add(traitLine(registries, materials, traitId));
-            }
+            tooltip.add(partNameLine(registries, materialId, part, color));
+            material.ifPresent(resolved -> {
+                tooltip.addAll(part.stats(resolved));
+                // Upstream's usedTraits set: a trait its material grants twice is named once.
+                for (ResourceLocation traitId : resolved.traits().forPart(part.kind()).stream().distinct().toList()) {
+                    tooltip.add(traitLine(traitId, color));
+                }
+            });
         }
+    }
+
+    /**
+     * {@code Stone Pickaxe Head}: the part item's own name for this slot's material, in that
+     * material's colour and underlined -- upstream's {@code material.getTextColor() +
+     * UNDERLINE + partStack.getDisplayName()}. The material name and the part name are separate
+     * translatable pieces joined by {@code tooltip.forgeweave.part_name}, so a language that orders
+     * them the other way round can say so.
+     */
+    private static Component partNameLine(HolderLookup.Provider registries, ResourceLocation materialId,
+            PartItem part, TextColor color) {
+        Style style = Style.EMPTY.withUnderlined(true);
+        return Component.translatable("tooltip.forgeweave.part_name",
+                        MaterialDisplay.name(registries, materialId), new ItemStack(part).getHoverName())
+                .withStyle(color == null ? style : style.withColor(color));
     }
 
     /**
@@ -217,18 +274,19 @@ final class ToolTooltip {
                         .append(Component.translatable("tooltip.forgeweave.tier." + tier)));
     }
 
-    private static Component traitLine(HolderLookup.Provider registries, ToolMaterials materials,
-            ResourceLocation traitId) {
-        String nameKey = "trait." + traitId.getNamespace() + "." + traitId.getPath() + ".name";
-        String descKey = "trait." + traitId.getNamespace() + "." + traitId.getPath() + ".description";
-
-        MutableComponent name = Component.translatable(nameKey);
-        TextColor color = MaterialDisplay.traitColor(registries, materials.all(), traitId);
+    /**
+     * A trait in the colour of the material granting it. Since issue #380 that material is the one
+     * in the section's own slot rather than the first of the tool's materials to grant the id, so a
+     * trait two materials share is attributed to the part actually being described.
+     */
+    private static Component traitLine(ResourceLocation traitId, TextColor color) {
+        String base = "trait." + traitId.getNamespace() + "." + traitId.getPath();
+        MutableComponent name = Component.translatable(base + ".name");
         if (color != null) {
             name = name.withStyle(Style.EMPTY.withColor(color));
         }
         return name.append(Component.literal(": ").withStyle(ChatFormatting.GRAY))
-                .append(Component.translatable(descKey).withStyle(ChatFormatting.GRAY));
+                .append(Component.translatable(base + ".description").withStyle(ChatFormatting.GRAY));
     }
 
     /**

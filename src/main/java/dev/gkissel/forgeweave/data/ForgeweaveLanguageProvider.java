@@ -412,6 +412,10 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("tooltip.forgeweave.tool_tier", "Tool Tier");
         // Upstream 1.12's "Modifiers: %d" line, shown on a tool that still has slots free.
         add("tooltip.forgeweave.modifier_slots", "Modifiers: %s");
+        // Issue #380: the heading of each per-part section in the Shift tier -- material name, then
+        // part name ("Stone Pickaxe Head"). One key rather than a bare space so a language that puts
+        // the material after the part can reorder it.
+        add("tooltip.forgeweave.part_name", "%s %s");
 
         // M1 tool innate retrofit (issue #164, maintainer directive 2026-08-12): pickaxe, shovel and
         // hatchet each carry a fixed combat innate, shown the same name/description shape as a trait
