@@ -13,6 +13,7 @@ import net.neoforged.neoforge.registries.DeferredItem;
 import net.neoforged.neoforge.registries.DeferredRegister;
 
 import dev.gkissel.forgeweave.Forgeweave;
+import dev.gkissel.forgeweave.fluid.ForgeweaveFluids;
 import dev.gkissel.forgeweave.material.Material;
 
 /**
@@ -247,6 +248,13 @@ public final class ForgeweaveCreativeTab {
         output.accept(ForgeweaveItems.FIREWOOD.get());
 
         output.accept(ForgeweaveItems.AMETHYST_BRONZE_BLOCK.get());
+
+        // #286 -- a bucket per molten fluid, next to the metal item forms they melt from and off
+        // ForgeweaveFluids#all so a new fluid's bucket shows up by existing rather than by being
+        // remembered here (issue #139's failure mode).
+        for (ForgeweaveFluids.MoltenMetal fluid : ForgeweaveFluids.all()) {
+            output.accept(fluid.bucket().get());
+        }
 
         List<Holder.Reference<Material>> materials =
                 parameters.holders().lookupOrThrow(Material.REGISTRY).listElements().toList();

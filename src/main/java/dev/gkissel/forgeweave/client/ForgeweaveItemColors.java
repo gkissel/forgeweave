@@ -11,9 +11,11 @@ import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.client.event.RegisterColorHandlersEvent;
+import net.neoforged.neoforge.client.model.DynamicFluidContainerModel;
 import net.neoforged.neoforge.registries.DeferredHolder;
 
 import dev.gkissel.forgeweave.Forgeweave;
+import dev.gkissel.forgeweave.fluid.ForgeweaveFluids;
 import dev.gkissel.forgeweave.item.ForgeweaveDataComponents;
 import dev.gkissel.forgeweave.item.ForgeweaveItems;
 import dev.gkissel.forgeweave.item.PartItem;
@@ -36,6 +38,17 @@ public final class ForgeweaveItemColors {
     static void registerItemColors(RegisterColorHandlersEvent.Item event) {
         event.register(ForgeweaveItemColors::materialTint, tintedPartItems());
         event.register(ForgeweaveItemColors::toolMaterialTint, tintedToolItems());
+        // #286 -- the fluid buckets. NeoForge's own dynamic fluid container model draws the fluid
+        // layer as tintIndex 1 and leaves the coloring to an ItemColor; its stock implementation
+        // reads the contained fluid's IClientFluidTypeExtensions#getTintColor, which is the same
+        // per-fluid tint ForgeweaveFluidClientExtensions already registers. So the buckets pick up
+        // each molten fluid's color with no bucket art of our own.
+        event.register(new DynamicFluidContainerModel.Colors(), tintedBucketItems());
+    }
+
+    /** Every fluid bucket (#286), off {@link ForgeweaveFluids#all} rather than a hand list -- same reason as {@link #tintedPartItems}. Package-private so {@code ItemColorCoverageTest} can pin the coverage. */
+    static Item[] tintedBucketItems() {
+        return ForgeweaveFluids.all().stream().<Item>map(fluid -> fluid.bucket().get()).toArray(Item[]::new);
     }
 
     /**

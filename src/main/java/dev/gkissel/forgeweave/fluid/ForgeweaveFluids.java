@@ -1,10 +1,16 @@
 package dev.gkissel.forgeweave.fluid;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.function.Supplier;
 
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvents;
+import net.minecraft.world.item.BucketItem;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.LiquidBlock;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.material.FlowingFluid;
@@ -18,6 +24,7 @@ import net.neoforged.neoforge.fluids.BaseFlowingFluid;
 import net.neoforged.neoforge.fluids.FluidType;
 import net.neoforged.neoforge.registries.DeferredBlock;
 import net.neoforged.neoforge.registries.DeferredHolder;
+import net.neoforged.neoforge.registries.DeferredItem;
 import net.neoforged.neoforge.registries.DeferredRegister;
 import net.neoforged.neoforge.registries.NeoForgeRegistries;
 
@@ -38,14 +45,34 @@ import dev.gkissel.forgeweave.Forgeweave;
  * inputs, same as manyullyn running hotter than cobalt/ardite), recorded as a deviation in the
  * issue #92 PR rather than an upstream-derived constant.
  *
- * <p>No bucket item is registered: M2's smeltery moves fluid through tanks/faucets/casting
- * (docs/SCOPE.md M2 in-scope systems), not buckets, and adding one is easy follow-up work if a
- * later issue needs it.
+ * <p>#286 reverses the earlier scope decision recorded here ("no bucket item is registered: M2's
+ * smeltery moves fluid through tanks/faucets/casting, not buckets"). Maintainer decision on issue
+ * #286 (2026-08-14): every molten fluid gets a bucket, matching upstream 1.12, where every smeltery
+ * fluid is bucketable -- {@code TinkerFluids#registerItems} calls {@code
+ * FluidRegistry.addBucketForFluid} for each non-metal fluid and {@code MaterialIntegration#preInit}
+ * does the same for every registered material's molten fluid. Buckets also make each fluid
+ * browsable in JEI, which had no other item form to hang a fluid off (0.3.2 playtest note).
+ * {@link #register} therefore registers one {@link BucketItem} per fluid and wires it both ways --
+ * {@code BaseFlowingFluid.Properties#bucket} so {@code Fluid#getBucket} answers it (pickup), and
+ * the {@code BucketItem}'s own {@code content} so emptying it places the fluid back.
  */
 public final class ForgeweaveFluids {
     public static final DeferredRegister<FluidType> FLUID_TYPES = DeferredRegister.create(NeoForgeRegistries.Keys.FLUID_TYPES, Forgeweave.MODID);
     public static final DeferredRegister<Fluid> FLUIDS = DeferredRegister.create(Registries.FLUID, Forgeweave.MODID);
     public static final DeferredRegister.Blocks BLOCKS = DeferredRegister.createBlocks(Forgeweave.MODID);
+    /** #286 -- the per-fluid buckets. Their own register rather than {@code ForgeweaveItems.ITEMS} so a fluid stays defined in one file. */
+    public static final DeferredRegister.Items BUCKETS = DeferredRegister.createItems(Forgeweave.MODID);
+
+    // Every fluid this class registers, in declaration order. Client tints, bucket item models,
+    // lang keys and the creative tab all walk this instead of keeping their own hand list -- the
+    // exact drift that shipped #256's untinted parts and #139's missing creative-tab entries.
+    private static final List<MoltenMetal> ALL = new ArrayList<>();
+    private static final List<MoltenMetal> ALL_VIEW = Collections.unmodifiableList(ALL);
+
+    /** Every registered molten fluid, in declaration order. */
+    public static List<MoltenMetal> all() {
+        return ALL_VIEW;
+    }
 
     private static final ResourceLocation STILL_TEXTURE = ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "derived/block/molten_metal");
     private static final ResourceLocation FLOWING_TEXTURE = ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "derived/block/molten_metal_flow");
@@ -58,10 +85,10 @@ public final class ForgeweaveFluids {
     private static final ResourceLocation STONE_STILL = ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "derived/block/liquid_stone");
     private static final ResourceLocation STONE_FLOWING = ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "derived/block/liquid_stone_flow");
 
-    /** A registered smeltery fluid: its client tint and textures, and the smeltery-fuel-gating temperature that governs it (upstream's {@code FluidType#getTemperature}). */
-    public record MoltenMetal(DeferredHolder<FluidType, FluidType> fluidType, DeferredHolder<Fluid, FlowingFluid> still,
-            DeferredHolder<Fluid, FlowingFluid> flowing, DeferredBlock<LiquidBlock> block, int color, int temperature,
-            ResourceLocation stillTexture, ResourceLocation flowingTexture) {}
+    /** A registered smeltery fluid: its registry name, its client tint and textures, its {@link BucketItem} (#286), and the smeltery-fuel-gating temperature that governs it (upstream's {@code FluidType#getTemperature}). */
+    public record MoltenMetal(String name, DeferredHolder<FluidType, FluidType> fluidType, DeferredHolder<Fluid, FlowingFluid> still,
+            DeferredHolder<Fluid, FlowingFluid> flowing, DeferredBlock<LiquidBlock> block, DeferredItem<BucketItem> bucket,
+            int color, int temperature, ResourceLocation stillTexture, ResourceLocation flowingTexture) {}
 
     // Ported 1:1 from TinkerFluids#setupFluids (temperature) and TinkerMaterials (materialTextColor).
     public static final MoltenMetal IRON = register("iron", 0xA81212, 769);
@@ -148,9 +175,21 @@ public final class ForgeweaveFluids {
         @SuppressWarnings("unchecked")
         DeferredBlock<LiquidBlock>[] blockRef = new DeferredBlock[1];
 
+        // #286 -- the fluid's bucket. The BucketItem factory reads stillRef[0] at the item registry's
+        // own RegisterEvent, the same deferred read every other lambda in this method does, so it is
+        // safe to register here before stillRef is filled in below.
+        DeferredItem<BucketItem> bucket = BUCKETS.registerItem(name + "_bucket",
+                props -> new BucketItem(stillRef[0].get(), props),
+                // Vanilla's own bucket properties (see Items#LAVA_BUCKET): one per slot, and the
+                // empty bucket comes back when the filled one is used up in a recipe.
+                new Item.Properties().craftRemainder(Items.BUCKET).stacksTo(1));
+
         Supplier<BaseFlowingFluid.Properties> properties = () -> new BaseFlowingFluid.Properties(
                 type, () -> stillRef[0].get(), () -> flowingRef[0].get())
-                .block(() -> blockRef[0].get());
+                .block(() -> blockRef[0].get())
+                // The pickup half of the round trip: LiquidBlock#pickupBlock hands out
+                // `new ItemStack(fluid.getBucket())`, which is Items.AIR without this.
+                .bucket(bucket);
 
         // #285: the block's light level derives from the fluid's own FluidType#getLightLevel()
         // instead of a hardcoded 10, so BLOOD (no lightLevel() call on its FluidType.Properties,
@@ -174,8 +213,10 @@ public final class ForgeweaveFluids {
                 .pushReaction(PushReaction.DESTROY)
                 .lightLevel(state -> lightLevel)));
 
-        return new MoltenMetal(type, stillRef[0], flowingRef[0], blockRef[0], color, temperature,
-                stillTexture, flowingTexture);
+        MoltenMetal fluid = new MoltenMetal(name, type, stillRef[0], flowingRef[0], blockRef[0], bucket,
+                color, temperature, stillTexture, flowingTexture);
+        ALL.add(fluid);
+        return fluid;
     }
 
     // #285: forge/upstream's lava motionScale, ported 1:1 (TinkerFluids#hot's "from forge lava type"

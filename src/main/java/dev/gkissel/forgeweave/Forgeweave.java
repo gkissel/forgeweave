@@ -63,6 +63,7 @@ public class Forgeweave {
         ForgeweaveFluids.FLUID_TYPES.register(modEventBus);
         ForgeweaveFluids.FLUIDS.register(modEventBus);
         ForgeweaveFluids.BLOCKS.register(modEventBus);
+        ForgeweaveFluids.BUCKETS.register(modEventBus); // #286
         ForgeweaveItems.ITEMS.register(modEventBus);
         ForgeweaveMenus.MENUS.register(modEventBus);
         ForgeweaveCreativeTab.TABS.register(modEventBus);

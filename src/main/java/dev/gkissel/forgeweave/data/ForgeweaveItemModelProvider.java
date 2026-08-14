@@ -14,10 +14,12 @@ import net.minecraft.world.item.ItemDisplayContext;
 import net.neoforged.neoforge.client.model.generators.ItemModelBuilder;
 import net.neoforged.neoforge.client.model.generators.ItemModelProvider;
 import net.neoforged.neoforge.client.model.generators.ModelFile;
+import net.neoforged.neoforge.client.model.generators.loaders.DynamicFluidContainerModelBuilder;
 import net.neoforged.neoforge.common.data.ExistingFileHelper;
 import net.neoforged.neoforge.registries.DeferredItem;
 
 import dev.gkissel.forgeweave.Forgeweave;
+import dev.gkissel.forgeweave.fluid.ForgeweaveFluids;
 import dev.gkissel.forgeweave.item.ForgeweaveItems;
 import dev.gkissel.forgeweave.menu.ToolAssemblyRecipes;
 import dev.gkissel.forgeweave.tool.ToolArt;
@@ -232,7 +234,29 @@ public class ForgeweaveItemModelProvider extends ItemModelProvider {
         // #235 -- amethyst bronze (M3.2), the 1.20 clone's own art copied byte-for-byte (NOTICE.md).
         singleLayerModel(ForgeweaveItems.INGOT_AMETHYST_BRONZE, derivedItem("amethyst_bronze_ingot"));
         singleLayerModel(ForgeweaveItems.NUGGET_AMETHYST_BRONZE, derivedItem("amethyst_bronze_nugget"));
+
+        // #286 -- one bucket model per molten fluid, off ForgeweaveFluids#all so a new fluid gets
+        // one by existing. No bucket art of our own: NeoForge's dynamic fluid container model
+        // (parent neoforge:item/bucket = vanilla's own item/bucket sprite plus NeoForge's fluid
+        // mask) re-textures the fluid layer from the fluid's still texture and tints it via
+        // ForgeweaveItemColors. Both upstream generations do the same thing rather than draw 20
+        // buckets: 1.12 registers every smeltery fluid on Forge's universal bucket
+        // (TinkerFluids#registerItems -> FluidRegistry.addBucketForFluid, one shared bucket item
+        // recolored per fluid), and the 1.20 clone's generated bucket models are
+        // {"parent": "forge:item/bucket_drip", "loader": "tconstruct:fluid_container", "fluid": ...}
+        // -- the same dynamic-container mechanism this uses.
+        for (ForgeweaveFluids.MoltenMetal fluid : ForgeweaveFluids.all()) {
+            withExistingParent(fluid.name() + "_bucket", BUCKET_MODEL_PARENT)
+                    .customLoader(DynamicFluidContainerModelBuilder::begin)
+                    .fluid(fluid.still().get())
+                    .flipGas(false)
+                    .end();
+        }
     }
+
+    /** NeoForge's stock bucket container model: vanilla's {@code item/bucket} sprite plus NeoForge's fluid mask (#286). */
+    private static final ResourceLocation BUCKET_MODEL_PARENT =
+            ResourceLocation.fromNamespaceAndPath("neoforge", "item/bucket");
 
     private ResourceLocation derivedItem(String name) {
         return modLoc("derived/item/" + name);
