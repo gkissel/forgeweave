@@ -105,6 +105,7 @@
   "gui.forgeweave.smeltery.capacity": "Capacity:",
   "gui.forgeweave.smeltery.capacity_available": "Free:",
   "gui.forgeweave.smeltery.capacity_used": "Used:",
+  "gui.forgeweave.smeltery.claimed": "Another smeltery already uses the block at %s, %s, %s",
   "gui.forgeweave.smeltery.core_outside": "The core has to sit in a wall of the smeltery",
   "gui.forgeweave.smeltery.formed": "Smeltery formed: %s x %s interior, %s high",
   "gui.forgeweave.smeltery.fuel": "Fuel",

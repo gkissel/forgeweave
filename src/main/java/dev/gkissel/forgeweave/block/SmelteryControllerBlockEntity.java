@@ -190,6 +190,18 @@ public class SmelteryControllerBlockEntity extends BlockEntity implements Statio
         }
 
         lastScanTick = level.getGameTime();
+
+        // #288, upstream's MultiblockDetection#checkIfMultiblockCanBeRechecked: a formed smeltery
+        // whose region is not fully loaded is not rechecked at all. A scan over an unloaded chunk can
+        // only fail (SmelteryScan.KEY_NOT_LOADED), and failing here would clear the structure, shrink
+        // the tank back to one block of capacity and drop everything above it -- so a player standing
+        // where half a smeltery has fallen out of view distance would come back to an emptied one.
+        // An *unformed* core still scans every time, exactly as upstream does when its info is null.
+        SmelteryStructure current = structure;
+        if (current != null && !level.hasChunksAt(current.interiorMin().offset(-1, 0, -1), current.interiorMax().offset(1, 0, 1))) {
+            return;
+        }
+
         SmelteryScan.Result result = SmelteryScan.scan(level, worldPosition, state.getValue(SmelteryControllerBlock.FACING));
         lastResult = result.message();
 
