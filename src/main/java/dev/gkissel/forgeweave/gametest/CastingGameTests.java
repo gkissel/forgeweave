@@ -68,6 +68,38 @@ public class CastingGameTests {
     /** #207: the redstone block that powers that faucet, clear of the smeltery's own walls. */
     private static final BlockPos DRAIN_POWER = new BlockPos(1, 3, 3);
 
+    /**
+     * How far past its measured tick floor a casting test's {@code timeoutTicks} is set (#269).
+     *
+     * <p>A GameTest's deadline is <em>game time</em>: {@code GameTestInfo#tickInternal} computes
+     * {@code tickCount = level.getGameTime() - startTick}, so the budget burns down on every server
+     * tick. A pour, though, runs on vanilla <em>scheduled block ticks</em>, and {@code LevelTicks}
+     * only delivers those for chunks passing {@code ServerLevel::isPositionTickingWithEntitiesLoaded}
+     * -- which is {@code areEntitiesLoaded(chunk) && chunkSource.isPositionTicking(chunk)}. That is
+     * strictly stronger than the {@code isPositionEntityTicking} a {@code GameTestInfo} latches
+     * {@code chunksLoaded} on, and the gap between the two is real: {@code
+     * PersistentEntitySectionManager#updateChunkStatus} publishes {@code chunkVisibility}
+     * synchronously (so the test clock may start) but only then queues {@code requestChunkLoad},
+     * whose entity-section read completes asynchronously and is promoted to {@code LOADED} on some
+     * <em>later</em> {@code processPendingLoads}. While that window is open the level keeps ticking
+     * -- the deadline keeps running -- and not one scheduled tick is delivered to the test's chunk.
+     * The pour is not lost ({@code LevelTicks#sortContainersToTick} holds the container rather than
+     * dropping it) but it resumes late against a clock that never paused, which is exactly #269's
+     * shape: the assertion's last observation was an empty output slot.
+     *
+     * <p>So the budget past a test's floor is a <em>wall-clock stall allowance</em>, not tick
+     * jitter, and it does not scale with how long the pour is. A {@code GameTestServer} free-runs
+     * ({@code waitUntilNextTick} is overridden to {@code runAllTasks}); measured over this suite it
+     * turns 7180 game ticks in 6.2 s, about 1160 ticks per wall-clock second. The old 1600-tick
+     * budgets left the two cobalt tests -- floors measured at 765 and 683 ticks -- 835 and 917
+     * ticks of slack, i.e. 0.72 s and 0.79 s. Half a second of GC, of background-executor queueing
+     * behind the worldgen every batch kicks off, or of ticket churn from the mock players each test
+     * logs in at world spawn is enough to spend all of it. 3500 ticks is roughly three seconds of
+     * that allowance instead, and costs nothing on a passing run -- both tests still succeed on
+     * their floor tick.
+     */
+    static final int STALL_ALLOWANCE_TICKS = 3500;
+
     /** {@code shovel_head_iron.json}: two ingots, the amount every part cast in the pack asks for. */
     private static final int PART_CAST_AMOUNT = 288;
     /** Enough of it to be unambiguously mid-pour, and the figure the screenshot harness captures. */
@@ -98,10 +130,12 @@ public class CastingGameTests {
      *
      * <p>Budget: a cobalt block is 1296 mB = nine 144-mB faucet transactions at 6 mB/tick = 216
      * ticks of pouring, then {@code CastingRecipe#cooldownTicks}' 24 + (950-300)*1296/1600 = 550
-     * ticks of cooling -- a 766-tick floor before a single tick of scheduling slack. The old
-     * 800-tick budget left 4% headroom and timed out rarely in CI; 1600 is the floor doubled.
+     * ticks of cooling -- and the block does land on tick 765, measured. Everything past that floor
+     * is {@link #STALL_ALLOWANCE_TICKS}: #269 showed that "the floor doubled" (the old 800 and then
+     * 1600) is the wrong rule, because what has to be covered is a wall-clock stall that does not
+     * scale with the length of the pour.
      */
-    @GameTest(template = "smeltery", timeoutTicks = 1600)
+    @GameTest(template = "smeltery", timeoutTicks = 765 + STALL_ALLOWANCE_TICKS)
     public static void theBasinCastsACobaltBlockViaTheDrainFaucet(GameTestHelper helper) {
         CastingBlockEntity basin = drainRig(helper, ForgeweaveBlocks.CASTING_BASIN.get(), ForgeweaveFluids.COBALT.still().get());
 
