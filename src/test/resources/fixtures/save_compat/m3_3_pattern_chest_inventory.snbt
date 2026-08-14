@@ -1,0 +1,31 @@
+{
+    block: "forgeweave:pattern_chest",
+    decoder: "block_entity",
+    expect: {
+        id: "forgeweave:pattern_chest",
+        inventory: [
+            {
+                count: 1,
+                id: "forgeweave:pattern_blank"
+            },
+            {
+                count: 3,
+                id: "forgeweave:pattern_pickaxe_head"
+            }
+        ]
+    },
+    nbt: {
+        id: "forgeweave:pattern_chest",
+        inventory: [
+            {
+                count: 1,
+                id: "forgeweave:pattern_blank"
+            },
+            {
+                count: 3,
+                id: "forgeweave:pattern_pickaxe_head"
+            }
+        ]
+    },
+    what: "M3.3 (#305): a Pattern Chest holding a blank pattern and a pickaxe-head pattern stack (two different items, so SimpleContainer#addItem's reload can't merge them into one slot and mask a real regression), saved before its self-expanding capacity landed. SimpleContainer's list is positionless (same note as m2_tool_station_inventory.snbt) -- decoding this still refills starting at slot 0 and computes capacity 54 from that, exactly what a pre-#305 54-slot chest would already have produced, so this pins that the capacity change is additive rather than a save break."
+}

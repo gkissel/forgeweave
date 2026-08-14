@@ -93,6 +93,9 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("gui.forgeweave.smeltery.fuel.heat", "Temperature: %s");
         add("tooltip.forgeweave.hold_shift", "Hold Shift for buckets");
 
+        // The Pattern/Part Chest's page label (issue #305: self-expanding, paged storage).
+        add("gui.forgeweave.chest.page", "Page %s/%s");
+
         addItem(ForgeweaveItems.PATTERN_BLANK, "Blank Pattern");
         addItem(ForgeweaveItems.PATTERN_PICKAXE_HEAD, "Pickaxe Head Pattern");
         addItem(ForgeweaveItems.PATTERN_SHOVEL_HEAD, "Shovel Head Pattern");
