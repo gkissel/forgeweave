@@ -87,7 +87,10 @@ public class StencilTableMenu extends StationMenu {
             ForgeweaveItems.PATTERN_VEIN_HAMMER_HEAD,
             ForgeweaveItems.PATTERN_WAR_MACE_HEAD,
             ForgeweaveItems.PATTERN_CURVED_BLADE,
-            ForgeweaveItems.PATTERN_KATANA_BLADE);
+            ForgeweaveItems.PATTERN_KATANA_BLADE,
+            // #271: upstream registers the sharpening kit's pattern for stencil crafting alongside
+            // every other part's (TinkerTools#registerItems).
+            ForgeweaveItems.PATTERN_SHARPENING_KIT);
 
     private final Container container;
     private final ContainerLevelAccess access;

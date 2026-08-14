@@ -90,6 +90,11 @@ PARTS = [
     # center (9.5, 4.5) -> (-2, 4) centers it. Read from ORIGINAL_ITEM_DIR, not TEXTURE_DIR: it is
     # the one part base that is not derived art.
     ("katana_blade.png", "pattern_katana_blade.png", ORIGINAL_ITEM_DIR, (-2, 4)),
+    # Issue #271: the sharpening kit, the one part that belongs to no tool (upstream's SharpeningKit
+    # is registered as a tool part but never appears in a ToolCore's required components). Its
+    # sharpening_kit.tmat.json carries no "offset" field upstream, so (0, 0), and the art needs none:
+    # it fills the canvas edge to edge (alpha bbox (0, 1)-(16, 14), center (7.5, 7.0)).
+    ("sharpening_kit.png", "pattern_sharpening_kit.png", TEXTURE_DIR, (0, 0)),
 ]
 
 # Upstream ships hand-drawn pattern art for the large plate instead of compositing one; copied

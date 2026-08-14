@@ -69,6 +69,9 @@ public final class ForgeweaveItems {
     public static final DeferredItem<Item> PATTERN_CURVED_BLADE = ITEMS.registerSimpleItem("pattern_curved_blade");
     // #160's katana blade -- see PART_KATANA_BLADE below for why it lands here rather than in #151.
     public static final DeferredItem<Item> PATTERN_KATANA_BLADE = ITEMS.registerSimpleItem("pattern_katana_blade");
+    // #271's sharpening kit. Upstream stencils it like any other part
+    // (TinkerTools#registerItems: registerStencilTableCrafting(Pattern.setTagForPart(pattern, sharpeningKit))).
+    public static final DeferredItem<Item> PATTERN_SHARPENING_KIT = ITEMS.registerSimpleItem("pattern_sharpening_kit");
 
     public static final DeferredItem<PartItem> PART_PICKAXE_HEAD = part("pickaxe_head", PartItem.Kind.HEAD);
     public static final DeferredItem<PartItem> PART_SHOVEL_HEAD = part("shovel_head", PartItem.Kind.HEAD);
@@ -126,6 +129,22 @@ public final class ForgeweaveItems {
     // decision this reuses the 1.12 large sword blade unmodified -- the closest upstream equivalent's
     // silhouette already reads as a long straight blade (scripts/derive_m3_weapon_art.py, NOTICE.md).
     public static final DeferredItem<PartItem> PART_KATANA_BLADE = part("katana_blade", PartItem.Kind.HEAD);
+
+    /**
+     * The sharpening kit (issue #271): the one part that belongs to no tool. Upstream's
+     * {@code SharpeningKit} is a {@code ToolPart} registered like any other
+     * ({@code TinkerRegistry.registerToolPart}), so it stencils, builds and casts like any other --
+     * but no {@code ToolCore}'s required components ever list it, so it can never be assembled into
+     * anything. Its only use is spending it (plus a flint) on {@code Fortification}.
+     *
+     * <p>{@link PartItem.Kind#HEAD} because upstream's {@code canUseMaterial} is
+     * {@code mat.hasStats(MaterialTypes.HEAD)} and its tooltip shows the head harvest level -- the
+     * kit's whole point is the head-stat tier it carries. That it is <em>not</em> one of
+     * {@code ToolConstants}' parts is what {@code Embossing#isDonorPart} keys off to keep it from
+     * being an embossing donor, which upstream also forbids (its extra-trait modifiers are generated
+     * only over {@code tool.getRequiredComponents()}).
+     */
+    public static final DeferredItem<PartItem> PART_SHARPENING_KIT = part("sharpening_kit", PartItem.Kind.HEAD);
 
     private static DeferredItem<PartItem> part(String name, PartItem.Kind kind) {
         return ITEMS.registerItem(name, properties -> new PartItem(properties, kind));
@@ -422,6 +441,10 @@ public final class ForgeweaveItems {
     public static final DeferredItem<Item> CAST_WAR_MACE_HEAD = ITEMS.registerSimpleItem("cast_war_mace_head");
     public static final DeferredItem<Item> CAST_CURVED_BLADE = ITEMS.registerSimpleItem("cast_curved_blade");
     public static final DeferredItem<Item> CAST_KATANA_BLADE = ITEMS.registerSimpleItem("cast_katana_blade");
+    // #271: upstream casts the sharpening kit like any other tool part -- TinkerSmeltery's
+    // registerToolpartMeltingCasting loops every registered IToolPart whose canBeCasted() holds, and
+    // SharpeningKit never overrides it.
+    public static final DeferredItem<Item> CAST_SHARPENING_KIT = ITEMS.registerSimpleItem("cast_sharpening_kit");
 
     // #272 (M3.4-3) -- the three CastCustom metas upstream ships beyond ingot/nugget (TinkerSmeltery
     // castGem/castPlate/castGear). Same gold-only reusable idiom, straight-ported upstream sprites

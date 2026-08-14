@@ -80,6 +80,13 @@ public class PartItem extends Item {
      */
     void append(ItemStack stack, @Nullable HolderLookup.Provider registries, boolean detailed,
             List<Component> tooltip) {
+        // Issue #271: the sharpening kit is the one part that fits no tool, so without a line saying
+        // what to do with it the item is a dead end. Upstream says the same thing in the same place
+        // (SharpeningKit#addInformation leads with item.tconstruct.sharpening_kit.tooltip), and it
+        // leads because it is the only reason to hold one.
+        if (stack.is(ForgeweaveItems.PART_SHARPENING_KIT.get())) {
+            tooltip.add(Component.translatable("tooltip.forgeweave.sharpening_kit"));
+        }
         ResourceLocation materialId = stack.get(ForgeweaveDataComponents.MATERIAL.get());
         if (materialId == null) {
             return;

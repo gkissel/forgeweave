@@ -962,6 +962,9 @@ public final class ForgeweaveModifiers {
         if (Embossing.isEmbossment(id)) {
             return EMBOSSMENT; // #154: generated per-material, so it can't be in the map above.
         }
+        if (Fortification.isFortification(id)) {
+            return Fortification.BEHAVIOR; // #271: likewise generated per-material.
+        }
         Modifier modifier = REGISTRY.get(id);
         if (modifier == null && WARNED_UNKNOWN.add(id)) {
             LOGGER.warn("Unknown modifier '{}' on a tool; keeping it as inert data so it works again if a "
@@ -1014,6 +1017,12 @@ public final class ForgeweaveModifiers {
      * ({@link dev.gkissel.forgeweave.tool.ToolRepair})), except embossments (issue #154 -- upstream's
      * {@code ModExtraTrait} carries a {@code SingleAspect} and a {@code DataAspect} but deliberately
      * no {@code FreeModifierAspect}, which is what charges slots).
+     *
+     * <p>Fortifications (issue #271) are chargeless for the very same upstream reason -- {@code
+     * ModFortify}'s aspect set is {@code SingleAspect + DataAspect + harvestOnly}, no {@code
+     * FreeModifierAspect} -- but they need no exception here: unlike an embossment, a fortification
+     * id resolves to a real behavior ({@link Fortification#BEHAVIOR}), so it says so itself through
+     * {@link Modifier#occupiedSlots} and the loop below simply asks.
      */
     public static int occupiedSlots(ItemStack stack) {
         int occupied = 0;

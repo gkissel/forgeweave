@@ -191,6 +191,7 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         addItem(ForgeweaveItems.PATTERN_WAR_MACE_HEAD, "War Mace Head Pattern");
         addItem(ForgeweaveItems.PATTERN_CURVED_BLADE, "Curved Blade Pattern");
         addItem(ForgeweaveItems.PATTERN_KATANA_BLADE, "Katana Blade Pattern");
+        addItem(ForgeweaveItems.PATTERN_SHARPENING_KIT, "Sharpening Kit Pattern");
 
         addItem(ForgeweaveItems.PART_SWORD_BLADE, "Sword Blade");
         addItem(ForgeweaveItems.PART_WIDE_GUARD, "Wide Guard");
@@ -214,6 +215,8 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         addItem(ForgeweaveItems.PART_CURVED_BLADE, "Curved Blade");
         // #160: the katana has no upstream counterpart, so its part and tool names are ours.
         addItem(ForgeweaveItems.PART_KATANA_BLADE, "Katana Blade");
+        // #271: upstream item.tconstruct.sharpening_kit.name.
+        addItem(ForgeweaveItems.PART_SHARPENING_KIT, "Sharpening Kit");
 
         addItem(ForgeweaveItems.TOOL_PICKAXE, "Pickaxe");
         addItem(ForgeweaveItems.TOOL_SHOVEL, "Shovel");
@@ -694,6 +697,23 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
                 "Carries the traits of %s, without changing anything else about the tool.");
         add("gui.forgeweave.embossment.already_embossed", "This tool is already embossed. One embossment per tool.");
         add("gui.forgeweave.embossment.no_traits", "%s grants no traits through that part, so there is nothing to emboss.");
+        // #271 -- fortification. Same shape as embossing above, and for the same reason: upstream
+        // builds one ModFortify per head-stat material, so the per-material name/description are one
+        // shared pair with the material's own name filling the placeholder -- upstream's
+        // `translate(LOC_Name, "fortify") + " (" + material.getLocalizedName() + ")"` and its
+        // modifier.fortify.desc, whose %s is the material too. The bare `.name`/`.description` pair
+        // names the family rather than any one material, which is what the JEI entry for the shared
+        // `forgeweave:fortification` recipe shows (there is one recipe, not one per material).
+        add("modifier.forgeweave.fortification.name", "Fortified");
+        add("modifier.forgeweave.fortification.description",
+                "A sharpening kit and a flint raise the tool's mining level to the kit material's.");
+        add("modifier.forgeweave.fortification.material", "Fortified (%s)");
+        add("modifier.forgeweave.fortification.material_description",
+                "Mining level increased to the same level as %s.");
+        add("gui.forgeweave.fortification.already_fortified",
+                "This tool is already fortified with %s. Use a different material to change it.");
+        add("gui.forgeweave.fortification.no_tier", "%s has no mining level to fortify with.");
+        add("tooltip.forgeweave.sharpening_kit", "Combine with a flint to raise a tool's mining level to this material's.");
         // Combat modifiers batch 2 (issue #163, docs/SCOPE.md M3): knockback, shulking, webbed.
         // Wording follows upstream 1.12's modifier.<id>.name/.desc entries.
         add("modifier.forgeweave.knockback.name", "Knockback");
@@ -826,6 +846,7 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         addItem(ForgeweaveItems.CAST_WAR_MACE_HEAD, "War Mace Head Cast");
         addItem(ForgeweaveItems.CAST_CURVED_BLADE, "Curved Blade Cast");
         addItem(ForgeweaveItems.CAST_KATANA_BLADE, "Katana Blade Cast");
+        addItem(ForgeweaveItems.CAST_SHARPENING_KIT, "Sharpening Kit Cast");
 
         // #292 -- the single-use clay counterpart of every cast above, named the way upstream's
         // item.tconstruct.clay_cast.name ("%s Clay Cast") names them, off the cast's registry name

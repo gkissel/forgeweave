@@ -21,8 +21,18 @@ from pathlib import Path
 
 from PIL import Image
 
-TEXTURE_DIR = Path(__file__).resolve().parent.parent / "src/main/resources/assets/forgeweave/textures/derived/item"
+ROOT = Path(__file__).resolve().parent.parent
+TEXTURE_DIR = ROOT / "src/main/resources/assets/forgeweave/textures/derived/item"
+# Freshly-authored part art stays out of the derived tree (CLAUDE.md), so a part base can live in
+# either place; katana_blade (issue #279) is the one that does. Same split generate_pattern_textures.py
+# spells out with a per-part source-directory column.
+ORIGINAL_ITEM_DIR = ROOT / "src/main/resources/assets/forgeweave/textures/item"
 CAST_BASE = TEXTURE_DIR / "cast.png"
+
+
+def part_source(name: str) -> Path:
+    derived = TEXTURE_DIR / name
+    return derived if derived.exists() else ORIGINAL_ITEM_DIR / name
 
 # (part silhouette texture, composite output texture)
 PARTS = [
@@ -53,6 +63,10 @@ PARTS = [
     ("war_mace_head.png", "cast_war_mace_head.png"),
     ("curved_blade.png", "cast_curved_blade.png"),
     ("katana_blade.png", "cast_katana_blade.png"),
+    # #271 -- the sharpening kit. Upstream casts it like any other tool part (TinkerSmeltery's
+    # registerToolpartMeltingCasting loops every registered IToolPart whose canBeCasted() holds, and
+    # SharpeningKit never overrides it), so it gets the same gold cast as the rest.
+    ("sharpening_kit.png", "cast_sharpening_kit.png"),
 ]
 
 BEVEL_MULT = 0.78
@@ -92,7 +106,7 @@ def composite(cast: Image.Image, part: Image.Image) -> Image.Image:
 def main() -> None:
     cast = Image.open(CAST_BASE).convert("RGBA")
     for part_name, output_name in PARTS:
-        part = Image.open(TEXTURE_DIR / part_name).convert("RGBA")
+        part = Image.open(part_source(part_name)).convert("RGBA")
         composite(cast, part).save(TEXTURE_DIR / output_name)
         print(f"wrote {output_name}")
 

@@ -57,7 +57,9 @@ public final class ForgeweaveCreativeTab {
             // #159's new head part.
             ForgeweaveItems.PART_CURVED_BLADE,
             // M3 new-shape tools' own parts (issue #160 onwards).
-            ForgeweaveItems.PART_KATANA_BLADE);
+            ForgeweaveItems.PART_KATANA_BLADE,
+            // #271: belongs to no tool, but is built and shown exactly like the parts that do.
+            ForgeweaveItems.PART_SHARPENING_KIT);
 
     public static final DeferredHolder<CreativeModeTab, CreativeModeTab> MAIN = TABS.register("main", () -> CreativeModeTab.builder()
             .title(Component.translatable("itemGroup.forgeweave"))
@@ -115,6 +117,7 @@ public final class ForgeweaveCreativeTab {
         output.accept(ForgeweaveItems.PATTERN_WAR_MACE_HEAD.get());
         output.accept(ForgeweaveItems.PATTERN_CURVED_BLADE.get());
         output.accept(ForgeweaveItems.PATTERN_KATANA_BLADE.get());
+        output.accept(ForgeweaveItems.PATTERN_SHARPENING_KIT.get());
 
         // Shown component-less (no TOOL_MATERIALS set): unlike parts, a tool has three independent
         // material slots, so there's no small fixed set of "one per material" variants to enumerate
@@ -249,6 +252,7 @@ public final class ForgeweaveCreativeTab {
         output.accept(ForgeweaveItems.CAST_WAR_MACE_HEAD.get());
         output.accept(ForgeweaveItems.CAST_CURVED_BLADE.get());
         output.accept(ForgeweaveItems.CAST_KATANA_BLADE.get());
+        output.accept(ForgeweaveItems.CAST_SHARPENING_KIT.get());
 
         // #272 -- the three CastCustom metas upstream ships beyond ingot/nugget.
         output.accept(ForgeweaveItems.CAST_GEM.get());
