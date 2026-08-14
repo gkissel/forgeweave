@@ -222,6 +222,79 @@ public class ModifierGameTests {
     }
 
     /**
+     * Issue #340: upstream 1.12's {@code ToolBuilder#tryModifyTool} iterates every registered
+     * modifier against the whole input set (lines 176-223 at the pinned commit), so redstone in one
+     * free slot and lapis in the other apply Haste and Luck together in one craft, each consuming its
+     * own reagents.
+     */
+    @GameTest(template = "empty")
+    public static void twoDifferentModifiersLandInOneCraft(GameTestHelper helper) {
+        BlockPos pos = new BlockPos(1, 1, 1);
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        ItemStack pickaxe = ToolAssembly.pickaxe(helper, player, pos, "stone", "wood", "wood");
+
+        ToolStationBlockEntity blockEntity = helper.getBlockEntity(pos);
+        blockEntity.container().setItem(0, pickaxe);
+        blockEntity.container().setItem(1, new ItemStack(Items.REDSTONE, 2));
+        blockEntity.container().setItem(2, new ItemStack(Items.LAPIS_LAZULI, 3));
+        ToolStationMenu menu = ToolAssembly.menu(helper, player, pos, blockEntity);
+        menu.broadcastChanges();
+
+        ItemStack output = menu.getSlot(ToolStationMenu.OUTPUT_SLOT).getItem().copy();
+        helper.assertFalse(output.isEmpty(), "redstone + lapis must produce one modified tool, not nothing");
+        ModifierEntry haste = ForgeweaveModifiers.entry(output, HASTE);
+        ModifierEntry luck = ForgeweaveModifiers.entry(output, LUCK);
+        helper.assertTrue(haste != null && haste.level() == 2,
+                "2 redstone must record haste at 2 units in the same craft, got " + haste);
+        helper.assertTrue(luck != null && luck.level() == 3,
+                "3 lapis must record luck at 3 units in the same craft, got " + luck);
+        helper.assertTrue(ForgeweaveModifiers.freeSlots(output) == ForgeweaveModifiers.DEFAULT_SLOTS - 2,
+                "two distinct modifiers must occupy two slots, got "
+                        + ForgeweaveModifiers.freeSlots(output) + " free");
+
+        menu.getSlot(ToolStationMenu.OUTPUT_SLOT).onTake(player, output);
+        helper.assertTrue(menu.getSlot(ToolStationMenu.BINDING_SLOT).getItem().isEmpty(),
+                "taking the output must spend the redstone");
+        helper.assertTrue(menu.getSlot(ToolStationMenu.HANDLE_SLOT).getItem().isEmpty(),
+                "taking the output must spend the lapis");
+        helper.succeed();
+    }
+
+    /**
+     * Issue #340's budget-exhaustion behavior, exactly upstream's: a <em>new</em> modifier whose
+     * reagents are present but which no longer fits the slot budget rejects the whole craft --
+     * {@code ModifierAspect.FreeModifierAspect#canApply} throws (ModifierAspect.java lines 61-67 at
+     * the pinned commit) and {@code ToolBuilder#tryModifyTool} rethrows for a modifier not yet
+     * applied this craft (lines 207-208), discarding the partial result. Not "apply what fits":
+     * that path (lines 211-213) exists only for extra matches of an already-applied modifier.
+     */
+    @GameTest(template = "empty")
+    public static void aSecondModifierPastTheSlotBudgetRejectsTheWholeCraft(GameTestHelper helper) {
+        BlockPos pos = new BlockPos(1, 1, 1);
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        ItemStack pickaxe = ToolAssembly.pickaxe(helper, player, pos, "stone", "wood", "wood");
+        pickaxe.set(ForgeweaveDataComponents.MODIFIERS.get(), List.of(
+                new ModifierEntry(ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "test_one"), 1),
+                new ModifierEntry(ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "test_two"), 1)));
+        helper.assertTrue(ForgeweaveModifiers.freeSlots(pickaxe) == 1,
+                "the fixture needs exactly one free slot, got " + ForgeweaveModifiers.freeSlots(pickaxe));
+
+        ToolStationBlockEntity blockEntity = helper.getBlockEntity(pos);
+        blockEntity.container().setItem(0, pickaxe);
+        blockEntity.container().setItem(1, new ItemStack(Items.REDSTONE, 1));
+        blockEntity.container().setItem(2, new ItemStack(Items.LAPIS_LAZULI, 1));
+        ToolStationMenu menu = ToolAssembly.menu(helper, player, pos, blockEntity);
+        menu.broadcastChanges();
+
+        helper.assertTrue(menu.getSlot(ToolStationMenu.OUTPUT_SLOT).getItem().isEmpty(),
+                "haste fits the last slot but luck does not, so the whole craft must be refused"
+                        + " (upstream's either-all-or-none), got "
+                        + menu.getSlot(ToolStationMenu.OUTPUT_SLOT).getItem());
+        helper.assertTrue(menu.rejection() != null, "and the station must say why");
+        helper.succeed();
+    }
+
+    /**
      * The station's two free slots take reagents as well as repair items, and taking the output
      * spends exactly the reagents the application used.
      */
