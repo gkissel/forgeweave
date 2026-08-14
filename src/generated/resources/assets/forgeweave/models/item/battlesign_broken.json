@@ -1,0 +1,47 @@
+{
+  "parent": "minecraft:item/handheld",
+  "display": {
+    "firstperson_lefthand": {
+      "rotation": [
+        0,
+        0,
+        -5
+      ],
+      "translation": [
+        0,
+        -2,
+        -0.8
+      ]
+    },
+    "firstperson_righthand": {
+      "rotation": [
+        0,
+        0,
+        -5
+      ],
+      "translation": [
+        0,
+        -2,
+        0.8
+      ]
+    },
+    "thirdperson_lefthand": {
+      "translation": [
+        0,
+        4,
+        2.5
+      ]
+    },
+    "thirdperson_righthand": {
+      "translation": [
+        0,
+        4,
+        2.5
+      ]
+    }
+  },
+  "textures": {
+    "layer0": "forgeweave:derived/tools/battlesign_handle",
+    "layer1": "forgeweave:derived/tools/battlesign_head_broken"
+  }
+}
