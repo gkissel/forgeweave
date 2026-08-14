@@ -1,6 +1,9 @@
 package dev.gkissel.forgeweave.gametest;
 
 import java.util.List;
+import java.util.UUID;
+
+import com.mojang.authlib.GameProfile;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.component.DataComponents;
@@ -30,6 +33,7 @@ import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.phys.AABB;
 
+import net.neoforged.neoforge.common.util.FakePlayer;
 import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 
@@ -100,6 +104,33 @@ public class StatefulTraitGameTests {
         helper.succeed();
     }
 
+    /**
+     * End stone -&gt; {@code forgeweave:alien}: a FakePlayer holder (issue #297 parity fix; upstream
+     * {@code TraitAlien#onUpdate}'s {@code instanceof FakePlayer} guard) never grows the tool's stats,
+     * even on an otherwise on-cadence tick.
+     */
+    @GameTest(template = "empty")
+    public static void alienSkipsStatGrowthForFakePlayers(GameTestHelper helper) {
+        ServerLevel level = helper.getLevel();
+        FakePlayer holder = new FakePlayer(level, new GameProfile(
+                UUID.nameUUIDFromBytes("forgeweave:alien-faketest".getBytes()), "[forgeweave-alien-test]"));
+        ItemStack pickaxe = pickaxe(List.of(traitId("alien")), 100, 2.0F, 1.0F);
+        AlienProgress.Portion pool = new AlienProgress.Portion(10, 0.07F, 0.05F);
+        pickaxe.set(ForgeweaveDataComponents.ALIEN_PROGRESS.get(),
+                new AlienProgress(pool, AlienProgress.Portion.ZERO));
+
+        holder.tickCount = 72; // an on-cadence durability-step tick, same as the real-player test above.
+        pickaxe.getItem().inventoryTick(pickaxe, level, holder, 0, false);
+
+        helper.assertTrue(pickaxe.getMaxDamage() == 100,
+                "a FakePlayer holder must never distribute alien's pool, max damage now " + pickaxe.getMaxDamage());
+        AlienProgress progress = pickaxe.get(ForgeweaveDataComponents.ALIEN_PROGRESS.get());
+        helper.assertTrue(progress != null && progress.distributed().durability() == 0,
+                "a FakePlayer holder must not touch the distributed portion either, got " + progress);
+
+        helper.succeed();
+    }
+
     /** Alien rolls its pool lazily on first tick: 800 points across the three stats. */
     @GameTest(template = "empty")
     public static void alienRollsAnEightHundredPointPoolOnFirstTick(GameTestHelper helper) {
@@ -160,6 +191,28 @@ public class StatefulTraitGameTests {
         helper.assertTrue(Math.abs(charge(pickaxe) - 16.0F) < 0.001F,
                 "expected the 10-block move to clamp at 5 * 2 = +10, got " + charge(pickaxe));
 
+        target.discard();
+        helper.succeed();
+    }
+
+    /**
+     * Electrum -&gt; {@code forgeweave:shocking}: a non-player attacker (a mob wielding the tool) never
+     * builds charge from a hit (issue #297 parity fix; upstream {@code TraitShocking#onHit}'s
+     * {@code else if (player instanceof EntityPlayer)} gate).
+     */
+    @GameTest(template = "empty")
+    public static void shockingChargeOnlyAccruesForPlayerAttackers(GameTestHelper helper) {
+        ServerLevel level = helper.getLevel();
+        Pig attacker = helper.spawn(EntityType.PIG, new BlockPos(0, 2, 0));
+        Pig target = helper.spawn(EntityType.PIG, new BlockPos(2, 2, 2));
+        ItemStack pickaxe = pickaxe(List.of(traitId("shocking")), 1000, 1.0F, 1.0F);
+
+        ForgeweaveTraits.COMBAT_SEAM.onHit(
+                new CombatHit(level, pickaxe, attacker, target, level.damageSources().mobAttack(attacker)), 1.0F);
+        helper.assertTrue(charge(pickaxe) == 0.0F,
+                "a non-player attacker must never accrue charge, got " + charge(pickaxe));
+
+        attacker.discard();
         target.discard();
         helper.succeed();
     }
