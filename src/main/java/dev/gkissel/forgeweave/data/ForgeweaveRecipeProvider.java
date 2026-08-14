@@ -277,10 +277,13 @@ public class ForgeweaveRecipeProvider extends RecipeProvider {
         // Extra modifier (deviation, recorded in the issue #107 PR): upstream's creative_modifier
         // reagent is admin/creative-only (ModCreative#isHidden) and has no survival recipe at all.
         // Forgeweave gives it one so docs/SCOPE.md acceptance test 5 is reachable in survival.
+        // Issue #338 (maintainer playtest of 0.3.2-alpha, decision 2026-08-14): gold block + diamond
+        // was too cheap for what this buys, so the recipe is repriced to endgame -- nether star + gold
+        // block. Precedent: TiC 1.7.10's extra-modifier ladder topped out at a nether star.
         ShapelessRecipeBuilder.shapeless(RecipeCategory.MISC, ForgeweaveItems.EXTRA_MODIFIER.get())
+                .requires(Items.NETHER_STAR)
                 .requires(Items.GOLD_BLOCK)
-                .requires(Items.DIAMOND)
-                .unlockedBy("has_gold_block", has(Items.GOLD_BLOCK))
+                .unlockedBy("has_nether_star", has(Items.NETHER_STAR))
                 .save(recipeOutput);
     }
 

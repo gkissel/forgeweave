@@ -8,12 +8,15 @@ import net.minecraft.core.component.DataComponents;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.item.crafting.CraftingInput;
+import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.block.Blocks;
 
@@ -393,6 +396,35 @@ public class ModifierGameTests {
         helper.assertTrue(ForgeweaveModifiers.freeSlots(widened) == 0,
                 "extra_slot plus four other distinct modifiers must exactly fill the widened cap, got "
                         + ForgeweaveModifiers.freeSlots(widened) + " free");
+        helper.succeed();
+    }
+
+    /**
+     * Issue #338 (maintainer playtest of 0.3.2-alpha, decision 2026-08-14): the extra modifier's
+     * survival recipe was repriced from gold block + diamond to shapeless nether star + gold block --
+     * too cheap for what it buys. Pins the new pairing through the real {@code RecipeManager} and
+     * confirms the old pairing no longer resolves.
+     */
+    @GameTest(template = "empty")
+    public static void theExtraModifierCraftsFromANetherStarAndGoldBlock(GameTestHelper helper) {
+        ServerLevel level = helper.getLevel();
+        CraftingInput repriced =
+                CraftingInput.of(2, 1, List.of(new ItemStack(Items.NETHER_STAR), new ItemStack(Items.GOLD_BLOCK)));
+
+        ItemStack crafted = level.getRecipeManager()
+                .getRecipeFor(RecipeType.CRAFTING, repriced, level)
+                .map(match -> match.value().assemble(repriced, level.registryAccess()))
+                .orElse(ItemStack.EMPTY);
+
+        helper.assertTrue(crafted.is(ForgeweaveItems.EXTRA_MODIFIER.get()),
+                "expected nether star + gold block to craft an extra modifier, got " + crafted);
+
+        CraftingInput retired =
+                CraftingInput.of(2, 1, List.of(new ItemStack(Items.GOLD_BLOCK), new ItemStack(Items.DIAMOND)));
+
+        helper.assertTrue(level.getRecipeManager().getRecipeFor(RecipeType.CRAFTING, retired, level).isEmpty(),
+                "gold block + diamond must no longer craft an extra modifier");
+
         helper.succeed();
     }
 
