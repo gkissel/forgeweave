@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Derives the dagger/scimitar/katana tool art and the vein hammer head part icon from upstream
+"""Derives the scimitar/katana tool art and the vein hammer head part icon from upstream
 (issue #198, maintainer decision 2026-08-12): replaces every remaining script-generated "original"
 art for these shapes with upstream-derived pixels. Every output's pixels trace to an upstream file --
 either a straight copy, a reuse of an already-derived Forgeweave part (the same file another tool's
@@ -7,10 +7,12 @@ layer already uses), or a minimal geometric reshape built only from copy/paste/m
 own pixels (no new colors, no manual painting), the same technique `derive_warmace_art.py` uses for
 the war mace head.
 
+The dagger's own art used to be derived here too (1.12's mismatched `knife_blade.png`/broadsword
+handle, per #198) but issue #278 moved it to `derive_dagger_art.py`, sourced from the 1.20 clone's
+real dagger instead -- see that script's docstring.
+
 | Output | Upstream source | Transform |
 | --- | --- | --- |
-| `derived/tools/dagger_head.png` | 1.12 `items/parts/knife_blade.png` | none -- `ToolConstants#DAGGER`'s HEAD part already is `knife_blade` |
-| `derived/tools/dagger_handle.png` | 1.12 `items/broadsword/handle.png` | none -- reused the same way the rapier/cleaver/frypan already reuse the broadsword's handle layer for their own `TOOL_HANDLE` slot |
 | `derived/item/curved_blade.png`, `derived/tools/scimitar_head.png` | 1.12 `items/parts/sword_blade.png` | RESHAPE (below) -- no scimitar/curved-blade shape exists in either clone, so per #198 this derives from the closest upstream equivalent, the sword blade family |
 | `derived/tools/scimitar_handle.png` | 1.12 `items/broadsword/handle.png` | none -- same `TOOL_HANDLE` reuse as the dagger |
 | `derived/tools/scimitar_binding.png` | 1.12 `items/rapier/guard.png` | none -- `ToolConstants#SCIMITAR`'s EXTRA part is the existing `cross_guard`, itself derived from this file (NOTICE.md); the layer reuses the same pixels the part icon already does |
@@ -74,8 +76,6 @@ def main() -> None:
     large_sword_blade = load("parts/large_sword_blade.png")
 
     outputs = {
-        DERIVED_TOOLS / "dagger_head.png": load("parts/knife_blade.png"),
-        DERIVED_TOOLS / "dagger_handle.png": broadsword_handle,
         DERIVED_ITEM / "curved_blade.png": curved_blade,
         DERIVED_TOOLS / "scimitar_head.png": curved_blade,
         DERIVED_TOOLS / "scimitar_handle.png": broadsword_handle,
