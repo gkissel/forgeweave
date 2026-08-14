@@ -832,15 +832,8 @@ public final class ForgeweaveModifiers {
      * modifiers grant, minus the one each distinct modifier occupies.
      */
     public static int freeSlots(ItemStack stack) {
-        List<ModifierEntry> entries = of(stack);
         int bonus = 0;
-        int occupied = 0;
-        for (ModifierEntry entry : entries) {
-            // #154 -- an embossment occupies no slot: upstream's ModExtraTrait carries a SingleAspect
-            // and a DataAspect but deliberately no FreeModifierAspect, which is what charges one.
-            if (!Embossing.isEmbossment(entry.id())) {
-                occupied++;
-            }
+        for (ModifierEntry entry : of(stack)) {
             Modifier modifier = get(entry.id());
             if (modifier != null) {
                 bonus += modifier.bonusSlots(entry.level());
@@ -851,7 +844,24 @@ public final class ForgeweaveModifiers {
         for (Trait trait : ForgeweaveTraits.of(stack)) {
             bonus += trait.bonusSlots();
         }
-        return DEFAULT_SLOTS + bonus - occupied;
+        return DEFAULT_SLOTS + bonus - occupiedSlots(stack);
+    }
+
+    /**
+     * How many of the tool's modifier slots are occupied: one per distinct modifier entry, except
+     * embossments (issue #154 -- upstream's {@code ModExtraTrait} carries a {@code SingleAspect} and a
+     * {@code DataAspect} but deliberately no {@code FreeModifierAspect}, which is what charges a slot).
+     * Also what upstream's {@code TagUtil#getBaseModifiersUsed} feeds {@code TinkersItem#calculateRepair}'s
+     * modifier-count repair penalty ({@link dev.gkissel.forgeweave.tool.ToolRepair}).
+     */
+    public static int occupiedSlots(ItemStack stack) {
+        int occupied = 0;
+        for (ModifierEntry entry : of(stack)) {
+            if (!Embossing.isEmbossment(entry.id())) {
+                occupied++;
+            }
+        }
+        return occupied;
     }
 
     /**

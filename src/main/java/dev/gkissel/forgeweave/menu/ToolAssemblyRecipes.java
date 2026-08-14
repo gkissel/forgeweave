@@ -775,10 +775,14 @@ public final class ToolAssemblyRecipes {
 
         int headDurability = head.get().head().durability();
         int maxDamage = toolStack.getMaxDamage();
+        ToolStats.Stats baseStats = toolStack.get(ForgeweaveDataComponents.TOOL_STATS.get());
+        int baseDurability = baseStats != null ? baseStats.durability() : maxDamage;
+        int occupiedModifierSlots = ForgeweaveModifiers.occupiedSlots(toolStack);
         int repairCount = toolStack.getOrDefault(ForgeweaveDataComponents.REPAIR_COUNT.get(), 0);
         int used = 0;
         while (damage > 0 && used < available) {
-            int increment = repairIncrement(headDurability, maxDamage, repairCount + used, forge);
+            int increment = repairIncrement(
+                    headDurability, baseDurability, maxDamage, repairCount + used, occupiedModifierSlots, forge);
             // Traits get to top the repair up (upstream 1.12 fires ITrait#onToolHeal on every heal).
             damage -= increment + ForgeweaveTraits.repairBonus(toolStack, increment);
             used++;
@@ -798,8 +802,10 @@ public final class ToolAssemblyRecipes {
      * Public so a GameTest can assert the discount arithmetic directly rather than only through a
      * tool's damage value.
      */
-    public static int repairIncrement(int headDurability, int maxDamage, int repairCount, boolean forge) {
-        int increment = ToolRepair.repairIncrement(headDurability, maxDamage, repairCount);
+    public static int repairIncrement(int headDurability, int baseDurability, int actualDurability,
+            int repairCount, int occupiedModifierSlots, boolean forge) {
+        int increment = ToolRepair.repairIncrement(
+                headDurability, baseDurability, actualDurability, repairCount, occupiedModifierSlots);
         return forge ? (int) Math.ceil(increment / FORGE_REPAIR_DISCOUNT) : increment;
     }
 
