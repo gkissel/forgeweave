@@ -1,5 +1,8 @@
 package dev.gkissel.forgeweave.menu;
 
+import java.util.List;
+
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.ContainerLevelAccess;
@@ -42,5 +45,46 @@ public abstract class StationMenu extends AbstractContainerMenu {
     @Override
     public boolean clickMenuButton(Player player, int id) {
         return StationGroup.isTabButton(id) && stationGroup.open(player, id - StationGroup.TAB_BUTTON_BASE);
+    }
+
+    /**
+     * Why the loaded slots produce nothing, and how loudly to say it -- upstream 1.12's
+     * {@code GuiTinkerStation#error(String)}/{@code #warning(String)} pair (issue #378), which every
+     * station GUI implements and which <em>takes the info panel over</em> rather than adding a line
+     * to it: the caption becomes {@code gui.error}/{@code gui.warning} and the body becomes the
+     * message ({@code GuiToolStation:562-575}, {@code GuiPartBuilder:179-189}).
+     *
+     * <p>The split is upstream's own usage, not a severity guess. Everything a craft attempt throws
+     * as a {@code TinkerGuiException} -- caught in {@code ContainerToolStation#onCraftMatrixChanged}
+     * and handed straight to {@code error} -- blocks the craft and is an <b>error</b>. The two
+     * messages the GUI instead derives by looking at what is already in the slots
+     * ({@code gui.error.wrong_material_part}, {@code gui.error.useless_tool_part}) call
+     * {@code warning} instead: nothing failed, the loadout was never going to build anything.
+     *
+     * <p>Lives on the shared base because both stations that show one produce it and both screens
+     * consume it identically; {@link #caption()} and {@link #body()} are that shared shape, so a
+     * takeover cannot end up looking different on the two screens.
+     */
+    public record Rejection(Component message, boolean warning) {
+
+        /** A craft that was refused: upstream's {@code error(...)}, captioned ERROR. */
+        public static Rejection error(Component message) {
+            return new Rejection(message, false);
+        }
+
+        /** A loadout that can never craft: upstream's {@code warning(...)}, captioned WARNING. */
+        public static Rejection warning(Component message) {
+            return new Rejection(message, true);
+        }
+
+        /** Upstream's {@code gui.error}/{@code gui.warning} -- "ERROR" / "WARNING". */
+        public Component caption() {
+            return Component.translatable(warning ? "gui.forgeweave.warning" : "gui.forgeweave.error");
+        }
+
+        /** Upstream's {@code setText(message)}: the message replaces the panel's body outright. */
+        public List<Component> body() {
+            return List.of(message);
+        }
     }
 }

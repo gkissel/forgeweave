@@ -4,8 +4,11 @@ import java.util.List;
 import java.util.Optional;
 import java.util.function.Supplier;
 
+import javax.annotation.Nullable;
+
 import net.minecraft.core.Holder;
 import net.minecraft.core.HolderLookup;
+import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Item;
@@ -15,6 +18,7 @@ import dev.gkissel.forgeweave.item.ForgeweaveDataComponents;
 import dev.gkissel.forgeweave.item.ForgeweaveItems;
 import dev.gkissel.forgeweave.item.PartItem;
 import dev.gkissel.forgeweave.material.Material;
+import dev.gkissel.forgeweave.material.MaterialDisplay;
 
 /**
  * The Part Builder's crafting table: which pattern produces which part, how many crafting-value
@@ -164,6 +168,39 @@ public final class PartBuilderRecipes {
     /** The part {@code pattern} makes, or empty if it isn't a part pattern. */
     public static Optional<PartItem> patternPart(ItemStack pattern) {
         return findEntry(pattern).map(entry -> entry.part().get());
+    }
+
+    /**
+     * Why the loaded slots produce nothing, in the shape the info panel takes over with (issue #378,
+     * upstream {@code GuiPartBuilder:143-189}). Two answers, and upstream's own error/warning split:
+     *
+     * <ul>
+     *   <li><b>{@code invalid_pattern}</b> ({@link StationMenu.Rejection#error}) -- the pattern slot
+     *       holds something that stamps no part. Upstream throws this from
+     *       {@code ToolBuilder#tryBuildToolPart:410} as a {@code TinkerGuiException}, i.e. a craft
+     *       that was attempted and refused. The menu's own slot filter turns most of these away, but
+     *       the block's inventory is a real {@code Container} -- a hopper feeding the pattern slot a
+     *       blank pattern never sees {@code Slot#mayPlace}.
+     *   <li><b>{@code useless_tool_part}</b> ({@link StationMenu.Rejection#warning}) -- the part on
+     *       the output carries a material this world has no definition for, so no tool can ever be
+     *       built from it ({@code GuiPartBuilder:152-157}, which likewise only looks at the slots).
+     *       Reachable through {@link #materialValue}'s shard branch, which trusts the id a shard
+     *       carries without asking the registry whether it still exists.
+     * </ul>
+     */
+    public static Optional<StationMenu.Rejection> rejection(@Nullable HolderLookup.Provider registries,
+            ItemStack pattern, ItemStack output) {
+        if (!pattern.isEmpty() && !isPattern(pattern)) {
+            return Optional.of(StationMenu.Rejection.error(
+                    Component.translatable("gui.forgeweave.part_builder.invalid_pattern")));
+        }
+        ResourceLocation materialId = output.get(ForgeweaveDataComponents.MATERIAL.get());
+        if (materialId != null && PartItem.hasUnusableMaterial(registries, output)) {
+            return Optional.of(StationMenu.Rejection.warning(
+                    Component.translatable("gui.forgeweave.part_builder.useless_tool_part",
+                            MaterialDisplay.plainName(materialId), output.getHoverName())));
+        }
+        return Optional.empty();
     }
 
     /**

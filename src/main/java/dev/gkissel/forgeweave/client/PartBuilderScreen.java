@@ -161,6 +161,14 @@ public class PartBuilderScreen extends StationScreen<PartBuilderMenu> implements
         }
 
         lines = body;
+        // Issue #378: upstream's GuiPartBuilder#error/#warning (:179-189) takes this panel over the
+        // same way GuiToolStation's does -- caption ERROR/WARNING, message as the whole body -- and
+        // the Part Builder had neither call. PartBuilderRecipes owns which of the two applies.
+        PartBuilderRecipes.rejection(registries(), pattern, menu.getSlot(PartBuilderMenu.OUTPUT_SLOT).getItem())
+                .ifPresent(rejection -> {
+                    caption = rejection.caption();
+                    lines = rejection.body();
+                });
         scroll = Math.min(scroll, InfoPanel.maxScroll(font, InfoPanel.WIDTH, PANEL_HEIGHT, caption != null, lines));
     }
 
@@ -346,8 +354,10 @@ public class PartBuilderScreen extends StationScreen<PartBuilderMenu> implements
     }
 
     /**
-     * "Material Value: N" for the loaded stack, in red when it falls short of the selected pattern's
-     * cost -- the one readout that tells a player why the output slot is empty.
+     * "Material Value: 2 Iron" for the loaded stacks -- the one readout that tells a player why the
+     * output slot is empty. Wording, ingot normalisation and the DARK_RED-on-shortfall rule are all
+     * {@link StationText#materialValue}'s; this only decides whether there is enough and where the
+     * line goes (upstream's own centred {@code cornerY + 63} at {@code 0x777777}).
      */
     private void renderMaterialValue(GuiGraphics graphics) {
         Optional<PartBuilderRecipes.CombinedMaterialMatch> matched = matchMaterial();
@@ -355,11 +365,11 @@ public class PartBuilderScreen extends StationScreen<PartBuilderMenu> implements
             return;
         }
         int available = matched.get().totalValue();
-        Component text = Component.translatable("gui.forgeweave.part_builder.material_value", available);
         boolean enough = PartBuilderRecipes.patternCost(menu.getSlot(PartBuilderMenu.PATTERN_SLOT).getItem())
                 .map(cost -> available >= cost)
                 .orElse(true);
-        Component line = enough ? text : text.copy().withStyle(ChatFormatting.DARK_RED);
+        Component line = StationText.materialValue(
+                available / (float) PartBuilderRecipes.INGOT_VALUE, enough, matched.get().id());
         graphics.drawString(font, line, leftPos + BASE_WIDTH / 2 - font.width(line) / 2,
                 topPos + MATERIAL_VALUE_Y, 0x777777, false);
     }

@@ -56,10 +56,20 @@ public final class MaterialDisplay {
 
     /** The material's translated name, tinted with its own colour when the registry is reachable. */
     public static MutableComponent name(@Nullable HolderLookup.Provider registries, ResourceLocation materialId) {
-        MutableComponent name =
-                Component.translatable("material." + materialId.getNamespace() + "." + materialId.getPath());
+        MutableComponent name = plainName(materialId);
         TextColor color = lookup(registries, materialId).map(Material::color).orElse(null);
         return color == null ? name : name.withStyle(Style.EMPTY.withColor(color));
+    }
+
+    /**
+     * The material's translated name with no tint -- upstream's plain {@code getLocalizedName()},
+     * as opposed to the {@code getLocalizedNameColored()} {@link #name} mirrors. Wanted wherever the
+     * surrounding line already has a colour of its own that a tint would fight with: the Part
+     * Builder's grey "Material Value" readout and its {@code useless_tool_part} warning both name a
+     * material this way upstream (issue #378).
+     */
+    public static MutableComponent plainName(ResourceLocation materialId) {
+        return Component.translatable("material." + materialId.getNamespace() + "." + materialId.getPath());
     }
 
     private MaterialDisplay() {}

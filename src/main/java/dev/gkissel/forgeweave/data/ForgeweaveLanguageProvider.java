@@ -376,6 +376,16 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         // #152: why a large tool refuses to assemble at a Tool Station.
         add("gui.forgeweave.tool_station.needs_forge", "This tool is too large to assemble here. Build it at a Tool Forge.");
         add("gui.forgeweave.tool_station.modifier_slots", "Free slots: %s");
+        // #378, upstream gui.error.wrong_material_part: a part of the right shape whose material
+        // this world has no definition for, so the station can build nothing from it.
+        add("gui.forgeweave.tool_station.wrong_material_part",
+                "One or multiple items have an unsupported material for this tool.");
+
+        // The captions a rejection takes an info panel over with (issue #378), upstream's gui.error
+        // and gui.warning. Errors are crafts that were refused, warnings are loadouts that were
+        // never going to craft -- see StationMenu.Rejection.
+        add("gui.forgeweave.error", "ERROR");
+        add("gui.forgeweave.warning", "WARNING");
 
         // Why an attempted modifier application was refused (issue #105), shown in the Tool Station's
         // tool info panel where upstream 1.12 shows its TinkerGuiException text.
@@ -434,7 +444,15 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
                 "Put a pattern in the left slot and a material next to it. The part comes out on the right, "
                         + "and any material value left over comes back as shards.");
         add("gui.forgeweave.part_builder.cost", "Cost: %s");
-        add("gui.forgeweave.part_builder.material_value", "Material Value: %s");
+        // #378: upstream's own two-argument gui.partbuilder.material_value. The amount is in ingots
+        // (fractional when the stacks don't come out even) and the material's name follows it, which
+        // with two material slots is the only thing saying which stack the total was counted against.
+        add("gui.forgeweave.part_builder.material_value", "Material Value: %s %s");
+        // #378, upstream gui.error.invalid_pattern / gui.error.useless_tool_part.
+        add("gui.forgeweave.part_builder.invalid_pattern", "Pattern does not contain a valid tool part!");
+        add("gui.forgeweave.part_builder.useless_tool_part",
+                "This part cannot be used to craft any tool! Either the material %s is missing some "
+                        + "information, or no tool uses a %s in its crafting.");
 
         // Assembled tool tooltip stat labels (issue #54), ported from upstream 1.12's
         // stat.head.*.name entries (NOTICE.md).
