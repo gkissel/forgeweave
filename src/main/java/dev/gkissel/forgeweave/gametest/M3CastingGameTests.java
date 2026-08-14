@@ -75,10 +75,13 @@ public class M3CastingGameTests {
      * sets the same precedent for a cobalt pour of comparable size (1296 mB, 1600 ticks).
      *
      * <p>Budget: 1152 mB = eight 144-mB transactions at 6 mB/tick = 192 ticks of pouring, plus
-     * cobalt's 24 + (950-300)*1152/1600 = 492 cooling ticks -- a 684-tick floor, so the old
-     * 800-tick budget left only 15% for scheduling slack. 1600 matches the sibling above.
+     * cobalt's 24 + (950-300)*1152/1600 = 492 cooling ticks -- and the part does land on tick 683,
+     * measured. Everything past that floor is {@link CastingGameTests#STALL_ALLOWANCE_TICKS}, which
+     * is where this test's #269 flake came from: a 1600-tick budget is only 0.79 s of wall clock
+     * past the floor on a free-running GameTestServer, and the deadline runs on game time while the
+     * pour runs on scheduled block ticks that a chunk can stop receiving.
      */
-    @GameTest(template = "empty", timeoutTicks = 1600)
+    @GameTest(template = "empty", timeoutTicks = 683 + CastingGameTests.STALL_ALLOWANCE_TICKS)
     public static void anM3CastSurvivesCastingAndProducesTheMetalPart(GameTestHelper helper) {
         CastingBlockEntity table = rig(helper, ForgeweaveFluids.COBALT.still().get());
         insert(helper, table, new ItemStack(ForgeweaveItems.CAST_HAMMER_HEAD.get()));
