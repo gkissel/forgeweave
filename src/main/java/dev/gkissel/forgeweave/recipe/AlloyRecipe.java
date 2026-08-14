@@ -43,8 +43,17 @@ import dev.gkissel.forgeweave.Forgeweave;
  * at least two inputs, and the result may not be one of the inputs. The second is not cosmetic --
  * a recipe consuming its own output alloys forever, and the smeltery's alloying pass runs to
  * exhaustion (see {@code SmelteryControllerBlockEntity#alloyTankContents}).
+ *
+ * <p>{@code priority} (#291) breaks contention when a tank holds enough of a shared fluid to match
+ * more than one recipe at once -- lower resolves first, default {@code 0}. This is upstream's own
+ * answer, just moved from Java to JSON: 1.12's {@code TinkerRegistry.getAlloys()} is a {@code
+ * LinkedList} that returns recipes in registration order rather than sorted by name, and 1.20
+ * datagens rose gold ahead of netherite for the same reason. Forgeweave's datapack registry has no
+ * such registration order of its own to inherit (JSON files load in whatever order the resource
+ * manager lists them), so the ordering has to be explicit in the recipe rather than implicit in
+ * load order -- see {@code SmelteryControllerBlockEntity#alloyOnce}, the only reader that cares.
  */
-public record AlloyRecipe(List<FluidStack> inputs, FluidStack result) {
+public record AlloyRecipe(List<FluidStack> inputs, FluidStack result, int priority) {
 
     public static final ResourceKey<Registry<AlloyRecipe>> REGISTRY = ResourceKey.createRegistryKey(
             ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "alloy_recipe"));
@@ -61,7 +70,8 @@ public record AlloyRecipe(List<FluidStack> inputs, FluidStack result) {
 
     public static final Codec<AlloyRecipe> CODEC = RecordCodecBuilder.<AlloyRecipe>create(instance -> instance.group(
             FLUID_AMOUNT_CODEC.listOf().fieldOf("inputs").forGetter(AlloyRecipe::inputs),
-            FLUID_AMOUNT_CODEC.fieldOf("result").forGetter(AlloyRecipe::result))
+            FLUID_AMOUNT_CODEC.fieldOf("result").forGetter(AlloyRecipe::result),
+            Codec.INT.optionalFieldOf("priority", 0).forGetter(AlloyRecipe::priority))
             .apply(instance, AlloyRecipe::new))
             .validate(AlloyRecipe::validate);
 

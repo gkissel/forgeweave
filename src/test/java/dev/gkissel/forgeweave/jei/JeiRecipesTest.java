@@ -276,7 +276,7 @@ class JeiRecipesTest {
         Map<ResourceLocation, AlloyRecipe> recipes = new LinkedHashMap<>();
         AlloyRecipe manyullyn = new AlloyRecipe(
                 List.of(new FluidStack(Fluids.LAVA, 2), new FluidStack(Fluids.WATER, 2)),
-                new FluidStack(Fluids.FLOWING_LAVA, 2));
+                new FluidStack(Fluids.FLOWING_LAVA, 2), 0);
         recipes.put(id("manyullyn"), manyullyn);
 
         List<AlloyRecipe> displays = AlloyingRecipes.build(recipes);

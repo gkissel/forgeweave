@@ -1,4 +1,5 @@
 {
+  "priority": 1,
   "inputs": [
     {
       "fluid": "forgeweave:molten_netherite_scrap",
