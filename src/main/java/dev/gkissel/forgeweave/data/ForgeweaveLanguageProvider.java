@@ -893,6 +893,48 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("effect.forgeweave.bleed", "Bleeding");
         add("effect.forgeweave.splinter", "Splintered");
         add("effect.forgeweave.enderference", "Enderference");
+
+        // The guide book (issue #273). The item name, book title/subtitle and the static pages'
+        // text are ported (rewritten in Forgeweave vocabulary) from upstream 1.12's book data tree
+        // `resources/assets/tconstruct/book/en_us/` -- one NOTICE.md row covers the ported set.
+        // The `book.forgeweave.*` family is the book's own; registry-driven pages (tools,
+        // materials, modifiers) reuse the item/material/modifier/trait families instead of
+        // duplicating them here.
+        addItem(ForgeweaveItems.GUIDE_BOOK, "Materials and You");
+        add("item.forgeweave.cleaver.description",
+                "A massive blade for hewing through foes. Slow to swing, but a killing blow is far more likely to claim the victim's head.");
+        add("book.forgeweave.title", "Materials and You");
+        add("book.forgeweave.subtitle", "Surviving the first day and beyond");
+        add("book.forgeweave.index.title", "Index");
+        add("book.forgeweave.section.intro", "Introduction");
+        add("book.forgeweave.section.tools", "Tools");
+        add("book.forgeweave.section.materials", "Materials");
+        add("book.forgeweave.section.modifiers", "Modifiers");
+        add("book.forgeweave.section.smeltery", "Smeltery");
+        add("book.forgeweave.intro.welcome.title", "Surviving the First Day");
+        add("book.forgeweave.intro.welcome.text",
+                "Welcome to Materials and You: surviving the first day and beyond. Within these pages you will find the first steps to making tools from the materials you gather.\n\nThe first step is to craft a blank pattern. It is a blank slate to stamp a shape into, providing a reference for future creations.\n\nThis book grows with the workshop; check back occasionally for new chapters.");
+        add("book.forgeweave.intro.workshop.title", "The Tool Workshop");
+        add("book.forgeweave.intro.workshop.text",
+                "Shape a non-metal material in the Part Builder with a pattern, then combine the finished parts at the Tool Station. Patterns keep in the Pattern Chest and spare parts in the Part Chest. A crafting table converts into a Crafting Station that holds an unfinished project while you step away.\n\nTogether these make the Tool Workshop; they work best side by side. The Tool Forge, the station's sturdier sibling, is needed for the largest tools.");
+        add("book.forgeweave.tools.repairing.title", "Repairing");
+        add("book.forgeweave.tools.repairing.text",
+                "As you use your tools they take damage, and once all of their durability is gone they break. To fix that, repair your tool -- no need to wait until it breaks.\n\nPut the tool into a Tool Station or Tool Forge and add material matching the tool's head. If the head is made of several materials, any of them will do, and repairing with several at once grants bonus durability.");
+        add("book.forgeweave.materials.intro.title", "Materials");
+        add("book.forgeweave.materials.intro.text",
+                "Every part of a tool contributes the stats of the material it is made from: the head brings durability, mining speed and attack; the handle multiplies durability; a binding adds a flat bonus.\n\nMaterials also grant traits -- special behaviours listed on the pages that follow.");
+        add("book.forgeweave.modifiers.intro.title", "Modifiers");
+        add("book.forgeweave.modifiers.intro.text",
+                "A finished tool is never truly finished. At the Tool Station or Tool Forge, sacrifice items to imbue a tool with modifiers. Each tool starts with a limited number of free slots, and some modifiers can be applied repeatedly for a stronger effect.\n\nThe pages that follow list every modifier known to this workshop.");
+        add("book.forgeweave.smeltery.intro.title", "The Smeltery");
+        add("book.forgeweave.smeltery.intro.text",
+                "There are many smelteries, but this one is yours -- and it melts things really well.");
+        add("book.forgeweave.smeltery.structure.title", "Building the Smeltery");
+        add("book.forgeweave.smeltery.structure.text",
+                "The smeltery's interior can be any size up to 9x9, with walls as short as a single block or as tall as you like. A larger structure holds more molten metal at once. The structure needs a complete seared floor, but no ceiling.\n\nThe walls are built from seared bricks, seared glass, tanks and drains, with the core set into a wall; the floor must be solely seared blocks. At least one seared tank is required to hold fuel -- lava works nicely -- and faucets attach to drains to pour fluids out.");
+        add("book.forgeweave.smeltery.working.title", "Working the Smeltery");
+        add("book.forgeweave.smeltery.working.text",
+                "Place ore or metal into the smeltery through its core and it slowly melts down. Different molten metals pool together below -- some combinations mix into alloys.\n\nDrain the result through a faucet into a Casting Table holding a cast to shape tool parts and ingots, or into a Casting Basin for full blocks.");
     }
 
     /**

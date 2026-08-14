@@ -28,6 +28,10 @@ public final class ForgeweaveItems {
     public static final DeferredRegister.Items ITEMS = DeferredRegister.createItems(Forgeweave.MODID);
 
     public static final DeferredItem<Item> PATTERN_BLANK = ITEMS.registerSimpleItem("pattern_blank");
+
+    // The workshop guide book (issue #273), upstream 1.12's `tconstruct:book` "Materials and You";
+    // crafted from a vanilla book plus a blank pattern (recipes/tools/book.json, NOTICE.md).
+    public static final DeferredItem<GuideBookItem> GUIDE_BOOK = ITEMS.registerItem("guide_book", GuideBookItem::new);
     public static final DeferredItem<Item> PATTERN_PICKAXE_HEAD = ITEMS.registerSimpleItem("pattern_pickaxe_head");
     public static final DeferredItem<Item> PATTERN_SHOVEL_HEAD = ITEMS.registerSimpleItem("pattern_shovel_head");
     public static final DeferredItem<Item> PATTERN_AXE_HEAD = ITEMS.registerSimpleItem("pattern_axe_head");

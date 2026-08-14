@@ -1,0 +1,28 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    {
+      "item": "minecraft:paper"
+    },
+    {
+      "item": "minecraft:paper"
+    },
+    {
+      "item": "minecraft:paper"
+    },
+    {
+      "item": "minecraft:string"
+    },
+    {
+      "item": "forgeweave:pattern_blank"
+    },
+    {
+      "item": "forgeweave:pattern_blank"
+    }
+  ],
+  "result": {
+    "count": 1,
+    "id": "minecraft:book"
+  }
+}

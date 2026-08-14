@@ -65,6 +65,7 @@ public final class ForgeweaveCreativeTab {
     // Package-private (not private) so ForgeweaveCreativeTabTest (issue #139) can build the tab's
     // contents directly, without depending on the NeoForge mod event bus being live in unit tests.
     static void addDisplayItems(CreativeModeTab.ItemDisplayParameters parameters, CreativeModeTab.Output output) {
+        output.accept(ForgeweaveItems.GUIDE_BOOK.get()); // the guide book leads the tab (issue #273)
         output.accept(ForgeweaveItems.PART_BUILDER.get());
         output.accept(ForgeweaveItems.TOOL_STATION.get());
         output.accept(ForgeweaveItems.TOOL_FORGE.get());
