@@ -25,6 +25,7 @@ import dev.gkissel.forgeweave.item.ForgeweaveItems;
 import dev.gkissel.forgeweave.item.ToolItem;
 import dev.gkissel.forgeweave.menu.ToolAssemblyRecipes;
 import dev.gkissel.forgeweave.menu.ToolStationMenu;
+import dev.gkissel.forgeweave.menu.ToolStationTabs;
 
 /**
  * docs/SCOPE.md M3 issue #152's verification: the Tool Forge is a Tool Station superset with two
@@ -36,6 +37,8 @@ import dev.gkissel.forgeweave.menu.ToolStationMenu;
  *       synthetic hatchet fixture, so these tests build a hammer -- it comes out of the Tool Forge
  *       and is refused, with a reason, at the Tool Station.
  *   <li><b>The 5% repair discount</b> (a Forgeweave deviation, maintainer decision 2026-08-12).
+ *   <li><b>The tab roster</b> (issue #336): a Tool Station's sidebar offers only what it can build,
+ *       and its menu refuses a forge-only tab id even when one is sent to it directly.
  * </ul>
  *
  * <p>Assembly of a <em>small</em> tool at the forge is tested too, because "superset" is the actual
@@ -96,14 +99,85 @@ public class ToolForgeGameTests {
      * against the real, datapack-bound tag rather than a plain unit test.
      */
     @GameTest(template = "empty")
-    public static void exactlySevenToolsAreForgeOnly(GameTestHelper helper) {
+    public static void exactlyEightToolsAreForgeOnly(GameTestHelper helper) {
         long large = ToolAssemblyRecipes.ENTRIES.stream().filter(ToolAssemblyRecipes::isLargeTool).count();
 
-        helper.assertTrue(large == 7,
-                "#forgeweave:large_tools tags exactly the Tool Forge tier's seven tools, counted " + large);
-        helper.assertTrue(ToolAssemblyRecipes.ENTRIES.size() - large == 14,
-                "the Tool Station's own tab row is the other fourteen");
+        helper.assertTrue(large == 8,
+                "#forgeweave:large_tools tags exactly the Tool Forge tier's eight tools, counted " + large);
+        helper.assertTrue(ToolAssemblyRecipes.ENTRIES.size() - large == 13,
+                "the Tool Station's own tab row is the other thirteen");
         helper.succeed();
+    }
+
+    /**
+     * Issue #336: the battleaxe is Tool Forge tier too. Upstream 1.12 never shipped it -- its
+     * {@code TinkerRegistry.registerToolForgeCrafting(battleAxe)} sits commented out at
+     * {@code tools/melee/TinkerMeleeWeapons.java:104} -- but the line it is commented out on is the
+     * <em>forge</em> registration, so the shape Forgeweave does ship follows that intent rather than
+     * the Tool Station's registry.
+     */
+    @GameTest(template = "empty")
+    public static void battleaxeIsForgeOnly(GameTestHelper helper) {
+        helper.assertTrue(loadBattleaxeParts(helper, ForgeweaveBlocks.TOOL_FORGE.get())
+                        .getSlot(ToolStationMenu.OUTPUT_SLOT).getItem().is(ForgeweaveItems.TOOL_BATTLEAXE.get()),
+                "the Tool Forge must assemble a battleaxe");
+        helper.assertTrue(loadBattleaxeParts(helper, ForgeweaveBlocks.TOOL_STATION.get())
+                        .getSlot(ToolStationMenu.OUTPUT_SLOT).getItem().isEmpty(),
+                "the Tool Station must not assemble a battleaxe (issue #336)");
+        helper.succeed();
+    }
+
+    /**
+     * Issue #336's tab list: a Tool Station's sidebar offers the repair tab plus only the tools it
+     * can actually build, the Tool Forge's offers every one. Upstream draws the same line in
+     * {@code ContainerToolForge#getBuildableTools}, which overrides the Tool Station's
+     * {@code TinkerRegistry.getToolStationCrafting()} with {@code getToolForgeCrafting()} and is what
+     * {@code GuiToolStation} builds its button column from.
+     */
+    @GameTest(template = "empty")
+    public static void stationTabsOmitTheForgeTier(GameTestHelper helper) {
+        List<Integer> station = ToolStationTabs.visible(false);
+        List<Integer> forge = ToolStationTabs.visible(true);
+
+        helper.assertTrue(forge.size() == ToolStationTabs.TABS.size(),
+                "the Tool Forge builds the whole roster, got " + forge.size() + " of " + ToolStationTabs.TABS.size());
+        helper.assertTrue(station.size() == ToolStationTabs.TABS.size() - 8,
+                "the Tool Station's sidebar drops the eight forge-only tools, got " + station.size());
+        helper.assertTrue(station.contains(ToolStationTabs.REPAIR), "every station keeps its repair tab");
+        for (int index : station) {
+            ToolStationTabs.Tab tab = ToolStationTabs.get(index);
+            helper.assertFalse(!tab.isRepair() && ToolAssemblyRecipes.isLargeTool(tab.entry()),
+                    "a Tool Station tab must not build a forge-only tool, got " + tab.title().getString());
+        }
+        helper.succeed();
+    }
+
+    /**
+     * The gate is the menu's, not the sidebar's: a forge-only tab index sent to a Tool Station menu
+     * (a hand-built packet, or JEI's [+] transfer) is refused outright rather than merely undrawn.
+     */
+    @GameTest(template = "empty")
+    public static void stationRefusesAForgeOnlyTabButton(GameTestHelper helper) {
+        int hammerTab = ToolStationTabs.indexOfTool(ForgeweaveItems.TOOL_HAMMER.get());
+        helper.assertTrue(hammerTab >= 0, "the hammer must have a tab at all");
+
+        helper.assertFalse(clickTab(helper, ForgeweaveBlocks.TOOL_STATION.get(), hammerTab),
+                "the Tool Station must refuse the hammer's tab (issue #336)");
+        helper.assertTrue(clickTab(helper, ForgeweaveBlocks.TOOL_FORGE.get(), hammerTab),
+                "the Tool Forge must accept it");
+        helper.succeed();
+    }
+
+    /** Whether {@code station}'s menu accepts tab button {@code id}. */
+    private static boolean clickTab(GameTestHelper helper, Block station, int id) {
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        helper.setBlock(POS, station);
+        ToolStationBlockEntity blockEntity = helper.getBlockEntity(POS);
+        ToolStationMenu menu = ToolAssembly.menu(helper, player, POS, blockEntity);
+        boolean accepted = menu.clickMenuButton(player, id);
+        helper.assertTrue(accepted == (menu.getSelectedTab() == id),
+                "a refused tab button must leave the selection alone, got " + menu.getSelectedTab());
+        return accepted;
     }
 
     /** Superset: everything the Tool Station assembles, the Tool Forge assembles too. */
@@ -202,6 +276,26 @@ public class ToolForgeGameTests {
         helper.assertTrue(crafted.is(ForgeweaveItems.TOOL_FORGE.get()),
                 "expected the Tool Forge crafted from a cobalt block, got " + crafted);
         helper.succeed();
+    }
+
+    /**
+     * Loads a full set of battleaxe parts into a freshly placed {@code station} and returns its menu.
+     * {@code ToolConstants.BATTLEAXE}'s own slot order: tough rod, two broad axe heads, tough binding.
+     */
+    private static ToolStationMenu loadBattleaxeParts(GameTestHelper helper, Block station) {
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        helper.setBlock(POS, station);
+        ToolStationBlockEntity blockEntity = helper.getBlockEntity(POS);
+        ToolAssemblyRecipes.Entry entry = ToolAssembly.entryFor(ForgeweaveItems.TOOL_BATTLEAXE.get());
+        List<String> materials = List.of("wood", "stone", "stone", "wood");
+        for (int i = 0; i < ToolStationMenu.INPUT_SLOTS; i++) {
+            blockEntity.container().setItem(i,
+                    i < entry.slotCount() ? ToolAssembly.part(entry.part(i), materials.get(i)) : ItemStack.EMPTY);
+        }
+
+        ToolStationMenu menu = ToolAssembly.menu(helper, player, POS, blockEntity);
+        menu.broadcastChanges();
+        return menu;
     }
 
     /** Loads a full set of hammer parts into a freshly placed {@code station} and returns its menu. */

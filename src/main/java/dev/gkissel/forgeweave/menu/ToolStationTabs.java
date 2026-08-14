@@ -1,5 +1,6 @@
 package dev.gkissel.forgeweave.menu;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Supplier;
 
@@ -194,6 +195,34 @@ public final class ToolStationTabs {
 
     public static Tab get(int index) {
         return TABS.get(Math.floorMod(index, TABS.size()));
+    }
+
+    /**
+     * The tab indices a block offers, in sidebar order (issue #336): the repair tab plus every tool
+     * that block can actually assemble. A Tool Station drops the Tool Forge tier; a Tool Forge offers
+     * the whole list.
+     *
+     * <p>Upstream 1.12 splits the roster at registration -- {@code
+     * TinkerRegistry#registerToolStationCrafting} versus {@code registerToolForgeCrafting} -- and its
+     * {@code GuiToolStation} builds its button column from whichever set the container's {@code
+     * getBuildableTools()} returns, which {@code ContainerToolForge} is the whole of the override for.
+     * Here the same split is already data: the {@link ToolAssemblyRecipes#LARGE_TOOLS} item tag that
+     * {@code ToolAssemblyRecipes#resolveAssembly} refuses on, so this needs no roster of its own and
+     * cannot drift from the one the station actually builds against.
+     *
+     * <p>Indices into {@link #TABS} rather than a filtered list of tabs: the selected tab travels as a
+     * menu-button id and a {@code DataSlot} value, so keeping that number block-independent means the
+     * Tool Station and the Tool Forge can never read the same id as two different tools.
+     */
+    public static List<Integer> visible(boolean forge) {
+        List<Integer> indices = new ArrayList<>(TABS.size());
+        for (int i = 0; i < TABS.size(); i++) {
+            Tab tab = TABS.get(i);
+            if (forge || tab.isRepair() || !ToolAssemblyRecipes.isLargeTool(tab.entry())) {
+                indices.add(i);
+            }
+        }
+        return List.copyOf(indices);
     }
 
     /** The tab index that builds {@code tool}, or -1 if none does. Used by JEI's [+] transfer. */

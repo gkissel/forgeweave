@@ -19,8 +19,8 @@ import dev.gkissel.forgeweave.Forgeweave;
 /**
  * Tool Station/Tool Forge assembly recipes: one part slot per part -> tool. Two {@link RecipeType}s
  * share this one class rather than each getting its own file (docs/SCOPE.md M3 issue #165's Tool
- * Forge catalyst split): {@link #TYPE} for the fourteen tools the Tool Station itself builds, and
- * {@link #LARGE_TYPE} for the seven {@code #forgeweave:large_tools} it refuses ({@code
+ * Forge catalyst split): {@link #TYPE} for the thirteen tools the Tool Station itself builds, and
+ * {@link #LARGE_TYPE} for the eight {@code #forgeweave:large_tools} it refuses ({@code
  * menu.ToolAssemblyRecipes#isLargeTool}) -- registering them as two catalyst-bearing categories
  * instead of one is what lets JEI show the Tool Station as this recipe's location for the first and
  * only the Tool Forge for the second; there is no single-category way to vary a recipe's catalyst

@@ -108,9 +108,14 @@ public class ForgeweaveItemTagsProvider extends ItemTagsProvider {
         // ToolForgeGameTests now proves the gate against a real hammer. The Tool Forge tier's other
         // two, #161's warmace and #158's cleaver, are here for the same reason upstream registers
         // them through TinkerRegistry.registerToolForgeCrafting rather than registerToolCrafting.
+        //
+        // #336 adds the battleaxe on the maintainer's playtest decision (2026-08-14). Upstream never
+        // shipped it, but the registration it commented out -- TinkerMeleeWeapons.java:104 -- is the
+        // *forge* one, right under the cleaver's, so the tier it was headed for is this one.
         tag(ToolAssemblyRecipes.LARGE_TOOLS)
                 .add(ForgeweaveItems.TOOL_WARMACE.get())
                 .add(ForgeweaveItems.TOOL_CLEAVER.get())
+                .add(ForgeweaveItems.TOOL_BATTLEAXE.get())
                 .add(ForgeweaveItems.TOOL_HAMMER.get())
                 .add(ForgeweaveItems.TOOL_EXCAVATOR.get())
                 .add(ForgeweaveItems.TOOL_LUMBERAXE.get())

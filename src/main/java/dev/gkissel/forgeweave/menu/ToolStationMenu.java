@@ -122,6 +122,13 @@ public class ToolStationMenu extends StationMenu {
     private static final int TAB_COLUMN_BOTTOM = TAB_BUTTONS_Y
             + tabRows() * TAB_BUTTON_SIZE + (tabRows() - 1) * TAB_BUTTON_SPACING;
 
+    /**
+     * ponytail: counted over the whole tab roster, so the side panel below sits at one fixed y at
+     * both blocks even though a Tool Station's sidebar is two rows shorter since issue #336. Slot
+     * coordinates are part of the menu's client/server contract; deriving them from an item tag to
+     * close a cosmetic gap under a shorter column would put datapack state in that contract. Make it
+     * per-block only if the gap actually reads as a bug in playtest.
+     */
     private static int tabRows() {
         return (ToolStationTabs.TABS.size() + TAB_BUTTON_COLUMNS - 1) / TAB_BUTTON_COLUMNS;
     }
@@ -280,6 +287,15 @@ public class ToolStationMenu extends StationMenu {
     }
 
     /**
+     * The tab indices this block offers (issue #336) -- {@link ToolStationTabs#visible} for this
+     * menu's block. The screen draws one sidebar button per entry, and {@link #clickMenuButton}
+     * accepts nothing outside it.
+     */
+    public List<Integer> visibleTabs() {
+        return ToolStationTabs.visible(forge);
+    }
+
+    /**
      * Why the loaded slots produce nothing, or {@code null} when there is nothing to say. Read by
      * the screen for the info panel: both answers below are resolved from synced data (the modifier
      * recipes are a datapack registry, the large-tool classification an item tag), so the client
@@ -364,7 +380,9 @@ public class ToolStationMenu extends StationMenu {
         if (super.clickMenuButton(player, id)) {
             return true; // a station-group tab (issue #78), handled by StationMenu
         }
-        if (id < 0 || id >= ToolStationTabs.TABS.size()) {
+        // #336: a Tool Station refuses the Tool Forge tier's tabs outright, not just by not drawing
+        // their buttons -- the id arrives over the wire, so the sidebar is not the gate.
+        if (!visibleTabs().contains(id)) {
             return false;
         }
         selectedTab.set(id);
