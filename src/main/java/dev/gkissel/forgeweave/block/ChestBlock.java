@@ -10,6 +10,7 @@ import net.minecraft.world.Containers;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.context.BlockPlaceContext;
+import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.EntityBlock;
@@ -18,18 +19,30 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.shapes.CollisionContext;
+import net.minecraft.world.phys.shapes.Shapes;
+import net.minecraft.world.phys.shapes.VoxelShape;
 
 /**
  * The Pattern Chest and Part Chest (docs/SCOPE.md M1 issue #66), sharing one class parameterized by
- * {@link ChestKind} (see that enum's javadoc). Modeled as a plain facing-aware cube rather than
- * upstream's table-with-drawers geometry ({@code models/block/patternchest.json}, NOTICE.md) --
- * that shape is legs + a drawer front/back/handles on top of the same 1x1 footprint every other
- * Forgeweave station uses, and issue #66's own brief blesses this simplification explicitly ("a
- * plain cube with its textures is acceptable for M1"). {@code ChestScreen}/{@code
- * ForgeweaveBlockStateProvider} carry the corresponding texture-derivation and GUI-simplification
- * notes.
+ * {@link ChestKind} (see that enum's javadoc). Issue #66 shipped both as plain facing-aware cubes;
+ * issue #342 replaced that with upstream 1.12's real cabinet geometry ({@code
+ * models/block/patternchest.json}, transcribed into {@code models/block/chest.json}, NOTICE.md), so
+ * {@link #CHEST_SHAPE} below is upstream's own {@code BlockToolTable.BOUNDS_Chest} multi-box hitbox
+ * converted to a {@link VoxelShape}: the top slab, the inset body, and the four legs. Its boxes are
+ * symmetric under y-rotation, so unlike the model it needs no per-{@code FACING} variant (upstream's
+ * drawer fronts stand outside the block's own 1x1 footprint and are not part of the hitbox there
+ * either). {@code ChestScreen} carries the GUI-simplification note.
  */
 public class ChestBlock extends HorizontalDirectionalBlock implements EntityBlock {
+    private static final VoxelShape CHEST_SHAPE = Shapes.or(
+            Block.box(0.0D, 15.0D, 0.0D, 16.0D, 16.0D, 16.0D), // top slab
+            Block.box(1.0D, 3.0D, 1.0D, 15.0D, 16.0D, 15.0D), // body
+            Block.box(0.5D, 0.0D, 0.5D, 2.5D, 12.0D, 2.5D), // leg
+            Block.box(13.5D, 0.0D, 0.5D, 15.5D, 12.0D, 2.5D), // leg
+            Block.box(13.5D, 0.0D, 13.5D, 15.5D, 12.0D, 15.5D), // leg
+            Block.box(0.5D, 0.0D, 13.5D, 2.5D, 12.0D, 15.5D)).optimize(); // leg
+
     private final ChestKind kind;
     private final MapCodec<ChestBlock> codec;
 
@@ -53,6 +66,11 @@ public class ChestBlock extends HorizontalDirectionalBlock implements EntityBloc
     @Override
     public BlockState getStateForPlacement(BlockPlaceContext context) {
         return defaultBlockState().setValue(FACING, context.getHorizontalDirection().getOpposite());
+    }
+
+    @Override
+    protected VoxelShape getShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
+        return CHEST_SHAPE;
     }
 
     @Nullable

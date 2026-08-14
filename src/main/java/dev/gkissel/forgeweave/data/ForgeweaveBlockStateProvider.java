@@ -57,18 +57,10 @@ public class ForgeweaveBlockStateProvider extends BlockStateProvider {
         horizontalBlock(ForgeweaveBlocks.STENCIL_TABLE.get(), stencilTableModel);
         simpleBlockItem(ForgeweaveBlocks.STENCIL_TABLE.get(), stencilTableModel);
 
-        // The Pattern Chest and Part Chest (docs/SCOPE.md M1 issue #66): plain facing-aware cubes
-        // (ChestBlock javadoc), generated via the vanilla "orientable" model (front/side/top faces,
-        // same shape furnaces use) instead of hand-authored table JSON.
-        ModelFile patternChestModel = models().orientable("pattern_chest",
-                modLoc("derived/block/pattern_chest_side"), modLoc("derived/block/pattern_chest_front"), modLoc("derived/block/pattern_chest_top"));
-        horizontalBlock(ForgeweaveBlocks.PATTERN_CHEST.get(), patternChestModel);
-        simpleBlockItem(ForgeweaveBlocks.PATTERN_CHEST.get(), patternChestModel);
-
-        ModelFile partChestModel = models().orientable("part_chest",
-                modLoc("derived/block/part_chest_side"), modLoc("derived/block/part_chest_front"), modLoc("derived/block/part_chest_top"));
-        horizontalBlock(ForgeweaveBlocks.PART_CHEST.get(), partChestModel);
-        simpleBlockItem(ForgeweaveBlocks.PART_CHEST.get(), partChestModel);
+        // The Pattern Chest and Part Chest (docs/SCOPE.md M1 issue #66, reshaped by issue #342):
+        // upstream 1.12's cabinet geometry, not a cube -- see chestBlock.
+        chestBlock("pattern_chest", ForgeweaveBlocks.PATTERN_CHEST.get());
+        chestBlock("part_chest", ForgeweaveBlocks.PART_CHEST.get());
 
         // Grout (docs/SCOPE.md M2 issue #93; issue #129): plain cube_all geometry, same as the
         // seared brick family below.
@@ -161,6 +153,26 @@ public class ForgeweaveBlockStateProvider extends BlockStateProvider {
         cubeAllBlock("firewood", ForgeweaveBlocks.FIREWOOD.get());
 
         cubeAllBlock("amethyst_bronze_block", ForgeweaveBlocks.AMETHYST_BRONZE_BLOCK.get());
+    }
+
+    /**
+     * The two chests (issue #342). Both share one hand-authored geometry file,
+     * {@code models/block/chest.json} -- a near-literal transcription of upstream 1.12's
+     * {@code models/block/patternchest.json} (NOTICE.md): a 14x12x14 body lifted on four legs under a
+     * full-width top slab, with two drawer fronts and handles standing proud of the front face. The
+     * five texture slots stay unbound there and are filled per block here, exactly the way upstream's
+     * own {@code blockstates/tooltables.json} points both its {@code patternchest} and {@code
+     * partchest} variants at that one model and overrides only the textures.
+     */
+    private void chestBlock(String name, Block block) {
+        ModelFile model = models().withExistingParent(name, modLoc("block/chest"))
+                .texture("side", modLoc("derived/block/" + name + "_side"))
+                .texture("front", modLoc("derived/block/" + name + "_front"))
+                .texture("top", modLoc("derived/block/" + name + "_top"))
+                .texture("drawer_front", modLoc("derived/block/" + name + "_drawer_front"))
+                .texture("drawer_side", modLoc("derived/block/" + name + "_drawer_side"));
+        horizontalBlock(block, model);
+        simpleBlockItem(block, model);
     }
 
     private void coreBlock(String name, Block block, String sideTexture) {
