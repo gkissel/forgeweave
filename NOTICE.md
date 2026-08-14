@@ -253,6 +253,12 @@ One row per derived file (ADR-0003). Maintained in PR review: a PR introducing d
 | `src/main/resources/assets/forgeweave/textures/derived/block/part_chest_front.png` | `resources/assets/tconstruct/textures/blocks/chest/part_front.png` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
 | `src/main/resources/assets/forgeweave/textures/derived/block/part_chest_side.png` | `resources/assets/tconstruct/textures/blocks/chest/part_side.png` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
 | `src/main/resources/assets/forgeweave/textures/derived/block/part_chest_top.png` | `resources/assets/tconstruct/textures/blocks/chest/part_top.png` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
+| `src/main/resources/assets/forgeweave/textures/derived/block/pattern_chest_drawer_front.png` | `resources/assets/tconstruct/textures/blocks/chest/pattern_drawer_front.png` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
+| `src/main/resources/assets/forgeweave/textures/derived/block/pattern_chest_drawer_side.png` | `resources/assets/tconstruct/textures/blocks/chest/pattern_drawer_side.png` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
+| `src/main/resources/assets/forgeweave/textures/derived/block/part_chest_drawer_front.png` | `resources/assets/tconstruct/textures/blocks/chest/part_drawer_front.png` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
+| `src/main/resources/assets/forgeweave/textures/derived/block/part_chest_drawer_side.png` | `resources/assets/tconstruct/textures/blocks/chest/part_drawer_side.png` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
+| `src/main/resources/assets/forgeweave/models/block/chest.json` (issue #342: element boxes, per-face UVs and rotations, and display transforms; texture slots repointed at `forgeweave:derived/block/*` and left unbound for the two chests to fill, the way upstream's own `blockstates/tooltables.json` does) | `resources/assets/tconstruct/models/block/patternchest.json` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
+| `src/main/java/dev/gkissel/forgeweave/block/ChestBlock.java` (`CHEST_SHAPE`: the chest hitbox's six boxes) | `src/main/java/slimeknights/tconstruct/tools/common/block/BlockToolTable.java` (`BOUNDS_Chest`) | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
 | `src/main/java/dev/gkissel/forgeweave/data/ForgeweaveRecipeProvider.java` (Pattern Chest recipe shape: blank pattern over a vanilla chest) | `resources/assets/tconstruct/recipes/tools/table/chest/pattern.json` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
 | `src/main/java/dev/gkissel/forgeweave/data/ForgeweaveRecipeProvider.java` (Pattern Chest second recipe shape: a ring of 8 planks around a blank pattern, same `pattern_chest` recipe group as the row above) | `resources/assets/tconstruct/recipes/tools/table/chest/pattern_simple.json` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
 | `src/main/java/dev/gkissel/forgeweave/data/ForgeweaveRecipeProvider.java` (Part Chest recipe shape: blank pattern + 2 sticks over a vanilla chest, plank below) | `resources/assets/tconstruct/recipes/tools/table/chest/part.json` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
@@ -1131,19 +1137,23 @@ stand-in #42 shipped before the Stencil Table existed.
 The Pattern Chest and Part Chest (issue #66) port upstream 1.12's `TilePatternChest`/`TilePartChest`
 filter semantics (`isItemValidForSlot`, NOTICE.md rows above cite the block textures and recipe
 shapes; the filter logic itself is ported semantics, not copied code, so it carries no additional
-row) with two deliberate M1 simplifications, both called out in the issue #66 brief itself:
+row) with one deliberate M1 simplification called out in the issue #66 brief itself:
 
-- **Block shape**: a plain facing-aware cube (vanilla `orientable` front/side/top model, the same
-  shape furnaces use) instead of upstream's table-with-drawers geometry (`models/block/
-  patternchest.json`: legs, a drawer front/back, and handles on the same 1x1 footprint). The
-  upstream chest textures above are reused on the plain cube's front/side/top faces; the
-  drawer-specific texture regions (`*_drawer_front.png`/`*_drawer_side.png`) have no cube face to
-  map onto and are not derived.
 - **Capacity**: a fixed 54-slot (6x9, double-chest-sized) grid instead of upstream's `TileTinkerChest`
   virtual list (up to 256 items behind a GUI window that dynamically grows/shrinks with content,
   `GuiScalingChest`). `ChestBlockEntity`'s javadoc covers the reasoning; `ChestScreen` reuses vanilla's
   own double-chest `generic_54.png` background rather than cropping upstream's chest GUI art, which is
   drawn for that dynamic window and has no matching fixed-grid panel to crop.
+
+Issue #66's other simplification -- a plain `orientable` cube in place of upstream's cabinet shape --
+is gone as of issue #342: `models/block/chest.json` is upstream `patternchest.json`'s own element
+list, and `ChestBlock.CHEST_SHAPE` is upstream's own `BOUNDS_Chest` hitbox (rows above). Upstream's
+shape is entirely model JSON -- `blockstates/tooltables.json` points both chest variants at that one
+model and overrides only the five texture slots, and `BlockToolTable` registers no block-entity
+renderer -- so there is no lid/drawer animation upstream to port or to leave out. The two chests do
+keep the facing property Forgeweave gave them, which upstream's `tooltables` blockstate does not
+have (upstream's chests always face north); the hitbox boxes are y-symmetric, so only the model
+rotates.
 
 Upstream's Pattern Chest additionally accepts `ICast` items ("cast chest" mode) -- Forgeweave has no
 smeltery/casting system in scope yet, so that branch, and the "no duplicate item across slots"

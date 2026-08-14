@@ -1,5 +1,7 @@
 package dev.gkissel.forgeweave.gametest;
 
+import java.util.List;
+
 import net.minecraft.core.BlockPos;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
@@ -9,6 +11,9 @@ import net.minecraft.world.inventory.ContainerLevelAccess;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.phys.shapes.BooleanOp;
+import net.minecraft.world.phys.shapes.Shapes;
+import net.minecraft.world.phys.shapes.VoxelShape;
 
 import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
@@ -240,6 +245,29 @@ public class ChestGameTests {
             }
         }
         helper.assertValueEqual(count, 60, "every one of the 60 stored shards must survive the round trip");
+
+        helper.succeed();
+    }
+
+    /**
+     * Issue #342: the in-world hitbox has to follow the cabinet model (upstream's
+     * {@code BlockToolTable.BOUNDS_Chest}), not the full cube both chests shipped with -- so the gap
+     * between the legs, under the body, must be empty while the body itself is solid.
+     */
+    @GameTest(template = "empty")
+    public static void bothChestsHaveTheCabinetHitboxRatherThanACube(GameTestHelper helper) {
+        BlockPos pos = new BlockPos(1, 1, 1);
+        for (var chest : List.of(ForgeweaveBlocks.PATTERN_CHEST.get(), ForgeweaveBlocks.PART_CHEST.get())) {
+            helper.setBlock(pos, chest);
+            VoxelShape shape = helper.getBlockState(pos).getShape(helper.getLevel(), helper.absolutePos(pos));
+
+            helper.assertFalse(
+                    Shapes.joinIsNotEmpty(shape, Shapes.box(0.4D, 0.05D, 0.4D, 0.6D, 0.15D, 0.6D), BooleanOp.AND),
+                    "expected the space between " + chest + "'s legs to be open, not a full cube");
+            helper.assertTrue(
+                    Shapes.joinIsNotEmpty(shape, Shapes.box(0.4D, 0.5D, 0.4D, 0.6D, 0.6D, 0.6D), BooleanOp.AND),
+                    "expected " + chest + "'s body to still be solid");
+        }
 
         helper.succeed();
     }
