@@ -170,6 +170,17 @@ public final class ForgeweaveBlocks {
     public static final DeferredBlock<SearedDrainBlock> SEARED_DRAIN = BLOCKS.register("seared_drain",
             () -> new SearedDrainBlock(searedProperties()));
 
+    // #277 -- the seared duct and seared chute (docs/SCOPE.md M3.4). Maintainer-approved deviation
+    // from the 1.12 parity default, recorded on issue #277: neither block exists in the 1.12
+    // generation, so both follow the 1.20 clone's SearedDuctBlock and seared_chute (NOTICE.md). Same
+    // seared strength and sound as the drain they sit alongside; the chute's model has a trough
+    // hanging off three of its faces, so it skips occlusion culling like the tank family does.
+    public static final DeferredBlock<SearedDuctBlock> SEARED_DUCT = BLOCKS.register("seared_duct",
+            () -> new SearedDuctBlock(searedProperties()));
+
+    public static final DeferredBlock<SearedChuteBlock> SEARED_CHUTE = BLOCKS.register("seared_chute",
+            () -> new SearedChuteBlock(searedProperties().noOcclusion()));
+
     // Plain seared glass (docs/SCOPE.md M3.3 issue #289): a wall-only smeltery block, upstream's
     // BlockSearedGlass (NOTICE.md). Upstream's block adds BlockConnectedTexture rendering and no
     // other behavior -- no BlockEntity, no multiblock role of its own beyond "valid wall, not floor"

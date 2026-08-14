@@ -23,7 +23,9 @@ import dev.gkissel.forgeweave.block.CastingBlockEntity;
 import dev.gkissel.forgeweave.block.ChestBlockEntity;
 import dev.gkissel.forgeweave.block.ForgeweaveBlockEntities;
 import dev.gkissel.forgeweave.block.ForgeweaveBlocks;
+import dev.gkissel.forgeweave.block.SearedChuteBlockEntity;
 import dev.gkissel.forgeweave.block.SearedDrainBlockEntity;
+import dev.gkissel.forgeweave.block.SearedDuctBlockEntity;
 import dev.gkissel.forgeweave.block.SearedTankBlockEntity;
 import dev.gkissel.forgeweave.casting.CastingRecipe;
 import dev.gkissel.forgeweave.combat.Beheading;
@@ -90,6 +92,10 @@ public class Forgeweave {
         // The smeltery's seared tanks hold fluids directly; a drain re-exposes its core's tank (#95).
         modEventBus.addListener(SearedTankBlockEntity::registerCapabilities);
         modEventBus.addListener(SearedDrainBlockEntity::registerCapabilities);
+        // #277 -- a duct re-exposes that tank filtered to one fluid (plus its own filter slot), and a
+        // chute re-exposes the core's melting inventory.
+        modEventBus.addListener(SearedDuctBlockEntity::registerCapabilities);
+        modEventBus.addListener(SearedChuteBlockEntity::registerCapabilities);
         // #100 -- a faucet pours into a casting table/basin through its fluid handler.
         modEventBus.addListener(CastingBlockEntity::registerCapabilities);
         modEventBus.addListener(ForgeweaveDataGenerators::gatherData);

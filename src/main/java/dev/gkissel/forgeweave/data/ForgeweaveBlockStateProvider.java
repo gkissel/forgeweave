@@ -15,6 +15,7 @@ import net.neoforged.neoforge.common.data.ExistingFileHelper;
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.block.FaucetBlock;
 import dev.gkissel.forgeweave.block.ForgeweaveBlocks;
+import dev.gkissel.forgeweave.block.SearedChuteBlock;
 import dev.gkissel.forgeweave.block.SmelteryControllerBlock;
 
 /**
@@ -146,6 +147,29 @@ public class ForgeweaveBlockStateProvider extends BlockStateProvider {
                 .texture("particle", drainSide);
         horizontalBlock(ForgeweaveBlocks.SEARED_DRAIN.get(), drainModel);
         simpleBlockItem(ForgeweaveBlocks.SEARED_DRAIN.get(), drainModel);
+
+        // #277 -- the duct is the drain's geometry with a different front, so it takes the same
+        // six-face cube; the 1.20 clone's own duct model does exactly this (its duct_active and
+        // drain_active share a template and differ only in the "drain" texture slot, NOTICE.md).
+        ModelFile ductModel = models().cube("seared_duct", drainSide, drainSide,
+                        modLoc("derived/block/seared_duct_front"), modLoc("derived/block/seared_drain_back"),
+                        drainSide, drainSide)
+                .texture("particle", drainSide);
+        horizontalBlock(ForgeweaveBlocks.SEARED_DUCT.get(), ductModel);
+        simpleBlockItem(ForgeweaveBlocks.SEARED_DUCT.get(), ductModel);
+
+        // #277 -- the chute's trough hangs off three faces plus the top and bottom, so its model is
+        // hand-authored JSON under models/block/, transcribed from the 1.20 clone's own
+        // block/template/chute (NOTICE.md) with the texture slots pointed at derived/block/*. That
+        // model keeps upstream's orientation (its back on north, i.e. authored facing south), so the
+        // rotations here are upstream's blockstates/seared_chute.json y-values rather than
+        // horizontalBlock's north-facing convention.
+        ModelFile chuteModel = models().getExistingFile(modLoc("block/seared_chute"));
+        getVariantBuilder(ForgeweaveBlocks.SEARED_CHUTE.get()).forAllStates(state -> ConfiguredModel.builder()
+                .modelFile(chuteModel)
+                .rotationY((int) state.getValue(SearedChuteBlock.FACING).toYRot())
+                .build());
+        simpleBlockItem(ForgeweaveBlocks.SEARED_CHUTE.get(), chuteModel);
 
         // #100 -- casting (docs/SCOPE.md M2 issue #100). All four models are hand-authored JSON under
         // models/block/, transcribed from upstream 1.12's own casting_table/casting_basin/faucet/

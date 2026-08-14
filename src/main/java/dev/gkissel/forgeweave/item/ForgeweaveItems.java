@@ -361,6 +361,10 @@ public final class ForgeweaveItems {
     public static final DeferredItem<BlockItem> SEARED_WINDOW = ITEMS.registerSimpleBlockItem("seared_window", ForgeweaveBlocks.SEARED_WINDOW);
     public static final DeferredItem<BlockItem> SEARED_DRAIN = ITEMS.registerSimpleBlockItem("seared_drain", ForgeweaveBlocks.SEARED_DRAIN);
 
+    // #277 -- filtered fluid I/O and item I/O for the smeltery (docs/SCOPE.md M3.4).
+    public static final DeferredItem<BlockItem> SEARED_DUCT = ITEMS.registerSimpleBlockItem("seared_duct", ForgeweaveBlocks.SEARED_DUCT);
+    public static final DeferredItem<BlockItem> SEARED_CHUTE = ITEMS.registerSimpleBlockItem("seared_chute", ForgeweaveBlocks.SEARED_CHUTE);
+
     // Plain seared glass (docs/SCOPE.md M3.3 issue #289).
     public static final DeferredItem<BlockItem> SEARED_GLASS = ITEMS.registerSimpleBlockItem("seared_glass", ForgeweaveBlocks.SEARED_GLASS);
 

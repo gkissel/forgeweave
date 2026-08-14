@@ -206,6 +206,8 @@ public final class ForgeweaveCreativeTab {
         output.accept(ForgeweaveItems.SEARED_GAUGE.get());
         output.accept(ForgeweaveItems.SEARED_WINDOW.get());
         output.accept(ForgeweaveItems.SEARED_DRAIN.get());
+        output.accept(ForgeweaveItems.SEARED_DUCT.get());
+        output.accept(ForgeweaveItems.SEARED_CHUTE.get());
         output.accept(ForgeweaveItems.SEARED_GLASS.get());
 
         // #275 -- clear glass and its 16 clear stained glass colors.
