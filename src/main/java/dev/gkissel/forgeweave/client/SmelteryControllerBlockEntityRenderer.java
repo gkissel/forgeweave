@@ -110,12 +110,7 @@ public class SmelteryControllerBlockEntityRenderer implements BlockEntityRendere
     @Override
     public AABB getRenderBoundingBox(SmelteryControllerBlockEntity blockEntity) {
         SmelteryStructure structure = blockEntity.structure();
-        if (structure == null) {
-            return new AABB(blockEntity.getBlockPos());
-        }
-        BlockPos min = structure.interiorMin();
-        BlockPos max = structure.interiorMax();
-        return new AABB(min.getX(), min.getY(), min.getZ(), max.getX() + 1, max.getY() + 1, max.getZ() + 1);
+        return structure == null ? new AABB(blockEntity.getBlockPos()) : structure.interiorBounds();
     }
 
     /**

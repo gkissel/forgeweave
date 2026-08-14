@@ -20,6 +20,7 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.Container;
 import net.minecraft.world.ContainerHelper;
 import net.minecraft.world.Containers;
+import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -48,11 +49,12 @@ import dev.gkissel.forgeweave.recipe.SmelteryFuel;
  * A smeltery core's structure state and molten-metal tank (docs/SCOPE.md M2 issue #95), ported from
  * upstream 1.12's {@code TileMultiblock}/{@code TileSmeltery} (NOTICE.md).
  *
- * <p><b>This block entity has no ticker at all</b> -- {@link SmelteryControllerBlock} never
- * registers one, so an idle smeltery costs literally nothing per tick, which is what the SCOPE.md M2
- * release gate ("spark profile confirms idle smeltery ~= zero tick") asks for. Upstream instead
- * ticks forever: once a second while unformed to look for a structure, and once every 15 seconds
- * plus a one-block-per-second interior sweep while formed. Forgeweave replaces the polling with:
+ * <p><b>This block entity has no {@link net.minecraft.world.level.block.entity.BlockEntityTicker}
+ * at all</b> -- {@link SmelteryControllerBlock} never registers one, so an unformed smeltery costs
+ * literally nothing per tick, which is what the SCOPE.md M2 release gate ("spark profile confirms
+ * idle smeltery ~= zero tick") asks for. Upstream instead ticks forever: once a second while
+ * unformed to look for a structure, and once every 15 seconds plus a one-block-per-second interior
+ * sweep while formed. Forgeweave replaces the polling with:
  *
  * <ul>
  *   <li><b>Events for anything touching the core</b> -- placement, a neighbour changing, a player
@@ -66,6 +68,15 @@ import dev.gkissel.forgeweave.recipe.SmelteryFuel;
  * #93 ships the seared blocks as plain blocks), which is what lets upstream be notified of a distant
  * wall break directly. Revalidation-on-read costs one scan per second of active work instead, which
  * is still strictly less often than upstream's own 15-second full recheck.
+ *
+ * <p>#290 narrows the "idle smeltery ~= zero tick" claim to <em>unformed</em> smelteries: upstream's
+ * {@code interactWithEntitiesInside} dropped-item pickup runs once a second purely off {@code
+ * isActive()} (formed), with no fuel or melt-work gate at all, so a genuinely empty but formed
+ * smeltery has to keep a once-a-second heartbeat alive too or a dropped item sitting in it would
+ * never be noticed. {@link #armMeltTick()} arms that heartbeat at {@link #ITEM_PICKUP_INTERVAL_TICKS}
+ * whenever nothing needs the tighter {@link #MELT_INTERVAL_TICKS} melt cadence, and {@link
+ * SmelteryControllerBlock#tick} runs {@link #sweepForDroppedItems()} on every firing regardless of
+ * which cadence woke it.
  */
 public class SmelteryControllerBlockEntity extends BlockEntity implements StationMenuHost {
     /**
@@ -106,8 +117,17 @@ public class SmelteryControllerBlockEntity extends BlockEntity implements Statio
     private NonNullList<ItemStack> meltingItems = NonNullList.withSize(0, ItemStack.EMPTY);
     private int[] meltProgress = new int[0];
     private MeltingRecipe[] meltRecipes = new MeltingRecipe[0];
+    /**
+     * #290: whether a slot's melt finished but could not drain into the tank (full), upstream's own
+     * overheat signal ({@code itemTemperatures[slot] = itemTempRequired[slot] * 2 + 1}). See
+     * {@link #finishMelting} and {@link #meltStalled(int)}.
+     */
+    private boolean[] meltStalled = new boolean[0];
     @Nullable
     private BlockPos fuelTank;
+
+    // #290 -- dropped-item pickup. Upstream's TileSmeltery#interactWithEntitiesInside, once a second.
+    private long lastItemPickupTick = NEVER_SCANNED;
 
     // #97 -- fuel. Upstream's own {@code fuel}/{@code temperature} fields on TileHeatingStructure:
     // how many melt ticks the current burn has left, and the temperature it is burning at.
@@ -233,13 +253,23 @@ public class SmelteryControllerBlockEntity extends BlockEntity implements Statio
      *
      * <p>Where upstream ticks the block entity forever and does nothing on 3 ticks out of 4,
      * Forgeweave schedules a block tick this far ahead only while there is something to melt (see
-     * {@link #armMeltTick()}), so the SCOPE.md M2 budget of "idle smeltery ~= zero tick" holds
-     * literally: an idle core is not on any tick list at all.
+     * {@link #armMeltTick()}). An <em>unformed</em> core is not on any tick list at all; a formed one
+     * falls back to the much slower {@link #ITEM_PICKUP_INTERVAL_TICKS} cadence once melting work
+     * runs out (#290) rather than truly going idle.
      */
     public static final int MELT_INTERVAL_TICKS = 4;
 
+    /**
+     * #290: how often the interior is swept for dropped items, upstream's own once-a-second
+     * {@code interactWithEntitiesInside} cadence. Slower than {@link #MELT_INTERVAL_TICKS} on
+     * purpose -- there is no upstream expectation that a dropped item melts the instant it lands,
+     * only that it eventually gets picked up.
+     */
+    public static final int ITEM_PICKUP_INTERVAL_TICKS = 20;
+
     private static final String TAG_MELTING = "melting";
     private static final String TAG_MELT_PROGRESS = "melt_progress";
+    private static final String TAG_MELT_STALLED = "melt_stalled";
     private static final String TAG_FUEL_BURN_TICKS = "fuel_burn_ticks";
     private static final String TAG_FUEL_TEMPERATURE = "fuel_temperature";
     private static final String TAG_FUEL_DISPLAY = "fuel_display";
@@ -257,6 +287,16 @@ public class SmelteryControllerBlockEntity extends BlockEntity implements Statio
     public float meltProgress(int slot) {
         MeltingRecipe recipe = slot < 0 || slot >= meltingItems.size() ? null : recipeFor(slot);
         return recipe == null ? 0f : Math.min(1f, (float) meltProgress[slot] / (float) recipe.heatRequired());
+    }
+
+    /**
+     * #290: whether {@code slot}'s melt finished but is stuck because the tank has no room for the
+     * result -- upstream's overheat state, set by {@link #finishMelting} and cleared the moment
+     * either the item leaves the slot or the melt finally drains. This is what the smeltery screen's
+     * heat bar renders as its distinct stalled variant instead of the ordinary progress fill.
+     */
+    public boolean meltStalled(int slot) {
+        return slot >= 0 && slot < meltStalled.length && meltStalled[slot];
     }
 
     /**
@@ -424,7 +464,9 @@ public class SmelteryControllerBlockEntity extends BlockEntity implements Statio
      *
      * <p>Upstream refuses a partial melt when the tank is nearly full and re-heats the item instead;
      * leaving the progress where it is has the same effect -- the slot retries every melt tick until
-     * a drain makes room.
+     * a drain makes room. #290: that silent retry is now also flagged in {@link #meltStalled}, the
+     * GUI-visible version of upstream's own overheat state, set the moment a retry first fails and
+     * cleared the moment one finally succeeds (via {@link #setMeltingItem}).
      */
     private void finishMelting(int slot, MeltingRecipe recipe) {
         // #99: floor a fractional multiplier x base rather than round, matching an ordinary int cast.
@@ -433,6 +475,12 @@ public class SmelteryControllerBlockEntity extends BlockEntity implements Statio
         int amount = recipe.ore() ? (int) (recipe.amount() * core.yieldMultiplier()) : recipe.amount();
         var result = new FluidStack(recipe.fluid(), amount);
         if (tank.fill(result, IFluidHandler.FluidAction.SIMULATE) != result.getAmount()) {
+            // #290: only sync on the false -> true transition, not on every retry -- a slot can sit
+            // stalled for a long time (waiting on a drain), and this runs every melt tick while it is.
+            if (!meltStalled[slot]) {
+                meltStalled[slot] = true;
+                syncToClients();
+            }
             return;
         }
         tank.fill(result, IFluidHandler.FluidAction.EXECUTE);
@@ -440,21 +488,68 @@ public class SmelteryControllerBlockEntity extends BlockEntity implements Statio
     }
 
     /**
-     * Schedules the next melt tick unless one is already pending or there is nothing to melt. Every
-     * path that can create work calls this; nothing polls.
+     * Schedules the next heartbeat tick unless one is already pending or there is nothing for it to
+     * do. Every path that can create work calls this; nothing polls.
+     *
+     * <p>#290 widened this beyond melting: a formed smeltery always needs its
+     * {@link #ITEM_PICKUP_INTERVAL_TICKS} item-pickup heartbeat too (upstream's own
+     * {@code interactWithEntitiesInside} has no fuel or melt-work gate, only {@code isActive()}), so
+     * this arms the tighter {@link #MELT_INTERVAL_TICKS} cadence when there is melting work and falls
+     * back to the pickup cadence whenever the core is merely formed. {@link SmelteryControllerBlock#tick}
+     * runs both {@link #meltTick()} and {@link #sweepForDroppedItems()} on every firing regardless of
+     * which cadence woke it, so this only has to pick how soon the next firing needs to be.
      *
      * <p>Package-private rather than {@code private}: {@link SearedTankBlockEntity} calls this too
-     * (#97), to wake a melt that stopped for want of heat when a wall tank gets refilled -- the only
-     * other re-arm points are insertion, a structure scan, and load.
+     * (#97), to wake a melt that stopped for want of heat when a wall tank gets refilled -- the other
+     * re-arm points are insertion, a structure scan, and load.
      */
     void armMeltTick() {
-        if (level == null || level.isClientSide || !hasMeltableItem()) {
+        if (level == null || level.isClientSide) {
+            return;
+        }
+        boolean melting = hasMeltableItem();
+        if (!melting && structure == null) {
             return;
         }
         Block block = getBlockState().getBlock();
         if (!level.getBlockTicks().hasScheduledTick(worldPosition, block)) {
-            level.scheduleTick(worldPosition, block, MELT_INTERVAL_TICKS);
+            level.scheduleTick(worldPosition, block, melting ? MELT_INTERVAL_TICKS : ITEM_PICKUP_INTERVAL_TICKS);
         }
+    }
+
+    /**
+     * The once-a-second interior sweep for dropped items (#290), upstream's
+     * {@code TileSmeltery#interactWithEntitiesInside}: every {@link ItemEntity} inside the formed
+     * interior gets offered to {@link #insertForMelting(ItemStack)}, and whatever is fully consumed
+     * is discarded the way upstream's own {@code entity.setDead()} does. Only runs while formed --
+     * {@code insertForMelting} would refuse everything anyway, but there is also no interior to scan.
+     *
+     * <p>Called from {@link SmelteryControllerBlock#tick} on <em>every</em> firing, not just the ones
+     * {@link #armMeltTick()} scheduled for pickup specifically -- a melt-cadence firing (every
+     * {@value #MELT_INTERVAL_TICKS} ticks) is more often than once a second, so this throttles itself
+     * against {@link #lastItemPickupTick} rather than assuming its caller only ever fires it on cue.
+     *
+     * @return whether an actual sweep ran (i.e. whether a second's worth of time had actually passed)
+     */
+    boolean sweepForDroppedItems() {
+        if (level == null || level.isClientSide || structure == null) {
+            return false;
+        }
+        long now = level.getGameTime();
+        if (lastItemPickupTick != NEVER_SCANNED && now - lastItemPickupTick < ITEM_PICKUP_INTERVAL_TICKS) {
+            return false;
+        }
+        lastItemPickupTick = now;
+        for (ItemEntity entity : level.getEntitiesOfClass(ItemEntity.class, structure.interiorBounds())) {
+            ItemStack original = entity.getItem();
+            ItemStack remaining = insertForMelting(original);
+            if (remaining.isEmpty()) {
+                entity.discard();
+            } else if (remaining.getCount() != original.getCount()) {
+                entity.setItem(remaining);
+            }
+        }
+        return true;
     }
 
     /**
@@ -507,6 +602,7 @@ public class SmelteryControllerBlockEntity extends BlockEntity implements Statio
         meltingItems.set(slot, stack);
         meltProgress[slot] = 0;
         meltRecipes[slot] = null;
+        meltStalled[slot] = false; // #290: a new (or removed) item has no finished melt to be stalled on
         setChanged();
         armMeltTick();
     }
@@ -550,6 +646,7 @@ public class SmelteryControllerBlockEntity extends BlockEntity implements Statio
             }
         }
         meltProgress = Arrays.copyOf(meltProgress, slots);
+        meltStalled = Arrays.copyOf(meltStalled, slots);
         meltingItems = resized;
         meltRecipes = new MeltingRecipe[slots];
     }
@@ -647,6 +744,22 @@ public class SmelteryControllerBlockEntity extends BlockEntity implements Statio
         fuelTemperature = fuel.temperature();
     }
 
+    /** @see #meltStalled */
+    private static byte[] packBooleans(boolean[] values) {
+        byte[] packed = new byte[values.length];
+        for (int i = 0; i < values.length; i++) {
+            packed[i] = (byte) (values[i] ? 1 : 0);
+        }
+        return packed;
+    }
+
+    /** @see #meltStalled */
+    private static void unpackBooleans(byte[] packed, boolean[] target) {
+        for (int i = 0; i < Math.min(packed.length, target.length); i++) {
+            target[i] = packed[i] != 0;
+        }
+    }
+
     @Override
     public void onLoad() {
         super.onLoad();
@@ -667,6 +780,10 @@ public class SmelteryControllerBlockEntity extends BlockEntity implements Statio
         // #96: what is melting and how far along it is (SCOPE.md M2 save-compat fixture list).
         tag.put(TAG_MELTING, ContainerHelper.saveAllItems(new CompoundTag(), meltingItems, true, registries));
         tag.putIntArray(TAG_MELT_PROGRESS, meltProgress);
+        // #290: the stall flag rides the same tag-based sync as everything else here (getUpdateTag is
+        // saveWithoutMetadata), which is the only reason finishMelting's syncToClients() call actually
+        // carries it to a watching client.
+        tag.putByteArray(TAG_MELT_STALLED, packBooleans(meltStalled));
         // #97: the in-progress burn -- fuel state (SCOPE.md M2 save-compat fixture list).
         tag.putInt(TAG_FUEL_BURN_TICKS, fuelBurnTicksRemaining);
         tag.putInt(TAG_FUEL_TEMPERATURE, fuelTemperature);
@@ -690,6 +807,7 @@ public class SmelteryControllerBlockEntity extends BlockEntity implements Statio
         ContainerHelper.loadAllItems(tag.getCompound(TAG_MELTING), meltingItems, registries);
         int[] progress = tag.getIntArray(TAG_MELT_PROGRESS);
         System.arraycopy(progress, 0, meltProgress, 0, Math.min(progress.length, meltProgress.length));
+        unpackBooleans(tag.getByteArray(TAG_MELT_STALLED), meltStalled);
         // #97: the in-progress burn, if any -- fuelTank itself is not saved, it is re-found on demand.
         fuelBurnTicksRemaining = tag.getInt(TAG_FUEL_BURN_TICKS);
         fuelTemperature = tag.getInt(TAG_FUEL_TEMPERATURE);

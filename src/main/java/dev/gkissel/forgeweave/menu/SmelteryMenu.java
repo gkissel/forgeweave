@@ -251,6 +251,12 @@ public class SmelteryMenu extends StationMenu {
         return core == null ? 0f : core.meltProgress(index);
     }
 
+    /** Whether melt slot {@code index} finished but the tank had no room for the result (#290); {@code false} when the core is gone. */
+    public boolean meltStalled(@Nullable Level level, int index) {
+        SmelteryControllerBlockEntity core = core(level);
+        return core != null && core.meltStalled(index);
+    }
+
     /** Total capacity of the melt, which scales with the interior; 0 when the core is gone. */
     public int capacity(@Nullable Level level) {
         SmelteryControllerBlockEntity core = core(level);

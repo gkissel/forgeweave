@@ -9,7 +9,6 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
-import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.level.material.Fluids;
 
@@ -31,13 +30,14 @@ import dev.gkissel.forgeweave.recipe.MeltingRecipe;
  * docs/SCOPE.md M2 issue #98's verification on a headless dedicated server, and its release gate
  * "auto-alloy ratios (manyullyn, rose gold, netherite)": each shipped alloy forms at exactly its
  * ratio and at exactly twice it, fluids that alloy into nothing are left alone, a tank short of a
- * single application does not alloy, and the whole thing happens off tank changes rather than a tick
- * -- a smeltery whose tank is not moving is on no tick list at all.
+ * single application does not alloy, and the whole thing happens off tank changes rather than a
+ * tick of its own -- alloying schedules nothing (#290 gave a *formed* smeltery its own reason to
+ * keep a light tick alive regardless, the once-a-second item-pickup sweep, so "no tick" is no
+ * longer the invariant this class's tests lean on).
  *
  * <p>Fluid goes into the tank directly here rather than through a melt, because the point under test
- * is the alloying pass and not the melting one; {@link
- * #twoMeltedIngotsAlloyOnTheMeltCompletingWithNoTickLeftBehind} is the one that runs the whole chain
- * from items.
+ * is the alloying pass and not the melting one; {@link #twoMeltedIngotsAlloyOnTheMeltCompleting} is
+ * the one that runs the whole chain from items.
  */
 @GameTestHolder(Forgeweave.MODID)
 @PrefixGameTestTemplate(false)
@@ -192,11 +192,15 @@ public class SmelteryAlloyGameTests {
     /**
      * The no-polling half of the SCOPE.md M2 gate, run end to end from items: a copper ingot and a
      * gold ingot melt in a lava-fuelled smeltery, and the moment the second one finishes the tank
-     * alloys itself into rose gold -- with no tick left scheduled behind it, because the melting
-     * inventory is empty and alloying never schedules one of its own.
+     * alloys itself into rose gold, with alloying itself never scheduling a tick of its own (it hangs
+     * off {@code onTankChanged}, not a poll).
+     *
+     * <p>#290 retired this test's "no tick left scheduled behind it" half: a formed smeltery now
+     * always keeps its once-a-second item-pickup heartbeat armed regardless of melt work, so the tank
+     * contents (rose gold, and nothing else) are what actually prove the melt-then-alloy chain worked.
      */
     @GameTest(template = "smeltery", timeoutTicks = 1600)
-    public static void twoMeltedIngotsAlloyOnTheMeltCompletingWithNoTickLeftBehind(GameTestHelper helper) {
+    public static void twoMeltedIngotsAlloyOnTheMeltCompleting(GameTestHelper helper) {
         SmelteryControllerBlockEntity core = smeltery(helper);
         fuel(helper);
         helper.assertTrue(core.insertForMelting(new ItemStack(Items.COPPER_INGOT)).isEmpty(), "expected the copper ingot to go in");
@@ -206,7 +210,6 @@ public class SmelteryAlloyGameTests {
             helper.assertValueEqual(amountOf(core, ForgeweaveFluids.ROSE_GOLD.still().get()), 2 * MeltingRecipe.VALUE_INGOT,
                     "rose gold from two melted ingots");
             helper.assertValueEqual(core.tank().fluids().size(), 1, "and nothing else left in the tank");
-            helper.assertTrue(!isTicking(helper), "a smeltery with nothing left to melt must be on no tick list");
         });
     }
 
@@ -298,11 +301,6 @@ public class SmelteryAlloyGameTests {
         helper.assertTrue(core.tank().getFluid().getFluid() == fluid,
                 "expected " + fluid + " but the tank holds " + core.tank().getFluid().getFluid());
         helper.assertValueEqual(core.tank().getFluidAmount(), amount, "alloy in the tank");
-    }
-
-    private static boolean isTicking(GameTestHelper helper) {
-        Block core = ForgeweaveBlocks.STANDARD_CORE.get();
-        return helper.getLevel().getBlockTicks().hasScheduledTick(helper.absolutePos(SmelteryGameTests.CORE_POS), core);
     }
 
     private static boolean isGranted(GameTestHelper helper, ServerPlayer player, String path) {
