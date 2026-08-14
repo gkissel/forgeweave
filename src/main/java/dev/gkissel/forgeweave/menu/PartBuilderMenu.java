@@ -44,11 +44,13 @@ import dev.gkissel.forgeweave.block.PartBuilderBlockEntity;
  * panel; see that class's javadoc for the client/server slot-count handshake.
  */
 public class PartBuilderMenu extends StationMenu {
-    public static final int CONTAINER_SLOTS = 4;
+    public static final int CONTAINER_SLOTS = 5;
     public static final int PATTERN_SLOT = 0;
     public static final int MATERIAL_SLOT = 1;
-    public static final int OUTPUT_SLOT = 2;
-    public static final int CHANGE_SLOT = 3;
+    /** Upstream's second material input, {@code ContainerPartBuilder#input2} at (48, 44) -- issue #306. */
+    public static final int MATERIAL_SLOT_2 = 2;
+    public static final int OUTPUT_SLOT = 3;
+    public static final int CHANGE_SLOT = 4;
 
     /**
      * Side-panel layout (issue #40's follow-up). Upstream's {@code GuiPartBuilder} builds its
@@ -74,7 +76,8 @@ public class PartBuilderMenu extends StationMenu {
      * inventory came from -- something the slot contents alone don't say.
      */
     public final boolean partCrafter;
-    private int pendingMaterialItemsConsumed;
+    private int pendingMaterial1ItemsConsumed;
+    private int pendingMaterial2ItemsConsumed;
     private ItemStack pendingChange = ItemStack.EMPTY;
 
     /** Client-side: constructed from the open-menu packet ({@code PartBuilderBlockEntity#writeMenuData}). */
@@ -106,9 +109,10 @@ public class PartBuilderMenu extends StationMenu {
 
         // Slot coordinates match upstream 1.12's ContainerPartBuilder (issue #43: derived
         // partbuilder.png background) -- pattern at its stencil-slot spot, material at the first of
-        // upstream's two stacked input slots (the second, at (48, 44), stays visible on the
-        // background but unused since we only have one material slot), main output at upstream's
-        // main output spot, and the shard change at upstream's secondary output spot (issue #45).
+        // upstream's two stacked input slots, the second material slot at upstream's own (48, 44)
+        // (issue #306: cost-matching against both combined, ToolBuilder#tryBuildToolPart), main
+        // output at upstream's main output spot, and the shard change at upstream's secondary
+        // output spot (issue #45).
         addSlot(new Slot(container, PATTERN_SLOT, 26, 35) {
             @Override
             public boolean mayPlace(ItemStack stack) {
@@ -121,6 +125,7 @@ public class PartBuilderMenu extends StationMenu {
             }
         });
         addSlot(new Slot(container, MATERIAL_SLOT, 48, 26));
+        addSlot(new Slot(container, MATERIAL_SLOT_2, 48, 44));
         addSlot(new OutputSlot(container, OUTPUT_SLOT, 106, 35));
         addSlot(new Slot(container, CHANGE_SLOT, 132, 35) {
             @Override
@@ -158,9 +163,10 @@ public class PartBuilderMenu extends StationMenu {
         if (access == ContainerLevelAccess.NULL) {
             return; // client: the server pushes slot contents down instead of computing locally.
         }
-        Optional<PartBuilderRecipes.Match> match =
-                PartBuilderRecipes.resolve(registries, slots.get(PATTERN_SLOT).getItem(), slots.get(MATERIAL_SLOT).getItem());
-        pendingMaterialItemsConsumed = match.map(PartBuilderRecipes.Match::materialItemsConsumed).orElse(0);
+        Optional<PartBuilderRecipes.Match> match = PartBuilderRecipes.resolve(registries, slots.get(PATTERN_SLOT).getItem(),
+                slots.get(MATERIAL_SLOT).getItem(), slots.get(MATERIAL_SLOT_2).getItem());
+        pendingMaterial1ItemsConsumed = match.map(PartBuilderRecipes.Match::material1ItemsConsumed).orElse(0);
+        pendingMaterial2ItemsConsumed = match.map(PartBuilderRecipes.Match::material2ItemsConsumed).orElse(0);
         pendingChange = match.map(PartBuilderRecipes.Match::change).orElse(ItemStack.EMPTY);
         // Only the main output slot reflects the live preview; the change slot is real storage
         // (see class javadoc) and is untouched here.
@@ -252,7 +258,7 @@ public class PartBuilderMenu extends StationMenu {
             if (!moveItemStackTo(stackInSlot, PATTERN_SLOT, PATTERN_SLOT + 1, false)) {
                 return ItemStack.EMPTY;
             }
-        } else if (!moveItemStackTo(stackInSlot, MATERIAL_SLOT, MATERIAL_SLOT + 1, false)) {
+        } else if (!moveItemStackTo(stackInSlot, MATERIAL_SLOT, MATERIAL_SLOT_2 + 1, false)) { // player inventory -> either material slot
             return ItemStack.EMPTY;
         }
 
@@ -292,8 +298,11 @@ public class PartBuilderMenu extends StationMenu {
         @Override
         public void onTake(Player player, ItemStack stack) {
             Slot materialSlot = slots.get(MATERIAL_SLOT);
-            materialSlot.remove(pendingMaterialItemsConsumed);
+            materialSlot.remove(pendingMaterial1ItemsConsumed);
             materialSlot.setChanged();
+            Slot materialSlot2 = slots.get(MATERIAL_SLOT_2);
+            materialSlot2.remove(pendingMaterial2ItemsConsumed);
+            materialSlot2.setChanged();
             depositChange();
             super.onTake(player, stack);
         }

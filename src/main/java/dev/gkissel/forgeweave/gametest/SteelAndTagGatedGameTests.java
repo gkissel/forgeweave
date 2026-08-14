@@ -145,11 +145,11 @@ public class SteelAndTagGatedGameTests {
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         PartBuilderMenu menu = openMenu(helper, pos, player);
 
-        menu.getSlot(0).set(new ItemStack(ForgeweaveItems.PATTERN_PICKAXE_HEAD.get()));
-        menu.getSlot(1).set(new ItemStack(Items.NETHER_BRICK, 2));
+        menu.getSlot(PartBuilderMenu.PATTERN_SLOT).set(new ItemStack(ForgeweaveItems.PATTERN_PICKAXE_HEAD.get()));
+        menu.getSlot(PartBuilderMenu.MATERIAL_SLOT).set(new ItemStack(Items.NETHER_BRICK, 2));
         menu.broadcastChanges();
 
-        ItemStack output = menu.getSlot(2).getItem();
+        ItemStack output = menu.getSlot(PartBuilderMenu.OUTPUT_SLOT).getItem();
         helper.assertTrue(output.is(ForgeweaveItems.PART_PICKAXE_HEAD.get()),
                 "expected a pickaxe head part from two tag-supplied bronze ingots, got " + output);
         helper.assertTrue(materialId("bronze").equals(output.get(ForgeweaveDataComponents.MATERIAL.get())),
@@ -190,10 +190,10 @@ public class SteelAndTagGatedGameTests {
         BlockPos pos = new BlockPos(1, 1, 1);
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         PartBuilderMenu menu = openMenu(helper, pos, player);
-        menu.getSlot(0).set(new ItemStack(ForgeweaveItems.PATTERN_PICKAXE_HEAD.get()));
-        menu.getSlot(1).set(new ItemStack(Items.GOLD_NUGGET, 2));
+        menu.getSlot(PartBuilderMenu.PATTERN_SLOT).set(new ItemStack(ForgeweaveItems.PATTERN_PICKAXE_HEAD.get()));
+        menu.getSlot(PartBuilderMenu.MATERIAL_SLOT).set(new ItemStack(Items.GOLD_NUGGET, 2));
         menu.broadcastChanges();
-        helper.assertTrue(menu.getSlot(2).getItem().isEmpty(),
+        helper.assertTrue(menu.getSlot(PartBuilderMenu.OUTPUT_SLOT).getItem().isEmpty(),
                 "expected no part from an item no material's crafting_items names");
         helper.succeed();
     }

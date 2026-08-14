@@ -61,6 +61,18 @@ public final class SideInventorySlots {
     /** Upstream sets {@code yOffset = 0} for a side inventory, putting its first slot row at the frame. */
     public static final int SLOT_Y = SLOT_INSET;
 
+    /**
+     * The first slot's x for a panel on the <em>right</em> of its station -- where upstream puts the
+     * Stencil Table's pattern-chest side inventory ({@code ContainerStencilTable}'s {@code
+     * DynamicChestInventory}, {@code GuiSideInventory}'s {@code right = true} branch adding {@code
+     * parent.realWidth} to every slot's x). That lands the panel's left edge flush on the station
+     * panel's right edge, so the offset is the station's own panel width plus the same {@link
+     * #SLOT_INSET} {@link #LEFT_SLOT_X} uses (issue #306).
+     */
+    public static int rightSlotX(int stationPanelWidth) {
+        return stationPanelWidth + SLOT_INSET;
+    }
+
     private SideInventorySlots() {}
 
     /**

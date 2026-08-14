@@ -29,8 +29,7 @@ public final class ForgeweaveMenus {
     // These two have no side inventory, so the station-group tab row (issue #78) is the whole
     // open-menu payload; the pattern selection (issue #44) still rides the menu's own DataSlot.
     public static final DeferredHolder<MenuType<?>, MenuType<StencilTableMenu>> STENCIL_TABLE =
-            MENUS.register("stencil_table", () -> IMenuTypeExtension.create(
-                    (windowId, inventory, buf) -> new StencilTableMenu(windowId, inventory, StationGroup.STREAM_CODEC.decode(buf))));
+            MENUS.register("stencil_table", () -> IMenuTypeExtension.create(StencilTableMenu::new));
 
     // The Pattern Chest and Part Chest (docs/SCOPE.md M1 issue #66): each registration bakes in its
     // ChestKind so the client-side ChestMenu constructor doesn't need to read it from the packet.
