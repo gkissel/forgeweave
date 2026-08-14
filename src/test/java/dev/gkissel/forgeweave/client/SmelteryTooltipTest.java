@@ -192,6 +192,35 @@ class SmelteryTooltipTest {
         }
     }
 
+    /* Tank band top edge (issue #308: JEI ingredient-under-mouse) */
+
+    @Test
+    void theBottomBandsTopEdgeIsTheTankHeightMinusItsOwnHeight() {
+        List<FluidStack> fluids = List.of(stack(1152), stack(576)); // 26px iron, then 13px copper
+        assertEquals(52 - 26, SmelteryScreen.tankBandTop(fluids, 2304, 52, 0), "iron band starts above the floor");
+    }
+
+    @Test
+    void theTopBandsTopEdgeSitsAboveEveryBandBelowIt() {
+        List<FluidStack> fluids = List.of(stack(1152), stack(576)); // 26px iron, then 13px copper
+        assertEquals(52 - 26 - 13, SmelteryScreen.tankBandTop(fluids, 2304, 52, 1), "copper band starts above the iron band");
+    }
+
+    @Test
+    void everyBandsTopEdgePlusItsHeightReachesTheBandBelow() {
+        // The invariant tankBandTop and fluidHeights must never disagree on: band i's top edge is
+        // exactly where band i-1 (or the tank floor, for band 0) begins.
+        List<FluidStack> fluids = List.of(stack(1152), stack(576), stack(100));
+        int capacity = 2304;
+        int[] heights = SmelteryScreen.fluidHeights(fluids, capacity, 52);
+        int expectedBottom = 52;
+        for (int i = 0; i < heights.length; i++) {
+            int top = SmelteryScreen.tankBandTop(fluids, capacity, 52, i);
+            assertEquals(expectedBottom, top + heights[i], "band " + i + "'s top+height must reach the band below it");
+            expectedBottom = top;
+        }
+    }
+
     /** A fluid stack of the given amount; which fluid it is never reaches the height maths. */
     private static FluidStack stack(int amount) {
         return new FluidStack(Fluids.WATER, amount);
