@@ -385,6 +385,14 @@ public final class ForgeweaveItems {
     public static final DeferredItem<Item> CAST_CURVED_BLADE = ITEMS.registerSimpleItem("cast_curved_blade");
     public static final DeferredItem<Item> CAST_KATANA_BLADE = ITEMS.registerSimpleItem("cast_katana_blade");
 
+    // #272 (M3.4-3) -- the three CastCustom metas upstream ships beyond ingot/nugget (TinkerSmeltery
+    // castGem/castPlate/castGear). Same gold-only reusable idiom, straight-ported upstream sprites
+    // (like cast_ingot/cast_nugget above, not the compositing script -- upstream ships these three as
+    // their own dedicated textures too, NOTICE.md).
+    public static final DeferredItem<Item> CAST_GEM = ITEMS.registerSimpleItem("cast_gem");
+    public static final DeferredItem<Item> CAST_PLATE = ITEMS.registerSimpleItem("cast_plate");
+    public static final DeferredItem<Item> CAST_GEAR = ITEMS.registerSimpleItem("cast_gear");
+
     public static final DeferredItem<BlockItem> CASTING_TABLE = ITEMS.registerSimpleBlockItem("casting_table", ForgeweaveBlocks.CASTING_TABLE);
     public static final DeferredItem<BlockItem> CASTING_BASIN = ITEMS.registerSimpleBlockItem("casting_basin", ForgeweaveBlocks.CASTING_BASIN);
     public static final DeferredItem<BlockItem> FAUCET = ITEMS.registerSimpleBlockItem("faucet", ForgeweaveBlocks.FAUCET);

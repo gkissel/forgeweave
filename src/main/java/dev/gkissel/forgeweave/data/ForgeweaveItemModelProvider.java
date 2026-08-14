@@ -140,6 +140,10 @@ public class ForgeweaveItemModelProvider extends ItemModelProvider {
         // is tinted: a cast has no material.
         singleLayerModel(ForgeweaveItems.CAST_INGOT, derivedItem("cast_ingot"));
         singleLayerModel(ForgeweaveItems.CAST_NUGGET, derivedItem("cast_nugget"));
+        // #272 -- the other two upstream CastCustom metas ported the same way (own upstream sprite).
+        singleLayerModel(ForgeweaveItems.CAST_GEM, derivedItem("cast_gem"));
+        singleLayerModel(ForgeweaveItems.CAST_PLATE, derivedItem("cast_plate"));
+        singleLayerModel(ForgeweaveItems.CAST_GEAR, derivedItem("cast_gear"));
         singleLayerModel(ForgeweaveItems.CAST_PICKAXE_HEAD, derivedItem("cast_pickaxe_head"));
         singleLayerModel(ForgeweaveItems.CAST_SHOVEL_HEAD, derivedItem("cast_shovel_head"));
         singleLayerModel(ForgeweaveItems.CAST_AXE_HEAD, derivedItem("cast_axe_head"));

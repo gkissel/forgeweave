@@ -202,6 +202,11 @@ public final class ForgeweaveCreativeTab {
         output.accept(ForgeweaveItems.CAST_CURVED_BLADE.get());
         output.accept(ForgeweaveItems.CAST_KATANA_BLADE.get());
 
+        // #272 -- the three CastCustom metas upstream ships beyond ingot/nugget.
+        output.accept(ForgeweaveItems.CAST_GEM.get());
+        output.accept(ForgeweaveItems.CAST_PLATE.get());
+        output.accept(ForgeweaveItems.CAST_GEAR.get());
+
         // #103 -- metal materials (docs/SCOPE.md M2 issue #103): the item forms with no vanilla
         // counterpart, for the four metals that lacked them.
         output.accept(ForgeweaveItems.INGOT_COBALT.get());

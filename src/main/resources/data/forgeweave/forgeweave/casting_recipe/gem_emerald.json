@@ -1,0 +1,11 @@
+{
+  "station": "table",
+  "cast": {
+    "item": "forgeweave:cast_gem"
+  },
+  "fluid": "forgeweave:molten_emerald",
+  "amount": 666,
+  "result": {
+    "id": "minecraft:emerald"
+  }
+}
