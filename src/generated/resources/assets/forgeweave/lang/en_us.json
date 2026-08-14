@@ -92,6 +92,7 @@
   "gui.forgeweave.embossment.no_traits": "%s grants no traits through that part, so there is nothing to emboss.",
   "gui.forgeweave.exchange.needs_forge": "This tool is too large to work on here. Exchange its parts at a Tool Forge.",
   "gui.forgeweave.exchange.not_enough_durability": "Not enough durability to replace parts! %s more durability required.",
+  "gui.forgeweave.exchange.not_enough_slots": "Not enough modifier slots to replace parts! %s more needed.",
   "gui.forgeweave.exchange.same_material": "The tool already has a part of that material there.",
   "gui.forgeweave.exchange.wrong_part": "This tool has no slot for that part.",
   "gui.forgeweave.modifier.invalid_reagent": "The other slot holds something no modifier accepts.",

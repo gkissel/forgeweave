@@ -327,6 +327,10 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("gui.forgeweave.exchange.same_material", "The tool already has a part of that material there.");
         add("gui.forgeweave.exchange.not_enough_durability",
                 "Not enough durability to replace parts! %s more durability required.");
+        // Issue #293, upstream's gui.error.not_enough_modifiers ("Not enough Modifiers. (%d needed)"):
+        // the new part set grants fewer modifier slots than the tool's modifiers already occupy.
+        add("gui.forgeweave.exchange.not_enough_slots",
+                "Not enough modifier slots to replace parts! %s more needed.");
         add("gui.forgeweave.exchange.needs_forge",
                 "This tool is too large to work on here. Exchange its parts at a Tool Forge.");
 
