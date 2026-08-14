@@ -1,6 +1,8 @@
 package dev.gkissel.forgeweave.fluid;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Map;
@@ -13,9 +15,17 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
 import net.minecraft.SharedConstants;
+import net.minecraft.core.BlockPos;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.Bootstrap;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.world.level.EmptyBlockGetter;
+import net.minecraft.world.level.pathfinder.PathType;
 
+import net.neoforged.neoforge.common.SoundActions;
 import net.neoforged.neoforge.fluids.FluidType;
+
+import dev.gkissel.forgeweave.Forgeweave;
 
 /**
  * Pins the nine molten metal fluids' temperatures against upstream 1.12's {@code
@@ -78,5 +88,71 @@ class ForgeweaveFluidsTest {
                 Arguments.of("rose_gold", ForgeweaveFluids.ROSE_GOLD),
                 Arguments.of("netherite_scrap", ForgeweaveFluids.NETHERITE_SCRAP),
                 Arguments.of("netherite", ForgeweaveFluids.NETHERITE));
+    }
+
+    // ------------------------------------------------------------------ #285 fluid physics parity
+
+    /**
+     * #285: molten fluids need lava's entity hazard behavior -- both upstream generations do this
+     * (1.12's {@code BlockMolten} extends {@code BlockTinkerFluid} with {@code Material.LAVA}; 1.20's
+     * {@code TinkerFluids#hot} builds the equivalent modern property set). {@code FluidType}'s
+     * entity-facing accessors ({@code canSwim}, {@code canDrownIn}, {@code getBlockPathType}) ignore
+     * their entity/level/pos arguments and just return the configured property, so {@code null} is
+     * safe to pass here without a live level or entity.
+     */
+    @Test
+    void moltenFluidTypeHasLavaLikeEntityBehavior() {
+        FluidType type = ForgeweaveFluids.moltenFluidType(1000);
+
+        assertFalse(type.canSwim(null), "molten fluid should be un-swimmable like lava");
+        assertFalse(type.canDrownIn(null), "molten fluid should not be drownable like water -- lava damages instead");
+        assertEquals(PathType.LAVA, type.getBlockPathType(null, null, null, null, false),
+                "mobs should path around molten fluid the same way they avoid lava");
+        assertEquals(SoundEvents.BUCKET_FILL_LAVA, type.getSound(SoundActions.BUCKET_FILL));
+        assertEquals(SoundEvents.BUCKET_EMPTY_LAVA, type.getSound(SoundActions.BUCKET_EMPTY));
+    }
+
+    /** #285: obsidian and seared stone ride the stone still/flowing texture pair (molten clay already does), not the shared metal texture. */
+    @Test
+    void obsidianAndSearedStoneUseStoneTextures() {
+        ResourceLocation stoneStill = ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "derived/block/liquid_stone");
+        ResourceLocation stoneFlowing = ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "derived/block/liquid_stone_flow");
+        ResourceLocation metalStill = ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "derived/block/molten_metal");
+
+        assertEquals(stoneStill, ForgeweaveFluids.OBSIDIAN.stillTexture());
+        assertEquals(stoneFlowing, ForgeweaveFluids.OBSIDIAN.flowingTexture());
+        assertEquals(stoneStill, ForgeweaveFluids.SEARED_STONE.stillTexture());
+        assertEquals(stoneFlowing, ForgeweaveFluids.SEARED_STONE.flowingTexture());
+        assertNotEquals(metalStill, ForgeweaveFluids.OBSIDIAN.stillTexture());
+        assertNotEquals(metalStill, ForgeweaveFluids.SEARED_STONE.stillTexture());
+    }
+
+    /**
+     * #285: the placed fluid block's light level derives from the fluid's own {@code
+     * FluidType#getLightLevel()} instead of a hardcoded 10, so blood -- whose {@code FluidType}
+     * never calls {@code lightLevel()}, leaving the property at its 0 default -- renders
+     * non-glowing, as {@link ForgeweaveFluids}'s field comment on {@code BLOOD} documents.
+     */
+    @Test
+    void liquidBlockLightLevelDerivesFromFluidType() {
+        assertEquals(10, ForgeweaveFluids.IRON.block().get().defaultBlockState().getLightEmission(EmptyBlockGetter.INSTANCE, BlockPos.ZERO),
+                "molten metal keeps its lit-lava-like light level");
+        assertEquals(0, ForgeweaveFluids.BLOOD.block().get().defaultBlockState().getLightEmission(EmptyBlockGetter.INSTANCE, BlockPos.ZERO),
+                "blood's FluidType has no configured light level, so its block should not glow");
+    }
+
+    /**
+     * #285: molten slime is de-tuned from the shared lava-tier density/viscosity, the same way
+     * upstream's {@code TinkerFluids#slime} builder (density 1600 / viscosity 1600) departs from
+     * {@code hot()}'s lava-tier density 2000 / viscosity 10000.
+     */
+    @Test
+    void slimeFluidTypeIsDeTunedFromLavaTierDensityAndViscosity() {
+        FluidType slimeType = ForgeweaveFluids.SLIME.fluidType().get();
+
+        assertEquals(1600, slimeType.getDensity());
+        assertEquals(1600, slimeType.getViscosity());
+        assertNotEquals(ForgeweaveFluids.moltenFluidType(310).getDensity(), slimeType.getDensity(),
+                "slime should not share the lava-tier density every other molten fluid uses");
     }
 }

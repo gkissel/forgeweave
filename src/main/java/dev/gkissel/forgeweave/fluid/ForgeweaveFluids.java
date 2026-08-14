@@ -4,13 +4,16 @@ import java.util.function.Supplier;
 
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.level.block.LiquidBlock;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.material.FlowingFluid;
 import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.level.material.MapColor;
 import net.minecraft.world.level.material.PushReaction;
+import net.minecraft.world.level.pathfinder.PathType;
 
+import net.neoforged.neoforge.common.SoundActions;
 import net.neoforged.neoforge.fluids.BaseFlowingFluid;
 import net.neoforged.neoforge.fluids.FluidType;
 import net.neoforged.neoforge.registries.DeferredBlock;
@@ -71,8 +74,10 @@ public final class ForgeweaveFluids {
     public static final MoltenMetal STEEL = register("steel", 0xA7A7A7, 681);
 
     // M3.2 issue #231: upstream's TinkerFluids#setupFluids obsidian (fluidStone, 0x2c0d59, 1000).
-    // Not a metal, but it rides the same shared tinted texture upstream's own FluidColored does.
-    public static final MoltenMetal OBSIDIAN = register("obsidian", 0x2C0D59, 1000);
+    // Not a metal -- #285: it rides molten clay's stone still/flowing texture pair (upstream's own
+    // FluidColored ICON_StoneStill/Flowing), not the shared metal texture.
+    public static final MoltenMetal OBSIDIAN = register("molten_obsidian", 0x2C0D59, 1000,
+            () -> moltenFluidType(1000), STONE_STILL, STONE_FLOWING);
 
     // No 1.12 counterpart -- deviation recorded in the issue #92 PR (see class javadoc).
     public static final MoltenMetal ROSE_GOLD = register("rose_gold", 0xB76E79, 550);
@@ -89,8 +94,15 @@ public final class ForgeweaveFluids {
     // maintainer-decided green substitute for upstream's purple slime alloy input (issue #232): its
     // color is the slime material's own 0x82c873 and its temperature is upstream's slime-fluid 310
     // (TinkerFluids#blueslime, the 1.12 generation's slime fluid temperature).
-    public static final MoltenMetal SLIME = register("slime", 0x82c873, 310);
-    public static final MoltenMetal SEARED_STONE = register("seared_stone", 0x777777, 800);
+    // #285: molten slime gets its own FluidType, de-tuned from the shared lava-tier density/viscosity
+    // the same way upstream's TinkerFluids#slime does (cool(name).density(1600).viscosity(1600) vs.
+    // hot()'s density(2000).viscosity(10000)) -- still lava-hazardous like every other molten fluid
+    // here, just thinner.
+    public static final MoltenMetal SLIME = register("molten_slime", 0x82c873, 310,
+            () -> slimeFluidType(310), STILL_TEXTURE, FLOWING_TEXTURE);
+    // #285: seared stone rides the stone still/flowing texture pair too (see OBSIDIAN above).
+    public static final MoltenMetal SEARED_STONE = register("molten_seared_stone", 0x777777, 800,
+            () -> moltenFluidType(800), STONE_STILL, STONE_FLOWING);
     public static final MoltenMetal KNIGHTSLIME = register("knightslime", 0xf18ff0, 520);
 
     // #233 -- the pig iron alloy chain (docs/SCOPE.md M3.2, maintainer decision on the issue: real
@@ -140,6 +152,16 @@ public final class ForgeweaveFluids {
                 type, () -> stillRef[0].get(), () -> flowingRef[0].get())
                 .block(() -> blockRef[0].get());
 
+        // #285: the block's light level derives from the fluid's own FluidType#getLightLevel()
+        // instead of a hardcoded 10, so BLOOD (no lightLevel() call on its FluidType.Properties,
+        // default 0) renders non-glowing the way its own javadoc above documents. Read via a throwaway
+        // FluidType built from the same (pure, stateless) typeFactory rather than through the `type`
+        // DeferredHolder above: BlockBehaviour precomputes each BlockState's light emission eagerly at
+        // Block construction time (unlike the FluidState-based accessors this class otherwise defers
+        // through stillRef/flowingRef), which lands before the fluid_type registry's own RegisterEvent
+        // has necessarily bound `type` -- calling type.get() here throws.
+        int lightLevel = typeFactory.get().getLightLevel();
+
         stillRef[0] = FLUIDS.register(name, () -> new BaseFlowingFluid.Source(properties.get()));
         flowingRef[0] = FLUIDS.register("flowing_" + name, () -> new BaseFlowingFluid.Flowing(properties.get()));
         blockRef[0] = BLOCKS.register(name, () -> new LiquidBlock(stillRef[0].get(), BlockBehaviour.Properties.of()
@@ -150,19 +172,50 @@ public final class ForgeweaveFluids {
                 .noLootTable()
                 .liquid()
                 .pushReaction(PushReaction.DESTROY)
-                .lightLevel(state -> 10)));
+                .lightLevel(state -> lightLevel)));
 
         return new MoltenMetal(type, stillRef[0], flowingRef[0], blockRef[0], color, temperature,
                 stillTexture, flowingTexture);
     }
 
+    // #285: forge/upstream's lava motionScale, ported 1:1 (TinkerFluids#hot's "from forge lava type"
+    // comment; both upstream clones' molten fluids use it -- 1.12's BlockMolten via Material.LAVA,
+    // 1.20's hot() via this exact constant).
+    private static final double LAVA_MOTION_SCALE = 0.0023333333333333335D;
+
+    /**
+     * Every molten fluid's shared lava-like entity hazard behavior (#285): no swimming, no drowning
+     * (burns/damages like lava instead), lava's mob pathfinding avoidance, and lava's bucket sounds --
+     * 1.12's {@code BlockMolten} extends {@code BlockTinkerFluid} with {@code Material.LAVA}; 1.20's
+     * {@code TinkerFluids#hot} builds the modern equivalent property set this mirrors. Density and
+     * viscosity are left to the caller since {@link #moltenFluidType} and {@link #slimeFluidType}
+     * differ there.
+     */
+    private static FluidType.Properties lavaLikeProperties(int temperature) {
+        return FluidType.Properties.create()
+                .lightLevel(10)
+                .temperature(temperature)
+                .canSwim(false)
+                .canDrown(false)
+                .motionScale(LAVA_MOTION_SCALE)
+                .pathType(PathType.LAVA)
+                .adjacentPathType(null)
+                .sound(SoundActions.BUCKET_FILL, SoundEvents.BUCKET_FILL_LAVA)
+                .sound(SoundActions.BUCKET_EMPTY, SoundEvents.BUCKET_EMPTY_LAVA);
+    }
+
     /** Package-visible so the temperature wiring can be exercised directly without a live registry (see {@code ForgeweaveFluidsTest}). Color is client-only ({@code ForgeweaveFluidClientExtensions}) and plays no part in {@link FluidType} itself. */
     static FluidType moltenFluidType(int temperature) {
-        return new FluidType(FluidType.Properties.create()
-                .lightLevel(10)
+        return new FluidType(lavaLikeProperties(temperature)
                 .density(2000)
-                .viscosity(10000)
-                .temperature(temperature));
+                .viscosity(10000));
+    }
+
+    /** #285: molten slime's own {@link FluidType} -- same lava hazard behavior as every other molten fluid, just de-tuned density/viscosity (see {@link #SLIME}'s field comment). */
+    private static FluidType slimeFluidType(int temperature) {
+        return new FluidType(lavaLikeProperties(temperature)
+                .density(1600)
+                .viscosity(1600));
     }
 
     private ForgeweaveFluids() {}
