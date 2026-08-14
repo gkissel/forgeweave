@@ -112,7 +112,12 @@ public class PartItem extends Item {
         }
     }
 
-    private List<Component> stats(Material material) {
+    /**
+     * The stat block this part draws from its material. Package-private since issue #380:
+     * {@code ToolTooltip}'s per-part Shift sections show the same block for the part in each slot,
+     * so the two views of "what this part contributes" stay one method.
+     */
+    List<Component> stats(Material material) {
         return switch (kind) {
             case HEAD -> headStats(material);
             case HANDLE -> StationText.handleStats(material);

@@ -22,6 +22,7 @@ import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.CommonComponents;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.network.chat.Style;
 import net.minecraft.network.chat.TextColor;
 import net.minecraft.resources.ResourceKey;
@@ -147,8 +148,15 @@ class ToolTooltipTest {
                 tooltip);
     }
 
+    /**
+     * Issue #380: the Shift tier's part block is one section per slot -- underlined part name in the
+     * slot material's color, that part's stat block, that part's traits in the same color -- in the
+     * tool's own slot order, with a blank line before each. The pickaxe's stone head shows the head
+     * block (including its tier line) and stone's trait; its two wood parts show the extra and
+     * handle blocks and wood's trait, each attributed to its own slot rather than pooled.
+     */
     @Test
-    void detailedTooltipAddsMiningSpeedTierPartsAndTraits() {
+    void detailedTooltipShowsOneSectionPerPartSlot() {
         ItemStack stack = assembledPickaxe(40, List.of(CHEAP_TRAIT, ECOLOGICAL_TRAIT));
         HolderLookup.Provider registries = registriesWithStoneAndWood();
 
@@ -161,16 +169,61 @@ class ToolTooltipTest {
                 pierceLine(),
                 slotsLine(3),
                 statLine("tooltip.forgeweave.mining_speed", "4", SPEED_COLOR),
-                Component.translatable("tooltip.forgeweave.tool_tier").append(": ")
-                        .append(Component.translatable("tooltip.forgeweave.tier.stone")),
+                tierLine("stone"),
                 Component.empty(),
-                Component.translatable("material.forgeweave.stone").withStyle(Style.EMPTY.withColor(STONE_COLOR)),
-                Component.translatable("material.forgeweave.wood").withStyle(Style.EMPTY.withColor(WOOD_COLOR)),
-                Component.translatable("material.forgeweave.wood").withStyle(Style.EMPTY.withColor(WOOD_COLOR)),
-                Component.empty(),
+                partName("stone", STONE_COLOR, "pickaxe_head"),
+                guiStat("durability", "120", durabilityColor(1.0F)),
+                guiStat("mining_speed", "4", SPEED_COLOR),
+                guiStat("attack_damage", "3", ATTACK_COLOR),
+                tierLine("stone"),
                 traitLine("cheap", STONE_COLOR),
+                Component.empty(),
+                partName("wood", WOOD_COLOR, "tool_binding"),
+                guiStat("extra_durability", "15", durabilityColor(1.0F)),
+                traitLine("ecological", WOOD_COLOR),
+                Component.empty(),
+                partName("wood", WOOD_COLOR, "tool_handle"),
+                guiStat("handle_modifier", "1", MODIFIER_COLOR),
+                guiStat("handle_durability", "25", durabilityColor(1.0F)),
                 traitLine("ecological", WOOD_COLOR)),
                 tooltip);
+    }
+
+    /**
+     * Issue #380: a multi-head tool gets a section per slot, positionally. The hammer's slots are
+     * tough tool rod, hammer head, large plate, large plate ({@code ToolConstants#HAMMER}), so a
+     * build whose two large plates differ shows two large-plate sections in different colors -- the
+     * attribution the old flat list could not express at all.
+     */
+    @Test
+    void detailedTooltipSectionsAreOneMultiHeadSlotEach() {
+        ItemStack stack = assembledTool(ForgeweaveItems.TOOL_HAMMER.get(), 40, List.of(CHEAP_TRAIT, ECOLOGICAL_TRAIT),
+                new ToolMaterials(STONE_ID, Optional.empty(), WOOD_ID,
+                        List.of(WOOD_ID, STONE_ID, STONE_ID, WOOD_ID)));
+
+        List<Component> tooltip = new ArrayList<>();
+        ToolTooltip.append(stack, registriesWithStoneAndWood(), true, 7.0F, tooltip);
+
+        assertEquals(List.of(
+                partName("wood", WOOD_COLOR, "tough_tool_rod"),
+                partName("stone", STONE_COLOR, "hammer_head"),
+                partName("stone", STONE_COLOR, "large_plate"),
+                partName("wood", WOOD_COLOR, "large_plate")),
+                tooltip.stream().filter(line -> line.getStyle().isUnderlined()).toList());
+        // The last slot's traits are wood's, not the head materials' -- per-part attribution.
+        assertEquals(traitLine("ecological", WOOD_COLOR), tooltip.get(tooltip.size() - 1));
+    }
+
+    /** Upstream ToolCore.java:328-330: fewer materials than parts is a stack no section can describe. */
+    @Test
+    void detailedTooltipSkipsSectionsWhenMaterialsAreShorterThanThePartList() {
+        ItemStack stack = assembledTool(ForgeweaveItems.TOOL_HAMMER.get(), 40, List.of(),
+                new ToolMaterials(STONE_ID, Optional.empty(), WOOD_ID, List.of(WOOD_ID, STONE_ID)));
+
+        List<Component> tooltip = new ArrayList<>();
+        ToolTooltip.append(stack, registriesWithStoneAndWood(), true, 7.0F, tooltip);
+
+        assertEquals(List.of(), tooltip.stream().filter(line -> line.getStyle().isUnderlined()).toList());
     }
 
     @Test
@@ -180,9 +233,9 @@ class ToolTooltipTest {
         List<Component> tooltip = new ArrayList<>();
         ToolTooltip.append(stack, null, true, 3.0F, tooltip);
 
-        // Parts and the trait name fall back to plain translatable components (PartItem's pattern);
-        // no color can be resolved without registries, and no material means no granting-color match
-        // for the trait either. Tool tier needs the head Material record too, so it's skipped
+        // Without registries a section keeps its heading -- both halves of it are plain translatable
+        // text (PartItem's pattern) -- but has no Material record to read stats or traits from, and
+        // no color to tint with. The tool tier line needs the head Material too, so it's skipped
         // entirely rather than shown without a value.
         assertEquals(List.of(
                 durabilityLine(120, 160),
@@ -191,13 +244,11 @@ class ToolTooltipTest {
                 slotsLine(3),
                 statLine("tooltip.forgeweave.mining_speed", "4", SPEED_COLOR),
                 Component.empty(),
-                Component.translatable("material.forgeweave.stone"),
-                Component.translatable("material.forgeweave.wood"),
-                Component.translatable("material.forgeweave.wood"),
+                partName("stone", null, "pickaxe_head"),
                 Component.empty(),
-                Component.translatable("trait.forgeweave.cheap.name")
-                        .append(Component.literal(": ").withStyle(ChatFormatting.GRAY))
-                        .append(Component.translatable("trait.forgeweave.cheap.description").withStyle(ChatFormatting.GRAY))),
+                partName("wood", null, "tool_binding"),
+                Component.empty(),
+                partName("wood", null, "tool_handle")),
                 tooltip);
     }
 
@@ -242,9 +293,14 @@ class ToolTooltipTest {
     }
 
     private static ItemStack assembledTool(Item item, int damage, List<ResourceLocation> traits) {
+        return assembledTool(item, damage, traits,
+                new ToolMaterials(STONE_ID, Optional.of(WOOD_ID), WOOD_ID, List.of(STONE_ID, WOOD_ID, WOOD_ID)));
+    }
+
+    private static ItemStack assembledTool(Item item, int damage, List<ResourceLocation> traits,
+            ToolMaterials materials) {
         ItemStack stack = new ItemStack(item);
-        stack.set(ForgeweaveDataComponents.TOOL_MATERIALS.get(), new ToolMaterials(STONE_ID, java.util.Optional.of(WOOD_ID), WOOD_ID,
-                java.util.List.of(STONE_ID, WOOD_ID, WOOD_ID)));
+        stack.set(ForgeweaveDataComponents.TOOL_MATERIALS.get(), materials);
         stack.set(ForgeweaveDataComponents.TOOL_STATS.get(), PICKAXE_STATS);
         stack.set(ForgeweaveDataComponents.TRAITS.get(), traits);
         stack.set(DataComponents.MAX_DAMAGE, PICKAXE_STATS.durability());
@@ -327,6 +383,27 @@ class ToolTooltipTest {
                 .withStyle(ChatFormatting.GOLD)
                 .append(Component.literal(": ").withStyle(ChatFormatting.GRAY))
                 .append(Component.translatable("tooltip.forgeweave.innate.smash.description").withStyle(ChatFormatting.GRAY));
+    }
+
+    /** Issue #380's section heading: "&lt;Material&gt; &lt;Part&gt;", underlined, in the material's color. */
+    private static Component partName(String material, TextColor color, String partId) {
+        Style style = Style.EMPTY.withUnderlined(true);
+        MutableComponent name = Component.translatable("material.forgeweave." + material);
+        return Component.translatable("tooltip.forgeweave.part_name",
+                        color == null ? name : name.withStyle(Style.EMPTY.withColor(color)),
+                        Component.translatable("item.forgeweave." + partId))
+                .withStyle(color == null ? style : style.withColor(color));
+    }
+
+    /** A {@code StationText#stat} line, the shape the per-part sections reuse (issue #380). */
+    private static Component guiStat(String key, String value, TextColor color) {
+        return Component.translatable("gui.forgeweave.stat." + key,
+                Component.literal(value).withStyle(Style.EMPTY.withColor(color)));
+    }
+
+    private static Component tierLine(String tier) {
+        return Component.translatable("tooltip.forgeweave.tool_tier").append(": ")
+                .append(Component.translatable("tooltip.forgeweave.tier." + tier));
     }
 
     private static Component traitLine(String path, TextColor color) {

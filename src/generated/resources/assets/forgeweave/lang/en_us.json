@@ -581,6 +581,7 @@
   "tooltip.forgeweave.innate.vital_thrust.name": "Vital Thrust",
   "tooltip.forgeweave.mining_speed": "Mining Speed",
   "tooltip.forgeweave.modifier_slots": "Modifiers: %s",
+  "tooltip.forgeweave.part_name": "%s %s",
   "tooltip.forgeweave.sharpening_kit": "Combine with a flint to raise a tool's mining level to this material's.",
   "tooltip.forgeweave.tier.diamond": "Diamond",
   "tooltip.forgeweave.tier.iron": "Iron",
