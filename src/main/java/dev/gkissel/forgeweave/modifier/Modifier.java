@@ -65,14 +65,20 @@ public interface Modifier {
      * The tool's attack damage after this modifier has adjusted it -- silky's only shipped user
      * (issue #107): upstream {@code ModSilktouch#applyEffect} takes a flat 3 off both {@code speed}
      * and {@code attack} (floored at 1) the moment the modifier is applied. Same shape as
-     * {@link #miningSpeed}: a pure function of the running total, folded in by
-     * {@code ForgeweaveModifiers#effectiveStats}.
+     * {@link #miningSpeed}, extended like {@link #durability} to also receive the untouched
+     * materials-derived base (issue #295): sharpness's only shipped user needs it, since upstream
+     * {@code ModSharpness#applyEffect} seeds its diminishing-returns curve from
+     * {@code getOriginalToolStats().attack} -- the tool's original stat, never the running total other
+     * modifiers may already have folded in -- then adds the curve's delta on top of that running total.
+     * A hook that only saw the running total (as silky's still does; it ignores the parameter) cannot
+     * reproduce that without a second stored copy of the original stat ADR-0004 forbids.
      *
      * @param level accumulated application units (see {@link ModifierEntry#level})
      * @param attackDamage the damage the tool's materials and traits alone produced, plus whatever
      *     earlier modifiers in the list already did to it
+     * @param baseAttackDamage the tool's untouched materials-derived attack damage
      */
-    default float attackDamage(int level, float attackDamage) {
+    default float attackDamage(int level, float attackDamage, float baseAttackDamage) {
         return attackDamage;
     }
 

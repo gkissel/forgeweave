@@ -98,6 +98,7 @@ public class ToolItem extends Item {
     private final float attackSpeed;
     private final float damagePotential;
     private final float miningSpeedModifier;
+    private final float damageCutoff;
     private final boolean weapon;
     @Nullable
     private final ForgeweaveInnates.Innate innate;
@@ -146,7 +147,7 @@ public class ToolItem extends Item {
     public ToolItem(Properties properties, ToolConstants.Entry constants, List<TagKey<Block>> mineableBlocks,
             boolean weapon, @Nullable ForgeweaveInnates.Innate innate, AoeHarvest.Shape aoeShape) {
         this(properties, mineableBlocks, constants.attackSpeed(), constants.damagePotential(),
-                constants.miningSpeedModifier(), weapon, innate, aoeShape);
+                constants.miningSpeedModifier(), constants.damageCutoff(), weapon, innate, aoeShape);
     }
 
     /**
@@ -171,11 +172,24 @@ public class ToolItem extends Item {
     public ToolItem(Properties properties, List<TagKey<Block>> mineableBlocks, float attackSpeed,
             float damagePotential, float miningSpeedModifier, boolean weapon,
             @Nullable ForgeweaveInnates.Innate innate, AoeHarvest.Shape aoeShape) {
+        this(properties, mineableBlocks, attackSpeed, damagePotential, miningSpeedModifier,
+                ToolConstants.DEFAULT_DAMAGE_CUTOFF, weapon, innate, aoeShape);
+    }
+
+    /**
+     * As above, with an explicit per-tool damage cutoff (issue #295) -- the M3 {@link ToolConstants.Entry}
+     * constructor below is the only caller that ever passes anything but the default, for the four
+     * upstream tool classes that override {@code ToolCore#damageCutoff()}.
+     */
+    public ToolItem(Properties properties, List<TagKey<Block>> mineableBlocks, float attackSpeed,
+            float damagePotential, float miningSpeedModifier, float damageCutoff, boolean weapon,
+            @Nullable ForgeweaveInnates.Innate innate, AoeHarvest.Shape aoeShape) {
         super(properties);
         this.mineableBlocks = List.copyOf(mineableBlocks);
         this.attackSpeed = attackSpeed;
         this.damagePotential = damagePotential;
         this.miningSpeedModifier = miningSpeedModifier;
+        this.damageCutoff = damageCutoff;
         this.weapon = weapon;
         this.innate = innate;
         this.aoeShape = aoeShape;
@@ -343,6 +357,11 @@ public class ToolItem extends Item {
      * ({@code combat.ThornsReflectSeam}, issue #229 -- upstream reads the same
      * {@code ToolHelper.getActualDamage}), so none of them ever shows or deals a number the tool
      * doesn't actually hit for.
+     *
+     * <p>The result passes through {@link #calcCutoffDamage} against this tool type's
+     * {@link ToolConstants.Entry#damageCutoff}) (issue #295, upstream {@code ToolHelper#getActualDamage}/
+     * {@code #attackEntity}): below the cutoff the number is unchanged, above it modifier stacking hits
+     * diminishing returns rather than climbing without bound.
      */
     public float attackDamage(ItemStack stack) {
         // Modifier-adjusted, not the raw base component (issue #107: silky takes a flat 3 off this at
@@ -356,7 +375,47 @@ public class ToolItem extends Item {
         if (ForgeweaveTraits.zeroesAttackDamage(stack)) {
             return 0.0F;
         }
-        return stats.attackDamage() * damagePotential + ForgeweaveTraits.attackDamageBonus(stack);
+        float damage = stats.attackDamage() * damagePotential + ForgeweaveTraits.attackDamageBonus(stack);
+        return calcCutoffDamage(damage, damageCutoff);
+    }
+
+    /**
+     * Upstream {@code ToolHelper#calcCutoffDamage}, ported whole (issue #295): below {@code cutoff},
+     * unchanged; above it, each cutoff-sized chunk beyond the first counts for 0.9x less than the one
+     * before it (a geometric falloff), and any remainder past where that multiplier bottoms out at
+     * {@code 0.001} is charged at that floor rate instead of tapering further.
+     *
+     * <pre>
+     * float p = 1f;
+     * float d = damage;
+     * damage = 0f;
+     * while(d &gt; cutoff) {
+     *   damage += p * cutoff;
+     *   if(p &gt; 0.001f) { p *= 0.9f; } else { damage += p * cutoff * ((d / cutoff) - 1f); return damage; }
+     *   d -= cutoff;
+     * }
+     * damage += p * d;
+     * return damage;
+     * </pre>
+     *
+     * Package-private and pure so the curve is unit-testable, {@link #attackDurabilityCost}'s precedent.
+     */
+    static float calcCutoffDamage(float damage, float cutoff) {
+        float p = 1f;
+        float d = damage;
+        float result = 0f;
+        while (d > cutoff) {
+            result += p * cutoff;
+            if (p > 0.001f) {
+                p *= 0.9f;
+            } else {
+                result += p * cutoff * ((d / cutoff) - 1f);
+                return result;
+            }
+            d -= cutoff;
+        }
+        result += p * d;
+        return result;
     }
 
     /** See the class javadoc: the one place that keeps a Forgeweave tool from ever being destroyed. */

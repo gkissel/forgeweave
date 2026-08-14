@@ -120,10 +120,10 @@ class ModifierBatch2Test {
         assertFalse(ForgeweaveModifiers.SILKY.grantsSilkTouch(0));
         assertTrue(ForgeweaveModifiers.SILKY.grantsSilkTouch(1));
         assertEquals(3.0F, ForgeweaveModifiers.SILKY.miningSpeed(1, 6.0F), 1.0e-6F);
-        assertEquals(2.0F, ForgeweaveModifiers.SILKY.attackDamage(1, 5.0F), 1.0e-6F);
+        assertEquals(2.0F, ForgeweaveModifiers.SILKY.attackDamage(1, 5.0F, 5.0F), 1.0e-6F);
         // Upstream floors both at 1 rather than letting them go negative.
         assertEquals(1.0F, ForgeweaveModifiers.SILKY.miningSpeed(1, 2.0F), 1.0e-6F);
-        assertEquals(1.0F, ForgeweaveModifiers.SILKY.attackDamage(1, 1.5F), 1.0e-6F);
+        assertEquals(1.0F, ForgeweaveModifiers.SILKY.attackDamage(1, 1.5F, 1.5F), 1.0e-6F);
 
         ItemStack tool = pickaxeWithStats();
         tool.set(ForgeweaveDataComponents.MODIFIERS.get(), List.of(new ModifierEntry(recipe.modifier(), 1)));

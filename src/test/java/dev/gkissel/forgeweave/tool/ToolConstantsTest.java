@@ -3,6 +3,7 @@ package dev.gkissel.forgeweave.tool;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -51,6 +52,25 @@ class ToolConstantsTest {
         assertEquals(18, ToolConstants.ALL.size());
         Set<String> ids = ToolConstants.ALL.stream().map(ToolConstants.Entry::id).collect(Collectors.toSet());
         assertEquals(18, ids.size(), "tool ids must be unique: " + ids);
+    }
+
+    /**
+     * Issue #295: {@code damageCutoff} defaults to upstream {@code ToolCore#damageCutoff()}'s own 15
+     * for every tool, except upstream's four overrides ({@code tools/melee/item/Rapier.java},
+     * {@code LongSword.java}, {@code Cleaver.java}) -- BattleAxe's own 30f override is deliberately NOT
+     * adopted, since its damage numbers are already a from-scratch rebalance that explicitly declined
+     * upstream's unshipped values (see {@link ToolConstants#BATTLEAXE}'s javadoc).
+     */
+    @Test
+    void damageCutoffMatchesUpstreamsFourOverridesAndDefaultsToFifteenOtherwise() {
+        Map<String, Float> overrides = Map.of(
+                "rapier", 13.0f,
+                "longsword", 18.0f,
+                "cleaver", 25.0f);
+        for (ToolConstants.Entry entry : ToolConstants.ALL) {
+            float expected = overrides.getOrDefault(entry.id(), ToolConstants.DEFAULT_DAMAGE_CUTOFF);
+            assertEquals(expected, entry.damageCutoff(), DELTA, entry.id() + "'s damageCutoff");
+        }
     }
 
     @Test
