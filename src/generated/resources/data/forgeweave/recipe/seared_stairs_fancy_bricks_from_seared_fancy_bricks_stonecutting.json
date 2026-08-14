@@ -1,0 +1,10 @@
+{
+  "type": "minecraft:stonecutting",
+  "ingredient": {
+    "item": "forgeweave:seared_fancy_bricks"
+  },
+  "result": {
+    "count": 1,
+    "id": "forgeweave:seared_stairs_fancy_bricks"
+  }
+}

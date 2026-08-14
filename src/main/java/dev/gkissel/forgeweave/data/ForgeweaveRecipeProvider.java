@@ -19,6 +19,7 @@ import net.minecraft.data.recipes.RecipeProvider;
 import net.minecraft.data.recipes.ShapedRecipeBuilder;
 import net.minecraft.data.recipes.ShapelessRecipeBuilder;
 import net.minecraft.data.recipes.SimpleCookingRecipeBuilder;
+import net.minecraft.data.recipes.SingleItemRecipeBuilder;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.ItemTags;
 import net.minecraft.world.item.DyeItem;
@@ -464,8 +465,20 @@ public class ForgeweaveRecipeProvider extends RecipeProvider {
         stairBuilder(stairs, Ingredient.of(base)).unlockedBy(hasBase, has(base)).save(recipeOutput);
         slabBuilder(RecipeCategory.BUILDING_BLOCKS, slab, Ingredient.of(base)).unlockedBy(hasBase, has(base)).save(recipeOutput);
 
-        stonecutterResultFromBase(recipeOutput, RecipeCategory.BUILDING_BLOCKS, stairs, base);
-        stonecutterResultFromBase(recipeOutput, RecipeCategory.BUILDING_BLOCKS, slab, base, 2);
+        stonecutting(recipeOutput, base, stairs, 1);
+        stonecutting(recipeOutput, base, slab, 2);
+    }
+
+    /**
+     * One stonecutter conversion, saved under the {@code forgeweave:} namespace like every other
+     * recipe in this file -- vanilla's own {@code stonecutterResultFromBase} saves its id as a bare
+     * string, which resolves to {@code minecraft:}.
+     */
+    private void stonecutting(RecipeOutput recipeOutput, ItemLike base, ItemLike result, int count) {
+        String resultName = BuiltInRegistries.ITEM.getKey(result.asItem()).getPath();
+        SingleItemRecipeBuilder.stonecutting(Ingredient.of(base), RecipeCategory.BUILDING_BLOCKS, result, count)
+                .unlockedBy("has_" + BuiltInRegistries.ITEM.getKey(base.asItem()).getPath(), has(base))
+                .save(recipeOutput, ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, resultName + "_from_" + BuiltInRegistries.ITEM.getKey(base.asItem()).getPath() + "_stonecutting"));
     }
 
     /**

@@ -1,0 +1,13 @@
+{
+  "variants": {
+    "type=bottom": {
+      "model": "forgeweave:block/seared_slab_paver"
+    },
+    "type=double": {
+      "model": "forgeweave:block/seared_paver"
+    },
+    "type=top": {
+      "model": "forgeweave:block/seared_slab_paver_top"
+    }
+  }
+}

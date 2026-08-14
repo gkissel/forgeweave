@@ -1,0 +1,32 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_seared_small_bricks": {
+      "conditions": {
+        "items": [
+          {
+            "items": "forgeweave:seared_small_bricks"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "forgeweave:seared_slab_small_bricks_from_seared_small_bricks_stonecutting"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_the_recipe",
+      "has_seared_small_bricks"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "forgeweave:seared_slab_small_bricks_from_seared_small_bricks_stonecutting"
+    ]
+  }
+}

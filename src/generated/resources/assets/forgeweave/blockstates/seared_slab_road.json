@@ -1,0 +1,13 @@
+{
+  "variants": {
+    "type=bottom": {
+      "model": "forgeweave:block/seared_slab_road"
+    },
+    "type=double": {
+      "model": "forgeweave:block/seared_road"
+    },
+    "type=top": {
+      "model": "forgeweave:block/seared_slab_road_top"
+    }
+  }
+}

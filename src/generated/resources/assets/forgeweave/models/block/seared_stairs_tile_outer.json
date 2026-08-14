@@ -1,0 +1,8 @@
+{
+  "parent": "minecraft:block/outer_stairs",
+  "textures": {
+    "bottom": "forgeweave:derived/block/seared_tile",
+    "side": "forgeweave:derived/block/seared_tile",
+    "top": "forgeweave:derived/block/seared_tile"
+  }
+}

@@ -1,0 +1,32 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_seared_road": {
+      "conditions": {
+        "items": [
+          {
+            "items": "forgeweave:seared_road"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "forgeweave:seared_slab_road_from_seared_road_stonecutting"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_the_recipe",
+      "has_seared_road"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "forgeweave:seared_slab_road_from_seared_road_stonecutting"
+    ]
+  }
+}

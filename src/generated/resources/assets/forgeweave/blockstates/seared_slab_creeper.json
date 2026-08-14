@@ -1,0 +1,13 @@
+{
+  "variants": {
+    "type=bottom": {
+      "model": "forgeweave:block/seared_slab_creeper"
+    },
+    "type=double": {
+      "model": "forgeweave:block/seared_creeper"
+    },
+    "type=top": {
+      "model": "forgeweave:block/seared_slab_creeper_top"
+    }
+  }
+}
