@@ -406,7 +406,66 @@ public class ForgeweaveRecipeProvider extends RecipeProvider {
         searedConversion(recipeOutput, ForgeweaveBlocks.SEARED_TILE.get(), ForgeweaveBlocks.SEARED_ROAD.get(), null);
         searedConversion(recipeOutput, ForgeweaveBlocks.SEARED_ROAD.get(), ForgeweaveBlocks.SEARED_PAVER.get(), "seared_paver_from_road");
 
+        buildSearedStairsSlabRecipes(recipeOutput);
+
         smelteryRecipes(recipeOutput);
+    }
+
+    /**
+     * Stairs + slab crafting recipes for the seared brick family (docs/SCOPE.md M3.4-5 issue #274).
+     * Every one of upstream 1.12's twelve {@code recipes/smeltery/seared/{stairs,slab}/*.json} pairs
+     * (NOTICE.md) uses the same shape: 6 blocks into 4 stairs, 3 blocks into 6 slabs -- exactly what
+     * vanilla's own {@link #stairBuilder}/{@link #slabBuilder} helpers already produce, so this just
+     * keys them on each seared block instead of a vanilla one. Stonecutting recipes have no upstream
+     * counterpart (1.12 predates the stonecutter); adding them is issue #274's own called-out default
+     * deviation, the modern-API adaptation for a block family that otherwise has no way to convert a
+     * stair/slab back into another shape.
+     */
+    private void buildSearedStairsSlabRecipes(RecipeOutput recipeOutput) {
+        searedStairsAndSlab(recipeOutput, ForgeweaveBlocks.SEARED_STONE.get(),
+                ForgeweaveBlocks.SEARED_STAIRS_STONE.get(), ForgeweaveBlocks.SEARED_SLAB_STONE.get());
+        searedStairsAndSlab(recipeOutput, ForgeweaveBlocks.SEARED_COBBLESTONE.get(),
+                ForgeweaveBlocks.SEARED_STAIRS_COBBLESTONE.get(), ForgeweaveBlocks.SEARED_SLAB_COBBLESTONE.get());
+        searedStairsAndSlab(recipeOutput, ForgeweaveBlocks.SEARED_PAVER.get(),
+                ForgeweaveBlocks.SEARED_STAIRS_PAVER.get(), ForgeweaveBlocks.SEARED_SLAB_PAVER.get());
+        searedStairsAndSlab(recipeOutput, ForgeweaveBlocks.SEARED_BRICKS.get(),
+                ForgeweaveBlocks.SEARED_STAIRS_BRICKS.get(), ForgeweaveBlocks.SEARED_SLAB_BRICKS.get());
+        searedStairsAndSlab(recipeOutput, ForgeweaveBlocks.SEARED_CRACKED_BRICKS.get(),
+                ForgeweaveBlocks.SEARED_STAIRS_CRACKED_BRICKS.get(), ForgeweaveBlocks.SEARED_SLAB_CRACKED_BRICKS.get());
+        searedStairsAndSlab(recipeOutput, ForgeweaveBlocks.SEARED_FANCY_BRICKS.get(),
+                ForgeweaveBlocks.SEARED_STAIRS_FANCY_BRICKS.get(), ForgeweaveBlocks.SEARED_SLAB_FANCY_BRICKS.get());
+        searedStairsAndSlab(recipeOutput, ForgeweaveBlocks.SEARED_SQUARE_BRICKS.get(),
+                ForgeweaveBlocks.SEARED_STAIRS_SQUARE_BRICKS.get(), ForgeweaveBlocks.SEARED_SLAB_SQUARE_BRICKS.get());
+        searedStairsAndSlab(recipeOutput, ForgeweaveBlocks.SEARED_TRIANGLE_BRICKS.get(),
+                ForgeweaveBlocks.SEARED_STAIRS_TRIANGLE_BRICKS.get(), ForgeweaveBlocks.SEARED_SLAB_TRIANGLE_BRICKS.get());
+        searedStairsAndSlab(recipeOutput, ForgeweaveBlocks.SEARED_SMALL_BRICKS.get(),
+                ForgeweaveBlocks.SEARED_STAIRS_SMALL_BRICKS.get(), ForgeweaveBlocks.SEARED_SLAB_SMALL_BRICKS.get());
+        searedStairsAndSlab(recipeOutput, ForgeweaveBlocks.SEARED_ROAD.get(),
+                ForgeweaveBlocks.SEARED_STAIRS_ROAD.get(), ForgeweaveBlocks.SEARED_SLAB_ROAD.get());
+        searedStairsAndSlab(recipeOutput, ForgeweaveBlocks.SEARED_TILE.get(),
+                ForgeweaveBlocks.SEARED_STAIRS_TILE.get(), ForgeweaveBlocks.SEARED_SLAB_TILE.get());
+        searedStairsAndSlab(recipeOutput, ForgeweaveBlocks.SEARED_CREEPER.get(),
+                ForgeweaveBlocks.SEARED_STAIRS_CREEPER.get(), ForgeweaveBlocks.SEARED_SLAB_CREEPER.get());
+
+        // Upstream's one extra shape, bricks_slab_simple.json: two loose seared brick items (rather
+        // than a full seared bricks block) also make one seared bricks slab, an early-game shortcut
+        // unique to the brick item -- ported verbatim (NOTICE.md).
+        ShapedRecipeBuilder.shaped(RecipeCategory.BUILDING_BLOCKS, ForgeweaveBlocks.SEARED_SLAB_BRICKS.get())
+                .pattern("AA")
+                .define('A', ForgeweaveItems.SEARED_BRICK.get())
+                .unlockedBy("has_seared_brick", has(ForgeweaveItems.SEARED_BRICK.get()))
+                .save(recipeOutput, ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "seared_slab_bricks_from_seared_brick"));
+    }
+
+    /** One seared variant's stairs + slab crafting and stonecutting recipes -- see {@link #buildSearedStairsSlabRecipes}. */
+    private void searedStairsAndSlab(RecipeOutput recipeOutput, ItemLike base, ItemLike stairs, ItemLike slab) {
+        String hasBase = "has_" + BuiltInRegistries.ITEM.getKey(base.asItem()).getPath();
+
+        stairBuilder(stairs, Ingredient.of(base)).unlockedBy(hasBase, has(base)).save(recipeOutput);
+        slabBuilder(RecipeCategory.BUILDING_BLOCKS, slab, Ingredient.of(base)).unlockedBy(hasBase, has(base)).save(recipeOutput);
+
+        stonecutterResultFromBase(recipeOutput, RecipeCategory.BUILDING_BLOCKS, stairs, base);
+        stonecutterResultFromBase(recipeOutput, RecipeCategory.BUILDING_BLOCKS, slab, base, 2);
     }
 
     /**

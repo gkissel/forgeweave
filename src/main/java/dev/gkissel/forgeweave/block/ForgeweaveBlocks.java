@@ -6,7 +6,9 @@ import java.util.List;
 
 import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.SlabBlock;
 import net.minecraft.world.level.block.SoundType;
+import net.minecraft.world.level.block.StairBlock;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.material.MapColor;
 
@@ -111,6 +113,45 @@ public final class ForgeweaveBlocks {
     public static final DeferredBlock<Block> SEARED_ROAD = searedBlock("seared_road");
     public static final DeferredBlock<Block> SEARED_TILE = searedBlock("seared_tile");
     public static final DeferredBlock<Block> SEARED_CREEPER = searedBlock("seared_creeper");
+
+    // Seared stairs + slabs (docs/SCOPE.md M3.4-5 issue #274): upstream 1.12's BlockSearedStairs and
+    // the two BlockSearedSlab(2) blocks together cover all 12 SearedType variants above, split here
+    // into one StairBlock/SlabBlock per variant -- matching how the 12 plain blocks above already
+    // split upstream's single PropertyEnum block, and how upstream itself needed two slab blocks only
+    // because 1.12's 16-state-per-block limit couldn't fit all 12 in one (BlockSearedSlab/
+    // BlockSearedSlab2, NOTICE.md); that limit doesn't exist here, so one SlabBlock per variant.
+    //
+    // Deviation, flagged in the PR body: upstream's BlockSearedStairs/BlockSearedSlab carry a
+    // TileSmelteryComponent and are valid smeltery structure blocks on the ceiling only
+    // (MultiblockSearedFurnace#isCeilingBlock/MultiblockTinkerTank, NOTICE.md). The 12 plain seared
+    // blocks above are already TE-less "decorative cubes only" because Forgeweave's smeltery-structure
+    // scan (SmelteryScan) has no stairs/slab support yet -- these follow suit as plain vanilla
+    // StairBlock/SlabBlock with no BlockEntity, same as their parents, until SmelteryScan grows that.
+    public static final DeferredBlock<StairBlock> SEARED_STAIRS_STONE = searedStairs("seared_stairs_stone", SEARED_STONE);
+    public static final DeferredBlock<StairBlock> SEARED_STAIRS_COBBLESTONE = searedStairs("seared_stairs_cobblestone", SEARED_COBBLESTONE);
+    public static final DeferredBlock<StairBlock> SEARED_STAIRS_PAVER = searedStairs("seared_stairs_paver", SEARED_PAVER);
+    public static final DeferredBlock<StairBlock> SEARED_STAIRS_BRICKS = searedStairs("seared_stairs_bricks", SEARED_BRICKS);
+    public static final DeferredBlock<StairBlock> SEARED_STAIRS_CRACKED_BRICKS = searedStairs("seared_stairs_cracked_bricks", SEARED_CRACKED_BRICKS);
+    public static final DeferredBlock<StairBlock> SEARED_STAIRS_FANCY_BRICKS = searedStairs("seared_stairs_fancy_bricks", SEARED_FANCY_BRICKS);
+    public static final DeferredBlock<StairBlock> SEARED_STAIRS_SQUARE_BRICKS = searedStairs("seared_stairs_square_bricks", SEARED_SQUARE_BRICKS);
+    public static final DeferredBlock<StairBlock> SEARED_STAIRS_TRIANGLE_BRICKS = searedStairs("seared_stairs_triangle_bricks", SEARED_TRIANGLE_BRICKS);
+    public static final DeferredBlock<StairBlock> SEARED_STAIRS_SMALL_BRICKS = searedStairs("seared_stairs_small_bricks", SEARED_SMALL_BRICKS);
+    public static final DeferredBlock<StairBlock> SEARED_STAIRS_ROAD = searedStairs("seared_stairs_road", SEARED_ROAD);
+    public static final DeferredBlock<StairBlock> SEARED_STAIRS_TILE = searedStairs("seared_stairs_tile", SEARED_TILE);
+    public static final DeferredBlock<StairBlock> SEARED_STAIRS_CREEPER = searedStairs("seared_stairs_creeper", SEARED_CREEPER);
+
+    public static final DeferredBlock<SlabBlock> SEARED_SLAB_STONE = searedSlab("seared_slab_stone");
+    public static final DeferredBlock<SlabBlock> SEARED_SLAB_COBBLESTONE = searedSlab("seared_slab_cobblestone");
+    public static final DeferredBlock<SlabBlock> SEARED_SLAB_PAVER = searedSlab("seared_slab_paver");
+    public static final DeferredBlock<SlabBlock> SEARED_SLAB_BRICKS = searedSlab("seared_slab_bricks");
+    public static final DeferredBlock<SlabBlock> SEARED_SLAB_CRACKED_BRICKS = searedSlab("seared_slab_cracked_bricks");
+    public static final DeferredBlock<SlabBlock> SEARED_SLAB_FANCY_BRICKS = searedSlab("seared_slab_fancy_bricks");
+    public static final DeferredBlock<SlabBlock> SEARED_SLAB_SQUARE_BRICKS = searedSlab("seared_slab_square_bricks");
+    public static final DeferredBlock<SlabBlock> SEARED_SLAB_TRIANGLE_BRICKS = searedSlab("seared_slab_triangle_bricks");
+    public static final DeferredBlock<SlabBlock> SEARED_SLAB_SMALL_BRICKS = searedSlab("seared_slab_small_bricks");
+    public static final DeferredBlock<SlabBlock> SEARED_SLAB_ROAD = searedSlab("seared_slab_road");
+    public static final DeferredBlock<SlabBlock> SEARED_SLAB_TILE = searedSlab("seared_slab_tile");
+    public static final DeferredBlock<SlabBlock> SEARED_SLAB_CREEPER = searedSlab("seared_slab_creeper");
 
     // The smeltery multiblock's own blocks (docs/SCOPE.md M2 issue #95). All share BlockSeared's
     // strength and sound so a smeltery mines as one material.
@@ -292,6 +333,14 @@ public final class ForgeweaveBlocks {
 
     private static DeferredBlock<Block> searedBlock(String name) {
         return BLOCKS.registerSimpleBlock(name, searedProperties());
+    }
+
+    private static DeferredBlock<StairBlock> searedStairs(String name, DeferredBlock<Block> base) {
+        return BLOCKS.register(name, () -> new StairBlock(base.get().defaultBlockState(), searedProperties()));
+    }
+
+    private static DeferredBlock<SlabBlock> searedSlab(String name) {
+        return BLOCKS.register(name, () -> new SlabBlock(searedProperties()));
     }
 
     private static DeferredBlock<SearedTankBlock> tankBlock(String name) {

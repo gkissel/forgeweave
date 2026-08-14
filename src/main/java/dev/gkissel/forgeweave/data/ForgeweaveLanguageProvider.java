@@ -54,6 +54,36 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         addBlock(ForgeweaveBlocks.SEARED_TILE, "Seared Tiles");
         addBlock(ForgeweaveBlocks.SEARED_CREEPER, "Seared Creeperface");
 
+        // Seared stairs + slabs (docs/SCOPE.md M3.4-5 issue #274), names ported from upstream 1.12's
+        // tile.tconstruct.seared_stairs_*.name / tile.tconstruct.seared_slab(2).*.name entries
+        // (NOTICE.md) -- including upstream's own "Seared Tile" singular for the tile variant, versus
+        // "Seared Tiles" plural for the base block above.
+        addBlock(ForgeweaveBlocks.SEARED_STAIRS_STONE, "Seared Stone Stairs");
+        addBlock(ForgeweaveBlocks.SEARED_STAIRS_COBBLESTONE, "Seared Cobblestone Stairs");
+        addBlock(ForgeweaveBlocks.SEARED_STAIRS_PAVER, "Seared Paver Stairs");
+        addBlock(ForgeweaveBlocks.SEARED_STAIRS_BRICKS, "Seared Bricks Stairs");
+        addBlock(ForgeweaveBlocks.SEARED_STAIRS_CRACKED_BRICKS, "Cracked Seared Bricks Stairs");
+        addBlock(ForgeweaveBlocks.SEARED_STAIRS_FANCY_BRICKS, "Fancy Seared Bricks Stairs");
+        addBlock(ForgeweaveBlocks.SEARED_STAIRS_SQUARE_BRICKS, "Square Seared Bricks Stairs");
+        addBlock(ForgeweaveBlocks.SEARED_STAIRS_TRIANGLE_BRICKS, "Triangle Seared Bricks Stairs");
+        addBlock(ForgeweaveBlocks.SEARED_STAIRS_SMALL_BRICKS, "Small Seared Bricks Stairs");
+        addBlock(ForgeweaveBlocks.SEARED_STAIRS_ROAD, "Seared Road Stairs");
+        addBlock(ForgeweaveBlocks.SEARED_STAIRS_TILE, "Seared Tile Stairs");
+        addBlock(ForgeweaveBlocks.SEARED_STAIRS_CREEPER, "Seared Creeperface Stairs");
+
+        addBlock(ForgeweaveBlocks.SEARED_SLAB_STONE, "Seared Stone Slab");
+        addBlock(ForgeweaveBlocks.SEARED_SLAB_COBBLESTONE, "Seared Cobblestone Slab");
+        addBlock(ForgeweaveBlocks.SEARED_SLAB_PAVER, "Seared Paver Slab");
+        addBlock(ForgeweaveBlocks.SEARED_SLAB_BRICKS, "Seared Bricks Slab");
+        addBlock(ForgeweaveBlocks.SEARED_SLAB_CRACKED_BRICKS, "Cracked Seared Bricks Slab");
+        addBlock(ForgeweaveBlocks.SEARED_SLAB_FANCY_BRICKS, "Fancy Seared Bricks Slab");
+        addBlock(ForgeweaveBlocks.SEARED_SLAB_SQUARE_BRICKS, "Square Seared Bricks Slab");
+        addBlock(ForgeweaveBlocks.SEARED_SLAB_TRIANGLE_BRICKS, "Triangle Seared Bricks Slab");
+        addBlock(ForgeweaveBlocks.SEARED_SLAB_SMALL_BRICKS, "Small Seared Bricks Slab");
+        addBlock(ForgeweaveBlocks.SEARED_SLAB_ROAD, "Seared Road Slab");
+        addBlock(ForgeweaveBlocks.SEARED_SLAB_TILE, "Seared Tile Slab");
+        addBlock(ForgeweaveBlocks.SEARED_SLAB_CREEPER, "Seared Creeperface Slab");
+
         // The smeltery multiblock (docs/SCOPE.md M2 issue #95). Tank/drain names follow upstream
         // 1.12's tile.tconstruct.*.name entries; the two core tiers are SCOPE.md's own vocabulary.
         addBlock(ForgeweaveBlocks.STANDARD_CORE, "Standard Core");

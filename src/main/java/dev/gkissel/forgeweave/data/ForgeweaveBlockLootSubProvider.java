@@ -68,6 +68,35 @@ public class ForgeweaveBlockLootSubProvider extends BlockLootSubProvider {
         dropSelf(ForgeweaveBlocks.SEARED_TILE.get());
         dropSelf(ForgeweaveBlocks.SEARED_CREEPER.get());
 
+        // Seared stairs + slabs (docs/SCOPE.md M3.4-5 issue #274): stairs always drop themselves
+        // (upstream's BlockSearedStairs overrides no loot either); slabs use vanilla's own
+        // createSlabItemTable, which drops 2 from the double-slab state, matching every vanilla slab.
+        dropSelf(ForgeweaveBlocks.SEARED_STAIRS_STONE.get());
+        dropSelf(ForgeweaveBlocks.SEARED_STAIRS_COBBLESTONE.get());
+        dropSelf(ForgeweaveBlocks.SEARED_STAIRS_PAVER.get());
+        dropSelf(ForgeweaveBlocks.SEARED_STAIRS_BRICKS.get());
+        dropSelf(ForgeweaveBlocks.SEARED_STAIRS_CRACKED_BRICKS.get());
+        dropSelf(ForgeweaveBlocks.SEARED_STAIRS_FANCY_BRICKS.get());
+        dropSelf(ForgeweaveBlocks.SEARED_STAIRS_SQUARE_BRICKS.get());
+        dropSelf(ForgeweaveBlocks.SEARED_STAIRS_TRIANGLE_BRICKS.get());
+        dropSelf(ForgeweaveBlocks.SEARED_STAIRS_SMALL_BRICKS.get());
+        dropSelf(ForgeweaveBlocks.SEARED_STAIRS_ROAD.get());
+        dropSelf(ForgeweaveBlocks.SEARED_STAIRS_TILE.get());
+        dropSelf(ForgeweaveBlocks.SEARED_STAIRS_CREEPER.get());
+
+        add(ForgeweaveBlocks.SEARED_SLAB_STONE.get(), createSlabItemTable(ForgeweaveBlocks.SEARED_SLAB_STONE.get()));
+        add(ForgeweaveBlocks.SEARED_SLAB_COBBLESTONE.get(), createSlabItemTable(ForgeweaveBlocks.SEARED_SLAB_COBBLESTONE.get()));
+        add(ForgeweaveBlocks.SEARED_SLAB_PAVER.get(), createSlabItemTable(ForgeweaveBlocks.SEARED_SLAB_PAVER.get()));
+        add(ForgeweaveBlocks.SEARED_SLAB_BRICKS.get(), createSlabItemTable(ForgeweaveBlocks.SEARED_SLAB_BRICKS.get()));
+        add(ForgeweaveBlocks.SEARED_SLAB_CRACKED_BRICKS.get(), createSlabItemTable(ForgeweaveBlocks.SEARED_SLAB_CRACKED_BRICKS.get()));
+        add(ForgeweaveBlocks.SEARED_SLAB_FANCY_BRICKS.get(), createSlabItemTable(ForgeweaveBlocks.SEARED_SLAB_FANCY_BRICKS.get()));
+        add(ForgeweaveBlocks.SEARED_SLAB_SQUARE_BRICKS.get(), createSlabItemTable(ForgeweaveBlocks.SEARED_SLAB_SQUARE_BRICKS.get()));
+        add(ForgeweaveBlocks.SEARED_SLAB_TRIANGLE_BRICKS.get(), createSlabItemTable(ForgeweaveBlocks.SEARED_SLAB_TRIANGLE_BRICKS.get()));
+        add(ForgeweaveBlocks.SEARED_SLAB_SMALL_BRICKS.get(), createSlabItemTable(ForgeweaveBlocks.SEARED_SLAB_SMALL_BRICKS.get()));
+        add(ForgeweaveBlocks.SEARED_SLAB_ROAD.get(), createSlabItemTable(ForgeweaveBlocks.SEARED_SLAB_ROAD.get()));
+        add(ForgeweaveBlocks.SEARED_SLAB_TILE.get(), createSlabItemTable(ForgeweaveBlocks.SEARED_SLAB_TILE.get()));
+        add(ForgeweaveBlocks.SEARED_SLAB_CREEPER.get(), createSlabItemTable(ForgeweaveBlocks.SEARED_SLAB_CREEPER.get()));
+
         // The smeltery multiblock (docs/SCOPE.md M2 issue #95). The cores and the drain carry no
         // component worth keeping, but a broken tank keeps whatever fluid it held -- upstream 1.12's
         // BlockTank#getDrops writes the same thing onto the dropped stack (NOTICE.md).

@@ -966,6 +966,10 @@ One row per derived file (ADR-0003). Maintained in PR review: a PR introducing d
 | `src/main/java/dev/gkissel/forgeweave/data/sprite/MaterialPartTextureProvider.java` (the material x part sprite datagen stage -- cross product of greyscale base sprites and material palettes written as PNGs through `CachedOutput`; the stat-type/fallback resolution and animation metadata were not ported; issue #280) | `src/main/java/slimeknights/tconstruct/library/client/data/material/MaterialPartTextureGenerator.java`, `src/main/java/slimeknights/tconstruct/library/client/data/GenericTextureGenerator.java` | `de26560d26c15edf93e6078520202d1c0518394e` | MIT |
 | `src/main/java/dev/gkissel/forgeweave/data/sprite/MaterialPartSprites.java` (the wood, stone, iron, and cobalt palette stop values -- upstream's hand-tuned six-stop ramps for the same four materials, copied verbatim; issue #280) | `src/main/java/slimeknights/tconstruct/tools/data/sprite/TinkerMaterialSpriteProvider.java` | `de26560d26c15edf93e6078520202d1c0518394e` | MIT |
 | `src/generated/resources/assets/forgeweave/textures/staging/part/` (datagen output of the three files above: the already-NOTICE'd greyscale `derived/item/{pickaxe_head,tool_handle}.png` bases recolored through the derived palettes; one row covers the generated tree; issue #280) | (algorithmic output of the rows above) | `de26560d26c15edf93e6078520202d1c0518394e` | MIT |
+| `src/main/java/dev/gkissel/forgeweave/block/ForgeweaveBlocks.java` (the 12-variant seared stairs block family, one `StairBlock` per `BlockSeared.SearedType`) | `src/main/java/slimeknights/tconstruct/smeltery/block/BlockSearedStairs.java`, `src/main/java/slimeknights/tconstruct/smeltery/TinkerSmeltery.java` (`registerBlockSearedStairsFrom`) | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
+| `src/main/java/dev/gkissel/forgeweave/block/ForgeweaveBlocks.java` (the 12-variant seared slab block family, one `SlabBlock` per variant rather than upstream's two 8/4-variant `EnumBlockSlab`s -- see the class javadoc) | `src/main/java/slimeknights/tconstruct/smeltery/block/BlockSearedSlab.java`, `BlockSearedSlab2.java` (`SearedType`) | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
+| `src/main/java/dev/gkissel/forgeweave/data/ForgeweaveRecipeProvider.java` (`searedStairsAndSlab`: the twelve 6-block-to-4-stairs and 3-block-to-6-slab crafting shapes) | `resources/assets/tconstruct/recipes/smeltery/seared/stairs/*.json`, `resources/assets/tconstruct/recipes/smeltery/seared/slab/*.json` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
+| `src/main/java/dev/gkissel/forgeweave/data/ForgeweaveRecipeProvider.java` (the bonus 2-seared-brick-item-to-1-slab shape, unique to the bricks variant) | `resources/assets/tconstruct/recipes/smeltery/seared/slab/bricks_slab_simple.json` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
 
 The station tab row uses **vanilla's** creative-inventory tab sprites (`minecraft:container/creative_inventory/tab_top_{selected,unselected}_N`) and so has no derived-asset row. That is upstream's own choice, not a substitution: 1.12's `GuiTinkerTabs` hands its `GuiElement`s to Mantle's `GuiWidgetTabs`, which binds
 `textures/gui/container/creative_inventory/tabs.png` and samples the unselected tab at `(0, 2, 28, 28)` and the selected one at `(*, 32, 28, 32)` -- i.e. the station tabs already *were* vanilla's creative tabs. Modern Minecraft split that sheet into the 26x32 per-column sprites used here.
@@ -1489,3 +1493,29 @@ rather than upstream ports, per the maintainer decision comment on issue #103 (2
   Upstream's 6th position stays unused -- nothing Forgeweave ships needs a fifth free slot. Switching
   to a tab that hides a slot hands its contents back to the player rather than stranding them, which
   upstream does not have to solve because its slot count never shrinks below what is filled.
+
+### Seared stairs and slabs (issue #274) deviations from upstream 1.12
+
+- **No smeltery-structure role yet -- flagged for follow-up.** Upstream's `BlockSearedStairs`/
+  `BlockSearedSlab(2)` carry a `TileSmelteryComponent` and are valid smeltery wall blocks, with a
+  special ceiling-only carve-out: `MultiblockSearedFurnace#isCeilingBlock` accepts a stair/slab in the
+  *bottom* half only (`BlockSlab#HALF`/`BlockStairs#HALF` checked and rejected on `TOP`) on the
+  structure's ceiling layer, while `isFrameBlock`'s wall check stays plain-seared-only -- i.e. upstream
+  lets a smeltery's roof be built from stairs/slabs but never its walls or floor
+  (`MultiblockTinkerTank` mirrors the same membership for the tank). The 12 plain seared blocks these
+  are built from are already TE-less "decorative cubes only" (`ForgeweaveBlocks` javadoc) because
+  `SmelteryScan` has no stairs/slab support at all; these follow the same precedent and ship as plain
+  vanilla `StairBlock`/`SlabBlock` with no `BlockEntity`. Wiring the ceiling-only rule into
+  `SmelteryScan` is real scope (a new "ceiling" pass distinct from its current wall/floor checks) and
+  is left as an explicit follow-up rather than folded into this PR.
+- **Crafting shapes are ported 1:1** from upstream's `recipes/smeltery/seared/{stairs,slab}/*.json`
+  (NOTICE.md rows above): every variant is the same vanilla 6-block-to-4-stairs / 3-block-to-6-slab
+  shape, plus one bonus 2-brick-item-to-1-slab shape unique to the bricks variant
+  (`bricks_slab_simple.json`).
+- **Stonecutting recipes are new, not a port.** 1.12 predates the stonecutter, so upstream has no
+  stonecutting recipe to mirror; issue #274 calls this out as its own default modern-API deviation, so
+  each variant gets a stonecutter conversion from its plain block (1 stair or 2 slabs per block, the
+  same yield vanilla's own stone-family stonecutting recipes use).
+- **No `minecraft:mineable/*`/`needs_*_tool` tags**, matching the 12 plain seared blocks they are built
+  from: no Forgeweave seared block gates tool tier (`ForgeweaveBlockTagsProvider` javadoc), so their
+  stairs and slabs don't either.

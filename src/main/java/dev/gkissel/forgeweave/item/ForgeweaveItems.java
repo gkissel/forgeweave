@@ -325,6 +325,34 @@ public final class ForgeweaveItems {
     public static final DeferredItem<BlockItem> SEARED_TILE = ITEMS.registerSimpleBlockItem("seared_tile", ForgeweaveBlocks.SEARED_TILE);
     public static final DeferredItem<BlockItem> SEARED_CREEPER = ITEMS.registerSimpleBlockItem("seared_creeper", ForgeweaveBlocks.SEARED_CREEPER);
 
+    // Seared stairs + slabs (docs/SCOPE.md M3.4-5 issue #274) -- see ForgeweaveBlocks for the parity
+    // notes and the flagged smeltery-structure deviation.
+    public static final DeferredItem<BlockItem> SEARED_STAIRS_STONE = ITEMS.registerSimpleBlockItem("seared_stairs_stone", ForgeweaveBlocks.SEARED_STAIRS_STONE);
+    public static final DeferredItem<BlockItem> SEARED_STAIRS_COBBLESTONE = ITEMS.registerSimpleBlockItem("seared_stairs_cobblestone", ForgeweaveBlocks.SEARED_STAIRS_COBBLESTONE);
+    public static final DeferredItem<BlockItem> SEARED_STAIRS_PAVER = ITEMS.registerSimpleBlockItem("seared_stairs_paver", ForgeweaveBlocks.SEARED_STAIRS_PAVER);
+    public static final DeferredItem<BlockItem> SEARED_STAIRS_BRICKS = ITEMS.registerSimpleBlockItem("seared_stairs_bricks", ForgeweaveBlocks.SEARED_STAIRS_BRICKS);
+    public static final DeferredItem<BlockItem> SEARED_STAIRS_CRACKED_BRICKS = ITEMS.registerSimpleBlockItem("seared_stairs_cracked_bricks", ForgeweaveBlocks.SEARED_STAIRS_CRACKED_BRICKS);
+    public static final DeferredItem<BlockItem> SEARED_STAIRS_FANCY_BRICKS = ITEMS.registerSimpleBlockItem("seared_stairs_fancy_bricks", ForgeweaveBlocks.SEARED_STAIRS_FANCY_BRICKS);
+    public static final DeferredItem<BlockItem> SEARED_STAIRS_SQUARE_BRICKS = ITEMS.registerSimpleBlockItem("seared_stairs_square_bricks", ForgeweaveBlocks.SEARED_STAIRS_SQUARE_BRICKS);
+    public static final DeferredItem<BlockItem> SEARED_STAIRS_TRIANGLE_BRICKS = ITEMS.registerSimpleBlockItem("seared_stairs_triangle_bricks", ForgeweaveBlocks.SEARED_STAIRS_TRIANGLE_BRICKS);
+    public static final DeferredItem<BlockItem> SEARED_STAIRS_SMALL_BRICKS = ITEMS.registerSimpleBlockItem("seared_stairs_small_bricks", ForgeweaveBlocks.SEARED_STAIRS_SMALL_BRICKS);
+    public static final DeferredItem<BlockItem> SEARED_STAIRS_ROAD = ITEMS.registerSimpleBlockItem("seared_stairs_road", ForgeweaveBlocks.SEARED_STAIRS_ROAD);
+    public static final DeferredItem<BlockItem> SEARED_STAIRS_TILE = ITEMS.registerSimpleBlockItem("seared_stairs_tile", ForgeweaveBlocks.SEARED_STAIRS_TILE);
+    public static final DeferredItem<BlockItem> SEARED_STAIRS_CREEPER = ITEMS.registerSimpleBlockItem("seared_stairs_creeper", ForgeweaveBlocks.SEARED_STAIRS_CREEPER);
+
+    public static final DeferredItem<BlockItem> SEARED_SLAB_STONE = ITEMS.registerSimpleBlockItem("seared_slab_stone", ForgeweaveBlocks.SEARED_SLAB_STONE);
+    public static final DeferredItem<BlockItem> SEARED_SLAB_COBBLESTONE = ITEMS.registerSimpleBlockItem("seared_slab_cobblestone", ForgeweaveBlocks.SEARED_SLAB_COBBLESTONE);
+    public static final DeferredItem<BlockItem> SEARED_SLAB_PAVER = ITEMS.registerSimpleBlockItem("seared_slab_paver", ForgeweaveBlocks.SEARED_SLAB_PAVER);
+    public static final DeferredItem<BlockItem> SEARED_SLAB_BRICKS = ITEMS.registerSimpleBlockItem("seared_slab_bricks", ForgeweaveBlocks.SEARED_SLAB_BRICKS);
+    public static final DeferredItem<BlockItem> SEARED_SLAB_CRACKED_BRICKS = ITEMS.registerSimpleBlockItem("seared_slab_cracked_bricks", ForgeweaveBlocks.SEARED_SLAB_CRACKED_BRICKS);
+    public static final DeferredItem<BlockItem> SEARED_SLAB_FANCY_BRICKS = ITEMS.registerSimpleBlockItem("seared_slab_fancy_bricks", ForgeweaveBlocks.SEARED_SLAB_FANCY_BRICKS);
+    public static final DeferredItem<BlockItem> SEARED_SLAB_SQUARE_BRICKS = ITEMS.registerSimpleBlockItem("seared_slab_square_bricks", ForgeweaveBlocks.SEARED_SLAB_SQUARE_BRICKS);
+    public static final DeferredItem<BlockItem> SEARED_SLAB_TRIANGLE_BRICKS = ITEMS.registerSimpleBlockItem("seared_slab_triangle_bricks", ForgeweaveBlocks.SEARED_SLAB_TRIANGLE_BRICKS);
+    public static final DeferredItem<BlockItem> SEARED_SLAB_SMALL_BRICKS = ITEMS.registerSimpleBlockItem("seared_slab_small_bricks", ForgeweaveBlocks.SEARED_SLAB_SMALL_BRICKS);
+    public static final DeferredItem<BlockItem> SEARED_SLAB_ROAD = ITEMS.registerSimpleBlockItem("seared_slab_road", ForgeweaveBlocks.SEARED_SLAB_ROAD);
+    public static final DeferredItem<BlockItem> SEARED_SLAB_TILE = ITEMS.registerSimpleBlockItem("seared_slab_tile", ForgeweaveBlocks.SEARED_SLAB_TILE);
+    public static final DeferredItem<BlockItem> SEARED_SLAB_CREEPER = ITEMS.registerSimpleBlockItem("seared_slab_creeper", ForgeweaveBlocks.SEARED_SLAB_CREEPER);
+
     // The smeltery multiblock's blocks (docs/SCOPE.md M2 issue #95).
     public static final DeferredItem<BlockItem> STANDARD_CORE = ITEMS.registerSimpleBlockItem("standard_core", ForgeweaveBlocks.STANDARD_CORE);
     public static final DeferredItem<BlockItem> NETHER_CORE = ITEMS.registerSimpleBlockItem("nether_core", ForgeweaveBlocks.NETHER_CORE);
