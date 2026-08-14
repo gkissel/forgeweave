@@ -11,13 +11,10 @@ import net.neoforged.neoforge.event.level.BlockEvent;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.core.component.DataComponents;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.enchantment.Enchantments;
-import net.minecraft.world.item.enchantment.ItemEnchantments;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
@@ -65,8 +62,10 @@ public final class AoeHarvest {
         /** Lumber axe: fells a whole tree, or a 3x3x3 cube when the block is not a tree. */
         TREE_FELL,
         /**
-         * Scythe: a 3x3x3 cube, plus the crop harvest {@link CropHarvest} runs on right-click. Takes
-         * no extra blocks at all without Silk Touch (docs/SCOPE.md issue #298, see {@link #hasSilkTouch}).
+         * Scythe: a 3x3x3 cube, plus the crop harvest {@link CropHarvest} runs on right-click. Every
+         * extra block breaks regardless of Silk Touch -- see {@link #canBreakExtra}'s javadoc
+         * (docs/SCOPE.md issue #298) for why, upstream's {@code breakExtraBlock}/{@code
+         * shearExtraBlock} split notwithstanding.
          */
         CUBE_3X3X3,
         /** Vein hammer: the connected run of the same block, capped at {@link #VEIN_LIMIT}. */
@@ -149,9 +148,7 @@ public final class AoeHarvest {
         return switch (shape) {
             case NONE -> List.of();
             case PLANE_3X3 -> breakable(tool, level, player, origin, originState, plane(origin, minedFace(player, origin)));
-            case CUBE_3X3X3 -> hasSilkTouch(tool)
-                    ? breakable(tool, level, player, origin, originState, cube(origin))
-                    : List.of();
+            case CUBE_3X3X3 -> breakable(tool, level, player, origin, originState, cube(origin));
             case TREE_FELL -> isTree(level, origin, originState)
                     ? breakable(tool, level, player, origin, originState, trunk(level, origin))
                     : breakable(tool, level, player, origin, originState, cube(origin));
@@ -170,7 +167,27 @@ public final class AoeHarvest {
         return out;
     }
 
-    /** Upstream's {@code canBreakExtraBlock}; see the class javadoc for how the checks map over. */
+    /**
+     * Upstream's {@code canBreakExtraBlock}; see the class javadoc for how the checks map over.
+     *
+     * <p>Scythe/Silk Touch note (docs/SCOPE.md issue #298): upstream's {@code Scythe#breakExtraBlock}
+     * is {@code isSilkTouch(stack) ? shearExtraBlock(...) : ToolHelper.breakExtraBlock(...)} -- but
+     * {@code shearExtraBlock}'s own fallback, for any block that isn't {@code IShearable}, is that
+     * exact same {@code breakExtraBlock}. Read plainly, upstream's extra blocks break either way;
+     * Silk Touch only adds a shearing attempt in front for blocks that support it. Forgeweave has no
+     * block-shearing to add in front of anything (deliberate -- {@link CropHarvest}'s own javadoc:
+     * leaves already come off effectively through the {@code mineable/hoe} tag alone), so this method
+     * makes no Silk Touch check at all; every extra block breaks through vanilla's normal
+     * {@code destroyBlock} regardless of the enchantment.
+     *
+     * <p>What Silk Touch still changes, for free: {@code destroyBlock} reads the swinging player's
+     * actual held item -- enchantments included -- when it resolves each block's drops, so a
+     * silk-touch scythe's AoE already gets silk-touch-style drops (a sheared leaf block instead of a
+     * sapling roll, {@code minecraft:cobweb} instead of string) precisely where vanilla's own loot
+     * tables branch on the enchantment, with no Forgeweave code needed for it. That is this
+     * architecture's equivalent of {@code shearExtraBlock}'s intent, adapted from the 1.12
+     * {@code IShearable}-block mechanism upstream used to express it.
+     */
     private static boolean canBreakExtra(ItemStack tool, Level level, Player player, BlockPos pos, BlockPos origin,
             BlockState originState) {
         BlockState state = level.getBlockState(pos);
@@ -326,28 +343,6 @@ public final class AoeHarvest {
             }
         }
         return out;
-    }
-
-    /**
-     * The scythe's Silk Touch gate (docs/SCOPE.md issue #298), upstream's {@code Scythe#breakBlock}/
-     * {@code #breakExtraBlock}: {@code isSilkTouch(stack) && super.breakBlock(...)} for the block
-     * clicked, {@code isSilkTouch(stack) ? shearExtraBlock(...) : breakExtraBlock(...)} for every
-     * extra one. Read plainly, upstream still breaks a silk-touch-less scythe's extra blocks --
-     * {@code shearExtraBlock}'s own fallback, when a block isn't {@code IShearable}, is
-     * {@code breakExtraBlock}, the exact same plain break the non-silk-touch branch calls directly --
-     * Silk Touch there only adds a shearing attempt in front of it.
-     *
-     * <p>Forgeweave has no block-shearing to add in front of anything (deliberate, see
-     * {@link CropHarvest}'s own javadoc: leaves already come off effectively through the
-     * {@code mineable/hoe} tag alone), so upstream's real distinction -- sheared drops vs plain ones
-     * -- has nothing to attach to here. Gating the whole {@link Shape#CUBE_3X3X3} area on the
-     * enchantment instead is a deliberate deviation (flagged in the PR for issue #298): the
-     * alternative was a silk-touch-less scythe area-mining its whole cube exactly like a silk-touch
-     * one, which would make the enchantment invisible on this tool's signature behavior entirely.
-     */
-    private static boolean hasSilkTouch(ItemStack tool) {
-        return tool.getOrDefault(DataComponents.ENCHANTMENTS, ItemEnchantments.EMPTY).keySet().stream()
-                .anyMatch(holder -> holder.is(Enchantments.SILK_TOUCH));
     }
 
     private AoeHarvest() {}
