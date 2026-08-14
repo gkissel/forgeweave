@@ -72,6 +72,22 @@ class AlloyRecipeTest {
         assertEquals(1, decoded.inputs().get(1).getAmount());
         assertEquals(Fluids.FLOWING_WATER, decoded.result().getFluid());
         assertEquals(1, decoded.result().getAmount());
+        assertEquals(0, decoded.priority(), "priority defaults to 0 when the JSON omits it");
+    }
+
+    /**
+     * #291: an explicit {@code priority} is how a recipe claims a contested fluid ahead of another
+     * recipe that also wants it -- lower resolves first, so this is netherite's own value against
+     * rose gold's default 0 (see the shipped {@code netherite.json}).
+     */
+    @Test
+    void aRecipeCanDeclareAnExplicitPriority() {
+        AlloyRecipe recipe = parse("""
+                {"inputs": [{"fluid": "minecraft:water", "amount": 2}, {"fluid": "minecraft:lava", "amount": 1}],
+                 "result": {"fluid": "minecraft:flowing_water", "amount": 1}, "priority": 1}
+                """);
+
+        assertEquals(1, recipe.priority());
     }
 
     /** Upstream's constructor check: fewer than two inputs is a mixing recipe that mixes nothing. */
@@ -172,6 +188,8 @@ class AlloyRecipeTest {
         assertEquals(4, input(json, 0).get("amount").getAsInt());
         assertEquals(4, input(json, 1).get("amount").getAsInt());
         assertEquals(1, json.getAsJsonObject("result").get("amount").getAsInt());
+        assertEquals(1, json.get("priority").getAsInt(),
+                "#291: netherite must resolve after rose gold's default priority 0 when both want the tank's gold");
 
         // The same ratio read at the scale a player sees: four ingots of each in, one ingot out.
         AlloyRecipe recipe = parse("""

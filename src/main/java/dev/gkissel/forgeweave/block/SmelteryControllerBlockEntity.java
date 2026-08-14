@@ -1,6 +1,7 @@
 package dev.gkissel.forgeweave.block;
 
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
 
@@ -791,10 +792,22 @@ public class SmelteryControllerBlockEntity extends BlockEntity implements Statio
         }
     }
 
-    /** One sweep over every alloy recipe; returns whether any of them applied. */
+    /**
+     * One sweep over every alloy recipe, lowest {@link AlloyRecipe#priority} first; returns whether
+     * any of them applied.
+     *
+     * <p>#291: the registry itself iterates in whatever order the resource manager happened to list
+     * the datapack JSON in, which is not a priority order Forgeweave controls -- sorting here rather
+     * than relying on registry order is what makes contention between two recipes for the same
+     * fluid (e.g. rose gold and netherite both wanting the tank's gold) resolve deterministically
+     * and match upstream's explicit registration order.
+     */
     private boolean alloyOnce() {
         boolean alloyed = false;
-        for (AlloyRecipe recipe : level.registryAccess().registryOrThrow(AlloyRecipe.REGISTRY)) {
+        List<AlloyRecipe> recipes = level.registryAccess().registryOrThrow(AlloyRecipe.REGISTRY).stream()
+                .sorted(Comparator.comparingInt(AlloyRecipe::priority))
+                .toList();
+        for (AlloyRecipe recipe : recipes) {
             int times = alloyableTimes(recipe);
             if (times <= 0) {
                 continue;

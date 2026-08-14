@@ -108,6 +108,37 @@ public class SmelteryAlloyGameTests {
     }
 
     /**
+     * #291: upstream resolves alloy contention by explicit registration order (1.12's {@code
+     * TinkerRegistry.getAlloys()} is a {@code LinkedList} in registration order; 1.20 datagens rose
+     * gold before netherite), not by the alphabetical order Forgeweave's datapack registry iterates
+     * in -- which put netherite ("n") ahead of rose gold ("r") and let it claim the gold first.
+     *
+     * <p>Gold is poured last, after copper and netherite scrap are already sitting in the tank, so
+     * both recipes become simultaneously matchable on the very pour that triggers the alloying pass
+     * -- pouring gold earlier would let whichever recipe only needs copper+gold or scrap+gold alloy
+     * immediately on its own pour, never actually contending with the other for iteration order.
+     *
+     * <p>The amounts are chosen so both recipes actually contend for the same gold rather than one
+     * of them simply failing to match: 4 ingots of gold is exactly netherite's one-application need,
+     * so if netherite goes first it drains all of it and rose gold (needing only 1 gold per
+     * application) is left with none. If rose gold goes first, it takes only as much gold as its
+     * copper allows (1 ingot's worth) and leaves netherite the rest to alloy from.
+     */
+    @GameTest(template = "smeltery")
+    public static void goldContentionResolvesRoseGoldBeforeNetherite(GameTestHelper helper) {
+        SmelteryControllerBlockEntity core = smeltery(helper);
+        pour(core, ForgeweaveFluids.COPPER.still().get(), MeltingRecipe.VALUE_INGOT);
+        pour(core, ForgeweaveFluids.NETHERITE_SCRAP.still().get(), 4 * MeltingRecipe.VALUE_INGOT);
+        pour(core, ForgeweaveFluids.GOLD.still().get(), 4 * MeltingRecipe.VALUE_INGOT);
+
+        helper.assertValueEqual(amountOf(core, ForgeweaveFluids.ROSE_GOLD.still().get()), 2 * MeltingRecipe.VALUE_INGOT,
+                "rose gold must claim its share of the gold before netherite exhausts it");
+        helper.assertValueEqual(amountOf(core, ForgeweaveFluids.NETHERITE.still().get()), 108,
+                "netherite still forms from whatever gold rose gold left behind");
+        helper.succeed();
+    }
+
+    /**
      * The issue's "non-matching fluids do not combine": iron and manyullyn are not any recipe's
      * inputs, so a smeltery holding both keeps holding both, in the order they went in.
      */
