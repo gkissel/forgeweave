@@ -1,0 +1,15 @@
+{
+  "station": "table",
+  "cast": {
+    "item": "forgeweave:clay_cast_large_sword_blade"
+  },
+  "fluid": "forgeweave:molten_amethyst_bronze",
+  "amount": 1152,
+  "result": {
+    "id": "forgeweave:large_sword_blade",
+    "components": {
+      "forgeweave:material": "forgeweave:amethyst_bronze"
+    }
+  },
+  "consumes_cast": true
+}

@@ -109,6 +109,44 @@ class CastingRecipeTest {
         }
     }
 
+    /**
+     * Issue #292, upstream's {@code clayCreationFluids}: a clay cast is moulded from
+     * {@code Material.VALUE_Ingot * 2} of molten clay instead of gold, and is otherwise the same
+     * pour -- the part is eaten and the fresh cast lands in the input slot.
+     */
+    @Test
+    void clayCastCreationCostsTwoIngotsOfMoltenClayAndEatsThePartToo() {
+        for (String part : List.of("pickaxe_head", "shovel_head", "axe_head", "tool_binding", "tool_handle")) {
+            CastingRecipe recipe = shipped("clay_cast_" + part);
+
+            assertEquals(288, recipe.amount(), part + " clay cast creation costs 288 mB");
+            assertEquals(ForgeweaveFluids.MOLTEN_CLAY.still().get(), recipe.fluid(), "moulded from molten clay");
+            assertTrue(recipe.consumesCast(), part + " is consumed by the pour that moulds its clay cast");
+            assertTrue(recipe.resultInInput(), "and the cast lands in the input slot, ready for metal");
+            assertEquals(ResourceLocation.fromNamespaceAndPath("forgeweave", "clay_cast_" + part),
+                    BuiltInRegistries.ITEM.getKey(recipe.result().getItem()));
+        }
+    }
+
+    /**
+     * Issue #292's single-use half ({@code TinkerSmeltery#registerToolpartMeltingCasting} passes
+     * {@code consumesCast} true for the clay cast and false for the gold one): same fluid, same
+     * amount, same part out -- the cast is what differs.
+     */
+    @Test
+    void aClayCastIsConsumedByItsOwnCastingCycleWhereTheGoldCastSurvives() {
+        CastingRecipe gold = shipped("axe_head_iron");
+        CastingRecipe clay = shipped("clay_axe_head_iron");
+
+        assertFalse(gold.consumesCast(), "the gold cast is reusable");
+        assertTrue(clay.consumesCast(), "the clay cast is single use");
+        assertEquals(gold.fluid(), clay.fluid());
+        assertEquals(gold.amount(), clay.amount());
+        assertTrue(ItemStack.matches(gold.result(), clay.result()), "and both shape the same iron axe head");
+        assertTrue(clay.cast().orElseThrow()
+                .test(new ItemStack(ForgeweaveItems.CLAY_CASTS.get("cast_axe_head").get())));
+    }
+
     /** Upstream {@code TinkerTools}: pick/shovel/axe head cost {@code VALUE_Ingot * 2}, binding and rod {@code VALUE_Ingot}. */
     @Test
     void partCastingUsesUpstreamsPartCostsAndTagsTheResultWithItsMaterial() {

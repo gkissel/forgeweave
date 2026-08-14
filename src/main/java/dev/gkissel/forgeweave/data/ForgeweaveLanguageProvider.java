@@ -820,6 +820,11 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         addItem(ForgeweaveItems.CAST_CURVED_BLADE, "Curved Blade Cast");
         addItem(ForgeweaveItems.CAST_KATANA_BLADE, "Katana Blade Cast");
 
+        // #292 -- the single-use clay counterpart of every cast above, named the way upstream's
+        // item.tconstruct.clay_cast.name ("%s Clay Cast") names them, off the cast's registry name
+        // (every cast above is "<Subject> Cast" for the same subject).
+        ForgeweaveItems.CLAY_CASTS.forEach((cast, clay) -> addItem(clay, titleCase(cast.substring("cast_".length())) + " Clay Cast"));
+
         // #103 -- metal materials (docs/SCOPE.md M2 issue #103): item names for the four metals with
         // no vanilla item forms. Ingot/nugget names follow upstream 1.12's item.materials.*.name
         // entries (NOTICE.md); the raw forms have no upstream counterpart to name after and follow

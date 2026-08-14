@@ -1,0 +1,13 @@
+{
+  "station": "table",
+  "cast": {
+    "item": "forgeweave:tool_binding"
+  },
+  "fluid": "forgeweave:molten_clay",
+  "amount": 288,
+  "result": {
+    "id": "forgeweave:clay_cast_tool_binding"
+  },
+  "consumes_cast": true,
+  "result_in_input": true
+}

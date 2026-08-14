@@ -1,0 +1,12 @@
+{
+  "station": "table",
+  "cast": {
+    "item": "forgeweave:clay_cast_ingot"
+  },
+  "fluid": "forgeweave:molten_amethyst_bronze",
+  "amount": 144,
+  "result": {
+    "id": "forgeweave:amethyst_bronze_ingot"
+  },
+  "consumes_cast": true
+}

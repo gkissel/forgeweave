@@ -1,0 +1,15 @@
+{
+  "station": "table",
+  "cast": {
+    "item": "forgeweave:clay_cast_kama_head"
+  },
+  "fluid": "forgeweave:molten_manyullyn",
+  "amount": 288,
+  "result": {
+    "id": "forgeweave:kama_head",
+    "components": {
+      "forgeweave:material": "forgeweave:manyullyn"
+    }
+  },
+  "consumes_cast": true
+}

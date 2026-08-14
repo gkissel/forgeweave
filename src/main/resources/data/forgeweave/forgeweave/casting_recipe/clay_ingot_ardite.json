@@ -1,0 +1,12 @@
+{
+  "station": "table",
+  "cast": {
+    "item": "forgeweave:clay_cast_ingot"
+  },
+  "fluid": "forgeweave:molten_ardite",
+  "amount": 144,
+  "result": {
+    "id": "forgeweave:ardite_ingot"
+  },
+  "consumes_cast": true
+}

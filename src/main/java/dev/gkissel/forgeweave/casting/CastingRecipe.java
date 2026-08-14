@@ -16,6 +16,8 @@ import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.level.material.Fluid;
 
 import dev.gkissel.forgeweave.Forgeweave;
+import dev.gkissel.forgeweave.config.ForgeweaveConfig;
+import dev.gkissel.forgeweave.item.ClayCastItem;
 
 /**
  * One casting recipe: what a Casting Table or Casting Basin turns a held item plus a poured fluid
@@ -49,7 +51,8 @@ import dev.gkissel.forgeweave.Forgeweave;
  *   <li>{@code time} -- cooling ticks. Optional; defaults to upstream's
  *       {@link #cooldownTicks(Fluid, int)} formula, which is hotter-and-more = slower.
  *   <li>{@code consumes_cast} -- clears the input when the pour finishes. Upstream's cast creation
- *       melts the part it was moulded around.
+ *       melts the part it was moulded around, and its single-use clay casts (issue #292) are eaten
+ *       by the pour that casts through them.
  *   <li>{@code result_in_input} -- upstream's {@code switchOutputs}: put the result back in the
  *       input slot (and whatever was in the input into the output slot). Cast creation uses it so a
  *       fresh cast is already in place for the next pour.
@@ -96,7 +99,23 @@ public record CastingRecipe(Station station, Optional<Ingredient> cast, Fluid fl
         if (this.station != station || this.fluid != fluid) {
             return false;
         }
-        return cast.map(ingredient -> ingredient.test(held)).orElseGet(held::isEmpty);
+        if (!cast.map(ingredient -> ingredient.test(held)).orElseGet(held::isEmpty)) {
+            return false;
+        }
+        return !usesClayCast(held) || ForgeweaveConfig.ENABLE_CLAY_CASTS.get();
+    }
+
+    /**
+     * Whether this recipe is one of the two halves of the clay-cast system (issue #292): moulding a
+     * clay cast, or casting through one. Upstream 1.12 never registers either while its
+     * {@code enableClayCasts} option is off; casting recipes are datapack entries here, so they are
+     * filtered at lookup instead -- the runtime-check bucket issue #276 asks for.
+     *
+     * <p>Asked only of a recipe that already matched, so the config is never read on the hot path of
+     * a pour that has nothing to do with clay.
+     */
+    private boolean usesClayCast(ItemStack held) {
+        return ClayCastItem.is(result) || ClayCastItem.is(held);
     }
 
     /** How long the pour takes to cool, explicit or derived. */

@@ -1,0 +1,15 @@
+{
+  "station": "table",
+  "cast": {
+    "item": "forgeweave:clay_cast_pan"
+  },
+  "fluid": "forgeweave:molten_netherite",
+  "amount": 432,
+  "result": {
+    "id": "forgeweave:pan",
+    "components": {
+      "forgeweave:material": "forgeweave:netherite"
+    }
+  },
+  "consumes_cast": true
+}
