@@ -89,6 +89,21 @@ class ToolTooltipTest {
     }
 
     /**
+     * Issue #303: the warmace's innate is vanilla's own mace ({@code WarmaceItem}), never a {@code
+     * ForgeweaveInnates.Innate} seam, so without {@code innateId}'s carve-out it showed no line at all
+     * -- unlike every other weapon. Same shape as the pickaxe's pierce line above.
+     */
+    @Test
+    void compactTooltipShowsTheWarmaceSmashInnateLine() {
+        ItemStack stack = assembledWarmace(40, List.of());
+
+        List<Component> tooltip = new ArrayList<>();
+        ToolTooltip.append(stack, null, false, 7.0F, tooltip);
+
+        assertEquals(List.of(durabilityLine(120, 160), attackLine(7.0F), smashLine(), slotsLine(3)), tooltip);
+    }
+
+    /**
      * Issue #105: an applied Modifier shows its name and level, and the free-slot count drops by the
      * one it occupies. Haste's level is in redstone, so 51 of them read as level 2 with the current
      * level 51/100 full -- upstream's {@code ModifierNBT.IntegerNBT#extraInfo}.
@@ -217,7 +232,16 @@ class ToolTooltipTest {
     }
 
     private static ItemStack assembledPickaxe(int damage, List<ResourceLocation> traits) {
-        ItemStack stack = new ItemStack(ForgeweaveItems.TOOL_PICKAXE.get());
+        return assembledTool(ForgeweaveItems.TOOL_PICKAXE.get(), damage, traits);
+    }
+
+    /** Issue #303: the warmace, same fixture shape -- {@link ToolTooltip} doesn't care which tool it is. */
+    private static ItemStack assembledWarmace(int damage, List<ResourceLocation> traits) {
+        return assembledTool(ForgeweaveItems.TOOL_WARMACE.get(), damage, traits);
+    }
+
+    private static ItemStack assembledTool(Item item, int damage, List<ResourceLocation> traits) {
+        ItemStack stack = new ItemStack(item);
         stack.set(ForgeweaveDataComponents.TOOL_MATERIALS.get(), new ToolMaterials(STONE_ID, java.util.Optional.of(WOOD_ID), WOOD_ID,
                 java.util.List.of(STONE_ID, WOOD_ID, WOOD_ID)));
         stack.set(ForgeweaveDataComponents.TOOL_STATS.get(), PICKAXE_STATS);
@@ -294,6 +318,14 @@ class ToolTooltipTest {
                 .withStyle(ChatFormatting.GOLD)
                 .append(Component.literal(": ").withStyle(ChatFormatting.GRAY))
                 .append(Component.translatable("tooltip.forgeweave.innate.pierce.description").withStyle(ChatFormatting.GRAY));
+    }
+
+    /** Issue #303's warmace innate line, same shape as {@link #pierceLine()}. */
+    private static Component smashLine() {
+        return Component.translatable("tooltip.forgeweave.innate.smash.name")
+                .withStyle(ChatFormatting.GOLD)
+                .append(Component.literal(": ").withStyle(ChatFormatting.GRAY))
+                .append(Component.translatable("tooltip.forgeweave.innate.smash.description").withStyle(ChatFormatting.GRAY));
     }
 
     private static Component traitLine(String path, TextColor color) {

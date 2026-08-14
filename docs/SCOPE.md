@@ -135,7 +135,7 @@ Utility tools (mattock, kama, hammer, excavator, lumberaxe, vein hammer) additio
 | hatchet (M1 retrofit) | sunder — disables shields (vanilla-axe rule) + bonus damage vs blocking targets | new |
 | dagger | backstab — bonus damage when striking from behind | new (shape from upstream 1.20) |
 | vein hammer | vein-mines a connected ore vein; combat rider on issue | new (shape from upstream 1.20) |
-| broadsword | proposal on issue (upstream's 1.12 innate was sword-blocking, gone from modern Minecraft) | decision |
+| broadsword | sweeps a full-charge, grounded hit onto everything nearby (parity) plus a maintainer-decided parry window (issue #303 re-verify: upstream's 1.12 innate was never blocking, that premise was wrong) | parity + decision |
 | longsword | charged leap attack | parity |
 | rapier | deals a % of the target's current health as armor-bypassing damage (magnitude on issue) | maintainer redesign |
 | battlesign | blocking reflects projectiles | parity |
