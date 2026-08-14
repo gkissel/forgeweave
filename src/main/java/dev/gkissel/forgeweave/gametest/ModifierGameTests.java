@@ -17,6 +17,8 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.CraftingInput;
 import net.minecraft.world.item.crafting.RecipeType;
+import net.minecraft.world.item.enchantment.Enchantments;
+import net.minecraft.world.item.enchantment.ItemEnchantments;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.block.Blocks;
 
@@ -341,6 +343,29 @@ public class ModifierGameTests {
         ModifierEntry entry = ForgeweaveModifiers.entry(pickaxe, LUCK);
         helper.assertTrue(entry != null && entry.level() == 2,
                 "luck must grow by exactly one raw unit from block breaks, got " + entry + " after " + breaks + " breaks");
+        helper.succeed();
+    }
+
+    /**
+     * Issue #341: luck's Fortune is a real vanilla enchantment on the stack, so vanilla would render
+     * the enchantment glint on any lapis-modified tool. Upstream 1.12 doesn't -- {@code
+     * ToolCore#hasEffect} reports only the explicit enchant-effect flag (shocking's full charge), so a
+     * modifier-granted enchantment never shimmers and the modifier's own texture overlay (luck's blue
+     * dot, {@code ModifierOverlayModels}/{@code ModifierArt}) is the whole visual.
+     */
+    @GameTest(template = "empty")
+    public static void aLapisModifiedToolCarriesFortuneWithoutGlinting(GameTestHelper helper) {
+        BlockPos pos = new BlockPos(1, 1, 1);
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        ItemStack pickaxe = ToolAssembly.pickaxe(helper, player, pos, "stone", "wood", "wood");
+
+        // 60 lapis is exactly the shipped luck.json's first level, so Fortune I actually lands.
+        ItemStack lucky = applyReagent(helper, player, pos, pickaxe, new ItemStack(Items.LAPIS_LAZULI, 60));
+
+        ItemEnchantments enchantments = lucky.getOrDefault(DataComponents.ENCHANTMENTS, ItemEnchantments.EMPTY);
+        helper.assertTrue(enchantments.keySet().stream().anyMatch(holder -> holder.is(Enchantments.FORTUNE)),
+                "60 lapis must grant real Fortune, got " + enchantments);
+        helper.assertFalse(lucky.hasFoil(), "a modifier-granted enchantment must not make the tool glint");
         helper.succeed();
     }
 

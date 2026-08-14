@@ -502,6 +502,29 @@ public class ToolItem extends Item {
     }
 
     /**
+     * Upstream 1.12's {@code ToolCore#hasEffect} (issue #341): {@code return
+     * TagUtil.hasEnchantEffect(stack)} -- a Forgeweave tool shimmers only when something explicitly
+     * asks it to, never because it happens to carry an enchantment. Several modifiers put real vanilla
+     * enchantments on the stack (luck's Fortune/Looting, silky's Silk Touch, wind burst), and vanilla's
+     * default {@code isFoil} is {@code stack.isEnchanted()}, so without this every lapis-modified tool
+     * would glint over the modifier's own texture overlay ({@code ModifierOverlayModels}) that is meant
+     * to be the whole visual.
+     *
+     * <p>This one override is the seam rather than a suppressed {@code ENCHANTMENT_GLINT_OVERRIDE}
+     * written at each grant site, because {@code ItemStack#hasFoil} consults that component first and
+     * falls back here: every path that writes enchantments onto a tool -- modifier application, luck's
+     * growth-on-use, embossing, part exchange, re-assembly -- routes through this one answer with
+     * nothing to keep in step, and upstream's own suppression sits in exactly the same place.
+     * {@code ForgeweaveTraits}'s shocking charge still sets that component true at full charge and
+     * removes it on discharge, and the removal now lands back on this false rather than on vanilla's
+     * "any enchantment glints" default.
+     */
+    @Override
+    public boolean isFoil(ItemStack stack) {
+        return false;
+    }
+
+    /**
      * Vanilla charges a flat {@code tool.damagePerBlock()}; upstream 1.12 charges 1 for a block the
      * tool is meant for and 2 for anything else ({@code ToolCore#onBlockDestroyed}:
      * {@code int damage = effective ? 1 : 2}), which the single-valued {@code tool} component can't

@@ -29,6 +29,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.component.ItemAttributeModifiers;
 import net.minecraft.world.item.crafting.Ingredient;
+import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.phys.AABB;
@@ -248,6 +249,42 @@ public class StatefulTraitGameTests {
                 "a break that fills the charge must discharge immediately, got " + charge(pickaxe));
         helper.assertTrue(miner.hasEffect(MobEffects.DIG_SPEED),
                 "the mining discharge grants the upstream Haste effect");
+
+        target.discard();
+        helper.succeed();
+    }
+
+    /**
+     * Issue #341: the full shocking charge is the <em>only</em> thing that makes a Forgeweave tool
+     * shimmer. Upstream 1.12's {@code ToolCore#hasEffect} reports its explicit enchant-effect flag and
+     * nothing else, so a tool carrying an enchantment a modifier granted (luck's Fortune here) stays
+     * dull below full charge, glints while full, and goes back to dull the moment it discharges --
+     * rather than falling back on vanilla's "any enchantment glints" default.
+     */
+    @GameTest(template = "empty")
+    public static void onlyTheFullShockingChargeMakesTheToolGlint(GameTestHelper helper) {
+        ServerLevel level = helper.getLevel();
+        Player attacker = helper.makeMockPlayer(GameType.SURVIVAL);
+        Pig target = helper.spawn(EntityType.PIG, new BlockPos(2, 2, 2));
+        ItemStack pickaxe = pickaxe(List.of(traitId("shocking")), 1000, 1.0F, 1.0F);
+        pickaxe.enchant(level.registryAccess().lookupOrThrow(Registries.ENCHANTMENT).getOrThrow(Enchantments.FORTUNE), 1);
+
+        helper.assertFalse(pickaxe.hasFoil(), "a modifier-granted Fortune must not make the tool glint");
+
+        // 15 charge per landed hit, clamped at the 100 mark: seven hits fill it without discharging.
+        for (int i = 0; i < 7; i++) {
+            ForgeweaveTraits.COMBAT_SEAM.onHit(
+                    new CombatHit(level, pickaxe, attacker, target, level.damageSources().mobAttack(attacker)), 1.0F);
+        }
+        helper.assertTrue(charge(pickaxe) == ShockingCharge.FULL,
+                "seven hits must fill the charge, got " + charge(pickaxe));
+        helper.assertTrue(pickaxe.hasFoil(), "a fully charged shocking tool glints");
+
+        ForgeweaveTraits.COMBAT_SEAM.onHit(
+                new CombatHit(level, pickaxe, attacker, target, level.damageSources().mobAttack(attacker)), 1.0F);
+        helper.assertTrue(charge(pickaxe) == 0.0F, "the eighth hit discharges, got " + charge(pickaxe));
+        helper.assertFalse(pickaxe.hasFoil(),
+                "once discharged the tool is dull again, Fortune or no Fortune");
 
         target.discard();
         helper.succeed();
