@@ -48,3 +48,13 @@ Forgeweave brings modular tool building, material traits, modifiers, melting, al
     versionRange="[1,)"
     ordering="AFTER"
     side="CLIENT"
+
+# DarkModeEverywhere compat (issue #335) is optional too: without it the mod works identically, it
+# only sends the dme-shaderblacklist IMC entries (ForgeweaveDarkModeCompat) that exclude the
+# meaning-carrying renderers from DME's darkening shader swap when DME happens to be installed.
+[[dependencies.${mod_id}]]
+    modId="darkmodeeverywhere"
+    type="optional"
+    versionRange="[1.21,1.22)"
+    ordering="AFTER"
+    side="CLIENT"
