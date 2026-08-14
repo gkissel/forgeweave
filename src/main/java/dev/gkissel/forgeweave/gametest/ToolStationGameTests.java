@@ -27,6 +27,8 @@ import dev.gkissel.forgeweave.item.ForgeweaveItems;
 import dev.gkissel.forgeweave.item.ToolItem;
 import dev.gkissel.forgeweave.menu.ToolStationMenu;
 import dev.gkissel.forgeweave.menu.ToolStationTabs;
+import dev.gkissel.forgeweave.modifier.ForgeweaveModifiers;
+import dev.gkissel.forgeweave.modifier.ModifierEntry;
 import dev.gkissel.forgeweave.tool.ToolMaterials;
 
 /**
@@ -137,6 +139,85 @@ public class ToolStationGameTests {
         helper.assertTrue(menu.getSlot(0).getItem().isEmpty(), "expected the repaired tool to leave the input slot");
         helper.assertTrue(menu.getSlot(1).getItem().isEmpty(), "expected the one cobblestone to be consumed");
 
+        helper.succeed();
+    }
+
+    /**
+     * Issue #281's regression: a modifier that grows the durability pool (Diamond, {@code +500}) must
+     * make the tool's repair proportionally faster too, not just its max durability bigger --
+     * upstream {@code TinkersItem#calculateRepair}'s {@code min(10, actualDurability/baseDurability)}
+     * term, which the Tool Station's repair recipe had dropped.
+     *
+     * <p>The pickaxe's base durability (128, {@code forgeweave:tool_stats}) and Diamond's +500 grow
+     * the actual pool to 628, a {@code 628 / 128 = 4.90625} factor; one repair item is worth
+     * {@code 120 * 4.90625 = 588.75}, cut by Diamond's own occupied slot ({@code 1} -> {@code 0.95}x)
+     * to {@code 559.3125}, rounding up to 560, plus stone's {@code cheap} trait's own 5% repair bonus
+     * ({@code 560 * 5 / 100 = 28}) -- 588 in all, versus the 126 an unmodified stone pickaxe repairs
+     * for ({@link #repairRestoresDurabilityAndClearsBroken}).
+     */
+    @GameTest(template = "empty")
+    public static void diamondModifiedToolRepairsProportionallyFaster(GameTestHelper helper) {
+        BlockPos pos = new BlockPos(1, 1, 1);
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        ItemStack pickaxe = ToolAssembly.pickaxe(helper, player, pos, "stone", "wood", "wood");
+
+        ResourceLocation diamond = ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "diamond");
+        pickaxe.set(ForgeweaveDataComponents.MODIFIERS.get(), List.of(new ModifierEntry(diamond, 1)));
+        int grownDurability = ForgeweaveModifiers.effectiveStats(pickaxe).durability();
+        helper.assertTrue(grownDurability == 628, "expected 128 + Diamond's 500 = 628, got " + grownDurability);
+        pickaxe.set(DataComponents.MAX_DAMAGE, grownDurability);
+        pickaxe.setDamageValue(600);
+
+        ToolStationBlockEntity blockEntity = helper.getBlockEntity(pos);
+        blockEntity.container().setItem(0, pickaxe);
+        blockEntity.container().setItem(1, new ItemStack(Items.COBBLESTONE, 1));
+        blockEntity.container().setItem(2, ItemStack.EMPTY);
+
+        ToolStationMenu menu = ToolAssembly.menu(helper, player, pos, blockEntity);
+        menu.broadcastChanges();
+
+        ItemStack repaired = menu.getSlot(ToolStationMenu.OUTPUT_SLOT).getItem();
+        helper.assertTrue(repaired.is(ForgeweaveItems.TOOL_PICKAXE.get()), "expected the repaired pickaxe, got " + repaired);
+        helper.assertTrue(repaired.getDamageValue() == 12,
+                "expected 600 - 588 = 12 damage left after one cobblestone, got " + repaired.getDamageValue());
+        helper.succeed();
+    }
+
+    /**
+     * Issue #281's other regression: upstream {@code TinkersItem#calculateRepair}'s modifier-count
+     * repair penalty (1.00 / 0.95 / 0.90 / 0.85 for 0/1/2/3+ occupied, non-embossment modifier slots)
+     * had been dropped entirely. Three modifiers with no durability effect of their own (haste,
+     * searing, magnetic pull) isolate the penalty term: {@code ceil(120 * 0.85) = 102}, plus stone's
+     * {@code cheap} trait's own 5% repair bonus ({@code 102 * 5 / 100 = 5}) on top -- 107 in all,
+     * versus the 126 an unmodified stone pickaxe repairs for
+     * ({@link #repairRestoresDurabilityAndClearsBroken}).
+     */
+    @GameTest(template = "empty")
+    public static void threeOccupiedModifierSlotsRepairAtEightyFivePercent(GameTestHelper helper) {
+        BlockPos pos = new BlockPos(1, 1, 1);
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        ItemStack pickaxe = ToolAssembly.pickaxe(helper, player, pos, "stone", "wood", "wood");
+
+        pickaxe.set(ForgeweaveDataComponents.MODIFIERS.get(), List.of(
+                new ModifierEntry(ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "haste"), 1),
+                new ModifierEntry(ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "searing"), 1),
+                new ModifierEntry(ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "magnetic_pull"), 1)));
+        helper.assertTrue(ForgeweaveModifiers.occupiedSlots(pickaxe) == 3,
+                "expected all three modifiers to occupy a slot, got " + ForgeweaveModifiers.occupiedSlots(pickaxe));
+        pickaxe.setDamageValue(120); // below the 128 max, so the repair below isn't clamped by it
+
+        ToolStationBlockEntity blockEntity = helper.getBlockEntity(pos);
+        blockEntity.container().setItem(0, pickaxe);
+        blockEntity.container().setItem(1, new ItemStack(Items.COBBLESTONE, 1));
+        blockEntity.container().setItem(2, ItemStack.EMPTY);
+
+        ToolStationMenu menu = ToolAssembly.menu(helper, player, pos, blockEntity);
+        menu.broadcastChanges();
+
+        ItemStack repaired = menu.getSlot(ToolStationMenu.OUTPUT_SLOT).getItem();
+        helper.assertTrue(repaired.is(ForgeweaveItems.TOOL_PICKAXE.get()), "expected the repaired pickaxe, got " + repaired);
+        helper.assertTrue(repaired.getDamageValue() == 13,
+                "expected 120 - 107 = 13 damage left after one cobblestone, got " + repaired.getDamageValue());
         helper.succeed();
     }
 

@@ -131,8 +131,8 @@ public class ToolForgeGameTests {
      */
     @GameTest(template = "empty")
     public static void forgeRepairItemGoesFivePercentFurther(GameTestHelper helper) {
-        int station = ToolAssemblyRecipes.repairIncrement(120, 128, 0, false);
-        int forge = ToolAssemblyRecipes.repairIncrement(120, 128, 0, true);
+        int station = ToolAssemblyRecipes.repairIncrement(120, 128, 128, 0, 0, false);
+        int forge = ToolAssemblyRecipes.repairIncrement(120, 128, 128, 0, 0, true);
 
         helper.assertTrue(station == 120, "expected the Tool Station's unchanged 120, got " + station);
         helper.assertTrue(forge == 127, "expected ceil(120 / 0.95) = 127 at the Tool Forge, got " + forge);
