@@ -153,6 +153,13 @@ public final class ForgeweaveFluids {
     public static final MoltenMetal AMETHYST = register("amethyst", 0xB38EF1, 950);
     public static final MoltenMetal AMETHYST_BRONZE = register("amethyst_bronze", 0xC687BD, 820);
 
+    // #270 (M3.4-1) owns molten emerald -- it is the entity-melting parity set's villager/vindicator/
+    // evoker/illusioner drop, and #272 (M3.4-3, this file's caller) only consumes it for the gem
+    // cast. Ported 1:1 from TinkerFluids#setupFluids (fluidMetal("emerald", 0x58e78e), temperature
+    // 999), coordinated with #270 to land the identical line rather than drift -- whichever PR merges
+    // second drops its copy on rebase.
+    public static final MoltenMetal EMERALD = register("emerald", 0x58E78E, 999);
+
     private static MoltenMetal register(String metalId, int color, int temperature) {
         return register("molten_" + metalId, color, temperature, () -> moltenFluidType(temperature),
                 STILL_TEXTURE, FLOWING_TEXTURE);

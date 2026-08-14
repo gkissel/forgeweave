@@ -712,6 +712,8 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         // #235 -- amethyst and amethyst bronze (M3.2), the 1.20 clone's fluid.tconstruct.* names.
         addFluid(ForgeweaveFluids.AMETHYST, "Molten Amethyst");
         addFluid(ForgeweaveFluids.AMETHYST_BRONZE, "Molten Amethyst Bronze");
+        // #270 (M3.4-1) owns this fluid; coordinated dedupe line, see ForgeweaveFluids#EMERALD.
+        addFluid(ForgeweaveFluids.EMERALD, "Molten Emerald");
 
         // #232 -- the knightslime alloy chain's three fluids (docs/SCOPE.md M3.2). Upstream calls
         // its seared stone fluid plainly "Seared Stone"; the molten_ prefix names follow this
@@ -735,6 +737,10 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         addBlock(ForgeweaveBlocks.FAUCET, "Faucet");
         addItem(ForgeweaveItems.CAST_INGOT, "Ingot Cast");
         addItem(ForgeweaveItems.CAST_NUGGET, "Nugget Cast");
+        // #272 -- upstream's item.tconstruct.cast_custom.{gem,plate,gear}.name.
+        addItem(ForgeweaveItems.CAST_GEM, "Gem Cast");
+        addItem(ForgeweaveItems.CAST_PLATE, "Plate Cast");
+        addItem(ForgeweaveItems.CAST_GEAR, "Gear Cast");
         addItem(ForgeweaveItems.CAST_PICKAXE_HEAD, "Pickaxe Head Cast");
         addItem(ForgeweaveItems.CAST_SHOVEL_HEAD, "Shovel Head Cast");
         addItem(ForgeweaveItems.CAST_AXE_HEAD, "Axe Head Cast");
