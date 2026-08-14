@@ -197,7 +197,8 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
                 "While blocking, a projectile caught head-on is returned to its sender.");
         add("tooltip.forgeweave.innate.heavy_swing.name", "Heavy Swing");
         add("tooltip.forgeweave.innate.heavy_swing.description",
-                "Hits knock the target back twice as far as an ordinary blow.");
+                "Hits knock the target back twice as far as an ordinary blow. Hold right-click to charge, "
+                        + "then release to launch whatever you are looking at; a full charge sears it.");
         add("tooltip.forgeweave.innate.backstab.name", "Backstab");
         add("tooltip.forgeweave.innate.backstab.description",
                 "Striking from behind adds up to double damage, at its strongest directly behind the target.");

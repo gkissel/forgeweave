@@ -20,14 +20,21 @@ import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.ai.attributes.AttributeInstance;
+import net.minecraft.world.entity.ai.attributes.AttributeModifier;
+import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.projectile.Projectile;
+import net.minecraft.world.entity.projectile.ProjectileUtil;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.UseAnim;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.Vec3;
 
 import dev.gkissel.forgeweave.Forgeweave;
@@ -144,6 +151,23 @@ public final class ForgeweaveInnates {
     private static final float HEAVY_KNOCKBACK = 0.8F;
 
     /**
+     * Upstream {@code tools/melee/item/FryPan.java#onPlayerStoppedUsing} verbatim: the use lasts
+     * {@code 5 * 20} ticks but the charge is {@code min(1, held / 30)}, so it is full after a second
+     * and a half; the launch is {@code look * (0.1 + 2.5p²)} with {@code look.y/3 * strength + 0.1 +
+     * 0.4p} of lift, the bonus attack is {@code 5p}, the reach is 3.2 blocks, and a full charge sets
+     * the target alight for one second across the blow.
+     */
+    private static final int LAUNCH_USE_TICKS = 5 * 20;
+    private static final float LAUNCH_FULL_CHARGE_TICKS = 30.0F;
+    private static final float LAUNCH_STRENGTH_BASE = 0.1F;
+    private static final float LAUNCH_STRENGTH_PER_CHARGE = 2.5F;
+    private static final float LAUNCH_LIFT_BASE = 0.1F;
+    private static final float LAUNCH_LIFT_PER_CHARGE = 0.4F;
+    private static final float LAUNCH_BONUS_DAMAGE = 5.0F;
+    private static final double LAUNCH_RANGE = 3.2;
+    private static final int LAUNCH_IGNITE_TICKS = 20;
+
+    /**
      * Maintainer decision 2026-08-12 on issue #155: {@value #BACKSTAB_MAX} within
      * {@value #BACKSTAB_FULL_DEGREES}&deg; of dead-behind, falling off linearly to
      * {@value #BACKSTAB_MIN} at the {@value #BACKSTAB_CONE_DEGREES}&deg; edge of the rear cone, and
@@ -175,9 +199,9 @@ public final class ForgeweaveInnates {
     /** Battlesign: upstream's blocking stance that returns projectiles to their sender. */
     public static final Innate DEFLECT = deflect();
 
-    /** Frying pan: upstream's doubled knockback. */
+    /** Frying pan: upstream's doubled knockback, plus its charged launch (issue #301). */
     public static final HeavyKnockback HEAVY_SWING_SEAM = new HeavyKnockback(HEAVY_KNOCKBACK);
-    public static final Innate HEAVY_SWING = new Innate("heavy_swing", HEAVY_SWING_SEAM, null);
+    public static final Innate HEAVY_SWING = new Innate("heavy_swing", HEAVY_SWING_SEAM, new ChargedLaunch());
 
     /** Dagger: no upstream behavior at all -- the shape is from the modern branch, this is ours. */
     public static final Backstab BACKSTAB_SEAM =
@@ -629,6 +653,98 @@ public final class ForgeweaveInnates {
                 return InteractionResultHolder.pass(stack);
             }
             return InteractionResultHolder.sidedSuccess(stack, level.isClientSide());
+        }
+    }
+
+    /**
+     * The frying pan's charged launch, ported from {@code FryPan#onPlayerStoppedUsing} (issue #301).
+     * Held like {@link ChargedLeap} and not a record for the same reason: every number is upstream's.
+     *
+     * <p>Three things happen on release, in upstream's own order, to whatever the player is looking at
+     * within {@value #LAUNCH_RANGE} blocks: an ordinary blow with a charge-scaled bonus on the
+     * attacker's attack damage, a brief ignite across that blow at full charge only -- so what it kills
+     * drops cooked, which is upstream's joke and the only place the fire shows -- and then the launch
+     * itself, added on top of whatever push the blow already left.
+     *
+     * <p>The blow is {@link Player#attack} rather than a bare {@code hurt}: upstream's
+     * {@code ToolHelper#attackEntity} is a re-implementation of 1.12's player attack (attack-strength
+     * scaling, crits, knockback, cooldown reset), and vanilla's own method is that same thing here --
+     * which also means the pan's other half, {@link HeavyKnockback}, rides along exactly as it does on
+     * a left click. Non-player users have no attack of their own to scale, so they get nothing; only
+     * players hold tools.
+     */
+    public static final class ChargedLaunch implements ToolUseAction {
+
+        /** The attack-damage bonus is added and removed around the one blow, never persisted. */
+        private static final ResourceLocation CHARGE_BONUS = id("charged_launch");
+
+        @Override
+        public UseAnim animation() {
+            return UseAnim.BOW;
+        }
+
+        @Override
+        public int durationTicks() {
+            return LAUNCH_USE_TICKS;
+        }
+
+        @Override
+        public void onRelease(ItemStack stack, ServerLevel level, LivingEntity user, int heldTicks) {
+            if (!(user instanceof Player player)) {
+                return;
+            }
+            Vec3 look = player.getLookAngle();
+            Entity target = lookedAt(player, look);
+            if (target == null) {
+                return;
+            }
+            float progress = Math.min(1.0F, heldTicks / LAUNCH_FULL_CHARGE_TICKS);
+            float strength = LAUNCH_STRENGTH_BASE + LAUNCH_STRENGTH_PER_CHARGE * progress * progress;
+
+            // Upstream lights the target for the blow and puts it out straight after, so the kill drops
+            // cooked without the target actually burning afterwards.
+            boolean flamingStrike = progress >= 1.0F && !target.isOnFire();
+            if (flamingStrike) {
+                target.setRemainingFireTicks(LAUNCH_IGNITE_TICKS);
+            }
+            AttributeInstance attack = player.getAttribute(Attributes.ATTACK_DAMAGE);
+            if (attack != null) {
+                attack.addTransientModifier(new AttributeModifier(CHARGE_BONUS,
+                        progress * LAUNCH_BONUS_DAMAGE, AttributeModifier.Operation.ADD_VALUE));
+            }
+            try {
+                player.attack(target);
+            } finally {
+                if (attack != null) {
+                    attack.removeModifier(CHARGE_BONUS);
+                }
+            }
+            if (flamingStrike) {
+                target.clearFire();
+            }
+
+            target.setDeltaMovement(target.getDeltaMovement().add(look.x * strength,
+                    look.y / 3.0F * strength + LAUNCH_LIFT_BASE + LAUNCH_LIFT_PER_CHARGE * progress,
+                    look.z * strength));
+            target.hurtMarked = true; // a launched player's own client owns its motion until told otherwise
+        }
+
+        /**
+         * The entity the player's look ray meets first within {@value #LAUNCH_RANGE} blocks, or
+         * {@code null}. Upstream's {@code EntityUtil#raytraceEntity} with {@code ignoreCanBeCollidedWith},
+         * which is this vanilla helper -- and the shape upstream itself reaches for once it has one
+         * ({@code SlingKnockbackModule} on the 1.20 branch).
+         */
+        @Nullable
+        private static Entity lookedAt(Player player, Vec3 look) {
+            Vec3 eye = player.getEyePosition(1.0F);
+            Vec3 end = eye.add(look.scale(LAUNCH_RANGE));
+            AABB searched = player.getBoundingBox()
+                    .expandTowards(look.scale(LAUNCH_RANGE))
+                    .inflate(1.0);
+            EntityHitResult hit = ProjectileUtil.getEntityHitResult(player.level(), player, eye, end, searched,
+                    candidate -> candidate.isAlive() && !candidate.isSpectator());
+            return hit == null ? null : hit.getEntity();
         }
     }
 
