@@ -120,12 +120,20 @@ public final class ModifierOverlayModels {
             @Override
             public BakedModel resolve(BakedModel model, ItemStack stack, @Nullable ClientLevel level,
                     @Nullable LivingEntity entity, int seed) {
+                // The tool's own model JSON carries overrides of its own -- the Broken one (issue
+                // #284) -- so resolve those first and overlay whichever model they picked. Returning
+                // originalModel unconditionally here is what would swallow them.
+                BakedModel resolved = originalModel.getOverrides().resolve(originalModel, stack, level, entity, seed);
+                if (resolved == null) {
+                    resolved = originalModel;
+                }
                 List<ResourceLocation> overlays = overlaySprites(tool, stack);
                 if (overlays.isEmpty()) {
-                    return originalModel;
+                    return resolved;
                 }
-                return COMPOSED.computeIfAbsent(new CacheKey(originalModel, overlays),
-                        cacheKey -> compose(originalModel, overlays));
+                BakedModel base = resolved;
+                return COMPOSED.computeIfAbsent(new CacheKey(base, overlays),
+                        cacheKey -> compose(base, overlays));
             }
         };
         private final String tool;

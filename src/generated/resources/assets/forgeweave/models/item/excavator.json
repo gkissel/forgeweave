@@ -1,5 +1,13 @@
 {
   "parent": "minecraft:item/handheld",
+  "overrides": [
+    {
+      "model": "forgeweave:item/excavator_broken",
+      "predicate": {
+        "forgeweave:broken": 1.0
+      }
+    }
+  ],
   "textures": {
     "layer0": "forgeweave:derived/tools/excavator_handle",
     "layer1": "forgeweave:derived/tools/excavator_head",

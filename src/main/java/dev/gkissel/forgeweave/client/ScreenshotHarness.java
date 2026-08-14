@@ -1038,14 +1038,16 @@ public final class ScreenshotHarness {
         if (stageTicks < SCREEN_GAP_TICKS) {
             return;
         }
-        // One index past the list is the #257 modified-broadsword pose; see currentWeaponFileName.
-        if (weaponIndex > WEAPONS.size()) {
+        // The two indices past the list are the #257 modified-broadsword and #284 broken-broadsword
+        // poses; see currentWeaponFileName.
+        if (weaponIndex > WEAPONS.size() + 1) {
             mc.options.setCameraType(CameraType.FIRST_PERSON);
             advance(Stage.OPEN_SCREEN);
             return;
         }
         ToolItem weapon = currentWeapon();
         boolean modified = weaponIndex == WEAPONS.size();
+        boolean broken = weaponIndex == WEAPONS.size() + 1;
         var server = mc.getSingleplayerServer();
         LOGGER.info("{}holding {} for its third-person capture", LOG_PREFIX, currentWeaponFileName());
         mc.options.setCameraType(CameraType.FIRST_PERSON);
@@ -1057,6 +1059,12 @@ public final class ScreenshotHarness {
             }
             if (modified) {
                 stack.set(ForgeweaveDataComponents.MODIFIERS.get(), MODIFIED_WEAPON_MODIFIERS);
+            }
+            if (broken) {
+                // #284's frame: the model must swap the blade layer for its broken art. Set straight
+                // on the stack rather than mined down to zero durability -- the component is what the
+                // model's forgeweave:broken predicate reads either way.
+                stack.set(ForgeweaveDataComponents.BROKEN.get(), true);
             }
             serverPlayer.setItemInHand(InteractionHand.MAIN_HAND, stack);
             // Away from the blocks the earlier scenes left standing, so the silhouette reads against
@@ -1094,7 +1102,10 @@ public final class ScreenshotHarness {
         advance(Stage.HOLD_WEAPON);
     }
 
-    /** {@link #WEAPONS} by index, or the #257 modified pose's broadsword one index past the end. */
+    /**
+     * {@link #WEAPONS} by index, or the broadsword for the two extra poses past the end: #257's
+     * modified one and #284's broken one.
+     */
     private static ToolItem currentWeapon() {
         return weaponIndex < WEAPONS.size()
                 ? WEAPONS.get(weaponIndex).get()
@@ -1102,7 +1113,10 @@ public final class ScreenshotHarness {
     }
 
     private static String currentWeaponFileName() {
-        return weaponIndex < WEAPONS.size() ? weaponName(currentWeapon()) : "broadsword_modified";
+        if (weaponIndex < WEAPONS.size()) {
+            return weaponName(currentWeapon());
+        }
+        return weaponIndex == WEAPONS.size() ? "broadsword_modified" : "broadsword_broken";
     }
 
     /**

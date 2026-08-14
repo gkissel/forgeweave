@@ -255,17 +255,49 @@ public class ForgeweaveItemModelProvider extends ItemModelProvider {
     }
 
     private void toolModel(Supplier<? extends Item> item, String tool, List<String> layers) {
-        ItemModelBuilder builder = getBuilder(
-                BuiltInRegistries.ITEM.getKey(item.get()).toString())
-                .parent(new ModelFile.UncheckedModelFile(TOOL_MODEL_PARENT));
+        ItemModelBuilder builder = toolLayerModel(
+                BuiltInRegistries.ITEM.getKey(item.get()).toString(), tool, layers, null);
+        String broken = ToolArt.brokenLayer(tool);
+        if (broken != null) {
+            builder.override().predicate(BROKEN_PREDICATE, 1)
+                    .model(toolLayerModel(tool + "_broken", tool, layers, broken)).end();
+        }
+    }
+
+    /**
+     * One tool's layer model. {@code brokenLayer} names the single layer that draws its {@code
+     * _broken} art instead of its own (null for the intact model) -- see {@link ToolArt#brokenLayer}.
+     * Both models carry the same layers in the same order, so {@code ForgeweaveItemColors#
+     * toolMaterialTint}'s tintIndex-to-part mapping keeps working across the swap, and both get the
+     * tool's display transforms.
+     */
+    private ItemModelBuilder toolLayerModel(String name, String tool, List<String> layers, String brokenLayer) {
+        ItemModelBuilder builder =
+                getBuilder(name).parent(new ModelFile.UncheckedModelFile(TOOL_MODEL_PARENT));
         for (int layer = 0; layer < layers.size(); layer++) {
-            builder.texture("layer" + layer, toolLayer(tool, layers.get(layer)));
+            String art = layers.get(layer);
+            builder.texture("layer" + layer, art.equals(brokenLayer)
+                    ? modLoc(ToolArt.brokenLayerTexture(tool, art))
+                    : toolLayer(tool, art));
         }
         Consumer<ItemModelBuilder> override = TOOL_DISPLAY_OVERRIDES.get(tool);
         if (override != null) {
             override.accept(builder);
         }
+        return builder;
     }
+
+    /**
+     * The item property {@code ForgeweaveItemProperties} registers for the Broken state, and the
+     * predicate each tool model's {@code overrides} entry tests (issue #284). Upstream 1.12 keeps the
+     * broken textures inside its one tool model ({@code broken<N>} keys beside {@code layer<N>}) and
+     * swaps quads in {@code BakedToolModel}; that is its own model loader's format, so this uses
+     * vanilla's predicate-plus-separate-model {@code overrides} instead -- which is what upstream
+     * itself moved to once it was on a modern Minecraft ({@code TinkerItemProperties#BROKEN_ID} and
+     * the {@code "tconstruct:broken": 1} override in the 1.20 clone's {@code models/item/pickaxe.json}).
+     */
+    private static final ResourceLocation BROKEN_PREDICATE =
+            ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "broken");
 
     /**
      * The held-render transform set every tool inherits (issue #217). Vanilla's {@code item/handheld}

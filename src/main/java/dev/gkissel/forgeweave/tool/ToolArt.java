@@ -90,5 +90,55 @@ public final class ToolArt {
         return "derived/tools/" + tool + "_" + layer;
     }
 
+    /**
+     * The one layer each tool swaps for broken art once its {@code BROKEN} component is set (issue
+     * #284) -- upstream 1.12's own choice, tool for tool. Its {@code models/item/tools/*.tcon.json}
+     * declare a {@code broken<N>} texture beside their {@code layer<N>} keys and {@code
+     * BakedToolModel#getOverrides} swaps exactly that one layer on {@code ToolHelper#isBroken}; every
+     * upstream tool names its head/blade layer there except the hammer, which names its handle. The
+     * five tools with no 1.12 counterpart -- dagger, katana, scimitar (#159/#198), vein hammer (#157)
+     * and war mace (#161) -- follow that dominant rule and break their head.
+     *
+     * <p>Deliberately keyed by layer <em>name</em> rather than index: upstream's {@code broken1} is
+     * its battleaxe's backhead, its scythe's head and its pickaxe's head, but Forgeweave's scythe
+     * draws its second handle (upstream's "accessory") at layer1, so only the name survives the
+     * re-ordering {@link #layerSlots} does.
+     */
+    private static final Map<String, String> BROKEN_LAYERS = Map.ofEntries(
+            Map.entry("battleaxe", "head"),
+            Map.entry("battlesign", "head"),
+            Map.entry("broadsword", "head"),
+            Map.entry("cleaver", "head"),
+            Map.entry("dagger", "head"),
+            Map.entry("excavator", "head"),
+            Map.entry("frying_pan", "head"),
+            Map.entry("hammer", "handle"),
+            Map.entry("hatchet", "head"),
+            Map.entry("kama", "head"),
+            Map.entry("katana", "head"),
+            Map.entry("longsword", "head"),
+            Map.entry("lumberaxe", "head"),
+            Map.entry("mattock", "head"),
+            Map.entry("pickaxe", "head"),
+            Map.entry("rapier", "head"),
+            Map.entry("scimitar", "head"),
+            Map.entry("scythe", "head"),
+            Map.entry("shovel", "head"),
+            Map.entry("vein_hammer", "head"),
+            Map.entry("warmace", "head"));
+
+    /**
+     * The layer name {@code tool} draws broken art for, or {@code null} if it has none; see
+     * {@link #BROKEN_LAYERS}.
+     */
+    public static String brokenLayer(String tool) {
+        return BROKEN_LAYERS.get(tool);
+    }
+
+    /** The texture path of a layer's broken variant -- {@link #layer} with a {@code _broken} suffix. */
+    public static String brokenLayerTexture(String tool, String layer) {
+        return layer(tool, layer) + "_broken";
+    }
+
     private ToolArt() {}
 }

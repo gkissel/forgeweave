@@ -1,0 +1,7 @@
+{
+  "parent": "minecraft:item/handheld",
+  "textures": {
+    "layer0": "forgeweave:derived/tools/dagger_handle",
+    "layer1": "forgeweave:derived/tools/dagger_head_broken"
+  }
+}
