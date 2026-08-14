@@ -27,6 +27,12 @@ public record Lacerate(Holder<MobEffect> effect, int durationTicks, int maxStack
      * bookkeeping here: a re-application at the cap has the same amplifier and the full duration, so
      * it refreshes the timer and cannot go past {@link #maxStacks}. A hit that dealt no health (fully
      * absorbed, target already dead) applies nothing -- on-hit means the blow actually landed.
+     *
+     * <p>Remembers the attacker on the target ({@code LivingEntity#setLastHurtByMob}, upstream
+     * {@code TraitSharp#afterHit}'s {@code target.setLastAttackedEntity(player)}) so a DoT tick that
+     * builds its damage source from {@link LivingEntity#getLastHurtByMob} -- {@code BleedEffect}'s
+     * armor-ignoring source -- credits the attacker for a kill instead of a source that names no one
+     * (issue #297 parity fix).
      */
     @Override
     public void onHit(CombatHit hit, float damageDealt) {
@@ -37,5 +43,8 @@ public record Lacerate(Holder<MobEffect> effect, int durationTicks, int maxStack
         MobEffectInstance current = target.getEffect(effect);
         int amplifier = current == null ? 0 : Math.min(current.getAmplifier() + 1, maxStacks - 1);
         target.addEffect(new MobEffectInstance(effect, durationTicks, amplifier), hit.attacker());
+        if (hit.attacker() != null) {
+            target.setLastHurtByMob(hit.attacker());
+        }
     }
 }

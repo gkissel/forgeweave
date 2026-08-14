@@ -126,6 +126,17 @@ public interface Trait {
     }
 
     /**
+     * This trait's contribution to a leveled trait's shared level total -- upstream's
+     * {@code AbstractTraitLeveled} sums every applied level onto one shared tag before a leveled
+     * trait's effect reads it. Magnetic is the only shipped user (issue #297 parity fix):
+     * {@code ForgeweaveTraits#MAGNETIC} is level 1, {@code #MAGNETIC2} level 2, and an all-iron tool
+     * sums to 3 -- one pull at the combined range, not two independent ones.
+     */
+    default int magneticLevel() {
+        return 0;
+    }
+
+    /**
      * The XP a kill made with this tool in the main hand should drop, given what it would otherwise
      * drop (upstream 1.12's {@code ITrait} has no exact hook for this -- {@code TraitEstablished}
      * subscribes to a Forge event directly; {@link ForgeweaveTraits#onExperienceDrop} is the same

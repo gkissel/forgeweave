@@ -42,6 +42,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 
+import net.neoforged.neoforge.common.util.FakePlayer;
 import net.neoforged.neoforge.event.entity.EntityInvulnerabilityCheckEvent;
 import net.neoforged.neoforge.event.entity.EntityTeleportEvent;
 import net.neoforged.neoforge.event.entity.living.LivingExperienceDropEvent;
@@ -194,6 +195,10 @@ public final class ForgeweaveTraits {
     private static final float MAGNETIC_STRENGTH = 0.035F;
     private static final int MAGNETIC_MAX_PULLED = 200;
 
+    /** Upstream {@code MagneticPotion#performEffect}: {@code range = 1.8 + amplifier * 0.3}. */
+    private static final double MAGNETIC_BASE_RANGE = 1.8;
+    private static final double MAGNETIC_RANGE_PER_LEVEL = 0.3;
+
     /**
      * Iron. Upstream {@code TraitMagnetic}'s {@code MagneticPotion#performEffect}: pulls every item
      * drop within {@code 1.8 + level * 0.3} blocks toward the holder at a constant 0.07 blocks/tick,
@@ -201,14 +206,18 @@ public final class ForgeweaveTraits {
      *
      * <p>Upstream reaches this through a hidden potion effect re-applied from {@code afterBlockBreak}
      * and {@code onHit} every 30 ticks; Forgeweave has no potion-effect plumbing to port that
-     * through, so this runs the same pull directly from {@link Trait#inventoryTick} every tick the
-     * tool is carried, at half strength (0.035) rather than gating on tick parity -- the same average
-     * pull rate without depending on when the tool entered the world. Recorded in the PR.
+     * through, so this runs the same pull directly from {@link ForgeweaveTraits#inventoryTick} every
+     * tick the tool is carried, at half strength (0.035) rather than gating on tick parity -- the same
+     * average pull rate without depending on when the tool entered the world. Recorded in the PR.
      *
-     * <p>Iron grants both this (general) and {@link #MAGNETIC2} (head only, upstream's separately
-     * identified {@code magnetic2}); on an all-iron tool both ids apply at once and their pulls add,
-     * whereas upstream's single potion effect would keep only the higher amplifier. Also recorded in
-     * the PR.
+     * <p>Iron grants both this (general, level 1) and {@link #MAGNETIC2} (head only, upstream's
+     * separately identified {@code magnetic2}, level 2). Upstream's {@code AbstractTraitLeveled} sums
+     * every applied level onto one shared tag before the one potion effect reads it -- an all-iron
+     * tool's amplifier is level 3, not two independently-strengthed effects -- so {@link Trait#magneticLevel}
+     * reports each id's own level and {@link #magneticLevel(ItemStack)} sums them for one pull at the
+     * combined range (issue #297 parity fix: this used to run two independent half-strength pulls,
+     * doubling the force where their ranges overlapped and running no pull at all past either one's
+     * own range).
      */
     public static final Trait MAGNETIC = magnetic(1);
 
@@ -216,30 +225,43 @@ public final class ForgeweaveTraits {
     public static final Trait MAGNETIC2 = magnetic(2);
 
     private static Trait magnetic(int level) {
-        double range = 1.8 + level * 0.3;
         return new Trait() {
             @Override
-            public void inventoryTick(ItemStack stack, ServerLevel serverLevel, LivingEntity holder) {
-                Vec3 center = holder.position();
-                List<ItemEntity> items = serverLevel.getEntitiesOfClass(ItemEntity.class,
-                        new AABB(center.x - range, center.y - range, center.z - range,
-                                center.x + range, center.y + range, center.z + range));
-                int pulled = 0;
-                for (ItemEntity item : items) {
-                    if (item.getItem().isEmpty() || item.isRemoved()) {
-                        continue;
-                    }
-                    if (pulled > MAGNETIC_MAX_PULLED) {
-                        break;
-                    }
-                    Vec3 delta = center.subtract(item.position());
-                    if (delta.lengthSqr() > 1.0e-6) {
-                        item.setDeltaMovement(item.getDeltaMovement().add(delta.normalize().scale(MAGNETIC_STRENGTH)));
-                    }
-                    pulled++;
-                }
+            public int magneticLevel() {
+                return level;
             }
         };
+    }
+
+    /** The combined level of every leveled magnetic trait on {@code stack} -- see {@link #MAGNETIC}. */
+    private static int magneticLevel(ItemStack stack) {
+        int level = 0;
+        for (Trait trait : of(stack)) {
+            level += trait.magneticLevel();
+        }
+        return level;
+    }
+
+    /** The one pull {@link #magneticLevel(ItemStack)}'s combined level performs -- see {@link #MAGNETIC}. */
+    private static void pullMagneticItems(ServerLevel serverLevel, LivingEntity holder, double range) {
+        Vec3 center = holder.position();
+        List<ItemEntity> items = serverLevel.getEntitiesOfClass(ItemEntity.class,
+                new AABB(center.x - range, center.y - range, center.z - range,
+                        center.x + range, center.y + range, center.z + range));
+        int pulled = 0;
+        for (ItemEntity item : items) {
+            if (item.getItem().isEmpty() || item.isRemoved()) {
+                continue;
+            }
+            if (pulled > MAGNETIC_MAX_PULLED) {
+                break;
+            }
+            Vec3 delta = center.subtract(item.position());
+            if (delta.lengthSqr() > 1.0e-6) {
+                item.setDeltaMovement(item.getDeltaMovement().add(delta.normalize().scale(MAGNETIC_STRENGTH)));
+            }
+            pulled++;
+        }
     }
 
     /**
@@ -496,7 +518,10 @@ public final class ForgeweaveTraits {
     public static final Trait ALIEN = new Trait() {
         @Override
         public void inventoryTick(ItemStack stack, ServerLevel level, LivingEntity holder) {
-            if (holder.tickCount % ALIEN_TICKS_PER_STAT != 0 || holder.getUseItem() == stack) {
+            // Upstream TraitAlien#onUpdate's guard (issue #297 parity fix): a FakePlayer (hopper-fed
+            // crafting/automation rigs holding the tool) never distributes stat growth.
+            if (holder instanceof FakePlayer || holder.tickCount % ALIEN_TICKS_PER_STAT != 0
+                    || holder.getUseItem() == stack) {
                 return;
             }
             AlienProgress progress = stack.get(ForgeweaveDataComponents.ALIEN_PROGRESS.get());
@@ -602,7 +627,9 @@ public final class ForgeweaveTraits {
                 target.hurt(hit.level().damageSources().lightningBolt(), SHOCKING_DISCHARGE_DAMAGE);
                 attacker.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SPEED, 50, 5));
                 setShockingCharge(stack, charge.discharged());
-            } else {
+            } else if (attacker instanceof Player) {
+                // Upstream TraitShocking#onHit's else-if EntityPlayer gate (issue #297 parity fix): a
+                // non-player attacker (a mob wielding the tool) never builds charge from a hit.
                 setShockingCharge(stack, charge.plus(SHOCKING_CHARGE_PER_HIT * hit.attackStrengthScale()));
             }
         }
@@ -1383,6 +1410,12 @@ public final class ForgeweaveTraits {
         for (Trait trait : of(stack)) {
             trait.inventoryTick(stack, level, holder);
         }
+        // Magnetic (issue #297 parity fix): one pull at the combined level's range, not one pull per
+        // leveled trait instance -- see MAGNETIC's javadoc.
+        int magneticLevel = magneticLevel(stack);
+        if (magneticLevel > 0) {
+            pullMagneticItems(level, holder, MAGNETIC_BASE_RANGE + magneticLevel * MAGNETIC_RANGE_PER_LEVEL);
+        }
     }
 
     /**
@@ -1397,12 +1430,13 @@ public final class ForgeweaveTraits {
      * the order {@link #of} established and a hit allocates nothing extra.
      *
      * <p>{@link Trait#afterHit} deliberately stays where it is instead of riding
-     * {@link CombatSeam#onHit}: {@code ToolItem#postHurtEnemy} calls it right after reading
-     * {@link #attackDurabilityBonus}, and insatiable (issue #102) depends on that order -- the
-     * durability cost of a hit is the stack size <em>before</em> the hit grew it. The damage event
-     * driving on-hit fires earlier than {@code postHurtEnemy}, so moving the call would quietly
-     * change what a first hit costs. Combat innates and modifiers carry no such ordering tie and
-     * attach to the seam.
+     * {@link CombatSeam#onHit}: {@code ToolItem#postHurtEnemy} calls it right <em>before</em> reading
+     * {@link #attackDurabilityBonus} (issue #297 parity fix, matching upstream
+     * {@code ToolHelper#attackEntity}'s afterHit-then-reduceDurabilityOnHit order) -- insatiable's
+     * durability cost is the stack size <em>after</em> the hit that just grew it, so a hit crossing a
+     * stack multiple of 3 pays its own extra cost. The damage event driving on-hit fires earlier than
+     * {@code postHurtEnemy}, so moving the call would quietly change what a first hit costs. Combat
+     * innates and modifiers carry no such ordering tie and attach to the seam.
      */
     public static final CombatSeam COMBAT_SEAM = new CombatSeam() {
         @Override

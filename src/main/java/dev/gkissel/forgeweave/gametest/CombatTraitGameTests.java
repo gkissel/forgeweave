@@ -312,6 +312,30 @@ public class CombatTraitGameTests {
         helper.succeed();
     }
 
+    /**
+     * Steel, head -&gt; {@code forgeweave:sharp}: the bleed credits the attacker for a later kill
+     * (issue #297 parity fix; upstream {@code TraitSharp#afterHit}'s {@code setLastAttackedEntity}).
+     * Drives the trait's seam directly ({@link #onHit}) rather than through a real
+     * {@code LivingEntity#hurt}, since vanilla's own hit-crediting would otherwise mask the bug: a
+     * real landed blow already remembers its own attacker regardless of whether sharp's bleed does.
+     */
+    @GameTest(template = "empty")
+    public static void sharpBleedCreditsTheAttackerForAKill(GameTestHelper helper) {
+        Player attacker = helper.makeMockPlayer(GameType.SURVIVAL);
+        ItemStack hatchet = tool(ForgeweaveItems.TOOL_HATCHET.get(), List.of(traitId("sharp")), 3.0F);
+        Pig pig = noAi(helper.spawn(EntityType.PIG, new BlockPos(2, 2, 2)));
+        helper.assertTrue(pig.getLastHurtByMob() == null, "a fresh pig starts with no remembered attacker");
+
+        onHit(helper, attacker, hatchet, pig);
+        helper.assertTrue(pig.hasEffect(ForgeweaveMobEffects.BLEED), "sharp's seam must apply the bleed");
+        helper.assertTrue(pig.getLastHurtByMob() == attacker,
+                "sharp must remember the attacker so the bleed's later kill credits them, got "
+                        + pig.getLastHurtByMob());
+
+        pig.discard();
+        helper.succeed();
+    }
+
     /** Bone, head (retrofit) -&gt; {@code forgeweave:splintering}: +0.3 per landed hit, capping at +1.8. */
     @GameTest(template = "empty")
     public static void splinteringStacksBonusDamagePerHit(GameTestHelper helper) {

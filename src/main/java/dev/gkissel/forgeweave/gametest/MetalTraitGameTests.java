@@ -13,6 +13,8 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.ai.attributes.AttributeInstance;
+import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.animal.Pig;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
@@ -78,6 +80,44 @@ public class MetalTraitGameTests {
                     helper.assertTrue(dropped.getDeltaMovement().x < 0.0,
                             "magnetic should push the item toward the holder (negative x), got "
                                     + dropped.getDeltaMovement());
+                    dropped.discard();
+                })
+                .thenSucceed();
+    }
+
+    /**
+     * Iron -&gt; {@code forgeweave:magnetic} + {@code magnetic2}: an all-iron tool sums both levels
+     * (1 + 2 = 3) into one pull at the combined range (issue #297 parity fix, upstream
+     * {@code AbstractTraitLeveled}'s shared-tag accumulation), not two independent half-strength
+     * pulls -- which used to double the force where their ranges overlapped and pull nothing at all
+     * past either individual range (2.1 / 2.4 blocks) even though the combined range reaches 2.7.
+     */
+    @GameTest(template = "empty", timeoutTicks = 1200)
+    public static void magneticSumsLeveledTraitsIntoOnePull(GameTestHelper helper) {
+        ServerLevel level = helper.getLevel();
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        BlockPos pos = helper.absolutePos(new BlockPos(2, 2, 2));
+        player.setPos(pos.getX() + 0.5, pos.getY(), pos.getZ() + 0.5);
+        ItemStack pickaxe = pickaxe(List.of(traitId("magnetic"), traitId("magnetic2")), 100, 1.0F, 1.0F);
+
+        // 2.6 blocks out: past either individual trait's own range (2.1 / 2.4) but inside the summed
+        // level-3 range (1.8 + 3 * 0.3 = 2.7).
+        ItemEntity dropped = new ItemEntity(level, player.getX() + 2.6, player.getY(), player.getZ(),
+                new ItemStack(Items.COBBLESTONE));
+        dropped.setDeltaMovement(Vec3.ZERO);
+        level.addFreshEntity(dropped);
+
+        helper.startSequence()
+                .thenWaitUntil(() -> SpawnCapture.assertIndexServes(helper, dropped))
+                .thenExecute(() -> {
+                    pickaxe.getItem().inventoryTick(pickaxe, level, player, 0, false);
+                    double pull = -dropped.getDeltaMovement().x;
+                    helper.assertTrue(pull > 0.0,
+                            "an item at 2.6 blocks should be pulled once the levels sum to range 2.7, got "
+                                    + dropped.getDeltaMovement());
+                    helper.assertTrue(pull < 0.05,
+                            "the summed level must still perform one 0.035-strength pull, not two summed "
+                                    + "together (0.07), got " + pull);
                     dropped.discard();
                 })
                 .thenSucceed();
@@ -194,6 +234,44 @@ public class MetalTraitGameTests {
         }
         helper.assertTrue(ForgeweaveTraits.bonusDamageAgainst(pickaxe, target, 3.0F) == 0.0F,
                 "insatiable should have decayed");
+
+        target.discard();
+        helper.succeed();
+    }
+
+    /**
+     * Manyullyn, head only -&gt; {@code forgeweave:insatiable}: the hit that crosses a stack multiple of
+     * 3 pays its own extra durability cost (issue #297 parity fix; upstream {@code ToolHelper
+     * #attackEntity} runs every trait's {@code afterHit} before {@code reduceDurabilityOnHit}).
+     * {@link ToolItem#postHurtEnemy} is driven directly rather than through a real swing, so the base
+     * (non-insatiable) cost is pinned to a known attack-damage attribute.
+     */
+    @GameTest(template = "empty")
+    public static void insatiablePostHurtEnemyChargesTheHitThatCrossesTheThreshold(GameTestHelper helper) {
+        ServerLevel level = helper.getLevel();
+        Player attacker = helper.makeMockPlayer(GameType.SURVIVAL);
+        ItemStack pickaxe = pickaxe(List.of(traitId("insatiable")), 1000, 1.0F, 3.0F);
+        Pig target = helper.spawn(EntityType.PIG, new BlockPos(2, 2, 2));
+
+        // Two hits already banked: level 2, whose bonus durability truncates to 0 (2 / 3).
+        ForgeweaveTraits.afterHit(pickaxe, level, attacker, target);
+        ForgeweaveTraits.afterHit(pickaxe, level, attacker, target);
+        helper.assertTrue(ForgeweaveTraits.attackDurabilityBonus(pickaxe) == 0, "level 2 pays no bonus yet");
+
+        // A known attack-damage attribute makes the hit's own base cost deterministic:
+        // attackDurabilityCost(10, false) == max(1, 10/10) * 2 == 2 (the pickaxe is not Category.WEAPON).
+        AttributeInstance attackDamage = attacker.getAttribute(Attributes.ATTACK_DAMAGE);
+        helper.assertTrue(attackDamage != null, "a mock player must carry the vanilla attack-damage attribute");
+        attackDamage.setBaseValue(10.0);
+        int before = pickaxe.getDamageValue();
+        pickaxe.getItem().postHurtEnemy(pickaxe, target, attacker);
+        int cost = pickaxe.getDamageValue() - before;
+
+        // This third hit's own afterHit already grew the stack to level 3 before the durability cost
+        // is read, so it pays the new level's +1 bonus (3 / 3), not the +0 the stack owed beforehand.
+        helper.assertTrue(cost == 3, "expected base cost 2 + insatiable's new level-3 bonus 1 = 3, got " + cost);
+        helper.assertTrue(ForgeweaveTraits.attackDurabilityBonus(pickaxe) == 1,
+                "the hit should have grown the stack to level 3, got " + ForgeweaveTraits.attackDurabilityBonus(pickaxe));
 
         target.discard();
         helper.succeed();

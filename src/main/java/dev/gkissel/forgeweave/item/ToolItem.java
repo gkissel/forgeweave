@@ -490,18 +490,20 @@ public class ToolItem extends Item {
      */
     @Override
     public void postHurtEnemy(ItemStack stack, LivingEntity target, LivingEntity attacker) {
+        // Upstream's ToolHelper#attackEntity runs every trait's afterHit before reduceDurabilityOnHit
+        // (issue #297 parity fix): a hit that crosses insatiable's stack threshold pays that same
+        // hit's own bonus cost, not the cost the stack owed before this swing.
+        if (attacker.level() instanceof ServerLevel serverLevel) {
+            ForgeweaveTraits.afterHit(stack, serverLevel, attacker, target);
+        }
         // Upstream feeds the fully resolved hit damage; 1.21 does not hand that to this hook, so this
         // is the attacker's ATTACK_DAMAGE attribute -- upstream's own `baseDamage`, before its crit
         // and cooldown scaling. Nullable because not every LivingEntity has that attribute; such an
         // attacker lands on the formula's floor, which is where every M1 material lands anyway.
         AttributeInstance attackDamage = attacker.getAttribute(Attributes.ATTACK_DAMAGE);
         float damage = attackDamage == null ? 0.0F : (float) attackDamage.getValue();
-        // Insatiable (issue #102) costs extra durability per stack, read before afterHit grows it.
         int cost = attackDurabilityCost(damage, weapon) + ForgeweaveTraits.attackDurabilityBonus(stack);
         stack.hurtAndBreak(cost, attacker, EquipmentSlot.MAINHAND);
-        if (attacker.level() instanceof ServerLevel serverLevel) {
-            ForgeweaveTraits.afterHit(stack, serverLevel, attacker, target);
-        }
     }
 
     /** See {@link #postHurtEnemy}. Package-private and pure so the formula is unit-testable. */
