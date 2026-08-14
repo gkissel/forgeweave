@@ -62,6 +62,11 @@ public class FaucetBlockEntity extends BlockEntity {
 
     private static final String TAG_DRAINED = "drained";
     private static final String TAG_STOP = "stop";
+    /**
+     * #355: whether a pour is in flight, which the buffer alone cannot answer. See {@link
+     * #loadAdditional}.
+     */
+    private static final String TAG_POURING = "pouring";
     /** Upstream 1.20's {@code lastRedstone}: without it a reload forgets the edge it has to stop on. */
     private static final String TAG_REDSTONE = "redstone";
 
@@ -240,15 +245,37 @@ public class FaucetBlockEntity extends BlockEntity {
         // already uses for its fuel-gauge fluid, and it still reads a pre-#200 save that has no
         // "drained" key at all: getCompound returns an empty tag and parseOptional makes it EMPTY.
         tag.put(TAG_DRAINED, buffered.saveOptional(registries));
+        tag.putBoolean(TAG_POURING, pouring);
         tag.putBoolean(TAG_STOP, stopRequested);
         tag.putBoolean(TAG_REDSTONE, lastRedstoneState);
     }
 
+    /**
+     * <b>#355.</b> {@code pouring} is written out rather than re-derived from the buffer, because for
+     * one tick in every {@value #TRANSACTION_AMOUNT}/{@value #LIQUID_TRANSFER} the two disagree: the
+     * step that drains the last {@value #LIQUID_TRANSFER} mB of a transaction leaves the buffer empty
+     * and the pour still in flight, and only the next tick's {@link #pourStep} starts the transaction
+     * after it. A faucet saved in that window came back <em>not</em> pouring -- it stopped drawing its
+     * stream on every client, {@link FaucetBlock#tick} dispatched the pending tick to {@link
+     * #activate()} instead of {@link #pourStep()}, and with {@code stopRequested} gated on the same
+     * wrong answer a second right-click or a dropped redstone signal was thrown away, so the faucet
+     * pulled another {@value #TRANSACTION_AMOUNT} mB out of the source it had been told to leave
+     * alone.
+     *
+     * <p>Upstream 1.12 has no such window: its {@code drained} is a 1.12 {@code FluidStack}, which is
+     * a distinct object at {@code amount == 0}, so the boundary tick still writes one and {@code
+     * readFromNBT}'s {@code drained != null} comes back true. A modern {@link FluidStack} collapses
+     * zero to {@link FluidStack#EMPTY}, so what upstream got from the buffer's identity has to be its
+     * own flag here.
+     *
+     * <p>The fallback keeps upstream's derivation for saves written before the flag existed: a
+     * non-empty buffer was, and still is, proof of a pour.
+     */
     @Override
     protected void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
         super.loadAdditional(tag, registries);
         buffered = FluidStack.parseOptional(registries, tag.getCompound(TAG_DRAINED));
-        pouring = !buffered.isEmpty();
+        pouring = tag.getBoolean(TAG_POURING) || !buffered.isEmpty();
         stopRequested = pouring && tag.getBoolean(TAG_STOP);
         lastRedstoneState = tag.getBoolean(TAG_REDSTONE);
     }

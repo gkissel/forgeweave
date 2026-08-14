@@ -315,6 +315,46 @@ public class CastingGameTests {
                 .thenSucceed();
     }
 
+    /**
+     * #355 regression: a faucet saved and reloaded in the one-tick window between two transactions
+     * has to come back still pouring. The step that moves the last {@value
+     * FaucetBlockEntity#LIQUID_TRANSFER} mB of a transaction empties the buffer a tick before the
+     * next transaction fills it again, and a faucet whose pour state was re-derived from that buffer
+     * read the gap as "not pouring": clients stopped drawing the stream, {@code FaucetBlock#tick}
+     * handed the pending tick to {@code activate} rather than {@code pourStep}, and a stop request
+     * riding along with it was dropped.
+     *
+     * <p>A basin is the target because it takes nine transactions to fill, so the window is reached
+     * eight times before the pour ends and the reload lands squarely mid-pour rather than on the
+     * final boundary. Budget: 1296 mB at {@value FaucetBlockEntity#LIQUID_TRANSFER} mB/tick is 216
+     * ticks of pouring plus {@code CastingRecipe#cooldownTicks}' 24 + (532-300)*1296/1600 = 211 of
+     * cooling, and everything past that floor is {@link #STALL_ALLOWANCE_TICKS}.
+     */
+    @GameTest(template = "empty", timeoutTicks = 430 + STALL_ALLOWANCE_TICKS)
+    public static void aFaucetReloadedBetweenTransactionsFinishesItsPour(GameTestHelper helper) {
+        CastingBlockEntity basin = rig(helper, ForgeweaveBlocks.CASTING_BASIN.get(), ForgeweaveFluids.GOLD.still().get());
+        faucet(helper).activate();
+
+        helper.startSequence()
+                // The window: the transaction in flight has reached the basin in full, and the one
+                // after it has not started yet.
+                .thenWaitUntil(() -> {
+                    FaucetBlockEntity faucet = faucet(helper);
+                    helper.assertTrue(faucet.isPouring(), "expected the faucet to be pouring");
+                    helper.assertTrue(faucet.buffered().isEmpty(),
+                            "expected to catch the faucet between two transactions, found "
+                                    + faucet.buffered().getAmount() + " mB buffered");
+                })
+                .thenExecute(() -> {
+                    reload(helper, FAUCET);
+                    helper.assertTrue(faucet(helper).isPouring(),
+                            "expected a faucet reloaded between transactions to still be pouring");
+                })
+                .thenWaitUntil(() -> helper.assertTrue(basin.output().is(Items.GOLD_BLOCK),
+                        "expected the reloaded faucet to have finished its pour, found " + basin.output()))
+                .thenSucceed();
+    }
+
     /** Pours into the casting block through its own capability, the way a faucet does. */
     private static int fill(GameTestHelper helper, FluidStack fluid) {
         IFluidHandler handler = helper.getLevel().getCapability(Capabilities.FluidHandler.BLOCK,
