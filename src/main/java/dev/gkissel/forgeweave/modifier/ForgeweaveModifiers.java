@@ -1,5 +1,6 @@
 package dev.gkissel.forgeweave.modifier;
 
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -22,6 +23,7 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.tags.EntityTypeTags;
 import net.minecraft.tags.TagKey;
+import net.minecraft.util.RandomSource;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.ExperienceOrb;
 import net.minecraft.world.entity.LivingEntity;
@@ -43,6 +45,7 @@ import net.neoforged.neoforge.event.level.BlockDropsEvent;
 
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.combat.BonusDamageVsSeam;
+import dev.gkissel.forgeweave.combat.CombatHit;
 import dev.gkissel.forgeweave.combat.CombatSeam;
 import dev.gkissel.forgeweave.combat.CombatSeams;
 import dev.gkissel.forgeweave.combat.IgniteOnHitSeam;
@@ -474,12 +477,18 @@ public final class ForgeweaveModifiers {
      */
     private static final int LUCK_LAPIS_PER_LEVEL = 60;
 
+    private static final ResourceLocation LUCK_ID = id("luck");
+
     /**
      * Luck. Upstream {@code ModLuck#applyEnchantments}: grants Fortune to every harvest tool (every
      * Forgeweave tool) and Looting to weapon tools (the hatchet) up to the modifier's display level --
      * see {@link Modifier#fortuneLevel}/{@link Modifier#lootingLevel}'s javadoc for where the
      * registry-dependent half of this lives, and {@code ModifierRecipe#levelsReached} for how the raw
      * lapis count becomes the level passed in here.
+     *
+     * <p>Issue #296: also grows itself for free, capped, off the shared per-hit pipeline -- see
+     * {@link #LUCK_GROWTH_SEAM} and {@link #onBlockDrops}, upstream {@code ModLuck#rewardProgress}'s
+     * two call sites ({@code afterBlockBreak}/{@code afterHit}).
      */
     public static final Modifier LUCK = new Modifier() {
         @Override
@@ -495,6 +504,113 @@ public final class ForgeweaveModifiers {
         @Override
         public int lootingLevel(int level) {
             return level;
+        }
+
+        @Override
+        public Optional<CombatSeam> combatSeam(int level) {
+            return Optional.of(LUCK_GROWTH_SEAM);
+        }
+    };
+
+    // ---------------------------------------------------------------- issue #296 (luck's growth-on-use)
+
+    /**
+     * Upstream {@code ModLuck#rewardProgress}: {@code random.nextFloat() > 0.03f} returns early, so
+     * progress lands on the roughly-3%-of-calls complement -- a flat 3% chance, per qualifying block
+     * break or point of combat damage dealt, to add one free raw application unit toward luck's cap on
+     * top of whatever lapis has been applied at the Tool Station.
+     */
+    private static final float LUCK_GROWTH_CHANCE = 0.03F;
+
+    /**
+     * The roll itself, package-private and pure so it's testable off a seeded {@link RandomSource}
+     * without depending on the block-break/combat-hit plumbing below -- same idiom as
+     * {@code ForgeweaveTraits#rollsSlimeyProc}/{@code combat.Beheading#rollsHead}.
+     */
+    static boolean rollsLuckGrowth(RandomSource random) {
+        return random.nextFloat() < LUCK_GROWTH_CHANCE;
+    }
+
+    /**
+     * Upstream {@code ModLuck#rewardProgress}'s {@code apply(tool)} half, minus the registry lookup a
+     * recipe's cap needs (see {@link #growLuckOnUse}, the real seam-facing entry point that supplies
+     * it): rolls once (always, so every call costs exactly one {@link RandomSource} draw regardless of
+     * outcome -- matching upstream's own roll-before-{@code canApply} order) and, if it lands, adds one
+     * raw application unit (upstream's {@code data.current++}) to {@code tool}'s luck entry, never past
+     * {@code cap}. A no-op -- deliberately, not upstream's own behavior -- when {@code tool} doesn't
+     * carry luck at all yet: upstream's {@code MultiAspect#canApply} would let a free roll spend a free
+     * modifier slot to grant luck itself from a bare block break, with no lapis ever applied, which
+     * reads as a surprising side effect the issue never asks for; flagged in the PR for maintainer
+     * review. Pure once past the roll, so the progress-and-cap arithmetic is unit-testable with a plain
+     * {@link ItemStack} and no {@code ServerLevel}.
+     *
+     * @return whether {@code tool}'s luck entry actually grew, so a caller knows whether to re-grant
+     *     whatever a crossed level threshold now grants
+     */
+    static boolean growLuckByOneUnit(ItemStack tool, RandomSource random, int cap) {
+        boolean rolled = rollsLuckGrowth(random);
+        List<ModifierEntry> entries = of(tool);
+        int index = -1;
+        for (int i = 0; i < entries.size(); i++) {
+            if (entries.get(i).id().equals(LUCK_ID)) {
+                index = i;
+                break;
+            }
+        }
+        if (!rolled || index < 0 || entries.get(index).level() >= cap) {
+            return false;
+        }
+        List<ModifierEntry> updated = new ArrayList<>(entries);
+        updated.set(index, entries.get(index).withLevel(entries.get(index).level() + 1));
+        tool.set(ForgeweaveDataComponents.MODIFIERS.get(), List.copyOf(updated));
+        return true;
+    }
+
+    /**
+     * {@link #growLuckByOneUnit}, with the cap read off the shipped {@code luck.json} recipe's
+     * {@code max_level} (360, the same cumulative total {@code cost_per_level: [60, 120, 180]} reaches --
+     * {@code ModifierBatch1Test#theShippedLuckRecipeMatchesUpstreamsTriangularSchedule}) so autonomous
+     * growth can never push a tool past what applying lapis by hand could, and with Fortune/Looting
+     * re-granted through the same {@link ModifierApplication#applyEnchantmentGrants} the Tool Station
+     * uses whenever a level actually crossed -- upstream's {@code apply(tool)} re-running
+     * {@code applyEnchantments} on every successful roll, not just on the next lapis. The one gate
+     * before the registry lookup is cheap on purpose: this runs off every block break and every hit
+     * landed with a Forgeweave tool, most of which carry no luck at all.
+     */
+    static void growLuckOnUse(ItemStack tool, ServerLevel level) {
+        if (entry(tool, LUCK_ID) == null) {
+            return;
+        }
+        Optional<ModifierRecipe> recipe = level.registryAccess().registryOrThrow(ModifierRecipe.REGISTRY).stream()
+                .filter(candidate -> candidate.modifier().equals(LUCK_ID))
+                .findFirst();
+        int cap = recipe.map(ModifierRecipe::maxLevel).orElse(Integer.MAX_VALUE);
+        if (growLuckByOneUnit(tool, level.getRandom(), cap) && recipe.isPresent()) {
+            ModifierApplication.applyEnchantmentGrants(level.registryAccess(), recipe.get(), tool);
+        }
+    }
+
+    /**
+     * Upstream {@code ModLuck#afterHit}: {@code (int) (damageDealt / 2f)} -- one roll per full heart of
+     * damage actually dealt, so a single heavy blow can grant several free rolls in one swing while a
+     * graze under 2 damage grants none. Pure and package-private so the count itself is unit-testable
+     * without staging a real hit.
+     */
+    static int luckGrowthRolls(float damageDealt) {
+        return (int) (damageDealt / 2.0F);
+    }
+
+    /**
+     * Combat-hit half of {@link #growLuckOnUse} (issue #296) -- {@link Modifier#combatSeam}'s
+     * {@code onHit}, the hook whose own javadoc names "advance per-tool combat state" as exactly what
+     * it is for.
+     */
+    private static final CombatSeam LUCK_GROWTH_SEAM = new CombatSeam() {
+        @Override
+        public void onHit(CombatHit hit, float damageDealt) {
+            for (int hearts = luckGrowthRolls(damageDealt); hearts > 0; hearts--) {
+                growLuckOnUse(hit.weapon(), hit.level());
+            }
         }
     };
 
@@ -1014,6 +1130,8 @@ public final class ForgeweaveModifiers {
         if (isMagnetic(tool) && event.getBreaker() instanceof ServerPlayer player) {
             pullToInventory(event, player);
         }
+        // Issue #296: upstream ModLuck#afterBlockBreak's half of the autonomous-growth roll.
+        growLuckOnUse(tool, event.getLevel());
     }
 
     /** Searing: each drop becomes its furnace-smelted result, count preserved, or itself if none exists. */

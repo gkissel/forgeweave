@@ -1,6 +1,7 @@
 package dev.gkissel.forgeweave.modifier;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.InputStream;
@@ -23,6 +24,7 @@ import net.minecraft.resources.RegistryOps;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.Bootstrap;
 import net.minecraft.tags.BlockTags;
+import net.minecraft.util.RandomSource;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.component.Tool;
@@ -195,6 +197,100 @@ class ModifierBatch1Test {
         assertEquals(2, recipe.levelsReached(entryLevel(oneEighty.output())));
     }
 
+    // ------------------------------------------------------------------ luck's growth-on-use (issue #296)
+
+    private static final ResourceLocation LUCK_ID = ResourceLocation.fromNamespaceAndPath("forgeweave", "luck");
+
+    /**
+     * The seed for a roll that must land -- found by brute-force search rather than hand-computed, so
+     * this test is correct regardless of {@link RandomSource#create}'s exact algorithm (same
+     * deterministic-seed idiom as {@code combat.BeheadingGameTests#higherLevelRaisesDropChance}, which
+     * uses a fixed seed rather than mocking {@link RandomSource}).
+     */
+    private static long seedThatRolls(boolean wantsSuccess) {
+        for (long seed = 0; seed < 1_000_000; seed++) {
+            if (ForgeweaveModifiers.rollsLuckGrowth(RandomSource.create(seed)) == wantsSuccess) {
+                return seed;
+            }
+        }
+        throw new AssertionError("no seed found rolling " + wantsSuccess + " in range");
+    }
+
+    /**
+     * Upstream {@code ModLuck#rewardProgress}: {@code random.nextFloat() > 0.03f} returns early, i.e.
+     * progress only on the complementary ~3% of rolls -- both outcomes must be reachable.
+     */
+    @Test
+    void luckGrowthRollLandsAboutThreePercentOfTheTime() {
+        assertTrue(ForgeweaveModifiers.rollsLuckGrowth(RandomSource.create(seedThatRolls(true))));
+        assertFalse(ForgeweaveModifiers.rollsLuckGrowth(RandomSource.create(seedThatRolls(false))));
+    }
+
+    /** A successful roll adds exactly one raw application unit -- upstream's {@code data.current++}. */
+    @Test
+    void aSuccessfulRollAddsOneRawApplicationUnit() {
+        ItemStack tool = bareLuckPickaxe();
+        tool.set(ForgeweaveDataComponents.MODIFIERS.get(), List.of(new ModifierEntry(LUCK_ID, 5)));
+
+        boolean grew = ForgeweaveModifiers.growLuckByOneUnit(tool, RandomSource.create(seedThatRolls(true)), 360);
+
+        assertTrue(grew);
+        assertEquals(6, ForgeweaveModifiers.entry(tool, LUCK_ID).level());
+    }
+
+    /** A missed roll must not touch the tool at all. */
+    @Test
+    void aMissedRollGrantsNoProgress() {
+        ItemStack tool = bareLuckPickaxe();
+        tool.set(ForgeweaveDataComponents.MODIFIERS.get(), List.of(new ModifierEntry(LUCK_ID, 5)));
+
+        boolean grew = ForgeweaveModifiers.growLuckByOneUnit(tool, RandomSource.create(seedThatRolls(false)), 360);
+
+        assertFalse(grew);
+        assertEquals(5, ForgeweaveModifiers.entry(tool, LUCK_ID).level());
+    }
+
+    /**
+     * Deliberate deviation from upstream (recorded in {@code ForgeweaveModifiers#growLuckByOneUnit}'s
+     * javadoc): a tool that never had lapis applied must not spontaneously gain luck from a lucky roll.
+     */
+    @Test
+    void aToolWithNoLuckEntryNeverGrowsOne() {
+        ItemStack tool = bareLuckPickaxe();
+
+        boolean grew = ForgeweaveModifiers.growLuckByOneUnit(tool, RandomSource.create(seedThatRolls(true)), 360);
+
+        assertFalse(grew);
+        assertTrue(ForgeweaveModifiers.of(tool).isEmpty());
+    }
+
+    /**
+     * The 360 cap the shipped {@code luck.json} recipe encodes: autonomous growth must never push a
+     * tool past what applying lapis by hand could, even on a landed roll.
+     */
+    @Test
+    void growthNeverPushesPastTheRecipesCap() {
+        ItemStack tool = bareLuckPickaxe();
+        tool.set(ForgeweaveDataComponents.MODIFIERS.get(), List.of(new ModifierEntry(LUCK_ID, 360)));
+
+        boolean grew = ForgeweaveModifiers.growLuckByOneUnit(tool, RandomSource.create(seedThatRolls(true)), 360);
+
+        assertFalse(grew, "already at the cap; a landed roll must still be a no-op");
+        assertEquals(360, ForgeweaveModifiers.entry(tool, LUCK_ID).level());
+    }
+
+    /**
+     * Upstream {@code ModLuck#afterHit}: {@code (int) (damageDealt / 2f)} rolls per hit -- one per full
+     * heart, none for a graze under 2 damage, and a heavy blow grants several in one swing.
+     */
+    @Test
+    void luckGrowthRollsOncePerFullHeartOfDamageDealt() {
+        assertEquals(0, ForgeweaveModifiers.luckGrowthRolls(1.9F), "a graze under 2 damage grants no roll");
+        assertEquals(1, ForgeweaveModifiers.luckGrowthRolls(2.0F));
+        assertEquals(1, ForgeweaveModifiers.luckGrowthRolls(3.5F), "a partial third heart still only counts two");
+        assertEquals(5, ForgeweaveModifiers.luckGrowthRolls(10.0F), "a heavy blow grants several rolls in one swing");
+    }
+
     // ------------------------------------------------------------------ diamond (1 diamond)
 
     /**
@@ -258,6 +354,11 @@ class ModifierBatch1Test {
     }
 
     // ------------------------------------------------------------------ helpers
+
+    /** A bare pickaxe with no stats -- all the growth tests above need, same as {@code withModifier}. */
+    private static ItemStack bareLuckPickaxe() {
+        return new ItemStack(ForgeweaveItems.TOOL_PICKAXE.get());
+    }
 
     private static ItemStack assembledPickaxe() {
         ItemStack stack = new ItemStack(ForgeweaveItems.TOOL_PICKAXE.get());
