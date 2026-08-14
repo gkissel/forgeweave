@@ -96,14 +96,18 @@ public class SmelteryScreen extends StationScreen<SmelteryMenu> {
 
     /**
      * Melt-grid art, upstream {@code GuiSmelterySideInventory}: a 22x18 cell with a slot at
-     * {@code (0, 166)}, the "no slot here" filler at {@code (22, 166)}, and the 3x16 heat bars at
-     * {@code (176, 150)} (progressing) and {@code (179, 150)} (stalled).
+     * {@code (0, 166)}, the "no slot here" filler at {@code (22, 166)}, and the four 3x16 heat bars
+     * at {@code (176, 150)} (progressing), {@code (179, 150)} (no fuel/no progress) and
+     * {@code (182, 150)} (upstream's {@code uberHeatBar}, its "tank full, can't finish" state --
+     * #290's stalled variant). Upstream's fourth bar at {@code (185, 150)}, "no melting recipe", has
+     * no Forgeweave use: a melt slot only ever holds something it already accepted as meltable.
      */
     private static final int CELL_U = 0;
     private static final int CELL_EMPTY_U = 22;
     private static final int CELL_V = 166;
     private static final int BAR_ACTIVE_U = 176;
     private static final int BAR_IDLE_U = 179;
+    private static final int BAR_STALLED_U = 182;
     private static final int BAR_V = 150;
     private static final int BAR_WIDTH = 3;
     private static final int BAR_HEIGHT = 16;
@@ -189,9 +193,12 @@ public class SmelteryScreen extends StationScreen<SmelteryMenu> {
     }
 
     /**
-     * One bar per occupied slot, filling upward as the item heats -- upstream's four
+     * One bar per occupied slot, filling upward as the item heats -- upstream's
      * {@code GuiElementScalable(176..185, 150, 3, 16)} variants, chosen by why a slot is or is not
-     * progressing so the bar doubles as the explanation.
+     * progressing so the bar doubles as the explanation. #290: a slot stuck on a full tank draws full
+     * and in {@link #BAR_STALLED_U} rather than whatever fraction {@link SmelteryMenu#meltProgress}
+     * happens to report, since that fraction pinned itself at 1.0 the instant the melt finished and
+     * says nothing about the stall.
      */
     private void renderHeatBars(GuiGraphics graphics, int slots, int gridLeft, int gridTop) {
         List<ItemStack> items = menu.meltingItems(level());
@@ -201,14 +208,16 @@ public class SmelteryScreen extends StationScreen<SmelteryMenu> {
                 if (index >= slots || index >= items.size() || items.get(index).isEmpty()) {
                     continue;
                 }
-                float progress = menu.meltProgress(level(), index);
+                boolean stalled = menu.meltStalled(level(), index);
+                float progress = stalled ? 1f : menu.meltProgress(level(), index);
                 int height = 1 + Math.round(Math.clamp(progress, 0f, 1f) * (BAR_HEIGHT - 1));
                 int x = gridLeft + col * SmelteryMenu.CELL_WIDTH + 1;
                 int y = gridTop + row * SmelteryMenu.SLOT_SIZE + 1;
+                int barU = stalled ? BAR_STALLED_U : progress > 0f ? BAR_ACTIVE_U : BAR_IDLE_U;
                 // Bars fill from the bottom, so the drawn slice is the bottom `height` px of both
                 // the sprite and the bar's own box.
                 graphics.blit(TEXTURE, x, y + BAR_HEIGHT - height,
-                        progress > 0f ? BAR_ACTIVE_U : BAR_IDLE_U, BAR_V + BAR_HEIGHT - height,
+                        barU, BAR_V + BAR_HEIGHT - height,
                         BAR_WIDTH, height, SHEET, SHEET);
             }
         }

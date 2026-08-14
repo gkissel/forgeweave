@@ -3,11 +3,13 @@ package dev.gkissel.forgeweave.gametest;
 import net.minecraft.core.BlockPos;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
+import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.level.material.Fluids;
+import net.minecraft.world.phys.Vec3;
 
 import net.neoforged.neoforge.fluids.FluidStack;
 import net.neoforged.neoforge.fluids.capability.IFluidHandler;
@@ -26,10 +28,10 @@ import dev.gkissel.forgeweave.recipe.MeltingRecipe;
 /**
  * docs/SCOPE.md M2 issue #96's verification on a headless dedicated server: a vanilla ore melts at
  * its base amount, an item Forgeweave has never heard of melts because a {@code c:} tag names it, a
- * recipe hotter than the available fuel never melts, and a smeltery with nothing in it is on no tick
- * list at all.
+ * recipe hotter than the available fuel never melts, and an unformed smeltery is on no tick list at
+ * all. Issue #290 adds the once-a-second dropped-item pickup and the full-tank stall state on top.
  *
- * <p>The last two lean on the GameTest-only datapack in {@code src/gametest/resources} (see its
+ * <p>Some of these lean on the GameTest-only datapack in {@code src/gametest/resources} (see its
  * README): {@code minecraft:brick} stands in for a modded copper ingot, and a 1400-degree recipe
  * stands in for the metals that need more than lava, which arrive with issue #97's fuel system.
  *
@@ -188,20 +190,18 @@ public class SmelteryMeltingGameTests {
     }
 
     /**
-     * A recipe above what the fuel can reach never progresses, and the core stops ticking rather than
-     * spinning on it (#96, deflaked in #210).
+     * A recipe above what the fuel can reach never progresses (#96, deflaked in #210).
      *
-     * <p>"Not ticking" here is a <em>steady</em> state, not a constant one: inserting arms one melt
-     * tick that fires, declines the too-hot recipe, and does not reschedule -- and any later structure
-     * scan re-arms another such one-shot check by design ({@code
-     * SmelteryControllerBlockEntity#armMeltTick} only asks for a recipe, not reachable heat, because a
-     * scan is how refilled hotter fuel wakes a stalled melt). Scheduled block ticks are also not
-     * anchored to the test clock -- a chunk that drops off the tick list mid-run delivers them late.
-     * So this asserts with {@code succeedWhen} (retried every tick until the timeout) after the
-     * observation window, rather than one-shot sampling {@code !isTicking} at a fixed tick, which is
-     * how #210's single merge-queue failure happened. A genuinely spinning core still fails: its
-     * reschedule lands in the same tick it runs, so {@code isTicking} would hold on every retry
-     * through the timeout.
+     * <p>Scheduled block ticks are not anchored to the test clock -- a chunk that drops off the tick
+     * list mid-run delivers them late. So this asserts with {@code succeedWhen} (retried every tick
+     * until the timeout) after the observation window, rather than one-shot sampling a fixed tick,
+     * which is how #210's single merge-queue failure happened.
+     *
+     * <p>#290 retired this test's other half, "the core stops ticking rather than spinning on it": a
+     * <em>formed</em> smeltery now always keeps a once-a-second heartbeat alive regardless of melt
+     * work, for the item-pickup sweep (see {@code SmelteryControllerBlockEntity#armMeltTick}), so
+     * "not ticking" is no longer a signal that the too-hot recipe stopped retrying. The fluid amount
+     * and the item still sitting there are what actually prove it never melted.
      */
     @GameTest(template = "smeltery", timeoutTicks = 200)
     public static void aRecipeHotterThanTheFuelDoesNotMelt(GameTestHelper helper) {
@@ -211,22 +211,28 @@ public class SmelteryMeltingGameTests {
         helper.runAfterDelay(100, () -> helper.succeedWhen(() -> {
             helper.assertValueEqual(core.tank().getFluidAmount(), 0, "fluid in a smeltery that cannot reach 1400");
             helper.assertTrue(!core.meltingItems().get(0).isEmpty(), "expected the unmeltable item to still be sitting there");
-            helper.assertTrue(!isTicking(helper), "expected the core to stop ticking on a recipe it cannot heat");
         }));
     }
 
     /**
-     * SCOPE.md M2's performance budget ("spark profile confirms idle smeltery ~= zero tick") as an
-     * assertion: a formed, fuelled, empty smeltery is on no tick list, and putting something meltable
-     * in it is what arms one.
+     * SCOPE.md M2's performance budget ("spark profile confirms idle smeltery ~= zero tick"), as
+     * narrowed by #290: only an <em>unformed</em> core is on no tick list at all. A formed one always
+     * arms at least the once-a-second item-pickup heartbeat (upstream's own {@code
+     * interactWithEntitiesInside} has no fuel or melt-work gate, only "is the structure active"), and
+     * putting something meltable in on top of that is what tightens the cadence to the melt tick.
      */
     @GameTest(template = "smeltery")
-    public static void anIdleSmelteryIsOnNoTickList(GameTestHelper helper) {
-        SmelteryControllerBlockEntity core = lavaFuelledSmeltery(helper);
+    public static void formingASmelteryArmsOnlyTheItemPickupHeartbeatUntilSomethingMelts(GameTestHelper helper) {
+        SmelteryGameTests.buildWalls(helper, 1, 1, 2);
+        helper.assertTrue(!isTicking(helper), "an unformed core (no structure yet) must not be scheduled to tick");
 
-        helper.assertTrue(!isTicking(helper), "a formed but empty smeltery must not be scheduled to tick");
+        BlockPos corePos = SmelteryGameTests.placeCore(helper, ForgeweaveBlocks.STANDARD_CORE.get());
+        SmelteryControllerBlockEntity core = helper.getBlockEntity(corePos);
+        helper.assertTrue(core.isFormed(), "expected the test smeltery to form: " + core.lastResult().getString());
+        helper.assertTrue(isTicking(helper), "forming a smeltery must arm the item-pickup heartbeat (#290)");
+
         insert(helper, core, Items.RAW_IRON);
-        helper.assertTrue(isTicking(helper), "inserting something meltable must arm the melt tick");
+        helper.assertTrue(isTicking(helper), "inserting something meltable must still be ticking");
         helper.succeed();
     }
 
@@ -239,7 +245,91 @@ public class SmelteryMeltingGameTests {
 
         helper.assertValueEqual(rejected.getCount(), 1, "the stick should have come straight back");
         helper.assertTrue(core.meltingItems().stream().allMatch(ItemStack::isEmpty), "and nothing should be in the smeltery");
-        helper.assertTrue(!isTicking(helper), "and it should not have armed a tick");
+        helper.succeed();
+    }
+
+    /**
+     * #290: upstream's {@code TileSmeltery#interactWithEntitiesInside}, once a second, picks up a
+     * dropped item entity sitting inside the formed interior and inserts it for melting -- no GUI
+     * open, no player interaction, nothing but the item resting inside the structure.
+     */
+    @GameTest(template = "smeltery", timeoutTicks = 1600)
+    public static void aDroppedItemInsideAFormedSmelteryIsPickedUpAndMelted(GameTestHelper helper) {
+        SmelteryControllerBlockEntity core = lavaFuelledSmeltery(helper);
+        ItemEntity dropped = dropInsideSmeltery(helper, new ItemStack(Items.IRON_ORE));
+
+        helper.succeedWhen(() -> {
+            helper.assertTrue(dropped.isRemoved(), "expected the smeltery to consume the dropped item entity");
+            assertTankHolds(helper, core, ForgeweaveFluids.IRON.still().get(),
+                    (int) (MeltingRecipe.VALUE_INGOT * SmelteryCore.STANDARD.yieldMultiplier()));
+        });
+    }
+
+    /**
+     * #290: a dropped item with no melting recipe is left alone rather than vanishing into a slot it
+     * cannot use -- the same refusal {@link #anUnmeltableItemIsRefused} proves for a direct insert,
+     * now proven for the pickup sweep's own entry point.
+     */
+    @GameTest(template = "smeltery", timeoutTicks = 60)
+    public static void aDroppedUnmeltableItemIsLeftOnTheGround(GameTestHelper helper) {
+        SmelteryControllerBlockEntity core = lavaFuelledSmeltery(helper);
+        ItemEntity dropped = dropInsideSmeltery(helper, new ItemStack(Items.STICK));
+
+        helper.runAfterDelay(40, () -> {
+            helper.assertTrue(!dropped.isRemoved(), "expected an unmeltable dropped item to survive the sweep");
+            helper.assertTrue(core.meltingItems().stream().allMatch(ItemStack::isEmpty), "and nothing should be in the smeltery");
+            helper.succeed();
+        });
+    }
+
+    /**
+     * #290: upstream's overheat state -- a melt that finished but could not drain into a full tank --
+     * exposed as {@link SmelteryControllerBlockEntity#meltStalled(int)}. Driven the same
+     * deterministic way #287's {@code aFinishOnlyTickConsumesNoFuel} drives a finishing tick: straight
+     * calls to {@link SmelteryControllerBlockEntity#meltTick()} rather than waiting on the scheduler,
+     * so the assertion sits on the exact finishing tick instead of a timing-dependent sample.
+     */
+    @GameTest(template = "smeltery", timeoutTicks = 100)
+    public static void aFinishedMeltThatCannotFitIsMarkedStalled(GameTestHelper helper) {
+        SmelteryControllerBlockEntity core = lavaFuelledSmeltery(helper);
+        // Leave only 10 mB free -- less than the nugget's 16 mB result, so the finishing tick cannot fit it.
+        core.tank().fill(new FluidStack(ForgeweaveFluids.IRON.still().get(), core.tank().getCapacity() - 10),
+                IFluidHandler.FluidAction.EXECUTE);
+        helper.assertTrue(core.insertForMelting(new ItemStack(Items.IRON_NUGGET)).isEmpty(),
+                "expected the iron nugget to go into the smeltery");
+
+        while (core.meltProgress(0) < 1.0f) {
+            core.meltTick();
+        }
+        helper.assertTrue(!core.meltStalled(0), "expected no stall before the finishing tick even attempted");
+
+        core.meltTick(); // finish-only tick: the tank has no room, so the melt cannot complete.
+
+        helper.assertTrue(core.meltStalled(0), "expected a full tank to mark the finished slot stalled (#290)");
+        helper.assertTrue(!core.meltingItems().get(0).isEmpty(), "expected the nugget to still be sitting there, unmelted");
+        helper.succeed();
+    }
+
+    /** #290: draining room back into the tank lets a stalled melt finish, which clears the flag. */
+    @GameTest(template = "smeltery", timeoutTicks = 100)
+    public static void aStalledMeltClearsOnceTheTankHasRoomAgain(GameTestHelper helper) {
+        SmelteryControllerBlockEntity core = lavaFuelledSmeltery(helper);
+        core.tank().fill(new FluidStack(ForgeweaveFluids.IRON.still().get(), core.tank().getCapacity() - 10),
+                IFluidHandler.FluidAction.EXECUTE);
+        helper.assertTrue(core.insertForMelting(new ItemStack(Items.IRON_NUGGET)).isEmpty(),
+                "expected the iron nugget to go into the smeltery");
+
+        while (core.meltProgress(0) < 1.0f) {
+            core.meltTick();
+        }
+        core.meltTick();
+        helper.assertTrue(core.meltStalled(0), "expected the slot to be stalled ahead of the drain");
+
+        core.tank().drain(50, IFluidHandler.FluidAction.EXECUTE);
+        core.meltTick();
+
+        helper.assertTrue(!core.meltStalled(0), "expected the stall to clear once the melt actually finished");
+        helper.assertTrue(core.meltingItems().get(0).isEmpty(), "expected the nugget to have finished melting");
         helper.succeed();
     }
 
@@ -274,6 +364,14 @@ public class SmelteryMeltingGameTests {
         helper.assertValueEqual(core.tank().getFluidAmount(), amount, "molten metal in the tank");
         helper.assertTrue(core.tank().getFluid().getFluid() == fluid,
                 "expected " + fluid + " but the tank holds " + core.tank().getFluid().getFluid());
+    }
+
+    /** Spawns {@code stack} as a dropped item entity inside {@link SmelteryGameTests#buildWalls}'s 1x1x2 interior (relative (1, 2, 1)). */
+    private static ItemEntity dropInsideSmeltery(GameTestHelper helper, ItemStack stack) {
+        Vec3 pos = helper.absoluteVec(new BlockPos(1, 2, 1).getCenter());
+        ItemEntity entity = new ItemEntity(helper.getLevel(), pos.x, pos.y, pos.z, stack);
+        helper.getLevel().addFreshEntity(entity);
+        return entity;
     }
 
     private static boolean isTicking(GameTestHelper helper) {

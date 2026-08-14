@@ -302,7 +302,7 @@ Applies across all milestones; the M1 CI/release gates above are the first insta
 
 ### Performance budgets
 
-- Idle stations and idle smeltery cost ~zero tick time: block entities tick only while doing work.
+- Idle stations and an *unformed* smeltery cost ~zero tick time: block entities tick only while doing work. A *formed* smeltery keeps a once-a-second heartbeat alive regardless of melt work (issue #290's dropped-item pickup, upstream parity), which is still far below upstream's own forever-ticking cadence.
 - The material sync packet stays trivially small even at M6 scale (hundreds of materials).
 - Checked by a manual spark profile on the release-checklist dedicated server from M2 onward. No automated performance gates unless a shipped regression proves the need.
 

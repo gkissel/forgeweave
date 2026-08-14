@@ -131,14 +131,26 @@ public class SmelteryControllerBlock extends HorizontalDirectionalBlock implemen
     }
 
     /**
-     * #96: one melt step, then re-arm only if there is still something to melt. This is the whole
-     * "the smeltery ticks" story -- a scheduled block tick rather than a {@code BlockEntityTicker},
-     * so a core with nothing in it is on no tick list at all (see {@link SmelteryControllerBlockEntity}).
+     * The whole "the smeltery ticks" story -- a scheduled block tick rather than a
+     * {@code BlockEntityTicker}, so an unformed core with nothing in it is on no tick list at all
+     * (see {@link SmelteryControllerBlockEntity}). One melt step and one item-pickup sweep attempt
+     * (#290) run on every firing, whichever cadence woke it -- {@link
+     * SmelteryControllerBlockEntity#sweepForDroppedItems()} throttles itself against real elapsed
+     * time, so a firing that is too soon for a sweep is simply a no-op there. Reschedules at the
+     * tighter melt cadence while there is melt work, or the item-pickup cadence while merely formed;
+     * an unformed core with nothing melting reschedules nothing and falls silent.
      */
     @Override
     protected void tick(BlockState state, ServerLevel level, BlockPos pos, RandomSource random) {
-        if (level.getBlockEntity(pos) instanceof SmelteryControllerBlockEntity core && core.meltTick()) {
+        if (!(level.getBlockEntity(pos) instanceof SmelteryControllerBlockEntity core)) {
+            return;
+        }
+        boolean melting = core.meltTick();
+        core.sweepForDroppedItems();
+        if (melting) {
             level.scheduleTick(pos, this, SmelteryControllerBlockEntity.MELT_INTERVAL_TICKS);
+        } else if (core.isFormed()) {
+            level.scheduleTick(pos, this, SmelteryControllerBlockEntity.ITEM_PICKUP_INTERVAL_TICKS);
         }
     }
 

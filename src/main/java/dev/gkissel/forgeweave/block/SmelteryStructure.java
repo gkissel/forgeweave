@@ -4,6 +4,7 @@ import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 
 import net.minecraft.core.BlockPos;
+import net.minecraft.world.phys.AABB;
 
 /**
  * The interior of a formed smeltery: the two opposite corners of the open space enclosed by the
@@ -46,5 +47,16 @@ public record SmelteryStructure(BlockPos interiorMin, BlockPos interiorMax) {
         return pos.getX() >= interiorMin.getX() && pos.getX() <= interiorMax.getX()
                 && pos.getY() >= interiorMin.getY() && pos.getY() <= interiorMax.getY()
                 && pos.getZ() >= interiorMin.getZ() && pos.getZ() <= interiorMax.getZ();
+    }
+
+    /**
+     * The interior as a world-space box covering every full block from {@link #interiorMin} to
+     * {@link #interiorMax} inclusive -- upstream's {@code interactWithEntitiesInside} entity scan
+     * (#290) and {@code SmelteryControllerBlockEntityRenderer}'s render bounds both want this same
+     * "every block in the interior, whole" box.
+     */
+    public AABB interiorBounds() {
+        return new AABB(interiorMin.getX(), interiorMin.getY(), interiorMin.getZ(),
+                interiorMax.getX() + 1, interiorMax.getY() + 1, interiorMax.getZ() + 1);
     }
 }
