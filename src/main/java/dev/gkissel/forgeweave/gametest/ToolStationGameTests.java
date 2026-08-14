@@ -7,6 +7,7 @@ import net.minecraft.core.component.DataComponents;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.contents.TranslatableContents;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.ContainerLevelAccess;
@@ -25,6 +26,7 @@ import dev.gkissel.forgeweave.block.ToolStationBlockEntity;
 import dev.gkissel.forgeweave.item.ForgeweaveDataComponents;
 import dev.gkissel.forgeweave.item.ForgeweaveItems;
 import dev.gkissel.forgeweave.item.ToolItem;
+import dev.gkissel.forgeweave.menu.StationMenu;
 import dev.gkissel.forgeweave.menu.ToolStationMenu;
 import dev.gkissel.forgeweave.menu.ToolStationTabs;
 import dev.gkissel.forgeweave.modifier.ForgeweaveModifiers;
@@ -264,6 +266,59 @@ public class ToolStationGameTests {
         ItemStack output = menu.getSlot(ToolStationMenu.OUTPUT_SLOT).getItem();
         helper.assertTrue(output.is(ForgeweaveItems.TOOL_PICKAXE.get()),
                 "assembly through the pickaxe tab must still produce a pickaxe, got " + output);
+        helper.succeed();
+    }
+
+    /**
+     * Issue #378, upstream {@code GuiToolStation:296-301}: a part of exactly the shape the slot wants
+     * whose material this world has no definition for. {@code ToolAssemblyRecipes#assemble} gives up
+     * on that silently -- the output slot stays empty while the components panel lists every part as
+     * satisfied -- so before #378 the station's only answer was to look broken.
+     *
+     * <p>Also pins the classification: upstream reaches this one through {@code warning(...)} rather
+     * than {@code error(...)}, because nothing was attempted and refused, the loadout was simply never
+     * going to build anything.
+     */
+    @GameTest(template = "empty")
+    public static void aPartOfAnUnknownMaterialSaysSoRatherThanRefusingSilently(GameTestHelper helper) {
+        BlockPos pos = new BlockPos(1, 1, 1);
+        helper.setBlock(pos, ForgeweaveBlocks.TOOL_STATION.get());
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        ToolStationBlockEntity blockEntity = helper.getBlockEntity(pos);
+        ToolStationMenu menu = ToolAssembly.menu(helper, player, pos, blockEntity);
+
+        int pickaxeTab = ToolStationTabs.TABS.indexOf(ToolStationTabs.TABS.stream()
+                .filter(tab -> !tab.isRepair() && tab.tool() == ForgeweaveItems.TOOL_PICKAXE.get())
+                .findFirst().orElseThrow());
+        helper.assertTrue(menu.clickMenuButton(player, pickaxeTab), "selecting the pickaxe tab must be accepted");
+
+        // A real pickaxe head -- the slot's own filter accepts it -- made of a material no datapack
+        // defines, which is what a shard or part from a since-removed pack carries.
+        ItemStack head = new ItemStack(ForgeweaveItems.PART_PICKAXE_HEAD.get());
+        head.set(ForgeweaveDataComponents.MATERIAL.get(),
+                ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "unobtainium"));
+        helper.assertTrue(menu.getSlot(ToolStationMenu.HEAD_SLOT).mayPlace(head),
+                "the test needs a part the slot itself accepts -- the material is the only thing wrong");
+        menu.getSlot(ToolStationMenu.HEAD_SLOT).set(head);
+        menu.getSlot(ToolStationMenu.BINDING_SLOT).set(ToolAssembly.part(ForgeweaveItems.PART_TOOL_BINDING.get(), "wood"));
+        menu.getSlot(ToolStationMenu.HANDLE_SLOT).set(ToolAssembly.part(ForgeweaveItems.PART_TOOL_HANDLE.get(), "wood"));
+        menu.broadcastChanges();
+
+        helper.assertTrue(menu.getSlot(ToolStationMenu.OUTPUT_SLOT).getItem().isEmpty(),
+                "the station cannot build anything from a material it does not know");
+        StationMenu.Rejection rejection = menu.rejection();
+        helper.assertTrue(rejection != null, "and it must say why rather than leaving the slot mysteriously empty");
+        helper.assertTrue(rejection.message().getContents() instanceof TranslatableContents t
+                        && t.getKey().equals("gui.forgeweave.tool_station.wrong_material_part"),
+                "expected the wrong_material_part message, got " + rejection.message());
+        helper.assertTrue(rejection.warning(),
+                "upstream reaches this through warning(), not error(): nothing was refused, the "
+                        + "loadout was never going to craft (GuiToolStation:299)");
+
+        // A part of a material that does exist is not a wrong-material part.
+        menu.getSlot(ToolStationMenu.HEAD_SLOT).set(ToolAssembly.part(ForgeweaveItems.PART_PICKAXE_HEAD.get(), "stone"));
+        menu.broadcastChanges();
+        helper.assertTrue(menu.rejection() == null, "a fully valid loadout has nothing to complain about");
         helper.succeed();
     }
 

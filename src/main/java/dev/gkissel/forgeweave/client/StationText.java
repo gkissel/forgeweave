@@ -233,6 +233,25 @@ public final class StationText {
         return FORMAT.format(value);
     }
 
+    /**
+     * The Part Builder's centred readout, upstream's {@code gui.partbuilder.material_value} =
+     * {@code "Material Value: %s %s"} ({@code GuiPartBuilder:116-138}, issue #378). Two things had
+     * been missing: the amount is normalised to <b>ingots</b> and may be fractional
+     * ({@code matchAmount / (float) Material.VALUE_Ingot} through {@code Util.df}, which is
+     * {@link #formatNumber}) where this used to print the raw shard-unit count, and the material's
+     * own name follows it -- with two material slots (issue #306) that name is the only thing saying
+     * which of the two stacks the total was counted against.
+     *
+     * <p>Only the <em>amount</em> goes {@code DARK_RED} when it falls short of the pattern's cost;
+     * upstream wraps just that substring and lets the label stay in the line's own grey.
+     */
+    public static Component materialValue(float ingots, boolean enough, ResourceLocation materialId) {
+        Component amount = Component.literal(formatNumber(ingots));
+        return Component.translatable("gui.forgeweave.part_builder.material_value",
+                enough ? amount : amount.copy().withStyle(ChatFormatting.DARK_RED),
+                MaterialDisplay.plainName(materialId));
+    }
+
     private static Component traitLine(@Nullable TextColor color, ResourceLocation id) {
         String base = "trait." + id.getNamespace() + "." + id.getPath();
         MutableComponent name = Component.translatable(base + ".name");

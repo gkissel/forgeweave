@@ -23,6 +23,7 @@ import dev.gkissel.forgeweave.block.ForgeweaveBlocks;
 import dev.gkissel.forgeweave.block.ToolStationBlockEntity;
 import dev.gkissel.forgeweave.item.ForgeweaveItems;
 import dev.gkissel.forgeweave.item.ToolItem;
+import dev.gkissel.forgeweave.menu.StationMenu;
 import dev.gkissel.forgeweave.menu.ToolAssemblyRecipes;
 import dev.gkissel.forgeweave.menu.ToolStationMenu;
 import dev.gkissel.forgeweave.menu.ToolStationTabs;
@@ -71,11 +72,14 @@ public class ToolForgeGameTests {
         // A silent empty output slot is indistinguishable from "you loaded the wrong parts"; the
         // issue's requirement is a *visible* reason, which is the string the screen puts in its info
         // panel. Asserted on the key rather than the English text so a wording change isn't a failure.
-        Component rejection = menu.rejection();
+        StationMenu.Rejection rejection = menu.rejection();
         helper.assertTrue(rejection != null, "the Tool Station must say why it refused a large tool");
-        helper.assertTrue(rejection.getContents() instanceof net.minecraft.network.chat.contents.TranslatableContents t
+        helper.assertTrue(rejection.message().getContents()
+                        instanceof net.minecraft.network.chat.contents.TranslatableContents t
                         && t.getKey().equals("gui.forgeweave.tool_station.needs_forge"),
-                "expected the needs_forge message, got " + rejection);
+                "expected the needs_forge message, got " + rejection.message());
+        // #378: a refused craft is upstream's error class, so the panel captions it ERROR.
+        helper.assertFalse(rejection.warning(), "a large tool the station cannot build is an error, not a warning");
         helper.succeed();
     }
 

@@ -39,6 +39,7 @@ import dev.gkissel.forgeweave.item.ForgeweaveItems;
 import dev.gkissel.forgeweave.item.ToolItem;
 import dev.gkissel.forgeweave.menu.ForgeweaveMenus;
 import dev.gkissel.forgeweave.menu.RenameStationItemPayload;
+import dev.gkissel.forgeweave.menu.StationMenu;
 import dev.gkissel.forgeweave.menu.ToolStationMenu;
 import dev.gkissel.forgeweave.menu.ToolStationTabs;
 import dev.gkissel.forgeweave.menu.ToolStationTabs.Tab;
@@ -298,15 +299,21 @@ public class ToolStationScreen extends StationScreen<ToolStationMenu> implements
                 traitLines = componentLines(tab);
             }
         }
-        // Why the loaded reagents can't be applied (issue #105). Upstream shows its
+        // Why the loaded slots can't produce anything (issues #105, #378). Upstream shows its
         // TinkerGuiException text in this same panel; the menu resolves the answer from the synced
         // modifier-recipe registry, so no packet is involved.
-        Component rejection = menu.rejection();
+        //
+        // #378 makes it upstream's takeover rather than a red line appended to whatever was already
+        // there (GuiToolStation:562-575): the caption becomes ERROR/WARNING, the body becomes the
+        // message alone, and the trait panel is blanked outright. Appending was the bug -- the
+        // message landed under a full panel of stats, so on anything but the shortest tool it was
+        // below the fold and the player saw an unexplained empty output slot.
+        StationMenu.Rejection rejection = menu.rejection();
         if (rejection != null) {
-            List<Component> withError = new ArrayList<>(toolLines);
-            withError.add(null);
-            withError.add(rejection.copy().withStyle(ChatFormatting.RED));
-            toolLines = withError;
+            toolCaption = rejection.caption();
+            toolLines = rejection.body();
+            traitCaption = null;
+            traitLines = List.of();
         }
         toolScroll = Math.min(toolScroll, InfoPanel.maxScroll(font, InfoPanel.WIDTH, InfoPanel.HEIGHT, true, toolLines));
         traitScroll = Math.min(traitScroll,

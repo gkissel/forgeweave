@@ -311,12 +311,26 @@ public class ToolStationMenu extends StationMenu {
      *
      * <p>The large-tool refusal comes first because it is the harder stop: a large tool cannot be
      * built here at all, whereas a modifier rejection is about the particular reagents loaded.
+     *
+     * <p>Every answer below is upstream's <em>error</em> class ({@link Rejection#error}): each one
+     * is a craft that was attempted and refused, which is what upstream throws as a
+     * {@code TinkerGuiException} and {@code ContainerToolStation} hands to {@code error(...)}. The
+     * one warning is {@link #wrongMaterialPart}, derived from the slots rather than from a failed
+     * attempt -- see {@link Rejection}.
      */
     @Nullable
-    public Component rejection() {
+    public Rejection rejection() {
         ItemStack tool = slots.get(HEAD_SLOT).getItem();
         if (!forge && ToolAssemblyRecipes.isLargeToolHead(inputSlots())) {
-            return Component.translatable("gui.forgeweave.tool_station.needs_forge");
+            return Rejection.error(Component.translatable("gui.forgeweave.tool_station.needs_forge"));
+        }
+        // #378, upstream GuiToolStation:296-301: a part of the right shape whose material this world
+        // has no definition for. Sits here because it is the same kind of hard stop as the one above
+        // -- ToolAssemblyRecipes#assemble bails on exactly this and says nothing, so before #378 the
+        // output slot simply stayed empty with the components panel showing every part satisfied.
+        Component wrongMaterial = wrongMaterialPart();
+        if (wrongMaterial != null) {
+            return Rejection.warning(wrongMaterial);
         }
         // #264: a part exchange refused for shape, material or durability explains itself. Checked
         // before embossing because an exchange loadout (tool + parts only) is never an embossing one.
@@ -324,13 +338,14 @@ public class ToolStationMenu extends StationMenu {
                 .map(ToolAssemblyRecipes.Exchange::rejection)
                 .orElse(null);
         if (exchange != null) {
-            return exchange;
+            return Rejection.error(exchange);
         }
         Component embossing = Embossing.resolve(registries, tool, freeSlotContents())
                 .map(Embossing.Outcome::rejection)
                 .orElse(null);
         if (embossing != null) {
-            return embossing; // #154: "already embossed" outranks anything the reagents also mean.
+            // #154: "already embossed" outranks anything the reagents also mean.
+            return Rejection.error(embossing);
         }
         // #271: same position and same reason as embossing above -- a fortification loadout is never
         // a generic modifier one, and "already fortified with this material" outranks anything the
@@ -340,12 +355,40 @@ public class ToolStationMenu extends StationMenu {
                 .map(Fortification.Outcome::rejection)
                 .orElse(null);
         if (fortification != null) {
-            return fortification;
+            return Rejection.error(fortification);
         }
         return ModifierApplication.resolve(registries, tool,
                         slots.get(BINDING_SLOT).getItem(), slots.get(HANDLE_SLOT).getItem())
                 .map(ModifierApplication.Outcome::rejection)
+                .map(Rejection::error)
                 .orElse(null);
+    }
+
+    /**
+     * Upstream {@code GuiToolStation:296-301}: on a build tab, a slot holding the part that slot
+     * wants but made of a material no loaded datapack defines. That is precisely the case
+     * {@code ToolAssemblyRecipes#assemble} gives up on (its {@code lookupMaterial} comes back empty,
+     * as does {@code resolveAssembly} for a part carrying no material component at all), so without
+     * this the station refuses silently.
+     *
+     * <p>Only build tabs, as upstream: the repair tab's free slots take reagents and embossing
+     * donors, whose own resolvers already explain themselves.
+     */
+    @Nullable
+    private Component wrongMaterialPart() {
+        Tab tab = tab();
+        if (tab.isRepair()) {
+            return null;
+        }
+        for (int i = 0; i < tab.slots().size(); i++) {
+            ItemStack stack = slots.get(i).getItem();
+            // "Right part, wrong material" is upstream's exact shape (`pmt.isValidItem` passing while
+            // `pmt.isValid` fails); anything else in the slot is the components list's business.
+            if (stack.is(tab.part(i)) && PartItem.hasUnusableMaterial(registries, stack)) {
+                return Component.translatable("gui.forgeweave.tool_station.wrong_material_part");
+            }
+        }
+        return null;
     }
 
     /** Every input slot, in slot order -- what the large-tool refusal looks at (issue #157). */

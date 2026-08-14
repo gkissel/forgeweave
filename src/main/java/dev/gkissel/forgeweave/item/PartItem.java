@@ -68,6 +68,26 @@ public class PartItem extends Item {
         return kind;
     }
 
+    /**
+     * Whether {@code stack} is a tool part that can build nothing because its material is not one
+     * this world defines -- either the component is missing outright or it names an id no loaded
+     * datapack has (a shard from a pack that was since removed, a part from another world).
+     *
+     * <p>This is exactly the condition {@code ToolAssemblyRecipes#assemble} gives up on, and it gives
+     * up silently: before issue #378 such a part left the station's output slot empty with every
+     * component listed as satisfied. Upstream says it out loud in two places, and both ask this same
+     * question -- {@code GuiToolStation}'s {@code gui.error.wrong_material_part} of an input slot and
+     * {@code GuiPartBuilder}'s {@code gui.error.useless_tool_part} of the output -- so the question
+     * is asked here once rather than once per station.
+     */
+    public static boolean hasUnusableMaterial(@Nullable HolderLookup.Provider registries, ItemStack stack) {
+        if (!(stack.getItem() instanceof PartItem)) {
+            return false;
+        }
+        ResourceLocation materialId = stack.get(ForgeweaveDataComponents.MATERIAL.get());
+        return materialId == null || MaterialDisplay.lookup(registries, materialId).isEmpty();
+    }
+
     @Override
     public void appendHoverText(ItemStack stack, TooltipContext context, List<Component> tooltip, TooltipFlag flag) {
         super.appendHoverText(stack, context, tooltip, flag);

@@ -330,7 +330,7 @@ public class PartExchangeGameTests {
     private static ItemStack take(GameTestHelper helper, Player player, ToolStationMenu menu) {
         ItemStack output = menu.getSlot(ToolStationMenu.OUTPUT_SLOT).getItem().copy();
         helper.assertFalse(output.isEmpty(), "expected the station to produce an output"
-                + (menu.rejection() == null ? "" : "; it says: " + menu.rejection().getString()));
+                + (menu.rejection() == null ? "" : "; it says: " + menu.rejection().message().getString()));
         menu.getSlot(ToolStationMenu.OUTPUT_SLOT).onTake(player, output);
         return output;
     }

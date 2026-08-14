@@ -1,8 +1,10 @@
 package dev.gkissel.forgeweave.gametest;
 
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
+import net.minecraft.network.chat.contents.TranslatableContents;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.ContainerLevelAccess;
@@ -19,6 +21,8 @@ import dev.gkissel.forgeweave.block.PartBuilderBlockEntity;
 import dev.gkissel.forgeweave.item.ForgeweaveDataComponents;
 import dev.gkissel.forgeweave.item.ForgeweaveItems;
 import dev.gkissel.forgeweave.menu.PartBuilderMenu;
+import dev.gkissel.forgeweave.menu.PartBuilderRecipes;
+import dev.gkissel.forgeweave.menu.StationMenu;
 
 /**
  * Covers docs/SCOPE.md M1 issue #9's verification: pattern + material -> correct part item, and
@@ -171,6 +175,61 @@ public class PartBuilderGameTests {
                 "expected the second slot's shard to be consumed");
         helper.assertTrue(menu.getSlot(PartBuilderMenu.CHANGE_SLOT).getItem().isEmpty(),
                 "expected no further change for an exact-value combined craft");
+
+        helper.succeed();
+    }
+
+    /**
+     * Issue #378: the two messages upstream's {@code GuiPartBuilder} shows and this station had
+     * neither of ({@code :143-189}). Both are asked of {@link PartBuilderRecipes#rejection}, which is
+     * where the choice between them lives; the screen only takes its panel over with the answer.
+     *
+     * <p>The classification is upstream's own. {@code invalid_pattern} is thrown by
+     * {@code ToolBuilder#tryBuildToolPart:410} as a {@code TinkerGuiException}, i.e. a craft that was
+     * attempted and refused -- an <b>error</b>. {@code useless_tool_part} is derived by the GUI from
+     * what is already on the output slot ({@code :152-157}) and calls {@code warning} instead.
+     */
+    @GameTest(template = "empty")
+    public static void thePartBuilderExplainsABadPatternAndAnUnusableOutput(GameTestHelper helper) {
+        BlockPos pos = new BlockPos(1, 1, 1);
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        PartBuilderMenu menu = openMenu(helper, pos, player);
+        HolderLookup.Provider registries = helper.getLevel().registryAccess();
+
+        helper.assertTrue(PartBuilderRecipes.rejection(registries, ItemStack.EMPTY, ItemStack.EMPTY).isEmpty(),
+                "an empty station has nothing to complain about");
+
+        // The menu's slot filter turns a blank pattern away, but the block's inventory is a real
+        // Container -- a hopper feeding the pattern slot never sees Slot#mayPlace.
+        ItemStack blank = new ItemStack(ForgeweaveItems.PATTERN_BLANK.get());
+        helper.assertFalse(menu.getSlot(PartBuilderMenu.PATTERN_SLOT).mayPlace(blank),
+                "the slot filter is the first line of defence and must still turn a blank pattern away");
+        StationMenu.Rejection badPattern =
+                PartBuilderRecipes.rejection(registries, blank, ItemStack.EMPTY).orElseThrow();
+        helper.assertTrue(badPattern.message().getContents() instanceof TranslatableContents t
+                        && t.getKey().equals("gui.forgeweave.part_builder.invalid_pattern"),
+                "expected the invalid_pattern message, got " + badPattern.message());
+        helper.assertFalse(badPattern.warning(),
+                "upstream throws invalid_pattern as a TinkerGuiException, which is its error class");
+
+        // A part whose material no datapack defines builds nothing. Reachable through the shard
+        // branch of PartBuilderRecipes#materialValue, which trusts the id a shard carries.
+        ItemStack part = new ItemStack(ForgeweaveItems.PART_PICKAXE_HEAD.get());
+        part.set(ForgeweaveDataComponents.MATERIAL.get(), materialId("unobtainium"));
+        StationMenu.Rejection useless = PartBuilderRecipes
+                .rejection(registries, new ItemStack(ForgeweaveItems.PATTERN_PICKAXE_HEAD.get()), part).orElseThrow();
+        helper.assertTrue(useless.message().getContents() instanceof TranslatableContents t
+                        && t.getKey().equals("gui.forgeweave.part_builder.useless_tool_part"),
+                "expected the useless_tool_part message, got " + useless.message());
+        helper.assertTrue(useless.warning(),
+                "upstream reaches useless_tool_part through warning(), not error() (GuiPartBuilder:156)");
+
+        // A part of a material that exists is not useless.
+        ItemStack good = new ItemStack(ForgeweaveItems.PART_PICKAXE_HEAD.get());
+        good.set(ForgeweaveDataComponents.MATERIAL.get(), materialId("stone"));
+        helper.assertTrue(PartBuilderRecipes
+                        .rejection(registries, new ItemStack(ForgeweaveItems.PATTERN_PICKAXE_HEAD.get()), good).isEmpty(),
+                "a stone pickaxe head is exactly what this station is for");
 
         helper.succeed();
     }
