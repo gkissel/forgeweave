@@ -226,6 +226,9 @@ public final class ToolAssemblyRecipes {
      * (#157-#161) add their tool to {@code data/forgeweave/tags/item/large_tools.json} and inherit the
      * gate with no code change. The tag ships empty until then -- no M1/M2 tool is large -- so the
      * GameTest datapack ({@code src/gametest/resources}) puts the hatchet in it to prove the gate.
+     *
+     * <p>Issue #336 makes it the <em>only</em> roster split: {@link ToolStationTabs#visible} reads it
+     * too, so the tabs a block draws and the assemblies it resolves can never disagree.
      */
     public static final TagKey<Item> LARGE_TOOLS =
             TagKey.create(Registries.ITEM, ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "large_tools"));

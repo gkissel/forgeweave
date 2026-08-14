@@ -59,7 +59,9 @@ import dev.gkissel.forgeweave.tool.ToolMaterials;
  * <p>Four things make up the parity work, all reading state the menu owns:
  *
  * <ul>
- *   <li><b>Sidebar.</b> One button per {@link ToolStationTabs.Tab} -- repair first, then a tool each
+ *   <li><b>Sidebar.</b> One button per {@link ToolStationTabs.Tab} this block offers ({@link
+ *       ToolStationMenu#visibleTabs}, issue #336: a Tool Station's column is the Tool Forge's minus
+ *       the forge-only tier) -- repair first, then a tool each
  *       -- drawn from upstream's button sprites in {@code icons.png}, laid out with upstream's own
  *       {@code GuiSideButtons} grid rule (5 columns, 4px gaps, to the left of the panel). Clicking
  *       one takes the vanilla stonecutter path: local {@code clickMenuButton} for instant feedback,
@@ -477,14 +479,18 @@ public class ToolStationScreen extends StationScreen<ToolStationMenu> implements
 
     private void renderSidebar(GuiGraphics graphics, int mouseX, int mouseY) {
         int selected = menu.getSelectedTab();
-        for (int i = 0; i < ToolStationTabs.TABS.size(); i++) {
-            int x = leftPos + buttonX(i);
-            int y = topPos + buttonY(i);
-            boolean hovered = isHovering(buttonX(i), buttonY(i), BUTTON_SIZE, BUTTON_SIZE, mouseX, mouseY);
-            int u = i == selected ? BUTTON_PRESSED_U : hovered ? BUTTON_HOVER_U : BUTTON_IDLE_U;
+        // #336: one button per tab this block offers, packed from the top -- a Tool Station leaves no
+        // holes where the Tool Forge tier's tabs would be, it simply has a shorter column.
+        List<Integer> tabs = menu.visibleTabs();
+        for (int slot = 0; slot < tabs.size(); slot++) {
+            int index = tabs.get(slot);
+            int x = leftPos + buttonX(slot);
+            int y = topPos + buttonY(slot);
+            boolean hovered = isHovering(buttonX(slot), buttonY(slot), BUTTON_SIZE, BUTTON_SIZE, mouseX, mouseY);
+            int u = index == selected ? BUTTON_PRESSED_U : hovered ? BUTTON_HOVER_U : BUTTON_IDLE_U;
             graphics.blit(ICONS, x, y, u, buttonV(), BUTTON_SIZE, BUTTON_SIZE, SHEET, SHEET);
 
-            Tab tab = ToolStationTabs.get(i);
+            Tab tab = ToolStationTabs.get(index);
             if (tab.isRepair()) {
                 graphics.blit(ICONS, x, y, ANVIL_U, ANVIL_V, BUTTON_SIZE, BUTTON_SIZE, SHEET, SHEET);
             } else {
@@ -538,7 +544,7 @@ public class ToolStationScreen extends StationScreen<ToolStationMenu> implements
     public List<Rect2i> extraGuiAreas() {
         List<Rect2i> areas = super.extraGuiAreas(); // the station-group tab row (issue #78)
         areas.add(new Rect2i(leftPos + buttonX(0) - BEAM_END_W, topPos, sidebarWidth() + BEAM_END_W * 2,
-                buttonY(ToolStationTabs.TABS.size() - 1) + BUTTON_SIZE));
+                buttonY(menu.visibleTabs().size() - 1) + BUTTON_SIZE));
         areas.add(new Rect2i(leftPos + BASE_WIDTH + PANEL_GAP - BEAM_END_W, topPos,
                 InfoPanel.WIDTH + BEAM_END_W * 2, PANEL_TOP + InfoPanel.HEIGHT * 2 + PANEL_SPACING));
         if (!menu.sideSlots.isEmpty()) {
@@ -550,9 +556,10 @@ public class ToolStationScreen extends StationScreen<ToolStationMenu> implements
     @Override
     protected void renderTooltip(GuiGraphics graphics, int mouseX, int mouseY) {
         super.renderTooltip(graphics, mouseX, mouseY);
-        for (int i = 0; i < ToolStationTabs.TABS.size(); i++) {
-            if (isHovering(buttonX(i), buttonY(i), BUTTON_SIZE, BUTTON_SIZE, mouseX, mouseY)) {
-                graphics.renderTooltip(font, ToolStationTabs.get(i).title(), mouseX, mouseY);
+        List<Integer> tabs = menu.visibleTabs();
+        for (int slot = 0; slot < tabs.size(); slot++) {
+            if (isHovering(buttonX(slot), buttonY(slot), BUTTON_SIZE, BUTTON_SIZE, mouseX, mouseY)) {
+                graphics.renderTooltip(font, ToolStationTabs.get(tabs.get(slot)).title(), mouseX, mouseY);
                 return;
             }
         }
@@ -569,8 +576,10 @@ public class ToolStationScreen extends StationScreen<ToolStationMenu> implements
 
     @Override
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
-        for (int i = 0; i < ToolStationTabs.TABS.size(); i++) {
-            if (isHovering(buttonX(i), buttonY(i), BUTTON_SIZE, BUTTON_SIZE, mouseX, mouseY)
+        List<Integer> tabs = menu.visibleTabs();
+        for (int slot = 0; slot < tabs.size(); slot++) {
+            int i = tabs.get(slot);
+            if (isHovering(buttonX(slot), buttonY(slot), BUTTON_SIZE, BUTTON_SIZE, mouseX, mouseY)
                     && menu.clickMenuButton(minecraft.player, i)) {
                 minecraft.getSoundManager().play(SimpleSoundInstance.forUI(SoundEvents.UI_STONECUTTER_SELECT_RECIPE, 1.0F));
                 minecraft.gameMode.handleInventoryButtonClick(menu.containerId, i);

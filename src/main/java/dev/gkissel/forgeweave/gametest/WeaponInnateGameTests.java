@@ -254,14 +254,18 @@ public class WeaponInnateGameTests {
     // ---------------------------------------------------------------- fixtures
 
     /**
-     * A battleaxe from a real Tool Station. Four slots in {@code ToolConstants.BATTLEAXE}'s own part
-     * order -- wooden tough rod, two stone broad axe heads, wooden tough binding. The two heads take
-     * a slot each since #155's N-part assembly, so they are two independent materials; this fixture
-     * gives them the same one because every stat this file asserts is a head-average.
+     * A battleaxe from a real Tool <em>Forge</em> -- issue #336 put it in the Tool Forge tier, so a
+     * Tool Station now refuses it and this fixture would come back empty. Four slots in {@code
+     * ToolConstants.BATTLEAXE}'s own part order -- wooden tough rod, two stone broad axe heads,
+     * wooden tough binding. The two heads take a slot each since #155's N-part assembly, so they are
+     * two independent materials; this fixture gives them the same one because every stat this file
+     * asserts is a head-average.
      */
     private static ItemStack battleaxe(GameTestHelper helper, Player player, BlockPos pos) {
-        return assemble(helper, player, pos, ForgeweaveItems.TOOL_BATTLEAXE.get(),
-                List.of(WOOD, STONE, STONE, WOOD));
+        ItemStack assembled = ToolAssembly.assembleAtForge(helper, player, pos,
+                ToolAssembly.entryFor(ForgeweaveItems.TOOL_BATTLEAXE.get()), List.of(WOOD, STONE, STONE, WOOD));
+        helper.assertTrue(!assembled.isEmpty(), "the Tool Forge produced nothing for the battleaxe's parts");
+        return assembled;
     }
 
     /** A scimitar from a real Tool Station: wooden handle, stone curved blade, wooden cross guard. */
