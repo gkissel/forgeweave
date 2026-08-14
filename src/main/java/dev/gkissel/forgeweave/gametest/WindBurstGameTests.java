@@ -82,8 +82,8 @@ public class WindBurstGameTests {
         ItemStack levelThree = applyReagent(helper, player, pos, levelTwo, new ItemStack(Items.BREEZE_ROD, 1));
         assertLevel(helper, levelThree, 3);
 
-        helper.assertTrue(ForgeweaveModifiers.freeSlots(levelThree) == ForgeweaveModifiers.DEFAULT_SLOTS - 1,
-                "three levels of wind_burst must still occupy exactly one modifier slot, got "
+        helper.assertTrue(ForgeweaveModifiers.freeSlots(levelThree) == ForgeweaveModifiers.DEFAULT_SLOTS - 3,
+                "three levels of wind_burst must occupy three modifier slots (issue #344, one per level), got "
                         + ForgeweaveModifiers.freeSlots(levelThree) + " free");
         helper.succeed();
     }

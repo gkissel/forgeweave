@@ -132,12 +132,32 @@ public interface Modifier {
      * every tool starts with -- upstream's {@code ModCreative}, which adds its level to the tool's
      * {@code Tags.FREE_MODIFIERS}.
      *
-     * <p>Note for issue #107's extra-slot items: a modifier occupies one slot itself
-     * ({@link ForgeweaveModifiers#freeSlots}), so an extra-slot modifier that should net {@code +1}
-     * per level returns {@code level + 1} here.
+     * <p>Note for issue #107's extra-slot items: a modifier occupies at least one slot itself
+     * ({@link #occupiedSlots}), so an extra-slot modifier that should net {@code +1} per level
+     * charges a flat slot and returns {@code level + 1} here.
      */
     default int bonusSlots(int level) {
         return 0;
+    }
+
+    /**
+     * How many of the tool's modifier slots this modifier occupies at {@code level} accumulated
+     * application units -- issue #344's 1.12 parity: upstream charges one free modifier per
+     * <em>level</em>, not one per modifier. {@code ModifierAspect.MultiAspect#canApply}/{@code
+     * updateNBT} spend {@code freeModifierAspect} every time a new level starts (haste, sharpness,
+     * fiery, knockback, shulking, smite, bane of arthropods), and the {@code LevelAspect} +
+     * {@code freeModifier} pairs {@code ModifierTrait} wires when {@code countPerLevel} is 0
+     * (reinforced, mending moss, necrotic, webbed -- and {@code ModBeheading}'s explicit pair)
+     * charge one per application, which is one per level too. So the default is the displayed
+     * level: one slot from the first unit, another every {@link #unitsPerLevel}.
+     *
+     * <p>Overridden flat by the modifiers whose upstream aspect set charges differently: luck's
+     * {@code FreeFirstModifierAspect} (one slot on first application, later levels free), soulbound's
+     * chargeless {@code DataAspect + SingleAspect}, and extra_slot/{@code ModCreative} (no aspects at
+     * all -- see {@link #bonusSlots}).
+     */
+    default int occupiedSlots(int level) {
+        return level <= 0 ? 0 : 1 + (level - 1) / Math.max(1, unitsPerLevel());
     }
 
     // #108 batch: modern-vanilla modifiers (issue #108) -- Forgeweave originals, not upstream ports,

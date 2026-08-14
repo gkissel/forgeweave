@@ -104,9 +104,10 @@ class ToolTooltipTest {
     }
 
     /**
-     * Issue #105: an applied Modifier shows its name and level, and the free-slot count drops by the
-     * one it occupies. Haste's level is in redstone, so 51 of them read as level 2 with the current
-     * level 51/100 full -- upstream's {@code ModifierNBT.IntegerNBT#extraInfo}.
+     * Issue #105 (retuned by #344): an applied Modifier shows its name and level, and the free-slot
+     * count drops by one per <em>level</em> it occupies. Haste's level is in redstone, so 51 of them
+     * read as level 2 with the current level 51/100 full -- upstream's
+     * {@code ModifierNBT.IntegerNBT#extraInfo} -- and two levels leave one of the three slots free.
      */
     @Test
     void compactTooltipListsModifiersWithTheirLevelAndProgress() {
@@ -126,7 +127,7 @@ class ToolTooltipTest {
                         .append(CommonComponents.SPACE)
                         .append(Component.translatable("enchantment.level.2"))
                         .append(Component.literal(" (51/100)").withStyle(ChatFormatting.GRAY)),
-                slotsLine(2)),
+                slotsLine(1)),
                 tooltip);
     }
 

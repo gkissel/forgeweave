@@ -39,8 +39,9 @@ import dev.gkissel.forgeweave.modifier.ModifierEntry;
  * shipped {@code forgeweave:haste} recipe JSON (1 redstone per unit, cap 250 = upstream's 5 levels
  * of 50).
  *
- * <p>The slot model these pin down (docs/SCOPE.md M2 acceptance test 5, ADR-0004): three free slots,
- * one distinct modifier per slot, and levelling stays inside the slot the modifier already holds.
+ * <p>The slot model these pin down (issue #344, ADR-0004): three free slots, and one slot charged
+ * per modifier <em>level</em> exactly as upstream's {@code MultiAspect} does -- max Haste is five
+ * slots, and the level that would exceed the budget is refused.
  * The codec round-trip and the datapack-retune coverage are unit tests
  * ({@code modifier.ModifierEntryTest}, {@code modifier.ModifierRecipeTest}) -- neither needs a world.
  */
@@ -84,12 +85,13 @@ public class ModifierGameTests {
     }
 
     /**
-     * Upstream 1.12 charges a fresh modifier slot per haste level; Forgeweave charges one for the
-     * modifier's lifetime (the deliberate deviation recorded in issue #105's PR), so 60 redstone --
-     * past the 50-per-level threshold -- must still leave the tool with two slots free and one entry.
+     * Issue #344's 1.12 parity: upstream charges a fresh modifier slot per haste level
+     * ({@code ModifierAspect.MultiAspect#canApply} spends its {@code freeModifierAspect} every time
+     * a new level starts), so 60 redstone -- past the 50-per-level threshold -- is one entry
+     * occupying two slots.
      */
     @GameTest(template = "empty")
-    public static void levellingUpStaysInsideTheSameSlot(GameTestHelper helper) {
+    public static void aSecondHasteLevelChargesASecondSlot(GameTestHelper helper) {
         BlockPos pos = new BlockPos(1, 1, 1);
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         ItemStack pickaxe = ToolAssembly.pickaxe(helper, player, pos, "stone", "wood", "wood");
@@ -101,9 +103,107 @@ public class ModifierGameTests {
         helper.assertTrue(entries.get(0).level() == 60, "60 redstone must record 60 units, got " + entries.get(0));
         helper.assertTrue(ForgeweaveModifiers.displayLevel(HASTE, 60) == 2,
                 "past 50 redstone haste displays as level 2");
-        helper.assertTrue(ForgeweaveModifiers.freeSlots(hasted) == ForgeweaveModifiers.DEFAULT_SLOTS - 1,
-                "levelling up must stay inside the slot the modifier already holds, got "
+        helper.assertTrue(ForgeweaveModifiers.freeSlots(hasted) == ForgeweaveModifiers.DEFAULT_SLOTS - 2,
+                "the second haste level must charge a second slot (upstream MultiAspect), got "
                         + ForgeweaveModifiers.freeSlots(hasted) + " free");
+        helper.succeed();
+    }
+
+    /**
+     * Issue #344's headline number: Haste III is three slots, filling a plain tool exactly. 150
+     * units arrive as 16 nine-unit blocks plus 6 dust, since a single dust stack caps at 64.
+     */
+    @GameTest(template = "empty")
+    public static void hasteThreeOccupiesThreeSlots(GameTestHelper helper) {
+        BlockPos pos = new BlockPos(1, 1, 1);
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        ItemStack pickaxe = ToolAssembly.pickaxe(helper, player, pos, "stone", "wood", "wood");
+
+        ToolStationBlockEntity blockEntity = helper.getBlockEntity(pos);
+        blockEntity.container().setItem(0, pickaxe);
+        blockEntity.container().setItem(1, new ItemStack(Items.REDSTONE_BLOCK, 16));
+        blockEntity.container().setItem(2, new ItemStack(Items.REDSTONE, 6));
+        ToolStationMenu menu = ToolAssembly.menu(helper, player, pos, blockEntity);
+        menu.broadcastChanges();
+        ItemStack hasted = menu.getSlot(ToolStationMenu.OUTPUT_SLOT).getItem().copy();
+        helper.assertFalse(hasted.isEmpty(), "16 blocks + 6 dust must produce a modified tool");
+
+        ModifierEntry entry = ForgeweaveModifiers.entry(hasted, HASTE);
+        helper.assertTrue(entry != null && entry.level() == 150,
+                "16 blocks + 6 dust must record 150 units, got " + entry);
+        helper.assertTrue(ForgeweaveModifiers.displayLevel(HASTE, 150) == 3, "150 units is Haste III");
+        helper.assertTrue(ForgeweaveModifiers.occupiedSlots(hasted) == 3,
+                "Haste III must occupy three slots (one per level), got " + ForgeweaveModifiers.occupiedSlots(hasted));
+        helper.assertTrue(ForgeweaveModifiers.freeSlots(hasted) == 0,
+                "three levels must fill a plain tool's three slots, got "
+                        + ForgeweaveModifiers.freeSlots(hasted) + " free");
+        helper.succeed();
+    }
+
+    /**
+     * Issue #344's budget cap on levelling: upstream's {@code FreeModifierAspect#canApply} throws
+     * {@code gui.error.not_enough_modifiers} the moment a unit would start a level with no free
+     * modifier left, so the level that would exceed the budget is refused -- here a tool already at
+     * Haste III on a plain three-slot budget takes no 151st redstone.
+     */
+    @GameTest(template = "empty")
+    public static void aLevelPastTheSlotBudgetIsRefused(GameTestHelper helper) {
+        BlockPos pos = new BlockPos(1, 1, 1);
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        ItemStack pickaxe = ToolAssembly.pickaxe(helper, player, pos, "stone", "wood", "wood");
+        pickaxe.set(ForgeweaveDataComponents.MODIFIERS.get(), List.of(new ModifierEntry(HASTE, 150)));
+        helper.assertTrue(ForgeweaveModifiers.freeSlots(pickaxe) == 0,
+                "the fixture needs zero free slots, got " + ForgeweaveModifiers.freeSlots(pickaxe));
+
+        ToolStationBlockEntity blockEntity = helper.getBlockEntity(pos);
+        blockEntity.container().setItem(0, pickaxe);
+        blockEntity.container().setItem(1, new ItemStack(Items.REDSTONE, 1));
+        blockEntity.container().setItem(2, ItemStack.EMPTY);
+        ToolStationMenu menu = ToolAssembly.menu(helper, player, pos, blockEntity);
+        menu.broadcastChanges();
+
+        helper.assertTrue(menu.getSlot(ToolStationMenu.OUTPUT_SLOT).getItem().isEmpty(),
+                "a fourth haste level must not start without a free slot, got "
+                        + menu.getSlot(ToolStationMenu.OUTPUT_SLOT).getItem());
+        helper.assertTrue(menu.rejection() != null, "and the station must say why");
+        helper.succeed();
+    }
+
+    /**
+     * Issue #344's apply-what-fits boundary, upstream's per-match rollback
+     * ({@code ToolBuilder#tryModifyTool}): once an application has landed units this craft, the unit
+     * that would start an unaffordable level rolls back and its reagents stay unconsumed -- 20
+     * blocks and 10 dust against three free slots land exactly Haste III's 150 units (16 blocks + 6
+     * dust) and leave the rest in the slots.
+     */
+    @GameTest(template = "empty")
+    public static void unitsPastTheAffordableLevelAreLeftUnconsumed(GameTestHelper helper) {
+        BlockPos pos = new BlockPos(1, 1, 1);
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        ItemStack pickaxe = ToolAssembly.pickaxe(helper, player, pos, "stone", "wood", "wood");
+
+        ToolStationBlockEntity blockEntity = helper.getBlockEntity(pos);
+        blockEntity.container().setItem(0, pickaxe);
+        blockEntity.container().setItem(1, new ItemStack(Items.REDSTONE_BLOCK, 20));
+        blockEntity.container().setItem(2, new ItemStack(Items.REDSTONE, 10));
+        ToolStationMenu menu = ToolAssembly.menu(helper, player, pos, blockEntity);
+        menu.broadcastChanges();
+
+        ItemStack output = menu.getSlot(ToolStationMenu.OUTPUT_SLOT).getItem().copy();
+        helper.assertFalse(output.isEmpty(), "the affordable three levels must still land");
+        ModifierEntry entry = ForgeweaveModifiers.entry(output, HASTE);
+        helper.assertTrue(entry != null && entry.level() == 150,
+                "three free slots afford exactly 150 units, got " + entry);
+        helper.assertTrue(ForgeweaveModifiers.freeSlots(output) == 0,
+                "and they land exactly full, got " + ForgeweaveModifiers.freeSlots(output) + " free");
+
+        menu.getSlot(ToolStationMenu.OUTPUT_SLOT).onTake(player, output);
+        helper.assertTrue(menu.getSlot(ToolStationMenu.BINDING_SLOT).getItem().getCount() == 4,
+                "4 of the 20 blocks must stay unconsumed, got "
+                        + menu.getSlot(ToolStationMenu.BINDING_SLOT).getItem());
+        helper.assertTrue(menu.getSlot(ToolStationMenu.HANDLE_SLOT).getItem().getCount() == 4,
+                "4 of the 10 dust must stay unconsumed, got "
+                        + menu.getSlot(ToolStationMenu.HANDLE_SLOT).getItem());
         helper.succeed();
     }
 

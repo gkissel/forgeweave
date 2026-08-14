@@ -31,9 +31,10 @@ import dev.gkissel.forgeweave.trait.ForgeweaveTraits;
  *
  * <p>Ported from upstream 1.12's {@code ToolBuilder#tryModifyTool} and
  * {@code ModifierAspect.MultiAspect}: reagents are consumed one application unit at a time, so a
- * single redstone is a valid application that partially fills the level -- but with upstream's
- * per-level slot charge replaced by one slot for the modifier's whole lifetime (see
- * {@link ForgeweaveModifiers}'s class javadoc and the PR for issue #105).
+ * single redstone is a valid application that partially fills the level -- and, since issue #344,
+ * with upstream's per-level slot charge intact: every new level spends a fresh modifier slot
+ * ({@link Modifier#occupiedSlots}), and units past what the budget affords are left unconsumed the
+ * way upstream rolls back the match that no longer fits (see {@link #apply}).
  *
  * <p>Everything the station needs is a pure function of the recipe, the tool and two counts
  * ({@link #apply}); the registry lookup around it exists only to find the recipe. That is what lets
@@ -258,16 +259,31 @@ public final class ModifierApplication {
         ModifierEntry existing = ForgeweaveModifiers.entry(tool, recipe.modifier());
         int current = existing == null ? 0 : existing.level();
 
-        if (existing == null && ForgeweaveModifiers.freeSlots(tool) <= 0) {
-            return Outcome.rejected(Component.translatable("gui.forgeweave.modifier.no_slots",
-                    ForgeweaveModifiers.DEFAULT_SLOTS));
-        }
         if (current >= recipe.maxLevel()) {
             return Outcome.rejected(Component.translatable("gui.forgeweave.modifier.max_level",
                     name(recipe.modifier())));
         }
 
+        // Issue #344: upstream charges one free modifier per level (MultiAspect#canApply spends
+        // FreeModifierAspect every time a new level starts), so the units this application may add
+        // are capped at what the slot budget affords on top of the level cap. Free-slot count
+        // floored at 0 the way upstream clamps Tags.FREE_MODIFIERS, so a fixture already past its
+        // budget can still fill its current level (which charges nothing). Zero affordable units
+        // is upstream's FreeModifierAspect throw: gui.error.not_enough_modifiers, the whole
+        // application refused.
         int remaining = recipe.maxLevel() - current;
+        int free = Math.max(0, ForgeweaveModifiers.freeSlots(tool));
+        int occupiedNow = ForgeweaveModifiers.occupiedSlots(recipe.modifier(), current);
+        int affordable = 0;
+        while (affordable < remaining
+                && ForgeweaveModifiers.occupiedSlots(recipe.modifier(), current + affordable + 1) - occupiedNow <= free) {
+            affordable++;
+        }
+        if (affordable == 0) {
+            return Outcome.rejected(Component.translatable("gui.forgeweave.modifier.no_slots",
+                    ForgeweaveModifiers.DEFAULT_SLOTS));
+        }
+        remaining = affordable;
         int units;
         int firstUsed;
         int secondUsed;

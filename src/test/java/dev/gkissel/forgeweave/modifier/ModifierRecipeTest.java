@@ -213,8 +213,9 @@ class ModifierRecipeTest {
         assertEquals(10, outcome.secondUsed());
     }
 
+    /** Issue #344: crossing the 50-unit boundary starts a second level, which charges a second slot. */
     @Test
-    void levellingAnExistingModifierStaysInsideItsSlot() {
+    void crossingALevelBoundaryChargesAFreshSlot() {
         ItemStack tool = pickaxe();
         tool.set(ForgeweaveDataComponents.MODIFIERS.get(), List.of(new ModifierEntry(HASTE, 49)));
 
@@ -222,8 +223,25 @@ class ModifierRecipeTest {
 
         assertEquals(54, levelOf(outcome));
         assertEquals(1, ForgeweaveModifiers.of(outcome.output()).size(), "no second entry");
-        assertEquals(ForgeweaveModifiers.DEFAULT_SLOTS - 1, ForgeweaveModifiers.freeSlots(outcome.output()),
-                "levelling past 50 must not cost a second slot");
+        assertEquals(ForgeweaveModifiers.DEFAULT_SLOTS - 2, ForgeweaveModifiers.freeSlots(outcome.output()),
+                "levelling past 50 must charge a second slot (upstream MultiAspect's per-level spend)");
+    }
+
+    /**
+     * Issue #344's budget cap: reagents whose units would start a level the budget can't afford are
+     * left unconsumed (upstream's per-match rollback), and a unit that can't land at all is refused
+     * with upstream's not-enough-modifiers reason.
+     */
+    @Test
+    void unitsPastTheAffordableLevelStayUnconsumed() {
+        ModifierApplication.Outcome outcome = ModifierApplication.apply(shipped(), pickaxe(), 250, 0);
+
+        assertEquals(150, levelOf(outcome), "three free slots afford exactly three 50-unit levels");
+        assertEquals(150, outcome.firstUsed(), "the 100 redstone past the budget stay unconsumed");
+
+        ModifierApplication.Outcome refused = ModifierApplication.apply(shipped(), outcome.output(), 1, 0);
+        assertTrue(refused.output().isEmpty(), "a level past the budget must not start");
+        assertEquals("gui.forgeweave.modifier.no_slots", translationKey(refused));
     }
 
     @Test

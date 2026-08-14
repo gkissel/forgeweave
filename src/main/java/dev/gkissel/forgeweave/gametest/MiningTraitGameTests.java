@@ -252,13 +252,14 @@ public class MiningTraitGameTests {
     }
 
     /**
-     * Paper -&gt; {@code forgeweave:writable}/{@code writable2} (docs/SCOPE.md M3.2 acceptance: "an
-     * all-paper tool shows +2 modifier slots"): assembled through a real Tool Station from the
-     * shipped {@code paper.json} (issue #231), whose head scope carries {@code writable2} and general
-     * scope {@code writable} -- +1 each, +2 together.
+     * Paper -&gt; {@code forgeweave:writable}/{@code writable2} (issue #344's 1.12 parity): assembled
+     * through a real Tool Station from the shipped {@code paper.json} (issue #231), whose head scope
+     * carries {@code writable2} and general scope {@code writable} -- upstream's
+     * {@code new TraitWritable(2)} and {@code new TraitWritable(1)}, +2 and +1, so an all-paper tool
+     * totals +3.
      */
     @GameTest(template = "empty")
-    public static void writablePairGrantsTwoExtraModifierSlotsOnAnAllPaperTool(GameTestHelper helper) {
+    public static void writablePairGrantsThreeExtraModifierSlotsOnAnAllPaperTool(GameTestHelper helper) {
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         ItemStack pickaxe = ToolAssembly.pickaxe(helper, player, new BlockPos(1, 1, 1),
                 "paper", "paper", "paper");
@@ -267,8 +268,8 @@ public class MiningTraitGameTests {
         List<ResourceLocation> traits = pickaxe.get(ForgeweaveDataComponents.TRAITS.get());
         helper.assertTrue(traits != null && traits.contains(traitId("writable")) && traits.contains(traitId("writable2")),
                 "expected both writable ids on the tool, got " + traits);
-        helper.assertTrue(ForgeweaveModifiers.freeSlots(pickaxe) == ForgeweaveModifiers.DEFAULT_SLOTS + 2,
-                "expected " + (ForgeweaveModifiers.DEFAULT_SLOTS + 2) + " free slots on an all-paper tool, got "
+        helper.assertTrue(ForgeweaveModifiers.freeSlots(pickaxe) == ForgeweaveModifiers.DEFAULT_SLOTS + 3,
+                "expected " + (ForgeweaveModifiers.DEFAULT_SLOTS + 3) + " free slots on an all-paper tool, got "
                         + ForgeweaveModifiers.freeSlots(pickaxe));
         helper.succeed();
     }

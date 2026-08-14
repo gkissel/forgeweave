@@ -212,8 +212,10 @@ public class PartExchangeGameTests {
         BlockPos pos = new BlockPos(1, 1, 1);
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         ItemStack pickaxe = ToolAssembly.pickaxe(helper, player, pos, "stone", "wood", "paper");
+        // Diamond, not soulbound: issue #344's parity accounting gives soulbound upstream's zero
+        // slot charge (no FreeModifierAspect), so it can't fill the fourth slot here.
         pickaxe.set(ForgeweaveDataComponents.MODIFIERS.get(), modifiers("haste", "searing", "magnetic_pull",
-                "soulbound"));
+                "diamond"));
         helper.assertTrue(ForgeweaveModifiers.freeSlots(pickaxe) == 0,
                 "precondition: paper's extra slot must be exactly filled, got "
                         + ForgeweaveModifiers.freeSlots(pickaxe) + " free");
