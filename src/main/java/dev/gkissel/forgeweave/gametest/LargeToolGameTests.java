@@ -6,6 +6,7 @@ import java.util.Optional;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
@@ -19,6 +20,7 @@ import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.item.component.Tool;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.level.block.Blocks;
@@ -133,6 +135,9 @@ public class LargeToolGameTests {
     /**
      * The lumber axe takes the whole trunk and stops at the first non-log: a six-log trunk under a
      * leaf canopy goes, and the log two blocks above it with air in between stays.
+     *
+     * <p>issue #299: the fell is now spread across ticks (a scheduled chop task, {@link AoeHarvest}),
+     * so this waits for it rather than asserting synchronously right after the swing.
      */
     @GameTest(template = "empty")
     public static void lumberAxeFellsTheTrunkAndStopsAtNonLog(GameTestHelper helper) {
@@ -147,12 +152,116 @@ public class LargeToolGameTests {
         BlockPos detached = ORIGIN.offset(3, 0, 0);
         helper.setBlock(detached, Blocks.OAK_LOG);
 
-        player.gameMode.destroyBlock(helper.absolutePos(ORIGIN));
+        helper.startSequence()
+                .thenExecute(() -> player.gameMode.destroyBlock(helper.absolutePos(ORIGIN)))
+                .thenWaitUntil(() -> {
+                    for (int y = 0; y < 6; y++) {
+                        helper.assertBlockPresent(Blocks.AIR, ORIGIN.offset(0, y, 0));
+                    }
+                })
+                .thenExecute(() -> helper.assertBlockPresent(Blocks.OAK_LOG, detached))
+                .thenSucceed();
+    }
 
-        for (int y = 0; y < 6; y++) {
-            helper.assertBlockPresent(Blocks.AIR, ORIGIN.offset(0, y, 0));
+    /**
+     * issue #299: upstream's {@code detectTree}'s stack-based diagonal-neighbour search, not a single
+     * column climb -- a 2x2 dark-oak-style trunk where the clicked corner is shorter than its three
+     * neighbours. That corner's own column tops out well below the canopy, so a single-column climb
+     * never finds the five leaves upstream requires; only climbing from the corner, then hopping to a
+     * taller neighbouring column and climbing again (the diagonal push) reaches them. This is the exact
+     * case the pre-fix {@code isTree} missed, and it is what turns "fell the trunk" into "fell all four
+     * columns of an irregular multi-trunk tree".
+     */
+    @GameTest(template = "empty")
+    public static void lumberAxeFellsAMultiColumnTrunk(GameTestHelper helper) {
+        ServerPlayer player = holdingLargeTool(helper, ForgeweaveItems.TOOL_LUMBERAXE.get(), "stone");
+        BlockPos shortCorner = ORIGIN;
+        List<BlockPos> tallCorners = List.of(ORIGIN.offset(1, 0, 0), ORIGIN.offset(0, 0, 1), ORIGIN.offset(1, 0, 1));
+
+        // Canopy first, trunk second (as in lumberAxeFellsTheTrunkAndStopsAtNonLog above), so the
+        // canopy fill below doesn't overwrite the tall columns' own topmost logs with leaves. Canopy
+        // only at the tall columns' own top (y=5), nowhere near the short corner's top (y=3): a
+        // single-column climb from the short corner never sees it.
+        fill(helper, ORIGIN.offset(1, 5, 1), 2, persistentLeaves());
+        for (int y = 0; y < 3; y++) {
+            helper.setBlock(shortCorner.offset(0, y, 0), Blocks.DARK_OAK_LOG);
         }
-        helper.assertBlockPresent(Blocks.OAK_LOG, detached);
+        for (BlockPos corner : tallCorners) {
+            for (int y = 0; y < 5; y++) {
+                helper.setBlock(corner.offset(0, y, 0), Blocks.DARK_OAK_LOG);
+            }
+        }
+
+        helper.startSequence()
+                .thenExecute(() -> player.gameMode.destroyBlock(helper.absolutePos(shortCorner)))
+                .thenWaitUntil(() -> {
+                    for (int y = 0; y < 3; y++) {
+                        helper.assertBlockPresent(Blocks.AIR, shortCorner.offset(0, y, 0));
+                    }
+                    for (BlockPos corner : tallCorners) {
+                        for (int y = 0; y < 5; y++) {
+                            helper.assertBlockPresent(Blocks.AIR, corner.offset(0, y, 0));
+                        }
+                    }
+                })
+                .thenSucceed();
+    }
+
+    /**
+     * issue #299: {@link AoeHarvest}'s chop task spreads a fell across ticks -- a trunk taller than
+     * one tick's {@code BLOCKS_PER_TICK} budget must still be standing right after the first tick, and
+     * fully gone only some ticks later.
+     */
+    @GameTest(template = "empty", timeoutTicks = 400)
+    public static void lumberAxeFellsALargeTreeAcrossTicks(GameTestHelper helper) {
+        ServerPlayer player = holdingLargeTool(helper, ForgeweaveItems.TOOL_LUMBERAXE.get(), "stone");
+        int height = 20; // extra logs (19) comfortably clear one tick's 8-block budget.
+        // Canopy first, trunk second, so the canopy fill doesn't overwrite the trunk's own topmost
+        // logs with leaves (as in lumberAxeFellsTheTrunkAndStopsAtNonLog above).
+        fill(helper, ORIGIN.offset(0, height, 0), 2, persistentLeaves());
+        for (int y = 0; y < height; y++) {
+            helper.setBlock(ORIGIN.offset(0, y, 0), Blocks.OAK_LOG);
+        }
+
+        helper.startSequence()
+                .thenExecute(() -> player.gameMode.destroyBlock(helper.absolutePos(ORIGIN)))
+                .thenIdle(1)
+                .thenExecute(() -> {
+                    boolean anyStanding = false;
+                    for (int y = 1; y < height; y++) {
+                        anyStanding |= !helper.getBlockState(ORIGIN.offset(0, y, 0)).isAir();
+                    }
+                    helper.assertTrue(anyStanding,
+                            "a tree taller than one tick's budget must not fell in a single tick");
+                })
+                .thenWaitUntil(() -> {
+                    for (int y = 0; y < height; y++) {
+                        helper.assertBlockPresent(Blocks.AIR, ORIGIN.offset(0, y, 0));
+                    }
+                })
+                .thenSucceed();
+    }
+
+    /**
+     * issue #299: upstream {@code LumberAxe#isEffective}'s {@code GOURD}/{@code CACTUS} materials --
+     * pumpkin (already in vanilla's {@code mineable/axe}) and cactus (added to it by
+     * {@code ForgeweaveBlockTagsProvider}, the one member upstream's set has that vanilla's tag lacked).
+     */
+    @GameTest(template = "empty")
+    public static void lumberAxeIsEffectiveOnGourdsAndCactus(GameTestHelper helper) {
+        ServerPlayer player = helper.makeMockServerPlayerInLevel();
+        ItemStack lumberaxe = largeTool(helper, player, ForgeweaveItems.TOOL_LUMBERAXE.get(), "stone");
+
+        Tool tool = lumberaxe.get(DataComponents.TOOL);
+        helper.assertTrue(tool != null, "an assembled lumber axe must carry a tool component");
+
+        BlockState pumpkin = Blocks.PUMPKIN.defaultBlockState();
+        helper.assertTrue(tool.isCorrectForDrops(pumpkin), "the lumber axe must be correct-for-drops on pumpkin");
+        helper.assertTrue(tool.getMiningSpeed(pumpkin) > 1.0F, "pumpkin-cutting speed must be above the default");
+
+        BlockState cactus = Blocks.CACTUS.defaultBlockState();
+        helper.assertTrue(tool.isCorrectForDrops(cactus), "the lumber axe must be correct-for-drops on cactus");
+        helper.assertTrue(tool.getMiningSpeed(cactus) > 1.0F, "cactus-cutting speed must be above the default");
         helper.succeed();
     }
 
