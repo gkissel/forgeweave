@@ -91,13 +91,13 @@ public class M3PartGameTests {
         for (Entry entry : M3_ENTRIES) {
             PartBuilderMenu menu = openMenu(helper, pos, player);
 
-            menu.getSlot(0).set(new ItemStack(entry.pattern().get()));
+            menu.getSlot(PartBuilderMenu.PATTERN_SLOT).set(new ItemStack(entry.pattern().get()));
             ItemStack shards = new ItemStack(ForgeweaveItems.SHARD.get(), entry.cost());
             shards.set(ForgeweaveDataComponents.MATERIAL.get(), wood);
-            menu.getSlot(1).set(shards);
+            menu.getSlot(PartBuilderMenu.MATERIAL_SLOT).set(shards);
             menu.broadcastChanges();
 
-            ItemStack output = menu.getSlot(2).getItem();
+            ItemStack output = menu.getSlot(PartBuilderMenu.OUTPUT_SLOT).getItem();
             DeferredItem<? extends PartItem> expectedPart = entry.part();
             helper.assertTrue(output.is(expectedPart.get()),
                     "expected " + expectedPart.getId() + ", got " + output);
@@ -105,10 +105,10 @@ public class M3PartGameTests {
                     "expected " + expectedPart.getId() + "'s material to be forgeweave:wood, got "
                             + output.get(ForgeweaveDataComponents.MATERIAL.get()));
 
-            menu.getSlot(2).onTake(player, output);
-            helper.assertTrue(menu.getSlot(1).getItem().isEmpty(),
+            menu.getSlot(PartBuilderMenu.OUTPUT_SLOT).onTake(player, output);
+            helper.assertTrue(menu.getSlot(PartBuilderMenu.MATERIAL_SLOT).getItem().isEmpty(),
                     "expected all " + entry.cost() + " shards to be consumed for " + expectedPart.getId());
-            helper.assertTrue(menu.getSlot(3).getItem().isEmpty(),
+            helper.assertTrue(menu.getSlot(PartBuilderMenu.CHANGE_SLOT).getItem().isEmpty(),
                     "expected no shard change for " + expectedPart.getId() + "'s exact-value craft");
         }
 

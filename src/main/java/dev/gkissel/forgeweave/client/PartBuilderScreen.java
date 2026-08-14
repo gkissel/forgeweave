@@ -78,9 +78,9 @@ public class PartBuilderScreen extends StationScreen<PartBuilderMenu> implements
     private static final int BASE_WIDTH = 176;
     private static final int BASE_HEIGHT = 166;
 
-    /** Upstream {@code Icons}: the pattern, ingot and shard glyphs, in slot order. */
-    private static final int[] SLOT_ICON_U = {0, 54, -1, 18};
-    private static final int[] SLOT_ICON_V = {216, 234, -1, 216};
+    /** Upstream {@code Icons}: the pattern, ingot, block, (no icon on output) and shard glyphs, in slot order. */
+    private static final int[] SLOT_ICON_U = {0, 54, 36, -1, 18};
+    private static final int[] SLOT_ICON_V = {216, 234, 216, -1, 216};
     private static final int ICON_SIZE = 18;
 
     /**
@@ -132,7 +132,6 @@ public class PartBuilderScreen extends StationScreen<PartBuilderMenu> implements
 
     private void updateInfo() {
         ItemStack pattern = menu.getSlot(PartBuilderMenu.PATTERN_SLOT).getItem();
-        ItemStack material = menu.getSlot(PartBuilderMenu.MATERIAL_SLOT).getItem();
         List<Component> body = new ArrayList<>();
 
         Optional<PartItem> patternPart = PartBuilderRecipes.patternPart(pattern);
@@ -143,9 +142,9 @@ public class PartBuilderScreen extends StationScreen<PartBuilderMenu> implements
             body.add(null);
         });
 
-        Optional<Material> loaded = materialInSlot(material);
+        Optional<Material> loaded = materialInSlots();
         if (loaded.isPresent()) {
-            caption = MaterialDisplay.name(registries(), materialId(material).orElseThrow());
+            caption = MaterialDisplay.name(registries(), materialId().orElseThrow());
             body.addAll(StationText.materialStats(loaded.get()));
             body.add(null);
             // Scoped to the part the loaded pattern makes, as upstream's GuiPartBuilder is (it renders
@@ -163,17 +162,26 @@ public class PartBuilderScreen extends StationScreen<PartBuilderMenu> implements
         scroll = Math.min(scroll, InfoPanel.maxScroll(font, InfoPanel.WIDTH, PANEL_HEIGHT, caption != null, lines));
     }
 
-    private Optional<PartBuilderRecipes.MaterialMatch> matchMaterial(ItemStack stack) {
+    /**
+     * The combined material match across both material slots (issue #306), upstream's own
+     * {@code GuiPartBuilder#getMaterial(input1, input2)}.
+     */
+    private Optional<PartBuilderRecipes.CombinedMaterialMatch> matchMaterial() {
         HolderLookup.Provider registries = registries();
-        return registries == null ? Optional.empty() : PartBuilderRecipes.materialValue(registries, stack);
+        if (registries == null) {
+            return Optional.empty();
+        }
+        ItemStack material1 = menu.getSlot(PartBuilderMenu.MATERIAL_SLOT).getItem();
+        ItemStack material2 = menu.getSlot(PartBuilderMenu.MATERIAL_SLOT_2).getItem();
+        return PartBuilderRecipes.combinedMaterialValue(registries, material1, material2);
     }
 
-    private Optional<ResourceLocation> materialId(ItemStack stack) {
-        return matchMaterial(stack).map(PartBuilderRecipes.MaterialMatch::id);
+    private Optional<ResourceLocation> materialId() {
+        return matchMaterial().map(PartBuilderRecipes.CombinedMaterialMatch::id);
     }
 
-    private Optional<Material> materialInSlot(ItemStack stack) {
-        return materialId(stack).flatMap(id -> MaterialDisplay.lookup(registries(), id));
+    private Optional<Material> materialInSlots() {
+        return materialId().flatMap(id -> MaterialDisplay.lookup(registries(), id));
     }
 
     @Nullable
@@ -290,12 +298,11 @@ public class PartBuilderScreen extends StationScreen<PartBuilderMenu> implements
      * cost -- the one readout that tells a player why the output slot is empty.
      */
     private void renderMaterialValue(GuiGraphics graphics) {
-        ItemStack material = menu.getSlot(PartBuilderMenu.MATERIAL_SLOT).getItem();
-        Optional<PartBuilderRecipes.MaterialMatch> matched = matchMaterial(material);
+        Optional<PartBuilderRecipes.CombinedMaterialMatch> matched = matchMaterial();
         if (matched.isEmpty()) {
             return;
         }
-        int available = matched.get().unitValue() * material.getCount();
+        int available = matched.get().totalValue();
         Component text = Component.translatable("gui.forgeweave.part_builder.material_value", available);
         boolean enough = PartBuilderRecipes.patternCost(menu.getSlot(PartBuilderMenu.PATTERN_SLOT).getItem())
                 .map(cost -> available >= cost)

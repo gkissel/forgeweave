@@ -2,6 +2,9 @@ package dev.gkissel.forgeweave.menu;
 
 import java.util.List;
 
+import javax.annotation.Nullable;
+
+import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.world.Container;
 import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.entity.player.Inventory;
@@ -12,6 +15,7 @@ import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 
+import net.neoforged.neoforge.items.IItemHandler;
 import net.neoforged.neoforge.registries.DeferredItem;
 
 import dev.gkissel.forgeweave.block.ForgeweaveBlocks;
@@ -29,11 +33,27 @@ import dev.gkissel.forgeweave.item.ForgeweaveItems;
  * no dynamic registry, no custom network packet. The selection index is a synced {@link DataSlot}
  * set from {@link #clickMenuButton}, exactly the vanilla stonecutter/loom mechanism ({@code
  * StonecutterMenu#clickMenuButton}) the screen's button clicks route through.
+ *
+ * <p>When a Pattern Chest is adjacent ({@code StencilTableBlockEntity#findSideInventory}, issue
+ * #306), its {@link IItemHandler} is exposed as extra slots after the output slot via {@link
+ * SideInventorySlots#create} -- same shape as {@link PartBuilderMenu}/{@link CraftingStationMenu}'s
+ * own side panels, except this one sits on the station's <em>right</em> (upstream's {@code
+ * ContainerStencilTable} builds its {@code DynamicChestInventory} with {@code rightSide = true},
+ * unlike those two, because the Stencil Table's own pattern-selection buttons already occupy the
+ * left). {@link #quickMoveStack} also shift-clicks a stamped pattern straight into the chest when
+ * one is attached (upstream {@code ContainerStencilTable#transferStackInSlot}).
  */
 public class StencilTableMenu extends StationMenu {
     public static final int CONTAINER_SLOTS = 2;
     public static final int INPUT_SLOT = 0;
     public static final int OUTPUT_SLOT = 1;
+
+    /** The Stencil Table's own 176x166 background, matching every other station's panel size. */
+    private static final int PANEL_WIDTH = 176;
+
+    /** Side-panel layout (issue #306): the panel's first slot, on the station's right edge. */
+    public static final int SIDE_PANEL_X = SideInventorySlots.rightSlotX(PANEL_WIDTH);
+    public static final int SIDE_PANEL_Y = SideInventorySlots.SLOT_Y;
 
     /**
      * Fixed, ordered candidate list for the selection buttons (docs/SCOPE.md M1 issue #44 brief: "the
@@ -70,23 +90,30 @@ public class StencilTableMenu extends StationMenu {
     private final Container container;
     private final ContainerLevelAccess access;
     private final DataSlot selectedPattern = DataSlot.standalone();
+    public final int sideInventorySlotCount;
+    /** The side panel's own slots, kept so the client-side panel can lay them out and scroll them (issue #306). */
+    public final List<SideInventorySlots.SideSlot> sideSlots;
 
-    /** Client-side: constructed from the open-menu packet, with a throwaway local container. */
-    public StencilTableMenu(int containerId, Inventory playerInventory, StationGroup stationGroup) {
-        this(containerId, playerInventory, new SimpleContainer(CONTAINER_SLOTS), ContainerLevelAccess.NULL, stationGroup);
+    /** Client-side: constructed from the open-menu packet ({@code StencilTableBlockEntity#writeMenuData}). */
+    public StencilTableMenu(int containerId, Inventory playerInventory, RegistryFriendlyByteBuf buf) {
+        this(containerId, playerInventory, new SimpleContainer(CONTAINER_SLOTS), ContainerLevelAccess.NULL, null,
+                buf.readVarInt(), StationGroup.STREAM_CODEC.decode(buf));
     }
 
-    /** Server-side: constructed by {@code StencilTableBlockEntity} with the block's real inventory. */
-    public StencilTableMenu(int containerId, Inventory playerInventory, Container container, ContainerLevelAccess access) {
-        this(containerId, playerInventory, container, access, groupAt(access));
+    /** Server-side: constructed by {@code StencilTableBlockEntity} with the block's real inventory and detected neighbor. */
+    public StencilTableMenu(int containerId, Inventory playerInventory, Container container, ContainerLevelAccess access,
+            @Nullable IItemHandler sideInventory) {
+        this(containerId, playerInventory, container, access, sideInventory,
+                sideInventory == null ? 0 : sideInventory.getSlots(), groupAt(access));
     }
 
-    private StencilTableMenu(int containerId, Inventory playerInventory, Container container,
-            ContainerLevelAccess access, StationGroup stationGroup) {
+    private StencilTableMenu(int containerId, Inventory playerInventory, Container container, ContainerLevelAccess access,
+            @Nullable IItemHandler sideInventory, int sideInventorySlotCount, StationGroup stationGroup) {
         super(ForgeweaveMenus.STENCIL_TABLE.get(), containerId, stationGroup);
         checkContainerSize(container, CONTAINER_SLOTS);
         this.container = container;
         this.access = access;
+        this.sideInventorySlotCount = sideInventorySlotCount;
         container.startOpen(playerInventory.player);
 
         addSlot(new Slot(container, INPUT_SLOT, 48, 35) {
@@ -96,6 +123,9 @@ public class StencilTableMenu extends StationMenu {
             }
         });
         addSlot(new OutputSlot(container, OUTPUT_SLOT, 106, 35));
+
+        this.sideSlots = SideInventorySlots.create(sideInventory, sideInventorySlotCount, SIDE_PANEL_X, SIDE_PANEL_Y);
+        this.sideSlots.forEach(this::addSlot);
 
         addDataSlot(selectedPattern);
         selectedPattern.set(-1);
@@ -150,6 +180,10 @@ public class StencilTableMenu extends StationMenu {
         slots.get(OUTPUT_SLOT).set(result);
     }
 
+    private int sideInventoryEnd() {
+        return CONTAINER_SLOTS + sideInventorySlotCount;
+    }
+
     @Override
     public ItemStack quickMoveStack(Player player, int index) {
         Slot slot = slots.get(index);
@@ -158,9 +192,22 @@ public class StencilTableMenu extends StationMenu {
         }
         ItemStack stackInSlot = slot.getItem();
         ItemStack result = stackInSlot.copy();
+        int sideEnd = sideInventoryEnd();
+        int playerInvEnd = sideEnd + 36;
 
-        if (index < CONTAINER_SLOTS) { // input or output -> player inventory
-            if (!moveItemStackTo(stackInSlot, CONTAINER_SLOTS, slots.size(), true)) {
+        if (index == OUTPUT_SLOT && sideInventorySlotCount > 0) {
+            // Upstream ContainerStencilTable#transferStackInSlot: the stamped pattern always
+            // shift-clicks into the adjacent Pattern Chest when one is attached, never the player
+            // inventory (issue #306).
+            if (!moveItemStackTo(stackInSlot, CONTAINER_SLOTS, sideEnd, false)) {
+                return ItemStack.EMPTY;
+            }
+        } else if (index < CONTAINER_SLOTS) { // input, or output with no chest attached -> player inventory
+            if (!moveItemStackTo(stackInSlot, sideEnd, playerInvEnd, true)) {
+                return ItemStack.EMPTY;
+            }
+        } else if (index < sideEnd) { // side inventory -> player inventory
+            if (!moveItemStackTo(stackInSlot, sideEnd, playerInvEnd, false)) {
                 return ItemStack.EMPTY;
             }
         } else if (stackInSlot.is(ForgeweaveItems.PATTERN_BLANK.get())) { // player inventory -> input

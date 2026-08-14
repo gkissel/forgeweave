@@ -24,6 +24,7 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 
 import net.neoforged.neoforge.client.model.data.ModelData;
+import net.neoforged.neoforge.items.IItemHandler;
 
 import dev.gkissel.forgeweave.menu.StationGroup;
 import dev.gkissel.forgeweave.menu.StencilTableMenu;
@@ -32,6 +33,12 @@ import dev.gkissel.forgeweave.menu.StencilTableMenu;
  * Holds the Stencil Table's persistent input+output inventory and opens its menu (docs/SCOPE.md M1
  * issue #44). Same shape as {@link PartBuilderBlockEntity} -- no ticking logic; the conversion
  * resolves instantly when the player takes the output (see {@link StencilTableMenu}).
+ *
+ * <p>{@link #findSideInventory} exposes a neighboring Pattern Chest's inventory in the GUI's side
+ * panel (issue #306, upstream's {@code ContainerStencilTable} detecting an adjacent {@code
+ * TilePatternChest}), delegating to the same horizontal-neighbor scan {@link PartBuilderBlockEntity}
+ * and {@link CraftingStationBlockEntity} already use -- see {@link SideInventory} for the upstream
+ * port.
  *
  * <p>Also retains the wood block it was crafted from ({@link WoodTexturedBlockEntity}, issue #43),
  * defaulting to oak planks (the Stencil Table's recipe is a blank pattern + planks, matching the
@@ -51,6 +58,12 @@ public class StencilTableBlockEntity extends BlockEntity implements StationMenuH
 
     public Container container() {
         return container;
+    }
+
+    /** The adjacent Pattern Chest's item handler to expose in the GUI's side panel, or {@code null} if none qualifies. */
+    @Nullable
+    public IItemHandler findSideInventory() {
+        return SideInventory.find(this);
     }
 
     @Override
@@ -118,12 +131,15 @@ public class StencilTableBlockEntity extends BlockEntity implements StationMenuH
     @Nullable
     @Override
     public AbstractContainerMenu createMenu(int containerId, Inventory playerInventory, Player player) {
-        return new StencilTableMenu(containerId, playerInventory, container, ContainerLevelAccess.create(level, worldPosition));
+        return new StencilTableMenu(containerId, playerInventory, container,
+                ContainerLevelAccess.create(level, worldPosition), findSideInventory());
     }
 
-    /** This station has no side inventory, so the tab row is the whole payload (issue #78). */
+    /** Side-inventory slot count first, then the station-group tab row (issue #78/#306). */
     @Override
     public void writeMenuData(RegistryFriendlyByteBuf buf) {
+        IItemHandler sideInventory = findSideInventory();
+        buf.writeVarInt(sideInventory == null ? 0 : sideInventory.getSlots());
         StationGroup.STREAM_CODEC.encode(buf, StationGroup.tabsFor(level, worldPosition));
     }
 }

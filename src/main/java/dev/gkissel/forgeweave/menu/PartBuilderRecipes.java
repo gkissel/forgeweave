@@ -4,7 +4,9 @@ import java.util.List;
 import java.util.Optional;
 import java.util.function.Supplier;
 
+import net.minecraft.core.Holder;
 import net.minecraft.core.HolderLookup;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -121,10 +123,12 @@ public final class PartBuilderRecipes {
     }
 
     /**
-     * A successful pattern+material match: the crafted part, how many material-slot items it
-     * consumes, and the shard change (possibly {@link ItemStack#EMPTY}) for leftover value.
+     * A successful pattern+material match: the crafted part, how many items each material slot
+     * contributes (issue #306: upstream's second material input, {@code ToolBuilder#tryBuildToolPart}
+     * consuming from a combined item list), and the shard change (possibly {@link ItemStack#EMPTY})
+     * for leftover value.
      */
-    record Match(ItemStack result, int materialItemsConsumed, ItemStack change) {}
+    record Match(ItemStack result, int material1ItemsConsumed, int material2ItemsConsumed, ItemStack change) {}
 
     /** Pure value math: how many whole items of {@code unitValue} it takes to cover {@code cost}, and the leftover. */
     public record CostResult(int itemsNeeded, int changeUnits) {}
@@ -151,30 +155,50 @@ public final class PartBuilderRecipes {
     }
 
     /**
-     * Resolves what the part builder should produce for the current pattern and material slots, or
-     * empty if the pattern is missing/unrecognized, the material doesn't match any known material's
-     * crafting items (or a shard with no material set), or there isn't enough of it.
+     * Resolves what the part builder should produce for the current pattern and material slots
+     * (issue #306: upstream's second material input at (48, 44) -- {@code
+     * ContainerPartBuilder#input2}/{@code ToolBuilder#tryBuildToolPart}), or empty if the pattern is
+     * missing/unrecognized, both material slots are empty, neither matches any known material's
+     * crafting items (or a shard with no material set), or the combined value doesn't cover the cost.
      */
-    static Optional<Match> resolve(HolderLookup.Provider registries, ItemStack pattern, ItemStack material) {
-        if (pattern.isEmpty() || material.isEmpty()) {
+    static Optional<Match> resolve(HolderLookup.Provider registries, ItemStack pattern, ItemStack material1, ItemStack material2) {
+        if (pattern.isEmpty() || (material1.isEmpty() && material2.isEmpty())) {
             return Optional.empty();
         }
-        return findEntry(pattern).flatMap(entry -> materialValue(registries, material).flatMap(matched -> {
-            CostResult cost = computeCost(entry.cost(), matched.unitValue());
-            if (material.getCount() < cost.itemsNeeded()) {
-                return Optional.empty();
-            }
+        return findEntry(pattern).flatMap(entry -> combinedMaterialValue(registries, material1, material2)
+                .flatMap(matched -> {
+                    if (matched.totalValue() < entry.cost()) {
+                        return Optional.empty();
+                    }
 
-            ItemStack result = new ItemStack(entry.part().get());
-            result.set(ForgeweaveDataComponents.MATERIAL.get(), matched.id());
+                    // Whole items only, cheapest-first slot order (upstream's own input1-then-input2
+                    // combined list, ListUtil.getListFrom(input1, input2)) -- the same "consume as
+                    // few whole items as the cost needs" rule the single-slot version used.
+                    int unitValue1 = unitValueAgainst(registries, matched.id(), material1);
+                    int unitValue2 = unitValueAgainst(registries, matched.id(), material2);
+                    int remaining = entry.cost();
+                    int consumed1 = 0;
+                    while (remaining > 0 && consumed1 < material1.getCount() && unitValue1 > 0) {
+                        consumed1++;
+                        remaining -= unitValue1;
+                    }
+                    int consumed2 = 0;
+                    while (remaining > 0 && consumed2 < material2.getCount() && unitValue2 > 0) {
+                        consumed2++;
+                        remaining -= unitValue2;
+                    }
 
-            ItemStack change = ItemStack.EMPTY;
-            if (cost.changeUnits() > 0) {
-                change = new ItemStack(ForgeweaveItems.SHARD.get(), cost.changeUnits() / SHARD_VALUE);
-                change.set(ForgeweaveDataComponents.MATERIAL.get(), matched.id());
-            }
-            return Optional.of(new Match(result, cost.itemsNeeded(), change));
-        }));
+                    ItemStack result = new ItemStack(entry.part().get());
+                    result.set(ForgeweaveDataComponents.MATERIAL.get(), matched.id());
+
+                    ItemStack change = ItemStack.EMPTY;
+                    int changeUnits = -remaining;
+                    if (changeUnits > 0) {
+                        change = new ItemStack(ForgeweaveItems.SHARD.get(), changeUnits / SHARD_VALUE);
+                        change.set(ForgeweaveDataComponents.MATERIAL.get(), matched.id());
+                    }
+                    return Optional.of(new Match(result, consumed1, consumed2, change));
+                }));
     }
 
     /**
@@ -200,6 +224,43 @@ public final class PartBuilderRecipes {
             }
         }
         return Optional.empty();
+    }
+
+    /** A material identified across both material slots, and the shard-unit value available in total (issue #306). */
+    public record CombinedMaterialMatch(ResourceLocation id, int totalValue) {}
+
+    /**
+     * Which material the two material slots count as together, and how many shard-units are
+     * available across both -- upstream {@code GuiPartBuilder#getMaterial}/{@code
+     * Material#matchesRecursively}'s combined-slot read, tried material1-then-material2 (upstream's
+     * own order) for identification, then summing whichever of the two stacks actually matches that
+     * material (an unrelated item sitting in the other slot contributes nothing, same as upstream's
+     * {@code RecipeMatch} skipping non-matching entries in the combined list).
+     */
+    public static Optional<CombinedMaterialMatch> combinedMaterialValue(HolderLookup.Provider registries,
+            ItemStack material1, ItemStack material2) {
+        return materialValue(registries, material1).or(() -> materialValue(registries, material2))
+                .map(primary -> new CombinedMaterialMatch(primary.id(),
+                        unitValueAgainst(registries, primary.id(), material1) * material1.getCount()
+                                + unitValueAgainst(registries, primary.id(), material2) * material2.getCount()));
+    }
+
+    /** How many shard-units one item of {@code stack} is worth against a specific material id, or 0 if it doesn't match. */
+    private static int unitValueAgainst(HolderLookup.Provider registries, ResourceLocation materialId, ItemStack stack) {
+        if (stack.isEmpty()) {
+            return 0;
+        }
+        if (stack.is(ForgeweaveItems.SHARD.get())) {
+            return materialId.equals(stack.get(ForgeweaveDataComponents.MATERIAL.get())) ? SHARD_VALUE : 0;
+        }
+        return registries.lookup(Material.REGISTRY)
+                .flatMap(lookup -> lookup.get(ResourceKey.create(Material.REGISTRY, materialId)))
+                .map(Holder::value)
+                .flatMap(material -> material.craftingItems().stream()
+                        .filter(craftingItem -> craftingItem.ingredient().test(stack))
+                        .map(Material.CraftingItem::value)
+                        .findFirst())
+                .orElse(0);
     }
 
     private PartBuilderRecipes() {}

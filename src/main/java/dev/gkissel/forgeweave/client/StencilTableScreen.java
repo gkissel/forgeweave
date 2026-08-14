@@ -50,6 +50,12 @@ import dev.gkissel.forgeweave.menu.StencilTableMenu;
  * calls {@link #renderTooltip}. This class used to claim {@link AbstractContainerScreen} did that on
  * its own -- it does not, so neither slot tooltips nor this screen's own button tooltips below ever
  * appeared (issue #75 defect 2).
+ *
+ * <p>When a Pattern Chest is adjacent ({@code StencilTableBlockEntity#findSideInventory}, issue
+ * #306), its slots render in a panel off the station's <em>right</em> edge via {@link
+ * SideInventoryPanel} -- upstream's {@code GuiStencilTable} puts it there because this station's own
+ * pattern buttons already occupy the left; {@link dev.gkissel.forgeweave.menu.StencilTableMenu} owns
+ * the coordinates.
  */
 @EventBusSubscriber(modid = Forgeweave.MODID, bus = EventBusSubscriber.Bus.MOD, value = Dist.CLIENT)
 public class StencilTableScreen extends StationScreen<StencilTableMenu> implements StationExtraAreas {
@@ -94,6 +100,9 @@ public class StencilTableScreen extends StationScreen<StencilTableMenu> implemen
     private static final int PATTERN_ICON_V = 216;
     private static final int ICON_SIZE = 18;
 
+    private final SideInventoryPanel sidePanel =
+            new SideInventoryPanel(StencilTableMenu.SIDE_PANEL_X, StencilTableMenu.SIDE_PANEL_Y);
+
     public StencilTableScreen(StencilTableMenu menu, Inventory playerInventory, Component title) {
         super(menu, playerInventory, title);
         imageWidth = BASE_WIDTH;
@@ -105,6 +114,7 @@ public class StencilTableScreen extends StationScreen<StencilTableMenu> implemen
         guiGraphics.blit(TEXTURE, leftPos, topPos, 0, 0, BASE_WIDTH, BASE_HEIGHT, BASE_WIDTH, BASE_HEIGHT);
         renderInputIcon(guiGraphics);
         renderPatternButtons(guiGraphics, mouseX, mouseY);
+        sidePanel.render(guiGraphics, menu, leftPos, topPos, imageHeight, menu.sideSlots);
     }
 
     /**
@@ -175,11 +185,25 @@ public class StencilTableScreen extends StationScreen<StencilTableMenu> implemen
         return super.mouseClicked(mouseX, mouseY, button);
     }
 
-    /** Issue #68 fix 4: the button sidebar hangs left of {@code imageWidth}; JEI has to be told. */
+    @Override
+    public boolean mouseScrolled(double mouseX, double mouseY, double scrollX, double scrollY) {
+        if (sidePanel.mouseScrolled(mouseX, mouseY, scrollY, imageHeight, menu.sideSlots)) {
+            return true;
+        }
+        return super.mouseScrolled(mouseX, mouseY, scrollX, scrollY);
+    }
+
+    /**
+     * Issue #68 fix 4: the button sidebar hangs left of {@code imageWidth}; JEI has to be told. Issue
+     * #306: so does the pattern-chest side panel, off the right.
+     */
     @Override
     public List<Rect2i> extraGuiAreas() {
         List<Rect2i> areas = super.extraGuiAreas(); // the station-group tab row (issue #78)
         areas.add(new Rect2i(leftPos + buttonX(0), topPos + BUTTONS_Y, sidebarWidth(), sidebarHeight()));
+        if (!menu.sideSlots.isEmpty()) {
+            areas.add(sidePanel.bounds());
+        }
         return areas;
     }
 

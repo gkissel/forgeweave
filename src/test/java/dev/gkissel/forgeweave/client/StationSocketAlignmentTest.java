@@ -131,7 +131,7 @@ class StationSocketAlignmentTest {
     void partBuilderSlotsSitInTheBakedSockets() throws IOException {
         BufferedImage png = image(GUI + "part_builder.png");
         List<Slot> slots = containerSlotsOf("PartBuilderMenu");
-        assertEquals(4, slots.size(), "expected the scan to find the Part Builder's four container slots, got " + slots);
+        assertEquals(5, slots.size(), "expected the scan to find the Part Builder's five container slots, got " + slots);
         for (Slot slot : slots) {
             assertCentredInSocket(png, "PartBuilderMenu." + slot.name(), slot.x(), slot.y());
         }
