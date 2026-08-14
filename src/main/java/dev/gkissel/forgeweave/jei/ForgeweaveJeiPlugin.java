@@ -32,6 +32,7 @@ import dev.gkissel.forgeweave.casting.CastingRecipe;
 import dev.gkissel.forgeweave.client.ChestScreen;
 import dev.gkissel.forgeweave.client.CraftingStationScreen;
 import dev.gkissel.forgeweave.client.PartBuilderScreen;
+import dev.gkissel.forgeweave.client.SmelteryScreen;
 import dev.gkissel.forgeweave.client.StencilTableScreen;
 import dev.gkissel.forgeweave.client.ToolStationScreen;
 import dev.gkissel.forgeweave.item.ForgeweaveItems;
@@ -207,6 +208,11 @@ public final class ForgeweaveJeiPlugin implements IModPlugin {
      * Keeps JEI's overlay off the stations' side chrome (docs/SCOPE.md issue #68 fix 4). All four
      * station screens draw tabs, information panels and/or side-inventory panels outside the
      * rectangle {@code AbstractContainerScreen} advertises, which is all JEI would otherwise see.
+     *
+     * <p>Also wires up the smeltery tank's ingredient-under-mouse handler (issue #308): unlike the
+     * station handler above, this one does not extend JEI's visible rectangle -- it answers "what
+     * fluid is under the cursor" so R/U recipe lookup works on tank contents, upstream 1.12's {@code
+     * TinkerGuiTankHandler}.
      */
     @Override
     public void registerGuiHandlers(IGuiHandlerRegistration registration) {
@@ -216,6 +222,7 @@ public final class ForgeweaveJeiPlugin implements IModPlugin {
         registration.addGuiContainerHandler(StencilTableScreen.class, new StationGuiHandler<>());
         // Issue #78: the chests have no chrome of their own, but they do get the station-group tab row.
         registration.addGuiContainerHandler(ChestScreen.class, new StationGuiHandler<>());
+        registration.addGuiContainerHandler(SmelteryScreen.class, new SmelteryTankGuiHandler());
     }
 
     /**

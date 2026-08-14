@@ -2,10 +2,12 @@ package dev.gkissel.forgeweave.client;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.renderer.Rect2i;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.network.chat.Component;
@@ -324,6 +326,50 @@ public class SmelteryScreen extends StationScreen<SmelteryMenu> {
         }
         List<FluidStack> fluids = menu.fluids(level());
         return fluidAt(fluids, capacity(fluids), TANK_HEIGHT, (int) mouseY - topPos - TANK_Y);
+    }
+
+    /**
+     * The top edge of the fluid band at {@code index}, in the same column-relative pixel space
+     * {@link #fluidAt} reads from -- {@link #fluidAt} walks the stack from the bottom to answer
+     * "which band is here"; this walks it top-down to answer "where does this band start", the other
+     * half {@link #hoveredTankFluid} needs to size a band's hit rectangle for JEI (issue #308).
+     */
+    static int tankBandTop(List<FluidStack> fluids, int capacity, int height, int index) {
+        int[] heights = fluidHeights(fluids, capacity, height);
+        int top = height;
+        for (int i = 0; i <= index; i++) {
+            top -= heights[i];
+        }
+        return top;
+    }
+
+    /**
+     * A fluid band under the cursor and the absolute screen rectangle it occupies. Public (unlike the
+     * rest of this class's package-private helpers) because {@link #hoveredTankFluid} is {@code
+     * jei.SmelteryTankGuiHandler}'s only way to see the tank -- JEI is a separate package so it can
+     * stay {@code compileOnly} (see {@code SubtypeKeys}'s javadoc for the same split).
+     */
+    public record TankHover(FluidStack fluid, Rect2i area) {}
+
+    /**
+     * The fluid stack under the cursor in the tank, paired with the screen rectangle it occupies --
+     * upstream 1.12's {@code TinkerGuiTankHandler#getIngredientUnderMouse} (issue #308), which lets
+     * JEI's R/U recipe lookup work on whichever fluid layer is hovered. Reuses {@link #hoveredFluid}'s
+     * index and {@link #fluidHeights}' band sizes, the same maths {@link #tankTooltip} and {@link
+     * #mouseClicked} already agree on, so JEI can never point at a different band than the tooltip
+     * shows or the click would select.
+     */
+    public Optional<TankHover> hoveredTankFluid(double mouseX, double mouseY) {
+        int index = hoveredFluid(mouseX, mouseY);
+        if (index < 0) {
+            return Optional.empty();
+        }
+        List<FluidStack> fluids = menu.fluids(level());
+        int capacity = capacity(fluids);
+        int top = tankBandTop(fluids, capacity, TANK_HEIGHT, index);
+        int height = fluidHeights(fluids, capacity, TANK_HEIGHT)[index];
+        Rect2i area = new Rect2i(leftPos + TANK_X, topPos + TANK_Y + top, TANK_WIDTH, height);
+        return Optional.of(new TankHover(fluids.get(index), area));
     }
 
     /**
