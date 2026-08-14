@@ -118,6 +118,9 @@ public class Forgeweave {
         // vein). NeoForge 1.21 dropped the per-item onBlockStartBreak hook upstream 1.12 uses, so
         // this is the one break event every player break goes through -- see AoeHarvest.
         NeoForge.EVENT_BUS.addListener(AoeHarvest::onBlockBreak);
+        // #299 -- the lumber axe's tree fell spreads over ticks rather than felling the whole trunk
+        // synchronously; this drains each in-flight chop's budget every level tick. See AoeHarvest.
+        NeoForge.EVENT_BUS.addListener(AoeHarvest::onLevelTick);
         // established's kill-XP bonus (issue #102): no Item hook for a kill's dropped XP either.
         NeoForge.EVENT_BUS.addListener(ForgeweaveTraits::onExperienceDrop);
         // #103 -- netherite's fireproof: a dropped ItemEntity's fire immunity has no per-stack Item

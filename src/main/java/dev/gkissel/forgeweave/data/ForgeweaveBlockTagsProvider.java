@@ -9,6 +9,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.Blocks;
 
 import net.neoforged.neoforge.common.data.BlockTagsProvider;
 import net.neoforged.neoforge.common.data.ExistingFileHelper;
@@ -41,6 +42,11 @@ public class ForgeweaveBlockTagsProvider extends BlockTagsProvider {
         tag(BlockTags.NEEDS_DIAMOND_TOOL)
                 .add(ForgeweaveBlocks.COBALT_ORE.get())
                 .add(ForgeweaveBlocks.ARDITE_ORE.get());
+
+        // #299 -- upstream LumberAxe#effective_materials (GOURD, CACTUS) at bonus axe speed. Vanilla's
+        // own mineable/axe already carries pumpkin and melon (Material.GOURD's two blocks); cactus is
+        // the one member missing, so this adds only it rather than replacing the vanilla tag.
+        tag(BlockTags.MINEABLE_WITH_AXE).add(Blocks.CACTUS);
 
         // #206 -- the block-side counterpart of ForgeweaveItemTagsProvider's c:storage_blocks/*
         // additions (same reasoning: NeoForge's own storage_blocks tag only unions the metals it

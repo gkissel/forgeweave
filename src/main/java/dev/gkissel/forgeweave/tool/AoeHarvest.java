@@ -2,15 +2,18 @@ package dev.gkissel.forgeweave.tool;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Deque;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Queue;
 import java.util.Set;
 
 import net.neoforged.neoforge.event.level.BlockEvent;
+import net.neoforged.neoforge.event.tick.LevelTickEvent;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.world.entity.player.Player;
@@ -80,12 +83,13 @@ public final class AoeHarvest {
     public static final int VEIN_LIMIT = 64;
 
     /**
-     * A safety bound on one tree fell. Upstream has none -- its {@code TreeChopTask} spreads the
-     * chop over ticks, so an enormous tree merely takes longer -- but this fells in one call, so a
-     * pathological build (a solid 100x100 log platform) would otherwise stall the server thread.
-     * A dark-oak or large-jungle trunk is well under this, so no real tree ever reaches it.
-     * ponytail: one constant instead of a tick-spread chop task; port the task if trees ever get big
-     * enough for the single-tick chop to show up as a hitch.
+     * A safety bound on one tree fell's connected-log search (issue #299). Upstream's own
+     * {@code TreeChopTask} has no such cap -- its queue just grows as the BFS below finds more
+     * connected logs -- but the BFS itself still runs eagerly, all at once, rather than growing one
+     * tick's neighbours at a time; this is the bound that keeps a pathological build (a solid 100x100
+     * log platform) from stalling the server thread computing the shape, even though breaking it is
+     * now spread across ticks by {@link TreeChopTask}. A dark-oak or large-jungle trunk is well under
+     * this, so no real tree ever reaches it.
      */
     public static final int TREE_LIMIT = 512;
 
@@ -101,6 +105,13 @@ public final class AoeHarvest {
      */
     private static boolean breaking;
 
+    /**
+     * Every tree fell currently in flight (issue #299). A plain list, ticked from
+     * {@link #onLevelTick}: every path that touches it runs on the server thread, same as
+     * {@link #breaking} above.
+     */
+    private static final List<TreeChopTask> activeChops = new ArrayList<>();
+
     /** Registered on the game event bus in {@code Forgeweave}; see the class javadoc. */
     public static void onBlockBreak(BlockEvent.BreakEvent event) {
         if (breaking || event.isCanceled() || !(event.getPlayer() instanceof ServerPlayer player)) {
@@ -114,7 +125,25 @@ public final class AoeHarvest {
         if (shape == Shape.NONE) {
             return;
         }
-        breakAll(tool, player, extraBlocks(tool, player.level(), player, event.getPos(), event.getState(), shape));
+        List<BlockPos> extra = extraBlocks(tool, player.level(), player, event.getPos(), event.getState(), shape);
+        // A tree fell spreads its extra blocks over ticks (issue #299, upstream's own TreeChopTask);
+        // every other shape still breaks synchronously with the origin, as before.
+        if (shape == Shape.TREE_FELL && player.level() instanceof ServerLevel level && !extra.isEmpty()) {
+            activeChops.add(new TreeChopTask(tool, player, level, extra));
+        } else {
+            breakAll(tool, player, extra);
+        }
+    }
+
+    /**
+     * Advances every in-flight tree fell by one tick's worth of blocks (issue #299). Registered on
+     * {@code NeoForge.EVENT_BUS} in {@code Forgeweave} alongside {@link #onBlockBreak}.
+     */
+    public static void onLevelTick(LevelTickEvent.Post event) {
+        if (activeChops.isEmpty() || !(event.getLevel() instanceof ServerLevel level)) {
+            return;
+        }
+        activeChops.removeIf(task -> task.level == level && !task.tick());
     }
 
     /**
@@ -257,20 +286,43 @@ public final class AoeHarvest {
     }
 
     /**
-     * Upstream {@code LumberAxe#detectTree}, simplified to the trunk directly under the break: walk
-     * up from the origin while there are logs, then count leaves in the 3x3x3 around the top. Five
-     * is upstream's own threshold, and what keeps a player's log-cabin wall from felling itself.
+     * Upstream {@code LumberAxe#detectTree} (issue #299): a stack-based search rather than a single
+     * column climb, so a multi-trunk or irregular tree (a 2x2 dark oak/jungle base, buttress roots) is
+     * still recognized even when the block actually clicked tops out short of the canopy. From each
+     * log column found, climb straight up to its top, then push the four horizontal-neighbour columns
+     * one block above that top as new candidates -- which is how a short corner column's search still
+     * reaches a taller neighbouring trunk's real top before the leaf check runs. {@code highest} always
+     * holds the tallest top found so far and gates which candidates are worth exploring (upstream's own
+     * {@code candidate.getY() > pos.getY()} bound), so the search terminates once nothing taller is
+     * left to climb. Five leaves around that final top is upstream's own threshold, and what keeps a
+     * player's log-cabin wall from felling itself.
      */
     private static boolean isTree(Level level, BlockPos origin, BlockState originState) {
         if (!originState.is(BlockTags.LOGS)) {
             return false;
         }
-        BlockPos top = origin;
-        while (level.getBlockState(top.above()).is(BlockTags.LOGS)) {
-            top = top.above();
+        BlockPos highest = null;
+        Deque<BlockPos> candidates = new ArrayDeque<>();
+        candidates.push(origin);
+        while (!candidates.isEmpty()) {
+            BlockPos candidate = candidates.pop();
+            if ((highest == null || candidate.getY() > highest.getY()) && level.getBlockState(candidate).is(BlockTags.LOGS)) {
+                BlockPos top = candidate.above();
+                while (level.getBlockState(top).is(BlockTags.LOGS)) {
+                    top = top.above();
+                }
+                highest = top;
+                candidates.push(top.north());
+                candidates.push(top.east());
+                candidates.push(top.south());
+                candidates.push(top.west());
+            }
+        }
+        if (highest == null) {
+            return false;
         }
         int leaves = 0;
-        for (BlockPos pos : cube(top)) {
+        for (BlockPos pos : cube(highest)) {
             if (level.getBlockState(pos).is(BlockTags.LEAVES) && ++leaves >= LEAVES_FOR_TREE) {
                 return true;
             }
@@ -343,6 +395,60 @@ public final class AoeHarvest {
             }
         }
         return out;
+    }
+
+    /**
+     * A tree fell's server-thread-friendly chop, upstream's own {@code TreeChopTask} (issue #299):
+     * breaks {@link #BLOCKS_PER_TICK} of its precomputed {@link #blocks} queue per tick instead of the
+     * whole trunk in the same tick the origin log came down, and stops the moment the tool goes Broken
+     * mid-chop.
+     *
+     * <p>Adaptation flagged: upstream recomputes each block's neighbours as the chop reaches it, one
+     * tick's worth at a time, and sizes {@code blocksPerTick} off a reach/AoE event this port has no
+     * equivalent of. Forgeweave's {@link #trunk} already has to run eagerly and once, bounded by
+     * {@link #TREE_LIMIT}, to answer {@link #extraBlocks} for the tests that assert the shape directly
+     * -- so this task reuses that same precomputed, already-{@link #canBreakExtra}-filtered list rather
+     * than re-deriving it incrementally; only the actual breaking (drops, XP, block updates -- the part
+     * upstream's own comment says exists to avoid a server hitch) is spread across ticks.
+     * ponytail: flat {@link #BLOCKS_PER_TICK} instead of porting the reach-scaled speed upstream derives
+     * per swing; revisit if a real tree ever needs felling faster or slower than "a few ticks".
+     */
+    private static final class TreeChopTask {
+        /** A normal tree (well under a few dozen logs) still falls within a handful of ticks. */
+        private static final int BLOCKS_PER_TICK = 8;
+
+        private final ItemStack tool;
+        private final ServerPlayer player;
+        private final ServerLevel level;
+        private final Queue<BlockPos> blocks;
+
+        private TreeChopTask(ItemStack tool, ServerPlayer player, ServerLevel level, List<BlockPos> blocks) {
+            this.tool = tool;
+            this.player = player;
+            this.level = level;
+            this.blocks = new ArrayDeque<>(blocks);
+        }
+
+        /** Breaks one tick's budget. Returns false once finished -- queue drained or tool Broken. */
+        private boolean tick() {
+            int left = BLOCKS_PER_TICK;
+            while (left > 0) {
+                if (blocks.isEmpty() || ToolItem.isBroken(tool)) {
+                    return false;
+                }
+                BlockPos pos = blocks.remove();
+                if (!level.getBlockState(pos).isAir()) {
+                    breaking = true;
+                    try {
+                        player.gameMode.destroyBlock(pos);
+                    } finally {
+                        breaking = false;
+                    }
+                }
+                left--;
+            }
+            return true;
+        }
     }
 
     private AoeHarvest() {}
