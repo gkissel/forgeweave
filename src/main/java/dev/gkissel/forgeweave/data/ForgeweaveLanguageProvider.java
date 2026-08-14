@@ -309,7 +309,7 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         // tool info panel where upstream 1.12 shows its TinkerGuiException text.
         add("gui.forgeweave.modifier.no_slots", "This tool has no modifier slots left (%s to start with).");
         add("gui.forgeweave.modifier.max_level", "%s is already at its maximum level on this tool.");
-        add("gui.forgeweave.modifier.invalid_reagent", "Apply one modifier at a time -- the other slot holds something else.");
+        add("gui.forgeweave.modifier.invalid_reagent", "The other slot holds something no modifier accepts.");
         add("gui.forgeweave.modifier.not_enough_reagents", "Not enough of that reagent: %s are needed per step.");
         // Issue #259 (multi-unit reagents): a whole reagent worth more units than the cap has room
         // for -- e.g. a 9-unit redstone block against 5 remaining units of haste.

@@ -92,7 +92,7 @@
   "gui.forgeweave.exchange.not_enough_durability": "Not enough durability to replace parts! %s more durability required.",
   "gui.forgeweave.exchange.same_material": "The tool already has a part of that material there.",
   "gui.forgeweave.exchange.wrong_part": "This tool has no slot for that part.",
-  "gui.forgeweave.modifier.invalid_reagent": "Apply one modifier at a time -- the other slot holds something else.",
+  "gui.forgeweave.modifier.invalid_reagent": "The other slot holds something no modifier accepts.",
   "gui.forgeweave.modifier.max_level": "%s is already at its maximum level on this tool.",
   "gui.forgeweave.modifier.no_slots": "This tool has no modifier slots left (%s to start with).",
   "gui.forgeweave.modifier.not_enough_reagents": "Not enough of that reagent: %s are needed per step.",

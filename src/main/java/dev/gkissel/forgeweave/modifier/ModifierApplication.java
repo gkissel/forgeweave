@@ -85,40 +85,81 @@ public final class ModifierApplication {
         if (tool.get(ForgeweaveDataComponents.TOOL_STATS.get()) == null) {
             return Optional.empty(); // not an assembled tool; nothing to modify.
         }
-        Optional<ModifierRecipe> found = recipeFor(registries, first);
-        if (found.isEmpty()) {
-            found = recipeFor(registries, second);
-        }
-        if (found.isEmpty()) {
+        Optional<ModifierRecipe> firstFound = recipeFor(registries, first);
+        Optional<ModifierRecipe> secondFound = recipeFor(registries, second);
+        if (firstFound.isEmpty() && secondFound.isEmpty()) {
             return Optional.empty();
         }
-
-        ModifierRecipe recipe = found.get();
-        ModifierRecipe.Reagent firstReagent = recipe.reagentFor(first);
-        ModifierRecipe.Reagent secondReagent = recipe.reagentFor(second);
-        if ((!first.isEmpty() && firstReagent == null) || (!second.isEmpty() && secondReagent == null)) {
-            // One slot holds this modifier's reagent and the other holds something else -- another
-            // modifier's reagent, or junk. Upstream applies every matching modifier in one pass;
-            // Forgeweave does one at a time and says so. The two slots may hold two different
-            // reagents of the same recipe (issue #259: haste dust in one, a block in the other).
+        if ((!first.isEmpty() && firstFound.isEmpty()) || (!second.isEmpty() && secondFound.isEmpty())) {
+            // One slot holds a reagent and the other something no modifier recipe accepts at all --
+            // upstream's untouched-input check (ToolBuilder#tryModifyTool lines 226-234, the
+            // gui.error.no_modifier_for_item refusal). Two different modifiers' reagents side by
+            // side are NOT this case since issue #340: they apply together below.
             return Optional.of(Outcome.rejected(Component.translatable("gui.forgeweave.modifier.invalid_reagent")));
         }
-        Optional<Component> unsupported = unsupportedToolReason(registries, recipe, tool);
-        if (unsupported.isPresent()) {
-            return Optional.of(Outcome.rejected(unsupported.get()));
+        if (firstFound.isPresent() && secondFound.isPresent() && !firstFound.get().equals(secondFound.get())) {
+            // Issue #340: two distinct recipes, one per slot -- upstream tryModifyTool's outer loop
+            // over every registered modifier (lines 176-223), which applies each one whose reagents
+            // are present in the same operation. Sequential, the second application re-checking the
+            // slot budget against the first one's output; any rejection rejects the whole craft,
+            // upstream's rethrow for a modifier not yet applied this craft (lines 207-208 --
+            // "either all or none").
+            return Optional.of(resolveBoth(registries, tool, firstFound.get(), first, secondFound.get(), second));
         }
-        Outcome outcome = apply(recipe, tool,
+
+        // One recipe across both slots -- possibly two reagent forms of it (issue #259: haste dust
+        // in one slot, a redstone block in the other), which pool inside a single application.
+        ModifierRecipe recipe = firstFound.isPresent() ? firstFound.get() : secondFound.get();
+        ModifierRecipe.Reagent firstReagent = recipe.reagentFor(first);
+        ModifierRecipe.Reagent secondReagent = recipe.reagentFor(second);
+        return Optional.of(resolveOne(registries, recipe, tool,
                 firstReagent != null ? first.getCount() : 0,
                 firstReagent != null ? firstReagent.units() : 1,
                 secondReagent != null ? second.getCount() : 0,
-                secondReagent != null ? secondReagent.units() : 1);
+                secondReagent != null ? secondReagent.units() : 1));
+    }
+
+    /**
+     * Issue #340's two-modifier craft: the first slot's recipe applied to the tool, then the second
+     * slot's recipe applied to that result -- so the second application's slot-budget check
+     * ({@code freeSlots}, i.e. {@link ForgeweaveModifiers#occupiedSlots}) sees the first one already
+     * in place, exactly as upstream's sequential {@code canApply}/{@code apply} loop does. Slot
+     * order rather than upstream's registry order: with one recipe per slot every outcome (including
+     * the budget rejection -- whichever order, the modifier that doesn't fit refuses the craft) is
+     * order-independent, only the modifier list's cosmetic ordering differs.
+     */
+    private static Outcome resolveBoth(HolderLookup.Provider registries, ItemStack tool,
+            ModifierRecipe firstRecipe, ItemStack first, ModifierRecipe secondRecipe, ItemStack second) {
+        Outcome one = resolveOne(registries, firstRecipe, tool,
+                first.getCount(), firstRecipe.reagentFor(first).units(), 0, 1);
+        if (one.output().isEmpty()) {
+            return one;
+        }
+        Outcome two = resolveOne(registries, secondRecipe, one.output(),
+                0, 1, second.getCount(), secondRecipe.reagentFor(second).units());
+        if (two.output().isEmpty()) {
+            return two; // discards the first application too: upstream's all-or-none rethrow.
+        }
+        return Outcome.applied(two.output(), one.firstUsed(), two.secondUsed());
+    }
+
+    /**
+     * One recipe's whole application: the supported-tool check, the pure {@link #apply} arithmetic,
+     * and the enchantment grants ({@code #106} batch: luck's Fortune/Looting -- the one call in the
+     * class that needs registry access, which is why it lives here rather than in the registry-free
+     * {@code apply()}/{@code modified()} below -- see {@code Modifier#fortuneLevel}).
+     */
+    private static Outcome resolveOne(HolderLookup.Provider registries, ModifierRecipe recipe, ItemStack tool,
+            int firstAvailable, int firstUnitsPerItem, int secondAvailable, int secondUnitsPerItem) {
+        Optional<Component> unsupported = unsupportedToolReason(registries, recipe, tool);
+        if (unsupported.isPresent()) {
+            return Outcome.rejected(unsupported.get());
+        }
+        Outcome outcome = apply(recipe, tool, firstAvailable, firstUnitsPerItem, secondAvailable, secondUnitsPerItem);
         if (!outcome.output().isEmpty()) {
-            // #106 batch: luck's Fortune/Looting grant. This is the one call in the whole class that
-            // needs registry access (resolving the Enchantment holders), which is why it lives here
-            // rather than in the registry-free apply()/modified() below -- see Modifier#fortuneLevel.
             applyEnchantmentGrants(registries, recipe, outcome.output());
         }
-        return Optional.of(outcome);
+        return outcome;
     }
 
     /**

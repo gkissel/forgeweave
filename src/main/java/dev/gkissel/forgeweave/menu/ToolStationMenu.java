@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Supplier;
+import java.util.stream.Stream;
 
 import javax.annotation.Nullable;
 
@@ -551,11 +552,14 @@ public class ToolStationMenu extends StationMenu {
                     .filter(output -> !output.isEmpty())
                     .isPresent()) {
                 ForgeweaveCriteriaTriggers.FIRST_MODIFIER.get().trigger(player);
-                ModifierApplication.recipeFor(registries, binding)
-                        .or(() -> ModifierApplication.recipeFor(registries, handle))
+                // Both slots, not first-match: since issue #340 a craft can land two different
+                // modifiers at once, and a combat one in the second slot still counts.
+                if (Stream.of(binding, handle)
+                        .flatMap(stack -> ModifierApplication.recipeFor(registries, stack).stream())
                         .map(ModifierRecipe::modifier)
-                        .filter(ForgeweaveModifiers::isCombatModifier)
-                        .ifPresent(id -> ForgeweaveCriteriaTriggers.COMBAT_MODIFIER_APPLIED.get().trigger(player));
+                        .anyMatch(ForgeweaveModifiers::isCombatModifier)) {
+                    ForgeweaveCriteriaTriggers.COMBAT_MODIFIER_APPLIED.get().trigger(player);
+                }
             }
 
             // #166 -- "emboss": Embossing#resolve is the same check rejection() uses.
