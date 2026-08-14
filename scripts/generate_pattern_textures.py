@@ -31,6 +31,9 @@ from PIL import Image
 ROOT = Path(__file__).resolve().parent.parent
 UPSTREAM = Path.home() / "development/minecraft/references/tinkers-1.12"
 TEXTURE_DIR = ROOT / "src/main/resources/assets/forgeweave/textures/derived/item"
+# Freshly-authored part art stays out of the derived tree (CLAUDE.md); katana_blade is the only
+# part base that lives here (issue #279).
+ORIGINAL_ITEM_DIR = ROOT / "src/main/resources/assets/forgeweave/textures/item"
 PATTERN_BASE = TEXTURE_DIR / "pattern.png"
 
 # (part silhouette texture, composite output texture, source directory, (offsetX, offsetY))
@@ -69,7 +72,7 @@ PARTS = [
     ("kama_head.png", "pattern_kama_head.png", TEXTURE_DIR, (-2, 4)),
     ("broad_axe_head.png", "pattern_broad_axe_head.png", TEXTURE_DIR, (-3, 4)),
     # The four parts below have no upstream .tmat.json (freshly authored or reshaped art, #151 /
-    # #198 / #159 / #160), so their offsets are hand-chosen here to center each part's silhouette
+    # #198 / #159 / #279), so their offsets are hand-chosen here to center each part's silhouette
     # bounding box on the 16x16 canvas (verified against `<part>.png`'s actual alpha bbox) rather
     # than ported from an upstream file that doesn't exist.
     # vein_hammer_head: bbox center (10.5, 5.5) -> matches the hammer/excavator family's (-3, 3).
@@ -77,13 +80,16 @@ PARTS = [
     # war_mace_head: bbox center (11.0, 5.0) -> (-3, 3) centers it exactly, same hammer lineage
     # (scripts/derive_warmace_art.py derives it from the hammer head).
     ("war_mace_head.png", "pattern_war_mace_head.png", TEXTURE_DIR, (-3, 3)),
-    # curved_blade: bbox is already centered at (8, 8) (reshaped from the already-centered
-    # sword_blade.png, scripts/derive_m3_weapon_art.py) -- no offset needed.
-    ("curved_blade.png", "pattern_curved_blade.png", TEXTURE_DIR, (0, 0)),
-    # katana_blade: same pixels as large_sword_blade.png (scripts/derive_m3_weapon_art.py), but
-    # its own bbox is already centered at (8, 8); large_sword_blade's upstream (-1, 1) offset is
-    # a real upstream authoring choice for that part, not something katana_blade needs to copy.
-    ("katana_blade.png", "pattern_katana_blade.png", TEXTURE_DIR, (0, 0)),
+    # curved_blade: 1.12's cutlass blade since #279 (scripts/derive_m3_weapon_art.py). Unlike the
+    # reshaped sword blade it replaced -- which happened to be centered, hence its old (0, 0) --
+    # upstream drew the cutlass blade in the tool position, up in the canvas's top-right corner:
+    # bbox center (10.0, 6.0) -> (-2, 2) centers it.
+    ("curved_blade.png", "pattern_curved_blade.png", TEXTURE_DIR, (-2, 2)),
+    # katana_blade: freshly authored since #279 (scripts/generate_katana_art.py), and drawn in the
+    # tool position too so the part icon and the katana_head tool layer can be one file. bbox
+    # center (9.5, 4.5) -> (-2, 4) centers it. Read from ORIGINAL_ITEM_DIR, not TEXTURE_DIR: it is
+    # the one part base that is not derived art.
+    ("katana_blade.png", "pattern_katana_blade.png", ORIGINAL_ITEM_DIR, (-2, 4)),
 ]
 
 # Upstream ships hand-drawn pattern art for the large plate instead of compositing one; copied
