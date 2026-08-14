@@ -1,0 +1,15 @@
+{
+  "station": "table",
+  "cast": {
+    "item": "forgeweave:clay_cast_sharpening_kit"
+  },
+  "fluid": "forgeweave:molten_rose_gold",
+  "amount": 288,
+  "result": {
+    "id": "forgeweave:sharpening_kit",
+    "components": {
+      "forgeweave:material": "forgeweave:rose_gold"
+    }
+  },
+  "consumes_cast": true
+}
