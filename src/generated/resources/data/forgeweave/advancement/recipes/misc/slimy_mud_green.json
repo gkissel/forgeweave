@@ -1,11 +1,11 @@
 {
   "parent": "minecraft:recipes/root",
   "criteria": {
-    "has_slimy_mud_magma": {
+    "has_slime_ball": {
       "conditions": {
         "items": [
           {
-            "items": "forgeweave:slimy_mud_magma"
+            "items": "minecraft:slime_ball"
           }
         ]
       },
@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "forgeweave:magma_slime_crystal"
+        "recipe": "forgeweave:slimy_mud_green"
       },
       "trigger": "minecraft:recipe_unlocked"
     }
@@ -21,12 +21,12 @@
   "requirements": [
     [
       "has_the_recipe",
-      "has_slimy_mud_magma"
+      "has_slime_ball"
     ]
   ],
   "rewards": {
     "recipes": [
-      "forgeweave:magma_slime_crystal"
+      "forgeweave:slimy_mud_green"
     ]
   }
 }

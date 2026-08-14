@@ -66,6 +66,10 @@ public class ForgeweaveBlockStateProvider extends BlockStateProvider {
         // seared brick family below.
         cubeAllBlock("grout", ForgeweaveBlocks.GROUT.get());
 
+        // #339 -- the slimy muds, same plain cube_all geometry as grout, one derived texture each.
+        cubeAllBlock("slimy_mud_green", ForgeweaveBlocks.SLIMY_MUD_GREEN.get());
+        cubeAllBlock("slimy_mud_magma", ForgeweaveBlocks.SLIMY_MUD_MAGMA.get());
+
         // The seared brick block family (docs/SCOPE.md M2 issue #93): plain cube_all blocks, one
         // derived texture per variant (NOTICE.md) -- unlike the tables above, these have no custom
         // geometry, so simpleBlockWithItem covers both the blockstate and the block-item model.

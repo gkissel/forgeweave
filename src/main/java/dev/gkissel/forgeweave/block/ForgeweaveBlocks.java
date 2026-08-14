@@ -69,17 +69,24 @@ public final class ForgeweaveBlocks {
 
     // Grout (docs/SCOPE.md M2 issue #93; issue #129 fix). Upstream 1.12 ships it as one state of
     // BlockSoil (SoilTypes.GROUT, NOTICE.md): Material.SAND, hardness 3.0, SoundType.SAND, and a
-    // slipperiness of 0.8 (default is 0.6) -- ported below via strength()/sound()/friction(). Harvest
-    // level ("shovel", -1) means no minimum tool tier is required, so -- matching every other
-    // Forgeweave block, none of which gate tool tier either (see the seared family javadoc below) --
-    // this carries no mineable/* tag. Not a falling block: BlockSoil extends EnumBlock, not
-    // BlockFalling.
-    public static final DeferredBlock<Block> GROUT = BLOCKS.registerSimpleBlock("grout",
-            BlockBehaviour.Properties.of()
-                    .mapColor(MapColor.SAND)
-                    .strength(3.0F)
-                    .sound(SoundType.SAND)
-                    .friction(0.8F));
+    // slipperiness of 0.8 (default is 0.6) -- ported via soilProperties() below. Harvest level
+    // ("shovel", -1) splits into two modern tags: the "shovel" tool class is mineable/shovel (the
+    // correct, faster tool), and level -1 -- no minimum tier -- means no needs_*_tool tag alongside
+    // it, matching every other Forgeweave block (see the seared family javadoc below). Not a
+    // falling block: BlockSoil extends EnumBlock, not BlockFalling.
+    public static final DeferredBlock<Block> GROUT = BLOCKS.registerSimpleBlock("grout", soilProperties(MapColor.SAND));
+
+    // #339 -- green and magma slimy mud: two more states of the same upstream BlockSoil as grout
+    // above (SoilTypes.SLIMY_MUD_GREEN / SLIMY_MUD_MAGMA, NOTICE.md), so they share its properties
+    // verbatim. Furnace-smelting one yields its slime crystal (upstream TinkerTools, 0.75 xp) --
+    // that smelt is the whole reason these blocks exist here; upstream's other mud behaviors
+    // (onEntityWalk slowdown, sustaining slime plants) belong to world content and stay out of
+    // scope until #181. Blue mud needs blue slime balls, which have no world source yet, so it is
+    // deliberately absent.
+    public static final DeferredBlock<Block> SLIMY_MUD_GREEN =
+            BLOCKS.registerSimpleBlock("slimy_mud_green", soilProperties(MapColor.COLOR_GREEN));
+    public static final DeferredBlock<Block> SLIMY_MUD_MAGMA =
+            BLOCKS.registerSimpleBlock("slimy_mud_magma", soilProperties(MapColor.COLOR_ORANGE));
 
     // The seared brick block family (docs/SCOPE.md M2 issue #93): the 12 variants of upstream
     // 1.12's BlockSeared (BlockSeared.SearedType, NOTICE.md), each split into its own plain block
@@ -195,6 +202,15 @@ public final class ForgeweaveBlocks {
                     .strength(2.0F, 7.0F)
                     .sound(SoundType.WOOD)
                     .lightLevel(state -> 7));
+
+    /** Upstream 1.12 {@code BlockSoil}'s block properties, shared by grout and the slimy muds. */
+    private static BlockBehaviour.Properties soilProperties(MapColor color) {
+        return BlockBehaviour.Properties.of()
+                .mapColor(color)
+                .strength(3.0F)
+                .sound(SoundType.SAND)
+                .friction(0.8F);
+    }
 
     private static DeferredBlock<Block> metalBlock(String name) {
         return BLOCKS.registerSimpleBlock(name, BlockBehaviour.Properties.of()

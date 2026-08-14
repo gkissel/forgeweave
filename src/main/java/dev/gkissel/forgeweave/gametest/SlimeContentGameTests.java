@@ -34,24 +34,61 @@ import dev.gkissel.forgeweave.item.ForgeweaveItems;
  * assembled parts expose their traits. The embossing reagent revert is deliberately not here: it
  * ships with issue #248's fourth reagent slot, which the full 4-reagent parity recipe needs.
  *
- * <p>Crystal sources are the maintainer decisions recorded on the issue: green and magma
- * furnace-smelt from their vanilla blocks (upstream smelts congealed slime, which Forgeweave does
- * not ship), and blue -- with no world source until the world-content milestone -- crafts from a
+ * <p>Crystal sources follow the maintainer decision of 2026-08-14 (issue #339), which revised
+ * #232's shortcuts: green and magma now take upstream 1.12's real path -- craft slimy mud, then
+ * furnace-smelt the mud into the crystal ({@code TinkerTools#registerSmeltingRecipes}, 0.75 xp).
+ * Blue -- with no world source until the world-content milestone (#181) -- keeps #232's interim
  * green crystal plus lapis.
  */
 @GameTestHolder(Forgeweave.MODID)
 @PrefixGameTestTemplate(false)
 public class SlimeContentGameTests {
 
+    /** Upstream {@code slimy_mud_green.json} 1:1: 4 slime balls + sand + dirt, shapeless. */
     @GameTest(template = "empty")
-    public static void slimeBlockSmeltsIntoGreenCrystal(GameTestHelper helper) {
-        assertSmeltsInto(helper, new ItemStack(Items.SLIME_BLOCK), ForgeweaveItems.GREEN_SLIME_CRYSTAL.get());
+    public static void greenSlimyMudCraftsFromSlimeBallsSandAndDirt(GameTestHelper helper) {
+        assertCrafts(helper, List.of(
+                        new ItemStack(Items.SLIME_BALL), new ItemStack(Items.SLIME_BALL), new ItemStack(Items.SLIME_BALL),
+                        new ItemStack(Items.SLIME_BALL), new ItemStack(Items.SAND), new ItemStack(Items.DIRT)),
+                ForgeweaveItems.SLIMY_MUD_GREEN.get());
+        helper.succeed();
+    }
+
+    /**
+     * Upstream {@code slimy_mud_magma.json} with the maintainer-flagged substitution: its 2 magma
+     * slime balls have no Forgeweave item, so all four filler slots are magma cream (issue #339).
+     */
+    @GameTest(template = "empty")
+    public static void magmaSlimyMudCraftsFromMagmaCreamSoulSandAndNetherrack(GameTestHelper helper) {
+        assertCrafts(helper, List.of(
+                        new ItemStack(Items.MAGMA_CREAM), new ItemStack(Items.MAGMA_CREAM), new ItemStack(Items.MAGMA_CREAM),
+                        new ItemStack(Items.MAGMA_CREAM), new ItemStack(Items.SOUL_SAND), new ItemStack(Items.NETHERRACK)),
+                ForgeweaveItems.SLIMY_MUD_MAGMA.get());
         helper.succeed();
     }
 
     @GameTest(template = "empty")
-    public static void magmaBlockSmeltsIntoMagmaCrystal(GameTestHelper helper) {
-        assertSmeltsInto(helper, new ItemStack(Items.MAGMA_BLOCK), ForgeweaveItems.MAGMA_SLIME_CRYSTAL.get());
+    public static void greenSlimyMudSmeltsIntoGreenCrystal(GameTestHelper helper) {
+        assertSmeltsInto(helper, new ItemStack(ForgeweaveItems.SLIMY_MUD_GREEN.get()),
+                ForgeweaveItems.GREEN_SLIME_CRYSTAL.get());
+        helper.succeed();
+    }
+
+    @GameTest(template = "empty")
+    public static void magmaSlimyMudSmeltsIntoMagmaCrystal(GameTestHelper helper) {
+        assertSmeltsInto(helper, new ItemStack(ForgeweaveItems.SLIMY_MUD_MAGMA.get()),
+                ForgeweaveItems.MAGMA_SLIME_CRYSTAL.get());
+        helper.succeed();
+    }
+
+    /**
+     * #339 -- the #232 shortcuts are gone: neither vanilla block smelts into a crystal any more, so
+     * the mud path above is the only way to one.
+     */
+    @GameTest(template = "empty")
+    public static void vanillaSlimeAndMagmaBlocksNoLongerSmeltIntoCrystals(GameTestHelper helper) {
+        assertSmeltsIntoNothing(helper, new ItemStack(Items.SLIME_BLOCK));
+        assertSmeltsIntoNothing(helper, new ItemStack(Items.MAGMA_BLOCK));
         helper.succeed();
     }
 
@@ -169,6 +206,26 @@ public class SlimeContentGameTests {
                 .orElse(ItemStack.EMPTY);
         helper.assertTrue(smelted.is(expected),
                 "expected furnace-smelting " + input + " to give " + expected + ", got " + smelted);
+    }
+
+    private static void assertSmeltsIntoNothing(GameTestHelper helper, ItemStack input) {
+        helper.assertTrue(helper.getLevel().getRecipeManager()
+                        .getRecipeFor(RecipeType.SMELTING, new SingleRecipeInput(input), helper.getLevel()).isEmpty(),
+                "expected no furnace recipe for " + input + " -- the #232 shortcut should be gone");
+    }
+
+    /** Resolves {@code ingredients} as a shapeless 3x2 crafting grid and asserts the single result. */
+    private static void assertCrafts(GameTestHelper helper, List<ItemStack> ingredients,
+                                     net.minecraft.world.item.Item expected) {
+        ServerLevel level = helper.getLevel();
+        CraftingInput input = CraftingInput.of(3, 2, ingredients);
+        ItemStack crafted = level.getRecipeManager()
+                .getRecipeFor(RecipeType.CRAFTING, input, level)
+                .map(match -> match.value().assemble(input, level.registryAccess()))
+                .orElse(ItemStack.EMPTY);
+
+        helper.assertTrue(crafted.is(expected) && crafted.getCount() == 1,
+                "expected " + ingredients + " to craft one " + expected + ", got " + crafted);
     }
 
     /** The 1x1x2 minimum smeltery of {@link SmelteryGameTests}, formed and empty. */
