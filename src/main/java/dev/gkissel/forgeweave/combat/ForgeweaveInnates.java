@@ -16,6 +16,8 @@ import net.minecraft.util.Mth;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.damagesource.DamageType;
 import net.minecraft.world.damagesource.DamageTypes;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.EquipmentSlot;
@@ -25,6 +27,7 @@ import net.minecraft.world.entity.projectile.Projectile;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.UseAnim;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
 
 import dev.gkissel.forgeweave.Forgeweave;
@@ -112,6 +115,15 @@ public final class ForgeweaveInnates {
     private static final float VITAL_THRUST_FRACTION = 0.05F;
 
     /**
+     * Upstream {@code tools/melee/item/Rapier.java#onItemRightClick} verbatim: 0.1 exhaustion, a
+     * {@code motionY += 0.32} hop, a flat 0.5 horizontal dash and a 4-tick cooldown.
+     */
+    private static final float LUNGE_RISE = 0.32F;
+    private static final float LUNGE_SPEED = 0.5F;
+    private static final float LUNGE_EXHAUSTION = 0.1F;
+    private static final int LUNGE_COOLDOWN_TICKS = 4;
+
+    /**
      * Upstream {@code BattleSign#reflectProjectiles}: only counts while looking at the projectile
      * ({@code -look · motion > 0.1}), and returns it at its own speed plus a little.
      */
@@ -153,9 +165,12 @@ public final class ForgeweaveInnates {
     /** Longsword: upstream's charged leap, ported constant for constant. */
     public static final Innate CHARGED_LEAP = new Innate("charged_leap", null, new ChargedLeap());
 
-    /** Rapier: the maintainer's redesign of upstream's hybrid-damage double hit. */
+    /**
+     * Rapier: the maintainer's redesign of upstream's hybrid-damage double hit, plus upstream's own
+     * right-click {@link Lunge} (issue #300).
+     */
     public static final CurrentHealthStrike VITAL_THRUST_SEAM = new CurrentHealthStrike(VITAL_THRUST_FRACTION);
-    public static final Innate VITAL_THRUST = new Innate("vital_thrust", VITAL_THRUST_SEAM, null);
+    public static final Innate VITAL_THRUST = new Innate("vital_thrust", VITAL_THRUST_SEAM, new Lunge());
 
     /** Battlesign: upstream's blocking stance that returns projectiles to their sender. */
     public static final Innate DEFLECT = deflect();
@@ -557,6 +572,59 @@ public final class ForgeweaveInnates {
                 player.causeFoodExhaustion(LEAP_EXHAUSTION);
                 player.getCooldowns().addCooldown(stack.getItem(), LEAP_COOLDOWN_TICKS);
             }
+        }
+    }
+
+    /**
+     * The rapier's fencing hop, ported from {@code Rapier#onItemRightClick}. Instant rather than held,
+     * so it answers {@link ToolUseAction#onUse} and never starts a use. Not a record for the same
+     * reason {@link ChargedLeap} is not: the numbers are upstream's, not a magnitude anyone picked.
+     *
+     * <p>Two details are upstream's own and deliberately kept:
+     *
+     * <ul>
+     *   <li>the dash is the <em>negation</em> of the look direction ({@code sin(yaw)cos(pitch)} /
+     *       {@code -cos(yaw)cos(pitch)} where the longsword's leap writes the sign the other way
+     *       round), i.e. a backwards disengage. Issue #300's summary calls it a forward dash; the
+     *       1.12 source it cites does not, and parity wins;
+     *   <li>the pitch term, which shortens the dash the further from level the player is looking.
+     * </ul>
+     *
+     * <p>Upstream's shield carve-out is a {@code PASS} so the offhand gets the click; here it also
+     * suppresses the lunge, which is what issue #300 asks for.
+     */
+    public static final class Lunge implements ToolUseAction {
+
+        @Override
+        public UseAnim animation() {
+            return UseAnim.NONE; // never held; present only because the interface asks for it
+        }
+
+        @Override
+        public int durationTicks() {
+            return 0;
+        }
+
+        @Override
+        @Nullable
+        public InteractionResultHolder<ItemStack> onUse(ItemStack stack, Level level, Player player,
+                InteractionHand hand) {
+            // "Shield-like" is upstream's vanilla-shield-or-battlesign test, read off the behavior
+            // rather than a list of items: a raised-block animation is what both have in common.
+            if (hand == InteractionHand.MAIN_HAND
+                    && player.getOffhandItem().getUseAnimation() == UseAnim.BLOCK) {
+                return InteractionResultHolder.pass(stack);
+            }
+            if (player.onGround() && !level.isClientSide()) {
+                Vec3 look = Vec3.directionFromRotation(player.getXRot(), player.getYRot());
+                player.setDeltaMovement(-look.x * LUNGE_SPEED,
+                        player.getDeltaMovement().y + LUNGE_RISE,
+                        -look.z * LUNGE_SPEED);
+                player.hurtMarked = true; // a player's own client is authoritative; push the motion down.
+                player.causeFoodExhaustion(LUNGE_EXHAUSTION);
+                player.getCooldowns().addCooldown(stack.getItem(), LUNGE_COOLDOWN_TICKS);
+            }
+            return InteractionResultHolder.sidedSuccess(stack, level.isClientSide());
         }
     }
 

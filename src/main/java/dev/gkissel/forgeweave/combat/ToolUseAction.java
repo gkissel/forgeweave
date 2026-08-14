@@ -1,9 +1,15 @@
 package dev.gkissel.forgeweave.combat;
 
+import org.jetbrains.annotations.Nullable;
+
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.UseAnim;
+import net.minecraft.world.level.Level;
 
 /**
  * What right-clicking a tool does, for the innates whose trigger is the use button rather than a
@@ -28,6 +34,20 @@ public interface ToolUseAction {
 
     /** How long the use can be held, in ticks -- vanilla's {@code Item#getUseDuration}. */
     int durationTicks();
+
+    /**
+     * Called the instant the button goes down, on both sides.
+     *
+     * <p>{@code null} -- the default -- means the action is a held one: the caller starts vanilla's
+     * use and {@link #onRelease} follows. An <em>instant</em> action (the rapier's lunge, issue #300)
+     * does its work here and answers the click itself, which is also how it declines one: a
+     * {@code pass} leaves the click for the offhand.
+     */
+    @Nullable
+    default InteractionResultHolder<ItemStack> onUse(ItemStack stack, Level level, Player player,
+            InteractionHand hand) {
+        return null;
+    }
 
     /**
      * Called when the player lets go, server side only.
