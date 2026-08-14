@@ -501,7 +501,7 @@ public class SmelteryScreen extends StationScreen<SmelteryMenu> {
         // #131's burn state, which unlike the fuel liquid is synced (see SmelteryMenu#fuel).
         int temperature = menu.fuelTemperature(level());
         if (temperature > 0) {
-            tooltip.add(Component.translatable(KEY_PREFIX + "fuel.heat", temperature)
+            tooltip.add(Component.translatable(KEY_PREFIX + "fuel.heat", TemperatureText.format(temperature))
                     .withStyle(ChatFormatting.GRAY));
         } else if (fuel.isEmpty()) {
             tooltip.add(translate("fuel.empty"));

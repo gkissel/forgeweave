@@ -622,7 +622,7 @@ public class ToolItem extends Item {
     @Override
     public void appendHoverText(ItemStack stack, TooltipContext context, List<Component> tooltip, TooltipFlag flag) {
         super.appendHoverText(stack, context, tooltip, flag);
-        ToolTooltip.append(stack, context.registries(), flag.hasShiftDown(), attackDamage(stack), tooltip);
+        ToolTooltip.append(stack, context.registries(), ToolTooltip.detailed(flag), attackDamage(stack), tooltip);
     }
 
     // ------------------------------------------------------------------ innate item use (issue #155)

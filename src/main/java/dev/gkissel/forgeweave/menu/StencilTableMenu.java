@@ -19,13 +19,15 @@ import net.neoforged.neoforge.items.IItemHandler;
 import net.neoforged.neoforge.registries.DeferredItem;
 
 import dev.gkissel.forgeweave.block.ForgeweaveBlocks;
+import dev.gkissel.forgeweave.config.ForgeweaveConfig;
 import dev.gkissel.forgeweave.item.ForgeweaveItems;
 
 /**
  * The Stencil Table's menu (docs/SCOPE.md M1 issue #44): a blank-pattern input slot, an output
  * slot, and a fixed selection of the five part patterns. Selecting one (via {@link
- * #clickMenuButton}) determines what the output slot shows; taking the output consumes one blank
- * from the input slot -- one-way, matching upstream 1.12's stencil-shaping step ({@code
+ * #clickMenuButton}) determines what the output slot shows; taking the output consumes one item
+ * from the input slot -- which is a blank pattern, or an already-stamped one when {@code
+ * reuseStencils} is on ({@link #isValidInput}, issue #276), matching upstream 1.12's ({@code
  * ContainerStencilTable}/{@code SlotStencil}/{@code TileStencilTable}, NOTICE.md). Unlike upstream,
  * where each material variant of a part is its own registered stencil-table candidate (per-material
  * patterns), Forgeweave's five part patterns are plain, material-less items (ADR-0002-adjacent
@@ -119,7 +121,7 @@ public class StencilTableMenu extends StationMenu {
         addSlot(new Slot(container, INPUT_SLOT, 48, 35) {
             @Override
             public boolean mayPlace(ItemStack stack) {
-                return stack.is(ForgeweaveItems.PATTERN_BLANK.get());
+                return isValidInput(stack);
             }
         });
         addSlot(new OutputSlot(container, OUTPUT_SLOT, 106, 35));
@@ -142,6 +144,24 @@ public class StencilTableMenu extends StationMenu {
         for (int col = 0; col < 9; col++) {
             addSlot(new Slot(playerInventory, col, 8 + col * 18, 142));
         }
+    }
+
+    /**
+     * What the input slot accepts: a blank pattern always, plus an already-stamped one while
+     * upstream 1.12's {@code reuseStencils} is on (issue #276, its default). Upstream gates the same
+     * thing in two places -- {@code TileStencilTable#isItemValidForSlot} and {@code
+     * Pattern#isValidStencil}, both reading {@code Config.reuseStencil} -- which here is this one
+     * method, shared by the slot's {@code mayPlace} and {@link #quickMoveStack}'s shift-click path.
+     *
+     * <p>Reshaping consumes the stamped pattern exactly as a blank one would ({@link OutputSlot#onTake}
+     * removes one from the input), so the trade stays 1:1 and no pattern is created or destroyed.
+     */
+    public static boolean isValidInput(ItemStack stack) {
+        if (stack.is(ForgeweaveItems.PATTERN_BLANK.get())) {
+            return true;
+        }
+        return ForgeweaveConfig.REUSE_STENCILS.get()
+                && PATTERNS.stream().anyMatch(pattern -> stack.is(pattern.get()));
     }
 
     /** The currently selected pattern index, or {@code -1} for no selection; read by the screen to highlight the pressed button. */
@@ -210,7 +230,7 @@ public class StencilTableMenu extends StationMenu {
             if (!moveItemStackTo(stackInSlot, sideEnd, playerInvEnd, false)) {
                 return ItemStack.EMPTY;
             }
-        } else if (stackInSlot.is(ForgeweaveItems.PATTERN_BLANK.get())) { // player inventory -> input
+        } else if (isValidInput(stackInSlot)) { // player inventory -> input
             if (!moveItemStackTo(stackInSlot, INPUT_SLOT, INPUT_SLOT + 1, false)) {
                 return ItemStack.EMPTY;
             }

@@ -30,6 +30,7 @@ import dev.gkissel.forgeweave.combat.Beheading;
 import dev.gkissel.forgeweave.combat.CombatSeams;
 import dev.gkissel.forgeweave.combat.ForgeweaveInnates;
 import dev.gkissel.forgeweave.combat.ForgeweaveMobEffects;
+import dev.gkissel.forgeweave.config.ForgeweaveClientConfig;
 import dev.gkissel.forgeweave.config.ForgeweaveConfig;
 import dev.gkissel.forgeweave.data.ForgeweaveDataGenerators;
 import dev.gkissel.forgeweave.fluid.ForgeweaveFluids;
@@ -50,6 +51,7 @@ import dev.gkissel.forgeweave.recipe.MeltingRecipe;
 import dev.gkissel.forgeweave.recipe.SmelteryFuel;
 import dev.gkissel.forgeweave.tool.AoeHarvest;
 import dev.gkissel.forgeweave.trait.ForgeweaveTraits;
+import dev.gkissel.forgeweave.worldgen.NetherOrePlacement; // #276
 
 // The value here must match the modId in META-INF/neoforge.mods.toml.
 @Mod(Forgeweave.MODID)
@@ -68,6 +70,8 @@ public class Forgeweave {
         ForgeweaveItems.ITEMS.register(modEventBus);
         ForgeweaveMenus.MENUS.register(modEventBus);
         ForgeweaveCreativeTab.TABS.register(modEventBus);
+        // #276 -- the config-aware vein count the Nether ores' placed features use.
+        NetherOrePlacement.PLACEMENT_MODIFIERS.register(modEventBus);
         // #159 -- the scimitar's lacerate bleed (see LacerateEffect for why it is a status effect).
         ForgeweaveMobEffects.MOB_EFFECTS.register(modEventBus);
         ForgeweaveRecipeSerializers.RECIPE_SERIALIZERS.register(modEventBus);
@@ -75,6 +79,8 @@ public class Forgeweave {
         ForgeweaveCriteriaTriggers.TRIGGERS.register(modEventBus);
         // SERVER type: see ForgeweaveConfig javadoc for why this must sync client<->server.
         modContainer.registerConfig(ModConfig.Type.SERVER, ForgeweaveConfig.SPEC);
+        // CLIENT type: display preferences only, never read server-side -- see the class javadoc.
+        modContainer.registerConfig(ModConfig.Type.CLIENT, ForgeweaveClientConfig.SPEC);
         modEventBus.addListener(this::registerDataPackRegistries);
         modEventBus.addListener(this::commonSetup);
         modEventBus.addListener(this::registerPayloads);

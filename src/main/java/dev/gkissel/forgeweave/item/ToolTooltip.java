@@ -16,10 +16,12 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.component.Tool;
 import net.minecraft.world.level.block.Block;
 
 import dev.gkissel.forgeweave.client.StationText;
+import dev.gkissel.forgeweave.config.ForgeweaveClientConfig; // #276
 import dev.gkissel.forgeweave.combat.ForgeweaveInnates;
 import dev.gkissel.forgeweave.material.Material;
 import dev.gkissel.forgeweave.material.MaterialDisplay;
@@ -56,6 +58,21 @@ import dev.gkissel.forgeweave.tool.ToolStats;
 final class ToolTooltip {
 
     private ToolTooltip() {}
+
+    /**
+     * Whether the detailed block should be shown at all: Shift is held <em>and</em> upstream 1.12's
+     * {@code extraTooltips} is on ({@link ForgeweaveClientConfig#EXTRA_TOOLTIPS}, its default, issue
+     * #276 -- upstream reads the same {@code Config.extraTooltips && shift} pair in {@code
+     * TinkersItem#getTooltip}). Shared by {@link ToolItem} and {@link PartItem}, the two items with
+     * a Shift tier.
+     *
+     * <p>The {@code &&} order matters: {@code hasShiftDown()} is NeoForge's {@code
+     * TooltipFlagExtension}, false anywhere but a client, so a dedicated server short-circuits out
+     * before touching a {@code CLIENT}-type config it never loaded.
+     */
+    static boolean detailed(TooltipFlag flag) {
+        return flag.hasShiftDown() && ForgeweaveClientConfig.EXTRA_TOOLTIPS.get();
+    }
 
     /**
      * @param registries nullable -- material names/colors and trait colors degrade to plain

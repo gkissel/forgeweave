@@ -2,8 +2,8 @@
   "feature": "forgeweave:cobalt_ore",
   "placement": [
     {
-      "type": "minecraft:count",
-      "count": 20
+      "type": "forgeweave:nether_ore_rate",
+      "ore": "cobalt"
     },
     {
       "type": "minecraft:in_square"

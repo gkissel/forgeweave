@@ -23,6 +23,7 @@ import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.block.ForgeweaveBlocks;
 import dev.gkissel.forgeweave.block.SearedTankBlockEntity;
 import dev.gkissel.forgeweave.block.SmelteryControllerBlockEntity;
+import dev.gkissel.forgeweave.config.ForgeweaveConfig; // #276
 import dev.gkissel.forgeweave.fluid.ForgeweaveFluids;
 import dev.gkissel.forgeweave.recipe.MeltingRecipe;
 
@@ -42,6 +43,11 @@ import dev.gkissel.forgeweave.recipe.MeltingRecipe;
 @GameTestHolder(Forgeweave.MODID)
 @PrefixGameTestTemplate(false)
 public class SmelteryAlloyGameTests {
+
+    /** {@code alloy_recipe/obsidian.json}, upstream's own lava + water ratio. */
+    private static final int OBSIDIAN_WATER = 125;
+    private static final int OBSIDIAN_LAVA = 125;
+    private static final int OBSIDIAN_RESULT = 36;
 
     /** Upstream's ratio: one ingot of cobalt plus one of ardite is one ingot of manyullyn. */
     @GameTest(template = "smeltery")
@@ -83,6 +89,45 @@ public class SmelteryAlloyGameTests {
         pour(core, ForgeweaveFluids.GOLD.still().get(), 8 * MeltingRecipe.VALUE_INGOT);
 
         assertTankHoldsOnly(helper, core, ForgeweaveFluids.NETHERITE.still().get(), 2 * MeltingRecipe.VALUE_INGOT);
+        helper.succeed();
+    }
+
+    /**
+     * Issue #276, upstream 1.12's {@code obsidianAlloy} (its default is on): lava plus water alloys
+     * into molten obsidian, and switching the option off leaves both fluids sitting in the tank
+     * untouched. Upstream gates the recipe's registration; alloy recipes are datapack entries here,
+     * so {@code SmelteryControllerBlockEntity#alloyEnabled} filters them at lookup instead -- which
+     * this covers from the outside either way.
+     *
+     * <p>Synchronous on purpose: this mutates a global config value, and GameTests in one batch tick
+     * concurrently, so set/assert/restore has to complete inside a single test method.
+     */
+    @GameTest(template = "smeltery")
+    public static void lavaAndWaterAlloyIntoObsidian(GameTestHelper helper) {
+        SmelteryControllerBlockEntity core = smeltery(helper);
+        pour(core, Fluids.WATER, OBSIDIAN_WATER);
+        pour(core, Fluids.LAVA, OBSIDIAN_LAVA);
+
+        assertTankHoldsOnly(helper, core, ForgeweaveFluids.OBSIDIAN.still().get(), OBSIDIAN_RESULT);
+        helper.succeed();
+    }
+
+    /** The "off" half of {@link #lavaAndWaterAlloyIntoObsidian}: both fluids just sit there. */
+    @GameTest(template = "smeltery")
+    public static void lavaAndWaterDoNotAlloyWhileObsidianAlloyIsOff(GameTestHelper helper) {
+        ForgeweaveConfig.OBSIDIAN_ALLOY.set(false);
+        try {
+            SmelteryControllerBlockEntity core = smeltery(helper);
+            pour(core, Fluids.WATER, OBSIDIAN_WATER);
+            pour(core, Fluids.LAVA, OBSIDIAN_LAVA);
+
+            helper.assertValueEqual(amountOf(core, ForgeweaveFluids.OBSIDIAN.still().get()), 0,
+                    "obsidian made while obsidianAlloy is off");
+            helper.assertValueEqual(amountOf(core, Fluids.LAVA), OBSIDIAN_LAVA, "lava left unalloyed");
+            helper.assertValueEqual(amountOf(core, Fluids.WATER), OBSIDIAN_WATER, "water left unalloyed");
+        } finally {
+            ForgeweaveConfig.OBSIDIAN_ALLOY.set(true);
+        }
         helper.succeed();
     }
 

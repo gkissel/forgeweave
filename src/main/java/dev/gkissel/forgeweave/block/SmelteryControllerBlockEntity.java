@@ -46,6 +46,8 @@ import net.minecraft.world.inventory.ContainerLevelAccess;
 import dev.gkissel.forgeweave.menu.SmelteryMenu;
 
 import dev.gkissel.forgeweave.advancement.ForgeweaveCriteriaTriggers;
+import dev.gkissel.forgeweave.config.ForgeweaveConfig; // #276
+import dev.gkissel.forgeweave.fluid.ForgeweaveFluids; // #276
 import dev.gkissel.forgeweave.recipe.AlloyRecipe; // #98
 import dev.gkissel.forgeweave.recipe.EntityMeltingRecipe; // #270
 import dev.gkissel.forgeweave.recipe.MeltingRecipe;
@@ -487,10 +489,10 @@ public class SmelteryControllerBlockEntity extends BlockEntity implements Statio
      * cleared the moment one finally succeeds (via {@link #setMeltingItem}).
      */
     private void finishMelting(int slot, MeltingRecipe recipe) {
-        // #99: floor a fractional multiplier x base rather than round, matching an ordinary int cast.
-        // None of the shipped ore-class amounts land fractional at 1.5x/2x (see the PR's amounts
-        // table), so this is currently unexercised by any shipped recipe.
-        int amount = recipe.ore() ? (int) (recipe.amount() * core.yieldMultiplier()) : recipe.amount();
+        // None of the shipped ore-class amounts land fractional at 1.5x/2x (see #99's amounts
+        // table), so oreAmount's flooring is unexercised by any shipped recipe at the default ratio.
+        int amount = recipe.ore() ? oreAmount(recipe.amount(), core.yieldMultiplier(),
+                ForgeweaveConfig.ORE_TO_INGOT_RATIO.get()) : recipe.amount();
         var result = new FluidStack(recipe.fluid(), amount);
         if (tank.fill(result, IFluidHandler.FluidAction.SIMULATE) != result.getAmount()) {
             // #290: only sync on the false -> true transition, not on every retry -- a slot can sit
@@ -503,6 +505,27 @@ public class SmelteryControllerBlockEntity extends BlockEntity implements Statio
         }
         tank.fill(result, IFluidHandler.FluidAction.EXECUTE);
         setMeltingItem(slot, ItemStack.EMPTY);
+    }
+
+    /**
+     * What one ore-class melt yields: its base amount times the core's own multiplier, then times
+     * upstream 1.12's {@code oreToIngotRatio} expressed against the baseline the core multipliers
+     * were calibrated at ({@link ForgeweaveConfig#ORE_TO_INGOT_BASELINE}, issue #276) -- so the
+     * default ratio leaves every shipped yield exactly where #99 put it, and a pack that dials the
+     * ratio moves both tiers together rather than flattening the tier axis.
+     *
+     * <p>Unlike upstream this does <em>not</em> shift melting temperature. Upstream bakes the ratio
+     * into each ore recipe's amount, and its temperature is derived from that amount; Forgeweave's
+     * recipes carry a base amount whose derived temperature is fixed at datapack load, and the ore
+     * bonus is applied here at melt time instead (docs/SCOPE.md M2, #96/#99). That decoupling
+     * predates this option.
+     *
+     * <p>Takes the ratio as a parameter rather than reading the config so it stays callable with an
+     * explicit value from unit tests.
+     */
+    static int oreAmount(int baseAmount, float yieldMultiplier, double oreToIngotRatio) {
+        // #99: floor rather than round, matching the ordinary int cast this replaced.
+        return (int) (baseAmount * yieldMultiplier * (oreToIngotRatio / ForgeweaveConfig.ORE_TO_INGOT_BASELINE));
     }
 
     /**
@@ -1009,6 +1032,7 @@ public class SmelteryControllerBlockEntity extends BlockEntity implements Statio
     private boolean alloyOnce() {
         boolean alloyed = false;
         List<AlloyRecipe> recipes = level.registryAccess().registryOrThrow(AlloyRecipe.REGISTRY).stream()
+                .filter(SmelteryControllerBlockEntity::alloyEnabled)
                 .sorted(Comparator.comparingInt(AlloyRecipe::priority))
                 .toList();
         for (AlloyRecipe recipe : recipes) {
@@ -1024,6 +1048,19 @@ public class SmelteryControllerBlockEntity extends BlockEntity implements Statio
             alloyed = true;
         }
         return alloyed;
+    }
+
+    /**
+     * Upstream 1.12's {@code obsidianAlloy} (issue #276), which there skips <em>registering</em> the
+     * lava + water recipe. Alloy recipes are datapack registry entries here, so the equivalent is to
+     * skip them at lookup time instead -- the runtime-check bucket #276 asks to prefer, and the only
+     * one that can react without a restart. Keyed on the produced fluid rather than the shipped
+     * recipe's id, because "the creation of obsidian in the smeltery" is what the option names, and
+     * a pack that re-authors the recipe under another id still means it.
+     */
+    private static boolean alloyEnabled(AlloyRecipe recipe) {
+        return ForgeweaveConfig.OBSIDIAN_ALLOY.get()
+                || !recipe.result().is(ForgeweaveFluids.OBSIDIAN.still().get());
     }
 
     /**

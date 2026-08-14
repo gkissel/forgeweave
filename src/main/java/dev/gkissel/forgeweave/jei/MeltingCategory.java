@@ -15,6 +15,7 @@ import mezz.jei.api.recipe.RecipeType;
 import mezz.jei.api.recipe.category.IRecipeCategory;
 
 import dev.gkissel.forgeweave.Forgeweave;
+import dev.gkissel.forgeweave.client.TemperatureText; // #276
 import dev.gkissel.forgeweave.item.ForgeweaveItems;
 
 /**
@@ -92,7 +93,8 @@ final class MeltingCategory implements IRecipeCategory<MeltingDisplay> {
         arrow.draw(guiGraphics, ARROW_X, (18 - arrow.getHeight()) / 2 + 1);
 
         Font font = Minecraft.getInstance().font;
-        Component temperature = Component.translatable("jei.category.forgeweave.melting.temperature", recipe.temperature());
+        Component temperature = Component.translatable("jei.category.forgeweave.melting.temperature",
+                TemperatureText.format(recipe.temperature()));
         guiGraphics.drawString(font, temperature, 0, TEMPERATURE_Y, TEXT_COLOR, false);
     }
 }
