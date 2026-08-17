@@ -96,6 +96,33 @@ public class ToolForgeGameTests {
     }
 
     /**
+     * M3.5 issue #401, JEI catalyst routing for the bow family: {@code jei.AssemblyRecipes#isLarge}
+     * is what decides whether a bow's assembly recipe is listed under the Tool Station catalyst
+     * ({@code jei.AssemblyCategory#TYPE}) or the Tool Forge one ({@code LARGE_TYPE}), and it answers
+     * with {@code #forgeweave:large_tools}. Upstream's own split is
+     * {@code TinkerRangedWeapons#registerToolBuilding}: {@code registerToolCrafting(shortBow)} but
+     * {@code registerToolForgeCrafting(longBow)} / {@code registerToolForgeCrafting(crossBow)}.
+     * {@link #exactlyTenToolsAreForgeOnly} counts the tag; this names the three bows in it.
+     */
+    @GameTest(template = "empty")
+    public static void theTwoForgeTierBowsAreTaggedLarge(GameTestHelper helper) {
+        helper.assertFalse(isLarge(ForgeweaveItems.TOOL_SHORTBOW.get()),
+                "the shortbow builds at a Tool Station, so JEI must list it under the station catalyst");
+        helper.assertTrue(isLarge(ForgeweaveItems.TOOL_LONGBOW.get()),
+                "the longbow is registerToolForgeCrafting upstream, so JEI must list it under the forge catalyst");
+        helper.assertTrue(isLarge(ForgeweaveItems.TOOL_CROSSBOW.get()),
+                "the crossbow is registerToolForgeCrafting upstream, so JEI must list it under the forge catalyst");
+        helper.succeed();
+    }
+
+    /** {@code jei.AssemblyRecipes#isLarge}'s own body, which that package-private class cannot expose here. */
+    private static boolean isLarge(net.minecraft.world.item.Item tool) {
+        return ToolAssemblyRecipes.entryFor(new ItemStack(tool))
+                .map(ToolAssemblyRecipes::isLargeTool)
+                .orElseThrow(() -> new AssertionError(tool + " has no assembly entry at all"));
+    }
+
+    /**
      * The split {@code jei.AssemblyRecipes#isLarge} drives (docs/SCOPE.md M3 issue #165): {@code
      * jei.AssemblyCategory#TYPE} gets the Tool Station's own tools, {@code LARGE_TYPE} gets only
      * {@code #forgeweave:large_tools}'. Item tags aren't bound outside a running server ({@code
