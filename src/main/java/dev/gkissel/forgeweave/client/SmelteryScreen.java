@@ -29,6 +29,7 @@ import net.neoforged.neoforge.client.extensions.common.IClientFluidTypeExtension
 import net.neoforged.neoforge.fluids.FluidStack;
 
 import dev.gkissel.forgeweave.Forgeweave;
+import dev.gkissel.forgeweave.block.SmelteryControllerBlockEntity;
 import dev.gkissel.forgeweave.casting.CastingRecipe;
 import dev.gkissel.forgeweave.item.ForgeweaveItems;
 import dev.gkissel.forgeweave.menu.ForgeweaveMenus;
@@ -58,10 +59,11 @@ import dev.gkissel.forgeweave.recipe.MeltingRecipe;
  *
  * <p>The background is upstream's {@code smeltery.png} copied whole rather than cropped to the panel
  * (NOTICE.md), because the sheet's other regions -- the scale overlay here, and the slot tiles and
- * heat bars issue #96's melting grid needs -- are all still live. The panel itself is L-shaped: the
- * top-right of the 176x166 region is transparent in upstream's art too, and is exactly where #96's
- * melting slots go. Until they land that corner renders empty, which is upstream's own background
- * with nothing drawn over it, not a layout mistake.
+ * heat bars the melting grid needs -- are all still live. The panel itself is L-shaped: the
+ * top-right of the 176x166 region is transparent in upstream's art too, and nothing is drawn there.
+ * That corner is simply unused space -- the tank and fuel gauge need only the left 94px, and the
+ * melting slots hang off the panel's <em>left</em> edge as their own module ({@link #renderMeltGrid})
+ * -- which is why upstream's own 1.20 rewrite dropped the notch and squared the art off.
  *
  * <h2>Authority</h2>
  *
@@ -79,7 +81,7 @@ public class SmelteryScreen extends StationScreen<SmelteryMenu> {
     private static final int SHEET = 256;
 
     private static final int BASE_WIDTH = 176;
-    private static final int BASE_HEIGHT = 166;
+    private static final int BASE_HEIGHT = SmelteryMenu.PANEL_HEIGHT;
 
     /** Upstream {@code GuiSmeltery}: the tank rectangle, and the {@code scala} element drawn over it. */
     private static final int TANK_X = 8;
@@ -148,6 +150,10 @@ public class SmelteryScreen extends StationScreen<SmelteryMenu> {
 
     private static final String KEY_PREFIX = "gui.forgeweave.smeltery.";
 
+    /** The slider's track after the last {@link #renderMeltGrid}; empty while the rows do not overflow. */
+    private Rect2i sliderTrack = new Rect2i(0, 0, 0, 0);
+    private boolean draggingSlider;
+
     public SmelteryScreen(SmelteryMenu menu, Inventory playerInventory, Component title) {
         super(menu, playerInventory, title);
         imageWidth = BASE_WIDTH;
@@ -174,27 +180,31 @@ public class SmelteryScreen extends StationScreen<SmelteryMenu> {
      * that has a slot and {@code (22, 166, 22, 18)} for the "no slot here" filler upstream draws past
      * the end of a partial last row, so the grid stays a rectangle.
      *
-     * <p><b>Always the full {@value SmelteryMenu#MELT_VISIBLE_ROWS} rows</b> (issue #146). Upstream
-     * sizes its side inventory to its slot count, which it can afford because that inventory is a
-     * free-floating module hanging off the <em>side</em> of a rectangular GUI. Forgeweave's grid
-     * instead sits in the notch of the L-shaped panel art -- a hole of fixed size -- so a grid sized
-     * to the slot count leaves the rest of that hole see-through: a smeltery with a 1x1x2 interior
-     * drew a one-row, two-slot frame floating over a transparent gap the size of the notch, which is
-     * the "corrupted fragment" the playtest reported (and which any minimum-size smeltery shows the
-     * moment its contents finish melting and the items stop papering over it). Drawing the frame at
-     * the notch's size and filling the cells past the end with the filler tile is upstream's own
-     * partial-row behaviour applied to whole rows, and it makes the drawn grid the same rectangle
-     * {@link #mouseScrolled} already hit-tests.
+     * <p><b>Sized to the smeltery, and hung off the panel's left edge</b> (issues #146 and #408),
+     * which is where upstream puts it: {@code GuiSmelterySideInventory} is a {@code connected}
+     * module built {@code rightSide = false}, so the frame's right edge laps a pixel column over the
+     * panel and the two read as one window. Nothing is ever drawn in the transparent notch at the
+     * panel art's top-right -- that region is unused in upstream's own art too, which is why
+     * upstream's 1.20 rewrite dropped it. Putting the grid <em>in</em> the notch (Forgeweave's
+     * earlier deviation) is what produced #146's "corrupted fragment": a frame sized to a two-slot
+     * smeltery floating over the rest of a fixed-size hole. Out here the frame simply is the grid's
+     * size, so there is no hole to half-fill.
+     *
+     * <p>Rows are {@code ceil(slots / 3)} capped by upstream's {@code calcCappedYSize} at
+     * {@link SmelteryMenu#MELT_MAX_ROWS}, with the last row's spare cells drawn in upstream's own
+     * "no slot here" tile and a slider past the cap.
      */
     private void renderMeltGrid(GuiGraphics graphics) {
         int slots = menu.meltSlotCount();
-        int gridLeft = leftPos + SmelteryMenu.GRID_X + SmelteryMenu.GRID_BORDER;
+        int rows = SmelteryMenu.visibleMeltRows(slots);
+        int gridX = SmelteryMenu.gridX(slots);
+        int gridLeft = leftPos + gridX + SmelteryMenu.GRID_BORDER;
         int gridTop = topPos + SmelteryMenu.GRID_Y + SmelteryMenu.GRID_BORDER;
-        // Upstream wraps its side inventories in generic.png's nine-sliced frame; the panel art's
-        // notch is cut to exactly this width so the two read as one window.
-        SideInventoryPanel.renderBorder(graphics, leftPos + SmelteryMenu.GRID_X, topPos + SmelteryMenu.GRID_Y,
-                gridWidth(), gridHeight());
-        for (int row = 0; row < SmelteryMenu.MELT_VISIBLE_ROWS; row++) {
+        // Upstream wraps its side inventories in generic.png's nine-sliced frame, with the edge
+        // facing the parent drawn from the overlap pieces instead (its `connected` flag).
+        SideInventoryPanel.renderBorder(graphics, leftPos + gridX, topPos + SmelteryMenu.GRID_Y,
+                SmelteryMenu.gridWidth(slots), SmelteryMenu.gridHeight(slots), true);
+        for (int row = 0; row < rows; row++) {
             for (int col = 0; col < SmelteryMenu.MELT_COLUMNS; col++) {
                 int index = (menu.scrollRow() + row) * SmelteryMenu.MELT_COLUMNS + col;
                 graphics.blit(TEXTURE,
@@ -203,7 +213,24 @@ public class SmelteryScreen extends StationScreen<SmelteryMenu> {
                         SmelteryMenu.CELL_WIDTH, SmelteryMenu.SLOT_SIZE, SHEET, SHEET);
             }
         }
-        renderHeatBars(graphics, slots, gridLeft, gridTop);
+        renderHeatBars(graphics, slots, rows, gridLeft, gridTop);
+        renderSlider(graphics, slots, gridLeft, gridTop, rows);
+    }
+
+    /**
+     * Upstream's slider, drawn from {@code generic.png} next to the cells whenever the rows overflow
+     * ({@code GuiSideInventory#updatePosition} enables it on exactly that condition) -- the same
+     * widget, from the same sheet, that {@link SideInventoryPanel} gives the station side panels.
+     */
+    private void renderSlider(GuiGraphics graphics, int slots, int gridLeft, int gridTop, int rows) {
+        int maxScrollRow = SmelteryMenu.meltScrollRows(slots);
+        if (maxScrollRow <= 0) {
+            sliderTrack = new Rect2i(0, 0, 0, 0);
+            return;
+        }
+        sliderTrack = new Rect2i(gridLeft + SmelteryMenu.MELT_COLUMNS * SmelteryMenu.CELL_WIDTH, gridTop,
+                SideInventoryPanel.SLIDER_WIDTH, rows * SmelteryMenu.SLOT_SIZE);
+        SideInventoryPanel.renderSlider(graphics, sliderTrack, menu.scrollRow(), maxScrollRow);
     }
 
     /**
@@ -219,9 +246,9 @@ public class SmelteryScreen extends StationScreen<SmelteryMenu> {
      * enough" by looking. {@link #heatBarTooltip} is the other half (#377): hovering a bar says which
      * of them it is in words.
      */
-    private void renderHeatBars(GuiGraphics graphics, int slots, int gridLeft, int gridTop) {
+    private void renderHeatBars(GuiGraphics graphics, int slots, int rows, int gridLeft, int gridTop) {
         List<ItemStack> items = menu.meltingItems(level());
-        for (int row = 0; row < SmelteryMenu.MELT_VISIBLE_ROWS; row++) {
+        for (int row = 0; row < rows; row++) {
             for (int col = 0; col < SmelteryMenu.MELT_COLUMNS; col++) {
                 int index = (menu.scrollRow() + row) * SmelteryMenu.MELT_COLUMNS + col;
                 if (index >= slots || index >= items.size() || items.get(index).isEmpty()) {
@@ -245,8 +272,10 @@ public class SmelteryScreen extends StationScreen<SmelteryMenu> {
     /** Upstream {@code GuiSideInventory}'s wheel scroll, the same one {@code SideInventoryPanel} gives the station side panels. */
     @Override
     public boolean mouseScrolled(double mouseX, double mouseY, double scrollX, double scrollY) {
-        if (SmelteryMenu.meltRows(menu.meltSlotCount()) > SmelteryMenu.MELT_VISIBLE_ROWS
-                && isHovering(SmelteryMenu.GRID_X, SmelteryMenu.GRID_Y, gridWidth(), gridHeight(), mouseX, mouseY)) {
+        int slots = menu.meltSlotCount();
+        if (SmelteryMenu.meltScrollRows(slots) > 0
+                && isHovering(SmelteryMenu.gridX(slots), SmelteryMenu.GRID_Y,
+                        SmelteryMenu.gridWidth(slots), SmelteryMenu.gridHeight(slots), mouseX, mouseY)) {
             menu.setScrollRow(menu.scrollRow() - (int) Math.signum(scrollY));
             return true;
         }
@@ -254,17 +283,58 @@ public class SmelteryScreen extends StationScreen<SmelteryMenu> {
     }
 
     /**
-     * The melt grid's drawn frame -- one rectangle, sized to the panel art's notch rather than to the
-     * smeltery, so it is also the box {@link #mouseScrolled} hit-tests and the box
-     * {@link #renderMeltGrid} paints. {@code SmelteryMeltGridTest} pins both against the art.
+     * Grabs the slider if the press landed on it -- {@link SideInventoryPanel}'s own drag handling,
+     * gated on the press so a slider grab survives the cursor leaving the track and an item drag
+     * across the column does not hijack it.
      */
-    static int gridWidth() {
-        return SmelteryMenu.MELT_COLUMNS * SmelteryMenu.CELL_WIDTH + SmelteryMenu.GRID_BORDER * 2;
+    @Override
+    protected boolean sliderClicked(double mouseX, double mouseY) {
+        if (!sliderTrack.contains((int) mouseX, (int) mouseY)) {
+            return false;
+        }
+        draggingSlider = true;
+        scrollTo(mouseY);
+        return true;
     }
 
-    /** @see #gridWidth() */
-    static int gridHeight() {
-        return SmelteryMenu.MELT_VISIBLE_ROWS * SmelteryMenu.SLOT_SIZE + SmelteryMenu.GRID_BORDER * 2;
+    @Override
+    protected boolean sliderDragged(double mouseX, double mouseY) {
+        if (!draggingSlider) {
+            return false;
+        }
+        scrollTo(mouseY);
+        return true;
+    }
+
+    @Override
+    protected void sliderReleased() {
+        draggingSlider = false;
+    }
+
+    private void scrollTo(double mouseY) {
+        menu.setScrollRow(SideInventoryPanel.scrollRowAt(sliderTrack.getY(), sliderTrack.getHeight(),
+                SmelteryMenu.meltScrollRows(menu.meltSlotCount()), mouseY));
+    }
+
+    /**
+     * Upstream {@code GuiSmeltery#updateScreen}: a smeltery that is rebuilt bigger or smaller while
+     * its screen is open has a different number of melting slots than the menu was built with, and
+     * every index in it -- slots, heat bars, the grid's own size -- is off by the difference. Nothing
+     * on the screen can be salvaged, so it closes, exactly as upstream does.
+     *
+     * <p>Gated on the structure still being formed, because an unformed core reports no melting
+     * slots at all: without the gate, a client whose block-entity sync has not caught up yet would
+     * read that as a resize and close a screen the server is perfectly happy with. An actually
+     * unformed smeltery closes anyway, from the server side ({@link SmelteryMenu#stillValid}).
+     */
+    @Override
+    protected void containerTick() {
+        super.containerTick();
+        SmelteryControllerBlockEntity core = menu.core(level());
+        if (core != null && core.isFormed() && core.meltingItems().size() != menu.meltSlotCount()
+                && minecraft != null && minecraft.player != null) {
+            minecraft.player.closeContainer();
+        }
     }
 
     /**
@@ -282,9 +352,10 @@ public class SmelteryScreen extends StationScreen<SmelteryMenu> {
         if (notice == null) {
             return;
         }
-        int x = SmelteryMenu.GRID_X + SmelteryMenu.GRID_BORDER;
+        int slots = menu.meltSlotCount();
+        int x = SmelteryMenu.gridX(slots) + SmelteryMenu.GRID_BORDER;
         graphics.drawWordWrap(font, notice, x, SmelteryMenu.GRID_Y + SmelteryMenu.GRID_BORDER,
-                gridWidth() - SmelteryMenu.GRID_BORDER * 2, 0xFFFF5555);
+                SmelteryMenu.gridWidth(slots) - SmelteryMenu.GRID_BORDER * 2, 0xFFFF5555);
     }
 
     /* Tank */
@@ -500,11 +571,12 @@ public class SmelteryScreen extends StationScreen<SmelteryMenu> {
         if (level == null) {
             return null;
         }
-        int index = heatBarAt(menu.scrollRow(),
-                mouseX - leftPos - SmelteryMenu.GRID_X - SmelteryMenu.GRID_BORDER,
+        int slots = menu.meltSlotCount();
+        int index = heatBarAt(menu.scrollRow(), SmelteryMenu.visibleMeltRows(slots),
+                mouseX - leftPos - SmelteryMenu.gridX(slots) - SmelteryMenu.GRID_BORDER,
                 mouseY - topPos - SmelteryMenu.GRID_Y - SmelteryMenu.GRID_BORDER);
         List<ItemStack> items = menu.meltingItems(level);
-        if (index < 0 || index >= menu.meltSlotCount() || index >= items.size() || items.get(index).isEmpty()) {
+        if (index < 0 || index >= slots || index >= items.size() || items.get(index).isEmpty()) {
             return null;
         }
         int heatNeeded = MeltingRecipe.find(level.registryAccess(), items.get(index))
@@ -554,13 +626,13 @@ public class SmelteryScreen extends StationScreen<SmelteryMenu> {
      * is the drawn bar and not the whole cell (the other 19px of which is the slot itself, whose own
      * tooltip vanilla already renders).
      */
-    static int heatBarAt(int scrollRow, int x, int y) {
+    static int heatBarAt(int scrollRow, int rows, int x, int y) {
         if (x < 0 || y < 0) {
             return -1;
         }
         int col = x / SmelteryMenu.CELL_WIDTH;
         int row = y / SmelteryMenu.SLOT_SIZE;
-        if (col >= SmelteryMenu.MELT_COLUMNS || row >= SmelteryMenu.MELT_VISIBLE_ROWS) {
+        if (col >= SmelteryMenu.MELT_COLUMNS || row >= rows) {
             return -1;
         }
         // The bar is drawn 1px in from the cell's top-left corner; see renderHeatBars.
@@ -725,6 +797,20 @@ public class SmelteryScreen extends StationScreen<SmelteryMenu> {
             return true;
         }
         return super.mouseClicked(mouseX, mouseY, button);
+    }
+
+    /**
+     * The melt grid hangs off the panel's left edge, outside {@code imageWidth}, so JEI has to be
+     * told about it or it draws its item list over the slots (issue #68 fix 4's mechanism, the same
+     * way the station side panels report theirs).
+     */
+    @Override
+    public List<Rect2i> extraGuiAreas() {
+        List<Rect2i> areas = super.extraGuiAreas();
+        int slots = menu.meltSlotCount();
+        areas.add(new Rect2i(leftPos + SmelteryMenu.gridX(slots), topPos + SmelteryMenu.GRID_Y,
+                SmelteryMenu.gridWidth(slots), SmelteryMenu.gridHeight(slots)));
+        return areas;
     }
 
     private Level level() {

@@ -42,12 +42,13 @@ import dev.gkissel.forgeweave.recipe.SmelteryFuel;
  * click ({@link #clickMenuButton}), is range-checked against the server's own tank, and comes back
  * as a block update. Nothing is applied client-side first.
  *
- * <h2>No item slots yet</h2>
+ * <h2>The melting slots</h2>
  *
- * <p>Upstream's smeltery menu also carries a side inventory of melting slots, one per interior
- * block. That inventory is issue #96's; the seam is {@link #meltSlotCount()} plus the empty slot
- * range this menu currently adds, so #96 adds its slots here and {@code SmelteryScreen} hangs them
- * off the existing {@code SideInventoryPanel} the way the M1 stations do.
+ * <p>The melting slots (issue #96) are one per interior block, laid out the way upstream lays them
+ * out: a three-column grid in a connected module hanging off the <em>left</em> edge of the panel,
+ * sized to the smeltery ({@link #visibleMeltRows}, issue #408). The geometry lives here rather than
+ * in the screen because the server lays these slots out too, and both sides have to agree to the
+ * pixel.
  */
 public class SmelteryMenu extends StationMenu {
     /** Player inventory origin, upstream {@code ContainerSmeltery}'s {@code addPlayerInventory(inv, 8, 84)}. */
@@ -55,24 +56,41 @@ public class SmelteryMenu extends StationMenu {
     private static final int PLAYER_INVENTORY_Y = 84;
     private static final int HOTBAR_Y = 142;
 
+    /** The panel art's own height, upstream's 176x166 {@code smeltery.png}. */
+    public static final int PANEL_HEIGHT = 166;
+    /** Upstream {@code GuiSideInventory#updatePosition}'s {@code calcCappedYSize(parentSizeY - 10)}. */
+    public static final int PANEL_MARGIN = 10;
+
     /** How far a player may stray from the core before the screen closes; vanilla's own container reach. */
     private static final double MAX_DISTANCE_SQR = 64.0D;
 
     /**
      * Melt-grid geometry, upstream {@code GuiSmelterySideInventory} over {@code GuiSideInventory}: a
      * three-column grid of 22px cells -- a 4px heat bar then an 18px slot -- inside a 7px border,
-     * hanging in the notch of the L-shaped panel at x = {@value #GRID_X}.
+     * hanging off the left edge of the panel (see {@link #gridX}).
      */
     public static final int MELT_COLUMNS = 3;
     public static final int CELL_WIDTH = 22;
     public static final int HEAT_BAR_WIDTH = 4;
     public static final int SLOT_SIZE = 18;
     public static final int GRID_BORDER = 7;
-    /** Where upstream's main smeltery module ends and the melt grid begins; the panel art's notch. */
-    public static final int GRID_X = 93;
+    /**
+     * Upstream sets {@code yOffset = 0} for the smeltery's side inventory, so the grid's frame starts
+     * level with the panel's own top edge.
+     */
     public static final int GRID_Y = 0;
-    /** As many rows as fit above the player inventory at y = {@value #PLAYER_INVENTORY_Y}. */
-    public static final int MELT_VISIBLE_ROWS = 3;
+    /**
+     * How far a {@code connected} module laps over its parent's edge, upstream
+     * {@code GuiSideInventory#updatePosition}: {@code xOffset = (border.w - 1) * (right ? -1 : 1)},
+     * i.e. the two frames share a pixel column so they read as one window.
+     */
+    public static final int GRID_OVERLAP = GRID_BORDER - 1;
+    /**
+     * The most rows the grid ever draws, upstream {@code GuiSideInventory#calcCappedYSize}: whole
+     * rows are shed until the framed grid fits in the parent's height less {@value #PANEL_MARGIN}px.
+     * Seven, for the 166px panel.
+     */
+    public static final int MELT_MAX_ROWS = (PANEL_HEIGHT - PANEL_MARGIN - GRID_BORDER * 2) / SLOT_SIZE;
 
     private final ContainerLevelAccess access;
     private final BlockPos corePos;
@@ -132,13 +150,13 @@ public class SmelteryMenu extends StationMenu {
      */
     private void layoutMeltSlots() {
         for (int index = 0; index < meltingInventory.getContainerSize(); index++) {
-            addSlot(new MeltSlot(meltingInventory, index, meltSlotX(index), meltSlotY(index)));
+            addSlot(new MeltSlot(meltingInventory, index, meltSlotX(index, meltSlotCount()), meltSlotY(index)));
         }
     }
 
     /** Slot {@code index}'s x, relative to the panel: the cell's heat bar, then a 1px socket bevel. */
-    public static int meltSlotX(int index) {
-        return GRID_X + GRID_BORDER + (index % MELT_COLUMNS) * CELL_WIDTH + HEAT_BAR_WIDTH + 1;
+    public static int meltSlotX(int index, int slotCount) {
+        return gridX(slotCount) + GRID_BORDER + (index % MELT_COLUMNS) * CELL_WIDTH + HEAT_BAR_WIDTH + 1;
     }
 
     /** Slot {@code index}'s y before scrolling; the screen shifts by whole rows. */
@@ -146,8 +164,52 @@ public class SmelteryMenu extends StationMenu {
         return GRID_Y + GRID_BORDER + (index / MELT_COLUMNS) * SLOT_SIZE + 1;
     }
 
+    /** Rows the smeltery's slots need, upstream {@code GuiSideInventory#getTotalRows}. */
     public static int meltRows(int slotCount) {
         return (slotCount + MELT_COLUMNS - 1) / MELT_COLUMNS;
+    }
+
+    /**
+     * Rows the grid actually draws (issue #408): {@link #meltRows} capped by upstream's
+     * {@code calcCappedYSize}, so the grid is sized to the smeltery exactly as upstream's side
+     * inventory is -- one row for a one-block smeltery, seven and a slider for a big one.
+     */
+    public static int visibleMeltRows(int slotCount) {
+        return Math.clamp(meltRows(slotCount), 1, MELT_MAX_ROWS);
+    }
+
+    /**
+     * Rows that do not fit in the drawn grid, i.e. the slider's range -- upstream enables its slider
+     * exactly when this is non-zero ({@code GuiSideInventory#updatePosition}).
+     */
+    public static int meltScrollRows(int slotCount) {
+        return Math.max(0, meltRows(slotCount) - visibleMeltRows(slotCount));
+    }
+
+    /** Upstream's {@code xSize = columns * slot.w + border.w * 2}, plus the slider's width when one is shown. */
+    public static int gridWidth(int slotCount) {
+        return MELT_COLUMNS * CELL_WIDTH + GRID_BORDER * 2
+                + (meltScrollRows(slotCount) > 0 ? SideInventorySlots.SLIDER_WIDTH : 0);
+    }
+
+    /** Upstream's {@code calcCappedYSize}: the drawn rows inside {@code GuiWidgetBorder}'s frame. */
+    public static int gridHeight(int slotCount) {
+        return visibleMeltRows(slotCount) * SLOT_SIZE + GRID_BORDER * 2;
+    }
+
+    /**
+     * Where the grid's frame starts, relative to the smeltery panel's own top-left -- negative,
+     * because the grid hangs off the panel's <em>left</em> edge.
+     *
+     * <p>Upstream {@code GuiSmelterySideInventory} builds itself {@code (rightSide = false,
+     * connected = true)}, and {@code GuiSideInventory}'s non-{@code right} branch is
+     * {@code guiLeft = parentX - xSize} followed by {@code guiLeft += xOffset} with
+     * {@code xOffset = border.w - 1}. So the frame's right edge laps {@value #GRID_OVERLAP}px over
+     * the panel, and when the slider appears the whole module -- slots included -- shifts a slider's
+     * width further left, which is what puts the slider in the column next to the panel.
+     */
+    public static int gridX(int slotCount) {
+        return GRID_OVERLAP - gridWidth(slotCount);
     }
 
     /**
@@ -176,7 +238,7 @@ public class SmelteryMenu extends StationMenu {
         @Override
         public boolean isActive() {
             int row = getSlotIndex() / MELT_COLUMNS;
-            return row >= scrollRow && row < scrollRow + MELT_VISIBLE_ROWS;
+            return row >= scrollRow && row < scrollRow + visibleMeltRows(meltSlotCount());
         }
     }
 
@@ -188,8 +250,7 @@ public class SmelteryMenu extends StationMenu {
      * station side panels, and {@code ToolStationMenu#applyLayout} for its tab changes.
      */
     public void setScrollRow(int row) {
-        int maxRow = Math.max(0, meltRows(meltSlotCount()) - MELT_VISIBLE_ROWS);
-        int clamped = Math.clamp(row, 0, maxRow);
+        int clamped = Math.clamp(row, 0, meltScrollRows(meltSlotCount()));
         if (clamped == scrollRow) {
             return;
         }
@@ -197,7 +258,7 @@ public class SmelteryMenu extends StationMenu {
         for (int index = 0; index < meltSlotCount(); index++) {
             int menuIndex = firstMeltSlot + index;
             MeltSlot replacement = new MeltSlot(meltingInventory, index,
-                    meltSlotX(index), meltSlotY(index) - scrollRow * SLOT_SIZE);
+                    meltSlotX(index, meltSlotCount()), meltSlotY(index) - scrollRow * SLOT_SIZE);
             replacement.index = menuIndex;
             slots.set(menuIndex, replacement);
         }

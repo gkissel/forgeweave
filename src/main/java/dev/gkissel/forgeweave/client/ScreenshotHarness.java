@@ -76,6 +76,7 @@ import dev.gkissel.forgeweave.fluid.ForgeweaveFluids;
 import dev.gkissel.forgeweave.item.ForgeweaveDataComponents;
 import dev.gkissel.forgeweave.item.ForgeweaveItems;
 import dev.gkissel.forgeweave.item.ToolItem;
+import dev.gkissel.forgeweave.menu.SmelteryMenu;
 import dev.gkissel.forgeweave.menu.ToolAssemblyRecipes;
 import dev.gkissel.forgeweave.modifier.ModifierEntry;
 import dev.gkissel.forgeweave.tool.ToolConstants;
@@ -191,9 +192,13 @@ public final class ScreenshotHarness {
             // around the placed block before its GUI will open at all -- see buildSmeltery.
             new HarnessScreen("smeltery", ForgeweaveBlocks.STANDARD_CORE, ScreenshotHarness::buildSmeltery),
             // #146: the state the melt-grid defect was reported in -- a minimum-size smeltery (two
-            // melt slots, one row) with nothing in the grid, which is what a playtest smeltery looks
-            // like once everything in it has melted away.
-            new HarnessScreen("smeltery_empty", ForgeweaveBlocks.STANDARD_CORE, ScreenshotHarness::buildEmptySmeltery));
+            // melt slots, so one row) with nothing in the grid, which is what a playtest smeltery
+            // looks like once everything in it has melted away. #408: also the smallest the grid
+            // ever draws, so this is the capture that shows the notch left empty behind it.
+            new HarnessScreen("smeltery_empty", ForgeweaveBlocks.STANDARD_CORE, ScreenshotHarness::buildEmptySmeltery),
+            // #408: the other end of the melt grid's sizing -- a smeltery with more rows than the
+            // grid can show, so the capture is the one that proves the cap and the slider.
+            new HarnessScreen("smeltery_large", ForgeweaveBlocks.STANDARD_CORE, ScreenshotHarness::buildLargeSmeltery));
 
     /**
      * The #182 casting row sits well out in -X, the one direction nothing else in this harness uses
@@ -1325,6 +1330,21 @@ public final class ScreenshotHarness {
      */
     private static void buildEmptySmeltery(ServerLevel level, BlockPos corePos) {
         buildSmeltery(level, corePos, 0, 1);
+    }
+
+    /**
+     * Issue #408's capture: a 5x3x2 interior, so 30 melt slots -- ten rows in a grid capped at
+     * {@link SmelteryMenu#MELT_MAX_ROWS}, which is the only state that draws the slider. Items in the
+     * first row so the capture also shows that the heat bars still line up at the grid's full size.
+     */
+    private static void buildLargeSmeltery(ServerLevel level, BlockPos corePos) {
+        SmelteryControllerBlockEntity controller = buildSmeltery(level, corePos, 2, 3);
+        if (controller == null) {
+            return;
+        }
+        for (int i = 0; i < 4; i++) {
+            controller.insertForMelting(new ItemStack(Items.IRON_INGOT));
+        }
     }
 
     /**
