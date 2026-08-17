@@ -1,0 +1,13 @@
+{
+  "station": "table",
+  "cast": {
+    "item": "forgeweave:bow_limb"
+  },
+  "fluid": "forgeweave:molten_clay",
+  "amount": 288,
+  "result": {
+    "id": "forgeweave:clay_cast_bow_limb"
+  },
+  "consumes_cast": true,
+  "result_in_input": true
+}

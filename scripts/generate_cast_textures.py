@@ -63,6 +63,9 @@ PARTS = [
     # registerToolpartMeltingCasting loops every registered IToolPart whose canBeCasted() holds, and
     # SharpeningKit never overrides it), so it gets the same gold cast as the rest.
     ("sharpening_kit.png", "cast_sharpening_kit.png"),
+    # #393: the bow limb is the only M3.5 part with a cast -- no BOWSTRING material melts, so
+    # upstream never registers one for the bow string (see ForgeweaveItems#CAST_BOW_LIMB).
+    ("bow_limb.png", "cast_bow_limb.png"),
 ]
 
 BEVEL_MULT = 0.78

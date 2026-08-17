@@ -69,6 +69,9 @@ public final class ForgeweaveItems {
     public static final DeferredItem<Item> PATTERN_CURVED_BLADE = pattern("pattern_curved_blade");
     // #160's katana blade -- see PART_KATANA_BLADE below for why it lands here rather than in #151.
     public static final DeferredItem<Item> PATTERN_KATANA_BLADE = pattern("pattern_katana_blade");
+    // M3.5 (docs/SCOPE.md M3.5, issue #393): the bow's two parts, patterned like every other.
+    public static final DeferredItem<Item> PATTERN_BOW_LIMB = pattern("pattern_bow_limb");
+    public static final DeferredItem<Item> PATTERN_BOW_STRING = pattern("pattern_bow_string");
     // #271's sharpening kit. Upstream stencils it like any other part
     // (TinkerTools#registerItems: registerStencilTableCrafting(Pattern.setTagForPart(pattern, sharpeningKit))).
     public static final DeferredItem<Item> PATTERN_SHARPENING_KIT = pattern("pattern_sharpening_kit");
@@ -129,6 +132,25 @@ public final class ForgeweaveItems {
     // decision this reuses the 1.12 large sword blade unmodified -- the closest upstream equivalent's
     // silhouette already reads as a long straight blade (scripts/derive_m3_weapon_art.py, NOTICE.md).
     public static final DeferredItem<PartItem> PART_KATANA_BLADE = part("katana_blade", PartItem.Kind.HEAD);
+
+    /**
+     * The bow's limb (docs/SCOPE.md M3.5, issue #393), upstream's {@code TinkerTools#bowLimb}
+     * ({@code TinkerTools.java:210}, {@code new ToolPart(Material.VALUE_Ingot * 3)}). {@link
+     * PartItem.Kind#BOW} is the stat block upstream's {@code PartMaterialType.bow(bowLimb)} reads
+     * for it in all three of its bows ({@code ShortBow}, {@code LongBow}, {@code CrossBow}); issue
+     * #392 added that block to the material model. The bows themselves are M3.5-3's issue -- this
+     * part exists before them the same way #151's roster preceded its tools.
+     */
+    public static final DeferredItem<PartItem> PART_BOW_LIMB = part("bow_limb", PartItem.Kind.BOW);
+
+    /**
+     * The bow's string (issue #393), upstream's {@code TinkerTools#bowString}
+     * ({@code TinkerTools.java:211}, {@code new ToolPart(Material.VALUE_Ingot)}), read through
+     * {@code PartMaterialType.bowstring(bowString)} -- {@link PartItem.Kind#BOWSTRING}.
+     *
+     * <p>The one part with no cast: see {@code CAST_BOW_LIMB} below.
+     */
+    public static final DeferredItem<PartItem> PART_BOW_STRING = part("bow_string", PartItem.Kind.BOWSTRING);
 
     /**
      * The sharpening kit (issue #271): the one part that belongs to no tool. Upstream's
@@ -452,6 +474,12 @@ public final class ForgeweaveItems {
     public static final DeferredItem<Item> CAST_WAR_MACE_HEAD = ITEMS.registerSimpleItem("cast_war_mace_head");
     public static final DeferredItem<Item> CAST_CURVED_BLADE = ITEMS.registerSimpleItem("cast_curved_blade");
     public static final DeferredItem<Item> CAST_KATANA_BLADE = ITEMS.registerSimpleItem("cast_katana_blade");
+    // #393: the bow limb casts like any other part. Its string does not, and deliberately so --
+    // upstream only ever reaches registerToolpartMeltingCasting through a MaterialIntegration (a
+    // material with a molten fluid), and skips any part whose canUseMaterial rejects that material.
+    // The only BOWSTRING materials are string and vine (issue #392), neither of which melts, so
+    // upstream registers no bow_string cast at all; a cast no fluid could fill is not worth adding.
+    public static final DeferredItem<Item> CAST_BOW_LIMB = ITEMS.registerSimpleItem("cast_bow_limb");
     // #271: upstream casts the sharpening kit like any other tool part -- TinkerSmeltery's
     // registerToolpartMeltingCasting loops every registered IToolPart whose canBeCasted() holds, and
     // SharpeningKit never overrides it.
@@ -479,7 +507,7 @@ public final class ForgeweaveItems {
             "cast_pan", "cast_knife_blade", "cast_large_sword_blade", "cast_tough_tool_rod", "cast_tough_binding",
             "cast_large_plate", "cast_hammer_head", "cast_excavator_head", "cast_scythe_head", "cast_kama_head",
             "cast_broad_axe_head", "cast_vein_hammer_head", "cast_war_mace_head", "cast_curved_blade",
-            "cast_katana_blade", "cast_sharpening_kit");
+            "cast_katana_blade", "cast_sharpening_kit", "cast_bow_limb");
 
     public static final DeferredItem<BlockItem> CASTING_TABLE = ITEMS.registerSimpleBlockItem("casting_table", ForgeweaveBlocks.CASTING_TABLE);
     public static final DeferredItem<BlockItem> CASTING_BASIN = ITEMS.registerSimpleBlockItem("casting_basin", ForgeweaveBlocks.CASTING_BASIN);

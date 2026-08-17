@@ -45,9 +45,14 @@ class PatternImprintCenteringTest {
      * freshly authored, both drawn in the tool position (top-right of the canvas) rather than
      * centered like the art they replaced -- so both needed a real hand-chosen offset where (0, 0)
      * had been correct before.
+     * <li>Issue #393: {@code bow_limb} is upstream's {@code shortbow/limb_bottom} sprite, drawn in
+     * the bow's own bottom-left corner, and carries the largest offset in the table (4, -2) --
+     * exactly the #337 failure mode. {@code bow_string} is {@code parts/bowstring}, already
+     * centered, so its offset stays (0, 0); it is here to keep the pair guarded together.
      * </ul>
      */
-    private static final String[] CENTERED_PARTS = {"knife_blade", "curved_blade", "katana_blade"};
+    private static final String[] CENTERED_PARTS =
+            {"knife_blade", "curved_blade", "katana_blade", "bow_limb", "bow_string"};
 
     /**
      * Max allowed distance (in pixels) between the imprint's bounding-box center and the 16x16

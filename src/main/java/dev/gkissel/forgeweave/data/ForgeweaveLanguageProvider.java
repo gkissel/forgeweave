@@ -203,6 +203,10 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         addItem(ForgeweaveItems.PATTERN_WAR_MACE_HEAD, "War Mace Head Pattern");
         addItem(ForgeweaveItems.PATTERN_CURVED_BLADE, "Curved Blade Pattern");
         addItem(ForgeweaveItems.PATTERN_KATANA_BLADE, "Katana Blade Pattern");
+        // #393: upstream's own one-word spellings, item.tconstruct.{bow_limb,bow_string}.name,
+        // through its item.tconstruct.pattern.name="%s Pattern" / cast.name="%s Cast" formats.
+        addItem(ForgeweaveItems.PATTERN_BOW_LIMB, "Bowlimb Pattern");
+        addItem(ForgeweaveItems.PATTERN_BOW_STRING, "Bowstring Pattern");
         addItem(ForgeweaveItems.PATTERN_SHARPENING_KIT, "Sharpening Kit Pattern");
 
         addItem(ForgeweaveItems.PART_SWORD_BLADE, "Sword Blade");
@@ -227,6 +231,9 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         addItem(ForgeweaveItems.PART_CURVED_BLADE, "Curved Blade");
         // #160: the katana has no upstream counterpart, so its part and tool names are ours.
         addItem(ForgeweaveItems.PART_KATANA_BLADE, "Katana Blade");
+        // #393: upstream item.tconstruct.{bow_limb,bow_string}.name, one word each.
+        addItem(ForgeweaveItems.PART_BOW_LIMB, "Bowlimb");
+        addItem(ForgeweaveItems.PART_BOW_STRING, "Bowstring");
         // #271: upstream item.tconstruct.sharpening_kit.name.
         addItem(ForgeweaveItems.PART_SHARPENING_KIT, "Sharpening Kit");
 
@@ -962,6 +969,7 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         addItem(ForgeweaveItems.CAST_WAR_MACE_HEAD, "War Mace Head Cast");
         addItem(ForgeweaveItems.CAST_CURVED_BLADE, "Curved Blade Cast");
         addItem(ForgeweaveItems.CAST_KATANA_BLADE, "Katana Blade Cast");
+        addItem(ForgeweaveItems.CAST_BOW_LIMB, "Bowlimb Cast");
         addItem(ForgeweaveItems.CAST_SHARPENING_KIT, "Sharpening Kit Cast");
 
         // #292 -- the single-use clay counterpart of every cast above, named the way upstream's

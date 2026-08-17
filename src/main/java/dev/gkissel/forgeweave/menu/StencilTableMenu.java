@@ -88,6 +88,10 @@ public class StencilTableMenu extends StationMenu {
             ForgeweaveItems.PATTERN_WAR_MACE_HEAD,
             ForgeweaveItems.PATTERN_CURVED_BLADE,
             ForgeweaveItems.PATTERN_KATANA_BLADE,
+            // #393: M3.5's bow parts stencil like every other part (upstream registers all of
+            // TinkerRegistry's tool parts for stencil crafting the same way).
+            ForgeweaveItems.PATTERN_BOW_LIMB,
+            ForgeweaveItems.PATTERN_BOW_STRING,
             // #271: upstream registers the sharpening kit's pattern for stencil crafting alongside
             // every other part's (TinkerTools#registerItems).
             ForgeweaveItems.PATTERN_SHARPENING_KIT);
