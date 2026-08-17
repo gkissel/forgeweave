@@ -158,6 +158,8 @@ public final class ForgeweaveCreativeTab {
         output.accept(ForgeweaveItems.TOOL_KATANA.get());
         output.accept(ForgeweaveItems.TOOL_CLEAVER.get()); // #158
         output.accept(ForgeweaveItems.TOOL_SHORTBOW.get()); // M3.5 #394
+        output.accept(ForgeweaveItems.TOOL_LONGBOW.get()); // M3.5 #395
+        output.accept(ForgeweaveItems.TOOL_CROSSBOW.get()); // M3.5 #395
         // The large harvest tools (docs/SCOPE.md M3 issue #157), same component-less display.
         output.accept(ForgeweaveItems.TOOL_HAMMER.get());
         output.accept(ForgeweaveItems.TOOL_EXCAVATOR.get());

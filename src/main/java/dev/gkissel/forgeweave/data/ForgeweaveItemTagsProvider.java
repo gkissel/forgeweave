@@ -122,7 +122,12 @@ public class ForgeweaveItemTagsProvider extends ItemTagsProvider {
                 .add(ForgeweaveItems.TOOL_EXCAVATOR.get())
                 .add(ForgeweaveItems.TOOL_LUMBERAXE.get())
                 .add(ForgeweaveItems.TOOL_SCYTHE.get())
-                .add(ForgeweaveItems.TOOL_VEIN_HAMMER.get());
+                .add(ForgeweaveItems.TOOL_VEIN_HAMMER.get())
+                // M3.5 #395 -- the two Tool Forge-tier bows. Upstream
+                // TinkerRangedWeapons#registerToolBuilding registers the shortbow with
+                // registerToolCrafting but the longbow and crossbow with registerToolForgeCrafting.
+                .add(ForgeweaveItems.TOOL_LONGBOW.get())
+                .add(ForgeweaveItems.TOOL_CROSSBOW.get());
 
         // #223 -- wind burst's own gate: vanilla's wind_burst enchantment names
         // `#minecraft:enchantable/mace` as its supported_items, and ModifierApplication reads that

@@ -1,0 +1,71 @@
+{
+    decoder: "item_stack",
+    expect: {
+        components: {
+            "forgeweave:launcher_stats": {
+                bonus_damage: 3.5f,
+                draw_speed: 0.725f,
+                range: 1.325f
+            },
+            "forgeweave:tool_materials": {
+                binding: "forgeweave:iron",
+                head: "forgeweave:iron",
+                parts: [
+                    "forgeweave:iron",
+                    "forgeweave:bone",
+                    "forgeweave:iron",
+                    "forgeweave:string"
+                ]
+            },
+            "forgeweave:tool_stats": {
+                attack_damage: 3.25f,
+                durability: 352,
+                mining_speed: 5.545f
+            },
+            "forgeweave:traits": [
+                "forgeweave:magnetic",
+                "forgeweave:magnetic2",
+                "forgeweave:fractured",
+                "forgeweave:splintering"
+            ],
+            "minecraft:damage": 11,
+            "minecraft:max_damage": 352
+        },
+        id: "forgeweave:longbow"
+    },
+    nbt: {
+        components: {
+            "forgeweave:launcher_stats": {
+                bonus_damage: 3.5f,
+                draw_speed: 0.725f,
+                range: 1.325f
+            },
+            "forgeweave:tool_materials": {
+                binding: "forgeweave:iron",
+                head: "forgeweave:iron",
+                parts: [
+                    "forgeweave:iron",
+                    "forgeweave:bone",
+                    "forgeweave:iron",
+                    "forgeweave:string"
+                ]
+            },
+            "forgeweave:tool_stats": {
+                attack_damage: 3.25f,
+                durability: 352,
+                mining_speed: 5.545f
+            },
+            "forgeweave:traits": [
+                "forgeweave:magnetic",
+                "forgeweave:magnetic2",
+                "forgeweave:fractured",
+                "forgeweave:splintering"
+            ],
+            "minecraft:damage": 11,
+            "minecraft:max_damage": 352
+        },
+        count: 1,
+        id: "forgeweave:longbow"
+    },
+    what: "M3.5 (#395): a Tool Forge longbow -- iron limb, bone limb, iron large plate, string -- after eleven shots. The four-part bow is the shape the shortbow's fixture could not pin: a `tool_materials` with a `binding` (the grip) but still no `handle` at all, and a `tool_stats` whose durability carries LongBow#DURABILITY_MODIFIER, the one post-hoc multiplier applied *after* the bowstring step ((204+200)/2 = 202, + the plate's 50 = 252, x string 1.0, x 1.4 = 352). Its `launcher_stats` is the plain two-limb average, unlike the crossbow's 1.5x bonus. ForgeBowGameTests#longbowStatsMatchUpstream assembles this exact longbow at a real Tool Forge and asserts the same numbers."
+}

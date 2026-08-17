@@ -95,7 +95,10 @@ public record ToolMaterials(ResourceLocation head, Optional<ResourceLocation> bi
             switch (slots.get(i).role()) {
                 case HEAD, LIMB -> head = head == null ? materialIds.get(i) : head;
                 case EXTRA -> binding = binding == null ? materialIds.get(i) : binding;
-                case HANDLE -> handle = handle == null ? materialIds.get(i) : handle;
+                // #395: the crossbow's body is its handle part as far as the primary picks go
+                // (upstream's default getRepairParts() = {1} keys repair off the limb, which is the
+                // head pick above, so nothing else changes).
+                case HANDLE, CROSSBOW_BODY -> handle = handle == null ? materialIds.get(i) : handle;
                 case BOWSTRING -> { } // no primary pick: nothing keys off the string material
             }
         }

@@ -181,7 +181,9 @@ public class ToolStationScreen extends StationScreen<ToolStationMenu> implements
             // the second limb RenderMaterials[2] (binding blue); this map is per role, so both limbs
             // take the brown -- a per-occurrence colour if the preview ever needs to tell them apart.
             ToolConstants.Role.LIMB, 0x684E1E,
-            ToolConstants.Role.BOWSTRING, 0xFFFFFF));
+            ToolConstants.Role.BOWSTRING, 0xFFFFFF,
+            // #395: the crossbow's body is its slot 0, so RenderMaterials[0] -- the same brown.
+            ToolConstants.Role.CROSSBOW_BODY, 0x684E1E));
 
     private static final int BUTTON_SIZE = 18;
     private static final int BUTTON_SPACING = 4;

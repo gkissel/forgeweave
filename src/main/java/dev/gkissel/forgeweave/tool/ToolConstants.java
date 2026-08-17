@@ -81,11 +81,18 @@ public final class ToolConstants {
      * limb2)}) and the BOW block ({@code ProjectileLauncherNBT#limb}, {@link LauncherStats}).
      * {@link #BOWSTRING} is {@code PartMaterialType.bowstring(...)}: the BOWSTRING block only, one
      * durability multiplier ({@code ProjectileLauncherNBT#bowstring}).
+     *
+     * <p>{@link #CROSSBOW_BODY} is upstream's {@code PartMaterialType.crossbow(...)} (M3.5 issue
+     * #395), the one slot that reads two durability blocks at once: {@code CrossBow#buildTagData}
+     * takes the tough rod's HANDLE block for {@code data.handle(body)} <em>and</em> its EXTRA block
+     * for {@code data.extra(binding, bodyExtra)}, so the slot counts as both an {@link #EXTRA} and a
+     * {@link #HANDLE} everywhere those are summed -- and grants both scopes' traits.
      */
     public enum Role {
         HEAD,
         EXTRA,
         HANDLE,
+        CROSSBOW_BODY,
         LIMB,
         BOWSTRING
     }
@@ -130,6 +137,10 @@ public final class ToolConstants {
      *     ({@link #DEFAULT_DAMAGE_CUTOFF} for every tool that doesn't override it -- Rapier 13,
      *     LongSword 18, Cleaver 25, BattleAxe 30 are upstream's four overrides, the only tool classes
      *     in {@code tools/melee}/{@code tools/harvest} that touch {@code damageCutoff()} at all)
+     * @param bonusDamageMultiplier upstream's post-hoc {@code data.bonusDamage *= X} on a launcher's
+     *     {@link LauncherStats} (M3.5 issue #395: {@code CrossBow#buildTagData}'s {@code 1.5f}, the
+     *     only one in the tree); {@code 1.0} for every other tool, and inert for a tool with no
+     *     {@link Role#LIMB} slot at all
      */
     public record Entry(
             String id,
@@ -143,7 +154,8 @@ public final class ToolConstants {
             float miningSpeedModifier,
             boolean sumHeadsForAttack,
             boolean durabilitySkipsExtraAndHandle,
-            float damageCutoff) {
+            float damageCutoff,
+            float bonusDamageMultiplier) {
 
         /** Convenience constructor for the {@link #DEFAULT_DAMAGE_CUTOFF} every tool but the four upstream overrides uses. */
         public Entry(String id, Category category, List<PartSlot> parts, float attackSpeed, float damagePotential,
@@ -152,6 +164,16 @@ public final class ToolConstants {
             this(id, category, parts, attackSpeed, damagePotential, preAttackMultiplier, flatAttackBonus,
                     durabilityMultiplier, miningSpeedModifier, sumHeadsForAttack, durabilitySkipsExtraAndHandle,
                     DEFAULT_DAMAGE_CUTOFF);
+        }
+
+        /** Convenience constructor for the four tools with an explicit {@code damageCutoff} and no launcher. */
+        public Entry(String id, Category category, List<PartSlot> parts, float attackSpeed, float damagePotential,
+                float preAttackMultiplier, float flatAttackBonus, float durabilityMultiplier,
+                float miningSpeedModifier, boolean sumHeadsForAttack, boolean durabilitySkipsExtraAndHandle,
+                float damageCutoff) {
+            this(id, category, parts, attackSpeed, damagePotential, preAttackMultiplier, flatAttackBonus,
+                    durabilityMultiplier, miningSpeedModifier, sumHeadsForAttack, durabilitySkipsExtraAndHandle,
+                    damageCutoff, 1.0f);
         }
     }
 
@@ -326,6 +348,39 @@ public final class ToolConstants {
                     new PartSlot(Role.BOWSTRING, "bow_string")),
             1.5f, 0.7f, 1.0f, 0.0f, 1.0f, 1.0f, false, false);
 
+    /**
+     * Upstream {@code tools/ranged/item/LongBow.java} (M3.5 issue #395): two limbs, a large plate
+     * grip and a string, Tool Forge tier ({@code TinkerRegistry.registerToolForgeCrafting(longBow)}).
+     * {@code attackSpeed() = 1.3}; {@code damagePotential()} is not overridden, so it inherits
+     * {@code ShortBow}'s {@code 0.7}. Its {@code buildTagData} is the shortbow's chain plus the
+     * grip -- {@code head(limb1, limb2)}, {@code limb(limb1, limb2)}, {@code extra(grip)},
+     * {@code bowstring(string)} -- and then, alone among the bows, {@code data.durability *=
+     * DURABILITY_MODIFIER} ({@code 1.4f}), which {@link #compute} applies after the bowstring step
+     * exactly as upstream does. Draw time {@code 30}, base projectile speed {@code 5.5f},
+     * inaccuracy {@code 1.2f} are per-item constants on {@code BowItem}.
+     */
+    public static final Entry LONGBOW = new Entry("longbow", Category.RANGED,
+            List.of(new PartSlot(Role.LIMB, "bow_limb"), new PartSlot(Role.LIMB, "bow_limb"),
+                    new PartSlot(Role.EXTRA, "large_plate"), new PartSlot(Role.BOWSTRING, "bow_string")),
+            1.3f, 0.7f, 1.0f, 0.0f, 1.4f, 1.0f, false, false);
+
+    /**
+     * Upstream {@code tools/ranged/item/CrossBow.java} (M3.5 issue #395): a tough tool rod body, one
+     * limb, a tough binding and a string, Tool Forge tier. {@code attackSpeed() = 2},
+     * {@code damagePotential() = 0.8}. Its {@code buildTagData} is {@code head(head)} and
+     * {@code limb(limb)} off the single limb, {@code extra(binding, bodyExtra)} -- the binding's
+     * EXTRA block <em>and</em> the rod's, averaged -- {@code handle(body)} off the rod's HANDLE
+     * block, {@code bowstring(string)}, and then {@code data.bonusDamage *= 1.5f}. The rod's double
+     * duty is {@link Role#CROSSBOW_BODY}; the bonus multiplier is
+     * {@link Entry#bonusDamageMultiplier}. Draw time {@code 45}, base projectile speed {@code 7f},
+     * inaccuracy {@code 0f} ({@code BowCore}'s default -- the crossbow does not override it) are
+     * per-item constants on {@code BowItem}.
+     */
+    public static final Entry CROSSBOW = new Entry("crossbow", Category.RANGED,
+            List.of(new PartSlot(Role.CROSSBOW_BODY, TOUGH_TOOL_HANDLE), new PartSlot(Role.LIMB, "bow_limb"),
+                    new PartSlot(Role.EXTRA, TOUGH_BINDING), new PartSlot(Role.BOWSTRING, "bow_string")),
+            2.0f, 0.8f, 1.0f, 0.0f, 1.0f, 1.0f, false, false, DEFAULT_DAMAGE_CUTOFF, 1.5f);
+
     /** All 18 M3 tools, in docs/SCOPE.md content-manifest order (M3.5's bows are not M3 roster). */
     public static final List<Entry> ALL = List.of(
             BROADSWORD, LONGSWORD, RAPIER, BATTLESIGN, FRYING_PAN, MATTOCK, KAMA, DAGGER,
@@ -383,6 +438,17 @@ public final class ToolConstants {
                     Material.Handle handle = material.handle().orElseThrow(() -> ToolStats.noStats("handle"));
                     handleDurabilitySum += handle.durability();
                     handleModifierSum += handle.durabilityModifier();
+                    handleCount++;
+                }
+                // The crossbow's body is both (issue #395): CrossBow#buildTagData hands the rod's
+                // EXTRA block to data.extra(binding, bodyExtra) and its HANDLE block to
+                // data.handle(body), so the slot lands in both averages.
+                case CROSSBOW_BODY -> {
+                    extraDurabilitySum += material.extraDurability().orElseThrow(() -> ToolStats.noStats("extra"));
+                    extraCount++;
+                    Material.Handle body = material.handle().orElseThrow(() -> ToolStats.noStats("handle"));
+                    handleDurabilitySum += body.durability();
+                    handleModifierSum += body.durabilityModifier();
                     handleCount++;
                 }
                 case BOWSTRING -> {

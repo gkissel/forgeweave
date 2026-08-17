@@ -32,6 +32,10 @@ import dev.gkissel.forgeweave.item.ToolItem;
  *   dagger      blade  (33+14, 42-14)   handle (33-14, 42+14)
  *   warmace     handle (33-18, 42+18)   head  (33+20, 42-20)      binding (33, 42)
  *   shortbow    limb   (32+4,  41-18)   limb  (32-18, 41+4)       string  (32+6, 41+6)
+ *   longbow     limb   (32+12, 41-22)   limb  (32-22, 41+12)      grip    (32-15, 41-15)
+ *                                                                 string  (32+6, 41+6)
+ *   crossbow    body   (32+6,  41+6)    limb  (32+12, 41-22)      binding (32-18, 41-18)
+ *                                                                 string  (32-14, 41+10)
  *   repair      tool (33, 42)           item (33-18, 42+20)       item (33-22, 42-5)
  *                                       item (33, 42-23)          item (33+22, 42-5)
  *                                       item (33+18, 42+20)
@@ -194,7 +198,15 @@ public final class ToolStationTabs {
             // a (32, 41) origin -- (32+4, 41-18) top limb, (32-18, 41+4) left limb, (32+6, 41+6)
             // string -- i.e. absolute (36, 23), (14, 45), (38, 47); the same pixels from this table's
             // (33, 42) origin, in ShortBow's own limb, limb, string order.
-            build(ForgeweaveItems.TOOL_SHORTBOW, at(3, -19), at(-19, 3), at(5, 5)));
+            build(ForgeweaveItems.TOOL_SHORTBOW, at(3, -19), at(-19, 3), at(5, 5)),
+            // M3.5 #395, the same RangedClientProxy#registerToolBuildInfo table (a (32, 41) origin
+            // against this one's (33, 42), so every offset is upstream's minus one on both axes),
+            // each listed in its own ToolConstants part order, which is upstream's registration
+            // order too. Longbow: (32+12, 41-22) top limb, (32-22, 41+12) left limb, (32-15, 41-15)
+            // grip, (32+6, 41+6) bowstring. Crossbow: (32+6, 41+6) body, (32+12, 41-22) limb,
+            // (32-18, 41-18) binding, (32-14, 41+10) bowstring.
+            build(ForgeweaveItems.TOOL_LONGBOW, at(11, -23), at(-23, 11), at(-16, -16), at(5, 5)),
+            build(ForgeweaveItems.TOOL_CROSSBOW, at(5, 5), at(11, -23), at(-19, -19), at(-15, 9)));
 
     /** The repair tab, which is what a freshly opened station shows (as upstream's does). */
     public static final int REPAIR = 0;

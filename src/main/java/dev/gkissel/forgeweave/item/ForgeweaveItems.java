@@ -253,6 +253,20 @@ public final class ForgeweaveItems {
             properties -> new BowItem(properties, ToolConstants.SHORTBOW, 12, 3.0F, 1.0F),
             new Item.Properties().stacksTo(1));
 
+    // M3.5's Tool Forge-tier bows (docs/SCOPE.md M3.5 issue #395), both
+    // TinkerRegistry.registerToolForgeCrafting upstream.
+    //
+    // LongBow.java: getDrawTime() = 30, baseProjectileSpeed() = 5.5f, baseInaccuracy() = 1.2f.
+    public static final DeferredItem<BowItem> TOOL_LONGBOW = ITEMS.registerItem("longbow",
+            properties -> new BowItem(properties, ToolConstants.LONGBOW, 30, 5.5F, 1.2F),
+            new Item.Properties().stacksTo(1));
+
+    // CrossBow.java: getDrawTime() = 45, baseProjectileSpeed() = 7f, and no baseInaccuracy()
+    // override at all -- so BowCore's own 0f default, unlike either bow.
+    public static final DeferredItem<CrossbowItem> TOOL_CROSSBOW = ITEMS.registerItem("crossbow",
+            properties -> new CrossbowItem(properties, ToolConstants.CROSSBOW, 45, 7.0F, 0.0F),
+            new Item.Properties().stacksTo(1));
+
     private static DeferredItem<ToolItem> weapon(String name, ToolConstants.Entry constants,
             ForgeweaveInnates.Innate innate) {
         return ITEMS.registerItem(name,

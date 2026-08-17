@@ -1,0 +1,9 @@
+{
+  "parent": "minecraft:item/handheld",
+  "textures": {
+    "layer0": "forgeweave:derived/tools/longbow_limb",
+    "layer1": "forgeweave:derived/tools/longbow_limb2",
+    "layer2": "forgeweave:derived/tools/longbow_binding",
+    "layer3": "forgeweave:derived/tools/longbow_string_broken"
+  }
+}

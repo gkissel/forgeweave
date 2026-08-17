@@ -60,6 +60,8 @@ TOOL_SOURCES = {
     "lumberaxe": "lumberaxe",
     "scythe": "scythe",
     "shortbow": "shortbow",  # M3.5 #394; the drawn-stage overlays (mod_*_1/2/3) are M3.5-6's
+    "longbow": "longbow",  # M3.5 #395
+    "crossbow": "crossbow",  # M3.5 #395
     # Forgeweave-original shapes: closest-upstream donors, issue #198's precedent.
     "dagger": "broadsword",
     "scimitar": "broadsword",
@@ -90,8 +92,9 @@ MODIFIER_SOURCES = {
 }
 
 # (tool, modifier) pairs upstream ships no overlay for, on purpose: luck refuses launchers
-# (ModLuck.java:35), so items/shortbow/ has no mod_luck.png. Mirrored by ModifierArt#NO_UPSTREAM_ART.
-NO_UPSTREAM_ART = {("shortbow", "luck")}
+# (ModLuck.java:35), so items/shortbow/ and items/longbow/ have no mod_luck.png. items/crossbow/
+# inconsistently does, and it is copied like any other. Mirrored by ModifierArt#NO_UPSTREAM_ART.
+NO_UPSTREAM_ART = {("shortbow", "luck"), ("longbow", "luck")}
 
 
 def main() -> None:

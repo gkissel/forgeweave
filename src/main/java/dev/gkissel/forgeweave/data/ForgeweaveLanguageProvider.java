@@ -311,6 +311,15 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         addItem(ForgeweaveItems.TOOL_SHORTBOW, "Shortbow");
         add("item.forgeweave.shortbow.description",
                 "The Shortbow is a quick and nimble weapon. It draws fast and looses arrows at a rapid rate. Fires vanilla arrows.");
+        // M3.5 #395: upstream item.tconstruct.longbow.name / .desc and .crossbow.name / .desc, each
+        // minus its closing "Uses Tinkers' Arrows." / "Uses Tinkers' Bolts." -- M3.5 ships no
+        // material projectile, so both fire vanilla arrows (docs/SCOPE.md).
+        addItem(ForgeweaveItems.TOOL_LONGBOW, "Longbow");
+        add("item.forgeweave.longbow.description",
+                "The Longbow is a powerful long range weapon. It provides high damage but is less mobile than its short brother. Fires vanilla arrows.");
+        addItem(ForgeweaveItems.TOOL_CROSSBOW, "Crossbow");
+        add("item.forgeweave.crossbow.description",
+                "The Crossbow is a slow but very powerful weapon. It has to be loaded beforehand by holding right click, but can be fired at any moment afterwards. Fires vanilla arrows.");
 
         // The large harvest tools (docs/SCOPE.md M3 issue #157), names ported from upstream 1.12's
         // item.<tool>.name entries; "Vein Hammer" is this repository's own wording (no 1.12 tool).

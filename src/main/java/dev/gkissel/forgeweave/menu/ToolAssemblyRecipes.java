@@ -213,7 +213,15 @@ public final class ToolAssemblyRecipes {
             // order. A Tool Station tool (TinkerRegistry.registerToolCrafting(shortBow)), so not in
             // LARGE_TOOLS. The two LIMB slots feed both the melee stats (their HEAD block) and the
             // LAUNCHER_STATS component (their BOW block); the string is a durability multiplier only.
-            new Entry(ToolConstants.SHORTBOW, ForgeweaveItems.TOOL_SHORTBOW));
+            new Entry(ToolConstants.SHORTBOW, ForgeweaveItems.TOOL_SHORTBOW),
+            // M3.5 #395: the Tool Forge tier's two bows, each in upstream's own PartMaterialType
+            // order. LongBow -- limb, limb, large plate, string. CrossBow -- tough tool rod, limb,
+            // tough binding, string, where the rod slot is ToolConstants.Role#CROSSBOW_BODY because
+            // upstream's PartMaterialType.crossbow names both HANDLE and EXTRA and its buildTagData
+            // spends the material's blocks in both places. Both are in LARGE_TOOLS
+            // (ForgeweaveItemTagsProvider), which is the whole of the Tool Forge gate.
+            new Entry(ToolConstants.LONGBOW, ForgeweaveItems.TOOL_LONGBOW),
+            new Entry(ToolConstants.CROSSBOW, ForgeweaveItems.TOOL_CROSSBOW));
 
     /**
      * The "large tool" classification (docs/SCOPE.md M3 issue #152): tools that can only be assembled
@@ -823,8 +831,9 @@ public final class ToolAssemblyRecipes {
 
     /**
      * The stat blocks -- and so the trait scopes -- a slot of {@code role} reads. One each, except a
-     * limb (M3.5 #394): upstream's {@code PartMaterialType.bow} names both {@code BOW} and
-     * {@code HEAD}, so a limb grants its material's HEAD-scoped traits as well.
+     * limb (M3.5 #394) and the crossbow's body (#395): upstream's {@code PartMaterialType.bow} names
+     * both {@code BOW} and {@code HEAD} and its {@code PartMaterialType.crossbow} both {@code HANDLE}
+     * and {@code EXTRA}, so those slots grant their material's traits from either scope.
      */
     private static List<PartItem.Kind> kindsOf(ToolConstants.Role role) {
         return switch (role) {
@@ -833,6 +842,8 @@ public final class ToolAssemblyRecipes {
             case HANDLE -> List.of(PartItem.Kind.HANDLE);
             case LIMB -> List.of(PartItem.Kind.BOW, PartItem.Kind.HEAD);
             case BOWSTRING -> List.of(PartItem.Kind.BOWSTRING);
+            // #395: PartMaterialType.crossbow names HANDLE and EXTRA, so the body grants both scopes'.
+            case CROSSBOW_BODY -> List.of(PartItem.Kind.HANDLE, PartItem.Kind.EXTRA);
         };
     }
 

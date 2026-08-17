@@ -1,0 +1,110 @@
+package dev.gkissel.forgeweave.item;
+
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.sounds.SoundSource;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResultHolder;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.UseAnim;
+import net.minecraft.world.level.Level;
+
+import dev.gkissel.forgeweave.tool.ToolConstants;
+
+/**
+ * The crossbow (M3.5 issue #395): upstream 1.12's {@code tools/ranged/item/CrossBow.java} on top of
+ * {@link BowItem}, which is already the whole of {@code BowCore}. Everything the crossbow does
+ * differently is the two-phase use below; its stats, parts and assembly are
+ * {@link ToolConstants#CROSSBOW}.
+ *
+ * <h2>Two-phase use, ported exactly</h2>
+ *
+ * <p>Right-clicking an <em>unloaded</em> crossbow starts an ordinary bow draw ({@code
+ * super.onItemRightClick}). Releasing it fires nothing: {@code CrossBow#onPlayerStoppedUsing}
+ * replaces {@code BowCore}'s entirely, and all it does is check the draw reached full progress
+ * ({@code drawTime = 45}) and, if so, play the reload sound and set {@code TAG_Loaded}. Right-clicking
+ * a <em>loaded</em> crossbow calls {@code super.onPlayerStoppedUsing(stack, world, player, 0)} --
+ * a release with zero time left, so a full-power shot with no draw at all -- and clears the flag.
+ *
+ * <p><b>Upstream stores nothing but the flag.</b> {@code TAG_Loaded} is a bare boolean; no ammo is
+ * consumed or remembered when the crossbow is loaded. The arrow is found and spent at <em>fire</em>
+ * time, by the inherited {@code BowCore#shootProjectile} path -- so a crossbow loaded with an empty
+ * quiver fires nothing (and, following upstream's own unconditional {@code setLoaded(stack, false)},
+ * still loses its charge). That is ported verbatim rather than "improved": here it is
+ * {@link ForgeweaveDataComponents#CROSSBOW_LOADED}, a boolean data component, which rides the
+ * {@code ItemStack} and so survives a hotbar swap, a container move and a save/reload the same way
+ * upstream's NBT tag did (fixture {@code m3_5_tool_crossbow_loaded.snbt}).
+ *
+ * <p>Not ported (M3.5-6 / issue #400): the {@code loaded} item property and the four
+ * {@code crossbow.tcon.json} overrides that swap limb/string art and the first-person pose, and
+ * {@code preventSlowDown(0.195f)} -- a client movement-input hack, deferred with the shortbow's.
+ * Also not ported: {@code getAmmoItems()}, which upstream narrows to Tinkers' <em>bolts</em>; M3.5
+ * ships no bolt, so the crossbow fires the same vanilla arrows every other Forgeweave bow does
+ * (docs/SCOPE.md).
+ */
+public class CrossbowItem extends BowItem {
+
+    public CrossbowItem(Properties properties, ToolConstants.Entry constants, int drawTime,
+            float baseProjectileSpeed, float baseInaccuracy) {
+        super(properties, constants, drawTime, baseProjectileSpeed, baseInaccuracy);
+    }
+
+    /** {@code CrossBow#isLoaded}. */
+    public static boolean isLoaded(ItemStack stack) {
+        return Boolean.TRUE.equals(stack.get(ForgeweaveDataComponents.CROSSBOW_LOADED.get()));
+    }
+
+    /** {@code CrossBow#setLoaded}: upstream writes the flag rather than removing it, and so does this. */
+    public static void setLoaded(ItemStack stack, boolean loaded) {
+        stack.set(ForgeweaveDataComponents.CROSSBOW_LOADED.get(), loaded);
+    }
+
+    /** {@code CrossBow#getItemUseAction() = EnumAction.NONE}: no bow-pull pose while cranking. */
+    @Override
+    public UseAnim getUseAnimation(ItemStack stack) {
+        return UseAnim.NONE;
+    }
+
+    /** {@code CrossBow#onItemRightClick}: loaded fires, unloaded starts a draw. */
+    @Override
+    public InteractionResultHolder<ItemStack> use(Level level, Player player, InteractionHand hand) {
+        ItemStack stack = player.getItemInHand(hand);
+        if (!isLoaded(stack) || isBroken(stack)) {
+            return super.use(level, player, hand);
+        }
+        // BowItem#releaseUsing, not this class's -- upstream calls super.onPlayerStoppedUsing here.
+        // timeLeft 0 means the whole 72000-tick duration was "drawn", so the shot is at full power.
+        super.releaseUsing(stack, level, player, 0);
+        setLoaded(stack, false);
+        return InteractionResultHolder.success(stack);
+    }
+
+    /** {@code CrossBow#onPlayerStoppedUsing}: a completed draw loads the crossbow instead of firing. */
+    @Override
+    public void releaseUsing(ItemStack stack, Level level, LivingEntity user, int timeLeft) {
+        if (isBroken(stack) || !(user instanceof Player)) {
+            return;
+        }
+        int useTime = getUseDuration(stack, user) - timeLeft;
+        if (drawbackProgress(stack, useTime) < 1.0F) {
+            return;
+        }
+        // Sounds.crossbow_reload at volume 1.5, pitch 0.9 + rand*0.1. Deviation (recorded in the PR):
+        // that is a Tinkers' sound file M3.5 does not ship, so vanilla's own crossbow reload plays at
+        // upstream's volume and pitch.
+        level.playSound(null, user.getX(), user.getY(), user.getZ(), SoundEvents.CROSSBOW_LOADING_END,
+                SoundSource.PLAYERS, 1.5F, 0.9F + level.getRandom().nextFloat() * 0.1F);
+        setLoaded(stack, true);
+    }
+
+    /**
+     * {@code CrossBow#playShootSound}: the same arrow-shoot event as every bow, but at a fixed low
+     * pitch instead of {@code BowCore}'s draw-power-scaled one.
+     */
+    @Override
+    protected void playShootSound(Level level, Player player, float velocity) {
+        level.playSound(null, player.getX(), player.getY(), player.getZ(), SoundEvents.ARROW_SHOOT,
+                SoundSource.NEUTRAL, 1.0F, 0.5F + level.getRandom().nextFloat() * 0.1F);
+    }
+}
