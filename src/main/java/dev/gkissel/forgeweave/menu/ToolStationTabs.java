@@ -212,12 +212,22 @@ public final class ToolStationTabs {
      *
      * <p>Indices into {@link #TABS} rather than a filtered list of tabs: the selected tab travels as a
      * menu-button id and a {@code DataSlot} value, so keeping that number block-independent means the
-     * Tool Station and the Tool Forge can never read the same id as two different tools.
+     * Tool Station and the Tool Forge can never read the same id as two different tools. That is also
+     * what lets the content-family gate below compose with the large-tool one without either having
+     * to know about the other -- both simply drop indices, and a tab index means the same tool
+     * whichever of them ran.
+     *
+     * <p>The repair tab is never dropped: repairing, modifying and embossing an <em>existing</em>
+     * tool stays available whatever a family toggle says (the content-family toggles ticket's
+     * "items already in the world keep working").
      */
     public static List<Integer> visible(boolean forge) {
         List<Integer> indices = new ArrayList<>(TABS.size());
         for (int i = 0; i < TABS.size(); i++) {
             Tab tab = TABS.get(i);
+            if (!tab.isRepair() && !ContentFamilies.toolEnabled(tab.entry())) {
+                continue; // content-family toggles ticket: an off family offers no build tab at all
+            }
             if (forge || tab.isRepair() || !ToolAssemblyRecipes.isLargeTool(tab.entry())) {
                 indices.add(i);
             }

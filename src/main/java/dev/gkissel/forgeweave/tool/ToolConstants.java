@@ -45,6 +45,32 @@ import dev.gkissel.forgeweave.material.Material;
  */
 public final class ToolConstants {
 
+    /**
+     * Which content family a tool belongs to (the content-family toggles ticket), and the single
+     * source the pack-facing {@code content} config section derives every other membership question
+     * from -- see {@link dev.gkissel.forgeweave.menu.ContentFamilies}.
+     *
+     * <p>Upstream 1.12 tags a tool with a <em>set</em> of {@code library/tinkering/Category} values
+     * ({@code TinkersItem#categories} is a {@code Set}, {@code addCategory} appends to it), and four
+     * of its tools carry both {@code HARVEST} and {@code WEAPON} -- Hatchet, Kama, Hammer and
+     * Scythe. A toggle needs one answer per tool, not a set, so this collapses that to upstream's
+     * own primary split, which its source tree already draws: everything under {@code tools/tools/}
+     * declares {@code HARVEST} and lands in {@link #HARVEST}; everything under
+     * {@code tools/melee/item/} declares {@code WEAPON} without {@code HARVEST} and lands in
+     * {@link #MELEE}. No upstream tool is in neither set, so the split is total and unambiguous.
+     *
+     * <p>The five shapes with no 1.12 counterpart are classified by what they are: the vein hammer
+     * mines ({@link #HARVEST}), the dagger, scimitar, katana and warmace hit ({@link #MELEE}).
+     *
+     * <p>Only these two exist because only these two have tools. {@code rangedWeapons}, {@code armor}
+     * and {@code gadgets} are config keys with no roster yet (M3.5/M4/M5); their constants land with
+     * the tools they gate.
+     */
+    public enum Category {
+        HARVEST,
+        MELEE
+    }
+
     /** Which of a material's stat blocks a part slot draws from -- see {@link PartItem.Kind}. */
     public enum Role {
         HEAD,
@@ -66,6 +92,7 @@ public final class ToolConstants {
 
     /**
      * @param id the tool's identifier, matching its future item registry name
+     * @param category the content family this tool belongs to -- see {@link Category}
      * @param parts ordered part composition; {@link #compute} expects one {@link Material} per slot
      *     in this order
      * @param attackSpeed upstream's {@code ToolCore#attackSpeed()}
@@ -94,6 +121,7 @@ public final class ToolConstants {
      */
     public record Entry(
             String id,
+            Category category,
             List<PartSlot> parts,
             float attackSpeed,
             float damagePotential,
@@ -106,11 +134,12 @@ public final class ToolConstants {
             float damageCutoff) {
 
         /** Convenience constructor for the {@link #DEFAULT_DAMAGE_CUTOFF} every tool but the four upstream overrides uses. */
-        public Entry(String id, List<PartSlot> parts, float attackSpeed, float damagePotential,
+        public Entry(String id, Category category, List<PartSlot> parts, float attackSpeed, float damagePotential,
                 float preAttackMultiplier, float flatAttackBonus, float durabilityMultiplier,
                 float miningSpeedModifier, boolean sumHeadsForAttack, boolean durabilitySkipsExtraAndHandle) {
-            this(id, parts, attackSpeed, damagePotential, preAttackMultiplier, flatAttackBonus, durabilityMultiplier,
-                    miningSpeedModifier, sumHeadsForAttack, durabilitySkipsExtraAndHandle, DEFAULT_DAMAGE_CUTOFF);
+            this(id, category, parts, attackSpeed, damagePotential, preAttackMultiplier, flatAttackBonus,
+                    durabilityMultiplier, miningSpeedModifier, sumHeadsForAttack, durabilitySkipsExtraAndHandle,
+                    DEFAULT_DAMAGE_CUTOFF);
         }
     }
 
@@ -126,7 +155,7 @@ public final class ToolConstants {
     private static final String TOUGH_BINDING = "tough_binding";
 
     /** Upstream {@code tools/melee/item/BroadSword.java}: sweep-attack sword, wide guard. */
-    public static final Entry BROADSWORD = new Entry("broadsword",
+    public static final Entry BROADSWORD = new Entry("broadsword", Category.MELEE,
             List.of(new PartSlot(Role.HANDLE, TOOL_HANDLE), new PartSlot(Role.HEAD, "sword_blade"),
                     new PartSlot(Role.EXTRA, "wide_guard")),
             1.6f, 1.0f, 1.0f, 1.0f, 1.1f, 1.0f, false, false);
@@ -135,7 +164,7 @@ public final class ToolConstants {
      * Upstream {@code tools/melee/item/LongSword.java}: charged-leap sword, hand guard.
      * {@code damageCutoff() = 18f} (issue #295), one of upstream's four overrides.
      */
-    public static final Entry LONGSWORD = new Entry("longsword",
+    public static final Entry LONGSWORD = new Entry("longsword", Category.MELEE,
             List.of(new PartSlot(Role.HANDLE, TOOL_HANDLE), new PartSlot(Role.HEAD, "sword_blade"),
                     new PartSlot(Role.EXTRA, "hand_guard")),
             1.4f, 1.1f, 1.0f, 0.5f, 1.05f, 1.0f, false, false, 18.0f);
@@ -144,29 +173,29 @@ public final class ToolConstants {
      * Upstream {@code tools/melee/item/Rapier.java}: fast hybrid-damage sword, cross guard.
      * {@code damageCutoff() = 13f} (issue #295), one of upstream's four overrides.
      */
-    public static final Entry RAPIER = new Entry("rapier",
+    public static final Entry RAPIER = new Entry("rapier", Category.MELEE,
             List.of(new PartSlot(Role.HANDLE, TOOL_HANDLE), new PartSlot(Role.HEAD, "sword_blade"),
                     new PartSlot(Role.EXTRA, "cross_guard")),
             3.0f, 0.55f, 1.0f, 0.0f, 0.8f, 1.0f, false, false, 13.0f);
 
     /** Upstream {@code tools/melee/item/BattleSign.java}: blocking/reflecting sign, no extra part. */
-    public static final Entry BATTLESIGN = new Entry("battlesign",
+    public static final Entry BATTLESIGN = new Entry("battlesign", Category.MELEE,
             List.of(new PartSlot(Role.HANDLE, TOOL_HANDLE), new PartSlot(Role.HEAD, "sign_plate")),
             1.2f, 0.86f, 1.0f, 0.0f, 1.0f, 1.0f, false, false);
 
     /** Upstream {@code tools/melee/item/FryPan.java}: charged-knockback pan, no extra part. */
-    public static final Entry FRYING_PAN = new Entry("frying_pan",
+    public static final Entry FRYING_PAN = new Entry("frying_pan", Category.MELEE,
             List.of(new PartSlot(Role.HANDLE, TOOL_HANDLE), new PartSlot(Role.HEAD, "pan")),
             1.4f, 1.0f, 1.0f, 0.0f, 1.0f, 1.0f, false, false);
 
     /** Upstream {@code tools/tools/Mattock.java}: axe+shovel dual head, unweighted average. */
-    public static final Entry MATTOCK = new Entry("mattock",
+    public static final Entry MATTOCK = new Entry("mattock", Category.HARVEST,
             List.of(new PartSlot(Role.HANDLE, TOOL_HANDLE), new PartSlot(Role.HEAD, "axe_head"),
                     new PartSlot(Role.HEAD, "shovel_head")),
             0.9f, 0.90f, 1.0f, 3.0f, 1.0f, 0.95f, false, false);
 
     /** Upstream {@code tools/tools/Kama.java}: single head, M1's shared binding part. */
-    public static final Entry KAMA = new Entry("kama",
+    public static final Entry KAMA = new Entry("kama", Category.HARVEST,
             List.of(new PartSlot(Role.HANDLE, TOOL_HANDLE), new PartSlot(Role.HEAD, "kama_head"),
                     new PartSlot(Role.EXTRA, TOOL_BINDING)),
             1.3f, 1.0f, 1.0f, 0.0f, 1.0f, 1.0f, false, false);
@@ -181,7 +210,7 @@ public final class ToolConstants {
      * {@link #DEFAULT_DAMAGE_CUTOFF} (issue #295) rather than upstream's unshipped {@code 30f}: it is
      * one more damage-tuning number the same "not adopted" decision above already covers.
      */
-    public static final Entry BATTLEAXE = new Entry("battleaxe",
+    public static final Entry BATTLEAXE = new Entry("battleaxe", Category.MELEE,
             List.of(new PartSlot(Role.HANDLE, TOUGH_TOOL_HANDLE), new PartSlot(Role.HEAD, "broad_axe_head"),
                     new PartSlot(Role.HEAD, "broad_axe_head"), new PartSlot(Role.EXTRA, TOUGH_BINDING)),
             0.95f, 1.0f, 1.2f, 0.0f, 1.10f, 0.6f, true, true);
@@ -190,31 +219,31 @@ public final class ToolConstants {
      * Upstream {@code tools/melee/item/Cleaver.java}: head+shield average, pre-multiply then bonus.
      * {@code damageCutoff() = 25f} (issue #295), one of upstream's four overrides.
      */
-    public static final Entry CLEAVER = new Entry("cleaver",
+    public static final Entry CLEAVER = new Entry("cleaver", Category.MELEE,
             List.of(new PartSlot(Role.HANDLE, TOUGH_TOOL_HANDLE), new PartSlot(Role.HEAD, "large_sword_blade"),
                     new PartSlot(Role.HEAD, "large_plate"), new PartSlot(Role.EXTRA, TOUGH_TOOL_HANDLE)),
             0.7f, 1.2f, 1.3f, 3.0f, 2.0f, 1.0f, false, false, 25.0f);
 
     /** Upstream {@code tools/tools/Hammer.java}: hammer head weighted double over two large plates. */
-    public static final Entry HAMMER = new Entry("hammer",
+    public static final Entry HAMMER = new Entry("hammer", Category.HARVEST,
             List.of(new PartSlot(Role.HANDLE, TOUGH_TOOL_HANDLE), new PartSlot(Role.HEAD, "hammer_head", 2.0f),
                     new PartSlot(Role.HEAD, "large_plate"), new PartSlot(Role.HEAD, "large_plate")),
             0.8f, 1.2f, 1.0f, 0.0f, 2.5f, 0.4f, false, false);
 
     /** Upstream {@code tools/tools/Excavator.java}: excavator head + large plate, unweighted average. */
-    public static final Entry EXCAVATOR = new Entry("excavator",
+    public static final Entry EXCAVATOR = new Entry("excavator", Category.HARVEST,
             List.of(new PartSlot(Role.HANDLE, TOUGH_TOOL_HANDLE), new PartSlot(Role.HEAD, "excavator_head"),
                     new PartSlot(Role.HEAD, "large_plate"), new PartSlot(Role.EXTRA, TOUGH_BINDING)),
             0.7f, 1.25f, 1.0f, 0.0f, 1.75f, 0.28f, false, false);
 
     /** Upstream {@code tools/tools/LumberAxe.java}: broad axe head + large plate, unweighted average. */
-    public static final Entry LUMBERAXE = new Entry("lumberaxe",
+    public static final Entry LUMBERAXE = new Entry("lumberaxe", Category.HARVEST,
             List.of(new PartSlot(Role.HANDLE, TOUGH_TOOL_HANDLE), new PartSlot(Role.HEAD, "broad_axe_head"),
                     new PartSlot(Role.HEAD, "large_plate"), new PartSlot(Role.EXTRA, TOUGH_BINDING)),
             0.8f, 1.2f, 1.0f, 2.0f, 2.0f, 0.35f, false, false);
 
     /** Upstream {@code tools/tools/Scythe.java}: single head, two tough handles averaged. */
-    public static final Entry SCYTHE = new Entry("scythe",
+    public static final Entry SCYTHE = new Entry("scythe", Category.HARVEST,
             List.of(new PartSlot(Role.HANDLE, TOUGH_TOOL_HANDLE), new PartSlot(Role.HEAD, "scythe_head"),
                     new PartSlot(Role.EXTRA, TOUGH_BINDING), new PartSlot(Role.HANDLE, TOUGH_TOOL_HANDLE)),
             0.9f, 0.75f, 1.0f, 0.0f, 2.2f, 1.0f, false, false);
@@ -225,7 +254,7 @@ public final class ToolConstants {
      * deviation authorized by maintainer 2026-08-12 (docs/SCOPE.md M3 sources table), numbers
      * confirmed unchanged in the issue #153 decision comment.
      */
-    public static final Entry VEIN_HAMMER = new Entry("vein_hammer",
+    public static final Entry VEIN_HAMMER = new Entry("vein_hammer", Category.HARVEST,
             // Reconciled against #151's registered parts (issue #155): the vein hammer has its own
             // vein_hammer_head part item, not the plain hammer_head this used to name. Weights are
             // unchanged. Registered id wins.
@@ -238,7 +267,7 @@ public final class ToolConstants {
      * no extra part); base damage and attack speed are the issue #153 decision comment's numbers,
      * which deliberately do not carry over 1.20's own attack/mining/durability multipliers.
      */
-    public static final Entry DAGGER = new Entry("dagger",
+    public static final Entry DAGGER = new Entry("dagger", Category.MELEE,
             List.of(new PartSlot(Role.HEAD, "knife_blade"), new PartSlot(Role.HANDLE, TOOL_HANDLE)),
             2.0f, 1.0f, 1.0f, 3.0f, 1.0f, 1.0f, false, false);
 
@@ -247,7 +276,7 @@ public final class ToolConstants {
      * part from the clone-derived swords above so assembly can tell them apart; numbers are the
      * issue #153 decision comment's (base damage 2.5 / speed 1.8), DoT innate decided on #159.
      */
-    public static final Entry SCIMITAR = new Entry("scimitar",
+    public static final Entry SCIMITAR = new Entry("scimitar", Category.MELEE,
             List.of(new PartSlot(Role.HANDLE, TOOL_HANDLE), new PartSlot(Role.HEAD, "curved_blade"),
                     new PartSlot(Role.EXTRA, "cross_guard")),
             1.8f, 1.0f, 1.0f, 2.5f, 1.0f, 1.0f, false, false);
@@ -256,7 +285,7 @@ public final class ToolConstants {
      * New shape (Forgeweave design, no upstream source): station-tier ramping blade. Numbers are the
      * issue #153 decision comment's (base damage 2.75 / speed 1.6), ramp magnitudes decided on #160.
      */
-    public static final Entry KATANA = new Entry("katana",
+    public static final Entry KATANA = new Entry("katana", Category.MELEE,
             List.of(new PartSlot(Role.HANDLE, TOOL_HANDLE), new PartSlot(Role.HEAD, "katana_blade"),
                     new PartSlot(Role.EXTRA, "hand_guard")),
             1.6f, 1.0f, 1.0f, 2.75f, 1.0f, 1.0f, false, false);
@@ -266,7 +295,7 @@ public final class ToolConstants {
      * vanilla mace scaling (#161). Numbers are the issue #153 decision comment's (base damage 4.0 /
      * speed 0.8).
      */
-    public static final Entry WARMACE = new Entry("warmace",
+    public static final Entry WARMACE = new Entry("warmace", Category.MELEE,
             List.of(new PartSlot(Role.HANDLE, TOUGH_TOOL_HANDLE), new PartSlot(Role.HEAD, "war_mace_head"),
                     new PartSlot(Role.EXTRA, TOUGH_BINDING)),
             0.8f, 1.0f, 1.0f, 4.0f, 1.0f, 1.0f, false, false);

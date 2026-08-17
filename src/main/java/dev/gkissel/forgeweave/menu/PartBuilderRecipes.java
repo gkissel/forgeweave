@@ -194,6 +194,12 @@ public final class PartBuilderRecipes {
             return Optional.of(StationMenu.Rejection.error(
                     Component.translatable("gui.forgeweave.part_builder.invalid_pattern")));
         }
+        // Content-family toggles ticket: a valid pattern for a part nothing enabled can use. An
+        // error rather than a warning, matching invalid_pattern above -- it is a craft that was
+        // attempted and refused, not a loadout that merely can never work out.
+        if (!ContentFamilies.itemEnabled(pattern)) {
+            return Optional.of(StationMenu.Rejection.error(ContentFamilies.disabledMessage()));
+        }
         ResourceLocation materialId = output.get(ForgeweaveDataComponents.MATERIAL.get());
         if (materialId != null && PartItem.hasUnusableMaterial(registries, output)) {
             return Optional.of(StationMenu.Rejection.warning(
@@ -214,7 +220,12 @@ public final class PartBuilderRecipes {
         if (pattern.isEmpty() || (material1.isEmpty() && material2.isEmpty())) {
             return Optional.empty();
         }
-        return findEntry(pattern).flatMap(entry -> combinedMaterialValue(registries, material1, material2)
+        return findEntry(pattern)
+                // Content-family toggles ticket: a part whose every tool is in an off family cannot
+                // be stamped. Filtered here rather than at the pattern slot so a pattern already in
+                // the world stays storable and shift-clickable -- only the craft stops.
+                .filter(entry -> ContentFamilies.itemEnabled(entry.part().get()))
+                .flatMap(entry -> combinedMaterialValue(registries, material1, material2)
                 .flatMap(matched -> {
                     if (matched.totalValue() < entry.cost()) {
                         return Optional.empty();

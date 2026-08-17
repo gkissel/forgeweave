@@ -62,6 +62,71 @@ public final class ForgeweaveConfig {
      */
     public static final ModConfigSpec.BooleanValue ENABLE_CLAY_CASTS;
 
+    /**
+     * Content-family toggles (the content-family toggles ticket, maintainer decisions 2026-08-15).
+     * Forgeweave's own surface, not a 1.12 port: upstream has no equivalent, and a pack that wants
+     * only the smeltery, or only the harvest tools, has to delete recipes by hand there.
+     *
+     * <p>Semantics are <b>unobtainable, never unregistered</b>: an off family stops being
+     * <em>assemblable</em>, its exclusive parts/patterns/casts stop being obtainable, and its
+     * recipes vanish from JEI and its items from the creative tab -- but every item stays
+     * registered, so a world that already contains one keeps loading and the tool keeps mining and
+     * hitting. That is the same lookup-time filter {@link #ENABLE_CLAY_CASTS} uses, applied to a
+     * whole roster, and it is what lets these be hot-reloadable with no {@code worldRestart()}.
+     *
+     * <p>Membership is derived, never listed: {@link dev.gkissel.forgeweave.tool.ToolConstants.Entry#category()}
+     * says which family a tool belongs to, and
+     * {@link dev.gkissel.forgeweave.menu.ContentFamilies} walks
+     * {@link dev.gkissel.forgeweave.menu.ToolAssemblyRecipes#ENTRIES} for everything else, so a new
+     * tool inherits its family's gate with no second table to update.
+     */
+    public static final ModConfigSpec.BooleanValue HARVEST_TOOLS;
+
+    /** @see #HARVEST_TOOLS */
+    public static final ModConfigSpec.BooleanValue MELEE_WEAPONS;
+
+    /**
+     * Registered now, with no behavior behind it yet: docs/SCOPE.md M3.5 is what adds the bows and
+     * crossbows this would gate, and it wires this key up when it lands. Shipping the key early
+     * keeps a pack's config file stable across that milestone instead of growing a new section.
+     *
+     * @see #HARVEST_TOOLS
+     */
+    public static final ModConfigSpec.BooleanValue RANGED_WEAPONS;
+
+    /**
+     * Registered now, with no behavior behind it yet -- docs/SCOPE.md M4 (armor) wires it up.
+     *
+     * @see #RANGED_WEAPONS
+     */
+    public static final ModConfigSpec.BooleanValue ARMOR;
+
+    /**
+     * Registered now, with no behavior behind it yet -- docs/SCOPE.md M5 (gadgets) wires it up.
+     *
+     * @see #RANGED_WEAPONS
+     */
+    public static final ModConfigSpec.BooleanValue GADGETS;
+
+    /**
+     * The smeltery as a whole: melting, entity melting, alloying and casting all stop resolving, and
+     * the smeltery GUI says why. Its blocks stay registered and a formed structure keeps its fluids
+     * -- see {@link #HARVEST_TOOLS} for the shared "unobtainable, never unregistered" rule.
+     */
+    public static final ModConfigSpec.BooleanValue SMELTERY;
+
+    /**
+     * Everything that alters a tool at the Tool Station beyond repair and part exchange (maintainer
+     * decision): generic modifier application (issue #105), embossing (#154) and fortification
+     * (#271). Each is refused where it resolves, with a translatable reason the info panel takes
+     * over with (#378), and their recipe categories are hidden from JEI.
+     *
+     * <p>Repair and part exchange stay available because neither changes what the tool <em>is</em>;
+     * every modifier, embossment and fortification already on a tool likewise keeps working, since
+     * nothing gated here touches an assembled stack. Only the act of applying a new one stops.
+     */
+    public static final ModConfigSpec.BooleanValue MODIFIERS;
+
     /** Upstream {@code genCobalt}: cobalt ore generates in the Nether. */
     public static final ModConfigSpec.BooleanValue GEN_COBALT;
     /** Upstream {@code cobaltRate}: approximate cobalt veins per Nether chunk. */
@@ -70,6 +135,21 @@ public final class ForgeweaveConfig {
     public static final ModConfigSpec.BooleanValue GEN_ARDITE;
     /** Upstream {@code arditeRate}: approximate ardite veins per Nether chunk. */
     public static final ModConfigSpec.IntValue ARDITE_RATE;
+
+    /**
+     * One of the {@code content} flags, answering "on" whenever the spec is not loaded.
+     *
+     * <p>A {@code SERVER} spec exists only once a world is running, and three of the callers here
+     * legitimately run outside one: the creative tab is built in the main menu, and both the casting
+     * and melting recipe filters are exercised by unit tests that never stand a server up. The
+     * fallback is deliberately the permissive one -- showing or resolving something a joined server
+     * would then refuse is a far smaller surprise than hiding content because no server has spoken
+     * yet. The older options above read {@code .get()} directly because every one of their call
+     * sites is already inside a running world.
+     */
+    public static boolean enabled(ModConfigSpec.BooleanValue value) {
+        return !SPEC.isLoaded() || value.get();
+    }
 
     static {
         ModConfigSpec.Builder builder = new ModConfigSpec.Builder();
@@ -92,6 +172,43 @@ public final class ForgeweaveConfig {
         ENABLE_CLAY_CASTS = builder
                 .comment("Allows single-use clay casts to be moulded from molten clay and cast through.")
                 .define("enableClayCasts", true);
+
+        builder.comment("Content family toggles. A family that is off cannot be assembled or obtained,",
+                        "its recipes are hidden from JEI and its items from the creative tab, and the",
+                        "parts, patterns and casts that serve only it become unobtainable too. Nothing is",
+                        "unregistered: items already in a world keep working, and every option here takes",
+                        "effect the moment it is reloaded.")
+                .push("content");
+        HARVEST_TOOLS = builder
+                .comment("If true, harvest tools (pickaxe, shovel, hatchet, mattock, kama, hammer, excavator,",
+                        "lumber axe, scythe, vein hammer) can be assembled and obtained.")
+                .define("harvestTools", true);
+        MELEE_WEAPONS = builder
+                .comment("If true, melee weapons (broadsword, longsword, rapier, battlesign, frying pan, dagger,",
+                        "battleaxe, scimitar, katana, warmace, cleaver) can be assembled and obtained.")
+                .define("meleeWeapons", true);
+        RANGED_WEAPONS = builder
+                .comment("If true, ranged weapons can be assembled and obtained. Reserved: Forgeweave ships no",
+                        "ranged weapons yet, so this has no effect until they land.")
+                .define("rangedWeapons", true);
+        ARMOR = builder
+                .comment("If true, armor can be assembled and obtained. Reserved: Forgeweave ships no armor yet,",
+                        "so this has no effect until it lands.")
+                .define("armor", true);
+        GADGETS = builder
+                .comment("If true, gadgets can be assembled and obtained. Reserved: Forgeweave ships no gadgets",
+                        "yet, so this has no effect until they land.")
+                .define("gadgets", true);
+        SMELTERY = builder
+                .comment("If true, the smeltery melts, alloys and casts. With this off its blocks stay placeable",
+                        "but no melting, alloying or casting recipe resolves, and the smeltery GUI says so.")
+                .define("smeltery", true);
+        MODIFIERS = builder
+                .comment("If true, modifiers, embossments and fortifications can be applied to tools at the Tool",
+                        "Station. Repair and part exchange are unaffected, and anything already on a tool keeps",
+                        "working either way -- only applying a new one is refused.")
+                .define("modifiers", true);
+        builder.pop();
 
         builder.comment("World generation options").push("worldgen");
         GEN_COBALT = builder

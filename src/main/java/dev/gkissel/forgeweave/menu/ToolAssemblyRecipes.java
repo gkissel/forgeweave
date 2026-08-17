@@ -149,19 +149,19 @@ public final class ToolAssemblyRecipes {
      * exactly for them; the attack speed and damage potential are the ones {@code ForgeweaveItems}
      * already gives the items, repeated here only so the entry reads as a complete tool.
      */
-    private static final ToolConstants.Entry PICKAXE = new ToolConstants.Entry("pickaxe",
+    private static final ToolConstants.Entry PICKAXE = new ToolConstants.Entry("pickaxe", ToolConstants.Category.HARVEST,
             List.of(new ToolConstants.PartSlot(ToolConstants.Role.HEAD, "pickaxe_head"),
                     new ToolConstants.PartSlot(ToolConstants.Role.EXTRA, "tool_binding"),
                     new ToolConstants.PartSlot(ToolConstants.Role.HANDLE, "tool_handle")),
             1.2f, 1.0f, 1.0f, 0.0f, 1.0f, 1.0f, false, false);
 
-    private static final ToolConstants.Entry SHOVEL = new ToolConstants.Entry("shovel",
+    private static final ToolConstants.Entry SHOVEL = new ToolConstants.Entry("shovel", ToolConstants.Category.HARVEST,
             List.of(new ToolConstants.PartSlot(ToolConstants.Role.HEAD, "shovel_head"),
                     new ToolConstants.PartSlot(ToolConstants.Role.EXTRA, "tool_binding"),
                     new ToolConstants.PartSlot(ToolConstants.Role.HANDLE, "tool_handle")),
             1.0f, 0.9f, 1.0f, 0.0f, 1.0f, 1.0f, false, false);
 
-    private static final ToolConstants.Entry HATCHET = new ToolConstants.Entry("hatchet",
+    private static final ToolConstants.Entry HATCHET = new ToolConstants.Entry("hatchet", ToolConstants.Category.HARVEST,
             List.of(new ToolConstants.PartSlot(ToolConstants.Role.HEAD, "axe_head"),
                     new ToolConstants.PartSlot(ToolConstants.Role.EXTRA, "tool_binding"),
                     new ToolConstants.PartSlot(ToolConstants.Role.HANDLE, "tool_handle")),
@@ -653,6 +653,12 @@ public final class ToolAssemblyRecipes {
         Entry entry = match.get();
         if (!forge && isLargeTool(entry)) {
             return Optional.empty(); // a large tool needs the Tool Forge; ToolStationMenu#rejection says so
+        }
+        if (!ContentFamilies.toolEnabled(entry)) {
+            // Content-family toggles ticket: the family is off, so this is unassemblable at either
+            // block. Same shape as the large-tool refusal above -- no output, and
+            // ToolStationMenu#rejection is what says why.
+            return Optional.empty();
         }
 
         List<ResourceLocation> materialIds = new ArrayList<>(entry.slotCount());

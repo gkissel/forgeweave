@@ -1083,6 +1083,9 @@ public class SmelteryControllerBlockEntity extends BlockEntity implements Statio
      * a pack that re-authors the recipe under another id still means it.
      */
     private static boolean alloyEnabled(AlloyRecipe recipe) {
+        if (!ForgeweaveConfig.enabled(ForgeweaveConfig.SMELTERY)) {
+            return false; // content-family toggles ticket: the whole smeltery family is off
+        }
         return ForgeweaveConfig.OBSIDIAN_ALLOY.get()
                 || !recipe.result().is(ForgeweaveFluids.OBSIDIAN.still().get());
     }

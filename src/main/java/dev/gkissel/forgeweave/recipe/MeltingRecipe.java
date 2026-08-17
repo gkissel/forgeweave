@@ -22,6 +22,7 @@ import net.neoforged.neoforge.common.crafting.DataComponentIngredient;
 import net.neoforged.neoforge.fluids.FluidStack;
 
 import dev.gkissel.forgeweave.Forgeweave;
+import dev.gkissel.forgeweave.config.ForgeweaveConfig;
 import dev.gkissel.forgeweave.casting.CastingRecipe;
 import dev.gkissel.forgeweave.item.ForgeweaveDataComponents;
 import dev.gkissel.forgeweave.item.PartItem;
@@ -162,7 +163,10 @@ public record MeltingRecipe(Ingredient input, Fluid fluid, int amount, int tempe
      * profile.
      */
     public static Optional<MeltingRecipe> find(RegistryAccess registries, ItemStack stack) {
-        if (stack.isEmpty()) {
+        if (stack.isEmpty() || !ForgeweaveConfig.enabled(ForgeweaveConfig.SMELTERY)) {
+            // Content-family toggles ticket: with the smeltery family off nothing melts. Filtered
+            // at lookup like every other Forgeweave config gate, so the block, the structure and the
+            // fluids already in the tank all survive the flip untouched.
             return Optional.empty();
         }
         Registry<MeltingRecipe> recipes = registries.registryOrThrow(REGISTRY);

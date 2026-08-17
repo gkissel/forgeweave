@@ -19,6 +19,7 @@ import net.minecraft.world.level.material.Fluid;
 import net.neoforged.neoforge.fluids.FluidStack;
 
 import dev.gkissel.forgeweave.Forgeweave;
+import dev.gkissel.forgeweave.config.ForgeweaveConfig;
 import dev.gkissel.forgeweave.fluid.ForgeweaveFluids;
 
 /**
@@ -118,6 +119,9 @@ public record EntityMeltingRecipe(List<EntityType<?>> entities, Fluid fluid, int
      * a profile.
      */
     public static Optional<EntityMeltingRecipe> find(RegistryAccess registries, EntityType<?> type) {
+        if (!ForgeweaveConfig.enabled(ForgeweaveConfig.SMELTERY)) {
+            return Optional.empty(); // content-family toggles ticket, same gate as MeltingRecipe#find
+        }
         Registry<EntityMeltingRecipe> recipes = registries.registryOrThrow(REGISTRY);
         return recipes.entrySet().stream()
                 .filter(entry -> entry.getValue().entities.contains(type))

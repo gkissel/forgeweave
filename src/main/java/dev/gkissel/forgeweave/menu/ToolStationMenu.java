@@ -324,6 +324,15 @@ public class ToolStationMenu extends StationMenu {
         if (!forge && ToolAssemblyRecipes.isLargeToolHead(inputSlots())) {
             return Rejection.error(Component.translatable("gui.forgeweave.tool_station.needs_forge"));
         }
+        // Content-family toggles ticket: a part that serves only families the server has switched
+        // off. Sits with the large-tool refusal because it is the same kind of hard stop -- nothing
+        // loaded into these slots can ever assemble here. Build loadouts only: an assembled tool in
+        // the head slot is being repaired, modified or embossed, and an existing tool of an off
+        // family keeps every one of those.
+        if (!(tool.getItem() instanceof ToolItem)
+                && inputSlots().stream().anyMatch(stack -> !ContentFamilies.itemEnabled(stack))) {
+            return Rejection.error(ContentFamilies.disabledMessage());
+        }
         // #378, upstream GuiToolStation:296-301: a part of the right shape whose material this world
         // has no definition for. Sits here because it is the same kind of hard stop as the one above
         // -- ToolAssemblyRecipes#assemble bails on exactly this and says nothing, so before #378 the

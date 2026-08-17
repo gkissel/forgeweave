@@ -376,6 +376,11 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         // #152: why a large tool refuses to assemble at a Tool Station.
         add("gui.forgeweave.tool_station.needs_forge", "This tool is too large to assemble here. Build it at a Tool Forge.");
         add("gui.forgeweave.tool_station.modifier_slots", "Free slots: %s");
+        // Content-family toggles ticket: this kind of tool, or a part only this kind of tool takes,
+        // belongs to a content family the server has switched off. Deliberately does not name the
+        // family or the option -- a player at the station cannot act on either.
+        add("gui.forgeweave.tool_station.family_disabled",
+                "This kind of equipment is disabled on this server.");
         // #378, upstream gui.error.wrong_material_part: a part of the right shape whose material
         // this world has no definition for, so the station can build nothing from it.
         add("gui.forgeweave.tool_station.wrong_material_part",
@@ -392,6 +397,12 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("gui.forgeweave.modifier.no_slots", "This tool has no modifier slots left (%s to start with).");
         add("gui.forgeweave.modifier.max_level", "%s is already at its maximum level on this tool.");
         add("gui.forgeweave.modifier.invalid_reagent", "The other slot holds something no modifier accepts.");
+        // Content-family toggles ticket: `modifiers` is off, which covers embossing and fortification
+        // too (maintainer decision). Deliberately says "applied" rather than "disabled" -- what is
+        // already on a tool keeps working, and repair and part exchange are unaffected.
+        add("gui.forgeweave.modifier.modifiers_disabled",
+                "Tools cannot be modified on this server. What is already on a tool still works, "
+                        + "and it can still be repaired and have its parts replaced.");
         add("gui.forgeweave.modifier.not_enough_reagents", "Not enough of that reagent: %s are needed per step.");
         // Issue #259 (multi-unit reagents): a whole reagent worth more units than the cap has room
         // for -- e.g. a 9-unit redstone block against 5 remaining units of haste.
@@ -450,6 +461,9 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("gui.forgeweave.part_builder.material_value", "Material Value: %s %s");
         // #378, upstream gui.error.invalid_pattern / gui.error.useless_tool_part.
         add("gui.forgeweave.part_builder.invalid_pattern", "Pattern does not contain a valid tool part!");
+        // Content-family toggles ticket: the smeltery family is off, shown over the smeltery's melt
+        // grid because a fully built, fully fuelled structure otherwise gives no clue why it is idle.
+        add("gui.forgeweave.smeltery.disabled", "The smeltery is disabled on this server.");
         add("gui.forgeweave.part_builder.useless_tool_part",
                 "This part cannot be used to craft any tool! Either the material %s is missing some "
                         + "information, or no tool uses a %s in its crafting.");
