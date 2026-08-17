@@ -315,28 +315,28 @@ class SmelteryTooltipTest {
 
     @Test
     void theHeatBarHitBoxIsTheDrawnBarAndNotTheWholeCell() {
-        assertEquals(0, SmelteryScreen.heatBarAt(0, 1, 1), "the bar's own top-left pixel");
-        assertEquals(0, SmelteryScreen.heatBarAt(0, 3, 16), "the bar's own bottom-right pixel");
-        assertEquals(-1, SmelteryScreen.heatBarAt(0, 0, 0), "the 1px bevel above and left of the bar");
-        assertEquals(-1, SmelteryScreen.heatBarAt(0, 4, 1), "the slot beside the bar is not the bar");
-        assertEquals(-1, SmelteryScreen.heatBarAt(0, 1, 17), "the cell's last row is below the 16px bar");
-        assertEquals(-1, SmelteryScreen.heatBarAt(0, -1, 1), "left of the grid entirely");
-        assertEquals(-1, SmelteryScreen.heatBarAt(0, 1, -1), "above the grid entirely");
+        assertEquals(0, SmelteryScreen.heatBarAt(0, SmelteryMenu.MELT_MAX_ROWS, 1, 1), "the bar's own top-left pixel");
+        assertEquals(0, SmelteryScreen.heatBarAt(0, SmelteryMenu.MELT_MAX_ROWS, 3, 16), "the bar's own bottom-right pixel");
+        assertEquals(-1, SmelteryScreen.heatBarAt(0, SmelteryMenu.MELT_MAX_ROWS, 0, 0), "the 1px bevel above and left of the bar");
+        assertEquals(-1, SmelteryScreen.heatBarAt(0, SmelteryMenu.MELT_MAX_ROWS, 4, 1), "the slot beside the bar is not the bar");
+        assertEquals(-1, SmelteryScreen.heatBarAt(0, SmelteryMenu.MELT_MAX_ROWS, 1, 17), "the cell's last row is below the 16px bar");
+        assertEquals(-1, SmelteryScreen.heatBarAt(0, SmelteryMenu.MELT_MAX_ROWS, -1, 1), "left of the grid entirely");
+        assertEquals(-1, SmelteryScreen.heatBarAt(0, SmelteryMenu.MELT_MAX_ROWS, 1, -1), "above the grid entirely");
     }
 
     @Test
     void everyCellsBarMapsBackToTheSlotDrawnInIt() {
-        for (int row = 0; row < SmelteryMenu.MELT_VISIBLE_ROWS; row++) {
+        for (int row = 0; row < SmelteryMenu.MELT_MAX_ROWS; row++) {
             for (int col = 0; col < SmelteryMenu.MELT_COLUMNS; col++) {
                 int x = col * SmelteryMenu.CELL_WIDTH + 1;
                 int y = row * SmelteryMenu.SLOT_SIZE + 1;
-                assertEquals(row * SmelteryMenu.MELT_COLUMNS + col, SmelteryScreen.heatBarAt(0, x, y),
+                assertEquals(row * SmelteryMenu.MELT_COLUMNS + col, SmelteryScreen.heatBarAt(0, SmelteryMenu.MELT_MAX_ROWS, x, y),
                         "bar at row " + row + ", column " + col);
             }
         }
-        assertEquals(-1, SmelteryScreen.heatBarAt(0, SmelteryMenu.MELT_COLUMNS * SmelteryMenu.CELL_WIDTH + 1, 1),
+        assertEquals(-1, SmelteryScreen.heatBarAt(0, SmelteryMenu.MELT_MAX_ROWS, SmelteryMenu.MELT_COLUMNS * SmelteryMenu.CELL_WIDTH + 1, 1),
                 "a fourth column is off the grid");
-        assertEquals(-1, SmelteryScreen.heatBarAt(0, 1, SmelteryMenu.MELT_VISIBLE_ROWS * SmelteryMenu.SLOT_SIZE + 1),
+        assertEquals(-1, SmelteryScreen.heatBarAt(0, SmelteryMenu.MELT_MAX_ROWS, 1, SmelteryMenu.MELT_MAX_ROWS * SmelteryMenu.SLOT_SIZE + 1),
                 "a fourth row is off the grid");
     }
 
@@ -344,8 +344,9 @@ class SmelteryTooltipTest {
     void scrollingShiftsWhichSlotABarBelongsTo() {
         // The window shows rows scrollRow..scrollRow+2, so the top-left bar is the first slot of
         // whichever row is scrolled to -- the same offset renderHeatBars indexes with.
-        assertEquals(SmelteryMenu.MELT_COLUMNS, SmelteryScreen.heatBarAt(1, 1, 1));
+        assertEquals(SmelteryMenu.MELT_COLUMNS, SmelteryScreen.heatBarAt(1, SmelteryMenu.MELT_MAX_ROWS, 1, 1));
         assertEquals(4 * SmelteryMenu.MELT_COLUMNS + 2,
-                SmelteryScreen.heatBarAt(2, 2 * SmelteryMenu.CELL_WIDTH + 1, 2 * SmelteryMenu.SLOT_SIZE + 1));
+                SmelteryScreen.heatBarAt(2, SmelteryMenu.MELT_MAX_ROWS, 2 * SmelteryMenu.CELL_WIDTH + 1,
+                        2 * SmelteryMenu.SLOT_SIZE + 1));
     }
 }

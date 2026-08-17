@@ -40,6 +40,15 @@ public final class SideInventorySlots {
     public static final int PANEL_WIDTH = COLUMNS * SLOT_SIZE + BORDER * 2;
 
     /**
+     * Upstream {@code GuiGeneric}'s slider track ({@code sliderTop}/{@code sliderBackground}, 12px
+     * wide), which a side panel grows by when its rows overflow ({@code GuiSideInventory#
+     * updatePosition}: {@code xSize = columns * slot.w + slider.width + 2 * border.w}). Here rather
+     * than in {@code client.SideInventoryPanel} because {@code SmelteryMenu} sizes its own melt grid
+     * from it and menus are common code.
+     */
+    public static final int SLIDER_WIDTH = 12;
+
+    /**
      * Where the first slot sits relative to the panel's top-left corner. Upstream {@code
      * GuiSideInventory#updateSlots} is {@code slot.xPos = border.w + x + 1}: the extra pixel is
      * there because {@code generic.png}'s 18x18 slot tile is a 1px bevel drawn <em>around</em> a

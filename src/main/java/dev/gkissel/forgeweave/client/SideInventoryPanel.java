@@ -49,13 +49,28 @@ final class SideInventoryPanel {
     private static final int SLOT_V = 7;
     private static final int SLOT_EMPTY_U = 7 + 18;
 
+    /**
+     * Upstream {@code GuiGeneric}'s overlap pieces, used on the edge a {@code connected} module
+     * shares with its parent: {@code overlap} (21, 45, 7, 14), {@code overlapBottomRight}
+     * (14, 47, 7, 7) and -- for a module at {@code yOffset == 0} -- {@code overlapTop}, which is
+     * {@code borderTop}'s first 7px (7, 0, 7, 7). See {@link #renderBorder(GuiGraphics, int, int,
+     * int, int, boolean)}.
+     */
+    private static final int OVERLAP_U = 21;
+    private static final int OVERLAP_V = 45;
+    private static final int OVERLAP_H = 14;
+    private static final int OVERLAP_TOP_U = 7;
+    private static final int OVERLAP_TOP_V = 0;
+    private static final int OVERLAP_BOTTOM_RIGHT_U = 14;
+    private static final int OVERLAP_BOTTOM_RIGHT_V = 47;
+
     /** Upstream {@code GuiSideInventory}: at most ten rows, and at most the parent's height less 10px. */
     private static final int MAX_ROWS = 10;
     private static final int PARENT_MARGIN = 10;
 
     // Upstream GuiGeneric's slider (issue #376): a 12px track -- 1px caps at (43, 7) and (43, 38)
     // around a 30px bar at (43, 8) -- with a 10x15 knob at (7, 25), centred in the track.
-    static final int SLIDER_WIDTH = 12;
+    static final int SLIDER_WIDTH = SideInventorySlots.SLIDER_WIDTH;
     private static final int SLIDER_TRACK_U = 43;
     private static final int SLIDER_TOP_V = 7;
     private static final int SLIDER_BAR_V = 8;
@@ -147,8 +162,17 @@ final class SideInventoryPanel {
         SideInventorySlots.layout(menu, slots, firstSlot, lastSlot, laidOutSlotX, slotY);
     }
 
-    /** Upstream's slider: {@code generic.png}'s two 1px caps around its tiled bar, knob centred on top. */
     private void renderSlider(GuiGraphics graphics) {
+        renderSlider(graphics, sliderTrack, scrollRow, maxScrollRow);
+    }
+
+    /**
+     * Upstream's slider: {@code generic.png}'s two 1px caps around its tiled bar, knob centred on
+     * top. Static because {@link SmelteryScreen}'s melt grid is the same upstream widget over a grid
+     * this class's own slot layout cannot describe (three 22px cells, not six 18px ones), so it
+     * borrows the drawing and keeps its scroll state on its menu.
+     */
+    static void renderSlider(GuiGraphics graphics, Rect2i sliderTrack, int scrollRow, int maxScrollRow) {
         int x = sliderTrack.getX();
         int y = sliderTrack.getY();
         int trackH = sliderTrack.getHeight();
@@ -267,6 +291,20 @@ final class SideInventoryPanel {
      * ({@code GuiWidgetBorder}) around a different grid.
      */
     static void renderBorder(GuiGraphics graphics, int x, int y, int width, int height) {
+        renderBorder(graphics, x, y, width, height, false);
+    }
+
+    /**
+     * @param connected upstream {@code GuiSideInventory}'s {@code connected} flag: the edge facing
+     *     the parent GUI is drawn with {@code GuiGeneric}'s overlap pieces instead of an ordinary
+     *     border, so the module's frame and the station's own panel read as one window rather than
+     *     as two frames butted together. Only the left-hung, connected melt grid (issue #408,
+     *     upstream {@code GuiSmelterySideInventory}) uses it -- the station side inventories are all
+     *     built {@code connected = false}. Upstream swaps the <em>right</em> pieces for a left-hung
+     *     module, and, because the smeltery's {@code yOffset} is 0, its top-right corner is the plain
+     *     7px-wide {@code borderTop} ({@code overlapTop}) rather than {@code overlapTopRight}.
+     */
+    static void renderBorder(GuiGraphics graphics, int x, int y, int width, int height, boolean connected) {
         int innerW = width - BORDER * 2;
         int innerH = height - BORDER * 2;
         int right = x + width - BORDER;
@@ -276,14 +314,17 @@ final class SideInventoryPanel {
 
         blit(graphics, x, y, BORDER, BORDER, 0, 0, BORDER, BORDER);
         blit(graphics, x + BORDER, y, innerW, BORDER, BORDER, 0, edgeW, BORDER);
-        blit(graphics, right, y, BORDER, BORDER, sheetRight, 0, BORDER, BORDER);
+        blit(graphics, right, y, BORDER, BORDER, connected ? OVERLAP_TOP_U : sheetRight,
+                connected ? OVERLAP_TOP_V : 0, BORDER, BORDER);
 
         blit(graphics, x, y + BORDER, BORDER, innerH, 0, BORDER, BORDER, edgeW);
-        blit(graphics, right, y + BORDER, BORDER, innerH, sheetRight, BORDER, BORDER, edgeW);
+        blit(graphics, right, y + BORDER, BORDER, innerH, connected ? OVERLAP_U : sheetRight,
+                connected ? OVERLAP_V : BORDER, BORDER, connected ? OVERLAP_H : edgeW);
 
         blit(graphics, x, bottom, BORDER, BORDER, 0, sheetRight, BORDER, BORDER);
         blit(graphics, x + BORDER, bottom, innerW, BORDER, BORDER, sheetRight, edgeW, BORDER);
-        blit(graphics, right, bottom, BORDER, BORDER, sheetRight, sheetRight, BORDER, BORDER);
+        blit(graphics, right, bottom, BORDER, BORDER, connected ? OVERLAP_BOTTOM_RIGHT_U : sheetRight,
+                connected ? OVERLAP_BOTTOM_RIGHT_V : sheetRight, BORDER, BORDER);
     }
 
     /**
