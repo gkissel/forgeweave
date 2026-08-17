@@ -20,6 +20,7 @@ import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.item.enchantment.ItemEnchantments;
 
 import dev.gkissel.forgeweave.config.ForgeweaveConfig;
+import dev.gkissel.forgeweave.item.BowItem;
 import dev.gkissel.forgeweave.item.ForgeweaveDataComponents;
 import dev.gkissel.forgeweave.item.ToolItem;
 import dev.gkissel.forgeweave.tool.ToolStats;
@@ -195,6 +196,13 @@ public final class ModifierApplication {
         Modifier modifier = ForgeweaveModifiers.get(recipe.modifier());
         if (modifier == null) {
             return Optional.empty();
+        }
+        // M3.5 #396: upstream's category aspects (ModLuck's CategoryAnyAspect(HARVEST, WEAPON,
+        // PROJECTILE) -- a bow is TOOL + LAUNCHER only). Upstream's aspect returns false and
+        // ToolBuilder#tryModifyTool silently yields EMPTY; this class's standing deviation is to say
+        // why, with the same message the wind burst restriction below uses.
+        if (tool.getItem() instanceof BowItem && !modifier.appliesToLaunchers()) {
+            return Optional.of(Component.translatable("gui.forgeweave.modifier.unsupported_tool", name(recipe.modifier())));
         }
         // The level passed here only decides whether a grant exists at all (every shipped grant is
         // present from level 1 on), not what level it would be -- that's resolved again, for real,

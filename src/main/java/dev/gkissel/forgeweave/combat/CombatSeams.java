@@ -185,7 +185,13 @@ public final class CombatSeams {
         }
         Entity causing = source.getEntity();
         LivingEntity attacker = causing instanceof LivingEntity living ? living : null;
-        return new CombatHit(level, weapon, attacker, target, source, attackStrengthScale(attacker));
+        // M3.5 #396: an arrow's damage source hands back the bow that fired it (1.21's
+        // AbstractArrow#firedFromWeapon), so a launcher's hit-effect modifiers and traits ride the
+        // arrow through this same gate. A projectile hit is not a swing, so it never inherits the
+        // shooter's last melee charge -- upstream ToolHelper#attackEntity runs projectile hits with
+        // applyCooldown = false, i.e. at full strength.
+        boolean projectile = source.getDirectEntity() != null && source.getDirectEntity() != causing;
+        return new CombatHit(level, weapon, attacker, target, source, projectile ? 1.0F : attackStrengthScale(attacker));
     }
 
     /**

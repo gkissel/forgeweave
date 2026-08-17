@@ -23,8 +23,10 @@ import net.minecraft.world.level.Level;
 
 import net.neoforged.neoforge.event.EventHooks;
 
+import dev.gkissel.forgeweave.modifier.ForgeweaveModifiers;
 import dev.gkissel.forgeweave.tool.LauncherStats;
 import dev.gkissel.forgeweave.tool.ToolConstants;
+import dev.gkissel.forgeweave.trait.ForgeweaveTraits;
 
 /**
  * A bow (M3.5 issue #394): upstream 1.12's {@code library/tools/ranged/BowCore.java} draw/release
@@ -42,8 +44,8 @@ import dev.gkissel.forgeweave.tool.ToolConstants;
  * Draw progress is {@link #drawbackProgress}: {@code drawSpeed * ticks / drawTime}, capped at 1
  * ({@code BowCore.java:112-114}) -- {@code drawSpeed} is the assembled {@link LauncherStats} and
  * {@code drawTime} the per-bow constant ({@code ShortBow#getDrawTime() = 12}, not {@code BowCore}'s
- * 20 default). {@link #drawSpeed} is the one seam a draw-speed modifier (haste on launchers,
- * M3.5-5) multiplies.
+ * 20 default). {@link #drawSpeed} is the one seam a draw-speed modifier or trait multiplies (haste
+ * and lightweight on launchers, M3.5 issue #396).
  *
  * <h2>Release</h2>
  *
@@ -72,8 +74,20 @@ import dev.gkissel.forgeweave.tool.ToolConstants;
  *
  * <p>Not ported (deliberately, see the PR): per-stage draw art and the crosshair (M3.5-6),
  * {@code preventSlowDown} (a client movement-input hack), and the multi-projectile
- * {@code TinkerToolEvent.OnBowShoot} hook -- {@link #shoot} fires exactly one arrow; M3.5-5 adds
- * the count there.
+ * {@code TinkerToolEvent.OnBowShoot} hook -- {@link #shoot} fires exactly one arrow. M3.5-5 (issue
+ * #396) confirmed against the clone that nothing on a <em>launcher</em> ever raises that count: its
+ * only listeners ({@code TraitSplitting}, {@code TraitEndspeed}) key on the <em>ammo's</em> traits,
+ * which are Forgeweave's deferred material arrows.
+ *
+ * <h2>What rides the arrow</h2>
+ *
+ * <p>1.21's {@code AbstractArrow} remembers the stack that fired it ({@code firedFromWeapon}, set by
+ * {@code ArrowItem#createArrow(level, ammo, shooter, weapon)} in {@link #createArrow}) and hands it
+ * back through {@code DamageSource#getWeaponItem}, so {@code CombatSeams}' per-hit pipeline sees the
+ * bow's hit-effect modifiers and traits (fiery, smite, necrotic, knockback, beheading, holy, ...) on
+ * the arrow's impact exactly as it sees them on a melee blow. That is beyond 1.12, where a launcher's
+ * own modifiers reach only its melee swings (M3.5-5's PR body records the maintainer's decision); the
+ * one exemption is squeaky's zero-attack, a melee-stat rule ({@code ForgeweaveTraits#COMBAT_SEAM}).
  */
 public class BowItem extends ToolItem {
 
@@ -117,13 +131,19 @@ public class BowItem extends ToolItem {
     }
 
     /**
-     * How fast this stack draws: {@link LauncherStats#drawSpeed()}, {@code 1} for an unassembled
-     * stack. The seam a draw-speed modifier multiplies (M3.5-5, upstream {@code ModHaste}'s
-     * launcher branch); nothing else reads the raw stat.
+     * How fast this stack draws: {@link LauncherStats#drawSpeed()} ({@code 1} for an unassembled
+     * stack) times what its modifiers and traits do to it (M3.5 issue #396) -- upstream
+     * {@code ModHaste#applyEffect}'s and {@code TraitLightweight#applyEffect}'s
+     * {@code Category.LAUNCHER} branches, the only two in the 1.12 clone that touch
+     * {@code ProjectileLauncherNBT#drawSpeed}. Upstream scales the stored tag at apply time; here the
+     * stored stat stays the materials' own and the scaling is computed on read, as every other
+     * Forgeweave modifier is (a pure function of the tool's components, ADR-0004). Nothing else reads
+     * the raw stat.
      */
     public float drawSpeed(ItemStack stack) {
         LauncherStats stats = launcherStats(stack);
-        return stats == null ? 1.0F : stats.drawSpeed();
+        float base = stats == null ? 1.0F : stats.drawSpeed();
+        return base * ForgeweaveModifiers.drawSpeedMultiplier(stack) * (1.0F + ForgeweaveTraits.drawSpeedBonus(stack));
     }
 
     /**
