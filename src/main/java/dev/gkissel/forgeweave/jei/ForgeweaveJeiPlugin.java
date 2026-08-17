@@ -37,7 +37,9 @@ import dev.gkissel.forgeweave.client.StencilTableScreen;
 import dev.gkissel.forgeweave.client.ToolStationScreen;
 import dev.gkissel.forgeweave.item.ForgeweaveItems;
 import dev.gkissel.forgeweave.item.PartItem;
+import dev.gkissel.forgeweave.config.ForgeweaveConfig;
 import dev.gkissel.forgeweave.material.Material;
+import dev.gkissel.forgeweave.menu.ContentFamilies;
 import dev.gkissel.forgeweave.menu.ForgeweaveMenus;
 import dev.gkissel.forgeweave.menu.PartBuilderMenu;
 import dev.gkissel.forgeweave.menu.ToolAssemblyRecipes;
@@ -147,14 +149,43 @@ public final class ForgeweaveJeiPlugin implements IModPlugin {
                 new EmbossingCategory(helper));
     }
 
+    /**
+     * <b>Content-family toggles ticket.</b> Every list below is filtered against the {@code content}
+     * config section before it is handed to JEI, so a family the server has switched off has no
+     * entries to find. Two things about that are worth stating plainly:
+     *
+     * <ul>
+     *   <li>The values read here are the <em>server's</em>. {@link ForgeweaveConfig} is a
+     *       {@code SERVER}-type spec, which NeoForge syncs during login, and this method runs once
+     *       the session is up (see the class javadoc) -- so the filter agrees with what the station
+     *       will actually do, including on a dedicated server whose values differ from the local
+     *       file's.
+     *   <li><b>Known limit:</b> the toggles are hot-reloadable everywhere else, but JEI builds its
+     *       recipe lists once per session. Flipping a family <em>while</em> a world is open leaves
+     *       JEI showing the previous roster until the next join. Nothing is wrong when that happens
+     *       -- the station, part builder, casting and smeltery all follow the new value immediately,
+     *       so a stale JEI entry simply refuses when clicked through. The pinned JEI
+     *       ({@code jei_version} in gradle.properties) exposes no supported mid-session
+     *       re-registration hook, and standing up a config listener that rebuilt the runtime would
+     *       be a lot of machinery for a case only a pack author editing live ever hits.
+     * </ul>
+     *
+     * <p>Repair and embossing are deliberately <em>not</em> filtered: both act on a tool that
+     * already exists, which the ticket's "items already in the world keep working" rule keeps
+     * available whatever a family toggle says.
+     */
     @Override
     public void registerRecipes(IRecipeRegistration registration) {
         Map<ResourceLocation, Material> materials = currentMaterials();
-        registration.addRecipes(PartCraftingCategory.TYPE, PartCraftingRecipes.build(materials));
+        registration.addRecipes(PartCraftingCategory.TYPE, PartCraftingRecipes.build(materials).stream()
+                .filter(recipe -> ContentFamilies.itemEnabled(recipe.result()))
+                .toList());
 
         // Split by AssemblyRecipes#isLarge (issue #165) so each half lands in the category whose
         // catalyst list matches where it can actually be built -- see AssemblyCategory's class javadoc.
-        List<AssemblyRecipe> assembly = AssemblyRecipes.build(materials);
+        List<AssemblyRecipe> assembly = AssemblyRecipes.build(materials).stream()
+                .filter(recipe -> ContentFamilies.itemEnabled(recipe.tool()))
+                .toList();
         registration.addRecipes(AssemblyCategory.TYPE,
                 assembly.stream().filter(recipe -> !AssemblyRecipes.isLarge(recipe)).toList());
         registration.addRecipes(AssemblyCategory.LARGE_TYPE,
@@ -168,14 +199,33 @@ public final class ForgeweaveJeiPlugin implements IModPlugin {
         // (Forgeweave#registerDataPackRegistries), so the client's synced copy is exactly what a
         // joined session actually has -- including whatever #104's nether-ore melting recipes land
         // mid-milestone, with no special-casing needed here.
-        Map<ResourceLocation, CastingRecipe> castingRecipes = currentCastingRecipes();
-        registration.addRecipes(MeltingCategory.TYPE, MeltingRecipes.build(currentMeltingRecipes()));
-        registration.addRecipes(AlloyingCategory.TYPE, AlloyingRecipes.build(currentAlloyRecipes()));
-        registration.addRecipes(CastingTableCategory.TYPE, CastingRecipes.table(castingRecipes));
-        registration.addRecipes(CastingBasinCategory.TYPE, CastingRecipes.basin(castingRecipes));
-        registration.addRecipes(ModifierApplicationCategory.TYPE, ModifierApplicationRecipes.build(currentModifierRecipes()));
+        //
+        // The smeltery family gates all four of the smeltery categories at once (melting, alloying
+        // and both casting stations), and the modifier family gates modifier application; the
+        // casting lists are additionally filtered per recipe, since a pour that shapes a part only
+        // an off tool family takes goes with that family rather than with the smeltery.
+        boolean smeltery = ForgeweaveConfig.enabled(ForgeweaveConfig.SMELTERY);
+        Map<ResourceLocation, CastingRecipe> castingRecipes = smeltery ? currentCastingRecipes() : Map.of();
+        registration.addRecipes(MeltingCategory.TYPE,
+                smeltery ? MeltingRecipes.build(currentMeltingRecipes()) : List.of());
+        registration.addRecipes(AlloyingCategory.TYPE,
+                smeltery ? AlloyingRecipes.build(currentAlloyRecipes()) : List.of());
+        registration.addRecipes(CastingTableCategory.TYPE, castingEnabled(CastingRecipes.table(castingRecipes)));
+        registration.addRecipes(CastingBasinCategory.TYPE, castingEnabled(CastingRecipes.basin(castingRecipes)));
+        registration.addRecipes(ModifierApplicationCategory.TYPE, ForgeweaveConfig.enabled(ForgeweaveConfig.MODIFIERS)
+                ? ModifierApplicationRecipes.build(currentModifierRecipes())
+                : List.of());
         // #165: embossing's own datapack registry, same read shape as the other four above.
         registration.addRecipes(EmbossingCategory.TYPE, EmbossingRecipes.build(currentEmbossingRecipes(), materials));
+    }
+
+    /** The casting recipes whose cast and result both belong to families that are currently on. */
+    private static List<CastingRecipe> castingEnabled(List<CastingRecipe> recipes) {
+        return recipes.stream()
+                .filter(recipe -> ContentFamilies.itemEnabled(recipe.result())
+                        && recipe.cast().map(cast -> java.util.Arrays.stream(cast.getItems())
+                                .anyMatch(ContentFamilies::itemEnabled)).orElse(true))
+                .toList();
     }
 
     @Override

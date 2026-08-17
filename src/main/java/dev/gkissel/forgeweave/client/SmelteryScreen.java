@@ -270,9 +270,22 @@ public class SmelteryScreen extends StationScreen<SmelteryMenu> {
     /**
      * Upstream's {@code GuiMultiModule} draws no title or inventory label, and the L-shaped panel has
      * no room for either -- the "Inventory" label's usual spot is transparent background here.
+     *
+     * <p>The one thing that does get drawn is the content-family toggles ticket's "smeltery
+     * disabled" line, over the melt grid where the slots a disabled smeltery will never process
+     * are: nothing melts, nothing alloys and nothing casts while it is up, and a player staring at
+     * a fully built, fully fuelled structure otherwise has no way to find that out.
      */
     @Override
-    protected void renderLabels(GuiGraphics graphics, int mouseX, int mouseY) {}
+    protected void renderLabels(GuiGraphics graphics, int mouseX, int mouseY) {
+        Component notice = menu.disabledNotice();
+        if (notice == null) {
+            return;
+        }
+        int x = SmelteryMenu.GRID_X + SmelteryMenu.GRID_BORDER;
+        graphics.drawWordWrap(font, notice, x, SmelteryMenu.GRID_Y + SmelteryMenu.GRID_BORDER,
+                gridWidth() - SmelteryMenu.GRID_BORDER * 2, 0xFFFF5555);
+    }
 
     /* Tank */
 

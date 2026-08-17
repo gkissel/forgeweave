@@ -6,6 +6,7 @@ import java.util.Optional;
 import javax.annotation.Nullable;
 
 import net.minecraft.core.BlockPos;
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.Container;
 import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.entity.player.Inventory;
@@ -19,6 +20,7 @@ import net.neoforged.neoforge.fluids.FluidStack;
 
 import dev.gkissel.forgeweave.block.SearedTankBlockEntity;
 import dev.gkissel.forgeweave.block.SmelteryControllerBlockEntity;
+import dev.gkissel.forgeweave.config.ForgeweaveConfig;
 import dev.gkissel.forgeweave.recipe.SmelteryFuel;
 
 /**
@@ -103,6 +105,21 @@ public class SmelteryMenu extends StationMenu {
         this.firstMeltSlot = 0;
         layoutMeltSlots();
         layoutPlayerInventorySlots(playerInventory);
+    }
+
+    /**
+     * The line the screen draws over the melt grid while the smeltery family is switched off (the
+     * content-family toggles ticket), or {@code null} while it is on.
+     *
+     * <p>On the menu rather than in the screen because the answer is the server's: {@code SERVER}
+     * configs are synced to the client on login, so both sides read the same value, and asking it
+     * here is what lets a GameTest assert on it without a client.
+     */
+    @Nullable
+    public Component disabledNotice() {
+        return ForgeweaveConfig.enabled(ForgeweaveConfig.SMELTERY)
+                ? null
+                : Component.translatable("gui.forgeweave.smeltery.disabled");
     }
 
     /**

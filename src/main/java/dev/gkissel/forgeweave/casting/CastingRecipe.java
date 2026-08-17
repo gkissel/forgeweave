@@ -18,6 +18,7 @@ import net.minecraft.world.level.material.Fluid;
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.config.ForgeweaveConfig;
 import dev.gkissel.forgeweave.item.ClayCastItem;
+import dev.gkissel.forgeweave.menu.ContentFamilies;
 
 /**
  * One casting recipe: what a Casting Table or Casting Basin turns a held item plus a poured fluid
@@ -102,7 +103,18 @@ public record CastingRecipe(Station station, Optional<Ingredient> cast, Fluid fl
         if (!cast.map(ingredient -> ingredient.test(held)).orElseGet(held::isEmpty)) {
             return false;
         }
-        return !usesClayCast(held) || ForgeweaveConfig.ENABLE_CLAY_CASTS.get();
+        if (usesClayCast(held) && !ForgeweaveConfig.ENABLE_CLAY_CASTS.get()) {
+            return false;
+        }
+        if (!ForgeweaveConfig.enabled(ForgeweaveConfig.SMELTERY)) {
+            // Content-family toggles ticket: casting is part of the smeltery family, and with it off
+            // no pour resolves anywhere -- same lookup-time filter as the clay-cast option above.
+            return false;
+        }
+        // ...and the family gate on what is being poured: a cast or a part that serves only tool
+        // families the server switched off cannot be moulded or cast through. Asked of both sides
+        // because a table pour either shapes a cast around a part or a part inside a cast.
+        return ContentFamilies.itemEnabled(held) && ContentFamilies.itemEnabled(result);
     }
 
     /**

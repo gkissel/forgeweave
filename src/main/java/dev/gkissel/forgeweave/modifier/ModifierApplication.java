@@ -19,6 +19,7 @@ import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.item.enchantment.ItemEnchantments;
 
+import dev.gkissel.forgeweave.config.ForgeweaveConfig;
 import dev.gkissel.forgeweave.item.ForgeweaveDataComponents;
 import dev.gkissel.forgeweave.item.ToolItem;
 import dev.gkissel.forgeweave.tool.ToolStats;
@@ -97,6 +98,14 @@ public final class ModifierApplication {
         Optional<ModifierRecipe> secondFound = recipeFor(registries, second);
         if (firstFound.isEmpty() && secondFound.isEmpty()) {
             return Optional.empty();
+        }
+        if (!ForgeweaveConfig.enabled(ForgeweaveConfig.MODIFIERS)) {
+            // Content-family toggles ticket: applying a modifier is off. Refused only once the slots
+            // actually hold a reagent, so a station loaded with something else stays silent -- and
+            // only the *application* is refused: every modifier already on a tool keeps working,
+            // since nothing here touches an assembled stack.
+            return Optional.of(Outcome.rejected(
+                    Component.translatable("gui.forgeweave.modifier.modifiers_disabled")));
         }
         if ((!first.isEmpty() && firstFound.isEmpty()) || (!second.isEmpty() && secondFound.isEmpty())) {
             // One slot holds a reagent and the other something no modifier recipe accepts at all --

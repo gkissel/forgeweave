@@ -17,6 +17,7 @@ import dev.gkissel.forgeweave.block.ForgeweaveBlocks;
 import dev.gkissel.forgeweave.config.ForgeweaveClientConfig; // #276
 import dev.gkissel.forgeweave.fluid.ForgeweaveFluids;
 import dev.gkissel.forgeweave.material.Material;
+import dev.gkissel.forgeweave.menu.ContentFamilies;
 
 /**
  * The single Forgeweave creative tab. Materials are a datapack registry (ADR-0002), so the part
@@ -79,8 +80,19 @@ public final class ForgeweaveCreativeTab {
      * the same split {@code ToolTooltip#append} already uses for its Shift flag. Only the
      * part-material expansion at the bottom reads it; every plain item here is listed regardless.
      */
-    static void addDisplayItems(CreativeModeTab.ItemDisplayParameters parameters, CreativeModeTab.Output output,
+    static void addDisplayItems(CreativeModeTab.ItemDisplayParameters parameters, CreativeModeTab.Output rawOutput,
             boolean listAllPartMaterials) {
+        // Content-family toggles ticket: one filter in front of the whole listing rather than a
+        // condition on each of the two hundred accepts below, so a family toggle can never be
+        // remembered for the tools and forgotten for their parts, patterns or casts.
+        // ContentFamilies answers "on" whenever the SERVER spec is not loaded, which is exactly the
+        // main-menu creative search this runs in before any world exists.
+        CreativeModeTab.Output output = (stack, visibility) -> {
+            if (ContentFamilies.itemEnabled(stack)) {
+                rawOutput.accept(stack, visibility);
+            }
+        };
+
         output.accept(ForgeweaveItems.GUIDE_BOOK.get()); // the guide book leads the tab (issue #273)
         output.accept(ForgeweaveItems.PART_BUILDER.get());
         output.accept(ForgeweaveItems.TOOL_STATION.get());

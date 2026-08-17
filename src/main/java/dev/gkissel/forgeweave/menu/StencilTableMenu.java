@@ -200,6 +200,12 @@ public class StencilTableMenu extends StationMenu {
         ItemStack result = input.isEmpty() || index < 0 || index >= PATTERNS.size()
                 ? ItemStack.EMPTY
                 : new ItemStack(PATTERNS.get(index).get());
+        if (!ContentFamilies.itemEnabled(result)) {
+            // Content-family toggles ticket: the pattern is for a part only off families take, so
+            // it cannot be cut here. The button stays in the grid (its index is what travels as the
+            // selection) and simply produces nothing, the same way an empty input slot does.
+            result = ItemStack.EMPTY;
+        }
         slots.get(OUTPUT_SLOT).set(result);
     }
 
