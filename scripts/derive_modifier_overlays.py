@@ -8,6 +8,14 @@ This script copies every such overlay for every Forgeweave tool x every Forgewea
 an upstream counterpart into `textures/derived/tools/mods/<tool>_<modifier>.png` -- straight
 `shutil.copyfile`, no pixel is touched.
 
+M3.5 issue #400 added the drawn-stage variants: a bow's `<bow>.tcon.json` pull overrides each carry a
+`modifier_suffix` of `1`/`2`/`3`, which `ToolModelLoader` turns into a lookup of the `<tool><N>`
+texture key in every `models/item/modifiers/*.json` -- the base map is filled in first and the
+staged keys overwrite it, so a modifier with no art for a stage keeps its undrawn overlay there.
+Only the three bow folders ship any (`items/<bow>/mod_<x>_<N>.png`); every staged file that exists is
+copied to `<tool>_<modifier>_draw<N>.png`, and `ModifierArt#STAGED_OVERLAYS` is the Java-side mirror
+that `ModifierArtTest` pins to the files on disk in both directions.
+
 Two mapping tables below carry the naming differences:
 
 - `TOOL_SOURCES`: Forgeweave tool id -> upstream tool folder. Same-name for the sixteen tools that
@@ -122,6 +130,19 @@ def main() -> None:
                 f"| `src/main/resources/assets/forgeweave/textures/derived/tools/mods/{tool}_{modifier}.png`{note} "
                 f"| `resources/assets/tconstruct/textures/items/{upstream_tool}/{stem}.png` "
                 f"| `{UPSTREAM_COMMIT}` | MIT |")
+            # M3.5 #400: the drawn-stage variants of this overlay, where upstream ships them.
+            for stage in (1, 2, 3):
+                staged = UPSTREAM_1_12 / upstream_tool / f"{stem}_{stage}.png"
+                if not staged.is_file():
+                    continue
+                shutil.copyfile(staged, OUT / f"{tool}_{modifier}_draw{stage}.png")
+                rows.append(
+                    f"| `src/main/resources/assets/forgeweave/textures/derived/tools/mods/"
+                    f"{tool}_{modifier}_draw{stage}.png` (issue #400; the `{upstream_tool}{stage}` "
+                    f"texture key of this modifier's `models/item/modifiers/*.json`, selected by the "
+                    f"`modifier_suffix` on `{upstream_tool}.tcon.json`'s pull stage {stage}) "
+                    f"| `resources/assets/tconstruct/textures/items/{upstream_tool}/{stem}_{stage}.png` "
+                    f"| `{UPSTREAM_COMMIT}` | MIT |")
     NOTICE_ROWS.write_text("\n".join(rows) + "\n")
     print(f"copied {len(rows)} overlays to {OUT}")
     print(f"NOTICE rows written to {NOTICE_ROWS}")

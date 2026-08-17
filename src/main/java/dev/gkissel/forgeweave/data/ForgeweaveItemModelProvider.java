@@ -324,10 +324,67 @@ public class ForgeweaveItemModelProvider extends ItemModelProvider {
     private void toolModel(Supplier<? extends Item> item, String tool, List<String> layers) {
         ItemModelBuilder builder = toolLayerModel(
                 BuiltInRegistries.ITEM.getKey(item.get()).toString(), tool, layers, null);
+        drawStageOverrides(builder, tool, layers);
         String broken = ToolArt.brokenLayer(tool);
         if (broken != null) {
+            // Last, so it wins: vanilla resolves overrides by "the last entry whose every predicate
+            // still matches", and a Broken bow must render broken whatever else is true of it.
             builder.override().predicate(BROKEN_PREDICATE, 1)
                     .model(toolLayerModel(tool + "_broken", tool, layers, broken)).end();
+        }
+    }
+
+    /**
+     * A bow's draw states (M3.5 issue #400), upstream's {@code <bow>.tcon.json} {@code overrides}
+     * block in vanilla's own format: three {@code {"pulling": 1, "pull": <threshold>}} entries in
+     * ascending order, each pointing at a {@code <bow>_pulling_<stage>} model that is the bow's own
+     * layer stack with the bent-limb and stretched-string art swapped in
+     * ({@link ToolArt#drawLayer}), plus the crossbow's fourth {@code {"loaded": 1}} entry.
+     *
+     * <p>Upstream expresses the same thing as texture <em>patches</em> inside one model, which
+     * vanilla's format cannot do; whole sibling models are the same translation issue #284's Broken
+     * swap already made, and they keep the layer count and order identical so
+     * {@code ForgeweaveItemColors}' tintIndex-to-part mapping survives every swap.
+     *
+     * <p>A no-op for every tool that is not a bow -- {@link ToolArt#drawThresholds} returns null.
+     */
+    private void drawStageOverrides(ItemModelBuilder builder, String tool, List<String> layers) {
+        float[] thresholds = ToolArt.drawThresholds(tool);
+        if (thresholds == null) {
+            return;
+        }
+        for (int stage = 1; stage <= ToolArt.DRAW_STAGES; stage++) {
+            builder.override()
+                    .predicate(PULLING_PREDICATE, 1)
+                    .predicate(PULL_PREDICATE, thresholds[stage - 1])
+                    .model(drawStageModel(tool + "_pulling_" + stage, tool, layers, stage,
+                            DRAWING_DISPLAY_OVERRIDES.get(tool)))
+                    .end();
+        }
+        if (ToolArt.hasLoadedState(tool)) {
+            builder.override().predicate(LOADED_PREDICATE, 1)
+                    .model(drawStageModel(tool + "_loaded", tool, layers, ToolArt.LOADED_STAGE,
+                            LOADED_DISPLAY_OVERRIDES.get(tool)))
+                    .end();
+        }
+    }
+
+    /** One draw state's model: {@link #toolLayerModel}'s layer stack at {@code stage}'s art. */
+    private ItemModelBuilder drawStageModel(String name, String tool, List<String> layers, int stage,
+            Consumer<ItemModelBuilder> extraDisplay) {
+        ItemModelBuilder builder =
+                getBuilder(name).parent(new ModelFile.UncheckedModelFile(TOOL_MODEL_PARENT));
+        for (int layer = 0; layer < layers.size(); layer++) {
+            builder.texture("layer" + layer, modLoc(ToolArt.drawLayer(tool, layers.get(layer), stage)));
+        }
+        applyDisplayOverrides(builder, TOOL_DISPLAY_OVERRIDES.get(tool));
+        applyDisplayOverrides(builder, extraDisplay);
+        return builder;
+    }
+
+    private static void applyDisplayOverrides(ItemModelBuilder builder, Consumer<ItemModelBuilder> override) {
+        if (override != null) {
+            override.accept(builder);
         }
     }
 
@@ -347,10 +404,7 @@ public class ForgeweaveItemModelProvider extends ItemModelProvider {
                     ? modLoc(ToolArt.brokenLayerTexture(tool, art))
                     : toolLayer(tool, art));
         }
-        Consumer<ItemModelBuilder> override = TOOL_DISPLAY_OVERRIDES.get(tool);
-        if (override != null) {
-            override.accept(builder);
-        }
+        applyDisplayOverrides(builder, TOOL_DISPLAY_OVERRIDES.get(tool));
         return builder;
     }
 
@@ -365,6 +419,17 @@ public class ForgeweaveItemModelProvider extends ItemModelProvider {
      */
     private static final ResourceLocation BROKEN_PREDICATE =
             ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "broken");
+
+    /**
+     * The three draw-state predicates (M3.5 issue #400), the other half of the properties
+     * {@code ForgeweaveItemProperties} registers -- and, like them, {@code pulling}/{@code pull} in
+     * vanilla's namespace (they are vanilla's own names for a drawn bow, and upstream 1.12's) while
+     * {@code loaded} is Forgeweave's own.
+     */
+    private static final ResourceLocation PULLING_PREDICATE = ResourceLocation.withDefaultNamespace("pulling");
+    private static final ResourceLocation PULL_PREDICATE = ResourceLocation.withDefaultNamespace("pull");
+    private static final ResourceLocation LOADED_PREDICATE =
+            ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "loaded");
 
     /**
      * The held-render transform set every tool inherits (issue #217). Vanilla's {@code item/handheld}
@@ -385,10 +450,17 @@ public class ForgeweaveItemModelProvider extends ItemModelProvider {
     private static final String TOOL_MODEL_PARENT = "item/handheld";
 
     /**
-     * The three tools upstream 1.12 gives a {@code display} block of their own, mirrored entry for
-     * entry (the only {@code .tcon.json} tool models with one -- the rest, including every large
-     * harvest tool, use the inherited set above unchanged, so hammer/excavator/lumberaxe/scythe/vein
+     * The tools upstream 1.12 gives a {@code display} block of their own, mirrored entry for entry
+     * (the only {@code .tcon.json} tool models with one -- the rest, including every large harvest
+     * tool, use the inherited set above unchanged, so hammer/excavator/lumberaxe/scythe/vein
      * hammer/warmace/battleaxe deliberately get no oversize scale here).
+     *
+     * <p>M3.5 issue #400 added the three bows', which #394/#395 had left for the rendering ticket:
+     * a bow is held across the body rather than swung, so its poses are nothing like the inherited
+     * {@code item/handheld} set -- upstream lays the two bows nearly flat and rotates them 260/-260
+     * about Y, and stands the crossbow on end. The crossbow gets two more sets on top, in
+     * {@link #DRAWING_DISPLAY_OVERRIDES} and {@link #LOADED_DISPLAY_OVERRIDES}, which its own
+     * {@code overrides} entries carry per draw state.
      *
      * <p>Not mirrored: {@code battlesign.tcon.json}'s extra {@code overrides} block, a second display
      * set for the blocking pose. That is 1.12's custom tool-model loader format, not vanilla's
@@ -430,5 +502,70 @@ public class ForgeweaveItemModelProvider extends ItemModelProvider {
                     .rotation(0, 0, -5).translation(0, -2, 0.8F).scale(1).end()
                     .transform(ItemDisplayContext.FIRST_PERSON_LEFT_HAND)
                     .rotation(0, 0, -5).translation(0, -2, -0.8F).scale(1).end()
+                    .end(),
+            // shortbow.tcon.json, verbatim (M3.5 issue #400).
+            "shortbow", builder -> builder.transforms()
+                    .transform(ItemDisplayContext.THIRD_PERSON_RIGHT_HAND)
+                    .rotation(-90, 260, -45).translation(-1, -2, 2.5F).scale(0.875F, 0.875F, 0.75F).end()
+                    .transform(ItemDisplayContext.THIRD_PERSON_LEFT_HAND)
+                    .rotation(-90, -260, 45).translation(-1, -2, 2.5F).scale(0.875F, 0.875F, 0.75F).end()
+                    .transform(ItemDisplayContext.FIRST_PERSON_RIGHT_HAND)
+                    .rotation(0, -90, 25).translation(1.13F, 3.2F, 1.13F).scale(0.68F).end()
+                    .transform(ItemDisplayContext.FIRST_PERSON_LEFT_HAND)
+                    .rotation(0, 90, -25).translation(1.13F, 3.2F, 1.13F).scale(0.68F).end()
+                    .end(),
+            // longbow.tcon.json: the shortbow's angles, held further out and scaled up.
+            "longbow", builder -> builder.transforms()
+                    .transform(ItemDisplayContext.THIRD_PERSON_RIGHT_HAND)
+                    .rotation(-90, 260, -45).translation(-1.875F, -1.25F, 4.0F)
+                    .scale(1.0625F, 1.0625F, 0.875F).end()
+                    .transform(ItemDisplayContext.THIRD_PERSON_LEFT_HAND)
+                    .rotation(-90, -260, 45).translation(-1.875F, -1.25F, 4.0F)
+                    .scale(1.0625F, 1.0625F, 0.875F).end()
+                    .transform(ItemDisplayContext.FIRST_PERSON_RIGHT_HAND)
+                    .rotation(0, -90, 25).translation(1.13F, 3.2F, 1.13F).scale(0.875F, 0.875F, 0.7F).end()
+                    .transform(ItemDisplayContext.FIRST_PERSON_LEFT_HAND)
+                    .rotation(0, 90, -25).translation(1.13F, 3.2F, 1.13F).scale(0.875F, 0.875F, 0.7F).end()
+                    .end(),
+            // crossbow.tcon.json: stood on end rather than laid flat, and the one bow whose pose
+            // changes with its draw state -- see the two maps below.
+            "crossbow", builder -> builder.transforms()
+                    .transform(ItemDisplayContext.THIRD_PERSON_RIGHT_HAND)
+                    .rotation(90, 180, -225).translation(-1, 0.75F, -2.5F).scale(0.85F).end()
+                    .transform(ItemDisplayContext.THIRD_PERSON_LEFT_HAND)
+                    .rotation(90, 180, 225).translation(1, 0.75F, -2.5F).scale(0.85F).end()
+                    .transform(ItemDisplayContext.FIRST_PERSON_RIGHT_HAND)
+                    .rotation(-75, -5, -45).translation(0, 2, 0).scale(0.68F).end()
+                    .transform(ItemDisplayContext.FIRST_PERSON_LEFT_HAND)
+                    .rotation(-75, -5, 45).translation(0, 2, 0).scale(0.68F).end()
+                    .end());
+
+    /**
+     * The first-person pose a crossbow takes <em>while being cranked</em>, carried identically by all
+     * three of its {@code pull} overrides upstream: pulled down and in toward the chest, the
+     * two-handed winding stance. The third-person pose is unchanged, so those two entries are
+     * inherited from {@link #TOOL_DISPLAY_OVERRIDES} rather than repeated.
+     *
+     * <p>The two bows' {@code pull} overrides carry no {@code display} of their own -- vanilla's own
+     * bow-pull arm animation does that work -- so this map has one entry.
+     */
+    private static final Map<String, Consumer<ItemModelBuilder>> DRAWING_DISPLAY_OVERRIDES = Map.of(
+            "crossbow", builder -> builder.transforms()
+                    .transform(ItemDisplayContext.FIRST_PERSON_RIGHT_HAND)
+                    .rotation(-115, -25, -45).translation(-3, 2.5F, 1).scale(0.68F).end()
+                    .transform(ItemDisplayContext.FIRST_PERSON_LEFT_HAND)
+                    .rotation(-115, -25, 45).translation(-3, 2.5F, 1).scale(0.68F).end()
+                    .end());
+
+    /**
+     * And the pose a <em>loaded</em> crossbow takes: back where the idle one sits, but levelled from
+     * upstream's idle {@code -75} to {@code -90} -- a cranked crossbow is held ready to aim.
+     */
+    private static final Map<String, Consumer<ItemModelBuilder>> LOADED_DISPLAY_OVERRIDES = Map.of(
+            "crossbow", builder -> builder.transforms()
+                    .transform(ItemDisplayContext.FIRST_PERSON_RIGHT_HAND)
+                    .rotation(-90, -5, -45).translation(0, 2, 0).scale(0.68F).end()
+                    .transform(ItemDisplayContext.FIRST_PERSON_LEFT_HAND)
+                    .rotation(-90, -5, 45).translation(0, 2, 0).scale(0.68F).end()
                     .end());
 }

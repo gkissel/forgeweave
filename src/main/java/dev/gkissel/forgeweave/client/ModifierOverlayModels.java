@@ -43,6 +43,7 @@ import dev.gkissel.forgeweave.menu.ToolAssemblyRecipes;
 import dev.gkissel.forgeweave.modifier.ForgeweaveModifiers;
 import dev.gkissel.forgeweave.modifier.ModifierEntry;
 import dev.gkissel.forgeweave.tool.ModifierArt;
+import dev.gkissel.forgeweave.tool.ToolArt;
 
 /**
  * Renders applied modifiers as overlay layers on the tool item (issue #257), upstream 1.12's
@@ -127,7 +128,7 @@ public final class ModifierOverlayModels {
                 if (resolved == null) {
                     resolved = originalModel;
                 }
-                List<ResourceLocation> overlays = overlaySprites(tool, stack);
+                List<ResourceLocation> overlays = overlaySprites(tool, stack, drawStage(tool, stack, entity));
                 if (overlays.isEmpty()) {
                     return resolved;
                 }
@@ -155,10 +156,10 @@ public final class ModifierOverlayModels {
      * skipped defensively, as upstream skips ids its {@code modifierParts} map lacks --
      * {@code ModifierArtTest} is what makes that unreachable for shipped modifiers.
      */
-    private static List<ResourceLocation> overlaySprites(String tool, ItemStack stack) {
+    private static List<ResourceLocation> overlaySprites(String tool, ItemStack stack, int stage) {
         List<ResourceLocation> overlays = List.of();
         for (ModifierEntry entry : ForgeweaveModifiers.of(stack)) {
-            String texture = ModifierArt.overlay(tool, entry.id());
+            String texture = ModifierArt.overlay(tool, entry.id(), stage);
             if (texture == null) {
                 continue;
             }
@@ -172,6 +173,21 @@ public final class ModifierOverlayModels {
             overlays.add(sprite);
         }
         return overlays;
+    }
+
+    /**
+     * Which pull stage's overlay art {@code stack} draws (M3.5 issue #400), 0 for "not drawn" --
+     * upstream's {@code modifier_suffix}, which its own model loader resolves at the same moment it
+     * resolves the draw-stage <em>layers</em>. The two have to agree, so this reads the same two item
+     * properties the model's {@code overrides} do rather than the stack's state directly.
+     */
+    private static int drawStage(String tool, ItemStack stack, @Nullable LivingEntity entity) {
+        if (ToolArt.hasLoadedState(tool) && ForgeweaveItemProperties.loaded(stack) > 0.0f) {
+            return ToolArt.LOADED_STAGE;
+        }
+        return ForgeweaveItemProperties.pulling(stack, entity) > 0.0f
+                ? ToolArt.drawStage(tool, ForgeweaveItemProperties.pull(stack, entity))
+                : 0;
     }
 
     /** The tool's own quads plus one untinted baked layer per overlay; see the class javadoc. */
