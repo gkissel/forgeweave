@@ -157,11 +157,17 @@ final class ToolTooltip {
             return;
         }
 
-        ToolStats.Stats stats = ForgeweaveModifiers.effectiveStats(stack);
-        if (stats != null) {
-            tooltip.add(statLine("tooltip.forgeweave.mining_speed", stats.miningSpeed(), StationText.SPEED_COLOR));
+        // Upstream ToolCore#getInformation (ToolCore.java:301-304) gates the harvest level and the
+        // mining speed on hasCategory(Category.HARVEST); a bow's only category is the
+        // Category.LAUNCHER BowCore's constructor adds (BowCore.java:64), so neither line is its
+        // (M3.5 #401). info.addAttack() above is ungated, which is why the attack line stays.
+        if (!(stack.getItem() instanceof BowItem)) {
+            ToolStats.Stats stats = ForgeweaveModifiers.effectiveStats(stack);
+            if (stats != null) {
+                tooltip.add(statLine("tooltip.forgeweave.mining_speed", stats.miningSpeed(), StationText.SPEED_COLOR));
+            }
+            MaterialDisplay.lookup(registries, materials.head()).ifPresent(head -> tooltip.add(tierLine(stack, head)));
         }
-        MaterialDisplay.lookup(registries, materials.head()).ifPresent(head -> tooltip.add(tierLine(stack, head)));
 
         appendPartSections(stack, registries, materials, tooltip);
     }

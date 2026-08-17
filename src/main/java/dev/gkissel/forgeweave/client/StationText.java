@@ -83,6 +83,11 @@ public final class StationText {
      * Durability, mining speed and attack damage of an assembled tool, in upstream's order and with
      * its Modifiers applied ({@code ForgeweaveModifiers#effectiveStats}) -- the panel shows what the
      * tool actually does, not what its materials alone would have given it.
+     *
+     * <p>This is upstream's own {@code ToolCore#getInformation} list: {@code GuiToolStation#updateGUI}
+     * fills its tool panel with {@code tool.getInformation(toolStack)}, the same call the item
+     * tooltip makes. Hence the mining-speed row being an {@code else} (M3.5 #401) -- upstream gates
+     * it on {@code hasCategory(Category.HARVEST)}, which a launcher never has.
      */
     public static List<Component> toolStats(ItemStack tool) {
         ToolStats.Stats stats = ForgeweaveModifiers.effectiveStats(tool);
@@ -92,9 +97,12 @@ public final class StationText {
         int remaining = stats.durability() - tool.getDamageValue();
         List<Component> lines = new ArrayList<>();
         lines.add(durabilityStat(remaining, stats.durability()));
-        lines.add(stat("mining_speed", stats.miningSpeed(), SPEED_COLOR));
         if (tool.getItem() instanceof BowItem bow) {
-            lines.addAll(launcherStats(tool, bow.drawTime())); // M3.5 #394, upstream's LAUNCHER block
+            // M3.5 #394/#401: upstream's LAUNCHER block, and it *replaces* the harvest one -- see
+            // ToolTooltip#append, which reads the same gate for the item tooltip.
+            lines.addAll(launcherStats(tool, bow.drawTime()));
+        } else {
+            lines.add(stat("mining_speed", stats.miningSpeed(), SPEED_COLOR));
         }
         lines.add(stat("attack_damage", stats.attackDamage(), ATTACK_COLOR));
         return List.copyOf(lines);

@@ -13,6 +13,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import net.minecraft.SharedConstants;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.TextColor;
 import net.minecraft.resources.ResourceLocation;
@@ -113,6 +114,78 @@ class JeiRecipesTest {
         // string (issue #393) x 2 materials, both of which carry every stat block.
         assertEquals(28 * 2, recipes.size(), "28 part types x 2 materials");
         assertTrue(recipes.stream().allMatch(r -> r.result().has(ForgeweaveDataComponents.MATERIAL.get())));
+    }
+
+    /**
+     * M3.5 issue #401: the three bows reach JEI's assembly categories off the same
+     * {@link ToolAssemblyRecipes#ENTRIES} table every other tool does, with their own slot order --
+     * so this pins that the registry-driven path really does produce a bow recipe, and produces it
+     * with upstream's part composition ({@code ShortBow}/{@code LongBow}/{@code CrossBow}'s
+     * {@code PartMaterialType} lists) rather than a melee tool's.
+     */
+    @Test
+    void assemblyListsTheThreeBowsWithUpstreamsPartOrder() {
+        List<AssemblyRecipe> recipes = AssemblyRecipes.build(twoMaterials());
+
+        assertEquals(List.of("bow_limb", "bow_limb", "bow_string"),
+                slotPartIds(recipes, ForgeweaveItems.TOOL_SHORTBOW.get()));
+        assertEquals(List.of("bow_limb", "bow_limb", "large_plate", "bow_string"),
+                slotPartIds(recipes, ForgeweaveItems.TOOL_LONGBOW.get()));
+        assertEquals(List.of("tough_tool_rod", "bow_limb", "tough_binding", "bow_string"),
+                slotPartIds(recipes, ForgeweaveItems.TOOL_CROSSBOW.get()));
+    }
+
+    /**
+     * M3.5 issue #401: which JEI category a bow lands in -- {@code AssemblyCategory.TYPE} (Tool
+     * Station catalyst) or {@code LARGE_TYPE} (Tool Forge catalyst) -- is {@link
+     * AssemblyRecipes#isLarge}, i.e. {@code #forgeweave:large_tools}. Item tags aren't bound outside
+     * a running server, so the answers themselves are pinned by {@code
+     * gametest.ToolForgeGameTests#theTwoForgeTierBowsAreTaggedLarge}; what this test can guard is
+     * that each bow resolves to an entry at all, which is the step that silently returns
+     * {@code false} (and so mis-files a Tool Forge bow under the Tool Station) when it fails.
+     */
+    @Test
+    void everyBowResolvesToAnAssemblyTableEntryForTheCategorySplit() {
+        for (Item bow : List.of(ForgeweaveItems.TOOL_SHORTBOW.get(), ForgeweaveItems.TOOL_LONGBOW.get(),
+                ForgeweaveItems.TOOL_CROSSBOW.get())) {
+            assertTrue(ToolAssemblyRecipes.entryFor(new ItemStack(bow)).isPresent(),
+                    bow + " has no assembly entry, so AssemblyRecipes#isLarge would answer false for it");
+        }
+    }
+
+    /**
+     * Issue #393/#405: a bow's slots cycle only the materials that slot has a stat block for, so JEI
+     * never advertises a string bow limb or a wooden bow string. The string-shaped material carries
+     * the BOWSTRING block alone, so it appears in the shortbow's third slot and in neither limb.
+     */
+    @Test
+    void bowAssemblySlotsOnlyCycleMaterialsWithThatSlotsStatBlock() {
+        Map<ResourceLocation, Material> materials = new LinkedHashMap<>(twoMaterials());
+        materials.put(ResourceLocation.fromNamespaceAndPath("forgeweave", "string"), bowstringOnlyMaterial());
+
+        AssemblyRecipe shortbow = recipeFor(AssemblyRecipes.build(materials),
+                ForgeweaveItems.TOOL_SHORTBOW.get());
+
+        assertEquals(List.of("wood", "stone"), slotMaterialPaths(shortbow, 0));
+        assertEquals(List.of("wood", "stone"), slotMaterialPaths(shortbow, 1));
+        assertEquals(List.of("wood", "stone", "string"), slotMaterialPaths(shortbow, 2));
+    }
+
+    private static AssemblyRecipe recipeFor(List<AssemblyRecipe> recipes, Item tool) {
+        return recipes.stream().filter(recipe -> recipe.result().is(tool)).findFirst().orElseThrow();
+    }
+
+    /** The registered path of the part item each slot of {@code tool}'s recipe offers. */
+    private static List<String> slotPartIds(List<AssemblyRecipe> recipes, Item tool) {
+        return recipeFor(recipes, tool).parts().stream()
+                .map(slot -> BuiltInRegistries.ITEM.getKey(slot.getFirst().getItem()).getPath())
+                .toList();
+    }
+
+    private static List<String> slotMaterialPaths(AssemblyRecipe recipe, int slot) {
+        return recipe.parts().get(slot).stream()
+                .map(stack -> stack.get(ForgeweaveDataComponents.MATERIAL.get()).getPath())
+                .toList();
     }
 
     /**

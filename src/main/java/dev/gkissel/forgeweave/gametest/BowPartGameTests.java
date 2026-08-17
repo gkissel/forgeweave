@@ -16,6 +16,7 @@ import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.block.ForgeweaveBlocks;
+import dev.gkissel.forgeweave.casting.CastingRecipe;
 import dev.gkissel.forgeweave.block.PartBuilderBlockEntity;
 import dev.gkissel.forgeweave.item.ForgeweaveDataComponents;
 import dev.gkissel.forgeweave.item.ForgeweaveItems;
@@ -62,6 +63,46 @@ public class BowPartGameTests {
         ItemStack shards = new ItemStack(ForgeweaveItems.SHARD.get(), count);
         shards.set(ForgeweaveDataComponents.MATERIAL.get(), materialId("wood"));
         return shards;
+    }
+
+    /**
+     * M3.5 issue #401: the bow limb's casting entries -- what {@code jei.CastingRecipes} splits into
+     * the Casting Table category. Three rows have to exist for JEI to show the full loop: pour gold
+     * over a crafted limb to mould its cast, pour a metal through that cast to get a limb, and the
+     * single-use clay counterpart of the second (issue #292's {@code clay_cast_bow_limb}). All three
+     * are {@code Station.TABLE}: upstream never routes a tool part through the basin
+     * ({@code TinkerRegistry#registerToolPart} always calls {@code addCastForItem}, which only lands
+     * in {@code tableCastRegistry}) -- see {@link M3CastingGameTests}' class javadoc.
+     *
+     * <p>The bow <em>string</em> deliberately has none: upstream only reaches
+     * {@code registerToolpartMeltingCasting} through a {@code MaterialIntegration}, i.e. a material
+     * with a molten fluid, and the only BOWSTRING materials are string and vine, neither of which
+     * melts. A cast no fluid could fill would be a JEI entry no player could ever use.
+     */
+    @GameTest(template = "empty")
+    public static void theBowLimbHasItsGoldAndClayCastingEntriesAndTheStringHasNone(GameTestHelper helper) {
+        var recipes = helper.getLevel().registryAccess().registryOrThrow(CastingRecipe.REGISTRY);
+
+        helper.assertTrue(recipes.stream().anyMatch(recipe ->
+                        recipe.station() == CastingRecipe.Station.TABLE
+                                && recipe.result().is(ForgeweaveItems.CAST_BOW_LIMB.get())),
+                "no casting recipe moulds the gold bow limb cast");
+        helper.assertTrue(recipes.stream().anyMatch(recipe ->
+                        recipe.station() == CastingRecipe.Station.TABLE
+                                && recipe.result().is(ForgeweaveItems.PART_BOW_LIMB.get())
+                                && recipe.cast().isPresent()
+                                && recipe.cast().get().test(new ItemStack(ForgeweaveItems.CAST_BOW_LIMB.get()))),
+                "no casting recipe pours a metal through the gold bow limb cast");
+        helper.assertTrue(recipes.stream().anyMatch(recipe ->
+                        recipe.result().is(ForgeweaveItems.PART_BOW_LIMB.get())
+                                && recipe.cast().isPresent()
+                                && recipe.cast().get().test(
+                                        new ItemStack(ForgeweaveItems.CLAY_CASTS.get("cast_bow_limb").get()))),
+                "no casting recipe pours a metal through the clay bow limb cast");
+        helper.assertFalse(recipes.stream().anyMatch(recipe ->
+                        recipe.result().is(ForgeweaveItems.PART_BOW_STRING.get())),
+                "the bow string casts from nothing upstream -- see this test's javadoc");
+        helper.succeed();
     }
 
     @GameTest(template = "empty")

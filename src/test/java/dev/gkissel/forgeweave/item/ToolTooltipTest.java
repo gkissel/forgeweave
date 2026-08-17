@@ -1,6 +1,7 @@
 package dev.gkissel.forgeweave.item;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.awt.Color;
 import java.util.ArrayList;
@@ -38,8 +39,10 @@ import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.level.block.Block;
 
+import dev.gkissel.forgeweave.client.StationText;
 import dev.gkissel.forgeweave.material.Material;
 import dev.gkissel.forgeweave.modifier.ModifierEntry;
+import dev.gkissel.forgeweave.tool.LauncherStats;
 import dev.gkissel.forgeweave.tool.ToolMaterials;
 import dev.gkissel.forgeweave.tool.ToolStats;
 
@@ -63,6 +66,9 @@ class ToolTooltipTest {
     private static final TextColor ATTACK_COLOR = TextColor.fromRgb(0xD76464);
     private static final TextColor SPEED_COLOR = TextColor.fromRgb(0x78A0CD);
     private static final TextColor MODIFIER_COLOR = TextColor.fromRgb(0xB9B95A);
+    private static final TextColor DRAWSPEED_COLOR = TextColor.fromRgb(0x808080);
+    private static final TextColor RANGE_COLOR = TextColor.fromRgb(0x8CAFAF);
+    private static final TextColor BOW_DAMAGE_COLOR = TextColor.fromRgb(0x9B5041);
 
     @BeforeAll
     static void bootstrapMinecraft() {
@@ -291,6 +297,110 @@ class ToolTooltipTest {
                 Component.empty(),
                 partName("wood", null, "tool_handle")),
                 tooltip);
+    }
+
+    /**
+     * M3.5 issue #401, upstream {@code ToolCore#getInformation} (ToolCore.java:297-311): the harvest
+     * level and mining-speed lines are gated on {@code hasCategory(Category.HARVEST)}, and a bow --
+     * whose only category is the {@code Category.LAUNCHER} {@code BowCore}'s constructor adds
+     * (BowCore.java:64) -- does not have it. So a bow's Shift tier is durability, the three
+     * {@code Category.LAUNCHER} lines, attack damage, modifier slots, then its part sections: no
+     * {@code Mining Speed} and no {@code Tool Tier}, both of which it showed before this issue.
+     * {@code info.addAttack()} is <em>not</em> gated, so the attack line stays.
+     */
+    @Test
+    void detailedTooltipForABowOmitsTheHarvestStatsUpstreamGatesOnCategory() {
+        ItemStack stack = assembledShortbow();
+
+        List<Component> tooltip = new ArrayList<>();
+        ToolTooltip.append(stack, null, true, 3.0F, tooltip);
+
+        assertEquals(List.of(
+                durabilityLine(120, 160),
+                guiStat("drawspeed", "0.6", DRAWSPEED_COLOR),
+                guiStat("range", "1", RANGE_COLOR),
+                guiStat("bonus_damage", "2", BOW_DAMAGE_COLOR),
+                attackLine(3.0F),
+                slotsLine(3),
+                Component.empty(),
+                partName("stone", null, "bow_limb"),
+                Component.empty(),
+                partName("stone", null, "bow_limb"),
+                Component.empty(),
+                partName("wood", null, "bow_string")),
+                tooltip);
+    }
+
+    /** The same three launcher lines ride the compact tier too -- upstream builds one list for both. */
+    @Test
+    void compactTooltipForABowShowsTheLauncherBlock() {
+        ItemStack stack = assembledShortbow();
+
+        List<Component> tooltip = new ArrayList<>();
+        ToolTooltip.append(stack, null, false, 3.0F, tooltip);
+
+        assertEquals(List.of(
+                durabilityLine(120, 160),
+                guiStat("drawspeed", "0.6", DRAWSPEED_COLOR),
+                guiStat("range", "1", RANGE_COLOR),
+                guiStat("bonus_damage", "2", BOW_DAMAGE_COLOR),
+                attackLine(3.0F),
+                slotsLine(3)),
+                tooltip);
+    }
+
+    /**
+     * A non-launcher is untouched by the gate above: the pickaxe keeps both harvest lines. Pins that
+     * issue #401's carve-out is the bow's and not every tool's.
+     */
+    @Test
+    void detailedTooltipStillShowsHarvestStatsForANonLauncher() {
+        ItemStack stack = assembledPickaxe(40, List.of());
+
+        List<Component> tooltip = new ArrayList<>();
+        ToolTooltip.append(stack, registriesWithStoneAndWood(), true, 3.0F, tooltip);
+
+        assertTrue(tooltip.contains(statLine("tooltip.forgeweave.mining_speed", "4", SPEED_COLOR)),
+                "a pickaxe keeps its mining speed line");
+        assertTrue(tooltip.contains(tierLine("stone")), "a pickaxe keeps its tool tier line");
+    }
+
+    /**
+     * The Tool Station's info panel is upstream's <em>same</em> list ({@code GuiToolStation#updateGUI}
+     * calls {@code tool.getInformation(toolStack)}), so it drops the mining-speed row for a bow for
+     * exactly the reason the item tooltip does, and in the same order.
+     */
+    @Test
+    void stationPanelStatsForABowReplaceMiningSpeedWithTheLauncherBlock() {
+        assertEquals(List.of(
+                StationText.durabilityStat(120, 160),
+                guiStat("drawspeed", "0.6", DRAWSPEED_COLOR),
+                guiStat("range", "1", RANGE_COLOR),
+                guiStat("bonus_damage", "2", BOW_DAMAGE_COLOR),
+                guiStat("attack_damage", "3", ATTACK_COLOR)),
+                StationText.toolStats(assembledShortbow()));
+    }
+
+    /** ... and a pickaxe's panel keeps it, in upstream's durability/mining-speed/attack order. */
+    @Test
+    void stationPanelStatsForANonLauncherKeepMiningSpeed() {
+        assertEquals(List.of(
+                StationText.durabilityStat(120, 160),
+                guiStat("mining_speed", "4", SPEED_COLOR),
+                guiStat("attack_damage", "3", ATTACK_COLOR)),
+                StationText.toolStats(assembledPickaxe(40, List.of())));
+    }
+
+    /**
+     * A shortbow the way {@code ToolConstants#SHORTBOW} shapes it: two limbs and a string, no handle
+     * slot, plus the {@code forgeweave:launcher_stats} component every assembled bow carries.
+     */
+    private static ItemStack assembledShortbow() {
+        ItemStack stack = assembledTool(ForgeweaveItems.TOOL_SHORTBOW.get(), 40, List.of(),
+                new ToolMaterials(STONE_ID, Optional.empty(), Optional.empty(),
+                        List.of(STONE_ID, STONE_ID, WOOD_ID)));
+        stack.set(ForgeweaveDataComponents.LAUNCHER_STATS.get(), new LauncherStats(1.0F, 1.0F, 2.0F));
+        return stack;
     }
 
     /** Issue #254: the bare-tag tier mapping head-part tooltips use covers the whole vanilla ladder. */
