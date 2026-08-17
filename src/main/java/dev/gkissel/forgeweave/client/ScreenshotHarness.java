@@ -73,11 +73,14 @@ import dev.gkissel.forgeweave.block.SmelteryControllerBlockEntity;
 import dev.gkissel.forgeweave.block.StationMenuHost;
 import dev.gkissel.forgeweave.block.ToolStationBlockEntity;
 import dev.gkissel.forgeweave.fluid.ForgeweaveFluids;
+import dev.gkissel.forgeweave.item.BowItem;
+import dev.gkissel.forgeweave.item.CrossbowItem;
 import dev.gkissel.forgeweave.item.ForgeweaveDataComponents;
 import dev.gkissel.forgeweave.item.ForgeweaveItems;
 import dev.gkissel.forgeweave.item.ToolItem;
 import dev.gkissel.forgeweave.menu.ToolAssemblyRecipes;
 import dev.gkissel.forgeweave.modifier.ModifierEntry;
+import dev.gkissel.forgeweave.tool.ToolArt;
 import dev.gkissel.forgeweave.tool.ToolConstants;
 
 /**
@@ -225,7 +228,7 @@ public final class ScreenshotHarness {
      * artifact for <em>these</em> tools' art, and a later tool issue adding a row should decide for
      * itself whether its tool needs a frame here.
      */
-    private static final List<Supplier<? extends ToolItem>> WEAPONS = List.of(
+    static final List<Supplier<? extends ToolItem>> WEAPONS = List.of(
             ForgeweaveItems.TOOL_BROADSWORD, ForgeweaveItems.TOOL_LONGSWORD, ForgeweaveItems.TOOL_RAPIER,
             ForgeweaveItems.TOOL_BATTLESIGN, ForgeweaveItems.TOOL_FRYING_PAN, ForgeweaveItems.TOOL_DAGGER,
             // #161: the warmace poses the same way -- it is a held weapon like the six above, and
@@ -249,7 +252,60 @@ public final class ScreenshotHarness {
             // in the same role -- so this row is where a head2/head3 layer that went missing or got
             // tinted from the wrong part slot shows up.
             ForgeweaveItems.TOOL_HAMMER, ForgeweaveItems.TOOL_EXCAVATOR, ForgeweaveItems.TOOL_LUMBERAXE,
-            ForgeweaveItems.TOOL_SCYTHE, ForgeweaveItems.TOOL_VEIN_HAMMER);
+            ForgeweaveItems.TOOL_SCYTHE, ForgeweaveItems.TOOL_VEIN_HAMMER,
+            // M3.5 #400: the three bows' *undrawn* poses. They belong on this list for the same
+            // reason every other tool does -- these are the frames that show the assembled layer
+            // stack held in a hand -- and their drawn ones are {@link #BOW_POSES} below, which is a
+            // separate scene because getting a bow to a given pull stage takes ticking, not just
+            // putting it in a hand.
+            ForgeweaveItems.TOOL_SHORTBOW, ForgeweaveItems.TOOL_LONGBOW, ForgeweaveItems.TOOL_CROSSBOW);
+
+    /**
+     * Issue #400's release-checklist frames, {@code bow_<bow>_draw<stage>_firstperson.png} plus
+     * {@code bow_crossbow_loaded_firstperson.png}: every draw state a bow's model can resolve to.
+     *
+     * <p>One frame per state and no fewer, because each is a different <em>model</em> -- the item
+     * property overrides pick a whole sibling model per stage ({@code ForgeweaveItemModelProvider#
+     * drawStageOverrides}), and a stage whose textures were misnamed, whose layer order drifted, or
+     * whose predicate threshold is wrong renders as a missing-texture checker or as the wrong stage
+     * in exactly one of these and in none of the others.
+     *
+     * <p>First person only, unlike {@link #WEAPONS}: a drawn bow is a first-person object. The
+     * third-person capture of an undrawn one is already on the list above, and third person cannot
+     * show a draw at all here -- the harness drives the draw client-side, so the server never sends
+     * the using-item flag the third-person arm animation reads.
+     */
+    static final List<BowPose> BOW_POSES = List.of(
+            new BowPose(ForgeweaveItems.TOOL_SHORTBOW, 1, false),
+            new BowPose(ForgeweaveItems.TOOL_SHORTBOW, 2, false),
+            new BowPose(ForgeweaveItems.TOOL_SHORTBOW, 3, false),
+            new BowPose(ForgeweaveItems.TOOL_LONGBOW, 1, false),
+            new BowPose(ForgeweaveItems.TOOL_LONGBOW, 2, false),
+            new BowPose(ForgeweaveItems.TOOL_LONGBOW, 3, false),
+            new BowPose(ForgeweaveItems.TOOL_CROSSBOW, 1, false),
+            new BowPose(ForgeweaveItems.TOOL_CROSSBOW, 2, false),
+            new BowPose(ForgeweaveItems.TOOL_CROSSBOW, 3, false),
+            // The one state that is not a draw: the crossbow's stored crank, which resolves to the
+            // full-draw art under a first-person pose of its own.
+            new BowPose(ForgeweaveItems.TOOL_CROSSBOW, 0, true));
+
+    /**
+     * One {@link #BOW_POSES} frame: which bow, which pull stage (1 to {@link ToolArt#DRAW_STAGES},
+     * or 0 for a state that is not a draw), and whether the crossbow's {@code loaded} flag is set.
+     */
+    record BowPose(Supplier<? extends BowItem> bow, int drawStage, boolean loaded) {
+        String fileName() {
+            String name = BuiltInRegistries.ITEM.getKey(bow.get()).getPath();
+            return "bow_" + name + (loaded ? "_loaded" : "_draw" + drawStage);
+        }
+    }
+
+    /**
+     * Ceiling on how long {@link #settleBowPose} will keep drawing before it gives up and captures
+     * whatever the bow reached. Generous: the slowest bow is the crossbow at {@code drawTime = 45}
+     * on wooden limbs, and this has to cover a full draw plus the settle wait in front of it.
+     */
+    private static final int BOW_DRAW_TIMEOUT_TICKS = 200;
 
     /** How far in -Z of spawn the weapon poses stand, clear of the block scenes above. */
     private static final int WEAPON_SCENE_DISTANCE = 6;
@@ -307,6 +363,7 @@ public final class ScreenshotHarness {
         PLACE_CASTING_SCENE, SETTLE_CASTING_SCENE, PLACE_MATERIAL_SCENE, SETTLE_MATERIAL_SCENE,
         PLACE_PART_TINT_SCENE, SETTLE_PART_TINT_SCENE,
         HOLD_WEAPON, SETTLE_WEAPON, SETTLE_WEAPON_FIRST_PERSON,
+        HOLD_BOW_POSE, SETTLE_BOW_POSE,
         OPEN_SCREEN, SETTLE_SCREEN, DONE
     }
 
@@ -318,6 +375,8 @@ public final class ScreenshotHarness {
     private static BlockPos[] tankScenePositions;
     /** Which of {@link #WEAPONS} is being posed. */
     private static int weaponIndex;
+    /** Which of {@link #BOW_POSES} is being posed (#400). */
+    private static int bowPoseIndex;
     /** Set by {@link #placeTableScene}, checked by {@link #settleTableScene} before capture (#152). */
     private static BlockPos[] tableScenePositions;
     /** Set by {@link #placeSmelteryScene}, checked by {@link #settleSmelteryScene} before capture (#179). */
@@ -363,6 +422,8 @@ public final class ScreenshotHarness {
             case HOLD_WEAPON -> holdWeapon(mc);
             case SETTLE_WEAPON -> settleWeapon(mc);
             case SETTLE_WEAPON_FIRST_PERSON -> settleWeaponFirstPerson(mc);
+            case HOLD_BOW_POSE -> holdBowPose(mc);
+            case SETTLE_BOW_POSE -> settleBowPose(mc);
             case OPEN_SCREEN -> openScreen(mc);
             case SETTLE_SCREEN -> settleScreen(mc);
             case DONE -> {}
@@ -1042,7 +1103,7 @@ public final class ScreenshotHarness {
         // poses; see currentWeaponFileName.
         if (weaponIndex > WEAPONS.size() + 1) {
             mc.options.setCameraType(CameraType.FIRST_PERSON);
-            advance(Stage.OPEN_SCREEN);
+            advance(Stage.HOLD_BOW_POSE);
             return;
         }
         ToolItem weapon = currentWeapon();
@@ -1145,6 +1206,108 @@ public final class ScreenshotHarness {
         advance(Stage.SETTLE_WEAPON);
     }
 
+    /**
+     * Issue #400's in-world scene: one first-person capture per bow draw state, {@code
+     * bow_<bow>_draw<stage>_firstperson.png} and {@code bow_crossbow_loaded_firstperson.png}.
+     *
+     * <p>The bow goes in the player's hand server-side, exactly as {@link #holdWeapon} does it, and
+     * the crossbow's loaded pose additionally gets its {@code CROSSBOW_LOADED} component set
+     * straight on the stack -- the same shortcut #284's broken pose takes, and for the same reason:
+     * the item property reads the component either way, and cranking a real crossbow through the
+     * server would take 45 ticks of a use the harness cannot drive from here.
+     *
+     * <p>{@link #settleBowPose} then does the drawing, client-side.
+     */
+    private static void holdBowPose(Minecraft mc) {
+        if (stageTicks < SCREEN_GAP_TICKS) {
+            return;
+        }
+        if (bowPoseIndex >= BOW_POSES.size()) {
+            advance(Stage.OPEN_SCREEN);
+            return;
+        }
+        BowPose pose = BOW_POSES.get(bowPoseIndex);
+        BowItem bow = pose.bow().get();
+        var server = mc.getSingleplayerServer();
+        LOGGER.info("{}holding {} for its first-person capture", LOG_PREFIX, pose.fileName());
+        mc.options.setCameraType(CameraType.FIRST_PERSON);
+        server.execute(() -> {
+            ServerPlayer serverPlayer = server.getPlayerList().getPlayers().get(0);
+            ItemStack stack = assembleForDisplay(serverPlayer, bow);
+            if (stack.isEmpty()) {
+                LOGGER.error("{}#400 scene check FAILED: could not assemble {}", LOG_PREFIX, pose.fileName());
+            }
+            if (pose.loaded()) {
+                CrossbowItem.setLoaded(stack, true);
+            }
+            serverPlayer.setItemInHand(InteractionHand.MAIN_HAND, stack);
+            BlockPos stand = origin.offset(0, 0, -WEAPON_SCENE_DISTANCE);
+            serverPlayer.teleportTo(stand.getX() + 0.5, stand.getY(), stand.getZ() + 0.5);
+            serverPlayer.setYRot(180.0F);
+            serverPlayer.setXRot(0.0F);
+        });
+        advance(Stage.SETTLE_BOW_POSE);
+    }
+
+    /**
+     * Draws the held bow until it is at exactly the stage this frame is for, then captures.
+     *
+     * <p>The draw is started on the <em>client</em> player rather than through the server, because
+     * the two item properties the model branches on read the client-side holder
+     * ({@code ForgeweaveItemProperties#pulling} compares {@code getUseItem()} against the very stack
+     * being rendered), and that is the state a real drawing player has too -- the client predicts its
+     * own use. Capturing on the stage the model itself would resolve, rather than after a fixed
+     * number of ticks, is what makes the frame independent of the assembled bow's draw speed: a
+     * change to the limb materials or to {@code drawTime} moves the tick count, never the frame.
+     */
+    private static void settleBowPose(Minecraft mc) {
+        if (stageTicks < SCREEN_SETTLE_TICKS || mc.player == null) {
+            return;
+        }
+        BowPose pose = BOW_POSES.get(bowPoseIndex);
+        BowItem bow = pose.bow().get();
+        ItemStack held = mc.player.getMainHandItem();
+        if (held.isEmpty() || !held.is(bow)) {
+            LOGGER.error("{}#400 scene check FAILED: client sees {} in hand, expected {}",
+                    LOG_PREFIX, held, pose.fileName());
+            capture(mc, pose.fileName() + "_firstperson");
+            nextBowPose(mc);
+            return;
+        }
+        if (pose.drawStage() > 0) {
+            if (!mc.player.isUsingItem()) {
+                mc.player.startUsingItem(InteractionHand.MAIN_HAND);
+                return; // The first tick of a draw is progress 0; let it advance before looking.
+            }
+            String tool = BuiltInRegistries.ITEM.getKey(bow).getPath();
+            float pull = ForgeweaveItemProperties.pull(held, mc.player);
+            int reached = ToolArt.drawStage(tool, pull);
+            if (reached < pose.drawStage() && stageTicks < BOW_DRAW_TIMEOUT_TICKS) {
+                return;
+            }
+            LOGGER.info("{}#400 scene check: {} is at pull {} (stage {}, wanted {})",
+                    LOG_PREFIX, pose.fileName(), pull, reached, pose.drawStage());
+            if (reached != pose.drawStage()) {
+                LOGGER.error("{}#400 scene check FAILED: {} settled at stage {} rather than {} -- the"
+                        + " capture shows the wrong draw art no matter what the renderer does",
+                        LOG_PREFIX, pose.fileName(), reached, pose.drawStage());
+            }
+        } else {
+            LOGGER.info("{}#400 scene check: {} loaded={}", LOG_PREFIX, pose.fileName(),
+                    ForgeweaveItemProperties.loaded(held));
+        }
+        capture(mc, pose.fileName() + "_firstperson");
+        nextBowPose(mc);
+    }
+
+    private static void nextBowPose(Minecraft mc) {
+        if (mc.player != null) {
+            mc.player.stopUsingItem();
+        }
+        bowPoseIndex++;
+        advance(Stage.HOLD_BOW_POSE);
+    }
+
     /** The tool the Tool Station would build from an iron head and wooden everything else. */
     private static ItemStack assembleForDisplay(ServerPlayer player, ToolItem weapon) {
         return assembleForDisplay(player, weapon, "iron");
@@ -1155,8 +1318,14 @@ public final class ScreenshotHarness {
         return ToolAssemblyRecipes.entryFor(new ItemStack(weapon))
                 .flatMap(entry -> ToolAssemblyRecipes.assemble(player.registryAccess(), entry,
                         entry.constants().parts().stream()
-                                .map(slot -> slot.role() == ToolConstants.Role.HEAD
-                                        ? material(headMaterial) : material("wood"))
+                                .map(slot -> switch (slot.role()) {
+                                    case HEAD -> material(headMaterial);
+                                    // M3.5 #400: a bow's string slot refuses every material but a
+                                    // stringy one (issue #392's BOWSTRING stat gate), so "wood
+                                    // everything else" cannot assemble one.
+                                    case BOWSTRING -> material("string");
+                                    default -> material("wood");
+                                })
                                 .toList()))
                 .orElse(ItemStack.EMPTY);
     }

@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 import org.junit.jupiter.api.Test;
@@ -65,12 +66,42 @@ class ModifierArtTest {
         assertTrue(missing.isEmpty(), "modifier overlays with no derived art:\n" + String.join("\n", missing));
     }
 
+    /**
+     * The same walk over the bows' draw stages (M3.5 issue #400): whatever
+     * {@link ModifierArt#overlay(String, ResourceLocation, int)} resolves for a stage has to exist,
+     * whether that is a staged file or the fallback to the undrawn one.
+     */
+    @Test
+    void everyDrawStageOverlayResolvesToDerivedArt() {
+        List<String> missing = new ArrayList<>();
+        for (ToolAssemblyRecipes.Entry entry : ToolAssemblyRecipes.ENTRIES) {
+            String tool = entry.constants().id();
+            for (ResourceLocation modifier : ModifierArt.OVERLAY_MODIFIERS) {
+                for (int stage = 0; stage <= ToolArt.DRAW_STAGES; stage++) {
+                    String texture = ModifierArt.overlay(tool, modifier, stage);
+                    if (texture == null) {
+                        continue;
+                    }
+                    Path png = texturesRoot().resolve(texture + ".png");
+                    if (!Files.isRegularFile(png)) {
+                        missing.add(tool + " x " + modifier + " @ stage " + stage + " -> " + png);
+                    }
+                }
+            }
+        }
+        assertTrue(missing.isEmpty(), "draw-stage modifier overlays with no derived art:\n"
+                + String.join("\n", missing));
+    }
+
     /** The reverse direction: no orphaned art with a name the renderer can never resolve. */
     @Test
     void everyOverlayFileBelongsToARealToolAndModifier() throws IOException {
         Set<String> expected = ToolAssemblyRecipes.ENTRIES.stream()
                 .flatMap(entry -> ModifierArt.OVERLAY_MODIFIERS.stream()
-                        .map(modifier -> entry.constants().id() + "_" + modifier.getPath() + ".png"))
+                        .flatMap(modifier -> IntStream.rangeClosed(0, ToolArt.DRAW_STAGES)
+                                .mapToObj(stage -> ModifierArt.overlay(entry.constants().id(), modifier, stage))))
+                .filter(java.util.Objects::nonNull)
+                .map(texture -> texture.substring(texture.lastIndexOf('/') + 1) + ".png")
                 .collect(Collectors.toSet());
         Path mods = texturesRoot().resolve("derived/tools/mods");
         try (Stream<Path> files = Files.list(mods)) {

@@ -1,0 +1,79 @@
+{
+  "parent": "minecraft:item/handheld",
+  "display": {
+    "firstperson_lefthand": {
+      "rotation": [
+        -90,
+        -5,
+        45
+      ],
+      "scale": [
+        0.68,
+        0.68,
+        0.68
+      ],
+      "translation": [
+        0,
+        2,
+        0
+      ]
+    },
+    "firstperson_righthand": {
+      "rotation": [
+        -90,
+        -5,
+        -45
+      ],
+      "scale": [
+        0.68,
+        0.68,
+        0.68
+      ],
+      "translation": [
+        0,
+        2,
+        0
+      ]
+    },
+    "thirdperson_lefthand": {
+      "rotation": [
+        90,
+        180,
+        225
+      ],
+      "scale": [
+        0.85,
+        0.85,
+        0.85
+      ],
+      "translation": [
+        1,
+        0.75,
+        -2.5
+      ]
+    },
+    "thirdperson_righthand": {
+      "rotation": [
+        90,
+        180,
+        -225
+      ],
+      "scale": [
+        0.85,
+        0.85,
+        0.85
+      ],
+      "translation": [
+        -1,
+        0.75,
+        -2.5
+      ]
+    }
+  },
+  "textures": {
+    "layer0": "forgeweave:derived/tools/crossbow_body",
+    "layer1": "forgeweave:derived/tools/crossbow_limb_draw3",
+    "layer2": "forgeweave:derived/tools/crossbow_binding",
+    "layer3": "forgeweave:derived/tools/crossbow_string_draw3"
+  }
+}

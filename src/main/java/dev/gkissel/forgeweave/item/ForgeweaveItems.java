@@ -247,24 +247,28 @@ public final class ForgeweaveItems {
 
     // M3.5's shortbow (docs/SCOPE.md M3.5 issue #394): upstream tools/ranged/item/ShortBow.java --
     // getDrawTime() = 12 (BowCore's default is 20; the shortbow overrides it), baseProjectileSpeed()
-    // = 3f (BowCore's default), baseInaccuracy() = 1f. Its stat constants are ToolConstants#SHORTBOW;
-    // the draw/release cycle is BowItem.
+    // = 3f (BowCore's default), baseInaccuracy() = 1f, and preventSlowDown(0.5f) -- "shortbows are
+    // more mobile than other bows" (#400). Its stat constants are ToolConstants#SHORTBOW; the
+    // draw/release cycle is BowItem.
     public static final DeferredItem<BowItem> TOOL_SHORTBOW = ITEMS.registerItem("shortbow",
-            properties -> new BowItem(properties, ToolConstants.SHORTBOW, 12, 3.0F, 1.0F),
+            properties -> new BowItem(properties, ToolConstants.SHORTBOW, 12, 3.0F, 1.0F, 0.5F),
             new Item.Properties().stacksTo(1));
 
     // M3.5's Tool Forge-tier bows (docs/SCOPE.md M3.5 issue #395), both
     // TinkerRegistry.registerToolForgeCrafting upstream.
     //
-    // LongBow.java: getDrawTime() = 30, baseProjectileSpeed() = 5.5f, baseInaccuracy() = 1.2f.
+    // LongBow.java: getDrawTime() = 30, baseProjectileSpeed() = 5.5f, baseInaccuracy() = 1.2f, and
+    // an onUpdate that overrides the shortbow's preventSlowDown away -- "no speedup on charging",
+    // so it draws at vanilla's own 0.2 (#400).
     public static final DeferredItem<BowItem> TOOL_LONGBOW = ITEMS.registerItem("longbow",
             properties -> new BowItem(properties, ToolConstants.LONGBOW, 30, 5.5F, 1.2F),
             new Item.Properties().stacksTo(1));
 
     // CrossBow.java: getDrawTime() = 45, baseProjectileSpeed() = 7f, and no baseInaccuracy()
-    // override at all -- so BowCore's own 0f default, unlike either bow.
+    // override at all -- so BowCore's own 0f default, unlike either bow. preventSlowDown(0.195f):
+    // barely faster than vanilla's 0.2, i.e. cranking one all but stops you (#400).
     public static final DeferredItem<CrossbowItem> TOOL_CROSSBOW = ITEMS.registerItem("crossbow",
-            properties -> new CrossbowItem(properties, ToolConstants.CROSSBOW, 45, 7.0F, 0.0F),
+            properties -> new CrossbowItem(properties, ToolConstants.CROSSBOW, 45, 7.0F, 0.0F, 0.195F),
             new Item.Properties().stacksTo(1));
 
     private static DeferredItem<ToolItem> weapon(String name, ToolConstants.Entry constants,

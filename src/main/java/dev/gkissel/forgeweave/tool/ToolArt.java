@@ -6,6 +6,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import javax.annotation.Nullable;
+
 /**
  * Where an assembled tool's layer art lives, and in what order the layers stack. One place, because
  * three unrelated callers have to agree on it: {@code ForgeweaveItemModelProvider} writes the item
@@ -173,6 +175,92 @@ public final class ToolArt {
     /** The texture path of a layer's broken variant -- {@link #layer} with a {@code _broken} suffix. */
     public static String brokenLayerTexture(String tool, String layer) {
         return layer(tool, layer) + "_broken";
+    }
+
+    /**
+     * How many pull stages a drawn bow has (M3.5 issue #400). Upstream 1.12 gives every bow exactly
+     * three: {@code models/item/tools/<bow>.tcon.json} carries three {@code overrides} entries keyed
+     * on the vanilla {@code pulling}/{@code pull} item properties, each re-pointing a subset of the
+     * model's {@code layer<N>} textures.
+     */
+    public static final int DRAW_STAGES = 3;
+
+    /**
+     * The {@code pull} value each stage's model override tests, read straight off upstream's
+     * {@code overrides} blocks. The shortbow's and longbow's first override carries no {@code pull}
+     * key at all, which vanilla's "every predicate at or above its threshold" rule reads as the
+     * {@code 0} here; the crossbow spells its own {@code 0} out.
+     *
+     * <p>The crossbow's are its own: it cranks to {@code 0.5} before its limb bends and only counts
+     * as fully drawn at {@code 0.999} -- upstream's own threshold, not {@code 1}, so a float that
+     * lands a hair under full still reads as full.
+     */
+    private static final Map<String, float[]> DRAW_THRESHOLDS = Map.of(
+            "shortbow", new float[] {0.0f, 0.65f, 0.9f},
+            "longbow", new float[] {0.0f, 0.65f, 0.9f},
+            "crossbow", new float[] {0.0f, 0.5f, 0.999f});
+
+    /** The stage whose art a loaded crossbow draws; see {@link #hasLoadedState}. */
+    public static final int LOADED_STAGE = 3;
+
+    /**
+     * {@code tool}'s three {@code pull} thresholds in stage order, or {@code null} if it is not a bow
+     * and never renders a draw. A copy: the array is this class's own state.
+     */
+    @Nullable
+    public static float[] drawThresholds(String tool) {
+        float[] thresholds = DRAW_THRESHOLDS.get(tool);
+        return thresholds == null ? null : thresholds.clone();
+    }
+
+    /**
+     * The stage {@code tool} draws at draw progress {@code pull} -- 1 to {@link #DRAW_STAGES}, or 0
+     * for a tool with no draw art. The last threshold the progress clears wins, which is how vanilla
+     * resolves the {@code overrides} list this mirrors, and is why a bow at progress 0 is already at
+     * stage 1 (its first threshold is 0; a bow that is not being drawn never gets here, because its
+     * {@code pulling} predicate is 0).
+     *
+     * <p>Its runtime caller is {@code ModifierOverlayModels}, which has to pick the matching staged
+     * modifier overlay for whatever stage the model resolved to -- upstream's {@code modifier_suffix}.
+     */
+    public static int drawStage(String tool, float pull) {
+        float[] thresholds = DRAW_THRESHOLDS.get(tool);
+        if (thresholds == null) {
+            return 0;
+        }
+        int stage = 0;
+        for (int i = 0; i < thresholds.length; i++) {
+            if (pull >= thresholds[i]) {
+                stage = i + 1;
+            }
+        }
+        return stage;
+    }
+
+    /**
+     * The texture path one layer draws at pull stage {@code stage} -- {@link #layer} with a
+     * {@code _draw<stage>} suffix where upstream re-points that layer, and the plain undrawn layer
+     * where it does not.
+     *
+     * <p>Upstream's rule, uniform across all three bows: the <b>string</b> layer has art from stage 1
+     * (it starts moving the instant you draw) and the <b>limb</b> layers only from stage 2 (they do
+     * not visibly bend until the draw is well along). Every other layer -- the longbow's grip, the
+     * crossbow's body and binding -- keeps its undrawn art at every stage. See
+     * {@code scripts/derive_bow_draw_art.py} for the per-file table this was read off.
+     */
+    public static String drawLayer(String tool, String layer, int stage) {
+        boolean staged = layer.startsWith("string") || (layer.startsWith("limb") && stage >= 2);
+        return staged ? layer(tool, layer) + "_draw" + stage : layer(tool, layer);
+    }
+
+    /**
+     * Whether {@code tool} renders a loaded state -- the crossbow alone, upstream's
+     * {@code {"loaded": 1}} override ({@code CrossBow#PROPERTY_IS_LOADED}). It points at the
+     * {@link #LOADED_STAGE} textures rather than at art of its own: a loaded crossbow is a crossbow
+     * held at full crank.
+     */
+    public static boolean hasLoadedState(String tool) {
+        return ToolConstants.CROSSBOW.id().equals(tool);
     }
 
     private ToolArt() {}

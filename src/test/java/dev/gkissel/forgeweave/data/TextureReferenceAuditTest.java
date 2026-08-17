@@ -259,7 +259,9 @@ class TextureReferenceAuditTest {
      * harness captures showed a near-invisible edge-on held item). The parity source is upstream
      * 1.12, whose tool models carry no {@code display} block and fall back to Mantle's
      * {@code DEFAULT_TOOL_STATE} -- numerically vanilla's {@code item/handheld} -- so inheriting that
-     * parent is the check, and three tools additionally mirror upstream's own per-tool block.
+     * parent is the check, and six tools additionally mirror upstream's own per-tool block -- the
+     * three M3 ones plus, since M3.5 issue #400, the three bows, which upstream lays across the body
+     * rather than swinging.
      *
      * <p>Walked off {@code ToolAssemblyRecipes.ENTRIES} so a tool added later cannot quietly go back
      * to a flat model.
@@ -267,7 +269,7 @@ class TextureReferenceAuditTest {
     @Test
     void everyToolModelInheritsTheHandheldDisplayTransforms() throws IOException {
         Path models = projectRoot().resolve("src/generated/resources/assets/forgeweave/models/item");
-        Set<String> overriding = Set.of("cleaver", "rapier", "battlesign");
+        Set<String> overriding = Set.of("cleaver", "rapier", "battlesign", "shortbow", "longbow", "crossbow");
 
         for (ToolAssemblyRecipes.Entry entry : ToolAssemblyRecipes.ENTRIES) {
             String tool = entry.constants().id();

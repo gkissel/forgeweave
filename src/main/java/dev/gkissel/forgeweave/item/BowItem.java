@@ -72,12 +72,18 @@ import dev.gkissel.forgeweave.trait.ForgeweaveTraits;
  * ponytail: not scaled by draw progress the way upstream's own arrows are ({@code power - 1}
  * multiplier); add that if playtest wants weak draws to carry less bonus.
  *
- * <p>Not ported (deliberately, see the PR): per-stage draw art and the crosshair (M3.5-6),
- * {@code preventSlowDown} (a client movement-input hack), and the multi-projectile
+ * <p>Not ported (deliberately, see the PR): the crosshair, and the multi-projectile
  * {@code TinkerToolEvent.OnBowShoot} hook -- {@link #shoot} fires exactly one arrow. M3.5-5 (issue
  * #396) confirmed against the clone that nothing on a <em>launcher</em> ever raises that count: its
  * only listeners ({@code TraitSplitting}, {@code TraitEndspeed}) key on the <em>ammo's</em> traits,
  * which are Forgeweave's deferred material arrows.
+ *
+ * <h2>Rendering and feel (M3.5 issue #400)</h2>
+ *
+ * <p>{@link #drawbackProgress(ItemStack, LivingEntity)} is what the {@code minecraft:pull} item
+ * property reads, and {@link #drawMovementSpeed()} what {@code BowDrawMovement} applies -- the two
+ * seams the draw-stage models and {@code preventSlowDown} hang off. Both live here rather than in
+ * the client package so the numbers stay next to the formula they come from.
  *
  * <h2>What rides the arrow</h2>
  *
@@ -96,9 +102,16 @@ public class BowItem extends ToolItem {
     /** {@code BowCore#onPlayerStoppedUsing}: {@code if(useTime < 5) return;}. */
     private static final int MIN_DRAW_TICKS = 5;
 
+    /**
+     * What vanilla leaves a player using any item: {@code LocalPlayer#aiStep} multiplies both
+     * movement impulses by {@code 0.2F}. A bow that does not override it draws at this.
+     */
+    public static final float VANILLA_DRAW_MOVEMENT_SPEED = 0.2F;
+
     private final int drawTime;
     private final float baseProjectileSpeed;
     private final float baseInaccuracy;
+    private final float drawMovementSpeed;
 
     /**
      * @param constants the bow's {@link ToolConstants} entry (attack speed, damage potential, parts)
@@ -110,6 +123,17 @@ public class BowItem extends ToolItem {
      */
     public BowItem(Properties properties, ToolConstants.Entry constants, int drawTime, float baseProjectileSpeed,
             float baseInaccuracy) {
+        this(properties, constants, drawTime, baseProjectileSpeed, baseInaccuracy, VANILLA_DRAW_MOVEMENT_SPEED);
+    }
+
+    /**
+     * As above, for a bow that lets its user keep moving while drawing (M3.5 issue #400).
+     *
+     * @param drawMovementSpeed the argument {@code ShortBow#onUpdate}/{@code CrossBow#onUpdate} pass
+     *     to {@code ToolCore#preventSlowDown} -- see {@link #drawMovementSpeed()}
+     */
+    public BowItem(Properties properties, ToolConstants.Entry constants, int drawTime, float baseProjectileSpeed,
+            float baseInaccuracy, float drawMovementSpeed) {
         // No mineable tag: a bow digs nothing. weapon = false: BowCore adds Category.LAUNCHER, never
         // Category.WEAPON, so a melee hit with it costs full durability and haste's attack-speed
         // half does not apply (its draw-speed half is M3.5-5's).
@@ -117,6 +141,19 @@ public class BowItem extends ToolItem {
         this.drawTime = drawTime;
         this.baseProjectileSpeed = baseProjectileSpeed;
         this.baseInaccuracy = baseInaccuracy;
+        this.drawMovementSpeed = drawMovementSpeed;
+    }
+
+    /**
+     * The fraction of walking speed this bow's user keeps while drawing it (M3.5 issue #400):
+     * upstream's {@code ToolCore#preventSlowDown}, which {@code ShortBow#onUpdate} calls with
+     * {@code 0.5f} ("shortbows are more mobile than other bows") and {@code CrossBow#onUpdate} with
+     * {@code 0.195f} -- and which {@code LongBow#onUpdate} deliberately overrides away ("no speedup
+     * on charging"), so the longbow crawls at vanilla's own {@value #VANILLA_DRAW_MOVEMENT_SPEED}.
+     * {@code BowDrawMovement} is the client hook that applies it.
+     */
+    public float drawMovementSpeed() {
+        return drawMovementSpeed;
     }
 
     /** {@code BowCore#getDrawTime()}. */
