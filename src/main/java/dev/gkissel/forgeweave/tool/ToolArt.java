@@ -15,7 +15,10 @@ import java.util.Set;
  *
  * <p>There is exactly one layer per part slot, and a layer's name comes from the <em>role</em> of the
  * slot it draws -- {@code handle}, {@code head}, {@code binding} for
- * {@link ToolConstants.Role#HANDLE}/{@code HEAD}/{@code EXTRA}.
+ * {@link ToolConstants.Role#HANDLE}/{@code HEAD}/{@code EXTRA}, and {@code limb}/{@code string} for
+ * the bows' {@code LIMB}/{@code BOWSTRING} (M3.5 issue #394: {@code shortbow.tcon.json} is
+ * layer0 = limb_top, layer1 = limb_bottom, layer2 = bowstring, so {@code limb}, {@code limb2},
+ * {@code string} in that order, string on top).
  *
  * <p>The layers stack in {@link #LAYER_ORDER}: every handle first, then every head, then the extra
  * part. That is upstream 1.12's own order ({@code models/item/tools/*.tcon.json}: layer0 = handle,
@@ -57,13 +60,16 @@ public final class ToolArt {
 
     /** Back-to-front drawing order of the roles; see the class javadoc. */
     private static final List<ToolConstants.Role> LAYER_ORDER =
-            List.of(ToolConstants.Role.HANDLE, ToolConstants.Role.HEAD, ToolConstants.Role.EXTRA);
+            List.of(ToolConstants.Role.HANDLE, ToolConstants.Role.HEAD, ToolConstants.Role.EXTRA,
+                    ToolConstants.Role.LIMB, ToolConstants.Role.BOWSTRING);
 
     /** The layer name each part role draws under; see the class javadoc. */
     private static final Map<ToolConstants.Role, String> ROLE_LAYERS = new EnumMap<>(Map.of(
             ToolConstants.Role.HANDLE, "handle",
             ToolConstants.Role.HEAD, "head",
-            ToolConstants.Role.EXTRA, "binding"));
+            ToolConstants.Role.EXTRA, "binding",
+            ToolConstants.Role.LIMB, "limb",
+            ToolConstants.Role.BOWSTRING, "string"));
 
     /**
      * The part slot each model layer draws, in layer order -- the one place the art's back-to-front
@@ -142,6 +148,7 @@ public final class ToolArt {
             Map.entry("rapier", "head"),
             Map.entry("scimitar", "head"),
             Map.entry("scythe", "head"),
+            Map.entry("shortbow", "string"),
             Map.entry("shovel", "head"),
             Map.entry("vein_hammer", "head"),
             Map.entry("warmace", "head"));

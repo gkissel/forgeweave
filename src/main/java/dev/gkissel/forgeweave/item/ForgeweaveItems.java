@@ -245,6 +245,14 @@ public final class ForgeweaveItems {
             properties -> new WarmaceItem(properties, ToolConstants.WARMACE, BlockTags.MINEABLE_WITH_AXE, true, null),
             new Item.Properties().stacksTo(1));
 
+    // M3.5's shortbow (docs/SCOPE.md M3.5 issue #394): upstream tools/ranged/item/ShortBow.java --
+    // getDrawTime() = 12 (BowCore's default is 20; the shortbow overrides it), baseProjectileSpeed()
+    // = 3f (BowCore's default), baseInaccuracy() = 1f. Its stat constants are ToolConstants#SHORTBOW;
+    // the draw/release cycle is BowItem.
+    public static final DeferredItem<BowItem> TOOL_SHORTBOW = ITEMS.registerItem("shortbow",
+            properties -> new BowItem(properties, ToolConstants.SHORTBOW, 12, 3.0F, 1.0F),
+            new Item.Properties().stacksTo(1));
+
     private static DeferredItem<ToolItem> weapon(String name, ToolConstants.Entry constants,
             ForgeweaveInnates.Innate innate) {
         return ITEMS.registerItem(name,

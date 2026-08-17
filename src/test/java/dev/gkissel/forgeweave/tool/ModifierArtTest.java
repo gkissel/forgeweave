@@ -53,6 +53,9 @@ class ModifierArtTest {
             String tool = entry.constants().id();
             for (ResourceLocation modifier : ModifierArt.OVERLAY_MODIFIERS) {
                 String texture = ModifierArt.overlay(tool, modifier);
+                if (texture == null) {
+                    continue; // a pair upstream ships no art for (ModifierArt#NO_UPSTREAM_ART)
+                }
                 Path png = texturesRoot().resolve(texture + ".png");
                 if (!Files.isRegularFile(png)) {
                     missing.add(tool + " x " + modifier + " -> " + png);

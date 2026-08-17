@@ -1,0 +1,16 @@
+{
+  "parent": "minecraft:item/handheld",
+  "overrides": [
+    {
+      "model": "forgeweave:item/shortbow_broken",
+      "predicate": {
+        "forgeweave:broken": 1.0
+      }
+    }
+  ],
+  "textures": {
+    "layer0": "forgeweave:derived/tools/shortbow_limb",
+    "layer1": "forgeweave:derived/tools/shortbow_limb2",
+    "layer2": "forgeweave:derived/tools/shortbow_string"
+  }
+}

@@ -27,6 +27,7 @@ two together.
 | `rapier_head_broken.png` | `rapier/broken_blade.png` |
 | `scythe_head_broken.png` | `scythe/broken_head.png` |
 | `shovel_head_broken.png` | `shovel/broken_head.png` |
+| `shortbow_string_broken.png` | `shortbow/bowstring_broken.png` (breaks at layer2, the string; M3.5 #394) |
 
 Five tools have no upstream *broken* art at all -- the dagger, katana and scimitar (issue
 #159/#198/#279), the vein hammer (#157) and the war mace (#161) -- so there is no broken art to port
@@ -84,6 +85,8 @@ PORTED = {
     "rapier_head": "rapier/broken_blade.png",
     "scythe_head": "scythe/broken_head.png",
     "shovel_head": "shovel/broken_head.png",
+    # M3.5 #394: shortbow.tcon.json's broken2 -- the one tool upstream breaks at its string layer.
+    "shortbow_string": "shortbow/bowstring_broken.png",
 }
 
 # The five Forgeweave-only tools; their broken layer is chip() applied to their own head layer.

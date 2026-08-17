@@ -143,6 +143,10 @@ final class ToolTooltip {
         } else {
             tooltip.add(durabilityLine(stack));
         }
+        // M3.5 #394, upstream ToolCore#getInformation's Category.LAUNCHER block: draw speed as
+        // seconds to full draw (TooltipBuilder#addDrawSpeed: drawTime / (20 * drawSpeed)), range,
+        // bonus damage -- between durability and attack, where upstream puts them.
+        appendLauncherLines(stack, tooltip);
         tooltip.add(statLine("tooltip.forgeweave.attack_damage", attackDamage, StationText.ATTACK_COLOR));
         // The M1 tool innate retrofit (issue #164): fixed per-tool-type, so it's shown compact like
         // Attack Damage rather than gated behind Shift like traits, which are per-material.
@@ -272,6 +276,13 @@ final class ToolTooltip {
                 .append(Component.literal("/").withStyle(ChatFormatting.GRAY))
                 .append(Component.literal(Integer.toString(max))
                         .withStyle(Style.EMPTY.withColor(StationText.DURABILITY_COLOR)));
+    }
+
+    /** The three launcher lines, for a bow only -- see {@link StationText#launcherStats}. */
+    private static void appendLauncherLines(ItemStack stack, List<Component> tooltip) {
+        if (stack.getItem() instanceof BowItem bow) {
+            tooltip.addAll(StationText.launcherStats(stack, bow.drawTime()));
+        }
     }
 
     private static Component statLine(String key, float value, TextColor color) {

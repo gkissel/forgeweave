@@ -31,6 +31,7 @@ import dev.gkissel.forgeweave.item.ToolItem;
  *   frying pan  handle (33-21, 42+20)   pan   (33+1,  42-6)
  *   dagger      blade  (33+14, 42-14)   handle (33-14, 42+14)
  *   warmace     handle (33-18, 42+18)   head  (33+20, 42-20)      binding (33, 42)
+ *   shortbow    limb   (32+4,  41-18)   limb  (32-18, 41+4)       string  (32+6, 41+6)
  *   repair      tool (33, 42)           item (33-18, 42+20)       item (33-22, 42-5)
  *                                       item (33, 42-23)          item (33+22, 42-5)
  *                                       item (33+18, 42+20)
@@ -188,7 +189,12 @@ public final class ToolStationTabs {
             // No upstream layout (no 1.12 vein hammer): the hammer's, since it is the same silhouette
             // of parts. Its own order is head, handle, binding, plate.
             build(ForgeweaveItems.TOOL_VEIN_HAMMER,
-                    at(11, -13), at(-12, 10), at(24, 6), at(-8, -26)));
+                    at(11, -13), at(-12, 10), at(24, 6), at(-8, -26)),
+            // M3.5 #394. Upstream RangedClientProxy#registerToolBuildInfo lays the shortbow out from
+            // a (32, 41) origin -- (32+4, 41-18) top limb, (32-18, 41+4) left limb, (32+6, 41+6)
+            // string -- i.e. absolute (36, 23), (14, 45), (38, 47); the same pixels from this table's
+            // (33, 42) origin, in ShortBow's own limb, limb, string order.
+            build(ForgeweaveItems.TOOL_SHORTBOW, at(3, -19), at(-19, 3), at(5, 5)));
 
     /** The repair tab, which is what a freshly opened station shows (as upstream's does). */
     public static final int REPAIR = 0;

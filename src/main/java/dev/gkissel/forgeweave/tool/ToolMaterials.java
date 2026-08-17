@@ -37,18 +37,23 @@ import net.minecraft.resources.ResourceLocation;
  * entry, but only a caller holding the whole {@code ItemStack} can do that lookup, and a data
  * component decodes without one. Storing it is what lets the component stay self-describing -- and
  * it is the shape already on disk, so it costs nothing new.
+ *
+ * <p>M3.5's bows (issue #394) have no HANDLE slot at all -- limb, limb, string -- so {@code handle}
+ * became optional then, the same way {@code binding} already was for the binding-less tools. A bow's
+ * {@code head} is its first limb ({@link ToolConstants.Role#LIMB} carries the HEAD block); a tool
+ * written before then still has its {@code handle} field and encodes byte-identically.
  */
-public record ToolMaterials(ResourceLocation head, Optional<ResourceLocation> binding, ResourceLocation handle,
+public record ToolMaterials(ResourceLocation head, Optional<ResourceLocation> binding, Optional<ResourceLocation> handle,
                             List<ResourceLocation> parts) {
 
     /** Decoding shape: {@code parts} absent means a pre-M3 tool, rebuilt from the triple. */
-    private record Raw(ResourceLocation head, Optional<ResourceLocation> binding, ResourceLocation handle,
+    private record Raw(ResourceLocation head, Optional<ResourceLocation> binding, Optional<ResourceLocation> handle,
                        Optional<List<ResourceLocation>> parts) {}
 
     private static final Codec<Raw> RAW_CODEC = RecordCodecBuilder.create(instance -> instance.group(
             ResourceLocation.CODEC.fieldOf("head").forGetter(Raw::head),
             ResourceLocation.CODEC.optionalFieldOf("binding").forGetter(Raw::binding),
-            ResourceLocation.CODEC.fieldOf("handle").forGetter(Raw::handle),
+            ResourceLocation.CODEC.optionalFieldOf("handle").forGetter(Raw::handle),
             ResourceLocation.CODEC.listOf().optionalFieldOf("parts").forGetter(Raw::parts))
             .apply(instance, Raw::new));
 
@@ -61,17 +66,17 @@ public record ToolMaterials(ResourceLocation head, Optional<ResourceLocation> bi
     public static final StreamCodec<RegistryFriendlyByteBuf, ToolMaterials> STREAM_CODEC = StreamCodec.composite(
             ResourceLocation.STREAM_CODEC, ToolMaterials::head,
             ByteBufCodecs.optional(ResourceLocation.STREAM_CODEC), ToolMaterials::binding,
-            ResourceLocation.STREAM_CODEC, ToolMaterials::handle,
+            ByteBufCodecs.optional(ResourceLocation.STREAM_CODEC), ToolMaterials::handle,
             ResourceLocation.STREAM_CODEC.apply(ByteBufCodecs.list()), ToolMaterials::parts,
             ToolMaterials::new);
 
     /** M1's slot order, which is what a pre-M3 tool's three fields were written in. */
     private static List<ResourceLocation> legacyOrder(ResourceLocation head, Optional<ResourceLocation> binding,
-            ResourceLocation handle) {
+            Optional<ResourceLocation> handle) {
         List<ResourceLocation> ids = new ArrayList<>(3);
         ids.add(head);
         binding.ifPresent(ids::add);
-        ids.add(handle);
+        handle.ifPresent(ids::add);
         return List.copyOf(ids);
     }
 
@@ -88,15 +93,16 @@ public record ToolMaterials(ResourceLocation head, Optional<ResourceLocation> bi
         ResourceLocation handle = null;
         for (int i = 0; i < slots.size(); i++) {
             switch (slots.get(i).role()) {
-                case HEAD -> head = head == null ? materialIds.get(i) : head;
+                case HEAD, LIMB -> head = head == null ? materialIds.get(i) : head;
                 case EXTRA -> binding = binding == null ? materialIds.get(i) : binding;
                 case HANDLE -> handle = handle == null ? materialIds.get(i) : handle;
+                case BOWSTRING -> { } // no primary pick: nothing keys off the string material
             }
         }
-        if (head == null || handle == null) {
-            throw new IllegalArgumentException("a tool needs at least one head and one handle part");
+        if (head == null) {
+            throw new IllegalArgumentException("a tool needs at least one head (or limb) part");
         }
-        return new ToolMaterials(head, Optional.ofNullable(binding), handle, List.copyOf(materialIds));
+        return new ToolMaterials(head, Optional.ofNullable(binding), Optional.ofNullable(handle), List.copyOf(materialIds));
     }
 
     /**

@@ -239,7 +239,7 @@ class ToolTooltipTest {
     @Test
     void detailedTooltipSectionsAreOneMultiHeadSlotEach() {
         ItemStack stack = assembledTool(ForgeweaveItems.TOOL_HAMMER.get(), 40, List.of(CHEAP_TRAIT, ECOLOGICAL_TRAIT),
-                new ToolMaterials(STONE_ID, Optional.empty(), WOOD_ID,
+                new ToolMaterials(STONE_ID, Optional.empty(), Optional.of(WOOD_ID),
                         List.of(WOOD_ID, STONE_ID, STONE_ID, WOOD_ID)));
 
         List<Component> tooltip = new ArrayList<>();
@@ -259,7 +259,7 @@ class ToolTooltipTest {
     @Test
     void detailedTooltipSkipsSectionsWhenMaterialsAreShorterThanThePartList() {
         ItemStack stack = assembledTool(ForgeweaveItems.TOOL_HAMMER.get(), 40, List.of(),
-                new ToolMaterials(STONE_ID, Optional.empty(), WOOD_ID, List.of(WOOD_ID, STONE_ID)));
+                new ToolMaterials(STONE_ID, Optional.empty(), Optional.of(WOOD_ID), List.of(WOOD_ID, STONE_ID)));
 
         List<Component> tooltip = new ArrayList<>();
         ToolTooltip.append(stack, registriesWithStoneAndWood(), true, 7.0F, tooltip);
@@ -335,7 +335,7 @@ class ToolTooltipTest {
 
     private static ItemStack assembledTool(Item item, int damage, List<ResourceLocation> traits) {
         return assembledTool(item, damage, traits,
-                new ToolMaterials(STONE_ID, Optional.of(WOOD_ID), WOOD_ID, List.of(STONE_ID, WOOD_ID, WOOD_ID)));
+                new ToolMaterials(STONE_ID, Optional.of(WOOD_ID), Optional.of(WOOD_ID), List.of(STONE_ID, WOOD_ID, WOOD_ID)));
     }
 
     private static ItemStack assembledTool(Item item, int damage, List<ResourceLocation> traits,

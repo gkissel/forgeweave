@@ -17,6 +17,7 @@ import net.neoforged.neoforge.registries.DeferredRegister;
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.combat.DamageRamp;
 import dev.gkissel.forgeweave.modifier.ModifierEntry;
+import dev.gkissel.forgeweave.tool.LauncherStats;
 import dev.gkissel.forgeweave.tool.ToolMaterials;
 import dev.gkissel.forgeweave.tool.ToolStats;
 import dev.gkissel.forgeweave.trait.AlienProgress;
@@ -51,6 +52,15 @@ public final class ForgeweaveDataComponents {
     public static final DeferredHolder<DataComponentType<?>, DataComponentType<ToolStats.Stats>> TOOL_STATS =
             DATA_COMPONENTS.registerComponentType("tool_stats",
                     builder -> builder.persistent(ToolStats.Stats.CODEC).networkSynchronized(ToolStats.Stats.STREAM_CODEC));
+
+    /**
+     * The ranged half of a bow's stats -- upstream 1.12's {@code ProjectileLauncherNBT} fields
+     * (M3.5 issue #394): draw speed, range and bonus damage averaged from the limbs' BOW blocks at
+     * assembly. Only bows carry it; {@link #TOOL_STATS} stays the melee/durability half.
+     */
+    public static final DeferredHolder<DataComponentType<?>, DataComponentType<LauncherStats>> LAUNCHER_STATS =
+            DATA_COMPONENTS.registerComponentType("launcher_stats",
+                    builder -> builder.persistent(LauncherStats.CODEC).networkSynchronized(LauncherStats.STREAM_CODEC));
 
     /**
      * The ids of the {@code Trait}s an assembled tool has, resolved from its three materials at

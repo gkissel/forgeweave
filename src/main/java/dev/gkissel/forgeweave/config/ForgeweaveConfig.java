@@ -188,8 +188,7 @@ public final class ForgeweaveConfig {
                         "battleaxe, scimitar, katana, warmace, cleaver) can be assembled and obtained.")
                 .define("meleeWeapons", true);
         RANGED_WEAPONS = builder
-                .comment("If true, ranged weapons can be assembled and obtained. Reserved: Forgeweave ships no",
-                        "ranged weapons yet, so this has no effect until they land.")
+                .comment("If true, ranged weapons (shortbow) can be assembled and obtained.")
                 .define("rangedWeapons", true);
         ARMOR = builder
                 .comment("If true, armor can be assembled and obtained. Reserved: Forgeweave ships no armor yet,",

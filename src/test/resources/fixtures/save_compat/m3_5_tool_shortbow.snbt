@@ -1,0 +1,67 @@
+{
+    decoder: "item_stack",
+    expect: {
+        components: {
+            "forgeweave:launcher_stats": {
+                bonus_damage: 3.5f,
+                draw_speed: 0.725f,
+                range: 1.325f
+            },
+            "forgeweave:tool_materials": {
+                head: "forgeweave:iron",
+                parts: [
+                    "forgeweave:iron",
+                    "forgeweave:bone",
+                    "forgeweave:string"
+                ]
+            },
+            "forgeweave:tool_stats": {
+                attack_damage: 3.25f,
+                durability: 202,
+                mining_speed: 5.545f
+            },
+            "forgeweave:traits": [
+                "forgeweave:magnetic",
+                "forgeweave:magnetic2",
+                "forgeweave:fractured",
+                "forgeweave:splintering"
+            ],
+            "minecraft:damage": 7,
+            "minecraft:max_damage": 202
+        },
+        id: "forgeweave:shortbow"
+    },
+    nbt: {
+        components: {
+            "forgeweave:launcher_stats": {
+                bonus_damage: 3.5f,
+                draw_speed: 0.725f,
+                range: 1.325f
+            },
+            "forgeweave:tool_materials": {
+                head: "forgeweave:iron",
+                parts: [
+                    "forgeweave:iron",
+                    "forgeweave:bone",
+                    "forgeweave:string"
+                ]
+            },
+            "forgeweave:tool_stats": {
+                attack_damage: 3.25f,
+                durability: 202,
+                mining_speed: 5.545f
+            },
+            "forgeweave:traits": [
+                "forgeweave:magnetic",
+                "forgeweave:magnetic2",
+                "forgeweave:fractured",
+                "forgeweave:splintering"
+            ],
+            "minecraft:damage": 7,
+            "minecraft:max_damage": 202
+        },
+        count: 1,
+        id: "forgeweave:shortbow"
+    },
+    what: "M3.5 (#394): a Tool Station shortbow -- iron limb, bone limb, string -- after seven shots. Three things are pinned that no earlier tool could pin: the new `forgeweave:launcher_stats` component (upstream ProjectileLauncherNBT's drawSpeed/range/bonusDamage, averaged over the two limbs); a `tool_materials` with no `handle` at all, since a bow has no HANDLE slot (the field went optional here, and the day it becomes required again every bow in every world stops decoding); and a trait list a limb collected from both its BOW and HEAD scopes (magnetic from iron's general list, magnetic2 from its head list). BowGameTests#ironBoneStringShortbowStatsMatchUpstream assembles this exact bow at a real station and asserts these numbers."
+}
