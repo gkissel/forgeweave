@@ -64,8 +64,14 @@ public final class StationText {
     public static final TextColor SPEED_COLOR = TextColor.fromRgb(0x78A0CD);
     /** Upstream {@code HeadMaterialStats#COLOR_Attack} (215, 100, 100). */
     public static final TextColor ATTACK_COLOR = TextColor.fromRgb(0xD76464);
-    /** Upstream {@code HandleMaterialStats#COLOR_Modifier} (185, 185, 90). */
+    /** Upstream {@code HandleMaterialStats#COLOR_Modifier} (185, 185, 90), shared by the bowstring row. */
     public static final TextColor MODIFIER_COLOR = TextColor.fromRgb(0xB9B95A);
+    /** Upstream {@code BowMaterialStats#COLOR_Drawspeed} (128, 128, 128). */
+    public static final TextColor DRAWSPEED_COLOR = TextColor.fromRgb(0x808080);
+    /** Upstream {@code BowMaterialStats#COLOR_Range} (140, 175, 175). */
+    public static final TextColor RANGE_COLOR = TextColor.fromRgb(0x8CAFAF);
+    /** Upstream {@code BowMaterialStats#COLOR_Damage} (155, 80, 65). */
+    public static final TextColor BOW_DAMAGE_COLOR = TextColor.fromRgb(0x9B5041);
 
     /** Trailing-zero-free numbers, so 1.0 reads "1" and 1.25 reads "1.25" (upstream's {@code Util.df}). */
     private static final DecimalFormat FORMAT =
@@ -129,7 +135,11 @@ public final class StationText {
         statGroup(lines, "head", headStats(material));
         statGroup(lines, "handle", handleStats(material));
         statGroup(lines, "extra", extraStats(material));
-        lines.remove(lines.size() - 1); // upstream drops the last group's trailing spacer
+        statGroup(lines, "bow", bowStats(material));
+        statGroup(lines, "bowstring", bowstringStats(material));
+        if (!lines.isEmpty()) {
+            lines.remove(lines.size() - 1); // upstream drops the last group's trailing spacer
+        }
         // Not List.copyOf: that rejects the null spacers this list is made of.
         return Collections.unmodifiableList(lines);
     }
@@ -140,6 +150,11 @@ public final class StationText {
      * and the Part Builder's panel cannot end up calling the same stat block different things.
      */
     private static void statGroup(List<Component> lines, String key, List<Component> stats) {
+        // Issue #392: a material only carries some of the blocks (a bowstring material has nothing
+        // but its bowstring), and a heading over nothing is worse than no heading.
+        if (stats.isEmpty()) {
+            return;
+        }
         lines.add(Component.translatable("tooltip.forgeweave.stat_type." + key).withStyle(ChatFormatting.UNDERLINE));
         lines.addAll(stats);
         lines.add(null); // spacer
@@ -147,22 +162,47 @@ public final class StationText {
 
     /** What a head part of this material contributes: the durability pool, mining speed and attack. */
     public static List<Component> headStats(Material material) {
-        return List.of(
-                stat("durability", material.head().durability(), DURABILITY_COLOR),
-                stat("mining_speed", material.head().miningSpeed(), SPEED_COLOR),
-                stat("attack_damage", material.head().attackDamage(), ATTACK_COLOR));
+        return material.head().<List<Component>>map(head -> List.of(
+                stat("durability", head.durability(), DURABILITY_COLOR),
+                stat("mining_speed", head.miningSpeed(), SPEED_COLOR),
+                stat("attack_damage", head.attackDamage(), ATTACK_COLOR)))
+                .orElseGet(List::of);
     }
 
     /** What a handle part of this material contributes: a durability multiplier plus a flat bonus. */
     public static List<Component> handleStats(Material material) {
-        return List.of(
-                stat("handle_modifier", material.handle().durabilityModifier(), MODIFIER_COLOR),
-                stat("handle_durability", material.handle().durability(), DURABILITY_COLOR));
+        return material.handle().<List<Component>>map(handle -> List.of(
+                stat("handle_modifier", handle.durabilityModifier(), MODIFIER_COLOR),
+                stat("handle_durability", handle.durability(), DURABILITY_COLOR)))
+                .orElseGet(List::of);
     }
 
     /** What a binding (upstream's "extra") part of this material contributes: flat durability. */
     public static List<Component> extraStats(Material material) {
-        return List.of(stat("extra_durability", material.extraDurability(), DURABILITY_COLOR));
+        return material.extraDurability().<List<Component>>map(extra -> List.of(
+                stat("extra_durability", extra, DURABILITY_COLOR)))
+                .orElseGet(List::of);
+    }
+
+    /**
+     * What a bow limb of this material contributes (issue #392, upstream {@code
+     * BowMaterialStats#getLocalizedInfo}). The draw speed is shown as {@code 1/drawspeed} -- upstream
+     * stores "how fast", displays "how long" -- which is why steel's 0.4 reads as 2.5 while paper's
+     * 1.5 reads as 0.67.
+     */
+    public static List<Component> bowStats(Material material) {
+        return material.bow().<List<Component>>map(bow -> List.of(
+                stat("drawspeed", 1.0F / bow.drawspeed(), DRAWSPEED_COLOR),
+                stat("range", bow.range(), RANGE_COLOR),
+                stat("bonus_damage", bow.bonusDamage(), BOW_DAMAGE_COLOR)))
+                .orElseGet(List::of);
+    }
+
+    /** What a bow string of this material contributes: one multiplier (upstream {@code BowStringMaterialStats}). */
+    public static List<Component> bowstringStats(Material material) {
+        return material.bowstring().<List<Component>>map(bowstring -> List.of(
+                stat("bowstring_modifier", bowstring.modifier(), MODIFIER_COLOR)))
+                .orElseGet(List::of);
     }
 
     /**

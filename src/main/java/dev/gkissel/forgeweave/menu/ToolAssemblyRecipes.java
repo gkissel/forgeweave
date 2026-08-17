@@ -870,7 +870,7 @@ public final class ToolAssemblyRecipes {
             return Optional.empty();
         }
 
-        int headDurability = head.get().head().durability();
+        int headDurability = head.get().head().map(Material.Head::durability).orElse(0);
         int maxDamage = toolStack.getMaxDamage();
         ToolStats.Stats baseStats = toolStack.get(ForgeweaveDataComponents.TOOL_STATS.get());
         int baseDurability = baseStats != null ? baseStats.durability() : maxDamage;

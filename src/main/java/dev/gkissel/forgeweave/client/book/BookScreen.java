@@ -211,6 +211,8 @@ public class BookScreen extends Screen {
         List<Component> stats = new ArrayList<>(StationText.headStats(page.material()));
         stats.addAll(StationText.handleStats(page.material()));
         stats.addAll(StationText.extraStats(page.material()));
+        stats.addAll(StationText.bowStats(page.material()));
+        stats.addAll(StationText.bowstringStats(page.material()));
         for (Component line : stats) {
             graphics.drawString(this.font, line, x, cursor, TEXT_COLOR, false);
             cursor += this.font.lineHeight + 1;

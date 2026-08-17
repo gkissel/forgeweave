@@ -58,13 +58,25 @@ public final class ToolStats {
                 Stats::new);
     }
 
+    /**
+     * The three materials must carry the stat block their slot draws from; {@code
+     * PartItem#hasUnusableMaterial} is what keeps a part whose material does not from ever reaching
+     * an assembly (issue #392 made the blocks optional).
+     */
     public static Stats compute(Material head, Material binding, Material handle) {
-        int durability = head.head().durability() + binding.extraDurability();
-        durability = Math.round(durability * handle.handle().durabilityModifier()) + handle.handle().durability();
+        Material.Head headStats = head.head().orElseThrow(() -> noStats("head"));
+        Material.Handle handleStats = handle.handle().orElseThrow(() -> noStats("handle"));
+
+        int durability = headStats.durability() + binding.extraDurability().orElseThrow(() -> noStats("extra"));
+        durability = Math.round(durability * handleStats.durabilityModifier()) + handleStats.durability();
         durability = Math.max(1, durability);
         durability = ForgeweaveTraits.headDurability(head.traits().forPart(PartItem.Kind.HEAD), durability);
 
-        return new Stats(durability, head.head().miningSpeed(), head.head().attackDamage());
+        return new Stats(durability, headStats.miningSpeed(), headStats.attackDamage());
+    }
+
+    static IllegalArgumentException noStats(String block) {
+        return new IllegalArgumentException("material in the " + block + " slot carries no " + block + " stats");
     }
 
     private ToolStats() {}

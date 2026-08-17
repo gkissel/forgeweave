@@ -1,0 +1,65 @@
+{
+    decoder: "material",
+    expect: {
+        bow: {
+            bonus_damage: 7.0f,
+            drawspeed: 0.5f,
+            range: 1.5f
+        },
+        extra_durability: 50,
+        handle: {
+            durability: 60,
+            durability_modifier: 0.85f
+        },
+        head: {
+            attack_damage: 4.0f,
+            durability: 204,
+            mining_speed: 6.0f
+        }
+    },
+    nbt: {
+        bow: {
+            bonus_damage: 7.0f,
+            drawspeed: 0.5f,
+            range: 1.5f
+        },
+        color: "#CACACA",
+        crafting_items: [
+            {
+                ingredient: {
+                    item: "minecraft:iron_ingot"
+                },
+                value: 2
+            },
+            {
+                ingredient: {
+                    item: "minecraft:iron_block"
+                },
+                value: 18
+            }
+        ],
+        extra_durability: 50,
+        handle: {
+            durability: 60,
+            durability_modifier: 0.85f
+        },
+        head: {
+            attack_damage: 4.0f,
+            durability: 204,
+            mining_speed: 6.0f
+        },
+        incorrect_for_tool: "minecraft:incorrect_for_diamond_tool",
+        repair_item: {
+            tag: "c:ingots/iron"
+        },
+        traits: {
+            general: [
+                "forgeweave:magnetic"
+            ],
+            head: [
+                "forgeweave:magnetic2"
+            ]
+        }
+    },
+    what: "M3.5 (#392): the iron material as the registry-sync packet carries it, carrying the new BOW stat block alongside the three tool blocks. Pins that adding a stat type did not move head/handle/extra, and that a bow limb's drawspeed/range/bonus_damage survive a round trip."
+}

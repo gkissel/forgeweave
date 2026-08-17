@@ -291,7 +291,8 @@ class PartItemTest {
         return new Material(stone.head(), stone.handle(), stone.extraDurability(),
                 TagKey.create(Registries.BLOCK,
                         ResourceLocation.withDefaultNamespace("incorrect_for_" + tier + "_tool")),
-                stone.traits(), stone.craftingItems(), stone.repairItem(), stone.color());
+                stone.traits(), stone.craftingItems(), stone.repairItem(), stone.color(),
+                stone.bow(), stone.bowstring());
     }
 
     private static Material stone() {

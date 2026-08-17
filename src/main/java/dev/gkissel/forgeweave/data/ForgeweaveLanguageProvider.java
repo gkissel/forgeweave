@@ -430,6 +430,14 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("gui.forgeweave.stat.handle_modifier", "Handle Modifier: %sx");
         add("gui.forgeweave.stat.handle_durability", "Handle Durability: %s");
         add("gui.forgeweave.stat.extra_durability", "Binding Durability: %s");
+        // #392, upstream stat.bow.{drawspeed,range,damage}.name and stat.bowstring.modifier.name.
+        // The draw speed row is upstream's own inverted view of the stored value (StationText).
+        add("gui.forgeweave.stat.drawspeed", "Drawspeed: %s");
+        add("gui.forgeweave.stat.range", "Range Multiplier: %s");
+        add("gui.forgeweave.stat.bonus_damage", "Bonus Damage: %s");
+        // Upstream's row is the bare "Modifier"; qualified here the way "Handle Modifier" already is,
+        // so the two multiplier rows can't be told apart only by which group they sit under.
+        add("gui.forgeweave.stat.bowstring_modifier", "Bowstring Modifier: %sx");
 
         // What each stat row says on hover (issue #376), ported from upstream 1.12's
         // stat.head/handle/extra.*.desc entries (NOTICE.md). The underlined heading each group sits
@@ -446,6 +454,11 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
                 "How well the material can be held. Tool durability is changed by this amount.");
         add("gui.forgeweave.stat.extra_durability.desc",
                 "How much durability this part contributes when used as a binding.");
+        // #392, upstream stat.bow.*.desc / stat.bowstring.modifier.desc verbatim (NOTICE.md).
+        add("gui.forgeweave.stat.drawspeed.desc", "How fast you can draw the bow.");
+        add("gui.forgeweave.stat.range.desc", "How far the projectile can be propelled.");
+        add("gui.forgeweave.stat.bonus_damage.desc", "Bonus damage dealt on hit. The force of the arrow.");
+        add("gui.forgeweave.stat.bowstring_modifier.desc", "Tool durability will be multiplied by this.");
 
         // Upstream's gui.general.hover, shown by the grey "?" every info panel puts in its top-right
         // corner while some line on it has hover text (issue #376).
@@ -501,6 +514,9 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         // right above reads "Binding Durability", so the heading was the odd one out (CLAUDE.md's
         // Forgeweave-vocabulary rule). Issue #379 shipped the literal upstream word.
         add("tooltip.forgeweave.stat_type.extra", "Binding");
+        // #392: stat.bow.name / stat.bowstring.name, the headings over the two ranged stat blocks.
+        add("tooltip.forgeweave.stat_type.bow", "Bow");
+        add("tooltip.forgeweave.stat_type.bowstring", "Bowstring");
         // tooltip.tank.amount -- the fluid a broken seared tank/gauge/window kept on its stack. The
         // fluid's own name is its registered display name, so it needs no key of its own.
         add("tooltip.forgeweave.tank.amount", "%s mb");
@@ -617,6 +633,12 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("material.forgeweave.nahuatl", "Nahuatl");
         add("material.forgeweave.chorus", "Chorus");
         add("material.forgeweave.ancient", "Ancient");
+
+        // #392 -- the two bowstring materials (docs/SCOPE.md M3.5). Names are upstream 1.12's
+        // material.string.name / material.vine.name. Neither carries any tool stat block, so they
+        // only ever surface on a bow string.
+        add("material.forgeweave.string", "String");
+        add("material.forgeweave.vine", "Vine");
 
         // Trait names and descriptions, keyed by trait id like materials are by material id -- traits
         // are Java behavior selected by data (ADR-0002), so nothing derives these keys for us. The

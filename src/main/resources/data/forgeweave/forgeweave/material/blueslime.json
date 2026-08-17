@@ -9,6 +9,11 @@
     "durability": -50
   },
   "extra_durability": 200,
+  "bow": {
+    "drawspeed": 1.05,
+    "range": 1.0,
+    "bonus_damage": 0.0
+  },
   "incorrect_for_tool": "minecraft:incorrect_for_stone_tool",
   "traits": {
     "general": [
