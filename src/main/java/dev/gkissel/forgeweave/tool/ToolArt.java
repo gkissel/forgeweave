@@ -15,10 +15,16 @@ import java.util.Set;
  *
  * <p>There is exactly one layer per part slot, and a layer's name comes from the <em>role</em> of the
  * slot it draws -- {@code handle}, {@code head}, {@code binding} for
- * {@link ToolConstants.Role#HANDLE}/{@code HEAD}/{@code EXTRA}, and {@code limb}/{@code string} for
+ * {@link ToolConstants.Role#HANDLE}/{@code HEAD}/{@code EXTRA}, {@code limb}/{@code string} for
  * the bows' {@code LIMB}/{@code BOWSTRING} (M3.5 issue #394: {@code shortbow.tcon.json} is
  * layer0 = limb_top, layer1 = limb_bottom, layer2 = bowstring, so {@code limb}, {@code limb2},
- * {@code string} in that order, string on top).
+ * {@code string} in that order, string on top), and {@code body} for the crossbow's
+ * {@code CROSSBOW_BODY} ({@code crossbow.tcon.json}'s layer0).
+ *
+ * <p>M3.5 #395 moved {@code LIMB} ahead of {@code EXTRA} in {@link #LAYER_ORDER}, which no
+ * pre-existing tool can notice (none has a limb): upstream's {@code longbow.tcon.json} draws its
+ * grip <em>over</em> both limbs (layer0/1 = limbs, layer2 = grip, layer3 = bowstring) and its
+ * {@code crossbow.tcon.json} draws body, limb, binding, bowstring.
  *
  * <p>The layers stack in {@link #LAYER_ORDER}: every handle first, then every head, then the extra
  * part. That is upstream 1.12's own order ({@code models/item/tools/*.tcon.json}: layer0 = handle,
@@ -60,8 +66,8 @@ public final class ToolArt {
 
     /** Back-to-front drawing order of the roles; see the class javadoc. */
     private static final List<ToolConstants.Role> LAYER_ORDER =
-            List.of(ToolConstants.Role.HANDLE, ToolConstants.Role.HEAD, ToolConstants.Role.EXTRA,
-                    ToolConstants.Role.LIMB, ToolConstants.Role.BOWSTRING);
+            List.of(ToolConstants.Role.HANDLE, ToolConstants.Role.HEAD, ToolConstants.Role.CROSSBOW_BODY,
+                    ToolConstants.Role.LIMB, ToolConstants.Role.EXTRA, ToolConstants.Role.BOWSTRING);
 
     /** The layer name each part role draws under; see the class javadoc. */
     private static final Map<ToolConstants.Role, String> ROLE_LAYERS = new EnumMap<>(Map.of(
@@ -69,7 +75,8 @@ public final class ToolArt {
             ToolConstants.Role.HEAD, "head",
             ToolConstants.Role.EXTRA, "binding",
             ToolConstants.Role.LIMB, "limb",
-            ToolConstants.Role.BOWSTRING, "string"));
+            ToolConstants.Role.BOWSTRING, "string",
+            ToolConstants.Role.CROSSBOW_BODY, "body"));
 
     /**
      * The part slot each model layer draws, in layer order -- the one place the art's back-to-front
@@ -148,6 +155,8 @@ public final class ToolArt {
             Map.entry("rapier", "head"),
             Map.entry("scimitar", "head"),
             Map.entry("scythe", "head"),
+            Map.entry("crossbow", "string"),
+            Map.entry("longbow", "string"),
             Map.entry("shortbow", "string"),
             Map.entry("shovel", "head"),
             Map.entry("vein_hammer", "head"),

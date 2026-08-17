@@ -1,0 +1,9 @@
+{
+  "parent": "minecraft:item/handheld",
+  "textures": {
+    "layer0": "forgeweave:derived/tools/crossbow_body",
+    "layer1": "forgeweave:derived/tools/crossbow_limb",
+    "layer2": "forgeweave:derived/tools/crossbow_binding",
+    "layer3": "forgeweave:derived/tools/crossbow_string_broken"
+  }
+}

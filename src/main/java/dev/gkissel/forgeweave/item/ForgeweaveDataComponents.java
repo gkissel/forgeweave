@@ -94,6 +94,17 @@ public final class ForgeweaveDataComponents {
             DATA_COMPONENTS.registerComponentType("broken",
                     builder -> builder.persistent(Codec.BOOL).networkSynchronized(ByteBufCodecs.BOOL));
 
+    /**
+     * Whether a crossbow is drawn and holding its charge (M3.5 issue #395) -- upstream 1.12's
+     * {@code CrossBow}'s {@code TAG_Loaded} NBT boolean, and nothing more: upstream stores no ammo
+     * with it, finding and spending the arrow at fire time instead. A component rather than a
+     * transient field so the charge rides the {@code ItemStack} through a hotbar swap, a chest and a
+     * save/reload, exactly as the tag did.
+     */
+    public static final DeferredHolder<DataComponentType<?>, DataComponentType<Boolean>> CROSSBOW_LOADED =
+            DATA_COMPONENTS.registerComponentType("crossbow_loaded",
+                    builder -> builder.persistent(Codec.BOOL).networkSynchronized(ByteBufCodecs.BOOL));
+
     /** How many times a tool has been repaired; feeds the diminishing returns in {@code ToolRepair}. */
     public static final DeferredHolder<DataComponentType<?>, DataComponentType<Integer>> REPAIR_COUNT =
             DATA_COMPONENTS.registerComponentType("repair_count",

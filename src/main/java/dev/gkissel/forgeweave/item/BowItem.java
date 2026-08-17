@@ -223,7 +223,14 @@ public class BowItem extends ToolItem {
             }
             level.addFreshEntity(arrow);
         }
-        // BowCore#playShootSound, verbatim pitch formula.
+        playShootSound(level, player, velocity);
+    }
+
+    /**
+     * {@code BowCore#playShootSound}, verbatim pitch formula. Its own method because the crossbow
+     * overrides exactly this ({@code CrossBow#playShootSound}, M3.5 issue #395).
+     */
+    protected void playShootSound(Level level, Player player, float velocity) {
         level.playSound(null, player.getX(), player.getY(), player.getZ(), SoundEvents.ARROW_SHOOT,
                 SoundSource.NEUTRAL, 1.0F, 1.0F / (level.getRandom().nextFloat() * 0.4F + 1.2F) + velocity * 0.5F);
     }

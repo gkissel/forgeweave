@@ -103,13 +103,14 @@ public class ToolForgeGameTests {
      * against the real, datapack-bound tag rather than a plain unit test.
      */
     @GameTest(template = "empty")
-    public static void exactlyEightToolsAreForgeOnly(GameTestHelper helper) {
+    public static void exactlyTenToolsAreForgeOnly(GameTestHelper helper) {
         long large = ToolAssemblyRecipes.ENTRIES.stream().filter(ToolAssemblyRecipes::isLargeTool).count();
 
-        helper.assertTrue(large == 8,
-                "#forgeweave:large_tools tags exactly the Tool Forge tier's eight tools, counted " + large);
+        helper.assertTrue(large == 10,
+                "#forgeweave:large_tools tags exactly the Tool Forge tier's ten tools, counted " + large);
         helper.assertTrue(ToolAssemblyRecipes.ENTRIES.size() - large == 14,
-                "the Tool Station's own tab row is the other fourteen (M3.5 #394 added the shortbow)");
+                "the Tool Station's own tab row is the other fourteen (M3.5 #394 added the shortbow; "
+                        + "#395's longbow and crossbow are forge-only)");
         helper.succeed();
     }
 
@@ -145,7 +146,7 @@ public class ToolForgeGameTests {
 
         helper.assertTrue(forge.size() == ToolStationTabs.TABS.size(),
                 "the Tool Forge builds the whole roster, got " + forge.size() + " of " + ToolStationTabs.TABS.size());
-        helper.assertTrue(station.size() == ToolStationTabs.TABS.size() - 8,
+        helper.assertTrue(station.size() == ToolStationTabs.TABS.size() - 10,
                 "the Tool Station's sidebar drops the eight forge-only tools, got " + station.size());
         helper.assertTrue(station.contains(ToolStationTabs.REPAIR), "every station keeps its repair tab");
         for (int index : station) {

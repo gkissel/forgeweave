@@ -23,8 +23,9 @@ import dev.gkissel.forgeweave.material.Material;
  * <p>{@link #of} is {@code ProjectileLauncherNBT#limb(BowMaterialStats...)}, ported whole: every
  * {@link ToolConstants.Role#LIMB} slot's BOW block, averaged field by field, then {@code drawSpeed}
  * and {@code range} floored at {@code 0.001f} (upstream's guard against a zero divisor in the draw
- * formula). Upstream's per-tool follow-ups -- the crossbow's {@code bonusDamage *= 1.5f} -- are
- * M3.5-4's to add here when it lands.
+ * formula), then the tool's own post-hoc {@link ToolConstants.Entry#bonusDamageMultiplier} -- which
+ * is upstream's {@code CrossBow#buildTagData}'s closing {@code data.bonusDamage *= 1.5f} (M3.5 issue
+ * #395) and {@code 1.0} for every other bow.
  *
  * @param drawSpeed how fast the bow draws; {@code BowItem}'s draw progress is
  *     {@code drawSpeed * ticks / drawTime} ({@code BowCore#getDrawbackProgress})
@@ -74,6 +75,6 @@ public record LauncherStats(float drawSpeed, float range, float bonusDamage) {
         return Optional.of(new LauncherStats(
                 Math.max(MINIMUM, drawSpeed / limbs),
                 Math.max(MINIMUM, range / limbs),
-                bonusDamage / limbs));
+                bonusDamage / limbs * entry.bonusDamageMultiplier()));
     }
 }

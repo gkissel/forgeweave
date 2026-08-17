@@ -1,0 +1,71 @@
+{
+    decoder: "item_stack",
+    expect: {
+        components: {
+            "forgeweave:crossbow_loaded": 1b,
+            "forgeweave:launcher_stats": {
+                bonus_damage: 10.5f,
+                draw_speed: 0.5f,
+                range: 1.5f
+            },
+            "forgeweave:tool_materials": {
+                binding: "forgeweave:iron",
+                handle: "forgeweave:iron",
+                head: "forgeweave:iron",
+                parts: [
+                    "forgeweave:iron",
+                    "forgeweave:iron",
+                    "forgeweave:iron",
+                    "forgeweave:string"
+                ]
+            },
+            "forgeweave:tool_stats": {
+                attack_damage: 4.0f,
+                durability: 276,
+                mining_speed: 6.0f
+            },
+            "forgeweave:traits": [
+                "forgeweave:magnetic",
+                "forgeweave:magnetic2"
+            ],
+            "minecraft:damage": 3,
+            "minecraft:max_damage": 276
+        },
+        id: "forgeweave:crossbow"
+    },
+    nbt: {
+        components: {
+            "forgeweave:crossbow_loaded": 1b,
+            "forgeweave:launcher_stats": {
+                bonus_damage: 10.5f,
+                draw_speed: 0.5f,
+                range: 1.5f
+            },
+            "forgeweave:tool_materials": {
+                binding: "forgeweave:iron",
+                handle: "forgeweave:iron",
+                head: "forgeweave:iron",
+                parts: [
+                    "forgeweave:iron",
+                    "forgeweave:iron",
+                    "forgeweave:iron",
+                    "forgeweave:string"
+                ]
+            },
+            "forgeweave:tool_stats": {
+                attack_damage: 4.0f,
+                durability: 276,
+                mining_speed: 6.0f
+            },
+            "forgeweave:traits": [
+                "forgeweave:magnetic",
+                "forgeweave:magnetic2"
+            ],
+            "minecraft:damage": 3,
+            "minecraft:max_damage": 276
+        },
+        count: 1,
+        id: "forgeweave:crossbow"
+    },
+    what: "M3.5 (#395): a Tool Forge crossbow -- iron rod body, iron limb, iron binding, string -- drawn and still holding its charge, after three shots. The `forgeweave:crossbow_loaded` component is the new format: upstream 1.12's CrossBow keeps its `TAG_Loaded` NBT boolean and nothing else (no stored ammo -- the arrow is found and spent at fire time), so this is a bare byte, and a crossbow that survives a hotbar swap or a save/reload has to still be loaded when it comes back. The rest is what the crossbow's own part shape pins: a `tool_materials` whose `handle` is the tough rod that is simultaneously the tool's EXTRA (Role.CROSSBOW_BODY -- upstream's PartMaterialType.crossbow names HANDLE and EXTRA), and a `launcher_stats` whose bonus damage carries CrossBow#buildTagData's closing `data.bonusDamage *= 1.5f` (iron's 7.0 -> 10.5). ForgeBowGameTests#crossbowStatsMatchUpstream assembles this exact crossbow at a real Tool Forge and asserts the same numbers."
+}
