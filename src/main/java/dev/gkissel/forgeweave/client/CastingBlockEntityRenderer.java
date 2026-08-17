@@ -98,8 +98,9 @@ public class CastingBlockEntityRenderer implements BlockEntityRenderer<CastingBl
         }
 
         // Items first: the fluid is translucent and pours over whatever is already lying there.
-        renderItem(input, 0, poseStack, bufferSource, packedLight, packedOverlay, blockEntity);
-        renderItem(output, 1, poseStack, bufferSource, packedLight, packedOverlay, blockEntity);
+        float inputHeight = itemHeight(input);
+        renderItem(input, 0, inputHeight, poseStack, bufferSource, packedLight, packedOverlay, blockEntity);
+        renderItem(output, 1, inputHeight, poseStack, bufferSource, packedLight, packedOverlay, blockEntity);
 
         if (hasFluid) {
             float fraction = Mth.clamp(fluid.getAmount() / (float) tank.getCapacity(), 0f, 1f);
@@ -129,25 +130,51 @@ public class CastingBlockEntityRenderer implements BlockEntityRenderer<CastingBl
     }
 
     /**
-     * One stack lying in the station, on its floor for a basin and tucked up under the rim for a
-     * table (see {@link #itemBaseY}). Upstream's rule for orientation: a block lies as a
-     * block (a casting basin full of iron shows an iron block), anything else -- a cast, a tool part,
-     * an ingot, or a pane, which has no cube to show -- is laid flat like a sheet of paper.
-     *
-     * @param layer 0 for the input slot, 1 for the output; stacks the result on top of the cast it
-     *              came out of instead of letting the two z-fight in the same plane.
+     * The vertical centre, in block-local space, of a layer's item render. Layer 0 (the input) sits
+     * directly on {@link #itemBaseY}; layer 1 (the output) is offset by {@code inputHeight} -- the
+     * input's own height, not the output's -- so a basin's full-height block output isn't lifted by
+     * its own 12/16 scale when there is no input beneath it (#407).
      */
-    private void renderItem(ItemStack stack, int layer, PoseStack poseStack, MultiBufferSource bufferSource,
-            int packedLight, int packedOverlay, CastingBlockEntity blockEntity) {
+    float centerY(float height, float inputHeight, int layer) {
+        float offset = layer == 0 ? 0f : inputHeight;
+        return itemBaseY + offset + height * 0.5f;
+    }
+
+    /** A stack's own height once laid in the station: flat, or a full block, per {@link #isFlat}. */
+    private float itemHeight(ItemStack stack) {
+        return stack.isEmpty() ? 0f : (isFlat(stack) ? FLAT_ITEM_THICKNESS : itemScale);
+    }
+
+    /**
+     * Upstream's rule for orientation: a block lies as a block (a casting basin full of iron shows
+     * an iron block), anything else -- a cast, a tool part, an ingot, or a pane, which has no cube
+     * to show -- is laid flat like a sheet of paper.
+     */
+    private static boolean isFlat(ItemStack stack) {
+        return !(stack.getItem() instanceof BlockItem blockItem) || blockItem.getBlock() instanceof IronBarsBlock;
+    }
+
+    /**
+     * One stack lying in the station, on its floor for a basin and tucked up under the rim for a
+     * table (see {@link #itemBaseY}).
+     *
+     * @param layer       0 for the input slot, 1 for the output; stacks the result on top of the
+     *                    cast it came out of instead of letting the two z-fight in the same plane.
+     * @param inputHeight the input slot's own height (0 if it is empty) -- what the output layer
+     *                    rests on top of. Never the output's own height: a basin's block output has
+     *                    no cast beneath it, and offsetting by its own 12/16 scale is what popped it
+     *                    out over the rim (#407).
+     */
+    private void renderItem(ItemStack stack, int layer, float inputHeight, PoseStack poseStack,
+            MultiBufferSource bufferSource, int packedLight, int packedOverlay, CastingBlockEntity blockEntity) {
         if (stack.isEmpty()) {
             return;
         }
-        boolean flat = !(stack.getItem() instanceof BlockItem blockItem)
-                || blockItem.getBlock() instanceof IronBarsBlock;
+        boolean flat = isFlat(stack);
         float height = flat ? FLAT_ITEM_THICKNESS : itemScale;
 
         poseStack.pushPose();
-        poseStack.translate(0.5f, itemBaseY + height * (0.5f + layer), 0.5f);
+        poseStack.translate(0.5f, centerY(height, inputHeight, layer), 0.5f);
         if (flat) {
             // After the rotation the model's own depth axis is the block's vertical one, so the
             // third scale is the item's thickness -- squashed to FLAT_ITEM_THICKNESS, see there.

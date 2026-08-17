@@ -22,9 +22,14 @@ class CastingBlockEntityRendererTest {
     private static final float BASIN_SURFACE = 4f / 16f;
     /** The underside of a cast tucked up under the table's rim: {@code 1 - FLAT_ITEM_THICKNESS}. */
     private static final float TABLE_ITEM_UNDERSIDE = 1f - 1f / 64f;
+    private static final float FLAT_ITEM_THICKNESS = 1f / 64f;
+    private static final float BASIN_BLOCK_SCALE = 12f / 16f;
 
     private static final boolean BARE = false;
     private static final boolean WITH_CAST = true;
+
+    private static final int INPUT_LAYER = 0;
+    private static final int OUTPUT_LAYER = 1;
 
     @Test
     void emptyTableSitsOnTheTableSurface() {
@@ -95,5 +100,43 @@ class CastingBlockEntityRendererTest {
             assertTrue(current > previous, "topY must strictly increase with fraction");
             previous = current;
         }
+    }
+
+    /**
+     * #407: a block output used to be centred at {@code itemBaseY + height * 1.5}, lifting it by its
+     * own 12/16 scale regardless of what -- if anything -- sat beneath it. Block casting never fills
+     * the input slot (see {@link dev.gkissel.forgeweave.block.CastingBlockEntity#input}), so with no
+     * input the output must sit directly on the basin's floor: half its own height above it, not
+     * one and a half.
+     */
+    @Test
+    void basinBlockOutputWithNoInputCentresJustAboveTheFloor() {
+        assertEquals(BASIN_SURFACE + BASIN_BLOCK_SCALE / 2f,
+                CastingBlockEntityRenderer.basin().centerY(BASIN_BLOCK_SCALE, 0f, OUTPUT_LAYER), TOLERANCE);
+    }
+
+    /**
+     * A table's output (an ingot or part) always sits over a cast, and both are flat, so the input's
+     * height equals the output's own height -- the fix must reproduce today's {@code height * 1.5}
+     * centre for this case unchanged.
+     */
+    @Test
+    void tableOutputOverACastKeepsTodaysCentre() {
+        assertEquals(TABLE_ITEM_UNDERSIDE + FLAT_ITEM_THICKNESS * 1.5f,
+                CastingBlockEntityRenderer.table().centerY(FLAT_ITEM_THICKNESS, FLAT_ITEM_THICKNESS, OUTPUT_LAYER),
+                TOLERANCE);
+    }
+
+    @Test
+    void tableOutputWithNoInputSitsAtTheBase() {
+        assertEquals(TABLE_ITEM_UNDERSIDE + FLAT_ITEM_THICKNESS / 2f,
+                CastingBlockEntityRenderer.table().centerY(FLAT_ITEM_THICKNESS, 0f, OUTPUT_LAYER), TOLERANCE);
+    }
+
+    @Test
+    void inputLayerIgnoresInputHeightAndSitsOnTheFloor() {
+        // Layer 0 is the input itself; there is nothing beneath it to offset by.
+        assertEquals(BASIN_SURFACE + BASIN_BLOCK_SCALE / 2f,
+                CastingBlockEntityRenderer.basin().centerY(BASIN_BLOCK_SCALE, 999f, INPUT_LAYER), TOLERANCE);
     }
 }
