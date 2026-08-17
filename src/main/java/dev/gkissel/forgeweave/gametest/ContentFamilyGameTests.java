@@ -305,7 +305,10 @@ public class ContentFamilyGameTests {
     /**
      * Modifiers off: applying one is refused with a message, and the tool comes back out of the
      * station unchanged. Only the <em>application</em> -- see
-     * {@link #anExistingToolOfADisabledFamilyStillHits} for the other half of the ticket's rule.
+     * {@link #anExistingToolOfADisabledFamilyStillHits} for the other half of the ticket's rule,
+     * and {@link #modifiersOffRefusesEmbossing}/{@link #modifiersOffRefusesFortification} for the
+     * other two mechanics this key covers (maintainer decision: everything that alters a tool at
+     * the station beyond repair and part exchange).
      */
     @GameTest(template = "empty")
     public static void modifiersOffRefusesApplication(GameTestHelper helper) {
@@ -328,6 +331,92 @@ public class ContentFamilyGameTests {
         } finally {
             ForgeweaveConfig.MODIFIERS.set(true);
         }
+        helper.succeed();
+    }
+
+    /**
+     * Embossing rides the same key (maintainer decision). The full parity loadout -- a donor iron
+     * pickaxe head plus all four reagents (issue #248) -- embosses with the key on and is refused
+     * with a message when it is off.
+     */
+    @GameTest(template = "empty")
+    public static void modifiersOffRefusesEmbossing(GameTestHelper helper) {
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        ItemStack pickaxe = ToolAssembly.pickaxe(helper, player, POS, "stone", "wood", "wood");
+
+        ToolStationBlockEntity blockEntity = helper.getBlockEntity(POS);
+        blockEntity.container().clearContent();
+        blockEntity.container().setItem(ToolStationMenu.HEAD_SLOT, pickaxe);
+        blockEntity.container().setItem(ToolStationMenu.BINDING_SLOT,
+                ToolAssembly.part(ForgeweaveItems.PART_PICKAXE_HEAD.get(), "iron"));
+        blockEntity.container().setItem(ToolStationMenu.HANDLE_SLOT,
+                new ItemStack(ForgeweaveItems.GREEN_SLIME_CRYSTAL.get()));
+        blockEntity.container().setItem(ToolStationMenu.EXTRA_SLOT_1,
+                new ItemStack(ForgeweaveItems.BLUE_SLIME_CRYSTAL.get()));
+        blockEntity.container().setItem(ToolStationMenu.EXTRA_SLOT_2,
+                new ItemStack(ForgeweaveItems.MAGMA_SLIME_CRYSTAL.get()));
+        blockEntity.container().setItem(ToolStationMenu.EXTRA_SLOT_3, new ItemStack(Items.GOLD_BLOCK));
+        ToolStationMenu menu = ToolAssembly.menu(helper, player, POS, blockEntity);
+
+        menu.broadcastChanges();
+        helper.assertFalse(menu.getSlot(ToolStationMenu.OUTPUT_SLOT).getItem().isEmpty(),
+                "the full embossing loadout must emboss while modifiers are on, or this proves nothing");
+
+        ForgeweaveConfig.MODIFIERS.set(false);
+        try {
+            menu.broadcastChanges();
+            helper.assertTrue(menu.getSlot(ToolStationMenu.OUTPUT_SLOT).getItem().isEmpty(),
+                    "with modifiers off, embossing must produce nothing, got "
+                            + menu.getSlot(ToolStationMenu.OUTPUT_SLOT).getItem());
+
+            StationMenu.Rejection rejection = menu.rejection();
+            helper.assertTrue(rejection != null && !rejection.warning(),
+                    "and must explain itself as an error, got " + rejection);
+        } finally {
+            ForgeweaveConfig.MODIFIERS.set(true);
+        }
+
+        menu.broadcastChanges();
+        helper.assertFalse(menu.getSlot(ToolStationMenu.OUTPUT_SLOT).getItem().isEmpty(),
+                "turning modifiers back on must restore embossing with no reload");
+        helper.succeed();
+    }
+
+    /**
+     * And fortification, the third mechanic the key covers: a sharpening kit plus its flint
+     * (issue #271) sets the tool's tier with modifiers on and is refused with a message when off.
+     */
+    @GameTest(template = "empty")
+    public static void modifiersOffRefusesFortification(GameTestHelper helper) {
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        ItemStack pickaxe = ToolAssembly.pickaxe(helper, player, POS, "wood", "wood", "wood");
+
+        ToolStationBlockEntity blockEntity = helper.getBlockEntity(POS);
+        blockEntity.container().clearContent();
+        blockEntity.container().setItem(ToolStationMenu.HEAD_SLOT, pickaxe);
+        blockEntity.container().setItem(ToolStationMenu.BINDING_SLOT,
+                ToolAssembly.part(ForgeweaveItems.PART_SHARPENING_KIT.get(), "iron"));
+        blockEntity.container().setItem(ToolStationMenu.HANDLE_SLOT, new ItemStack(Items.FLINT));
+        ToolStationMenu menu = ToolAssembly.menu(helper, player, POS, blockEntity);
+
+        menu.broadcastChanges();
+        helper.assertFalse(menu.getSlot(ToolStationMenu.OUTPUT_SLOT).getItem().isEmpty(),
+                "a kit and a flint must fortify while modifiers are on, or this proves nothing");
+
+        ForgeweaveConfig.MODIFIERS.set(false);
+        try {
+            menu.broadcastChanges();
+            helper.assertTrue(menu.getSlot(ToolStationMenu.OUTPUT_SLOT).getItem().isEmpty(),
+                    "with modifiers off, fortification must produce nothing, got "
+                            + menu.getSlot(ToolStationMenu.OUTPUT_SLOT).getItem());
+            helper.assertTrue(menu.rejection() != null, "and must explain itself");
+        } finally {
+            ForgeweaveConfig.MODIFIERS.set(true);
+        }
+
+        menu.broadcastChanges();
+        helper.assertFalse(menu.getSlot(ToolStationMenu.OUTPUT_SLOT).getItem().isEmpty(),
+                "turning modifiers back on must restore fortification with no reload");
         helper.succeed();
     }
 

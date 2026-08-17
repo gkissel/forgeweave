@@ -116,8 +116,14 @@ public final class ForgeweaveConfig {
     public static final ModConfigSpec.BooleanValue SMELTERY;
 
     /**
-     * Modifier application at the Tool Station. Modifiers already on a tool keep working; only
-     * applying a new one is refused (with a translatable reason, issue #378's takeover).
+     * Everything that alters a tool at the Tool Station beyond repair and part exchange (maintainer
+     * decision): generic modifier application (issue #105), embossing (#154) and fortification
+     * (#271). Each is refused where it resolves, with a translatable reason the info panel takes
+     * over with (#378), and their recipe categories are hidden from JEI.
+     *
+     * <p>Repair and part exchange stay available because neither changes what the tool <em>is</em>;
+     * every modifier, embossment and fortification already on a tool likewise keeps working, since
+     * nothing gated here touches an assembled stack. Only the act of applying a new one stops.
      */
     public static final ModConfigSpec.BooleanValue MODIFIERS;
 
@@ -198,8 +204,9 @@ public final class ForgeweaveConfig {
                         "but no melting, alloying or casting recipe resolves, and the smeltery GUI says so.")
                 .define("smeltery", true);
         MODIFIERS = builder
-                .comment("If true, modifiers can be applied to tools at the Tool Station. Modifiers already on a",
-                        "tool keep working either way.")
+                .comment("If true, modifiers, embossments and fortifications can be applied to tools at the Tool",
+                        "Station. Repair and part exchange are unaffected, and anything already on a tool keeps",
+                        "working either way -- only applying a new one is refused.")
                 .define("modifiers", true);
         builder.pop();
 

@@ -397,10 +397,12 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("gui.forgeweave.modifier.no_slots", "This tool has no modifier slots left (%s to start with).");
         add("gui.forgeweave.modifier.max_level", "%s is already at its maximum level on this tool.");
         add("gui.forgeweave.modifier.invalid_reagent", "The other slot holds something no modifier accepts.");
-        // Content-family toggles ticket: modifier application is switched off. Modifiers already on
-        // a tool keep working, which is why this says "applied" rather than "disabled".
+        // Content-family toggles ticket: `modifiers` is off, which covers embossing and fortification
+        // too (maintainer decision). Deliberately says "applied" rather than "disabled" -- what is
+        // already on a tool keeps working, and repair and part exchange are unaffected.
         add("gui.forgeweave.modifier.modifiers_disabled",
-                "Modifiers cannot be applied on this server. Modifiers already on a tool still work.");
+                "Tools cannot be modified on this server. What is already on a tool still works, "
+                        + "and it can still be repaired and have its parts replaced.");
         add("gui.forgeweave.modifier.not_enough_reagents", "Not enough of that reagent: %s are needed per step.");
         // Issue #259 (multi-unit reagents): a whole reagent worth more units than the cap has room
         // for -- e.g. a 9-unit redstone block against 5 remaining units of haste.

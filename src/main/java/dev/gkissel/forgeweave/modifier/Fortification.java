@@ -14,6 +14,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Ingredient;
 
 import dev.gkissel.forgeweave.Forgeweave;
+import dev.gkissel.forgeweave.config.ForgeweaveConfig;
 import dev.gkissel.forgeweave.item.ForgeweaveDataComponents;
 import dev.gkissel.forgeweave.item.ForgeweaveItems;
 import dev.gkissel.forgeweave.material.Material;
@@ -214,6 +215,16 @@ public final class Fortification {
             // Either no kit to fortify from, or the flint isn't loaded yet. Both are ordinary
             // mid-loading states, not errors, so there is nothing to tell the player.
             return Optional.empty();
+        }
+
+        if (!ForgeweaveConfig.enabled(ForgeweaveConfig.MODIFIERS)) {
+            // Content-family toggles ticket (maintainer decision): `modifiers=false` gates
+            // everything that alters a tool at the station beyond repair and part exchange, which
+            // fortification is. Refused here rather than at the top of the method for the same reason
+            // ModifierApplication#resolve refuses where it does -- only once the loadout is
+            // actually a fortification one (a sharpening kit plus its flint), so a station holding items meant for another recipe stays silent. The
+            // fortification already on a tool is untouched: nothing below this line runs.
+            return Optional.of(rejected("gui.forgeweave.modifier.modifiers_disabled"));
         }
 
         ResourceLocation materialId = kit.get(ForgeweaveDataComponents.MATERIAL.get());

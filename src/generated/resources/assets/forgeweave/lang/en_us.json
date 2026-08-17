@@ -171,7 +171,7 @@
   "gui.forgeweave.general.hover": "Hover over the entries for more info",
   "gui.forgeweave.modifier.invalid_reagent": "The other slot holds something no modifier accepts.",
   "gui.forgeweave.modifier.max_level": "%s is already at its maximum level on this tool.",
-  "gui.forgeweave.modifier.modifiers_disabled": "Modifiers cannot be applied on this server. Modifiers already on a tool still work.",
+  "gui.forgeweave.modifier.modifiers_disabled": "Tools cannot be modified on this server. What is already on a tool still works, and it can still be repaired and have its parts replaced.",
   "gui.forgeweave.modifier.no_slots": "This tool has no modifier slots left (%s to start with).",
   "gui.forgeweave.modifier.not_enough_reagents": "Not enough of that reagent: %s are needed per step.",
   "gui.forgeweave.modifier.reagent_overshoot": "That reagent is worth more than %s has room for on this tool.",

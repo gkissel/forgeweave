@@ -13,6 +13,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Ingredient;
 
+import dev.gkissel.forgeweave.config.ForgeweaveConfig;
 import dev.gkissel.forgeweave.item.ForgeweaveDataComponents;
 import dev.gkissel.forgeweave.item.ForgeweaveItems;
 import dev.gkissel.forgeweave.item.PartItem;
@@ -157,6 +158,16 @@ public final class Embossing {
             // Either no part to emboss from, or the cost isn't all loaded yet. Both are ordinary
             // mid-loading states, not errors, so there is nothing to tell the player.
             return Optional.empty();
+        }
+
+        if (!ForgeweaveConfig.enabled(ForgeweaveConfig.MODIFIERS)) {
+            // Content-family toggles ticket (maintainer decision): `modifiers=false` gates
+            // everything that alters a tool at the station beyond repair and part exchange, which
+            // embossing is. Refused here rather than at the top of the method for the same reason
+            // ModifierApplication#resolve refuses where it does -- only once the loadout is
+            // actually an embossing one (a donor part plus the full reagent set), so a station holding items meant for another recipe stays silent. The
+            // embossment already on a tool is untouched: nothing below this line runs.
+            return Optional.of(rejected("gui.forgeweave.modifier.modifiers_disabled"));
         }
 
         if (on(tool) != null) {

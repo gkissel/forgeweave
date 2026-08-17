@@ -170,9 +170,10 @@ public final class ForgeweaveJeiPlugin implements IModPlugin {
      *       be a lot of machinery for a case only a pack author editing live ever hits.
      * </ul>
      *
-     * <p>Repair and embossing are deliberately <em>not</em> filtered: both act on a tool that
-     * already exists, which the ticket's "items already in the world keep working" rule keeps
-     * available whatever a family toggle says.
+     * <p>Repair and part exchange are deliberately <em>not</em> filtered: both act on a tool that
+     * already exists without altering what it is, which the ticket's "items already in the world
+     * keep working" rule keeps available whatever a toggle says. Embossing and fortification are
+     * the other side of that line -- they change the tool -- and go with {@code modifiers}.
      */
     @Override
     public void registerRecipes(IRecipeRegistration registration) {
@@ -215,8 +216,14 @@ public final class ForgeweaveJeiPlugin implements IModPlugin {
         registration.addRecipes(ModifierApplicationCategory.TYPE, ForgeweaveConfig.enabled(ForgeweaveConfig.MODIFIERS)
                 ? ModifierApplicationRecipes.build(currentModifierRecipes())
                 : List.of());
-        // #165: embossing's own datapack registry, same read shape as the other four above.
-        registration.addRecipes(EmbossingCategory.TYPE, EmbossingRecipes.build(currentEmbossingRecipes(), materials));
+        // #165: embossing's own datapack registry, same read shape as the other four above --
+        // and gated by the same modifiers key, since embossing is one of the things `modifiers`
+        // covers (maintainer decision: everything that alters a tool at the station beyond repair
+        // and part exchange). Fortification needs no line of its own: its recipe is a
+        // ModifierRecipe, so it rides the ModifierApplicationCategory gate above.
+        registration.addRecipes(EmbossingCategory.TYPE, ForgeweaveConfig.enabled(ForgeweaveConfig.MODIFIERS)
+                ? EmbossingRecipes.build(currentEmbossingRecipes(), materials)
+                : List.of());
     }
 
     /** The casting recipes whose cast and result both belong to families that are currently on. */
