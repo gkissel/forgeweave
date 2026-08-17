@@ -59,6 +59,10 @@ public final class ForgeweaveCreativeTab {
             ForgeweaveItems.PART_CURVED_BLADE,
             // M3 new-shape tools' own parts (issue #160 onwards).
             ForgeweaveItems.PART_KATANA_BLADE,
+            // M3.5's bow parts (issue #393). Their material expansion is already narrowed by the
+            // per-kind stat check #392 added, so the bow string lists only string and vine.
+            ForgeweaveItems.PART_BOW_LIMB,
+            ForgeweaveItems.PART_BOW_STRING,
             // #271: belongs to no tool, but is built and shown exactly like the parts that do.
             ForgeweaveItems.PART_SHARPENING_KIT);
 
@@ -129,6 +133,8 @@ public final class ForgeweaveCreativeTab {
         output.accept(ForgeweaveItems.PATTERN_WAR_MACE_HEAD.get());
         output.accept(ForgeweaveItems.PATTERN_CURVED_BLADE.get());
         output.accept(ForgeweaveItems.PATTERN_KATANA_BLADE.get());
+        output.accept(ForgeweaveItems.PATTERN_BOW_LIMB.get());
+        output.accept(ForgeweaveItems.PATTERN_BOW_STRING.get());
         output.accept(ForgeweaveItems.PATTERN_SHARPENING_KIT.get());
 
         // Shown component-less (no TOOL_MATERIALS set): unlike parts, a tool has three independent
@@ -264,6 +270,7 @@ public final class ForgeweaveCreativeTab {
         output.accept(ForgeweaveItems.CAST_WAR_MACE_HEAD.get());
         output.accept(ForgeweaveItems.CAST_CURVED_BLADE.get());
         output.accept(ForgeweaveItems.CAST_KATANA_BLADE.get());
+        output.accept(ForgeweaveItems.CAST_BOW_LIMB.get());
         output.accept(ForgeweaveItems.CAST_SHARPENING_KIT.get());
 
         // #272 -- the three CastCustom metas upstream ships beyond ingot/nugget.

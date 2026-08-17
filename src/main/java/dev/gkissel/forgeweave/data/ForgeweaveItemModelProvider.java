@@ -91,6 +91,8 @@ public class ForgeweaveItemModelProvider extends ItemModelProvider {
         singleLayerModel(ForgeweaveItems.PATTERN_WAR_MACE_HEAD, derivedItem("pattern_war_mace_head"));
         singleLayerModel(ForgeweaveItems.PATTERN_CURVED_BLADE, derivedItem("pattern_curved_blade"));
         singleLayerModel(ForgeweaveItems.PATTERN_KATANA_BLADE, derivedItem("pattern_katana_blade"));
+        singleLayerModel(ForgeweaveItems.PATTERN_BOW_LIMB, derivedItem("pattern_bow_limb"));
+        singleLayerModel(ForgeweaveItems.PATTERN_BOW_STRING, derivedItem("pattern_bow_string"));
         singleLayerModel(ForgeweaveItems.PATTERN_SHARPENING_KIT, derivedItem("pattern_sharpening_kit"));
 
         singleLayerModel(ForgeweaveItems.PART_SWORD_BLADE, derivedItem("sword_blade"));
@@ -132,6 +134,12 @@ public class ForgeweaveItemModelProvider extends ItemModelProvider {
         // (licenses/APACHE-2.0-SpartanWeaponry.txt, scripts/derive_spartan_blade_art.py). The
         // katana's guard and grip layers stay authored; ToolArt#ORIGINAL_ART routes per layer now.
         singleLayerModel(ForgeweaveItems.PART_KATANA_BLADE, derivedItem("katana_blade"));
+        // #393: both bow parts are straight upstream copies (NOTICE.md). The limb is upstream's own
+        // shortbow limb sprite -- bow_limb.tmat.json names items/shortbow/limb_bottom as its layer0,
+        // since upstream draws the part item from the assembled bow's bottom limb rather than
+        // shipping a separate part sprite for it.
+        singleLayerModel(ForgeweaveItems.PART_BOW_LIMB, derivedItem("bow_limb"));
+        singleLayerModel(ForgeweaveItems.PART_BOW_STRING, derivedItem("bow_string"));
         // #271: the sharpening kit's own art, copied straight from the clone (NOTICE.md). Tinted per
         // material by ForgeweaveItemColors like every other PartItem, which is why only the grey base
         // is ported and not upstream's three per-material overrides beside it.
@@ -183,6 +191,7 @@ public class ForgeweaveItemModelProvider extends ItemModelProvider {
         singleLayerModel(ForgeweaveItems.CAST_WAR_MACE_HEAD, derivedItem("cast_war_mace_head"));
         singleLayerModel(ForgeweaveItems.CAST_CURVED_BLADE, derivedItem("cast_curved_blade"));
         singleLayerModel(ForgeweaveItems.CAST_KATANA_BLADE, derivedItem("cast_katana_blade"));
+        singleLayerModel(ForgeweaveItems.CAST_BOW_LIMB, derivedItem("cast_bow_limb"));
         singleLayerModel(ForgeweaveItems.CAST_SHARPENING_KIT, derivedItem("cast_sharpening_kit"));
 
         // #292 -- one clay counterpart per cast above, the same single-layer model against the

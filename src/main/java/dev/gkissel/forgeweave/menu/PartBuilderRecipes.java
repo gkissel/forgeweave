@@ -119,6 +119,11 @@ public final class PartBuilderRecipes {
             // the two-handed large_sword_blade (LARGE_HEAD_COST), which is exactly the gap upstream
             // itself prices sign_plate/pan into.
             new Entry(ForgeweaveItems.PATTERN_KATANA_BLADE, ForgeweaveItems.PART_KATANA_BLADE, MEDIUM_PART_COST),
+            // M3.5 (issue #393). Upstream costs read straight off TinkerTools.java:210-211 --
+            // bowLimb is VALUE_Ingot * 3 (MEDIUM_PART_COST, the same tier tough_binding sits in)
+            // and bowString is VALUE_Ingot * 1 (SMALL_PART_COST).
+            new Entry(ForgeweaveItems.PATTERN_BOW_LIMB, ForgeweaveItems.PART_BOW_LIMB, MEDIUM_PART_COST),
+            new Entry(ForgeweaveItems.PATTERN_BOW_STRING, ForgeweaveItems.PART_BOW_STRING, SMALL_PART_COST),
             // #271's sharpening kit. Upstream cost read straight off its constructor:
             // `SharpeningKit() { super(Material.VALUE_Shard * 4); }` with `VALUE_Shard = VALUE_Ingot / 2`
             // (= 72), so 288 = 2 ingots -- the same HEAD_COST every head part uses.

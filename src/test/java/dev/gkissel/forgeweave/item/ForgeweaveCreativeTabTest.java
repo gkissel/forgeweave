@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -120,16 +121,24 @@ class ForgeweaveCreativeTabTest {
         return displayed;
     }
 
-    /** Only the identity matters here -- the tab keys part stacks off the material's id, not its stats. */
+    /**
+     * Carries every stat block there is, so the counts above stay a statement about
+     * {@code listAllPartMaterials} alone. Since issue #392 the tab also drops any (part, material)
+     * pair the material has no stat block for -- a different rule with its own tests
+     * ({@code BowMaterialTest}, {@code BowPartGameTests}) -- and a material missing the bow blocks
+     * would silently turn those two assertions into a test of that rule instead.
+     */
     private static Material dummyMaterial() {
         return new Material(
-                new Material.Head(100, 1f, 1f),
-                new Material.Handle(1f, 0),
-                0,
+                Optional.of(new Material.Head(100, 1f, 1f)),
+                Optional.of(new Material.Handle(1f, 0)),
+                Optional.of(0),
                 TagKey.create(Registries.BLOCK, ResourceLocation.withDefaultNamespace("incorrect_for_stone_tool")),
                 new Material.Traits(List.of(), List.of()),
                 List.of(new Material.CraftingItem(Ingredient.of(Items.BONE), 1)),
                 Ingredient.of(Items.BONE),
-                TextColor.parseColor("#FFFFFF").getOrThrow());
+                TextColor.parseColor("#FFFFFF").getOrThrow(),
+                Optional.of(new Material.Bow(1f, 1f, 0f)),
+                Optional.of(new Material.Bowstring(1f)));
     }
 }

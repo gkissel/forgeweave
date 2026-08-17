@@ -51,16 +51,38 @@ class JeiRecipesTest {
         Bootstrap.bootStrap();
     }
 
+    /** A material with every stat block; {@link #statlessMaterial} is the counterpart with none. */
     private static Material material(List<Material.CraftingItem> craftingItems, Ingredient repairItem) {
         return new Material(
-                new Material.Head(100, 1.0f, 1.0f),
-                new Material.Handle(1.0f, 10),
-                5,
+                Optional.of(new Material.Head(100, 1.0f, 1.0f)),
+                Optional.of(new Material.Handle(1.0f, 10)),
+                Optional.of(5),
                 TagKey.create(Registries.BLOCK, ResourceLocation.withDefaultNamespace("incorrect_for_wooden_tool")),
                 Material.Traits.general(ResourceLocation.fromNamespaceAndPath("forgeweave", "ecological")),
                 craftingItems,
                 repairItem,
-                TextColor.fromRgb(0xFFFFFF));
+                TextColor.fromRgb(0xFFFFFF),
+                Optional.of(new Material.Bow(1.0f, 1.0f, 0.0f)),
+                Optional.of(new Material.Bowstring(1.0f)));
+    }
+
+    /**
+     * A material carrying only the bowstring block -- the shape issue #392's {@code string} and
+     * {@code vine} actually have. Every material before them had every block, so nothing could
+     * tell whether the enumerator asked.
+     */
+    private static Material bowstringOnlyMaterial() {
+        return new Material(
+                Optional.empty(),
+                Optional.empty(),
+                Optional.empty(),
+                TagKey.create(Registries.BLOCK, ResourceLocation.withDefaultNamespace("incorrect_for_stone_tool")),
+                new Material.Traits(List.of(), List.of()),
+                List.of(craftingItem(Items.STRING, 2)),
+                Ingredient.of(Items.STRING),
+                TextColor.fromRgb(0xEEEEEE),
+                Optional.empty(),
+                Optional.of(new Material.Bowstring(1.0f)));
     }
 
     private static Material.CraftingItem craftingItem(Item item, int value) {
@@ -87,9 +109,27 @@ class JeiRecipesTest {
 
         // 5 M1 part types + 17 M3 part types (docs/SCOPE.md issue #151) + the war mace head
         // (issue #161) + the curved blade (issue #159) + the katana blade (issue #160) + the
-        // sharpening kit (issue #271, the one part no tool is built from) x 2 materials.
-        assertEquals(26 * 2, recipes.size(), "26 part types x 2 materials");
+        // sharpening kit (issue #271, the one part no tool is built from) + the bow limb and bow
+        // string (issue #393) x 2 materials, both of which carry every stat block.
+        assertEquals(28 * 2, recipes.size(), "28 part types x 2 materials");
         assertTrue(recipes.stream().allMatch(r -> r.result().has(ForgeweaveDataComponents.MATERIAL.get())));
+    }
+
+    /**
+     * Issue #393: JEI must apply the same per-kind stat gate the station does
+     * ({@code PartBuilderRecipes#resolve}, issue #392), or it advertises crafts the Part Builder
+     * silently refuses -- a string pickaxe head, a wooden bow string.
+     */
+    @Test
+    void partCraftingSkipsPartsAMaterialHasNoStatBlockFor() {
+        Map<ResourceLocation, Material> materials = new LinkedHashMap<>();
+        materials.put(ResourceLocation.fromNamespaceAndPath("forgeweave", "string"), bowstringOnlyMaterial());
+
+        List<PartCraftingRecipe> recipes = PartCraftingRecipes.build(materials);
+
+        assertEquals(1, recipes.size(), "a bowstring-only material can craft exactly one part");
+        assertTrue(recipes.getFirst().result().is(ForgeweaveItems.PART_BOW_STRING.get()),
+                "and that part is the bow string");
     }
 
     @Test

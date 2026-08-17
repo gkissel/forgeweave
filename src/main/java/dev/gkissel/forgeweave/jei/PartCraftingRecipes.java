@@ -55,6 +55,9 @@ final class PartCraftingRecipes {
             new Entry(ForgeweaveItems.PATTERN_WAR_MACE_HEAD, ForgeweaveItems.PART_WAR_MACE_HEAD, PartBuilderRecipes.LARGE_HEAD_COST),
             new Entry(ForgeweaveItems.PATTERN_CURVED_BLADE, ForgeweaveItems.PART_CURVED_BLADE, PartBuilderRecipes.HEAD_COST),
             new Entry(ForgeweaveItems.PATTERN_KATANA_BLADE, ForgeweaveItems.PART_KATANA_BLADE, PartBuilderRecipes.MEDIUM_PART_COST),
+            // M3.5's bow parts (issue #393).
+            new Entry(ForgeweaveItems.PATTERN_BOW_LIMB, ForgeweaveItems.PART_BOW_LIMB, PartBuilderRecipes.MEDIUM_PART_COST),
+            new Entry(ForgeweaveItems.PATTERN_BOW_STRING, ForgeweaveItems.PART_BOW_STRING, PartBuilderRecipes.SMALL_PART_COST),
             new Entry(ForgeweaveItems.PATTERN_SHARPENING_KIT, ForgeweaveItems.PART_SHARPENING_KIT, PartBuilderRecipes.HEAD_COST));
 
     /** One crafting-item option a material accepts, and the shard-unit value one of it pays off. */
@@ -64,6 +67,13 @@ final class PartCraftingRecipes {
         List<PartCraftingRecipe> recipes = new ArrayList<>();
         for (Entry entry : ENTRIES) {
             for (Map.Entry<ResourceLocation, Material> material : materials.entrySet()) {
+                // #393: the same gate the station itself applies (PartBuilderRecipes#resolve, added
+                // by #392) -- a material with no stat block for this part's kind can never stamp it,
+                // so JEI must not advertise the craft. Invisible until #392 shipped `string` and
+                // `vine`: every material before them carried every block.
+                if (!material.getValue().hasStatsFor(entry.part().get().kind())) {
+                    continue;
+                }
                 List<Option> options = craftingOptions(material.getKey(), material.getValue());
                 if (options.isEmpty()) {
                     continue; // no usable crafting items or shard for this material -- nothing to display

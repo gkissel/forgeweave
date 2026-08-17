@@ -48,6 +48,11 @@ class CastCompositeHoleTest {
     private static final Part[] PARTS = {
         new Part("curved_blade.png", "cast_curved_blade.png"),
         new Part("katana_blade.png", "cast_katana_blade.png"),
+        // Issue #393: the bow limb is the M3.5 part that casts (the bow string does not -- no
+        // BOWSTRING material melts, see BowPartTest), and its art is upstream's shortbow limb
+        // sprite, drawn hard against one corner rather than centered. A cast composited before a
+        // re-source of that sprite would leave the hole in the wrong corner entirely.
+        new Part("bow_limb.png", "cast_bow_limb.png"),
     };
 
     private static Path projectRoot() {
