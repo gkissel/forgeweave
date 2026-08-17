@@ -1,6 +1,7 @@
 package dev.gkissel.forgeweave.material;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Stream;
 
@@ -31,17 +32,29 @@ import net.minecraft.world.level.block.Block;
  * {@code registryAccess().registryOrThrow(Material.REGISTRY)} on either side.
  */
 public record Material(
-        Head head,
-        Handle handle,
-        int extraDurability,
+        Optional<Head> head,
+        Optional<Handle> handle,
+        Optional<Integer> extraDurability,
         TagKey<Block> incorrectForTool,
         Traits traits,
         List<CraftingItem> craftingItems,
         Ingredient repairItem,
-        TextColor color) {
+        TextColor color,
+        Optional<Bow> bow,
+        Optional<Bowstring> bowstring) {
 
     public static final ResourceKey<Registry<Material>> REGISTRY =
             ResourceKey.createRegistryKey(ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "material"));
+
+    /**
+     * The common case: a material with all three tool stat blocks and no ranged ones, which is every
+     * material Forgeweave shipped before issue #392 added the bow blocks.
+     */
+    public Material(Head head, Handle handle, int extraDurability, TagKey<Block> incorrectForTool,
+            Traits traits, List<CraftingItem> craftingItems, Ingredient repairItem, TextColor color) {
+        this(Optional.of(head), Optional.of(handle), Optional.of(extraDurability), incorrectForTool, traits,
+                craftingItems, repairItem, color, Optional.empty(), Optional.empty());
+    }
 
     /** Stats a head part contributes: the tool's durability pool, mining speed and attack damage. */
     public record Head(int durability, float miningSpeed, float attackDamage) {
@@ -63,6 +76,41 @@ public record Material(
                 ExtraCodecs.POSITIVE_FLOAT.fieldOf("durability_modifier").forGetter(Handle::durabilityModifier),
                 Codec.INT.fieldOf("durability").forGetter(Handle::durability))
                 .apply(instance, Handle::new));
+    }
+
+    /**
+     * Stats a bow limb contributes ({@code library/materials/BowMaterialStats.java}, pinned commit
+     * in NOTICE.md).
+     *
+     * <p>{@code drawspeed} is upstream's raw field, where higher draws <em>faster</em> -- wood is
+     * 1.0, paper 1.5, steel 0.4. Every display of it is inverted ({@code getLocalizedInfo} formats
+     * {@code 1f/drawspeed}), which is why the panel shows steel as 2.5 and paper as 0.67; the
+     * inversion lives in {@code StationText#bowStats}, not here, so the datapack value stays the one
+     * the draw math multiplies by.
+     *
+     * <p>{@code bonusDamage} is flat extra arrow damage and is <b>signed</b>: upstream pays it out
+     * for materials that are slow but springy (steel 9, iron 7) and charges it against materials
+     * that have no business being a bow (paper -2, stone -1). Upstream's own note: "think of the
+     * bonus damage as a flat damage-reward for using materials that are slower, but flexible, like
+     * metals" -- it deliberately does not scale with range.
+     */
+    public record Bow(float drawspeed, float range, float bonusDamage) {
+        public static final Codec<Bow> CODEC = RecordCodecBuilder.create(instance -> instance.group(
+                ExtraCodecs.POSITIVE_FLOAT.fieldOf("drawspeed").forGetter(Bow::drawspeed),
+                ExtraCodecs.POSITIVE_FLOAT.fieldOf("range").forGetter(Bow::range),
+                Codec.FLOAT.fieldOf("bonus_damage").forGetter(Bow::bonusDamage))
+                .apply(instance, Bow::new));
+    }
+
+    /**
+     * Stats a bow string contributes ({@code library/materials/BowStringMaterialStats.java}): one
+     * multiplier, around 1.0. Upstream gives every one of its four bowstring materials exactly 1.0
+     * and leaves the field as the hook a pack (or a later material) can differ on.
+     */
+    public record Bowstring(float modifier) {
+        public static final Codec<Bowstring> CODEC = RecordCodecBuilder.create(instance -> instance.group(
+                ExtraCodecs.POSITIVE_FLOAT.fieldOf("modifier").forGetter(Bowstring::modifier))
+                .apply(instance, Bowstring::new));
     }
 
     /**
@@ -92,8 +140,10 @@ public record Material(
      * {@code magnetic} everywhere else).
      *
      * <p>Only {@code head} exists as a scope so far, because that is the only one Forgeweave's
-     * materials use; ponytail: the other two {@link PartItem.Kind}s get a field when a material needs
-     * one, and {@link #forPart} is the single place that has to learn about it.
+     * materials use; ponytail: the remaining {@link PartItem.Kind}s -- including issue #392's
+     * {@code BOW}/{@code BOWSTRING}, which fall back to {@code general} exactly as upstream's
+     * {@code getAllTraitsForStats} does -- get a field when a material needs one, and
+     * {@link #forPart} is the single place that has to learn about it.
      */
     public record Traits(List<ResourceLocation> general, List<ResourceLocation> head) {
 
@@ -136,10 +186,18 @@ public record Material(
             Traits.CODEC.fieldOf("traits"))
             .xmap(either -> either.map(Traits::general, Function.identity()), Either::right);
 
+    /**
+     * Every stat block is optional (issue #392). Upstream has always worked this way -- a material
+     * carries whichever {@code IMaterialStats} it was registered with and {@code
+     * ToolPart#hasUseForStat} decides what can be made of it -- and Forgeweave needs it the moment a
+     * bowstring material exists: {@code string} and {@code vine} carry no head, handle or binding
+     * stats at all, and inventing some for them would put a string pickaxe head in the Part Builder.
+     * {@link #hasStatsFor} is the single place that answers "does this material have that block".
+     */
     public static final Codec<Material> CODEC = RecordCodecBuilder.create(instance -> instance.group(
-            Head.CODEC.fieldOf("head").forGetter(Material::head),
-            Handle.CODEC.fieldOf("handle").forGetter(Material::handle),
-            ExtraCodecs.NON_NEGATIVE_INT.fieldOf("extra_durability").forGetter(Material::extraDurability),
+            Head.CODEC.optionalFieldOf("head").forGetter(Material::head),
+            Handle.CODEC.optionalFieldOf("handle").forGetter(Material::handle),
+            ExtraCodecs.NON_NEGATIVE_INT.optionalFieldOf("extra_durability").forGetter(Material::extraDurability),
             // Vanilla tool tier, expressed as the block tag the tool cannot mine (CONTEXT.md: no numeric harvest levels).
             TagKey.codec(Registries.BLOCK).fieldOf("incorrect_for_tool").forGetter(Material::incorrectForTool),
             // Trait behavior is Java (ADR-0002); data only names which traits this material grants.
@@ -148,6 +206,27 @@ public record Material(
             // is a separate, single-ingredient concept used only for Tool Station repair.
             CraftingItem.CODEC.listOf().fieldOf("crafting_items").forGetter(Material::craftingItems),
             Ingredient.CODEC.fieldOf("repair_item").forGetter(Material::repairItem),
-            TextColor.CODEC.fieldOf("color").forGetter(Material::color))
+            TextColor.CODEC.fieldOf("color").forGetter(Material::color),
+            Bow.CODEC.optionalFieldOf("bow").forGetter(Material::bow),
+            Bowstring.CODEC.optionalFieldOf("bowstring").forGetter(Material::bowstring))
             .apply(instance, Material::new));
+
+    /**
+     * Whether this material carries the stat block a part of {@code kind} draws from -- upstream's
+     * {@code ToolPart#hasUseForStat}. A Part Builder pattern, a creative-tab part variant and a
+     * station slot all ask this same question, so it gets asked here once.
+     *
+     * <p>{@link PartItem.Kind#NONE} (the shard) draws from no block at all and so is always
+     * satisfied.
+     */
+    public boolean hasStatsFor(PartItem.Kind kind) {
+        return switch (kind) {
+            case HEAD -> head.isPresent();
+            case HANDLE -> handle.isPresent();
+            case EXTRA -> extraDurability.isPresent();
+            case BOW -> bow.isPresent();
+            case BOWSTRING -> bowstring.isPresent();
+            case NONE -> true;
+        };
+    }
 }

@@ -230,6 +230,12 @@ public final class PartBuilderRecipes {
                     if (matched.totalValue() < entry.cost()) {
                         return Optional.empty();
                     }
+                    // #392, upstream ToolBuilder#tryBuildToolPart's own material check: a material
+                    // carries only some of the stat blocks, and stamping a pattern from one that
+                    // lacks this part's block would produce a part no tool could ever use.
+                    if (!hasStatsFor(registries, matched.id(), entry.part().get().kind())) {
+                        return Optional.empty();
+                    }
 
                     // Whole items only, cheapest-first slot order (upstream's own input1-then-input2
                     // combined list, ListUtil.getListFrom(input1, input2)) -- the same "consume as
@@ -303,6 +309,15 @@ public final class PartBuilderRecipes {
                 .map(primary -> new CombinedMaterialMatch(primary.id(),
                         unitValueAgainst(registries, primary.id(), material1) * material1.getCount()
                                 + unitValueAgainst(registries, primary.id(), material2) * material2.getCount()));
+    }
+
+    /** Whether the named material carries the stat block a part of {@code kind} draws from (issue #392). */
+    private static boolean hasStatsFor(HolderLookup.Provider registries, ResourceLocation materialId,
+            PartItem.Kind kind) {
+        return registries.lookup(Material.REGISTRY)
+                .flatMap(lookup -> lookup.get(ResourceKey.create(Material.REGISTRY, materialId)))
+                .map(holder -> holder.value().hasStatsFor(kind))
+                .orElse(false);
     }
 
     /** How many shard-units one item of {@code stack} is worth against a specific material id, or 0 if it doesn't match. */

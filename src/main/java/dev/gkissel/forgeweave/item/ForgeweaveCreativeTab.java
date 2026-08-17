@@ -342,6 +342,12 @@ public final class ForgeweaveCreativeTab {
                 listAllPartMaterials ? allMaterials : allMaterials.stream().limit(1).toList();
         for (DeferredItem<PartItem> partItem : PART_ITEMS) {
             for (Holder.Reference<Material> material : materials) {
+                // #392: a material only carries some of the stat blocks, and a part of a material
+                // with no block for its role builds nothing -- so it does not belong in the tab
+                // either (upstream's own ToolPart#hasUseForStat filter).
+                if (!material.value().hasStatsFor(partItem.get().kind())) {
+                    continue;
+                }
                 ItemStack stack = new ItemStack(partItem.get());
                 stack.set(ForgeweaveDataComponents.MATERIAL.get(), material.key().location());
                 output.accept(stack);

@@ -9,6 +9,11 @@
     "durability": 60
   },
   "extra_durability": 50,
+  "bow": {
+    "drawspeed": 0.5,
+    "range": 1.5,
+    "bonus_damage": 7.0
+  },
   "incorrect_for_tool": "minecraft:incorrect_for_diamond_tool",
   "traits": {
     "general": ["forgeweave:magnetic"],

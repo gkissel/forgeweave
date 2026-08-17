@@ -36,6 +36,8 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 
+import dev.gkissel.forgeweave.material.Material;
+
 /**
  * The save-compatibility fixture corpus (docs/SCOPE.md, "Save compatibility"): every serialized
  * format a release shipped is committed here as a snapshot, and every later PR has to decode all of
@@ -50,7 +52,7 @@ import net.minecraft.world.level.block.entity.BlockEntity;
  * <pre>
  * {
  *     what: "M2 (#100): a casting table half way through a pour",  // prose, for the reader
- *     decoder: "item_stack",           // or "block_entity"
+ *     decoder: "item_stack",           // or "block_entity", or "material"
  *     block: "forgeweave:casting_table",  // block_entity only: whose default state to load against
  *     nbt: { ... },                    // the committed snapshot -- exactly what the game wrote
  *     expect: { ... }                  // hand-written; must appear in the re-encoded result
@@ -206,6 +208,14 @@ class SaveCompatCorpusTest {
                     throw new IllegalStateException("block entity did not load: " + fixture.getString("what"));
                 }
                 yield be.saveWithId(registries);
+            }
+            // Issue #392: a datapack material is a serialized format like any other -- the same codec
+            // is the registry-sync codec, so a shape change strands a connecting client the way a
+            // component change strands a world. Snapshotted in NBT (what the sync packet carries)
+            // rather than JSON, which is what the rest of the corpus is in.
+            case "material" -> {
+                Material material = Material.CODEC.parse(ops, nbt).getOrThrow(IllegalStateException::new);
+                yield (CompoundTag) Material.CODEC.encodeStart(ops, material).getOrThrow(IllegalStateException::new);
             }
             default -> throw new IllegalStateException("unknown fixture decoder: " + decoder);
         };

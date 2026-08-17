@@ -334,19 +334,24 @@ public final class ToolConstants {
             Material material = partMaterials.get(i);
             switch (slot.role()) {
                 case HEAD -> {
+                    // Issue #392: the blocks are optional, and a part whose material lacks its own
+                    // never reaches assembly (PartItem#hasUnusableMaterial) -- so this is an
+                    // invariant, not a datapack error path.
+                    Material.Head head = material.head().orElseThrow(() -> ToolStats.noStats("head"));
                     float weight = slot.weight();
-                    headDurabilityWeighted += material.head().durability() * weight;
-                    headAttackWeighted += material.head().attackDamage() * weight;
-                    headSpeedWeighted += material.head().miningSpeed() * weight;
+                    headDurabilityWeighted += head.durability() * weight;
+                    headAttackWeighted += head.attackDamage() * weight;
+                    headSpeedWeighted += head.miningSpeed() * weight;
                     headWeightTotal += weight;
                 }
                 case EXTRA -> {
-                    extraDurabilitySum += material.extraDurability();
+                    extraDurabilitySum += material.extraDurability().orElseThrow(() -> ToolStats.noStats("extra"));
                     extraCount++;
                 }
                 case HANDLE -> {
-                    handleDurabilitySum += material.handle().durability();
-                    handleModifierSum += material.handle().durabilityModifier();
+                    Material.Handle handle = material.handle().orElseThrow(() -> ToolStats.noStats("handle"));
+                    handleDurabilitySum += handle.durability();
+                    handleModifierSum += handle.durabilityModifier();
                     handleCount++;
                 }
             }

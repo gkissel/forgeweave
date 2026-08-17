@@ -7,6 +7,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
+import java.util.Optional;
 
 import javax.annotation.Nullable;
 
@@ -100,9 +101,9 @@ class MaterialTest {
     void woodMatchesItsShippedStats() {
         Material wood = Material.CODEC.parse(ops, shipped("wood")).getOrThrow();
 
-        assertEquals(new Material.Head(35, 2.0f, 2.0f), wood.head());
-        assertEquals(new Material.Handle(1.0f, 25), wood.handle());
-        assertEquals(15, wood.extraDurability());
+        assertEquals(Optional.of(new Material.Head(35, 2.0f, 2.0f)), wood.head());
+        assertEquals(Optional.of(new Material.Handle(1.0f, 25)), wood.handle());
+        assertEquals(Optional.of(15), wood.extraDurability());
         assertEquals(List.of(ResourceLocation.fromNamespaceAndPath("forgeweave", "ecological")),
                 wood.traits().general());
         assertEquals(0x8E661B, wood.color().getValue());

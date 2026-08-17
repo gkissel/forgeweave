@@ -42,12 +42,16 @@ import dev.gkissel.forgeweave.material.MaterialDisplay;
  */
 public class PartItem extends Item {
 
-    /** Which of upstream's three part-stat blocks a part draws from ({@code PartMaterialType}). */
+    /** Which part-stat block a part draws from ({@code PartMaterialType}). */
     public enum Kind {
         HEAD,
         HANDLE,
         /** Upstream's "extra" stat block: bindings, and anything else that only adds durability. */
         EXTRA,
+        /** Issue #392: a bow limb, off the material's BOW block ({@code BowMaterialStats}). */
+        BOW,
+        /** Issue #392: a bow string, off the material's BOWSTRING block ({@code BowStringMaterialStats}). */
+        BOWSTRING,
         /** No stat block of its own -- the shard, which is a leftover rather than a buildable part. */
         NONE
     }
@@ -85,7 +89,16 @@ public class PartItem extends Item {
             return false;
         }
         ResourceLocation materialId = stack.get(ForgeweaveDataComponents.MATERIAL.get());
-        return materialId == null || MaterialDisplay.lookup(registries, materialId).isEmpty();
+        if (materialId == null) {
+            return true;
+        }
+        // Issue #392: "defined" is not enough once materials carry only some of the stat blocks --
+        // a bowstring material has no head stats, so a pickaxe head stamped from it builds nothing.
+        // Upstream asks exactly this (ToolPart#hasUseForStat) at the same two places.
+        PartItem.Kind kind = ((PartItem) stack.getItem()).kind();
+        return MaterialDisplay.lookup(registries, materialId)
+                .filter(material -> material.hasStatsFor(kind))
+                .isEmpty();
     }
 
     @Override
@@ -162,6 +175,8 @@ public class PartItem extends Item {
             case HEAD -> headStats(material);
             case HANDLE -> StationText.handleStats(material);
             case EXTRA -> StationText.extraStats(material);
+            case BOW -> StationText.bowStats(material);
+            case BOWSTRING -> StationText.bowstringStats(material);
             case NONE -> List.of();
         };
     }

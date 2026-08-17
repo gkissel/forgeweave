@@ -9,6 +9,11 @@
     "durability": -50
   },
   "extra_durability": 100,
+  "bow": {
+    "drawspeed": 0.4,
+    "range": 1.3,
+    "bonus_damage": 3.0
+  },
   "incorrect_for_tool": "minecraft:incorrect_for_iron_tool",
   "traits": {
     "general": ["forgeweave:poisonous", "forgeweave:heavy"]

@@ -9,6 +9,11 @@
     "durability": 500
   },
   "extra_durability": 125,
+  "bow": {
+    "drawspeed": 0.4,
+    "range": 2.0,
+    "bonus_damage": 2.0
+  },
   "incorrect_for_tool": "minecraft:incorrect_for_netherite_tool",
   "traits": {
     "general": [

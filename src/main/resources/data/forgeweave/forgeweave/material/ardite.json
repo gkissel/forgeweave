@@ -9,6 +9,11 @@
     "durability": -200
   },
   "extra_durability": 450,
+  "bow": {
+    "drawspeed": 0.45,
+    "range": 0.8,
+    "bonus_damage": 1.0
+  },
   "incorrect_for_tool": "minecraft:incorrect_for_netherite_tool",
   "traits": {
     "general": ["forgeweave:petramor"],

@@ -9,6 +9,11 @@
     "durability": 30
   },
   "extra_durability": 100,
+  "bow": {
+    "drawspeed": 0.6,
+    "range": 1.45,
+    "bonus_damage": 5.0
+  },
   "incorrect_for_tool": "minecraft:incorrect_for_iron_tool",
   "traits": {
     "general": ["forgeweave:established"]

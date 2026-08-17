@@ -7,6 +7,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
+import java.util.Optional;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
@@ -76,9 +77,9 @@ class MetalMaterialTest {
     void ironMatchesUpstreamsExactStats() {
         Material iron = shipped("iron");
 
-        assertEquals(new Material.Head(204, 6.0f, 4.0f), iron.head());
-        assertEquals(new Material.Handle(0.85f, 60), iron.handle());
-        assertEquals(50, iron.extraDurability());
+        assertEquals(Optional.of(new Material.Head(204, 6.0f, 4.0f)), iron.head());
+        assertEquals(Optional.of(new Material.Handle(0.85f, 60)), iron.handle());
+        assertEquals(Optional.of(50), iron.extraDurability());
         assertEquals(List.of(id("magnetic")), iron.traits().general());
         assertEquals(List.of(id("magnetic2")), iron.traits().head());
     }
@@ -89,9 +90,9 @@ class MetalMaterialTest {
     void copperMatchesUpstreamsExactStats() {
         Material copper = shipped("copper");
 
-        assertEquals(new Material.Head(210, 5.3f, 3.0f), copper.head());
-        assertEquals(new Material.Handle(1.05f, 30), copper.handle());
-        assertEquals(100, copper.extraDurability());
+        assertEquals(Optional.of(new Material.Head(210, 5.3f, 3.0f)), copper.head());
+        assertEquals(Optional.of(new Material.Handle(1.05f, 30)), copper.handle());
+        assertEquals(Optional.of(100), copper.extraDurability());
         assertEquals(List.of(id("established")), copper.traits().general());
     }
 
@@ -101,9 +102,9 @@ class MetalMaterialTest {
     void cobaltMatchesUpstreamsExactStats() {
         Material cobalt = shipped("cobalt");
 
-        assertEquals(new Material.Head(780, 12.0f, 4.1f), cobalt.head());
-        assertEquals(new Material.Handle(0.9f, 100), cobalt.handle());
-        assertEquals(300, cobalt.extraDurability());
+        assertEquals(Optional.of(new Material.Head(780, 12.0f, 4.1f)), cobalt.head());
+        assertEquals(Optional.of(new Material.Handle(0.9f, 100)), cobalt.handle());
+        assertEquals(Optional.of(300), cobalt.extraDurability());
         assertEquals(List.of(id("lightweight")), cobalt.traits().general());
         assertEquals(List.of(id("momentum")), cobalt.traits().head());
     }
@@ -114,9 +115,9 @@ class MetalMaterialTest {
     void arditeMatchesUpstreamsExactStats() {
         Material ardite = shipped("ardite");
 
-        assertEquals(new Material.Head(990, 3.5f, 3.6f), ardite.head());
-        assertEquals(new Material.Handle(1.4f, -200), ardite.handle());
-        assertEquals(450, ardite.extraDurability());
+        assertEquals(Optional.of(new Material.Head(990, 3.5f, 3.6f)), ardite.head());
+        assertEquals(Optional.of(new Material.Handle(1.4f, -200)), ardite.handle());
+        assertEquals(Optional.of(450), ardite.extraDurability());
         assertEquals(List.of(id("petramor")), ardite.traits().general());
         assertEquals(List.of(id("stonebound")), ardite.traits().head());
     }
@@ -127,9 +128,9 @@ class MetalMaterialTest {
     void manyullynMatchesUpstreamsExactStats() {
         Material manyullyn = shipped("manyullyn");
 
-        assertEquals(new Material.Head(820, 7.02f, 8.72f), manyullyn.head());
-        assertEquals(new Material.Handle(0.5f, 250), manyullyn.handle());
-        assertEquals(50, manyullyn.extraDurability());
+        assertEquals(Optional.of(new Material.Head(820, 7.02f, 8.72f)), manyullyn.head());
+        assertEquals(Optional.of(new Material.Handle(0.5f, 250)), manyullyn.handle());
+        assertEquals(Optional.of(50), manyullyn.extraDurability());
         assertEquals(List.of(id("coldblooded")), manyullyn.traits().general());
         assertEquals(List.of(id("insatiable")), manyullyn.traits().head());
     }
@@ -139,9 +140,9 @@ class MetalMaterialTest {
     void roseGoldMatchesItsRecordedInventedStats() {
         Material roseGold = shipped("rose_gold");
 
-        assertEquals(new Material.Head(90, 10.0f, 2.0f), roseGold.head());
-        assertEquals(new Material.Handle(0.65f, -40), roseGold.handle());
-        assertEquals(15, roseGold.extraDurability());
+        assertEquals(Optional.of(new Material.Head(90, 10.0f, 2.0f)), roseGold.head());
+        assertEquals(Optional.of(new Material.Handle(0.65f, -40)), roseGold.handle());
+        assertEquals(Optional.of(15), roseGold.extraDurability());
         assertEquals(List.of(id("quick")), roseGold.traits().general());
     }
 
@@ -150,9 +151,9 @@ class MetalMaterialTest {
     void netheriteMatchesItsRecordedInventedStats() {
         Material netherite = shipped("netherite");
 
-        assertEquals(new Material.Head(1050, 8.0f, 7.0f), netherite.head());
-        assertEquals(new Material.Handle(1.0f, 150), netherite.handle());
-        assertEquals(350, netherite.extraDurability());
+        assertEquals(Optional.of(new Material.Head(1050, 8.0f, 7.0f)), netherite.head());
+        assertEquals(Optional.of(new Material.Handle(1.0f, 150)), netherite.handle());
+        assertEquals(Optional.of(350), netherite.extraDurability());
         assertEquals(List.of(id("fireproof"), id("reinforced_core")), netherite.traits().general());
     }
 
