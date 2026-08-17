@@ -252,6 +252,48 @@ Forgeweave ores or worldgen for lead/silver/tin (tag-gated only) · slime island
 - **Manual release checklist adds**: screenshot-harness scene rendering parts/tools tinted with every new material, visually inspected; JEI sanity; spark profile; previous-release world load; dedicated-server acceptance playthrough.
 - Alphas during the milestone; a maintainer playtest-fix round (regression tests per the regression rule) precedes the final tag. The line tags only after `mc1.21.1-v0.3.0-beta.1` exists; once that beta is live the save-compat promise is binding for every M3.2 format.
 
+## Milestone 3.5 — ranged weapons (bows)
+
+Planned 2026-08-15 (grilling session; maintainer decisions recorded inline). Ships **after** `mc1.21.1-v0.3.0-beta.1` (#170), so it is the first milestone built entirely under the save-compat promise.
+
+### Acceptance test
+
+Fresh world, dedicated server, no cheats. Build a Tool Station and Part Builder; craft two wood **bow limbs** (3 ingots' worth of material each) and a **bow string** from string; assemble a **shortbow**. Draw and release: a vanilla arrow flies, damage and flight match the limb material's BOW stats. Build a Tool Forge; assemble a **longbow** (2 limbs + large plate + string) and a **crossbow** (tough rod + limb + tough binding + string). Load the crossbow (right-click, wait draw time), swap hotbar slots, come back, fire — it fires. Apply Haste (redstone) to the shortbow: draw is faster. Attempt Luck (lapis) on any bow: refused. Apply Fiery to the longbow: the arrow ignites its target. Save, restart the server, load: crossbow is still loaded, all bows keep their parts and modifiers.
+
+### Content manifest
+
+| Item | Parts (1.12 `PartMaterialType` order) | Station |
+| --- | --- | --- |
+| Shortbow | bow limb, bow limb, bow string | Tool Station |
+| Longbow | bow limb, bow limb, large plate (extra), bow string | Tool Forge |
+| Crossbow | tough tool rod (crossbow body), bow limb, tough binding (extra), bow string | Tool Forge |
+| Bow limb (part) | cost 3 ingots (`TinkerTools.java:210`) | Part Builder + gold/clay cast |
+| Bow string (part) | cost 1 ingot (`:211`); materials: string, vine (slime vines wait for world content) | Part Builder |
+
+New material stat types (values ported from `TinkerMaterials.java` at the pinned commit): **BOW** (drawspeed, range, bonusDamage) on every 1.12 material that carries `BowMaterialStats`; the four M3.2 modern-branch materials (amethyst bronze, nahuatl, chorus, ancient) get analogy-derived values flagged for maintainer review in the PR. **BOWSTRING** (modifier ≈ 1.0) on string and vine.
+
+Ammunition: **vanilla arrows only** (tipped/spectral included as vanilla allows), pickup disabled as upstream `BowCore.java:228-235`.
+
+Rendering: per-stage draw art derived from the 1.12 clone (limbs bend, string stretches — three `pull` stages via item-property overrides, same mechanism as the broken-tool swap #352); crossbow loaded/unloaded models. Screenshot harness gains held-and-drawn poses.
+
+Modifiers/traits: no ranged-exclusive modifiers; **every** modifier/trait upstream adapts by category is ported — Haste → draw speed on launchers (`ModHaste.java:41,115`), Luck refuses launchers (`ModLuck.java:35`), hit-effect modifiers (fiery, necrotic, knockback, beheading, smite, bane...) travel with the arrow, and the ~15 traits with an `ILauncher`/projectile branch (Endspeed, Hovering, Poisonous, Splintering, Sharp, Slimey, Prickly, Squeaky, Holy, Insatiable, Enderference, Breakable, Baconlicious, ToolGrowth...) get their branch — one GameTest each.
+
+Gating: longbow and crossbow join `forgeweave:large_tools` (#348 mechanism); shortbow is a station tool.
+
+### Non-goals for M3.5 (maintainer decisions 2026-08-15)
+
+- **Material arrows and the shuriken** — deferred together to a follow-up (M3.6 candidate): both ride upstream's `ProjectileCore` item-projectile infrastructure (ammo counter as durability, own entity, reload at the station). Deferring arrows means deferring that infra once; when it lands the bows already accept both ammo kinds as 1.12 does. Deviation from 1.12 parity recorded here.
+- Bolts (cut earlier), javelin, throwing axe, energy-consuming ranged tool (PlusTiC) — deferred backlog, no 1.12 counterpart.
+- Fins modifier (projectile-only) — with arrows.
+- Slime-vine bowstrings — world-content milestone.
+
+### CI and release gates
+
+- **GameTest coverage**: bow assembly at station vs forge gating; BOW/BOWSTRING stat math into the tool component (drawspeed/range/damage per material); draw progress = drawSpeed × ticks / drawTime (`BowCore.java:112-114`); arrow entity damage carries bonusDamage; crossbow load → persists across hotbar swap and save/reload → fires; Haste raises draw speed on a bow; Luck refused on a bow; one test per launcher-adapted modifier and trait branch; vanilla arrow pickup disabled.
+- **Save-compat fixtures (same PR as the format; corpus is CI-gating; first milestone under the binding promise)**: bow tool components with BOW/BOWSTRING-derived stats; crossbow `loaded` state + loaded ammo; any draw-state component.
+- **Manual release checklist adds**: screenshot-harness review of drawn poses (3 stages) and crossbow loaded/unloaded for each bow; third-person hold; JEI shows bow assembly + limb/string casting; previous-release (beta.1) world load with a bow in inventory.
+- Alpha tags during the milestone; post-alpha playtest-fix round; **final tag `mc1.21.1-v0.3.5`** (beta series, since beta.1 precedes it).
+
 ## Milestone ladder
 
 Each milestone ships a playable release under the tag scheme in [releasing.md](releasing.md).
@@ -262,7 +304,7 @@ Each milestone ships a playable release under the tag scheme in [releasing.md](r
 | M2 | Smeltery, metal materials, modifiers. Melts/casts any mod's ores and ingots via standard `c:` tags, so modded metals (Mekanism, Create, Thermal, …) work without per-mod code | M1 |
 | M3 | Full melee/harvest tool roster incl. modern-era shapes (katana, scimitar, warmace), combat tuning, Tool Forge, embossing (this document, planned 2026-08-12) | M2 |
 | M3.2 | Material roster: the full always-on 1.12 material set with per-part traits, tag-gated compat metals, and four by-name modern-branch additions (this document, planned 2026-08-13; pulled forward from M6 by maintainer decision 2026-08-12) | M3 |
-| M3.5 | Ranged weapons: shortbow, longbow, crossbow (fires arrows — bolts are cut), shuriken, material arrows; energy-consuming ranged tool | M3.2 |
+| M3.5 | Ranged weapons: shortbow, longbow, crossbow firing vanilla arrows (planned 2026-08-15, this document). Material arrows + shuriken deferred to a follow-up; javelin/throwing axe/energy tool to backlog | M3.2 + `mc1.21.1-v0.3.0-beta.1` |
 | M4 | Armors (Construct's Armory-inspired) | M2 (reuses parts/traits/modifiers) |
 | M5 | Gadgets: slingshot, slime boots | M2 |
 | M6 | Material expansion at TAIGA scale; modded metals become tool materials via the datapack registry | Stable material data model (M1), metals (M2) |
@@ -335,6 +377,7 @@ No milestone-specific CI infrastructure beyond that.
 - Sand casts (single-use) if playtests find the gold-cast gate too steep.
 - Electric/tiered smeltery heating (M8, alongside Create/Mekanism compat).
 - ~~Embossing reagent revert~~ **Executed in M3.2** (slime crystals ship there, ahead of the world-content milestone; maintainer decision 2026-08-13): `data/forgeweave/forgeweave/embossing_recipe/embossment.json` reverts to green/blue/magma slime crystals + gold block.
+- **Material arrows + shuriken (`ProjectileCore` item-projectile infra)** — deferred from M3.5 (2026-08-15); bows already accept both ammo kinds when it lands. Also deferred: javelin, throwing axe, PlusTiC-style energy ranged tool, Fins modifier.
 - Embossing's per-tool donor-part gate (#154): upstream refuses a donor part the tool itself does not use (`ModExtraTrait#canApplyCustom`). Forgeweave accepts any buildable part until the tool roster's per-tool part table exists; add the gate with that table.
 
 ## M1 issue-ready roadmap
