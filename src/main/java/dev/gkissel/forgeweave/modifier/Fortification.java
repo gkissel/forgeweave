@@ -15,6 +15,7 @@ import net.minecraft.world.item.crafting.Ingredient;
 
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.config.ForgeweaveConfig;
+import dev.gkissel.forgeweave.item.BowItem;
 import dev.gkissel.forgeweave.item.ForgeweaveDataComponents;
 import dev.gkissel.forgeweave.item.ForgeweaveItems;
 import dev.gkissel.forgeweave.material.Material;
@@ -227,6 +228,12 @@ public final class Fortification {
             return Optional.of(rejected("gui.forgeweave.modifier.modifiers_disabled"));
         }
 
+        if (tool.getItem() instanceof BowItem) {
+            // M3.5 #396: ModFortify's aspects include harvestOnly (CategoryAspect(HARVEST)); a bow is
+            // TOOL + LAUNCHER only, so upstream's station silently declines. Refused with a reason,
+            // like every other declined application here.
+            return Optional.of(rejected("gui.forgeweave.fortification.launcher"));
+        }
         ResourceLocation materialId = kit.get(ForgeweaveDataComponents.MATERIAL.get());
         if (materialId == null) {
             return Optional.empty(); // a kit with no material can't name a tier.

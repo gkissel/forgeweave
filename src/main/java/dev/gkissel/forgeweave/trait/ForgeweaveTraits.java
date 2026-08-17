@@ -322,6 +322,12 @@ public final class ForgeweaveTraits {
         public float attackSpeedBonus() {
             return LIGHTWEIGHT_BONUS;
         }
+
+        @Override
+        public float drawSpeedBonus() {
+            // M3.5 #396: TraitLightweight#applyEffect's Category.LAUNCHER branch, the same 10%.
+            return LIGHTWEIGHT_BONUS;
+        }
     };
 
     /**
@@ -1455,8 +1461,10 @@ public final class ForgeweaveTraits {
         @Override
         public float preHit(CombatHit hit, float originalDamage, float damage) {
             // #228 squeaky: upstream TraitSqueaky#damage returns 0f unconditionally, trumping every
-            // other bonus -- so the check runs before, not after, the additive traits.
-            if (zeroesAttackDamage(hit.weapon())) {
+            // other bonus -- so the check runs before, not after, the additive traits. Melee only
+            // (M3.5 #396): an arrow's damage is not the bow's attack stat, and in 1.12 a launcher's
+            // traits never see the arrow at all, so a sponge-limbed bow still shoots arrows that hurt.
+            if (!hit.isProjectile() && zeroesAttackDamage(hit.weapon())) {
                 return 0.0F;
             }
             return damage + bonusDamageAgainst(hit.weapon(), hit.target(), originalDamage);
@@ -1520,6 +1528,15 @@ public final class ForgeweaveTraits {
         for (Trait trait : of(stack)) {
             trait.afterBlockBreak(stack, level, state, pos, breaker, effective);
         }
+    }
+
+    /** Fraction the tool's traits add to a launcher's draw speed (M3.5 #396, {@link Trait#drawSpeedBonus}). */
+    public static float drawSpeedBonus(ItemStack stack) {
+        float bonus = 0.0F;
+        for (Trait trait : of(stack)) {
+            bonus += trait.drawSpeedBonus();
+        }
+        return bonus;
     }
 
     /** Flat attack speed the tool's traits add, as a fraction of its base attack speed. */

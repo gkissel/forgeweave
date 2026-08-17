@@ -50,4 +50,14 @@ public record CombatHit(
     public boolean isFullCharge() {
         return attackStrengthScale > FULL_CHARGE;
     }
+
+    /**
+     * Whether this blow arrived on a projectile rather than the attacker's own swing (M3.5 issue
+     * #396): the source's direct entity is something other than its causing entity -- an arrow fired
+     * from a Forgeweave bow, whose {@code getWeaponItem} is the bow. Upstream {@code
+     * ToolHelper#attackEntity} keeps the same distinction as its {@code projectileEntity} argument.
+     */
+    public boolean isProjectile() {
+        return source.getDirectEntity() != null && source.getDirectEntity() != source.getEntity();
+    }
 }

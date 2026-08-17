@@ -114,9 +114,12 @@ public final class ForgeweaveModifiers {
      *       which is upstream's own comment on that line. Upstream gates this on
      *       {@code Category.WEAPON}, which of Forgeweave's three tools only the hatchet has, so
      *       {@code ToolItem} applies it there only.
+     *   <li><b>Draw speed</b> ({@code getDrawspeedBonus}, M3.5 issue #396): {@code drawSpeed +=
+     *       drawSpeed * 0.1f * current / max} on {@code Category.LAUNCHER} -- {@code +0.2%} per
+     *       redstone, {@code +10%} per level, {@code +50%} at level V. Read only by
+     *       {@code BowItem#drawSpeed}, so a tool that never draws is untouched, the way upstream's
+     *       category check keeps it.
      * </ul>
-     *
-     * <p>Upstream's bow draw-speed branch has no counterpart: Forgeweave ships no launcher (M5).
      */
     public static final Modifier HASTE = new Modifier() {
         @Override
@@ -142,6 +145,11 @@ public final class ForgeweaveModifiers {
         @Override
         public float attackSpeedMultiplier(int level) {
             return 1.0F + 0.2F * level / HASTE_REDSTONE_PER_LEVEL;
+        }
+
+        @Override
+        public float drawSpeedMultiplier(int level) {
+            return 1.0F + 0.1F * level / HASTE_REDSTONE_PER_LEVEL;
         }
     };
 
@@ -522,6 +530,12 @@ public final class ForgeweaveModifiers {
         @Override
         public int unitsPerLevel() {
             return LUCK_LAPIS_PER_LEVEL;
+        }
+
+        @Override
+        public boolean appliesToLaunchers() {
+            // M3.5 #396: ModLuck's CategoryAnyAspect(HARVEST, WEAPON, PROJECTILE); a bow is neither.
+            return false;
         }
 
         @Override
@@ -1100,6 +1114,24 @@ public final class ForgeweaveModifiers {
             Modifier modifier = get(entry.id());
             if (modifier != null) {
                 multiplier += modifier.attackSpeedMultiplier(entry.level()) - 1.0F;
+            }
+        }
+        return multiplier;
+    }
+
+    /**
+     * Combined draw-speed multiplier of the tool's modifiers (M3.5 issue #396, {@link
+     * Modifier#drawSpeedMultiplier}); 1 when nothing touches it. Multiplicative, unlike
+     * {@link #attackSpeedMultiplier}'s additive fold: upstream's {@code ToolNBT#attackSpeedMultiplier}
+     * is a sum modifiers add to, while {@code ProjectileLauncherNBT#drawSpeed} is scaled in place by
+     * each {@code applyEffect} in turn.
+     */
+    public static float drawSpeedMultiplier(ItemStack stack) {
+        float multiplier = 1.0F;
+        for (ModifierEntry entry : of(stack)) {
+            Modifier modifier = get(entry.id());
+            if (modifier != null) {
+                multiplier *= modifier.drawSpeedMultiplier(entry.level());
             }
         }
         return multiplier;

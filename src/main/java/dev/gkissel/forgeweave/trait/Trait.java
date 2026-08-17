@@ -116,6 +116,18 @@ public interface Trait {
     }
 
     /**
+     * Fraction added to a launcher's draw speed while this trait is on it (M3.5 issue #396) --
+     * upstream {@code TraitLightweight#applyEffect}'s {@code Category.LAUNCHER} branch, {@code
+     * drawSpeed += drawSpeed * bonus}, the one trait in the 1.12 clone that touches
+     * {@code ProjectileLauncherNBT#drawSpeed}. Summed across traits and read by
+     * {@code BowItem#drawSpeed} only. Counted once per trait, not once per part granting it, following
+     * {@code ToolAssemblyRecipes#resolveTraits}' de-duplication.
+     */
+    default float drawSpeedBonus() {
+        return 0.0F;
+    }
+
+    /**
      * Called after this tool lands a hit, server side only (upstream 1.12's {@code ITrait#afterHit}).
      */
     default void afterHit(ItemStack stack, ServerLevel level, LivingEntity attacker, LivingEntity target) {}

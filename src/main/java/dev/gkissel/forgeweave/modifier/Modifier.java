@@ -62,6 +62,32 @@ public interface Modifier {
     }
 
     /**
+     * Multiplier on a launcher's draw speed (M3.5 issue #396) -- upstream {@code ModHaste#applyEffect}'s
+     * {@code Category.LAUNCHER} branch, {@code drawSpeed += drawSpeed * getDrawspeedBonus}, the one
+     * modifier in the 1.12 clone that touches {@code ProjectileLauncherNBT#drawSpeed}. Read by
+     * {@code BowItem#drawSpeed} and nothing else; a tool that does not draw never asks. Multiplicative
+     * across modifiers ({@code ForgeweaveModifiers#drawSpeedMultiplier}), which is what upstream's
+     * sequential {@code +=} on the same tag amounts to.
+     */
+    default float drawSpeedMultiplier(int level) {
+        return 1.0F;
+    }
+
+    /**
+     * Whether this modifier may be applied to a launcher (a bow) at all -- upstream's category
+     * aspects (M3.5 issue #396): {@code ModLuck} takes {@code CategoryAnyAspect(HARVEST, WEAPON,
+     * PROJECTILE)} and a bow is {@code TOOL + LAUNCHER} only, so upstream's station declines it.
+     * {@code ModifierApplication} refuses with {@code gui.forgeweave.modifier.unsupported_tool} when
+     * this is false; every other shipped modifier's aspects admit a launcher, and {@code ModHaste}'s
+     * {@code canApplyCustom} refuses only {@code NO_MELEE} (the projectiles themselves, which
+     * Forgeweave does not ship). Kept as a category predicate rather than an item check so this
+     * interface stays as item-free as ADR-0004 wants it.
+     */
+    default boolean appliesToLaunchers() {
+        return true;
+    }
+
+    /**
      * The tool's attack damage after this modifier has adjusted it -- silky's only shipped user
      * (issue #107): upstream {@code ModSilktouch#applyEffect} takes a flat 3 off both {@code speed}
      * and {@code attack} (floored at 1) the moment the modifier is applied. Same shape as
