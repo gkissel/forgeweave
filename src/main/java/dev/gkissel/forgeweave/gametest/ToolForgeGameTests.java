@@ -108,8 +108,8 @@ public class ToolForgeGameTests {
 
         helper.assertTrue(large == 8,
                 "#forgeweave:large_tools tags exactly the Tool Forge tier's eight tools, counted " + large);
-        helper.assertTrue(ToolAssemblyRecipes.ENTRIES.size() - large == 13,
-                "the Tool Station's own tab row is the other thirteen");
+        helper.assertTrue(ToolAssemblyRecipes.ENTRIES.size() - large == 14,
+                "the Tool Station's own tab row is the other fourteen (M3.5 #394 added the shortbow)");
         helper.succeed();
     }
 

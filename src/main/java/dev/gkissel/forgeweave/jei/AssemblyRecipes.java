@@ -50,7 +50,14 @@ final class AssemblyRecipes {
 
     private static List<ItemStack> partStacks(PartItem part, Map<ResourceLocation, Material> materials) {
         List<ItemStack> stacks = new ArrayList<>();
-        for (ResourceLocation materialId : materials.keySet()) {
+        for (Map.Entry<ResourceLocation, Material> material : materials.entrySet()) {
+            ResourceLocation materialId = material.getKey();
+            // M3.5 #394: the first assembly whose slots read different stat blocks. A material with
+            // no block for this slot is a part the Part Builder refuses to make (PartBuilderRecipes),
+            // so it is not offered here either -- string never cycles through a limb slot.
+            if (!material.getValue().hasStatsFor(part.kind())) {
+                continue;
+            }
             ItemStack stack = new ItemStack(part);
             stack.set(ForgeweaveDataComponents.MATERIAL.get(), materialId);
             stacks.add(stack);

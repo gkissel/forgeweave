@@ -39,6 +39,7 @@ import dev.gkissel.forgeweave.modifier.Fortification;
 import dev.gkissel.forgeweave.modifier.Modifier;
 import dev.gkissel.forgeweave.modifier.ModifierApplication;
 import dev.gkissel.forgeweave.modifier.ModifierEntry;
+import dev.gkissel.forgeweave.tool.LauncherStats;
 import dev.gkissel.forgeweave.tool.ToolConstants;
 import dev.gkissel.forgeweave.tool.ToolMaterials;
 import dev.gkissel.forgeweave.tool.ToolRepair;
@@ -207,7 +208,12 @@ public final class ToolAssemblyRecipes {
             new Entry(ToolConstants.EXCAVATOR, ForgeweaveItems.TOOL_EXCAVATOR),
             new Entry(ToolConstants.LUMBERAXE, ForgeweaveItems.TOOL_LUMBERAXE),
             new Entry(ToolConstants.SCYTHE, ForgeweaveItems.TOOL_SCYTHE),
-            new Entry(ToolConstants.VEIN_HAMMER, ForgeweaveItems.TOOL_VEIN_HAMMER));
+            new Entry(ToolConstants.VEIN_HAMMER, ForgeweaveItems.TOOL_VEIN_HAMMER),
+            // M3.5 #394: the shortbow -- limb, limb, string, upstream ShortBow's PartMaterialType
+            // order. A Tool Station tool (TinkerRegistry.registerToolCrafting(shortBow)), so not in
+            // LARGE_TOOLS. The two LIMB slots feed both the melee stats (their HEAD block) and the
+            // LAUNCHER_STATS component (their BOW block); the string is a durability multiplier only.
+            new Entry(ToolConstants.SHORTBOW, ForgeweaveItems.TOOL_SHORTBOW));
 
     /**
      * The "large tool" classification (docs/SCOPE.md M3 issue #152): tools that can only be assembled
@@ -702,6 +708,10 @@ public final class ToolAssemblyRecipes {
         result.set(ForgeweaveDataComponents.TOOL_MATERIALS.get(),
                 ToolMaterials.of(entry.constants().parts(), materialIds));
         result.set(ForgeweaveDataComponents.TOOL_STATS.get(), stats);
+        // M3.5 #394: a bow's ranged half (upstream ProjectileLauncherNBT#limb) -- present only for
+        // a tool with LIMB slots, so every other tool's component set is exactly what it was.
+        LauncherStats.of(entry.constants(), materials)
+                .ifPresent(launcher -> result.set(ForgeweaveDataComponents.LAUNCHER_STATS.get(), launcher));
         // Trait ids come along as data so every later trait hook works off the stack alone
         // (ForgeweaveTraits: same id from two parts still counts once, as upstream 1.12 does).
         result.set(ForgeweaveDataComponents.TRAITS.get(), resolveTraits(entry, materials));
@@ -724,13 +734,15 @@ public final class ToolAssemblyRecipes {
     /**
      * Every HEAD-slot material, in slot order -- what upstream 1.12's {@code ToolNBT#head} receives as
      * its varargs (issue #294). One entry for the 15 single-head tools, two to three for the hammer,
-     * cleaver, battleaxe, excavator, lumber axe, mattock and vein hammer.
+     * cleaver, battleaxe, excavator, lumber axe, mattock and vein hammer -- and a bow's two limbs
+     * (M3.5 #394: {@code ShortBow#buildTagData} hands the limbs' HEAD block to {@code data.head}).
      */
     private static List<Material> headMaterials(Entry entry, List<Material> materials) {
         List<ToolConstants.PartSlot> slots = entry.constants().parts();
         List<Material> heads = new ArrayList<>();
         for (int i = 0; i < slots.size(); i++) {
-            if (slots.get(i).role() == ToolConstants.Role.HEAD) {
+            ToolConstants.Role role = slots.get(i).role();
+            if (role == ToolConstants.Role.HEAD || role == ToolConstants.Role.LIMB) {
                 heads.add(materials.get(i));
             }
         }
@@ -800,50 +812,28 @@ public final class ToolAssemblyRecipes {
         for (ToolConstants.Role role : ToolConstants.Role.values()) {
             for (int i = 0; i < slots.size(); i++) {
                 if (slots.get(i).role() == role) {
-                    traits.addAll(materials.get(i).traits().forPart(kindOf(role)));
+                    for (PartItem.Kind kind : kindsOf(role)) {
+                        traits.addAll(materials.get(i).traits().forPart(kind));
+                    }
                 }
             }
         }
         return traits.stream().distinct().toList();
     }
 
-    private static PartItem.Kind kindOf(ToolConstants.Role role) {
-        return switch (role) {
-            case HEAD -> PartItem.Kind.HEAD;
-            case EXTRA -> PartItem.Kind.EXTRA;
-            case HANDLE -> PartItem.Kind.HANDLE;
-        };
-    }
-
     /**
-     * The stat block the station writes. An M1 tool keeps {@link ToolStats#compute}'s plain
-     * head/extra/handle formula; an M3 tool goes through its own {@link ToolConstants} entry
-     * (issue #153), which is that same chain plus the flat per-tool adjustments only M3 tools have
-     * -- fed one {@link Material} per declared part slot, in the entry's own order. The head
-     * material's {@code headDurability} trait step applies either way, so a material's trait cannot
-     * quietly stop working just because the tool is an M3 shape.
-     *
-     * <p>ponytail: replaced by #155's generalized assembly on rebase -- the role-to-slot mapping below
-     * assumes one material per role, which is all the Tool Station's three slots can express. The
-     * multi-head tools (hammer, cleaver, ...) need more slots than this station has at all, which is
-     * exactly the generalization #155 owns.
+     * The stat blocks -- and so the trait scopes -- a slot of {@code role} reads. One each, except a
+     * limb (M3.5 #394): upstream's {@code PartMaterialType.bow} names both {@code BOW} and
+     * {@code HEAD}, so a limb grants its material's HEAD-scoped traits as well.
      */
-    private static ToolStats.Stats stats(Entry entry, Material head, Material extra, Material handle) {
-        ToolConstants.Entry constants = entry.constants();
-        if (constants == null) {
-            return ToolStats.compute(head, extra, handle);
-        }
-        List<Material> perSlot = constants.parts().stream()
-                .map(slot -> switch (slot.role()) {
-                    case HEAD -> head;
-                    case EXTRA -> extra;
-                    case HANDLE -> handle;
-                })
-                .toList();
-        ToolStats.Stats stats = ToolConstants.compute(constants, perSlot);
-        return new ToolStats.Stats(
-                ForgeweaveTraits.headDurability(head.traits().forPart(PartItem.Kind.HEAD), stats.durability()),
-                stats.miningSpeed(), stats.attackDamage());
+    private static List<PartItem.Kind> kindsOf(ToolConstants.Role role) {
+        return switch (role) {
+            case HEAD -> List.of(PartItem.Kind.HEAD);
+            case EXTRA -> List.of(PartItem.Kind.EXTRA);
+            case HANDLE -> List.of(PartItem.Kind.HANDLE);
+            case LIMB -> List.of(PartItem.Kind.BOW, PartItem.Kind.HEAD);
+            case BOWSTRING -> List.of(PartItem.Kind.BOWSTRING);
+        };
     }
 
     /**

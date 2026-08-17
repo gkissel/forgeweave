@@ -62,20 +62,32 @@ public final class ToolConstants {
      * <p>The five shapes with no 1.12 counterpart are classified by what they are: the vein hammer
      * mines ({@link #HARVEST}), the dagger, scimitar, katana and warmace hit ({@link #MELEE}).
      *
-     * <p>Only these two exist because only these two have tools. {@code rangedWeapons}, {@code armor}
-     * and {@code gadgets} are config keys with no roster yet (M3.5/M4/M5); their constants land with
-     * the tools they gate.
+     * <p>{@link #RANGED} is upstream's {@code Category.LAUNCHER} ({@code BowCore}'s constructor adds
+     * it), M3.5's bows. {@code armor} and {@code gadgets} are config keys with no roster yet (M4/M5);
+     * their constants land with the tools they gate.
      */
     public enum Category {
         HARVEST,
-        MELEE
+        MELEE,
+        RANGED
     }
 
-    /** Which of a material's stat blocks a part slot draws from -- see {@link PartItem.Kind}. */
+    /**
+     * Which of a material's stat blocks a part slot draws from -- see {@link PartItem.Kind}.
+     *
+     * <p>{@link #LIMB} is upstream's {@code PartMaterialType.bow(...)}: a slot that reads
+     * <em>both</em> the HEAD block (durability/attack/speed, folded through {@code ToolNBT#head}
+     * exactly like a {@link #HEAD} slot -- {@code ShortBow#buildTagData} calls {@code data.head(limb1,
+     * limb2)}) and the BOW block ({@code ProjectileLauncherNBT#limb}, {@link LauncherStats}).
+     * {@link #BOWSTRING} is {@code PartMaterialType.bowstring(...)}: the BOWSTRING block only, one
+     * durability multiplier ({@code ProjectileLauncherNBT#bowstring}).
+     */
     public enum Role {
         HEAD,
         EXTRA,
-        HANDLE
+        HANDLE,
+        LIMB,
+        BOWSTRING
     }
 
     /**
@@ -300,7 +312,21 @@ public final class ToolConstants {
                     new PartSlot(Role.EXTRA, TOUGH_BINDING)),
             0.8f, 1.0f, 1.0f, 4.0f, 1.0f, 1.0f, false, false);
 
-    /** All 18 M3 tools, in docs/SCOPE.md content-manifest order. */
+    /**
+     * Upstream {@code tools/ranged/item/ShortBow.java} (M3.5 issue #394): two limbs and a string,
+     * {@code attackSpeed() = 1.5}, {@code damagePotential() = 0.7}. Its {@code buildTagData} is
+     * {@code head(limb1, limb2)}, {@code limb(limb1, limb2)}, {@code bowstring(string)} with no
+     * post-hoc multiplier -- so the melee half of its stats is the plain two-head average and the
+     * bowstring modifier is the only extra durability step ({@link #compute}); {@code limb(...)} is
+     * {@link LauncherStats}. Draw time, base projectile speed and inaccuracy are per-item constants
+     * on {@code BowItem}, not stat math.
+     */
+    public static final Entry SHORTBOW = new Entry("shortbow", Category.RANGED,
+            List.of(new PartSlot(Role.LIMB, "bow_limb"), new PartSlot(Role.LIMB, "bow_limb"),
+                    new PartSlot(Role.BOWSTRING, "bow_string")),
+            1.5f, 0.7f, 1.0f, 0.0f, 1.0f, 1.0f, false, false);
+
+    /** All 18 M3 tools, in docs/SCOPE.md content-manifest order (M3.5's bows are not M3 roster). */
     public static final List<Entry> ALL = List.of(
             BROADSWORD, LONGSWORD, RAPIER, BATTLESIGN, FRYING_PAN, MATTOCK, KAMA, DAGGER,
             BATTLEAXE, SCIMITAR, KATANA, WARMACE,
@@ -329,11 +355,16 @@ public final class ToolConstants {
         float handleModifierSum = 0f;
         int handleCount = 0;
 
+        float bowstringModifierSum = 0f;
+        int bowstringCount = 0;
+
         for (int i = 0; i < parts.size(); i++) {
             PartSlot slot = parts.get(i);
             Material material = partMaterials.get(i);
             switch (slot.role()) {
-                case HEAD -> {
+                // A limb is a head as far as ToolNBT#head is concerned (ShortBow#buildTagData feeds
+                // the limbs' HEAD block to data.head(...)); its BOW block is LauncherStats' business.
+                case HEAD, LIMB -> {
                     // Issue #392: the blocks are optional, and a part whose material lacks its own
                     // never reaches assembly (PartItem#hasUnusableMaterial) -- so this is an
                     // invariant, not a datapack error path.
@@ -353,6 +384,11 @@ public final class ToolConstants {
                     handleDurabilitySum += handle.durability();
                     handleModifierSum += handle.durabilityModifier();
                     handleCount++;
+                }
+                case BOWSTRING -> {
+                    bowstringModifierSum += material.bowstring()
+                            .orElseThrow(() -> ToolStats.noStats("bowstring")).modifier();
+                    bowstringCount++;
                 }
             }
         }
@@ -378,6 +414,12 @@ public final class ToolConstants {
                 durability += Math.round((float) handleDurabilitySum / handleCount);
             }
             durability = Math.max(1, durability);
+        }
+        if (bowstringCount > 0) {
+            // ProjectileLauncherNBT#bowstring: the averaged string modifier scales whatever the chain
+            // above produced, floor 1, and it runs before the per-tool multiplier
+            // (LongBow#buildTagData applies its DURABILITY_MODIFIER after bowstring()).
+            durability = Math.max(1, Math.round(durability * (bowstringModifierSum / bowstringCount)));
         }
         durability = Math.max(1, (int) (durability * entry.durabilityMultiplier()));
 

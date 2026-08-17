@@ -51,6 +51,7 @@ public final class ContentFamilies {
         return ForgeweaveConfig.enabled(switch (category) {
             case HARVEST -> ForgeweaveConfig.HARVEST_TOOLS;
             case MELEE -> ForgeweaveConfig.MELEE_WEAPONS;
+            case RANGED -> ForgeweaveConfig.RANGED_WEAPONS;
         });
     }
 

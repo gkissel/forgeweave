@@ -68,7 +68,8 @@ public final class BookContent {
             ForgeweaveItems.TOOL_SCIMITAR,
             ForgeweaveItems.TOOL_KATANA,
             ForgeweaveItems.TOOL_WARMACE,
-            ForgeweaveItems.TOOL_CLEAVER);
+            ForgeweaveItems.TOOL_CLEAVER,
+            ForgeweaveItems.TOOL_SHORTBOW); // M3.5 #394
 
     private static final ResourceLocation SMELTERY_IMAGE =
             ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "textures/derived/gui/book/smeltery.png");

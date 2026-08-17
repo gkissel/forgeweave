@@ -175,7 +175,13 @@ public class ToolStationScreen extends StationScreen<ToolStationMenu> implements
     private static final Map<ToolConstants.Role, Integer> TOOL_LAYER_COLORS = new EnumMap<>(Map.of(
             ToolConstants.Role.HANDLE, 0x684E1E,
             ToolConstants.Role.HEAD, 0xC1C1C1,
-            ToolConstants.Role.EXTRA, 0x2376DD));
+            ToolConstants.Role.EXTRA, 0x2376DD,
+            // M3.5 #394, BowCore#getMaterialForPartForGuiRendering: the first limb is RenderMaterials[0]
+            // (the handle brown), the string RenderMaterialString (0xffffff). ponytail: upstream paints
+            // the second limb RenderMaterials[2] (binding blue); this map is per role, so both limbs
+            // take the brown -- a per-occurrence colour if the preview ever needs to tell them apart.
+            ToolConstants.Role.LIMB, 0x684E1E,
+            ToolConstants.Role.BOWSTRING, 0xFFFFFF));
 
     private static final int BUTTON_SIZE = 18;
     private static final int BUTTON_SPACING = 4;

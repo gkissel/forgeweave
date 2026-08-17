@@ -63,10 +63,10 @@ class SubtypeKeysTest {
     void toolKeyDiffersByMaterial() {
         ItemStack wood = new ItemStack(ForgeweaveItems.TOOL_PICKAXE.get());
         wood.set(ForgeweaveDataComponents.TOOL_MATERIALS.get(),
-                new ToolMaterials(WOOD_ID, Optional.empty(), WOOD_ID, List.of(WOOD_ID, WOOD_ID)));
+                new ToolMaterials(WOOD_ID, Optional.empty(), Optional.of(WOOD_ID), List.of(WOOD_ID, WOOD_ID)));
         ItemStack stone = new ItemStack(ForgeweaveItems.TOOL_PICKAXE.get());
         stone.set(ForgeweaveDataComponents.TOOL_MATERIALS.get(),
-                new ToolMaterials(STONE_ID, Optional.empty(), STONE_ID, List.of(STONE_ID, STONE_ID)));
+                new ToolMaterials(STONE_ID, Optional.empty(), Optional.of(STONE_ID), List.of(STONE_ID, STONE_ID)));
 
         assertNotEquals(SubtypeKeys.tool(wood), SubtypeKeys.tool(stone));
     }
@@ -76,10 +76,10 @@ class SubtypeKeysTest {
     void toolKeyCoversEveryPartNotJustTheHead() {
         ItemStack allWood = new ItemStack(ForgeweaveItems.TOOL_PICKAXE.get());
         allWood.set(ForgeweaveDataComponents.TOOL_MATERIALS.get(),
-                new ToolMaterials(WOOD_ID, Optional.empty(), WOOD_ID, List.of(WOOD_ID, WOOD_ID)));
+                new ToolMaterials(WOOD_ID, Optional.empty(), Optional.of(WOOD_ID), List.of(WOOD_ID, WOOD_ID)));
         ItemStack stoneHeadWoodHandle = new ItemStack(ForgeweaveItems.TOOL_PICKAXE.get());
         stoneHeadWoodHandle.set(ForgeweaveDataComponents.TOOL_MATERIALS.get(),
-                new ToolMaterials(STONE_ID, Optional.empty(), WOOD_ID, List.of(STONE_ID, WOOD_ID)));
+                new ToolMaterials(STONE_ID, Optional.empty(), Optional.of(WOOD_ID), List.of(STONE_ID, WOOD_ID)));
 
         assertNotEquals(SubtypeKeys.tool(allWood), SubtypeKeys.tool(stoneHeadWoodHandle));
     }

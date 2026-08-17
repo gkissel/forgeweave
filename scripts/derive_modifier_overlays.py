@@ -59,6 +59,7 @@ TOOL_SOURCES = {
     "excavator": "excavator",
     "lumberaxe": "lumberaxe",
     "scythe": "scythe",
+    "shortbow": "shortbow",  # M3.5 #394; the drawn-stage overlays (mod_*_1/2/3) are M3.5-6's
     # Forgeweave-original shapes: closest-upstream donors, issue #198's precedent.
     "dagger": "broadsword",
     "scimitar": "broadsword",
@@ -88,6 +89,10 @@ MODIFIER_SOURCES = {
     "webbed": "mod_web",
 }
 
+# (tool, modifier) pairs upstream ships no overlay for, on purpose: luck refuses launchers
+# (ModLuck.java:35), so items/shortbow/ has no mod_luck.png. Mirrored by ModifierArt#NO_UPSTREAM_ART.
+NO_UPSTREAM_ART = {("shortbow", "luck")}
+
 
 def main() -> None:
     OUT.mkdir(parents=True, exist_ok=True)
@@ -97,6 +102,8 @@ def main() -> None:
         donor = tool != upstream_tool or tool == "frying_pan"
         for modifier, stem in MODIFIER_SOURCES.items():
             source = UPSTREAM_1_12 / upstream_tool / f"{stem}.png"
+            if (tool, modifier) in NO_UPSTREAM_ART:
+                continue
             if not source.is_file():
                 raise SystemExit(f"missing upstream overlay: {source}")
             target = OUT / f"{tool}_{modifier}.png"

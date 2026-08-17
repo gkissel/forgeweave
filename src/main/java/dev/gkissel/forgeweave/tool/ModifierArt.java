@@ -45,11 +45,18 @@ public final class ModifierArt {
      */
     @Nullable
     public static String overlay(String tool, ResourceLocation modifier) {
-        if (!OVERLAY_MODIFIERS.contains(modifier)) {
+        if (!OVERLAY_MODIFIERS.contains(modifier) || NO_UPSTREAM_ART.contains(tool + "_" + modifier.getPath())) {
             return null;
         }
         return "derived/tools/mods/" + tool + "_" + modifier.getPath();
     }
+
+    /**
+     * {@code <tool>_<modifier>} pairs upstream ships no overlay for on purpose (M3.5 #394): luck
+     * refuses launchers ({@code ModLuck.java:35}), so {@code items/shortbow/} has no
+     * {@code mod_luck.png} to derive. Mirrored by {@code scripts/derive_modifier_overlays.py}.
+     */
+    private static final Set<String> NO_UPSTREAM_ART = Set.of("shortbow_luck");
 
     private static ResourceLocation id(String path) {
         return ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, path);

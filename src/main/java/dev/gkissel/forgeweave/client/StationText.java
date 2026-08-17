@@ -22,12 +22,14 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import net.minecraft.world.item.ItemStack;
 
+import dev.gkissel.forgeweave.item.BowItem;
 import dev.gkissel.forgeweave.item.ForgeweaveDataComponents;
 import dev.gkissel.forgeweave.material.Material;
 import dev.gkissel.forgeweave.material.MaterialDisplay;
 import dev.gkissel.forgeweave.modifier.ForgeweaveModifiers;
 import dev.gkissel.forgeweave.modifier.ModifierApplication;
 import dev.gkissel.forgeweave.modifier.ModifierEntry;
+import dev.gkissel.forgeweave.tool.LauncherStats;
 import dev.gkissel.forgeweave.tool.ToolMaterials;
 import dev.gkissel.forgeweave.tool.ToolStats;
 
@@ -88,10 +90,33 @@ public final class StationText {
             return List.of();
         }
         int remaining = stats.durability() - tool.getDamageValue();
+        List<Component> lines = new ArrayList<>();
+        lines.add(durabilityStat(remaining, stats.durability()));
+        lines.add(stat("mining_speed", stats.miningSpeed(), SPEED_COLOR));
+        if (tool.getItem() instanceof BowItem bow) {
+            lines.addAll(launcherStats(tool, bow.drawTime())); // M3.5 #394, upstream's LAUNCHER block
+        }
+        lines.add(stat("attack_damage", stats.attackDamage(), ATTACK_COLOR));
+        return List.copyOf(lines);
+    }
+
+    /**
+     * An assembled bow's ranged stats (M3.5 #394), upstream {@code ToolCore#getInformation}'s
+     * {@code Category.LAUNCHER} block: draw speed shown as seconds to full draw
+     * ({@code TooltipBuilder#addDrawSpeed}: {@code drawTime / (20 * drawSpeed)}), the range
+     * multiplier, the bonus damage. Empty for a stack with no launcher stats. Reads the stored
+     * component rather than {@code BowItem#drawSpeed} on purpose: this is the assembled number the
+     * limbs gave; a draw-speed modifier (M3.5-5) will decide then whether the line shows its effect.
+     */
+    public static List<Component> launcherStats(ItemStack tool, int drawTime) {
+        LauncherStats launcher = BowItem.launcherStats(tool);
+        if (launcher == null) {
+            return List.of();
+        }
         return List.of(
-                durabilityStat(remaining, stats.durability()),
-                stat("mining_speed", stats.miningSpeed(), SPEED_COLOR),
-                stat("attack_damage", stats.attackDamage(), ATTACK_COLOR));
+                stat("drawspeed", drawTime / (20.0F * launcher.drawSpeed()), DRAWSPEED_COLOR),
+                stat("range", launcher.range(), RANGE_COLOR),
+                stat("bonus_damage", launcher.bonusDamage(), BOW_DAMAGE_COLOR));
     }
 
     /**

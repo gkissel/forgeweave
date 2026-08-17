@@ -305,6 +305,12 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("effect.forgeweave.lacerate", "Lacerated");
         addItem(ForgeweaveItems.TOOL_KATANA, "Katana");
         addItem(ForgeweaveItems.TOOL_CLEAVER, "Cleaver"); // #158
+        // M3.5 #394: upstream item.tconstruct.shortbow.name / .desc, minus its closing "Uses
+        // Tinkers' Arrows." -- M3.5 fires vanilla arrows only (docs/SCOPE.md), and the sentence
+        // about fast movement while drawing describes BowCore#preventSlowDown, which is not ported.
+        addItem(ForgeweaveItems.TOOL_SHORTBOW, "Shortbow");
+        add("item.forgeweave.shortbow.description",
+                "The Shortbow is a quick and nimble weapon. It draws fast and looses arrows at a rapid rate. Fires vanilla arrows.");
 
         // The large harvest tools (docs/SCOPE.md M3 issue #157), names ported from upstream 1.12's
         // item.<tool>.name entries; "Vein Hammer" is this repository's own wording (no 1.12 tool).
