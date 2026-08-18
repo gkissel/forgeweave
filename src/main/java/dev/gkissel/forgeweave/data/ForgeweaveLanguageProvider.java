@@ -966,8 +966,12 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("gui.forgeweave.fortification.already_fortified",
                 "This tool is already fortified with %s. Use a different material to change it.");
         add("gui.forgeweave.fortification.no_tier", "%s has no mining level to fortify with.");
-        // M3.5 #396: upstream ModFortify is harvestOnly; a launcher has no mining level to set.
-        add("gui.forgeweave.fortification.launcher", "A bow mines nothing; there is no mining level to fortify.");
+        // T70 (issue #501): upstream ModFortify is harvestOnly (Category.HARVEST) -- pickaxe, shovel,
+        // hatchet, mattock, kama, hammer, excavator, lumberaxe and scythe only. Every sword, bow, and
+        // melee-only shape (battleaxe, cleaver, warmace, battlesign, frying pan) has no mining level to
+        // set. Was "gui.forgeweave.fortification.launcher" (M3.5 #396), which only refused bows.
+        add("gui.forgeweave.fortification.not_harvest",
+                "This tool mines nothing; there is no mining level to fortify.");
         add("tooltip.forgeweave.sharpening_kit", "Combine with a flint to raise a tool's mining level to this material's.");
         // Combat modifiers batch 2 (issue #163, docs/SCOPE.md M3): knockback, shulking, webbed.
         // Wording follows upstream 1.12's modifier.<id>.name/.desc entries.

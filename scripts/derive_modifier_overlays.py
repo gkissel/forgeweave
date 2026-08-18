@@ -99,23 +99,31 @@ MODIFIER_SOURCES = {
     "webbed": "mod_web",
     "glowing": "mod_glowing",
     "blasting": "mod_blasting",  # T24 (#455); harvest tools only -- see NO_UPSTREAM_ART below
+    "fortification": "mod_fortified",  # T70 (#501); harvest tools only -- see NO_UPSTREAM_ART below
 }
 
-# (tool, modifier) pairs that get no overlay, on purpose. Two reasons, both mirrored by
+# (tool, modifier) pairs that get no overlay, on purpose. Three reasons, all mirrored by
 # ModifierArt#NO_UPSTREAM_ART:
 #
 #   * luck refuses launchers (ModLuck.java:35), so items/shortbow/ and items/longbow/ have no
 #     mod_luck.png. items/crossbow/ inconsistently does, and it is copied like any other.
-#   * blasting is ModifierAspect.harvestOnly, so upstream ships mod_blasting.png in exactly the nine
-#     Category.HARVEST folders (pickaxe, hammer, shovel, excavator, hatchet, mattock, kama, scythe,
-#     lumberaxe) and nowhere else. Forgeweave's vein hammer is Category.HARVEST too and takes the
-#     hammer's donor copy; the warmace is MELEE, so even though its hammer donor does have the art,
-#     the modifier can never land on it and the file would be dead weight.
+#   * blasting and fortification (T70, #501) are both ModifierAspect.harvestOnly, so upstream ships
+#     mod_blasting.png/mod_fortified.png in exactly the nine Category.HARVEST folders (pickaxe,
+#     hammer, shovel, excavator, hatchet, mattock, kama, scythe, lumberaxe) and nowhere else.
+#     Forgeweave's vein hammer is Category.HARVEST too and takes the hammer's donor copy; the
+#     warmace is MELEE, so even though its hammer donor does have the art, the modifier can never
+#     land on it and the file would be dead weight.
+#   * fortification alone: items/mattock/ ships every other harvest-only modifier's overlay but
+#     genuinely has no mod_fortified.png -- verified against the pinned commit, an upstream art gap
+#     rather than a Forgeweave omission, so mattock is excluded for fortification only.
+_NON_HARVEST_TOOLS = (
+    "broadsword", "longsword", "rapier", "battlesign", "frying_pan", "battleaxe", "cleaver",
+    "shortbow", "longbow", "crossbow", "dagger", "scimitar", "katana", "warmace")
 NO_UPSTREAM_ART = {("shortbow", "luck"), ("longbow", "luck")} | {
-    (tool, "blasting") for tool in (
-        "broadsword", "longsword", "rapier", "battlesign", "frying_pan", "battleaxe", "cleaver",
-        "shortbow", "longbow", "crossbow", "dagger", "scimitar", "katana", "warmace")
-}
+    (tool, "blasting") for tool in _NON_HARVEST_TOOLS
+} | {
+    (tool, "fortification") for tool in _NON_HARVEST_TOOLS
+} | {("mattock", "fortification")}
 
 
 def main() -> None:

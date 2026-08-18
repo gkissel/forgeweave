@@ -21,6 +21,8 @@ import dev.gkissel.forgeweave.item.ForgeweaveItems;
 import dev.gkissel.forgeweave.item.PartItem;
 import dev.gkissel.forgeweave.material.Material;
 import dev.gkissel.forgeweave.menu.ToolAssemblyRecipes;
+import dev.gkissel.forgeweave.modifier.Fortification;
+import dev.gkissel.forgeweave.modifier.ModifierEntry;
 import dev.gkissel.forgeweave.tool.ToolArt;
 import dev.gkissel.forgeweave.tool.ToolMaterials;
 
@@ -33,6 +35,16 @@ import dev.gkissel.forgeweave.tool.ToolMaterials;
  */
 @EventBusSubscriber(modid = Forgeweave.MODID, bus = EventBusSubscriber.Bus.MOD, value = Dist.CLIENT)
 public final class ForgeweaveItemColors {
+
+    /**
+     * The tint index {@link dev.gkissel.forgeweave.client.ModifierOverlayModels} bakes a
+     * fortification overlay quad at (T70, issue #501): upstream {@code ModFortify#hasTexturePerMaterial}
+     * bakes one overlay per <em>material color</em> rather than one file per material
+     * ({@code ModifierModel#bakeModels}'s {@code hasTexturePerMaterial} branch, {@code MaterialModel}).
+     * Reserved well above any real part-layer index -- the largest tool (the hammer) has four --
+     * so it can never collide with a {@link #toolMaterialTint} layer read.
+     */
+    static final int FORTIFICATION_TINT_INDEX = 100;
 
     @SubscribeEvent
     static void registerItemColors(RegisterColorHandlersEvent.Item event) {
@@ -89,6 +101,9 @@ public final class ForgeweaveItemColors {
      * (handle behind, then heads, then the extra part), which is not every tool's part order.
      */
     private static int toolMaterialTint(ItemStack stack, int tintIndex) {
+        if (tintIndex == FORTIFICATION_TINT_INDEX) {
+            return fortificationTint(stack);
+        }
         ToolMaterials materials = stack.get(ForgeweaveDataComponents.TOOL_MATERIALS.get());
         if (materials == null) {
             return -1;
@@ -100,6 +115,17 @@ public final class ForgeweaveItemColors {
                 .filter(slots -> tintIndex < slots.size() && slots.get(tintIndex) < materials.parts().size())
                 .map(slots -> opaqueMaterialColor(materials.parts().get(slots.get(tintIndex))))
                 .orElse(-1);
+    }
+
+    /**
+     * The fortification overlay's color: the material of whichever {@code fortification.<material>}
+     * entry {@link Fortification#on} finds, or untinted if the stack carries none -- a tool with no
+     * fortification never draws this overlay in the first place ({@link
+     * dev.gkissel.forgeweave.tool.ModifierArt#overlay}), so this only runs for a stack that has one.
+     */
+    private static int fortificationTint(ItemStack stack) {
+        ModifierEntry entry = Fortification.on(stack);
+        return entry == null ? -1 : opaqueMaterialColor(Fortification.materialOf(entry.id()));
     }
 
     private static int opaqueMaterialColor(ResourceLocation materialId) {

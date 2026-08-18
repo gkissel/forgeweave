@@ -7,6 +7,7 @@ import javax.annotation.Nullable;
 import net.minecraft.resources.ResourceLocation;
 
 import dev.gkissel.forgeweave.Forgeweave;
+import dev.gkissel.forgeweave.modifier.Fortification;
 
 /**
  * Which modifiers render as an overlay layer on an assembled tool, and where that art lives
@@ -29,13 +30,24 @@ import dev.gkissel.forgeweave.Forgeweave;
  */
 public final class ModifierArt {
 
+    /**
+     * The family sentinel {@link #overlay} normalizes every generated {@code fortification.<material>}
+     * id down to (T70, issue #501) -- upstream ships one overlay file per tool for the whole
+     * {@code ModFortify} family, tinted per material at render time
+     * ({@code ModifierOverlayModels}'s fortification tint index), not one file per material. Distinct
+     * from {@link Fortification#RECIPE_ID}, which happens to share this same {@code
+     * forgeweave:fortification} value but is never a stored modifier id -- the two are read for
+     * unrelated purposes and neither depends on the other's identity.
+     */
+    private static final ResourceLocation FORTIFICATION = id("fortification");
+
     /** The modifiers whose application draws an overlay layer; see the class javadoc. */
     public static final Set<ResourceLocation> OVERLAY_MODIFIERS = Set.of(
             id("haste"), id("sharpness"), id("diamond"), id("emerald"), id("reinforced"),
             id("silky"), id("luck"), id("mending_moss"), id("soulbound"), id("smite"),
             id("bane_of_arthropods"), id("fiery"), id("necrotic"), id("knockback"),
             id("beheading"), id("shulking"), id("webbed"), id("glowing"),
-            id("blasting"));
+            id("blasting"), FORTIFICATION);
 
     /**
      * The texture path (no {@code .png}, no namespace) of {@code modifier}'s overlay on {@code
@@ -46,10 +58,13 @@ public final class ModifierArt {
      */
     @Nullable
     public static String overlay(String tool, ResourceLocation modifier) {
-        if (!OVERLAY_MODIFIERS.contains(modifier) || NO_UPSTREAM_ART.contains(tool + "_" + modifier.getPath())) {
+        // Every forgeweave:fortification.<material> id shares one overlay file per tool; see
+        // {@link #FORTIFICATION}.
+        ResourceLocation family = Fortification.isFortification(modifier) ? FORTIFICATION : modifier;
+        if (!OVERLAY_MODIFIERS.contains(family) || NO_UPSTREAM_ART.contains(tool + "_" + family.getPath())) {
             return null;
         }
-        return "derived/tools/mods/" + tool + "_" + modifier.getPath();
+        return "derived/tools/mods/" + tool + "_" + family.getPath();
     }
 
     /**
@@ -64,13 +79,25 @@ public final class ModifierArt {
      * bows have no art to derive, and the warmace -- whose donor is the hammer, which does have it --
      * is {@code Category.MELEE}, so the station never lets blasting onto one in the first place.
      * Mirrored by {@code scripts/derive_modifier_overlays.py}.
+     *
+     * <p>Fortification (parity audit T70, issue #501) is {@code ModifierAspect.harvestOnly} too, so
+     * the same fourteen non-harvest tools are listed again below. Mattock is the one addition:
+     * unlike blasting, upstream's {@code items/mattock/} folder ships every other harvest-only
+     * modifier's overlay but genuinely has no {@code mod_fortified.png} -- an upstream art gap, not a
+     * Forgeweave omission, verified against the pinned commit and mirrored rather than patched over.
      */
     private static final Set<String> NO_UPSTREAM_ART = Set.of(
             "shortbow_luck", "longbow_luck",
             "broadsword_blasting", "longsword_blasting", "rapier_blasting", "battlesign_blasting",
             "frying_pan_blasting", "battleaxe_blasting", "cleaver_blasting", "dagger_blasting",
             "scimitar_blasting", "katana_blasting", "warmace_blasting",
-            "shortbow_blasting", "longbow_blasting", "crossbow_blasting");
+            "shortbow_blasting", "longbow_blasting", "crossbow_blasting",
+            "broadsword_fortification", "longsword_fortification", "rapier_fortification",
+            "battlesign_fortification", "frying_pan_fortification", "battleaxe_fortification",
+            "cleaver_fortification", "dagger_fortification", "scimitar_fortification",
+            "katana_fortification", "warmace_fortification",
+            "shortbow_fortification", "longbow_fortification", "crossbow_fortification",
+            "mattock_fortification");
 
     /**
      * As {@link #overlay(String, ResourceLocation)}, for a bow rendered at pull stage {@code stage}

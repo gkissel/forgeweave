@@ -15,11 +15,12 @@ import net.minecraft.world.item.crafting.Ingredient;
 
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.config.ForgeweaveConfig;
-import dev.gkissel.forgeweave.item.BowItem;
 import dev.gkissel.forgeweave.item.ForgeweaveDataComponents;
 import dev.gkissel.forgeweave.item.ForgeweaveItems;
 import dev.gkissel.forgeweave.material.Material;
 import dev.gkissel.forgeweave.material.MaterialDisplay;
+import dev.gkissel.forgeweave.menu.ToolAssemblyRecipes;
+import dev.gkissel.forgeweave.tool.ToolConstants;
 
 /**
  * Fortification: spending a sharpening kit and a flint to set a finished tool's mining tier to the
@@ -228,11 +229,25 @@ public final class Fortification {
             return Optional.of(rejected("gui.forgeweave.modifier.modifiers_disabled"));
         }
 
-        if (tool.getItem() instanceof BowItem) {
-            // M3.5 #396: ModFortify's aspects include harvestOnly (CategoryAspect(HARVEST)); a bow is
-            // TOOL + LAUNCHER only, so upstream's station silently declines. Refused with a reason,
-            // like every other declined application here.
-            return Optional.of(rejected("gui.forgeweave.fortification.launcher"));
+        boolean isHarvestTool = ToolAssemblyRecipes.entryFor(tool)
+                .map(entry -> entry.constants().category() == ToolConstants.Category.HARVEST)
+                .orElse(false);
+        if (!isHarvestTool) {
+            // ModFortify's aspects include harvestOnly (CategoryAspect(HARVEST)); upstream's nine
+            // Category.HARVEST tools are pickaxe, shovel, hatchet, mattock, kama, hammer, excavator,
+            // lumberaxe and scythe (Pickaxe/Shovel/Hatchet/Mattock/Kama.java each call
+            // addCategory(Category.HARVEST); Hammer/Excavator/Scythe inherit it from the
+            // Pickaxe/Shovel/Kama they extend). {@link ToolConstants.Category#HARVEST} is
+            // Forgeweave's own collapse of that same split (see its javadoc) -- already the source
+            // {@link dev.gkissel.forgeweave.menu.ContentFamilies} gates the harvest-tools content
+            // family from, so this rides the one table rather than re-deriving harvest-ness from the
+            // tool's AOE shape or its mineable tag.
+            //
+            // M3.5 #396 only refused bows; every other non-harvest tool (every sword shape, the
+            // warmace, battlesign, frying pan, battleaxe, cleaver) fell through and could be fortified,
+            // which upstream's harvestOnly aspect never allows. Refused with a reason, like every other
+            // declined application here.
+            return Optional.of(rejected("gui.forgeweave.fortification.not_harvest"));
         }
         ResourceLocation materialId = kit.get(ForgeweaveDataComponents.MATERIAL.get());
         if (materialId == null) {

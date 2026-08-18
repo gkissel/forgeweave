@@ -44,6 +44,7 @@ import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.item.BowItem;
 import dev.gkissel.forgeweave.menu.ToolAssemblyRecipes;
 import dev.gkissel.forgeweave.modifier.ForgeweaveModifiers;
+import dev.gkissel.forgeweave.modifier.Fortification;
 import dev.gkissel.forgeweave.modifier.ModifierEntry;
 import dev.gkissel.forgeweave.tool.ModifierArt;
 import dev.gkissel.forgeweave.tool.ToolArt;
@@ -59,9 +60,11 @@ import dev.gkissel.forgeweave.tool.ToolArt;
  * <p><b>Upstream behavior, mirrored here:</b> every modifier on the tool that has overlay art
  * renders, in application order, with <b>no cap</b> -- upstream walks the whole base modifiers tag
  * list and appends quads for each id its {@code modifierParts} map knows ({@code
- * addModifierQuads}); a modifier without art simply draws nothing. The overlays are untinted
- * (upstream bakes them through a plain {@code ItemLayerModel} retexture; only {@code
- * hasTexturePerMaterial} modifiers tint, and Forgeweave ships none).
+ * addModifierQuads}); a modifier without art simply draws nothing. Every overlay is untinted
+ * (upstream bakes it through a plain {@code ItemLayerModel} retexture) <b>except</b> fortification
+ * (T70, issue #501): upstream's {@code ModFortify#hasTexturePerMaterial} bakes that one overlay
+ * through {@code MaterialModel} instead, tinted to the fortifying material's color -- see
+ * {@code ForgeweaveItemColors#FORTIFICATION_TINT_INDEX} and {@code #fortificationTint}.
  *
  * <p><b>Mechanism:</b> the tools' generated {@code item/handheld} layer models stay untouched;
  * {@link ModelEvent.ModifyBakingResult} wraps each tool's baked model so its {@link ItemOverrides}
@@ -117,7 +120,19 @@ public final class ModifierOverlayModels {
      * ammo's position, which {@code base} alone does not -- a bow's model is one instance per item,
      * not per draw stage.
      */
-    private record CacheKey(BakedModel base, List<ResourceLocation> overlays, @Nullable BakedModel ammo, int stage) {}
+    private record CacheKey(BakedModel base, List<TintedOverlay> overlays, @Nullable BakedModel ammo, int stage) {}
+
+    /**
+     * One overlay sprite plus the tint index its quad bakes at -- {@code -1} (untinted) for every
+     * overlay except fortification's, which bakes at {@code ForgeweaveItemColors#FORTIFICATION_TINT_INDEX}
+     * (T70, issue #501). Caching the composed model by this pair rather than the sprite alone is
+     * still safe with a shared cache across different fortifying materials: the tint index is all a
+     * baked quad ever carries, the actual color is resolved live from the rendered stack by the
+     * registered {@code ItemColor} every frame (the same reason a shared dyed-leather or
+     * stained-glass-pane model recolors correctly per stack), so two fortifications sharing a tool's
+     * overlay sprite share one cache entry and still render each other's color correctly.
+     */
+    private record TintedOverlay(ResourceLocation sprite, int tint) {}
 
     @SubscribeEvent
     static void onModifyBakingResult(ModelEvent.ModifyBakingResult event) {
@@ -149,7 +164,7 @@ public final class ModifierOverlayModels {
                     resolved = originalModel;
                 }
                 int stage = drawStage(tool, stack, entity);
-                List<ResourceLocation> overlays = overlaySprites(tool, stack, stage);
+                List<TintedOverlay> overlays = overlaySprites(tool, stack, stage);
                 BakedModel ammo = nockedAmmoModel(tool, stack, level, entity, stage);
                 if (overlays.isEmpty() && ammo == null) {
                     return resolved;
@@ -179,8 +194,8 @@ public final class ModifierOverlayModels {
      * skipped defensively, as upstream skips ids its {@code modifierParts} map lacks --
      * {@code ModifierArtTest} is what makes that unreachable for shipped modifiers.
      */
-    private static List<ResourceLocation> overlaySprites(String tool, ItemStack stack, int stage) {
-        List<ResourceLocation> overlays = List.of();
+    private static List<TintedOverlay> overlaySprites(String tool, ItemStack stack, int stage) {
+        List<TintedOverlay> overlays = List.of();
         for (ModifierEntry entry : ForgeweaveModifiers.of(stack)) {
             String texture = ModifierArt.overlay(tool, entry.id(), stage);
             if (texture == null) {
@@ -193,7 +208,8 @@ public final class ModifierOverlayModels {
             if (overlays.isEmpty()) {
                 overlays = new ArrayList<>(2);
             }
-            overlays.add(sprite);
+            int tint = Fortification.isFortification(entry.id()) ? ForgeweaveItemColors.FORTIFICATION_TINT_INDEX : -1;
+            overlays.add(new TintedOverlay(sprite, tint));
         }
         return overlays;
     }
@@ -257,15 +273,19 @@ public final class ModifierOverlayModels {
         return untinted;
     }
 
-    /** The tool's own quads, one untinted baked layer per overlay, then the nocked ammo on top. */
-    private static BakedModel compose(BakedModel base, List<ResourceLocation> overlays, @Nullable BakedModel ammo,
+    /**
+     * The tool's own quads, one baked layer per overlay (untinted at -1, except fortification's at
+     * {@code ForgeweaveItemColors#FORTIFICATION_TINT_INDEX} -- see {@link TintedOverlay}), then the
+     * nocked ammo on top.
+     */
+    private static BakedModel compose(BakedModel base, List<TintedOverlay> overlays, @Nullable BakedModel ammo,
             @Nullable float[] ammoPosition) {
         List<BakedQuad> quads = new ArrayList<>(base.getQuads(null, null, RandomSource.create(0L)));
-        for (ResourceLocation overlay : overlays) {
-            TextureAtlasSprite sprite = blockAtlasSprite(overlay);
-            // Tint index -1: overlays are untinted; the part layers' material tint must not bleed in.
+        for (TintedOverlay overlay : overlays) {
+            TextureAtlasSprite sprite = blockAtlasSprite(overlay.sprite());
+            // The part layers' own material tint must never bleed into an untinted (-1) overlay.
             quads.addAll(UnbakedGeometryHelper.bakeElements(
-                    UnbakedGeometryHelper.createUnbakedItemElements(-1, sprite),
+                    UnbakedGeometryHelper.createUnbakedItemElements(overlay.tint(), sprite),
                     material -> sprite, OVERLAY_DEPTH_STATE));
         }
         if (ammo != null && ammoPosition != null) {
