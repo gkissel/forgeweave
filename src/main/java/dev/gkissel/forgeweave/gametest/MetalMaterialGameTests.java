@@ -3,8 +3,6 @@ package dev.gkissel.forgeweave.gametest;
 import net.minecraft.core.BlockPos;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
-import net.minecraft.server.level.ServerLevel;
-import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -25,8 +23,8 @@ import dev.gkissel.forgeweave.trait.ForgeweaveTraits;
 /**
  * docs/SCOPE.md M2 issue #103's verification: the seven metal materials assembled through the real
  * Tool Station ({@code ToolAssembly.pickaxe}) -- clone-exact stats, repair with the head material's
- * ingot, rose gold's {@code quick}, netherite's two traits, and the netherite-ingot application of
- * the existing {@code extra_slot} modifier. Magnitudes are cited in {@code ForgeweaveTraits} and the
+ * ingot, rose gold's {@code quick}, netherite's {@code reinforced_core}, and the netherite-ingot
+ * application of the existing {@code extra_slot} modifier. Magnitudes are cited in {@code ForgeweaveTraits} and the
  * material JSONs themselves; deviations are recorded in NOTICE.md and the PR.
  */
 @GameTestHolder(Forgeweave.MODID)
@@ -143,36 +141,6 @@ public class MetalMaterialGameTests {
                 "expected the netherite-ingot recipe to net +1 free slot like the extra-modifier item does, got "
                         + ForgeweaveModifiers.freeSlots(widened) + " (baseline " + baseline + ")");
 
-        helper.succeed();
-    }
-
-    /**
-     * Netherite -&gt; {@code forgeweave:fireproof}: a dropped {@code ItemEntity} carrying a netherite
-     * tool survives fire damage exactly like a vanilla netherite item does, while the same hit removes
-     * a non-fireproof tool's item entity.
-     */
-    @GameTest(template = "empty")
-    public static void fireproofSurvivesFireDamage(GameTestHelper helper) {
-        ServerLevel level = helper.getLevel();
-        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
-        BlockPos pos = new BlockPos(1, 1, 1);
-        ItemStack netherite = ToolAssembly.pickaxe(helper, player, pos, "netherite", "netherite", "netherite");
-        ItemStack iron = ToolAssembly.pickaxe(helper, player, pos, "iron", "iron", "iron");
-
-        ItemEntity fireproofEntity = new ItemEntity(level, 2.5, 2.0, 2.5, netherite);
-        level.addFreshEntity(fireproofEntity);
-        ItemEntity ordinaryEntity = new ItemEntity(level, 3.5, 2.0, 2.5, iron);
-        level.addFreshEntity(ordinaryEntity);
-
-        boolean fireproofHurt = fireproofEntity.hurt(level.damageSources().inFire(), 4.0F);
-        boolean ordinaryHurt = ordinaryEntity.hurt(level.damageSources().inFire(), 4.0F);
-
-        helper.assertFalse(fireproofHurt, "a netherite tool's item entity must be immune to fire damage");
-        helper.assertTrue(!fireproofEntity.isRemoved(), "the fireproof item entity must not have been destroyed");
-        helper.assertTrue(ordinaryHurt, "an iron tool's item entity must not be immune to fire damage");
-
-        fireproofEntity.discard();
-        ordinaryEntity.discard();
         helper.succeed();
     }
 }

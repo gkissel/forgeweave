@@ -38,6 +38,7 @@ import dev.gkissel.forgeweave.combat.ForgeweaveMobEffects;
 import dev.gkissel.forgeweave.config.ForgeweaveClientConfig;
 import dev.gkissel.forgeweave.config.ForgeweaveConfig;
 import dev.gkissel.forgeweave.data.ForgeweaveDataGenerators;
+import dev.gkissel.forgeweave.entity.ForgeweaveEntities;
 import dev.gkissel.forgeweave.fluid.ForgeweaveFluids;
 import dev.gkissel.forgeweave.item.ForgeweaveCreativeTab;
 import dev.gkissel.forgeweave.item.ForgeweaveDataComponents;
@@ -73,6 +74,9 @@ public class Forgeweave {
         ForgeweaveFluids.BLOCKS.register(modEventBus);
         ForgeweaveFluids.BUCKETS.register(modEventBus); // #286
         ForgeweaveItems.ITEMS.register(modEventBus);
+        // #447 -- the entity every dropped tool spawns as (parity audit T16). See
+        // entity.IndestructibleItemEntity for why it is a registered type rather than a flag.
+        ForgeweaveEntities.ENTITY_TYPES.register(modEventBus);
         ForgeweaveMenus.MENUS.register(modEventBus);
         ForgeweaveCreativeTab.TABS.register(modEventBus);
         // #276 -- the config-aware vein count the Nether ores' placed features use.
@@ -143,16 +147,12 @@ public class Forgeweave {
         NeoForge.EVENT_BUS.addListener(AoeHarvest::onLevelTick);
         // established's kill-XP bonus (issue #102): no Item hook for a kill's dropped XP either.
         NeoForge.EVENT_BUS.addListener(ForgeweaveTraits::onExperienceDrop);
-        // #103 -- netherite's fireproof: a dropped ItemEntity's fire immunity has no per-stack Item
-        // hook (Item.Properties#fireResistant is per-Item), so this listens on the generic
-        // invulnerability check every entity goes through instead.
-        NeoForge.EVENT_BUS.addListener(ForgeweaveTraits::onEntityInvulnerabilityCheck);
         // #228 -- aquadynamic/aridiculous/crumbling/unnatural adjust break speed off the player and
         // the block, which Item#getDestroySpeed never sees; upstream 1.12 handles this same
         // PlayerEvent.BreakSpeed per trait (see Trait#breakSpeed).
         NeoForge.EVENT_BUS.addListener(ForgeweaveTraits::onBreakSpeed);
         // #229 -- enderference's teleport block: the combat half rides the seams; these listeners
-        // only read the mark the seam left, the same mark-reader idiom as fireproof just above.
+        // only read the mark the seam left.
         // NeoForge splits 1.12's one EnderTeleportEvent into per-cause subevents.
         NeoForge.EVENT_BUS.addListener(ForgeweaveTraits::onEnderTeleport);
         NeoForge.EVENT_BUS.addListener(ForgeweaveTraits::onChorusFruitTeleport);

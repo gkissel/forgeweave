@@ -154,7 +154,9 @@ class MetalMaterialTest {
         assertEquals(Optional.of(new Material.Head(1050, 8.0f, 7.0f)), netherite.head());
         assertEquals(Optional.of(new Material.Handle(1.0f, 150)), netherite.handle());
         assertEquals(Optional.of(350), netherite.extraDurability());
-        assertEquals(List.of(id("fireproof"), id("reinforced_core")), netherite.traits().general());
+        // #447 retired the `fireproof` trait this material used to carry: its only effect was fire
+        // immunity for the dropped item entity, and every dropped tool is indestructible now.
+        assertEquals(List.of(id("reinforced_core")), netherite.traits().general());
     }
 
     /**

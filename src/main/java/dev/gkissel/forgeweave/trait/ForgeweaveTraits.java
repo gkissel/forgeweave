@@ -22,7 +22,6 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.tags.BlockTags;
-import net.minecraft.tags.DamageTypeTags;
 import net.minecraft.tags.EntityTypeTags;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.effect.MobEffectInstance;
@@ -44,7 +43,6 @@ import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 
 import net.neoforged.neoforge.common.util.FakePlayer;
-import net.neoforged.neoforge.event.entity.EntityInvulnerabilityCheckEvent;
 import net.neoforged.neoforge.event.entity.EntityTeleportEvent;
 import net.neoforged.neoforge.event.entity.living.LivingExperienceDropEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerEvent;
@@ -443,10 +441,13 @@ public final class ForgeweaveTraits {
         }
     };
 
-    // -- #103 metal materials: rose gold's quick, netherite's fireproof + reinforced_core. Maintainer
-    // decision recorded on issue #103 (2026-08-10): rose gold gets quick; netherite gets both traits
-    // plus a netherite-ingot application recipe for the existing extra_slot modifier (see the
-    // modifier_recipe/extra_slot_netherite.json shipped alongside this class).
+    // -- #103 metal materials: rose gold's quick, netherite's reinforced_core. Maintainer decision
+    // recorded on issue #103 (2026-08-10): rose gold gets quick; netherite gets reinforced_core plus a
+    // netherite-ingot application recipe for the existing extra_slot modifier (see the
+    // modifier_recipe/extra_slot_netherite.json shipped alongside this class). Issue #103 also gave
+    // netherite a `fireproof` trait whose whole effect was fire immunity for its dropped ItemEntity;
+    // #447 retired it, because upstream 1.12 makes EVERY dropped tool indestructible (parity audit
+    // T16, entity.IndestructibleItemEntity) and that subsumes it.
 
     /** Upstream has no rose gold material at all, so these magnitudes are this PR's own -- see below. */
     private static final float QUICK_MINING_BONUS = 0.25F;
@@ -470,17 +471,6 @@ public final class ForgeweaveTraits {
             return QUICK_ATTACK_SPEED_BONUS;
         }
     };
-
-    /**
-     * Netherite. Vanilla netherite items survive fire and lava ({@code Item.Properties#fireResistant},
-     * checked by {@code ItemEntity#fireImmune}), but that flag is per-{@code Item}, not per-stack --
-     * every Forgeweave pickaxe is one shared {@code Item} instance regardless of material, so it can't
-     * be set on {@code ToolItem} itself without making every pickaxe fire-immune. {@link
-     * #onEntityInvulnerabilityCheck} is the per-stack equivalent: it grants the same immunity only to a
-     * dropped {@code ItemEntity} carrying a tool with this trait. No upstream trait to port -- netherite
-     * has no 1.12 counterpart; the mechanism is a maintainer decision recorded on issue #103.
-     */
-    public static final Trait FIREPROOF = new Trait() {};
 
     /**
      * Netherite, the other maintainer-decided trait (issue #103): +1 modifier slot on a tool with a
@@ -1379,9 +1369,9 @@ public final class ForgeweaveTraits {
             Map.entry(id("insatiable"), INSATIABLE),
             Map.entry(id("coldblooded"), COLDBLOODED),
             Map.entry(id("established"), ESTABLISHED),
-            // #103 metal materials: rose gold's quick, netherite's fireproof + reinforced_core.
+            // #103 metal materials: rose gold's quick, netherite's reinforced_core (netherite's
+            // fireproof was retired by #447 -- every dropped tool is indestructible now).
             Map.entry(id("quick"), QUICK),
-            Map.entry(id("fireproof"), FIREPROOF),
             Map.entry(id("reinforced_core"), REINFORCED_CORE),
             // #230 M3.2 stateful/special traits.
             Map.entry(id("alien"), ALIEN),
@@ -1726,29 +1716,10 @@ public final class ForgeweaveTraits {
     }
 
     /**
-     * {@code forgeweave:fireproof} (see {@link #FIREPROOF}'s javadoc): fired whenever any entity's
-     * invulnerability to a damage source is checked, on both sides -- the one seam generic enough to
-     * cover an {@link ItemEntity} without a per-{@code Item} flag. Registered on the game event bus in
-     * {@code Forgeweave}, same idiom as {@link #onIncomingDamage}.
-     */
-    public static void onEntityInvulnerabilityCheck(EntityInvulnerabilityCheckEvent event) {
-        if (event.isInvulnerable() || !(event.getEntity() instanceof ItemEntity itemEntity)) {
-            return;
-        }
-        if (!event.getSource().is(DamageTypeTags.IS_FIRE)) {
-            return;
-        }
-        ItemStack stack = itemEntity.getItem();
-        if (stack.getItem() instanceof ToolItem && of(stack).contains(FIREPROOF)) {
-            event.setInvulnerable(true);
-        }
-    }
-
-    /**
      * {@code forgeweave:enderference}'s teleport block (see {@link #ENDERFERENCE}): an
      * enderman/shulker teleport by a marked entity is cancelled outright, upstream
      * {@code TraitEnderference#onEnderTeleport}. Registered on the game event bus in
-     * {@code Forgeweave}, same idiom as {@link #onEntityInvulnerabilityCheck}; the trait itself
+     * {@code Forgeweave}, same idiom as {@link #onExperienceDrop}; the trait itself
      * stays on the combat seams -- this is the mark being read, not combat behavior attaching to a
      * new event.
      */

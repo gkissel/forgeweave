@@ -25,6 +25,10 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
     protected void addTranslations() {
         add("itemGroup.forgeweave", "Forgeweave");
 
+        // #447 -- the entity every dropped tool spawns as; name ported from upstream 1.12's
+        // EntityRegistry.registerModEntity("indestructible", ..., "Indestructible Item") (NOTICE.md).
+        add("entity.forgeweave.indestructible_item", "Indestructible Item");
+
         addBlock(ForgeweaveBlocks.PART_BUILDER, "Part Builder");
         addBlock(ForgeweaveBlocks.TOOL_STATION, "Tool Station");
         addBlock(ForgeweaveBlocks.TOOL_FORGE, "Tool Forge");
@@ -717,8 +721,6 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         // 1.12 counterpart for either material or trait, so wording is this PR's own.
         add("trait.forgeweave.quick.name", "Quick");
         add("trait.forgeweave.quick.description", "Greatly increases mining and attack speed.");
-        add("trait.forgeweave.fireproof.name", "Fireproof");
-        add("trait.forgeweave.fireproof.description", "Survives fire and lava like a vanilla netherite item.");
         add("trait.forgeweave.reinforced_core.name", "Reinforced Core");
         add("trait.forgeweave.reinforced_core.description", "Adds an extra modifier slot to the tool.");
 
