@@ -324,14 +324,17 @@ public class ForgeweaveRecipeProvider extends RecipeProvider {
                 .unlockedBy("has_mossy_cobblestone", has(Blocks.MOSSY_COBBLESTONE))
                 .save(recipeOutput);
 
-        // Reinforced plate (upstream reinforcement.json: obsidian ring around #REINFORCEMENT_CENTER,
-        // which resolves to a gold ingot without TinkerSmeltery loaded -- recipes/_constants.json).
+        // Reinforced plate (T69/#500; upstream reinforcement.json: obsidian ring around
+        // #REINFORCEMENT_CENTER, recipes/_constants.json). That constant resolves to a plain gold
+        // ingot only while TinkerSmeltery is unloaded; once it's loaded it resolves to ore:cast (any
+        // gold cast). Forgeweave's smeltery has no such optional-pulse toggle -- it always ships -- so
+        // the smeltery-loaded branch is the only one that applies here, matching parity audit T69.
         ShapedRecipeBuilder.shaped(RecipeCategory.MISC, ForgeweaveItems.REINFORCED_PLATE.get())
                 .pattern("AAA")
                 .pattern("ABA")
                 .pattern("AAA")
                 .define('A', Items.OBSIDIAN)
-                .define('B', Items.GOLD_INGOT)
+                .define('B', ForgeweaveItemTagsProvider.CASTS_GOLD)
                 .unlockedBy("has_obsidian", has(Items.OBSIDIAN))
                 .save(recipeOutput);
 

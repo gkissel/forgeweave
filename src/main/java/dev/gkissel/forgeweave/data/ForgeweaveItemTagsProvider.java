@@ -162,8 +162,11 @@ public class ForgeweaveItemTagsProvider extends ItemTagsProvider {
 
         // #477/T46 -- every cast item, gold (issue #100/#222) and clay (issue #292), into one tag so
         // the Pattern Chest's cast-chest mode (ChestKind#CASTS) can recognise both without a second
-        // marker class the way ClayCastItem alone would need for gold casts too.
-        tag(ChestKind.CASTS)
+        // marker class the way ClayCastItem alone would need for gold casts too. The gold-only half
+        // is its own tag (CASTS_GOLD, T69/#500) since that's the one upstream's own `ore:cast` oredict
+        // covers (TinkerOredict: TinkerSmeltery.cast/castCustom, never the clay-only clayCast) --
+        // reused below by the reinforced-plate recipe center slot.
+        tag(CASTS_GOLD)
                 .add(ForgeweaveItems.CAST_INGOT.get(), ForgeweaveItems.CAST_NUGGET.get(),
                         ForgeweaveItems.CAST_GEM.get(), ForgeweaveItems.CAST_PLATE.get(), ForgeweaveItems.CAST_GEAR.get(),
                         ForgeweaveItems.CAST_PICKAXE_HEAD.get(), ForgeweaveItems.CAST_SHOVEL_HEAD.get(),
@@ -180,6 +183,7 @@ public class ForgeweaveItemTagsProvider extends ItemTagsProvider {
                         ForgeweaveItems.CAST_WAR_MACE_HEAD.get(), ForgeweaveItems.CAST_CURVED_BLADE.get(),
                         ForgeweaveItems.CAST_KATANA_BLADE.get(), ForgeweaveItems.CAST_BOW_LIMB.get(),
                         ForgeweaveItems.CAST_SHARPENING_KIT.get(), ForgeweaveItems.CAST_SHARD.get());
+        tag(ChestKind.CASTS).addTag(CASTS_GOLD);
         for (var clayCast : ForgeweaveItems.CLAY_CASTS.values()) {
             tag(ChestKind.CASTS).add(clayCast.get());
         }
@@ -188,6 +192,15 @@ public class ForgeweaveItemTagsProvider extends ItemTagsProvider {
     /** The tag naming every block a Tool Forge can be crafted from (issue #152). */
     public static final TagKey<Item> TOOL_FORGE_BLOCKS =
             TagKey.create(Registries.ITEM, ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "tool_forge_blocks"));
+
+    /**
+     * Every reusable gold cast (issue #100/#222/#272), excluding the single-use clay casts -- the
+     * Forgeweave-item-per-shape equivalent of upstream's {@code ore:cast} oredict tag ({@code
+     * TinkerOredict}: {@code TinkerSmeltery.cast} and {@code .castCustom}, both gold). T69/#500's
+     * reinforced-plate recipe keys its center slot off this tag.
+     */
+    public static final TagKey<Item> CASTS_GOLD =
+            TagKey.create(Registries.ITEM, ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "casts/gold"));
 
     private static TagKey<Item> storageBlock(String metal) {
         return TagKey.create(Registries.ITEM, ResourceLocation.fromNamespaceAndPath("c", "storage_blocks/" + metal));

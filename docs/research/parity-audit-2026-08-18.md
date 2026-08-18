@@ -183,7 +183,7 @@ Every 1.12 tool-material trait is ported (44 ids across 34 materials, with head-
 | Luck | `ModLuck:24-150`, lapis block ×9, silk-touch refusal | n/a | `:529-630`, lapis only, no refusal, fortune on weapons | partial | Y in part (#106/#296) | medium | T23 / T59 |
 | Diamond | `ModDiamond:12-31` | n/a | `:232`, exact item not tag | have | Y (#106/#265) | low | — |
 | Emerald | `ModEmerald:12-30` | n/a | `:271` | have | Y (#106) | none | — |
-| Reinforced | `ModReinforced:19-83`, plate center = gold cast | n/a | `:366`, plate center = gold ingot; "Unbreakable" name shipped (#457) | partial | N (reagent only) | low | T69 |
+| Reinforced | `ModReinforced:19-83`, plate center = gold cast | n/a | `:366`, plate center = gold cast (`CASTS_GOLD` tag); "Unbreakable" name shipped (#457) | have | Y (#500) | none | — |
 | Mending Moss | `ModMendingMoss:30-155` (hotbar/offhand, 150t timer) | n/a | `:416,1293` any slot, 1/150 roll; stored-XP line (#457) | deviates | Y (#107) | low | — |
 | Silktouch | `ModSilktouch:17-45` + refusals | n/a | `:431`, no refusals | partial | Y in part (#107) | medium | T23 |
 | Soulbound | `ModSoulbound:20-71` | n/a | `:456,1368,1383` | have | Y (#107/#344) | none | — |
@@ -684,7 +684,7 @@ Prioritized and deduplicated across domains. Already-filed issues are marked; **
 - [ ] **T66 — Mattock: repair with either head and per-family tier** (tools, low, M3 playtest-fix).
 - [ ] **T67 — Cleaver should swallow right-click** (no off-hand use) (tools, low, backlog).
 - [ ] **T68 — Bows repair with either limb** (`getRepairParts {0,1}`) (ranged, low, M3.5-8).
-- [ ] **T69 — Reinforced plate center should be a gold cast now the smeltery ships**, plus the level-5 "Unbreakable" name (modifiers, low, M3.5 playtest-fix).
+- [x] **T69 — Reinforced plate center should be a gold cast now the smeltery ships** (shipped, #500), plus the level-5 "Unbreakable" name (already shipped by #457 -- this ticket's own audit row was stale on that half).
 - [ ] **T70 — Fortify: gate to harvest tools and derive the per-tool material-tinted overlay** (modifiers, low, M3.5 playtest-fix).
 - [ ] **T71 — Remaining melting/casting content** — terracotta/brick casting, molten dirt + mud bricks, ice/snow → water, red sand from blood (smeltery, low, backlog).
 - [x] **T72 — Bulk grout recipe** (shipped, #503) (clay block + 4 sand + 4 gravel → 8) (smeltery, low, backlog).
