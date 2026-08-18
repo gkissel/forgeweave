@@ -25,5 +25,6 @@
   "repair_item": {
     "tag": "c:ingots/netherite"
   },
+  "cast_only": true,
   "color": "#4A3B47"
 }

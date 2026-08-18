@@ -26,5 +26,6 @@
   "repair_item": {
     "tag": "c:ingots/steel"
   },
+  "cast_only": true,
   "color": "#A7A7A7"
 }

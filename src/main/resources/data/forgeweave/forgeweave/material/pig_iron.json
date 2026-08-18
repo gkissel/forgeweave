@@ -26,5 +26,6 @@
   "repair_item": {
     "tag": "c:ingots/pig_iron"
   },
+  "cast_only": true,
   "color": "#EF9E9B"
 }

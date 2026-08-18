@@ -25,5 +25,6 @@
   "repair_item": {
     "tag": "c:ingots/copper"
   },
+  "cast_only": true,
   "color": "#ED9F07"
 }

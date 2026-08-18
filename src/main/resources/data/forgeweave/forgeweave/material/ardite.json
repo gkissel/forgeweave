@@ -25,5 +25,6 @@
   "repair_item": {
     "tag": "c:ingots/ardite"
   },
+  "cast_only": true,
   "color": "#D14210"
 }

@@ -14,6 +14,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 
+import dev.gkissel.forgeweave.config.ForgeweaveConfig;
 import dev.gkissel.forgeweave.item.ForgeweaveDataComponents;
 import dev.gkissel.forgeweave.item.ForgeweaveItems;
 import dev.gkissel.forgeweave.item.PartItem;
@@ -285,7 +286,13 @@ public final class PartBuilderRecipes {
     public static Optional<MaterialMatch> materialValue(HolderLookup.Provider registries, ItemStack stack) {
         if (stack.is(ForgeweaveItems.SHARD.get())) {
             ResourceLocation materialId = stack.get(ForgeweaveDataComponents.MATERIAL.get());
-            return Optional.ofNullable(materialId).map(id -> new MaterialMatch(id, SHARD_VALUE));
+            return Optional.ofNullable(materialId)
+                    // A shard of a material this world has no definition for keeps matching, which is
+                    // what leaves the useless_tool_part warning in #rejection reachable; only a
+                    // material that exists and says cast_only is turned away.
+                    .filter(id -> lookupMaterial(registries, id)
+                            .map(PartBuilderRecipes::craftableInPartBuilder).orElse(true))
+                    .map(id -> new MaterialMatch(id, SHARD_VALUE));
         }
 
         Optional<HolderLookup.RegistryLookup<Material>> lookup = registries.lookup(Material.REGISTRY);
@@ -293,6 +300,9 @@ public final class PartBuilderRecipes {
             return Optional.empty();
         }
         for (var holder : lookup.get().listElements().toList()) {
+            if (!craftableInPartBuilder(holder.value())) {
+                continue;
+            }
             for (Material.CraftingItem craftingItem : holder.value().craftingItems()) {
                 if (craftingItem.ingredient().test(stack)) {
                     return Optional.of(new MaterialMatch(holder.key().location(), craftingItem.value()));
@@ -321,12 +331,33 @@ public final class PartBuilderRecipes {
                                 + unitValueAgainst(registries, primary.id(), material2) * material2.getCount()));
     }
 
+    /**
+     * Whether this station will take {@code material} at all -- upstream 1.12's
+     * {@code Material#isCraftable}, which {@code ToolBuilder#tryBuildToolPart:423-426} consults
+     * before matching any crafting item (issue #435, parity audit T3). A material marked {@code
+     * cast_only} keeps its crafting items listed and simply is not offered here until
+     * {@link ForgeweaveConfig#craftCastableMaterials()} says so, exactly as upstream's
+     * {@code craftCastableMaterials} works.
+     *
+     * <p>Public because JEI ({@code jei.PartCraftingRecipes}) has to apply the same gate or it
+     * advertises a craft the station refuses -- the same reason {@code hasStatsFor}'s question is
+     * asked in both places (issue #393).
+     */
+    public static boolean craftableInPartBuilder(Material material) {
+        return !material.castOnly() || ForgeweaveConfig.craftCastableMaterials();
+    }
+
+    private static Optional<Material> lookupMaterial(HolderLookup.Provider registries, ResourceLocation materialId) {
+        return registries.lookup(Material.REGISTRY)
+                .flatMap(lookup -> lookup.get(ResourceKey.create(Material.REGISTRY, materialId)))
+                .map(Holder::value);
+    }
+
     /** Whether the named material carries the stat block a part of {@code kind} draws from (issue #392). */
     private static boolean hasStatsFor(HolderLookup.Provider registries, ResourceLocation materialId,
             PartItem.Kind kind) {
-        return registries.lookup(Material.REGISTRY)
-                .flatMap(lookup -> lookup.get(ResourceKey.create(Material.REGISTRY, materialId)))
-                .map(holder -> holder.value().hasStatsFor(kind))
+        return lookupMaterial(registries, materialId)
+                .map(material -> material.hasStatsFor(kind))
                 .orElse(false);
     }
 
@@ -338,9 +369,7 @@ public final class PartBuilderRecipes {
         if (stack.is(ForgeweaveItems.SHARD.get())) {
             return materialId.equals(stack.get(ForgeweaveDataComponents.MATERIAL.get())) ? SHARD_VALUE : 0;
         }
-        return registries.lookup(Material.REGISTRY)
-                .flatMap(lookup -> lookup.get(ResourceKey.create(Material.REGISTRY, materialId)))
-                .map(Holder::value)
+        return lookupMaterial(registries, materialId)
                 .flatMap(material -> material.craftingItems().stream()
                         .filter(craftingItem -> craftingItem.ingredient().test(stack))
                         .map(Material.CraftingItem::value)

@@ -71,6 +71,18 @@ public final class ForgeweaveConfig {
     public static final ModConfigSpec.BooleanValue ENABLE_CLAY_CASTS;
 
     /**
+     * Upstream {@code craftCastableMaterials} (issue #435, parity audit T3): let the Part Builder
+     * craft parts from materials that are meant to be cast. Upstream's default is {@code false} --
+     * {@code Config.java:38} -- which is what makes its whole metal roster Smeltery-only, and
+     * {@link #craftCastableMaterials()} is how the one gate reads it.
+     *
+     * <p>Which materials this frees is a datapack question, not a Java one: a material says
+     * {@code "cast_only": true} and keeps listing its {@code crafting_items}, so turning this on
+     * makes exactly those items pay for parts again.
+     */
+    public static final ModConfigSpec.BooleanValue CRAFT_CASTABLE_MATERIALS;
+
+    /**
      * Content-family toggles (the content-family toggles ticket, maintainer decisions 2026-08-15).
      * Forgeweave's own surface, not a 1.12 port: upstream has no equivalent, and a pack that wants
      * only the smeltery, or only the harvest tools, has to delete recipes by hand there.
@@ -159,6 +171,18 @@ public final class ForgeweaveConfig {
         return !SPEC.isLoaded() || value.get();
     }
 
+    /**
+     * {@link #CRAFT_CASTABLE_MATERIALS}, answering with upstream's {@code false} default whenever no
+     * server has spoken. The permissive fallback {@link #enabled} uses would be the wrong way round
+     * here: this option <em>adds</em> crafts rather than gating them, so falling back to "on" would
+     * make JEI (which builds its recipe list outside any world) advertise every metal as Part
+     * Builder craftable on a server that refuses it -- the exact surprise {@link #enabled} exists to
+     * avoid, mirrored.
+     */
+    public static boolean craftCastableMaterials() {
+        return SPEC.isLoaded() && CRAFT_CASTABLE_MATERIALS.get();
+    }
+
     static {
         ModConfigSpec.Builder builder = new ModConfigSpec.Builder();
 
@@ -183,6 +207,10 @@ public final class ForgeweaveConfig {
         ENABLE_CLAY_CASTS = builder
                 .comment("Allows single-use clay casts to be moulded from molten clay and cast through.")
                 .define("enableClayCasts", true);
+        CRAFT_CASTABLE_MATERIALS = builder
+                .comment("Allows the Part Builder to craft parts from materials that are meant to be cast",
+                        "in the Smeltery (every metal). Off by default: a metal part comes from a cast.")
+                .define("craftCastableMaterials", false);
 
         builder.comment("Content family toggles. A family that is off cannot be assembled or obtained,",
                         "its recipes are hidden from JEI and its items from the creative tab, and the",

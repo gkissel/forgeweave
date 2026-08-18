@@ -41,10 +41,22 @@ public record Material(
         Ingredient repairItem,
         TextColor color,
         Optional<Bow> bow,
-        Optional<Bowstring> bowstring) {
+        Optional<Bowstring> bowstring,
+        boolean castOnly) {
 
     public static final ResourceKey<Registry<Material>> REGISTRY =
             ResourceKey.createRegistryKey(ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "material"));
+
+    /**
+     * The default: a material the Part Builder takes, which is every material Forgeweave shipped
+     * before issue #435 added {@link #castOnly}.
+     */
+    public Material(Optional<Head> head, Optional<Handle> handle, Optional<Integer> extraDurability,
+            TagKey<Block> incorrectForTool, Traits traits, List<CraftingItem> craftingItems, Ingredient repairItem,
+            TextColor color, Optional<Bow> bow, Optional<Bowstring> bowstring) {
+        this(head, handle, extraDurability, incorrectForTool, traits, craftingItems, repairItem, color, bow,
+                bowstring, false);
+    }
 
     /**
      * The common case: a material with all three tool stat blocks and no ranged ones, which is every
@@ -187,6 +199,31 @@ public record Material(
             .xmap(either -> either.map(Traits::general, Function.identity()), Either::right);
 
     /**
+     * Whether this material's parts come out of the Smeltery only, leaving {@link #craftingItems}
+     * inert at the Part Builder (issue #435, parity audit T3). Upstream 1.12 spends two booleans on
+     * this -- {@code craftable} (Part Builder) and {@code castable} (a cast plus the material's
+     * fluid) -- and reads them as {@code isCraftable() = craftable || (Config.craftCastableMaterials
+     * && castable)}, with that config defaulting to {@code false}
+     * ({@code library/materials/Material.java:173-190}, {@code common/config/Config.java:38,178-180}).
+     *
+     * <p>Only the combination {@code castable && !craftable} changes any behavior, so that is the
+     * one bit stored here: {@code cast_only} is exactly "upstream would refuse this at the Part
+     * Builder unless the config says otherwise", and {@link
+     * dev.gkissel.forgeweave.menu.PartBuilderRecipes#craftableInPartBuilder} is the single place
+     * that asks. Upstream's own {@code castable} needs no field because Forgeweave states castability
+     * as casting recipes rather than a flag, and nothing reads it as a boolean.
+     *
+     * <p>Which materials carry it is upstream's roster, not a rule about metals:
+     * {@code MaterialIntegration:100-108} makes any material handed a fluid castable-not-craftable,
+     * while obsidian and knightslime set both flags by hand ({@code TinkerMaterials:236-237,299})
+     * and stay craftable. The crafting items stay listed either way -- they are what
+     * {@code craftCastableMaterials} turns back on, and what repair and JEI keep reading.
+     */
+    public boolean castOnly() {
+        return castOnly;
+    }
+
+    /**
      * Every stat block is optional (issue #392). Upstream has always worked this way -- a material
      * carries whichever {@code IMaterialStats} it was registered with and {@code
      * ToolPart#hasUseForStat} decides what can be made of it -- and Forgeweave needs it the moment a
@@ -208,7 +245,8 @@ public record Material(
             Ingredient.CODEC.fieldOf("repair_item").forGetter(Material::repairItem),
             TextColor.CODEC.fieldOf("color").forGetter(Material::color),
             Bow.CODEC.optionalFieldOf("bow").forGetter(Material::bow),
-            Bowstring.CODEC.optionalFieldOf("bowstring").forGetter(Material::bowstring))
+            Bowstring.CODEC.optionalFieldOf("bowstring").forGetter(Material::bowstring),
+            Codec.BOOL.optionalFieldOf("cast_only", false).forGetter(Material::castOnly))
             .apply(instance, Material::new));
 
     /**

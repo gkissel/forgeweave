@@ -25,5 +25,6 @@
   "repair_item": {
     "tag": "c:ingots/manyullyn"
   },
+  "cast_only": true,
   "color": "#A15CF8"
 }

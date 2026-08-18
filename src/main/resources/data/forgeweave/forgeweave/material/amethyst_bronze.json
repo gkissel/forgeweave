@@ -37,5 +37,6 @@
   "repair_item": {
     "tag": "c:ingots/amethyst_bronze"
   },
+  "cast_only": true,
   "color": "#C687BD"
 }

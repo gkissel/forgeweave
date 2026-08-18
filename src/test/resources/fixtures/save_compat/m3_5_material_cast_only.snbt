@@ -1,0 +1,54 @@
+{
+    decoder: "material",
+    expect: {
+        cast_only: 1b,
+        color: "#CACACA",
+        incorrect_for_tool: "minecraft:incorrect_for_diamond_tool"
+    },
+    nbt: {
+        bow: {
+            bonus_damage: 7.0f,
+            drawspeed: 0.5f,
+            range: 1.5f
+        },
+        cast_only: 1b,
+        color: "#CACACA",
+        crafting_items: [
+            {
+                ingredient: {
+                    item: "minecraft:iron_ingot"
+                },
+                value: 2
+            },
+            {
+                ingredient: {
+                    item: "minecraft:iron_block"
+                },
+                value: 18
+            }
+        ],
+        extra_durability: 50,
+        handle: {
+            durability: 60,
+            durability_modifier: 0.85f
+        },
+        head: {
+            attack_damage: 4.0f,
+            durability: 204,
+            mining_speed: 6.0f
+        },
+        incorrect_for_tool: "minecraft:incorrect_for_diamond_tool",
+        repair_item: {
+            tag: "c:ingots/iron"
+        },
+        traits: {
+            general: [
+                "forgeweave:magnetic"
+            ],
+            head: [
+                "forgeweave:magnetic2"
+            ]
+        }
+    },
+    what: "T3 (#435): the iron material carrying cast_only, the first material field that decides where a part can be made rather than what it is worth. Pins that the flag survives a registry-sync round trip -- a client whose copy lost it would offer a Part Builder craft the server refuses. The pre-#435 fixtures next to this one are the other half: they name no cast_only and must keep decoding as craftable."
+}

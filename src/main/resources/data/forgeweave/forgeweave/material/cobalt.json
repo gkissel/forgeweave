@@ -25,5 +25,6 @@
   "repair_item": {
     "tag": "c:ingots/cobalt"
   },
+  "cast_only": true,
   "color": "#2882D4"
 }

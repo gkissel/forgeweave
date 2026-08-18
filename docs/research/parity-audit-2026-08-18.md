@@ -63,7 +63,7 @@ Roster and stat parity are strong: all 27 1.12 tool materials plus string/vine s
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | Material data model (head/handle/extra/bow, traits, color) | `Material.java`, `TinkerMaterials.java:391-511` | stat-type JSON idiom | `material/Material.java:34-206` | have | Y (ADR-0002, #403) | none | — |
 | Harvest level → tool-tier tag ladder | `HarvestLevels.java:15-19` (STONE=0=wood) | `MaterialStatsDataProvider` wood=WOOD | `material/*.json incorrect_for_*`; pinned by `ToolBehaviorGameTests:100-128` | deviates | N (PR #81 misread) | **blocker** | T1 |
-| Craftable vs castable gating | `MaterialIntegration.java:100-108`; `Config` craftCastableMaterials=false | n/a | every metal JSON ships `crafting_items` | deviates | N (PR #362 "needs decision") | high | T3 |
+| Craftable vs castable gating | `MaterialIntegration.java:100-108`; `Config` craftCastableMaterials=false | n/a | `material` JSON `cast_only` + `craftCastableMaterials` (default off) | have | Y (#435) | none | — |
 | Crafting-item values (Ingot 144 / Shard 72 / Fragment 36 / Nugget 16) | `Material.java:45-51` | n/a | shard-units; `PartBuilderRecipes.java:27-42` | partial | Y (PR #247/#135) | medium | T58 |
 | Storage blocks as crafting items (cobalt/ardite/manyullyn/rose gold) | `TinkerMaterials:305-315` | n/a | only ingot listed | partial | N | low | T61 |
 | Repair items (any material item, value-scaled) | `TinkersItem.java:300-400`; shard match for all | n/a | single `repair_item`; `ToolAssemblyRecipes:855-896` | partial | N | medium | T30 |
@@ -84,7 +84,7 @@ Roster and stat parity are strong: all 27 1.12 tool materials plus string/vine s
 | slime (green) | `:434-437` 1000/4.24/1.8 | n/a | `slime.json` clone-exact | have | Y | none | — |
 | blueslime | `:438-441` 780/4.03/1.8 | n/a | `blueslime.json` clone-exact | have | Y (#232) | none | — |
 | magmaslime | `:446-449` 600/2.1/7.0 | n/a | `magmaslime.json` clone-exact | have | Y | none | — |
-| iron | `:472-475` 204/6.0/4.0 | n/a | `iron.json` clone-exact (craftable — see T3) | have | Y (PR #135) | none | — |
+| iron | `:472-475` 204/6.0/4.0 | n/a | `iron.json` clone-exact (cast-only since #435) | have | Y (PR #135) | none | — |
 | pig iron | `:476-479` 380/6.2/4.5 | n/a | `pig_iron.json` clone-exact | have | Y | none | — |
 | netherrack | `:451-454` 270/4.5/3.0 | n/a | `netherrack.json` clone-exact | have | Y | none | — |
 | cobalt | `:455-458` 780/12.0/4.1 | n/a | `cobalt.json` (block missing) | have | Y | none | T61 |
@@ -572,7 +572,7 @@ M3.5 ports the launcher core faithfully — the three bows, limb/bowstring math,
 | Client configs (extraTooltips, temperatureCelsius, listAllPartMaterials) | `Config:298-323` | n/a | `ForgeweaveClientConfig:44-54` | have | Y (#276) | none | — |
 | `spawnWithBook` (first-login gift) | `Config:145-148` + `PlayerDataEvents` | n/a | absent | missing | N (deferral now unblocked) | medium | T13 |
 | `chestsKeepInventory` | `Config:155-158` + `BlockToolTable:158` | n/a | contents spill on break | missing | N | medium | T47 |
-| `craftCastableMaterials` (metals cast-only by default) | `Material:178-179`, `Config:180-183` | casting only | every metal Part-Builder craftable | deviates | N (PR #362 "needs decision") | **high** | T3 |
+| `craftCastableMaterials` (metals cast-only by default) | `Material:178-179`, `Config:180-183` | casting only | `ForgeweaveConfig:craftCastableMaterials` (default off) + `cast_only` | have | Y (#435) | none | — |
 | `addFlintRecipe` (+ allowBrickCasting, leather drying) | `Config:167-205` + `flint.json` | conditional recipe | no flint recipe, no options | missing | N | medium | T55 |
 | `AutosmeltFortuneInteraction` | `Config:173-176` | n/a | 1.21 loot applies fortune first | deviates | Y (PR #362) | none | — |
 | Module toggles | pulse config | n/a | content-family toggles (richer) | have | Y (#398/#399) | none | — |
@@ -612,7 +612,7 @@ Prioritized and deduplicated across domains. Already-filed issues are marked; **
 
 ### High
 
-- [ ] **T3 — Decide `craftCastableMaterials`: metals are Part-Builder craftable** — add a castable/craftable flag with 1.12's default (cast-only) or record the deviation in SCOPE; scope out knightslime/obsidian and the four tag-gated metals (materials/config, high, M3.x fix round).
+- [x] **T3 — Decide `craftCastableMaterials`: metals are Part-Builder craftable** (shipped, #435) — the flag landed with 1.12's default: `material` JSON gains `cast_only` (upstream's `castable && !craftable`) and `ForgeweaveConfig.craftCastableMaterials` (default off) turns the crafting items back on. Knightslime and obsidian stayed craftable (they set both upstream flags), as did the four tag-gated metals (no Forgeweave casting path at all) (materials/config, high, M3.x fix round).
 - [ ] **T4 — Sharp's bleed knocks the target back every 15 ticks** — give the DoT a `forgeweave:bleed` damage type in `no_knockback` (+ `bypasses_armor` if the SCOPE deviation stays); add the blood-heart particle (traits, high, M3.5 fix round).
 - [x] **T5 — Station swords/pan/sign/dagger/warmace mine like axes** (shipped, #437) — swap `mineable/axe` for the sword-efficient set, drop the mining-speed modifier to 0.5, consider the cobweb multiplier and creative block-break refusal (tools, high, M3 playtest-fix).
 - [x] **T6 — Port the Width++/Height++ expander modifiers** (shipped, #438) — `expander_w`/`expander_h` items plus +1 AOE axis on harvest and large tools (modifiers, high, M3.5 playtest-fix).
