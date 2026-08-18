@@ -151,6 +151,9 @@ public class Forgeweave {
         NeoForge.EVENT_BUS.addListener(AoeHarvest::onLevelTick);
         // established's kill-XP bonus (issue #102): no Item hook for a kill's dropped XP either.
         NeoForge.EVENT_BUS.addListener(ForgeweaveTraits::onExperienceDrop);
+        // established's block-break XP bonus (issue #494/T63), riding the same BlockDropsEvent seam
+        // ForgeweaveModifiers#onBlockDrops below uses.
+        NeoForge.EVENT_BUS.addListener(ForgeweaveTraits::onBlockBreakExperience);
         // #228 -- aquadynamic/aridiculous/crumbling/unnatural adjust break speed off the player and
         // the block, which Item#getDestroySpeed never sees; upstream 1.12 handles this same
         // PlayerEvent.BreakSpeed per trait (see Trait#breakSpeed).

@@ -751,7 +751,7 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("trait.forgeweave.coldblooded.name", "Coldblooded");
         add("trait.forgeweave.coldblooded.description", "Bonus damage against undamaged targets.");
         add("trait.forgeweave.established.name", "Established");
-        add("trait.forgeweave.established.description", "Grants bonus experience from kills.");
+        add("trait.forgeweave.established.description", "Grants bonus experience from kills and block breaking.");
 
         // Rose gold and netherite (issue #103): maintainer decision recorded on the issue, no upstream
         // 1.12 counterpart for either material or trait, so wording is this PR's own.

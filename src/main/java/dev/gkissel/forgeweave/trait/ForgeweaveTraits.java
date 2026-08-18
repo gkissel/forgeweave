@@ -47,6 +47,7 @@ import net.neoforged.neoforge.common.util.FakePlayer;
 import net.neoforged.neoforge.event.entity.EntityTeleportEvent;
 import net.neoforged.neoforge.event.entity.living.LivingExperienceDropEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerEvent;
+import net.neoforged.neoforge.event.level.BlockDropsEvent;
 
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.client.StationText;
@@ -464,15 +465,28 @@ public final class ForgeweaveTraits {
         }
     };
 
+    /** Upstream {@code TraitEstablished#onBlockBreak}'s roll: {@code r < 0.33f || (xp == 0 && r < 0.03f)}. */
+    private static final float ESTABLISHED_BLOCK_XP_CHANCE = 0.33F;
+
     /**
      * Copper. Upstream {@code TraitEstablished}'s kill-XP bonus ({@code onXpDrop}/{@code getUpdateXP}):
      * 0 XP has a 3% chance of becoming 1, otherwise {@code round(xp * 1.25 + random * 0.25) + 1}.
      *
-     * <p>Upstream also grants bonus XP on ordinary block breaking ({@code onBlockBreak}, a flat
-     * 30%/3% chance of +1 via {@code BlockEvent.BreakEvent#getExpToDrop}/{@code #setExpToDrop}); this
-     * NeoForge version's {@code BlockEvent.BreakEvent} carries no XP field any more -- block XP drops
-     * are resolved through loot tables with no per-tool interception point -- so only the kill-XP half
-     * is ported. Recorded in the PR.
+     * <p>Upstream also grants bonus XP on ordinary block breaking ({@code onBlockBreak}, via
+     * {@code BlockEvent.BreakEvent#getExpToDrop}/{@code #setExpToDrop}). Issue #494/T63: the parity
+     * audit's original note claiming NeoForge's {@code BlockEvent.BreakEvent} has no XP field and thus
+     * no per-tool interception point was checked against the clone and found wrong for this NeoForge
+     * version -- {@link net.neoforged.neoforge.event.level.BlockDropsEvent} (fired after drops are
+     * determined, before they enter the world) carries both the breaking tool and a mutable
+     * {@code getDroppedExperience}/{@code setDroppedExperience}, the same seam
+     * {@code modifier.ForgeweaveModifiers#onBlockDrops} already rides for Searing/Magnetic
+     * Pull/Resonant/autosmelt (issue #108). Ported via {@link #onBlockBreakExperience}.
+     *
+     * <p>Upstream's roll is {@code r < 0.33f || (expToDrop == 0 && r < 0.03f)} for a single draw of
+     * {@code r}: since 0.03 &lt; 0.33, the second clause can only be true where the first already is,
+     * making the whole check a flat 33% chance of +1 regardless of the current XP -- ported as that
+     * reduced form ({@link #ESTABLISHED_BLOCK_XP_CHANCE}); behavior is bit-for-bit identical, not an
+     * approximation. Recorded in the PR.
      */
     public static final Trait ESTABLISHED = new Trait() {
         @Override
@@ -481,6 +495,11 @@ public final class ForgeweaveTraits {
                 return random.nextFloat() < 0.03F ? 1 : 0;
             }
             return 1 + Math.round(xp * 1.25F + random.nextFloat() * 0.25F);
+        }
+
+        @Override
+        public int blockBreakExperience(RandomSource random, int xp) {
+            return random.nextFloat() < ESTABLISHED_BLOCK_XP_CHANCE ? xp + 1 : xp;
         }
     };
 
@@ -1842,6 +1861,30 @@ public final class ForgeweaveTraits {
         int updated = xp;
         for (Trait trait : of(weapon)) {
             updated = trait.killExperience(player.getRandom(), updated);
+        }
+        if (updated != xp) {
+            event.setDroppedExperience(updated);
+        }
+    }
+
+    /**
+     * {@code forgeweave:established}'s block-break XP bonus (issue #494/T63; see its javadoc).
+     * Registered on the game event bus in {@code Forgeweave}, same idiom as {@link #onExperienceDrop};
+     * rides {@link BlockDropsEvent}, the same seam {@code modifier.ForgeweaveModifiers#onBlockDrops}
+     * uses for its own tool-triggered XP/drop adjustments (issue #108).
+     */
+    public static void onBlockBreakExperience(BlockDropsEvent event) {
+        if (!(event.getBreaker() instanceof Player player)) {
+            return;
+        }
+        ItemStack tool = event.getTool();
+        if (!(tool.getItem() instanceof ToolItem) || ToolItem.isBroken(tool)) {
+            return;
+        }
+        int xp = event.getDroppedExperience();
+        int updated = xp;
+        for (Trait trait : of(tool)) {
+            updated = trait.blockBreakExperience(player.getRandom(), updated);
         }
         if (updated != xp) {
             event.setDroppedExperience(updated);

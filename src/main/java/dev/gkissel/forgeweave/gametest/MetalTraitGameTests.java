@@ -1,5 +1,6 @@
 package dev.gkissel.forgeweave.gametest;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import net.minecraft.core.BlockPos;
@@ -27,6 +28,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
 
 import net.neoforged.neoforge.event.entity.living.LivingExperienceDropEvent;
+import net.neoforged.neoforge.event.level.BlockDropsEvent;
 import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 
@@ -379,6 +381,46 @@ public class MetalTraitGameTests {
                 "a tool without established should leave XP untouched, got " + withoutTrait.getDroppedExperience());
 
         victim.discard();
+        helper.succeed();
+    }
+
+    /**
+     * Copper -&gt; {@code forgeweave:established}: bonus XP on ordinary block breaks (issue #494/T63).
+     * Real per-break rolls are a flat 33% (see {@code ForgeweaveTraits#ESTABLISHED}'s javadoc for why
+     * upstream's nominally-two-branch check reduces to that), so this drives a bounded number of
+     * breaks through the real {@link BlockDropsEvent} pipeline
+     * ({@code ForgeweaveTraits#onBlockBreakExperience}) generous enough that missing every single one
+     * is astronomically unlikely ({@code 0.67^200 < 1e-34}), same idiom as {@code
+     * ModifierGameTests#luckGrowsFromBlockBreaksUpToTheRecipesCap}.
+     */
+    @GameTest(template = "empty")
+    public static void establishedGrantsBonusBlockBreakExperience(GameTestHelper helper) {
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        ItemStack established = pickaxe(List.of(traitId("established")), 100, 1.0F, 1.0F);
+        player.setItemInHand(InteractionHand.MAIN_HAND, established);
+
+        int xp = 0;
+        int breaks = 0;
+        while (breaks < 200 && xp == 0) {
+            BlockDropsEvent event = new BlockDropsEvent(helper.getLevel(), BlockPos.ZERO,
+                    Blocks.STONE.defaultBlockState(), null, new ArrayList<>(), player, established);
+            ForgeweaveTraits.onBlockBreakExperience(event);
+            xp = event.getDroppedExperience();
+            breaks++;
+        }
+        helper.assertTrue(xp == 1, "expected established to eventually roll +1 block-break XP within "
+                + breaks + " breaks, got " + xp);
+
+        ItemStack plain = pickaxe(List.of(), 100, 1.0F, 1.0F);
+        player.setItemInHand(InteractionHand.MAIN_HAND, plain);
+        for (int i = 0; i < 200; i++) {
+            BlockDropsEvent event = new BlockDropsEvent(helper.getLevel(), BlockPos.ZERO,
+                    Blocks.STONE.defaultBlockState(), null, new ArrayList<>(), player, plain);
+            ForgeweaveTraits.onBlockBreakExperience(event);
+            helper.assertTrue(event.getDroppedExperience() == 0,
+                    "a tool without established must never gain block-break XP, got " + event.getDroppedExperience());
+        }
+
         helper.succeed();
     }
 

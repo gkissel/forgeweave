@@ -710,7 +710,7 @@
   "trait.forgeweave.ecological.name": "Ecological",
   "trait.forgeweave.enderference.description": "Prevents Endermen from teleporting around for a short time.",
   "trait.forgeweave.enderference.name": "Enderference",
-  "trait.forgeweave.established.description": "Grants bonus experience from kills.",
+  "trait.forgeweave.established.description": "Grants bonus experience from kills and block breaking.",
   "trait.forgeweave.established.name": "Established",
   "trait.forgeweave.flammable.description": "Blocking blocks fire damage and getting hit sets the attacker on fire.",
   "trait.forgeweave.flammable.name": "Flammable",
