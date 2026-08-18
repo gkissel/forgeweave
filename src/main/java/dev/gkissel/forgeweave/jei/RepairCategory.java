@@ -59,7 +59,7 @@ final class RepairCategory implements IRecipeCategory<RepairRecipe> {
     @Override
     public void setRecipe(IRecipeLayoutBuilder builder, RepairRecipe recipe, IFocusGroup focuses) {
         builder.addInputSlot(0, 0).addItemStacks(recipe.tools());
-        builder.addInputSlot(0, 20).addItemStack(recipe.repairItem());
+        builder.addInputSlot(0, 20).addItemStacks(recipe.repairItems());
         builder.addOutputSlot(WIDTH - 18, (HEIGHT - 18) / 2).addItemStacks(recipe.repairedTools());
     }
 

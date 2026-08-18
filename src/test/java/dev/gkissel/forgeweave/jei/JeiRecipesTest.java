@@ -319,6 +319,21 @@ class JeiRecipesTest {
     }
 
     /**
+     * Parity audit T30 (issue #461): repair takes every one of the material's crafting items, so the
+     * JEI row cycles all of them rather than advertising the single {@code repair_item}. Wood's plank
+     * is both a crafting item and the repair item and must still appear exactly once.
+     */
+    @Test
+    void repairListsEveryCraftingItemOfTheMaterial() {
+        List<RepairRecipe> recipes = RepairRecipes.build(twoMaterials());
+
+        assertEquals(List.of(Items.STICK, Items.OAK_PLANKS, Items.OAK_LOG),
+                recipes.get(0).repairItems().stream().map(ItemStack::getItem).toList());
+        assertEquals(List.of(Items.COBBLESTONE),
+                recipes.get(1).repairItems().stream().map(ItemStack::getItem).toList());
+    }
+
+    /**
      * Issue #435 (parity audit T3): a cast-only material has no Part Builder path at all with
      * {@code craftCastableMaterials} at upstream's {@code false} default, so JEI must not advertise
      * one -- the same gate {@code PartBuilderRecipes#materialValue} applies at the station. Its

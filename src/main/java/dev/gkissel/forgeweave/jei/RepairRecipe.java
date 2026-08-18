@@ -7,6 +7,6 @@ import net.minecraft.world.item.ItemStack;
 /**
  * One Tool Station repair display recipe, for one material: any tool (cycling every tool type,
  * since repair is the same rule regardless of tool type -- see {@code menu.ToolAssemblyRecipes}'s
- * repair resolution) + that material's repair item -> the same tool, repaired.
+ * repair resolution) + any item that material repairs from -> the same tool, repaired.
  */
-record RepairRecipe(List<ItemStack> tools, ItemStack repairItem, List<ItemStack> repairedTools) {}
+record RepairRecipe(List<ItemStack> tools, List<ItemStack> repairItems, List<ItemStack> repairedTools) {}
