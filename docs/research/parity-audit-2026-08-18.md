@@ -130,7 +130,7 @@ Every 1.12 tool-material trait is ported (44 ids across 34 materials, with head-
 | petramor | `TraitPetramor:23-27` | n/a | `:370-379` pickaxe-tag stand-in | have | Y (PR #119) | none | — |
 | insatiable | `TraitInsatiable:20-42` (all durability loss) | n/a | `:389-410`, hits only | partial | Y (PR #119) | low | — |
 | coldblooded | `TraitColdblooded:15-20` | n/a | `:419-424` | have | — | none | — |
-| established | `TraitEstablished:22-56` (kill + block XP) | n/a | `:436-446` kill only | partial | N (javadoc stale) | low | T63 |
+| established | `TraitEstablished:22-56` (kill + block XP) | n/a | `:471-502` kill + block XP via `BlockDropsEvent` | have | Y | none | — |
 | alien | `TraitAlien:26-119` | n/a | `:525-596` AlienProgress | have | Y (PR #241) | none | — |
 | shocking | `TraitShocking:30-129` | n/a | `:653-762`, vanilla cue stand-ins | have | Y (#415/#419) | none | — |
 | slimey green / blue | `TraitSlimey:38-58` (blue slime entity) | n/a | both spawn vanilla Slime | partial | Y (PR #241) | low | T57 |
@@ -678,7 +678,7 @@ Prioritized and deduplicated across domains. Already-filed issues are marked; **
 - [ ] **T60 — Ore-class melting temperature** — derive from the doubled ore amount like `calcTemperature`; a datapack `temperature` field already exists (smeltery, low, backlog).
 - [ ] **T61 — Cobalt/ardite/manyullyn/rose gold blocks missing from `crafting_items`** — add value-18 rows (moot if T3 makes metals cast-only) (materials, low).
 - [ ] **T62 — Split `cheap` into upstream's cheap (general) + cheapskate (head)** so a stone-head tool stops getting the repair bonus (traits, low).
-- [ ] **T63 — Established block-break XP** — port the 33%/3% roll via `BlockDropsEvent` (traits, low).
+- [x] **T63 — Established block-break XP** (shipped, issue #494) — a flat 33% roll of +1 block-break XP via `BlockDropsEvent`, riding the same seam `ForgeweaveModifiers#onBlockDrops` already uses for Searing/Magnetic Pull/Resonant/autosmelt (issue #108). Corrects the ticket's own "33%/3%" framing and this doc's earlier claim (row above) that NeoForge's block-break event has no XP field: `BlockEvent.BreakEvent` doesn't, but `BlockDropsEvent` does, and upstream's own roll (`r < 0.33f || (expToDrop == 0 && r < 0.03f)`) is a flat 33% regardless of xp once you notice 0.03 &lt; 0.33 makes the second clause dead (traits, low).
 - [ ] **T64 — Squeaky: hit sound stand-in and luck/silky refusal** (traits, low; refusal folds into T23).
 - [ ] **T65 — Hatchet: +0.5 flat attack and free full-speed leaf digging** (tools, low, M3 playtest-fix).
 - [ ] **T66 — Mattock: repair with either head and per-family tier** (tools, low, M3 playtest-fix).

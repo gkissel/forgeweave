@@ -158,6 +158,17 @@ public interface Trait {
         return xp;
     }
 
+    /**
+     * The XP an ordinary block break made with this tool in the main hand should drop, given what it
+     * would otherwise drop (issue #494/T63; upstream 1.12's {@code TraitEstablished#onBlockBreak}
+     * subscribes to a Forge event directly, same as {@link #killExperience};
+     * {@link ForgeweaveTraits#onBlockBreakExperience} is the same idea ported to a trait hook, riding
+     * NeoForge's {@code BlockDropsEvent}).
+     */
+    default int blockBreakExperience(RandomSource random, int xp) {
+        return xp;
+    }
+
     // #103 metal materials -- netherite's reinforced_core.
 
     /**
