@@ -18,17 +18,25 @@ import dev.gkissel.forgeweave.config.ForgeweaveClientConfig; // #276
 import dev.gkissel.forgeweave.fluid.ForgeweaveFluids;
 import dev.gkissel.forgeweave.material.Material;
 import dev.gkissel.forgeweave.menu.ContentFamilies;
+import dev.gkissel.forgeweave.menu.ToolAssemblyRecipes;
 
 /**
- * The single Forgeweave creative tab. Materials are a datapack registry (ADR-0002), so the part
- * item variants are enumerated at display time from the registry access the display-items event
- * provides, not fixed at registration time.
+ * The Forgeweave creative tabs. Upstream 1.12 splits its content over six tabs
+ * ({@code TinkerRegistry:76-81}: General, Tools, ToolParts, Smeltery, World, Gadgets) and every item
+ * class picks one ({@code ToolCore:74}, {@code ToolPart:41}, {@code Pattern:28}, {@code Cast:14},
+ * {@code BlockSeared:19}, {@code BlockOre:31}, {@code TinkerCommons:287-290}, ...). Forgeweave has
+ * content for four of them; upstream's World tab would hold only the two nether ores here (no slime
+ * islands) and its Gadgets content is absent entirely, so those ores ride along in General (issue
+ * #507).
+ *
+ * <p>Materials are a datapack registry (ADR-0002), so the part item variants are enumerated at
+ * display time from the registry access the display-items event provides, not fixed at registration
+ * time.
  */
 public final class ForgeweaveCreativeTab {
     public static final DeferredRegister<CreativeModeTab> TABS =
             DeferredRegister.create(Registries.CREATIVE_MODE_TAB, Forgeweave.MODID);
 
-    // Package-private so ForgeweaveCreativeTabTest can count the part x material product (#276).
     static final List<DeferredItem<PartItem>> PART_ITEMS = List.of(
             ForgeweaveItems.PART_PICKAXE_HEAD,
             ForgeweaveItems.PART_SHOVEL_HEAD,
@@ -36,7 +44,6 @@ public final class ForgeweaveCreativeTab {
             ForgeweaveItems.PART_TOOL_BINDING,
             ForgeweaveItems.PART_TOOL_HANDLE,
             ForgeweaveItems.SHARD,
-            // M3 roster (docs/SCOPE.md issue #151).
             ForgeweaveItems.PART_SWORD_BLADE,
             ForgeweaveItems.PART_WIDE_GUARD,
             ForgeweaveItems.PART_HAND_GUARD,
@@ -55,47 +62,60 @@ public final class ForgeweaveCreativeTab {
             ForgeweaveItems.PART_BROAD_AXE_HEAD,
             ForgeweaveItems.PART_VEIN_HAMMER_HEAD,
             ForgeweaveItems.PART_WAR_MACE_HEAD,
-            // #159's new head part.
             ForgeweaveItems.PART_CURVED_BLADE,
-            // M3 new-shape tools' own parts (issue #160 onwards).
             ForgeweaveItems.PART_KATANA_BLADE,
-            // M3.5's bow parts (issue #393). Their material expansion is already narrowed by the
-            // per-kind stat check #392 added, so the bow string lists only string and vine.
             ForgeweaveItems.PART_BOW_LIMB,
             ForgeweaveItems.PART_BOW_STRING,
-            // #271: belongs to no tool, but is built and shown exactly like the parts that do.
             ForgeweaveItems.PART_SHARPENING_KIT);
 
-    public static final DeferredHolder<CreativeModeTab, CreativeModeTab> MAIN = TABS.register("main", () -> CreativeModeTab.builder()
-            .title(Component.translatable("itemGroup.forgeweave"))
-            .icon(() -> new ItemStack(ForgeweaveItems.PATTERN_BLANK.get()))
-            .displayItems(ForgeweaveCreativeTab::addDisplayItems)
-            .build());
+    /** Icons mirror upstream's: slime ball, assembled pickaxe, pickaxe head, seared tank. */
+    public static final DeferredHolder<CreativeModeTab, CreativeModeTab> GENERAL =
+            TABS.register("general", () -> CreativeModeTab.builder()
+                    .title(Component.translatable("itemGroup.forgeweave.general"))
+                    .icon(() -> new ItemStack(ForgeweaveItems.BLUE_SLIME_CRYSTAL.get()))
+                    .displayItems(ForgeweaveCreativeTab::addGeneralItems)
+                    .build());
 
-    // Package-private (not private) so ForgeweaveCreativeTabTest (issue #139) can build the tab's
-    // contents directly, without depending on the NeoForge mod event bus being live in unit tests.
-    static void addDisplayItems(CreativeModeTab.ItemDisplayParameters parameters, CreativeModeTab.Output output) {
-        addDisplayItems(parameters, output, ForgeweaveClientConfig.LIST_ALL_PART_MATERIALS.get());
-    }
+    public static final DeferredHolder<CreativeModeTab, CreativeModeTab> TOOLS =
+            TABS.register("tools", () -> CreativeModeTab.builder()
+                    .title(Component.translatable("itemGroup.forgeweave.tools"))
+                    .icon(() -> new ItemStack(ForgeweaveItems.TOOL_PICKAXE.get()))
+                    .displayItems(ForgeweaveCreativeTab::addToolItems)
+                    .build());
 
-    /**
-     * Takes {@code listAllPartMaterials} as a parameter rather than reading it (issue #276), so the
-     * unit tests can drive both settings without standing up a {@code CLIENT}-type config spec --
-     * the same split {@code ToolTooltip#append} already uses for its Shift flag. Only the
-     * part-material expansion at the bottom reads it; every plain item here is listed regardless.
-     */
-    static void addDisplayItems(CreativeModeTab.ItemDisplayParameters parameters, CreativeModeTab.Output rawOutput,
-            boolean listAllPartMaterials) {
-        // Content-family toggles ticket: one filter in front of the whole listing rather than a
-        // condition on each of the two hundred accepts below, so a family toggle can never be
-        // remembered for the tools and forgotten for their parts, patterns or casts.
-        // ContentFamilies answers "on" whenever the SERVER spec is not loaded, which is exactly the
-        // main-menu creative search this runs in before any world exists.
-        CreativeModeTab.Output output = (stack, visibility) -> {
+    public static final DeferredHolder<CreativeModeTab, CreativeModeTab> PARTS =
+            TABS.register("parts", () -> CreativeModeTab.builder()
+                    .title(Component.translatable("itemGroup.forgeweave.parts"))
+                    .icon(() -> new ItemStack(ForgeweaveItems.PART_PICKAXE_HEAD.get()))
+                    .displayItems(ForgeweaveCreativeTab::addPartItems)
+                    .build());
+
+    public static final DeferredHolder<CreativeModeTab, CreativeModeTab> SMELTERY =
+            TABS.register("smeltery", () -> CreativeModeTab.builder()
+                    .title(Component.translatable("itemGroup.forgeweave.smeltery"))
+                    .icon(() -> new ItemStack(ForgeweaveItems.SEARED_TANK.get()))
+                    .displayItems(ForgeweaveCreativeTab::addSmelteryItems)
+                    .build());
+
+    /** Content families (#398/#399) can switch whole item groups off; every tab honours them. */
+    private static CreativeModeTab.Output enabledOnly(CreativeModeTab.Output rawOutput) {
+        return (stack, visibility) -> {
             if (ContentFamilies.itemEnabled(stack)) {
                 rawOutput.accept(stack, visibility);
             }
         };
+    }
+
+    /**
+     * Upstream's {@code tabGeneral}: the book ({@code ItemTinkerBook:26}), the station blocks
+     * ({@code BlockToolTable:52}, {@code BlockToolForge:41}), the crafting materials, ingots,
+     * nuggets and metal blocks ({@code TinkerCommons:287-290}, {@code BlockMetal:27}), the soils
+     * and mud bricks ({@code BlockSoil:45}, {@code BlockDecoGround:25}), firewood and clear glass
+     * ({@code BlockFirewood:22}, {@code BlockClearGlass:24}). The two nether ores are upstream's
+     * {@code tabWorld} ({@code BlockOre:31}) -- see the class comment.
+     */
+    static void addGeneralItems(CreativeModeTab.ItemDisplayParameters parameters, CreativeModeTab.Output rawOutput) {
+        CreativeModeTab.Output output = enabledOnly(rawOutput);
 
         output.accept(ForgeweaveItems.GUIDE_BOOK.get()); // the guide book leads the tab (issue #273)
         output.accept(ForgeweaveItems.PART_BUILDER.get());
@@ -105,6 +125,106 @@ public final class ForgeweaveCreativeTab {
         output.accept(ForgeweaveItems.STENCIL_TABLE.get());
         output.accept(ForgeweaveItems.PATTERN_CHEST.get());
         output.accept(ForgeweaveItems.PART_CHEST.get());
+
+        output.accept(ForgeweaveItems.GROUT.get());
+        output.accept(ForgeweaveItems.SEARED_BRICK.get());
+
+        output.accept(ForgeweaveItems.SLIMY_MUD_GREEN.get());
+        output.accept(ForgeweaveItems.SLIMY_MUD_MAGMA.get());
+
+        output.accept(ForgeweaveItems.GRAVEYARD_SOIL.get());
+        output.accept(ForgeweaveItems.CONSECRATED_SOIL.get());
+
+        output.accept(ForgeweaveItems.MUD_BRICK.get());
+        output.accept(ForgeweaveItems.MUD_BRICK_BLOCK.get());
+
+        output.accept(ForgeweaveItems.MOSS.get());
+        output.accept(ForgeweaveItems.MENDING_MOSS.get());
+        output.accept(ForgeweaveItems.REINFORCED_PLATE.get());
+        output.accept(ForgeweaveItems.SILKY_CLOTH.get());
+        output.accept(ForgeweaveItems.SILKY_JEWEL.get());
+        output.accept(ForgeweaveItems.EXTRA_MODIFIER.get());
+        output.accept(ForgeweaveItems.NECROTIC_BONE.get());
+        output.accept(ForgeweaveItems.EXPANDER_W.get());
+        output.accept(ForgeweaveItems.EXPANDER_H.get());
+
+        output.accept(ForgeweaveItems.CLEAR_GLASS.get());
+        for (ForgeweaveBlocks.StainedGlassColor color : ForgeweaveBlocks.clearStainedGlassColors()) {
+            output.accept(color.block().get().asItem());
+        }
+
+        output.accept(ForgeweaveItems.INGOT_COBALT.get());
+        output.accept(ForgeweaveItems.NUGGET_COBALT.get());
+        output.accept(ForgeweaveItems.RAW_COBALT.get());
+        output.accept(ForgeweaveItems.INGOT_ARDITE.get());
+        output.accept(ForgeweaveItems.NUGGET_ARDITE.get());
+        output.accept(ForgeweaveItems.RAW_ARDITE.get());
+        output.accept(ForgeweaveItems.INGOT_MANYULLYN.get());
+        output.accept(ForgeweaveItems.NUGGET_MANYULLYN.get());
+        output.accept(ForgeweaveItems.RAW_MANYULLYN.get());
+        output.accept(ForgeweaveItems.INGOT_ROSE_GOLD.get());
+        output.accept(ForgeweaveItems.NUGGET_ROSE_GOLD.get());
+        output.accept(ForgeweaveItems.RAW_ROSE_GOLD.get());
+        output.accept(ForgeweaveItems.INGOT_STEEL.get());
+        output.accept(ForgeweaveItems.NUGGET_STEEL.get());
+        output.accept(ForgeweaveItems.INGOT_AMETHYST_BRONZE.get());
+        output.accept(ForgeweaveItems.NUGGET_AMETHYST_BRONZE.get());
+
+        output.accept(ForgeweaveItems.GREEN_SLIME_CRYSTAL.get());
+        output.accept(ForgeweaveItems.BLUE_SLIME_CRYSTAL.get());
+        output.accept(ForgeweaveItems.MAGMA_SLIME_CRYSTAL.get());
+        output.accept(ForgeweaveItems.INGOT_KNIGHTSLIME.get());
+        output.accept(ForgeweaveItems.NUGGET_KNIGHTSLIME.get());
+
+        output.accept(ForgeweaveItems.COBALT_ORE.get());
+        output.accept(ForgeweaveItems.ARDITE_ORE.get());
+
+        output.accept(ForgeweaveItems.COBALT_BLOCK.get());
+        output.accept(ForgeweaveItems.ARDITE_BLOCK.get());
+        output.accept(ForgeweaveItems.MANYULLYN_BLOCK.get());
+        output.accept(ForgeweaveItems.ROSE_GOLD_BLOCK.get());
+        output.accept(ForgeweaveItems.STEEL_BLOCK.get());
+        output.accept(ForgeweaveItems.KNIGHTSLIME_BLOCK.get()); // #232
+
+        output.accept(ForgeweaveItems.INGOT_PIG_IRON.get());
+        output.accept(ForgeweaveItems.NUGGET_PIG_IRON.get());
+        output.accept(ForgeweaveItems.PIG_IRON_BLOCK.get());
+        output.accept(ForgeweaveItems.FIREWOOD.get());
+
+        output.accept(ForgeweaveItems.AMETHYST_BRONZE_BLOCK.get());
+    }
+
+    /**
+     * Upstream's {@code tabTools}: every {@code ToolCore} ({@code ToolCore:74}). Read off
+     * {@code ToolAssemblyRecipes#ENTRIES} -- the one table that already names every assemblable
+     * tool, in the Tool Station's own order -- rather than a second hand-kept list, which is how
+     * the mattock and the kama went missing from the single tab this replaces (issue #507).
+     */
+    static void addToolItems(CreativeModeTab.ItemDisplayParameters parameters, CreativeModeTab.Output rawOutput) {
+        CreativeModeTab.Output output = enabledOnly(rawOutput);
+
+        for (ToolAssemblyRecipes.Entry entry : ToolAssemblyRecipes.ENTRIES) {
+            output.accept(entry.tool().get());
+        }
+    }
+
+    static void addPartItems(CreativeModeTab.ItemDisplayParameters parameters, CreativeModeTab.Output output) {
+        addPartItems(parameters, output, ForgeweaveClientConfig.LIST_ALL_PART_MATERIALS.get());
+    }
+
+    /**
+     * Upstream's {@code tabToolParts}: the patterns ({@code Pattern:28}), the tool parts
+     * ({@code ToolPart:41}) and the sharpening kit ({@code TinkerTools:140}).
+     *
+     * <p>Takes {@code listAllPartMaterials} as a parameter rather than reading it (issue #276), so
+     * the unit tests can drive both settings without standing up a {@code CLIENT}-type config spec
+     * -- the same split {@code ToolTooltip#append} already uses for its Shift flag. Only the
+     * part-material expansion at the bottom reads it; every plain item here is listed regardless.
+     */
+    static void addPartItems(CreativeModeTab.ItemDisplayParameters parameters, CreativeModeTab.Output rawOutput,
+            boolean listAllPartMaterials) {
+        CreativeModeTab.Output output = enabledOnly(rawOutput);
+
         output.accept(ForgeweaveItems.PATTERN_BLANK.get());
         output.accept(ForgeweaveItems.PATTERN_PICKAXE_HEAD.get());
         output.accept(ForgeweaveItems.PATTERN_SHOVEL_HEAD.get());
@@ -112,7 +232,6 @@ public final class ForgeweaveCreativeTab {
         output.accept(ForgeweaveItems.PATTERN_TOOL_BINDING.get());
         output.accept(ForgeweaveItems.PATTERN_TOOL_HANDLE.get());
 
-        // M3 roster (docs/SCOPE.md issue #151).
         output.accept(ForgeweaveItems.PATTERN_SWORD_BLADE.get());
         output.accept(ForgeweaveItems.PATTERN_WIDE_GUARD.get());
         output.accept(ForgeweaveItems.PATTERN_HAND_GUARD.get());
@@ -137,68 +256,32 @@ public final class ForgeweaveCreativeTab {
         output.accept(ForgeweaveItems.PATTERN_BOW_STRING.get());
         output.accept(ForgeweaveItems.PATTERN_SHARPENING_KIT.get());
 
-        // Shown component-less (no TOOL_MATERIALS set): unlike parts, a tool has three independent
-        // material slots, so there's no small fixed set of "one per material" variants to enumerate
-        // -- the creative tab shows the plain (untinted) base tool; assembled variants come from the
-        // Tool Station.
-        output.accept(ForgeweaveItems.TOOL_PICKAXE.get());
-        output.accept(ForgeweaveItems.TOOL_SHOVEL.get());
-        output.accept(ForgeweaveItems.TOOL_HATCHET.get());
-        // M3 Tool Station weapons (docs/SCOPE.md M3 issue #155), same component-less shape.
-        output.accept(ForgeweaveItems.TOOL_BROADSWORD.get());
-        output.accept(ForgeweaveItems.TOOL_LONGSWORD.get());
-        output.accept(ForgeweaveItems.TOOL_RAPIER.get());
-        output.accept(ForgeweaveItems.TOOL_BATTLESIGN.get());
-        output.accept(ForgeweaveItems.TOOL_FRYING_PAN.get());
-        output.accept(ForgeweaveItems.TOOL_DAGGER.get());
-        output.accept(ForgeweaveItems.TOOL_WARMACE.get());
-        // M3 station-tier weapons (docs/SCOPE.md M3 issue #159).
-        output.accept(ForgeweaveItems.TOOL_BATTLEAXE.get());
-        output.accept(ForgeweaveItems.TOOL_SCIMITAR.get());
-        output.accept(ForgeweaveItems.TOOL_KATANA.get());
-        output.accept(ForgeweaveItems.TOOL_CLEAVER.get()); // #158
-        output.accept(ForgeweaveItems.TOOL_SHORTBOW.get()); // M3.5 #394
-        output.accept(ForgeweaveItems.TOOL_LONGBOW.get()); // M3.5 #395
-        output.accept(ForgeweaveItems.TOOL_CROSSBOW.get()); // M3.5 #395
-        // The large harvest tools (docs/SCOPE.md M3 issue #157), same component-less display.
-        output.accept(ForgeweaveItems.TOOL_HAMMER.get());
-        output.accept(ForgeweaveItems.TOOL_EXCAVATOR.get());
-        output.accept(ForgeweaveItems.TOOL_LUMBERAXE.get());
-        output.accept(ForgeweaveItems.TOOL_SCYTHE.get());
-        output.accept(ForgeweaveItems.TOOL_VEIN_HAMMER.get());
+        List<Holder.Reference<Material>> allMaterials =
+                parameters.holders().lookupOrThrow(Material.REGISTRY).listElements().toList();
+        List<Holder.Reference<Material>> materials =
+                listAllPartMaterials ? allMaterials : allMaterials.stream().limit(1).toList();
+        for (DeferredItem<PartItem> partItem : PART_ITEMS) {
+            for (Holder.Reference<Material> material : materials) {
+                if (!material.value().hasStatsFor(partItem.get().kind())) {
+                    continue;
+                }
+                ItemStack stack = new ItemStack(partItem.get());
+                stack.set(ForgeweaveDataComponents.MATERIAL.get(), material.key().location());
+                output.accept(stack);
+            }
+        }
+    }
 
-        // Grout (a block since issue #129), seared brick, and the seared brick block family
-        // (docs/SCOPE.md M2 issue #93).
-        output.accept(ForgeweaveItems.GROUT.get());
-        output.accept(ForgeweaveItems.SEARED_BRICK.get());
+    /**
+     * Upstream's {@code tabSmeltery}: the seared block family ({@code BlockSeared:19},
+     * {@code BlockEnumSmeltery:37}, {@code BlockSearedSlab:31}), the controllers
+     * ({@code BlockSmelteryController:22}, {@code BlockSearedFurnaceController:25}), casting
+     * ({@code BlockCasting:50}, {@code BlockFaucet:39}), the casts ({@code Cast:14},
+     * {@code CastCustom:16}) and the molten metals ({@code BlockTinkerFluid:22} -- buckets here).
+     */
+    static void addSmelteryItems(CreativeModeTab.ItemDisplayParameters parameters, CreativeModeTab.Output rawOutput) {
+        CreativeModeTab.Output output = enabledOnly(rawOutput);
 
-        // #339 -- the slimy muds, next to grout: same upstream BlockSoil, same "smelt me" role.
-        output.accept(ForgeweaveItems.SLIMY_MUD_GREEN.get());
-        output.accept(ForgeweaveItems.SLIMY_MUD_MAGMA.get());
-
-        // #429 -- graveyard and consecrated soil, next to the other BlockSoil states; upstream puts
-        // every soil type in the same tabGeneral (BlockSoil#getSubBlocks).
-        output.accept(ForgeweaveItems.GRAVEYARD_SOIL.get());
-        output.accept(ForgeweaveItems.CONSECRATED_SOIL.get());
-
-        // #502 (T71 parity audit): mud brick and its block, next to seared brick above -- same
-        // "materials meta item + its own block" shape.
-        output.accept(ForgeweaveItems.MUD_BRICK.get());
-        output.accept(ForgeweaveItems.MUD_BRICK_BLOCK.get());
-
-        // #107 batch: modifier reagent items (docs/SCOPE.md M2 issue #107).
-        output.accept(ForgeweaveItems.MOSS.get());
-        output.accept(ForgeweaveItems.MENDING_MOSS.get());
-        output.accept(ForgeweaveItems.REINFORCED_PLATE.get());
-        output.accept(ForgeweaveItems.SILKY_CLOTH.get());
-        output.accept(ForgeweaveItems.SILKY_JEWEL.get());
-        output.accept(ForgeweaveItems.EXTRA_MODIFIER.get());
-        // #429 -- necrotic bone, a modifier reagent like the six above (upstream groups it with them
-        // as a "materials" meta item in the same tabGeneral).
-        output.accept(ForgeweaveItems.NECROTIC_BONE.get());
-        // #438 -- the Width++/Height++ reagents, alongside the rest of the modifier reagents.
-        output.accept(ForgeweaveItems.EXPANDER_W.get());
-        output.accept(ForgeweaveItems.EXPANDER_H.get());
         output.accept(ForgeweaveItems.SEARED_STONE.get());
         output.accept(ForgeweaveItems.SEARED_COBBLESTONE.get());
         output.accept(ForgeweaveItems.SEARED_PAVER.get());
@@ -212,7 +295,6 @@ public final class ForgeweaveCreativeTab {
         output.accept(ForgeweaveItems.SEARED_TILE.get());
         output.accept(ForgeweaveItems.SEARED_CREEPER.get());
 
-        // Seared stairs + slabs (docs/SCOPE.md M3.4-5 issue #274).
         output.accept(ForgeweaveItems.SEARED_STAIRS_STONE.get());
         output.accept(ForgeweaveItems.SEARED_STAIRS_COBBLESTONE.get());
         output.accept(ForgeweaveItems.SEARED_STAIRS_PAVER.get());
@@ -238,8 +320,6 @@ public final class ForgeweaveCreativeTab {
         output.accept(ForgeweaveItems.SEARED_SLAB_TILE.get());
         output.accept(ForgeweaveItems.SEARED_SLAB_CREEPER.get());
 
-        // The smeltery multiblock's own blocks (docs/SCOPE.md M2 issue #95; issue #139 fix -- these
-        // were never added here, so the maintainer couldn't find the smeltery in the creative tab).
         output.accept(ForgeweaveItems.STANDARD_CORE.get());
         output.accept(ForgeweaveItems.SEARED_FURNACE_CONTROLLER.get()); // #442
         output.accept(ForgeweaveItems.NETHER_CORE.get());
@@ -251,13 +331,6 @@ public final class ForgeweaveCreativeTab {
         output.accept(ForgeweaveItems.SEARED_CHUTE.get());
         output.accept(ForgeweaveItems.SEARED_GLASS.get());
 
-        // #275 -- clear glass and its 16 clear stained glass colors.
-        output.accept(ForgeweaveItems.CLEAR_GLASS.get());
-        for (ForgeweaveBlocks.StainedGlassColor color : ForgeweaveBlocks.clearStainedGlassColors()) {
-            output.accept(color.block().get().asItem());
-        }
-
-        // #100 -- casting (docs/SCOPE.md M2 issue #100).
         output.accept(ForgeweaveItems.CASTING_TABLE.get());
         output.accept(ForgeweaveItems.CASTING_BASIN.get());
         output.accept(ForgeweaveItems.FAUCET.get());
@@ -269,7 +342,6 @@ public final class ForgeweaveCreativeTab {
         output.accept(ForgeweaveItems.CAST_TOOL_BINDING.get());
         output.accept(ForgeweaveItems.CAST_TOOL_HANDLE.get());
 
-        // #222 -- casts for every M3 part (docs/SCOPE.md M3 issue #151/#159/#160/#161's roster).
         output.accept(ForgeweaveItems.CAST_SWORD_BLADE.get());
         output.accept(ForgeweaveItems.CAST_WIDE_GUARD.get());
         output.accept(ForgeweaveItems.CAST_HAND_GUARD.get());
@@ -294,92 +366,14 @@ public final class ForgeweaveCreativeTab {
         output.accept(ForgeweaveItems.CAST_SHARPENING_KIT.get());
         output.accept(ForgeweaveItems.CAST_SHARD.get()); // #471/T40
 
-        // #272 -- the three CastCustom metas upstream ships beyond ingot/nugget.
         output.accept(ForgeweaveItems.CAST_GEM.get());
         output.accept(ForgeweaveItems.CAST_PLATE.get());
         output.accept(ForgeweaveItems.CAST_GEAR.get());
 
-        // #292 -- the single-use clay counterpart of every cast above. Listed unconditionally:
-        // upstream registers its clay cast item whether or not enableClayCasts is on, and only the
-        // recipes are gated (CastingRecipe#matches), so the option can be flipped in a live world
-        // without items vanishing out of anyone's inventory.
         ForgeweaveItems.CLAY_CASTS.values().forEach(clay -> output.accept(clay.get()));
 
-        // #103 -- metal materials (docs/SCOPE.md M2 issue #103): the item forms with no vanilla
-        // counterpart, for the four metals that lacked them.
-        output.accept(ForgeweaveItems.INGOT_COBALT.get());
-        output.accept(ForgeweaveItems.NUGGET_COBALT.get());
-        output.accept(ForgeweaveItems.RAW_COBALT.get());
-        output.accept(ForgeweaveItems.INGOT_ARDITE.get());
-        output.accept(ForgeweaveItems.NUGGET_ARDITE.get());
-        output.accept(ForgeweaveItems.RAW_ARDITE.get());
-        output.accept(ForgeweaveItems.INGOT_MANYULLYN.get());
-        output.accept(ForgeweaveItems.NUGGET_MANYULLYN.get());
-        output.accept(ForgeweaveItems.RAW_MANYULLYN.get());
-        output.accept(ForgeweaveItems.INGOT_ROSE_GOLD.get());
-        output.accept(ForgeweaveItems.NUGGET_ROSE_GOLD.get());
-        output.accept(ForgeweaveItems.RAW_ROSE_GOLD.get());
-        // #234 -- steel (M3.2): alloyed, not mined, so ingot/nugget only (no raw form).
-        output.accept(ForgeweaveItems.INGOT_STEEL.get());
-        output.accept(ForgeweaveItems.NUGGET_STEEL.get());
-        // #235 -- amethyst bronze (M3.2): alloyed too, so ingot/nugget only.
-        output.accept(ForgeweaveItems.INGOT_AMETHYST_BRONZE.get());
-        output.accept(ForgeweaveItems.NUGGET_AMETHYST_BRONZE.get());
-
-        // #232 -- slime crystals and knightslime's item forms (docs/SCOPE.md M3.2).
-        output.accept(ForgeweaveItems.GREEN_SLIME_CRYSTAL.get());
-        output.accept(ForgeweaveItems.BLUE_SLIME_CRYSTAL.get());
-        output.accept(ForgeweaveItems.MAGMA_SLIME_CRYSTAL.get());
-        output.accept(ForgeweaveItems.INGOT_KNIGHTSLIME.get());
-        output.accept(ForgeweaveItems.NUGGET_KNIGHTSLIME.get());
-
-        // #104 -- cobalt + ardite nether ore (docs/SCOPE.md M2 issue #104).
-        output.accept(ForgeweaveItems.COBALT_ORE.get());
-        output.accept(ForgeweaveItems.ARDITE_ORE.get());
-
-        // #206 -- storage blocks for cobalt, ardite, manyullyn and rose gold.
-        output.accept(ForgeweaveItems.COBALT_BLOCK.get());
-        output.accept(ForgeweaveItems.ARDITE_BLOCK.get());
-        output.accept(ForgeweaveItems.MANYULLYN_BLOCK.get());
-        output.accept(ForgeweaveItems.ROSE_GOLD_BLOCK.get());
-        output.accept(ForgeweaveItems.STEEL_BLOCK.get());
-        output.accept(ForgeweaveItems.KNIGHTSLIME_BLOCK.get()); // #232
-
-        // #233 -- pig iron's item forms and firewood (docs/SCOPE.md M3.2).
-        output.accept(ForgeweaveItems.INGOT_PIG_IRON.get());
-        output.accept(ForgeweaveItems.NUGGET_PIG_IRON.get());
-        output.accept(ForgeweaveItems.PIG_IRON_BLOCK.get());
-        output.accept(ForgeweaveItems.FIREWOOD.get());
-
-        output.accept(ForgeweaveItems.AMETHYST_BRONZE_BLOCK.get());
-
-        // #286 -- a bucket per molten fluid, next to the metal item forms they melt from and off
-        // ForgeweaveFluids#all so a new fluid's bucket shows up by existing rather than by being
-        // remembered here (issue #139's failure mode).
         for (ForgeweaveFluids.MoltenMetal fluid : ForgeweaveFluids.all()) {
             output.accept(fluid.bucket().get());
-        }
-
-        // #276, upstream 1.12's listAllPartMaterials: with it off, one variant per part instead of
-        // the part x material product -- upstream's own escape hatch for how large that product
-        // gets (26 parts x every datapack material). "The first found material", as upstream words
-        // it, is the registry's own first element here.
-        List<Holder.Reference<Material>> allMaterials =
-                parameters.holders().lookupOrThrow(Material.REGISTRY).listElements().toList();
-        List<Holder.Reference<Material>> materials =
-                listAllPartMaterials ? allMaterials : allMaterials.stream().limit(1).toList();
-        for (DeferredItem<PartItem> partItem : PART_ITEMS) {
-            for (Holder.Reference<Material> material : materials) {
-                // #392: a material only carries some of the stat blocks, and a part of a material
-                // with no block for its role builds nothing -- so it does not belong in the tab
-                // either (upstream's own ToolPart#hasUseForStat filter).
-                if (!material.value().hasStatsFor(partItem.get().kind())) {
-                    continue;
-                }
-                ItemStack stack = new ItemStack(partItem.get());
-                stack.set(ForgeweaveDataComponents.MATERIAL.get(), material.key().location());
-                output.accept(stack);
-            }
         }
     }
 
