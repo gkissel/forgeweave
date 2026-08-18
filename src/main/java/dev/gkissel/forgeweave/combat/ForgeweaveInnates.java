@@ -44,6 +44,7 @@ import net.minecraft.world.phys.Vec3;
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.item.ForgeweaveItems;
 import dev.gkissel.forgeweave.item.ToolItem;
+import dev.gkissel.forgeweave.particle.ForgeweaveParticles;
 
 /**
  * Every tool's own built-in combat behavior (docs/SCOPE.md M3, maintainer directive 2026-08-12:
@@ -515,6 +516,9 @@ public final class ForgeweaveInnates {
      * as another tool blow -- which is what keeps this from feeding itself.
      */
     public record CurrentHealthStrike(float fraction) implements CombatSeam {
+        /** Upstream {@code Rapier#dealHybridDamage}: {@code Math.round(damage / 2f)} hearts. */
+        private static final float HEARTS_PER_ARMOR_BYPASS_DAMAGE = 2.0F;
+
         @Override
         public void onHit(CombatHit hit, float damageDealt) {
             LivingEntity target = hit.target();
@@ -525,7 +529,13 @@ public final class ForgeweaveInnates {
             // Upstream clears the same window for the same reason: without it the blow we are riding
             // on has already claimed the target's invulnerability and this one is swallowed whole.
             target.invulnerableTime = 0;
-            target.hurt(armorBypassing(hit.level(), hit.attacker()), bonus);
+            if (target.hurt(armorBypassing(hit.level(), hit.attacker()), bonus)) {
+                // #482 -- upstream Rapier#dealHybridDamage marks the armour-skipping half with one
+                // HEART_ARMOR per two points of it (its {@code Math.round(damage / 2f)}, where
+                // {@code damage} is that half's own amount). Same rate off this seam's own bonus.
+                ForgeweaveParticles.spawnHearts(ForgeweaveParticles.HEART_ARMOR.get(), hit.level(), target,
+                        Math.round(bonus / HEARTS_PER_ARMOR_BYPASS_DAMAGE));
+            }
         }
     }
 

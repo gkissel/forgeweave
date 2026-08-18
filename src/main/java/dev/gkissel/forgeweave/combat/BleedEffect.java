@@ -3,6 +3,7 @@ package dev.gkissel.forgeweave.combat;
 import net.minecraft.core.Holder;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.damagesource.DamageType;
 import net.minecraft.world.damagesource.DamageTypes;
@@ -14,6 +15,7 @@ import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 
 import dev.gkissel.forgeweave.Forgeweave;
+import dev.gkissel.forgeweave.particle.ForgeweaveParticles;
 
 /**
  * Sharp's armor-ignoring bleed (issue #229), ported from upstream 1.12's {@code TraitSharp.DoT}:
@@ -97,6 +99,11 @@ public class BleedEffect extends MobEffect {
         entity.invulnerableTime = 0;
         AttributeInstance knockbackResistance = disableKnockback(entity);
         entity.hurt(source, DAMAGE_PER_TICK);
+        // #482 -- upstream TraitSharp#dealDamage puts one blood heart over the target on every tick,
+        // ungated (it spawns the particle after attackEntitySecondary without reading its result).
+        if (entity.level() instanceof ServerLevel level) {
+            ForgeweaveParticles.spawnHearts(ForgeweaveParticles.HEART_BLOOD.get(), level, entity, 1);
+        }
         enableKnockback(knockbackResistance);
         entity.invulnerableTime = invulnerableTime;
         return true;
