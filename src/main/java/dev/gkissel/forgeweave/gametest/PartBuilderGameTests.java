@@ -285,4 +285,48 @@ public class PartBuilderGameTests {
 
         helper.succeed();
     }
+
+    /**
+     * Issue #435 (parity audit T3): a metal is cast-only. Upstream 1.12's
+     * {@code ToolBuilder#tryBuildToolPart:423-426} skips every material {@code Material#isCraftable}
+     * says no to, and a material handed a fluid is {@code castable} and not {@code craftable}
+     * ({@code MaterialIntegration:100-108}), so the Part Builder silently produces nothing from an
+     * iron ingot until {@code Config.craftCastableMaterials} is turned on. The shard goes the same
+     * way: the material is what the craft is refused on, not the item that names it.
+     */
+    @GameTest(template = "empty")
+    public static void castOnlyMetalsStampNoPartInThePartBuilder(GameTestHelper helper) {
+        BlockPos pos = new BlockPos(1, 1, 1);
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        PartBuilderMenu menu = openMenu(helper, pos, player);
+
+        menu.getSlot(PartBuilderMenu.PATTERN_SLOT).set(new ItemStack(ForgeweaveItems.PATTERN_PICKAXE_HEAD.get()));
+        // Two iron ingots are worth 4 shard-units, exactly a pickaxe head's cost -- the only thing
+        // stopping this craft is that iron is cast-only.
+        menu.getSlot(PartBuilderMenu.MATERIAL_SLOT).set(new ItemStack(Items.IRON_INGOT, 2));
+        menu.broadcastChanges();
+        helper.assertTrue(menu.getSlot(PartBuilderMenu.OUTPUT_SLOT).getItem().isEmpty(),
+                "iron is cast-only, so two ingots must stamp nothing, got "
+                        + menu.getSlot(PartBuilderMenu.OUTPUT_SLOT).getItem());
+
+        ItemStack ironShards = new ItemStack(ForgeweaveItems.SHARD.get(), 4);
+        ironShards.set(ForgeweaveDataComponents.MATERIAL.get(), materialId("iron"));
+        menu.getSlot(PartBuilderMenu.MATERIAL_SLOT).set(ironShards);
+        menu.broadcastChanges();
+        helper.assertTrue(menu.getSlot(PartBuilderMenu.OUTPUT_SLOT).getItem().isEmpty(),
+                "iron shards are iron, so they are refused the same way, got "
+                        + menu.getSlot(PartBuilderMenu.OUTPUT_SLOT).getItem());
+
+        // Obsidian is upstream's counter-example: it is the one metal-tier material that sets both
+        // setCraftable and setCastable (TinkerMaterials:236-237), so the Part Builder still takes it.
+        menu.getSlot(PartBuilderMenu.MATERIAL_SLOT).set(new ItemStack(Items.OBSIDIAN, 2));
+        menu.broadcastChanges();
+        ItemStack output = menu.getSlot(PartBuilderMenu.OUTPUT_SLOT).getItem();
+        helper.assertTrue(output.is(ForgeweaveItems.PART_PICKAXE_HEAD.get()),
+                "obsidian is craftable as well as castable upstream, got " + output);
+        helper.assertTrue(materialId("obsidian").equals(output.get(ForgeweaveDataComponents.MATERIAL.get())),
+                "expected an obsidian pickaxe head, got " + output.get(ForgeweaveDataComponents.MATERIAL.get()));
+
+        helper.succeed();
+    }
 }

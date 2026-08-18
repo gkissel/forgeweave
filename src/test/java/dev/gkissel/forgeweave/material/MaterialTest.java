@@ -1,6 +1,7 @@
 package dev.gkissel.forgeweave.material;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.InputStream;
@@ -376,5 +377,63 @@ class MaterialTest {
         DataResult<Material> result = Material.CODEC.parse(ops, bad);
 
         assertTrue(result.isError(), "a crafting item without an ingredient must not parse");
+    }
+
+    /**
+     * Issue #435 (parity audit T3): upstream 1.12 keeps two flags per material -- {@code craftable}
+     * (Part Builder) and {@code castable} (Smeltery + cast), and {@code Material#isCraftable}
+     * returns {@code craftable || (Config.craftCastableMaterials && castable)} with the config
+     * defaulting to {@code false} ({@code library/materials/Material.java:173-190},
+     * {@code common/config/Config.java:38,178-180}). Every metal is castable-and-not-craftable --
+     * {@code MaterialIntegration:100-108} sets {@code castable} for any material handed a fluid and
+     * {@code craftable} only for the ones without -- so the whole metal roster is cast-only by
+     * default. Forgeweave carries the same information in one field: {@code cast_only} is exactly
+     * upstream's {@code castable && !craftable}, which is why obsidian and knightslime -- the two
+     * upstream materials that set <em>both</em> flags ({@code TinkerMaterials:236-237,299}) -- do
+     * not carry it.
+     */
+    @Test
+    void castOnlyDefaultsToFalseAndRoundTrips() {
+        Material craftable = Material.CODEC.parse(ops, shipped("stone")).getOrThrow();
+        assertFalse(craftable.castOnly(), "a material that does not name cast_only is Part Builder craftable");
+
+        JsonElement encoded = Material.CODEC.encodeStart(ops, craftable).getOrThrow();
+        assertFalse(encoded.getAsJsonObject().has("cast_only"),
+                "the default must not be written, so every already-shipped material encodes unchanged");
+
+        Material castOnly = Material.CODEC.parse(ops, shipped("iron")).getOrThrow();
+        assertTrue(castOnly.castOnly(), "iron is cast-only");
+        assertTrue(Material.CODEC.encodeStart(ops, castOnly).getOrThrow()
+                .getAsJsonObject().get("cast_only").getAsBoolean(), "cast_only must survive a round trip");
+    }
+
+    /**
+     * The cast-only roster, verified material by material against the 1.12 clone: every metal
+     * {@code TinkerIntegration#preInit} hands a fluid and that {@code TinkerMaterials} never calls
+     * {@code setCraftable} on. Forgeweave adds the three metals with a full Forgeweave casting
+     * chain but no 1.12 counterpart (amethyst bronze, rose gold, netherite -- the 1.20 clone's own
+     * {@code MaterialDataProvider:80-84} marks the first two {@code craftable = false} too) and
+     * nahuatl, which is composite-cast only and already ships an empty {@code crafting_items} list.
+     */
+    @ParameterizedTest
+    @ValueSource(strings = { "iron", "copper", "cobalt", "ardite", "manyullyn", "pig_iron", "steel",
+            "amethyst_bronze", "rose_gold", "netherite", "nahuatl" })
+    void castableMetalsAreCastOnly(String name) {
+        assertTrue(Material.CODEC.parse(ops, shipped(name)).getOrThrow().castOnly(),
+                name + " is castable and not craftable upstream, so the Part Builder must not take it");
+    }
+
+    /**
+     * The deliberate exceptions. Obsidian and knightslime set <em>both</em> upstream flags
+     * ({@code TinkerMaterials:236-237,299}), so they stay craftable however the config is set; the
+     * four tag-gated compat metals have no Forgeweave fluid or casting recipe at all (docs/SCOPE.md
+     * M3.2 "Part Builder path only"), so cast-only would make them unobtainable.
+     */
+    @ParameterizedTest
+    @ValueSource(strings = { "obsidian", "knightslime", "bronze", "lead", "silver", "electrum",
+            "ancient", "chorus", "wood", "stone" })
+    void craftableMaterialsStayCraftable(String name) {
+        assertFalse(Material.CODEC.parse(ops, shipped(name)).getOrThrow().castOnly(),
+                name + " must stay Part Builder craftable");
     }
 }

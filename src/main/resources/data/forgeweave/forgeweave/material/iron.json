@@ -26,5 +26,6 @@
   "repair_item": {
     "tag": "c:ingots/iron"
   },
+  "cast_only": true,
   "color": "#CACACA"
 }

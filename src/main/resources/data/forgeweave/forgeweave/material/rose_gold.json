@@ -24,5 +24,6 @@
   "repair_item": {
     "tag": "c:ingots/rose_gold"
   },
+  "cast_only": true,
   "color": "#B76E79"
 }

@@ -24,5 +24,6 @@
   "repair_item": {
     "item": "minecraft:obsidian"
   },
+  "cast_only": true,
   "color": "#3B2754"
 }

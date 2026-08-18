@@ -208,7 +208,8 @@ public class ContentFamilyGameTests {
 
         blockEntity.container().setItem(PartBuilderMenu.PATTERN_SLOT,
                 new ItemStack(ForgeweaveItems.PATTERN_SWORD_BLADE.get()));
-        blockEntity.container().setItem(PartBuilderMenu.MATERIAL_SLOT, new ItemStack(Items.IRON_INGOT, 8));
+        // Stone, not iron: iron is cast-only since #435, and this test is about the family gate.
+        blockEntity.container().setItem(PartBuilderMenu.MATERIAL_SLOT, new ItemStack(Items.COBBLESTONE, 8));
         menu.broadcastChanges();
         helper.assertTrue(menu.getSlot(PartBuilderMenu.OUTPUT_SLOT).getItem().is(ForgeweaveItems.PART_SWORD_BLADE.get()),
                 "with meleeWeapons on, the Part Builder must stamp a sword blade");

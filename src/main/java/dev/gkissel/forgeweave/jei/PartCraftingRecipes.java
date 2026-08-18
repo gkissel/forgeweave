@@ -67,6 +67,12 @@ final class PartCraftingRecipes {
         List<PartCraftingRecipe> recipes = new ArrayList<>();
         for (Entry entry : ENTRIES) {
             for (Map.Entry<ResourceLocation, Material> material : materials.entrySet()) {
+                // #435: and the same craftable gate (PartBuilderRecipes#craftableInPartBuilder) -- a
+                // cast-only material's crafting items are inert at the station until the config says
+                // otherwise, so advertising them here would send a player to a craft that refuses.
+                if (!PartBuilderRecipes.craftableInPartBuilder(material.getValue())) {
+                    continue;
+                }
                 // #393: the same gate the station itself applies (PartBuilderRecipes#resolve, added
                 // by #392) -- a material with no stat block for this part's kind can never stamp it,
                 // so JEI must not advertise the craft. Invisible until #392 shipped `string` and

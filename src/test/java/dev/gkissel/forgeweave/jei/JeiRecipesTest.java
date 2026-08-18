@@ -86,6 +86,22 @@ class JeiRecipesTest {
                 Optional.of(new Material.Bowstring(1.0f)));
     }
 
+    /** A metal: the crafting items are still listed (the config can turn them back on), but cast-only. */
+    private static Material castOnlyMaterial() {
+        return new Material(
+                Optional.of(new Material.Head(100, 1.0f, 1.0f)),
+                Optional.of(new Material.Handle(1.0f, 10)),
+                Optional.of(5),
+                TagKey.create(Registries.BLOCK, ResourceLocation.withDefaultNamespace("incorrect_for_diamond_tool")),
+                new Material.Traits(List.of(), List.of()),
+                List.of(craftingItem(Items.IRON_INGOT, 2)),
+                Ingredient.of(Items.IRON_INGOT),
+                TextColor.fromRgb(0xCACACA),
+                Optional.of(new Material.Bow(1.0f, 1.0f, 0.0f)),
+                Optional.of(new Material.Bowstring(1.0f)),
+                true);
+    }
+
     private static Material.CraftingItem craftingItem(Item item, int value) {
         return new Material.CraftingItem(Ingredient.of(item), value);
     }
@@ -300,6 +316,23 @@ class JeiRecipesTest {
                     "every assemblable tool repairs the same way");
             assertEquals(recipe.tools(), recipe.repairedTools());
         }
+    }
+
+    /**
+     * Issue #435 (parity audit T3): a cast-only material has no Part Builder path at all with
+     * {@code craftCastableMaterials} at upstream's {@code false} default, so JEI must not advertise
+     * one -- the same gate {@code PartBuilderRecipes#materialValue} applies at the station. Its
+     * repair and assembly rows are untouched: cast-only is about how parts are <em>made</em>.
+     */
+    @Test
+    void partCraftingSkipsCastOnlyMaterials() {
+        Map<ResourceLocation, Material> materials = new LinkedHashMap<>();
+        materials.put(ResourceLocation.fromNamespaceAndPath("forgeweave", "iron"), castOnlyMaterial());
+
+        assertTrue(PartCraftingRecipes.build(materials).isEmpty(),
+                "a cast-only material stamps no part in the Part Builder, so JEI shows none");
+        assertEquals(1, RepairRecipes.build(materials).size(),
+                "cast-only gates the Part Builder, not repair");
     }
 
     @Test
