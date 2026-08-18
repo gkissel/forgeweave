@@ -611,6 +611,15 @@ public final class ForgeweaveTraits {
      * block break that fills the charge discharges immediately into Haste III for 2.5s instead. The
      * tool shows an enchantment glint while fully charged (upstream's {@code setEnchantEffect}).
      *
+     * <p>Launchers (issue #416): a bow's traits reach an arrow's impact in Forgeweave, which upstream
+     * 1.12 has no branch for at all -- {@code TraitShocking} only ever sees a melee swing. Of the
+     * two halves, the <b>discharge rides the arrow</b> (it is a hit effect, and M3.5-5's decision puts
+     * hit effects on the projectile) but <b>an arrow hit builds no charge</b>: a projectile hit is
+     * reported at full strength ({@code attackStrengthScale} 1.0, no swing cooldown to gate it), so
+     * {@code +15} per arrow would fill a bow in seven shots fired as fast as they draw -- far cheaper
+     * than the melee accrual upstream priced. The movement and mining halves are unchanged, and a bow
+     * held in the main hand still charges by walking.
+     *
      * <p>Deviations, recorded in the PR: the hit half rides {@link Trait#onCombatHit} (ADR-0005's
      * seam) with the {@link CombatHit}'s captured attack-strength scale; movement is sampled on the
      * holder's own {@code tickCount} rather than world time (world time is constant across one
@@ -633,9 +642,10 @@ public final class ForgeweaveTraits {
                 target.hurt(hit.level().damageSources().lightningBolt(), SHOCKING_DISCHARGE_DAMAGE);
                 attacker.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SPEED, 50, 5));
                 setShockingCharge(stack, charge.discharged());
-            } else if (attacker instanceof Player) {
+            } else if (attacker instanceof Player && !hit.isProjectile()) {
                 // Upstream TraitShocking#onHit's else-if EntityPlayer gate (issue #297 parity fix): a
                 // non-player attacker (a mob wielding the tool) never builds charge from a hit.
+                // Melee only (issue #416): see the trait javadoc's launcher note.
                 setShockingCharge(stack, charge.plus(SHOCKING_CHARGE_PER_HIT * hit.attackStrengthScale()));
             }
         }

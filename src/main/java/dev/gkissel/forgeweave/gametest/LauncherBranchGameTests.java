@@ -11,6 +11,8 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.EntityType;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.animal.Pig;
 import net.minecraft.world.entity.monster.Zombie;
 import net.minecraft.world.entity.player.Player;
@@ -35,6 +37,7 @@ import dev.gkissel.forgeweave.item.ForgeweaveItems;
 import dev.gkissel.forgeweave.menu.ToolStationMenu;
 import dev.gkissel.forgeweave.modifier.ModifierEntry;
 import dev.gkissel.forgeweave.tool.LauncherStats;
+import dev.gkissel.forgeweave.trait.ShockingCharge;
 
 /**
  * M3.5 issue #396: the launcher branches upstream 1.12 gives its modifiers and traits, on a real
@@ -294,6 +297,91 @@ public class LauncherBranchGameTests {
         helper.assertTrue(CAPTURE.last.isProjectile(), "and be recorded as a projectile hit");
         helper.assertTrue(CAPTURE.last.isFullCharge(),
                 "a projectile hit is full charge, got scale " + CAPTURE.last.attackStrengthScale());
+        target.discard();
+        helper.succeed();
+    }
+
+    /** The bow's shocking charge, 0 when it has never carried one. */
+    private static float charge(ItemStack bow) {
+        ShockingCharge charge = bow.get(ForgeweaveDataComponents.SHOCKING_CHARGE.get());
+        return charge == null ? 0.0F : charge.charge();
+    }
+
+    /** A full charge, glint and all, the way {@code ForgeweaveTraits} writes one. */
+    private static ItemStack fullyCharged(ItemStack bow) {
+        bow.set(ForgeweaveDataComponents.SHOCKING_CHARGE.get(), new ShockingCharge(ShockingCharge.FULL, 0, 0, 0));
+        bow.set(DataComponents.ENCHANTMENT_GLINT_OVERRIDE, true);
+        return bow;
+    }
+
+    /**
+     * Issue #416. An arrow carries a <em>copy</em> of the bow that fired it
+     * ({@code AbstractArrow#firedFromWeapon}), so a trait that writes tool state on hit used to write
+     * to that copy and leave the real bow untouched -- an electrum bow at full charge discharged Speed
+     * VI on every arrow hit, forever. {@code CombatSeams#hitOf} now resolves the live launcher out of
+     * the shooter's hands for a projectile hit, so the state-writing half lands on the bow the player
+     * is actually holding.
+     */
+    @GameTest(template = "empty")
+    public static void arrowHitDischargesTheLiveBowNotTheArrowsCopy(GameTestHelper helper) {
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        ItemStack bow = shortbow(helper, player, new BlockPos(1, 1, 1), "electrum", "electrum");
+        List<ResourceLocation> traits = bow.get(ForgeweaveDataComponents.TRAITS.get());
+        helper.assertTrue(traits != null && traits.contains(id("shocking")), "electrum limbs carry shocking, got " + traits);
+        player.setItemInHand(InteractionHand.MAIN_HAND, fullyCharged(bow));
+
+        Pig first = helper.spawn(EntityType.PIG, new BlockPos(2, 2, 2));
+        first.hurt(arrowFrom(helper, player, bow), 1.0F);
+
+        helper.assertTrue(charge(bow) == 0.0F,
+                "the arrow hit must discharge the bow the shooter is holding, charge left " + charge(bow));
+        helper.assertTrue(bow.get(DataComponents.ENCHANTMENT_GLINT_OVERRIDE) == null,
+                "and clear its full-charge glint");
+        helper.assertTrue(player.hasEffect(MobEffects.MOVEMENT_SPEED),
+                "the discharge itself still rides the arrow (M3.5-5's hit effects on projectiles)");
+
+        // A second arrow finds a discharged bow: no Speed, and no charge either -- an arrow hit does
+        // not build charge (see the class javadoc's #416 note).
+        player.removeEffect(MobEffects.MOVEMENT_SPEED);
+        Pig second = helper.spawn(EntityType.PIG, new BlockPos(3, 2, 2));
+        second.hurt(arrowFrom(helper, player, bow), 1.0F);
+
+        helper.assertFalse(player.hasEffect(MobEffects.MOVEMENT_SPEED),
+                "a second arrow from a discharged bow must grant nothing");
+        helper.assertTrue(charge(bow) == 0.0F,
+                "and an arrow hit builds no charge of its own, got " + charge(bow));
+
+        // The melee path is untouched: a swing with the same bow still discharges it.
+        fullyCharged(bow);
+        Pig melee = helper.spawn(EntityType.PIG, new BlockPos(4, 2, 2));
+        melee.hurt(helper.getLevel().damageSources().playerAttack(player), 1.0F);
+        helper.assertTrue(charge(bow) == 0.0F, "a melee blow still discharges, charge left " + charge(bow));
+
+        first.discard();
+        second.discard();
+        melee.discard();
+        helper.succeed();
+    }
+
+    /**
+     * Issue #416, the other half: when the shooter no longer holds the launcher there is no live stack
+     * to resolve, so the seams run off the arrow's snapshot -- read-only hit effects keep working (see
+     * {@link #fieryOnTheBowRidesTheArrow}, whose shooter holds nothing) and the state-writing half
+     * writes to the snapshot, where it dies with the arrow. The stowed bow is left exactly as it was.
+     */
+    @GameTest(template = "empty")
+    public static void anArrowFromAStowedBowLeavesItAlone(GameTestHelper helper) {
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        ItemStack bow = fullyCharged(shortbow(helper, player, new BlockPos(1, 1, 1), "electrum", "electrum"));
+        player.setItemInHand(InteractionHand.MAIN_HAND, ItemStack.EMPTY);
+
+        Pig target = helper.spawn(EntityType.PIG, new BlockPos(2, 2, 2));
+        target.hurt(arrowFrom(helper, player, bow), 1.0F);
+
+        helper.assertTrue(charge(bow) == ShockingCharge.FULL,
+                "a bow the shooter is not holding must not be written to, charge " + charge(bow));
+        helper.assertTrue(bow.get(DataComponents.ENCHANTMENT_GLINT_OVERRIDE) == Boolean.TRUE,
+                "and it keeps its glint");
         target.discard();
         helper.succeed();
     }
