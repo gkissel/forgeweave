@@ -237,6 +237,41 @@ class PartItemTest {
                         + "trait row issue #376 left");
     }
 
+    /**
+     * Parity audit T81 (issue #512), upstream {@code ToolPart#checkMissingMaterialTooltip(stack,
+     * tooltip, statIdentifier)}: {@link #stone()} carries no {@link Material.Bow} block, so a bow limb
+     * stamped from it says so instead of silently showing no stat section. Traits still show -- issue
+     * #392's own {@code forPart} scoping already falls the BOW kind back to the general list.
+     */
+    @Test
+    void bowLimbShowsMissingStatsWhenTheMaterialHasNoBowBlock() {
+        PartItem limb = (PartItem) ForgeweaveItems.PART_BOW_LIMB.get();
+
+        List<Component> tooltip = new ArrayList<>();
+        limb.append(partOf(limb), registriesWithStone(), true, tooltip);
+
+        assertEquals(List.of(
+                Component.translatable("material.forgeweave.stone").withStyle(Style.EMPTY.withColor(STONE_COLOR)),
+                Component.empty(),
+                Component.translatable("tooltip.forgeweave.part.missing_stats",
+                        Component.translatable("material.forgeweave.stone").withStyle(Style.EMPTY.withColor(STONE_COLOR))),
+                Component.empty(),
+                traitLine("cheap", STONE_COLOR)),
+                tooltip);
+    }
+
+    /** The compact tier never shows stats at all, so the missing-stats line stays a detailed-only thing. */
+    @Test
+    void compactBowLimbTooltipShowsNoMissingStatsLine() {
+        PartItem limb = (PartItem) ForgeweaveItems.PART_BOW_LIMB.get();
+
+        List<Component> tooltip = new ArrayList<>();
+        limb.append(partOf(limb), registriesWithStone(), false, tooltip);
+
+        assertTrue(tooltip.stream().noneMatch(line -> line.toString().contains("missing_stats")),
+                "expected no missing_stats line in " + tooltip);
+    }
+
     private static ItemStack partOf(PartItem part) {
         ItemStack stack = new ItemStack(part);
         stack.set(ForgeweaveDataComponents.MATERIAL.get(), STONE_ID);

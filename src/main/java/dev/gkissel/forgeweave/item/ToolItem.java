@@ -297,6 +297,19 @@ public class ToolItem extends Item {
     }
 
     /**
+     * Parity audit T81 (issue #512): upstream's {@code TinkersItem#isBookEnchantable} refuses an
+     * enchanted book at the anvil unconditionally ("prevents enchanted items to have a different name
+     * color"). Forgeweave already gates the enchanting-table path above on {@code allowVanillaEnchanting}
+     * rather than upstream's hard "always off", so the anvil path -- {@code AnvilMenu#createResult}
+     * calls exactly this method -- follows the same flag instead of upstream's unconditional refusal:
+     * with the flag off both paths agree with upstream, and with it on both agree with each other.
+     */
+    @Override
+    public boolean isBookEnchantable(ItemStack stack, ItemStack book) {
+        return ForgeweaveConfig.ALLOW_VANILLA_ENCHANTING.get() && super.isBookEnchantable(stack, book);
+    }
+
+    /**
      * CONTEXT.md's "a tool is never destroyed" invariant, extended past the item to the entity that
      * carries it (issue #447, parity audit T16). Upstream 1.12 does exactly this for every
      * {@code ToolCore}, unconditionally, in {@code TinkersItem#hasCustomEntity}: the ItemStack a

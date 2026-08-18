@@ -176,6 +176,18 @@ public class PartItem extends Item {
             tooltip.add(Component.translatable("tooltip.forgeweave.stat_type." + kind.name().toLowerCase(Locale.ROOT))
                     .withStyle(ChatFormatting.WHITE, ChatFormatting.UNDERLINE));
             tooltip.addAll(stats);
+        } else if (detailed && kind != Kind.NONE && !material.get().hasStatsFor(kind)) {
+            // Parity audit T81 (issue #512): upstream's ToolPart#checkMissingMaterialTooltip(stack,
+            // tooltip, statIdentifier) overload says so explicitly ("Material is missing the required
+            // stats") instead of a silently empty stat section -- SharpeningKit is upstream's only
+            // caller of that overload (checking MaterialTypes.HEAD), but Forgeweave's single PartItem
+            // class stands in for every one of upstream's per-role ToolPart subtypes, so the same
+            // check generalizes to whichever Kind this part is (issue #392 is what made a material
+            // missing a whole stat block reachable in the first place: a bowstring-only material
+            // stamped into a bow limb, or -- the sharpening kit's own case -- one with no head block).
+            tooltip.add(Component.empty());
+            tooltip.add(Component.translatable("tooltip.forgeweave.part.missing_stats",
+                    MaterialDisplay.name(registries, materialId)));
         }
         tooltip.add(Component.empty());
         // The traits this material grants through this kind of part, which is upstream's own filter

@@ -695,6 +695,7 @@
   "tooltip.forgeweave.modifier_slots": "Modifiers: %s",
   "tooltip.forgeweave.part.missing_info": "Part has no data",
   "tooltip.forgeweave.part.missing_material": "Missing material: %s",
+  "tooltip.forgeweave.part.missing_stats": "Material is missing the required stats: %s",
   "tooltip.forgeweave.part_name": "%s %s",
   "tooltip.forgeweave.pattern_cost": "Material Cost: %s",
   "tooltip.forgeweave.sharpening_kit": "Combine with a flint to raise a tool's mining level to this material's.",
