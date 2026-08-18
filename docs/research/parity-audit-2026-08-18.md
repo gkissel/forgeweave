@@ -532,7 +532,7 @@ M3.5 ports the launcher core faithfully — the three bows, limb/bowstring math,
 | `preventSlowDown` while drawing (0.5 / 0.195 / vanilla) | `ShortBow:93-97` etc. | n/a | `BowItem:109`, `BowDrawMovement` (+#421 diagonal fix) | have | Y (PR #413/#421) | none | — |
 | Per-stage draw art + modifier overlays | `.tcon.json` overrides + textures | n/a | `ToolArt:198-263`, derived draw textures | have | Y (PR #413) | none | — |
 | Nocked ammo rendered on drawn bow / loaded crossbow | `BakedBowModel:55-77`, `getAmmoToRender` | baked into sprites | absent, unrecorded | missing | N | medium | T52 |
-| Custom crosshairs (SQUARE / T, charge spread) | `Crosshairs`, `CrosshairRenderEvents` | n/a | absent (open question, no ticket) | missing | N | medium | T53 |
+| Custom crosshairs (SQUARE / T, charge spread) | `Crosshairs`, `CrosshairRenderEvents` | n/a | `BowCrosshair` + derived `square.png`/`t.png` | have | Y (#484) | none | — |
 | Third-person crossbow arm pose | `RangedRenderEvents:18-49` BOW_AND_ARROW | ModifiableCrossbowClientExtension | vanilla CROSSBOW_CHARGE/HOLD | have | Y (PR #427) | low | — |
 | Tool Station slot layout for bows | `RangedClientProxy:43-67` | n/a | `ToolStationTabs:201-209` | have | — | none | — |
 | Station preview tints for bow parts | `BowCore:304-313` | n/a | per-role colours (limb2/slot2 differ) | partial | Y in part (PR #405/#406) | low | — |
@@ -665,7 +665,7 @@ Prioritized and deduplicated across domains. Already-filed issues are marked; **
 - [ ] **T50 — Craft and hit sounds** — saw at the Tool Station, anvil at the Forge, frypan boing; decide CC-BY/CC0 sound derivation (attribution file, Spartan precedent) vs vanilla stand-ins (book/tools, medium, M3.5 playtest-fix).
 - [ ] **T51 — Attack-slash and heart-effect particles** — derive the slash/particle sheets and hook fiery/rapier/jagged/prickly/spiky plus per-weapon full-charge bursts onto the combat seams (book/tools/traits, medium, backlog).
 - [ ] **T52 — Nocked arrow not rendered** — draw the found ammo on the bow (and only when loaded for the crossbow) at upstream's ammoPosition (ranged, medium, M3.5-8 or M3.6).
-- [ ] **T53 — 1.12 draw crosshairs** — SQUARE for bows, T for the crossbow, spread by draw charge, replacing the vanilla crosshair (ranged, medium, M3.5-8).
+- [x] **T53 — 1.12 draw crosshairs** (shipped, #484) — SQUARE for bows, T for the crossbow, spread by draw charge, replacing the vanilla crosshair (ranged, medium, M3.5-8).
 - [ ] **T54 — `allowVanillaEnchanting=true` still offers nothing** — give tools an enchantment value and add them to `minecraft:enchantable/*` when the flag is on, or document the flag as anvil-only; add an offer GameTest (config, medium, M3.4 follow-up).
 - [ ] **T55 — 3 gravel → flint recipe** — behind `addFlintRecipe` (upstream default on) (config, medium, M3.4 follow-up).
 - [ ] **T56 — M5 planning: the unplanned gadget roster** — decide piggyback pack, punji sticks, wooden hopper, item/drying racks (+drying recipe type, jerky foods, JEI category), glow ball, EFLN, fancy frames, wooden rails, stone torch/ladder, dried clay and brownstone families, spaghetti, slime channels (world/config, medium, M5).
