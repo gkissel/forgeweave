@@ -487,6 +487,9 @@ public final class ForgeweaveItems {
     public static final DeferredItem<BlockItem> SEARED_FURNACE_CONTROLLER =
             ITEMS.registerSimpleBlockItem("seared_furnace_controller", ForgeweaveBlocks.SEARED_FURNACE_CONTROLLER);
     public static final DeferredItem<BlockItem> NETHER_CORE = ITEMS.registerSimpleBlockItem("nether_core", ForgeweaveBlocks.NETHER_CORE);
+    // T44/#475 -- the seared reservoir controller.
+    public static final DeferredItem<BlockItem> SEARED_RESERVOIR_CONTROLLER =
+            ITEMS.registerSimpleBlockItem("seared_reservoir_controller", ForgeweaveBlocks.SEARED_RESERVOIR_CONTROLLER);
     // The three tank blocks keep their contents on the dropped stack (SearedTankBlockEntity's
     // FLUID_CONTENT component, copied by the loot table), so their item shows what is inside --
     // upstream's ItemTank, see SearedTankItem.

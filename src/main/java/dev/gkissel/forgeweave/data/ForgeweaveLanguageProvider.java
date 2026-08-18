@@ -8,6 +8,7 @@ import net.neoforged.neoforge.common.data.LanguageProvider;
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.block.ForgeweaveBlocks;
 import dev.gkissel.forgeweave.block.SearedFurnaceScan;
+import dev.gkissel.forgeweave.block.SearedReservoirScan;
 import dev.gkissel.forgeweave.block.SmelteryScan;
 import dev.gkissel.forgeweave.fluid.ForgeweaveFluids;
 import dev.gkissel.forgeweave.item.ForgeweaveItems;
@@ -102,6 +103,10 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         addBlock(ForgeweaveBlocks.STANDARD_CORE, "Standard Core");
         addBlock(ForgeweaveBlocks.NETHER_CORE, "Nether Core");
         addBlock(ForgeweaveBlocks.SEARED_FURNACE_CONTROLLER, "Seared Furnace Controller"); // #442, upstream's tile name
+        // T44/#475 -- upstream's tile.tconstruct.tinker_tank_controller.name is "Tinker Tank
+        // Controller"; CONTEXT.md's avoided terminology rules "Tinker" out, so the Forgeweave name
+        // follows the seared furnace's and is built on the blocks it is made of.
+        addBlock(ForgeweaveBlocks.SEARED_RESERVOIR_CONTROLLER, "Seared Reservoir Controller");
         addBlock(ForgeweaveBlocks.SEARED_TANK, "Seared Tank");
         addBlock(ForgeweaveBlocks.SEARED_GAUGE, "Seared Gauge");
         addBlock(ForgeweaveBlocks.SEARED_WINDOW, "Seared Window");
@@ -171,6 +176,20 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("gui.forgeweave.seared_furnace.progress.no_fuel", "No valid fuel in seared furnace");
         add("gui.forgeweave.seared_furnace.progress.no_heat", "Not enough heat to smelt this item");
         add("gui.forgeweave.seared_furnace.progress.no_space", "Resulting stack is too large for the slot");
+
+        // T44/#475: the seared reservoir -- upstream's gui.tinkertank.name renamed per CONTEXT.md,
+        // with the structure reasons following the two families above.
+        add("gui.forgeweave.seared_reservoir.name", "Seared Reservoir");
+        add(SearedReservoirScan.KEY_FORMED, "Seared reservoir formed: %s x %s interior, %s tall");
+        add(SearedReservoirScan.KEY_NOT_SCANNED, "The seared reservoir has not been checked yet");
+        add(SearedReservoirScan.KEY_NOT_LOADED, "Part of the seared reservoir is not loaded");
+        add(SearedReservoirScan.KEY_BLOCKED_INTERIOR, "The seared reservoir interior is blocked at %s, %s, %s");
+        add(SearedReservoirScan.KEY_TOO_LARGE, "The seared reservoir interior is %s x %s, larger than the maximum of %s");
+        add(SearedReservoirScan.KEY_INVALID_FLOOR, "The floor needs a seared block, seared glass or a drain at %s, %s, %s");
+        add(SearedReservoirScan.KEY_INVALID_WALL, "The wall needs a seared block, glass, tank, drain, duct or chute at %s, %s, %s");
+        add(SearedReservoirScan.KEY_INVALID_CEILING, "The ceiling needs a seared block, glass, tank, drain, slab or stairs at %s, %s, %s");
+        add(SearedReservoirScan.KEY_CLAIMED, "Another structure already uses the block at %s, %s, %s");
+        add(SearedReservoirScan.KEY_CORE_OUTSIDE, "The controller has to sit in a wall of the seared reservoir");
 
         // #101: the smeltery GUI's tank and fuel tooltips, following upstream 1.12's gui.smeltery.*
         // entries word for word -- the unit abbreviations are deliberately lowercase and terse

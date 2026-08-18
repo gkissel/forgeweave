@@ -593,6 +593,17 @@ public class ForgeweaveRecipeProvider extends RecipeProvider {
                 .unlockedBy("has_seared_brick", has(ForgeweaveItems.SEARED_BRICK.get()))
                 .save(recipeOutput);
 
+        // T44/#475 -- upstream's recipes/smeltery/tinker_tank_controller.json: eight seared bricks
+        // around a vanilla bucket (NOTICE.md).
+        ShapedRecipeBuilder.shaped(RecipeCategory.MISC, ForgeweaveItems.SEARED_RESERVOIR_CONTROLLER.get())
+                .pattern("AAA")
+                .pattern("ABA")
+                .pattern("AAA")
+                .define('A', ForgeweaveItems.SEARED_BRICK.get())
+                .define('B', Items.BUCKET)
+                .unlockedBy("has_seared_brick", has(ForgeweaveItems.SEARED_BRICK.get()))
+                .save(recipeOutput);
+
         ShapedRecipeBuilder.shaped(RecipeCategory.MISC, ForgeweaveItems.NETHER_CORE.get())
                 .pattern("AAA")
                 .pattern("ABA")

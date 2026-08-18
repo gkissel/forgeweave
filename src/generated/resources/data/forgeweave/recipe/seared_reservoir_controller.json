@@ -1,0 +1,21 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "A": {
+      "item": "forgeweave:seared_brick"
+    },
+    "B": {
+      "item": "minecraft:bucket"
+    }
+  },
+  "pattern": [
+    "AAA",
+    "ABA",
+    "AAA"
+  ],
+  "result": {
+    "count": 1,
+    "id": "forgeweave:seared_reservoir_controller"
+  }
+}

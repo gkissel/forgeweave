@@ -349,6 +349,7 @@ public final class ForgeweaveCreativeTab {
         output.accept(ForgeweaveItems.STANDARD_CORE.get());
         output.accept(ForgeweaveItems.SEARED_FURNACE_CONTROLLER.get()); // #442
         output.accept(ForgeweaveItems.NETHER_CORE.get());
+        output.accept(ForgeweaveItems.SEARED_RESERVOIR_CONTROLLER.get()); // T44/#475
         output.accept(ForgeweaveItems.SEARED_TANK.get());
         output.accept(ForgeweaveItems.SEARED_GAUGE.get());
         output.accept(ForgeweaveItems.SEARED_WINDOW.get());

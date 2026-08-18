@@ -62,6 +62,23 @@ public abstract class SmelteryIoBlockEntity extends BlockEntity {
         }
     }
 
+    /**
+     * The formed structure's fluid store, whichever kind of controller claimed this block -- a
+     * smeltery core or, since parity audit T44 (issue #475), a seared reservoir. Upstream's drain
+     * reads {@code ISmelteryTankHandler} for the same reason: both multiblocks pour through it.
+     *
+     * @return {@code null} while this block is not part of a formed structure
+     */
+    @Nullable
+    protected SmelteryTank formedTank() {
+        if (level == null || corePos == null || !level.isLoaded(corePos)) {
+            return null;
+        }
+        return level.getBlockEntity(corePos) instanceof SmelteryTankHost host && host.isFormed()
+                ? host.tank()
+                : null;
+    }
+
     /** The core this block serves while it is part of a formed structure, else {@code null}. */
     @Nullable
     protected SmelteryControllerBlockEntity formedCore() {
@@ -108,8 +125,8 @@ public abstract class SmelteryIoBlockEntity extends BlockEntity {
                 // Copied: a rescan assigns I/O blocks and tanks, which can promote block entities into
                 // the very map being walked.
                 for (BlockEntity blockEntity : List.copyOf(level.getChunk(x, z).getBlockEntities().values())) {
-                    if (blockEntity instanceof SmelteryControllerBlockEntity core) {
-                        core.updateStructure();
+                    if (blockEntity instanceof SmelteryTankHost host) {
+                        host.updateStructure();
                     }
                 }
             }
