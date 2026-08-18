@@ -287,7 +287,7 @@ final class ToolTooltip {
     /** The three launcher lines, for a bow only -- see {@link StationText#launcherStats}. */
     private static void appendLauncherLines(ItemStack stack, List<Component> tooltip) {
         if (stack.getItem() instanceof BowItem bow) {
-            tooltip.addAll(StationText.launcherStats(stack, bow.drawTime()));
+            tooltip.addAll(StationText.launcherStats(stack, bow));
         }
     }
 

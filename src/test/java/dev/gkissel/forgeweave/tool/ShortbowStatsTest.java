@@ -23,6 +23,7 @@ import dev.gkissel.forgeweave.item.BowItem;
 import dev.gkissel.forgeweave.item.ForgeweaveDataComponents;
 import dev.gkissel.forgeweave.item.ForgeweaveItems;
 import dev.gkissel.forgeweave.material.Material;
+import dev.gkissel.forgeweave.modifier.ModifierEntry;
 
 /**
  * M3.5 issue #394: the shortbow's stat math against upstream {@code ShortBow#buildTagData} --
@@ -109,6 +110,27 @@ class ShortbowStatsTest {
         assertEquals(1.0f, bow.drawbackProgress(withDrawSpeed(1.5f), 8), DELTA);
         // An unassembled stack (creative tab) draws at speed 1.
         assertEquals(0.5f, bow.drawbackProgress(new ItemStack(bow), 6), DELTA);
+    }
+
+    /**
+     * Issue #424 part 3: what the client's draw animation reads is {@code minecraft:pull}, and that
+     * is {@code ForgeweaveItemProperties#pull} -> {@link BowItem#drawbackProgress} ->
+     * {@code BowItem#drawSpeed} -- so a hasted bow draws visibly faster, not just numerically. 50
+     * redstone is one haste level, +10% draw speed ({@code ModHaste#getDrawspeedBonus}), which takes
+     * a speed-1 shortbow to full draw at 11 ticks instead of 12.
+     */
+    @Test
+    void hasteSpeedsTheDrawTheClientAnimationReads() {
+        BowItem bow = ForgeweaveItems.TOOL_SHORTBOW.get();
+        ItemStack stack = withDrawSpeed(1.0f);
+        assertEquals(0.5f, bow.drawbackProgress(stack, 6), DELTA);
+        assertTrue(bow.drawbackProgress(stack, 11) < 1.0f, "unmodified, 11 ticks is not a full draw");
+
+        stack.set(ForgeweaveDataComponents.MODIFIERS.get(), List.of(new ModifierEntry(
+                ResourceLocation.fromNamespaceAndPath("forgeweave", "haste"), 50)));
+
+        assertEquals(0.55f, bow.drawbackProgress(stack, 6), DELTA);
+        assertEquals(1.0f, bow.drawbackProgress(stack, 11), DELTA, "hasted, it is full a tick sooner");
     }
 
     private static ItemStack withDrawSpeed(float drawSpeed) {

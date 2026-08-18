@@ -24,9 +24,11 @@ import net.minecraft.world.item.ItemStack;
 
 import dev.gkissel.forgeweave.item.BowItem;
 import dev.gkissel.forgeweave.item.ForgeweaveDataComponents;
+import dev.gkissel.forgeweave.item.ToolItem;
 import dev.gkissel.forgeweave.material.Material;
 import dev.gkissel.forgeweave.material.MaterialDisplay;
 import dev.gkissel.forgeweave.modifier.ForgeweaveModifiers;
+import dev.gkissel.forgeweave.modifier.Modifier;
 import dev.gkissel.forgeweave.modifier.ModifierApplication;
 import dev.gkissel.forgeweave.modifier.ModifierEntry;
 import dev.gkissel.forgeweave.tool.LauncherStats;
@@ -79,6 +81,10 @@ public final class StationText {
     private static final DecimalFormat FORMAT =
             new DecimalFormat("#.##", DecimalFormatSymbols.getInstance(Locale.ROOT));
 
+    /** Whole-percent bonuses, upstream's {@code Util.dfPercent} -- {@link #modifierExtraInfo}'s only use. */
+    private static final DecimalFormat PERCENT =
+            new DecimalFormat("#%", DecimalFormatSymbols.getInstance(Locale.ROOT));
+
     /**
      * Durability, mining speed and attack damage of an assembled tool, in upstream's order and with
      * its Modifiers applied ({@code ForgeweaveModifiers#effectiveStats}) -- the panel shows what the
@@ -100,7 +106,7 @@ public final class StationText {
         if (tool.getItem() instanceof BowItem bow) {
             // M3.5 #394/#401: upstream's LAUNCHER block, and it *replaces* the harvest one -- see
             // ToolTooltip#append, which reads the same gate for the item tooltip.
-            lines.addAll(launcherStats(tool, bow.drawTime()));
+            lines.addAll(launcherStats(tool, bow));
         } else {
             lines.add(stat("mining_speed", stats.miningSpeed(), SPEED_COLOR));
         }
@@ -112,19 +118,62 @@ public final class StationText {
      * An assembled bow's ranged stats (M3.5 #394), upstream {@code ToolCore#getInformation}'s
      * {@code Category.LAUNCHER} block: draw speed shown as seconds to full draw
      * ({@code TooltipBuilder#addDrawSpeed}: {@code drawTime / (20 * drawSpeed)}), the range
-     * multiplier, the bonus damage. Empty for a stack with no launcher stats. Reads the stored
-     * component rather than {@code BowItem#drawSpeed} on purpose: this is the assembled number the
-     * limbs gave; a draw-speed modifier (M3.5-5) will decide then whether the line shows its effect.
+     * multiplier, the bonus damage. Empty for a stack with no launcher stats.
+     *
+     * <p>The draw speed is {@link BowItem#drawSpeed}, not the stored {@link LauncherStats#drawSpeed}
+     * the limbs gave (issue #424 -- M3.5-5's open question, answered): upstream's
+     * {@code addDrawSpeed} reads {@code ProjectileLauncherNBT#drawSpeed}, which
+     * {@code ModHaste#applyEffect} and {@code TraitLightweight#applyEffect} have already scaled in
+     * place by the time any tooltip is built, so upstream's line does show the boost. Forgeweave
+     * scales on read instead (ADR-0004: a modifier is a pure function of the tool's components), so
+     * the display has to ask for the scaled number to say the same thing. Nothing shows the raw stat
+     * any more -- the part's own limb line ({@link #bowStats}) is where a material's contribution is
+     * read.
      */
-    public static List<Component> launcherStats(ItemStack tool, int drawTime) {
+    public static List<Component> launcherStats(ItemStack tool, BowItem bow) {
         LauncherStats launcher = BowItem.launcherStats(tool);
         if (launcher == null) {
             return List.of();
         }
         return List.of(
-                stat("drawspeed", drawTime / (20.0F * launcher.drawSpeed()), DRAWSPEED_COLOR),
+                stat("drawspeed", bow.drawTime() / (20.0F * bow.drawSpeed(tool)), DRAWSPEED_COLOR),
                 stat("range", launcher.range(), RANGE_COLOR),
                 stat("bonus_damage", launcher.bonusDamage(), BOW_DAMAGE_COLOR));
+    }
+
+    /**
+     * What one modifier on this tool adds beyond its own description -- upstream
+     * {@code Modifier#getExtraInfo}, whose only shipped implementation is {@code ModHaste}
+     * (ModHaste.java:110-127): one {@code "Bonus-Speed: +x%"} line per speed category the tool has,
+     * the draw-speed bonus for a {@code Category.LAUNCHER} and the attack-speed bonus for a
+     * {@code Category.WEAPON}. Issue #424 -- haste's effect on a bow was invisible everywhere.
+     *
+     * <p>Derived from the two multiplier hooks rather than from a hook of its own: upstream's launcher
+     * line is {@code getDrawspeedBonus} and its weapon line is {@code getSpeedBonus}, which is exactly
+     * what {@link Modifier#drawSpeedMultiplier} and {@link Modifier#attackSpeedMultiplier} already
+     * return -- so any later modifier that touches either speed gets the line for free, and
+     * {@code Modifier} stays as item-free as ADR-0004 wants it.
+     *
+     * <p>Deviation from 1.12, deliberate: upstream lists these as their own rows in the tool info
+     * panel ({@code TooltipBuilder#addModifierInfo}, in the station panel only). Forgeweave already
+     * carries every per-modifier detail on the modifier row's own hover (issue #258), so the line
+     * goes there rather than adding a second place to look.
+     */
+    public static List<Component> modifierExtraInfo(ItemStack tool, ModifierEntry entry) {
+        Modifier modifier = ForgeweaveModifiers.get(entry.id());
+        if (modifier == null) {
+            return List.of();
+        }
+        float bonus = 0.0F;
+        if (tool.getItem() instanceof BowItem) {
+            bonus = modifier.drawSpeedMultiplier(entry.level()) - 1.0F;
+        } else if (tool.getItem() instanceof ToolItem melee && melee.isWeapon()) {
+            bonus = modifier.attackSpeedMultiplier(entry.level()) - 1.0F;
+        }
+        if (bonus == 0.0F) {
+            return List.of();
+        }
+        return List.of(Component.translatable("gui.forgeweave.modifier.bonus_speed", PERCENT.format(bonus)));
     }
 
     /**
@@ -142,7 +191,11 @@ public final class StationText {
             if (level > 1) {
                 line.append(CommonComponents.SPACE).append(Component.translatable("enchantment.level." + level));
             }
-            lines.add(withHover(line, ModifierApplication.description(entry.id())));
+            MutableComponent description = ModifierApplication.description(entry.id()).copy();
+            for (Component extra : modifierExtraInfo(tool, entry)) {
+                description.append("\n").append(extra);
+            }
+            lines.add(withHover(line, description));
         }
         lines.add(Component.translatable("gui.forgeweave.tool_station.modifier_slots",
                 ForgeweaveModifiers.freeSlots(tool)).withStyle(ChatFormatting.GRAY));
