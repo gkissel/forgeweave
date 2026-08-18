@@ -60,7 +60,7 @@ final class PartCraftingRecipes {
             new Entry(ForgeweaveItems.PATTERN_BOW_STRING, ForgeweaveItems.PART_BOW_STRING, PartBuilderRecipes.SMALL_PART_COST),
             new Entry(ForgeweaveItems.PATTERN_SHARPENING_KIT, ForgeweaveItems.PART_SHARPENING_KIT, PartBuilderRecipes.HEAD_COST));
 
-    /** One crafting-item option a material accepts, and the shard-unit value one of it pays off. */
+    /** One crafting-item option a material accepts, and the value (upstream VALUE_* units) one of it pays off. */
     private record Option(ItemStack representative, int value) {}
 
     static List<PartCraftingRecipe> build(Map<ResourceLocation, Material> materials) {
@@ -90,7 +90,8 @@ final class PartCraftingRecipes {
                 for (Option option : options) {
                     PartBuilderRecipes.CostResult cost = PartBuilderRecipes.computeCost(entry.cost(), option.value());
                     inputs.add(option.representative().copyWithCount(cost.itemsNeeded()));
-                    changes.add(cost.changeUnits() > 0 ? shardChange(material.getKey(), cost.changeUnits()) : null);
+                    int shards = PartBuilderRecipes.shardChange(cost.changeUnits());
+                    changes.add(shards > 0 ? shardStack(material.getKey(), shards) : null);
                 }
 
                 ItemStack result = new ItemStack(entry.part().get());
@@ -113,10 +114,6 @@ final class PartCraftingRecipes {
         }
         options.add(new Option(shardStack(materialId, 1), PartBuilderRecipes.SHARD_VALUE));
         return options;
-    }
-
-    private static ItemStack shardChange(ResourceLocation materialId, int changeUnits) {
-        return shardStack(materialId, changeUnits / PartBuilderRecipes.SHARD_VALUE);
     }
 
     private static ItemStack shardStack(ResourceLocation materialId, int count) {

@@ -19,9 +19,9 @@
     "general": ["forgeweave:ecological"]
   },
   "crafting_items": [
-    { "ingredient": { "item": "minecraft:stick" }, "value": 1 },
-    { "ingredient": { "tag": "minecraft:planks" }, "value": 2 },
-    { "ingredient": { "tag": "minecraft:logs" }, "value": 8 }
+    { "ingredient": { "item": "minecraft:stick" }, "value": 72 },
+    { "ingredient": { "tag": "minecraft:planks" }, "value": 144 },
+    { "ingredient": { "tag": "minecraft:logs" }, "value": 576 }
   ],
   "repair_item": {
     "tag": "minecraft:planks"

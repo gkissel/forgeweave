@@ -256,8 +256,8 @@ public class SmelteryMeltingGameTests {
      * stone -- upstream's {@code TinkerSmeltery.java:399-411} registers this directly for every
      * castable part regardless of whether stone is ever actually cast (it never is), at half the
      * part's cost in upstream's material-value scale ({@code VALUE_SearedMaterial / VALUE_Ingot}).
-     * A stone pickaxe head costs {@code PartBuilderRecipes.HEAD_COST} (4) shard-units, which is 36 mB
-     * per shard-unit in this scale, so 144 mB.
+     * A stone pickaxe head costs {@code PartBuilderRecipes.HEAD_COST} (2 ingots = 288 value units),
+     * which is half a mB per value unit in this scale, so 144 mB.
      */
     @GameTest(template = "smeltery", timeoutTicks = 1600)
     public static void aStoneToolPartMeltsBackIntoSearedStoneAtHalfItsShardCost(GameTestHelper helper) {

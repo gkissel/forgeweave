@@ -130,7 +130,7 @@ class StationErrorTakeoverTest {
         assertEquals(2, args.length, "upstream's gui.partbuilder.material_value is \"Material Value: %s %s\" "
                 + "-- amount then material name; the one-argument version could not say which of the two "
                 + "material slots the total was counted against (issue #378)");
-        assertEquals("2", ((Component) args[0]).getString(), "4 shard-units is 2 ingots, not 4");
+        assertEquals("2", ((Component) args[0]).getString(), "the line quotes ingots (2), not raw value units");
         assertEquals("material.forgeweave.iron", key((Component) args[1]));
     }
 

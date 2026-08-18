@@ -26,23 +26,26 @@ import dev.gkissel.forgeweave.material.MaterialDisplay;
  * units it costs, and how leftover value comes back as {@link ForgeweaveItems#SHARD} of the same
  * material (issue #45, upstream 1.12's second-output behavior).
  *
- * <p><b>Normalization (issue #45):</b> upstream prices everything in "material value" where {@code
- * VALUE_Ingot = 144} and every other size is a fraction of it -- {@code VALUE_Shard = VALUE_Ingot /
- * 2 = 72}, the finest granularity any crafting item actually uses (a wood stick and a shard are
- * both priced at exactly one {@code VALUE_Shard}; nothing upstream prices any finer). Forgeweave's
- * {@code crafting_items} schema (see {@code Material.CraftingItem}) is denominated directly in that
- * unit -- 1 Forgeweave "shard-unit" = 1 upstream {@code VALUE_Shard} -- so every value in the
- * shipped material JSONs and below is an integer with no fractional loss:
+ * <p><b>Unit (issue #45, re-denominated by parity audit T58 / issue #489):</b> upstream prices
+ * everything in "material value" where {@code VALUE_Ingot = 144} and every other size is a fraction
+ * of it ({@code Material.java:45-51} of the 1.12 clone): {@code VALUE_Shard = 72}, {@code
+ * VALUE_Fragment = 36} (bonemeal, paper, prismarine shards), {@code VALUE_Nugget = 16}. Forgeweave's
+ * {@code crafting_items} schema (see {@code Material.CraftingItem}) and every cost below are
+ * denominated directly in that same unit, unscaled -- issue #45's coarser "1 unit = 1 shard" scale
+ * could not express a nugget or a fragment, which is why the ticket's "nugget-units" is not the
+ * unit either (36 is not a multiple of 16):
  *
  * <pre>
- *   item value:   plank/cobblestone/stone/flint/bone = 2 (1 ingot)   log = 8 (4 ingots)   stick/shard = 1
- *   part cost:    head = 4 (2 ingots, matches upstream TinkerTools#pickHead et al.)
- *                 handle/binding = 2 (1 ingot, matches upstream TinkerTools#toolRod/#binding)
+ *   item value:   ingot/plank/cobblestone/flint/bone = 144   log = 576   stick/shard = 72
+ *                 bonemeal/paper/prismarine shard = 36   nugget = 16
+ *   part cost:    head = 288 (2 ingots, matches upstream TinkerTools#pickHead et al.)
+ *                 handle/binding = 144 (1 ingot, matches upstream TinkerTools#toolRod/#binding)
  * </pre>
  *
- * A material item's value is per-item (all crafting-item stacks in the material slot are a single
- * item type, matching Forgeweave's one-material-slot design); {@link #resolve} consumes the fewest
- * whole items whose combined value covers the part's cost and returns the excess as shards.
+ * A material item's value is per-item; {@link #resolve} consumes the fewest whole items whose
+ * combined value covers the part's cost and returns the excess as whole shards ({@link
+ * #shardChange}: upstream {@code ToolBuilder#tryBuildToolPart}'s {@code leftover / VALUE_Shard},
+ * integer division -- anything under a shard is lost, exactly as upstream).
  *
  * <p>Material identification for a raw crafting item is "first datapack material (registry order)
  * whose {@code crafting_items} list has an ingredient matching the input stack" (mirrors {@code
@@ -55,30 +58,29 @@ import dev.gkissel.forgeweave.material.MaterialDisplay;
  * resolution) stays package-private since only the menu needs it.
  */
 public final class PartBuilderRecipes {
-    public static final int HEAD_COST = 4;
-    public static final int SMALL_PART_COST = 2;
-
-    // M3 part costs (docs/SCOPE.md M3 issue #151), read off the clone's own registerToolPart calls
-    // (TinkerTools#registerToolParts) and normalized the same way as the constants above: upstream's
-    // {@code Material.VALUE_Ingot} is 144, exactly 2 of this class's shard-units, so a cost of
-    // {@code VALUE_Ingot * n} becomes {@code n * 2} shard-units here.
-    //   sign_head/pan_head/tough_tool_rod/tough_binding = VALUE_Ingot * 3 -> 6
-    //   large_sword_blade/large_plate/hammer_head/excavator_head/scythe_head/broad_axe_head = VALUE_Ingot * 8 -> 16
-    // sword_blade and kama_head are VALUE_Ingot * 2, same as HEAD_COST; wide/hand/cross guard and
-    // knife_blade are VALUE_Ingot * 1, same as SMALL_PART_COST -- both reuse the constants above.
-    public static final int MEDIUM_PART_COST = 6;
-    public static final int LARGE_HEAD_COST = 16;
-
-    /** The value of one shard item, and the atomic unit every other value above is denominated in. */
-    public static final int SHARD_VALUE = 1;
-
     /**
-     * One ingot in the shard-units everything above is priced in ({@code VALUE_Ingot = 2 *
-     * VALUE_Shard}, see the class javadoc). Public so the pattern tooltip (issue #379) can quote a
-     * cost in ingots the way upstream's {@code Pattern#addInformation} does -- {@code getCost() /
-     * (float) Material.VALUE_Ingot} -- off these constants rather than a second cost table.
+     * Upstream's {@code Material.VALUE_Ingot} ({@code library/materials/Material.java:47}), the unit
+     * everything here and every material JSON's {@code crafting_items[].value} is priced in. Public so
+     * the pattern tooltip (issue #379) can quote a cost in ingots the way upstream's {@code
+     * Pattern#addInformation} does -- {@code getCost() / (float) Material.VALUE_Ingot}.
      */
-    public static final int INGOT_VALUE = 2 * SHARD_VALUE;
+    public static final int INGOT_VALUE = 144;
+    /** {@code VALUE_Nugget = VALUE_Ingot / 9} -- every {@code addCommonItems} metal's nugget. */
+    public static final int NUGGET_VALUE = INGOT_VALUE / 9;
+    /** {@code VALUE_Fragment = VALUE_Ingot / 4} -- bonemeal, paper, prismarine shards ({@code TinkerMaterials.java:243,269,276}). */
+    public static final int FRAGMENT_VALUE = INGOT_VALUE / 4;
+    /** {@code VALUE_Shard = VALUE_Ingot / 2} -- one {@link ForgeweaveItems#SHARD}, and a wood stick. */
+    public static final int SHARD_VALUE = INGOT_VALUE / 2;
+
+    // Part costs read straight off the clone's registerToolPart calls (TinkerTools#registerToolParts):
+    //   pickHead/shovelHead/axeHead/swordBlade/kamaHead = VALUE_Ingot * 2
+    //   toolRod/binding/wide,hand,cross guard/knifeBlade = VALUE_Ingot * 1
+    //   signHead/panHead/toughToolRod/toughBinding = VALUE_Ingot * 3
+    //   largeSwordBlade/largePlate/hammerHead/excavatorHead/scytheHead/broadAxeHead = VALUE_Ingot * 8
+    public static final int HEAD_COST = 2 * INGOT_VALUE;
+    public static final int SMALL_PART_COST = INGOT_VALUE;
+    public static final int MEDIUM_PART_COST = 3 * INGOT_VALUE;
+    public static final int LARGE_HEAD_COST = 8 * INGOT_VALUE;
 
     private record Entry(Supplier<? extends Item> pattern, Supplier<? extends PartItem> part, int cost) {}
 
@@ -160,11 +162,20 @@ public final class PartBuilderRecipes {
         return new CostResult(itemsNeeded, itemsNeeded * unitValue - cost);
     }
 
+    /**
+     * How many whole shards {@code changeUnits} of leftover value comes back as -- upstream {@code
+     * ToolBuilder#tryBuildToolPart}'s {@code (amount - cost) / Material.VALUE_Shard}. Sub-shard
+     * remainders (a prismarine brick block overpaying a head by one fragment) are lost, as upstream.
+     */
+    public static int shardChange(int changeUnits) {
+        return changeUnits / SHARD_VALUE;
+    }
+
     /** A material identified for the current material-slot stack, and that stack's per-item value. */
     public record MaterialMatch(ResourceLocation id, int unitValue) {}
 
     /**
-     * What one of {@code pattern} costs in shard-units, or empty if it isn't a part pattern. Public
+     * What one of {@code pattern} costs in value units, or empty if it isn't a part pattern. Public
      * so the Part Builder's info panel (issue #47) can quote the cost without restating the table.
      */
     public static Optional<Integer> patternCost(ItemStack pattern) {
@@ -172,7 +183,7 @@ public final class PartBuilderRecipes {
     }
 
     /**
-     * What one part item itself costs in shard-units -- the mirror of {@link #patternCost} keyed on
+     * What one part item itself costs in value units -- the mirror of {@link #patternCost} keyed on
      * the part rather than the pattern that stamps it. Public so {@link
      * dev.gkissel.forgeweave.recipe.MeltingRecipe#find} (issue #440, parity audit T8) can price a
      * stone tool part's melt-back off the same cost table the Part Builder itself charges, rather than
@@ -280,9 +291,9 @@ public final class PartBuilderRecipes {
                     result.set(ForgeweaveDataComponents.MATERIAL.get(), matched.id());
 
                     ItemStack change = ItemStack.EMPTY;
-                    int changeUnits = -remaining;
-                    if (changeUnits > 0) {
-                        change = new ItemStack(ForgeweaveItems.SHARD.get(), changeUnits / SHARD_VALUE);
+                    int shards = shardChange(-remaining);
+                    if (shards > 0) {
+                        change = new ItemStack(ForgeweaveItems.SHARD.get(), shards);
                         change.set(ForgeweaveDataComponents.MATERIAL.get(), matched.id());
                     }
                     return Optional.of(new Match(result, consumed1, consumed2, change));
@@ -291,7 +302,7 @@ public final class PartBuilderRecipes {
 
     /**
      * Which material {@code stack} counts as in the material slot, and what one item of it is worth
-     * in shard-units. Public for the same reason as {@link #patternCost}: the info panel needs the
+     * in value units. Public for the same reason as {@link #patternCost}: the info panel needs the
      * answer, and there must be exactly one place that decides it.
      */
     public static Optional<MaterialMatch> materialValue(HolderLookup.Provider registries, ItemStack stack) {
@@ -323,11 +334,11 @@ public final class PartBuilderRecipes {
         return Optional.empty();
     }
 
-    /** A material identified across both material slots, and the shard-unit value available in total (issue #306). */
+    /** A material identified across both material slots, and the value available in total (issue #306). */
     public record CombinedMaterialMatch(ResourceLocation id, int totalValue) {}
 
     /**
-     * Which material the two material slots count as together, and how many shard-units are
+     * Which material the two material slots count as together, and how many value units are
      * available across both -- upstream {@code GuiPartBuilder#getMaterial}/{@code
      * Material#matchesRecursively}'s combined-slot read, tried material1-then-material2 (upstream's
      * own order) for identification, then summing whichever of the two stacks actually matches that
@@ -373,7 +384,7 @@ public final class PartBuilderRecipes {
     }
 
     /**
-     * How many shard-units one item of {@code stack} is worth against a specific material id, or 0
+     * How many value units one item of {@code stack} is worth against a specific material id, or 0
      * if it doesn't match.
      *
      * <p>Public because repair asks the same question ({@code ToolAssemblyRecipes#resolveRepair},

@@ -20,10 +20,10 @@
     "head": ["forgeweave:jagged", "forgeweave:aquadynamic"]
   },
   "crafting_items": [
-    { "ingredient": { "item": "minecraft:prismarine_shard" }, "value": 1 },
-    { "ingredient": { "item": "minecraft:prismarine" }, "value": 2 },
-    { "ingredient": { "item": "minecraft:prismarine_bricks" }, "value": 5 },
-    { "ingredient": { "item": "minecraft:dark_prismarine" }, "value": 4 }
+    { "ingredient": { "item": "minecraft:prismarine_shard" }, "value": 36 },
+    { "ingredient": { "item": "minecraft:prismarine" }, "value": 144 },
+    { "ingredient": { "item": "minecraft:prismarine_bricks" }, "value": 324 },
+    { "ingredient": { "item": "minecraft:dark_prismarine" }, "value": 288 }
   ],
   "repair_item": {
     "item": "minecraft:prismarine"

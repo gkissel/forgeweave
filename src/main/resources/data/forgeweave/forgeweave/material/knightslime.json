@@ -28,13 +28,19 @@
       "ingredient": {
         "item": "forgeweave:knightslime_ingot"
       },
-      "value": 2
+      "value": 144
+    },
+    {
+      "ingredient": {
+        "item": "forgeweave:knightslime_nugget"
+      },
+      "value": 16
     },
     {
       "ingredient": {
         "item": "forgeweave:knightslime_block"
       },
-      "value": 18
+      "value": 1296
     }
   ],
   "repair_item": {

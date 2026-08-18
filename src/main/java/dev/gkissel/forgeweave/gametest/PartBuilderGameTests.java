@@ -31,7 +31,7 @@ import dev.gkissel.forgeweave.menu.StationMenu;
  *
  * <p>Also covers issue #45's value-based crafting: logs/shards as input and the shard change
  * deposited into the second output slot (see {@code PartBuilderRecipes}'s class javadoc for the
- * shard-unit value table this math is built on).
+ * value table this math is built on).
  */
 @GameTestHolder(Forgeweave.MODID)
 @PrefixGameTestTemplate(false)
@@ -55,8 +55,8 @@ public class PartBuilderGameTests {
         PartBuilderMenu menu = openMenu(helper, pos, player);
 
         menu.getSlot(PartBuilderMenu.PATTERN_SLOT).set(new ItemStack(ForgeweaveItems.PATTERN_PICKAXE_HEAD.get()));
-        // Stone's cobblestone crafting item is worth 2 shard-units each (PartBuilderRecipes); a
-        // pickaxe head costs 4, so 2 cobblestone exactly covers it with no shard change.
+        // Stone's cobblestone crafting item is worth 1 ingot each (PartBuilderRecipes); a
+        // pickaxe head costs 2, so 2 cobblestone exactly covers it with no shard change.
         menu.getSlot(PartBuilderMenu.MATERIAL_SLOT).set(new ItemStack(Items.COBBLESTONE, 2));
         menu.broadcastChanges();
 
@@ -88,8 +88,8 @@ public class PartBuilderGameTests {
         PartBuilderMenu menu = openMenu(helper, pos, player);
 
         menu.getSlot(PartBuilderMenu.PATTERN_SLOT).set(new ItemStack(ForgeweaveItems.PATTERN_PICKAXE_HEAD.get()));
-        // A log is worth 8 shard-units (4 upstream ingots); a pickaxe head costs 4, so one log
-        // covers it with 4 shard-units (4 shards) left over -- the upstream second-output behavior.
+        // A log is worth 4 ingots; a pickaxe head costs 2, so one log
+        // covers it with 2 ingots (4 shards) left over -- the upstream second-output behavior.
         menu.getSlot(PartBuilderMenu.MATERIAL_SLOT).set(new ItemStack(Items.OAK_LOG, 1));
         menu.broadcastChanges();
 
@@ -113,6 +113,66 @@ public class PartBuilderGameTests {
         helper.succeed();
     }
 
+    /**
+     * Parity audit T58 (issue #489): sub-shard crafting items. Bonemeal is {@code VALUE_Fragment}
+     * (upstream {@code TinkerMaterials.java:269}), so 4 of it pays a 1-ingot tool handle exactly;
+     * 8 pays a 2-ingot head. Neither was reachable while values were denominated in whole shards.
+     */
+    @GameTest(template = "empty")
+    public static void bonemealPaysAHandleAtAFragmentEach(GameTestHelper helper) {
+        BlockPos pos = new BlockPos(1, 1, 1);
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        PartBuilderMenu menu = openMenu(helper, pos, player);
+
+        menu.getSlot(PartBuilderMenu.PATTERN_SLOT).set(new ItemStack(ForgeweaveItems.PATTERN_TOOL_HANDLE.get()));
+        menu.getSlot(PartBuilderMenu.MATERIAL_SLOT).set(new ItemStack(Items.BONE_MEAL, 5));
+        menu.broadcastChanges();
+
+        ItemStack output = menu.getSlot(PartBuilderMenu.OUTPUT_SLOT).getItem();
+        helper.assertTrue(output.is(ForgeweaveItems.PART_TOOL_HANDLE.get()), "expected a bone tool handle, got " + output);
+        helper.assertTrue(materialId("bone").equals(output.get(ForgeweaveDataComponents.MATERIAL.get())),
+                "expected the handle's material to be forgeweave:bone, got "
+                        + output.get(ForgeweaveDataComponents.MATERIAL.get()));
+
+        menu.getSlot(PartBuilderMenu.OUTPUT_SLOT).onTake(player, output);
+        helper.assertTrue(menu.getSlot(PartBuilderMenu.MATERIAL_SLOT).getItem().getCount() == 1,
+                "expected exactly 4 of the 5 bonemeal to be consumed, left "
+                        + menu.getSlot(PartBuilderMenu.MATERIAL_SLOT).getItem());
+        helper.assertTrue(menu.getSlot(PartBuilderMenu.CHANGE_SLOT).getItem().isEmpty(),
+                "expected no shard change for an exact-value craft");
+        helper.succeed();
+    }
+
+    /**
+     * T58's other half: {@code VALUE_Nugget = 16}, nine to the ingot ({@code Material#addCommonItems}),
+     * so 18 nuggets pay a head. Knightslime is the one {@code addCommonItems} metal upstream also
+     * marks craftable ({@code TinkerMaterials.java:299-300}), so it needs no config toggle here.
+     */
+    @GameTest(template = "empty")
+    public static void nuggetsPayAHeadNineToTheIngot(GameTestHelper helper) {
+        BlockPos pos = new BlockPos(1, 1, 1);
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        PartBuilderMenu menu = openMenu(helper, pos, player);
+
+        menu.getSlot(PartBuilderMenu.PATTERN_SLOT).set(new ItemStack(ForgeweaveItems.PATTERN_PICKAXE_HEAD.get()));
+        menu.getSlot(PartBuilderMenu.MATERIAL_SLOT).set(new ItemStack(ForgeweaveItems.NUGGET_KNIGHTSLIME.get(), 20));
+        menu.broadcastChanges();
+
+        ItemStack output = menu.getSlot(PartBuilderMenu.OUTPUT_SLOT).getItem();
+        helper.assertTrue(output.is(ForgeweaveItems.PART_PICKAXE_HEAD.get()), "expected a knightslime pickaxe head, got " + output);
+        helper.assertTrue(materialId("knightslime").equals(output.get(ForgeweaveDataComponents.MATERIAL.get())),
+                "expected the head's material to be forgeweave:knightslime, got "
+                        + output.get(ForgeweaveDataComponents.MATERIAL.get()));
+
+        menu.getSlot(PartBuilderMenu.OUTPUT_SLOT).onTake(player, output);
+        helper.assertTrue(menu.getSlot(PartBuilderMenu.MATERIAL_SLOT).getItem().getCount() == 2,
+                "expected exactly 18 of the 20 nuggets to be consumed, left "
+                        + menu.getSlot(PartBuilderMenu.MATERIAL_SLOT).getItem());
+        helper.assertTrue(menu.getSlot(PartBuilderMenu.CHANGE_SLOT).getItem().isEmpty(),
+                "expected no shard change for an exact-value craft");
+        helper.succeed();
+    }
+
     @GameTest(template = "empty")
     public static void shardsAreUsableAsCraftingInput(GameTestHelper helper) {
         BlockPos pos = new BlockPos(1, 1, 1);
@@ -120,7 +180,7 @@ public class PartBuilderGameTests {
         PartBuilderMenu menu = openMenu(helper, pos, player);
 
         menu.getSlot(PartBuilderMenu.PATTERN_SLOT).set(new ItemStack(ForgeweaveItems.PATTERN_TOOL_HANDLE.get()));
-        // A tool handle costs 2 shard-units; 2 wood shards (1 unit each) covers it exactly.
+        // A tool handle costs 1 ingot; 2 wood shards (half an ingot each) covers it exactly.
         ItemStack shards = new ItemStack(ForgeweaveItems.SHARD.get(), 2);
         shards.set(ForgeweaveDataComponents.MATERIAL.get(), materialId("wood"));
         menu.getSlot(PartBuilderMenu.MATERIAL_SLOT).set(shards);
@@ -154,7 +214,7 @@ public class PartBuilderGameTests {
         PartBuilderMenu menu = openMenu(helper, pos, player);
 
         menu.getSlot(PartBuilderMenu.PATTERN_SLOT).set(new ItemStack(ForgeweaveItems.PATTERN_TOOL_HANDLE.get()));
-        // A tool handle costs 2 shard-units; neither slot alone has enough (1 unit each), but split
+        // A tool handle costs 1 ingot; neither slot alone has enough (half an ingot each), but split
         // 1+1 across both slots they combine to exactly cover it.
         ItemStack shard1 = new ItemStack(ForgeweaveItems.SHARD.get(), 1);
         shard1.set(ForgeweaveDataComponents.MATERIAL.get(), materialId("wood"));
@@ -301,7 +361,7 @@ public class PartBuilderGameTests {
         PartBuilderMenu menu = openMenu(helper, pos, player);
 
         menu.getSlot(PartBuilderMenu.PATTERN_SLOT).set(new ItemStack(ForgeweaveItems.PATTERN_PICKAXE_HEAD.get()));
-        // Two iron ingots are worth 4 shard-units, exactly a pickaxe head's cost -- the only thing
+        // Two iron ingots are exactly a pickaxe head's cost -- the only thing
         // stopping this craft is that iron is cast-only.
         menu.getSlot(PartBuilderMenu.MATERIAL_SLOT).set(new ItemStack(Items.IRON_INGOT, 2));
         menu.broadcastChanges();

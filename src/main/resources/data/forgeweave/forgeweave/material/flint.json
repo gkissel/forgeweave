@@ -20,7 +20,7 @@
     "head": ["forgeweave:crude2"]
   },
   "crafting_items": [
-    { "ingredient": { "item": "minecraft:flint" }, "value": 2 }
+    { "ingredient": { "item": "minecraft:flint" }, "value": 144 }
   ],
   "repair_item": {
     "item": "minecraft:flint"

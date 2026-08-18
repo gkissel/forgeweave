@@ -128,8 +128,8 @@ public record Material(
     /**
      * A raw item usable as Part Builder crafting input, and how much of a part's cost one of it
      * pays off (upstream 1.12's `Material#addItem`/`addItemIngot`, {@code TinkerMaterials}).
-     * {@code value} is expressed in shard-units -- see {@code PartBuilderRecipes}'s class javadoc
-     * for the shard-unit normalization this whole schema is denominated in.
+     * {@code value} is expressed in upstream's own {@code Material.VALUE_*} unit ({@code VALUE_Ingot = 144},
+     * nugget 16, fragment 36, shard 72) -- see {@code PartBuilderRecipes}'s class javadoc (T58, issue #489).
      */
     public record CraftingItem(Ingredient ingredient, int value) {
         public static final Codec<CraftingItem> CODEC = RecordCodecBuilder.create(instance -> instance.group(
@@ -239,7 +239,7 @@ public record Material(
             TagKey.codec(Registries.BLOCK).fieldOf("incorrect_for_tool").forGetter(Material::incorrectForTool),
             // Trait behavior is Java (ADR-0002); data only names which traits this material grants.
             TRAITS_CODEC.forGetter(Material::traits),
-            // Part Builder crafting inputs and their shard-unit values (issue #45); repair_item below
+            // Part Builder crafting inputs and their values (issue #45; upstream units since #489); repair_item below
             // is a separate, single-ingredient concept used only for Tool Station repair.
             CraftingItem.CODEC.listOf().fieldOf("crafting_items").forGetter(Material::craftingItems),
             Ingredient.CODEC.fieldOf("repair_item").forGetter(Material::repairItem),

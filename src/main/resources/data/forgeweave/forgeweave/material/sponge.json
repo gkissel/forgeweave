@@ -19,7 +19,7 @@
     "general": ["forgeweave:squeaky"]
   },
   "crafting_items": [
-    { "ingredient": { "item": "minecraft:sponge" }, "value": 2 }
+    { "ingredient": { "item": "minecraft:sponge" }, "value": 144 }
   ],
   "repair_item": {
     "item": "minecraft:sponge"

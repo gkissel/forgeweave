@@ -20,7 +20,7 @@
     "head": ["forgeweave:aridiculous", "forgeweave:hellish"]
   },
   "crafting_items": [
-    { "ingredient": { "item": "minecraft:netherrack" }, "value": 2 }
+    { "ingredient": { "item": "minecraft:netherrack" }, "value": 144 }
   ],
   "repair_item": {
     "item": "minecraft:netherrack"

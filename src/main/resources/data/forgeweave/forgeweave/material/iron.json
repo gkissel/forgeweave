@@ -20,8 +20,9 @@
     "head": ["forgeweave:magnetic2"]
   },
   "crafting_items": [
-    { "ingredient": { "item": "minecraft:iron_ingot" }, "value": 2 },
-    { "ingredient": { "item": "minecraft:iron_block" }, "value": 18 }
+    { "ingredient": { "item": "minecraft:iron_ingot" }, "value": 144 },
+    { "ingredient": { "item": "minecraft:iron_nugget" }, "value": 16 },
+    { "ingredient": { "item": "minecraft:iron_block" }, "value": 1296 }
   ],
   "repair_item": {
     "tag": "c:ingots/iron"

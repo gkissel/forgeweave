@@ -19,7 +19,7 @@
     "general": ["forgeweave:duritos"]
   },
   "crafting_items": [
-    { "ingredient": { "item": "minecraft:obsidian" }, "value": 2 }
+    { "ingredient": { "item": "minecraft:obsidian" }, "value": 144 }
   ],
   "repair_item": {
     "item": "minecraft:obsidian"

@@ -19,7 +19,7 @@
     "general": ["forgeweave:autosmelt"]
   },
   "crafting_items": [
-    { "ingredient": { "item": "forgeweave:firewood" }, "value": 2 }
+    { "ingredient": { "item": "forgeweave:firewood" }, "value": 144 }
   ],
   "repair_item": {
     "item": "forgeweave:firewood"

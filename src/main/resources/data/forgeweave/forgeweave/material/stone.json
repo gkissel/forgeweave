@@ -20,8 +20,8 @@
     "head": ["forgeweave:cheapskate"]
   },
   "crafting_items": [
-    { "ingredient": { "item": "minecraft:cobblestone" }, "value": 2 },
-    { "ingredient": { "item": "minecraft:stone" }, "value": 2 }
+    { "ingredient": { "item": "minecraft:cobblestone" }, "value": 144 },
+    { "ingredient": { "item": "minecraft:stone" }, "value": 144 }
   ],
   "repair_item": {
     "tag": "minecraft:stone_tool_materials"

@@ -2,7 +2,7 @@
   "incorrect_for_tool": "minecraft:incorrect_for_stone_tool",
   "traits": {},
   "crafting_items": [
-    { "ingredient": { "item": "minecraft:string" }, "value": 2 }
+    { "ingredient": { "item": "minecraft:string" }, "value": 144 }
   ],
   "repair_item": {
     "item": "minecraft:string"

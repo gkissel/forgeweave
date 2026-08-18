@@ -76,7 +76,7 @@ public class FortificationGameTests {
 
         menu.getSlot(PartBuilderMenu.PATTERN_SLOT)
                 .set(new ItemStack(ForgeweaveItems.PATTERN_SHARPENING_KIT.get()));
-        // Cobblestone is 2 shard-units each and a head part costs 4 (PartBuilderRecipes), so exactly
+        // Cobblestone is 1 ingot each and a head part costs 2 (PartBuilderRecipes), so exactly
         // two cover the kit with no change -- the same arithmetic the pickaxe head's own test uses.
         menu.getSlot(PartBuilderMenu.MATERIAL_SLOT).set(new ItemStack(Items.COBBLESTONE, 2));
         menu.broadcastChanges();

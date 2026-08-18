@@ -305,7 +305,7 @@ public final class ToolAssemblyRecipes {
     }
 
     /**
-     * How many shard-units one item of {@code stack} pays into a repair of {@code repair}'s material,
+     * How many value units one item of {@code stack} pays into a repair of {@code repair}'s material,
      * or {@code 0} if it is not a repair item for it at all (parity audit T30, issue #461).
      *
      * <p>Upstream 1.12 keeps one item-to-material table per material -- {@code Material extends

@@ -20,8 +20,9 @@
     "head": ["forgeweave:sharp"]
   },
   "crafting_items": [
-    { "ingredient": { "item": "forgeweave:steel_ingot" }, "value": 2 },
-    { "ingredient": { "item": "forgeweave:steel_block" }, "value": 18 }
+    { "ingredient": { "item": "forgeweave:steel_ingot" }, "value": 144 },
+    { "ingredient": { "item": "forgeweave:steel_nugget" }, "value": 16 },
+    { "ingredient": { "item": "forgeweave:steel_block" }, "value": 1296 }
   ],
   "repair_item": {
     "tag": "c:ingots/steel"

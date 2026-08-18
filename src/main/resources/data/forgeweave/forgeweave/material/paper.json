@@ -20,7 +20,7 @@
     "head": ["forgeweave:writable2"]
   },
   "crafting_items": [
-    { "ingredient": { "item": "minecraft:paper" }, "value": 1 }
+    { "ingredient": { "item": "minecraft:paper" }, "value": 36 }
   ],
   "repair_item": {
     "item": "minecraft:paper"
