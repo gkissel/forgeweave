@@ -1,18 +1,38 @@
 package dev.gkissel.forgeweave.client;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
+import net.minecraft.SharedConstants;
+import net.minecraft.server.Bootstrap;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.Items;
+
 import dev.gkissel.forgeweave.client.BowDrawMovement.Impulse;
+import dev.gkissel.forgeweave.item.ForgeweaveItems;
 
 /**
  * Issue #420: diagonal bow-draw movement was up to ~41% faster than straight, because the
  * {@code (forward, strafe)} pair was scaled per-axis with no regard for the diagonal case's extra
  * {@code sqrt(2)} length. {@link BowDrawMovement.Impulse#normalize} is the pure fix -- pinned here
  * without touching the event/{@code LocalPlayer} plumbing around it.
+ *
+ * <p>Parity audit T37 (issue #468): {@code LongSword}/{@code FryPan}'s own {@code preventSlowDown}
+ * calls, which {@link BowDrawMovement#drawMovementSpeed(Item)} generalized the bow-only mechanism
+ * to cover. {@code @BeforeAll} bootstrap and the real registered items are
+ * {@link BowItemPropertiesTest}'s precedent -- a bow/tool item self-registers on construction, so a
+ * standalone {@code new BowItem(...)} throws once the vanilla item registry is frozen.
  */
 class BowDrawMovementTest {
+
+    @BeforeAll
+    static void bootstrapMinecraft() {
+        SharedConstants.tryDetectVersion();
+        Bootstrap.bootStrap();
+    }
 
     @Test
     void singleAxisIsUnchanged() {
@@ -53,5 +73,51 @@ class BowDrawMovementTest {
         Impulse result = Impulse.normalize(0.0F, 0.0F);
         assertEquals(0.0F, result.forward(), 0.0F);
         assertEquals(0.0F, result.strafe(), 0.0F);
+    }
+
+    @Test
+    void shortbowKeepsItsOwnDrawSpeed() {
+        float speed = BowDrawMovement.drawMovementSpeed(ForgeweaveItems.TOOL_SHORTBOW.get());
+        assertEquals(0.5F, speed, 0.0F);
+    }
+
+    /**
+     * Upstream's own "no speedup on charging": a {@link dev.gkissel.forgeweave.item.BowItem} always
+     * answers on its own account, so the longbow still gets a (harmless, no-op) vanilla 0.2 rather
+     * than {@code null} -- {@code null} is reserved for an item with no draw-movement concept at all.
+     */
+    @Test
+    void longbowCrawlsAtVanillasOwnSlowdown() {
+        float speed = BowDrawMovement.drawMovementSpeed(ForgeweaveItems.TOOL_LONGBOW.get());
+        assertEquals(0.2F, speed, 0.0F);
+    }
+
+    @Test
+    void longswordChargedLeapDrawsAtUpstream09() {
+        float speed = BowDrawMovement.drawMovementSpeed(ForgeweaveItems.TOOL_LONGSWORD.get());
+        assertEquals(0.9F, speed, 0.0F);
+    }
+
+    @Test
+    void fryingPanChargedLaunchDrawsAtUpstream07() {
+        float speed = BowDrawMovement.drawMovementSpeed(ForgeweaveItems.TOOL_FRYING_PAN.get());
+        assertEquals(0.7F, speed, 0.0F);
+    }
+
+    /** A tool with no innate at all (the M1 pickaxe) carries no draw-movement concept: {@code null}. */
+    @Test
+    void toolWithNoInnateHasNoOverride() {
+        assertNull(BowDrawMovement.drawMovementSpeed(ForgeweaveItems.TOOL_PICKAXE.get()));
+    }
+
+    /** The dagger's {@code Backstab} innate is blow-triggered only ({@code use() == null}): {@code null}. */
+    @Test
+    void toolWithNoUseActionHasNoOverride() {
+        assertNull(BowDrawMovement.drawMovementSpeed(ForgeweaveItems.TOOL_DAGGER.get()));
+    }
+
+    @Test
+    void plainVanillaItemHasNoOverride() {
+        assertNull(BowDrawMovement.drawMovementSpeed(Items.STICK));
     }
 }
