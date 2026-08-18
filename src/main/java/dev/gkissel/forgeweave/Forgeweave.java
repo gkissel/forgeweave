@@ -46,6 +46,7 @@ import dev.gkissel.forgeweave.item.ForgeweaveCreativeTab;
 import dev.gkissel.forgeweave.item.ForgeweaveDataComponents;
 import dev.gkissel.forgeweave.item.ForgeweaveItems;
 import dev.gkissel.forgeweave.item.GuideBookGift;
+import dev.gkissel.forgeweave.item.SlimeBootsItem;
 import dev.gkissel.forgeweave.material.Material;
 import dev.gkissel.forgeweave.menu.ForgeweaveMenus;
 import dev.gkissel.forgeweave.menu.RenameStationItemPayload;
@@ -78,6 +79,8 @@ public class Forgeweave {
         ForgeweaveFluids.BLOCKS.register(modEventBus);
         ForgeweaveFluids.BUCKETS.register(modEventBus); // #286
         ForgeweaveItems.ITEMS.register(modEventBus);
+        // #452 -- the slime boots' armour material (parity audit T21). See SlimeBootsItem.
+        SlimeBootsItem.ARMOR_MATERIALS.register(modEventBus);
         // #447 -- the entity every dropped tool spawns as (parity audit T16). See
         // entity.IndestructibleItemEntity for why it is a registered type rather than a flag.
         ForgeweaveEntities.ENTITY_TYPES.register(modEventBus);
@@ -192,6 +195,10 @@ public class Forgeweave {
         // #445 -- parity audit T13: a first-time player is given the guide book (upstream's
         // spawnWithBook, default on). See GuideBookGift.
         NeoForge.EVENT_BUS.addListener(GuideBookGift::onPlayerLoggedIn);
+        // #452 -- parity audit T21: the slime boots' bounce and fall-damage cancel, upstream's
+        // ItemSlimeBoots#onFall plus SlimeBounceHandler. See SlimeBootsItem for the side split.
+        NeoForge.EVENT_BUS.addListener(SlimeBootsItem::onFall);
+        NeoForge.EVENT_BUS.addListener(SlimeBootsItem::onPlayerTick);
         // #110 -- Ponder is a soft dependency (docs/SCOPE.md M2): only touch its API, and only
         // register the client-setup listener, when it's actually on the mod list. See
         // ForgeweavePonderPlugin's javadoc for why this isn't an @EventBusSubscriber instead.

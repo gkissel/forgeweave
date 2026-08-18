@@ -630,6 +630,7 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("tooltip.forgeweave.tank.amount", "%s mb");
         // item.tconstruct.book.tooltip, the guide book's grey flavour line.
         add("tooltip.forgeweave.guide_book", "The book every smith needs");
+        add("tooltip.forgeweave.slime_boots", "Makes you bounce when landing");
 
         // M1 tool innate retrofit (issue #164, maintainer directive 2026-08-12): pickaxe, shovel and
         // hatchet each carry a fixed combat innate, shown the same name/description shape as a trait
@@ -1205,6 +1206,10 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         addItem(ForgeweaveItems.MAGMA_SLIME_CRYSTAL, "Magma Slime Crystal");
         addItem(ForgeweaveItems.INGOT_KNIGHTSLIME, "Knightslime Ingot");
         addItem(ForgeweaveItems.NUGGET_KNIGHTSLIME, "Knightslime Nugget");
+
+        // #452 -- the slime boots (parity audit T21), upstream's
+        // item.tconstruct.slime_boots.green.name and .tooltip.
+        addItem(ForgeweaveItems.SLIME_BOOTS, "Slime Boots");
 
         // #104 -- cobalt + ardite nether ore (docs/SCOPE.md M2 issue #104), names ported from
         // upstream 1.12's tile.tconstruct.ore.{cobalt,ardite}.name entries (NOTICE.md).
