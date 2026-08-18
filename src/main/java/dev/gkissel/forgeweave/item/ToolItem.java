@@ -2,11 +2,13 @@ package dev.gkissel.forgeweave.item;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.function.Consumer;
 
 import org.jetbrains.annotations.Nullable;
 
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.component.DataComponentType;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
@@ -522,6 +524,89 @@ public class ToolItem extends Item {
     @Override
     public boolean isFoil(ItemStack stack) {
         return false;
+    }
+
+    /**
+     * The components that make one tool a <em>different</em> tool: what it is built from, what has
+     * been done to it, and what it looks like. Upstream 1.12's {@code ToolCore#isEqualTinkersItem}
+     * (tinkers-1.12 {@code library/tools/ToolCore.java}:655) compares the same three things out of
+     * the whole tag -- base materials, the modifier list, and the unmodified base stats -- and
+     * ignores everything else, which is what keeps per-tick trait state from reading as a new item.
+     *
+     * <p>An allow-list rather than a deny-list on purpose: the default for a component nobody
+     * thought about here is "ignore", which is the safe end. A new stateful trait component (#230's
+     * momentum/insatiable/katana ramp, alien progress, a launcher's draw state) then costs nothing,
+     * and the worst a genuinely identity-bearing component costs by being forgotten is a missing
+     * re-equip bob -- against the constant bobbing and reset mining progress a deny-list miss costs.
+     */
+    private static List<DataComponentType<?>> identityComponents() {
+        return List.of(
+                ForgeweaveDataComponents.TOOL_MATERIALS.get(), // what it is built from
+                ForgeweaveDataComponents.TOOL_STATS.get(), // its built stats
+                ForgeweaveDataComponents.LAUNCHER_STATS.get(), // ... and a bow's
+                ForgeweaveDataComponents.MODIFIERS.get(),
+                ForgeweaveDataComponents.TRAITS.get(),
+                ForgeweaveDataComponents.BROKEN.get(), // swaps the model
+                ForgeweaveDataComponents.TEXTURE.get(),
+                ForgeweaveDataComponents.CROSSBOW_LOADED.get());
+    }
+
+    /**
+     * Whether swapping {@code oldStack} for {@code newStack} in hand is a new item as far as the
+     * held-item animation and block-breaking progress are concerned. Ported from upstream 1.12's
+     * {@code ToolCore#shouldCauseReequipAnimation} (tinkers-1.12
+     * {@code library/tools/ToolCore.java}:583-620): a slot change, a glint change, a change in the
+     * attribute modifiers the tool grants, or a change in its identity ({@link #identityComponents}).
+     * Component churn outside that -- durability, mending moss XP, a trait's per-tick bookkeeping --
+     * is not a new item.
+     *
+     * <p>NeoForge's default is vanilla's {@code !oldStack.equals(newStack)}, i.e. any component
+     * differing at all. That made an electrum tool bob and drop its mining progress continuously
+     * while walking, because {@code ForgeweaveTraits#SHOCKING} rewrites its charge every 5 ticks
+     * (issue #414); every other stateful trait had the same exposure.
+     *
+     * <p>Upstream's first check is a "reset" flag it sets on the stack to force the animation; there
+     * is no Forgeweave equivalent, and nothing here needs one -- the station hands back a whole new
+     * stack whose identity components already differ.
+     *
+     * <p>Two adaptations to modern APIs: glint is {@code ItemStack#hasFoil} (the
+     * {@code enchantment_glint_override} component, then {@link #isFoil}) rather than 1.12's
+     * {@code hasEffect}, and the attribute comparison is over the whole
+     * {@link net.minecraft.world.item.component.ItemAttributeModifiers} value rather than 1.12's
+     * hand-rolled walk of the MAINHAND multimap -- a superset, since a tool only ever grants MAINHAND
+     * modifiers, and it resolves through {@link #getDefaultAttributeModifiers} so the Broken state and
+     * every trait/modifier bonus are included.
+     */
+    static boolean shouldReequip(ItemStack oldStack, ItemStack newStack, boolean slotChanged) {
+        if (oldStack == newStack) {
+            return false;
+        }
+        if (slotChanged || oldStack.getItem() != newStack.getItem()) {
+            return true;
+        }
+        if (oldStack.hasFoil() != newStack.hasFoil()) {
+            return true;
+        }
+        if (!oldStack.getAttributeModifiers().equals(newStack.getAttributeModifiers())) {
+            return true;
+        }
+        for (DataComponentType<?> component : identityComponents()) {
+            if (!Objects.equals(oldStack.get(component), newStack.get(component))) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    @Override
+    public boolean shouldCauseReequipAnimation(ItemStack oldStack, ItemStack newStack, boolean slotChanged) {
+        return shouldReequip(oldStack, newStack, slotChanged);
+    }
+
+    /** Upstream 1.12's {@code ToolCore#shouldCauseBlockBreakReset}:577 delegates to the same rule. */
+    @Override
+    public boolean shouldCauseBlockBreakReset(ItemStack oldStack, ItemStack newStack) {
+        return shouldReequip(oldStack, newStack, false);
     }
 
     /**
