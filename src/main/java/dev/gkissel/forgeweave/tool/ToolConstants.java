@@ -1,5 +1,6 @@
 package dev.gkissel.forgeweave.tool;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import dev.gkissel.forgeweave.item.PartItem;
@@ -110,6 +111,18 @@ public final class ToolConstants {
     }
 
     /**
+     * One slot a tool can be repaired through, with the factor its material's head durability is
+     * multiplied by -- upstream 1.12's {@code TinkersItem#getRepairParts()} and
+     * {@code #getRepairModifierForPart(int)} folded into one value per slot, since the two are only
+     * ever read together ({@code TinkersItem#calculateRepairAmount}).
+     *
+     * @param slot index into {@link Entry#parts()}
+     * @param modifier upstream's {@code getRepairModifierForPart(slot)} -- {@code 1.0} for the eight
+     *     upstream tools that never override it
+     */
+    public record RepairPart(int slot, float modifier) {}
+
+    /**
      * @param id the tool's identifier, matching its future item registry name
      * @param category the content family this tool belongs to -- see {@link Category}
      * @param parts ordered part composition; {@link #compute} expects one {@link Material} per slot
@@ -141,6 +154,14 @@ public final class ToolConstants {
      *     {@link LauncherStats} (M3.5 issue #395: {@code CrossBow#buildTagData}'s {@code 1.5f}, the
      *     only one in the tree); {@code 1.0} for every other tool, and inert for a tool with no
      *     {@link Role#LIMB} slot at all
+     * @param repairModifiers upstream's {@code getRepairParts()}/{@code getRepairModifierForPart(int)}
+     *     pair, index-aligned with {@code parts}: a slot's entry is the factor its material's head
+     *     durability is multiplied by when it is spent on a repair, or {@code 0} for a slot that
+     *     repairs nothing (every HANDLE, every bowstring, and the plain guards). An empty list means
+     *     upstream's default {@code getRepairParts() == {1}} at factor {@code 1} -- resolved here as
+     *     the tool's first HEAD/LIMB slot, which is what slot {@code 1} is for every upstream tool
+     *     that keeps the default, and the only sensible reading for the tools with no 1.12
+     *     counterpart. Read through {@link Entry#repairSlots()}, never directly.
      */
     public record Entry(
             String id,
@@ -155,7 +176,14 @@ public final class ToolConstants {
             boolean sumHeadsForAttack,
             boolean durabilitySkipsExtraAndHandle,
             float damageCutoff,
-            float bonusDamageMultiplier) {
+            float bonusDamageMultiplier,
+            List<Float> repairModifiers) {
+
+        public Entry {
+            if (!repairModifiers.isEmpty() && repairModifiers.size() != parts.size()) {
+                throw new IllegalArgumentException(id + ": repair modifiers must be index-aligned with parts");
+            }
+        }
 
         /** Convenience constructor for the {@link #DEFAULT_DAMAGE_CUTOFF} every tool but the four upstream overrides uses. */
         public Entry(String id, Category category, List<PartSlot> parts, float attackSpeed, float damagePotential,
@@ -173,7 +201,52 @@ public final class ToolConstants {
                 float damageCutoff) {
             this(id, category, parts, attackSpeed, damagePotential, preAttackMultiplier, flatAttackBonus,
                     durabilityMultiplier, miningSpeedModifier, sumHeadsForAttack, durabilitySkipsExtraAndHandle,
-                    damageCutoff, 1.0f);
+                    damageCutoff, 1.0f, List.of());
+        }
+
+        /** Convenience constructor for the two launchers that need {@code bonusDamageMultiplier} and no repair table. */
+        public Entry(String id, Category category, List<PartSlot> parts, float attackSpeed, float damagePotential,
+                float preAttackMultiplier, float flatAttackBonus, float durabilityMultiplier,
+                float miningSpeedModifier, boolean sumHeadsForAttack, boolean durabilitySkipsExtraAndHandle,
+                float damageCutoff, float bonusDamageMultiplier) {
+            this(id, category, parts, attackSpeed, damagePotential, preAttackMultiplier, flatAttackBonus,
+                    durabilityMultiplier, miningSpeedModifier, sumHeadsForAttack, durabilitySkipsExtraAndHandle,
+                    damageCutoff, bonusDamageMultiplier, List.of());
+        }
+
+        /**
+         * This entry with an explicit per-slot repair table -- one factor per {@link #parts()} slot,
+         * {@code 0} for a slot that repairs nothing. Written as a wither so the eleven tools that
+         * need one read as "the tool, plus its repair table" instead of pushing a fourteenth argument
+         * through every other tool's constructor call.
+         */
+        public Entry withRepairModifiers(Float... modifiers) {
+            return new Entry(id, category, parts, attackSpeed, damagePotential, preAttackMultiplier,
+                    flatAttackBonus, durabilityMultiplier, miningSpeedModifier, sumHeadsForAttack,
+                    durabilitySkipsExtraAndHandle, damageCutoff, bonusDamageMultiplier, List.of(modifiers));
+        }
+
+        /**
+         * The slots a repair may be paid in, in slot order, with each one's factor -- upstream
+         * {@code TinkersItem#getRepairParts()} zipped with {@code #getRepairModifierForPart(int)}.
+         */
+        public List<RepairPart> repairSlots() {
+            if (repairModifiers.isEmpty()) {
+                for (int i = 0; i < parts.size(); i++) {
+                    Role role = parts.get(i).role();
+                    if (role == Role.HEAD || role == Role.LIMB) {
+                        return List.of(new RepairPart(i, 1.0f));
+                    }
+                }
+                return List.of();
+            }
+            List<RepairPart> slots = new ArrayList<>(repairModifiers.size());
+            for (int i = 0; i < repairModifiers.size(); i++) {
+                if (repairModifiers.get(i) > 0f) {
+                    slots.add(new RepairPart(i, repairModifiers.get(i)));
+                }
+            }
+            return List.copyOf(slots);
         }
     }
 
@@ -194,7 +267,9 @@ public final class ToolConstants {
     public static final Entry BROADSWORD = new Entry("broadsword", Category.MELEE,
             List.of(new PartSlot(Role.HANDLE, TOOL_HANDLE), new PartSlot(Role.HEAD, "sword_blade"),
                     new PartSlot(Role.EXTRA, "wide_guard")),
-            1.6f, 1.0f, 1.0f, 1.0f, 1.1f, 0.5f, false, false);
+            1.6f, 1.0f, 1.0f, 1.0f, 1.1f, 0.5f, false, false)
+            // Upstream BroadSword#getRepairModifierForPart returns DURABILITY_MODIFIER (1.1) for every part.
+            .withRepairModifiers(0f, 1.1f, 0f);
 
     /**
      * Upstream {@code tools/melee/item/LongSword.java}: charged-leap sword, hand guard.
@@ -203,7 +278,9 @@ public final class ToolConstants {
     public static final Entry LONGSWORD = new Entry("longsword", Category.MELEE,
             List.of(new PartSlot(Role.HANDLE, TOOL_HANDLE), new PartSlot(Role.HEAD, "sword_blade"),
                     new PartSlot(Role.EXTRA, "hand_guard")),
-            1.4f, 1.1f, 1.0f, 0.5f, 1.05f, 0.5f, false, false, 18.0f);
+            1.4f, 1.1f, 1.0f, 0.5f, 1.05f, 0.5f, false, false, 18.0f)
+            // Upstream LongSword#getRepairModifierForPart returns DURABILITY_MODIFIER (1.05).
+            .withRepairModifiers(0f, 1.05f, 0f);
 
     /**
      * Upstream {@code tools/melee/item/Rapier.java}: fast hybrid-damage sword, cross guard.
@@ -212,7 +289,10 @@ public final class ToolConstants {
     public static final Entry RAPIER = new Entry("rapier", Category.MELEE,
             List.of(new PartSlot(Role.HANDLE, TOOL_HANDLE), new PartSlot(Role.HEAD, "sword_blade"),
                     new PartSlot(Role.EXTRA, "cross_guard")),
-            3.0f, 0.55f, 1.0f, 0.0f, 0.8f, 0.5f, false, false, 13.0f);
+            3.0f, 0.55f, 1.0f, 0.0f, 0.8f, 0.5f, false, false, 13.0f)
+            // Upstream Rapier#getRepairModifierForPart returns DURABILITY_MODIFIER (0.8) -- a rapier
+            // is the one tool that repairs for *less* than its head material's durability.
+            .withRepairModifiers(0f, 0.8f, 0f);
 
     /** Upstream {@code tools/melee/item/BattleSign.java}: blocking/reflecting sign, no extra part. */
     public static final Entry BATTLESIGN = new Entry("battlesign", Category.MELEE,
@@ -228,7 +308,9 @@ public final class ToolConstants {
     public static final Entry MATTOCK = new Entry("mattock", Category.HARVEST,
             List.of(new PartSlot(Role.HANDLE, TOOL_HANDLE), new PartSlot(Role.HEAD, "axe_head"),
                     new PartSlot(Role.HEAD, "shovel_head")),
-            0.9f, 0.90f, 1.0f, 3.0f, 1.0f, 0.95f, false, false);
+            0.9f, 0.90f, 1.0f, 3.0f, 1.0f, 0.95f, false, false)
+            // Upstream Mattock#getRepairParts is {1, 2}; it overrides no repair modifier, so both at 1.
+            .withRepairModifiers(0f, 1f, 1f);
 
     /** Upstream {@code tools/tools/Kama.java}: single head, M1's shared binding part. */
     public static final Entry KAMA = new Entry("kama", Category.HARVEST,
@@ -249,7 +331,11 @@ public final class ToolConstants {
     public static final Entry BATTLEAXE = new Entry("battleaxe", Category.MELEE,
             List.of(new PartSlot(Role.HANDLE, TOUGH_TOOL_HANDLE), new PartSlot(Role.HEAD, "broad_axe_head"),
                     new PartSlot(Role.HEAD, "broad_axe_head"), new PartSlot(Role.EXTRA, TOUGH_BINDING)),
-            0.95f, 1.0f, 1.2f, 0.0f, 1.10f, 0.6f, true, true);
+            0.95f, 1.0f, 1.2f, 0.0f, 1.10f, 0.6f, true, true)
+            // Upstream BattleAxe#getRepairParts is {1, 2} -- both heads -- and it overrides no repair
+            // modifier, so both repair at 1 despite its durability multiplier. The rebalance decision
+            // above covers its stats, not this, which is upstream's own shipped-source repair table.
+            .withRepairModifiers(0f, 1f, 1f, 0f);
 
     /**
      * Upstream {@code tools/melee/item/Cleaver.java}: head+shield average, pre-multiply then bonus.
@@ -258,31 +344,48 @@ public final class ToolConstants {
     public static final Entry CLEAVER = new Entry("cleaver", Category.MELEE,
             List.of(new PartSlot(Role.HANDLE, TOUGH_TOOL_HANDLE), new PartSlot(Role.HEAD, "large_sword_blade"),
                     new PartSlot(Role.HEAD, "large_plate"), new PartSlot(Role.EXTRA, TOUGH_TOOL_HANDLE)),
-            0.7f, 1.2f, 1.3f, 3.0f, 2.0f, 0.5f, false, false, 25.0f);
+            0.7f, 1.2f, 1.3f, 3.0f, 2.0f, 0.5f, false, false, 25.0f)
+            // Upstream Cleaver: getRepairParts {1, 2}, getRepairModifierForPart index 1 ->
+            // DURABILITY_MODIFIER (2), everything else -> DURABILITY_MODIFIER * 0.75 (1.5).
+            .withRepairModifiers(0f, 2f, 1.5f, 0f);
 
     /** Upstream {@code tools/tools/Hammer.java}: hammer head weighted double over two large plates. */
     public static final Entry HAMMER = new Entry("hammer", Category.HARVEST,
             List.of(new PartSlot(Role.HANDLE, TOUGH_TOOL_HANDLE), new PartSlot(Role.HEAD, "hammer_head", 2.0f),
                     new PartSlot(Role.HEAD, "large_plate"), new PartSlot(Role.HEAD, "large_plate")),
-            0.8f, 1.2f, 1.0f, 0.0f, 2.5f, 0.4f, false, false);
+            0.8f, 1.2f, 1.0f, 0.0f, 2.5f, 0.4f, false, false)
+            // Upstream Hammer: getRepairParts {1, 2, 3}, index 1 -> DURABILITY_MODIFIER (2.5),
+            // the two plates -> DURABILITY_MODIFIER * 0.6 (1.5).
+            .withRepairModifiers(0f, 2.5f, 1.5f, 1.5f);
 
     /** Upstream {@code tools/tools/Excavator.java}: excavator head + large plate, unweighted average. */
     public static final Entry EXCAVATOR = new Entry("excavator", Category.HARVEST,
             List.of(new PartSlot(Role.HANDLE, TOUGH_TOOL_HANDLE), new PartSlot(Role.HEAD, "excavator_head"),
                     new PartSlot(Role.HEAD, "large_plate"), new PartSlot(Role.EXTRA, TOUGH_BINDING)),
-            0.7f, 1.25f, 1.0f, 0.0f, 1.75f, 0.28f, false, false);
+            0.7f, 1.25f, 1.0f, 0.0f, 1.75f, 0.28f, false, false)
+            // Upstream Excavator: getRepairParts {1, 2}, index 1 -> DURABILITY_MODIFIER (1.75),
+            // the plate -> DURABILITY_MODIFIER * 0.75 (1.3125).
+            .withRepairModifiers(0f, 1.75f, 1.3125f, 0f);
 
     /** Upstream {@code tools/tools/LumberAxe.java}: broad axe head + large plate, unweighted average. */
     public static final Entry LUMBERAXE = new Entry("lumberaxe", Category.HARVEST,
             List.of(new PartSlot(Role.HANDLE, TOUGH_TOOL_HANDLE), new PartSlot(Role.HEAD, "broad_axe_head"),
                     new PartSlot(Role.HEAD, "large_plate"), new PartSlot(Role.EXTRA, TOUGH_BINDING)),
-            0.8f, 1.2f, 1.0f, 2.0f, 2.0f, 0.35f, false, false);
+            0.8f, 1.2f, 1.0f, 2.0f, 2.0f, 0.35f, false, false)
+            // Upstream LumberAxe: getRepairParts {1, 2}, index 1 -> DURABILITY_MODIFIER (2),
+            // the plate -> DURABILITY_MODIFIER * 0.625 (1.25).
+            .withRepairModifiers(0f, 2f, 1.25f, 0f);
 
     /** Upstream {@code tools/tools/Scythe.java}: single head, two tough handles averaged. */
     public static final Entry SCYTHE = new Entry("scythe", Category.HARVEST,
             List.of(new PartSlot(Role.HANDLE, TOUGH_TOOL_HANDLE), new PartSlot(Role.HEAD, "scythe_head"),
                     new PartSlot(Role.EXTRA, TOUGH_BINDING), new PartSlot(Role.HANDLE, TOUGH_TOOL_HANDLE)),
-            0.9f, 0.75f, 1.0f, 0.0f, 2.2f, 1.0f, false, false);
+            0.9f, 0.75f, 1.0f, 0.0f, 2.2f, 1.0f, false, false)
+            // Upstream Scythe#getRepairParts is {1, 2} -- head *and tough binding*, since its part
+            // order is (handle, head, binding, handle) -- and it overrides no repair modifier, so
+            // both repair at 1 despite DURABILITY_MODIFIER = 2.2. Ported verbatim: the scythe is the
+            // only tool upstream lets you repair with a non-head part's material.
+            .withRepairModifiers(0f, 1f, 1f, 0f);
 
     /**
      * No 1.12 counterpart. Part weights (hammer head 0.75 / large plate 0.25) and stats ported from
@@ -354,7 +457,9 @@ public final class ToolConstants {
     public static final Entry SHORTBOW = new Entry("shortbow", Category.RANGED,
             List.of(new PartSlot(Role.LIMB, "bow_limb"), new PartSlot(Role.LIMB, "bow_limb"),
                     new PartSlot(Role.BOWSTRING, "bow_string")),
-            1.5f, 0.7f, 1.0f, 0.0f, 1.0f, 1.0f, false, false);
+            1.5f, 0.7f, 1.0f, 0.0f, 1.0f, 1.0f, false, false)
+            // Upstream ShortBow#getRepairParts is {0, 1} -- both limbs, no modifier override.
+            .withRepairModifiers(1f, 1f, 0f);
 
     /**
      * Upstream {@code tools/ranged/item/LongBow.java} (M3.5 issue #395): two limbs, a large plate
@@ -370,7 +475,12 @@ public final class ToolConstants {
     public static final Entry LONGBOW = new Entry("longbow", Category.RANGED,
             List.of(new PartSlot(Role.LIMB, "bow_limb"), new PartSlot(Role.LIMB, "bow_limb"),
                     new PartSlot(Role.EXTRA, "large_plate"), new PartSlot(Role.BOWSTRING, "bow_string")),
-            1.3f, 0.7f, 1.0f, 0.0f, 1.4f, 1.0f, false, false);
+            1.3f, 0.7f, 1.0f, 0.0f, 1.4f, 1.0f, false, false)
+            // Upstream LongBow does NOT override getRepairParts, so it keeps TinkersItem's default
+            // {1}: the *second* limb, not both like its ShortBow parent. Ported verbatim rather than
+            // "fixed" to both limbs -- it only shows on a bow whose two limbs differ, and inventing a
+            // second override here would be a deviation nobody asked for.
+            .withRepairModifiers(0f, 1f, 0f, 0f);
 
     /**
      * Upstream {@code tools/ranged/item/CrossBow.java} (M3.5 issue #395): a tough tool rod body, one

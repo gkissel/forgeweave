@@ -12,8 +12,8 @@ import dev.gkissel.forgeweave.material.Material;
 import dev.gkissel.forgeweave.menu.ToolAssemblyRecipes;
 
 /**
- * Builds one {@link RepairRecipe} per registered material -- repair only depends on a tool's head
- * material (CONTEXT.md; {@code menu.ToolAssemblyRecipes#resolveRepair}), not its tool type, so one
+ * Builds one {@link RepairRecipe} per registered material -- repair depends on the materials of a
+ * tool's repair parts ({@code menu.ToolAssemblyRecipes#resolveRepair}), not on its tool type, so one
  * recipe per material covers every tool rather than one per (tool type, material) pair.
  */
 final class RepairRecipes {

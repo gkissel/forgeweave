@@ -7,8 +7,7 @@ import org.junit.jupiter.api.Test;
 /**
  * Pins {@link ToolRepair#repairIncrement} against upstream 1.12's
  * {@code TinkersItem#calculateRepairAmount} + {@code #calculateRepair} (see {@link ToolRepair}'s
- * javadoc for how those two collapse for Forgeweave's single-repairable-part tools). Numbers use
- * the shipped stone material (head durability 120) on the stone/wood/wood pickaxe the Tool Station
+ * javadoc). Numbers use the shipped stone material (head durability 120) on the stone/wood/wood pickaxe the Tool Station
  * GameTests build (durability pool 160 for these numbers -- the fixtures predate the Tool Forge's
  * cheap trait retune used elsewhere).
  */
@@ -53,6 +52,27 @@ class ToolRepairTest {
     void durabilityFactorCapsAtTen() {
         // actual/base far past 10x still only scales the repair by 10x, upstream's min(10f, ...) cap.
         assertEquals(1200, ToolRepair.repairIncrement(120, 16, 16_000, 0, 0));
+    }
+
+    /**
+     * Upstream {@code TinkersItem#calculateRepairAmount}: each repair part contributes its material's
+     * head durability times that slot's repair modifier, and the whole sum gains {@code 1/9} per
+     * distinct material past the first (parity audit T31, issue #462).
+     */
+    @Test
+    void repairAmountWeightsEachPartAndPaysAMultiMaterialBonus() {
+        assertEquals(120, ToolRepair.repairAmount(120f, 1), "one part at factor 1 is just its head durability");
+        assertEquals(300, ToolRepair.repairAmount(120f * 2.5f, 1), "a hammer head repairs at 2.5x");
+        // Iron-headed hammer (head durability 204) with two cobalt plates (durability 780):
+        // 204 * 2.5 + 780 * 1.5 = 1680, two distinct materials -> * (1 + 1/9).
+        assertEquals(1866, ToolRepair.repairAmount(204f * 2.5f + 780f * 1.5f, 2));
+        // Three distinct materials: * (1 + 2/9).
+        assertEquals(146, ToolRepair.repairAmount(120f, 3));
+    }
+
+    @Test
+    void aRoundWithNoMatchingMaterialIsWorthNothing() {
+        assertEquals(0, ToolRepair.repairAmount(0f, 0));
     }
 
     @Test

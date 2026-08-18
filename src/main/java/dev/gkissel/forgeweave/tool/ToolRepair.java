@@ -9,7 +9,8 @@ package dev.gkissel.forgeweave.tool;
  * (the head):
  *
  * <pre>
- * calculateRepairAmount: amount = headStats.durability * match.amount / 144
+ * calculateRepairAmount: amount = sum over repair parts of
+ *                                 headStats.durability * match.amount * repairModifier(part) / 144
  *                        amount *= 1 + (materialsMatched - 1) / 9
  * calculateRepair:       increase = amount * min(10, actualDurability / baseDurability)
  *                        increase = max(increase, actualDurability / 64)
@@ -24,8 +25,11 @@ package dev.gkissel.forgeweave.tool;
  *       is a plain {@code Ingredient} with no unit system, so one matching item is one
  *       ingot-equivalent and the ratio is exactly 1 -- a repair item is worth the head material's
  *       full head durability, same as upstream.
- *   <li>{@code materialsMatched}: a Forgeweave tool has exactly one repairable part (the head), so
- *       the multi-material bonus is always {@code 1 + 0/9 = 1}.
+ *   <li>{@code materialsMatched}: how many <em>distinct</em> materials the repair spent this round
+ *       ({@link #repairAmount}). A tool with several repair parts built from several materials pays
+ *       one item of each and gets an extra {@code 1/9} per material past the first, exactly as
+ *       upstream -- see {@code ToolConstants.Entry#repairSlots()} for which slots those are and what
+ *       each one's {@code repairModifier} is (issue #462).
  *   <li>{@code actualDurability / baseDurability}: Modifiers (M2, docs/SCOPE.md) that grow the
  *       durability pool -- Diamond, Emerald -- make {@code actualDurability} outgrow the material's
  *       untouched {@code baseDurability}, and the repair scales up with it so the same modifier can
@@ -43,9 +47,23 @@ public final class ToolRepair {
     private static final float[] MODIFIER_PENALTY = {1.00F, 0.95F, 0.90F, 0.85F};
 
     /**
-     * Durability restored by a single repair item.
+     * Upstream {@code TinkersItem#calculateRepairAmount}: what one round of repair items is worth
+     * before the tool's own durability pool, modifier count and repair count are folded in.
      *
-     * @param headDurability the head {@code Material}'s {@code head.durability} stat
+     * @param weightedHeadDurability the sum, over every repair part paid this round, of that part's
+     *     material head durability times the part's {@code repairModifier}
+     * @param materialsMatched how many distinct materials were paid this round -- each one past the
+     *     first adds {@code 1/9} to the total
+     */
+    public static int repairAmount(float weightedHeadDurability, int materialsMatched) {
+        return (int) (weightedHeadDurability * (1f + (materialsMatched - 1) / 9f));
+    }
+
+    /**
+     * Durability restored by one round of repair items.
+     *
+     * @param amount {@link #repairAmount}'s result -- for a one-part repair at factor {@code 1},
+     *     simply the head {@code Material}'s {@code head.durability} stat
      * @param baseDurability the tool's untouched materials-derived durability pool ({@code
      *     forgeweave:tool_stats}'s {@code ToolStats.Stats#durability}, upstream's {@code origDur})
      * @param actualDurability the tool's current, possibly modifier-grown durability pool ({@code
@@ -55,9 +73,9 @@ public final class ToolRepair {
      *     dev.gkissel.forgeweave.modifier.ForgeweaveModifiers#occupiedSlots}), embossments excluded
      */
     public static int repairIncrement(
-            int headDurability, int baseDurability, int actualDurability, int repairCount, int occupiedModifierSlots) {
+            int amount, int baseDurability, int actualDurability, int repairCount, int occupiedModifierSlots) {
         float durabilityFactor = Math.min(MAX_DURABILITY_FACTOR, actualDurability / (float) baseDurability);
-        float increase = headDurability * durabilityFactor;
+        float increase = amount * durabilityFactor;
         increase = Math.max(increase, actualDurability / 64f);
         increase *= MODIFIER_PENALTY[Math.min(occupiedModifierSlots, MODIFIER_PENALTY.length - 1)];
         // Integer division on repairCount is upstream's, not a typo: two repairs cost one percent.

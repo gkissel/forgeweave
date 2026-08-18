@@ -2,10 +2,12 @@ package dev.gkissel.forgeweave.menu;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
@@ -272,11 +274,13 @@ public final class ToolAssemblyRecipes {
         return ENTRIES.stream().filter(entry -> tool.is(entry.tool().get())).findFirst();
     }
 
-    /** Whether {@code stack} repairs the tool currently in the head slot. */
+    /**
+     * Whether {@code stack} repairs the tool currently in the head slot -- any of its repair parts'
+     * materials, not only its head's (issue #462).
+     */
     static boolean isRepairItemFor(HolderLookup.Provider registries, ItemStack headSlotStack, ItemStack stack) {
-        return headMaterialOf(registries, headSlotStack)
-                .filter(material -> material.repairItem().test(stack))
-                .isPresent();
+        return repairMaterialsOf(registries, headSlotStack).stream()
+                .anyMatch(repair -> repair.material().repairItem().test(stack));
     }
 
     /**
@@ -851,15 +855,27 @@ public final class ToolAssemblyRecipes {
     }
 
     /**
-     * Repairs the tool in the head slot with as many matching items as it takes (or as many as are
-     * there), pooled across all five free slots and spent lowest slot first -- upstream
+     * Repairs the tool in the head slot with as many rounds of matching items as it takes (or as many
+     * as are there), pooled across all five free slots and spent lowest slot first -- upstream
      * {@code ContainerToolStation#getInputs} feeds {@code TinkersItem#repair} every free slot and
      * {@code Material#matches} sums the repair item across them (parity audit T2, issue #434). A
-     * free slot holding anything that is not the repair item makes this not a repair at all
+     * free slot holding anything that is not a repair item makes this not a repair at all
      * (upstream's "check if all items were used" bail, {@code TinkersItem.java:325-331}), so the
      * loadout falls through to the modifier path and its explained refusal. Every other component
      * -- materials, stats, the vanilla tool component -- rides along untouched on the copy, so a
      * repaired tool is the same tool.
+     *
+     * <h2>Multi-part repair (issue #462, parity audit T31)</h2>
+     *
+     * <p>A tool is repairable through every slot its {@link ToolConstants.Entry#repairSlots()} names,
+     * not just its head: a hammer takes its hammer-head material <em>or</em> either large plate's, a
+     * scythe takes its head's or its tough binding's, a shortbow takes either limb's. One
+     * <em>round</em> of repair pays one item of each distinct repair material that is actually
+     * present, weights each by that slot's {@code repairModifier} (hammer head 2.5x, its plates 1.5x,
+     * rapier blade 0.8x...) and, per upstream {@code TinkersItem#calculateRepairAmount}, adds
+     * {@code 1/9} for every distinct material past the first. Upstream's own de-duplication rule is
+     * kept: when two repair slots hold the same material only the first is counted, so an all-cobalt
+     * hammer repairs at 2.5x once, not 2.5x + 1.5x + 1.5x with a triple-material bonus.
      */
     private static Optional<Result> resolveRepair(HolderLookup.Provider registries, ItemStack toolStack,
             List<ItemStack> freeSlots, boolean forge) {
@@ -867,79 +883,140 @@ public final class ToolAssemblyRecipes {
         if (damage <= 0) {
             return Optional.empty(); // undamaged and unbroken: nothing to repair (upstream 1.12 does the same)
         }
-        Optional<Material> head = headMaterialOf(registries, toolStack);
-        if (head.isEmpty()) {
+        List<RepairMaterial> repairMaterials = repairMaterialsOf(registries, toolStack);
+        if (repairMaterials.isEmpty()) {
             return Optional.empty();
         }
 
-        int[] perSlot = new int[freeSlots.size()];
-        int available = 0;
-        for (int i = 0; i < perSlot.length; i++) {
+        // Which repair material each loaded free slot pays into. Upstream matches its repair parts in
+        // order, so the first material whose repair item accepts the stack claims it.
+        int[] paysInto = new int[freeSlots.size()];
+        int[] remaining = new int[freeSlots.size()];
+        boolean any = false;
+        for (int i = 0; i < freeSlots.size(); i++) {
             ItemStack stack = freeSlots.get(i);
+            paysInto[i] = -1;
             if (stack.isEmpty()) {
                 continue;
             }
-            if (!head.get().repairItem().test(stack)) {
+            for (int m = 0; m < repairMaterials.size(); m++) {
+                if (repairMaterials.get(m).material().repairItem().test(stack)) {
+                    paysInto[i] = m;
+                    break;
+                }
+            }
+            if (paysInto[i] < 0) {
                 return Optional.empty(); // upstream: an untouched input means this is no repair
             }
-            perSlot[i] = stack.getCount();
-            available += perSlot[i];
+            remaining[i] = stack.getCount();
+            any = true;
         }
-        if (available == 0) {
+        if (!any) {
             return Optional.empty();
         }
 
-        int headDurability = head.get().head().map(Material.Head::durability).orElse(0);
         int maxDamage = toolStack.getMaxDamage();
         ToolStats.Stats baseStats = toolStack.get(ForgeweaveDataComponents.TOOL_STATS.get());
         int baseDurability = baseStats != null ? baseStats.durability() : maxDamage;
         int occupiedModifierSlots = ForgeweaveModifiers.occupiedSlots(toolStack);
         int repairCount = toolStack.getOrDefault(ForgeweaveDataComponents.REPAIR_COUNT.get(), 0);
-        int used = 0;
-        while (damage > 0 && used < available) {
-            int increment = repairIncrement(
-                    headDurability, baseDurability, maxDamage, repairCount + used, occupiedModifierSlots, forge);
+        int rounds = 0;
+        int[] spend = new int[freeSlots.size()];
+        while (damage > 0) {
+            // One round: the lowest slot still holding each distinct repair material, or none of it.
+            int[] payingSlot = new int[repairMaterials.size()];
+            Arrays.fill(payingSlot, -1);
+            float weighted = 0f;
+            int matched = 0;
+            for (int i = 0; i < freeSlots.size(); i++) {
+                int m = paysInto[i];
+                if (m < 0 || remaining[i] == 0 || payingSlot[m] >= 0) {
+                    continue;
+                }
+                payingSlot[m] = i;
+                weighted += repairMaterials.get(m).weightedHeadDurability();
+                matched++;
+            }
+            int amount = ToolRepair.repairAmount(weighted, matched);
+            if (amount <= 0) {
+                break; // nothing left to repair with (upstream's own do-while bail)
+            }
+            int increment = repairIncrement(amount, baseDurability, maxDamage, repairCount + rounds,
+                    occupiedModifierSlots, forge);
             // Traits get to top the repair up (upstream 1.12 fires ITrait#onToolHeal on every heal).
             damage -= increment + ForgeweaveTraits.repairBonus(toolStack, increment);
-            used++;
+            for (int slot : payingSlot) {
+                if (slot >= 0) {
+                    remaining[slot]--;
+                    spend[slot]++;
+                }
+            }
+            rounds++;
+        }
+        if (rounds == 0) {
+            return Optional.empty();
         }
 
         ItemStack result = toolStack.copy();
         result.set(DataComponents.DAMAGE, Math.max(0, damage));
-        result.set(ForgeweaveDataComponents.REPAIR_COUNT.get(), repairCount + used);
-        // Any repair moves the tool off the Broken threshold, since one repair item is always worth
+        result.set(ForgeweaveDataComponents.REPAIR_COUNT.get(), repairCount + rounds);
+        // Any repair moves the tool off the Broken threshold, since one repair round is always worth
         // at least 1/64 of the durability pool.
         result.remove(ForgeweaveDataComponents.BROKEN.get());
-        List<Integer> slotsUsed = new ArrayList<>(1 + perSlot.length);
+        List<Integer> slotsUsed = new ArrayList<>(1 + spend.length);
         slotsUsed.add(1);
-        int spend = used;
-        for (int count : perSlot) {
-            int take = Math.min(spend, count);
-            slotsUsed.add(take);
-            spend -= take;
+        for (int count : spend) {
+            slotsUsed.add(count);
         }
         return Optional.of(new Result(result, slotsUsed));
     }
 
     /**
-     * What one repair item restores, with the Tool Forge's {@link #FORGE_REPAIR_DISCOUNT} folded in.
-     * Public so a GameTest can assert the discount arithmetic directly rather than only through a
-     * tool's damage value.
+     * One material a repair may be paid in: the {@link Material} itself plus its head durability
+     * already multiplied by the {@code repairModifier} of the slot that contributed it.
      */
-    public static int repairIncrement(int headDurability, int baseDurability, int actualDurability,
-            int repairCount, int occupiedModifierSlots, boolean forge) {
-        int increment = ToolRepair.repairIncrement(
-                headDurability, baseDurability, actualDurability, repairCount, occupiedModifierSlots);
-        return forge ? (int) Math.ceil(increment / FORGE_REPAIR_DISCOUNT) : increment;
+    private record RepairMaterial(Material material, float weightedHeadDurability) {}
+
+    /**
+     * Every material {@code stack} can be repaired with, in repair-slot order -- upstream
+     * {@code TinkersItem#calculateRepairAmount}'s loop over {@code getRepairParts()}, including its
+     * two skips: a material already claimed by an earlier repair slot (so the first slot's factor
+     * wins), and a material with no head stats at all (upstream's {@code if(stats != null)}).
+     */
+    private static List<RepairMaterial> repairMaterialsOf(HolderLookup.Provider registries, ItemStack stack) {
+        Optional<Entry> entry = entryFor(stack);
+        ToolMaterials materials = stack.get(ForgeweaveDataComponents.TOOL_MATERIALS.get());
+        if (entry.isEmpty() || materials == null) {
+            return List.of();
+        }
+        List<ResourceLocation> parts = materials.parts();
+        List<RepairMaterial> repairable = new ArrayList<>(2);
+        Set<ResourceLocation> seen = new HashSet<>();
+        for (ToolConstants.RepairPart part : entry.get().constants().repairSlots()) {
+            if (part.slot() >= parts.size() || !seen.add(parts.get(part.slot()))) {
+                continue;
+            }
+            Optional<Material> material = lookupMaterial(registries, parts.get(part.slot()));
+            Optional<Integer> headDurability = material.flatMap(Material::head).map(Material.Head::durability);
+            if (headDurability.isEmpty()) {
+                continue;
+            }
+            repairable.add(new RepairMaterial(material.get(), headDurability.get() * part.modifier()));
+        }
+        return List.copyOf(repairable);
     }
 
-    /** The {@code Material} of an assembled tool's head part, which is what a repair needs. */
-    private static Optional<Material> headMaterialOf(HolderLookup.Provider registries, ItemStack stack) {
-        if (!(stack.getItem() instanceof ToolItem)) {
-            return Optional.empty();
-        }
-        ToolMaterials materials = stack.get(ForgeweaveDataComponents.TOOL_MATERIALS.get());
-        return materials == null ? Optional.empty() : lookupMaterial(registries, materials.head());
+    /**
+     * What one round of repair items restores, with the Tool Forge's {@link #FORGE_REPAIR_DISCOUNT}
+     * folded in. {@code amount} is {@link ToolRepair#repairAmount}'s result, which for the common
+     * one-repair-part tool is simply its head material's head durability. Public so a GameTest can
+     * assert the discount arithmetic directly rather than only through a tool's damage value.
+     */
+    public static int repairIncrement(int amount, int baseDurability, int actualDurability,
+            int repairCount, int occupiedModifierSlots, boolean forge) {
+        int increment = ToolRepair.repairIncrement(
+                amount, baseDurability, actualDurability, repairCount, occupiedModifierSlots);
+        return forge ? (int) Math.ceil(increment / FORGE_REPAIR_DISCOUNT) : increment;
     }
 
     private static Optional<Material> lookupMaterial(HolderLookup.Provider registries, ResourceLocation id) {
