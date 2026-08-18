@@ -95,6 +95,12 @@ public final class ForgeweaveBlockEntities {
                     .of(SearedChuteBlockEntity::new, ForgeweaveBlocks.SEARED_CHUTE.get())
                     .build(null));
 
+    // #441 (parity audit T9) -- the channel's fluid buffer and flow flags.
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<SearedChannelBlockEntity>> SEARED_CHANNEL =
+            BLOCK_ENTITIES.register("seared_channel", () -> BlockEntityType.Builder
+                    .of(SearedChannelBlockEntity::new, ForgeweaveBlocks.SEARED_CHANNEL.get())
+                    .build(null));
+
     // #100 -- casting (docs/SCOPE.md M2 issue #100).
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<CastingBlockEntity>> CASTING_TABLE =
             BLOCK_ENTITIES.register("casting_table", () -> BlockEntityType.Builder

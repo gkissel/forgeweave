@@ -340,7 +340,7 @@ The core loop — multiblock rules, melting math, fuel model, in-tank alloying, 
 | Seared tank / gauge / window | `TileTank:17-100` | TankBlockEntity | `SearedTankBlock(Entity)` | have | Y (#95/#145/#379) | none | — |
 | Seared drain | `TileDrain:18-72` | DrainBlockEntity | `SearedDrainBlockEntity` | have | Y (#95/#183) | none | — |
 | Seared duct + chute | n/a | 1.20 duct/chute | `SearedDuct*`, `SearedChute*` | forgeweave-only | Y (#277) | none | — |
-| Channels (fluid transport) | `BlockChannel`, `TileChannel` | kept | absent, unscoped | missing | N | **high** | T9 |
+| Channels (fluid transport) | `BlockChannel`, `TileChannel` | kept | `SearedChannelBlock(Entity)` | have | Y (#441) | none | — |
 | Seared furnace multiblock | `TileSearedFurnace`, `MultiblockSearedFurnace` | dropped | absent, unscoped | missing | N | **high** | T10 |
 | Tinker tank multiblock | `TileTinkerTank`, `MultiblockTinkerTank` | dropped | absent, unscoped | missing | N | medium | T44 |
 | Seared block family (12 variants, stairs, slabs, glass, brick chain) | `BlockSeared:25-38` | seared + scorched | `ForgeweaveBlocks:104-190` | have | Y (#93/#274/#289) | low | — |
@@ -618,7 +618,7 @@ Prioritized and deduplicated across domains. Already-filed issues are marked; **
 - [x] **T6 — Port the Width++/Height++ expander modifiers** (shipped, #438) — `expander_w`/`expander_h` items plus +1 AOE axis on harvest and large tools (modifiers, high, M3.5 playtest-fix).
 - [ ] **T7 — Melt vanilla metal-crafted items** — recipe-derived (or generated) melting rows for iron/gold tools, armor, buckets, rails, horse armor, minecarts, with an ignore list (smeltery, high, M6/backlog).
 - [ ] **T8 — Restore the stone → molten seared stone chain** — melting rows for stone/cobblestone (72 mB), grout (24) and stone tool parts (smeltery, high, backlog).
-- [ ] **T9 — Port seared channels** — connection states, side/down flow, redstone gate, renderer, 5-brick recipe (smeltery, high, M6/backlog).
+- [x] **T9 — Port seared channels** (shipped, #441) — `forgeweave:seared_channel` with upstream's four side connections plus a downward output, its click cycle, redstone gate, 36 mB buffer and 6 mB/tick flow, the fluid renderer, and the 5-brick-to-3 recipe. The connections live in the blockstate rather than the block entity (modern Minecraft has no `getActualState`), and upstream's cosmetic `lever` connection state is dropped, as the 1.20 generation itself dropped it (smeltery, high, M6/backlog).
 - [ ] **T10 — Port the seared furnace multiblock** — controller, structure rules (frame + tanks + stairs/slab ceiling), GUI, JEI catalyst, recipes; unblocks #369 and the book section (smeltery, high, M6/backlog).
 - [ ] **T11 — Tool Station rename** — rename an existing tool with no other inputs, and sync the typed name across players at the same station (stations, high, M3.5 fix round).
 - [ ] **T12 — Part Builder destroys shard change** — block the output when the change slot holds a non-stacking stack instead of dropping the leftover (stations, high, M3.5 fix round).

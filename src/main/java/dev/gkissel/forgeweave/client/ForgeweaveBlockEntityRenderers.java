@@ -38,6 +38,9 @@ public final class ForgeweaveBlockEntityRenderers {
                 context -> CastingBlockEntityRenderer.basin());
         event.registerBlockEntityRenderer(ForgeweaveBlockEntities.FAUCET.get(),
                 context -> new FaucetBlockEntityRenderer());
+        // #441 (parity audit T9) -- the fluid standing in a channel and the streams out of it.
+        event.registerBlockEntityRenderer(ForgeweaveBlockEntities.SEARED_CHANNEL.get(),
+                context -> new SearedChannelBlockEntityRenderer());
         // #447 -- a dropped tool is an item entity in every respect but dying, so it draws with
         // vanilla's item entity renderer (see entity.IndestructibleItemEntity).
         event.registerEntityRenderer(ForgeweaveEntities.INDESTRUCTIBLE_ITEM.get(), ItemEntityRenderer::new);

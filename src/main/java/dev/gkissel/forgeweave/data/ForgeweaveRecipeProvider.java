@@ -634,6 +634,15 @@ public class ForgeweaveRecipeProvider extends RecipeProvider {
         searedBrickShape(recipeOutput, ForgeweaveItems.CASTING_TABLE.get(), "AAA", "A A", "A A");
         searedBrickShape(recipeOutput, ForgeweaveItems.CASTING_BASIN.get(), "A A", "A A", "AAA");
         searedBrickShape(recipeOutput, ForgeweaveItems.FAUCET.get(), "A A", " A ");
+
+        // #441 (parity audit T9) -- the channel, upstream 1.12's recipes/smeltery/channel.json
+        // (NOTICE.md): five seared bricks in a trough shape make three channels.
+        ShapedRecipeBuilder.shaped(RecipeCategory.MISC, ForgeweaveItems.SEARED_CHANNEL.get(), 3)
+                .pattern("A A")
+                .pattern("AAA")
+                .define('A', ForgeweaveItems.SEARED_BRICK.get())
+                .unlockedBy("has_seared_brick", has(ForgeweaveItems.SEARED_BRICK.get()))
+                .save(recipeOutput);
     }
 
     /** A shape made purely of seared bricks. */

@@ -25,6 +25,7 @@ import dev.gkissel.forgeweave.block.CastingBlockEntity;
 import dev.gkissel.forgeweave.block.ChestBlockEntity;
 import dev.gkissel.forgeweave.block.ForgeweaveBlockEntities;
 import dev.gkissel.forgeweave.block.ForgeweaveBlocks;
+import dev.gkissel.forgeweave.block.SearedChannelBlockEntity;
 import dev.gkissel.forgeweave.block.SearedChuteBlockEntity;
 import dev.gkissel.forgeweave.block.SearedDrainBlockEntity;
 import dev.gkissel.forgeweave.block.SearedDuctBlockEntity;
@@ -109,6 +110,8 @@ public class Forgeweave {
         // chute re-exposes the core's melting inventory.
         modEventBus.addListener(SearedDuctBlockEntity::registerCapabilities);
         modEventBus.addListener(SearedChuteBlockEntity::registerCapabilities);
+        // #441 (parity audit T9) -- a channel takes fluid on its top and on any side set to `in`.
+        modEventBus.addListener(SearedChannelBlockEntity::registerCapabilities);
         // #470 -- the core itself also exposes its melting inventory directly, so a hopper feeding it
         // (no chute required) works the way upstream's Mantle-derived TileInventory always did.
         modEventBus.addListener(SmelteryControllerBlockEntity::registerCapabilities);

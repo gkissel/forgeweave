@@ -114,6 +114,16 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         addBlock(ForgeweaveBlocks.SEARED_DUCT, "Seared Duct");
         addBlock(ForgeweaveBlocks.SEARED_CHUTE, "Seared Chute");
 
+        // #441 (parity audit T9) -- the channel, upstream's tile.tconstruct.channel.name, plus the
+        // five action-bar messages its connection cycle prints (upstream's channel.connected.*
+        // and channel.connected_down.* keys).
+        addBlock(ForgeweaveBlocks.SEARED_CHANNEL, "Seared Channel");
+        add("message.forgeweave.channel.side.in", "Set side to flow inwards");
+        add("message.forgeweave.channel.side.out", "Set side to flow outwards");
+        add("message.forgeweave.channel.side.none", "Disallowed flowing on side");
+        add("message.forgeweave.channel.down.out", "Allowed flowing down");
+        add("message.forgeweave.channel.down.none", "Disallowed flowing down");
+
         // Plain seared glass (docs/SCOPE.md M3.3 issue #289), name from upstream's tile.tconstruct.seared_glass.name.
         addBlock(ForgeweaveBlocks.SEARED_GLASS, "Seared Glass");
 
