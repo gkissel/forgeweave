@@ -63,7 +63,17 @@ public class CrossbowItem extends BowItem {
         stack.set(ForgeweaveDataComponents.CROSSBOW_LOADED.get(), loaded);
     }
 
-    /** {@code CrossBow#getItemUseAction() = EnumAction.NONE}: no bow-pull pose while cranking. */
+    /**
+     * {@code CrossBow#getItemUseAction() = EnumAction.NONE}: no bow-pull pose while cranking.
+     *
+     * <p>Deliberately still {@code NONE} after issue #425 gave the crossbow its third-person arm
+     * poses. {@code UseAnim.CROSSBOW} would have been the obvious way to ask vanilla for
+     * {@code CROSSBOW_CHARGE}, but vanilla's first-person {@code ItemInHandRenderer} has no
+     * {@code CROSSBOW} case in its use-animation switch -- its own crossbow never reaches it -- so
+     * the crossbow would render detached from the hand and lose issue #413's poses. The arm poses
+     * come from {@code ForgeweaveItemClientExtensions#crossbowArmPose} instead, which needs nothing
+     * from here.
+     */
     @Override
     public UseAnim getUseAnimation(ItemStack stack) {
         return UseAnim.NONE;
