@@ -233,4 +233,56 @@ public class PartBuilderGameTests {
 
         helper.succeed();
     }
+
+    /**
+     * Issue #444: upstream {@code ContainerPartBuilder#updateResult:130-142} clears the output while
+     * the change slot holds a stack this craft's shard change could not stack onto -- the craft is
+     * blocked, not completed with the change quietly thrown away.
+     */
+    @GameTest(template = "empty")
+    public static void occupiedChangeSlotBlocksTheCraftInsteadOfDestroyingTheChange(GameTestHelper helper) {
+        BlockPos pos = new BlockPos(1, 1, 1);
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        PartBuilderMenu menu = openMenu(helper, pos, player);
+
+        // Same setup as logProducesHeadAndShardChange: one log leaves 4 wood shards of change.
+        menu.getSlot(PartBuilderMenu.PATTERN_SLOT).set(new ItemStack(ForgeweaveItems.PATTERN_PICKAXE_HEAD.get()));
+        menu.getSlot(PartBuilderMenu.MATERIAL_SLOT).set(new ItemStack(Items.OAK_LOG, 1));
+
+        // A different material's shards already sitting in the change slot: the wood change cannot
+        // stack onto them, so upstream refuses to offer the craft at all.
+        ItemStack stoneShards = new ItemStack(ForgeweaveItems.SHARD.get(), 1);
+        stoneShards.set(ForgeweaveDataComponents.MATERIAL.get(), materialId("stone"));
+        menu.getSlot(PartBuilderMenu.CHANGE_SLOT).set(stoneShards);
+        menu.broadcastChanges();
+        helper.assertTrue(menu.getSlot(PartBuilderMenu.OUTPUT_SLOT).getItem().isEmpty(),
+                "a foreign stack in the change slot must block the output, got "
+                        + menu.getSlot(PartBuilderMenu.OUTPUT_SLOT).getItem());
+
+        // Change of the same material stacks, so the craft is offered and the change accumulates.
+        ItemStack woodShards = new ItemStack(ForgeweaveItems.SHARD.get(), 1);
+        woodShards.set(ForgeweaveDataComponents.MATERIAL.get(), materialId("wood"));
+        menu.getSlot(PartBuilderMenu.CHANGE_SLOT).set(woodShards);
+        menu.broadcastChanges();
+        ItemStack output = menu.getSlot(PartBuilderMenu.OUTPUT_SLOT).getItem();
+        helper.assertTrue(output.is(ForgeweaveItems.PART_PICKAXE_HEAD.get()),
+                "stackable change must not block the craft, got " + output);
+        menu.getSlot(PartBuilderMenu.OUTPUT_SLOT).onTake(player, output);
+        helper.assertTrue(menu.getSlot(PartBuilderMenu.CHANGE_SLOT).getItem().getCount() == 5,
+                "expected the 4 shards of change to stack onto the 1 already there, got "
+                        + menu.getSlot(PartBuilderMenu.CHANGE_SLOT).getItem());
+
+        // A change slot too full to take the whole change blocks the craft as well, rather than
+        // overflowing the stack (PartBuilderMenu#changeSlotAccepts; upstream misses this case).
+        ItemStack nearlyFull = new ItemStack(ForgeweaveItems.SHARD.get(), 62);
+        nearlyFull.set(ForgeweaveDataComponents.MATERIAL.get(), materialId("wood"));
+        menu.getSlot(PartBuilderMenu.CHANGE_SLOT).set(nearlyFull);
+        menu.getSlot(PartBuilderMenu.MATERIAL_SLOT).set(new ItemStack(Items.OAK_LOG, 1));
+        menu.broadcastChanges();
+        helper.assertTrue(menu.getSlot(PartBuilderMenu.OUTPUT_SLOT).getItem().isEmpty(),
+                "62 + 4 shards would overflow the stack, so the craft must be blocked, got "
+                        + menu.getSlot(PartBuilderMenu.OUTPUT_SLOT).getItem());
+
+        helper.succeed();
+    }
 }
