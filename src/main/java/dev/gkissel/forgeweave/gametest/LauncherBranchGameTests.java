@@ -200,7 +200,7 @@ public class LauncherBranchGameTests {
 
         helper.assertTrue(menu.getSlot(ToolStationMenu.OUTPUT_SLOT).getItem().isEmpty(),
                 "a kit and flint on a bow must fortify nothing, got " + menu.getSlot(ToolStationMenu.OUTPUT_SLOT).getItem());
-        helper.assertTrue(menu.rejection() != null && key(menu.rejection().message()).equals("gui.forgeweave.fortification.launcher"),
+        helper.assertTrue(menu.rejection() != null && key(menu.rejection().message()).equals("gui.forgeweave.fortification.not_harvest"),
                 "and the station must say a launcher has no tier to set, got " + menu.rejection());
         helper.succeed();
     }

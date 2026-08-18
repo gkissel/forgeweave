@@ -1,10 +1,13 @@
 package dev.gkissel.forgeweave.gametest;
 
 
+import java.util.List;
+
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
+import net.minecraft.network.chat.contents.TranslatableContents;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.ContainerLevelAccess;
@@ -248,6 +251,62 @@ public class FortificationGameTests {
         helper.assertTrue(menu.getSlot(ToolStationMenu.OUTPUT_SLOT).getItem().isEmpty(),
                 "a lone flint must never apply the forgeweave:fortification marker to a tool, got "
                         + menu.getSlot(ToolStationMenu.OUTPUT_SLOT).getItem());
+        helper.succeed();
+    }
+
+    /**
+     * T70 (issue #501): {@code ModFortify}'s aspects include {@code harvestOnly}
+     * ({@code CategoryAspect(HARVEST)}), which the station used to enforce only against bows
+     * ({@code LauncherBranchGameTests#fortifyIsRefusedOnALauncher}, M3.5 #396) -- every other
+     * non-harvest tool fell through and could be fortified. A broadsword is {@code Category.MELEE}
+     * upstream (no {@code addCategory(Category.HARVEST)} in {@code tools/melee/item/}), so a kit and
+     * flint on one must fortify nothing, the same way they fortify nothing on a bow.
+     */
+    @GameTest(template = "empty")
+    public static void fortifyIsRefusedOnANonHarvestTool(GameTestHelper helper) {
+        BlockPos pos = new BlockPos(1, 1, 1);
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        ItemStack broadsword = ToolAssembly.assemble(helper, player, pos,
+                ToolAssembly.entryFor(ForgeweaveItems.TOOL_BROADSWORD.get()), List.of("wood", "wood", "wood"));
+
+        ToolStationBlockEntity blockEntity = helper.getBlockEntity(pos);
+        blockEntity.container().clearContent();
+        blockEntity.container().setItem(ToolStationMenu.HEAD_SLOT, broadsword);
+        blockEntity.container().setItem(ToolStationMenu.BINDING_SLOT, kit("cobalt"));
+        blockEntity.container().setItem(ToolStationMenu.HANDLE_SLOT, new ItemStack(Items.FLINT));
+        ToolStationMenu menu = ToolAssembly.menu(helper, player, pos, blockEntity);
+        menu.broadcastChanges();
+
+        helper.assertTrue(menu.getSlot(ToolStationMenu.OUTPUT_SLOT).getItem().isEmpty(),
+                "a kit and flint on a broadsword must fortify nothing, got "
+                        + menu.getSlot(ToolStationMenu.OUTPUT_SLOT).getItem());
+        helper.assertTrue(menu.rejection() != null
+                && ((TranslatableContents) menu.rejection().message().getContents()).getKey()
+                        .equals("gui.forgeweave.fortification.not_harvest"),
+                "and the station must say a non-harvest tool has no tier to set, got " + menu.rejection());
+        helper.succeed();
+    }
+
+    /**
+     * The gate is upstream's {@code Category.HARVEST}, not "has derived overlay art": the mattock is
+     * a real {@code Category.HARVEST} tool ({@code tools/tools/Mattock.java}'s
+     * {@code addCategory(Category.HARVEST)}) even though upstream's own {@code items/mattock/} folder
+     * ships every other harvest-only modifier's overlay but not {@code mod_fortified.png} -- a texture
+     * gap, not a category one (see {@code ModifierArt#NO_UPSTREAM_ART}). It must still fortify.
+     */
+    @GameTest(template = "empty")
+    public static void fortifyIsAllowedOnAMattock(GameTestHelper helper) {
+        BlockPos pos = new BlockPos(1, 1, 1);
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        ItemStack mattock = ToolAssembly.assemble(helper, player, pos,
+                ToolAssembly.entryFor(ForgeweaveItems.TOOL_MATTOCK.get()), List.of("wood", "wood", "wood"));
+        helper.assertTrue(tierIndex(mattock) == 0,
+                "a wood-headed mattock must start on the ladder's bottom rung, got " + tierIndex(mattock));
+
+        ItemStack fortified = take(helper, player, load(helper, player, pos, mattock, kit("cobalt")));
+
+        helper.assertTrue(tierIndex(fortified) == 4,
+                "a cobalt kit must pin the mattock to cobalt's rung (4), got " + tierIndex(fortified));
         helper.succeed();
     }
 
