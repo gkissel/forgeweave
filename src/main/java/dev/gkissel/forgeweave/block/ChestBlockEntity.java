@@ -1,10 +1,15 @@
 package dev.gkissel.forgeweave.block;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
+import net.minecraft.core.component.DataComponentMap;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.network.RegistryFriendlyByteBuf;
@@ -16,6 +21,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.ContainerLevelAccess;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.component.ItemContainerContents;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 
@@ -24,6 +30,7 @@ import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
 import net.neoforged.neoforge.items.IItemHandler;
 import net.neoforged.neoforge.items.wrapper.InvWrapper;
 
+import dev.gkissel.forgeweave.config.ForgeweaveConfig;
 import dev.gkissel.forgeweave.menu.ChestMenu;
 import dev.gkissel.forgeweave.menu.StationGroup;
 
@@ -110,6 +117,44 @@ public class ChestBlockEntity extends BlockEntity implements StationMenuHost {
         container.fromTag(tag.getList(TAG_INVENTORY, Tag.TAG_COMPOUND), registries);
     }
 
+    /**
+     * Upstream {@code BlockTable#writeDataOntoItemstack} (parity audit T47, issue #478): a harvested
+     * chest carries its contents on the dropped item instead of spilling them, behind {@code
+     * chestsKeepInventory}. Upstream writes its own {@code "inventory"} NBT compound onto the stack;
+     * the modern equivalent is the vanilla {@link DataComponents#CONTAINER} component, which the
+     * chest loot tables copy off this block entity with {@code minecraft:copy_components} (see
+     * {@code ForgeweaveBlockLootSubProvider}) exactly as the retextured tables already copy their
+     * {@code TEXTURE}. {@link ItemContainerContents} is slot-indexed, so items come back on the same
+     * page they were left on, and it holds {@link #MAX_SLOTS} items -- precisely this chest's cap.
+     *
+     * <p>Only set when there is something to carry: an empty chest must stay componentless, or every
+     * broken chest would refuse to stack with a freshly crafted one.
+     */
+    @Override
+    protected void collectImplicitComponents(DataComponentMap.Builder builder) {
+        super.collectImplicitComponents(builder);
+        if (!ForgeweaveConfig.CHESTS_KEEP_INVENTORY.get() || container.isEmpty()) {
+            return;
+        }
+        List<ItemStack> stored = new ArrayList<>(container.getContainerSize());
+        for (int slot = 0; slot < container.getContainerSize(); slot++) {
+            stored.add(container.getItem(slot));
+        }
+        builder.set(DataComponents.CONTAINER, ItemContainerContents.fromItems(stored));
+    }
+
+    /** The other half of {@link #collectImplicitComponents}: placing the item back refills the chest. */
+    @Override
+    protected void applyImplicitComponents(BlockEntity.DataComponentInput componentInput) {
+        super.applyImplicitComponents(componentInput);
+        ItemContainerContents stored = componentInput.get(DataComponents.CONTAINER);
+        if (stored != null) {
+            for (int slot = 0; slot < stored.getSlots() && slot < MAX_SLOTS; slot++) {
+                container.setItem(slot, stored.getStackInSlot(slot));
+            }
+        }
+    }
+
     @Override
     public Component getDisplayName() {
         return getBlockState().getBlock().getName();
@@ -179,13 +224,23 @@ public class ChestBlockEntity extends BlockEntity implements StationMenuHost {
         @Override
         public void setItem(int slot, ItemStack stack) {
             super.setItem(slot, stack);
-            // ponytail: only the boundary slot triggers growth -- every caller that can reach this
-            // container (ChestMenu's paged slots, the IItemHandler capability) is itself bounded by
-            // the current capacity, so `slot` landing past it isn't reachable today. If that ever
-            // changes, grow whenever `slot >= capacity` too.
             if (stack.isEmpty()) {
                 shrinkWhileTopPageEmpty();
-            } else if (slot == capacity - 1) {
+            } else {
+                growWhileSlotIsAtOrPastTheLastOne(slot);
+            }
+        }
+
+        /**
+         * Grows until {@code slot} is inside the capacity and is no longer the last slot of it. The
+         * plain "the last slot filled, so open the next page" step is the {@code slot == capacity -
+         * 1} case; the loop is for issue #478's restore path ({@link #applyImplicitComponents}),
+         * the only caller that writes a slot <em>index</em> straight in rather than filling
+         * sequentially -- a chest broken with a lone item on its fourth page has to grow through
+         * every step at once, or the item it carries would come back unreachable.
+         */
+        private void growWhileSlotIsAtOrPastTheLastOne(int slot) {
+            while (slot >= capacity - 1 && capacity < MAX_SLOTS) {
                 grow();
             }
         }

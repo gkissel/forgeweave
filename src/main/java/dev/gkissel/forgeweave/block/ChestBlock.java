@@ -8,7 +8,9 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.Containers;
 import net.minecraft.world.InteractionResult;
+import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
@@ -22,6 +24,8 @@ import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
+
+import dev.gkissel.forgeweave.config.ForgeweaveConfig;
 
 /**
  * The Pattern Chest and Part Chest (docs/SCOPE.md M1 issue #66), sharing one class parameterized by
@@ -87,13 +91,42 @@ public class ChestBlock extends HorizontalDirectionalBlock implements EntityBloc
         return InteractionResult.SUCCESS;
     }
 
+    /**
+     * With {@code chestsKeepInventory} on (upstream's default, parity audit T47) the contents ride
+     * out on the dropped item instead -- see {@link ChestBlockEntity#collectImplicitComponents} --
+     * so spilling them here as well would duplicate every one of them. With the option off this is
+     * upstream's other branch: a plain container that drops what it held.
+     */
     @Override
     protected void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean movedByPiston) {
-        if (state.getBlock() != newState.getBlock()) {
+        if (state.getBlock() != newState.getBlock() && !ForgeweaveConfig.CHESTS_KEEP_INVENTORY.get()) {
             if (level.getBlockEntity(pos) instanceof ChestBlockEntity chest) {
                 Containers.dropContents(level, pos, chest.container());
             }
         }
         super.onRemove(state, level, pos, newState, movedByPiston);
+    }
+
+    /**
+     * A creative break runs no loot table, so the packed item {@link #onRemove} is deliberately not
+     * spilling for would never be created and the contents would simply vanish. Vanilla's shulker
+     * box hands the packed item over itself in exactly this case ({@code
+     * ShulkerBoxBlock#playerWillDestroy}) and this does the same -- upstream 1.12 loses the contents
+     * here instead ({@code BlockTable#removedByPlayer} clears the inventory once {@code
+     * willHarvest} is false), which is a bug rather than a behavior worth reproducing.
+     */
+    @Override
+    public BlockState playerWillDestroy(Level level, BlockPos pos, BlockState state, Player player) {
+        if (!level.isClientSide && player.isCreative()
+                && ForgeweaveConfig.CHESTS_KEEP_INVENTORY.get()
+                && level.getBlockEntity(pos) instanceof ChestBlockEntity chest
+                && !chest.container().isEmpty()) {
+            ItemStack packed = new ItemStack(this);
+            packed.applyComponents(chest.collectComponents());
+            ItemEntity dropped = new ItemEntity(level, pos.getX() + 0.5D, pos.getY() + 0.5D, pos.getZ() + 0.5D, packed);
+            dropped.setDefaultPickUpDelay();
+            level.addFreshEntity(dropped);
+        }
+        return super.playerWillDestroy(level, pos, state, player);
     }
 }
