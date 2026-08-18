@@ -13,6 +13,9 @@ import net.minecraft.core.Holder;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.sounds.SoundEvent;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.sounds.SoundSource;
 import net.minecraft.tags.DamageTypeTags;
 import net.minecraft.util.Mth;
 import net.minecraft.world.damagesource.DamageSource;
@@ -179,6 +182,28 @@ public final class ForgeweaveInnates {
     private static final int LAUNCH_IGNITE_TICKS = 20;
     /** {@code FryPan#onUpdate}'s {@code preventSlowDown(entityIn, 0.7f)} (T37, issue #468). */
     private static final float LAUNCH_DRAW_MOVEMENT_SPEED = 0.7F;
+
+    /**
+     * The pan's boing (parity audit T50, issue #481). Upstream plays it twice over on a charged
+     * launch: {@code FryPan#dealDamage} on the landed blow at volume {@value #PAN_HIT_VOLUME} and a
+     * flat pitch {@value #PAN_HIT_PITCH}, then {@code FryPan#onPlayerStoppedUsing} on the launch
+     * itself at volume {@value #PAN_LAUNCH_VOLUME} and pitch {@code 0.6 + 0.2 * random} -- lower and
+     * quieter than the blow's, so the launch reads as the pan's follow-through.
+     *
+     * <p>A stand-in, not upstream's {@code frypan_hit.ogg}: upstream's sound assets are CC-BY/CC0
+     * rather than the MIT its code carries, and its own {@code sounds/Credits.txt} attributes no
+     * author to that file, so shipping it is a maintainer call (CLAUDE.md's Spartan Weaponry
+     * precedent for non-MIT material) rather than something the 1.12-parity default settles (issue #566
+     * holds that decision) -- the same call issue #415 made for shocking and issue #495 for squeaky. {@code ANVIL_PLACE} is
+     * vanilla's shortest struck-metal clank, which is the shape of a flat iron pan meeting a mob;
+     * the volumes and the pitch spread are upstream's and stay put if the asset ever lands.
+     */
+    private static final SoundEvent PAN_SOUND = SoundEvents.ANVIL_PLACE;
+    private static final float PAN_HIT_VOLUME = 2.0F;
+    private static final float PAN_HIT_PITCH = 1.0F;
+    private static final float PAN_LAUNCH_VOLUME = 1.5F;
+    private static final float PAN_LAUNCH_PITCH_BASE = 0.6F;
+    private static final float PAN_LAUNCH_PITCH_SPREAD = 0.2F;
 
     /**
      * Maintainer decision 2026-08-12 on issue #155: {@value #BACKSTAB_MAX} within
@@ -504,7 +529,13 @@ public final class ForgeweaveInnates {
         }
     }
 
-    /** Extra push on top of the blow's own, in the attacker's facing direction. */
+    /**
+     * Extra push on top of the blow's own, in the attacker's facing direction, and the pan's boing
+     * with it. The frying pan is this seam's only user, and upstream hangs both halves off the same
+     * {@code FryPan#dealDamage} override -- the cue rides here rather than in a seam of its own for
+     * the same reason it does upstream: it fires on exactly the blows this one does, the landed
+     * ones. See {@link #PAN_SOUND}.
+     */
     public record HeavyKnockback(float strength) implements CombatSeam {
         @Override
         public void onHit(CombatHit hit, float damageDealt) {
@@ -512,6 +543,8 @@ public final class ForgeweaveInnates {
             if (attacker == null) {
                 return;
             }
+            hit.level().playSound(null, attacker.blockPosition(), PAN_SOUND, SoundSource.PLAYERS,
+                    PAN_HIT_VOLUME, PAN_HIT_PITCH);
             LivingEntity target = hit.target();
             // Vanilla's own argument convention (LivingEntity#hurt: knockback(0.4, source.getX() -
             // getX(), source.getZ() - getZ())): the vector points at the attacker and knockback
@@ -903,6 +936,10 @@ public final class ForgeweaveInnates {
             if (flamingStrike) {
                 target.clearFire();
             }
+
+            // Upstream's own order: the launch's boing lands between the blow and the push.
+            level.playSound(null, player.blockPosition(), PAN_SOUND, SoundSource.PLAYERS, PAN_LAUNCH_VOLUME,
+                    PAN_LAUNCH_PITCH_BASE + PAN_LAUNCH_PITCH_SPREAD * level.getRandom().nextFloat());
 
             target.setDeltaMovement(target.getDeltaMovement().add(look.x * strength,
                     look.y / 3.0F * strength + LAUNCH_LIFT_BASE + LAUNCH_LIFT_PER_CHARGE * progress,

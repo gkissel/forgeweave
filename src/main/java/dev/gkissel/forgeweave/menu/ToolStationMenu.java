@@ -12,6 +12,10 @@ import net.minecraft.core.component.DataComponents;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.sounds.SoundEvent;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.sounds.SoundSource;
+import net.minecraft.util.RandomSource;
 import net.minecraft.util.StringUtil;
 import net.minecraft.world.Container;
 import net.minecraft.world.SimpleContainer;
@@ -109,6 +113,32 @@ public class ToolStationMenu extends StationMenu {
 
     /** Vanilla's rename cap, and the same order of magnitude as upstream's 40-character field. */
     private static final int MAX_NAME_LENGTH = 50;
+
+    /**
+     * The craft cue every take from the output slot plays (parity audit T50, issue #481). Upstream
+     * {@code ContainerToolStation#playCraftSound} plays its own {@code Sounds.saw} ({@code
+     * little_saw.ogg}) at volume {@value #CRAFT_VOLUME} and pitch {@code 0.8 + 0.4 * random}, and
+     * {@code ContainerToolForge} overrides it with vanilla's {@code BLOCK_ANVIL_USE} at volume
+     * {@value #FORGE_CRAFT_VOLUME} and pitch {@code 0.95 + 0.2 * random}. Neither asks which recipe
+     * ran -- assembly, repair, modify and rename all get the same cue.
+     *
+     * <p>The Forge's is upstream's actual sound. The Station's is a stand-in: upstream's sound
+     * assets are CC-BY/CC0 rather than the MIT its code carries, and its own
+     * {@code sounds/Credits.txt} attributes no author to {@code little_saw}, so shipping the asset
+     * is a maintainer call (CLAUDE.md's Spartan Weaponry precedent for non-MIT material) rather than
+     * something the 1.12-parity default settles (issue #566 holds that decision) -- the same call
+     * issue #415 made for shocking and issue #495 for squeaky. {@code UI_STONECUTTER_TAKE_RESULT} is vanilla's own "took the output
+     * of a cutting station" rasp, which is what this cue is; the volume and pitch spread are
+     * upstream's and stay put if the asset ever lands.
+     */
+    private static final SoundEvent CRAFT_SOUND = SoundEvents.UI_STONECUTTER_TAKE_RESULT;
+    private static final float CRAFT_VOLUME = 0.8F;
+    private static final float CRAFT_PITCH_BASE = 0.8F;
+    private static final float CRAFT_PITCH_SPREAD = 0.4F;
+    private static final SoundEvent FORGE_CRAFT_SOUND = SoundEvents.ANVIL_USE;
+    private static final float FORGE_CRAFT_VOLUME = 0.9F;
+    private static final float FORGE_CRAFT_PITCH_BASE = 0.95F;
+    private static final float FORGE_CRAFT_PITCH_SPREAD = 0.2F;
 
     /**
      * The tool-tab column's own geometry, mirrored from {@code client.ToolStationScreen} rather than
@@ -697,7 +727,26 @@ public class ToolStationMenu extends StationMenu {
                     consume(i, used.get(i));
                 }
             });
+            playCraftSound(player);
             super.onTake(player, stack);
+        }
+
+        /**
+         * Upstream's {@code playCraftSound}, at the same point in {@code onTakeOutput}: after the
+         * inputs are consumed, once per take. Server side only -- {@code Level#playSound} with a null
+         * excluded player broadcasts to everyone in range, so letting the client mirror run it too
+         * would double the cue for whoever took the tool. See {@link #CRAFT_SOUND}.
+         */
+        private void playCraftSound(Player player) {
+            if (player.level().isClientSide) {
+                return;
+            }
+            RandomSource random = player.level().getRandom();
+            player.level().playSound(null, player.blockPosition(),
+                    forge ? FORGE_CRAFT_SOUND : CRAFT_SOUND, SoundSource.PLAYERS,
+                    forge ? FORGE_CRAFT_VOLUME : CRAFT_VOLUME,
+                    forge ? FORGE_CRAFT_PITCH_BASE + FORGE_CRAFT_PITCH_SPREAD * random.nextFloat()
+                            : CRAFT_PITCH_BASE + CRAFT_PITCH_SPREAD * random.nextFloat());
         }
 
         /**
