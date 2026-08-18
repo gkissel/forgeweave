@@ -164,7 +164,8 @@ public class PartBuilderMenu extends StationMenu {
             return; // client: the server pushes slot contents down instead of computing locally.
         }
         Optional<PartBuilderRecipes.Match> match = PartBuilderRecipes.resolve(registries, slots.get(PATTERN_SLOT).getItem(),
-                slots.get(MATERIAL_SLOT).getItem(), slots.get(MATERIAL_SLOT_2).getItem());
+                slots.get(MATERIAL_SLOT).getItem(), slots.get(MATERIAL_SLOT_2).getItem())
+                .filter(candidate -> changeSlotAccepts(candidate.change()));
         pendingMaterial1ItemsConsumed = match.map(PartBuilderRecipes.Match::material1ItemsConsumed).orElse(0);
         pendingMaterial2ItemsConsumed = match.map(PartBuilderRecipes.Match::material2ItemsConsumed).orElse(0);
         pendingChange = match.map(PartBuilderRecipes.Match::change).orElse(ItemStack.EMPTY);
@@ -174,6 +175,26 @@ public class PartBuilderMenu extends StationMenu {
     }
 
     // ------------------------------------------------------------------ pattern chest sidebar (#78)
+
+    /**
+     * Whether this craft's shard change can go into the change slot, i.e. whether the craft may be
+     * offered at all (issue #444). Upstream {@code ContainerPartBuilder#updateResult:130-142} clears
+     * the output whenever the change slot holds a stack the leftover would not stack onto -- the
+     * player empties the slot first, rather than the station completing the craft and dropping the
+     * change on the floor of the void.
+     *
+     * <p>Deviation: upstream compares item + NBT only, so a change slot already at max stack silently
+     * overflows in {@code onCrafting}'s {@code secondary.grow}. The count check here blocks that
+     * craft too -- same "the change must have somewhere to go" rule, one case upstream missed.
+     */
+    private boolean changeSlotAccepts(ItemStack change) {
+        ItemStack existing = slots.get(CHANGE_SLOT).getItem();
+        if (existing.isEmpty() || change.isEmpty()) {
+            return true;
+        }
+        return ItemStack.isSameItemSameComponents(existing, change)
+                && existing.getCount() + change.getCount() <= existing.getMaxStackSize();
+    }
 
     /**
      * Which patterns the sidebar offers: upstream's stencil-table candidate list ({@link
@@ -309,9 +330,9 @@ public class PartBuilderMenu extends StationMenu {
 
         /**
          * Deposits this craft's shard change into the change slot, stacking onto whatever's already
-         * there if it's the same material's shards (upstream {@code ContainerPartBuilder#onCrafting}:
-         * a different material's leftover shards already sitting there are left alone -- the player
-         * clears the slot first).
+         * there if it's the same material's shards (upstream {@code ContainerPartBuilder#onCrafting}).
+         * {@link PartBuilderMenu#changeSlotAccepts} means there is never an incompatible stack here
+         * by the time an output exists to take; the check stays as the guard that keeps that true.
          */
         private void depositChange() {
             if (pendingChange.isEmpty()) {
