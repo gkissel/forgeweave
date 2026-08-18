@@ -188,7 +188,7 @@ Every 1.12 tool-material trait is ported (44 ids across 34 materials, with head-
 | Silktouch | `ModSilktouch:17-45` + refusals | n/a | `:431`, no refusals | partial | Y in part (#107) | medium | T23 |
 | Soulbound | `ModSoulbound:20-71` | n/a | `:456,1368,1383` | have | Y (#107/#344) | none | — |
 | Creative modifier / extra slots | `ModCreative:12-34` (hidden, no recipe) | n/a | survival `extra_slot` cap 5 + netherite form | deviates | Y (#107, SCOPE M2) | low | — |
-| Fortify | `ModFortify:24-76`, harvestOnly, per-material overlay | n/a | `Fortification.java`, bows only refused, no overlay | partial | N | low | T70 |
+| Fortify | `ModFortify:24-76`, harvestOnly, per-material overlay | n/a | `Fortification.java`, `ToolConstants.Category.HARVEST` gate, `ForgeweaveItemColors`-tinted overlay | have | Y (#564) | none | — |
 | Embossing / ExtraTrait | `ModExtraTrait:40-155` | n/a | `Embossing.java`, no donor-part gate, no compat check | partial | Y in part (SCOPE:381) | low | T23 |
 | Smite | `ModAntiMonsterType` + consecrated soil | n/a | `:802`, glowstone stand-in | partial | Y (#162, #429 open) | medium | T59 |
 | Bane of Arthropods | `TinkerModifiers:137-139` | n/a | `:819` + extra-info line (#457) | have | — | none | — |
@@ -685,7 +685,7 @@ Prioritized and deduplicated across domains. Already-filed issues are marked; **
 - [ ] **T67 — Cleaver should swallow right-click** (no off-hand use) (tools, low, backlog).
 - [ ] **T68 — Bows repair with either limb** (`getRepairParts {0,1}`) (ranged, low, M3.5-8).
 - [x] **T69 — Reinforced plate center should be a gold cast now the smeltery ships** (shipped, #500), plus the level-5 "Unbreakable" name (already shipped by #457 -- this ticket's own audit row was stale on that half).
-- [ ] **T70 — Fortify: gate to harvest tools and derive the per-tool material-tinted overlay** (modifiers, low, M3.5 playtest-fix).
+- [x] **T70 — Fortify: gate to harvest tools and derive the per-tool material-tinted overlay** (shipped, #564) (modifiers, low, M3.5 playtest-fix).
 - [ ] **T71 — Remaining melting/casting content** — terracotta/brick casting, molten dirt + mud bricks, ice/snow → water, red sand from blood (smeltery, low, backlog).
 - [x] **T72 — Bulk grout recipe** (shipped, #503) (clay block + 4 sand + 4 gravel → 8) (smeltery, low, backlog).
 - [ ] **T73 — Ambient particles** — active smeltery controller flame/smoke, casting-table cooling smoke, autosmelt flames (smeltery/book, low, backlog).
