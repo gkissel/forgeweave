@@ -333,9 +333,7 @@ public class ToolItem extends Item {
     public Tool toolComponent(Material head, ToolStats.Stats stats) {
         List<Tool.Rule> rules = new ArrayList<>();
         rules.add(Tool.Rule.deniesDrops(head.incorrectForTool()));
-        // Upstream's ToolCore#miningSpeedModifier, applied at read time there and here folded
-        // into the vanilla tool component (issue #153's Entry field).
-        float speed = stats.miningSpeed() * miningSpeedModifier;
+        float speed = miningSpeed(stats);
         if (minesCobweb()) {
             // Upstream SwordCore#getStrVsBlock: cobweb at 7.5x the tool's own speed, on top of the
             // 0.5 sword modifier (issue #437). Vanilla's own sword spends a flat 15.0 here; keeping
@@ -348,6 +346,16 @@ public class ToolItem extends Item {
             rules.add(Tool.Rule.minesAndDrops(tag, speed));
         }
         return new Tool(rules, 1.0F, 1);
+    }
+
+    /**
+     * Upstream's {@code ToolCore#miningSpeedModifier}, applied at read time there and here folded
+     * into the vanilla tool component (issue #153's Entry field). Package-visible/overridable so a
+     * subclass adding a rule of its own ({@link HatchetItem#toolComponent}) can reuse the same value
+     * rather than re-deriving it.
+     */
+    protected float miningSpeed(ToolStats.Stats stats) {
+        return stats.miningSpeed() * miningSpeedModifier;
     }
 
     /**
@@ -739,7 +747,10 @@ public class ToolItem extends Item {
         }
         if (!level.isClientSide && state.getDestroySpeed(level, pos) != 0.0F) {
             boolean effective = isEffective(state);
-            stack.hurtAndBreak(effective ? 1 : 2, entity, EquipmentSlot.MAINHAND);
+            int cost = miningDurabilityCost(state, effective);
+            if (cost > 0) {
+                stack.hurtAndBreak(cost, entity, EquipmentSlot.MAINHAND);
+            }
             if (level instanceof ServerLevel serverLevel) {
                 // Traits that react to an actual block break (issue #102: momentum, petramor;
                 // issue #230: shocking, slimey, baconlicious -- the latter two need pos/effective).
@@ -747,6 +758,16 @@ public class ToolItem extends Item {
             }
         }
         return true;
+    }
+
+    /**
+     * Durability spent on one block broken -- upstream's {@code effective ? 1 : 2}
+     * ({@code ToolCore#onBlockDestroyed}), the default for every tool but the hatchet, which
+     * overrides this to charge leaves nothing at all ({@code Hatchet#afterBlockBreak}, parity audit
+     * 2026-08-18 T65, issue #496) regardless of {@code effective} -- see {@link HatchetItem}.
+     */
+    protected int miningDurabilityCost(BlockState state, boolean effective) {
+        return effective ? 1 : 2;
     }
 
     /** Upstream 1.12 refuses the attack outright while Broken ({@code ToolHelper#attackEntity}). */

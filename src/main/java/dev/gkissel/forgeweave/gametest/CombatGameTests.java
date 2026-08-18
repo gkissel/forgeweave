@@ -62,12 +62,18 @@ public class CombatGameTests {
      *   <tr><th>Tool</th><th>damagePotential</th><th>attackSpeed</th><th>expected damage</th></tr>
      *   <tr><td>pickaxe</td><td>1.0</td><td>1.2</td><td>3.0</td></tr>
      *   <tr><td>shovel</td><td>0.9</td><td>1.0</td><td>2.7</td></tr>
-     *   <tr><td>hatchet</td><td>1.1</td><td>1.1</td><td>3.3</td></tr>
+     *   <tr><td>hatchet</td><td>1.1</td><td>1.1</td><td>3.85</td></tr>
      * </table>
      *
      * <p>Handle and binding are wood, whose {@code ecological} trait touches neither attack stat, and
      * stone's {@code cheap} only touches durability -- so what the attribute reads is the head
-     * material's number times the tool's potential, nothing else.
+     * material's number times the tool's potential, plus the hatchet's own flat bonus. Upstream
+     * {@code Hatchet#buildTagData}'s {@code data.attack += 0.5f} (parity audit 2026-08-18 T65, issue
+     * #496) adds to the <em>stored</em> attack before {@code ToolHelper#getActualAttack} multiplies
+     * the whole thing by {@code damagePotential} -- {@code ToolConstants#compute}/{@code ToolItem
+     * #attackDamage} mirror that order exactly, so the bonus is scaled too: {@code (3.0 + 0.5) * 1.1 =
+     * 3.85}, not {@code 3.0 * 1.1 + 0.5 = 3.8}. Pickaxe and shovel carry no such bonus, so their
+     * numbers are unchanged.
      */
     @GameTest(template = "empty")
     public static void attackAttributesMatchCloneConstants(GameTestHelper helper) {
@@ -76,7 +82,7 @@ public class CombatGameTests {
 
         assertAttackAttributes(helper, player, pos, ForgeweaveItems.PART_PICKAXE_HEAD.get(), "pickaxe", 3.0, 1.2);
         assertAttackAttributes(helper, player, pos, ForgeweaveItems.PART_SHOVEL_HEAD.get(), "shovel", 2.7, 1.0);
-        assertAttackAttributes(helper, player, pos, ForgeweaveItems.PART_AXE_HEAD.get(), "hatchet", 3.3, 1.1);
+        assertAttackAttributes(helper, player, pos, ForgeweaveItems.PART_AXE_HEAD.get(), "hatchet", 3.85, 1.1);
 
         helper.succeed();
     }

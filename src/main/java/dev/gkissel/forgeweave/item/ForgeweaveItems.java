@@ -212,10 +212,12 @@ public final class ForgeweaveItems {
             properties -> new ToolItem(properties, List.of(BlockTags.MINEABLE_WITH_SHOVEL), 1.0f, 0.9f, 1.0f,
                     false, null, AoeHarvest.Shape.SINGLE),
             new Item.Properties().stacksTo(1));
-    public static final DeferredItem<ToolItem> TOOL_HATCHET = ITEMS.registerItem("hatchet",
-            properties -> new ToolItem(properties, List.of(BlockTags.MINEABLE_WITH_AXE), 1.1f, 1.1f, 1.0f,
-                    true, null, AoeHarvest.Shape.SINGLE),
-            new Item.Properties().stacksTo(1));
+    // HatchetItem, not plain ToolItem: the parity audit's T65 (issue #496) leaf carve-out --
+    // full-speed, no-durability-cost leaf digging -- needs a per-block override plain ToolItem can't
+    // express. Its own constructor repeats the tag/attack-speed/damage-potential/weapon constants
+    // this used to pass here.
+    public static final DeferredItem<HatchetItem> TOOL_HATCHET = ITEMS.registerItem("hatchet",
+            HatchetItem::new, new Item.Properties().stacksTo(1));
 
     // M3 station tools (docs/SCOPE.md issue #156): mattock (axe+shovel dual tool, tills soil) and
     // kama (shears, right-click crop harvest). Both take their constants off ToolConstants and their
