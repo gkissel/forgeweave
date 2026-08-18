@@ -1,6 +1,7 @@
 package dev.gkissel.forgeweave.modifier;
 
 import java.util.ArrayList;
+import java.util.EnumSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -910,7 +911,40 @@ public final class ForgeweaveModifiers {
         }
     };
 
+    // ---------------------------------------------------------------- issue #438 (Width++ / Height++)
+
+    /**
+     * Width++ (issue #438), upstream {@code ModHarvestSize("width")} plus the {@code matExpanderW}
+     * reagent {@code TinkerModifiers:169-170} binds to it. Upstream's class has an <em>empty</em>
+     * {@code applyEffect}: the modifier stores nothing and changes no stat, and every magnitude lives
+     * in {@code tools/ToolEvents#onExtraBlockBreak}, which reads the tool's modifier list and widens
+     * the mined area by an amount that depends on the tool. Forgeweave splits it the same way -- this
+     * object only names the axis, {@code tool.AoeHarvest} owns the per-tool numbers.
+     *
+     * <p>One shot, one slot: upstream's aspect set is {@code SingleAspect + DataAspect + aoeOnly +
+     * freeModifier}, i.e. at most one application, costing one modifier slot, refused on a tool with
+     * no area to widen. The first two are the shipped recipe's {@code max_level: 1} / {@code cost: 1};
+     * the {@code aoeOnly} gate is {@link ModifierApplication}'s, read off
+     * {@link Modifier#aoeExpansion} itself.
+     */
+    public static final Modifier HARVEST_WIDTH = new Modifier() {
+        @Override
+        public Optional<AoeAxis> aoeExpansion(int level) {
+            return level > 0 ? Optional.of(AoeAxis.WIDTH) : Optional.empty();
+        }
+    };
+
+    /** Height++ (issue #438), {@link #HARVEST_WIDTH}'s twin -- upstream {@code ModHarvestSize("height")}. */
+    public static final Modifier HARVEST_HEIGHT = new Modifier() {
+        @Override
+        public Optional<AoeAxis> aoeExpansion(int level) {
+            return level > 0 ? Optional.of(AoeAxis.HEIGHT) : Optional.empty();
+        }
+    };
+
     private static final Map<ResourceLocation, Modifier> REGISTRY = Map.ofEntries(
+            Map.entry(id("harvest_width"), HARVEST_WIDTH),
+            Map.entry(id("harvest_height"), HARVEST_HEIGHT),
             Map.entry(id("haste"), HASTE),
             Map.entry(id("searing"), SEARING),
             Map.entry(id("magnetic_pull"), MAGNETIC_PULL),
@@ -1160,6 +1194,23 @@ public final class ForgeweaveModifiers {
             }
         }
         return false;
+    }
+
+    /**
+     * Which mined-area axes {@code stack}'s modifiers expand (issue #438) -- the set upstream's
+     * {@code ToolEvents#onExtraBlockBreak} builds by walking the tool's modifier list for its two
+     * expander ids. A {@link java.util.Set} rather than a pair of booleans because the mattock's
+     * upstream branch cares only how <em>many</em> expanders are on the tool, not which.
+     */
+    public static Set<Modifier.AoeAxis> aoeExpansion(ItemStack stack) {
+        Set<Modifier.AoeAxis> axes = EnumSet.noneOf(Modifier.AoeAxis.class);
+        for (ModifierEntry entry : of(stack)) {
+            Modifier modifier = get(entry.id());
+            if (modifier != null) {
+                modifier.aoeExpansion(entry.level()).ifPresent(axes::add);
+            }
+        }
+        return axes;
     }
 
     /** Combined bonus experience fraction of the tool's modifiers; 0 when nothing touches it. */

@@ -428,13 +428,18 @@ public class LargeToolGameTests {
      */
     @GameTest(template = "empty")
     public static void scytheAoeBreaksExtraBlocksWithoutSilkTouch(GameTestHelper helper) {
-        ServerPlayer player = holdingLargeTool(helper, ForgeweaveItems.TOOL_SCYTHE.get(), "stone");
+        ServerPlayer player = holdingLargeTool(helper, ForgeweaveItems.TOOL_SCYTHE.get(), "cobalt");
         // Persistent leaves: in the scythe's own mineable/hoe tag (unlike stone, which the scythe was
         // never correct-tool-for-drops on -- this has to be a block canBreakExtra would otherwise
         // take), and not subject to natural decay racing the assertions below.
-        fill(helper, ORIGIN, 1, persistentLeaves());
+        //
+        // Radius 2, not 1 (issue #438): upstream's calcAOEBlocks centres only width and height on the
+        // block hit -- depth runs from the mined face *into* the block, so a 3x3x3 is a 3x3 face three
+        // deep rather than a cube centred on the origin. A radius-1 scene only ever held two of those
+        // three layers. Cobalt, not stone, because 27 leaf blocks outlast a stone scythe.
+        fill(helper, ORIGIN, 2, persistentLeaves());
 
-        int broken = breakAndCount(helper, player, ORIGIN, 1);
+        int broken = breakAndCount(helper, player, ORIGIN, 2);
 
         helper.assertTrue(broken == 27,
                 "a silk-touch-less scythe must still break its full 3x3x3 (origin + 26), broke " + broken);
@@ -454,13 +459,14 @@ public class LargeToolGameTests {
      */
     @GameTest(template = "empty")
     public static void scytheAoeDropsTheLeafBlockItselfWithSilkTouch(GameTestHelper helper) {
-        ServerPlayer player = holdingLargeTool(helper, ForgeweaveItems.TOOL_SCYTHE.get(), "stone");
+        ServerPlayer player = holdingLargeTool(helper, ForgeweaveItems.TOOL_SCYTHE.get(), "cobalt");
         ItemStack scythe = player.getMainHandItem();
         scythe.enchant(helper.getLevel().registryAccess().lookupOrThrow(Registries.ENCHANTMENT)
                 .getOrThrow(Enchantments.SILK_TOUCH), 1);
-        fill(helper, ORIGIN, 1, persistentLeaves());
+        // Radius 2 and cobalt for the same two reasons as the test above (issue #438).
+        fill(helper, ORIGIN, 2, persistentLeaves());
 
-        int broken = breakAndCount(helper, player, ORIGIN, 1);
+        int broken = breakAndCount(helper, player, ORIGIN, 2);
 
         helper.assertTrue(broken == 27,
                 "a silk-touch scythe must break its full 3x3x3 (origin + 26), broke " + broken);

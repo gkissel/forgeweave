@@ -200,12 +200,12 @@ Every 1.12 tool-material trait is ported (44 ids across 34 materials, with head-
 | Beheading | `ModBeheading:33-150` pearl + obsidian | n/a | `:677` obsidian only, six head types | deviates | Y (PR #197) | low | — |
 | Blasting | `ModBlasting:33-129` (3 TNT) | n/a | absent, unscoped | missing | N | medium | T24 |
 | Glowing | `ModGlowing:17-42` | n/a | absent, unscoped | missing | N | medium | T25 |
-| Width++ / Height++ expanders | `ModHarvestSize:11-19`, `ToolEvents:38-70` | n/a | absent, unscoped (AoE tools already ship) | missing | N | **high** | T6 |
+| Width++ / Height++ expanders | `ModHarvestSize:11-19`, `ToolEvents:38-70` | n/a | `expander_w`/`expander_h` + `harvest_width`/`harvest_height`, `AoeHarvest.Shape`'s per-tool magnitudes | have | Y (#438) | none | — |
 | Fins | `ModFins:11-31` | n/a | absent | missing | Y (SCOPE:287) | low | T17 |
 | Modifier/trait incompatibility layer | `Modifier.java:67-115` + `canApplyTogether` | ModifierRequirements | none (`ModifierApplication` has no compat check) | missing | N | medium | T23 |
 | Modifier tooltips (colors, leveled names, extra info) | `TooltipBuilder:120-181` | n/a | one color, "Name II (n/m)", haste line only | partial | N (#424 partial) | medium | T26 |
 | Modifier overlay art | 21 model files | n/a | `ModifierArt:33` 17 + 442 derived textures | partial | Y (#257) | low | — |
-| Reagent items (silky cloth/jewel, plate, moss, expanders, soil, bone, kit) | `TinkerCommons:150-352` | n/a | most ship; expanders/soil/necrotic bone absent | partial | Y in part (#429) | medium | T59 |
+| Reagent items (silky cloth/jewel, plate, moss, expanders, soil, bone, kit) | `TinkerCommons:150-352` | n/a | most ship; expanders shipped (#438); soil/necrotic bone absent | partial | Y in part (#429, #438) | medium | T59 |
 | InfiTool hidden trait + showcase tools | `TinkerModifiers:212` | n/a | absent | missing | N | low | — |
 | Searing (auto-smelt) | n/a (trait only) | n/a | `:160`, magma cream | forgeweave-only | Y (SCOPE M2 / #108) | none | — |
 | Magnetic Pull | n/a | n/a | `:259`, ender pearl | forgeweave-only | Y (#108) | none | — |
@@ -615,7 +615,7 @@ Prioritized and deduplicated across domains. Already-filed issues are marked; **
 - [ ] **T3 — Decide `craftCastableMaterials`: metals are Part-Builder craftable** — add a castable/craftable flag with 1.12's default (cast-only) or record the deviation in SCOPE; scope out knightslime/obsidian and the four tag-gated metals (materials/config, high, M3.x fix round).
 - [ ] **T4 — Sharp's bleed knocks the target back every 15 ticks** — give the DoT a `forgeweave:bleed` damage type in `no_knockback` (+ `bypasses_armor` if the SCOPE deviation stays); add the blood-heart particle (traits, high, M3.5 fix round).
 - [x] **T5 — Station swords/pan/sign/dagger/warmace mine like axes** (shipped, #437) — swap `mineable/axe` for the sword-efficient set, drop the mining-speed modifier to 0.5, consider the cobweb multiplier and creative block-break refusal (tools, high, M3 playtest-fix).
-- [ ] **T6 — Port the Width++/Height++ expander modifiers** — `expander_w`/`expander_h` items plus +1 AOE axis on harvest and large tools (modifiers, high, M3.5 playtest-fix).
+- [x] **T6 — Port the Width++/Height++ expander modifiers** (shipped, #438) — `expander_w`/`expander_h` items plus +1 AOE axis on harvest and large tools (modifiers, high, M3.5 playtest-fix).
 - [ ] **T7 — Melt vanilla metal-crafted items** — recipe-derived (or generated) melting rows for iron/gold tools, armor, buckets, rails, horse armor, minecarts, with an ignore list (smeltery, high, M6/backlog).
 - [ ] **T8 — Restore the stone → molten seared stone chain** — melting rows for stone/cobblestone (72 mB), grout (24) and stone tool parts (smeltery, high, backlog).
 - [ ] **T9 — Port seared channels** — connection states, side/down flow, redstone gate, renderer, 5-brick recipe (smeltery, high, M6/backlog).

@@ -153,6 +153,40 @@ public interface Modifier {
     /** One vanilla enchantment at one level -- {@link #grantedEnchantment}'s return type. */
     record EnchantmentGrant(ResourceKey<Enchantment> enchantment, int level) {}
 
+    // ---------------------------------------------------------------- issue #438 (Width++ / Height++)
+
+    /**
+     * Which axis of a harvest tool's mined area an expander widens -- {@link #aoeExpansion}'s return
+     * type. Upstream 1.12 expresses the pair as two instances of one {@code ModHarvestSize("width")}/
+     * {@code ModHarvestSize("height")} class whose {@code applyEffect} is empty: the modifier is pure
+     * marker, and every actual number lives in the event handler that reads it
+     * ({@code tools/ToolEvents#onExtraBlockBreak}). {@code tool.AoeHarvest} is Forgeweave's
+     * counterpart of that handler, and it owns the per-tool magnitudes for the same reason -- how far
+     * an axis grows is a property of the tool, not of the reagent.
+     */
+    enum AoeAxis {
+        /** {@code modHarvestWidth}: the horizontal axis of the mined face. */
+        WIDTH,
+        /** {@code modHarvestHeight}: the vertical axis of the mined face. */
+        HEIGHT
+    }
+
+    /**
+     * The mined-area axis this modifier expands, or empty for the modifiers that expand none (issue
+     * #438). A modifier that reports an axis is refused on any tool with no expandable area at all --
+     * upstream's {@code ModifierAspect.aoeOnly}, the {@code Category.AOE} check every
+     * {@code AoeToolCore} passes and nothing else does; {@link ModifierApplication} applies that gate
+     * off this method alone, so a future third axis needs no second hook.
+     *
+     * <p>Both shipped expanders are one-shot ({@code ModifierAspect.SingleAspect}, expressed as the
+     * recipe's {@code max_level: 1}), so the level is only ever 0 or 1 here -- the parameter exists
+     * for the same reason every other hook's does, and a second application would not widen anything
+     * twice even if a datapack raised that cap.
+     */
+    default Optional<AoeAxis> aoeExpansion(int level) {
+        return Optional.empty();
+    }
+
     /**
      * Extra modifier slots this modifier grants, on top of the {@value ForgeweaveModifiers#DEFAULT_SLOTS}
      * every tool starts with -- upstream's {@code ModCreative}, which adds its level to the tool's

@@ -22,8 +22,11 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult;
+import net.minecraft.world.phys.Vec3;
 
 import dev.gkissel.forgeweave.item.ToolItem;
+import dev.gkissel.forgeweave.modifier.ForgeweaveModifiers;
+import dev.gkissel.forgeweave.modifier.Modifier;
 
 /**
  * The large tools' area mining (docs/SCOPE.md M3 issue #157), ported from upstream 1.12's
@@ -56,23 +59,86 @@ import dev.gkissel.forgeweave.item.ToolItem;
  */
 public final class AoeHarvest {
 
-    /** Which extra blocks a tool takes with the one it broke. One constant per shipped behavior. */
+    /**
+     * Which extra blocks a tool takes with the one it broke. One constant per shipped behavior.
+     *
+     * <p>Each constant carries the {@code width x height x depth} box upstream's own
+     * {@code IAoeTool#getAOEBlocks} hands {@code ToolHelper#calcAOEBlocks} for that tool, plus how far
+     * one expander grows an axis of it (issue #438, upstream {@code tools/ToolEvents
+     * #onExtraBlockBreak}: {@code +1} for the small harvest tools, {@code +2} for the large ones).
+     * {@link #NONE} and {@link #VEIN} are the two shapes with no box at all, so nothing to widen.
+     */
     public enum Shape {
         /** Every M1/M2 tool: no extra blocks. */
-        NONE,
+        NONE(0, 0, 0, 0, -1),
+        /**
+         * Pickaxe, shovel, hatchet and kama: upstream {@code AoeToolCore}'s own {@code (1, 1, 1)} --
+         * just the block hit, so nothing extra until an expander widens it (issue #438). What makes
+         * these {@code Category.AOE} tools upstream, and therefore the ones that accept the expanders
+         * at all.
+         */
+        SINGLE(1, 1, 1, 1, -1),
+        /**
+         * Mattock: the same {@code (1, 1, 1)} base as {@link #SINGLE}, but upstream grows <em>both</em>
+         * axes by the number of expanders applied rather than one axis each -- so one expander makes
+         * it 2x2 and two make it 3x3, whichever pair was used ({@code ToolEvents}' {@code int c}
+         * branch).
+         */
+        MATTOCK(1, 1, 1, 1, -1),
         /** Hammer and excavator: the 3x3 plane facing the player, upstream's {@code (3, 3, 1)}. */
-        PLANE_3X3,
+        PLANE_3X3(3, 3, 1, 2, 3),
         /** Lumber axe: fells a whole tree, or a 3x3x3 cube when the block is not a tree. */
-        TREE_FELL,
+        TREE_FELL(3, 3, 3, 2, 3),
         /**
          * Scythe: a 3x3x3 cube, plus the crop harvest {@link CropHarvest} runs on right-click. Every
          * extra block breaks regardless of Silk Touch -- see {@link #canBreakExtra}'s javadoc
          * (docs/SCOPE.md issue #298) for why, upstream's {@code breakExtraBlock}/{@code
          * shearExtraBlock} split notwithstanding.
          */
-        CUBE_3X3X3,
+        CUBE_3X3X3(3, 3, 3, 2, 3),
         /** Vein hammer: the connected run of the same block, capped at {@link #VEIN_LIMIT}. */
-        VEIN
+        VEIN(0, 0, 0, 0, -1);
+
+        private final int baseWidth;
+        private final int baseHeight;
+        private final int baseDepth;
+        private final int expansion;
+        private final int expandedDistance;
+
+        Shape(int baseWidth, int baseHeight, int baseDepth, int expansion, int expandedDistance) {
+            this.baseWidth = baseWidth;
+            this.baseHeight = baseHeight;
+            this.baseDepth = baseDepth;
+            this.expansion = expansion;
+            this.expandedDistance = expandedDistance;
+        }
+
+        /**
+         * Whether an expander does anything to this shape -- upstream's {@code ModifierAspect.aoeOnly}
+         * gate as Forgeweave states it (issue #438). Every {@code AoeToolCore} subclass upstream
+         * passes that gate; {@link #VEIN} is the one Forgeweave-only shape it excludes, because a
+         * flood fill along a vein has no width or height axis to widen (PR deviation, issue #438).
+         */
+        public boolean expandable() {
+            return expansion > 0;
+        }
+    }
+
+    /**
+     * The {@code width x height} of {@code shape}'s box once {@code axes}' expanders are counted in --
+     * upstream {@code ToolEvents#onExtraBlockBreak}, which is the one place those magnitudes live.
+     * Returns {@code {width, height}}.
+     */
+    private static int[] expandedDimensions(Shape shape, Set<Modifier.AoeAxis> axes) {
+        if (shape == Shape.MATTOCK) {
+            // Upstream's mattock branch grows both axes by the count, not one axis each.
+            int both = axes.size();
+            return new int[] {shape.baseWidth + both, shape.baseHeight + both};
+        }
+        return new int[] {
+            shape.baseWidth + (axes.contains(Modifier.AoeAxis.WIDTH) ? shape.expansion : 0),
+            shape.baseHeight + (axes.contains(Modifier.AoeAxis.HEIGHT) ? shape.expansion : 0)
+        };
     }
 
     /**
@@ -125,6 +191,11 @@ public final class AoeHarvest {
         if (shape == Shape.NONE) {
             return;
         }
+        // A small harvest tool with no expander on it still breaks exactly one block, so bail before
+        // the re-trace extraBlocks would otherwise do on every pickaxe swing (issue #438).
+        if (isBareSingleBlock(tool, shape)) {
+            return;
+        }
         List<BlockPos> extra = extraBlocks(tool, player.level(), player, event.getPos(), event.getState(), shape);
         // A tree fell spreads its extra blocks over ticks (issue #299, upstream's own TreeChopTask);
         // every other shape still breaks synchronously with the origin, as before.
@@ -174,15 +245,28 @@ public final class AoeHarvest {
      */
     public static List<BlockPos> extraBlocks(ItemStack tool, Level level, Player player, BlockPos origin,
             BlockState originState, Shape shape) {
+        if (shape == Shape.NONE || isBareSingleBlock(tool, shape)) {
+            return List.of();
+        }
         return switch (shape) {
             case NONE -> List.of();
-            case PLANE_3X3 -> breakable(tool, level, player, origin, originState, plane(origin, minedFace(player, origin)));
-            case CUBE_3X3X3 -> breakable(tool, level, player, origin, originState, cube(origin));
+            case SINGLE, MATTOCK, PLANE_3X3, CUBE_3X3X3 ->
+                    breakable(tool, level, player, origin, originState, box(tool, player, origin, shape));
             case TREE_FELL -> isTree(level, origin, originState)
                     ? breakable(tool, level, player, origin, originState, trunk(level, origin))
-                    : breakable(tool, level, player, origin, originState, cube(origin));
+                    : breakable(tool, level, player, origin, originState, box(tool, player, origin, shape));
             case VEIN -> breakable(tool, level, player, origin, originState, vein(level, origin, originState));
         };
+    }
+
+    /**
+     * Whether {@code shape} is one of the two whose <em>unexpanded</em> box is the mined block alone
+     * ({@link Shape#SINGLE}, {@link Shape#MATTOCK}) and {@code tool} carries no expander -- i.e.
+     * "an ordinary pickaxe swing", which must cost nothing extra to answer (issue #438).
+     */
+    private static boolean isBareSingleBlock(ItemStack tool, Shape shape) {
+        return (shape == Shape.SINGLE || shape == Shape.MATTOCK)
+                && ForgeweaveModifiers.aoeExpansion(tool).isEmpty();
     }
 
     private static List<BlockPos> breakable(ItemStack tool, Level level, Player player, BlockPos origin,
@@ -233,56 +317,119 @@ public final class AoeHarvest {
     }
 
     /**
-     * The 3x3 plane perpendicular to {@code face}, centered on {@code origin}, minus the origin --
-     * what upstream's {@code calcAOEBlocks(stack, world, player, origin, 3, 3, 1)} works out to.
-     * All of that method's half-block centering arithmetic exists for <em>even</em> widths; at 3x3
-     * the plane is centered on the block hit whichever half of the face the cursor was on, so the
-     * face is the only thing that has to be recovered.
+     * {@code shape}'s box around {@code origin}, minus the origin -- upstream's
+     * {@code ToolHelper#calcAOEBlocks} ported whole (issue #438). Before the expanders it was enough
+     * to hardcode a 3x3 plane and a 3x3x3 cube, because at odd sizes both are simply centered on the
+     * block hit; an expander can make an axis <b>even</b> (a pickaxe's 2-wide sweep, a mattock's 2x2),
+     * and which of the two candidate positions such a box occupies is exactly what all of upstream's
+     * half-block arithmetic decides -- so the whole method is now here rather than its odd-size
+     * special case.
+     *
+     * <p>The three branches are upstream's, unchanged: the horizontal faces map the box onto the
+     * player's own facing (so "width" is always across the player's view), the north/south faces map
+     * it to x/y and the east/west faces to z/y. {@code distance}, when the shape sets one, is
+     * upstream's manhattan clip -- {@code ToolEvents} sets it to 3 for the large tools the moment any
+     * expander is present, which is what stops an expanded 5x5 from taking its four far corners.
      */
-    private static List<BlockPos> plane(BlockPos origin, Direction face) {
-        List<BlockPos> out = new ArrayList<>(8);
-        for (int a = -1; a <= 1; a++) {
-            for (int b = -1; b <= 1; b++) {
-                if (a == 0 && b == 0) {
-                    continue;
-                }
-                out.add(switch (face.getAxis()) {
-                    case X -> origin.offset(0, a, b);
-                    case Y -> origin.offset(a, 0, b);
-                    case Z -> origin.offset(a, b, 0);
-                });
-            }
-        }
-        return out;
-    }
+    private static List<BlockPos> box(ItemStack tool, Player player, BlockPos origin, Shape shape) {
+        Set<Modifier.AoeAxis> axes = ForgeweaveModifiers.aoeExpansion(tool);
+        int[] dimensions = expandedDimensions(shape, axes);
+        int width = dimensions[0];
+        int height = dimensions[1];
+        int depth = shape.baseDepth;
+        int distance = axes.isEmpty() ? -1 : shape.expandedDistance;
 
-    /** Upstream's {@code calcAOEBlocks(..., 3, 3, 3)}: the cube around the origin, minus the origin. */
-    private static List<BlockPos> cube(BlockPos origin) {
-        List<BlockPos> out = new ArrayList<>(26);
-        for (int x = -1; x <= 1; x++) {
-            for (int y = -1; y <= 1; y++) {
-                for (int z = -1; z <= 1; z++) {
-                    if (x != 0 || y != 0 || z != 0) {
-                        out.add(origin.offset(x, y, z));
+        Aim aim = aim(player, origin);
+        Direction face = aim.face();
+        Vec3 hit = aim.hit();
+        int x;
+        int y;
+        int z;
+        BlockPos start = origin;
+        switch (face) {
+            case DOWN, UP -> {
+                Direction facing = player.getDirection();
+                x = facing.getStepX() * height + facing.getStepZ() * width;
+                y = face.getAxisDirection().getStep() * -depth;
+                z = facing.getStepX() * width + facing.getStepZ() * height;
+                start = start.offset(-x / 2, 0, -z / 2);
+                if (x % 2 == 0) {
+                    if (x > 0 && hit.x - origin.getX() > 0.5) {
+                        start = start.offset(1, 0, 0);
+                    } else if (x < 0 && hit.x - origin.getX() < 0.5) {
+                        start = start.offset(-1, 0, 0);
+                    }
+                }
+                if (z % 2 == 0) {
+                    if (z > 0 && hit.z - origin.getZ() > 0.5) {
+                        start = start.offset(0, 0, 1);
+                    } else if (z < 0 && hit.z - origin.getZ() < 0.5) {
+                        start = start.offset(0, 0, -1);
                     }
                 }
             }
+            case NORTH, SOUTH -> {
+                x = width;
+                y = height;
+                z = face.getAxisDirection().getStep() * -depth;
+                start = start.offset(-x / 2, -y / 2, 0);
+                if (x % 2 == 0 && hit.x - origin.getX() > 0.5) {
+                    start = start.offset(1, 0, 0);
+                }
+                if (y % 2 == 0 && hit.y - origin.getY() > 0.5) {
+                    start = start.offset(0, 1, 0);
+                }
+            }
+            default -> {
+                x = face.getAxisDirection().getStep() * -depth;
+                y = height;
+                z = width;
+                start = start.offset(0, -y / 2, -z / 2);
+                if (y % 2 == 0 && hit.y - origin.getY() > 0.5) {
+                    start = start.offset(0, 1, 0);
+                }
+                if (z % 2 == 0 && hit.z - origin.getZ() > 0.5) {
+                    start = start.offset(0, 0, 1);
+                }
+            }
+        }
+
+        List<BlockPos> out = new ArrayList<>(Math.abs(x * y * z));
+        for (int xp = start.getX(); xp != start.getX() + x; xp += Integer.signum(x)) {
+            for (int yp = start.getY(); yp != start.getY() + y; yp += Integer.signum(y)) {
+                for (int zp = start.getZ(); zp != start.getZ() + z; zp += Integer.signum(z)) {
+                    if (xp == origin.getX() && yp == origin.getY() && zp == origin.getZ()) {
+                        continue;
+                    }
+                    if (distance > 0 && Math.abs(xp - origin.getX()) + Math.abs(yp - origin.getY())
+                            + Math.abs(zp - origin.getZ()) > distance) {
+                        continue;
+                    }
+                    out.add(new BlockPos(xp, yp, zp));
+                }
+            }
         }
         return out;
     }
 
+    /** Where on {@code origin} the player is aiming -- {@link #aim}'s answer. */
+    private record Aim(Direction face, Vec3 hit) {}
+
     /**
-     * Which face of {@code origin} the player is breaking. Upstream reads it off the ray trace it
-     * does anyway; 1.21's break event doesn't carry it, so this re-traces, and falls back to the
-     * axis the player is looking down when the trace lands somewhere else (a block broken through a
-     * modifier's reach bonus, a GameTest's mock player looking at nothing).
+     * Which face of {@code origin} the player is breaking, and where on it. Upstream reads both off
+     * the ray trace it does anyway ({@code mop.sideHit} / {@code mop.hitVec}); 1.21's break event
+     * doesn't carry either, so this re-traces, and falls back to the axis the player is looking down
+     * -- aimed at the block's centre -- when the trace lands somewhere else (a block broken through a
+     * modifier's reach bonus, a GameTest's mock player looking at nothing). A centre hit sits exactly
+     * on the {@code > 0.5} boundary {@link #box}'s even-axis arithmetic tests, so it deterministically
+     * takes the lower half, which is upstream's own behaviour for a dead-centre hit.
      */
-    private static Direction minedFace(Player player, BlockPos origin) {
+    private static Aim aim(Player player, BlockPos origin) {
         HitResult trace = player.pick(player.blockInteractionRange() + 1.0, 0.0F, false);
         if (trace instanceof BlockHitResult block && block.getBlockPos().equals(origin)) {
-            return block.getDirection();
+            return new Aim(block.getDirection(), block.getLocation());
         }
-        return Direction.getNearest(player.getLookAngle()).getOpposite();
+        return new Aim(Direction.getNearest(player.getLookAngle()).getOpposite(), Vec3.atCenterOf(origin));
     }
 
     /**
@@ -322,7 +469,7 @@ public final class AoeHarvest {
             return false;
         }
         int leaves = 0;
-        for (BlockPos pos : cube(highest)) {
+        for (BlockPos pos : BlockPos.betweenClosed(highest.offset(-1, -1, -1), highest.offset(1, 1, 1))) {
             if (level.getBlockState(pos).is(BlockTags.LEAVES) && ++leaves >= LEAVES_FOR_TREE) {
                 return true;
             }

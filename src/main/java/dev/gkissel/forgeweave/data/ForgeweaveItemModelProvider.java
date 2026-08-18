@@ -240,6 +240,11 @@ public class ForgeweaveItemModelProvider extends ItemModelProvider {
         // #429 -- necrotic bone, the same straight upstream port (materials/necrotic_bone.png).
         singleLayerModel(ForgeweaveItems.NECROTIC_BONE, derivedItem("necrotic_bone"));
 
+        // #438 -- the two expanders, straight upstream texture ports like the six above
+        // (materials/expander_w.png, materials/expander_h.png; NOTICE.md).
+        singleLayerModel(ForgeweaveItems.EXPANDER_W, derivedItem("expander_w"));
+        singleLayerModel(ForgeweaveItems.EXPANDER_H, derivedItem("expander_h"));
+
         // #103 -- metal materials (docs/SCOPE.md M2 issue #103). Cobalt/ardite/manyullyn ingots and
         // nuggets are straight upstream texture ports (NOTICE.md); rose gold's are a recoloured
         // derivation of upstream's manyullyn art (NOTICE.md, no 1.12 counterpart otherwise). Raw
