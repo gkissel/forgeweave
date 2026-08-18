@@ -1,6 +1,7 @@
 package dev.gkissel.forgeweave.item;
 
 import java.util.List;
+import java.util.Set;
 
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
@@ -65,10 +66,24 @@ public class MattockItem extends ToolItem {
         return InteractionResult.sidedSuccess(level.isClientSide);
     }
 
+    /**
+     * The one tool whose kind is not what its {@code mineable/*} tags alone would say (issue #464), so
+     * it states the set instead of taking {@link ToolItem#abilitiesFor}'s. It is upstream's exactly,
+     * on both branches: 1.12's {@code Mattock#getHarvestLevel} answers "axe" and "shovel" and its
+     * {@code onItemUse} hoes, and 1.20 spells the same tool {@code ToolActionsModule.of(AXE_DIG,
+     * SHOVEL_DIG)} plus the {@code tilling} trait. Notably absent is {@link
+     * ItemAbilities#SHOVEL_FLATTEN}: digging as a shovel is not pathing as one, and no upstream
+     * mattock has ever made a grass path.
+     *
+     * <p>{@link #useOn} above depends on this method -- {@code BlockState#getToolModifiedState} will
+     * not hand back farmland for a tool that does not claim {@link ItemAbilities#HOE_TILL}.
+     */
     @Override
     public boolean canPerformAction(ItemStack stack, ItemAbility itemAbility) {
-        return ItemAbilities.DEFAULT_AXE_ACTIONS.contains(itemAbility)
-                || ItemAbilities.DEFAULT_SHOVEL_ACTIONS.contains(itemAbility)
-                || ItemAbilities.DEFAULT_HOE_ACTIONS.contains(itemAbility);
+        return !isBroken(stack) && ABILITIES.contains(itemAbility);
     }
+
+    /** See {@link #canPerformAction}. */
+    private static final Set<ItemAbility> ABILITIES = Set.of(
+            ItemAbilities.AXE_DIG, ItemAbilities.SHOVEL_DIG, ItemAbilities.HOE_DIG, ItemAbilities.HOE_TILL);
 }

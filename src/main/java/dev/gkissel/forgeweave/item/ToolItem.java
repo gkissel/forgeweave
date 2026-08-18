@@ -1,8 +1,10 @@
 package dev.gkissel.forgeweave.item;
 
 import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 import java.util.function.Consumer;
 
 import org.jetbrains.annotations.Nullable;
@@ -42,6 +44,9 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 
+import net.neoforged.neoforge.common.ItemAbilities;
+import net.neoforged.neoforge.common.ItemAbility;
+
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.combat.CombatSeam;
 import dev.gkissel.forgeweave.combat.ForgeweaveInnates;
@@ -56,6 +61,7 @@ import dev.gkissel.forgeweave.modifier.ForgeweaveModifiers;
 import dev.gkissel.forgeweave.tool.AoeHarvest;
 import dev.gkissel.forgeweave.tool.CropHarvest;
 import dev.gkissel.forgeweave.tool.EntityShear;
+import dev.gkissel.forgeweave.tool.ShovelPath;
 import dev.gkissel.forgeweave.tool.ToolConstants;
 import dev.gkissel.forgeweave.tool.ToolMaterials;
 import dev.gkissel.forgeweave.tool.ToolStats;
@@ -115,6 +121,8 @@ public class ToolItem extends Item {
     @Nullable
     private final ForgeweaveInnates.Innate innate;
     private final AoeHarvest.Shape aoeShape;
+    /** See {@link #abilitiesFor}: this tool's kind, as 1.21 spells upstream's Forge tool class. */
+    private final Set<ItemAbility> abilities;
 
     /** A tool with no innate of its own -- M1's three, until issue #164 retrofits theirs. */
     public ToolItem(Properties properties, TagKey<Block> mineableBlocks, float attackSpeed, float damagePotential,
@@ -205,6 +213,80 @@ public class ToolItem extends Item {
         this.weapon = weapon;
         this.innate = innate;
         this.aoeShape = aoeShape;
+        this.abilities = abilitiesFor(this.mineableBlocks);
+    }
+
+    /**
+     * The {@link ItemAbility} set this tool answers {@link #canPerformAction} for, derived from the
+     * {@code mineable/*} tags it is registered with (parity audit 2026-08-18 T33, issue #464).
+     *
+     * <p>Upstream 1.12 declares the same thing with Forge's {@code setHarvestLevel("<tool class>", 0)}
+     * -- {@code Pickaxe} "pickaxe", {@code Shovel} "shovel", {@code Hatchet}/{@code LumberAxe}/
+     * {@code BattleAxe} "axe", {@code Mattock} both (its {@code getHarvestLevel} override) -- and
+     * every one of those tool classes is already the tag the tool is registered with here, so the
+     * mapping is a lookup rather than a second per-tool table to keep in sync. A tool registered with
+     * no tag at all (the frying pan, the battlesign, the warmace -- upstream gives them no tool class
+     * either) answers nothing, which is also plain {@code IItemExtension#canPerformAction}'s default.
+     *
+     * <p>The rule for what a kind maps to is "claim what the tool actually does", which is also how
+     * upstream itself spells it once the mechanic exists: 1.20's {@code ToolDefinitionDataProvider}
+     * hands each tool a bare {@code ToolActionsModule.of(<kind>_DIG)} and adds every right-click
+     * ability as a separate trait on the tools that have the behaviour -- {@code pathing} on the
+     * excavator, {@code tilling} on the mattock and kama, {@code stripping} on its two axes. So:
+     *
+     * <ul>
+     *   <li>every kind contributes its {@code _DIG} ability and nothing else, except
+     *   <li>{@code mineable/shovel}, which contributes the whole shovel set, because {@link
+     *       ShovelPath} ports upstream 1.12 {@code Shovel#onItemUse}'s grass paths in this same PR
+     *       (issue #464) -- the same pairing 1.20's excavator has. The mattock holds that tag too and
+     *       is upstream's one tool that digs as a shovel without pathing, so {@code MattockItem}
+     *       states its own set rather than taking this one;
+     *   <li>{@code sword_efficient} contributes {@code SWORD_DIG} alone and never {@link
+     *       ItemAbilities#SWORD_SWEEP}: upstream's {@code SwordCore} extends {@code TinkerToolCore},
+     *       not vanilla's {@code ItemSword}, so 1.12's automatic sweep never reached a Tinkers' sword
+     *       and upstream ported the sweep it does want by hand ({@link
+     *       dev.gkissel.forgeweave.combat.BroadswordSweep}); answering vanilla's own gate
+     *       ({@code Player#attack}) as well would sweep twice per swing. 1.20 agrees -- not one of its
+     *       tool definitions names {@code SWORD_SWEEP};
+     *   <li>{@code mineable/hoe} contributes {@code HOE_DIG}, matching 1.20's kama exactly. Neither
+     *       the tilling nor the shears set is claimed: 1.12's kama tills nothing, and 1.12's shears
+     *       interactions are all {@code instanceof ItemShears} checks a kama never passed, so claiming
+     *       them would add pumpkin carving, beehive harvesting and tripwire disarming upstream never
+     *       had. The kama's own entity shearing is {@code KamaItem#interactLivingEntity}, which needs
+     *       no ability.
+     * </ul>
+     *
+     * <p>Log stripping, copper scraping and wax removal (upstream 1.20's {@code stripping} trait) are
+     * therefore claimed by nothing here: 1.12 predates all three mechanics and Forgeweave implements
+     * none of them yet. Issue #575 tracks porting them onto the axe family.
+     */
+    private static Set<ItemAbility> abilitiesFor(List<TagKey<Block>> mineableBlocks) {
+        Set<ItemAbility> abilities = new LinkedHashSet<>();
+        for (TagKey<Block> tag : mineableBlocks) {
+            if (tag == BlockTags.MINEABLE_WITH_PICKAXE) {
+                abilities.add(ItemAbilities.PICKAXE_DIG);
+            } else if (tag == BlockTags.MINEABLE_WITH_AXE) {
+                abilities.add(ItemAbilities.AXE_DIG);
+            } else if (tag == BlockTags.MINEABLE_WITH_SHOVEL) {
+                abilities.addAll(ItemAbilities.DEFAULT_SHOVEL_ACTIONS);
+            } else if (tag == BlockTags.MINEABLE_WITH_HOE) {
+                abilities.add(ItemAbilities.HOE_DIG);
+            } else if (tag == BlockTags.SWORD_EFFICIENT) {
+                abilities.add(ItemAbilities.SWORD_DIG);
+            }
+        }
+        return Set.copyOf(abilities);
+    }
+
+    /**
+     * See {@link #abilitiesFor}. Broken is a flat refusal, the same one upstream's every
+     * {@code onItemUse} opens with ({@code if(ToolHelper.isBroken(stack)) return FAIL}): a Broken tool
+     * is a bundle of parts, and {@code BlockState#getToolModifiedState} consults exactly this method
+     * before it will till, strip, scrape or flatten anything.
+     */
+    @Override
+    public boolean canPerformAction(ItemStack stack, ItemAbility itemAbility) {
+        return !isBroken(stack) && abilities.contains(itemAbility);
     }
 
     /** Which extra blocks a break with this tool takes along -- see {@link AoeHarvest#onBlockBreak}. */
@@ -966,16 +1048,32 @@ public class ToolItem extends Item {
     }
 
     /**
-     * The scythe's right-click harvest (issue #157), upstream 1.12's {@code Kama#onItemRightClick}:
-     * only tools whose {@link #aoeShape} is {@link AoeHarvest.Shape#CUBE_3X3X3} have one, so every
-     * other tool falls through to vanilla's behavior for a right-click on a block. The kama harvests
-     * the same way over one block instead -- {@code KamaItem}, which overrides this.
+     * The two right-click-on-a-block behaviors a tool type can carry, both ports:
+     *
+     * <ul>
+     *   <li>the scythe's harvest (issue #157), upstream 1.12's {@code Kama#onItemRightClick}: only
+     *       tools whose {@link #aoeShape} is {@link AoeHarvest.Shape#CUBE_3X3X3} have one. The kama
+     *       harvests the same way over one block instead -- {@code KamaItem}, which overrides this;
+     *   <li>the shovel family's grass paths (issue #464), upstream {@code Shovel#onItemUse}: gated on
+     *       the tool's own {@link ItemAbilities#SHOVEL_FLATTEN}, so it follows the tag-derived tool
+     *       kind rather than a second list ({@link ShovelPath}).
+     * </ul>
+     *
+     * <p>Anything else -- and any Broken tool, upstream's {@code if(isBroken) return FAIL} -- falls
+     * through to vanilla's behavior for a right-click on a block.
      */
     @Override
     public InteractionResult useOn(UseOnContext context) {
-        return aoeShape == AoeHarvest.Shape.CUBE_3X3X3 && !isBroken(context.getItemInHand())
-                ? CropHarvest.harvestAround(context)
-                : super.useOn(context);
+        if (isBroken(context.getItemInHand())) {
+            return super.useOn(context);
+        }
+        if (aoeShape == AoeHarvest.Shape.CUBE_3X3X3) {
+            return CropHarvest.harvestAround(context);
+        }
+        if (abilities.contains(ItemAbilities.SHOVEL_FLATTEN)) {
+            return ShovelPath.flattenAt(context, aoeShape);
+        }
+        return super.useOn(context);
     }
 
     /**
