@@ -165,6 +165,144 @@ public final class ForgeweaveModifiers {
         }
     };
 
+    // ---------------------------------------------------------------- parity audit T24 (blasting)
+
+    /**
+     * Blasting's cap, upstream {@code ModBlasting}'s {@code super("blasting", 0xffaa23, 3, 0)} --
+     * three levels, {@code countPerLevel} 0 so one application is one level. Everything blasting does
+     * scales off {@code level / maxLevel}, so this is the denominator of its whole behavior.
+     */
+    public static final int BLASTING_MAX_LEVEL = 3;
+
+    private static final ResourceLocation BLASTING_ID = id("blasting");
+
+    /**
+     * Blasting (parity audit T24, upstream {@code tools/modifiers/ModBlasting.java}): three TNT per
+     * level, harvest tools only, and it turns the tool into a demolition charge -- blocks it is not
+     * effective on become minable at a speed proportional to their hardness, at the price of a
+     * per-level chance that each drop is blown up instead of dropped.
+     *
+     * <p>Like Searing's smelt and Magnetic Pull's inventory grab, none of that fits a pure
+     * level-to-number hook on {@link Modifier}: the speed rule needs the block's hardness and the
+     * pre-handler speed ({@link #onBreakSpeed}), the drop roll needs the drop list
+     * ({@link #onBlockDrops}), and the effectiveness widening is a question the item answers
+     * ({@code ToolItem#isCorrectToolForDrops}). Upstream reaches for exactly the same escape hatch
+     * and says so out loud -- {@code ToolHelper#isToolEffective2}'s "this will be the only place
+     * besides fortify where a modifier is hardcoded" -- so the behavior lives in the statics below,
+     * keyed on {@link #BLASTING_ID}, the same shape {@link #smiteBaneBonusDamage} and friends already
+     * have. The one genuinely cross-cutting piece, the {@code harvestOnly} aspect, is a real
+     * {@link Modifier} hook because the station's gate has to ask every modifier the same question.
+     *
+     * <p>{@link Modifier#occupiedSlots} is flat 1: upstream swaps {@code freeModifier} for a
+     * {@code FreeFirstModifierAspect(this, 1)} in its constructor, so the first level costs a slot
+     * and levels two and three ride inside it -- the same aspect luck uses.
+     */
+    public static final Modifier BLASTING = new Modifier() {
+        @Override
+        public boolean harvestOnly() {
+            return true;
+        }
+
+        @Override
+        public int occupiedSlots(int level) {
+            return level > 0 ? 1 : 0;
+        }
+    };
+
+    /** Blasting's level on {@code stack}, or 0 when it has none. */
+    public static int blastingLevel(ItemStack stack) {
+        ModifierEntry entry = entry(stack, BLASTING_ID);
+        return entry == null ? 0 : entry.level();
+    }
+
+    /**
+     * Upstream {@code ModBlasting#getBlockDestroyChange}: {@code level * (1 / maxLevel)}, i.e. a third
+     * of the drops blown up per level, all of them at level three. Also the number the tool's extra
+     * info line reports as "Blast Power".
+     */
+    public static float blastingDestroyChance(int level) {
+        return level / (float) BLASTING_MAX_LEVEL;
+    }
+
+    /**
+     * Upstream {@code ModBlasting#miningSpeed}, verbatim: the tool's own mining speed times the
+     * block's hardness, divided by 10 / 5 / 1.1 at levels 1 / 2 / 3, then blended with the speed
+     * vanilla would have used at {@code level / maxLevel}. The division is what makes the first level
+     * mostly a downgrade on blocks the tool already mines and the third a real speedup on hard ones.
+     *
+     * @param toolSpeed upstream's {@code ToolHelper#getActualMiningSpeed} -- {@code ToolItem#actualMiningSpeed}
+     * @param hardness the block's {@code getBlockHardness}; the caller skips a hardness of 0 or less
+     * @param originalSpeed the event's untouched speed, upstream's {@code event.getOriginalSpeed()}
+     */
+    public static float blastingBreakSpeed(int level, float toolSpeed, float hardness, float originalSpeed) {
+        float speed = toolSpeed * hardness;
+        if (level > 2) {
+            speed /= 1.1F;
+        } else if (level > 1) {
+            speed /= 5.0F;
+        } else {
+            speed /= 10.0F;
+        }
+        float weight = level / (float) BLASTING_MAX_LEVEL;
+        return speed * weight + originalSpeed * (1.0F - weight);
+    }
+
+    /**
+     * Upstream {@code ModBlasting#miningSpeed}'s seam: NeoForge kept 1.12's own
+     * {@link PlayerEvent.BreakSpeed}, so this is the one behavior of the port that needs no
+     * adaptation beyond reading the hardness off {@code (level, pos)} rather than the event.
+     * Registered on the game event bus in {@code Forgeweave}, right after
+     * {@code ForgeweaveTraits#onBreakSpeed} -- order does not matter, because upstream's formula
+     * blends with {@code getOriginalSpeed()} and so discards whatever earlier handlers put on
+     * {@code newSpeed} either way.
+     */
+    public static void onBreakSpeed(PlayerEvent.BreakSpeed event) {
+        Player player = event.getEntity();
+        ItemStack tool = player.getMainHandItem();
+        if (!(tool.getItem() instanceof ToolItem item) || ToolItem.isBroken(tool)) {
+            return;
+        }
+        int level = blastingLevel(tool);
+        if (level <= 0) {
+            return;
+        }
+        BlockPos pos = event.getPosition().orElse(null);
+        if (pos == null) {
+            return;
+        }
+        float hardness = event.getState().getDestroySpeed(player.level(), pos);
+        if (hardness <= 0.0F) {
+            // Upstream's own early return: an instant-break block keeps vanilla's speed.
+            return;
+        }
+        event.setNewSpeed(blastingBreakSpeed(level, item.actualMiningSpeed(tool), hardness,
+                event.getOriginalSpeed()));
+    }
+
+    /**
+     * Upstream {@code ModBlasting#blockHarvestDrops} plus its {@code afterBlockBreak} particles.
+     *
+     * <p>1.12's {@code HarvestDropsEvent} carries a {@code dropChance} that vanilla then rolls
+     * <em>per dropped stack</em> ({@code Block#dropBlockAsItemWithChance}: {@code if(rand.nextFloat()
+     * <= chance) spawnAsEntity(...)}); {@link BlockDropsEvent} has no such field, so the roll happens
+     * here instead, on the same per-{@link ItemEntity} granularity and with the same {@code <=}
+     * comparison -- which is why a level-3 tool (chance 0) still has the vanishing 1-in-2^24 shot at
+     * keeping a drop that upstream has.
+     *
+     * <p>Particles: 1.12's {@code EXPLOSION_NORMAL} and {@code EXPLOSION_LARGE} are 1.21's
+     * {@link ParticleTypes#POOF} and {@link ParticleTypes#EXPLOSION} (the ids were renamed, not the
+     * effects), one at the block's centre, the large one on upstream's 1-in-20 roll.
+     */
+    private static void blast(BlockDropsEvent event, int level) {
+        ServerLevel serverLevel = event.getLevel();
+        RandomSource random = serverLevel.getRandom();
+        float keepChance = 1.0F - blastingDestroyChance(level);
+        event.getDrops().removeIf(drop -> !(random.nextFloat() <= keepChance));
+        BlockPos pos = event.getPos();
+        serverLevel.sendParticles(random.nextInt(20) == 0 ? ParticleTypes.EXPLOSION : ParticleTypes.POOF,
+                pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5, 1, 0.0, 0.0, 0.0, 0.0);
+    }
+
     // #108 batch: modern-vanilla modifiers (issue #108). Forgeweave originals -- no clone to cite, so
     // every constant below records this PR's own numbers instead of an upstream one.
 
@@ -1012,7 +1150,8 @@ public final class ForgeweaveModifiers {
             Map.entry(id("necrotic"), NECROTIC),
             Map.entry(id("beheading"), BEHEADING),
             Map.entry(id("wind_burst"), WIND_BURST),
-            Map.entry(id("glowing"), GLOWING));
+            Map.entry(id("glowing"), GLOWING),
+            Map.entry(id("blasting"), BLASTING));
 
     /**
      * docs/SCOPE.md's "8 combat modifiers" (M3 acceptance test 4): the #162/#163 batches' seven
@@ -1181,7 +1320,7 @@ public final class ForgeweaveModifiers {
      */
     public static Set<ResourceLocation> extraInfoIds() {
         return Set.of(HASTE_ID, SMITE_ID, BANE_ID, FIERY_ID, NECROTIC_ID, REINFORCED_ID, SHULKING_ID,
-                MENDING_MOSS_ID);
+                MENDING_MOSS_ID, BLASTING_ID);
     }
 
     /**
@@ -1204,6 +1343,8 @@ public final class ForgeweaveModifiers {
      *   <li><b>shulking</b> ({@code ModShulking:34-41}): the levitation duration in seconds.
      *   <li><b>mending moss</b> ({@code ModMendingMoss:131-138}): the XP currently banked on the
      *       stack, which is the one line that reads live state rather than the level.
+     *   <li><b>blasting</b> ({@code ModBlasting:114-121}): the "Blast Power" percentage, which is the
+     *       chance each of the block's drops is destroyed rather than dropped.
      * </ul>
      *
      * <p>The wording lives here, next to the numbers, for the same reason upstream puts
@@ -1243,6 +1384,11 @@ public final class ForgeweaveModifiers {
         if (MENDING_MOSS_ID.equals(id)) {
             return List.of(Component.translatable(key,
                     String.valueOf(tool.getOrDefault(ForgeweaveDataComponents.MENDING_MOSS_XP.get(), 0))));
+        }
+        if (BLASTING_ID.equals(id)) {
+            // ModBlasting#getExtraInfo: the destroy chance, as upstream's Util.dfPercent whole percent.
+            return List.of(Component.translatable(key,
+                    StationText.formatPercent(blastingDestroyChance(level))));
         }
         return List.of();
     }
@@ -1321,6 +1467,7 @@ public final class ForgeweaveModifiers {
             Map.entry(id("necrotic"), TextColor.fromRgb(0x5E0000)),
             Map.entry(id("beheading"), TextColor.fromRgb(0x10574B)),
             Map.entry(id("glowing"), TextColor.fromRgb(0xFFFFAA)),
+            Map.entry(id("blasting"), TextColor.fromRgb(0xFFAA23)),
             // Upstream has no modifier for these; the trait of the same name is the nearest source
             // (searing <- TraitAutosmelt 0xff5500, magnetic_pull <- TraitMagnetic 0xdddddd,
             // aquadynamic <- TraitAquadynamic AQUA), the rest are this ticket's own picks.
@@ -1488,6 +1635,11 @@ public final class ForgeweaveModifiers {
         float bonusXp = bonusExperienceFraction(tool);
         if (bonusXp > 0.0F) {
             event.setDroppedExperience(Math.round(event.getDroppedExperience() * (1.0F + bonusXp)));
+        }
+        // T24: before the magnetic grab below, so a drop blasting destroyed is never pulled in.
+        int blasting = blastingLevel(tool);
+        if (blasting > 0) {
+            blast(event, blasting);
         }
         if (isMagnetic(tool) && event.getBreaker() instanceof ServerPlayer player) {
             pullToInventory(event, player);

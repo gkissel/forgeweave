@@ -25,10 +25,10 @@ import dev.gkissel.forgeweave.item.ForgeweaveDataComponents;
  * Upstream 1.12's modifier/trait/enchantment refusal layer (parity audit T23, issue #454):
  * {@code library/modifiers/Modifier#canApply} walks the tool's traits, then its modifiers, then its
  * enchantments, and throws a {@code TinkerGuiException} the moment either side's
- * {@code canApplyTogether} says no. The clone has exactly four overriders -- {@code ModSilktouch},
- * {@code ModLuck}, {@code TraitSqueaky}, {@code TraitAutosmelt} (plus the unported
- * {@code ModBlasting}) -- so the whole rule set is the two tables below rather than a per-modifier
- * hook: every check is by id, which is all a stored {@link ModifierEntry} or trait id carries anyway.
+ * {@code canApplyTogether} says no. The clone has exactly five overriders -- {@code ModSilktouch},
+ * {@code ModLuck}, {@code TraitSqueaky}, {@code TraitAutosmelt} and {@code ModBlasting} (added by
+ * parity audit T24) -- so the whole rule set is the two tables below rather than a per-modifier hook:
+ * every check is by id, which is all a stored {@link ModifierEntry} or trait id carries anyway.
  *
  * <p>{@code ModExtraTrait#canApplyTogether} refuses an embossment whenever any donor trait would be
  * refused, so {@code Embossing} runs {@link #refusal} once per donor trait with the embossment's name.
@@ -39,6 +39,7 @@ public final class ModifierCompatibility {
     private static final ResourceLocation LUCK = id("luck");
     private static final ResourceLocation SQUEAKY = id("squeaky");
     private static final ResourceLocation AUTOSMELT = id("autosmelt");
+    private static final ResourceLocation BLASTING = id("blasting");
 
     /**
      * Symmetric, because upstream always checks both directions ({@code canApplyTogether(other) &&
@@ -52,14 +53,30 @@ public final class ModifierCompatibility {
             List.of(SILKY, SQUEAKY),
             List.of(SILKY, AUTOSMELT),
             List.of(LUCK, SQUEAKY),
-            List.of(AUTOSMELT, SQUEAKY)));
+            List.of(AUTOSMELT, SQUEAKY),
+            // T24: ModBlasting#canApplyTogether(IToolMod) -- not luck, not silktouch, not squeaky,
+            // not autosmelt. Every drop it would multiply or transform, blasting may destroy.
+            List.of(BLASTING, LUCK),
+            List.of(BLASTING, SILKY),
+            List.of(BLASTING, SQUEAKY),
+            List.of(BLASTING, AUTOSMELT)));
 
     /** Each overrider's {@code canApplyTogether(Enchantment)}. */
     private static final Map<ResourceLocation, Set<ResourceKey<Enchantment>>> EXCLUDED_ENCHANTMENTS = Map.of(
             SILKY, Set.of(Enchantments.LOOTING, Enchantments.FORTUNE),
             LUCK, Set.of(Enchantments.SILK_TOUCH),
             SQUEAKY, Set.of(Enchantments.LOOTING, Enchantments.FORTUNE),
-            AUTOSMELT, Set.of(Enchantments.SILK_TOUCH));
+            AUTOSMELT, Set.of(Enchantments.SILK_TOUCH),
+            BLASTING, Set.of(Enchantments.SILK_TOUCH, Enchantments.LOOTING, Enchantments.FORTUNE));
+
+    /**
+     * The enchantments {@code id} refuses to sit beside -- its own {@code canApplyTogether(Enchantment)}.
+     * Exposed so a unit test can pin the table without a live enchantment registry (1.21 makes them a
+     * datapack registry); {@link #refusal} is the only production reader.
+     */
+    public static Set<ResourceKey<Enchantment>> excludedEnchantments(ResourceLocation id) {
+        return EXCLUDED_ENCHANTMENTS.getOrDefault(id, Set.of());
+    }
 
     /**
      * Why {@code incoming} (a modifier id, or one embossing donor trait id) can't join {@code tool},

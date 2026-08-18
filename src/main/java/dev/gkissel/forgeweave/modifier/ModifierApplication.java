@@ -26,6 +26,8 @@ import dev.gkissel.forgeweave.config.ForgeweaveConfig;
 import dev.gkissel.forgeweave.item.BowItem;
 import dev.gkissel.forgeweave.item.ForgeweaveDataComponents;
 import dev.gkissel.forgeweave.item.ToolItem;
+import dev.gkissel.forgeweave.menu.ToolAssemblyRecipes;
+import dev.gkissel.forgeweave.tool.ToolConstants;
 import dev.gkissel.forgeweave.tool.ToolStats;
 import dev.gkissel.forgeweave.trait.ForgeweaveTraits;
 
@@ -239,6 +241,15 @@ public final class ModifierApplication {
         // vein hammer) is refused rather than silently doing nothing.
         if (modifier.aoeExpansion(1).isPresent()
                 && !(tool.getItem() instanceof ToolItem toolItem && toolItem.aoeShape().expandable())) {
+            return Optional.of(Component.translatable("gui.forgeweave.modifier.unsupported_tool", name(recipe.modifier())));
+        }
+        // T24: upstream's ModifierAspect.harvestOnly, CategoryAspect(Category.HARVEST) -- blasting's
+        // gate. Read off the tool's own assembly entry, which is where Forgeweave records the same
+        // category upstream's ToolCore#addCategory does; an item no tab builds has no category at all
+        // and is refused rather than defaulted in.
+        if (modifier.harvestOnly() && ToolAssemblyRecipes.entryFor(tool)
+                .map(entry -> entry.constants().category() != ToolConstants.Category.HARVEST)
+                .orElse(true)) {
             return Optional.of(Component.translatable("gui.forgeweave.modifier.unsupported_tool", name(recipe.modifier())));
         }
         // The level passed here only decides whether a grant exists at all (every shipped grant is

@@ -88,6 +88,19 @@ public interface Modifier {
     }
 
     /**
+     * Whether this modifier may only be applied to a harvest tool -- upstream's
+     * {@code ModifierAspect.harvestOnly}, i.e. {@code CategoryAspect(Category.HARVEST)}. Blasting
+     * (parity audit T24) is the first shipped user; {@code ModifierApplication} reads the tool's own
+     * {@link dev.gkissel.forgeweave.tool.ToolConstants.Category} off its assembly entry and refuses
+     * with the same {@code gui.forgeweave.modifier.unsupported_tool} message the launcher and
+     * {@code aoeOnly} gates use. A category predicate rather than an item check, for the same reason
+     * {@link #appliesToLaunchers} is one.
+     */
+    default boolean harvestOnly() {
+        return false;
+    }
+
+    /**
      * The tool's attack damage after this modifier has adjusted it -- silky's only shipped user
      * (issue #107): upstream {@code ModSilktouch#applyEffect} takes a flat 3 off both {@code speed}
      * and {@code attack} (floored at 1) the moment the modifier is applied. Same shape as

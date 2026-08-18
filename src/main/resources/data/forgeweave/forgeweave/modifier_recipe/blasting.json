@@ -1,0 +1,8 @@
+{
+  "modifier": "forgeweave:blasting",
+  "reagent": {
+    "item": "minecraft:tnt"
+  },
+  "cost": 3,
+  "max_level": 3
+}
