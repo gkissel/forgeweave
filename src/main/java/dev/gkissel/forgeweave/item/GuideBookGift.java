@@ -12,9 +12,10 @@ import dev.gkissel.forgeweave.config.ForgeweaveConfig;
 /**
  * Parity audit T13: upstream 1.12's {@code shared/PlayerDataEvents} gives every player the guide
  * book the first time they log in, gated by {@code Config.spawnWithBook} (default {@code true}).
- * The ticket's "PR #360 misstated upstream" note is about the book item existing at all, not this
- * grant -- #360 shipped {@link GuideBookItem} itself but never the first-login gift; nothing here
- * contradicts it.
+ * Both classes already exist at the pinned commit -- #360 (which shipped {@link GuideBookItem} and
+ * its recipes) said this grant was crafting-only upstream and that {@code spawnWithBook} belonged
+ * to a future issue; the audit's "misstated upstream" note is exactly that: the config and the
+ * handler are real code in the pinned clone, not a deferred feature.
  *
  * <p>"Once per player" is tracked the same way {@link dev.gkissel.forgeweave.ponder.ForgeweavePonderHint}
  * already does: a flag in the player's {@code PlayerPersisted} sub-tag, the part of
