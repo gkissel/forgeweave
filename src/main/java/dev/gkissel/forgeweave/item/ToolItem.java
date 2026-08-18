@@ -8,6 +8,7 @@ import java.util.function.Consumer;
 import org.jetbrains.annotations.Nullable;
 
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Holder;
 import net.minecraft.core.component.DataComponentType;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.network.chat.Component;
@@ -29,10 +30,12 @@ import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Tiers;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.UseAnim;
 import net.minecraft.world.item.component.ItemAttributeModifiers;
 import net.minecraft.world.item.component.Tool;
+import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
@@ -307,6 +310,50 @@ public class ToolItem extends Item {
     @Override
     public boolean isBookEnchantable(ItemStack stack, ItemStack book) {
         return ForgeweaveConfig.ALLOW_VANILLA_ENCHANTING.get() && super.isBookEnchantable(stack, book);
+    }
+
+    /**
+     * The other two thirds of the same gate (parity audit T54, issue #485). {@link #isEnchantable}
+     * alone only decides whether the enchanting table will look at the item at all; with a value of
+     * 0 the table then looks and offers nothing, because {@code EnchantmentHelper#getEnchantmentCost}
+     * and {@code #selectEnchantment} both short-circuit on {@code stack.getEnchantmentValue() <= 0}.
+     * Vanilla's own {@code Item#getEnchantmentValue} is 0 and Forgeweave tools are not
+     * {@code TieredItem}s, so nothing was ever lifting them off it -- the flag's ON side was dead.
+     *
+     * <p>There is no upstream number to derive: 1.12 has no switch at all
+     * ({@code library/tinkering/TinkersItem} overrides {@code isBookEnchantable} to {@code false} and
+     * never touches {@code getItemEnchantability}, so a tool sits at vanilla's 0), and 1.20 is
+     * stricter still ({@code library/tools/item/ModifiableItem#isEnchantable} is a flat {@code false}
+     * and enchantments reach a tool only by being converted into modifiers). The flag is a
+     * Forgeweave-only extension, so this is a Forgeweave-only value: vanilla iron's, the mid-tier
+     * reference for an ordinary metal tool -- gold enchants nearly twice as well as iron and stone
+     * a third as well, and a Forgeweave tool is made of many materials at once with no single tier to
+     * read. Per-material enchantability would need a new material stat (a datapack format change) for
+     * a switch that ships off by default.
+     */
+    @Override
+    public int getEnchantmentValue(ItemStack stack) {
+        return ForgeweaveConfig.ALLOW_VANILLA_ENCHANTING.get() ? Tiers.IRON.getEnchantmentValue() : 0;
+    }
+
+    /**
+     * The anvil's half of the same gate. Which enchantments a tool can take at all is data -- the
+     * {@code minecraft:enchantable/*} item tags each vanilla enchantment names as its
+     * {@code supported_items}, filled in for every Forgeweave tool by {@code ForgeweaveItemTagsProvider}
+     * -- but a tag is static and the flag is not, so the config check has to live here. NeoForge routes
+     * both application paths through this one method: the anvil asks {@code supportsEnchantment}
+     * directly, and the table's {@code isPrimaryItemFor} calls it before consulting {@code primary_items}.
+     *
+     * <p>Off is the 1.12 behavior exactly: {@code TinkersItem#isBookEnchantable} returns {@code false}
+     * for every book. That also closes a hole this ticket found -- the warmace joined
+     * {@code #minecraft:enchantable/mace} for issue #223's wind burst modifier gate, which let an anvil
+     * put Density/Breach/Wind Burst books on it whatever the flag said. The modifier gate itself is
+     * untouched: {@code ModifierApplication} reads the enchantment's supported-items tag directly
+     * rather than going through this method.
+     */
+    @Override
+    public boolean supportsEnchantment(ItemStack stack, Holder<Enchantment> enchantment) {
+        return ForgeweaveConfig.ALLOW_VANILLA_ENCHANTING.get() && super.supportsEnchantment(stack, enchantment);
     }
 
     /**

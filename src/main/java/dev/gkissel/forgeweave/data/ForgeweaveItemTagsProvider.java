@@ -2,6 +2,7 @@ package dev.gkissel.forgeweave.data;
 
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.stream.Stream;
 
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.registries.Registries;
@@ -140,6 +141,61 @@ public class ForgeweaveItemTagsProvider extends ItemTagsProvider {
         // join the tag the same way vanilla's own mace is already a member of it.
         tag(ItemTags.MACE_ENCHANTABLE).add(ForgeweaveItems.TOOL_WARMACE.get());
 
+        // T54 (#485) -- what `allowVanillaEnchanting` actually turns on. A vanilla enchantment names
+        // one of the `minecraft:enchantable/*` item tags as its supported_items, so a tool that is in
+        // none of them can be accepted by the table and still be offered nothing. These rows mirror
+        // vanilla's own mapping (VanillaItemTagsProvider: #swords -> sword, #swords + #axes ->
+        // sharp_weapon, #axes + #pickaxes + #shovels + #hoes -> mining/mining_loot, everything
+        // damageable -> durability) onto Forgeweave's tool shapes, keeping to the vanilla tags rather
+        // than joining #minecraft:swords/#pickaxes wholesale -- those carry unrelated behavior
+        // (villager gifts, piglin interest, #minecraft:tools) this ticket has no business changing.
+        //
+        // The tags are static; the config flag is not, so ToolItem#supportsEnchantment is what makes
+        // the flag's OFF side (1.12's TinkersItem#isBookEnchantable = false, enchantability 0) hold.
+        //
+        // FIRE_ASPECT_ENCHANTABLE, WEAPON_ENCHANTABLE and VANISHING_ENCHANTABLE are not listed for the
+        // shapes that reach them through vanilla's own tag-of-tag references (fire_aspect includes
+        // #sword_enchantable, weapon includes #sharp_weapon_enchantable, vanishing includes
+        // #durability_enchantable).
+        // The sword shapes -- vanilla's #minecraft:swords, which is what feeds both #sword_enchantable
+        // (Looting, Knockback, Sweeping Edge, and Fire Aspect through its tag reference) and the sharp
+        // line below.
+        List<Item> swords = List.of(ForgeweaveItems.TOOL_BROADSWORD.get(), ForgeweaveItems.TOOL_LONGSWORD.get(),
+                ForgeweaveItems.TOOL_RAPIER.get(), ForgeweaveItems.TOOL_DAGGER.get(),
+                ForgeweaveItems.TOOL_KATANA.get(), ForgeweaveItems.TOOL_SCIMITAR.get(),
+                ForgeweaveItems.TOOL_CLEAVER.get());
+        // The axe shapes -- vanilla's #minecraft:axes, sharp but not swords. The battleaxe is here and
+        // in no other family: it is a Tool Forge weapon that mines nothing (ToolConstants#BATTLEAXE).
+        List<Item> axes = List.of(ForgeweaveItems.TOOL_HATCHET.get(), ForgeweaveItems.TOOL_LUMBERAXE.get(),
+                ForgeweaveItems.TOOL_BATTLEAXE.get());
+        // Everything with a harvest category (ToolConstants.Category.HARVEST), vanilla's
+        // #axes + #pickaxes + #shovels + #hoes.
+        List<Item> miningTools = List.of(ForgeweaveItems.TOOL_PICKAXE.get(), ForgeweaveItems.TOOL_SHOVEL.get(),
+                ForgeweaveItems.TOOL_HATCHET.get(), ForgeweaveItems.TOOL_MATTOCK.get(),
+                ForgeweaveItems.TOOL_KAMA.get(), ForgeweaveItems.TOOL_HAMMER.get(),
+                ForgeweaveItems.TOOL_EXCAVATOR.get(), ForgeweaveItems.TOOL_LUMBERAXE.get(),
+                ForgeweaveItems.TOOL_SCYTHE.get(), ForgeweaveItems.TOOL_VEIN_HAMMER.get());
+        // The blunt weapons: no counterpart in #swords or #axes, so they take vanilla's mace
+        // treatment -- WEAPON_ENCHANTABLE but not the sharp line (Sharpness, Smite, Bane of
+        // Arthropods) and not Fire Aspect.
+        List<Item> bluntWeapons = List.of(ForgeweaveItems.TOOL_BATTLESIGN.get(),
+                ForgeweaveItems.TOOL_FRYING_PAN.get(), ForgeweaveItems.TOOL_WARMACE.get());
+        // Bows, and the crossbow with them: Forgeweave's crossbow is a BowItem that draws and fires
+        // one arrow, so Power/Punch/Flame ride its arrow the same way, while vanilla's three crossbow
+        // enchantments (Multishot, Piercing, Quick Charge) are effects only vanilla's own CrossbowItem
+        // runs and would be dead offers here. See the PR for #485.
+        List<Item> launchers = List.of(ForgeweaveItems.TOOL_SHORTBOW.get(), ForgeweaveItems.TOOL_LONGBOW.get(),
+                ForgeweaveItems.TOOL_CROSSBOW.get());
+
+        addAll(ItemTags.SWORD_ENCHANTABLE, swords);
+        addAll(ItemTags.SHARP_WEAPON_ENCHANTABLE, swords, axes);
+        addAll(ItemTags.WEAPON_ENCHANTABLE, bluntWeapons);
+        addAll(ItemTags.MINING_ENCHANTABLE, miningTools);
+        addAll(ItemTags.MINING_LOOT_ENCHANTABLE, miningTools);
+        addAll(ItemTags.BOW_ENCHANTABLE, launchers);
+        // Unbreaking and Mending (and Curse of Vanishing, whose tag references this one): every tool.
+        addAll(ItemTags.DURABILITY_ENCHANTABLE, swords, axes, miningTools, bluntWeapons, launchers);
+
         // #152 -- what a Tool Forge can be crafted from. Upstream 1.12 keeps this as an ore-dict list
         // on BlockToolForge#baseBlocks, filled from TinkerIntegration's `.toolforge()` calls: iron,
         // gold, copper, cobalt, ardite, manyullyn, pig iron, knightslime, bronze, lead, silver,
@@ -260,5 +316,15 @@ public class ForgeweaveItemTagsProvider extends ItemTagsProvider {
 
     private IntrinsicTagAppender<Item> tag(String path) {
         return tag(TagKey.create(Registries.ITEM, ResourceLocation.fromNamespaceAndPath("c", path)));
+    }
+
+    /**
+     * Adds several tool families to one tag at once, de-duplicated -- the families overlap (a hatchet
+     * is both an axe shape and a mining tool) and a tag file listing the same item twice is a wart.
+     */
+    @SafeVarargs
+    private void addAll(TagKey<Item> tag, List<Item>... families) {
+        IntrinsicTagAppender<Item> appender = tag(tag);
+        Stream.of(families).flatMap(List::stream).distinct().forEach(appender::add);
     }
 }

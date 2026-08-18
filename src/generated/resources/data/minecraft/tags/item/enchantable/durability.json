@@ -1,0 +1,28 @@
+{
+  "values": [
+    "forgeweave:broadsword",
+    "forgeweave:longsword",
+    "forgeweave:rapier",
+    "forgeweave:dagger",
+    "forgeweave:katana",
+    "forgeweave:scimitar",
+    "forgeweave:cleaver",
+    "forgeweave:hatchet",
+    "forgeweave:lumberaxe",
+    "forgeweave:battleaxe",
+    "forgeweave:pickaxe",
+    "forgeweave:shovel",
+    "forgeweave:mattock",
+    "forgeweave:kama",
+    "forgeweave:hammer",
+    "forgeweave:excavator",
+    "forgeweave:scythe",
+    "forgeweave:vein_hammer",
+    "forgeweave:battlesign",
+    "forgeweave:frying_pan",
+    "forgeweave:warmace",
+    "forgeweave:shortbow",
+    "forgeweave:longbow",
+    "forgeweave:crossbow"
+  ]
+}
