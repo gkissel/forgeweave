@@ -1,8 +1,17 @@
 {
   "modifier": "forgeweave:knockback",
-  "reagent": {
-    "item": "minecraft:piston"
-  },
+  "reagents": [
+    {
+      "ingredient": {
+        "item": "minecraft:piston"
+      }
+    },
+    {
+      "ingredient": {
+        "item": "minecraft:sticky_piston"
+      }
+    }
+  ],
   "cost": 1,
   "max_level": 990
 }
