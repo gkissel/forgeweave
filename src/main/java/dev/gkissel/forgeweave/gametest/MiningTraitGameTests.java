@@ -328,6 +328,45 @@ public class MiningTraitGameTests {
         helper.succeed();
     }
 
+    /**
+     * Issue #458: upstream {@code TraitAutosmelt#blockHarvestDrops} wraps the whole thing in
+     * {@code ToolHelper#isToolEffective2} -- a tool the block denies drops to (here, stone tagged
+     * into its own {@code incorrectForTool}) must not smelt what it "mines" either.
+     */
+    @GameTest(template = "empty")
+    public static void autosmeltIsGatedByToolEffectiveness(GameTestHelper helper) {
+        ItemStack pickaxe = pickaxe(List.of(traitId("autosmelt")), 100, 1.0F, 1.0F, "mineable/pickaxe");
+        ItemEntity drop = new ItemEntity(helper.getLevel(), 0, 0, 0, new ItemStack(Items.IRON_ORE, 2));
+
+        BlockDropsEvent event = dropsEvent(helper, pickaxe, null, drop);
+        int xpBefore = event.getDroppedExperience();
+        ForgeweaveModifiers.onBlockDrops(event);
+
+        helper.assertTrue(drop.getItem().is(Items.IRON_ORE) && drop.getItem().getCount() == 2,
+                "an ineffective tool must not smelt its drop, got " + drop.getItem());
+        helper.assertTrue(event.getDroppedExperience() == xpBefore,
+                "an ineffective tool must not drop furnace XP either, got " + event.getDroppedExperience());
+        helper.succeed();
+    }
+
+    /**
+     * Issue #458: upstream {@code TraitAutosmelt#canApplyTogether(IToolMod)} refuses to ever pair the
+     * trait with squeaky. Checked directly against the trait set here (not the derived Silk Touch
+     * enchantment {@code ToolAssemblyRecipes#retuneSilkTouch} would normally add at assembly), since
+     * this fixture builds its component set by hand rather than through that assembly path.
+     */
+    @GameTest(template = "empty")
+    public static void squeakyExcludesAutosmeltEvenWithoutTheEnchantment(GameTestHelper helper) {
+        ItemStack pickaxe = pickaxe(List.of(traitId("autosmelt"), traitId("squeaky")), 100, 1.0F, 1.0F);
+        ItemEntity drop = new ItemEntity(helper.getLevel(), 0, 0, 0, new ItemStack(Items.IRON_ORE, 2));
+
+        ForgeweaveModifiers.onBlockDrops(dropsEvent(helper, pickaxe, null, drop));
+
+        helper.assertTrue(drop.getItem().is(Items.IRON_ORE) && drop.getItem().getCount() == 2,
+                "squeaky must exclude autosmelt even without a real Silk Touch enchantment, got " + drop.getItem());
+        helper.succeed();
+    }
+
     /** Builds a pickaxe {@code ItemStack} with the given traits/stats directly (see class javadoc). */
     private static ItemStack pickaxe(List<ResourceLocation> traits, int durability, float miningSpeed,
             float attackDamage) {

@@ -15,8 +15,11 @@ import org.slf4j.Logger;
 
 import com.mojang.logging.LogUtils;
 
+import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderSet;
+import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
@@ -31,8 +34,11 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.crafting.RecipeHolder;
 import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.world.item.crafting.SingleRecipeInput;
+import net.minecraft.world.item.crafting.SmeltingRecipe;
+import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
@@ -1281,19 +1287,83 @@ public final class ForgeweaveModifiers {
         growLuckOnUse(tool, event.getLevel());
     }
 
-    /** Searing: each drop becomes its furnace-smelted result, count preserved, or itself if none exists. */
+    /** Upstream {@code TraitAutosmelt#afterBlockBreak}: 3 FLAME particles per effective break. */
+    private static final int AUTOSMELT_FLAME_PARTICLES = 3;
+
+    /**
+     * Searing / autosmelt (issue #228 shares this path; XP, particles, the effectiveness gate and the
+     * Silk Touch exclusion added for issue #458): each drop becomes its furnace-smelted result, count
+     * preserved, or itself if none exists.
+     *
+     * <p>Upstream {@code TraitAutosmelt#blockHarvestDrops} wraps the whole thing -- smelting and the
+     * XP it drops -- in {@code ToolHelper#isToolEffective2}, and its {@code canApplyTogether} refuses
+     * to ever pair the trait with the Silk Touch enchantment or with squeaky/silky (which both grant
+     * it); Forgeweave has no apply-time incompatibility layer yet (parity audit T23), so both checks
+     * live here on the shared smelt path instead, gating Searing -- the Forgeweave-only modifier this
+     * trait rides (issue #228) -- the same way. The FLAME particles are upstream's separate
+     * {@code afterBlockBreak} hook, fired on the same effectiveness check independent of whether
+     * anything actually had a smelting result (upstream draws them for every effective break).
+     */
     private static void smelt(BlockDropsEvent event) {
+        ItemStack tool = event.getTool();
+        if (!tool.isCorrectToolForDrops(event.getState())) {
+            return;
+        }
         ServerLevel level = event.getLevel();
+        if (autoSmeltExcluded(level, tool)) {
+            return;
+        }
+        int xpGained = 0;
         for (ItemEntity itemEntity : event.getDrops()) {
             ItemStack drop = itemEntity.getItem();
-            level.getRecipeManager()
-                    .getRecipeFor(RecipeType.SMELTING, new SingleRecipeInput(drop), level)
-                    .ifPresent(recipe -> {
-                        ItemStack smelted = recipe.value().getResultItem(level.registryAccess()).copy();
-                        smelted.setCount(drop.getCount());
-                        itemEntity.setItem(smelted);
-                    });
+            Optional<RecipeHolder<SmeltingRecipe>> recipe = level.getRecipeManager()
+                    .getRecipeFor(RecipeType.SMELTING, new SingleRecipeInput(drop), level);
+            if (recipe.isEmpty()) {
+                continue;
+            }
+            ItemStack smelted = recipe.get().value().getResultItem(level.registryAccess()).copy();
+            smelted.setCount(drop.getCount());
+            itemEntity.setItem(smelted);
+            xpGained += roundedSmeltingXp(recipe.get().value().getExperience(), level.getRandom());
         }
+        if (xpGained > 0) {
+            event.setDroppedExperience(event.getDroppedExperience() + xpGained);
+        }
+        BlockPos pos = event.getPos();
+        RandomSource random = level.getRandom();
+        for (int i = 0; i < AUTOSMELT_FLAME_PARTICLES; i++) {
+            level.sendParticles(ParticleTypes.FLAME, pos.getX() + random.nextDouble(),
+                    pos.getY() + random.nextDouble(), pos.getZ() + random.nextDouble(), 1, 0.0, 0.0, 0.0, 0.0);
+        }
+    }
+
+    /**
+     * Upstream {@code TraitAutosmelt#canApplyTogether}: refuses Silk Touch (vanilla enchantment or a
+     * squeaky/silky grant of it, both of which land as the real enchantment -- see
+     * {@code ToolAssemblyRecipes#retuneSilkTouch}/{@code #grantEnchantments} -- checked directly here
+     * too so this holds even for a stack built outside that assembly path).
+     */
+    private static boolean autoSmeltExcluded(ServerLevel level, ItemStack tool) {
+        if (ForgeweaveTraits.grantsSilkTouch(tool) || grantsSilkTouch(tool)) {
+            return true;
+        }
+        return level.registryAccess().lookup(Registries.ENCHANTMENT)
+                .flatMap(lookup -> lookup.get(Enchantments.SILK_TOUCH))
+                .map(silkTouch -> EnchantmentHelper.getItemEnchantmentLevel(silkTouch, tool) > 0)
+                .orElse(false);
+    }
+
+    /**
+     * Upstream {@code TraitAutosmelt}'s probabilistic round-up: {@code float xp = ...; if(xp < 1 &&
+     * Math.random() < xp) xp += 1f; if(xp >= 1f) dropXp((int) xp)}. A fraction under 1 gets that
+     * fraction's own chance of rounding up to 1 instead of dropping nothing; 1 or more carries over
+     * truncated to an int, same as upstream's cast.
+     */
+    static int roundedSmeltingXp(float xp, RandomSource random) {
+        if (xp < 1.0F && random.nextFloat() < xp) {
+            xp += 1.0F;
+        }
+        return xp >= 1.0F ? (int) xp : 0;
     }
 
     /**
