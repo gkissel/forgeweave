@@ -121,6 +121,21 @@ class ModifierBatch1Test {
                 "diamond's +1 (8.0 -> 9.0) then one quartz seeded from the original 8.0 base -> 9.03");
     }
 
+    /**
+     * Parity audit T59 (issue #490): upstream {@code TinkerModifiers} registers sharpness on both
+     * forms of quartz, {@code modSharpness.addItem("gemQuartz")} (1 unit) and
+     * {@code modSharpness.addItem("blockQuartz", 1, 4)} (a block is worth the 4 gems it's crafted
+     * from) -- Forgeweave shipped only the gem until now.
+     */
+    @Test
+    void theShippedSharpnessRecipeAlsoAcceptsAQuartzBlockAtFourUnits() {
+        ModifierRecipe recipe = sharpnessRecipe();
+
+        assertEquals(1, recipe.reagentFor(new ItemStack(Items.QUARTZ)).units());
+        assertEquals(4, recipe.reagentFor(new ItemStack(Items.QUARTZ_BLOCK)).units(),
+                "upstream's addItem(\"blockQuartz\", 1, 4)");
+    }
+
     /** End to end: applying quartz through the shipped recipe raises the tool's effective attack damage. */
     @Test
     void applyingQuartzRaisesEffectiveAttackDamage() {
@@ -163,6 +178,21 @@ class ModifierBatch1Test {
         assertEquals(List.of(60, 120, 180), recipe.costPerLevel());
         assertEquals(360, recipe.maxLevel(), "upstream's cumulative total for level 3");
         assertTrue(recipe.reagent().test(new ItemStack(Items.LAPIS_LAZULI)));
+    }
+
+    /**
+     * Parity audit T59 (issue #490): upstream {@code TinkerModifiers} registers luck on both forms of
+     * lapis, {@code modLuck.addItem("gemLapis")} (1 unit) and
+     * {@code modLuck.addItem("blockLapis", 1, 9)} (a block is worth the 9 gems it's crafted from) --
+     * Forgeweave shipped only the gem until now.
+     */
+    @Test
+    void theShippedLuckRecipeAlsoAcceptsALapisBlockAtNineUnits() {
+        ModifierRecipe recipe = shippedRecipe("luck.json");
+
+        assertEquals(1, recipe.reagentFor(new ItemStack(Items.LAPIS_LAZULI)).units());
+        assertEquals(9, recipe.reagentFor(new ItemStack(Items.LAPIS_BLOCK)).units(),
+                "upstream's addItem(\"blockLapis\", 1, 9)");
     }
 
     /**

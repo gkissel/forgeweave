@@ -65,6 +65,9 @@ class CombatModifiersTest {
         assertEquals(1, recipe.cost());
         assertEquals(990, recipe.maxLevel(), "upstream's 99 levels of 10 pistons each");
         assertTrue(recipe.reagent().test(new ItemStack(Items.PISTON)));
+        assertTrue(recipe.matches(new ItemStack(Items.STICKY_PISTON)),
+                "parity audit T59 (issue #490): upstream modKnockback.addItem(Blocks.STICKY_PISTON, 1) too");
+        assertEquals(1, recipe.reagentFor(new ItemStack(Items.STICKY_PISTON)).units());
 
         assertEquals(10, ForgeweaveModifiers.KNOCKBACK.unitsPerLevel(), "upstream's countPerLevel");
 

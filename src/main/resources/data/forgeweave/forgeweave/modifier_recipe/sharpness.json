@@ -1,8 +1,18 @@
 {
   "modifier": "forgeweave:sharpness",
-  "reagent": {
-    "item": "minecraft:quartz"
-  },
+  "reagents": [
+    {
+      "ingredient": {
+        "item": "minecraft:quartz"
+      }
+    },
+    {
+      "ingredient": {
+        "item": "minecraft:quartz_block"
+      },
+      "units": 4
+    }
+  ],
   "cost": 1,
   "max_level": 360
 }

@@ -1,8 +1,18 @@
 {
   "modifier": "forgeweave:luck",
-  "reagent": {
-    "item": "minecraft:lapis_lazuli"
-  },
+  "reagents": [
+    {
+      "ingredient": {
+        "item": "minecraft:lapis_lazuli"
+      }
+    },
+    {
+      "ingredient": {
+        "item": "minecraft:lapis_block"
+      },
+      "units": 9
+    }
+  ],
   "cost": 1,
   "cost_per_level": [60, 120, 180],
   "max_level": 360
