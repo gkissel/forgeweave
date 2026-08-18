@@ -11,11 +11,31 @@ issueTrackerURL="https://github.com/gkissel/forgeweave/issues"
 modId="${mod_id}" #mandatory
 version="${mod_version}" #mandatory
 displayName="${mod_name}" #mandatory
+# T80 (parity audit): upstream's mcmod.info credits "boni, KnightMiner" as the Tinkers' Construct
+# 2 authors -- not Forgeweave's, which is a new independent implementation (CLAUDE.md), so that
+# roster does not carry over. No `logoFile` yet: there is no Forgeweave logo asset in the repo, and
+# fabricating placeholder art (or deriving the upstream gear logo, which reads as impersonating the
+# Tinkers' Construct brand rather than porting gameplay) is a maintainer/design decision this ticket
+# does not default under the 1.12-parity rule -- left for a follow-up once real art exists.
+authors="Gustavo Kissel"
+displayURL="https://github.com/gkissel/forgeweave"
 description='''
 Forgeweave brings modular tool building, material traits, modifiers, melting, alloying, and casting to modern Minecraft.
 '''
 
 # A dependency - use the . to indicate dependency for a specific modid. Dependencies are optional.
+# side="BOTH" here (both on neoforge and minecraft below) is the vanilla-server join policy itself,
+# unchanged from the NeoForge MDK default -- and, on inspection, the deliberately correct one (T80):
+# every dependency's `side` is what the network handshake reads to decide whether the remote peer
+# must have this mod at all (NeoForge dropped 1.12's own opt-in `@NetworkCheckHandler` for this
+# declarative form). Forgeweave adds real, persisted world content -- items, blocks, recipes, a
+# smeltery, world generation -- so a client that has it cannot usefully join a vanilla server (its
+# items have nothing to interact with server-side) and a vanilla client cannot usefully join a
+# Forgeweave server (it cannot see the mod's blocks or hold its items). BOTH blocks both, which is
+# correct for a full content mod. This is also a deliberate deviation from 1.12: TConstruct's own
+# NetworkCheckHandler let a client carrying it connect to a vanilla server anyway (matchModVersions,
+# side==SERVER branch) -- a permissive carry-over from when Tinkers' Construct 1 shipped no server
+# content of its own. Forgeweave has never been that mod, so there is no equivalent case to port.
 [[dependencies.${mod_id}]] #optional
     modId="neoforge" #mandatory
     type="required" #mandatory
