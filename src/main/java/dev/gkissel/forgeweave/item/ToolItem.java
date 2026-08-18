@@ -52,6 +52,7 @@ import dev.gkissel.forgeweave.modifier.ForgeweaveModifiers;
 
 import dev.gkissel.forgeweave.tool.AoeHarvest;
 import dev.gkissel.forgeweave.tool.CropHarvest;
+import dev.gkissel.forgeweave.tool.EntityShear;
 import dev.gkissel.forgeweave.tool.ToolConstants;
 import dev.gkissel.forgeweave.tool.ToolMaterials;
 import dev.gkissel.forgeweave.tool.ToolStats;
@@ -863,6 +864,22 @@ public class ToolItem extends Item {
         return aoeShape == AoeHarvest.Shape.CUBE_3X3X3 && !isBroken(context.getItemInHand())
                 ? CropHarvest.harvestAround(context)
                 : super.useOn(context);
+    }
+
+    /**
+     * The scythe's area shear (issue #467), upstream 1.12's {@code Scythe#itemInteractionForEntity}/
+     * {@code #getAoeEntities}: every {@link net.neoforged.neoforge.common.IShearable} entity in the
+     * 3x3x3 around the one right-clicked, not just that one -- the same {@link
+     * AoeHarvest.Shape#CUBE_3X3X3} gate {@link #useOn} above uses for the crop-harvest half of the
+     * scythe, so every other tool still falls through to vanilla (no shearing) here too. The kama
+     * shears the single entity clicked instead -- {@code KamaItem}, which overrides this.
+     */
+    @Override
+    public InteractionResult interactLivingEntity(ItemStack stack, Player player, LivingEntity target,
+            InteractionHand hand) {
+        return aoeShape == AoeHarvest.Shape.CUBE_3X3X3
+                ? EntityShear.shearAround(stack, player, target, hand)
+                : super.interactLivingEntity(stack, player, target, hand);
     }
 
     @Override

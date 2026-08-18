@@ -1,8 +1,5 @@
 package dev.gkissel.forgeweave.item;
 
-import net.minecraft.server.level.ServerLevel;
-import net.minecraft.sounds.SoundEvents;
-import net.minecraft.sounds.SoundSource;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
@@ -10,14 +7,13 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.UseOnContext;
-import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.state.BlockState;
 
 import net.neoforged.neoforge.common.IShearable;
 
 import dev.gkissel.forgeweave.combat.ForgeweaveInnates;
 import dev.gkissel.forgeweave.tool.AoeHarvest;
 import dev.gkissel.forgeweave.tool.CropHarvest;
+import dev.gkissel.forgeweave.tool.EntityShear;
 import dev.gkissel.forgeweave.tool.ToolConstants;
 
 /**
@@ -51,23 +47,7 @@ public class KamaItem extends ToolItem {
     /** Shears {@link IShearable} entities (sheep, mooshroom, snow golem, ...); see the class javadoc. */
     @Override
     public InteractionResult interactLivingEntity(ItemStack stack, Player player, LivingEntity target, InteractionHand hand) {
-        if (isBroken(stack) || !(target instanceof IShearable shearable)) {
-            return InteractionResult.PASS;
-        }
-        var pos = target.blockPosition();
-        boolean isClient = target.level().isClientSide();
-        if (!shearable.isShearable(player, stack, target.level(), pos)) {
-            return InteractionResult.PASS;
-        }
-        var drops = shearable.onSheared(player, stack, target.level(), pos);
-        if (!isClient) {
-            drops.forEach(drop -> shearable.spawnShearedDrop(target.level(), pos, drop));
-        }
-        target.gameEvent(net.minecraft.world.level.gameevent.GameEvent.SHEAR, player);
-        if (!isClient) {
-            stack.hurtAndBreak(1, player, LivingEntity.getSlotForHand(hand));
-        }
-        return InteractionResult.sidedSuccess(isClient);
+        return EntityShear.shearAt(stack, player, target, hand);
     }
 
     /**

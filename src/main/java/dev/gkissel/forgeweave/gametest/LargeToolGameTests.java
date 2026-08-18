@@ -12,12 +12,15 @@ import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResult;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.animal.Pig;
+import net.minecraft.world.entity.animal.Sheep;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.component.Tool;
@@ -476,6 +479,34 @@ public class LargeToolGameTests {
         helper.succeed();
     }
 
+    /**
+     * docs/SCOPE.md issue #467: upstream's {@code Scythe#itemInteractionForEntity}/{@code
+     * #getAoeEntities} shears every {@link net.neoforged.neoforge.common.IShearable} entity in the
+     * 3x3x3 around the one right-clicked, not just the one clicked -- the kama's own reach is the
+     * single-entity case this widens. A sheep two blocks off the clicked one (outside the 3x3x3 cube)
+     * proves the shape has an edge, same idiom as {@link #hammerBreaksExactlyNineBlocks}'s tenth block.
+     */
+    @GameTest(template = "empty")
+    public static void scytheShearsEveryShearableEntityInA3x3x3AreaAroundTheTarget(GameTestHelper helper) {
+        ServerPlayer player = holdingLargeTool(helper, ForgeweaveItems.TOOL_SCYTHE.get(), "stone");
+        ItemStack scythe = player.getMainHandItem();
+
+        Sheep target = spawnUnshornSheep(helper, ORIGIN);
+        Sheep withinArea = spawnUnshornSheep(helper, ORIGIN.offset(1, 0, 0));
+        Sheep outOfReach = spawnUnshornSheep(helper, ORIGIN.offset(3, 0, 0));
+
+        InteractionResult result = scythe.getItem().interactLivingEntity(scythe, player, target, InteractionHand.MAIN_HAND);
+
+        helper.assertTrue(result.consumesAction(), "shearing a ready sheep must consume the interaction");
+        helper.assertTrue(target.isSheared(), "the clicked sheep must end up sheared");
+        helper.assertTrue(withinArea.isSheared(), "a sheep inside the 3x3x3 area must also be sheared");
+        helper.assertFalse(outOfReach.isSheared(), "a sheep outside the 3x3x3 area must be left alone");
+        target.discard();
+        withinArea.discard();
+        outOfReach.discard();
+        helper.succeed();
+    }
+
     // ------------------------------------------------------------------ combat riders
 
     /**
@@ -595,6 +626,14 @@ public class LargeToolGameTests {
         List<CombatSeam> seams = CombatSeams.seams(tool);
         helper.assertTrue(seams.stream().anyMatch(seam -> seam == expected),
                 "the " + name + " must carry its innate through the combat seams, got " + seams);
+    }
+
+    /** An unsheared white sheep at {@code pos}, ready for a shear test. */
+    private static Sheep spawnUnshornSheep(GameTestHelper helper, BlockPos pos) {
+        Sheep sheep = helper.spawn(EntityType.SHEEP, pos);
+        sheep.setSheared(false);
+        sheep.setColor(DyeColor.WHITE);
+        return sheep;
     }
 
     /**
