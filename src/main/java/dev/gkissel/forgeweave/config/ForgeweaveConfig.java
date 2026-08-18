@@ -41,6 +41,14 @@ public final class ForgeweaveConfig {
     public static final ModConfigSpec.BooleanValue REUSE_STENCILS;
 
     /**
+     * Upstream {@code spawnWithBook} (parity audit T13): a player who has never received one before is
+     * given the guide book on their first login, tracked with the same once-per-player idiom as
+     * {@link dev.gkissel.forgeweave.ponder.ForgeweavePonderHint} -- see
+     * {@link dev.gkissel.forgeweave.item.GuideBookGift}.
+     */
+    public static final ModConfigSpec.BooleanValue SPAWN_WITH_BOOK;
+
+    /**
      * Upstream {@code oreToIngotRatio}: how many ingots one ore melts into. Upstream bakes this into
      * each ore melting recipe's amount; Forgeweave's recipes hold a base (raw-drop equivalent) amount
      * and {@link dev.gkissel.forgeweave.block.SmelteryCore#yieldMultiplier()} scales it at melt time
@@ -162,6 +170,9 @@ public final class ForgeweaveConfig {
         REUSE_STENCILS = builder
                 .comment("Allows reusing patterns in the Stencil Table to turn them into other patterns.")
                 .define("reuseStencils", true);
+        SPAWN_WITH_BOOK = builder
+                .comment("Players who enter the world for the first time get the guide book.")
+                .define("spawnWithBook", true);
         ORE_TO_INGOT_RATIO = builder
                 .comment("How many ingots one ore melts into at the top smeltery core tier. Lower tiers scale",
                         "down from this by their own yield multiplier. Cannot go below 1.")
