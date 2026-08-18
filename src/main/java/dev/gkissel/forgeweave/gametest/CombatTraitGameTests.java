@@ -313,6 +313,29 @@ public class CombatTraitGameTests {
     }
 
     /**
+     * Steel, head -&gt; {@code forgeweave:sharp}: a bleed tick must not knock the target back (issue
+     * #436, upstream {@code Modifier#attackEntitySecondary}'s {@code noKnockback} flag -- a transient
+     * {@code KNOCKBACK_RESISTANCE} attribute modifier, not a damage-type tag; {@link BleedEffect}
+     * javadoc). The attacker sits off to the side so a real push would show up as nonzero horizontal
+     * velocity.
+     */
+    @GameTest(template = "empty")
+    public static void sharpBleedDealsNoKnockback(GameTestHelper helper) {
+        Pig pig = noAi(helper.spawn(EntityType.PIG, new BlockPos(2, 2, 2)));
+        Zombie attacker = noAi(helper.spawn(EntityType.ZOMBIE, new BlockPos(6, 2, 2)));
+        pig.setLastHurtByMob(attacker);
+
+        BleedEffect effect = (BleedEffect) ForgeweaveMobEffects.BLEED.value();
+        effect.applyEffectTick(pig, 0);
+
+        helper.assertTrue(pig.getDeltaMovement().horizontalDistanceSqr() < 1.0E-6,
+                "a bleed tick must not apply knockback, got " + pig.getDeltaMovement());
+        pig.discard();
+        attacker.discard();
+        helper.succeed();
+    }
+
+    /**
      * Steel, head -&gt; {@code forgeweave:sharp}: the bleed credits the attacker for a later kill
      * (issue #297 parity fix; upstream {@code TraitSharp#afterHit}'s {@code setLastAttackedEntity}).
      * Drives the trait's seam directly ({@link #onHit}) rather than through a real
