@@ -160,6 +160,7 @@
   "fluid_type.forgeweave.molten_seared_stone": "Molten Seared Stone",
   "fluid_type.forgeweave.molten_slime": "Molten Slime",
   "fluid_type.forgeweave.molten_steel": "Molten Steel",
+  "gui.forgeweave.cast_chest.name": "Cast Chest",
   "gui.forgeweave.chest.page": "Page %s/%s",
   "gui.forgeweave.embossment.already_embossed": "This tool is already embossed. One embossment per tool.",
   "gui.forgeweave.embossment.no_traits": "%s grants no traits through that part, so there is nothing to emboss.",

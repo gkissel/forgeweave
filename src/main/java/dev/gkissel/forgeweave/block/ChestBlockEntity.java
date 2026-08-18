@@ -114,7 +114,18 @@ public class ChestBlockEntity extends BlockEntity implements StationMenuHost {
         // capacity grows back to exactly what the reloaded contents need as #setItem's own growth
         // hook fires along the way, the same way it does during normal play.
         container.capacity = PAGE_SIZE;
-        container.fromTag(tag.getList(TAG_INVENTORY, Tag.TAG_COMPOUND), registries);
+        // #477/T46: SimpleContainer#setItem (which #fromTag's #addItem funnels every stack through)
+        // clamps to getMaxStackSize() -- fine for new placements, but a save from before this ticket's
+        // Pattern/Cast Chest stack-size-1 rule existed can legally hold a bigger stack (the save-compat
+        // fixture this issue adds pins exactly that), and clamping on load would silently drop the
+        // rest. Lifting the cap only while this load runs preserves that old data as-is; every
+        // in-game placement afterwards still goes through ChestKind#maxStackSize() as normal.
+        container.loading = true;
+        try {
+            container.fromTag(tag.getList(TAG_INVENTORY, Tag.TAG_COMPOUND), registries);
+        } finally {
+            container.loading = false;
+        }
     }
 
     /**
@@ -155,9 +166,22 @@ public class ChestBlockEntity extends BlockEntity implements StationMenuHost {
         }
     }
 
+    /** Upstream {@code TilePatternChest#getName}: "Cast Chest" once the Pattern Chest holds a cast (#477/T46). */
     @Override
     public Component getDisplayName() {
+        if (kind == ChestKind.PATTERN && holdsACast()) {
+            return Component.translatable("gui.forgeweave.cast_chest.name");
+        }
         return getBlockState().getBlock().getName();
+    }
+
+    private boolean holdsACast() {
+        for (int i = 0; i < container.getContainerSize(); i++) {
+            if (ChestKind.isCast(container.getItem(i))) {
+                return true;
+            }
+        }
+        return false;
     }
 
     @Nullable
@@ -197,6 +221,8 @@ public class ChestBlockEntity extends BlockEntity implements StationMenuHost {
     private static final class FilteredContainer extends SimpleContainer {
         private final ChestKind kind;
         private int capacity = PAGE_SIZE;
+        /** See {@link #loadAdditional}: true only while a save is being decoded. */
+        private boolean loading;
 
         FilteredContainer(ChestKind kind) {
             super(BACKING_SLOTS);
@@ -205,12 +231,21 @@ public class ChestBlockEntity extends BlockEntity implements StationMenuHost {
 
         @Override
         public boolean canPlaceItem(int slot, @Nonnull ItemStack stack) {
-            return kind.accepts(stack);
+            return kind.accepts(stack, this, slot);
         }
 
         @Override
         public int getContainerSize() {
             return capacity;
+        }
+
+        /**
+         * Per-kind slot stack cap (#477/T46) -- see {@link ChestKind#maxStackSize()} -- except while
+         * {@link #loading}, when it must not clamp (see {@link #loadAdditional}'s comment).
+         */
+        @Override
+        public int getMaxStackSize() {
+            return loading ? super.getMaxStackSize() : kind.maxStackSize();
         }
 
         /**
