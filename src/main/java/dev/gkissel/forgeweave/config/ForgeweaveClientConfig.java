@@ -38,6 +38,19 @@ public final class ForgeweaveClientConfig {
      */
     public static final ModConfigSpec.BooleanValue LIST_ALL_PART_MATERIALS;
 
+    /**
+     * Upstream {@code listAllTables} (parity audit T75, issue #506): the creative tab lists a
+     * retextured variant of the Stencil Table and Part Builder for every plank/log the crafting
+     * station-table's own {@code RetexturedShapedRecipe} can key its {@code TEXTURE} component off
+     * ({@code #minecraft:planks}, {@code #minecraft:logs} -- see {@code ForgeweaveRecipeProvider}).
+     * With this off, only the plain (default-textured) block is listed, upstream's own escape hatch
+     * for how large that variant list gets. The Crafting Station and Tool Station are unaffected:
+     * upstream's own {@code getSubBlocks} never runs this expansion for either of them either (a
+     * boring single entry for the Crafting Station, and the Tool Station's single {@code workbench}
+     * ore-dict ingredient never had more than one match to begin with).
+     */
+    public static final ModConfigSpec.BooleanValue LIST_ALL_TABLE_VARIANTS;
+
     static {
         ModConfigSpec.Builder builder = new ModConfigSpec.Builder();
 
@@ -52,6 +65,10 @@ public final class ForgeweaveClientConfig {
                 .comment("If true, all material variants of every tool part are listed in creative. Set to false to",
                         "list only the first material for each part.")
                 .define("listAllPartMaterials", true);
+        LIST_ALL_TABLE_VARIANTS = builder
+                .comment("If true, a retextured variant of the Stencil Table and Part Builder is listed in creative",
+                        "for every plank/log. Set to false to list only the default-textured block.")
+                .define("listAllTables", true);
 
         SPEC = builder.build();
     }

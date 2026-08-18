@@ -71,7 +71,7 @@ class ForgeweaveCreativeTabTest {
     /** No item may be filed under two tabs -- upstream picks exactly one per item class. */
     @Test
     void noItemIsListedByTwoTabs() {
-        List<Item> shared = tab(ForgeweaveCreativeTab::addGeneralItems).stream()
+        List<Item> shared = tab(generalItems()).stream()
                 .map(ItemStack::getItem)
                 .filter(item -> tab(ForgeweaveCreativeTab::addToolItems).stream().anyMatch(s -> s.getItem() == item)
                         || tab(ForgeweaveCreativeTab::addSmelteryItems).stream().anyMatch(s -> s.getItem() == item)
@@ -178,11 +178,16 @@ class ForgeweaveCreativeTabTest {
         CreativeModeTab.ItemDisplayParameters parameters = parameters(materialIds);
         List<ItemStack> displayed = new ArrayList<>();
         CreativeModeTab.Output output = (stack, visibility) -> displayed.add(stack);
-        ForgeweaveCreativeTab.addGeneralItems(parameters, output);
+        ForgeweaveCreativeTab.addGeneralItems(parameters, output, true);
         ForgeweaveCreativeTab.addToolItems(parameters, output);
         ForgeweaveCreativeTab.addPartItems(parameters, output, listAllPartMaterials);
         ForgeweaveCreativeTab.addSmelteryItems(parameters, output);
         return displayed;
+    }
+
+    /** The General tab with table variants on -- unit tests have no item tags bound, so it lists one of each. */
+    private static BiConsumer<CreativeModeTab.ItemDisplayParameters, CreativeModeTab.Output> generalItems() {
+        return (parameters, output) -> ForgeweaveCreativeTab.addGeneralItems(parameters, output, true);
     }
 
     private static List<ItemStack> tab(BiConsumer<CreativeModeTab.ItemDisplayParameters, CreativeModeTab.Output> tab) {

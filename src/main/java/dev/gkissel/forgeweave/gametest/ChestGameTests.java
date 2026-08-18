@@ -7,6 +7,7 @@ import net.minecraft.core.component.DataComponents;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.ContainerLevelAccess;
@@ -90,6 +91,77 @@ public class ChestGameTests {
                 "expected the Part Chest to accept a shard (also a PartItem)");
         helper.assertFalse(menu.getSlot(0).mayPlace(new ItemStack(ForgeweaveItems.PATTERN_BLANK.get())),
                 "expected the Part Chest to reject a pattern");
+
+        helper.succeed();
+    }
+
+    // ------------------------------------------------------------------ issue #506 (T75): right-click insert
+
+    /** Upstream {@code BlockToolTable#onBlockActivated}: a held item that fits is inserted without opening the GUI. */
+    @GameTest(template = "empty")
+    public static void rightClickWithAHeldItemInsertsItWithoutOpeningTheChest(GameTestHelper helper) {
+        BlockPos pos = new BlockPos(1, 1, 1);
+        ChestBlockEntity chest = placeChest(helper, pos, ChestKind.PART);
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        player.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(ForgeweaveItems.PART_PICKAXE_HEAD.get()));
+
+        boolean inserted = chest.insertHeldItem(player, InteractionHand.MAIN_HAND);
+
+        helper.assertTrue(inserted, "expected the held part to be inserted");
+        helper.assertTrue(chest.container().getItem(0).is(ForgeweaveItems.PART_PICKAXE_HEAD.get()),
+                "expected the part to land in the chest");
+        helper.assertTrue(player.getItemInHand(InteractionHand.MAIN_HAND).isEmpty(),
+                "expected the held stack to be consumed");
+
+        helper.succeed();
+    }
+
+    /** A rejected item (the chest's filter refuses it outright) leaves the hand untouched, so the GUI opens instead. */
+    @GameTest(template = "empty")
+    public static void rightClickWithARejectedItemInsertsNothing(GameTestHelper helper) {
+        BlockPos pos = new BlockPos(1, 1, 1);
+        ChestBlockEntity chest = placeChest(helper, pos, ChestKind.PART);
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        player.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(ForgeweaveItems.PATTERN_BLANK.get()));
+
+        boolean inserted = chest.insertHeldItem(player, InteractionHand.MAIN_HAND);
+
+        helper.assertFalse(inserted, "expected a pattern to be rejected by the Part Chest's filter");
+        helper.assertTrue(chest.container().isEmpty(), "expected nothing to land in the chest");
+        helper.assertValueEqual(player.getItemInHand(InteractionHand.MAIN_HAND).getCount(), 1,
+                "expected the held stack to be untouched");
+
+        helper.succeed();
+    }
+
+    /** Upstream's own rule: even a partial insert (only some of the stack fits) still counts as a hit. */
+    @GameTest(template = "empty")
+    public static void rightClickWithAPartialFitStillInsertsWhatFits(GameTestHelper helper) {
+        BlockPos pos = new BlockPos(1, 1, 1);
+        ChestBlockEntity chest = placeChest(helper, pos, ChestKind.PART);
+        chest.container().setItem(0, new ItemStack(ForgeweaveItems.SHARD.get(), 63)); // one short of a full stack
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        player.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(ForgeweaveItems.SHARD.get(), 2));
+
+        boolean inserted = chest.insertHeldItem(player, InteractionHand.MAIN_HAND);
+
+        helper.assertTrue(inserted, "expected the partial fit to still count as an insert");
+        helper.assertValueEqual(chest.container().getItem(0).getCount(), 64, "expected the existing stack to top up");
+        helper.assertValueEqual(player.getItemInHand(InteractionHand.MAIN_HAND).getCount(), 1,
+                "expected only the leftover shard to remain in hand");
+
+        helper.succeed();
+    }
+
+    /** An empty hand does nothing (there is nothing to insert), so the GUI still opens as before. */
+    @GameTest(template = "empty")
+    public static void rightClickWithAnEmptyHandInsertsNothing(GameTestHelper helper) {
+        BlockPos pos = new BlockPos(1, 1, 1);
+        ChestBlockEntity chest = placeChest(helper, pos, ChestKind.PART);
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+
+        helper.assertFalse(chest.insertHeldItem(player, InteractionHand.MAIN_HAND),
+                "expected an empty hand to insert nothing");
 
         helper.succeed();
     }

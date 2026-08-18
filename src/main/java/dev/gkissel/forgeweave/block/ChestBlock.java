@@ -7,7 +7,9 @@ import com.mojang.serialization.MapCodec;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.Containers;
+import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
+import net.minecraft.world.ItemInteractionResult;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
@@ -89,6 +91,21 @@ public class ChestBlock extends HorizontalDirectionalBlock implements EntityBloc
             chest.open(player); // carries the station-group tab row (issue #78)
         }
         return InteractionResult.SUCCESS;
+    }
+
+    /**
+     * Upstream {@code BlockToolTable#onBlockActivated} (parity audit T75, issue #506): a held item
+     * that fits is inserted straight into the chest instead of opening its GUI -- see
+     * {@link ChestBlockEntity#insertHeldItem}. Falling through to {@link #useWithoutItem} (an empty
+     * hand, or nothing fit) is what opens the GUI as before.
+     */
+    @Override
+    protected ItemInteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos,
+            Player player, InteractionHand hand, BlockHitResult hit) {
+        if (level.getBlockEntity(pos) instanceof ChestBlockEntity chest && chest.insertHeldItem(player, hand)) {
+            return ItemInteractionResult.sidedSuccess(level.isClientSide);
+        }
+        return super.useItemOn(stack, state, level, pos, player, hand, hit);
     }
 
     /**
