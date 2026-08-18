@@ -1204,13 +1204,23 @@ public final class ForgeweaveTraits {
         }
     };
 
+    /** Upstream {@code TraitSqueaky#afterHit}: {@code 1.0f} volume, {@code 0.8f + 0.4f * random} pitch. */
+    private static final float SQUEAKY_VOLUME = 1.0F;
+    private static final float SQUEAKY_PITCH_BASE = 0.8F;
+    private static final float SQUEAKY_PITCH_SPREAD = 0.4F;
+
     /**
      * Sponge. Upstream {@code TraitSqueaky}: always-on Silk Touch ({@code applyEffect}'s
      * {@code ToolBuilder#addEnchantment}, here the assembly-time grant behind
-     * {@link Trait#grantsSilkTouch}) and a hard-zero hit ({@code damage} returns {@code 0f}
-     * unconditionally, here {@link Trait#zeroesAttackDamage}). Upstream's squeak-toy sound on hit has
-     * no Forgeweave sound asset (recorded in the PR); its {@code canApplyTogether} luck/silky/fortune/
-     * looting guards live in {@code modifier.ModifierCompatibility} (T23, #454).
+     * {@link Trait#grantsSilkTouch}), a hard-zero hit ({@code damage} returns {@code 0f}
+     * unconditionally, here {@link Trait#zeroesAttackDamage}), and a sound cue on every landed hit
+     * ({@code afterHit}'s {@code Sounds.playSoundForAll(player, toy_squeak, 1.0f, 0.8f + 0.4f *
+     * random)}, here {@link Trait#afterHit}). Upstream's own {@code toy_squeak.ogg} has no
+     * Forgeweave sound asset (parity audit T64, issue #495) -- matching the project's zero-custom-
+     * sound-asset convention, {@code SLIME_SQUISH} stands in for it at upstream's own volume/pitch,
+     * the same way issue #415's shocking cues stand in for TConstruct's own sounds. Its
+     * {@code canApplyTogether} luck/silky/fortune/looting guards live in
+     * {@code modifier.ModifierCompatibility} (T23, #454).
      */
     public static final Trait SQUEAKY = new Trait() {
         @Override
@@ -1221,6 +1231,13 @@ public final class ForgeweaveTraits {
         @Override
         public boolean zeroesAttackDamage() {
             return true;
+        }
+
+        @Override
+        public void afterHit(ItemStack stack, ServerLevel level, LivingEntity attacker, LivingEntity target) {
+            float pitch = SQUEAKY_PITCH_BASE + SQUEAKY_PITCH_SPREAD * level.getRandom().nextFloat();
+            level.playSound(null, attacker.blockPosition(), SoundEvents.SLIME_SQUISH, SoundSource.PLAYERS,
+                    SQUEAKY_VOLUME, pitch);
         }
     };
 

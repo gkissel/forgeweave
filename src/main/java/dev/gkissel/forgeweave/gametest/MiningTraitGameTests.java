@@ -11,6 +11,7 @@ import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.network.chat.TextColor;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.sounds.SoundEvents;
 import net.minecraft.tags.TagKey;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.InteractionHand;
@@ -44,6 +45,7 @@ import dev.gkissel.forgeweave.material.Material;
 import dev.gkissel.forgeweave.modifier.ForgeweaveModifiers;
 import dev.gkissel.forgeweave.tool.ToolStats;
 import dev.gkissel.forgeweave.trait.ForgeweaveTraits;
+import dev.gkissel.forgeweave.trait.Trait;
 
 /**
  * docs/SCOPE.md M3.2 issue #228's verification: one test per mining/durability-economy trait,
@@ -305,6 +307,45 @@ public class MiningTraitGameTests {
         CombatHit hit = new CombatHit(level, pickaxe, player, target, level.damageSources().playerAttack(player));
         float damage = ForgeweaveTraits.COMBAT_SEAM.preHit(hit, 5.0F, 5.0F);
         helper.assertTrue(damage == 0.0F, "squeaky must zero the blow itself, got " + damage);
+
+        target.discard();
+        helper.succeed();
+    }
+
+    /**
+     * Sponge -&gt; {@code forgeweave:squeaky}, hit sound (parity audit T64, issue #495): upstream
+     * {@code TraitSqueaky#afterHit} plays its own {@code toy_squeak} sound (volume 1.0, pitch
+     * {@code 0.8 + 0.4 * random}) on every landed hit -- {@link Trait#afterHit}'s existing seam for
+     * exactly that shape of upstream hook, already wired from {@code ToolItem#postHurtEnemy}. That
+     * asset was deliberately skipped when the trait first shipped ("no sound asset", issue #228/PR
+     * #242), matching Forgeweave's convention of zero custom sound assets (no {@code sounds.json}
+     * exists anywhere in the project). {@code SLIME_SQUISH} stands in for it the same way issue
+     * #415's shocking cues stand in for TConstruct's own CC-BY/CC0 sounds -- vanilla's own bouncy,
+     * harmless squish, at upstream's own volume/pitch spread. {@link SoundCapture} observes the
+     * {@code PlayLevelSoundEvent.AtPosition} NeoForge fires from inside {@code Level#playSound}
+     * itself, since the sound packet has no observer without a tracked client player.
+     */
+    @GameTest(template = "empty")
+    public static void squeakyPlaysASquishSoundOnHit(GameTestHelper helper) {
+        ServerLevel level = helper.getLevel();
+        Player attacker = helper.makeMockPlayer(GameType.SURVIVAL);
+        BlockPos attackerPos = helper.absolutePos(new BlockPos(1, 2, 1));
+        attacker.setPos(attackerPos.getX() + 0.5, attackerPos.getY(), attackerPos.getZ() + 0.5);
+        Pig target = helper.spawn(EntityType.PIG, new BlockPos(2, 2, 2));
+        ItemStack pickaxe = pickaxe(List.of(traitId("squeaky")), 1000, 1.0F, 1.0F);
+
+        List<SoundCapture.Played> played = SoundCapture.playedDuring(helper,
+                () -> ForgeweaveTraits.afterHit(pickaxe, level, attacker, target));
+
+        List<SoundCapture.Played> squeaks =
+                played.stream().filter(p -> p.sound().value() == SoundEvents.SLIME_SQUISH).toList();
+        helper.assertTrue(squeaks.size() == 1, "expected exactly one squeak cue, got " + squeaks);
+        SoundCapture.Played squeak = squeaks.get(0);
+        helper.assertTrue(squeak.volume() == 1.0F, "upstream plays the squeak at volume 1.0, got " + squeak.volume());
+        helper.assertTrue(squeak.pitch() >= 0.8F && squeak.pitch() <= 1.2F,
+                "upstream's pitch spread is 0.8-1.2, got " + squeak.pitch());
+        double distance = attacker.position().distanceTo(squeak.position());
+        helper.assertTrue(distance < 1.5, "the squeak must play at the attacker, was " + distance + " blocks away");
 
         target.discard();
         helper.succeed();
