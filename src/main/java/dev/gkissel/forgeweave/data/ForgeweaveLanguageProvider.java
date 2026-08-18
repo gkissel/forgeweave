@@ -24,7 +24,12 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
 
     @Override
     protected void addTranslations() {
-        add("itemGroup.forgeweave", "Forgeweave");
+        // #507 -- upstream 1.12's four populated tabs (en_us.lang:919-924, "Tinkers' General
+        // Items"/"Tinkers' Tools"/"Tinkers' Toolparts"/"Tinkers' Smeltery").
+        add("itemGroup.forgeweave.general", "Forgeweave General Items");
+        add("itemGroup.forgeweave.tools", "Forgeweave Tools");
+        add("itemGroup.forgeweave.parts", "Forgeweave Tool Parts");
+        add("itemGroup.forgeweave.smeltery", "Forgeweave Smeltery");
 
         // #447 -- the entity every dropped tool spawns as; name ported from upstream 1.12's
         // EntityRegistry.registerModEntity("indestructible", ..., "Indestructible Item") (NOTICE.md).

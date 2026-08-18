@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.BiConsumer;
 
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -38,8 +39,8 @@ import dev.gkissel.forgeweave.material.Material;
 /**
  * Regression for issue #139: the maintainer could not find the smeltery controller, seared tanks,
  * drain, faucet, or casting blocks in the creative tab because several M2 functional blocks were
- * never added to {@link ForgeweaveCreativeTab#addDisplayItems}. Builds the tab's contents by
- * calling that method directly (the minimal equivalent of the real
+ * never added to the tab's display-items method. Builds each tab's contents by calling those
+ * methods directly (the minimal equivalent of the real
  * {@code CreativeModeTab#buildContents} path -- that path also posts a NeoForge mod-bus event this
  * unit test environment doesn't stand up) and asserts every Forgeweave item backed by a BlockItem
  * shows up, so the next new block can't be forgotten the same way.
@@ -50,6 +51,72 @@ class ForgeweaveCreativeTabTest {
     static void bootstrapMinecraft() {
         SharedConstants.tryDetectVersion();
         Bootstrap.bootStrap();
+    }
+
+    /**
+     * Issue #507 / T76: upstream 1.12 spreads its content over six creative tabs
+     * ({@code TinkerRegistry:76-81}), Forgeweave shipped a single one. Four of the six have content
+     * here -- General, Tools, Tool Parts, Smeltery; upstream's World tab would hold only the two
+     * nether ores and its Gadgets content is absent entirely (T56).
+     */
+    @Test
+    void theModRegistersOneTabPerUpstreamContentGroup() {
+        List<String> ids = ForgeweaveCreativeTab.TABS.getEntries().stream()
+                .map(holder -> holder.getId().getPath())
+                .toList();
+
+        assertEquals(List.of("general", "tools", "parts", "smeltery"), ids);
+    }
+
+    /** No item may be filed under two tabs -- upstream picks exactly one per item class. */
+    @Test
+    void noItemIsListedByTwoTabs() {
+        List<Item> shared = tab(ForgeweaveCreativeTab::addGeneralItems).stream()
+                .map(ItemStack::getItem)
+                .filter(item -> tab(ForgeweaveCreativeTab::addToolItems).stream().anyMatch(s -> s.getItem() == item)
+                        || tab(ForgeweaveCreativeTab::addSmelteryItems).stream().anyMatch(s -> s.getItem() == item)
+                        || partsTab().stream().anyMatch(s -> s.getItem() == item))
+                .toList();
+
+        assertTrue(shared.isEmpty(), () -> "items listed by more than one tab: "
+                + shared.stream().map(item -> BuiltInRegistries.ITEM.getKey(item)).toList());
+    }
+
+    /**
+     * Upstream files every {@code ToolCore} under the Tools tab ({@code ToolCore:74}). The single
+     * tab this replaced kept its own hand-written list and had silently lost the mattock and the
+     * kama; the tab now reads {@code ToolAssemblyRecipes#ENTRIES}, so this asserts that table
+     * really does cover every registered tool.
+     */
+    @Test
+    void theToolsTabHoldsEveryRegisteredTool() {
+        List<Item> displayed = tab(ForgeweaveCreativeTab::addToolItems).stream().map(ItemStack::getItem).toList();
+
+        List<Item> missing = ForgeweaveItems.ITEMS.getEntries().stream()
+                .<Item>map(DeferredHolder::get)
+                .filter(item -> item instanceof ToolItem)
+                .filter(item -> !displayed.contains(item))
+                .toList();
+
+        assertTrue(missing.isEmpty(), () -> "tools missing from the tools tab: "
+                + missing.stream().map(item -> BuiltInRegistries.ITEM.getKey(item)).toList());
+        assertEquals(List.of(), displayed.stream().filter(item -> !(item instanceof ToolItem)).toList(),
+                "the tools tab holds assembled tools only");
+    }
+
+    /** Upstream files every {@code ToolPart} under the Tool Parts tab ({@code ToolPart:41}). */
+    @Test
+    void thePartsTabHoldsEveryRegisteredPart() {
+        List<Item> displayed = partsTab().stream().map(ItemStack::getItem).toList();
+
+        List<Item> missing = ForgeweaveItems.ITEMS.getEntries().stream()
+                .<Item>map(DeferredHolder::get)
+                .filter(item -> item instanceof PartItem)
+                .filter(item -> !displayed.contains(item))
+                .toList();
+
+        assertTrue(missing.isEmpty(), () -> "parts missing from the tool parts tab: "
+                + missing.stream().map(item -> BuiltInRegistries.ITEM.getKey(item)).toList());
     }
 
     @Test
@@ -106,19 +173,38 @@ class ForgeweaveCreativeTabTest {
         return build(listAllPartMaterials, List.of());
     }
 
+    /** The union of all four tabs, i.e. everything the mod puts in front of a creative player. */
     private static List<ItemStack> build(boolean listAllPartMaterials, List<ResourceLocation> materialIds) {
+        CreativeModeTab.ItemDisplayParameters parameters = parameters(materialIds);
+        List<ItemStack> displayed = new ArrayList<>();
+        CreativeModeTab.Output output = (stack, visibility) -> displayed.add(stack);
+        ForgeweaveCreativeTab.addGeneralItems(parameters, output);
+        ForgeweaveCreativeTab.addToolItems(parameters, output);
+        ForgeweaveCreativeTab.addPartItems(parameters, output, listAllPartMaterials);
+        ForgeweaveCreativeTab.addSmelteryItems(parameters, output);
+        return displayed;
+    }
+
+    private static List<ItemStack> tab(BiConsumer<CreativeModeTab.ItemDisplayParameters, CreativeModeTab.Output> tab) {
+        List<ItemStack> displayed = new ArrayList<>();
+        tab.accept(parameters(List.of()), (stack, visibility) -> displayed.add(stack));
+        return displayed;
+    }
+
+    private static List<ItemStack> partsTab() {
+        List<ItemStack> displayed = new ArrayList<>();
+        ForgeweaveCreativeTab.addPartItems(parameters(MATERIALS), (stack, visibility) -> displayed.add(stack), true);
+        return displayed;
+    }
+
+    private static CreativeModeTab.ItemDisplayParameters parameters(List<ResourceLocation> materialIds) {
         MappedRegistry<Material> materials = new MappedRegistry<>(Material.REGISTRY, Lifecycle.stable());
         for (ResourceLocation id : materialIds) {
             materials.register(ResourceKey.create(Material.REGISTRY, id), dummyMaterial(), RegistrationInfo.BUILT_IN);
         }
         materials.freeze();
         RegistryAccess.Frozen registryAccess = new RegistryAccess.ImmutableRegistryAccess(List.of(materials)).freeze();
-        CreativeModeTab.ItemDisplayParameters parameters =
-                new CreativeModeTab.ItemDisplayParameters(FeatureFlags.VANILLA_SET, true, registryAccess);
-
-        List<ItemStack> displayed = new ArrayList<>();
-        ForgeweaveCreativeTab.addDisplayItems(parameters, (stack, visibility) -> displayed.add(stack), listAllPartMaterials);
-        return displayed;
+        return new CreativeModeTab.ItemDisplayParameters(FeatureFlags.VANILLA_SET, true, registryAccess);
     }
 
     /**
