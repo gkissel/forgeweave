@@ -392,6 +392,24 @@ public final class ForgeweaveInnates {
             new KnockbackOnHitSeam(KNOCKBACK_LEVEL));
     public static final Innate CRUSHING_BLOW = new Innate("crushing_blow", CRUSHING_BLOW_SEAM, null);
 
+    // ------------------------------------------------------------------ per-tool knockback (#465/T34)
+
+    /**
+     * Upstream {@code Hatchet#knockback() = 1.3f}, {@code Mattock#knockback() = 1.1f}, {@code
+     * LumberAxe#knockback() = 1.5f}, {@code Rapier#knockback() = 0.6f} -- {@code ToolCore}'s own
+     * default is {@code 1.0f}, so every other tool here carries none of these and its knockback is
+     * whatever vanilla would already give the same attributes. Layered onto each tool's existing
+     * seam(s) below rather than folded into its {@link Innate}: a per-tool knockback multiplier is not
+     * an "innate" in the sense every other entry in this file is (a distinct piece of combat feel a
+     * tooltip line names), it is a plain number on the same footing as the tool's attack-speed/damage
+     * multipliers -- {@link CombatSeam#knockback}'s own javadoc has the mechanism.
+     */
+    public static final CombatSeam HATCHET_KNOCKBACK = new KnockbackMultiplierSeam(1.3F);
+
+    public static final CombatSeam MATTOCK_KNOCKBACK = new KnockbackMultiplierSeam(1.1F);
+    public static final CombatSeam LUMBERAXE_KNOCKBACK = new KnockbackMultiplierSeam(1.5F);
+    public static final CombatSeam RAPIER_KNOCKBACK = new KnockbackMultiplierSeam(0.6F);
+
     // ------------------------------------------------------------------ lookup
 
     /** The innate this stack's tool carries, or {@code null} -- the M3 binding (issue #155). */
@@ -408,6 +426,13 @@ public final class ForgeweaveInnates {
             out.accept(FLATTEN);
         } else if (weapon.is(ForgeweaveItems.TOOL_HATCHET.get())) {
             out.accept(SUNDER);
+            out.accept(HATCHET_KNOCKBACK);
+        } else if (weapon.is(ForgeweaveItems.TOOL_MATTOCK.get())) {
+            out.accept(MATTOCK_KNOCKBACK);
+        } else if (weapon.is(ForgeweaveItems.TOOL_LUMBERAXE.get())) {
+            out.accept(LUMBERAXE_KNOCKBACK);
+        } else if (weapon.is(ForgeweaveItems.TOOL_RAPIER.get())) {
+            out.accept(RAPIER_KNOCKBACK);
         }
         Innate innate = of(weapon);
         if (innate != null && innate.seam() != null) {

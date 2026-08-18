@@ -188,7 +188,10 @@ public class CombatModifierGameTests {
 
     // ---------------------------------------------------------------- #163 batch (knockback, shulking, webbed)
 
-    private static final ResourceLocation KNOCKBACK = ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "knockback");
+    // Package-visible (not private): issue #465/T34's KnockbackMultiplierGameTests reuses this
+    // constant plus pushOnHit/withModifier below to prove a tool's per-tool knockback multiplier does
+    // not also scale this same combat modifier's own push -- see that class's javadoc.
+    static final ResourceLocation KNOCKBACK = ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "knockback");
     private static final ResourceLocation SHULKING = ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "shulking");
     private static final ResourceLocation WEBBED = ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "webbed");
 
@@ -275,7 +278,7 @@ public class CombatModifierGameTests {
     }
 
     /** As {@link #strike}, returning the horizontal knockback the target ended up with. */
-    private static double pushOnHit(GameTestHelper helper, Player player, BlockPos pos, ItemStack tool) {
+    static double pushOnHit(GameTestHelper helper, Player player, BlockPos pos, ItemStack tool) {
         Pig target = strike(helper, player, pos, tool);
         double dx = target.getDeltaMovement().x;
         double dz = target.getDeltaMovement().z;
@@ -290,7 +293,7 @@ public class CombatModifierGameTests {
      * pierce adds 1.0 armor-ignoring damage per hit, which broke these tests' control assertions
      * the moment #162's and #164's branches met on master.
      */
-    private static ItemStack withModifier(ResourceLocation id, int level) {
+    static ItemStack withModifier(ResourceLocation id, int level) {
         ItemStack shovel = new ItemStack(ForgeweaveItems.TOOL_SHOVEL.get());
         shovel.set(ForgeweaveDataComponents.MODIFIERS.get(), List.of(new ModifierEntry(id, level)));
         return shovel;

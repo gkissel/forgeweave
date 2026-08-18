@@ -114,6 +114,9 @@ public class Forgeweave {
         NeoForge.EVENT_BUS.addListener(CombatSeams::onIncomingDamage);
         NeoForge.EVENT_BUS.addListener(CombatSeams::onDamageDealt);
         NeoForge.EVENT_BUS.addListener(CombatSeams::onDeath);
+        // #465/T34 -- upstream's per-tool knockback() multiplier, riding NeoForge's own knockback
+        // event rather than a custom pipeline (ADR-0005); see CombatSeam#knockback.
+        NeoForge.EVENT_BUS.addListener(CombatSeams::onKnockback);
         // Providers register here, not in their own static initializers, so the order the pipeline
         // runs them in is visible in one place. Materials' traits are first (COMBAT_SEAM's damage
         // fold plus, since #229, each trait's own seams -- see collectCombatSeams); M3's per-tool

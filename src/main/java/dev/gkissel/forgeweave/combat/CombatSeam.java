@@ -15,9 +15,9 @@ package dev.gkissel.forgeweave.combat;
  * state that ties it to one tool. Whether a seam applies to a given tool at all is decided by the
  * {@link CombatSeams.Provider} that produced it, not by the seam itself.
  *
- * <p>ponytail: three hooks, matching the three moments ADR-0005 names. Upstream 1.12's
- * {@code ITrait} exposes a dozen combat-adjacent hooks; the ones no shipped behavior uses would be
- * empty seams here. Add a hook when a behavior needs it.
+ * <p>ponytail: four hooks -- the three moments ADR-0005 names plus {@link #knockback}, added when
+ * issue #465/T34 needed one. Upstream 1.12's {@code ITrait} exposes a dozen combat-adjacent hooks;
+ * the ones no shipped behavior uses would be empty seams here. Add a hook when a behavior needs it.
  */
 public interface CombatSeam {
 
@@ -69,5 +69,34 @@ public interface CombatSeam {
      */
     default float incomingHit(CombatDefense defense, float originalDamage, float damage) {
         return damage;
+    }
+
+    /**
+     * This blow's knockback strength adjusted by this seam, called once per NeoForge {@code
+     * LivingKnockBackEvent} that this hit's target's own {@code LivingEntity#hurt} produces -- the flat
+     * {@code 0.4f} push vanilla applies to <em>every</em> successful hit from an attacking entity
+     * ({@code LivingEntity#hurt}'s own {@code this.knockback(0.4F, ...)} call, unconditional on the
+     * damage source carrying an entity and not tagged {@code minecraft:no_knockback}), strictly
+     * separate from any bonus a sprint attack, a Knockback enchant, or a Forgeweave combat modifier
+     * adds on top. Upstream 1.12's per-tool {@code ITool#knockback()} multiplier (issue #465/T34)
+     * scales that exact same flat push ({@code ToolHelper#attackEntity}'s own vanilla-derived delta,
+     * lines 737-740) and, like it, lives here riding NeoForge's own knockback event rather than a
+     * custom pipeline (ADR-0005) -- the other three hooks ride NeoForge's damage/death events the
+     * same way.
+     *
+     * <p>Never called for a push a seam applies itself from {@link #onHit} ({@link KnockbackOnHitSeam},
+     * the frying pan's {@code HeavyKnockback}): those calls to {@code LivingEntity#knockback} happen
+     * and finish while {@link CombatSeams} is still dispatching {@link #onHit}, before the flat push
+     * above exists to fire this hook for -- {@link CombatSeams} excludes them the same way upstream's
+     * separate trait-driven {@code addVelocity} call is untouched by {@code tool.knockback()}. Also
+     * never called twice for one hit: {@code Player#attack}'s own additional sprint/enchant-driven push
+     * (a second, later {@code LivingEntity#knockback} call, upstream's own separate un-multiplied
+     * {@code knockback} local) finds nothing left to attribute itself to once the flat push above has
+     * already consumed it -- see {@link CombatSeams#onKnockback}.
+     *
+     * @param knockback the push's strength as every earlier seam in the chain left it
+     */
+    default float knockback(CombatHit hit, float knockback) {
+        return knockback;
     }
 }

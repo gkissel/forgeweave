@@ -227,7 +227,7 @@ All 9 harvest tools, 6 shipped melee weapons, the cleaver and 3 bows exist with 
 | Hatchet | `Hatchet.java:31-96` | n/a | `:206-208` | have | — | none | — |
 | Hatchet +0.5 flat attack | `Hatchet.java:100-104` | n/a | `flatAttackBonus 0.0f` | missing | N | low | T65 |
 | Hatchet: leaves at full speed, 0 durability | `Hatchet.java:68-82` | n/a | no leaves carve-out | missing | N | low | T65 |
-| Per-tool knockback (hatchet 1.3, mattock 1.1, lumberaxe 1.5, rapier 0.6) | `ToolHelper:737-740` | tool-definition modifier | only frypan (`HeavyKnockback`) | partial | N | medium | T34 |
+| Per-tool knockback (hatchet 1.3, mattock 1.1, lumberaxe 1.5, rapier 0.6) | `ToolHelper:737-740` | tool-definition modifier | `KnockbackMultiplierSeam` via `ForgeweaveInnates#collect` + `CombatSeams#onKnockback` | have | Y (#553) | none | — |
 | Mattock | `Mattock.java:54-206` | n/a | `ToolConstants:225-229`, `MattockItem` | have | — | none | — |
 | Mattock per-head tier and repair by either head | `Mattock.java:65-112` | n/a | one head material for both | partial | Y for tier (#294), N for repair | low | T66 |
 | Kama | `Kama.java:56-249` | n/a | `ToolConstants:231-235`, `KamaItem` | have | — | none | — |
@@ -646,7 +646,7 @@ Prioritized and deduplicated across domains. Already-filed issues are marked; **
 - [ ] **T31 — Multi-part repair and per-part repair modifiers** — repair by any `getRepairParts` slot with the per-tool factors (Hammer 2.5×, Cleaver 2×…) and the multi-material bonus (tools, medium, M3 playtest-fix).
 - [x] **T32 — Sharpening kit repair** — accept a kit of the head material at the station and port the crafting-grid `RepairRecipe` (stations/tools, medium, M3.5 fix round).
 - [ ] **T33 — Tool tags, ItemAbilities and grass paths** — tag tools into `minecraft:pickaxes/axes/shovels/hoes/swords` + `c:tools/*`, implement `canPerformAction` per tool kind, and give shovel/excavator `SHOVEL_FLATTEN` (tools/config, medium, M3 playtest-fix).
-- [ ] **T34 — Per-tool knockback multipliers** — hatchet 1.3, mattock 1.1, lumberaxe 1.5, rapier 0.6, as per-tool seams (ADR-0005 forbids a custom pipeline) (tools, medium, M3 playtest-fix).
+- [x] **T34 — Per-tool knockback multipliers** (shipped, #553) — hatchet 1.3, mattock 1.1, lumberaxe 1.5 and rapier 0.6 (`ToolCore#knockback()`), each as a `KnockbackMultiplierSeam` riding a fourth `CombatSeam#knockback` hook on NeoForge's own `LivingKnockBackEvent` rather than a custom pipeline (ADR-0005). Corrects the audit's own citation: the multiplier scales the flat per-hit knockback vanilla's `LivingEntity#hurt` already applies to every landed hit, not a separate attack-knockback-attribute push, and a seam's own knockback (`KnockbackOnHitSeam`, the frying pan's `HeavyKnockback`) is guarded against being double-scaled (tools, medium, M3 playtest-fix).
 - [x] **T35 — Hammer's +3..6 vs undead** (shipped, #466) — a `ConditionalSeam(UNDEAD, ...)`/`RandomBonusDamage` seam alongside the concussion rider, composed into the hammer's one `Innate` (tools, medium, M3 playtest-fix).
 - [ ] **T36 — Scythe cannot shear entities** — generalise `KamaItem#interactLivingEntity` to a 3×3 area around the clicked entity (tools, medium, M3 playtest-fix).
 - [ ] **T37 — Longsword/frypan charge movement** — generalise `BowDrawMovement` to a per-use-action speed (longsword 0.9, frypan 0.7) (tools, medium, M3 playtest-fix).

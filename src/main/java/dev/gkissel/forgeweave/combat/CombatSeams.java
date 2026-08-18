@@ -12,6 +12,7 @@ import net.neoforged.neoforge.event.entity.player.AttackEntityEvent;
 import net.neoforged.neoforge.event.entity.player.CriticalHitEvent;
 import net.neoforged.neoforge.event.entity.living.LivingDeathEvent;
 import net.neoforged.neoforge.event.entity.living.LivingIncomingDamageEvent;
+import net.neoforged.neoforge.event.entity.living.LivingKnockBackEvent;
 
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.InteractionHand;
@@ -42,14 +43,20 @@ import dev.gkissel.forgeweave.item.ToolItem;
  *       <td>once the target has actually lost health, upstream's {@code ITrait#afterHit}</td></tr>
  *   <tr><td>{@link CombatSeam#postKill}</td><td>{@link LivingDeathEvent}</td>
  *       <td>once the target dies</td></tr>
+ *   <tr><td>{@link CombatSeam#knockback}</td><td>{@link LivingKnockBackEvent}</td>
+ *       <td>the flat {@code 0.4f} push vanilla's own {@code LivingEntity#hurt} applies to every
+ *           successful hit, strictly after {@link CombatSeam#onHit} for the same blow -- upstream's
+ *           {@code ITool#knockback()} multiplier (issue #465/T34), see {@link #onKnockback}</td></tr>
  * </table>
  *
- * <p>Each of those three vanilla/NeoForge events fires exactly once per damage instance
+ * <p>Each of the first three vanilla/NeoForge events fires exactly once per damage instance
  * ({@code LivingEntity#actuallyHurt} posts the damage events once and only for a target that was
  * not invulnerable; {@code LivingEntity#hurt} calls {@code die} once afterwards), which is what
  * makes "exactly once per hit, exactly once per kill" a property of the events rather than of
  * bookkeeping here. A killing blow therefore runs pre-hit, then on-hit, then post-kill, in that
- * order.
+ * order. {@link LivingKnockBackEvent} has no such guarantee -- {@code LivingEntity#knockback} fires
+ * it for every knockback in the game, this tool's blow included zero or more times, or not at all --
+ * so {@link #onKnockback} matches it to a specific hit itself rather than leaning on event cardinality.
  *
  * <h2>Who attaches</h2>
  *
@@ -163,8 +170,47 @@ public final class CombatSeams {
         if (hit == null) {
             return;
         }
+        // #465/T34: a seam's own onHit can call LivingEntity#knockback (KnockbackOnHitSeam, the
+        // frying pan's HeavyKnockback), which fires the very LivingKnockBackEvent onKnockback listens
+        // for. dispatchingOnHit marks those pushes as none of onKnockback's business while they happen.
+        dispatchingOnHit = true;
+        try {
+            for (CombatSeam seam : seams(hit.weapon())) {
+                seam.onHit(hit, event.getNewDamage());
+            }
+        } finally {
+            dispatchingOnHit = false;
+        }
+        // The flat push CombatSeam#knockback scales is still ahead of us -- LivingEntity#hurt calls its
+        // own this.knockback(0.4F, ...) after actuallyHurt (which posted the event that led here)
+        // returns, but before hurt() itself returns. Remember this hit so onKnockback can attribute
+        // that next push, consumed once it does -- which is also what keeps Player#attack's own later,
+        // separate sprint/enchant-driven knockback() call (fired only after hurt() has fully returned)
+        // from matching a second time; see CombatSeam#knockback's javadoc.
+        pendingKnockbackHit = hit;
+    }
+
+    private static boolean dispatchingOnHit;
+    @Nullable
+    private static CombatHit pendingKnockbackHit;
+
+    /**
+     * Registered on the game event bus in {@code Forgeweave}. See the class javadoc's table and
+     * {@link CombatSeam#knockback}. Fires for every {@code LivingEntity#knockback} call in the game,
+     * not just ones a Forgeweave tool caused, so most calls exit on the first check below.
+     */
+    public static void onKnockback(LivingKnockBackEvent event) {
+        CombatHit hit = pendingKnockbackHit;
+        if (dispatchingOnHit || hit == null || event.getEntity() != hit.target()) {
+            return;
+        }
+        pendingKnockbackHit = null; // consumed: a later, unrelated push must not match this hit again
+        float strength = event.getStrength();
         for (CombatSeam seam : seams(hit.weapon())) {
-            seam.onHit(hit, event.getNewDamage());
+            strength = seam.knockback(hit, strength);
+        }
+        if (strength != event.getStrength()) {
+            event.setStrength(strength);
         }
     }
 
