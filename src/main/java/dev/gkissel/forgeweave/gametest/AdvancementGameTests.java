@@ -101,6 +101,94 @@ public class AdvancementGameTests {
         helper.succeed();
     }
 
+    // ---------------------------------------------------------------- T49 (parity audit 2026-08-18)
+
+    /** Iron crosses both upstream thresholds (harvestLevel {@code DIAMOND=2}, {@code >1}). */
+    @GameTest(template = "empty")
+    public static void assemblingAnIronPickaxeGrantsBothVanillaStoryAdvancements(GameTestHelper helper) {
+        BlockPos pos = new BlockPos(1, 1, 1);
+        ServerPlayer player = helper.makeMockServerPlayerInLevel();
+        ItemStack pickaxe = ToolAssembly.pickaxe(helper, player, pos, "iron", "iron", "iron");
+
+        helper.assertTrue(pickaxe.is(ForgeweaveItems.TOOL_PICKAXE.get()), "expected an assembled pickaxe, got " + pickaxe);
+        helper.assertTrue(isVanillaGranted(helper, player, "story/upgrade_tools"),
+                "expected assembling an iron-head pickaxe to grant the vanilla upgrade_tools advancement");
+        helper.assertTrue(isVanillaGranted(helper, player, "story/iron_tools"),
+                "expected assembling an iron-head pickaxe to grant the vanilla iron_tools advancement");
+        helper.succeed();
+    }
+
+    /** Stone crosses only the first upstream threshold (harvestLevel {@code IRON=1}, {@code >0} but not {@code >1}). */
+    @GameTest(template = "empty")
+    public static void assemblingAStonePickaxeGrantsOnlyUpgradeToolsAdvancement(GameTestHelper helper) {
+        BlockPos pos = new BlockPos(1, 1, 1);
+        ServerPlayer player = helper.makeMockServerPlayerInLevel();
+        ToolAssembly.pickaxe(helper, player, pos, "stone", "stone", "stone");
+
+        helper.assertTrue(isVanillaGranted(helper, player, "story/upgrade_tools"),
+                "expected assembling a stone-head pickaxe to grant the vanilla upgrade_tools advancement");
+        helper.assertFalse(isVanillaGranted(helper, player, "story/iron_tools"),
+                "expected a stone-head pickaxe to not yet grant the vanilla iron_tools advancement");
+        helper.succeed();
+    }
+
+    /** Wood sits below upstream's own floor (every upstream material is {@code harvestLevel >= STONE = 0}) and grants neither. */
+    @GameTest(template = "empty")
+    public static void assemblingAWoodPickaxeGrantsNeitherVanillaStoryAdvancement(GameTestHelper helper) {
+        BlockPos pos = new BlockPos(1, 1, 1);
+        ServerPlayer player = helper.makeMockServerPlayerInLevel();
+        ToolAssembly.pickaxe(helper, player, pos, "wood", "wood", "wood");
+
+        helper.assertFalse(isVanillaGranted(helper, player, "story/upgrade_tools"),
+                "expected a wood-head pickaxe to not grant the vanilla upgrade_tools advancement");
+        helper.assertFalse(isVanillaGranted(helper, player, "story/iron_tools"),
+                "expected a wood-head pickaxe to not grant the vanilla iron_tools advancement");
+        helper.succeed();
+    }
+
+    /** Upstream's {@code instanceof Pickaxe} also matches its one subclass, {@code Hammer}. */
+    @GameTest(template = "empty")
+    public static void assemblingAnIronHammerAtTheForgeGrantsBothVanillaStoryAdvancements(GameTestHelper helper) {
+        BlockPos pos = new BlockPos(1, 1, 1);
+        ServerPlayer player = helper.makeMockServerPlayerInLevel();
+        ToolAssemblyRecipes.Entry hammer = ToolAssembly.entryFor(ForgeweaveItems.TOOL_HAMMER.get());
+
+        ItemStack assembled = ToolAssembly.assembleAtForge(helper, player, pos, hammer,
+                Collections.nCopies(hammer.slotCount(), "iron"));
+
+        helper.assertTrue(assembled.is(ForgeweaveItems.TOOL_HAMMER.get()),
+                "expected the Tool Forge to build the hammer under test, got " + assembled);
+        helper.assertTrue(isVanillaGranted(helper, player, "story/upgrade_tools"),
+                "expected assembling an iron-head hammer to grant the vanilla upgrade_tools advancement");
+        helper.assertTrue(isVanillaGranted(helper, player, "story/iron_tools"),
+                "expected assembling an iron-head hammer to grant the vanilla iron_tools advancement");
+        helper.succeed();
+    }
+
+    /**
+     * Upstream's other HARVEST-category tools (Shovel/Excavator, Hatchet/LumberAxe, Kama/Scythe)
+     * extend {@code AoeToolCore}, not {@code Pickaxe}, so {@code AchievementEvents} never grants
+     * these for them regardless of head tier -- a broadsword (MELEE) makes the same point without a
+     * second Tool Forge assembly.
+     */
+    @GameTest(template = "empty")
+    public static void assemblingAnIronBroadswordGrantsNeitherVanillaStoryAdvancement(GameTestHelper helper) {
+        BlockPos pos = new BlockPos(1, 1, 1);
+        ServerPlayer player = helper.makeMockServerPlayerInLevel();
+        ToolAssemblyRecipes.Entry broadsword = ToolAssembly.entryFor(ForgeweaveItems.TOOL_BROADSWORD.get());
+
+        ItemStack assembled = ToolAssembly.assemble(helper, player, pos, broadsword,
+                Collections.nCopies(broadsword.slotCount(), "iron"));
+
+        helper.assertTrue(assembled.is(ForgeweaveItems.TOOL_BROADSWORD.get()),
+                "expected the Tool Station to build the broadsword under test, got " + assembled);
+        helper.assertFalse(isVanillaGranted(helper, player, "story/upgrade_tools"),
+                "expected a non-pickaxe tool to never grant the vanilla upgrade_tools advancement");
+        helper.assertFalse(isVanillaGranted(helper, player, "story/iron_tools"),
+                "expected a non-pickaxe tool to never grant the vanilla iron_tools advancement");
+        helper.succeed();
+    }
+
     /** #166: the four M3-17 steps exist and chain onto {@code first_modifier} in the documented order. */
     @GameTest(template = "empty")
     public static void theM317ChainAdvancementsExistAndParentCorrectly(GameTestHelper helper) {
@@ -206,6 +294,13 @@ public class AdvancementGameTests {
     private static boolean isGranted(GameTestHelper helper, ServerPlayer player, String path) {
         AdvancementHolder holder = helper.getLevel().getServer().getAdvancements()
                 .get(ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, path));
+        return holder != null && player.getAdvancements().getOrStartProgress(holder).isDone();
+    }
+
+    /** As {@link #isGranted}, for a vanilla advancement (T49's {@code story/upgrade_tools}/{@code story/iron_tools}). */
+    private static boolean isVanillaGranted(GameTestHelper helper, ServerPlayer player, String path) {
+        AdvancementHolder holder = helper.getLevel().getServer().getAdvancements()
+                .get(ResourceLocation.withDefaultNamespace(path));
         return holder != null && player.getAdvancements().getOrStartProgress(holder).isDone();
     }
 

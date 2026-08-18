@@ -7,10 +7,13 @@ import java.util.function.Supplier;
 
 import javax.annotation.Nullable;
 
+import net.minecraft.advancements.AdvancementHolder;
+import net.minecraft.advancements.AdvancementProgress;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
@@ -25,6 +28,7 @@ import net.minecraft.world.inventory.ContainerLevelAccess;
 import net.minecraft.world.inventory.DataSlot;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.component.Tool;
 
 import net.neoforged.neoforge.items.IItemHandler;
 import net.neoforged.neoforge.network.PacketDistributor;
@@ -32,6 +36,7 @@ import net.neoforged.neoforge.network.registration.NetworkRegistry;
 
 import dev.gkissel.forgeweave.advancement.ForgeweaveCriteriaTriggers;
 import dev.gkissel.forgeweave.block.ForgeweaveBlocks;
+import dev.gkissel.forgeweave.item.ForgeweaveItems;
 import dev.gkissel.forgeweave.item.PartItem;
 import dev.gkissel.forgeweave.item.ToolItem;
 import dev.gkissel.forgeweave.modifier.Embossing;
@@ -720,6 +725,7 @@ public class ToolStationMenu extends StationMenu {
             // since the output was built, and a stateless read can't go stale.
             if (player instanceof ServerPlayer serverPlayer) {
                 grantAdvancements(serverPlayer);
+                grantVanillaStoryAdvancements(serverPlayer, stack);
             }
             resolve().ifPresent(result -> {
                 List<Integer> used = result.slotsUsed();
@@ -795,6 +801,73 @@ public class ToolStationMenu extends StationMenu {
                         .flatMap(ToolAssemblyRecipes::entryFor)
                         .filter(ToolAssemblyRecipes::isLargeTool)
                         .ifPresent(entry -> ForgeweaveCriteriaTriggers.LARGE_TOOL_ASSEMBLED.get().trigger(player));
+            }
+        }
+
+        /**
+         * T49 (parity audit 2026-08-18, docs/research/parity-audit-2026-08-18.md §3): upstream
+         * {@code AchievementEvents#onCraft} grants vanilla {@code story/upgrade_tools}/{@code
+         * story/iron_tools} whenever {@code SlotToolStationOut#onTake} fires -- unconditionally, so a
+         * repair, rename or modifier application that still leaves a qualifying pickaxe in the output
+         * slot re-fires the check too. That is harmless: {@link #grantVanillaAdvancement} only ever
+         * grants remaining criteria, so a tool that already earned the advancement is a no-op.
+         *
+         * <p>Upstream's gate is {@code item instanceof Pickaxe}, which is exactly {@code Pickaxe} and
+         * its one subclass {@code Hammer} -- upstream's other harvest tools (Shovel/Excavator,
+         * Hatchet/LumberAxe, Kama/Scythe) extend {@code AoeToolCore} instead and never grant these.
+         * Forgeweave ships both halves of that pair under those exact names, so {@link
+         * ForgeweaveItems#TOOL_PICKAXE}/{@link ForgeweaveItems#TOOL_HAMMER} are the 1:1 gate; every
+         * other HARVEST-category tool (mattock, kama, excavator, lumberaxe, scythe, vein hammer) is
+         * refused here precisely as upstream refuses it, tier notwithstanding.
+         *
+         * <p>Upstream's threshold is its own numeric {@code HeadMaterialStats.harvestLevel} ({@code
+         * TagUtil.getToolStats(stack).harvestLevel > 0} for upgrade_tools, {@code > 1} for iron_tools;
+         * {@code HarvestLevels.STONE = 0} is upstream's floor, so only an IRON-harvestLevel-or-better
+         * head crosses the first gate and DIAMOND-or-better the second). Forgeweave carries tier as
+         * vanilla {@code incorrect_for_*_tool} tags rather than that numeric field (CONTEXT.md), but
+         * {@code ForgeweaveModifiers#TIER_TAGS}'s ladder index is calibrated 1:1 to those same
+         * {@code HarvestLevels} numbers by design (issue #433's javadoc), so the >0/>1 thresholds carry
+         * over unchanged as tier index &gt;=1 ("stone" tag) and &gt;=2 ("iron" tag).
+         */
+        private void grantVanillaStoryAdvancements(ServerPlayer player, ItemStack output) {
+            if (!(output.is(ForgeweaveItems.TOOL_PICKAXE.get()) || output.is(ForgeweaveItems.TOOL_HAMMER.get()))) {
+                return;
+            }
+            int tierIndex = currentTierIndex(output);
+            if (tierIndex >= 1) {
+                grantVanillaAdvancement(player, "story/upgrade_tools");
+            }
+            if (tierIndex >= 2) {
+                grantVanillaAdvancement(player, "story/iron_tools");
+            }
+        }
+
+        /** As {@code ToolTooltip#effectiveTierTag}: the stack's live deny-drops rule, read for its ladder index rather than its tag. */
+        private static int currentTierIndex(ItemStack stack) {
+            Tool component = stack.get(DataComponents.TOOL);
+            if (component == null) {
+                return -1;
+            }
+            for (Tool.Rule rule : component.rules()) {
+                if (rule.speed().isEmpty()) {
+                    return ForgeweaveModifiers.tierIndexOf(rule.blocks());
+                }
+            }
+            return -1;
+        }
+
+        /** Upstream {@code AchievementEvents#grantAdvancement}: every remaining criterion, once. */
+        private static void grantVanillaAdvancement(ServerPlayer player, String path) {
+            AdvancementHolder holder = player.getServer().getAdvancements()
+                    .get(ResourceLocation.withDefaultNamespace(path));
+            if (holder == null) {
+                return;
+            }
+            AdvancementProgress progress = player.getAdvancements().getOrStartProgress(holder);
+            if (!progress.isDone()) {
+                for (String criterion : progress.getRemainingCriteria()) {
+                    player.getAdvancements().award(holder, criterion);
+                }
             }
         }
 
