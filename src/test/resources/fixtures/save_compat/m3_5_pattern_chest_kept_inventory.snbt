@@ -1,0 +1,61 @@
+{
+    decoder: "item_stack",
+    expect: {
+        components: {
+            "minecraft:container": [
+                {
+                    item: {
+                        count: 1,
+                        id: "forgeweave:pattern_blank"
+                    },
+                    slot: 0
+                },
+                {
+                    item: {
+                        count: 3,
+                        id: "forgeweave:pattern_pickaxe_head"
+                    },
+                    slot: 53
+                },
+                {
+                    item: {
+                        count: 1,
+                        id: "forgeweave:pattern_shovel_head"
+                    },
+                    slot: 60
+                }
+            ]
+        },
+        id: "forgeweave:pattern_chest"
+    },
+    nbt: {
+        components: {
+            "minecraft:container": [
+                {
+                    item: {
+                        count: 1,
+                        id: "forgeweave:pattern_blank"
+                    },
+                    slot: 0
+                },
+                {
+                    item: {
+                        count: 3,
+                        id: "forgeweave:pattern_pickaxe_head"
+                    },
+                    slot: 53
+                },
+                {
+                    item: {
+                        count: 1,
+                        id: "forgeweave:pattern_shovel_head"
+                    },
+                    slot: 60
+                }
+            ]
+        },
+        count: 1,
+        id: "forgeweave:pattern_chest"
+    },
+    what: "M3.5 (#478, parity audit T47): a harvested Pattern Chest item carrying the contents it was broken with, as the vanilla minecraft:container component the chest loot table copies off the block entity (upstream 1.12 wrote its own 'inventory' compound onto the stack instead). Unlike m3_3_pattern_chest_inventory.snbt's positionless SimpleContainer list, this format is slot-indexed: the entries at slots 53 and 60 are what pins that -- the items have to come back on the page they were left on, which is also what the chest's self-expanding capacity is rebuilt from when the item is placed again."
+}

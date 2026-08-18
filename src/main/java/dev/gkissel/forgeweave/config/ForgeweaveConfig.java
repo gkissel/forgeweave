@@ -41,6 +41,13 @@ public final class ForgeweaveConfig {
     public static final ModConfigSpec.BooleanValue REUSE_STENCILS;
 
     /**
+     * Upstream {@code chestsKeepInventory} (parity audit T47): a harvested Pattern or Part Chest
+     * carries its contents on the dropped item instead of spilling them. See {@code
+     * ChestBlockEntity#collectImplicitComponents} for how the contents ride along.
+     */
+    public static final ModConfigSpec.BooleanValue CHESTS_KEEP_INVENTORY;
+
+    /**
      * Upstream {@code spawnWithBook} (parity audit T13): a player who has never received one before is
      * given the guide book on their first login, tracked with the same once-per-player idiom as
      * {@link dev.gkissel.forgeweave.ponder.ForgeweavePonderHint} -- see
@@ -194,6 +201,9 @@ public final class ForgeweaveConfig {
         REUSE_STENCILS = builder
                 .comment("Allows reusing patterns in the Stencil Table to turn them into other patterns.")
                 .define("reuseStencils", true);
+        CHESTS_KEEP_INVENTORY = builder
+                .comment("Pattern and Part chests keep their inventory when harvested.")
+                .define("chestsKeepInventory", true);
         SPAWN_WITH_BOOK = builder
                 .comment("Players who enter the world for the first time get the guide book.")
                 .define("spawnWithBook", true);

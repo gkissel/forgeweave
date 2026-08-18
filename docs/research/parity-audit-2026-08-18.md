@@ -389,7 +389,7 @@ The six stations are ported close to 1.12 in layout, art, tabs, side inventories
 | Pattern/Part Chest storage (256 slots, filtered) | `TileTinkerChest:12-70` | n/a | `ChestBlockEntity:59-240`, 54-slot pages | have | Y (#66/#305/#342) | none | — |
 | Chest GUI art (blank.png scaling chest + slider) | `GuiPatternChest:20-38` | n/a | vanilla generic_54 + paging | deviates | N (only javadoc) | medium | T45 |
 | Pattern Chest one-of-each + cast-chest mode | `TilePatternChest:26-126` | separate cast chest | duplicates allowed, no cast branch | partial | N (javadoc stale) | medium | T46 |
-| Chests keep inventory when broken | `BlockToolTable:158-161` | n/a | contents spill | missing | N | medium | T47 |
+| Chests keep inventory when broken | `BlockToolTable:158-161` | n/a | `minecraft:container` on the dropped item, behind `chestsKeepInventory` | have | Y (#478) | none | — |
 | Right-click with held item inserts into chest | `BlockToolTable:94-107` | n/a | opens only | missing | N | low | T75 |
 | Tables retain crafted wood/metal texture | `TableRecipeFactory:53-100` | n/a | `RetexturedShapedRecipe` + baked model | have | Y (#43/#73/#77) | low | — |
 | Creative tab lists all table variants | `BlockToolTable:110-146` | n/a | one default each | missing | N | low | T75 |
@@ -571,7 +571,7 @@ M3.5 ports the launcher core faithfully — the three bows, limb/bowstring math,
 | Worldgen configs (genCobalt/rate, genArdite/rate) | `Config:260-277` | n/a | `:210-223` + `NetherOrePlacement` | have | Y (#276) | none | — |
 | Client configs (extraTooltips, temperatureCelsius, listAllPartMaterials) | `Config:298-323` | n/a | `ForgeweaveClientConfig:44-54` | have | Y (#276) | none | — |
 | `spawnWithBook` (first-login gift) | `Config:145-148` + `PlayerDataEvents` | n/a | absent | missing | N (deferral now unblocked) | medium | T13 |
-| `chestsKeepInventory` | `Config:155-158` + `BlockToolTable:158` | n/a | contents spill on break | missing | N | medium | T47 |
+| `chestsKeepInventory` | `Config:155-158` + `BlockToolTable:158` | n/a | `ForgeweaveConfig:chestsKeepInventory` (default on) | have | Y (#478) | none | — |
 | `craftCastableMaterials` (metals cast-only by default) | `Material:178-179`, `Config:180-183` | casting only | `ForgeweaveConfig:craftCastableMaterials` (default off) + `cast_only` | have | Y (#435) | none | — |
 | `addFlintRecipe` (+ allowBrickCasting, leather drying) | `Config:167-205` + `flint.json` | conditional recipe | no flint recipe, no options | missing | N | medium | T55 |
 | `AutosmeltFortuneInteraction` | `Config:173-176` | n/a | 1.21 loot applies fortune first | deviates | Y (PR #362) | none | — |
@@ -659,7 +659,7 @@ Prioritized and deduplicated across domains. Already-filed issues are marked; **
 - [ ] **T44 — Tinker tank multiblock** — controller, structure rules, capacity math, GUI, drain integration (smeltery, medium, M6/backlog).
 - [ ] **T45 — Pattern/Part Chest GUI** — derive upstream's `blank.png` scaling-chest art with a slider instead of vanilla `generic_54` paging (stations, medium, polish).
 - [ ] **T46 — Pattern Chest rules** — one-of-each patterns, stack size 1, cast-chest mode now that casts ship; same-stack-only rule for the Part Chest (stations, medium, M3.5 fix round).
-- [ ] **T47 — Chests keep their inventory when broken** — carry contents on the dropped item behind `chestsKeepInventory` (default true) (stations/config, medium, M3.5 fix round).
+- [x] **T47 — Chests keep their inventory when broken** (shipped, #478) — both chests carry their contents on the dropped item as the vanilla `minecraft:container` component (upstream writes its own `inventory` NBT compound instead), copied off the block entity by the loot table and read back on placement; `ForgeweaveConfig.chestsKeepInventory` (default on, upstream's) gates it and the old spill is what the off branch still does. A creative break hands the packed chest over the way vanilla's shulker box does, rather than reproducing upstream's silent loss there (stations/config, medium, M3.5 fix round).
 - [ ] **T48 — Book content parity pass** — per-section listing pages, material icon-grid overview, full material/tool/modifier page layouts, hover tooltips and links, fortify variant, bow-materials section, cover text, resource-pack JSON structure (book, medium, **#430**).
 - [ ] **T49 — Grant vanilla `story/upgrade_tools` and `story/iron_tools`** — awarded on station assembly by head tier; root and shoot_arrow already fire from vanilla (book/config, medium, backlog).
 - [ ] **T50 — Craft and hit sounds** — saw at the Tool Station, anvil at the Forge, frypan boing; decide CC-BY/CC0 sound derivation (attribution file, Spartan precedent) vs vanilla stand-ins (book/tools, medium, M3.5 playtest-fix).

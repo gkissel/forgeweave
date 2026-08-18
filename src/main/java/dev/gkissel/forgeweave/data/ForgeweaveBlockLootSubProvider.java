@@ -3,6 +3,7 @@ package dev.gkissel.forgeweave.data;
 import java.util.Set;
 
 import net.minecraft.core.HolderLookup;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.data.loot.BlockLootSubProvider;
 import net.minecraft.world.flag.FeatureFlags;
 import net.minecraft.world.item.Item;
@@ -39,10 +40,11 @@ public class ForgeweaveBlockLootSubProvider extends BlockLootSubProvider {
         add(ForgeweaveBlocks.CRAFTING_STATION.get(), retexturedTableDrop(ForgeweaveBlocks.CRAFTING_STATION.get()));
         add(ForgeweaveBlocks.STENCIL_TABLE.get(), retexturedTableDrop(ForgeweaveBlocks.STENCIL_TABLE.get()));
 
-        // The Pattern Chest and Part Chest (issue #66) carry no TEXTURE component, so they use a
-        // plain self-drop rather than retexturedTableDrop's component-copying loot function.
-        dropSelf(ForgeweaveBlocks.PATTERN_CHEST.get());
-        dropSelf(ForgeweaveBlocks.PART_CHEST.get());
+        // The Pattern Chest and Part Chest (issue #66) carry no TEXTURE component, but since issue
+        // #478 (parity audit T47) they carry their contents: upstream's chestsKeepInventory, as the
+        // vanilla minecraft:container component ChestBlockEntity#collectImplicitComponents exposes.
+        add(ForgeweaveBlocks.PATTERN_CHEST.get(), chestDrop(ForgeweaveBlocks.PATTERN_CHEST.get()));
+        add(ForgeweaveBlocks.PART_CHEST.get(), chestDrop(ForgeweaveBlocks.PART_CHEST.get()));
 
         // Grout (docs/SCOPE.md M2 issue #93; issue #129): drops itself, matching upstream's BlockSoil
         // (no getDrops override for the GROUT type).
@@ -169,6 +171,19 @@ public class ForgeweaveBlockLootSubProvider extends BlockLootSubProvider {
                 .add(LootItem.lootTableItem(block)
                         .apply(CopyComponentsFunction.copyComponents(CopyComponentsFunction.Source.BLOCK_ENTITY)
                                 .include(ForgeweaveDataComponents.FLUID_CONTENT.get())))));
+    }
+
+    /**
+     * A chest drops itself carrying whatever it held. The block entity only offers the component
+     * when {@code chestsKeepInventory} is on, so with the option off this copies nothing and the
+     * contents spill from {@code ChestBlock#onRemove} instead -- one gate, no config-dependent loot.
+     */
+    private LootTable.Builder chestDrop(Block block) {
+        return LootTable.lootTable().withPool(applyExplosionCondition(block, LootPool.lootPool()
+                .setRolls(ConstantValue.exactly(1.0F))
+                .add(LootItem.lootTableItem(block)
+                        .apply(CopyComponentsFunction.copyComponents(CopyComponentsFunction.Source.BLOCK_ENTITY)
+                                .include(DataComponents.CONTAINER)))));
     }
 
     private LootTable.Builder retexturedTableDrop(Block block) {
