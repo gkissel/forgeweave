@@ -495,7 +495,7 @@ public class CombatTraitGameTests {
     }
 
     /** Builds a tool {@code ItemStack} with the given traits directly (see class javadoc). */
-    private static ItemStack tool(ToolItem toolItem, List<ResourceLocation> traits, float attackDamage) {
+    static ItemStack tool(ToolItem toolItem, List<ResourceLocation> traits, float attackDamage) {
         int durability = 1000;
         ToolStats.Stats stats = new ToolStats.Stats(durability, 1.0F, attackDamage);
         Material head = new Material(
@@ -517,7 +517,7 @@ public class CombatTraitGameTests {
         return stack;
     }
 
-    private static ResourceLocation traitId(String path) {
+    static ResourceLocation traitId(String path) {
         return ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, path);
     }
 }

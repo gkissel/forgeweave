@@ -25,6 +25,11 @@ import net.minecraft.world.item.ItemStack;
  *     the frying pan's charged knockback when they land). {@code 1.0} for a blow that did not come
  *     from a player swing, since only players have an attack cooldown. See {@link
  *     CombatSeams#onPlayerAttack} for why this has to be captured rather than read at hook time.
+ * @param critMultiplier the multiplier vanilla's critical hit put on this blow's damage ({@code 1.5}
+ *     for a plain vanilla crit, whatever NeoForge's {@code CriticalHitEvent} settled on otherwise),
+ *     {@code 1.0} when the blow was not a crit or did not come from a player swing. Captured the same
+ *     way as {@link #attackStrengthScale}; together they are the factor {@link CombatSeams} unwinds
+ *     before the seams run (issue #422).
  */
 public record CombatHit(
         ServerLevel level,
@@ -32,7 +37,8 @@ public record CombatHit(
         @Nullable LivingEntity attacker,
         LivingEntity target,
         DamageSource source,
-        float attackStrengthScale) {
+        float attackStrengthScale,
+        float critMultiplier) {
 
     /** Vanilla's own threshold for a fully-charged swing ({@code Player#attack}'s sweep condition). */
     public static final float FULL_CHARGE = 0.9F;
@@ -44,11 +50,30 @@ public record CombatHit(
      */
     public CombatHit(ServerLevel level, ItemStack weapon, @Nullable LivingEntity attacker, LivingEntity target,
             DamageSource source) {
-        this(level, weapon, attacker, target, source, 1.0F);
+        this(level, weapon, attacker, target, source, 1.0F, 1.0F);
+    }
+
+    /** A blow of the given charge that was not a crit. */
+    public CombatHit(ServerLevel level, ItemStack weapon, @Nullable LivingEntity attacker, LivingEntity target,
+            DamageSource source, float attackStrengthScale) {
+        this(level, weapon, attacker, target, source, attackStrengthScale, 1.0F);
     }
 
     public boolean isFullCharge() {
         return attackStrengthScale > FULL_CHARGE;
+    }
+
+    public boolean isCritical() {
+        return critMultiplier != 1.0F;
+    }
+
+    /**
+     * {@code Player#attack}'s cooldown factor on this blow's base damage, {@code 0.2 + s^2 * 0.8} --
+     * {@code 1.0} for a blow that was not a player swing (a mob's, a projectile's). With {@link
+     * #critMultiplier} this is everything vanilla multiplied the base by before the seams see it.
+     */
+    public float cooldownFactor() {
+        return 0.2F + attackStrengthScale * attackStrengthScale * 0.8F;
     }
 
     /**

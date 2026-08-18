@@ -9,6 +9,7 @@ import org.jetbrains.annotations.Nullable;
 
 import net.neoforged.neoforge.event.entity.living.LivingDamageEvent;
 import net.neoforged.neoforge.event.entity.player.AttackEntityEvent;
+import net.neoforged.neoforge.event.entity.player.CriticalHitEvent;
 import net.neoforged.neoforge.event.entity.living.LivingDeathEvent;
 import net.neoforged.neoforge.event.entity.living.LivingIncomingDamageEvent;
 
@@ -112,11 +113,16 @@ public final class CombatSeams {
         if (seams.isEmpty()) {
             return;
         }
-        float original = event.getOriginalAmount();
-        float damage = event.getAmount();
+        // Class javadoc, "Damage order": seams see the blow before vanilla's cooldown/crit scaling,
+        // then upstream's order back out -- crit, cutoff, cooldown.
+        float cooldown = hit.cooldownFactor();
+        float crit = hit.critMultiplier();
+        float original = event.getOriginalAmount() / (cooldown * crit);
+        float damage = event.getAmount() / (cooldown * crit);
         for (CombatSeam seam : seams) {
             damage = seam.preHit(hit, original, damage);
         }
+        damage = ((ToolItem) hit.weapon().getItem()).cutoffDamage(damage * crit) * cooldown;
         if (damage != event.getAmount()) {
             event.setAmount(damage);
         }
@@ -199,7 +205,8 @@ public final class CombatSeams {
             // is what decides whether the shot was legal. What the seams get is the live stack.
             weapon = liveLauncher(attacker, weapon);
         }
-        return new CombatHit(level, weapon, attacker, target, source, projectile ? 1.0F : attackStrengthScale(attacker));
+        return new CombatHit(level, weapon, attacker, target, source,
+                projectile ? 1.0F : attackStrengthScale(attacker), projectile ? 1.0F : critMultiplier(attacker));
     }
 
     /**
@@ -268,6 +275,28 @@ public final class CombatSeams {
     public static void onPlayerAttack(AttackEntityEvent event) {
         lastAttacker = event.getEntity();
         lastAttackStrengthScale = event.getEntity().getAttackStrengthScale(0.5F);
+        // A new swing: whatever crit the previous one rolled is not this one's.
+        lastCritAttacker = null;
+    }
+
+    /**
+     * The crit multiplier of the swing in flight -- see {@link CombatHit#critMultiplier}. Same shape
+     * as {@link #attackStrengthScale}: {@code Player#attack} fires {@link CriticalHitEvent} after
+     * {@link AttackEntityEvent} and before {@code target.hurt(...)}, on the server thread, so the
+     * remembered value is always the blow about to land.
+     */
+    private static float critMultiplier(@Nullable LivingEntity attacker) {
+        return attacker != null && attacker == lastCritAttacker ? lastCritMultiplier : 1.0F;
+    }
+
+    @Nullable
+    private static Entity lastCritAttacker;
+    private static float lastCritMultiplier = 1.0F;
+
+    /** Registered on the game event bus in {@code Forgeweave}. See {@link #critMultiplier}. */
+    public static void onCriticalHit(CriticalHitEvent event) {
+        lastCritAttacker = event.getEntity();
+        lastCritMultiplier = event.isCriticalHit() && event.getDamageMultiplier() > 0.0F ? event.getDamageMultiplier() : 1.0F;
     }
 
     /**

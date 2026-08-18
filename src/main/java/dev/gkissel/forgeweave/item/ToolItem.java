@@ -378,6 +378,16 @@ public class ToolItem extends Item {
             return 0.0F;
         }
         float damage = stats.attackDamage() * damagePotential + ForgeweaveTraits.attackDamageBonus(stack);
+        return cutoffDamage(damage);
+    }
+
+    /**
+     * {@code damage} through this tool type's cutoff curve. Applied twice per blow, as upstream does:
+     * here on the attribute ({@link #attackDamage}, upstream {@code ToolHelper#getActualDamage}) and
+     * again by {@code CombatSeams} on the seam-boosted total (upstream {@code ToolHelper#attackEntity},
+     * issue #422), so a flat trait bonus cannot climb past the cutoff either.
+     */
+    public float cutoffDamage(float damage) {
         return calcCutoffDamage(damage, damageCutoff);
     }
 

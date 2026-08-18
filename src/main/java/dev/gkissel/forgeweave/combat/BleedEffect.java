@@ -1,6 +1,10 @@
 package dev.gkissel.forgeweave.combat;
 
+import net.minecraft.core.Holder;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.world.damagesource.DamageSource;
+import net.minecraft.world.damagesource.DamageType;
+import net.minecraft.world.damagesource.DamageTypes;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectCategory;
 import net.minecraft.world.entity.LivingEntity;
@@ -22,10 +26,13 @@ import net.minecraft.world.entity.LivingEntity;
  *   <li><b>Attacker credit</b> (issue #297 parity fix): upstream's {@code dealDamage} builds the tick's
  *       {@code DamageSource} from {@code target.getLastAttackedEntity()}, set by {@code TraitSharp
  *       #afterHit} when the bleed was applied ({@link Lacerate#onHit}'s {@code setLastHurtByMob}).
- *       This does the same off {@link LivingEntity#getLastHurtByMob}: {@code indirectMagic}, vanilla's
- *       own armor-ignoring-with-a-credited-entity source (the same one a thrown Harming potion uses),
- *       when an attacker is remembered, plain {@code magic()} otherwise -- so a kill lands on the
- *       wielder instead of no one.
+ *       This does the same off {@link LivingEntity#getLastHurtByMob}: an {@code indirect_magic}
+ *       source (vanilla's armor-ignoring-with-a-credited-entity type, a thrown Harming potion's)
+ *       crediting the attacker as its <em>causing</em> entity only, plain {@code magic()} otherwise
+ *       -- so a kill lands on the wielder instead of no one. Never the attacker as the source's
+ *       <em>direct</em> entity (issue #422): {@code DamageSource#getWeaponItem} is the direct entity's
+ *       held item, so {@code indirectMagic(attacker, attacker)} named the wielder's tool as the
+ *       tick's weapon and every tick re-ran the tool's seams -- a hellish wielder bled for 1 + 4.
  *   <li><b>No invulnerability-window games</b>: upstream saves {@code hurtResistantTime}, deals the
  *       tick ignoring it, and restores it -- so a bleed tick neither gets swallowed by the window a
  *       real blow just opened nor grants a window that would shield the target from real blows. The
@@ -62,12 +69,17 @@ public class BleedEffect extends MobEffect {
     public boolean applyEffectTick(LivingEntity entity, int amplifier) {
         LivingEntity attacker = entity.getLastHurtByMob();
         DamageSource source = attacker != null
-                ? entity.damageSources().indirectMagic(attacker, attacker)
+                ? new DamageSource(indirectMagic(entity), null, attacker)
                 : entity.damageSources().magic();
         int invulnerableTime = entity.invulnerableTime;
         entity.invulnerableTime = 0;
         entity.hurt(source, DAMAGE_PER_TICK);
         entity.invulnerableTime = invulnerableTime;
         return true;
+    }
+
+    private static Holder<DamageType> indirectMagic(LivingEntity entity) {
+        return entity.level().registryAccess().registryOrThrow(Registries.DAMAGE_TYPE)
+                .getHolderOrThrow(DamageTypes.INDIRECT_MAGIC);
     }
 }
