@@ -32,6 +32,7 @@
     "forgeweave:cast_katana_blade",
     "forgeweave:cast_bow_limb",
     "forgeweave:cast_sharpening_kit",
+    "forgeweave:cast_shard",
     "forgeweave:clay_cast_ingot",
     "forgeweave:clay_cast_nugget",
     "forgeweave:clay_cast_gem",
@@ -63,6 +64,7 @@
     "forgeweave:clay_cast_curved_blade",
     "forgeweave:clay_cast_katana_blade",
     "forgeweave:clay_cast_sharpening_kit",
-    "forgeweave:clay_cast_bow_limb"
+    "forgeweave:clay_cast_bow_limb",
+    "forgeweave:clay_cast_shard"
   ]
 }

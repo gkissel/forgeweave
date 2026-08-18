@@ -159,6 +159,22 @@ public class SmelteryMeltingGameTests {
                 MeltingRecipe.VALUE_INGOT * 2));
     }
 
+    /**
+     * #471/T40 -- the shard melts back exactly like any other tool part (#184 above), at its own
+     * 72 mB cost ({@code Material.VALUE_Shard = VALUE_Ingot / 2}). Same Nether Core, same reasoning:
+     * an ore-class 2x bonus would double this to 144 mB, so a clean 72 proves the melt-back is not
+     * ore-class.
+     */
+    @GameTest(template = "smeltery", timeoutTicks = 1600)
+    public static void aShardMeltsBackIntoItsOwnMaterialAtItsExactCost(GameTestHelper helper) {
+        SmelteryControllerBlockEntity core = lavaFuelledSmeltery(helper, ForgeweaveBlocks.NETHER_CORE.get());
+        helper.assertTrue(core.insertForMelting(ToolAssembly.part(ForgeweaveItems.SHARD.get(), "iron")).isEmpty(),
+                "expected an iron shard to go into the smeltery");
+
+        helper.succeedWhen(() -> assertTankHolds(helper, core, ForgeweaveFluids.IRON.still().get(),
+                MeltingRecipe.VALUE_INGOT / 2));
+    }
+
     /** #184's other half: a material with no molten form has nothing to melt back into. */
     @GameTest(template = "smeltery")
     public static void aWoodenToolPartDoesNotMelt(GameTestHelper helper) {

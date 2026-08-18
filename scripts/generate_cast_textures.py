@@ -66,6 +66,9 @@ PARTS = [
     # #393: the bow limb is the only M3.5 part with a cast -- no BOWSTRING material melts, so
     # upstream never registers one for the bow string (see ForgeweaveItems#CAST_BOW_LIMB).
     ("bow_limb.png", "cast_bow_limb.png"),
+    # #471/T40: the shard, same treatment as the sharpening kit above -- Shard#canUseMaterial is
+    # unconditionally true, so it casts for every castable metal, not just head-stat materials.
+    ("shard.png", "cast_shard.png"),
 ]
 
 BEVEL_MULT = 0.78

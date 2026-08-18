@@ -286,6 +286,7 @@ public final class ForgeweaveCreativeTab {
         output.accept(ForgeweaveItems.CAST_KATANA_BLADE.get());
         output.accept(ForgeweaveItems.CAST_BOW_LIMB.get());
         output.accept(ForgeweaveItems.CAST_SHARPENING_KIT.get());
+        output.accept(ForgeweaveItems.CAST_SHARD.get()); // #471/T40
 
         // #272 -- the three CastCustom metas upstream ships beyond ingot/nugget.
         output.accept(ForgeweaveItems.CAST_GEM.get());

@@ -193,6 +193,8 @@ public class ForgeweaveItemModelProvider extends ItemModelProvider {
         singleLayerModel(ForgeweaveItems.CAST_KATANA_BLADE, derivedItem("cast_katana_blade"));
         singleLayerModel(ForgeweaveItems.CAST_BOW_LIMB, derivedItem("cast_bow_limb"));
         singleLayerModel(ForgeweaveItems.CAST_SHARPENING_KIT, derivedItem("cast_sharpening_kit"));
+        // #471/T40
+        singleLayerModel(ForgeweaveItems.CAST_SHARD, derivedItem("cast_shard"));
 
         // #292 -- one clay counterpart per cast above, the same single-layer model against the
         // mauve-tinted copy of that cast's sprite (scripts/generate_clay_cast_textures.py; upstream

@@ -563,6 +563,12 @@ public final class ForgeweaveItems {
     // registerToolpartMeltingCasting loops every registered IToolPart whose canBeCasted() holds, and
     // SharpeningKit never overrides it.
     public static final DeferredItem<Item> CAST_SHARPENING_KIT = ITEMS.registerSimpleItem("cast_sharpening_kit");
+    // #471/T40: the shard, like the sharpening kit above, casts like any other tool part --
+    // TinkerSmeltery's Shard extends ToolPart (itself a MaterialItem), and Shard#canUseMaterial is
+    // unconditionally true (no HEAD-stat gate the way the creative-tab listing has), so every
+    // material with a molten fluid gets registered through the generic
+    // registerToolpartMeltingCasting loop, not just materials with head stats.
+    public static final DeferredItem<Item> CAST_SHARD = ITEMS.registerSimpleItem("cast_shard");
 
     // #272 (M3.4-3) -- the three CastCustom metas upstream ships beyond ingot/nugget (TinkerSmeltery
     // castGem/castPlate/castGear). Same gold-only reusable idiom, straight-ported upstream sprites
@@ -586,7 +592,7 @@ public final class ForgeweaveItems {
             "cast_pan", "cast_knife_blade", "cast_large_sword_blade", "cast_tough_tool_rod", "cast_tough_binding",
             "cast_large_plate", "cast_hammer_head", "cast_excavator_head", "cast_scythe_head", "cast_kama_head",
             "cast_broad_axe_head", "cast_vein_hammer_head", "cast_war_mace_head", "cast_curved_blade",
-            "cast_katana_blade", "cast_sharpening_kit", "cast_bow_limb");
+            "cast_katana_blade", "cast_sharpening_kit", "cast_bow_limb", "cast_shard");
 
     public static final DeferredItem<BlockItem> CASTING_TABLE = ITEMS.registerSimpleBlockItem("casting_table", ForgeweaveBlocks.CASTING_TABLE);
     public static final DeferredItem<BlockItem> CASTING_BASIN = ITEMS.registerSimpleBlockItem("casting_basin", ForgeweaveBlocks.CASTING_BASIN);
