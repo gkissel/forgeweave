@@ -166,7 +166,7 @@ Every 1.12 tool-material trait is ported (44 ids across 34 materials, with head-
 | InfiTool creative showcase tools (Bane of Pigs, InfiDigger) | `ToolCore:429-444` | n/a | absent | missing | N | low | — |
 | depthdigger / splinters / ToolGrowth / TraitBonusSpeed | registered, unassigned | n/a | absent | missing | — | none | — |
 | Launcher trait branch policy (bow traits on arrows) | ammo-side only (`EntityProjectileBase:193-264`) | `ProjectileHitModifierHook` | traits ride the vanilla arrow | deviates | Y (PR #410) | low | T77 |
-| Trait extra-info tooltip lines (`getExtraInfo`, 8 traits) | `TooltipBuilder:120-139` | n/a | name + static description only | missing | N | low | T26 |
+| Trait extra-info tooltip lines (`getExtraInfo`, 8 traits) | `TooltipBuilder:120-139` | n/a | `ForgeweaveTraits#extraInfo`, all eight (#457) | have | — | none | — |
 | Per-part trait scoping (head replaces general) | `Material.java:307-315` | n/a | `Material.java:161-166`, all 34 JSONs match | have | — | none | — |
 | Trait de-duplication / leveled stacking | `AbstractTraitLeveled:59-84` | n/a | `:1428-1440` | have | — | none | — |
 
@@ -178,21 +178,21 @@ Every 1.12 tool-material trait is ported (44 ids across 34 materials, with head-
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | Modifier framework (3 slots, per-level charge, free aspects) | `ModifierAspect.java:47-337` | datapack slot types | `ForgeweaveModifiers:1010,1041`; ADR-0004 | have | Y (#344) | none | — |
 | Station application flow (two slots, all-or-none, errors) | `ToolBuilder#tryModifyTool` | n/a | `ModifierApplication:93-161` | have | Y (#259/#340) | none | T2 |
-| Haste | `ModHaste:26-121` (5×50) | n/a | `:124-159`, `haste.json` | partial | N (no leveled names) | low | T26 |
+| Haste | `ModHaste:26-121` (5×50) | n/a | `:124-159`, `haste.json`, leveled names (#457) | have | — | none | — |
 | Sharpness | `ModSharpness:15-53`, quartz block ×4 | n/a | `:301-327`, quartz only | partial | N | low | T59 |
 | Luck | `ModLuck:24-150`, lapis block ×9, silk-touch refusal | n/a | `:529-630`, lapis only, no refusal, fortune on weapons | partial | Y in part (#106/#296) | medium | T23 / T59 |
 | Diamond | `ModDiamond:12-31` | n/a | `:232`, exact item not tag | have | Y (#106/#265) | low | — |
 | Emerald | `ModEmerald:12-30` | n/a | `:271` | have | Y (#106) | none | — |
-| Reinforced | `ModReinforced:19-83`, plate center = gold cast | n/a | `:366`, plate center = gold ingot; no "Unbreakable" name | partial | N | low | T69 |
-| Mending Moss | `ModMendingMoss:30-155` (hotbar/offhand, 150t timer) | n/a | `:416,1293` any slot, 1/150 roll | deviates | Y (#107) | low | T26 |
+| Reinforced | `ModReinforced:19-83`, plate center = gold cast | n/a | `:366`, plate center = gold ingot; "Unbreakable" name shipped (#457) | partial | N (reagent only) | low | T69 |
+| Mending Moss | `ModMendingMoss:30-155` (hotbar/offhand, 150t timer) | n/a | `:416,1293` any slot, 1/150 roll; stored-XP line (#457) | deviates | Y (#107) | low | — |
 | Silktouch | `ModSilktouch:17-45` + refusals | n/a | `:431`, no refusals | partial | Y in part (#107) | medium | T23 |
 | Soulbound | `ModSoulbound:20-71` | n/a | `:456,1368,1383` | have | Y (#107/#344) | none | — |
 | Creative modifier / extra slots | `ModCreative:12-34` (hidden, no recipe) | n/a | survival `extra_slot` cap 5 + netherite form | deviates | Y (#107, SCOPE M2) | low | — |
 | Fortify | `ModFortify:24-76`, harvestOnly, per-material overlay | n/a | `Fortification.java`, bows only refused, no overlay | partial | N | low | T70 |
 | Embossing / ExtraTrait | `ModExtraTrait:40-155` | n/a | `Embossing.java`, no donor-part gate, no compat check | partial | Y in part (SCOPE:381) | low | T23 |
 | Smite | `ModAntiMonsterType` + consecrated soil | n/a | `:802`, glowstone stand-in | partial | Y (#162, #429 open) | medium | T59 |
-| Bane of Arthropods | `TinkerModifiers:137-139` | n/a | `:819` | partial | N (extra-info line) | low | T26 |
-| Fiery | `ModFiery:21-63` | n/a | `:849` + `IgniteOnHitSeam` | partial | N (extra-info line) | low | T26 |
+| Bane of Arthropods | `TinkerModifiers:137-139` | n/a | `:819` + extra-info line (#457) | have | — | none | — |
+| Fiery | `ModFiery:21-63` | n/a | `:849` + `IgniteOnHitSeam` + both extra-info lines (#457) | have | — | none | — |
 | Necrotic | `ModNecrotic:18-44` + necrotic bone | n/a | `:877`, wither skull stand-in | partial | Y (#162, #429 open) | medium | T59 |
 | Knockback | `TinkerModifiers:172-174` piston + sticky | n/a | `:705`, piston only | partial | Y (#163 flagged) | low | T59 |
 | Shulking | `ModShulking:18-41` popped chorus | n/a | `:728`, shulker shell | deviates | Y (#163) | low | — |
@@ -203,7 +203,7 @@ Every 1.12 tool-material trait is ported (44 ids across 34 materials, with head-
 | Width++ / Height++ expanders | `ModHarvestSize:11-19`, `ToolEvents:38-70` | n/a | `expander_w`/`expander_h` + `harvest_width`/`harvest_height`, `AoeHarvest.Shape`'s per-tool magnitudes | have | Y (#438) | none | — |
 | Fins | `ModFins:11-31` | n/a | absent | missing | Y (SCOPE:287) | low | T17 |
 | Modifier/trait incompatibility layer | `Modifier.java:67-115` + `canApplyTogether` | ModifierRequirements | none (`ModifierApplication` has no compat check) | missing | N | medium | T23 |
-| Modifier tooltips (colors, leveled names, extra info) | `TooltipBuilder:120-181` | n/a | one color, "Name II (n/m)", haste line only | partial | N (#424 partial) | medium | T26 |
+| Modifier tooltips (colors, leveled names, extra info) | `TooltipBuilder:120-181` | n/a | per-modifier colours, leveled names, every upstream extra-info line (#457) | have | — | none | — |
 | Modifier overlay art | 21 model files | n/a | `ModifierArt:33` 17 + 442 derived textures | partial | Y (#257) | low | — |
 | Reagent items (silky cloth/jewel, plate, moss, expanders, soil, bone, kit) | `TinkerCommons:150-352` | n/a | most ship; expanders shipped (#438); soil/necrotic bone absent | partial | Y in part (#429, #438) | medium | T59 |
 | InfiTool hidden trait + showcase tools | `TinkerModifiers:212` | n/a | absent | missing | N | low | — |
@@ -638,7 +638,7 @@ Prioritized and deduplicated across domains. Already-filed issues are marked; **
 - [ ] **T23 — Modifier/trait/enchantment incompatibility layer** — refusal hook covering silky↔luck, luck↔Silk Touch, squeaky↔silky/luck, autosmelt↔silk touch, embossing donor compat, with translatable errors (modifiers/config, medium, M3.5 playtest-fix).
 - [ ] **T24 — Port the Blasting modifier** — 3 TNT, harvest-only, non-effective blocks minable with a drop-destroy chance, overlay art, JEI entry (modifiers, medium, M6).
 - [ ] **T25 — Port the Glowing modifier** — glowstone + ender eye, places a `minecraft:light` block in the dark at 1 durability (modifiers, medium, M6).
-- [ ] **T26 — Extra-info tooltip lines for modifiers and traits** — smite/bane/fiery/necrotic/reinforced/shulking/mending moss plus the eight `getExtraInfo` traits; also leveled names (Haster…, Unbreakable) and per-modifier colours (modifiers/traits, medium, M3.5 playtest-fix).
+- [x] **T26 — Extra-info tooltip lines for modifiers and traits** (shipped, #457) — `ForgeweaveModifiers#extraInfo` ports the seven modifier `getExtraInfo` implementations (smite/bane, fiery's two lines, necrotic, reinforced with its "Unbreakable" substitution, shulking, mending moss) alongside haste's existing one, `ForgeweaveTraits#extraInfo` the eight trait ones, `ModifierApplication#displayName` the `modifier.<id>.nameN` ladder plus reinforced's max-level rename, and `ForgeweaveModifiers#color` the per-modifier colours `ModifierNBT#getColorString` prefixes every modifier line with. Lines ride the modifier/trait row's hover rather than being panel rows of their own (issue #424's recorded deviation, unchanged).
 - [x] **T27 — Autosmelt/searing drops no furnace XP or flame particles** (shipped, #458) — `ForgeweaveModifiers#smelt` (the shared Searing/autosmelt path, issue #228) now gates on `isCorrectToolForDrops` (the `isToolEffective2` approximation), refuses to fire alongside Silk Touch/squeaky, drops the smelted result's furnace XP with the upstream probabilistic round-up, and spawns 3 FLAME particles per effective break (traits, medium, M3.5 fix round).
 - [ ] **T28 — Magnetic pulls constantly** — gate the pull on a 30-tick after-use window (marker effect or timer component) instead of always-on while carried (traits, medium, M3.5 fix round).
 - [ ] **T29 — Blocking definition for defensive traits** — treat a raised vanilla shield (and battlesign use) as blocking, iterate both hands, and stop counting longsword charging as a block (traits, medium, M3.5 fix round).

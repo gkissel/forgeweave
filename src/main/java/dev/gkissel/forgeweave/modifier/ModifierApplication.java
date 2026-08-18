@@ -12,7 +12,9 @@ import net.minecraft.core.HolderGetter;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.Registries;
+import net.minecraft.network.chat.CommonComponents;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.component.Tool;
@@ -558,6 +560,38 @@ public final class ModifierApplication {
                     materialName(fortifiedWith));
         }
         return Component.translatable("modifier." + id.getNamespace() + "." + id.getPath() + ".name");
+    }
+
+    /**
+     * A modifier's full display name at {@code displayLevel} -- upstream
+     * {@code Modifier#getLeveledTooltip} (Modifier.java:214-235), parity audit T26 (issue #457).
+     * Upstream walks down from the current level looking for the highest {@code modifier.<id>.nameN}
+     * key that exists and falls back to {@code name + roman numeral}; Forgeweave keeps the ladder in
+     * {@link ForgeweaveModifiers#leveledNameCount} instead of probing the language table, because
+     * {@code I18n.canTranslate} has no server-safe equivalent and a table lookup would make the
+     * tooltip depend on which language is loaded.
+     *
+     * <p>Reinforced is upstream's one modifier whose top level renames outside that ladder
+     * ({@code ModReinforced#getTooltip}: "Unbreakable" once the negation chance reaches 100%), and it
+     * is reproduced off the chance itself rather than off a hardcoded max level, so a datapack that
+     * retunes the cap keeps the name honest.
+     */
+    public static MutableComponent displayName(ResourceLocation id, int displayLevel) {
+        if (ForgeweaveModifiers.REINFORCED == ForgeweaveModifiers.get(id)
+                && ForgeweaveModifiers.REINFORCED.durabilityNegationChance(displayLevel) >= 1.0F) {
+            return Component.translatable(ForgeweaveModifiers.UNBREAKABLE_KEY);
+        }
+        int leveled = ForgeweaveModifiers.leveledNameCount(id);
+        if (displayLevel > 1 && displayLevel <= leveled) {
+            return Component.translatable(
+                    "modifier." + id.getNamespace() + "." + id.getPath() + ".name" + displayLevel);
+        }
+        MutableComponent line = name(id).copy();
+        if (displayLevel > 1) {
+            line.append(CommonComponents.SPACE)
+                    .append(Component.translatable("enchantment.level." + displayLevel));
+        }
+        return line;
     }
 
     /** A material's own display key, the placeholder both generated-id families interpolate. */

@@ -17,6 +17,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.component.DataComponentType;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
@@ -48,6 +49,7 @@ import net.neoforged.neoforge.event.entity.living.LivingExperienceDropEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 
 import dev.gkissel.forgeweave.Forgeweave;
+import dev.gkissel.forgeweave.client.StationText;
 import dev.gkissel.forgeweave.combat.AbsorbFireWhileBlocking;
 import dev.gkissel.forgeweave.combat.BleedEffect;
 import dev.gkissel.forgeweave.combat.BlockingDamageReduction;
@@ -168,11 +170,14 @@ public final class ForgeweaveTraits {
     /** Flint, head part only. Upstream's {@code crude2}: the same trait at level 2. */
     public static final Trait CRUDE2 = crude(2);
 
+    /** Upstream {@code TraitCrude#bonusModifier}: {@code 0.05f * level} of the blow's own damage. */
+    private static final float CRUDE_FRACTION_PER_LEVEL = 0.05F;
+
     private static Trait crude(int level) {
         return new Trait() {
             @Override
             public float bonusDamageAgainst(ItemStack stack, LivingEntity target, float damage) {
-                return target.getArmorValue() > 0 ? 0.0F : damage * 0.05F * level;
+                return target.getArmorValue() > 0 ? 0.0F : damage * CRUDE_FRACTION_PER_LEVEL * level;
             }
         };
     }
@@ -376,13 +381,21 @@ public final class ForgeweaveTraits {
             if (!effective) {
                 return speed;
             }
-            // stack.getDamageValue() is the durability already lost, i.e. upstream's
-            // (maxDurability - currentDurability): getMaxDamage() - getDamageValue() would be
-            // durability remaining, the opposite of what the formula wants.
-            int missing = stack.getDamageValue();
-            return (float) (speed + Math.log(missing / 72.0 + 1.0) * 2.0);
+            return speed + wearCurve(stack);
         }
     };
+
+    /**
+     * The "old tcon" wear curve {@code TraitStonebound} and {@code TraitJagged} share verbatim:
+     * {@code log((maxDurability - durability) / 72d + 1d) * 2}, rising as the tool wears down.
+     *
+     * <p>{@code stack.getDamageValue()} is the durability already lost, i.e. upstream's
+     * {@code (maxDurability - currentDurability)}: {@code getMaxDamage() - getDamageValue()} would be
+     * durability remaining, the opposite of what the formula wants.
+     */
+    static float wearCurve(ItemStack stack) {
+        return (float) (Math.log(stack.getDamageValue() / 72.0 + 1.0) * 2.0);
+    }
 
     private static final float PETRAMOR_CHANCE = 0.1F;
     private static final int PETRAMOR_HEAL = 5;
@@ -990,7 +1003,7 @@ public final class ForgeweaveTraits {
     public static final Trait JAGGED = new Trait() {
         @Override
         public float bonusDamageAgainst(ItemStack stack, LivingEntity target, float damage) {
-            return (float) (Math.log(stack.getDamageValue() / 72.0 + 1.0) * 2.0);
+            return wearCurve(stack);
         }
     };
 
@@ -1441,6 +1454,90 @@ public final class ForgeweaveTraits {
             Map.entry(id("flammable"), FLAMMABLE),
             Map.entry(id("enderference"), ENDERFERENCE),
             Map.entry(id("lacerating"), LACERATING));
+
+    // ---------------------------------------------------------------- extra-info lines (parity audit
+    // T26, issue #457) -- upstream 1.12's AbstractTrait#getExtraInfo. Traits are modifiers upstream,
+    // so their lines come out of the same TooltipBuilder#addModifierInfo call the modifier ones do
+    // and land in the Tool Station's tool info panel.
+
+    private static final ResourceLocation CRUDE_ID = id("crude");
+    private static final ResourceLocation CRUDE2_ID = id("crude2");
+    private static final ResourceLocation HELLISH_ID = id("hellish");
+    private static final ResourceLocation HOLY_ID = id("holy");
+    private static final ResourceLocation JAGGED_ID = id("jagged");
+    private static final ResourceLocation LIGHTWEIGHT_ID = id("lightweight");
+    private static final ResourceLocation STONEBOUND_ID = id("stonebound");
+    private static final ResourceLocation SUPERHEAT_ID = id("superheat");
+    private static final ResourceLocation ALIEN_ID = id("alien");
+
+    /**
+     * Which trait ids produce {@code .extra} lines, so a lang-coverage test can guard those keys the
+     * way {@code ModifierLangCoverageTest} guards the modifier ones. Alien is absent on purpose: its
+     * three lines reuse the {@code gui.forgeweave.stat.*} keys rather than one of its own, exactly as
+     * upstream reuses {@code HeadMaterialStats#formatDurability} and friends.
+     */
+    public static Set<ResourceLocation> extraInfoIds() {
+        return Set.of(CRUDE_ID, CRUDE2_ID, HELLISH_ID, HOLY_ID, JAGGED_ID, LIGHTWEIGHT_ID,
+                STONEBOUND_ID, SUPERHEAT_ID);
+    }
+
+    /**
+     * What one trait on this tool is currently worth -- upstream's eight {@code getExtraInfo}
+     * implementations, ported one for one:
+     *
+     * <ul>
+     *   <li><b>crude / crude2</b> ({@code TraitCrude:38-44}): the bonus fraction against unarmored.
+     *   <li><b>hellish</b> ({@code TraitHellish:29-34}) and <b>holy</b> ({@code TraitHoly:41-45}):
+     *       their flat bonus damage.
+     *   <li><b>jagged</b> ({@code TraitJagged:37-42}) and <b>stonebound</b>
+     *       ({@code TraitStonebound:38-43}): the shared {@link #wearCurve}, which is what makes these
+     *       two lines worth having -- they are the only trait numbers that move as the tool wears.
+     *   <li><b>lightweight</b> ({@code TraitLightweight:53-58}) and <b>superheat</b>
+     *       ({@code TraitSuperheat:31-36}): their fixed bonus fractions.
+     *   <li><b>alien</b> ({@code TraitAlien:84-91}): the durability, mining speed and attack it has
+     *       distributed so far, as three stat lines.
+     * </ul>
+     *
+     * <p>Deviation from 1.12, recorded: upstream's crude is one id whose level stacks, so its line
+     * reports the combined bonus; Forgeweave ships {@code crude} and {@code crude2} as separate ids
+     * (issue #231), so an all-flint tool shows two rows of 5% and 10% rather than one of 15%. The
+     * numbers are the same, the presentation follows the id split that was already there.
+     *
+     * @param tool the assembled stack, read by the three traits whose value is not a constant
+     */
+    public static List<Component> extraInfo(ResourceLocation id, ItemStack tool) {
+        String key = "trait." + id.getNamespace() + "." + id.getPath() + ".extra";
+        if (CRUDE_ID.equals(id) || CRUDE2_ID.equals(id)) {
+            float bonus = CRUDE_FRACTION_PER_LEVEL * (CRUDE2_ID.equals(id) ? 2 : 1);
+            return List.of(Component.translatable(key, StationText.formatPercent(bonus)));
+        }
+        if (HELLISH_ID.equals(id)) {
+            return List.of(Component.translatable(key, StationText.formatNumber(HELLISH_BONUS_DAMAGE)));
+        }
+        if (HOLY_ID.equals(id)) {
+            return List.of(Component.translatable(key, StationText.formatNumber(HOLY_BONUS_DAMAGE)));
+        }
+        if (JAGGED_ID.equals(id) || STONEBOUND_ID.equals(id)) {
+            return List.of(Component.translatable(key, StationText.formatNumber(wearCurve(tool))));
+        }
+        if (LIGHTWEIGHT_ID.equals(id)) {
+            return List.of(Component.translatable(key, StationText.formatPercent(LIGHTWEIGHT_BONUS)));
+        }
+        if (SUPERHEAT_ID.equals(id)) {
+            return List.of(Component.translatable(key, StationText.formatPercent(SUPERHEAT_BONUS_FRACTION)));
+        }
+        if (ALIEN_ID.equals(id)) {
+            AlienProgress.Portion given = alienDistributed(tool);
+            return List.of(
+                    Component.translatable("gui.forgeweave.stat.durability",
+                            StationText.formatNumber(given.durability())),
+                    Component.translatable("gui.forgeweave.stat.mining_speed",
+                            StationText.formatNumber(given.miningSpeed())),
+                    Component.translatable("gui.forgeweave.stat.attack_damage",
+                            StationText.formatNumber(given.attackDamage())));
+        }
+        return List.of();
+    }
 
 
     /**

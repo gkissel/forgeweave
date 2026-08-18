@@ -21,6 +21,7 @@ import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.TextColor;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -59,6 +60,8 @@ import dev.gkissel.forgeweave.combat.IgniteOnHitSeam;
 import dev.gkissel.forgeweave.combat.KnockbackOnHitSeam;
 import dev.gkissel.forgeweave.combat.LifestealOnHitSeam;
 import dev.gkissel.forgeweave.combat.PotionEffectOnHitSeam;
+import dev.gkissel.forgeweave.client.StationText;
+import dev.gkissel.forgeweave.item.BowItem;
 import dev.gkissel.forgeweave.item.ForgeweaveDataComponents;
 import dev.gkissel.forgeweave.item.ForgeweaveItems;
 import dev.gkissel.forgeweave.item.ToolItem;
@@ -743,10 +746,14 @@ public final class ForgeweaveModifiers {
 
         @Override
         public Optional<CombatSeam> combatSeam(int level) {
-            int durationTicks = level / 2 + SHULKING_DURATION_OFFSET_TICKS;
-            return Optional.of(new PotionEffectOnHitSeam(MobEffects.LEVITATION, 0, durationTicks));
+            return Optional.of(new PotionEffectOnHitSeam(MobEffects.LEVITATION, 0, shulkingDurationTicks(level)));
         }
     };
+
+    /** Upstream {@code ModShulking#getDuration}: {@code current / 2 + 10} ticks of Levitation. */
+    static int shulkingDurationTicks(int units) {
+        return units / 2 + SHULKING_DURATION_OFFSET_TICKS;
+    }
 
     /** Upstream {@code ModWebbed}: {@code level * 20} slowness ticks -- 1 second per level. */
     private static final int WEBBED_DURATION_TICKS_PER_LEVEL = 20;
@@ -1122,6 +1129,179 @@ public final class ForgeweaveModifiers {
         int perLevel = modifier == null ? 1 : Math.max(1, modifier.unitsPerLevel());
         return displayLevel(id, level) * perLevel;
     }
+
+    // ---------------------------------------------------------------- extra-info lines (parity audit
+    // T26, issue #457) -- upstream 1.12's IModifier#getExtraInfo, collected by
+    // TooltipBuilder#addModifierInfo (TooltipBuilder.java:120-139) and shown by
+    // ToolCore#getInformation(stack, true), i.e. the Tool Station's tool info panel only.
+
+    private static final ResourceLocation HASTE_ID = id("haste");
+    private static final ResourceLocation SMITE_ID = id("smite");
+    private static final ResourceLocation BANE_ID = id("bane_of_arthropods");
+    private static final ResourceLocation FIERY_ID = id("fiery");
+    private static final ResourceLocation NECROTIC_ID = id("necrotic");
+    private static final ResourceLocation REINFORCED_ID = id("reinforced");
+    private static final ResourceLocation SHULKING_ID = id("shulking");
+
+    /** {@code modifier.forgeweave.reinforced.unbreakable} -- upstream's own key, used twice (see below). */
+    public static final String UNBREAKABLE_KEY = "modifier.forgeweave.reinforced.unbreakable";
+
+    /**
+     * Which modifier ids produce {@code .extra} lines, so {@code ModifierLangCoverageTest} can guard
+     * the keys the same way it guards {@code .name}/{@code .description}. Fiery is the one that also
+     * needs {@code .extra2} (upstream's second {@code loc + 2} key).
+     */
+    public static Set<ResourceLocation> extraInfoIds() {
+        return Set.of(HASTE_ID, SMITE_ID, BANE_ID, FIERY_ID, NECROTIC_ID, REINFORCED_ID, SHULKING_ID,
+                MENDING_MOSS_ID);
+    }
+
+    /**
+     * What one modifier on this tool adds beyond its own description -- upstream's
+     * {@code IModifier#getExtraInfo(tool, modifierTag)}, one implementation per modifier, ported for
+     * every modifier whose 1.12 counterpart has one:
+     *
+     * <ul>
+     *   <li><b>haste</b> ({@code ModHaste:110-127}): one {@code Bonus Speed: +x%} line per speed
+     *       category the tool has -- the draw-speed bonus for a {@code Category.LAUNCHER}, the
+     *       attack-speed bonus for a {@code Category.WEAPON}. Derived from
+     *       {@link Modifier#drawSpeedMultiplier}/{@link Modifier#attackSpeedMultiplier} rather than
+     *       from haste's own constants, so a later modifier that touches either speed gets the line
+     *       for free (issue #424, kept).
+     *   <li><b>smite / bane of arthropods</b> ({@code ModAntiMonsterType:46-55}): the bonus damage.
+     *   <li><b>fiery</b> ({@code ModFiery:53-64}): fire damage and burn duration, two lines.
+     *   <li><b>necrotic</b> ({@code ModNecrotic:37-43}): the lifesteal fraction.
+     *   <li><b>reinforced</b> ({@code ModReinforced:71-84}): the negation chance, replaced by
+     *       "Unbreakable" once it reaches 100%.
+     *   <li><b>shulking</b> ({@code ModShulking:34-41}): the levitation duration in seconds.
+     *   <li><b>mending moss</b> ({@code ModMendingMoss:131-138}): the XP currently banked on the
+     *       stack, which is the one line that reads live state rather than the level.
+     * </ul>
+     *
+     * <p>The wording lives here, next to the numbers, for the same reason upstream puts
+     * {@code getExtraInfo} on the modifier class itself; {@code StationText} only decides where the
+     * lines go.
+     */
+    public static List<Component> extraInfo(ItemStack tool, ModifierEntry entry) {
+        ResourceLocation id = entry.id();
+        int level = entry.level();
+        String key = "modifier." + id.getNamespace() + "." + id.getPath() + ".extra";
+        if (HASTE_ID.equals(id)) {
+            return speedExtraInfo(tool, entry, key);
+        }
+        if (SMITE_ID.equals(id) || BANE_ID.equals(id)) {
+            return List.of(Component.translatable(key, StationText.formatNumber(smiteBaneBonusDamage(level))));
+        }
+        if (FIERY_ID.equals(id)) {
+            return List.of(
+                    Component.translatable(key, StationText.formatNumber(fieryDamage(level))),
+                    Component.translatable(key + "2", StationText.formatNumber(fieryDurationSeconds(level))));
+        }
+        if (NECROTIC_ID.equals(id)) {
+            return List.of(Component.translatable(key,
+                    StationText.formatPercent(necroticLifestealFraction(level))));
+        }
+        if (REINFORCED_ID.equals(id)) {
+            float chance = REINFORCED.durabilityNegationChance(level);
+            Component value = chance >= 1.0F
+                    ? Component.translatable(UNBREAKABLE_KEY)
+                    : Component.literal(StationText.formatPercent(chance));
+            return List.of(Component.translatable(key, value));
+        }
+        if (SHULKING_ID.equals(id)) {
+            return List.of(Component.translatable(key,
+                    StationText.formatNumber(shulkingDurationTicks(level) / 20.0F)));
+        }
+        if (MENDING_MOSS_ID.equals(id)) {
+            return List.of(Component.translatable(key,
+                    String.valueOf(tool.getOrDefault(ForgeweaveDataComponents.MENDING_MOSS_XP.get(), 0))));
+        }
+        return List.of();
+    }
+
+    /** Haste's pair of lines, and any later modifier that moves either speed (issue #424). */
+    private static List<Component> speedExtraInfo(ItemStack tool, ModifierEntry entry, String key) {
+        Modifier modifier = get(entry.id());
+        if (modifier == null) {
+            return List.of();
+        }
+        float bonus = 0.0F;
+        if (tool.getItem() instanceof BowItem) {
+            bonus = modifier.drawSpeedMultiplier(entry.level()) - 1.0F;
+        } else if (tool.getItem() instanceof ToolItem melee && melee.isWeapon()) {
+            bonus = modifier.attackSpeedMultiplier(entry.level()) - 1.0F;
+        }
+        return bonus == 0.0F
+                ? List.of()
+                : List.of(Component.translatable(key, StationText.formatPercent(bonus)));
+    }
+
+    /**
+     * How many levels of {@code id} have a name of their own -- upstream's {@code modifier.<id>.nameN}
+     * ladder ({@code Modifier#getLeveledTooltip}, Modifier.java:214-235: it walks down from the
+     * current level looking for the highest defined key and falls back to the plain name plus a roman
+     * numeral). Only haste and sharpness ship one in the 1.12 clone's {@code en_us.lang}
+     * (Haster/Hastest/Hastester/Hastestest, Sharper/Sharpest/Sharpester/Sharpestest); reinforced's
+     * max-level rename is not part of this ladder upstream either -- it is {@code
+     * ModReinforced#getTooltip}'s own {@code .unbreakable} branch, reproduced in
+     * {@link ModifierApplication#name(ResourceLocation, int)}.
+     */
+    public static int leveledNameCount(ResourceLocation id) {
+        return LEVELED_NAMES.getOrDefault(id, 1);
+    }
+
+    private static final Map<ResourceLocation, Integer> LEVELED_NAMES =
+            Map.of(id("haste"), 5, id("sharpness"), 5);
+
+    /**
+     * A modifier's own colour, which upstream stores per application in {@code ModifierNBT#color} and
+     * every modifier line is prefixed with ({@code TooltipBuilder#addModifierTooltips} and
+     * {@code #addModifierInfo}, both via {@code ModifierNBT#getColorString}). The values are the ones
+     * each upstream class passes to its {@code super(identifier, color)} constructor
+     * ({@code tools/TinkerModifiers#registerModifiers} for the two built inline); the six
+     * Forgeweave-only modifiers have no upstream class to take one from, so theirs are chosen here
+     * from their reagent (recorded as a deviation -- there is nothing to be 1:1 with).
+     *
+     * <p>Falls back to {@code StationText#MODIFIER_COLOR} for an id with no entry, which is every
+     * generated embossment/fortification id: upstream colours those with the donor material's own
+     * text colour, which needs a registry lookup the tooltip callers here do not have. Recorded
+     * deviation.
+     */
+    public static TextColor color(ResourceLocation id) {
+        return COLORS.getOrDefault(id, StationText.MODIFIER_COLOR);
+    }
+
+    private static final Map<ResourceLocation, TextColor> COLORS = Map.ofEntries(
+            // Upstream 1.12 constants.
+            Map.entry(id("haste"), TextColor.fromRgb(0x910000)),
+            Map.entry(id("harvest_width"), TextColor.fromRgb(0xCAF6A2)),
+            Map.entry(id("harvest_height"), TextColor.fromRgb(0xCAF6A2)),
+            Map.entry(id("reinforced"), TextColor.fromRgb(0x502E83)),
+            Map.entry(id("mending_moss"), TextColor.fromRgb(0x43AB32)),
+            Map.entry(id("silky"), TextColor.fromRgb(0xFBE28B)),
+            Map.entry(id("soulbound"), TextColor.fromRgb(0xF5FBAC)),
+            Map.entry(id("luck"), TextColor.fromRgb(0x2D51E2)),
+            Map.entry(id("sharpness"), TextColor.fromRgb(0xFFF6F6)),
+            Map.entry(id("diamond"), TextColor.fromRgb(0x8CF4E2)),
+            Map.entry(id("emerald"), TextColor.fromRgb(0x41F384)),
+            Map.entry(id("knockback"), TextColor.fromRgb(0x9F9F9F)),
+            Map.entry(id("shulking"), TextColor.fromRgb(0xAACCFF)),
+            Map.entry(id("webbed"), TextColor.fromRgb(0xFFFFFF)),
+            Map.entry(id("smite"), TextColor.fromRgb(0xE8D500)),
+            Map.entry(id("bane_of_arthropods"), TextColor.fromRgb(0x61BA49)),
+            Map.entry(id("fiery"), TextColor.fromRgb(0xEA9E32)),
+            Map.entry(id("necrotic"), TextColor.fromRgb(0x5E0000)),
+            Map.entry(id("beheading"), TextColor.fromRgb(0x10574B)),
+            // Upstream has no modifier for these; the trait of the same name is the nearest source
+            // (searing <- TraitAutosmelt 0xff5500, magnetic_pull <- TraitMagnetic 0xdddddd,
+            // aquadynamic <- TraitAquadynamic AQUA), the rest are this ticket's own picks.
+            Map.entry(id("searing"), TextColor.fromRgb(0xFF5500)),
+            Map.entry(id("magnetic_pull"), TextColor.fromRgb(0xDDDDDD)),
+            Map.entry(id("aquadynamic"), TextColor.fromRgb(0x55FFFF)),
+            Map.entry(id("resonant"), TextColor.fromRgb(0x2EBAA4)),
+            Map.entry(id("far_reach"), TextColor.fromRgb(0xB180D9)),
+            Map.entry(id("wind_burst"), TextColor.fromRgb(0xC0F3F0)),
+            Map.entry(id("extra_slot"), TextColor.fromRgb(0xAAAAAA)));
 
     /**
      * The tool's stats with its modifiers applied, or {@code null} if it has no stat block at all.

@@ -362,7 +362,7 @@ public class ToolStationScreen extends StationScreen<ToolStationMenu> implements
         // Each trait in its granting material's colour, as upstream's info panel does (issue #64).
         List<Component> traits = materials == null
                 ? List.of()
-                : StationText.toolTraits(registries(), materials, StationText.traitIdsOf(tool));
+                : StationText.toolTraits(registries(), materials, StationText.traitIdsOf(tool), tool);
         traitLines = traits.isEmpty()
                 ? List.of(Component.translatable("gui.forgeweave.tool_station.no_traits").withStyle(ChatFormatting.GRAY))
                 : traits;
