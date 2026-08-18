@@ -57,6 +57,9 @@ class ToolTooltipTest {
     private static final ResourceLocation STONE_ID = ResourceLocation.fromNamespaceAndPath("forgeweave", "stone");
     private static final ResourceLocation WOOD_ID = ResourceLocation.fromNamespaceAndPath("forgeweave", "wood");
     private static final ResourceLocation CHEAP_TRAIT = ResourceLocation.fromNamespaceAndPath("forgeweave", "cheap");
+    private static final ResourceLocation LIGHTWEIGHT_TRAIT =
+            ResourceLocation.fromNamespaceAndPath("forgeweave", "lightweight");
+    private static final ResourceLocation HASTE_ID = ResourceLocation.fromNamespaceAndPath("forgeweave", "haste");
     private static final ResourceLocation ECOLOGICAL_TRAIT =
             ResourceLocation.fromNamespaceAndPath("forgeweave", "ecological");
 
@@ -389,6 +392,89 @@ class ToolTooltipTest {
                 guiStat("mining_speed", "4", SPEED_COLOR),
                 guiStat("attack_damage", "3", ATTACK_COLOR)),
                 StationText.toolStats(assembledPickaxe(40, List.of())));
+    }
+
+    /**
+     * Issue #424: the draw-speed line is what the bow <em>actually</em> draws at
+     * ({@code BowItem#drawSpeed}), not the raw stat its limbs gave. Upstream 1.12 scales
+     * {@code ProjectileLauncherNBT#drawSpeed} in place the moment haste is applied
+     * ({@code ModHaste#applyEffect}'s {@code Category.LAUNCHER} branch), so its
+     * {@code TooltipBuilder#addDrawSpeed} -- the same {@code drawTime / (20 * drawSpeed)} this line
+     * is -- already reads the boosted number. Forgeweave scales on read instead (ADR-0004), which is
+     * why the display has to ask for the scaled value. One full haste level is +10% draw speed, so
+     * the shortbow's 0.6 s to full draw becomes 12 / (20 * 1.1) = 0.55.
+     */
+    @Test
+    void launcherDrawSpeedLineFollowsHaste() {
+        ItemStack stack = assembledShortbow();
+        stack.set(ForgeweaveDataComponents.MODIFIERS.get(), List.of(new ModifierEntry(HASTE_ID, 50)));
+
+        assertTrue(StationText.toolStats(stack).contains(guiStat("drawspeed", "0.55", DRAWSPEED_COLOR)),
+                "the station panel shows the hasted draw time");
+
+        List<Component> tooltip = new ArrayList<>();
+        ToolTooltip.append(stack, null, false, 3.0F, tooltip);
+        assertTrue(tooltip.contains(guiStat("drawspeed", "0.55", DRAWSPEED_COLOR)),
+                "and so does the item tooltip");
+    }
+
+    /**
+     * The other half of {@code BowItem#drawSpeed}: {@code TraitLightweight}'s launcher branch, also
+     * +10%. Haste and lightweight together are 1.1 * 1.1 = 1.21, so 12 / (20 * 1.21) = 0.5 (issue
+     * #424 -- the playtest report was "redstone does not increase draw speed", and neither source
+     * showed).
+     */
+    @Test
+    void launcherDrawSpeedLineFollowsLightweightAndHasteTogether() {
+        ItemStack stack = assembledShortbow();
+        stack.set(ForgeweaveDataComponents.TRAITS.get(), List.of(LIGHTWEIGHT_TRAIT));
+        assertTrue(StationText.toolStats(stack).contains(guiStat("drawspeed", "0.55", DRAWSPEED_COLOR)),
+                "lightweight alone is the same +10%");
+
+        stack.set(ForgeweaveDataComponents.MODIFIERS.get(), List.of(new ModifierEntry(HASTE_ID, 50)));
+        assertTrue(StationText.toolStats(stack).contains(guiStat("drawspeed", "0.5", DRAWSPEED_COLOR)),
+                "and the two stack");
+    }
+
+    /**
+     * Issue #424, part 2: upstream {@code ModHaste#getExtraInfo} (ModHaste.java:110-127) adds one
+     * {@code modifier.haste.extra} line ({@code "Bonus-Speed: +%s"}) per category the tool has -- the
+     * draw-speed bonus for a {@code Category.LAUNCHER}, the attack-speed bonus for a
+     * {@code Category.WEAPON}. Forgeweave carries per-modifier detail on the panel row's hover
+     * rather than as a panel line of its own, so that is where it goes.
+     */
+    @Test
+    void hasteExtraInfoShowsTheDrawSpeedBonusOnALauncher() {
+        assertEquals(List.of(bonusSpeedLine("10%")),
+                StationText.modifierExtraInfo(assembledShortbow(), new ModifierEntry(HASTE_ID, 50)));
+        assertEquals(List.of(bonusSpeedLine("50%")),
+                StationText.modifierExtraInfo(assembledShortbow(), new ModifierEntry(HASTE_ID, 250)));
+    }
+
+    /** A modifier that does nothing to either speed contributes no line, as upstream's default does. */
+    @Test
+    void aModifierWithNoSpeedBonusHasNoExtraInfo() {
+        assertEquals(List.of(), StationText.modifierExtraInfo(assembledShortbow(),
+                new ModifierEntry(ResourceLocation.fromNamespaceAndPath("forgeweave", "reinforced"), 1)));
+        assertEquals(List.of(), StationText.modifierExtraInfo(assembledPickaxe(40, List.of()),
+                new ModifierEntry(HASTE_ID, 50)),
+                "a pickaxe is neither WEAPON nor LAUNCHER upstream, so haste shows it nothing");
+    }
+
+    /** ... and the panel row's hover carries it under the modifier's own description. */
+    @Test
+    void theModifierRowHoverCarriesTheBonusSpeedLine() {
+        ItemStack stack = assembledShortbow();
+        stack.set(ForgeweaveDataComponents.MODIFIERS.get(), List.of(new ModifierEntry(HASTE_ID, 50)));
+
+        HoverEvent hover = StationText.toolModifiers(stack).get(0).getStyle().getHoverEvent();
+        assertTrue(hover != null && hover.getValue(HoverEvent.Action.SHOW_TEXT).toString()
+                        .contains("gui.forgeweave.modifier.bonus_speed"),
+                "the haste row explains its draw-speed bonus on hover");
+    }
+
+    private static Component bonusSpeedLine(String percent) {
+        return Component.translatable("gui.forgeweave.modifier.bonus_speed", percent);
     }
 
     /**

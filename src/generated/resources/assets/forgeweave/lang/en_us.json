@@ -170,6 +170,7 @@
   "gui.forgeweave.fortification.launcher": "A bow mines nothing; there is no mining level to fortify.",
   "gui.forgeweave.fortification.no_tier": "%s has no mining level to fortify with.",
   "gui.forgeweave.general.hover": "Hover over the entries for more info",
+  "gui.forgeweave.modifier.bonus_speed": "Bonus Speed: +%s",
   "gui.forgeweave.modifier.invalid_reagent": "The other slot holds something no modifier accepts.",
   "gui.forgeweave.modifier.max_level": "%s is already at its maximum level on this tool.",
   "gui.forgeweave.modifier.modifiers_disabled": "Tools cannot be modified on this server. What is already on a tool still works, and it can still be repaired and have its parts replaced.",

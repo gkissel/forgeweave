@@ -432,6 +432,10 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         // Issue #223 (wind burst): the tool the loaded modifier's own vanilla enchantment doesn't
         // support -- e.g. a breeze rod on anything but the warmace.
         add("gui.forgeweave.modifier.unsupported_tool", "%s cannot be applied to this tool.");
+        // Issue #424, upstream's modifier.haste.extra ("Bonus-Speed: +%s"): what a modifier adds to
+        // the speed the tool it sits on actually uses -- draw speed on a bow, attack speed on a
+        // weapon (StationText#modifierExtraInfo).
+        add("gui.forgeweave.modifier.bonus_speed", "Bonus Speed: +%s");
 
         // Why an attempted part exchange was refused (issue #264), same info-panel surface. The
         // durability line mirrors upstream 1.12's gui.error.not_enough_durability.
