@@ -171,6 +171,37 @@ public class SmelteryMeltingGameTests {
     }
 
     /**
+     * #439 (T7 parity audit) -- upstream 1.12 melts a vanilla item back into whatever metal its
+     * crafting recipe charged, so an iron pickaxe returns its three ingots ({@code iron_ingot_3.json},
+     * 432 mB). Run under a <em>Nether</em> Core (2x on ore-class inputs) for the same reason the
+     * tool-part melt-backs above are: a crafted item is not ore-class, so a clean 432 -- not 864 --
+     * proves the row never picks up a core bonus.
+     */
+    @GameTest(template = "smeltery", timeoutTicks = 1600)
+    public static void aVanillaIronPickaxeMeltsBackIntoTheThreeIngotsItCost(GameTestHelper helper) {
+        SmelteryControllerBlockEntity core = lavaFuelledSmeltery(helper, ForgeweaveBlocks.NETHER_CORE.get());
+        insert(helper, core, Items.IRON_PICKAXE);
+
+        helper.succeedWhen(() -> assertTankHolds(helper, core, ForgeweaveFluids.IRON.still().get(),
+                MeltingRecipe.VALUE_INGOT * 3));
+    }
+
+    /**
+     * #439 (T7) on the gold half, and on one of the four rows upstream writes by hand rather than
+     * deriving from a crafting recipe ({@code TinkerSmeltery.java:396-399}): a powered rail is
+     * {@code Material.VALUE_Ingot} of gold, even though its own recipe makes six of them from six
+     * ingots plus a stick and redstone.
+     */
+    @GameTest(template = "smeltery", timeoutTicks = 1600)
+    public static void aPoweredRailMeltsIntoUpstreamsHandWrittenIngotOfGold(GameTestHelper helper) {
+        SmelteryControllerBlockEntity core = lavaFuelledSmeltery(helper);
+        insert(helper, core, Items.POWERED_RAIL);
+
+        helper.succeedWhen(() -> assertTankHolds(helper, core, ForgeweaveFluids.GOLD.still().get(),
+                MeltingRecipe.VALUE_INGOT));
+    }
+
+    /**
      * #184 -- upstream's tool-part melting: an iron pickaxe head melts back into exactly the 288 mB
      * of molten iron that cast it. Run under a <em>Nether</em> Core (2x on ore-class inputs) so the
      * amount also proves the melt-back is not ore-class: upstream returns a part's exact value with

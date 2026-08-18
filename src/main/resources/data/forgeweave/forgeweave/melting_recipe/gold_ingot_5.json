@@ -1,0 +1,7 @@
+{
+  "input": {
+    "item": "minecraft:golden_helmet"
+  },
+  "fluid": "forgeweave:molten_gold",
+  "amount": 720
+}

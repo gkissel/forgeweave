@@ -427,6 +427,144 @@ class MeltingRecipeTest {
         }
     }
 
+    // ------------------------------------------------------------------ #439 (T7 parity audit)
+
+    /**
+     * T7 (#439) -- upstream 1.12 melts every vanilla item whose crafting recipe is metal-only. It
+     * does that at runtime ({@code TinkerSmeltery#registerRecipeOredictMelting}, lines 746-873) by
+     * walking the crafting registry, skipping the ingredients on {@code Config.oredictMeltingIgnore}
+     * (redstone dust, planks, sticks, string, chest), summing the ore-dictionary value of the rest,
+     * and dividing by the recipe's output count. Here that scan is done once, at authoring time, and
+     * its results ship as datapack rows -- which is what upstream itself did when it moved to modern
+     * Minecraft. Each entry is {@code file, item, mB}, and every amount is the exact value 1.12's
+     * scan (or one of its four hand-written rows at {@code TinkerSmeltery.java:392-399}) produces.
+     */
+    private static final String[][] IRON_CRAFTED = {
+            // 1 ingot: shovel and shield (their planks/sticks are on the ignore list), plus two of
+            // upstream's hand-written rail rows -- their redstone torch / pressure plate is why the
+            // scan cannot derive them.
+            {"iron_ingot_1", "minecraft:iron_shovel", "144"},
+            {"iron_ingot_1", "minecraft:shield", "144"},
+            {"iron_ingot_1", "minecraft:activator_rail", "144"},
+            {"iron_ingot_1", "minecraft:detector_rail", "144"},
+            // 2 ingots (the iron door is 6 ingots for 3 doors)
+            {"iron_ingot_2", "minecraft:iron_sword", "288"},
+            {"iron_ingot_2", "minecraft:iron_hoe", "288"},
+            {"iron_ingot_2", "minecraft:shears", "288"},
+            {"iron_ingot_2", "minecraft:heavy_weighted_pressure_plate", "288"},
+            {"iron_ingot_2", "minecraft:iron_door", "288"},
+            // 3 ingots
+            {"iron_ingot_3", "minecraft:iron_pickaxe", "432"},
+            {"iron_ingot_3", "minecraft:iron_axe", "432"},
+            {"iron_ingot_3", "minecraft:bucket", "432"},
+            // 4 ingots (the compass ignores its redstone; horse armor is a hand-written row)
+            {"iron_ingot_4", "minecraft:iron_boots", "576"},
+            {"iron_ingot_4", "minecraft:iron_trapdoor", "576"},
+            {"iron_ingot_4", "minecraft:compass", "576"},
+            {"iron_ingot_4", "minecraft:iron_horse_armor", "576"},
+            // 5 ingots (the hopper ignores its chest)
+            {"iron_ingot_5", "minecraft:iron_helmet", "720"},
+            {"iron_ingot_5", "minecraft:minecart", "720"},
+            {"iron_ingot_5", "minecraft:hopper", "720"},
+            // 7 and 8 ingots
+            {"iron_ingot_7", "minecraft:iron_leggings", "1008"},
+            {"iron_ingot_7", "minecraft:cauldron", "1008"},
+            {"iron_ingot_8", "minecraft:iron_chestplate", "1152"},
+            // 6 ingots split over 16 outputs
+            {"iron_rail", "minecraft:rail", "54"},
+            {"iron_rail", "minecraft:iron_bars", "54"},
+            // 1 ingot split over 2 outputs
+            {"iron_tripwire_hook", "minecraft:tripwire_hook", "72"},
+            // 3 blocks + 4 ingots
+            {"iron_anvil", "minecraft:anvil", "4464"},
+            {"iron_anvil", "minecraft:chipped_anvil", "4464"},
+            {"iron_anvil", "minecraft:damaged_anvil", "4464"},
+    };
+
+    /** The gold half of {@link #IRON_CRAFTED}; the powered rail is one of upstream's hand-written rows. */
+    private static final String[][] GOLD_CRAFTED = {
+            {"gold_ingot_1", "minecraft:golden_shovel", "144"},
+            {"gold_ingot_1", "minecraft:powered_rail", "144"},
+            {"gold_ingot_2", "minecraft:golden_sword", "288"},
+            {"gold_ingot_2", "minecraft:golden_hoe", "288"},
+            {"gold_ingot_2", "minecraft:light_weighted_pressure_plate", "288"},
+            {"gold_ingot_3", "minecraft:golden_pickaxe", "432"},
+            {"gold_ingot_3", "minecraft:golden_axe", "432"},
+            {"gold_ingot_4", "minecraft:golden_boots", "576"},
+            {"gold_ingot_4", "minecraft:clock", "576"},
+            {"gold_ingot_4", "minecraft:golden_horse_armor", "576"},
+            {"gold_ingot_5", "minecraft:golden_helmet", "720"},
+            {"gold_ingot_7", "minecraft:golden_leggings", "1008"},
+            {"gold_ingot_8", "minecraft:golden_chestplate", "1152"},
+    };
+
+    @Test
+    void everyVanillaIronCraftedItemMeltsForWhatItsCraftingRecipeCost() {
+        for (String[] row : IRON_CRAFTED) {
+            assertMeltsFor(row[0], row[1], Integer.parseInt(row[2]), "forgeweave:molten_iron");
+        }
+    }
+
+    @Test
+    void everyVanillaGoldCraftedItemMeltsForWhatItsCraftingRecipeCost() {
+        for (String[] row : GOLD_CRAFTED) {
+            assertMeltsFor(row[0], row[1], Integer.parseInt(row[2]), "forgeweave:molten_gold");
+        }
+    }
+
+    /**
+     * A crafted item is never ore-class: re-melting a bucket returns exactly the three ingots it cost
+     * under any core tier, the same rule {@link #theShippedIngotRecipeRemeltsOneForOne} pins for
+     * ingots ("core tier is the ONLY yield axis; ingot re-melts 1:1").
+     */
+    @Test
+    void noVanillaCraftedMetalRowIsOreClass() {
+        for (String[][] table : new String[][][] {IRON_CRAFTED, GOLD_CRAFTED}) {
+            for (String[] row : table) {
+                assertTrue(!shipped(row[0]).has("ore"), row[0] + " melts a crafted item, so it is not ore-class");
+            }
+        }
+    }
+
+    /**
+     * The two rows where 1.12 and the 1.20 branch disagree, decided for 1.12 per the parity default:
+     * rails and bars are 6 ingots split over 16 outputs -- upstream's own
+     * {@code Material.VALUE_Ingot * 6 / 16} = 54 mB, where 1.20 rounds them down to 3 nuggets (48) --
+     * and horse armor is {@code Material.VALUE_Ingot * 4}, where 1.20 charges 7 ingots.
+     */
+    @Test
+    void railsAndHorseArmorFollowTheTwelveNumbersNotTheTwentyOnes() {
+        assertEquals(MeltingRecipe.VALUE_INGOT * 6 / 16, shipped("iron_rail").get("amount").getAsInt());
+        assertEquals(MeltingRecipe.VALUE_INGOT * 4, shipped("iron_ingot_4").get("amount").getAsInt());
+        assertEquals(MeltingRecipe.VALUE_INGOT * 4, shipped("gold_ingot_4").get("amount").getAsInt());
+    }
+
+    /**
+     * Upstream's scan aborts a recipe the moment one ingredient neither melts nor sits on the ignore
+     * list, so a golden apple (its apple), flint and steel (its flint) and a piston (its cobblestone,
+     * which is not one of the metal ore-dictionary entries {@code registerOredictMeltingCasting}
+     * feeds the scanner) get no row at all -- and chainmail armor has no 1.12 crafting recipe to
+     * scan. Pinned so nobody "completes the set" later without a maintainer decision.
+     */
+    @Test
+    void itemsUpstreamsScanAbortsOnGetNoRow() {
+        for (String[][] table : new String[][][] {IRON_CRAFTED, GOLD_CRAFTED}) {
+            for (String[] row : table) {
+                String inputs = shipped(row[0]).get("input").toString();
+                for (String skipped : new String[] {"golden_apple", "flint_and_steel", "piston", "chainmail"}) {
+                    assertTrue(!inputs.contains(skipped), row[0] + " must not melt " + skipped);
+                }
+            }
+        }
+    }
+
+    private static void assertMeltsFor(String file, String item, int amount, String fluid) {
+        JsonObject json = shipped(file);
+        assertEquals(fluid, json.get("fluid").getAsString(), file + " melts into " + fluid);
+        assertEquals(amount, json.get("amount").getAsInt(), file + " melts for " + amount + " mB");
+        assertTrue(json.get("input").toString().contains('"' + item + '"'), file + " must list " + item);
+    }
+
     private static JsonObject shipped(String name) {
         String path = "/data/forgeweave/forgeweave/melting_recipe/" + name + ".json";
         try (InputStream in = MeltingRecipeTest.class.getResourceAsStream(path)) {

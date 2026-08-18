@@ -1,0 +1,9 @@
+{
+  "input": [
+    { "item": "minecraft:golden_boots" },
+    { "item": "minecraft:clock" },
+    { "item": "minecraft:golden_horse_armor" }
+  ],
+  "fluid": "forgeweave:molten_gold",
+  "amount": 576
+}

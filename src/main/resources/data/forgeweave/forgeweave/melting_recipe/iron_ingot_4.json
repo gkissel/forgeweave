@@ -1,0 +1,10 @@
+{
+  "input": [
+    { "item": "minecraft:iron_boots" },
+    { "item": "minecraft:iron_trapdoor" },
+    { "item": "minecraft:compass" },
+    { "item": "minecraft:iron_horse_armor" }
+  ],
+  "fluid": "forgeweave:molten_iron",
+  "amount": 576
+}

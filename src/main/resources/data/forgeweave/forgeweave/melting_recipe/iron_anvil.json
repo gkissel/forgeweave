@@ -1,0 +1,9 @@
+{
+  "input": [
+    { "item": "minecraft:anvil" },
+    { "item": "minecraft:chipped_anvil" },
+    { "item": "minecraft:damaged_anvil" }
+  ],
+  "fluid": "forgeweave:molten_iron",
+  "amount": 4464
+}

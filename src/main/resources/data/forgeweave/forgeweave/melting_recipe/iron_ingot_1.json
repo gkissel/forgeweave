@@ -1,0 +1,10 @@
+{
+  "input": [
+    { "item": "minecraft:iron_shovel" },
+    { "item": "minecraft:shield" },
+    { "item": "minecraft:activator_rail" },
+    { "item": "minecraft:detector_rail" }
+  ],
+  "fluid": "forgeweave:molten_iron",
+  "amount": 144
+}
