@@ -1,11 +1,18 @@
 package dev.gkissel.forgeweave.item;
 
 import java.util.List;
+import java.util.stream.Stream;
 
 import net.minecraft.core.Holder;
+import net.minecraft.core.HolderSet;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
+import net.minecraft.tags.ItemTags;
+import net.minecraft.tags.TagKey;
+import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.CreativeModeTab;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 
 import net.neoforged.neoforge.registries.DeferredHolder;
@@ -115,14 +122,33 @@ public final class ForgeweaveCreativeTab {
      * {@code tabWorld} ({@code BlockOre:31}) -- see the class comment.
      */
     static void addGeneralItems(CreativeModeTab.ItemDisplayParameters parameters, CreativeModeTab.Output rawOutput) {
+        addGeneralItems(parameters, rawOutput, ForgeweaveClientConfig.LIST_ALL_TABLE_VARIANTS.get());
+    }
+
+    /**
+     * Takes {@code listAllTableVariants} as a parameter rather than reading it (issue #506) so the
+     * tests can drive both settings without standing up a {@code CLIENT}-type config spec -- the
+     * same split {@link #addPartItems} already uses for its part-material flag. Only the
+     * table-variant expansion reads it; every plain item here is listed regardless.
+     *
+     * <p>Public (unlike the overload above) so {@code ForgeweaveCreativeTabGameTests} can drive it
+     * from a real server's registry access -- {@link #addTableVariants} reads the live {@link
+     * BuiltInRegistries#ITEM} tag data, which only a running game (GameTest included) ever binds; a
+     * bare unit test's {@code Bootstrap.bootStrap()} never loads a datapack, so it cannot exercise
+     * the actual variant list, only the "tag absent" fallback the other tests already cover.
+     */
+    public static void addGeneralItems(CreativeModeTab.ItemDisplayParameters parameters, CreativeModeTab.Output rawOutput,
+            boolean listAllTableVariants) {
         CreativeModeTab.Output output = enabledOnly(rawOutput);
 
         output.accept(ForgeweaveItems.GUIDE_BOOK.get()); // the guide book leads the tab (issue #273)
-        output.accept(ForgeweaveItems.PART_BUILDER.get());
+        // #506 (T75): retextured per plank/log behind listAllTables, exactly like upstream's
+        // BlockToolTable#addBlocksFromOredict -- see ForgeweaveClientConfig#LIST_ALL_TABLE_VARIANTS.
+        addTableVariants(output, ForgeweaveItems.PART_BUILDER.get(), ItemTags.LOGS, listAllTableVariants);
         output.accept(ForgeweaveItems.TOOL_STATION.get());
         output.accept(ForgeweaveItems.TOOL_FORGE.get());
         output.accept(ForgeweaveItems.CRAFTING_STATION.get());
-        output.accept(ForgeweaveItems.STENCIL_TABLE.get());
+        addTableVariants(output, ForgeweaveItems.STENCIL_TABLE.get(), ItemTags.PLANKS, listAllTableVariants);
         output.accept(ForgeweaveItems.PATTERN_CHEST.get());
         output.accept(ForgeweaveItems.PART_CHEST.get());
 
@@ -374,6 +400,33 @@ public final class ForgeweaveCreativeTab {
 
         for (ForgeweaveFluids.MoltenMetal fluid : ForgeweaveFluids.all()) {
             output.accept(fluid.bucket().get());
+        }
+    }
+
+    /**
+     * Issue #506 (T75), upstream's {@code listAllTables}: lists {@code table} once per member of
+     * {@code textureSource} (plain, plus a {@link ForgeweaveDataComponents#TEXTURE} component set to
+     * that member's block), or just once plain if the tag has no members yet -- a unit-test
+     * environment never binds real item tags, so this also keeps {@code
+     * everyBlockItemAppearsInTheCreativeTab} green without needing tag fixtures. With {@code
+     * listAllTableVariants} off, only the tag's first member is shown (upstream's own "first found"
+     * wording, same rule {@code addPartItems} already applies to part materials).
+     */
+    private static void addTableVariants(CreativeModeTab.Output output, Item table, TagKey<Item> textureSource,
+            boolean listAllTableVariants) {
+        List<Holder<Item>> variants = BuiltInRegistries.ITEM.getTag(textureSource)
+                .map(HolderSet::stream).map(Stream::toList).orElse(List.of());
+        if (variants.isEmpty()) {
+            output.accept(new ItemStack(table));
+            return;
+        }
+        List<Holder<Item>> shown = listAllTableVariants ? variants : variants.subList(0, 1);
+        for (Holder<Item> variant : shown) {
+            ItemStack stack = new ItemStack(table);
+            if (variant.value() instanceof BlockItem blockItem) {
+                stack.set(ForgeweaveDataComponents.TEXTURE.get(), BuiltInRegistries.BLOCK.getKey(blockItem.getBlock()));
+            }
+            output.accept(stack);
         }
     }
 

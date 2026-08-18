@@ -15,6 +15,7 @@ import net.minecraft.nbt.Tag;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.Container;
+import net.minecraft.world.InteractionHand;
 import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
@@ -28,6 +29,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
 import net.neoforged.neoforge.items.IItemHandler;
+import net.neoforged.neoforge.items.ItemHandlerHelper;
 import net.neoforged.neoforge.items.wrapper.InvWrapper;
 
 import dev.gkissel.forgeweave.config.ForgeweaveConfig;
@@ -182,6 +184,30 @@ public class ChestBlockEntity extends BlockEntity implements StationMenuHost {
             }
         }
         return false;
+    }
+
+    /**
+     * Upstream {@code BlockToolTable#onBlockActivated} (parity audit T75, issue #506): right-clicking
+     * a chest with an item in hand inserts it directly instead of opening the GUI, as long as at
+     * least some of the stack fits -- upstream's own rule is "insert succeeds if the remainder is
+     * empty or smaller than what was held", i.e. even a partial insert counts. Returns whether
+     * anything moved, so {@link ChestBlock#useItemOn} can fall through to opening the GUI when
+     * nothing did (an empty hand, or a stack the chest's filter rejects outright).
+     */
+    public boolean insertHeldItem(Player player, InteractionHand hand) {
+        if (level == null || level.isClientSide) {
+            return false;
+        }
+        ItemStack held = player.getItemInHand(hand);
+        if (held.isEmpty()) {
+            return false;
+        }
+        ItemStack remainder = ItemHandlerHelper.insertItem(itemHandler, held, false);
+        if (remainder.getCount() == held.getCount()) {
+            return false;
+        }
+        player.setItemInHand(hand, remainder);
+        return true;
     }
 
     @Nullable
