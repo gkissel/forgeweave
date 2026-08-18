@@ -117,4 +117,20 @@ public class SearedFurnaceControllerBlock extends HorizontalDirectionalBlock imp
             furnace.updateStructure();
         }
     }
+
+    /**
+     * T73/issue #504: upstream {@code BlockSearedFurnaceController#randomDisplayTick} -- same flame
+     * and smoke puff as the smeltery core, a slightly different spread ({@link
+     * SmelteryControllerBlock#spawnFireParticles}).
+     */
+    @Override
+    public void animateTick(BlockState state, Level level, BlockPos pos, RandomSource random) {
+        if (!state.getValue(ACTIVE)) {
+            return;
+        }
+        double x = pos.getX() + 0.5;
+        double y = pos.getY() + 0.375 + random.nextFloat() * 8f / 16f;
+        double z = pos.getZ() + 0.5;
+        SmelteryControllerBlock.spawnFireParticles(level, state.getValue(FACING), x, y, z, 0.52, random.nextDouble() * 0.4 - 0.2);
+    }
 }

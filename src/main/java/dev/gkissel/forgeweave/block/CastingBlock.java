@@ -5,6 +5,7 @@ import javax.annotation.Nullable;
 import com.mojang.serialization.MapCodec;
 
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.InteractionHand;
@@ -140,5 +141,21 @@ public class CastingBlock extends Block implements EntityBlock {
     @Override
     protected int getAnalogOutputSignal(BlockState state, Level level, BlockPos pos) {
         return level.getBlockEntity(pos) instanceof CastingBlockEntity casting ? casting.comparatorStrength() : 0;
+    }
+
+    /**
+     * T73/issue #504: upstream {@code TileCasting#update}'s client-side branch -- while a pour is
+     * cooling, a ~10% per-tick chance ({@code rand.nextFloat() > 0.9f}) of one smoke puff above the
+     * block.
+     */
+    @Override
+    public void animateTick(BlockState state, Level level, BlockPos pos, RandomSource random) {
+        if (random.nextFloat() <= 0.9f
+                || !(level.getBlockEntity(pos) instanceof CastingBlockEntity casting)
+                || !casting.isCooling()) {
+            return;
+        }
+        level.addParticle(ParticleTypes.SMOKE, pos.getX() + random.nextDouble(), pos.getY() + 1.1,
+                pos.getZ() + random.nextDouble(), 0.0, 0.0, 0.0);
     }
 }
