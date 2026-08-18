@@ -176,6 +176,11 @@ public final class ForgeweaveCreativeTab {
         output.accept(ForgeweaveItems.SLIMY_MUD_GREEN.get());
         output.accept(ForgeweaveItems.SLIMY_MUD_MAGMA.get());
 
+        // #429 -- graveyard and consecrated soil, next to the other BlockSoil states; upstream puts
+        // every soil type in the same tabGeneral (BlockSoil#getSubBlocks).
+        output.accept(ForgeweaveItems.GRAVEYARD_SOIL.get());
+        output.accept(ForgeweaveItems.CONSECRATED_SOIL.get());
+
         // #107 batch: modifier reagent items (docs/SCOPE.md M2 issue #107).
         output.accept(ForgeweaveItems.MOSS.get());
         output.accept(ForgeweaveItems.MENDING_MOSS.get());
@@ -183,6 +188,9 @@ public final class ForgeweaveCreativeTab {
         output.accept(ForgeweaveItems.SILKY_CLOTH.get());
         output.accept(ForgeweaveItems.SILKY_JEWEL.get());
         output.accept(ForgeweaveItems.EXTRA_MODIFIER.get());
+        // #429 -- necrotic bone, a modifier reagent like the six above (upstream groups it with them
+        // as a "materials" meta item in the same tabGeneral).
+        output.accept(ForgeweaveItems.NECROTIC_BONE.get());
         output.accept(ForgeweaveItems.SEARED_STONE.get());
         output.accept(ForgeweaveItems.SEARED_COBBLESTONE.get());
         output.accept(ForgeweaveItems.SEARED_PAVER.get());

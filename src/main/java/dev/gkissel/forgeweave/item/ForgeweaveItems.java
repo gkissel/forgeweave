@@ -405,6 +405,14 @@ public final class ForgeweaveItems {
     public static final DeferredItem<BlockItem> SLIMY_MUD_MAGMA =
             ITEMS.registerSimpleBlockItem("slimy_mud_magma", ForgeweaveBlocks.SLIMY_MUD_MAGMA);
 
+    // #429 -- graveyard soil and consecrated soil, two more placeable BlockSoil states (NOTICE.md).
+    // Graveyard soil is crafted at a table and furnace-smelts into consecrated soil, which is
+    // smite's upstream reagent (modifier_recipe/smite.json).
+    public static final DeferredItem<BlockItem> GRAVEYARD_SOIL =
+            ITEMS.registerSimpleBlockItem("graveyard_soil", ForgeweaveBlocks.GRAVEYARD_SOIL);
+    public static final DeferredItem<BlockItem> CONSECRATED_SOIL =
+            ITEMS.registerSimpleBlockItem("consecrated_soil", ForgeweaveBlocks.CONSECRATED_SOIL);
+
     // Seared brick (docs/SCOPE.md M2 issue #93): upstream 1.12's plain crafting-material item
     // (TinkerCommons#searedBrick, "materials" item meta 0, NOTICE.md) -- produced by furnace-smelting
     // grout, and itself crafted 2x2 into the Seared Bricks block below.
@@ -478,6 +486,11 @@ public final class ForgeweaveItems {
     public static final DeferredItem<Item> SILKY_CLOTH = ITEMS.registerSimpleItem("silky_cloth");
     public static final DeferredItem<Item> SILKY_JEWEL = ITEMS.registerSimpleItem("silky_jewel");
     public static final DeferredItem<Item> EXTRA_MODIFIER = ITEMS.registerSimpleItem("extra_modifier");
+
+    // #429 -- the necrotic bone, upstream's own necrotic reagent (TinkerCommons#matNecroticBone,
+    // "materials" meta 17). It has no recipe upstream and none here: wither skeletons drop it
+    // (data/forgeweave/loot_modifiers/necrotic_bone.json).
+    public static final DeferredItem<Item> NECROTIC_BONE = ITEMS.registerSimpleItem("necrotic_bone");
 
     // #100 -- casting (docs/SCOPE.md M2 issue #100). The two casting blocks and the faucet, plus the
     // seven casts. Upstream 1.12 ships one `cast` item whose NBT names the part it was moulded around

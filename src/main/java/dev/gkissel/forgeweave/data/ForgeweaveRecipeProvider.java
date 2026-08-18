@@ -351,6 +351,23 @@ public class ForgeweaveRecipeProvider extends RecipeProvider {
                 .requires(Items.GOLD_BLOCK)
                 .unlockedBy("has_nether_star", has(Items.NETHER_STAR))
                 .save(recipeOutput);
+
+        // #429 -- smite's own upstream reagent, which had been standing in as glowstone dust.
+        // Graveyard soil (upstream common/soil/graveyard_soil.json: dirt + rotten flesh + bone meal
+        // -- upstream writes the last as `minecraft:dye` data 15 -- shapeless, yields one), then the
+        // furnace smelt into consecrated soil (TinkerCommons#registerSmeltingRecipes, 0.1 xp).
+        // Necrotic bone has no recipe in either: wither skeletons drop it.
+        ShapelessRecipeBuilder.shapeless(RecipeCategory.MISC, ForgeweaveItems.GRAVEYARD_SOIL.get())
+                .requires(Items.DIRT)
+                .requires(Items.ROTTEN_FLESH)
+                .requires(Items.BONE_MEAL)
+                .unlockedBy("has_rotten_flesh", has(Items.ROTTEN_FLESH))
+                .save(recipeOutput);
+
+        SimpleCookingRecipeBuilder.smelting(Ingredient.of(ForgeweaveItems.GRAVEYARD_SOIL.get()), RecipeCategory.MISC,
+                        ForgeweaveItems.CONSECRATED_SOIL.get(), 0.1F, 200)
+                .unlockedBy("has_graveyard_soil", has(ForgeweaveItems.GRAVEYARD_SOIL.get()))
+                .save(recipeOutput);
     }
 
     /**

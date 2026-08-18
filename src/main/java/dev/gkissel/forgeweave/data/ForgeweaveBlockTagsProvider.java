@@ -54,7 +54,10 @@ public class ForgeweaveBlockTagsProvider extends BlockTagsProvider {
         tag(BlockTags.MINEABLE_WITH_SHOVEL)
                 .add(ForgeweaveBlocks.GROUT.get())
                 .add(ForgeweaveBlocks.SLIMY_MUD_GREEN.get())
-                .add(ForgeweaveBlocks.SLIMY_MUD_MAGMA.get());
+                .add(ForgeweaveBlocks.SLIMY_MUD_MAGMA.get())
+                // #429 -- the two remaining BlockSoil states, same setHarvestLevel("shovel", -1).
+                .add(ForgeweaveBlocks.GRAVEYARD_SOIL.get())
+                .add(ForgeweaveBlocks.CONSECRATED_SOIL.get());
 
         // #206 -- the block-side counterpart of ForgeweaveItemTagsProvider's c:storage_blocks/*
         // additions (same reasoning: NeoForge's own storage_blocks tag only unions the metals it

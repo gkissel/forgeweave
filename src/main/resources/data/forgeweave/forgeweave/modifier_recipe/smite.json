@@ -1,7 +1,7 @@
 {
   "modifier": "forgeweave:smite",
   "reagent": {
-    "item": "minecraft:glowstone_dust"
+    "item": "forgeweave:consecrated_soil"
   },
   "cost": 1,
   "max_level": 120

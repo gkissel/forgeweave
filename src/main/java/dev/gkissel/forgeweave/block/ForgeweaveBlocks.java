@@ -95,6 +95,15 @@ public final class ForgeweaveBlocks {
     public static final DeferredBlock<Block> SLIMY_MUD_MAGMA =
             BLOCKS.registerSimpleBlock("slimy_mud_magma", soilProperties(MapColor.COLOR_ORANGE));
 
+    // #429 -- graveyard soil and consecrated soil, the last two BlockSoil states Forgeweave was
+    // missing (SoilTypes.GRAVEYARD / CONSECRATED, NOTICE.md). Same soilProperties() as grout and
+    // the muds above; unlike them they carry upstream's onEntityWalk behavior, see UndeadSoilBlock.
+    // Smelting graveyard soil gives consecrated soil, which is smite's upstream reagent.
+    public static final DeferredBlock<UndeadSoilBlock> GRAVEYARD_SOIL = BLOCKS.register("graveyard_soil",
+            () -> new UndeadSoilBlock(soilProperties(MapColor.TERRACOTTA_BROWN), false));
+    public static final DeferredBlock<UndeadSoilBlock> CONSECRATED_SOIL = BLOCKS.register("consecrated_soil",
+            () -> new UndeadSoilBlock(soilProperties(MapColor.DIRT), true));
+
     // The seared brick block family (docs/SCOPE.md M2 issue #93): the 12 variants of upstream
     // 1.12's BlockSeared (BlockSeared.SearedType, NOTICE.md), each split into its own plain block
     // rather than upstream's single PropertyEnum blockstate -- Forgeweave has no smeltery-structure
@@ -326,7 +335,7 @@ public final class ForgeweaveBlocks {
         return block;
     }
 
-    /** Upstream 1.12 {@code BlockSoil}'s block properties, shared by grout and the slimy muds. */
+    /** Upstream 1.12 {@code BlockSoil}'s block properties, shared by grout, the slimy muds and the two soils. */
     private static BlockBehaviour.Properties soilProperties(MapColor color) {
         return BlockBehaviour.Properties.of()
                 .mapColor(color)

@@ -795,9 +795,9 @@ public final class ForgeweaveModifiers {
      * Consecrated soil. Upstream {@code ModAntiMonsterType("smite", ..., 5, 24, UNDEAD)}: bonus damage
      * against undead, +7 per level, 5 levels, via {@link BonusDamageVsSeam} keyed on 1.21's own
      * {@code sensitive_to_smite} tag (what vanilla's own Smite enchantment keys off, in place of
-     * upstream's {@code EnumCreatureAttribute}). Upstream's consecrated soil reagent has no Forgeweave
-     * counterpart (M3 has no world-content milestone yet); substituted with glowstone dust -- a
-     * maintainer-pick deviation recorded in the PR, same idiom as issue #107's slime-crystal reagents.
+     * upstream's {@code EnumCreatureAttribute}). The reagent is upstream's own consecrated soil
+     * (issue #429): the glowstone-dust stand-in #162 shipped is gone, and
+     * {@code ForgeweaveBlocks#CONSECRATED_SOIL} is what {@code modifier_recipe/smite.json} names.
      */
     public static final Modifier SMITE = new Modifier() {
         @Override
@@ -867,12 +867,13 @@ public final class ForgeweaveModifiers {
     }
 
     /**
-     * Wither skeleton skull. Upstream {@code ModNecrotic}: heals the attacker for a fraction of the
+     * Necrotic bone. Upstream {@code ModNecrotic}: heals the attacker for a fraction of the
      * damage dealt ({@link LifestealOnHitSeam}), 10% per level, 10 levels, one item per level
      * ({@code unitsPerLevel} left at its default of 1, upstream's {@code LevelAspect} rather than a
-     * {@code MultiAspect}). Upstream's reagent ({@code boneWithered}, a Tinkers-only crafting item with
-     * no drop source) has no Forgeweave counterpart; substituted with the vanilla wither skeleton skull
-     * -- a maintainer-pick deviation recorded in the PR, same idiom as smite's.
+     * {@code MultiAspect}). The reagent is upstream's own necrotic bone (issue #429): the wither
+     * skeleton skull #162 stood in with is gone, and {@code ForgeweaveItems#NECROTIC_BONE} -- dropped
+     * by wither skeletons via {@code data/forgeweave/loot_modifiers/necrotic_bone.json}, upstream's
+     * {@code ToolEvents#onLootTableLoad} -- is what {@code modifier_recipe/necrotic.json} names.
      */
     public static final Modifier NECROTIC = new Modifier() {
         @Override

@@ -1,0 +1,57 @@
+{
+    decoder: "item_stack",
+    expect: {
+        components: {
+            "forgeweave:modifiers": [
+                {
+                    id: "forgeweave:smite",
+                    level: 48
+                },
+                {
+                    id: "forgeweave:necrotic",
+                    level: 3
+                }
+            ],
+            "forgeweave:tool_materials": {
+                binding: "forgeweave:iron",
+                handle: "forgeweave:wood",
+                head: "forgeweave:iron"
+            },
+            "minecraft:damage": 4,
+            "minecraft:max_damage": 261
+        },
+        id: "forgeweave:broadsword"
+    },
+    nbt: {
+        components: {
+            "forgeweave:modifiers": [
+                {
+                    id: "forgeweave:smite",
+                    level: 48
+                },
+                {
+                    id: "forgeweave:necrotic",
+                    level: 3
+                }
+            ],
+            "forgeweave:tool_materials": {
+                binding: "forgeweave:iron",
+                handle: "forgeweave:wood",
+                head: "forgeweave:iron"
+            },
+            "forgeweave:tool_stats": {
+                attack_damage: 5.75f,
+                durability: 261,
+                mining_speed: 6.0f
+            },
+            "forgeweave:traits": [
+                "forgeweave:ecological"
+            ],
+            "minecraft:damage": 4,
+            "minecraft:max_damage": 261
+        },
+        count: 1,
+        id: "forgeweave:broadsword"
+    },
+    what: "M3.5 (#429): a broadsword modified before #429 swapped smite's and necrotic's reagents -- two full smite levels (48 units of what was then glowstone dust) and three necrotic (three wither skeleton skulls). The reagent items are not serialized, only the modifier ids and their accumulated levels are, so an existing tool has to keep both modifiers at exactly these levels now that consecrated soil and the necrotic bone are what the station accepts."
+}

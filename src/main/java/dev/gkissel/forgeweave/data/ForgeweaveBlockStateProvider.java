@@ -76,6 +76,11 @@ public class ForgeweaveBlockStateProvider extends BlockStateProvider {
         cubeAllBlock("slimy_mud_green", ForgeweaveBlocks.SLIMY_MUD_GREEN.get());
         cubeAllBlock("slimy_mud_magma", ForgeweaveBlocks.SLIMY_MUD_MAGMA.get());
 
+        // #429 -- graveyard and consecrated soil, same plain cube_all geometry, one derived texture
+        // each (NOTICE.md). Their onEntityWalk behavior is code-side only, nothing model-visible.
+        cubeAllBlock("graveyard_soil", ForgeweaveBlocks.GRAVEYARD_SOIL.get());
+        cubeAllBlock("consecrated_soil", ForgeweaveBlocks.CONSECRATED_SOIL.get());
+
         // The seared brick block family (docs/SCOPE.md M2 issue #93): plain cube_all blocks, one
         // derived texture per variant (NOTICE.md) -- unlike the tables above, these have no custom
         // geometry, so simpleBlockWithItem covers both the blockstate and the block-item model.
