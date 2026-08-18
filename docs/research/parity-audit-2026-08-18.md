@@ -145,7 +145,7 @@ Every 1.12 tool-material trait is ported (44 ids across 34 materials, with head-
 | unnatural | `TraitUnnatural:21-30` | n/a | `:1068-1102` tier ladder | have | Y (PR #242) | none | — |
 | dense | `TraitDense:18-30` | n/a | `:1111-1122` | have | — | none | — |
 | writable / writable2 | `TraitWritable:16-22` | n/a | `:1134-1152` | have | Y (#344/#367) | none | — |
-| squeaky | `TraitSqueaky:21-50` (sound + compat refusals) | n/a | silk touch + zero damage only | partial | Y (PR #242) | low | T64 |
+| squeaky | `TraitSqueaky:21-50` (sound + compat refusals) | n/a | silk touch + zero damage + `SLIME_SQUISH` hit-sound stand-in + luck/silky/fortune/looting refusal | have | Y (PR #242, #454, #495) | none | — |
 | autosmelt | `TraitAutosmelt:41-81` (XP, particles, gate, exclusions) | n/a | `ForgeweaveModifiers#smelt` (XP, particles, gate, exclusions since #458) | have | Y (#458) | none | — |
 | prickly | `TraitPrickly:20-37` + HEART_CACTUS | n/a | `GaussianArmorPiercingHit`, no particle | have | — | low | T51 |
 | spiky | `TraitSpiky:26-57` (both hands, shield block) | n/a | `ThornsReflectSeam`, main hand only | partial | Y (partial, PR #243) | low | T29 |
@@ -679,7 +679,7 @@ Prioritized and deduplicated across domains. Already-filed issues are marked; **
 - [ ] **T61 — Cobalt/ardite/manyullyn/rose gold blocks missing from `crafting_items`** — add value-18 rows (moot if T3 makes metals cast-only) (materials, low).
 - [ ] **T62 — Split `cheap` into upstream's cheap (general) + cheapskate (head)** so a stone-head tool stops getting the repair bonus (traits, low).
 - [x] **T63 — Established block-break XP** (shipped, issue #494) — a flat 33% roll of +1 block-break XP via `BlockDropsEvent`, riding the same seam `ForgeweaveModifiers#onBlockDrops` already uses for Searing/Magnetic Pull/Resonant/autosmelt (issue #108). Corrects the ticket's own "33%/3%" framing and this doc's earlier claim (row above) that NeoForge's block-break event has no XP field: `BlockEvent.BreakEvent` doesn't, but `BlockDropsEvent` does, and upstream's own roll (`r < 0.33f || (expToDrop == 0 && r < 0.03f)`) is a flat 33% regardless of xp once you notice 0.03 &lt; 0.33 makes the second clause dead (traits, low).
-- [ ] **T64 — Squeaky: hit sound stand-in and luck/silky refusal** (traits, low; refusal folds into T23).
+- [x] **T64 — Squeaky: hit sound stand-in** (shipped, issue #495) — `SQUEAKY#afterHit` now plays a vanilla stand-in (`SLIME_SQUISH`, matching upstream `TraitSqueaky#afterHit`'s own volume 1.0 / pitch `0.8 + 0.4 * random` spread) instead of upstream's uncredited `toy_squeak.ogg`, the same "vanilla cue" treatment T-row `shocking` (issue #415) already established for a missing sound asset. Corrects this row's own framing: the luck/silky refusal half was already shipped on master before this PR (T23, issue #454, `ModifierCompatibility`) — this ticket's scope note said as much ("refusal folds into T23") but the row's Forgeweave column still read "silk touch + zero damage only", stale since #454 (traits, low).
 - [ ] **T65 — Hatchet: +0.5 flat attack and free full-speed leaf digging** (tools, low, M3 playtest-fix).
 - [ ] **T66 — Mattock: repair with either head and per-family tier** (tools, low, M3 playtest-fix).
 - [ ] **T67 — Cleaver should swallow right-click** (no off-hand use) (tools, low, backlog).
