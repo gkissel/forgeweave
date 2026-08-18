@@ -347,6 +347,11 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         addItem(ForgeweaveItems.EXTRA_MODIFIER, "Extra Modifier");
         addItem(ForgeweaveItems.NECROTIC_BONE, "Necrotic Bone"); // #429
 
+        // #438 -- the two expanders, names ported from upstream 1.12's
+        // item.materials.expander_w.name / item.materials.expander_h.name (NOTICE.md).
+        addItem(ForgeweaveItems.EXPANDER_W, "Expander (Horizontal)");
+        addItem(ForgeweaveItems.EXPANDER_H, "Expander (Vertical)");
+
         // Shown on a tool that ran out of durability (CONTEXT.md: Broken -- unusable, never destroyed).
         add("tooltip.forgeweave.broken", "Broken");
 
@@ -838,6 +843,16 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("modifier.forgeweave.emerald.description", "Adds 50% durability and raises the tool's tier.");
 
         // #223 -- wind burst. Breeze rod, one per level, up to vanilla's own Wind Burst III cap.
+        // #438 -- Width++ / Height++, descriptions ported from upstream's modifier.harvestwidth.desc
+        // and modifier.harvestheight.desc ("Increases the width/height of the area affected by your
+        // tool. The effect is tool specific.").
+        add("modifier.forgeweave.harvest_width.name", "Width++");
+        add("modifier.forgeweave.harvest_width.description",
+                "Increases the width of the area your tool affects. The effect is tool specific.");
+        add("modifier.forgeweave.harvest_height.name", "Height++");
+        add("modifier.forgeweave.harvest_height.description",
+                "Increases the height of the area your tool affects. The effect is tool specific.");
+
         add("modifier.forgeweave.wind_burst.name", "Wind Burst");
         add("modifier.forgeweave.wind_burst.description",
                 "Grants Wind Burst on the warmace. Each breeze rod raises it another level, up to III.");

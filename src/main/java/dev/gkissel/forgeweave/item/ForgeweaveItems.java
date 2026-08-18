@@ -198,14 +198,23 @@ public final class ForgeweaveItems {
     // that class adds Category.WEAPON -- only Hatchet does, and it halves what a hit costs the tool
     // (ToolCore#reduceDurabilityOnHit, see ToolItem#postHurtEnemy).
     // stacksTo(1) like every other Forgeweave equipment item.
+    //
+    // AoeHarvest.Shape.SINGLE, not NONE (issue #438): upstream's Pickaxe/Shovel/Hatchet all extend
+    // AoeToolCore, whose own getAOEBlocks is calcAOEBlocks(..., 1, 1, 1) -- one block, i.e. no extra
+    // blocks at all until a Width++/Height++ expander widens that box. SINGLE is that 1x1x1 base, and
+    // it is also what makes these Category.AOE tools, the ones upstream's aoeOnly aspect lets the
+    // expanders onto.
     public static final DeferredItem<ToolItem> TOOL_PICKAXE = ITEMS.registerItem("pickaxe",
-            properties -> new ToolItem(properties, BlockTags.MINEABLE_WITH_PICKAXE, 1.2f, 1.0f, false),
+            properties -> new ToolItem(properties, List.of(BlockTags.MINEABLE_WITH_PICKAXE), 1.2f, 1.0f, 1.0f,
+                    false, null, AoeHarvest.Shape.SINGLE),
             new Item.Properties().stacksTo(1));
     public static final DeferredItem<ToolItem> TOOL_SHOVEL = ITEMS.registerItem("shovel",
-            properties -> new ToolItem(properties, BlockTags.MINEABLE_WITH_SHOVEL, 1.0f, 0.9f, false),
+            properties -> new ToolItem(properties, List.of(BlockTags.MINEABLE_WITH_SHOVEL), 1.0f, 0.9f, 1.0f,
+                    false, null, AoeHarvest.Shape.SINGLE),
             new Item.Properties().stacksTo(1));
     public static final DeferredItem<ToolItem> TOOL_HATCHET = ITEMS.registerItem("hatchet",
-            properties -> new ToolItem(properties, BlockTags.MINEABLE_WITH_AXE, 1.1f, 1.1f, true),
+            properties -> new ToolItem(properties, List.of(BlockTags.MINEABLE_WITH_AXE), 1.1f, 1.1f, 1.0f,
+                    true, null, AoeHarvest.Shape.SINGLE),
             new Item.Properties().stacksTo(1));
 
     // M3 station tools (docs/SCOPE.md issue #156): mattock (axe+shovel dual tool, tills soil) and
@@ -491,6 +500,12 @@ public final class ForgeweaveItems {
     // "materials" meta 17). It has no recipe upstream and none here: wither skeletons drop it
     // (data/forgeweave/loot_modifiers/necrotic_bone.json).
     public static final DeferredItem<Item> NECROTIC_BONE = ITEMS.registerSimpleItem("necrotic_bone");
+    // #438 -- the Width++/Height++ reagents (upstream TinkerCommons' matExpanderW/matExpanderH,
+    // materials sheet meta 12 and 13). Registry paths kept as upstream's own, which carry no
+    // avoided-vocabulary problem; the player-facing names are "Expander (Horizontal)"/"(Vertical)",
+    // upstream's own item.materials.expander_*.name.
+    public static final DeferredItem<Item> EXPANDER_W = ITEMS.registerSimpleItem("expander_w");
+    public static final DeferredItem<Item> EXPANDER_H = ITEMS.registerSimpleItem("expander_h");
 
     // #100 -- casting (docs/SCOPE.md M2 issue #100). The two casting blocks and the faucet, plus the
     // seven casts. Upstream 1.12 ships one `cast` item whose NBT names the part it was moulded around

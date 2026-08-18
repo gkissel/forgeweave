@@ -191,6 +191,9 @@ public final class ForgeweaveCreativeTab {
         // #429 -- necrotic bone, a modifier reagent like the six above (upstream groups it with them
         // as a "materials" meta item in the same tabGeneral).
         output.accept(ForgeweaveItems.NECROTIC_BONE.get());
+        // #438 -- the Width++/Height++ reagents, alongside the rest of the modifier reagents.
+        output.accept(ForgeweaveItems.EXPANDER_W.get());
+        output.accept(ForgeweaveItems.EXPANDER_H.get());
         output.accept(ForgeweaveItems.SEARED_STONE.get());
         output.accept(ForgeweaveItems.SEARED_COBBLESTONE.get());
         output.accept(ForgeweaveItems.SEARED_PAVER.get());

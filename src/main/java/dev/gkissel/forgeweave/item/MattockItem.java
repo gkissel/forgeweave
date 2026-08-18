@@ -17,6 +17,7 @@ import net.neoforged.neoforge.common.ItemAbilities;
 import net.neoforged.neoforge.common.ItemAbility;
 
 import dev.gkissel.forgeweave.combat.ForgeweaveInnates;
+import dev.gkissel.forgeweave.tool.AoeHarvest;
 import dev.gkissel.forgeweave.tool.ToolConstants;
 
 /**
@@ -38,7 +39,7 @@ public class MattockItem extends ToolItem {
     public MattockItem(Properties properties) {
         super(properties, ToolConstants.MATTOCK,
                 List.of(BlockTags.MINEABLE_WITH_AXE, BlockTags.MINEABLE_WITH_SHOVEL),
-                false, ForgeweaveInnates.HEFT);
+                false, ForgeweaveInnates.HEFT, AoeHarvest.Shape.MATTOCK);
     }
 
     /** Tills soil like a hoe (see the class javadoc); a Broken mattock refuses like every other action. */

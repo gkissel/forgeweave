@@ -231,6 +231,14 @@ public final class ModifierApplication {
         if (tool.getItem() instanceof BowItem && !modifier.appliesToLaunchers()) {
             return Optional.of(Component.translatable("gui.forgeweave.modifier.unsupported_tool", name(recipe.modifier())));
         }
+        // Issue #438: upstream's ModifierAspect.aoeOnly, the Category.AOE gate the two expanders carry
+        // -- every AoeToolCore subclass passes it and nothing else does. Stated here as "the tool has
+        // an area this modifier could widen" so a shape with no width/height axis (the Forgeweave-only
+        // vein hammer) is refused rather than silently doing nothing.
+        if (modifier.aoeExpansion(1).isPresent()
+                && !(tool.getItem() instanceof ToolItem toolItem && toolItem.aoeShape().expandable())) {
+            return Optional.of(Component.translatable("gui.forgeweave.modifier.unsupported_tool", name(recipe.modifier())));
+        }
         // The level passed here only decides whether a grant exists at all (every shipped grant is
         // present from level 1 on), not what level it would be -- that's resolved again, for real,
         // once the application actually lands (grantEnchantments).

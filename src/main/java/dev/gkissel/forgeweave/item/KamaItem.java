@@ -16,6 +16,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.neoforge.common.IShearable;
 
 import dev.gkissel.forgeweave.combat.ForgeweaveInnates;
+import dev.gkissel.forgeweave.tool.AoeHarvest;
 import dev.gkissel.forgeweave.tool.CropHarvest;
 import dev.gkissel.forgeweave.tool.ToolConstants;
 
@@ -43,7 +44,8 @@ import dev.gkissel.forgeweave.tool.ToolConstants;
 public class KamaItem extends ToolItem {
 
     public KamaItem(Properties properties) {
-        super(properties, ToolConstants.KAMA, BlockTags.MINEABLE_WITH_HOE, true, ForgeweaveInnates.REAP);
+        super(properties, ToolConstants.KAMA, BlockTags.MINEABLE_WITH_HOE, true, ForgeweaveInnates.REAP,
+                AoeHarvest.Shape.SINGLE);
     }
 
     /** Shears {@link IShearable} entities (sheep, mooshroom, snow golem, ...); see the class javadoc. */

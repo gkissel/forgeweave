@@ -368,6 +368,31 @@ public class ForgeweaveRecipeProvider extends RecipeProvider {
                         ForgeweaveItems.CONSECRATED_SOIL.get(), 0.1F, 200)
                 .unlockedBy("has_graveyard_soil", has(ForgeweaveItems.GRAVEYARD_SOIL.get()))
                 .save(recipeOutput);
+
+        // The two expanders (issue #438), upstream expander_w.json / expander_h.json: two pistons and
+        // two lapis in a plus around one purple slime ball, with the pistons on the axis the expander
+        // widens -- horizontally for Width++, vertically for Height++. Deviation, same narrowing the
+        // moss/reinforced-plate recipes above already make: upstream's centre is `tconstruct:edible`
+        // meta 2, its purple slime ball, and Forgeweave ships no slime tiers, so the centre is the
+        // vanilla slime ball.
+        ShapedRecipeBuilder.shaped(RecipeCategory.MISC, ForgeweaveItems.EXPANDER_W.get())
+                .pattern(" A ")
+                .pattern("BCB")
+                .pattern(" A ")
+                .define('A', Items.LAPIS_LAZULI)
+                .define('B', Blocks.PISTON)
+                .define('C', Items.SLIME_BALL)
+                .unlockedBy("has_piston", has(Blocks.PISTON))
+                .save(recipeOutput);
+        ShapedRecipeBuilder.shaped(RecipeCategory.MISC, ForgeweaveItems.EXPANDER_H.get())
+                .pattern(" B ")
+                .pattern("ACA")
+                .pattern(" B ")
+                .define('A', Items.LAPIS_LAZULI)
+                .define('B', Blocks.PISTON)
+                .define('C', Items.SLIME_BALL)
+                .unlockedBy("has_piston", has(Blocks.PISTON))
+                .save(recipeOutput);
     }
 
     /**

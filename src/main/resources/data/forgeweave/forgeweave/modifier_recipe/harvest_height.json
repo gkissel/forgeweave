@@ -1,0 +1,8 @@
+{
+  "modifier": "forgeweave:harvest_height",
+  "reagent": {
+    "item": "forgeweave:expander_h"
+  },
+  "cost": 1,
+  "max_level": 1
+}
