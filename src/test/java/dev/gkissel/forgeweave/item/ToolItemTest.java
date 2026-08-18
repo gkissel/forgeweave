@@ -24,6 +24,7 @@ import net.minecraft.world.level.block.state.BlockState;
 
 import dev.gkissel.forgeweave.modifier.ModifierEntry;
 import dev.gkissel.forgeweave.tool.ToolStats;
+import dev.gkissel.forgeweave.trait.ShockingCharge;
 
 /**
  * Pins {@link ToolItem#attackDurabilityCost} against upstream 1.12's
@@ -238,5 +239,104 @@ class ToolItemTest {
         ItemStack underCutoff = assembledPickaxe();
         assertEquals(3.0F, ForgeweaveItems.TOOL_PICKAXE.get().attackDamage(underCutoff), 1.0e-4F,
                 "below the cutoff, attack damage must be unaffected");
+    }
+
+    // ----------------------------------------------------------- #414: re-equip / block-break reset
+
+    /**
+     * Upstream 1.12's {@code ToolCore#shouldCauseReequipAnimation} (tinkers-1.12
+     * {@code library/tools/ToolCore.java}:583-620, pinned commit in NOTICE.md) deliberately does
+     * <em>not</em> re-equip on every NBT change: it re-equips only on a slot change, a glint
+     * ({@code hasEffect}) change, a MAINHAND attribute-modifier change, or a change in the tool's
+     * identity -- materials, modifiers and base stats, via {@code isEqualTinkersItem}:655. Everything
+     * else in the tag is ignored, and {@code shouldCauseBlockBreakReset}:577 delegates to the same
+     * answer. NeoForge's default is vanilla's "any component differs", which makes a tool carrying a
+     * per-tick trait component bob and reset mining progress continuously --
+     * {@code ForgeweaveTraits#SHOCKING} rewrites {@code SHOCKING_CHARGE} every 5 ticks while the
+     * holder is moving.
+     */
+    @Test
+    void perTickTraitComponentChurnDoesNotReequip() {
+        ItemStack before = assembledPickaxe();
+        ItemStack after = before.copy();
+        after.set(ForgeweaveDataComponents.SHOCKING_CHARGE.get(), new ShockingCharge(37.5F, 1.0, 2.0, 3.0));
+
+        assertFalse(ToolItem.shouldReequip(before, after, false),
+                "a shocking-charge tick must not re-equip the tool");
+        assertFalse(ForgeweaveItems.TOOL_PICKAXE.get().shouldCauseReequipAnimation(before, after, false));
+        assertFalse(ForgeweaveItems.TOOL_PICKAXE.get().shouldCauseBlockBreakReset(before, after),
+                "a shocking-charge tick must not reset mining progress");
+    }
+
+    /** The same for the other churn a held tool sees: durability ticking down, mending moss XP. */
+    @Test
+    void durabilityAndMossXpChurnDoesNotReequip() {
+        ItemStack before = assembledPickaxe();
+        ItemStack after = before.copy();
+        after.set(DataComponents.DAMAGE, 12);
+        after.set(ForgeweaveDataComponents.MENDING_MOSS_XP.get(), 44);
+
+        assertFalse(ToolItem.shouldReequip(before, after, false));
+    }
+
+    /** Identity: the very same stack object is never a re-equip, whatever it carries. */
+    @Test
+    void theSameStackNeverReequips() {
+        ItemStack stack = assembledPickaxe();
+        assertFalse(ToolItem.shouldReequip(stack, stack, false));
+    }
+
+    @Test
+    void slotChangeAlwaysReequips() {
+        ItemStack stack = assembledPickaxe();
+        assertTrue(ToolItem.shouldReequip(stack, stack.copy(), true));
+    }
+
+    @Test
+    void aDifferentItemReequips() {
+        assertTrue(ToolItem.shouldReequip(assembledPickaxe(),
+                new ItemStack(ForgeweaveItems.TOOL_SHOVEL.get()), false));
+    }
+
+    /**
+     * The glint seam is {@link ToolItem#isFoil} plus vanilla's {@code enchantment_glint_override},
+     * which {@code ForgeweaveTraits#SHOCKING} flips on at full charge and off on discharge --
+     * upstream compares {@code hasEffect()} for exactly this.
+     */
+    @Test
+    void glintChangeReequips() {
+        ItemStack before = assembledPickaxe();
+        ItemStack after = before.copy();
+        after.set(DataComponents.ENCHANTMENT_GLINT_OVERRIDE, true);
+
+        assertTrue(ToolItem.shouldReequip(before, after, false));
+        assertTrue(ToolItem.shouldReequip(after, before, false));
+    }
+
+    /**
+     * A modifier that grants an attribute is caught by the attribute comparison; one that grants none
+     * ({@code diamond}) is caught only by the modifier-list comparison, which is upstream's
+     * {@code isEqualTinkersItem} modifier check.
+     */
+    @Test
+    void modifierChangeReequips() {
+        ItemStack before = assembledPickaxe();
+        assertTrue(ToolItem.shouldReequip(before, withModifier(before, "far_reach"), false),
+                "a modifier that grants an attribute must re-equip");
+        assertTrue(ToolItem.shouldReequip(before, withModifier(before, "diamond"), false),
+                "a modifier that grants no attribute still changes the tool's identity");
+    }
+
+    /** Re-assembly with different base stats, and breaking, are both new tools. */
+    @Test
+    void statAndBreakageChangesReequip() {
+        ItemStack before = assembledPickaxe();
+
+        ItemStack restatted = before.copy();
+        restatted.set(ForgeweaveDataComponents.TOOL_STATS.get(), new ToolStats.Stats(160, 4.0F, 9.0F));
+        assertTrue(ToolItem.shouldReequip(before, restatted, false));
+
+        assertTrue(ToolItem.shouldReequip(before, brokenPickaxe(), false),
+                "breaking swaps the model and drops every attribute modifier");
     }
 }
