@@ -2,6 +2,8 @@ package dev.gkissel.forgeweave.combat;
 
 import net.minecraft.world.entity.LivingEntity;
 
+import dev.gkissel.forgeweave.particle.ForgeweaveParticles;
+
 /**
  * A landed hit is followed by a small randomly-sized secondary hit that skips armor entirely --
  * prickly, cactus's head trait (issue #229), ported from upstream 1.12's
@@ -38,6 +40,9 @@ public final class GaussianArmorPiercingHit implements CombatSeam {
             return;
         }
         target.invulnerableTime = 0;
-        target.hurt(ForgeweaveInnates.armorBypassing(hit.level(), hit.attacker()), damage);
+        if (target.hurt(ForgeweaveInnates.armorBypassing(hit.level(), hit.attacker()), damage)) {
+            // #482 -- upstream gates its single cactus heart on the same secondary hit landing.
+            ForgeweaveParticles.spawnHearts(ForgeweaveParticles.HEART_CACTUS.get(), hit.level(), target, 1);
+        }
     }
 }

@@ -51,6 +51,7 @@ import dev.gkissel.forgeweave.menu.RenameStationItemPayload;
 import dev.gkissel.forgeweave.modifier.EmbossingRecipe;
 import dev.gkissel.forgeweave.modifier.ForgeweaveModifiers;
 import dev.gkissel.forgeweave.modifier.ModifierRecipe;
+import dev.gkissel.forgeweave.particle.ForgeweaveParticles; // #482
 import dev.gkissel.forgeweave.ponder.ForgeweavePonderPlugin;
 import dev.gkissel.forgeweave.recipe.AlloyRecipe; // #98
 import dev.gkissel.forgeweave.recipe.EntityMeltingRecipe; // #270
@@ -85,6 +86,9 @@ public class Forgeweave {
         NetherOrePlacement.PLACEMENT_MODIFIERS.register(modEventBus);
         // #159 -- the scimitar's lacerate bleed (see LacerateEffect for why it is a status effect).
         ForgeweaveMobEffects.MOB_EFFECTS.register(modEventBus);
+        // #482 -- upstream's heart-effect particles (parity audit T51): the little coloured heart a
+        // landed secondary hit puts over its target. See ForgeweaveParticles.
+        ForgeweaveParticles.PARTICLE_TYPES.register(modEventBus);
         ForgeweaveRecipeSerializers.RECIPE_SERIALIZERS.register(modEventBus);
         // #110 -- the M2 advancement chain's custom criteria (docs/SCOPE.md M2 issue #110).
         ForgeweaveCriteriaTriggers.TRIGGERS.register(modEventBus);

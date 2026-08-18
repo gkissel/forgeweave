@@ -5,6 +5,7 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
 
 import dev.gkissel.forgeweave.item.ToolItem;
+import dev.gkissel.forgeweave.particle.ForgeweaveParticles;
 
 /**
  * Being hit reflects the tool's own attack damage back at the attacker, past armor -- spiky, cactus's
@@ -41,7 +42,10 @@ public record ThornsReflectSeam(float heldFraction) implements CombatSeam {
         }
         int invulnerableTime = attacker.invulnerableTime;
         attacker.invulnerableTime = 0;
-        attacker.hurt(ForgeweaveInnates.armorBypassing(defense.level(), defense.defender()), reflected);
+        if (attacker.hurt(ForgeweaveInnates.armorBypassing(defense.level(), defense.defender()), reflected)) {
+            // #482 -- upstream's single cactus heart over whoever got thorned, on the same gate.
+            ForgeweaveParticles.spawnHearts(ForgeweaveParticles.HEART_CACTUS.get(), defense.level(), attacker, 1);
+        }
         attacker.invulnerableTime = invulnerableTime;
         return damage;
     }

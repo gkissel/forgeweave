@@ -16,7 +16,6 @@ import com.mojang.logging.LogUtils;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.component.DataComponentType;
 import net.minecraft.core.component.DataComponents;
-import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
@@ -75,6 +74,7 @@ import dev.gkissel.forgeweave.item.PartItem;
 import dev.gkissel.forgeweave.item.ToolItem;
 import dev.gkissel.forgeweave.material.Material;
 import dev.gkissel.forgeweave.modifier.ForgeweaveModifiers;
+import dev.gkissel.forgeweave.particle.ForgeweaveParticles;
 import dev.gkissel.forgeweave.tool.ToolStats;
 
 /**
@@ -667,11 +667,16 @@ public final class ForgeweaveTraits {
      * actual {@code LightningBolt} entity that never spawns here): TConstruct's own 1.20 branch already
      * reuses {@code TRIDENT_THUNDER} for exactly this shape of effect -- a hit-triggered lightning cue
      * with no bolt entity ({@code ChannelingModule#tryStrike}) -- at low volume so it doesn't compete
-     * with combat noise on every proc. {@link net.minecraft.core.particles.ParticleTypes#ELECTRIC_SPARK}
-     * stands in for the dropped {@code HEART_ELECTRO} particle, the only vanilla particle actually named
-     * for electricity.
+     * with combat noise on every proc. The particle is no longer a stand-in: issue #482 derived
+     * upstream's own {@code HEART_ELECTRO} sprite, so both cues now spawn it at upstream's own count
+     * ({@code TraitShocking#onHit}: {@code spawnEffectParticle(HEART_ELECTRO, target, 5)}). Only the
+     * <em>full-charge</em> burst is Forgeweave's addition -- upstream marks reaching full charge with
+     * a sound alone -- and it reuses the same particle and count so the trait reads as one cue.
      */
     private static final float SHOCKING_FEEDBACK_VOLUME = 0.4F;
+
+    /** Upstream {@code TraitShocking#onHit}: {@code spawnEffectParticle(HEART_ELECTRO, target, 5)}. */
+    private static final int SHOCKING_HEARTS = 5;
 
     /**
      * Electrum. Upstream {@code TraitShocking}: a 0-100 charge built three ways -- {@code +15 *
@@ -791,15 +796,14 @@ public final class ForgeweaveTraits {
 
     /** The holder's full-charge cue (issue #415): {@link #SHOCKING_FEEDBACK_VOLUME}'s javadoc picks the sound. */
     private static void spawnShockingFullChargeFeedback(ServerLevel level, LivingEntity holder) {
-        level.sendParticles(ParticleTypes.ELECTRIC_SPARK, holder.getX(), holder.getY() + holder.getBbHeight() * 0.5,
-                holder.getZ(), 8, 0.3, 0.3, 0.3, 0.02);
+        ForgeweaveParticles.spawnHearts(ForgeweaveParticles.HEART_ELECTRO.get(), level, holder, SHOCKING_HEARTS);
         level.playSound(null, holder.blockPosition(), SoundEvents.TRIDENT_THUNDER.value(), SoundSource.PLAYERS,
                 SHOCKING_FEEDBACK_VOLUME, 1.4F);
     }
 
     /** The discharge cue at {@code x, y, z} (issue #415): {@link #SHOCKING_FEEDBACK_VOLUME}'s javadoc picks the sound. */
     private static void spawnShockingDischargeFeedback(ServerLevel level, double x, double y, double z) {
-        level.sendParticles(ParticleTypes.ELECTRIC_SPARK, x, y, z, 12, 0.3, 0.3, 0.3, 0.05);
+        ForgeweaveParticles.spawnHearts(ForgeweaveParticles.HEART_ELECTRO.get(), level, x, y, z, SHOCKING_HEARTS);
         level.playSound(null, BlockPos.containing(x, y, z), SoundEvents.TRIDENT_THUNDER.value(), SoundSource.PLAYERS,
                 SHOCKING_FEEDBACK_VOLUME, 1.0F);
     }
