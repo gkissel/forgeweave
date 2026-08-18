@@ -1,0 +1,21 @@
+{
+    block: "forgeweave:seared_channel",
+    decoder: "block_entity",
+    expect: {
+        fluid: {
+            amount: 24,
+            id: "forgeweave:molten_gold"
+        },
+        id: "forgeweave:seared_channel",
+        is_flowing: [B; 0B, 0B, 2B, 0B, 0B]
+    },
+    nbt: {
+        fluid: {
+            amount: 24,
+            id: "forgeweave:molten_gold"
+        },
+        id: "forgeweave:seared_channel",
+        is_flowing: [B; 0B, 0B, 2B, 0B, 0B]
+    },
+    what: "#441 (parity audit T9): a seared channel caught mid-pour -- 24 mB of molten gold in its 36 mB buffer, with the south arm marked flowing for one more tick. `is_flowing` is upstream 1.12's own five-byte array, indexed down-first (0) then by horizontal (north 1, south 2, west 3, east 4); index 2 is therefore the south arm. Deliberately not carrying upstream's `locked` counter, which is cleared at the end of every flow tick and so costs nothing to forget -- see SearedChannelBlockEntity#loadAdditional."
+}

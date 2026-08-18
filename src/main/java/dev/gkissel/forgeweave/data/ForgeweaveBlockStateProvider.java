@@ -10,11 +10,14 @@ import net.minecraft.world.level.block.StairBlock;
 import net.neoforged.neoforge.client.model.generators.BlockStateProvider;
 import net.neoforged.neoforge.client.model.generators.ConfiguredModel;
 import net.neoforged.neoforge.client.model.generators.ModelFile;
+import net.neoforged.neoforge.client.model.generators.MultiPartBlockStateBuilder;
 import net.neoforged.neoforge.common.data.ExistingFileHelper;
 
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.block.FaucetBlock;
 import dev.gkissel.forgeweave.block.ForgeweaveBlocks;
+import dev.gkissel.forgeweave.block.SearedChannelBlock;
+import dev.gkissel.forgeweave.block.SearedChannelBlock.ChannelConnection;
 import dev.gkissel.forgeweave.block.SearedChuteBlock;
 import dev.gkissel.forgeweave.block.SmelteryControllerBlock;
 
@@ -182,6 +185,40 @@ public class ForgeweaveBlockStateProvider extends BlockStateProvider {
                 .rotationY((int) state.getValue(SearedChuteBlock.FACING).toYRot())
                 .build());
         simpleBlockItem(ForgeweaveBlocks.SEARED_CHUTE.get(), chuteModel);
+
+        // #441 (parity audit T9) -- the seared channel. Its blockstate is upstream 1.12's own
+        // multipart channel.json (NOTICE.md): one centre part switched on `down`, and one part per
+        // side per connection state, the side models rotated onto north/east/south/west. The models
+        // themselves are hand-authored JSON under models/block/channel/, transcribed from upstream's
+        // channel/{center,center_out,side,side_in,side_out}.json. Upstream's fifth `lever` state --
+        // a cosmetic backing plate drawn when a lever or button is stuck to a channel's side -- is
+        // deliberately absent; upstream itself dropped it adapting the block to modern Minecraft.
+        ModelFile channelCentre = models().getExistingFile(modLoc("block/channel/center"));
+        ModelFile channelCentreOut = models().getExistingFile(modLoc("block/channel/center_out"));
+        ModelFile channelSide = models().getExistingFile(modLoc("block/channel/side"));
+        ModelFile channelSideIn = models().getExistingFile(modLoc("block/channel/side_in"));
+        ModelFile channelSideOut = models().getExistingFile(modLoc("block/channel/side_out"));
+        MultiPartBlockStateBuilder channel = getMultipartBuilder(ForgeweaveBlocks.SEARED_CHANNEL.get());
+        channel.part().modelFile(channelCentre).addModel()
+                .condition(SearedChannelBlock.DOWN, false).end();
+        channel.part().modelFile(channelCentreOut).addModel()
+                .condition(SearedChannelBlock.DOWN, true).end();
+        SearedChannelBlock.SIDES.forEach((side, property) -> {
+            // The side models are authored on the north face; upstream's own blockstate rotates
+            // them north:0, east:90, south:180, west:270, which is toYRot() turned half round.
+            int rotation = ((int) side.toYRot() + 180) % 360;
+            for (ChannelConnection connection : ChannelConnection.values()) {
+                ModelFile model = switch (connection) {
+                    case NONE -> channelSide;
+                    case IN -> channelSideIn;
+                    case OUT -> channelSideOut;
+                };
+                channel.part().modelFile(model).rotationY(rotation).uvLock(true).addModel()
+                        .condition(property, connection).end();
+            }
+        });
+        simpleBlockItem(ForgeweaveBlocks.SEARED_CHANNEL.get(),
+                models().getExistingFile(modLoc("block/channel/item")));
 
         // #100 -- casting (docs/SCOPE.md M2 issue #100). All four models are hand-authored JSON under
         // models/block/, transcribed from upstream 1.12's own casting_table/casting_basin/faucet/

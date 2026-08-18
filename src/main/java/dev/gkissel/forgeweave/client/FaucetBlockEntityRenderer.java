@@ -18,6 +18,7 @@ import net.neoforged.neoforge.fluids.FluidStack;
 import dev.gkissel.forgeweave.block.CastingBlock;
 import dev.gkissel.forgeweave.block.FaucetBlock;
 import dev.gkissel.forgeweave.block.FaucetBlockEntity;
+import dev.gkissel.forgeweave.block.SearedChannelBlock;
 
 /**
  * Draws the stream a faucet is pouring (#182 -- the faucet moved fluid but showed none of it, so a
@@ -106,14 +107,22 @@ public class FaucetBlockEntityRenderer implements BlockEntityRenderer<FaucetBloc
 
     /**
      * Upstream's {@code IFaucetDepth#getFlowDepth}: how far into the receiving block the stream is
-     * drawn. A casting table's pool is a thin sheet on its top, a basin's is deep, and anything else
-     * gets upstream's fallback.
+     * drawn. A casting table's pool is a thin sheet on its top, a basin's is deep, a channel's is the
+     * floor of its trough, and anything else gets upstream's fallback. Shared with {@link
+     * SearedChannelBlockEntityRenderer}, whose downward column stops in the same place a faucet's
+     * would (#441).
      */
-    private static float flowDepth(Level level, BlockPos below) {
+    static float flowDepth(Level level, BlockPos below) {
         if (level == null) {
             return DEFAULT_FLOW_DEPTH;
         }
         BlockState state = level.getBlockState(below);
-        return state.getBlock() instanceof CastingBlock casting ? casting.flowDepth() : DEFAULT_FLOW_DEPTH;
+        if (state.getBlock() instanceof CastingBlock casting) {
+            return casting.flowDepth();
+        }
+        if (state.getBlock() instanceof SearedChannelBlock) {
+            return SearedChannelBlock.FLOW_DEPTH;
+        }
+        return DEFAULT_FLOW_DEPTH;
     }
 }

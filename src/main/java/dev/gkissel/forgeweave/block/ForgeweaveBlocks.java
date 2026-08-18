@@ -217,6 +217,12 @@ public final class ForgeweaveBlocks {
     public static final DeferredBlock<SearedChuteBlock> SEARED_CHUTE = BLOCKS.register("seared_chute",
             () -> new SearedChuteBlock(searedProperties().noOcclusion()));
 
+    // #441 (parity audit T9) -- the seared channel, upstream 1.12's BlockChannel (NOTICE.md). Same
+    // seared strength and sound as the rest of the smeltery family; a channel is a thin trough
+    // rather than a cube, so it skips occlusion culling.
+    public static final DeferredBlock<SearedChannelBlock> SEARED_CHANNEL = BLOCKS.register("seared_channel",
+            () -> new SearedChannelBlock(searedProperties().noOcclusion()));
+
     // Plain seared glass (docs/SCOPE.md M3.3 issue #289): a wall-only smeltery block, upstream's
     // BlockSearedGlass (NOTICE.md). Upstream's block adds BlockConnectedTexture rendering and no
     // other behavior -- no BlockEntity, no multiblock role of its own beyond "valid wall, not floor"

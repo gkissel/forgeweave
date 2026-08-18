@@ -114,6 +114,7 @@ public class ForgeweaveBlockLootSubProvider extends BlockLootSubProvider {
         // #277 -- the duct's filter item is dropped by SearedDuctBlock#onRemove, not by this table.
         dropSelf(ForgeweaveBlocks.SEARED_DUCT.get());
         dropSelf(ForgeweaveBlocks.SEARED_CHUTE.get());
+        dropSelf(ForgeweaveBlocks.SEARED_CHANNEL.get()); // #441, parity audit T9
         add(ForgeweaveBlocks.SEARED_TANK.get(), tankDrop(ForgeweaveBlocks.SEARED_TANK.get()));
         add(ForgeweaveBlocks.SEARED_GAUGE.get(), tankDrop(ForgeweaveBlocks.SEARED_GAUGE.get()));
         add(ForgeweaveBlocks.SEARED_WINDOW.get(), tankDrop(ForgeweaveBlocks.SEARED_WINDOW.get()));

@@ -499,6 +499,11 @@ public final class ForgeweaveItems {
     public static final DeferredItem<BlockItem> SEARED_DUCT = ITEMS.registerSimpleBlockItem("seared_duct", ForgeweaveBlocks.SEARED_DUCT);
     public static final DeferredItem<BlockItem> SEARED_CHUTE = ITEMS.registerSimpleBlockItem("seared_chute", ForgeweaveBlocks.SEARED_CHUTE);
 
+    // #441 (parity audit T9) -- the channel needs upstream's own ItemChannel behaviour on placement,
+    // see SearedChannelBlockItem.
+    public static final DeferredItem<BlockItem> SEARED_CHANNEL = ITEMS.register("seared_channel",
+            () -> new SearedChannelBlockItem(ForgeweaveBlocks.SEARED_CHANNEL.get(), new Item.Properties()));
+
     // Plain seared glass (docs/SCOPE.md M3.3 issue #289).
     public static final DeferredItem<BlockItem> SEARED_GLASS = ITEMS.registerSimpleBlockItem("seared_glass", ForgeweaveBlocks.SEARED_GLASS);
 

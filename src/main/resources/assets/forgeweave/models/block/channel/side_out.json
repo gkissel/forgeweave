@@ -1,0 +1,6 @@
+{
+  "parent": "forgeweave:block/channel/side_in",
+  "textures": {
+    "top": "forgeweave:derived/block/channel_out"
+  }
+}
