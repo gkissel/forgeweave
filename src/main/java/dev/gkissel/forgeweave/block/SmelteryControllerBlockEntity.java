@@ -91,7 +91,7 @@ import dev.gkissel.forgeweave.recipe.SmelteryFuel;
  * SmelteryControllerBlock#tick} runs {@link #sweepInterior()} on every firing regardless of
  * which cadence woke it.
  */
-public class SmelteryControllerBlockEntity extends BlockEntity implements StationMenuHost {
+public class SmelteryControllerBlockEntity extends BlockEntity implements StationMenuHost, TankOwner {
     /**
      * Fluid capacity each interior block contributes, upstream's {@code CAPACITY_PER_BLOCK} of eight
      * ingots at 144 mB each.
@@ -188,6 +188,7 @@ public class SmelteryControllerBlockEntity extends BlockEntity implements Statio
         return structure;
     }
 
+    @Override
     public boolean isFormed() {
         return structure() != null;
     }
@@ -552,7 +553,8 @@ public class SmelteryControllerBlockEntity extends BlockEntity implements Statio
      * (#97), to wake a melt that stopped for want of heat when a wall tank gets refilled -- the other
      * re-arm points are insertion, a structure scan, and load.
      */
-    void armMeltTick() {
+    @Override
+    public void armMeltTick() {
         if (level == null || level.isClientSide) {
             return;
         }

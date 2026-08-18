@@ -49,6 +49,12 @@ public final class ForgeweaveMenus {
                     (windowId, inventory, buf) -> new SmelteryMenu(
                             windowId, inventory, buf.readBlockPos(), buf.readVarInt())));
 
+    // #442: the seared furnace, same payload shape as the smeltery.
+    public static final DeferredHolder<MenuType<?>, MenuType<SearedFurnaceMenu>> SEARED_FURNACE =
+            MENUS.register("seared_furnace", () -> IMenuTypeExtension.create(
+                    (windowId, inventory, buf) -> new SearedFurnaceMenu(
+                            windowId, inventory, buf.readBlockPos(), buf.readVarInt())));
+
     // #277: the seared duct's one-slot filter GUI (docs/SCOPE.md M3.4). No payload at all -- the
     // filter slot's contents ride vanilla's own slot sync, and nothing else on the screen is dynamic.
     public static final DeferredHolder<MenuType<?>, MenuType<SearedDuctMenu>> SEARED_DUCT =

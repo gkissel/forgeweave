@@ -241,7 +241,7 @@ public final class SmelteryScan {
             // that may well still be part of a working smeltery (#288's other half).
             return true;
         }
-        return level.getBlockEntity(owner) instanceof SmelteryControllerBlockEntity other && other.isFormed();
+        return level.getBlockEntity(owner) instanceof TankOwner other && other.isFormed();
     }
 
     /** The core a wall block remembers, or {@code null} if it is not the kind of block that remembers one. */
@@ -266,6 +266,16 @@ public final class SmelteryScan {
     /** Upstream's {@code isInnerBlock}: loaded and air. */
     private static boolean isInterior(Level level, BlockPos pos) {
         return !level.isOutsideBuildHeight(pos) && level.hasChunkAt(pos) && level.getBlockState(pos).isAir();
+    }
+
+    /** The twelve plain seared blocks (upstream's {@code TinkerSmeltery.searedBlock}); shared with {@link SearedFurnaceScan}. */
+    static Set<Block> searedBlocks() {
+        return Valid.FLOOR;
+    }
+
+    /** The three tank blocks (upstream's {@code TinkerSmeltery.searedTank}); shared with {@link SearedFurnaceScan}. */
+    static Set<Block> tankBlocks() {
+        return Valid.TANKS;
     }
 
     private static Result failure(Component message) {

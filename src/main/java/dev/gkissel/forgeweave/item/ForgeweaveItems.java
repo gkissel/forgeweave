@@ -483,6 +483,9 @@ public final class ForgeweaveItems {
 
     // The smeltery multiblock's blocks (docs/SCOPE.md M2 issue #95).
     public static final DeferredItem<BlockItem> STANDARD_CORE = ITEMS.registerSimpleBlockItem("standard_core", ForgeweaveBlocks.STANDARD_CORE);
+    // #442 -- the seared furnace controller.
+    public static final DeferredItem<BlockItem> SEARED_FURNACE_CONTROLLER =
+            ITEMS.registerSimpleBlockItem("seared_furnace_controller", ForgeweaveBlocks.SEARED_FURNACE_CONTROLLER);
     public static final DeferredItem<BlockItem> NETHER_CORE = ITEMS.registerSimpleBlockItem("nether_core", ForgeweaveBlocks.NETHER_CORE);
     // The three tank blocks keep their contents on the dropped stack (SearedTankBlockEntity's
     // FLUID_CONTENT component, copied by the loot table), so their item shows what is inside --

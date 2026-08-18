@@ -241,6 +241,7 @@ public final class ForgeweaveCreativeTab {
         // The smeltery multiblock's own blocks (docs/SCOPE.md M2 issue #95; issue #139 fix -- these
         // were never added here, so the maintainer couldn't find the smeltery in the creative tab).
         output.accept(ForgeweaveItems.STANDARD_CORE.get());
+        output.accept(ForgeweaveItems.SEARED_FURNACE_CONTROLLER.get()); // #442
         output.accept(ForgeweaveItems.NETHER_CORE.get());
         output.accept(ForgeweaveItems.SEARED_TANK.get());
         output.accept(ForgeweaveItems.SEARED_GAUGE.get());

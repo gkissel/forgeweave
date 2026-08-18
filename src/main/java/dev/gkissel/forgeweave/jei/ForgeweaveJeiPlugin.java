@@ -32,6 +32,7 @@ import dev.gkissel.forgeweave.casting.CastingRecipe;
 import dev.gkissel.forgeweave.client.ChestScreen;
 import dev.gkissel.forgeweave.client.CraftingStationScreen;
 import dev.gkissel.forgeweave.client.PartBuilderScreen;
+import dev.gkissel.forgeweave.client.SearedFurnaceScreen;
 import dev.gkissel.forgeweave.client.SmelteryScreen;
 import dev.gkissel.forgeweave.client.StencilTableScreen;
 import dev.gkissel.forgeweave.client.ToolStationScreen;
@@ -257,6 +258,8 @@ public final class ForgeweaveJeiPlugin implements IModPlugin {
         // melt and alloy, so both are catalysts for both categories.
         registration.addRecipeCatalyst(ForgeweaveItems.STANDARD_CORE.get(), MeltingCategory.TYPE, AlloyingCategory.TYPE);
         registration.addRecipeCatalyst(ForgeweaveItems.NETHER_CORE.get(), MeltingCategory.TYPE, AlloyingCategory.TYPE);
+        // #442 -- upstream JEIPlugin: the seared furnace controller is a catalyst of vanilla smelting.
+        registration.addRecipeCatalyst(ForgeweaveItems.SEARED_FURNACE_CONTROLLER.get(), RecipeTypes.SMELTING);
         registration.addRecipeCatalyst(ForgeweaveItems.CASTING_TABLE.get(), CastingTableCategory.TYPE);
         registration.addRecipeCatalyst(ForgeweaveItems.CASTING_BASIN.get(), CastingBasinCategory.TYPE);
     }
@@ -280,6 +283,7 @@ public final class ForgeweaveJeiPlugin implements IModPlugin {
         // Issue #78: the chests have no chrome of their own, but they do get the station-group tab row.
         registration.addGuiContainerHandler(ChestScreen.class, new StationGuiHandler<>());
         registration.addGuiContainerHandler(SmelteryScreen.class, new SmelteryTankGuiHandler());
+        registration.addGuiContainerHandler(SearedFurnaceScreen.class, new StationGuiHandler<>()); // #442
     }
 
     /**
