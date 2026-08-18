@@ -137,6 +137,89 @@ public class CombatTraitGameTests {
         helper.succeed();
     }
 
+    /**
+     * Issue #460, upstream {@code TraitEvents#playerBlockOrHurtEvent}: the {@code onBlock} state is
+     * {@code player.isActiveItemStackBlocking()} -- a question about the <em>player</em>, not about
+     * the tool the trait rides. A raised vanilla shield in the off hand therefore makes a stiff tool
+     * in the main hand block, which before this fix it did not (the shield is not a Forgeweave tool,
+     * so the pass fell through to the merely-held branch).
+     */
+    @GameTest(template = "empty")
+    public static void aRaisedShieldMakesAHeldToolBlock(GameTestHelper helper) {
+        Player defender = helper.makeMockPlayer(GameType.SURVIVAL);
+        Zombie attacker = noAi(helper.spawn(EntityType.ZOMBIE, new BlockPos(2, 2, 2)));
+        ItemStack pickaxe = tool(ForgeweaveItems.TOOL_PICKAXE.get(), List.of(traitId("stiff")), 3.0F);
+        defender.setItemInHand(InteractionHand.MAIN_HAND, pickaxe);
+
+        // Merely held, no shield: stiff does nothing.
+        float taken = hurtFor(helper, defender, attacker, 10.0F);
+        helper.assertTrue(Math.abs(taken - 10.0F) < 0.05F,
+                "a merely-held stiff tool must not shave the blow, took " + taken);
+
+        // Off-hand shield raised: stiff's -1 applies. The blow is staged the same tick the stance
+        // opens, before vanilla's own 5-tick warm-up, so vanilla shield-blocking never swallows it.
+        defender.setItemInHand(InteractionHand.OFF_HAND, new ItemStack(Items.SHIELD));
+        defender.startUsingItem(InteractionHand.OFF_HAND);
+        helper.assertTrue(defender.isUsingItem(), "the shield must actually be raised");
+        taken = hurtFor(helper, defender, attacker, 10.0F);
+        helper.assertTrue(Math.abs(taken - 9.0F) < 0.05F,
+                "expected a raised shield to put the main-hand stiff tool in its blocking state "
+                        + "(10 -> 9), took " + taken);
+
+        defender.stopUsingItem();
+        attacker.discard();
+        helper.succeed();
+    }
+
+    /**
+     * Issue #460: upstream collects every tool in {@code getHeldEquipment()}, so an off-hand tool's
+     * defensive traits run too. Before this fix the pass looked at the main hand only.
+     */
+    @GameTest(template = "empty")
+    public static void offHandToolTraitsRunOnAnIncomingBlow(GameTestHelper helper) {
+        Player defender = helper.makeMockPlayer(GameType.SURVIVAL);
+        Zombie attacker = noAi(helper.spawn(EntityType.ZOMBIE, new BlockPos(2, 2, 2)));
+        ItemStack pickaxe = tool(ForgeweaveItems.TOOL_PICKAXE.get(), List.of(traitId("spiky")), 3.0F);
+        defender.setItemInHand(InteractionHand.OFF_HAND, pickaxe);
+        float expected = ((ToolItem) pickaxe.getItem()).attackDamage(pickaxe) / 2.0F;
+
+        float attackerBefore = attacker.getHealth();
+        hurtFor(helper, defender, attacker, 2.0F);
+        float reflected = attackerBefore - attacker.getHealth();
+
+        helper.assertTrue(Math.abs(reflected - expected) < 0.001F,
+                "expected an off-hand spiky tool to reflect half its damage (" + expected + "), got "
+                        + reflected);
+
+        attacker.discard();
+        helper.succeed();
+    }
+
+    /**
+     * Issue #460: upstream's block gate is the BLOCK use animation, and the longsword's is BOW
+     * ({@code LongSword#getItemUseAction}). Charging its leap is therefore not a block -- before this
+     * fix any active use of any Forgeweave tool counted as one, so a charging longsword got stiff's
+     * shave, spiky's full-strength thorns and flammable's fire absorb for free.
+     */
+    @GameTest(template = "empty")
+    public static void chargingTheLongswordIsNotABlock(GameTestHelper helper) {
+        Player defender = helper.makeMockPlayer(GameType.SURVIVAL);
+        Zombie attacker = noAi(helper.spawn(EntityType.ZOMBIE, new BlockPos(2, 2, 2)));
+        ItemStack longsword = tool(ForgeweaveItems.TOOL_LONGSWORD.get(), List.of(traitId("stiff")), 3.0F);
+        defender.setItemInHand(InteractionHand.MAIN_HAND, longsword);
+        defender.startUsingItem(InteractionHand.MAIN_HAND);
+        helper.assertTrue(defender.isUsingItem(), "the leap charge must actually be open");
+
+        float taken = hurtFor(helper, defender, attacker, 10.0F);
+        helper.assertTrue(Math.abs(taken - 10.0F) < 0.05F,
+                "charging the longsword must not count as a block, so stiff must not shave the blow "
+                        + "(expected 10), took " + taken);
+
+        defender.stopUsingItem();
+        attacker.discard();
+        helper.succeed();
+    }
+
     /** Netherrack, head -&gt; {@code forgeweave:hellish}: +4 damage, but only against non-fire-immune targets. */
     @GameTest(template = "empty")
     public static void hellishAddsFlatDamageAgainstNonFireImmune(GameTestHelper helper) {
@@ -501,7 +584,7 @@ public class CombatTraitGameTests {
      */
     private static float incomingHit(GameTestHelper helper, Player defender, ItemStack tool, LivingEntity attacker,
             Trait trait, DamageSource source, float damage) {
-        CombatDefense defense = new CombatDefense(helper.getLevel(), tool, defender, attacker, source, true);
+        CombatDefense defense = new CombatDefense(helper.getLevel(), tool, defender, attacker, source, true, true);
         List<CombatSeam> seams = new ArrayList<>();
         trait.combatSeams(seams::add);
         float result = damage;
@@ -509,6 +592,15 @@ public class CombatTraitGameTests {
             result = seam.incomingHit(defense, damage, result);
         }
         return result;
+    }
+
+    /** One real blow onto a healed, non-invulnerable defender; answers what it cost them. */
+    private static float hurtFor(GameTestHelper helper, Player defender, LivingEntity attacker, float damage) {
+        defender.setHealth(defender.getMaxHealth());
+        defender.invulnerableTime = 0;
+        float before = defender.getHealth();
+        defender.hurt(helper.getLevel().damageSources().mobAttack(attacker), damage);
+        return before - defender.getHealth();
     }
 
     /** Every mob in these tests is a no-AI adult: nothing wanders, retaliates or panics mid-assert. */
