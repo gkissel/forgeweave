@@ -29,9 +29,14 @@ import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.NbtOps;
 import net.minecraft.nbt.Tag;
 import net.minecraft.nbt.TagParser;
+import net.minecraft.resources.RegistryDataLoader;
 import net.minecraft.resources.RegistryOps;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.Bootstrap;
+import net.minecraft.server.packs.PackType;
+import net.minecraft.server.packs.repository.ServerPacksSource;
+import net.minecraft.server.packs.resources.MultiPackResourceManager;
+import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -98,7 +103,20 @@ class SaveCompatCorpusTest {
     static void bootstrapMinecraft() {
         SharedConstants.tryDetectVersion();
         Bootstrap.bootStrap();
-        registries = RegistryAccess.fromRegistryOfRegistries(BuiltInRegistries.REGISTRY);
+        // T80: the built-ins alone (Item, Block, ...) used to be enough, but a tool can now carry a
+        // real vanilla enchantment (allowVanillaEnchanting) whose Holder<Enchantment> codec needs the
+        // ENCHANTMENT registry populated. That registry is data-driven (data/minecraft/enchantment/
+        // *.json), so it is loaded from the vanilla resource pack the same way a real server loads it
+        // -- NOT via RegistrySetBuilder/VanillaRegistries (the datagen-only helper), whose registries
+        // bind every Holder to a shared "UniversalOwner" that is never the owner RegistryOps derives
+        // from the same Provider's own lookup(), so a real Holder built that way fails its own
+        // canSerializeIn check the moment anything tries to re-encode it. RegistryDataLoader has no
+        // such indirection: every registry it loads owns its own holders, exactly like a running
+        // server's.
+        RegistryAccess.Frozen builtins = RegistryAccess.fromRegistryOfRegistries(BuiltInRegistries.REGISTRY);
+        ResourceManager vanillaData = new MultiPackResourceManager(PackType.SERVER_DATA,
+                List.of(ServerPacksSource.createVanillaPackSource()));
+        registries = RegistryDataLoader.load(vanillaData, builtins, RegistryDataLoader.WORLDGEN_REGISTRIES);
     }
 
     static Stream<Path> corpus() throws Exception {

@@ -1,0 +1,52 @@
+{
+    decoder: "item_stack",
+    expect: {
+        components: {
+            "minecraft:enchantments": {
+                levels: {
+                    "minecraft:unbreaking": 3
+                }
+            },
+            "forgeweave:tool_materials": {
+                head: "forgeweave:flint",
+                binding: "forgeweave:wood",
+                handle: "forgeweave:stone"
+            }
+        },
+        id: "forgeweave:pickaxe"
+    },
+    nbt: {
+        components: {
+            "forgeweave:tool_materials": {
+                binding: "forgeweave:wood",
+                handle: "forgeweave:stone",
+                head: "forgeweave:flint",
+                parts: [
+                    "forgeweave:flint",
+                    "forgeweave:wood",
+                    "forgeweave:stone"
+                ]
+            },
+            "forgeweave:tool_stats": {
+                attack_damage: 2.9f,
+                durability: 33,
+                mining_speed: 5.0f
+            },
+            "forgeweave:traits": [
+                "forgeweave:crude",
+                "forgeweave:ecological",
+                "forgeweave:cheap"
+            ],
+            "minecraft:damage": 0,
+            "minecraft:enchantments": {
+                levels: {
+                    "minecraft:unbreaking": 3
+                }
+            },
+            "minecraft:max_damage": 33
+        },
+        count: 1,
+        id: "forgeweave:pickaxe"
+    },
+    what: "T80 (parity audit, config-gated): an assembled pickaxe carrying vanilla's own minecraft:enchantments component (Unbreaking III), the format only reachable when allowVanillaEnchanting is on (ToolItem#isEnchantable). Nothing about ToolItem's own components changes when the config is off -- this fixture pins that a tool already carrying a real vanilla enchantment from when the config WAS on keeps decoding after it is turned back off, since ALLOW_VANILLA_ENCHANTING gates the enchanting table's offer, never the save format. This is also the corpus's first fixture whose decoder needs a live Holder<Enchantment>, which is why SaveCompatCorpusTest#bootstrapMinecraft now loads the vanilla data pack's dynamic registries rather than only BuiltInRegistries."
+}
