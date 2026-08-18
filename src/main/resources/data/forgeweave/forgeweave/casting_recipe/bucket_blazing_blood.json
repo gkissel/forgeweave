@@ -1,0 +1,13 @@
+{
+  "station": "table",
+  "cast": {
+    "item": "minecraft:bucket"
+  },
+  "fluid": "forgeweave:blazing_blood",
+  "amount": 1000,
+  "result": {
+    "id": "forgeweave:blazing_blood_bucket"
+  },
+  "consumes_cast": true,
+  "time": 5
+}
