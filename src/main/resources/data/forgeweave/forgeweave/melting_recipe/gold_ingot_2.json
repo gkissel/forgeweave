@@ -1,0 +1,9 @@
+{
+  "input": [
+    { "item": "minecraft:golden_sword" },
+    { "item": "minecraft:golden_hoe" },
+    { "item": "minecraft:light_weighted_pressure_plate" }
+  ],
+  "fluid": "forgeweave:molten_gold",
+  "amount": 288
+}
