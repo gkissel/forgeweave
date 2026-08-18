@@ -19,6 +19,7 @@ import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.UseAnim;
 
 import dev.gkissel.forgeweave.item.ForgeweaveDataComponents;
 import dev.gkissel.forgeweave.item.ToolItem;
@@ -134,23 +135,25 @@ public final class CombatSeams {
      * invulnerability window or play a hurt animation, which a zero-damage hit still would.
      */
     private static void defensePass(LivingIncomingDamageEvent event) {
-        CombatDefense defense = defenseOf(event.getSource(), event.getEntity());
-        if (defense == null) {
-            return;
-        }
-        List<CombatSeam> seams = seams(defense.tool());
-        if (seams.isEmpty()) {
-            return;
-        }
-        float original = event.getOriginalAmount();
-        float damage = event.getAmount();
-        for (CombatSeam seam : seams) {
-            damage = seam.incomingHit(defense, original, damage);
-        }
-        if (damage <= 0.0F) {
-            event.setCanceled(true);
-        } else if (damage != event.getAmount()) {
-            event.setAmount(damage);
+        // Both hands since issue #460, main hand first, upstream's own order and its own
+        // "stop once something cancelled the blow" (TraitEvents' `if(!event.isCanceled())` per tool).
+        for (CombatDefense defense : defenses(event.getSource(), event.getEntity())) {
+            List<CombatSeam> seams = seams(defense.tool());
+            if (seams.isEmpty()) {
+                continue;
+            }
+            float original = event.getOriginalAmount();
+            float damage = event.getAmount();
+            for (CombatSeam seam : seams) {
+                damage = seam.incomingHit(defense, original, damage);
+            }
+            if (damage <= 0.0F) {
+                event.setCanceled(true);
+                return;
+            }
+            if (damage != event.getAmount()) {
+                event.setAmount(damage);
+            }
         }
     }
 
@@ -300,33 +303,48 @@ public final class CombatSeams {
     }
 
     /**
-     * The blow the defender's own tool gets a say in, or {@code null} when it has none. Same gate as
-     * {@link #hitOf} -- server side, a Forgeweave tool, not Broken -- keyed on the tool being
-     * <em>actively used</em> first ({@link CombatDefense#blocking()} true: the broadsword's parry
-     * window, the battlesign's stance), falling back to the tool merely <em>held</em> in the main
-     * hand ({@code blocking} false). Issue #155 shipped the use-gated half only; issue #229 added the
-     * held half because upstream 1.12 runs {@code ITrait#onPlayerHurt} for a held tool (spiky's
-     * half-strength thorns, flammable's retaliation fire) -- a seam that only makes sense while
-     * blocking gates itself on {@code blocking()}, the way Parry, Deflect and stiff do.
+     * The blows the defender's own tools get a say in -- one per Forgeweave tool <em>held in either
+     * hand</em>, main hand first, empty when there is none. Same gate as {@link #hitOf}: server side,
+     * a Forgeweave tool, not Broken.
+     *
+     * <p>Issue #155 shipped only the tool being actively used; issue #229 added the merely-held tool
+     * because upstream 1.12 runs {@code ITrait#onPlayerHurt} for one (spiky's half-strength thorns,
+     * flammable's retaliation fire). Issue #460 finished the port against
+     * {@code TraitEvents#playerBlockOrHurtEvent}, which had been read wrong in two ways: it collects
+     * <em>every</em> tool in {@code getHeldEquipment()} rather than just the main hand, and it decides
+     * block-versus-hurt with {@code player.isActiveItemStackBlocking()} -- a question about the
+     * player, not about the tool. So:
+     *
+     * <ul>
+     *   <li>a raised vanilla shield (or a battlesign in the other hand) makes every held Forgeweave
+     *       tool block, which it previously did not;
+     *   <li>a charging longsword no longer counts as a block: upstream's gate is the BLOCK use
+     *       animation and the longsword's is BOW ({@code LongSword#getItemUseAction}), same as the
+     *       frypan's and every bow's.
+     * </ul>
+     *
+     * <p>The animation is read straight off the active stack rather than through
+     * {@code LivingEntity#isBlocking()}, which additionally demands five ticks held -- upstream's
+     * {@code isActiveItemStackBlocking} has no warm-up, and a warm-up here would silently make the
+     * first quarter-second of a raised sign not a block at all ({@link ForgeweaveInnates.Deflect}).
      */
-    @Nullable
-    private static CombatDefense defenseOf(DamageSource source, LivingEntity defender) {
+    private static List<CombatDefense> defenses(DamageSource source, LivingEntity defender) {
         if (!(defender.level() instanceof ServerLevel level)) {
-            return null;
+            return List.of();
         }
         Entity causing = source.getEntity();
         LivingEntity attacker = causing instanceof LivingEntity living ? living : null;
-        if (defender.isUsingItem()) {
-            ItemStack used = defender.getUseItem();
-            if (used.getItem() instanceof ToolItem && !ToolItem.isBroken(used)) {
-                return new CombatDefense(level, used, defender, attacker, source, true);
+        ItemStack used = defender.isUsingItem() ? defender.getUseItem() : ItemStack.EMPTY;
+        boolean blocking = used.getUseAnimation() == UseAnim.BLOCK;
+        List<CombatDefense> defenses = new ArrayList<>(2);
+        for (InteractionHand hand : InteractionHand.values()) {
+            ItemStack held = defender.getItemInHand(hand);
+            if (held.getItem() instanceof ToolItem && !ToolItem.isBroken(held)) {
+                defenses.add(new CombatDefense(level, held, defender, attacker, source,
+                        held == used, blocking));
             }
         }
-        ItemStack held = defender.getMainHandItem();
-        if (held.getItem() instanceof ToolItem && !ToolItem.isBroken(held)) {
-            return new CombatDefense(level, held, defender, attacker, source, false);
-        }
-        return null;
+        return defenses;
     }
 
     private CombatSeams() {}

@@ -59,10 +59,13 @@ public interface CombatSeam {
      * {@link CombatSeams} cancels the damage event when the chain leaves nothing, so a parry or a
      * reflect stops the hurt animation and the invulnerability window too, not just the number.
      *
-     * <p>Reached while the defender is actively using the tool <em>or</em> merely holding it in the
-     * main hand ({@link CombatSeams}); {@link CombatDefense#blocking()} distinguishes the two, and a
-     * behavior that only exists while blocking (the broadsword's parry window, the battlesign's
-     * stance, stiff's damage shave) gates itself on it.
+     * <p>Reached for every Forgeweave tool the defender holds, in either hand ({@link CombatSeams}).
+     * A behavior that only exists in one defensive state gates itself: on
+     * {@link CombatDefense#using()} when it belongs to <em>this</em> tool's own use action (the
+     * broadsword's parry window, the battlesign's stance), on {@link CombatDefense#blocking()} when
+     * it is upstream's {@code ITrait#onBlock} state -- the defender is blocking with anything, a
+     * raised vanilla shield included (stiff's damage shave, flammable's fire absorb, spiky's
+     * full-strength thorns).
      */
     default float incomingHit(CombatDefense defense, float originalDamage, float damage) {
         return damage;

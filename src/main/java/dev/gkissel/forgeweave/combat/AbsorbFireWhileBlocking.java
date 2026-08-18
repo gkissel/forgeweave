@@ -1,7 +1,6 @@
 package dev.gkissel.forgeweave.combat;
 
 import net.minecraft.tags.DamageTypeTags;
-import net.minecraft.world.entity.EquipmentSlot;
 
 /**
  * Blocking negates fire damage outright, at a flat durability cost -- flammable's defensive half
@@ -17,9 +16,7 @@ public record AbsorbFireWhileBlocking(int durabilityCost) implements CombatSeam 
         if (!defense.blocking() || !defense.source().is(DamageTypeTags.IS_FIRE)) {
             return damage;
         }
-        // Same mainhand assumption as Deflect's durability payment: the blocking stance is the
-        // main-hand use action.
-        defense.tool().hurtAndBreak(durabilityCost, defense.defender(), EquipmentSlot.MAINHAND);
+        defense.tool().hurtAndBreak(durabilityCost, defense.defender(), defense.slot());
         return 0.0F;
     }
 }

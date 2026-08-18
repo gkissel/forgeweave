@@ -4,6 +4,7 @@ import org.jetbrains.annotations.Nullable;
 
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.damagesource.DamageSource;
+import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
 
@@ -21,7 +22,23 @@ import net.minecraft.world.item.ItemStack;
  * <p>Issue #229 widened the pass to a tool that is merely <em>held</em>: upstream 1.12 runs
  * {@code ITrait#onPlayerHurt} for a held tool and {@code ITrait#onBlock} for a blocking one
  * (spiky's half-strength thorns, flammable's retaliation fire), so the one pass now covers both
- * states and {@link #blocking} says which this blow found.
+ * states.
+ *
+ * <p>Issue #460 split the two questions those states actually ask, which upstream keeps apart and
+ * Forgeweave had conflated into a single flag:
+ *
+ * <ul>
+ *   <li>{@link #using} -- <em>this</em> tool is the one the defender holds the use button on. That is
+ *       what a tool's own use-triggered innate needs ({@code BattleSign#shouldBlockDamage} demands
+ *       {@code getActiveItemStack().getItem() == this}, and the broadsword's parry window is open only
+ *       while its own use runs).
+ *   <li>{@link #blocking} -- the defender <em>is blocking</em>, upstream's
+ *       {@code EntityLivingBase#isActiveItemStackBlocking}: the active item, whichever it is, has the
+ *       BLOCK use animation. A raised vanilla shield counts; a charging longsword (BOW animation)
+ *       does not. That is the gate {@code TraitEvents#playerBlockOrHurtEvent} puts on
+ *       {@code ITrait#onBlock}, and it is about the <em>player</em>, not about the tool the trait
+ *       rides -- so a shield in one hand makes a Forgeweave tool in the other block.
+ * </ul>
  *
  * @param level the server level the blow lands in -- seams are server side only ({@link CombatSeams})
  * @param tool the Forgeweave tool the defender is using or holding, never Broken
@@ -29,9 +46,9 @@ import net.minecraft.world.item.ItemStack;
  * @param attacker whoever caused the damage, or {@code null} when the source names no living entity
  * @param source the damage source, for seams that need its type tags (the parry only stops melee
  *     blows; the reflect only stops projectiles)
- * @param blocking whether the defender was <em>actively using</em> {@code tool} when the blow
- *     landed (upstream's {@code onBlock} state -- the broadsword's parry window, the battlesign's
- *     stance) rather than merely holding it in the main hand ({@code onPlayerHurt})
+ * @param using whether {@code tool} itself is the defender's active item stack
+ * @param blocking whether the defender was blocking when the blow landed (upstream's {@code onBlock}
+ *     state) rather than merely holding {@code tool} ({@code onPlayerHurt})
  */
 public record CombatDefense(
         ServerLevel level,
@@ -39,4 +56,15 @@ public record CombatDefense(
         LivingEntity defender,
         @Nullable LivingEntity attacker,
         DamageSource source,
-        boolean blocking) {}
+        boolean using,
+        boolean blocking) {
+
+    /**
+     * Which hand {@code tool} is in, for the seams that spend its durability -- since issue #460 the
+     * defensive pass runs for the off hand too, and {@code hurtAndBreak} names the slot whose break
+     * the client gets told about.
+     */
+    public EquipmentSlot slot() {
+        return defender.getOffhandItem() == tool ? EquipmentSlot.OFFHAND : EquipmentSlot.MAINHAND;
+    }
+}

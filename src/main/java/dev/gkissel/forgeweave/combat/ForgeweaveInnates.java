@@ -23,7 +23,6 @@ import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.AttributeInstance;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
@@ -528,10 +527,11 @@ public final class ForgeweaveInnates {
 
         @Override
         public float incomingHit(CombatDefense defense, float originalDamage, float damage) {
-            // The use lasts exactly the window, so an active use means the parry is open. blocking()
+            // The use lasts exactly the window, so an active use means the parry is open. using()
             // is the gate: since issue #229 the defensive pass also runs for a merely-held tool,
-            // which must never parry.
-            if (!defense.blocking() || !isMelee(defense.source())) {
+            // which must never parry -- and since issue #460 it also runs while some *other* item
+            // blocks (a raised shield in the off hand), which is not this broadsword's parry either.
+            if (!defense.using() || !isMelee(defense.source())) {
                 return damage;
             }
             LivingEntity attacker = defense.attacker();
@@ -586,13 +586,14 @@ public final class ForgeweaveInnates {
 
         @Override
         public float incomingHit(CombatDefense defense, float originalDamage, float damage) {
-            // defense.blocking() rather than vanilla's isBlocking(): upstream's own gate is
-            // isActiveItemStackBlocking, which is "holding the use button on a BLOCK-animation item"
-            // with no warm-up -- exactly what blocking() reports. Vanilla's isBlocking() additionally
-            // demands five ticks held, which would silently make the first quarter-second of a
-            // raised sign not a sign at all. (Since issue #229 the defensive pass also runs for a
-            // merely-held tool, which must never deflect or reduce.)
-            if (!defense.blocking()) {
+            // using() rather than blocking(): upstream's gate is BattleSign#shouldBlockDamage, which
+            // demands isActiveItemStackBlocking AND getActiveItemStack().getItem() == this -- a sign
+            // in the hand does nothing while a shield in the other hand is what is raised (issue
+            // #460). The sign's own animation is BLOCK, so using() implies blocking() here. It is
+            // still not vanilla's isBlocking(), which additionally demands five ticks held and would
+            // silently make the first quarter-second of a raised sign not a sign at all. (Since issue
+            // #229 the defensive pass also runs for a merely-held tool, which must never deflect.)
+            if (!defense.using()) {
                 return damage;
             }
             // Upstream splits these two across separate events (LivingAttackEvent for the projectile
@@ -624,7 +625,7 @@ public final class ForgeweaveInnates {
             projectile.setOwner(defense.defender());
             // Upstream spends durability equal to the damage stopped.
             defense.tool().hurtAndBreak(Math.max(1, (int) originalDamage), defense.defender(),
-                    EquipmentSlot.MAINHAND);
+                    defense.slot());
             return 0.0F;
         }
 
@@ -656,7 +657,7 @@ public final class ForgeweaveInnates {
                 attacker.hurt(thorns(defense.level(), defense.defender()), reduced * meleeReflectFraction);
                 durability = durability * 3 / 2;
             }
-            defense.tool().hurtAndBreak(durability, defense.defender(), EquipmentSlot.MAINHAND);
+            defense.tool().hurtAndBreak(durability, defense.defender(), defense.slot());
             return reduced;
         }
     }
