@@ -42,6 +42,19 @@ import dev.gkissel.forgeweave.item.BowItem;
  * {@code 0.9f}. Both belong to upstream's <em>blocking</em> pose, which Forgeweave does not ship
  * (see {@code ForgeweaveItemModelProvider}'s note on {@code battlesign.tcon.json}); when a blocking
  * ticket lands, it is one more branch here.
+ *
+ * <h2>Diagonal speed (issue #420)</h2>
+ *
+ * <p>Keyboard impulses are always {@code -1}, {@code 0}, or {@code 1} per axis, so a diagonal press
+ * hands us a {@code (forward, strafe)} pair of length {@code sqrt(2)} where a straight press hands
+ * us a pair of length {@code 1}. Multiplying both axes by the same draw speed before vanilla's own
+ * {@code 0.2F} (see above) leaves that {@code sqrt(2)} gap in place -- and vanilla's downstream
+ * clamp in {@code Entity#getInputVector} only normalizes once the combined length exceeds {@code 1},
+ * which our multiplier does not reliably push it past. Net effect: diagonal drawing is up to ~41%
+ * faster than straight, the same quirk vanilla sneaking and 1.12's own {@code TraitPreventSlowdown}
+ * have, just more visible here because the multiplier is larger. Fixed by normalizing the pair to
+ * unit length whenever both axes are engaged, before the multiplier is applied -- a deliberate
+ * deviation from vanilla/1.12 (maintainer request, #420), scoped to this bow-drawing path only.
  */
 @EventBusSubscriber(modid = Forgeweave.MODID, bus = EventBusSubscriber.Bus.GAME, value = Dist.CLIENT)
 public final class BowDrawMovement {
@@ -58,9 +71,25 @@ public final class BowDrawMovement {
         if (!(using.getItem() instanceof BowItem bow)) {
             return;
         }
-        float speed = bow.drawMovementSpeed();
-        event.getInput().leftImpulse *= speed * VANILLA_SLOWDOWN_INVERSE;
-        event.getInput().forwardImpulse *= speed * VANILLA_SLOWDOWN_INVERSE;
+        float multiplier = bow.drawMovementSpeed() * VANILLA_SLOWDOWN_INVERSE;
+        Impulse normalized = Impulse.normalize(event.getInput().forwardImpulse, event.getInput().leftImpulse);
+        event.getInput().forwardImpulse = normalized.forward() * multiplier;
+        event.getInput().leftImpulse = normalized.strafe() * multiplier;
+    }
+
+    /**
+     * The pure scaling step behind #420's fix: a {@code (forward, strafe)} impulse pair, normalized
+     * to unit length when both axes are non-zero so a diagonal press carries the same length as a
+     * straight one. Single-axis and zero input pass through untouched, and sign is preserved.
+     */
+    record Impulse(float forward, float strafe) {
+        static Impulse normalize(float forward, float strafe) {
+            if (forward == 0.0F || strafe == 0.0F) {
+                return new Impulse(forward, strafe);
+            }
+            float length = (float) Math.sqrt(forward * forward + strafe * strafe);
+            return new Impulse(forward / length, strafe / length);
+        }
     }
 
     private BowDrawMovement() {}
