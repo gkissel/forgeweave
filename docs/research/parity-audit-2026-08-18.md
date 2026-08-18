@@ -647,7 +647,7 @@ Prioritized and deduplicated across domains. Already-filed issues are marked; **
 - [x] **T32 — Sharpening kit repair** — accept a kit of the head material at the station and port the crafting-grid `RepairRecipe` (stations/tools, medium, M3.5 fix round).
 - [ ] **T33 — Tool tags, ItemAbilities and grass paths** — tag tools into `minecraft:pickaxes/axes/shovels/hoes/swords` + `c:tools/*`, implement `canPerformAction` per tool kind, and give shovel/excavator `SHOVEL_FLATTEN` (tools/config, medium, M3 playtest-fix).
 - [ ] **T34 — Per-tool knockback multipliers** — hatchet 1.3, mattock 1.1, lumberaxe 1.5, rapier 0.6, as per-tool seams (ADR-0005 forbids a custom pipeline) (tools, medium, M3 playtest-fix).
-- [ ] **T35 — Hammer's +3..6 vs undead** — conditional seam alongside the concussion rider (tools, medium, M3 playtest-fix).
+- [x] **T35 — Hammer's +3..6 vs undead** (shipped, #466) — a `ConditionalSeam(UNDEAD, ...)`/`RandomBonusDamage` seam alongside the concussion rider, composed into the hammer's one `Innate` (tools, medium, M3 playtest-fix).
 - [ ] **T36 — Scythe cannot shear entities** — generalise `KamaItem#interactLivingEntity` to a 3×3 area around the clicked entity (tools, medium, M3 playtest-fix).
 - [ ] **T37 — Longsword/frypan charge movement** — generalise `BowDrawMovement` to a per-use-action speed (longsword 0.9, frypan 0.7) (tools, medium, M3 playtest-fix).
 - [ ] **T38 — Seared brick/block/cobble/glass casting** — the casting side of the seared-stone chain (recorded as a PR #246 follow-up) (smeltery, medium, backlog).

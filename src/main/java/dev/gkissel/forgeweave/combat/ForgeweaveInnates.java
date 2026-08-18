@@ -278,6 +278,13 @@ public final class ForgeweaveInnates {
     private static final float CONCUSSION_CHANCE = 0.2F;
     private static final int CONCUSSION_DURATION_TICKS = 20;
     /**
+     * Upstream {@code Hammer#dealDamage} verbatim (parity audit T35, issue #466): {@code damage += 3
+     * + TConstruct.random.nextInt(4)} against the undead, i.e. a flat +3 plus a {@code [0, 4)} roll --
+     * +3..+6 total.
+     */
+    private static final float HAMMER_UNDEAD_BONUS_BASE = 3.0F;
+    private static final int HAMMER_UNDEAD_BONUS_ROLL = 4;
+    /**
      * Maintainer decision, issue #157: "+1 flat knockback", i.e. one Knockback-enchantment level.
      * Vanilla's {@code Player#attack} turns each level into {@code knockback(level * 0.5)}, which is
      * the same unit {@link KnockbackOnHitSeam#magnitude} takes.
@@ -332,7 +339,30 @@ public final class ForgeweaveInnates {
     /** Hammer: a chance to leave what it hits reeling. */
     public static final CombatSeam CONCUSSION_SEAM = new ConditionalSeam(HitCondition.ANY, CONCUSSION_CHANCE,
             new PotionEffectOnHit(MobEffects.MOVEMENT_SLOWDOWN, 1, CONCUSSION_DURATION_TICKS));
-    public static final Innate CONCUSSION = new Innate("concussion", CONCUSSION_SEAM, null);
+    /** Hammer: upstream's own flat +3..+6 damage against the undead (parity audit T35, issue #466). */
+    public static final CombatSeam HAMMER_UNDEAD_SEAM = new ConditionalSeam(HitCondition.UNDEAD, 1.0F,
+            new RandomBonusDamage(HAMMER_UNDEAD_BONUS_BASE, HAMMER_UNDEAD_BONUS_ROLL));
+    /** The hammer's one {@link Innate} seam: concussion's stagger chance and the undead bonus, both. */
+    public static final CombatSeam HAMMER_SEAM = new HammerCombat(CONCUSSION_SEAM, HAMMER_UNDEAD_SEAM);
+    public static final Innate CONCUSSION = new Innate("concussion", HAMMER_SEAM, null);
+
+    /**
+     * The one seam the hammer's {@link Innate} carries, for concussion's chance to stagger and the
+     * undead bonus damage -- two independently portable behaviors under one id, the same shape as
+     * {@link BroadswordCombat}.
+     */
+    private record HammerCombat(CombatSeam concussion, CombatSeam undead) implements CombatSeam {
+        @Override
+        public float preHit(CombatHit hit, float originalDamage, float damage) {
+            return undead.preHit(hit, originalDamage, concussion.preHit(hit, originalDamage, damage));
+        }
+
+        @Override
+        public void onHit(CombatHit hit, float damageDealt) {
+            concussion.onHit(hit, damageDealt);
+            undead.onHit(hit, damageDealt);
+        }
+    }
 
     /** Excavator: everything it hits goes one Knockback level further. */
     public static final CombatSeam FLAT_SMACK_SEAM = new KnockbackOnHitSeam(KNOCKBACK_LEVEL);

@@ -594,7 +594,10 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
 
         // The large harvest tools' innates (issue #157, maintainer decision 2026-08-12), same shape.
         add("tooltip.forgeweave.innate.concussion.name", "Concussion");
-        add("tooltip.forgeweave.innate.concussion.description", "Hits sometimes leave the target badly slowed.");
+        // #466 (parity audit T35): the tooltip now covers both halves of the hammer's one innate --
+        // concussion's own chance-to-slow, and upstream's flat +3..+6 damage against the undead.
+        add("tooltip.forgeweave.innate.concussion.description",
+                "Hits sometimes leave the target badly slowed, and deal bonus damage to the undead.");
         add("tooltip.forgeweave.innate.flat_smack.name", "Flat Smack");
         add("tooltip.forgeweave.innate.flat_smack.description", "Every hit knocks the target further back.");
         add("tooltip.forgeweave.innate.timber.name", "Timber");
