@@ -331,7 +331,7 @@ The core loop — multiblock rules, melting math, fuel model, in-tank alloying, 
 | Molten clay casting (terracotta, bricks, stained) | `TinkerSmeltery:441-467` | kept | fluid + melting only | partial | N | low | T71 |
 | Molten dirt + mud bricks | `TinkerSmeltery:434-439` | dropped | absent | missing | N | low | T71 |
 | Water from ice/snow; blood slime ball | `TinkerSmeltery:356-373` | kept | rotten flesh → blood only | partial | Y in part (#232) | low | T71 |
-| Bucket casting (fill any container) | `TinkerSmeltery:354` | ContainerFillingRecipe | absent | missing | N | medium | T43 |
+| Bucket casting (fill any container) | `TinkerSmeltery:354` | ContainerFillingRecipe | `casting_recipe/bucket_*.json` | have | Y (#542) | none | — |
 | Lavawood basin casting; red sand from blood | `TinkerSmeltery:497-501` | n/a | absent | missing | Y for lavawood (SCOPE M3.2) | low | T71 |
 | Molten fluid roster (colors/temps) + blocks/buckets | `TinkerFluids:83-230` | +300 scale | `ForgeweaveFluids:94-243` | have | Y (#92/#285/#286) | none | — |
 | Fluids absent (glass, dirt, milk, blue/purple slime, compat metals) | `TinkerFluids:44-146` | partly dropped | molten slime substitutes purple | partial | Y in part (SCOPE M3.2) | low | T57 |
@@ -655,7 +655,7 @@ Prioritized and deduplicated across domains. Already-filed issues are marked; **
 - [ ] **T40 — Shard cast + shard melting/casting** — gold and clay shard casts at 72 mB per metal (smeltery, medium, backlog).
 - [ ] **T41 — Emerald melting and block casting** — ore/gem/block melting rows plus the emerald block basin recipe (smeltery, medium, backlog).
 - [ ] **T42 — Molten glass** — fluid, sand/glass/pane melting, clear glass and pane casting, seared glass basin recipe (smeltery, medium, backlog).
-- [ ] **T43 — Bucket-filling casting recipe** — container-filling path at the casting table using the item fluid capability (smeltery, medium, backlog).
+- [x] **T43 — Bucket-filling casting recipe** (shipped, #542) — one `casting_recipe/bucket_<fluid>.json` row per fluid this mod already makes bucketable (issue #286) rather than upstream's single fluid-agnostic Java capability match, consistent with every other casting recipe already being one datapack row per (station, cast, fluid); same player-facing result (smeltery, medium, M3.5 fix round).
 - [ ] **T44 — Tinker tank multiblock** — controller, structure rules, capacity math, GUI, drain integration (smeltery, medium, M6/backlog).
 - [ ] **T45 — Pattern/Part Chest GUI** — derive upstream's `blank.png` scaling-chest art with a slider instead of vanilla `generic_54` paging (stations, medium, polish).
 - [ ] **T46 — Pattern Chest rules** — one-of-each patterns, stack size 1, cast-chest mode now that casts ship; same-stack-only rule for the Part Chest (stations, medium, M3.5 fix round).
