@@ -1,0 +1,9 @@
+{
+  "station": "basin",
+  "fluid": "forgeweave:molten_glass",
+  "amount": 1000,
+  "result": {
+    "id": "forgeweave:clear_glass"
+  },
+  "time": 120
+}

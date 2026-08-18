@@ -1,0 +1,9 @@
+{
+  "station": "table",
+  "fluid": "forgeweave:molten_glass",
+  "amount": 375,
+  "result": {
+    "id": "minecraft:glass_pane"
+  },
+  "time": 50
+}

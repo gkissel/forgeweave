@@ -143,6 +143,22 @@ class ForgeweaveFluidsTest {
     }
 
     /**
+     * #473 (T42): molten glass is a {@code fluidMetal} upstream ({@code TinkerFluids#setupFluids}:
+     * {@code fluidMetal("glass", 0xc0f5fe)}, {@code setTemperature(625)}), so unlike obsidian and
+     * molten dirt it rides the shared tinted metal texture pair rather than the stone one.
+     */
+    @Test
+    void moltenGlassMatchesUpstreamTemperatureAndUsesTheSharedMetalTextures() {
+        ResourceLocation metalStill = ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "derived/block/molten_metal");
+        ResourceLocation metalFlowing = ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "derived/block/molten_metal_flow");
+
+        assertEquals(625, ForgeweaveFluids.GLASS.temperature());
+        assertEquals(0xC0F5FE, ForgeweaveFluids.GLASS.color());
+        assertEquals(metalStill, ForgeweaveFluids.GLASS.stillTexture());
+        assertEquals(metalFlowing, ForgeweaveFluids.GLASS.flowingTexture());
+    }
+
+    /**
      * #285: the placed fluid block's light level derives from the fluid's own {@code
      * FluidType#getLightLevel()} instead of a hardcoded 10, so blood -- whose {@code FluidType}
      * never calls {@code lightLevel()}, leaving the property at its 0 default -- renders
