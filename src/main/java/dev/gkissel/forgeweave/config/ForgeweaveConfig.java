@@ -69,6 +69,18 @@ public final class ForgeweaveConfig {
     public static final ModConfigSpec.BooleanValue OBSIDIAN_ALLOY;
 
     /**
+     * Upstream {@code addFlintRecipe} (parity audit T55, issue #486): a shapeless crafting-table
+     * recipe turns 3 gravel into a flint. Checked at match time, the same "no restart" idiom every
+     * other option here uses ({@link dev.gkissel.forgeweave.recipe.GravelFlintRecipe#matches}) --
+     * upstream instead marks its own property {@code requiresMcRestart(true)} and gates the recipe's
+     * datapack JSON with a load-time condition (`Config.java:201-205`, `recipes/common/flint.json`),
+     * but that is the one upstream option that would need genuinely different (restart-requiring)
+     * machinery from every other Forgeweave toggle for no behavioral gain, so it is adapted to match
+     * this codebase's uniform runtime-check convention instead.
+     */
+    public static final ModConfigSpec.BooleanValue ADD_FLINT_RECIPE;
+
+    /**
      * Upstream {@code enableClayCasts}: the single-use clay casts (issue #292) can be moulded and
      * cast through. Upstream skips registering their recipes when this is off; casting recipes are
      * datapack entries here, so {@link dev.gkissel.forgeweave.casting.CastingRecipe#matches} filters
@@ -214,6 +226,9 @@ public final class ForgeweaveConfig {
         OBSIDIAN_ALLOY = builder
                 .comment("Allows the creation of molten obsidian in the smeltery from lava and water.")
                 .define("obsidianAlloy", true);
+        ADD_FLINT_RECIPE = builder
+                .comment("Adds a crafting-table recipe that turns 3 gravel into a flint.")
+                .define("addFlintRecipe", true);
         ENABLE_CLAY_CASTS = builder
                 .comment("Allows single-use clay casts to be moulded from molten clay and cast through.")
                 .define("enableClayCasts", true);

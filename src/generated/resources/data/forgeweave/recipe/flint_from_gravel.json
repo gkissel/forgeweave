@@ -1,0 +1,19 @@
+{
+  "type": "forgeweave:gravel_flint",
+  "category": "misc",
+  "ingredients": [
+    {
+      "item": "minecraft:gravel"
+    },
+    {
+      "item": "minecraft:gravel"
+    },
+    {
+      "item": "minecraft:gravel"
+    }
+  ],
+  "result": {
+    "count": 1,
+    "id": "minecraft:flint"
+  }
+}

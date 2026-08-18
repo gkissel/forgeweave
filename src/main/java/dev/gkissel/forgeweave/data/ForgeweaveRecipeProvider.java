@@ -11,6 +11,7 @@ import net.minecraft.advancements.AdvancementRequirements;
 import net.minecraft.advancements.AdvancementRewards;
 import net.minecraft.advancements.critereon.RecipeUnlockedTrigger;
 import net.minecraft.core.HolderLookup;
+import net.minecraft.core.NonNullList;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.data.PackOutput;
 import net.minecraft.data.recipes.RecipeCategory;
@@ -39,6 +40,7 @@ import net.neoforged.neoforge.common.Tags;
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.block.ForgeweaveBlocks;
 import dev.gkissel.forgeweave.item.ForgeweaveItems;
+import dev.gkissel.forgeweave.recipe.GravelFlintRecipe;
 import dev.gkissel.forgeweave.recipe.RetexturedShapedRecipe;
 import dev.gkissel.forgeweave.recipe.SharpeningKitRepairRecipe;
 
@@ -122,6 +124,11 @@ public class ForgeweaveRecipeProvider extends RecipeProvider {
         // Stencil Table (docs/SCOPE.md M1 issue #44): upstream 1.12's real stencil_table.json recipe
         // is "blank pattern + #STENCIL_TABLE" where that tag resolves to plankWood (NOTICE.md).
         retexturedTableRecipe(recipeOutput, ForgeweaveItems.STENCIL_TABLE.get(), ForgeweaveItems.PATTERN_BLANK.get(), Ingredient.of(ItemTags.PLANKS));
+
+        // 3 gravel -> 1 flint (parity audit T55, issue #486): upstream's recipes/common/flint.json,
+        // gated by addFlintRecipe -- see GravelFlintRecipe's javadoc for why the gate is a match-time
+        // config check here instead of upstream's load-time recipe condition.
+        gravelFlintRecipe(recipeOutput);
 
         // Pattern Chest (docs/SCOPE.md M1 issue #66): upstream ships two recipes for it, both in the
         // `tconstruct:pattern_chest` group -- chest/pattern.json (blank pattern stacked directly on a
@@ -688,6 +695,19 @@ public class ForgeweaveRecipeProvider extends RecipeProvider {
         AdvancementHolder advancement = recipeOutput.advancement()
                 .addCriterion("has_the_recipe", RecipeUnlockedTrigger.unlocked(id))
                 .addCriterion("has_tool_station", has(ForgeweaveItems.TOOL_STATION.get()))
+                .rewards(AdvancementRewards.Builder.recipe(id))
+                .requirements(AdvancementRequirements.Strategy.OR)
+                .build(id.withPrefix("recipes/misc/"));
+        recipeOutput.accept(id, recipe, advancement);
+    }
+
+    private void gravelFlintRecipe(RecipeOutput recipeOutput) {
+        ResourceLocation id = ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "flint_from_gravel");
+        GravelFlintRecipe recipe = new GravelFlintRecipe("", CraftingBookCategory.MISC, new ItemStack(Items.FLINT),
+                NonNullList.of(Ingredient.EMPTY, Ingredient.of(Items.GRAVEL), Ingredient.of(Items.GRAVEL), Ingredient.of(Items.GRAVEL)));
+
+        AdvancementHolder advancement = recipeOutput.advancement()
+                .addCriterion("has_gravel", has(Items.GRAVEL))
                 .rewards(AdvancementRewards.Builder.recipe(id))
                 .requirements(AdvancementRequirements.Strategy.OR)
                 .build(id.withPrefix("recipes/misc/"));
