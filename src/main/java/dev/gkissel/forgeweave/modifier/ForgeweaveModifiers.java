@@ -31,6 +31,7 @@ import net.minecraft.tags.TagKey;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.ExperienceOrb;
+import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
@@ -43,6 +44,7 @@ import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.state.BlockState;
 
 import net.neoforged.neoforge.common.util.TriState;
 import net.neoforged.neoforge.event.entity.living.LivingDropsEvent;
@@ -506,6 +508,7 @@ public final class ForgeweaveModifiers {
 
     private static final ResourceLocation MENDING_MOSS_ID = id("mending_moss");
     private static final ResourceLocation SOULBOUND_ID = id("soulbound");
+    private static final ResourceLocation GLOWING_ID = id("glowing");
 
     /** Upstream {@code ModMendingMoss.MENDING_MOSS_LEVELS}: 10 XP levels per moss -> mending moss. */
     private static final int MENDING_MOSS_ACQUIRE_LEVELS = 10;
@@ -958,6 +961,30 @@ public final class ForgeweaveModifiers {
         }
     };
 
+    // ---------------------------------------------------------------- parity audit T25 (issue #456)
+
+    /**
+     * Upstream {@code ModGlowing#onUpdate}: the tool only lights the way where
+     * {@code world.getLightFromNeighbors(pos) < 8}.
+     */
+    private static final int GLOWING_LIGHT_THRESHOLD = 8;
+
+    /**
+     * Ender eye (parity audit T25, issue #456). Upstream {@code ModGlowing}: while the tool is the
+     * held item and the holder stands somewhere darker than light {@value #GLOWING_LIGHT_THRESHOLD},
+     * it drops a light source next to them for one durability. One shot, one slot -- upstream's
+     * aspect set is bare {@code ModifierTrait(identifier, color)} with {@code maxLevel} 0, which
+     * wires {@code DataAspect + freeModifier}, i.e. it applies once and costs one slot (the shipped
+     * recipe's {@code max_level: 1} / {@code cost: 1}).
+     *
+     * <p>No {@link Modifier} hook carries this: like {@link #MENDING_MOSS} it is a per-tick behavior
+     * rather than a function of the tool's stats, so it lives in {@link #inventoryTick} gated by this
+     * id. The light itself is vanilla {@code minecraft:light} rather than a Forgeweave block of its
+     * own -- upstream 1.12 had no vanilla equivalent and shipped {@code BlockGlow} for it, 1.21 does;
+     * the deviations that follow from that are recorded in the PR.
+     */
+    public static final Modifier GLOWING = new Modifier() {};
+
     private static final Map<ResourceLocation, Modifier> REGISTRY = Map.ofEntries(
             Map.entry(id("harvest_width"), HARVEST_WIDTH),
             Map.entry(id("harvest_height"), HARVEST_HEIGHT),
@@ -984,7 +1011,8 @@ public final class ForgeweaveModifiers {
             Map.entry(id("fiery"), FIERY),
             Map.entry(id("necrotic"), NECROTIC),
             Map.entry(id("beheading"), BEHEADING),
-            Map.entry(id("wind_burst"), WIND_BURST));
+            Map.entry(id("wind_burst"), WIND_BURST),
+            Map.entry(id("glowing"), GLOWING));
 
     /**
      * docs/SCOPE.md's "8 combat modifiers" (M3 acceptance test 4): the #162/#163 batches' seven
@@ -1292,6 +1320,7 @@ public final class ForgeweaveModifiers {
             Map.entry(id("fiery"), TextColor.fromRgb(0xEA9E32)),
             Map.entry(id("necrotic"), TextColor.fromRgb(0x5E0000)),
             Map.entry(id("beheading"), TextColor.fromRgb(0x10574B)),
+            Map.entry(id("glowing"), TextColor.fromRgb(0xFFFFAA)),
             // Upstream has no modifier for these; the trait of the same name is the nearest source
             // (searing <- TraitAutosmelt 0xff5500, magnetic_pull <- TraitMagnetic 0xdddddd,
             // aquadynamic <- TraitAquadynamic AQUA), the rest are this ticket's own picks.
@@ -1590,12 +1619,23 @@ public final class ForgeweaveModifiers {
     }
 
     /**
-     * Mending moss's periodic self-repair (issue #107, see {@link #MENDING_MOSS}'s javadoc). Called
-     * from {@code ToolItem#inventoryTick} alongside {@code ForgeweaveTraits#inventoryTick}, which has
-     * already ruled out clients and Broken tools -- a no-op for a tool without the modifier, without
-     * banked XP, or already at full durability.
+     * The per-tick modifier behaviors, called from {@code ToolItem#inventoryTick} alongside
+     * {@code ForgeweaveTraits#inventoryTick}, which has already ruled out clients and Broken tools.
+     * A no-op for a tool carrying neither {@link #MENDING_MOSS} nor {@link #GLOWING}.
+     *
+     * @param isSelected whether this is the holder's held item -- upstream {@code ITrait}/modifier
+     *     {@code onUpdate}'s own parameter, which {@code ModGlowing} gates its whole effect on.
+     *     Mending moss ignores it, as it always has (see {@link #MENDING_MOSS}'s ponytail note).
      */
-    public static void inventoryTick(ItemStack stack, ServerLevel level, LivingEntity holder) {
+    public static void inventoryTick(ItemStack stack, ServerLevel level, LivingEntity holder, boolean isSelected) {
+        mendingMossTick(stack, level, holder);
+        if (isSelected) {
+            glowingTick(stack, level, holder);
+        }
+    }
+
+    /** Mending moss's periodic self-repair (issue #107, see {@link #MENDING_MOSS}'s javadoc). */
+    private static void mendingMossTick(ItemStack stack, ServerLevel level, LivingEntity holder) {
         ModifierEntry entry = entry(stack, MENDING_MOSS_ID);
         if (entry == null || stack.getDamageValue() <= 0) {
             return;
@@ -1606,6 +1646,35 @@ public final class ForgeweaveModifiers {
         }
         stack.set(ForgeweaveDataComponents.MENDING_MOSS_XP.get(), stored - 1);
         stack.setDamageValue(Math.max(0, stack.getDamageValue() - mendingMossDurabilityPerXp(entry.level())));
+    }
+
+    /**
+     * Glowing's light-dropping (parity audit T25, issue #456), upstream {@code ModGlowing#onUpdate}
+     * whole: standing anywhere darker than light {@value #GLOWING_LIGHT_THRESHOLD}, the first of the
+     * holder's seven neighbouring positions that will take a light gets one, for one durability.
+     * Upstream's own damage exemption for a creative player is vanilla's here --
+     * {@code ItemStack#hurtAndBreak} skips a holder with infinite materials on its own.
+     */
+    private static void glowingTick(ItemStack stack, ServerLevel level, LivingEntity holder) {
+        if (entry(stack, GLOWING_ID) == null) {
+            return;
+        }
+        BlockPos standing = holder.blockPosition();
+        if (level.getMaxLocalRawBrightness(standing) >= GLOWING_LIGHT_THRESHOLD) {
+            return;
+        }
+        // Upstream ModGlowing#onUpdate's own seven candidates, in its own order.
+        for (BlockPos pos : List.of(standing, standing.above(), standing.north(), standing.east(),
+                standing.south(), standing.west(), standing.below())) {
+            BlockState state = level.getBlockState(pos);
+            // Upstream BlockGlow#addGlow: replaceable, and never inside a liquid.
+            if (!state.canBeReplaced() || !state.getFluidState().isEmpty()) {
+                continue;
+            }
+            level.setBlockAndUpdate(pos, Blocks.LIGHT.defaultBlockState());
+            stack.hurtAndBreak(1, holder, EquipmentSlot.MAINHAND);
+            return;
+        }
     }
 
     /**

@@ -1,0 +1,8 @@
+{
+  "modifier": "forgeweave:glowing",
+  "reagent": {
+    "item": "minecraft:ender_eye"
+  },
+  "cost": 1,
+  "max_level": 1
+}

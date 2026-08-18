@@ -560,6 +560,8 @@
   "modifier.forgeweave.fortification.material": "Fortified (%s)",
   "modifier.forgeweave.fortification.material_description": "Mining level increased to the same level as %s.",
   "modifier.forgeweave.fortification.name": "Fortified",
+  "modifier.forgeweave.glowing.description": "Whenever it gets too dark your tool sacrifices a part of itself to light up your way.",
+  "modifier.forgeweave.glowing.name": "Glowing",
   "modifier.forgeweave.harvest_height.description": "Increases the height of the area your tool affects. The effect is tool specific.",
   "modifier.forgeweave.harvest_height.name": "Height++",
   "modifier.forgeweave.harvest_width.description": "Increases the width of the area your tool affects. The effect is tool specific.",

@@ -97,6 +97,7 @@ MODIFIER_SOURCES = {
     "beheading": "mod_beheading",
     "shulking": "mod_shulking",
     "webbed": "mod_web",
+    "glowing": "mod_glowing",
 }
 
 # (tool, modifier) pairs upstream ships no overlay for, on purpose: luck refuses launchers

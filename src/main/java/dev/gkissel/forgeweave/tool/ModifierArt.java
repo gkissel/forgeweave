@@ -34,7 +34,7 @@ public final class ModifierArt {
             id("haste"), id("sharpness"), id("diamond"), id("emerald"), id("reinforced"),
             id("silky"), id("luck"), id("mending_moss"), id("soulbound"), id("smite"),
             id("bane_of_arthropods"), id("fiery"), id("necrotic"), id("knockback"),
-            id("beheading"), id("shulking"), id("webbed"));
+            id("beheading"), id("shulking"), id("webbed"), id("glowing"));
 
     /**
      * The texture path (no {@code .png}, no namespace) of {@code modifier}'s overlay on {@code
@@ -96,6 +96,7 @@ public final class ModifierArt {
             "shortbow_sharpness_draw3", "shortbow_shulking_draw3",
             "shortbow_silky_draw2", "shortbow_silky_draw3",
             "shortbow_webbed_draw2", "shortbow_webbed_draw3",
+            "shortbow_glowing_draw1", "shortbow_glowing_draw2", "shortbow_glowing_draw3",
             "longbow_bane_of_arthropods_draw2", "longbow_bane_of_arthropods_draw3",
             "longbow_fiery_draw2", "longbow_fiery_draw3",
             "longbow_haste_draw1", "longbow_haste_draw2", "longbow_haste_draw3",
@@ -103,6 +104,7 @@ public final class ModifierArt {
             "longbow_shulking_draw2", "longbow_shulking_draw3",
             "longbow_silky_draw2", "longbow_silky_draw3",
             "longbow_webbed_draw2", "longbow_webbed_draw3",
+            "longbow_glowing_draw1", "longbow_glowing_draw2", "longbow_glowing_draw3",
             "crossbow_emerald_draw2",
             "crossbow_fiery_draw2", "crossbow_fiery_draw3",
             "crossbow_haste_draw1", "crossbow_haste_draw2", "crossbow_haste_draw3",
