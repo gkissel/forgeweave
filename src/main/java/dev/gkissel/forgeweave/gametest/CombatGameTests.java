@@ -1,5 +1,7 @@
 package dev.gkissel.forgeweave.gametest;
 
+import java.util.List;
+
 import net.minecraft.core.BlockPos;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
@@ -17,13 +19,19 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.component.ItemAttributeModifiers;
 import net.minecraft.world.level.GameType;
 
+import net.neoforged.neoforge.common.NeoForge;
+import net.neoforged.neoforge.event.entity.player.AttackEntityEvent;
+import net.neoforged.neoforge.event.entity.player.CriticalHitEvent;
 import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 
 import dev.gkissel.forgeweave.Forgeweave;
+import dev.gkissel.forgeweave.combat.BleedEffect;
+import dev.gkissel.forgeweave.combat.BonusDamageFraction;
 import dev.gkissel.forgeweave.combat.CombatHit;
 import dev.gkissel.forgeweave.combat.CombatSeam;
 import dev.gkissel.forgeweave.combat.CombatSeams;
+import dev.gkissel.forgeweave.combat.ForgeweaveMobEffects;
 import dev.gkissel.forgeweave.item.ForgeweaveDataComponents;
 import dev.gkissel.forgeweave.item.ForgeweaveItems;
 import dev.gkissel.forgeweave.tool.ToolStats;
@@ -139,6 +147,144 @@ public class CombatGameTests {
         helper.succeed();
     }
 
+    /**
+     * Issue #422: a flat trait bonus (hellish's +4) is part of the blow vanilla scales, not a number
+     * added after vanilla is done. Upstream {@code ToolHelper#attackEntity} runs {@code ITrait#damage}
+     * on the base, then crit x1.5, then the cooldown factor {@code 0.2 + c^2 * 0.8}; the seam pipeline
+     * receives vanilla's already-scaled amount, so it unwinds that factor, runs the seams, and re-applies
+     * it. Staged as vanilla stages it: {@link AttackEntityEvent} carries the charge, {@link
+     * CriticalHitEvent} the crit, and the amount handed to {@code hurt} is what {@code Player#attack}
+     * would hand it for a 1.0 base -- {@code base * k}.
+     */
+    @GameTest(template = "empty")
+    public static void flatBonusFollowsVanillaChargeAndCrit(GameTestHelper helper) {
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        ItemStack hatchet = CombatTraitGameTests.tool(ForgeweaveItems.TOOL_HATCHET.get(),
+                List.of(CombatTraitGameTests.traitId("hellish")), 1.0F);
+        player.setItemInHand(InteractionHand.MAIN_HAND, hatchet);
+        Pig pig = tankPig(helper);
+        DamageSource source = helper.getLevel().damageSources().playerAttack(player);
+
+        // Full charge, no crit: no swing captured for this player, k = 1 -- the +4 lands whole.
+        assertLost(helper, pig, source, 1.0F, 5.0F, "a full-charge hit");
+
+        // Full charge, crit: k = 1.5, and the bonus is inside the multiplier (upstream: crit after traits).
+        NeoForge.EVENT_BUS.post(new CriticalHitEvent(player, pig, 1.5F, true));
+        assertLost(helper, pig, source, 1.5F, 7.5F, "a full-charge crit");
+
+        // Spam-click: the swing has had no time to recover, so vanilla lands the base at ~20% -- and
+        // the +4 must shrink by the same factor rather than land whole.
+        player.resetAttackStrengthTicker();
+        float scale = player.getAttackStrengthScale(0.5F);
+        helper.assertTrue(scale < 0.2F, "this test is meaningless unless the mock player's swing really is uncharged");
+        float k = 0.2F + scale * scale * 0.8F;
+        NeoForge.EVENT_BUS.post(new AttackEntityEvent(player, pig)); // also clears the crit above
+        assertLost(helper, pig, source, k, 5.0F * k, "a spam-clicked hit");
+
+        pig.discard();
+        helper.succeed();
+    }
+
+    /**
+     * Issue #422: the tool's damage cutoff applies to the seam-boosted total, upstream's
+     * {@code calcCutoffDamage(damage, tool.damageCutoff())} after {@code ITrait#damage}. A 14 base
+     * plus hellish's 4 is 18 on the hatchet's default 15 cutoff: 15 + 0.9 * 3 = 17.7.
+     */
+    @GameTest(template = "empty")
+    public static void flatBonusPastTheCutoffIsCurved(GameTestHelper helper) {
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        ItemStack hatchet = CombatTraitGameTests.tool(ForgeweaveItems.TOOL_HATCHET.get(),
+                List.of(CombatTraitGameTests.traitId("hellish")), 14.0F);
+        player.setItemInHand(InteractionHand.MAIN_HAND, hatchet);
+        Pig pig = tankPig(helper);
+
+        assertLost(helper, pig, helper.getLevel().damageSources().playerAttack(player), 14.0F, 17.7F,
+                "a hit pushed past the cutoff");
+
+        pig.discard();
+        helper.succeed();
+    }
+
+    /**
+     * Issue #422's invariant for the fractional seams (rapier's +5%, katana's ramp, timber, superheat):
+     * they scale the blow, so unwinding and re-applying vanilla's factor around them changes nothing --
+     * a +50% seam on a spam-clicked hit still lands 1.5x what vanilla sent.
+     */
+    @GameTest(template = "empty")
+    public static void fractionSeamsAreUnchangedByTheUnwind(GameTestHelper helper) {
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        ItemStack hatchet = ToolAssembly.tool(helper, player, new BlockPos(1, 1, 1),
+                ForgeweaveItems.PART_AXE_HEAD.get(), "stone", "wood", "wood");
+        player.setItemInHand(InteractionHand.MAIN_HAND, hatchet);
+        Pig pig = tankPig(helper);
+
+        player.resetAttackStrengthTicker();
+        float scale = player.getAttackStrengthScale(0.5F);
+        float k = 0.2F + scale * scale * 0.8F;
+        NeoForge.EVENT_BUS.post(new AttackEntityEvent(player, pig));
+
+        FRACTION.arm();
+        try {
+            assertLost(helper, pig, helper.getLevel().damageSources().playerAttack(player), 2.0F * k, 3.0F * k,
+                    "a +50% seam on a spam-clicked hit");
+        } finally {
+            FRACTION.armed = false;
+        }
+
+        pig.discard();
+        helper.succeed();
+    }
+
+    /**
+     * Issue #422's re-entrancy check: a bleed tick credits the wielder but names no weapon, so it must
+     * not run the tool's seams again -- a hellish wielder's bleed ticking for 1 + 4 was half of the
+     * "effects combo" the issue reports.
+     */
+    @GameTest(template = "empty")
+    public static void bleedTicksDoNotFireSeams(GameTestHelper helper) {
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        ItemStack hatchet = ToolAssembly.tool(helper, player, new BlockPos(1, 1, 1),
+                ForgeweaveItems.PART_AXE_HEAD.get(), "stone", "wood", "wood");
+        player.setItemInHand(InteractionHand.MAIN_HAND, hatchet);
+        Pig pig = tankPig(helper);
+
+        COUNTER.arm();
+        try {
+            pig.hurt(helper.getLevel().damageSources().playerAttack(player), 1.0F);
+            COUNTER.assertCounts(helper, 1, 1, 0, "the blow that leaves the bleed");
+            helper.assertTrue(pig.getLastHurtByMob() == player, "the tick below must be crediting the wielder to prove anything");
+            float before = pig.getHealth();
+            ((BleedEffect) ForgeweaveMobEffects.BLEED.value()).applyEffectTick(pig, 0);
+            helper.assertTrue(pig.getHealth() < before, "the bleed tick must still land");
+            COUNTER.assertCounts(helper, 1, 1, 0, "a bleed tick");
+        } finally {
+            COUNTER.armed = false;
+        }
+
+        pig.discard();
+        helper.succeed();
+    }
+
+    /** A pig that survives every blow staged here: 100 max health, no armor, no AI. */
+    private static Pig tankPig(GameTestHelper helper) {
+        Pig pig = helper.spawn(EntityType.PIG, new BlockPos(2, 2, 2));
+        pig.setNoAi(true);
+        pig.getAttribute(Attributes.MAX_HEALTH).setBaseValue(100.0);
+        pig.setHealth(100.0F);
+        return pig;
+    }
+
+    /** Lands {@code amount} on a healed, non-invulnerable {@code pig} and asserts it lost {@code expected}. */
+    private static void assertLost(GameTestHelper helper, Pig pig, DamageSource source, float amount, float expected,
+            String what) {
+        pig.setHealth(pig.getMaxHealth());
+        pig.invulnerableTime = 0;
+        pig.hurt(source, amount);
+        float lost = pig.getMaxHealth() - pig.getHealth();
+        helper.assertTrue(Math.abs(lost - expected) < 0.01F,
+                "expected " + what + " to land " + expected + ", landed " + lost);
+    }
+
     /** Assembles {@code headPart} from stone/wood/wood and checks both attack attributes on it. */
     private static void assertAttackAttributes(GameTestHelper helper, Player player, BlockPos pos, Item headPart,
             String name, double expectedDamage, double expectedAttackSpeed) {
@@ -232,4 +378,25 @@ public class CombatGameTests {
     }
 
     private static final CountingSeam COUNTER = new CountingSeam();
+
+    /** A +50% seam handed out only while armed, same arm/disarm contract as {@link CountingSeam}. */
+    private static final class ArmedFraction {
+        private final CombatSeam seam = new BonusDamageFraction(0.5F);
+        private boolean registered;
+        private boolean armed;
+
+        void arm() {
+            if (!registered) {
+                registered = true;
+                CombatSeams.register((weapon, out) -> {
+                    if (armed) {
+                        out.accept(seam);
+                    }
+                });
+            }
+            armed = true;
+        }
+    }
+
+    private static final ArmedFraction FRACTION = new ArmedFraction();
 }
