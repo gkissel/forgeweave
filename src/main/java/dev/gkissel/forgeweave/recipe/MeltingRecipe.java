@@ -118,7 +118,28 @@ public record MeltingRecipe(Ingredient input, Fluid fluid, int amount, int tempe
 
     private static MeltingRecipe withDerivedTemperature(Ingredient input, Fluid fluid, int amount, Optional<Integer> temperature, boolean ore) {
         return new MeltingRecipe(input, fluid, amount,
-                temperature.orElseGet(() -> calcTemperature(fluid.getFluidType().getTemperature(), amount)), ore);
+                temperature.orElseGet(() -> calcTemperature(fluid.getFluidType().getTemperature(), oreDoubledAmount(amount, ore))), ore);
+    }
+
+    /**
+     * Parity audit T60: upstream bakes {@code Config.oreToIngotRatio} into {@code Material.VALUE_Ore()}
+     * ({@code VALUE_Ingot * ratio}) before calling {@code calcTemperature}, so an ore melts at a
+     * higher default temperature than the ingot it yields. Forgeweave's {@code amount} field on an
+     * ore recipe is deliberately the un-doubled raw-drop equivalent instead (#99, "melting recipes
+     * hold base amounts, the core multiplies"), so the doubling has to be folded back in here for a
+     * derived (no explicit {@code temperature} key) temperature to match.
+     *
+     * <p>Uses {@link ForgeweaveConfig#ORE_TO_INGOT_BASELINE} (upstream's own default ratio) rather
+     * than the live {@link ForgeweaveConfig#ORE_TO_INGOT_RATIO} config: that value lives in a
+     * {@code SERVER}-type spec no unit test environment loads (see
+     * {@code dev.gkissel.forgeweave.block.OreToIngotRatioTest}), and this runs inside {@link #CODEC},
+     * parsed well before any config is guaranteed loaded. A pack that dials the ratio still yields
+     * proportionally more metal per ore ({@code SmelteryControllerBlockEntity#oreAmount}); only the
+     * temperature curve stays pinned to upstream's own default, the same way it already does for
+     * every recipe's fluid-type temperature.
+     */
+    private static int oreDoubledAmount(int amount, boolean ore) {
+        return ore ? (int) (amount * ForgeweaveConfig.ORE_TO_INGOT_BASELINE) : amount;
     }
 
     /**
