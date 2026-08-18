@@ -1,0 +1,33 @@
+{
+  "values": [
+    "forgeweave:pattern_blank",
+    "forgeweave:pattern_pickaxe_head",
+    "forgeweave:pattern_shovel_head",
+    "forgeweave:pattern_axe_head",
+    "forgeweave:pattern_tool_binding",
+    "forgeweave:pattern_tool_handle",
+    "forgeweave:pattern_sword_blade",
+    "forgeweave:pattern_wide_guard",
+    "forgeweave:pattern_hand_guard",
+    "forgeweave:pattern_cross_guard",
+    "forgeweave:pattern_sign_plate",
+    "forgeweave:pattern_pan",
+    "forgeweave:pattern_knife_blade",
+    "forgeweave:pattern_large_sword_blade",
+    "forgeweave:pattern_tough_tool_rod",
+    "forgeweave:pattern_tough_binding",
+    "forgeweave:pattern_large_plate",
+    "forgeweave:pattern_hammer_head",
+    "forgeweave:pattern_excavator_head",
+    "forgeweave:pattern_scythe_head",
+    "forgeweave:pattern_kama_head",
+    "forgeweave:pattern_broad_axe_head",
+    "forgeweave:pattern_vein_hammer_head",
+    "forgeweave:pattern_war_mace_head",
+    "forgeweave:pattern_curved_blade",
+    "forgeweave:pattern_katana_blade",
+    "forgeweave:pattern_bow_limb",
+    "forgeweave:pattern_bow_string",
+    "forgeweave:pattern_sharpening_kit"
+  ]
+}

@@ -87,6 +87,15 @@ public class ForgeweaveBlockTagsProvider extends BlockTagsProvider {
                 .addTag(cTag("storage_blocks/manyullyn")).addTag(cTag("storage_blocks/rose_gold"))
                 .addTag(cTag("storage_blocks/steel")).addTag(cTag("storage_blocks/knightslime"))
                 .addTag(cTag("storage_blocks/pig_iron")).addTag(cTag("storage_blocks/amethyst_bronze"));
+
+        // T79 (parity audit 2026-08-18, issue #510) -- the block-side half of
+        // ForgeweaveItemTagsProvider's c:glass_blocks/c:dyed additions (TinkerOredict registerCommon():
+        // blockClearGlass/blockClearStainedGlass -> "blockGlass" (+ per-color "blockGlass<Color>")).
+        var glassBlocks = tag(cTag("glass_blocks")).add(ForgeweaveBlocks.CLEAR_GLASS.get());
+        for (var color : ForgeweaveBlocks.clearStainedGlassColors()) {
+            glassBlocks.add(color.block().get());
+            tag(cTag("dyed/" + color.dye().getSerializedName())).add(color.block().get());
+        }
     }
 
     private static TagKey<Block> cTag(String path) {
