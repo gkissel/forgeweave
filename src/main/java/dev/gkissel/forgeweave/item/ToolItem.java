@@ -238,11 +238,17 @@ public class ToolItem extends Item {
      *
      * <p>The materials that name a tool are upstream's <em>repair parts</em>
      * ({@code TinkersItem#getRepairParts}, overridden per tool): index 1 for the ordinary
-     * three-part tools, {@code {1, 2, 3}} for the hammer, {@code {0, 1}} for the shortbow. Every
-     * one of those index sets is exactly that tool's {@link ToolConstants.Role#HEAD} slots (a bow
-     * limb being the {@link ToolConstants.Role#LIMB} that carries the HEAD stat block), so the role
-     * is read off the tool's own part list rather than a second per-tool table that could drift
-     * from it.
+     * three-part tools, {@code {1, 2, 3}} for the hammer, {@code {0, 1}} for the shortbow. That set
+     * is a tool's {@link ToolConstants.Role#HEAD} slots for all but two of the roster (a bow limb
+     * being the {@link ToolConstants.Role#LIMB} that carries the HEAD stat block), so the role is
+     * read off the tool's own part list here.
+     *
+     * <p>Since issue #462 landed the real table ({@code ToolConstants.Entry#repairSlots()}) the two
+     * are visibly not the same question for the scythe, whose repair parts include its tough binding,
+     * and the longbow, whose repair part is only its second limb. Naming deliberately keeps the role
+     * reading: it is what {@code MaterialDisplay#prefixed} wants ("which materials is this tool made
+     * of, visually") and what issue #446 shipped and pinned. Changing it is a separate decision, not
+     * a side effect of the repair table existing.
      *
      * <p>A tool with no materials component (creative tab, JEI ghost) and one no assembly row
      * explains both fall back to as much as is known -- the plain item name, and the primary head

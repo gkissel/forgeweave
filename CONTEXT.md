@@ -16,7 +16,7 @@ Forgeweave is an independent NeoForge mod inspired by the Minecraft 1.12.2 gener
 | **Trait** | A gameplay behavior a Material grants to Tools containing it. Trait behavior is Java code; the Material→Trait assignment is data. |
 | **Modifier** | A post-assembly upgrade applied to a finished Tool (redstone, lapis, …). Deferred to M2; distinct from Trait. |
 | **Broken** | Tool state at 0 durability: unusable but never destroyed; restored by repair at a Tool Station. |
-| **Head material** | The Material of a Tool's head Part; determines the repair item. |
+| **Head material** | The Material of a Tool's head Part; the primary repair material. Tools with several repair parts (hammer, mattock, scythe, shortbow) also accept those parts' materials -- see `ToolConstants.Entry#repairSlots()`. |
 
 ## Invariants
 
