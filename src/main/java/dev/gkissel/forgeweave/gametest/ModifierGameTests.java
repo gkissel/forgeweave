@@ -8,16 +8,19 @@ import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
+import net.minecraft.network.chat.TextColor;
 import net.minecraft.network.chat.contents.TranslatableContents;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.tags.TagKey;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.CraftingInput;
+import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.item.enchantment.ItemEnchantments;
@@ -32,9 +35,12 @@ import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.block.ToolStationBlockEntity;
 import dev.gkissel.forgeweave.item.ForgeweaveDataComponents;
 import dev.gkissel.forgeweave.item.ForgeweaveItems;
+import dev.gkissel.forgeweave.item.ToolItem;
+import dev.gkissel.forgeweave.material.Material;
 import dev.gkissel.forgeweave.menu.ToolStationMenu;
 import dev.gkissel.forgeweave.modifier.ForgeweaveModifiers;
 import dev.gkissel.forgeweave.modifier.ModifierEntry;
+import dev.gkissel.forgeweave.tool.ToolStats;
 
 /**
  * Issue #105's verification: modifiers applied through the real Tool Station menu, against the
@@ -449,6 +455,71 @@ public class ModifierGameTests {
         helper.succeed();
     }
 
+    /**
+     * Issue #458: upstream {@code TraitAutosmelt#blockHarvestDrops} wraps the whole thing --
+     * smelting and the XP it drops -- in {@code ToolHelper#isToolEffective2}; Searing shares that
+     * same gate now (issue #228's smelt path). {@code deniedPickaxe} tags stone straight into the
+     * tool's own {@code incorrectForTool}, so it is never the correct tool for the drops event's
+     * (also stone) block.
+     */
+    @GameTest(template = "empty")
+    public static void searingIsGatedByToolEffectiveness(GameTestHelper helper) {
+        ItemStack pickaxe = deniedPickaxe(SEARING);
+        ItemEntity drop = drop(helper, new ItemStack(Items.IRON_ORE, 2));
+
+        BlockDropsEvent event = dropsEvent(helper, pickaxe, null, drop);
+        int xpBefore = event.getDroppedExperience();
+        ForgeweaveModifiers.onBlockDrops(event);
+
+        helper.assertTrue(drop.getItem().is(Items.IRON_ORE) && drop.getItem().getCount() == 2,
+                "an ineffective tool must not smelt its drop, got " + drop.getItem());
+        helper.assertTrue(event.getDroppedExperience() == xpBefore,
+                "an ineffective tool must not drop furnace XP either, got " + event.getDroppedExperience());
+        helper.succeed();
+    }
+
+    /**
+     * Issue #458: upstream drops the smelted result's furnace XP too ({@code
+     * FurnaceRecipes#getSmeltingExperience}, the probabilistic round-up covered exactly by
+     * {@code modifier.AutosmeltXpTest}). Gold ore's smelting XP is exactly 1.0 -- deterministic,
+     * no roll needed -- so the block event's dropped experience must grow by exactly 1.
+     */
+    @GameTest(template = "empty")
+    public static void searingGrantsFurnaceExperience(GameTestHelper helper) {
+        ItemStack pickaxe = withModifier(SEARING);
+        ItemEntity drop = drop(helper, new ItemStack(Items.GOLD_ORE, 1));
+
+        BlockDropsEvent event = dropsEvent(helper, pickaxe, null, drop);
+        int xpBefore = event.getDroppedExperience();
+        ForgeweaveModifiers.onBlockDrops(event);
+
+        helper.assertValueEqual(event.getDroppedExperience(), xpBefore + 1,
+                "furnace XP from one smelted gold ore");
+        helper.succeed();
+    }
+
+    /**
+     * Issue #458: upstream {@code TraitAutosmelt#canApplyTogether(Enchantment)} refuses to ever pair
+     * the trait with vanilla Silk Touch. Searing has no upstream analog of its own to draw the
+     * exclusion from, but it rides the exact same smelt path (issue #228), so it inherits the same
+     * refusal.
+     */
+    @GameTest(template = "empty")
+    public static void searingRefusesToSmeltWithSilkTouch(GameTestHelper helper) {
+        ItemStack pickaxe = withModifier(SEARING);
+        helper.getLevel().registryAccess().lookup(Registries.ENCHANTMENT)
+                .flatMap(lookup -> lookup.get(Enchantments.SILK_TOUCH))
+                .ifPresentOrElse(silkTouch -> pickaxe.enchant(silkTouch, 1),
+                        () -> helper.fail("Silk Touch must be registered"));
+        ItemEntity drop = drop(helper, new ItemStack(Items.IRON_ORE, 2));
+
+        ForgeweaveModifiers.onBlockDrops(dropsEvent(helper, pickaxe, null, drop));
+
+        helper.assertTrue(drop.getItem().is(Items.IRON_ORE) && drop.getItem().getCount() == 2,
+                "Silk Touch must refuse Searing's smelt, got " + drop.getItem());
+        helper.succeed();
+    }
+
     /** Magnetic Pull (issue #108): drops the player's inventory can hold go straight into it. */
     @GameTest(template = "empty")
     public static void magneticPullSendsDropsToTheBreakersInventory(GameTestHelper helper) {
@@ -544,11 +615,38 @@ public class ModifierGameTests {
         helper.succeed();
     }
 
-    /** A bare pickaxe carrying one level of {@code id}; these three modifiers don't need an assembled tool. */
+    /**
+     * A pickaxe carrying one level of {@code id}, correct-for-drops on the {@code dropsEvent}
+     * fixture's stone (issue #458's effectiveness gate needs a real vanilla {@code tool} component,
+     * not just the Forgeweave stats these three modifiers otherwise get by on their own).
+     */
     private static ItemStack withModifier(ResourceLocation id) {
-        ItemStack pickaxe = new ItemStack(ForgeweaveItems.TOOL_PICKAXE.get());
+        ItemStack pickaxe = pickaxe("incorrect_for_stone_tool");
         pickaxe.set(ForgeweaveDataComponents.MODIFIERS.get(), List.of(new ModifierEntry(id, 1)));
         return pickaxe;
+    }
+
+    /** As {@link #withModifier}, but tagged so the tool is never correct for the fixture's stone drop. */
+    private static ItemStack deniedPickaxe(ResourceLocation id) {
+        ItemStack pickaxe = pickaxe("mineable/pickaxe");
+        pickaxe.set(ForgeweaveDataComponents.MODIFIERS.get(), List.of(new ModifierEntry(id, 1)));
+        return pickaxe;
+    }
+
+    /** A pickaxe with a real {@code tool} component, denied only on the {@code incorrectForTool} tag. */
+    private static ItemStack pickaxe(String incorrectForTool) {
+        ToolItem toolItem = ForgeweaveItems.TOOL_PICKAXE.get();
+        ToolStats.Stats stats = new ToolStats.Stats(250, 1.0F, 1.0F);
+        Material head = new Material(new Material.Head(250, 1.0F, 1.0F), new Material.Handle(1.0F, 0), 0,
+                TagKey.create(Registries.BLOCK, ResourceLocation.withDefaultNamespace(incorrectForTool)),
+                new Material.Traits(List.of(), List.of()), List.of(), Ingredient.of(Items.STICK),
+                TextColor.fromRgb(0xFFFFFF));
+
+        ItemStack stack = new ItemStack(toolItem);
+        stack.set(DataComponents.TOOL, toolItem.toolComponent(head, stats));
+        stack.set(DataComponents.MAX_DAMAGE, 250);
+        stack.set(DataComponents.DAMAGE, 0);
+        return stack;
     }
 
     private static ItemEntity drop(GameTestHelper helper, ItemStack stack) {

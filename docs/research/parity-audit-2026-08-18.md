@@ -146,7 +146,7 @@ Every 1.12 tool-material trait is ported (44 ids across 34 materials, with head-
 | dense | `TraitDense:18-30` | n/a | `:1111-1122` | have | — | none | — |
 | writable / writable2 | `TraitWritable:16-22` | n/a | `:1134-1152` | have | Y (#344/#367) | none | — |
 | squeaky | `TraitSqueaky:21-50` (sound + compat refusals) | n/a | silk touch + zero damage only | partial | Y (PR #242) | low | T64 |
-| autosmelt | `TraitAutosmelt:41-81` (XP, particles, gate, exclusions) | n/a | drop swap only `ForgeweaveModifiers:1230-1243` | partial | Y (PR #242) | medium | T27 |
+| autosmelt | `TraitAutosmelt:41-81` (XP, particles, gate, exclusions) | n/a | `ForgeweaveModifiers#smelt` (XP, particles, gate, exclusions since #458) | have | Y (#458) | none | — |
 | prickly | `TraitPrickly:20-37` + HEART_CACTUS | n/a | `GaussianArmorPiercingHit`, no particle | have | — | low | T51 |
 | spiky | `TraitSpiky:26-57` (both hands, shield block) | n/a | `ThornsReflectSeam`, main hand only | partial | Y (partial, PR #243) | low | T29 |
 | superheat | `TraitSuperheat:23-29` | n/a | `:1226-1227` | have | — | none | — |
@@ -639,7 +639,7 @@ Prioritized and deduplicated across domains. Already-filed issues are marked; **
 - [ ] **T24 — Port the Blasting modifier** — 3 TNT, harvest-only, non-effective blocks minable with a drop-destroy chance, overlay art, JEI entry (modifiers, medium, M6).
 - [ ] **T25 — Port the Glowing modifier** — glowstone + ender eye, places a `minecraft:light` block in the dark at 1 durability (modifiers, medium, M6).
 - [ ] **T26 — Extra-info tooltip lines for modifiers and traits** — smite/bane/fiery/necrotic/reinforced/shulking/mending moss plus the eight `getExtraInfo` traits; also leveled names (Haster…, Unbreakable) and per-modifier colours (modifiers/traits, medium, M3.5 playtest-fix).
-- [ ] **T27 — Autosmelt/searing drops no furnace XP or flame particles** — add smelting XP with the probabilistic round-up, FLAME particles and the effectiveness gate plus silk-touch/squeaky exclusion on the shared smelt path (traits, medium, M3.5 fix round).
+- [x] **T27 — Autosmelt/searing drops no furnace XP or flame particles** (shipped, #458) — `ForgeweaveModifiers#smelt` (the shared Searing/autosmelt path, issue #228) now gates on `isCorrectToolForDrops` (the `isToolEffective2` approximation), refuses to fire alongside Silk Touch/squeaky, drops the smelted result's furnace XP with the upstream probabilistic round-up, and spawns 3 FLAME particles per effective break (traits, medium, M3.5 fix round).
 - [ ] **T28 — Magnetic pulls constantly** — gate the pull on a 30-tick after-use window (marker effect or timer component) instead of always-on while carried (traits, medium, M3.5 fix round).
 - [ ] **T29 — Blocking definition for defensive traits** — treat a raised vanilla shield (and battlesign use) as blocking, iterate both hands, and stop counting longsword charging as a block (traits, medium, M3.5 fix round).
 - [ ] **T30 — Repair accepts only the plain repair item** — accept any of the material's crafting items (logs, blocks, shards, nuggets) scaled by value (materials/stations, medium, M6).
@@ -703,7 +703,7 @@ Prioritized and deduplicated across domains. Already-filed issues are marked; **
 Recorded decisions that this audit re-read and considers worth a maintainer glance, because the reason given no longer holds or the consequence is larger than the record suggests.
 
 - **Magnetic always-on pull** (PR #119): justified by "no potion-effect plumbing", but `ForgeweaveMobEffects` now exists — see T28.
-- **Autosmelt follows Searing exactly** (PR #242): the consequence is no furnace XP from smelted ores, which reads as a bug in play — see T27.
+- **Autosmelt follows Searing exactly** (PR #242): still true and no longer a gap -- see T27 (#458), which gave the shared path the furnace XP, particles, effectiveness gate and Silk Touch exclusion both features were missing.
 - **Hit-effect traits/modifiers ride the vanilla arrow** (SCOPE M3.5, PR #410): a documented deviation from 1.12's ammo-side model, with a one-line revert flag; SCOPE's supporting sentence about launcher branches is factually wrong (T77).
 - **Lightweight counted once per tool** rather than compounding per limb (PR #410) — flagged as an open question at the time.
 - **Tier from the highest head material** (#294) for hammer/mattock/battleaxe: upstream keys the hammer off its hammer head only, and #294's premise missed that override.
