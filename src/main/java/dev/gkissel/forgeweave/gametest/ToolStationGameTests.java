@@ -9,6 +9,7 @@ import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.contents.TranslatableContents;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.ContainerLevelAccess;
 import net.minecraft.world.item.ItemStack;
@@ -456,6 +457,94 @@ public class ToolStationGameTests {
         menu.getSlot(ToolStationMenu.OUTPUT_SLOT).onTake(player, repaired);
         helper.assertTrue(menu.getSlot(3).getItem().isEmpty(), "slot 3's cobblestone must be spent");
         helper.assertTrue(menu.getSlot(5).getItem().isEmpty(), "slot 5's cobblestone must be spent");
+        helper.succeed();
+    }
+
+    /**
+     * Parity audit 2026-08-18 T11 (issue #443): upstream {@code ContainerToolStation#renameTool}
+     * ({@code ContainerToolStation.java:281-299}) is a recipe of its own, sitting between modify and
+     * build in {@code onCraftMatrixChanged}'s chain -- a tool alone in the first slot plus a name
+     * typed in the field produces a renamed copy, with no repair item, reagent or part loaded.
+     * Before this the station only stamped {@link ToolStationMenu#setToolName}'s text onto an output
+     * some <em>other</em> recipe had already produced, so a tool sitting by itself could never be
+     * renamed.
+     */
+    @GameTest(template = "empty")
+    public static void renamesAToolWithNoOtherInputs(GameTestHelper helper) {
+        BlockPos pos = new BlockPos(1, 1, 1);
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        ItemStack pickaxe = ToolAssembly.pickaxe(helper, player, pos, "stone", "wood", "wood");
+
+        ToolStationBlockEntity blockEntity = helper.getBlockEntity(pos);
+        blockEntity.container().setItem(0, pickaxe);
+
+        ToolStationMenu menu = ToolAssembly.menu(helper, player, pos, blockEntity);
+        menu.broadcastChanges();
+        helper.assertTrue(menu.getSlot(ToolStationMenu.OUTPUT_SLOT).getItem().isEmpty(),
+                "a lone tool with no name typed is not a recipe");
+
+        menu.setToolName("Digger");
+
+        ItemStack renamed = menu.getSlot(ToolStationMenu.OUTPUT_SLOT).getItem();
+        helper.assertTrue(renamed.is(ForgeweaveItems.TOOL_PICKAXE.get()),
+                "a lone tool plus a typed name must produce a renamed copy, got " + renamed);
+        helper.assertTrue("Digger".equals(renamed.getHoverName().getString()),
+                "expected the typed name on the output, got " + renamed.getHoverName().getString());
+        helper.assertTrue(renamed.getDamageValue() == pickaxe.getDamageValue(),
+                "renaming must not repair or otherwise disturb the tool");
+
+        menu.getSlot(ToolStationMenu.OUTPUT_SLOT).onTake(player, renamed);
+        helper.assertTrue(menu.getSlot(ToolStationMenu.HEAD_SLOT).getItem().isEmpty(),
+                "taking the renamed tool must spend the one in the input slot");
+
+        // Upstream's own guard: a name equal to what the tool already shows is not a rename.
+        blockEntity.container().setItem(0, renamed);
+        menu.broadcastChanges();
+        helper.assertTrue(menu.getSlot(ToolStationMenu.OUTPUT_SLOT).getItem().isEmpty(),
+                "retyping the name a tool already carries must produce nothing");
+        helper.succeed();
+    }
+
+    /**
+     * Parity audit 2026-08-18 T11 (issue #443): upstream's {@code ToolStationTextPacket} echoes the
+     * typed name to every player with a Tool Station container open at the same station, and
+     * {@code ContainerToolStation#syncWithOtherContainer} ({@code ContainerToolStation.java:80-88})
+     * seeds a newly opened one from both the name and the tool selection a container already there
+     * is holding. Before this both were per-menu, so two players at one station saw two different
+     * fields and two different tabs over one shared output slot.
+     */
+    @GameTest(template = "empty")
+    public static void typedNameAndTabReachOtherPlayersAtTheSameStation(GameTestHelper helper) {
+        BlockPos pos = new BlockPos(1, 1, 1);
+        ServerPlayer first = helper.makeMockServerPlayerInLevel();
+        ServerPlayer second = helper.makeMockServerPlayerInLevel();
+        ItemStack pickaxe = ToolAssembly.pickaxe(helper, first, pos, "stone", "wood", "wood");
+
+        ToolStationBlockEntity blockEntity = helper.getBlockEntity(pos);
+        blockEntity.container().setItem(0, pickaxe);
+
+        ToolStationMenu firstMenu = ToolAssembly.menu(helper, first, pos, blockEntity);
+        first.containerMenu = firstMenu;
+        ToolStationMenu secondMenu = ToolAssembly.menu(helper, second, pos, blockEntity);
+        second.containerMenu = secondMenu;
+
+        firstMenu.setToolName("Digger");
+        helper.assertTrue("Digger".equals(secondMenu.getToolName()),
+                "the typed name must reach the other player's menu, got '" + secondMenu.getToolName() + "'");
+
+        int shovelTab = ToolStationTabs.indexOfTool(ForgeweaveItems.TOOL_SHOVEL.get());
+        helper.assertTrue(shovelTab >= 0, "the shovel must have a tab at all");
+        firstMenu.clickMenuButton(first, shovelTab);
+        helper.assertTrue(secondMenu.getSelectedTab() == shovelTab,
+                "the selected tab must reach the other player's menu, got " + secondMenu.getSelectedTab());
+
+        // A menu opened afterwards seeds itself from the ones already there.
+        ServerPlayer third = helper.makeMockServerPlayerInLevel();
+        ToolStationMenu thirdMenu = ToolAssembly.menu(helper, third, pos, blockEntity);
+        helper.assertTrue("Digger".equals(thirdMenu.getToolName()),
+                "a menu opened later must seed its name from the station, got '" + thirdMenu.getToolName() + "'");
+        helper.assertTrue(thirdMenu.getSelectedTab() == shovelTab,
+                "a menu opened later must seed its tab from the station, got " + thirdMenu.getSelectedTab());
         helper.succeed();
     }
 }
