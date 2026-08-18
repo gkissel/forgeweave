@@ -264,6 +264,39 @@ public class ForgeBowGameTests {
         helper.succeed();
     }
 
+    /**
+     * T52 (issue #483), {@code CrossBow#getAmmoToRender}'s one override: the crossbow shows a bolt
+     * only while it holds a crank, however full the quiver is. A cranking crossbow shows none either
+     * -- upstream's cranking overrides carry no {@code ammoPosition} at all
+     * ({@code BowDrawArtTest}), and this is the other half of that: the stack itself is empty.
+     */
+    @GameTest(template = "empty")
+    public static void onlyALoadedCrossbowShowsABolt(GameTestHelper helper) {
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        player.moveTo(helper.absoluteVec(new Vec3(2.5, 2.0, 2.5)));
+        ItemStack bow = crossbow(helper, player, new BlockPos(1, 1, 1));
+        CrossbowItem item = (CrossbowItem) bow.getItem();
+        giveArrows(player, 5);
+        player.setItemInHand(InteractionHand.MAIN_HAND, bow);
+
+        helper.assertTrue(item.ammoToRender(bow, player).isEmpty(),
+                "an unloaded crossbow shows no bolt even with a full quiver");
+
+        // Mid-crank is still unloaded, so still nothing.
+        bow.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
+        helper.assertTrue(item.ammoToRender(bow, player).isEmpty(), "a crossbow being cranked shows no bolt");
+        player.stopUsingItem();
+
+        CrossbowItem.setLoaded(bow, true);
+        helper.assertTrue(item.ammoToRender(bow, player).is(Items.ARROW),
+                "a loaded crossbow shows the arrow its next click will spend");
+
+        bow.set(ForgeweaveDataComponents.BROKEN.get(), true);
+        helper.assertTrue(item.ammoToRender(bow, player).isEmpty(),
+                "a Broken crossbow cannot fire, so it shows nothing -- BowCore's guard, inherited");
+        helper.succeed();
+    }
+
     private static List<Arrow> arrowsAround(GameTestHelper helper, Player player) {
         return helper.getLevel().getEntitiesOfClass(Arrow.class,
                 new AABB(player.position(), player.position()).inflate(4.0));

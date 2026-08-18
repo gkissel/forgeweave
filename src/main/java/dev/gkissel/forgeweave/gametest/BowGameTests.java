@@ -305,4 +305,38 @@ public class BowGameTests {
         helper.assertTrue(allowed.getItem() instanceof ToolItem, "a bow is a ToolItem");
         helper.succeed();
     }
+
+    /**
+     * T52 (issue #483), {@code BowCore#getAmmoToRender}: the stack the bow would fire is the one its
+     * model draws nocked -- the same {@code findAmmo} lookup, so the offhand wins over the inventory
+     * and the arrow on show is the arrow that leaves the bow. Two guards of upstream's own: a Broken
+     * bow renders no ammo (it cannot fire), and neither does one nobody is holding.
+     *
+     * <p>It is not gated on the draw: upstream's undrawn bows carry a root {@code ammoPosition} too,
+     * so a bow held by a player with arrows shows one before the draw starts.
+     */
+    @GameTest(template = "empty")
+    public static void theNockedArrowIsTheArrowTheBowWouldFire(GameTestHelper helper) {
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        ItemStack bow = shortbow(helper, player, "wood", "wood", "string");
+        BowItem item = (BowItem) bow.getItem();
+        player.setItemInHand(InteractionHand.MAIN_HAND, bow);
+
+        helper.assertTrue(item.ammoToRender(bow, player).isEmpty(), "an empty quiver nocks nothing");
+
+        giveArrows(player, 3);
+        ItemStack nocked = item.ammoToRender(bow, player);
+        helper.assertTrue(nocked.is(Items.ARROW) && nocked.getCount() == 3,
+                "the inventory arrows are what shows, got " + nocked);
+
+        player.setItemInHand(InteractionHand.OFF_HAND, new ItemStack(Items.SPECTRAL_ARROW, 2));
+        helper.assertTrue(item.ammoToRender(bow, player).is(Items.SPECTRAL_ARROW),
+                "findAmmo's order holds: the offhand stack is what a shot would spend, so it is what shows");
+
+        helper.assertTrue(item.ammoToRender(bow, null).isEmpty(), "an unheld bow has no inventory to look in");
+
+        bow.set(ForgeweaveDataComponents.BROKEN.get(), true);
+        helper.assertTrue(item.ammoToRender(bow, player).isEmpty(), "a Broken bow cannot fire, so it nocks nothing");
+        helper.succeed();
+    }
 }

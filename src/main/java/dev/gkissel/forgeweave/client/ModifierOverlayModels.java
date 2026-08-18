@@ -10,6 +10,7 @@ import javax.annotation.Nullable;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Transformation;
 
+import org.joml.Matrix4f;
 import org.joml.Vector3f;
 
 import net.minecraft.client.Minecraft;
@@ -36,9 +37,11 @@ import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.client.event.ModelEvent;
 import net.neoforged.neoforge.client.model.BakedModelWrapper;
+import net.neoforged.neoforge.client.model.QuadTransformers;
 import net.neoforged.neoforge.client.model.geometry.UnbakedGeometryHelper;
 
 import dev.gkissel.forgeweave.Forgeweave;
+import dev.gkissel.forgeweave.item.BowItem;
 import dev.gkissel.forgeweave.menu.ToolAssemblyRecipes;
 import dev.gkissel.forgeweave.modifier.ForgeweaveModifiers;
 import dev.gkissel.forgeweave.modifier.ModifierEntry;
@@ -46,8 +49,12 @@ import dev.gkissel.forgeweave.tool.ModifierArt;
 import dev.gkissel.forgeweave.tool.ToolArt;
 
 /**
- * Renders applied modifiers as overlay layers on the tool item (issue #257), upstream 1.12's
- * {@code BakedToolModel#addModifierQuads} adapted to NeoForge's baked-model pipeline.
+ * Renders what a tool's item model draws on top of its own layers: applied modifiers as overlay
+ * layers (issue #257) and a bow's nocked ammo (T52, issue #483) -- upstream 1.12's {@code
+ * BakedToolModel#addModifierQuads} and {@code BakedBowModel#addExtraQuads} adapted to NeoForge's
+ * baked-model pipeline. The two live together here for upstream's own reason: they are two extra
+ * quad lists appended by one baked model, resolved from one stack at one moment, and the ammo has to
+ * know which draw stage the modifier overlays resolved to.
  *
  * <p><b>Upstream behavior, mirrored here:</b> every modifier on the tool that has overlay art
  * renders, in application order, with <b>no cap</b> -- upstream walks the whole base modifiers tag
@@ -72,6 +79,12 @@ import dev.gkissel.forgeweave.tool.ToolArt;
  * block center, so a bare z-scale is upstream's translate-plus-scale in one). As upstream, all
  * overlays share the one transform: two overlapping overlay pixels resolve by draw order, which is
  * application order.
+ *
+ * <p><b>The nocked ammo</b> is the ammo item's <em>own baked model</em>, moved to the spot
+ * {@link ToolArt#ammoPosition} names -- upstream wraps it in a Mantle {@code TRSRBakedModel} and
+ * appends its quads, and {@link #nockedQuads} is that transform (rotation about the item's centre,
+ * then the offset, which is what Mantle's {@code blockCenterToCorner} amounts to). It draws last, so
+ * an arrow lies over both the tool and its overlays.
  */
 @EventBusSubscriber(modid = Forgeweave.MODID, bus = EventBusSubscriber.Bus.MOD, value = Dist.CLIENT)
 public final class ModifierOverlayModels {
@@ -97,7 +110,14 @@ public final class ModifierOverlayModels {
      */
     private static final Map<CacheKey, BakedModel> COMPOSED = new ConcurrentHashMap<>();
 
-    private record CacheKey(BakedModel base, List<ResourceLocation> overlays) {}
+    /**
+     * {@code ammo} is the ammo's <em>resolved model</em> rather than the stack (upstream keys on
+     * item + meta + NBT): two stacks that bake the same model compose the same quads here, because
+     * {@link #nockedQuads} drops the tint the stack could otherwise vary. {@code stage} carries the
+     * ammo's position, which {@code base} alone does not -- a bow's model is one instance per item,
+     * not per draw stage.
+     */
+    private record CacheKey(BakedModel base, List<ResourceLocation> overlays, @Nullable BakedModel ammo, int stage) {}
 
     @SubscribeEvent
     static void onModifyBakingResult(ModelEvent.ModifyBakingResult event) {
@@ -128,13 +148,16 @@ public final class ModifierOverlayModels {
                 if (resolved == null) {
                     resolved = originalModel;
                 }
-                List<ResourceLocation> overlays = overlaySprites(tool, stack, drawStage(tool, stack, entity));
-                if (overlays.isEmpty()) {
+                int stage = drawStage(tool, stack, entity);
+                List<ResourceLocation> overlays = overlaySprites(tool, stack, stage);
+                BakedModel ammo = nockedAmmoModel(tool, stack, level, entity, stage);
+                if (overlays.isEmpty() && ammo == null) {
                     return resolved;
                 }
                 BakedModel base = resolved;
-                return COMPOSED.computeIfAbsent(new CacheKey(base, overlays),
-                        cacheKey -> compose(base, overlays));
+                float[] ammoPosition = ToolArt.ammoPosition(tool, stage);
+                return COMPOSED.computeIfAbsent(new CacheKey(base, overlays, ammo, stage),
+                        cacheKey -> compose(base, overlays, ammo, ammoPosition));
             }
         };
         private final String tool;
@@ -190,8 +213,53 @@ public final class ModifierOverlayModels {
                 : 0;
     }
 
-    /** The tool's own quads plus one untinted baked layer per overlay; see the class javadoc. */
-    private static BakedModel compose(BakedModel base, List<ResourceLocation> overlays) {
+    /**
+     * The model of the ammo {@code stack} draws nocked (T52, issue #483), or {@code null} where
+     * nothing is nocked: upstream's {@code IAmmoUser#getAmmoToRender}, guarded by whether this tool
+     * has an {@code ammoPosition} in this state at all -- a crossbow being cranked has none, and no
+     * melee tool ever does.
+     */
+    @Nullable
+    private static BakedModel nockedAmmoModel(String tool, ItemStack stack, @Nullable ClientLevel level,
+            @Nullable LivingEntity entity, int stage) {
+        if (ToolArt.ammoPosition(tool, stage) == null || !(stack.getItem() instanceof BowItem bow)) {
+            return null;
+        }
+        ItemStack ammo = bow.ammoToRender(stack, entity);
+        return ammo.isEmpty() ? null : Minecraft.getInstance().getItemRenderer().getModel(ammo, level, entity, 0);
+    }
+
+    /**
+     * The ammo's quads moved into place: upstream's {@code TRSRBakedModel(ammoModel, pos, rot, 1f)},
+     * whose transform Mantle applies about the item's centre rather than its corner -- without that
+     * the ammo's {@code rot [0, 180, 0]} would swing it clean out of the model.
+     *
+     * <p>The tint index is dropped, which upstream had no need to do: Forgeweave tints a tool's
+     * layers per material ({@code ForgeweaveItemColors#toolMaterialTint}) where upstream stitched a
+     * sprite per material, and an arrow's own quads carry tint index 0 -- the bow's first limb -- so
+     * left alone they would come out limb-coloured. The cost is that a tipped arrow shows its tip
+     * untinted; it is still the arrow that would fire.
+     */
+    private static List<BakedQuad> nockedQuads(BakedModel ammo, float[] position) {
+        Transformation transformation = new Transformation(new Matrix4f()
+                .translation(0.5f, 0.5f, 0.5f)
+                .translate(position[0], position[1], position[2])
+                .rotateXYZ((float) Math.toRadians(position[3]), (float) Math.toRadians(position[4]),
+                        (float) Math.toRadians(position[5]))
+                .translate(-0.5f, -0.5f, -0.5f));
+        List<BakedQuad> placed = QuadTransformers.applying(transformation)
+                .process(ammo.getQuads(null, null, RandomSource.create(0L)));
+        List<BakedQuad> untinted = new ArrayList<>(placed.size());
+        for (BakedQuad quad : placed) {
+            untinted.add(new BakedQuad(quad.getVertices(), -1, quad.getDirection(), quad.getSprite(),
+                    quad.isShade(), quad.hasAmbientOcclusion()));
+        }
+        return untinted;
+    }
+
+    /** The tool's own quads, one untinted baked layer per overlay, then the nocked ammo on top. */
+    private static BakedModel compose(BakedModel base, List<ResourceLocation> overlays, @Nullable BakedModel ammo,
+            @Nullable float[] ammoPosition) {
         List<BakedQuad> quads = new ArrayList<>(base.getQuads(null, null, RandomSource.create(0L)));
         for (ResourceLocation overlay : overlays) {
             TextureAtlasSprite sprite = blockAtlasSprite(overlay);
@@ -199,6 +267,9 @@ public final class ModifierOverlayModels {
             quads.addAll(UnbakedGeometryHelper.bakeElements(
                     UnbakedGeometryHelper.createUnbakedItemElements(-1, sprite),
                     material -> sprite, OVERLAY_DEPTH_STATE));
+        }
+        if (ammo != null && ammoPosition != null) {
+            quads.addAll(nockedQuads(ammo, ammoPosition));
         }
         List<BakedQuad> composedQuads = List.copyOf(quads);
         return new BakedModelWrapper<>(base) {

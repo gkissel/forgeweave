@@ -323,6 +323,26 @@ public class BowItem extends ToolItem {
     }
 
     /**
+     * {@code BowCore#getAmmoToRender}: the ammo the bow draws nocked (T52, issue #483) -- what
+     * {@link #findAmmo} would spend, and nothing once the tool is Broken and cannot fire.
+     * {@code ModifierOverlayModels} is the client caller, and {@code ToolArt#ammoPosition} says where
+     * it goes.
+     *
+     * <p>Deviation from 1.12, small and forced: upstream's {@code AmmoHelper#findAmmoFromInventory}
+     * takes any {@code Entity} and walks its item-handler capability, so any holder with an inventory
+     * gets an arrow drawn on its bow; {@link #findAmmo} takes a {@link Player}, so a non-player holder
+     * (and a holder-less render -- an item frame, a GUI slot) shows an empty bow. Nothing but a player
+     * can reach the rest of Forgeweave's launcher path either, and vanilla mobs expose no inventory
+     * handler for upstream's own lookup to find.
+     */
+    public ItemStack ammoToRender(ItemStack weapon, @Nullable LivingEntity holder) {
+        if (isBroken(weapon) || !(holder instanceof Player player)) {
+            return ItemStack.EMPTY;
+        }
+        return findAmmo(player);
+    }
+
+    /**
      * {@code BowCore#findAmmo} through {@code AmmoHelper#findAmmoFromInventory}: the held hands first
      * (offhand before main hand, the equipment handler upstream reads first), then the inventory in
      * slot order -- hotbar, then the rest, exactly the order upstream walks it in.
