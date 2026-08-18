@@ -105,31 +105,32 @@ public class LargeToolGameTests {
      * reads "use highest harvestlevel".
      *
      * <p>The hammer's slots are handle, hammer head, large plate, large plate. Wood heads sit at
-     * {@code incorrect_for_stone_tool} and stone ones at {@code incorrect_for_iron_tool}, so diamond
-     * ore separates those two tiers exactly ({@code ToolBehaviorGameTests#headMaterialDecidesTier}
-     * pins the single-head half of the same ladder).
+     * {@code incorrect_for_wooden_tool} and stone ones at {@code incorrect_for_stone_tool} (issue
+     * #433), so iron ore separates those two tiers exactly
+     * ({@code ToolBehaviorGameTests#headMaterialDecidesTier} pins the single-head half of the same
+     * ladder).
      */
     @GameTest(template = "empty")
     public static void hammerTakesTierFromHighestHead(GameTestHelper helper) {
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
-        BlockState diamondOre = Blocks.DIAMOND_ORE.defaultBlockState();
+        BlockState ironOre = Blocks.IRON_ORE.defaultBlockState();
         ToolAssemblyRecipes.Entry hammer = ToolAssembly.entryFor(ForgeweaveItems.TOOL_HAMMER.get());
 
         ItemStack allWood = ToolAssembly.assembleAtForge(helper, player, STATION, hammer,
                 List.of("wood", "wood", "wood", "wood"));
-        helper.assertFalse(allWood.isCorrectToolForDrops(diamondOre),
-                "an all-wood hammer must not harvest diamond ore -- this test's low-tier baseline");
+        helper.assertFalse(allWood.isCorrectToolForDrops(ironOre),
+                "an all-wood hammer must not harvest iron ore -- this test's low-tier baseline");
 
         // Cheap head slot, better large plate: the plate's tier has to win.
         ItemStack platedHigh = ToolAssembly.assembleAtForge(helper, player, STATION, hammer,
                 List.of("wood", "wood", "stone", "wood"));
-        helper.assertTrue(platedHigh.isCorrectToolForDrops(diamondOre),
+        helper.assertTrue(platedHigh.isCorrectToolForDrops(ironOre),
                 "a hammer with a stone large plate must mine at stone's tier however cheap its hammer head");
 
         // Better head slot, cheap plates: the max must not be dragged back down toward an average.
         ItemStack headHigh = ToolAssembly.assembleAtForge(helper, player, STATION, hammer,
                 List.of("wood", "stone", "wood", "wood"));
-        helper.assertTrue(headHigh.isCorrectToolForDrops(diamondOre),
+        helper.assertTrue(headHigh.isCorrectToolForDrops(ironOre),
                 "a stone hammer head must keep its tier when the large plates are cheaper");
 
         helper.succeed();

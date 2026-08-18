@@ -97,6 +97,51 @@ class MaterialTest {
         Material.CODEC.parse(ops, shipped(name)).getOrThrow();
     }
 
+    /**
+     * Issue #433 -- the whole harvest ladder, one row per head-bearing shipped material.
+     *
+     * <p>Upstream's {@code HarvestLevels} constants ({@code library/utils/HarvestLevels.java:15-19},
+     * pinned {@code c01173c}) are named for the <em>block</em> each level unlocks, not for the
+     * vanilla tool tier of the same name: {@code STONE = 0} is the level that mines stone, which a
+     * wooden pickaxe already has. PR #81 read them as tool-tier names and shipped every material one
+     * rung too generous. The correct mapping onto the vanilla {@code incorrect_for_*_tool} ladder is
+     * {@code STONE -> wooden}, {@code IRON -> stone}, {@code DIAMOND -> iron},
+     * {@code OBSIDIAN -> diamond}, {@code COBALT -> netherite} -- five upstream levels onto five
+     * vanilla tiers, exactly.
+     *
+     * <p>Levels below come from {@code TinkerMaterials#registerToolMaterialStats:409-534}; the six
+     * materials with no 1.12 counterpart (chorus, rose gold, amethyst bronze, nahuatl, ancient,
+     * netherite) take the modern {@code Tiers} value the 1.20 clone gives them
+     * ({@code MaterialStatsDataProvider}), which is already a tool tier and needs no remapping.
+     * String and vine ship no head stats, so their {@code incorrect_for_tool} is inert and is left
+     * where it was.
+     */
+    @ParameterizedTest
+    @CsvSource({
+            // HarvestLevels.STONE (0)
+            "wood,wooden", "paper,wooden", "sponge,wooden", "slime,wooden", "blueslime,wooden",
+            "magmaslime,wooden", "firewood,wooden",
+            // HarvestLevels.IRON (1)
+            "stone,stone", "flint,stone", "cactus,stone", "bone,stone", "prismarine,stone",
+            "netherrack,stone", "copper,stone", "lead,stone", "silver,stone", "electrum,stone",
+            // HarvestLevels.DIAMOND (2)
+            "iron,iron", "pig_iron,iron", "bronze,iron",
+            // HarvestLevels.OBSIDIAN (3)
+            "endstone,diamond", "knightslime,diamond", "steel,diamond",
+            // HarvestLevels.COBALT (4)
+            "obsidian,netherite", "cobalt,netherite", "ardite,netherite", "manyullyn,netherite",
+            // no 1.12 counterpart -- 1.20 clone's modern Tiers value
+            "chorus,stone", "rose_gold,wooden", "amethyst_bronze,diamond", "nahuatl,diamond",
+            "ancient,netherite", "netherite,netherite"
+    })
+    void shippedMaterialsSitOnUpstreamsHarvestTier(String name, String tier) {
+        Material material = Material.CODEC.parse(ops, shipped(name)).getOrThrow();
+
+        assertTrue(material.head().isPresent(), name + " must have head stats to carry a tier");
+        assertEquals("minecraft:incorrect_for_" + tier + "_tool",
+                material.incorrectForTool().location().toString(), name);
+    }
+
     @Test
     void woodMatchesItsShippedStats() {
         Material wood = Material.CODEC.parse(ops, shipped("wood")).getOrThrow();

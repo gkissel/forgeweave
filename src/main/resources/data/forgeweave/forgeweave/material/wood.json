@@ -14,7 +14,7 @@
     "range": 1.0,
     "bonus_damage": 0.0
   },
-  "incorrect_for_tool": "minecraft:incorrect_for_stone_tool",
+  "incorrect_for_tool": "minecraft:incorrect_for_wooden_tool",
   "traits": {
     "general": ["forgeweave:ecological"]
   },

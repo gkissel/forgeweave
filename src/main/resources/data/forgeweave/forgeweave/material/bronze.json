@@ -14,7 +14,7 @@
     "range": 1.5,
     "bonus_damage": 6.0
   },
-  "incorrect_for_tool": "minecraft:incorrect_for_diamond_tool",
+  "incorrect_for_tool": "minecraft:incorrect_for_iron_tool",
   "traits": {
     "general": ["forgeweave:dense"]
   },

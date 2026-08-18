@@ -197,9 +197,10 @@ public class MiningTraitGameTests {
         BlockPos pos = helper.absolutePos(new BlockPos(1, 1, 1));
 
         // Diamond-tier head (ladder index 3): dirt requires nothing (0) -> +3; iron ore requires
-        // stone (1) -> +2.
+        // stone (1) -> +2. Issue #433 put wooden back on the ladder's bottom rung, so the ladder
+        // index is now literally the vanilla tier and matches blockTierLevel's scale.
         ItemStack diamondTier = pickaxe(List.of(traitId("unnatural")), 100, 2.0F, 1.0F,
-                "incorrect_for_netherite_tool");
+                "incorrect_for_diamond_tool");
         player.setItemInHand(InteractionHand.MAIN_HAND, diamondTier);
         PlayerEvent.BreakSpeed dirt = new PlayerEvent.BreakSpeed(player, Blocks.DIRT.defaultBlockState(), 2.0F, pos);
         ForgeweaveTraits.onBreakSpeed(dirt);
@@ -209,7 +210,7 @@ public class MiningTraitGameTests {
         helper.assertTrue(ore.getNewSpeed() == 4.0F, "expected 2 + 2 on iron ore, got " + ore.getNewSpeed());
 
         // Wood-tier head (ladder index 0): no block sits below it, so nothing changes.
-        ItemStack woodTier = pickaxe(List.of(traitId("unnatural")), 100, 2.0F, 1.0F, "incorrect_for_stone_tool");
+        ItemStack woodTier = pickaxe(List.of(traitId("unnatural")), 100, 2.0F, 1.0F, "incorrect_for_wooden_tool");
         player.setItemInHand(InteractionHand.MAIN_HAND, woodTier);
         PlayerEvent.BreakSpeed level0 = new PlayerEvent.BreakSpeed(player, Blocks.DIRT.defaultBlockState(), 2.0F, pos);
         ForgeweaveTraits.onBreakSpeed(level0);

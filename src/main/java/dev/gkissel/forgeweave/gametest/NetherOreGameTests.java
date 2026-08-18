@@ -29,9 +29,9 @@ import dev.gkissel.forgeweave.item.ForgeweaveItems;
 import dev.gkissel.forgeweave.worldgen.NetherOrePlacement; // #276
 
 /**
- * docs/SCOPE.md M2 issue #104's ore-block verification: cobalt and ardite ore gate on the
- * {@code minecraft:needs_diamond_tool} tier this PR maps upstream 1.12's above-diamond
- * {@code HarvestLevels.COBALT} onto (ForgeweaveBlocks javadoc), and each drops exactly one raw item
+ * docs/SCOPE.md M2 issue #104's ore-block verification: cobalt and ardite ore gate on the netherite
+ * tier that issue #433 maps upstream 1.12's {@code HarvestLevels.COBALT} onto
+ * ({@code ForgeweaveBlockTagsProvider} javadoc), and each drops exactly one raw item
  * -- upstream's own unconditional, non-fortuned self-drop (BlockOre, NOTICE.md), adapted to
  * Forgeweave's raw-ore item split (#103) instead of dropping the block.
  *
@@ -100,20 +100,24 @@ public class NetherOreGameTests {
     }
 
     @GameTest(template = "empty")
-    public static void cobaltOreNeedsADiamondTierPickaxe(GameTestHelper helper) {
+    public static void cobaltOreNeedsANetheriteTierPickaxe(GameTestHelper helper) {
         assertTierGate(helper, ForgeweaveBlocks.COBALT_ORE.get(), ForgeweaveItems.RAW_COBALT.get());
         helper.succeed();
     }
 
     @GameTest(template = "empty")
-    public static void arditeOreNeedsADiamondTierPickaxe(GameTestHelper helper) {
+    public static void arditeOreNeedsANetheriteTierPickaxe(GameTestHelper helper) {
         assertTierGate(helper, ForgeweaveBlocks.ARDITE_ORE.get(), ForgeweaveItems.RAW_ARDITE.get());
         helper.succeed();
     }
 
     /**
-     * A diamond (or better) pickaxe is the correct tool and mines the block for one raw item; an
-     * iron pickaxe is not the correct tool, matching {@code minecraft:needs_diamond_tool}.
+     * Upstream {@code BlockOre:30} gates both ores at {@code HarvestLevels.COBALT} (4), which issue
+     * #433 established is the netherite tier -- so a netherite pickaxe is the correct tool and mines
+     * the block for one raw item, and a <em>diamond</em> one is not. Vanilla has no
+     * {@code needs_netherite_tool} tag, so {@code ForgeweaveBlockTagsProvider} spells the gate as
+     * {@code needs_diamond_tool} plus a listing in {@code incorrect_for_diamond_tool}; this pins both
+     * halves.
      */
     private static void assertTierGate(GameTestHelper helper, Block ore, Item rawItem) {
         BlockPos pos = new BlockPos(1, 1, 1);
@@ -121,16 +125,19 @@ public class NetherOreGameTests {
         BlockState state = ore.defaultBlockState();
 
         ItemStack iron = new ItemStack(Items.IRON_PICKAXE);
-        ItemStack diamond = new ItemStack(Items.DIAMOND_PICKAXE);
+        ItemStack diamondPick = new ItemStack(Items.DIAMOND_PICKAXE);
+        ItemStack netherite = new ItemStack(Items.NETHERITE_PICKAXE);
         helper.assertFalse(iron.isCorrectToolForDrops(state),
                 ore + " must refuse an iron pickaxe (needs_diamond_tool)");
-        helper.assertTrue(diamond.isCorrectToolForDrops(state),
-                ore + " must accept a diamond pickaxe");
+        helper.assertFalse(diamondPick.isCorrectToolForDrops(state),
+                ore + " must refuse a diamond pickaxe (incorrect_for_diamond_tool -- upstream's COBALT level)");
+        helper.assertTrue(netherite.isCorrectToolForDrops(state),
+                ore + " must accept a netherite pickaxe");
 
         ServerLevel level = helper.getLevel();
         BlockPos absolute = helper.absolutePos(pos);
         helper.setBlock(pos, state);
-        List<ItemStack> drops = Block.getDrops(state, level, absolute, level.getBlockEntity(absolute), player, diamond);
+        List<ItemStack> drops = Block.getDrops(state, level, absolute, level.getBlockEntity(absolute), player, netherite);
         helper.setBlock(pos, Blocks.AIR);
 
         helper.assertTrue(drops.size() == 1, "expected exactly one item stack of drops, got " + drops.size());

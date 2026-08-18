@@ -14,7 +14,7 @@
     "range": 0.6,
     "bonus_damage": 2.0
   },
-  "incorrect_for_tool": "minecraft:incorrect_for_stone_tool",
+  "incorrect_for_tool": "minecraft:incorrect_for_wooden_tool",
   "traits": {
     "general": ["forgeweave:quick"]
   },
