@@ -410,6 +410,8 @@ public class ForgeweaveRecipeProvider extends RecipeProvider {
      * <ul>
      *   <li>{@code recipes/smeltery/grout_simple.json} -- clay ball + sand (or red sand, upstream's
      *       ore-dict {@code sand} alternation) + gravel, shapeless, yields 2 grout.
+     *   <li>{@code recipes/smeltery/grout.json} (issue #503, T72) -- the bulk counterpart: a clay
+     *       block + four sand + four gravel, shapeless, yields 8 grout.
      *   <li>{@code TinkerSmeltery#registerSmelting} -- grout smelts into one seared brick (item,
      *       0.4 xp); a seared bricks block smelts into a cracked seared bricks block (0.1 xp).
      *   <li>{@code recipes/smeltery/seared/bricks/bricks.json} -- four seared brick items, 2x2,
@@ -430,6 +432,13 @@ public class ForgeweaveRecipeProvider extends RecipeProvider {
                 .requires(Items.GRAVEL)
                 .unlockedBy("has_clay_ball", has(Items.CLAY_BALL))
                 .save(recipeOutput);
+
+        ShapelessRecipeBuilder.shapeless(RecipeCategory.BUILDING_BLOCKS, ForgeweaveItems.GROUT.get(), 8)
+                .requires(Items.CLAY)
+                .requires(Ingredient.of(Items.SAND, Items.RED_SAND), 4)
+                .requires(Items.GRAVEL, 4)
+                .unlockedBy("has_clay", has(Items.CLAY))
+                .save(recipeOutput, ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "grout_from_clay_block"));
 
         SimpleCookingRecipeBuilder.smelting(Ingredient.of(ForgeweaveItems.GROUT.get()), RecipeCategory.MISC,
                         ForgeweaveItems.SEARED_BRICK.get(), 0.4F, 200)

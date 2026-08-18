@@ -345,7 +345,7 @@ The core loop — multiblock rules, melting math, fuel model, in-tank alloying, 
 | Tinker tank multiblock | `TileTinkerTank`, `MultiblockTinkerTank` | dropped | absent, unscoped | missing | N | medium | T44 |
 | Seared block family (12 variants, stairs, slabs, glass, brick chain) | `BlockSeared:25-38` | seared + scorched | `ForgeweaveBlocks:104-190` | have | Y (#93/#274/#289) | low | — |
 | Seared stairs/slabs as ceiling blocks | `MultiblockSearedFurnace:43-64` | n/a | n/a for the smeltery | missing | Y (#369 open) | low | — |
-| Grout (simple + bulk recipe) | `grout.json`, `grout_simple.json` | both kept | simple only | partial | N | low | T72 |
+| Grout (simple + bulk recipe) | `grout.json`, `grout_simple.json` | both kept | simple + bulk | have | Y (#503) | none | — |
 | Controller block (FACING, ACTIVE, gated GUI, fire particles) | `BlockMultiblockController:30-140` | keeps particles | no `animateTick` | partial | N | low | T73 |
 | Smeltery GUI (fluid column, fuel gauge, melt grid) | `GuiSmeltery`, `GuiSmelterySideInventory` | similar | `SmelteryScreen`, `SmelteryMenu` | have | Y (#101/#146/#308/#377) | low | — |
 | JEI (melting, alloy, casting categories, catalysts) | `JEIPlugin:118-177` | split categories | `ForgeweaveJeiPlugin:143-147` | have | Y (#109) | low | — |
@@ -687,7 +687,7 @@ Prioritized and deduplicated across domains. Already-filed issues are marked; **
 - [ ] **T69 — Reinforced plate center should be a gold cast now the smeltery ships**, plus the level-5 "Unbreakable" name (modifiers, low, M3.5 playtest-fix).
 - [ ] **T70 — Fortify: gate to harvest tools and derive the per-tool material-tinted overlay** (modifiers, low, M3.5 playtest-fix).
 - [ ] **T71 — Remaining melting/casting content** — terracotta/brick casting, molten dirt + mud bricks, ice/snow → water, red sand from blood (smeltery, low, backlog).
-- [ ] **T72 — Bulk grout recipe** (clay block + 4 sand + 4 gravel → 8) (smeltery, low, backlog).
+- [x] **T72 — Bulk grout recipe** (shipped, #503) (clay block + 4 sand + 4 gravel → 8) (smeltery, low, backlog).
 - [ ] **T73 — Ambient particles** — active smeltery controller flame/smoke, casting-table cooling smoke, autosmelt flames (smeltery/book, low, backlog).
 - [ ] **T74 — Crafting Station side inventory** — skip station-group blocks and add a `craftingStationBlacklist` config (stations, low, M8).
 - [ ] **T75 — Station polish** — right-click insert into chests, creative-tab table variants behind `listAllTables`, table-top item rendering (stations, low, polish).

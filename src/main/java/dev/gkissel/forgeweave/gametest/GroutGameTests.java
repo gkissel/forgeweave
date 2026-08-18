@@ -26,6 +26,12 @@ import dev.gkissel.forgeweave.item.ForgeweaveItems;
  * field to place at all. The other two tests pin down that becoming a block didn't disturb the
  * crafting-table recipe (clay + sand + gravel -> 2 grout) or the furnace smelt (grout -> seared
  * brick), both of which keep resolving through the real {@code RecipeManager}.
+ *
+ * <p>{@link #groutCraftsInBulkFromClayBlockSandAndGravel} covers issue #503 (T72, parity audit
+ * 2026-08-18): upstream 1.12 ships a second, bulk grout recipe alongside the simple one --
+ * {@code grout.json}, a clay block plus four sand and four gravel (ore-dict, so red sand works
+ * too), shapeless, yielding 8 grout. Forgeweave only ever ported {@code grout_simple.json}; this
+ * fails until the bulk recipe is added to {@code ForgeweaveRecipeProvider}.
  */
 @GameTestHolder(Forgeweave.MODID)
 @PrefixGameTestTemplate(false)
@@ -54,6 +60,25 @@ public class GroutGameTests {
 
         helper.assertTrue(crafted.is(ForgeweaveBlocks.GROUT.get().asItem()) && crafted.getCount() == 2,
                 "expected clay ball + sand + gravel to craft 2 grout, got " + crafted);
+
+        helper.succeed();
+    }
+
+    @GameTest(template = "empty")
+    public static void groutCraftsInBulkFromClayBlockSandAndGravel(GameTestHelper helper) {
+        ServerLevel level = helper.getLevel();
+        CraftingInput input = CraftingInput.of(3, 3,
+                List.of(new ItemStack(Items.SAND), new ItemStack(Items.GRAVEL), new ItemStack(Items.SAND),
+                        new ItemStack(Items.GRAVEL), new ItemStack(Items.CLAY), new ItemStack(Items.GRAVEL),
+                        new ItemStack(Items.SAND), new ItemStack(Items.GRAVEL), new ItemStack(Items.SAND)));
+
+        ItemStack crafted = level.getRecipeManager()
+                .getRecipeFor(RecipeType.CRAFTING, input, level)
+                .map(match -> match.value().assemble(input, level.registryAccess()))
+                .orElse(ItemStack.EMPTY);
+
+        helper.assertTrue(crafted.is(ForgeweaveBlocks.GROUT.get().asItem()) && crafted.getCount() == 8,
+                "expected clay block + 4 sand + 4 gravel to craft 8 grout, got " + crafted);
 
         helper.succeed();
     }
