@@ -9,6 +9,7 @@ import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -17,7 +18,10 @@ import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.levelgen.placement.HeightRangePlacement;
 import net.minecraft.world.level.levelgen.placement.PlacedFeature;
+import net.minecraft.world.level.levelgen.placement.PlacementContext;
+import net.minecraft.world.level.levelgen.placement.PlacementModifier;
 
 import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
@@ -39,6 +43,12 @@ import dev.gkissel.forgeweave.worldgen.NetherOrePlacement; // #276
  * in a live Nether world), because the configured/placed feature + biome modifier JSON had no code
  * seam to assert against. Issue #276 gave the vein count one ({@link NetherOrePlacement}), so
  * {@link #netherOreVeinCountsFollowTheConfig} now covers the parts that do not need a real chunk.
+ * Issue #509 (T78) gave the height distribution a seam too -- {@code PlacementModifier} runs against
+ * a real {@code PlacementContext} without needing an actual generated chunk, so
+ * {@link #netherOreVeinsSplitAcrossTheUpstreamHeightBands} and
+ * {@link #netherOrePlacementModifierHalvesTheRatePerBand} cover that the two placed features per ore
+ * sample from the right y-ranges and split the configured rate the way upstream's loop does; only
+ * "does a generated Nether chunk actually contain the ore" is still left to the manual checklist.
  */
 @GameTestHolder(Forgeweave.MODID)
 @PrefixGameTestTemplate(false)
@@ -90,13 +100,97 @@ public class NetherOreGameTests {
         helper.succeed();
     }
 
+    /**
+     * Each of the two height-band placed features (see {@link #netherOreVeinsSplitAcrossTheUpstreamHeightBands})
+     * draws from the <em>same</em> {@link NetherOrePlacement} instance for its ore, so the modifier
+     * itself has to halve {@link NetherOrePlacement.Ore#veinsPerChunk()} per call -- ceiling, not
+     * floor, matching upstream's {@code for (i = 0; i < rate; i += 2)} iteration count -- rather than
+     * emitting the full configured rate twice.
+     */
+    @GameTest(template = "empty")
+    public static void netherOrePlacementModifierHalvesTheRatePerBand(GameTestHelper helper) {
+        assertPositionsPerCall(helper, NetherOrePlacement.Ore.COBALT, 10);
+
+        ForgeweaveConfig.ARDITE_RATE.set(7);
+        try {
+            assertPositionsPerCall(helper, NetherOrePlacement.Ore.ARDITE, 4);
+        } finally {
+            ForgeweaveConfig.ARDITE_RATE.set(20);
+        }
+
+        ForgeweaveConfig.GEN_ARDITE.set(false);
+        try {
+            assertPositionsPerCall(helper, NetherOrePlacement.Ore.ARDITE, 0);
+        } finally {
+            ForgeweaveConfig.GEN_ARDITE.set(true);
+        }
+
+        helper.succeed();
+    }
+
+    private static void assertPositionsPerCall(GameTestHelper helper, NetherOrePlacement.Ore ore, int expected) {
+        NetherOrePlacement modifier = new NetherOrePlacement(ore);
+        long count = modifier.getPositions(null, null, BlockPos.ZERO).count();
+        helper.assertValueEqual((int) count, expected, ore + " positions per band call");
+    }
+
     private static void assertPlacedThroughTheConfigModifier(GameTestHelper helper, String name) {
+        PlacedFeature feature = getPlacedFeature(helper, name);
+        helper.assertTrue(feature.placement().stream().anyMatch(NetherOrePlacement.class::isInstance),
+                name + " must take its vein count from the config-aware placement modifier");
+    }
+
+    private static PlacedFeature getPlacedFeature(GameTestHelper helper, String name) {
         ResourceKey<PlacedFeature> key = ResourceKey.create(Registries.PLACED_FEATURE,
                 ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, name));
         PlacedFeature feature = helper.getLevel().registryAccess().registryOrThrow(Registries.PLACED_FEATURE).get(key);
         helper.assertTrue(feature != null, "expected a placed feature registered as " + key.location());
-        helper.assertTrue(feature.placement().stream().anyMatch(NetherOrePlacement.class::isInstance),
-                name + " must take its vein count from the config-aware placement modifier");
+        return feature;
+    }
+
+    /**
+     * Upstream's {@code generateNetherOre} (issue #276's NOTICE.md row) runs two loop bodies per
+     * {@code i < rate; i += 2} iteration -- one vein at {@code y 32 + [0,64)} (i.e. y32-95), one at
+     * {@code y 0 + [0,128)} (the full column) -- so half the veins concentrate in the narrower y32-95
+     * band and the other half spread across the whole Nether. T78 (parity audit 2026-08-18) found
+     * the previous port had collapsed both loop bodies into one {@code minecraft:height_range}
+     * uniform across 0-127, losing that concentration. This asserts both placed features exist per
+     * ore, each still routes its count through {@link NetherOrePlacement}, and each really samples
+     * from its own upstream-matched band -- not just that the JSON parses.
+     */
+    @GameTest(template = "empty")
+    public static void netherOreVeinsSplitAcrossTheUpstreamHeightBands(GameTestHelper helper) {
+        assertBandedPlacement(helper, "cobalt_ore", "cobalt_ore_band");
+        assertBandedPlacement(helper, "ardite_ore", "ardite_ore_band");
+        helper.succeed();
+    }
+
+    private static void assertBandedPlacement(GameTestHelper helper, String fullRangeName, String bandName) {
+        assertPlacedThroughTheConfigModifier(helper, fullRangeName);
+        assertPlacedThroughTheConfigModifier(helper, bandName);
+        assertHeightRangeSamplesWithin(helper, fullRangeName, 0, 127);
+        assertHeightRangeSamplesWithin(helper, bandName, 32, 95);
+    }
+
+    /** Samples the placed feature's {@link HeightRangePlacement} many times and checks every result lands in [min, max]. */
+    private static void assertHeightRangeSamplesWithin(GameTestHelper helper, String name, int min, int max) {
+        PlacedFeature feature = getPlacedFeature(helper, name);
+        PlacementModifier modifier = feature.placement().stream()
+                .filter(HeightRangePlacement.class::isInstance)
+                .findFirst()
+                .orElseThrow(() -> new AssertionError(name + " must carry a minecraft:height_range placement"));
+
+        ServerLevel level = helper.getLevel();
+        PlacementContext context = new PlacementContext(level, level.getChunkSource().getGenerator(), java.util.Optional.empty());
+        RandomSource random = RandomSource.create(42L);
+        BlockPos origin = BlockPos.ZERO;
+
+        final int samples = 200;
+        for (int i = 0; i < samples; i++) {
+            int y = modifier.getPositions(context, random, origin).findFirst().orElseThrow().getY();
+            helper.assertTrue(y >= min && y <= max,
+                    name + " sampled y=" + y + ", expected within [" + min + ", " + max + "]");
+        }
     }
 
     @GameTest(template = "empty")
