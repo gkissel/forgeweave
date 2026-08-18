@@ -150,8 +150,7 @@ final class SideInventoryPanel {
                 // Upstream draws its "slotEmpty" tile past the end of a partial last row, so the
                 // panel stays a full rectangle instead of ending mid-row.
                 boolean filled = firstSlot + row * COLUMNS + col < lastSlot;
-                graphics.blit(TEXTURE, x + BORDER + col * SLOT, y + BORDER + row * SLOT,
-                        filled ? SLOT_U : SLOT_EMPTY_U, SLOT_V, SLOT, SLOT, SHEET, SHEET);
+                renderSlotTile(graphics, x + BORDER + col * SLOT, y + BORDER + row * SLOT, filled);
             }
         }
 
@@ -160,6 +159,16 @@ final class SideInventoryPanel {
         }
 
         SideInventorySlots.layout(menu, slots, firstSlot, lastSlot, laidOutSlotX, slotY);
+    }
+
+    /**
+     * One of {@code generic.png}'s 18x18 tiles: {@code GuiGeneric.slot}'s socket, or {@code
+     * slotEmpty}'s "no slot here" filler for a partial row. Static because {@link ChestScreen} draws
+     * the same tiles for upstream's scaling chest ({@code GuiDynInventory}), which is this widget's
+     * sibling over a grid sized by the chest rather than by a neighbour's inventory.
+     */
+    static void renderSlotTile(GuiGraphics graphics, int x, int y, boolean filled) {
+        graphics.blit(TEXTURE, x, y, filled ? SLOT_U : SLOT_EMPTY_U, SLOT_V, SLOT, SLOT, SHEET, SHEET);
     }
 
     private void renderSlider(GuiGraphics graphics) {

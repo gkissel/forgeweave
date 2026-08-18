@@ -1,10 +1,9 @@
 package dev.gkissel.forgeweave.client;
 
 import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.renderer.Rect2i;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.client.resources.sounds.SimpleSoundInstance;
-import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.entity.player.Inventory;
 
 import net.neoforged.api.distmarker.Dist;
@@ -13,97 +12,139 @@ import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.client.event.RegisterMenuScreensEvent;
 
 import dev.gkissel.forgeweave.Forgeweave;
-import dev.gkissel.forgeweave.block.ChestBlockEntity;
 import dev.gkissel.forgeweave.menu.ChestMenu;
 import dev.gkissel.forgeweave.menu.ForgeweaveMenus;
 
 /**
- * The Pattern Chest/Part Chest GUI (docs/SCOPE.md M1 issue #66). Background is vanilla's own
- * double-chest {@code generic_54.png}, not a derived crop of upstream's {@code
- * patternchest.png}/{@code partchest.png} GUI art -- those are drawn for upstream's dynamic scaling
- * chest window ({@code GuiScalingChest}), which this ships as a fixed 6-row grid instead ({@link
- * dev.gkissel.forgeweave.block.ChestBlockEntity}'s capacity note), so there is no matching panel
- * shape to crop. Same "no Forgeweave-original art for this screen" precedent {@code
- * CraftingStationScreen} already uses for vanilla's crafting-table background -- no NOTICE.md row.
+ * The Pattern Chest/Part Chest GUI (docs/SCOPE.md M1 issue #66), rebuilt as upstream's scaling chest
+ * by parity audit T45 (issue #476).
  *
- * <h2>Page controls (issue #305)</h2>
+ * <p>Upstream {@code GuiPatternChest} is {@code textures/gui/blank.png} -- a plain station panel
+ * whose whole upper half is bare background -- with a {@code GuiScalingChest} module drawn into it:
+ * a {@value #MODULE_WIDTH}x{@value #MODULE_HEIGHT} box at ({@value #MODULE_X}, {@value #MODULE_Y})
+ * holding a {@link ChestMenu#COLUMNS}x{@link ChestMenu#ROWS} window of {@code generic.png} slot
+ * tiles and, down its right-hand edge, that sheet's own slider. Only as many tiles are drawn as the
+ * chest currently has slots ({@link ChestMenu#capacity}, self-expanding -- see {@code
+ * ChestBlockEntity}); the rest of the partial row is the "no slot here" tile and the rows past it
+ * are left as bare panel, which is what makes the chest look like it grows.
  *
- * <p>Two clickable arrows and a "page X/Y" label sit in the title row's unused right-hand space,
- * following the same manual-hitbox-plus-{@code handleInventoryButtonClick} idiom {@link
- * StationScreen}'s own tab row uses -- there being no other button-widget convention in this
- * codebase's screens to reuse instead (see that class's javadoc).
+ * <p>This replaces the vanilla double-chest {@code generic_54.png} background and the {@code
+ * &lt;}/{@code &gt;} page arrows issue #305 shipped in the title row. The slot tiles, the slider and
+ * its drag/wheel handling are {@link SideInventoryPanel}'s, which is the same upstream widget pair
+ * ({@code GuiDynInventory} and {@code GuiSideInventory} both draw {@code GuiGeneric}'s pieces) and
+ * already ported.
  */
 @EventBusSubscriber(modid = Forgeweave.MODID, bus = EventBusSubscriber.Bus.MOD, value = Dist.CLIENT)
 public class ChestScreen extends StationScreen<ChestMenu> {
-    private static final ResourceLocation TEXTURE = ResourceLocation.withDefaultNamespace("textures/gui/container/generic_54.png");
-    private static final int BASE_WIDTH = 176;
-    private static final int BASE_HEIGHT = 222;
-    /** Vanilla container backgrounds are 256x256 sheets; the panel is only their top-left corner. */
-    private static final int SHEET = 256;
+    /** Upstream {@code GuiTinkerStation.BLANK_BACK}; derived unmodified (NOTICE.md). */
+    private static final ResourceLocation TEXTURE =
+            ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "textures/derived/gui/blank.png");
+    static final int PANEL_WIDTH = 176;
+    static final int PANEL_HEIGHT = 166;
+    /** Upstream's GUI sheets are 256x256; the panel is only their top-left corner. */
+    static final int SHEET = 256;
 
-    private static final int PAGE_ROW_Y = 6;
-    private static final int PAGE_ARROW_SIZE = 9;
-    private static final int PAGE_PREVIOUS_X = 132;
-    private static final int PAGE_LABEL_X = 143;
-    private static final int PAGE_NEXT_X = 167;
-    private static final int COLOR_ENABLED = 0xFFFFFF;
-    private static final int COLOR_DISABLED = 0x707070;
-    private static final int COLOR_LABEL = 0x404040;
+    /** Upstream {@code GuiDynInventory}'s own {@code xOffset}/{@code yOffset}/{@code xSize}/{@code ySize}. */
+    private static final int MODULE_X = 7;
+    private static final int MODULE_Y = 17;
+    private static final int MODULE_WIDTH = 162;
+    private static final int MODULE_HEIGHT = 54;
+    private static final int SLOT = 18;
+
+    static final int SLIDER_X = MODULE_X + MODULE_WIDTH - SideInventoryPanel.SLIDER_WIDTH;
+    static final int SLIDER_Y = MODULE_Y;
+    static final int SLIDER_HEIGHT = MODULE_HEIGHT;
+
+    /** Which row of the chest the window starts at; client-side only (see {@link ChestMenu#scrollTo}). */
+    private int scrollRow;
+    private boolean draggingSlider;
 
     public ChestScreen(ChestMenu menu, Inventory playerInventory, Component title) {
         super(menu, playerInventory, title);
-        imageWidth = BASE_WIDTH;
-        imageHeight = BASE_HEIGHT;
+        imageWidth = PANEL_WIDTH;
+        imageHeight = PANEL_HEIGHT;
         inventoryLabelY = imageHeight - 94;
     }
 
     @Override
-    protected void renderPanel(GuiGraphics guiGraphics, float partialTick, int mouseX, int mouseY) {
-        // Same defect issue #68 fix 1 found in CraftingStationScreen: passing the panel size as the
-        // source sheet size squeezes the whole 256x256 file into the panel's footprint.
-        guiGraphics.blit(TEXTURE, leftPos, topPos, 0, 0, BASE_WIDTH, BASE_HEIGHT, SHEET, SHEET);
-        renderPageControls(guiGraphics);
+    protected void renderPanel(GuiGraphics graphics, float partialTick, int mouseX, int mouseY) {
+        graphics.blit(TEXTURE, leftPos, topPos, 0, 0, PANEL_WIDTH, PANEL_HEIGHT, SHEET, SHEET);
+
+        scrollRow = Math.clamp(scrollRow, 0, maxScrollRow());
+        menu.scrollTo(scrollRow);
+        renderSlotTiles(graphics);
+        SideInventoryPanel.renderSlider(graphics, sliderTrack(), scrollRow, maxScrollRow());
     }
 
-    private void renderPageControls(GuiGraphics guiGraphics) {
-        boolean hasPrevious = menu.currentPage() > 0;
-        boolean hasNext = (menu.currentPage() + 1) * ChestBlockEntity.PAGE_SIZE < menu.capacity();
-        guiGraphics.drawString(font, "<", leftPos + PAGE_PREVIOUS_X, topPos + PAGE_ROW_Y,
-                hasPrevious ? COLOR_ENABLED : COLOR_DISABLED, false);
-        guiGraphics.drawString(font,
-                Component.translatable("gui.forgeweave.chest.page", menu.currentPage() + 1, totalPages()),
-                leftPos + PAGE_LABEL_X, topPos + PAGE_ROW_Y, COLOR_LABEL, false);
-        guiGraphics.drawString(font, ">", leftPos + PAGE_NEXT_X, topPos + PAGE_ROW_Y,
-                hasNext ? COLOR_ENABLED : COLOR_DISABLED, false);
+    /**
+     * Upstream {@code GuiDynInventory#drawGuiContainerBackgroundLayer}: full rows of the slot tile,
+     * then the partial row's tiles followed by the "no slot here" tile for the rest of it, and
+     * nothing at all below that.
+     */
+    private void renderSlotTiles(GuiGraphics graphics) {
+        int first = scrollRow * ChestMenu.COLUMNS;
+        int visible = Math.clamp(menu.capacity() - first, 0, ChestMenu.VISIBLE_SLOTS);
+        int fullRows = visible / ChestMenu.COLUMNS;
+        for (int row = 0; row < fullRows; row++) {
+            for (int col = 0; col < ChestMenu.COLUMNS; col++) {
+                tile(graphics, col, row, true);
+            }
+        }
+        if (visible % ChestMenu.COLUMNS > 0) {
+            for (int col = 0; col < ChestMenu.COLUMNS; col++) {
+                tile(graphics, col, fullRows, col < visible % ChestMenu.COLUMNS);
+            }
+        }
     }
 
-    /** {@code capacity} is always a whole number of pages except the short final one -- round up. */
-    private int totalPages() {
-        return (menu.capacity() + ChestBlockEntity.PAGE_SIZE - 1) / ChestBlockEntity.PAGE_SIZE;
+    private void tile(GuiGraphics graphics, int col, int row, boolean filled) {
+        SideInventoryPanel.renderSlotTile(graphics, leftPos + MODULE_X + col * SLOT,
+                topPos + MODULE_Y + row * SLOT, filled);
+    }
+
+    private Rect2i sliderTrack() {
+        return new Rect2i(leftPos + SLIDER_X, topPos + SLIDER_Y, SideInventoryPanel.SLIDER_WIDTH, SLIDER_HEIGHT);
+    }
+
+    private int maxScrollRow() {
+        return ChestMenu.maxScrollRow(menu.capacity());
     }
 
     @Override
-    public boolean mouseClicked(double mouseX, double mouseY, int button) {
-        if (isHovering(PAGE_PREVIOUS_X, PAGE_ROW_Y, PAGE_ARROW_SIZE, PAGE_ARROW_SIZE, mouseX, mouseY)
-                && menu.currentPage() > 0) {
-            sendPageClick(ChestMenu.BUTTON_PREVIOUS_PAGE);
-            return true;
+    protected boolean sliderClicked(double mouseX, double mouseY) {
+        if (maxScrollRow() <= 0 || !sliderTrack().contains((int) mouseX, (int) mouseY)) {
+            return false;
         }
-        if (isHovering(PAGE_NEXT_X, PAGE_ROW_Y, PAGE_ARROW_SIZE, PAGE_ARROW_SIZE, mouseX, mouseY)
-                && (menu.currentPage() + 1) * ChestBlockEntity.PAGE_SIZE < menu.capacity()) {
-            sendPageClick(ChestMenu.BUTTON_NEXT_PAGE);
-            return true;
-        }
-        return super.mouseClicked(mouseX, mouseY, button);
+        draggingSlider = true;
+        scrollRow = scrollRowAt(mouseY);
+        return true;
     }
 
-    /** Server-authoritative, same as {@link StationScreen}'s tab clicks: only the button id is sent. */
-    private void sendPageClick(int buttonId) {
-        if (minecraft == null) {
-            return;
+    @Override
+    protected boolean sliderDragged(double mouseX, double mouseY) {
+        if (!draggingSlider) {
+            return false;
         }
-        minecraft.getSoundManager().play(SimpleSoundInstance.forUI(SoundEvents.UI_BUTTON_CLICK, 1.0F));
-        minecraft.gameMode.handleInventoryButtonClick(menu.containerId, buttonId);
+        scrollRow = scrollRowAt(mouseY);
+        return true;
+    }
+
+    @Override
+    protected void sliderReleased() {
+        draggingSlider = false;
+    }
+
+    private int scrollRowAt(double mouseY) {
+        return SideInventoryPanel.scrollRowAt(topPos + SLIDER_Y, SLIDER_HEIGHT, maxScrollRow(), mouseY);
+    }
+
+    @Override
+    public boolean mouseScrolled(double mouseX, double mouseY, double scrollX, double scrollY) {
+        if (maxScrollRow() > 0 && isHovering(MODULE_X, MODULE_Y, MODULE_WIDTH, MODULE_HEIGHT, mouseX, mouseY)) {
+            scrollRow = Math.clamp(scrollRow - (int) Math.signum(scrollY), 0, maxScrollRow());
+            return true;
+        }
+        return super.mouseScrolled(mouseX, mouseY, scrollX, scrollY);
     }
 
     @SubscribeEvent

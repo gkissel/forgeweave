@@ -1,5 +1,8 @@
 package dev.gkissel.forgeweave.menu;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import net.minecraft.world.Container;
 import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.entity.player.Inventory;
@@ -14,47 +17,67 @@ import dev.gkissel.forgeweave.block.ChestKind;
 import dev.gkissel.forgeweave.block.ForgeweaveBlocks;
 
 /**
- * The Pattern Chest/Part Chest menu (docs/SCOPE.md M1 issue #66; paging added by issue #305): a
- * {@value ChestBlockEntity#PAGE_SIZE}-slot grid (6 rows of 9, same layout math as vanilla's own
- * double-chest {@code ChestMenu}) whose slots only accept what {@link ChestKind#accepts} allows,
- * plus the player's inventory. One class for both chest kinds -- see {@link ChestKind}'s javadoc.
+ * The Pattern Chest/Part Chest menu (docs/SCOPE.md M1 issue #66): every one of the chest's {@value
+ * ChestBlockEntity#MAX_SLOTS} slots, only {@value #VISIBLE_SLOTS} of them on screen at a time, plus
+ * the player's inventory. Slots only accept what {@link ChestKind#accepts} allows. One class for
+ * both chest kinds -- see {@link ChestKind}'s javadoc.
  *
- * <h2>Paging (issue #305)</h2>
+ * <h2>Upstream's scaling chest (parity audit T45, issue #476)</h2>
  *
- * <p>The container can grow past one page (up to {@link ChestBlockEntity#MAX_SLOTS}, see {@link
- * ChestBlockEntity}'s capacity note), but the menu only ever holds {@value ChestBlockEntity#PAGE_SIZE}
- * real {@link Slot} objects at the fixed grid coordinates the screen has always drawn. A page change
- * keeps their coordinates and only substitutes a fresh {@link FilteredSlot} at a different
- * container-relative index -- {@link Slot}'s own index is a {@code private final} field with no
- * setter, so unlike {@code ToolStationMenu#applyLayout}'s "same index, new coordinates" swap (its
- * tabs never change which container the slots read from, only where they're drawn), this is "same
- * coordinates, new index"; {@link #applyPage} explains the mechanics. Which page is selected is a
- * server-authoritative {@link DataSlot} set from {@link #clickMenuButton} -- the vanilla
- * stonecutter/loom mechanism {@code StencilTableMenu} and {@code ToolStationMenu} already use for an
- * equivalent "which of several things is this menu showing" choice -- so a dedicated server stays
- * authoritative and no custom network payload is needed.
+ * <p>Upstream {@code ContainerPatternChest} adds one slot per {@code TileTinkerChest.MAX_INVENTORY}
+ * slot and lets its GUI module ({@code GuiScalingChest} over {@code GuiDynInventory}) decide which
+ * of them are on screen, scrolling a {@value #COLUMNS}x{@value #ROWS} window down the chest with a
+ * slider. This does the same: all {@value ChestBlockEntity#MAX_SLOTS} slots exist for the whole life
+ * of the menu -- so a shift-click reaches the whole chest, not just what is drawn -- and {@link
+ * #scrollTo} moves the visible window, hiding the rest.
+ *
+ * <p>{@link Slot#x}/{@link Slot#y} are final, so "moving" a slot means substituting a new one at the
+ * same {@code slots} index, exactly as {@link SideInventorySlots#layout} already does for the side
+ * panels (upstream's own {@code GuiDynInventory#updateSlots} assigns {@code slot.xPos} in place,
+ * which modern Minecraft does not allow). {@link Slot#isActive} hides what is scrolled away, which
+ * is upstream's client-only {@code shouldDrawSlot} -- the server never consults it, so transfers
+ * still reach every slot.
+ *
+ * <p>Scrolling is client-side state ({@code ChestScreen}), like every other panel in this codebase:
+ * nothing about which rows are drawn changes what the server will accept, so it needs no data slot
+ * and no packet. The one thing the client cannot work out for itself is how far the chest has grown
+ * ({@link ChestBlockEntity}'s self-expanding capacity), so that rides down as a {@link DataSlot}.
+ *
+ * <p>This replaces the fixed 54-slot page and the {@code &lt;}/{@code &gt;} page buttons issue #305
+ * shipped, which existed only because a scrolling window looked expensive on the 1.21 slot API.
  */
 public class ChestMenu extends StationMenu {
-    private static final int COLUMNS = 9;
-    private static final int ROWS = ChestBlockEntity.PAGE_SIZE / COLUMNS;
-    private static final int SLOT_SIZE = 18;
-    private static final int PLAYER_INVENTORY_Y = 103 + (ROWS - 4) * SLOT_SIZE;
+    /** Upstream {@code GuiDynInventory}: {@code (xSize 162 - slider.width 12) / slot.w 18}. */
+    public static final int COLUMNS = 8;
+    /** Upstream {@code GuiDynInventory}: {@code ySize 54 / slot.h 18}. */
+    public static final int ROWS = 3;
+    /** How many of the chest's slots are on screen at once. */
+    public static final int VISIBLE_SLOTS = COLUMNS * ROWS;
 
-    public static final int BUTTON_PREVIOUS_PAGE = 0;
-    public static final int BUTTON_NEXT_PAGE = 1;
+    private static final int SLOT_SIZE = 18;
+    /**
+     * Upstream {@code GuiDynInventory#updateSlots}: {@code xOffset/yOffset} plus the 1px bevel
+     * {@code generic.png}'s slot tile draws around its 16x16 socket (see {@link
+     * SideInventorySlots#SLOT_INSET}).
+     */
+    private static final int GRID_X = 8;
+    private static final int GRID_Y = 18;
+
+    /** Upstream {@code ContainerPatternChest}: {@code addPlayerInventory(playerInventory, 8, 84)}. */
+    public static final int PLAYER_INVENTORY_Y = 84;
+
+    /** Where a scrolled-away slot parks -- upstream {@code GuiDynInventory} sends them to (0, 0) too. */
+    private static final int OFF_SCREEN = 0;
 
     public final ChestKind kind;
     private final Container container;
     private final ContainerLevelAccess access;
-    private final DataSlot currentPage = DataSlot.standalone();
     private final DataSlot capacity = DataSlot.standalone();
+    private final List<ChestSlot> chestSlots = new ArrayList<>(ChestBlockEntity.MAX_SLOTS);
 
     /** Client-side: constructed from the open-menu packet, with a throwaway local container. */
     public ChestMenu(ChestKind kind, int containerId, Inventory playerInventory, StationGroup stationGroup) {
-        // Sized to the full backing array, not just one page: a page change reassigns each Slot's
-        // index to wherever the real (server-side) container's window has moved to, and the client's
-        // own slot-sync packets write through that same index into this placeholder container.
-        this(kind, containerId, playerInventory, new SimpleContainer(ChestBlockEntity.BACKING_SLOTS),
+        this(kind, containerId, playerInventory, new SimpleContainer(ChestBlockEntity.MAX_SLOTS),
                 ContainerLevelAccess.NULL, stationGroup);
     }
 
@@ -67,84 +90,66 @@ public class ChestMenu extends StationMenu {
             ContainerLevelAccess access, StationGroup stationGroup) {
         super(kind == ChestKind.PATTERN ? ForgeweaveMenus.PATTERN_CHEST.get() : ForgeweaveMenus.PART_CHEST.get(),
                 containerId, stationGroup);
-        // Capacity only ever shrinks to ChestBlockEntity.PAGE_SIZE, never below it, so this stays a
-        // valid sanity check regardless of how much the chest has since grown.
-        checkContainerSize(container, ChestBlockEntity.PAGE_SIZE);
         this.kind = kind;
         this.container = container;
         this.access = access;
         container.startOpen(playerInventory.player);
 
-        addDataSlot(currentPage);
         addDataSlot(capacity);
         capacity.set(container.getContainerSize());
 
-        for (int i = 0; i < ChestBlockEntity.PAGE_SIZE; i++) {
-            addSlot(new FilteredSlot(container, i, chestSlotX(i), chestSlotY(i)));
+        for (int i = 0; i < ChestBlockEntity.MAX_SLOTS; i++) {
+            ChestSlot slot = new ChestSlot(i, slotX(i), slotY(i), i < VISIBLE_SLOTS);
+            chestSlots.add(slot);
+            addSlot(slot);
         }
         layoutPlayerInventorySlots(playerInventory);
     }
 
-    private static int chestSlotX(int localIndex) {
-        return 8 + (localIndex % COLUMNS) * SLOT_SIZE;
+    /** Where the {@code index}'th slot of the visible window sits, relative to the screen's top-left. */
+    public static int slotX(int windowIndex) {
+        return GRID_X + (windowIndex % COLUMNS) * SLOT_SIZE;
     }
 
-    private static int chestSlotY(int localIndex) {
-        return 18 + (localIndex / COLUMNS) * SLOT_SIZE;
+    public static int slotY(int windowIndex) {
+        return GRID_Y + (windowIndex / COLUMNS) * SLOT_SIZE;
     }
 
-    /** Which page (0-based) is currently displayed -- the screen reads this for its page label. */
-    public int currentPage() {
-        return currentPage.get();
+    /**
+     * The last row the window can be scrolled to for a chest of this capacity -- 0 while everything
+     * fits. Upstream {@code GuiDynInventory#updateSlider} writes the same thing as {@code slotCount /
+     * columns - rows + 1}, guarded by its {@code sliderActive} check for the divisible case.
+     */
+    public static int maxScrollRow(int capacity) {
+        return Math.max(0, (capacity + COLUMNS - 1) / COLUMNS - ROWS);
     }
 
-    /** The chest's current capacity, synced for the screen's page label and "next" button. */
+    /** The chest's current capacity ({@link ChestBlockEntity}'s self-expanding size), synced for the screen. */
     public int capacity() {
         return capacity.get();
     }
 
-    @Override
-    public boolean clickMenuButton(Player player, int id) {
-        if (super.clickMenuButton(player, id)) {
-            return true; // a station-group tab (issue #78), handled by StationMenu
-        }
-        if (id == BUTTON_PREVIOUS_PAGE && currentPage.get() > 0) {
-            currentPage.set(currentPage.get() - 1);
-            applyPage();
-            return true;
-        }
-        if (id == BUTTON_NEXT_PAGE && (currentPage.get() + 1) * ChestBlockEntity.PAGE_SIZE < container.getContainerSize()) {
-            currentPage.set(currentPage.get() + 1);
-            applyPage();
-            return true;
-        }
-        return false;
-    }
-
-    /** Client side: a page (or capacity) data-slot update arrived, so the window follows it. */
-    @Override
-    public void setData(int id, int data) {
-        super.setData(id, data);
-        applyPage();
-    }
-
     /**
-     * Points every chest slot at the current page's window of the container (see the class javadoc).
-     *
-     * <p>{@link Slot}'s container-relative index ({@code Slot#getContainerSlot}) is set once, at
-     * construction, from a {@code private final} field -- unlike {@link Slot#x}/{@code y}, there is
-     * no field to mutate in place. So a page change substitutes a fresh {@link FilteredSlot} at the
-     * same {@code slots} list position instead, exactly {@code SideInventorySlots#layout}'s
-     * "the slot moved, the object doesn't have to" comment already documents for repositioning --
-     * here it's the container index rather than the coordinates that changes, but the substitution
-     * technique is the same.
+     * Client-side: show the {@value #ROWS} rows starting at {@code firstRow}, hiding the rest (see
+     * the class javadoc). Called every frame by {@code ChestScreen}; slots already where they belong
+     * are left alone, so a chest that is not scrolling allocates nothing.
      */
-    private void applyPage() {
-        int base = currentPage.get() * ChestBlockEntity.PAGE_SIZE;
-        for (int i = 0; i < ChestBlockEntity.PAGE_SIZE; i++) {
-            FilteredSlot slot = new FilteredSlot(container, base + i, chestSlotX(i), chestSlotY(i));
-            slot.index = i;
-            slots.set(i, slot);
+    public void scrollTo(int firstRow) {
+        int first = Math.max(0, firstRow) * COLUMNS;
+        int last = first + VISIBLE_SLOTS;
+        int size = capacity.get();
+        for (int i = 0; i < chestSlots.size(); i++) {
+            ChestSlot slot = chestSlots.get(i);
+            boolean visible = i >= first && i < last && i < size;
+            int x = visible ? slotX(i - first) : OFF_SCREEN;
+            int y = visible ? slotY(i - first) : OFF_SCREEN;
+            if (slot.visible == visible && slot.x == x && slot.y == y) {
+                continue;
+            }
+            ChestSlot replacement = new ChestSlot(i, x, y, visible);
+            replacement.index = slot.index;
+            slots.set(slot.index, replacement);
+            chestSlots.set(i, replacement);
         }
     }
 
@@ -173,16 +178,13 @@ public class ChestMenu extends StationMenu {
         }
         ItemStack stackInSlot = slot.getItem();
         ItemStack result = stackInSlot.copy();
-        // The current page's window only -- a shift-click can't reach a page that isn't displayed,
-        // same limitation upstream's own dynamic-window GUI has (only the visible slots are ever
-        // menu slots there too).
-        int chestSlots = ChestBlockEntity.PAGE_SIZE;
+        int chestSlots = ChestBlockEntity.MAX_SLOTS;
 
         if (index < chestSlots) { // chest -> player inventory
             if (!moveItemStackTo(stackInSlot, chestSlots, slots.size(), true)) {
                 return ItemStack.EMPTY;
             }
-        } else if (!moveItemStackTo(stackInSlot, 0, chestSlots, false)) { // player inventory -> chest (filtered by FilteredSlot#mayPlace)
+        } else if (!moveItemStackTo(stackInSlot, 0, chestSlots, false)) { // player inventory -> chest (filtered by ChestSlot#mayPlace)
             return ItemStack.EMPTY;
         }
 
@@ -209,9 +211,12 @@ public class ChestMenu extends StationMenu {
         container.stopOpen(player);
     }
 
-    private final class FilteredSlot extends Slot {
-        FilteredSlot(Container container, int index, int x, int y) {
-            super(container, index, x, y);
+    private final class ChestSlot extends Slot {
+        private final boolean visible;
+
+        ChestSlot(int index, int x, int y, boolean visible) {
+            super(ChestMenu.this.container, index, x, y);
+            this.visible = visible;
         }
 
         @Override
@@ -219,18 +224,10 @@ public class ChestMenu extends StationMenu {
             return container.canPlaceItem(getContainerSlot(), stack);
         }
 
-        /**
-         * The last page can be short ({@value ChestBlockEntity#MAX_SLOTS} isn't a multiple of
-         * {@value ChestBlockEntity#PAGE_SIZE}): once a page change substitutes this slot for one
-         * whose container-relative index ({@link Slot#getContainerSlot}, not {@link Slot#index} --
-         * that field is only this slot's position in the menu's own list) sits past the real cap,
-         * it's neither drawn nor clickable -- same "the tab doesn't use this one" pattern {@code
-         * ToolStationMenu#inputSlot} already uses for its own always-present-but-not-always-active
-         * slots.
-         */
+        /** Client render/click only, upstream's {@code shouldDrawSlot} -- see the class javadoc. */
         @Override
         public boolean isActive() {
-            return getContainerSlot() < ChestBlockEntity.MAX_SLOTS;
+            return visible;
         }
     }
 }

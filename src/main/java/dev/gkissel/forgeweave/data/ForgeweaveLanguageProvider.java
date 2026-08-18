@@ -196,8 +196,6 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("gui.forgeweave.temperature.kelvin", "%sK");
         add("tooltip.forgeweave.hold_shift", "Hold Shift for buckets");
 
-        // The Pattern/Part Chest's page label (issue #305: self-expanding, paged storage).
-        add("gui.forgeweave.chest.page", "Page %s/%s");
         // #477/T46: the Pattern Chest's display name once it holds a cast, upstream's gui.castchest.name.
         add("gui.forgeweave.cast_chest.name", "Cast Chest");
 
