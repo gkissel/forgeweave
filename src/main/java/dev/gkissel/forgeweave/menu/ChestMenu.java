@@ -216,7 +216,7 @@ public class ChestMenu extends StationMenu {
 
         @Override
         public boolean mayPlace(ItemStack stack) {
-            return kind.accepts(stack);
+            return container.canPlaceItem(getContainerSlot(), stack);
         }
 
         /**

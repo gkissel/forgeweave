@@ -18,6 +18,7 @@ import net.minecraft.world.level.block.Block;
 import net.neoforged.neoforge.common.data.ExistingFileHelper;
 
 import dev.gkissel.forgeweave.Forgeweave;
+import dev.gkissel.forgeweave.block.ChestKind;
 import dev.gkissel.forgeweave.block.SearedDuctBlockEntity;
 import dev.gkissel.forgeweave.item.ForgeweaveItems;
 import dev.gkissel.forgeweave.menu.ToolAssemblyRecipes;
@@ -158,6 +159,30 @@ public class ForgeweaveItemTagsProvider extends ItemTagsProvider {
 
         // #277 -- what a seared duct takes as a fluid filter; see SearedDuctBlockEntity#DUCT_CONTAINERS.
         tag(SearedDuctBlockEntity.DUCT_CONTAINERS).add(Items.BUCKET);
+
+        // #477/T46 -- every cast item, gold (issue #100/#222) and clay (issue #292), into one tag so
+        // the Pattern Chest's cast-chest mode (ChestKind#CASTS) can recognise both without a second
+        // marker class the way ClayCastItem alone would need for gold casts too.
+        tag(ChestKind.CASTS)
+                .add(ForgeweaveItems.CAST_INGOT.get(), ForgeweaveItems.CAST_NUGGET.get(),
+                        ForgeweaveItems.CAST_GEM.get(), ForgeweaveItems.CAST_PLATE.get(), ForgeweaveItems.CAST_GEAR.get(),
+                        ForgeweaveItems.CAST_PICKAXE_HEAD.get(), ForgeweaveItems.CAST_SHOVEL_HEAD.get(),
+                        ForgeweaveItems.CAST_AXE_HEAD.get(), ForgeweaveItems.CAST_TOOL_BINDING.get(),
+                        ForgeweaveItems.CAST_TOOL_HANDLE.get(), ForgeweaveItems.CAST_SWORD_BLADE.get(),
+                        ForgeweaveItems.CAST_WIDE_GUARD.get(), ForgeweaveItems.CAST_HAND_GUARD.get(),
+                        ForgeweaveItems.CAST_CROSS_GUARD.get(), ForgeweaveItems.CAST_SIGN_PLATE.get(),
+                        ForgeweaveItems.CAST_PAN.get(), ForgeweaveItems.CAST_KNIFE_BLADE.get(),
+                        ForgeweaveItems.CAST_LARGE_SWORD_BLADE.get(), ForgeweaveItems.CAST_TOUGH_TOOL_ROD.get(),
+                        ForgeweaveItems.CAST_TOUGH_BINDING.get(), ForgeweaveItems.CAST_LARGE_PLATE.get(),
+                        ForgeweaveItems.CAST_HAMMER_HEAD.get(), ForgeweaveItems.CAST_EXCAVATOR_HEAD.get(),
+                        ForgeweaveItems.CAST_SCYTHE_HEAD.get(), ForgeweaveItems.CAST_KAMA_HEAD.get(),
+                        ForgeweaveItems.CAST_BROAD_AXE_HEAD.get(), ForgeweaveItems.CAST_VEIN_HAMMER_HEAD.get(),
+                        ForgeweaveItems.CAST_WAR_MACE_HEAD.get(), ForgeweaveItems.CAST_CURVED_BLADE.get(),
+                        ForgeweaveItems.CAST_KATANA_BLADE.get(), ForgeweaveItems.CAST_BOW_LIMB.get(),
+                        ForgeweaveItems.CAST_SHARPENING_KIT.get());
+        for (var clayCast : ForgeweaveItems.CLAY_CASTS.values()) {
+            tag(ChestKind.CASTS).add(clayCast.get());
+        }
     }
 
     /** The tag naming every block a Tool Forge can be crafted from (issue #152). */

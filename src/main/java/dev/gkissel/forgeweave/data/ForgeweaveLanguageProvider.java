@@ -170,6 +170,8 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
 
         // The Pattern/Part Chest's page label (issue #305: self-expanding, paged storage).
         add("gui.forgeweave.chest.page", "Page %s/%s");
+        // #477/T46: the Pattern Chest's display name once it holds a cast, upstream's gui.castchest.name.
+        add("gui.forgeweave.cast_chest.name", "Cast Chest");
 
         addItem(ForgeweaveItems.PATTERN_BLANK, "Blank Pattern");
         addItem(ForgeweaveItems.PATTERN_PICKAXE_HEAD, "Pickaxe Head Pattern");

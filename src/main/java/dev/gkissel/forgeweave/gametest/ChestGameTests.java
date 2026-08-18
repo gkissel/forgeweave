@@ -94,6 +94,91 @@ public class ChestGameTests {
         helper.succeed();
     }
 
+    // ------------------------------------------------------------------ issue #477 (T46): chest rules
+
+    /** Upstream {@code TilePatternChest}: only one of each part pattern, not unlimited duplicates. */
+    @GameTest(template = "empty")
+    public static void patternChestRejectsADuplicatePatternButAcceptsADifferentOne(GameTestHelper helper) {
+        BlockPos pos = new BlockPos(1, 1, 1);
+        ChestBlockEntity chest = placeChest(helper, pos, ChestKind.PATTERN);
+        chest.container().setItem(0, new ItemStack(ForgeweaveItems.PATTERN_PICKAXE_HEAD.get()));
+
+        helper.assertFalse(chest.container().canPlaceItem(1, new ItemStack(ForgeweaveItems.PATTERN_PICKAXE_HEAD.get())),
+                "expected a second pickaxe head pattern to be rejected as a duplicate");
+        helper.assertTrue(chest.container().canPlaceItem(1, new ItemStack(ForgeweaveItems.PATTERN_SHOVEL_HEAD.get())),
+                "expected a different pattern to still be accepted");
+
+        helper.succeed();
+    }
+
+    /** Stack size 1 (upstream {@code TilePatternChest(MAX_INVENTORY, 1)}): even the first stack can't exceed 1. */
+    @GameTest(template = "empty")
+    public static void patternChestLimitsStacksToOne(GameTestHelper helper) {
+        BlockPos pos = new BlockPos(1, 1, 1);
+        ChestBlockEntity chest = placeChest(helper, pos, ChestKind.PATTERN);
+
+        helper.assertValueEqual(chest.container().getMaxStackSize(), 1, "Pattern/Cast Chest slot stack limit");
+        helper.assertTrue(chest.container().getMaxStackSize(new ItemStack(ForgeweaveItems.PATTERN_BLANK.get(), 64)) == 1,
+                "expected the chest to clamp even a 64-stack pattern down to 1");
+
+        helper.succeed();
+    }
+
+    /** Cast-chest mode (upstream's {@code ICast} branch, now that #100/#222 shipped casts). */
+    @GameTest(template = "empty")
+    public static void patternChestAcceptsCastsAndDoesNotMixThemWithPatterns(GameTestHelper helper) {
+        BlockPos pos = new BlockPos(1, 1, 1);
+        ChestBlockEntity chest = placeChest(helper, pos, ChestKind.PATTERN);
+
+        helper.assertTrue(chest.container().canPlaceItem(0, new ItemStack(ForgeweaveItems.CAST_PICKAXE_HEAD.get())),
+                "expected an empty Pattern Chest to accept a cast too");
+        chest.container().setItem(0, new ItemStack(ForgeweaveItems.CAST_PICKAXE_HEAD.get()));
+
+        helper.assertFalse(chest.container().canPlaceItem(1, new ItemStack(ForgeweaveItems.PATTERN_BLANK.get())),
+                "expected a cast chest to reject a pattern");
+        helper.assertFalse(chest.container().canPlaceItem(1, new ItemStack(ForgeweaveItems.CAST_PICKAXE_HEAD.get())),
+                "expected a cast chest to reject a duplicate cast");
+        helper.assertTrue(chest.container().canPlaceItem(1, new ItemStack(ForgeweaveItems.CAST_SHOVEL_HEAD.get())),
+                "expected a cast chest to accept a different cast");
+        helper.assertTrue(chest.container().canPlaceItem(1, new ItemStack(ForgeweaveItems.CLAY_CASTS.get("cast_shovel_head").get())),
+                "expected a cast chest to accept a clay cast too (upstream's clayCast also implements ICast)");
+
+        helper.succeed();
+    }
+
+    /** Same-stack-only rule for the Part Chest (upstream's {@code i == slot} check). */
+    @GameTest(template = "empty")
+    public static void partChestOnlyAcceptsADuplicateIntoItsOwnSlot(GameTestHelper helper) {
+        BlockPos pos = new BlockPos(1, 1, 1);
+        ChestBlockEntity chest = placeChest(helper, pos, ChestKind.PART);
+        chest.container().setItem(0, new ItemStack(ForgeweaveItems.PART_PICKAXE_HEAD.get()));
+
+        helper.assertTrue(chest.container().canPlaceItem(0, new ItemStack(ForgeweaveItems.PART_PICKAXE_HEAD.get())),
+                "expected the Part Chest to keep stacking a duplicate into the slot it already occupies");
+        helper.assertFalse(chest.container().canPlaceItem(1, new ItemStack(ForgeweaveItems.PART_PICKAXE_HEAD.get())),
+                "expected the Part Chest to refuse spreading a duplicate into a different slot");
+        helper.assertTrue(chest.container().canPlaceItem(1, new ItemStack(ForgeweaveItems.PART_SHOVEL_HEAD.get())),
+                "expected the Part Chest to still accept a different part in a new slot");
+
+        helper.succeed();
+    }
+
+    /** Upstream {@code TilePatternChest#getName}: "Cast Chest" once it holds a cast. */
+    @GameTest(template = "empty")
+    public static void patternChestDisplayNameSwitchesToCastChestOnceItHoldsACast(GameTestHelper helper) {
+        BlockPos pos = new BlockPos(1, 1, 1);
+        ChestBlockEntity chest = placeChest(helper, pos, ChestKind.PATTERN);
+
+        helper.assertTrue(chest.getDisplayName().getString().equals("Pattern Chest"),
+                "expected an empty chest to keep the default name");
+
+        chest.container().setItem(0, new ItemStack(ForgeweaveItems.CAST_PICKAXE_HEAD.get()));
+        helper.assertTrue(chest.getDisplayName().getString().equals("Cast Chest"),
+                "expected a chest holding a cast to rename itself");
+
+        helper.succeed();
+    }
+
     @GameTest(template = "empty")
     public static void patternChestNextToPartBuilderExposesItsPatternsThroughTheStationMenu(GameTestHelper helper) {
         BlockPos stationPos = new BlockPos(1, 1, 1);
@@ -127,7 +212,11 @@ public class ChestGameTests {
     // ------------------------------------------------------------------ issue #305: self-expanding capacity
 
     private static ChestBlockEntity placeChest(GameTestHelper helper, BlockPos pos) {
-        helper.setBlock(pos, ForgeweaveBlocks.PART_CHEST.get());
+        return placeChest(helper, pos, ChestKind.PART);
+    }
+
+    private static ChestBlockEntity placeChest(GameTestHelper helper, BlockPos pos, ChestKind kind) {
+        helper.setBlock(pos, kind == ChestKind.PATTERN ? ForgeweaveBlocks.PATTERN_CHEST.get() : ForgeweaveBlocks.PART_CHEST.get());
         return helper.getBlockEntity(pos);
     }
 
