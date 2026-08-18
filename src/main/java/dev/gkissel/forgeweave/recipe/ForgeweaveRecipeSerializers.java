@@ -17,6 +17,10 @@ public final class ForgeweaveRecipeSerializers {
     public static final DeferredHolder<RecipeSerializer<?>, RetexturedShapedRecipeSerializer> RETEXTURED_SHAPED =
             RECIPE_SERIALIZERS.register("retextured_shaped", () -> RetexturedShapedRecipeSerializer.INSTANCE);
 
+    /** {@link GravelFlintRecipe} (parity audit T55, issue #486). */
+    public static final DeferredHolder<RecipeSerializer<?>, GravelFlintRecipeSerializer> GRAVEL_FLINT =
+            RECIPE_SERIALIZERS.register("gravel_flint", () -> GravelFlintRecipeSerializer.INSTANCE);
+
     /**
      * Issue #463's crafting-grid tool repair. A {@link SimpleCraftingRecipeSerializer} because the
      * recipe carries no data of its own beyond the crafting-book category, the same shape upstream's
