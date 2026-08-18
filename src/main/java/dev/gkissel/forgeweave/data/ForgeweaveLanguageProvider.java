@@ -1072,6 +1072,7 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         addItem(ForgeweaveItems.CAST_KATANA_BLADE, "Katana Blade Cast");
         addItem(ForgeweaveItems.CAST_BOW_LIMB, "Bowlimb Cast");
         addItem(ForgeweaveItems.CAST_SHARPENING_KIT, "Sharpening Kit Cast");
+        addItem(ForgeweaveItems.CAST_SHARD, "Shard Cast"); // #471/T40
 
         // #292 -- the single-use clay counterpart of every cast above, named the way upstream's
         // item.tconstruct.clay_cast.name ("%s Clay Cast") names them, off the cast's registry name
