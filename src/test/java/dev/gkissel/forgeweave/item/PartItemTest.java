@@ -46,6 +46,9 @@ class PartItemTest {
 
     private static final ResourceLocation STONE_ID = ResourceLocation.fromNamespaceAndPath("forgeweave", "stone");
     private static final ResourceLocation CHEAP_TRAIT = ResourceLocation.fromNamespaceAndPath("forgeweave", "cheap");
+    // Issue #493: stone's head part grants cheapskate, not the general cheap -- see Material.Traits'
+    // scoping javadoc and stone.json.
+    private static final ResourceLocation CHEAPSKATE_TRAIT = ResourceLocation.fromNamespaceAndPath("forgeweave", "cheapskate");
     private static final TextColor STONE_COLOR = TextColor.fromRgb(0x999999);
 
     /** Upstream's {@code COLOR_Durability}, i.e. the top of {@code valueToColorCode}'s ramp. */
@@ -129,7 +132,7 @@ class PartItemTest {
         assertEquals(List.of(
                 Component.translatable("material.forgeweave.stone").withStyle(Style.EMPTY.withColor(STONE_COLOR)),
                 Component.empty(),
-                traitLine("cheap", STONE_COLOR)),
+                traitLine("cheapskate", STONE_COLOR)),
                 tooltip);
     }
 
@@ -149,7 +152,7 @@ class PartItemTest {
                 statLine("attack_damage", "3", ATTACK_COLOR),
                 tierLine("stone"),
                 Component.empty(),
-                traitLine("cheap", STONE_COLOR)),
+                traitLine("cheapskate", STONE_COLOR)),
                 tooltip);
     }
 
@@ -301,7 +304,7 @@ class PartItemTest {
                 new Material.Handle(0.5F, -50),
                 20,
                 TagKey.create(Registries.BLOCK, ResourceLocation.withDefaultNamespace("incorrect_for_stone_tool")),
-                Material.Traits.general(CHEAP_TRAIT),
+                new Material.Traits(List.of(CHEAP_TRAIT), List.of(CHEAPSKATE_TRAIT)),
                 List.of(),
                 Ingredient.of(Items.COBBLESTONE),
                 STONE_COLOR);

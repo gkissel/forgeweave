@@ -66,7 +66,7 @@ public class CombatGameTests {
      * </table>
      *
      * <p>Handle and binding are wood, whose {@code ecological} trait touches neither attack stat, and
-     * stone's {@code cheap} only touches durability -- so what the attribute reads is the head
+     * stone's head trait {@code cheapskate} only touches durability -- so what the attribute reads is the head
      * material's number times the tool's potential, plus the hatchet's own flat bonus. Upstream
      * {@code Hatchet#buildTagData}'s {@code data.attack += 0.5f} (parity audit 2026-08-18 T65, issue
      * #496) adds to the <em>stored</em> attack before {@code ToolHelper#getActualAttack} multiplies

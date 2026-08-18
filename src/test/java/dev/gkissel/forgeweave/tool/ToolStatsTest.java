@@ -57,15 +57,16 @@ class ToolStatsTest {
     }
 
     /**
-     * Upstream's stone carries {@code cheapskate} on the head part
+     * Upstream's stone carries {@code cheapskate} on the head part only
      * ({@code TinkerMaterials}: {@code stone.addTrait(cheapskate, HEAD)}), whose
      * {@code onToolBuilding} does {@code max(1, durability * 80 / 100)} on the assembled tool; the
-     * shipped {@code forgeweave:cheap} trait carries that penalty (issue #79). Only the head material
-     * triggers it: the same trait on the binding or handle changes nothing.
+     * shipped {@code forgeweave:cheapskate} trait carries that penalty (issue #493 split it off the
+     * general {@code forgeweave:cheap} repair-bonus trait, issue #79's original single-id carrier).
+     * Only the head material triggers it: the same trait on the binding or handle changes nothing.
      */
     @Test
-    void aCheapHeadTakesTwentyPercentOffTheAssembledDurability() {
-        Material stone = cheapMaterial(120, 0.5f, -50, 20);
+    void aCheapskateHeadTakesTwentyPercentOffTheAssembledDurability() {
+        Material stone = cheapskateHeadMaterial(120, 0.5f, -50, 20);
         Material wood = material(35, 2.0f, 2.0f, 1.0f, 25, 15);
         Material cheapWood = material(35, 2.0f, 2.0f, 1.0f, 25, 15, "cheap");
 
@@ -73,7 +74,7 @@ class ToolStatsTest {
         assertEquals(16, ToolStats.compute(stone, stone, stone).durability());
         // Stone head, wood binding and handle: (120 + 15) * 1.0 + 25 = 160, * 80 / 100 = 128.
         assertEquals(128, ToolStats.compute(stone, wood, wood).durability());
-        // Cheap off the head is inert: same 75 an all-wood tool gets, penalty or no penalty.
+        // Cheapskate off the head is inert: same 75 an all-wood tool gets, penalty or no penalty.
         assertEquals(75, ToolStats.compute(wood, wood, wood).durability());
         assertEquals(75, ToolStats.compute(wood, cheapWood, cheapWood).durability());
     }
@@ -84,11 +85,24 @@ class ToolStatsTest {
                 extraDurability, "test");
     }
 
-    /** The shipped stone material's durability-relevant stats, trait and all. */
-    private static Material cheapMaterial(int headDurability, float handleDurabilityModifier, int handleDurability,
-            int extraDurability) {
-        return material(headDurability, 4.0f, 3.0f, handleDurabilityModifier, handleDurability, extraDurability,
-                "cheap");
+    /**
+     * The shipped stone material's durability-relevant stats, general {@code cheap} and head-scoped
+     * {@code cheapskate} both -- {@link ToolStats#compute} only ever reads the head-scoped list, so
+     * only {@code cheapskate} is exercised here, exactly as stone's own material JSON is shaped.
+     */
+    private static Material cheapskateHeadMaterial(int headDurability, float handleDurabilityModifier,
+            int handleDurability, int extraDurability) {
+        return new Material(
+                new Material.Head(headDurability, 4.0f, 3.0f),
+                new Material.Handle(handleDurabilityModifier, handleDurability),
+                extraDurability,
+                TagKey.create(Registries.BLOCK, ResourceLocation.withDefaultNamespace("incorrect_for_stone_tool")),
+                new Material.Traits(
+                        List.of(ResourceLocation.fromNamespaceAndPath("forgeweave", "cheap")),
+                        List.of(ResourceLocation.fromNamespaceAndPath("forgeweave", "cheapskate"))),
+                List.of(new Material.CraftingItem(Ingredient.of(Items.STICK), 1)),
+                Ingredient.of(Items.STICK),
+                TextColor.fromRgb(0xFFFFFF));
     }
 
     private static Material material(int headDurability, float miningSpeed, float attackDamage,

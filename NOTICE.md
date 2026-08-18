@@ -103,7 +103,8 @@ One row per derived file (ADR-0003). Maintained in PR review: a PR introducing d
 | `src/main/java/dev/gkissel/forgeweave/menu/ToolAssemblyRecipes.java` (part-exchange resolution: all-parts loadout gate, positional slot assignment with the same-material refusal and later-slot preference, damage-value carry-over with the not-enough-durability refusal, rebuild-and-reapply of stats/traits/modifiers) and `src/main/java/dev/gkissel/forgeweave/modifier/ModifierApplication.java` (`rebake`) | `src/main/java/slimeknights/tconstruct/library/utils/ToolBuilder.java` (`tryReplaceToolParts`, `rebuildTool`), `src/main/java/slimeknights/tconstruct/tools/common/inventory/ContainerToolStation.java` (repair -> replace -> modify ordering) | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
 | `src/main/java/dev/gkissel/forgeweave/data/ForgeweaveLanguageProvider.java` (issue #264's not-enough-durability wording) | `resources/assets/tconstruct/lang/en_us.lang` (`gui.error.not_enough_durability`) | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
 | `src/main/java/dev/gkissel/forgeweave/trait/ForgeweaveTraits.java` (`ECOLOGICAL` behavior) | `src/main/java/slimeknights/tconstruct/tools/traits/TraitEcological.java` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
-| `src/main/java/dev/gkissel/forgeweave/trait/ForgeweaveTraits.java` (`CHEAP` behavior: the repair bonus from `TraitCheap`, the head-only 20% durability penalty from `TraitCheapskate`) | `src/main/java/slimeknights/tconstruct/tools/traits/TraitCheap.java`, `src/main/java/slimeknights/tconstruct/tools/traits/TraitCheapskate.java` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
+| `src/main/java/dev/gkissel/forgeweave/trait/ForgeweaveTraits.java` (`CHEAP` behavior: the general repair bonus) | `src/main/java/slimeknights/tconstruct/tools/traits/TraitCheap.java` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
+| `src/main/java/dev/gkissel/forgeweave/trait/ForgeweaveTraits.java` (`CHEAPSKATE` behavior: the head-only 20% durability penalty) | `src/main/java/slimeknights/tconstruct/tools/traits/TraitCheapskate.java` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
 | `src/main/java/dev/gkissel/forgeweave/trait/ForgeweaveTraits.java` (`CRUDE` behavior) | `src/main/java/slimeknights/tconstruct/tools/traits/TraitCrude.java` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
 | `src/main/java/dev/gkissel/forgeweave/trait/ForgeweaveTraits.java` (`FRACTURED` behavior) | `src/main/java/slimeknights/tconstruct/tools/traits/TraitBonusDamage.java`, `src/main/java/slimeknights/tconstruct/tools/TinkerTraits.java` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
 | `src/main/java/dev/gkissel/forgeweave/trait/ForgeweaveTraits.java` (same-trait-applies-once stacking rule) | `src/main/java/slimeknights/tconstruct/library/traits/AbstractTraitLeveled.java` | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
@@ -1237,16 +1238,21 @@ one-trait-id-per-material data model, which could not express upstream's per-par
   plus `crude` elsewhere, which stacks to level 3 (+15% vs unarmored). Forgeweave's flint originally
   granted plain `crude` (level 1, +5%); the #231 retrofit ships the `crude`/`crude2` pair on
   issue #94's head scope, restoring the full +15%.
-- **Stone's `cheapskate`**: upstream's stone grants `cheapskate` on the head part
-  (`TinkerMaterials`: `stone.addTrait(cheapskate, HEAD)`) on top of `cheap`. Both behaviors ship,
-  folded into the single `forgeweave:cheap` id (`ForgeweaveTraits#CHEAP`): `cheap`'s +5% repair from
-  `TraitCheap#onToolHeal`, and `cheapskate`'s `max(1, durability * 80 / 100)` from
-  `TraitCheapskate#onToolBuilding`, applied at assembly through `Trait#headDurability` so it stays
-  head-only exactly as upstream's assignment is. (Issue #79 corrected this entry, which previously
-  claimed the penalty was already baked into stone's material JSON stats and so did not need to
-  ship. It was not: those stats are upstream's `HeadMaterialStats`/`HandleMaterialStats`/
-  `ExtraMaterialStats` values verbatim, which upstream itself then multiplies by 0.8 at build time,
-  so every stone-headed tool was about 25% too durable.)
+- **Stone's `cheapskate`** *(resolved by issue #493)*: upstream's stone grants `cheapskate` on the
+  head part (`TinkerMaterials`: `stone.addTrait(cheapskate, HEAD)`) on top of `cheap` everywhere
+  else. Both behaviors shipped folded into the single `forgeweave:cheap` id (`ForgeweaveTraits#CHEAP`)
+  from M1 through issue #94, which added the per-part trait scoping this split needed but never used
+  for stone. Issue #493 splits it onto issue #94's scoping: `forgeweave:cheap` keeps `cheap`'s +5%
+  repair bonus (`TraitCheap#onToolHeal`) as stone's general trait, and a new `forgeweave:cheapskate`
+  id (`ForgeweaveTraits#CHEAPSKATE`) carries `cheapskate`'s `max(1, durability * 80 / 100)`
+  (`TraitCheapskate#onToolBuilding`) as stone's head-scoped one, applied at assembly through
+  `Trait#headDurability`. Upstream's `Material#getAllTraitsForStats` replaces the general list with a
+  part-scoped one rather than merging them, so a stone head alone now grants no repair bonus -- the
+  folded id had been giving one. (Issue #79 corrected this entry, which previously claimed the
+  penalty was already baked into stone's material JSON stats and so did not need to ship. It was
+  not: those stats are upstream's `HeadMaterialStats`/`HandleMaterialStats`/`ExtraMaterialStats`
+  values verbatim, which upstream itself then multiplies by 0.8 at build time, so every stone-headed
+  tool was about 25% too durable.)
 - **Bone's `splintering`**: upstream's bone grants `splintering` on the head part plus `fractured`
   everywhere; Forgeweave's bone grants plain `fractured`, so the stacking `splinter` potion effect
   `TraitSplintering` applies on hit (+0.3 damage per stack, up to 5) is not shipped. Upstream's third

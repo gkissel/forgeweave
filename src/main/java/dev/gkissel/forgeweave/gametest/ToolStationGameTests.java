@@ -43,8 +43,8 @@ import dev.gkissel.forgeweave.tool.ToolMaterials;
  * <p>Expected durability is {@code ToolStats}'s ported 1.12 formula (see its javadoc), computed by
  * hand from the shipped material JSONs: stone's head durability (120) + wood's extra_durability
  * (15, as the binding) = 135; * wood's handle durability_modifier (1.0) = 135; + wood's handle
- * durability (25) = 160; * stone's head trait {@code cheap} carrying upstream's {@code cheapskate}
- * penalty (160 * 80 / 100) = 128.
+ * durability (25) = 160; * stone's head-scoped trait {@code forgeweave:cheapskate} (upstream's
+ * {@code cheapskate}, issue #493) penalty (160 * 80 / 100) = 128.
  */
 @GameTestHolder(Forgeweave.MODID)
 @PrefixGameTestTemplate(false)
@@ -103,9 +103,12 @@ public class ToolStationGameTests {
      *
      * <p>One repair item is worth the head material's head durability, so 120 of the 127 damage comes
      * off ({@code ToolRepair}, ported from upstream 1.12's
-     * {@code TinkersItem#calculateRepairAmount}/{@code #calculateRepair}), plus the 5% stone's
-     * {@code forgeweave:cheap} trait adds -- 126 in all, leaving the tool at 1 damage, unbroken and
-     * usable again. The trait's own test is {@link TraitGameTests#cheapRepairsMoreThanTheBaseAmount}.
+     * {@code TinkersItem#calculateRepairAmount}/{@code #calculateRepair}) -- and nothing more: the
+     * head's only trait is the head-scoped {@code forgeweave:cheapskate} (issue #493), which touches
+     * durability, not repair, so the general {@code forgeweave:cheap} repair bonus does not apply to
+     * this stone-headed-only tool. That leaves the tool at 7 damage, unbroken and usable again. The
+     * trait's own tests are {@link TraitGameTests#cheapskateOnTheHeadAddsNoRepairBonus} and
+     * {@link TraitGameTests#cheapOffTheHeadStillAddsARepairBonus}.
      */
     @GameTest(template = "empty")
     public static void repairRestoresDurabilityAndClearsBroken(GameTestHelper helper) {
@@ -126,9 +129,9 @@ public class ToolStationGameTests {
         ItemStack repaired = menu.getSlot(ToolStationMenu.OUTPUT_SLOT).getItem();
         helper.assertTrue(repaired.is(ForgeweaveItems.TOOL_PICKAXE.get()), "expected the repaired pickaxe, got " + repaired);
         helper.assertFalse(ToolItem.isBroken(repaired), "repair must clear the Broken state");
-        helper.assertTrue(repaired.getDamageValue() == 1,
-                "expected 127 - (120 + cheap's 5%) = 1 damage left after one cobblestone, got "
-                        + repaired.getDamageValue());
+        helper.assertTrue(repaired.getDamageValue() == 7,
+                "expected 127 - 120 (no repair bonus off a stone head alone) = 7 damage left after one "
+                        + "cobblestone, got " + repaired.getDamageValue());
         helper.assertTrue(repaired.isCorrectToolForDrops(Blocks.STONE.defaultBlockState()),
                 "a repaired tool should harvest again");
         helper.assertTrue(ToolMaterials.of(ToolAssembly.pickaxeSlots(), List.of(
@@ -154,9 +157,10 @@ public class ToolStationGameTests {
      * <p>The pickaxe's base durability (128, {@code forgeweave:tool_stats}) and Diamond's +500 grow
      * the actual pool to 628, a {@code 628 / 128 = 4.90625} factor; one repair item is worth
      * {@code 120 * 4.90625 = 588.75}, cut by Diamond's own occupied slot ({@code 1} -> {@code 0.95}x)
-     * to {@code 559.3125}, rounding up to 560, plus stone's {@code cheap} trait's own 5% repair bonus
-     * ({@code 560 * 5 / 100 = 28}) -- 588 in all, versus the 126 an unmodified stone pickaxe repairs
-     * for ({@link #repairRestoresDurabilityAndClearsBroken}).
+     * to {@code 559.3125}, rounding up to 560 -- no further bonus, since a stone head alone carries
+     * only the head-scoped {@code forgeweave:cheapskate} (issue #493), not the general repair-bonus
+     * {@code forgeweave:cheap} -- versus the 120 an unmodified stone pickaxe repairs for
+     * ({@link #repairRestoresDurabilityAndClearsBroken}).
      */
     @GameTest(template = "empty")
     public static void diamondModifiedToolRepairsProportionallyFaster(GameTestHelper helper) {
@@ -181,8 +185,8 @@ public class ToolStationGameTests {
 
         ItemStack repaired = menu.getSlot(ToolStationMenu.OUTPUT_SLOT).getItem();
         helper.assertTrue(repaired.is(ForgeweaveItems.TOOL_PICKAXE.get()), "expected the repaired pickaxe, got " + repaired);
-        helper.assertTrue(repaired.getDamageValue() == 12,
-                "expected 600 - 588 = 12 damage left after one cobblestone, got " + repaired.getDamageValue());
+        helper.assertTrue(repaired.getDamageValue() == 40,
+                "expected 600 - 560 = 40 damage left after one cobblestone, got " + repaired.getDamageValue());
         helper.succeed();
     }
 
@@ -190,10 +194,10 @@ public class ToolStationGameTests {
      * Issue #281's other regression: upstream {@code TinkersItem#calculateRepair}'s modifier-count
      * repair penalty (1.00 / 0.95 / 0.90 / 0.85 for 0/1/2/3+ occupied, non-embossment modifier slots)
      * had been dropped entirely. Three modifiers with no durability effect of their own (haste,
-     * searing, magnetic pull) isolate the penalty term: {@code ceil(120 * 0.85) = 102}, plus stone's
-     * {@code cheap} trait's own 5% repair bonus ({@code 102 * 5 / 100 = 5}) on top -- 107 in all,
-     * versus the 126 an unmodified stone pickaxe repairs for
-     * ({@link #repairRestoresDurabilityAndClearsBroken}).
+     * searing, magnetic pull) isolate the penalty term: {@code ceil(120 * 0.85) = 102} -- no further
+     * bonus, since a stone head alone carries only the head-scoped {@code forgeweave:cheapskate}
+     * (issue #493), not the general repair-bonus {@code forgeweave:cheap} -- versus the 120 an
+     * unmodified stone pickaxe repairs for ({@link #repairRestoresDurabilityAndClearsBroken}).
      */
     @GameTest(template = "empty")
     public static void threeOccupiedModifierSlotsRepairAtEightyFivePercent(GameTestHelper helper) {
@@ -219,8 +223,8 @@ public class ToolStationGameTests {
 
         ItemStack repaired = menu.getSlot(ToolStationMenu.OUTPUT_SLOT).getItem();
         helper.assertTrue(repaired.is(ForgeweaveItems.TOOL_PICKAXE.get()), "expected the repaired pickaxe, got " + repaired);
-        helper.assertTrue(repaired.getDamageValue() == 13,
-                "expected 120 - 107 = 13 damage left after one cobblestone, got " + repaired.getDamageValue());
+        helper.assertTrue(repaired.getDamageValue() == 18,
+                "expected 120 - 102 = 18 damage left after one cobblestone, got " + repaired.getDamageValue());
         helper.succeed();
     }
 
@@ -430,7 +434,8 @@ public class ToolStationGameTests {
      * {@code TinkersItem#repair} every free slot, and {@code Material#matches} sums the repair item
      * across all of them. Cobblestone in slots 3 and 5 alone -- neither of the two slots the
      * pre-#434 resolver read -- must repair the broken pickaxe, and taking it must spend both
-     * (127 damage; one cobblestone restores 126, the second the last point).
+     * (127 damage; one cobblestone restores 120, the second the rest -- see
+     * {@link #repairRestoresDurabilityAndClearsBroken} for why a stone head alone gets no bonus).
      */
     @GameTest(template = "empty")
     public static void repairPoolsAllFiveFreeSlots(GameTestHelper helper) {

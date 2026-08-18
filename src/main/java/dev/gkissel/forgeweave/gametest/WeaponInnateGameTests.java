@@ -66,7 +66,7 @@ public class WeaponInnateGameTests {
      * Both tools come out of the station carrying {@link ToolConstants}' numbers.
      *
      * <p>A stone head is upstream's {@code HeadMaterialStats(120, 4.00f, 3.00f, IRON)} -- 3.0 attack
-     * -- and neither wood's {@code ecological} nor stone's {@code cheap} touches attack, so what the
+     * -- and neither wood's {@code ecological} nor stone's {@code cheapskate} touches attack, so what the
      * attribute reads is the formula and nothing else:
      *
      * <table>

@@ -246,16 +246,17 @@ public class ToolForgeGameTests {
     }
 
     /**
-     * The same discount end to end: the Broken pickaxe {@code ToolStationGameTests} repairs to 1
+     * The same discount end to end: the Broken pickaxe {@code ToolStationGameTests} repairs to 7
      * damage with one cobblestone at a Tool Station comes back undamaged from a Tool Forge.
      *
-     * <p>Both numbers are exact, not "less than": 127 damage, minus 120 plus stone's {@code cheap}
-     * 5% ({@code 120 * 5 / 100 = 6}) = 1 at the station; minus 127 plus {@code 127 * 5 / 100 = 6} =
-     * 0 (clamped) at the forge. Same tool, same single cobblestone, so the only variable is the block.
+     * <p>Both numbers are exact, not "less than": 127 damage, minus 120 (a stone head alone carries
+     * only the head-scoped {@code forgeweave:cheapskate}, issue #493, not the general repair-bonus
+     * {@code forgeweave:cheap}) = 7 at the station; minus {@code ceil(120 / 0.95) = 127} = 0 (exact)
+     * at the forge. Same tool, same single cobblestone, so the only variable is the block.
      */
     @GameTest(template = "empty")
     public static void forgeRepairsFurtherForTheSameMaterial(GameTestHelper helper) {
-        helper.assertTrue(repairDamageAfterOneCobblestone(helper, ForgeweaveBlocks.TOOL_STATION.get()) == 1,
+        helper.assertTrue(repairDamageAfterOneCobblestone(helper, ForgeweaveBlocks.TOOL_STATION.get()) == 7,
                 "the Tool Station's repair must be unchanged by #152");
         helper.assertTrue(repairDamageAfterOneCobblestone(helper, ForgeweaveBlocks.TOOL_FORGE.get()) == 0,
                 "the Tool Forge's 5% discount must show as a larger repair for the same one item");

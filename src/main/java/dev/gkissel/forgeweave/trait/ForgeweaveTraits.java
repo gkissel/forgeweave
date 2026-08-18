@@ -133,26 +133,29 @@ public final class ForgeweaveTraits {
     private static final int ECOLOGICAL_PERIOD_SECONDS = 40;
 
     /**
-     * Stone. Two upstream traits in one id, because stone grants both and M1's material schema gave a
-     * material exactly one. Issue #94 lifted that limit; splitting this back into upstream's separate
-     * {@code cheap} + head-scoped {@code cheapskate} ids is a trait change (new id, new lang keys),
-     * not a schema one, so it waits for the milestone that revisits stone's traits:
-     *
-     * <ul>
-     *   <li>{@code TraitCheap#onToolHeal}: {@code newAmount + amount * 5 / 100}, i.e. 5% more
-     *       durability per repair, integer-truncated exactly as upstream truncates it.
-     *   <li>{@code TraitCheapskate#onToolBuilding} (upstream assigns it to the head part only:
-     *       {@code stone.addTrait(cheapskate, HEAD)}): {@code max(1, durability * 80 / 100)} on the
-     *       assembled tool, i.e. a 20% durability penalty. Head-only upstream, head-only here --
-     *       hence {@link Trait#headDurability} rather than a hook every part could trigger.
-     * </ul>
+     * Stone, general (issue #493 split; this id used to also carry {@code cheapskate}'s
+     * head-durability effect, folded in because M1's material schema gave a material exactly one
+     * trait id -- issue #94 lifted that limit, and stone's material JSON now carries the two ids
+     * separately). Upstream {@code TraitCheap#onToolHeal}:
+     * {@code newAmount + amount * 5 / 100}, i.e. 5% more durability per repair, integer-truncated
+     * exactly as upstream truncates it. Upstream grants this on every part <em>except</em> the head
+     * ({@code stone.addTrait(cheap)}, the default trait a head-scoped list replaces rather than
+     * adds to -- see {@link #CHEAPSKATE}), so a stone head alone grants no repair bonus.
      */
     public static final Trait CHEAP = new Trait() {
         @Override
         public int repairBonus(int amount) {
             return amount * 5 / 100;
         }
+    };
 
+    /**
+     * Stone, head only (issue #493 split). Upstream {@code TraitCheapskate#onToolBuilding}
+     * ({@code stone.addTrait(cheapskate, HEAD)}): {@code max(1, durability * 80 / 100)} on the
+     * assembled tool, i.e. a 20% durability penalty -- head-only upstream, head-only here via
+     * {@link Trait#headDurability} rather than a hook every part could trigger.
+     */
+    public static final Trait CHEAPSKATE = new Trait() {
         @Override
         public int headDurability(int durability) {
             return Math.max(1, durability * 80 / 100);
@@ -1420,6 +1423,7 @@ public final class ForgeweaveTraits {
     private static final Map<ResourceLocation, Trait> REGISTRY = Map.ofEntries(
             Map.entry(id("ecological"), ECOLOGICAL),
             Map.entry(id("cheap"), CHEAP),
+            Map.entry(id("cheapskate"), CHEAPSKATE),
             Map.entry(id("crude"), CRUDE),
             Map.entry(id("crude2"), CRUDE2),
             Map.entry(id("fractured"), FRACTURED),

@@ -707,10 +707,12 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("trait.forgeweave.ecological.name", "Ecological");
         add("trait.forgeweave.ecological.description", "Renewable resources are so good, they regenerate by themselves!");
         add("trait.forgeweave.cheap.name", "Cheap");
-        // Upstream's cheap and cheapskate descriptions, joined because stone's one Forgeweave trait id
-        // carries both behaviors (issue #79; see ForgeweaveTraits#CHEAP and NOTICE.md).
-        add("trait.forgeweave.cheap.description",
-                "Increases durability gained when repairing the tool, but the tool has less durability.");
+        // Upstream modifier.cheap.desc, mechanical line only (flavor text dropped, as elsewhere).
+        add("trait.forgeweave.cheap.description", "Increases durability gained when repairing the tool.");
+        // Issue #493 split cheapskate out of cheap onto its own head-scoped id; see ForgeweaveTraits
+        // and NOTICE.md. Upstream modifier.cheapskate.desc, mechanical line only.
+        add("trait.forgeweave.cheapskate.name", "Cheapskate");
+        add("trait.forgeweave.cheapskate.description", "Stone is bad. Your tool has less durability.");
         add("trait.forgeweave.crude.name", "Crude");
         add("trait.forgeweave.crude.description", "Bonus damage against unarmored targets.");
         // #231 flint retrofit: upstream's head-scoped crude2, named like magnetic2/writable2 are.

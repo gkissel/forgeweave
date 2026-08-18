@@ -57,6 +57,9 @@ class ToolTooltipTest {
     private static final ResourceLocation STONE_ID = ResourceLocation.fromNamespaceAndPath("forgeweave", "stone");
     private static final ResourceLocation WOOD_ID = ResourceLocation.fromNamespaceAndPath("forgeweave", "wood");
     private static final ResourceLocation CHEAP_TRAIT = ResourceLocation.fromNamespaceAndPath("forgeweave", "cheap");
+    // Issue #493: stone's head part grants cheapskate, not the general cheap -- see stone().
+    private static final ResourceLocation CHEAPSKATE_TRAIT =
+            ResourceLocation.fromNamespaceAndPath("forgeweave", "cheapskate");
     private static final ResourceLocation LIGHTWEIGHT_TRAIT =
             ResourceLocation.fromNamespaceAndPath("forgeweave", "lightweight");
     private static final ResourceLocation HASTE_ID = ResourceLocation.fromNamespaceAndPath("forgeweave", "haste");
@@ -208,7 +211,7 @@ class ToolTooltipTest {
      */
     @Test
     void detailedTooltipShowsOneSectionPerPartSlot() {
-        ItemStack stack = assembledPickaxe(40, List.of(CHEAP_TRAIT, ECOLOGICAL_TRAIT));
+        ItemStack stack = assembledPickaxe(40, List.of(CHEAPSKATE_TRAIT, ECOLOGICAL_TRAIT));
         HolderLookup.Provider registries = registriesWithStoneAndWood();
 
         List<Component> tooltip = new ArrayList<>();
@@ -227,7 +230,7 @@ class ToolTooltipTest {
                 guiStat("mining_speed", "4", SPEED_COLOR),
                 guiStat("attack_damage", "3", ATTACK_COLOR),
                 tierLine("stone"),
-                traitLine("cheap", STONE_COLOR),
+                traitLine("cheapskate", STONE_COLOR),
                 Component.empty(),
                 partName("wood", WOOD_COLOR, "tool_binding"),
                 guiStat("extra_durability", "15", durabilityColor(1.0F)),
@@ -248,7 +251,7 @@ class ToolTooltipTest {
      */
     @Test
     void detailedTooltipSectionsAreOneMultiHeadSlotEach() {
-        ItemStack stack = assembledTool(ForgeweaveItems.TOOL_HAMMER.get(), 40, List.of(CHEAP_TRAIT, ECOLOGICAL_TRAIT),
+        ItemStack stack = assembledTool(ForgeweaveItems.TOOL_HAMMER.get(), 40, List.of(CHEAPSKATE_TRAIT, ECOLOGICAL_TRAIT),
                 new ToolMaterials(STONE_ID, Optional.empty(), Optional.of(WOOD_ID),
                         List.of(WOOD_ID, STONE_ID, STONE_ID, WOOD_ID)));
 
@@ -279,7 +282,7 @@ class ToolTooltipTest {
 
     @Test
     void detailedTooltipDegradesGracefullyWithoutRegistries() {
-        ItemStack stack = assembledPickaxe(40, List.of(CHEAP_TRAIT));
+        ItemStack stack = assembledPickaxe(40, List.of(CHEAPSKATE_TRAIT));
 
         List<Component> tooltip = new ArrayList<>();
         ToolTooltip.append(stack, null, true, 3.0F, tooltip);
@@ -584,7 +587,7 @@ class ToolTooltipTest {
                 new Material.Handle(0.5F, -50),
                 20,
                 incorrectForTool("stone"),
-                Material.Traits.general(CHEAP_TRAIT),
+                new Material.Traits(List.of(CHEAP_TRAIT), List.of(CHEAPSKATE_TRAIT)),
                 List.of(),
                 Ingredient.of(Items.COBBLESTONE),
                 STONE_COLOR);
