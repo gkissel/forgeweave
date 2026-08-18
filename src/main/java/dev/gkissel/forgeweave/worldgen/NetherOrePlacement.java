@@ -35,8 +35,19 @@ import dev.gkissel.forgeweave.config.ForgeweaveConfig;
  * the config is read at the moment it applies: changing it affects newly generated chunks only,
  * the same as upstream.
  *
- * <p>No NOTICE.md row -- ported semantics (the four option names, their defaults, and "approx ores
- * per chunk"), not copied code; there is no 1.12 counterpart to a 1.21 placement modifier.
+ * <p><b>T78 (parity audit 2026-08-18):</b> upstream's {@code generateNetherOre} (NOTICE.md row,
+ * {@code NetherOreGenerator:48-59}) doesn't spend the whole configured rate on one height band --
+ * its {@code for (i = 0; i < rate; i += 2)} loop places one vein at {@code y 32 + [0,64)} (y32-95)
+ * and one at {@code y 0 + [0,128)} (the full column) per iteration, so each ore's two placed
+ * features (the y32-95 band and the y0-127 column) both carry this same modifier instance and each
+ * needs half the configured rate, rounded up to match the loop's iteration count -- not the full
+ * rate placed twice over. {@link #getPositions} does that halving so the JSON on both placed
+ * features can stay identical ({@code ore: cobalt}/{@code ore: ardite}) and only their
+ * {@code minecraft:height_range} differs.
+ *
+ * <p>No NOTICE.md row for this class itself -- ported semantics (the four option names, their
+ * defaults, "approx ores per chunk", and now the two-band split), not copied code; there is no 1.12
+ * counterpart to a 1.21 placement modifier.
  */
 public class NetherOrePlacement extends PlacementModifier {
     public static final DeferredRegister<PlacementModifierType<?>> PLACEMENT_MODIFIERS =
@@ -84,10 +95,16 @@ public class NetherOrePlacement extends PlacementModifier {
         return ore;
     }
 
-    /** Same contract as {@code CountPlacement}: repeat the incoming position once per vein. */
+    /**
+     * Same contract as {@code CountPlacement}: repeat the incoming position once per vein -- but
+     * only half the configured rate (rounded up), since this modifier is placed on two placed
+     * features per ore (see the class javadoc's T78 note) and each gets one iteration's worth of
+     * upstream's split loop.
+     */
     @Override
     public Stream<BlockPos> getPositions(PlacementContext context, RandomSource random, BlockPos pos) {
-        return IntStream.range(0, ore.veinsPerChunk()).mapToObj(i -> pos);
+        int perBand = (ore.veinsPerChunk() + 1) / 2;
+        return IntStream.range(0, perBand).mapToObj(i -> pos);
     }
 
     @Override

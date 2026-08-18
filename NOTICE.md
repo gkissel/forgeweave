@@ -485,6 +485,7 @@ One row per derived file (ADR-0003). Maintained in PR review: a PR introducing d
 | `src/main/resources/data/forgeweave/forgeweave/worldgen/configured_feature/cobalt_ore.json`, `.../placed_feature/cobalt_ore.json` (vein size 5, netherrack target) | `src/main/java/slimeknights/tconstruct/shared/worldgen/NetherOreGenerator.java` (`cobaltGen = new WorldGenMinable(..., 5, BlockMatcher.forBlock(Blocks.NETHERRACK))`) | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
 | `src/main/resources/data/forgeweave/forgeweave/worldgen/configured_feature/ardite_ore.json`, `.../placed_feature/ardite_ore.json` (same vein size/target) | `src/main/java/slimeknights/tconstruct/shared/worldgen/NetherOreGenerator.java` (`arditeGen`) | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
 | `src/main/resources/data/forgeweave/forgeweave/worldgen/placed_feature/{cobalt,ardite}_ore.json` (count 20 per chunk) | `src/main/java/slimeknights/tconstruct/common/config/Config.java` (`cobaltRate = 20`, `arditeRate = 20`, both commented "max. * per chunk") | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
+| `src/main/resources/data/forgeweave/forgeweave/worldgen/placed_feature/{cobalt,ardite}_ore_band.json` (issue #509, T78: the `y 32 + [0,64)` half of upstream's split loop) | `src/main/java/slimeknights/tconstruct/shared/worldgen/NetherOreGenerator.java` (`generateNetherOre:50-53`, the first of the two `pos = new BlockPos(...); pos.add(random.nextInt(16), random.nextInt(64), random.nextInt(16))` passes) | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
 | `src/main/java/dev/gkissel/forgeweave/client/SearedTankBlockEntityRenderer.java` (technique only, no code copied: an inset quad column sized to fill fraction, textured with the fluid's still sprite and tinted, drawn per face) | `src/main/java/slimeknights/tconstruct/smeltery/client/TankRenderer.java`, `src/main/java/slimeknights/tconstruct/library/client/RenderUtil.java` (`renderFluidCuboid`) | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
 | `src/main/java/dev/gkissel/forgeweave/client/SmelteryControllerBlockEntityRenderer.java` (technique only, no code copied: one cuboid per fluid stacked bottom-up over the interior footprint, per-fluid heights by share of capacity with a minimum band and shave-to-fit, and splitting the cuboid at block boundaries so the sprite tiles per block) | `src/main/java/slimeknights/tconstruct/smeltery/client/SmelteryTankRenderer.java` (`renderFluids`, `calcLiquidHeights`), `src/main/java/slimeknights/tconstruct/library/client/RenderUtil.java` (`renderStackedFluidCuboid`, `putATexturedQuad`) | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
 | `src/main/java/dev/gkissel/forgeweave/client/FluidRenderUtil.java` (technique only, no code copied: the textured-quad/fluid-cuboid helper pair, and the UV rule that a face's texture is anchored at the sprite origin and spans the cuboid's own size in block units) | `src/main/java/slimeknights/tconstruct/library/client/RenderUtil.java` (`putATexturedQuad`, `renderFluidCuboid`) | `c01173c0408352c50a2e8c5017552323ce42f5b4` | MIT |
@@ -1778,12 +1779,16 @@ rather than upstream ports, per the maintainer decision comment on issue #103 (2
   dimension, so `"biomes": "#minecraft:is_nether"` on the biome modifier is the direct translation
   (every Nether biome, not a subset). Vein size (5) and per-chunk count (20 for each metal,
   `Config.cobaltRate`/`arditeRate`) are ported as-is into `minecraft:ore`'s `size` and
-  `minecraft:count`'s `count`. **Simplified**: upstream's `generateNetherOre` loop places attempts
-  across two overlapping y-ranges (`y 32-96` and `y 0-128`, weighting the middle band slightly
-  higher); this PR uses one `minecraft:height_range` uniform across the Nether's full `y 0-127`,
-  which 1.21's placement API expresses far more simply and only trades away that middle-band
-  weighting, not the overall range. `Config.genCobalt`/`genArdite` (both default-on toggles) have no
-  Forgeweave equivalent -- M2 has no per-feature worldgen config surface yet.
+  `minecraft:count`'s `count`. **Height distribution (issue #509, T78):** upstream's
+  `generateNetherOre` loop (`NetherOreGenerator:48-59`) places half its veins at `y 32 + [0,64)`
+  (y32-95) and the other half at `y 0 + [0,128)` (the full column), one of each per loop iteration;
+  this PR ports that as two placed features per ore -- `{cobalt,ardite}_ore` (y0-127) and
+  `{cobalt,ardite}_ore_band` (y32-95) -- both driven by the same `forgeweave:nether_ore_rate`
+  modifier instance, which halves the configured rate (rounded up) per placed feature so the two
+  together still sum to the configured rate, matching the loop's iteration count. An earlier version
+  of this PR collapsed both loop bodies into one `minecraft:height_range` uniform across 0-127; T78
+  found that in the 2026-08-18 parity audit. `Config.genCobalt`/`genArdite` (both default-on toggles)
+  have no Forgeweave equivalent -- M2 has no per-feature worldgen config surface yet.
 - **No headless GameTest for actual chunk generation.** `NetherOreGameTests` covers the block's own
   tool-tier gate and drop identity (loot table + `isCorrectToolForDrops`); `SmelteryMeltingGameTests`
   covers melting. The configured/placed feature and biome modifier JSON are only verified by datapack
