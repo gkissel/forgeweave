@@ -42,6 +42,7 @@ import dev.gkissel.forgeweave.combat.CombatSeam;
 import dev.gkissel.forgeweave.combat.ForgeweaveInnates;
 import dev.gkissel.forgeweave.combat.ToolUseAction;
 import dev.gkissel.forgeweave.config.ForgeweaveConfig;
+import dev.gkissel.forgeweave.entity.IndestructibleItemEntity;
 import dev.gkissel.forgeweave.material.Material;
 import dev.gkissel.forgeweave.modifier.ForgeweaveModifiers;
 
@@ -236,6 +237,32 @@ public class ToolItem extends Item {
     @Override
     public boolean isEnchantable(ItemStack stack) {
         return ForgeweaveConfig.ALLOW_VANILLA_ENCHANTING.get() && super.isEnchantable(stack);
+    }
+
+    /**
+     * CONTEXT.md's "a tool is never destroyed" invariant, extended past the item to the entity that
+     * carries it (issue #447, parity audit T16). Upstream 1.12 does exactly this for every
+     * {@code ToolCore}, unconditionally, in {@code TinkersItem#hasCustomEntity}: the ItemStack a
+     * player spent hours of materials and modifiers on must not be lost to a creeper, a lava flow or
+     * a five-minute despawn timer while it lies on the ground. NeoForge calls this from its
+     * {@code EntityJoinLevelEvent} handler, so it covers every drop path -- death, a manual toss, a
+     * broken block, third-party code -- rather than the two or three we thought to override.
+     *
+     * <p>Deliberately not gated on a modifier or a material trait: 1.12 gates it on nothing, and
+     * upstream 1.20's modifier gate is a later redesign, not the parity target.
+     */
+    @Override
+    public boolean hasCustomEntity(ItemStack stack) {
+        return true;
+    }
+
+    /** {@link #hasCustomEntity}'s other half -- see {@link IndestructibleItemEntity}. */
+    @Override
+    public Entity createEntity(Level level, Entity location, ItemStack stack) {
+        IndestructibleItemEntity entity =
+                new IndestructibleItemEntity(level, location.getX(), location.getY(), location.getZ(), stack);
+        entity.copyThrowFrom(location);
+        return entity;
     }
 
     /**

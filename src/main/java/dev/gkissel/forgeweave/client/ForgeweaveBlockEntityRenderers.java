@@ -3,14 +3,18 @@ package dev.gkissel.forgeweave.client;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
+import net.minecraft.client.renderer.entity.ItemEntityRenderer;
+
 import net.neoforged.neoforge.client.event.EntityRenderersEvent;
 
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.block.ForgeweaveBlockEntities;
+import dev.gkissel.forgeweave.entity.ForgeweaveEntities;
 
 /**
  * Registers this mod's block entity renderers (#145: the seared tank family's fluid renderer; #182:
- * the casting table/basin contents and the faucet's pour stream).
+ * the casting table/basin contents and the faucet's pour stream) and, since #447, its one entity
+ * renderer -- {@code EntityRenderersEvent.RegisterRenderers} carries both, so they share a listener.
  */
 @EventBusSubscriber(modid = Forgeweave.MODID, bus = EventBusSubscriber.Bus.MOD, value = Dist.CLIENT)
 public final class ForgeweaveBlockEntityRenderers {
@@ -34,6 +38,9 @@ public final class ForgeweaveBlockEntityRenderers {
                 context -> CastingBlockEntityRenderer.basin());
         event.registerBlockEntityRenderer(ForgeweaveBlockEntities.FAUCET.get(),
                 context -> new FaucetBlockEntityRenderer());
+        // #447 -- a dropped tool is an item entity in every respect but dying, so it draws with
+        // vanilla's item entity renderer (see entity.IndestructibleItemEntity).
+        event.registerEntityRenderer(ForgeweaveEntities.INDESTRUCTIBLE_ITEM.get(), ItemEntityRenderer::new);
     }
 
     // #145's cutout render type moved to the block models themselves (ForgeweaveBlockStateProvider's

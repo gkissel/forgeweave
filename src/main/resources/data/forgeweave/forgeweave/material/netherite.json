@@ -16,7 +16,7 @@
   },
   "incorrect_for_tool": "minecraft:incorrect_for_netherite_tool",
   "traits": {
-    "general": ["forgeweave:fireproof", "forgeweave:reinforced_core"]
+    "general": ["forgeweave:reinforced_core"]
   },
   "crafting_items": [
     { "ingredient": { "item": "minecraft:netherite_ingot" }, "value": 2 },
