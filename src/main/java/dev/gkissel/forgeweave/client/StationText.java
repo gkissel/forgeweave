@@ -12,7 +12,6 @@ import javax.annotation.Nullable;
 
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.HolderLookup;
-import net.minecraft.network.chat.CommonComponents;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.HoverEvent;
 import net.minecraft.network.chat.MutableComponent;
@@ -24,16 +23,15 @@ import net.minecraft.world.item.ItemStack;
 
 import dev.gkissel.forgeweave.item.BowItem;
 import dev.gkissel.forgeweave.item.ForgeweaveDataComponents;
-import dev.gkissel.forgeweave.item.ToolItem;
 import dev.gkissel.forgeweave.material.Material;
 import dev.gkissel.forgeweave.material.MaterialDisplay;
 import dev.gkissel.forgeweave.modifier.ForgeweaveModifiers;
-import dev.gkissel.forgeweave.modifier.Modifier;
 import dev.gkissel.forgeweave.modifier.ModifierApplication;
 import dev.gkissel.forgeweave.modifier.ModifierEntry;
 import dev.gkissel.forgeweave.tool.LauncherStats;
 import dev.gkissel.forgeweave.tool.ToolMaterials;
 import dev.gkissel.forgeweave.tool.ToolStats;
+import dev.gkissel.forgeweave.trait.ForgeweaveTraits;
 
 /**
  * The lines the stations' info panels and the part/tool item tooltips show, and the one place stat
@@ -45,8 +43,8 @@ import dev.gkissel.forgeweave.tool.ToolStats;
  *
  * <p>Trait names and descriptions come from the {@code trait.<namespace>.<path>.name}/{@code
  * .description} keys {@code ForgeweaveLanguageProvider} already ships (issue #12), keyed by the ids
- * on the stack; nothing here needs {@code ForgeweaveTraits}, so an unknown id from a datapack
- * material degrades to a visible untranslated key rather than to nothing at all.
+ * on the stack, so an unknown id from a datapack material degrades to a visible untranslated key
+ * rather than to nothing at all.
  *
  * <h2>Colours (issue #64, NOTICE.md)</h2>
  *
@@ -81,7 +79,7 @@ public final class StationText {
     private static final DecimalFormat FORMAT =
             new DecimalFormat("#.##", DecimalFormatSymbols.getInstance(Locale.ROOT));
 
-    /** Whole-percent bonuses, upstream's {@code Util.dfPercent} -- {@link #modifierExtraInfo}'s only use. */
+    /** Whole-percent bonuses, upstream's {@code Util.dfPercent} -- see {@link #formatPercent}. */
     private static final DecimalFormat PERCENT =
             new DecimalFormat("#%", DecimalFormatSymbols.getInstance(Locale.ROOT));
 
@@ -143,37 +141,18 @@ public final class StationText {
 
     /**
      * What one modifier on this tool adds beyond its own description -- upstream
-     * {@code Modifier#getExtraInfo}, whose only shipped implementation is {@code ModHaste}
-     * (ModHaste.java:110-127): one {@code "Bonus-Speed: +x%"} line per speed category the tool has,
-     * the draw-speed bonus for a {@code Category.LAUNCHER} and the attack-speed bonus for a
-     * {@code Category.WEAPON}. Issue #424 -- haste's effect on a bow was invisible everywhere.
+     * {@code IModifier#getExtraInfo}, collected by {@code TooltipBuilder#addModifierInfo}. The lines
+     * themselves are {@link ForgeweaveModifiers#extraInfo}, next to the constants they report;
+     * this is only the display layer's name for it (issue #424 shipped it as haste's line alone,
+     * parity audit T26/issue #457 filled in the other seven).
      *
-     * <p>Derived from the two multiplier hooks rather than from a hook of its own: upstream's launcher
-     * line is {@code getDrawspeedBonus} and its weapon line is {@code getSpeedBonus}, which is exactly
-     * what {@link Modifier#drawSpeedMultiplier} and {@link Modifier#attackSpeedMultiplier} already
-     * return -- so any later modifier that touches either speed gets the line for free, and
-     * {@code Modifier} stays as item-free as ADR-0004 wants it.
-     *
-     * <p>Deviation from 1.12, deliberate: upstream lists these as their own rows in the tool info
-     * panel ({@code TooltipBuilder#addModifierInfo}, in the station panel only). Forgeweave already
-     * carries every per-modifier detail on the modifier row's own hover (issue #258), so the line
-     * goes there rather than adding a second place to look.
+     * <p>Deviation from 1.12, deliberate and unchanged since #424: upstream lists these as their own
+     * rows in the tool info panel ({@code ToolCore#getInformation(stack, true)}, the station panel
+     * only). Forgeweave already carries every per-modifier detail on the modifier row's own hover
+     * (issue #258), so the lines go there rather than adding a second place to look.
      */
     public static List<Component> modifierExtraInfo(ItemStack tool, ModifierEntry entry) {
-        Modifier modifier = ForgeweaveModifiers.get(entry.id());
-        if (modifier == null) {
-            return List.of();
-        }
-        float bonus = 0.0F;
-        if (tool.getItem() instanceof BowItem) {
-            bonus = modifier.drawSpeedMultiplier(entry.level()) - 1.0F;
-        } else if (tool.getItem() instanceof ToolItem melee && melee.isWeapon()) {
-            bonus = modifier.attackSpeedMultiplier(entry.level()) - 1.0F;
-        }
-        if (bonus == 0.0F) {
-            return List.of();
-        }
-        return List.of(Component.translatable("gui.forgeweave.modifier.bonus_speed", PERCENT.format(bonus)));
+        return ForgeweaveModifiers.extraInfo(tool, entry);
     }
 
     /**
@@ -181,16 +160,17 @@ public final class StationText {
      * info panel. Names come from {@code modifier.<namespace>.<path>.name}, keyed by the ids on the
      * stack exactly as trait lines are, so an id this version doesn't implement still shows up
      * (as a visible untranslated key) rather than vanishing.
+     *
+     * <p>Since parity audit T26 (issue #457) each row takes the modifier's own colour
+     * ({@link ForgeweaveModifiers#color}, upstream's {@code ModifierNBT#getColorString}) instead of
+     * the one shared {@link #MODIFIER_COLOR}, and a modifier with a name for its current level uses
+     * that name in place of {@code Name + numeral} ({@link ModifierApplication#displayName}).
      */
     public static List<Component> toolModifiers(ItemStack tool) {
         List<Component> lines = new ArrayList<>();
         for (ModifierEntry entry : ForgeweaveModifiers.of(tool)) {
-            MutableComponent line = ModifierApplication.name(entry.id()).copy()
-                    .withStyle(Style.EMPTY.withColor(MODIFIER_COLOR));
-            int level = ForgeweaveModifiers.displayLevel(entry.id(), entry.level());
-            if (level > 1) {
-                line.append(CommonComponents.SPACE).append(Component.translatable("enchantment.level." + level));
-            }
+            MutableComponent line = modifierName(entry)
+                    .withStyle(Style.EMPTY.withColor(ForgeweaveModifiers.color(entry.id())));
             MutableComponent description = ModifierApplication.description(entry.id()).copy();
             for (Component extra : modifierExtraInfo(tool, entry)) {
                 description.append("\n").append(extra);
@@ -200,6 +180,17 @@ public final class StationText {
         lines.add(Component.translatable("gui.forgeweave.tool_station.modifier_slots",
                 ForgeweaveModifiers.freeSlots(tool)).withStyle(ChatFormatting.GRAY));
         return List.copyOf(lines);
+    }
+
+    /**
+     * {@code Haste II} / {@code Haster} -- the modifier's display name for its current level,
+     * upstream's {@code Modifier#getLeveledTooltip}: the leveled name where one exists, otherwise
+     * the plain name plus vanilla's roman numeral once past level 1. Shared by the station panel and
+     * the item tooltip so the two never disagree.
+     */
+    public static MutableComponent modifierName(ModifierEntry entry) {
+        return ModifierApplication.displayName(entry.id(),
+                ForgeweaveModifiers.displayLevel(entry.id(), entry.level()));
     }
 
     /** The materials an assembled tool is made of, each in its own tint (two or three -- #155). */
@@ -301,19 +292,24 @@ public final class StationText {
      * scroll length of a many-trait material, which is the point.
      */
     public static List<Component> traits(@Nullable TextColor color, List<ResourceLocation> traitIds) {
-        return traitIds.stream().map(id -> traitLine(color, id)).toList();
+        return traitIds.stream().map(id -> traitLine(color, id, ItemStack.EMPTY)).toList();
     }
 
     /**
      * An assembled tool's traits, each in the colour of whichever of its three materials granted it
      * -- the same resolution {@code ToolTooltip} does, so a tool's tooltip and the Tool Station's
      * trait panel never disagree about which material a trait came from.
+     *
+     * <p>Takes the stack since parity audit T26 (issue #457): a trait's extra-info line rides its
+     * row's hover, and three of the eight upstream ports read live stack state (jagged and stonebound
+     * their wear, alien its distributed pool). {@link #traits}, whose caller is the Part Builder and
+     * has no assembled tool at all, keeps showing the constant-valued ones only.
      */
     public static List<Component> toolTraits(@Nullable HolderLookup.Provider registries, ToolMaterials materials,
-            List<ResourceLocation> traitIds) {
+            List<ResourceLocation> traitIds, ItemStack tool) {
         List<ResourceLocation> materialIds = materials.all();
         return traitIds.stream()
-                .map(id -> traitLine(MaterialDisplay.traitColor(registries, materialIds, id), id))
+                .map(id -> traitLine(MaterialDisplay.traitColor(registries, materialIds, id), id, tool))
                 .toList();
     }
 
@@ -360,6 +356,16 @@ public final class StationText {
     }
 
     /**
+     * A fraction as whole percent, upstream's {@code Util.dfPercent} -- the wording every
+     * extra-info line that reports a chance or a bonus fraction uses ({@code
+     * ForgeweaveModifiers#extraInfo}, {@code ForgeweaveTraits#extraInfo}). Public for the same
+     * reason {@link #formatNumber} is: one formatter for the whole mod, as upstream has exactly one.
+     */
+    public static String formatPercent(float fraction) {
+        return PERCENT.format(fraction);
+    }
+
+    /**
      * The Part Builder's centred readout, upstream's {@code gui.partbuilder.material_value} =
      * {@code "Material Value: %s %s"} ({@code GuiPartBuilder:116-138}, issue #378). Two things had
      * been missing: the amount is normalised to <b>ingots</b> and may be fractional
@@ -378,12 +384,20 @@ public final class StationText {
                 MaterialDisplay.plainName(materialId));
     }
 
-    private static Component traitLine(@Nullable TextColor color, ResourceLocation id) {
+    private static Component traitLine(@Nullable TextColor color, ResourceLocation id, ItemStack tool) {
         String base = "trait." + id.getNamespace() + "." + id.getPath();
         MutableComponent name = Component.translatable(base + ".name");
+        MutableComponent description = Component.translatable(base + ".description");
+        if (!tool.isEmpty()) {
+            // Upstream's getExtraInfo is only ever reached through an assembled tool's modifier list
+            // (TooltipBuilder#addModifierInfo), so the Part Builder's material rows show none of it.
+            for (Component extra : ForgeweaveTraits.extraInfo(id, tool)) {
+                description.append("\n").append(extra);
+            }
+        }
         return withHover(
                 color == null ? name.withStyle(ChatFormatting.WHITE) : name.withStyle(Style.EMPTY.withColor(color)),
-                Component.translatable(base + ".description"));
+                description);
     }
 
     /**

@@ -69,6 +69,8 @@ class ToolTooltipTest {
     private static final TextColor ATTACK_COLOR = TextColor.fromRgb(0xD76464);
     private static final TextColor SPEED_COLOR = TextColor.fromRgb(0x78A0CD);
     private static final TextColor MODIFIER_COLOR = TextColor.fromRgb(0xB9B95A);
+    /** Upstream {@code ModHaste}'s own colour (parity audit T26, issue #457). */
+    private static final TextColor HASTE_COLOR = TextColor.fromRgb(0x910000);
     private static final TextColor DRAWSPEED_COLOR = TextColor.fromRgb(0x808080);
     private static final TextColor RANGE_COLOR = TextColor.fromRgb(0x8CAFAF);
     private static final TextColor BOW_DAMAGE_COLOR = TextColor.fromRgb(0x9B5041);
@@ -133,10 +135,9 @@ class ToolTooltipTest {
                 durabilityLine(120, 160),
                 attackLine(3.0F),
                 pierceLine(),
-                Component.translatable("modifier.forgeweave.haste.name")
-                        .withStyle(Style.EMPTY.withColor(MODIFIER_COLOR))
-                        .append(CommonComponents.SPACE)
-                        .append(Component.translatable("enchantment.level.2"))
+                // Parity audit T26 (#457): haste II is upstream's own "Haster", in haste's own colour.
+                Component.translatable("modifier.forgeweave.haste.name2")
+                        .withStyle(Style.EMPTY.withColor(HASTE_COLOR))
                         .append(Component.literal(" (51/100)").withStyle(ChatFormatting.GRAY)),
                 slotsLine(1)),
                 tooltip);
@@ -451,11 +452,11 @@ class ToolTooltipTest {
                 StationText.modifierExtraInfo(assembledShortbow(), new ModifierEntry(HASTE_ID, 250)));
     }
 
-    /** A modifier that does nothing to either speed contributes no line, as upstream's default does. */
+    /** A modifier with no upstream {@code getExtraInfo} contributes no line, as the default does. */
     @Test
     void aModifierWithNoSpeedBonusHasNoExtraInfo() {
         assertEquals(List.of(), StationText.modifierExtraInfo(assembledShortbow(),
-                new ModifierEntry(ResourceLocation.fromNamespaceAndPath("forgeweave", "reinforced"), 1)));
+                new ModifierEntry(ResourceLocation.fromNamespaceAndPath("forgeweave", "soulbound"), 1)));
         assertEquals(List.of(), StationText.modifierExtraInfo(assembledPickaxe(40, List.of()),
                 new ModifierEntry(HASTE_ID, 50)),
                 "a pickaxe is neither WEAPON nor LAUNCHER upstream, so haste shows it nothing");
@@ -469,12 +470,12 @@ class ToolTooltipTest {
 
         HoverEvent hover = StationText.toolModifiers(stack).get(0).getStyle().getHoverEvent();
         assertTrue(hover != null && hover.getValue(HoverEvent.Action.SHOW_TEXT).toString()
-                        .contains("gui.forgeweave.modifier.bonus_speed"),
+                        .contains("modifier.forgeweave.haste.extra"),
                 "the haste row explains its draw-speed bonus on hover");
     }
 
     private static Component bonusSpeedLine(String percent) {
-        return Component.translatable("gui.forgeweave.modifier.bonus_speed", percent);
+        return Component.translatable("modifier.forgeweave.haste.extra", percent);
     }
 
     /**

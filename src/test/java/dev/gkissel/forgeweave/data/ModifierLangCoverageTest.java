@@ -19,6 +19,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.Bootstrap;
 
 import dev.gkissel.forgeweave.modifier.ForgeweaveModifiers;
+import dev.gkissel.forgeweave.trait.ForgeweaveTraits;
 
 /**
  * Guards the modifier hover tooltips' localization (issue #258): every id in
@@ -60,6 +61,48 @@ class ModifierLangCoverageTest {
         assertTrue(missing.isEmpty(),
                 "modifiers shipped without lang lines -- add them to ForgeweaveLanguageProvider "
                         + "and re-run data generation:\n" + String.join("\n", missing));
+    }
+
+    /**
+     * Parity audit T26 (issue #457): every modifier and trait that produces an extra-info line needs
+     * its {@code .extra} key, plus fiery's second line, reinforced's "Unbreakable" word and the two
+     * leveled-name ladders. A missing one ships a raw translation key into the station panel.
+     */
+    @Test
+    void everyExtraInfoLineHasItsKey() throws IOException {
+        JsonObject lang = JsonParser.parseString(Files.readString(
+                LocalizationAuditTest.projectRoot().resolve(GENERATED_LANG), StandardCharsets.UTF_8))
+                .getAsJsonObject();
+
+        List<String> missing = new ArrayList<>();
+        for (ResourceLocation id : ForgeweaveModifiers.extraInfoIds()) {
+            String key = "modifier." + id.getNamespace() + "." + id.getPath() + ".extra";
+            if (!lang.has(key)) {
+                missing.add(key);
+            }
+            for (int level = 2; level <= ForgeweaveModifiers.leveledNameCount(id); level++) {
+                String name = "modifier." + id.getNamespace() + "." + id.getPath() + ".name" + level;
+                if (!lang.has(name)) {
+                    missing.add(name);
+                }
+            }
+        }
+        for (ResourceLocation id : ForgeweaveTraits.extraInfoIds()) {
+            String key = "trait." + id.getNamespace() + "." + id.getPath() + ".extra";
+            if (!lang.has(key)) {
+                missing.add(key);
+            }
+        }
+        for (String key : List.of("modifier.forgeweave.fiery.extra2",
+                ForgeweaveModifiers.UNBREAKABLE_KEY,
+                "modifier.forgeweave.sharpness.name5")) {
+            if (!lang.has(key)) {
+                missing.add(key);
+            }
+        }
+
+        assertTrue(missing.isEmpty(), "extra-info lines shipped without lang keys -- add them to "
+                + "ForgeweaveLanguageProvider and re-run data generation:\n" + String.join("\n", missing));
     }
 
     /** Embossing's generated ids resolve through one shared key pair; guard those two as well. */

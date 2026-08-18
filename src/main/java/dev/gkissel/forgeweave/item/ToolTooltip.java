@@ -7,7 +7,6 @@ import java.util.Optional;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.component.DataComponents;
-import net.minecraft.network.chat.CommonComponents;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.network.chat.Style;
@@ -27,7 +26,6 @@ import dev.gkissel.forgeweave.material.Material;
 import dev.gkissel.forgeweave.material.MaterialDisplay;
 import dev.gkissel.forgeweave.menu.ToolAssemblyRecipes;
 import dev.gkissel.forgeweave.modifier.ForgeweaveModifiers;
-import dev.gkissel.forgeweave.modifier.ModifierApplication;
 import dev.gkissel.forgeweave.modifier.ModifierEntry;
 import dev.gkissel.forgeweave.tool.ToolMaterials;
 import dev.gkissel.forgeweave.tool.ToolStats;
@@ -244,17 +242,16 @@ final class ToolTooltip {
     }
 
     /**
-     * {@code Haste II (51/100)}: the modifier's name, its level in vanilla's own roman-numeral keys
-     * once past level 1, and -- for a modifier whose levels take several applications -- how far into
-     * the current one it is, which is upstream's {@code ModifierNBT.IntegerNBT#extraInfo}.
+     * {@code Haste II (51/100)}: the modifier's name for its current level ({@code
+     * StationText#modifierName} -- since parity audit T26/issue #457 that is upstream's leveled name
+     * where one exists, "Haster" rather than "Haste II"), in the modifier's own colour ({@code
+     * ForgeweaveModifiers#color}, upstream's {@code ModifierNBT#getColorString}), and -- for a
+     * modifier whose levels take several applications -- how far into the current one it is, which is
+     * upstream's {@code ModifierNBT.IntegerNBT#extraInfo}.
      */
     private static Component modifierLine(ModifierEntry entry) {
-        MutableComponent line = ModifierApplication.name(entry.id())
-                .copy().withStyle(Style.EMPTY.withColor(StationText.MODIFIER_COLOR));
-        int level = ForgeweaveModifiers.displayLevel(entry.id(), entry.level());
-        if (level > 1) {
-            line.append(CommonComponents.SPACE).append(Component.translatable("enchantment.level." + level));
-        }
+        MutableComponent line = StationText.modifierName(entry)
+                .withStyle(Style.EMPTY.withColor(ForgeweaveModifiers.color(entry.id())));
         int levelEnd = ForgeweaveModifiers.unitsForDisplayLevel(entry.id(), entry.level());
         if (levelEnd > 1) {
             line.append(Component.literal(" (" + entry.level() + "/" + levelEnd + ")")

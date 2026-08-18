@@ -449,10 +449,6 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("gui.forgeweave.modifier.incompatible_trait", "Modifier %s can not be used together with trait %s");
         add("gui.forgeweave.modifier.incompatible_modifiers", "Modifiers %s and %s cannot be applied together");
         add("gui.forgeweave.modifier.incompatible_enchantment", "Modifier %s cannot be combined with enchantment %s");
-        // Issue #424, upstream's modifier.haste.extra ("Bonus-Speed: +%s"): what a modifier adds to
-        // the speed the tool it sits on actually uses -- draw speed on a bow, attack speed on a
-        // weapon (StationText#modifierExtraInfo).
-        add("gui.forgeweave.modifier.bonus_speed", "Bonus Speed: +%s");
 
         // Why an attempted part exchange was refused (issue #264), same info-panel surface. The
         // durability line mirrors upstream 1.12's gui.error.not_enough_durability.
@@ -716,6 +712,15 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         // modifier.<id>.name/.desc entries.
         add("modifier.forgeweave.haste.name", "Haste");
         add("modifier.forgeweave.haste.description", "Redstone speeds the tool up. Every 50 pieces is another level.");
+        // Parity audit T26 (issue #457), upstream modifier.haste.name2..name5: the leveled names a
+        // modifier shows instead of "Haste II" (Modifier#getLeveledTooltip).
+        add("modifier.forgeweave.haste.name2", "Haster");
+        add("modifier.forgeweave.haste.name3", "Hastest");
+        add("modifier.forgeweave.haste.name4", "Hastester");
+        add("modifier.forgeweave.haste.name5", "Hastestest");
+        // Upstream modifier.haste.extra ("Bonus-Speed: +%s", issue #424): what a modifier adds to the
+        // speed the tool it sits on actually uses -- draw speed on a bow, attack speed on a weapon.
+        add("modifier.forgeweave.haste.extra", "Bonus Speed: +%s");
 
         // M2 metal traits (issue #102; material wiring is issue #103). Wording follows upstream
         // 1.12's modifier.<id>.name/.desc entries, same as the M1 traits above.
@@ -822,9 +827,16 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("modifier.forgeweave.reinforced.name", "Reinforced");
         add("modifier.forgeweave.reinforced.description",
                 "Gives a chance to completely negate durability damage. Every level is another 20% chance.");
+        // Parity audit T26 (issue #457), upstream modifier.reinforced.extra / .unbreakable: the
+        // chance the tool currently negates damage with, and the word that replaces it -- and the
+        // modifier's whole name -- once that chance reaches 100% (ModReinforced#getTooltip).
+        add("modifier.forgeweave.reinforced.extra", "Reinforced: %s");
+        add("modifier.forgeweave.reinforced.unbreakable", "Unbreakable");
         add("modifier.forgeweave.mending_moss.name", "Mending Moss");
         add("modifier.forgeweave.mending_moss.description",
                 "Stores experience and slowly uses it to repair the tool while it is carried.");
+        // Upstream modifier.mending_moss.extra ("Stored XP: %d"), parity audit T26 (issue #457).
+        add("modifier.forgeweave.mending_moss.extra", "Stored XP: %s");
         add("modifier.forgeweave.silky.name", "Silky");
         add("modifier.forgeweave.silky.description", "Grants Silk Touch, at the cost of some mining speed and attack damage.");
         add("modifier.forgeweave.soulbound.name", "Soulbound");
@@ -842,6 +854,13 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("modifier.forgeweave.sharpness.name", "Sharpness");
         add("modifier.forgeweave.sharpness.description",
                 "Quartz increases attack damage. Every 72 pieces is another level.");
+        // Upstream modifier.sharpness.name2..name5, parity audit T26 (issue #457). Level 1 keeps
+        // Forgeweave's own "Sharpness" rather than upstream's "Sharp", which is already the shipped
+        // name and collides with the sharp trait.
+        add("modifier.forgeweave.sharpness.name2", "Sharper");
+        add("modifier.forgeweave.sharpness.name3", "Sharpest");
+        add("modifier.forgeweave.sharpness.name4", "Sharpester");
+        add("modifier.forgeweave.sharpness.name5", "Sharpestest");
         add("modifier.forgeweave.diamond.name", "Diamond");
         add("modifier.forgeweave.diamond.description", "Adds 500 durability and raises the tool's tier.");
         add("modifier.forgeweave.emerald.name", "Emerald");
@@ -902,6 +921,8 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("modifier.forgeweave.knockback.description", "Hits push targets back further. Every piston adds more.");
         add("modifier.forgeweave.shulking.name", "Shulking");
         add("modifier.forgeweave.shulking.description", "Hits briefly make the target levitate.");
+        // Upstream modifier.shulking.extra ("Float Duration: %ss"), parity audit T26 (issue #457).
+        add("modifier.forgeweave.shulking.extra", "Float Duration: %ss");
         add("modifier.forgeweave.webbed.name", "Webbed");
         add("modifier.forgeweave.webbed.description", "Hits slow the target. Every level adds another second.");
 
@@ -918,6 +939,25 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("modifier.forgeweave.necrotic.name", "Necrotic");
         add("modifier.forgeweave.necrotic.description",
                 "Heals you for a portion of the damage you deal. Every level adds 10%.");
+        // Parity audit T26 (issue #457): upstream's modifier.<id>.extra lines for the same four,
+        // verbatim from the clone's en_us.lang ("Vs Spiders" is upstream's own wording for bane).
+        add("modifier.forgeweave.smite.extra", "Vs Undead: +%s");
+        add("modifier.forgeweave.bane_of_arthropods.extra", "Vs Spiders: +%s");
+        add("modifier.forgeweave.fiery.extra", "Fire Damage: +%s");
+        add("modifier.forgeweave.fiery.extra2", "Burn Duration: %ss");
+        add("modifier.forgeweave.necrotic.extra", "Lifesteal: +%s");
+
+        // Trait extra-info lines (parity audit T26, issue #457) -- upstream's trait getExtraInfo
+        // implementations share the modifier.<id>.extra key family there; Forgeweave keys traits
+        // under trait.forgeweave.<id>.* throughout, so these sit next to their own .name/.description.
+        add("trait.forgeweave.crude.extra", "Vs Unarmored: +%s");
+        add("trait.forgeweave.crude2.extra", "Vs Unarmored: +%s");
+        add("trait.forgeweave.hellish.extra", "Vs Non-Nether: +%s");
+        add("trait.forgeweave.holy.extra", "Vs Undead: +%s");
+        add("trait.forgeweave.jagged.extra", "Jagged Damage: +%s");
+        add("trait.forgeweave.lightweight.extra", "Bonus Speed: +%s");
+        add("trait.forgeweave.stonebound.extra", "Stonebound Speed: +%s");
+        add("trait.forgeweave.superheat.extra", "Vs Burning: +%s");
 
         // JEI recipe category titles (issue #11); only shown when JEI is installed, since the
         // integration is optional (neoforge.mods.toml).
