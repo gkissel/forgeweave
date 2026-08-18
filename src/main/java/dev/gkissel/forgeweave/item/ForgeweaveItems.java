@@ -347,9 +347,13 @@ public final class ForgeweaveItems {
      * would roll it a second time. {@code Beheading} owns both halves and reads the level off the
      * stack; {@link dev.gkissel.forgeweave.combat.ForgeweaveInnates#innateId} still names it, so the
      * tooltip line is there.
+     *
+     * <p>Its own item class, {@link CleaverItem}, rather than the shared {@link MeleeWeaponItem}
+     * (issue #498, parity audit T67): upstream's {@code onItemRightClick} swallows the right-click
+     * outright, and with a {@code null} innate here there is no {@code ToolUseAction} to carry that.
      */
     public static final DeferredItem<ToolItem> TOOL_CLEAVER = ITEMS.registerItem("cleaver",
-            properties -> new MeleeWeaponItem(properties, ToolConstants.CLEAVER, BlockTags.SWORD_EFFICIENT, true, null),
+            properties -> new CleaverItem(properties, ToolConstants.CLEAVER, BlockTags.SWORD_EFFICIENT, true, null),
             new Item.Properties().stacksTo(1));
 
     // The large harvest tools (docs/SCOPE.md M3 issue #157): Tool Forge tier, four parts each, and
