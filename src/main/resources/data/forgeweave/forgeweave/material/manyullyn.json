@@ -20,8 +20,9 @@
     "head": ["forgeweave:insatiable"]
   },
   "crafting_items": [
-    { "ingredient": { "item": "forgeweave:manyullyn_ingot" }, "value": 2 },
-    { "ingredient": { "item": "forgeweave:manyullyn_block" }, "value": 18 }
+    { "ingredient": { "item": "forgeweave:manyullyn_ingot" }, "value": 144 },
+    { "ingredient": { "item": "forgeweave:manyullyn_nugget" }, "value": 16 },
+    { "ingredient": { "item": "forgeweave:manyullyn_block" }, "value": 1296 }
   ],
   "repair_item": {
     "tag": "c:ingots/manyullyn"

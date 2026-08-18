@@ -19,8 +19,8 @@
     "general": ["forgeweave:reinforced_core"]
   },
   "crafting_items": [
-    { "ingredient": { "item": "minecraft:netherite_ingot" }, "value": 2 },
-    { "ingredient": { "item": "minecraft:netherite_block" }, "value": 18 }
+    { "ingredient": { "item": "minecraft:netherite_ingot" }, "value": 144 },
+    { "ingredient": { "item": "minecraft:netherite_block" }, "value": 1296 }
   ],
   "repair_item": {
     "tag": "c:ingots/netherite"

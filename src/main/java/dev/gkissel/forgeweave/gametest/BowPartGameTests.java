@@ -58,7 +58,7 @@ public class BowPartGameTests {
         return menu.getSlot(PartBuilderMenu.OUTPUT_SLOT).getItem();
     }
 
-    /** Wood shards, the cheapest exact-value payment for any cost (1 shard-unit each). */
+    /** Wood shards, the cheapest exact-value payment for any cost (half an ingot each). */
     private static ItemStack woodShards(int count) {
         ItemStack shards = new ItemStack(ForgeweaveItems.SHARD.get(), count);
         shards.set(ForgeweaveDataComponents.MATERIAL.get(), materialId("wood"));
@@ -110,7 +110,7 @@ public class BowPartGameTests {
         BlockPos pos = new BlockPos(1, 1, 1);
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
 
-        // 3 ingots = 6 shard-units (TinkerTools.java:210, Material.VALUE_Ingot * 3).
+        // 3 ingots = 6 shards (TinkerTools.java:210, Material.VALUE_Ingot * 3).
         ItemStack output = craft(helper, pos, player, ForgeweaveItems.PATTERN_BOW_LIMB.get(), woodShards(6));
 
         helper.assertTrue(output.is(ForgeweaveItems.PART_BOW_LIMB.get()), "expected a bow limb, got " + output);
@@ -125,7 +125,7 @@ public class BowPartGameTests {
         BlockPos pos = new BlockPos(1, 1, 1);
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
 
-        // 1 ingot = 2 shard-units, and one string/vine is worth exactly that (their material JSONs).
+        // 1 ingot, and one string/vine is worth exactly that (their material JSONs).
         for (String material : new String[] {"string", "vine"}) {
             Item item = material.equals("string") ? Items.STRING : Items.VINE;
             ItemStack output = craft(helper, pos, player, ForgeweaveItems.PATTERN_BOW_STRING.get(), new ItemStack(item));

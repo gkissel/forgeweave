@@ -19,8 +19,9 @@
     "general": ["forgeweave:established"]
   },
   "crafting_items": [
-    { "ingredient": { "item": "minecraft:copper_ingot" }, "value": 2 },
-    { "ingredient": { "item": "minecraft:copper_block" }, "value": 18 }
+    { "ingredient": { "item": "minecraft:copper_ingot" }, "value": 144 },
+    { "ingredient": { "tag": "c:nuggets/copper" }, "value": 16 },
+    { "ingredient": { "item": "minecraft:copper_block" }, "value": 1296 }
   ],
   "repair_item": {
     "tag": "c:ingots/copper"

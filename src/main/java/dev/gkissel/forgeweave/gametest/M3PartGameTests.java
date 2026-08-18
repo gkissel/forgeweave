@@ -33,8 +33,8 @@ import dev.gkissel.forgeweave.menu.PartBuilderRecipes;
  * over every new (pattern, part, cost) triple in one test instead of one near-identical method each,
  * since the only thing that varies between them is which pattern/part pair and what it costs.
  *
- * <p>Every craft below pays with wood shards (1 shard-unit each, {@code PartBuilderRecipes
- * #SHARD_VALUE}) exactly equal to the part's cost, so there is never any shard change to account
+ * <p>Every craft below pays with wood shards ({@code PartBuilderRecipes#SHARD_VALUE} each,
+ * half an ingot) exactly equal to the part's cost, so there is never any shard change to account
  * for -- the change-output path is already covered by {@link PartBuilderGameTests
  * #logProducesHeadAndShardChange}.
  */
@@ -92,7 +92,8 @@ public class M3PartGameTests {
             PartBuilderMenu menu = openMenu(helper, pos, player);
 
             menu.getSlot(PartBuilderMenu.PATTERN_SLOT).set(new ItemStack(entry.pattern().get()));
-            ItemStack shards = new ItemStack(ForgeweaveItems.SHARD.get(), entry.cost());
+            int shardCount = entry.cost() / PartBuilderRecipes.SHARD_VALUE;
+            ItemStack shards = new ItemStack(ForgeweaveItems.SHARD.get(), shardCount);
             shards.set(ForgeweaveDataComponents.MATERIAL.get(), wood);
             menu.getSlot(PartBuilderMenu.MATERIAL_SLOT).set(shards);
             menu.broadcastChanges();
@@ -107,7 +108,7 @@ public class M3PartGameTests {
 
             menu.getSlot(PartBuilderMenu.OUTPUT_SLOT).onTake(player, output);
             helper.assertTrue(menu.getSlot(PartBuilderMenu.MATERIAL_SLOT).getItem().isEmpty(),
-                    "expected all " + entry.cost() + " shards to be consumed for " + expectedPart.getId());
+                    "expected all " + shardCount + " shards to be consumed for " + expectedPart.getId());
             helper.assertTrue(menu.getSlot(PartBuilderMenu.CHANGE_SLOT).getItem().isEmpty(),
                     "expected no shard change for " + expectedPart.getId() + "'s exact-value craft");
         }

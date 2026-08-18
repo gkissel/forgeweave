@@ -106,17 +106,17 @@ class JeiRecipesTest {
         return new Material.CraftingItem(Ingredient.of(item), value);
     }
 
-    /** wood: stick=1, planks=2, log=8 -- the real shipped wood.json values (issue #45). */
+    /** wood: stick=shard, planks=ingot, log=4 ingots -- the real shipped wood.json values (issue #45, T58 units). */
     private static Map<ResourceLocation, Material> twoMaterials() {
         Map<ResourceLocation, Material> materials = new LinkedHashMap<>();
         materials.put(ResourceLocation.fromNamespaceAndPath("forgeweave", "wood"),
                 material(List.of(
-                        craftingItem(Items.STICK, 1),
-                        craftingItem(Items.OAK_PLANKS, 2),
-                        craftingItem(Items.OAK_LOG, 8)),
+                        craftingItem(Items.STICK, PartBuilderRecipes.SHARD_VALUE),
+                        craftingItem(Items.OAK_PLANKS, PartBuilderRecipes.INGOT_VALUE),
+                        craftingItem(Items.OAK_LOG, 4 * PartBuilderRecipes.INGOT_VALUE)),
                         Ingredient.of(Items.OAK_PLANKS)));
         materials.put(ResourceLocation.fromNamespaceAndPath("forgeweave", "stone"),
-                material(List.of(craftingItem(Items.COBBLESTONE, 2)), Ingredient.of(Items.COBBLESTONE)));
+                material(List.of(craftingItem(Items.COBBLESTONE, PartBuilderRecipes.INGOT_VALUE)), Ingredient.of(Items.COBBLESTONE)));
         return materials;
     }
 
@@ -229,19 +229,19 @@ class JeiRecipesTest {
                         && r.result().get(ForgeweaveDataComponents.MATERIAL.get()).getPath().equals("wood"))
                 .findFirst().orElseThrow();
 
-        // stick, planks, log, shard -- 4 cycling options for a HEAD_COST=4 part.
+        // stick, planks, log, shard -- 4 cycling options for a 2-ingot head.
         assertEquals(4, woodPickaxeHead.materialInputs().size());
         assertEquals(4, woodPickaxeHead.changeOutputs().size());
 
-        assertEquals(4, countByItem(woodPickaxeHead, Items.STICK), "1-value stick needs 4 to cover a head");
+        assertEquals(4, countByItem(woodPickaxeHead, Items.STICK), "shard-value stick needs 4 to cover a head");
         assertNull(changeFor(woodPickaxeHead, Items.STICK), "exact payment leaves no change");
 
-        assertEquals(2, countByItem(woodPickaxeHead, Items.OAK_PLANKS), "2-value planks need 2 to cover a head");
+        assertEquals(2, countByItem(woodPickaxeHead, Items.OAK_PLANKS), "ingot-value planks need 2 to cover a head");
         assertNull(changeFor(woodPickaxeHead, Items.OAK_PLANKS), "exact payment leaves no change");
 
-        assertEquals(1, countByItem(woodPickaxeHead, Items.OAK_LOG), "8-value log overpays a head with just 1");
+        assertEquals(1, countByItem(woodPickaxeHead, Items.OAK_LOG), "4-ingot log overpays a head with just 1");
         ItemStack logChange = changeFor(woodPickaxeHead, Items.OAK_LOG);
-        assertEquals(4, logChange.getCount(), "log overpays a HEAD_COST=4 part by 4 shard-units");
+        assertEquals(4, logChange.getCount(), "log overpays a 2-ingot head by 2 ingots = 4 shards");
         assertTrue(logChange.is(ForgeweaveItems.SHARD.get()));
     }
 
@@ -252,7 +252,7 @@ class JeiRecipesTest {
         for (PartCraftingRecipe recipe : recipes) {
             int shardIndex = indexOfItem(recipe, ForgeweaveItems.SHARD.get());
             assertTrue(shardIndex >= 0, "the shard is always a valid crafting option");
-            assertNull(recipe.changeOutputs().get(shardIndex), "the shard's 1-unit value divides every part cost evenly");
+            assertNull(recipe.changeOutputs().get(shardIndex), "the shard's value divides every part cost evenly");
         }
     }
 
@@ -265,7 +265,7 @@ class JeiRecipesTest {
                         && r.result().get(ForgeweaveDataComponents.MATERIAL.get()).getPath().equals("stone"))
                 .findFirst().orElseThrow();
 
-        PartBuilderRecipes.CostResult expected = PartBuilderRecipes.computeCost(PartBuilderRecipes.SMALL_PART_COST, 2);
+        PartBuilderRecipes.CostResult expected = PartBuilderRecipes.computeCost(PartBuilderRecipes.SMALL_PART_COST, PartBuilderRecipes.INGOT_VALUE);
         assertEquals(expected.itemsNeeded(), countByItem(stoneBinding, Items.COBBLESTONE));
     }
 

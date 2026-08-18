@@ -20,8 +20,9 @@
     "head": ["forgeweave:baconlicious", "forgeweave:tasty"]
   },
   "crafting_items": [
-    { "ingredient": { "item": "forgeweave:pig_iron_ingot" }, "value": 2 },
-    { "ingredient": { "item": "forgeweave:pig_iron_block" }, "value": 18 }
+    { "ingredient": { "item": "forgeweave:pig_iron_ingot" }, "value": 144 },
+    { "ingredient": { "item": "forgeweave:pig_iron_nugget" }, "value": 16 },
+    { "ingredient": { "item": "forgeweave:pig_iron_block" }, "value": 1296 }
   ],
   "repair_item": {
     "tag": "c:ingots/pig_iron"

@@ -54,13 +54,13 @@ class ItemTooltipParityTest {
     }
 
     /**
-     * Upstream prints {@code getCost() / VALUE_Ingot}; Forgeweave's costs are in shard-units, two to
-     * the ingot, so a head part's 4 reads as 2 ingots and a large head's 16 as 8 -- the same numbers
+     * Upstream prints {@code getCost() / VALUE_Ingot}; Forgeweave's costs are in the same unit (T58,
+     * issue #489), so a head part's 288 reads as 2 ingots and a large head's 1152 as 8 -- the same numbers
      * upstream's own {@code TinkerTools#registerToolParts} calls produce.
      */
     @Test
     void patternsQuoteTheirPartsCostInIngots() {
-        assertEquals(2, PartBuilderRecipes.INGOT_VALUE, "one ingot is two shard-units");
+        assertEquals(144, PartBuilderRecipes.INGOT_VALUE, "one ingot is upstream's VALUE_Ingot (T58, issue #489)");
 
         assertEquals(List.of(costLine("2")), hover(stackOf(ForgeweaveItems.PATTERN_PICKAXE_HEAD)));
         assertEquals(List.of(costLine("1")), hover(stackOf(ForgeweaveItems.PATTERN_TOOL_HANDLE)));

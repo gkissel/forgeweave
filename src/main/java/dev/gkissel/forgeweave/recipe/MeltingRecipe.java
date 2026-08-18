@@ -265,10 +265,10 @@ public record MeltingRecipe(Ingredient input, Fluid fluid, int amount, int tempe
      * PartBuilderRecipes#partCost}, the exact cost table the Part Builder itself already charges.
      *
      * <p>The price is upstream's {@code (toolPart.getCost() * Material.VALUE_SearedMaterial) /
-     * Material.VALUE_Ingot} converted into Forgeweave's shard-unit cost scale ({@code
-     * PartBuilderRecipes}'s class javadoc: 2 shard-units = 1 upstream ingot), which collapses to
-     * {@code cost * VALUE_SEARED_MATERIAL / PartBuilderRecipes.INGOT_VALUE} -- 36 mB per shard-unit,
-     * so a 4-shard-unit head (2 ingots upstream) melts back at 144 mB, matching upstream's own pick
+     * Material.VALUE_Ingot}, in the same value unit {@code PartBuilderRecipes} prices parts in
+     * ({@code PartBuilderRecipes.INGOT_VALUE = 144}, T58 / issue #489), which collapses to
+     * {@code cost * VALUE_SEARED_MATERIAL / PartBuilderRecipes.INGOT_VALUE} -- half a mB per value unit,
+     * so a 288-value head (2 ingots upstream) melts back at 144 mB, matching upstream's own pick
      * head (cost {@code VALUE_Ingot * 2}) exactly.
      *
      * <p>Excludes the shard: it is a leftover, not a pattern-built part, so {@link

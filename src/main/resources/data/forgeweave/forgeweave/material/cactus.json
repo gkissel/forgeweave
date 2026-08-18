@@ -20,7 +20,7 @@
     "head": ["forgeweave:prickly"]
   },
   "crafting_items": [
-    { "ingredient": { "item": "minecraft:cactus" }, "value": 2 }
+    { "ingredient": { "item": "minecraft:cactus" }, "value": 144 }
   ],
   "repair_item": {
     "item": "minecraft:cactus"

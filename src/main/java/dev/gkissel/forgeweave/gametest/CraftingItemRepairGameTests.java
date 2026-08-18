@@ -71,14 +71,14 @@ public class CraftingItemRepairGameTests {
     }
 
     /**
-     * The damage a single repair item worth {@code shardUnits} of wood leaves on {@code tool}:
-     * upstream's {@code headDurability * match.amount / VALUE_Ingot}, where one Forgeweave shard-unit
-     * is half an ingot ({@code PartBuilderRecipes.INGOT_VALUE}).
+     * The damage a single repair item worth {@code valueUnits} of wood leaves on {@code tool}:
+     * upstream's {@code headDurability * match.amount / VALUE_Ingot}, in the same unit
+     * ({@code PartBuilderRecipes.INGOT_VALUE = 144}, T58 / issue #489).
      */
-    private static int damageAfterOne(ItemStack tool, int shardUnits) {
+    private static int damageAfterOne(ItemStack tool, int valueUnits) {
         ToolStats.Stats stats = tool.get(ForgeweaveDataComponents.TOOL_STATS.get());
         int amount = ToolRepair.repairAmount(
-                WOOD_HEAD_DURABILITY * shardUnits / (float) PartBuilderRecipes.INGOT_VALUE, 1);
+                WOOD_HEAD_DURABILITY * valueUnits / (float) PartBuilderRecipes.INGOT_VALUE, 1);
         int increment = ToolAssemblyRecipes.repairIncrement(
                 amount, stats.durability(), tool.getMaxDamage(), WORN, 0, false);
         return tool.getMaxDamage() - increment;
@@ -93,8 +93,8 @@ public class CraftingItemRepairGameTests {
     }
 
     /**
-     * A plank is wood's {@code repair_item} <em>and</em> a {@code crafting_items} entry at 2
-     * shard-units (one ingot), so the pre-#461 heal is exactly what the value-scaled path still
+     * A plank is wood's {@code repair_item} <em>and</em> a {@code crafting_items} entry at
+     * one ingot, so the pre-#461 heal is exactly what the value-scaled path still
      * gives. The regression guard for every other test here.
      */
     @GameTest(template = "empty")

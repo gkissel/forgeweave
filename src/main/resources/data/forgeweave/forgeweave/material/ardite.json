@@ -20,8 +20,9 @@
     "head": ["forgeweave:stonebound"]
   },
   "crafting_items": [
-    { "ingredient": { "item": "forgeweave:ardite_ingot" }, "value": 2 },
-    { "ingredient": { "item": "forgeweave:ardite_block" }, "value": 18 }
+    { "ingredient": { "item": "forgeweave:ardite_ingot" }, "value": 144 },
+    { "ingredient": { "item": "forgeweave:ardite_nugget" }, "value": 16 },
+    { "ingredient": { "item": "forgeweave:ardite_block" }, "value": 1296 }
   ],
   "repair_item": {
     "tag": "c:ingots/ardite"

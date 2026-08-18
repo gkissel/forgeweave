@@ -25,13 +25,13 @@
       "ingredient": {
         "item": "minecraft:netherite_scrap"
       },
-      "value": 2
+      "value": 144
     },
     {
       "ingredient": {
         "tag": "c:ores/netherite_scrap"
       },
-      "value": 2
+      "value": 144
     }
   ],
   "repair_item": {

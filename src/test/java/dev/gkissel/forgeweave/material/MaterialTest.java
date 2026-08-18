@@ -33,10 +33,13 @@ import net.minecraft.resources.RegistryOps;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.Bootstrap;
 import net.minecraft.tags.TagKey;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.Ingredient;
 
 import dev.gkissel.forgeweave.item.PartItem;
+import dev.gkissel.forgeweave.menu.PartBuilderRecipes;
 
 class MaterialTest {
 
@@ -285,28 +288,76 @@ class MaterialTest {
 
     // Verified against upstream 1.12's slimeknights.tconstruct.tools.TinkerMaterials#setupMaterials
     // (VALUE_Ingot = 144, VALUE_Shard = VALUE_Ingot / 2 = 72; wood.addItem("stickWood", 1,
-    // VALUE_Shard), .addItem("plankWood", 1, VALUE_Ingot), .addItem("logWood", 1, VALUE_Ingot * 4)),
-    // normalized to Forgeweave's shard-unit scale (see PartBuilderRecipes's class javadoc):
-    // 1 shard-unit = 1 VALUE_Shard, so stick = 1, plank = 2, log = 8.
+    // VALUE_Shard), .addItem("plankWood", 1, VALUE_Ingot), .addItem("logWood", 1, VALUE_Ingot * 4)).
+    // Since parity audit T58 (issue #489) the JSON `value` is upstream's own unit, unscaled.
     @Test
     void woodCraftingItemsMatchUpstreamValueTable() {
         Material wood = Material.CODEC.parse(ops, shipped("wood")).getOrThrow();
 
         assertEquals(3, wood.craftingItems().size());
-        assertEquals(1, wood.craftingItems().get(0).value(), "stick should be worth 1 shard-unit");
-        assertEquals(2, wood.craftingItems().get(1).value(), "planks should be worth 2 shard-units (1 ingot)");
-        assertEquals(8, wood.craftingItems().get(2).value(), "logs should be worth 8 shard-units (4 ingots)");
+        assertEquals(PartBuilderRecipes.SHARD_VALUE, wood.craftingItems().get(0).value(), "stick is VALUE_Shard");
+        assertEquals(PartBuilderRecipes.INGOT_VALUE, wood.craftingItems().get(1).value(), "planks are VALUE_Ingot");
+        assertEquals(4 * PartBuilderRecipes.INGOT_VALUE, wood.craftingItems().get(2).value(), "logs are VALUE_Ingot * 4");
     }
 
     @ParameterizedTest
-    @ValueSource(strings = { "stone", "flint", "bone" })
-    void ingotEquivalentMaterialsCostTwoShardUnits(String name) {
+    @ValueSource(strings = { "stone", "flint", "cactus", "obsidian", "netherrack", "endstone", "sponge",
+            "firewood", "slime", "blueslime", "magmaslime", "string", "vine" })
+    void ingotEquivalentMaterialsCostOneIngot(String name) {
         Material material = Material.CODEC.parse(ops, shipped(name)).getOrThrow();
 
         assertTrue(!material.craftingItems().isEmpty(), name + " must have crafting items");
         for (Material.CraftingItem item : material.craftingItems()) {
-            assertEquals(2, item.value(), name + "'s crafting items should each be worth 1 ingot (2 shard-units)");
+            assertEquals(PartBuilderRecipes.INGOT_VALUE, item.value(), name + "'s crafting items are addItemIngot");
         }
+    }
+
+    // T58 (issue #489): the sub-shard crafting items upstream lists and the shard-unit scale could
+    // not express -- TinkerMaterials.java:243-246 (prismarine), :269 (bonemeal), :276 (paper), and
+    // Material#addCommonItems (nuggets, VALUE_Nugget = 16) for every metal.
+    @Test
+    void boneAcceptsBonemealAtAFragment() {
+        Material bone = Material.CODEC.parse(ops, shipped("bone")).getOrThrow();
+
+        assertEquals(PartBuilderRecipes.INGOT_VALUE, valueOf(bone, Items.BONE));
+        assertEquals(PartBuilderRecipes.FRAGMENT_VALUE, valueOf(bone, Items.BONE_MEAL));
+    }
+
+    @Test
+    void paperIsAFragmentNotAShard() {
+        Material paper = Material.CODEC.parse(ops, shipped("paper")).getOrThrow();
+
+        assertEquals(PartBuilderRecipes.FRAGMENT_VALUE, valueOf(paper, Items.PAPER));
+    }
+
+    @Test
+    void prismarineValuesMatchUpstream() {
+        Material prismarine = Material.CODEC.parse(ops, shipped("prismarine")).getOrThrow();
+
+        assertEquals(PartBuilderRecipes.FRAGMENT_VALUE, valueOf(prismarine, Items.PRISMARINE_SHARD), "gemPrismarine");
+        assertEquals(PartBuilderRecipes.INGOT_VALUE, valueOf(prismarine, Items.PRISMARINE), "blockPrismarine");
+        assertEquals(9 * PartBuilderRecipes.FRAGMENT_VALUE, valueOf(prismarine, Items.PRISMARINE_BRICKS), "blockPrismarineBrick");
+        assertEquals(2 * PartBuilderRecipes.INGOT_VALUE, valueOf(prismarine, Items.DARK_PRISMARINE), "blockPrismarineDark");
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = { "iron", "pig_iron", "cobalt", "ardite", "manyullyn", "copper", "bronze", "lead",
+            "silver", "electrum", "steel", "knightslime" })
+    void addCommonItemsMetalsListIngotAndNugget(String name) {
+        Material material = Material.CODEC.parse(ops, shipped(name)).getOrThrow();
+
+        assertTrue(material.craftingItems().stream().anyMatch(item -> item.value() == PartBuilderRecipes.INGOT_VALUE),
+                name + " lists an ingot at VALUE_Ingot");
+        assertTrue(material.craftingItems().stream().anyMatch(item -> item.value() == PartBuilderRecipes.NUGGET_VALUE),
+                name + " lists a nugget at VALUE_Nugget");
+    }
+
+    private static int valueOf(Material material, Item item) {
+        return material.craftingItems().stream()
+                .filter(crafting -> crafting.ingredient().test(new ItemStack(item)))
+                .mapToInt(Material.CraftingItem::value)
+                .findFirst()
+                .orElseThrow(() -> new AssertionError("no crafting item matches " + item));
     }
 
     @Test
@@ -460,11 +511,11 @@ class MaterialTest {
         Material material = Material.CODEC.parse(ops, shipped(name)).getOrThrow();
 
         boolean hasBlockRow = material.craftingItems().stream()
-                .filter(item -> item.value() == 18)
+                .filter(item -> item.value() == 9 * PartBuilderRecipes.INGOT_VALUE)
                 .flatMap(item -> java.util.Arrays.stream(item.ingredient().getItems()))
                 .anyMatch(stack -> ResourceLocation.parse(blockId).equals(
                         net.minecraft.core.registries.BuiltInRegistries.ITEM.getKey(stack.getItem())));
 
-        assertTrue(hasBlockRow, name + " must list its storage block (" + blockId + ") at value 18");
+        assertTrue(hasBlockRow, name + " must list its storage block (" + blockId + ") at 9 ingots (VALUE_Block)");
     }
 }

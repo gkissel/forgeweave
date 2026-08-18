@@ -18,7 +18,7 @@ import dev.gkissel.forgeweave.menu.PartBuilderRecipes;
  *
  * <p>Forgeweave's pattern-to-part-to-cost table lives in {@link PartBuilderRecipes}, so this asks it
  * rather than carrying a second copy (the repo's own anti-drift rule, issue #79): {@link
- * PartBuilderRecipes#patternCost} answers in shard-units and {@link PartBuilderRecipes#INGOT_VALUE}
+ * PartBuilderRecipes#patternCost} answers in upstream value units and {@link PartBuilderRecipes#INGOT_VALUE}
  * converts, which is exactly the division upstream does. {@link ForgeweaveItems#PATTERN_BLANK} is
  * not registered through this class -- it stamps no part and so has no cost to quote.
  */

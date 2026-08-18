@@ -20,7 +20,7 @@
     "head": ["forgeweave:alien"]
   },
   "crafting_items": [
-    { "ingredient": { "item": "minecraft:end_stone" }, "value": 2 }
+    { "ingredient": { "item": "minecraft:end_stone" }, "value": 144 }
   ],
   "repair_item": {
     "item": "minecraft:end_stone"

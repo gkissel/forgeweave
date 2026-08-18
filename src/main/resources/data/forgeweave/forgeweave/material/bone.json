@@ -20,7 +20,8 @@
     "head": ["forgeweave:splintering"]
   },
   "crafting_items": [
-    { "ingredient": { "item": "minecraft:bone" }, "value": 2 }
+    { "ingredient": { "item": "minecraft:bone" }, "value": 144 },
+    { "ingredient": { "item": "minecraft:bone_meal" }, "value": 36 }
   ],
   "repair_item": {
     "item": "minecraft:bone"
