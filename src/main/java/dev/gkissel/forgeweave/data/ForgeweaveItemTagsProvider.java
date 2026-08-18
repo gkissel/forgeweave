@@ -196,6 +196,73 @@ public class ForgeweaveItemTagsProvider extends ItemTagsProvider {
         // Unbreaking and Mending (and Curse of Vanishing, whose tag references this one): every tool.
         addAll(ItemTags.DURABILITY_ENCHANTABLE, swords, axes, miningTools, bluntWeapons, launchers);
 
+        // #464 (parity audit T33) -- tool-class exposure. Upstream 1.12 states a tool's class with
+        // Forge's setHarvestLevel("pickaxe"/"shovel"/"axe"/"shears", 0); 1.21 splits that same fact in
+        // two, an ItemAbility set for behaviour (ToolItem#canPerformAction) and these tags for
+        // everything data-driven that asks "what kind of tool is this" -- other mods' recipes and
+        // loot conditions, datapack predicates, tool racks. Membership follows the tool's own upstream
+        // class, so the mattock is in both #minecraft:axes and #minecraft:hoes (it chops and it tills)
+        // and the kama and scythe are hoes rather than shears (their upstream "shears" class is a
+        // mining classification; the 1.21 tag for what a shear-shaped tool is used for is c:tools/shear,
+        // below).
+        //
+        // Joining #minecraft:swords and friends also joins every #minecraft:enchantable/* tag vanilla
+        // builds out of them (VanillaItemTagsProvider: sword_enchantable, mining_enchantable,
+        // durability_enchantable, ...), which is the whole of what gates an anvil's enchanted-book
+        // merge. ToolItem#isBookEnchantable declines that on the existing allowVanillaEnchanting
+        // toggle, the same way isEnchantable already declines the enchanting table -- upstream's
+        // TinkersItem#isBookEnchantable is a flat false.
+        tag(ItemTags.PICKAXES)
+                .add(ForgeweaveItems.TOOL_PICKAXE.get(), ForgeweaveItems.TOOL_HAMMER.get(),
+                        ForgeweaveItems.TOOL_VEIN_HAMMER.get());
+        tag(ItemTags.SHOVELS)
+                .add(ForgeweaveItems.TOOL_SHOVEL.get(), ForgeweaveItems.TOOL_EXCAVATOR.get());
+        tag(ItemTags.AXES)
+                .add(ForgeweaveItems.TOOL_HATCHET.get(), ForgeweaveItems.TOOL_LUMBERAXE.get(),
+                        ForgeweaveItems.TOOL_BATTLEAXE.get(), ForgeweaveItems.TOOL_MATTOCK.get());
+        tag(ItemTags.HOES)
+                .add(ForgeweaveItems.TOOL_MATTOCK.get(), ForgeweaveItems.TOOL_KAMA.get(),
+                        ForgeweaveItems.TOOL_SCYTHE.get());
+        tag(ItemTags.SWORDS)
+                .add(ForgeweaveItems.TOOL_BROADSWORD.get(), ForgeweaveItems.TOOL_LONGSWORD.get(),
+                        ForgeweaveItems.TOOL_RAPIER.get(), ForgeweaveItems.TOOL_DAGGER.get(),
+                        ForgeweaveItems.TOOL_SCIMITAR.get(), ForgeweaveItems.TOOL_KATANA.get(),
+                        ForgeweaveItems.TOOL_CLEAVER.get());
+
+        // The c: half. NeoForge's own c:tools already reads #minecraft:axes/hoes/pickaxes/shovels/
+        // swords plus every c:tools/* leaf below (see its shipped tools.json), so nothing here has to
+        // name the parent -- the five tags above and these six put every Forgeweave tool in it.
+        //
+        // c:tools/melee_weapon is "intentionally intended to be used for melee attack as a primary
+        // purpose", which is upstream's own Category.WEAPON split: the six station weapons, the
+        // battleaxe, the cleaver, the katana, the scimitar and the warmace, but not the hatchet or
+        // lumberaxe (Category.HARVEST tools that happen to hit hard). c:tools/mining_tool takes the
+        // harvest side of that same split. The two are not exclusive upstream and are not here either.
+        tag("tools/melee_weapon")
+                .add(ForgeweaveItems.TOOL_BROADSWORD.get(), ForgeweaveItems.TOOL_LONGSWORD.get(),
+                        ForgeweaveItems.TOOL_RAPIER.get(), ForgeweaveItems.TOOL_DAGGER.get(),
+                        ForgeweaveItems.TOOL_SCIMITAR.get(), ForgeweaveItems.TOOL_KATANA.get(),
+                        ForgeweaveItems.TOOL_CLEAVER.get(), ForgeweaveItems.TOOL_BATTLEAXE.get(),
+                        ForgeweaveItems.TOOL_BATTLESIGN.get(), ForgeweaveItems.TOOL_FRYING_PAN.get(),
+                        ForgeweaveItems.TOOL_WARMACE.get());
+        tag("tools/mining_tool")
+                .add(ForgeweaveItems.TOOL_PICKAXE.get(), ForgeweaveItems.TOOL_SHOVEL.get(),
+                        ForgeweaveItems.TOOL_HATCHET.get(), ForgeweaveItems.TOOL_MATTOCK.get(),
+                        ForgeweaveItems.TOOL_KAMA.get(), ForgeweaveItems.TOOL_HAMMER.get(),
+                        ForgeweaveItems.TOOL_EXCAVATOR.get(), ForgeweaveItems.TOOL_LUMBERAXE.get(),
+                        ForgeweaveItems.TOOL_SCYTHE.get(), ForgeweaveItems.TOOL_VEIN_HAMMER.get());
+        // The kama and scythe shear entities (KamaItem#interactLivingEntity, EntityShear), which is
+        // what upstream's own setHarvestLevel("shears", 0) marked them as.
+        tag("tools/shear").add(ForgeweaveItems.TOOL_KAMA.get(), ForgeweaveItems.TOOL_SCYTHE.get());
+        // The warmace rides vanilla's mace mechanics outright (WarmaceItem), so it belongs in the tag
+        // vanilla's own mace is in, exactly as it already joins #minecraft:enchantable/mace above.
+        tag("tools/mace").add(ForgeweaveItems.TOOL_WARMACE.get());
+        tag("tools/bow").add(ForgeweaveItems.TOOL_SHORTBOW.get(), ForgeweaveItems.TOOL_LONGBOW.get());
+        tag("tools/crossbow").add(ForgeweaveItems.TOOL_CROSSBOW.get());
+        tag("tools/ranged_weapon")
+                .add(ForgeweaveItems.TOOL_SHORTBOW.get(), ForgeweaveItems.TOOL_LONGBOW.get(),
+                        ForgeweaveItems.TOOL_CROSSBOW.get());
+
         // #152 -- what a Tool Forge can be crafted from. Upstream 1.12 keeps this as an ore-dict list
         // on BlockToolForge#baseBlocks, filled from TinkerIntegration's `.toolforge()` calls: iron,
         // gold, copper, cobalt, ardite, manyullyn, pig iron, knightslime, bronze, lead, silver,
