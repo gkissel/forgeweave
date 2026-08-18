@@ -199,15 +199,29 @@ public final class ForgeweaveTraits {
     private static final double MAGNETIC_RANGE_PER_LEVEL = 0.3;
 
     /**
+     * Upstream {@code TraitMagnetic}'s {@code afterBlockBreak}/{@code onHit}: {@code
+     * Magnetic.apply(player, 30, level)}, a 30-tick hidden potion effect (issue #459 parity fix).
+     */
+    private static final int MAGNETIC_DURATION_TICKS = 30;
+
+    /**
      * Iron. Upstream {@code TraitMagnetic}'s {@code MagneticPotion#performEffect}: pulls every item
      * drop within {@code 1.8 + level * 0.3} blocks toward the holder at a constant 0.07 blocks/tick,
-     * at most 200 items, applied every other tick ({@code isReady}: {@code duration & 1 == 0}).
+     * at most 200 items, applied every other tick ({@code isReady}: {@code duration & 1 == 0}), only
+     * while the hidden 30-tick potion {@code afterBlockBreak}/{@code onHit} re-applies is active.
      *
-     * <p>Upstream reaches this through a hidden potion effect re-applied from {@code afterBlockBreak}
-     * and {@code onHit} every 30 ticks; Forgeweave has no potion-effect plumbing to port that
-     * through, so this runs the same pull directly from {@link ForgeweaveTraits#inventoryTick} every
-     * tick the tool is carried, at half strength (0.035) rather than gating on tick parity -- the same
-     * average pull rate without depending on when the tool entered the world. Recorded in the PR.
+     * <p>Upstream reaches the timer through a player-scoped potion effect; Forgeweave has no
+     * player-scoped potion-effect plumbing (issue #459 corrects the parity audit's claim that this
+     * still justifies always-on: {@code ForgeweaveMobEffects} exists for combat marks, but those are
+     * entity-scoped hit effects, not a tool-carry timer, so the same tool-scoped-component adaptation
+     * as {@link #MOMENTUM}/{@link #INSATIABLE} applies here too), so {@link #afterUse} stores the
+     * 30-tick window on the tool's own stack ({@link ForgeweaveDataComponents#MAGNETIC_STACKS}) and
+     * {@link ForgeweaveTraits#inventoryTick} only pulls while it is still counting down, decaying it
+     * one tick at a time like {@code MOMENTUM_STACKS} does. The pull itself still runs every tick
+     * inside that window at half strength (0.035) rather than gating on tick parity at full strength
+     * (0.07) -- over one 30-tick window that is the same total impulse upstream's every-other-tick
+     * pull delivers (0.035 * 30 == 0.07 * 15), just spread evenly instead of alternating. Recorded in
+     * the PR.
      *
      * <p>Iron grants both this (general, level 1) and {@link #MAGNETIC2} (head only, upstream's
      * separately identified {@code magnetic2}, level 2). Upstream's {@code AbstractTraitLeveled} sums
@@ -229,7 +243,23 @@ public final class ForgeweaveTraits {
             public int magneticLevel() {
                 return level;
             }
+
+            @Override
+            public void afterBlockBreak(ItemStack stack, ServerLevel serverLevel, BlockState state, BlockPos pos,
+                    LivingEntity breaker, boolean effective) {
+                afterUse(stack);
+            }
+
+            @Override
+            public void afterHit(ItemStack stack, ServerLevel serverLevel, LivingEntity attacker, LivingEntity target) {
+                afterUse(stack);
+            }
         };
+    }
+
+    /** Opens (or refreshes) {@code MAGNETIC}/{@code MAGNETIC2}'s 30-tick pull window -- see {@link #MAGNETIC}. */
+    private static void afterUse(ItemStack stack) {
+        stack.set(ForgeweaveDataComponents.MAGNETIC_STACKS.get(), new TraitStacks(1, MAGNETIC_DURATION_TICKS));
     }
 
     /** The combined level of every leveled magnetic trait on {@code stack} -- see {@link #MAGNETIC}. */
@@ -1488,10 +1518,15 @@ public final class ForgeweaveTraits {
             trait.inventoryTick(stack, level, holder);
         }
         // Magnetic (issue #297 parity fix): one pull at the combined level's range, not one pull per
-        // leveled trait instance -- see MAGNETIC's javadoc.
+        // leveled trait instance -- see MAGNETIC's javadoc. Issue #459 parity fix: only while the
+        // 30-tick after-use window MAGNETIC/MAGNETIC2's afterBlockBreak/afterHit opened is still
+        // counting down, not on every tick the tool is merely carried.
         int magneticLevel = magneticLevel(stack);
         if (magneticLevel > 0) {
-            pullMagneticItems(level, holder, MAGNETIC_BASE_RANGE + magneticLevel * MAGNETIC_RANGE_PER_LEVEL);
+            if (stackLevel(stack, ForgeweaveDataComponents.MAGNETIC_STACKS.get()) > 0) {
+                pullMagneticItems(level, holder, MAGNETIC_BASE_RANGE + magneticLevel * MAGNETIC_RANGE_PER_LEVEL);
+            }
+            decayStack(stack, ForgeweaveDataComponents.MAGNETIC_STACKS.get());
         }
     }
 

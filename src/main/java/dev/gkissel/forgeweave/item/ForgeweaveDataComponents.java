@@ -156,6 +156,19 @@ public final class ForgeweaveDataComponents {
                     builder -> builder.persistent(TraitStacks.CODEC).networkSynchronized(TraitStacks.STREAM_CODEC));
 
     /**
+     * {@code ForgeweaveTraits#MAGNETIC}/{@code #MAGNETIC2}'s 30-tick after-use pull window (issue
+     * #459 parity fix): upstream 1.12 stores this as a hidden potion effect re-applied to the player
+     * from {@code afterBlockBreak}/{@code onHit}; Forgeweave has no player-scoped potion-effect
+     * plumbing, so it lives on the tool's own stack instead, the same adaptation as
+     * {@link #MOMENTUM_STACKS}/{@link #INSATIABLE_STACKS}. {@code level} is unused (always 1) --
+     * only the countdown's presence gates the pull; the pull's own range still reads the tool's
+     * combined magnetic level fresh each tick.
+     */
+    public static final DeferredHolder<DataComponentType<?>, DataComponentType<TraitStacks>> MAGNETIC_STACKS =
+            DATA_COMPONENTS.registerComponentType("magnetic_stacks",
+                    builder -> builder.persistent(TraitStacks.CODEC).networkSynchronized(TraitStacks.STREAM_CODEC));
+
+    /**
      * {@code ForgeweaveTraits#ALIEN}'s progressive-stat state (M3.2 issue #230): the 800-point pool
      * rolled the first time the trait ticks and the share of it distributed so far. Upstream 1.12
      * stores the same pair as {@code alienStatPool}/{@code alienStatBonus} NBT
