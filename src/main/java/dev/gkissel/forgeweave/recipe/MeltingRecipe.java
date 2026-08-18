@@ -24,8 +24,10 @@ import net.neoforged.neoforge.fluids.FluidStack;
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.config.ForgeweaveConfig;
 import dev.gkissel.forgeweave.casting.CastingRecipe;
+import dev.gkissel.forgeweave.fluid.ForgeweaveFluids;
 import dev.gkissel.forgeweave.item.ForgeweaveDataComponents;
 import dev.gkissel.forgeweave.item.PartItem;
+import dev.gkissel.forgeweave.menu.PartBuilderRecipes;
 
 /**
  * What one item melts into inside a smeltery, defined entirely in datapack JSON under
@@ -74,6 +76,13 @@ public record MeltingRecipe(Ingredient input, Fluid fluid, int amount, int tempe
     public static final int VALUE_BLOCK = VALUE_INGOT * 9;
 
     /**
+     * Upstream {@code Material.VALUE_SearedMaterial}: half an ingot, and what one stone/cobblestone/
+     * grout item melts into (issue #440, parity audit T8). {@link #meltBackOfStonePart} also uses it
+     * to price a stone tool part's melt-back, exactly as upstream's own stone-toolpart loop does.
+     */
+    public static final int VALUE_SEARED_MATERIAL = VALUE_INGOT / 2;
+
+    /**
      * Where both upstream and Forgeweave put "cold": a recipe or a smeltery at 300 is at zero working
      * heat. Upstream's {@code getUsableTemperature} and its {@code getTemperature() - 300} fuel
      * conversion are the two halves of this one constant.
@@ -91,6 +100,13 @@ public record MeltingRecipe(Ingredient input, Fluid fluid, int amount, int tempe
 
     public static final ResourceKey<Registry<MeltingRecipe>> REGISTRY = ResourceKey.createRegistryKey(
             ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "melting_recipe"));
+
+    /**
+     * The one material {@link #meltBackOfStonePart} special-cases, matching upstream's own
+     * {@code TinkerMaterials.stone} hardcode (issue #440). Same hardcoded-id convention as the
+     * material comparisons in {@code ToolStationGameTests}/{@code VanillaMaterialGameTests}.
+     */
+    public static final ResourceLocation STONE_MATERIAL_ID = ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "stone");
 
     public static final Codec<MeltingRecipe> CODEC = RecordCodecBuilder.create(instance -> instance.group(
             Ingredient.CODEC.fieldOf("input").forGetter(MeltingRecipe::input),
@@ -177,7 +193,8 @@ public record MeltingRecipe(Ingredient input, Fluid fluid, int amount, int tempe
                                 entry -> entry.getValue().isTagInput())
                         .thenComparing(entry -> entry.getKey().location()))
                 .map(Map.Entry::getValue)
-                .or(() -> meltBackOfACastPart(registries, stack));
+                .or(() -> meltBackOfACastPart(registries, stack))
+                .or(() -> meltBackOfStonePart(stack));
     }
 
     /**
@@ -189,8 +206,9 @@ public record MeltingRecipe(Ingredient input, Fluid fluid, int amount, int tempe
      *
      * <p>Only tool parts, and only the casting <em>table</em>'s recipes. A cast, an ingot or a metal
      * block has a melting recipe of its own -- this is the last resort, reached only when no datapack
-     * recipe matched -- and a part of a material with no molten form (wood, stone, flint, bone) has no
-     * casting recipe to read backwards, so it stays unmeltable exactly as upstream leaves it.
+     * recipe matched -- and a part of a material with no molten form (wood, flint, bone) has no casting
+     * recipe to read backwards, so it stays unmeltable exactly as upstream leaves it. Stone is the one
+     * exception: it is never cast either, but {@link #meltBackOfStonePart} covers it next.
      *
      * <p>The result is <b>not</b> ore-class ({@code ore = false}): upstream returns a part's exact
      * value, so no core tier turns a pickaxe head into more metal than went into it.
@@ -214,6 +232,39 @@ public record MeltingRecipe(Ingredient input, Fluid fluid, int amount, int tempe
             }
         }
         return Optional.empty();
+    }
+
+    /**
+     * Issue #440 (parity audit T8) -- upstream 1.12's stone-toolpart loop ({@code
+     * TinkerSmeltery.java:399-411}): every tool part a metal <em>could</em> be cast into also gets a
+     * stone-flavored melting recipe registered directly, regardless of whether stone itself is ever
+     * cast (it never is -- stone is Part Builder-only, {@code Material.isCraftable} without {@code
+     * canBeCasted}). Unlike {@link #meltBackOfACastPart} this cannot read the casting registry
+     * backwards for that reason, so it is its own lookup keyed on {@link
+     * PartBuilderRecipes#partCost}, the exact cost table the Part Builder itself already charges.
+     *
+     * <p>The price is upstream's {@code (toolPart.getCost() * Material.VALUE_SearedMaterial) /
+     * Material.VALUE_Ingot} converted into Forgeweave's shard-unit cost scale ({@code
+     * PartBuilderRecipes}'s class javadoc: 2 shard-units = 1 upstream ingot), which collapses to
+     * {@code cost * VALUE_SEARED_MATERIAL / PartBuilderRecipes.INGOT_VALUE} -- 36 mB per shard-unit,
+     * so a 4-shard-unit head (2 ingots upstream) melts back at 144 mB, matching upstream's own pick
+     * head (cost {@code VALUE_Ingot * 2}) exactly.
+     *
+     * <p>Excludes the shard: it is a leftover, not a pattern-built part, so {@link
+     * PartBuilderRecipes#partCost} never matches it -- upstream tracks its melting separately too
+     * (parity audit T40, not this ticket).
+     */
+    private static Optional<MeltingRecipe> meltBackOfStonePart(ItemStack stack) {
+        if (!(stack.getItem() instanceof PartItem) || !STONE_MATERIAL_ID.equals(stack.get(ForgeweaveDataComponents.MATERIAL.get()))) {
+            return Optional.empty();
+        }
+        return PartBuilderRecipes.partCost(stack.getItem()).map(cost -> {
+            ItemStack stonePart = new ItemStack(stack.getItem());
+            stonePart.set(ForgeweaveDataComponents.MATERIAL.get(), STONE_MATERIAL_ID);
+            int amount = cost * VALUE_SEARED_MATERIAL / PartBuilderRecipes.INGOT_VALUE;
+            return withDerivedTemperature(DataComponentIngredient.of(false, stonePart),
+                    ForgeweaveFluids.SEARED_STONE.still().get(), amount, Optional.empty(), false);
+        });
     }
 
     /**

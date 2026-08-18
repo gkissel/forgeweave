@@ -172,6 +172,60 @@ public class SmelteryMeltingGameTests {
     }
 
     /**
+     * Issue #440 (parity audit T8): stone melts into seared stone at {@code Material.VALUE_SearedMaterial}
+     * (72 mB), not marked ore-class -- upstream's {@code TinkerSmeltery.java:377-380}.
+     */
+    @GameTest(template = "smeltery", timeoutTicks = 1600)
+    public static void stoneMeltsIntoSearedStone(GameTestHelper helper) {
+        SmelteryControllerBlockEntity core = lavaFuelledSmeltery(helper);
+        insert(helper, core, Items.STONE);
+
+        helper.succeedWhen(() -> assertTankHolds(helper, core, ForgeweaveFluids.SEARED_STONE.still().get(), 72));
+    }
+
+    /** Issue #440: cobblestone melts at the exact same amount as stone -- {@code TinkerSmeltery.java:381-383}. */
+    @GameTest(template = "smeltery", timeoutTicks = 1600)
+    public static void cobblestoneMeltsIntoSearedStoneAtTheSameAmountAsStone(GameTestHelper helper) {
+        SmelteryControllerBlockEntity core = lavaFuelledSmeltery(helper);
+        insert(helper, core, Items.COBBLESTONE);
+
+        helper.succeedWhen(() -> assertTankHolds(helper, core, ForgeweaveFluids.SEARED_STONE.still().get(), 72));
+    }
+
+    /**
+     * Issue #440: grout melts into seared stone too, and at the <em>same</em> 72 mB as raw stone --
+     * upstream's {@code TinkerSmeltery.java:438} passes a smaller number (24) into {@code
+     * MeltingRecipe.forAmount}, but that argument only shapes how fast/cool the recipe melts, not the
+     * fluid amount it registers (which upstream reads off the {@code RecipeMatch}'s own {@code
+     * amountMatched} instead) -- the parity audit's claim of "grout (24)" does not hold up against the
+     * clone, see {@code MeltingRecipeTest}.
+     */
+    @GameTest(template = "smeltery", timeoutTicks = 1600)
+    public static void groutMeltsIntoSearedStoneAtTheSameAmountAsStone(GameTestHelper helper) {
+        SmelteryControllerBlockEntity core = lavaFuelledSmeltery(helper);
+        insert(helper, core, ForgeweaveItems.GROUT.get());
+
+        helper.succeedWhen(() -> assertTankHolds(helper, core, ForgeweaveFluids.SEARED_STONE.still().get(), 72));
+    }
+
+    /**
+     * Issue #440 (parity audit T8): unlike wood/flint/bone, a stone tool part melts back into seared
+     * stone -- upstream's {@code TinkerSmeltery.java:399-411} registers this directly for every
+     * castable part regardless of whether stone is ever actually cast (it never is), at half the
+     * part's cost in upstream's material-value scale ({@code VALUE_SearedMaterial / VALUE_Ingot}).
+     * A stone pickaxe head costs {@code PartBuilderRecipes.HEAD_COST} (4) shard-units, which is 36 mB
+     * per shard-unit in this scale, so 144 mB.
+     */
+    @GameTest(template = "smeltery", timeoutTicks = 1600)
+    public static void aStoneToolPartMeltsBackIntoSearedStoneAtHalfItsShardCost(GameTestHelper helper) {
+        SmelteryControllerBlockEntity core = lavaFuelledSmeltery(helper);
+        helper.assertTrue(core.insertForMelting(ToolAssembly.part(ForgeweaveItems.PART_PICKAXE_HEAD.get(), "stone")).isEmpty(),
+                "expected a stone pickaxe head to go into the smeltery");
+
+        helper.succeedWhen(() -> assertTankHolds(helper, core, ForgeweaveFluids.SEARED_STONE.still().get(), 144));
+    }
+
+    /**
      * #206 regression: the basin's new storage-block casting round-trips through the smeltery too --
      * a manyullyn block (docs/SCOPE.md M2 metals) melts back at its flat 1296 mB, the same as any
      * other storage block, with no ore-class multiplier (it carries no {@code ore: true} flag, unlike

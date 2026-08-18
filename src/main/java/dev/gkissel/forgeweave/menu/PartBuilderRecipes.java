@@ -171,6 +171,17 @@ public final class PartBuilderRecipes {
         return findEntry(pattern).map(Entry::cost);
     }
 
+    /**
+     * What one part item itself costs in shard-units -- the mirror of {@link #patternCost} keyed on
+     * the part rather than the pattern that stamps it. Public so {@link
+     * dev.gkissel.forgeweave.recipe.MeltingRecipe#find} (issue #440, parity audit T8) can price a
+     * stone tool part's melt-back off the same cost table the Part Builder itself charges, rather than
+     * restating it.
+     */
+    public static Optional<Integer> partCost(Item part) {
+        return ENTRIES.stream().filter(entry -> entry.part().get() == part).findFirst().map(Entry::cost);
+    }
+
     /** The part {@code pattern} makes, or empty if it isn't a part pattern. */
     public static Optional<PartItem> patternPart(ItemStack pattern) {
         return findEntry(pattern).map(entry -> entry.part().get());

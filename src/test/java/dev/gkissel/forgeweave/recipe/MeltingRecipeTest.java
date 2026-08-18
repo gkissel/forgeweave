@@ -231,6 +231,26 @@ class MeltingRecipeTest {
                 """).isTagInput(), "nor is a list of items, which is how the shipped override is written");
     }
 
+    /**
+     * Issue #440 (parity audit T8): upstream 1.12's {@code TinkerSmeltery.java:377-386} melts stone
+     * and cobblestone into seared stone at {@code Material.VALUE_SearedMaterial} = 72 mB -- the audit's
+     * own number for stone/cobblestone is right, but its claim of "grout (24)" is not: upstream's
+     * grout row ({@code TinkerSmeltery.java:438}) passes 24 only as {@code MeltingRecipe.forAmount}'s
+     * speed-shaping {@code timeAmount}, and the fluid stack it actually registers is sized off the
+     * {@code RecipeMatch}'s own {@code amountMatched}, which is 72 -- exactly like stone and
+     * cobblestone. None of the three is ore-class (a building-material block, not a mined ore).
+     */
+    @Test
+    void theShippedStoneCobblestoneAndGroutAllMeltIntoSearedStoneAtTheSameAmount() {
+        for (String name : new String[] {"stone", "cobblestone", "grout"}) {
+            JsonObject json = shipped(name);
+            assertEquals("forgeweave:molten_seared_stone", json.get("fluid").getAsString(), name + " melts into seared stone");
+            assertEquals(MeltingRecipe.VALUE_SEARED_MATERIAL, json.get("amount").getAsInt(),
+                    name + " melts at Material.VALUE_SearedMaterial, not the audit's claimed 24 for grout");
+            assertTrue(!json.has("ore"), name + " is a building-material block, not ore-class");
+        }
+    }
+
     private static JsonObject shipped(String name) {
         String path = "/data/forgeweave/forgeweave/melting_recipe/" + name + ".json";
         try (InputStream in = MeltingRecipeTest.class.getResourceAsStream(path)) {
