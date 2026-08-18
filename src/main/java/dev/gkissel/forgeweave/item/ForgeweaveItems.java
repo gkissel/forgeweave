@@ -2,6 +2,7 @@ package dev.gkissel.forgeweave.item;
 
 import java.util.Collections;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 import net.minecraft.tags.BlockTags;
@@ -222,27 +223,36 @@ public final class ForgeweaveItems {
     // from ToolConstants (issue #153) rather than being repeated here, so the numbers the station's
     // stat formula uses and the ones the attribute modifiers use are the same numbers. Every one of
     // these is Category.WEAPON upstream (each constructor calls addCategory(Category.WEAPON)), which
-    // is what halves the durability a hit costs -- see ToolItem#postHurtEnemy. None of them is a
-    // mining tool: upstream's melee weapons carry no harvest category at all, so they get the axe tag
-    // only to have a non-null one and their (unmodified) mining speed makes them poor at it anyway.
+    // is what halves the durability a hit costs -- see ToolItem#postHurtEnemy.
+    //
+    // None of them is a mining tool, and issue #437 (parity audit T5) is what they stopped being one
+    // for: they used to carry mineable/axe at full speed, which made a broadsword a better logging
+    // tool than the hatchet. Upstream splits them two ways -- the sword shapes are SwordCore
+    // (#minecraft:sword_efficient plus cobweb, at ToolConstants' 0.5 mining modifier), and the frying
+    // pan and battlesign are plain TinkerToolCores whose ToolCore#isEffective default is false, i.e.
+    // they mine nothing at tool speed at all. Both halves refuse to break blocks in creative, which
+    // is what MeleeWeaponItem carries.
     public static final DeferredItem<ToolItem> TOOL_BROADSWORD =
-            weapon("broadsword", ToolConstants.BROADSWORD, ForgeweaveInnates.PARRY);
+            sword("broadsword", ToolConstants.BROADSWORD, ForgeweaveInnates.PARRY);
     public static final DeferredItem<ToolItem> TOOL_LONGSWORD =
-            weapon("longsword", ToolConstants.LONGSWORD, ForgeweaveInnates.CHARGED_LEAP);
+            sword("longsword", ToolConstants.LONGSWORD, ForgeweaveInnates.CHARGED_LEAP);
     public static final DeferredItem<ToolItem> TOOL_RAPIER =
-            weapon("rapier", ToolConstants.RAPIER, ForgeweaveInnates.VITAL_THRUST);
+            sword("rapier", ToolConstants.RAPIER, ForgeweaveInnates.VITAL_THRUST);
     public static final DeferredItem<ToolItem> TOOL_BATTLESIGN =
-            weapon("battlesign", ToolConstants.BATTLESIGN, ForgeweaveInnates.DEFLECT);
+            bludgeon("battlesign", ToolConstants.BATTLESIGN, ForgeweaveInnates.DEFLECT);
     public static final DeferredItem<ToolItem> TOOL_FRYING_PAN =
-            weapon("frying_pan", ToolConstants.FRYING_PAN, ForgeweaveInnates.HEAVY_SWING);
+            bludgeon("frying_pan", ToolConstants.FRYING_PAN, ForgeweaveInnates.HEAVY_SWING);
+    // No 1.12 counterpart; a knife is a sword shape, so it takes the sword family's tag and modifier
+    // rather than 1.20's own MINABLE_WITH_DAGGER (sword + hoe) at 0.75 -- see the PR for #437.
     public static final DeferredItem<ToolItem> TOOL_DAGGER =
-            weapon("dagger", ToolConstants.DAGGER, ForgeweaveInnates.BACKSTAB);
+            sword("dagger", ToolConstants.DAGGER, ForgeweaveInnates.BACKSTAB);
 
     // #161: the warmace, the Tool Forge tier's smash weapon (docs/SCOPE.md M3). Registered here
-    // rather than through weapon() above because its innate is not a ForgeweaveInnates seam at all:
-    // the smash is vanilla 1.21's mace, called through rather than copied -- see WarmaceItem.
+    // rather than through the helpers above because its innate is not a ForgeweaveInnates seam at
+    // all: the smash is vanilla 1.21's mace, called through rather than copied -- see WarmaceItem.
+    // It mines nothing for the same reason: vanilla's own mace is new Tool(List.of(), 1.0F, 2).
     public static final DeferredItem<ToolItem> TOOL_WARMACE = ITEMS.registerItem("warmace",
-            properties -> new WarmaceItem(properties, ToolConstants.WARMACE, BlockTags.MINEABLE_WITH_AXE, true, null),
+            properties -> new WarmaceItem(properties, ToolConstants.WARMACE, List.of(), true, null),
             new Item.Properties().stacksTo(1));
 
     // M3.5's shortbow (docs/SCOPE.md M3.5 issue #394): upstream tools/ranged/item/ShortBow.java --
@@ -271,10 +281,19 @@ public final class ForgeweaveItems {
             properties -> new CrossbowItem(properties, ToolConstants.CROSSBOW, 45, 7.0F, 0.0F, 0.195F),
             new Item.Properties().stacksTo(1));
 
-    private static DeferredItem<ToolItem> weapon(String name, ToolConstants.Entry constants,
+    /** A sword-family weapon: upstream {@code SwordCore}'s effective set -- see the block above. */
+    private static DeferredItem<ToolItem> sword(String name, ToolConstants.Entry constants,
             ForgeweaveInnates.Innate innate) {
         return ITEMS.registerItem(name,
-                properties -> new ToolItem(properties, constants, BlockTags.MINEABLE_WITH_AXE, true, innate),
+                properties -> new MeleeWeaponItem(properties, constants, BlockTags.SWORD_EFFICIENT, true, innate),
+                new Item.Properties().stacksTo(1));
+    }
+
+    /** A weapon that mines nothing: upstream's plain {@code TinkerToolCore} melee shape. */
+    private static DeferredItem<ToolItem> bludgeon(String name, ToolConstants.Entry constants,
+            ForgeweaveInnates.Innate innate) {
+        return ITEMS.registerItem(name,
+                properties -> new MeleeWeaponItem(properties, constants, List.of(), true, innate),
                 new Item.Properties().stacksTo(1));
     }
 
@@ -291,7 +310,7 @@ public final class ForgeweaveItems {
     // SWORD_EFFICIENT rather than a mineable/* tag: the scimitar is a pure weapon, and that is the
     // tag vanilla's own swords carry (cobwebs, bamboo, plants) -- there is no mining role to gate.
     public static final DeferredItem<ToolItem> TOOL_SCIMITAR = ITEMS.registerItem("scimitar",
-            properties -> new ToolItem(properties, ToolConstants.SCIMITAR, BlockTags.SWORD_EFFICIENT,
+            properties -> new MeleeWeaponItem(properties, ToolConstants.SCIMITAR, BlockTags.SWORD_EFFICIENT,
                     true, ForgeweaveInnates.LACERATE),
             new Item.Properties().stacksTo(1));
     // The katana (docs/SCOPE.md M3 issue #160): attack speed and damage potential from
@@ -301,7 +320,7 @@ public final class ForgeweaveItems {
     // damage ramp, is a DamageRamp seam carried on ForgeweaveInnates like every other M3 tool's
     // (ADR-0005 decision 3), not behavior on this class.
     public static final DeferredItem<ToolItem> TOOL_KATANA = ITEMS.registerItem("katana",
-            properties -> new ToolItem(properties, ToolConstants.KATANA, BlockTags.SWORD_EFFICIENT,
+            properties -> new MeleeWeaponItem(properties, ToolConstants.KATANA, BlockTags.SWORD_EFFICIENT,
                     true, ForgeweaveInnates.DAMAGE_RAMP),
             new Item.Properties().stacksTo(1));
 
@@ -319,7 +338,7 @@ public final class ForgeweaveItems {
      * tooltip line is there.
      */
     public static final DeferredItem<ToolItem> TOOL_CLEAVER = ITEMS.registerItem("cleaver",
-            properties -> new ToolItem(properties, ToolConstants.CLEAVER, BlockTags.SWORD_EFFICIENT, true, null),
+            properties -> new MeleeWeaponItem(properties, ToolConstants.CLEAVER, BlockTags.SWORD_EFFICIENT, true, null),
             new Item.Properties().stacksTo(1));
 
     // The large harvest tools (docs/SCOPE.md M3 issue #157): Tool Forge tier, four parts each, and

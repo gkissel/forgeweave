@@ -77,19 +77,19 @@ class ToolConstantsTest {
     void broadsword() {
         // handle H2, head H1, extra H2: (100 + 30) * 1.5 + 0 = 195, * 1.1 -> 214; attack 6*1+1=7
         assertStats(ToolConstants.BROADSWORD, List.of(H2, H1, H2), 214, 4.0f, 7.0f);
-        assertConstants(ToolConstants.BROADSWORD, 1.6f, 1.0f, 1.0f);
+        assertConstants(ToolConstants.BROADSWORD, 1.6f, 1.0f, 0.5f);
     }
 
     @Test
     void longsword() {
         assertStats(ToolConstants.LONGSWORD, List.of(H2, H1, H2), 204, 4.0f, 6.5f);
-        assertConstants(ToolConstants.LONGSWORD, 1.4f, 1.1f, 1.0f);
+        assertConstants(ToolConstants.LONGSWORD, 1.4f, 1.1f, 0.5f);
     }
 
     @Test
     void rapier() {
         assertStats(ToolConstants.RAPIER, List.of(H2, H1, H2), 156, 4.0f, 6.0f);
-        assertConstants(ToolConstants.RAPIER, 3.0f, 0.55f, 1.0f);
+        assertConstants(ToolConstants.RAPIER, 3.0f, 0.55f, 0.5f);
     }
 
     @Test
@@ -124,7 +124,7 @@ class ToolConstantsTest {
     void dagger() {
         // head H1, handle H1, no extra: durability = round(100*1.0) + 20 = 120; attack 6*1+3=9
         assertStats(ToolConstants.DAGGER, List.of(H1, H1), 120, 4.0f, 9.0f);
-        assertConstants(ToolConstants.DAGGER, 2.0f, 1.0f, 1.0f);
+        assertConstants(ToolConstants.DAGGER, 2.0f, 1.0f, 0.5f);
     }
 
     @Test
@@ -138,13 +138,13 @@ class ToolConstantsTest {
     @Test
     void scimitar() {
         assertStats(ToolConstants.SCIMITAR, List.of(H2, H1, H2), 195, 4.0f, 8.5f);
-        assertConstants(ToolConstants.SCIMITAR, 1.8f, 1.0f, 1.0f);
+        assertConstants(ToolConstants.SCIMITAR, 1.8f, 1.0f, 0.5f);
     }
 
     @Test
     void katana() {
         assertStats(ToolConstants.KATANA, List.of(H2, H1, H2), 195, 4.0f, 8.75f);
-        assertConstants(ToolConstants.KATANA, 1.6f, 1.0f, 1.0f);
+        assertConstants(ToolConstants.KATANA, 1.6f, 1.0f, 0.5f);
     }
 
     @Test
@@ -188,7 +188,7 @@ class ToolConstantsTest {
         // heads H1+H2 avg: dur 80, attack 4, speed 3; extra H2: +30 -> 110; handle H1: round(110)+20=130, *2.0 -> 260
         // attack: 4*1.3+3 = 8.2
         assertStats(ToolConstants.CLEAVER, List.of(H1, H1, H2, H2), 260, 3.0f, 4.0f * 1.3f + 3.0f);
-        assertConstants(ToolConstants.CLEAVER, 0.7f, 1.2f, 1.0f);
+        assertConstants(ToolConstants.CLEAVER, 0.7f, 1.2f, 0.5f);
     }
 
     @Test

@@ -256,7 +256,7 @@ All 9 harvest tools, 6 shipped melee weapons, the cleaver and 3 bows exist with 
 | Katana | none | n/a | `:318-325` + DamageRamp | forgeweave-only | Y (#153/#160) | none | — |
 | Scimitar | none | n/a | `:308-316` + Lacerate | forgeweave-only | Y (#153/#159) | none | — |
 | Warmace | none | n/a | `:327-335`, vanilla mace hooks | forgeweave-only | Y (ADR-0005 d.4 / #161) | none | — |
-| Melee mining role (SwordCore: web/plants, 0.5×) | `SwordCore.java:15-51` | sword tag at 0.5× | `mineable/axe` at 1.0× on 6 weapons + warmace | deviates | N | **high** | T5 |
+| Melee mining role (SwordCore: web/plants, 0.5×) | `SwordCore.java:15-51` | sword tag at 0.5× | `#minecraft:sword_efficient` + cobweb ×7.5 at 0.5×; pan/sign/warmace mine nothing | have | Y (#437) | none | — |
 | Shortbow | `ShortBow.java:32-119` | n/a | `:337-349` | have | — | none | — |
 | Longbow | `LongBow.java:27-99` | n/a | `:351-365` | have | — | none | — |
 | Crossbow | `CrossBow.java:56-204` | n/a | `:367-382` + `CrossbowItem` | have | — | none | — |
@@ -614,7 +614,7 @@ Prioritized and deduplicated across domains. Already-filed issues are marked; **
 
 - [ ] **T3 — Decide `craftCastableMaterials`: metals are Part-Builder craftable** — add a castable/craftable flag with 1.12's default (cast-only) or record the deviation in SCOPE; scope out knightslime/obsidian and the four tag-gated metals (materials/config, high, M3.x fix round).
 - [ ] **T4 — Sharp's bleed knocks the target back every 15 ticks** — give the DoT a `forgeweave:bleed` damage type in `no_knockback` (+ `bypasses_armor` if the SCOPE deviation stays); add the blood-heart particle (traits, high, M3.5 fix round).
-- [ ] **T5 — Station swords/pan/sign/dagger/warmace mine like axes** — swap `mineable/axe` for the sword-efficient set, drop the mining-speed modifier to 0.5, consider the cobweb multiplier and creative block-break refusal (tools, high, M3 playtest-fix).
+- [x] **T5 — Station swords/pan/sign/dagger/warmace mine like axes** (shipped, #437) — swap `mineable/axe` for the sword-efficient set, drop the mining-speed modifier to 0.5, consider the cobweb multiplier and creative block-break refusal (tools, high, M3 playtest-fix).
 - [ ] **T6 — Port the Width++/Height++ expander modifiers** — `expander_w`/`expander_h` items plus +1 AOE axis on harvest and large tools (modifiers, high, M3.5 playtest-fix).
 - [ ] **T7 — Melt vanilla metal-crafted items** — recipe-derived (or generated) melting rows for iron/gold tools, armor, buckets, rails, horse armor, minecarts, with an ignore list (smeltery, high, M6/backlog).
 - [ ] **T8 — Restore the stone → molten seared stone chain** — melting rows for stone/cobblestone (72 mB), grout (24) and stone tool parts (smeltery, high, backlog).

@@ -1,5 +1,7 @@
 package dev.gkissel.forgeweave.item;
 
+import java.util.List;
+
 import org.jetbrains.annotations.Nullable;
 
 import net.minecraft.tags.TagKey;
@@ -64,14 +66,20 @@ import dev.gkissel.forgeweave.tool.ToolConstants;
  * hands the item directly -- i.e. exactly the parallel implementation decision 4 rules out. The seam
  * pipeline still sees these hits like any other; it just has nothing to add to them.
  */
-public class WarmaceItem extends ToolItem {
+public class WarmaceItem extends MeleeWeaponItem {
 
     /**
      * Same shape as every other M3 weapon's constructor (issue #155's {@code ForgeweaveItems#weapon}),
      * so the warmace is registered like one. {@code innate} is always {@code null} here -- see "Why
      * not a combat seam" above.
+     *
+     * <p>{@link MeleeWeaponItem} rather than {@link ToolItem} for the same reason everything else
+     * here delegates to {@code Items.MACE}: vanilla's mace mines nothing
+     * ({@code MaceItem#createToolProperties} is {@code new Tool(List.of(), 1.0F, 2)}) and refuses to
+     * break blocks in creative, so {@code mineableBlocks} is {@link List#of()} at the registration
+     * site and the creative refusal comes from the superclass (issue #437).
      */
-    public WarmaceItem(Properties properties, ToolConstants.Entry constants, TagKey<Block> mineableBlocks,
+    public WarmaceItem(Properties properties, ToolConstants.Entry constants, List<TagKey<Block>> mineableBlocks,
             boolean weapon, @Nullable ForgeweaveInnates.Innate innate) {
         super(properties, constants, mineableBlocks, weapon, innate);
     }

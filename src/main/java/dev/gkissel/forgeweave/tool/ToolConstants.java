@@ -188,29 +188,31 @@ public final class ToolConstants {
     private static final String TOUGH_TOOL_HANDLE = "tough_tool_rod";
     private static final String TOUGH_BINDING = "tough_binding";
 
-    /** Upstream {@code tools/melee/item/BroadSword.java}: sweep-attack sword, wide guard. */
+    /**
+     * Upstream {@code tools/melee/item/BroadSword.java}: sweep-attack sword, wide guard. Mining speed x0.5 from its {@code SwordCore} base ({@code miningSpeedModifier()}, issue #437).
+     */
     public static final Entry BROADSWORD = new Entry("broadsword", Category.MELEE,
             List.of(new PartSlot(Role.HANDLE, TOOL_HANDLE), new PartSlot(Role.HEAD, "sword_blade"),
                     new PartSlot(Role.EXTRA, "wide_guard")),
-            1.6f, 1.0f, 1.0f, 1.0f, 1.1f, 1.0f, false, false);
+            1.6f, 1.0f, 1.0f, 1.0f, 1.1f, 0.5f, false, false);
 
     /**
      * Upstream {@code tools/melee/item/LongSword.java}: charged-leap sword, hand guard.
-     * {@code damageCutoff() = 18f} (issue #295), one of upstream's four overrides.
+     * {@code damageCutoff() = 18f} (issue #295), one of upstream's four overrides. Mining speed x0.5 from its {@code SwordCore} base ({@code miningSpeedModifier()}, issue #437).
      */
     public static final Entry LONGSWORD = new Entry("longsword", Category.MELEE,
             List.of(new PartSlot(Role.HANDLE, TOOL_HANDLE), new PartSlot(Role.HEAD, "sword_blade"),
                     new PartSlot(Role.EXTRA, "hand_guard")),
-            1.4f, 1.1f, 1.0f, 0.5f, 1.05f, 1.0f, false, false, 18.0f);
+            1.4f, 1.1f, 1.0f, 0.5f, 1.05f, 0.5f, false, false, 18.0f);
 
     /**
      * Upstream {@code tools/melee/item/Rapier.java}: fast hybrid-damage sword, cross guard.
-     * {@code damageCutoff() = 13f} (issue #295), one of upstream's four overrides.
+     * {@code damageCutoff() = 13f} (issue #295), one of upstream's four overrides. Mining speed x0.5 from its {@code SwordCore} base ({@code miningSpeedModifier()}, issue #437).
      */
     public static final Entry RAPIER = new Entry("rapier", Category.MELEE,
             List.of(new PartSlot(Role.HANDLE, TOOL_HANDLE), new PartSlot(Role.HEAD, "sword_blade"),
                     new PartSlot(Role.EXTRA, "cross_guard")),
-            3.0f, 0.55f, 1.0f, 0.0f, 0.8f, 1.0f, false, false, 13.0f);
+            3.0f, 0.55f, 1.0f, 0.0f, 0.8f, 0.5f, false, false, 13.0f);
 
     /** Upstream {@code tools/melee/item/BattleSign.java}: blocking/reflecting sign, no extra part. */
     public static final Entry BATTLESIGN = new Entry("battlesign", Category.MELEE,
@@ -251,12 +253,12 @@ public final class ToolConstants {
 
     /**
      * Upstream {@code tools/melee/item/Cleaver.java}: head+shield average, pre-multiply then bonus.
-     * {@code damageCutoff() = 25f} (issue #295), one of upstream's four overrides.
+     * {@code damageCutoff() = 25f} (issue #295), one of upstream's four overrides. Mining speed x0.5 from its {@code SwordCore} base ({@code miningSpeedModifier()}, issue #437).
      */
     public static final Entry CLEAVER = new Entry("cleaver", Category.MELEE,
             List.of(new PartSlot(Role.HANDLE, TOUGH_TOOL_HANDLE), new PartSlot(Role.HEAD, "large_sword_blade"),
                     new PartSlot(Role.HEAD, "large_plate"), new PartSlot(Role.EXTRA, TOUGH_TOOL_HANDLE)),
-            0.7f, 1.2f, 1.3f, 3.0f, 2.0f, 1.0f, false, false, 25.0f);
+            0.7f, 1.2f, 1.3f, 3.0f, 2.0f, 0.5f, false, false, 25.0f);
 
     /** Upstream {@code tools/tools/Hammer.java}: hammer head weighted double over two large plates. */
     public static final Entry HAMMER = new Entry("hammer", Category.HARVEST,
@@ -299,30 +301,36 @@ public final class ToolConstants {
     /**
      * No 1.12 counterpart. Shape from the 1.20 branch's {@code DAGGER} ({@code smallBlade} + handle,
      * no extra part); base damage and attack speed are the issue #153 decision comment's numbers,
-     * which deliberately do not carry over 1.20's own attack/mining/durability multipliers.
+     * which deliberately do not carry over 1.20's own attack/mining/durability multipliers. Mining
+     * speed x0.5 is the 1.12 sword family's own {@code SwordCore#miningSpeedModifier()} rather than
+     * 1.20's dagger-specific 0.75, since a knife is a sword shape here and carries none of 1.20's
+     * tilling/shears utility traits (issue #437).
      */
     public static final Entry DAGGER = new Entry("dagger", Category.MELEE,
             List.of(new PartSlot(Role.HEAD, "knife_blade"), new PartSlot(Role.HANDLE, TOOL_HANDLE)),
-            2.0f, 1.0f, 1.0f, 3.0f, 1.0f, 1.0f, false, false);
+            2.0f, 1.0f, 1.0f, 3.0f, 1.0f, 0.5f, false, false);
 
     /**
      * New shape (Forgeweave design, no upstream source): station-tier curved blade. Distinct head
      * part from the clone-derived swords above so assembly can tell them apart; numbers are the
      * issue #153 decision comment's (base damage 2.5 / speed 1.8), DoT innate decided on #159.
+     * Mining speed x0.5: a sword shape, so the 1.12 sword family's modifier, which #153 never
+     * decided either way (issue #437).
      */
     public static final Entry SCIMITAR = new Entry("scimitar", Category.MELEE,
             List.of(new PartSlot(Role.HANDLE, TOOL_HANDLE), new PartSlot(Role.HEAD, "curved_blade"),
                     new PartSlot(Role.EXTRA, "cross_guard")),
-            1.8f, 1.0f, 1.0f, 2.5f, 1.0f, 1.0f, false, false);
+            1.8f, 1.0f, 1.0f, 2.5f, 1.0f, 0.5f, false, false);
 
     /**
      * New shape (Forgeweave design, no upstream source): station-tier ramping blade. Numbers are the
      * issue #153 decision comment's (base damage 2.75 / speed 1.6), ramp magnitudes decided on #160.
+     * Mining speed x0.5, as the scimitar above (issue #437).
      */
     public static final Entry KATANA = new Entry("katana", Category.MELEE,
             List.of(new PartSlot(Role.HANDLE, TOOL_HANDLE), new PartSlot(Role.HEAD, "katana_blade"),
                     new PartSlot(Role.EXTRA, "hand_guard")),
-            1.6f, 1.0f, 1.0f, 2.75f, 1.0f, 1.0f, false, false);
+            1.6f, 1.0f, 1.0f, 2.75f, 1.0f, 0.5f, false, false);
 
     /**
      * New shape (Forgeweave design, no upstream source): Tool Forge-tier mace-alike, smash rides
