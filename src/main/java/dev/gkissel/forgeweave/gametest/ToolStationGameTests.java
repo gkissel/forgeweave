@@ -423,4 +423,39 @@ public class ToolStationGameTests {
 
         helper.succeed();
     }
+
+    /**
+     * Parity audit 2026-08-18 T2 (issue #434): upstream {@code ContainerToolStation#getInputs} feeds
+     * {@code TinkersItem#repair} every free slot, and {@code Material#matches} sums the repair item
+     * across all of them. Cobblestone in slots 3 and 5 alone -- neither of the two slots the
+     * pre-#434 resolver read -- must repair the broken pickaxe, and taking it must spend both
+     * (127 damage; one cobblestone restores 126, the second the last point).
+     */
+    @GameTest(template = "empty")
+    public static void repairPoolsAllFiveFreeSlots(GameTestHelper helper) {
+        BlockPos pos = new BlockPos(1, 1, 1);
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        ItemStack pickaxe = ToolAssembly.pickaxe(helper, player, pos, "stone", "wood", "wood");
+        pickaxe.hurtAndBreak(1_000, helper.getLevel(), player, brokenItem -> {});
+        helper.assertTrue(ToolItem.isBroken(pickaxe), "the test needs a Broken tool to repair");
+
+        ToolStationBlockEntity blockEntity = helper.getBlockEntity(pos);
+        blockEntity.container().setItem(0, pickaxe);
+        blockEntity.container().setItem(3, new ItemStack(Items.COBBLESTONE, 1));
+        blockEntity.container().setItem(5, new ItemStack(Items.COBBLESTONE, 1));
+
+        ToolStationMenu menu = ToolAssembly.menu(helper, player, pos, blockEntity);
+        menu.broadcastChanges();
+
+        ItemStack repaired = menu.getSlot(ToolStationMenu.OUTPUT_SLOT).getItem();
+        helper.assertTrue(repaired.is(ForgeweaveItems.TOOL_PICKAXE.get()),
+                "cobblestone in free slots 3 and 5 must repair, got " + repaired);
+        helper.assertTrue(repaired.getDamageValue() == 0,
+                "two cobblestone must fully repair 127 damage, got " + repaired.getDamageValue());
+
+        menu.getSlot(ToolStationMenu.OUTPUT_SLOT).onTake(player, repaired);
+        helper.assertTrue(menu.getSlot(3).getItem().isEmpty(), "slot 3's cobblestone must be spent");
+        helper.assertTrue(menu.getSlot(5).getItem().isEmpty(), "slot 5's cobblestone must be spent");
+        helper.succeed();
+    }
 }

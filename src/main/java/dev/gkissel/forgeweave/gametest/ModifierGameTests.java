@@ -649,4 +649,67 @@ public class ModifierGameTests {
                 .findFirst()
                 .orElse(0.0F);
     }
+
+    /**
+     * Parity audit 2026-08-18 T2 (issue #434): upstream {@code ContainerToolStation#getInputs}
+     * hands {@code ToolBuilder#tryModifyTool} every input slot but the tool's, so a reagent in any
+     * of the five free slots applies. Redstone in slot 3 and lapis in slot 5 -- neither of the two
+     * slots the pre-#434 resolver read -- must both land, and taking the output must spend both.
+     */
+    @GameTest(template = "empty")
+    public static void reagentsInTheOuterFreeSlotsApply(GameTestHelper helper) {
+        BlockPos pos = new BlockPos(1, 1, 1);
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        ItemStack pickaxe = ToolAssembly.pickaxe(helper, player, pos, "stone", "wood", "wood");
+
+        ToolStationBlockEntity blockEntity = helper.getBlockEntity(pos);
+        blockEntity.container().setItem(0, pickaxe);
+        blockEntity.container().setItem(3, new ItemStack(Items.REDSTONE, 2));
+        blockEntity.container().setItem(5, new ItemStack(Items.LAPIS_LAZULI, 3));
+        ToolStationMenu menu = ToolAssembly.menu(helper, player, pos, blockEntity);
+        menu.broadcastChanges();
+
+        ItemStack output = menu.getSlot(ToolStationMenu.OUTPUT_SLOT).getItem().copy();
+        helper.assertFalse(output.isEmpty(), "reagents in free slots 3 and 5 must produce a modified tool, got nothing"
+                + (menu.rejection() != null ? " (" + menu.rejection().message().getString() + ")" : ""));
+        ModifierEntry haste = ForgeweaveModifiers.entry(output, HASTE);
+        ModifierEntry luck = ForgeweaveModifiers.entry(output, LUCK);
+        helper.assertTrue(haste != null && haste.level() == 2, "slot 3's 2 redstone must land haste 2, got " + haste);
+        helper.assertTrue(luck != null && luck.level() == 3, "slot 5's 3 lapis must land luck 3, got " + luck);
+
+        menu.getSlot(ToolStationMenu.OUTPUT_SLOT).onTake(player, output);
+        helper.assertTrue(menu.getSlot(3).getItem().isEmpty(), "taking the output must spend slot 3's redstone");
+        helper.assertTrue(menu.getSlot(5).getItem().isEmpty(), "taking the output must spend slot 5's lapis");
+        helper.succeed();
+    }
+
+    /**
+     * T2's pooling half for modifiers: one recipe's reagent spread over three of the five free slots
+     * pools into a single application (upstream {@code RecipeMatch.Item#matches} sums the item's
+     * count across every input stack), spending them slot-first.
+     */
+    @GameTest(template = "empty")
+    public static void oneReagentSpreadOverThreeSlotsPools(GameTestHelper helper) {
+        BlockPos pos = new BlockPos(1, 1, 1);
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        ItemStack pickaxe = ToolAssembly.pickaxe(helper, player, pos, "stone", "wood", "wood");
+
+        ToolStationBlockEntity blockEntity = helper.getBlockEntity(pos);
+        blockEntity.container().setItem(0, pickaxe);
+        blockEntity.container().setItem(1, new ItemStack(Items.REDSTONE, 1));
+        blockEntity.container().setItem(3, new ItemStack(Items.REDSTONE, 1));
+        blockEntity.container().setItem(4, new ItemStack(Items.REDSTONE, 1));
+        ToolStationMenu menu = ToolAssembly.menu(helper, player, pos, blockEntity);
+        menu.broadcastChanges();
+
+        ItemStack output = menu.getSlot(ToolStationMenu.OUTPUT_SLOT).getItem().copy();
+        ModifierEntry haste = ForgeweaveModifiers.entry(output, HASTE);
+        helper.assertTrue(haste != null && haste.level() == 3,
+                "1 + 1 + 1 redstone across slots 1, 3 and 4 must pool into haste 3, got " + haste);
+        menu.getSlot(ToolStationMenu.OUTPUT_SLOT).onTake(player, output);
+        for (int slot : new int[] {1, 3, 4}) {
+            helper.assertTrue(menu.getSlot(slot).getItem().isEmpty(), "slot " + slot + "'s redstone must be spent");
+        }
+        helper.succeed();
+    }
 }
