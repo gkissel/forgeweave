@@ -6,6 +6,7 @@ import com.mojang.serialization.MapCodec;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.RandomSource;
@@ -158,5 +159,51 @@ public class SmelteryControllerBlock extends HorizontalDirectionalBlock implemen
         if (level.getBlockEntity(pos) instanceof SmelteryControllerBlockEntity core) {
             core.updateStructure();
         }
+    }
+
+    /**
+     * T73/issue #504: upstream {@code BlockSmelteryController#randomDisplayTick} -- a formed core
+     * puffs flame and smoke out of its front face every client tick, same offsets as upstream's.
+     */
+    @Override
+    public void animateTick(BlockState state, Level level, BlockPos pos, RandomSource random) {
+        if (!state.getValue(ACTIVE)) {
+            return;
+        }
+        double x = pos.getX() + 0.5;
+        double y = pos.getY() + 0.5 + random.nextFloat() * 6f / 16f;
+        double z = pos.getZ() + 0.5;
+        spawnFireParticles(level, state.getValue(FACING), x, y, z, 0.52, random.nextDouble() * 0.6 - 0.3);
+    }
+
+    /**
+     * Upstream {@code BlockMultiblockController#spawnFireParticles}: a SMOKE_NORMAL/FLAME pair just
+     * outside whichever face the controller's {@code facing} points to, {@code front} out from the
+     * block centre and {@code side} across it. Shared by {@link SearedFurnaceControllerBlock}, the
+     * other subclass of upstream's abstract controller.
+     */
+    static void spawnFireParticles(Level level, Direction facing, double x, double y, double z, double front, double side) {
+        double px = x + offsetAlong(facing, front, side);
+        double pz = z + offsetAcross(facing, front, side);
+        level.addParticle(ParticleTypes.SMOKE, px, y, pz, 0.0, 0.0, 0.0);
+        level.addParticle(ParticleTypes.FLAME, px, y, pz, 0.0, 0.0, 0.0);
+    }
+
+    /** The X offset of upstream's per-facing switch: {@code front} for WEST/EAST, {@code side} for NORTH/SOUTH. */
+    static double offsetAlong(Direction facing, double front, double side) {
+        return switch (facing) {
+            case WEST -> -front;
+            case EAST -> front;
+            default -> side;
+        };
+    }
+
+    /** The Z offset of upstream's per-facing switch: {@code side} for WEST/EAST, {@code front} for NORTH/SOUTH. */
+    static double offsetAcross(Direction facing, double front, double side) {
+        return switch (facing) {
+            case NORTH -> -front;
+            case SOUTH -> front;
+            default -> side;
+        };
     }
 }

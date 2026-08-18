@@ -94,6 +94,23 @@ public class CastingBlockEntity extends BlockEntity {
     }
 
     /**
+     * Upstream {@code TileCasting#update}'s cooldown condition ({@code tank.getFluidAmount() ==
+     * tank.getCapacity()}): a pour is mid-cooldown, waiting on the scheduled tick {@link
+     * CastingBlock#tick} will finish, rather than empty or still being poured into. {@code capacity}
+     * is 0 (see {@link #tank}'s field doc) whenever nothing is in progress, which upstream's fixed
+     * per-block tank size never is -- checked explicitly here so an idle block (0 == 0) doesn't
+     * read as cooling.
+     */
+    static boolean isCooling(int fluidAmount, int capacity) {
+        return capacity > 0 && fluidAmount == capacity;
+    }
+
+    /** {@link #isCooling(int, int)} against this block entity's own tank. */
+    boolean isCooling() {
+        return isCooling(tank.getFluidAmount(), tank.getCapacity());
+    }
+
+    /**
      * Upstream's {@code TileCasting#interact}: while fluid is in the block nothing can be added or
      * taken; otherwise an empty block takes one item from the player's hand, and a non-empty one
      * gives back its result (or, with no result yet, its input).
