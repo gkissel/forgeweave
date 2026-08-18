@@ -1,0 +1,8 @@
+{
+  "station": "basin",
+  "fluid": "forgeweave:molten_seared_stone",
+  "amount": 288,
+  "result": {
+    "id": "forgeweave:seared_stone"
+  }
+}

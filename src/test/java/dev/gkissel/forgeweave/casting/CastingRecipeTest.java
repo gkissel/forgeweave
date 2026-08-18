@@ -328,6 +328,76 @@ class CastingRecipeTest {
         assertTrue(recipe.cast().get().test(new ItemStack(Items.SAND)));
     }
 
+    // ------------------------------------------------------------------ #469 (T38 parity audit)
+
+    /**
+     * Upstream {@code TinkerRegistry.registerTableCasting(TinkerCommons.searedBrick, castIngot,
+     * TinkerFluids.searedStone, Material.VALUE_SearedMaterial)}: a loose seared brick casts at the
+     * table through a reusable ingot cast, same shape as any metal ingot's own recipe.
+     */
+    @Test
+    void searedBrickCastsAtTheTableThroughAnIngotCast() {
+        CastingRecipe recipe = shipped("seared_brick");
+
+        assertEquals(CastingRecipe.Station.TABLE, recipe.station());
+        assertEquals(72, recipe.amount(), "Material.VALUE_SearedMaterial");
+        assertEquals(ForgeweaveFluids.SEARED_STONE.still().get(), recipe.fluid());
+        assertEquals(ForgeweaveItems.SEARED_BRICK.get(), recipe.result().getItem());
+        assertFalse(recipe.consumesCast(), "the ingot cast is reusable (pure parity)");
+        assertTrue(recipe.cast().orElseThrow().test(new ItemStack(ForgeweaveItems.CAST_INGOT.get())));
+    }
+
+    /**
+     * Upstream {@code TinkerRegistry.registerBasinCasting(blockSeared, ItemStack.EMPTY,
+     * TinkerFluids.searedStone, Material.VALUE_SearedBlock)}: an empty basin under molten seared
+     * stone makes a plain seared stone block.
+     */
+    @Test
+    void searedStoneCastsInAnEmptyBasin() {
+        CastingRecipe recipe = shipped("seared_stone");
+
+        assertEquals(CastingRecipe.Station.BASIN, recipe.station());
+        assertEquals(288, recipe.amount(), "Material.VALUE_SearedBlock");
+        assertEquals(ForgeweaveFluids.SEARED_STONE.still().get(), recipe.fluid());
+        assertEquals(ForgeweaveItems.SEARED_STONE.get(), recipe.result().getItem());
+        assertTrue(recipe.cast().isEmpty(), "the basin has to be empty");
+    }
+
+    /**
+     * Upstream {@code new CastingRecipe(searedCobble, RecipeMatch.of("cobblestone"),
+     * TinkerFluids.searedStone, Material.VALUE_SearedBlock - Material.VALUE_SearedMaterial, true,
+     * false)}: plain cobblestone in the basin, consumed by the pour, comes out seared.
+     */
+    @Test
+    void searedCobblestoneCastsFromPlainCobblestoneInTheBasin() {
+        CastingRecipe recipe = shipped("seared_cobblestone");
+
+        assertEquals(CastingRecipe.Station.BASIN, recipe.station());
+        assertEquals(216, recipe.amount(), "VALUE_SearedBlock - VALUE_SearedMaterial");
+        assertEquals(ForgeweaveFluids.SEARED_STONE.still().get(), recipe.fluid());
+        assertEquals(ForgeweaveItems.SEARED_COBBLESTONE.get(), recipe.result().getItem());
+        assertTrue(recipe.consumesCast(), "the cobblestone is consumed by the pour");
+        assertFalse(recipe.resultInInput());
+        assertTrue(recipe.cast().isPresent(), "cast is the c:cobblestones/normal tag");
+    }
+
+    /**
+     * Upstream {@code new CastingRecipe(searedGlass, RecipeMatch.of("blockGlass"),
+     * TinkerFluids.searedStone, Material.VALUE_SearedMaterial * 4, true, true)}: plain glass in the
+     * basin, consumed by the pour, comes out seared.
+     */
+    @Test
+    void searedGlassCastsFromPlainGlassInTheBasin() {
+        CastingRecipe recipe = shipped("seared_glass");
+
+        assertEquals(CastingRecipe.Station.BASIN, recipe.station());
+        assertEquals(288, recipe.amount(), "Material.VALUE_SearedMaterial * 4");
+        assertEquals(ForgeweaveFluids.SEARED_STONE.still().get(), recipe.fluid());
+        assertEquals(ForgeweaveItems.SEARED_GLASS.get(), recipe.result().getItem());
+        assertTrue(recipe.consumesCast(), "the glass is consumed by the pour");
+        assertTrue(recipe.cast().isPresent(), "cast is the c:glass_blocks/colorless tag");
+    }
+
     // ------------------------------------------------------------------ helpers
 
     private static CastingRecipe parse(String json) {

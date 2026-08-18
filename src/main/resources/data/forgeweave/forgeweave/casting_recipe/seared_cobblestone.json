@@ -1,0 +1,12 @@
+{
+  "station": "basin",
+  "cast": {
+    "tag": "c:cobblestones/normal"
+  },
+  "fluid": "forgeweave:molten_seared_stone",
+  "amount": 216,
+  "result": {
+    "id": "forgeweave:seared_cobblestone"
+  },
+  "consumes_cast": true
+}
