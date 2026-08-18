@@ -46,11 +46,14 @@ import dev.gkissel.forgeweave.combat.ToolUseAction;
 import dev.gkissel.forgeweave.config.ForgeweaveConfig;
 import dev.gkissel.forgeweave.entity.IndestructibleItemEntity;
 import dev.gkissel.forgeweave.material.Material;
+import dev.gkissel.forgeweave.material.MaterialDisplay;
+import dev.gkissel.forgeweave.menu.ToolAssemblyRecipes;
 import dev.gkissel.forgeweave.modifier.ForgeweaveModifiers;
 
 import dev.gkissel.forgeweave.tool.AoeHarvest;
 import dev.gkissel.forgeweave.tool.CropHarvest;
 import dev.gkissel.forgeweave.tool.ToolConstants;
+import dev.gkissel.forgeweave.tool.ToolMaterials;
 import dev.gkissel.forgeweave.tool.ToolStats;
 import dev.gkissel.forgeweave.trait.ForgeweaveTraits;
 
@@ -227,6 +230,51 @@ public class ToolItem extends Item {
      */
     public boolean isWeapon() {
         return weapon;
+    }
+
+    /**
+     * {@code Stone Pickaxe}, {@code Stone-Iron Hammer} -- upstream
+     * {@code ToolCore#getItemStackDisplayName} (ToolCore.java:379-393), issue #446.
+     *
+     * <p>The materials that name a tool are upstream's <em>repair parts</em>
+     * ({@code TinkersItem#getRepairParts}, overridden per tool): index 1 for the ordinary
+     * three-part tools, {@code {1, 2, 3}} for the hammer, {@code {0, 1}} for the shortbow. Every
+     * one of those index sets is exactly that tool's {@link ToolConstants.Role#HEAD} slots (a bow
+     * limb being the {@link ToolConstants.Role#LIMB} that carries the HEAD stat block), so the role
+     * is read off the tool's own part list rather than a second per-tool table that could drift
+     * from it.
+     *
+     * <p>A tool with no materials component (creative tab, JEI ghost) and one no assembly row
+     * explains both fall back to as much as is known -- the plain item name, and the primary head
+     * material respectively. A renamed tool keeps its name: {@code ItemStack#getHoverName} consults
+     * {@code CUSTOM_NAME} and {@code ITEM_NAME} before ever reaching here.
+     */
+    @Override
+    public Component getName(ItemStack stack) {
+        return MaterialDisplay.prefixed(nameMaterials(stack), super.getName(stack));
+    }
+
+    /** The head-slot materials, in slot order -- see {@link #getName}. */
+    private static List<ResourceLocation> nameMaterials(ItemStack stack) {
+        ToolMaterials materials = stack.get(ForgeweaveDataComponents.TOOL_MATERIALS.get());
+        if (materials == null) {
+            return List.of();
+        }
+        List<ResourceLocation> materialIds = materials.all();
+        List<ToolConstants.PartSlot> slots = ToolAssemblyRecipes.entryFor(stack)
+                .map(entry -> entry.constants().parts())
+                .orElse(List.of());
+        if (materialIds.size() < slots.size()) {
+            return List.of(materials.head());
+        }
+        List<ResourceLocation> heads = new ArrayList<>(slots.size());
+        for (int slot = 0; slot < slots.size(); slot++) {
+            ToolConstants.Role role = slots.get(slot).role();
+            if (role == ToolConstants.Role.HEAD || role == ToolConstants.Role.LIMB) {
+                heads.add(materialIds.get(slot));
+            }
+        }
+        return heads.isEmpty() ? List.of(materials.head()) : heads;
     }
 
     /**

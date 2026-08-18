@@ -101,6 +101,26 @@ public class PartItem extends Item {
                 .isEmpty();
     }
 
+    /**
+     * {@code Stone Pickaxe Head} -- upstream {@code ToolPart#getItemStackDisplayName}
+     * (ToolPart.java:190-204), issue #446. A part with no material component (the creative-tab and
+     * JEI ghost stacks, and every {@code new ItemStack(part)} the station screens build a component
+     * line from) keeps its plain name, which is upstream's {@code Material.UNKNOWN} branch.
+     *
+     * <p>Upstream first checks a per-material override key ({@code item.<part>.<material>.name});
+     * its own {@code en_us.lang} defines none, so that branch is not ported -- it cannot be asked
+     * server-side anyway (see {@link MaterialDisplay#prefixed}).
+     *
+     * <p>A renamed part still shows its custom name: {@code ItemStack#getHoverName} consults
+     * {@code CUSTOM_NAME} and {@code ITEM_NAME} before ever reaching here.
+     */
+    @Override
+    public Component getName(ItemStack stack) {
+        ResourceLocation materialId = stack.get(ForgeweaveDataComponents.MATERIAL.get());
+        Component name = super.getName(stack);
+        return materialId == null ? name : MaterialDisplay.prefixed(List.of(materialId), name);
+    }
+
     @Override
     public void appendHoverText(ItemStack stack, TooltipContext context, List<Component> tooltip, TooltipFlag flag) {
         super.appendHoverText(stack, context, tooltip, flag);
