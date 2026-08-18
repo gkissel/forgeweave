@@ -712,7 +712,7 @@
   "trait.forgeweave.reinforced_core.name": "Reinforced Core",
   "trait.forgeweave.sharp.description": "Hitting an enemy leaves them bleeding for a short time.",
   "trait.forgeweave.sharp.name": "Sharp",
-  "trait.forgeweave.shocking.description": "Running around, breaking blocks or hitting things charges the tool; a fully charged hit discharges it as lightning.",
+  "trait.forgeweave.shocking.description": "§oBzzzzzt!§r\nRunning around, breaking blocks or hitting things charges your tool. Hitting an enemy discharges it, dealing damage and providing a speed boost. Mining a block discharges it, giving a mining speed boost.",
   "trait.forgeweave.shocking.name": "Shocking",
   "trait.forgeweave.slimey_blue.description": "Eww, gooey! Sometimes spawns a little slime.",
   "trait.forgeweave.slimey_blue.name": "Slimey",
