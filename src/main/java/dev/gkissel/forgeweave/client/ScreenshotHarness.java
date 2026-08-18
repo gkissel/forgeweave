@@ -1230,6 +1230,13 @@ public final class ScreenshotHarness {
      * server would take 45 ticks of a use the harness cannot drive from here.
      *
      * <p>{@link #settleBowPose} then does the drawing, client-side.
+     *
+     * <p>T52 (issue #483) puts arrows in the player's inventory here, because the nocked arrow a bow
+     * draws is the ammo {@code BowItem#ammoToRender} finds: with an empty quiver every one of these
+     * frames would show a bow with nothing on the string, which is exactly the state the ticket was
+     * filed about. Not the hotbar and not a hand -- the offhand would win the ammo lookup and put a
+     * second arrow in the frame. The undrawn bows on {@link #WEAPONS} are captured before this stage
+     * runs and so keep their bare-bow frames, which is what they are for.
      */
     private static void holdBowPose(Minecraft mc) {
         if (stageTicks < SCREEN_GAP_TICKS) {
@@ -1254,6 +1261,7 @@ public final class ScreenshotHarness {
                 CrossbowItem.setLoaded(stack, true);
             }
             serverPlayer.setItemInHand(InteractionHand.MAIN_HAND, stack);
+            serverPlayer.getInventory().setItem(9, new ItemStack(Items.ARROW, 16));
             BlockPos stand = origin.offset(0, 0, -WEAPON_SCENE_DISTANCE);
             serverPlayer.teleportTo(stand.getX() + 0.5, stand.getY(), stand.getZ() + 0.5);
             serverPlayer.setYRot(180.0F);

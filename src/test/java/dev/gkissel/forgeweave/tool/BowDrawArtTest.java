@@ -6,6 +6,8 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.List;
+
 import org.junit.jupiter.api.Test;
 
 import net.minecraft.resources.ResourceLocation;
@@ -123,5 +125,52 @@ class BowDrawArtTest {
         // Luck still has no shortbow art, staged or not.
         ResourceLocation luck = ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "luck");
         assertNull(ModifierArt.overlay("shortbow", luck, 3));
+    }
+
+    /**
+     * T52 (issue #483): where the nocked ammo sits, read off the same {@code .tcon.json} files'
+     * {@code ammoPosition} blocks. Each of a bow's three overrides carries a {@code pos} and no
+     * {@code rot}, and {@code ToolModel#getBakedToolModel} combines an override's block with the
+     * root's, so all four states share the root's {@code rot [0, 180, 0]}. The offsets are whole
+     * pixels: the arrow rides three out from the string at the start of the draw and one at full
+     * draw, which is also where the undrawn bow holds it.
+     */
+    @Test
+    void theNockedArrowFollowsTheStringInAsTheDrawProgresses() {
+        for (String bow : List.of("shortbow", "longbow")) {
+            assertArrayEquals(new float[] {-0.0630f, 0.0630f, 0.01f, 0.0f, 180.0f, 0.0f},
+                    ToolArt.ammoPosition(bow, 0), 0.0f, bow + ".tcon.json's root ammoPosition");
+            assertArrayEquals(new float[] {-0.1880f, 0.1880f, 0.01f, 0.0f, 180.0f, 0.0f},
+                    ToolArt.ammoPosition(bow, 1), 0.0f, "three pixels out at the start of the draw");
+            assertArrayEquals(new float[] {-0.1255f, 0.1255f, 0.01f, 0.0f, 180.0f, 0.0f},
+                    ToolArt.ammoPosition(bow, 2), 0.0f, "two at stage 2");
+            assertArrayEquals(new float[] {-0.0630f, 0.0630f, 0.01f, 0.0f, 180.0f, 0.0f},
+                    ToolArt.ammoPosition(bow, 3), 0.0f, "one at full draw, the root position again");
+        }
+    }
+
+    /**
+     * The crossbow's own: only its {@code {"loaded":1}} override carries an {@code ammoPosition}
+     * ({@code pos [0.0625, -0.0625, 0.0625]}, {@code rot [0, 0, 90]} -- a bolt laid across the stock
+     * and lifted a pixel clear of the body). Its three cranking overrides carry none at all, so
+     * upstream bakes them as plain tool models that can draw no ammo; its root block is empty, and
+     * that state never renders ammo either because {@code CrossBow#getAmmoToRender} is empty unless
+     * the crossbow is loaded.
+     */
+    @Test
+    void onlyALoadedCrossbowCarriesAnAmmoPosition() {
+        assertArrayEquals(new float[] {0.0625f, -0.0625f, 0.0625f, 0.0f, 0.0f, 90.0f},
+                ToolArt.ammoPosition("crossbow", ToolArt.LOADED_STAGE), 0.0f);
+        assertNull(ToolArt.ammoPosition("crossbow", 0), "an unloaded crossbow shows no bolt");
+        assertNull(ToolArt.ammoPosition("crossbow", 1), "crossbow.tcon.json's cranking overrides carry none");
+        assertNull(ToolArt.ammoPosition("crossbow", 2));
+    }
+
+    /** A melee tool nocks nothing, however hard its caller asks. */
+    @Test
+    void aToolWithNoDrawArtHasNoAmmoPosition() {
+        assertNull(ToolArt.ammoPosition("broadsword", 0));
+        assertNull(ToolArt.ammoPosition("broadsword", 3));
+        assertNull(ToolArt.ammoPosition("shortbow", 4), "there are only three stages");
     }
 }

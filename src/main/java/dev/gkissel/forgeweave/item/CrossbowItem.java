@@ -1,5 +1,7 @@
 package dev.gkissel.forgeweave.item;
 
+import org.jetbrains.annotations.Nullable;
+
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.InteractionHand;
@@ -109,6 +111,16 @@ public class CrossbowItem extends BowItem {
         level.playSound(null, user.getX(), user.getY(), user.getZ(), SoundEvents.CROSSBOW_LOADING_END,
                 SoundSource.PLAYERS, 1.5F, 0.9F + level.getRandom().nextFloat() * 0.1F);
         setLoaded(stack, true);
+    }
+
+    /**
+     * {@code CrossBow#getAmmoToRender}: a crossbow shows the bolt it is holding, so nothing at all
+     * until it is loaded (T52, issue #483). Everything else -- the Broken guard, the lookup itself --
+     * is {@link BowItem}'s.
+     */
+    @Override
+    public ItemStack ammoToRender(ItemStack weapon, @Nullable LivingEntity holder) {
+        return isLoaded(weapon) ? super.ammoToRender(weapon, holder) : ItemStack.EMPTY;
     }
 
     /**

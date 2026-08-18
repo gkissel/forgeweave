@@ -263,5 +263,49 @@ public final class ToolArt {
         return ToolConstants.CROSSBOW.id().equals(tool);
     }
 
+    /**
+     * Where a bow holds its nocked ammo at each pull stage: the {@code x} of {@code ammoPosition.pos}
+     * indexed by stage, {@code y} being its negation and {@code z} {@link #BOW_AMMO_LIFT} throughout.
+     * Whole pixels ({@code 1/16 = 0.0625}, upstream's own rounding), and they shrink as the draw
+     * progresses because the arrow travels back with the string it rides.
+     */
+    private static final float[] BOW_AMMO_X = {-0.0630f, -0.1880f, -0.1255f, -0.0630f};
+
+    /** How far out of the bow's own plane the arrow sits, so the two do not z-fight. */
+    private static final float BOW_AMMO_LIFT = 0.01f;
+
+    /** {@code shortbow.tcon.json}/{@code longbow.tcon.json}'s root {@code rot}, shared by every stage. */
+    private static final float[] BOW_AMMO_ROTATION = {0.0f, 180.0f, 0.0f};
+
+    /** {@code crossbow.tcon.json}'s {@code {"loaded":1}} override: a bolt laid across the stock. */
+    private static final float[] CROSSBOW_LOADED_AMMO = {0.0625f, -0.0625f, 0.0625f, 0.0f, 0.0f, 90.0f};
+
+    /**
+     * Where {@code tool}'s nocked ammo is drawn at pull stage {@code stage} (T52, issue #483):
+     * {@code {x, y, z, rotX, rotY, rotZ}} -- offsets in block units, rotations in degrees, about the
+     * item's own centre -- or {@code null} where that state draws no ammo at all. Upstream's
+     * {@code ammoPosition} blocks, an override's combined with the model root's
+     * ({@code AmmoPosition#combine}, which fills a missing entry from the root).
+     *
+     * <p>A bow carries one at every stage, its undrawn state included: upstream's
+     * {@code BowCore#getAmmoToRender} is the found ammo whenever the bow is not Broken, so a bow held
+     * by a player with arrows shows a nocked one before the draw starts. The crossbow carries one
+     * only when loaded -- its three cranking overrides have no {@code ammoPosition} key, so upstream
+     * bakes them as plain tool models, and its empty root block never renders because
+     * {@code CrossBow#getAmmoToRender} is empty unless the flag is set.
+     */
+    @Nullable
+    public static float[] ammoPosition(String tool, int stage) {
+        if (hasLoadedState(tool)) {
+            return stage == LOADED_STAGE ? CROSSBOW_LOADED_AMMO.clone() : null;
+        }
+        if (!DRAW_THRESHOLDS.containsKey(tool) || stage < 0 || stage > DRAW_STAGES) {
+            return null;
+        }
+        float x = BOW_AMMO_X[stage];
+        return new float[] {x, -x, BOW_AMMO_LIFT,
+                BOW_AMMO_ROTATION[0], BOW_AMMO_ROTATION[1], BOW_AMMO_ROTATION[2]};
+    }
+
     private ToolArt() {}
 }
