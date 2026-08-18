@@ -60,9 +60,11 @@ import dev.gkissel.forgeweave.trait.ForgeweaveTraits;
  *       the same head/binding/handle triple; M3's roster does not -- its swords each take a
  *       different guard, three of its weapons have no extra part at all, and the Tool Forge tier
  *       takes four parts, two of them in the same role.
- *   <li><b>Repair</b> -- a damaged or Broken tool in the head slot, plus items matching its head
- *       material's {@code repair_item} in any of the five free slots (#434). CONTEXT.md puts repair
- *       at this station and makes the head material the one that determines the repair item.
+ *   <li><b>Repair</b> -- a damaged or Broken tool in the head slot, plus items belonging to one of
+ *       its repair slots' materials in any of the five free slots (#434): any of that material's
+ *       {@code crafting_items} at its own value, its shard, or its {@code repair_item} at one ingot
+ *       (#461). CONTEXT.md puts repair at this station and makes the head material the one that
+ *       determines the repair item.
  *   <li><b>Modifier application</b> (issue #105) -- a tool in the head slot plus
  *       {@code modifier.ModifierRecipe} reagents in any of the five free slots (#434), tried after
  *       repair so the two never fight over an item that is both.
@@ -298,8 +300,31 @@ public final class ToolAssemblyRecipes {
      */
     static boolean isRepairItemFor(HolderLookup.Provider registries, ItemStack headSlotStack, ItemStack stack) {
         return repairMaterialsOf(registries, headSlotStack).stream()
-                .anyMatch(repair -> repair.material().repairItem().test(stack)
+                .anyMatch(repair -> repairUnitValue(registries, repair, stack) > 0
                         || isSharpeningKitOf(stack, repair.materialId()));
+    }
+
+    /**
+     * How many shard-units one item of {@code stack} pays into a repair of {@code repair}'s material,
+     * or {@code 0} if it is not a repair item for it at all (parity audit T30, issue #461).
+     *
+     * <p>Upstream 1.12 keeps one item-to-material table per material -- {@code Material extends
+     * RecipeMatchRegistry} -- and {@code TinkersItem#calculateRepairAmount} matches a repair against
+     * exactly that table, so every Part Builder crafting item repairs too, each worth its own
+     * registered value ({@code match.amount / VALUE_Ingot} ingot-equivalents). That table is
+     * Forgeweave's {@code crafting_items} plus the material's shard, which is what
+     * {@link PartBuilderRecipes#unitValueAgainst} already reads.
+     *
+     * <p>The material's own {@code repair_item} stays a floor at one ingot: Forgeweave's is a
+     * separate {@code Ingredient} and is in a few places wider than the crafting-item list (stone's
+     * {@code #minecraft:stone_tool_materials} covers blackstone and cobbled deepslate, which its
+     * {@code crafting_items} do not), and nothing an existing world could already repair with should
+     * stop working over a parity fix.
+     */
+    private static int repairUnitValue(HolderLookup.Provider registries, RepairMaterial repair, ItemStack stack) {
+        int value = PartBuilderRecipes.unitValueAgainst(registries, repair.materialId(), stack);
+        return value > 0 ? value
+                : (repair.material().repairItem().test(stack) ? PartBuilderRecipes.INGOT_VALUE : 0);
     }
 
     /**
@@ -940,6 +965,8 @@ public final class ToolAssemblyRecipes {
         int[] paysInto = new int[freeSlots.size()];
         boolean[] paysAsKit = new boolean[freeSlots.size()];
         int[] remaining = new int[freeSlots.size()];
+        // Ingot-equivalents one item of this slot is worth to the material it pays into (issue #461).
+        float[] unitWorth = new float[freeSlots.size()];
         boolean any = false;
         for (int i = 0; i < freeSlots.size(); i++) {
             ItemStack stack = freeSlots.get(i);
@@ -953,8 +980,10 @@ public final class ToolAssemblyRecipes {
                     paysAsKit[i] = true;
                     break;
                 }
-                if (repairMaterials.get(m).material().repairItem().test(stack)) {
+                int value = repairUnitValue(registries, repairMaterials.get(m), stack);
+                if (value > 0) {
                     paysInto[i] = m;
+                    unitWorth[i] = value / (float) PartBuilderRecipes.INGOT_VALUE;
                     break;
                 }
             }
@@ -1007,7 +1036,7 @@ public final class ToolAssemblyRecipes {
                     continue;
                 }
                 payingSlot[m] = i;
-                weighted += repairMaterials.get(m).weightedHeadDurability();
+                weighted += repairMaterials.get(m).weightedHeadDurability() * unitWorth[i];
                 matched++;
             }
             int amount = ToolRepair.repairAmount(weighted, matched);

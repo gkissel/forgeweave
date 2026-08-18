@@ -372,8 +372,19 @@ public final class PartBuilderRecipes {
                 .orElse(false);
     }
 
-    /** How many shard-units one item of {@code stack} is worth against a specific material id, or 0 if it doesn't match. */
-    private static int unitValueAgainst(HolderLookup.Provider registries, ResourceLocation materialId, ItemStack stack) {
+    /**
+     * How many shard-units one item of {@code stack} is worth against a specific material id, or 0
+     * if it doesn't match.
+     *
+     * <p>Public because repair asks the same question ({@code ToolAssemblyRecipes#resolveRepair},
+     * parity audit T30/issue #461): upstream 1.12 has exactly one item-to-material table -- {@code
+     * Material extends RecipeMatchRegistry} -- and both the Part Builder ({@code
+     * ToolBuilder#tryBuildToolPart}) and repair ({@code TinkersItem#calculateRepairAmount}) match
+     * against it. Deliberately <em>not</em> gated on {@link #craftableInPartBuilder}: {@code
+     * Material#isCraftable} is consulted by the Part Builder alone, so a {@code cast_only} metal
+     * still repairs from its ingots and blocks.
+     */
+    public static int unitValueAgainst(HolderLookup.Provider registries, ResourceLocation materialId, ItemStack stack) {
         if (stack.isEmpty()) {
             return 0;
         }
