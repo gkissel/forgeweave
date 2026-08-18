@@ -268,6 +268,60 @@ class MeltingRecipeTest {
         }
     }
 
+    /**
+     * T41 (#472): the emerald ore/gem/block trio, ported from upstream {@code TinkerSmeltery} (lines
+     * 471-476) -- registered inline rather than through {@code registerOredictMeltingCasting}, so
+     * unlike the metal rows above there is no ingot/nugget/plate/gear form, only ore, gem and block.
+     */
+    @Test
+    void theShippedEmeraldOreRecipeHoldsTheBaseGemAmountAndIsOreClass() {
+        JsonObject json = shipped("emerald_ore");
+
+        assertEquals("c:ores/emerald", json.getAsJsonObject("input").get("tag").getAsString());
+        assertEquals("forgeweave:molten_emerald", json.get("fluid").getAsString());
+        assertEquals(666, json.get("amount").getAsInt(), "Material.VALUE_Gem, not the Standard Core's 1.5x of it");
+        assertTrue(json.get("ore").getAsBoolean(), "an ore-class input, so issue #99's core multiplier applies");
+    }
+
+    @Test
+    void theShippedEmeraldGemRecipeRemeltsOneForOne() {
+        JsonObject json = shipped("emerald");
+
+        assertEquals("c:gems/emerald", json.getAsJsonObject("input").get("tag").getAsString());
+        assertEquals(666, json.get("amount").getAsInt(), "Material.VALUE_Gem");
+        assertTrue(!json.has("ore"), "the refined gem re-melt must not be marked ore-class");
+    }
+
+    /**
+     * T41 (#472): {@code emerald_block.json} pins an explicit {@code "temperature": 999} -- the
+     * fluid's own -- rather than letting {@link MeltingRecipe#calcTemperature} derive one. That
+     * formula assumes a "full block" sits at {@link MeltingRecipe#VALUE_BLOCK} = 1296 mB, true for
+     * every metal but not a gem: {@code Material.VALUE_Gem * 9} = 5994 mB would otherwise derive a
+     * temperature hotter than the fluid can ever reach, an un-meltable recipe under any fuel this
+     * pack ships. Exercised through the real codec (fluid substituted for lava, since the molten
+     * emerald {@code DeferredHolder} needs a running mod loader -- see the class javadoc) to prove
+     * the override is actually honoured, not just present in the JSON.
+     */
+    @Test
+    void theShippedEmeraldBlockRecipeIsNotOreClassAndPinsAnExplicitTemperature() {
+        JsonObject json = shipped("emerald_block");
+
+        assertEquals("c:storage_blocks/emerald", json.getAsJsonObject("input").get("tag").getAsString());
+        assertEquals(5994, json.get("amount").getAsInt(), "Material.VALUE_Gem * 9");
+        assertEquals(999, json.get("temperature").getAsInt(), "pinned at the fluid's own temperature");
+        assertTrue(!json.has("ore"), "a storage block re-melt must not be marked ore-class");
+
+        int derivedInstead = MeltingRecipe.calcTemperature(999, 5994);
+        assertTrue(derivedInstead > 999,
+                "sanity check: without the pin, calcTemperature's 1296 mB assumption overshoots the fluid's own temperature (" + derivedInstead + ")");
+
+        MeltingRecipe decoded = parse("""
+                {"input": {"tag": "c:storage_blocks/emerald"}, "fluid": "minecraft:lava", "amount": 5994, "temperature": 999}
+                """);
+        assertEquals(999, decoded.temperature(), "the codec must honour the pinned temperature rather than re-deriving it");
+        assertEquals(699 * MeltingRecipe.TIME_FACTOR, decoded.heatRequired());
+    }
+
     private static JsonObject shipped(String name) {
         String path = "/data/forgeweave/forgeweave/melting_recipe/" + name + ".json";
         try (InputStream in = MeltingRecipeTest.class.getResourceAsStream(path)) {

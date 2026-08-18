@@ -260,6 +260,61 @@ public class SmelteryMeltingGameTests {
     }
 
     /**
+     * T41 (#472): upstream {@code TinkerSmeltery} (lines 471-479) registers emerald ore as an
+     * ore-class melt at {@code Material.VALUE_Gem * Config.oreToIngotRatio} (666 * 2 = 1332 mB,
+     * baked into the registration call). Forgeweave's own split keeps {@code emerald_ore.json}'s
+     * base at the raw-drop-equivalent {@code Material.VALUE_Gem} = 666 mB ({@code ore: true}) and
+     * lets the core apply its own multiplier (#99) at melt time, so a Standard Core still lands at
+     * the same 1.5x a metal ore does: 999 mB.
+     */
+    @GameTest(template = "smeltery", timeoutTicks = 2600)
+    public static void vanillaEmeraldOreMeltsAtStandardCoresOneAndAHalfTimesYield(GameTestHelper helper) {
+        SmelteryControllerBlockEntity core = lavaFuelledSmeltery(helper);
+        insert(helper, core, Items.EMERALD_ORE);
+
+        helper.succeedWhen(() -> assertTankHolds(helper, core, ForgeweaveFluids.EMERALD.still().get(),
+                (int) (666 * SmelteryCore.STANDARD.yieldMultiplier())));
+    }
+
+    /**
+     * T41 (#472): the refined gem itself re-melts 1:1 at {@code Material.VALUE_Gem} = 666 mB
+     * ({@code emerald.json}'s {@code c:gems/emerald} row), with no core multiplier -- upstream's own
+     * {@code gemEmerald} row (via {@code addKnownOreFluid}) carries no ore bonus either.
+     */
+    @GameTest(template = "smeltery", timeoutTicks = 2600)
+    public static void anEmeraldGemMeltsBackAtItsFlatGemAmount(GameTestHelper helper) {
+        SmelteryControllerBlockEntity core = lavaFuelledSmeltery(helper);
+        insert(helper, core, Items.EMERALD);
+
+        helper.succeedWhen(() -> assertTankHolds(helper, core, ForgeweaveFluids.EMERALD.still().get(), 666));
+    }
+
+    /**
+     * T41 (#472): the emerald block melts back at {@code Material.VALUE_Gem * 9} = 5994 mB
+     * ({@code emerald_block.json}'s {@code c:storage_blocks/emerald} row), the other half of
+     * {@link CastingGameTests#theBasinCastsAnEmeraldBlock}'s basin round-trip. That recipe pins an
+     * explicit {@code "temperature": 999} (the fluid's own) rather than letting {@link
+     * MeltingRecipe#calcTemperature} derive one from the amount: that formula assumes a "full block"
+     * sits at {@link MeltingRecipe#VALUE_BLOCK} = 1296 mB, true for every metal but not for a gem,
+     * whose 5994 mB block would otherwise derive a temperature (1433) hotter than the fluid can ever
+     * reach -- an un-meltable recipe under any fuel this pack ships.
+     *
+     * <p>Needs a bigger structure than {@link #lavaFuelledSmeltery}'s shared 1x1x2 (2304 mB of tank
+     * capacity, {@code CAPACITY_PER_BLOCK} x interior volume): 5994 mB would never fit, so the melt
+     * would finish its heat but stall forever on the finishing tick for want of room, the same
+     * failure mode {@link #aFinishedMeltThatCannotFitIsMarkedStalled} covers on purpose. A 3x3x2
+     * interior (18 blocks, 20736 mB) is the same footprint {@link SmelteryGameTests}'s own bigger
+     * tests already use.
+     */
+    @GameTest(template = "smeltery", timeoutTicks = 2600)
+    public static void emeraldBlockMeltsBackAtItsFlatStorageBlockAmount(GameTestHelper helper) {
+        SmelteryControllerBlockEntity core = bigLavaFuelledSmeltery(helper);
+        insert(helper, core, Items.EMERALD_BLOCK);
+
+        helper.succeedWhen(() -> assertTankHolds(helper, core, ForgeweaveFluids.EMERALD.still().get(), 5994));
+    }
+
+    /**
      * A recipe above what the fuel can reach never progresses (#96, deflaked in #210).
      *
      * <p>Scheduled block ticks are not anchored to the test clock -- a chunk that drops off the tick
@@ -414,6 +469,25 @@ public class SmelteryMeltingGameTests {
     private static SmelteryControllerBlockEntity lavaFuelledSmeltery(GameTestHelper helper, Block coreBlock) {
         SmelteryGameTests.buildWalls(helper, 1, 1, 2);
         BlockPos corePos = SmelteryGameTests.placeCore(helper, coreBlock);
+
+        SearedTankBlockEntity tank = helper.getBlockEntity(SmelteryGameTests.TANK_POS);
+        tank.tank().fill(new FluidStack(Fluids.LAVA, SearedTankBlockEntity.CAPACITY), IFluidHandler.FluidAction.EXECUTE);
+
+        SmelteryControllerBlockEntity core = helper.getBlockEntity(corePos);
+        helper.assertTrue(core.isFormed(), "expected the test smeltery to form: " + core.lastResult().getString());
+        helper.assertValueEqual(core.currentTemperature(), Fluids.LAVA.getFluidType().getTemperature(),
+                "smeltery temperature with lava in the wall tank");
+        return core;
+    }
+
+    /**
+     * A 3x3x2-interior smeltery (18 blocks, 20736 mB of core tank capacity), otherwise identical to
+     * {@link #lavaFuelledSmeltery} -- for recipes whose output does not fit the shared 1x1x2 rig's
+     * 2304 mB. Same footprint {@link SmelteryGameTests}'s own bigger tests already build.
+     */
+    private static SmelteryControllerBlockEntity bigLavaFuelledSmeltery(GameTestHelper helper) {
+        SmelteryGameTests.buildWalls(helper, 3, 3, 2);
+        BlockPos corePos = SmelteryGameTests.placeCore(helper, ForgeweaveBlocks.STANDARD_CORE.get());
 
         SearedTankBlockEntity tank = helper.getBlockEntity(SmelteryGameTests.TANK_POS);
         tank.tank().fill(new FluidStack(Fluids.LAVA, SearedTankBlockEntity.CAPACITY), IFluidHandler.FluidAction.EXECUTE);

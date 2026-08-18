@@ -1,0 +1,8 @@
+{
+  "input": {
+    "tag": "c:ores/emerald"
+  },
+  "fluid": "forgeweave:molten_emerald",
+  "amount": 666,
+  "ore": true
+}
