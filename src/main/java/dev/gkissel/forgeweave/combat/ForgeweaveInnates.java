@@ -118,6 +118,8 @@ public final class ForgeweaveInnates {
     private static final float LEAP_SPEED_CAP = 0.925F;
     private static final float LEAP_EXHAUSTION = 0.2F;
     private static final int LEAP_COOLDOWN_TICKS = 3;
+    /** {@code LongSword#onUpdate}'s {@code preventSlowDown(entityIn, 0.9f)} (T37, issue #468). */
+    private static final float LEAP_DRAW_MOVEMENT_SPEED = 0.9F;
 
     /** Maintainer decision 2026-08-12 on issue #155: 5% of the target's current health, past armor. */
     private static final float VITAL_THRUST_FRACTION = 0.05F;
@@ -175,6 +177,8 @@ public final class ForgeweaveInnates {
     private static final float LAUNCH_BONUS_DAMAGE = 5.0F;
     private static final double LAUNCH_RANGE = 3.2;
     private static final int LAUNCH_IGNITE_TICKS = 20;
+    /** {@code FryPan#onUpdate}'s {@code preventSlowDown(entityIn, 0.7f)} (T37, issue #468). */
+    private static final float LAUNCH_DRAW_MOVEMENT_SPEED = 0.7F;
 
     /**
      * Maintainer decision 2026-08-12 on issue #155: {@value #BACKSTAB_MAX} within
@@ -679,6 +683,11 @@ public final class ForgeweaveInnates {
             return LEAP_CHARGE_TICKS;
         }
 
+        @Override
+        public float drawMovementSpeed() {
+            return LEAP_DRAW_MOVEMENT_SPEED;
+        }
+
         /**
          * Upstream {@code LongSword#onItemRightClick} verbatim: don't allow free flight while
          * elytra-flying, should use fireworks instead. {@code pass} leaves the click for the offhand,
@@ -798,6 +807,11 @@ public final class ForgeweaveInnates {
         @Override
         public int durationTicks() {
             return LAUNCH_USE_TICKS;
+        }
+
+        @Override
+        public float drawMovementSpeed() {
+            return LAUNCH_DRAW_MOVEMENT_SPEED;
         }
 
         @Override

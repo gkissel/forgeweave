@@ -11,6 +11,8 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.UseAnim;
 import net.minecraft.world.level.Level;
 
+import dev.gkissel.forgeweave.item.BowItem;
+
 /**
  * What right-clicking a tool does, for the innates whose trigger is the use button rather than a
  * blow: the longsword's charged leap, the broadsword's parry window, the battlesign's blocking
@@ -55,4 +57,19 @@ public interface ToolUseAction {
      * @param heldTicks how long the use was held, {@code durationTicks() - timeLeft}
      */
     default void onRelease(ItemStack stack, ServerLevel level, LivingEntity user, int heldTicks) {}
+
+    /**
+     * The fraction of walking speed a user of this action keeps while it is held: upstream 1.12's
+     * {@code ToolCore#preventSlowDown}, which every held weapon calls from its own {@code onUpdate}
+     * (M3.5 issue #400, generalized past bows by parity audit T37/issue #468) --
+     * {@code LongSword#onUpdate} passes {@code 0.9f}, {@code FryPan#onUpdate} {@code 0.7f}.
+     *
+     * <p>The default is vanilla's own slowdown, i.e. no override: what a held action gets unless it
+     * says otherwise (the battlesign's block stance, upstream's {@code BattleSign}, never calls
+     * {@code preventSlowDown} either). {@code BowDrawMovement} is the client hook that applies it, for
+     * both this interface's implementations and {@link BowItem}'s own equivalent method.
+     */
+    default float drawMovementSpeed() {
+        return BowItem.VANILLA_DRAW_MOVEMENT_SPEED;
+    }
 }

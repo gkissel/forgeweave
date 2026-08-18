@@ -1,7 +1,9 @@
 package dev.gkissel.forgeweave.client;
 
+import org.jetbrains.annotations.Nullable;
+
 import net.minecraft.client.player.LocalPlayer;
-import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Item;
 
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
@@ -9,14 +11,19 @@ import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.client.event.MovementInputUpdateEvent;
 
 import dev.gkissel.forgeweave.Forgeweave;
+import dev.gkissel.forgeweave.combat.ToolUseAction;
 import dev.gkissel.forgeweave.item.BowItem;
+import dev.gkissel.forgeweave.item.ToolItem;
 
 /**
- * Upstream 1.12's {@code ToolCore#preventSlowDown} (M3.5 issue #400): a bow that says so lets its
- * user keep walking while drawing, instead of being pinned at vanilla's using-an-item crawl.
- * {@code ShortBow} asks for {@code 0.5f} ("shortbows are more mobile than other bows"),
- * {@code CrossBow} for {@code 0.195f}, and {@code LongBow} deliberately for nothing at all ("no
- * speedup on charging") -- see {@link BowItem#drawMovementSpeed()}.
+ * Upstream 1.12's {@code ToolCore#preventSlowDown} (M3.5 issue #400, generalized past bows by
+ * parity audit T37/issue #468): a held weapon that says so lets its user keep walking while it is
+ * held, instead of being pinned at vanilla's using-an-item crawl. {@code ShortBow} asks for
+ * {@code 0.5f} ("shortbows are more mobile than other bows"), {@code CrossBow} for {@code 0.195f},
+ * {@code LongBow} deliberately for nothing at all ("no speedup on charging") -- see
+ * {@link BowItem#drawMovementSpeed()} -- and {@code LongSword}/{@code FryPan} for {@code 0.9f}/
+ * {@code 0.7f} while their charged leap/launch is held -- see
+ * {@link ToolUseAction#drawMovementSpeed()}.
  *
  * <p>Client-only, exactly as upstream: it is a movement-<em>input</em> hack, and the value it edits
  * ({@code LocalPlayer}'s impulses) is what the client then sends to the server, so the server needs
@@ -35,13 +42,9 @@ import dev.gkissel.forgeweave.item.BowItem;
  * </pre>
  *
  * <p>So the pre-multiply is upstream's own arithmetic, unchanged: multiplying by {@code speed * 5}
- * before vanilla multiplies by {@code 0.2} leaves exactly {@code speed}. The longbow's
- * {@link BowItem#VANILLA_DRAW_MOVEMENT_SPEED} multiplies by 1 and needs no special case.
- *
- * <p>Not ported: {@code FryPan#onUpdate}'s {@code 0.7f} and {@code LongSword#onUpdate}'s
- * {@code 0.9f}. Both belong to upstream's <em>blocking</em> pose, which Forgeweave does not ship
- * (see {@code ForgeweaveItemModelProvider}'s note on {@code battlesign.tcon.json}); when a blocking
- * ticket lands, it is one more branch here.
+ * before vanilla multiplies by {@code 0.2} leaves exactly {@code speed}. Anything left at vanilla's
+ * own {@link BowItem#VANILLA_DRAW_MOVEMENT_SPEED} (the longbow, the battlesign's block stance, a
+ * tool with no use action at all) multiplies by 1 and needs no special case.
  *
  * <h2>Diagonal speed (issue #420)</h2>
  *
@@ -67,14 +70,33 @@ public final class BowDrawMovement {
         if (!(event.getEntity() instanceof LocalPlayer player) || !player.isUsingItem()) {
             return;
         }
-        ItemStack using = player.getUseItem();
-        if (!(using.getItem() instanceof BowItem bow)) {
+        Float speed = drawMovementSpeed(player.getUseItem().getItem());
+        if (speed == null) {
             return;
         }
-        float multiplier = bow.drawMovementSpeed() * VANILLA_SLOWDOWN_INVERSE;
+        float multiplier = speed * VANILLA_SLOWDOWN_INVERSE;
         Impulse normalized = Impulse.normalize(event.getInput().forwardImpulse, event.getInput().leftImpulse);
         event.getInput().forwardImpulse = normalized.forward() * multiplier;
         event.getInput().leftImpulse = normalized.strafe() * multiplier;
+    }
+
+    /**
+     * The draw-movement speed a held item asks for, or {@code null} for an item that carries no such
+     * concept at all (a bare vanilla item; not to be confused with {@link ToolUseAction}'s own default
+     * of vanilla's own slowdown, which a caller is free to apply -- it is a harmless no-op multiply).
+     * {@link BowItem} answers on its own account, since it does not route through {@link ToolItem}'s
+     * {@link ToolUseAction} seam; every other {@link ToolItem} answers through its innate's use action,
+     * if it has one.
+     */
+    @Nullable
+    static Float drawMovementSpeed(Item item) {
+        if (item instanceof BowItem bow) {
+            return bow.drawMovementSpeed();
+        }
+        if (item instanceof ToolItem tool && tool.innate() != null && tool.innate().use() != null) {
+            return tool.innate().use().drawMovementSpeed();
+        }
+        return null;
     }
 
     /**
