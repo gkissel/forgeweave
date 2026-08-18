@@ -16,6 +16,7 @@ import com.mojang.logging.LogUtils;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.component.DataComponentType;
 import net.minecraft.core.component.DataComponents;
+import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
@@ -601,6 +602,23 @@ public final class ForgeweaveTraits {
     private static final float SHOCKING_DISCHARGE_DAMAGE = 5.0F;
 
     /**
+     * Vanilla stand-ins for upstream's {@code charged}/{@code discharge} cues (issue #415). Upstream's
+     * own sounds are freesound CC-BY 3.0 / CC0 ({@code resources/assets/tconstruct/sounds/Credits.txt}
+     * -- {@code charged} by FreqMan CC0, {@code discharge} by JoelAUdio CC-BY 3.0), not MIT, so porting
+     * them adds a CC-BY attribution obligation the same way Spartan Weaponry's Apache-2.0 art did --
+     * that needs an explicit maintainer decision before Forgeweave ships them; recorded in the PR
+     * instead of assumed. {@link net.minecraft.sounds.SoundEvents#TRIDENT_THUNDER} over the issue's
+     * other candidate ({@code LIGHTNING_BOLT_IMPACT}, a real bolt's ground-impact boom, sized for an
+     * actual {@code LightningBolt} entity that never spawns here): TConstruct's own 1.20 branch already
+     * reuses {@code TRIDENT_THUNDER} for exactly this shape of effect -- a hit-triggered lightning cue
+     * with no bolt entity ({@code ChannelingModule#tryStrike}) -- at low volume so it doesn't compete
+     * with combat noise on every proc. {@link net.minecraft.core.particles.ParticleTypes#ELECTRIC_SPARK}
+     * stands in for the dropped {@code HEART_ELECTRO} particle, the only vanilla particle actually named
+     * for electricity.
+     */
+    private static final float SHOCKING_FEEDBACK_VOLUME = 0.4F;
+
+    /**
      * Electrum. Upstream {@code TraitShocking}: a 0-100 charge built three ways -- {@code +15 *
      * attackStrength} per landed hit ({@code onHit}), {@code +15} per block broken
      * ({@code afterBlockBreak}), and {@code +2} per block moved while the tool is held, sampled every
@@ -610,6 +628,11 @@ public final class ForgeweaveTraits {
      * {@code EntityDamageSource("lightningBolt", ...)}) plus Speed VI for 2.5s on the attacker; a
      * block break that fills the charge discharges immediately into Haste III for 2.5s instead. The
      * tool shows an enchantment glint while fully charged (upstream's {@code setEnchantEffect}).
+     * Reaching full charge and discharging each fire a server-side particle burst + sound cue (issue
+     * #415: {@link #SHOCKING_FEEDBACK_VOLUME}'s javadoc) -- at the holder on full charge, at the
+     * struck target (or the broken block, for the mining path) on discharge; a break that completes
+     * the charge fires both in the same tick, matching upstream's {@code addCharge} then
+     * {@code discharge} back-to-back call.
      *
      * <p>Launchers (issue #416): a bow's traits reach an arrow's impact in Forgeweave, which upstream
      * 1.12 has no branch for at all -- {@code TraitShocking} only ever sees a melee swing. Of the
@@ -624,8 +647,8 @@ public final class ForgeweaveTraits {
      * seam) with the {@link CombatHit}'s captured attack-strength scale; movement is sampled on the
      * holder's own {@code tickCount} rather than world time (world time is constant across one
      * test-staged tick, holder ticks aren't); charge is clamped at 100 on write so the serialized
-     * range is honest ({@link ShockingCharge}); upstream's custom charge/discharge sounds and
-     * heart-electro particles have no Forgeweave asset and are dropped.
+     * range is honest ({@link ShockingCharge}); the feedback cues are vanilla stand-ins, not upstream's
+     * own CC-BY/CC0 sounds or its {@code HEART_ELECTRO} particle (see {@link #SHOCKING_FEEDBACK_VOLUME}).
      */
     public static final Trait SHOCKING = new Trait() {
         @Override
@@ -641,12 +664,14 @@ public final class ForgeweaveTraits {
                 target.invulnerableTime = 0;
                 target.hurt(hit.level().damageSources().lightningBolt(), SHOCKING_DISCHARGE_DAMAGE);
                 attacker.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SPEED, 50, 5));
-                setShockingCharge(stack, charge.discharged());
+                dischargeShockingCharge(stack, hit.level(), target.getX(),
+                        target.getY() + target.getBbHeight() * 0.5, target.getZ(), charge);
             } else if (attacker instanceof Player && !hit.isProjectile()) {
                 // Upstream TraitShocking#onHit's else-if EntityPlayer gate (issue #297 parity fix): a
                 // non-player attacker (a mob wielding the tool) never builds charge from a hit.
                 // Melee only (issue #416): see the trait javadoc's launcher note.
-                setShockingCharge(stack, charge.plus(SHOCKING_CHARGE_PER_HIT * hit.attackStrengthScale()));
+                addShockingCharge(stack, hit.level(), attacker,
+                        charge.plus(SHOCKING_CHARGE_PER_HIT * hit.attackStrengthScale()));
             }
         }
 
@@ -655,9 +680,12 @@ public final class ForgeweaveTraits {
                 LivingEntity breaker, boolean effective) {
             ShockingCharge charged = shockingCharge(stack, breaker).plus(SHOCKING_CHARGE_PER_BREAK);
             if (charged.isFull()) {
-                // Upstream discharges a mining-filled charge on the spot, into haste rather than damage.
+                // Upstream discharges a mining-filled charge on the spot, into haste rather than damage --
+                // both the full-charge and discharge cues fire in this one tick, same as upstream's
+                // addCharge-then-discharge back-to-back calls.
                 breaker.addEffect(new MobEffectInstance(MobEffects.DIG_SPEED, 50, 2));
-                setShockingCharge(stack, charged.discharged());
+                spawnShockingFullChargeFeedback(level, breaker);
+                dischargeShockingCharge(stack, level, pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5, charged);
             } else {
                 setShockingCharge(stack, charged);
             }
@@ -687,9 +715,39 @@ public final class ForgeweaveTraits {
             dist = Math.min(dist, SHOCKING_MOVE_CAP);
             float next = Math.min(ShockingCharge.FULL,
                     charge.charge() + (float) (dist * SHOCKING_CHARGE_PER_BLOCK_MOVED));
-            setShockingCharge(stack, new ShockingCharge(next, holder.getX(), holder.getY(), holder.getZ()));
+            addShockingCharge(stack, level, holder, new ShockingCharge(next, holder.getX(), holder.getY(), holder.getZ()));
         }
     };
+
+    /** Writes accrued charge, firing the full-charge cue on the transition to full (upstream's addCharge sound). */
+    private static void addShockingCharge(ItemStack stack, ServerLevel level, LivingEntity holder, ShockingCharge newCharge) {
+        setShockingCharge(stack, newCharge);
+        if (newCharge.isFull()) {
+            spawnShockingFullChargeFeedback(level, holder);
+        }
+    }
+
+    /** Discharges {@code charge} to zero and fires the discharge cue at {@code x, y, z}. */
+    private static void dischargeShockingCharge(ItemStack stack, ServerLevel level, double x, double y, double z,
+            ShockingCharge charge) {
+        setShockingCharge(stack, charge.discharged());
+        spawnShockingDischargeFeedback(level, x, y, z);
+    }
+
+    /** The holder's full-charge cue (issue #415): {@link #SHOCKING_FEEDBACK_VOLUME}'s javadoc picks the sound. */
+    private static void spawnShockingFullChargeFeedback(ServerLevel level, LivingEntity holder) {
+        level.sendParticles(ParticleTypes.ELECTRIC_SPARK, holder.getX(), holder.getY() + holder.getBbHeight() * 0.5,
+                holder.getZ(), 8, 0.3, 0.3, 0.3, 0.02);
+        level.playSound(null, holder.blockPosition(), SoundEvents.TRIDENT_THUNDER.value(), SoundSource.PLAYERS,
+                SHOCKING_FEEDBACK_VOLUME, 1.4F);
+    }
+
+    /** The discharge cue at {@code x, y, z} (issue #415): {@link #SHOCKING_FEEDBACK_VOLUME}'s javadoc picks the sound. */
+    private static void spawnShockingDischargeFeedback(ServerLevel level, double x, double y, double z) {
+        level.sendParticles(ParticleTypes.ELECTRIC_SPARK, x, y, z, 12, 0.3, 0.3, 0.3, 0.05);
+        level.playSound(null, BlockPos.containing(x, y, z), SoundEvents.TRIDENT_THUNDER.value(), SoundSource.PLAYERS,
+                SHOCKING_FEEDBACK_VOLUME, 1.0F);
+    }
 
     /** The stack's charge, initialized at the holder's position if it never had one. */
     private static ShockingCharge shockingCharge(ItemStack stack, LivingEntity holder) {

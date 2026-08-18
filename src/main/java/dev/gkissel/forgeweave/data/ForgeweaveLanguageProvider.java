@@ -725,9 +725,13 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("trait.forgeweave.alien.description",
                 "The stats feel off... as if they're changing! Maybe time will tell?");
         add("trait.forgeweave.shocking.name", "Shocking");
+        // Verbatim upstream en_us.lang:697 (issue #415 -- the prior wording had drifted); the italic
+        // "Bzzzzzt!" opener is upstream's own §o/§r markup, kept as-is since the tooltip that renders
+        // this (StationText#traitLine) processes legacy formatting codes embedded in the string.
         add("trait.forgeweave.shocking.description",
-                "Running around, breaking blocks or hitting things charges the tool; "
-                        + "a fully charged hit discharges it as lightning.");
+                "§oBzzzzzt!§r\nRunning around, breaking blocks or hitting things charges your tool. "
+                        + "Hitting an enemy discharges it, dealing damage and providing a speed boost. "
+                        + "Mining a block discharges it, giving a mining speed boost.");
         // Upstream shows both slimey ids under the one "Slimey" name (TraitSlimey#getLocalizedName);
         // two Forgeweave keys, same display, so the ids stay distinct for the info panel.
         add("trait.forgeweave.slimey_green.name", "Slimey");

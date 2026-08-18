@@ -13,6 +13,7 @@ import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.network.chat.TextColor;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.sounds.SoundEvents;
 import net.minecraft.tags.TagKey;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.InteractionHand;
@@ -255,6 +256,66 @@ public class StatefulTraitGameTests {
     }
 
     /**
+     * Issue #415: reaching full charge and discharging each fire a server-side {@code
+     * PlayLevelSoundEvent.AtPosition} for the vanilla stand-in sound cue -- {@link SoundCapture}
+     * observes the seam NeoForge fires from inside {@code Level#playSound} itself, since the sound
+     * packet delivery has no observer without a tracked client player. The {@code ELECTRIC_SPARK}
+     * particle burst emitted alongside each sound (see {@code
+     * ForgeweaveTraits#SHOCKING_FEEDBACK_VOLUME}'s javadoc) has no equivalent server-side event to
+     * capture and is verified by code inspection at the {@code spawnShockingFullChargeFeedback}/
+     * {@code spawnShockingDischargeFeedback} call sites instead.
+     */
+    @GameTest(template = "empty")
+    public static void shockingFullChargeAndDischargeEachPlayASoundCue(GameTestHelper helper) {
+        ServerLevel level = helper.getLevel();
+        Player attacker = helper.makeMockPlayer(GameType.SURVIVAL);
+        BlockPos attackerPos = helper.absolutePos(new BlockPos(1, 2, 1));
+        attacker.setPos(attackerPos.getX() + 0.5, attackerPos.getY(), attackerPos.getZ() + 0.5);
+        Pig target = helper.spawn(EntityType.PIG, new BlockPos(2, 2, 2));
+        ItemStack pickaxe = pickaxe(List.of(traitId("shocking")), 1000, 1.0F, 1.0F);
+        pickaxe.set(ForgeweaveDataComponents.SHOCKING_CHARGE.get(), new ShockingCharge(85.0F, 0, 0, 0));
+
+        // The hit that fills the charge: the full-charge cue plays at the attacker. (The pig's own
+        // hurt sound also plays in this window from the landed hit itself -- filtered out below,
+        // since only the shocking cue's own sound event is under test.)
+        List<SoundCapture.Played> onFullCharge = shockingCues(SoundCapture.playedDuring(helper, () ->
+                ForgeweaveTraits.COMBAT_SEAM.onHit(new CombatHit(level, pickaxe, attacker, target,
+                        level.damageSources().mobAttack(attacker)), 1.0F)));
+        helper.assertTrue(charge(pickaxe) == ShockingCharge.FULL,
+                "the hit must fill the charge, got " + charge(pickaxe));
+        helper.assertTrue(onFullCharge.size() == 1, "expected exactly one full-charge sound cue, got " + onFullCharge);
+
+        // The next hit discharges: the discharge cue plays at the target.
+        List<SoundCapture.Played> onDischarge = shockingCues(SoundCapture.playedDuring(helper, () ->
+                ForgeweaveTraits.COMBAT_SEAM.onHit(new CombatHit(level, pickaxe, attacker, target,
+                        level.damageSources().mobAttack(attacker)), 1.0F)));
+        helper.assertTrue(charge(pickaxe) == 0.0F, "the discharge must reset the charge, got " + charge(pickaxe));
+        helper.assertTrue(onDischarge.size() == 1, "expected exactly one discharge sound cue, got " + onDischarge);
+        double dischargeDistance = target.position().distanceTo(onDischarge.get(0).position());
+        helper.assertTrue(dischargeDistance < 1.5,
+                "the discharge cue must play near the target, was " + dischargeDistance + " blocks away");
+
+        // A block break that exactly fills the charge fires both cues in the one call (matching
+        // upstream's addCharge-then-discharge back-to-back calls). Both the miner and the broken
+        // block need an in-bounds position -- SoundCapture only sees cues inside the test structure.
+        Player miner = helper.makeMockPlayer(GameType.SURVIVAL);
+        BlockPos minerPos = helper.absolutePos(new BlockPos(1, 2, 2));
+        miner.setPos(minerPos.getX() + 0.5, minerPos.getY(), minerPos.getZ() + 0.5);
+        ItemStack miningPickaxe = pickaxe(List.of(traitId("shocking")), 1000, 1.0F, 1.0F);
+        miningPickaxe.set(ForgeweaveDataComponents.SHOCKING_CHARGE.get(), new ShockingCharge(90.0F, 0, 0, 0));
+        BlockPos brokenBlock = helper.absolutePos(new BlockPos(2, 2, 2));
+        List<SoundCapture.Played> onMiningDischarge = shockingCues(SoundCapture.playedDuring(helper, () ->
+                ForgeweaveTraits.afterBlockBreak(miningPickaxe, level, Blocks.STONE.defaultBlockState(),
+                        brokenBlock, miner, true)));
+        helper.assertTrue(onMiningDischarge.size() == 2,
+                "a break that fills the charge must fire both the full-charge and discharge cues, got "
+                        + onMiningDischarge);
+
+        target.discard();
+        helper.succeed();
+    }
+
+    /**
      * Issue #341: the full shocking charge is the <em>only</em> thing that makes a Forgeweave tool
      * shimmer. Upstream 1.12's {@code ToolCore#hasEffect} reports its explicit enchant-effect flag and
      * nothing else, so a tool carrying an enchantment a modifier granted (luck's Fortune here) stays
@@ -401,6 +462,12 @@ public class StatefulTraitGameTests {
     private static float charge(ItemStack stack) {
         ShockingCharge charge = stack.get(ForgeweaveDataComponents.SHOCKING_CHARGE.get());
         return charge == null ? 0.0F : charge.charge();
+    }
+
+    /** Narrows a captured window down to shocking's own feedback cue, ignoring incidental sounds
+     *  (a landed hit's own hurt sound, for one) that play in the same window. */
+    private static List<SoundCapture.Played> shockingCues(List<SoundCapture.Played> played) {
+        return played.stream().filter(p -> p.sound().value() == SoundEvents.TRIDENT_THUNDER.value()).toList();
     }
 
     /** Builds a pickaxe {@code ItemStack} with the given traits/stats directly (see class javadoc). */
