@@ -34,7 +34,8 @@ public final class ModifierArt {
             id("haste"), id("sharpness"), id("diamond"), id("emerald"), id("reinforced"),
             id("silky"), id("luck"), id("mending_moss"), id("soulbound"), id("smite"),
             id("bane_of_arthropods"), id("fiery"), id("necrotic"), id("knockback"),
-            id("beheading"), id("shulking"), id("webbed"), id("glowing"));
+            id("beheading"), id("shulking"), id("webbed"), id("glowing"),
+            id("blasting"));
 
     /**
      * The texture path (no {@code .png}, no namespace) of {@code modifier}'s overlay on {@code
@@ -52,13 +53,24 @@ public final class ModifierArt {
     }
 
     /**
-     * {@code <tool>_<modifier>} pairs upstream ships no overlay for on purpose (M3.5 #394): luck
-     * refuses launchers ({@code ModLuck.java:35}), so {@code items/shortbow/} has no
-     * {@code mod_luck.png} to derive -- nor does {@code items/longbow/} (#395). Upstream's
-     * {@code items/crossbow/} does ship one, inconsistently, and it is derived like any other.
+     * {@code <tool>_<modifier>} pairs that draw no overlay on purpose. Luck refuses launchers (M3.5
+     * #394, {@code ModLuck.java:35}), so {@code items/shortbow/} has no {@code mod_luck.png} to
+     * derive -- nor does {@code items/longbow/} (#395); upstream's {@code items/crossbow/} does ship
+     * one, inconsistently, and it is derived like any other.
+     *
+     * <p>Blasting (parity audit T24) is {@code ModifierAspect.harvestOnly}, and upstream ships
+     * {@code mod_blasting.png} in exactly its nine {@code Category.HARVEST} tool folders. Every
+     * Forgeweave tool outside that category is listed here: the twelve melee shapes and the three
+     * bows have no art to derive, and the warmace -- whose donor is the hammer, which does have it --
+     * is {@code Category.MELEE}, so the station never lets blasting onto one in the first place.
      * Mirrored by {@code scripts/derive_modifier_overlays.py}.
      */
-    private static final Set<String> NO_UPSTREAM_ART = Set.of("shortbow_luck", "longbow_luck");
+    private static final Set<String> NO_UPSTREAM_ART = Set.of(
+            "shortbow_luck", "longbow_luck",
+            "broadsword_blasting", "longsword_blasting", "rapier_blasting", "battlesign_blasting",
+            "frying_pan_blasting", "battleaxe_blasting", "cleaver_blasting", "dagger_blasting",
+            "scimitar_blasting", "katana_blasting", "warmace_blasting",
+            "shortbow_blasting", "longbow_blasting", "crossbow_blasting");
 
     /**
      * As {@link #overlay(String, ResourceLocation)}, for a bow rendered at pull stage {@code stage}

@@ -98,12 +98,24 @@ MODIFIER_SOURCES = {
     "shulking": "mod_shulking",
     "webbed": "mod_web",
     "glowing": "mod_glowing",
+    "blasting": "mod_blasting",  # T24 (#455); harvest tools only -- see NO_UPSTREAM_ART below
 }
 
-# (tool, modifier) pairs upstream ships no overlay for, on purpose: luck refuses launchers
-# (ModLuck.java:35), so items/shortbow/ and items/longbow/ have no mod_luck.png. items/crossbow/
-# inconsistently does, and it is copied like any other. Mirrored by ModifierArt#NO_UPSTREAM_ART.
-NO_UPSTREAM_ART = {("shortbow", "luck"), ("longbow", "luck")}
+# (tool, modifier) pairs that get no overlay, on purpose. Two reasons, both mirrored by
+# ModifierArt#NO_UPSTREAM_ART:
+#
+#   * luck refuses launchers (ModLuck.java:35), so items/shortbow/ and items/longbow/ have no
+#     mod_luck.png. items/crossbow/ inconsistently does, and it is copied like any other.
+#   * blasting is ModifierAspect.harvestOnly, so upstream ships mod_blasting.png in exactly the nine
+#     Category.HARVEST folders (pickaxe, hammer, shovel, excavator, hatchet, mattock, kama, scythe,
+#     lumberaxe) and nowhere else. Forgeweave's vein hammer is Category.HARVEST too and takes the
+#     hammer's donor copy; the warmace is MELEE, so even though its hammer donor does have the art,
+#     the modifier can never land on it and the file would be dead weight.
+NO_UPSTREAM_ART = {("shortbow", "luck"), ("longbow", "luck")} | {
+    (tool, "blasting") for tool in (
+        "broadsword", "longsword", "rapier", "battlesign", "frying_pan", "battleaxe", "cleaver",
+        "shortbow", "longbow", "crossbow", "dagger", "scimitar", "katana", "warmace")
+}
 
 
 def main() -> None:

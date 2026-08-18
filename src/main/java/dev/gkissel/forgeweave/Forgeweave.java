@@ -162,6 +162,10 @@ public class Forgeweave {
         // the block, which Item#getDestroySpeed never sees; upstream 1.12 handles this same
         // PlayerEvent.BreakSpeed per trait (see Trait#breakSpeed).
         NeoForge.EVENT_BUS.addListener(ForgeweaveTraits::onBreakSpeed);
+        // T24 -- blasting's speed rule needs the block's hardness, so it rides the same event
+        // (upstream ModBlasting#miningSpeed). After the traits: its formula blends with the event's
+        // untouched original speed either way, so the order costs nothing.
+        NeoForge.EVENT_BUS.addListener(ForgeweaveModifiers::onBreakSpeed);
         // #229 -- enderference's teleport block: the combat half rides the seams; these listeners
         // only read the mark the seam left.
         // NeoForge splits 1.12's one EnderTeleportEvent into per-cause subevents.

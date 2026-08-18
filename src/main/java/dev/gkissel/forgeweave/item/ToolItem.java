@@ -616,9 +616,40 @@ public class ToolItem extends Item {
         return ForgeweaveTraits.miningSpeed(stack, isEffective(state), base);
     }
 
+    /**
+     * Upstream 1.12's {@code ToolHelper#getActualMiningSpeed}: the tool's stored mining-speed stat --
+     * with its modifiers folded in ({@code ForgeweaveModifiers#effectiveStats}, upstream applies them
+     * to the stored tag) -- times this tool type's own {@code miningSpeedModifier}. Read only by
+     * blasting's break-speed rule (parity audit T24), the one behavior that needs the tool's raw speed
+     * rather than the speed vanilla already computed from it.
+     */
+    public float actualMiningSpeed(ItemStack stack) {
+        ToolStats.Stats stats = ForgeweaveModifiers.effectiveStats(stack);
+        return stats == null ? 0.0F : miningSpeed(stats);
+    }
+
+    /**
+     * Vanilla's harvest check, plus blasting's (parity audit T24). Upstream keeps the widening in
+     * {@code ToolHelper#isToolEffective2} -- "this will be the only place besides fortify where a
+     * modifier is hardcoded. I promise. :L" -- where a tool carrying blasting counts as effective on
+     * any non-liquid block whose material {@code isToolNotRequired()}. This method is Forgeweave's
+     * counterpart of that one ({@code AoeHarvest}'s javadoc: upstream's effectiveness and harvest
+     * checks collapse into {@code ItemStack#isCorrectToolForDrops} here), so the widening lands here.
+     *
+     * <p>{@code Material#isToolNotRequired()} adapts to {@code !state.requiresCorrectToolForDrops()}:
+     * both mean "this block drops without the right tool". Blocks that already drop bare-handed lose
+     * nothing by the widening; what it buys is that they now count as an effective break, so a
+     * blasting pickaxe sweeps dirt into its area, smelts it, and takes the tier bonuses -- exactly
+     * what upstream's widened {@code isToolEffective2} does at its own call sites.
+     */
     @Override
     public boolean isCorrectToolForDrops(ItemStack stack, BlockState state) {
-        return !isBroken(stack) && super.isCorrectToolForDrops(stack, state);
+        if (isBroken(stack)) {
+            return false;
+        }
+        return super.isCorrectToolForDrops(stack, state)
+                || (ForgeweaveModifiers.blastingLevel(stack) > 0
+                        && !state.requiresCorrectToolForDrops() && !state.liquid());
     }
 
     /** Upstream 1.12's {@code ToolCore#showDurabilityBar}: no bar once Broken, however damage sits. */

@@ -891,6 +891,15 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("modifier.forgeweave.harvest_height.description",
                 "Increases the height of the area your tool affects. The effect is tool specific.");
 
+        // T24 (#455) -- blasting. Description follows upstream's modifier.blasting.desc ("Ka-Boom!
+        // You can break non-effective blocks like normal blocks, but they might get destroyed"), and
+        // the extra line is its modifier.blasting.extra verbatim.
+        add("modifier.forgeweave.blasting.name", "Blasting");
+        add("modifier.forgeweave.blasting.description",
+                "Ka-Boom! Blocks this tool isn't effective on break like normal ones -- but every "
+                        + "level is another third of a chance the drops go up with them.");
+        add("modifier.forgeweave.blasting.extra", "Blast Power: %s");
+
         add("modifier.forgeweave.wind_burst.name", "Wind Burst");
         add("modifier.forgeweave.wind_burst.description",
                 "Grants Wind Burst on the warmace. Each breeze rod raises it another level, up to III.");

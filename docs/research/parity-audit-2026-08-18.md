@@ -172,7 +172,7 @@ Every 1.12 tool-material trait is ported (44 ids across 34 materials, with head-
 
 ### 3.3 Modifiers
 
-20 of upstream's ~25 modifiers are ported with clone constants, per-level slot accounting and derived overlay art; six Forgeweave-only modifiers are recorded. The systemic gaps are the whole `canApplyTogether` incompatibility layer, per-modifier extra-info/leveled names, three unported modifiers (Blasting, Glowing, the AOE expanders) and a handful of missing alternative reagent forms.
+20 of upstream's ~25 modifiers are ported with clone constants, per-level slot accounting and derived overlay art; six Forgeweave-only modifiers are recorded. The systemic gaps are the whole `canApplyTogether` incompatibility layer, per-modifier extra-info/leveled names, the unported Glowing modifier (Blasting shipped in #455, the AOE expanders in #524) and a handful of missing alternative reagent forms.
 
 | Feature | 1.12 | 1.20 | Forgeweave | Status | Deliberate? | Severity | Ticket |
 | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -198,13 +198,13 @@ Every 1.12 tool-material trait is ported (44 ids across 34 materials, with head-
 | Shulking | `ModShulking:18-41` popped chorus | n/a | `:728`, shulker shell | deviates | Y (#163) | low | — |
 | Webbed | `ModWebbed:13-20` | n/a | `:754` | have | Y (#163) | none | — |
 | Beheading | `ModBeheading:33-150` pearl + obsidian | n/a | `:677` obsidian only, six head types | deviates | Y (PR #197) | low | — |
-| Blasting | `ModBlasting:33-129` (3 TNT) | n/a | absent, unscoped | missing | N | medium | T24 |
+| Blasting | `ModBlasting:33-129` (3 TNT) | n/a | `ForgeweaveModifiers#BLASTING` + `onBreakSpeed`/`blast`, `ToolItem#isCorrectToolForDrops`'s widening, `harvestOnly` gate, overlay art | have | Y (#455) | none | — |
 | Glowing | `ModGlowing:17-42` | n/a | `:995` `glowing`, ender eye, `minecraft:light` in the dark | deviates | Y (#456) | low | — |
 | Width++ / Height++ expanders | `ModHarvestSize:11-19`, `ToolEvents:38-70` | n/a | `expander_w`/`expander_h` + `harvest_width`/`harvest_height`, `AoeHarvest.Shape`'s per-tool magnitudes | have | Y (#438) | none | — |
 | Fins | `ModFins:11-31` | n/a | absent | missing | Y (SCOPE:287) | low | T17 |
 | Modifier/trait incompatibility layer | `Modifier.java:67-115` + `canApplyTogether` | ModifierRequirements | none (`ModifierApplication` has no compat check) | missing | N | medium | T23 |
 | Modifier tooltips (colors, leveled names, extra info) | `TooltipBuilder:120-181` | n/a | per-modifier colours, leveled names, every upstream extra-info line (#457) | have | — | none | — |
-| Modifier overlay art | 21 model files | n/a | `ModifierArt:33` 17 + 442 derived textures | partial | Y (#257) | low | — |
+| Modifier overlay art | 21 model files | n/a | `ModifierArt:33` 18 + 452 derived textures | partial | Y (#257) | low | — |
 | Reagent items (silky cloth/jewel, plate, moss, expanders, soil, bone, kit) | `TinkerCommons:150-352` | n/a | most ship; expanders shipped (#438); soil/necrotic bone absent | partial | Y in part (#429, #438) | medium | T59 |
 | InfiTool hidden trait + showcase tools | `TinkerModifiers:212` | n/a | absent | missing | N | low | — |
 | Searing (auto-smelt) | n/a (trait only) | n/a | `:160`, magma cream | forgeweave-only | Y (SCOPE M2 / #108) | none | — |
@@ -636,7 +636,7 @@ Prioritized and deduplicated across domains. Already-filed issues are marked; **
 ### Medium
 
 - [ ] **T23 — Modifier/trait/enchantment incompatibility layer** — refusal hook covering silky↔luck, luck↔Silk Touch, squeaky↔silky/luck, autosmelt↔silk touch, embossing donor compat, with translatable errors (modifiers/config, medium, M3.5 playtest-fix).
-- [ ] **T24 — Port the Blasting modifier** — 3 TNT, harvest-only, non-effective blocks minable with a drop-destroy chance, overlay art, JEI entry (modifiers, medium, M6).
+- [x] **T24 — Port the Blasting modifier** (shipped, #455) — `ForgeweaveModifiers#BLASTING` ports `ModBlasting` whole: three TNT per level to a cap of three, all of them inside one modifier slot (`FreeFirstModifierAspect`), `ModifierAspect.harvestOnly` as a real `Modifier#harvestOnly` hook the station gates on, `isToolEffective2`'s widening on `ToolItem#isCorrectToolForDrops`, the hardness-blended break speed on `PlayerEvent.BreakSpeed`, the per-drop destroy roll and explosion particles on `BlockDropsEvent`, the "Blast Power" extra-info line, the four `canApplyTogether` refusals plus Silk Touch/Looting/Fortune, upstream's `0xffaa23` colour, and the ten derived overlay textures. JEI picks the recipe up off `modifier_recipe/blasting.json` with no plugin change.
 - [x] **T25 — Port the Glowing modifier** (shipped, #456) — `ForgeweaveModifiers#GLOWING` plus the `glowingTick` half of `inventoryTick`: held, below light 8, the first of the holder's seven candidate positions that will take one gets a `minecraft:light`, for one durability. Two recorded deviations: the reagent is the ender eye alone (upstream's three-item `ItemCombination` -- two glowstone dust and an eye -- has no form in `ModifierRecipe`, the same reduction `beheading.json` already made), and vanilla's light block replaces upstream's own `BlockGlow`, so a placed light neither needs a solid face to cling to nor vanishes when one goes away.
 - [x] **T26 — Extra-info tooltip lines for modifiers and traits** (shipped, #457) — `ForgeweaveModifiers#extraInfo` ports the seven modifier `getExtraInfo` implementations (smite/bane, fiery's two lines, necrotic, reinforced with its "Unbreakable" substitution, shulking, mending moss) alongside haste's existing one, `ForgeweaveTraits#extraInfo` the eight trait ones, `ModifierApplication#displayName` the `modifier.<id>.nameN` ladder plus reinforced's max-level rename, and `ForgeweaveModifiers#color` the per-modifier colours `ModifierNBT#getColorString` prefixes every modifier line with. Lines ride the modifier/trait row's hover rather than being panel rows of their own (issue #424's recorded deviation, unchanged).
 - [x] **T27 — Autosmelt/searing drops no furnace XP or flame particles** (shipped, #458) — `ForgeweaveModifiers#smelt` (the shared Searing/autosmelt path, issue #228) now gates on `isCorrectToolForDrops` (the `isToolEffective2` approximation), refuses to fire alongside Silk Touch/squeaky, drops the smelted result's furnace XP with the upstream probabilistic round-up, and spawns 3 FLAME particles per effective break (traits, medium, M3.5 fix round).
