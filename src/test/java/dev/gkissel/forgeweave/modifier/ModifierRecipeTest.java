@@ -213,6 +213,25 @@ class ModifierRecipeTest {
         assertEquals(10, outcome.secondUsed());
     }
 
+    /**
+     * Parity audit T2 (issue #434): the station has five free slots, not two, and one recipe's
+     * reagent pools across every one of them (upstream {@code RecipeMatch.Item#matches} sums the
+     * count over all input stacks), spent slot-first. Differently-valued forms (dust vs. block) still
+     * step whole cost-steps at a time in first-appearance order, as the two-slot #259 rule did.
+     */
+    @Test
+    void reagentsPoolAcrossAllFiveFreeSlots() {
+        ModifierApplication.Outcome spread = ModifierApplication.apply(shipped(), pickaxe(),
+                new int[] {1, 0, 2, 0, 3}, new int[] {1, 1, 1, 1, 1});
+        assertEquals(6, levelOf(spread));
+        assertEquals(List.of(1, 0, 2, 0, 3), spread.used());
+
+        ModifierApplication.Outcome mixed = ModifierApplication.apply(shipped(), pickaxe(),
+                new int[] {0, 1, 0, 2, 0}, new int[] {1, 9, 1, 1, 1});
+        assertEquals(11, levelOf(mixed), "one block in slot 2 + two dust in slot 4 = 11 units");
+        assertEquals(List.of(0, 1, 0, 2, 0), mixed.used());
+    }
+
     /** Issue #344: crossing the 50-unit boundary starts a second level, which charges a second slot. */
     @Test
     void crossingALevelBoundaryChargesAFreshSlot() {

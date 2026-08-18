@@ -1,6 +1,7 @@
 package dev.gkissel.forgeweave.modifier;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
@@ -28,8 +29,8 @@ import dev.gkissel.forgeweave.trait.ForgeweaveTraits;
 
 /**
  * Applying a {@link ModifierRecipe}'s reagents to an assembled tool at the Tool Station. The station
- * hands over its two free input slots (the same pair a repair uses) and gets back either a modified
- * tool plus what taking it costs, or the reason it can't be done.
+ * hands over its five free input slots (the same ones a repair uses; parity audit T2, issue #434)
+ * and gets back either a modified tool plus what taking it costs, or the reason it can't be done.
  *
  * <p>Ported from upstream 1.12's {@code ToolBuilder#tryModifyTool} and
  * {@code ModifierAspect.MultiAspect}: reagents are consumed one application unit at a time, so a
@@ -38,7 +39,7 @@ import dev.gkissel.forgeweave.trait.ForgeweaveTraits;
  * ({@link Modifier#occupiedSlots}), and units past what the budget affords are left unconsumed the
  * way upstream rolls back the match that no longer fits (see {@link #apply}).
  *
- * <p>Everything the station needs is a pure function of the recipe, the tool and two counts
+ * <p>Everything the station needs is a pure function of the recipe, the tool and per-slot counts
  * ({@link #apply}); the registry lookup around it exists only to find the recipe. That is what lets
  * a retune of the JSON change costs and caps with no code change, and what makes the unit test able
  * to drive two different cost tables through the same call.
@@ -50,14 +51,29 @@ public final class ModifierApplication {
      * {@code rejection} is meaningful: a non-empty output means the reagents apply, a non-null
      * rejection is the lang-key message the screen shows instead.
      */
-    public record Outcome(ItemStack output, int firstUsed, int secondUsed, @Nullable Component rejection) {
+    public record Outcome(ItemStack output, List<Integer> used, @Nullable Component rejection) {
 
-        static Outcome applied(ItemStack output, int firstUsed, int secondUsed) {
-            return new Outcome(output, firstUsed, secondUsed, null);
+        static Outcome applied(ItemStack output, List<Integer> used) {
+            return new Outcome(output, used, null);
         }
 
         static Outcome rejected(Component reason) {
-            return new Outcome(ItemStack.EMPTY, 0, 0, reason);
+            return new Outcome(ItemStack.EMPTY, List.of(), reason);
+        }
+
+        /** Items spent from free slot {@code slot} (0-based), 0 for a slot this outcome never read. */
+        public int used(int slot) {
+            return slot < used.size() ? used.get(slot) : 0;
+        }
+
+        /** {@code used(0)} -- the pre-#434 two-slot accessor, kept for the unit tests' fixtures. */
+        public int firstUsed() {
+            return used(0);
+        }
+
+        /** {@code used(1)}. */
+        public int secondUsed() {
+            return used(1);
         }
     }
 
@@ -86,18 +102,51 @@ public final class ModifierApplication {
     }
 
     /**
-     * Resolves what the two reagent slots do to {@code tool}, or empty when they hold nothing this
-     * station recognizes -- in which case the station stays silent rather than complaining about
-     * items meant for another recipe (a repair item, say).
+     * Resolves what the free slots do to {@code tool}, or empty when they hold nothing this station
+     * recognizes -- in which case the station stays silent rather than complaining about items meant
+     * for another recipe (a repair item, say).
+     *
+     * <p>Two-slot convenience over {@link #resolve(HolderLookup.Provider, ItemStack, List)}.
      */
     public static Optional<Outcome> resolve(HolderLookup.Provider registries, ItemStack tool,
             ItemStack first, ItemStack second) {
+        return resolve(registries, tool, List.of(first, second));
+    }
+
+    /**
+     * Resolves what every free slot does to {@code tool} (parity audit T2, issue #434: upstream
+     * {@code ContainerToolStation#getInputs} hands {@code ToolBuilder#tryModifyTool} all five), or
+     * empty when they hold nothing this station recognizes.
+     *
+     * <p>Each distinct recipe found is applied in turn to the previous one's output, in order of the
+     * first slot it appears in -- upstream's outer loop over every registered modifier (lines
+     * 176-223), which applies each one whose reagents are present in one operation, its second
+     * application re-checking the slot budget against the first one's result. Any rejection rejects
+     * the whole craft: upstream's rethrow for a modifier not yet applied this craft (lines 207-208,
+     * "either all or none"). Slot order rather than registry order: with each recipe pooling every
+     * slot that holds it, every outcome (including the budget rejection -- whichever order, the
+     * modifier that doesn't fit refuses the craft) is order-independent; only the modifier list's
+     * cosmetic ordering differs.
+     */
+    public static Optional<Outcome> resolve(HolderLookup.Provider registries, ItemStack tool,
+            List<ItemStack> freeSlots) {
         if (tool.get(ForgeweaveDataComponents.TOOL_STATS.get()) == null) {
             return Optional.empty(); // not an assembled tool; nothing to modify.
         }
-        Optional<ModifierRecipe> firstFound = recipeFor(registries, first);
-        Optional<ModifierRecipe> secondFound = recipeFor(registries, second);
-        if (firstFound.isEmpty() && secondFound.isEmpty()) {
+        List<ModifierRecipe> recipes = new ArrayList<>(); // distinct, first-slot order
+        boolean foreign = false;
+        for (ItemStack stack : freeSlots) {
+            if (stack.isEmpty()) {
+                continue;
+            }
+            Optional<ModifierRecipe> found = recipeFor(registries, stack);
+            if (found.isEmpty()) {
+                foreign = true;
+            } else if (!recipes.contains(found.get())) {
+                recipes.add(found.get());
+            }
+        }
+        if (recipes.isEmpty()) {
             return Optional.empty();
         }
         if (!ForgeweaveConfig.enabled(ForgeweaveConfig.MODIFIERS)) {
@@ -108,57 +157,35 @@ public final class ModifierApplication {
             return Optional.of(Outcome.rejected(
                     Component.translatable("gui.forgeweave.modifier.modifiers_disabled")));
         }
-        if ((!first.isEmpty() && firstFound.isEmpty()) || (!second.isEmpty() && secondFound.isEmpty())) {
-            // One slot holds a reagent and the other something no modifier recipe accepts at all --
-            // upstream's untouched-input check (ToolBuilder#tryModifyTool lines 226-234, the
-            // gui.error.no_modifier_for_item refusal). Two different modifiers' reagents side by
-            // side are NOT this case since issue #340: they apply together below.
+        if (foreign) {
+            // A reagent beside something no modifier recipe accepts at all -- upstream's
+            // untouched-input check (ToolBuilder#tryModifyTool lines 226-234, the
+            // gui.error.no_modifier_for_item refusal).
             return Optional.of(Outcome.rejected(Component.translatable("gui.forgeweave.modifier.invalid_reagent")));
         }
-        if (firstFound.isPresent() && secondFound.isPresent() && !firstFound.get().equals(secondFound.get())) {
-            // Issue #340: two distinct recipes, one per slot -- upstream tryModifyTool's outer loop
-            // over every registered modifier (lines 176-223), which applies each one whose reagents
-            // are present in the same operation. Sequential, the second application re-checking the
-            // slot budget against the first one's output; any rejection rejects the whole craft,
-            // upstream's rethrow for a modifier not yet applied this craft (lines 207-208 --
-            // "either all or none").
-            return Optional.of(resolveBoth(registries, tool, firstFound.get(), first, secondFound.get(), second));
-        }
 
-        // One recipe across both slots -- possibly two reagent forms of it (issue #259: haste dust
-        // in one slot, a redstone block in the other), which pool inside a single application.
-        ModifierRecipe recipe = firstFound.isPresent() ? firstFound.get() : secondFound.get();
-        ModifierRecipe.Reagent firstReagent = recipe.reagentFor(first);
-        ModifierRecipe.Reagent secondReagent = recipe.reagentFor(second);
-        return Optional.of(resolveOne(registries, recipe, tool,
-                firstReagent != null ? first.getCount() : 0,
-                firstReagent != null ? firstReagent.units() : 1,
-                secondReagent != null ? second.getCount() : 0,
-                secondReagent != null ? secondReagent.units() : 1));
-    }
-
-    /**
-     * Issue #340's two-modifier craft: the first slot's recipe applied to the tool, then the second
-     * slot's recipe applied to that result -- so the second application's slot-budget check
-     * ({@code freeSlots}, i.e. {@link ForgeweaveModifiers#occupiedSlots}) sees the first one already
-     * in place, exactly as upstream's sequential {@code canApply}/{@code apply} loop does. Slot
-     * order rather than upstream's registry order: with one recipe per slot every outcome (including
-     * the budget rejection -- whichever order, the modifier that doesn't fit refuses the craft) is
-     * order-independent, only the modifier list's cosmetic ordering differs.
-     */
-    private static Outcome resolveBoth(HolderLookup.Provider registries, ItemStack tool,
-            ModifierRecipe firstRecipe, ItemStack first, ModifierRecipe secondRecipe, ItemStack second) {
-        Outcome one = resolveOne(registries, firstRecipe, tool,
-                first.getCount(), firstRecipe.reagentFor(first).units(), 0, 1);
-        if (one.output().isEmpty()) {
-            return one;
+        ItemStack current = tool;
+        int[] used = new int[freeSlots.size()];
+        for (ModifierRecipe recipe : recipes) {
+            // Every slot holding one of this recipe's reagent forms pools into its application
+            // (issue #259: haste dust in one slot, a redstone block in another).
+            int[] available = new int[freeSlots.size()];
+            int[] unitsPerItem = new int[freeSlots.size()];
+            for (int i = 0; i < freeSlots.size(); i++) {
+                ModifierRecipe.Reagent reagent = recipe.reagentFor(freeSlots.get(i));
+                available[i] = reagent != null ? freeSlots.get(i).getCount() : 0;
+                unitsPerItem[i] = reagent != null ? reagent.units() : 1;
+            }
+            Outcome outcome = resolveOne(registries, recipe, current, available, unitsPerItem);
+            if (outcome.output().isEmpty()) {
+                return Optional.of(outcome); // discards every earlier application: all or none.
+            }
+            current = outcome.output();
+            for (int i = 0; i < used.length; i++) {
+                used[i] += outcome.used(i);
+            }
         }
-        Outcome two = resolveOne(registries, secondRecipe, one.output(),
-                0, 1, second.getCount(), secondRecipe.reagentFor(second).units());
-        if (two.output().isEmpty()) {
-            return two; // discards the first application too: upstream's all-or-none rethrow.
-        }
-        return Outcome.applied(two.output(), one.firstUsed(), two.secondUsed());
+        return Optional.of(Outcome.applied(current, Arrays.stream(used).boxed().toList()));
     }
 
     /**
@@ -168,12 +195,12 @@ public final class ModifierApplication {
      * {@code apply()}/{@code modified()} below -- see {@code Modifier#fortuneLevel}).
      */
     private static Outcome resolveOne(HolderLookup.Provider registries, ModifierRecipe recipe, ItemStack tool,
-            int firstAvailable, int firstUnitsPerItem, int secondAvailable, int secondUnitsPerItem) {
+            int[] available, int[] unitsPerItem) {
         Optional<Component> unsupported = unsupportedToolReason(registries, recipe, tool);
         if (unsupported.isPresent()) {
             return Outcome.rejected(unsupported.get());
         }
-        Outcome outcome = apply(recipe, tool, firstAvailable, firstUnitsPerItem, secondAvailable, secondUnitsPerItem);
+        Outcome outcome = apply(recipe, tool, available, unitsPerItem);
         if (!outcome.output().isEmpty()) {
             applyEnchantmentGrants(registries, recipe, outcome.output());
         }
@@ -270,16 +297,31 @@ public final class ModifierApplication {
     /**
      * {@link #apply(ModifierRecipe, ItemStack, int, int)} with each slot's per-item unit value made
      * explicit, for the two slots holding two different reagents of the same recipe (issue #259:
-     * haste dust at 1 unit next to a redstone block at 9).
-     *
-     * <p>A multi-unit reagent near the cap is all-or-nothing, mirroring upstream 1.12's
-     * {@code ToolBuilder#tryModifyTool}, which rolls the whole {@code RecipeMatch} back when a unit
-     * mid-match stops applying: a block whose full 9 units no longer fit under {@code max_level} is
-     * left unconsumed (and, unlike upstream's silent decline, refused with a message -- this class's
-     * standing rule that the station explains itself).
+     * haste dust at 1 unit next to a redstone block at 9). Two-slot convenience over
+     * {@link #apply(ModifierRecipe, ItemStack, int[], int[])}.
      */
     public static Outcome apply(ModifierRecipe recipe, ItemStack tool, int firstAvailable, int firstUnitsPerItem,
             int secondAvailable, int secondUnitsPerItem) {
+        return apply(recipe, tool, new int[] {firstAvailable, secondAvailable},
+                new int[] {firstUnitsPerItem, secondUnitsPerItem});
+    }
+
+    /**
+     * The whole rule set over any number of free slots (parity audit T2, issue #434): slot {@code i}
+     * holds {@code available[i]} items each worth {@code unitsPerItem[i]} units of {@code recipe}'s
+     * modifier (0 available for a slot holding something else).
+     *
+     * <p>Equally-valued slots pool: {@code cost} items buy {@code unitsPerItem} units, spent from the
+     * lowest slot up -- upstream {@code RecipeMatch.Item#matches} sums one reagent's count across
+     * every input stack. Differently-valued forms (dust vs. block) are pooled per form, in order of
+     * the first slot each appears in, whole cost-steps at a time, each step only if its full grant
+     * still fits under the cap. A multi-unit reagent near the cap is therefore all-or-nothing,
+     * mirroring upstream 1.12's {@code ToolBuilder#tryModifyTool}, which rolls the whole
+     * {@code RecipeMatch} back when a unit mid-match stops applying: a block whose full 9 units no
+     * longer fit under {@code max_level} is left unconsumed (and, unlike upstream's silent decline,
+     * refused with a message -- this class's standing rule that the station explains itself).
+     */
+    public static Outcome apply(ModifierRecipe recipe, ItemStack tool, int[] available, int[] unitsPerItem) {
         ModifierEntry existing = ForgeweaveModifiers.entry(tool, recipe.modifier());
         int current = existing == null ? 0 : existing.level();
 
@@ -308,35 +350,36 @@ public final class ModifierApplication {
                     ForgeweaveModifiers.DEFAULT_SLOTS));
         }
         remaining = affordable;
-        int units;
-        int firstUsed;
-        int secondUsed;
-        if (firstUnitsPerItem == secondUnitsPerItem) {
-            // Both slots hold equally-valued items, so they pool: cost items buy unitsPerItem units,
-            // spent from the first slot before the second -- the pre-#259 arithmetic, generalized by
-            // the per-item multiplier (1 for every legacy recipe, so this branch is exactly it).
-            int steps = Math.min((firstAvailable + secondAvailable) / recipe.cost(), remaining / firstUnitsPerItem);
-            units = steps * firstUnitsPerItem;
-            int spent = steps * recipe.cost();
-            firstUsed = Math.min(spent, firstAvailable);
-            secondUsed = spent - firstUsed;
-        } else {
-            // Differently-valued reagents side by side: whole cost-steps of one slot's reagent at a
-            // time, first slot first, each step only if its full grant still fits under the cap.
-            units = 0;
-            firstUsed = 0;
-            secondUsed = 0;
-            while (firstUsed + recipe.cost() <= firstAvailable && units + firstUnitsPerItem <= remaining) {
-                firstUsed += recipe.cost();
-                units += firstUnitsPerItem;
+
+        int units = 0;
+        int totalAvailable = 0;
+        int[] used = new int[available.length];
+        List<Integer> forms = new ArrayList<>(); // distinct unitsPerItem values, first-slot order
+        for (int i = 0; i < available.length; i++) {
+            totalAvailable += available[i];
+            if (available[i] > 0 && !forms.contains(unitsPerItem[i])) {
+                forms.add(unitsPerItem[i]);
             }
-            while (secondUsed + recipe.cost() <= secondAvailable && units + secondUnitsPerItem <= remaining) {
-                secondUsed += recipe.cost();
-                units += secondUnitsPerItem;
+        }
+        for (int form : forms) {
+            int pooled = 0;
+            for (int i = 0; i < available.length; i++) {
+                if (unitsPerItem[i] == form) {
+                    pooled += available[i];
+                }
+            }
+            int steps = Math.min(pooled / recipe.cost(), (remaining - units) / form);
+            units += steps * form;
+            int spend = steps * recipe.cost();
+            for (int i = 0; i < available.length && spend > 0; i++) {
+                if (unitsPerItem[i] == form) {
+                    used[i] = Math.min(spend, available[i]);
+                    spend -= used[i];
+                }
             }
         }
         if (units <= 0) {
-            if (firstAvailable + secondAvailable >= recipe.cost()) {
+            if (totalAvailable >= recipe.cost()) {
                 // A whole reagent step is loaded but its full grant overshoots the cap (a 9-unit
                 // block against 5 units of room) -- see the method javadoc for the upstream mirror.
                 return Outcome.rejected(Component.translatable("gui.forgeweave.modifier.reagent_overshoot",
@@ -347,7 +390,8 @@ public final class ModifierApplication {
                     recipe.cost()));
         }
 
-        return Outcome.applied(modified(tool, recipe.modifier(), current + units), firstUsed, secondUsed);
+        return Outcome.applied(modified(tool, recipe.modifier(), current + units),
+                Arrays.stream(used).boxed().toList());
     }
 
     /**

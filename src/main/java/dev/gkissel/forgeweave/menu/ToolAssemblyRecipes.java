@@ -59,11 +59,11 @@ import dev.gkissel.forgeweave.trait.ForgeweaveTraits;
  *       different guard, three of its weapons have no extra part at all, and the Tool Forge tier
  *       takes four parts, two of them in the same role.
  *   <li><b>Repair</b> -- a damaged or Broken tool in the head slot, plus items matching its head
- *       material's {@code repair_item} in the other two. CONTEXT.md puts repair at this station and
- *       makes the head material the one that determines the repair item.
- *   <li><b>Modifier application</b> (issue #105) -- a tool in the head slot plus a
- *       {@code modifier.ModifierRecipe}'s reagents in the other two, tried after repair so the two
- *       never fight over an item that is both.
+ *       material's {@code repair_item} in any of the five free slots (#434). CONTEXT.md puts repair
+ *       at this station and makes the head material the one that determines the repair item.
+ *   <li><b>Modifier application</b> (issue #105) -- a tool in the head slot plus
+ *       {@code modifier.ModifierRecipe} reagents in any of the five free slots (#434), tried after
+ *       repair so the two never fight over an item that is both.
  *   <li><b>Embossing</b> (issue #154; parity cost per issue #248) -- a tool in the head slot plus a
  *       donor tool part and an {@code modifier.EmbossingRecipe}'s reagent set across all five free
  *       slots, which is why the repair tab has five of them.
@@ -283,23 +283,22 @@ public final class ToolAssemblyRecipes {
      * Resolves what the station should currently produce, or empty if the slots don't form any
      * of the recipes.
      *
-     * @param freeSlots every input slot except the first, in slot order. Assembly, repair and
-     *     modifier application read the first two of them (the slots M1 and M2 shipped); embossing
-     *     (issues #154, #248) needs all five, which is why this takes the list rather than two stacks.
+     * @param freeSlots every input slot except the first, in slot order. Assembly reads as many as
+     *     the tool has parts; repair, modifier application, embossing, fortification and part
+     *     exchange read all five -- upstream {@code ContainerToolStation#getInputs} (parity audit
+     *     T2, issue #434; before it repair and modifiers read only the first two).
      * @param forge whether the station is a Tool Forge (issue #152): gates large-tool assembly and
      *     applies the repair discount. Every other outcome is identical at both blocks.
      */
     static Optional<Result> resolve(HolderLookup.Provider registries, ItemStack headStack, List<ItemStack> freeSlots,
             boolean forge) {
-        ItemStack bindingStack = freeSlots.get(0);
-        ItemStack handleStack = freeSlots.get(1);
         if (!(headStack.getItem() instanceof ToolItem)) {
             List<ItemStack> inputs = new ArrayList<>(freeSlots.size() + 1);
             inputs.add(headStack);
             inputs.addAll(freeSlots);
             return resolveAssembly(registries, inputs, forge);
         }
-        Optional<Result> repair = resolveRepair(registries, headStack, bindingStack, handleStack, forge);
+        Optional<Result> repair = resolveRepair(registries, headStack, freeSlots, forge);
         if (repair.isPresent()) {
             return repair;
         }
@@ -330,7 +329,7 @@ public final class ToolAssemblyRecipes {
         Optional<Result> fortification = resolveFortification(registries, headStack, freeSlots);
         return fortification.isPresent()
                 ? fortification
-                : resolveModifier(registries, headStack, bindingStack, handleStack);
+                : resolveModifier(registries, headStack, freeSlots);
     }
 
     /**
@@ -613,17 +612,21 @@ public final class ToolAssemblyRecipes {
 
     /**
      * Modifier application (issue #105, ADR-0004) rides the same repair-tab slots: a tool in the
-     * first one, reagents in the other two. Repair is tried first, so an item that is both a repair
-     * item and some modifier's reagent still repairs -- and a rejected application (slots full, level
-     * cap) produces no output here, only the message the screen reads from
+     * first one, reagents in any of the five free ones (#434). Repair is tried first, so an item that
+     * is both a repair item and some modifier's reagent still repairs -- and a rejected application
+     * (slots full, level cap) produces no output here, only the message the screen reads from
      * {@link ToolStationMenu#rejection}.
      */
     private static Optional<Result> resolveModifier(HolderLookup.Provider registries, ItemStack toolStack,
-            ItemStack bindingStack, ItemStack handleStack) {
-        return ModifierApplication.resolve(registries, toolStack, bindingStack, handleStack)
+            List<ItemStack> freeSlots) {
+        return ModifierApplication.resolve(registries, toolStack, freeSlots)
                 .filter(outcome -> !outcome.output().isEmpty())
-                .map(outcome -> Result.of(
-                        grantEnchantments(registries, outcome.output()), 1, outcome.firstUsed(), outcome.secondUsed()));
+                .map(outcome -> {
+                    List<Integer> slotsUsed = new ArrayList<>(1 + freeSlots.size());
+                    slotsUsed.add(1);
+                    slotsUsed.addAll(outcome.used());
+                    return new Result(grantEnchantments(registries, outcome.output()), slotsUsed);
+                });
     }
 
     /**
@@ -849,12 +852,17 @@ public final class ToolAssemblyRecipes {
 
     /**
      * Repairs the tool in the head slot with as many matching items as it takes (or as many as are
-     * there), spending the binding slot before the handle slot. Every other component -- materials,
-     * stats, the vanilla tool component -- rides along untouched on the copy, so a repaired tool is
-     * the same tool.
+     * there), pooled across all five free slots and spent lowest slot first -- upstream
+     * {@code ContainerToolStation#getInputs} feeds {@code TinkersItem#repair} every free slot and
+     * {@code Material#matches} sums the repair item across them (parity audit T2, issue #434). A
+     * free slot holding anything that is not the repair item makes this not a repair at all
+     * (upstream's "check if all items were used" bail, {@code TinkersItem.java:325-331}), so the
+     * loadout falls through to the modifier path and its explained refusal. Every other component
+     * -- materials, stats, the vanilla tool component -- rides along untouched on the copy, so a
+     * repaired tool is the same tool.
      */
     private static Optional<Result> resolveRepair(HolderLookup.Provider registries, ItemStack toolStack,
-            ItemStack bindingStack, ItemStack handleStack, boolean forge) {
+            List<ItemStack> freeSlots, boolean forge) {
         int damage = toolStack.getDamageValue();
         if (damage <= 0) {
             return Optional.empty(); // undamaged and unbroken: nothing to repair (upstream 1.12 does the same)
@@ -864,9 +872,19 @@ public final class ToolAssemblyRecipes {
             return Optional.empty();
         }
 
-        int fromBinding = head.get().repairItem().test(bindingStack) ? bindingStack.getCount() : 0;
-        int fromHandle = head.get().repairItem().test(handleStack) ? handleStack.getCount() : 0;
-        int available = fromBinding + fromHandle;
+        int[] perSlot = new int[freeSlots.size()];
+        int available = 0;
+        for (int i = 0; i < perSlot.length; i++) {
+            ItemStack stack = freeSlots.get(i);
+            if (stack.isEmpty()) {
+                continue;
+            }
+            if (!head.get().repairItem().test(stack)) {
+                return Optional.empty(); // upstream: an untouched input means this is no repair
+            }
+            perSlot[i] = stack.getCount();
+            available += perSlot[i];
+        }
         if (available == 0) {
             return Optional.empty();
         }
@@ -892,7 +910,15 @@ public final class ToolAssemblyRecipes {
         // Any repair moves the tool off the Broken threshold, since one repair item is always worth
         // at least 1/64 of the durability pool.
         result.remove(ForgeweaveDataComponents.BROKEN.get());
-        return Optional.of(Result.of(result, 1, Math.min(used, fromBinding), Math.max(0, used - fromBinding)));
+        List<Integer> slotsUsed = new ArrayList<>(1 + perSlot.length);
+        slotsUsed.add(1);
+        int spend = used;
+        for (int count : perSlot) {
+            int take = Math.min(spend, count);
+            slotsUsed.add(take);
+            spend -= take;
+        }
+        return Optional.of(new Result(result, slotsUsed));
     }
 
     /**

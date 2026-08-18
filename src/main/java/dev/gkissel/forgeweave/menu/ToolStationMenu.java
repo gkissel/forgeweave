@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Supplier;
-import java.util.stream.Stream;
 
 import javax.annotation.Nullable;
 
@@ -366,8 +365,7 @@ public class ToolStationMenu extends StationMenu {
         if (fortification != null) {
             return Rejection.error(fortification);
         }
-        return ModifierApplication.resolve(registries, tool,
-                        slots.get(BINDING_SLOT).getItem(), slots.get(HANDLE_SLOT).getItem())
+        return ModifierApplication.resolve(registries, tool, freeSlotContents())
                 .map(ModifierApplication.Outcome::rejection)
                 .map(Rejection::error)
                 .orElse(null);
@@ -609,20 +607,18 @@ public class ToolStationMenu extends StationMenu {
          */
         private void grantAdvancements(ServerPlayer player) {
             ItemStack head = slots.get(HEAD_SLOT).getItem();
-            ItemStack binding = slots.get(BINDING_SLOT).getItem();
-            ItemStack handle = slots.get(HANDLE_SLOT).getItem();
 
             // #110 -- "first modifier"; #166 -- "combat modifier", alongside it. Only when
             // ModifierApplication actually resolves an application from the current slots, the same
             // check rejection() uses to decide whether there's a rejection to report at all.
-            if (ModifierApplication.resolve(registries, head, binding, handle)
+            if (ModifierApplication.resolve(registries, head, freeSlotContents())
                     .map(ModifierApplication.Outcome::output)
                     .filter(output -> !output.isEmpty())
                     .isPresent()) {
                 ForgeweaveCriteriaTriggers.FIRST_MODIFIER.get().trigger(player);
-                // Both slots, not first-match: since issue #340 a craft can land two different
-                // modifiers at once, and a combat one in the second slot still counts.
-                if (Stream.of(binding, handle)
+                // Every free slot, not first-match: since issue #340 a craft can land several
+                // modifiers at once, and a combat one in any slot still counts.
+                if (freeSlotContents().stream()
                         .flatMap(stack -> ModifierApplication.recipeFor(registries, stack).stream())
                         .map(ModifierRecipe::modifier)
                         .anyMatch(ForgeweaveModifiers::isCombatModifier)) {
