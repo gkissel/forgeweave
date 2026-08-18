@@ -33,8 +33,12 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB; // #98
 
+import net.neoforged.neoforge.capabilities.Capabilities;
+import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
 import net.neoforged.neoforge.fluids.FluidStack;
 import net.neoforged.neoforge.fluids.capability.IFluidHandler;
+import net.neoforged.neoforge.items.IItemHandler;
+import net.neoforged.neoforge.items.wrapper.InvWrapper;
 
 // #101: the smeltery GUI. The block entity is the menu's host, so the controller opens its own
 // screen the same way every M1 station does.
@@ -1177,8 +1181,9 @@ public class SmelteryControllerBlockEntity extends BlockEntity implements Statio
      * <p>Real slots rather than a bespoke click packet: vanilla's own container click handling is
      * already server-authoritative, already handles pick-up/place/split/shift-click, and already
      * validates against the server's copy of the inventory. {@link #insertForMelting} stays as the
-     * non-GUI path (hoppers, dropped items) -- this is the same inventory seen through the interface
-     * slots need.
+     * dropped-item pickup path ({@code interactWithEntitiesInside}, #290) -- this is the same
+     * inventory seen through the interface slots need, and, since #470, the one a hopper's item
+     * handler capability sees too.
      *
      * <p>Reads {@link #meltingItems} live rather than capturing it, because {@link
      * #resizeMeltingInventory} <em>replaces</em> the list when the interior changes. A menu open
@@ -1187,6 +1192,30 @@ public class SmelteryControllerBlockEntity extends BlockEntity implements Statio
      */
     public Container meltingContainer() {
         return new MeltingContainer();
+    }
+
+    /**
+     * #470: the melting inventory as an item handler, so a hopper feeding the core directly works --
+     * upstream's {@code TileMultiblock} extends Mantle's {@code TileInventory}, which exposes an
+     * {@code IInventory}/capability on every side with no facing restriction (NOTICE.md); {@link
+     * SearedChuteBlockEntity} already re-exposes this same container the same way for a chute planted
+     * in the wall, and this is that same wrapper on the core block itself. Built fresh each call, like
+     * {@link SearedChuteBlockEntity#itemHandler()}, because {@link #meltingContainer()} is itself a
+     * live view a resize replaces the backing list of.
+     *
+     * <p>Zero slots (an {@link InvWrapper} over an empty {@link MeltingContainer}) while unformed --
+     * there is nothing to feed into yet, which is the correct answer, not a special case.
+     */
+    public IItemHandler itemHandler() {
+        return new InvWrapper(meltingContainer());
+    }
+
+    /** Wires the item-handler capability; called from {@code Forgeweave}'s constructor. */
+    public static void registerCapabilities(RegisterCapabilitiesEvent event) {
+        event.registerBlockEntity(Capabilities.ItemHandler.BLOCK, ForgeweaveBlockEntities.STANDARD_CORE.get(),
+                (blockEntity, side) -> blockEntity.itemHandler());
+        event.registerBlockEntity(Capabilities.ItemHandler.BLOCK, ForgeweaveBlockEntities.NETHER_CORE.get(),
+                (blockEntity, side) -> blockEntity.itemHandler());
     }
 
     /** @see #meltingContainer() */

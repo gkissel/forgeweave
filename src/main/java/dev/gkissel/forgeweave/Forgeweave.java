@@ -29,6 +29,7 @@ import dev.gkissel.forgeweave.block.SearedChuteBlockEntity;
 import dev.gkissel.forgeweave.block.SearedDrainBlockEntity;
 import dev.gkissel.forgeweave.block.SearedDuctBlockEntity;
 import dev.gkissel.forgeweave.block.SearedTankBlockEntity;
+import dev.gkissel.forgeweave.block.SmelteryControllerBlockEntity;
 import dev.gkissel.forgeweave.casting.CastingRecipe;
 import dev.gkissel.forgeweave.client.ForgeweaveDarkModeCompat;
 import dev.gkissel.forgeweave.combat.Beheading;
@@ -104,6 +105,9 @@ public class Forgeweave {
         // chute re-exposes the core's melting inventory.
         modEventBus.addListener(SearedDuctBlockEntity::registerCapabilities);
         modEventBus.addListener(SearedChuteBlockEntity::registerCapabilities);
+        // #470 -- the core itself also exposes its melting inventory directly, so a hopper feeding it
+        // (no chute required) works the way upstream's Mantle-derived TileInventory always did.
+        modEventBus.addListener(SmelteryControllerBlockEntity::registerCapabilities);
         // #100 -- a faucet pours into a casting table/basin through its fluid handler.
         modEventBus.addListener(CastingBlockEntity::registerCapabilities);
         modEventBus.addListener(ForgeweaveDataGenerators::gatherData);
