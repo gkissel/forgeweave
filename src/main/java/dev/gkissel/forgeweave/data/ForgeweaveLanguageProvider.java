@@ -612,6 +612,14 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("tooltip.forgeweave.tier.diamond", "Diamond");
         add("tooltip.forgeweave.tier.netherite", "Netherite");
 
+        // Issue #446 (parity audit T15): the optional per-material name prefix. Upstream 1.12's
+        // en_us.lang ships exactly two -- material.wood.prefix=Wooden %s and
+        // material.blueslime.prefix=Slime %s -- and every other material falls through to
+        // "<Name> <Item>". %1$s is the material name, %2$s the item name (MaterialDisplay#prefixed
+        // documents why both are passed where upstream passed only the item name).
+        add("material.forgeweave.wood.prefix", "Wooden %2$s");
+        add("material.forgeweave.blueslime.prefix", "Slime %2$s");
+
         add("material.forgeweave.wood", "Wood");
         add("material.forgeweave.stone", "Stone");
         add("material.forgeweave.flint", "Flint");

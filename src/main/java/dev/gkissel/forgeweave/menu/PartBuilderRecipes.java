@@ -209,7 +209,12 @@ public final class PartBuilderRecipes {
         if (materialId != null && PartItem.hasUnusableMaterial(registries, output)) {
             return Optional.of(StationMenu.Rejection.warning(
                     Component.translatable("gui.forgeweave.part_builder.useless_tool_part",
-                            MaterialDisplay.plainName(materialId), output.getHoverName())));
+                            MaterialDisplay.plainName(materialId),
+                            // The part kind, not this stack: since issue #446 a part stack's own
+                            // name already carries the material, and upstream's own call site
+                            // (GuiPartBuilder.java:155) passes a fresh componentless part stack
+                            // for exactly that reason.
+                            new ItemStack(output.getItem()).getHoverName())));
         }
         return Optional.empty();
     }

@@ -72,5 +72,46 @@ public final class MaterialDisplay {
         return Component.translatable("material." + materialId.getNamespace() + "." + materialId.getPath());
     }
 
+    /**
+     * An item name prefixed by the material(s) it is made of -- {@code Iron Pickaxe Head},
+     * {@code Wooden Pickaxe}, {@code Stone-Iron Hammer}. Upstream 1.12's
+     * {@code Material#getCombinedItemName} (Material.java:464-489) over
+     * {@code Material#getLocalizedItemName} (Material.java:439-450), called by
+     * {@code ToolCore#getItemStackDisplayName} and {@code ToolPart#getItemStackDisplayName};
+     * issue #446. Names are uncoloured, as upstream's are -- {@code getLocalizedName()}, not the
+     * coloured variant, because a hover name carries the surrounding rarity colour.
+     *
+     * <p>Repeats are dropped keeping first-seen order (upstream's {@code LinkedHashSet}), so a
+     * hammer whose three head slots hold one material reads {@code Stone Hammer} and not
+     * {@code Stone-Stone-Stone Hammer}.
+     *
+     * <p><b>Deviation from upstream's key contract.</b> Upstream's optional
+     * {@code material.<id>.prefix} takes the item name as its only argument and is used only when
+     * {@code I18n.canTranslate} says the key exists. A modern {@code Component} is resolved on the
+     * client, so a dedicated server cannot ask that question about a mod key; the same choice is
+     * made here by {@code translatableWithFallback} instead, which means the prefix entry gets both
+     * arguments -- {@code %1$s} the material name, {@code %2$s} the item name -- and a material
+     * with no entry falls back to the {@code "%s %s"} upstream builds by hand.
+     */
+    public static MutableComponent prefixed(List<ResourceLocation> materialIds, Component itemName) {
+        List<ResourceLocation> distinct = materialIds.stream().distinct().toList();
+        if (distinct.isEmpty()) {
+            return itemName.copy();
+        }
+        if (distinct.size() == 1) {
+            ResourceLocation materialId = distinct.get(0);
+            return Component.translatableWithFallback(
+                    "material." + materialId.getNamespace() + "." + materialId.getPath() + ".prefix",
+                    "%s %s", plainName(materialId), itemName);
+        }
+        MutableComponent names = plainName(distinct.get(0));
+        for (ResourceLocation materialId : distinct.subList(1, distinct.size())) {
+            names.append("-").append(plainName(materialId));
+        }
+        // Same "<material> <item>" join the fallback above spells out, and the one the per-part
+        // tooltip lines already use -- one key so a language reorders both at once.
+        return Component.translatableWithFallback("tooltip.forgeweave.part_name", "%s %s", names, itemName);
+    }
+
     private MaterialDisplay() {}
 }
