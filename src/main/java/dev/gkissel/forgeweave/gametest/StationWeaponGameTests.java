@@ -510,6 +510,36 @@ public class StationWeaponGameTests {
     }
 
     /**
+     * Cleaver (issue #498, parity audit T67): upstream {@code Cleaver#onItemRightClick} always
+     * answers {@code SUCCESS} with the stack untouched, unlike every other weapon here -- so vanilla's
+     * dispatch (which only tries the off-hand item when the main-hand result is {@code PASS}) never
+     * falls through to whatever is in the off-hand, empty or not.
+     */
+    @GameTest(template = "empty")
+    public static void cleaverSwallowsTheRightClickInsteadOfPassingToTheOffhand(GameTestHelper helper) {
+        BlockPos pos = new BlockPos(1, 1, 1);
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        ItemStack cleaver = cleaverAtForge(helper, player, pos);
+        player.setItemInHand(InteractionHand.MAIN_HAND, cleaver);
+        ToolItem tool = (ToolItem) cleaver.getItem();
+
+        for (ItemStack offhand : List.of(ItemStack.EMPTY, new ItemStack(Items.SHIELD))) {
+            player.setItemInHand(InteractionHand.OFF_HAND, offhand);
+
+            InteractionResultHolder<ItemStack> result =
+                    tool.use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
+
+            helper.assertTrue(result.getResult() == InteractionResult.SUCCESS,
+                    "a cleaver right-click must swallow the click with SUCCESS, got " + result.getResult()
+                            + " with " + offhand.getItem() + " in the offhand");
+            helper.assertTrue(ItemStack.isSameItemSameComponents(result.getObject(), cleaver),
+                    "a cleaver right-click must leave the stack untouched, got " + result.getObject());
+        }
+
+        helper.succeed();
+    }
+
+    /**
      * Dagger: the backstab bonus scales with how directly behind the target the blow lands -- full
      * within 45&deg; of dead-behind, tapering to a quarter at the 90&deg; edge of the rear cone, and
      * nothing in front. Driven through the seam's own pure gradient so every angle is exact; the
@@ -724,6 +754,23 @@ public class StationWeaponGameTests {
         ItemStack stack = ToolAssembly.assemble(helper, player, pos, entry, materials);
         if (stack.isEmpty()) {
             throw new AssertionError("the Tool Station built nothing for " + entry.constants().id());
+        }
+        return stack;
+    }
+
+    /**
+     * As {@link #weapon}, but at a Tool Forge -- the cleaver is Tool Forge-tier (issue #152's
+     * {@code large_tools} gate, {@code ForgeweaveItems.TOOL_CLEAVER}'s javadoc), so the Tool Station
+     * {@link #weapon} uses refuses to build it at all.
+     */
+    private static ItemStack cleaverAtForge(GameTestHelper helper, Player player, BlockPos pos) {
+        ToolAssemblyRecipes.Entry entry = ToolAssembly.entryFor(ForgeweaveItems.TOOL_CLEAVER.get());
+        List<String> materials = entry.constants().parts().stream()
+                .map(slot -> slot.role() == dev.gkissel.forgeweave.tool.ToolConstants.Role.HEAD ? HEAD : OTHER)
+                .toList();
+        ItemStack stack = ToolAssembly.assembleAtForge(helper, player, pos, entry, materials);
+        if (stack.isEmpty()) {
+            throw new AssertionError("the Tool Forge built nothing for " + entry.constants().id());
         }
         return stack;
     }
