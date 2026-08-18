@@ -5,8 +5,10 @@ import java.util.List;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.component.DataComponents;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
+import net.minecraft.network.chat.contents.TranslatableContents;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -624,6 +626,67 @@ public class ModifierGameTests {
                 "gold block + diamond must no longer craft an extra modifier");
 
         helper.succeed();
+    }
+
+    /**
+     * Parity audit T23 (issue #454): upstream {@code TraitSqueaky#canApplyTogether(IToolMod)} refuses
+     * {@code modLuck}, and {@code Modifier#canApply} raises it as {@code gui.error.incompatible_trait}
+     * before any slot or level check -- so lapis on a sponge-handled pickaxe is refused, with a reason.
+     */
+    @GameTest(template = "empty")
+    public static void luckIsRefusedOnASqueakyToolWithAReason(GameTestHelper helper) {
+        BlockPos pos = new BlockPos(1, 1, 1);
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        ItemStack pickaxe = ToolAssembly.pickaxe(helper, player, pos, "stone", "wood", "sponge");
+        helper.assertTrue(pickaxe.getOrDefault(ForgeweaveDataComponents.TRAITS.get(), List.of())
+                .contains(ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "squeaky")),
+                "the fixture needs a squeaky tool, got " + pickaxe.get(ForgeweaveDataComponents.TRAITS.get()));
+
+        ToolStationMenu menu = loaded(helper, player, pos, pickaxe, new ItemStack(Items.LAPIS_LAZULI, 60));
+
+        helper.assertTrue(menu.getSlot(ToolStationMenu.OUTPUT_SLOT).getItem().isEmpty(),
+                "luck must not land on a squeaky tool");
+        helper.assertTrue(menu.rejection() != null && rejectionKey(menu).equals("gui.forgeweave.modifier.incompatible_trait"),
+                "the station must say the trait is what refuses it, got " + menu.rejection());
+        helper.succeed();
+    }
+
+    /**
+     * T23's enchantment leg: {@code ModLuck#canApplyTogether(Enchantment)} refuses Silk Touch, and
+     * {@code Modifier#canApply} checks the stack's actual enchantments -- so a Silk Touch that arrived
+     * from anywhere (here, put on by hand; in play, silky's grant or a command) blocks lapis.
+     */
+    @GameTest(template = "empty")
+    public static void luckIsRefusedOnASilkTouchedTool(GameTestHelper helper) {
+        BlockPos pos = new BlockPos(1, 1, 1);
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        ItemStack pickaxe = ToolAssembly.pickaxe(helper, player, pos, "stone", "wood", "wood");
+        pickaxe.enchant(helper.getLevel().registryAccess().lookupOrThrow(Registries.ENCHANTMENT)
+                .getOrThrow(Enchantments.SILK_TOUCH), 1);
+
+        ToolStationMenu menu = loaded(helper, player, pos, pickaxe, new ItemStack(Items.LAPIS_LAZULI, 60));
+
+        helper.assertTrue(menu.getSlot(ToolStationMenu.OUTPUT_SLOT).getItem().isEmpty(),
+                "luck must not land beside Silk Touch");
+        helper.assertTrue(menu.rejection() != null && rejectionKey(menu).equals("gui.forgeweave.modifier.incompatible_enchantment"),
+                "the station must name the enchantment, got " + menu.rejection());
+        helper.succeed();
+    }
+
+    /** The station loaded with {@code tool} and one reagent stack, changes broadcast, output untaken. */
+    private static ToolStationMenu loaded(GameTestHelper helper, Player player, BlockPos pos, ItemStack tool,
+            ItemStack reagent) {
+        ToolStationBlockEntity blockEntity = helper.getBlockEntity(pos);
+        blockEntity.container().setItem(0, tool);
+        blockEntity.container().setItem(1, reagent);
+        blockEntity.container().setItem(2, ItemStack.EMPTY);
+        ToolStationMenu menu = ToolAssembly.menu(helper, player, pos, blockEntity);
+        menu.broadcastChanges();
+        return menu;
+    }
+
+    private static String rejectionKey(ToolStationMenu menu) {
+        return ((TranslatableContents) menu.rejection().message().getContents()).getKey();
     }
 
     /** Runs one application through the station and returns the modified tool. */

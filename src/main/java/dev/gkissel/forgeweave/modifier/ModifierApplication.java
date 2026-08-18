@@ -330,6 +330,12 @@ public final class ModifierApplication {
      * refused with a message -- this class's standing rule that the station explains itself).
      */
     public static Outcome apply(ModifierRecipe recipe, ItemStack tool, int[] available, int[] unitsPerItem) {
+        // T23 (#454): upstream Modifier#canApply's trait/modifier/enchantment refusals run before any
+        // aspect (slot budget, level cap) gets a look.
+        Optional<Component> incompatible = ModifierCompatibility.refusal(tool, recipe.modifier(), name(recipe.modifier()));
+        if (incompatible.isPresent()) {
+            return Outcome.rejected(incompatible.get());
+        }
         ModifierEntry existing = ForgeweaveModifiers.entry(tool, recipe.modifier());
         int current = existing == null ? 0 : existing.level();
 

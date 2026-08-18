@@ -444,6 +444,11 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         // Issue #223 (wind burst): the tool the loaded modifier's own vanilla enchantment doesn't
         // support -- e.g. a breeze rod on anything but the warmace.
         add("gui.forgeweave.modifier.unsupported_tool", "%s cannot be applied to this tool.");
+        // Parity audit T23 (issue #454): upstream gui.error.incompatible_trait / incompatible_modifiers /
+        // incompatible_enchantments, Modifier#canApply's three refusals in the order it raises them.
+        add("gui.forgeweave.modifier.incompatible_trait", "Modifier %s can not be used together with trait %s");
+        add("gui.forgeweave.modifier.incompatible_modifiers", "Modifiers %s and %s cannot be applied together");
+        add("gui.forgeweave.modifier.incompatible_enchantment", "Modifier %s cannot be combined with enchantment %s");
         // Issue #424, upstream's modifier.haste.extra ("Bonus-Speed: +%s"): what a modifier adds to
         // the speed the tool it sits on actually uses -- draw speed on a bow, attack speed on a
         // weapon (StationText#modifierExtraInfo).

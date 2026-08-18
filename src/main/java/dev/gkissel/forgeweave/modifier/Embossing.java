@@ -188,6 +188,15 @@ public final class Embossing {
             return Optional.of(rejected("gui.forgeweave.embossment.no_traits",
                     MaterialDisplay.name(registries, materialId)));
         }
+        // T23 (#454): upstream ModExtraTrait#canApplyTogether -- refused if any donor trait can't sit
+        // beside what the tool already carries (a firewood part onto a silky tool, say).
+        for (ResourceLocation trait : traits) {
+            Optional<Component> incompatible =
+                    ModifierCompatibility.refusal(tool, trait, ModifierApplication.name(idFor(materialId)));
+            if (incompatible.isPresent()) {
+                return Optional.of(new Outcome(ItemStack.EMPTY, incompatible.get()));
+            }
+        }
         return Optional.of(new Outcome(embossed(tool, materialId, traits), null));
     }
 
