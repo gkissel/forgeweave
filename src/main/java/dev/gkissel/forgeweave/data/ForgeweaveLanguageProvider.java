@@ -895,6 +895,13 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("modifier.forgeweave.wind_burst.description",
                 "Grants Wind Burst on the warmace. Each breeze rod raises it another level, up to III.");
 
+        // Parity audit T25 (issue #456) -- glowing. Wording follows upstream 1.12's
+        // modifier.glowing.name/.desc; its italic "Shine bright" flavour line has no key
+        // family here, so the description carries the sentence that follows it.
+        add("modifier.forgeweave.glowing.name", "Glowing");
+        add("modifier.forgeweave.glowing.description",
+                "Whenever it gets too dark your tool sacrifices a part of itself to light up your way.");
+
         // #158 -- beheading. The 10% per level is the clone's own chance curve (combat.Beheading).
         add("modifier.forgeweave.beheading.name", "Beheading");
         add("modifier.forgeweave.beheading.description",

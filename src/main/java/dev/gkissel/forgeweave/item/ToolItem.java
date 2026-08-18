@@ -597,7 +597,7 @@ public class ToolItem extends Item {
     public void inventoryTick(ItemStack stack, Level level, Entity entity, int slotId, boolean isSelected) {
         if (level instanceof ServerLevel serverLevel && entity instanceof LivingEntity holder && !isBroken(stack)) {
             ForgeweaveTraits.inventoryTick(stack, serverLevel, holder);
-            ForgeweaveModifiers.inventoryTick(stack, serverLevel, holder);
+            ForgeweaveModifiers.inventoryTick(stack, serverLevel, holder, isSelected);
         }
     }
 
