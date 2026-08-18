@@ -1,0 +1,43 @@
+{
+    block: "forgeweave:seared_reservoir_controller",
+    decoder: "block_entity",
+    expect: {
+        id: "forgeweave:seared_reservoir_controller",
+        structure: {
+            interior_max: [I; 3, 66, 3],
+            interior_min: [I; 1, 64, 1]
+        },
+        tank: {
+            fluids: [
+                {
+                    amount: 32000,
+                    id: "minecraft:lava"
+                },
+                {
+                    amount: 4500,
+                    id: "minecraft:water"
+                }
+            ]
+        }
+    },
+    nbt: {
+        id: "forgeweave:seared_reservoir_controller",
+        structure: {
+            interior_max: [I; 3, 66, 3],
+            interior_min: [I; 1, 64, 1]
+        },
+        tank: {
+            fluids: [
+                {
+                    amount: 32000,
+                    id: "minecraft:lava"
+                },
+                {
+                    amount: 4500,
+                    id: "minecraft:water"
+                }
+            ]
+        }
+    },
+    what: "T44 (#475): a formed 3x3x3 seared reservoir holding two layered fluids -- 32 buckets of lava at the bottom (the one a drain pours) over which 4.5 buckets of water were poured. Capacity is not saved: it is recomputed from the structure on load, 5x5x5 blocks at 4000 mB each, and the ordered `fluids` list is SmelteryTank's own shape, shared with the smeltery core."
+}

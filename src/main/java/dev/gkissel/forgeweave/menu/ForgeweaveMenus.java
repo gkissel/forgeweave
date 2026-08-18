@@ -55,6 +55,12 @@ public final class ForgeweaveMenus {
                     (windowId, inventory, buf) -> new SearedFurnaceMenu(
                             windowId, inventory, buf.readBlockPos(), buf.readVarInt())));
 
+    // T44/#475: the seared reservoir. Its payload is the controller's position and nothing else --
+    // the menu has no slots at all, and the fluid column rides the block entity's own sync.
+    public static final DeferredHolder<MenuType<?>, MenuType<SearedReservoirMenu>> SEARED_RESERVOIR =
+            MENUS.register("seared_reservoir", () -> IMenuTypeExtension.create(
+                    (windowId, inventory, buf) -> new SearedReservoirMenu(windowId, inventory, buf.readBlockPos())));
+
     // #277: the seared duct's one-slot filter GUI (docs/SCOPE.md M3.4). No payload at all -- the
     // filter slot's contents ride vanilla's own slot sync, and nothing else on the screen is dynamic.
     public static final DeferredHolder<MenuType<?>, MenuType<SearedDuctMenu>> SEARED_DUCT =

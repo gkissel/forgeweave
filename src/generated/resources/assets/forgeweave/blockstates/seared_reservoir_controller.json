@@ -1,0 +1,34 @@
+{
+  "variants": {
+    "active=false,facing=east": {
+      "model": "forgeweave:block/seared_reservoir_controller",
+      "y": 90
+    },
+    "active=false,facing=north": {
+      "model": "forgeweave:block/seared_reservoir_controller"
+    },
+    "active=false,facing=south": {
+      "model": "forgeweave:block/seared_reservoir_controller",
+      "y": 180
+    },
+    "active=false,facing=west": {
+      "model": "forgeweave:block/seared_reservoir_controller",
+      "y": 270
+    },
+    "active=true,facing=east": {
+      "model": "forgeweave:block/seared_reservoir_controller_active",
+      "y": 90
+    },
+    "active=true,facing=north": {
+      "model": "forgeweave:block/seared_reservoir_controller_active"
+    },
+    "active=true,facing=south": {
+      "model": "forgeweave:block/seared_reservoir_controller_active",
+      "y": 180
+    },
+    "active=true,facing=west": {
+      "model": "forgeweave:block/seared_reservoir_controller_active",
+      "y": 270
+    }
+  }
+}

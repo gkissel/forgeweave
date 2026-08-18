@@ -71,6 +71,12 @@ public final class ForgeweaveBlockEntities {
                     .of(SearedFurnaceBlockEntity::new, ForgeweaveBlocks.SEARED_FURNACE_CONTROLLER.get())
                     .build(null));
 
+    // T44/#475 -- the seared reservoir controller (upstream's TileTinkerTank).
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<SearedReservoirBlockEntity>> SEARED_RESERVOIR =
+            BLOCK_ENTITIES.register("seared_reservoir_controller", () -> BlockEntityType.Builder
+                    .of(SearedReservoirBlockEntity::new, ForgeweaveBlocks.SEARED_RESERVOIR_CONTROLLER.get())
+                    .build(null));
+
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<SearedTankBlockEntity>> SEARED_TANK =
             BLOCK_ENTITIES.register("seared_tank", () -> BlockEntityType.Builder
                     .of(SearedTankBlockEntity::new, ForgeweaveBlocks.SEARED_TANK.get(),

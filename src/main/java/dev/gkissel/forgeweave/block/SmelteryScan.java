@@ -231,7 +231,7 @@ public final class SmelteryScan {
      * and the claim would never lift. That rescan cannot recurse back into this one -- a core stamps
      * its scan tick before it scans, so re-entering {@code structure()} returns the cached value.
      */
-    private static boolean claimedByAnotherCore(Level level, BlockPos pos, BlockPos corePos) {
+    static boolean claimedByAnotherCore(Level level, BlockPos pos, BlockPos corePos) {
         BlockPos owner = claimAt(level, pos);
         if (owner == null || owner.equals(corePos)) {
             return false;
@@ -276,6 +276,20 @@ public final class SmelteryScan {
     /** The three tank blocks (upstream's {@code TinkerSmeltery.searedTank}); shared with {@link SearedFurnaceScan}. */
     static Set<Block> tankBlocks() {
         return Valid.TANKS;
+    }
+
+    /**
+     * Every block that may stand in a smeltery wall (upstream's {@code TinkerSmeltery.validSmelteryBlocks}).
+     * Upstream builds {@code validTinkerTankBlocks} from that very same builder -- "same blocks right
+     * now" -- so {@link SearedReservoirScan} reads this set rather than keeping a copy that could drift.
+     */
+    static Set<Block> wallBlocks() {
+        return Valid.WALL;
+    }
+
+    /** The drain, duct and chute (upstream's {@code TinkerSmeltery.smelteryIO}); shared with {@link SearedReservoirScan}. */
+    static Set<Block> ioBlocks() {
+        return Valid.IO;
     }
 
     private static Result failure(Component message) {

@@ -197,6 +197,15 @@ public final class ForgeweaveBlocks {
                     .strength(3.0F, 20.0F)
                     .sound(SoundType.METAL)));
 
+    // T44/#475 -- the seared reservoir controller. Upstream 1.12's BlockTinkerTankController
+    // (NOTICE.md) uses the same Material.ROCK / hardness 3 / resistance 20 / SoundType.METAL as the
+    // seared furnace controller, and emits no light: a reservoir holds no fire.
+    public static final DeferredBlock<SearedReservoirControllerBlock> SEARED_RESERVOIR_CONTROLLER = BLOCKS.register("seared_reservoir_controller",
+            () -> new SearedReservoirControllerBlock(BlockBehaviour.Properties.of()
+                    .mapColor(MapColor.STONE)
+                    .strength(3.0F, 20.0F)
+                    .sound(SoundType.METAL)));
+
     // The gauge and window are see-through, so all three skip occlusion culling (upstream's BlockTank
     // is likewise not a full/opaque cube).
     public static final DeferredBlock<SearedTankBlock> SEARED_TANK = tankBlock("seared_tank");

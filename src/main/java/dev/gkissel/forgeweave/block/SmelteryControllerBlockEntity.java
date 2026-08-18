@@ -91,7 +91,7 @@ import dev.gkissel.forgeweave.recipe.SmelteryFuel;
  * SmelteryControllerBlock#tick} runs {@link #sweepInterior()} on every firing regardless of
  * which cadence woke it.
  */
-public class SmelteryControllerBlockEntity extends BlockEntity implements StationMenuHost, TankOwner {
+public class SmelteryControllerBlockEntity extends BlockEntity implements StationMenuHost, TankOwner, SmelteryTankHost {
     /**
      * Fluid capacity each interior block contributes, upstream's {@code CAPACITY_PER_BLOCK} of eight
      * ingots at 144 mB each.

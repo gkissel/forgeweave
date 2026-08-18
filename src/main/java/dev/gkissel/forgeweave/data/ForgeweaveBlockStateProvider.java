@@ -144,6 +144,11 @@ public class ForgeweaveBlockStateProvider extends BlockStateProvider {
         // #442 -- upstream's seared_furnace_controller blockstate is the same orientable shape over
         // seared brick, front swapping on `active` (NOTICE.md).
         coreBlock("seared_furnace_controller", ForgeweaveBlocks.SEARED_FURNACE_CONTROLLER.get(), "seared_bricks");
+        // T44/#475 -- upstream's tinker_tank_controller blockstate is the same orientable shape over
+        // seared brick, front swapping on `active` (NOTICE.md). Upstream's active model layers a
+        // translucent overlay over a background texture in two model elements; the derived active
+        // texture is that composite, which renders identically through the shared helper below.
+        coreBlock("seared_reservoir_controller", ForgeweaveBlocks.SEARED_RESERVOIR_CONTROLLER.get(), "seared_bricks");
 
         // Upstream's seared_tank blockstate: one cube per tank type, side and top textures per type.
         tankBlock("seared_tank", ForgeweaveBlocks.SEARED_TANK.get(), "seared_tank_side", "seared_tank_top");

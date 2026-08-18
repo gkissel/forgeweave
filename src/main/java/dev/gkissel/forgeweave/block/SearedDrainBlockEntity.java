@@ -23,11 +23,16 @@ public class SearedDrainBlockEntity extends SmelteryIoBlockEntity {
         super(ForgeweaveBlockEntities.SEARED_DRAIN.get(), pos, state);
     }
 
-    /** The smeltery tank this drain serves, or {@code null} while it is not part of a formed structure. */
+    /**
+     * The tank this drain serves, or {@code null} while it is not part of a formed structure.
+     *
+     * <p>Reads {@link SmelteryIoBlockEntity#formedTank()} rather than a smeltery core directly, so
+     * the same drain pours a seared reservoir too (parity audit T44, issue #475) -- upstream's
+     * {@code TileDrain} likewise looks up {@code ISmelteryTankHandler}, not {@code TileSmeltery}.
+     */
     @Nullable
     public IFluidHandler fluidHandler() {
-        SmelteryControllerBlockEntity core = formedCore();
-        return core == null ? null : core.tank();
+        return formedTank();
     }
 
     /** Wires the fluid-handler capability; called from {@code Forgeweave}'s constructor. */
