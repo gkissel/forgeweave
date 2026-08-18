@@ -19,9 +19,12 @@ import net.neoforged.neoforge.common.data.ExistingFileHelper;
 
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.block.ChestKind;
+import dev.gkissel.forgeweave.block.ForgeweaveBlocks;
 import dev.gkissel.forgeweave.block.SearedDuctBlockEntity;
 import dev.gkissel.forgeweave.item.ForgeweaveItems;
+import dev.gkissel.forgeweave.item.PatternItem;
 import dev.gkissel.forgeweave.menu.ToolAssemblyRecipes;
+import net.neoforged.neoforge.registries.DeferredHolder;
 
 /**
  * Puts the four metals that lack a vanilla item form (docs/SCOPE.md M2 issue #103: cobalt, ardite,
@@ -187,6 +190,55 @@ public class ForgeweaveItemTagsProvider extends ItemTagsProvider {
         for (var clayCast : ForgeweaveItems.CLAY_CASTS.values()) {
             tag(ChestKind.CASTS).add(clayCast.get());
         }
+
+        // T79 (parity audit 2026-08-18, issue #510) -- the item-side half of TinkerOredict that
+        // Forgeweave never picked up: c: convention tags for clear glass (+ its 16 dyed colors),
+        // seared brick, and the cast/pattern/part families. See ForgeweaveBlockTagsProvider for the
+        // block-side glass tags.
+        //
+        // registerCommon(): blockClearGlass/blockClearStainedGlass -> "blockGlass", plus each color
+        // meta -> "blockGlass" + dyes[i] (e.g. "blockGlassWhite"). c:glass_blocks is the modern
+        // "blockGlass" equivalent; c:dyed/<color> is the modern per-color equivalent -- the same tag
+        // vanilla's own stained glass already carries (see the shipped c:dyed/white.json and
+        // friends), rather than inventing a c:glass_blocks/<color> convention nothing else uses.
+        var glassBlocks = tag("glass_blocks").add(ForgeweaveItems.CLEAR_GLASS.get());
+        for (var color : ForgeweaveBlocks.clearStainedGlassColors()) {
+            var item = color.block().get().asItem();
+            glassBlocks.add(item);
+            tag("dyed/" + color.dye().getSerializedName()).add(item);
+        }
+
+        // registerCommon(): searedBrick -> "ingotBrickSeared". Same c:ingots/<name> convention this
+        // file already uses for cobalt/ardite/etc, even though a seared brick isn't a metal ingot --
+        // that is upstream's own naming choice, not a Forgeweave one.
+        tag("ingots/seared_brick").add(ForgeweaveItems.SEARED_BRICK.get());
+
+        // registerSmeltery(): both TinkerSmeltery.cast and .castCustom -> "cast" (a blank and a
+        // stamped gold cast are the same item with different metadata upstream, so one wildcard
+        // oredict covers both). CASTS_GOLD is already exactly that reusable-gold-cast set (T69/#500);
+        // c:casts exposes it under the convention namespace other mods can hook into.
+        tag("casts").addTag(CASTS_GOLD);
+
+        // registerTools(): pattern -> "pattern". Upstream's Pattern is one item with per-shape
+        // metadata, so its wildcard oredict covers the blank pattern and every part pattern alike.
+        // Forgeweave splits that into one item per shape (PatternItem, plus the plain-Item blank), so
+        // c:patterns is every registered PatternItem plus the blank -- derived off the item registry
+        // like ForgeweaveItemColors#tintedPartItems, so a new pattern shape inherits membership by
+        // being registered rather than needing a second hand list kept in sync with ForgeweaveItems.
+        var patterns = tag("patterns").add(ForgeweaveItems.PATTERN_BLANK.get());
+        ForgeweaveItems.ITEMS.getEntries().stream()
+                .<Item>map(DeferredHolder::get)
+                .filter(item -> item instanceof PatternItem)
+                .forEach(patterns::add);
+
+        // registerTools(): partPickHead/partBinding/partToolRod -> one tag each. Verified against the
+        // clone (TinkerTools.java): upstream registers roughly fifteen ToolPart fields but only
+        // oredicts these three -- no partSwordBlade, partWideGuard, etc -- so parity here is the same
+        // narrow three, not the full Forgeweave part roster (unlike patterns above, which upstream's
+        // single wildcarded item makes deliberately unbounded).
+        tag("parts/pickaxe_head").add(ForgeweaveItems.PART_PICKAXE_HEAD.get());
+        tag("parts/tool_binding").add(ForgeweaveItems.PART_TOOL_BINDING.get());
+        tag("parts/tool_rod").add(ForgeweaveItems.PART_TOOL_HANDLE.get());
     }
 
     /** The tag naming every block a Tool Forge can be crafted from (issue #152). */
