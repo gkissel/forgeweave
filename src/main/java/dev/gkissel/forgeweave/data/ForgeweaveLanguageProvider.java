@@ -313,12 +313,15 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("effect.forgeweave.lacerate", "Lacerated");
         addItem(ForgeweaveItems.TOOL_KATANA, "Katana");
         addItem(ForgeweaveItems.TOOL_CLEAVER, "Cleaver"); // #158
-        // M3.5 #394: upstream item.tconstruct.shortbow.name / .desc, minus its closing "Uses
-        // Tinkers' Arrows." -- M3.5 fires vanilla arrows only (docs/SCOPE.md), and the sentence
-        // about fast movement while drawing describes BowCore#preventSlowDown, which is not ported.
+        // M3.5 #394, corrected by parity audit 2026-08-18 T77: upstream
+        // item.tconstruct.shortbow.name / .desc, minus its closing "Uses Tinkers' Arrows." --
+        // M3.5 fires vanilla arrows only (docs/SCOPE.md). The original #394 rewrite dropped
+        // "allows for fast movements while shooting" because BowCore#preventSlowDown wasn't
+        // ported yet; it now is (BowItem, BowDrawMovement, PR #413/#421), so the upstream
+        // sentence is restored.
         addItem(ForgeweaveItems.TOOL_SHORTBOW, "Shortbow");
         add("item.forgeweave.shortbow.description",
-                "The Shortbow is a quick and nimble weapon. It draws fast and looses arrows at a rapid rate. Fires vanilla arrows.");
+                "The Shortbow is a quick and nimble weapon. It allows for fast movements while shooting arrows at a rapid rate. Fires vanilla arrows.");
         // M3.5 #395: upstream item.tconstruct.longbow.name / .desc and .crossbow.name / .desc, each
         // minus its closing "Uses Tinkers' Arrows." / "Uses Tinkers' Bolts." -- M3.5 ships no
         // material projectile, so both fire vanilla arrows (docs/SCOPE.md).
