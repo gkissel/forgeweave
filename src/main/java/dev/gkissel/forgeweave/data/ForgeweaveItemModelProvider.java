@@ -283,6 +283,12 @@ public class ForgeweaveItemModelProvider extends ItemModelProvider {
         singleLayerModel(ForgeweaveItems.INGOT_KNIGHTSLIME, derivedItem("knightslime_ingot"));
         singleLayerModel(ForgeweaveItems.NUGGET_KNIGHTSLIME, derivedItem("knightslime_nugget"));
 
+        // #452 -- the slime boots (T21), upstream's items/armor/slime_boots.png with the green slime
+        // ball tint baked in (NOTICE.md). Upstream's own model parents item/handheld, which is an
+        // upstream quirk for a boots item; vanilla boots are item/generated, which is what
+        // singleLayerModel produces.
+        singleLayerModel(ForgeweaveItems.SLIME_BOOTS, derivedItem("slime_boots"));
+
         // #233 -- pig iron ingot/nugget, straight upstream texture ports (ingot_pigiron.png/
         // nugget_pigiron.png, NOTICE.md). No raw form (alloy-only metal).
         singleLayerModel(ForgeweaveItems.INGOT_PIG_IRON, derivedItem("pig_iron_ingot"));

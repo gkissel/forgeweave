@@ -202,6 +202,8 @@ public final class ForgeweaveCreativeTab {
         output.accept(ForgeweaveItems.INGOT_KNIGHTSLIME.get());
         output.accept(ForgeweaveItems.NUGGET_KNIGHTSLIME.get());
 
+        output.accept(ForgeweaveItems.SLIME_BOOTS.get()); // #452, upstream's tabGadgets
+
         output.accept(ForgeweaveItems.COBALT_ORE.get());
         output.accept(ForgeweaveItems.ARDITE_ORE.get());
 

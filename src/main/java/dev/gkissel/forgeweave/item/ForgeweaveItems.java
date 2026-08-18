@@ -679,6 +679,10 @@ public final class ForgeweaveItems {
     // #232 -- knightslime's storage block item (docs/SCOPE.md M3.2).
     public static final DeferredItem<BlockItem> KNIGHTSLIME_BLOCK = ITEMS.registerSimpleBlockItem("knightslime_block", ForgeweaveBlocks.KNIGHTSLIME_BLOCK);
 
+    // #452 -- the slime boots (parity audit T21), upstream 1.12's `gadgets/item/ItemSlimeBoots`.
+    // Wearable in the boots slot, no armour of their own; see SlimeBootsItem for the bounce.
+    public static final DeferredItem<SlimeBootsItem> SLIME_BOOTS = ITEMS.registerItem("slime_boots", SlimeBootsItem::new);
+
     // #233 -- pig iron (docs/SCOPE.md M3.2): ingot/nugget with upstream 1.12 art
     // (ingot_pigiron.png/nugget_pigiron.png, NOTICE.md) plus its storage block. No raw form: pig
     // iron is alloy-only, there is no ore to drop one (same reason netherite has none).

@@ -280,6 +280,18 @@ public class ForgeweaveRecipeProvider extends RecipeProvider {
                 .unlockedBy("has_green_slime_crystal", has(ForgeweaveItems.GREEN_SLIME_CRYSTAL.get()))
                 .save(recipeOutput);
 
+        // #452 -- the slime boots (parity audit T21), upstream's recipes/gadgets/slimeboots/green.json
+        // shape: two slime balls over two congealed slime blocks. Forgeweave has no congealed slime
+        // (parity audit T57), so the vanilla slime block stands in for it, the same substitution the
+        // green slime crystal's smelt already makes (issue #232).
+        ShapedRecipeBuilder.shaped(RecipeCategory.COMBAT, ForgeweaveItems.SLIME_BOOTS.get())
+                .pattern("A A")
+                .pattern("B B")
+                .define('A', Items.SLIME_BALL)
+                .define('B', Items.SLIME_BLOCK)
+                .unlockedBy("has_slime_block", has(Items.SLIME_BLOCK))
+                .save(recipeOutput);
+
         // #235 -- amethyst bronze (M3.2), same #206 shape.
         storageBlockRecipes(recipeOutput, ForgeweaveItems.INGOT_AMETHYST_BRONZE.get(), ForgeweaveItems.AMETHYST_BRONZE_BLOCK.get());
     }
