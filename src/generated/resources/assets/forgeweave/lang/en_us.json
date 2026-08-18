@@ -623,7 +623,7 @@
   "tooltip.forgeweave.innate.beheading.name": "Beheading",
   "tooltip.forgeweave.innate.charged_leap.description": "Hold right-click to charge, then release to leap; the longer the charge, the further the jump.",
   "tooltip.forgeweave.innate.charged_leap.name": "Charged Leap",
-  "tooltip.forgeweave.innate.concussion.description": "Hits sometimes leave the target badly slowed.",
+  "tooltip.forgeweave.innate.concussion.description": "Hits sometimes leave the target badly slowed, and deal bonus damage to the undead.",
   "tooltip.forgeweave.innate.concussion.name": "Concussion",
   "tooltip.forgeweave.innate.crushing_blow.description": "Knocks armored targets back harder.",
   "tooltip.forgeweave.innate.crushing_blow.name": "Crushing Blow",

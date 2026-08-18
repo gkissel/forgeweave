@@ -16,9 +16,11 @@ import net.minecraft.world.InteractionResult;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.animal.Pig;
 import net.minecraft.world.entity.animal.Sheep;
 import net.minecraft.world.entity.item.ItemEntity;
+import net.minecraft.world.entity.monster.Zombie;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.item.ItemStack;
@@ -39,6 +41,7 @@ import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 
 import dev.gkissel.forgeweave.Forgeweave;
+import dev.gkissel.forgeweave.combat.CombatHit;
 import dev.gkissel.forgeweave.combat.CombatSeam;
 import dev.gkissel.forgeweave.combat.CombatSeams;
 import dev.gkissel.forgeweave.combat.ForgeweaveInnates;
@@ -518,7 +521,7 @@ public class LargeToolGameTests {
      */
     @GameTest(template = "empty")
     public static void everyLargeToolCarriesItsRider(GameTestHelper helper) {
-        assertRider(helper, ForgeweaveItems.TOOL_HAMMER.get(), "hammer", ForgeweaveInnates.CONCUSSION_SEAM);
+        assertRider(helper, ForgeweaveItems.TOOL_HAMMER.get(), "hammer", ForgeweaveInnates.HAMMER_SEAM);
         assertRider(helper, ForgeweaveItems.TOOL_EXCAVATOR.get(), "excavator", ForgeweaveInnates.FLAT_SMACK_SEAM);
         assertRider(helper, ForgeweaveItems.TOOL_LUMBERAXE.get(), "lumber axe", ForgeweaveInnates.TIMBER_SEAM);
         assertRider(helper, ForgeweaveItems.TOOL_SCYTHE.get(), "scythe", ForgeweaveInnates.SWEEP_SEAM);
@@ -550,7 +553,47 @@ public class LargeToolGameTests {
         helper.succeed();
     }
 
+    /**
+     * The hammer's flat +3..+6 bonus damage against the undead (parity audit T35, issue #466,
+     * upstream {@code Hammer#dealDamage}'s {@code damage += 3 + random.nextInt(4)}), run at the seam
+     * level rather than through a real {@code hurt()} call so the assertion is about the seam's own
+     * math, not vanilla's armor mitigation on top of it (a zombie carries base armor).
+     */
+    @GameTest(template = "empty")
+    public static void hammerDealsBonusDamageAgainstTheUndead(GameTestHelper helper) {
+        ServerPlayer player = holdingLargeTool(helper, ForgeweaveItems.TOOL_HAMMER.get(), "stone");
+        ItemStack hammer = player.getMainHandItem();
+        Zombie zombie = helper.spawn(EntityType.ZOMBIE, new BlockPos(2, 2, 2));
+        zombie.setNoAi(true);
+        Pig pig = helper.spawn(EntityType.PIG, new BlockPos(3, 2, 3));
+
+        for (int i = 0; i < 20; i++) {
+            float bonus = preHit(helper, player, hammer, zombie, 2.0F) - 2.0F;
+            helper.assertTrue(bonus >= 3.0F && bonus <= 6.0F,
+                    "expected +3..+6 against the undead, got bonus " + bonus);
+        }
+        float vsPig = preHit(helper, player, hammer, pig, 2.0F);
+        helper.assertTrue(Math.abs(vsPig - 2.0F) < 0.001F,
+                "the undead bonus must not touch a living target, got " + vsPig);
+
+        zombie.discard();
+        pig.discard();
+        helper.succeed();
+    }
+
     // ------------------------------------------------------------------ helpers
+
+    /** One hit's damage after every seam the tool carries has adjusted it, without landing a real blow. */
+    private static float preHit(GameTestHelper helper, Player attacker, ItemStack weapon, LivingEntity target,
+            float damage) {
+        CombatHit hit = new CombatHit(helper.getLevel(), weapon, attacker, target,
+                helper.getLevel().damageSources().playerAttack(attacker));
+        float result = damage;
+        for (CombatSeam seam : CombatSeams.seams(weapon)) {
+            result = seam.preHit(hit, damage, result);
+        }
+        return result;
+    }
 
     /** Assembles {@code tool} at a Tool Forge and puts it in a real server player's main hand. */
     private static ServerPlayer holdingLargeTool(GameTestHelper helper, ToolItem tool, String material) {
