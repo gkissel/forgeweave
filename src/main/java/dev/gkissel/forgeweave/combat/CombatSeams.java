@@ -2,6 +2,7 @@ package dev.gkissel.forgeweave.combat;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.function.Consumer;
 
 import org.jetbrains.annotations.Nullable;
@@ -12,11 +13,13 @@ import net.neoforged.neoforge.event.entity.living.LivingDeathEvent;
 import net.neoforged.neoforge.event.entity.living.LivingIncomingDamageEvent;
 
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.InteractionHand;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
 
+import dev.gkissel.forgeweave.item.ForgeweaveDataComponents;
 import dev.gkissel.forgeweave.item.ToolItem;
 
 /**
@@ -191,7 +194,50 @@ public final class CombatSeams {
         // shooter's last melee charge -- upstream ToolHelper#attackEntity runs projectile hits with
         // applyCooldown = false, i.e. at full strength.
         boolean projectile = source.getDirectEntity() != null && source.getDirectEntity() != causing;
+        if (projectile) {
+            // #416: the gate above ran on the snapshot -- the launcher as it was when it fired, which
+            // is what decides whether the shot was legal. What the seams get is the live stack.
+            weapon = liveLauncher(attacker, weapon);
+        }
         return new CombatHit(level, weapon, attacker, target, source, projectile ? 1.0F : attackStrengthScale(attacker));
+    }
+
+    /**
+     * The launcher a projectile hit is resolved against (issue #416). The stack 1.21 hands back
+     * through {@code DamageSource#getWeaponItem} is a <b>copy</b> of the bow taken at fire time
+     * ({@code AbstractArrow#firedFromWeapon}, copied in the constructor), so a seam that writes tool
+     * state -- shocking's charge, luck's growth, any future one -- wrote to that copy and left the
+     * real bow untouched: an electrum bow at full charge discharged Speed VI on every arrow hit and
+     * never spent the charge. Resolving the shooter's own stack here, once, keeps that a property of
+     * the pipeline instead of something each state-writing trait has to remember to ask about.
+     *
+     * <p>Identity is the tool item plus its {@code TOOL_MATERIALS}, deliberately not the whole
+     * component set: the snapshot and the live bow differ in exactly the state this exists to write
+     * (charge, durability, glint). Two identically-built bows, one per hand, are indistinguishable by
+     * that identity and the main hand wins -- they carry the same traits and stats, so which of them
+     * banks the charge is not a difference a player can observe.
+     *
+     * <p>ponytail: hands only, no inventory sweep. A shooter who stowed the launcher between firing
+     * and impact gets the snapshot, so the read-only hit effects (fiery, smite, knockback) still land
+     * -- upstream 1.12 gives a launcher's traits no arrow at all, so the snapshot is already past
+     * parity -- while the state write dies with the arrow. The ceiling: a player who unequips a fully
+     * charged bow from both hands after every shot still gets one discharge per arrow in flight.
+     * Closing that means teaching the pipeline which seams write state; worth the machinery when a
+     * second state-writing trait can reach a launcher.
+     */
+    private static ItemStack liveLauncher(@Nullable LivingEntity shooter, ItemStack snapshot) {
+        if (shooter == null) {
+            return snapshot;
+        }
+        for (InteractionHand hand : InteractionHand.values()) {
+            ItemStack held = shooter.getItemInHand(hand);
+            if (held.getItem() == snapshot.getItem()
+                    && Objects.equals(held.get(ForgeweaveDataComponents.TOOL_MATERIALS.get()),
+                            snapshot.get(ForgeweaveDataComponents.TOOL_MATERIALS.get()))) {
+                return held;
+            }
+        }
+        return snapshot;
     }
 
     /**
