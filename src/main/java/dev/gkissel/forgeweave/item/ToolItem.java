@@ -14,6 +14,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
+import net.minecraft.tags.BlockTags;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
@@ -35,6 +36,7 @@ import net.minecraft.world.item.component.Tool;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 
 import dev.gkissel.forgeweave.Forgeweave;
@@ -249,16 +251,38 @@ public class ToolItem extends Item {
     public Tool toolComponent(Material head, ToolStats.Stats stats) {
         List<Tool.Rule> rules = new ArrayList<>();
         rules.add(Tool.Rule.deniesDrops(head.incorrectForTool()));
+        // Upstream's ToolCore#miningSpeedModifier, applied at read time there and here folded
+        // into the vanilla tool component (issue #153's Entry field).
+        float speed = stats.miningSpeed() * miningSpeedModifier;
+        if (minesCobweb()) {
+            // Upstream SwordCore#getStrVsBlock: cobweb at 7.5x the tool's own speed, on top of the
+            // 0.5 sword modifier (issue #437). Vanilla's own sword spends a flat 15.0 here; keeping
+            // it relative preserves upstream's per-material scaling. Tool#getMiningSpeed returns the
+            // first matching rule, so this has to precede the tag rule below. The sword set is the
+            // only mineable family upstream gives a per-block multiplier at all.
+            rules.add(Tool.Rule.minesAndDrops(List.of(Blocks.COBWEB), speed * 7.5F));
+        }
         for (TagKey<Block> tag : mineableBlocks) {
-            // Upstream's ToolCore#miningSpeedModifier, applied at read time there and here folded
-            // into the vanilla tool component (issue #153's Entry field).
-            rules.add(Tool.Rule.minesAndDrops(tag, stats.miningSpeed() * miningSpeedModifier));
+            rules.add(Tool.Rule.minesAndDrops(tag, speed));
         }
         return new Tool(rules, 1.0F, 1);
     }
 
+    /**
+     * Whether this tool type is a sword, i.e. carries upstream {@code SwordCore}'s
+     * {@code effective_materials}. 1.21's {@code #minecraft:sword_efficient} covers that set's VINE,
+     * GOURD and LEAVES but not its {@code Material.WEB}, so cobweb is named separately -- as
+     * vanilla's own {@code SwordItem#createToolProperties} does (issue #437).
+     */
+    private boolean minesCobweb() {
+        return mineableBlocks.contains(BlockTags.SWORD_EFFICIENT);
+    }
+
     /** Whether {@code state} is in any of this tool type's {@link #mineableBlocks} tags. */
     private boolean isEffective(BlockState state) {
+        if (state.is(Blocks.COBWEB) && minesCobweb()) {
+            return true;
+        }
         for (TagKey<Block> tag : mineableBlocks) {
             if (state.is(tag)) {
                 return true;
