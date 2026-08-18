@@ -31,7 +31,7 @@ import dev.gkissel.forgeweave.trait.ForgeweaveTraits;
  *
  * <p>The trait step is upstream's {@code TinkerEvent.OnItemBuilding} listeners, which fire once on
  * the finished stat block at assembly -- for M1 that is stone's {@code cheapskate} taking 20% off
- * (see {@code ForgeweaveTraits#CHEAP}). It belongs here rather than in the Tool Station because
+ * (see {@code ForgeweaveTraits#CHEAPSKATE}). It belongs here rather than in the Tool Station because
  * every caller that wants an assembled tool's stats goes through this method.
  *
  * <p>ponytail: kept intentionally small and pure (materials in, stats out; no item plumbing) so

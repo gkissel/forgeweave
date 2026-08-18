@@ -62,9 +62,9 @@ class ForgeweaveTraitsTest {
     void headDurabilityAppliesEveryKnownHeadTrait() {
         assertEquals(100, ForgeweaveTraits.headDurability(List.of(), 100));
         assertEquals(100, ForgeweaveTraits.headDurability(List.of(id("not_a_trait")), 100));
-        // forgeweave:cheap carries upstream's head-only cheapskate: max(1, durability * 80 / 100).
-        assertEquals(80, ForgeweaveTraits.headDurability(List.of(id("cheap")), 100));
-        assertEquals(64, ForgeweaveTraits.headDurability(List.of(id("cheap"), id("cheap")), 100));
+        // forgeweave:cheapskate: max(1, durability * 80 / 100) -- issue #493 split it off cheap.
+        assertEquals(80, ForgeweaveTraits.headDurability(List.of(id("cheapskate")), 100));
+        assertEquals(64, ForgeweaveTraits.headDurability(List.of(id("cheapskate"), id("cheapskate")), 100));
     }
 
     private static Material material(Material.Traits traits) {

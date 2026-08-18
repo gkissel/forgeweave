@@ -56,7 +56,7 @@ import dev.gkissel.forgeweave.menu.ToolAssemblyRecipes;
 @PrefixGameTestTemplate(false)
 public class StationWeaponGameTests {
 
-    /** Stone head everywhere: neither wood's ecological nor stone's cheap touches attack damage. */
+    /** Stone head everywhere: neither wood's ecological nor stone's cheapskate touches attack damage. */
     private static final String HEAD = "stone";
     private static final String OTHER = "wood";
 

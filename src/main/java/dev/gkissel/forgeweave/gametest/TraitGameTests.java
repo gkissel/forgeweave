@@ -51,10 +51,10 @@ public class TraitGameTests {
      * GameTest server against the same {@code Material.REGISTRY} that gets synced, so a schema change
      * that decoded only in a unit test would fail here.
      *
-     * <p>Wood and stone are general-only -- exactly what the pre-#94 single {@code trait} field
-     * meant. Flint and bone carry issue #231's retrofits on top: a head-scoped {@code crude2} /
-     * {@code splintering} that replaces the general list on head parts, upstream's own
-     * {@code addTrait(x, HEAD)} semantics.
+     * <p>Wood is general-only -- exactly what the pre-#94 single {@code trait} field meant. Flint,
+     * bone and (issue #493) stone each carry a head-scoped trait on top -- {@code crude2} /
+     * {@code splintering} / {@code cheapskate} -- that replaces the general list on head parts,
+     * upstream's own {@code addTrait(x, HEAD)} semantics.
      */
     @GameTest(template = "empty")
     public static void shippedMaterialsExposeTheirTraitListsThroughEveryPart(GameTestHelper helper) {
@@ -63,7 +63,7 @@ public class TraitGameTests {
                 "wood", List.of("ecological"), "stone", List.of("cheap"),
                 "flint", List.of("crude"), "bone", List.of("fractured"));
         Map<String, List<String>> head = Map.of(
-                "wood", List.of("ecological"), "stone", List.of("cheap"),
+                "wood", List.of("ecological"), "stone", List.of("cheapskate"),
                 "flint", List.of("crude2"), "bone", List.of("splintering"));
 
         general.forEach((name, generalTraits) -> {
@@ -127,13 +127,17 @@ public class TraitGameTests {
     }
 
     /**
-     * Stone -&gt; {@code forgeweave:cheap}: 5% more durability per repair item, and (upstream's
-     * head-only {@code cheapskate}, folded into the same id) 20% off the assembled durability pool.
-     * The stone-headed pickaxe's pool is 128 rather than 160, and it repairs for its head material's
-     * 120 durability plus {@code 120 * 5 / 100 = 6}, so one cobblestone takes 126 off instead of 120.
+     * Stone's head -&gt; {@code forgeweave:cheapskate} only (issue #493 split): 20% off the assembled
+     * durability pool, but <em>no</em> repair bonus -- upstream's {@code Material#getAllTraitsForStats}
+     * replaces the general trait list with the head-scoped one rather than merging them
+     * ({@code stone.addTrait(cheapskate, HEAD)} on top of, not alongside, {@code addTrait(cheap)}),
+     * so a stone-headed tool with no other stone parts repairs for exactly its head material's base
+     * amount. The stone-headed pickaxe's pool is 128 rather than 160, and it repairs for its head
+     * material's 120 durability with no bonus, so one cobblestone takes 120 off, not 126.
+     * {@link #cheapOffTheHeadStillAddsARepairBonus} covers the general trait's own +5%.
      */
     @GameTest(template = "empty")
-    public static void cheapRepairsMoreThanTheBaseAmount(GameTestHelper helper) {
+    public static void cheapskateOnTheHeadAddsNoRepairBonus(GameTestHelper helper) {
         BlockPos pos = new BlockPos(1, 1, 1);
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         ItemStack pickaxe = ToolAssembly.pickaxe(helper, player, pos, "stone", "wood", "wood");
@@ -148,8 +152,39 @@ public class TraitGameTests {
         ToolStationMenu menu = ToolAssembly.menu(helper, player, pos, blockEntity);
         menu.broadcastChanges();
 
-        helper.assertTrue(menu.getSlot(ToolStationMenu.OUTPUT_SLOT).getItem().getDamageValue() == 1,
-                "expected 127 - (120 + 5%) = 1 damage left with cheap, got "
+        helper.assertTrue(menu.getSlot(ToolStationMenu.OUTPUT_SLOT).getItem().getDamageValue() == 7,
+                "expected 127 - 120 (no repair bonus off cheapskate) = 7 damage left, got "
+                        + menu.getSlot(ToolStationMenu.OUTPUT_SLOT).getItem().getDamageValue());
+
+        helper.succeed();
+    }
+
+    /**
+     * Stone's binding -&gt; {@code forgeweave:cheap}, general (issue #493 split): 5% more durability
+     * per repair item wherever stone isn't the head. A wood-headed pickaxe with a stone binding
+     * repairs (with the wood head's own repair item, planks) for its head material's 35 durability
+     * plus {@code 35 * 5 / 100 = 1}, so one plank takes 36 off instead of 35 -- the general repair
+     * bonus {@link #cheapskateOnTheHeadAddsNoRepairBonus} shows a stone <em>head</em> alone does not
+     * carry.
+     */
+    @GameTest(template = "empty")
+    public static void cheapOffTheHeadStillAddsARepairBonus(GameTestHelper helper) {
+        BlockPos pos = new BlockPos(1, 1, 1);
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        ItemStack pickaxe = ToolAssembly.pickaxe(helper, player, pos, "wood", "stone", "wood");
+        pickaxe.hurtAndBreak(1_000, helper.getLevel(), player, brokenItem -> {});
+        helper.assertTrue(pickaxe.getDamageValue() == 79, "expected the 80-durability pickaxe Broken at 79 damage");
+
+        ToolStationBlockEntity blockEntity = helper.getBlockEntity(pos);
+        blockEntity.container().setItem(0, pickaxe);
+        blockEntity.container().setItem(1, new ItemStack(Items.OAK_PLANKS, 1));
+        blockEntity.container().setItem(2, ItemStack.EMPTY);
+
+        ToolStationMenu menu = ToolAssembly.menu(helper, player, pos, blockEntity);
+        menu.broadcastChanges();
+
+        helper.assertTrue(menu.getSlot(ToolStationMenu.OUTPUT_SLOT).getItem().getDamageValue() == 43,
+                "expected 79 - (35 + 5%) = 43 damage left with cheap off the head, got "
                         + menu.getSlot(ToolStationMenu.OUTPUT_SLOT).getItem().getDamageValue());
 
         helper.succeed();

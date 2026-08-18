@@ -16,7 +16,8 @@
   },
   "incorrect_for_tool": "minecraft:incorrect_for_stone_tool",
   "traits": {
-    "general": ["forgeweave:cheap"]
+    "general": ["forgeweave:cheap"],
+    "head": ["forgeweave:cheapskate"]
   },
   "crafting_items": [
     { "ingredient": { "item": "minecraft:cobblestone" }, "value": 2 },

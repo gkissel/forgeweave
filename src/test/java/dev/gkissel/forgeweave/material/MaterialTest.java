@@ -156,11 +156,13 @@ class MaterialTest {
     }
 
     /**
-     * Wood and stone carry their one trait as a general trait, i.e. every part they make grants it
-     * -- which is what the pre-#94 single {@code trait} field meant.
+     * Wood carries its one trait as a general trait, i.e. every part it makes grants it -- which is
+     * what the pre-#94 single {@code trait} field meant. (Stone used to as well, but issue #493 split
+     * its {@code cheap}/{@code cheapskate} pair onto {@link #retrofittedMaterialsScopeTheirHeadTrait}'s
+     * pattern.)
      */
     @ParameterizedTest
-    @CsvSource({ "wood,ecological", "stone,cheap" })
+    @CsvSource({ "wood,ecological" })
     void shippedMaterialsGrantTheirTraitThroughEveryPart(String name, String trait) {
         Material material = Material.CODEC.parse(ops, shipped(name)).getOrThrow();
         ResourceLocation id = ResourceLocation.fromNamespaceAndPath("forgeweave", trait);
@@ -174,9 +176,12 @@ class MaterialTest {
     /**
      * Issue #231's retrofits: flint and bone gained the head-scoped trait upstream gives them
      * ({@code crude2} / {@code splintering}), which replaces the general list on head parts only.
+     * Issue #493 gives stone the same treatment: upstream's {@code stone.addTrait(cheapskate, HEAD)}
+     * replaces {@code cheap}'s general repair bonus with {@code cheapskate}'s durability penalty on
+     * the head part, exactly like flint and bone.
      */
     @ParameterizedTest
-    @CsvSource({ "flint,crude,crude2", "bone,fractured,splintering" })
+    @CsvSource({ "flint,crude,crude2", "bone,fractured,splintering", "stone,cheap,cheapskate" })
     void retrofittedMaterialsScopeTheirHeadTrait(String name, String general, String head) {
         Material material = Material.CODEC.parse(ops, shipped(name)).getOrThrow();
         ResourceLocation generalId = ResourceLocation.fromNamespaceAndPath("forgeweave", general);
