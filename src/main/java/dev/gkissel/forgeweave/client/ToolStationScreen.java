@@ -78,7 +78,9 @@ import dev.gkissel.forgeweave.tool.ToolMaterials;
  *       the tool's description plus the components it needs, and the repair tab shows its own blurb.
  *   <li><b>Rename field.</b> Upstream's text field at its own coordinates. It sends
  *       {@link RenameStationItemPayload} on every edit and the server applies the name to the output
- *       stack, so nothing here decides what the crafted item is called.
+ *       stack, so nothing here decides what the crafted item is called. Since parity audit T11
+ *       (issue #443) the server also echoes the text to the other players at that station, and
+ *       {@link #containerTick} folds theirs back into this field.
  * </ul>
  *
  * <p>{@link AbstractContainerScreen#render} does <em>not</em> call {@link #renderTooltip} on its
@@ -282,6 +284,15 @@ public class ToolStationScreen extends StationScreen<ToolStationMenu> implements
     @Override
     protected void containerTick() {
         super.containerTick();
+        // Parity audit T11 (issue #443): another player at this station typed, and the server echoed
+        // their text onto this menu over RenameStationItemPayload. Polled rather than pushed straight
+        // at the widget so the payload handler stays side-agnostic. Never fights this player's own
+        // typing: the server echoes only to the players who did not send it, so the two strings
+        // differ exactly when someone else changed the name.
+        if (!menu.getToolName().equals(lastSentName)) {
+            lastSentName = menu.getToolName();
+            nameField.setValue(lastSentName);
+        }
         updateInfo();
     }
 

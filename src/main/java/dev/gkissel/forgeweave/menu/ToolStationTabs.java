@@ -62,7 +62,9 @@ import dev.gkissel.forgeweave.item.ToolItem;
  * Which tab is selected travels as a {@code DataSlot} set from
  * {@link ToolStationMenu#clickMenuButton} -- the vanilla stonecutter/loom mechanism the repository
  * already uses for the Stencil Table -- rather than upstream's bespoke
- * {@code ToolStationSelectionPacket}.
+ * {@code ToolStationSelectionPacket}. Only the transport differs: since parity audit T11 (issue
+ * #443) the selection is station state as upstream's is, so clicking a tab moves it for every player
+ * standing at that station and a menu opened later starts on it.
  *
  * <p>The length of {@link Tab#slots} <em>is</em> the tab's active-slot count -- upstream's
  * {@code ContainerToolStation#activeSlots}, which the station reads to hide and refuse the slots the

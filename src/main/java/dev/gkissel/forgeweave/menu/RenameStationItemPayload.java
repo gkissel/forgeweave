@@ -5,7 +5,6 @@ import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.server.level.ServerPlayer;
 
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 import net.neoforged.neoforge.network.registration.PayloadRegistrar;
@@ -13,8 +12,10 @@ import net.neoforged.neoforge.network.registration.PayloadRegistrar;
 import dev.gkissel.forgeweave.Forgeweave;
 
 /**
- * The Tool Station rename field's one server-bound message (issue #47): the text the player typed,
- * addressed to the menu they have open.
+ * The Tool Station rename field's text, addressed to a menu by container id (issue #47). Sent up on
+ * every edit, and back down to the <em>other</em> players standing at that station so their field
+ * reads the same (parity audit T11, issue #443 -- upstream's {@code ToolStationTextPacket} is
+ * likewise bidirectional).
  *
  * <p>A custom payload rather than the {@code clickMenuButton} path the tab buttons use, because a
  * menu button carries a single {@code int} and a name is a string -- the same reason vanilla gives
@@ -44,14 +45,19 @@ public record RenameStationItemPayload(int containerId, String name) implements 
 
     /** Registered from {@code Forgeweave}'s {@code RegisterPayloadHandlersEvent} listener. */
     public static void register(PayloadRegistrar registrar) {
-        registrar.playToServer(TYPE, STREAM_CODEC, RenameStationItemPayload::handle);
+        registrar.playBidirectional(TYPE, STREAM_CODEC, RenameStationItemPayload::handle);
     }
 
+    /**
+     * Server-bound this is the text the sender typed; client-bound it is the text <em>another</em>
+     * player at the same station typed, echoed by {@code ToolStationMenu#setToolName} so both fields
+     * read the same over one shared output slot (parity audit T11, upstream
+     * {@code ToolStationTextPacket}). Either way it lands on the addressed menu's
+     * {@code setToolName}, which is where the filtering and the length cap live.
+     */
     private static void handle(RenameStationItemPayload payload, IPayloadContext context) {
-        if (!(context.player() instanceof ServerPlayer player)) {
-            return; // client-bound delivery of a server-bound payload: nothing to do.
-        }
-        if (player.containerMenu instanceof ToolStationMenu menu && menu.containerId == payload.containerId()) {
+        if (context.player().containerMenu instanceof ToolStationMenu menu
+                && menu.containerId == payload.containerId()) {
             menu.setToolName(payload.name());
         }
     }

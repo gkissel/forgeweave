@@ -23,6 +23,8 @@ import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 
 import net.neoforged.neoforge.items.IItemHandler;
+import net.neoforged.neoforge.network.PacketDistributor;
+import net.neoforged.neoforge.network.registration.NetworkRegistry;
 
 import dev.gkissel.forgeweave.advancement.ForgeweaveCriteriaTriggers;
 import dev.gkissel.forgeweave.block.ForgeweaveBlocks;
@@ -175,7 +177,15 @@ public class ToolStationMenu extends StationMenu {
     public final int sideInventorySlotCount;
     /** The side panel's own slots, kept so the client-side panel can lay them out and scroll them (issue #68). */
     public final List<SideInventorySlots.SideSlot> sideSlots;
+    /**
+     * Whose menu this is, so {@link #pushToolName} can send the rename field's text down to the
+     * players standing at the same station -- upstream {@code ContainerToolStation} keeps the same
+     * field for the same reason.
+     */
+    private final Player owner;
     private String toolName = "";
+    /** What {@link #pushToolName} last sent {@link #owner}, so an unchanged name sends nothing. */
+    private String pushedToolName = "";
 
     /**
      * Client-side: constructed from the open-menu packet, which carries the side-inventory slot
@@ -202,10 +212,18 @@ public class ToolStationMenu extends StationMenu {
         this.forge = forge;
         this.registries = playerInventory.player.level().registryAccess();
         this.sideInventorySlotCount = sideInventorySlotCount;
+        this.owner = playerInventory.player;
         container.startOpen(playerInventory.player);
 
         addDataSlot(selectedTab);
         selectedTab.set(ToolStationTabs.REPAIR);
+        // Upstream ContainerToolStation#syncWithOtherContainer: a station someone else already has
+        // open hands the newcomer its typed name and tool selection, so both players work the one
+        // shared output slot from the same state.
+        peers().stream().findFirst().ifPresent(peer -> {
+            this.toolName = peer.toolName;
+            selectedTab.set(peer.selectedTab.get());
+        });
 
         for (int i = 0; i < INPUT_SLOTS; i++) {
             Pos pos = position(tab(), i);
@@ -438,8 +456,57 @@ public class ToolStationMenu extends StationMenu {
      */
     public void setToolName(String name) {
         String filtered = StringUtil.filterText(name);
-        this.toolName = filtered.length() > MAX_NAME_LENGTH ? filtered.substring(0, MAX_NAME_LENGTH) : filtered;
+        String capped = filtered.length() > MAX_NAME_LENGTH ? filtered.substring(0, MAX_NAME_LENGTH) : filtered;
+        if (capped.equals(toolName)) {
+            return;
+        }
+        this.toolName = capped;
+        // No echo back to whoever typed it: their field already reads this, and a round trip would
+        // fight a fast typist's cursor. Upstream ToolStationTextPacket does echo to the sender.
+        this.pushedToolName = capped;
         broadcastChanges();
+        // Upstream ToolStationTextPacket#handleServerSafe: the typed text goes back out to everyone
+        // else at this station. Their own broadcast pushes it on, seeing the name it last sent go
+        // stale.
+        for (ToolStationMenu peer : peers()) {
+            peer.toolName = capped;
+            peer.broadcastChanges();
+        }
+    }
+
+    /**
+     * Sends the rename field's text down to this menu's own player when it has changed behind their
+     * back -- a peer typing ({@link #setToolName}), or this menu seeding itself from a peer when it
+     * opened. Everything else about a rename already rides the shared output slot.
+     *
+     * <p>The channel check is {@code StationMenuHost#open}'s, for its reason (issue #101): a
+     * GameTest's mock {@code ServerPlayer} has a connection that never negotiated the mod's payload
+     * channel, and sending down it throws rather than degrading.
+     */
+    private void pushToolName() {
+        if (pushedToolName.equals(toolName)) {
+            return;
+        }
+        pushedToolName = toolName;
+        if (owner instanceof ServerPlayer serverPlayer
+                && NetworkRegistry.hasChannel(serverPlayer.connection, RenameStationItemPayload.TYPE.id())) {
+            PacketDistributor.sendToPlayer(serverPlayer, new RenameStationItemPayload(containerId, toolName));
+        }
+    }
+
+    /**
+     * Every other menu open on this same station -- upstream's {@code BaseContainer#sameGui}, which
+     * compares the tile. Comparing the {@link Container} instance is the same test: a station's menus
+     * are all built over the one inventory its block entity owns, and it is the only thing the client
+     * mirror does <em>not</em> share, so this is empty client-side and no side check is needed.
+     */
+    private List<ToolStationMenu> peers() {
+        return access.evaluate((level, pos) -> level.players().stream()
+                        .map(player -> player.containerMenu)
+                        .filter(menu -> menu != this && menu instanceof ToolStationMenu peer && peer.container == container)
+                        .map(ToolStationMenu.class::cast)
+                        .toList())
+                .orElse(List.of());
     }
 
     @Override
@@ -456,6 +523,14 @@ public class ToolStationMenu extends StationMenu {
         returnUnusableInputs(player);
         applyLayout();
         updateResult();
+        // Upstream ToolStationSelectionPacket / ContainerToolStation#syncWithOtherContainer: the tool
+        // selection is station state, not per-player -- everyone standing here works one set of
+        // slots, so they have to be looking at the same layout. The peers' own DataSlot update rides
+        // their next broadcast; their inputs are the same container, already returned above.
+        for (ToolStationMenu peer : peers()) {
+            peer.selectedTab.set(id);
+            peer.applyLayout();
+        }
         return true;
     }
 
@@ -503,6 +578,7 @@ public class ToolStationMenu extends StationMenu {
     public void broadcastChanges() {
         updateResult();
         super.broadcastChanges();
+        pushToolName();
     }
 
     private void updateResult() {
@@ -517,7 +593,34 @@ public class ToolStationMenu extends StationMenu {
     }
 
     private Optional<ToolAssemblyRecipes.Result> resolve() {
-        return ToolAssemblyRecipes.resolve(registries, slots.get(HEAD_SLOT).getItem(), freeSlotContents(), forge);
+        ItemStack head = slots.get(HEAD_SLOT).getItem();
+        return ToolAssemblyRecipes.resolve(registries, head, freeSlotContents(), forge)
+                .or(() -> renameOnly(head));
+    }
+
+    /**
+     * Upstream {@code ContainerToolStation#renameTool}: renaming is a recipe in its own right, last
+     * in the chain before assembly, so a tool sitting alone in the head slot with a name typed in the
+     * field produces a renamed copy at the cost of that one tool. {@link #updateResult} stamps the
+     * name on, exactly as it does for every other recipe's output.
+     *
+     * <p>Lives here rather than in {@link ToolAssemblyRecipes} because the typed name is menu state,
+     * not slot state -- the only input of any recipe here that does not come out of the container.
+     *
+     * <p>Two guards, both upstream's. The name must differ from what the tool already shows, or
+     * every loaded tool would sit behind a pointless output; and nothing may have been refused,
+     * because upstream never reaches {@code renameTool} when {@code modifyTool} and friends threw --
+     * without this a rejected modifier loadout would quietly hand back a rename instead of the
+     * refusal {@link #rejection} is showing.
+     */
+    private Optional<ToolAssemblyRecipes.Result> renameOnly(ItemStack head) {
+        if (toolName.isBlank()
+                || !(head.getItem() instanceof ToolItem)
+                || head.getHoverName().getString().equals(toolName)
+                || rejection() != null) {
+            return Optional.empty();
+        }
+        return Optional.of(ToolAssemblyRecipes.Result.of(head.copy(), 1));
     }
 
     @Override
