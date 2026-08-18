@@ -271,6 +271,29 @@ public class CastingGameTests {
     }
 
     /**
+     * T41 (#472): upstream {@code TinkerSmeltery} (line 479) casts an emerald block from an empty
+     * basin at {@code Material.VALUE_Gem * 9} = 5994 mB of molten emerald -- the block half of the
+     * ore/gem/block melting row that was until now fluid-and-gem-cast only. Same rig as {@link
+     * #theBasinCastsAMetalBlock}: filled directly through the capability with more than the recipe
+     * needs, to prove the fill itself caps at the recipe amount rather than only the eventual output.
+     */
+    @GameTest(template = "empty", timeoutTicks = 2900)
+    public static void theBasinCastsAnEmeraldBlock(GameTestHelper helper) {
+        helper.setBlock(CASTING, ForgeweaveBlocks.CASTING_BASIN.get());
+        CastingBlockEntity basin = helper.getBlockEntity(CASTING);
+
+        IFluidHandler handler = helper.getLevel().getCapability(Capabilities.FluidHandler.BLOCK,
+                helper.absolutePos(CASTING), Direction.UP);
+        helper.assertTrue(handler != null, "expected the basin to expose a fluid handler");
+        int filled = handler.fill(new FluidStack(ForgeweaveFluids.EMERALD.still().get(), 8000),
+                IFluidHandler.FluidAction.EXECUTE);
+        helper.assertValueEqual(filled, 5994, "an emerald block's worth of fluid, and no more");
+
+        helper.succeedWhen(() -> helper.assertTrue(basin.output().is(Items.EMERALD_BLOCK),
+                "expected an emerald block, found " + basin.output()));
+    }
+
+    /**
      * #183 regression: the basin fed the way a player feeds it -- a faucet above it, one
      * {@value FaucetBlockEntity#TRANSACTION_AMOUNT} mB transaction at a time -- rather than through
      * one capability call that hands it the whole recipe amount at once.

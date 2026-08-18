@@ -1,0 +1,8 @@
+{
+  "station": "basin",
+  "fluid": "forgeweave:molten_emerald",
+  "amount": 5994,
+  "result": {
+    "id": "minecraft:emerald_block"
+  }
+}
