@@ -149,8 +149,12 @@ public final class ToolAssemblyRecipes {
      * -- so their compositions live here, in the (head, binding, handle) slot order the station has
      * used since M1 and every existing GameTest and JEI recipe assumes. Every stat field is the
      * identity value, which makes {@link ToolConstants#compute} reproduce {@code ToolStats#compute}
-     * exactly for them; the attack speed and damage potential are the ones {@code ForgeweaveItems}
-     * already gives the items, repeated here only so the entry reads as a complete tool.
+     * exactly for them, except the hatchet's {@code flatAttackBonus} -- upstream
+     * {@code Hatchet#buildTagData}'s {@code data.attack += 0.5f} (parity audit 2026-08-18 T65, issue
+     * #496); the attack speed and damage potential are the ones {@code HatchetItem} already gives the
+     * item, repeated here only so the entry reads as a complete tool. Package-visible, not
+     * {@code private}: {@code ToolAssemblyRecipesTest} pins the assembled attack bonus against this
+     * exact entry.
      */
     private static final ToolConstants.Entry PICKAXE = new ToolConstants.Entry("pickaxe", ToolConstants.Category.HARVEST,
             List.of(new ToolConstants.PartSlot(ToolConstants.Role.HEAD, "pickaxe_head"),
@@ -164,11 +168,13 @@ public final class ToolAssemblyRecipes {
                     new ToolConstants.PartSlot(ToolConstants.Role.HANDLE, "tool_handle")),
             1.0f, 0.9f, 1.0f, 0.0f, 1.0f, 1.0f, false, false);
 
-    private static final ToolConstants.Entry HATCHET = new ToolConstants.Entry("hatchet", ToolConstants.Category.HARVEST,
+    static final ToolConstants.Entry HATCHET = new ToolConstants.Entry("hatchet", ToolConstants.Category.HARVEST,
             List.of(new ToolConstants.PartSlot(ToolConstants.Role.HEAD, "axe_head"),
                     new ToolConstants.PartSlot(ToolConstants.Role.EXTRA, "tool_binding"),
                     new ToolConstants.PartSlot(ToolConstants.Role.HANDLE, "tool_handle")),
-            1.1f, 1.1f, 1.0f, 0.0f, 1.0f, 1.0f, false, false);
+            // flatAttackBonus 0.5f: upstream Hatchet#buildTagData's `data.attack += 0.5f`
+            // (parity audit 2026-08-18 T65, issue #496) -- every other field here is still identity.
+            1.1f, 1.1f, 1.0f, 0.5f, 1.0f, 1.0f, false, false);
 
     public static final List<Entry> ENTRIES = List.of(
             new Entry(PICKAXE, ForgeweaveItems.TOOL_PICKAXE),
