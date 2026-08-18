@@ -129,6 +129,23 @@ class MeltingRecipeTest {
         assertEquals(MeltingRecipe.calcTemperature(Fluids.LAVA.getFluidType().getTemperature(), 144), recipe.temperature());
     }
 
+    /**
+     * Parity audit T60: upstream bakes {@code Config.oreToIngotRatio} into {@code Material.VALUE_Ore()}
+     * (ingot x ratio) before deriving {@code calcTemperature} from it; Forgeweave's {@code amount}
+     * field on an ore recipe is deliberately the un-doubled raw-drop equivalent (#99), so a derived
+     * (no explicit {@code temperature} key) ore-class recipe must fold the baseline doubling back in
+     * before calling {@link MeltingRecipe#calcTemperature}, same as upstream's default 2.0 ratio would.
+     */
+    @Test
+    void oreClassRecipesDeriveTemperatureFromTheDoubledAmount() {
+        MeltingRecipe recipe = parse("""
+                {"input": {"tag": "c:ores/iron"}, "fluid": "minecraft:lava", "amount": 144, "ore": true}
+                """);
+
+        assertEquals(MeltingRecipe.calcTemperature(Fluids.LAVA.getFluidType().getTemperature(), 288), recipe.temperature(),
+                "an ore-class recipe derives its temperature from the doubled (baseline oreToIngotRatio) amount");
+    }
+
     @Test
     void aTagInputIsAcceptedAndIsWhatMakesTheCTagLadderWork() {
         MeltingRecipe recipe = parse("""
