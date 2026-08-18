@@ -104,6 +104,18 @@ public final class ForgeweaveBlocks {
     public static final DeferredBlock<UndeadSoilBlock> CONSECRATED_SOIL = BLOCKS.register("consecrated_soil",
             () -> new UndeadSoilBlock(soilProperties(MapColor.DIRT), true));
 
+    // #502 (T71 parity audit): mud brick block, upstream's one BlockDecoGround state
+    // (DecoGroundType.MUDBRICK, NOTICE.md) -- hardness 2.0, Material.GROUND, SoundType.GROUND,
+    // shovel harvest tool with no minimum tier, same "shovel"/-1 tag split every other Forgeweave
+    // block uses. A plain cube, not a BlockSoil sibling of grout/graveyard soil above (upstream
+    // keeps it on its own EnumBlock, not BlockSoil), so it gets its own properties rather than
+    // reusing soilProperties()'s 3.0 hardness/SAND sound.
+    public static final DeferredBlock<Block> MUD_BRICK_BLOCK = BLOCKS.registerSimpleBlock("mud_brick_block",
+            BlockBehaviour.Properties.of()
+                    .mapColor(MapColor.DIRT)
+                    .strength(2.0F)
+                    .sound(SoundType.GRAVEL));
+
     // The seared brick block family (docs/SCOPE.md M2 issue #93): the 12 variants of upstream
     // 1.12's BlockSeared (BlockSeared.SearedType, NOTICE.md), each split into its own plain block
     // rather than upstream's single PropertyEnum blockstate -- Forgeweave has no smeltery-structure

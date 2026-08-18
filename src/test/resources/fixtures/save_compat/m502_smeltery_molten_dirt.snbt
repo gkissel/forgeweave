@@ -1,0 +1,36 @@
+{
+    block: "forgeweave:standard_core",
+    decoder: "block_entity",
+    expect: {
+        id: "forgeweave:standard_core",
+        structure: {
+            interior_max: [I; 0, 1, 1],
+            interior_min: [I; 0, 0, 1]
+        },
+        tank: {
+            fluids: [
+                {
+                    amount: 576,
+                    id: "forgeweave:molten_dirt"
+                }
+            ]
+        }
+    },
+    nbt: {
+        id: "forgeweave:standard_core",
+        melt_progress: [I; 0, 0],
+        structure: {
+            interior_max: [I; 0, 1, 1],
+            interior_min: [I; 0, 0, 1]
+        },
+        tank: {
+            fluids: [
+                {
+                    amount: 576,
+                    id: "forgeweave:molten_dirt"
+                }
+            ]
+        }
+    },
+    what: "T71 (#502): a formed standard core holding a full dirt block's worth of the new molten dirt fluid. Pins that #502's fluid id rides M2's ordered tank.fluids shape unchanged, the same way M3.2's new fluids did (m3_2_smeltery_new_fluids.snbt)."
+}

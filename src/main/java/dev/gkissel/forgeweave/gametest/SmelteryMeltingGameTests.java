@@ -101,6 +101,33 @@ public class SmelteryMeltingGameTests {
     }
 
     /**
+     * #502 (T71 parity audit): upstream's ice/snow rows -- {@code MeltingRecipe(RecipeMatch.of(
+     * Blocks.ICE, bucket), water, 305)} -- melt into a real fluid capability, not a Forgeweave one, so
+     * this is the first melting GameTest to check the tank against {@code minecraft:water} rather than
+     * a molten metal.
+     */
+    @GameTest(template = "smeltery", timeoutTicks = 1600)
+    public static void iceMeltsIntoOneBucketOfWater(GameTestHelper helper) {
+        SmelteryControllerBlockEntity core = lavaFuelledSmeltery(helper);
+        insert(helper, core, Items.ICE);
+
+        helper.succeedWhen(() -> assertTankHolds(helper, core, Fluids.WATER, 1000));
+    }
+
+    /**
+     * #502 (T71 parity audit): upstream's {@code TinkerSmeltery} "melt all the dirt into mud" row --
+     * a plain dirt block melts into {@link ForgeweaveFluids#MOLTEN_DIRT}, the fluid mud bricks are
+     * cast from ({@code casting_recipe/mud_brick.json}).
+     */
+    @GameTest(template = "smeltery", timeoutTicks = 1600)
+    public static void dirtMeltsIntoMoltenDirt(GameTestHelper helper) {
+        SmelteryControllerBlockEntity core = lavaFuelledSmeltery(helper);
+        insert(helper, core, Items.DIRT);
+
+        helper.succeedWhen(() -> assertTankHolds(helper, core, ForgeweaveFluids.MOLTEN_DIRT.still().get(), 576));
+    }
+
+    /**
      * The M2 ladder promise made executable: nothing in Forgeweave names {@code minecraft:brick}, and
      * no recipe was written for it. It melts because the GameTest datapack put it in
      * {@code c:ingots/copper} and Forgeweave's copper ingot recipe keys off that tag -- which is

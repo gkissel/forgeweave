@@ -477,6 +477,16 @@ public class ForgeweaveRecipeProvider extends RecipeProvider {
 
         buildSearedStairsSlabRecipes(recipeOutput);
 
+        // #502 (T71 parity audit): mud brick block, upstream's recipes/common/soil/mud_bricks_block.json
+        // (NOTICE.md) -- four mud brick items, 2x2, craft one mud brick block. Slab/stairs variants
+        // are out of scope here (no Forgeweave mud brick slab/stairs blocks exist).
+        ShapedRecipeBuilder.shaped(RecipeCategory.BUILDING_BLOCKS, ForgeweaveItems.MUD_BRICK_BLOCK.get())
+                .pattern("AA")
+                .pattern("AA")
+                .define('A', ForgeweaveItems.MUD_BRICK.get())
+                .unlockedBy("has_mud_brick", has(ForgeweaveItems.MUD_BRICK.get()))
+                .save(recipeOutput);
+
         smelteryRecipes(recipeOutput);
     }
 

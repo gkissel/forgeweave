@@ -1,0 +1,9 @@
+{
+  "input": [
+    { "item": "minecraft:dirt" },
+    { "item": "minecraft:coarse_dirt" },
+    { "item": "minecraft:podzol" }
+  ],
+  "fluid": "forgeweave:molten_dirt",
+  "amount": 576
+}

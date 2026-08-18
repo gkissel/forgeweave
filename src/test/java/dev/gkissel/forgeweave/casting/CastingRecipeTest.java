@@ -251,6 +251,83 @@ class CastingRecipeTest {
                 new ItemStack(ForgeweaveItems.CAST_PICKAXE_HEAD.get()), moltenGold), "gold over a cast does not");
     }
 
+    // ------------------------------------------------------------------ #502 (T71 parity audit)
+
+    /**
+     * Upstream {@code TinkerRegistry.registerTableCasting(TinkerCommons.mudBrick, castIngot,
+     * TinkerFluids.dirt, Material.VALUE_Ingot)}: a mud brick is cast at the table through an ingot
+     * cast, same shape and amount as any metal ingot's own {@code ingot_*.json} recipe.
+     */
+    @Test
+    void mudBrickCastsAtTheTableThroughAnIngotCast() {
+        CastingRecipe recipe = shipped("mud_brick");
+
+        assertEquals(CastingRecipe.Station.TABLE, recipe.station());
+        assertEquals(144, recipe.amount(), "Material.VALUE_Ingot");
+        assertEquals(ForgeweaveFluids.MOLTEN_DIRT.still().get(), recipe.fluid());
+        assertEquals(ForgeweaveItems.MUD_BRICK.get(), recipe.result().getItem());
+        assertTrue(recipe.cast().isPresent());
+        assertTrue(recipe.cast().get().test(new ItemStack(ForgeweaveItems.CAST_INGOT.get())));
+    }
+
+    /**
+     * Upstream {@code TinkerRegistry.registerBasinCasting(new ItemStack(Blocks.HARDENED_CLAY),
+     * ItemStack.EMPTY, TinkerFluids.clay, Material.VALUE_BrickBlock)}: an empty basin under molten
+     * clay makes plain terracotta.
+     */
+    @Test
+    void terracottaCastsInAnEmptyBasinFromMoltenClay() {
+        CastingRecipe recipe = shipped("terracotta");
+
+        assertEquals(CastingRecipe.Station.BASIN, recipe.station());
+        assertEquals(576, recipe.amount(), "Material.VALUE_BrickBlock");
+        assertEquals(ForgeweaveFluids.MOLTEN_CLAY.still().get(), recipe.fluid());
+        assertTrue(recipe.cast().isEmpty(), "the basin has to be empty");
+        assertTrue(recipe.matches(CastingRecipe.Station.BASIN, ItemStack.EMPTY, ForgeweaveFluids.MOLTEN_CLAY.still().get()));
+    }
+
+    /** Upstream's {@code Config.castableBricks} table recipe: a brick casts through an ingot cast, one ingot's worth of molten clay. */
+    @Test
+    void brickCastsAtTheTableThroughAnIngotCast() {
+        CastingRecipe recipe = shipped("brick");
+
+        assertEquals(CastingRecipe.Station.TABLE, recipe.station());
+        assertEquals(144, recipe.amount(), "Material.VALUE_Ingot");
+        assertEquals(ForgeweaveFluids.MOLTEN_CLAY.still().get(), recipe.fluid());
+        assertEquals(Items.BRICK, recipe.result().getItem());
+    }
+
+    /**
+     * Upstream: "funny thing about hardened clay. If it's stained and you wash it with water, it
+     * turns back into regular hardened clay!" -- {@code FluidStack(WATER, 250)}, 150 explicit cooldown
+     * ticks, {@code consumesCast: true} (upstream's fourth constructor arg).
+     */
+    @Test
+    void stainedTerracottaWashesBackToPlainTerracottaWithWater() {
+        CastingRecipe recipe = shipped("stained_terracotta_wash");
+
+        assertEquals(CastingRecipe.Station.BASIN, recipe.station());
+        assertEquals(Fluids.WATER, recipe.fluid());
+        assertEquals(250, recipe.amount());
+        assertEquals(150, recipe.cooldownTicks(), "upstream's explicit 150-tick wash time, not the derived formula");
+        assertTrue(recipe.consumesCast());
+        assertEquals(Items.TERRACOTTA, recipe.result().getItem());
+        assertTrue(recipe.cast().get().test(new ItemStack(Items.RED_TERRACOTTA)));
+        assertFalse(recipe.cast().get().test(new ItemStack(Items.TERRACOTTA)), "plain terracotta is not stained");
+    }
+
+    /** Upstream {@code CastingRecipe(new ItemStack(Blocks.SAND, 1, 1), RecipeMatch.of(sand), FluidStack(blood, 10), true, false)}. */
+    @Test
+    void redSandCastsFromPlainSandAndBlood() {
+        CastingRecipe recipe = shipped("red_sand");
+
+        assertEquals(CastingRecipe.Station.BASIN, recipe.station());
+        assertEquals(10, recipe.amount());
+        assertEquals(ForgeweaveFluids.BLOOD.still().get(), recipe.fluid());
+        assertEquals(Items.RED_SAND, recipe.result().getItem());
+        assertTrue(recipe.cast().get().test(new ItemStack(Items.SAND)));
+    }
+
     // ------------------------------------------------------------------ helpers
 
     private static CastingRecipe parse(String json) {

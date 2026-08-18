@@ -322,6 +322,79 @@ class MeltingRecipeTest {
         assertEquals(699 * MeltingRecipe.TIME_FACTOR, decoded.heatRequired());
     }
 
+    // ------------------------------------------------------------------ #502 (T71 parity audit)
+
+    /**
+     * Upstream {@code TinkerSmeltery#registerMeltingCasting}'s ice/snow rows: each sets an explicit
+     * temperature just above {@link MeltingRecipe#AMBIENT_TEMPERATURE} rather than deriving one from
+     * water's own (colder) {@code FluidType} temperature, so a smeltery still needs real heat to melt
+     * them. {@code minecraft:water} is a real vanilla fluid, unlike Forgeweave's molten fluids, so
+     * these round-trip through the real codec with no mod loader.
+     */
+    @Test
+    void iceMeltsIntoOneBucketOfWaterAtUpstreamsExplicitTemperature() {
+        MeltingRecipe recipe = parse(shipped("ice").toString());
+
+        assertEquals(Fluids.WATER, recipe.fluid());
+        assertEquals(1000, recipe.amount(), "upstream's Fluid.BUCKET_VOLUME");
+        assertEquals(305, recipe.temperature(), "upstream's explicit ice temperature");
+    }
+
+    @Test
+    void packedIceMeltsIntoTwoBucketsOfWaterHotterThanPlainIce() {
+        MeltingRecipe recipe = parse(shipped("packed_ice").toString());
+
+        assertEquals(Fluids.WATER, recipe.fluid());
+        assertEquals(2000, recipe.amount(), "upstream's Fluid.BUCKET_VOLUME * 2");
+        assertEquals(310, recipe.temperature(), "upstream's explicit packed ice temperature");
+    }
+
+    @Test
+    void snowMeltsIntoOneBucketOfWaterLikeIce() {
+        MeltingRecipe recipe = parse(shipped("snow").toString());
+
+        assertEquals(Fluids.WATER, recipe.fluid());
+        assertEquals(1000, recipe.amount());
+        assertEquals(305, recipe.temperature());
+    }
+
+    @Test
+    void snowballMeltsIntoAnEighthOfABucketAtTheLowestTemperature() {
+        MeltingRecipe recipe = parse(shipped("snowball").toString());
+
+        assertEquals(Fluids.WATER, recipe.fluid());
+        assertEquals(125, recipe.amount(), "upstream's Fluid.BUCKET_VOLUME / 8");
+        assertEquals(301, recipe.temperature(), "upstream's lowest explicit temperature, one degree above ambient");
+    }
+
+    /**
+     * Upstream {@code TinkerSmeltery}: "melt all the dirt into mud" -- one dirt block (any of 1.12's
+     * three {@code Blocks.DIRT} metadata variants, split into their own modern block ids here) melts
+     * for {@code Material.VALUE_BrickBlock} (576 mB), the same base amount molten clay's own block
+     * recipe uses.
+     */
+    @Test
+    void theShippedDirtRecipeCoversAllThreeVariantsAtTheBrickBlockValue() {
+        JsonObject json = shipped("dirt");
+
+        assertEquals("forgeweave:molten_dirt", json.get("fluid").getAsString());
+        assertEquals(576, json.get("amount").getAsInt(), "Material.VALUE_BrickBlock, same base as molten clay's own block recipe");
+        assertEquals(3, json.getAsJsonArray("input").size(), "dirt, coarse dirt and podzol -- 1.12's Blocks.DIRT metas");
+    }
+
+    /**
+     * Upstream {@code TinkerRegistry.registerTableCasting(TinkerCommons.mudBrick, ...)} re-melts:
+     * SCOPE.md M2's "core tier is the ONLY yield axis; ingot re-melts 1:1" applies to mud brick's own
+     * ingot-equivalent (144) and block-equivalent (576) the same way it does to every metal.
+     */
+    @Test
+    void theShippedMudBrickRecipesRemeltOneForOne() {
+        assertEquals(144, shipped("mud_brick").get("amount").getAsInt());
+        assertEquals(576, shipped("mud_brick_block").get("amount").getAsInt());
+        assertEquals("forgeweave:molten_dirt", shipped("mud_brick").get("fluid").getAsString());
+        assertEquals("forgeweave:molten_dirt", shipped("mud_brick_block").get("fluid").getAsString());
+    }
+
     private static JsonObject shipped(String name) {
         String path = "/data/forgeweave/forgeweave/melting_recipe/" + name + ".json";
         try (InputStream in = MeltingRecipeTest.class.getResourceAsStream(path)) {

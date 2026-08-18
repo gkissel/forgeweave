@@ -400,6 +400,52 @@ public class CastingGameTests {
                 .thenSucceed();
     }
 
+    // ------------------------------------------------------------------ #502 (T71 parity audit)
+
+    /**
+     * Upstream {@code TinkerRegistry.registerTableCasting(TinkerCommons.mudBrick, castIngot,
+     * TinkerFluids.dirt, Material.VALUE_Ingot)}: molten dirt through an ingot cast at the table makes
+     * a mud brick, the first table-casting GameTest against a non-metal fluid.
+     */
+    @GameTest(template = "empty", timeoutTicks = 300)
+    public static void mudBrickCastsFromMoltenDirtAtTheTable(GameTestHelper helper) {
+        CastingBlockEntity table = rig(helper, ForgeweaveBlocks.CASTING_TABLE.get(), ForgeweaveFluids.MOLTEN_DIRT.still().get());
+        insert(helper, table, new ItemStack(ForgeweaveItems.CAST_INGOT.get()));
+        faucet(helper).activate();
+
+        helper.succeedWhen(() -> helper.assertTrue(table.output().is(ForgeweaveItems.MUD_BRICK.get()),
+                "expected a mud brick, found " + table.output()));
+    }
+
+    /**
+     * Upstream {@code TinkerRegistry.registerBasinCasting(new ItemStack(Blocks.HARDENED_CLAY),
+     * ItemStack.EMPTY, TinkerFluids.clay, Material.VALUE_BrickBlock)}: an empty basin under molten
+     * clay makes plain terracotta, same "empty basin" shape as {@link #theBasinCastsABlockFromAPouredFaucet}.
+     */
+    @GameTest(template = "empty", timeoutTicks = 600)
+    public static void terracottaCastsInAnEmptyBasinFromMoltenClay(GameTestHelper helper) {
+        CastingBlockEntity basin = rig(helper, ForgeweaveBlocks.CASTING_BASIN.get(), ForgeweaveFluids.MOLTEN_CLAY.still().get());
+        faucet(helper).activate();
+
+        helper.succeedWhen(() -> helper.assertTrue(basin.output().is(Items.TERRACOTTA),
+                "expected terracotta, found " + basin.output()));
+    }
+
+    /**
+     * Upstream {@code CastingRecipe(new ItemStack(Blocks.SAND, 1, 1), RecipeMatch.of(sand),
+     * FluidStack(blood, 10), true, false)}: sand sitting in the basin under blood becomes red sand --
+     * the basin's "cast is a held item, not empty" shape, exercised against blood rather than a metal.
+     */
+    @GameTest(template = "empty", timeoutTicks = 200)
+    public static void redSandCastsFromSandAndBloodInTheBasin(GameTestHelper helper) {
+        CastingBlockEntity basin = rig(helper, ForgeweaveBlocks.CASTING_BASIN.get(), ForgeweaveFluids.BLOOD.still().get());
+        insert(helper, basin, new ItemStack(Items.SAND));
+        faucet(helper).activate();
+
+        helper.succeedWhen(() -> helper.assertTrue(basin.output().is(Items.RED_SAND),
+                "expected red sand, found " + basin.output()));
+    }
+
     /** Pours into the casting block through its own capability, the way a faucet does. */
     private static int fill(GameTestHelper helper, FluidStack fluid) {
         IFluidHandler handler = helper.getLevel().getCapability(Capabilities.FluidHandler.BLOCK,

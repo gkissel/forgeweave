@@ -144,6 +144,17 @@ public final class ForgeweaveFluids {
     public static final MoltenMetal MOLTEN_CLAY = register("molten_clay", 0xC67453, 700,
             () -> moltenFluidType(700), STONE_STILL, STONE_FLOWING);
 
+    // #502 (T71 parity audit): molten dirt, upstream's third and last non-metal smeltery fluid
+    // (TinkerFluids#dirt: fluidStone("dirt", 0xa68564), temperature 500, NOTICE.md). Upstream's own
+    // registry name is bare "dirt" (fluidStone("dirt", ...), the same helper that names MOLTEN_CLAY
+    // "clay" upstream); named "molten_dirt" here for the same reason MOLTEN_CLAY departs from its
+    // own upstream id -- consistency with the "molten_" family every other non-blood fluid in this
+    // class uses. Rides the same stone still/flowing texture pair as MOLTEN_CLAY and OBSIDIAN above.
+    // Melting any dirt block and casting it back out as mud bricks lives in the datapack recipes
+    // (melting_recipe/casting_recipe), not Java, same as every other smeltery recipe here.
+    public static final MoltenMetal MOLTEN_DIRT = register("molten_dirt", 0xA68564, 500,
+            () -> moltenFluidType(500), STONE_STILL, STONE_FLOWING);
+
     // #235 M3.2: amethyst and amethyst bronze, from the 1.20 clone (the by-name modern-branch
     // additions, docs/SCOPE.md M3.2). The 1.20 branch measures its fluid temperatures 300 degrees
     // above the 1.12 scale this class uses (its obsidian is 1300 where 1.12's -- and OBSIDIAN

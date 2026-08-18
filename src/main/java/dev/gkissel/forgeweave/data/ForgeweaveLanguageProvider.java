@@ -44,6 +44,7 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         addBlock(ForgeweaveBlocks.GRAVEYARD_SOIL, "Graveyard Soil"); // #429
         addBlock(ForgeweaveBlocks.CONSECRATED_SOIL, "Consecrated Soil"); // #429
         addBlock(ForgeweaveBlocks.SLIMY_MUD_MAGMA, "Magma Slimy Mud"); // #339
+        addBlock(ForgeweaveBlocks.MUD_BRICK_BLOCK, "Mud Brick Block"); // #502 (T71)
 
         // The seared brick block family (docs/SCOPE.md M2 issue #93), names ported from upstream
         // 1.12's tile.tconstruct.seared.*.name entries (NOTICE.md).
@@ -341,6 +342,7 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         addItem(ForgeweaveItems.TOOL_VEIN_HAMMER, "Vein Hammer");
 
         addItem(ForgeweaveItems.SEARED_BRICK, "Seared Brick");
+        addItem(ForgeweaveItems.MUD_BRICK, "Mud Brick"); // #502 (T71)
 
         // #107 batch: modifier reagent items (docs/SCOPE.md M2 issue #107), names ported from upstream
         // 1.12's item.materials.*.name entries (NOTICE.md).
@@ -1058,6 +1060,7 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         addFluid(ForgeweaveFluids.PIG_IRON, "Molten Pig Iron");
         addFluid(ForgeweaveFluids.BLOOD, "Blood");
         addFluid(ForgeweaveFluids.MOLTEN_CLAY, "Molten Clay");
+        addFluid(ForgeweaveFluids.MOLTEN_DIRT, "Molten Dirt"); // #502 (T71)
 
         // #100 -- casting (docs/SCOPE.md M2 issue #100). Names follow upstream 1.12's
         // tile.casting.{table,basin}.name / tile.faucet.name and its cast item names.

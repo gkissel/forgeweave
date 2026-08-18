@@ -81,6 +81,10 @@ public class ForgeweaveBlockStateProvider extends BlockStateProvider {
         cubeAllBlock("graveyard_soil", ForgeweaveBlocks.GRAVEYARD_SOIL.get());
         cubeAllBlock("consecrated_soil", ForgeweaveBlocks.CONSECRATED_SOIL.get());
 
+        // #502 (T71 parity audit): mud brick block, upstream's one BlockDecoGround state -- same
+        // plain cube_all geometry as graveyard/consecrated soil above, one derived texture (NOTICE.md).
+        cubeAllBlock("mud_brick_block", ForgeweaveBlocks.MUD_BRICK_BLOCK.get());
+
         // The seared brick block family (docs/SCOPE.md M2 issue #93): plain cube_all blocks, one
         // derived texture per variant (NOTICE.md) -- unlike the tables above, these have no custom
         // geometry, so simpleBlockWithItem covers both the blockstate and the block-item model.

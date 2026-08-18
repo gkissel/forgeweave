@@ -428,6 +428,13 @@ public final class ForgeweaveItems {
     public static final DeferredItem<BlockItem> CONSECRATED_SOIL =
             ITEMS.registerSimpleBlockItem("consecrated_soil", ForgeweaveBlocks.CONSECRATED_SOIL);
 
+    // #502 (T71 parity audit): mud brick, upstream's second "materials" meta item alongside seared
+    // brick (TinkerCommons#mudBrick, "materials" item meta 1, NOTICE.md) -- cast at a Casting Table
+    // from molten dirt, and crafted 2x2 into the mud brick block below.
+    public static final DeferredItem<Item> MUD_BRICK = ITEMS.registerSimpleItem("mud_brick");
+    public static final DeferredItem<BlockItem> MUD_BRICK_BLOCK =
+            ITEMS.registerSimpleBlockItem("mud_brick_block", ForgeweaveBlocks.MUD_BRICK_BLOCK);
+
     // Seared brick (docs/SCOPE.md M2 issue #93): upstream 1.12's plain crafting-material item
     // (TinkerCommons#searedBrick, "materials" item meta 0, NOTICE.md) -- produced by furnace-smelting
     // grout, and itself crafted 2x2 into the Seared Bricks block below.

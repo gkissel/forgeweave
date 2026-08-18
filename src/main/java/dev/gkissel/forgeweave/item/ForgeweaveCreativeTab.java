@@ -181,6 +181,11 @@ public final class ForgeweaveCreativeTab {
         output.accept(ForgeweaveItems.GRAVEYARD_SOIL.get());
         output.accept(ForgeweaveItems.CONSECRATED_SOIL.get());
 
+        // #502 (T71 parity audit): mud brick and its block, next to seared brick above -- same
+        // "materials meta item + its own block" shape.
+        output.accept(ForgeweaveItems.MUD_BRICK.get());
+        output.accept(ForgeweaveItems.MUD_BRICK_BLOCK.get());
+
         // #107 batch: modifier reagent items (docs/SCOPE.md M2 issue #107).
         output.accept(ForgeweaveItems.MOSS.get());
         output.accept(ForgeweaveItems.MENDING_MOSS.get());
