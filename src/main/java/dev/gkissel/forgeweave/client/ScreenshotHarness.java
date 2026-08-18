@@ -275,10 +275,12 @@ public final class ScreenshotHarness {
      * whose predicate threshold is wrong renders as a missing-texture checker or as the wrong stage
      * in exactly one of these and in none of the others.
      *
-     * <p>First person only, unlike {@link #WEAPONS}: a drawn bow is a first-person object. The
-     * third-person capture of an undrawn one is already on the list above, and third person cannot
-     * show a draw at all here -- the harness drives the draw client-side, so the server never sends
-     * the using-item flag the third-person arm animation reads.
+     * <p>First person for every state, because a draw state <em>is</em> a model and first person is
+     * where the model is legible; the third-person capture of each undrawn bow is already on the
+     * list above. Two of them get a third-person frame as well ({@code thirdPerson}, issue #425):
+     * the crossbow mid-crank and the crossbow carrying a crank are arm <em>poses</em>
+     * ({@link ForgeweaveItemClientExtensions}), and an arm pose is invisible from inside the arm.
+     * Only the crossbow's two, because no other pose on this list changes what the arms do.
      */
     static final List<BowPose> BOW_POSES = List.of(
             new BowPose(ForgeweaveItems.TOOL_SHORTBOW, 1, false),
@@ -289,16 +291,21 @@ public final class ScreenshotHarness {
             new BowPose(ForgeweaveItems.TOOL_LONGBOW, 3, false),
             new BowPose(ForgeweaveItems.TOOL_CROSSBOW, 1, false),
             new BowPose(ForgeweaveItems.TOOL_CROSSBOW, 2, false),
-            new BowPose(ForgeweaveItems.TOOL_CROSSBOW, 3, false),
+            new BowPose(ForgeweaveItems.TOOL_CROSSBOW, 3, false, true),
             // The one state that is not a draw: the crossbow's stored crank, which resolves to the
             // full-draw art under a first-person pose of its own.
-            new BowPose(ForgeweaveItems.TOOL_CROSSBOW, 0, true));
+            new BowPose(ForgeweaveItems.TOOL_CROSSBOW, 0, true, true));
 
     /**
      * One {@link #BOW_POSES} frame: which bow, which pull stage (1 to {@link ToolArt#DRAW_STAGES},
-     * or 0 for a state that is not a draw), and whether the crossbow's {@code loaded} flag is set.
+     * or 0 for a state that is not a draw), whether the crossbow's {@code loaded} flag is set, and
+     * whether the frame is captured from behind as well as from inside the head.
      */
-    record BowPose(Supplier<? extends BowItem> bow, int drawStage, boolean loaded) {
+    record BowPose(Supplier<? extends BowItem> bow, int drawStage, boolean loaded, boolean thirdPerson) {
+        BowPose(Supplier<? extends BowItem> bow, int drawStage, boolean loaded) {
+            this(bow, drawStage, loaded, false);
+        }
+
         String fileName() {
             String name = BuiltInRegistries.ITEM.getKey(bow.get()).getPath();
             return "bow_" + name + (loaded ? "_loaded" : "_draw" + drawStage);
@@ -368,7 +375,7 @@ public final class ScreenshotHarness {
         PLACE_CASTING_SCENE, SETTLE_CASTING_SCENE, PLACE_MATERIAL_SCENE, SETTLE_MATERIAL_SCENE,
         PLACE_PART_TINT_SCENE, SETTLE_PART_TINT_SCENE,
         HOLD_WEAPON, SETTLE_WEAPON, SETTLE_WEAPON_FIRST_PERSON,
-        HOLD_BOW_POSE, SETTLE_BOW_POSE,
+        HOLD_BOW_POSE, SETTLE_BOW_POSE, SETTLE_BOW_POSE_THIRD_PERSON,
         OPEN_SCREEN, SETTLE_SCREEN, DONE
     }
 
@@ -429,6 +436,7 @@ public final class ScreenshotHarness {
             case SETTLE_WEAPON_FIRST_PERSON -> settleWeaponFirstPerson(mc);
             case HOLD_BOW_POSE -> holdBowPose(mc);
             case SETTLE_BOW_POSE -> settleBowPose(mc);
+            case SETTLE_BOW_POSE_THIRD_PERSON -> settleBowPoseThirdPerson(mc);
             case OPEN_SCREEN -> openScreen(mc);
             case SETTLE_SCREEN -> settleScreen(mc);
             case DONE -> {}
@@ -1302,6 +1310,28 @@ public final class ScreenshotHarness {
                     ForgeweaveItemProperties.loaded(held));
         }
         capture(mc, pose.fileName() + "_firstperson");
+        if (pose.thirdPerson()) {
+            mc.options.setCameraType(CameraType.THIRD_PERSON_BACK);
+            advance(Stage.SETTLE_BOW_POSE_THIRD_PERSON);
+            return;
+        }
+        nextBowPose(mc);
+    }
+
+    /**
+     * Issue #425's frames, {@code bow_crossbow_draw3.png} and {@code bow_crossbow_loaded.png}: the
+     * same two poses again from behind, which is the only place the arms are visible.
+     *
+     * <p>The use started by {@link #settleBowPose} is deliberately still running -- {@link
+     * #nextBowPose} is what ends it -- because the cranking pose is a pose the holder has to still be
+     * <em>in</em>. Client-side is enough: this is the local player, and {@code PlayerRenderer#
+     * getArmPose} reads the client entity's own use flags, which {@code startUsingItem} set here.
+     */
+    private static void settleBowPoseThirdPerson(Minecraft mc) {
+        if (stageTicks < SCREEN_SETTLE_TICKS) {
+            return;
+        }
+        capture(mc, BOW_POSES.get(bowPoseIndex).fileName());
         nextBowPose(mc);
     }
 
