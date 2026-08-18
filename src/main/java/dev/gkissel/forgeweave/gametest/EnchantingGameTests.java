@@ -5,6 +5,7 @@ import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.level.GameType;
 
 import net.neoforged.neoforge.gametest.GameTestHolder;
@@ -43,6 +44,40 @@ public class EnchantingGameTests {
 
             helper.assertTrue(pickaxe.isEnchantable(),
                     "a Forgeweave tool should be accepted by the enchanting table while allowVanillaEnchanting is on");
+
+            helper.succeed();
+        } finally {
+            // Restore the CONTEXT.md default so later tests don't inherit this test's flag state.
+            ForgeweaveConfig.ALLOW_VANILLA_ENCHANTING.set(false);
+        }
+    }
+
+    /**
+     * Parity audit T81 (issue #512): upstream {@code TinkersItem#isBookEnchantable} refuses an
+     * anvil-applied enchanted book unconditionally, but Forgeweave's tools are gated on
+     * {@code allowVanillaEnchanting} rather than always-off (issue #13 already makes that call for
+     * the enchanting table), so the anvil path follows the same flag -- otherwise a player with the
+     * flag off could still smuggle enchantments in through the anvil.
+     */
+    @GameTest(template = "empty")
+    public static void bookRejectedWhenFlagOff(GameTestHelper helper) {
+        ForgeweaveConfig.ALLOW_VANILLA_ENCHANTING.set(false);
+        ItemStack pickaxe = assembledPickaxe(helper);
+
+        helper.assertFalse(pickaxe.isBookEnchantable(new ItemStack(Items.ENCHANTED_BOOK)),
+                "a Forgeweave tool should refuse an enchanted book at the anvil while allowVanillaEnchanting is off");
+
+        helper.succeed();
+    }
+
+    @GameTest(template = "empty")
+    public static void bookAcceptedWhenFlagOn(GameTestHelper helper) {
+        ForgeweaveConfig.ALLOW_VANILLA_ENCHANTING.set(true);
+        try {
+            ItemStack pickaxe = assembledPickaxe(helper);
+
+            helper.assertTrue(pickaxe.isBookEnchantable(new ItemStack(Items.ENCHANTED_BOOK)),
+                    "a Forgeweave tool should accept an enchanted book at the anvil while allowVanillaEnchanting is on");
 
             helper.succeed();
         } finally {

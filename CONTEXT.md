@@ -21,7 +21,7 @@ Forgeweave is an independent NeoForge mod inspired by the Minecraft 1.12.2 gener
 ## Invariants
 
 - Tools break at 0 durability but are **never destroyed**.
-- Tools are **not enchantable** at the vanilla enchanting table by default; the `allowVanillaEnchanting` config flag (default `false`) can enable it.
+- Tools are **not enchantable** at the vanilla enchanting table by default, and refuse an enchanted book at the anvil for the same reason; the `allowVanillaEnchanting` config flag (default `false`) can enable both.
 - Patterns are physical items; part crafting always goes through a Station.
 - Harvest capability uses **vanilla 1.21 tool-tier tags** (`needs_iron_tool`, …), never a custom numeric harvest-level system.
 - Material definitions are datapack JSON; adding a material must never require Java code unless it needs a new Trait behavior (ADR-0002).

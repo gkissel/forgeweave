@@ -580,6 +580,10 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         // component names nothing this world defines, and one carrying no material at all.
         add("tooltip.forgeweave.part.missing_material", "Missing material: %s");
         add("tooltip.forgeweave.part.missing_info", "Part has no data");
+        // tooltip.part.missing_stats (parity audit T81, issue #512): a part whose material carries no
+        // stat block for this part's Kind (a bowstring-only material stamped into a bow limb, upstream
+        // SharpeningKit's own "no head stats" case) says so instead of an empty Shift-tier section.
+        add("tooltip.forgeweave.part.missing_stats", "Material is missing the required stats: %s");
         // stat.head.name / stat.handle.name / stat.extra.name -- the underlined heading over a
         // part's Shift-tier stat block, keyed by PartItem.Kind, and (issue #376) over the same stat
         // block in the Part Builder's info panel.
