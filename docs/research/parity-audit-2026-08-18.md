@@ -563,7 +563,7 @@ M3.5 ports the launcher core faithfully — the three bows, limb/bowstring math,
 
 | Feature | 1.12 | 1.20 | Forgeweave | Status | Deliberate? | Severity | Ticket |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| `allowVanillaEnchanting` | no switch (enchantability 0, no books) | ModifiableItem overrides | flag exists but ON side offers nothing (no enchantment value / tags) | partial | Y for the flag, N for the dead ON side | medium | T54 |
+| `allowVanillaEnchanting` | no switch (enchantability 0, no books) | ModifiableItem refuses outright (`isEnchantable` false) | flag gates enchantment value + `#minecraft:enchantable/*` membership + book support | have | Y (PR #485) | none | — |
 | `reuseStencils` | `Config:129-132` | n/a | `ForgeweaveConfig:160-162` | have | Y (#276) | none | — |
 | `oreToIngotRatio` | `Config:207-212` (also shifts temperature) | smeltery ore rate | scalar around baseline 2.0; no temperature shift | deviates | Y (PR #362) | low | T60 |
 | `obsidianAlloy` | `Config:167-171` | n/a | `ForgeweaveConfig:167-169`, hot-reloadable | have | Y (#276) | none | — |
@@ -666,7 +666,7 @@ Prioritized and deduplicated across domains. Already-filed issues are marked; **
 - [ ] **T51 — Attack-slash and heart-effect particles** — derive the slash/particle sheets and hook fiery/rapier/jagged/prickly/spiky plus per-weapon full-charge bursts onto the combat seams (book/tools/traits, medium, backlog).
 - [ ] **T52 — Nocked arrow not rendered** — draw the found ammo on the bow (and only when loaded for the crossbow) at upstream's ammoPosition (ranged, medium, M3.5-8 or M3.6).
 - [x] **T53 — 1.12 draw crosshairs** (shipped, #484) — SQUARE for bows, T for the crossbow, spread by draw charge, replacing the vanilla crosshair (ranged, medium, M3.5-8).
-- [ ] **T54 — `allowVanillaEnchanting=true` still offers nothing** — give tools an enchantment value and add them to `minecraft:enchantable/*` when the flag is on, or document the flag as anvil-only; add an offer GameTest (config, medium, M3.4 follow-up).
+- [x] **T54 — `allowVanillaEnchanting=true` still offers nothing** — done in #485: `ToolItem#getEnchantmentValue` (flag-gated, vanilla iron's 14) and every tool into the `minecraft:enchantable/*` tag its shape belongs in, plus a flag-gated `supportsEnchantment` so the OFF side also refuses anvil books the way 1.12's `TinkersItem#isBookEnchantable` does. Offer GameTests in `EnchantingGameTests`.
 - [ ] **T55 — 3 gravel → flint recipe** — behind `addFlintRecipe` (upstream default on) (config, medium, M3.4 follow-up).
 - [ ] **T56 — M5 planning: the unplanned gadget roster** — decide piggyback pack, punji sticks, wooden hopper, item/drying racks (+drying recipe type, jerky foods, JEI category), glow ball, EFLN, fancy frames, wooden rails, stone torch/ladder, dried clay and brownstone families, spaghetti, slime channels (world/config, medium, M5).
 - [ ] **T57 — World-content content set** — slime dirt/grass/leaves/sapling/tree/vines, congealed and coloured slime blocks, coloured slime balls, blue/purple slime fluids, blood slime ball; then revert the knightslime alloy, magma mud and blue-crystal substitutions and add slime-vine bowstrings (world, medium, world-content milestone).
