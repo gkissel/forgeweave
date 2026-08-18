@@ -257,6 +257,17 @@ public final class ToolAssemblyRecipes {
     private static final double FORGE_REPAIR_DISCOUNT = 0.95;
 
     /**
+     * What one sharpening kit is worth as a repair item, in ordinary repair items (parity audit T32,
+     * issue #463). Upstream {@code ToolCore#repairCustom} restores {@code headDurability *
+     * sharpeningKit.getCost() / Material.VALUE_Ingot}, and {@code SharpeningKit}'s constructor prices
+     * the part at {@code Material.VALUE_Shard * 4}, i.e. exactly two ingots -- so the ratio is 2.
+     * Read off {@link PartBuilderRecipes}' own cost table rather than written out, so a change to the
+     * kit's crafting cost keeps moving its repair value with it, the way upstream's division does.
+     */
+    private static final float SHARPENING_KIT_REPAIR_ITEMS =
+            PartBuilderRecipes.HEAD_COST / (float) PartBuilderRecipes.INGOT_VALUE;
+
+    /**
      * What the station produces and what taking it costs. {@code slotsUsed} is how many items to
      * spend from each input slot, indexed by slot -- what lets every recipe here share one output
      * slot: assembly always spends one of each part, a repair spends the tool plus only as many
@@ -276,11 +287,39 @@ public final class ToolAssemblyRecipes {
 
     /**
      * Whether {@code stack} repairs the tool currently in the head slot -- any of its repair parts'
-     * materials, not only its head's (issue #462).
+     * materials, not only its head's (issue #462), and either as that material's ordinary repair item
+     * or as a sharpening kit of it (issue #463).
      */
     static boolean isRepairItemFor(HolderLookup.Provider registries, ItemStack headSlotStack, ItemStack stack) {
         return repairMaterialsOf(registries, headSlotStack).stream()
-                .anyMatch(repair -> repair.material().repairItem().test(stack));
+                .anyMatch(repair -> repair.material().repairItem().test(stack)
+                        || isSharpeningKitOf(stack, repair.materialId()));
+    }
+
+    /**
+     * Upstream {@code ToolCore#repairCustom}'s material check: the kit has to carry the very material
+     * of the repair slot it is being spent on, or it is not a repair item at all.
+     */
+    private static boolean isSharpeningKitOf(ItemStack stack, ResourceLocation materialId) {
+        return stack.is(ForgeweaveItems.PART_SHARPENING_KIT.get())
+                && materialId.equals(stack.get(ForgeweaveDataComponents.MATERIAL.get()));
+    }
+
+    /**
+     * Repairs {@code tool} with {@code items} outside the station, for the crafting-grid recipe
+     * ({@link dev.gkissel.forgeweave.recipe.SharpeningKitRepairRecipe}, upstream
+     * {@code tools/common/RepairRecipe}, parity audit T32/issue #463). Every item has to be spent --
+     * upstream's "check if all items were used" bail, which here also keeps the grid from swallowing
+     * kits the tool had no damage left to use.
+     *
+     * @return the repaired tool, or {@link ItemStack#EMPTY} if this is no repair
+     */
+    public static ItemStack repairOutsideStation(HolderLookup.Provider registries, ItemStack tool,
+            List<ItemStack> items) {
+        return resolveRepair(registries, tool, items, false)
+                .filter(result -> result.slotsUsed().stream().skip(1).allMatch(used -> used == 1))
+                .map(Result::output)
+                .orElse(ItemStack.EMPTY);
     }
 
     /**
@@ -888,9 +927,12 @@ public final class ToolAssemblyRecipes {
             return Optional.empty();
         }
 
-        // Which repair material each loaded free slot pays into. Upstream matches its repair parts in
-        // order, so the first material whose repair item accepts the stack claims it.
+        // Which repair material each loaded free slot pays into, and whether it pays as a sharpening
+        // kit (issue #463) or as the material's ordinary repair item. Upstream matches its repair
+        // parts in order and runs both branches per part, so the first material that accepts the
+        // stack in either branch claims it.
         int[] paysInto = new int[freeSlots.size()];
+        boolean[] paysAsKit = new boolean[freeSlots.size()];
         int[] remaining = new int[freeSlots.size()];
         boolean any = false;
         for (int i = 0; i < freeSlots.size(); i++) {
@@ -900,6 +942,11 @@ public final class ToolAssemblyRecipes {
                 continue;
             }
             for (int m = 0; m < repairMaterials.size(); m++) {
+                if (isSharpeningKitOf(stack, repairMaterials.get(m).materialId())) {
+                    paysInto[i] = m;
+                    paysAsKit[i] = true;
+                    break;
+                }
                 if (repairMaterials.get(m).material().repairItem().test(stack)) {
                     paysInto[i] = m;
                     break;
@@ -923,14 +970,34 @@ public final class ToolAssemblyRecipes {
         int rounds = 0;
         int[] spend = new int[freeSlots.size()];
         while (damage > 0) {
-            // One round: the lowest slot still holding each distinct repair material, or none of it.
+            // One round: the lowest slot still holding each distinct repair material, or none of it,
+            // and independently the lowest slot still holding a sharpening kit of it -- upstream runs
+            // repairCustom and Material#matches side by side within one pass over the repair parts,
+            // so a kit and an ingot of the same material are spent together, not in two rounds.
             int[] payingSlot = new int[repairMaterials.size()];
+            int[] payingKitSlot = new int[repairMaterials.size()];
             Arrays.fill(payingSlot, -1);
+            Arrays.fill(payingKitSlot, -1);
             float weighted = 0f;
             int matched = 0;
             for (int i = 0; i < freeSlots.size(); i++) {
                 int m = paysInto[i];
-                if (m < 0 || remaining[i] == 0 || payingSlot[m] >= 0) {
+                if (m < 0 || remaining[i] == 0) {
+                    continue;
+                }
+                if (paysAsKit[i]) {
+                    if (payingKitSlot[m] >= 0) {
+                        continue;
+                    }
+                    payingKitSlot[m] = i;
+                    weighted += repairMaterials.get(m).weightedHeadDurability() * SHARPENING_KIT_REPAIR_ITEMS;
+                    // Deliberately NOT counted in `matched`: upstream only ever adds to its
+                    // `materialsMatched` set from the Material#matches branch, so a kit-only repair
+                    // goes through the 1 + (matched - 1) / 9 term with a count of zero and lands at
+                    // 8/9 of the kit's face value. Quirk, but it is upstream's arithmetic.
+                    continue;
+                }
+                if (payingSlot[m] >= 0) {
                     continue;
                 }
                 payingSlot[m] = i;
@@ -945,10 +1012,12 @@ public final class ToolAssemblyRecipes {
                     occupiedModifierSlots, forge);
             // Traits get to top the repair up (upstream 1.12 fires ITrait#onToolHeal on every heal).
             damage -= increment + ForgeweaveTraits.repairBonus(toolStack, increment);
-            for (int slot : payingSlot) {
-                if (slot >= 0) {
-                    remaining[slot]--;
-                    spend[slot]++;
+            for (int[] paid : new int[][] {payingSlot, payingKitSlot}) {
+                for (int slot : paid) {
+                    if (slot >= 0) {
+                        remaining[slot]--;
+                        spend[slot]++;
+                    }
                 }
             }
             rounds++;
@@ -972,10 +1041,11 @@ public final class ToolAssemblyRecipes {
     }
 
     /**
-     * One material a repair may be paid in: the {@link Material} itself plus its head durability
-     * already multiplied by the {@code repairModifier} of the slot that contributed it.
+     * One material a repair may be paid in: the {@link Material} itself, its registry id (what a
+     * sharpening kit of it carries, issue #463) and its head durability already multiplied by the
+     * {@code repairModifier} of the slot that contributed it.
      */
-    private record RepairMaterial(Material material, float weightedHeadDurability) {}
+    private record RepairMaterial(ResourceLocation materialId, Material material, float weightedHeadDurability) {}
 
     /**
      * Every material {@code stack} can be repaired with, in repair-slot order -- upstream
@@ -1001,7 +1071,8 @@ public final class ToolAssemblyRecipes {
             if (headDurability.isEmpty()) {
                 continue;
             }
-            repairable.add(new RepairMaterial(material.get(), headDurability.get() * part.modifier()));
+            repairable.add(new RepairMaterial(parts.get(part.slot()), material.get(),
+                    headDurability.get() * part.modifier()));
         }
         return List.copyOf(repairable);
     }

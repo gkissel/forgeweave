@@ -20,6 +20,7 @@ import net.minecraft.data.recipes.ShapedRecipeBuilder;
 import net.minecraft.data.recipes.ShapelessRecipeBuilder;
 import net.minecraft.data.recipes.SimpleCookingRecipeBuilder;
 import net.minecraft.data.recipes.SingleItemRecipeBuilder;
+import net.minecraft.data.recipes.SpecialRecipeBuilder;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.ItemTags;
 import net.minecraft.tags.TagKey;
@@ -39,6 +40,7 @@ import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.block.ForgeweaveBlocks;
 import dev.gkissel.forgeweave.item.ForgeweaveItems;
 import dev.gkissel.forgeweave.recipe.RetexturedShapedRecipe;
+import dev.gkissel.forgeweave.recipe.SharpeningKitRepairRecipe;
 
 /**
  * Vanilla crafting-table recipes for the blank pattern and the four station blocks (docs/SCOPE.md M1
@@ -58,6 +60,12 @@ public class ForgeweaveRecipeProvider extends RecipeProvider {
 
     @Override
     protected void buildRecipes(RecipeOutput recipeOutput) {
+        // Issue #463 (parity audit T32): upstream registers its sharpening-kit tool repair as a
+        // code-only IRecipe (tools/common/RepairRecipe); 1.21.1 wants a datapack entry naming the
+        // serializer, which is all this is -- see SharpeningKitRepairRecipe.
+        SpecialRecipeBuilder.special(SharpeningKitRepairRecipe::new)
+                .save(recipeOutput, ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "sharpening_kit_repair"));
+
         // Upstream's tools/pattern.json outputs 4 from two planks and two sticks, and upstream's
         // pattern item stacks (issue #64 restored both here -- see ForgeweaveItems).
         ShapedRecipeBuilder.shaped(RecipeCategory.MISC, ForgeweaveItems.PATTERN_BLANK.get(), 4)
