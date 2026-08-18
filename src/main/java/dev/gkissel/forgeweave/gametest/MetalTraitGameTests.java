@@ -54,16 +54,19 @@ import dev.gkissel.forgeweave.trait.ForgeweaveTraits;
 public class MetalTraitGameTests {
 
     /**
-     * Iron -&gt; {@code forgeweave:magnetic2}: every tick the tool is carried, nearby item drops are
-     * pulled toward the holder.
+     * Iron -&gt; {@code forgeweave:magnetic2}: within the 30-tick window after a block break, nearby
+     * item drops are pulled toward the holder (issue #459 parity fix: upstream gates the pull on a
+     * hidden 30-tick potion effect re-applied from {@code afterBlockBreak}/{@code onHit}, not an
+     * always-on inventory tick).
      */
     @GameTest(template = "empty", timeoutTicks = 1200)
-    public static void magneticPullsNearbyItemsTowardTheHolder(GameTestHelper helper) {
+    public static void magneticPullsNearbyItemsTowardTheHolderAfterUse(GameTestHelper helper) {
         ServerLevel level = helper.getLevel();
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         BlockPos pos = helper.absolutePos(new BlockPos(2, 2, 2));
         player.setPos(pos.getX() + 0.5, pos.getY(), pos.getZ() + 0.5);
         ItemStack pickaxe = pickaxe(List.of(traitId("magnetic2")), 100, 1.0F, 1.0F);
+        ForgeweaveTraits.afterBlockBreak(pickaxe, level, Blocks.STONE.defaultBlockState(), BlockPos.ZERO, player, true);
 
         ItemEntity dropped = new ItemEntity(level, player.getX() + 1.5, player.getY(), player.getZ(),
                 new ItemStack(Items.COBBLESTONE));
@@ -86,6 +89,63 @@ public class MetalTraitGameTests {
     }
 
     /**
+     * Iron -&gt; {@code forgeweave:magnetic2}: with no recent block break or hit, carrying the tool
+     * does not pull item drops at all (issue #459 parity fix -- the previous always-on-while-carried
+     * behavior deviated from upstream's 30-tick-after-use gate).
+     */
+    @GameTest(template = "empty", timeoutTicks = 1200)
+    public static void magneticDoesNotPullWithoutRecentUse(GameTestHelper helper) {
+        ServerLevel level = helper.getLevel();
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        BlockPos pos = helper.absolutePos(new BlockPos(2, 2, 2));
+        player.setPos(pos.getX() + 0.5, pos.getY(), pos.getZ() + 0.5);
+        ItemStack pickaxe = pickaxe(List.of(traitId("magnetic2")), 100, 1.0F, 1.0F);
+
+        ItemEntity dropped = new ItemEntity(level, player.getX() + 1.5, player.getY(), player.getZ(),
+                new ItemStack(Items.COBBLESTONE));
+        dropped.setDeltaMovement(Vec3.ZERO);
+        level.addFreshEntity(dropped);
+
+        helper.startSequence()
+                .thenWaitUntil(() -> SpawnCapture.assertIndexServes(helper, dropped))
+                .thenExecute(() -> {
+                    pickaxe.getItem().inventoryTick(pickaxe, level, player, 0, false);
+                    helper.assertTrue(dropped.getDeltaMovement().equals(Vec3.ZERO),
+                            "magnetic must not pull with no recent block break or hit, got "
+                                    + dropped.getDeltaMovement());
+                    dropped.discard();
+                })
+                .thenSucceed();
+    }
+
+    /**
+     * Iron -&gt; {@code forgeweave:magnetic}: the pull window expires 30 ticks after the triggering
+     * block break, matching upstream's hidden potion duration.
+     */
+    @GameTest(template = "empty")
+    public static void magneticPullWindowExpiresAfterThirtyTicks(GameTestHelper helper) {
+        ServerLevel level = helper.getLevel();
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        ItemStack pickaxe = pickaxe(List.of(traitId("magnetic2")), 100, 1.0F, 1.0F);
+        ForgeweaveTraits.afterBlockBreak(pickaxe, level, Blocks.STONE.defaultBlockState(), BlockPos.ZERO, player, true);
+
+        for (int i = 0; i < 30; i++) {
+            pickaxe.getItem().inventoryTick(pickaxe, level, player, 0, false);
+        }
+
+        ItemEntity dropped = new ItemEntity(level, player.getX() + 1.5, player.getY(), player.getZ(),
+                new ItemStack(Items.COBBLESTONE));
+        dropped.setDeltaMovement(Vec3.ZERO);
+        level.addFreshEntity(dropped);
+        pickaxe.getItem().inventoryTick(pickaxe, level, player, 0, false);
+        helper.assertTrue(dropped.getDeltaMovement().equals(Vec3.ZERO),
+                "magnetic's 30-tick window should have expired, got " + dropped.getDeltaMovement());
+
+        dropped.discard();
+        helper.succeed();
+    }
+
+    /**
      * Iron -&gt; {@code forgeweave:magnetic} + {@code magnetic2}: an all-iron tool sums both levels
      * (1 + 2 = 3) into one pull at the combined range (issue #297 parity fix, upstream
      * {@code AbstractTraitLeveled}'s shared-tag accumulation), not two independent half-strength
@@ -99,6 +159,7 @@ public class MetalTraitGameTests {
         BlockPos pos = helper.absolutePos(new BlockPos(2, 2, 2));
         player.setPos(pos.getX() + 0.5, pos.getY(), pos.getZ() + 0.5);
         ItemStack pickaxe = pickaxe(List.of(traitId("magnetic"), traitId("magnetic2")), 100, 1.0F, 1.0F);
+        ForgeweaveTraits.afterBlockBreak(pickaxe, level, Blocks.STONE.defaultBlockState(), BlockPos.ZERO, player, true);
 
         // 2.6 blocks out: past either individual trait's own range (2.1 / 2.4) but inside the summed
         // level-3 range (1.8 + 3 * 0.3 = 2.7).

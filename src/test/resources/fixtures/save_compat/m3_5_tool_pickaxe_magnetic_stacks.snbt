@@ -1,0 +1,55 @@
+{
+    decoder: "item_stack",
+    expect: {
+        components: {
+            "forgeweave:magnetic_stacks": {
+                level: 1,
+                ticks_remaining: 17
+            },
+            "forgeweave:tool_materials": {
+                binding: "forgeweave:wood",
+                handle: "forgeweave:wood",
+                head: "forgeweave:iron"
+            },
+            "forgeweave:tool_stats": {
+                attack_damage: 3.5f,
+                durability: 250,
+                mining_speed: 6.0f
+            },
+            "forgeweave:traits": [
+                "forgeweave:magnetic",
+                "forgeweave:magnetic2"
+            ],
+            "minecraft:damage": 40,
+            "minecraft:max_damage": 250
+        },
+        id: "forgeweave:pickaxe"
+    },
+    nbt: {
+        components: {
+            "forgeweave:magnetic_stacks": {
+                level: 1,
+                ticks_remaining: 17
+            },
+            "forgeweave:tool_materials": {
+                binding: "forgeweave:wood",
+                handle: "forgeweave:wood",
+                head: "forgeweave:iron"
+            },
+            "forgeweave:tool_stats": {
+                attack_damage: 3.5f,
+                durability: 250,
+                mining_speed: 6.0f
+            },
+            "forgeweave:traits": [
+                "forgeweave:magnetic",
+                "forgeweave:magnetic2"
+            ],
+            "minecraft:damage": 40,
+            "minecraft:max_damage": 250
+        },
+        count: 1,
+        id: "forgeweave:pickaxe"
+    },
+    what: "M3.5 (#459): an all-iron pickaxe mid-pull -- MAGNETIC/MAGNETIC2's afterBlockBreak or afterHit opened the 30-tick after-use window (issue #459 parity fix) and 17 ticks of it are still counting down, the same TraitStacks shape MOMENTUM_STACKS and INSATIABLE_STACKS already use (level is unused, always 1) for the same upstream-hidden-potion-effect-to-tool-component adaptation."
+}
