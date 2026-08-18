@@ -128,6 +128,21 @@ class ForgeweaveFluidsTest {
     }
 
     /**
+     * #502 (T71): molten dirt is upstream's third {@code fluidStone} fluid alongside obsidian and
+     * molten clay (TinkerFluids#dirt, 0xa68564, temperature 500) -- same stone texture pair, same
+     * lava-tier {@link ForgeweaveFluids#moltenFluidType}, not the shared metal texture.
+     */
+    @Test
+    void moltenDirtMatchesUpstreamTemperatureAndUsesStoneTextures() {
+        ResourceLocation stoneStill = ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "derived/block/liquid_stone");
+        ResourceLocation stoneFlowing = ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "derived/block/liquid_stone_flow");
+
+        assertEquals(500, ForgeweaveFluids.MOLTEN_DIRT.temperature());
+        assertEquals(stoneStill, ForgeweaveFluids.MOLTEN_DIRT.stillTexture());
+        assertEquals(stoneFlowing, ForgeweaveFluids.MOLTEN_DIRT.flowingTexture());
+    }
+
+    /**
      * #285: the placed fluid block's light level derives from the fluid's own {@code
      * FluidType#getLightLevel()} instead of a hardcoded 10, so blood -- whose {@code FluidType}
      * never calls {@code lightLevel()}, leaving the property at its 0 default -- renders

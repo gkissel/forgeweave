@@ -1,0 +1,8 @@
+{
+  "station": "basin",
+  "fluid": "forgeweave:molten_clay",
+  "amount": 576,
+  "result": {
+    "id": "minecraft:terracotta"
+  }
+}

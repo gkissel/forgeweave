@@ -1,0 +1,7 @@
+{
+  "input": {
+    "item": "forgeweave:mud_brick"
+  },
+  "fluid": "forgeweave:molten_dirt",
+  "amount": 144
+}
