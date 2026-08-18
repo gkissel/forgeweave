@@ -1072,6 +1072,8 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         // family; the two blood variants follow "Blood" (upstream's fluid.tconstruct.blood.name) and,
         // for blazing blood, the 1.20 clone's own fluid.tconstruct.blazing_blood name.
         addFluid(ForgeweaveFluids.EMERALD, "Molten Emerald");
+        // #473 (T42) -- upstream 1.12's fluid.tconstruct.glass.name, "Molten Glass".
+        addFluid(ForgeweaveFluids.GLASS, "Molten Glass");
         addFluid(ForgeweaveFluids.BLAZING_BLOOD, "Blazing Blood");
         addFluid(ForgeweaveFluids.DEEP_BLOOD, "Deep Blood");
 

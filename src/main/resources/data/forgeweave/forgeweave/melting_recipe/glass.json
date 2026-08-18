@@ -1,0 +1,7 @@
+{
+  "input": {
+    "tag": "c:glass_blocks"
+  },
+  "fluid": "forgeweave:molten_glass",
+  "amount": 1000
+}

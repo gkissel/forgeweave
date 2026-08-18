@@ -170,6 +170,12 @@ public final class ForgeweaveFluids {
     // metal but rides the same shared tinted texture upstream does.
     public static final MoltenMetal EMERALD = register("emerald", 0x58E78E, 999);
 
+    // #473 (T42) -- molten glass, what sand/glass/panes melt into and what casts back out as a glass
+    // pane or clear glass. Ported 1:1 from TinkerFluids#setupFluids (fluidMetal("glass", 0xc0f5fe),
+    // setTemperature(625)); a fluidMetal, so like EMERALD and AMETHYST it rides the shared tinted
+    // metal texture pair rather than the stone one OBSIDIAN/MOLTEN_CLAY/MOLTEN_DIRT use.
+    public static final MoltenMetal GLASS = register("glass", 0xC0F5FE, 625);
+
     // #270 -- the two blood variants the maintainer added on top of the 1.12 set. Both are bloods, so
     // both are named without a molten_ prefix the way BLOOD is.
     //

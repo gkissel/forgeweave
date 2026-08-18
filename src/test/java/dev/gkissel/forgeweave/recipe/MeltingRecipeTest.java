@@ -395,6 +395,38 @@ class MeltingRecipeTest {
         assertEquals("forgeweave:molten_dirt", shipped("mud_brick_block").get("fluid").getAsString());
     }
 
+    // ------------------------------------------------------------------ #473 (T42 parity audit)
+
+    /**
+     * Upstream {@code TinkerSmeltery}'s glass block: one {@code MeltingRecipe(RecipeMatch.of("sand",
+     * Material.VALUE_Glass), TinkerFluids.glass)} plus the {@code addKnownOreFluid} pair for
+     * {@code blockGlass} ({@code VALUE_Glass}) and {@code paneGlass} ({@code VALUE_Glass * 6 / 16}).
+     * None of the three is ore-class -- sand and glass are building materials, not mined ore -- and
+     * none pins a temperature, exactly as upstream's two-argument constructor derives one.
+     */
+    @Test
+    void theShippedGlassMeltingRowsMatchUpstreamsAmountsAndTags() {
+        JsonObject sand = shipped("sand");
+        assertEquals("c:sands", sand.getAsJsonObject("input").get("tag").getAsString(), "upstream's \"sand\" ore dict, red sand included");
+        assertEquals("forgeweave:molten_glass", sand.get("fluid").getAsString());
+        assertEquals(1000, sand.get("amount").getAsInt(), "Material.VALUE_Glass");
+
+        JsonObject glass = shipped("glass");
+        assertEquals("c:glass_blocks", glass.getAsJsonObject("input").get("tag").getAsString(), "upstream's \"blockGlass\" ore dict");
+        assertEquals("forgeweave:molten_glass", glass.get("fluid").getAsString());
+        assertEquals(1000, glass.get("amount").getAsInt(), "Material.VALUE_Glass");
+
+        JsonObject pane = shipped("glass_pane");
+        assertEquals("c:glass_panes", pane.getAsJsonObject("input").get("tag").getAsString(), "upstream's \"paneGlass\" ore dict");
+        assertEquals("forgeweave:molten_glass", pane.get("fluid").getAsString());
+        assertEquals(375, pane.get("amount").getAsInt(), "Material.VALUE_Glass * 6 / 16");
+
+        for (String name : new String[] {"sand", "glass", "glass_pane"}) {
+            assertTrue(!shipped(name).has("ore"), name + " is a building material, not ore-class");
+            assertTrue(!shipped(name).has("temperature"), name + " derives its temperature, as upstream's two-argument constructor does");
+        }
+    }
+
     private static JsonObject shipped(String name) {
         String path = "/data/forgeweave/forgeweave/melting_recipe/" + name + ".json";
         try (InputStream in = MeltingRecipeTest.class.getResourceAsStream(path)) {

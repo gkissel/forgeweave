@@ -398,6 +398,45 @@ class CastingRecipeTest {
         assertTrue(recipe.cast().isPresent(), "cast is the c:glass_blocks/colorless tag");
     }
 
+    // ------------------------------------------------------------------ #473 (T42 parity audit)
+
+    /**
+     * Upstream {@code TinkerRegistry.registerTableCasting(new CastingRecipe(new
+     * ItemStack(Blocks.GLASS_PANE), null, TinkerFluids.glass, Material.VALUE_Glass * 6 / 16, 50))}:
+     * an empty casting table under molten glass makes a vanilla glass pane, at an explicit 50-tick
+     * cool rather than the derived one.
+     */
+    @Test
+    void glassPaneCastsOnAnEmptyTable() {
+        CastingRecipe recipe = shipped("glass_pane");
+
+        assertEquals(CastingRecipe.Station.TABLE, recipe.station());
+        assertEquals(375, recipe.amount(), "Material.VALUE_Glass * 6 / 16");
+        assertEquals(ForgeweaveFluids.GLASS.still().get(), recipe.fluid());
+        assertEquals(Items.GLASS_PANE, recipe.result().getItem());
+        assertEquals(50, recipe.time().orElseThrow(), "upstream's explicit 50-tick cool");
+        assertTrue(recipe.cast().isEmpty(), "the table has to be empty");
+        assertFalse(recipe.consumesCast());
+    }
+
+    /**
+     * Upstream {@code TinkerRegistry.registerBasinCasting(new CastingRecipe(new
+     * ItemStack(TinkerCommons.blockClearGlass), null, TinkerFluids.glass, Material.VALUE_Glass,
+     * 120))}: an empty basin under molten glass makes clear glass, at an explicit 120-tick cool.
+     */
+    @Test
+    void clearGlassCastsInAnEmptyBasin() {
+        CastingRecipe recipe = shipped("clear_glass");
+
+        assertEquals(CastingRecipe.Station.BASIN, recipe.station());
+        assertEquals(1000, recipe.amount(), "Material.VALUE_Glass");
+        assertEquals(ForgeweaveFluids.GLASS.still().get(), recipe.fluid());
+        assertEquals(ForgeweaveItems.CLEAR_GLASS.get(), recipe.result().getItem());
+        assertEquals(120, recipe.time().orElseThrow(), "upstream's explicit 120-tick cool");
+        assertTrue(recipe.cast().isEmpty(), "the basin has to be empty");
+        assertFalse(recipe.consumesCast());
+    }
+
     // ------------------------------------------------------------------ helpers
 
     private static CastingRecipe parse(String json) {
