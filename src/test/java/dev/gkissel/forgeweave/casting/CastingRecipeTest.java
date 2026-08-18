@@ -183,6 +183,34 @@ class CastingRecipeTest {
                 "a room-temperature fluid cools in the faucet's own pour time");
     }
 
+    /**
+     * Issue #474 (parity audit T43), upstream's {@code BucketCastingRecipe}: registered once for
+     * {@code Items.BUCKET}, matching whatever fluid is poured over it via the item's fluid
+     * capability. Every other casting recipe here is already one datapack row per (station, cast,
+     * fluid) rather than upstream's in-code registries, so this ships as one row per fluid this mod
+     * already makes bucketable (issue #286) instead of a second, fluid-agnostic Java match path --
+     * same player-facing result (any bucketable fluid poured over an empty bucket fills it), recorded
+     * as a deviation in the PR body. {@code getTime()} is hardcoded to 5 ticks upstream, not the
+     * usual temperature-based cooldown.
+     */
+    @Test
+    void everyBucketableFluidHasATableBucketCastingRecipe() {
+        for (ForgeweaveFluids.MoltenMetal metal : ForgeweaveFluids.all()) {
+            CastingRecipe recipe = shipped("bucket_" + metal.name());
+
+            assertEquals(CastingRecipe.Station.TABLE, recipe.station(), metal.name());
+            assertEquals(metal.still().get(), recipe.fluid(), metal.name());
+            assertEquals(1000, recipe.amount(), metal.name() + ": one bucket's worth");
+            assertTrue(ItemStack.matches(new ItemStack(metal.bucket().get()), recipe.result()), metal.name());
+            assertTrue(recipe.consumesCast(), metal.name() + ": the empty bucket is consumed");
+            assertFalse(recipe.resultInInput(), metal.name());
+            assertEquals(5, recipe.time().orElseThrow(), metal.name() + ": upstream's flat 5-tick cool");
+            assertTrue(recipe.cast().orElseThrow().test(new ItemStack(Items.BUCKET)), metal.name());
+            assertTrue(recipe.matches(CastingRecipe.Station.TABLE, new ItemStack(Items.BUCKET), metal.still().get()),
+                    metal.name());
+        }
+    }
+
     // ------------------------------------------------------------------ matching
 
     @Test

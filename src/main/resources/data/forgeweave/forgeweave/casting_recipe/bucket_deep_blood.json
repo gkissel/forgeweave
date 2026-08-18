@@ -1,0 +1,13 @@
+{
+  "station": "table",
+  "cast": {
+    "item": "minecraft:bucket"
+  },
+  "fluid": "forgeweave:deep_blood",
+  "amount": 1000,
+  "result": {
+    "id": "forgeweave:deep_blood_bucket"
+  },
+  "consumes_cast": true,
+  "time": 5
+}
