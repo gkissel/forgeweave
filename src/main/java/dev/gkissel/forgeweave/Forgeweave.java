@@ -43,6 +43,7 @@ import dev.gkissel.forgeweave.fluid.ForgeweaveFluids;
 import dev.gkissel.forgeweave.item.ForgeweaveCreativeTab;
 import dev.gkissel.forgeweave.item.ForgeweaveDataComponents;
 import dev.gkissel.forgeweave.item.ForgeweaveItems;
+import dev.gkissel.forgeweave.item.GuideBookGift;
 import dev.gkissel.forgeweave.material.Material;
 import dev.gkissel.forgeweave.menu.ForgeweaveMenus;
 import dev.gkissel.forgeweave.menu.RenameStationItemPayload;
@@ -167,6 +168,9 @@ public class Forgeweave {
         NeoForge.EVENT_BUS.addListener(ForgeweaveModifiers::onRightClickBookshelf);
         NeoForge.EVENT_BUS.addListener(ForgeweaveModifiers::onLivingDrops);
         NeoForge.EVENT_BUS.addListener(ForgeweaveModifiers::onPlayerClone);
+        // #445 -- parity audit T13: a first-time player is given the guide book (upstream's
+        // spawnWithBook, default on). See GuideBookGift.
+        NeoForge.EVENT_BUS.addListener(GuideBookGift::onPlayerLoggedIn);
         // #110 -- Ponder is a soft dependency (docs/SCOPE.md M2): only touch its API, and only
         // register the client-setup listener, when it's actually on the mod list. See
         // ForgeweavePonderPlugin's javadoc for why this isn't an @EventBusSubscriber instead.
