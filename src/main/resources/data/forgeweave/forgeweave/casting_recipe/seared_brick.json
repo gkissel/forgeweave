@@ -1,0 +1,11 @@
+{
+  "station": "table",
+  "cast": {
+    "item": "forgeweave:cast_ingot"
+  },
+  "fluid": "forgeweave:molten_seared_stone",
+  "amount": 72,
+  "result": {
+    "id": "forgeweave:seared_brick"
+  }
+}

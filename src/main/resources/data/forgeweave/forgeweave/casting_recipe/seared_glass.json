@@ -1,0 +1,12 @@
+{
+  "station": "basin",
+  "cast": {
+    "tag": "c:glass_blocks/colorless"
+  },
+  "fluid": "forgeweave:molten_seared_stone",
+  "amount": 288,
+  "result": {
+    "id": "forgeweave:seared_glass"
+  },
+  "consumes_cast": true
+}
