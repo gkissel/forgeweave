@@ -1,0 +1,81 @@
+{
+    block: "forgeweave:seared_furnace_controller",
+    decoder: "block_entity",
+    expect: {
+        id: "forgeweave:seared_furnace_controller",
+        structure: {
+            interior_max: [I; 1, 64, 1],
+            interior_min: [I; 1, 64, 1]
+        },
+        tanks: [
+            [I; 0, 65, 0]
+        ],
+        items: {
+            Items: [
+                {
+                    Slot: 0b,
+                    count: 5,
+                    id: "minecraft:cobblestone"
+                },
+                {
+                    Slot: 2b,
+                    count: 1,
+                    id: "minecraft:stone"
+                }
+            ]
+        },
+        item_temperatures: [I; 640, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        item_temp_required: [I; 2000, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        fuel: 37,
+        fuel_quality: 100,
+        temperature: 1300,
+        current_tank: [I; 0, 65, 0],
+        current_fuel: {
+            amount: 50,
+            id: "minecraft:lava"
+        },
+        fuel_display: {
+            amount: 3950,
+            id: "minecraft:lava"
+        }
+    },
+    nbt: {
+        id: "forgeweave:seared_furnace_controller",
+        structure: {
+            interior_max: [I; 1, 64, 1],
+            interior_min: [I; 1, 64, 1]
+        },
+        tanks: [
+            [I; 0, 65, 0]
+        ],
+        items: {
+            Items: [
+                {
+                    Slot: 0b,
+                    count: 5,
+                    id: "minecraft:cobblestone"
+                },
+                {
+                    Slot: 2b,
+                    count: 1,
+                    id: "minecraft:stone"
+                }
+            ]
+        },
+        item_temperatures: [I; 640, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        item_temp_required: [I; 2000, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        fuel: 37,
+        fuel_quality: 100,
+        temperature: 1300,
+        current_tank: [I; 0, 65, 0],
+        current_fuel: {
+            amount: 50,
+            id: "minecraft:lava"
+        },
+        fuel_display: {
+            amount: 3950,
+            id: "minecraft:lava"
+        }
+    },
+    what: "M3.5 (#442): a formed 1x1x1 seared furnace mid-cook -- five cobblestone in slot 0 at 640 of the 2000 heat units (250 * 8) they need, a finished stone in slot 2 (temperature 1 / required 0, upstream's `complete` marker), 37 burn ticks left of a 100-tick lava unit at 1300, the corner tank it came from, and the gauge's live 3950 mB of lava."
+}

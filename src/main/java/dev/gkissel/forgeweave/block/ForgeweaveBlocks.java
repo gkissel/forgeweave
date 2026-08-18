@@ -27,6 +27,12 @@ import dev.gkissel.forgeweave.casting.CastingRecipe;
 public final class ForgeweaveBlocks {
     public static final DeferredRegister.Blocks BLOCKS = DeferredRegister.createBlocks(Forgeweave.MODID);
 
+    // #442: upstream's TinkerSmeltery.searedStairsSlabs, the seared furnace's ceiling roster
+    // (SearedFurnaceScan#isCeilingBlock). Filled by searedStairs()/searedSlab() as the variants
+    // register, so a new one cannot be forgotten from it; declared up here because those helpers
+    // run during this class's static initialization, before anything declared below them exists.
+    private static final List<DeferredBlock<? extends Block>> SEARED_STAIRS_SLABS = new ArrayList<>();
+
     public static final DeferredBlock<PartBuilderBlock> PART_BUILDER = BLOCKS.register("part_builder",
             () -> new PartBuilderBlock(BlockBehaviour.Properties.of()
                     .mapColor(MapColor.WOOD)
@@ -181,6 +187,15 @@ public final class ForgeweaveBlocks {
 
     public static final DeferredBlock<SmelteryControllerBlock> NETHER_CORE = BLOCKS.register("nether_core",
             () -> new SmelteryControllerBlock(searedProperties(), SmelteryCore.NETHER));
+
+    // #442 -- the seared furnace controller. Upstream 1.12's BlockSearedFurnaceController
+    // (NOTICE.md): Material.ROCK, hardness 3, resistance 20, SoundType.METAL -- deliberately not the
+    // seared family's strength, so it is spelled out rather than taken from searedProperties().
+    public static final DeferredBlock<SearedFurnaceControllerBlock> SEARED_FURNACE_CONTROLLER = BLOCKS.register("seared_furnace_controller",
+            () -> new SearedFurnaceControllerBlock(BlockBehaviour.Properties.of()
+                    .mapColor(MapColor.STONE)
+                    .strength(3.0F, 20.0F)
+                    .sound(SoundType.METAL)));
 
     // The gauge and window are see-through, so all three skip occlusion culling (upstream's BlockTank
     // is likewise not a full/opaque cube).
@@ -367,12 +382,21 @@ public final class ForgeweaveBlocks {
         return BLOCKS.registerSimpleBlock(name, searedProperties());
     }
 
+    /** Whether {@code block} is one of the seared stairs or slabs (issue #274). */
+    public static boolean isSearedStairsOrSlab(Block block) {
+        return SEARED_STAIRS_SLABS.stream().anyMatch(entry -> entry.get() == block);
+    }
+
     private static DeferredBlock<StairBlock> searedStairs(String name, DeferredBlock<Block> base) {
-        return BLOCKS.register(name, () -> new StairBlock(base.get().defaultBlockState(), searedProperties()));
+        DeferredBlock<StairBlock> block = BLOCKS.register(name, () -> new StairBlock(base.get().defaultBlockState(), searedProperties()));
+        SEARED_STAIRS_SLABS.add(block);
+        return block;
     }
 
     private static DeferredBlock<SlabBlock> searedSlab(String name) {
-        return BLOCKS.register(name, () -> new SlabBlock(searedProperties()));
+        DeferredBlock<SlabBlock> block = BLOCKS.register(name, () -> new SlabBlock(searedProperties()));
+        SEARED_STAIRS_SLABS.add(block);
+        return block;
     }
 
     private static DeferredBlock<SearedTankBlock> tankBlock(String name) {

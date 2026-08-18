@@ -579,6 +579,17 @@ public class ForgeweaveRecipeProvider extends RecipeProvider {
                 .unlockedBy("has_seared_brick", has(ForgeweaveItems.SEARED_BRICK.get()))
                 .save(recipeOutput);
 
+        // #442 -- upstream's recipes/smeltery/seared/furnace_controller.json: eight seared bricks
+        // around a vanilla furnace (NOTICE.md).
+        ShapedRecipeBuilder.shaped(RecipeCategory.MISC, ForgeweaveItems.SEARED_FURNACE_CONTROLLER.get())
+                .pattern("AAA")
+                .pattern("ABA")
+                .pattern("AAA")
+                .define('A', ForgeweaveItems.SEARED_BRICK.get())
+                .define('B', Items.FURNACE)
+                .unlockedBy("has_seared_brick", has(ForgeweaveItems.SEARED_BRICK.get()))
+                .save(recipeOutput);
+
         ShapedRecipeBuilder.shaped(RecipeCategory.MISC, ForgeweaveItems.NETHER_CORE.get())
                 .pattern("AAA")
                 .pattern("ABA")

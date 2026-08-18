@@ -7,6 +7,7 @@ import net.neoforged.neoforge.common.data.LanguageProvider;
 
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.block.ForgeweaveBlocks;
+import dev.gkissel.forgeweave.block.SearedFurnaceScan;
 import dev.gkissel.forgeweave.block.SmelteryScan;
 import dev.gkissel.forgeweave.fluid.ForgeweaveFluids;
 import dev.gkissel.forgeweave.item.ForgeweaveItems;
@@ -95,6 +96,7 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         // 1.12's tile.tconstruct.*.name entries; the two core tiers are SCOPE.md's own vocabulary.
         addBlock(ForgeweaveBlocks.STANDARD_CORE, "Standard Core");
         addBlock(ForgeweaveBlocks.NETHER_CORE, "Nether Core");
+        addBlock(ForgeweaveBlocks.SEARED_FURNACE_CONTROLLER, "Seared Furnace Controller"); // #442, upstream's tile name
         addBlock(ForgeweaveBlocks.SEARED_TANK, "Seared Tank");
         addBlock(ForgeweaveBlocks.SEARED_GAUGE, "Seared Gauge");
         addBlock(ForgeweaveBlocks.SEARED_WINDOW, "Seared Window");
@@ -134,6 +136,26 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add(SmelteryScan.KEY_NO_TANK, "The smeltery needs at least one seared tank in its walls");
         add(SmelteryScan.KEY_CLAIMED, "Another smeltery already uses the block at %s, %s, %s");
         add(SmelteryScan.KEY_CORE_OUTSIDE, "The core has to sit in a wall of the smeltery");
+
+        // #442: the seared furnace -- upstream's gui.searedfurnace.name and its five progress
+        // tooltips word for word; the structure reasons follow the smeltery's own family above.
+        add("gui.forgeweave.seared_furnace.name", "Seared Furnace");
+        add(SearedFurnaceScan.KEY_FORMED, "Seared furnace formed: %s x %s interior, %s tall");
+        add(SearedFurnaceScan.KEY_NOT_SCANNED, "The seared furnace has not been checked yet");
+        add(SearedFurnaceScan.KEY_NOT_LOADED, "Part of the seared furnace is not loaded");
+        add(SearedFurnaceScan.KEY_BLOCKED_INTERIOR, "The seared furnace interior is blocked at %s, %s, %s");
+        add(SearedFurnaceScan.KEY_TOO_LARGE, "The seared furnace interior is %s x %s, larger than the maximum of %s");
+        add(SearedFurnaceScan.KEY_INVALID_FLOOR, "The floor needs a seared block at %s, %s, %s");
+        add(SearedFurnaceScan.KEY_INVALID_WALL, "The wall needs a seared block (or a tank at a corner) at %s, %s, %s");
+        add(SearedFurnaceScan.KEY_INVALID_CEILING, "The ceiling needs a seared block, slab or stairs at %s, %s, %s");
+        add(SearedFurnaceScan.KEY_NO_TANK, "The seared furnace needs at least one seared tank in its frame");
+        add(SearedFurnaceScan.KEY_CLAIMED, "Another structure already uses the tank at %s, %s, %s");
+        add(SearedFurnaceScan.KEY_CORE_OUTSIDE, "The controller has to sit in a wall of the seared furnace");
+        add("gui.forgeweave.seared_furnace.progress.complete", "Item is finished smelting");
+        add("gui.forgeweave.seared_furnace.progress.no_recipe", "Item can't be smelted");
+        add("gui.forgeweave.seared_furnace.progress.no_fuel", "No valid fuel in seared furnace");
+        add("gui.forgeweave.seared_furnace.progress.no_heat", "Not enough heat to smelt this item");
+        add("gui.forgeweave.seared_furnace.progress.no_space", "Resulting stack is too large for the slot");
 
         // #101: the smeltery GUI's tank and fuel tooltips, following upstream 1.12's gui.smeltery.*
         // entries word for word -- the unit abbreviations are deliberately lowercase and terse

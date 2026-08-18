@@ -138,6 +138,9 @@ public class ForgeweaveBlockStateProvider extends BlockStateProvider {
         // the front) instead of the shared seared brick.
         coreBlock("standard_core", ForgeweaveBlocks.STANDARD_CORE.get(), "seared_bricks");
         coreBlock("nether_core", ForgeweaveBlocks.NETHER_CORE.get(), "nether_core_side");
+        // #442 -- upstream's seared_furnace_controller blockstate is the same orientable shape over
+        // seared brick, front swapping on `active` (NOTICE.md).
+        coreBlock("seared_furnace_controller", ForgeweaveBlocks.SEARED_FURNACE_CONTROLLER.get(), "seared_bricks");
 
         // Upstream's seared_tank blockstate: one cube per tank type, side and top textures per type.
         tankBlock("seared_tank", ForgeweaveBlocks.SEARED_TANK.get(), "seared_tank_side", "seared_tank_top");

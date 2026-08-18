@@ -65,6 +65,12 @@ public final class ForgeweaveBlockEntities {
                             ForgeweaveBlocks.NETHER_CORE.get())
                     .build(null));
 
+    // #442 -- the seared furnace controller (upstream's TileSearedFurnace).
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<SearedFurnaceBlockEntity>> SEARED_FURNACE =
+            BLOCK_ENTITIES.register("seared_furnace_controller", () -> BlockEntityType.Builder
+                    .of(SearedFurnaceBlockEntity::new, ForgeweaveBlocks.SEARED_FURNACE_CONTROLLER.get())
+                    .build(null));
+
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<SearedTankBlockEntity>> SEARED_TANK =
             BLOCK_ENTITIES.register("seared_tank", () -> BlockEntityType.Builder
                     .of(SearedTankBlockEntity::new, ForgeweaveBlocks.SEARED_TANK.get(),

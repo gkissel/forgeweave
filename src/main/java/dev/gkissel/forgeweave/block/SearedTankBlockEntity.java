@@ -40,7 +40,7 @@ public class SearedTankBlockEntity extends BlockEntity {
     private static final String TAG_TANK = "tank";
     private static final String TAG_CORE = "core";
 
-    /** Which smeltery core this tank belongs to, if any -- set by {@link SmelteryControllerBlockEntity} on a scan (#97). */
+    /** Which core this tank belongs to, if any -- set by its {@link TankOwner} on a scan (#97; a smeltery core or, since #442, a seared furnace). */
     @Nullable
     private BlockPos corePos;
 
@@ -59,7 +59,7 @@ public class SearedTankBlockEntity extends BlockEntity {
                 // else notices a wall tank far from the core changing; see
                 // SmelteryControllerBlockEntity#armMeltTick.
                 if (corePos != null && getFluidAmount() > lastFluidAmount
-                        && level.getBlockEntity(corePos) instanceof SmelteryControllerBlockEntity core) {
+                        && level.getBlockEntity(corePos) instanceof TankOwner core) {
                     core.armMeltTick();
                 }
                 lastFluidAmount = getFluidAmount();

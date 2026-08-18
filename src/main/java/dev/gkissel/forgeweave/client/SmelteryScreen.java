@@ -7,6 +7,7 @@ import java.util.Optional;
 import javax.annotation.Nullable;
 
 import net.minecraft.ChatFormatting;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.renderer.Rect2i;
@@ -516,14 +517,15 @@ public class SmelteryScreen extends StationScreen<SmelteryMenu> {
      * at each edge. Scissoring the rectangle and drawing whole tiles over it produces the identical
      * pixels -- a clipped tile shows exactly the sprite's leading rows and columns, which is what
      * those interpolated UVs select -- in a fraction of the code, and without reaching past
-     * {@link GuiGraphics} into the buffer builder.
+     * {@link GuiGraphics} into the buffer builder. Static (#442) so {@link SearedFurnaceScreen}'s
+     * fuel gauge draws with the same code.
      */
-    private void renderFluid(GuiGraphics graphics, FluidStack fluid, int x, int y, int width, int height) {
-        if (fluid.isEmpty() || width <= 0 || height <= 0 || minecraft == null) {
+    static void renderFluid(GuiGraphics graphics, FluidStack fluid, int x, int y, int width, int height) {
+        if (fluid.isEmpty() || width <= 0 || height <= 0) {
             return;
         }
         IClientFluidTypeExtensions extensions = IClientFluidTypeExtensions.of(fluid.getFluid());
-        TextureAtlasSprite sprite = minecraft.getTextureAtlas(InventoryMenu.BLOCK_ATLAS)
+        TextureAtlasSprite sprite = Minecraft.getInstance().getTextureAtlas(InventoryMenu.BLOCK_ATLAS)
                 .apply(extensions.getStillTexture(fluid));
         int tint = extensions.getTintColor(fluid);
 

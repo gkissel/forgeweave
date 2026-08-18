@@ -1,0 +1,13 @@
+{
+  "station": "basin",
+  "cast": {
+    "item": "minecraft:furnace"
+  },
+  "fluid": "forgeweave:molten_seared_stone",
+  "amount": 1152,
+  "result": {
+    "id": "forgeweave:seared_furnace_controller"
+  },
+  "consumes_cast": true,
+  "result_in_input": true
+}
