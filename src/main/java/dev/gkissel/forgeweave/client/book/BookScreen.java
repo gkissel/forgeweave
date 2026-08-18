@@ -3,8 +3,6 @@ package dev.gkissel.forgeweave.client.book;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.annotation.Nullable;
-
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
@@ -30,6 +28,10 @@ import dev.gkissel.forgeweave.client.book.BookPage.ToolPage;
  * chrome art is not part of the pinned Tinkers' clone, so the spread/cover/arrow art in
  * {@code textures/gui/book.png} is freshly authored ({@code scripts/generate_book_gui.py}) in the
  * same brown-leather-and-parchment look rather than derived.
+ *
+ * <p>Pages are fixed-size and never scroll, so a page whose content is taller than a leaf continues
+ * onto further leaves: {@link #blocksOf} measures a page into indivisible blocks and
+ * {@link BookLayout} fills leaves with them (issue #428).
  *
  * <p>ponytail: navigation is cover -> index -> spreads with the index rows and two arrows as the
  * only interactive elements, hit-tested directly instead of through widget subclasses; the 1.12
@@ -59,14 +61,26 @@ public class BookScreen extends Screen {
     private static final int PAGE_TEXT_X_LEFT = 24;
     private static final int PAGE_TEXT_X_RIGHT = 178;
     private static final int PAGE_TEXT_Y = 14;
-    private static final int PAGE_TEXT_W = 118;
-    private static final int PAGE_TEXT_H = 164;
+    private static final int PAGE_TEXT_W = BookLayout.PAGE_TEXT_W;
+    private static final int PAGE_TEXT_H = BookLayout.PAGE_TEXT_H;
 
     private static final int TEXT_COLOR = 0xFF3F3F3F;
     private static final int TITLE_COLOR = 0xFF542D0B;
 
-    /** A blank slot has no page; the index is the screen's own, not a {@link BookPage}. */
-    private record PageSlot(@Nullable BookPage page, boolean index) {}
+    /** Draws one already-measured piece of a page at the origin it was laid out at. */
+    @FunctionalInterface
+    private interface Drawer {
+        void draw(GuiGraphics graphics, int x, int y);
+    }
+
+    /**
+     * The smallest piece of a page that must not be split across leaves: one wrapped body line, a
+     * whole title, an image, a tool icon. {@link BookLayout} sees only the height.
+     */
+    private record Block(int height, Drawer drawer) {}
+
+    /** One rendered leaf. The index is the screen's own page, not a {@link BookPage}, so it has no blocks. */
+    private record PageSlot(List<Block> blocks, boolean index) {}
 
     private final List<BookSection> sections;
     private final List<PageSlot> slots = new ArrayList<>();
@@ -79,13 +93,39 @@ public class BookScreen extends Screen {
         super(Component.translatable(BookContent.TITLE));
         this.sections = sections;
         this.sectionStartSlot = new int[sections.size()];
-        this.slots.add(new PageSlot(null, true));
-        for (int i = 0; i < sections.size(); i++) {
-            this.sectionStartSlot[i] = this.slots.size();
-            for (BookPage page : sections.get(i).pages()) {
-                this.slots.add(new PageSlot(page, false));
-            }
+    }
+
+    /**
+     * Measures every page into blocks and lays them out into slots (issue #428). Runs here rather
+     * than in the constructor because measuring needs {@link #font}, which {@link Screen#init} sets;
+     * the result depends only on the content, so a resize rebuilds an identical layout.
+     */
+    @Override
+    protected void init() {
+        super.init();
+        List<BookPage> pages = new ArrayList<>();
+        int[] sectionStartPage = new int[this.sections.size()];
+        for (int i = 0; i < this.sections.size(); i++) {
+            sectionStartPage[i] = pages.size();
+            pages.addAll(this.sections.get(i).pages());
         }
+
+        List<List<Block>> blocks = pages.stream().map(this::blocksOf).toList();
+        List<BookLayout.Slot> laid = BookLayout.paginate(
+                blocks.stream().map(page -> page.stream().map(Block::height).toList()).toList(),
+                PAGE_TEXT_H);
+
+        this.slots.clear();
+        this.slots.add(new PageSlot(List.of(), true));
+        for (BookLayout.Slot slot : laid) {
+            this.slots.add(new PageSlot(blocks.get(slot.page())
+                    .subList(slot.firstBlock(), slot.firstBlock() + slot.blockCount()), false));
+        }
+        // The index is slot 0, so every laid-out slot sits one further along.
+        for (int i = 0; i < this.sections.size(); i++) {
+            this.sectionStartSlot[i] = 1 + BookLayout.firstSlotOf(laid, sectionStartPage[i]);
+        }
+        this.spread = Math.min(this.spread, lastSpread());
     }
 
     @Override
@@ -146,20 +186,23 @@ public class BookScreen extends Screen {
             return;
         }
         PageSlot slot = this.slots.get(slotIndex);
+        // Belt and braces over the layout's own bound: the one thing it cannot split -- a single
+        // block taller than a whole leaf -- still must not bleed over the page number or off the
+        // parchment the way every page used to (issue #428).
+        graphics.enableScissor(x, y, x + PAGE_TEXT_W, y + PAGE_TEXT_H);
         if (slot.index()) {
             renderIndex(graphics, x, y);
-        } else if (slot.page() instanceof TextPage page) {
-            renderText(graphics, page, x, y);
-        } else if (slot.page() instanceof ToolPage page) {
-            renderTool(graphics, page, x, y);
-        } else if (slot.page() instanceof MaterialPage page) {
-            renderMaterial(graphics, page, x, y);
-        } else if (slot.page() instanceof ModifierPage page) {
-            renderModifier(graphics, page, x, y);
+        } else {
+            int cursor = y;
+            for (Block block : slot.blocks()) {
+                block.drawer().draw(graphics, x, cursor);
+                cursor += block.height();
+            }
         }
+        graphics.disableScissor();
         // Page number, bottom-centre of the page (a numeral, not translatable text).
-        graphics.drawString(this.font, String.valueOf(slotIndex + 1),
-                x + (PAGE_TEXT_W - this.font.width(String.valueOf(slotIndex + 1))) / 2,
+        String number = String.valueOf(slotIndex + 1);
+        graphics.drawString(this.font, number, x + (PAGE_TEXT_W - this.font.width(number)) / 2,
                 y + PAGE_TEXT_H + 4, TEXT_COLOR, false);
     }
 
@@ -176,35 +219,51 @@ public class BookScreen extends Screen {
         }
     }
 
-    private void renderText(GuiGraphics graphics, TextPage page, int x, int y) {
-        int cursor = drawTitle(graphics, Component.translatable(page.titleKey()), x, y);
-        if (page.image() != null) {
-            // Fit the image to the text column, preserving the source's aspect only approximately:
-            // the one shipped image (the smeltery scene) is 854x480, close enough to 16:9.
-            int imageH = PAGE_TEXT_W * 9 / 16;
-            graphics.blit(page.image(), x, cursor, PAGE_TEXT_W, imageH, 0, 0, 854, 480, 854, 480);
-            cursor += imageH + 4;
+    /**
+     * Measures one page into the blocks {@link BookLayout} then spreads across leaves. A page's
+     * title, image and tool icon are its leading blocks, so a continuation leaf -- which starts
+     * part-way down the list -- never repeats them, exactly as upstream's hand-split
+     * {@code welcome2.json} carries an empty title.
+     */
+    private List<Block> blocksOf(BookPage page) {
+        List<Block> blocks = new ArrayList<>();
+        if (page instanceof TextPage text) {
+            titleBlock(blocks, Component.translatable(text.titleKey()));
+            ResourceLocation image = text.image();
+            if (image != null) {
+                // Fit the image to the text column, preserving the source's aspect only approximately:
+                // the one shipped image (the smeltery scene) is 854x480, close enough to 16:9.
+                int imageH = PAGE_TEXT_W * 9 / 16;
+                blocks.add(new Block(imageH + 4, (graphics, x, y) ->
+                        graphics.blit(image, x, y, PAGE_TEXT_W, imageH, 0, 0, 854, 480, 854, 480)));
+            }
+            bodyBlocks(blocks, Component.translatable(text.textKey()));
+        } else if (page instanceof ToolPage tool) {
+            ItemStack stack = new ItemStack(tool.tool());
+            blocks.add(new Block(36, (graphics, x, y) -> {
+                graphics.pose().pushPose();
+                graphics.pose().translate(x + PAGE_TEXT_W / 2.0F - 16.0F, y, 0.0F);
+                graphics.pose().scale(2.0F, 2.0F, 1.0F);
+                graphics.renderItem(stack, 0, 0);
+                graphics.pose().popPose();
+            }));
+            titleBlock(blocks, tool.tool().getDescription());
+            bodyBlocks(blocks, Component.translatable(tool.tool().getDescriptionId() + ".description"));
+        } else if (page instanceof MaterialPage material) {
+            materialBlocks(blocks, material);
+        } else if (page instanceof ModifierPage modifier) {
+            String base = "modifier." + modifier.id().getNamespace() + "." + modifier.id().getPath();
+            titleBlock(blocks, Component.translatable(base + ".name"));
+            bodyBlocks(blocks, Component.translatable(base + ".description"));
         }
-        drawWrapped(graphics, Component.translatable(page.textKey()), x, cursor);
+        return List.copyOf(blocks);
     }
 
-    private void renderTool(GuiGraphics graphics, ToolPage page, int x, int y) {
-        ItemStack stack = new ItemStack(page.tool());
-        graphics.pose().pushPose();
-        graphics.pose().translate(x + PAGE_TEXT_W / 2.0F - 16.0F, y, 0.0F);
-        graphics.pose().scale(2.0F, 2.0F, 1.0F);
-        graphics.renderItem(stack, 0, 0);
-        graphics.pose().popPose();
-        int cursor = y + 36;
-        cursor = drawTitle(graphics, page.tool().getDescription(), x, cursor);
-        String descriptionKey = page.tool().getDescriptionId() + ".description";
-        drawWrapped(graphics, Component.translatable(descriptionKey), x, cursor);
-    }
+    private void materialBlocks(List<Block> blocks, MaterialPage page) {
+        titleBlock(blocks, Component
+                .translatable("material." + page.id().getNamespace() + "." + page.id().getPath())
+                .withStyle(Style.EMPTY.withColor(page.material().color())));
 
-    private void renderMaterial(GuiGraphics graphics, MaterialPage page, int x, int y) {
-        Component name = Component.translatable("material." + page.id().getNamespace() + "." + page.id().getPath())
-                .withStyle(Style.EMPTY.withColor(page.material().color()));
-        int cursor = drawTitle(graphics, name, x, y);
         // The three stat groups run together, not StationText#materialStats: that one is the info
         // panel's shape (issue #376's underlined headings and null spacers), and a book page has its
         // own headings, no room for five more lines, and a drawString that would NPE on a spacer.
@@ -214,50 +273,51 @@ public class BookScreen extends Screen {
         stats.addAll(StationText.bowStats(page.material()));
         stats.addAll(StationText.bowstringStats(page.material()));
         for (Component line : stats) {
-            graphics.drawString(this.font, line, x, cursor, TEXT_COLOR, false);
-            cursor += this.font.lineHeight + 1;
+            blocks.add(lineBlock(line, TEXT_COLOR));
         }
-        cursor += 4;
-        List<ResourceLocation> traitIds = page.material().traits().all();
+
+        // The gap and the traits header are one block, so the header never dangles at the foot of a
+        // leaf with its list starting on the next.
         Component traitsHeader = Component.translatable("gui.forgeweave.tool_station.traits");
-        graphics.drawString(this.font, traitsHeader, x, cursor, TITLE_COLOR, false);
-        cursor += this.font.lineHeight + 2;
+        blocks.add(new Block(4 + this.font.lineHeight + 2, (graphics, x, y) ->
+                graphics.drawString(this.font, traitsHeader, x, y + 4, TITLE_COLOR, false)));
+
+        List<ResourceLocation> traitIds = page.material().traits().all();
         if (traitIds.isEmpty()) {
-            graphics.drawString(this.font, Component.translatable("gui.forgeweave.tool_station.no_traits"),
-                    x, cursor, TEXT_COLOR, false);
+            blocks.add(lineBlock(Component.translatable("gui.forgeweave.tool_station.no_traits"), TEXT_COLOR));
             return;
         }
         for (ResourceLocation traitId : traitIds) {
-            Component traitName = Component
+            blocks.add(lineBlock(Component
                     .translatable("trait." + traitId.getNamespace() + "." + traitId.getPath() + ".name")
-                    .withStyle(Style.EMPTY.withColor(page.material().color()));
-            graphics.drawString(this.font, traitName, x, cursor, TEXT_COLOR, false);
-            cursor += this.font.lineHeight + 1;
+                    .withStyle(Style.EMPTY.withColor(page.material().color())), TEXT_COLOR));
         }
     }
 
-    private void renderModifier(GuiGraphics graphics, ModifierPage page, int x, int y) {
-        String base = "modifier." + page.id().getNamespace() + "." + page.id().getPath();
-        int cursor = drawTitle(graphics, Component.translatable(base + ".name"), x, y);
-        drawWrapped(graphics, Component.translatable(base + ".description"), x, cursor);
-    }
-
-    /** Draws a centred title and returns the y just below it. */
-    private int drawTitle(GuiGraphics graphics, Component title, int x, int y) {
+    /** A whole centred title is one block: it wraps, but it never splits across leaves. */
+    private void titleBlock(List<Block> blocks, Component title) {
         List<FormattedCharSequence> lines = this.font.split(title, PAGE_TEXT_W);
-        for (FormattedCharSequence line : lines) {
-            graphics.drawString(this.font, line, x + (PAGE_TEXT_W - this.font.width(line)) / 2, y,
-                    TITLE_COLOR, false);
-            y += this.font.lineHeight;
-        }
-        return y + 5;
+        blocks.add(new Block(lines.size() * this.font.lineHeight + 5, (graphics, x, y) -> {
+            int cursor = y;
+            for (FormattedCharSequence line : lines) {
+                graphics.drawString(this.font, line, x + (PAGE_TEXT_W - this.font.width(line)) / 2, cursor,
+                        TITLE_COLOR, false);
+                cursor += this.font.lineHeight;
+            }
+        }));
     }
 
-    private void drawWrapped(GuiGraphics graphics, Component text, int x, int y) {
+    /** One block per wrapped line, so body text continues onto the next leaf a line at a time. */
+    private void bodyBlocks(List<Block> blocks, Component text) {
         for (FormattedCharSequence line : this.font.split(text, PAGE_TEXT_W)) {
-            graphics.drawString(this.font, line, x, y, TEXT_COLOR, false);
-            y += this.font.lineHeight + 1;
+            blocks.add(new Block(this.font.lineHeight + 1,
+                    (graphics, x, y) -> graphics.drawString(this.font, line, x, y, TEXT_COLOR, false)));
         }
+    }
+
+    private Block lineBlock(Component line, int color) {
+        return new Block(this.font.lineHeight + 1,
+                (graphics, x, y) -> graphics.drawString(this.font, line, x, y, color, false));
     }
 
     private void drawCentredWrapped(GuiGraphics graphics, Component text, int centreX, int y, int width, int color) {
