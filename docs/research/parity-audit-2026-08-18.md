@@ -651,7 +651,7 @@ Prioritized and deduplicated across domains. Already-filed issues are marked; **
 - [ ] **T36 — Scythe cannot shear entities** — generalise `KamaItem#interactLivingEntity` to a 3×3 area around the clicked entity (tools, medium, M3 playtest-fix).
 - [ ] **T37 — Longsword/frypan charge movement** — generalise `BowDrawMovement` to a per-use-action speed (longsword 0.9, frypan 0.7) (tools, medium, M3 playtest-fix).
 - [ ] **T38 — Seared brick/block/cobble/glass casting** — the casting side of the seared-stone chain (recorded as a PR #246 follow-up) (smeltery, medium, backlog).
-- [ ] **T39 — Smeltery core has no item handler** — expose the melting container so a hopper on the controller works as in 1.12 (smeltery, medium, backlog).
+- [x] **T39 — Smeltery core has no item handler** (shipped, #470) — the core itself now registers an item-handler capability re-exposing `meltingContainer()`, so a hopper on any face of the core feeds it directly with no chute required, matching upstream's `TileMultiblock extends TileInventory` (Mantle, outside the pinned clone).
 - [ ] **T40 — Shard cast + shard melting/casting** — gold and clay shard casts at 72 mB per metal (smeltery, medium, backlog).
 - [ ] **T41 — Emerald melting and block casting** — ore/gem/block melting rows plus the emerald block basin recipe (smeltery, medium, backlog).
 - [ ] **T42 — Molten glass** — fluid, sand/glass/pane melting, clear glass and pane casting, seared glass basin recipe (smeltery, medium, backlog).

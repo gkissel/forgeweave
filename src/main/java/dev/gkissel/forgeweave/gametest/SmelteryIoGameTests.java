@@ -6,7 +6,10 @@ import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.HopperBlock;
 import net.minecraft.world.level.block.HorizontalDirectionalBlock;
+import net.minecraft.world.level.block.entity.HopperBlockEntity;
 import net.minecraft.world.level.material.Fluids;
 
 import net.neoforged.neoforge.capabilities.Capabilities;
@@ -24,12 +27,16 @@ import dev.gkissel.forgeweave.block.SmelteryStructure;
 /**
  * Issue #277's verification on a headless dedicated server: the seared duct (filtered fluid I/O) and
  * the seared chute (item I/O) are valid smeltery wall blocks, and each moves only what it is
- * supposed to.
+ * supposed to. Also covers issue #470: the core itself exposes that same melting inventory as an item
+ * handler, so a hopper needs no chute planted in the wall to feed it.
  *
- * <p>Both blocks are a maintainer-approved deviation from the usual 1.12 parity rule -- the 1.12
- * generation has only the plain drain -- so their semantics come from the 1.20 clone's {@code
+ * <p>The duct and chute are a maintainer-approved deviation from the usual 1.12 parity rule -- the
+ * 1.12 generation has only the plain drain -- so their semantics come from the 1.20 clone's {@code
  * DuctBlockEntity}/{@code DuctTankWrapper}/{@code DuctItemHandler} and {@code
- * SmelteryInputOutputBlockEntity.ChuteBlockEntity} (NOTICE.md).
+ * SmelteryInputOutputBlockEntity.ChuteBlockEntity} (NOTICE.md). The core's own item handler, by
+ * contrast, is 1.12 parity itself: upstream's {@code TileMultiblock} extends Mantle's {@code
+ * TileInventory}, so a hopper on the core has always worked in the 1.12 generation with no separate
+ * port block required (NOTICE.md).
  *
  * <p>Fixtures come from {@link SmelteryGameTests}: {@code buildWalls} then a substituted wall block,
  * the same shape {@link SearedGlassGameTests} uses. Lava and water stand in for two molten metals so
@@ -42,6 +49,12 @@ public class SmelteryIoGameTests {
     private static final BlockPos DUCT = new BlockPos(2, 2, 1);
     /** The +Z wall block on the core's own layer. */
     private static final BlockPos CHUTE = new BlockPos(1, 2, 2);
+    /**
+     * #470: the open exterior corner north of the core -- {@link SmelteryGameTests#buildWalls} never
+     * fills a corner, so it stays air, in bounds, and face-adjacent to {@link
+     * SmelteryGameTests#CORE_POS} without needing a chute in the way.
+     */
+    private static final BlockPos HOPPER = new BlockPos(0, 2, 0);
 
     private static final int SOME = 500;
 
@@ -181,6 +194,63 @@ public class SmelteryIoGameTests {
                         .allMatch(ItemStack::isEmpty),
                 "expected the melting inventory to be empty again");
         helper.succeed();
+    }
+
+    // ------------------------------------------------------------------ core (#470)
+
+    /**
+     * The core is its own melting inventory's item handler regardless of whether a structure has
+     * formed yet -- unlike the chute (which has no core to re-expose until a scan claims it, see
+     * {@link #ioBlocksOutsideAStructureExposeNothing}), the core block entity always exists. Zero
+     * slots while unformed is the correct answer (nothing to feed into yet), not a missing handler.
+     */
+    @GameTest(template = "smeltery")
+    public static void anUnformedCoreExposesAnEmptyItemHandler(GameTestHelper helper) {
+        BlockPos core = SmelteryGameTests.placeCore(helper, ForgeweaveBlocks.STANDARD_CORE.get());
+
+        IItemHandler handler = requireItems(helper, core);
+        helper.assertValueEqual(handler.getSlots(), 0, "expected an unformed core's melting inventory to have no slots");
+        helper.succeed();
+    }
+
+    /** Once formed, the core behaves exactly like a chute planted in its own wall (#277). */
+    @GameTest(template = "smeltery")
+    public static void theCoreInsertsAndRefusesForMeltingDirectly(GameTestHelper helper) {
+        SmelteryGameTests.buildWalls(helper, 1, 1, 2);
+        BlockPos core = SmelteryGameTests.placeCore(helper, ForgeweaveBlocks.STANDARD_CORE.get());
+        IItemHandler handler = requireItems(helper, core);
+
+        helper.assertTrue(handler.getSlots() > 0, "expected the formed core to expose the melting slots");
+        helper.assertTrue(!handler.insertItem(0, new ItemStack(Items.STICK), false).isEmpty(),
+                "expected the core to refuse a stick");
+        helper.assertTrue(handler.insertItem(0, new ItemStack(Items.IRON_INGOT), false).isEmpty(),
+                "expected the core to take an iron ingot");
+        helper.assertTrue(helper.<SmelteryControllerBlockEntity>getBlockEntity(core).meltingItems().stream()
+                        .anyMatch(stack -> stack.is(Items.IRON_INGOT)),
+                "expected the ingot to land in the melting inventory");
+        helper.succeed();
+    }
+
+    /**
+     * The literal claim in #470's title: a real hopper facing into the core pushes its own contents
+     * into the melting inventory on its own, exactly as it would push into any other container --
+     * this is what was missing before the core registered an item handler capability at all.
+     */
+    @GameTest(template = "smeltery", timeoutTicks = 100)
+    public static void aHopperPushesItemsIntoTheCore(GameTestHelper helper) {
+        SmelteryGameTests.buildWalls(helper, 1, 1, 2);
+        BlockPos core = SmelteryGameTests.placeCore(helper, ForgeweaveBlocks.STANDARD_CORE.get());
+        helper.setBlock(HOPPER, Blocks.HOPPER.defaultBlockState().setValue(HopperBlock.FACING, Direction.SOUTH));
+        helper.<HopperBlockEntity>getBlockEntity(HOPPER).setItem(0, new ItemStack(Items.IRON_INGOT));
+
+        helper.startSequence()
+                .thenWaitUntil(() -> helper.assertTrue(
+                        helper.<SmelteryControllerBlockEntity>getBlockEntity(core).meltingItems().stream()
+                                .anyMatch(stack -> stack.is(Items.IRON_INGOT)),
+                        "expected the hopper to have pushed the ingot into the melting inventory"))
+                .thenExecute(() -> helper.assertTrue(helper.<HopperBlockEntity>getBlockEntity(HOPPER).isEmpty(),
+                        "expected the hopper to have emptied itself into the core"))
+                .thenSucceed();
     }
 
     // ------------------------------------------------------------------ fixtures
