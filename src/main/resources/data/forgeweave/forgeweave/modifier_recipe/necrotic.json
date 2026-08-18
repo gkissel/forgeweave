@@ -1,7 +1,7 @@
 {
   "modifier": "forgeweave:necrotic",
   "reagent": {
-    "item": "minecraft:wither_skeleton_skull"
+    "item": "forgeweave:necrotic_bone"
   },
   "cost": 1,
   "max_level": 10

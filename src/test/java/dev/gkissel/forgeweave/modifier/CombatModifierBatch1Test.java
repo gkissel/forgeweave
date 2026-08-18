@@ -22,6 +22,8 @@ import net.minecraft.server.Bootstrap;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 
+import dev.gkissel.forgeweave.item.ForgeweaveItems;
+
 /**
  * Issue #162 (M3-13): smite, bane of arthropods, fiery, necrotic -- one clone-constant test per
  * modifier's math, verified against tinkers-1.12 @ {@code c01173c0} (see {@code NOTICE.md}), plus the
@@ -64,8 +66,10 @@ class CombatModifierBatch1Test {
         ModifierRecipe recipe = shippedRecipe("smite.json");
         assertEquals(1, recipe.cost());
         assertEquals(120, recipe.maxLevel(), "5 levels * 24 units per level");
-        assertTrue(recipe.reagent().test(new ItemStack(Items.GLOWSTONE_DUST)),
-                "consecrated soil has no Forgeweave counterpart; glowstone dust is the maintainer-pick substitute");
+        assertTrue(recipe.reagent().test(new ItemStack(ForgeweaveItems.CONSECRATED_SOIL.get())),
+                "#429: upstream's own reagent, TinkerModifiers' modSmite.addItem(TinkerCommons.consecratedSoil, 1, 1)");
+        assertTrue(!recipe.reagent().test(new ItemStack(Items.GLOWSTONE_DUST)),
+                "#429: the glowstone-dust stand-in #162 shipped is gone");
     }
 
     @Test
@@ -124,8 +128,10 @@ class CombatModifierBatch1Test {
         ModifierRecipe recipe = shippedRecipe("necrotic.json");
         assertEquals(1, recipe.cost());
         assertEquals(10, recipe.maxLevel(), "upstream's ModNecrotic(..., 10, 0): one item per level, 10 levels");
-        assertTrue(recipe.reagent().test(new ItemStack(Items.WITHER_SKELETON_SKULL)),
-                "upstream's boneWithered has no Forgeweave counterpart; wither skeleton skull is the maintainer-pick substitute");
+        assertTrue(recipe.reagent().test(new ItemStack(ForgeweaveItems.NECROTIC_BONE.get())),
+                "#429: upstream's own reagent, TinkerModifiers' modNecrotic.addItem(\"boneWithered\")");
+        assertTrue(!recipe.reagent().test(new ItemStack(Items.WITHER_SKELETON_SKULL)),
+                "#429: the wither-skull stand-in #162 shipped is gone");
     }
 
     // ------------------------------------------------------------------ helpers

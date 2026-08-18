@@ -41,6 +41,8 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         // tile.tconstruct.soil.grout.name entry (NOTICE.md).
         addBlock(ForgeweaveBlocks.GROUT, "Grout");
         addBlock(ForgeweaveBlocks.SLIMY_MUD_GREEN, "Green Slimy Mud"); // #339
+        addBlock(ForgeweaveBlocks.GRAVEYARD_SOIL, "Graveyard Soil"); // #429
+        addBlock(ForgeweaveBlocks.CONSECRATED_SOIL, "Consecrated Soil"); // #429
         addBlock(ForgeweaveBlocks.SLIMY_MUD_MAGMA, "Magma Slimy Mud"); // #339
 
         // The seared brick block family (docs/SCOPE.md M2 issue #93), names ported from upstream
@@ -343,6 +345,7 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         addItem(ForgeweaveItems.SILKY_CLOTH, "Silky Cloth");
         addItem(ForgeweaveItems.SILKY_JEWEL, "Silky Jewel");
         addItem(ForgeweaveItems.EXTRA_MODIFIER, "Extra Modifier");
+        addItem(ForgeweaveItems.NECROTIC_BONE, "Necrotic Bone"); // #429
 
         // Shown on a tool that ran out of durability (CONTEXT.md: Broken -- unusable, never destroyed).
         add("tooltip.forgeweave.broken", "Broken");

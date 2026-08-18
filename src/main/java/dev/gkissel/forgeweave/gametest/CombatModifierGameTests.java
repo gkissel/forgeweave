@@ -175,7 +175,7 @@ public class CombatModifierGameTests {
 
         ToolStationBlockEntity blockEntity = helper.getBlockEntity(pos);
         blockEntity.container().setItem(0, pickaxe);
-        blockEntity.container().setItem(1, new ItemStack(Items.WITHER_SKELETON_SKULL, 1));
+        blockEntity.container().setItem(1, new ItemStack(ForgeweaveItems.NECROTIC_BONE.get(), 1)); // necrotic, #429
         blockEntity.container().setItem(2, ItemStack.EMPTY);
         ToolStationMenu menu = ToolAssembly.menu(helper, player, pos, blockEntity);
         menu.broadcastChanges();
