@@ -13,12 +13,16 @@ import org.junit.jupiter.api.Test;
  *
  * <p>Vanilla picks the largest integer GUI scale whose scaled size is still at least 320x240, so
  * 240 is the smallest scaled height that can ever occur -- and the case the chest failed hardest.
+ *
+ * <p>The chest itself is a 166px panel again since parity audit T45 (issue #476) replaced its
+ * {@code generic_54} background with upstream's scaling chest, so 222 below is the height that
+ * exposed the bug rather than any station's current one. The formula is what is under test.
  */
 class StationScreenTabLayoutTest {
 
     private static final int TAB_STRIP = 28;
     private static final int CHEST_HEIGHT = 222;
-    /** The other stations, for the no-regression check. */
+    /** The other stations, for the no-regression check -- and, since issue #476, the chest too. */
     private static final int PART_BUILDER_HEIGHT = 166;
     private static final int TOOL_STATION_HEIGHT = 174;
 

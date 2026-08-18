@@ -42,19 +42,14 @@ import dev.gkissel.forgeweave.menu.StationGroup;
  * ChestKind#accepts}) and which of the two registered {@code BlockEntityType}s it reports as (see
  * {@link ChestKind#blockEntityType}).
  *
- * <p><b>Capacity (issue #305): self-expanding, paged, capped at 256.</b> Upstream's {@code
+ * <p><b>Capacity (issue #305): self-expanding, capped at 256.</b> Upstream's {@code
  * TileTinkerChest} is a virtual list up to {@value #MAX_SLOTS} items whose <em>visible</em> size
  * ({@code actualSize}) grows one slot at a time as items are added and shrinks back as they're
- * removed, presented through a continuously-scrolling GUI window ({@code GuiScalingChest}).
- * Reproducing a smoothly reflowing scroll window needs a bespoke slot-position-substitution scheme
- * (modern {@link net.minecraft.world.inventory.Slot#x}/{@code y} are {@code final}); this ports the
- * same *semantics* -- grows toward {@value #MAX_SLOTS} as the current capacity's last slot fills,
- * shrinks back as trailing pages empty out -- but in whole-page steps ({@link #CAPACITY_STEPS},
- * page = {@value #PAGE_SIZE} slots, the same 6x9 grid the fixed-size chest always drew) rather than
- * one slot at a time, with paging instead of continuous scroll ({@code ChestMenu}'s {@code
- * clickMenuButton}/{@code ChestScreen}'s page arrows) -- a paged adaptation the issue's own text
- * allows when the 1.21 screen APIs make a literal scroll costly. No NOTICE.md row: ported semantics,
- * not copied code.
+ * removed, so the chest always shows exactly its contents plus one free slot; the GUI is a window
+ * scrolled down that list ({@code GuiScalingChest}). Issue #305 shipped this in whole 54-slot steps
+ * because the GUI paged rather than scrolled; parity audit T45 (issue #476) put the scrolling window
+ * back ({@code ChestMenu}/{@code ChestScreen}), so the capacity is upstream's own one-slot step
+ * again. No NOTICE.md row: ported semantics, not copied code.
  *
  * <p>Exposes its inventory as an {@link IItemHandler} capability ({@link #registerCapabilities})
  * so any adjacent station's side-inventory panel ({@link SideInventory#find}) picks it up
@@ -66,19 +61,10 @@ import dev.gkissel.forgeweave.menu.StationGroup;
  * needed no changes there.
  */
 public class ChestBlockEntity extends BlockEntity implements StationMenuHost {
-    /** One GUI page: the same 6-row-of-9 grid the chest always drew. */
-    public static final int PAGE_SIZE = 54;
     /** Upstream {@code TileTinkerChest#MAX_INVENTORY}: the hard cap no chest can grow past. */
     public static final int MAX_SLOTS = 256;
-    /** Capacity only ever takes one of these values -- see the class javadoc's paging note. */
-    static final int[] CAPACITY_STEPS = {54, 108, 162, 216, MAX_SLOTS};
-    /**
-     * The container's real physical size: one full page per {@link #CAPACITY_STEPS} entry, so the
-     * last (short, 40-slot) page's local grid positions past {@value #MAX_SLOTS} still resolve to
-     * real -- just permanently unreachable and inactive, {@code ChestMenu.FilteredSlot#isActive} --
-     * backing slots instead of aliasing onto an earlier page's slots.
-     */
-    public static final int BACKING_SLOTS = CAPACITY_STEPS.length * PAGE_SIZE;
+    /** Upstream {@code TileTinkerChest}'s starting {@code actualSize}: one free slot and nothing else. */
+    private static final int MINIMUM_SLOTS = 1;
 
     private static final String TAG_INVENTORY = "inventory";
 
@@ -115,7 +101,7 @@ public class ChestBlockEntity extends BlockEntity implements StationMenuHost {
         // through #addItem, low slot to high -- see the save-compat fixture this issue adds), so
         // capacity grows back to exactly what the reloaded contents need as #setItem's own growth
         // hook fires along the way, the same way it does during normal play.
-        container.capacity = PAGE_SIZE;
+        container.capacity = MINIMUM_SLOTS;
         // #477/T46: SimpleContainer#setItem (which #fromTag's #addItem funnels every stack through)
         // clamps to getMaxStackSize() -- fine for new placements, but a save from before this ticket's
         // Pattern/Cast Chest stack-size-1 rule existed can legally hold a bigger stack (the save-compat
@@ -137,8 +123,8 @@ public class ChestBlockEntity extends BlockEntity implements StationMenuHost {
      * the modern equivalent is the vanilla {@link DataComponents#CONTAINER} component, which the
      * chest loot tables copy off this block entity with {@code minecraft:copy_components} (see
      * {@code ForgeweaveBlockLootSubProvider}) exactly as the retextured tables already copy their
-     * {@code TEXTURE}. {@link ItemContainerContents} is slot-indexed, so items come back on the same
-     * page they were left on, and it holds {@link #MAX_SLOTS} items -- precisely this chest's cap.
+     * {@code TEXTURE}. {@link ItemContainerContents} is slot-indexed, so items come back in the same
+     * slots they were left in, and it holds {@link #MAX_SLOTS} items -- precisely this chest's cap.
      *
      * <p>Only set when there is something to carry: an empty chest must stay componentless, or every
      * broken chest would refuse to stack with a freshly crafted one.
@@ -234,24 +220,24 @@ public class ChestBlockEntity extends BlockEntity implements StationMenuHost {
      * A {@link SimpleContainer} that only accepts items {@link ChestKind#accepts} -- enforced here
      * so both the {@link IItemHandler} capability (automation/side-panel insertion, via {@link
      * InvWrapper#isItemValid} delegating to {@link #canPlaceItem}) and the GUI slots ({@code
-     * ChestMenu}'s {@code FilteredSlot}) share one source of truth, matching upstream's single
+     * ChestMenu}'s {@code ChestSlot}) share one source of truth, matching upstream's single
      * {@code isItemValidForSlot} check (NOTICE.md, {@link ChestKind}).
      *
      * <p>Also owns the self-expanding capacity (class javadoc, issue #305): {@link
      * #getContainerSize()} reports the current logical {@code capacity} rather than the fixed
-     * {@value #BACKING_SLOTS}-slot backing array, mirroring upstream's {@code
+     * {@value #MAX_SLOTS}-slot backing array, mirroring upstream's {@code
      * getSizeInventory()}/{@code actualSize} split -- so both the {@link IItemHandler} capability
-     * ({@code InvWrapper#getSlots} delegates straight to this) and {@code ChestMenu}'s
-     * {@code checkContainerSize}/page-bound logic see the same grown-or-not number.
+     * ({@code InvWrapper#getSlots} delegates straight to this) and {@code ChestMenu}'s scroll
+     * window see the same grown-or-not number.
      */
     private static final class FilteredContainer extends SimpleContainer {
         private final ChestKind kind;
-        private int capacity = PAGE_SIZE;
+        private int capacity = MINIMUM_SLOTS;
         /** See {@link #loadAdditional}: true only while a save is being decoded. */
         private boolean loading;
 
         FilteredContainer(ChestKind kind) {
-            super(BACKING_SLOTS);
+            super(MAX_SLOTS);
             this.kind = kind;
         }
 
@@ -275,70 +261,38 @@ public class ChestBlockEntity extends BlockEntity implements StationMenuHost {
         }
 
         /**
-         * Upstream {@code TileTinkerChest#setInventorySlotContents}, in whole pages instead of one
-         * slot: filling the last slot of the current capacity opens the next page (capped at {@value
-         * #MAX_SLOTS}); emptying a slot re-checks whether the top page is now entirely empty and, if
-         * so, drops it -- looping so a removal that empties more than one trailing page in one call
-         * (a stack take that was the last item on two pages at once can't happen from a single slot,
-         * but a stray high-index removal after a load could) still lands on the tightest capacity.
+         * Upstream {@code TileTinkerChest#setInventorySlotContents}: the chest is always exactly as
+         * big as its contents plus one free slot, capped at {@value #MAX_SLOTS}.
          */
         @Override
         public void setItem(int slot, ItemStack stack) {
             super.setItem(slot, stack);
             if (stack.isEmpty()) {
-                shrinkWhileTopPageEmpty();
+                shrinkPastTrailingEmptySlots();
             } else {
-                growWhileSlotIsAtOrPastTheLastOne(slot);
+                growPastTheFilledSlot(slot);
             }
         }
 
         /**
-         * Grows until {@code slot} is inside the capacity and is no longer the last slot of it. The
-         * plain "the last slot filled, so open the next page" step is the {@code slot == capacity -
-         * 1} case; the loop is for issue #478's restore path ({@link #applyImplicitComponents}),
+         * Grows until {@code slot} is inside the capacity and there is a free slot after the last
+         * filled one. The loop covers issue #478's restore path ({@link #applyImplicitComponents}),
          * the only caller that writes a slot <em>index</em> straight in rather than filling
-         * sequentially -- a chest broken with a lone item on its fourth page has to grow through
-         * every step at once, or the item it carries would come back unreachable.
+         * sequentially -- a chest broken with a lone item at slot 200 has to reach it in one go, or
+         * the item it carries would come back unreachable.
          */
-        private void growWhileSlotIsAtOrPastTheLastOne(int slot) {
-            while (slot >= capacity - 1 && capacity < MAX_SLOTS) {
-                grow();
+        private void growPastTheFilledSlot(int slot) {
+            capacity = Math.max(capacity, slot + 1);
+            while (capacity < MAX_SLOTS && !getItem(capacity - 1).isEmpty()) {
+                capacity++;
             }
         }
 
-        private void grow() {
-            for (int step : CAPACITY_STEPS) {
-                if (step > capacity) {
-                    capacity = step;
-                    return;
-                }
+        /** The other half: trailing empty slots collapse back to the single free one. */
+        private void shrinkPastTrailingEmptySlots() {
+            while (capacity > MINIMUM_SLOTS && getItem(capacity - 2).isEmpty()) {
+                capacity--;
             }
-        }
-
-        private void shrinkWhileTopPageEmpty() {
-            int stepIndex = indexOfCapacityStep();
-            while (stepIndex > 0 && isRangeEmpty(CAPACITY_STEPS[stepIndex - 1], CAPACITY_STEPS[stepIndex])) {
-                stepIndex--;
-                capacity = CAPACITY_STEPS[stepIndex];
-            }
-        }
-
-        private int indexOfCapacityStep() {
-            for (int i = 0; i < CAPACITY_STEPS.length; i++) {
-                if (CAPACITY_STEPS[i] == capacity) {
-                    return i;
-                }
-            }
-            return CAPACITY_STEPS.length - 1; // defensive: capacity is always one of the steps
-        }
-
-        private boolean isRangeEmpty(int from, int to) {
-            for (int i = from; i < to; i++) {
-                if (!getItem(i).isEmpty()) {
-                    return false;
-                }
-            }
-            return true;
         }
     }
 }

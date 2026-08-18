@@ -387,7 +387,7 @@ The six stations are ported close to 1.12 in layout, art, tabs, side inventories
 | Crafting Station side inventory (skip stations, blacklist config) | `ContainerCraftingStation:75-137` | n/a | first horizontal handler, no exclusions | partial | N | low | T74 |
 | Side inventory panel widget | `GuiSideInventory:30-110` | n/a | `SideInventoryPanel` | have | Y (#68/#376) | none | — |
 | Pattern/Part Chest storage (256 slots, filtered) | `TileTinkerChest:12-70` | n/a | `ChestBlockEntity:59-240`, 54-slot pages | have | Y (#66/#305/#342) | none | — |
-| Chest GUI art (blank.png scaling chest + slider) | `GuiPatternChest:20-38` | n/a | vanilla generic_54 + paging | deviates | N (only javadoc) | medium | T45 |
+| Chest GUI art (blank.png scaling chest + slider) | `GuiPatternChest:20-38` | n/a | `ChestScreen` scaling window + slider | have | Y (#476) | none | — |
 | Pattern Chest one-of-each + cast-chest mode | `TilePatternChest:26-126` | separate cast chest | duplicates allowed, no cast branch | partial | N (javadoc stale) | medium | T46 |
 | Chests keep inventory when broken | `BlockToolTable:158-161` | n/a | `minecraft:container` on the dropped item, behind `chestsKeepInventory` | have | Y (#478) | none | — |
 | Right-click with held item inserts into chest | `BlockToolTable:94-107` | n/a | opens only | missing | N | low | T75 |
@@ -396,7 +396,7 @@ The six stations are ported close to 1.12 in layout, art, tabs, side inventories
 | Items rendered on table tops | `TileTable:78-112` | n/a | no station BE renderer | missing | N | low | T75 |
 | Tab / selection sync to other players at a station | `ContainerToolStation:66-84` | n/a | per-menu DataSlot | partial | Y (ToolStationTabs javadoc) | low | T11 |
 | Station open flow / server-authoritative menus | `BlockToolTable:78-86` | n/a | `StationMenuHost:16-58` | have | — | none | — |
-| Station GUI textures derived | 7 upstream gui textures | n/a | 6 derived; `blank.png` absent | partial | Y (#43/#68/#75) | low | T45 |
+| Station GUI textures derived | 7 upstream gui textures | n/a | 7 derived, `blank.png` included | have | Y (#43/#68/#75/#476) | none | — |
 | DarkModeEverywhere shader blacklist | n/a | n/a | `ForgeweaveDarkModeCompat` | forgeweave-only | Y (#335) | none | — |
 | JEI crafting-station catalyst + transfer | `JEIPlugin:145-151` | n/a | `CraftingStationTransferInfo` | have | — | none | — |
 | JEI subtype interpreters | `JEIPlugin:83-118` | n/a | `SubtypeKeys` | have | Y (#307) | none | — |
@@ -657,7 +657,7 @@ Prioritized and deduplicated across domains. Already-filed issues are marked; **
 - [ ] **T42 — Molten glass** — fluid, sand/glass/pane melting, clear glass and pane casting, seared glass basin recipe (smeltery, medium, backlog).
 - [x] **T43 — Bucket-filling casting recipe** (shipped, #542) — one `casting_recipe/bucket_<fluid>.json` row per fluid this mod already makes bucketable (issue #286) rather than upstream's single fluid-agnostic Java capability match, consistent with every other casting recipe already being one datapack row per (station, cast, fluid); same player-facing result (smeltery, medium, M3.5 fix round).
 - [ ] **T44 — Tinker tank multiblock** — controller, structure rules, capacity math, GUI, drain integration (smeltery, medium, M6/backlog).
-- [ ] **T45 — Pattern/Part Chest GUI** — derive upstream's `blank.png` scaling-chest art with a slider instead of vanilla `generic_54` paging (stations, medium, polish).
+- [x] **T45 — Pattern/Part Chest GUI** (shipped, #476) — upstream's `blank.png` panel with a `GuiScalingChest`/`GuiDynInventory` window: 8x3 slots at (7, 17), the slot/empty-slot tiling that makes the chest look like it grows, and `generic.png`'s slider (drag + wheel) instead of the `generic_54` background and page arrows. Issue #305's whole-page capacity steps went back to upstream's one-slot-at-a-time growth with them, that adaptation having existed only because the GUI paged (stations, medium, polish).
 - [ ] **T46 — Pattern Chest rules** — one-of-each patterns, stack size 1, cast-chest mode now that casts ship; same-stack-only rule for the Part Chest (stations, medium, M3.5 fix round).
 - [x] **T47 — Chests keep their inventory when broken** (shipped, #478) — both chests carry their contents on the dropped item as the vanilla `minecraft:container` component (upstream writes its own `inventory` NBT compound instead), copied off the block entity by the loot table and read back on placement; `ForgeweaveConfig.chestsKeepInventory` (default on, upstream's) gates it and the old spill is what the off branch still does. A creative break hands the packed chest over the way vanilla's shulker box does, rather than reproducing upstream's silent loss there (stations/config, medium, M3.5 fix round).
 - [ ] **T48 — Book content parity pass** — per-section listing pages, material icon-grid overview, full material/tool/modifier page layouts, hover tooltips and links, fortify variant, bow-materials section, cover text, resource-pack JSON structure (book, medium, **#430**).
@@ -712,7 +712,6 @@ Recorded decisions that this audit re-read and considers worth a maintainer glan
 - **Beheading reagent collapsed to obsidian** and no `alreadyContainsDrop` de-dup (PR #197): a wither skeleton can drop two skulls.
 - **Mending Moss heals from any inventory slot on a probabilistic timer** (#107 ponytail note, explicitly left for maintainer review).
 - **Any adjacent inventory becomes a station side inventory** (SCOPE:36): a Pattern/Part Chest beside a Crafting Station is silently adopted, which upstream refuses.
-- **Chest GUI uses vanilla `generic_54` with paging** (ChestScreen javadoc only; #66 asked for derived GUIs) — see T45.
 - **Book engine authored rather than ported** (PR #360) — already superseded by the #430 directive; listed here because the PR text still reads as the standing decision.
 - **Enderference marks every target** (PR #243): players cannot chorus-teleport for 5 s after being hit; upstream only marks endermen.
 - **Green molten slime substitutes purple slime** for the knightslime alloy (#232) — revert path in T57.

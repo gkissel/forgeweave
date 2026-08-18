@@ -40,10 +40,11 @@ import dev.gkissel.forgeweave.menu.PartBuilderMenu;
  * ChestBlockEntity#registerCapabilities} exposes, the same way it already does for a vanilla chest
  * ({@code CraftingStationGameTests#adjacentChestInventoryIsExposedThroughTheMenu}).
  *
- * <p>Issue #305's self-expanding capacity is covered from {@link #fillingTheLastSlotGrowsCapacityByOnePage}
- * onward: growth/shrink at each {@code ChestBlockEntity.CAPACITY_STEPS} boundary, the 256-slot cap,
- * filters still holding on a grown chest, paging through {@code ChestMenu}, and a save/load round
- * trip that crosses a page boundary.
+ * <p>Issue #305's self-expanding capacity is covered from {@link #fillingTheLastSlotGrowsCapacityByOneSlot}
+ * onward: upstream {@code TileTinkerChest}'s one-slot-at-a-time growth and shrink (restored by parity
+ * audit T45, issue #476, once the GUI scrolled instead of paging), the 256-slot cap, filters still
+ * holding on a grown chest, scrolling the window through {@code ChestMenu}, and a save/load round
+ * trip well past the first screenful.
  *
  * <p>Issue #478 (parity audit T47) adds the break/place round trip: a harvested chest carries its
  * contents on the dropped item instead of spilling them, placing that item back restores both the
@@ -281,7 +282,7 @@ public class ChestGameTests {
         helper.succeed();
     }
 
-    // ------------------------------------------------------------------ issue #305: self-expanding capacity
+    // -------------------------------------------------- issue #305 / audit T45: self-expanding capacity
 
     private static ChestBlockEntity placeChest(GameTestHelper helper, BlockPos pos) {
         return placeChest(helper, pos, ChestKind.PART);
@@ -311,16 +312,16 @@ public class ChestGameTests {
         }
     }
 
+    /** Upstream {@code TileTinkerChest}: the chest is always its contents plus exactly one free slot. */
     @GameTest(template = "empty")
-    public static void fillingTheLastSlotGrowsCapacityByOnePage(GameTestHelper helper) {
+    public static void fillingTheLastSlotGrowsCapacityByOneSlot(GameTestHelper helper) {
         ChestBlockEntity chest = placeChest(helper, new BlockPos(1, 1, 1));
 
-        helper.assertValueEqual(chest.container().getContainerSize(), 54, "starting capacity");
-        fill(chest, 0, 53); // every slot but the last one of page 1
-        helper.assertValueEqual(chest.container().getContainerSize(), 54, "capacity before the last slot fills");
-
-        chest.container().setItem(53, new ItemStack(ForgeweaveItems.SHARD.get())); // the N+1th item
-        helper.assertValueEqual(chest.container().getContainerSize(), 108, "capacity after the last slot fills");
+        helper.assertValueEqual(chest.container().getContainerSize(), 1, "starting capacity");
+        fill(chest, 0, 1);
+        helper.assertValueEqual(chest.container().getContainerSize(), 2, "capacity after the first item");
+        fill(chest, 1, 30);
+        helper.assertValueEqual(chest.container().getContainerSize(), 31, "capacity after thirty items");
 
         helper.succeed();
     }
@@ -329,11 +330,8 @@ public class ChestGameTests {
     public static void capacityNeverGrowsPast256(GameTestHelper helper) {
         ChestBlockEntity chest = placeChest(helper, new BlockPos(1, 1, 1));
 
-        // Walk every growth boundary in turn: 54 -> 108 -> 162 -> 216 -> 256.
-        for (int lastSlot : new int[] {53, 107, 161, 215}) {
-            chest.container().setItem(lastSlot, new ItemStack(ForgeweaveItems.SHARD.get()));
-        }
-        helper.assertValueEqual(chest.container().getContainerSize(), 256, "capacity after four growth steps");
+        fill(chest, 0, 255);
+        helper.assertValueEqual(chest.container().getContainerSize(), 256, "capacity one slot short of the cap");
 
         // The 256th slot (index 255) is the last slot the chest will ever have; filling it must not
         // push capacity past the cap.
@@ -344,14 +342,22 @@ public class ChestGameTests {
     }
 
     @GameTest(template = "empty")
-    public static void emptyingTheGrownPageShrinksCapacityBackDown(GameTestHelper helper) {
+    public static void emptyingTheLastSlotShrinksCapacityBackDown(GameTestHelper helper) {
         ChestBlockEntity chest = placeChest(helper, new BlockPos(1, 1, 1));
 
-        chest.container().setItem(53, new ItemStack(ForgeweaveItems.SHARD.get()));
-        helper.assertValueEqual(chest.container().getContainerSize(), 108, "capacity after growing once");
+        fill(chest, 0, 10);
+        helper.assertValueEqual(chest.container().getContainerSize(), 11, "capacity after ten items");
 
-        chest.container().setItem(53, ItemStack.EMPTY);
-        helper.assertValueEqual(chest.container().getContainerSize(), 54, "capacity after the grown page emptied out");
+        chest.container().setItem(9, ItemStack.EMPTY);
+        helper.assertValueEqual(chest.container().getContainerSize(), 10, "capacity after the last item left");
+
+        // A hole below a filled slot keeps the capacity; only trailing empties collapse.
+        chest.container().setItem(5, ItemStack.EMPTY);
+        helper.assertValueEqual(chest.container().getContainerSize(), 10, "a hole in the middle keeps the capacity");
+        for (int slot = 8; slot >= 0; slot--) {
+            chest.container().setItem(slot, ItemStack.EMPTY);
+        }
+        helper.assertValueEqual(chest.container().getContainerSize(), 1, "an emptied chest is back to one slot");
 
         helper.succeed();
     }
@@ -359,55 +365,66 @@ public class ChestGameTests {
     @GameTest(template = "empty")
     public static void filtersStillHoldOnAGrownChest(GameTestHelper helper) {
         ChestBlockEntity chest = placeChest(helper, new BlockPos(1, 1, 1));
-        fill(chest, 0, 54); // grows capacity to 108, opening the second page
+        fill(chest, 0, 60); // well past the 24-slot window the GUI shows at a time
 
         helper.assertTrue(chest.container().canPlaceItem(60, new ItemStack(ForgeweaveItems.PART_PICKAXE_HEAD.get())),
-                "expected the Part Chest's filter to still accept a part on its newly grown second page");
+                "expected the Part Chest's filter to still accept a part on its newly grown slot");
         helper.assertFalse(chest.container().canPlaceItem(60, new ItemStack(ForgeweaveItems.PATTERN_BLANK.get())),
-                "expected the Part Chest's filter to still reject a pattern on its newly grown second page");
+                "expected the Part Chest's filter to still reject a pattern on its newly grown slot");
 
         helper.succeed();
     }
 
+    /**
+     * Parity audit T45 (issue #476): every one of the chest's slots is in the menu the whole time,
+     * and scrolling moves which of them the GUI shows -- upstream {@code GuiScalingChest} over
+     * {@code GuiDynInventory}. Replaces the page-button test issue #305 shipped.
+     */
     @GameTest(template = "empty")
-    public static void nextPageButtonExposesTheGrownPageThroughTheMenu(GameTestHelper helper) {
+    public static void scrollingMovesTheWindowOverTheGrownChest(GameTestHelper helper) {
         BlockPos pos = new BlockPos(1, 1, 1);
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         ChestBlockEntity chest = placeChest(helper, pos);
+        fill(chest, 0, ChestMenu.VISIBLE_SLOTS + ChestMenu.COLUMNS); // one row more than fits
+        chest.container().setItem(ChestMenu.COLUMNS, new ItemStack(ForgeweaveItems.PART_PICKAXE_HEAD.get()));
+
         ChestMenu menu = new ChestMenu(ChestKind.PART, 0, player.getInventory(), chest.container(),
                 ContainerLevelAccess.create(helper.getLevel(), helper.absolutePos(pos)));
+        helper.assertValueEqual(menu.capacity(), ChestMenu.VISIBLE_SLOTS + ChestMenu.COLUMNS + 1,
+                "the menu's synced capacity");
+        helper.assertValueEqual(ChestMenu.maxScrollRow(menu.capacity()), 2, "how far this chest scrolls");
 
-        helper.assertFalse(menu.clickMenuButton(player, ChestMenu.BUTTON_NEXT_PAGE),
-                "expected the next-page button to refuse a single-page chest");
+        // Unscrolled: the second row's first slot holds the pickaxe head, drawn on the second row.
+        helper.assertTrue(menu.getSlot(ChestMenu.COLUMNS).getItem().is(ForgeweaveItems.PART_PICKAXE_HEAD.get()),
+                "expected the second row's first slot to hold the pickaxe head");
+        helper.assertValueEqual(menu.getSlot(ChestMenu.COLUMNS).y, ChestMenu.slotY(ChestMenu.COLUMNS),
+                "the second row's y before scrolling");
 
-        fill(chest, 0, 54); // grows capacity to 108
-        chest.container().setItem(54, new ItemStack(ForgeweaveItems.PART_PICKAXE_HEAD.get()));
-
-        helper.assertTrue(menu.clickMenuButton(player, ChestMenu.BUTTON_NEXT_PAGE),
-                "expected the next-page button to accept once the chest has grown a second page");
-        helper.assertValueEqual(menu.currentPage(), 1, "the menu's page after clicking next");
-        helper.assertTrue(menu.getSlot(0).getItem().is(ForgeweaveItems.PART_PICKAXE_HEAD.get()),
-                "expected the menu's slot 0 to now show the second page's absolute slot 54");
-
-        helper.assertTrue(menu.clickMenuButton(player, ChestMenu.BUTTON_PREVIOUS_PAGE),
-                "expected the previous-page button to accept back to page 0");
-        helper.assertValueEqual(menu.currentPage(), 0, "the menu's page after clicking previous");
+        menu.scrollTo(1);
+        helper.assertValueEqual(menu.getSlot(ChestMenu.COLUMNS).y, ChestMenu.slotY(0),
+                "scrolling one row must lift the second row to the top of the window");
+        helper.assertFalse(menu.getSlot(0).isActive(), "the scrolled-away first row must not be drawn");
+        helper.assertTrue(menu.getSlot(ChestMenu.VISIBLE_SLOTS).isActive(),
+                "the row scrolled into view must now be drawn");
+        // Never drawn either way: the chest has not grown that far.
+        helper.assertFalse(menu.getSlot(ChestBlockEntity.MAX_SLOTS - 1).isActive(),
+                "a slot past the chest's capacity must stay hidden");
 
         helper.succeed();
     }
 
     @GameTest(template = "empty")
-    public static void saveLoadRoundTripAcrossAPageBoundaryPreservesContentsAndCapacity(GameTestHelper helper) {
+    public static void saveLoadRoundTripPreservesContentsAndCapacity(GameTestHelper helper) {
         BlockPos pos = new BlockPos(1, 1, 1);
         ChestBlockEntity chest = placeChest(helper, pos);
-        fillFullStacks(chest, 0, 60); // crosses the 54-slot boundary, growing capacity to 108
+        fillFullStacks(chest, 0, 60); // well past one screenful
 
         CompoundTag saved = chest.saveWithId(helper.getLevel().registryAccess());
         BlockEntity reloaded = BlockEntity.loadStatic(pos, chest.getBlockState(), saved, helper.getLevel().registryAccess());
         helper.assertTrue(reloaded instanceof ChestBlockEntity, "expected the saved tag to still decode as a chest");
         ChestBlockEntity reloadedChest = (ChestBlockEntity) reloaded;
 
-        helper.assertValueEqual(reloadedChest.container().getContainerSize(), 108,
+        helper.assertValueEqual(reloadedChest.container().getContainerSize(), 61,
                 "capacity must survive a save/load round trip");
         int count = 0;
         for (int i = 0; i < reloadedChest.container().getContainerSize(); i++) {
@@ -423,7 +440,7 @@ public class ChestGameTests {
     // ------------------------------------------------------------------ issue #478 (audit T47): chests keep their inventory
 
     /**
-     * Stocks a Part Chest across a page boundary. Upstream {@code BlockToolTable#keepInventory} +
+     * Stocks a Part Chest well past one screenful. Upstream {@code BlockToolTable#keepInventory} +
      * {@code BlockTable#writeDataOntoItemstack}: a harvested Pattern or Part Chest writes its
      * contents onto the dropped item rather than spilling them, behind {@code
      * Config.chestsKeepInventory} (default on). Here that ride-along is the vanilla
@@ -433,7 +450,7 @@ public class ChestGameTests {
     private static ChestBlockEntity stockedChest(GameTestHelper helper, BlockPos pos) {
         ChestBlockEntity chest = placeChest(helper, pos);
         chest.container().setItem(0, new ItemStack(ForgeweaveItems.PART_PICKAXE_HEAD.get()));
-        chest.container().setItem(53, new ItemStack(ForgeweaveItems.SHARD.get(), 7)); // grows to a 2nd page
+        chest.container().setItem(53, new ItemStack(ForgeweaveItems.SHARD.get(), 7)); // well past one screenful
         chest.container().setItem(60, new ItemStack(ForgeweaveItems.PART_TOUGH_TOOL_ROD.get()));
         return chest;
     }
@@ -467,7 +484,7 @@ public class ChestGameTests {
                 "expected slot 0's pickaxe head to ride along on the item");
         helper.assertValueEqual(contents.getStackInSlot(53).getCount(), 7, "the shard stack's size");
         helper.assertTrue(contents.getStackInSlot(60).is(ForgeweaveItems.PART_TOUGH_TOOL_ROD.get()),
-                "expected the second page's tool rod to ride along at its own slot");
+                "expected the far tool rod to ride along at its own slot");
 
         helper.succeed();
     }
@@ -488,9 +505,9 @@ public class ChestGameTests {
                 "expected slot 0's pickaxe head back");
         helper.assertValueEqual(chest.container().getItem(53).getCount(), 7, "the restored shard stack's size");
         helper.assertTrue(chest.container().getItem(60).is(ForgeweaveItems.PART_TOUGH_TOOL_ROD.get()),
-                "expected the second page's tool rod back at its own slot");
-        helper.assertValueEqual(chest.container().getContainerSize(), 108,
-                "capacity has to grow back to reach the restored second page");
+                "expected the far tool rod back at its own slot");
+        helper.assertValueEqual(chest.container().getContainerSize(), 62,
+                "capacity has to grow back to reach the restored slot 60, plus its free slot");
 
         helper.succeed();
     }
@@ -539,20 +556,20 @@ public class ChestGameTests {
     }
 
     /**
-     * The restore path refills slots by index rather than sequentially, so a lone item on the fourth
-     * page has to grow the capacity through every step at once to become reachable again. (The
+     * The restore path refills slots by index rather than sequentially, so a lone item at slot 200
+     * has to grow the capacity all the way there in one go to become reachable again. (The
      * save/load path can't hit this: {@code SimpleContainer}'s list is positionless and its reload
      * compacts everything back down to slot 0 -- see {@code m3_3_pattern_chest_inventory.snbt}.)
      */
     @GameTest(template = "empty")
-    public static void restoringALoneItemOnAFarPageGrowsCapacityAllTheWayBack(GameTestHelper helper) {
+    public static void restoringALoneFarOffItemGrowsCapacityAllTheWayBack(GameTestHelper helper) {
         BlockPos pos = new BlockPos(1, 2, 1);
         ChestBlockEntity chest = placeChest(helper, pos);
-        fillFullStacks(chest, 0, 201); // 54 -> 108 -> 162 -> 216 as each page's last slot fills
+        fillFullStacks(chest, 0, 201); // grown one slot at a time to 202
         for (int slot = 0; slot < 200; slot++) {
-            chest.container().setItem(slot, ItemStack.EMPTY); // page four still holds slot 200
+            chest.container().setItem(slot, ItemStack.EMPTY); // slot 200 is still filled, so nothing shrinks
         }
-        helper.assertValueEqual(chest.container().getContainerSize(), 216, "capacity before breaking");
+        helper.assertValueEqual(chest.container().getContainerSize(), 202, "capacity before breaking");
 
         helper.getLevel().destroyBlock(helper.absolutePos(pos), true);
         ItemStack stack = theOneDroppedChest(helper, pos, 1);
@@ -560,9 +577,9 @@ public class ChestGameTests {
         ChestBlockEntity restored = placeChest(helper, new BlockPos(3, 2, 1));
         restored.applyComponentsFromItemStack(stack);
 
-        helper.assertValueEqual(restored.container().getContainerSize(), 216, "capacity after restoring");
+        helper.assertValueEqual(restored.container().getContainerSize(), 202, "capacity after restoring");
         helper.assertTrue(restored.container().getItem(200).is(ForgeweaveItems.SHARD.get()),
-                "expected the lone far-page shard back at slot 200");
+                "expected the lone far-off shard back at slot 200");
 
         helper.succeed();
     }
