@@ -1144,8 +1144,8 @@ public final class ForgeweaveTraits {
      * {@code ToolBuilder#addEnchantment}, here the assembly-time grant behind
      * {@link Trait#grantsSilkTouch}) and a hard-zero hit ({@code damage} returns {@code 0f}
      * unconditionally, here {@link Trait#zeroesAttackDamage}). Upstream's squeak-toy sound on hit has
-     * no Forgeweave sound asset and its {@code canApplyTogether} luck/fortune guards have no modifier
-     * compat surface to land on yet -- both recorded in the PR.
+     * no Forgeweave sound asset (recorded in the PR); its {@code canApplyTogether} luck/silky/fortune/
+     * looting guards live in {@code modifier.ModifierCompatibility} (T23, #454).
      */
     public static final Trait SQUEAKY = new Trait() {
         @Override
@@ -1164,8 +1164,9 @@ public final class ForgeweaveTraits {
      * furnace-smelted result. The smelting itself is the M2 Searing modifier's
      * ({@code ForgeweaveModifiers#onBlockDrops} -&gt; {@code smelt}), shared rather than duplicated
      * (issue #228); this trait only opts the tool in through {@link Trait#autoSmelt}. Upstream's
-     * fortune-multiplies-smelted-drops config rider and its silk-touch {@code canApplyTogether} guard
-     * follow Searing's (absent) behavior -- recorded in the PR.
+     * fortune-multiplies-smelted-drops config rider follows Searing's (absent) behavior -- recorded in
+     * the PR; its silk-touch/squeaky {@code canApplyTogether} guard lives in
+     * {@code modifier.ModifierCompatibility} (T23, #454).
      */
     public static final Trait AUTOSMELT = new Trait() {
         @Override

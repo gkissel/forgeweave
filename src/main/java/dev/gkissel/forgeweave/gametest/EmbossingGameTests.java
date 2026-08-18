@@ -6,6 +6,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
+import net.minecraft.network.chat.contents.TranslatableContents;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
@@ -194,6 +195,32 @@ public class EmbossingGameTests {
         helper.assertTrue(ForgeweaveModifiers.freeSlots(hasted) == ForgeweaveModifiers.DEFAULT_SLOTS - 1,
                 "the modifier applied after an embossment takes one of the three slots, got "
                         + ForgeweaveModifiers.freeSlots(hasted) + " free");
+        helper.succeed();
+    }
+
+    /**
+     * Parity audit T23 (issue #454): upstream {@code ModExtraTrait#canApplyTogether} refuses the
+     * embossment whenever any donor trait can't sit beside what the tool carries -- a firewood head
+     * (autosmelt, whose {@code TraitAutosmelt#canApplyTogether} names {@code modSilktouch}) onto a
+     * silky tool.
+     */
+    @GameTest(template = "empty")
+    public static void embossingAnIncompatibleDonorTraitIsRejected(GameTestHelper helper) {
+        BlockPos pos = new BlockPos(1, 1, 1);
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        ItemStack pickaxe = ToolAssembly.pickaxe(helper, player, pos, "stone", "wood", "wood");
+        pickaxe.set(ForgeweaveDataComponents.MODIFIERS.get(), List.of(
+                new ModifierEntry(ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "silky"), 1)));
+
+        ToolStationMenu menu = load(helper, player, pos, pickaxe,
+                ToolAssembly.part(ForgeweaveItems.PART_PICKAXE_HEAD.get(), "firewood"));
+
+        helper.assertTrue(menu.getSlot(ToolStationMenu.OUTPUT_SLOT).getItem().isEmpty(),
+                "an autosmelt embossment must not land on a silky tool");
+        helper.assertTrue(menu.rejection() != null
+                && ((TranslatableContents) menu.rejection().message().getContents()).getKey()
+                        .equals("gui.forgeweave.modifier.incompatible_modifiers"),
+                "the station must say silky is what refuses it, got " + menu.rejection());
         helper.succeed();
     }
 
