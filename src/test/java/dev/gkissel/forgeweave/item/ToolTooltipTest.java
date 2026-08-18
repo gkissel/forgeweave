@@ -370,6 +370,31 @@ class ToolTooltipTest {
     }
 
     /**
+     * Parity audit T66: upstream {@code Mattock#getInformation} (Mattock.java:161-186) shows two
+     * separate harvest-level lines -- "Axe Level" / "Shovel Level" -- read from each head's own
+     * material, not the tool's single blended tier every other multi-head tool uses since issue #294.
+     * A stone axe head paired with a wood shovel head must show "stone" for the axe line and
+     * "wooden" for the shovel line, and never fall back to the generic {@code tierLine}.
+     */
+    @Test
+    void detailedTooltipShowsSeparateAxeAndShovelLevelsForTheMattock() {
+        ItemStack stack = assembledTool(ForgeweaveItems.TOOL_MATTOCK.get(), 40, List.of(),
+                new ToolMaterials(STONE_ID, Optional.empty(), Optional.of(WOOD_ID),
+                        List.of(WOOD_ID, STONE_ID, WOOD_ID)));
+
+        List<Component> tooltip = new ArrayList<>();
+        ToolTooltip.append(stack, registriesWithStoneAndWood(), true, 3.0F, tooltip);
+
+        assertTrue(tooltip.contains(familyTierLine("tooltip.forgeweave.axe_level", "stone")),
+                "the axe head's own tier, not the blended max");
+        assertTrue(tooltip.contains(familyTierLine("tooltip.forgeweave.shovel_level", "wooden")),
+                "the shovel head's own tier, not the blended max");
+        assertTrue(tooltip.subList(0, tooltip.indexOf(Component.empty())).stream()
+                        .noneMatch(line -> line.equals(tierLine("stone")) || line.equals(tierLine("wooden"))),
+                "before the per-part sections, the mattock shows no generic single tool_tier line");
+    }
+
+    /**
      * The Tool Station's info panel is upstream's <em>same</em> list ({@code GuiToolStation#updateGUI}
      * calls {@code tool.getInformation(toolStack)}), so it drops the mining-speed row for a bow for
      * exactly the reason the item tooltip does, and in the same order.
@@ -649,6 +674,12 @@ class ToolTooltipTest {
 
     private static Component tierLine(String tier) {
         return Component.translatable("tooltip.forgeweave.tool_tier").append(": ")
+                .append(Component.translatable("tooltip.forgeweave.tier." + tier));
+    }
+
+    /** The mattock's per-family line -- see {@link ToolTooltip#familyTierLine}. */
+    private static Component familyTierLine(String key, String tier) {
+        return Component.translatable(key).append(": ")
                 .append(Component.translatable("tooltip.forgeweave.tier." + tier));
     }
 

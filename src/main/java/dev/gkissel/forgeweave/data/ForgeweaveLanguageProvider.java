@@ -528,6 +528,10 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("tooltip.forgeweave.mining_speed", "Mining Speed");
         add("tooltip.forgeweave.attack_damage", "Attack Damage");
         add("tooltip.forgeweave.tool_tier", "Tool Tier");
+        // Mattock only (parity audit T66): upstream's stat.mattock.axelevel.name/shovellevel.name
+        // replace the generic tool_tier line above with these two -- see ToolTooltip#appendMattockTierLines.
+        add("tooltip.forgeweave.axe_level", "Axe Level");
+        add("tooltip.forgeweave.shovel_level", "Shovel Level");
         // Upstream 1.12's "Modifiers: %d" line, shown on a tool that still has slots free.
         add("tooltip.forgeweave.modifier_slots", "Modifiers: %s");
         // Issue #380: the heading of each per-part section in the Shift tier -- material name, then

@@ -164,7 +164,12 @@ final class ToolTooltip {
             if (stats != null) {
                 tooltip.add(statLine("tooltip.forgeweave.mining_speed", stats.miningSpeed(), StationText.SPEED_COLOR));
             }
-            MaterialDisplay.lookup(registries, materials.head()).ifPresent(head -> tooltip.add(tierLine(stack, head)));
+            if (stack.getItem() instanceof MattockItem) {
+                appendMattockTierLines(registries, materials, tooltip);
+            } else {
+                MaterialDisplay.lookup(registries, materials.head())
+                        .ifPresent(head -> tooltip.add(tierLine(stack, head)));
+            }
         }
 
         appendPartSections(stack, registries, materials, tooltip);
@@ -301,6 +306,37 @@ final class ToolTooltip {
     }
 
     /**
+     * Upstream {@code Mattock#getInformation} (Mattock.java:161-186, parity audit T66) shows two
+     * separate harvest-level lines -- "Axe Level" / "Shovel Level" -- instead of the generic
+     * {@link #tierLine} every other tool gets. Each one is read straight off that head's own
+     * material, not the tool's single blended tier ({@code ToolAssemblyRecipes#highestTierHead},
+     * issue #294): {@code Mattock#buildTagData} stores {@code axeLevel}/{@code shovelLevel} off each
+     * head's {@code HeadMaterialStats.harvestLevel} at assembly, and {@code ModDiamond}/{@code
+     * ModEmerald} (ModDiamond.java:18-31) only ever bump the generic blended field -- which {@code
+     * Mattock#getHarvestLevel} never consults for its two toolClasses ("axe"/"shovel" always match
+     * the override, so {@code super.getHarvestLevel} is unreachable). So unlike {@link #tierLine},
+     * these two stay fixed at assembly time and deliberately do not read {@link #effectiveTierTag}.
+     *
+     * <p>Mattock's part order ({@code ToolConstants#MATTOCK}) is {@code (handle, axe_head,
+     * shovel_head)} -- slots 1 and 2 of {@link ToolMaterials#parts()}.
+     */
+    private static void appendMattockTierLines(HolderLookup.Provider registries, ToolMaterials materials,
+            List<Component> tooltip) {
+        List<ResourceLocation> parts = materials.parts();
+        if (parts.size() < 3) {
+            return;
+        }
+        MaterialDisplay.lookup(registries, parts.get(1))
+                .ifPresent(axe -> tooltip.add(familyTierLine("tooltip.forgeweave.axe_level", axe)));
+        MaterialDisplay.lookup(registries, parts.get(2))
+                .ifPresent(shovel -> tooltip.add(familyTierLine("tooltip.forgeweave.shovel_level", shovel)));
+    }
+
+    private static Component familyTierLine(String key, Material head) {
+        return Component.translatable(key).append(": ").append(tierNameForTag(head.incorrectForTool()));
+    }
+
+    /**
      * Vanilla's full {@code incorrect_for_*_tool} ladder mapped to the {@code tooltip.forgeweave.tier.*}
      * keys (issue #254). Gold is deliberately absent -- it is a speed tier, not a mining-capability
      * one -- as is any modded tag, so callers omit the line rather than guess.
@@ -352,6 +388,10 @@ final class ToolTooltip {
      */
     private static Component tierName(ItemStack stack, Material head) {
         TagKey<Block> tag = effectiveTierTag(stack).orElseGet(head::incorrectForTool);
+        return tierNameForTag(tag);
+    }
+
+    private static Component tierNameForTag(TagKey<Block> tag) {
         String stripped = tag.location().getPath()
                 .replace("incorrect_for_", "")
                 .replace("_tool", "");
