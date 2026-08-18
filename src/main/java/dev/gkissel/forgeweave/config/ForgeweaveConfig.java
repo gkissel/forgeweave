@@ -1,5 +1,7 @@
 package dev.gkissel.forgeweave.config;
 
+import java.util.List;
+
 import net.neoforged.neoforge.common.ModConfigSpec;
 
 /**
@@ -100,6 +102,17 @@ public final class ForgeweaveConfig {
      * makes exactly those items pay for parts again.
      */
     public static final ModConfigSpec.BooleanValue CRAFT_CASTABLE_MATERIALS;
+
+    /**
+     * Upstream {@code craftingStationBlacklist} (parity audit T74, issue #505): registry names or
+     * block-entity classnames that a station's side-inventory scan ({@code
+     * dev.gkissel.forgeweave.block.SideInventory#findExternal}) should never treat as a neighboring
+     * inventory, mainly for compatibility with a third-party block that misbehaves under it. Upstream
+     * defaults to one Actually Additions class it shipped with; that mod-compat entry is dropped here
+     * since Forgeweave has no reason to assume that mod is installed -- the default is empty, same as
+     * upstream's own {@code Config.craftingStationBlacklist} before its config file is first read.
+     */
+    public static final ModConfigSpec.ConfigValue<List<? extends String>> CRAFTING_STATION_BLACKLIST;
 
     /**
      * Content-family toggles (the content-family toggles ticket, maintainer decisions 2026-08-15).
@@ -236,6 +249,10 @@ public final class ForgeweaveConfig {
                 .comment("Allows the Part Builder to craft parts from materials that are meant to be cast",
                         "in the Smeltery (every metal). Off by default: a metal part comes from a cast.")
                 .define("craftCastableMaterials", false);
+        CRAFTING_STATION_BLACKLIST = builder
+                .comment("Registry names or block-entity classnames that a station's side-inventory panel",
+                        "should never connect to. Mainly for compatibility.")
+                .defineListAllowEmpty("craftingStationBlacklist", List.<String>of(), value -> value instanceof String);
 
         builder.comment("Content family toggles. A family that is off cannot be assembled or obtained,",
                         "its recipes are hidden from JEI and its items from the creative tab, and the",

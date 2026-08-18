@@ -36,9 +36,11 @@ import dev.gkissel.forgeweave.menu.StationGroup;
  * matches upstream 1.12's {@code TileCraftingStation}, which likewise wraps a saved {@code
  * InventoryCraftingPersistent} instead of the vanilla workbench's throwaway grid.
  *
- * <p>{@link #findSideInventory} delegates to {@link SideInventory#find}, the horizontal-neighbor
- * scan shared with {@link PartBuilderBlockEntity} and {@link ToolStationBlockEntity} (issue #40's
- * side panel extended to all three stations) -- see that class's javadoc for the upstream port.
+ * <p>{@link #findSideInventory} delegates to {@link SideInventory#findExternal}, the horizontal-
+ * neighbor scan shared with {@link ToolStationBlockEntity} (issue #40's side panel extended to all
+ * stations, then the exclusion/blacklist fix in parity audit T74/issue #505) -- see {@link
+ * SideInventory}'s class javadoc for the upstream port and why {@link PartBuilderBlockEntity}'s own
+ * side panel uses the other, non-excluding scan instead.
  *
  * <p>Also retains the wood block it was crafted from ({@link WoodTexturedBlockEntity}, issue #43),
  * defaulting to oak (see {@link CraftingStationBlock}'s javadoc for why this is currently a fixed
@@ -63,7 +65,7 @@ public class CraftingStationBlockEntity extends BlockEntity implements StationMe
     /** The adjacent block's item handler to expose in the GUI's side panel, or {@code null} if none qualifies. */
     @Nullable
     public IItemHandler findSideInventory() {
-        return SideInventory.find(this);
+        return SideInventory.findExternal(this);
     }
 
     @Override
