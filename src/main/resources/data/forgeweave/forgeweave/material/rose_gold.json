@@ -19,7 +19,8 @@
     "general": ["forgeweave:quick"]
   },
   "crafting_items": [
-    { "ingredient": { "item": "forgeweave:rose_gold_ingot" }, "value": 2 }
+    { "ingredient": { "item": "forgeweave:rose_gold_ingot" }, "value": 2 },
+    { "ingredient": { "item": "forgeweave:rose_gold_block" }, "value": 18 }
   ],
   "repair_item": {
     "tag": "c:ingots/rose_gold"

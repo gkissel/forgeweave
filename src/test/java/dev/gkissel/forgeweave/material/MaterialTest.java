@@ -441,4 +441,30 @@ class MaterialTest {
         assertFalse(Material.CODEC.parse(ops, shipped(name)).getOrThrow().castOnly(),
                 name + " must stay Part Builder craftable");
     }
+
+    /**
+     * Issue #492 (parity audit T61): upstream's {@code addCommonItems} registers ingot, nugget
+     * <em>and block</em> for every metal ({@code Material.java:345-348}), and cobalt/ardite/manyullyn
+     * all call it ({@code TinkerMaterials:321,325,329}). Forgeweave already ships a storage block for
+     * all four metals here -- including rose gold, which has no 1.12 counterpart but gets the same
+     * treatment as every other Forgeweave-cast metal (issue #206) -- but their {@code crafting_items}
+     * stopped at the ingot, unlike iron/copper/steel/pig_iron/netherite, which all list their block at
+     * value 18 (nine ingots' worth, matching {@code VALUE_Block = VALUE_Ingot * 9}). The gate is inert
+     * while {@code craftCastableMaterials} defaults off (T3), but the data is still wrong: it would
+     * silently refuse a storage block the moment a pack turns that config on.
+     */
+    @ParameterizedTest
+    @CsvSource({ "cobalt,forgeweave:cobalt_block", "ardite,forgeweave:ardite_block",
+            "manyullyn,forgeweave:manyullyn_block", "rose_gold,forgeweave:rose_gold_block" })
+    void castOnlyStorageBlocksAreCraftingItemsAtNineIngots(String name, String blockId) {
+        Material material = Material.CODEC.parse(ops, shipped(name)).getOrThrow();
+
+        boolean hasBlockRow = material.craftingItems().stream()
+                .filter(item -> item.value() == 18)
+                .flatMap(item -> java.util.Arrays.stream(item.ingredient().getItems()))
+                .anyMatch(stack -> ResourceLocation.parse(blockId).equals(
+                        net.minecraft.core.registries.BuiltInRegistries.ITEM.getKey(stack.getItem())));
+
+        assertTrue(hasBlockRow, name + " must list its storage block (" + blockId + ") at value 18");
+    }
 }
