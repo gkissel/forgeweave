@@ -53,10 +53,13 @@ public final class BookContent {
             ForgeweaveItems.TOOL_HATCHET,
             ForgeweaveItems.TOOL_MATTOCK,
             ForgeweaveItems.TOOL_KAMA,
+            // parity audit 2026-08-18 T77: upstream tools.json:21-124 puts scythe right after
+            // kama, before hammer/excavator/lumberaxe -- it had drifted to the end of the
+            // harvest run.
+            ForgeweaveItems.TOOL_SCYTHE,
             ForgeweaveItems.TOOL_HAMMER,
             ForgeweaveItems.TOOL_EXCAVATOR,
             ForgeweaveItems.TOOL_LUMBERAXE,
-            ForgeweaveItems.TOOL_SCYTHE,
             ForgeweaveItems.TOOL_VEIN_HAMMER,
             ForgeweaveItems.TOOL_BROADSWORD,
             ForgeweaveItems.TOOL_LONGSWORD,
