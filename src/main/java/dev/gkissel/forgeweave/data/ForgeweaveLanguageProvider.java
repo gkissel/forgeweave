@@ -31,6 +31,8 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("itemGroup.forgeweave.tools", "Forgeweave Tools");
         add("itemGroup.forgeweave.parts", "Forgeweave Tool Parts");
         add("itemGroup.forgeweave.smeltery", "Forgeweave Smeltery");
+        // T22 (issue #453): upstream's tabGadgets, opened by the Slimesling.
+        add("itemGroup.forgeweave.gadgets", "Forgeweave Gadgets");
 
         // #447 -- the entity every dropped tool spawns as; name ported from upstream 1.12's
         // EntityRegistry.registerModEntity("indestructible", ..., "Indestructible Item") (NOTICE.md).
@@ -631,6 +633,10 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         // item.tconstruct.book.tooltip, the guide book's grey flavour line.
         add("tooltip.forgeweave.guide_book", "The book every smith needs");
         add("tooltip.forgeweave.slime_boots", "Makes you bounce when landing");
+        // item.tconstruct.slimesling.tooltip, both lines (T22, issue #453) -- the second one names
+        // the Slime Boots, which Forgeweave has since T21 (issue #452).
+        add("tooltip.forgeweave.slime_sling", "Charge up, aim low, get flinging!");
+        add("tooltip.forgeweave.slime_sling.boots", "Use Slime Boots if you value your life!");
 
         // M1 tool innate retrofit (issue #164, maintainer directive 2026-08-12): pickaxe, shovel and
         // hatchet each carry a fixed combat innate, shown the same name/description shape as a trait
@@ -1316,6 +1322,8 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         // materials, modifiers) reuse the item/material/modifier/trait families instead of
         // duplicating them here.
         addItem(ForgeweaveItems.GUIDE_BOOK, "Materials and You");
+        // item.tconstruct.slimesling.green.name (T22, issue #453).
+        addItem(ForgeweaveItems.SLIME_SLING, "Slimesling");
         add("item.forgeweave.cleaver.description",
                 "A massive blade for hewing through foes. Slow to swing, but a killing blow is far more likely to claim the victim's head.");
         add("book.forgeweave.title", "Materials and You");

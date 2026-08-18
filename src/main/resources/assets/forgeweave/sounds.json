@@ -1,0 +1,8 @@
+{
+  "slime_sling": {
+    "category": "player",
+    "sounds": [
+      "forgeweave:slime_sling"
+    ]
+  }
+}

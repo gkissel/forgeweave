@@ -482,7 +482,7 @@ Forgeweave ships one slice of TinkerWorld — cobalt/ardite ore with config-driv
 | Blood slime ball casting | `TinkerSmeltery:364-367` | n/a | absent | missing | N (transitively deferred) | low | T57 |
 | Slimy mud → slime crystals | `BlockSoil` SLIMY_MUD ×3 | n/a | green + magma; blue via lapis recipe | partial | Y (#232/#339) | low | T57 |
 | Slime boots (bounce, no fall damage) | `ItemSlimeBoots:29-162` | slimesuit boots | absent | missing | Y (SCOPE:309 / #26) | high | T21 |
-| Slime sling (charged launch) | `ItemSlimeSling:56-82` | staffs | absent | missing | Y (SCOPE:309 / #26) | high | T22 |
+| Slime sling (charged launch) | `ItemSlimeSling:56-82` | staffs | `SlimeSlingItem` + `SlimeBounceHandler`, derived icon/sound, Gadgets tab | have | Y (#453) | none | — |
 | Piggyback pack | `ItemPiggybackPack` | PiggyBackPackItem | absent | missing | N (unplanned) | medium | T56 |
 | Punji sticks | `BlockPunji:132-175` | PunjiBlock | absent | missing | N (unplanned) | medium | T56 |
 | Wooden hopper | `BlockWoodenHopper` | dropped | absent | missing | N (unplanned) | medium | T56 |
@@ -631,7 +631,7 @@ Prioritized and deduplicated across domains. Already-filed issues are marked; **
 - [ ] **T19 — Magma slime islands** — Nether island feature plus the magma-cube spawn override (world, high, world-content milestone).
 - [ ] **T20 — Blue slime entity** — entity type, tinted renderer, loot table and island spawn placement (world, high, world-content milestone).
 - [ ] **T21 — Slime boots** — bounce handler and fall-damage cancel (world, high, M5 / #26).
-- [ ] **T22 — Slime sling** — charged launch item with velocity packet (world, high, M5 / #26).
+- [x] **T22 — Slime sling** (shipped, #453) — `SlimeSlingItem` ports `ItemSlimeSling` whole: the bow charge curve times four clamped at 6, the on-ground and block-target gates, the fling along the inverted look vector at a third force vertically, upstream's own `slimesling.ogg` and item art, and `SlimeBounceHandler`'s airborne momentum carry (its bounce arm waits on T21's boots). Upstream's hand-rolled `EntityMovementChangePacket` needs no counterpart: `hurtMarked` makes vanilla send the player its own `ClientboundSetEntityMotionPacket`. Two recorded reductions -- one sling instead of upstream's five colours, and a vanilla slime block standing in for congealed slime in the recipe, both waiting on the coloured slimes of T57.
 
 ### Medium
 

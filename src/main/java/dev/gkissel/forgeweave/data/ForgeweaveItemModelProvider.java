@@ -289,6 +289,23 @@ public class ForgeweaveItemModelProvider extends ItemModelProvider {
         // singleLayerModel produces.
         singleLayerModel(ForgeweaveItems.SLIME_BOOTS, derivedItem("slime_boots"));
 
+        // T22 (issue #453) -- the Slimesling, upstream's models/item/slimesling.json: a generated
+        // model over its own sprite (items/gadgets/slimesling.png, NOTICE.md) plus the four held
+        // transforms it carries, which turn the sling sideways in the hand.
+        getBuilder(ForgeweaveItems.SLIME_SLING.getId().toString())
+                .parent(new ModelFile.UncheckedModelFile("item/generated"))
+                .texture("layer0", derivedItem("slime_sling"))
+                .transforms()
+                .transform(ItemDisplayContext.THIRD_PERSON_RIGHT_HAND)
+                .rotation(0, 90, 0).translation(0, 4.0F, 2.5F).scale(0.85F).end()
+                .transform(ItemDisplayContext.THIRD_PERSON_LEFT_HAND)
+                .rotation(0, -90, 0).translation(0, 4.0F, 2.5F).scale(0.85F).end()
+                .transform(ItemDisplayContext.FIRST_PERSON_RIGHT_HAND)
+                .rotation(0, 90, 0).translation(0, 1.6F, 0.8F).scale(0.68F).end()
+                .transform(ItemDisplayContext.FIRST_PERSON_LEFT_HAND)
+                .rotation(0, -90, 0).translation(0, 1.6F, 0.8F).scale(0.68F).end()
+                .end();
+
         // #233 -- pig iron ingot/nugget, straight upstream texture ports (ingot_pigiron.png/
         // nugget_pigiron.png, NOTICE.md). No raw form (alloy-only metal).
         singleLayerModel(ForgeweaveItems.INGOT_PIG_IRON, derivedItem("pig_iron_ingot"));

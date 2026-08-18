@@ -56,8 +56,8 @@ class ForgeweaveCreativeTabTest {
     /**
      * Issue #507 / T76: upstream 1.12 spreads its content over six creative tabs
      * ({@code TinkerRegistry:76-81}), Forgeweave shipped a single one. Four of the six have content
-     * here -- General, Tools, Tool Parts, Smeltery; upstream's World tab would hold only the two
-     * nether ores and its Gadgets content is absent entirely (T56).
+     * here -- General, Tools, Tool Parts, Smeltery -- and Gadgets opened with the Slimesling (T22,
+     * issue #453); upstream's World tab would hold only the two nether ores.
      */
     @Test
     void theModRegistersOneTabPerUpstreamContentGroup() {
@@ -65,7 +65,7 @@ class ForgeweaveCreativeTabTest {
                 .map(holder -> holder.getId().getPath())
                 .toList();
 
-        assertEquals(List.of("general", "tools", "parts", "smeltery"), ids);
+        assertEquals(List.of("general", "tools", "parts", "smeltery", "gadgets"), ids);
     }
 
     /** No item may be filed under two tabs -- upstream picks exactly one per item class. */
@@ -75,6 +75,7 @@ class ForgeweaveCreativeTabTest {
                 .map(ItemStack::getItem)
                 .filter(item -> tab(ForgeweaveCreativeTab::addToolItems).stream().anyMatch(s -> s.getItem() == item)
                         || tab(ForgeweaveCreativeTab::addSmelteryItems).stream().anyMatch(s -> s.getItem() == item)
+                        || tab(ForgeweaveCreativeTab::addGadgetItems).stream().anyMatch(s -> s.getItem() == item)
                         || partsTab().stream().anyMatch(s -> s.getItem() == item))
                 .toList();
 
@@ -173,7 +174,7 @@ class ForgeweaveCreativeTabTest {
         return build(listAllPartMaterials, List.of());
     }
 
-    /** The union of all four tabs, i.e. everything the mod puts in front of a creative player. */
+    /** The union of every tab, i.e. everything the mod puts in front of a creative player. */
     private static List<ItemStack> build(boolean listAllPartMaterials, List<ResourceLocation> materialIds) {
         CreativeModeTab.ItemDisplayParameters parameters = parameters(materialIds);
         List<ItemStack> displayed = new ArrayList<>();
@@ -182,6 +183,7 @@ class ForgeweaveCreativeTabTest {
         ForgeweaveCreativeTab.addToolItems(parameters, output);
         ForgeweaveCreativeTab.addPartItems(parameters, output, listAllPartMaterials);
         ForgeweaveCreativeTab.addSmelteryItems(parameters, output);
+        ForgeweaveCreativeTab.addGadgetItems(parameters, output);
         return displayed;
     }
 

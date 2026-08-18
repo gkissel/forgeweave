@@ -1,0 +1,24 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "key": {
+    "B": {
+      "tag": "c:slimeballs"
+    },
+    "C": {
+      "item": "minecraft:slime_block"
+    },
+    "S": {
+      "item": "minecraft:string"
+    }
+  },
+  "pattern": [
+    "SCS",
+    "B B",
+    " B "
+  ],
+  "result": {
+    "count": 1,
+    "id": "forgeweave:slime_sling"
+  }
+}
