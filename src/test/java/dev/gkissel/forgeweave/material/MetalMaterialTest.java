@@ -175,19 +175,34 @@ class MetalMaterialTest {
     }
 
     /**
-     * Iron and copper reuse vanilla's own tool-tier ceilings; cobalt/ardite/manyullyn/netherite have
-     * no vanilla tag for upstream's higher {@code COBALT} harvest level and so share the ladder's top
-     * rung instead (NOTICE.md deviation).
+     * Issue #433: upstream's five {@code HarvestLevels} constants are named for the <em>block</em>
+     * each one unlocks, not for the vanilla tool tier of the same name -- {@code STONE = 0} is the
+     * level a <b>wooden</b> pickaxe already has ({@code HarvestLevels.java:15-19}, pinned
+     * {@code c01173c}). They therefore land one rung lower on the vanilla tag ladder than PR #81
+     * read them: {@code STONE -> wooden}, {@code IRON -> stone}, {@code DIAMOND -> iron},
+     * {@code OBSIDIAN -> diamond}, {@code COBALT -> netherite}.
+     *
+     * <p>So iron/pig iron/bronze ({@code DIAMOND}) mine at iron tier, copper/lead/silver/electrum
+     * ({@code IRON}) at stone tier, steel/knightslime ({@code OBSIDIAN}) at diamond tier, and only
+     * cobalt/ardite/manyullyn/obsidian ({@code COBALT}) reach netherite -- an exact five-for-five
+     * mapping with no ladder-top collapse left to deviate on.
      */
     @ParameterizedTest
     @CsvSource({
-            "iron,minecraft:incorrect_for_diamond_tool",
-            "copper,minecraft:incorrect_for_iron_tool",
+            "iron,minecraft:incorrect_for_iron_tool",
+            "pig_iron,minecraft:incorrect_for_iron_tool",
+            "bronze,minecraft:incorrect_for_iron_tool",
+            "copper,minecraft:incorrect_for_stone_tool",
+            "lead,minecraft:incorrect_for_stone_tool",
+            "silver,minecraft:incorrect_for_stone_tool",
+            "electrum,minecraft:incorrect_for_stone_tool",
+            "steel,minecraft:incorrect_for_diamond_tool",
+            "knightslime,minecraft:incorrect_for_diamond_tool",
             "cobalt,minecraft:incorrect_for_netherite_tool",
             "ardite,minecraft:incorrect_for_netherite_tool",
             "manyullyn,minecraft:incorrect_for_netherite_tool",
             "netherite,minecraft:incorrect_for_netherite_tool",
-            "rose_gold,minecraft:incorrect_for_stone_tool"
+            "rose_gold,minecraft:incorrect_for_wooden_tool"
     })
     void metalsUseTheExpectedToolTierTag(String name, String tag) {
         Material material = shipped(name);

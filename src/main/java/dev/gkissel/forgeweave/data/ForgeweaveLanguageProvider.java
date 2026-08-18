@@ -603,10 +603,11 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         // materials actually use; an unmapped tier degrades to a visible untranslated key, same as an
         // unknown trait id (MaterialDisplay).
         // Issue #79: M1's four materials are upstream's STONE (wood) and IRON (stone/flint/bone)
-        // harvest levels, so `wooden` is no longer among them.
-        // #254: head-part tooltips map the whole vanilla ladder (ToolTooltip#tierLine(TagKey)), so
-        // wooden gets a key even though no shipped material starts there yet; worded "Wood" to match
-        // vanilla's tier vocabulary rather than the tag path's "wooden".
+        // harvest levels. Issue #433: those constants name the block each level unlocks, not the
+        // vanilla tool tier of the same name, so STONE is the wooden tier -- wood-headed tools start
+        // on `wooden` and stone/flint/bone on `stone`.
+        // #254: head-part tooltips map the whole vanilla ladder (ToolTooltip#tierLine(TagKey));
+        // wooden is worded "Wood" to match vanilla's tier vocabulary rather than the tag path.
         add("tooltip.forgeweave.tier.wooden", "Wood");
         add("tooltip.forgeweave.tier.stone", "Stone");
         add("tooltip.forgeweave.tier.iron", "Iron");

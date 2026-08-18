@@ -1538,18 +1538,17 @@ netherite-ingot recipe and its recoloured front texture are SCOPE.md's and Forge
 ### Metal materials (issue #103) deviations from upstream 1.12
 
 Iron, copper, cobalt, ardite and manyullyn are 1:1 ports of `TinkerMaterials`' head/handle/extra
-stats and trait wiring (table rows above). Two deliberate deviations, both forced by 1.21 having
-fewer tool-tier tags than upstream's five-rung `HarvestLevels` ladder:
+stats and trait wiring (table rows above). One deliberate deviation remains:
 
-- **`incorrect_for_tool` collapses upstream's top two rungs into one.** Upstream's
-  `HarvestLevels` has five levels (`STONE`, `IRON`, `DIAMOND`, `OBSIDIAN`, `COBALT`); 1.21 ships
-  vanilla tags for only four tiers (`ForgeweaveModifiers#TIER_TAGS`: stone/iron/diamond/netherite).
-  Iron's `DIAMOND` level and copper's `IRON` level map straight across
-  (`minecraft:incorrect_for_diamond_tool` / `minecraft:incorrect_for_iron_tool`, matching vanilla's
-  own iron/stone-tool ceilings exactly). Cobalt, ardite and manyullyn's `COBALT` level has no vanilla
-  tag at all -- they, and netherite alongside them, all sit on the ladder's top rung
-  (`minecraft:incorrect_for_netherite_tool`), which is as far as `ForgeweaveModifiers`' four-tag
-  ladder goes.
+- ~~**`incorrect_for_tool` collapses upstream's top two rungs into one.**~~ **Retired by issue
+  #433 -- the harvest ladder is now exact.** This entry used to record 1.21 as having "only four
+  tool-tier tags" against upstream's five `HarvestLevels`. That was a misreading (PR #81): the
+  `HarvestLevels` constants are named for the *block* each level unlocks, not for the vanilla tool
+  tier of the same name -- `STONE = 0` is the level that mines stone, which a **wooden** pickaxe
+  already has. 1.21 ships exactly five tiers, so upstream's five levels map one-for-one:
+  `STONE -> incorrect_for_wooden_tool`, `IRON -> stone`, `DIAMOND -> iron`, `OBSIDIAN -> diamond`,
+  `COBALT -> netherite`. Iron's `DIAMOND` level is therefore vanilla's *iron* tool ceiling and
+  copper's `IRON` level vanilla's *stone* one; only `COBALT` reaches netherite. No deviation.
 - **`crafting_items` lists ingot and block, never nugget.** `PartBuilderRecipes`' shard-unit system
   (NOTICE.md row above) is denominated in units of upstream's `VALUE_Shard = 72`; an ingot is exactly
   2 shard-units (`VALUE_Ingot = 144`) and a block 18, but a nugget's `VALUE_Nugget = 16` is not a
@@ -1621,15 +1620,20 @@ rather than upstream ports, per the maintainer decision comment on issue #103 (2
 
 ### Cobalt + ardite nether ore (issue #104) deviations from upstream 1.12
 
-- **Tool tier maps onto `minecraft:needs_diamond_tool`, not a custom "cobalt tier".**
-  `BlockOre#<init>` sets `setHarvestLevel("pickaxe", HarvestLevels.COBALT)`, upstream's own
-  five-rung ladder's top rung (`STONE, IRON, DIAMOND, OBSIDIAN, COBALT = 4`) -- reachable in 1.12
-  because the `obsidian` tool material's own `HeadMaterialStats` is pinned to `COBALT`
-  (`TinkerMaterials`), i.e. an obsidian-tier tool, not a cobalt one, is upstream's actual entry
-  point. CONTEXT.md forbids a custom numeric harvest level, so this PR maps straight onto the
-  vanilla tag ladder's tightest tier below netherite: `minecraft:needs_diamond_tool` (a plain
-  diamond pickaxe). `ForgeweaveBlockTagsProvider` is new -- the first Forgeweave block tags
-  provider -- solely to carry this and the paired `minecraft:mineable/pickaxe` tag.
+- ~~**Tool tier maps onto `minecraft:needs_diamond_tool`, not a custom "cobalt tier".**~~
+  **Retired by issue #433 -- the gate is now exact.** `BlockOre#<init>` sets
+  `setHarvestLevel("pickaxe", HarvestLevels.COBALT)`, upstream's own five-rung ladder's top rung
+  (`STONE, IRON, DIAMOND, OBSIDIAN, COBALT = 4`) -- reachable in 1.12 because the `obsidian` tool
+  material's own `HeadMaterialStats` is pinned to `COBALT` (`TinkerMaterials`), i.e. an
+  obsidian-tier tool, not a cobalt one, is upstream's actual entry point. Level 4 is the netherite
+  tier, so the gate is netherite, not diamond. Vanilla has no `needs_netherite_tool` tag (no vanilla
+  block needs one), so `ForgeweaveBlockTagsProvider` spells it as its two halves: the ores go in
+  `minecraft:needs_diamond_tool` (denying everything below diamond) *and* in
+  `minecraft:incorrect_for_diamond_tool` (denying diamond itself), leaving netherite-tier tools --
+  obsidian/cobalt/ardite/manyullyn heads and a vanilla netherite pickaxe -- as the only ones that
+  work. That is upstream's level-4 set exactly, with obsidian as the same bootstrap. Using two
+  vanilla tags rather than inventing a `forgeweave:needs_netherite_tool` keeps CONTEXT.md's "no
+  custom numeric harvest level" rule and adds no tag other packs would have to know about.
 - **Drops one raw item, not the ore block itself, and never a different amount under Silk Touch.**
   Upstream's `BlockOre` has no `getDrops`/`quantityDropped` override at all: it unconditionally
   self-drops the block, once, with no fortune scaling. Forgeweave's raw-ore item split (#103) means

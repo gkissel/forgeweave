@@ -101,9 +101,13 @@ public class ToolBehaviorGameTests {
      * Tool tier is the head material's vanilla {@code incorrect_for_*_tool} block tag (CONTEXT.md:
      * never a numeric harvest level), and the tier each material maps to is upstream 1.12's harvest
      * level for it ({@code TinkerMaterials#registerToolMaterialStats}, issue #79): wood is
-     * {@code HarvestLevels.STONE} and stone/flint/bone are {@code HarvestLevels.IRON}. So a
-     * wood-headed pickaxe harvests iron ore but not diamond ore, and a stone-headed one harvests
-     * both.
+     * {@code HarvestLevels.STONE} and stone/flint/bone are {@code HarvestLevels.IRON}.
+     *
+     * <p>Issue #433: those constants name the block each level unlocks, not the vanilla tool tier of
+     * the same name, so {@code HarvestLevels.STONE} is the <b>wooden</b> tier and
+     * {@code HarvestLevels.IRON} is the <b>stone</b> tier. A wood-headed pickaxe therefore harvests
+     * stone but not iron ore, and a stone-headed one harvests iron ore but not diamond ore -- the
+     * same progression a vanilla wooden and stone pickaxe give.
      */
     @GameTest(template = "empty")
     public static void headMaterialDecidesTier(GameTestHelper helper) {
@@ -115,14 +119,14 @@ public class ToolBehaviorGameTests {
 
         ItemStack wooden = ToolAssembly.pickaxe(helper, player, pos, "wood", "wood", "wood");
         helper.assertTrue(wooden.isCorrectToolForDrops(stone), "a wood-headed pickaxe should harvest stone");
-        helper.assertTrue(wooden.isCorrectToolForDrops(ironOre),
-                "wood is upstream's STONE harvest level, so a wood-headed pickaxe should harvest iron ore");
-        helper.assertFalse(wooden.isCorrectToolForDrops(diamondOre),
-                "a wood-headed pickaxe must not harvest diamond ore (minecraft:incorrect_for_stone_tool)");
+        helper.assertFalse(wooden.isCorrectToolForDrops(ironOre),
+                "wood is upstream's STONE harvest level -- the wooden tier -- so it must not harvest iron ore");
 
         ItemStack stony = ToolAssembly.pickaxe(helper, player, pos, "stone", "wood", "wood");
-        helper.assertTrue(stony.isCorrectToolForDrops(diamondOre),
-                "stone is upstream's IRON harvest level, so a stone-headed pickaxe should harvest diamond ore");
+        helper.assertTrue(stony.isCorrectToolForDrops(ironOre),
+                "stone is upstream's IRON harvest level, so a stone-headed pickaxe should harvest iron ore");
+        helper.assertFalse(stony.isCorrectToolForDrops(diamondOre),
+                "a stone-headed pickaxe must not harvest diamond ore (minecraft:incorrect_for_stone_tool)");
 
         helper.succeed();
     }

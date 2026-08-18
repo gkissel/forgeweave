@@ -19,11 +19,19 @@ import dev.gkissel.forgeweave.block.ForgeweaveBlocks;
 
 /**
  * Tool-tier gating for the cobalt + ardite nether ore blocks (docs/SCOPE.md M2 issue #104).
- * CONTEXT.md forbids a custom numeric harvest level, so upstream 1.12's above-diamond
- * {@code HarvestLevels.COBALT} ({@code BlockOre}, NOTICE.md) maps onto the vanilla tag ladder's
- * tightest tier below netherite: {@link BlockTags#NEEDS_DIAMOND_TOOL}. No other Forgeweave block
- * gates tool tier yet (see {@link ForgeweaveBlocks}'s javadoc), so this is the first block tags
- * provider.
+ * CONTEXT.md forbids a custom numeric harvest level, so upstream 1.12's
+ * {@code setHarvestLevel("pickaxe", HarvestLevels.COBALT)} ({@code shared/block/BlockOre.java:30},
+ * NOTICE.md) maps onto the vanilla tag ladder's top rung, netherite -- issue #433 established that
+ * {@code HarvestLevels.COBALT} (4) is the netherite tier, not "above diamond with nowhere to go".
+ *
+ * <p>Vanilla has no {@code needs_netherite_tool} tag because no vanilla block needs one, so the
+ * gate is spelled as its two halves: {@link BlockTags#NEEDS_DIAMOND_TOOL} denies everything below
+ * diamond, and listing the ores in {@link BlockTags#INCORRECT_FOR_DIAMOND_TOOL} denies diamond
+ * itself, leaving netherite-tier tools alone. Those are exactly obsidian, cobalt, ardite and
+ * manyullyn heads plus a vanilla netherite pickaxe -- upstream's own level-4 set, with obsidian as
+ * the bootstrap (a diamond pickaxe mines obsidian blocks, which the smeltery casts into parts).
+ * The diamond modifier caps at {@code HarvestLevels.OBSIDIAN}, so it cannot shortcut the gate
+ * either ({@code ForgeweaveModifiers#DIAMOND_TIER_CAP}).
  */
 public class ForgeweaveBlockTagsProvider extends BlockTagsProvider {
     public ForgeweaveBlockTagsProvider(PackOutput output, CompletableFuture<HolderLookup.Provider> lookupProvider, ExistingFileHelper existingFileHelper) {
@@ -40,6 +48,9 @@ public class ForgeweaveBlockTagsProvider extends BlockTagsProvider {
                 .add(ForgeweaveBlocks.COBALT_ORE.get())
                 .add(ForgeweaveBlocks.ARDITE_ORE.get());
         tag(BlockTags.NEEDS_DIAMOND_TOOL)
+                .add(ForgeweaveBlocks.COBALT_ORE.get())
+                .add(ForgeweaveBlocks.ARDITE_ORE.get());
+        tag(BlockTags.INCORRECT_FOR_DIAMOND_TOOL)
                 .add(ForgeweaveBlocks.COBALT_ORE.get())
                 .add(ForgeweaveBlocks.ARDITE_ORE.get());
 

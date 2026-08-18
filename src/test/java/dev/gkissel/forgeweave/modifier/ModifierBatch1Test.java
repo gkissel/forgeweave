@@ -366,7 +366,7 @@ class ModifierBatch1Test {
         stack.set(DataComponents.MAX_DAMAGE, PICKAXE_STATS.durability());
         stack.set(DataComponents.DAMAGE, 0);
         stack.set(DataComponents.TOOL, new Tool(
-                List.of(Tool.Rule.deniesDrops(BlockTags.INCORRECT_FOR_STONE_TOOL),
+                List.of(Tool.Rule.deniesDrops(BlockTags.INCORRECT_FOR_WOODEN_TOOL),
                         Tool.Rule.minesAndDrops(BlockTags.MINEABLE_WITH_PICKAXE, PICKAXE_STATS.miningSpeed())),
                 1.0F, 1));
         return stack;

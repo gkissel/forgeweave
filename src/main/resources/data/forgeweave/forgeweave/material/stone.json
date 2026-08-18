@@ -14,7 +14,7 @@
     "range": 0.4,
     "bonus_damage": -1.0
   },
-  "incorrect_for_tool": "minecraft:incorrect_for_iron_tool",
+  "incorrect_for_tool": "minecraft:incorrect_for_stone_tool",
   "traits": {
     "general": ["forgeweave:cheap"]
   },

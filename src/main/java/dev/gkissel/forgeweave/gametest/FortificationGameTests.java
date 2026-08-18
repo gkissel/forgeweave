@@ -32,9 +32,10 @@ import dev.gkissel.forgeweave.modifier.ModifierEntry;
  * Issue #271's verification: the sharpening kit built at a real Part Builder and fortification driven
  * through the real Tool Station menu against the shipped {@code forgeweave:fortification} recipe JSON.
  *
- * <p>The tier ladder these tests read against is {@code ForgeweaveModifiers#TIER_TAGS}, and the
- * shipped materials sit on it at: wood 0 ({@code incorrect_for_stone_tool}), stone 1
- * ({@code incorrect_for_iron_tool}), iron 2 ({@code incorrect_for_diamond_tool}), cobalt 3
+ * <p>The tier ladder these tests read against is {@code ForgeweaveModifiers#TIER_TAGS}, and since
+ * issue #433 its index is upstream's {@code HarvestLevels} number: the shipped materials sit on it
+ * at wood 0 ({@code incorrect_for_wooden_tool}), stone 1 ({@code incorrect_for_stone_tool}), iron 2
+ * ({@code incorrect_for_iron_tool}), steel 3 ({@code incorrect_for_diamond_tool}), cobalt 4
  * ({@code incorrect_for_netherite_tool}). Every tool built here is a <b>wood/wood/wood</b> pickaxe,
  * the bottom rung, so a raised tier can only have come from the kit.
  *
@@ -111,12 +112,12 @@ public class FortificationGameTests {
         ToolStationMenu menu = load(helper, player, pos, pickaxe, kit("cobalt"));
         ItemStack fortified = take(helper, player, menu);
 
-        helper.assertTrue(tierIndex(fortified) == 3,
-                "a cobalt kit must pin the tool to cobalt's rung (3), got " + tierIndex(fortified));
+        helper.assertTrue(tierIndex(fortified) == 4,
+                "a cobalt kit must pin the tool to cobalt's rung (4), got " + tierIndex(fortified));
         ModifierEntry entry = ForgeweaveModifiers.entry(fortified, Fortification.idFor(COBALT));
-        helper.assertTrue(entry != null && entry.level() == 4,
+        helper.assertTrue(entry != null && entry.level() == 5,
                 "the fortification must serialize as forgeweave:fortification.cobalt carrying tier "
-                        + "index 3 as level 3+1, got " + entry);
+                        + "index 4 as level 4+1, got " + entry);
         for (int slot = ToolStationMenu.HEAD_SLOT; slot <= ToolStationMenu.HANDLE_SLOT; slot++) {
             helper.assertTrue(menu.getSlot(slot).getItem().isEmpty(),
                     "taking the fortified tool must spend one of every loaded slot; slot " + slot
@@ -168,7 +169,7 @@ public class FortificationGameTests {
     /**
      * Upstream {@code applyEffect}'s sweep: a second fortification of a <em>different</em> material
      * replaces the first outright rather than stacking beside it -- and because the tier is set, not
-     * raised, going cobalt (3) then iron (2) really does lower the tool back down. That is upstream's
+     * raised, going cobalt (4) then iron (2) really does lower the tool back down. That is upstream's
      * own behaviour, and it is the one place fortification differs from diamond/emerald's capped bump.
      */
     @GameTest(template = "empty")
@@ -177,7 +178,7 @@ public class FortificationGameTests {
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         ItemStack pickaxe = ToolAssembly.pickaxe(helper, player, pos, "wood", "wood", "wood");
         ItemStack cobalt = take(helper, player, load(helper, player, pos, pickaxe, kit("cobalt")));
-        helper.assertTrue(tierIndex(cobalt) == 3, "precondition: cobalt-fortified sits at rung 3");
+        helper.assertTrue(tierIndex(cobalt) == 4, "precondition: cobalt-fortified sits at rung 4");
 
         ItemStack iron = take(helper, player, load(helper, player, pos, cobalt, kit("iron")));
 
@@ -219,7 +220,7 @@ public class FortificationGameTests {
 
         ItemStack swapped = menu.getSlot(ToolStationMenu.OUTPUT_SLOT).getItem().copy();
         helper.assertFalse(swapped.isEmpty(), "expected the station to produce an exchanged tool");
-        helper.assertTrue(tierIndex(swapped) == 3,
+        helper.assertTrue(tierIndex(swapped) == 4,
                 "the fortified tier must survive a head swap to a lower-tier material, got "
                         + tierIndex(swapped));
         helper.succeed();

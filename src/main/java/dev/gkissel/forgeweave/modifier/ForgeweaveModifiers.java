@@ -171,20 +171,23 @@ public final class ForgeweaveModifiers {
      * equivalent of upstream's numeric {@code HarvestLevels} (CONTEXT.md: no numeric harvest levels).
      * Used only by {@link #DIAMOND}/{@link #EMERALD}'s {@code toolTierIndex}: index {@code n} is "this
      * tool cannot mine what index {@code n}'s tag denies", so bumping the index is a strict upgrade.
-     * M1's two materials sit at index 0 (wood, {@code incorrect_for_stone_tool}) and index 1
-     * (stone/flint/bone, {@code incorrect_for_iron_tool}); {@code Material#incorrectForTool} has no
-     * "no tag at all" option, so index 3 ({@code incorrect_for_netherite_tool}) is the ladder's top.
+     *
+     * <p>Issue #433: the ladder starts at {@code incorrect_for_wooden_tool}, so index {@code n} is
+     * literally upstream's {@code HarvestLevels} number {@code n} -- {@code STONE = 0} (the level
+     * that mines stone, which a wooden pickaxe has) through {@code COBALT = 4}. It used to start a
+     * rung higher, which made every index one tier too generous.
      */
     static final List<TagKey<Block>> TIER_TAGS = List.of(
+            BlockTags.INCORRECT_FOR_WOODEN_TOOL,
             BlockTags.INCORRECT_FOR_STONE_TOOL,
             BlockTags.INCORRECT_FOR_IRON_TOOL,
             BlockTags.INCORRECT_FOR_DIAMOND_TOOL,
             BlockTags.INCORRECT_FOR_NETHERITE_TOOL);
 
-    /** Upstream {@code ModDiamond}: bumps up to but not past {@code HarvestLevels.OBSIDIAN}, mapped to the ladder's top. */
-    private static final int DIAMOND_TIER_CAP = TIER_TAGS.size() - 1;
-    /** Upstream {@code ModEmerald}: bumps up to but not past {@code HarvestLevels.DIAMOND}, one below diamond's cap. */
-    private static final int EMERALD_TIER_CAP = TIER_TAGS.size() - 2;
+    /** Upstream {@code ModDiamond}: bumps up to but not past {@code HarvestLevels.OBSIDIAN} (3). */
+    private static final int DIAMOND_TIER_CAP = 3;
+    /** Upstream {@code ModEmerald}: bumps up to but not past {@code HarvestLevels.DIAMOND} (2). */
+    private static final int EMERALD_TIER_CAP = 2;
 
     /**
      * {@link #TIER_TAGS}'s index for a deny-drops rule's block set, or -1 if it isn't on the ladder.
