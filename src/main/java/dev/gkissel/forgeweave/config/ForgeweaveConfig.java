@@ -194,11 +194,17 @@ public final class ForgeweaveConfig {
     public static final ModConfigSpec.BooleanValue GEN_SLIME_ISLANDS;
     /** Upstream {@code generateIslandsInSuperflat}. */
     public static final ModConfigSpec.BooleanValue GEN_ISLANDS_IN_SUPERFLAT;
-    /** Upstream {@code slimeIslandRate}: one chunk in this many carries an island. */
+    /**
+     * Upstream {@code slimeIslandRate}: one chunk in this many carries an island. Islands are a
+     * structure since #629, and a structure set's candidate grid cannot be re-spaced at runtime, so
+     * this thins that grid rather than replacing it -- exact from
+     * {@link dev.gkissel.forgeweave.worldgen.SlimeIslandStructure#GRID_DENSITY} upwards (upstream's
+     * default of 730 included), and capped at the grid below it.
+     */
     public static final ModConfigSpec.IntValue SLIME_ISLAND_RATE;
     /**
      * Upstream {@code slimeIslandBlacklist}, whose numeric dimension ids ({@code -1, 1}) become the
-     * modern named ones -- see {@code SlimeIslandPlacement}.
+     * modern named ones -- see {@code SlimeIslandStructure}.
      */
     public static final ModConfigSpec.ConfigValue<List<? extends String>> SLIME_ISLAND_BLACKLIST;
     /**
@@ -323,7 +329,7 @@ public final class ForgeweaveConfig {
                 .comment("Approximate ardite veins per Nether chunk.")
                 .defineInRange("arditeRate", 20, 0, 256);
         // #449 (parity audit T18) -- upstream 1.12 Config's five slime island options, verbatim
-        // names and defaults except the blacklist's dimension ids (see SlimeIslandPlacement).
+        // names and defaults except the blacklist's dimension ids (see SlimeIslandStructure).
         GEN_SLIME_ISLANDS = builder
                 .comment("If true slime islands will generate.")
                 .define("generateSlimeIslands", true);
@@ -331,7 +337,8 @@ public final class ForgeweaveConfig {
                 .comment("If true slime islands generate in superflat worlds.")
                 .define("generateIslandsInSuperflat", false);
         SLIME_ISLAND_RATE = builder
-                .comment("One in every X chunks will contain a slime island.")
+                .comment("One in every X chunks will contain a slime island. Values below 81 are capped",
+                        "at one in 81, the density of the island structure set's candidate grid.")
                 .defineInRange("slimeIslandRate", 730, 0, 100000);
         SLIME_ISLAND_BLACKLIST = builder
                 .comment("Prevents generation of slime islands in the listed dimensions.")

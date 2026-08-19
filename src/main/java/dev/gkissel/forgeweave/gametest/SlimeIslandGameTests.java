@@ -2,24 +2,22 @@ package dev.gkissel.forgeweave.gametest;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.SectionPos;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
-import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.RandomSource;
+import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.levelgen.Heightmap;
-import net.minecraft.world.level.levelgen.feature.FeaturePlaceContext;
-import net.minecraft.world.level.levelgen.feature.configurations.NoneFeatureConfiguration;
-import net.minecraft.world.level.levelgen.placement.PlacedFeature;
+import net.minecraft.world.level.levelgen.structure.BoundingBox;
+import net.minecraft.world.level.levelgen.structure.Structure;
+import net.minecraft.world.level.levelgen.structure.StructureCheckResult;
+import net.minecraft.world.level.levelgen.structure.StructureSet;
+import net.minecraft.world.level.levelgen.structure.placement.RandomSpreadStructurePlacement;
 
 import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
@@ -27,33 +25,82 @@ import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.block.ForgeweaveBlocks;
 import dev.gkissel.forgeweave.config.ForgeweaveConfig;
-import dev.gkissel.forgeweave.worldgen.SlimeIslandFeature;
-import dev.gkissel.forgeweave.worldgen.SlimeIslandPlacement;
+import dev.gkissel.forgeweave.worldgen.SlimeIslandPiece;
+import dev.gkissel.forgeweave.worldgen.SlimeIslandShape;
+import dev.gkissel.forgeweave.worldgen.SlimeIslandStructure;
 
 /**
- * Issue #449 (parity audit T18), the live half of the slime island port -- the parts a running
- * server has to answer. The island's shape is pure code and covered by {@code SlimeIslandShapeTest}
- * instead; what is here is that the feature really writes an island into a level, that the placed
- * feature routes through the config gates, and that the three new block behaviours (grass spread,
- * plant placement, the congealed slime's sunken collision box) do what upstream's do.
+ * Issues #449 and #629 (parity audit T18), the live half of the slime island port -- the parts a
+ * running server has to answer. The island's shape is pure code and covered by
+ * {@code SlimeIslandShapeTest} instead; what is here is that {@code /locate} can actually find the
+ * structure, that its piece really writes an island into a level, that generation routes through the
+ * config gates, and that the three new block behaviours (grass spread, plant placement, the congealed
+ * slime's sunken collision box) do what upstream's do.
  */
 @GameTestHolder(Forgeweave.MODID)
 @PrefixGameTestTemplate(false)
 public class SlimeIslandGameTests {
 
     /**
-     * The hand-written placed-feature JSON has to actually resolve against the registered modifier
-     * type -- the same "does this JSON still parse" guard {@code NetherOreGameTests} keeps for the
-     * ores. Without it a renamed modifier would only be noticed in a live world.
+     * The point of #629: {@code /locate structure forgeweave:slime_island} has to work. Its lookup
+     * ({@code ChunkGenerator#findNearestMapStructure}) needs three things, and this pins all three --
+     * the datapack structure JSON resolves against the registered structure type, a structure set
+     * carries it, and that set's placement is a random-spread one, the only kind the lookup walks.
+     * The last block then runs the lookup's own inner call,
+     * {@code StructureManager#checkStructurePresence}, over the placement's candidate chunks and
+     * requires at least one island among them.
+     *
+     * <p>Two accommodations for the GameTest world, neither of them about the island. It is a vanilla
+     * superflat, whose preset pins {@code structure_overrides} to strongholds and villages, so no mod
+     * structure set ever reaches its generator state and {@code findNearestMapStructure} itself cannot
+     * be called here -- hence driving the candidate chunks straight off the registered set. And
+     * upstream's {@code generateIslandsInSuperflat} defaults to off, so it is turned on around the
+     * search; without it, finding nothing would be the correct answer. Synchronous set/assert/restore,
+     * like the config test below.
      */
     @GameTest(template = "empty")
-    public static void theSlimeIslandPlacedFeatureRoutesThroughTheConfigGates(GameTestHelper helper) {
-        ResourceKey<PlacedFeature> key = ResourceKey.create(Registries.PLACED_FEATURE,
-                ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "slime_island"));
-        PlacedFeature feature = helper.getLevel().registryAccess().registryOrThrow(Registries.PLACED_FEATURE).get(key);
-        helper.assertTrue(feature != null, "expected a placed feature registered as " + key.location());
-        helper.assertTrue(feature.placement().stream().anyMatch(SlimeIslandPlacement.class::isInstance),
-                "slime_island must take its generation gates from the config-aware placement modifier");
+    public static void theSlimeIslandStructureIsLocatable(GameTestHelper helper) {
+        ServerLevel level = helper.getLevel();
+        Structure structure = level.registryAccess()
+                .registryOrThrow(Registries.STRUCTURE)
+                .get(SlimeIslandStructure.KEY);
+        helper.assertTrue(structure instanceof SlimeIslandStructure,
+                "expected the slime island structure registered as " + SlimeIslandStructure.KEY.location());
+
+        StructureSet set = level.registryAccess().registryOrThrow(Registries.STRUCTURE_SET).stream()
+                .filter(candidate -> candidate.structures().stream()
+                        .anyMatch(entry -> entry.structure().value() == structure))
+                .findFirst()
+                .orElse(null);
+        helper.assertTrue(set != null,
+                "no structure set carries forgeweave:slime_island, so /locate can never reach it");
+        helper.assertTrue(set.placement() instanceof RandomSpreadStructurePlacement,
+                "/locate only walks random-spread placements, so the island's set has to use one");
+
+        RandomSpreadStructurePlacement placement = (RandomSpreadStructurePlacement) set.placement();
+        helper.assertValueEqual(placement.spacing(), SlimeIslandStructure.GRID_SPACING,
+                "the structure set's spacing and the rarity math in SlimeIslandStructure");
+
+        ForgeweaveConfig.GEN_ISLANDS_IN_SUPERFLAT.set(true);
+        try {
+            long seed = level.getChunkSource().getGeneratorState().getLevelSeed();
+            int found = 0;
+            for (int cellX = -6; cellX <= 6; cellX++) {
+                for (int cellZ = -6; cellZ <= 6; cellZ++) {
+                    ChunkPos candidate = placement.getPotentialStructureChunk(seed,
+                            cellX * placement.spacing(), cellZ * placement.spacing());
+                    if (level.structureManager().checkStructurePresence(candidate, structure, placement, false)
+                            != StructureCheckResult.START_NOT_PRESENT) {
+                        found++;
+                    }
+                }
+            }
+            helper.assertTrue(found > 0,
+                    "the structure lookup /locate uses found no slime island among 169 candidate chunks");
+        } finally {
+            ForgeweaveConfig.GEN_ISLANDS_IN_SUPERFLAT.set(false);
+        }
+
         helper.succeed();
     }
 
@@ -66,13 +113,13 @@ public class SlimeIslandGameTests {
     public static void slimeIslandGenerationFollowsTheConfig(GameTestHelper helper) {
         ServerLevel level = helper.getLevel();
 
-        helper.assertTrue(SlimeIslandPlacement.enabledIn(level, false), "islands generate by default");
-        helper.assertFalse(SlimeIslandPlacement.enabledIn(level, true),
+        helper.assertTrue(SlimeIslandStructure.enabledIn(level, false), "islands generate by default");
+        helper.assertFalse(SlimeIslandStructure.enabledIn(level, true),
                 "islands stay out of superflat worlds by default");
 
         ForgeweaveConfig.GEN_ISLANDS_IN_SUPERFLAT.set(true);
         try {
-            helper.assertTrue(SlimeIslandPlacement.enabledIn(level, true),
+            helper.assertTrue(SlimeIslandStructure.enabledIn(level, true),
                     "generateIslandsInSuperflat lets them into a superflat world");
         } finally {
             ForgeweaveConfig.GEN_ISLANDS_IN_SUPERFLAT.set(false);
@@ -80,7 +127,7 @@ public class SlimeIslandGameTests {
 
         ForgeweaveConfig.GEN_SLIME_ISLANDS.set(false);
         try {
-            helper.assertFalse(SlimeIslandPlacement.enabledIn(level, false),
+            helper.assertFalse(SlimeIslandStructure.enabledIn(level, false),
                     "generateSlimeIslands off stops them entirely");
         } finally {
             ForgeweaveConfig.GEN_SLIME_ISLANDS.set(true);
@@ -89,7 +136,7 @@ public class SlimeIslandGameTests {
         List<? extends String> blacklist = List.of(level.dimension().location().toString());
         ForgeweaveConfig.SLIME_ISLAND_BLACKLIST.set(blacklist);
         try {
-            helper.assertFalse(SlimeIslandPlacement.enabledIn(level, false),
+            helper.assertFalse(SlimeIslandStructure.enabledIn(level, false),
                     "a blacklisted dimension gets no islands");
         } finally {
             ForgeweaveConfig.SLIME_ISLAND_BLACKLIST.set(List.of("minecraft:the_nether", "minecraft:the_end"));
@@ -99,30 +146,33 @@ public class SlimeIslandGameTests {
     }
 
     /**
-     * The half {@code SlimeIslandShapeTest} cannot reach: the feature's own chunk-relative placement
-     * and the blit out of its buffer into a real level. Runs high above the test structure -- an
-     * island is a sky feature and needs the room -- and takes its own blocks back out again, so
-     * nothing is left behind for the next test in the batch.
+     * The half {@code SlimeIslandShapeTest} cannot reach: that the structure piece recovers the
+     * island it was sized for from nothing but its own bounding box, and blits it into a real level.
+     * Runs high above the test structure -- an island is a sky feature and needs the room -- and
+     * takes its own blocks back out again, so nothing is left behind for the next test in the batch.
      */
     @GameTest(template = "empty")
-    public static void theSlimeIslandFeatureBuildsAnIslandInTheSky(GameTestHelper helper) {
+    public static void theSlimeIslandPieceBuildsAnIslandInTheSky(GameTestHelper helper) {
         ServerLevel level = helper.getLevel();
         BlockPos anchor = helper.absolutePos(BlockPos.ZERO);
-        BlockPos chunkOrigin = new BlockPos(SectionPos.sectionToBlockCoord(SectionPos.blockToSectionCoord(anchor.getX())),
-                0, SectionPos.sectionToBlockCoord(SectionPos.blockToSectionCoord(anchor.getZ())));
 
-        boolean placed = SlimeIslandFeature.SLIME_ISLAND.get().place(new FeaturePlaceContext<>(
-                Optional.empty(), level, level.getChunkSource().getGenerator(), RandomSource.create(1234L),
-                chunkOrigin, NoneFeatureConfiguration.INSTANCE));
-        helper.assertTrue(placed, "the slime island feature refused to place in a flat test world");
+        SlimeIslandShape.Size size = SlimeIslandShape.Size.roll(RandomSource.create(1234L));
+        int bottom = Math.min(anchor.getY() + 40, level.getMaxBuildHeight() - 1 - size.canvasSizeY());
+        int minX = anchor.getX() + 8;
+        int minZ = anchor.getZ() + 8;
+        BoundingBox box = new BoundingBox(minX, bottom, minZ,
+                minX + size.canvasSizeX() - 1, bottom + size.canvasSizeY() - 1, minZ + size.canvasSizeZ() - 1);
+
+        SlimeIslandPiece piece = new SlimeIslandPiece(box);
+        piece.postProcess(level, level.structureManager(), level.getChunkSource().getGenerator(),
+                RandomSource.create(1234L), box, new ChunkPos(minX >> 4, minZ >> 4), anchor);
 
         List<BlockPos> islandBlocks = new ArrayList<>();
-        int surface = level.getHeight(Heightmap.Types.WORLD_SURFACE_WG, chunkOrigin.getX(), chunkOrigin.getZ());
         boolean sawGrass = false;
         boolean sawTrunk = false;
-        for (int x = chunkOrigin.getX() - 16; x <= chunkOrigin.getX() + 32; x++) {
-            for (int z = chunkOrigin.getZ() - 16; z <= chunkOrigin.getZ() + 32; z++) {
-                for (int y = surface + 30; y <= Math.min(surface + 140, level.getMaxBuildHeight() - 1); y++) {
+        for (int x = box.minX(); x <= box.maxX(); x++) {
+            for (int z = box.minZ(); z <= box.maxZ(); z++) {
+                for (int y = box.minY(); y <= box.maxY(); y++) {
                     BlockPos pos = new BlockPos(x, y, z);
                     Block block = level.getBlockState(pos).getBlock();
                     if (!isSlimeIslandBlock(block)) {
@@ -137,7 +187,7 @@ public class SlimeIslandGameTests {
 
         try {
             helper.assertTrue(islandBlocks.size() > 500,
-                    "the feature wrote only " + islandBlocks.size() + " blocks -- that is not an island");
+                    "the piece wrote only " + islandBlocks.size() + " blocks -- that is not an island");
             helper.assertTrue(sawGrass, "the island has no grass surface");
             helper.assertTrue(sawTrunk, "the island grew no congealed slime tree trunk");
         } finally {

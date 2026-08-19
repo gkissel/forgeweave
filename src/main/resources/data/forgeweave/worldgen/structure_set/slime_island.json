@@ -1,0 +1,15 @@
+{
+  "structures": [
+    {
+      "structure": "forgeweave:slime_island",
+      "weight": 1
+    }
+  ],
+  "placement": {
+    "type": "minecraft:random_spread",
+    "spread_type": "linear",
+    "spacing": 9,
+    "separation": 0,
+    "salt": 14930629
+  }
+}

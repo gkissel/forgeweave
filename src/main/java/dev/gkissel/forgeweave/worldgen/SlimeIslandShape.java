@@ -18,7 +18,7 @@ import dev.gkissel.forgeweave.block.ForgeweaveBlocks.SlimeSoil;
  *
  * <p>Upstream draws straight into the world through {@code World#setBlockState}. This draws into a
  * {@link Canvas} -- an air-filled box of block states, addressed relative to the island's own corner
- * -- which {@link SlimeIslandFeature} then blits into the world in one pass. Two reasons: the
+ * -- which {@link SlimeIslandPiece} then blits into the world in one pass. Two reasons: the
  * erosion passes read back what earlier passes wrote, which a buffer answers without touching chunk
  * storage, and the whole algorithm becomes a pure function that a plain unit test can drive without
  * a running server (see {@code SlimeIslandShapeTest}).
@@ -107,6 +107,32 @@ public final class SlimeIslandShape {
         public static int canvasPad() {
             return 4;
         }
+
+        /** The full width of {@link Canvas#forIsland}'s canvas for this island, canopy pad included. */
+        public int canvasSizeX() {
+            return xRange + 1 + 2 * canvasPad();
+        }
+
+        /** The full height of {@link Canvas#forIsland}'s canvas for this island. */
+        public int canvasSizeY() {
+            return canvasTop() + 1;
+        }
+
+        /** The full depth of {@link Canvas#forIsland}'s canvas for this island, canopy pad included. */
+        public int canvasSizeZ() {
+            return zRange + 1 + 2 * canvasPad();
+        }
+
+        /**
+         * The inverse of the three {@code canvasSize} accessors: the island a canvas of this span was
+         * sized for. {@link SlimeIslandPiece} reloads itself with this, so a saved island needs no
+         * NBT of its own beyond the bounding box vanilla already writes for every structure piece.
+         */
+        public static Size fromCanvasSpan(int sizeX, int sizeY, int sizeZ) {
+            int pad = canvasPad();
+            return new Size(sizeX - 1 - 2 * pad, sizeZ - 1 - 2 * pad,
+                    sizeY - 1 - MIN_TREE_HEIGHT - TREE_HEIGHT_RANGE - 2);
+        }
     }
 
     /**
@@ -137,8 +163,7 @@ public final class SlimeIslandShape {
         /** A canvas big enough for an island of {@code size}, including its canopies. */
         public static Canvas forIsland(Size size) {
             int pad = Size.canvasPad();
-            return new Canvas(-pad, 0, -pad,
-                    size.xRange() + 1 + 2 * pad, size.canvasTop() + 1, size.zRange() + 1 + 2 * pad);
+            return new Canvas(-pad, 0, -pad, size.canvasSizeX(), size.canvasSizeY(), size.canvasSizeZ());
         }
 
         private int index(int x, int y, int z) {
