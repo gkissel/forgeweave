@@ -20,6 +20,7 @@ import net.minecraft.world.item.Items;
 import net.minecraft.world.item.ProjectileWeaponItem;
 import net.minecraft.world.item.UseAnim;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.phys.Vec3;
 
 import net.neoforged.neoforge.event.EventHooks;
 
@@ -118,8 +119,8 @@ public class BowItem extends ToolItem {
      * @param drawTime {@code BowCore#getDrawTime()}: ticks a {@code drawSpeed = 1} bow takes to draw
      * @param baseProjectileSpeed {@code BowCore#baseProjectileSpeed()}: launch velocity at full draw
      *     before the {@code range} multiplier ({@code 3f} for every bow but the longbow)
-     * @param baseInaccuracy {@code BowCore#baseInaccuracy()}, the spread passed to
-     *     {@code shootFromRotation}
+     * @param baseInaccuracy {@code BowCore#baseInaccuracy()}, the spread passed to {@link
+     *     net.minecraft.world.entity.projectile.Projectile#shoot Projectile#shoot}
      */
     public BowItem(Properties properties, ToolConstants.Entry constants, int drawTime, float baseProjectileSpeed,
             float baseInaccuracy) {
@@ -292,12 +293,27 @@ public class BowItem extends ToolItem {
                 SoundSource.NEUTRAL, 1.0F, 1.0F / (level.getRandom().nextFloat() * 0.4F + 1.2F) + velocity * 0.5F);
     }
 
-    /** {@code BowCore#getProjectileEntity}'s {@code ItemArrow} branch -- see the class javadoc. */
+    /**
+     * {@code BowCore#getProjectileEntity}'s {@code ItemArrow} branch -- see the class javadoc.
+     *
+     * <p>Deviation from vanilla's own {@code ItemBow#shootProjectile} (recorded here and in the PR,
+     * issue #602): that vanilla method fires with {@code Projectile#shootFromRotation}, which sets the
+     * arrow's rotation from the shooter's aim and only then mutates {@code deltaMovement} a second time
+     * by adding the shooter's own momentum -- without re-deriving the rotation to match. The client's
+     * spawn packet still carries that first, now-stale rotation, so a shooter with any velocity of
+     * their own launches an arrow whose renderer briefly aims somewhere the velocity vector does not
+     * (a bow's draw pose usually hides the frame; a crossbow's instant fire does not). Vanilla's own
+     * {@code CrossbowItem#shootProjectile} avoids this by calling {@code Projectile#shoot} directly with
+     * a single already-final vector, which sets {@code deltaMovement} and {@code xRot}/{@code yRot}
+     * (and their O-fields, what the client's first render frame lerps from) from that one vector --
+     * that is what this now does for every bow, not just the crossbow which inherits it.
+     */
     protected AbstractArrow createArrow(ItemStack ammo, ItemStack bow, Level level, Player player, float velocity,
             float inaccuracy, boolean usedAmmo) {
         ArrowItem arrowItem = ammo.getItem() instanceof ArrowItem item ? item : (ArrowItem) Items.ARROW;
         AbstractArrow arrow = arrowItem.createArrow(level, ammo, player, bow);
-        arrow.shootFromRotation(player, player.getXRot(), player.getYRot(), 0.0F, velocity, inaccuracy);
+        Vec3 shotVector = player.getViewVector(1.0F);
+        arrow.shoot(shotVector.x, shotVector.y, shotVector.z, velocity, inaccuracy);
         LauncherStats stats = launcherStats(bow);
         if (stats != null && velocity > 0.0F) {
             arrow.setBaseDamage(arrow.getBaseDamage() + stats.bonusDamage() / velocity);

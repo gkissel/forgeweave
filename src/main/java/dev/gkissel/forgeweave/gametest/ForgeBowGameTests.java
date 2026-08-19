@@ -8,6 +8,7 @@ import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.util.Mth;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
@@ -300,5 +301,54 @@ public class ForgeBowGameTests {
     private static List<Arrow> arrowsAround(GameTestHelper helper, Player player) {
         return helper.getLevel().getEntitiesOfClass(Arrow.class,
                 new AABB(player.position(), player.position()).inflate(4.0));
+    }
+
+    /**
+     * Issue #602: the arrow's yRot/xRot -- and the O-fields the client's very first render frame
+     * lerps from ({@code ArrowRenderer#render}) -- must come from the exact vector that becomes its
+     * deltaMovement, or that first frame renders the arrow at its pre-spawn default rotation, visible
+     * as launching "backward" for an instant. Vanilla's own {@code CrossbowItem#shootProjectile} sets
+     * both from one {@code Projectile#shoot(x, y, z, velocity, inaccuracy)} call. What the crossbow
+     * inherited from {@link BowItem#createArrow} instead ({@code Projectile#shootFromRotation}, what a
+     * bow's own vanilla {@code ItemBow#shootProjectile} uses) sets rotation from the shooter's aim
+     * FIRST and only then mutates deltaMovement again by adding the shooter's own momentum, without
+     * re-deriving rotation to match -- a real, measurable mismatch whenever the shooter is moving, not
+     * just a cosmetic one-frame flicker. A player standing still hides it; this pins it with the
+     * shooter moving briskly sideways at the moment of the shot.
+     */
+    @GameTest(template = "empty")
+    public static void crossbowArrowRotationMatchesItsVelocityAtSpawn(GameTestHelper helper) {
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        player.setYRot(0.0F);
+        player.setXRot(0.0F);
+        player.moveTo(helper.absoluteVec(new Vec3(2.5, 2.0, 2.5)));
+        player.setDeltaMovement(new Vec3(4.0, 0.0, 0.0)); // moving sideways as the shot fires
+        ItemStack bow = crossbow(helper, player, new BlockPos(1, 1, 1));
+        CrossbowItem.setLoaded(bow, true);
+        giveArrows(player, 5);
+        player.setItemInHand(InteractionHand.MAIN_HAND, bow);
+
+        bow.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
+        List<Arrow> arrows = arrowsAround(helper, player);
+        helper.assertTrue(arrows.size() == 1, "one arrow, got " + arrows.size());
+        Arrow arrow = arrows.get(0);
+        arrows.forEach(AbstractArrow::discard);
+
+        assertRotationMatchesVelocity(helper, arrow);
+        helper.succeed();
+    }
+
+    static void assertRotationMatchesVelocity(GameTestHelper helper, Arrow arrow) {
+        Vec3 v = arrow.getDeltaMovement();
+        double horizontal = Math.sqrt(v.x * v.x + v.z * v.z);
+        float expectedYRot = (float) (Mth.atan2(v.x, v.z) * 180.0 / Math.PI);
+        float expectedXRot = (float) (Mth.atan2(v.y, horizontal) * 180.0 / Math.PI);
+        helper.assertTrue(Math.abs(Mth.wrapDegrees(arrow.getYRot() - expectedYRot)) < 1.0F,
+                "yRot must track the actual launch velocity, expected ~" + expectedYRot + ", got " + arrow.getYRot());
+        helper.assertTrue(Math.abs(Mth.wrapDegrees(arrow.getXRot() - expectedXRot)) < 1.0F,
+                "xRot must track the actual launch velocity, expected ~" + expectedXRot + ", got " + arrow.getXRot());
+        helper.assertTrue(arrow.yRotO == arrow.getYRot() && arrow.xRotO == arrow.getXRot(),
+                "the O-fields the client's first frame lerps from must already match the current rotation, "
+                        + "or that frame renders the arrow at its stale default (issue #602)");
     }
 }
