@@ -77,6 +77,7 @@ public class ForgeweaveBlockLootSubProvider extends BlockLootSubProvider {
         // #339 -- the slimy muds, same BlockSoil self-drop as grout.
         dropSelf(ForgeweaveBlocks.SLIMY_MUD_GREEN.get());
         dropSelf(ForgeweaveBlocks.SLIMY_MUD_MAGMA.get());
+        dropSelf(ForgeweaveBlocks.SLIMY_MUD_BLUE.get()); // #635 (parity audit T57)
 
         // #429 -- graveyard and consecrated soil, same BlockSoil self-drop.
         dropSelf(ForgeweaveBlocks.GRAVEYARD_SOIL.get());
@@ -94,10 +95,14 @@ public class ForgeweaveBlockLootSubProvider extends BlockLootSubProvider {
             dropSelf(soil.dirt().get());
             add(soil.grass().get(), block -> createSingleItemTableWithSilkTouch(block, soil.dirt().get()));
         }
-        dropSelf(ForgeweaveBlocks.GREEN_CONGEALED_SLIME.get());
-        dropSelf(ForgeweaveBlocks.BLUE_CONGEALED_SLIME.get()); // #625 (parity audit T18)
-        dropSelf(ForgeweaveBlocks.PURPLE_CONGEALED_SLIME.get()); // #625 (parity audit T18)
-        dropSelf(ForgeweaveBlocks.MAGMA_CONGEALED_SLIME.get()); // #450 (parity audit T19)
+        // Every congealed and coloured slime block drops itself, upstream's own behaviour --
+        // neither BlockSlimeCongealed nor BlockSlime overrides its drop (#449/#450/#625/#635).
+        for (ForgeweaveBlocks.SlimeFamily family : ForgeweaveBlocks.slimeFamilies()) {
+            dropSelf(family.congealed().get());
+            if (family.slimeBlock() != null) {
+                dropSelf(family.slimeBlock().get());
+            }
+        }
         for (ForgeweaveBlocks.SlimePlants plants : ForgeweaveBlocks.slimePlants()) {
             add(plants.leaves().get(), block -> slimeLeavesDrop(block, plants.sapling().get()));
             add(plants.tallGrass().get(), block -> createShearsOnlyDrop(block));

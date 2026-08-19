@@ -30,5 +30,10 @@ public final class ForgeweaveRecipeSerializers {
             SHARPENING_KIT_REPAIR = RECIPE_SERIALIZERS.register("sharpening_kit_repair",
                     () -> new SimpleCraftingRecipeSerializer<>(SharpeningKitRepairRecipe::new));
 
+    /** {@link MixedSlimeBlockRecipe} (issue #635, parity audit T57): carries no data of its own either. */
+    public static final DeferredHolder<RecipeSerializer<?>, SimpleCraftingRecipeSerializer<MixedSlimeBlockRecipe>>
+            MIXED_SLIME_BLOCK = RECIPE_SERIALIZERS.register("mixed_slime_block",
+                    () -> new SimpleCraftingRecipeSerializer<>(MixedSlimeBlockRecipe::new));
+
     private ForgeweaveRecipeSerializers() {}
 }

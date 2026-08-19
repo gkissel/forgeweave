@@ -99,12 +99,17 @@ public final class ForgeweaveBlocks {
     // verbatim. Furnace-smelting one yields its slime crystal (upstream TinkerTools, 0.75 xp) --
     // that smelt is the whole reason these blocks exist here; upstream's other mud behaviors
     // (onEntityWalk slowdown, sustaining slime plants) belong to world content and stay out of
-    // scope until #181. Blue mud needs blue slime balls, which have no world source yet, so it is
-    // deliberately absent.
+    // scope until #181. Blue mud joined them in #635, once blue slime balls existed to craft it.
     public static final DeferredBlock<Block> SLIMY_MUD_GREEN =
             BLOCKS.registerSimpleBlock("slimy_mud_green", soilProperties(MapColor.COLOR_GREEN));
     public static final DeferredBlock<Block> SLIMY_MUD_MAGMA =
             BLOCKS.registerSimpleBlock("slimy_mud_magma", soilProperties(MapColor.COLOR_ORANGE));
+    // #635 (parity audit T57): blue slimy mud, the third BlockSoil mud state (SoilTypes.SLIMY_MUD_BLUE,
+    // NOTICE.md). #339 left it out because upstream's slimy_mud_blue.json wants four blue slime balls
+    // and there were none; there are now, so it arrives with them and its furnace smelt replaces
+    // #232's interim "green crystal + lapis" craft for the blue slime crystal.
+    public static final DeferredBlock<Block> SLIMY_MUD_BLUE =
+            BLOCKS.registerSimpleBlock("slimy_mud_blue", soilProperties(MapColor.COLOR_LIGHT_BLUE));
 
     // #429 -- graveyard soil and consecrated soil, the last two BlockSoil states Forgeweave was
     // missing (SoilTypes.GRAVEYARD / CONSECRATED, NOTICE.md). Same soilProperties() as grout and
@@ -379,7 +384,8 @@ public final class ForgeweaveBlocks {
     // has to reach becomes its own block; the roster here is exactly what
     // SlimeIslandGenerator#generateIslandInChunk places on an overworld island plus what
     // MagmaSlimeIslandGenerator places on a Nether one (#450, parity audit T19), and the rest
-    // (blood/pink congealed, blood dirt and grass, the vanilla-dirt grass) waits on T57.
+    // (blood dirt and grass, the vanilla-dirt grass) waits on a later ticket; the remaining congealed
+    // colours and every coloured slime block shipped with #635.
 
     /**
      * One slime soil colour: the dirt, the grass that sits on top of it, and the foliage colour that
@@ -404,63 +410,78 @@ public final class ForgeweaveBlocks {
     public static final SlimeSoil MAGMA_SLIME_SOIL = slimeSoil("magma", FoliageType.ORANGE, MapColor.COLOR_ORANGE);
 
     /**
-     * Green congealed slime: upstream's {@code BlockSlimeCongealed} in its {@code GREEN} state
-     * (NOTICE.md), the block {@code SlimeIslandGenerator} builds every slime tree trunk from.
-     * Upstream properties: {@code Material.CLAY}, hardness 0.5, slipperiness 0.5,
-     * {@code SoundType.SLIME}; its sunken collision box lives in {@link CongealedSlimeBlock}.
+     * One colour's pair of solid slime blocks: the congealed block, and -- for every colour but
+     * green -- the bouncy coloured slime block. Upstream 1.12 keeps each as one metadata block
+     * ({@code BlockSlimeCongealed} and {@code BlockSlime}, NOTICE.md); modern Minecraft has no
+     * metadata, so every colour gets its own registration, the same reduction #449 already made for
+     * the dirts, grasses, leaves and plants.
      */
-    public static final DeferredBlock<CongealedSlimeBlock> GREEN_CONGEALED_SLIME = BLOCKS.register("green_congealed_slime",
-            () -> new CongealedSlimeBlock(BlockBehaviour.Properties.of()
-                    .mapColor(MapColor.COLOR_GREEN)
-                    .strength(0.5F)
-                    .friction(0.5F)
-                    .sound(SoundType.SLIME_BLOCK)));
+    public record SlimeFamily(SlimeColour colour, DeferredBlock<CongealedSlimeBlock> congealed,
+                              @Nullable DeferredBlock<ColouredSlimeBlock> slimeBlock) {}
+
+    private static final List<SlimeFamily> SLIME_FAMILIES = new ArrayList<>();
+    private static final List<SlimeFamily> SLIME_FAMILIES_VIEW = Collections.unmodifiableList(SLIME_FAMILIES);
+
+    /** Every slime colour's solid blocks, in declaration order -- datagen, loot and recipes all walk this. */
+    public static List<SlimeFamily> slimeFamilies() {
+        return SLIME_FAMILIES_VIEW;
+    }
 
     /**
-     * Blue congealed slime: upstream's {@code BlockSlimeCongealed} in its {@code BLUE} state
-     * (NOTICE.md). Issue #625 (parity audit T18) -- what {@code SlimeLakeGenerator} lays around a
-     * blue or green island's lake, and the bottom block of a blue island's. Same properties as its
-     * green sibling above.
+     * The six slime colours' congealed and coloured slime blocks. Green congealed slime is the block
+     * {@code SlimeIslandShape} builds every tree trunk from (#449), magma congealed slime the Nether
+     * island's (#450), and blue and purple congealed slime what the slime lake is bottomed and rimmed
+     * with (#625); blood and pink congealed slime and all five coloured slime blocks arrive with
+     * #635 (parity audit T57), alongside the coloured slime balls that craft every one of them.
+     * Registry ids are unchanged from where each block was first registered.
      *
-     * <p>Upstream's {@code slime/blue/congealed.json} crafts it from four {@code slimeballBlue}, a
-     * coloured slime ball Forgeweave does not have yet (parity audit T57, issue #635), so like magma
-     * congealed slime below it has no recipe here -- it is lake loot until that ships.
+     * <p>Upstream {@code BlockSlimeCongealed}: {@code Material.CLAY}, hardness 0.5, slipperiness
+     * 0.5, {@code SoundType.SLIME}; its sunken collision box lives in {@link CongealedSlimeBlock}.
+     * Upstream {@code BlockSlime} extends vanilla's own slime block and re-declares only its sound
+     * and its stickiness, which is what {@link ColouredSlimeBlock} does; the remaining properties
+     * here are vanilla {@code Blocks.SLIME_BLOCK}'s.
      */
-    public static final DeferredBlock<CongealedSlimeBlock> BLUE_CONGEALED_SLIME = BLOCKS.register("blue_congealed_slime",
-            () -> new CongealedSlimeBlock(BlockBehaviour.Properties.of()
-                    .mapColor(MapColor.COLOR_LIGHT_BLUE)
-                    .strength(0.5F)
-                    .friction(0.5F)
-                    .sound(SoundType.SLIME_BLOCK)));
+    public static final SlimeFamily GREEN_SLIME = registerSlimeFamily(SlimeColour.GREEN);
+    public static final SlimeFamily BLUE_SLIME = registerSlimeFamily(SlimeColour.BLUE);
+    public static final SlimeFamily PURPLE_SLIME = registerSlimeFamily(SlimeColour.PURPLE);
+    public static final SlimeFamily BLOOD_SLIME = registerSlimeFamily(SlimeColour.BLOOD);
+    public static final SlimeFamily MAGMA_SLIME = registerSlimeFamily(SlimeColour.MAGMA);
+    public static final SlimeFamily PINK_SLIME = registerSlimeFamily(SlimeColour.PINK);
 
-    /**
-     * Purple congealed slime: upstream's {@code BlockSlimeCongealed} in its {@code PURPLE} state
-     * (NOTICE.md), the block a purple island's lake is bottomed and rimmed with (issue #625). Same
-     * properties, and the same "no recipe until the coloured slime balls ship" note, as
-     * {@link #BLUE_CONGEALED_SLIME}.
-     */
-    public static final DeferredBlock<CongealedSlimeBlock> PURPLE_CONGEALED_SLIME = BLOCKS.register("purple_congealed_slime",
-            () -> new CongealedSlimeBlock(BlockBehaviour.Properties.of()
-                    .mapColor(MapColor.COLOR_PURPLE)
-                    .strength(0.5F)
-                    .friction(0.5F)
-                    .sound(SoundType.SLIME_BLOCK)));
+    /** Green congealed slime, the block every overworld slime tree's trunk is built from (#449). */
+    public static final DeferredBlock<CongealedSlimeBlock> GREEN_CONGEALED_SLIME = GREEN_SLIME.congealed();
+    /** Blue congealed slime, a blue or green island's lake bed and shore (#625). */
+    public static final DeferredBlock<CongealedSlimeBlock> BLUE_CONGEALED_SLIME = BLUE_SLIME.congealed();
+    /** Purple congealed slime, a purple island's lake bed and shore (#625). */
+    public static final DeferredBlock<CongealedSlimeBlock> PURPLE_CONGEALED_SLIME = PURPLE_SLIME.congealed();
+    /** Magma congealed slime, the Nether magma island's trunk block and lake shore (#450). */
+    public static final DeferredBlock<CongealedSlimeBlock> MAGMA_CONGEALED_SLIME = MAGMA_SLIME.congealed();
 
-    /**
-     * Magma congealed slime: upstream's {@code BlockSlimeCongealed} in its {@code MAGMA} state
-     * (NOTICE.md), the block {@code MagmaSlimeIslandGenerator} builds every Nether tree trunk from
-     * (issue #450, parity audit T19). Same properties as its green sibling above.
-     *
-     * <p>Upstream's {@code slime/magma/congealed.json} crafts it from four {@code slimeballMagma},
-     * a coloured slime ball Forgeweave does not have yet (parity audit T57), so it has no recipe
-     * here -- it is island loot until that ships, exactly as its blue and purple siblings above are.
-     */
-    public static final DeferredBlock<CongealedSlimeBlock> MAGMA_CONGEALED_SLIME = BLOCKS.register("magma_congealed_slime",
-            () -> new CongealedSlimeBlock(BlockBehaviour.Properties.of()
-                    .mapColor(MapColor.COLOR_ORANGE)
-                    .strength(0.5F)
-                    .friction(0.5F)
-                    .sound(SoundType.SLIME_BLOCK)));
+    /** One colour's slime blocks. */
+    public static SlimeFamily slimeFamily(SlimeColour colour) {
+        return SLIME_FAMILIES.stream().filter(family -> family.colour() == colour).findFirst()
+                .orElseThrow(() -> new IllegalStateException("no slime blocks registered for " + colour));
+    }
+
+    private static SlimeFamily registerSlimeFamily(SlimeColour colour) {
+        DeferredBlock<CongealedSlimeBlock> congealed = BLOCKS.register(colour.id() + "_congealed_slime",
+                () -> new CongealedSlimeBlock(BlockBehaviour.Properties.of()
+                        .mapColor(colour.mapColor())
+                        .strength(0.5F)
+                        .friction(0.5F)
+                        .sound(SoundType.SLIME_BLOCK)));
+        DeferredBlock<ColouredSlimeBlock> slimeBlock = colour.hasSlimeBlock()
+                ? BLOCKS.register(colour.id() + "_slime_block",
+                        () -> new ColouredSlimeBlock(BlockBehaviour.Properties.of()
+                                .mapColor(colour.mapColor())
+                                .friction(0.8F)
+                                .sound(SoundType.SLIME_BLOCK)
+                                .noOcclusion()))
+                : null;
+        SlimeFamily family = new SlimeFamily(colour, congealed, slimeBlock);
+        SLIME_FAMILIES.add(family);
+        return family;
+    }
 
     /**
      * One slime foliage colour's plant life: leaves, tall grass, fern, the sapling that grows the

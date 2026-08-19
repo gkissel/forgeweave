@@ -1,0 +1,70 @@
+{
+    block: "forgeweave:standard_core",
+    decoder: "block_entity",
+    expect: {
+        id: "forgeweave:standard_core",
+        melting: {
+            Items: [
+                {
+                    Slot: 0b,
+                    count: 2,
+                    id: "forgeweave:purple_slime_ball"
+                }
+            ]
+        },
+        structure: {
+            interior_max: [I; 0, 1, 1],
+            interior_min: [I; 0, 0, 1]
+        },
+        tank: {
+            fluids: [
+                {
+                    amount: 1000,
+                    id: "forgeweave:blue_slime"
+                },
+                {
+                    amount: 125,
+                    id: "forgeweave:purple_slime"
+                },
+                {
+                    amount: 250,
+                    id: "forgeweave:molten_slime"
+                }
+            ]
+        }
+    },
+    nbt: {
+        id: "forgeweave:standard_core",
+        melt_progress: [I; 0, 0],
+        melting: {
+            Items: [
+                {
+                    Slot: 0b,
+                    count: 2,
+                    id: "forgeweave:purple_slime_ball"
+                }
+            ]
+        },
+        structure: {
+            interior_max: [I; 0, 1, 1],
+            interior_min: [I; 0, 0, 1]
+        },
+        tank: {
+            fluids: [
+                {
+                    amount: 1000,
+                    id: "forgeweave:blue_slime"
+                },
+                {
+                    amount: 125,
+                    id: "forgeweave:purple_slime"
+                },
+                {
+                    amount: 250,
+                    id: "forgeweave:molten_slime"
+                }
+            ]
+        }
+    },
+    what: "#635 (parity audit T57): a formed standard core holding both new coloured slime fluids alongside the green molten_slime they sit next to -- purple at the knightslime alloy's exact 125 mB input, blue at a congealed block's 1000 mB -- with purple slime balls mid-melt. Pins that the two new fluid ids ride M2's ordered tank.fluids shape unchanged, and that molten_slime stays registered rather than being renamed when the knightslime alloy stops consuming it."
+}

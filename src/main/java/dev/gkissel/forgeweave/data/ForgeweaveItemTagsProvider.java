@@ -43,6 +43,12 @@ public class ForgeweaveItemTagsProvider extends ItemTagsProvider {
 
     @Override
     protected void addTags(HolderLookup.Provider registries) {
+        // #635 (parity audit T57): upstream registers every coloured slime ball under the "slimeball"
+        // ore-dict entry alongside vanilla's own (TinkerCommons#registerItems), which is what its
+        // vanilla-slime-block replacement recipe matches on. `c:slimeballs` is that entry's modern
+        // spelling -- NeoForge already puts vanilla's slime ball in it, so this only adds the five.
+        ForgeweaveItems.slimeBalls().forEach(ball -> tag("slimeballs").add(ball.item().get()));
+
         tag("ingots/cobalt").add(ForgeweaveItems.INGOT_COBALT.get());
         tag("nuggets/cobalt").add(ForgeweaveItems.NUGGET_COBALT.get());
         tag("raw_materials/cobalt").add(ForgeweaveItems.RAW_COBALT.get());

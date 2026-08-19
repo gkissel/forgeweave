@@ -1,0 +1,32 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_blue_congealed_slime": {
+      "conditions": {
+        "items": [
+          {
+            "items": "forgeweave:blue_congealed_slime"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "forgeweave:blue_slime_ball_from_blue_congealed_slime"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_the_recipe",
+      "has_blue_congealed_slime"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "forgeweave:blue_slime_ball_from_blue_congealed_slime"
+    ]
+  }
+}

@@ -80,6 +80,7 @@ public class ForgeweaveBlockStateProvider extends BlockStateProvider {
         // #339 -- the slimy muds, same plain cube_all geometry as grout, one derived texture each.
         cubeAllBlock("slimy_mud_green", ForgeweaveBlocks.SLIMY_MUD_GREEN.get());
         cubeAllBlock("slimy_mud_magma", ForgeweaveBlocks.SLIMY_MUD_MAGMA.get());
+        cubeAllBlock("slimy_mud_blue", ForgeweaveBlocks.SLIMY_MUD_BLUE.get()); // #635
 
         // #429 -- graveyard and consecrated soil, same plain cube_all geometry, one derived texture
         // each (NOTICE.md). Their onEntityWalk behavior is code-side only, nothing model-visible.
@@ -314,10 +315,18 @@ public class ForgeweaveBlockStateProvider extends BlockStateProvider {
             simpleBlockWithItem(soil.grass().get(), grass);
         }
 
-        cubeAllBlock("green_congealed_slime", ForgeweaveBlocks.GREEN_CONGEALED_SLIME.get());
-        cubeAllBlock("blue_congealed_slime", ForgeweaveBlocks.BLUE_CONGEALED_SLIME.get()); // #625
-        cubeAllBlock("purple_congealed_slime", ForgeweaveBlocks.PURPLE_CONGEALED_SLIME.get()); // #625
-        cubeAllBlock("magma_congealed_slime", ForgeweaveBlocks.MAGMA_CONGEALED_SLIME.get()); // #450
+        // Every colour's congealed slime is a plain cube_all off its own derived sprite; the
+        // coloured slime blocks (#635) are the same cube_all but translucent, which is the render
+        // layer vanilla's own slime block uses and upstream's BlockSlime inherits.
+        for (ForgeweaveBlocks.SlimeFamily family : ForgeweaveBlocks.slimeFamilies()) {
+            cubeAllBlock(name(family.congealed().get()), family.congealed().get());
+            if (family.slimeBlock() != null) {
+                String slimeName = name(family.slimeBlock().get());
+                ModelFile slime = models().cubeAll(slimeName, modLoc("derived/block/" + slimeName))
+                        .renderType("minecraft:translucent");
+                simpleBlockWithItem(family.slimeBlock().get(), slime);
+            }
+        }
 
         for (ForgeweaveBlocks.SlimePlants plants : ForgeweaveBlocks.slimePlants()) {
             String leavesName = name(plants.leaves().get());

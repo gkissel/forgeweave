@@ -1,0 +1,28 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    {
+      "item": "forgeweave:blue_slime_ball"
+    },
+    {
+      "item": "forgeweave:blue_slime_ball"
+    },
+    {
+      "item": "forgeweave:blue_slime_ball"
+    },
+    {
+      "item": "forgeweave:blue_slime_ball"
+    },
+    {
+      "tag": "minecraft:sand"
+    },
+    {
+      "tag": "minecraft:dirt"
+    }
+  ],
+  "result": {
+    "count": 1,
+    "id": "forgeweave:slimy_mud_blue"
+  }
+}

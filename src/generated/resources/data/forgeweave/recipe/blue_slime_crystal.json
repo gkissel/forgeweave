@@ -1,14 +1,11 @@
 {
-  "type": "minecraft:crafting_shapeless",
+  "type": "minecraft:smelting",
   "category": "misc",
-  "ingredients": [
-    {
-      "item": "forgeweave:green_slime_crystal"
-    },
-    {
-      "item": "minecraft:lapis_lazuli"
-    }
-  ],
+  "cookingtime": 200,
+  "experience": 0.75,
+  "ingredient": {
+    "item": "forgeweave:slimy_mud_blue"
+  },
   "result": {
     "count": 1,
     "id": "forgeweave:blue_slime_crystal"

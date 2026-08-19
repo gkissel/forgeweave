@@ -1,11 +1,11 @@
 {
   "parent": "minecraft:recipes/root",
   "criteria": {
-    "has_green_slime_crystal": {
+    "has_slimy_mud_blue": {
       "conditions": {
         "items": [
           {
-            "items": "forgeweave:green_slime_crystal"
+            "items": "forgeweave:slimy_mud_blue"
           }
         ]
       },
@@ -21,7 +21,7 @@
   "requirements": [
     [
       "has_the_recipe",
-      "has_green_slime_crystal"
+      "has_slimy_mud_blue"
     ]
   ],
   "rewards": {

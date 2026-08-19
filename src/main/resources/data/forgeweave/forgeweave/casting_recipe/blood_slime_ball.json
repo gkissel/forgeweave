@@ -1,0 +1,8 @@
+{
+  "station": "table",
+  "fluid": "forgeweave:blood",
+  "amount": 160,
+  "result": {
+    "id": "forgeweave:blood_slime_ball"
+  }
+}

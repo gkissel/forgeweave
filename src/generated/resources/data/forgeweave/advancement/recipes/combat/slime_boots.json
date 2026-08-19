@@ -1,11 +1,11 @@
 {
   "parent": "minecraft:recipes/root",
   "criteria": {
-    "has_slime_block": {
+    "has_green_congealed_slime": {
       "conditions": {
         "items": [
           {
-            "items": "minecraft:slime_block"
+            "items": "forgeweave:green_congealed_slime"
           }
         ]
       },
@@ -21,7 +21,7 @@
   "requirements": [
     [
       "has_the_recipe",
-      "has_slime_block"
+      "has_green_congealed_slime"
     ]
   ],
   "rewards": {

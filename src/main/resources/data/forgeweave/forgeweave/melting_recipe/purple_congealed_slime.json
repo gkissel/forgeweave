@@ -1,0 +1,7 @@
+{
+  "input": {
+    "item": "forgeweave:purple_congealed_slime"
+  },
+  "fluid": "forgeweave:purple_slime",
+  "amount": 1000
+}

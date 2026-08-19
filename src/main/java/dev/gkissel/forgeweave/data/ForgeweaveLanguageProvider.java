@@ -9,6 +9,7 @@ import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.block.ForgeweaveBlocks;
 import dev.gkissel.forgeweave.block.SearedFurnaceScan;
 import dev.gkissel.forgeweave.block.SearedReservoirScan;
+import dev.gkissel.forgeweave.block.SlimeColour;
 import dev.gkissel.forgeweave.block.SlimeSaplingBlock;
 import dev.gkissel.forgeweave.block.SmelteryScan;
 import dev.gkissel.forgeweave.fluid.ForgeweaveFluids;
@@ -62,6 +63,7 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         addBlock(ForgeweaveBlocks.GRAVEYARD_SOIL, "Graveyard Soil"); // #429
         addBlock(ForgeweaveBlocks.CONSECRATED_SOIL, "Consecrated Soil"); // #429
         addBlock(ForgeweaveBlocks.SLIMY_MUD_MAGMA, "Magma Slimy Mud"); // #339
+        addBlock(ForgeweaveBlocks.SLIMY_MUD_BLUE, "Blue Slimy Mud"); // #635
         addBlock(ForgeweaveBlocks.MUD_BRICK_BLOCK, "Mud Brick Block"); // #502 (T71)
 
         // #449 (parity audit T18) -- the slime island's blocks, names taken from upstream 1.12's
@@ -102,6 +104,21 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         // #625 -- upstream tile.tconstruct.slime_congealed.blue/purple.name.
         addBlock(ForgeweaveBlocks.BLUE_CONGEALED_SLIME, "Congealed Blue Slime Block");
         addBlock(ForgeweaveBlocks.PURPLE_CONGEALED_SLIME, "Congealed Purple Slime Block");
+
+        // #635 (parity audit T57) -- the last two congealed colours and the five coloured slime
+        // blocks, from upstream's tile.tconstruct.slime_congealed.* and tile.tconstruct.slime.*.
+        // Upstream calls every congealed colour but blood plainly "Congealed Slime Block" and every
+        // slime block but blood plainly "Slime Block"; six and five registry ids in one creative tab
+        // cannot all share one name, so each carries its colour -- the same reduction #449 made for
+        // the leaves and plants and #450/#625 for the other congealed blocks. Blood keeps upstream's
+        // own distinct names.
+        addBlock(ForgeweaveBlocks.BLOOD_SLIME.congealed(), "Congealed Bloodblock");
+        addBlock(ForgeweaveBlocks.PINK_SLIME.congealed(), "Congealed Pink Slime Block");
+        addBlock(ForgeweaveBlocks.BLUE_SLIME.slimeBlock(), "Blue Slime Block");
+        addBlock(ForgeweaveBlocks.PURPLE_SLIME.slimeBlock(), "Purple Slime Block");
+        addBlock(ForgeweaveBlocks.BLOOD_SLIME.slimeBlock(), "Blood Slime Block");
+        addBlock(ForgeweaveBlocks.MAGMA_SLIME.slimeBlock(), "Magma Slime Block");
+        addBlock(ForgeweaveBlocks.PINK_SLIME.slimeBlock(), "Pink Slime Block");
         addBlock(ForgeweaveBlocks.ORANGE_SLIME_PLANTS.leaves(), "Orange Slimy Leaves");
         addBlock(ForgeweaveBlocks.ORANGE_SLIME_PLANTS.tallGrass(), "Tall Orange Slimy Grass");
         addBlock(ForgeweaveBlocks.ORANGE_SLIME_PLANTS.fern(), "Orange Slimy Fern");
@@ -1282,6 +1299,15 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         addItem(ForgeweaveItems.GREEN_SLIME_CRYSTAL, "Green Slime Crystal");
         addItem(ForgeweaveItems.BLUE_SLIME_CRYSTAL, "Blue Slime Crystal");
         addItem(ForgeweaveItems.MAGMA_SLIME_CRYSTAL, "Magma Slime Crystal");
+
+        // #635 (parity audit T57) -- upstream's item.tconstruct.edible.slimeball_*.name. It calls
+        // four of the five plainly "Slimeball" (blood is "Coagulated Blood"); five registry ids in
+        // one creative tab cannot all be "Slimeball", so each carries its colour.
+        addItem(ForgeweaveItems.slimeBallItem(SlimeColour.BLUE), "Blue Slimeball");
+        addItem(ForgeweaveItems.slimeBallItem(SlimeColour.PURPLE), "Purple Slimeball");
+        addItem(ForgeweaveItems.slimeBallItem(SlimeColour.BLOOD), "Coagulated Blood");
+        addItem(ForgeweaveItems.slimeBallItem(SlimeColour.MAGMA), "Magma Slimeball");
+        addItem(ForgeweaveItems.slimeBallItem(SlimeColour.PINK), "Pink Slimeball");
         addItem(ForgeweaveItems.INGOT_KNIGHTSLIME, "Knightslime Ingot");
         addItem(ForgeweaveItems.NUGGET_KNIGHTSLIME, "Knightslime Nugget");
 

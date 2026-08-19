@@ -33,14 +33,17 @@ import net.minecraft.world.item.crafting.CraftingBookCategory;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.item.crafting.ShapedRecipePattern;
 import net.minecraft.world.level.ItemLike;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 
 import net.neoforged.neoforge.common.Tags;
 
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.block.ForgeweaveBlocks;
+import dev.gkissel.forgeweave.block.SlimeColour;
 import dev.gkissel.forgeweave.item.ForgeweaveItems;
 import dev.gkissel.forgeweave.recipe.GravelFlintRecipe;
+import dev.gkissel.forgeweave.recipe.MixedSlimeBlockRecipe;
 import dev.gkissel.forgeweave.recipe.RetexturedShapedRecipe;
 import dev.gkissel.forgeweave.recipe.SharpeningKitRepairRecipe;
 
@@ -123,15 +126,16 @@ public class ForgeweaveRecipeProvider extends RecipeProvider {
 
         // The Slimesling (parity audit T22, issue #453): upstream's
         // recipes/gadgets/slimesling/green.json -- two string over a congealed slime block, three
-        // slime balls around it. Forgeweave has no congealed slime (T57), so the vanilla slime block
-        // stands in for it; the balls are the `c:slimeballs` tag, which is what upstream's own
-        // fallback.json widens its ore dict to.
+        // slime balls around it. #635 replaces #453's vanilla slime block stand-in with the real
+        // green congealed slime; the balls stay the `c:slimeballs` tag, which is what upstream's own
+        // fallback.json widens its ore dict to. Forgeweave still ships one sling where upstream has
+        // five colours -- T22's own reduction, untouched here.
         ShapedRecipeBuilder.shaped(RecipeCategory.TOOLS, ForgeweaveItems.SLIME_SLING.get())
                 .pattern("SCS")
                 .pattern("B B")
                 .pattern(" B ")
                 .define('S', Items.STRING)
-                .define('C', Items.SLIME_BLOCK)
+                .define('C', ForgeweaveBlocks.GREEN_CONGEALED_SLIME.get())
                 .define('B', Tags.Items.SLIMEBALLS)
                 .unlockedBy("has_slime_ball", has(Tags.Items.SLIMEBALLS))
                 .save(recipeOutput);
@@ -258,11 +262,12 @@ public class ForgeweaveRecipeProvider extends RecipeProvider {
      * removed here.
      *
      * <p>Green mud is upstream's {@code slimy_mud_green.json} 1:1, with its {@code forge:ore_dict}
-     * "sand"/"dirt" entries read as the modern vanilla tags. Magma mud carries one maintainer-flagged
-     * substitution: upstream's {@code slimy_mud_magma.json} wants 2 magma slime balls + 2 magma
-     * cream, and Forgeweave ships no magma slime ball item, so all four filler slots are magma cream.
-     * Blue mud needs blue slime balls (no world source until #181), so blue keeps #232's interim
-     * green crystal + lapis craft.
+     * "sand"/"dirt" entries read as the modern vanilla tags. #635 (parity audit T57) reverts the two
+     * substitutions #339 and #232 had to make for want of coloured slime balls, now that there are
+     * some: magma mud is upstream's {@code slimy_mud_magma.json} shape again (2 magma slime balls + 2
+     * magma cream, not four cream), and blue mud is upstream's {@code slimy_mud_blue.json} (4 blue
+     * slime balls + sand + dirt) with the furnace smelt that gives the blue slime crystal, replacing
+     * #232's interim "green crystal + lapis" craft.
      */
     private void buildSlimeCrystalRecipes(RecipeOutput recipeOutput) {
         ShapelessRecipeBuilder.shapeless(RecipeCategory.MISC, ForgeweaveItems.SLIMY_MUD_GREEN.get())
@@ -273,10 +278,18 @@ public class ForgeweaveRecipeProvider extends RecipeProvider {
                 .save(recipeOutput);
 
         ShapelessRecipeBuilder.shapeless(RecipeCategory.MISC, ForgeweaveItems.SLIMY_MUD_MAGMA.get())
-                .requires(Items.MAGMA_CREAM, 4)
+                .requires(ForgeweaveItems.slimeBall(SlimeColour.MAGMA), 2)
+                .requires(Items.MAGMA_CREAM, 2)
                 .requires(Items.SOUL_SAND)
                 .requires(Items.NETHERRACK)
                 .unlockedBy("has_magma_cream", has(Items.MAGMA_CREAM))
+                .save(recipeOutput);
+
+        ShapelessRecipeBuilder.shapeless(RecipeCategory.MISC, ForgeweaveItems.SLIMY_MUD_BLUE.get())
+                .requires(ForgeweaveItems.slimeBall(SlimeColour.BLUE), 4)
+                .requires(ItemTags.SAND)
+                .requires(ItemTags.DIRT)
+                .unlockedBy("has_blue_slime_ball", has(ForgeweaveItems.slimeBall(SlimeColour.BLUE)))
                 .save(recipeOutput);
 
         SimpleCookingRecipeBuilder.smelting(Ingredient.of(ForgeweaveItems.SLIMY_MUD_GREEN.get()), RecipeCategory.MISC,
@@ -289,22 +302,20 @@ public class ForgeweaveRecipeProvider extends RecipeProvider {
                 .unlockedBy("has_slimy_mud_magma", has(ForgeweaveItems.SLIMY_MUD_MAGMA.get()))
                 .save(recipeOutput);
 
-        ShapelessRecipeBuilder.shapeless(RecipeCategory.MISC, ForgeweaveItems.BLUE_SLIME_CRYSTAL.get())
-                .requires(ForgeweaveItems.GREEN_SLIME_CRYSTAL.get())
-                .requires(Items.LAPIS_LAZULI)
-                .unlockedBy("has_green_slime_crystal", has(ForgeweaveItems.GREEN_SLIME_CRYSTAL.get()))
+        SimpleCookingRecipeBuilder.smelting(Ingredient.of(ForgeweaveItems.SLIMY_MUD_BLUE.get()), RecipeCategory.MISC,
+                        ForgeweaveItems.BLUE_SLIME_CRYSTAL.get(), 0.75F, 200)
+                .unlockedBy("has_slimy_mud_blue", has(ForgeweaveItems.SLIMY_MUD_BLUE.get()))
                 .save(recipeOutput);
 
         // #452 -- the slime boots (parity audit T21), upstream's recipes/gadgets/slimeboots/green.json
-        // shape: two slime balls over two congealed slime blocks. Forgeweave has no congealed slime
-        // (parity audit T57), so the vanilla slime block stands in for it, the same substitution the
-        // green slime crystal's smelt already makes (issue #232).
+        // shape: two slime balls over two congealed slime blocks. #635 replaces #452's vanilla slime
+        // block stand-in with the real green congealed slime that now exists.
         ShapedRecipeBuilder.shaped(RecipeCategory.COMBAT, ForgeweaveItems.SLIME_BOOTS.get())
                 .pattern("A A")
                 .pattern("B B")
                 .define('A', Items.SLIME_BALL)
-                .define('B', Items.SLIME_BLOCK)
-                .unlockedBy("has_slime_block", has(Items.SLIME_BLOCK))
+                .define('B', ForgeweaveBlocks.GREEN_CONGEALED_SLIME.get())
+                .unlockedBy("has_green_congealed_slime", has(ForgeweaveBlocks.GREEN_CONGEALED_SLIME.get()))
                 .save(recipeOutput);
 
         // #235 -- amethyst bronze (M3.2), same #206 shape.
@@ -517,23 +528,67 @@ public class ForgeweaveRecipeProvider extends RecipeProvider {
                 .unlockedBy("has_mud_brick", has(ForgeweaveItems.MUD_BRICK.get()))
                 .save(recipeOutput);
 
-        // #449 (parity audit T18) -- congealed slime, upstream's slime/green/congealed.json and its
-        // slimeball_from_congealed.json: four slime balls make one block, and one block gives them
-        // back. Upstream keys the craft off its own "slimeballGreen" ore dictionary entry; vanilla's
-        // slime ball is the only member of that entry in Forgeweave (the coloured slime balls are
-        // parity audit T57), so it is the ingredient directly.
-        ShapedRecipeBuilder.shaped(RecipeCategory.BUILDING_BLOCKS, ForgeweaveBlocks.GREEN_CONGEALED_SLIME.get())
-                .pattern("AA")
-                .pattern("AA")
-                .define('A', Items.SLIME_BALL)
-                .unlockedBy("has_slime_ball", has(Items.SLIME_BALL))
-                .save(recipeOutput);
-        ShapelessRecipeBuilder.shapeless(RecipeCategory.MISC, Items.SLIME_BALL, 4)
-                .requires(ForgeweaveBlocks.GREEN_CONGEALED_SLIME.get())
-                .unlockedBy("has_green_congealed_slime", has(ForgeweaveBlocks.GREEN_CONGEALED_SLIME.get()))
-                .save(recipeOutput, "forgeweave:slime_ball_from_green_congealed_slime");
+        buildSlimeFamilyRecipes(recipeOutput);
 
         smelteryRecipes(recipeOutput);
+    }
+
+    /**
+     * The slime family's crafting loop -- upstream's
+     * {@code recipes/common/slime/<colour>/{congealed,slimeball_from_congealed,slimeblock,slimeball_from_block}.json}
+     * (NOTICE.md), all four for every colour: four balls make a congealed block and it gives them
+     * back, nine make a slime block and it gives them back. Green shipped its congealed pair with
+     * #449; the rest arrive with #635 (parity audit T57).
+     *
+     * <p>Green has no {@code slimeblock} pair here: its slime block is vanilla's, and vanilla's own
+     * {@code minecraft:slime_block} recipe and {@code minecraft:slime_ball} shapeless already are
+     * that pair. Upstream needs its own copies only because it replaces vanilla's recipe outright;
+     * see {@link dev.gkissel.forgeweave.recipe.MixedSlimeBlockRecipe} for why Forgeweave does not.
+     */
+    private void buildSlimeFamilyRecipes(RecipeOutput recipeOutput) {
+        for (ForgeweaveBlocks.SlimeFamily family : ForgeweaveBlocks.slimeFamilies()) {
+            SlimeColour colour = family.colour();
+            ItemLike ball = ForgeweaveItems.slimeBall(colour);
+            Block congealed = family.congealed().get();
+            String ballName = BuiltInRegistries.ITEM.getKey(ball.asItem()).getPath();
+            String congealedName = BuiltInRegistries.BLOCK.getKey(congealed).getPath();
+
+            ShapedRecipeBuilder.shaped(RecipeCategory.BUILDING_BLOCKS, congealed)
+                    .pattern("AA")
+                    .pattern("AA")
+                    .define('A', ball)
+                    .unlockedBy("has_" + ballName, has(ball))
+                    .save(recipeOutput);
+            ShapelessRecipeBuilder.shapeless(RecipeCategory.MISC, ball, 4)
+                    .requires(congealed)
+                    .unlockedBy("has_" + congealedName, has(congealed))
+                    .save(recipeOutput, ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID,
+                            ballName + "_from_" + congealedName));
+
+            if (family.slimeBlock() == null) {
+                continue;
+            }
+            Block slimeBlock = family.slimeBlock().get();
+            String slimeBlockName = BuiltInRegistries.BLOCK.getKey(slimeBlock).getPath();
+            ShapedRecipeBuilder.shaped(RecipeCategory.BUILDING_BLOCKS, slimeBlock)
+                    .pattern("AAA")
+                    .pattern("AAA")
+                    .pattern("AAA")
+                    .define('A', ball)
+                    .unlockedBy("has_" + ballName, has(ball))
+                    .save(recipeOutput);
+            ShapelessRecipeBuilder.shapeless(RecipeCategory.MISC, ball, 9)
+                    .requires(slimeBlock)
+                    .unlockedBy("has_" + slimeBlockName, has(slimeBlock))
+                    .save(recipeOutput, ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID,
+                            ballName + "_from_" + slimeBlockName));
+        }
+
+        // Upstream's ShapedFallbackRecipe for mixed slime balls (TinkerCommons#registerRecipes,
+        // NOTICE.md). It carries no data of its own, so it is a special recipe with a fixed shape;
+        // see MixedSlimeBlockRecipe.
+        SpecialRecipeBuilder.special(MixedSlimeBlockRecipe::new)
+                .save(recipeOutput, ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "mixed_slime_block").toString());
     }
 
     /**

@@ -281,6 +281,12 @@ public class ForgeweaveItemModelProvider extends ItemModelProvider {
         singleLayerModel(ForgeweaveItems.GREEN_SLIME_CRYSTAL, derivedItem("green_slime_crystal"));
         singleLayerModel(ForgeweaveItems.BLUE_SLIME_CRYSTAL, derivedItem("blue_slime_crystal"));
         singleLayerModel(ForgeweaveItems.MAGMA_SLIME_CRYSTAL, derivedItem("magma_slime_crystal"));
+        // #635 (parity audit T57) -- the five coloured slime balls, upstream's
+        // items/materials/slimeball_*.png ports (NOTICE.md).
+        for (ForgeweaveItems.SlimeBall ball : ForgeweaveItems.slimeBalls()) {
+            singleLayerModel(ball.item(), derivedItem(ball.colour().id() + "_slime_ball"));
+        }
+
         singleLayerModel(ForgeweaveItems.INGOT_KNIGHTSLIME, derivedItem("knightslime_ingot"));
         singleLayerModel(ForgeweaveItems.NUGGET_KNIGHTSLIME, derivedItem("knightslime_nugget"));
 

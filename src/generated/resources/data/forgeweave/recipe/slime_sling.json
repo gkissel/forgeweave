@@ -6,7 +6,7 @@
       "tag": "c:slimeballs"
     },
     "C": {
-      "item": "minecraft:slime_block"
+      "item": "forgeweave:green_congealed_slime"
     },
     "S": {
       "item": "minecraft:string"
