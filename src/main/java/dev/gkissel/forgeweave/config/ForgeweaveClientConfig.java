@@ -51,6 +51,15 @@ public final class ForgeweaveClientConfig {
      */
     public static final ModConfigSpec.BooleanValue LIST_ALL_TABLE_VARIANTS;
 
+    /**
+     * Upstream {@code renderTableItems} (parity audit T75, issue #567 -- #506's leftover half): the
+     * Crafting Station, Stencil Table, Part Builder and Tool Station draw whatever is sitting in
+     * their input slots lying on their top, via {@link dev.gkissel.forgeweave.client.TableItemRenderer}.
+     * With this off, a station renders bare no matter what it holds, upstream's own escape hatch for
+     * players who find the extra geometry distracting or costly to render.
+     */
+    public static final ModConfigSpec.BooleanValue RENDER_TABLE_ITEMS;
+
     static {
         ModConfigSpec.Builder builder = new ModConfigSpec.Builder();
 
@@ -69,6 +78,10 @@ public final class ForgeweaveClientConfig {
                 .comment("If true, a retextured variant of the Stencil Table and Part Builder is listed in creative",
                         "for every plank/log. Set to false to list only the default-textured block.")
                 .define("listAllTables", true);
+        RENDER_TABLE_ITEMS = builder
+                .comment("If true, the Crafting Station, Stencil Table, Part Builder and Tool Station draw whatever",
+                        "is in their input slots lying on their top. Set to false to render these stations bare.")
+                .define("renderTableItems", true);
 
         SPEC = builder.build();
     }

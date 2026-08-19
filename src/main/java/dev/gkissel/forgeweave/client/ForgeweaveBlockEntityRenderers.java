@@ -41,6 +41,17 @@ public final class ForgeweaveBlockEntityRenderers {
         // #441 (parity audit T9) -- the fluid standing in a channel and the streams out of it.
         event.registerBlockEntityRenderer(ForgeweaveBlockEntities.SEARED_CHANNEL.get(),
                 context -> new SearedChannelBlockEntityRenderer());
+        // #567 (parity audit T75's leftover half) -- whatever sits in a station's input slot(s),
+        // lying (or standing) on its top. One registration each; the Tool Station and Tool Forge
+        // share ToolStationBlockEntity's own block entity type, so one covers both blocks.
+        event.registerBlockEntityRenderer(ForgeweaveBlockEntities.CRAFTING_STATION.get(),
+                context -> new CraftingStationBlockEntityRenderer());
+        event.registerBlockEntityRenderer(ForgeweaveBlockEntities.STENCIL_TABLE.get(),
+                context -> new StencilTableBlockEntityRenderer());
+        event.registerBlockEntityRenderer(ForgeweaveBlockEntities.PART_BUILDER.get(),
+                context -> new PartBuilderBlockEntityRenderer());
+        event.registerBlockEntityRenderer(ForgeweaveBlockEntities.TOOL_STATION.get(),
+                context -> new ToolStationBlockEntityRenderer());
         // #447 -- a dropped tool is an item entity in every respect but dying, so it draws with
         // vanilla's item entity renderer (see entity.IndestructibleItemEntity).
         event.registerEntityRenderer(ForgeweaveEntities.INDESTRUCTIBLE_ITEM.get(), ItemEntityRenderer::new);
