@@ -55,10 +55,11 @@ public class IndestructibleDropGameTests {
 
     /**
      * The swap itself. NeoForge's {@code hasCustomEntity} hook runs on {@code EntityJoinLevelEvent} and
-     * queues the replacement as a tick task, so the assertion waits a tick: what ends up in the level is
-     * an {@link IndestructibleItemEntity} carrying the same stack, and the vanilla entity is gone.
+     * queues the replacement as a tick task, so the assertion waits for it ({@link #whenSwapped}): what
+     * ends up in the level is an {@link IndestructibleItemEntity} carrying the same stack, and the
+     * vanilla entity is gone.
      */
-    @GameTest(template = "empty", timeoutTicks = 100)
+    @GameTest(template = "empty", timeoutTicks = 400)
     public static void aDroppedToolBecomesAnIndestructibleEntity(GameTestHelper helper) {
         ServerLevel level = helper.getLevel();
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
@@ -66,7 +67,7 @@ public class IndestructibleDropGameTests {
 
         ItemEntity vanilla = drop(helper, pickaxe);
 
-        helper.runAfterDelay(2, () -> {
+        whenSwapped(helper, () -> {
             helper.assertTrue(vanilla.isRemoved(), "the vanilla item entity must have been replaced");
             IndestructibleItemEntity replacement = onlyIndestructible(helper);
             helper.assertTrue(ItemStack.isSameItemSameComponents(replacement.getItem(), pickaxe),
@@ -82,14 +83,14 @@ public class IndestructibleDropGameTests {
      * {@code IndestructibleEntityItem#attackEntityFrom} refuses every source; this asserts the three a
      * player actually loses tools to.
      */
-    @GameTest(template = "empty", timeoutTicks = 100)
+    @GameTest(template = "empty", timeoutTicks = 400)
     public static void anIndestructibleDropSurvivesFireLavaAndExplosions(GameTestHelper helper) {
         ServerLevel level = helper.getLevel();
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         ItemStack pickaxe = ToolAssembly.pickaxe(helper, player, new BlockPos(1, 1, 1), "iron", "iron", "iron");
         drop(helper, pickaxe);
 
-        helper.runAfterDelay(2, () -> {
+        whenSwapped(helper, () -> {
             IndestructibleItemEntity dropped = onlyIndestructible(helper);
             helper.assertFalse(dropped.hurt(level.damageSources().inFire(), 4.0F),
                     "a dropped tool must be immune to fire");
@@ -107,14 +108,14 @@ public class IndestructibleDropGameTests {
      * The one escape hatch, upstream's {@code DamageSource.OUT_OF_WORLD} clause: a tool that falls into
      * the void is still destroyed, otherwise it would live forever under the world.
      */
-    @GameTest(template = "empty", timeoutTicks = 100)
+    @GameTest(template = "empty", timeoutTicks = 400)
     public static void anIndestructibleDropStillDiesToTheVoid(GameTestHelper helper) {
         ServerLevel level = helper.getLevel();
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         ItemStack pickaxe = ToolAssembly.pickaxe(helper, player, new BlockPos(1, 1, 1), "iron", "iron", "iron");
         drop(helper, pickaxe);
 
-        helper.runAfterDelay(2, () -> {
+        whenSwapped(helper, () -> {
             IndestructibleItemEntity dropped = onlyIndestructible(helper);
             // Vanilla's own void tick: 4 damage against an item entity's 5 health, so it takes two.
             helper.assertTrue(dropped.hurt(level.damageSources().fellOutOfWorld(), 4.0F),
@@ -131,13 +132,13 @@ public class IndestructibleDropGameTests {
      * "No despawn", the other half of upstream's indestructibility: vanilla expires an item entity once
      * its age reaches {@code lifespan} (6000 ticks, five minutes), and this one never gets there.
      */
-    @GameTest(template = "empty", timeoutTicks = 100)
+    @GameTest(template = "empty", timeoutTicks = 400)
     public static void anIndestructibleDropNeverDespawns(GameTestHelper helper) {
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         ItemStack pickaxe = ToolAssembly.pickaxe(helper, player, new BlockPos(1, 1, 1), "iron", "iron", "iron");
         drop(helper, pickaxe);
 
-        helper.runAfterDelay(2, () -> {
+        whenSwapped(helper, () -> {
             IndestructibleItemEntity dropped = onlyIndestructible(helper);
             helper.assertTrue(dropped.lifespan == Integer.MAX_VALUE,
                     "expected an unreachable lifespan, got " + dropped.lifespan);
@@ -151,14 +152,14 @@ public class IndestructibleDropGameTests {
      * which needs a level; an entity does, so its round-trip is pinned here instead: what
      * {@code saveWithoutId} writes decodes back into the same type, stack and lifespan.
      */
-    @GameTest(template = "empty", timeoutTicks = 100)
+    @GameTest(template = "empty", timeoutTicks = 400)
     public static void anIndestructibleDropSurvivesASaveRoundTrip(GameTestHelper helper) {
         ServerLevel level = helper.getLevel();
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         ItemStack pickaxe = ToolAssembly.pickaxe(helper, player, new BlockPos(1, 1, 1), "iron", "iron", "iron");
         drop(helper, pickaxe);
 
-        helper.runAfterDelay(2, () -> {
+        whenSwapped(helper, () -> {
             IndestructibleItemEntity dropped = onlyIndestructible(helper);
             CompoundTag tag = new CompoundTag();
             helper.assertTrue(dropped.save(tag), "a dropped tool must be saved to the region file");
@@ -182,13 +183,13 @@ public class IndestructibleDropGameTests {
      * Issue #599: a dropped tool part becomes an indestructible entity too, same as a dropped tool
      * (see the class javadoc for why this is a deliberate deviation from 1.12, not a parity fix).
      */
-    @GameTest(template = "empty", timeoutTicks = 100)
+    @GameTest(template = "empty", timeoutTicks = 400)
     public static void aDroppedPartBecomesAnIndestructibleEntity(GameTestHelper helper) {
         ItemStack head = new ItemStack(ForgeweaveItems.PART_PICKAXE_HEAD.get());
         helper.assertTrue(head.getItem() instanceof PartItem, "the fixture must actually be a tool part");
         ItemEntity vanilla = drop(helper, head);
 
-        helper.runAfterDelay(2, () -> {
+        whenSwapped(helper, () -> {
             helper.assertTrue(vanilla.isRemoved(), "the vanilla item entity must have been replaced");
             IndestructibleItemEntity replacement = onlyIndestructible(helper);
             helper.assertTrue(ItemStack.isSameItemSameComponents(replacement.getItem(), head),
@@ -203,19 +204,33 @@ public class IndestructibleDropGameTests {
      * A dropped sharpening kit is also a {@code PartItem} (Forgeweave has no separate class for it, per
      * the class javadoc), so it must survive lava the same way any other dropped part does.
      */
-    @GameTest(template = "empty", timeoutTicks = 100)
+    @GameTest(template = "empty", timeoutTicks = 400)
     public static void aDroppedSharpeningKitSurvivesLava(GameTestHelper helper) {
         ServerLevel level = helper.getLevel();
         ItemStack kit = new ItemStack(ForgeweaveItems.PART_SHARPENING_KIT.get());
         drop(helper, kit);
 
-        helper.runAfterDelay(2, () -> {
+        whenSwapped(helper, () -> {
             IndestructibleItemEntity dropped = onlyIndestructible(helper);
             helper.assertFalse(dropped.hurt(level.damageSources().lava(), 4.0F),
                     "a dropped sharpening kit must be immune to lava");
             helper.assertFalse(dropped.isRemoved(), "lava must not destroy the dropped sharpening kit");
             helper.succeed();
         });
+    }
+
+    /**
+     * Runs {@code body} on the first tick the swapped-in {@link IndestructibleItemEntity} is really
+     * servable by the level's entity index, instead of on a fixed two-tick delay (issue #643). The
+     * swap is queued as a tick task and the index that has to hand the replacement back registers
+     * asynchronously, so "two ticks" was a guess a loaded runner could lose -- see {@link
+     * SpawnCapture}'s javadoc. Each {@code body} still ends in its own {@code helper.succeed()}.
+     */
+    private static void whenSwapped(GameTestHelper helper, Runnable body) {
+        helper.startSequence()
+                .thenWaitUntil(() -> helper.assertFalse(indestructibles(helper).isEmpty(),
+                        "the swapped-in indestructible drop is not in the entity index yet"))
+                .thenExecute(body);
     }
 
     private static ItemEntity drop(GameTestHelper helper, ItemStack stack) {

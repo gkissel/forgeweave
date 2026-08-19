@@ -1,7 +1,9 @@
 package dev.gkissel.forgeweave.gametest;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.Registries;
@@ -154,6 +156,16 @@ public class SlimeIslandGameTests {
      * island it was sized for from nothing but its own bounding box, and blits it into a real level.
      * Runs high above the test structure -- an island is a sky feature and needs the room -- and
      * takes its own blocks back out again, so nothing is left behind for the next test in the batch.
+     *
+     * <p>Issue #643: <em>which</em> island the piece draws is not this test's to choose. The piece
+     * seeds itself from the world seed and its box corner ({@link SlimeIslandPiece#islandRandom}),
+     * and the GameTest server scatters the whole plot grid to a random position every run, so the
+     * corner -- and with it the roll -- differs run to run. Upstream's own tree placement gives up
+     * when a rolled column finds no soil under it ({@code SlimeIslandShape#growTree}), so some rolls
+     * legitimately produce a treeless island: the old flat "the island grew no congealed slime tree
+     * trunk" assertion was a dice roll, not a defect, and #625's lake is the same kind of roll. Both
+     * expectations are derived from the same seeded shape instead, which pins the blit exactly
+     * without pinning the roll.
      */
     @GameTest(template = "empty")
     public static void theSlimeIslandPieceBuildsAnIslandInTheSky(GameTestHelper helper) {
@@ -170,6 +182,18 @@ public class SlimeIslandGameTests {
         SlimeIslandPiece piece = new SlimeIslandPiece(box);
         piece.postProcess(level, level.structureManager(), level.getChunkSource().getGenerator(),
                 RandomSource.create(1234L), box, new ChunkPos(minX >> 4, minZ >> 4), anchor);
+
+        // The same island the piece just drew, re-rolled from the same two inputs it uses, in the
+        // same order: palette first, then the shape. What it contains is what the level must show.
+        RandomSource expectedRandom = SlimeIslandPiece.islandRandom(level.getSeed(), box);
+        SlimeIslandShape.Palette expectedPalette = SlimeIslandShape.roll(expectedRandom);
+        SlimeIslandShape.Canvas expectedCanvas = SlimeIslandShape.Canvas.forIsland(size);
+        SlimeIslandShape.generate(expectedRandom, expectedCanvas, size, expectedPalette);
+        Set<Block> expectedBlocks = new HashSet<>();
+        expectedCanvas.forEachDrawn(drawn -> expectedBlocks.add(drawn.state().getBlock()));
+        boolean expectsTrunk = expectedBlocks.contains(ForgeweaveBlocks.GREEN_CONGEALED_SLIME.get());
+        boolean expectsLake = expectedBlocks.contains(ForgeweaveFluids.BLUE_SLIME.block().get())
+                || expectedBlocks.contains(ForgeweaveFluids.PURPLE_SLIME.block().get());
 
         List<BlockPos> islandBlocks = new ArrayList<>();
         boolean sawGrass = false;
@@ -196,9 +220,13 @@ public class SlimeIslandGameTests {
             helper.assertTrue(islandBlocks.size() > 500,
                     "the piece wrote only " + islandBlocks.size() + " blocks -- that is not an island");
             helper.assertTrue(sawGrass, "the island has no grass surface");
-            helper.assertTrue(sawTrunk, "the island grew no congealed slime tree trunk");
+            helper.assertTrue(sawTrunk == expectsTrunk, expectsTrunk
+                    ? "this run's island shape grew a congealed slime tree trunk and the piece did not blit it"
+                    : "the piece blitted a congealed slime tree trunk this run's island shape never grew");
             // #625: the lake's fluid block really lands in a live level, not just in the buffer.
-            helper.assertTrue(sawLake, "the island has no slime lake");
+            helper.assertTrue(sawLake == expectsLake, expectsLake
+                    ? "this run's island shape pooled a slime lake and the piece did not blit it"
+                    : "the piece blitted a slime lake this run's island shape never pooled");
         } finally {
             BlockState air = Blocks.AIR.defaultBlockState();
             for (BlockPos pos : islandBlocks) {

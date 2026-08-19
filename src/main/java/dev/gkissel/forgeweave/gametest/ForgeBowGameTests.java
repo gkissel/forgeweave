@@ -200,14 +200,16 @@ public class ForgeBowGameTests {
         player.setItemInHand(InteractionHand.MAIN_HAND, bow);
 
         // Phase one: a full draw (0.5 draw speed on a 45-tick draw time, so 90 ticks) loads it.
-        InteractionResult draw = bow.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND).getResult();
-        helper.assertTrue(draw == InteractionResult.CONSUME, "an unloaded crossbow starts a draw, got " + draw);
-        bow.getItem().releaseUsing(bow, helper.getLevel(), player, bow.getUseDuration(player) - 90);
-        player.stopUsingItem();
+        List<Arrow> whileLoading = arrowsFrom(helper, player, () -> {
+            InteractionResult draw = bow.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND).getResult();
+            helper.assertTrue(draw == InteractionResult.CONSUME, "an unloaded crossbow starts a draw, got " + draw);
+            bow.getItem().releaseUsing(bow, helper.getLevel(), player, bow.getUseDuration(player) - 90);
+            player.stopUsingItem();
+        });
         helper.assertTrue(CrossbowItem.isLoaded(bow), "a full draw loads the crossbow");
         helper.assertTrue(arrowsHeld(player) == 5, "upstream stores no ammo when loading, got " + arrowsHeld(player));
         helper.assertTrue(bow.getDamageValue() == 0, "loading costs no durability");
-        helper.assertTrue(arrowsAround(helper, player).isEmpty(), "loading fires nothing");
+        helper.assertTrue(whileLoading.isEmpty(), "loading fires nothing");
 
         // The charge is a data component, so it rides the stack: a hotbar swap and a full save/reload
         // round trip both come back loaded.
@@ -221,11 +223,12 @@ public class ForgeBowGameTests {
 
         // Phase two: the next right-click fires at full power without a draw and clears the flag.
         player.setItemInHand(InteractionHand.MAIN_HAND, swapped);
-        InteractionResult fire = swapped.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND)
-                .getResult();
-        helper.assertTrue(fire == InteractionResult.SUCCESS, "a loaded crossbow fires on use, got " + fire);
+        List<Arrow> arrows = arrowsFrom(helper, player, () -> {
+            InteractionResult fire = swapped.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND)
+                    .getResult();
+            helper.assertTrue(fire == InteractionResult.SUCCESS, "a loaded crossbow fires on use, got " + fire);
+        });
         helper.assertTrue(!CrossbowItem.isLoaded(swapped), "firing clears the charge");
-        List<Arrow> arrows = arrowsAround(helper, player);
         helper.assertTrue(arrows.size() == 1, "one arrow per shot, got " + arrows.size());
         Arrow arrow = arrows.get(0);
         arrows.forEach(AbstractArrow::discard);
@@ -249,13 +252,15 @@ public class ForgeBowGameTests {
         giveArrows(player, 5);
         player.setItemInHand(InteractionHand.MAIN_HAND, bow);
 
-        bow.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
-        // 89 ticks at 0.5 draw speed over drawTime 45 is 0.988 -- one tick short.
-        bow.getItem().releaseUsing(bow, helper.getLevel(), player, bow.getUseDuration(player) - 89);
-        player.stopUsingItem();
+        List<Arrow> fired = arrowsFrom(helper, player, () -> {
+            bow.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
+            // 89 ticks at 0.5 draw speed over drawTime 45 is 0.988 -- one tick short.
+            bow.getItem().releaseUsing(bow, helper.getLevel(), player, bow.getUseDuration(player) - 89);
+            player.stopUsingItem();
+        });
 
         helper.assertTrue(!CrossbowItem.isLoaded(bow), "an incomplete crank leaves the crossbow unloaded");
-        helper.assertTrue(arrowsAround(helper, player).isEmpty(), "and fires nothing");
+        helper.assertTrue(fired.isEmpty(), "and fires nothing");
         helper.assertTrue(arrowsHeld(player) == 5, "and spends nothing");
         // An unloaded crossbow's right-click is an ordinary draw, not a shot.
         helper.assertTrue(bow.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND).getResult()
@@ -298,9 +303,16 @@ public class ForgeBowGameTests {
         helper.succeed();
     }
 
-    private static List<Arrow> arrowsAround(GameTestHelper helper, Player player) {
-        return helper.getLevel().getEntitiesOfClass(Arrow.class,
-                new AABB(player.position(), player.position()).inflate(4.0));
+    /**
+     * The arrows {@code shooting} launches, captured at the {@code EntityJoinLevelEvent} seam rather
+     * than scanned back out of the level's entity index afterwards (issue #643): the index registers
+     * asynchronously and on a loaded runner can serve nothing for several ticks, which turns both
+     * "one arrow, got 0" and a vacuously-passing "fires nothing" into coin flips. See {@link
+     * SpawnCapture}'s javadoc.
+     */
+    private static List<Arrow> arrowsFrom(GameTestHelper helper, Player player, Runnable shooting) {
+        return SpawnCapture.spawnedDuring(helper, Arrow.class,
+                new AABB(player.position(), player.position()).inflate(4.0), shooting);
     }
 
     /**
@@ -328,8 +340,8 @@ public class ForgeBowGameTests {
         giveArrows(player, 5);
         player.setItemInHand(InteractionHand.MAIN_HAND, bow);
 
-        bow.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
-        List<Arrow> arrows = arrowsAround(helper, player);
+        List<Arrow> arrows = arrowsFrom(helper, player,
+                () -> bow.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND));
         helper.assertTrue(arrows.size() == 1, "one arrow, got " + arrows.size());
         Arrow arrow = arrows.get(0);
         arrows.forEach(AbstractArrow::discard);

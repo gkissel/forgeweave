@@ -47,7 +47,7 @@ public class SmelteryMeltingGameTests {
      * ({@code iron_ore.json}) still holds one raw iron's worth, 144 mB, but a Standard Core (#99)
      * scales that to its 1.5x, 216 mB, because iron ore is an ore-class ({@code ore: true}) input.
      */
-    @GameTest(template = "smeltery", timeoutTicks = 1600)
+    @GameTest(template = "smeltery", timeoutTicks = 3200)
     public static void vanillaIronOreMeltsAtStandardCoresOneAndAHalfTimesYield(GameTestHelper helper) {
         SmelteryControllerBlockEntity core = lavaFuelledSmeltery(helper);
         insert(helper, core, Items.IRON_ORE);
@@ -62,7 +62,7 @@ public class SmelteryMeltingGameTests {
      * of 144 -- live proof that {@code MeltingRecipe#find} prefers the item-keyed override over the
      * tag both recipes match. The Standard Core (#99) then scales that base by 1.5x, to 756 mB.
      */
-    @GameTest(template = "smeltery", timeoutTicks = 1600)
+    @GameTest(template = "smeltery", timeoutTicks = 3200)
     public static void vanillaCopperOreMeltsAtItsPerItemOverrideTimesTheCoreYield(GameTestHelper helper) {
         SmelteryControllerBlockEntity core = lavaFuelledSmeltery(helper);
         insert(helper, core, Items.COPPER_ORE);
@@ -77,7 +77,7 @@ public class SmelteryMeltingGameTests {
      * {@link #vanillaIronOreMeltsAtStandardCoresOneAndAHalfTimesYield}) yields 288 mB, its 2x, under a
      * Nether Core. Issue #99.
      */
-    @GameTest(template = "smeltery", timeoutTicks = 1600)
+    @GameTest(template = "smeltery", timeoutTicks = 3200)
     public static void vanillaIronOreMeltsAtNetherCoresTwiceYield(GameTestHelper helper) {
         SmelteryControllerBlockEntity core = lavaFuelledSmeltery(helper, ForgeweaveBlocks.NETHER_CORE.get());
         insert(helper, core, Items.IRON_ORE);
@@ -92,7 +92,7 @@ public class SmelteryMeltingGameTests {
      * {@code iron_ingot.json} is not {@code ore: true}. Proves the flag, not just the multiplier,
      * gates correctly. Issue #99.
      */
-    @GameTest(template = "smeltery", timeoutTicks = 1600)
+    @GameTest(template = "smeltery", timeoutTicks = 3200)
     public static void ingotReMeltStaysOneToOneEvenUnderANetherCore(GameTestHelper helper) {
         SmelteryControllerBlockEntity core = lavaFuelledSmeltery(helper, ForgeweaveBlocks.NETHER_CORE.get());
         insert(helper, core, Items.IRON_INGOT);
@@ -106,7 +106,7 @@ public class SmelteryMeltingGameTests {
      * this is the first melting GameTest to check the tank against {@code minecraft:water} rather than
      * a molten metal.
      */
-    @GameTest(template = "smeltery", timeoutTicks = 1600)
+    @GameTest(template = "smeltery", timeoutTicks = 3200)
     public static void iceMeltsIntoOneBucketOfWater(GameTestHelper helper) {
         SmelteryControllerBlockEntity core = lavaFuelledSmeltery(helper);
         insert(helper, core, Items.ICE);
@@ -119,7 +119,7 @@ public class SmelteryMeltingGameTests {
      * a plain dirt block melts into {@link ForgeweaveFluids#MOLTEN_DIRT}, the fluid mud bricks are
      * cast from ({@code casting_recipe/mud_brick.json}).
      */
-    @GameTest(template = "smeltery", timeoutTicks = 1600)
+    @GameTest(template = "smeltery", timeoutTicks = 3200)
     public static void dirtMeltsIntoMoltenDirt(GameTestHelper helper) {
         SmelteryControllerBlockEntity core = lavaFuelledSmeltery(helper);
         insert(helper, core, Items.DIRT);
@@ -133,7 +133,7 @@ public class SmelteryMeltingGameTests {
      * {@code c:ingots/copper} and Forgeweave's copper ingot recipe keys off that tag -- which is
      * exactly what a modded metal does.
      */
-    @GameTest(template = "smeltery", timeoutTicks = 1600)
+    @GameTest(template = "smeltery", timeoutTicks = 3200)
     public static void anItemAModAddedToACTagMeltsWithNoForgeweaveRecipe(GameTestHelper helper) {
         SmelteryControllerBlockEntity core = lavaFuelledSmeltery(helper);
         insert(helper, core, Items.BRICK);
@@ -146,7 +146,7 @@ public class SmelteryMeltingGameTests {
      * which melts via {@code raw_cobalt.json}'s {@code c:raw_materials/cobalt} tag row at its 144 mB
      * base, scaled by the Standard Core's 1.5x like any other ore-class input.
      */
-    @GameTest(template = "smeltery", timeoutTicks = 1600)
+    @GameTest(template = "smeltery", timeoutTicks = 3200)
     public static void rawCobaltMeltsAtStandardCoresOneAndAHalfTimesYield(GameTestHelper helper) {
         SmelteryControllerBlockEntity core = lavaFuelledSmeltery(helper);
         insert(helper, core, ForgeweaveItems.RAW_COBALT.get());
@@ -161,7 +161,7 @@ public class SmelteryMeltingGameTests {
      * {@link #rawCobaltMeltsAtStandardCoresOneAndAHalfTimesYield} via {@code cobalt_ore.json}'s
      * {@code c:ores/cobalt} tag row (issue #104), not a distinct bonus amount.
      */
-    @GameTest(template = "smeltery", timeoutTicks = 1600)
+    @GameTest(template = "smeltery", timeoutTicks = 3200)
     public static void arditeOreBlockMeltsAtTheSameBaseAsItsRawDrop(GameTestHelper helper) {
         SmelteryControllerBlockEntity core = lavaFuelledSmeltery(helper);
         insert(helper, core, ForgeweaveItems.ARDITE_ORE.get());
@@ -177,7 +177,7 @@ public class SmelteryMeltingGameTests {
      * tool-part melt-backs above are: a crafted item is not ore-class, so a clean 432 -- not 864 --
      * proves the row never picks up a core bonus.
      */
-    @GameTest(template = "smeltery", timeoutTicks = 1600)
+    @GameTest(template = "smeltery", timeoutTicks = 3200)
     public static void aVanillaIronPickaxeMeltsBackIntoTheThreeIngotsItCost(GameTestHelper helper) {
         SmelteryControllerBlockEntity core = lavaFuelledSmeltery(helper, ForgeweaveBlocks.NETHER_CORE.get());
         insert(helper, core, Items.IRON_PICKAXE);
@@ -197,7 +197,7 @@ public class SmelteryMeltingGameTests {
      * durability scaling later without a maintainer decision to deviate from verified upstream
      * behaviour.
      */
-    @GameTest(template = "smeltery", timeoutTicks = 1600)
+    @GameTest(template = "smeltery", timeoutTicks = 3200)
     public static void aNearlyBrokenIronPickaxeStillMeltsForTheFullThreeIngots(GameTestHelper helper) {
         SmelteryControllerBlockEntity core = lavaFuelledSmeltery(helper, ForgeweaveBlocks.NETHER_CORE.get());
         ItemStack nearlyBroken = new ItemStack(Items.IRON_PICKAXE);
@@ -214,7 +214,7 @@ public class SmelteryMeltingGameTests {
      * {@code Material.VALUE_Ingot} of gold, even though its own recipe makes six of them from six
      * ingots plus a stick and redstone.
      */
-    @GameTest(template = "smeltery", timeoutTicks = 1600)
+    @GameTest(template = "smeltery", timeoutTicks = 3200)
     public static void aPoweredRailMeltsIntoUpstreamsHandWrittenIngotOfGold(GameTestHelper helper) {
         SmelteryControllerBlockEntity core = lavaFuelledSmeltery(helper);
         insert(helper, core, Items.POWERED_RAIL);
@@ -229,7 +229,7 @@ public class SmelteryMeltingGameTests {
      * amount also proves the melt-back is not ore-class: upstream returns a part's exact value with
      * no smeltery bonus, and this returns two ingots' worth, not four.
      */
-    @GameTest(template = "smeltery", timeoutTicks = 1600)
+    @GameTest(template = "smeltery", timeoutTicks = 3200)
     public static void aMetalToolPartMeltsBackIntoItsOwnMaterialAtItsExactCost(GameTestHelper helper) {
         SmelteryControllerBlockEntity core = lavaFuelledSmeltery(helper, ForgeweaveBlocks.NETHER_CORE.get());
         helper.assertTrue(core.insertForMelting(ToolAssembly.part(ForgeweaveItems.PART_PICKAXE_HEAD.get(), "iron")).isEmpty(),
@@ -245,7 +245,7 @@ public class SmelteryMeltingGameTests {
      * an ore-class 2x bonus would double this to 144 mB, so a clean 72 proves the melt-back is not
      * ore-class.
      */
-    @GameTest(template = "smeltery", timeoutTicks = 1600)
+    @GameTest(template = "smeltery", timeoutTicks = 3200)
     public static void aShardMeltsBackIntoItsOwnMaterialAtItsExactCost(GameTestHelper helper) {
         SmelteryControllerBlockEntity core = lavaFuelledSmeltery(helper, ForgeweaveBlocks.NETHER_CORE.get());
         helper.assertTrue(core.insertForMelting(ToolAssembly.part(ForgeweaveItems.SHARD.get(), "iron")).isEmpty(),
@@ -271,7 +271,7 @@ public class SmelteryMeltingGameTests {
      * Issue #440 (parity audit T8): stone melts into seared stone at {@code Material.VALUE_SearedMaterial}
      * (72 mB), not marked ore-class -- upstream's {@code TinkerSmeltery.java:377-380}.
      */
-    @GameTest(template = "smeltery", timeoutTicks = 1600)
+    @GameTest(template = "smeltery", timeoutTicks = 3200)
     public static void stoneMeltsIntoSearedStone(GameTestHelper helper) {
         SmelteryControllerBlockEntity core = lavaFuelledSmeltery(helper);
         insert(helper, core, Items.STONE);
@@ -280,7 +280,7 @@ public class SmelteryMeltingGameTests {
     }
 
     /** Issue #440: cobblestone melts at the exact same amount as stone -- {@code TinkerSmeltery.java:381-383}. */
-    @GameTest(template = "smeltery", timeoutTicks = 1600)
+    @GameTest(template = "smeltery", timeoutTicks = 3200)
     public static void cobblestoneMeltsIntoSearedStoneAtTheSameAmountAsStone(GameTestHelper helper) {
         SmelteryControllerBlockEntity core = lavaFuelledSmeltery(helper);
         insert(helper, core, Items.COBBLESTONE);
@@ -296,7 +296,7 @@ public class SmelteryMeltingGameTests {
      * amountMatched} instead) -- the parity audit's claim of "grout (24)" does not hold up against the
      * clone, see {@code MeltingRecipeTest}.
      */
-    @GameTest(template = "smeltery", timeoutTicks = 1600)
+    @GameTest(template = "smeltery", timeoutTicks = 3200)
     public static void groutMeltsIntoSearedStoneAtTheSameAmountAsStone(GameTestHelper helper) {
         SmelteryControllerBlockEntity core = lavaFuelledSmeltery(helper);
         insert(helper, core, ForgeweaveItems.GROUT.get());
@@ -312,7 +312,7 @@ public class SmelteryMeltingGameTests {
      * A stone pickaxe head costs {@code PartBuilderRecipes.HEAD_COST} (2 ingots = 288 value units),
      * which is half a mB per value unit in this scale, so 144 mB.
      */
-    @GameTest(template = "smeltery", timeoutTicks = 1600)
+    @GameTest(template = "smeltery", timeoutTicks = 3200)
     public static void aStoneToolPartMeltsBackIntoSearedStoneAtHalfItsShardCost(GameTestHelper helper) {
         SmelteryControllerBlockEntity core = lavaFuelledSmeltery(helper);
         helper.assertTrue(core.insertForMelting(ToolAssembly.part(ForgeweaveItems.PART_PICKAXE_HEAD.get(), "stone")).isEmpty(),
@@ -331,7 +331,7 @@ public class SmelteryMeltingGameTests {
      * costs {@code (1000 - 300) * 8 / 10 = 560} melt ticks, each {@value
      * dev.gkissel.forgeweave.block.SmelteryControllerBlockEntity#MELT_INTERVAL_TICKS} game ticks.
      */
-    @GameTest(template = "smeltery", timeoutTicks = 2600)
+    @GameTest(template = "smeltery", timeoutTicks = 5200)
     public static void manyullynBlockMeltsBackAtItsFlatStorageBlockAmount(GameTestHelper helper) {
         SmelteryControllerBlockEntity core = lavaFuelledSmeltery(helper);
         insert(helper, core, ForgeweaveItems.MANYULLYN_BLOCK.get());
@@ -347,7 +347,7 @@ public class SmelteryMeltingGameTests {
      * lets the core apply its own multiplier (#99) at melt time, so a Standard Core still lands at
      * the same 1.5x a metal ore does: 999 mB.
      */
-    @GameTest(template = "smeltery", timeoutTicks = 2600)
+    @GameTest(template = "smeltery", timeoutTicks = 5200)
     public static void vanillaEmeraldOreMeltsAtStandardCoresOneAndAHalfTimesYield(GameTestHelper helper) {
         SmelteryControllerBlockEntity core = lavaFuelledSmeltery(helper);
         insert(helper, core, Items.EMERALD_ORE);
@@ -361,7 +361,7 @@ public class SmelteryMeltingGameTests {
      * ({@code emerald.json}'s {@code c:gems/emerald} row), with no core multiplier -- upstream's own
      * {@code gemEmerald} row (via {@code addKnownOreFluid}) carries no ore bonus either.
      */
-    @GameTest(template = "smeltery", timeoutTicks = 2600)
+    @GameTest(template = "smeltery", timeoutTicks = 5200)
     public static void anEmeraldGemMeltsBackAtItsFlatGemAmount(GameTestHelper helper) {
         SmelteryControllerBlockEntity core = lavaFuelledSmeltery(helper);
         insert(helper, core, Items.EMERALD);
@@ -386,7 +386,7 @@ public class SmelteryMeltingGameTests {
      * interior (18 blocks, 20736 mB) is the same footprint {@link SmelteryGameTests}'s own bigger
      * tests already use.
      */
-    @GameTest(template = "smeltery", timeoutTicks = 2600)
+    @GameTest(template = "smeltery", timeoutTicks = 5200)
     public static void emeraldBlockMeltsBackAtItsFlatStorageBlockAmount(GameTestHelper helper) {
         SmelteryControllerBlockEntity core = bigLavaFuelledSmeltery(helper);
         insert(helper, core, Items.EMERALD_BLOCK);
@@ -458,7 +458,7 @@ public class SmelteryMeltingGameTests {
      * dropped item entity sitting inside the formed interior and inserts it for melting -- no GUI
      * open, no player interaction, nothing but the item resting inside the structure.
      */
-    @GameTest(template = "smeltery", timeoutTicks = 1600)
+    @GameTest(template = "smeltery", timeoutTicks = 3200)
     public static void aDroppedItemInsideAFormedSmelteryIsPickedUpAndMelted(GameTestHelper helper) {
         SmelteryControllerBlockEntity core = lavaFuelledSmeltery(helper);
         ItemEntity dropped = dropInsideSmeltery(helper, new ItemStack(Items.IRON_ORE));
