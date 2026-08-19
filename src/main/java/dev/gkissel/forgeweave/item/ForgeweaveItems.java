@@ -461,8 +461,10 @@ public final class ForgeweaveItems {
         items.add(blockItem(ForgeweaveBlocks.GREEN_CONGEALED_SLIME));
         for (ForgeweaveBlocks.SlimePlants plants : ForgeweaveBlocks.slimePlants()) {
             items.add(blockItem(plants.leaves()));
+            items.add(blockItem(plants.sapling())); // #488 (T57)
             items.add(blockItem(plants.tallGrass()));
             items.add(blockItem(plants.fern()));
+            plants.vines().forEach(vine -> items.add(blockItem(vine))); // #488 (T57)
         }
         return Collections.unmodifiableList(items);
     }

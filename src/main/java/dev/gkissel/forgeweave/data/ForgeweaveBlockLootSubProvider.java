@@ -3,15 +3,19 @@ package dev.gkissel.forgeweave.data;
 import java.util.Set;
 
 import net.minecraft.core.HolderLookup;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.data.loot.BlockLootSubProvider;
 import net.minecraft.world.flag.FeatureFlags;
 import net.minecraft.world.item.Item;
+import net.minecraft.world.item.enchantment.Enchantment;
+import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.storage.loot.LootPool;
 import net.minecraft.world.level.storage.loot.LootTable;
 import net.minecraft.world.level.storage.loot.entries.LootItem;
 import net.minecraft.world.level.storage.loot.functions.CopyComponentsFunction;
+import net.minecraft.world.level.storage.loot.predicates.BonusLevelTableCondition;
 import net.minecraft.world.level.storage.loot.providers.number.ConstantValue;
 
 import dev.gkissel.forgeweave.block.ForgeweaveBlocks;
@@ -34,13 +38,22 @@ public class ForgeweaveBlockLootSubProvider extends BlockLootSubProvider {
 
     /**
      * Upstream's slime leaves are {@code IShearable} and override {@code getSilkTouchDrop}, so either
-     * tool takes the block itself and nothing else does.
+     * tool takes the block itself; broken by anything else they roll their sapling instead
+     * ({@code getItemDropped} plus {@code getSaplingDropChance} of 25, issue #488, parity audit T57).
+     *
+     * <p>The four chances are upstream's own fortune curve read off 1.12's {@code BlockLeaves
+     * #harvestBlock}: a base one-in-25, then {@code chance -= 2 << fortune} clamped at 10, so
+     * 1/25, 1/21, 1/17 and 1/10. Vanilla's {@code createLeavesDrops} would be the one-liner here but
+     * it also drops sticks, which slime leaves -- hanging off a congealed-slime trunk, not wood --
+     * never do upstream.
      */
-    private LootTable.Builder shearsOrSilkTouchDrop(Block block) {
-        return LootTable.lootTable().withPool(applyExplosionCondition(block, LootPool.lootPool()
-                .setRolls(ConstantValue.exactly(1))
-                .add(LootItem.lootTableItem(block))
-                .when(HAS_SHEARS.or(hasSilkTouch()))));
+    private LootTable.Builder slimeLeavesDrop(Block block, Block sapling) {
+        HolderLookup.RegistryLookup<Enchantment> enchantments = registries.lookupOrThrow(Registries.ENCHANTMENT);
+        return createSilkTouchOrShearsDispatchTable(block,
+                applyExplosionCondition(block, LootItem.lootTableItem(sapling))
+                        .when(BonusLevelTableCondition.bonusLevelFlatChance(
+                                enchantments.getOrThrow(Enchantments.FORTUNE),
+                                1F / 25F, 1F / 21F, 1F / 17F, 1F / 10F)));
     }
 
     @Override
@@ -83,9 +96,11 @@ public class ForgeweaveBlockLootSubProvider extends BlockLootSubProvider {
         }
         dropSelf(ForgeweaveBlocks.GREEN_CONGEALED_SLIME.get());
         for (ForgeweaveBlocks.SlimePlants plants : ForgeweaveBlocks.slimePlants()) {
-            add(plants.leaves().get(), this::shearsOrSilkTouchDrop);
+            add(plants.leaves().get(), block -> slimeLeavesDrop(block, plants.sapling().get()));
             add(plants.tallGrass().get(), block -> createShearsOnlyDrop(block));
             add(plants.fern().get(), block -> createShearsOnlyDrop(block));
+            dropSelf(plants.sapling().get()); // #488 (T57)
+            plants.vines().forEach(vine -> add(vine.get(), block -> createShearsOnlyDrop(block))); // #488 (T57)
         }
 
         // The seared brick block family (docs/SCOPE.md M2 issue #93): plain decorative blocks, no

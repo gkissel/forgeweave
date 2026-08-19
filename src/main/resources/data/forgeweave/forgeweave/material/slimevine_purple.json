@@ -1,0 +1,17 @@
+{
+  "incorrect_for_tool": "minecraft:incorrect_for_stone_tool",
+  "traits": {},
+  "crafting_items": [
+    { "ingredient": { "item": "forgeweave:purple_slime_vine" }, "value": 144 },
+    { "ingredient": { "item": "forgeweave:purple_slime_vine_mid" }, "value": 144 },
+    { "ingredient": { "item": "forgeweave:purple_slime_vine_end" }, "value": 144 }
+  ],
+  "repair_item": {
+    "item": "forgeweave:purple_slime_vine"
+  },
+  "enchantability": 15,
+  "color": "#C873C8",
+  "bowstring": {
+    "modifier": 1.0
+  }
+}

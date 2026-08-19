@@ -12,6 +12,7 @@ import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.VineBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.levelgen.structure.BoundingBox;
 import net.minecraft.world.level.levelgen.structure.Structure;
@@ -24,6 +25,8 @@ import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.block.ForgeweaveBlocks;
+import dev.gkissel.forgeweave.block.SlimeSaplingBlock;
+import dev.gkissel.forgeweave.block.SlimeVineBlock;
 import dev.gkissel.forgeweave.config.ForgeweaveConfig;
 import dev.gkissel.forgeweave.worldgen.SlimeIslandPiece;
 import dev.gkissel.forgeweave.worldgen.SlimeIslandShape;
@@ -264,6 +267,163 @@ public class SlimeIslandGameTests {
         double top = helper.getLevel().getBlockState(absolute)
                 .getCollisionShape(helper.getLevel(), absolute).max(net.minecraft.core.Direction.Axis.Y);
         helper.assertValueEqual((int) Math.round(top * 16), 10, "congealed slime collision height in sixteenths");
+        helper.succeed();
+    }
+
+    // ----------------------------------------------------------------------------------------
+    // #488 (parity audit T57): the sapling, the tree it grows and the vines that hang off a canopy.
+
+    /** Upstream {@code BlockSlimeSapling#canPlaceBlockAt}: slime grass or slime dirt, nothing else. */
+    @GameTest(template = "empty")
+    public static void slimeSaplingsOnlyStandOnSlimeSoil(GameTestHelper helper) {
+        BlockState sapling = ForgeweaveBlocks.BLUE_SLIME_PLANTS.sapling().get().defaultBlockState();
+        ServerLevel level = helper.getLevel();
+
+        helper.setBlock(new BlockPos(1, 1, 1), ForgeweaveBlocks.GREEN_SLIME_SOIL.grass().get());
+        helper.assertTrue(sapling.canSurvive(level, helper.absolutePos(new BlockPos(1, 2, 1))),
+                "a slime sapling must stand on slime grass");
+
+        helper.setBlock(new BlockPos(3, 1, 1), ForgeweaveBlocks.BLUE_SLIME_SOIL.dirt().get());
+        helper.assertTrue(sapling.canSurvive(level, helper.absolutePos(new BlockPos(3, 2, 1))),
+                "a slime sapling must stand on slime dirt");
+
+        helper.setBlock(new BlockPos(5, 1, 1), Blocks.DIRT);
+        helper.assertFalse(sapling.canSurvive(level, helper.absolutePos(new BlockPos(5, 2, 1))),
+                "a slime sapling must not stand on vanilla dirt");
+
+        helper.succeed();
+    }
+
+    /**
+     * Upstream {@code BlockSlimeSapling#generateTree}: an armed sapling turns into a congealed-slime
+     * trunk under a leaf canopy of its own foliage, and -- taking upstream's {@code vine == null}
+     * branch -- hangs no vines. Grown well above the test structure and cleaned up afterwards, the
+     * same way the island feature's test does, because a tree does not fit inside one.
+     */
+    @GameTest(template = "empty")
+    public static void anArmedSlimeSaplingGrowsAVinelessSlimeTree(GameTestHelper helper) {
+        ServerLevel level = helper.getLevel();
+        BlockPos soil = helper.absolutePos(BlockPos.ZERO).above(40);
+        BlockPos saplingPos = soil.above();
+        SlimeSaplingBlock saplingBlock = ForgeweaveBlocks.BLUE_SLIME_PLANTS.sapling().get();
+        BlockState sapling = saplingBlock.defaultBlockState().setValue(SlimeSaplingBlock.STAGE, 1);
+
+        level.setBlock(soil, ForgeweaveBlocks.BLUE_SLIME_SOIL.grass().get().defaultBlockState(), Block.UPDATE_CLIENTS);
+        level.setBlock(saplingPos, sapling, Block.UPDATE_CLIENTS);
+        saplingBlock.advanceTree(level, saplingPos, sapling, level.random);
+
+        List<BlockPos> grown = new ArrayList<>();
+        int trunk = 0;
+        int leaves = 0;
+        int vines = 0;
+        for (BlockPos pos : BlockPos.betweenClosed(soil.offset(-6, 0, -6), soil.offset(6, 14, 6))) {
+            Block block = level.getBlockState(pos).getBlock();
+            if (block == ForgeweaveBlocks.GREEN_CONGEALED_SLIME.get()) {
+                trunk++;
+            } else if (block == ForgeweaveBlocks.BLUE_SLIME_PLANTS.leaves().get()) {
+                leaves++;
+            } else if (block instanceof SlimeVineBlock) {
+                vines++;
+            } else {
+                continue;
+            }
+            grown.add(pos.immutable());
+        }
+
+        try {
+            helper.assertTrue(trunk >= 5, "the sapling grew a trunk of only " + trunk + " congealed slime");
+            helper.assertTrue(leaves > trunk, "the sapling grew a trunk with no canopy (" + leaves + " leaves)");
+            helper.assertValueEqual(vines, 0, "vines on a hand-planted slime tree");
+            helper.assertFalse(level.getBlockState(saplingPos).is(saplingBlock), "the sapling survived its own tree");
+        } finally {
+            BlockState air = Blocks.AIR.defaultBlockState();
+            for (BlockPos pos : grown) {
+                level.setBlock(pos, air, Block.UPDATE_CLIENTS);
+            }
+            level.setBlock(soil, air, Block.UPDATE_CLIENTS);
+            level.setBlock(saplingPos, air, Block.UPDATE_CLIENTS);
+        }
+        helper.succeed();
+    }
+
+    /**
+     * The one thing vanilla's {@code VineBlock} cannot do and upstream's {@code neighborChanged} can:
+     * hold a vine up by the slime leaves above it -- leaves have no sturdy face, so vanilla would
+     * drop it -- and hold one stage up by the <em>different</em> stage above it, which is what a
+     * three-stage vine column is made of.
+     */
+    @GameTest(template = "empty")
+    public static void slimeVinesHangFromSlimeLeavesAndFromEachOther(GameTestHelper helper) {
+        ServerLevel level = helper.getLevel();
+        BlockState vine = ForgeweaveBlocks.BLUE_SLIME_PLANTS.vine().get().defaultBlockState()
+                .setValue(VineBlock.NORTH, true);
+        BlockState mid = ForgeweaveBlocks.BLUE_SLIME_PLANTS.vineMid().get().defaultBlockState()
+                .setValue(VineBlock.NORTH, true);
+
+        BlockPos anchor = new BlockPos(1, 3, 1);
+        helper.assertFalse(vine.canSurvive(level, helper.absolutePos(anchor)),
+                "a vine with nothing above it and nothing to cling to must fall");
+
+        helper.setBlock(anchor.above(), ForgeweaveBlocks.BLUE_SLIME_PLANTS.leaves().get());
+        helper.assertTrue(vine.canSurvive(level, helper.absolutePos(anchor)),
+                "a vine must hang from the slime leaves above it");
+
+        helper.setBlock(anchor, vine);
+        helper.assertTrue(mid.canSurvive(level, helper.absolutePos(anchor.below())),
+                "the mid stage must hang from the full stage above it");
+
+        helper.setBlock(new BlockPos(3, 3, 1), Blocks.STONE);
+        helper.assertFalse(mid.canSurvive(level, helper.absolutePos(new BlockPos(3, 2, 1))),
+                "a vine must not hang from an ordinary block above it");
+
+        helper.succeed();
+    }
+
+    /**
+     * Upstream {@code BlockSlimeVine#grow}: a vine creeps one block down at a time and, once the
+     * column hangs free, thins into the next stage -- certainly past two blocks, on a coin flip
+     * before that. The end stage never extends.
+     */
+    @GameTest(template = "empty")
+    public static void slimeVinesCreepDownwardsAndThinOut(GameTestHelper helper) {
+        ServerLevel level = helper.getLevel();
+        BlockPos leaves = helper.absolutePos(BlockPos.ZERO).above(40);
+        BlockPos top = leaves.below();
+        List<BlockPos> placed = new ArrayList<>();
+
+        level.setBlock(leaves, ForgeweaveBlocks.BLUE_SLIME_PLANTS.leaves().get().defaultBlockState(),
+                Block.UPDATE_CLIENTS);
+        placed.add(leaves);
+        BlockState vine = ForgeweaveBlocks.BLUE_SLIME_PLANTS.vine().get().defaultBlockState()
+                .setValue(VineBlock.NORTH, true);
+        level.setBlock(top, vine, Block.UPDATE_CLIENTS);
+        placed.add(top);
+
+        try {
+            boolean thinned = false;
+            for (int tick = 0; tick < 4000 && !thinned; tick++) {
+                for (int depth = 0; depth < 8; depth++) {
+                    BlockPos pos = top.below(depth);
+                    BlockState state = level.getBlockState(pos);
+                    if (state.getBlock() instanceof SlimeVineBlock) {
+                        placed.add(pos);
+                        state.randomTick(level, pos, level.random);
+                        if (state.is(ForgeweaveBlocks.BLUE_SLIME_PLANTS.vineMid().get())
+                                || state.is(ForgeweaveBlocks.BLUE_SLIME_PLANTS.vineEnd().get())) {
+                            thinned = true;
+                        }
+                    }
+                }
+            }
+            helper.assertTrue(level.getBlockState(top.below()).getBlock() instanceof SlimeVineBlock,
+                    "the vine never crept downwards");
+            helper.assertTrue(thinned, "a free-hanging vine column never thinned into its next stage");
+        } finally {
+            BlockState air = Blocks.AIR.defaultBlockState();
+            for (BlockPos pos : placed) {
+                level.setBlock(pos, air, Block.UPDATE_CLIENTS);
+            }
+        }
         helper.succeed();
     }
 }

@@ -3,6 +3,7 @@ package dev.gkissel.forgeweave.worldgen;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -10,14 +11,18 @@ import java.util.ArrayList;
 import java.util.List;
 
 import net.minecraft.SharedConstants;
+import net.minecraft.core.BlockPos;
 import net.minecraft.server.Bootstrap;
 import net.minecraft.util.RandomSource;
+import net.minecraft.world.level.block.VineBlock;
 import net.minecraft.world.level.block.state.BlockState;
 
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
+import dev.gkissel.forgeweave.block.FoliageType;
 import dev.gkissel.forgeweave.block.ForgeweaveBlocks;
+import dev.gkissel.forgeweave.block.SlimeVineBlock;
 
 /**
  * Issue #449 (parity audit T18): pins the ported slime island generator to upstream 1.12's
@@ -145,6 +150,124 @@ class SlimeIslandShapeTest {
             }
         }
         assertTrue(islandsWithTrees >= 15, "only " + islandsWithTrees + "/20 islands grew any tree at all");
+    }
+
+    /**
+     * Upstream builds each tree generator with the vine that matches the leaves it hangs
+     * ({@code treeGenBlue} takes {@code slimeVineBlue2}), and it is always the <em>middle</em> stage
+     * (issue #488, parity audit T57).
+     */
+    @Test
+    void everyIslandPaletteHangsItsOwnFoliagesMiddleVine() {
+        for (int roll = 0; roll < 10; roll++) {
+            SlimeIslandShape.Palette palette = SlimeIslandShape.paletteFor(roll);
+            FoliageType foliage = foliageOfLeaves(palette.leaves().getBlock());
+            assertSame(ForgeweaveBlocks.slimePlants(foliage).vineMid().get(), palette.vine().getBlock(),
+                    "roll " + roll);
+        }
+    }
+
+    /**
+     * Upstream's {@code vine != null} branch of {@code placeCanopy}: the canopy corners are hollowed
+     * out and vines hang from the skirt instead of leaves filling it. Every vine it hangs carries at
+     * least one face -- {@code getRandomizedVine} lights one to three of them -- and is held up by
+     * leaves or by another vine, which is what keeps it in the world once neighbours update.
+     */
+    @Test
+    void islandTreesHangVinesUnderTheirCanopies() {
+        int islandsWithVines = 0;
+        for (long seed = 1; seed <= 20; seed++) {
+            Island island = Island.at(seed);
+            List<int[]> vines = new ArrayList<>();
+            island.forEachDrawn((x, y, z, state) -> {
+                if (state.getBlock() instanceof SlimeVineBlock) {
+                    vines.add(new int[] {x, y, z});
+                }
+            });
+            if (island.count(island.palette.log()) == 0) {
+                continue; // no tree, no vines
+            }
+            if (!vines.isEmpty()) {
+                islandsWithVines++;
+            }
+            for (int[] vine : vines) {
+                BlockState state = island.canvas.get(vine[0], vine[1], vine[2]);
+                assertSame(island.palette.vine().getBlock(), state.getBlock(),
+                        "a vine of the wrong colour at " + vine[0] + "," + vine[1] + "," + vine[2]);
+                assertTrue(hasAnyFace(state),
+                        "a faceless vine at " + vine[0] + "," + vine[1] + "," + vine[2] + " (seed " + seed + ")");
+            }
+        }
+        assertTrue(islandsWithVines >= 15, "only " + islandsWithVines + "/20 islands hung any vine at all");
+    }
+
+    /**
+     * Every vine one tree hangs is held up by leaves or by the vine above it -- upstream's own
+     * canopy geometry, and what {@code SlimeVineBlock}'s widened support rule then keeps alive once
+     * the world starts sending neighbour updates. Asserted on a single tree rather than a whole
+     * island, because upstream lets a later tree's canopy carve air out of an earlier one's and
+     * strand its vines, which is a faithfully ported quirk rather than a bug to assert away.
+     */
+    @Test
+    void everyVineOfOneTreeHangsFromLeavesOrAnotherVine() {
+        SlimeIslandShape.Palette palette = SlimeIslandShape.paletteFor(0);
+        for (long seed = 1; seed <= 40; seed++) {
+            SlimeIslandShape.Canvas canvas = SlimeIslandShape.Canvas.forTree();
+            SlimeIslandShape.plantTree(RandomSource.create(seed), canvas, palette, 0, 0, 0);
+            List<SlimeIslandShape.Canvas.Drawn> drawn = new ArrayList<>();
+            canvas.forEachDrawn(drawn::add);
+            long vines = drawn.stream().filter(entry -> entry.state().getBlock() instanceof SlimeVineBlock).count();
+            assertTrue(vines > 0, "seed " + seed + " grew a tree with no vines");
+            for (SlimeIslandShape.Canvas.Drawn entry : drawn) {
+                if (!(entry.state().getBlock() instanceof SlimeVineBlock)) {
+                    continue;
+                }
+                BlockPos pos = entry.pos();
+                BlockState above = canvas.get(pos.getX(), pos.getY() + 1, pos.getZ());
+                assertTrue(above.getBlock() == palette.leaves().getBlock()
+                                || above.getBlock() instanceof SlimeVineBlock,
+                        "a vine at " + pos + " hangs off nothing (seed " + seed + ")");
+            }
+        }
+    }
+
+    /**
+     * A hand-planted sapling takes upstream's other branch: {@code BlockSlimeSapling#generateTree}
+     * passes a {@code null} vine, so the canopy corners are leaves and no vine is placed at all.
+     */
+    @Test
+    void aPlantedSaplingGrowsAVinelessCanopy() {
+        for (long seed = 1; seed <= 20; seed++) {
+            SlimeIslandShape.Palette palette = SlimeIslandShape.saplingPalette(FoliageType.PURPLE);
+            assertNull(palette.vine(), "a sapling's palette must carry no vine");
+            SlimeIslandShape.Canvas canvas = SlimeIslandShape.Canvas.forTree();
+            SlimeIslandShape.plantTree(RandomSource.create(seed), canvas, palette, 0, 0, 0);
+
+            List<SlimeIslandShape.Canvas.Drawn> drawn = new ArrayList<>();
+            canvas.forEachDrawn(drawn::add);
+            assertTrue(drawn.stream().anyMatch(entry -> entry.state() == palette.log()),
+                    "seed " + seed + " grew no trunk");
+            assertTrue(drawn.stream().anyMatch(entry -> entry.state() == palette.leaves()),
+                    "seed " + seed + " grew no canopy");
+            assertTrue(drawn.stream().noneMatch(entry -> entry.state().getBlock() instanceof SlimeVineBlock),
+                    "seed " + seed + " hung a vine off a hand-planted tree");
+            // Nothing may escape the canvas the sapling sizes for it.
+            assertEquals(drawn.size(), drawn.stream().distinct().count());
+        }
+    }
+
+    private static boolean hasAnyFace(BlockState state) {
+        return state.getValue(VineBlock.NORTH) || state.getValue(VineBlock.EAST)
+                || state.getValue(VineBlock.SOUTH) || state.getValue(VineBlock.WEST)
+                || state.getValue(VineBlock.UP);
+    }
+
+    private static FoliageType foliageOfLeaves(net.minecraft.world.level.block.Block leaves) {
+        return ForgeweaveBlocks.slimePlants().stream()
+                .filter(plants -> plants.leaves().get() == leaves)
+                .map(ForgeweaveBlocks.SlimePlants::foliage)
+                .findFirst()
+                .orElseThrow();
     }
 
     /** Upstream's plants stand one block above the surface, on slime soil and nothing else. */

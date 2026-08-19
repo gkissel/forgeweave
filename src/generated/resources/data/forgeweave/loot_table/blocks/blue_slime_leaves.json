@@ -3,41 +3,62 @@
   "pools": [
     {
       "bonus_rolls": 0.0,
-      "conditions": [
+      "entries": [
         {
-          "condition": "minecraft:any_of",
-          "terms": [
+          "type": "minecraft:alternatives",
+          "children": [
             {
-              "condition": "minecraft:match_tool",
-              "predicate": {
-                "items": "minecraft:shears"
-              }
-            },
-            {
-              "condition": "minecraft:match_tool",
-              "predicate": {
-                "predicates": {
-                  "minecraft:enchantments": [
+              "type": "minecraft:item",
+              "conditions": [
+                {
+                  "condition": "minecraft:any_of",
+                  "terms": [
                     {
-                      "enchantments": "minecraft:silk_touch",
-                      "levels": {
-                        "min": 1
+                      "condition": "minecraft:match_tool",
+                      "predicate": {
+                        "items": "minecraft:shears"
+                      }
+                    },
+                    {
+                      "condition": "minecraft:match_tool",
+                      "predicate": {
+                        "predicates": {
+                          "minecraft:enchantments": [
+                            {
+                              "enchantments": "minecraft:silk_touch",
+                              "levels": {
+                                "min": 1
+                              }
+                            }
+                          ]
+                        }
                       }
                     }
                   ]
                 }
-              }
+              ],
+              "name": "forgeweave:blue_slime_leaves"
+            },
+            {
+              "type": "minecraft:item",
+              "conditions": [
+                {
+                  "condition": "minecraft:survives_explosion"
+                },
+                {
+                  "chances": [
+                    0.04,
+                    0.04761905,
+                    0.05882353,
+                    0.1
+                  ],
+                  "condition": "minecraft:table_bonus",
+                  "enchantment": "minecraft:fortune"
+                }
+              ],
+              "name": "forgeweave:blue_slime_sapling"
             }
           ]
-        },
-        {
-          "condition": "minecraft:survives_explosion"
-        }
-      ],
-      "entries": [
-        {
-          "type": "minecraft:item",
-          "name": "forgeweave:blue_slime_leaves"
         }
       ],
       "rolls": 1.0

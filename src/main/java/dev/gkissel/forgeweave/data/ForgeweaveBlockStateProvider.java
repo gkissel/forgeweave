@@ -6,6 +6,8 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.SlabBlock;
 import net.minecraft.world.level.block.StairBlock;
+import net.minecraft.world.level.block.VineBlock;
+import net.minecraft.world.level.block.state.properties.BooleanProperty;
 
 import net.neoforged.neoforge.client.model.generators.BlockStateProvider;
 import net.neoforged.neoforge.client.model.generators.ConfiguredModel;
@@ -323,7 +325,50 @@ public class ForgeweaveBlockStateProvider extends BlockStateProvider {
 
             slimePlantBlock(plants.tallGrass().get(), "slime_tall_grass");
             slimePlantBlock(plants.fern().get(), "slime_fern");
+
+            // #488 (parity audit T57): the sapling is a plain cross with its own coloured texture
+            // (upstream ships slimesapling_blue/purple rather than tinting one greyscale sprite),
+            // and each vine stage is vanilla's own multipart vine wired to a greyscale slime sprite.
+            String saplingName = name(plants.sapling().get());
+            ResourceLocation saplingSprite = modLoc("derived/block/" + saplingName);
+            simpleBlock(plants.sapling().get(),
+                    models().cross(saplingName, saplingSprite).renderType("minecraft:cutout"));
+            itemModels().withExistingParent(saplingName, mcLoc("item/generated")).texture("layer0", saplingSprite);
+
+            slimeVineBlock(plants.vine().get(), "slime_vine");
+            slimeVineBlock(plants.vineMid().get(), "slime_vine_mid");
+            slimeVineBlock(plants.vineEnd().get(), "slime_vine_end");
         }
+    }
+
+    /**
+     * One slime vine stage: vanilla's {@code blockstates/vine.json} multipart verbatim -- one
+     * rotation of {@code block/vine} per lit face, plus the same model again for the faceless state
+     * so an unattached vine still renders -- over a slime vine sprite.
+     */
+    private void slimeVineBlock(Block block, String texture) {
+        String blockName = name(block);
+        ResourceLocation sprite = modLoc("derived/block/" + texture);
+        ModelFile model = models().withExistingParent(blockName, mcLoc("block/vine"))
+                .texture("particle", sprite)
+                .texture("vine", sprite)
+                .renderType("minecraft:cutout");
+        MultiPartBlockStateBuilder builder = getMultipartBuilder(block);
+        int[] rotations = {0, 90, 180, 270};
+        BooleanProperty[] faces = {VineBlock.NORTH, VineBlock.EAST, VineBlock.SOUTH, VineBlock.WEST};
+        for (int i = 0; i < faces.length; i++) {
+            builder.part().modelFile(model).rotationY(rotations[i]).uvLock(rotations[i] != 0).addModel()
+                    .condition(faces[i], true).end();
+            builder.part().modelFile(model).rotationY(rotations[i]).uvLock(rotations[i] != 0).addModel()
+                    .condition(VineBlock.UP, false).condition(VineBlock.NORTH, false).condition(VineBlock.EAST, false)
+                    .condition(VineBlock.SOUTH, false).condition(VineBlock.WEST, false).end();
+        }
+        builder.part().modelFile(model).rotationX(270).uvLock(true).addModel()
+                .condition(VineBlock.UP, true).end();
+        builder.part().modelFile(model).rotationX(270).uvLock(true).addModel()
+                .condition(VineBlock.UP, false).condition(VineBlock.NORTH, false).condition(VineBlock.EAST, false)
+                .condition(VineBlock.SOUTH, false).condition(VineBlock.WEST, false).end();
+        itemModels().withExistingParent(blockName, mcLoc("item/generated")).texture("layer0", sprite);
     }
 
     /** A slimy tall grass or fern: a tinted cross in the world, a flat tinted sprite in the hand. */

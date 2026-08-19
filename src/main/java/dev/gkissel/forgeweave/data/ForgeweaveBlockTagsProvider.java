@@ -86,10 +86,20 @@ public class ForgeweaveBlockTagsProvider extends BlockTagsProvider {
         var slimeLeaves = tag(BlockTags.LEAVES);
         var slimeHoe = tag(BlockTags.MINEABLE_WITH_HOE);
         var slimeSword = tag(BlockTags.SWORD_EFFICIENT);
+        var slimeSaplings = tag(BlockTags.SAPLINGS);
+        var slimeClimbable = tag(BlockTags.CLIMBABLE);
         for (ForgeweaveBlocks.SlimePlants plants : ForgeweaveBlocks.slimePlants()) {
             slimeLeaves.add(plants.leaves().get());
             slimeHoe.add(plants.leaves().get());
             slimeSword.add(plants.tallGrass().get()).add(plants.fern().get());
+            // #488 (parity audit T57): the sapling and the vines. Vanilla puts vines in
+            // sword_efficient and its saplings in minecraft:saplings (what bone meal and the
+            // sapling-growth advancement look at), and neither carries a harvest-level tag upstream.
+            slimeSaplings.add(plants.sapling().get());
+            plants.vines().forEach(vine -> {
+                slimeSword.add(vine.get());
+                slimeClimbable.add(vine.get());
+            });
         }
 
         // #206 -- the block-side counterpart of ForgeweaveItemTagsProvider's c:storage_blocks/*
