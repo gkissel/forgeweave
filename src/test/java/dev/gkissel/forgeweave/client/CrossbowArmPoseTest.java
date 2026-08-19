@@ -38,12 +38,17 @@ class CrossbowArmPoseTest {
         return stack;
     }
 
-    /** Mid-crank: the same pose vanilla gives its own crossbow while it is being charged. */
+    /**
+     * Mid-crank: the cranking pose, which since issue #601 is {@link CrossbowChargeArmPose}'s rather
+     * than vanilla's {@code CROSSBOW_CHARGE} -- same arms, paced by the crossbow's own draw. Outside
+     * a loaded game the enum extension is not applied and {@code pose()} degrades to vanilla's, which
+     * is exactly what this asserts is handed out either way.
+     */
     @Test
     void crankingGetsTheChargePose() {
-        assertEquals(HumanoidModel.ArmPose.CROSSBOW_CHARGE,
+        assertEquals(CrossbowChargeArmPose.pose(),
                 ForgeweaveItemClientExtensions.crossbowArmPose(crossbow(false), true, false));
-        assertEquals(HumanoidModel.ArmPose.CROSSBOW_CHARGE,
+        assertEquals(CrossbowChargeArmPose.pose(),
                 ForgeweaveItemClientExtensions.crossbowArmPose(crossbow(true), true, false),
                 "a crossbow being cranked again is still being cranked");
     }

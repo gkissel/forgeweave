@@ -1,0 +1,13 @@
+{
+  "entries": [
+    {
+      "enum": "net/minecraft/client/model/HumanoidModel$ArmPose",
+      "name": "FORGEWEAVE_CROSSBOW_CHARGE",
+      "constructor": "(ZLnet/neoforged/neoforge/client/IArmPoseTransformer;)V",
+      "parameters": {
+        "class": "dev/gkissel/forgeweave/client/CrossbowChargeArmPose",
+        "field": "PROXY"
+      }
+    }
+  ]
+}
