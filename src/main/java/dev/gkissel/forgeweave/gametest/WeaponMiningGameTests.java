@@ -8,6 +8,7 @@ import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.item.component.Tool;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.block.Blocks;
@@ -17,9 +18,13 @@ import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 
 import dev.gkissel.forgeweave.Forgeweave;
+import dev.gkissel.forgeweave.block.ToolStationBlockEntity;
 import dev.gkissel.forgeweave.item.ForgeweaveDataComponents;
 import dev.gkissel.forgeweave.item.ForgeweaveItems;
 import dev.gkissel.forgeweave.item.ToolItem;
+import dev.gkissel.forgeweave.menu.ToolStationMenu;
+import dev.gkissel.forgeweave.modifier.ForgeweaveModifiers;
+import dev.gkissel.forgeweave.tool.ToolConstants;
 import dev.gkissel.forgeweave.tool.ToolStats;
 
 /**
@@ -128,6 +133,82 @@ public class WeaponMiningGameTests {
                         .canAttackBlock(stone, helper.getLevel(), helper.absolutePos(pos), creative),
                 "the battleaxe is an axe upstream and keeps creative block breaking");
         helper.succeed();
+    }
+
+    /**
+     * Issue #598: a tool type's mining-speed modifier and the sword family's cobweb multiplier have
+     * to survive a rebake -- a modifier application, a Tool Station part exchange, {@code
+     * Fortification} -- and not merely live in the component assembly writes once.
+     *
+     * <p>Issue #437 folded both into the vanilla {@code tool} component at assembly time ({@link
+     * ToolItem#toolComponent}), and {@code swordsMineTheSwordSetAtHalfSpeed} above pins exactly that
+     * component on a freshly assembled tool. But every rebake path runs {@code
+     * ModifierApplication#retuneStats}, which used to overwrite <em>every</em> speed-bearing rule
+     * with the raw {@code effectiveStats} mining speed -- the head material's number, with no tool
+     * type in it. One redstone on a broadsword therefore doubled it back to full harvest-tool speed
+     * and flattened cobweb from 7.5x to 1x: the tool mined like a harvest tool again, exactly the
+     * shape #437 fixed. #437's test could not see it, because a freshly assembled tool never goes
+     * through that path.
+     *
+     * <p>The same overwrite wiped every other type's modifier -- the hammer's 0.4, the excavator's
+     * 0.28, the lumber axe's 0.35 -- so the hammer is here as the harvest-side half of the one bug.
+     */
+    @GameTest(template = "empty")
+    public static void aRebakeKeepsEachToolTypesMiningSpeedModifier(GameTestHelper helper) {
+        BlockPos pos = new BlockPos(1, 1, 1);
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+
+        ItemStack broadsword = hasten(helper, player, pos, ToolAssembly.assemble(helper, player, pos,
+                ToolAssembly.entryFor(ForgeweaveItems.TOOL_BROADSWORD.get()), THREE));
+        Tool sword = broadsword.get(DataComponents.TOOL);
+        helper.assertTrue(sword != null, "a hasted broadsword must still carry a tool component");
+        float swordSpeed = effectiveMiningSpeed(helper, broadsword) * ToolConstants.BROADSWORD.miningSpeedModifier();
+
+        BlockState log = Blocks.OAK_LOG.defaultBlockState();
+        helper.assertFalse(sword.isCorrectForDrops(log), "a hasted broadsword must still not be an axe (issue #598)");
+        helper.assertTrue(sword.getMiningSpeed(log) == 1.0F,
+                "a hasted broadsword must still leave an oak log at the default speed, got "
+                        + sword.getMiningSpeed(log));
+        assertSpeed(helper, "a hasted broadsword's leaves",
+                sword.getMiningSpeed(Blocks.OAK_LEAVES.defaultBlockState()), swordSpeed);
+        assertSpeed(helper, "a hasted broadsword's cobweb",
+                sword.getMiningSpeed(Blocks.COBWEB.defaultBlockState()), swordSpeed * 7.5F);
+
+        BlockPos forge = new BlockPos(1, 1, 3);
+        ItemStack hammer = hasten(helper, player, forge, ToolAssembly.assembleAtForge(helper, player, forge,
+                ToolAssembly.entryFor(ForgeweaveItems.TOOL_HAMMER.get()),
+                List.of("stone", "stone", "stone", "wood")));
+        Tool head = hammer.get(DataComponents.TOOL);
+        helper.assertTrue(head != null, "a hasted hammer must still carry a tool component");
+        assertSpeed(helper, "a hasted hammer's stone", head.getMiningSpeed(Blocks.STONE.defaultBlockState()),
+                effectiveMiningSpeed(helper, hammer) * ToolConstants.HAMMER.miningSpeedModifier());
+        helper.succeed();
+    }
+
+    /** The mining stat the tool's modifiers leave it with -- what a rebake rebuilds its rules from. */
+    private static float effectiveMiningSpeed(GameTestHelper helper, ItemStack stack) {
+        ToolStats.Stats stats = ForgeweaveModifiers.effectiveStats(stack);
+        helper.assertTrue(stats != null, "an assembled tool must carry tool stats");
+        return stats.miningSpeed();
+    }
+
+    /**
+     * One redstone through the station's own modifier flow: the cheapest real rebake there is, and
+     * one that moves the mining stat, so a rule left at the raw stat and a rule scaled by the tool
+     * type cannot coincide by accident.
+     */
+    private static ItemStack hasten(GameTestHelper helper, Player player, BlockPos pos, ItemStack tool) {
+        ToolStationBlockEntity blockEntity = helper.getBlockEntity(pos);
+        blockEntity.container().setItem(0, tool);
+        blockEntity.container().setItem(1, new ItemStack(Items.REDSTONE, 1));
+        blockEntity.container().setItem(2, ItemStack.EMPTY);
+
+        ToolStationMenu menu = ToolAssembly.menu(helper, player, pos, blockEntity);
+        menu.broadcastChanges();
+        ItemStack output = menu.getSlot(ToolStationMenu.OUTPUT_SLOT).getItem().copy();
+        helper.assertFalse(output.isEmpty(), "expected the station to haste " + tool.getItem());
+        menu.getSlot(ToolStationMenu.OUTPUT_SLOT).onTake(player, output);
+        return output;
     }
 
     private static void assertMinesNothing(GameTestHelper helper, ItemStack stack, String name) {
