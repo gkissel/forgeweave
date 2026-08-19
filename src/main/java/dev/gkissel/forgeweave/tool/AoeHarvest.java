@@ -260,6 +260,36 @@ public final class AoeHarvest {
     }
 
     /**
+     * The candidate extra positions {@code shape} takes along with {@code origin} for a transform
+     * (issue #617), rather than a break: the same box/tree candidate shapes {@link #extraBlocks} uses,
+     * but without its {@link #canBreakExtra} filter. That filter is a <em>mining</em> one -- it rejects
+     * any block the tool is not {@code isCorrectToolForDrops} for -- and a transform's applicability
+     * has nothing to do with that tag: a copper scrape target is {@code mineable/pickaxe}, not
+     * {@code mineable/axe}; a campfire douse target is {@code mineable/axe}, not {@code
+     * mineable/shovel}. Reusing {@link #extraBlocks} would silently drop both from their tool's own
+     * AoE. Upstream 1.20 draws exactly this split through its shared {@code AOE_ITERATOR} hook --
+     * {@code AOEMatchType.TRANSFORM} against the mining iterator's own match type.
+     *
+     * <p>Whether a given candidate's transform actually applies is left entirely to the caller, the
+     * same way the clicked block itself already decides that through {@code
+     * BlockState#getToolModifiedState} -- {@link AxeStrip} and {@link ShovelPath} both do. {@link
+     * Shape#VEIN} never backs a transform tool, so it answers empty rather than flood-filling.
+     */
+    public static List<BlockPos> extraTransformBlocks(ItemStack tool, Level level, Player player, BlockPos origin,
+            BlockState originState, Shape shape) {
+        if (shape == Shape.NONE || isBareSingleBlock(tool, shape)) {
+            return List.of();
+        }
+        return switch (shape) {
+            case NONE, VEIN -> List.of();
+            case SINGLE, MATTOCK, PLANE_3X3, CUBE_3X3X3 -> box(tool, player, origin, shape);
+            case TREE_FELL -> isTree(level, origin, originState)
+                    ? trunk(level, origin)
+                    : box(tool, player, origin, shape);
+        };
+    }
+
+    /**
      * Whether {@code shape} is one of the two whose <em>unexpanded</em> box is the mined block alone
      * ({@link Shape#SINGLE}, {@link Shape#MATTOCK}) and {@code tool} carries no expander -- i.e.
      * "an ordinary pickaxe swing", which must cost nothing extra to answer (issue #438).

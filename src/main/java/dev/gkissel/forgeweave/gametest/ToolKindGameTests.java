@@ -284,6 +284,66 @@ public class ToolKindGameTests {
         helper.succeed();
     }
 
+    /**
+     * Issue #617: right-clicking the lumber axe on a tree's trunk strips the whole tree, not just the
+     * block clicked -- {@code AxeStrip} now spreads over the same trunk shape {@code AoeHarvest}'s
+     * mining path fells ({@code LargeToolGameTests#lumberAxeFellsTheTrunkAndStopsAtNonLog}), stopping
+     * at the first non-log in every direction.
+     */
+    @GameTest(template = "empty")
+    public static void lumberaxeStripsAWholeTree(GameTestHelper helper) {
+        BlockPos base = new BlockPos(1, 1, 3);
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        ItemStack lumberaxe = axe(helper, player, ForgeweaveItems.TOOL_LUMBERAXE.get());
+        player.setItemInHand(InteractionHand.MAIN_HAND, lumberaxe);
+        // Canopy first, trunk second, so the trunk's own column stays logs rather than leaves.
+        for (int x = -1; x <= 1; x++) {
+            for (int z = -1; z <= 1; z++) {
+                helper.setBlock(base.offset(x, 6, z), Blocks.OAK_LEAVES);
+            }
+        }
+        for (int y = 0; y < 6; y++) {
+            helper.setBlock(base.offset(0, y, 0), Blocks.OAK_LOG);
+        }
+        // Three blocks of air away: a separate tree as far as the strip is concerned, same as the
+        // mining path's own "stops at non-log" case.
+        BlockPos detached = base.offset(3, 0, 0);
+        helper.setBlock(detached, Blocks.OAK_LOG);
+
+        helper.useBlock(base, player);
+
+        for (int y = 0; y < 6; y++) {
+            helper.assertBlockPresent(Blocks.STRIPPED_OAK_LOG, base.offset(0, y, 0));
+        }
+        helper.assertBlockPresent(Blocks.OAK_LOG, detached);
+        helper.assertTrue(lumberaxe.getDamageValue() == 6,
+                "stripping a 6-log trunk must cost 1 durability per log, got " + lumberaxe.getDamageValue());
+        helper.succeed();
+    }
+
+    /**
+     * Issue #617: the hatchet's shape is {@code AoeHarvest.Shape#SINGLE} -- no extra blocks without an
+     * expander -- so stripping a log leaves its neighbor untouched, unlike the lumber axe above.
+     */
+    @GameTest(template = "empty")
+    public static void hatchetStripsOnlyTheLogClicked(GameTestHelper helper) {
+        BlockPos log = new BlockPos(1, 1, 3);
+        BlockPos neighbor = log.offset(1, 0, 0);
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        ItemStack hatchet = axe(helper, player, ForgeweaveItems.TOOL_HATCHET.get());
+        player.setItemInHand(InteractionHand.MAIN_HAND, hatchet);
+        helper.setBlock(log, Blocks.OAK_LOG);
+        helper.setBlock(neighbor, Blocks.OAK_LOG);
+
+        helper.useBlock(log, player);
+
+        helper.assertBlockPresent(Blocks.STRIPPED_OAK_LOG, log);
+        helper.assertBlockPresent(Blocks.OAK_LOG, neighbor);
+        helper.assertTrue(hatchet.getDamageValue() == 1,
+                "stripping one log with no expander must cost 1 durability, got " + hatchet.getDamageValue());
+        helper.succeed();
+    }
+
     /** An all-stone tool of {@code type}, built at the station like every other tool in this class. */
     private static ItemStack axe(GameTestHelper helper, Player player, ToolItem type) {
         ToolAssemblyRecipes.Entry entry = ToolAssembly.entryFor(type);

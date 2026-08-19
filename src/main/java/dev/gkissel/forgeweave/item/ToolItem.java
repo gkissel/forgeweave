@@ -1101,7 +1101,7 @@ public class ToolItem extends Item {
             return ShovelPath.flattenAt(context, aoeShape);
         }
         if (abilities.contains(ItemAbilities.AXE_STRIP)) {
-            return AxeStrip.transformAt(context);
+            return AxeStrip.transformAt(context, aoeShape);
         }
         return super.useOn(context);
     }

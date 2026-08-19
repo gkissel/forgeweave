@@ -41,13 +41,14 @@ import dev.gkissel.forgeweave.item.ToolItem;
  *       block <em>after</em> the first flatten, so a grass block that just became a path still
  *       qualifies. Read at the same point here, against 1.21's names for the same two blocks.
  *   <li>the same flatten again over {@code getAOEBlocks}, stopping the moment the tool breaks. That
- *       list is {@link AoeHarvest#extraBlocks}: upstream's {@code getAOEBlocks} is the identical
- *       {@code calcAOEBlocks} call the tool's mining path already uses (1x1x1 for the shovel, so
- *       nothing extra without an expander; 3x3x1 for the excavator), which is exactly what
- *       {@link AoeHarvest.Shape#SINGLE} and {@link AoeHarvest.Shape#PLANE_3X3} already are, expanders
- *       included. Its one addition over upstream's own path list is the hardness-ratio filter
- *       {@code calcAOEBlocks} leaves to break time, which is inert here: everything flattenable is
- *       softer than the path it turns into.
+ *       list is {@link AoeHarvest#extraTransformBlocks} (issue #617): the same box shape {@link
+ *       AoeHarvest.Shape#SINGLE} and {@link AoeHarvest.Shape#PLANE_3X3} give the tool's mining path
+ *       too (1x1x1 for the shovel, so nothing extra without an expander; 3x3x1 for the excavator),
+ *       but without {@link AoeHarvest}'s mining-specific {@code canBreakExtra} filter -- which would
+ *       silently drop every campfire from a douse area, a campfire being {@code mineable/axe} rather
+ *       than {@code mineable/shovel}, and a mining tag having nothing to do with whether {@code
+ *       SHOVEL_DOUSE} applies to a block. {@link #flattenOne} already decides that the same way the
+ *       transform-match list expects, through {@code getToolModifiedState} itself.
  * </ol>
  *
  * <p>Upstream returns the first {@code SUCCESS} it sees, falling back to a later block's result only
@@ -71,7 +72,7 @@ public final class ShovelPath {
         if (player == null || (flattened != Blocks.GRASS_BLOCK && flattened != Blocks.DIRT_PATH)) {
             return result;
         }
-        for (BlockPos pos : AoeHarvest.extraBlocks(stack, level, player, origin, level.getBlockState(origin), shape)) {
+        for (BlockPos pos : AoeHarvest.extraTransformBlocks(stack, level, player, origin, level.getBlockState(origin), shape)) {
             if (ToolItem.isBroken(stack)) {
                 break;
             }
