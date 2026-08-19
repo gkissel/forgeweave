@@ -195,6 +195,65 @@ class BowDrawModelTest {
         }
     }
 
+    /**
+     * Issue #601 (2): the crossbow is held where vanilla holds a crossbow.
+     *
+     * <p>Upstream 1.12's {@code crossbow.tcon.json} carries {@code thirdperson_righthand}
+     * {@code [90,180,-225] / [-1,0.75,-2.5] / 0.85} and {@code firstperson_righthand}
+     * {@code [-75,-5,-45] / [0,2,0] / 0.68}, which #400 transcribed verbatim. Those numbers were
+     * authored against Forge 1.12's {@code TRSRTransformation} perspective pipeline rather than a
+     * vanilla {@code display} block, and in a vanilla one they put the crossbow low and left of the
+     * hand and rolled short (playtest 0.3.5-alpha.3, obs3). Upstream hit the same wall porting the
+     * crossbow forward: its 1.20 {@code item/base/crossbow.json} drops the 1.12 numbers and adopts
+     * <em>vanilla's own</em> {@code minecraft:item/crossbow} display block character for character.
+     * These are those numbers, and this test is what keeps a future edit from drifting back.
+     */
+    @Test
+    void theCrossbowIsHeldWhereVanillaHoldsACrossbow() throws IOException {
+        JsonObject display = readJson(models().resolve("crossbow.json")).getAsJsonObject("display");
+        assertTransform(display, "thirdperson_righthand", -90, 0, -60, 2, 0.1F, -3, 0.9F);
+        assertTransform(display, "thirdperson_lefthand", -90, 0, 30, 2, 0.1F, -3, 0.9F);
+        assertTransform(display, "firstperson_righthand", -90, 0, -55, 1.13F, 3.2F, 1.13F, 0.68F);
+        assertTransform(display, "firstperson_lefthand", -90, 0, 35, 1.13F, 3.2F, 1.13F, 0.68F);
+    }
+
+    /**
+     * And the two poses that are the crossbow's own -- winding, and carrying a stored crank -- keep
+     * upstream 1.12's <em>gesture</em> on top of that baseline: exactly the offsets its
+     * {@code .tcon.json} overrides put on its own idle pose ({@code -40,-20,0} rotation and
+     * {@code -3,+0.5,+1} translation for the wind, {@code -15,0,0} for the stored crank), re-based
+     * on vanilla's. The third-person pose is unchanged by either, as upstream leaves it.
+     */
+    @Test
+    void theCrankPosesKeepUpstreamsOffsetsFromThatBaseline() throws IOException {
+        JsonObject winding = readJson(models().resolve("crossbow_pulling_1.json")).getAsJsonObject("display");
+        assertTransform(winding, "firstperson_righthand", -130, -20, -55, -1.87F, 3.7F, 2.13F, 0.68F);
+        assertTransform(winding, "firstperson_lefthand", -130, -20, 35, -1.87F, 3.7F, 2.13F, 0.68F);
+        assertTransform(winding, "thirdperson_righthand", -90, 0, -60, 2, 0.1F, -3, 0.9F);
+
+        JsonObject loaded = readJson(models().resolve("crossbow_loaded.json")).getAsJsonObject("display");
+        assertTransform(loaded, "firstperson_righthand", -105, 0, -55, 1.13F, 3.2F, 1.13F, 0.68F);
+        assertTransform(loaded, "firstperson_lefthand", -105, 0, 35, 1.13F, 3.2F, 1.13F, 0.68F);
+        assertTransform(loaded, "thirdperson_righthand", -90, 0, -60, 2, 0.1F, -3, 0.9F);
+    }
+
+    private static void assertTransform(JsonObject display, String context,
+            float rx, float ry, float rz, float tx, float ty, float tz, float scale) {
+        JsonObject transform = display.getAsJsonObject(context);
+        assertNotNull(transform, context + " must be declared -- a model with a display block inherits none");
+        assertEquals(List.of(rx, ry, rz), floats(transform, "rotation"), context + " rotation");
+        assertEquals(List.of(tx, ty, tz), floats(transform, "translation"), context + " translation");
+        assertEquals(List.of(scale, scale, scale), floats(transform, "scale"), context + " scale");
+    }
+
+    private static List<Float> floats(JsonObject transform, String key) {
+        List<Float> values = new ArrayList<>(3);
+        for (JsonElement element : transform.getAsJsonArray(key)) {
+            values.add(element.getAsFloat());
+        }
+        return values;
+    }
+
     /** @return the {@code predicate} of the override pointing at {@code model}, or null if there is none. */
     private static JsonObject predicateOf(JsonArray overrides, String model) {
         for (JsonElement element : overrides) {

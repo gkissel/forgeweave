@@ -290,7 +290,11 @@ public final class ScreenshotHarness {
             new BowPose(ForgeweaveItems.TOOL_LONGBOW, 2, false),
             new BowPose(ForgeweaveItems.TOOL_LONGBOW, 3, false),
             new BowPose(ForgeweaveItems.TOOL_CROSSBOW, 1, false),
-            new BowPose(ForgeweaveItems.TOOL_CROSSBOW, 2, false),
+            // Third person as well (issue #601): this is the frame the crank's *pacing* shows up in.
+            // Stage 2 is reached around tick 23 of the crossbow's 45, so a correctly paced winding
+            // arm is about halfway out here; the vanilla 25-tick pacing this replaced had it at 92%
+            // and about to freeze. Stage 3 alone cannot tell the two apart -- both are fully wound.
+            new BowPose(ForgeweaveItems.TOOL_CROSSBOW, 2, false, true),
             new BowPose(ForgeweaveItems.TOOL_CROSSBOW, 3, false, true),
             // The one state that is not a draw: the crossbow's stored crank, which resolves to the
             // full-draw art under a first-person pose of its own.
@@ -1327,8 +1331,8 @@ public final class ScreenshotHarness {
     }
 
     /**
-     * Issue #425's frames, {@code bow_crossbow_draw3.png} and {@code bow_crossbow_loaded.png}: the
-     * same two poses again from behind, which is the only place the arms are visible.
+     * Issue #425's frames, {@code bow_crossbow_draw{2,3}.png} and {@code bow_crossbow_loaded.png}:
+     * the same poses again from behind, which is the only place the arms are visible.
      *
      * <p>The use started by {@link #settleBowPose} is deliberately still running -- {@link
      * #nextBowPose} is what ends it -- because the cranking pose is a pose the holder has to still be

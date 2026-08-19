@@ -564,17 +564,35 @@ public class ForgeweaveItemModelProvider extends ItemModelProvider {
                     .transform(ItemDisplayContext.FIRST_PERSON_LEFT_HAND)
                     .rotation(0, 90, -25).translation(1.13F, 3.2F, 1.13F).scale(0.875F, 0.875F, 0.7F).end()
                     .end(),
-            // crossbow.tcon.json: stood on end rather than laid flat, and the one bow whose pose
-            // changes with its draw state -- see the two maps below.
+            // crossbow: stood on end rather than laid flat, and the one bow whose pose changes with
+            // its draw state -- see the two maps below.
+            //
+            // The one set of numbers on this map that is NOT upstream 1.12's (issue #601, playtest
+            // 0.3.5-alpha.3 obs3). crossbow.tcon.json holds it at thirdperson_righthand
+            // [90,180,-225] / [-1,0.75,-2.5] / 0.85 and firstperson_righthand [-75,-5,-45] / [0,2,0]
+            // / 0.68, which M3.5 issue #400 transcribed verbatim. But a 1.12 .tcon.json's display
+            // block is not a vanilla one: Forge 1.12 fed it through TRSRTransformation /
+            // PerspectiveMapWrapper rather than through ItemTransform#apply, and the numbers were
+            // tuned against that. Dropped into a vanilla display block they sit the crossbow low and
+            // left of the hand and roll it short of level -- exactly what the playtest reported.
+            //
+            // Upstream ran into the same thing carrying the crossbow to modern Minecraft, and its
+            // answer is the one adopted here: 1.20's models/item/base/crossbow.json throws the 1.12
+            // numbers away and copies *vanilla's own* minecraft:item/crossbow display block
+            // character for character, including the deliberately-not-mirrored left-hand roll. So
+            // nothing below is invented: these values are simultaneously vanilla's and
+            // upstream-1.20's. The three other bows keep their 1.12 transforms -- their first-person
+            // pose is already vanilla's own item/handheld spot, and no playtest has flagged them.
+            // BowDrawModelTest pins all of it.
             "crossbow", builder -> builder.transforms()
                     .transform(ItemDisplayContext.THIRD_PERSON_RIGHT_HAND)
-                    .rotation(90, 180, -225).translation(-1, 0.75F, -2.5F).scale(0.85F).end()
+                    .rotation(-90, 0, -60).translation(2, 0.1F, -3).scale(0.9F).end()
                     .transform(ItemDisplayContext.THIRD_PERSON_LEFT_HAND)
-                    .rotation(90, 180, 225).translation(1, 0.75F, -2.5F).scale(0.85F).end()
+                    .rotation(-90, 0, 30).translation(2, 0.1F, -3).scale(0.9F).end()
                     .transform(ItemDisplayContext.FIRST_PERSON_RIGHT_HAND)
-                    .rotation(-75, -5, -45).translation(0, 2, 0).scale(0.68F).end()
+                    .rotation(-90, 0, -55).translation(1.13F, 3.2F, 1.13F).scale(0.68F).end()
                     .transform(ItemDisplayContext.FIRST_PERSON_LEFT_HAND)
-                    .rotation(-75, -5, 45).translation(0, 2, 0).scale(0.68F).end()
+                    .rotation(-90, 0, 35).translation(1.13F, 3.2F, 1.13F).scale(0.68F).end()
                     .end());
 
     /**
@@ -585,24 +603,33 @@ public class ForgeweaveItemModelProvider extends ItemModelProvider {
      *
      * <p>The two bows' {@code pull} overrides carry no {@code display} of their own -- vanilla's own
      * bow-pull arm animation does that work -- so this map has one entry.
+     *
+     * <p>Upstream's numbers are {@code [-115,-25,-45] / [-3,2.5,1]}, which is its own idle pose plus
+     * {@code (-40,-20,0)} of rotation and {@code (-3,+0.5,+1)} of translation. That <em>offset</em>
+     * is what the winding stance is; the idle pose it was measured from is the one issue #601
+     * re-based (see the crossbow entry above), so the offset moves with it and these are upstream's
+     * deltas on top of the new baseline. Both hands take the same authored delta: the sign flips
+     * {@code ItemTransform#apply} puts on a left-hand entry cancel out of a difference.
      */
     private static final Map<String, Consumer<ItemModelBuilder>> DRAWING_DISPLAY_OVERRIDES = Map.of(
             "crossbow", builder -> builder.transforms()
                     .transform(ItemDisplayContext.FIRST_PERSON_RIGHT_HAND)
-                    .rotation(-115, -25, -45).translation(-3, 2.5F, 1).scale(0.68F).end()
+                    .rotation(-130, -20, -55).translation(-1.87F, 3.7F, 2.13F).scale(0.68F).end()
                     .transform(ItemDisplayContext.FIRST_PERSON_LEFT_HAND)
-                    .rotation(-115, -25, 45).translation(-3, 2.5F, 1).scale(0.68F).end()
+                    .rotation(-130, -20, 35).translation(-1.87F, 3.7F, 2.13F).scale(0.68F).end()
                     .end());
 
     /**
-     * And the pose a <em>loaded</em> crossbow takes: back where the idle one sits, but levelled from
-     * upstream's idle {@code -75} to {@code -90} -- a cranked crossbow is held ready to aim.
+     * And the pose a <em>loaded</em> crossbow takes: back where the idle one sits, but pitched up
+     * from it -- a cranked crossbow is held ready to aim. Upstream's {@code [-90,-5,-45]} against its
+     * own idle {@code [-75,-5,-45]} is that pitch and nothing else, so, re-based the same way
+     * {@link #DRAWING_DISPLAY_OVERRIDES} is, it is {@code (-15,0,0)} on the idle pose.
      */
     private static final Map<String, Consumer<ItemModelBuilder>> LOADED_DISPLAY_OVERRIDES = Map.of(
             "crossbow", builder -> builder.transforms()
                     .transform(ItemDisplayContext.FIRST_PERSON_RIGHT_HAND)
-                    .rotation(-90, -5, -45).translation(0, 2, 0).scale(0.68F).end()
+                    .rotation(-105, 0, -55).translation(1.13F, 3.2F, 1.13F).scale(0.68F).end()
                     .transform(ItemDisplayContext.FIRST_PERSON_LEFT_HAND)
-                    .rotation(-90, -5, 45).translation(0, 2, 0).scale(0.68F).end()
+                    .rotation(-105, 0, 35).translation(1.13F, 3.2F, 1.13F).scale(0.68F).end()
                     .end());
 }

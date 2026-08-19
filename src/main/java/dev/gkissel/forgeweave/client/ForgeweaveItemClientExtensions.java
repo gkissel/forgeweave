@@ -51,11 +51,13 @@ import dev.gkissel.forgeweave.menu.ToolAssemblyRecipes;
  * {@code UseAnim.NONE} is <em>also</em> what 1.12 returns ({@code CrossBow#getItemUseAction}) and
  * this hook alone covers both poses. {@code CrossbowArmPoseTest} guards it.
  *
- * <p>One cosmetic deviation, unavoidable without a mixin: the cranking animation's speed comes from
- * {@code AnimationUtils#animateCrossbowCharge}, which divides by vanilla's own {@code
- * CrossbowItem.getChargeDuration} (25 ticks) rather than the assembled crossbow's {@code drawTime}.
- * A slower crossbow therefore finishes the arm movement before the crank itself completes and holds
- * there. The pose is right; only its pacing is vanilla's.
+ * <h2>Whose crank pose</h2>
+ *
+ * <p>Not vanilla's {@code ArmPose.CROSSBOW_CHARGE}: its animation is paced by vanilla's own 25-tick
+ * charge duration rather than the assembled crossbow's {@code drawTime}, so the arms finished
+ * winding twenty ticks early and froze there (issue #601, playtest 0.3.5-alpha.3 obs1). The charge
+ * branch hands out {@link CrossbowChargeArmPose} instead, which is the same pose over the right
+ * clock. The shouldered {@code CROSSBOW_HOLD} is still vanilla's, because it animates nothing.
  */
 @EventBusSubscriber(modid = Forgeweave.MODID, bus = EventBusSubscriber.Bus.MOD, value = Dist.CLIENT)
 public final class ForgeweaveItemClientExtensions {
@@ -74,7 +76,7 @@ public final class ForgeweaveItemClientExtensions {
     @Nullable
     static HumanoidModel.ArmPose crossbowArmPose(ItemStack stack, boolean usingThisHand, boolean swinging) {
         if (usingThisHand) {
-            return HumanoidModel.ArmPose.CROSSBOW_CHARGE;
+            return CrossbowChargeArmPose.pose();
         }
         return !swinging && CrossbowItem.isLoaded(stack) ? HumanoidModel.ArmPose.CROSSBOW_HOLD : null;
     }

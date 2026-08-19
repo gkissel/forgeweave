@@ -78,11 +78,15 @@ class BowScreenshotSceneTest {
     }
 
     /**
-     * Issue #425: the crossbow's two arm poses are third-person artifacts by definition -- a
-     * first-person frame cannot show an arm pose at all -- so those two states get a second capture
-     * from behind. Only those two: every other pose on the list differs from its neighbours by
-     * <em>model</em>, which first person shows better, and the arm is doing the same thing in all of
-     * them.
+     * Issue #425: the crossbow's arm poses are third-person artifacts by definition -- a first-person
+     * frame cannot show an arm pose at all -- so those states get a second capture from behind. Only
+     * the crossbow's: every other pose on the list differs from its neighbours by <em>model</em>,
+     * which first person shows better, and the arm is doing the same thing in all of them.
+     *
+     * <p>Issue #601 added the mid-crank one. The cranking pose is an <em>animation</em>, and the
+     * fully-wound frame is identical whatever paces it; stage 2, roughly half the crossbow's own
+     * draw, is the frame where a crank running on vanilla's 25-tick clock instead of the crossbow's
+     * 45 is visibly ahead of the limbs.
      */
     @Test
     void theCrossbowsArmPosesAreAlsoCapturedInThirdPerson() {
@@ -90,8 +94,8 @@ class BowScreenshotSceneTest {
                 .filter(ScreenshotHarness.BowPose::thirdPerson)
                 .map(ScreenshotHarness.BowPose::fileName)
                 .toList();
-        assertEquals(List.of("bow_crossbow_draw3", "bow_crossbow_loaded"), thirdPerson,
-                "the cranking pose and the shouldered one");
+        assertEquals(List.of("bow_crossbow_draw2", "bow_crossbow_draw3", "bow_crossbow_loaded"), thirdPerson,
+                "the crank half-wound, the crank finished, and the shouldered one");
     }
 
     /** File names are the frames a reviewer looks for; keep them derived from the item, not hand-typed. */
