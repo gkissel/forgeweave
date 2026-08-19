@@ -413,9 +413,21 @@ public final class ForgeweaveBlocks {
                     .friction(0.5F)
                     .sound(SoundType.SLIME_BLOCK)));
 
-    /** One slime foliage colour's plant life: leaves, tall grass and fern. */
+    /**
+     * One slime foliage colour's plant life: leaves, tall grass, fern, the sapling that grows the
+     * leaves, and the vine's three stages (#488, parity audit T57 -- upstream keeps the stages as
+     * three separate blocks too, each pointing at the next).
+     */
     public record SlimePlants(FoliageType foliage, DeferredBlock<Block> leaves,
-                              DeferredBlock<SlimeTallGrassBlock> tallGrass, DeferredBlock<SlimeTallGrassBlock> fern) {}
+                              DeferredBlock<SlimeTallGrassBlock> tallGrass, DeferredBlock<SlimeTallGrassBlock> fern,
+                              DeferredBlock<SlimeSaplingBlock> sapling, DeferredBlock<SlimeVineBlock> vine,
+                              DeferredBlock<SlimeVineBlock> vineMid, DeferredBlock<SlimeVineBlock> vineEnd) {
+
+        /** The vine's three stages, thickest first -- datagen, tinting and loot all walk this. */
+        public List<DeferredBlock<SlimeVineBlock>> vines() {
+            return List.of(vine, vineMid, vineEnd);
+        }
+    }
 
     private static final List<SlimePlants> SLIME_PLANTS = new ArrayList<>();
     private static final List<SlimePlants> SLIME_PLANTS_VIEW = Collections.unmodifiableList(SLIME_PLANTS);
@@ -451,6 +463,16 @@ public final class ForgeweaveBlocks {
     /** The leaves of a given foliage colour. */
     public static Block slimeLeaves(FoliageType foliage) {
         return plantsOf(foliage).leaves().get();
+    }
+
+    /** Whether {@code block} is one of the slime leaves -- what a canopy vine hangs from (#488). */
+    public static boolean isSlimeLeaves(Block block) {
+        return SLIME_PLANTS.stream().anyMatch(plants -> plants.leaves().get() == block);
+    }
+
+    /** Every plant of a given foliage colour. */
+    public static SlimePlants slimePlants(FoliageType foliage) {
+        return plantsOf(foliage);
     }
 
     private static SlimePlants plantsOf(FoliageType foliage) {
@@ -496,9 +518,41 @@ public final class ForgeweaveBlocks {
                         .isViewBlocking((state, level, pos) -> false)));
         DeferredBlock<SlimeTallGrassBlock> tallGrass = slimePlant(foliage, mapColor, "slime_tall_grass");
         DeferredBlock<SlimeTallGrassBlock> fern = slimePlant(foliage, mapColor, "slime_fern");
-        SlimePlants plants = new SlimePlants(foliage, leaves, tallGrass, fern);
+
+        // #488 (parity audit T57) -- upstream BlockSlimeSapling: BlockSapling behaviour with
+        // SoundType.PLANT, and BlockSlimeVine: BlockVine behaviour with SoundType.PLANT. The vine's
+        // three stages are registered end-first so each can hand the next to its constructor, which
+        // is upstream's own registration order in TinkerWorld#registerBlocks.
+        DeferredBlock<SlimeSaplingBlock> sapling = BLOCKS.register(foliage.id() + "_slime_sapling",
+                () -> new SlimeSaplingBlock(BlockBehaviour.Properties.of()
+                        .mapColor(mapColor)
+                        .noCollission()
+                        .randomTicks()
+                        .instabreak()
+                        .sound(SoundType.GRASS)
+                        .pushReaction(PushReaction.DESTROY), foliage));
+        DeferredBlock<SlimeVineBlock> vineEnd = slimeVine(foliage, mapColor, "_slime_vine_end", null);
+        DeferredBlock<SlimeVineBlock> vineMid = slimeVine(foliage, mapColor, "_slime_vine_mid", vineEnd);
+        DeferredBlock<SlimeVineBlock> vine = slimeVine(foliage, mapColor, "_slime_vine", vineMid);
+
+        SlimePlants plants = new SlimePlants(foliage, leaves, tallGrass, fern, sapling, vine, vineMid, vineEnd);
         SLIME_PLANTS.add(plants);
         return plants;
+    }
+
+    private static DeferredBlock<SlimeVineBlock> slimeVine(FoliageType foliage, MapColor mapColor, String suffix,
+                                                           DeferredBlock<SlimeVineBlock> nextStage) {
+        return BLOCKS.register(foliage.id() + suffix,
+                () -> new SlimeVineBlock(BlockBehaviour.Properties.of()
+                        .mapColor(mapColor)
+                        .replaceable()
+                        .noCollission()
+                        .strength(0.2F)
+                        .randomTicks()
+                        .sound(SoundType.VINE)
+                        .ignitedByLava()
+                        .pushReaction(PushReaction.DESTROY), foliage,
+                        nextStage == null ? null : nextStage::get));
     }
 
     private static DeferredBlock<SlimeTallGrassBlock> slimePlant(FoliageType foliage, MapColor mapColor, String name) {

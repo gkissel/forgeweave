@@ -2,12 +2,19 @@ package dev.gkissel.forgeweave.worldgen;
 
 import java.util.function.Consumer;
 
+import javax.annotation.Nullable;
+
 import net.minecraft.core.BlockPos;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.RandomSource;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.LeavesBlock;
+import net.minecraft.world.level.block.VineBlock;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.properties.BooleanProperty;
 
+import dev.gkissel.forgeweave.block.FoliageType;
 import dev.gkissel.forgeweave.block.ForgeweaveBlocks;
 import dev.gkissel.forgeweave.block.ForgeweaveBlocks.SlimeSoil;
 
@@ -23,12 +30,12 @@ import dev.gkissel.forgeweave.block.ForgeweaveBlocks.SlimeSoil;
  * storage, and the whole algorithm becomes a pure function that a plain unit test can drive without
  * a running server (see {@code SlimeIslandShapeTest}).
  *
- * <p>Two upstream features are deliberately not here yet, both because the blocks they need are not
- * registered: the slime lake, which needs the blue and purple slime fluids (parity audit T57), and
- * the slime vines. Upstream itself supports leaving each out -- {@code generateIsland} null-checks
- * its lake generator and its vine state, and {@code SlimeTreeGenerator} has a documented
- * {@code vine == null} branch that fills the canopy corners with leaves instead of vines, which is
- * the branch taken here. See the PR body for #449.
+ * <p>The slime vines arrived with issue #488 (parity audit T57); the slime <em>lake</em> is still
+ * deliberately absent, because it needs the blue and purple slime fluids that same ticket's
+ * follow-up carries. Upstream itself supports leaving it out -- {@code generateIsland} null-checks
+ * its lake generator. {@code SlimeTreeGenerator}'s other documented null branch, {@code vine == null}
+ * (canopy corners filled with leaves instead of vines), is still reachable and is what a
+ * hand-planted sapling takes, exactly as upstream's {@code BlockSlimeSapling} does.
  */
 public final class SlimeIslandShape {
     /** Upstream {@code SlimeIslandGenerator.RANDOMNESS}: 2% chance of a stray hole in the eroded surface. */
@@ -50,7 +57,47 @@ public final class SlimeIslandShape {
      * makes the same pick.
      */
     public record Palette(BlockState dirt, BlockState grass, BlockState log, BlockState leaves,
-                          BlockState tallGrass, BlockState fern) {}
+                          BlockState tallGrass, BlockState fern, @Nullable BlockState vine) {}
+
+    /**
+     * The palette a hand-planted sapling grows with (issue #488): upstream's {@code BlockSlimeSapling
+     * #generateTree} builds a {@code SlimeTreeGenerator} with a green congealed-slime trunk, its own
+     * foliage's leaves and a {@code null} vine, so a planted tree takes the leafy-corner branch of
+     * the canopy rather than the island generator's hanging vines. Only the trunk, leaves and vine
+     * fields are read when growing a tree; the soil and plant fields are the sapling's own ground.
+     */
+    public static Palette saplingPalette(FoliageType foliage) {
+        var plants = ForgeweaveBlocks.slimePlants(foliage);
+        return new Palette(
+                ForgeweaveBlocks.GREEN_SLIME_SOIL.dirt().get().defaultBlockState(),
+                ForgeweaveBlocks.GREEN_SLIME_SOIL.grass().get().defaultBlockState(),
+                ForgeweaveBlocks.GREEN_CONGEALED_SLIME.get().defaultBlockState(),
+                plants.leaves().get().defaultBlockState().setValue(LeavesBlock.PERSISTENT, true),
+                plants.tallGrass().get().defaultBlockState(),
+                plants.fern().get().defaultBlockState(),
+                null);
+    }
+
+    /**
+     * Grows one sapling-planted tree into the level at {@code pos}, upstream's
+     * {@code BlockSlimeSapling#generateTree}: the sapling itself is cleared, the trunk rises from its
+     * own block, and anything the canopy would drop on a block that is neither air nor leaves is
+     * skipped ({@code SlimeTreeGenerator#setBlockAndMetadata}). Drawn into the same buffer the island
+     * feature uses, so both paths share one tested generator.
+     */
+    public static void growSaplingTree(ServerLevel level, RandomSource random, BlockPos pos, FoliageType foliage) {
+        Palette palette = saplingPalette(foliage);
+        Canvas canvas = Canvas.forTree();
+        plantTree(random, canvas, palette, 0, 0, 0);
+        level.setBlock(pos, Blocks.AIR.defaultBlockState(), Block.UPDATE_INVISIBLE);
+        canvas.forEachDrawn(drawn -> {
+            BlockPos target = pos.offset(drawn.pos());
+            BlockState existing = level.getBlockState(target);
+            if (existing.isAir() || existing.canBeReplaced() || existing.getBlock() == palette.leaves().getBlock()) {
+                level.setBlock(target, drawn.state(), Block.UPDATE_ALL);
+            }
+        });
+    }
 
     /**
      * Upstream {@code generateIslandInChunk}'s palette roll: one island in five is a purple island
@@ -85,7 +132,8 @@ public final class SlimeIslandShape {
                 ForgeweaveBlocks.GREEN_CONGEALED_SLIME.get().defaultBlockState(),
                 plants.leaves().get().defaultBlockState().setValue(LeavesBlock.PERSISTENT, true),
                 plants.tallGrass().get().defaultBlockState(),
-                plants.fern().get().defaultBlockState());
+                plants.fern().get().defaultBlockState(),
+                plants.vineMid().get().defaultBlockState());
     }
 
     /** The island's overall extent, rolled before anything is drawn so the canvas can be sized for it. */
@@ -164,6 +212,12 @@ public final class SlimeIslandShape {
         public static Canvas forIsland(Size size) {
             int pad = Size.canvasPad();
             return new Canvas(-pad, 0, -pad, size.canvasSizeX(), size.canvasSizeY(), size.canvasSizeZ());
+        }
+
+        /** A canvas big enough for one tree grown from a sapling at its origin. */
+        public static Canvas forTree() {
+            int pad = Size.canvasPad();
+            return new Canvas(-pad, 0, -pad, 2 * pad + 1, MIN_TREE_HEIGHT + TREE_HEIGHT_RANGE + 1, 2 * pad + 1);
         }
 
         private int index(int x, int y, int z) {
@@ -367,7 +421,17 @@ public final class SlimeIslandShape {
             return;
         }
         placeTrunk(canvas, palette, x, ground, z, trunkHeight);
-        placeCanopy(canvas, palette, x, ground + trunkHeight, z);
+        placeCanopy(random, canvas, palette, x, ground + trunkHeight, z);
+    }
+
+    /**
+     * One tree whose ground is already known -- the sapling path, where the planted block itself is
+     * the trunk's first block and there is no island surface to seek down to.
+     */
+    public static void plantTree(RandomSource random, Canvas canvas, Palette palette, int x, int y, int z) {
+        int trunkHeight = random.nextInt(TREE_HEIGHT_RANGE) + MIN_TREE_HEIGHT;
+        placeTrunk(canvas, palette, x, y, z, trunkHeight);
+        placeCanopy(random, canvas, palette, x, y + trunkHeight, z);
     }
 
     /** Upstream {@code findGround}: walk down to the first slime soil whose top face is clear. */
@@ -392,29 +456,78 @@ public final class SlimeIslandShape {
 
     /**
      * Upstream {@code placeCanopy}: four diamond layers of leaves down from the trunk top, then the
-     * two shaping passes. The {@code vine == null} branch is the one taken -- the four cardinal arms
-     * are trimmed back and the four diagonal corners are filled with leaves instead of vines.
+     * two shaping passes. Which shaping it does depends on whether the palette carries a vine: with
+     * one, the four canopy corners are hollowed out and vines are hung from the skirt and the
+     * corners; without one -- upstream's own {@code vine == null} branch, which is what a
+     * hand-planted sapling takes -- those corners are filled with leaves instead.
      */
-    private static void placeCanopy(Canvas canvas, Palette palette, int x, int top, int z) {
+    private static void placeCanopy(RandomSource random, Canvas canvas, Palette palette, int x, int top, int z) {
         for (int i = 0; i < 4; i++) {
             placeDiamondLayer(canvas, palette, x, top - i, z, i + 1);
         }
 
+        BlockState vine = palette.vine();
+        BlockState air = Blocks.AIR.defaultBlockState();
+
         int arms = top - 3;
-        setLeafy(canvas, palette, x + 4, arms, z, Blocks.AIR.defaultBlockState());
-        setLeafy(canvas, palette, x - 4, arms, z, Blocks.AIR.defaultBlockState());
-        setLeafy(canvas, palette, x, arms, z + 4, Blocks.AIR.defaultBlockState());
-        setLeafy(canvas, palette, x, arms, z - 4, Blocks.AIR.defaultBlockState());
+        setLeafy(canvas, palette, x + 4, arms, z, air);
+        setLeafy(canvas, palette, x - 4, arms, z, air);
+        setLeafy(canvas, palette, x, arms, z + 4, air);
+        setLeafy(canvas, palette, x, arms, z - 4, air);
+        if (vine != null) {
+            setLeafy(canvas, palette, x + 1, arms, z + 1, air);
+            setLeafy(canvas, palette, x + 1, arms, z - 1, air);
+            setLeafy(canvas, palette, x - 1, arms, z + 1, air);
+            setLeafy(canvas, palette, x - 1, arms, z - 1, air);
+        }
 
         int skirt = arms - 1;
         setLeafy(canvas, palette, x + 3, skirt, z, palette.leaves());
         setLeafy(canvas, palette, x - 3, skirt, z, palette.leaves());
         setLeafy(canvas, palette, x, skirt, z - 3, palette.leaves());
         setLeafy(canvas, palette, x, skirt, z + 3, palette.leaves());
-        setLeafy(canvas, palette, x + 1, skirt, z + 1, palette.leaves());
-        setLeafy(canvas, palette, x + 1, skirt, z - 1, palette.leaves());
-        setLeafy(canvas, palette, x - 1, skirt, z + 1, palette.leaves());
-        setLeafy(canvas, palette, x - 1, skirt, z - 1, palette.leaves());
+        if (vine == null) {
+            setLeafy(canvas, palette, x + 1, skirt, z + 1, palette.leaves());
+            setLeafy(canvas, palette, x + 1, skirt, z - 1, palette.leaves());
+            setLeafy(canvas, palette, x - 1, skirt, z + 1, palette.leaves());
+            setLeafy(canvas, palette, x - 1, skirt, z - 1, palette.leaves());
+            return;
+        }
+
+        int hang = skirt - 1;
+        setLeafy(canvas, palette, x + 3, hang, z, randomizedVine(random, vine));
+        setLeafy(canvas, palette, x - 3, hang, z, randomizedVine(random, vine));
+        setLeafy(canvas, palette, x, hang, z - 3, randomizedVine(random, vine));
+        setLeafy(canvas, palette, x, hang, z + 3, randomizedVine(random, vine));
+        // Upstream hangs each corner as a two-block pair with the same faces, so the lower one is
+        // held up by the upper one rather than by anything solid.
+        hangCorner(random, canvas, palette, x + 2, hang, z + 2, vine);
+        hangCorner(random, canvas, palette, x + 2, hang, z - 2, vine);
+        hangCorner(random, canvas, palette, x - 2, hang, z + 2, vine);
+        hangCorner(random, canvas, palette, x - 2, hang, z - 2, vine);
+    }
+
+    private static void hangCorner(RandomSource random, Canvas canvas, Palette palette,
+                                   int x, int hang, int z, BlockState vine) {
+        BlockState corner = randomizedVine(random, vine);
+        setLeafy(canvas, palette, x, hang + 1, z, corner);
+        setLeafy(canvas, palette, x, hang, z, corner);
+    }
+
+    /**
+     * Upstream {@code getRandomizedVine}: clear every face, then turn one to three of them back on
+     * at random -- the same roll order, so the same seed hangs the same vines.
+     */
+    private static BlockState randomizedVine(RandomSource random, BlockState vine) {
+        BooleanProperty[] faces = {VineBlock.NORTH, VineBlock.EAST, VineBlock.SOUTH, VineBlock.WEST};
+        BlockState state = vine;
+        for (BooleanProperty face : faces) {
+            state = state.setValue(face, false);
+        }
+        for (int i = random.nextInt(3) + 1; i > 0; i--) {
+            state = state.setValue(faces[random.nextInt(faces.length)], true);
+        }
+        return state;
     }
 
     private static void placeDiamondLayer(Canvas canvas, Palette palette, int x, int y, int z, int range) {

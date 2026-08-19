@@ -44,6 +44,7 @@ public final class ForgeweaveFoliageColors {
             register(event, plants.foliage(), plants.leaves().get());
             register(event, plants.foliage(), plants.tallGrass().get());
             register(event, plants.foliage(), plants.fern().get());
+            plants.vines().forEach(vine -> register(event, plants.foliage(), vine.get())); // #488 (T57)
         }
     }
 
@@ -56,6 +57,7 @@ public final class ForgeweaveFoliageColors {
             register(event, plants.foliage(), plants.leaves().get());
             register(event, plants.foliage(), plants.tallGrass().get());
             register(event, plants.foliage(), plants.fern().get());
+            plants.vines().forEach(vine -> register(event, plants.foliage(), vine.get())); // #488 (T57)
         }
     }
 

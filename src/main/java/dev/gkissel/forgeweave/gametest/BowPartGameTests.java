@@ -139,6 +139,30 @@ public class BowPartGameTests {
         helper.succeed();
     }
 
+    /**
+     * #488 (parity audit T57): upstream's {@code slimevine_blue} and {@code slimevine_purple}
+     * bowstrings, {@code safeAdd}ed at one ingot per vine block for all three stages.
+     */
+    @GameTest(template = "empty")
+    public static void bowStringCraftsFromEverySlimeVineStage(GameTestHelper helper) {
+        BlockPos pos = new BlockPos(1, 1, 1);
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+
+        for (ForgeweaveBlocks.SlimePlants plants : ForgeweaveBlocks.slimePlants()) {
+            String material = "slimevine_" + plants.foliage().id();
+            for (var stage : plants.vines()) {
+                ItemStack output = craft(helper, pos, player, ForgeweaveItems.PATTERN_BOW_STRING.get(),
+                        new ItemStack(stage.get()));
+                helper.assertTrue(output.is(ForgeweaveItems.PART_BOW_STRING.get()),
+                        "expected a bow string from " + stage.getId() + ", got " + output);
+                helper.assertTrue(materialId(material).equals(output.get(ForgeweaveDataComponents.MATERIAL.get())),
+                        "expected forgeweave:" + material + " from " + stage.getId() + ", got "
+                                + output.get(ForgeweaveDataComponents.MATERIAL.get()));
+            }
+        }
+        helper.succeed();
+    }
+
     @GameTest(template = "empty")
     public static void partBuilderRefusesAMaterialWithoutThePartsStatBlock(GameTestHelper helper) {
         BlockPos pos = new BlockPos(1, 1, 1);

@@ -1,0 +1,24 @@
+{
+  "type": "minecraft:block",
+  "pools": [
+    {
+      "bonus_rolls": 0.0,
+      "conditions": [
+        {
+          "condition": "minecraft:match_tool",
+          "predicate": {
+            "items": "minecraft:shears"
+          }
+        }
+      ],
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "name": "forgeweave:purple_slime_vine_mid"
+        }
+      ],
+      "rolls": 1.0
+    }
+  ],
+  "random_sequence": "forgeweave:blocks/purple_slime_vine_mid"
+}

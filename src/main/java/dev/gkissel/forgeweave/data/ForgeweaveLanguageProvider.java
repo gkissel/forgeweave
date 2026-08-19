@@ -9,6 +9,7 @@ import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.block.ForgeweaveBlocks;
 import dev.gkissel.forgeweave.block.SearedFurnaceScan;
 import dev.gkissel.forgeweave.block.SearedReservoirScan;
+import dev.gkissel.forgeweave.block.SlimeSaplingBlock;
 import dev.gkissel.forgeweave.block.SmelteryScan;
 import dev.gkissel.forgeweave.fluid.ForgeweaveFluids;
 import dev.gkissel.forgeweave.item.ForgeweaveItems;
@@ -78,6 +79,14 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         addBlock(ForgeweaveBlocks.PURPLE_SLIME_PLANTS.leaves(), "Purple Slimy Leaves");
         addBlock(ForgeweaveBlocks.PURPLE_SLIME_PLANTS.tallGrass(), "Tall Purple Slimy Grass");
         addBlock(ForgeweaveBlocks.PURPLE_SLIME_PLANTS.fern(), "Purple Slimy Fern");
+
+        // #488 (parity audit T57) -- upstream's tile.tconstruct.slime_sapling.* and
+        // slime_vine_*.name entries, all three vine stages sharing one name as upstream does.
+        addBlock(ForgeweaveBlocks.BLUE_SLIME_PLANTS.sapling(), "Blue Slime Sapling");
+        addBlock(ForgeweaveBlocks.PURPLE_SLIME_PLANTS.sapling(), "Purple Slime Sapling");
+        ForgeweaveBlocks.BLUE_SLIME_PLANTS.vines().forEach(vine -> addBlock(vine, "Blue Slimy Vine"));
+        ForgeweaveBlocks.PURPLE_SLIME_PLANTS.vines().forEach(vine -> addBlock(vine, "Purple Slimy Vine"));
+        add(SlimeSaplingBlock.TOOLTIP_KEY, "Only grows on slimy dirt/grass"); // tile.tconstruct.slime_sapling.tooltip
 
         // The seared brick block family (docs/SCOPE.md M2 issue #93), names ported from upstream
         // 1.12's tile.tconstruct.seared.*.name entries (NOTICE.md).
@@ -800,6 +809,11 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         // only ever surface on a bow string.
         add("material.forgeweave.string", "String");
         add("material.forgeweave.vine", "Vine");
+        // #488 (parity audit T57): upstream calls both colours plainly "Slimevine"
+        // (material.slimevine_blue.name, with purple aliased to it); Forgeweave has two
+        // separate materials to tell apart in the station and in JEI, so each carries its colour.
+        add("material.forgeweave.slimevine_blue", "Blue Slimevine");
+        add("material.forgeweave.slimevine_purple", "Purple Slimevine");
 
         // Trait names and descriptions, keyed by trait id like materials are by material id -- traits
         // are Java behavior selected by data (ADR-0002), so nothing derives these keys for us. The
