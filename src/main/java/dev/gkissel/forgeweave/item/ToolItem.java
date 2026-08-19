@@ -32,7 +32,6 @@ import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.Tiers;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.UseAnim;
 import net.minecraft.world.item.component.ItemAttributeModifiers;
@@ -407,15 +406,21 @@ public class ToolItem extends Item {
      * never touches {@code getItemEnchantability}, so a tool sits at vanilla's 0), and 1.20 is
      * stricter still ({@code library/tools/item/ModifiableItem#isEnchantable} is a flat {@code false}
      * and enchantments reach a tool only by being converted into modifiers). The flag is a
-     * Forgeweave-only extension, so this is a Forgeweave-only value: vanilla iron's, the mid-tier
-     * reference for an ordinary metal tool -- gold enchants nearly twice as well as iron and stone
-     * a third as well, and a Forgeweave tool is made of many materials at once with no single tier to
-     * read. Per-material enchantability would need a new material stat (a datapack format change) for
-     * a switch that ships off by default.
+     * Forgeweave-only extension, so this is a Forgeweave-only value.
+     *
+     * <p>Issue #593 (maintainer decision on PR #574's open question) replaced #485's flat iron 14
+     * with the material's own: {@code Material#enchantability}, averaged across the tool's parts at
+     * assembly and read back off the {@code forgeweave:enchantability} component, because this seam
+     * gets an {@code ItemStack} and no registry access. A tool assembled before #593 carries no such
+     * component and falls back to {@link Material#DEFAULT_ENCHANTABILITY} -- the same flat 14 it
+     * already enchanted at, so no existing world changes.
      */
     @Override
     public int getEnchantmentValue(ItemStack stack) {
-        return ForgeweaveConfig.ALLOW_VANILLA_ENCHANTING.get() ? Tiers.IRON.getEnchantmentValue() : 0;
+        if (!ForgeweaveConfig.ALLOW_VANILLA_ENCHANTING.get()) {
+            return 0;
+        }
+        return stack.getOrDefault(ForgeweaveDataComponents.ENCHANTABILITY.get(), Material.DEFAULT_ENCHANTABILITY);
     }
 
     /**

@@ -26,5 +26,6 @@
   "repair_item": {
     "tag": "minecraft:planks"
   },
+  "enchantability": 15,
   "color": "#8E661B"
 }

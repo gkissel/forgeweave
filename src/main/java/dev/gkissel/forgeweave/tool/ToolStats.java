@@ -1,5 +1,7 @@
 package dev.gkissel.forgeweave.tool;
 
+import java.util.List;
+
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 
@@ -73,6 +75,33 @@ public final class ToolStats {
         durability = ForgeweaveTraits.headDurability(head.traits().forPart(PartItem.Kind.HEAD), durability);
 
         return new Stats(durability, headStats.miningSpeed(), headStats.attackDamage());
+    }
+
+    /**
+     * The enchantability an assembled tool made of these part materials gets (issue #593): the plain
+     * mean of every part's {@link Material#enchantability}, rounded, over every slot the tool has --
+     * head, binding, handle, limb, bowstring alike.
+     *
+     * <p>No upstream aggregation to port: neither 1.12 nor 1.20 gives a material an enchantability
+     * to aggregate (see {@link Material#enchantability()}). The mean is the same shape as the
+     * averaging upstream 1.12's {@code ToolNBT} does apply to the stats it <em>does</em> have across
+     * a slot's materials, and it is the only rule that reads sensibly in both directions: a gold
+     * handle on an iron head should make the tool enchant somewhat better, not iron-exactly (a max)
+     * and not gold-exactly (a head-only read).
+     *
+     * <p>Averaging over <em>all</em> parts rather than just the heads is deliberate -- a paper
+     * binding is the classic "make it enchantable" part, and a head-only rule would make every
+     * non-head material's value dead data.
+     */
+    public static int averageEnchantability(List<Material> parts) {
+        if (parts.isEmpty()) {
+            return Material.DEFAULT_ENCHANTABILITY;
+        }
+        int total = 0;
+        for (Material part : parts) {
+            total += part.enchantability();
+        }
+        return Math.max(1, Math.round((float) total / parts.size()));
     }
 
     static IllegalArgumentException noStats(String block) {

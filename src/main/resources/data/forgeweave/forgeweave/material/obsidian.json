@@ -24,5 +24,6 @@
   "repair_item": {
     "item": "minecraft:obsidian"
   },
+  "enchantability": 10,
   "color": "#601CC4"
 }

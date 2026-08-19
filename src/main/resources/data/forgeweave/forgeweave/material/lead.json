@@ -26,5 +26,6 @@
   "repair_item": {
     "tag": "c:ingots/lead"
   },
+  "enchantability": 9,
   "color": "#4D4968"
 }

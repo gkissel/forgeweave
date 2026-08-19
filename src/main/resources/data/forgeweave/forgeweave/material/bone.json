@@ -26,5 +26,6 @@
   "repair_item": {
     "item": "minecraft:bone"
   },
+  "enchantability": 15,
   "color": "#EDE6BF"
 }

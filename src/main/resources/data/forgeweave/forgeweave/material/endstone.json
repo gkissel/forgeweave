@@ -25,5 +25,6 @@
   "repair_item": {
     "item": "minecraft:end_stone"
   },
+  "enchantability": 5,
   "color": "#E0D890"
 }

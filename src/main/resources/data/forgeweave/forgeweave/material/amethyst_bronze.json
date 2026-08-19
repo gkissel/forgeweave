@@ -44,5 +44,6 @@
     "tag": "c:ingots/amethyst_bronze"
   },
   "cast_only": true,
+  "enchantability": 18,
   "color": "#C687BD"
 }

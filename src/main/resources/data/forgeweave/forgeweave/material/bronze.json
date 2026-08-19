@@ -26,5 +26,6 @@
   "repair_item": {
     "tag": "c:ingots/bronze"
   },
+  "enchantability": 14,
   "color": "#E3BD68"
 }

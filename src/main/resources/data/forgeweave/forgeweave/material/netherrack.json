@@ -25,5 +25,6 @@
   "repair_item": {
     "item": "minecraft:netherrack"
   },
+  "enchantability": 5,
   "color": "#B84F4F"
 }

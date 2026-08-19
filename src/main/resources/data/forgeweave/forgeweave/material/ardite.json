@@ -28,5 +28,6 @@
     "tag": "c:ingots/ardite"
   },
   "cast_only": true,
+  "enchantability": 10,
   "color": "#D14210"
 }

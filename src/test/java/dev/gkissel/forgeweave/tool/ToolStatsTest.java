@@ -56,6 +56,54 @@ class ToolStatsTest {
         assertTrue(stats.durability() >= 1, "durability must never drop to zero or below");
     }
 
+    // ------------------------------------------------------------------- #593: enchantability
+
+    /**
+     * Issue #593: the assembled tool's enchantability is the plain rounded mean of every part's
+     * material value, over every slot rather than the heads alone (see
+     * {@link ToolStats#averageEnchantability}).
+     */
+    @Test
+    void enchantabilityIsTheRoundedMeanOfEveryPartsMaterial() {
+        Material paper = enchantable(22);
+        Material stone = enchantable(5);
+
+        assertEquals(22, ToolStats.averageEnchantability(List.of(paper, paper, paper)));
+        assertEquals(5, ToolStats.averageEnchantability(List.of(stone, stone, stone)));
+        // (22 + 5 + 5) / 3 = 10.67, rounded to 11 -- a better head does lift a stone-handled tool.
+        assertEquals(11, ToolStats.averageEnchantability(List.of(paper, stone, stone)));
+        // ... and the same three materials in any other slot order answer identically.
+        assertEquals(11, ToolStats.averageEnchantability(List.of(stone, stone, paper)));
+    }
+
+    /**
+     * A material that names no {@code enchantability} is worth {@link Material#DEFAULT_ENCHANTABILITY},
+     * which is what keeps a pack written before #593 enchanting exactly as it did (the flat 14).
+     */
+    @Test
+    void aMaterialWithNoEnchantabilityIsWorthTheDefault() {
+        Material plain = material(120, 4.0f, 3.0f, 0.5f, -50, 20);
+
+        assertEquals(Material.DEFAULT_ENCHANTABILITY, plain.enchantability());
+        assertEquals(Material.DEFAULT_ENCHANTABILITY, ToolStats.averageEnchantability(List.of(plain, plain)));
+    }
+
+    /** Never zero: a zero enchantment value is how {@code ToolItem} says "the flag is off". */
+    @Test
+    void enchantabilityNeverRoundsDownToZero() {
+        assertTrue(ToolStats.averageEnchantability(List.of(enchantable(1), enchantable(1))) >= 1,
+                "an enchantability of 0 would read as allowVanillaEnchanting being off");
+        assertEquals(Material.DEFAULT_ENCHANTABILITY, ToolStats.averageEnchantability(List.of()));
+    }
+
+    /** The same material as {@link #material}, differing only in the #593 field. */
+    private static Material enchantable(int enchantability) {
+        Material base = material(120, 4.0f, 3.0f, 0.5f, -50, 20);
+        return new Material(base.head(), base.handle(), base.extraDurability(), base.incorrectForTool(),
+                base.traits(), base.craftingItems(), base.repairItem(), base.color(), base.bow(),
+                base.bowstring(), base.castOnly(), enchantability);
+    }
+
     /**
      * Upstream's stone carries {@code cheapskate} on the head part only
      * ({@code TinkerMaterials}: {@code stone.addTrait(cheapskate, HEAD)}), whose

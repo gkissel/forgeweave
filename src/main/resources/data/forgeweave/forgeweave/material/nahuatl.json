@@ -25,5 +25,6 @@
     "item": "minecraft:obsidian"
   },
   "cast_only": true,
+  "enchantability": 12,
   "color": "#3B2754"
 }

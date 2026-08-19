@@ -24,5 +24,6 @@
   "repair_item": {
     "item": "minecraft:sponge"
   },
+  "enchantability": 15,
   "color": "#CACC4E"
 }

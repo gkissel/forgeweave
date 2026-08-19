@@ -31,5 +31,6 @@
   "repair_item": {
     "item": "minecraft:popped_chorus_fruit"
   },
+  "enchantability": 18,
   "color": "#8F648F"
 }

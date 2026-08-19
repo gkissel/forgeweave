@@ -27,5 +27,6 @@
     "tag": "c:ingots/copper"
   },
   "cast_only": true,
+  "enchantability": 12,
   "color": "#ED9F07"
 }

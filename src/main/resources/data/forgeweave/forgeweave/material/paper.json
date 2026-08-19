@@ -25,5 +25,6 @@
   "repair_item": {
     "item": "minecraft:paper"
   },
+  "enchantability": 22,
   "color": "#FFFFFF"
 }

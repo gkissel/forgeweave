@@ -12,6 +12,7 @@ import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.tags.EnchantmentTags;
 import net.minecraft.tags.ItemTags;
 import net.minecraft.tags.TagKey;
+import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -236,6 +237,93 @@ public class EnchantingGameTests {
         } finally {
             ForgeweaveConfig.ALLOW_VANILLA_ENCHANTING.set(false);
         }
+    }
+
+    // --------------------------------------------------------------- #593: per-material value
+
+    /**
+     * Issue #593 (maintainer decision on PR #574's open question): the enchantment value is the
+     * material's, averaged across the tool's parts, not the flat iron 14 T54 shipped. Driven through
+     * {@link ItemStack#getEnchantmentValue()} on real Tool-Station output, so the component the
+     * station bakes is what is being read.
+     *
+     * <p>Shipped values: paper 22 (vanilla gold's), stone 5 (vanilla stone's). An all-paper pickaxe
+     * is worth 22, an all-stone one 5, and a paper head on a stone body (22+5+5)/3 = 11.
+     */
+    @GameTest(template = "empty")
+    public static void enchantmentValueFollowsTheMaterialsWhenFlagOn(GameTestHelper helper) {
+        ForgeweaveConfig.ALLOW_VANILLA_ENCHANTING.set(true);
+        try {
+            assertValue(helper, pickaxe(helper, "paper", "paper", "paper"), 22, "an all-paper pickaxe");
+            assertValue(helper, pickaxe(helper, "stone", "stone", "stone"), 5, "an all-stone pickaxe");
+            assertValue(helper, pickaxe(helper, "paper", "stone", "stone"), 11,
+                    "a paper-headed, stone-bodied pickaxe ((22 + 5 + 5) / 3)");
+
+            helper.succeed();
+        } finally {
+            ForgeweaveConfig.ALLOW_VANILLA_ENCHANTING.set(false);
+        }
+    }
+
+    /** The flag still wins: material or not, an OFF world offers a tool nothing. */
+    @GameTest(template = "empty")
+    public static void materialEnchantabilityStaysGatedByTheFlag(GameTestHelper helper) {
+        ForgeweaveConfig.ALLOW_VANILLA_ENCHANTING.set(false);
+        assertValue(helper, pickaxe(helper, "paper", "paper", "paper"), 0,
+                "an all-paper pickaxe while allowVanillaEnchanting is off");
+        helper.succeed();
+    }
+
+    /**
+     * What the value is <em>for</em>: {@code EnchantmentHelper#selectEnchantment} rolls the level it
+     * enchants at as {@code level + 1 + rand(v/4 + 1) + rand(v/4 + 1)}, so a higher-enchantability
+     * material reaches enchantments a lower one cannot. Asserted over a fixed seed sequence rather
+     * than one roll, because any single roll can tie -- what has to differ is the reachable ceiling.
+     */
+    @GameTest(template = "empty")
+    public static void betterMaterialReachesStrongerEnchantments(GameTestHelper helper) {
+        ForgeweaveConfig.ALLOW_VANILLA_ENCHANTING.set(true);
+        try {
+            ItemStack paper = pickaxe(helper, "paper", "paper", "paper");
+            ItemStack stone = pickaxe(helper, "stone", "stone", "stone");
+
+            int paperBest = bestOfferedLevel(helper, paper);
+            int stoneBest = bestOfferedLevel(helper, stone);
+            helper.assertTrue(paperBest > stoneBest,
+                    "the table should offer a paper pickaxe (enchantability 22) stronger enchantments than a "
+                            + "stone one (5); got best levels " + paperBest + " vs " + stoneBest);
+
+            helper.succeed();
+        } finally {
+            ForgeweaveConfig.ALLOW_VANILLA_ENCHANTING.set(false);
+        }
+    }
+
+    /**
+     * The strongest enchantment level the table's top slot ever offers this stack over 200 fixed
+     * seeds -- the real {@code EnchantmentMenu} path ({@code selectEnchantment} over the
+     * {@code #minecraft:in_enchanting_table} tag), which is where the enchantment value is read.
+     */
+    private static int bestOfferedLevel(GameTestHelper helper, ItemStack stack) {
+        int best = 0;
+        for (int seed = 0; seed < 200; seed++) {
+            List<EnchantmentInstance> offers = EnchantmentHelper.selectEnchantment(
+                    RandomSource.create(seed), stack, 30, tableEnchantments(helper));
+            for (EnchantmentInstance offer : offers) {
+                best = Math.max(best, offer.level);
+            }
+        }
+        return best;
+    }
+
+    private static void assertValue(GameTestHelper helper, ItemStack stack, int expected, String what) {
+        helper.assertTrue(stack.getEnchantmentValue() == expected,
+                what + " should have enchantment value " + expected + ", got " + stack.getEnchantmentValue());
+    }
+
+    private static ItemStack pickaxe(GameTestHelper helper, String head, String binding, String handle) {
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        return ToolAssembly.pickaxe(helper, player, new BlockPos(1, 1, 1), head, binding, handle);
     }
 
     private static void assertTagged(GameTestHelper helper, Item item, TagKey<Item> tag) {

@@ -27,5 +27,6 @@
     "tag": "c:ingots/rose_gold"
   },
   "cast_only": true,
+  "enchantability": 22,
   "color": "#B76E79"
 }

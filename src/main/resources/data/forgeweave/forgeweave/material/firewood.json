@@ -24,5 +24,6 @@
   "repair_item": {
     "item": "forgeweave:firewood"
   },
+  "enchantability": 15,
   "color": "#CC5300"
 }
