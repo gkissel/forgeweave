@@ -14,16 +14,34 @@ its rim per-direction from the part's alpha edges; this script uses a simpler un
 reproducing that per-direction shading exactly. Run once here and committed as static PNGs instead of
 composited at runtime (Forgeweave has no dynamic-texture system).
 
+Issue #628: the large plate is the one part upstream ships DEDICATED hand-drawn cast art for
+(`cast_large_plate.png`, carrying a creeper face) instead of relying on the runtime composite --
+`CustomTextureCreator.java` skips `CastTexture` for it the same way it does for the pattern (see
+`generate_pattern_textures.py`'s `LARGE_PLATE_PATTERN_SOURCE`). Compositing it here like every other
+part clobbered the face with a plain punched-plate silhouette; it is copied byte-for-byte instead, the
+same treatment as the pattern. A survey of every other `PARTS` entry below against upstream's
+`textures/items/` tree found no other dedicated `cast_<part>.png` file -- `cast_gear.png`,
+`cast_gem.png`, `cast_ingot.png`, `cast_nugget.png`, `cast_plate.png` also exist upstream, but those
+are the generic material-shape casts (already ported straight, NOTICE.md issue #272), not tool-part
+casts this script produces.
+
 Usage: python3 scripts/generate_cast_textures.py
-Requires Pillow (`pip install pillow`).
+Requires Pillow (`pip install pillow`), and the 1.12 clone at the path CLAUDE.md pins (for the large
+plate's dedicated cast art only -- every other input is already a Forgeweave-committed derived
+texture).
 """
+import shutil
 from pathlib import Path
 
 from PIL import Image
 
 ROOT = Path(__file__).resolve().parent.parent
+UPSTREAM = Path.home() / "development/minecraft/references/tinkers-1.12"
 TEXTURE_DIR = ROOT / "src/main/resources/assets/forgeweave/textures/derived/item"
 CAST_BASE = TEXTURE_DIR / "cast.png"
+
+LARGE_PLATE_CAST_SOURCE = UPSTREAM / "resources/assets/tconstruct/textures/items/cast_large_plate.png"
+LARGE_PLATE_CAST_OUTPUT = TEXTURE_DIR / "cast_large_plate.png"
 
 # Every part base is derived art under TEXTURE_DIR. That was not always so: katana_blade was
 # freshly authored under `textures/item/` between issues #279 and #375, and this script used to
@@ -49,7 +67,7 @@ PARTS = [
     ("large_sword_blade.png", "cast_large_sword_blade.png"),
     ("tough_tool_rod.png", "cast_tough_tool_rod.png"),
     ("tough_binding.png", "cast_tough_binding.png"),
-    ("large_plate.png", "cast_large_plate.png"),
+    # large_plate.png handled separately below -- upstream ships dedicated cast art for it (#628).
     ("hammer_head.png", "cast_hammer_head.png"),
     ("excavator_head.png", "cast_excavator_head.png"),
     ("scythe_head.png", "cast_scythe_head.png"),
@@ -111,6 +129,9 @@ def main() -> None:
         part = Image.open(TEXTURE_DIR / part_name).convert("RGBA")
         composite(cast, part).save(TEXTURE_DIR / output_name)
         print(f"wrote {output_name}")
+
+    shutil.copyfile(LARGE_PLATE_CAST_SOURCE, LARGE_PLATE_CAST_OUTPUT)
+    print(f"wrote {LARGE_PLATE_CAST_OUTPUT.name} (byte-for-byte copy, not composited)")
 
 
 if __name__ == "__main__":
