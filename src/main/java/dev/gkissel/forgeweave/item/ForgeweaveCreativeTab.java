@@ -73,6 +73,9 @@ public final class ForgeweaveCreativeTab {
             ForgeweaveItems.PART_KATANA_BLADE,
             ForgeweaveItems.PART_BOW_LIMB,
             ForgeweaveItems.PART_BOW_STRING,
+            ForgeweaveItems.PART_ARROW_HEAD,
+            ForgeweaveItems.PART_ARROW_SHAFT,
+            ForgeweaveItems.PART_FLETCHING,
             ForgeweaveItems.PART_SHARPENING_KIT);
 
     /** Icons mirror upstream's: slime ball, assembled pickaxe, pickaxe head, seared tank. */
@@ -299,6 +302,9 @@ public final class ForgeweaveCreativeTab {
         output.accept(ForgeweaveItems.PATTERN_KATANA_BLADE.get());
         output.accept(ForgeweaveItems.PATTERN_BOW_LIMB.get());
         output.accept(ForgeweaveItems.PATTERN_BOW_STRING.get());
+        output.accept(ForgeweaveItems.PATTERN_ARROW_HEAD.get());
+        output.accept(ForgeweaveItems.PATTERN_ARROW_SHAFT.get());
+        output.accept(ForgeweaveItems.PATTERN_FLETCHING.get());
         output.accept(ForgeweaveItems.PATTERN_SHARPENING_KIT.get());
         output.accept(ForgeweaveItems.PATTERN_SHARD.get());
 
@@ -441,6 +447,7 @@ public final class ForgeweaveCreativeTab {
         output.accept(ForgeweaveItems.CAST_CURVED_BLADE.get());
         output.accept(ForgeweaveItems.CAST_KATANA_BLADE.get());
         output.accept(ForgeweaveItems.CAST_BOW_LIMB.get());
+        output.accept(ForgeweaveItems.CAST_ARROW_HEAD.get()); // #626
         output.accept(ForgeweaveItems.CAST_SHARPENING_KIT.get());
         output.accept(ForgeweaveItems.CAST_SHARD.get()); // #471/T40
 

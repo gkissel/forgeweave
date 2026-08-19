@@ -43,7 +43,9 @@ public record Material(
         Optional<Bow> bow,
         Optional<Bowstring> bowstring,
         boolean castOnly,
-        int enchantability) {
+        int enchantability,
+        Optional<Shaft> shaft,
+        Optional<Fletching> fletching) {
 
     public static final ResourceKey<Registry<Material>> REGISTRY =
             ResourceKey.createRegistryKey(ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "material"));
@@ -76,6 +78,18 @@ public record Material(
             TextColor color, Optional<Bow> bow, Optional<Bowstring> bowstring, boolean castOnly) {
         this(head, handle, extraDurability, incorrectForTool, traits, craftingItems, repairItem, color, bow,
                 bowstring, castOnly, DEFAULT_ENCHANTABILITY);
+    }
+
+    /**
+     * Everything except the SHAFT/FLETCHING blocks, which issue #626 (parity audit T17) added last
+     * and which every material Forgeweave shipped before it does not carry.
+     */
+    public Material(Optional<Head> head, Optional<Handle> handle, Optional<Integer> extraDurability,
+            TagKey<Block> incorrectForTool, Traits traits, List<CraftingItem> craftingItems, Ingredient repairItem,
+            TextColor color, Optional<Bow> bow, Optional<Bowstring> bowstring, boolean castOnly,
+            int enchantability) {
+        this(head, handle, extraDurability, incorrectForTool, traits, craftingItems, repairItem, color, bow,
+                bowstring, castOnly, enchantability, Optional.empty(), Optional.empty());
     }
 
     /**
@@ -146,6 +160,33 @@ public record Material(
     }
 
     /**
+     * Stats an arrow shaft contributes ({@code library/materials/ArrowShaftMaterialStats.java},
+     * issue #626 / parity audit T17): a multiplier on the arrow's ammo count plus a flat bonus.
+     * Upstream's constructor order is {@code (modifier, bonusAmmo)} and its
+     * {@code getLocalizedInfo} shows them in that order too.
+     */
+    public record Shaft(float modifier, int bonusAmmo) {
+        public static final Codec<Shaft> CODEC = RecordCodecBuilder.create(instance -> instance.group(
+                ExtraCodecs.POSITIVE_FLOAT.fieldOf("modifier").forGetter(Shaft::modifier),
+                ExtraCodecs.NON_NEGATIVE_INT.fieldOf("bonus_ammo").forGetter(Shaft::bonusAmmo))
+                .apply(instance, Shaft::new));
+    }
+
+    /**
+     * Stats a fletching contributes ({@code library/materials/FletchingMaterialStats.java}, issue
+     * #626): flight accuracy (a fraction, displayed as a whole percent -- upstream's
+     * {@code formatNumberPercent}) and another ammo multiplier. Upstream's constructor order is
+     * {@code (accuracy, modifier)} while its {@code getLocalizedInfo} leads with the modifier; the
+     * record keeps the constructor order, the display lives in {@code StationText#fletchingStats}.
+     */
+    public record Fletching(float accuracy, float modifier) {
+        public static final Codec<Fletching> CODEC = RecordCodecBuilder.create(instance -> instance.group(
+                ExtraCodecs.POSITIVE_FLOAT.fieldOf("accuracy").forGetter(Fletching::accuracy),
+                ExtraCodecs.POSITIVE_FLOAT.fieldOf("modifier").forGetter(Fletching::modifier))
+                .apply(instance, Fletching::new));
+    }
+
+    /**
      * A raw item usable as Part Builder crafting input, and how much of a part's cost one of it
      * pays off (upstream 1.12's `Material#addItem`/`addItemIngot`, {@code TinkerMaterials}).
      * {@code value} is expressed in upstream's own {@code Material.VALUE_*} unit ({@code VALUE_Ingot = 144},
@@ -171,18 +212,29 @@ public record Material(
      * a stronger head variant simply replaces the general one (iron: {@code magnetic2} on the head,
      * {@code magnetic} everywhere else).
      *
-     * <p>Only {@code head} exists as a scope so far, because that is the only one Forgeweave's
-     * materials use; ponytail: the remaining {@link PartItem.Kind}s -- including issue #392's
-     * {@code BOW}/{@code BOWSTRING}, which fall back to {@code general} exactly as upstream's
-     * {@code getAllTraitsForStats} does -- get a field when a material needs one, and
-     * {@link #forPart} is the single place that has to learn about it.
+     * <p>Only {@code head} and {@code shaft} (issue #626: bone re-scopes {@code splitting} to its
+     * arrow shafts, {@code TinkerMaterials:272}) exist as scopes so far, because those are the only
+     * ones Forgeweave's materials use; ponytail: the remaining {@link PartItem.Kind}s -- including
+     * issue #392's {@code BOW}/{@code BOWSTRING} and #626's {@code FLETCHING}, which fall back to
+     * {@code general} exactly as upstream's {@code getAllTraitsForStats} does -- get a field when a
+     * material needs one, and {@link #forPart} is the single place that has to learn about it.
+     * Upstream's one PROJECTILE-scoped trait ({@code endstone.addTrait(enderference, PROJECTILE)},
+     * {@code TinkerMaterials:264}) is behaviorally redundant there -- endstone's general list is
+     * the same one trait the scope re-states -- so no {@code projectile} scope exists here either.
      */
-    public record Traits(List<ResourceLocation> general, List<ResourceLocation> head) {
+    public record Traits(List<ResourceLocation> general, List<ResourceLocation> head,
+            List<ResourceLocation> shaft) {
 
         public static final Codec<Traits> CODEC = RecordCodecBuilder.create(instance -> instance.group(
                 ResourceLocation.CODEC.listOf().optionalFieldOf("general", List.of()).forGetter(Traits::general),
-                ResourceLocation.CODEC.listOf().optionalFieldOf("head", List.of()).forGetter(Traits::head))
+                ResourceLocation.CODEC.listOf().optionalFieldOf("head", List.of()).forGetter(Traits::head),
+                ResourceLocation.CODEC.listOf().optionalFieldOf("shaft", List.of()).forGetter(Traits::shaft))
                 .apply(instance, Traits::new));
+
+        /** The pre-#626 shape: no shaft-scoped list, which is every material but bone. */
+        public Traits(List<ResourceLocation> general, List<ResourceLocation> head) {
+            this(general, head, List.of());
+        }
 
         /** The common case: traits every part of the material grants. */
         public static Traits general(ResourceLocation... ids) {
@@ -194,12 +246,15 @@ public record Material(
             if (kind == PartItem.Kind.HEAD && !head.isEmpty()) {
                 return head;
             }
+            if (kind == PartItem.Kind.SHAFT && !shaft.isEmpty()) {
+                return shaft;
+            }
             return general;
         }
 
         /** Every trait id this material can grant through any part, de-duplicated. */
         public List<ResourceLocation> all() {
-            return Stream.concat(general.stream(), head.stream()).distinct().toList();
+            return Stream.of(general, head, shaft).flatMap(List::stream).distinct().toList();
         }
     }
 
@@ -295,7 +350,9 @@ public record Material(
             Bowstring.CODEC.optionalFieldOf("bowstring").forGetter(Material::bowstring),
             Codec.BOOL.optionalFieldOf("cast_only", false).forGetter(Material::castOnly),
             ExtraCodecs.POSITIVE_INT.optionalFieldOf("enchantability", DEFAULT_ENCHANTABILITY)
-                    .forGetter(Material::enchantability))
+                    .forGetter(Material::enchantability),
+            Shaft.CODEC.optionalFieldOf("shaft").forGetter(Material::shaft),
+            Fletching.CODEC.optionalFieldOf("fletching").forGetter(Material::fletching))
             .apply(instance, Material::new));
 
     /**
@@ -313,6 +370,8 @@ public record Material(
             case EXTRA -> extraDurability.isPresent();
             case BOW -> bow.isPresent();
             case BOWSTRING -> bowstring.isPresent();
+            case SHAFT -> shaft.isPresent();
+            case FLETCHING -> fletching.isPresent();
             case NONE -> true;
         };
     }

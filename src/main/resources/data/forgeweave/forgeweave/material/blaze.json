@@ -1,0 +1,18 @@
+{
+  "shaft": {
+    "modifier": 0.8,
+    "bonus_ammo": 3
+  },
+  "incorrect_for_tool": "minecraft:incorrect_for_stone_tool",
+  "traits": {
+    "general": ["forgeweave:hovering"]
+  },
+  "crafting_items": [
+    { "ingredient": { "item": "minecraft:blaze_rod" }, "value": 144 }
+  ],
+  "repair_item": {
+    "item": "minecraft:blaze_rod"
+  },
+  "enchantability": 15,
+  "color": "#FFC100"
+}

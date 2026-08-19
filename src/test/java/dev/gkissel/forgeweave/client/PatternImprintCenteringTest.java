@@ -49,10 +49,15 @@ class PatternImprintCenteringTest {
      * the bow's own bottom-left corner, and carries the largest offset in the table (4, -2) --
      * exactly the #337 failure mode. {@code bow_string} is {@code parts/bowstring}, already
      * centered, so its offset stays (0, 0); it is here to keep the pair guarded together.
+     * <li>Issue #626: {@code arrow_shaft} is upstream's {@code arrow/shaft.png} -- the assembled
+     * arrow's own shaft layer, the same tool-layer reuse {@code bow_limb} is -- and
+     * {@code arrow_head}/{@code fletching} are {@code parts/} sprites; none of their tmat files
+     * carries an offset and all three center within tolerance at (0, 0).
      * </ul>
      */
     private static final String[] CENTERED_PARTS =
-            {"knife_blade", "curved_blade", "katana_blade", "bow_limb", "bow_string"};
+            {"knife_blade", "curved_blade", "katana_blade", "bow_limb", "bow_string",
+                    "arrow_head", "arrow_shaft", "fletching"};
 
     /**
      * Max allowed distance (in pixels) between the imprint's bounding-box center and the 16x16

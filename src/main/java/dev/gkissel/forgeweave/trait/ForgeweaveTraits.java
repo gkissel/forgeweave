@@ -1409,6 +1409,35 @@ public final class ForgeweaveTraits {
      */
     public static final Trait LACERATING = seamTrait(ForgeweaveInnates.LACERATE_SEAM);
 
+    // ---------------------------------------------------------------- #626 (parity audit T17): the
+    // five ammo-side traits, TinkerTraits:106-110. All five are projectile-entity behaviors riding
+    // the carried ammo stack -- TraitBreakable/TraitHovering/TraitEndspeed hook ProjectileEvent /
+    // AbstractProjectileTrait's flight callbacks, TraitFreezing/TraitSplitting fire on the
+    // projectile's hit or launch -- and the material arrow those behaviors ride is #626's follow-up
+    // slice on the #448 ProjectileCore layer. Until it lands no shipped tool can carry any of the
+    // five (blaze/reed/ice/endrod are SHAFT-only materials, bone's splitting is SHAFT-scoped, and
+    // nothing assembles a SHAFT part yet), so they register here with their names and descriptions
+    // and grow their entity-side behavior with the arrow, exactly as #229's combat traits
+    // registered ahead of their material wiring.
+
+    /** Reed. Upstream {@code TraitBreakable}: 50% chance the projectile breaks on hitting a block. */
+    public static final Trait BREAKABLE = new Trait() {};
+
+    /** Endrod. Upstream {@code TraitEndspeed}: projectiles fly near-instantly to their target. */
+    public static final Trait ENDSPEED = new Trait() {};
+
+    /**
+     * Ice. Upstream {@code TraitFreezing#onHit}: each landed hit stacks Slowness on the target, one
+     * amplifier deeper per hit up to IV, 30 ticks each.
+     */
+    public static final Trait FREEZING = new Trait() {};
+
+    /** Blaze. Upstream {@code TraitHovering}: projectiles move slower but barely mind gravity. */
+    public static final Trait HOVERING = new Trait() {};
+
+    /** Bone shafts. Upstream {@code TraitSplitting}: a fired arrow may split into two. */
+    public static final Trait SPLITTING = new Trait() {};
+
     /** One trait whose whole behavior is riding the combat seams -- see {@link Trait#combatSeams}. */
     private static Trait seamTrait(CombatSeam... seams) {
         List<CombatSeam> list = List.of(seams);
@@ -1516,7 +1545,13 @@ public final class ForgeweaveTraits {
             Map.entry(id("splintering"), SPLINTERING),
             Map.entry(id("flammable"), FLAMMABLE),
             Map.entry(id("enderference"), ENDERFERENCE),
-            Map.entry(id("lacerating"), LACERATING));
+            Map.entry(id("lacerating"), LACERATING),
+            // #626 T17 ammo traits; entity-side behavior lands with the material arrow.
+            Map.entry(id("breakable"), BREAKABLE),
+            Map.entry(id("endspeed"), ENDSPEED),
+            Map.entry(id("freezing"), FREEZING),
+            Map.entry(id("hovering"), HOVERING),
+            Map.entry(id("splitting"), SPLITTING));
 
     // ---------------------------------------------------------------- extra-info lines (parity audit
     // T26, issue #457) -- upstream 1.12's AbstractTrait#getExtraInfo. Traits are modifiers upstream,

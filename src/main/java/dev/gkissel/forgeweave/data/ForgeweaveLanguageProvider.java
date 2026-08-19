@@ -324,6 +324,10 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         // through its item.tconstruct.pattern.name="%s Pattern" / cast.name="%s Cast" formats.
         addItem(ForgeweaveItems.PATTERN_BOW_LIMB, "Bowlimb Pattern");
         addItem(ForgeweaveItems.PATTERN_BOW_STRING, "Bowstring Pattern");
+        // #626: upstream item.tconstruct.{arrow_head,arrow_shaft,fletching}.name.
+        addItem(ForgeweaveItems.PATTERN_ARROW_HEAD, "Arrow Head Pattern");
+        addItem(ForgeweaveItems.PATTERN_ARROW_SHAFT, "Arrow Shaft Pattern");
+        addItem(ForgeweaveItems.PATTERN_FLETCHING, "Fletching Pattern");
         addItem(ForgeweaveItems.PATTERN_SHARPENING_KIT, "Sharpening Kit Pattern");
         addItem(ForgeweaveItems.PATTERN_SHARD, "Shard Pattern");
 
@@ -352,6 +356,11 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         // #393: upstream item.tconstruct.{bow_limb,bow_string}.name, one word each.
         addItem(ForgeweaveItems.PART_BOW_LIMB, "Bowlimb");
         addItem(ForgeweaveItems.PART_BOW_STRING, "Bowstring");
+        // #626: upstream item.tconstruct.{arrow_head,arrow_shaft,fletching}.name, two words where
+        // the bow parts were one -- that is upstream's own spelling.
+        addItem(ForgeweaveItems.PART_ARROW_HEAD, "Arrow Head");
+        addItem(ForgeweaveItems.PART_ARROW_SHAFT, "Arrow Shaft");
+        addItem(ForgeweaveItems.PART_FLETCHING, "Fletching");
         // #271: upstream item.tconstruct.sharpening_kit.name.
         addItem(ForgeweaveItems.PART_SHARPENING_KIT, "Sharpening Kit");
 
@@ -602,6 +611,13 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         // Upstream's row is the bare "Modifier"; qualified here the way "Handle Modifier" already is,
         // so the two multiplier rows can't be told apart only by which group they sit under.
         add("gui.forgeweave.stat.bowstring_modifier", "Bowstring Modifier: %sx");
+        // #626, upstream stat.shaft.{modifier,ammo}.name and stat.fletching.{modifier,accuracy}.name.
+        // Upstream calls both multipliers just "Modifier"; prefixed here the way bowstring_modifier
+        // already is, since these lines share one panel with the handle's modifier.
+        add("gui.forgeweave.stat.shaft_modifier", "Shaft Modifier: %sx");
+        add("gui.forgeweave.stat.bonus_ammo", "Bonus Ammo: %s");
+        add("gui.forgeweave.stat.fletching_modifier", "Fletching Modifier: %sx");
+        add("gui.forgeweave.stat.accuracy", "Accuracy: %s");
 
         // What each stat row says on hover (issue #376), ported from upstream 1.12's
         // stat.head/handle/extra.*.desc entries (NOTICE.md). The underlined heading each group sits
@@ -623,6 +639,17 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("gui.forgeweave.stat.range.desc", "How far the projectile can be propelled.");
         add("gui.forgeweave.stat.bonus_damage.desc", "Bonus damage dealt on hit. The force of the arrow.");
         add("gui.forgeweave.stat.bowstring_modifier.desc", "Tool durability will be multiplied by this.");
+        // #626, upstream stat.shaft.*.desc / stat.fletching.*.desc.
+        add("gui.forgeweave.stat.shaft_modifier.desc",
+                "Each arrow needs a suiting core. It determines how well it lasts. "
+                        + "The total ammo count of the tool will be multiplied by this.");
+        add("gui.forgeweave.stat.bonus_ammo.desc",
+                "How many arrows you can get out of it. This much flat ammo will be added.");
+        add("gui.forgeweave.stat.fletching_modifier.desc",
+                "How many arrows you can craft with this. Projectile ammo will be multiplied by this.");
+        add("gui.forgeweave.stat.accuracy.desc",
+                "How stable the flight path will be using this fletching. "
+                        + "Affects the overall accuracy of the projectile.");
 
         // Upstream's gui.general.hover, shown by the grey "?" every info panel puts in its top-right
         // corner while some line on it has hover text (issue #376).
@@ -689,6 +716,9 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         // #392: stat.bow.name / stat.bowstring.name, the headings over the two ranged stat blocks.
         add("tooltip.forgeweave.stat_type.bow", "Bow");
         add("tooltip.forgeweave.stat_type.bowstring", "Bowstring");
+        // #626, upstream stat.shaft.name / stat.fletching.name.
+        add("tooltip.forgeweave.stat_type.shaft", "Arrow Shaft");
+        add("tooltip.forgeweave.stat_type.fletching", "Fletching");
         // tooltip.tank.amount -- the fluid a broken seared tank/gauge/window kept on its stack. The
         // fluid's own name is its registered display name, so it needs no key of its own.
         add("tooltip.forgeweave.tank.amount", "%s mb");
@@ -828,6 +858,16 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         // only ever surface on a bow string.
         add("material.forgeweave.string", "String");
         add("material.forgeweave.vine", "Vine");
+
+        // #626 -- the six arrow-only materials (parity audit T17). Names are upstream 1.12's
+        // material.<id>.name entries verbatim, including blaze's "Blazerod" and reed's plural
+        // "Reeds". The slimeleaf trio stays deferred with T57's world content.
+        add("material.forgeweave.blaze", "Blazerod");
+        add("material.forgeweave.reed", "Reeds");
+        add("material.forgeweave.ice", "Ice");
+        add("material.forgeweave.endrod", "Endrod");
+        add("material.forgeweave.feather", "Feather");
+        add("material.forgeweave.leaf", "Leaf");
         // #488 (parity audit T57): upstream calls both colours plainly "Slimevine"
         // (material.slimevine_blue.name, with purple aliased to it); Forgeweave has two
         // separate materials to tell apart in the station and in JEI, so each carries its colour.
@@ -1245,6 +1285,7 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         addItem(ForgeweaveItems.CAST_CURVED_BLADE, "Curved Blade Cast");
         addItem(ForgeweaveItems.CAST_KATANA_BLADE, "Katana Blade Cast");
         addItem(ForgeweaveItems.CAST_BOW_LIMB, "Bowlimb Cast");
+        addItem(ForgeweaveItems.CAST_ARROW_HEAD, "Arrow Head Cast"); // #626
         addItem(ForgeweaveItems.CAST_SHARPENING_KIT, "Sharpening Kit Cast");
         addItem(ForgeweaveItems.CAST_SHARD, "Shard Cast"); // #471/T40
 
@@ -1381,6 +1422,21 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("trait.forgeweave.enderference.description", "Prevents Endermen from teleporting around for a short time.");
         add("trait.forgeweave.lacerating.name", "Lacerating");
         add("trait.forgeweave.lacerating.description", "Hits open a bleeding wound that stacks and ticks over time.");
+        // #626 (parity audit T17): the five ammo-side traits, upstream's modifier.<id>.name/.desc
+        // (TinkerTraits:106-110). Same mechanic-sentence convention as every family above -- the
+        // leading italic flavor line each upstream .desc opens with is dropped, as splintering's
+        // and sharp's already are.
+        add("trait.forgeweave.breakable.name", "Breakable");
+        add("trait.forgeweave.breakable.description", "Projectiles have a 50% chance to break on impact.");
+        add("trait.forgeweave.endspeed.name", "Endspeed");
+        add("trait.forgeweave.endspeed.description", "Projectiles instantly travel to their destination.");
+        add("trait.forgeweave.freezing.name", "Freezing");
+        add("trait.forgeweave.freezing.description", "Successful hits slow your target more and more.");
+        add("trait.forgeweave.hovering.name", "Hovering");
+        add("trait.forgeweave.hovering.description", "Projectiles move slower but don't mind gravity as much.");
+        add("trait.forgeweave.splitting.name", "Splitting");
+        add("trait.forgeweave.splitting.description",
+                "The sudden acceleration of releasing an arrow might cause it to split into two.");
         // The two visible status effects those traits apply (splinter and the enderference mark are
         // markers, but they still show in the HUD, so they get names too).
         add("effect.forgeweave.bleed", "Bleeding");

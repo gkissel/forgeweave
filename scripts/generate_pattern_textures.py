@@ -100,6 +100,13 @@ PARTS = [
     # table -- its art is the shortbow's bottom limb, drawn in the bow's own corner of the canvas.
     ("bow_limb.png", "pattern_bow_limb.png", TEXTURE_DIR, (4, -2)),
     ("bow_string.png", "pattern_bow_string.png", TEXTURE_DIR, (0, 0)),  # bow_string.tmat.json: no offset
+    # #626 (parity audit T17): the arrow's three parts. None of their tmat files carries an
+    # "offset" field upstream (arrow_head/arrow_shaft/fletching.tmat.json are all a bare layer0),
+    # so all three composite at (0, 0). arrow_shaft's layer0 is items/arrow/shaft.png -- the
+    # assembled arrow's shaft layer, the same tool-layer reuse bow_limb documents above.
+    ("arrow_head.png", "pattern_arrow_head.png", TEXTURE_DIR, (0, 0)),
+    ("arrow_shaft.png", "pattern_arrow_shaft.png", TEXTURE_DIR, (0, 0)),
+    ("fletching.png", "pattern_fletching.png", TEXTURE_DIR, (0, 0)),
 ]
 
 # Upstream ships hand-drawn pattern art for the large plate instead of compositing one; copied

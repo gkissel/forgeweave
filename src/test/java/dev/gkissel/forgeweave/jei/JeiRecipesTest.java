@@ -64,7 +64,11 @@ class JeiRecipesTest {
                 repairItem,
                 TextColor.fromRgb(0xFFFFFF),
                 Optional.of(new Material.Bow(1.0f, 1.0f, 0.0f)),
-                Optional.of(new Material.Bowstring(1.0f)));
+                Optional.of(new Material.Bowstring(1.0f)),
+                false,
+                Material.DEFAULT_ENCHANTABILITY,
+                Optional.of(new Material.Shaft(1.0f, 0)),
+                Optional.of(new Material.Fletching(1.0f, 1.0f)));
     }
 
     /**
@@ -127,9 +131,10 @@ class JeiRecipesTest {
         // 5 M1 part types + 17 M3 part types (docs/SCOPE.md issue #151) + the war mace head
         // (issue #161) + the curved blade (issue #159) + the katana blade (issue #160) + the
         // sharpening kit (issue #271, the one part no tool is built from) + the bow limb and bow
-        // string (issue #393) + the shard (issue #605, upstream's other no-tool part) x 2
-        // materials, both of which carry every stat block.
-        assertEquals(29 * 2, recipes.size(), "29 part types x 2 materials");
+        // string (issue #393) + the shard (issue #605, upstream's other no-tool part) + the arrow
+        // head, arrow shaft and fletching (issue #626) x 2 materials, both of which carry every
+        // stat block.
+        assertEquals(32 * 2, recipes.size(), "32 part types x 2 materials");
         assertTrue(recipes.stream().allMatch(r -> r.result().has(ForgeweaveDataComponents.MATERIAL.get())));
     }
 

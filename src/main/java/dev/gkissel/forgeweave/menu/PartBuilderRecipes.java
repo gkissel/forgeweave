@@ -127,6 +127,12 @@ public final class PartBuilderRecipes {
             // and bowString is VALUE_Ingot * 1 (SMALL_PART_COST).
             new Entry(ForgeweaveItems.PATTERN_BOW_LIMB, ForgeweaveItems.PART_BOW_LIMB, MEDIUM_PART_COST),
             new Entry(ForgeweaveItems.PATTERN_BOW_STRING, ForgeweaveItems.PART_BOW_STRING, SMALL_PART_COST),
+            // #626 (parity audit T17). Upstream costs read straight off TinkerTools.java:213-215 --
+            // arrowHead, arrowShaft and fletching are all VALUE_Ingot * 2, the same HEAD_COST tier
+            // every plain head part sits in.
+            new Entry(ForgeweaveItems.PATTERN_ARROW_HEAD, ForgeweaveItems.PART_ARROW_HEAD, HEAD_COST),
+            new Entry(ForgeweaveItems.PATTERN_ARROW_SHAFT, ForgeweaveItems.PART_ARROW_SHAFT, HEAD_COST),
+            new Entry(ForgeweaveItems.PATTERN_FLETCHING, ForgeweaveItems.PART_FLETCHING, HEAD_COST),
             // #271's sharpening kit. Upstream cost read straight off its constructor:
             // `SharpeningKit() { super(Material.VALUE_Shard * 4); }` with `VALUE_Shard = VALUE_Ingot / 2`
             // (= 72), so 288 = 2 ingots -- the same HEAD_COST every head part uses.

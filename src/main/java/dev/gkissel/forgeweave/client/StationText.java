@@ -74,6 +74,8 @@ public final class StationText {
     public static final TextColor RANGE_COLOR = TextColor.fromRgb(0x8CAFAF);
     /** Upstream {@code BowMaterialStats#COLOR_Damage} (155, 80, 65). */
     public static final TextColor BOW_DAMAGE_COLOR = TextColor.fromRgb(0x9B5041);
+    /** Upstream {@code FletchingMaterialStats#COLOR_Accuracy} (205, 170, 205). */
+    public static final TextColor ACCURACY_COLOR = TextColor.fromRgb(0xCDAACD);
 
     /** Trailing-zero-free numbers, so 1.0 reads "1" and 1.25 reads "1.25" (upstream's {@code Util.df}). */
     private static final DecimalFormat FORMAT =
@@ -214,6 +216,8 @@ public final class StationText {
         statGroup(lines, "extra", extraStats(material));
         statGroup(lines, "bow", bowStats(material));
         statGroup(lines, "bowstring", bowstringStats(material));
+        statGroup(lines, "shaft", shaftStats(material));
+        statGroup(lines, "fletching", fletchingStats(material));
         if (!lines.isEmpty()) {
             lines.remove(lines.size() - 1); // upstream drops the last group's trailing spacer
         }
@@ -283,6 +287,31 @@ public final class StationText {
     }
 
     /**
+     * What an arrow shaft of this material contributes (issue #626, upstream
+     * {@code ArrowShaftMaterialStats#getLocalizedInfo}): the ammo multiplier, then the flat bonus
+     * ammo. The bonus takes {@code COLOR_Ammo = HeadMaterialStats.COLOR_Durability} upstream, which
+     * is the same green {@link #DURABILITY_COLOR} is.
+     */
+    public static List<Component> shaftStats(Material material) {
+        return material.shaft().<List<Component>>map(shaft -> List.of(
+                stat("shaft_modifier", shaft.modifier(), MODIFIER_COLOR),
+                stat("bonus_ammo", shaft.bonusAmmo(), DURABILITY_COLOR)))
+                .orElseGet(List::of);
+    }
+
+    /**
+     * What a fletching of this material contributes (issue #626, upstream
+     * {@code FletchingMaterialStats#getLocalizedInfo}): the ammo multiplier first, then the
+     * accuracy as a whole percent ({@code formatNumberPercent} -- leaf's 0.5 reads 50%).
+     */
+    public static List<Component> fletchingStats(Material material) {
+        return material.fletching().<List<Component>>map(fletching -> List.of(
+                stat("fletching_modifier", fletching.modifier(), MODIFIER_COLOR),
+                percentStat("accuracy", fletching.accuracy(), ACCURACY_COLOR)))
+                .orElseGet(List::of);
+    }
+
+    /**
      * One line per trait: its name in {@code color}, its description as hover text.
      *
      * <p>Issue #376 (maintainer decision, 2026-08-14) collapsed this from three lines per trait
@@ -328,6 +357,13 @@ public final class StationText {
     public static Component stat(String key, float value, TextColor color) {
         return withHover(Component.translatable("gui.forgeweave.stat." + key,
                 Component.literal(formatNumber(value)).withStyle(Style.EMPTY.withColor(color))),
+                Component.translatable("gui.forgeweave.stat." + key + ".desc"));
+    }
+
+    /** {@link #stat} with the value as a whole percent -- upstream's {@code formatNumberPercent}. */
+    public static Component percentStat(String key, float fraction, TextColor color) {
+        return withHover(Component.translatable("gui.forgeweave.stat." + key,
+                Component.literal(formatPercent(fraction)).withStyle(Style.EMPTY.withColor(color))),
                 Component.translatable("gui.forgeweave.stat." + key + ".desc"));
     }
 

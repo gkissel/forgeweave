@@ -92,6 +92,10 @@ public class StencilTableMenu extends StationMenu {
             // TinkerRegistry's tool parts for stencil crafting the same way).
             ForgeweaveItems.PATTERN_BOW_LIMB,
             ForgeweaveItems.PATTERN_BOW_STRING,
+            // #626: the arrow's three parts, stencilled right after the bow pair's upstream.
+            ForgeweaveItems.PATTERN_ARROW_HEAD,
+            ForgeweaveItems.PATTERN_ARROW_SHAFT,
+            ForgeweaveItems.PATTERN_FLETCHING,
             // #271: upstream registers the sharpening kit's pattern for stencil crafting alongside
             // every other part's (TinkerTools#registerItems).
             ForgeweaveItems.PATTERN_SHARPENING_KIT,

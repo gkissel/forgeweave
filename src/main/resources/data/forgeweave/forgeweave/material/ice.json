@@ -1,0 +1,18 @@
+{
+  "shaft": {
+    "modifier": 0.95,
+    "bonus_ammo": 0
+  },
+  "incorrect_for_tool": "minecraft:incorrect_for_stone_tool",
+  "traits": {
+    "general": ["forgeweave:freezing"]
+  },
+  "crafting_items": [
+    { "ingredient": { "item": "minecraft:packed_ice" }, "value": 144 }
+  ],
+  "repair_item": {
+    "item": "minecraft:packed_ice"
+  },
+  "enchantability": 15,
+  "color": "#97D7E0"
+}

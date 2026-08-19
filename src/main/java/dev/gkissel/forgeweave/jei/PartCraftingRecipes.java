@@ -58,6 +58,10 @@ final class PartCraftingRecipes {
             // M3.5's bow parts (issue #393).
             new Entry(ForgeweaveItems.PATTERN_BOW_LIMB, ForgeweaveItems.PART_BOW_LIMB, PartBuilderRecipes.MEDIUM_PART_COST),
             new Entry(ForgeweaveItems.PATTERN_BOW_STRING, ForgeweaveItems.PART_BOW_STRING, PartBuilderRecipes.SMALL_PART_COST),
+            // #626's arrow parts, all VALUE_Ingot * 2 (TinkerTools.java:213-215).
+            new Entry(ForgeweaveItems.PATTERN_ARROW_HEAD, ForgeweaveItems.PART_ARROW_HEAD, PartBuilderRecipes.HEAD_COST),
+            new Entry(ForgeweaveItems.PATTERN_ARROW_SHAFT, ForgeweaveItems.PART_ARROW_SHAFT, PartBuilderRecipes.HEAD_COST),
+            new Entry(ForgeweaveItems.PATTERN_FLETCHING, ForgeweaveItems.PART_FLETCHING, PartBuilderRecipes.HEAD_COST),
             new Entry(ForgeweaveItems.PATTERN_SHARPENING_KIT, ForgeweaveItems.PART_SHARPENING_KIT, PartBuilderRecipes.HEAD_COST),
             // #605: the shard, upstream's one sub-ingot part cost.
             new Entry(ForgeweaveItems.PATTERN_SHARD, ForgeweaveItems.SHARD, PartBuilderRecipes.SHARD_VALUE));

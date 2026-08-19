@@ -236,7 +236,9 @@ class MaterialTest {
         ResourceLocation generalId = ResourceLocation.fromNamespaceAndPath("forgeweave", general);
         ResourceLocation headId = ResourceLocation.fromNamespaceAndPath("forgeweave", head);
 
-        assertEquals(List.of(generalId, headId), material.traits().all());
+        // containsAll rather than equals since #626: bone's all() also carries its SHAFT-scoped
+        // splitting (ArrowMaterialTest#boneShaftTraitReplacesTheGeneralList pins that scope).
+        assertTrue(material.traits().all().containsAll(List.of(generalId, headId)));
         assertEquals(List.of(headId), material.traits().forPart(PartItem.Kind.HEAD));
         assertEquals(List.of(generalId), material.traits().forPart(PartItem.Kind.HANDLE));
         assertEquals(List.of(generalId), material.traits().forPart(PartItem.Kind.EXTRA));
