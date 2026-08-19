@@ -73,7 +73,10 @@ public class MattockItem extends ToolItem {
      * {@code onItemUse} hoes, and 1.20 spells the same tool {@code ToolActionsModule.of(AXE_DIG,
      * SHOVEL_DIG)} plus the {@code tilling} trait. Notably absent is {@link
      * ItemAbilities#SHOVEL_FLATTEN}: digging as a shovel is not pathing as one, and no upstream
-     * mattock has ever made a grass path.
+     * mattock has ever made a grass path. Absent for the same reason -- and the same upstream
+     * evidence, 1.20's mattock definition carrying {@code tilling} and no other interaction trait --
+     * is {@link ItemAbilities#AXE_STRIP} and the two abilities that travel with it (issue #575):
+     * digging as an axe is not stripping as one.
      *
      * <p>{@link #useOn} above depends on this method -- {@code BlockState#getToolModifiedState} will
      * not hand back farmland for a tool that does not claim {@link ItemAbilities#HOE_TILL}.

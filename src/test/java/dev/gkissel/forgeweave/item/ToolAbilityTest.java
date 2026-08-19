@@ -58,16 +58,19 @@ class ToolAbilityTest {
     }
 
     /**
-     * The axe family digs as an axe and claims nothing else. Log stripping, copper scraping and wax
-     * removal postdate 1.12 entirely and Forgeweave implements none of them yet -- upstream 1.20 keeps
-     * them in a separate {@code stripping} trait, which issue #575 tracks porting.
+     * The axe family digs as an axe and, since issue #575, also strips logs, scrapes copper and wipes
+     * wax -- the whole {@link ItemAbilities#DEFAULT_AXE_ACTIONS} set, which is what upstream 1.20's
+     * {@code stripping} trait covers and what its {@code HAND_AXE} and {@code BROAD_AXE} both carry.
+     * A deliberate deviation from 1.12, which predates all three mechanics; see {@code AxeStrip}.
      */
     @Test
-    void axeFamilyDigsLikeAnAxeAndClaimsNothingItCannotDo() {
+    void axeFamilyDigsAndStripsLikeAnAxe() {
         for (Item axe : new Item[] {ForgeweaveItems.TOOL_HATCHET.get(), ForgeweaveItems.TOOL_LUMBERAXE.get(),
                 ForgeweaveItems.TOOL_BATTLEAXE.get()}) {
             assertTrue(can(axe, ItemAbilities.AXE_DIG), axe + " must dig as an axe");
-            assertFalse(can(axe, ItemAbilities.AXE_STRIP), axe + " must not claim stripping it cannot do");
+            assertTrue(can(axe, ItemAbilities.AXE_STRIP), axe + " must strip logs");
+            assertTrue(can(axe, ItemAbilities.AXE_SCRAPE), axe + " must scrape weathered copper");
+            assertTrue(can(axe, ItemAbilities.AXE_WAX_OFF), axe + " must wipe wax off");
             assertFalse(can(axe, ItemAbilities.SHOVEL_FLATTEN), axe + " must not make paths");
         }
     }
@@ -84,6 +87,9 @@ class ToolAbilityTest {
         assertTrue(can(mattock, ItemAbilities.SHOVEL_DIG));
         assertTrue(can(mattock, ItemAbilities.HOE_TILL));
         assertFalse(can(mattock, ItemAbilities.SHOVEL_FLATTEN), "a mattock must not make grass paths");
+        // Nor does it strip (issue #575): 1.20's mattock definition carries `tilling` and no other
+        // interaction trait, so the axe family's stripping stops short of it exactly as pathing does.
+        assertFalse(can(mattock, ItemAbilities.AXE_STRIP), "a mattock must not strip logs");
     }
 
     /** Upstream 1.20's kama is {@code ToolActionsModule.of(HOE_DIG)}; its shearing needs no ability. */
@@ -136,5 +142,11 @@ class ToolAbilityTest {
         ItemStack mattock = new ItemStack(ForgeweaveItems.TOOL_MATTOCK.get());
         mattock.set(ForgeweaveDataComponents.BROKEN.get(), true);
         assertFalse(mattock.canPerformAction(ItemAbilities.HOE_TILL));
+
+        ItemStack hatchet = new ItemStack(ForgeweaveItems.TOOL_HATCHET.get());
+        assertTrue(hatchet.canPerformAction(ItemAbilities.AXE_STRIP));
+        hatchet.set(ForgeweaveDataComponents.BROKEN.get(), true);
+        assertFalse(hatchet.canPerformAction(ItemAbilities.AXE_STRIP));
+        assertFalse(hatchet.canPerformAction(ItemAbilities.AXE_SCRAPE));
     }
 }

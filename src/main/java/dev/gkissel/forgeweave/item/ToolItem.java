@@ -58,6 +58,7 @@ import dev.gkissel.forgeweave.menu.ToolAssemblyRecipes;
 import dev.gkissel.forgeweave.modifier.ForgeweaveModifiers;
 
 import dev.gkissel.forgeweave.tool.AoeHarvest;
+import dev.gkissel.forgeweave.tool.AxeStrip;
 import dev.gkissel.forgeweave.tool.CropHarvest;
 import dev.gkissel.forgeweave.tool.EntityShear;
 import dev.gkissel.forgeweave.tool.ShovelPath;
@@ -236,10 +237,16 @@ public class ToolItem extends Item {
      * <ul>
      *   <li>every kind contributes its {@code _DIG} ability and nothing else, except
      *   <li>{@code mineable/shovel}, which contributes the whole shovel set, because {@link
-     *       ShovelPath} ports upstream 1.12 {@code Shovel#onItemUse}'s grass paths in this same PR
-     *       (issue #464) -- the same pairing 1.20's excavator has. The mattock holds that tag too and
+     *       ShovelPath} ports upstream 1.12 {@code Shovel#onItemUse}'s grass paths (issue #464) -- the
+     *       same pairing 1.20's excavator has. The mattock holds that tag too and
      *       is upstream's one tool that digs as a shovel without pathing, so {@code MattockItem}
      *       states its own set rather than taking this one;
+     *   <li>{@code mineable/axe}, which likewise contributes the whole axe set, because {@link
+     *       AxeStrip} strips, scrapes and wipes wax off (issue #575) -- 1.20's {@code stripping}
+     *       trait, which its {@code HAND_AXE} and {@code BROAD_AXE} both carry, and this file's one
+     *       deliberate deviation from 1.12 (see {@code AxeStrip}'s javadoc for why). 1.20's mattock
+     *       does <em>not</em> carry it, and {@code MattockItem}'s own set leaves it out for the same
+     *       reason it leaves pathing out;
      *   <li>{@code sword_efficient} contributes {@code SWORD_DIG} alone and never {@link
      *       ItemAbilities#SWORD_SWEEP}: upstream's {@code SwordCore} extends {@code TinkerToolCore},
      *       not vanilla's {@code ItemSword}, so 1.12's automatic sweep never reached a Tinkers' sword
@@ -255,9 +262,6 @@ public class ToolItem extends Item {
      *       no ability.
      * </ul>
      *
-     * <p>Log stripping, copper scraping and wax removal (upstream 1.20's {@code stripping} trait) are
-     * therefore claimed by nothing here: 1.12 predates all three mechanics and Forgeweave implements
-     * none of them yet. Issue #575 tracks porting them onto the axe family.
      */
     private static Set<ItemAbility> abilitiesFor(List<TagKey<Block>> mineableBlocks) {
         Set<ItemAbility> abilities = new LinkedHashSet<>();
@@ -265,7 +269,7 @@ public class ToolItem extends Item {
             if (tag == BlockTags.MINEABLE_WITH_PICKAXE) {
                 abilities.add(ItemAbilities.PICKAXE_DIG);
             } else if (tag == BlockTags.MINEABLE_WITH_AXE) {
-                abilities.add(ItemAbilities.AXE_DIG);
+                abilities.addAll(ItemAbilities.DEFAULT_AXE_ACTIONS);
             } else if (tag == BlockTags.MINEABLE_WITH_SHOVEL) {
                 abilities.addAll(ItemAbilities.DEFAULT_SHOVEL_ACTIONS);
             } else if (tag == BlockTags.MINEABLE_WITH_HOE) {
@@ -1076,7 +1080,9 @@ public class ToolItem extends Item {
      *       harvests the same way over one block instead -- {@code KamaItem}, which overrides this;
      *   <li>the shovel family's grass paths (issue #464), upstream {@code Shovel#onItemUse}: gated on
      *       the tool's own {@link ItemAbilities#SHOVEL_FLATTEN}, so it follows the tag-derived tool
-     *       kind rather than a second list ({@link ShovelPath}).
+     *       kind rather than a second list ({@link ShovelPath});
+     *   <li>the axe family's strip/scrape/wax-off (issue #575), upstream 1.20's {@code stripping}
+     *       trait: gated the same way on {@link ItemAbilities#AXE_STRIP} ({@link AxeStrip}).
      * </ul>
      *
      * <p>Anything else -- and any Broken tool, upstream's {@code if(isBroken) return FAIL} -- falls
@@ -1092,6 +1098,9 @@ public class ToolItem extends Item {
         }
         if (abilities.contains(ItemAbilities.SHOVEL_FLATTEN)) {
             return ShovelPath.flattenAt(context, aoeShape);
+        }
+        if (abilities.contains(ItemAbilities.AXE_STRIP)) {
+            return AxeStrip.transformAt(context);
         }
         return super.useOn(context);
     }

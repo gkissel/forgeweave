@@ -29,8 +29,9 @@ import dev.gkissel.forgeweave.menu.ToolAssemblyRecipes;
 
 /**
  * Tool kind, end to end (parity audit 2026-08-18 T33, issue #464): the vanilla and {@code c:} tool
- * tags a Forgeweave tool is in, and the one behavior this ticket adds -- upstream 1.12
- * {@code Shovel#onItemUse}'s grass paths, over the shovel's one block and the excavator's 3x3.
+ * tags a Forgeweave tool is in, and the right-click behaviors that follow from a tool's kind --
+ * upstream 1.12 {@code Shovel#onItemUse}'s grass paths over the shovel's one block and the
+ * excavator's 3x3 (#464), and the axe family's strip/scrape/wax-off (#575).
  *
  * <p>The per-kind {@code canPerformAction} sets themselves are unit-tested ({@code ToolAbilityTest});
  * what needs a server is the datapack half (tags only resolve against loaded data) and the flatten
@@ -196,6 +197,98 @@ public class ToolKindGameTests {
 
         helper.assertBlockPresent(Blocks.FARMLAND, grass);
         helper.succeed();
+    }
+
+    /**
+     * Issue #575: right-clicking a log with an axe-family tool strips it, for one durability --
+     * upstream 1.20's {@code stripping} trait's {@code AXE_STRIP} transform, spelled here as vanilla
+     * {@code AxeItem#useOn}'s own body ({@code AxeStrip}).
+     */
+    @GameTest(template = "empty")
+    public static void hatchetStripsALog(GameTestHelper helper) {
+        BlockPos log = new BlockPos(1, 1, 3);
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        ItemStack hatchet = axe(helper, player, ForgeweaveItems.TOOL_HATCHET.get());
+        player.setItemInHand(InteractionHand.MAIN_HAND, hatchet);
+        helper.setBlock(log, Blocks.OAK_LOG);
+
+        helper.useBlock(log, player);
+
+        helper.assertBlockPresent(Blocks.STRIPPED_OAK_LOG, log);
+        helper.assertTrue(hatchet.getDamageValue() == 1,
+                "stripping a log must cost 1 durability, got " + hatchet.getDamageValue());
+        helper.succeed();
+    }
+
+    /**
+     * The other two transforms of the same trait, on the same tool: {@code AXE_SCRAPE} walks weathered
+     * copper one stage back and {@code AXE_WAX_OFF} takes the wax off. Both are checked on the lumber
+     * axe to also pin that the family shares the behavior, not just the hatchet.
+     */
+    @GameTest(template = "empty")
+    public static void lumberaxeScrapesCopperAndWipesWaxOff(GameTestHelper helper) {
+        BlockPos exposed = new BlockPos(1, 1, 3);
+        BlockPos waxed = new BlockPos(3, 1, 3);
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        ItemStack lumberaxe = axe(helper, player, ForgeweaveItems.TOOL_LUMBERAXE.get());
+        player.setItemInHand(InteractionHand.MAIN_HAND, lumberaxe);
+        helper.setBlock(exposed, Blocks.EXPOSED_COPPER);
+        helper.setBlock(waxed, Blocks.WAXED_COPPER_BLOCK);
+
+        helper.useBlock(exposed, player);
+        helper.useBlock(waxed, player);
+
+        helper.assertBlockPresent(Blocks.COPPER_BLOCK, exposed);
+        helper.assertBlockPresent(Blocks.COPPER_BLOCK, waxed);
+        helper.assertTrue(lumberaxe.getDamageValue() == 2,
+                "each transform must cost 1 durability, got " + lumberaxe.getDamageValue());
+        helper.succeed();
+    }
+
+    /** A Broken tool refuses this like every other action -- upstream's {@code isBroken -> FAIL}. */
+    @GameTest(template = "empty")
+    public static void aBrokenHatchetStripsNothing(GameTestHelper helper) {
+        BlockPos log = new BlockPos(1, 1, 3);
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        ItemStack hatchet = axe(helper, player, ForgeweaveItems.TOOL_HATCHET.get());
+        hatchet.set(ForgeweaveDataComponents.BROKEN.get(), true);
+        player.setItemInHand(InteractionHand.MAIN_HAND, hatchet);
+        helper.setBlock(log, Blocks.OAK_LOG);
+
+        helper.assertFalse(hatchet.canPerformAction(ItemAbilities.AXE_STRIP),
+                "a Broken hatchet must not claim the strip ability");
+        helper.useBlock(log, player);
+
+        helper.assertBlockPresent(Blocks.OAK_LOG, log);
+        helper.succeed();
+    }
+
+    /**
+     * The mattock stops short of stripping the same way it stops short of pathing: upstream 1.20 gives
+     * it {@code tilling} and no other interaction trait (issue #575).
+     */
+    @GameTest(template = "empty")
+    public static void mattockStripsNothing(GameTestHelper helper) {
+        BlockPos log = new BlockPos(1, 1, 3);
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        ItemStack mattock = ToolAssembly.assemble(helper, player, STATION,
+                ToolAssembly.entryFor(ForgeweaveItems.TOOL_MATTOCK.get()), List.of("wood", "stone", "stone"));
+        player.setItemInHand(InteractionHand.MAIN_HAND, mattock);
+        helper.setBlock(log, Blocks.OAK_LOG);
+
+        helper.assertFalse(mattock.canPerformAction(ItemAbilities.AXE_STRIP),
+                "a mattock must not claim the strip ability");
+        helper.useBlock(log, player);
+
+        helper.assertBlockPresent(Blocks.OAK_LOG, log);
+        helper.succeed();
+    }
+
+    /** An all-stone tool of {@code type}, built at the station like every other tool in this class. */
+    private static ItemStack axe(GameTestHelper helper, Player player, ToolItem type) {
+        ToolAssemblyRecipes.Entry entry = ToolAssembly.entryFor(type);
+        return ToolAssembly.assembleAtForge(helper, player, STATION, entry,
+                Collections.nCopies(entry.slotCount(), "stone"));
     }
 
     private static void assertTagged(GameTestHelper helper, Item item, TagKey<Item> tag) {
