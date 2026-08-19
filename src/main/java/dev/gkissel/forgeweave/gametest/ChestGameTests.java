@@ -455,10 +455,21 @@ public class ChestGameTests {
         return chest;
     }
 
+    /**
+     * The item entities {@code breaking} drops, captured at the {@code EntityJoinLevelEvent} seam
+     * rather than read back out of the level's entity index
+     * afterwards -- issue #643. Every drop joins the level synchronously inside the break, while the
+     * index that would serve it back registers asynchronously and can lag several ticks on a loaded
+     * runner (see {@link SpawnCapture}'s javadoc), which is what made an immediate query -- and the
+     * fixed two-tick delay that tried to outrun it -- count too few.
+     */
+    private static List<ItemEntity> dropsOf(GameTestHelper helper, BlockPos pos, Runnable breaking) {
+        return SpawnCapture.spawnedDuring(helper, ItemEntity.class,
+                new AABB(helper.absolutePos(pos)).inflate(4.0D), breaking);
+    }
+
     /** The one dropped chest item, asserting the total number of dropped entities along the way. */
-    private static ItemStack theOneDroppedChest(GameTestHelper helper, BlockPos pos, int expectedDrops) {
-        List<ItemEntity> dropped = helper.getLevel().getEntitiesOfClass(ItemEntity.class,
-                new AABB(helper.absolutePos(pos)).inflate(4.0D));
+    private static ItemStack theOneDroppedChest(GameTestHelper helper, List<ItemEntity> dropped, int expectedDrops) {
         helper.assertValueEqual(dropped.size(), expectedDrops, "number of dropped item entities");
         ItemStack stack = dropped.stream()
                 .map(ItemEntity::getItem)
@@ -474,10 +485,10 @@ public class ChestGameTests {
         BlockPos pos = new BlockPos(1, 2, 1);
         stockedChest(helper, pos);
 
-        helper.getLevel().destroyBlock(helper.absolutePos(pos), true);
+        List<ItemEntity> dropped = dropsOf(helper, pos, () -> helper.getLevel().destroyBlock(helper.absolutePos(pos), true));
 
         // Only the chest itself: nothing spilled alongside it, or the contents would be duplicated.
-        ItemStack stack = theOneDroppedChest(helper, pos, 1);
+        ItemStack stack = theOneDroppedChest(helper, dropped, 1);
         ItemContainerContents contents = stack.get(DataComponents.CONTAINER);
         helper.assertTrue(contents != null, "expected the dropped chest to carry its contents");
         helper.assertTrue(contents.getStackInSlot(0).is(ForgeweaveItems.PART_PICKAXE_HEAD.get()),
@@ -494,8 +505,8 @@ public class ChestGameTests {
     public static void placingAKeptChestRestoresItsContentsAndCapacity(GameTestHelper helper) {
         BlockPos broken = new BlockPos(1, 2, 1);
         stockedChest(helper, broken);
-        helper.getLevel().destroyBlock(helper.absolutePos(broken), true);
-        ItemStack stack = theOneDroppedChest(helper, broken, 1);
+        ItemStack stack = theOneDroppedChest(helper,
+                dropsOf(helper, broken, () -> helper.getLevel().destroyBlock(helper.absolutePos(broken), true)), 1);
 
         BlockPos placed = new BlockPos(3, 2, 1);
         ChestBlockEntity chest = placeChest(helper, placed);
@@ -518,9 +529,10 @@ public class ChestGameTests {
      * <p>Issue #599 made every dropped {@code PartItem} (the pickaxe head, shard stack and tool rod
      * this test spills) swap for an {@link dev.gkissel.forgeweave.entity.IndestructibleItemEntity} the
      * same way a dropped tool does -- a tick after it joins the level, not the same tick (see
-     * {@code IndestructibleDropGameTests}'s class javadoc). The assertion waits that tick, same as
-     * every test over there; without it, the swap-in-progress entities are transiently absent from
-     * an immediate query.
+     * {@code IndestructibleDropGameTests}'s class javadoc). An earlier version of this test slept two
+     * ticks to let that settle and then queried the entity index; issue #643 replaced the guess with
+     * {@link #dropsOf}, which counts the drops at the join seam inside the break itself, before any
+     * swap or index registration can be in flight.
      */
     @GameTest(template = "empty", timeoutTicks = 100)
     public static void chestsKeepInventoryOffSpillsTheContentsInstead(GameTestHelper helper) {
@@ -528,18 +540,16 @@ public class ChestGameTests {
         BlockPos pos = new BlockPos(1, 2, 1);
         stockedChest(helper, pos);
 
-        helper.getLevel().destroyBlock(helper.absolutePos(pos), true);
-
-        helper.runAfterDelay(2, () -> {
-            try {
-                ItemStack stack = theOneDroppedChest(helper, pos, 4); // the chest plus its three stacks
-                helper.assertTrue(stack.get(DataComponents.CONTAINER) == null,
-                        "expected no contents on the item when the option is off -- they spilled instead");
-            } finally {
-                ForgeweaveConfig.CHESTS_KEEP_INVENTORY.set(true);
-            }
-            helper.succeed();
-        });
+        try {
+            List<ItemEntity> dropped =
+                    dropsOf(helper, pos, () -> helper.getLevel().destroyBlock(helper.absolutePos(pos), true));
+            ItemStack stack = theOneDroppedChest(helper, dropped, 4); // the chest plus its three stacks
+            helper.assertTrue(stack.get(DataComponents.CONTAINER) == null,
+                    "expected no contents on the item when the option is off -- they spilled instead");
+        } finally {
+            ForgeweaveConfig.CHESTS_KEEP_INVENTORY.set(true);
+        }
+        helper.succeed();
     }
 
     /**
@@ -553,10 +563,11 @@ public class ChestGameTests {
         stockedChest(helper, pos);
         BlockPos absolute = helper.absolutePos(pos);
 
-        helper.getBlockState(pos).getBlock().playerWillDestroy(helper.getLevel(), absolute,
-                helper.getBlockState(pos), helper.makeMockPlayer(GameType.CREATIVE));
+        List<ItemEntity> dropped = dropsOf(helper, pos, () ->
+                helper.getBlockState(pos).getBlock().playerWillDestroy(helper.getLevel(), absolute,
+                        helper.getBlockState(pos), helper.makeMockPlayer(GameType.CREATIVE)));
 
-        ItemStack stack = theOneDroppedChest(helper, pos, 1);
+        ItemStack stack = theOneDroppedChest(helper, dropped, 1);
         ItemContainerContents contents = stack.get(DataComponents.CONTAINER);
         helper.assertTrue(contents != null, "expected the creative break to hand back a packed chest");
         helper.assertTrue(contents.getStackInSlot(0).is(ForgeweaveItems.PART_PICKAXE_HEAD.get()),
@@ -581,8 +592,8 @@ public class ChestGameTests {
         }
         helper.assertValueEqual(chest.container().getContainerSize(), 202, "capacity before breaking");
 
-        helper.getLevel().destroyBlock(helper.absolutePos(pos), true);
-        ItemStack stack = theOneDroppedChest(helper, pos, 1);
+        ItemStack stack = theOneDroppedChest(helper,
+                dropsOf(helper, pos, () -> helper.getLevel().destroyBlock(helper.absolutePos(pos), true)), 1);
 
         ChestBlockEntity restored = placeChest(helper, new BlockPos(3, 2, 1));
         restored.applyComponentsFromItemStack(stack);

@@ -347,10 +347,14 @@ public class StationWeaponGameTests {
         pig.setHealth(1.0F);
         Vec3 where = pig.position();
 
-        tool.releaseUsing(pan, helper.getLevel(), player, duration - 40);
+        // Issue #643: the loot joins the level synchronously inside the killing blow, so capture it
+        // there rather than scanning the entity index afterwards -- the index registers
+        // asynchronously and can lag a loaded runner by several ticks (see SpawnCapture).
+        List<ItemEntity> drops = SpawnCapture.spawnedDuring(helper, ItemEntity.class,
+                new AABB(where, where).inflate(6.0),
+                () -> tool.releaseUsing(pan, helper.getLevel(), player, duration - 40));
 
         helper.assertTrue(pig.isDeadOrDying(), "a full-charge release must finish a pig on its last health");
-        List<ItemEntity> drops = helper.getLevel().getEntitiesOfClass(ItemEntity.class, new AABB(where, where).inflate(6.0));
         boolean cooked = drops.stream().anyMatch(drop -> drop.getItem().is(Items.COOKED_PORKCHOP));
         boolean raw = drops.stream().anyMatch(drop -> drop.getItem().is(Items.PORKCHOP));
         drops.forEach(ItemEntity::discard);
@@ -656,7 +660,7 @@ public class StationWeaponGameTests {
      * grounded hit also strikes a bystander within upstream's 3-block range and 1-block-wider box for
      * its flat 1 damage, but leaves one further away untouched.
      */
-    @GameTest(template = "empty", timeoutTicks = 1200)
+    @GameTest(template = "empty", timeoutTicks = 2400)
     public static void broadswordSweepsNearbyEnemiesOnAFullChargeGroundedHit(GameTestHelper helper) {
         BlockPos pos = new BlockPos(1, 1, 1);
         ServerPlayer player = helper.makeMockServerPlayerInLevel();
@@ -698,7 +702,7 @@ public class StationWeaponGameTests {
      * The decision the sweep gates on is upstream's own: a spam-clicked (uncharged) hit must not sweep
      * at all, matching {@code getCooledAttackStrength(0.5F) > 0.9f}.
      */
-    @GameTest(template = "empty", timeoutTicks = 1200)
+    @GameTest(template = "empty", timeoutTicks = 2400)
     public static void broadswordSweepNeedsAFullCharge(GameTestHelper helper) {
         BlockPos pos = new BlockPos(1, 1, 1);
         ServerPlayer player = helper.makeMockServerPlayerInLevel();

@@ -1,5 +1,6 @@
 package dev.gkissel.forgeweave.gametest;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import net.minecraft.core.BlockPos;
@@ -53,13 +54,18 @@ public class ShurikenGameTests {
         return shuriken;
     }
 
-    /** Throws the held shuriken once and returns the projectiles that appeared near the player. */
+    /**
+     * Throws the held shuriken once and returns the projectiles the throw spawned, captured at the
+     * {@code EntityJoinLevelEvent} seam rather than scanned back out of the level's entity index
+     * (issue #643): the index registers asynchronously and on a loaded runner can serve nothing for
+     * several ticks after the throw. See {@link SpawnCapture}'s javadoc.
+     */
     private static List<ShurikenEntity> throwOnce(GameTestHelper helper, Player player, ItemStack shuriken) {
         player.moveTo(helper.absoluteVec(new Vec3(2.5, 2.0, 2.5)));
         player.setItemInHand(InteractionHand.MAIN_HAND, shuriken);
-        shuriken.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
-        return helper.getLevel().getEntitiesOfClass(ShurikenEntity.class,
-                new AABB(player.position(), player.position()).inflate(4.0));
+        return SpawnCapture.spawnedDuring(helper, ShurikenEntity.class,
+                new AABB(player.position(), player.position()).inflate(4.0),
+                () -> shuriken.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND));
     }
 
     /**
@@ -153,11 +159,13 @@ public class ShurikenGameTests {
         helper.assertTrue(ShurikenItem.currentAmmo(shuriken) == 0,
                 "a broken shuriken reports 0 ammo, got " + ShurikenItem.currentAmmo(shuriken));
 
-        InteractionResult broken = shuriken.getItem()
-                .use(helper.getLevel(), player, InteractionHand.MAIN_HAND).getResult();
-        helper.assertTrue(broken == InteractionResult.FAIL, "a broken shuriken refuses to throw, got " + broken);
-        List<ShurikenEntity> after = helper.getLevel().getEntitiesOfClass(ShurikenEntity.class,
-                new AABB(player.position(), player.position()).inflate(4.0));
+        List<ShurikenEntity> after = SpawnCapture.spawnedDuring(helper, ShurikenEntity.class,
+                new AABB(player.position(), player.position()).inflate(4.0), () -> {
+                    InteractionResult broken = shuriken.getItem()
+                            .use(helper.getLevel(), player, InteractionHand.MAIN_HAND).getResult();
+                    helper.assertTrue(broken == InteractionResult.FAIL,
+                            "a broken shuriken refuses to throw, got " + broken);
+                });
         helper.assertTrue(after.isEmpty(), "no projectile from a broken shuriken, got " + after.size());
         helper.succeed();
     }
@@ -167,7 +175,7 @@ public class ShurikenGameTests {
      * lands at {@code damagePotential} 0.7 = 2.1, which vanilla's integer arrow pipeline ceils to 3
      * -- wherever along its flight it connects, since the speed factor is cancelled out.
      */
-    @GameTest(template = "empty")
+    @GameTest(template = "empty", timeoutTicks = 400)
     public static void hitDealsFlatToolDamage(GameTestHelper helper) {
         BlockPos pos = new BlockPos(1, 1, 1);
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
@@ -177,15 +185,34 @@ public class ShurikenGameTests {
 
         Pig pig = helper.spawn(EntityType.PIG, new BlockPos(2, 2, 5));
         pig.setNoAi(true);
+        pig.setNoGravity(true); // stays on the line the throw below is aimed at
         float before = pig.getHealth();
 
-        List<ShurikenEntity> thrown = throwOnce(helper, player, shuriken);
-        helper.assertTrue(thrown.size() == 1, "one projectile, got " + thrown.size());
-
-        helper.succeedWhen(() -> {
-            helper.assertTrue(Math.abs((before - pig.getHealth()) - 3.0F) < 1.0E-4,
-                    "expected ceil(3.0 * 0.7 attack) = 3 flat damage, got " + (before - pig.getHealth()));
-        });
+        // Issue #643: the pig and the shuriken's whole flight sit five blocks out from a template
+        // that used to be 1x1x1, so on the runs where the randomly-placed plot grid put them in the
+        // next chunk over they were in no force-loaded chunk at all -- the shuriken stayed at its
+        // spawn point with tickCount 0 and the pig took no damage ("got 0.0"). The template now
+        // covers this area; the wait below is the belt to its braces, since the projectile also
+        // finds its target through its own entity-index scan (see SpawnCapture).
+        List<ShurikenEntity> thrown = new ArrayList<>();
+        helper.startSequence()
+                .thenWaitUntil(() -> SpawnCapture.assertIndexServes(helper, pig))
+                .thenExecute(() -> {
+                    thrown.addAll(throwOnce(helper, player, shuriken));
+                    helper.assertTrue(thrown.size() == 1, "one projectile, got " + thrown.size());
+                })
+                .thenWaitUntil(() -> helper.assertTrue(Math.abs((before - pig.getHealth()) - 3.0F) < 1.0E-4,
+                        "expected ceil(3.0 * 0.7 attack) = 3 flat damage, got " + (before - pig.getHealth())
+                                + "; pig at " + pig.position() + " alive=" + pig.isAlive()
+                                + " ticks=" + pig.tickCount
+                                + ", shuriken " + thrown.stream()
+                                        .map(s -> s.position() + " removed=" + s.isRemoved()
+                                                + " ticks=" + s.tickCount
+                                                + " inLevel=" + (helper.getLevel().getEntity(s.getId()) != null)
+                                                + " ticking="
+                                                + helper.getLevel().isPositionEntityTicking(s.blockPosition()))
+                                        .toList()))
+                .thenSucceed();
     }
 
     /**

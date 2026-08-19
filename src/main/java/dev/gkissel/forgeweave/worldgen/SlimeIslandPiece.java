@@ -107,8 +107,12 @@ public class SlimeIslandPiece extends StructurePiece {
     /**
      * The island's own randomness: fixed by the world seed and the island's corner, so every chunk
      * the island crosses draws the same island and a reloaded world draws the one already there.
+     *
+     * <p>Public so a test can reproduce the exact island a given box will draw: the GameTest server
+     * scatters its plot grid to a random position every run, so a test that only knows its own box
+     * cannot otherwise say which of upstream's rolls it is about to get (issue #643).
      */
-    private static RandomSource islandRandom(long seed, BoundingBox box) {
+    public static RandomSource islandRandom(long seed, BoundingBox box) {
         WorldgenRandom random = new WorldgenRandom(new LegacyRandomSource(0L));
         random.setLargeFeatureSeed(seed, box.minX(), box.minZ());
         return random;

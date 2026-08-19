@@ -1,7 +1,9 @@
 package dev.gkissel.forgeweave.gametest;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.Registries;
@@ -30,6 +32,7 @@ import dev.gkissel.forgeweave.block.ForgeweaveBlocks;
 import dev.gkissel.forgeweave.config.ForgeweaveConfig;
 import dev.gkissel.forgeweave.worldgen.MagmaSlimeIslandPiece;
 import dev.gkissel.forgeweave.worldgen.MagmaSlimeIslandStructure;
+import dev.gkissel.forgeweave.worldgen.SlimeIslandPiece;
 import dev.gkissel.forgeweave.worldgen.SlimeIslandShape;
 import dev.gkissel.forgeweave.worldgen.SlimeIslandStructure;
 
@@ -155,6 +158,12 @@ public class MagmaSlimeIslandGameTests {
      * grass, magma congealed slime trunks, an orange canopy, lava under the eroded rim -- and no
      * overworld colour anywhere. Drawn into a real level from nothing but its own bounding box, then
      * taken back out again so nothing is left for the next test in the batch.
+     *
+     * <p>Issue #643, same as {@code SlimeIslandGameTests#theSlimeIslandPieceBuildsAnIslandInTheSky}:
+     * the piece seeds itself from the world seed and its box corner, and the GameTest grid lands at a
+     * random spot every run, so which island gets drawn is not fixed. Upstream's tree placement and
+     * underside erosion are both rolls that can come up empty, so the trunk and lava expectations are
+     * derived from the same seeded shape rather than assumed.
      */
     @GameTest(template = "empty")
     public static void theMagmaIslandPieceBuildsANetherIsland(GameTestHelper helper) {
@@ -171,6 +180,16 @@ public class MagmaSlimeIslandGameTests {
         MagmaSlimeIslandPiece piece = new MagmaSlimeIslandPiece(box);
         piece.postProcess(level, level.structureManager(), level.getChunkSource().getGenerator(),
                 RandomSource.create(1234L), box, new ChunkPos(minX >> 4, minZ >> 4), anchor);
+
+        // The same island the piece just drew, re-rolled from the same inputs. The magma palette is
+        // fixed (MagmaSlimeIslandPiece#palette rolls nothing), so the shape is the only draw here.
+        RandomSource expectedRandom = SlimeIslandPiece.islandRandom(level.getSeed(), box);
+        SlimeIslandShape.Canvas expectedCanvas = SlimeIslandShape.Canvas.forIsland(size);
+        SlimeIslandShape.generate(expectedRandom, expectedCanvas, size, SlimeIslandShape.magmaPalette());
+        Set<Block> expectedBlocks = new HashSet<>();
+        expectedCanvas.forEachDrawn(drawn -> expectedBlocks.add(drawn.state().getBlock()));
+        boolean expectsTrunk = expectedBlocks.contains(ForgeweaveBlocks.MAGMA_CONGEALED_SLIME.get());
+        boolean expectsLava = expectedBlocks.contains(Blocks.LAVA);
 
         List<BlockPos> written = new ArrayList<>();
         boolean sawGrass = false;
@@ -201,8 +220,12 @@ public class MagmaSlimeIslandGameTests {
             helper.assertTrue(written.size() > 500,
                     "the piece wrote only " + written.size() + " blocks -- that is not an island");
             helper.assertTrue(sawGrass, "the magma island has no magma slimy grass surface");
-            helper.assertTrue(sawTrunk, "the magma island grew no magma congealed slime tree trunk");
-            helper.assertTrue(sawLava, "the magma island's underside did not erode into lava");
+            helper.assertTrue(sawTrunk == expectsTrunk, expectsTrunk
+                    ? "this run's island shape grew a magma congealed slime trunk and the piece did not blit it"
+                    : "the piece blitted a magma congealed slime trunk this run's island shape never grew");
+            helper.assertTrue(sawLava == expectsLava, expectsLava
+                    ? "this run's island shape eroded into lava and the piece did not blit it"
+                    : "the piece blitted lava this run's island shape never eroded");
             helper.assertFalse(sawOverworldColour, "an overworld island block turned up on a magma island");
         } finally {
             BlockState air = Blocks.AIR.defaultBlockState();

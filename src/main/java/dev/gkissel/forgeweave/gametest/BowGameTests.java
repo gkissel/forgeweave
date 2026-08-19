@@ -61,19 +61,26 @@ public class BowGameTests {
     }
 
     /**
-     * Draws {@code bow} for {@code ticks} and lets go; returns the arrows that appeared near the
-     * player. The player is first moved into this test's own structure -- mock players all spawn at
-     * the world origin, and tests in one class run side by side, so a shared origin would let one
-     * test's arrows show up in another's scan.
+     * Draws {@code bow} for {@code ticks} and lets go; returns the arrows the shot spawned. The
+     * player is first moved into this test's own structure -- mock players all spawn at the world
+     * origin, and tests in one class run side by side, so a shared origin would let one test's
+     * arrows show up in another's scan.
+     *
+     * <p>Issue #643: the arrows are collected at the {@code EntityJoinLevelEvent} seam rather than
+     * scanned back out of the level's entity index, which registers asynchronously and on a loaded
+     * runner can serve nothing for several ticks after the shot -- see {@link SpawnCapture}'s
+     * javadoc. That lag, not the shot, is what "one arrow, got 0" was reporting.
      */
     private static List<Arrow> draw(GameTestHelper helper, Player player, ItemStack bow, int ticks) {
         player.moveTo(helper.absoluteVec(new Vec3(2.5, 2.0, 2.5)));
         player.setItemInHand(InteractionHand.MAIN_HAND, bow);
-        player.startUsingItem(InteractionHand.MAIN_HAND);
-        int duration = bow.getUseDuration(player);
-        bow.getItem().releaseUsing(bow, helper.getLevel(), player, duration - ticks);
-        player.stopUsingItem();
-        return helper.getLevel().getEntitiesOfClass(Arrow.class, new AABB(player.position(), player.position()).inflate(4.0));
+        AABB near = new AABB(player.position(), player.position()).inflate(4.0);
+        return SpawnCapture.spawnedDuring(helper, Arrow.class, near, () -> {
+            player.startUsingItem(InteractionHand.MAIN_HAND);
+            int duration = bow.getUseDuration(player);
+            bow.getItem().releaseUsing(bow, helper.getLevel(), player, duration - ticks);
+            player.stopUsingItem();
+        });
     }
 
     private static void giveArrows(Player player, int count) {
@@ -356,13 +363,8 @@ public class BowGameTests {
         player.setDeltaMovement(new Vec3(4.0, 0.0, 0.0)); // moving sideways as the shot fires
         ItemStack bow = shortbow(helper, player, "iron", "bone", "string");
         giveArrows(player, 5);
-        player.setItemInHand(InteractionHand.MAIN_HAND, bow);
-        player.startUsingItem(InteractionHand.MAIN_HAND);
-        bow.getItem().releaseUsing(bow, helper.getLevel(), player, bow.getUseDuration(player) - 40);
-        player.stopUsingItem();
 
-        List<Arrow> arrows = helper.getLevel().getEntitiesOfClass(Arrow.class,
-                new AABB(player.position(), player.position()).inflate(4.0));
+        List<Arrow> arrows = draw(helper, player, bow, 40);
         helper.assertTrue(arrows.size() == 1, "one arrow, got " + arrows.size());
         Arrow arrow = arrows.get(0);
         arrows.forEach(AbstractArrow::discard);
