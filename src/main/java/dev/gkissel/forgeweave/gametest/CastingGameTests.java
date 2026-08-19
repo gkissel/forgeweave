@@ -446,6 +446,21 @@ public class CastingGameTests {
                 "expected red sand, found " + basin.output()));
     }
 
+    /**
+     * Issue #594: the seared glass cast is the full {@code c:glass_blocks} tag, not just its
+     * {@code colorless} child -- old stained glass sitting in the basin under molten seared stone
+     * gets recycled into seared glass exactly like plain glass does.
+     */
+    @GameTest(template = "empty", timeoutTicks = 400)
+    public static void searedGlassCastsFromStainedGlassInTheBasin(GameTestHelper helper) {
+        CastingBlockEntity basin = rig(helper, ForgeweaveBlocks.CASTING_BASIN.get(), ForgeweaveFluids.SEARED_STONE.still().get());
+        insert(helper, basin, new ItemStack(Items.WHITE_STAINED_GLASS));
+        faucet(helper).activate();
+
+        helper.succeedWhen(() -> helper.assertTrue(basin.output().is(ForgeweaveItems.SEARED_GLASS.get()),
+                "expected seared glass, found " + basin.output()));
+    }
+
     /** Pours into the casting block through its own capability, the way a faucet does. */
     private static int fill(GameTestHelper helper, FluidStack fluid) {
         IFluidHandler handler = helper.getLevel().getCapability(Capabilities.FluidHandler.BLOCK,

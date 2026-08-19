@@ -11,6 +11,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.mojang.serialization.DataResult;
 import com.mojang.serialization.JsonOps;
@@ -383,11 +384,15 @@ class CastingRecipeTest {
 
     /**
      * Upstream {@code new CastingRecipe(searedGlass, RecipeMatch.of("blockGlass"),
-     * TinkerFluids.searedStone, Material.VALUE_SearedMaterial * 4, true, true)}: plain glass in the
-     * basin, consumed by the pour, comes out seared.
+     * TinkerFluids.searedStone, Material.VALUE_SearedMaterial * 4, true, true)}: plain <em>or dyed</em>
+     * glass in the basin, consumed by the pour, comes out seared -- upstream's {@code "blockGlass"}
+     * ore dict is both {@code blockClearGlass} and every {@code blockClearStainedGlass} color
+     * ({@code TinkerOredict}), so the cast has to be the full {@code c:glass_blocks} tag, not just its
+     * narrower {@code c:glass_blocks/colorless} child (issue #594: old stained glass gets recycled
+     * into seared glass too).
      */
     @Test
-    void searedGlassCastsFromPlainGlassInTheBasin() {
+    void searedGlassCastsFromPlainOrStainedGlassInTheBasin() {
         CastingRecipe recipe = shipped("seared_glass");
 
         assertEquals(CastingRecipe.Station.BASIN, recipe.station());
@@ -395,7 +400,9 @@ class CastingRecipeTest {
         assertEquals(ForgeweaveFluids.SEARED_STONE.still().get(), recipe.fluid());
         assertEquals(ForgeweaveItems.SEARED_GLASS.get(), recipe.result().getItem());
         assertTrue(recipe.consumesCast(), "the glass is consumed by the pour");
-        assertTrue(recipe.cast().isPresent(), "cast is the c:glass_blocks/colorless tag");
+        assertTrue(recipe.cast().isPresent(), "cast is the c:glass_blocks tag");
+        assertEquals("c:glass_blocks", rawShipped("seared_glass").getAsJsonObject("cast").get("tag").getAsString(),
+                "the full tag, not just c:glass_blocks/colorless -- #594");
     }
 
     // ------------------------------------------------------------------ #473 (T42 parity audit)
@@ -450,6 +457,17 @@ class CastingRecipeTest {
             return CastingRecipe.CODEC
                     .parse(ops, JsonParser.parseReader(new InputStreamReader(in, StandardCharsets.UTF_8)))
                     .getOrThrow();
+        } catch (Exception e) {
+            throw new AssertionError("could not read " + path, e);
+        }
+    }
+
+    /** The raw JSON, for asserting on a field (like {@code cast}'s tag id) the codec does not expose. */
+    private static JsonObject rawShipped(String name) {
+        String path = "/data/forgeweave/forgeweave/casting_recipe/" + name + ".json";
+        try (InputStream in = CastingRecipeTest.class.getResourceAsStream(path)) {
+            assertNotNull(in, "missing shipped casting recipe: " + path);
+            return JsonParser.parseReader(new InputStreamReader(in, StandardCharsets.UTF_8)).getAsJsonObject();
         } catch (Exception e) {
             throw new AssertionError("could not read " + path, e);
         }
