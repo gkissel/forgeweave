@@ -41,6 +41,7 @@ import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.combat.CombatHit;
+import dev.gkissel.forgeweave.entity.ForgeweaveEntities;
 import dev.gkissel.forgeweave.item.ForgeweaveDataComponents;
 import dev.gkissel.forgeweave.item.ForgeweaveItems;
 import dev.gkissel.forgeweave.item.ToolItem;
@@ -373,12 +374,35 @@ public class StatefulTraitGameTests {
         // than queried from the entity index, which lags behind synchronous spawns in a freshly
         // force-loaded plot (see SpawnCapture).
         List<Slime> slimes = SpawnCapture.spawnedDuring(helper, Slime.class,
-                () -> ForgeweaveTraits.spawnTraitSlime(level, player, where.getX() + 0.5, where.getY(), where.getZ() + 0.5));
+                () -> ForgeweaveTraits.spawnTraitSlime(EntityType.SLIME, level, player,
+                        where.getX() + 0.5, where.getY(), where.getZ() + 0.5));
         helper.assertTrue(slimes.size() == 1, "expected exactly one spawned slime, got " + slimes.size());
         helper.assertTrue(slimes.get(0).getSize() == 1,
                 "upstream spawns the smallest slime, got size " + slimes.get(0).getSize());
         helper.assertTrue(slimes.get(0).getLastHurtByMob() == player,
                 "the slime must remember the tool's holder as its attacker");
+
+        slimes.forEach(Slime::discard);
+        helper.succeed();
+    }
+
+    /**
+     * Upstream {@code TinkerTraits}: {@code slimeyBlue} is {@code new TraitSlimey("blue",
+     * EntityBlueSlime.class)} -- the blue variant spawns upstream's *own* slime, not the vanilla one.
+     * Since #451 (parity audit T20) registered that entity, the two ids really are two entities.
+     */
+    @GameTest(template = "empty")
+    public static void slimeyBlueSpawnsABlueSlime(GameTestHelper helper) {
+        ServerLevel level = helper.getLevel();
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        BlockPos where = helper.absolutePos(new BlockPos(2, 2, 2));
+
+        List<Slime> slimes = SpawnCapture.spawnedDuring(helper, Slime.class,
+                () -> ForgeweaveTraits.spawnTraitSlime(ForgeweaveEntities.BLUE_SLIME.get(), level, player,
+                        where.getX() + 0.5, where.getY(), where.getZ() + 0.5));
+        helper.assertTrue(slimes.size() == 1, "expected exactly one spawned slime, got " + slimes.size());
+        helper.assertTrue(slimes.get(0).getType() == ForgeweaveEntities.BLUE_SLIME.get(),
+                "slimey blue must spawn forgeweave:blue_slime, got " + slimes.get(0).getType());
 
         slimes.forEach(Slime::discard);
         helper.succeed();

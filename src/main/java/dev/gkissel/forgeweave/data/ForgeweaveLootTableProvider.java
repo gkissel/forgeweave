@@ -11,11 +11,15 @@ import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.level.storage.loot.LootTable;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParamSets;
 
-/** Registers {@link ForgeweaveBlockLootSubProvider} as the block-loot sub-provider. */
+/**
+ * Registers {@link ForgeweaveBlockLootSubProvider} as the block-loot sub-provider and
+ * {@link ForgeweaveEntityLootSubProvider} as the entity-loot one (#451).
+ */
 public class ForgeweaveLootTableProvider extends LootTableProvider {
     public ForgeweaveLootTableProvider(PackOutput output, CompletableFuture<HolderLookup.Provider> registries) {
         super(output, Set.<ResourceKey<LootTable>>of(),
-                List.of(new SubProviderEntry(ForgeweaveBlockLootSubProvider::new, LootContextParamSets.BLOCK)),
+                List.of(new SubProviderEntry(ForgeweaveBlockLootSubProvider::new, LootContextParamSets.BLOCK),
+                        new SubProviderEntry(ForgeweaveEntityLootSubProvider::new, LootContextParamSets.ENTITY)),
                 registries);
     }
 }

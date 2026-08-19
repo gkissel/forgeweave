@@ -6,6 +6,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
+import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 import org.jetbrains.annotations.Nullable;
@@ -69,6 +70,7 @@ import dev.gkissel.forgeweave.combat.Lacerate;
 import dev.gkissel.forgeweave.combat.PotionEffectOnHitSeam;
 import dev.gkissel.forgeweave.combat.StackingHitBonus;
 import dev.gkissel.forgeweave.combat.ThornsReflectSeam;
+import dev.gkissel.forgeweave.entity.ForgeweaveEntities;
 import dev.gkissel.forgeweave.item.ForgeweaveDataComponents;
 import dev.gkissel.forgeweave.item.PartItem;
 import dev.gkissel.forgeweave.item.ToolItem;
@@ -844,30 +846,28 @@ public final class ForgeweaveTraits {
      * Green slime (this id) and blue slime ({@link #SLIMEY_BLUE}). Upstream {@code TraitSlimey}: a
      * 0.33% chance on an effective block break or on a killing blow to spawn a size-1 slime that
      * aggros the tool's holder. Upstream's green variant spawns the vanilla {@code EntitySlime} and
-     * the blue variant its own {@code EntityBlueSlime}; Forgeweave ships no blue slime entity
-     * (docs/SCOPE.md M3.2 non-goals defer it to the world-content milestone), so <b>both ids spawn
-     * the vanilla slime</b> for now -- flagged for maintainer review in the PR, and kept as two ids
-     * so the blue entity can slot in without touching material JSON.
+     * the blue variant its own {@code EntityBlueSlime} -- which each id now really does, since #451
+     * (parity audit T20) registered the blue slime.
      */
-    public static final Trait SLIMEY_GREEN = slimey();
+    public static final Trait SLIMEY_GREEN = slimey(() -> EntityType.SLIME);
 
-    /** See {@link #SLIMEY_GREEN}: upstream's blue slime, vanilla slime until the entity exists. */
-    public static final Trait SLIMEY_BLUE = slimey();
+    /** See {@link #SLIMEY_GREEN}: upstream's own blue slime, since #451. */
+    public static final Trait SLIMEY_BLUE = slimey(ForgeweaveEntities.BLUE_SLIME);
 
-    private static Trait slimey() {
+    private static Trait slimey(Supplier<? extends EntityType<? extends Slime>> type) {
         return new Trait() {
             @Override
             public void afterBlockBreak(ItemStack stack, ServerLevel level, BlockState state, BlockPos pos,
                     LivingEntity breaker, boolean effective) {
                 if (effective && rollsSlimeyProc(level.getRandom())) {
-                    spawnTraitSlime(level, breaker, pos.getX() + 0.5, pos.getY(), pos.getZ() + 0.5);
+                    spawnTraitSlime(type.get(), level, breaker, pos.getX() + 0.5, pos.getY(), pos.getZ() + 0.5);
                 }
             }
 
             @Override
             public void afterHit(ItemStack stack, ServerLevel level, LivingEntity attacker, LivingEntity target) {
                 if (target.isDeadOrDying() && rollsSlimeyProc(level.getRandom())) {
-                    spawnTraitSlime(level, attacker, target.getX(), target.getY(), target.getZ());
+                    spawnTraitSlime(type.get(), level, attacker, target.getX(), target.getY(), target.getZ());
                 }
             }
         };
@@ -883,12 +883,13 @@ public final class ForgeweaveTraits {
     }
 
     /**
-     * Slimey's spawn path (upstream {@code TraitSlimey#spawnSlime}): a size-1 slime at the given
-     * spot, remembering {@code owner} as its attacker. Public so a GameTest can drive it
+     * Slimey's spawn path (upstream {@code TraitSlimey#spawnSlime}): a size-1 slime of {@code type}
+     * at the given spot, remembering {@code owner} as its attacker. Public so a GameTest can drive it
      * deterministically, past the roll above.
      */
-    public static void spawnTraitSlime(ServerLevel level, LivingEntity owner, double x, double y, double z) {
-        Slime slime = EntityType.SLIME.create(level);
+    public static void spawnTraitSlime(EntityType<? extends Slime> type, ServerLevel level, LivingEntity owner,
+            double x, double y, double z) {
+        Slime slime = type.create(level);
         if (slime == null) {
             return;
         }

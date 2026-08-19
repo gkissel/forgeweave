@@ -348,6 +348,11 @@ public final class ForgeweaveCreativeTab {
         for (var block : ForgeweaveItems.slimeWorldBlocks()) {
             output.accept(block.get());
         }
+
+        // #451 (parity audit T20) -- the blue slime's spawn egg, upstream's own `hasEgg` on
+        // TinkerWorld#registerEntities. Upstream 1.12 files spawn eggs under the vanilla Misc tab;
+        // World is where every other island thing already lives here.
+        output.accept(ForgeweaveItems.BLUE_SLIME_SPAWN_EGG.get());
     }
 
     static void addSmelteryItems(CreativeModeTab.ItemDisplayParameters parameters, CreativeModeTab.Output rawOutput) {
