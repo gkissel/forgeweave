@@ -26,5 +26,6 @@
     "tag": "c:ingots/netherite"
   },
   "cast_only": true,
+  "enchantability": 15,
   "color": "#4A3B47"
 }

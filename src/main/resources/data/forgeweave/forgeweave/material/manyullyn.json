@@ -28,5 +28,6 @@
     "tag": "c:ingots/manyullyn"
   },
   "cast_only": true,
+  "enchantability": 10,
   "color": "#A15CF8"
 }

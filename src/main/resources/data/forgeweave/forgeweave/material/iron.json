@@ -28,5 +28,6 @@
     "tag": "c:ingots/iron"
   },
   "cast_only": true,
+  "enchantability": 14,
   "color": "#CACACA"
 }

@@ -95,6 +95,52 @@ class MaterialTest {
                 decoded.craftingItems().get(0).ingredient().getItems()[0].getItem());
     }
 
+    /**
+     * Issue #593's field, both ways round: named in the JSON it survives the round trip, omitted it
+     * reads as {@link Material#DEFAULT_ENCHANTABILITY} and stays omitted on re-encode -- the
+     * datapack-facing half of "existing packs don't change shape" (ADR-0002), and what keeps the
+     * synced material of a pack that never heard of the field exactly the shape it was.
+     */
+    @Test
+    void enchantabilityRoundTripsAndDefaultsWhenAbsent() {
+        JsonElement withField = Material.CODEC.encodeStart(ops, gilded(31)).getOrThrow();
+        assertEquals(31, withField.getAsJsonObject().get("enchantability").getAsInt());
+        assertEquals(31, Material.CODEC.parse(ops, withField).getOrThrow().enchantability());
+
+        JsonElement noField =
+                Material.CODEC.encodeStart(ops, gilded(Material.DEFAULT_ENCHANTABILITY)).getOrThrow();
+        assertFalse(noField.getAsJsonObject().has("enchantability"),
+                "a material at the default must not write the field, or every pre-#593 pack's synced "
+                        + "material grows a field it never had");
+        assertEquals(Material.DEFAULT_ENCHANTABILITY,
+                Material.CODEC.parse(ops, noField).getOrThrow().enchantability());
+    }
+
+    /** Every shipped material names one, so none of them silently rides on the fallback. */
+    @ParameterizedTest
+    @ValueSource(strings = { "wood", "stone", "iron", "paper", "string" })
+    void shippedMaterialsNameAnEnchantability(String name) {
+        assertTrue(shipped(name).getAsJsonObject().has("enchantability"),
+                name + " should name an enchantability (issue #593)");
+        assertTrue(Material.CODEC.parse(ops, shipped(name)).getOrThrow().enchantability() > 0);
+    }
+
+    private static Material gilded(int enchantability) {
+        return new Material(
+                Optional.of(new Material.Head(200, 5.09f, 2.5f)),
+                Optional.of(new Material.Handle(1.1f, 50)),
+                Optional.of(65),
+                TagKey.create(Registries.BLOCK, ResourceLocation.withDefaultNamespace("incorrect_for_stone_tool")),
+                Material.Traits.general(ResourceLocation.fromNamespaceAndPath("forgeweave", "fractured")),
+                List.of(new Material.CraftingItem(Ingredient.of(Items.BONE), 2)),
+                Ingredient.of(Items.BONE),
+                TextColor.parseColor("#EDE6BF").getOrThrow(),
+                Optional.empty(),
+                Optional.empty(),
+                false,
+                enchantability);
+    }
+
     @ParameterizedTest
     @ValueSource(strings = { "wood", "stone", "flint", "bone" })
     void shippedMaterialsParse(String name) {

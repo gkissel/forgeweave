@@ -26,5 +26,6 @@
   "repair_item": {
     "tag": "c:ingots/electrum"
   },
+  "enchantability": 22,
   "color": "#E8DB49"
 }

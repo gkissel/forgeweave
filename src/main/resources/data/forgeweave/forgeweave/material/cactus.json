@@ -25,5 +25,6 @@
   "repair_item": {
     "item": "minecraft:cactus"
   },
+  "enchantability": 15,
   "color": "#00A10F"
 }

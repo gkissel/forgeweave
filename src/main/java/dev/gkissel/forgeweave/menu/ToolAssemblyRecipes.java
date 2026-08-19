@@ -575,6 +575,10 @@ public final class ToolAssemblyRecipes {
         result.set(ForgeweaveDataComponents.TOOL_MATERIALS.get(),
                 fresh.get(ForgeweaveDataComponents.TOOL_MATERIALS.get()));
         result.set(ForgeweaveDataComponents.TOOL_STATS.get(), fresh.get(ForgeweaveDataComponents.TOOL_STATS.get()));
+        // #593: the swapped-in material changes the mean, so this is rebuilt from the new part set
+        // exactly like the stat block above rather than riding along on the copy.
+        result.set(ForgeweaveDataComponents.ENCHANTABILITY.get(),
+                fresh.get(ForgeweaveDataComponents.ENCHANTABILITY.get()));
         result.set(ForgeweaveDataComponents.TRAITS.get(), mergedTraits(fresh, oldBase.get(), toolStack));
         result.set(DataComponents.TOOL, fresh.get(DataComponents.TOOL));
         result.set(DataComponents.MAX_DAMAGE, fresh.get(DataComponents.MAX_DAMAGE));
@@ -793,6 +797,9 @@ public final class ToolAssemblyRecipes {
         result.set(ForgeweaveDataComponents.TOOL_MATERIALS.get(),
                 ToolMaterials.of(entry.constants().parts(), materialIds));
         result.set(ForgeweaveDataComponents.TOOL_STATS.get(), stats);
+        // #593: what the vanilla enchanting table reads while allowVanillaEnchanting is on, averaged
+        // over every part's material here because ToolItem#getEnchantmentValue gets no registry.
+        result.set(ForgeweaveDataComponents.ENCHANTABILITY.get(), ToolStats.averageEnchantability(materials));
         // M3.5 #394: a bow's ranged half (upstream ProjectileLauncherNBT#limb) -- present only for
         // a tool with LIMB slots, so every other tool's component set is exactly what it was.
         LauncherStats.of(entry.constants(), materials)

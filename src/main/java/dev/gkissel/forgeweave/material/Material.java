@@ -42,10 +42,19 @@ public record Material(
         TextColor color,
         Optional<Bow> bow,
         Optional<Bowstring> bowstring,
-        boolean castOnly) {
+        boolean castOnly,
+        int enchantability) {
 
     public static final ResourceKey<Registry<Material>> REGISTRY =
             ResourceKey.createRegistryKey(ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "material"));
+
+    /**
+     * What a material with no {@code enchantability} of its own is worth (issue #593): vanilla
+     * iron's 14, which is exactly the flat value {@code ToolItem#getEnchantmentValue} returned for
+     * every tool before this field existed. A pack written against the older shape therefore keeps
+     * enchanting the way it did, and the field stays omitted from that pack's sync payload.
+     */
+    public static final int DEFAULT_ENCHANTABILITY = 14;
 
     /**
      * The default: a material the Part Builder takes, which is every material Forgeweave shipped
@@ -55,7 +64,18 @@ public record Material(
             TagKey<Block> incorrectForTool, Traits traits, List<CraftingItem> craftingItems, Ingredient repairItem,
             TextColor color, Optional<Bow> bow, Optional<Bowstring> bowstring) {
         this(head, handle, extraDurability, incorrectForTool, traits, craftingItems, repairItem, color, bow,
-                bowstring, false);
+                bowstring, false, DEFAULT_ENCHANTABILITY);
+    }
+
+    /**
+     * Everything except {@link #enchantability}, which issue #593 added last and which every
+     * material Forgeweave shipped before it left at {@link #DEFAULT_ENCHANTABILITY}.
+     */
+    public Material(Optional<Head> head, Optional<Handle> handle, Optional<Integer> extraDurability,
+            TagKey<Block> incorrectForTool, Traits traits, List<CraftingItem> craftingItems, Ingredient repairItem,
+            TextColor color, Optional<Bow> bow, Optional<Bowstring> bowstring, boolean castOnly) {
+        this(head, handle, extraDurability, incorrectForTool, traits, craftingItems, repairItem, color, bow,
+                bowstring, castOnly, DEFAULT_ENCHANTABILITY);
     }
 
     /**
@@ -224,6 +244,33 @@ public record Material(
     }
 
     /**
+     * How well a tool made of this material takes vanilla enchantments -- the number
+     * {@code ToolItem#getEnchantmentValue} averages across the tool's parts while
+     * {@code allowVanillaEnchanting} is on (issue #593; the flag is off by default, so this is inert
+     * in a default game). Same unit as vanilla's {@code Tier#getEnchantmentValue}: wood 15, stone 5,
+     * iron 14, diamond 10, gold 22, netherite 15, and higher enchants better.
+     *
+     * <p>There is no upstream field to derive this from, in either generation. 1.12 never gives a
+     * tool an enchantability at all ({@code library/tinkering/TinkersItem} leaves
+     * {@code getItemEnchantability} at vanilla's 0 and overrides {@code isBookEnchantable} to
+     * {@code false}), and 1.20 is stricter still -- {@code library/tools/item/ModifiableItem#isEnchantable}
+     * is a flat {@code false}, {@code TinkerTier#getEnchantmentValue} and
+     * {@code ModifiableLauncherItem#getEnchantmentValue} both return 0, and no
+     * {@code slimeknights.tconstruct.tools.stats} material stat carries an enchantment value. So the
+     * field, its placement (top level rather than inside a stat block -- a bowstring or handle
+     * material has no head block to hang it on, and the aggregation reads every part) and every
+     * shipped value are Forgeweave-only, seeded by analogy with vanilla's tiers and flagged for
+     * maintainer balancing.
+     *
+     * <p>Top level also means the value is a property of the substance rather than of one part
+     * shape, which is what lets {@code cobalt} answer the question identically whether it turned up
+     * as a head, a handle or a bow limb.
+     */
+    public int enchantability() {
+        return enchantability;
+    }
+
+    /**
      * Every stat block is optional (issue #392). Upstream has always worked this way -- a material
      * carries whichever {@code IMaterialStats} it was registered with and {@code
      * ToolPart#hasUseForStat} decides what can be made of it -- and Forgeweave needs it the moment a
@@ -246,7 +293,9 @@ public record Material(
             TextColor.CODEC.fieldOf("color").forGetter(Material::color),
             Bow.CODEC.optionalFieldOf("bow").forGetter(Material::bow),
             Bowstring.CODEC.optionalFieldOf("bowstring").forGetter(Material::bowstring),
-            Codec.BOOL.optionalFieldOf("cast_only", false).forGetter(Material::castOnly))
+            Codec.BOOL.optionalFieldOf("cast_only", false).forGetter(Material::castOnly),
+            ExtraCodecs.POSITIVE_INT.optionalFieldOf("enchantability", DEFAULT_ENCHANTABILITY)
+                    .forGetter(Material::enchantability))
             .apply(instance, Material::new));
 
     /**

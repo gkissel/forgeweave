@@ -1,0 +1,43 @@
+{
+    decoder: "item_stack",
+    expect: {
+        components: {
+            "forgeweave:enchantability": 15,
+            "forgeweave:tool_materials": {
+                binding: "forgeweave:wood",
+                handle: "forgeweave:wood",
+                head: "forgeweave:iron"
+            },
+            "forgeweave:tool_stats": {
+                attack_damage: 3.5f,
+                durability: 250,
+                mining_speed: 6.0f
+            }
+        },
+        id: "forgeweave:pickaxe"
+    },
+    nbt: {
+        components: {
+            "forgeweave:enchantability": 15,
+            "forgeweave:tool_materials": {
+                binding: "forgeweave:wood",
+                handle: "forgeweave:wood",
+                head: "forgeweave:iron"
+            },
+            "forgeweave:tool_stats": {
+                attack_damage: 3.5f,
+                durability: 250,
+                mining_speed: 6.0f
+            },
+            "forgeweave:traits": [
+                "forgeweave:magnetic",
+                "forgeweave:magnetic2"
+            ],
+            "minecraft:damage": 0,
+            "minecraft:max_damage": 250
+        },
+        count: 1,
+        id: "forgeweave:pickaxe"
+    },
+    what: "#593: an iron-headed, wood-bodied pickaxe carrying forgeweave:enchantability, the component the Tool Station now bakes at assembly (round((14 + 15 + 15) / 3) = 15) because ToolItem#getEnchantmentValue receives only an ItemStack and has no registry to resolve materials with. Same three materials as m3_5_tool_pickaxe_magnetic_stacks, which is the pre-#593 half of the pair: a tool assembled before this component existed carries none, and reads as Material#DEFAULT_ENCHANTABILITY (14) rather than failing to decode."
+}

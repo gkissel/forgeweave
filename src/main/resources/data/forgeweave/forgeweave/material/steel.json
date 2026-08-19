@@ -28,5 +28,6 @@
     "tag": "c:ingots/steel"
   },
   "cast_only": true,
+  "enchantability": 12,
   "color": "#A7A7A7"
 }

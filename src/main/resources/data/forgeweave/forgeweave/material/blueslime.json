@@ -31,5 +31,6 @@
   "repair_item": {
     "item": "forgeweave:blue_slime_crystal"
   },
+  "enchantability": 15,
   "color": "#74c8c7"
 }

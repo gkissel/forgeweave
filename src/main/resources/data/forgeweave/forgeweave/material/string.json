@@ -7,6 +7,7 @@
   "repair_item": {
     "item": "minecraft:string"
   },
+  "enchantability": 15,
   "color": "#EEEEEE",
   "bowstring": {
     "modifier": 1.0

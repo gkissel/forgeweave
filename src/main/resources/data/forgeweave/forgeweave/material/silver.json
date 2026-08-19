@@ -26,5 +26,6 @@
   "repair_item": {
     "tag": "c:ingots/silver"
   },
+  "enchantability": 20,
   "color": "#D1ECF6"
 }

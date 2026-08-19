@@ -28,5 +28,6 @@
     "tag": "c:ingots/pig_iron"
   },
   "cast_only": true,
+  "enchantability": 14,
   "color": "#EF9E9B"
 }

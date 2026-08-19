@@ -63,6 +63,22 @@ public final class ForgeweaveDataComponents {
                     builder -> builder.persistent(LauncherStats.CODEC).networkSynchronized(LauncherStats.STREAM_CODEC));
 
     /**
+     * How well the assembled tool takes vanilla enchantments -- the mean of its parts' materials'
+     * {@code Material#enchantability}, computed once at assembly ({@code ToolStats#averageEnchantability},
+     * issue #593). Baked onto the stack for the same reason {@link #TRAITS} is: the seam that needs
+     * it, {@code ToolItem#getEnchantmentValue(ItemStack)}, receives only an {@code ItemStack} and
+     * has no registry access to resolve materials with.
+     *
+     * <p>Absent on every tool assembled before #593 (and on any hand-built test stack), which
+     * {@code ToolItem#getEnchantmentValue} reads as {@code Material#DEFAULT_ENCHANTABILITY} -- the
+     * flat 14 those tools already enchanted at.
+     */
+    public static final DeferredHolder<DataComponentType<?>, DataComponentType<Integer>> ENCHANTABILITY =
+            DATA_COMPONENTS.registerComponentType("enchantability",
+                    builder -> builder.persistent(ExtraCodecs.POSITIVE_INT)
+                            .networkSynchronized(ByteBufCodecs.VAR_INT));
+
+    /**
      * The ids of the {@code Trait}s an assembled tool has, resolved from its three materials at
      * assembly time and de-duplicated ({@code ForgeweaveTraits#resolve}). Stored rather than looked
      * up per use because the seams traits hook into -- notably

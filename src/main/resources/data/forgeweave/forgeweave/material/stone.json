@@ -26,5 +26,6 @@
   "repair_item": {
     "tag": "minecraft:stone_tool_materials"
   },
+  "enchantability": 5,
   "color": "#999999"
 }

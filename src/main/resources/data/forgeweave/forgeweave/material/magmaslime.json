@@ -34,5 +34,6 @@
   "repair_item": {
     "item": "forgeweave:magma_slime_crystal"
   },
+  "enchantability": 15,
   "color": "#ff960d"
 }

@@ -1,0 +1,48 @@
+{
+    decoder: "material",
+    expect: {
+        color: "#FFFFFF",
+        enchantability: 22,
+        incorrect_for_tool: "minecraft:incorrect_for_wooden_tool"
+    },
+    nbt: {
+        bow: {
+            bonus_damage: -2.0f,
+            drawspeed: 1.5f,
+            range: 0.4f
+        },
+        color: "#FFFFFF",
+        crafting_items: [
+            {
+                ingredient: {
+                    item: "minecraft:paper"
+                },
+                value: 36
+            }
+        ],
+        enchantability: 22,
+        extra_durability: 15,
+        handle: {
+            durability: 5,
+            durability_modifier: 0.1f
+        },
+        head: {
+            attack_damage: 0.05f,
+            durability: 12,
+            mining_speed: 0.51f
+        },
+        incorrect_for_tool: "minecraft:incorrect_for_wooden_tool",
+        repair_item: {
+            item: "minecraft:paper"
+        },
+        traits: {
+            general: [
+                "forgeweave:writable"
+            ],
+            head: [
+                "forgeweave:writable2"
+            ]
+        }
+    },
+    what: "#593: the paper material carrying enchantability, the first material field that decides how well the assembled tool takes vanilla enchantments (allowVanillaEnchanting) rather than what it mines or costs. Pins that the value survives a registry-sync round trip -- a client whose copy lost it would show a different enchanting cost than the server charges. The pre-#593 fixtures next to this one are the other half: they name no enchantability and must keep decoding, at Material#DEFAULT_ENCHANTABILITY (14), which is the flat value every tool enchanted at before this field existed."
+}

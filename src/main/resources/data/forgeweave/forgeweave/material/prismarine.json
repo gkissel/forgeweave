@@ -28,5 +28,6 @@
   "repair_item": {
     "item": "minecraft:prismarine"
   },
+  "enchantability": 15,
   "color": "#7EDEBC"
 }
