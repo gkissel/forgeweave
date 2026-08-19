@@ -3,7 +3,8 @@ package dev.gkissel.forgeweave.client.book;
 import java.util.ArrayList;
 import java.util.List;
 
-import net.minecraft.ChatFormatting;
+import com.mojang.blaze3d.systems.RenderSystem;
+
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
@@ -22,50 +23,41 @@ import dev.gkissel.forgeweave.client.book.BookPage.TextPage;
 import dev.gkissel.forgeweave.client.book.BookPage.ToolPage;
 
 /**
- * The guide book's screen: a closed cover, then two-page spreads with arrow navigation and a
- * clickable index -- the flow of the 1.12 book (Mantle's {@code GuiBook}: cover, index page,
- * section pages, page-turn arrows), rendered by Forgeweave's own minimal engine. Mantle's book
- * chrome art is not part of the pinned Tinkers' clone, so the spread/cover/arrow art in
- * {@code textures/gui/book.png} is freshly authored ({@code scripts/generate_book_gui.py}) in the
- * same brown-leather-and-parchment look rather than derived.
+ * The guide book's screen, a 1:1 port of the 1.12 engine's chrome and flow (issue #430): Mantle's
+ * {@code GuiBook} (branch {@code 1.12}, commit {@code 340a386af51a97efaac0e71a3f1ff87fb267efe9},
+ * MIT -- NOTICE.md rows for the two derived sheets). The cover is {@code bookfront.png} tinted with
+ * the appearance cover color under an untinted title plate; a spread is {@code book.png}'s 412x200
+ * back tinted the same way with an untinted parchment leaf blitted per visible page; the page-turn,
+ * returner and back-to-index arrows are {@code GuiArrow}'s sprites, tinted with the appearance
+ * arrow colors and hit-tested at upstream's positions ({@link BookGeometry}). Navigation is
+ * upstream's: the next arrow opens the cover onto the lone index leaf, arrows/left-right (or A/D)
+ * keys/mouse wheel turn spreads, an index-row jump shows the returner arrow ({@code
+ * go-to-page-rtn}), and every spread past the first carries the corner arrow back to the index.
  *
  * <p>Pages are fixed-size and never scroll, so a page whose content is taller than a leaf continues
  * onto further leaves: {@link #blocksOf} measures a page into indivisible blocks and
- * {@link BookLayout} fills leaves with them (issue #428).
+ * {@link BookLayout} fills leaves with them (issue #428). Upstream instead hand-splits its authored
+ * content; Forgeweave's pages are generated from live registries, so the split is computed.
  *
- * <p>ponytail: navigation is cover -> index -> spreads with the index rows and two arrows as the
- * only interactive elements, hit-tested directly instead of through widget subclasses; the 1.12
- * book's extra chrome (bookmark tabs, back-arrow history, search) is out of scope for #273.
+ * <p>ponytail: this ports the chrome, geometry and navigation; Mantle's element/content-type
+ * system ({@code BookElement}, {@code ContentText}...) and Tinkers' authored book data are the
+ * #430 follow-up, so the page kinds below still render through the minimal block model.
  */
 public class BookScreen extends Screen {
 
-    private static final ResourceLocation TEXTURE =
-            ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "textures/gui/book.png");
-    private static final int TEX_SIZE = 512;
+    private static final ResourceLocation TEX_BOOK = ResourceLocation.fromNamespaceAndPath(
+            Forgeweave.MODID, "textures/derived/gui/book/book.png");
+    private static final ResourceLocation TEX_COVER = ResourceLocation.fromNamespaceAndPath(
+            Forgeweave.MODID, "textures/derived/gui/book/bookfront.png");
 
-    // Sheet regions (kept in sync with scripts/generate_book_gui.py).
-    private static final int BOOK_W = 320;
-    private static final int BOOK_H = 200;
-    private static final int COVER_W = 130;
-    private static final int COVER_H = 180;
-    private static final int COVER_U = 322;
-    private static final int COVER_V = 0;
-    private static final int ARROW_W = 18;
-    private static final int ARROW_H = 10;
-    private static final int ARROW_PREV_U = 322;
-    private static final int ARROW_NEXT_U = 342;
-    private static final int ARROW_V = 182;
-    private static final int ARROW_HOVER_V = 194;
-
-    // Per-page content layout, in book-local coordinates.
-    private static final int PAGE_TEXT_X_LEFT = 24;
-    private static final int PAGE_TEXT_X_RIGHT = 178;
-    private static final int PAGE_TEXT_Y = 14;
     private static final int PAGE_TEXT_W = BookLayout.PAGE_TEXT_W;
     private static final int PAGE_TEXT_H = BookLayout.PAGE_TEXT_H;
 
     private static final int TEXT_COLOR = 0xFF3F3F3F;
     private static final int TITLE_COLOR = 0xFF542D0B;
+
+    /** Upstream's {@code oldPage} idle value: -1 is the (valid) cover, so "none" is -2. */
+    private static final int NO_BACK_SPREAD = -2;
 
     /** Draws one already-measured piece of a page at the origin it was laid out at. */
     @FunctionalInterface
@@ -86,8 +78,10 @@ public class BookScreen extends Screen {
     private final List<PageSlot> slots = new ArrayList<>();
     private final int[] sectionStartSlot;
 
-    /** -1 is the closed cover; otherwise the spread showing slots {@code 2n} and {@code 2n+1}. */
+    /** -1 is the closed cover; spread s shows slots {@code 2s-1} (none for s=0) and {@code 2s}. */
     private int spread = -1;
+    /** Where the returner arrow goes back to after an index jump; {@link #NO_BACK_SPREAD} = hidden. */
+    private int backSpread = NO_BACK_SPREAD;
 
     public BookScreen(List<BookSection> sections) {
         super(Component.translatable(BookContent.TITLE));
@@ -121,11 +115,15 @@ public class BookScreen extends Screen {
             this.slots.add(new PageSlot(blocks.get(slot.page())
                     .subList(slot.firstBlock(), slot.firstBlock() + slot.blockCount()), false));
         }
-        // The index is slot 0, so every laid-out slot sits one further along.
         for (int i = 0; i < this.sections.size(); i++) {
             this.sectionStartSlot[i] = 1 + BookLayout.firstSlotOf(laid, sectionStartPage[i]);
         }
         this.spread = Math.min(this.spread, lastSpread());
+    }
+
+    /** Opens the book straight onto a spread -- the screenshot harness's entry point. */
+    public void openSpread(int spread) {
+        this.spread = Math.min(spread, lastSpread());
     }
 
     @Override
@@ -133,16 +131,8 @@ public class BookScreen extends Screen {
         return false;
     }
 
-    private int bookLeft() {
-        return (this.width - BOOK_W) / 2;
-    }
-
-    private int bookTop() {
-        return (this.height - BOOK_H) / 2;
-    }
-
     private int lastSpread() {
-        return (this.slots.size() - 1) / 2;
+        return BookGeometry.lastSpread(this.slots.size());
     }
 
     @Override
@@ -150,45 +140,75 @@ public class BookScreen extends Screen {
         super.render(graphics, mouseX, mouseY, partialTick);
         if (this.spread < 0) {
             renderCover(graphics);
-            return;
+        } else {
+            renderSpread(graphics);
         }
-        int left = bookLeft();
-        int top = bookTop();
-        graphics.blit(TEXTURE, left, top, 0, 0, BOOK_W, BOOK_H, TEX_SIZE, TEX_SIZE);
-
-        renderSlot(graphics, this.spread * 2, left + PAGE_TEXT_X_LEFT, top + PAGE_TEXT_Y);
-        renderSlot(graphics, this.spread * 2 + 1, left + PAGE_TEXT_X_RIGHT, top + PAGE_TEXT_Y);
-
-        if (hasPrev()) {
-            boolean hover = overPrev(mouseX, mouseY);
-            graphics.blit(TEXTURE, prevX(), arrowY(), ARROW_PREV_U, hover ? ARROW_HOVER_V : ARROW_V,
-                    ARROW_W, ARROW_H, TEX_SIZE, TEX_SIZE);
-        }
-        if (hasNext()) {
-            boolean hover = overNext(mouseX, mouseY);
-            graphics.blit(TEXTURE, nextX(), arrowY(), ARROW_NEXT_U, hover ? ARROW_HOVER_V : ARROW_V,
-                    ARROW_W, ARROW_H, TEX_SIZE, TEX_SIZE);
-        }
+        renderArrows(graphics, mouseX, mouseY);
     }
 
+    /**
+     * Upstream's cover: {@code bookfront.png}'s base tinted with the cover color, the title plate
+     * untinted over it, then the title at 2.5x (2x once it outgrows 67px) and the subtitle at 1.5x,
+     * both gold with a shadow, at {@code GuiBook.drawScreen}'s exact offsets.
+     */
     private void renderCover(GuiGraphics graphics) {
-        int left = (this.width - COVER_W) / 2;
-        int top = (this.height - COVER_H) / 2;
-        graphics.blit(TEXTURE, left, top, COVER_U, COVER_V, COVER_W, COVER_H, TEX_SIZE, TEX_SIZE);
-        drawCentredWrapped(graphics, Component.translatable(BookContent.TITLE), left + COVER_W / 2,
-                top + 44, COVER_W - 34, 0xFFE8D8A0);
-        drawCentredWrapped(graphics, Component.translatable(BookContent.SUBTITLE).withStyle(ChatFormatting.ITALIC),
-                left + COVER_W / 2, top + 96, COVER_W - 34, 0xFFC8B880);
+        int x = this.width / 2 - BookGeometry.PAGE_WIDTH_UNSCALED / 2;
+        int y = BookGeometry.spreadTop(this.height);
+
+        setColor(graphics, BookGeometry.COVER_COLOR);
+        chromeBlit(graphics, TEX_COVER, x, y, 0, 0,
+                BookGeometry.PAGE_WIDTH_UNSCALED, BookGeometry.PAGE_HEIGHT_UNSCALED);
+        graphics.setColor(1.0F, 1.0F, 1.0F, 1.0F);
+        chromeBlit(graphics, TEX_COVER, x, y, 0, BookGeometry.PAGE_HEIGHT_UNSCALED,
+                BookGeometry.PAGE_WIDTH_UNSCALED, BookGeometry.PAGE_HEIGHT_UNSCALED);
+
+        Component title = Component.translatable(BookContent.TITLE);
+        float scale = this.font.width(title) <= 67 ? 2.5F : 2F;
+        graphics.pose().pushPose();
+        graphics.pose().scale(scale, scale, 1F);
+        graphics.drawString(this.font, title,
+                (int) ((this.width / 2) / scale + 3 - this.font.width(title) / 2),
+                (int) ((this.height / 2 - this.font.lineHeight / 2) / scale - 4),
+                BookGeometry.COVER_TEXT_COLOR, true);
+        graphics.pose().popPose();
+
+        Component subtitle = Component.translatable(BookContent.SUBTITLE);
+        graphics.pose().pushPose();
+        graphics.pose().scale(1.5F, 1.5F, 1F);
+        graphics.drawString(this.font, subtitle,
+                (int) ((this.width / 2) / 1.5F + 7 - this.font.width(subtitle) / 2),
+                (int) ((this.height / 2 + 100 - this.font.lineHeight * 2) / 1.5F),
+                BookGeometry.COVER_TEXT_COLOR, true);
+        graphics.pose().popPose();
+    }
+
+    /** Upstream's spread: the cover-tinted 412x200 back, then one untinted parchment leaf per visible slot. */
+    private void renderSpread(GuiGraphics graphics) {
+        int left = BookGeometry.spreadLeft(this.width);
+        int top = BookGeometry.spreadTop(this.height);
+
+        setColor(graphics, BookGeometry.COVER_COLOR);
+        chromeBlit(graphics, TEX_BOOK, left, top, 0, 0,
+                BookGeometry.PAGE_WIDTH_UNSCALED * 2, BookGeometry.PAGE_HEIGHT_UNSCALED);
+        graphics.setColor(1.0F, 1.0F, 1.0F, 1.0F);
+
+        int leftSlot = BookGeometry.leftSlot(this.spread);
+        if (leftSlot >= 0) {
+            chromeBlit(graphics, TEX_BOOK, left, top, 0, BookGeometry.PAGE_HEIGHT_UNSCALED,
+                    BookGeometry.PAGE_WIDTH_UNSCALED, BookGeometry.PAGE_HEIGHT_UNSCALED);
+            renderSlot(graphics, leftSlot, BookGeometry.leftPageX(this.width), BookGeometry.pageY(this.height));
+        }
+        int rightSlot = BookGeometry.rightSlot(this.spread);
+        if (rightSlot < this.slots.size()) {
+            chromeBlit(graphics, TEX_BOOK, this.width / 2, top, BookGeometry.PAGE_WIDTH_UNSCALED,
+                    BookGeometry.PAGE_HEIGHT_UNSCALED, BookGeometry.PAGE_WIDTH_UNSCALED,
+                    BookGeometry.PAGE_HEIGHT_UNSCALED);
+            renderSlot(graphics, rightSlot, BookGeometry.rightPageX(this.width), BookGeometry.pageY(this.height));
+        }
     }
 
     private void renderSlot(GuiGraphics graphics, int slotIndex, int x, int y) {
-        if (slotIndex >= this.slots.size()) {
-            return;
-        }
         PageSlot slot = this.slots.get(slotIndex);
-        // Belt and braces over the layout's own bound: the one thing it cannot split -- a single
-        // block taller than a whole leaf -- still must not bleed over the page number or off the
-        // parchment the way every page used to (issue #428).
         graphics.enableScissor(x, y, x + PAGE_TEXT_W, y + PAGE_TEXT_H);
         if (slot.index()) {
             renderIndex(graphics, x, y);
@@ -200,15 +220,16 @@ public class BookScreen extends Screen {
             }
         }
         graphics.disableScissor();
-        // Page number, bottom-centre of the page (a numeral, not translatable text).
-        String number = String.valueOf(slotIndex + 1);
-        graphics.drawString(this.font, number, x + (PAGE_TEXT_W - this.font.width(number)) / 2,
-                y + PAGE_TEXT_H + 4, TEXT_COLOR, false);
+        // Upstream: pNum centred at PAGE_WIDTH/2, PAGE_HEIGHT - 10, 0xFFAAAAAA, no shadow.
+        String number = String.valueOf(BookGeometry.pageNumber(slotIndex));
+        graphics.drawString(this.font, number,
+                x + BookGeometry.PAGE_WIDTH / 2 - this.font.width(number) / 2,
+                y + BookGeometry.PAGE_HEIGHT - 10, BookGeometry.PAGE_NUMBER_COLOR, false);
     }
 
     private void renderIndex(GuiGraphics graphics, int x, int y) {
-        graphics.drawString(this.font, Component.translatable(BookContent.INDEX_TITLE),
-                x + (PAGE_TEXT_W - this.font.width(Component.translatable(BookContent.INDEX_TITLE))) / 2, y,
+        Component title = Component.translatable(BookContent.INDEX_TITLE);
+        graphics.drawString(this.font, title, x + (PAGE_TEXT_W - this.font.width(title)) / 2, y,
                 TITLE_COLOR, false);
         for (int i = 0; i < this.sections.size(); i++) {
             int rowY = indexRowY(y, i);
@@ -217,6 +238,60 @@ public class BookScreen extends Screen {
             graphics.drawString(this.font, Component.translatable(this.sections.get(i).titleKey()),
                     x + 20, rowY + 4, TEXT_COLOR, false);
         }
+    }
+
+    private void renderArrows(GuiGraphics graphics, int mouseX, int mouseY) {
+        boolean cover = this.spread < 0;
+        if (hasNext()) {
+            drawArrow(graphics, BookGeometry.nextArrowX(this.width, cover), BookGeometry.arrowY(this.height),
+                    BookGeometry.ARROW_NEXT_U, BookGeometry.ARROW_NEXT_V,
+                    BookGeometry.ARROW_W, BookGeometry.ARROW_H, mouseX, mouseY);
+        }
+        if (cover) {
+            return;
+        }
+        if (hasPrev()) {
+            drawArrow(graphics, BookGeometry.prevArrowX(this.width), BookGeometry.arrowY(this.height),
+                    BookGeometry.ARROW_PREV_U, BookGeometry.ARROW_PREV_V,
+                    BookGeometry.ARROW_W, BookGeometry.ARROW_H, mouseX, mouseY);
+        }
+        if (hasBack()) {
+            drawArrow(graphics, BookGeometry.backArrowX(this.width), BookGeometry.backArrowY(this.height),
+                    BookGeometry.ARROW_BACK_U, BookGeometry.ARROW_BACK_V,
+                    BookGeometry.ARROW_W, BookGeometry.ARROW_H, mouseX, mouseY);
+        }
+        if (hasIndexArrow()) {
+            drawArrow(graphics, BookGeometry.indexArrowX(this.width), BookGeometry.indexArrowY(this.height),
+                    BookGeometry.ARROW_INDEX_U, BookGeometry.ARROW_INDEX_V,
+                    BookGeometry.ARROW_INDEX_SIZE, BookGeometry.ARROW_INDEX_SIZE, mouseX, mouseY);
+        }
+    }
+
+    /** {@code GuiArrow.drawButton}: the sprite from book.png, tinted with the arrow (or hover) color. */
+    private void drawArrow(GuiGraphics graphics, int x, int y, int u, int v, int w, int h,
+            int mouseX, int mouseY) {
+        boolean hovered = mouseX >= x && mouseY >= y && mouseX < x + w && mouseY < y + h;
+        setColor(graphics, hovered ? BookGeometry.ARROW_HOVER_COLOR : BookGeometry.ARROW_COLOR);
+        chromeBlit(graphics, TEX_BOOK, x, y, u, v, w, h);
+        graphics.setColor(1.0F, 1.0F, 1.0F, 1.0F);
+    }
+
+    /**
+     * A chrome-sheet blit with blending guaranteed on -- {@code GuiBook.drawScreen} leads with
+     * {@code enableAlpha()/enableBlend()} and re-establishes GL state before each page. The sheets'
+     * anti-aliased edge pixels need real alpha blending, and the GL blend state at blit time is
+     * whatever the last draw (text rendering included) left behind.
+     */
+    private static void chromeBlit(GuiGraphics graphics, ResourceLocation tex, int x, int y,
+            int u, int v, int w, int h) {
+        RenderSystem.enableBlend();
+        RenderSystem.defaultBlendFunc();
+        graphics.blit(tex, x, y, u, v, w, h, BookGeometry.TEX_SIZE, BookGeometry.TEX_SIZE);
+    }
+
+    private static void setColor(GuiGraphics graphics, int rgb) {
+        graphics.setColor(((rgb >> 16) & 0xff) / 255.0F, ((rgb >> 8) & 0xff) / 255.0F,
+                (rgb & 0xff) / 255.0F, 1.0F);
     }
 
     /**
@@ -231,8 +306,6 @@ public class BookScreen extends Screen {
             titleBlock(blocks, Component.translatable(text.titleKey()));
             ResourceLocation image = text.image();
             if (image != null) {
-                // Fit the image to the text column, preserving the source's aspect only approximately:
-                // the one shipped image (the smeltery scene) is 854x480, close enough to 16:9.
                 int imageH = PAGE_TEXT_W * 9 / 16;
                 blocks.add(new Block(imageH + 4, (graphics, x, y) ->
                         graphics.blit(image, x, y, PAGE_TEXT_W, imageH, 0, 0, 854, 480, 854, 480)));
@@ -264,9 +337,6 @@ public class BookScreen extends Screen {
                 .translatable("material." + page.id().getNamespace() + "." + page.id().getPath())
                 .withStyle(Style.EMPTY.withColor(page.material().color())));
 
-        // The three stat groups run together, not StationText#materialStats: that one is the info
-        // panel's shape (issue #376's underlined headings and null spacers), and a book page has its
-        // own headings, no room for five more lines, and a drawString that would NPE on a spacer.
         List<Component> stats = new ArrayList<>(StationText.headStats(page.material()));
         stats.addAll(StationText.handleStats(page.material()));
         stats.addAll(StationText.extraStats(page.material()));
@@ -276,8 +346,6 @@ public class BookScreen extends Screen {
             blocks.add(lineBlock(line, TEXT_COLOR));
         }
 
-        // The gap and the traits header are one block, so the header never dangles at the foot of a
-        // leaf with its list starting on the next.
         Component traitsHeader = Component.translatable("gui.forgeweave.tool_station.traits");
         blocks.add(new Block(4 + this.font.lineHeight + 2, (graphics, x, y) ->
                 graphics.drawString(this.font, traitsHeader, x, y + 4, TITLE_COLOR, false)));
@@ -320,74 +388,80 @@ public class BookScreen extends Screen {
                 (graphics, x, y) -> graphics.drawString(this.font, line, x, y, color, false));
     }
 
-    private void drawCentredWrapped(GuiGraphics graphics, Component text, int centreX, int y, int width, int color) {
-        for (FormattedCharSequence line : this.font.split(text, width)) {
-            graphics.drawString(this.font, line, centreX - this.font.width(line) / 2, y, color, false);
-            y += this.font.lineHeight + 1;
-        }
-    }
-
     private int indexRowY(int pageY, int row) {
         return pageY + 16 + row * 20;
     }
 
     private boolean hasPrev() {
-        return this.spread >= 0;
+        return this.spread >= 0; // upstream: visible on every spread; from the first it re-closes the cover
     }
 
     private boolean hasNext() {
         return this.spread < lastSpread();
     }
 
-    private int prevX() {
-        return bookLeft() + 14;
+    private boolean hasBack() {
+        return this.backSpread >= -1;
     }
 
-    private int nextX() {
-        return bookLeft() + BOOK_W - 14 - ARROW_W;
+    private boolean hasIndexArrow() {
+        return this.spread >= 1; // upstream: visible once the shown pages are past the index section
     }
 
-    private int arrowY() {
-        return bookTop() + BOOK_H - 20;
+    private boolean over(double mouseX, double mouseY, int x, int y, int w, int h) {
+        return mouseX >= x && mouseX < x + w && mouseY >= y && mouseY < y + h;
     }
 
-    private boolean overPrev(double mouseX, double mouseY) {
-        return mouseX >= prevX() && mouseX < prevX() + ARROW_W && mouseY >= arrowY() && mouseY < arrowY() + ARROW_H;
-    }
-
-    private boolean overNext(double mouseX, double mouseY) {
-        return mouseX >= nextX() && mouseX < nextX() + ARROW_W && mouseY >= arrowY() && mouseY < arrowY() + ARROW_H;
+    /** Upstream's {@code actionPerformed}: every arrow press also retires the returner arrow. */
+    private void turnTo(int spread) {
+        this.spread = spread;
+        this.backSpread = NO_BACK_SPREAD;
     }
 
     @Override
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
         if (button == GLFW.GLFW_MOUSE_BUTTON_LEFT) {
-            if (this.spread < 0) {
-                this.spread = 0; // any click opens the cover
+            boolean cover = this.spread < 0;
+            if (hasNext() && over(mouseX, mouseY, BookGeometry.nextArrowX(this.width, cover),
+                    BookGeometry.arrowY(this.height), BookGeometry.ARROW_W, BookGeometry.ARROW_H)) {
+                turnTo(this.spread + 1);
                 return true;
             }
-            if (hasPrev() && overPrev(mouseX, mouseY)) {
-                this.spread--;
-                return true;
-            }
-            if (hasNext() && overNext(mouseX, mouseY)) {
-                this.spread++;
-                return true;
-            }
-            if (this.spread == 0 && indexRowClicked(mouseX, mouseY)) {
-                return true;
+            if (!cover) {
+                if (hasPrev() && over(mouseX, mouseY, BookGeometry.prevArrowX(this.width),
+                        BookGeometry.arrowY(this.height), BookGeometry.ARROW_W, BookGeometry.ARROW_H)) {
+                    turnTo(this.spread - 1);
+                    return true;
+                }
+                if (hasBack() && over(mouseX, mouseY, BookGeometry.backArrowX(this.width),
+                        BookGeometry.backArrowY(this.height), BookGeometry.ARROW_W, BookGeometry.ARROW_H)) {
+                    turnTo(this.backSpread);
+                    return true;
+                }
+                if (hasIndexArrow() && over(mouseX, mouseY, BookGeometry.indexArrowX(this.width),
+                        BookGeometry.indexArrowY(this.height), BookGeometry.ARROW_INDEX_SIZE,
+                        BookGeometry.ARROW_INDEX_SIZE)) {
+                    turnTo(0);
+                    return true;
+                }
+                if (this.spread == 0 && indexRowClicked(mouseX, mouseY)) {
+                    return true;
+                }
             }
         }
         return super.mouseClicked(mouseX, mouseY, button);
     }
 
+    /** An index jump is upstream's {@code go-to-page-rtn}: it remembers where to return to. */
     private boolean indexRowClicked(double mouseX, double mouseY) {
-        int x = bookLeft() + PAGE_TEXT_X_LEFT;
-        int y = bookTop() + PAGE_TEXT_Y;
+        int x = BookGeometry.rightPageX(this.width);
+        int y = BookGeometry.pageY(this.height);
         for (int i = 0; i < this.sections.size(); i++) {
             int rowY = indexRowY(y, i);
             if (mouseX >= x && mouseX < x + PAGE_TEXT_W && mouseY >= rowY && mouseY < rowY + 18) {
-                this.spread = this.sectionStartSlot[i] / 2;
+                int from = this.spread;
+                this.spread = BookGeometry.spreadOf(this.sectionStartSlot[i]);
+                this.backSpread = from;
                 return true;
             }
         }
@@ -396,14 +470,29 @@ public class BookScreen extends Screen {
 
     @Override
     public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
-        if (keyCode == GLFW.GLFW_KEY_RIGHT && hasNext()) {
-            this.spread++;
+        // Upstream binds A/D alongside the arrow keys (GuiBook.keyTyped).
+        if ((keyCode == GLFW.GLFW_KEY_RIGHT || keyCode == GLFW.GLFW_KEY_D) && hasNext()) {
+            turnTo(this.spread + 1);
             return true;
         }
-        if (keyCode == GLFW.GLFW_KEY_LEFT && hasPrev()) {
-            this.spread--;
+        if ((keyCode == GLFW.GLFW_KEY_LEFT || keyCode == GLFW.GLFW_KEY_A) && hasPrev()) {
+            turnTo(this.spread - 1);
             return true;
         }
         return super.keyPressed(keyCode, scanCode, modifiers);
+    }
+
+    /** Upstream turns pages on the wheel: scroll down is next, scroll up is previous. */
+    @Override
+    public boolean mouseScrolled(double mouseX, double mouseY, double scrollX, double scrollY) {
+        if (scrollY < 0 && hasNext()) {
+            turnTo(this.spread + 1);
+            return true;
+        }
+        if (scrollY > 0 && hasPrev()) {
+            turnTo(this.spread - 1);
+            return true;
+        }
+        return super.mouseScrolled(mouseX, mouseY, scrollX, scrollY);
     }
 }

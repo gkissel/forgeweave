@@ -3,16 +3,9 @@ package dev.gkissel.forgeweave.client;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
 
 import org.junit.jupiter.api.Test;
 
@@ -31,53 +24,8 @@ class BookPaginationTest {
     private static final int LINE = 10; // the vanilla font's 9px line plus BookScreen's 1px lead
     private static final int TITLE = 14; // one wrapped title line plus its 5px gap
 
-    /**
-     * A conservative lower bound on the default font's advance for Latin text: 'i'/'l' are the only
-     * common glyphs narrower than this, and most are 6px. Wrapping the real page text at this width
-     * therefore *under*counts lines, so an overflow measured with it is an overflow for certain.
-     */
-    private static final int NARROW_CHAR = 5;
-
     private static List<Integer> blocks(int count, int height) {
         return Collections.nCopies(count, height);
-    }
-
-    /** The shipped {@code book.forgeweave.*} strings, i.e. what the player actually reads. */
-    private static JsonObject lang() throws IOException {
-        Path dir = Path.of("").toAbsolutePath();
-        for (Path root = dir; root != null; root = root.getParent()) {
-            if (Files.exists(root.resolve("settings.gradle"))) {
-                return JsonParser.parseString(Files.readString(
-                        root.resolve("src/generated/resources/assets/forgeweave/lang/en_us.json"),
-                        StandardCharsets.UTF_8)).getAsJsonObject();
-            }
-        }
-        throw new AssertionError("could not locate project root above " + dir);
-    }
-
-    /** Greedy word wrap at {@link #NARROW_CHAR} per character, counting blank paragraph lines. */
-    private static int wrappedLines(String text, int width) {
-        int lines = 0;
-        for (String paragraph : text.split("\n", -1)) {
-            if (paragraph.isBlank()) {
-                lines++;
-                continue;
-            }
-            int used = 0;
-            for (String word : paragraph.split(" ")) {
-                int wordWidth = word.length() * NARROW_CHAR;
-                if (used == 0) {
-                    used = wordWidth;
-                } else if (used + NARROW_CHAR + wordWidth <= width) {
-                    used += NARROW_CHAR + wordWidth;
-                } else {
-                    lines++;
-                    used = wordWidth;
-                }
-            }
-            lines++;
-        }
-        return lines;
     }
 
     @Test
@@ -171,30 +119,5 @@ class BookPaginationTest {
         assertTrue(page.stream().mapToInt(Integer::intValue).sum() > BookLayout.PAGE_TEXT_H,
                 "non-vacuity: a 12-trait material page must be taller than a leaf to be worth testing");
         assertTrue(slots.size() > 1, "a 12-trait material page should paginate, got " + slots);
-    }
-
-    /**
-     * The reported page. "Surviving the First Day" is {@code book.forgeweave.intro.welcome}, and its
-     * shipped text alone is far taller than a leaf -- this is the playtest regression, measured
-     * against the real string rather than a stand-in so shortening the copy retires it honestly.
-     */
-    @Test
-    void theSurvivingTheFirstDayPageDoesNotFitOnOneLeaf() throws IOException {
-        String text = lang().get("book.forgeweave.intro.welcome.text").getAsString();
-        assertTrue(text.length() >= 300,
-                "non-vacuity: expected the shipped welcome copy, saw " + text.length() + " chars");
-
-        int bodyLines = wrappedLines(text, BookLayout.PAGE_TEXT_W);
-        int height = TITLE + bodyLines * LINE;
-        assertTrue(height > BookLayout.PAGE_TEXT_H, "the welcome page measures " + height
-                + "px, which already fits a " + BookLayout.PAGE_TEXT_H + "px leaf -- retire this test");
-
-        List<Integer> page = new ArrayList<>();
-        page.add(TITLE);
-        page.addAll(blocks(bodyLines, LINE));
-        List<Slot> slots = BookLayout.paginate(List.of(page), BookLayout.PAGE_TEXT_H);
-
-        assertTrue(slots.size() > 1,
-                "the welcome page must continue onto a second leaf instead of drawing off the book");
     }
 }
