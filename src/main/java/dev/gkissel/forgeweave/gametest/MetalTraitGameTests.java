@@ -178,10 +178,61 @@ public class MetalTraitGameTests {
                     helper.assertTrue(pull > 0.0,
                             "an item at 2.6 blocks should be pulled once the levels sum to range 2.7, got "
                                     + dropped.getDeltaMovement());
-                    helper.assertTrue(pull < 0.05,
-                            "the summed level must still perform one 0.035-strength pull, not two summed "
-                                    + "together (0.07), got " + pull);
+                    helper.assertTrue(pull < 0.1,
+                            "the summed level must still perform one 0.07-strength pull, not two summed "
+                                    + "together (0.14), got " + pull);
                     dropped.discard();
+                })
+                .thenSucceed();
+    }
+
+    /**
+     * Iron -&gt; {@code forgeweave:magnetic2}: issue #603 parity fix. Upstream's {@code
+     * MagneticPotion#performEffect} pulls in all three axes (a plain {@code Vector3d} subtract +
+     * normalize, x/y/z alike) at a flat 0.07 blocks/tick, not a horizontal-only projection and not
+     * the weaker 0.035 an earlier every-tick adaptation used. An item directly below, and one
+     * directly above, the holder must each get the full-strength, correctly-signed vertical pull the
+     * instant the window is open -- with the window's ticksRemaining freshly opened at 30 (even), the
+     * very next tick is one of the active ones, so a single {@code inventoryTick} call is enough to
+     * observe it (matching this class's other magnetic tests, e.g. {@link
+     * #magneticPullsNearbyItemsTowardTheHolderAfterUse}). This is what issue #603's "feels stiff and
+     * horizontal-only" complaint traces to: 0.035 is real but too weak to read as "pulled" once
+     * gravity (0.04/tick) fights it every single tick -- see the trait's own javadoc for the full
+     * math and why a naive multi-tick "does the item end up higher" test doesn't hold even for a
+     * byte-perfect port.
+     */
+    @GameTest(template = "empty", timeoutTicks = 1200)
+    public static void magneticPullsItemsVerticallyAtFullStrength(GameTestHelper helper) {
+        ServerLevel level = helper.getLevel();
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        BlockPos pos = helper.absolutePos(new BlockPos(2, 2, 2));
+        player.setPos(pos.getX() + 0.5, pos.getY(), pos.getZ() + 0.5);
+        ItemStack pickaxe = pickaxe(List.of(traitId("magnetic2")), 100, 1.0F, 1.0F);
+        ForgeweaveTraits.afterBlockBreak(pickaxe, level, Blocks.STONE.defaultBlockState(), BlockPos.ZERO, player, true);
+
+        // Both 2.0 blocks out: inside magnetic2's own range (2.4 = 1.8 + 2 * 0.3).
+        ItemEntity below = new ItemEntity(level, player.getX(), player.getY() - 2.0, player.getZ(),
+                new ItemStack(Items.COBBLESTONE));
+        below.setDeltaMovement(Vec3.ZERO);
+        level.addFreshEntity(below);
+
+        ItemEntity above = new ItemEntity(level, player.getX(), player.getY() + 2.0, player.getZ(),
+                new ItemStack(Items.COBBLESTONE));
+        above.setDeltaMovement(Vec3.ZERO);
+        level.addFreshEntity(above);
+
+        helper.startSequence()
+                .thenWaitUntil(() -> SpawnCapture.assertIndexServes(helper, below, above))
+                .thenExecute(() -> {
+                    pickaxe.getItem().inventoryTick(pickaxe, level, player, 0, false);
+                    double belowPullY = below.getDeltaMovement().y;
+                    double abovePullY = above.getDeltaMovement().y;
+                    helper.assertTrue(belowPullY > 0.06,
+                            "an item below the holder should get the full 0.07 upward pull, got " + belowPullY);
+                    helper.assertTrue(abovePullY < -0.06,
+                            "an item above the holder should get the full 0.07 downward pull, got " + abovePullY);
+                    below.discard();
+                    above.discard();
                 })
                 .thenSucceed();
     }

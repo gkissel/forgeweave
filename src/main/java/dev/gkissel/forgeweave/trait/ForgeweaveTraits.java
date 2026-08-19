@@ -200,7 +200,7 @@ public final class ForgeweaveTraits {
     };
 
     // -- M2 metal traits (issue #102). Material -> trait wiring is issue #103, not here.
-    private static final float MAGNETIC_STRENGTH = 0.035F;
+    private static final float MAGNETIC_STRENGTH = 0.07F;
     private static final int MAGNETIC_MAX_PULLED = 200;
 
     /** Upstream {@code MagneticPotion#performEffect}: {@code range = 1.8 + amplifier * 0.3}. */
@@ -215,9 +215,14 @@ public final class ForgeweaveTraits {
 
     /**
      * Iron. Upstream {@code TraitMagnetic}'s {@code MagneticPotion#performEffect}: pulls every item
-     * drop within {@code 1.8 + level * 0.3} blocks toward the holder at a constant 0.07 blocks/tick,
-     * at most 200 items, applied every other tick ({@code isReady}: {@code duration & 1 == 0}), only
-     * while the hidden 30-tick potion {@code afterBlockBreak}/{@code onHit} re-applies is active.
+     * drop within {@code 1.8 + level * 0.3} blocks toward the holder at a constant 0.07 blocks/tick
+     * in all three axes (a plain vector subtract + normalize, not a horizontal-only projection, and
+     * with no 1/distance falloff -- the pull magnitude is the same at 0.1 blocks out as at the edge
+     * of range), at most 200 items, applied every other tick ({@code isReady}: {@code duration & 1
+     * == 0}), only while the hidden 30-tick potion {@code afterBlockBreak}/{@code onHit} re-applies
+     * is active. Only the range scales with level ({@code 1.8 + amplifier * 0.3}); the 0.07 strength
+     * itself is flat regardless of level (issue #603 corrected a parity audit claim that strength
+     * scales too).
      *
      * <p>Upstream reaches the timer through a player-scoped potion effect; Forgeweave has no
      * player-scoped potion-effect plumbing (issue #459 corrects the parity audit's claim that this
@@ -226,11 +231,19 @@ public final class ForgeweaveTraits {
      * as {@link #MOMENTUM}/{@link #INSATIABLE} applies here too), so {@link #afterUse} stores the
      * 30-tick window on the tool's own stack ({@link ForgeweaveDataComponents#MAGNETIC_STACKS}) and
      * {@link ForgeweaveTraits#inventoryTick} only pulls while it is still counting down, decaying it
-     * one tick at a time like {@code MOMENTUM_STACKS} does. The pull itself still runs every tick
-     * inside that window at half strength (0.035) rather than gating on tick parity at full strength
-     * (0.07) -- over one 30-tick window that is the same total impulse upstream's every-other-tick
-     * pull delivers (0.035 * 30 == 0.07 * 15), just spread evenly instead of alternating. Recorded in
-     * the PR.
+     * one tick at a time like {@code MOMENTUM_STACKS} does. The window's {@code ticksRemaining} takes
+     * over the role upstream's hidden potion's own {@code duration} played, so
+     * {@link #inventoryTick} checks its parity the same way {@code isReady} checks the potion
+     * duration's -- issue #603 parity fix: an earlier version ran the pull every tick at half
+     * strength (0.035) instead, reasoning the two were equivalent because the summed impulse over one
+     * window matches (0.035 * 30 == 0.07 * 15); that reasoning ignored that vanilla applies gravity
+     * (0.04 blocks/tick, downward, every tick unconditionally) to the item the same way regardless of
+     * the pull's cadence -- 0.035 vertical pull can never exceed 0.04 gravity on any single tick, so
+     * an item held below the holder never won a single tick against gravity, where 0.07 does (see
+     * {@code MetalTraitGameTests#magneticPullsItemsVerticallyAtFullStrength}). Gravity still wins a
+     * sustained 30-tick window even at full strength (0.07 every other tick against 0.04 every tick
+     * nets downward overall too, just far more slowly) -- that's upstream's own math, not a claim
+     * that magnetic defies gravity outright.
      *
      * <p>Iron grants both this (general, level 1) and {@link #MAGNETIC2} (head only, upstream's
      * separately identified {@code magnetic2}, level 2). Upstream's {@code AbstractTraitLeveled} sums
@@ -1429,6 +1442,11 @@ public final class ForgeweaveTraits {
         return stacks == null ? 0 : stacks.level();
     }
 
+    private static int stackTicksRemaining(ItemStack stack, DataComponentType<TraitStacks> component) {
+        TraitStacks stacks = stack.get(component);
+        return stacks == null ? 0 : stacks.ticksRemaining();
+    }
+
     private static void decayStack(ItemStack stack, DataComponentType<TraitStacks> component) {
         TraitStacks stacks = stack.get(component);
         if (stacks == null || stacks.level() == 0) {
@@ -1662,10 +1680,13 @@ public final class ForgeweaveTraits {
         // Magnetic (issue #297 parity fix): one pull at the combined level's range, not one pull per
         // leveled trait instance -- see MAGNETIC's javadoc. Issue #459 parity fix: only while the
         // 30-tick after-use window MAGNETIC/MAGNETIC2's afterBlockBreak/afterHit opened is still
-        // counting down, not on every tick the tool is merely carried.
+        // counting down, not on every tick the tool is merely carried. Issue #603 parity fix:
+        // upstream's MagneticPotion#isReady only pulls when its duration is even (duration & 1 ==
+        // 0); the window's ticksRemaining plays that same role here.
         int magneticLevel = magneticLevel(stack);
         if (magneticLevel > 0) {
-            if (stackLevel(stack, ForgeweaveDataComponents.MAGNETIC_STACKS.get()) > 0) {
+            int ticksRemaining = stackTicksRemaining(stack, ForgeweaveDataComponents.MAGNETIC_STACKS.get());
+            if (ticksRemaining > 0 && (ticksRemaining & 1) == 0) {
                 pullMagneticItems(level, holder, MAGNETIC_BASE_RANGE + magneticLevel * MAGNETIC_RANGE_PER_LEVEL);
             }
             decayStack(stack, ForgeweaveDataComponents.MAGNETIC_STACKS.get());
