@@ -187,6 +187,28 @@ public class SmelteryMeltingGameTests {
     }
 
     /**
+     * #583 -- verified against the Mantle 1.12 clone: {@code RecipeMatch.Item#matches} matches on
+     * {@code OreDictionary.itemMatches(template, stack, false)} (wildcard metadata, no damage check
+     * at all) and {@code TinkerSmeltery}'s melting/casting registration never reads {@code
+     * ItemStack#getItemDamage} either, so upstream 1.12 has no durability-scaled melting to port: a
+     * nearly-broken pickaxe returns the exact same three ingots as a fresh one. Issue #583's "port
+     * 1.20's {@code damagable} field" question is therefore answered by upstream itself, not left
+     * open -- doing so would be a deviation from 1.12 parity, not a fix. Pinned so nobody adds
+     * durability scaling later without a maintainer decision to deviate from verified upstream
+     * behaviour.
+     */
+    @GameTest(template = "smeltery", timeoutTicks = 1600)
+    public static void aNearlyBrokenIronPickaxeStillMeltsForTheFullThreeIngots(GameTestHelper helper) {
+        SmelteryControllerBlockEntity core = lavaFuelledSmeltery(helper, ForgeweaveBlocks.NETHER_CORE.get());
+        ItemStack nearlyBroken = new ItemStack(Items.IRON_PICKAXE);
+        nearlyBroken.setDamageValue(nearlyBroken.getMaxDamage() - 1);
+        helper.assertTrue(core.insertForMelting(nearlyBroken).isEmpty(), "expected the damaged pickaxe to go into the smeltery");
+
+        helper.succeedWhen(() -> assertTankHolds(helper, core, ForgeweaveFluids.IRON.still().get(),
+                MeltingRecipe.VALUE_INGOT * 3));
+    }
+
+    /**
      * #439 (T7) on the gold half, and on one of the four rows upstream writes by hand rather than
      * deriving from a crafting recipe ({@code TinkerSmeltery.java:396-399}): a powered rail is
      * {@code Material.VALUE_Ingot} of gold, even though its own recipe makes six of them from six
