@@ -80,7 +80,9 @@ import dev.gkissel.forgeweave.tool.ToolMaterials;
  *       {@link RenameStationItemPayload} on every edit and the server applies the name to the output
  *       stack, so nothing here decides what the crafted item is called. Since parity audit T11
  *       (issue #443) the server also echoes the text to the other players at that station, and
- *       {@link #containerTick} folds theirs back into this field.
+ *       {@link #containerTick} folds theirs back into this field. The typed text goes into this
+ *       client's own menu first, as vanilla's anvil does, so that fold-back can never overwrite
+ *       the typist (issue #597).
  * </ul>
  *
  * <p>{@link AbstractContainerScreen#render} does <em>not</em> call {@link #renderTooltip} on its
@@ -233,7 +235,6 @@ public class ToolStationScreen extends StationScreen<ToolStationMenu> implements
 
     @Nullable
     private EditBox nameField;
-    private String lastSentName = "";
 
     @Nullable
     private Component toolCaption;
@@ -262,22 +263,24 @@ public class ToolStationScreen extends StationScreen<ToolStationMenu> implements
         nameField.setBordered(false);
         nameField.setMaxLength(NAME_MAX_LENGTH);
         nameField.setTextColor(0xFFFFFF);
-        // lastSentName survives a resize (which re-runs init) so the typed name isn't lost.
-        String current = lastSentName.isEmpty() ? menu.getToolName() : lastSentName;
-        nameField.setValue(current);
-        lastSentName = current;
+        // The menu outlives a resize (which re-runs init), so it is also where the typed name is kept.
+        nameField.setValue(menu.getToolName());
         nameField.setResponder(this::onNameChanged);
         addRenderableWidget(nameField);
         updateInfo();
     }
 
     private void onNameChanged(String name) {
-        if (name.equals(lastSentName)) {
+        if (name.equals(menu.getToolName())) {
             return;
         }
-        lastSentName = name;
-        // Server-authoritative: the menu applies (and validates) the name onto the output stack, and
-        // the renamed stack comes back down the ordinary slot sync. Upstream sends per keystroke too.
+        // Applied to this client's own menu before the payload goes up (issue #597), which is what
+        // vanilla AnvilScreen#onNameChanged does with menu.setItemName: it leaves one string to keep
+        // honest, so no tick between two keystrokes can find a stale name and force it into the box.
+        menu.setToolName(name);
+        // Server-authoritative all the same: the server menu applies (and validates) the name onto
+        // the output stack, and the renamed stack comes back down the ordinary slot sync. Upstream
+        // sends per keystroke too.
         PacketDistributor.sendToServer(new RenameStationItemPayload(menu.containerId, name));
     }
 
@@ -286,13 +289,10 @@ public class ToolStationScreen extends StationScreen<ToolStationMenu> implements
         super.containerTick();
         // Parity audit T11 (issue #443): another player at this station typed, and the server echoed
         // their text onto this menu over RenameStationItemPayload. Polled rather than pushed straight
-        // at the widget so the payload handler stays side-agnostic. Never fights this player's own
-        // typing: the server echoes only to the players who did not send it, so the two strings
-        // differ exactly when someone else changed the name.
-        if (!menu.getToolName().equals(lastSentName)) {
-            lastSentName = menu.getToolName();
-            nameField.setValue(lastSentName);
-        }
+        // at the widget so the payload handler stays side-agnostic. The decision to take it lives in
+        // ToolStationMenu#renameFieldUpdate, where a unit test can reach it (issue #597).
+        ToolStationMenu.renameFieldUpdate(menu.getToolName(), nameField.getValue())
+                .ifPresent(nameField::setValue);
         updateInfo();
     }
 
