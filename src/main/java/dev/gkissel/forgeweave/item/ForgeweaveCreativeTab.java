@@ -295,6 +295,7 @@ public final class ForgeweaveCreativeTab {
         output.accept(ForgeweaveItems.PATTERN_BOW_LIMB.get());
         output.accept(ForgeweaveItems.PATTERN_BOW_STRING.get());
         output.accept(ForgeweaveItems.PATTERN_SHARPENING_KIT.get());
+        output.accept(ForgeweaveItems.PATTERN_SHARD.get());
 
         List<Holder.Reference<Material>> allMaterials =
                 parameters.holders().lookupOrThrow(Material.REGISTRY).listElements().toList();

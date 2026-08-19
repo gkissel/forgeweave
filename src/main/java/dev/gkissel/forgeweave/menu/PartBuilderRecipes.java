@@ -130,7 +130,13 @@ public final class PartBuilderRecipes {
             // #271's sharpening kit. Upstream cost read straight off its constructor:
             // `SharpeningKit() { super(Material.VALUE_Shard * 4); }` with `VALUE_Shard = VALUE_Ingot / 2`
             // (= 72), so 288 = 2 ingots -- the same HEAD_COST every head part uses.
-            new Entry(ForgeweaveItems.PATTERN_SHARPENING_KIT, ForgeweaveItems.PART_SHARPENING_KIT, HEAD_COST));
+            new Entry(ForgeweaveItems.PATTERN_SHARPENING_KIT, ForgeweaveItems.PART_SHARPENING_KIT, HEAD_COST),
+            // #605: upstream's shard is a tool part in its own right -- {@code Shard extends ToolPart}
+            // with {@code super(Material.VALUE_Shard)} and a stencil registration next to the
+            // sharpening kit's ({@code TinkerTools#registerItems:154}). It is the roster's only
+            // sub-ingot cost, which is what makes shard change reachable from a plain ingot instead
+            // of only from an oversized input (a log, a metal block).
+            new Entry(ForgeweaveItems.PATTERN_SHARD, ForgeweaveItems.SHARD, SHARD_VALUE));
 
     /**
      * Whether the pattern slot should accept this stack at all (the five part patterns only -- not

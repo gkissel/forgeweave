@@ -273,6 +273,7 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         addItem(ForgeweaveItems.PATTERN_BOW_LIMB, "Bowlimb Pattern");
         addItem(ForgeweaveItems.PATTERN_BOW_STRING, "Bowstring Pattern");
         addItem(ForgeweaveItems.PATTERN_SHARPENING_KIT, "Sharpening Kit Pattern");
+        addItem(ForgeweaveItems.PATTERN_SHARD, "Shard Pattern");
 
         addItem(ForgeweaveItems.PART_SWORD_BLADE, "Sword Blade");
         addItem(ForgeweaveItems.PART_WIDE_GUARD, "Wide Guard");
