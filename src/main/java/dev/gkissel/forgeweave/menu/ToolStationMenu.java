@@ -484,10 +484,35 @@ public class ToolStationMenu extends StationMenu {
     }
 
     /**
+     * What the rename box should read after a tick, or empty to leave the player's typing alone
+     * (issue #597). Pure, and here rather than in the screen so it can be unit-tested -- the
+     * unit-test classpath has no Minecraft client.
+     *
+     * <p>Vanilla's anvil is the model: {@code AnvilScreen#onNameChanged} writes the typed text into
+     * its own menu <em>before</em> sending it up, so the menu a screen polls already agrees with the
+     * box and the poll only ever fires for a name that arrived from somewhere else. Issue #443 made
+     * this station's name shared across the players standing at it but left the typing path
+     * server-only: the client mirror never saw the keystroke, so the screen compared the menu's stale
+     * name against a "last sent" string only it updated, read the disagreement as another player's
+     * rename, and forced the box back one character behind the typist.
+     *
+     * <p>Comparing against the box's own text rather than a separately tracked "last sent" string is
+     * what keeps that from coming back -- there is one piece of state to keep honest, not two.
+     */
+    public static Optional<String> renameFieldUpdate(String menuName, String fieldText) {
+        return menuName.equals(fieldText) ? Optional.empty() : Optional.of(menuName);
+    }
+
+    /**
      * Renames the assembled output, like a vanilla anvil: the name is applied to the freshly built
      * stack in {@link #updateResult}, so it travels to the client on the ordinary slot-sync packet
      * and there is nothing extra to keep consistent. Reached from the screen's text field over
      * {@link RenameStationItemPayload}, and validated here because that payload is player input.
+     *
+     * <p>Also called on the client mirror, by the screen, for the keystroke it is about to send up
+     * (issue #597) -- the same order vanilla's {@code AnvilScreen} uses. Everything below is a no-op
+     * there: {@link #updateResult} and {@link #peers} both bail on {@code ContainerLevelAccess.NULL},
+     * and {@link #pushToolName} needs a {@link ServerPlayer}.
      */
     public void setToolName(String name) {
         String filtered = StringUtil.filterText(name);
