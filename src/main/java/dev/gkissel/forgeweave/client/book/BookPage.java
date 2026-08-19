@@ -1,5 +1,7 @@
 package dev.gkissel.forgeweave.client.book;
 
+import java.util.List;
+
 import javax.annotation.Nullable;
 
 import net.minecraft.resources.ResourceLocation;
@@ -42,4 +44,19 @@ public sealed interface BookPage {
 
     /** A modifier's page: its {@code modifier.forgeweave.<id>.name}/{@code .description} pair. */
     record ModifierPage(ResourceLocation id) implements BookPage {}
+
+    /**
+     * A section's opening navigation page: one linked text row per page of the section, titled with
+     * the section name. Upstream's {@code ContentListing}, inserted at index 0 of the tools and
+     * modifiers sections by {@code ContentListingSectionTransformer#transform} (issue #479).
+     */
+    record ListingPage(String titleKey, List<BookLink> links) implements BookPage {}
+
+    /**
+     * A section's opening navigation page as a grid of item icons, each linking to a page and
+     * naming it on hover. Upstream's {@code ContentPageIconList}, which
+     * {@code AbstractMaterialSectionTransformer#transform} puts in front of the materials section
+     * instead of a text listing (issue #479).
+     */
+    record IconGridPage(String titleKey, List<BookLink> links) implements BookPage {}
 }

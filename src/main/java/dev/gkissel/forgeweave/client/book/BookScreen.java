@@ -3,6 +3,8 @@ package dev.gkissel.forgeweave.client.book;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.annotation.Nullable;
+
 import com.mojang.blaze3d.systems.RenderSystem;
 
 import net.minecraft.client.gui.GuiGraphics;
@@ -17,6 +19,8 @@ import org.lwjgl.glfw.GLFW;
 
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.client.StationText;
+import dev.gkissel.forgeweave.client.book.BookPage.IconGridPage;
+import dev.gkissel.forgeweave.client.book.BookPage.ListingPage;
 import dev.gkissel.forgeweave.client.book.BookPage.MaterialPage;
 import dev.gkissel.forgeweave.client.book.BookPage.ModifierPage;
 import dev.gkissel.forgeweave.client.book.BookPage.TextPage;
@@ -56,6 +60,24 @@ public class BookScreen extends Screen {
     private static final int TEXT_COLOR = 0xFF3F3F3F;
     private static final int TITLE_COLOR = 0xFF542D0B;
 
+    /**
+     * A listing row's bullet, and the whole row while hovered -- upstream {@code ElementListingLeft}
+     * colours its prefix, and its text while hovered, "dark red" (vanilla {@code DARK_RED}, 0xAA0000).
+     */
+    private static final int LINK_COLOR = 0xFFAA0000;
+
+    /**
+     * The wash behind a hovered grid icon: {@code ElementPageIconLink.draw} fills
+     * {@code appearance.hoverColor | (0x77 << 24)}, and Mantle's {@code AppearanceData.hoverColor}
+     * default -- which Tinkers' {@code appearance.json} does not override -- is already
+     * {@code 0x77EE541C}, so the or-in is a no-op and this is upstream's exact fill.
+     */
+    private static final int HOVER_COLOR = 0x77EE541C;
+
+    /** {@code ContentPageIconList}'s default 20px icon cell and the 15px page inset it builds at. */
+    private static final int GRID_CELL = 20;
+    private static final int GRID_MARGIN = 15;
+
     /** Upstream's {@code oldPage} idle value: -1 is the (valid) cover, so "none" is -2. */
     private static final int NO_BACK_SPREAD = -2;
 
@@ -66,10 +88,23 @@ public class BookScreen extends Screen {
     }
 
     /**
-     * The smallest piece of a page that must not be split across leaves: one wrapped body line, a
-     * whole title, an image, a tool icon. {@link BookLayout} sees only the height.
+     * A clickable area inside one block, positioned relative to the block's origin: upstream's
+     * {@code go-to-page-rtn:} action, plus the hover text an icon link carries. Compared by
+     * identity, so a drawer can ask "am I the hovered one?" without two identical rows shadowing
+     * each other.
      */
-    private record Block(int height, Drawer drawer) {}
+    private record Region(int dx, int dy, int w, int h, int targetPage, @Nullable Component tooltip) {}
+
+    /**
+     * The smallest piece of a page that must not be split across leaves: one wrapped body line, a
+     * whole title, an image, a tool icon, one row of a listing or icon grid. {@link BookLayout}
+     * sees only the height.
+     */
+    private record Block(int height, Drawer drawer, List<Region> regions) {
+        Block(int height, Drawer drawer) {
+            this(height, drawer, List.of());
+        }
+    }
 
     /** One rendered leaf. The index is the screen's own page, not a {@link BookPage}, so it has no blocks. */
     private record PageSlot(List<Block> blocks, boolean index) {}
@@ -82,6 +117,13 @@ public class BookScreen extends Screen {
     private int spread = -1;
     /** Where the returner arrow goes back to after an index jump; {@link #NO_BACK_SPREAD} = hidden. */
     private int backSpread = NO_BACK_SPREAD;
+
+    /** For each source page, the slot its first leaf became -- what a listing link jumps to. */
+    private int[] pageFirstSlot = new int[0];
+
+    /** The link under the cursor as of the last {@link #render}; drives hover styling and tooltips. */
+    @Nullable
+    private Region hovered;
 
     public BookScreen(List<BookSection> sections) {
         super(Component.translatable(BookContent.TITLE));
@@ -97,14 +139,15 @@ public class BookScreen extends Screen {
     @Override
     protected void init() {
         super.init();
-        List<BookPage> pages = new ArrayList<>();
+        List<List<Block>> blocks = new ArrayList<>();
         int[] sectionStartPage = new int[this.sections.size()];
         for (int i = 0; i < this.sections.size(); i++) {
-            sectionStartPage[i] = pages.size();
-            pages.addAll(this.sections.get(i).pages());
+            sectionStartPage[i] = blocks.size();
+            for (BookPage page : this.sections.get(i).pages()) {
+                blocks.add(blocksOf(page, sectionStartPage[i]));
+            }
         }
 
-        List<List<Block>> blocks = pages.stream().map(this::blocksOf).toList();
         List<BookLayout.Slot> laid = BookLayout.paginate(
                 blocks.stream().map(page -> page.stream().map(Block::height).toList()).toList(),
                 PAGE_TEXT_H);
@@ -115,8 +158,12 @@ public class BookScreen extends Screen {
             this.slots.add(new PageSlot(blocks.get(slot.page())
                     .subList(slot.firstBlock(), slot.firstBlock() + slot.blockCount()), false));
         }
+        this.pageFirstSlot = new int[blocks.size()];
+        for (int page = 0; page < blocks.size(); page++) {
+            this.pageFirstSlot[page] = 1 + BookLayout.firstSlotOf(laid, page);
+        }
         for (int i = 0; i < this.sections.size(); i++) {
-            this.sectionStartSlot[i] = 1 + BookLayout.firstSlotOf(laid, sectionStartPage[i]);
+            this.sectionStartSlot[i] = this.pageFirstSlot[sectionStartPage[i]];
         }
         this.spread = Math.min(this.spread, lastSpread());
     }
@@ -138,12 +185,55 @@ public class BookScreen extends Screen {
     @Override
     public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
         super.render(graphics, mouseX, mouseY, partialTick);
+        this.hovered = regionAt(mouseX, mouseY);
         if (this.spread < 0) {
             renderCover(graphics);
         } else {
             renderSpread(graphics);
         }
         renderArrows(graphics, mouseX, mouseY);
+        if (this.hovered != null && this.hovered.tooltip() != null) {
+            graphics.renderTooltip(this.font, this.hovered.tooltip(), mouseX, mouseY);
+        }
+    }
+
+    /**
+     * The link under the cursor, or {@code null} -- {@code BookElement.isHovered} over the two
+     * visible leaves. Walks the same cursor arithmetic {@link #renderSlot} draws with, so
+     * hit-testing carries no state over from the last frame, and a region the page scissor clipped
+     * away is not clickable either.
+     */
+    @Nullable
+    private Region regionAt(double mouseX, double mouseY) {
+        if (this.spread < 0) {
+            return null;
+        }
+        int top = BookGeometry.pageY(this.height);
+        Region left = regionIn(BookGeometry.leftSlot(this.spread), BookGeometry.leftPageX(this.width),
+                top, mouseX, mouseY);
+        return left != null ? left
+                : regionIn(BookGeometry.rightSlot(this.spread), BookGeometry.rightPageX(this.width),
+                        top, mouseX, mouseY);
+    }
+
+    @Nullable
+    private Region regionIn(int slotIndex, int x, int top, double mouseX, double mouseY) {
+        if (slotIndex < 0 || slotIndex >= this.slots.size()) {
+            return null;
+        }
+        int cursor = top;
+        for (Block block : this.slots.get(slotIndex).blocks()) {
+            for (Region region : block.regions()) {
+                int rx = x + region.dx();
+                int ry = cursor + region.dy();
+                if (mouseX >= rx && mouseX < rx + region.w() && mouseY >= ry && mouseY < ry + region.h()
+                        && ry >= top && ry + region.h() <= top + PAGE_TEXT_H) {
+                    return region;
+                }
+            }
+            cursor += block.height();
+        }
+        return null;
     }
 
     /**
@@ -300,9 +390,13 @@ public class BookScreen extends Screen {
      * part-way down the list -- never repeats them, exactly as upstream's hand-split
      * {@code welcome2.json} carries an empty title.
      */
-    private List<Block> blocksOf(BookPage page) {
+    private List<Block> blocksOf(BookPage page, int sectionStartPage) {
         List<Block> blocks = new ArrayList<>();
-        if (page instanceof TextPage text) {
+        if (page instanceof ListingPage listing) {
+            listingBlocks(blocks, listing.titleKey(), listing.links(), sectionStartPage);
+        } else if (page instanceof IconGridPage grid) {
+            iconGridBlocks(blocks, grid.titleKey(), grid.links(), sectionStartPage);
+        } else if (page instanceof TextPage text) {
             titleBlock(blocks, Component.translatable(text.titleKey()));
             ResourceLocation image = text.image();
             if (image != null) {
@@ -330,6 +424,72 @@ public class BookScreen extends Screen {
             bodyBlocks(blocks, Component.translatable(base + ".description"));
         }
         return List.copyOf(blocks);
+    }
+
+    /**
+     * Upstream {@code ContentListing#build}: a titled page of {@code "- "}-bulleted rows, each a
+     * link to one page of the section, the bullet turning into {@code " > "} and the row into dark
+     * red under the cursor ({@code ElementListingLeft#draw}).
+     *
+     * <p>Deviation: past fourteen rows upstream halves the row width and fills a second column,
+     * with no third -- a 31-row listing like Forgeweave's modifiers section would draw its last
+     * three rows off the leaf. This engine paginates instead, so a long listing continues onto the
+     * next leaf, the same answer issue #428 already gave for every other overlong page.
+     */
+    private void listingBlocks(List<Block> blocks, String titleKey, List<BookLink> links, int sectionStartPage) {
+        titleBlock(blocks, Component.translatable(titleKey));
+        for (BookLink link : links) {
+            Component label = Component.translatable(link.labelKey());
+            Region region = new Region(0, 0, PAGE_TEXT_W, this.font.lineHeight,
+                    sectionStartPage + link.targetPage(), null);
+            blocks.add(new Block(this.font.lineHeight + 1, (graphics, x, y) -> {
+                boolean over = this.hovered == region;
+                String bullet = over ? " > " : "- ";
+                graphics.drawString(this.font, bullet, x, y, LINK_COLOR, false);
+                graphics.drawString(this.font, label, x + this.font.width(bullet), y,
+                        over ? LINK_COLOR : TEXT_COLOR, false);
+            }, List.of(region)));
+        }
+    }
+
+    /**
+     * Upstream {@code ContentPageIconList#build}: a titled grid of item icons inset 15px from the
+     * page edge in 20px cells, filled left to right and wrapped, each icon linking to a page and
+     * naming it on hover behind a hover wash ({@code ElementPageIconLink}). With #430's real
+     * 182px leaf the row is upstream's own {@code (PAGE_WIDTH - 30) / 20} = 7 columns.
+     *
+     * <p>Deviations: one grid row is one block, so an overlong grid continues onto the next leaf
+     * rather than onto upstream's hand-counted {@code getPagesNeededForItemCount} overview pages,
+     * and the cells stay at scale 1 -- which is what upstream's own scale search settles on the
+     * moment a grid needs more than one page, as Forgeweave's material roster does. Upstream also
+     * dims an unhovered icon to 50% alpha; {@code GuiGraphics#renderItem} takes no colour
+     * multiplier in 1.21, so only the hover wash survives.
+     */
+    private void iconGridBlocks(List<Block> blocks, String titleKey, List<BookLink> links, int sectionStartPage) {
+        titleBlock(blocks, Component.translatable(titleKey));
+        int columns = Math.max(1, (PAGE_TEXT_W - 2 * GRID_MARGIN) / GRID_CELL);
+        for (int first = 0; first < links.size(); first += columns) {
+            List<ItemStack> icons = new ArrayList<>();
+            List<Region> regions = new ArrayList<>();
+            for (BookLink link : links.subList(first, Math.min(first + columns, links.size()))) {
+                icons.add(link.icon() == null ? ItemStack.EMPTY : link.icon().get());
+                Component name = Component.translatable(link.labelKey());
+                regions.add(new Region(GRID_MARGIN + regions.size() * GRID_CELL, 0, GRID_CELL, GRID_CELL,
+                        sectionStartPage + link.targetPage(),
+                        link.color() == null ? name : name.copy().withStyle(Style.EMPTY.withColor(link.color()))));
+            }
+            List<Region> row = List.copyOf(regions);
+            List<ItemStack> stacks = List.copyOf(icons);
+            blocks.add(new Block(GRID_CELL, (graphics, x, y) -> {
+                for (int i = 0; i < row.size(); i++) {
+                    int cellX = x + row.get(i).dx();
+                    if (this.hovered == row.get(i)) {
+                        graphics.fill(cellX, y, cellX + GRID_CELL, y + GRID_CELL, HOVER_COLOR);
+                    }
+                    graphics.renderItem(stacks.get(i), cellX + 2, y + 2);
+                }
+            }, row));
+        }
     }
 
     private void materialBlocks(List<Block> blocks, MaterialPage page) {
@@ -444,6 +604,11 @@ public class BookScreen extends Screen {
                     turnTo(0);
                     return true;
                 }
+                Region region = regionAt(mouseX, mouseY);
+                if (region != null) {
+                    goToPageReturning(BookGeometry.spreadOf(this.pageFirstSlot[region.targetPage()]));
+                    return true;
+                }
                 if (this.spread == 0 && indexRowClicked(mouseX, mouseY)) {
                     return true;
                 }
@@ -459,13 +624,21 @@ public class BookScreen extends Screen {
         for (int i = 0; i < this.sections.size(); i++) {
             int rowY = indexRowY(y, i);
             if (mouseX >= x && mouseX < x + PAGE_TEXT_W && mouseY >= rowY && mouseY < rowY + 18) {
-                int from = this.spread;
-                this.spread = BookGeometry.spreadOf(this.sectionStartSlot[i]);
-                this.backSpread = from;
+                goToPageReturning(BookGeometry.spreadOf(this.sectionStartSlot[i]));
                 return true;
             }
         }
         return false;
+    }
+
+    /**
+     * Upstream's {@code go-to-page-rtn}: the jump every index row, listing row and grid icon makes,
+     * which remembers where it came from so the returner arrow can undo it.
+     */
+    private void goToPageReturning(int spread) {
+        int from = this.spread;
+        this.spread = spread;
+        this.backSpread = from;
     }
 
     @Override
