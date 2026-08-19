@@ -33,6 +33,7 @@ import dev.gkissel.forgeweave.block.SearedTankBlockEntity;
 import dev.gkissel.forgeweave.block.SmelteryControllerBlockEntity;
 import dev.gkissel.forgeweave.casting.CastingRecipe;
 import dev.gkissel.forgeweave.client.ForgeweaveDarkModeCompat;
+import dev.gkissel.forgeweave.combat.AttackSlash;
 import dev.gkissel.forgeweave.combat.Beheading;
 import dev.gkissel.forgeweave.combat.CombatSeams;
 import dev.gkissel.forgeweave.combat.ForgeweaveInnates;
@@ -161,6 +162,9 @@ public class Forgeweave {
         // so a trait that scales a blow scales the blow the tool was always going to land rather than
         // the innate's bonus on top of it.
         CombatSeams.register(ForgeweaveInnates::collect);
+        // #584 -- the arc a fully-charged swing draws in front of the player, for the seven weapons
+        // upstream spawns one from. Cosmetic only, and deliberately not an innate: see AttackSlash.
+        CombatSeams.register(AttackSlash::collect);
         // #159 -- the charge a swing was made with, captured before Player#attack zeroes it; the
         // battleaxe's full-charge-only sweep and every later charged innate read it off CombatHit.
         NeoForge.EVENT_BUS.addListener(CombatSeams::onPlayerAttack);

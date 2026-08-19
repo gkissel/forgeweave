@@ -955,6 +955,13 @@ public final class ForgeweaveInnates {
                     look.y / 3.0F * strength + LAUNCH_LIFT_BASE + LAUNCH_LIFT_PER_CHARGE * progress,
                     look.z * strength));
             target.hurtMarked = true; // a launched player's own client owns its motion until told otherwise
+
+            // #584: upstream's eighth spawnAttackParticle site (FryPan.java:115), right after the
+            // push and at its own 0.6 height factor -- the pan's arc is drawn lower on a launch than
+            // on a plain blow (0.8, AttackSlash#FRYING_PAN). Not gated on charge: reaching here at
+            // all means the swing was a released charge.
+            ForgeweaveParticles.spawnSlash(ForgeweaveParticles.SLASH_FRYING_PAN, level, player,
+                    AttackSlash.LAUNCH_HEIGHT_FACTOR);
         }
 
         /**

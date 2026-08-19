@@ -8,7 +8,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonParser;
@@ -30,6 +33,11 @@ import net.neoforged.neoforge.registries.DeferredHolder;
  *
  * <p>So this walks the registry rather than a hand list and asserts the whole chain per type, plus
  * the geometry of the upstream-derived sprite ({@code particles.png}'s 8x8 cells).
+ *
+ * <p>Issue #584 put T51's other half on the same chain -- the seven attack slashes -- and added one
+ * failure mode the hearts do not have: a slash is an eight-phase animation played straight off the
+ * definition's sprite <em>list</em>, so a list short a phase or out of order is a silently shorter or
+ * scrambled arc rather than a missing one.
  */
 class ForgeweaveParticlesTest {
 
@@ -40,6 +48,23 @@ class ForgeweaveParticlesTest {
     /** Upstream {@code ParticleEffect.Type}'s five, in its own declaration order. */
     private static final List<String> UPSTREAM_TYPES =
             List.of("heart_fire", "heart_cactus", "heart_electro", "heart_blood", "heart_armor");
+
+    /** Upstream {@code ParticleAttack}'s {@code animPhases}: eight per slash, in order. */
+    private static final int SLASH_PHASES = 8;
+
+    /**
+     * Upstream's seven {@code spawnAttackParticle} weapons -- {@code Particles.CLEAVER_ATTACK} and
+     * friends -- and the sprite each one's phases come out of. {@code minecraft} means the slash
+     * derives nothing: upstream's own {@code ParticleAttackLongsword} points at vanilla's sweep sheet.
+     */
+    private static final Map<String, String> UPSTREAM_SLASHES = Map.of(
+            "slash_cleaver", "forgeweave:derived/slash_cleaver",
+            "slash_longsword", "minecraft:sweep",
+            "slash_rapier", "forgeweave:derived/slash_rapier",
+            "slash_frying_pan", "forgeweave:derived/slash_frypan",
+            "slash_hammer", "forgeweave:derived/slash_hammer",
+            "slash_hatchet", "forgeweave:derived/slash_axe",
+            "slash_lumberaxe", "forgeweave:derived/slash_axe");
 
     @Test
     void everyUpstreamHeartTypeIsRegistered() {
@@ -74,6 +99,66 @@ class ForgeweaveParticlesTest {
             assertEquals(List.of(8, 8), pngSize(png),
                     () -> png + " is not an 8x8 cell of upstream's particles.png");
         }
+    }
+
+    @Test
+    void everyUpstreamSlashWeaponIsRegistered() {
+        assertEquals(UPSTREAM_SLASHES.keySet().stream().sorted().toList(),
+                ForgeweaveParticles.SLASHES.stream().map(slash -> slash.type().getId().getPath()).sorted().toList(),
+                "the registered attack slashes no longer match upstream's spawnAttackParticle weapons");
+    }
+
+    /**
+     * The slash half of the same chain (issue #584), plus the one thing the hearts cannot get wrong:
+     * a slash is an <em>eight-phase animation</em>, and 1.21 plays it off the sprite list in the
+     * definition, in list order. A definition short a phase, or naming them out of order, still
+     * registers and still draws -- it just plays a shorter or scrambled arc, which no crash and no
+     * log line would ever report.
+     */
+    @Test
+    void everySlashNamesItsEightPhaseSpritesInOrder() throws IOException {
+        Path root = projectRoot();
+        for (ForgeweaveParticles.Slash slash : ForgeweaveParticles.SLASHES) {
+            String id = slash.type().getId().getPath();
+            Path definition = root.resolve(PARTICLE_DEFINITIONS).resolve(id + ".json");
+            assertTrue(Files.isRegularFile(definition), () -> "missing particle definition: " + definition);
+
+            List<String> sprites = sprites(definition);
+            String sheet = UPSTREAM_SLASHES.get(id);
+            assertEquals(phaseNames(sheet), sprites,
+                    () -> definition + " must name upstream's eight phases of " + sheet + ", in order");
+
+            if (sheet.startsWith("minecraft:")) {
+                continue; // vanilla's own sweep sprites -- shipped by the game, nothing derived here
+            }
+            List<List<Integer>> sizes = new ArrayList<>();
+            for (String sprite : sprites) {
+                Path png = root.resolve(PARTICLE_TEXTURES)
+                        .resolve(sprite.substring("forgeweave:".length()) + ".png");
+                assertTrue(Files.isRegularFile(png), () -> "missing slash phase sprite: " + png
+                        + " -- run scripts/derive_slash_art.py and commit its output");
+                sizes.add(pngSize(png));
+            }
+            assertEquals(1, Set.copyOf(sizes).size(),
+                    () -> sheet + "'s phases are not all the same size (" + sizes + "), so the sheet was"
+                            + " chipped on the wrong grid");
+        }
+    }
+
+    /** {@code <sheet>_0 .. <sheet>_7}, upstream's own phase order. */
+    private static List<String> phaseNames(String sheet) {
+        List<String> names = new ArrayList<>(SLASH_PHASES);
+        for (int phase = 0; phase < SLASH_PHASES; phase++) {
+            names.add(sheet + "_" + phase);
+        }
+        return names;
+    }
+
+    private static List<String> sprites(Path definition) throws IOException {
+        JsonArray textures = JsonParser.parseString(Files.readString(definition))
+                .getAsJsonObject().getAsJsonArray("textures");
+        assertNotNull(textures, () -> definition + " names no textures");
+        return textures.asList().stream().map(element -> element.getAsString()).toList();
     }
 
     /** Width and height straight out of the PNG's IHDR, so the test needs no image library. */
