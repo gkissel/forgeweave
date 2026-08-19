@@ -276,8 +276,13 @@ public class CastingGameTests {
      * ore/gem/block melting row that was until now fluid-and-gem-cast only. Same rig as {@link
      * #theBasinCastsAMetalBlock}: filled directly through the capability with more than the recipe
      * needs, to prove the fill itself caps at the recipe amount rather than only the eventual output.
+     *
+     * <p>Issue #596: the recipe's explicit 590-tick {@code time} (block_emerald.json) keeps the
+     * cooldown in line with other blocks instead of upstream's ~2642-tick default (the
+     * gem-value amount scaling the temperature term of {@code calcCooldownTime} on top of an
+     * already-hot fluid); {@code timeoutTicks} is trimmed to match.
      */
-    @GameTest(template = "empty", timeoutTicks = 2900)
+    @GameTest(template = "empty", timeoutTicks = 700)
     public static void theBasinCastsAnEmeraldBlock(GameTestHelper helper) {
         helper.setBlock(CASTING, ForgeweaveBlocks.CASTING_BASIN.get());
         CastingBlockEntity basin = helper.getBlockEntity(CASTING);
