@@ -64,6 +64,8 @@ import dev.gkissel.forgeweave.recipe.SmelteryFuel;
 import dev.gkissel.forgeweave.sound.ForgeweaveSounds; // #453
 import dev.gkissel.forgeweave.tool.AoeHarvest;
 import dev.gkissel.forgeweave.trait.ForgeweaveTraits;
+import dev.gkissel.forgeweave.worldgen.MagmaSlimeIslandPiece; // #450
+import dev.gkissel.forgeweave.worldgen.MagmaSlimeIslandStructure; // #450
 import dev.gkissel.forgeweave.worldgen.NetherOrePlacement; // #276
 import dev.gkissel.forgeweave.worldgen.SlimeIslandPiece;
 import dev.gkissel.forgeweave.worldgen.SlimeIslandStructure;
@@ -96,6 +98,9 @@ public class Forgeweave {
         // See SlimeIslandStructure and SlimeIslandPiece.
         SlimeIslandStructure.STRUCTURE_TYPES.register(modEventBus);
         SlimeIslandPiece.STRUCTURE_PIECES.register(modEventBus);
+        // #450 (parity audit T19) -- the Nether magma island, the same pair one dimension over.
+        MagmaSlimeIslandStructure.STRUCTURE_TYPES.register(modEventBus);
+        MagmaSlimeIslandPiece.STRUCTURE_PIECES.register(modEventBus);
         // #159 -- the scimitar's lacerate bleed (see LacerateEffect for why it is a status effect).
         ForgeweaveMobEffects.MOB_EFFECTS.register(modEventBus);
         // #482 -- upstream's heart-effect particles (parity audit T51): the little coloured heart a
