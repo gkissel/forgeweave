@@ -315,6 +315,8 @@ public class ForgeweaveBlockStateProvider extends BlockStateProvider {
         }
 
         cubeAllBlock("green_congealed_slime", ForgeweaveBlocks.GREEN_CONGEALED_SLIME.get());
+        cubeAllBlock("blue_congealed_slime", ForgeweaveBlocks.BLUE_CONGEALED_SLIME.get()); // #625
+        cubeAllBlock("purple_congealed_slime", ForgeweaveBlocks.PURPLE_CONGEALED_SLIME.get()); // #625
         cubeAllBlock("magma_congealed_slime", ForgeweaveBlocks.MAGMA_CONGEALED_SLIME.get()); // #450
 
         for (ForgeweaveBlocks.SlimePlants plants : ForgeweaveBlocks.slimePlants()) {

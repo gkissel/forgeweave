@@ -95,6 +95,9 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         addBlock(ForgeweaveBlocks.MAGMA_SLIME_SOIL.dirt(), "Magma Slimy Dirt");
         addBlock(ForgeweaveBlocks.MAGMA_SLIME_SOIL.grass(), "Magma Slimy Grass");
         addBlock(ForgeweaveBlocks.MAGMA_CONGEALED_SLIME, "Congealed Magma Slime Block");
+        // #625 -- upstream tile.tconstruct.slime_congealed.blue/purple.name.
+        addBlock(ForgeweaveBlocks.BLUE_CONGEALED_SLIME, "Congealed Blue Slime Block");
+        addBlock(ForgeweaveBlocks.PURPLE_CONGEALED_SLIME, "Congealed Purple Slime Block");
         addBlock(ForgeweaveBlocks.ORANGE_SLIME_PLANTS.leaves(), "Orange Slimy Leaves");
         addBlock(ForgeweaveBlocks.ORANGE_SLIME_PLANTS.tallGrass(), "Tall Orange Slimy Grass");
         addBlock(ForgeweaveBlocks.ORANGE_SLIME_PLANTS.fern(), "Orange Slimy Fern");
@@ -1192,6 +1195,11 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         addFluid(ForgeweaveFluids.BLOOD, "Blood");
         addFluid(ForgeweaveFluids.MOLTEN_CLAY, "Molten Clay");
         addFluid(ForgeweaveFluids.MOLTEN_DIRT, "Molten Dirt"); // #502 (T71)
+
+        // #625 -- the slime island lake's two cool fluids. Upstream 1.12's
+        // fluid.tconstruct.blueslime.name / .purpleslime.name, verbatim.
+        addFluid(ForgeweaveFluids.BLUE_SLIME, "Liquid Blue Slime");
+        addFluid(ForgeweaveFluids.PURPLE_SLIME, "Liquid Purple Slime");
 
         // #100 -- casting (docs/SCOPE.md M2 issue #100). Names follow upstream 1.12's
         // tile.casting.{table,basin}.name / tile.faucet.name and its cast item names.

@@ -379,7 +379,7 @@ public final class ForgeweaveBlocks {
     // has to reach becomes its own block; the roster here is exactly what
     // SlimeIslandGenerator#generateIslandInChunk places on an overworld island plus what
     // MagmaSlimeIslandGenerator places on a Nether one (#450, parity audit T19), and the rest
-    // (blue/purple/blood/pink congealed, blood dirt and grass, the vanilla-dirt grass) waits on T57.
+    // (blood/pink congealed, blood dirt and grass, the vanilla-dirt grass) waits on T57.
 
     /**
      * One slime soil colour: the dirt, the grass that sits on top of it, and the foliage colour that
@@ -405,9 +405,7 @@ public final class ForgeweaveBlocks {
 
     /**
      * Green congealed slime: upstream's {@code BlockSlimeCongealed} in its {@code GREEN} state
-     * (NOTICE.md), the block {@code SlimeIslandGenerator} builds every slime tree trunk from. Its
-     * blue and purple siblings only appear in the lake generator, which waits on the blue/purple
-     * slime fluids (parity audit T57), so they are deliberately absent rather than unobtainable.
+     * (NOTICE.md), the block {@code SlimeIslandGenerator} builds every slime tree trunk from.
      * Upstream properties: {@code Material.CLAY}, hardness 0.5, slipperiness 0.5,
      * {@code SoundType.SLIME}; its sunken collision box lives in {@link CongealedSlimeBlock}.
      */
@@ -419,13 +417,43 @@ public final class ForgeweaveBlocks {
                     .sound(SoundType.SLIME_BLOCK)));
 
     /**
+     * Blue congealed slime: upstream's {@code BlockSlimeCongealed} in its {@code BLUE} state
+     * (NOTICE.md). Issue #625 (parity audit T18) -- what {@code SlimeLakeGenerator} lays around a
+     * blue or green island's lake, and the bottom block of a blue island's. Same properties as its
+     * green sibling above.
+     *
+     * <p>Upstream's {@code slime/blue/congealed.json} crafts it from four {@code slimeballBlue}, a
+     * coloured slime ball Forgeweave does not have yet (parity audit T57, issue #635), so like magma
+     * congealed slime below it has no recipe here -- it is lake loot until that ships.
+     */
+    public static final DeferredBlock<CongealedSlimeBlock> BLUE_CONGEALED_SLIME = BLOCKS.register("blue_congealed_slime",
+            () -> new CongealedSlimeBlock(BlockBehaviour.Properties.of()
+                    .mapColor(MapColor.COLOR_LIGHT_BLUE)
+                    .strength(0.5F)
+                    .friction(0.5F)
+                    .sound(SoundType.SLIME_BLOCK)));
+
+    /**
+     * Purple congealed slime: upstream's {@code BlockSlimeCongealed} in its {@code PURPLE} state
+     * (NOTICE.md), the block a purple island's lake is bottomed and rimmed with (issue #625). Same
+     * properties, and the same "no recipe until the coloured slime balls ship" note, as
+     * {@link #BLUE_CONGEALED_SLIME}.
+     */
+    public static final DeferredBlock<CongealedSlimeBlock> PURPLE_CONGEALED_SLIME = BLOCKS.register("purple_congealed_slime",
+            () -> new CongealedSlimeBlock(BlockBehaviour.Properties.of()
+                    .mapColor(MapColor.COLOR_PURPLE)
+                    .strength(0.5F)
+                    .friction(0.5F)
+                    .sound(SoundType.SLIME_BLOCK)));
+
+    /**
      * Magma congealed slime: upstream's {@code BlockSlimeCongealed} in its {@code MAGMA} state
      * (NOTICE.md), the block {@code MagmaSlimeIslandGenerator} builds every Nether tree trunk from
      * (issue #450, parity audit T19). Same properties as its green sibling above.
      *
      * <p>Upstream's {@code slime/magma/congealed.json} crafts it from four {@code slimeballMagma},
      * a coloured slime ball Forgeweave does not have yet (parity audit T57), so it has no recipe
-     * here -- it is island loot until that ships, exactly as its blue and purple siblings are absent.
+     * here -- it is island loot until that ships, exactly as its blue and purple siblings above are.
      */
     public static final DeferredBlock<CongealedSlimeBlock> MAGMA_CONGEALED_SLIME = BLOCKS.register("magma_congealed_slime",
             () -> new CongealedSlimeBlock(BlockBehaviour.Properties.of()

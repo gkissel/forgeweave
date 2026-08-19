@@ -25,6 +25,7 @@ import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.block.ForgeweaveBlocks;
+import dev.gkissel.forgeweave.fluid.ForgeweaveFluids;
 import dev.gkissel.forgeweave.block.SlimeSaplingBlock;
 import dev.gkissel.forgeweave.block.SlimeVineBlock;
 import dev.gkissel.forgeweave.config.ForgeweaveConfig;
@@ -173,6 +174,7 @@ public class SlimeIslandGameTests {
         List<BlockPos> islandBlocks = new ArrayList<>();
         boolean sawGrass = false;
         boolean sawTrunk = false;
+        boolean sawLake = false;
         for (int x = box.minX(); x <= box.maxX(); x++) {
             for (int z = box.minZ(); z <= box.maxZ(); z++) {
                 for (int y = box.minY(); y <= box.maxY(); y++) {
@@ -184,6 +186,8 @@ public class SlimeIslandGameTests {
                     islandBlocks.add(pos);
                     sawGrass |= ForgeweaveBlocks.slimeSoils().stream().anyMatch(soil -> soil.grass().get() == block);
                     sawTrunk |= block == ForgeweaveBlocks.GREEN_CONGEALED_SLIME.get();
+                    sawLake |= block == ForgeweaveFluids.BLUE_SLIME.block().get()
+                            || block == ForgeweaveFluids.PURPLE_SLIME.block().get();
                 }
             }
         }
@@ -193,6 +197,8 @@ public class SlimeIslandGameTests {
                     "the piece wrote only " + islandBlocks.size() + " blocks -- that is not an island");
             helper.assertTrue(sawGrass, "the island has no grass surface");
             helper.assertTrue(sawTrunk, "the island grew no congealed slime tree trunk");
+            // #625: the lake's fluid block really lands in a live level, not just in the buffer.
+            helper.assertTrue(sawLake, "the island has no slime lake");
         } finally {
             BlockState air = Blocks.AIR.defaultBlockState();
             for (BlockPos pos : islandBlocks) {
@@ -205,6 +211,12 @@ public class SlimeIslandGameTests {
 
     private static boolean isSlimeIslandBlock(Block block) {
         if (block == ForgeweaveBlocks.GREEN_CONGEALED_SLIME.get() || ForgeweaveBlocks.isSlimeSoil(block)) {
+            return true;
+        }
+        // #625 -- the lake: its two fluids, and the congealed slime its rim is laid in.
+        if (block == ForgeweaveFluids.BLUE_SLIME.block().get() || block == ForgeweaveFluids.PURPLE_SLIME.block().get()
+                || block == ForgeweaveBlocks.BLUE_CONGEALED_SLIME.get()
+                || block == ForgeweaveBlocks.PURPLE_CONGEALED_SLIME.get()) {
             return true;
         }
         return ForgeweaveBlocks.slimePlants().stream().anyMatch(plants ->

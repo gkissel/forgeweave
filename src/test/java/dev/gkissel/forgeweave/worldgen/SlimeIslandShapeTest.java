@@ -3,6 +3,7 @@ package dev.gkissel.forgeweave.worldgen;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -24,6 +25,7 @@ import org.junit.jupiter.api.Test;
 import dev.gkissel.forgeweave.block.FoliageType;
 import dev.gkissel.forgeweave.block.ForgeweaveBlocks;
 import dev.gkissel.forgeweave.block.SlimeVineBlock;
+import dev.gkissel.forgeweave.fluid.ForgeweaveFluids;
 
 /**
  * Issue #449 (parity audit T18): pins the ported slime island generator to upstream 1.12's
@@ -335,11 +337,13 @@ class SlimeIslandShapeTest {
                 islandsWithLava++;
             }
             // Only the lower erosion pass backfills; the rim pass above the island top clears to
-            // air on every island, upstream's own hard-coded Blocks.AIR there.
+            // air on every island, upstream's own hard-coded Blocks.AIR there. Since #625 the
+            // magma island's lake pours lava too, in the four layers sunk under its surface.
             for (SlimeIslandShape.Canvas.Drawn entry : drawn) {
                 if (entry.state().getBlock() == Blocks.LAVA) {
-                    assertTrue(entry.pos().getY() <= 8, "lava at y " + entry.pos().getY()
-                            + " is above upstream's erosion height (seed " + seed + ")");
+                    int y = entry.pos().getY();
+                    assertTrue(y <= 8 || (y >= size.yRange() - 4 && y <= size.yRange() - 1),
+                            "lava at y " + y + " is neither eroded underside nor lake (seed " + seed + ")");
                 }
             }
         }
@@ -396,6 +400,129 @@ class SlimeIslandShapeTest {
         assertEquals(size.xRange() + 1 + 2 * pad, size.canvasSizeX());
         assertEquals(size.zRange() + 1 + 2 * pad, size.canvasSizeZ());
         assertEquals(size.canvasTop() + 1, size.canvasSizeY());
+    }
+
+    /**
+     * Issue #625 (parity audit T18): upstream {@code SlimeIslandGenerator}'s constructor builds three
+     * {@code SlimeLakeGenerator}s and {@code generateIslandInChunk} picks between them alongside the
+     * dirt -- the purple island gets a purple-slime lake bottomed in purple congealed slime, the
+     * green and blue islands both get a blue-slime lake bottomed in their own dirt colour, and both
+     * of those scatter green and blue congealed slime around the rim.
+     */
+    @Test
+    void theLakePaletteFollowsTheIslandPalette() {
+        for (int roll = 0; roll <= 1; roll++) {
+            SlimeIslandShape.Lake lake = SlimeIslandShape.paletteFor(roll).lake();
+            assertNotNull(lake, "roll " + roll);
+            assertSame(ForgeweaveFluids.PURPLE_SLIME.block().get(), lake.liquid().getBlock(), "roll " + roll);
+            assertSame(ForgeweaveBlocks.PURPLE_CONGEALED_SLIME.get(), lake.bottom().getBlock(), "roll " + roll);
+            assertEquals(List.of(ForgeweaveBlocks.PURPLE_CONGEALED_SLIME.get()),
+                    lake.edges().stream().map(BlockState::getBlock).toList(), "roll " + roll);
+        }
+        for (int roll = 2; roll < 10; roll++) {
+            SlimeIslandShape.Lake lake = SlimeIslandShape.paletteFor(roll).lake();
+            assertNotNull(lake, "roll " + roll);
+            assertSame(ForgeweaveFluids.BLUE_SLIME.block().get(), lake.liquid().getBlock(), "roll " + roll);
+            assertSame(roll < 6 ? ForgeweaveBlocks.GREEN_CONGEALED_SLIME.get() : ForgeweaveBlocks.BLUE_CONGEALED_SLIME.get(),
+                    lake.bottom().getBlock(), "roll " + roll);
+            assertEquals(List.of(ForgeweaveBlocks.GREEN_CONGEALED_SLIME.get(), ForgeweaveBlocks.BLUE_CONGEALED_SLIME.get()),
+                    lake.edges().stream().map(BlockState::getBlock).toList(), "roll " + roll);
+        }
+    }
+
+    /**
+     * Upstream {@code SlimeLakeGenerator#generateLake} sinks its 16x16x8 box four blocks below the
+     * island's top-centre column: the lower four layers fill with slime, the upper four are cleared
+     * to air, so no liquid ever sits above the island surface, and a cell whose neighbour below is
+     * air is skipped, so a lake never hangs off the underside.
+     */
+    @Test
+    void everyIslandSinksASlimeLakeIntoItsSurface() {
+        int islandsWithLakes = 0;
+        for (long loopSeed = 1; loopSeed <= 20; loopSeed++) {
+            long seed = loopSeed;
+            Island island = Island.at(seed);
+            BlockState liquid = island.palette.lake().liquid();
+            int surface = island.size.yRange();
+
+            List<int[]> pool = new ArrayList<>();
+            island.forEachDrawn((x, y, z, state) -> {
+                if (state == liquid) {
+                    pool.add(new int[] {x, y, z});
+                }
+            });
+            if (!pool.isEmpty()) {
+                islandsWithLakes++;
+            }
+            for (int[] cell : pool) {
+                assertTrue(cell[1] >= surface - 4 && cell[1] <= surface - 1,
+                        "slime at y " + cell[1] + " left upstream's four sunken layers under the "
+                                + surface + "-high surface (seed " + seed + ")");
+                assertFalse(island.canvas.isAir(cell[0], cell[1] - 1, cell[2]),
+                        "slime at " + cell[0] + "," + cell[1] + "," + cell[2] + " floats (seed " + seed + ")");
+            }
+        }
+        assertTrue(islandsWithLakes >= 15, "only " + islandsWithLakes + "/20 islands grew a lake");
+    }
+
+    /**
+     * The edge pass lays the lake's own bottom block and congealed slimes, and it only ever writes
+     * inside upstream's 16x16x8 box -- so nothing congealed appears away from the lake (the trees'
+     * trunks are congealed slime too, which is why this checks the box rather than the block).
+     */
+    @Test
+    void theLakeRimIsLaidInCongealedSlime() {
+        int islandsWithRim = 0;
+        for (long loopSeed = 1; loopSeed <= 20; loopSeed++) {
+            long seed = loopSeed;
+            Island island = Island.at(seed);
+            SlimeIslandShape.Lake lake = island.palette.lake();
+            int surface = island.size.yRange();
+            // Upstream's box corner: centre - 8 on both horizontal axes, centre - 4 vertically.
+            int minX = island.size.xRange() / 2 - 8;
+            int minZ = island.size.zRange() / 2 - 8;
+
+            List<int[]> rim = new ArrayList<>();
+            island.forEachDrawn((x, y, z, state) -> {
+                // Only the four sunken layers: a tree trunk is congealed slime too, and it rises
+                // from the surface upwards, so anything at or above it would be ambiguous.
+                boolean congealed = state == lake.bottom() || lake.edges().contains(state);
+                if (congealed && y >= surface - 4 && y <= surface - 1) {
+                    rim.add(new int[] {x, y, z});
+                }
+            });
+            if (!rim.isEmpty()) {
+                islandsWithRim++;
+            }
+            for (int[] cell : rim) {
+                assertTrue(cell[0] >= minX && cell[0] < minX + 16 && cell[2] >= minZ && cell[2] < minZ + 16,
+                        "congealed slime at " + cell[0] + "," + cell[1] + "," + cell[2]
+                                + " is outside the lake box (seed " + seed + ")");
+            }
+        }
+        assertTrue(islandsWithRim >= 15, "only " + islandsWithRim + "/20 islands laid a lake rim");
+    }
+
+    /**
+     * Issue #625: upstream's {@code lakeGenMagma} pours lava, not slime -- the Nether island's lake
+     * is the same generator handed {@code Blocks.LAVA} and magma congealed slime.
+     */
+    @Test
+    void theMagmaIslandsLakeIsLava() {
+        SlimeIslandShape.Lake lake = SlimeIslandShape.magmaPalette().lake();
+        assertNotNull(lake);
+        assertSame(Blocks.LAVA, lake.liquid().getBlock());
+        assertSame(ForgeweaveBlocks.MAGMA_CONGEALED_SLIME.get(), lake.bottom().getBlock());
+        assertEquals(List.of(ForgeweaveBlocks.MAGMA_CONGEALED_SLIME.get()),
+                lake.edges().stream().map(BlockState::getBlock).distinct().toList());
+    }
+
+    /** A hand-planted sapling grows a tree, not an island, so its palette carries no lake at all. */
+    @Test
+    void aSaplingPaletteHasNoLake() {
+        for (FoliageType foliage : FoliageType.values()) {
+            assertNull(SlimeIslandShape.saplingPalette(foliage).lake(), foliage.name());
+        }
     }
 
     /** One generated island, kept together with the size and palette it was drawn from. */
