@@ -475,6 +475,21 @@ public class ToolItem extends Item {
     public Tool toolComponent(Material head, ToolStats.Stats stats) {
         List<Tool.Rule> rules = new ArrayList<>();
         rules.add(Tool.Rule.deniesDrops(head.incorrectForTool()));
+        rules.addAll(miningRules(stats));
+        return new Tool(rules, 1.0F, 1);
+    }
+
+    /**
+     * Every speed-bearing rule this tool type has, in the order {@link #toolComponent} writes them.
+     * Split out of it (issue #598) because assembly is not the only thing that builds them:
+     * {@code ModifierApplication#retuneStats} rebuilds them from the modified stats on every rebake
+     * -- a modifier application, a Tool Station part exchange, {@code Fortification} -- and used to
+     * do it by overwriting each rule with the raw stat, which silently dropped both this tool type's
+     * {@link #miningSpeed} modifier and the cobweb multiplier below. One method builds them now, so a
+     * rebaked tool is the tool assembly built at the new stats and nothing else.
+     */
+    public List<Tool.Rule> miningRules(ToolStats.Stats stats) {
+        List<Tool.Rule> rules = new ArrayList<>();
         float speed = miningSpeed(stats);
         if (minesCobweb()) {
             // Upstream SwordCore#getStrVsBlock: cobweb at 7.5x the tool's own speed, on top of the
@@ -487,13 +502,13 @@ public class ToolItem extends Item {
         for (TagKey<Block> tag : mineableBlocks) {
             rules.add(Tool.Rule.minesAndDrops(tag, speed));
         }
-        return new Tool(rules, 1.0F, 1);
+        return rules;
     }
 
     /**
      * Upstream's {@code ToolCore#miningSpeedModifier}, applied at read time there and here folded
      * into the vanilla tool component (issue #153's Entry field). Package-visible/overridable so a
-     * subclass adding a rule of its own ({@link HatchetItem#toolComponent}) can reuse the same value
+     * subclass adding a rule of its own ({@link HatchetItem#miningRules}) can reuse the same value
      * rather than re-deriving it.
      */
     protected float miningSpeed(ToolStats.Stats stats) {

@@ -458,14 +458,24 @@ public final class ModifierApplication {
     }
 
     /**
-     * Rewrites the mining speed inside the stack's existing vanilla {@code tool} component and the
-     * stack's {@code max_damage}, leaving every other rule (notably the head material's deny-drops
-     * tier rule -- {@link #retuneToolTier} is the only thing that touches that one) exactly as
-     * assembly wrote it. Editing the component in place rather than rebuilding it from the material
-     * registry is what keeps this whole class free of registry access -- and keeps it correct for
-     * whatever rules a later tool type adds. Attack damage needs no retuning here: {@code ToolItem}
-     * reads it from {@link ForgeweaveModifiers#effectiveStats} directly, since (unlike mining speed
-     * and durability) it was never baked into a stored vanilla component in the first place.
+     * Rewrites the mining rules inside the stack's existing vanilla {@code tool} component and the
+     * stack's {@code max_damage}, leaving every rule that carries no speed (notably the head
+     * material's deny-drops tier rule -- {@link #retuneToolTier} is the only thing that touches that
+     * one) exactly as assembly wrote it. Keeping the deny-drops rule rather than rebuilding the whole
+     * component is what keeps this class free of registry access: only the material knows the tier
+     * tag, and only {@link ToolItem} knows the speed rules. Attack damage needs no retuning here:
+     * {@code ToolItem} reads it from {@link ForgeweaveModifiers#effectiveStats} directly, since
+     * (unlike mining speed and durability) it was never baked into a stored vanilla component in the
+     * first place.
+     *
+     * <p>Issue #598: the speed rules are rebuilt through {@link ToolItem#miningRules}, the same method
+     * assembly builds them with, rather than by overwriting each existing rule's speed with the raw
+     * {@code effectiveStats} number. That overwrite discarded everything the rules carry beyond the
+     * head material's stat -- the tool type's own {@code miningSpeedModifier} (the sword family's 0.5,
+     * the hammer's 0.4, the excavator's 0.28), the sword family's 7.5x cobweb rule, the hatchet's
+     * leaves rule -- so one redstone put a broadsword back to mining at full harvest-tool speed,
+     * undoing issue #437. Rebuilding is also idempotent, which scaling the stored rules would not be:
+     * every rebake recomputes from the untouched {@code tool_stats} base rather than compounding.
      *
      * <p>#106 batch: durability grew from a mining-speed-only method (issue #105) to also cover
      * diamond/emerald's durability bonus, on the same {@code effectiveStats} mechanism -- CONTEXT.md's
@@ -479,12 +489,10 @@ public final class ModifierApplication {
             return;
         }
         Tool component = stack.get(DataComponents.TOOL);
-        if (component != null) {
-            List<Tool.Rule> rules = component.rules().stream()
-                    .map(rule -> rule.speed().isEmpty()
-                            ? rule
-                            : new Tool.Rule(rule.blocks(), Optional.of(effective.miningSpeed()), rule.correctForDrops()))
-                    .toList();
+        if (component != null && stack.getItem() instanceof ToolItem tool) {
+            List<Tool.Rule> rules = new ArrayList<>(
+                    component.rules().stream().filter(rule -> rule.speed().isEmpty()).toList());
+            rules.addAll(tool.miningRules(effective));
             stack.set(DataComponents.TOOL, new Tool(rules, component.defaultMiningSpeed(), component.damagePerBlock()));
         }
         // #230: alien's distributed durability growth lives outside both tool_stats and the modifier

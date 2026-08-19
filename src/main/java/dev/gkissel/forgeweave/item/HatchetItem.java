@@ -7,7 +7,6 @@ import net.minecraft.tags.BlockTags;
 import net.minecraft.world.item.component.Tool;
 import net.minecraft.world.level.block.state.BlockState;
 
-import dev.gkissel.forgeweave.material.Material;
 import dev.gkissel.forgeweave.tool.AoeHarvest;
 import dev.gkissel.forgeweave.tool.ToolStats;
 
@@ -40,16 +39,19 @@ public class HatchetItem extends ToolItem {
 
     /**
      * Adds a leaves-only speed rule on top of the ordinary {@code mineable/axe} one {@link
-     * ToolItem#toolComponent} already builds. {@link Tool.Rule#overrideSpeed} sets speed alone, no
+     * ToolItem#miningRules} already builds. {@link Tool.Rule#overrideSpeed} sets speed alone, no
      * {@code correctForDrops} -- leaves stay not-effective (upstream never adds them to
      * {@code effective_materials}), just fast, matching {@code Hatchet#getStrVsBlock}.
+     *
+     * <p>Overriding the rule list rather than the whole component (issue #598) is what puts this rule
+     * back on a hasted or re-parted hatchet too: {@code ModifierApplication#retuneStats} rebuilds the
+     * speed rules through this same method.
      */
     @Override
-    public Tool toolComponent(Material head, ToolStats.Stats stats) {
-        Tool base = super.toolComponent(head, stats);
-        List<Tool.Rule> rules = new ArrayList<>(base.rules());
+    public List<Tool.Rule> miningRules(ToolStats.Stats stats) {
+        List<Tool.Rule> rules = new ArrayList<>(super.miningRules(stats));
         rules.add(Tool.Rule.overrideSpeed(BlockTags.LEAVES, miningSpeed(stats)));
-        return new Tool(rules, base.defaultMiningSpeed(), base.damagePerBlock());
+        return rules;
     }
 
     /** {@code Hatchet#afterBlockBreak}: leaves cost no durability, effective or not. */
