@@ -488,10 +488,10 @@ public class ForgeweaveItemModelProvider extends ItemModelProvider {
     private static final String TOOL_MODEL_PARENT = "item/handheld";
 
     /**
-     * The tools upstream 1.12 gives a {@code display} block of their own, mirrored entry for entry
-     * (the only {@code .tcon.json} tool models with one -- the rest, including every large harvest
-     * tool, use the inherited set above unchanged, so hammer/excavator/lumberaxe/scythe/vein
-     * hammer/warmace/battleaxe deliberately get no oversize scale here).
+     * The tools upstream 1.12 gives a {@code display} block of their own (the only {@code .tcon.json}
+     * tool models with one -- the rest, including every large harvest tool, use the inherited set
+     * above unchanged, so hammer/excavator/lumberaxe/scythe/vein hammer/warmace/battleaxe deliberately
+     * get no oversize scale here).
      *
      * <p>M3.5 issue #400 added the three bows', which #394/#395 had left for the rendering ticket:
      * a bow is held across the body rather than swung, so its poses are nothing like the inherited
@@ -500,70 +500,83 @@ public class ForgeweaveItemModelProvider extends ItemModelProvider {
      * {@link #DRAWING_DISPLAY_OVERRIDES} and {@link #LOADED_DISPLAY_OVERRIDES}, which its own
      * {@code overrides} entries carry per draw state.
      *
-     * <p>Not mirrored: {@code battlesign.tcon.json}'s extra {@code overrides} block, a second display
-     * set for the blocking pose. That is 1.12's custom tool-model loader format, not vanilla's
-     * predicate-plus-separate-model {@code overrides}, and a blocking pose is out of issue #217's
-     * scope.
+     * <p>Issue #615: 1.12's {@code .tcon.json} files carry the left-hand entry as the right-hand one
+     * already mirrored by hand, but vanilla's {@code ItemTransform#apply} mirrors {@code rotation.y},
+     * {@code rotation.z} and {@code translation.x} <em>again</em> for every left-hand context, whatever
+     * the source of the stored transform -- and {@code ItemTransforms.Deserializer} already falls a
+     * missing {@code *_lefthand} back to its {@code *_righthand} sibling, so vanilla's own convention
+     * is "author the right hand, let {@code apply} mirror it". A pre-mirrored entry gets mirrored
+     * twice. Per tool, per context, below: where 1.12's authored left entry <em>is</em> the exact
+     * single mirror of its right entry, the {@code *_lefthand} transform is dropped so vanilla's
+     * fallback-then-mirror reproduces it unassisted (rapier, and both bows'/cleaver's/battlesign's
+     * third-person poses, where the handedness-sensitive field happens to be 0 either way). Where it
+     * is not -- cleaver and both bows keep {@code translation.x} the same on both hands instead of
+     * negating it, and battlesign's first-person pose negates {@code translation.z} (a field
+     * {@code apply} never touches) instead of {@code rotation.z} -- the entry is compensated: stored as
+     * {@code mirror(target)} so {@code apply}'s single mirror turns it back into upstream's authored
+     * pose. The crossbow is untouched: #616 already re-based it on vanilla's own crossbow display
+     * block, whose left-hand entries are vanilla's, not upstream 1.12's, and are correct by
+     * construction. {@code LeftHandDisplayTransformTest} pins every value below.
      */
     private static final Map<String, Consumer<ItemModelBuilder>> TOOL_DISPLAY_OVERRIDES = Map.of(
             // cleaver.tcon.json: a two-block slab of a weapon, held bigger and higher than a sword.
+            // Third person is an exact mirror (translation.x is 0), so it drops; first person keeps
+            // translation.x = 2.13 on both hands upstream, so its left entry is compensated.
             "cleaver", builder -> builder.transforms()
                     .transform(ItemDisplayContext.THIRD_PERSON_RIGHT_HAND)
                     .rotation(0, -90, 55).translation(0, 10.0F, 0.5F).scale(1.5F).end()
-                    .transform(ItemDisplayContext.THIRD_PERSON_LEFT_HAND)
-                    .rotation(0, 90, -55).translation(0, 10.0F, 0.5F).scale(1.5F).end()
                     .transform(ItemDisplayContext.FIRST_PERSON_RIGHT_HAND)
                     .rotation(0, -95, 30).translation(2.13F, 6.0F, 0.13F).scale(1.2F).end()
                     .transform(ItemDisplayContext.FIRST_PERSON_LEFT_HAND)
-                    .rotation(0, 95, -30).translation(2.13F, 6.0F, 0.13F).scale(1.2F).end()
+                    .rotation(0, -95, 30).translation(-2.13F, 6.0F, 0.13F).scale(1.2F).end()
                     .end(),
             // rapier.tcon.json: held point-forward for the thrust rather than shouldered like a
-            // sword (note the inverted yaw against handheld's), and laid flat in the inventory.
+            // sword (note the inverted yaw against handheld's), and laid flat in the inventory. Both
+            // contexts are exact mirrors (translation.x is 0 throughout), so both left entries drop.
             "rapier", builder -> builder.transforms()
                     .transform(ItemDisplayContext.GUI).rotation(0, 0, 90).end()
                     .transform(ItemDisplayContext.THIRD_PERSON_RIGHT_HAND)
                     .rotation(0, 90, 15).translation(0, 4.5F, -1).scale(0.85F).end()
-                    .transform(ItemDisplayContext.THIRD_PERSON_LEFT_HAND)
-                    .rotation(0, -90, -15).translation(0, 4.5F, -1).scale(0.85F).end()
                     .transform(ItemDisplayContext.FIRST_PERSON_RIGHT_HAND)
                     .rotation(0, 90, -25).translation(0, 2, 0.8F).scale(0.68F).end()
-                    .transform(ItemDisplayContext.FIRST_PERSON_LEFT_HAND)
-                    .rotation(0, -90, 25).translation(0, 2, 0.8F).scale(0.68F).end()
                     .end(),
             // battlesign.tcon.json: a sign, carried face-out and unrotated rather than shouldered.
+            // Third person is a trivial mirror (all-zero rotation, translation.x 0), so it drops;
+            // first person mirrors translation.z instead of rotation.z upstream, so its left entry
+            // is compensated.
             "battlesign", builder -> builder.transforms()
                     .transform(ItemDisplayContext.THIRD_PERSON_RIGHT_HAND)
-                    .rotation(0, 0, 0).translation(0, 4.0F, 2.5F).scale(1).end()
-                    .transform(ItemDisplayContext.THIRD_PERSON_LEFT_HAND)
                     .rotation(0, 0, 0).translation(0, 4.0F, 2.5F).scale(1).end()
                     .transform(ItemDisplayContext.FIRST_PERSON_RIGHT_HAND)
                     .rotation(0, 0, -5).translation(0, -2, 0.8F).scale(1).end()
                     .transform(ItemDisplayContext.FIRST_PERSON_LEFT_HAND)
-                    .rotation(0, 0, -5).translation(0, -2, -0.8F).scale(1).end()
+                    .rotation(0, 0, 5).translation(0, -2, -0.8F).scale(1).end()
                     .end(),
-            // shortbow.tcon.json, verbatim (M3.5 issue #400).
+            // shortbow.tcon.json: upstream keeps translation.x the same on both hands rather than
+            // mirroring it, so both left entries are compensated (M3.5 issue #400, #615).
             "shortbow", builder -> builder.transforms()
                     .transform(ItemDisplayContext.THIRD_PERSON_RIGHT_HAND)
                     .rotation(-90, 260, -45).translation(-1, -2, 2.5F).scale(0.875F, 0.875F, 0.75F).end()
                     .transform(ItemDisplayContext.THIRD_PERSON_LEFT_HAND)
-                    .rotation(-90, -260, 45).translation(-1, -2, 2.5F).scale(0.875F, 0.875F, 0.75F).end()
+                    .rotation(-90, 260, -45).translation(1, -2, 2.5F).scale(0.875F, 0.875F, 0.75F).end()
                     .transform(ItemDisplayContext.FIRST_PERSON_RIGHT_HAND)
                     .rotation(0, -90, 25).translation(1.13F, 3.2F, 1.13F).scale(0.68F).end()
                     .transform(ItemDisplayContext.FIRST_PERSON_LEFT_HAND)
-                    .rotation(0, 90, -25).translation(1.13F, 3.2F, 1.13F).scale(0.68F).end()
+                    .rotation(0, -90, 25).translation(-1.13F, 3.2F, 1.13F).scale(0.68F).end()
                     .end(),
-            // longbow.tcon.json: the shortbow's angles, held further out and scaled up.
+            // longbow.tcon.json: the shortbow's angles, held further out and scaled up -- same
+            // translation.x defect, same compensation.
             "longbow", builder -> builder.transforms()
                     .transform(ItemDisplayContext.THIRD_PERSON_RIGHT_HAND)
                     .rotation(-90, 260, -45).translation(-1.875F, -1.25F, 4.0F)
                     .scale(1.0625F, 1.0625F, 0.875F).end()
                     .transform(ItemDisplayContext.THIRD_PERSON_LEFT_HAND)
-                    .rotation(-90, -260, 45).translation(-1.875F, -1.25F, 4.0F)
+                    .rotation(-90, 260, -45).translation(1.875F, -1.25F, 4.0F)
                     .scale(1.0625F, 1.0625F, 0.875F).end()
                     .transform(ItemDisplayContext.FIRST_PERSON_RIGHT_HAND)
                     .rotation(0, -90, 25).translation(1.13F, 3.2F, 1.13F).scale(0.875F, 0.875F, 0.7F).end()
                     .transform(ItemDisplayContext.FIRST_PERSON_LEFT_HAND)
-                    .rotation(0, 90, -25).translation(1.13F, 3.2F, 1.13F).scale(0.875F, 0.875F, 0.7F).end()
+                    .rotation(0, -90, 25).translation(-1.13F, 3.2F, 1.13F).scale(0.875F, 0.875F, 0.7F).end()
                     .end(),
             // crossbow: stood on end rather than laid flat, and the one bow whose pose changes with
             // its draw state -- see the two maps below.
