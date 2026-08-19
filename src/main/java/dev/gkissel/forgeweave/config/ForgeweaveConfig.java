@@ -2,6 +2,8 @@ package dev.gkissel.forgeweave.config;
 
 import java.util.List;
 
+import net.minecraft.resources.ResourceLocation;
+
 import net.neoforged.neoforge.common.ModConfigSpec;
 
 /**
@@ -188,6 +190,23 @@ public final class ForgeweaveConfig {
     /** Upstream {@code arditeRate}: approximate ardite veins per Nether chunk. */
     public static final ModConfigSpec.IntValue ARDITE_RATE;
 
+    /** Upstream {@code generateSlimeIslands} (#449, parity audit T18). */
+    public static final ModConfigSpec.BooleanValue GEN_SLIME_ISLANDS;
+    /** Upstream {@code generateIslandsInSuperflat}. */
+    public static final ModConfigSpec.BooleanValue GEN_ISLANDS_IN_SUPERFLAT;
+    /** Upstream {@code slimeIslandRate}: one chunk in this many carries an island. */
+    public static final ModConfigSpec.IntValue SLIME_ISLAND_RATE;
+    /**
+     * Upstream {@code slimeIslandBlacklist}, whose numeric dimension ids ({@code -1, 1}) become the
+     * modern named ones -- see {@code SlimeIslandPlacement}.
+     */
+    public static final ModConfigSpec.ConfigValue<List<? extends String>> SLIME_ISLAND_BLACKLIST;
+    /**
+     * Upstream {@code slimeIslandsOnlyGenerateInSurfaceWorlds}, whose name is inverted the same way
+     * upstream's is: set it false to let islands into non-surface dimensions.
+     */
+    public static final ModConfigSpec.BooleanValue SLIME_ISLANDS_ONLY_IN_SURFACE_WORLDS;
+
     /**
      * One of the {@code content} flags, answering "on" whenever the spec is not loaded.
      *
@@ -303,6 +322,28 @@ public final class ForgeweaveConfig {
         ARDITE_RATE = builder
                 .comment("Approximate ardite veins per Nether chunk.")
                 .defineInRange("arditeRate", 20, 0, 256);
+        // #449 (parity audit T18) -- upstream 1.12 Config's five slime island options, verbatim
+        // names and defaults except the blacklist's dimension ids (see SlimeIslandPlacement).
+        GEN_SLIME_ISLANDS = builder
+                .comment("If true slime islands will generate.")
+                .define("generateSlimeIslands", true);
+        GEN_ISLANDS_IN_SUPERFLAT = builder
+                .comment("If true slime islands generate in superflat worlds.")
+                .define("generateIslandsInSuperflat", false);
+        SLIME_ISLAND_RATE = builder
+                .comment("One in every X chunks will contain a slime island.")
+                .defineInRange("slimeIslandRate", 730, 0, 100000);
+        SLIME_ISLAND_BLACKLIST = builder
+                .comment("Prevents generation of slime islands in the listed dimensions.")
+                .defineListAllowEmpty("slimeIslandBlacklist",
+                        List.<String>of("minecraft:the_nether", "minecraft:the_end"),
+                        value -> value instanceof String id && ResourceLocation.tryParse(id) != null);
+        SLIME_ISLANDS_ONLY_IN_SURFACE_WORLDS = builder
+                .comment("If false, slime islands only generate in dimensions which are of type surface. This",
+                        "means they won't generate in modded cave dimensions. Note that the name of this property",
+                        "is inverted: it must be set to false to prevent slime islands from generating in",
+                        "non-surface dimensions.")
+                .define("slimeIslandsOnlyGenerateInSurfaceWorlds", true);
         builder.pop();
 
         SPEC = builder.build();

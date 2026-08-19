@@ -64,7 +64,9 @@ import dev.gkissel.forgeweave.recipe.SmelteryFuel;
 import dev.gkissel.forgeweave.sound.ForgeweaveSounds; // #453
 import dev.gkissel.forgeweave.tool.AoeHarvest;
 import dev.gkissel.forgeweave.trait.ForgeweaveTraits;
-import dev.gkissel.forgeweave.worldgen.NetherOrePlacement; // #276
+import dev.gkissel.forgeweave.worldgen.NetherOrePlacement;
+import dev.gkissel.forgeweave.worldgen.SlimeIslandFeature;
+import dev.gkissel.forgeweave.worldgen.SlimeIslandPlacement; // #276
 
 // The value here must match the modId in META-INF/neoforge.mods.toml.
 @Mod(Forgeweave.MODID)
@@ -90,6 +92,10 @@ public class Forgeweave {
         ForgeweaveCreativeTab.TABS.register(modEventBus);
         // #276 -- the config-aware vein count the Nether ores' placed features use.
         NetherOrePlacement.PLACEMENT_MODIFIERS.register(modEventBus);
+        // #449 (parity audit T18) -- the slime island feature and the config gates its placed
+        // feature runs through. See SlimeIslandFeature and SlimeIslandPlacement.
+        SlimeIslandFeature.FEATURES.register(modEventBus);
+        SlimeIslandPlacement.PLACEMENT_MODIFIERS.register(modEventBus);
         // #159 -- the scimitar's lacerate bleed (see LacerateEffect for why it is a status effect).
         ForgeweaveMobEffects.MOB_EFFECTS.register(modEventBus);
         // #482 -- upstream's heart-effect particles (parity audit T51): the little coloured heart a

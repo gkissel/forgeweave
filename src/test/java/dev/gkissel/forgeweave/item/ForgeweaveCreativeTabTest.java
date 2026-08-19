@@ -56,8 +56,9 @@ class ForgeweaveCreativeTabTest {
     /**
      * Issue #507 / T76: upstream 1.12 spreads its content over six creative tabs
      * ({@code TinkerRegistry:76-81}), Forgeweave shipped a single one. Four of the six have content
-     * here -- General, Tools, Tool Parts, Smeltery -- and Gadgets opened with the Slimesling (T22,
-     * issue #453); upstream's World tab would hold only the two nether ores.
+     * here -- General, Tools, Tool Parts, Smeltery -- Gadgets opened with the Slimesling (T22,
+     * issue #453), and World opened with the slime island's blocks (T18, issue #449), which is where
+     * the two Nether ores moved to as well.
      */
     @Test
     void theModRegistersOneTabPerUpstreamContentGroup() {
@@ -65,7 +66,7 @@ class ForgeweaveCreativeTabTest {
                 .map(holder -> holder.getId().getPath())
                 .toList();
 
-        assertEquals(List.of("general", "tools", "parts", "smeltery", "gadgets"), ids);
+        assertEquals(List.of("general", "tools", "parts", "smeltery", "gadgets", "world"), ids);
     }
 
     /** No item may be filed under two tabs -- upstream picks exactly one per item class. */
@@ -76,6 +77,7 @@ class ForgeweaveCreativeTabTest {
                 .filter(item -> tab(ForgeweaveCreativeTab::addToolItems).stream().anyMatch(s -> s.getItem() == item)
                         || tab(ForgeweaveCreativeTab::addSmelteryItems).stream().anyMatch(s -> s.getItem() == item)
                         || tab(ForgeweaveCreativeTab::addGadgetItems).stream().anyMatch(s -> s.getItem() == item)
+                        || tab(ForgeweaveCreativeTab::addWorldItems).stream().anyMatch(s -> s.getItem() == item)
                         || partsTab().stream().anyMatch(s -> s.getItem() == item))
                 .toList();
 
@@ -184,6 +186,7 @@ class ForgeweaveCreativeTabTest {
         ForgeweaveCreativeTab.addPartItems(parameters, output, listAllPartMaterials);
         ForgeweaveCreativeTab.addSmelteryItems(parameters, output);
         ForgeweaveCreativeTab.addGadgetItems(parameters, output);
+        ForgeweaveCreativeTab.addWorldItems(parameters, output); // #449 (T18)
         return displayed;
     }
 

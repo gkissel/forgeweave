@@ -32,6 +32,17 @@ public class ForgeweaveBlockLootSubProvider extends BlockLootSubProvider {
         super(Set.of(), FeatureFlags.REGISTRY.allFlags(), registries);
     }
 
+    /**
+     * Upstream's slime leaves are {@code IShearable} and override {@code getSilkTouchDrop}, so either
+     * tool takes the block itself and nothing else does.
+     */
+    private LootTable.Builder shearsOrSilkTouchDrop(Block block) {
+        return LootTable.lootTable().withPool(applyExplosionCondition(block, LootPool.lootPool()
+                .setRolls(ConstantValue.exactly(1))
+                .add(LootItem.lootTableItem(block))
+                .when(HAS_SHEARS.or(hasSilkTouch()))));
+    }
+
     @Override
     protected void generate() {
         add(ForgeweaveBlocks.PART_BUILDER.get(), retexturedTableDrop(ForgeweaveBlocks.PART_BUILDER.get()));
@@ -58,6 +69,24 @@ public class ForgeweaveBlockLootSubProvider extends BlockLootSubProvider {
         dropSelf(ForgeweaveBlocks.GRAVEYARD_SOIL.get());
         dropSelf(ForgeweaveBlocks.CONSECRATED_SOIL.get());
         dropSelf(ForgeweaveBlocks.MUD_BRICK_BLOCK.get()); // #502 (T71)
+
+        // #449 (parity audit T18) -- the slime island's blocks. Dirt and congealed slime drop
+        // themselves; slime grass drops its own dirt, upstream's BlockSlimeGrass#getItemDropped
+        // (a silk-touch pick still yields the grass, which createSingleItemTable's silk-touch
+        // sibling below gives for free). Leaves and plants drop only to shears or silk touch,
+        // upstream's IShearable plus a getItemDropped of null -- their other upstream drops
+        // (saplings from leaves, coloured slime balls from the canopy) wait on the sapling and
+        // slime-ball tickets (parity audit T57).
+        for (ForgeweaveBlocks.SlimeSoil soil : ForgeweaveBlocks.slimeSoils()) {
+            dropSelf(soil.dirt().get());
+            add(soil.grass().get(), block -> createSingleItemTableWithSilkTouch(block, soil.dirt().get()));
+        }
+        dropSelf(ForgeweaveBlocks.GREEN_CONGEALED_SLIME.get());
+        for (ForgeweaveBlocks.SlimePlants plants : ForgeweaveBlocks.slimePlants()) {
+            add(plants.leaves().get(), this::shearsOrSilkTouchDrop);
+            add(plants.tallGrass().get(), block -> createShearsOnlyDrop(block));
+            add(plants.fern().get(), block -> createShearsOnlyDrop(block));
+        }
 
         // The seared brick block family (docs/SCOPE.md M2 issue #93): plain decorative blocks, no
         // tool-tier gating (ForgeweaveBlocks javadoc), so every variant just drops itself -- matching
