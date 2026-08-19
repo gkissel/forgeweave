@@ -66,6 +66,7 @@ public class ForgeweaveBlockTagsProvider extends BlockTagsProvider {
                 .add(ForgeweaveBlocks.GROUT.get())
                 .add(ForgeweaveBlocks.SLIMY_MUD_GREEN.get())
                 .add(ForgeweaveBlocks.SLIMY_MUD_MAGMA.get())
+                .add(ForgeweaveBlocks.SLIMY_MUD_BLUE.get())
                 // #429 -- the two remaining BlockSoil states, same setHarvestLevel("shovel", -1).
                 .add(ForgeweaveBlocks.GRAVEYARD_SOIL.get())
                 .add(ForgeweaveBlocks.CONSECRATED_SOIL.get());

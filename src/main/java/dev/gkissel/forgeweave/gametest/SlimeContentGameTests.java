@@ -23,6 +23,7 @@ import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.block.ForgeweaveBlocks;
+import dev.gkissel.forgeweave.block.SlimeColour;
 import dev.gkissel.forgeweave.block.SmelteryControllerBlockEntity;
 import dev.gkissel.forgeweave.fluid.ForgeweaveFluids;
 import dev.gkissel.forgeweave.item.ForgeweaveDataComponents;
@@ -55,15 +56,28 @@ public class SlimeContentGameTests {
     }
 
     /**
-     * Upstream {@code slimy_mud_magma.json} with the maintainer-flagged substitution: its 2 magma
-     * slime balls have no Forgeweave item, so all four filler slots are magma cream (issue #339).
+     * Upstream {@code slimy_mud_magma.json} 1:1 again (issue #635): 2 magma slime balls + 2 magma
+     * cream + soul sand + netherrack. #339 had to fill all four slots with magma cream for want of a
+     * magma slime ball; there is one now.
      */
     @GameTest(template = "empty")
-    public static void magmaSlimyMudCraftsFromMagmaCreamSoulSandAndNetherrack(GameTestHelper helper) {
+    public static void magmaSlimyMudCraftsFromMagmaSlimeBallsCreamSoulSandAndNetherrack(GameTestHelper helper) {
         assertCrafts(helper, List.of(
-                        new ItemStack(Items.MAGMA_CREAM), new ItemStack(Items.MAGMA_CREAM), new ItemStack(Items.MAGMA_CREAM),
-                        new ItemStack(Items.MAGMA_CREAM), new ItemStack(Items.SOUL_SAND), new ItemStack(Items.NETHERRACK)),
+                        new ItemStack(ForgeweaveItems.slimeBall(SlimeColour.MAGMA)),
+                        new ItemStack(ForgeweaveItems.slimeBall(SlimeColour.MAGMA)),
+                        new ItemStack(Items.MAGMA_CREAM), new ItemStack(Items.MAGMA_CREAM),
+                        new ItemStack(Items.SOUL_SAND), new ItemStack(Items.NETHERRACK)),
                 ForgeweaveItems.SLIMY_MUD_MAGMA.get());
+        helper.succeed();
+    }
+
+    /** Upstream {@code slimy_mud_blue.json} 1:1 (issue #635): 4 blue slime balls + sand + dirt. */
+    @GameTest(template = "empty")
+    public static void blueSlimyMudCraftsFromBlueSlimeBallsSandAndDirt(GameTestHelper helper) {
+        ItemStack ball = new ItemStack(ForgeweaveItems.slimeBall(SlimeColour.BLUE));
+        assertCrafts(helper, List.of(ball.copy(), ball.copy(), ball.copy(), ball.copy(),
+                        new ItemStack(Items.SAND), new ItemStack(Items.DIRT)),
+                ForgeweaveItems.SLIMY_MUD_BLUE.get());
         helper.succeed();
     }
 
@@ -92,31 +106,79 @@ public class SlimeContentGameTests {
         helper.succeed();
     }
 
+    /**
+     * #635 reverts #232's interim "green crystal + lapis": blue slimy mud smelts into the blue slime
+     * crystal, the same upstream path green and magma already take, and the lapis craft is gone.
+     */
     @GameTest(template = "empty")
-    public static void blueCrystalCraftsFromGreenCrystalAndLapis(GameTestHelper helper) {
+    public static void blueSlimyMudSmeltsIntoBlueCrystal(GameTestHelper helper) {
+        assertSmeltsInto(helper, new ItemStack(ForgeweaveItems.SLIMY_MUD_BLUE.get()),
+                ForgeweaveItems.BLUE_SLIME_CRYSTAL.get());
+        helper.succeed();
+    }
+
+    @GameTest(template = "empty")
+    public static void greenCrystalAndLapisNoLongerCraftABlueCrystal(GameTestHelper helper) {
         ServerLevel level = helper.getLevel();
         CraftingInput input = CraftingInput.of(2, 1, List.of(
                 new ItemStack(ForgeweaveItems.GREEN_SLIME_CRYSTAL.get()), new ItemStack(Items.LAPIS_LAZULI)));
 
-        ItemStack crafted = level.getRecipeManager()
-                .getRecipeFor(RecipeType.CRAFTING, input, level)
-                .map(match -> match.value().assemble(input, level.registryAccess()))
-                .orElse(ItemStack.EMPTY);
-
-        helper.assertTrue(crafted.is(ForgeweaveItems.BLUE_SLIME_CRYSTAL.get()) && crafted.getCount() == 1,
-                "expected green slime crystal + lapis to craft a blue slime crystal, got " + crafted);
+        helper.assertTrue(level.getRecipeManager().getRecipeFor(RecipeType.CRAFTING, input, level).isEmpty(),
+                "green slime crystal + lapis should no longer craft anything (issue #635)");
         helper.succeed();
     }
 
     /**
-     * Upstream {@code TinkerSmeltery#registerAlloys}' knightslime ratio with the maintainer-decided
-     * green-slime substitution: 72 iron + 125 molten slime + 144 seared stone -> 72 knightslime.
+     * The slime family's crafting loop, upstream's four recipes per colour: four balls make a
+     * congealed block and it gives them back, nine make a slime block and it gives them back
+     * (issue #635). Green's slime-block half is vanilla's own pair and is not re-shipped.
+     */
+    @GameTest(template = "empty")
+    public static void everySlimeColourCraftsRoundTripThroughItsBlocks(GameTestHelper helper) {
+        for (ForgeweaveBlocks.SlimeFamily family : ForgeweaveBlocks.slimeFamilies()) {
+            ItemStack ball = new ItemStack(ForgeweaveItems.slimeBall(family.colour()));
+            assertCrafts(helper, List.of(ball.copy(), ball.copy(), ball.copy(), ball.copy()),
+                    family.congealed().get().asItem());
+            assertCraftsCount(helper, List.of(new ItemStack(family.congealed().get())), ball.getItem(), 4);
+            if (family.slimeBlock() == null) {
+                continue;
+            }
+            assertCrafts(helper, List.of(ball.copy(), ball.copy(), ball.copy(), ball.copy(), ball.copy(),
+                    ball.copy(), ball.copy(), ball.copy(), ball.copy()), family.slimeBlock().get().asItem());
+            assertCraftsCount(helper, List.of(new ItemStack(family.slimeBlock().get())), ball.getItem(), 9);
+        }
+        helper.succeed();
+    }
+
+    /**
+     * Upstream's {@code ShapedFallbackRecipe}: nine slime balls of mixed colours make a slime block --
+     * a vanilla one, at {@code matchVanillaSlimeblock}'s default of off. Nine of one colour stay with
+     * that colour's own recipe, which the round trip above covers (issue #635).
+     */
+    @GameTest(template = "empty")
+    public static void mixedSlimeBallsCraftAVanillaSlimeBlock(GameTestHelper helper) {
+        assertCrafts(helper, List.of(
+                        new ItemStack(Items.SLIME_BALL), new ItemStack(Items.SLIME_BALL), new ItemStack(Items.SLIME_BALL),
+                        new ItemStack(ForgeweaveItems.slimeBall(SlimeColour.BLUE)),
+                        new ItemStack(ForgeweaveItems.slimeBall(SlimeColour.PURPLE)),
+                        new ItemStack(ForgeweaveItems.slimeBall(SlimeColour.BLOOD)),
+                        new ItemStack(ForgeweaveItems.slimeBall(SlimeColour.MAGMA)),
+                        new ItemStack(ForgeweaveItems.slimeBall(SlimeColour.PINK)),
+                        new ItemStack(Items.SLIME_BALL)),
+                Items.SLIME_BLOCK);
+        helper.succeed();
+    }
+
+    /**
+     * Upstream {@code TinkerSmeltery#registerAlloys}' knightslime ratio, 1:1 again now that #635 gave
+     * it purple slime: 72 iron + 125 molten purple slime + 144 seared stone -> 72 knightslime.
+     * #232's green {@code molten_slime} substitute is gone.
      */
     @GameTest(template = "smeltery")
     public static void knightslimeAlloysAtUpstreamsRatio(GameTestHelper helper) {
         SmelteryControllerBlockEntity core = smeltery(helper);
         pour(core, ForgeweaveFluids.IRON.still().get(), 72);
-        pour(core, ForgeweaveFluids.SLIME.still().get(), 125);
+        pour(core, ForgeweaveFluids.PURPLE_SLIME.still().get(), 125);
         pour(core, ForgeweaveFluids.SEARED_STONE.still().get(), 144);
 
         helper.assertValueEqual(core.tank().fluids().size(), 1, "distinct fluids left after alloying");
@@ -131,7 +193,7 @@ public class SlimeContentGameTests {
     public static void knightslimeScalesToTheWholeMultipleAvailable(GameTestHelper helper) {
         SmelteryControllerBlockEntity core = smeltery(helper);
         pour(core, ForgeweaveFluids.IRON.still().get(), 2 * 72);
-        pour(core, ForgeweaveFluids.SLIME.still().get(), 2 * 125);
+        pour(core, ForgeweaveFluids.PURPLE_SLIME.still().get(), 2 * 125);
         pour(core, ForgeweaveFluids.SEARED_STONE.still().get(), 2 * 144);
 
         helper.assertValueEqual(core.tank().getFluidAmount(), 2 * 72, "knightslime from two applications");
@@ -217,15 +279,29 @@ public class SlimeContentGameTests {
     /** Resolves {@code ingredients} as a shapeless 3x2 crafting grid and asserts the single result. */
     private static void assertCrafts(GameTestHelper helper, List<ItemStack> ingredients,
                                      net.minecraft.world.item.Item expected) {
+        assertCraftsCount(helper, ingredients, expected, 1);
+    }
+
+    /**
+     * Crafts {@code ingredients} in the smallest grid that holds them -- 1x1, 2x2, 3x2 or 3x3, which
+     * is every shape the slime family's recipes use -- and asserts the result.
+     */
+    private static void assertCraftsCount(GameTestHelper helper, List<ItemStack> ingredients,
+                                          net.minecraft.world.item.Item expected, int count) {
+        int width = switch (ingredients.size()) {
+            case 1 -> 1;
+            case 4 -> 2;
+            default -> 3;
+        };
         ServerLevel level = helper.getLevel();
-        CraftingInput input = CraftingInput.of(3, 2, ingredients);
+        CraftingInput input = CraftingInput.of(width, ingredients.size() / width, ingredients);
         ItemStack crafted = level.getRecipeManager()
                 .getRecipeFor(RecipeType.CRAFTING, input, level)
                 .map(match -> match.value().assemble(input, level.registryAccess()))
                 .orElse(ItemStack.EMPTY);
 
-        helper.assertTrue(crafted.is(expected) && crafted.getCount() == 1,
-                "expected " + ingredients + " to craft one " + expected + ", got " + crafted);
+        helper.assertTrue(crafted.is(expected) && crafted.getCount() == count,
+                "expected " + ingredients + " to craft " + count + " " + expected + ", got " + crafted);
     }
 
     /** The 1x1x2 minimum smeltery of {@link SmelteryGameTests}, formed and empty. */

@@ -6,6 +6,9 @@ import java.util.List;
 import java.util.Map;
 
 import net.minecraft.tags.BlockTags;
+import net.minecraft.world.effect.MobEffectInstance;
+import net.minecraft.world.effect.MobEffects;
+import net.minecraft.world.food.FoodProperties;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.Block;
@@ -17,6 +20,7 @@ import net.neoforged.neoforge.registries.DeferredRegister;
 
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.block.ForgeweaveBlocks;
+import dev.gkissel.forgeweave.block.SlimeColour;
 import dev.gkissel.forgeweave.combat.ForgeweaveInnates;
 import dev.gkissel.forgeweave.entity.ForgeweaveEntities;
 import dev.gkissel.forgeweave.tool.AoeHarvest;
@@ -434,6 +438,9 @@ public final class ForgeweaveItems {
             ITEMS.registerSimpleBlockItem("slimy_mud_green", ForgeweaveBlocks.SLIMY_MUD_GREEN);
     public static final DeferredItem<BlockItem> SLIMY_MUD_MAGMA =
             ITEMS.registerSimpleBlockItem("slimy_mud_magma", ForgeweaveBlocks.SLIMY_MUD_MAGMA);
+    /** #635 (parity audit T57): blue slimy mud, now that blue slime balls exist to craft it. */
+    public static final DeferredItem<BlockItem> SLIMY_MUD_BLUE =
+            ITEMS.registerSimpleBlockItem("slimy_mud_blue", ForgeweaveBlocks.SLIMY_MUD_BLUE);
 
     // #429 -- graveyard soil and consecrated soil, two more placeable BlockSoil states (NOTICE.md).
     // Graveyard soil is crafted at a table and furnace-smelts into consecrated soil, which is
@@ -460,10 +467,14 @@ public final class ForgeweaveItems {
             items.add(blockItem(soil.dirt()));
             items.add(blockItem(soil.grass()));
         }
-        items.add(blockItem(ForgeweaveBlocks.GREEN_CONGEALED_SLIME));
-        items.add(blockItem(ForgeweaveBlocks.BLUE_CONGEALED_SLIME)); // #625 (parity audit T18)
-        items.add(blockItem(ForgeweaveBlocks.PURPLE_CONGEALED_SLIME)); // #625 (parity audit T18)
-        items.add(blockItem(ForgeweaveBlocks.MAGMA_CONGEALED_SLIME)); // #450 (parity audit T19)
+        // All six congealed colours and the five coloured slime blocks (#635), green congealed
+        // (#449), blue/purple congealed (#625) and magma congealed (#450) among them.
+        for (ForgeweaveBlocks.SlimeFamily family : ForgeweaveBlocks.slimeFamilies()) {
+            items.add(blockItem(family.congealed()));
+            if (family.slimeBlock() != null) {
+                items.add(blockItem(family.slimeBlock()));
+            }
+        }
         for (ForgeweaveBlocks.SlimePlants plants : ForgeweaveBlocks.slimePlants()) {
             items.add(blockItem(plants.leaves()));
             items.add(blockItem(plants.sapling())); // #488 (T57)
@@ -702,6 +713,70 @@ public final class ForgeweaveItems {
     public static final DeferredItem<Item> GREEN_SLIME_CRYSTAL = ITEMS.registerSimpleItem("green_slime_crystal");
     public static final DeferredItem<Item> BLUE_SLIME_CRYSTAL = ITEMS.registerSimpleItem("blue_slime_crystal");
     public static final DeferredItem<Item> MAGMA_SLIME_CRYSTAL = ITEMS.registerSimpleItem("magma_slime_crystal");
+
+    /**
+     * The five coloured slime balls (issue #635, parity audit T57): upstream 1.12's
+     * {@code TinkerCommons#matSlimeBall*}, five metas of its {@code ItemEdible} (NOTICE.md). Every
+     * one is a food with upstream's own nutrition, saturation and potion effects, all of them
+     * always-edible because upstream's {@code ItemEdible#addFood} sets {@code alwaysEdible} whenever
+     * a food carries effects -- which all five do.
+     *
+     * <p>Green is deliberately absent: vanilla's {@code minecraft:slime_ball} is upstream's
+     * {@code slimeballGreen} ore-dict entry, and every recipe here keys off it directly.
+     */
+    private static final List<SlimeBall> SLIME_BALLS = registerSlimeBalls();
+
+    /** One colour's slime ball. */
+    public record SlimeBall(SlimeColour colour, DeferredItem<Item> item) {}
+
+    /** Every coloured slime ball, in declaration order -- datagen, tags and the creative tab walk this. */
+    public static List<SlimeBall> slimeBalls() {
+        return SLIME_BALLS;
+    }
+
+    /** One colour's slime ball as a crafting ingredient; green is vanilla's own slime ball. */
+    public static net.minecraft.world.level.ItemLike slimeBall(SlimeColour colour) {
+        return colour == SlimeColour.GREEN ? net.minecraft.world.item.Items.SLIME_BALL : slimeBallItem(colour).get();
+    }
+
+    /** One coloured slime ball's registry entry. Never green -- vanilla's slime ball is that colour. */
+    public static DeferredItem<Item> slimeBallItem(SlimeColour colour) {
+        return SLIME_BALLS.stream().filter(ball -> ball.colour() == colour).findFirst()
+                .orElseThrow(() -> new IllegalStateException("no slime ball registered for " + colour))
+                .item();
+    }
+
+    private static List<SlimeBall> registerSlimeBalls() {
+        List<SlimeBall> balls = new java.util.ArrayList<>();
+        // Upstream TinkerCommons:140-144 -- addFood(meta, hunger, saturation, name, effects...).
+        // Durations are upstream's own tick counts (20 ticks to the second) and every effect is
+        // applied with certainty, which is what ItemEdible#onFoodEaten does.
+        balls.add(slimeBall(SlimeColour.BLUE, 1, 1f,
+                new MobEffectInstance(MobEffects.MOVEMENT_SLOWDOWN, 20 * 45, 2),
+                new MobEffectInstance(MobEffects.JUMP, 20 * 60, 2)));
+        balls.add(slimeBall(SlimeColour.PURPLE, 1, 2f,
+                new MobEffectInstance(MobEffects.UNLUCK, 20 * 45),
+                new MobEffectInstance(MobEffects.LUCK, 20 * 60)));
+        balls.add(slimeBall(SlimeColour.BLOOD, 1, 1.5f,
+                new MobEffectInstance(MobEffects.POISON, 20 * 45, 2),
+                new MobEffectInstance(MobEffects.HEALTH_BOOST, 20 * 60)));
+        balls.add(slimeBall(SlimeColour.MAGMA, 2, 1f,
+                new MobEffectInstance(MobEffects.WEAKNESS, 20 * 45),
+                new MobEffectInstance(MobEffects.WITHER, 20 * 15),
+                new MobEffectInstance(MobEffects.FIRE_RESISTANCE, 20 * 60)));
+        balls.add(slimeBall(SlimeColour.PINK, 1, 1f,
+                new MobEffectInstance(MobEffects.CONFUSION, 20 * 10, 2)));
+        return Collections.unmodifiableList(balls);
+    }
+
+    private static SlimeBall slimeBall(SlimeColour colour, int nutrition, float saturation, MobEffectInstance... effects) {
+        FoodProperties.Builder food = new FoodProperties.Builder().nutrition(nutrition).saturationModifier(saturation).alwaysEdible();
+        for (MobEffectInstance effect : effects) {
+            food.effect(() -> new MobEffectInstance(effect), 1.0F);
+        }
+        return new SlimeBall(colour, ITEMS.registerSimpleItem(colour.id() + "_slime_ball",
+                new Item.Properties().food(food.build())));
+    }
 
     // #232 -- knightslime's item forms (docs/SCOPE.md M3.2), alloy-only like manyullyn: no ore, no
     // raw form (upstream 1.12 has none either -- addCommonItems("Knightslime") is ingot/nugget/block).

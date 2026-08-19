@@ -1,0 +1,13 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    {
+      "item": "forgeweave:purple_slime_block"
+    }
+  ],
+  "result": {
+    "count": 9,
+    "id": "forgeweave:purple_slime_ball"
+  }
+}

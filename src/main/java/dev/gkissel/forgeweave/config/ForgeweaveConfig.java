@@ -85,6 +85,15 @@ public final class ForgeweaveConfig {
     public static final ModConfigSpec.BooleanValue ADD_FLINT_RECIPE;
 
     /**
+     * Upstream {@code matchVanillaSlimeblock} (issue #635, parity audit T57), default {@code false}
+     * as upstream's is ({@code Config.java:47}): nine slime balls of mixed colour give a pink slime
+     * block instead of a vanilla one. Read at match time by
+     * {@link dev.gkissel.forgeweave.recipe.MixedSlimeBlockRecipe}, the same runtime-check convention
+     * {@link #ADD_FLINT_RECIPE} above explains.
+     */
+    public static final ModConfigSpec.BooleanValue MATCH_VANILLA_SLIMEBLOCK;
+
+    /**
      * Upstream {@code enableClayCasts}: the single-use clay casts (issue #292) can be moulded and
      * cast through. Upstream skips registering their recipes when this is off; casting recipes are
      * datapack entries here, so {@link dev.gkissel.forgeweave.casting.CastingRecipe#matches} filters
@@ -272,6 +281,10 @@ public final class ForgeweaveConfig {
         ADD_FLINT_RECIPE = builder
                 .comment("Adds a crafting-table recipe that turns 3 gravel into a flint.")
                 .define("addFlintRecipe", true);
+        MATCH_VANILLA_SLIMEBLOCK = builder
+                .comment("Crafting nine slime balls of mixed colours gives a pink slime block instead of",
+                        "a vanilla slime block.")
+                .define("matchVanillaSlimeblock", false);
         ENABLE_CLAY_CASTS = builder
                 .comment("Allows single-use clay casts to be moulded from molten clay and cast through.")
                 .define("enableClayCasts", true);

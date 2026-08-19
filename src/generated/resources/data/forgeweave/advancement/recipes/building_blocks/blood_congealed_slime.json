@@ -1,0 +1,32 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_blood_slime_ball": {
+      "conditions": {
+        "items": [
+          {
+            "items": "forgeweave:blood_slime_ball"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "forgeweave:blood_congealed_slime"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_the_recipe",
+      "has_blood_slime_ball"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "forgeweave:blood_congealed_slime"
+    ]
+  }
+}

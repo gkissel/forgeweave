@@ -177,6 +177,7 @@ public final class ForgeweaveCreativeTab {
 
         output.accept(ForgeweaveItems.SLIMY_MUD_GREEN.get());
         output.accept(ForgeweaveItems.SLIMY_MUD_MAGMA.get());
+        output.accept(ForgeweaveItems.SLIMY_MUD_BLUE.get()); // #635
 
         output.accept(ForgeweaveItems.GRAVEYARD_SOIL.get());
         output.accept(ForgeweaveItems.CONSECRATED_SOIL.get());
@@ -215,6 +216,9 @@ public final class ForgeweaveCreativeTab {
         output.accept(ForgeweaveItems.NUGGET_STEEL.get());
         output.accept(ForgeweaveItems.INGOT_AMETHYST_BRONZE.get());
         output.accept(ForgeweaveItems.NUGGET_AMETHYST_BRONZE.get());
+
+        // #635 (parity audit T57): the coloured slime balls, upstream's tabGeneral edibles.
+        ForgeweaveItems.slimeBalls().forEach(ball -> output.accept(ball.item().get()));
 
         output.accept(ForgeweaveItems.GREEN_SLIME_CRYSTAL.get());
         output.accept(ForgeweaveItems.BLUE_SLIME_CRYSTAL.get());
