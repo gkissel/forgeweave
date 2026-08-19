@@ -94,7 +94,10 @@ public class StencilTableMenu extends StationMenu {
             ForgeweaveItems.PATTERN_BOW_STRING,
             // #271: upstream registers the sharpening kit's pattern for stencil crafting alongside
             // every other part's (TinkerTools#registerItems).
-            ForgeweaveItems.PATTERN_SHARPENING_KIT);
+            ForgeweaveItems.PATTERN_SHARPENING_KIT,
+            // #605: upstream stencils the shard on the line right after the sharpening kit's
+            // (TinkerTools#registerItems:154).
+            ForgeweaveItems.PATTERN_SHARD);
 
     private final Container container;
     private final ContainerLevelAccess access;

@@ -127,8 +127,9 @@ class JeiRecipesTest {
         // 5 M1 part types + 17 M3 part types (docs/SCOPE.md issue #151) + the war mace head
         // (issue #161) + the curved blade (issue #159) + the katana blade (issue #160) + the
         // sharpening kit (issue #271, the one part no tool is built from) + the bow limb and bow
-        // string (issue #393) x 2 materials, both of which carry every stat block.
-        assertEquals(28 * 2, recipes.size(), "28 part types x 2 materials");
+        // string (issue #393) + the shard (issue #605, upstream's other no-tool part) x 2
+        // materials, both of which carry every stat block.
+        assertEquals(29 * 2, recipes.size(), "29 part types x 2 materials");
         assertTrue(recipes.stream().allMatch(r -> r.result().has(ForgeweaveDataComponents.MATERIAL.get())));
     }
 
@@ -216,9 +217,14 @@ class JeiRecipesTest {
 
         List<PartCraftingRecipe> recipes = PartCraftingRecipes.build(materials);
 
-        assertEquals(1, recipes.size(), "a bowstring-only material can craft exactly one part");
-        assertTrue(recipes.getFirst().result().is(ForgeweaveItems.PART_BOW_STRING.get()),
-                "and that part is the bow string");
+        // Issue #605: the shard is the one part every material can stamp regardless of stat blocks
+        // -- upstream's Shard#canUseMaterial is unconditionally true, mirrored by
+        // Material#hasStatsFor answering true for PartItem.Kind.NONE.
+        assertEquals(2, recipes.size(), "a bowstring-only material can craft the bow string and the shard");
+        assertTrue(recipes.stream().anyMatch(r -> r.result().is(ForgeweaveItems.PART_BOW_STRING.get())),
+                "the bow string is one of them");
+        assertTrue(recipes.stream().anyMatch(r -> r.result().is(ForgeweaveItems.SHARD.get())),
+                "the shard is the other");
     }
 
     @Test

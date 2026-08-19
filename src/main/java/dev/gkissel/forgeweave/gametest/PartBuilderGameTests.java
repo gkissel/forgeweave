@@ -173,6 +173,42 @@ public class PartBuilderGameTests {
         helper.succeed();
     }
 
+    /**
+     * Issue #605: the shard pattern is upstream's only sub-ingot part cost ({@code Shard extends
+     * ToolPart} with {@code super(Material.VALUE_Shard)}, {@code TinkerTools#registerItems:138-154}),
+     * so one plank -- the cheapest, most ordinary input in the game -- pays it and leaves exactly one
+     * shard of change. Every other part costs a whole number of ingots, which is why playtest
+     * 0.3.5-alpha.3 item 7.a could not reach the change slot at all with an ordinary input.
+     */
+    @GameTest(template = "empty")
+    public static void shardPatternPaysAShardOfChangeFromOnePlank(GameTestHelper helper) {
+        BlockPos pos = new BlockPos(1, 1, 1);
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        PartBuilderMenu menu = openMenu(helper, pos, player);
+
+        menu.getSlot(PartBuilderMenu.PATTERN_SLOT).set(new ItemStack(ForgeweaveItems.PATTERN_SHARD.get()));
+        menu.getSlot(PartBuilderMenu.MATERIAL_SLOT).set(new ItemStack(Items.OAK_PLANKS, 1));
+        menu.broadcastChanges();
+
+        ItemStack output = menu.getSlot(PartBuilderMenu.OUTPUT_SLOT).getItem();
+        helper.assertTrue(output.is(ForgeweaveItems.SHARD.get()), "expected a shard part, got " + output);
+        helper.assertTrue(materialId("wood").equals(output.get(ForgeweaveDataComponents.MATERIAL.get())),
+                "expected the shard's material to be forgeweave:wood, got "
+                        + output.get(ForgeweaveDataComponents.MATERIAL.get()));
+
+        menu.getSlot(PartBuilderMenu.OUTPUT_SLOT).onTake(player, output);
+        helper.assertTrue(menu.getSlot(PartBuilderMenu.MATERIAL_SLOT).getItem().isEmpty(),
+                "expected the plank to be fully consumed");
+
+        ItemStack change = menu.getSlot(PartBuilderMenu.CHANGE_SLOT).getItem();
+        helper.assertTrue(change.is(ForgeweaveItems.SHARD.get()), "expected shard change, got " + change);
+        helper.assertTrue(change.getCount() == 1, "expected 1 wood shard of change, got " + change.getCount());
+        helper.assertTrue(materialId("wood").equals(change.get(ForgeweaveDataComponents.MATERIAL.get())),
+                "expected wood shard change, got " + change.get(ForgeweaveDataComponents.MATERIAL.get()));
+
+        helper.succeed();
+    }
+
     @GameTest(template = "empty")
     public static void shardsAreUsableAsCraftingInput(GameTestHelper helper) {
         BlockPos pos = new BlockPos(1, 1, 1);

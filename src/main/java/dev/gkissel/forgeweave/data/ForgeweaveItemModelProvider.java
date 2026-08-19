@@ -94,6 +94,7 @@ public class ForgeweaveItemModelProvider extends ItemModelProvider {
         singleLayerModel(ForgeweaveItems.PATTERN_BOW_LIMB, derivedItem("pattern_bow_limb"));
         singleLayerModel(ForgeweaveItems.PATTERN_BOW_STRING, derivedItem("pattern_bow_string"));
         singleLayerModel(ForgeweaveItems.PATTERN_SHARPENING_KIT, derivedItem("pattern_sharpening_kit"));
+        singleLayerModel(ForgeweaveItems.PATTERN_SHARD, derivedItem("pattern_shard"));
 
         singleLayerModel(ForgeweaveItems.PART_SWORD_BLADE, derivedItem("sword_blade"));
         singleLayerModel(ForgeweaveItems.PART_WIDE_GUARD, derivedItem("wide_guard"));

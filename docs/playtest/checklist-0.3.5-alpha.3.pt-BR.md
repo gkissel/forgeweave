@@ -9,7 +9,10 @@ Build: `forgeweave-0.3.5-alpha.3.jar` (GitHub Release `mc1.21.1-v0.3.5-alpha.3`)
 4. [ ] **Modificadores – slots**: redstone/lápis/etc. em qualquer slot livre; vários de uma vez.
 5. [ ] **Metais só por cast**: Part Builder recusa lingote de ferro/cobalto/etc. em padrão (só madeira/pedra/flint/osso/…); metais saem do smeltery + molde. Config `craftCastableMaterials` volta a permitir.
 6. [ ] **Nível de mineração**: pedra mina ferro? não. ferro mina diamante? não. diamante mina obsidiana; cobalto/ardite/manyullyn minam tudo (netherite tier). Tooltip mostra o tier certo.
-7. [ ] **Part Builder**: troco (shard) não é destruído se o slot de troco estiver cheio com outro item — a fabricação é bloqueada.
+7. [ ] **Part Builder — troco (shard)**. Receita mínima para produzir troco (só existe troco quando o valor colocado **passa** do custo da peça):
+   - a. **Padrão de Shard** (Stencil Table → "Shard Pattern") + **1 tábua** → sai 1 wood shard **e** cai 1 wood shard no slot de troco (a peça custa meio lingote, a tábua vale um). É o caminho mais barato; qualquer material serve, shard não exige stats.
+   - b. Alternativa sem o padrão de shard: **padrão de cabeça de picareta + 1 tora** → cabeça de madeira + **4** wood shards de troco (a tora vale 4 lingotes, a cabeça custa 2).
+   - c. **Troco não é destruído**: com o slot de troco ocupado por shard de outro material (ou cheio), repetir (a)/(b) — o slot de saída fica vazio e a fabricação é bloqueada, em vez de o troco sumir.
 8. [ ] **Drops**: jogar uma ferramenta/parte na lava/fogo/explosão → não some, não desespawna. Netherite não tem mais o trait "fireproof".
 9. [ ] **Espadas/frigideira/placa/adaga/warmace** minam como espada (teia rápido, madeira lenta), não como machado.
 10. [ ] **Ferramentas vanilla-tag**: pá achata grama em caminho e apaga fogueira; enxada/mattock ara; ferramentas contam como picareta/machado etc. em receitas modded.

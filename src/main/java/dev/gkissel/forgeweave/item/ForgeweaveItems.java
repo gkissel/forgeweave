@@ -76,6 +76,11 @@ public final class ForgeweaveItems {
     // #271's sharpening kit. Upstream stencils it like any other part
     // (TinkerTools#registerItems: registerStencilTableCrafting(Pattern.setTagForPart(pattern, sharpeningKit))).
     public static final DeferredItem<Item> PATTERN_SHARPENING_KIT = pattern("pattern_sharpening_kit");
+    // #605: the shard's own pattern. Upstream stencils it on the very next line after the sharpening
+    // kit's (TinkerTools#registerItems:154, registerStencilTableCrafting(... shard)), and Shard
+    // extends ToolPart with a VALUE_Shard cost -- the only part in the roster that costs less than a
+    // whole ingot, and so the only one at which a plain ingot leaves change.
+    public static final DeferredItem<Item> PATTERN_SHARD = pattern("pattern_shard");
 
     public static final DeferredItem<PartItem> PART_PICKAXE_HEAD = part("pickaxe_head", PartItem.Kind.HEAD);
     public static final DeferredItem<PartItem> PART_SHOVEL_HEAD = part("shovel_head", PartItem.Kind.HEAD);

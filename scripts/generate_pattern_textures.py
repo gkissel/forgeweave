@@ -92,6 +92,10 @@ PARTS = [
     # sharpening_kit.tmat.json carries no "offset" field upstream, so (0, 0), and the art needs none:
     # it fills the canvas edge to edge (alpha bbox (0, 1)-(16, 14), center (7.5, 7.0)).
     ("sharpening_kit.png", "pattern_sharpening_kit.png", TEXTURE_DIR, (0, 0)),
+    # Issue #605: the shard, upstream's other stencil-crafted "part that belongs to no tool"
+    # (TinkerTools#registerItems registers it on the line right after the sharpening kit's).
+    # shard.tmat.json carries no "offset" field upstream, so (0, 0).
+    ("shard.png", "pattern_shard.png", TEXTURE_DIR, (0, 0)),
     # M3.5 (issue #393). bow_limb.tmat.json carries the largest offset in upstream's whole part
     # table -- its art is the shortbow's bottom limb, drawn in the bow's own corner of the canvas.
     ("bow_limb.png", "pattern_bow_limb.png", TEXTURE_DIR, (4, -2)),

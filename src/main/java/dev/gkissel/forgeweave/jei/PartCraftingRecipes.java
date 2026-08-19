@@ -58,7 +58,9 @@ final class PartCraftingRecipes {
             // M3.5's bow parts (issue #393).
             new Entry(ForgeweaveItems.PATTERN_BOW_LIMB, ForgeweaveItems.PART_BOW_LIMB, PartBuilderRecipes.MEDIUM_PART_COST),
             new Entry(ForgeweaveItems.PATTERN_BOW_STRING, ForgeweaveItems.PART_BOW_STRING, PartBuilderRecipes.SMALL_PART_COST),
-            new Entry(ForgeweaveItems.PATTERN_SHARPENING_KIT, ForgeweaveItems.PART_SHARPENING_KIT, PartBuilderRecipes.HEAD_COST));
+            new Entry(ForgeweaveItems.PATTERN_SHARPENING_KIT, ForgeweaveItems.PART_SHARPENING_KIT, PartBuilderRecipes.HEAD_COST),
+            // #605: the shard, upstream's one sub-ingot part cost.
+            new Entry(ForgeweaveItems.PATTERN_SHARD, ForgeweaveItems.SHARD, PartBuilderRecipes.SHARD_VALUE));
 
     /** One crafting-item option a material accepts, and the value (upstream VALUE_* units) one of it pays off. */
     private record Option(ItemStack representative, int value) {}
