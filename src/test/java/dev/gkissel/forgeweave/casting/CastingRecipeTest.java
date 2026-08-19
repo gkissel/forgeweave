@@ -3,6 +3,7 @@ package dev.gkissel.forgeweave.casting;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.InputStream;
@@ -58,7 +59,7 @@ class CastingRecipeTest {
         CastingRecipe decoded = CastingRecipe.CODEC.parse(ops, encoded).getOrThrow();
 
         assertEquals(original.station(), decoded.station());
-        assertEquals(original.fluid(), decoded.fluid());
+        assertEquals(original.fluid().orElseThrow(), decoded.fluid().orElseThrow());
         assertEquals(original.amount(), decoded.amount());
         assertEquals(original.consumesCast(), decoded.consumesCast());
         assertEquals(original.resultInInput(), decoded.resultInInput());
@@ -102,7 +103,7 @@ class CastingRecipeTest {
             CastingRecipe recipe = shipped("cast_" + part);
 
             assertEquals(288, recipe.amount(), part + " cast creation costs 288 mB");
-            assertEquals(ForgeweaveFluids.GOLD.still().get(), recipe.fluid(), "casts are gold-only (pure parity)");
+            assertEquals(ForgeweaveFluids.GOLD.still().get(), recipe.fluid().orElseThrow(), "casts are gold-only (pure parity)");
             assertTrue(recipe.consumesCast(), part + " is consumed by the pour that moulds its cast");
             assertTrue(recipe.resultInInput(), "and the cast lands in the input slot, ready for metal");
             assertEquals(ResourceLocation.fromNamespaceAndPath("forgeweave", "cast_" + part),
@@ -121,7 +122,7 @@ class CastingRecipeTest {
             CastingRecipe recipe = shipped("clay_cast_" + part);
 
             assertEquals(288, recipe.amount(), part + " clay cast creation costs 288 mB");
-            assertEquals(ForgeweaveFluids.MOLTEN_CLAY.still().get(), recipe.fluid(), "moulded from molten clay");
+            assertEquals(ForgeweaveFluids.MOLTEN_CLAY.still().get(), recipe.fluid().orElseThrow(), "moulded from molten clay");
             assertTrue(recipe.consumesCast(), part + " is consumed by the pour that moulds its clay cast");
             assertTrue(recipe.resultInInput(), "and the cast lands in the input slot, ready for metal");
             assertEquals(ResourceLocation.fromNamespaceAndPath("forgeweave", "clay_cast_" + part),
@@ -141,7 +142,7 @@ class CastingRecipeTest {
 
         assertFalse(gold.consumesCast(), "the gold cast is reusable");
         assertTrue(clay.consumesCast(), "the clay cast is single use");
-        assertEquals(gold.fluid(), clay.fluid());
+        assertEquals(gold.fluid().orElseThrow(), clay.fluid().orElseThrow());
         assertEquals(gold.amount(), clay.amount());
         assertTrue(ItemStack.matches(gold.result(), clay.result()), "and both shape the same iron axe head");
         assertTrue(clay.cast().orElseThrow()
@@ -196,48 +197,66 @@ class CastingRecipeTest {
         CastingRecipe iron = shipped("block_iron");
 
         assertEquals(5994, emerald.amount(), "Material.VALUE_Gem * 9 -- melting/output accounting is untouched");
-        assertEquals(24 + (999 - 300) * 1296 / 1600, emerald.cooldownTicks(),
+        assertEquals(24 + (999 - 300) * 1296 / 1600,
+                emerald.cooldownTicks(ForgeweaveFluids.EMERALD.still().get()),
                 "explicit time: upstream's formula against the 1296 mB every other block recipe uses");
-        assertTrue(emerald.cooldownTicks() < iron.cooldownTicks() * 2,
+        assertTrue(emerald.cooldownTicks(ForgeweaveFluids.EMERALD.still().get())
+                        < iron.cooldownTicks(ForgeweaveFluids.IRON.still().get()) * 2,
                 "in line with other blocks, not the ~6.5x its raw gem-value amount would give");
     }
 
     /** Upstream's {@code calcCooldownTime}: {@code 24 + (temperature - 300) * amount / 1600}. */
     @Test
     void cooldownFollowsUpstreamsFormula() {
-        assertEquals(24 + (532 - 300) * 288 / 1600, shipped("cast_pickaxe_head").cooldownTicks(),
+        assertEquals(24 + (532 - 300) * 288 / 1600,
+                shipped("cast_pickaxe_head").cooldownTicks(ForgeweaveFluids.GOLD.still().get()),
                 "molten gold at 532 K, 288 mB");
-        assertEquals(24 + (769 - 300) * 144 / 1600, shipped("ingot_iron").cooldownTicks(),
+        assertEquals(24 + (769 - 300) * 144 / 1600,
+                shipped("ingot_iron").cooldownTicks(ForgeweaveFluids.IRON.still().get()),
                 "molten iron at 769 K, 144 mB");
         assertEquals(24, CastingRecipe.cooldownTicks(Fluids.WATER, 1000),
                 "a room-temperature fluid cools in the faucet's own pour time");
     }
 
     /**
-     * Issue #474 (parity audit T43), upstream's {@code BucketCastingRecipe}: registered once for
-     * {@code Items.BUCKET}, matching whatever fluid is poured over it via the item's fluid
-     * capability. Every other casting recipe here is already one datapack row per (station, cast,
-     * fluid) rather than upstream's in-code registries, so this ships as one row per fluid this mod
-     * already makes bucketable (issue #286) instead of a second, fluid-agnostic Java match path --
-     * same player-facing result (any bucketable fluid poured over an empty bucket fills it), recorded
-     * as a deviation in the PR body. {@code getTime()} is hardcoded to 5 ticks upstream, not the
-     * usual temperature-based cooldown.
+     * Issue #474 (parity audit T43) as re-fixed by issue #604, upstream's {@code
+     * BucketCastingRecipe}: registered <b>once</b> for {@code Items.BUCKET} and matching
+     * <em>whatever</em> fluid is poured over it, filling the bucket through the item's own fluid
+     * capability. #474 first shipped it as one datapack row per fluid this mod happens to register,
+     * which is what left water -- what melting ice and snow produces, and a vanilla fluid this mod
+     * never registers a molten-metal row for -- unable to be bucketed off a casting table at all
+     * (playtest alpha.3 item 34.a). One fluid-agnostic row is upstream's actual shape and covers
+     * every bucketable fluid, vanilla and modded alike, with no row per fluid to keep in step.
+     *
+     * <p>{@code getTime()} is hardcoded to 5 ticks upstream, not the usual temperature-based cooldown.
      */
     @Test
-    void everyBucketableFluidHasATableBucketCastingRecipe() {
-        for (ForgeweaveFluids.MoltenMetal metal : ForgeweaveFluids.all()) {
-            CastingRecipe recipe = shipped("bucket_" + metal.name());
+    void theOneBucketCastingRecipeTakesAnyFluidRatherThanAListedOne() {
+        CastingRecipe recipe = shipped("bucket");
 
-            assertEquals(CastingRecipe.Station.TABLE, recipe.station(), metal.name());
-            assertEquals(metal.still().get(), recipe.fluid(), metal.name());
-            assertEquals(1000, recipe.amount(), metal.name() + ": one bucket's worth");
-            assertTrue(ItemStack.matches(new ItemStack(metal.bucket().get()), recipe.result()), metal.name());
-            assertTrue(recipe.consumesCast(), metal.name() + ": the empty bucket is consumed");
-            assertFalse(recipe.resultInInput(), metal.name());
-            assertEquals(5, recipe.time().orElseThrow(), metal.name() + ": upstream's flat 5-tick cool");
-            assertTrue(recipe.cast().orElseThrow().test(new ItemStack(Items.BUCKET)), metal.name());
-            assertTrue(recipe.matches(CastingRecipe.Station.TABLE, new ItemStack(Items.BUCKET), metal.still().get()),
-                    metal.name());
+        assertEquals(CastingRecipe.Station.TABLE, recipe.station());
+        assertTrue(recipe.fluid().isEmpty(), "no fluid named: upstream's BucketCastingRecipe matches any");
+        assertEquals(1000, recipe.amount(), "one bucket's worth");
+        assertTrue(ItemStack.matches(new ItemStack(Items.BUCKET), recipe.result()),
+                "the result is the empty container the poured fluid gets put into");
+        assertTrue(recipe.consumesCast(), "the empty bucket is consumed");
+        assertFalse(recipe.resultInInput());
+        assertEquals(5, recipe.time().orElseThrow(), "upstream's flat 5-tick cool");
+        assertTrue(recipe.cast().orElseThrow().test(new ItemStack(Items.BUCKET)));
+        assertTrue(recipe.matches(CastingRecipe.Station.TABLE, new ItemStack(Items.BUCKET), Fluids.WATER),
+                "water -- the #604 report -- is a fluid a vanilla bucket holds");
+        assertTrue(ItemStack.matches(new ItemStack(Items.WATER_BUCKET), recipe.resultFor(Fluids.WATER)));
+        assertTrue(ItemStack.matches(new ItemStack(ForgeweaveFluids.IRON.bucket().get()),
+                recipe.resultFor(ForgeweaveFluids.IRON.still().get())), "and a molten metal still buckets");
+    }
+
+    /** No per-fluid bucket row survives -- one of them going missing is exactly the #604 bug. */
+    @Test
+    void noPerFluidBucketRowIsShippedAlongsideIt() {
+        for (ForgeweaveFluids.MoltenMetal metal : ForgeweaveFluids.all()) {
+            assertNull(CastingRecipeTest.class.getResourceAsStream(
+                            "/data/forgeweave/forgeweave/casting_recipe/bucket_" + metal.name() + ".json"),
+                    metal.name() + ": superseded by the one fluid-agnostic bucket.json");
         }
     }
 
@@ -294,7 +313,7 @@ class CastingRecipeTest {
 
         assertEquals(CastingRecipe.Station.TABLE, recipe.station());
         assertEquals(144, recipe.amount(), "Material.VALUE_Ingot");
-        assertEquals(ForgeweaveFluids.MOLTEN_DIRT.still().get(), recipe.fluid());
+        assertEquals(ForgeweaveFluids.MOLTEN_DIRT.still().get(), recipe.fluid().orElseThrow());
         assertEquals(ForgeweaveItems.MUD_BRICK.get(), recipe.result().getItem());
         assertTrue(recipe.cast().isPresent());
         assertTrue(recipe.cast().get().test(new ItemStack(ForgeweaveItems.CAST_INGOT.get())));
@@ -311,7 +330,7 @@ class CastingRecipeTest {
 
         assertEquals(CastingRecipe.Station.BASIN, recipe.station());
         assertEquals(576, recipe.amount(), "Material.VALUE_BrickBlock");
-        assertEquals(ForgeweaveFluids.MOLTEN_CLAY.still().get(), recipe.fluid());
+        assertEquals(ForgeweaveFluids.MOLTEN_CLAY.still().get(), recipe.fluid().orElseThrow());
         assertTrue(recipe.cast().isEmpty(), "the basin has to be empty");
         assertTrue(recipe.matches(CastingRecipe.Station.BASIN, ItemStack.EMPTY, ForgeweaveFluids.MOLTEN_CLAY.still().get()));
     }
@@ -323,7 +342,7 @@ class CastingRecipeTest {
 
         assertEquals(CastingRecipe.Station.TABLE, recipe.station());
         assertEquals(144, recipe.amount(), "Material.VALUE_Ingot");
-        assertEquals(ForgeweaveFluids.MOLTEN_CLAY.still().get(), recipe.fluid());
+        assertEquals(ForgeweaveFluids.MOLTEN_CLAY.still().get(), recipe.fluid().orElseThrow());
         assertEquals(Items.BRICK, recipe.result().getItem());
     }
 
@@ -337,9 +356,9 @@ class CastingRecipeTest {
         CastingRecipe recipe = shipped("stained_terracotta_wash");
 
         assertEquals(CastingRecipe.Station.BASIN, recipe.station());
-        assertEquals(Fluids.WATER, recipe.fluid());
+        assertEquals(Fluids.WATER, recipe.fluid().orElseThrow());
         assertEquals(250, recipe.amount());
-        assertEquals(150, recipe.cooldownTicks(), "upstream's explicit 150-tick wash time, not the derived formula");
+        assertEquals(150, recipe.cooldownTicks(Fluids.WATER), "upstream's explicit 150-tick wash time, not the derived formula");
         assertTrue(recipe.consumesCast());
         assertEquals(Items.TERRACOTTA, recipe.result().getItem());
         assertTrue(recipe.cast().get().test(new ItemStack(Items.RED_TERRACOTTA)));
@@ -353,7 +372,7 @@ class CastingRecipeTest {
 
         assertEquals(CastingRecipe.Station.BASIN, recipe.station());
         assertEquals(10, recipe.amount());
-        assertEquals(ForgeweaveFluids.BLOOD.still().get(), recipe.fluid());
+        assertEquals(ForgeweaveFluids.BLOOD.still().get(), recipe.fluid().orElseThrow());
         assertEquals(Items.RED_SAND, recipe.result().getItem());
         assertTrue(recipe.cast().get().test(new ItemStack(Items.SAND)));
     }
@@ -371,7 +390,7 @@ class CastingRecipeTest {
 
         assertEquals(CastingRecipe.Station.TABLE, recipe.station());
         assertEquals(72, recipe.amount(), "Material.VALUE_SearedMaterial");
-        assertEquals(ForgeweaveFluids.SEARED_STONE.still().get(), recipe.fluid());
+        assertEquals(ForgeweaveFluids.SEARED_STONE.still().get(), recipe.fluid().orElseThrow());
         assertEquals(ForgeweaveItems.SEARED_BRICK.get(), recipe.result().getItem());
         assertFalse(recipe.consumesCast(), "the ingot cast is reusable (pure parity)");
         assertTrue(recipe.cast().orElseThrow().test(new ItemStack(ForgeweaveItems.CAST_INGOT.get())));
@@ -388,7 +407,7 @@ class CastingRecipeTest {
 
         assertEquals(CastingRecipe.Station.BASIN, recipe.station());
         assertEquals(288, recipe.amount(), "Material.VALUE_SearedBlock");
-        assertEquals(ForgeweaveFluids.SEARED_STONE.still().get(), recipe.fluid());
+        assertEquals(ForgeweaveFluids.SEARED_STONE.still().get(), recipe.fluid().orElseThrow());
         assertEquals(ForgeweaveItems.SEARED_STONE.get(), recipe.result().getItem());
         assertTrue(recipe.cast().isEmpty(), "the basin has to be empty");
     }
@@ -404,7 +423,7 @@ class CastingRecipeTest {
 
         assertEquals(CastingRecipe.Station.BASIN, recipe.station());
         assertEquals(216, recipe.amount(), "VALUE_SearedBlock - VALUE_SearedMaterial");
-        assertEquals(ForgeweaveFluids.SEARED_STONE.still().get(), recipe.fluid());
+        assertEquals(ForgeweaveFluids.SEARED_STONE.still().get(), recipe.fluid().orElseThrow());
         assertEquals(ForgeweaveItems.SEARED_COBBLESTONE.get(), recipe.result().getItem());
         assertTrue(recipe.consumesCast(), "the cobblestone is consumed by the pour");
         assertFalse(recipe.resultInInput());
@@ -426,7 +445,7 @@ class CastingRecipeTest {
 
         assertEquals(CastingRecipe.Station.BASIN, recipe.station());
         assertEquals(288, recipe.amount(), "Material.VALUE_SearedMaterial * 4");
-        assertEquals(ForgeweaveFluids.SEARED_STONE.still().get(), recipe.fluid());
+        assertEquals(ForgeweaveFluids.SEARED_STONE.still().get(), recipe.fluid().orElseThrow());
         assertEquals(ForgeweaveItems.SEARED_GLASS.get(), recipe.result().getItem());
         assertTrue(recipe.consumesCast(), "the glass is consumed by the pour");
         assertTrue(recipe.cast().isPresent(), "cast is the c:glass_blocks tag");
@@ -448,7 +467,7 @@ class CastingRecipeTest {
 
         assertEquals(CastingRecipe.Station.TABLE, recipe.station());
         assertEquals(375, recipe.amount(), "Material.VALUE_Glass * 6 / 16");
-        assertEquals(ForgeweaveFluids.GLASS.still().get(), recipe.fluid());
+        assertEquals(ForgeweaveFluids.GLASS.still().get(), recipe.fluid().orElseThrow());
         assertEquals(Items.GLASS_PANE, recipe.result().getItem());
         assertEquals(50, recipe.time().orElseThrow(), "upstream's explicit 50-tick cool");
         assertTrue(recipe.cast().isEmpty(), "the table has to be empty");
@@ -466,7 +485,7 @@ class CastingRecipeTest {
 
         assertEquals(CastingRecipe.Station.BASIN, recipe.station());
         assertEquals(1000, recipe.amount(), "Material.VALUE_Glass");
-        assertEquals(ForgeweaveFluids.GLASS.still().get(), recipe.fluid());
+        assertEquals(ForgeweaveFluids.GLASS.still().get(), recipe.fluid().orElseThrow());
         assertEquals(ForgeweaveItems.CLEAR_GLASS.get(), recipe.result().getItem());
         assertEquals(120, recipe.time().orElseThrow(), "upstream's explicit 120-tick cool");
         assertTrue(recipe.cast().isEmpty(), "the basin has to be empty");

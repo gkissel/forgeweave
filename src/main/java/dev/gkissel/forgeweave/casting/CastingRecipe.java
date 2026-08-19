@@ -1,5 +1,6 @@
 package dev.gkissel.forgeweave.casting;
 
+import java.util.List;
 import java.util.Optional;
 
 import com.mojang.serialization.Codec;
@@ -14,6 +15,11 @@ import net.minecraft.util.StringRepresentable;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.level.material.Fluid;
+
+import net.neoforged.neoforge.capabilities.Capabilities;
+import net.neoforged.neoforge.fluids.FluidStack;
+import net.neoforged.neoforge.fluids.capability.IFluidHandler;
+import net.neoforged.neoforge.fluids.capability.IFluidHandlerItem;
 
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.config.ForgeweaveConfig;
@@ -44,7 +50,12 @@ import dev.gkissel.forgeweave.menu.ContentFamilies;
  *   <li>{@code cast} -- what has to be sitting in the block. Omit it to require an <em>empty</em>
  *       block, which is how basin block casting works.
  *   <li>{@code fluid} -- the still fluid that must be poured in. Flowing variants never reach a
- *       casting block; a faucet moves fluid through the capability, not as a block.
+ *       casting block; a faucet moves fluid through the capability, not as a block. <b>Omit it</b>
+ *       for upstream's {@code BucketCastingRecipe} (issue #604): the recipe then matches
+ *       <em>whatever</em> fluid is poured, and {@code result} is treated as an empty fluid container
+ *       that comes back holding {@code amount} of it -- which is how a vanilla bucket on a casting
+ *       table fills with water, lava, milk or any molten metal from one row instead of one row per
+ *       fluid that could only ever cover the fluids this mod happens to know about.
  *   <li>{@code amount} -- millibuckets, on the same scale as melting (#96): upstream's
  *       {@code Material.VALUE_Ingot} is 144.
  *   <li>{@code result} -- the finished stack, data components and all, so a metal part is a pure
@@ -59,7 +70,7 @@ import dev.gkissel.forgeweave.menu.ContentFamilies;
  *       fresh cast is already in place for the next pour.
  * </ul>
  */
-public record CastingRecipe(Station station, Optional<Ingredient> cast, Fluid fluid, int amount,
+public record CastingRecipe(Station station, Optional<Ingredient> cast, Optional<Fluid> fluid, int amount,
         ItemStack result, Optional<Integer> time, boolean consumesCast, boolean resultInInput) {
 
     /** Which of the two casting blocks a recipe belongs to (upstream's two separate recipe lists). */
@@ -87,7 +98,7 @@ public record CastingRecipe(Station station, Optional<Ingredient> cast, Fluid fl
     public static final Codec<CastingRecipe> CODEC = RecordCodecBuilder.create(instance -> instance.group(
             Station.CODEC.fieldOf("station").forGetter(CastingRecipe::station),
             Ingredient.CODEC.optionalFieldOf("cast").forGetter(CastingRecipe::cast),
-            BuiltInRegistries.FLUID.byNameCodec().fieldOf("fluid").forGetter(CastingRecipe::fluid),
+            BuiltInRegistries.FLUID.byNameCodec().optionalFieldOf("fluid").forGetter(CastingRecipe::fluid),
             ExtraCodecs.POSITIVE_INT.fieldOf("amount").forGetter(CastingRecipe::amount),
             ItemStack.CODEC.fieldOf("result").forGetter(CastingRecipe::result),
             ExtraCodecs.POSITIVE_INT.optionalFieldOf("time").forGetter(CastingRecipe::time),
@@ -97,7 +108,10 @@ public record CastingRecipe(Station station, Optional<Ingredient> cast, Fluid fl
 
     /** Whether this recipe applies to {@code held} sitting in a {@code station} block being poured {@code fluid}. */
     public boolean matches(Station station, ItemStack held, Fluid fluid) {
-        if (this.station != station || this.fluid != fluid) {
+        if (this.station != station) {
+            return false;
+        }
+        if (this.fluid.isPresent() ? this.fluid.get() != fluid : !containerHolds(fluid)) {
             return false;
         }
         if (!cast.map(ingredient -> ingredient.test(held)).orElseGet(held::isEmpty)) {
@@ -130,9 +144,50 @@ public record CastingRecipe(Station station, Optional<Ingredient> cast, Fluid fl
         return ClayCastItem.is(result) || ClayCastItem.is(held);
     }
 
-    /** How long the pour takes to cool, explicit or derived. */
-    public int cooldownTicks() {
-        return time.orElseGet(() -> cooldownTicks(fluid, amount));
+    /**
+     * The finished stack for a pour of {@code poured}: this recipe's fixed {@code result}, or -- for
+     * a fluid-agnostic recipe -- that result treated as an empty container and handed the fluid,
+     * which is exactly what upstream's {@code BucketCastingRecipe#getResult} does.
+     */
+    public ItemStack resultFor(Fluid poured) {
+        if (fluid.isPresent()) {
+            return result.copy();
+        }
+        ItemStack container = result.copy();
+        IFluidHandlerItem handler = container.getCapability(Capabilities.FluidHandler.ITEM);
+        if (handler == null) {
+            return container;
+        }
+        handler.fill(new FluidStack(poured, amount), IFluidHandler.FluidAction.EXECUTE);
+        return handler.getContainer();
+    }
+
+    /**
+     * Whether {@code result}, as an empty fluid container, can actually take a whole {@code amount}
+     * of {@code poured}. Upstream's {@code BucketCastingRecipe#matches} asks only whether the cast is
+     * the bucket and asserts the rest; asking the container first is what keeps a fluid with no
+     * bucket item -- some other mod's -- from being poured away into a bucket that comes back empty.
+     */
+    private boolean containerHolds(Fluid poured) {
+        IFluidHandlerItem handler = result.copy().getCapability(Capabilities.FluidHandler.ITEM);
+        return handler != null
+                && handler.fill(new FluidStack(poured, amount), IFluidHandler.FluidAction.SIMULATE) >= amount;
+    }
+
+    /**
+     * Every fluid this recipe accepts, for JEI to cycle through: the one it names, or -- fluid-agnostic
+     * -- every source fluid the container can hold.
+     */
+    public List<Fluid> displayFluids() {
+        return fluid.map(List::of).orElseGet(() -> BuiltInRegistries.FLUID.stream()
+                .filter(candidate -> candidate.isSource(candidate.defaultFluidState()))
+                .filter(this::containerHolds)
+                .toList());
+    }
+
+    /** How long a pour of {@code poured} takes to cool, explicit or derived. */
+    public int cooldownTicks(Fluid poured) {
+        return time.orElseGet(() -> cooldownTicks(poured, amount));
     }
 
     /**

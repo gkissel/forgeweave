@@ -4,6 +4,7 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.ItemLike;
+import net.minecraft.world.level.material.Fluid;
 
 import mezz.jei.api.gui.builder.IRecipeLayoutBuilder;
 import mezz.jei.api.gui.builder.IRecipeSlotBuilder;
@@ -81,10 +82,15 @@ abstract class CastingCategory implements IRecipeCategory<CastingRecipe> {
                     ? "jei.category.forgeweave.casting.cast_consumed"
                     : "jei.category.forgeweave.casting.cast_reusable")));
         });
-        builder.addInputSlot(0, 21)
-                .setFluidRenderer(recipe.amount(), false, TANK_SIZE, TANK_SIZE)
-                .addFluidStack(recipe.fluid(), recipe.amount());
-        builder.addOutputSlot(WIDTH - 18, 11).addItemStack(recipe.result());
+        // One fluid for a normal recipe; every fluid the container takes for the fluid-agnostic
+        // bucket recipe (#604), which JEI then cycles through in step with its filled results.
+        IRecipeSlotBuilder fluidSlot = builder.addInputSlot(0, 21)
+                .setFluidRenderer(recipe.amount(), false, TANK_SIZE, TANK_SIZE);
+        IRecipeSlotBuilder resultSlot = builder.addOutputSlot(WIDTH - 18, 11);
+        for (Fluid poured : recipe.displayFluids()) {
+            fluidSlot.addFluidStack(poured, recipe.amount());
+            resultSlot.addItemStack(recipe.resultFor(poured));
+        }
     }
 
     @Override

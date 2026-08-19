@@ -3,10 +3,9 @@
   "cast": {
     "item": "minecraft:bucket"
   },
-  "fluid": "forgeweave:molten_rose_gold",
   "amount": 1000,
   "result": {
-    "id": "forgeweave:molten_rose_gold_bucket"
+    "id": "minecraft:bucket"
   },
   "consumes_cast": true,
   "time": 5
