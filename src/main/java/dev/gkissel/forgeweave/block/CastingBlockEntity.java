@@ -50,7 +50,7 @@ import dev.gkissel.forgeweave.casting.CastingRecipe;
  * <p><b>No block-entity ticker.</b> Upstream ticks every casting block every tick and returns
  * immediately unless the tank is full, which docs/SCOPE.md's "block entities tick only while doing
  * work" budget rules out. Cooling instead runs off a vanilla scheduled block tick, booked for
- * exactly {@link CastingRecipe#cooldownTicks()} ticks when the last drop lands (see {@link
+ * exactly {@link CastingRecipe#cooldownTicks(net.minecraft.world.level.material.Fluid)} ticks when the last drop lands (see {@link
  * CastingBlock#tick}); scheduled ticks persist across save/load for free, and a stale one that fires
  * after the fluid was drained back out simply finds nothing to do.
  */
@@ -177,7 +177,7 @@ public class CastingBlockEntity extends BlockEntity {
             return;
         }
 
-        ItemStack result = recipe.result().copy();
+        ItemStack result = recipe.resultFor(tank.getFluid().getFluid());
         if (recipe.consumesCast()) {
             input = ItemStack.EMPTY;
         }
@@ -335,7 +335,7 @@ public class CastingBlockEntity extends BlockEntity {
             if (filled > 0) {
                 contentsChanged();
                 if (tank.getFluidAmount() >= recipe.amount() && level != null && !level.isClientSide) {
-                    level.scheduleTick(worldPosition, getBlockState().getBlock(), recipe.cooldownTicks());
+                    level.scheduleTick(worldPosition, getBlockState().getBlock(), recipe.cooldownTicks(resource.getFluid()));
                 }
             }
             return filled;

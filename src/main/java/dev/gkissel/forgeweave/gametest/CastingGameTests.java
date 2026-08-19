@@ -233,7 +233,7 @@ public class CastingGameTests {
      * sitting in the table, poured full of a smeltery fluid, comes back a filled bucket of it -- the
      * container-filling path the audit found missing. Budget: 1000 mB at {@link
      * FaucetBlockEntity#LIQUID_TRANSFER} 6 mB/tick is 167 ticks of pouring, plus upstream's flat
-     * 5-tick bucket cool ({@code bucket_molten_iron.json}'s {@code time}), so 172 past which is
+     * 5-tick bucket cool ({@code bucket.json}'s {@code time}), so 172 past which is
      * {@link #STALL_ALLOWANCE_TICKS}.
      */
     @GameTest(template = "empty", timeoutTicks = 172 + STALL_ALLOWANCE_TICKS)

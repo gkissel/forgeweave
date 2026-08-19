@@ -244,12 +244,15 @@ public record MeltingRecipe(Ingredient input, Fluid fluid, int amount, int tempe
         }
         for (CastingRecipe casting : registries.registryOrThrow(CastingRecipe.REGISTRY)) {
             ItemStack result = casting.result();
-            if (casting.station() == CastingRecipe.Station.TABLE && result.is(stack.getItem())
+            // A fluid-agnostic recipe (the bucket, #604) has no one metal to melt back into, and
+            // never casts a tool part anyway.
+            if (casting.station() == CastingRecipe.Station.TABLE && casting.fluid().isPresent()
+                    && result.is(stack.getItem())
                     && material.equals(result.get(ForgeweaveDataComponents.MATERIAL.get()))) {
                 // Non-strict: the part still melts with a custom name or any other component the
                 // casting recipe never asked about.
                 return Optional.of(withDerivedTemperature(DataComponentIngredient.of(false, result),
-                        casting.fluid(), casting.amount(), Optional.empty(), false));
+                        casting.fluid().get(), casting.amount(), Optional.empty(), false));
             }
         }
         return Optional.empty();

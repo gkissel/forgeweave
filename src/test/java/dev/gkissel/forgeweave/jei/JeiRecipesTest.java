@@ -451,9 +451,9 @@ class JeiRecipesTest {
     void castingSplitsOneRegistryIntoTableAndBasinByStation() {
         Map<ResourceLocation, CastingRecipe> recipes = new LinkedHashMap<>();
         CastingRecipe tableRecipe = new CastingRecipe(CastingRecipe.Station.TABLE, Optional.of(Ingredient.of(Items.STICK)),
-                Fluids.LAVA, 144, new ItemStack(Items.IRON_INGOT), Optional.empty(), false, false);
+                Optional.of(Fluids.LAVA), 144, new ItemStack(Items.IRON_INGOT), Optional.empty(), false, false);
         CastingRecipe basinRecipe = new CastingRecipe(CastingRecipe.Station.BASIN, Optional.empty(),
-                Fluids.LAVA, 1296, new ItemStack(Items.IRON_BLOCK), Optional.empty(), false, false);
+                Optional.of(Fluids.LAVA), 1296, new ItemStack(Items.IRON_BLOCK), Optional.empty(), false, false);
         recipes.put(id("table_one"), tableRecipe);
         recipes.put(id("basin_one"), basinRecipe);
 
