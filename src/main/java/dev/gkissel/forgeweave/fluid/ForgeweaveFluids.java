@@ -199,6 +199,22 @@ public final class ForgeweaveFluids {
     public static final MoltenMetal DEEP_BLOOD = register("deep_blood", 0x1B4B4E, 336,
             () -> new FluidType(FluidType.Properties.create().temperature(336)), LIQUID_STILL, LIQUID_FLOWING);
 
+    // #625 (parity audit T18/T57) -- the two cool slime fluids a slime island's lake is filled with,
+    // upstream's TinkerFluids#blueslime (0xef67f0f5, temperature 310, viscosity and density 1500) and
+    // #purpleSlime (0xefd236ff, 370, 1600), both fluidClassic and so both on the FluidColored
+    // ICON_LiquidStill/Flowing pair the blood fluids above already ride. Upstream's leading 0xef is
+    // the render alpha its FluidColored packs into one int; every Forgeweave tint is plain 0xRRGGBB
+    // (ForgeweaveFluidClientExtensions forces alpha opaque), so only the colour half carries over.
+    //
+    // Unlike every fluid above these are *not* lava-like: upstream registers their blocks as
+    // BlockLiquidSlime(fluid, Material.WATER) -- swimmable, non-damaging, water pathfinding and
+    // water bucket sounds -- which is what slimeFluidType below builds. Their temperature is
+    // upstream's own and gates nothing today; the melting recipes that pour them are T57 (#635).
+    public static final MoltenMetal BLUE_SLIME = register("blue_slime", 0x67F0F5, 310,
+            () -> waterLikeSlimeFluidType(310, 1500), LIQUID_STILL, LIQUID_FLOWING);
+    public static final MoltenMetal PURPLE_SLIME = register("purple_slime", 0xD236FF, 370,
+            () -> waterLikeSlimeFluidType(370, 1600), LIQUID_STILL, LIQUID_FLOWING);
+
     private static MoltenMetal register(String metalId, int color, int temperature) {
         return register("molten_" + metalId, color, temperature, () -> moltenFluidType(temperature),
                 STILL_TEXTURE, FLOWING_TEXTURE);
@@ -296,6 +312,19 @@ public final class ForgeweaveFluids {
         return new FluidType(lavaLikeProperties(temperature)
                 .density(2000)
                 .viscosity(10000));
+    }
+
+    /**
+     * #625: the blue and purple slime fluids' {@link FluidType}. Upstream's {@code BlockLiquidSlime}
+     * takes {@code Material.WATER}, so unlike every molten fluid above these are swimmable, do not
+     * burn, path like water and use the water bucket sounds -- vanilla's own defaults, which is why
+     * this sets nothing but upstream's temperature, viscosity and density.
+     */
+    private static FluidType waterLikeSlimeFluidType(int temperature, int viscosityAndDensity) {
+        return new FluidType(FluidType.Properties.create()
+                .temperature(temperature)
+                .viscosity(viscosityAndDensity)
+                .density(viscosityAndDensity));
     }
 
     /** #285: molten slime's own {@link FluidType} -- same lava hazard behavior as every other molten fluid, just de-tuned density/viscosity (see {@link #SLIME}'s field comment). */

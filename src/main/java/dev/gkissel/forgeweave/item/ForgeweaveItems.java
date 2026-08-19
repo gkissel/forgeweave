@@ -459,6 +459,8 @@ public final class ForgeweaveItems {
             items.add(blockItem(soil.grass()));
         }
         items.add(blockItem(ForgeweaveBlocks.GREEN_CONGEALED_SLIME));
+        items.add(blockItem(ForgeweaveBlocks.BLUE_CONGEALED_SLIME)); // #625 (parity audit T18)
+        items.add(blockItem(ForgeweaveBlocks.PURPLE_CONGEALED_SLIME)); // #625 (parity audit T18)
         items.add(blockItem(ForgeweaveBlocks.MAGMA_CONGEALED_SLIME)); // #450 (parity audit T19)
         for (ForgeweaveBlocks.SlimePlants plants : ForgeweaveBlocks.slimePlants()) {
             items.add(blockItem(plants.leaves()));

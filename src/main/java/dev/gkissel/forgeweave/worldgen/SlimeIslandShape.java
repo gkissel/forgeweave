@@ -1,5 +1,6 @@
 package dev.gkissel.forgeweave.worldgen;
 
+import java.util.List;
 import java.util.function.Consumer;
 
 import javax.annotation.Nullable;
@@ -17,6 +18,7 @@ import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import dev.gkissel.forgeweave.block.FoliageType;
 import dev.gkissel.forgeweave.block.ForgeweaveBlocks;
 import dev.gkissel.forgeweave.block.ForgeweaveBlocks.SlimeSoil;
+import dev.gkissel.forgeweave.fluid.ForgeweaveFluids;
 
 /**
  * The shape of a slime island: upstream 1.12's {@code SlimeIslandGenerator#generateIsland} together
@@ -30,12 +32,16 @@ import dev.gkissel.forgeweave.block.ForgeweaveBlocks.SlimeSoil;
  * storage, and the whole algorithm becomes a pure function that a plain unit test can drive without
  * a running server (see {@code SlimeIslandShapeTest}).
  *
- * <p>The slime vines arrived with issue #488 (parity audit T57); the slime <em>lake</em> is still
- * deliberately absent, because it needs the blue and purple slime fluids that same ticket's
- * follow-up carries. Upstream itself supports leaving it out -- {@code generateIsland} null-checks
- * its lake generator. {@code SlimeTreeGenerator}'s other documented null branch, {@code vine == null}
- * (canopy corners filled with leaves instead of vines), is still reachable and is what a
- * hand-planted sapling takes, exactly as upstream's {@code BlockSlimeSapling} does.
+ * <p>The canopy vines arrived with issue #488 (parity audit T57) and the slime lake with #625. Its
+ * two documented null branches are still reachable and still used: a hand-planted sapling grows
+ * through {@code vine == null} (canopy corners filled with leaves instead of vines, upstream's own
+ * {@code BlockSlimeSapling} path) and carries no lake, since a sapling grows a tree rather than an
+ * island.
+ *
+ * <p>One pass of upstream's {@code generateIsland} is still missing: its trailing
+ * {@code tryPlacingVine} loop, thirty attempts per island at hanging a stage-one vine off a column
+ * of the island's exterior. It is tracked separately because a faithful port of it needs vanilla
+ * 1.12's own {@code BlockVine#canPlaceBlockOnSide}, which neither reference clone carries.
  */
 public final class SlimeIslandShape {
     /** Upstream {@code SlimeIslandGenerator.RANDOMNESS}: 2% chance of a stray hole in the eroded surface. */
@@ -64,7 +70,23 @@ public final class SlimeIslandShape {
      */
     public record Palette(BlockState dirt, BlockState grass, BlockState log, BlockState leaves,
                           BlockState tallGrass, BlockState fern, @Nullable BlockState vine,
-                          BlockState eroded) {}
+                          BlockState eroded, @Nullable Lake lake) {}
+
+    /**
+     * One {@code SlimeLakeGenerator}'s three constructor arguments (issue #625, parity audit T18):
+     * the {@code liquid} it pools, the {@code lakeBottomBlock} it lays one time in ten under that
+     * liquid, and the {@code slimeBlocks} varargs it picks from for the rest of the rim.
+     *
+     * <p>{@code edges} keeps upstream's <em>multiset</em>, not a set: {@code lakeGenMagma} passes
+     * magma congealed slime five times and blood congealed once, so a plain uniform pick over the
+     * array is a one-in-six blood rim. Whichever list is handed in is indexed exactly the way
+     * upstream indexes its array.
+     */
+    public record Lake(BlockState liquid, BlockState bottom, List<BlockState> edges) {
+        public Lake {
+            edges = List.copyOf(edges);
+        }
+    }
 
     /**
      * The palette a hand-planted sapling grows with (issue #488): upstream's {@code BlockSlimeSapling
@@ -90,7 +112,8 @@ public final class SlimeIslandShape {
                 plants.tallGrass().get().defaultBlockState(),
                 plants.fern().get().defaultBlockState(),
                 null,
-                Blocks.AIR.defaultBlockState());
+                Blocks.AIR.defaultBlockState(),
+                null);
     }
 
     /**
@@ -149,7 +172,30 @@ public final class SlimeIslandShape {
                 plants.tallGrass().get().defaultBlockState(),
                 plants.fern().get().defaultBlockState(),
                 plants.vineMid().get().defaultBlockState(),
-                Blocks.AIR.defaultBlockState());
+                Blocks.AIR.defaultBlockState(),
+                purpleIsland ? purpleLake() : blueSlimeLake(soil));
+    }
+
+    /**
+     * Upstream's {@code lakeGenPurple}: {@code new SlimeLakeGenerator(purpleSlime, slimePurple,
+     * slimePurple)} -- a purple-slime pool bottomed and rimmed in purple congealed slime alone.
+     */
+    private static Lake purpleLake() {
+        BlockState purple = ForgeweaveBlocks.PURPLE_CONGEALED_SLIME.get().defaultBlockState();
+        return new Lake(ForgeweaveFluids.PURPLE_SLIME.block().get().defaultBlockState(), purple, List.of(purple));
+    }
+
+    /**
+     * Upstream's {@code lakeGenGreen} and {@code lakeGenBlue}, which differ only in their bottom
+     * block: both pool blue slime and both rim with {@code (slimeGreen, slimeBlue)}, but a green
+     * island's floor is green congealed slime and a blue island's is blue. Upstream hands
+     * {@code lakeGenPurple} the purple fluid and everything else the blue one.
+     */
+    private static Lake blueSlimeLake(SlimeSoil soil) {
+        BlockState green = ForgeweaveBlocks.GREEN_CONGEALED_SLIME.get().defaultBlockState();
+        BlockState blue = ForgeweaveBlocks.BLUE_CONGEALED_SLIME.get().defaultBlockState();
+        BlockState bottom = soil == ForgeweaveBlocks.GREEN_SLIME_SOIL ? green : blue;
+        return new Lake(ForgeweaveFluids.BLUE_SLIME.block().get().defaultBlockState(), bottom, List.of(green, blue));
     }
 
     /**
@@ -167,7 +213,23 @@ public final class SlimeIslandShape {
                 plants.tallGrass().get().defaultBlockState(),
                 plants.fern().get().defaultBlockState(),
                 null,
-                Blocks.LAVA.defaultBlockState());
+                Blocks.LAVA.defaultBlockState(),
+                magmaLake());
+    }
+
+    /**
+     * Upstream's {@code lakeGenMagma}: {@code new SlimeLakeGenerator(Blocks.LAVA, slimeMagma,
+     * slimeMagma x5, slimeBlood)} -- a lava pool bottomed in magma congealed slime, rimmed five
+     * parts magma to one part <em>blood</em> congealed slime.
+     *
+     * <p>Blood congealed slime is the one colour still missing (parity audit T57, issue #635), so
+     * magma stands in its slot rather than the array shrinking to five: {@code nextInt(6)} keeps its
+     * upstream draw, and only the block that one roll in six lands on differs. Recorded deviation.
+     */
+    private static Lake magmaLake() {
+        BlockState magma = ForgeweaveBlocks.MAGMA_CONGEALED_SLIME.get().defaultBlockState();
+        return new Lake(Blocks.LAVA.defaultBlockState(), magma,
+                List.of(magma, magma, magma, magma, magma, magma));
     }
 
     /** The island's overall extent, rolled before anything is drawn so the canvas can be sized for it. */
@@ -323,6 +385,12 @@ public final class SlimeIslandShape {
         erodeUnderside(random, canvas, size, palette);
         erodeRim(canvas, size, palette);
         surfaceWithGrass(canvas, size, palette, height);
+        // Upstream's order, and it is load-bearing: the lake is dug before the plants and trees are
+        // scattered, so it never has to carve around them -- and both of those draw from the same
+        // random, so moving it would reshuffle every island.
+        if (palette.lake() != null) {
+            generateLake(random, canvas, palette.lake(), size.xRange() / 2, height, size.zRange() / 2);
+        }
         plantPlants(random, canvas, size, palette, height);
 
         for (int i = 0; i < TREES_PER_ISLAND; i++) {
@@ -417,6 +485,159 @@ public final class SlimeIslandShape {
                 }
             }
         }
+    }
+
+    /** Upstream {@code SlimeLakeGenerator}'s grid: 16 across, 16 deep, 8 tall. */
+    private static final int LAKE_WIDTH = 16;
+    private static final int LAKE_HEIGHT = 8;
+
+    /**
+     * Upstream {@code SlimeLakeGenerator#generateLake} (issue #625, parity audit T18), whole. It is
+     * handed the island's top-centre column, walks down it while that column is air, then drops its
+     * 16x16x8 box eight blocks back on each horizontal axis and four blocks down -- so the lower
+     * four layers cut into the island's surface and the upper four sit in the sky above it.
+     *
+     * <p>Four passes, upstream's: four to seven overlapping ellipsoid blobs marked into a boolean
+     * grid; an abort scan that walks away from the whole lake if any cell bordering the blob at or
+     * above the waterline is already liquid; the fill, which pools liquid below the waterline, clears
+     * air above it, and skips any cell whose neighbour below is air so a lake cannot hang; and the
+     * rim pass, which re-walks the same border and lays the bottom block or a congealed slime.
+     *
+     * <p>Where upstream reads the level, this reads the {@link Canvas}. An island generates 50+
+     * blocks up in open sky, so everything around it is air either way -- which is also why the abort
+     * scan never actually fires here, exactly as it never fires upstream on an island (it is written
+     * for {@code SlimeLakeGenerator}'s other life as a standalone {@code IWorldGenerator}). It is
+     * ported anyway: it is what keeps the pass a faithful port rather than a re-derivation.
+     */
+    private static void generateLake(RandomSource random, Canvas canvas, Lake lake, int centreX, int centreY, int centreZ) {
+        // Upstream: `while(pos.getY() > 5 && world.isAirBlock(pos)) pos = pos.down();`. The island's
+        // centre column is always its grass surface by this point (the plug fills the full ellipse and
+        // neither erosion pass reaches the middle of the top layer), so this never actually descends;
+        // upstream's absolute y > 5 floor becomes the canvas floor, which is the island's own bottom.
+        int surfaceY = centreY;
+        while (surfaceY > 0 && canvas.isAir(centreX, surfaceY, centreZ)) {
+            surfaceY--;
+        }
+
+        int minX = centreX - 8;
+        int minY = surfaceY - 4;
+        int minZ = centreZ - 8;
+
+        boolean[] blob = rollLakeBlob(random);
+
+        // Upstream's abort scan: any border cell at or above the waterline that is already liquid
+        // means this lake would breach an existing one, so nothing at all is drawn.
+        for (int x = 0; x < LAKE_WIDTH; x++) {
+            for (int z = 0; z < LAKE_WIDTH; z++) {
+                for (int y = 4; y < LAKE_HEIGHT; y++) {
+                    if (bordersBlob(blob, x, y, z) && canvas.get(minX + x, minY + y, minZ + z).liquid()) {
+                        return;
+                    }
+                }
+            }
+        }
+
+        // The fill. Below the waterline the blob pools liquid, above it the blob is cleared to sky;
+        // either way upstream skips a cell standing on air, which is what keeps the pool inside the
+        // island instead of raining off its underside.
+        for (int x = 0; x < LAKE_WIDTH; x++) {
+            for (int z = 0; z < LAKE_WIDTH; z++) {
+                for (int y = 0; y < LAKE_HEIGHT; y++) {
+                    if (blob[lakeIndex(x, y, z)] && !canvas.isAir(minX + x, minY + y - 1, minZ + z)) {
+                        canvas.set(minX + x, minY + y, minZ + z,
+                                y >= 4 ? Blocks.AIR.defaultBlockState() : lake.liquid());
+                    }
+                }
+            }
+        }
+
+        // The rim. Upstream re-derives the same border and, on every solid block it finds there,
+        // lays its bottom block one time in ten where the block above is liquid and a congealed
+        // slime everywhere else. Above the waterline it skips half the border on a coin flip, which
+        // is what stops the pool's lip from reading as a drawn-on ring.
+        for (int x = 0; x < LAKE_WIDTH; x++) {
+            for (int z = 0; z < LAKE_WIDTH; z++) {
+                for (int y = 0; y < LAKE_HEIGHT; y++) {
+                    if (!bordersBlob(blob, x, y, z)) {
+                        continue;
+                    }
+                    int atX = minX + x;
+                    int atY = minY + y;
+                    int atZ = minZ + z;
+                    // Upstream's Material#isSolid: at this point in generateIsland the canvas holds
+                    // nothing but the island's own soil, the lake's liquid and (on a magma island)
+                    // the lava its underside eroded into -- plants and trees come after -- so "not
+                    // air and not liquid" is exactly upstream's set here.
+                    BlockState state = canvas.get(atX, atY, atZ);
+                    boolean solid = !state.isAir() && !state.liquid();
+                    // Upstream's `(yy < 4 || random.nextInt(2) != 0) && isSolid()`: the coin flip is
+                    // only rolled above the waterline, so the short circuit is what keeps the random
+                    // stream -- and therefore every island -- identical.
+                    if ((y >= 4 && random.nextInt(2) == 0) || !solid) {
+                        continue;
+                    }
+                    if (canvas.get(atX, atY + 1, atZ).liquid()) {
+                        if (random.nextInt(10) == 0) {
+                            canvas.set(atX, atY, atZ, lake.bottom());
+                        }
+                    } else if (!lake.edges().isEmpty()) {
+                        canvas.set(atX, atY, atZ, lake.edges().get(random.nextInt(lake.edges().size())));
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * Upstream's blob pass: four to seven ellipsoids, each rolled its own three radii and centre, all
+     * unioned into one boolean grid. The 1-to-15 and 1-to-7 loop bounds are upstream's too -- the
+     * outermost shell of the grid is never marked, which is what leaves a border for the rim to sit
+     * on.
+     */
+    private static boolean[] rollLakeBlob(RandomSource random) {
+        boolean[] blob = new boolean[LAKE_WIDTH * LAKE_WIDTH * LAKE_HEIGHT];
+        int spots = random.nextInt(4) + 4;
+        for (int i = 0; i < spots; i++) {
+            double xr = random.nextDouble() * 6 + 3;
+            double yr = random.nextDouble() * 4 + 2;
+            double zr = random.nextDouble() * 6 + 3;
+
+            double xp = random.nextDouble() * (16 - xr - 2) + 1 + xr / 2;
+            double yp = random.nextDouble() * (8 - yr - 4) + 2 + yr / 2;
+            double zp = random.nextDouble() * (16 - zr - 2) + 1 + zr / 2;
+
+            for (int x = 1; x < 15; x++) {
+                for (int z = 1; z < 15; z++) {
+                    for (int y = 1; y < 7; y++) {
+                        double xd = (x - xp) / (xr / 2);
+                        double yd = (y - yp) / (yr / 2);
+                        double zd = (z - zp) / (zr / 2);
+                        if (xd * xd + yd * yd + zd * zd < 1) {
+                            blob[lakeIndex(x, y, z)] = true;
+                        }
+                    }
+                }
+            }
+        }
+        return blob;
+    }
+
+    /** Upstream's border test: a cell outside the blob with at least one of its six neighbours inside it. */
+    private static boolean bordersBlob(boolean[] blob, int x, int y, int z) {
+        if (blob[lakeIndex(x, y, z)]) {
+            return false;
+        }
+        return (x < 15 && blob[lakeIndex(x + 1, y, z)])
+                || (x > 0 && blob[lakeIndex(x - 1, y, z)])
+                || (z < 15 && blob[lakeIndex(x, y, z + 1)])
+                || (z > 0 && blob[lakeIndex(x, y, z - 1)])
+                || (y < 7 && blob[lakeIndex(x, y + 1, z)])
+                || (y > 0 && blob[lakeIndex(x, y - 1, z)]);
+    }
+
+    /** Upstream's own {@code (xx * 16 + zz) * 8 + yy} packing, kept so the grid indexes identically. */
+    private static int lakeIndex(int x, int y, int z) {
+        return (x * LAKE_WIDTH + z) * LAKE_HEIGHT + y;
     }
 
     /**
