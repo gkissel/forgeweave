@@ -172,6 +172,35 @@ class CastingRecipeTest {
         assertTrue(shipped("block_iron").cast().isEmpty(), "and the basin has to be empty");
     }
 
+    /**
+     * Issue #596 (playtest, alpha.3): upstream itself -- {@code TinkerSmeltery:479}'s {@code
+     * registerBasinCasting(..., Material.VALUE_Gem * 9)} call passes no explicit time, so it falls
+     * through to the same {@code calcCooldownTime} every block recipe uses -- computes a ~2642-tick
+     * (~132s) cooldown for the emerald block: the formula's {@code (temperature - 300) * amount}
+     * term against the full 5994 mB gem-value amount, at emerald's 999 K, is what an iron block's
+     * 1296 mB at 769 K gets multiplied out to ~6.5x. This is not a porting bug (both amount and
+     * temperature already match upstream 1:1, pinned by {@link
+     * #ingotNuggetAndBlockCastingUseTheSameScaleAsMelting} and {@link ForgeweaveFluids#EMERALD}),
+     * it is upstream's actual behaviour, which the maintainer asked on the issue to deviate from:
+     * keep {@code amount} at the full 5994 mB (melting/output accounting -- see
+     * {@code SmelteryMeltingGameTests#emeraldBlockMeltsBackAtItsFlatStorageBlockAmount} -- stays
+     * correct) but give the recipe its own explicit {@code time}, the same formula applied against
+     * the 1296 mB every other block recipe uses instead of the gem-value amount, so the cooldown
+     * reflects the fluid's temperature the way every other block's does without the value multiplier
+     * stacking on top of it.
+     */
+    @Test
+    void emeraldBlockCooldownIsInLineWithOtherBlocksInsteadOfScaledByItsGemValueAmount() {
+        CastingRecipe emerald = shipped("block_emerald");
+        CastingRecipe iron = shipped("block_iron");
+
+        assertEquals(5994, emerald.amount(), "Material.VALUE_Gem * 9 -- melting/output accounting is untouched");
+        assertEquals(24 + (999 - 300) * 1296 / 1600, emerald.cooldownTicks(),
+                "explicit time: upstream's formula against the 1296 mB every other block recipe uses");
+        assertTrue(emerald.cooldownTicks() < iron.cooldownTicks() * 2,
+                "in line with other blocks, not the ~6.5x its raw gem-value amount would give");
+    }
+
     /** Upstream's {@code calcCooldownTime}: {@code 24 + (temperature - 300) * amount / 1600}. */
     @Test
     void cooldownFollowsUpstreamsFormula() {
