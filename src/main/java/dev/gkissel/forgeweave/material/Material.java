@@ -219,8 +219,11 @@ public record Material(
      * {@code general} exactly as upstream's {@code getAllTraitsForStats} does -- get a field when a
      * material needs one, and {@link #forPart} is the single place that has to learn about it.
      * Upstream's one PROJECTILE-scoped trait ({@code endstone.addTrait(enderference, PROJECTILE)},
-     * {@code TinkerMaterials:264}) is behaviorally redundant there -- endstone's general list is
-     * the same one trait the scope re-states -- so no {@code projectile} scope exists here either.
+     * {@code TinkerMaterials:264}) has no scope here yet: it only ever matters through the arrow
+     * head's two-scope {@code PartMaterialType(HEAD, PROJECTILE)} read -- endstone's head list
+     * ({@code alien}) would otherwise occlude {@code enderference} on arrow heads -- and that
+     * two-scope trait resolution lands with the material arrow itself (#626's follow-up slice),
+     * which is the first place anything reads it.
      */
     public record Traits(List<ResourceLocation> general, List<ResourceLocation> head,
             List<ResourceLocation> shaft) {
