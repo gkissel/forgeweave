@@ -136,16 +136,12 @@ public final class ForgeweaveEntities {
     }
 
     /**
-     * Where a blue slime may appear. Together with the {@code neoforge:add_spawns} biome modifier
-     * (data/forgeweave/neoforge/biome_modifier/blue_slime_spawns.json) this is upstream 1.12's
-     * {@code WorldEvents#extraSlimeSpawn}: the biome modifier is the weight-15/2-4 spawn entry, and
-     * {@link #canSpawnHere} is the "is this an island" half.
-     *
-     * <p>Deviation, forced: upstream clears the biome's other monster entries on an island so *only*
-     * blue slimes spawn there. Its seam for that, {@code WorldEvent.PotentialSpawns}, does not exist
-     * on NeoForge 1.21 -- the event was dropped, and upstream itself dropped the technique with it
-     * (its 1.20 branch spawns slimes off biome spawner lists plus this same predicate). So an island
-     * spawns blue slimes *in addition to* the biome's usual mobs rather than instead of them.
+     * Where a blue slime may appear. This is one half of upstream 1.12's
+     * {@code WorldEvents#extraSlimeSpawn}; the other half is the slime island structure's
+     * {@code spawn_overrides} (data/forgeweave/worldgen/structure/slime_island.json), which is
+     * upstream's {@code getList().clear()} plus its one weight-15/2-4 entry. Upstream asks both
+     * questions too -- its spawn entry only ever reaches a slime island, and
+     * {@code EntityBlueSlime#getCanSpawnHere} still has to say yes to the exact block.
      */
     @SubscribeEvent
     static void registerSpawnPlacements(RegisterSpawnPlacementsEvent event) {

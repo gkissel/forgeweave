@@ -7,9 +7,11 @@ import net.minecraft.core.registries.Registries;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.resources.ResourceKey;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.MobCategory;
 import net.minecraft.world.entity.MobSpawnType;
 import net.minecraft.world.entity.SpawnPlacementTypes;
 import net.minecraft.world.entity.SpawnPlacements;
@@ -19,11 +21,11 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.SpawnEggItem;
 import net.minecraft.world.level.GameType;
-import net.minecraft.world.level.biome.Biome;
-import net.minecraft.world.level.biome.Biomes;
 import net.minecraft.world.level.biome.MobSpawnSettings;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.levelgen.Heightmap;
+import net.minecraft.world.level.levelgen.structure.Structure;
+import net.minecraft.world.level.levelgen.structure.StructureSpawnOverride;
 import net.minecraft.world.level.storage.loot.LootParams;
 import net.minecraft.world.level.storage.loot.LootTable;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParamSets;
@@ -41,8 +43,8 @@ import dev.gkissel.forgeweave.item.ForgeweaveItems;
  * Issue #451 (parity audit T20), the blue slime. Upstream 1.12 is three small pieces --
  * {@code EntityBlueSlime}, {@code assets/tconstruct/loot_tables/entities/blueslime.json} and the
  * blue-slime half of {@code WorldEvents#extraSlimeSpawn} -- and this covers all three: where it may
- * stand, what it drops (and at which size), that a split keeps the type, and that the biome modifier
- * really put upstream's weight-15/2-4 spawn entry on the overworld's monster list.
+ * stand, what it drops (and at which size), that a split keeps the type, and that an island really
+ * replaces its monster spawns with upstream's weight-15/2-4 blue slime entry.
  *
  * <p>The renderer is client-only and has no server seam to test; its tint and texture are asserted
  * by review against upstream's {@code RenderTinkerSlime#FACTORY_BlueSlime}.
@@ -150,21 +152,31 @@ public class BlueSlimeGameTests {
     }
 
     /**
-     * Upstream {@code WorldEvents}' {@code new Biome.SpawnListEntry(EntityBlueSlime.class, 15, 2, 4)},
-     * ported as {@code data/forgeweave/neoforge/biome_modifier/blue_slime_spawns.json}. Without the
-     * modifier applying, nothing on an island would ever ask the placement predicate above.
+     * Upstream {@code WorldEvents#extraSlimeSpawn} in full: inside a slime island the monster spawn
+     * list is <em>cleared</em> and replaced by one entry,
+     * {@code new Biome.SpawnListEntry(EntityBlueSlime.class, 15, 2, 4)}. Ported as the slime island
+     * structure's {@code spawn_overrides} (#629 made the island a structure, which is what makes the
+     * override reachable) -- a structure spawn override replaces the biome's list for the given
+     * category inside the piece's bounding box, which is upstream's clear-then-add exactly.
      */
     @GameTest(template = "empty")
-    public static void theOverworldsMonsterSpawnListCarriesTheBlueSlime(GameTestHelper helper) {
-        ResourceKey<Biome> plains = Biomes.PLAINS;
-        Biome biome = helper.getLevel().registryAccess().registryOrThrow(Registries.BIOME).getOrThrow(plains);
-        MobSpawnSettings.SpawnerData entry = biome.getMobSettings()
-                .getMobs(ForgeweaveEntities.BLUE_SLIME.get().getCategory()).unwrap().stream()
-                .filter(data -> data.type == ForgeweaveEntities.BLUE_SLIME.get())
-                .findFirst()
-                .orElse(null);
+    public static void theSlimeIslandStructureReplacesItsMonsterSpawnsWithBlueSlimes(GameTestHelper helper) {
+        ResourceKey<Structure> key = ResourceKey.create(Registries.STRUCTURE,
+                ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "slime_island"));
+        Structure island = helper.getLevel().registryAccess().registryOrThrow(Registries.STRUCTURE).get(key);
+        helper.assertTrue(island != null, "expected a structure registered as " + key.location());
 
-        helper.assertTrue(entry != null, "expected forgeweave:blue_slime on the plains monster spawn list");
+        StructureSpawnOverride override = island.spawnOverrides().get(MobCategory.MONSTER);
+        helper.assertTrue(override != null, "an island must override its monster spawns, upstream clears the list");
+        helper.assertTrue(override.boundingBox() == StructureSpawnOverride.BoundingBoxType.PIECE,
+                "the override must apply over the island itself, got " + override.boundingBox());
+
+        List<MobSpawnSettings.SpawnerData> spawns = override.spawns().unwrap();
+        helper.assertTrue(spawns.size() == 1,
+                "upstream leaves exactly one entry after its clear, got " + spawns.size());
+        MobSpawnSettings.SpawnerData entry = spawns.get(0);
+        helper.assertTrue(entry.type == ForgeweaveEntities.BLUE_SLIME.get(),
+                "that one entry must be the blue slime, got " + entry.type);
         helper.assertTrue(entry.getWeight().asInt() == 15,
                 "upstream weights the blue slime 15, got " + entry.getWeight().asInt());
         helper.assertTrue(entry.minCount == 2 && entry.maxCount == 4,
