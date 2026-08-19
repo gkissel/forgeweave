@@ -42,6 +42,10 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("entity.forgeweave.indestructible_item", "Indestructible Item");
         // #448: the thrown shuriken entity.
         add("entity.forgeweave.shuriken", "Shuriken");
+        // #451 (parity audit T20): the island's blue slime, named from upstream 1.12's
+        // entity.tconstruct.blueslime.name (NOTICE.md), plus its spawn egg.
+        add("entity.forgeweave.blue_slime", "Blue Slime");
+        addItem(ForgeweaveItems.BLUE_SLIME_SPAWN_EGG, "Blue Slime Spawn Egg");
 
         addBlock(ForgeweaveBlocks.PART_BUILDER, "Part Builder");
         addBlock(ForgeweaveBlocks.TOOL_STATION, "Tool Station");

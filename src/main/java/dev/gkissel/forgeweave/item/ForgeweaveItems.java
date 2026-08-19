@@ -10,6 +10,7 @@ import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.Block;
 
+import net.neoforged.neoforge.common.DeferredSpawnEggItem;
 import net.neoforged.neoforge.registries.DeferredBlock;
 import net.neoforged.neoforge.registries.DeferredItem;
 import net.neoforged.neoforge.registries.DeferredRegister;
@@ -17,6 +18,7 @@ import net.neoforged.neoforge.registries.DeferredRegister;
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.block.ForgeweaveBlocks;
 import dev.gkissel.forgeweave.combat.ForgeweaveInnates;
+import dev.gkissel.forgeweave.entity.ForgeweaveEntities;
 import dev.gkissel.forgeweave.tool.AoeHarvest;
 import dev.gkissel.forgeweave.tool.ToolConstants;
 
@@ -765,6 +767,17 @@ public final class ForgeweaveItems {
     // T22 (issue #453) -- the Slimesling, upstream 1.12's `tconstruct:slimesling` and the first of
     // its Gadgets content to land here. See SlimeSlingItem.
     public static final DeferredItem<SlimeSlingItem> SLIME_SLING = ITEMS.registerItem("slime_sling", SlimeSlingItem::new);
+
+    /**
+     * T20 (issue #451) -- the blue slime's spawn egg. Upstream 1.12 asks for one in the same call
+     * that registers the entity ({@code TinkerWorld#registerEntities} passes {@code hasEgg = true}),
+     * with the two colours below; 1.21 makes a spawn egg an item of its own, so it is one here.
+     * {@code DeferredSpawnEggItem} is NeoForge's deferred-safe form -- the plain vanilla
+     * {@code SpawnEggItem} resolves its entity type at construction, which is too early for a
+     * {@code DeferredRegister}.
+     */
+    public static final DeferredItem<DeferredSpawnEggItem> BLUE_SLIME_SPAWN_EGG = ITEMS.registerItem("blue_slime_spawn_egg",
+            properties -> new DeferredSpawnEggItem(ForgeweaveEntities.BLUE_SLIME, 0x47eff5, 0xacfff4, properties));
 
     private static DeferredItem<BlockItem> tankItem(DeferredBlock<? extends Block> block) {
         return ITEMS.registerItem(block.getId().getPath(),

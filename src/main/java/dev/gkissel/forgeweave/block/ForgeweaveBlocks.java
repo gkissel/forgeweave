@@ -506,6 +506,14 @@ public final class ForgeweaveBlocks {
         return SLIME_SOILS.stream().filter(soil -> soil.dirt().get() == dirt).<Block>map(soil -> soil.grass().get()).findFirst();
     }
 
+    /**
+     * Whether {@code block} is one of the slime grasses -- upstream's
+     * {@code EntityBlueSlime#getCanSpawnHere} test, and so the island's spawn footprint (#451).
+     */
+    public static boolean isSlimeGrass(Block block) {
+        return SLIME_SOILS.stream().anyMatch(soil -> soil.grass().get() == block);
+    }
+
     /** Whether {@code block} is a slime dirt or slime grass -- upstream's "can a slime plant stand here". */
     public static boolean isSlimeSoil(Block block) {
         return SLIME_SOILS.stream().anyMatch(soil -> soil.dirt().get() == block || soil.grass().get() == block);

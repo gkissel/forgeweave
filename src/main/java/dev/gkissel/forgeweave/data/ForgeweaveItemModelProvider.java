@@ -284,6 +284,11 @@ public class ForgeweaveItemModelProvider extends ItemModelProvider {
         singleLayerModel(ForgeweaveItems.INGOT_KNIGHTSLIME, derivedItem("knightslime_ingot"));
         singleLayerModel(ForgeweaveItems.NUGGET_KNIGHTSLIME, derivedItem("knightslime_nugget"));
 
+        // #451 (T20) -- the blue slime's spawn egg. Vanilla's template model paints itself from the
+        // item's own two colours (ForgeweaveItems#BLUE_SLIME_SPAWN_EGG), so it needs no texture.
+        getBuilder(ForgeweaveItems.BLUE_SLIME_SPAWN_EGG.getId().toString())
+                .parent(new ModelFile.UncheckedModelFile("item/template_spawn_egg"));
+
         // #452 -- the slime boots (T21), upstream's items/armor/slime_boots.png with the green slime
         // ball tint baked in (NOTICE.md). Upstream's own model parents item/handheld, which is an
         // upstream quirk for a boots item; vanilla boots are item/generated, which is what
