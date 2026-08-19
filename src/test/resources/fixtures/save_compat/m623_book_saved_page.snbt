@@ -1,0 +1,17 @@
+{
+    decoder: "item_stack",
+    expect: {
+        components: {
+            "forgeweave:book_page": "tools.pickaxe"
+        },
+        id: "forgeweave:guide_book"
+    },
+    nbt: {
+        components: {
+            "forgeweave:book_page": "tools.pickaxe"
+        },
+        count: 1,
+        id: "forgeweave:guide_book"
+    },
+    what: "#623 (saved page slice): a guide book closed while open on the pickaxe's tools-section page. The `forgeweave:book_page` component is the new format -- upstream 1.12 Mantle persists the same `section.page` string as the `mantle.book.page` NBT string (BookHelper#writeSavedPage), written from GuiBook#onGuiClosed and read back by BookData#findPageNumber when the book reopens. A stale bookmark (a section or page that no longer exists) must still decode; BookScreen resolves it to the cover at open time, so the component is a plain string with no registry binding."
+}

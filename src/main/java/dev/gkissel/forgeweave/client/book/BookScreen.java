@@ -18,7 +18,10 @@ import net.minecraft.network.chat.HoverEvent;
 import net.minecraft.network.chat.Style;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.FormattedCharSequence;
+import net.minecraft.world.InteractionHand;
 import net.minecraft.world.item.ItemStack;
+
+import net.neoforged.neoforge.network.PacketDistributor;
 
 import org.lwjgl.glfw.GLFW;
 
@@ -31,6 +34,8 @@ import dev.gkissel.forgeweave.client.book.BookPage.TextPage;
 import dev.gkissel.forgeweave.client.book.BookPage.ToolPage;
 import dev.gkissel.forgeweave.client.book.MaterialPageContent.Icon;
 import dev.gkissel.forgeweave.client.book.MaterialPageContent.StatGroup;
+import dev.gkissel.forgeweave.item.GuideBookItem;
+import dev.gkissel.forgeweave.item.SavedBookPagePayload;
 import dev.gkissel.forgeweave.material.Material;
 import dev.gkissel.forgeweave.menu.ToolAssemblyRecipes;
 
@@ -138,6 +143,25 @@ public class BookScreen extends Screen {
     /** For each source page, the slot its first leaf became -- what a listing link jumps to. */
     private int[] pageFirstSlot = new int[0];
 
+    /** For each slot, the source page it renders ({@code -1} for the index leaf) -- what a bookmark names. */
+    private int[] slotPage = new int[0];
+
+    /**
+     * The hand holding the book this screen was opened from, so closing can bookmark the open page
+     * on it (issue #623); {@code null} when the screen was opened without an item (the screenshot
+     * harness), which saves nothing -- upstream {@code GuiBook} likewise takes a nullable item.
+     */
+    @Nullable
+    private final InteractionHand hand;
+
+    /**
+     * The bookmark read off the item, applied once the first {@link #init} has laid the pages out
+     * -- upstream's constructor {@code openPage(book.findPageNumber(...))} call. Consumed on use so
+     * a window resize re-runs {@code init} without yanking the reader back.
+     */
+    @Nullable
+    private String pendingBookmark;
+
     /** The link under the cursor as of the last {@link #render}; drives hover styling and tooltips. */
     @Nullable
     private Region hovered;
@@ -149,9 +173,19 @@ public class BookScreen extends Screen {
     private int frame;
 
     public BookScreen(List<BookSection> sections) {
+        this(sections, "", null);
+    }
+
+    /**
+     * @param bookmark the {@code section.page} saved on the book item, or {@code ""} for the cover
+     * @param hand     the hand holding the book, or {@code null} when no item backs this screen
+     */
+    public BookScreen(List<BookSection> sections, String bookmark, @Nullable InteractionHand hand) {
         super(Component.translatable(BookContent.TITLE));
         this.sections = sections;
         this.sectionStartSlot = new int[sections.size()];
+        this.pendingBookmark = bookmark.isEmpty() ? null : bookmark;
+        this.hand = hand;
     }
 
     /**
@@ -177,7 +211,10 @@ public class BookScreen extends Screen {
 
         this.slots.clear();
         this.slots.add(new PageSlot(List.of(), true));
+        this.slotPage = new int[1 + laid.size()];
+        this.slotPage[0] = -1;
         for (BookLayout.Slot slot : laid) {
+            this.slotPage[this.slots.size()] = slot.page();
             this.slots.add(new PageSlot(blocks.get(slot.page())
                     .subList(slot.firstBlock(), slot.firstBlock() + slot.blockCount()), false));
         }
@@ -189,11 +226,60 @@ public class BookScreen extends Screen {
             this.sectionStartSlot[i] = this.pageFirstSlot[sectionStartPage[i]];
         }
         this.spread = Math.min(this.spread, lastSpread());
+
+        // Upstream's constructor ends with openPage(book.findPageNumber(savedPage)) -- applied
+        // here instead because resolving a bookmark to a spread needs the layout above (#623).
+        if (this.pendingBookmark != null) {
+            String bookmark = this.pendingBookmark;
+            this.pendingBookmark = null;
+            if (SavedPage.INDEX.equals(bookmark)) {
+                this.spread = 0;
+            } else {
+                int page = SavedPage.find(this.sections, bookmark);
+                if (page >= 0) {
+                    this.spread = BookGeometry.spreadOf(this.pageFirstSlot[page]);
+                }
+            }
+        }
     }
 
     /** Opens the book straight onto a spread -- the screenshot harness's entry point. */
     public void openSpread(int spread) {
         this.spread = Math.min(spread, lastSpread());
+    }
+
+    /**
+     * Upstream {@code GuiBook#onGuiClosed} (issue #623): bookmark the page left open on the book
+     * item -- {@code ""} from the cover, so the bookmark clears, else the left leaf's page (the
+     * index leaf as {@link SavedPage#INDEX}). {@code SavedBookPagePayload#apply} writes the
+     * client's copy (upstream's {@code BookHelper.writeSavedPage}) and the payload has the server
+     * write the authoritative one (upstream's {@code PacketUpdateSavedPage}); both only ever touch
+     * a held guide book, so nothing is sent when the hand holds something else by now.
+     */
+    @Override
+    public void removed() {
+        if (this.hand != null && this.minecraft != null && this.minecraft.player != null
+                && this.minecraft.player.getItemInHand(this.hand).getItem() instanceof GuideBookItem) {
+            String bookmark = bookmark();
+            SavedBookPagePayload.apply(this.minecraft.player, this.hand, bookmark);
+            PacketDistributor.sendToServer(new SavedBookPagePayload(this.hand, bookmark));
+        }
+        super.removed();
+    }
+
+    /** The bookmark for the current spread -- what upstream saves for {@code this.page}. */
+    private String bookmark() {
+        if (this.spread < 0) {
+            return "";
+        }
+        if (this.spread == 0) {
+            return SavedPage.INDEX;
+        }
+        int leftSlot = BookGeometry.leftSlot(this.spread);
+        if (leftSlot < 0 || leftSlot >= this.slotPage.length) {
+            return "";
+        }
+        return SavedPage.name(this.sections, this.slotPage[leftSlot]);
     }
 
     @Override
