@@ -211,6 +211,76 @@ public class SearedChannelGameTests {
         helper.succeed();
     }
 
+    /**
+     * Issue #595, upstream's {@code TileChannel#interact}: a side with nothing beyond it is not a
+     * connection, so the click goes to the downspout instead. Without this a bare channel could only
+     * be opened by hitting its 6x4x6 centre.
+     */
+    @GameTest(template = "empty")
+    public static void clickingASideWithNothingBeyondItTogglesTheDownspout(GameTestHelper helper) {
+        helper.setBlock(SOURCE, ForgeweaveBlocks.SEARED_CHANNEL.get());
+        helper.setBlock(NEXT, Blocks.AIR);
+        helper.setBlock(SOURCE.below(), ForgeweaveBlocks.CASTING_BASIN.get());
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+
+        clickArm(helper, SOURCE, Direction.SOUTH, player);
+
+        helper.assertValueEqual(helper.getBlockState(SOURCE).getValue(SearedChannelBlock.SOUTH),
+                ChannelConnection.NONE, "a side facing air");
+        helper.assertTrue(helper.getBlockState(SOURCE).getValue(SearedChannelBlock.DOWN),
+                "expected the click to have fallen through to the downspout");
+        helper.succeed();
+    }
+
+    /**
+     * Upstream's {@code handleBlockUpdate} with {@code didPlace}: putting something that holds fluid
+     * beside a channel plumbs it, so a casting table dropped next to a run needs no clicking at all.
+     */
+    @GameTest(template = "empty")
+    public static void placingAFluidHolderBesideAChannelOpensThatSide(GameTestHelper helper) {
+        helper.setBlock(SOURCE, ForgeweaveBlocks.SEARED_CHANNEL.get());
+        helper.setBlock(NEXT, Blocks.AIR);
+
+        helper.setBlock(NEXT, ForgeweaveBlocks.CASTING_TABLE.get());
+
+        helper.assertValueEqual(helper.getBlockState(SOURCE).getValue(SearedChannelBlock.SOUTH),
+                ChannelConnection.OUT, "the side the casting table appeared on");
+        helper.succeed();
+    }
+
+    /** A side whose target stops holding fluid closes, not only one whose target became air. */
+    @GameTest(template = "empty")
+    public static void replacingTheNeighbourWithStoneClosesTheConnection(GameTestHelper helper) {
+        helper.setBlock(SOURCE, connected(Direction.SOUTH, ChannelConnection.OUT));
+        helper.setBlock(NEXT, ForgeweaveBlocks.CASTING_BASIN.get());
+
+        helper.setBlock(NEXT, Blocks.STONE);
+
+        helper.assertValueEqual(helper.getBlockState(SOURCE).getValue(SearedChannelBlock.SOUTH),
+                ChannelConnection.NONE, "the connection after its target became solid stone");
+        helper.succeed();
+    }
+
+    /**
+     * Upstream keeps the top face for the downspout even with a channel in hand ({@code facing !=
+     * EnumFacing.UP}), so wiring a drop never drops a stray block on the run.
+     */
+    @GameTest(template = "empty")
+    public static void clickingTheTopWithAChannelInHandTogglesRatherThanPlaces(GameTestHelper helper) {
+        helper.setBlock(SOURCE, ForgeweaveBlocks.SEARED_CHANNEL.get());
+        helper.setBlock(SOURCE.below(), ForgeweaveBlocks.CASTING_BASIN.get());
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        player.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(ForgeweaveItems.SEARED_CHANNEL.get()));
+
+        BlockPos target = helper.absolutePos(SOURCE);
+        helper.useBlock(SOURCE, player,
+                new BlockHitResult(Vec3.atLowerCornerOf(target).add(0.5, 0.5, 0.5), Direction.UP, target, false));
+
+        helper.assertTrue(helper.getBlockState(SOURCE).getValue(SearedChannelBlock.DOWN),
+                "expected the top click to have opened the downspout");
+        helper.succeed();
+    }
+
     /** Breaking what a channel fed closes the connection, rather than leaving it pointing at air. */
     @GameTest(template = "empty")
     public static void breakingTheNeighbourClosesTheConnection(GameTestHelper helper) {

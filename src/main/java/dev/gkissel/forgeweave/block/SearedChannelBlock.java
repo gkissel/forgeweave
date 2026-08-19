@@ -24,6 +24,7 @@ import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.EntityBlock;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
@@ -91,12 +92,23 @@ public class SearedChannelBlock extends Block implements EntityBlock {
     private static final double ARM_MIN = 5 / 16d;
     private static final double ARM_MAX = 11 / 16d;
 
+    /** Upstream's arm boxes sit at y=4/16..8/16; only the ray-traced centre reaches down to 2/16. */
+    private static final double ARM_BOTTOM = 4 / 16d;
+    private static final double ARM_TOP = 8 / 16d;
+
     /**
-     * Upstream 1.12's collision boxes: a 6x4x6 centre (dropping to y=2 when the bottom is open) plus
-     * one arm per flowing side. Indexed by {@link #shapeKey} so the lookup is O(1), the way upstream
-     * indexes its own bounds table.
+     * What you can hit: upstream's {@code collisionRayTrace} always ray-traces the <em>full</em>
+     * centre box ({@code BOUNDS_CENTER}, y=2/16 up), whether or not the bottom is open, so a shut
+     * channel is no thinner to aim at than an open one. Indexed by {@link #shapeKey}.
      */
     private static final VoxelShape[] SHAPES = new VoxelShape[32];
+
+    /**
+     * What you stand on: upstream's {@code addCollisionBoxToList} uses the shorter
+     * {@code BOUNDS_CENTER_UNCONNECTED} (y=4/16 up) until the bottom opens, which is what the model
+     * draws.
+     */
+    private static final VoxelShape[] COLLISION_SHAPES = new VoxelShape[32];
 
     static {
         VoxelShape centreClosed = box(5, 4, 5, 11, 8, 11);
@@ -106,20 +118,26 @@ public class SearedChannelBlock extends Block implements EntityBlock {
         VoxelShape west = box(0, 4, 5, 5, 8, 11);
         VoxelShape east = box(11, 4, 5, 16, 8, 11);
         for (int key = 0; key < SHAPES.length; key++) {
-            VoxelShape shape = (key & 1) != 0 ? centreOpen : centreClosed;
+            VoxelShape hittable = centreOpen;
+            VoxelShape solid = (key & 1) != 0 ? centreOpen : centreClosed;
             if ((key & 2) != 0) {
-                shape = Shapes.or(shape, north);
+                hittable = Shapes.or(hittable, north);
+                solid = Shapes.or(solid, north);
             }
             if ((key & 4) != 0) {
-                shape = Shapes.or(shape, south);
+                hittable = Shapes.or(hittable, south);
+                solid = Shapes.or(solid, south);
             }
             if ((key & 8) != 0) {
-                shape = Shapes.or(shape, west);
+                hittable = Shapes.or(hittable, west);
+                solid = Shapes.or(solid, west);
             }
             if ((key & 16) != 0) {
-                shape = Shapes.or(shape, east);
+                hittable = Shapes.or(hittable, east);
+                solid = Shapes.or(solid, east);
             }
-            SHAPES[key] = shape;
+            SHAPES[key] = hittable;
+            COLLISION_SHAPES[key] = solid;
         }
     }
 
@@ -155,6 +173,12 @@ public class SearedChannelBlock extends Block implements EntityBlock {
     @Override
     protected VoxelShape getShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
         return SHAPES[shapeKey(state)];
+    }
+
+    @Override
+    protected VoxelShape getCollisionShape(BlockState state, BlockGetter level, BlockPos pos,
+            CollisionContext context) {
+        return COLLISION_SHAPES[shapeKey(state)];
     }
 
     @Override
@@ -218,7 +242,9 @@ public class SearedChannelBlock extends Block implements EntityBlock {
     /**
      * Two channels always agree: whatever one side says, the other mirrors as its opposite. A
      * connection facing air is dropped, which is how breaking a casting table closes the channel
-     * that fed it.
+     * that fed it. Everything a fluid handler on that side implies is handled in
+     * {@link #neighborChanged}, which is where upstream's {@code handleBlockUpdate} lives -- only
+     * there is a capability actually resolvable.
      */
     @Override
     protected BlockState updateShape(BlockState state, Direction facing, BlockState facingState,
@@ -239,16 +265,49 @@ public class SearedChannelBlock extends Block implements EntityBlock {
         return state;
     }
 
+    /**
+     * Upstream's {@code TileChannel#handleBlockUpdate}, the half that is not redstone: a channel
+     * keeps its sides honest by itself. Something that holds fluid appearing next to a bare side
+     * opens that side as an output -- put a casting table beside a channel run and it is plumbed,
+     * with no clicking -- and a side pointing at something that can no longer take fluid is closed
+     * again.
+     *
+     * <p>The {@code block} argument is the state that <em>was</em> there, so {@code block == AIR}
+     * is precisely upstream's {@code didPlace}: a fresh block, not one being edited in place. That
+     * matters, or every blockstate change next door would re-open a side the player had shut.
+     */
+    private static BlockState updateSideFor(BlockState state, Level level, BlockPos pos, Direction side,
+            boolean didPlace) {
+        EnumProperty<ChannelConnection> property = SIDES.get(side);
+        if (level.getBlockState(pos.relative(side)).getBlock() instanceof SearedChannelBlock) {
+            return state;
+        }
+        boolean holdsFluid = level.getCapability(Capabilities.FluidHandler.BLOCK, pos.relative(side),
+                side.getOpposite()) != null;
+        if (!holdsFluid) {
+            return state.getValue(property) == ChannelConnection.NONE
+                    ? state
+                    : state.setValue(property, ChannelConnection.NONE);
+        }
+        return didPlace && state.getValue(property) == ChannelConnection.NONE
+                ? state.setValue(property, ChannelConnection.OUT)
+                : state;
+    }
+
     // ------------------------------------------------------------------ interaction
 
     /**
-     * Holding a channel and clicking a channel places the new one rather than toggling the old one,
-     * upstream's own carve-out -- otherwise a run could never be extended sideways.
+     * Holding a channel and clicking a channel's <em>side</em> places the new one rather than
+     * toggling the old one, upstream's own carve-out -- without it a run could never be extended
+     * sideways. Upstream keeps the top face for the downspout toggle ({@code facing != EnumFacing.UP}
+     * in its {@code onBlockActivated}), so while building a run the one face that cannot be
+     * mis-clicked into a stray block still toggles.
      */
     @Override
     protected ItemInteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos,
             Player player, InteractionHand hand, BlockHitResult hit) {
-        if (stack.getItem() == asItem() && level.getBlockState(pos.relative(hit.getDirection())).canBeReplaced()) {
+        if (stack.getItem() == asItem() && hit.getDirection() != Direction.UP
+                && level.getBlockState(pos.relative(hit.getDirection())).canBeReplaced()) {
             return ItemInteractionResult.SKIP_DEFAULT_BLOCK_INTERACTION;
         }
         return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
@@ -258,8 +317,7 @@ public class SearedChannelBlock extends Block implements EntityBlock {
     @Override
     protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player,
             BlockHitResult hit) {
-        Direction side = sideClicked(pos, player, hit);
-        BlockState updated = cycle(state, level, pos, player, side);
+        BlockState updated = interact(state, level, pos, player, sideClicked(pos, hit));
         if (updated == null) {
             return InteractionResult.PASS;
         }
@@ -270,61 +328,70 @@ public class SearedChannelBlock extends Block implements EntityBlock {
     }
 
     /**
-     * Upstream maps the hit position onto an arm, so clicking the north arm toggles north no matter
-     * which face of it was hit; a click on the centre (or the top) means the bottom, and sneaking on
-     * a face means the arm opposite it.
+     * Upstream ray-traces the arms before it looks at the hit face, so the whole north arm -- top,
+     * outer face, flanks -- is the north toggle no matter where on it you aim, and the centre piece
+     * is the downspout. Anything else falls back to the face that was hit, with the top counting as
+     * the bottom ({@code side = facing == UP ? DOWN : facing}).
+     *
+     * <p>Sneaking is <em>not</em> part of this: upstream spends it on reversing the connection cycle
+     * alone, so aiming and cycling stay one meaning each.
      */
-    private static Direction sideClicked(BlockPos pos, Player player, BlockHitResult hit) {
-        Direction face = hit.getDirection();
-        Direction side = face == Direction.UP ? Direction.DOWN : face;
-        if (player.isShiftKeyDown() && side != Direction.DOWN) {
-            side = side.getOpposite();
-        }
+    static Direction sideClicked(BlockPos pos, BlockHitResult hit) {
         Vec3 local = hit.getLocation().subtract(pos.getX(), pos.getY(), pos.getZ());
-        if (local.z() < ARM_MIN) {
-            return Direction.NORTH;
+        if (local.y() >= ARM_BOTTOM && local.y() <= ARM_TOP) {
+            boolean acrossX = local.x() >= ARM_MIN && local.x() <= ARM_MAX;
+            boolean acrossZ = local.z() >= ARM_MIN && local.z() <= ARM_MAX;
+            if (acrossX && local.z() <= ARM_MIN) {
+                return Direction.NORTH;
+            }
+            if (acrossX && local.z() >= ARM_MAX) {
+                return Direction.SOUTH;
+            }
+            if (acrossZ && local.x() <= ARM_MIN) {
+                return Direction.WEST;
+            }
+            if (acrossZ && local.x() >= ARM_MAX) {
+                return Direction.EAST;
+            }
         }
-        if (local.z() > ARM_MAX) {
-            return Direction.SOUTH;
-        }
-        if (local.x() < ARM_MIN) {
-            return Direction.WEST;
-        }
-        if (local.x() > ARM_MAX) {
-            return Direction.EAST;
-        }
-        return side;
+        Direction face = hit.getDirection();
+        return face == Direction.UP ? Direction.DOWN : face;
     }
 
     /**
-     * One step of upstream's connection cycle, plus its own guard that a side may only be set to
-     * {@code out} when there is something on it to output into.
+     * Upstream's {@code TileChannel#interact}. A side with something to plumb into cycles
+     * {@code none -> out -> in -> none}, the other way round when sneaking. A side with
+     * <em>nothing</em> beyond it is not a connection at all, so upstream spends the click on the
+     * downspout instead -- which is what makes a lone channel clickable anywhere rather than only on
+     * its 6x6 centre -- and a connection whose target has gone is simply cleared.
      *
      * @return the new state, or {@code null} when the click changes nothing
      */
     @Nullable
-    private static BlockState cycle(BlockState state, Level level, BlockPos pos, Player player, Direction side) {
-        if (side == Direction.DOWN) {
-            if (!state.getValue(DOWN) && canConnect(level, pos, Direction.DOWN)) {
-                player.displayClientMessage(Component.translatable("message.forgeweave.channel.down.out"), true);
-                return state.setValue(DOWN, true);
+    private static BlockState interact(BlockState state, Level level, BlockPos pos, Player player, Direction side) {
+        if (side != Direction.DOWN) {
+            EnumProperty<ChannelConnection> property = SIDES.get(side);
+            if (!canConnect(level, pos, side)) {
+                if (state.getValue(property) != ChannelConnection.NONE) {
+                    return state.setValue(property, ChannelConnection.NONE);
+                }
+                return interact(state, level, pos, player, Direction.DOWN);
             }
-            if (state.getValue(DOWN)) {
-                player.displayClientMessage(Component.translatable("message.forgeweave.channel.down.none"), true);
-                return state.setValue(DOWN, false);
-            }
-            return null;
+            ChannelConnection next = state.getValue(property).getNext(player.isShiftKeyDown());
+            player.displayClientMessage(
+                    Component.translatable("message.forgeweave.channel.side." + next.getSerializedName()), true);
+            return state.setValue(property, next);
         }
 
-        EnumProperty<ChannelConnection> property = SIDES.get(side);
-        boolean reverse = player.isShiftKeyDown();
-        ChannelConnection next = state.getValue(property).getNext(reverse);
-        if (next == ChannelConnection.OUT && !canConnect(level, pos, side)) {
-            next = next.getNext(reverse);
+        if (!state.getValue(DOWN) && canConnect(level, pos, Direction.DOWN)) {
+            player.displayClientMessage(Component.translatable("message.forgeweave.channel.down.out"), true);
+            return state.setValue(DOWN, true);
         }
-        player.displayClientMessage(
-                Component.translatable("message.forgeweave.channel.side." + next.getSerializedName()), true);
-        return state.setValue(property, next);
+        if (state.getValue(DOWN)) {
+            player.displayClientMessage(Component.translatable("message.forgeweave.channel.down.none"), true);
+            return state.setValue(DOWN, false);
+        }
+        return null;
     }
 
     // ------------------------------------------------------------------ redstone and ticking
@@ -340,10 +407,19 @@ public class SearedChannelBlock extends Block implements EntityBlock {
         if (level.isClientSide) {
             return;
         }
+        BlockState updated = state;
+        Direction side = Direction.fromDelta(fromPos.getX() - pos.getX(), fromPos.getY() - pos.getY(),
+                fromPos.getZ() - pos.getZ());
+        if (side != null && side.getAxis().isHorizontal()) {
+            updated = updateSideFor(updated, level, pos, side, block == Blocks.AIR);
+        }
         boolean powered = level.hasNeighborSignal(pos);
         if (powered != state.getValue(POWERED)) {
-            level.setBlock(pos, state.setValue(POWERED, powered)
-                    .setValue(DOWN, powered && canConnect(level, pos, Direction.DOWN)), Block.UPDATE_ALL);
+            updated = updated.setValue(POWERED, powered)
+                    .setValue(DOWN, powered && canConnect(level, pos, Direction.DOWN));
+        }
+        if (updated != state) {
+            level.setBlock(pos, updated, Block.UPDATE_ALL);
         }
     }
 
