@@ -13,7 +13,7 @@ import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.item.ForgeweaveItems;
-import dev.gkissel.forgeweave.item.SlimeBootsItem;
+import dev.gkissel.forgeweave.item.SlimeBounceHandler;
 
 /**
  * Parity audit T21, issue #452: upstream 1.12's {@code ItemSlimeBoots#onFall} and
@@ -76,7 +76,7 @@ public class SlimeBootsGameTests {
         helper.assertTrue(crouched > 0.0F, "a crouched landing must still hurt, took nothing");
         helper.assertTrue(crouched < full,
                 "a crouched landing must hurt less than a barefoot one, took " + crouched + " of " + full);
-        helper.assertFalse(SlimeBootsItem.isBouncing(player), "a crouched landing must not bounce");
+        helper.assertFalse(SlimeBounceHandler.isBouncing(player), "a crouched landing must not bounce");
         helper.succeed();
     }
 
@@ -87,7 +87,7 @@ public class SlimeBootsGameTests {
 
         player.causeFallDamage(2.0F, 1.0F, player.damageSources().fall());
 
-        helper.assertFalse(SlimeBootsItem.isBouncing(player), "a two-block drop must not start a bounce");
+        helper.assertFalse(SlimeBounceHandler.isBouncing(player), "a two-block drop must not start a bounce");
         helper.succeed();
     }
 
@@ -99,15 +99,15 @@ public class SlimeBootsGameTests {
     public static void theBounceHandlerHoldsTheWearerUntilTheyAreBackOnTheGround(GameTestHelper helper) {
         Player player = booted(helper);
         player.causeFallDamage(LONG_FALL, 1.0F, player.damageSources().fall());
-        helper.assertTrue(SlimeBootsItem.isBouncing(player), "a bounced landing must register the bounce handler");
+        helper.assertTrue(SlimeBounceHandler.isBouncing(player), "a bounced landing must register the bounce handler");
 
         player.setOnGround(false);
         tick(player, 10);
-        helper.assertTrue(SlimeBootsItem.isBouncing(player), "the handler must keep hold of an airborne wearer");
+        helper.assertTrue(SlimeBounceHandler.isBouncing(player), "the handler must keep hold of an airborne wearer");
 
         player.setOnGround(true);
         tick(player, 10);
-        helper.assertFalse(SlimeBootsItem.isBouncing(player),
+        helper.assertFalse(SlimeBounceHandler.isBouncing(player),
                 "the handler must let go once the wearer has been grounded for more than five ticks");
         helper.succeed();
     }
@@ -135,7 +135,7 @@ public class SlimeBootsGameTests {
     private static void tick(Player player, int ticks) {
         for (int i = 0; i < ticks; i++) {
             player.tickCount++;
-            SlimeBootsItem.onPlayerTick(new PlayerTickEvent.Post(player));
+            SlimeBounceHandler.onPlayerTickPost(new PlayerTickEvent.Post(player));
         }
     }
 

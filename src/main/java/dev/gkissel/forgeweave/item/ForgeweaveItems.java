@@ -713,6 +713,10 @@ public final class ForgeweaveItems {
     public static final DeferredItem<BlockItem> CLEAR_STAINED_GLASS_RED = stainedGlassItem(ForgeweaveBlocks.CLEAR_STAINED_GLASS_RED);
     public static final DeferredItem<BlockItem> CLEAR_STAINED_GLASS_BLACK = stainedGlassItem(ForgeweaveBlocks.CLEAR_STAINED_GLASS_BLACK);
 
+    // T22 (issue #453) -- the Slimesling, upstream 1.12's `tconstruct:slimesling` and the first of
+    // its Gadgets content to land here. See SlimeSlingItem.
+    public static final DeferredItem<SlimeSlingItem> SLIME_SLING = ITEMS.registerItem("slime_sling", SlimeSlingItem::new);
+
     private static DeferredItem<BlockItem> tankItem(DeferredBlock<? extends Block> block) {
         return ITEMS.registerItem(block.getId().getPath(),
                 properties -> new SearedTankItem(block.get(), properties));

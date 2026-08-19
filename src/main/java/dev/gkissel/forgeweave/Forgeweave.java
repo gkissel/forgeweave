@@ -47,6 +47,7 @@ import dev.gkissel.forgeweave.item.ForgeweaveDataComponents;
 import dev.gkissel.forgeweave.item.ForgeweaveItems;
 import dev.gkissel.forgeweave.item.GuideBookGift;
 import dev.gkissel.forgeweave.item.SlimeBootsItem;
+import dev.gkissel.forgeweave.item.SlimeBounceHandler;
 import dev.gkissel.forgeweave.material.Material;
 import dev.gkissel.forgeweave.menu.ForgeweaveMenus;
 import dev.gkissel.forgeweave.menu.RenameStationItemPayload;
@@ -60,6 +61,7 @@ import dev.gkissel.forgeweave.recipe.EntityMeltingRecipe; // #270
 import dev.gkissel.forgeweave.recipe.ForgeweaveRecipeSerializers;
 import dev.gkissel.forgeweave.recipe.MeltingRecipe;
 import dev.gkissel.forgeweave.recipe.SmelteryFuel;
+import dev.gkissel.forgeweave.sound.ForgeweaveSounds; // #453
 import dev.gkissel.forgeweave.tool.AoeHarvest;
 import dev.gkissel.forgeweave.trait.ForgeweaveTraits;
 import dev.gkissel.forgeweave.worldgen.NetherOrePlacement; // #276
@@ -93,6 +95,8 @@ public class Forgeweave {
         // #482 -- upstream's heart-effect particles (parity audit T51): the little coloured heart a
         // landed secondary hit puts over its target. See ForgeweaveParticles.
         ForgeweaveParticles.PARTICLE_TYPES.register(modEventBus);
+        // T22 (#453) -- the Slimesling's launch sound, upstream's own slimesling.ogg.
+        ForgeweaveSounds.SOUND_EVENTS.register(modEventBus);
         ForgeweaveRecipeSerializers.RECIPE_SERIALIZERS.register(modEventBus);
         // #110 -- the M2 advancement chain's custom criteria (docs/SCOPE.md M2 issue #110).
         ForgeweaveCriteriaTriggers.TRIGGERS.register(modEventBus);
@@ -196,9 +200,11 @@ public class Forgeweave {
         // spawnWithBook, default on). See GuideBookGift.
         NeoForge.EVENT_BUS.addListener(GuideBookGift::onPlayerLoggedIn);
         // #452 -- parity audit T21: the slime boots' bounce and fall-damage cancel, upstream's
-        // ItemSlimeBoots#onFall plus SlimeBounceHandler. See SlimeBootsItem for the side split.
+        // ItemSlimeBoots#onFall. See SlimeBootsItem for the side split.
         NeoForge.EVENT_BUS.addListener(SlimeBootsItem::onFall);
-        NeoForge.EVENT_BUS.addListener(SlimeBootsItem::onPlayerTick);
+        // #452/#453 -- parity audit T21 and T22: the boots' rebound and the momentum a Slimesling-flung
+        // player keeps through the arc, both upstream's shared SlimeBounceHandler. See that class.
+        NeoForge.EVENT_BUS.addListener(SlimeBounceHandler::onPlayerTickPost);
         // #110 -- Ponder is a soft dependency (docs/SCOPE.md M2): only touch its API, and only
         // register the client-setup listener, when it's actually on the mod list. See
         // ForgeweavePonderPlugin's javadoc for why this isn't an @EventBusSubscriber instead.

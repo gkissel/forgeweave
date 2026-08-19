@@ -121,6 +121,21 @@ public class ForgeweaveRecipeProvider extends RecipeProvider {
                 .unlockedBy("has_pattern", has(ForgeweaveItems.PATTERN_BLANK.get()))
                 .save(recipeOutput, ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "book_from_patterns"));
 
+        // The Slimesling (parity audit T22, issue #453): upstream's
+        // recipes/gadgets/slimesling/green.json -- two string over a congealed slime block, three
+        // slime balls around it. Forgeweave has no congealed slime (T57), so the vanilla slime block
+        // stands in for it; the balls are the `c:slimeballs` tag, which is what upstream's own
+        // fallback.json widens its ore dict to.
+        ShapedRecipeBuilder.shaped(RecipeCategory.TOOLS, ForgeweaveItems.SLIME_SLING.get())
+                .pattern("SCS")
+                .pattern("B B")
+                .pattern(" B ")
+                .define('S', Items.STRING)
+                .define('C', Items.SLIME_BLOCK)
+                .define('B', Tags.Items.SLIMEBALLS)
+                .unlockedBy("has_slime_ball", has(Tags.Items.SLIMEBALLS))
+                .save(recipeOutput);
+
         // Stencil Table (docs/SCOPE.md M1 issue #44): upstream 1.12's real stencil_table.json recipe
         // is "blank pattern + #STENCIL_TABLE" where that tag resolves to plankWood (NOTICE.md).
         retexturedTableRecipe(recipeOutput, ForgeweaveItems.STENCIL_TABLE.get(), ForgeweaveItems.PATTERN_BLANK.get(), Ingredient.of(ItemTags.PLANKS));

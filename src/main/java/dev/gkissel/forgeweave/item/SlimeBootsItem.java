@@ -1,9 +1,7 @@
 package dev.gkissel.forgeweave.item;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.WeakHashMap;
 
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -22,9 +20,7 @@ import net.minecraft.world.item.component.ItemAttributeModifiers;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.phys.Vec3;
 
-import net.neoforged.neoforge.common.util.FakePlayer;
 import net.neoforged.neoforge.event.entity.living.LivingFallEvent;
-import net.neoforged.neoforge.event.tick.PlayerTickEvent;
 import net.neoforged.neoforge.registries.DeferredHolder;
 import net.neoforged.neoforge.registries.DeferredRegister;
 
@@ -32,9 +28,9 @@ import dev.gkissel.forgeweave.Forgeweave;
 
 /**
  * The slime boots (issue #452, parity audit T21): upstream 1.12's {@code gadgets/item/ItemSlimeBoots}
- * plus {@code library/SlimeBounceHandler}, both ported here (NOTICE.md). Landing in them from more
- * than two blocks costs no fall damage and throws the wearer back up; crouching through the landing
- * cancels the bounce and takes a fifth of the damage instead.
+ * plus {@code library/SlimeBounceHandler} (the latter in {@link SlimeBounceHandler}; NOTICE.md).
+ * Landing in them from more than two blocks costs no fall damage and throws the wearer back up;
+ * crouching through the landing cancels the bounce and takes a fifth of the damage instead.
  *
  * <p>Upstream's boots carry no armour, no toughness and no enchantability -- its
  * {@code getAttributeModifiers} returns an empty multimap on purpose ("all our armor values are 0,
@@ -46,10 +42,10 @@ import dev.gkissel.forgeweave.Forgeweave;
  *
  * <p>Exactly upstream's split. {@link #onFall} runs on both: the client sets the rebound velocity
  * (player movement is client-authoritative, so this is the side that can), the server cancels the
- * fall damage. {@link #onPlayerTick} is the bounce handler -- vanilla's own movement code runs after
- * the fall check and would eat the rebound, so the velocity is re-applied on the tick it was
- * scheduled for, and the wearer keeps most of their horizontal momentum for as long as they stay in
- * the air.
+ * fall damage. The rebound itself is handed to {@link SlimeBounceHandler}, upstream's own shared
+ * class -- vanilla's own movement code runs after the fall check and would eat the rebound, so the
+ * velocity is re-applied on the tick it was scheduled for, and the wearer keeps most of their
+ * horizontal momentum for as long as they stay in the air.
  */
 public class SlimeBootsItem extends ArmorItem {
 
@@ -76,22 +72,8 @@ public class SlimeBootsItem extends ArmorItem {
     private static final double BOUNCE_RETENTION = -0.9;
     /** Upstream's {@code 0.91 + 0.04}: undoes most of one tick of air drag on the landing tick. */
     private static final double LANDING_DRAG_RELIEF = 0.95;
-    /** Upstream's {@code 0.91 + 0.025}: and slightly less of it on every airborne tick after. */
-    private static final double AIRBORNE_DRAG_RELIEF = 0.935;
     /** Upstream's {@code event.setDamageMultiplier(0.2f)} for a crouched landing. */
     private static final float CROUCHED_DAMAGE_MULTIPLIER = 0.2F;
-    /** Upstream's {@code entityLiving.ticksExisted - timer > 5}: how long back on the ground ends it. */
-    private static final int GROUNDED_TICKS_BEFORE_DONE = 5;
-
-    /**
-     * Upstream keeps one handler object per bouncing entity in a static {@code IdentityHashMap} and
-     * registers each on the event bus; this is the same map with one listener instead of many. Weak
-     * keys because a player who logs out mid-bounce never ticks again and would otherwise be pinned;
-     * every access below is a single-key get/put/remove, which the synchronized wrapper covers (the
-     * client and the integrated server tick their own {@code Player} objects on different threads).
-     */
-    private static final Map<Player, Bounce> BOUNCING = Collections.synchronizedMap(new WeakHashMap<>());
-
     public SlimeBootsItem(Properties properties) {
         super(SLIME_MATERIAL, Type.BOOTS, properties.stacksTo(1));
     }
@@ -131,87 +113,11 @@ public class SlimeBootsItem extends ArmorItem {
                 event.setCanceled(true);
             }
             entity.playSound(SoundEvents.SLIME_SQUISH, 1.0F, 1.0F);
-            addBounceHandler(entity, entity.getDeltaMovement().y);
+            if (entity instanceof Player player) {
+                SlimeBounceHandler.addBounceHandler(player, entity.getDeltaMovement().y);
+            }
         } else if (!client && entity.isShiftKeyDown()) {
             event.setDamageMultiplier(CROUCHED_DAMAGE_MULTIPLIER);
-        }
-    }
-
-    /** Upstream's {@code SlimeBounceHandler#addBounceHandler}: real players only, never fake ones. */
-    private static void addBounceHandler(LivingEntity entity, double bounce) {
-        if (!(entity instanceof Player player) || player instanceof FakePlayer) {
-            return;
-        }
-        Bounce existing = BOUNCING.get(player);
-        if (existing == null) {
-            BOUNCING.put(player, new Bounce(player, bounce));
-        } else if (bounce != 0) {
-            existing.bounce = bounce;
-            existing.bounceTick = player.tickCount;
-        }
-    }
-
-    /** Upstream's {@code SlimeBounceHandler#playerTickPost}. */
-    public static void onPlayerTick(PlayerTickEvent.Post event) {
-        Player player = event.getEntity();
-        Bounce bounce = BOUNCING.get(player);
-        if (bounce == null || player.isFallFlying()) {
-            return;
-        }
-        if (bounce.tick(player)) {
-            BOUNCING.remove(player);
-        }
-    }
-
-    /** Test seam: whether the wearer is still being carried by a bounce. */
-    public static boolean isBouncing(Player player) {
-        return BOUNCING.containsKey(player);
-    }
-
-    /** One entity's in-flight bounce -- upstream's {@code SlimeBounceHandler} instance state. */
-    private static final class Bounce {
-        private int timer;
-        private boolean wasInAir;
-        private double bounce;
-        private int bounceTick;
-        private double lastMovementX;
-        private double lastMovementZ;
-
-        private Bounce(Player player, double bounce) {
-            this.bounce = bounce;
-            this.bounceTick = bounce != 0 ? player.tickCount : 0;
-        }
-
-        /** @return true once the wearer has been back on the ground long enough to stop tracking. */
-        private boolean tick(Player player) {
-            if (player.tickCount == bounceTick) {
-                Vec3 movement = player.getDeltaMovement();
-                player.setDeltaMovement(movement.x, bounce, movement.z);
-                bounceTick = 0;
-            }
-
-            if (!player.onGround() && player.tickCount != bounceTick) {
-                Vec3 movement = player.getDeltaMovement();
-                if (lastMovementX != movement.x || lastMovementZ != movement.z) {
-                    player.setDeltaMovement(movement.x / AIRBORNE_DRAG_RELIEF, movement.y,
-                            movement.z / AIRBORNE_DRAG_RELIEF);
-                    player.hasImpulse = true;
-                    lastMovementX = player.getDeltaMovement().x;
-                    lastMovementZ = player.getDeltaMovement().z;
-                }
-            }
-
-            if (wasInAir && player.onGround()) {
-                if (timer == 0) {
-                    timer = player.tickCount;
-                } else if (player.tickCount - timer > GROUNDED_TICKS_BEFORE_DONE) {
-                    return true;
-                }
-            } else {
-                timer = 0;
-                wasInAir = true;
-            }
-            return false;
         }
     }
 }

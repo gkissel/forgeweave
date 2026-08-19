@@ -32,9 +32,9 @@ import dev.gkissel.forgeweave.menu.ToolAssemblyRecipes;
  * ({@code TinkerRegistry:76-81}: General, Tools, ToolParts, Smeltery, World, Gadgets) and every item
  * class picks one ({@code ToolCore:74}, {@code ToolPart:41}, {@code Pattern:28}, {@code Cast:14},
  * {@code BlockSeared:19}, {@code BlockOre:31}, {@code TinkerCommons:287-290}, ...). Forgeweave has
- * content for four of them; upstream's World tab would hold only the two nether ores here (no slime
- * islands) and its Gadgets content is absent entirely, so those ores ride along in General (issue
- * #507).
+ * content for five of them; upstream's World tab would hold only the two nether ores here (no slime
+ * islands), so those ores ride along in General (issue #507). Gadgets opened with the Slimesling
+ * (parity audit T22, issue #453) and is otherwise still empty (T56).
  *
  * <p>Materials are a datapack registry (ADR-0002), so the part item variants are enumerated at
  * display time from the registry access the display-items event provides, not fixed at registration
@@ -102,6 +102,18 @@ public final class ForgeweaveCreativeTab {
                     .title(Component.translatable("itemGroup.forgeweave.smeltery"))
                     .icon(() -> new ItemStack(ForgeweaveItems.SEARED_TANK.get()))
                     .displayItems(ForgeweaveCreativeTab::addSmelteryItems)
+                    .build());
+
+    /**
+     * Upstream's {@code tabGadgets}, whose display icon is the Slimesling itself
+     * ({@code TinkerGadgets:300}). The sling is all it holds here (parity audit T22, issue #453);
+     * the rest of upstream's gadgets are T56.
+     */
+    public static final DeferredHolder<CreativeModeTab, CreativeModeTab> GADGETS =
+            TABS.register("gadgets", () -> CreativeModeTab.builder()
+                    .title(Component.translatable("itemGroup.forgeweave.gadgets"))
+                    .icon(() -> new ItemStack(ForgeweaveItems.SLIME_SLING.get()))
+                    .displayItems(ForgeweaveCreativeTab::addGadgetItems)
                     .build());
 
     /** Content families (#398/#399) can switch whole item groups off; every tab honours them. */
@@ -307,6 +319,11 @@ public final class ForgeweaveCreativeTab {
      * ({@code BlockCasting:50}, {@code BlockFaucet:39}), the casts ({@code Cast:14},
      * {@code CastCustom:16}) and the molten metals ({@code BlockTinkerFluid:22} -- buckets here).
      */
+    /** Upstream's {@code tabGadgets} contents: for now the Slimesling alone ({@code TinkerGadgets:218}). */
+    static void addGadgetItems(CreativeModeTab.ItemDisplayParameters parameters, CreativeModeTab.Output rawOutput) {
+        enabledOnly(rawOutput).accept(ForgeweaveItems.SLIME_SLING.get());
+    }
+
     static void addSmelteryItems(CreativeModeTab.ItemDisplayParameters parameters, CreativeModeTab.Output rawOutput) {
         CreativeModeTab.Output output = enabledOnly(rawOutput);
 
