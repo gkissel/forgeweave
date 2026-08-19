@@ -278,6 +278,66 @@ public class ForgeweaveBlockStateProvider extends BlockStateProvider {
         for (ForgeweaveBlocks.StainedGlassColor color : ForgeweaveBlocks.clearStainedGlassColors()) {
             cubeAllTranslucentBlock(color.block().get());
         }
+
+        slimeIslandBlocks(); // #449 (parity audit T18)
+    }
+
+    /**
+     * The slime island's world blocks (#449, parity audit T18), all textured from the clone
+     * (NOTICE.md). Three of the four shapes are plain: dirt and congealed slime are {@code cube_all},
+     * leaves are vanilla's tinted {@code block/leaves}, and the plants are vanilla's
+     * {@code block/tinted_cross}. Slime grass is the one composite -- upstream's
+     * {@code blockstates/slime_grass.json} draws it as vanilla's own grass model with the dirt
+     * texture on the sides and bottom, a greyscale top, and a greyscale side overlay, both of the
+     * latter tinted by foliage colour ({@code ForgeweaveFoliageColors}), which is exactly what
+     * parenting {@code minecraft:block/grass_block} gives.
+     *
+     * <p>One shared texture per tinted shape rather than one per colour, the same "one greyscale
+     * texture + per-instance tint" idiom {@link #cubeAllTranslucentBlock} already uses for the clear
+     * stained glass -- and upstream's own, since {@code SlimeColorizer} is what paints all of these.
+     */
+    private void slimeIslandBlocks() {
+        for (ForgeweaveBlocks.SlimeSoil soil : ForgeweaveBlocks.slimeSoils()) {
+            String dirtName = name(soil.dirt().get());
+            cubeAllBlock(dirtName, soil.dirt().get());
+
+            String grassName = name(soil.grass().get());
+            ModelFile grass = models().withExistingParent(grassName, mcLoc("block/grass_block"))
+                    .texture("particle", modLoc("derived/block/" + dirtName))
+                    .texture("bottom", modLoc("derived/block/" + dirtName))
+                    .texture("side", modLoc("derived/block/" + dirtName))
+                    .texture("top", modLoc("derived/block/slime_grass_top"))
+                    .texture("overlay", modLoc("derived/block/slime_grass_side_overlay"))
+                    .renderType("minecraft:cutout_mipped");
+            simpleBlockWithItem(soil.grass().get(), grass);
+        }
+
+        cubeAllBlock("green_congealed_slime", ForgeweaveBlocks.GREEN_CONGEALED_SLIME.get());
+
+        for (ForgeweaveBlocks.SlimePlants plants : ForgeweaveBlocks.slimePlants()) {
+            String leavesName = name(plants.leaves().get());
+            ModelFile leaves = models().withExistingParent(leavesName, mcLoc("block/leaves"))
+                    .texture("all", modLoc("derived/block/slime_leaves"))
+                    .renderType("minecraft:cutout_mipped");
+            simpleBlockWithItem(plants.leaves().get(), leaves);
+
+            slimePlantBlock(plants.tallGrass().get(), "slime_tall_grass");
+            slimePlantBlock(plants.fern().get(), "slime_fern");
+        }
+    }
+
+    /** A slimy tall grass or fern: a tinted cross in the world, a flat tinted sprite in the hand. */
+    private void slimePlantBlock(Block block, String texture) {
+        String blockName = name(block);
+        ResourceLocation sprite = modLoc("derived/block/" + texture);
+        ModelFile model = models().singleTexture(blockName, mcLoc("block/tinted_cross"), "cross", sprite)
+                .renderType("minecraft:cutout");
+        simpleBlock(block, model);
+        itemModels().withExistingParent(blockName, mcLoc("item/generated")).texture("layer0", sprite);
+    }
+
+    private static String name(Block block) {
+        return BuiltInRegistries.BLOCK.getKey(block).getPath();
     }
 
     /**

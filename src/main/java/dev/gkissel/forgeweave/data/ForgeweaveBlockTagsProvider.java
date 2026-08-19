@@ -70,6 +70,28 @@ public class ForgeweaveBlockTagsProvider extends BlockTagsProvider {
                 .add(ForgeweaveBlocks.GRAVEYARD_SOIL.get())
                 .add(ForgeweaveBlocks.CONSECRATED_SOIL.get());
 
+        // #449 (parity audit T18) -- the slime island's blocks. Upstream sets no harvest level on any
+        // of them, so none takes a needs_*_tool tag; what they do take is the "correct, faster tool"
+        // half their vanilla counterparts have -- shovel for the soils, hoe for the leaves, sword for
+        // the plants. Slime dirt and grass also join minecraft:dirt, which is modern Minecraft's form
+        // of upstream's canSustainPlant accepting EnumPlantType.Plains (vanilla saplings and flowers
+        // grow on slime soil upstream too). Vanilla grass does not spread onto them: GrassBlock only
+        // converts minecraft:dirt the block, not the tag.
+        var slimeShovel = tag(BlockTags.MINEABLE_WITH_SHOVEL);
+        var slimeDirt = tag(BlockTags.DIRT);
+        for (ForgeweaveBlocks.SlimeSoil soil : ForgeweaveBlocks.slimeSoils()) {
+            slimeShovel.add(soil.dirt().get()).add(soil.grass().get());
+            slimeDirt.add(soil.dirt().get()).add(soil.grass().get());
+        }
+        var slimeLeaves = tag(BlockTags.LEAVES);
+        var slimeHoe = tag(BlockTags.MINEABLE_WITH_HOE);
+        var slimeSword = tag(BlockTags.SWORD_EFFICIENT);
+        for (ForgeweaveBlocks.SlimePlants plants : ForgeweaveBlocks.slimePlants()) {
+            slimeLeaves.add(plants.leaves().get());
+            slimeHoe.add(plants.leaves().get());
+            slimeSword.add(plants.tallGrass().get()).add(plants.fern().get());
+        }
+
         // #206 -- the block-side counterpart of ForgeweaveItemTagsProvider's c:storage_blocks/*
         // additions (same reasoning: NeoForge's own storage_blocks tag only unions the metals it
         // knows about).

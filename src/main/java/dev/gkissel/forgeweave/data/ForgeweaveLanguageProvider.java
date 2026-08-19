@@ -33,6 +33,8 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("itemGroup.forgeweave.smeltery", "Forgeweave Smeltery");
         // T22 (issue #453): upstream's tabGadgets, opened by the Slimesling.
         add("itemGroup.forgeweave.gadgets", "Forgeweave Gadgets");
+        // T18 (issue #449): upstream's tabWorld, opened by the slime island's blocks.
+        add("itemGroup.forgeweave.world", "Forgeweave World");
 
         // #447 -- the entity every dropped tool spawns as; name ported from upstream 1.12's
         // EntityRegistry.registerModEntity("indestructible", ..., "Indestructible Item") (NOTICE.md).
@@ -54,6 +56,26 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         addBlock(ForgeweaveBlocks.CONSECRATED_SOIL, "Consecrated Soil"); // #429
         addBlock(ForgeweaveBlocks.SLIMY_MUD_MAGMA, "Magma Slimy Mud"); // #339
         addBlock(ForgeweaveBlocks.MUD_BRICK_BLOCK, "Mud Brick Block"); // #502 (T71)
+
+        // #449 (parity audit T18) -- the slime island's blocks, names taken from upstream 1.12's
+        // tile.tconstruct.slime_dirt/slime_grass/slime_leaves/slime_grass_tall/slime_congealed
+        // entries. Upstream leaves every foliage colour of leaves plainly "Slimy Leaves" and both
+        // plant shapes uncoloured; Forgeweave has to tell its per-colour blocks apart in the
+        // creative tab and in JEI, so those five carry their colour the way the dirts and grasses
+        // already do upstream.
+        addBlock(ForgeweaveBlocks.GREEN_SLIME_SOIL.dirt(), "Green Slimy Dirt");
+        addBlock(ForgeweaveBlocks.GREEN_SLIME_SOIL.grass(), "Green Slimy Grass");
+        addBlock(ForgeweaveBlocks.BLUE_SLIME_SOIL.dirt(), "Blue Slimy Dirt");
+        addBlock(ForgeweaveBlocks.BLUE_SLIME_SOIL.grass(), "Blue Slimy Grass");
+        addBlock(ForgeweaveBlocks.PURPLE_SLIME_SOIL.dirt(), "Purple Slimy Dirt");
+        addBlock(ForgeweaveBlocks.PURPLE_SLIME_SOIL.grass(), "Purple Slimy Grass");
+        addBlock(ForgeweaveBlocks.GREEN_CONGEALED_SLIME, "Congealed Slime Block");
+        addBlock(ForgeweaveBlocks.BLUE_SLIME_PLANTS.leaves(), "Blue Slimy Leaves");
+        addBlock(ForgeweaveBlocks.BLUE_SLIME_PLANTS.tallGrass(), "Tall Blue Slimy Grass");
+        addBlock(ForgeweaveBlocks.BLUE_SLIME_PLANTS.fern(), "Blue Slimy Fern");
+        addBlock(ForgeweaveBlocks.PURPLE_SLIME_PLANTS.leaves(), "Purple Slimy Leaves");
+        addBlock(ForgeweaveBlocks.PURPLE_SLIME_PLANTS.tallGrass(), "Tall Purple Slimy Grass");
+        addBlock(ForgeweaveBlocks.PURPLE_SLIME_PLANTS.fern(), "Purple Slimy Fern");
 
         // The seared brick block family (docs/SCOPE.md M2 issue #93), names ported from upstream
         // 1.12's tile.tconstruct.seared.*.name entries (NOTICE.md).

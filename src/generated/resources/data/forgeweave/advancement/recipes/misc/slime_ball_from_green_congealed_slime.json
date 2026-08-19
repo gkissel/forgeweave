@@ -1,0 +1,32 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_green_congealed_slime": {
+      "conditions": {
+        "items": [
+          {
+            "items": "forgeweave:green_congealed_slime"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "forgeweave:slime_ball_from_green_congealed_slime"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_the_recipe",
+      "has_green_congealed_slime"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "forgeweave:slime_ball_from_green_congealed_slime"
+    ]
+  }
+}

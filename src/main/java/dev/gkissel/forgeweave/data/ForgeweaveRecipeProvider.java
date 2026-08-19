@@ -517,6 +517,22 @@ public class ForgeweaveRecipeProvider extends RecipeProvider {
                 .unlockedBy("has_mud_brick", has(ForgeweaveItems.MUD_BRICK.get()))
                 .save(recipeOutput);
 
+        // #449 (parity audit T18) -- congealed slime, upstream's slime/green/congealed.json and its
+        // slimeball_from_congealed.json: four slime balls make one block, and one block gives them
+        // back. Upstream keys the craft off its own "slimeballGreen" ore dictionary entry; vanilla's
+        // slime ball is the only member of that entry in Forgeweave (the coloured slime balls are
+        // parity audit T57), so it is the ingredient directly.
+        ShapedRecipeBuilder.shaped(RecipeCategory.BUILDING_BLOCKS, ForgeweaveBlocks.GREEN_CONGEALED_SLIME.get())
+                .pattern("AA")
+                .pattern("AA")
+                .define('A', Items.SLIME_BALL)
+                .unlockedBy("has_slime_ball", has(Items.SLIME_BALL))
+                .save(recipeOutput);
+        ShapelessRecipeBuilder.shapeless(RecipeCategory.MISC, Items.SLIME_BALL, 4)
+                .requires(ForgeweaveBlocks.GREEN_CONGEALED_SLIME.get())
+                .unlockedBy("has_green_congealed_slime", has(ForgeweaveBlocks.GREEN_CONGEALED_SLIME.get()))
+                .save(recipeOutput, "forgeweave:slime_ball_from_green_congealed_slime");
+
         smelteryRecipes(recipeOutput);
     }
 

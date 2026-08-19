@@ -4,6 +4,12 @@
     "forgeweave:slimy_mud_green",
     "forgeweave:slimy_mud_magma",
     "forgeweave:graveyard_soil",
-    "forgeweave:consecrated_soil"
+    "forgeweave:consecrated_soil",
+    "forgeweave:green_slime_dirt",
+    "forgeweave:green_slime_grass",
+    "forgeweave:blue_slime_dirt",
+    "forgeweave:blue_slime_grass",
+    "forgeweave:purple_slime_dirt",
+    "forgeweave:purple_slime_grass"
   ]
 }

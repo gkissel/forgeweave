@@ -116,6 +116,14 @@ public final class ForgeweaveCreativeTab {
                     .displayItems(ForgeweaveCreativeTab::addGadgetItems)
                     .build());
 
+    /** Upstream's {@code tabWorld} -- see {@link #addWorldItems} for why it exists now (#449). */
+    public static final DeferredHolder<CreativeModeTab, CreativeModeTab> WORLD =
+            TABS.register("world", () -> CreativeModeTab.builder()
+                    .title(Component.translatable("itemGroup.forgeweave.world"))
+                    .icon(() -> new ItemStack(ForgeweaveBlocks.GREEN_SLIME_SOIL.dirt().get()))
+                    .displayItems(ForgeweaveCreativeTab::addWorldItems)
+                    .build());
+
     /** Content families (#398/#399) can switch whole item groups off; every tab honours them. */
     private static CreativeModeTab.Output enabledOnly(CreativeModeTab.Output rawOutput) {
         return (stack, visibility) -> {
@@ -215,9 +223,6 @@ public final class ForgeweaveCreativeTab {
         output.accept(ForgeweaveItems.NUGGET_KNIGHTSLIME.get());
 
         output.accept(ForgeweaveItems.SLIME_BOOTS.get()); // #452, upstream's tabGadgets
-
-        output.accept(ForgeweaveItems.COBALT_ORE.get());
-        output.accept(ForgeweaveItems.ARDITE_ORE.get());
 
         output.accept(ForgeweaveItems.COBALT_BLOCK.get());
         output.accept(ForgeweaveItems.ARDITE_BLOCK.get());
@@ -323,6 +328,26 @@ public final class ForgeweaveCreativeTab {
     /** Upstream's {@code tabGadgets} contents: for now the Slimesling alone ({@code TinkerGadgets:218}). */
     static void addGadgetItems(CreativeModeTab.ItemDisplayParameters parameters, CreativeModeTab.Output rawOutput) {
         enabledOnly(rawOutput).accept(ForgeweaveItems.SLIME_SLING.get());
+    }
+
+    /**
+     * Upstream's {@code tabWorld} ({@code TinkerRegistry:81}), whose icon is slime dirt
+     * ({@code TinkerWorld:150}). It stayed unregistered while the two Nether ores were the only
+     * thing that belonged in it; the slime island's blocks (#449, parity audit T18) are the rest of
+     * upstream's own World tab -- {@code BlockSlimeDirt}, {@code BlockSlimeGrass},
+     * {@code BlockSlimeCongealed}, {@code BlockSlimeLeaves} and {@code BlockTallSlimeGrass} all set
+     * {@code TinkerRegistry.tabWorld} -- so the ores move here with them, where upstream files them
+     * ({@code BlockOre:31}).
+     */
+    static void addWorldItems(CreativeModeTab.ItemDisplayParameters parameters, CreativeModeTab.Output rawOutput) {
+        CreativeModeTab.Output output = enabledOnly(rawOutput);
+
+        output.accept(ForgeweaveItems.COBALT_ORE.get());
+        output.accept(ForgeweaveItems.ARDITE_ORE.get());
+
+        for (var block : ForgeweaveItems.slimeWorldBlocks()) {
+            output.accept(block.get());
+        }
     }
 
     static void addSmelteryItems(CreativeModeTab.ItemDisplayParameters parameters, CreativeModeTab.Output rawOutput) {

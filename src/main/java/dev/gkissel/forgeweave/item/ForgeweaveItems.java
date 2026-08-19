@@ -433,6 +433,37 @@ public final class ForgeweaveItems {
     public static final DeferredItem<BlockItem> CONSECRATED_SOIL =
             ITEMS.registerSimpleBlockItem("consecrated_soil", ForgeweaveBlocks.CONSECRATED_SOIL);
 
+    // #449 (T18 parity audit): the slime island's world blocks. Walked off ForgeweaveBlocks' own
+    // rosters rather than listed one by one, so a colour added there cannot lose its block item --
+    // the same anti-drift shape ForgeweaveBlocks#clearStainedGlassColors already uses. The order is
+    // the one the World creative tab shows them in.
+    private static final List<DeferredItem<BlockItem>> SLIME_WORLD_BLOCKS = registerSlimeWorldBlocks();
+
+    /** Every slime island block item, in creative-tab order (#449). */
+    public static List<DeferredItem<BlockItem>> slimeWorldBlocks() {
+        return SLIME_WORLD_BLOCKS;
+    }
+
+    private static List<DeferredItem<BlockItem>> registerSlimeWorldBlocks() {
+        List<DeferredItem<BlockItem>> items = new java.util.ArrayList<>();
+        for (ForgeweaveBlocks.SlimeSoil soil : ForgeweaveBlocks.slimeSoils()) {
+            items.add(blockItem(soil.dirt()));
+            items.add(blockItem(soil.grass()));
+        }
+        items.add(blockItem(ForgeweaveBlocks.GREEN_CONGEALED_SLIME));
+        for (ForgeweaveBlocks.SlimePlants plants : ForgeweaveBlocks.slimePlants()) {
+            items.add(blockItem(plants.leaves()));
+            items.add(blockItem(plants.tallGrass()));
+            items.add(blockItem(plants.fern()));
+        }
+        return Collections.unmodifiableList(items);
+    }
+
+    /** Registers a block item under the block's own registry id -- the convention every block here follows. */
+    private static DeferredItem<BlockItem> blockItem(DeferredBlock<? extends Block> block) {
+        return ITEMS.registerSimpleBlockItem(block.getId().getPath(), block);
+    }
+
     // #502 (T71 parity audit): mud brick, upstream's second "materials" meta item alongside seared
     // brick (TinkerCommons#mudBrick, "materials" item meta 1, NOTICE.md) -- cast at a Casting Table
     // from molten dirt, and crafted 2x2 into the mud brick block below.

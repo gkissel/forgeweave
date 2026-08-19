@@ -3,14 +3,17 @@ package dev.gkissel.forgeweave.block;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.LeavesBlock;
 import net.minecraft.world.level.block.SlabBlock;
 import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.StairBlock;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.material.MapColor;
+import net.minecraft.world.level.material.PushReaction;
 
 import net.neoforged.neoforge.registries.DeferredBlock;
 import net.neoforged.neoforge.registries.DeferredRegister;
@@ -365,6 +368,150 @@ public final class ForgeweaveBlocks {
     public static final DeferredBlock<Block> CLEAR_STAINED_GLASS_GREEN = stainedGlassBlock(DyeColor.GREEN, 0x667f33);
     public static final DeferredBlock<Block> CLEAR_STAINED_GLASS_RED = stainedGlassBlock(DyeColor.RED, 0x993333);
     public static final DeferredBlock<Block> CLEAR_STAINED_GLASS_BLACK = stainedGlassBlock(DyeColor.BLACK, 0x191919);
+
+    // ------------------------------------------------------------------------------------------
+    // Slime island world content (#449, parity audit T18). Upstream 1.12 keeps each of these as one
+    // metadata block -- BlockSlimeDirt (4 colours), BlockSlimeGrass (5 dirts x 3 foliages),
+    // BlockSlimeCongealed (6 colours), BlockSlimeLeaves and BlockTallSlimeGrass (3 foliages x 2
+    // shapes) -- all NOTICE.md rows. Modern Minecraft has no metadata, so each state a registry id
+    // has to reach becomes its own block; the roster here is exactly what
+    // SlimeIslandGenerator#generateIslandInChunk places on an overworld island, and the rest
+    // (magma/orange for T19, blood/pink congealed, the vanilla-dirt grass) waits on those tickets.
+
+    /**
+     * One slime soil colour: the dirt, the grass that sits on top of it, and the foliage colour that
+     * grass is tinted with. Upstream lets any of its three foliage colours sit on any of its dirts;
+     * Forgeweave pins one per dirt -- the pairing {@code SlimeIslandGenerator} itself uses -- so a
+     * grass block needs no second property. See {@link SlimeGrassBlock}'s javadoc.
+     */
+    public record SlimeSoil(FoliageType foliage, DeferredBlock<Block> dirt, DeferredBlock<SlimeGrassBlock> grass) {}
+
+    private static final List<SlimeSoil> SLIME_SOILS = new ArrayList<>();
+    private static final List<SlimeSoil> SLIME_SOILS_VIEW = Collections.unmodifiableList(SLIME_SOILS);
+
+    /** Every slime dirt/grass pair, in declaration order -- datagen, tinting and worldgen all walk this. */
+    public static List<SlimeSoil> slimeSoils() {
+        return SLIME_SOILS_VIEW;
+    }
+
+    public static final SlimeSoil GREEN_SLIME_SOIL = slimeSoil("green", FoliageType.BLUE, MapColor.COLOR_GREEN);
+    public static final SlimeSoil BLUE_SLIME_SOIL = slimeSoil("blue", FoliageType.BLUE, MapColor.COLOR_LIGHT_BLUE);
+    public static final SlimeSoil PURPLE_SLIME_SOIL = slimeSoil("purple", FoliageType.PURPLE, MapColor.COLOR_PURPLE);
+
+    /**
+     * Green congealed slime: upstream's {@code BlockSlimeCongealed} in its {@code GREEN} state
+     * (NOTICE.md), the block {@code SlimeIslandGenerator} builds every slime tree trunk from. Its
+     * blue and purple siblings only appear in the lake generator, which waits on the blue/purple
+     * slime fluids (parity audit T57), so they are deliberately absent rather than unobtainable.
+     * Upstream properties: {@code Material.CLAY}, hardness 0.5, slipperiness 0.5,
+     * {@code SoundType.SLIME}; its sunken collision box lives in {@link CongealedSlimeBlock}.
+     */
+    public static final DeferredBlock<CongealedSlimeBlock> GREEN_CONGEALED_SLIME = BLOCKS.register("green_congealed_slime",
+            () -> new CongealedSlimeBlock(BlockBehaviour.Properties.of()
+                    .mapColor(MapColor.COLOR_GREEN)
+                    .strength(0.5F)
+                    .friction(0.5F)
+                    .sound(SoundType.SLIME_BLOCK)));
+
+    /** One slime foliage colour's plant life: leaves, tall grass and fern. */
+    public record SlimePlants(FoliageType foliage, DeferredBlock<Block> leaves,
+                              DeferredBlock<SlimeTallGrassBlock> tallGrass, DeferredBlock<SlimeTallGrassBlock> fern) {}
+
+    private static final List<SlimePlants> SLIME_PLANTS = new ArrayList<>();
+    private static final List<SlimePlants> SLIME_PLANTS_VIEW = Collections.unmodifiableList(SLIME_PLANTS);
+
+    /** Every slime foliage colour's plants, in declaration order. */
+    public static List<SlimePlants> slimePlants() {
+        return SLIME_PLANTS_VIEW;
+    }
+
+    public static final SlimePlants BLUE_SLIME_PLANTS = slimePlants(FoliageType.BLUE, MapColor.COLOR_LIGHT_BLUE);
+    public static final SlimePlants PURPLE_SLIME_PLANTS = slimePlants(FoliageType.PURPLE, MapColor.COLOR_PURPLE);
+
+    /** The grass that grows on {@code dirt}, if it is one of the slime dirts. Drives {@link SlimeGrassBlock}'s spread. */
+    public static Optional<Block> slimeGrassForDirt(Block dirt) {
+        return SLIME_SOILS.stream().filter(soil -> soil.dirt().get() == dirt).<Block>map(soil -> soil.grass().get()).findFirst();
+    }
+
+    /** Whether {@code block} is a slime dirt or slime grass -- upstream's "can a slime plant stand here". */
+    public static boolean isSlimeSoil(Block block) {
+        return SLIME_SOILS.stream().anyMatch(soil -> soil.dirt().get() == block || soil.grass().get() == block);
+    }
+
+    /** The tall grass of a given foliage colour. */
+    public static Block slimeTallGrass(FoliageType foliage) {
+        return plantsOf(foliage).tallGrass().get();
+    }
+
+    /** The fern of a given foliage colour. */
+    public static Block slimeFern(FoliageType foliage) {
+        return plantsOf(foliage).fern().get();
+    }
+
+    /** The leaves of a given foliage colour. */
+    public static Block slimeLeaves(FoliageType foliage) {
+        return plantsOf(foliage).leaves().get();
+    }
+
+    private static SlimePlants plantsOf(FoliageType foliage) {
+        return SLIME_PLANTS.stream().filter(plants -> plants.foliage() == foliage).findFirst()
+                .orElseThrow(() -> new IllegalStateException("no slime plants registered for " + foliage));
+    }
+
+    private static SlimeSoil slimeSoil(String color, FoliageType foliage, MapColor mapColor) {
+        // Upstream BlockSlimeDirt: Material.GROUND, hardness 0.55, SoundType.SLIME. BlockSlimeGrass:
+        // Material.GRASS, hardness 0.65, SoundType.PLANT, slipperiness default + 0.05 (0.65) and
+        // setTickRandomly for its spread.
+        DeferredBlock<Block> dirt = BLOCKS.registerSimpleBlock(color + "_slime_dirt",
+                BlockBehaviour.Properties.of()
+                        .mapColor(mapColor)
+                        .strength(0.55F)
+                        .sound(SoundType.SLIME_BLOCK));
+        DeferredBlock<SlimeGrassBlock> grass = BLOCKS.register(color + "_slime_grass",
+                () -> new SlimeGrassBlock(BlockBehaviour.Properties.of()
+                        .mapColor(mapColor)
+                        .strength(0.65F)
+                        .friction(0.65F)
+                        .randomTicks()
+                        .sound(SoundType.GRASS), foliage));
+        SlimeSoil soil = new SlimeSoil(foliage, dirt, grass);
+        SLIME_SOILS.add(soil);
+        return soil;
+    }
+
+    private static SlimePlants slimePlants(FoliageType foliage, MapColor mapColor) {
+        // Upstream BlockSlimeLeaves: hardness 0.3, vanilla leaves behaviour otherwise. Persistent by
+        // default because a slime tree's trunk is congealed slime, not a log: upstream's own decay
+        // never triggers either (its 1.12 leaf decay only starts when a nearby *wood* block breaks),
+        // and modern LeavesBlock would otherwise delete every worldgen canopy on the first tick.
+        DeferredBlock<Block> leaves = BLOCKS.register(foliage.id() + "_slime_leaves",
+                () -> new LeavesBlock(BlockBehaviour.Properties.of()
+                        .mapColor(mapColor)
+                        .strength(0.3F)
+                        .randomTicks()
+                        .sound(SoundType.GRASS)
+                        .noOcclusion()
+                        .isValidSpawn((state, level, pos, type) -> false)
+                        .isSuffocating((state, level, pos) -> false)
+                        .isViewBlocking((state, level, pos) -> false)));
+        DeferredBlock<SlimeTallGrassBlock> tallGrass = slimePlant(foliage, mapColor, "slime_tall_grass");
+        DeferredBlock<SlimeTallGrassBlock> fern = slimePlant(foliage, mapColor, "slime_fern");
+        SlimePlants plants = new SlimePlants(foliage, leaves, tallGrass, fern);
+        SLIME_PLANTS.add(plants);
+        return plants;
+    }
+
+    private static DeferredBlock<SlimeTallGrassBlock> slimePlant(FoliageType foliage, MapColor mapColor, String name) {
+        return BLOCKS.register(foliage.id() + "_" + name,
+                () -> new SlimeTallGrassBlock(BlockBehaviour.Properties.of()
+                        .mapColor(mapColor)
+                        .replaceable()
+                        .noCollission()
+                        .instabreak()
+                        .sound(SoundType.GRASS)
+                        .offsetType(BlockBehaviour.OffsetType.XYZ)
+                        .pushReaction(PushReaction.DESTROY), foliage));
+    }
 
     private static DeferredBlock<Block> stainedGlassBlock(DyeColor dye, int tint) {
         DeferredBlock<Block> block = BLOCKS.registerSimpleBlock(dye.getName() + "_stained_clear_glass",
