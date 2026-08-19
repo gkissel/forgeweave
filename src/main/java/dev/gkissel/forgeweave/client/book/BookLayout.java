@@ -18,11 +18,14 @@ import java.util.List;
  */
 public final class BookLayout {
 
-    /** Body width of one page, in pixels. */
-    public static final int PAGE_TEXT_W = 118;
+    /** Body width of one page, in pixels: upstream's full page area (issue #430). */
+    public static final int PAGE_TEXT_W = BookGeometry.PAGE_WIDTH;
 
-    /** Body height of one page, in pixels. Nothing may ever be drawn below it (issue #428). */
-    public static final int PAGE_TEXT_H = 164;
+    /**
+     * Body height of one page, in pixels. Nothing may ever be drawn below it (issue #428):
+     * upstream's page area minus the room its page number row occupies.
+     */
+    public static final int PAGE_TEXT_H = BookGeometry.PAGE_HEIGHT - BookGeometry.PAGE_NUMBER_CLEARANCE;
 
     private BookLayout() {
     }

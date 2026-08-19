@@ -64,6 +64,8 @@ import net.neoforged.neoforge.fluids.capability.templates.FluidTank;
 
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.block.CastingBlockEntity;
+import dev.gkissel.forgeweave.client.book.BookContent;
+import dev.gkissel.forgeweave.client.book.BookScreen;
 import dev.gkissel.forgeweave.block.FaucetBlock;
 import dev.gkissel.forgeweave.block.FaucetBlockEntity;
 import dev.gkissel.forgeweave.block.ForgeweaveBlocks;
@@ -383,12 +385,14 @@ public final class ScreenshotHarness {
         PLACE_PART_TINT_SCENE, SETTLE_PART_TINT_SCENE,
         HOLD_WEAPON, SETTLE_WEAPON, SETTLE_WEAPON_FIRST_PERSON,
         HOLD_BOW_POSE, SETTLE_BOW_POSE, SETTLE_BOW_POSE_THIRD_PERSON,
-        OPEN_SCREEN, SETTLE_SCREEN, DONE
+        OPEN_SCREEN, SETTLE_SCREEN, OPEN_BOOK, SETTLE_BOOK, DONE
     }
 
     private static Stage stage = Stage.AWAIT_TITLE;
     private static int stageTicks;
     private static int screenIndex;
+    /** Which of {@link #BOOK_SCENES} is being captured (#430). */
+    private static int bookSceneIndex;
     private static BlockPos origin;
     /** Set by {@link #placeTankScene}, checked by {@link #settleTankScene} before capture. */
     private static BlockPos[] tankScenePositions;
@@ -412,6 +416,14 @@ public final class ScreenshotHarness {
     private static AABB materialSceneBounds;
     /** Set by {@link #placePartTintScene}, checked by {@link #settlePartTintScene} before capture (#256). */
     private static AABB partTintSceneBounds;
+
+    /** A guide-book capture: the file name and the spread to open ({@code -1} = the closed cover). */
+    private record BookScene(String fileName, int spread) {}
+
+    private static final List<BookScene> BOOK_SCENES = List.of(
+            new BookScene("book_cover", -1),
+            new BookScene("book_index", 0),
+            new BookScene("book_section", 1));
 
     private ScreenshotHarness() {}
 
@@ -446,6 +458,8 @@ public final class ScreenshotHarness {
             case SETTLE_BOW_POSE_THIRD_PERSON -> settleBowPoseThirdPerson(mc);
             case OPEN_SCREEN -> openScreen(mc);
             case SETTLE_SCREEN -> settleScreen(mc);
+            case OPEN_BOOK -> openBook(mc);
+            case SETTLE_BOOK -> settleBook(mc);
             case DONE -> {}
         }
     }
@@ -1434,9 +1448,7 @@ public final class ScreenshotHarness {
             return;
         }
         if (screenIndex >= SCREENS.size()) {
-            LOGGER.info("{}all {} screens captured, exiting", LOG_PREFIX, SCREENS.size());
-            mc.stop();
-            advance(Stage.DONE);
+            advance(Stage.OPEN_BOOK);
             return;
         }
         HarnessScreen screen = SCREENS.get(screenIndex);
@@ -1471,6 +1483,46 @@ public final class ScreenshotHarness {
         }
         screenIndex++;
         advance(Stage.OPEN_SCREEN);
+    }
+
+    /**
+     * The #430 guide-book scenes: the closed cover, the opened index leaf, and the first full
+     * spread -- the three chrome states the 1.12 parity review compares against Mantle's book. The
+     * book is a plain screen with no menu behind it, so unlike {@link #openScreen} there is no
+     * server-side work: the screen is set directly, and {@link BookScreen#openSpread} turns it to
+     * the scene's spread.
+     */
+    private static void openBook(Minecraft mc) {
+        if (stageTicks < SCREEN_GAP_TICKS) {
+            return;
+        }
+        if (bookSceneIndex >= BOOK_SCENES.size()) {
+            LOGGER.info("{}all {} screens and {} book scenes captured, exiting", LOG_PREFIX,
+                    SCREENS.size(), BOOK_SCENES.size());
+            mc.stop();
+            advance(Stage.DONE);
+            return;
+        }
+        BookScene scene = BOOK_SCENES.get(bookSceneIndex);
+        LOGGER.info("{}opening the guide book for {}", LOG_PREFIX, scene.fileName());
+        BookScreen screen = new BookScreen(BookContent.sections(mc.level.registryAccess()));
+        mc.setScreen(screen);
+        if (scene.spread() >= 0) {
+            screen.openSpread(scene.spread());
+        }
+        advance(Stage.SETTLE_BOOK);
+    }
+
+    private static void settleBook(Minecraft mc) {
+        if (stageTicks < SCREEN_SETTLE_TICKS) {
+            return;
+        }
+        capture(mc, BOOK_SCENES.get(bookSceneIndex).fileName());
+        if (mc.screen != null) {
+            mc.screen.onClose();
+        }
+        bookSceneIndex++;
+        advance(Stage.OPEN_BOOK);
     }
 
     private static void capture(Minecraft mc, String fileName) {
