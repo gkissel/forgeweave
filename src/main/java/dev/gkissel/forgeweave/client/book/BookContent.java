@@ -12,9 +12,12 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.item.crafting.Ingredient;
 
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.block.ForgeweaveBlocks;
+import dev.gkissel.forgeweave.client.book.BookPage.IconGridPage;
+import dev.gkissel.forgeweave.client.book.BookPage.ListingPage;
 import dev.gkissel.forgeweave.client.book.BookPage.MaterialPage;
 import dev.gkissel.forgeweave.client.book.BookPage.ModifierPage;
 import dev.gkissel.forgeweave.client.book.BookPage.TextPage;
@@ -84,6 +87,21 @@ public final class BookContent {
 
     /** Builds the full section list; needs registry access for the material listing. */
     public static List<BookSection> sections(RegistryAccess registries) {
+        return sections(registries.registryOrThrow(Material.REGISTRY).entrySet().stream()
+                .sorted(Comparator.comparing(entry -> entry.getKey().location().getPath()))
+                .map((Map.Entry<ResourceKey<Material>, Material> entry) ->
+                        Map.entry(entry.getKey().location(), entry.getValue()))
+                .toList());
+    }
+
+    /**
+     * The registry-free half of {@link #sections(RegistryAccess)}: everything but the material list
+     * is fixed, so handing the materials in keeps the whole page tree unit-testable
+     * ({@code BookListingTest}) without standing up a datapack registry.
+     *
+     * @param materials every material to give a page, already in the order the book shows them
+     */
+    public static List<BookSection> sections(List<Map.Entry<ResourceLocation, Material>> materials) {
         List<BookSection> sections = new ArrayList<>();
 
         sections.add(new BookSection("book.forgeweave.section.intro",
@@ -98,18 +116,24 @@ public final class BookContent {
             toolPages.add(new ToolPage(tool.get()));
         }
         sections.add(new BookSection("book.forgeweave.section.tools",
-                () -> new ItemStack(ForgeweaveItems.TOOL_PICKAXE.get()), List.copyOf(toolPages)));
+                () -> new ItemStack(ForgeweaveItems.TOOL_PICKAXE.get()),
+                withListing("book.forgeweave.section.tools", toolPages)));
 
         List<BookPage> materialPages = new ArrayList<>();
         materialPages.add(new TextPage("book.forgeweave.materials.intro.title", "book.forgeweave.materials.intro.text"));
-        // Alphabetical by id for a stable page order -- the datapack registry's own order follows
-        // resource-scan order, which is not a progression the reader would recognize anyway.
-        registries.registryOrThrow(Material.REGISTRY).entrySet().stream()
-                .sorted(Comparator.comparing(entry -> entry.getKey().location().getPath()))
-                .forEach((Map.Entry<ResourceKey<Material>, Material> entry) ->
-                        materialPages.add(new MaterialPage(entry.getKey().location(), entry.getValue())));
+        List<BookLink> grid = new ArrayList<>();
+        for (Map.Entry<ResourceLocation, Material> entry : materials) {
+            ResourceLocation id = entry.getKey();
+            Material material = entry.getValue();
+            grid.add(new BookLink("material." + id.getNamespace() + "." + id.getPath(), material.color(),
+                    () -> representativeItem(material), 1 + materialPages.size()));
+            materialPages.add(new MaterialPage(id, material));
+        }
+        List<BookPage> materialSection = new ArrayList<>();
+        materialSection.add(new IconGridPage("book.forgeweave.section.materials", List.copyOf(grid)));
+        materialSection.addAll(materialPages);
         sections.add(new BookSection("book.forgeweave.section.materials",
-                () -> new ItemStack(Items.IRON_INGOT), List.copyOf(materialPages)));
+                () -> new ItemStack(Items.IRON_INGOT), List.copyOf(materialSection)));
 
         List<BookPage> modifierPages = new ArrayList<>();
         modifierPages.add(new TextPage("book.forgeweave.modifiers.intro.title", "book.forgeweave.modifiers.intro.text"));
@@ -117,7 +141,8 @@ public final class BookContent {
                 .sorted(Comparator.comparing(ResourceLocation::getPath))
                 .forEach(id -> modifierPages.add(new ModifierPage(id)));
         sections.add(new BookSection("book.forgeweave.section.modifiers",
-                () -> new ItemStack(Items.REDSTONE), List.copyOf(modifierPages)));
+                () -> new ItemStack(Items.REDSTONE),
+                withListing("book.forgeweave.section.modifiers", modifierPages)));
 
         sections.add(new BookSection("book.forgeweave.section.smeltery",
                 () -> new ItemStack(ForgeweaveBlocks.STANDARD_CORE.get()),
@@ -128,6 +153,60 @@ public final class BookContent {
                         new TextPage("book.forgeweave.smeltery.working.title", "book.forgeweave.smeltery.working.text"))));
 
         return List.copyOf(sections);
+    }
+
+    /**
+     * Upstream {@code ContentListingSectionTransformer#transform}: a generated section opens with a
+     * listing page of one linked row per page, titled with the section name, and every content page
+     * shifts one along behind it (issue #479). Upstream skips a page whose title is literally
+     * {@code "hidden"}; Forgeweave has no hidden pages, so every page gets a row.
+     *
+     * <p>Deviation from upstream's {@code ModifierSectionTransformer}, which overrides
+     * {@code processPage} to drop everything that is not a {@code ContentModifier}: upstream's
+     * modifiers section is nothing *but* modifier pages, so the override changes nothing there,
+     * while Forgeweave's opens with a written introduction that is worth linking.
+     */
+    private static List<BookPage> withListing(String titleKey, List<BookPage> content) {
+        List<BookLink> links = new ArrayList<>();
+        for (int i = 0; i < content.size(); i++) {
+            links.add(new BookLink(rowLabelKey(content.get(i)), 1 + i));
+        }
+        List<BookPage> pages = new ArrayList<>();
+        pages.add(new ListingPage(titleKey, List.copyOf(links)));
+        pages.addAll(content);
+        return List.copyOf(pages);
+    }
+
+    /**
+     * The lang key a listing row shows for one page -- upstream's {@code page.getTitle()}, except
+     * for the page kinds whose title is not authored text: a tool row is the tool's own name
+     * ({@code ToolSectionTransformer#processPage}) and a modifier row the modifier's
+     * ({@code ModifierSectionTransformer#processPage}), so the listing can never disagree with the
+     * page it opens.
+     */
+    private static String rowLabelKey(BookPage page) {
+        return switch (page) {
+            case TextPage text -> text.titleKey();
+            case ToolPage tool -> tool.tool().getDescriptionId();
+            case ModifierPage modifier ->
+                    "modifier." + modifier.id().getNamespace() + "." + modifier.id().getPath() + ".name";
+            case MaterialPage material ->
+                    "material." + material.id().getNamespace() + "." + material.id().getPath();
+            case ListingPage listing -> listing.titleKey();
+            case IconGridPage listing -> listing.titleKey();
+        };
+    }
+
+    /**
+     * The item a material's grid icon shows -- upstream's {@code Material#getRepresentativeItem()},
+     * which is the item the material is repaired and built with. Forgeweave has no separate
+     * representative field, so the repair ingredient stands in for it; an ingredient with no items
+     * (a tag no pack fills) falls back to the blank pattern rather than rendering nothing.
+     */
+    private static ItemStack representativeItem(Material material) {
+        Ingredient repair = material.repairItem();
+        ItemStack[] items = repair.getItems();
+        return items.length > 0 ? items[0] : new ItemStack(ForgeweaveItems.PATTERN_BLANK.get());
     }
 
     /**
