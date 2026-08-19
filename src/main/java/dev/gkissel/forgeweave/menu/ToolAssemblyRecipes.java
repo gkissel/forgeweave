@@ -231,7 +231,11 @@ public final class ToolAssemblyRecipes {
             // spends the material's blocks in both places. Both are in LARGE_TOOLS
             // (ForgeweaveItemTagsProvider), which is the whole of the Tool Forge gate.
             new Entry(ToolConstants.LONGBOW, ForgeweaveItems.TOOL_LONGBOW),
-            new Entry(ToolConstants.CROSSBOW, ForgeweaveItems.TOOL_CROSSBOW));
+            new Entry(ToolConstants.CROSSBOW, ForgeweaveItems.TOOL_CROSSBOW),
+            // #448: the shuriken -- four knife blades, upstream Shuriken's own PartMaterialType
+            // order (the same PMT four times over). Tool Forge tier
+            // (TinkerRegistry.registerToolForgeCrafting), so it is in LARGE_TOOLS.
+            new Entry(ToolConstants.SHURIKEN, ForgeweaveItems.TOOL_SHURIKEN));
 
     /**
      * The "large tool" classification (docs/SCOPE.md M3 issue #152): tools that can only be assembled
@@ -834,7 +838,8 @@ public final class ToolAssemblyRecipes {
         List<Material> heads = new ArrayList<>();
         for (int i = 0; i < slots.size(); i++) {
             ToolConstants.Role role = slots.get(i).role();
-            if (role == ToolConstants.Role.HEAD || role == ToolConstants.Role.LIMB) {
+            if (role == ToolConstants.Role.HEAD || role == ToolConstants.Role.LIMB
+                    || role == ToolConstants.Role.SHURIKEN_BLADE) {
                 heads.add(materials.get(i));
             }
         }
@@ -928,6 +933,9 @@ public final class ToolAssemblyRecipes {
             case BOWSTRING -> List.of(PartItem.Kind.BOWSTRING);
             // #395: PartMaterialType.crossbow names HANDLE and EXTRA, so the body grants both scopes'.
             case CROSSBOW_BODY -> List.of(PartItem.Kind.HANDLE, PartItem.Kind.EXTRA);
+            // #448: upstream's shuriken PartMaterialType names HEAD, EXTRA and PROJECTILE; the
+            // PROJECTILE stat/trait scope is deferred with the arrow follow-up (no material has one).
+            case SHURIKEN_BLADE -> List.of(PartItem.Kind.HEAD, PartItem.Kind.EXTRA);
         };
     }
 

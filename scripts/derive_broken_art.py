@@ -95,7 +95,11 @@ PORTED = {
 }
 
 # The five Forgeweave-only tools; their broken layer is chip() applied to their own head layer.
-CHIPPED = ["dagger_head", "katana_head", "scimitar_head", "vein_hammer_head", "warmace_head"]
+CHIPPED = ["dagger_head", "katana_head", "scimitar_head", "vein_hammer_head", "warmace_head",
+           # #448: upstream's shuriken.tcon.json declares no broken<N> key at all (a spent one
+           # reads "Ammo: Empty"), but Forgeweave's #284 invariant is that Broken is visible on
+           # the model, so the first blade takes the same chip() the other art-less tools use.
+           "shuriken_head"]
 
 # How much of the part chip() erases at each end of its principal axis. See the module docstring.
 CHIP_FRACTION = 0.15

@@ -93,7 +93,9 @@ public record ToolMaterials(ResourceLocation head, Optional<ResourceLocation> bi
         ResourceLocation handle = null;
         for (int i = 0; i < slots.size(); i++) {
             switch (slots.get(i).role()) {
-                case HEAD, LIMB -> head = head == null ? materialIds.get(i) : head;
+                // #448: a shuriken blade is a head slot for every primary pick (upstream's
+                // shurikenPMT leads with MaterialTypes.HEAD).
+                case HEAD, LIMB, SHURIKEN_BLADE -> head = head == null ? materialIds.get(i) : head;
                 case EXTRA -> binding = binding == null ? materialIds.get(i) : binding;
                 // #395: the crossbow's body is its handle part as far as the primary picks go
                 // (upstream's default getRepairParts() = {1} keys repair off the limb, which is the

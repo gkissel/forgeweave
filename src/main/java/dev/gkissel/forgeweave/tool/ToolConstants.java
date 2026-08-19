@@ -95,7 +95,17 @@ public final class ToolConstants {
         HANDLE,
         CROSSBOW_BODY,
         LIMB,
-        BOWSTRING
+        BOWSTRING,
+        /**
+         * Issue #448 (parity audit T17): a shuriken blade, upstream's {@code PartMaterialType(knifeBlade,
+         * HEAD, EXTRA, PROJECTILE)} -- the slot that reads <em>both</em> the HEAD block ({@code
+         * Shuriken#buildTagData} hands all four blades to {@code data.head(...)}) and the EXTRA block
+         * ({@code data.extra(...)} over the same four), so it lands in both averages and grants both
+         * scopes' traits, the same dual duty {@link #CROSSBOW_BODY} does for HANDLE+EXTRA. Upstream's
+         * third stat type there, PROJECTILE, is deferred with the rest of the projectile stat layer
+         * (the arrow follow-up ticket) -- no Forgeweave material carries a PROJECTILE block yet.
+         */
+        SHURIKEN_BLADE
     }
 
     /**
@@ -499,6 +509,25 @@ public final class ToolConstants {
                     new PartSlot(Role.EXTRA, TOUGH_BINDING), new PartSlot(Role.BOWSTRING, "bow_string")),
             2.0f, 0.8f, 1.0f, 0.0f, 1.0f, 1.0f, false, false, DEFAULT_DAMAGE_CUTOFF, 1.5f);
 
+    /**
+     * Upstream {@code tools/ranged/item/Shuriken.java} (issue #448, parity audit T17): four knife
+     * blades, Tool Forge tier ({@code TinkerRegistry.registerToolForgeCrafting(shuriken)}). Its
+     * {@code buildTagData} is {@code head(...)} and {@code extra(...)} over all four blades'
+     * materials -- {@link Role#SHURIKEN_BLADE}'s dual read -- then {@code data.attack += 1f}
+     * ({@code flatAttackBonus}). {@code damagePotential() = 0.7f}; {@code attackSpeed() = 100} is
+     * {@code ProjectileCore}'s "projectiles behave like regular items" stand-in, inert here because
+     * {@code ShurikenItem} carries no melee attributes at all. Throw speed, inaccuracy and the
+     * 4-tick cooldown are per-item constants on {@code ShurikenItem}, as a bow's draw constants are
+     * on {@code BowItem}.
+     */
+    public static final Entry SHURIKEN = new Entry("shuriken", Category.RANGED,
+            List.of(new PartSlot(Role.SHURIKEN_BLADE, "knife_blade"), new PartSlot(Role.SHURIKEN_BLADE, "knife_blade"),
+                    new PartSlot(Role.SHURIKEN_BLADE, "knife_blade"), new PartSlot(Role.SHURIKEN_BLADE, "knife_blade")),
+            100.0f, 0.7f, 1.0f, 1.0f, 1.0f, 1.0f, false, false)
+            // Upstream Shuriken#getRepairParts is {0, 1, 2, 3} -- every blade -- with no repair
+            // modifier override, so all four repair at 1.
+            .withRepairModifiers(1f, 1f, 1f, 1f);
+
     /** All 18 M3 tools, in docs/SCOPE.md content-manifest order (M3.5's bows are not M3 roster). */
     public static final List<Entry> ALL = List.of(
             BROADSWORD, LONGSWORD, RAPIER, BATTLESIGN, FRYING_PAN, MATTOCK, KAMA, DAGGER,
@@ -573,6 +602,19 @@ public final class ToolConstants {
                     bowstringModifierSum += material.bowstring()
                             .orElseThrow(() -> ToolStats.noStats("bowstring")).modifier();
                     bowstringCount++;
+                }
+                // Issue #448: a shuriken blade is both a head and an extra part -- upstream
+                // Shuriken#buildTagData feeds every blade's HEAD block to data.head(...) and its
+                // EXTRA block to data.extra(...), so the slot lands in both averages.
+                case SHURIKEN_BLADE -> {
+                    Material.Head blade = material.head().orElseThrow(() -> ToolStats.noStats("head"));
+                    float weight = slot.weight();
+                    headDurabilityWeighted += blade.durability() * weight;
+                    headAttackWeighted += blade.attackDamage() * weight;
+                    headSpeedWeighted += blade.miningSpeed() * weight;
+                    headWeightTotal += weight;
+                    extraDurabilitySum += material.extraDurability().orElseThrow(() -> ToolStats.noStats("extra"));
+                    extraCount++;
                 }
             }
         }

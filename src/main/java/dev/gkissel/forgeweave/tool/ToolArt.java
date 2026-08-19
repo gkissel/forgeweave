@@ -68,17 +68,24 @@ public final class ToolArt {
 
     /** Back-to-front drawing order of the roles; see the class javadoc. */
     private static final List<ToolConstants.Role> LAYER_ORDER =
-            List.of(ToolConstants.Role.HANDLE, ToolConstants.Role.HEAD, ToolConstants.Role.CROSSBOW_BODY,
-                    ToolConstants.Role.LIMB, ToolConstants.Role.EXTRA, ToolConstants.Role.BOWSTRING);
+            List.of(ToolConstants.Role.HANDLE, ToolConstants.Role.HEAD, ToolConstants.Role.SHURIKEN_BLADE,
+                    ToolConstants.Role.CROSSBOW_BODY, ToolConstants.Role.LIMB, ToolConstants.Role.EXTRA,
+                    ToolConstants.Role.BOWSTRING);
 
-    /** The layer name each part role draws under; see the class javadoc. */
+    /**
+     * The layer name each part role draws under; see the class javadoc. A shuriken blade draws as a
+     * {@code head} layer (issue #448): upstream's {@code shuriken.tcon.json} is layer0..layer3, one
+     * blade each, in slot order -- so the four come out {@code head}..{@code head4}, and the only
+     * tool with both roles would have to exist upstream first for the shared name to collide.
+     */
     private static final Map<ToolConstants.Role, String> ROLE_LAYERS = new EnumMap<>(Map.of(
             ToolConstants.Role.HANDLE, "handle",
             ToolConstants.Role.HEAD, "head",
             ToolConstants.Role.EXTRA, "binding",
             ToolConstants.Role.LIMB, "limb",
             ToolConstants.Role.BOWSTRING, "string",
-            ToolConstants.Role.CROSSBOW_BODY, "body"));
+            ToolConstants.Role.CROSSBOW_BODY, "body",
+            ToolConstants.Role.SHURIKEN_BLADE, "head"));
 
     /**
      * The part slot each model layer draws, in layer order -- the one place the art's back-to-front
@@ -162,7 +169,13 @@ public final class ToolArt {
             Map.entry("shortbow", "string"),
             Map.entry("shovel", "head"),
             Map.entry("vein_hammer", "head"),
-            Map.entry("warmace", "head"));
+            Map.entry("warmace", "head"),
+            // #448: upstream's shuriken.tcon.json declares no broken<N> key -- a spent shuriken
+            // renders intact and only its tooltip says Empty -- but Forgeweave's own #284 invariant
+            // is that Broken shows on the model, so the first blade follows the dominant break-the-
+            // head rule with the same chip() treatment the other five art-less tools take
+            // (scripts/derive_broken_art.py). Recorded as a deviation in the #448 PR.
+            Map.entry("shuriken", "head"));
 
     /**
      * The layer name {@code tool} draws broken art for, or {@code null} if it has none; see

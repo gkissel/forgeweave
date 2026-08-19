@@ -1,0 +1,53 @@
+{
+    decoder: "item_stack",
+    expect: {
+        components: {
+            "forgeweave:tool_materials": {
+                head: "forgeweave:wood",
+                parts: [
+                    "forgeweave:wood",
+                    "forgeweave:wood",
+                    "forgeweave:wood",
+                    "forgeweave:wood"
+                ]
+            },
+            "forgeweave:tool_stats": {
+                attack_damage: 3.0f,
+                durability: 50,
+                mining_speed: 2.0f
+            },
+            "forgeweave:traits": [
+                "forgeweave:ecological"
+            ],
+            "minecraft:damage": 10,
+            "minecraft:max_damage": 50
+        },
+        id: "forgeweave:shuriken"
+    },
+    nbt: {
+        components: {
+            "forgeweave:tool_materials": {
+                head: "forgeweave:wood",
+                parts: [
+                    "forgeweave:wood",
+                    "forgeweave:wood",
+                    "forgeweave:wood",
+                    "forgeweave:wood"
+                ]
+            },
+            "forgeweave:tool_stats": {
+                attack_damage: 3.0f,
+                durability: 50,
+                mining_speed: 2.0f
+            },
+            "forgeweave:traits": [
+                "forgeweave:ecological"
+            ],
+            "minecraft:damage": 10,
+            "minecraft:max_damage": 50
+        },
+        count: 1,
+        id: "forgeweave:shuriken"
+    },
+    what: "#448 (parity audit T17): a Tool Forge shuriken -- four wood knife blades -- after one throw. The ProjectileCore layer deliberately introduces NO new serialized format: ammo is durability (`minecraft:damage` 10 = one throw of the ten-durability ratio, 4 of 5 ammo left), so this pins that a shuriken is an ordinary tool stack -- a four-entry `tool_materials` with no handle or binding, the head+extra dual-read stats (durability 35 + 15, attack 2 + 1), and the trait list its blades collected from both scopes, deduplicated to wood's one. ShurikenGameTests#throwCostsOneAmmoAndSpawnsTheProjectile assembles this exact shuriken at a real Tool Forge and asserts these numbers."
+}

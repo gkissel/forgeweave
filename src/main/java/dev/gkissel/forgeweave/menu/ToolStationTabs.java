@@ -208,7 +208,11 @@ public final class ToolStationTabs {
             // grip, (32+6, 41+6) bowstring. Crossbow: (32+6, 41+6) body, (32+12, 41-22) limb,
             // (32-18, 41-18) binding, (32-14, 41+10) bowstring.
             build(ForgeweaveItems.TOOL_LONGBOW, at(11, -23), at(-23, 11), at(-16, -16), at(5, 5)),
-            build(ForgeweaveItems.TOOL_CROSSBOW, at(5, 5), at(11, -23), at(-19, -19), at(-15, 9)));
+            build(ForgeweaveItems.TOOL_CROSSBOW, at(5, 5), at(11, -23), at(-19, -19), at(-15, 9)),
+            // #448: the shuriken's four blades in a square, upstream's own RangedClientProxy layout
+            // from its (32, 41) origin -- (32-12, 41-12), (32+12, 41-12), (32+12, 41+12),
+            // (32-12, 41+12) -- minus one on both axes against this table's (33, 42).
+            build(ForgeweaveItems.TOOL_SHURIKEN, at(-13, -13), at(11, -13), at(11, 11), at(-13, 11)));
 
     /** The repair tab, which is what a freshly opened station shows (as upstream's does). */
     public static final int REPAIR = 0;

@@ -187,7 +187,9 @@ public class ToolStationScreen extends StationScreen<ToolStationMenu> implements
             ToolConstants.Role.LIMB, 0x684E1E,
             ToolConstants.Role.BOWSTRING, 0xFFFFFF,
             // #395: the crossbow's body is its slot 0, so RenderMaterials[0] -- the same brown.
-            ToolConstants.Role.CROSSBOW_BODY, 0x684E1E));
+            ToolConstants.Role.CROSSBOW_BODY, 0x684E1E,
+            // #448: a shuriken blade is a head as far as the preview is concerned.
+            ToolConstants.Role.SHURIKEN_BLADE, 0xC1C1C1));
 
     private static final int BUTTON_SIZE = 18;
     private static final int BUTTON_SPACING = 4;
