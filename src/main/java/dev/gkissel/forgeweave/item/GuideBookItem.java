@@ -16,9 +16,12 @@ import dev.gkissel.forgeweave.client.book.BookOpener;
 
 /**
  * The workshop guide book (issue #273) -- Forgeweave's "Materials and You". Right-clicking opens
- * the client-side {@code BookScreen}; the item itself carries no state, exactly upstream 1.12's
- * {@code common/item/ItemTinkerBook} (NOTICE.md): a plain stack-size-1 item whose only behaviour is
- * opening the book GUI on the client.
+ * the client-side {@code BookScreen}, exactly upstream 1.12's {@code common/item/ItemTinkerBook}
+ * (NOTICE.md): a plain stack-size-1 item whose only behaviour is opening the book GUI on the
+ * client. Its one piece of state is the bookmark (issue #623): closing the screen saves the open
+ * page on the stack ({@code ForgeweaveDataComponents#BOOK_PAGE} via {@code SavedBookPagePayload},
+ * upstream's {@code mantle.book.page} NBT), and opening hands the stack to {@code BookOpener} so
+ * the book reopens there.
  */
 public class GuideBookItem extends Item {
 
@@ -29,7 +32,7 @@ public class GuideBookItem extends Item {
     @Override
     public InteractionResultHolder<ItemStack> use(Level level, Player player, InteractionHand hand) {
         if (level.isClientSide) {
-            BookOpener.open();
+            BookOpener.open(player.getItemInHand(hand), hand);
         }
         return InteractionResultHolder.sidedSuccess(player.getItemInHand(hand), level.isClientSide);
     }

@@ -47,6 +47,7 @@ import dev.gkissel.forgeweave.item.ForgeweaveCreativeTab;
 import dev.gkissel.forgeweave.item.ForgeweaveDataComponents;
 import dev.gkissel.forgeweave.item.ForgeweaveItems;
 import dev.gkissel.forgeweave.item.GuideBookGift;
+import dev.gkissel.forgeweave.item.SavedBookPagePayload;
 import dev.gkissel.forgeweave.item.SlimeBootsItem;
 import dev.gkissel.forgeweave.item.SlimeBounceHandler;
 import dev.gkissel.forgeweave.material.Material;
@@ -267,9 +268,10 @@ public class Forgeweave {
         event.dataPackRegistry(EmbossingRecipe.REGISTRY, EmbossingRecipe.CODEC, EmbossingRecipe.CODEC);
     }
 
-    /** The Tool Station's rename field is the mod's only message that a menu button can't carry. */
+    /** The Tool Station's rename field and the guide book's bookmark ride custom payloads. */
     private void registerPayloads(final RegisterPayloadHandlersEvent event) {
         RenameStationItemPayload.register(event.registrar("1"));
+        SavedBookPagePayload.register(event.registrar("1"));
     }
 
     private void commonSetup(final FMLCommonSetupEvent event) {

@@ -214,5 +214,20 @@ public final class ForgeweaveDataComponents {
             DATA_COMPONENTS.registerComponentType("fluid_content",
                     builder -> builder.persistent(SimpleFluidContent.CODEC).networkSynchronized(SimpleFluidContent.STREAM_CODEC));
 
+    /**
+     * The guide book's bookmark (issue #623): the {@code section.page} name of the page the book
+     * was last closed on, written by {@code SavedBookPagePayload} when {@code BookScreen} closes
+     * and read back by {@code BookOpener} so the book reopens where the reader left off. Upstream
+     * 1.12 Mantle persists the identical string as the {@code mantle.book.page} NBT string
+     * ({@code BookHelper#writeSavedPage} / {@code #getSavedPage}). Absent means no bookmark (the
+     * cover); the string is a plain name with no registry binding, so a bookmark pointing at a
+     * page that no longer exists still decodes and simply resolves to the cover at open time
+     * ({@code SavedPage#find}).
+     */
+    public static final DeferredHolder<DataComponentType<?>, DataComponentType<String>> BOOK_PAGE =
+            DATA_COMPONENTS.registerComponentType("book_page",
+                    builder -> builder.persistent(Codec.STRING)
+                            .networkSynchronized(ByteBufCodecs.STRING_UTF8));
+
     private ForgeweaveDataComponents() {}
 }
