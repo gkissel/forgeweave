@@ -47,11 +47,30 @@ public class SlimeIslandPiece extends StructurePiece {
                     () -> (StructurePieceType.ContextlessType) SlimeIslandPiece::new);
 
     public SlimeIslandPiece(BoundingBox box) {
-        super(TYPE.get(), 0, box);
+        this(TYPE.get(), box);
     }
 
     public SlimeIslandPiece(CompoundTag tag) {
-        super(TYPE.get(), tag);
+        this(TYPE.get(), tag);
+    }
+
+    /** For {@link MagmaSlimeIslandPiece}, which is this piece drawn from a different palette. */
+    protected SlimeIslandPiece(StructurePieceType type, BoundingBox box) {
+        super(type, 0, box);
+    }
+
+    /** For {@link MagmaSlimeIslandPiece}'s load-from-NBT constructor. */
+    protected SlimeIslandPiece(StructurePieceType type, CompoundTag tag) {
+        super(type, tag);
+    }
+
+    /**
+     * The blocks this island is built from. Upstream rolls one of its three overworld palettes here
+     * ({@code SlimeIslandGenerator#generateIslandInChunk}); its Nether subclass has exactly one and
+     * rolls nothing, which is what {@link MagmaSlimeIslandPiece} overrides this to say.
+     */
+    protected SlimeIslandShape.Palette palette(RandomSource random) {
+        return SlimeIslandShape.roll(random);
     }
 
     @Override
@@ -70,7 +89,7 @@ public class SlimeIslandPiece extends StructurePiece {
         }
 
         RandomSource random = islandRandom(level.getSeed(), box);
-        SlimeIslandShape.Palette palette = SlimeIslandShape.roll(random);
+        SlimeIslandShape.Palette palette = palette(random);
         SlimeIslandShape.Canvas canvas = SlimeIslandShape.Canvas.forIsland(size);
         SlimeIslandShape.generate(random, canvas, size, palette);
 

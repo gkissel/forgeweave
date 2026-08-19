@@ -203,6 +203,11 @@ public final class ForgeweaveConfig {
      */
     public static final ModConfigSpec.IntValue SLIME_ISLAND_RATE;
     /**
+     * Upstream {@code magmaIslandRate} (#450, parity audit T19): one Nether chunk in this many
+     * carries a magma island.
+     */
+    public static final ModConfigSpec.IntValue MAGMA_ISLAND_RATE;
+    /**
      * Upstream {@code slimeIslandBlacklist}, whose numeric dimension ids ({@code -1, 1}) become the
      * modern named ones -- see {@code SlimeIslandStructure}.
      */
@@ -328,8 +333,8 @@ public final class ForgeweaveConfig {
         ARDITE_RATE = builder
                 .comment("Approximate ardite veins per Nether chunk.")
                 .defineInRange("arditeRate", 20, 0, 256);
-        // #449 (parity audit T18) -- upstream 1.12 Config's five slime island options, verbatim
-        // names and defaults except the blacklist's dimension ids (see SlimeIslandStructure).
+        // #449 (parity audit T18) and #450 (T19) -- upstream 1.12 Config's six slime island options,
+        // verbatim names and defaults except the blacklist's dimension ids (see SlimeIslandStructure).
         GEN_SLIME_ISLANDS = builder
                 .comment("If true slime islands will generate.")
                 .define("generateSlimeIslands", true);
@@ -340,6 +345,10 @@ public final class ForgeweaveConfig {
                 .comment("One in every X chunks will contain a slime island. Values below 81 are capped",
                         "at one in 81, the density of the island structure set's candidate grid.")
                 .defineInRange("slimeIslandRate", 730, 0, 100000);
+        MAGMA_ISLAND_RATE = builder
+                .comment("One in every X chunks will contain a magma island in the nether. Values below 81",
+                        "are capped at one in 81, the density of the island structure set's candidate grid.")
+                .defineInRange("magmaIslandRate", 100, 0, 100000);
         SLIME_ISLAND_BLACKLIST = builder
                 .comment("Prevents generation of slime islands in the listed dimensions.")
                 .defineListAllowEmpty("slimeIslandBlacklist",

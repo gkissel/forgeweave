@@ -14,6 +14,7 @@ import net.minecraft.SharedConstants;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.Bootstrap;
 import net.minecraft.util.RandomSource;
+import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.VineBlock;
 import net.minecraft.world.level.block.state.BlockState;
 
@@ -293,6 +294,56 @@ class SlimeIslandShapeTest {
             }
         }
         assertTrue(islandsWithPlants >= 15, "only " + islandsWithPlants + "/20 islands grew any plant at all");
+    }
+
+    /**
+     * Issue #450 (parity audit T19): upstream {@code MagmaSlimeIslandGenerator}'s constructor. The
+     * Nether island is the same shape drawn from a different set of blocks -- magma slimy dirt and
+     * grass, an orange canopy on a magma congealed slime trunk, orange plants -- and, uniquely, its
+     * underside erodes into lava rather than air ({@code air = Blocks.LAVA}).
+     */
+    @Test
+    void theMagmaPaletteIsUpstreamsNetherIsland() {
+        SlimeIslandShape.Palette palette = SlimeIslandShape.magmaPalette();
+        assertSame(ForgeweaveBlocks.MAGMA_SLIME_SOIL.dirt().get(), palette.dirt().getBlock());
+        assertSame(ForgeweaveBlocks.MAGMA_SLIME_SOIL.grass().get(), palette.grass().getBlock());
+        assertSame(ForgeweaveBlocks.MAGMA_CONGEALED_SLIME.get(), palette.log().getBlock());
+        assertSame(ForgeweaveBlocks.ORANGE_SLIME_PLANTS.leaves().get(), palette.leaves().getBlock());
+        assertSame(ForgeweaveBlocks.ORANGE_SLIME_PLANTS.tallGrass().get(), palette.tallGrass().getBlock());
+        assertSame(ForgeweaveBlocks.ORANGE_SLIME_PLANTS.fern().get(), palette.fern().getBlock());
+        assertSame(Blocks.LAVA, palette.eroded().getBlock());
+    }
+
+    /**
+     * The visible half of {@code air = Blocks.LAVA}: what the first erosion pass carves out of a
+     * magma island's underside is backfilled with lava, where an overworld island is left as sky.
+     * Both are drawn by the same code, so this is the one thing that separates them in the buffer.
+     */
+    @Test
+    void aMagmaIslandsUndersideErodesIntoLava() {
+        int islandsWithLava = 0;
+        for (long seed = 1; seed <= 20; seed++) {
+            RandomSource random = RandomSource.create(seed);
+            SlimeIslandShape.Size size = SlimeIslandShape.Size.roll(random);
+            SlimeIslandShape.Palette palette = SlimeIslandShape.magmaPalette();
+            SlimeIslandShape.Canvas canvas = SlimeIslandShape.Canvas.forIsland(size);
+            SlimeIslandShape.generate(random, canvas, size, palette);
+
+            List<SlimeIslandShape.Canvas.Drawn> drawn = new ArrayList<>();
+            canvas.forEachDrawn(drawn::add);
+            if (drawn.stream().anyMatch(entry -> entry.state().getBlock() == Blocks.LAVA)) {
+                islandsWithLava++;
+            }
+            // Only the lower erosion pass backfills; the rim pass above the island top clears to
+            // air on every island, upstream's own hard-coded Blocks.AIR there.
+            for (SlimeIslandShape.Canvas.Drawn entry : drawn) {
+                if (entry.state().getBlock() == Blocks.LAVA) {
+                    assertTrue(entry.pos().getY() <= 8, "lava at y " + entry.pos().getY()
+                            + " is above upstream's erosion height (seed " + seed + ")");
+                }
+            }
+        }
+        assertTrue(islandsWithLava >= 15, "only " + islandsWithLava + "/20 magma islands eroded into lava");
     }
 
     /** Two islands from the same seed have to be identical -- chunk generation is replayed on load. */

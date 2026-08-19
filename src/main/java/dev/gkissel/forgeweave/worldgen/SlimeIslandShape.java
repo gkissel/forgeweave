@@ -55,27 +55,42 @@ public final class SlimeIslandShape {
      * The blocks one island is built from. Upstream builds six of these in
      * {@code SlimeIslandGenerator}'s constructor and picks between them per island; {@link #roll}
      * makes the same pick.
+     *
+     * <p>{@code eroded} is upstream's {@code air} field -- what the first erosion pass leaves behind
+     * where it removes dirt. Air on every overworld island; {@code MagmaSlimeIslandGenerator} sets
+     * it to lava, because a Nether island sits sunk in the lava sea (issue #450, parity audit T19).
+     * The second erosion pass ignores it and always clears to air, upstream's own hard-coded
+     * {@code Blocks.AIR} there.
      */
     public record Palette(BlockState dirt, BlockState grass, BlockState log, BlockState leaves,
-                          BlockState tallGrass, BlockState fern, @Nullable BlockState vine) {}
+                          BlockState tallGrass, BlockState fern, @Nullable BlockState vine,
+                          BlockState eroded) {}
 
     /**
      * The palette a hand-planted sapling grows with (issue #488): upstream's {@code BlockSlimeSapling
-     * #generateTree} builds a {@code SlimeTreeGenerator} with a green congealed-slime trunk, its own
-     * foliage's leaves and a {@code null} vine, so a planted tree takes the leafy-corner branch of
+     * #generateTree} builds a {@code SlimeTreeGenerator} with a congealed-slime trunk (green, or magma
+     * for the orange foliage), its own foliage's leaves and a {@code null} vine, so a planted tree
+     * takes the leafy-corner branch of
      * the canopy rather than the island generator's hanging vines. Only the trunk, leaves and vine
      * fields are read when growing a tree; the soil and plant fields are the sapling's own ground.
      */
     public static Palette saplingPalette(FoliageType foliage) {
         var plants = ForgeweaveBlocks.slimePlants(foliage);
+        // Upstream BlockSlimeSapling#generateTree picks the trunk off the foliage colour: green
+        // congealed slime for every colour except ORANGE, whose tree is the magma island's own
+        // (issue #450, parity audit T19).
+        BlockState trunk = foliage == FoliageType.ORANGE
+                ? ForgeweaveBlocks.MAGMA_CONGEALED_SLIME.get().defaultBlockState()
+                : ForgeweaveBlocks.GREEN_CONGEALED_SLIME.get().defaultBlockState();
         return new Palette(
                 ForgeweaveBlocks.GREEN_SLIME_SOIL.dirt().get().defaultBlockState(),
                 ForgeweaveBlocks.GREEN_SLIME_SOIL.grass().get().defaultBlockState(),
-                ForgeweaveBlocks.GREEN_CONGEALED_SLIME.get().defaultBlockState(),
+                trunk,
                 plants.leaves().get().defaultBlockState().setValue(LeavesBlock.PERSISTENT, true),
                 plants.tallGrass().get().defaultBlockState(),
                 plants.fern().get().defaultBlockState(),
-                null);
+                null,
+                Blocks.AIR.defaultBlockState());
     }
 
     /**
@@ -133,7 +148,26 @@ public final class SlimeIslandShape {
                 plants.leaves().get().defaultBlockState().setValue(LeavesBlock.PERSISTENT, true),
                 plants.tallGrass().get().defaultBlockState(),
                 plants.fern().get().defaultBlockState(),
-                plants.vineMid().get().defaultBlockState());
+                plants.vineMid().get().defaultBlockState(),
+                Blocks.AIR.defaultBlockState());
+    }
+
+    /**
+     * The Nether island's palette: upstream {@code MagmaSlimeIslandGenerator}'s constructor, which
+     * builds exactly one (issue #450, parity audit T19). Magma slimy dirt and grass, an orange
+     * canopy over a magma congealed slime trunk, orange plants, and lava where the underside erodes.
+     */
+    public static Palette magmaPalette() {
+        var plants = ForgeweaveBlocks.ORANGE_SLIME_PLANTS;
+        return new Palette(
+                ForgeweaveBlocks.MAGMA_SLIME_SOIL.dirt().get().defaultBlockState(),
+                ForgeweaveBlocks.MAGMA_SLIME_SOIL.grass().get().defaultBlockState(),
+                ForgeweaveBlocks.MAGMA_CONGEALED_SLIME.get().defaultBlockState(),
+                plants.leaves().get().defaultBlockState().setValue(LeavesBlock.PERSISTENT, true),
+                plants.tallGrass().get().defaultBlockState(),
+                plants.fern().get().defaultBlockState(),
+                null,
+                Blocks.LAVA.defaultBlockState());
     }
 
     /** The island's overall extent, rolled before anything is drawn so the canvas can be sized for it. */
@@ -339,7 +373,7 @@ public final class SlimeIslandShape {
                 || canvas.get(x, y + 1, z - 1) != palette.dirt()
                 || canvas.get(x - 1, y + 1, z + 1) != palette.dirt()
                 || random.nextInt(100) <= RANDOMNESS) {
-            canvas.set(x, y, z, Blocks.AIR.defaultBlockState());
+            canvas.set(x, y, z, palette.eroded());
         }
     }
 

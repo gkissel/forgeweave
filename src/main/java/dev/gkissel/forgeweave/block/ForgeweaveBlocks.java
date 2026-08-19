@@ -5,6 +5,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
+import javax.annotation.Nullable;
+
 import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.LeavesBlock;
@@ -375,8 +377,9 @@ public final class ForgeweaveBlocks {
     // BlockSlimeCongealed (6 colours), BlockSlimeLeaves and BlockTallSlimeGrass (3 foliages x 2
     // shapes) -- all NOTICE.md rows. Modern Minecraft has no metadata, so each state a registry id
     // has to reach becomes its own block; the roster here is exactly what
-    // SlimeIslandGenerator#generateIslandInChunk places on an overworld island, and the rest
-    // (magma/orange for T19, blood/pink congealed, the vanilla-dirt grass) waits on those tickets.
+    // SlimeIslandGenerator#generateIslandInChunk places on an overworld island plus what
+    // MagmaSlimeIslandGenerator places on a Nether one (#450, parity audit T19), and the rest
+    // (blue/purple/blood/pink congealed, blood dirt and grass, the vanilla-dirt grass) waits on T57.
 
     /**
      * One slime soil colour: the dirt, the grass that sits on top of it, and the foliage colour that
@@ -397,6 +400,8 @@ public final class ForgeweaveBlocks {
     public static final SlimeSoil GREEN_SLIME_SOIL = slimeSoil("green", FoliageType.BLUE, MapColor.COLOR_GREEN);
     public static final SlimeSoil BLUE_SLIME_SOIL = slimeSoil("blue", FoliageType.BLUE, MapColor.COLOR_LIGHT_BLUE);
     public static final SlimeSoil PURPLE_SLIME_SOIL = slimeSoil("purple", FoliageType.PURPLE, MapColor.COLOR_PURPLE);
+    /** #450 (parity audit T19): the Nether magma island's soil, upstream's {@code DirtType.MAGMA}. */
+    public static final SlimeSoil MAGMA_SLIME_SOIL = slimeSoil("magma", FoliageType.ORANGE, MapColor.COLOR_ORANGE);
 
     /**
      * Green congealed slime: upstream's {@code BlockSlimeCongealed} in its {@code GREEN} state
@@ -414,18 +419,40 @@ public final class ForgeweaveBlocks {
                     .sound(SoundType.SLIME_BLOCK)));
 
     /**
+     * Magma congealed slime: upstream's {@code BlockSlimeCongealed} in its {@code MAGMA} state
+     * (NOTICE.md), the block {@code MagmaSlimeIslandGenerator} builds every Nether tree trunk from
+     * (issue #450, parity audit T19). Same properties as its green sibling above.
+     *
+     * <p>Upstream's {@code slime/magma/congealed.json} crafts it from four {@code slimeballMagma},
+     * a coloured slime ball Forgeweave does not have yet (parity audit T57), so it has no recipe
+     * here -- it is island loot until that ships, exactly as its blue and purple siblings are absent.
+     */
+    public static final DeferredBlock<CongealedSlimeBlock> MAGMA_CONGEALED_SLIME = BLOCKS.register("magma_congealed_slime",
+            () -> new CongealedSlimeBlock(BlockBehaviour.Properties.of()
+                    .mapColor(MapColor.COLOR_ORANGE)
+                    .strength(0.5F)
+                    .friction(0.5F)
+                    .sound(SoundType.SLIME_BLOCK)));
+
+    /**
      * One slime foliage colour's plant life: leaves, tall grass, fern, the sapling that grows the
      * leaves, and the vine's three stages (#488, parity audit T57 -- upstream keeps the stages as
      * three separate blocks too, each pointing at the next).
      */
     public record SlimePlants(FoliageType foliage, DeferredBlock<Block> leaves,
                               DeferredBlock<SlimeTallGrassBlock> tallGrass, DeferredBlock<SlimeTallGrassBlock> fern,
-                              DeferredBlock<SlimeSaplingBlock> sapling, DeferredBlock<SlimeVineBlock> vine,
-                              DeferredBlock<SlimeVineBlock> vineMid, DeferredBlock<SlimeVineBlock> vineEnd) {
+                              DeferredBlock<SlimeSaplingBlock> sapling, @Nullable DeferredBlock<SlimeVineBlock> vine,
+                              @Nullable DeferredBlock<SlimeVineBlock> vineMid,
+                              @Nullable DeferredBlock<SlimeVineBlock> vineEnd) {
 
-        /** The vine's three stages, thickest first -- datagen, tinting and loot all walk this. */
+        /**
+         * The vine's three stages, thickest first -- datagen, tinting and loot all walk this. Empty
+         * for a foliage colour that has no vines: upstream's {@code TinkerWorld} registers
+         * {@code slimeVineBlue1..3} and {@code slimeVinePurple1..3} and nothing else, so the magma
+         * island's orange foliage has no vine of any stage (issue #450, parity audit T19).
+         */
         public List<DeferredBlock<SlimeVineBlock>> vines() {
-            return List.of(vine, vineMid, vineEnd);
+            return vine == null ? List.of() : List.of(vine, vineMid, vineEnd);
         }
     }
 
@@ -437,8 +464,14 @@ public final class ForgeweaveBlocks {
         return SLIME_PLANTS_VIEW;
     }
 
-    public static final SlimePlants BLUE_SLIME_PLANTS = slimePlants(FoliageType.BLUE, MapColor.COLOR_LIGHT_BLUE);
-    public static final SlimePlants PURPLE_SLIME_PLANTS = slimePlants(FoliageType.PURPLE, MapColor.COLOR_PURPLE);
+    public static final SlimePlants BLUE_SLIME_PLANTS = slimePlants(FoliageType.BLUE, MapColor.COLOR_LIGHT_BLUE, true);
+    public static final SlimePlants PURPLE_SLIME_PLANTS = slimePlants(FoliageType.PURPLE, MapColor.COLOR_PURPLE, true);
+    /**
+     * #450 (parity audit T19): the Nether magma island's canopy and ground cover. No vines --
+     * upstream registers none for orange, and {@code MagmaSlimeIslandGenerator}'s tree generator is
+     * built with a {@code null} vine, so nothing would ever place one.
+     */
+    public static final SlimePlants ORANGE_SLIME_PLANTS = slimePlants(FoliageType.ORANGE, MapColor.COLOR_ORANGE, false);
 
     /** The grass that grows on {@code dirt}, if it is one of the slime dirts. Drives {@link SlimeGrassBlock}'s spread. */
     public static Optional<Block> slimeGrassForDirt(Block dirt) {
@@ -501,7 +534,7 @@ public final class ForgeweaveBlocks {
         return soil;
     }
 
-    private static SlimePlants slimePlants(FoliageType foliage, MapColor mapColor) {
+    private static SlimePlants slimePlants(FoliageType foliage, MapColor mapColor, boolean hasVines) {
         // Upstream BlockSlimeLeaves: hardness 0.3, vanilla leaves behaviour otherwise. Persistent by
         // default because a slime tree's trunk is congealed slime, not a log: upstream's own decay
         // never triggers either (its 1.12 leaf decay only starts when a nearby *wood* block breaks),
@@ -531,9 +564,9 @@ public final class ForgeweaveBlocks {
                         .instabreak()
                         .sound(SoundType.GRASS)
                         .pushReaction(PushReaction.DESTROY), foliage));
-        DeferredBlock<SlimeVineBlock> vineEnd = slimeVine(foliage, mapColor, "_slime_vine_end", null);
-        DeferredBlock<SlimeVineBlock> vineMid = slimeVine(foliage, mapColor, "_slime_vine_mid", vineEnd);
-        DeferredBlock<SlimeVineBlock> vine = slimeVine(foliage, mapColor, "_slime_vine", vineMid);
+        DeferredBlock<SlimeVineBlock> vineEnd = hasVines ? slimeVine(foliage, mapColor, "_slime_vine_end", null) : null;
+        DeferredBlock<SlimeVineBlock> vineMid = hasVines ? slimeVine(foliage, mapColor, "_slime_vine_mid", vineEnd) : null;
+        DeferredBlock<SlimeVineBlock> vine = hasVines ? slimeVine(foliage, mapColor, "_slime_vine", vineMid) : null;
 
         SlimePlants plants = new SlimePlants(foliage, leaves, tallGrass, fern, sapling, vine, vineMid, vineEnd);
         SLIME_PLANTS.add(plants);

@@ -95,6 +95,7 @@ public class ForgeweaveBlockLootSubProvider extends BlockLootSubProvider {
             add(soil.grass().get(), block -> createSingleItemTableWithSilkTouch(block, soil.dirt().get()));
         }
         dropSelf(ForgeweaveBlocks.GREEN_CONGEALED_SLIME.get());
+        dropSelf(ForgeweaveBlocks.MAGMA_CONGEALED_SLIME.get()); // #450 (parity audit T19)
         for (ForgeweaveBlocks.SlimePlants plants : ForgeweaveBlocks.slimePlants()) {
             add(plants.leaves().get(), block -> slimeLeavesDrop(block, plants.sapling().get()));
             add(plants.tallGrass().get(), block -> createShearsOnlyDrop(block));

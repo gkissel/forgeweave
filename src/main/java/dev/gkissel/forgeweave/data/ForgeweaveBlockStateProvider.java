@@ -315,6 +315,7 @@ public class ForgeweaveBlockStateProvider extends BlockStateProvider {
         }
 
         cubeAllBlock("green_congealed_slime", ForgeweaveBlocks.GREEN_CONGEALED_SLIME.get());
+        cubeAllBlock("magma_congealed_slime", ForgeweaveBlocks.MAGMA_CONGEALED_SLIME.get()); // #450
 
         for (ForgeweaveBlocks.SlimePlants plants : ForgeweaveBlocks.slimePlants()) {
             String leavesName = name(plants.leaves().get());
@@ -335,9 +336,11 @@ public class ForgeweaveBlockStateProvider extends BlockStateProvider {
                     models().cross(saplingName, saplingSprite).renderType("minecraft:cutout"));
             itemModels().withExistingParent(saplingName, mcLoc("item/generated")).texture("layer0", saplingSprite);
 
-            slimeVineBlock(plants.vine().get(), "slime_vine");
-            slimeVineBlock(plants.vineMid().get(), "slime_vine_mid");
-            slimeVineBlock(plants.vineEnd().get(), "slime_vine_end");
+            if (!plants.vines().isEmpty()) {
+                slimeVineBlock(plants.vine().get(), "slime_vine");
+                slimeVineBlock(plants.vineMid().get(), "slime_vine_mid");
+                slimeVineBlock(plants.vineEnd().get(), "slime_vine_end");
+            }
         }
     }
 

@@ -64,7 +64,7 @@ public final class SlimeColorizer {
         COLOR_MAPS.clear();
         for (FoliageType foliage : FoliageType.values()) {
             ResourceLocation location =
-                    ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "textures/colormap/" + foliage.colormap() + ".png");
+                    ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, foliage.colormapPath());
             resourceManager.getResource(location).ifPresent(resource -> {
                 try (InputStream stream = resource.open(); NativeImage image = NativeImage.read(stream)) {
                     int[] pixels = new int[image.getWidth() * image.getHeight()];

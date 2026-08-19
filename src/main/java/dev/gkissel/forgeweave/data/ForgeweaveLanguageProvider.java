@@ -88,6 +88,18 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         ForgeweaveBlocks.PURPLE_SLIME_PLANTS.vines().forEach(vine -> addBlock(vine, "Purple Slimy Vine"));
         add(SlimeSaplingBlock.TOOLTIP_KEY, "Only grows on slimy dirt/grass"); // tile.tconstruct.slime_sapling.tooltip
 
+        // #450 (parity audit T19) -- the Nether magma island's own colour, from the same upstream
+        // entries. The congealed block takes its colour into its name for the same reason the
+        // leaves and plants above do: upstream calls every congealed colour "Congealed Slime Block",
+        // which two registry ids in one creative tab cannot both be.
+        addBlock(ForgeweaveBlocks.MAGMA_SLIME_SOIL.dirt(), "Magma Slimy Dirt");
+        addBlock(ForgeweaveBlocks.MAGMA_SLIME_SOIL.grass(), "Magma Slimy Grass");
+        addBlock(ForgeweaveBlocks.MAGMA_CONGEALED_SLIME, "Congealed Magma Slime Block");
+        addBlock(ForgeweaveBlocks.ORANGE_SLIME_PLANTS.leaves(), "Orange Slimy Leaves");
+        addBlock(ForgeweaveBlocks.ORANGE_SLIME_PLANTS.tallGrass(), "Tall Orange Slimy Grass");
+        addBlock(ForgeweaveBlocks.ORANGE_SLIME_PLANTS.fern(), "Orange Slimy Fern");
+        addBlock(ForgeweaveBlocks.ORANGE_SLIME_PLANTS.sapling(), "Orange Slime Sapling");
+
         // The seared brick block family (docs/SCOPE.md M2 issue #93), names ported from upstream
         // 1.12's tile.tconstruct.seared.*.name entries (NOTICE.md).
         addBlock(ForgeweaveBlocks.SEARED_STONE, "Seared Stone");
