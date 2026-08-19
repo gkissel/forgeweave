@@ -55,6 +55,8 @@ public final class ForgeweaveBlockEntityRenderers {
         // #447 -- a dropped tool is an item entity in every respect but dying, so it draws with
         // vanilla's item entity renderer (see entity.IndestructibleItemEntity).
         event.registerEntityRenderer(ForgeweaveEntities.INDESTRUCTIBLE_ITEM.get(), ItemEntityRenderer::new);
+        // #448 -- the thrown shuriken, drawn as its own item model spinning flat (ShurikenRenderer).
+        event.registerEntityRenderer(ForgeweaveEntities.SHURIKEN.get(), ShurikenRenderer::new);
     }
 
     // #145's cutout render type moved to the block models themselves (ForgeweaveBlockStateProvider's

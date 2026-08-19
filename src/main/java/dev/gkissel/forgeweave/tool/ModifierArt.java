@@ -88,6 +88,10 @@ public final class ModifierArt {
      */
     private static final Set<String> NO_UPSTREAM_ART = Set.of(
             "shortbow_luck", "longbow_luck",
+            // #448: items/shuriken/ ships every other applicable overlay but no mod_haste.png at the
+            // pinned commit -- an upstream art absence, mirrored not patched. Blasting/fortification
+            // below: the shuriken is Category.RANGED, not HARVEST, like the three bows.
+            "shuriken_haste", "shuriken_blasting", "shuriken_fortification",
             "broadsword_blasting", "longsword_blasting", "rapier_blasting", "battlesign_blasting",
             "frying_pan_blasting", "battleaxe_blasting", "cleaver_blasting", "dagger_blasting",
             "scimitar_blasting", "katana_blasting", "warmace_blasting",

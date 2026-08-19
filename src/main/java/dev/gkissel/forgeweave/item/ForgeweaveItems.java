@@ -280,6 +280,14 @@ public final class ForgeweaveItems {
             properties -> new BowItem(properties, ToolConstants.SHORTBOW, 12, 3.0F, 1.0F, 0.5F),
             new Item.Properties().stacksTo(1));
 
+    // #448 (parity audit T17): the shuriken, upstream tools/ranged/item/Shuriken.java -- four knife
+    // blades at the Tool Forge (TinkerRegistry.registerToolForgeCrafting), thrown on right-click,
+    // ammo abstracted over durability (ProjectileCore). Constants live on ShurikenItem and
+    // ToolConstants#SHURIKEN.
+    public static final DeferredItem<ShurikenItem> TOOL_SHURIKEN = ITEMS.registerItem("shuriken",
+            properties -> new ShurikenItem(properties, ToolConstants.SHURIKEN),
+            new Item.Properties().stacksTo(1));
+
     // M3.5's Tool Forge-tier bows (docs/SCOPE.md M3.5 issue #395), both
     // TinkerRegistry.registerToolForgeCrafting upstream.
     //

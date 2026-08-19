@@ -263,7 +263,10 @@ public final class ScreenshotHarness {
             // stack held in a hand -- and their drawn ones are {@link #BOW_POSES} below, which is a
             // separate scene because getting a bow to a given pull stage takes ticking, not just
             // putting it in a hand.
-            ForgeweaveItems.TOOL_SHORTBOW, ForgeweaveItems.TOOL_LONGBOW, ForgeweaveItems.TOOL_CROSSBOW);
+            ForgeweaveItems.TOOL_SHORTBOW, ForgeweaveItems.TOOL_LONGBOW, ForgeweaveItems.TOOL_CROSSBOW,
+            // #448: the shuriken -- the first four-blade capture, where a quadrant layer tinted from
+            // the wrong slot or a missing head2..head4 texture shows up.
+            ForgeweaveItems.TOOL_SHURIKEN);
 
     /**
      * Issue #400's release-checklist frames, {@code bow_<bow>_draw<stage>_firstperson.png} plus

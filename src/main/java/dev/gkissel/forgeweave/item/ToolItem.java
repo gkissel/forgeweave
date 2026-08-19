@@ -365,7 +365,8 @@ public class ToolItem extends Item {
         List<ResourceLocation> heads = new ArrayList<>(slots.size());
         for (int slot = 0; slot < slots.size(); slot++) {
             ToolConstants.Role role = slots.get(slot).role();
-            if (role == ToolConstants.Role.HEAD || role == ToolConstants.Role.LIMB) {
+            if (role == ToolConstants.Role.HEAD || role == ToolConstants.Role.LIMB
+                    || role == ToolConstants.Role.SHURIKEN_BLADE) {
                 heads.add(materialIds.get(slot));
             }
         }

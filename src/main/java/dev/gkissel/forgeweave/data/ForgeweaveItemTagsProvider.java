@@ -132,7 +132,10 @@ public class ForgeweaveItemTagsProvider extends ItemTagsProvider {
                 // TinkerRangedWeapons#registerToolBuilding registers the shortbow with
                 // registerToolCrafting but the longbow and crossbow with registerToolForgeCrafting.
                 .add(ForgeweaveItems.TOOL_LONGBOW.get())
-                .add(ForgeweaveItems.TOOL_CROSSBOW.get());
+                .add(ForgeweaveItems.TOOL_CROSSBOW.get())
+                // #448 -- the shuriken: upstream TinkerRangedWeapons#registerToolBuilding puts it
+                // through registerToolForgeCrafting, same as the two bows above.
+                .add(ForgeweaveItems.TOOL_SHURIKEN.get());
 
         // #223 -- wind burst's own gate: vanilla's wind_burst enchantment names
         // `#minecraft:enchantable/mace` as its supported_items, and ModifierApplication reads that
@@ -194,7 +197,10 @@ public class ForgeweaveItemTagsProvider extends ItemTagsProvider {
         addAll(ItemTags.MINING_LOOT_ENCHANTABLE, miningTools);
         addAll(ItemTags.BOW_ENCHANTABLE, launchers);
         // Unbreaking and Mending (and Curse of Vanishing, whose tag references this one): every tool.
-        addAll(ItemTags.DURABILITY_ENCHANTABLE, swords, axes, miningTools, bluntWeapons, launchers);
+        // #448: the shuriken joins only this line -- vanilla has no shape for thrown ammo, so the
+        // "everything damageable -> durability" rule is the whole of its vanilla-enchant surface.
+        addAll(ItemTags.DURABILITY_ENCHANTABLE, swords, axes, miningTools, bluntWeapons, launchers,
+                List.of(ForgeweaveItems.TOOL_SHURIKEN.get()));
 
         // #464 (parity audit T33) -- tool-class exposure. Upstream 1.12 states a tool's class with
         // Forge's setHarvestLevel("pickaxe"/"shovel"/"axe"/"shears", 0); 1.21 splits that same fact in

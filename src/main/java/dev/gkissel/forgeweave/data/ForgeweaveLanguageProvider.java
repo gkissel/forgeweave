@@ -39,6 +39,8 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         // #447 -- the entity every dropped tool spawns as; name ported from upstream 1.12's
         // EntityRegistry.registerModEntity("indestructible", ..., "Indestructible Item") (NOTICE.md).
         add("entity.forgeweave.indestructible_item", "Indestructible Item");
+        // #448: the thrown shuriken entity.
+        add("entity.forgeweave.shuriken", "Shuriken");
 
         addBlock(ForgeweaveBlocks.PART_BUILDER, "Part Builder");
         addBlock(ForgeweaveBlocks.TOOL_STATION, "Tool Station");
@@ -409,6 +411,15 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("item.forgeweave.longbow.description",
                 "The Longbow is a powerful long range weapon. It provides high damage but is less mobile than its short brother. Fires vanilla arrows.");
         addItem(ForgeweaveItems.TOOL_CROSSBOW, "Crossbow");
+        // #448 (parity audit T17): upstream item.tconstruct.shuriken.name / .desc, verbatim.
+        addItem(ForgeweaveItems.TOOL_SHURIKEN, "Shuriken");
+        add("item.forgeweave.shuriken.description",
+                "The Shuriken is a fast, short ranged throwing weapon. It has high quantities but low "
+                        + "damage. Can be thrown from the off-hand.");
+        // Upstream stat.projectile.ammo.name ("Ammo") and TooltipBuilder#addAmmo's "Ammo: Empty"
+        // while broken (tooltip.tool.empty) -- the ProjectileCore tooltip lead, ShurikenItem.
+        add("tooltip.forgeweave.ammo", "Ammo: %s/%s");
+        add("tooltip.forgeweave.ammo.empty", "Ammo: Empty");
         add("item.forgeweave.crossbow.description",
                 "The Crossbow is a slow but very powerful weapon. It has to be loaded beforehand by holding right click, but can be fired at any moment afterwards. Fires vanilla arrows.");
 

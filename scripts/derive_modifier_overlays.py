@@ -70,6 +70,7 @@ TOOL_SOURCES = {
     "shortbow": "shortbow",  # M3.5 #394; the drawn-stage overlays (mod_*_1/2/3) are M3.5-6's
     "longbow": "longbow",  # M3.5 #395
     "crossbow": "crossbow",  # M3.5 #395
+    "shuriken": "shuriken",  # #448 (T17)
     # Forgeweave-original shapes: closest-upstream donors, issue #198's precedent.
     "dagger": "broadsword",
     "scimitar": "broadsword",
@@ -118,8 +119,10 @@ MODIFIER_SOURCES = {
 #     rather than a Forgeweave omission, so mattock is excluded for fortification only.
 _NON_HARVEST_TOOLS = (
     "broadsword", "longsword", "rapier", "battlesign", "frying_pan", "battleaxe", "cleaver",
-    "shortbow", "longbow", "crossbow", "dagger", "scimitar", "katana", "warmace")
-NO_UPSTREAM_ART = {("shortbow", "luck"), ("longbow", "luck")} | {
+    "shortbow", "longbow", "crossbow", "dagger", "scimitar", "katana", "warmace", "shuriken")
+# shuriken_haste (#448): items/shuriken/ ships every other applicable overlay but no mod_haste.png
+# at the pinned commit -- upstream art absence, mirrored not patched (ModifierArt#NO_UPSTREAM_ART).
+NO_UPSTREAM_ART = {("shortbow", "luck"), ("longbow", "luck"), ("shuriken", "haste")} | {
     (tool, "blasting") for tool in _NON_HARVEST_TOOLS
 } | {
     (tool, "fortification") for tool in _NON_HARVEST_TOOLS
