@@ -1,15 +1,20 @@
 package dev.gkissel.forgeweave.client.book;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import javax.annotation.Nullable;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 
+import net.minecraft.ChatFormatting;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.resources.language.I18n;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.HoverEvent;
 import net.minecraft.network.chat.Style;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.FormattedCharSequence;
@@ -18,13 +23,16 @@ import net.minecraft.world.item.ItemStack;
 import org.lwjgl.glfw.GLFW;
 
 import dev.gkissel.forgeweave.Forgeweave;
-import dev.gkissel.forgeweave.client.StationText;
 import dev.gkissel.forgeweave.client.book.BookPage.IconGridPage;
 import dev.gkissel.forgeweave.client.book.BookPage.ListingPage;
 import dev.gkissel.forgeweave.client.book.BookPage.MaterialPage;
 import dev.gkissel.forgeweave.client.book.BookPage.ModifierPage;
 import dev.gkissel.forgeweave.client.book.BookPage.TextPage;
 import dev.gkissel.forgeweave.client.book.BookPage.ToolPage;
+import dev.gkissel.forgeweave.client.book.MaterialPageContent.Icon;
+import dev.gkissel.forgeweave.client.book.MaterialPageContent.StatGroup;
+import dev.gkissel.forgeweave.material.Material;
+import dev.gkissel.forgeweave.menu.ToolAssemblyRecipes;
 
 /**
  * The guide book's screen, a 1:1 port of the 1.12 engine's chrome and flow (issue #430): Mantle's
@@ -81,6 +89,15 @@ public class BookScreen extends Screen {
     /** Upstream's {@code oldPage} idle value: -1 is the (valid) cover, so "none" is -2. */
     private static final int NO_BACK_SPREAD = -2;
 
+    /** {@code ElementItem.ITEM_SIZE_HARDCODED}: the cell one display-bar or slot icon occupies. */
+    private static final int ITEM_SIZE = 16;
+
+    /**
+     * A {@link Region} that only carries hover text: upstream's {@code ElementItem}/{@code TextData}
+     * tooltips, which are not links. Any non-negative target is a {@code go-to-page-rtn} jump.
+     */
+    private static final int NO_TARGET = -1;
+
     /** Draws one already-measured piece of a page at the origin it was laid out at. */
     @FunctionalInterface
     private interface Drawer {
@@ -124,6 +141,12 @@ public class BookScreen extends Screen {
     /** The link under the cursor as of the last {@link #render}; drives hover styling and tooltips. */
     @Nullable
     private Region hovered;
+
+    /**
+     * Frames drawn since the screen opened. Mantle's {@code ElementItem} advances its cycling stack
+     * every {@code ITEM_SWITCH_TICKS} draws, not every game tick, so a cycling icon reads this.
+     */
+    private int frame;
 
     public BookScreen(List<BookSection> sections) {
         super(Component.translatable(BookContent.TITLE));
@@ -185,6 +208,7 @@ public class BookScreen extends Screen {
     @Override
     public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
         super.render(graphics, mouseX, mouseY, partialTick);
+        this.frame++;
         this.hovered = regionAt(mouseX, mouseY);
         if (this.spread < 0) {
             renderCover(graphics);
@@ -492,34 +516,113 @@ public class BookScreen extends Screen {
         }
     }
 
+    /**
+     * Upstream {@code ContentMaterial#build} (issue #633): the material's coloured name, the display
+     * bar of the stations and demo tools that use it, one block per stat type it carries -- the
+     * parts that read that stat as a cycling icon, the stat type's name underlined beside them, then
+     * its hover-explained stat and trait lines -- and the italic flavour quote if the language file
+     * has one. {@link MaterialPageContent} decides all of that; this measures and draws it.
+     *
+     * <p>Deviation: upstream lays the page out absolutely -- the display bar as a vertical column
+     * pinned to the outer edge of the leaf, the stat blocks as two columns with EXTRA and the quote
+     * on a hand-computed second row. This engine paginates a single column (issue #428), which is
+     * what keeps a many-trait material's blocks from running off the leaf, so the bar becomes a row
+     * under the title and the blocks stack.
+     */
     private void materialBlocks(List<Block> blocks, MaterialPage page) {
+        Material material = page.material();
         titleBlock(blocks, Component
                 .translatable("material." + page.id().getNamespace() + "." + page.id().getPath())
-                .withStyle(Style.EMPTY.withColor(page.material().color())));
+                .withStyle(Style.EMPTY.withColor(material.color())));
 
-        List<Component> stats = new ArrayList<>(StationText.headStats(page.material()));
-        stats.addAll(StationText.handleStats(page.material()));
-        stats.addAll(StationText.extraStats(page.material()));
-        stats.addAll(StationText.bowStats(page.material()));
-        stats.addAll(StationText.bowstringStats(page.material()));
-        for (Component line : stats) {
-            blocks.add(lineBlock(line, TEXT_COLOR));
+        displayBarBlock(blocks, page);
+
+        for (StatGroup group : MaterialPageContent.statGroups(material)) {
+            statGroupBlocks(blocks, page, group);
         }
 
-        Component traitsHeader = Component.translatable("gui.forgeweave.tool_station.traits");
-        blocks.add(new Block(4 + this.font.lineHeight + 2, (graphics, x, y) ->
-                graphics.drawString(this.font, traitsHeader, x, y + 4, TITLE_COLOR, false)));
+        flavourBlocks(blocks, page.id());
+    }
 
-        List<ResourceLocation> traitIds = page.material().traits().all();
-        if (traitIds.isEmpty()) {
-            blocks.add(lineBlock(Component.translatable("gui.forgeweave.tool_station.no_traits"), TEXT_COLOR));
+    /**
+     * Upstream {@code ContentMaterial#addDisplayItems}: the representative item, the stations that
+     * turn the material into parts, then demo tools built wholly out of it, capped at nine icons in
+     * total and each naming itself on hover.
+     */
+    private void displayBarBlock(List<Block> blocks, MaterialPage page) {
+        List<Icon> icons = new ArrayList<>(MaterialPageContent.craftIcons(page.id(), page.material()));
+        HolderLookup.Provider registries = registries();
+        if (registries != null) {
+            for (ToolAssemblyRecipes.Entry entry :
+                    MaterialPageContent.demoTools(page.material(), MaterialPageContent.DISPLAY_ITEMS - icons.size())) {
+                ToolAssemblyRecipes.assemble(registries, entry, Collections.nCopies(entry.slotCount(), page.id()))
+                        .ifPresent(tool -> icons.add(new Icon(tool, null)));
+            }
+        }
+        if (icons.isEmpty()) {
             return;
         }
-        for (ResourceLocation traitId : traitIds) {
-            blocks.add(lineBlock(Component
-                    .translatable("trait." + traitId.getNamespace() + "." + traitId.getPath() + ".name")
-                    .withStyle(Style.EMPTY.withColor(page.material().color())), TEXT_COLOR));
+
+        List<Icon> bar = List.copyOf(icons.subList(0, Math.min(icons.size(), MaterialPageContent.DISPLAY_ITEMS)));
+        List<Region> regions = new ArrayList<>();
+        for (int i = 0; i < bar.size(); i++) {
+            Icon icon = bar.get(i);
+            regions.add(new Region(i * ITEM_SIZE, 0, ITEM_SIZE, ITEM_SIZE, NO_TARGET,
+                    icon.tooltip() == null ? icon.stack().getHoverName() : icon.tooltip()));
         }
+        blocks.add(new Block(ITEM_SIZE + 4, (graphics, x, y) -> {
+            for (int i = 0; i < bar.size(); i++) {
+                graphics.renderItem(bar.get(i).stack(), x + i * ITEM_SIZE, y);
+            }
+        }, List.copyOf(regions)));
+    }
+
+    /**
+     * Upstream {@code ContentMaterial#addStatsDisplay}: the parts that have a use for the stat drawn
+     * at half scale, the stat type's own name underlined beside them, then the block's stat lines
+     * and the traits a part of that kind grants -- every one of which explains itself on hover.
+     */
+    private void statGroupBlocks(List<Block> blocks, MaterialPage page, StatGroup group) {
+        List<ItemStack> parts = MaterialPageContent.partsFor(group.kind(), page.id());
+        Component name = Component.translatable(group.nameKey()).withStyle(ChatFormatting.UNDERLINE);
+        blocks.add(new Block(this.font.lineHeight + 4, (graphics, x, y) -> {
+            if (!parts.isEmpty()) {
+                ItemStack part = parts.get((this.frame / MaterialPageContent.ITEM_SWITCH_TICKS) % parts.size());
+                graphics.pose().pushPose();
+                graphics.pose().translate(x, y + 1.0F, 0.0F);
+                graphics.pose().scale(0.5F, 0.5F, 1.0F);
+                graphics.renderItem(part, 0, 0);
+                graphics.pose().popPose();
+            }
+            graphics.drawString(this.font, name, x + 10, y + 1, TITLE_COLOR, false);
+        }));
+        for (Component stat : group.stats()) {
+            blocks.add(hoverLineBlock(stat, TEXT_COLOR));
+        }
+        for (Component trait : group.traits()) {
+            blocks.add(hoverLineBlock(trait, TEXT_COLOR));
+        }
+    }
+
+    /**
+     * Upstream's inspirational quote: {@code "<material>.flavour"} in italics, wrapped in quotation
+     * marks, and nothing at all when the language file defines no such string -- which upstream's own
+     * book does for every material but wood and stone.
+     */
+    private void flavourBlocks(List<Block> blocks, ResourceLocation id) {
+        String key = MaterialPageContent.flavourKey(id);
+        if (!I18n.exists(key)) {
+            return;
+        }
+        bodyBlocks(blocks, Component.literal("\"").append(Component.translatable(key)).append("\"")
+                .withStyle(ChatFormatting.ITALIC));
+    }
+
+    /** The registries a demo tool is assembled against, or {@code null} outside a loaded world. */
+    @Nullable
+    private HolderLookup.Provider registries() {
+        return this.minecraft == null || this.minecraft.level == null
+                ? null : this.minecraft.level.registryAccess();
     }
 
     /** A whole centred title is one block: it wraps, but it never splits across leaves. */
@@ -546,6 +649,19 @@ public class BookScreen extends Screen {
     private Block lineBlock(Component line, int color) {
         return new Block(this.font.lineHeight + 1,
                 (graphics, x, y) -> graphics.drawString(this.font, line, x, y, color, false));
+    }
+
+    /**
+     * A body line that explains itself on hover, which is what upstream's material page gives every
+     * stat line ({@code IMaterialStats#getLocalizedDesc}) and every trait line. The hover area is
+     * the drawn text, not the whole leaf width, exactly as a {@code TextData} tooltip's is.
+     */
+    private Block hoverLineBlock(Component line, int color) {
+        Component tooltip = line.getStyle().getHoverEvent() == null ? null
+                : line.getStyle().getHoverEvent().getValue(HoverEvent.Action.SHOW_TEXT);
+        Block block = lineBlock(line, color);
+        return tooltip == null ? block : new Block(block.height(), block.drawer(), List.of(new Region(
+                0, 0, this.font.width(line), this.font.lineHeight, NO_TARGET, tooltip)));
     }
 
     private int indexRowY(int pageY, int row) {

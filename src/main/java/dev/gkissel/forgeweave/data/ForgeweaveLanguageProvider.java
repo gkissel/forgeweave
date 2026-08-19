@@ -1389,6 +1389,15 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("book.forgeweave.title", "Materials and You");
         add("book.forgeweave.subtitle", "Surviving the first day and beyond");
         add("book.forgeweave.index.title", "Index");
+        // Upstream's book language file, material.craft_partbuilder / material.craft_casting
+        // (1.12 clone): the two "how is this material made" tooltips on a material page's display
+        // bar (issue #633).
+        add("book.forgeweave.material.craft_partbuilder", "Can be crafted in the Part Builder");
+        add("book.forgeweave.material.craft_casting", "Can be cast from %s");
+        // Upstream ships a <material>.flavour quote for exactly two materials; these are Forgeweave's
+        // own lines rather than Tinkers' (its wood quote is a joke of its author's).
+        add("material.forgeweave.wood.flavour", "Every workshop starts with a plank and a bad idea.");
+        add("material.forgeweave.stone.flavour", "Patient, heavy, and utterly unimpressed by you.");
         add("book.forgeweave.section.intro", "Introduction");
         add("book.forgeweave.section.tools", "Tools");
         add("book.forgeweave.section.materials", "Materials");
