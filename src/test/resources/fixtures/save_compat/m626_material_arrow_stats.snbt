@@ -1,0 +1,74 @@
+{
+    decoder: "material",
+    expect: {
+        fletching: {
+            accuracy: 0.5f,
+            modifier: 1.5f
+        },
+        head: {
+            attack_damage: 2.5f,
+            durability: 200,
+            mining_speed: 5.09f
+        },
+        shaft: {
+            bonus_ammo: 5,
+            modifier: 0.9f
+        },
+        traits: {
+            general: [
+                "forgeweave:fractured"
+            ],
+            head: [
+                "forgeweave:splintering"
+            ],
+            shaft: [
+                "forgeweave:splitting"
+            ]
+        }
+    },
+    nbt: {
+        color: "#EDE6BF",
+        crafting_items: [
+            {
+                ingredient: {
+                    item: "minecraft:bone"
+                },
+                value: 144
+            }
+        ],
+        extra_durability: 65,
+        fletching: {
+            accuracy: 0.5f,
+            modifier: 1.5f
+        },
+        handle: {
+            durability: 50,
+            durability_modifier: 1.1f
+        },
+        head: {
+            attack_damage: 2.5f,
+            durability: 200,
+            mining_speed: 5.09f
+        },
+        incorrect_for_tool: "minecraft:incorrect_for_stone_tool",
+        repair_item: {
+            item: "minecraft:bone"
+        },
+        shaft: {
+            bonus_ammo: 5,
+            modifier: 0.9f
+        },
+        traits: {
+            general: [
+                "forgeweave:fractured"
+            ],
+            head: [
+                "forgeweave:splintering"
+            ],
+            shaft: [
+                "forgeweave:splitting"
+            ]
+        }
+    },
+    what: "M3.5 remainder (#626, parity audit T17): a bone-shaped material carrying the new SHAFT and FLETCHING stat blocks and the shaft-scoped trait list alongside the three tool blocks. Pins that adding the two arrow stat types did not move head/handle/extra, that a shaft's modifier/bonus_ammo and a fletching's accuracy/modifier survive a round trip, and that the traits object's new shaft scope does too."
+}

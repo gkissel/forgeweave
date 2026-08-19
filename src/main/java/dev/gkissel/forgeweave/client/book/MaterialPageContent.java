@@ -108,6 +108,8 @@ public final class MaterialPageContent {
         group(groups, material, PartItem.Kind.EXTRA, "extra", StationText.extraStats(material));
         group(groups, material, PartItem.Kind.BOW, "bow", StationText.bowStats(material));
         group(groups, material, PartItem.Kind.BOWSTRING, "bowstring", StationText.bowstringStats(material));
+        group(groups, material, PartItem.Kind.SHAFT, "shaft", StationText.shaftStats(material));
+        group(groups, material, PartItem.Kind.FLETCHING, "fletching", StationText.fletchingStats(material));
         return List.copyOf(groups);
     }
 

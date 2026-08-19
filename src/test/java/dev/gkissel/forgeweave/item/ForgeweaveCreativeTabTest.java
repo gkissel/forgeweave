@@ -235,6 +235,10 @@ class ForgeweaveCreativeTabTest {
                 Ingredient.of(Items.BONE),
                 TextColor.parseColor("#FFFFFF").getOrThrow(),
                 Optional.of(new Material.Bow(1f, 1f, 0f)),
-                Optional.of(new Material.Bowstring(1f)));
+                Optional.of(new Material.Bowstring(1f)),
+                false,
+                Material.DEFAULT_ENCHANTABILITY,
+                Optional.of(new Material.Shaft(1f, 0)),
+                Optional.of(new Material.Fletching(1f, 1f)));
     }
 }

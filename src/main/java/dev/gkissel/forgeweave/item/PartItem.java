@@ -68,6 +68,10 @@ public class PartItem extends Item {
         BOW,
         /** Issue #392: a bow string, off the material's BOWSTRING block ({@code BowStringMaterialStats}). */
         BOWSTRING,
+        /** Issue #626: an arrow shaft, off the material's SHAFT block ({@code ArrowShaftMaterialStats}). */
+        SHAFT,
+        /** Issue #626: a fletching, off the material's FLETCHING block ({@code FletchingMaterialStats}). */
+        FLETCHING,
         /** No stat block of its own -- the shard, which is a leftover rather than a buildable part. */
         NONE
     }
@@ -225,6 +229,8 @@ public class PartItem extends Item {
             case EXTRA -> StationText.extraStats(material);
             case BOW -> StationText.bowStats(material);
             case BOWSTRING -> StationText.bowstringStats(material);
+            case SHAFT -> StationText.shaftStats(material);
+            case FLETCHING -> StationText.fletchingStats(material);
             case NONE -> List.of();
         };
     }

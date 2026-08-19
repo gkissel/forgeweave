@@ -88,12 +88,14 @@ class BookMaterialPageTest {
     void statGroupsFollowUpstreamsBlockOrderAndSkipTheBlocksAMaterialLacks() {
         List<StatGroup> wood = MaterialPageContent.statGroups(shipped("wood"));
 
-        assertEquals(List.of(PartItem.Kind.HEAD, PartItem.Kind.HANDLE, PartItem.Kind.EXTRA, PartItem.Kind.BOW),
+        assertEquals(List.of(PartItem.Kind.HEAD, PartItem.Kind.HANDLE, PartItem.Kind.EXTRA, PartItem.Kind.BOW,
+                        PartItem.Kind.SHAFT),
                 wood.stream().map(StatGroup::kind).toList(),
-                "upstream addStatsDisplay runs HEAD, HANDLE then EXTRA; the bow block follows while "
-                        + "Forgeweave folds the ranged stats into the material page");
+                "upstream addStatsDisplay runs HEAD, HANDLE then EXTRA; the ranged blocks follow while "
+                        + "Forgeweave folds them into the material page (#626 adds wood's SHAFT)");
         assertEquals(List.of("tooltip.forgeweave.stat_type.head", "tooltip.forgeweave.stat_type.handle",
-                        "tooltip.forgeweave.stat_type.extra", "tooltip.forgeweave.stat_type.bow"),
+                        "tooltip.forgeweave.stat_type.extra", "tooltip.forgeweave.stat_type.bow",
+                        "tooltip.forgeweave.stat_type.shaft"),
                 wood.stream().map(StatGroup::nameKey).toList(),
                 "the block heading is the stat type's own name, the key the part tooltips already use");
 

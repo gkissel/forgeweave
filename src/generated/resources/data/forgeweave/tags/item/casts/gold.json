@@ -32,6 +32,7 @@
     "forgeweave:cast_katana_blade",
     "forgeweave:cast_bow_limb",
     "forgeweave:cast_sharpening_kit",
-    "forgeweave:cast_shard"
+    "forgeweave:cast_shard",
+    "forgeweave:cast_arrow_head"
   ]
 }

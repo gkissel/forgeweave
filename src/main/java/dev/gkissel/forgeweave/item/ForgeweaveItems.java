@@ -79,6 +79,11 @@ public final class ForgeweaveItems {
     // M3.5 (docs/SCOPE.md M3.5, issue #393): the bow's two parts, patterned like every other.
     public static final DeferredItem<Item> PATTERN_BOW_LIMB = pattern("pattern_bow_limb");
     public static final DeferredItem<Item> PATTERN_BOW_STRING = pattern("pattern_bow_string");
+    // #626 (parity audit T17): the arrow's three parts, stencilled like every other
+    // (upstream TinkerTools#registerItems registers all three right after the bow pair's).
+    public static final DeferredItem<Item> PATTERN_ARROW_HEAD = pattern("pattern_arrow_head");
+    public static final DeferredItem<Item> PATTERN_ARROW_SHAFT = pattern("pattern_arrow_shaft");
+    public static final DeferredItem<Item> PATTERN_FLETCHING = pattern("pattern_fletching");
     // #271's sharpening kit. Upstream stencils it like any other part
     // (TinkerTools#registerItems: registerStencilTableCrafting(Pattern.setTagForPart(pattern, sharpeningKit))).
     public static final DeferredItem<Item> PATTERN_SHARPENING_KIT = pattern("pattern_sharpening_kit");
@@ -163,6 +168,38 @@ public final class ForgeweaveItems {
      * <p>The one part with no cast: see {@code CAST_BOW_LIMB} below.
      */
     public static final DeferredItem<PartItem> PART_BOW_STRING = part("bow_string", PartItem.Kind.BOWSTRING);
+
+    /**
+     * The arrow's head (issue #626, parity audit T17), upstream's {@code TinkerTools#arrowHead}
+     * ({@code TinkerTools.java:213}, {@code new ToolPart(Material.VALUE_Ingot * 2)}). {@link
+     * PartItem.Kind#HEAD}, not a kind of its own: upstream's {@code PartMaterialType.arrowHead}
+     * names {@code HEAD, PROJECTILE} as its stat types, and PROJECTILE is a stat every HEAD
+     * material carries for free ({@code TinkerRegistry#addMaterialStats:261} auto-adds it to any
+     * material given head stats), so "has HEAD stats" is the whole gate -- the same one every other
+     * head part asks. The arrow itself is #626's follow-up, riding #448's {@code ProjectileCore}
+     * layer; this part exists before it the same way #393's bow parts preceded the bows.
+     */
+    public static final DeferredItem<PartItem> PART_ARROW_HEAD = part("arrow_head", PartItem.Kind.HEAD);
+
+    /**
+     * The arrow's shaft (issue #626), upstream's {@code TinkerTools#arrowShaft}
+     * ({@code TinkerTools.java:214}, also {@code VALUE_Ingot * 2}), read through
+     * {@code PartMaterialType.arrowShaft} -- {@link PartItem.Kind#SHAFT}, the stat block issue #626
+     * added to the material model ({@code ArrowShaftMaterialStats}).
+     */
+    public static final DeferredItem<PartItem> PART_ARROW_SHAFT = part("arrow_shaft", PartItem.Kind.SHAFT);
+
+    /**
+     * The arrow's fletching (issue #626), upstream's {@code TinkerTools#fletching}
+     * ({@code TinkerTools.java:215}, also {@code VALUE_Ingot * 2}), read through
+     * {@code PartMaterialType.fletching} -- {@link PartItem.Kind#FLETCHING}
+     * ({@code FletchingMaterialStats}).
+     *
+     * <p>Like the bow string, the shaft and fletching have no cast: no molten material carries a
+     * SHAFT or FLETCHING stat block, so upstream's {@code registerToolpartMeltingCasting} loop
+     * (see {@code CAST_BOW_LIMB}) never registers one -- only {@code CAST_ARROW_HEAD} exists.
+     */
+    public static final DeferredItem<PartItem> PART_FLETCHING = part("fletching", PartItem.Kind.FLETCHING);
 
     /**
      * The sharpening kit (issue #271): the one part that belongs to no tool. Upstream's
@@ -639,6 +676,11 @@ public final class ForgeweaveItems {
     // The only BOWSTRING materials are string and vine (issue #392), neither of which melts, so
     // upstream registers no bow_string cast at all; a cast no fluid could fill is not worth adding.
     public static final DeferredItem<Item> CAST_BOW_LIMB = ITEMS.registerSimpleItem("cast_bow_limb");
+    // #626: the arrow head casts like any other head part -- every castable metal has HEAD stats
+    // (and the PROJECTILE stat upstream auto-adds beside them), so canUseMaterial holds and the
+    // registerToolpartMeltingCasting loop reaches it. The shaft and fletching do not: no molten
+    // material carries a SHAFT or FLETCHING block, the same reason the bow string has no cast.
+    public static final DeferredItem<Item> CAST_ARROW_HEAD = ITEMS.registerSimpleItem("cast_arrow_head");
     // #271: upstream casts the sharpening kit like any other tool part -- TinkerSmeltery's
     // registerToolpartMeltingCasting loops every registered IToolPart whose canBeCasted() holds, and
     // SharpeningKit never overrides it.
@@ -672,7 +714,7 @@ public final class ForgeweaveItems {
             "cast_pan", "cast_knife_blade", "cast_large_sword_blade", "cast_tough_tool_rod", "cast_tough_binding",
             "cast_large_plate", "cast_hammer_head", "cast_excavator_head", "cast_scythe_head", "cast_kama_head",
             "cast_broad_axe_head", "cast_vein_hammer_head", "cast_war_mace_head", "cast_curved_blade",
-            "cast_katana_blade", "cast_sharpening_kit", "cast_bow_limb", "cast_shard");
+            "cast_katana_blade", "cast_sharpening_kit", "cast_bow_limb", "cast_shard", "cast_arrow_head");
 
     public static final DeferredItem<BlockItem> CASTING_TABLE = ITEMS.registerSimpleBlockItem("casting_table", ForgeweaveBlocks.CASTING_TABLE);
     public static final DeferredItem<BlockItem> CASTING_BASIN = ITEMS.registerSimpleBlockItem("casting_basin", ForgeweaveBlocks.CASTING_BASIN);

@@ -53,6 +53,9 @@ class CastCompositeHoleTest {
         // sprite, drawn hard against one corner rather than centered. A cast composited before a
         // re-source of that sprite would leave the hole in the wrong corner entirely.
         new Part("bow_limb.png", "cast_bow_limb.png"),
+        // Issue #626: the arrow head is the T17 part that casts (the shaft and fletching do not --
+        // no SHAFT/FLETCHING material melts, the bow-string situation exactly).
+        new Part("arrow_head.png", "cast_arrow_head.png"),
     };
 
     private static Path projectRoot() {

@@ -93,6 +93,9 @@ public class ForgeweaveItemModelProvider extends ItemModelProvider {
         singleLayerModel(ForgeweaveItems.PATTERN_KATANA_BLADE, derivedItem("pattern_katana_blade"));
         singleLayerModel(ForgeweaveItems.PATTERN_BOW_LIMB, derivedItem("pattern_bow_limb"));
         singleLayerModel(ForgeweaveItems.PATTERN_BOW_STRING, derivedItem("pattern_bow_string"));
+        singleLayerModel(ForgeweaveItems.PATTERN_ARROW_HEAD, derivedItem("pattern_arrow_head"));
+        singleLayerModel(ForgeweaveItems.PATTERN_ARROW_SHAFT, derivedItem("pattern_arrow_shaft"));
+        singleLayerModel(ForgeweaveItems.PATTERN_FLETCHING, derivedItem("pattern_fletching"));
         singleLayerModel(ForgeweaveItems.PATTERN_SHARPENING_KIT, derivedItem("pattern_sharpening_kit"));
         singleLayerModel(ForgeweaveItems.PATTERN_SHARD, derivedItem("pattern_shard"));
 
@@ -141,6 +144,13 @@ public class ForgeweaveItemModelProvider extends ItemModelProvider {
         // shipping a separate part sprite for it.
         singleLayerModel(ForgeweaveItems.PART_BOW_LIMB, derivedItem("bow_limb"));
         singleLayerModel(ForgeweaveItems.PART_BOW_STRING, derivedItem("bow_string"));
+        // #626: all three arrow parts are straight upstream copies (NOTICE.md). The shaft's sprite
+        // is upstream's items/arrow/shaft.png -- arrow_shaft.tmat.json names it as its layer0, the
+        // same assembled-tool-layer reuse the bow limb's model does -- while the head and fletching
+        // have dedicated items/parts/ sprites.
+        singleLayerModel(ForgeweaveItems.PART_ARROW_HEAD, derivedItem("arrow_head"));
+        singleLayerModel(ForgeweaveItems.PART_ARROW_SHAFT, derivedItem("arrow_shaft"));
+        singleLayerModel(ForgeweaveItems.PART_FLETCHING, derivedItem("fletching"));
         // #271: the sharpening kit's own art, copied straight from the clone (NOTICE.md). Tinted per
         // material by ForgeweaveItemColors like every other PartItem, which is why only the grey base
         // is ported and not upstream's three per-material overrides beside it.
@@ -198,6 +208,7 @@ public class ForgeweaveItemModelProvider extends ItemModelProvider {
         singleLayerModel(ForgeweaveItems.CAST_CURVED_BLADE, derivedItem("cast_curved_blade"));
         singleLayerModel(ForgeweaveItems.CAST_KATANA_BLADE, derivedItem("cast_katana_blade"));
         singleLayerModel(ForgeweaveItems.CAST_BOW_LIMB, derivedItem("cast_bow_limb"));
+        singleLayerModel(ForgeweaveItems.CAST_ARROW_HEAD, derivedItem("cast_arrow_head")); // #626
         singleLayerModel(ForgeweaveItems.CAST_SHARPENING_KIT, derivedItem("cast_sharpening_kit"));
         // #471/T40
         singleLayerModel(ForgeweaveItems.CAST_SHARD, derivedItem("cast_shard"));
