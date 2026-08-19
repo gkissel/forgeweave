@@ -131,21 +131,36 @@ class BowDrawArtTest {
      * T52 (issue #483): where the nocked ammo sits, read off the same {@code .tcon.json} files'
      * {@code ammoPosition} blocks. Each of a bow's three overrides carries a {@code pos} and no
      * {@code rot}, and {@code ToolModel#getBakedToolModel} combines an override's block with the
-     * root's, so all four states share the root's {@code rot [0, 180, 0]}. The offsets are whole
-     * pixels: the arrow rides three out from the string at the start of the draw and one at full
-     * draw, which is also where the undrawn bow holds it.
+     * root's, so all three drawn states share the root's {@code rot [0, 180, 0]}. The offsets are
+     * whole pixels: the arrow rides three out from the string at the start of the draw and one at
+     * full draw.
      */
     @Test
     void theNockedArrowFollowsTheStringInAsTheDrawProgresses() {
         for (String bow : List.of("shortbow", "longbow")) {
-            assertArrayEquals(new float[] {-0.0630f, 0.0630f, 0.01f, 0.0f, 180.0f, 0.0f},
-                    ToolArt.ammoPosition(bow, 0), 0.0f, bow + ".tcon.json's root ammoPosition");
             assertArrayEquals(new float[] {-0.1880f, 0.1880f, 0.01f, 0.0f, 180.0f, 0.0f},
                     ToolArt.ammoPosition(bow, 1), 0.0f, "three pixels out at the start of the draw");
             assertArrayEquals(new float[] {-0.1255f, 0.1255f, 0.01f, 0.0f, 180.0f, 0.0f},
                     ToolArt.ammoPosition(bow, 2), 0.0f, "two at stage 2");
             assertArrayEquals(new float[] {-0.0630f, 0.0630f, 0.01f, 0.0f, 180.0f, 0.0f},
-                    ToolArt.ammoPosition(bow, 3), 0.0f, "one at full draw, the root position again");
+                    ToolArt.ammoPosition(bow, 3), 0.0f, "one at full draw");
+        }
+    }
+
+    /**
+     * Playtest alpha.3 item 30.a (issue #600): stage 0 is "this holder is not drawing this bow"
+     * ({@code ForgeweaveItemProperties#pulling} is 0 there, which is the only way
+     * {@code ModifierOverlayModels#drawStage} returns 0 for a bow), and an undrawn bow nocks
+     * nothing.
+     *
+     * <p>Deliberate deviation from 1.12, on the maintainer's call in #600: upstream's model root
+     * carries an {@code ammoPosition} of its own -- the full-draw offset -- so a 1.12 bow held by a
+     * player with arrows shows one nocked before the draw starts, inventory icon included.
+     */
+    @Test
+    void anUndrawnBowNocksNothing() {
+        for (String bow : List.of("shortbow", "longbow")) {
+            assertNull(ToolArt.ammoPosition(bow, 0), bow + " draws no arrow until the holder pulls");
         }
     }
 

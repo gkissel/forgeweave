@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.IntUnaryOperator;
 
 import javax.annotation.Nullable;
 
@@ -26,6 +27,7 @@ import net.minecraft.client.resources.model.ModelState;
 import net.minecraft.core.Direction;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.util.FastColor;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemDisplayContext;
@@ -115,12 +117,19 @@ public final class ModifierOverlayModels {
 
     /**
      * {@code ammo} is the ammo's <em>resolved model</em> rather than the stack (upstream keys on
-     * item + meta + NBT): two stacks that bake the same model compose the same quads here, because
-     * {@link #nockedQuads} drops the tint the stack could otherwise vary. {@code stage} carries the
-     * ammo's position, which {@code base} alone does not -- a bow's model is one instance per item,
-     * not per draw stage.
+     * item + meta + NBT), and {@code ammoTint} the colour that model's quads are baked in --
+     * together they are everything about the ammo stack the composed quads can still vary by, since
+     * {@link #nockedQuads} resolves the tint at bake time and clears the index (#600).
+     * {@code stage} carries the ammo's position, which {@code base} alone does not -- a bow's model
+     * is one instance per item, not per draw stage.
+     *
+     * <p>ponytail: {@code ammoTint} is tint index 0's colour only -- every vanilla arrow that
+     * carries a colour at all (the tipped one) carries it there, and vanilla's own handler answers
+     * {@code -1} for every higher index. Widen it to the full index list if a modded arrow ever
+     * varies a second tinted layer independently.
      */
-    private record CacheKey(BakedModel base, List<TintedOverlay> overlays, @Nullable BakedModel ammo, int stage) {}
+    private record CacheKey(BakedModel base, List<TintedOverlay> overlays, @Nullable BakedModel ammo, int stage,
+            int ammoTint) {}
 
     /**
      * One overlay sprite plus the tint index its quad bakes at -- {@code -1} (untinted) for every
@@ -165,14 +174,16 @@ public final class ModifierOverlayModels {
                 }
                 int stage = drawStage(tool, stack, entity);
                 List<TintedOverlay> overlays = overlaySprites(tool, stack, stage);
-                BakedModel ammo = nockedAmmoModel(tool, stack, level, entity, stage);
-                if (overlays.isEmpty() && ammo == null) {
+                ItemStack ammo = nockedAmmo(tool, stack, entity, stage);
+                BakedModel ammoModel = ammo.isEmpty() ? null
+                        : Minecraft.getInstance().getItemRenderer().getModel(ammo, level, entity, 0);
+                if (overlays.isEmpty() && ammoModel == null) {
                     return resolved;
                 }
                 BakedModel base = resolved;
                 float[] ammoPosition = ToolArt.ammoPosition(tool, stage);
-                return COMPOSED.computeIfAbsent(new CacheKey(base, overlays, ammo, stage),
-                        cacheKey -> compose(base, overlays, ammo, ammoPosition));
+                return COMPOSED.computeIfAbsent(new CacheKey(base, overlays, ammoModel, stage, ammoColor(ammo, 0)),
+                        cacheKey -> compose(base, overlays, ammoModel, ammo, ammoPosition));
             }
         };
         private final String tool;
@@ -230,19 +241,27 @@ public final class ModifierOverlayModels {
     }
 
     /**
-     * The model of the ammo {@code stack} draws nocked (T52, issue #483), or {@code null} where
-     * nothing is nocked: upstream's {@code IAmmoUser#getAmmoToRender}, guarded by whether this tool
-     * has an {@code ammoPosition} in this state at all -- a crossbow being cranked has none, and no
-     * melee tool ever does.
+     * The ammo {@code stack} draws nocked (T52, issue #483), or empty where nothing is nocked:
+     * upstream's {@code IAmmoUser#getAmmoToRender}, guarded by whether this tool has an
+     * {@code ammoPosition} in this state at all -- an undrawn bow has none (#600), nor does a
+     * crossbow being cranked, nor any melee tool ever.
      */
-    @Nullable
-    private static BakedModel nockedAmmoModel(String tool, ItemStack stack, @Nullable ClientLevel level,
-            @Nullable LivingEntity entity, int stage) {
+    private static ItemStack nockedAmmo(String tool, ItemStack stack, @Nullable LivingEntity entity, int stage) {
         if (ToolArt.ammoPosition(tool, stage) == null || !(stack.getItem() instanceof BowItem bow)) {
-            return null;
+            return ItemStack.EMPTY;
         }
-        ItemStack ammo = bow.ammoToRender(stack, entity);
-        return ammo.isEmpty() ? null : Minecraft.getInstance().getItemRenderer().getModel(ammo, level, entity, 0);
+        return bow.ammoToRender(stack, entity);
+    }
+
+    /**
+     * What vanilla's own {@code ItemColors} handler answers for {@code ammo}'s tint index -- the
+     * potion's colour for a tipped arrow, {@code -1} (white) for a plain or spectral one, and
+     * whatever a modded arrow registered for itself. Forced opaque, because unlike the renderer
+     * (which takes alpha from elsewhere) a vertex colour with alpha 0 draws nothing (#8).
+     */
+    private static int ammoColor(ItemStack ammo, int tintIndex) {
+        return ammo.isEmpty() ? -1
+                : FastColor.ARGB32.opaque(Minecraft.getInstance().getItemColors().getColor(ammo, tintIndex));
     }
 
     /**
@@ -250,27 +269,32 @@ public final class ModifierOverlayModels {
      * whose transform Mantle applies about the item's centre rather than its corner -- without that
      * the ammo's {@code rot [0, 180, 0]} would swing it clean out of the model.
      *
-     * <p>The tint index is dropped, which upstream had no need to do: Forgeweave tints a tool's
-     * layers per material ({@code ForgeweaveItemColors#toolMaterialTint}) where upstream stitched a
-     * sprite per material, and an arrow's own quads carry tint index 0 -- the bow's first limb -- so
-     * left alone they would come out limb-coloured. The cost is that a tipped arrow shows its tip
-     * untinted; it is still the arrow that would fire.
+     * <p>The tint <em>index</em> has to be dropped, which upstream had no need to do: Forgeweave
+     * tints a tool's layers per material ({@code ForgeweaveItemColors#toolMaterialTint}) where
+     * upstream stitched a sprite per material, and an arrow's own quads carry tint index 0 -- which
+     * on the composed bow means "the first limb" -- so left alone they would come out limb-coloured.
+     * Dropping it without resolving it first is what made every tipped arrow render as the plain
+     * white one (#600), so {@code ammoColors} is asked what the index meant and the answer is baked
+     * into the quad's vertex colours, which the renderer multiplies by an untinted quad's implicit
+     * white. {@link CacheKey} carries that colour, so two potions do not share one composed model.
      */
-    private static List<BakedQuad> nockedQuads(BakedModel ammo, float[] position) {
+    static List<BakedQuad> nockedQuads(List<BakedQuad> ammoQuads, float[] position, IntUnaryOperator ammoColors) {
         Transformation transformation = new Transformation(new Matrix4f()
                 .translation(0.5f, 0.5f, 0.5f)
                 .translate(position[0], position[1], position[2])
                 .rotateXYZ((float) Math.toRadians(position[3]), (float) Math.toRadians(position[4]),
                         (float) Math.toRadians(position[5]))
                 .translate(-0.5f, -0.5f, -0.5f));
-        List<BakedQuad> placed = QuadTransformers.applying(transformation)
-                .process(ammo.getQuads(null, null, RandomSource.create(0L)));
-        List<BakedQuad> untinted = new ArrayList<>(placed.size());
+        List<BakedQuad> placed = QuadTransformers.applying(transformation).process(ammoQuads);
+        List<BakedQuad> baked = new ArrayList<>(placed.size());
         for (BakedQuad quad : placed) {
-            untinted.add(new BakedQuad(quad.getVertices(), -1, quad.getDirection(), quad.getSprite(),
+            if (quad.isTinted()) {
+                QuadTransformers.applyingColor(ammoColors.applyAsInt(quad.getTintIndex())).processInPlace(quad);
+            }
+            baked.add(new BakedQuad(quad.getVertices(), -1, quad.getDirection(), quad.getSprite(),
                     quad.isShade(), quad.hasAmbientOcclusion()));
         }
-        return untinted;
+        return baked;
     }
 
     /**
@@ -279,7 +303,7 @@ public final class ModifierOverlayModels {
      * nocked ammo on top.
      */
     private static BakedModel compose(BakedModel base, List<TintedOverlay> overlays, @Nullable BakedModel ammo,
-            @Nullable float[] ammoPosition) {
+            ItemStack ammoStack, @Nullable float[] ammoPosition) {
         List<BakedQuad> quads = new ArrayList<>(base.getQuads(null, null, RandomSource.create(0L)));
         for (TintedOverlay overlay : overlays) {
             TextureAtlasSprite sprite = blockAtlasSprite(overlay.sprite());
@@ -289,7 +313,8 @@ public final class ModifierOverlayModels {
                     material -> sprite, OVERLAY_DEPTH_STATE));
         }
         if (ammo != null && ammoPosition != null) {
-            quads.addAll(nockedQuads(ammo, ammoPosition));
+            quads.addAll(nockedQuads(ammo.getQuads(null, null, RandomSource.create(0L)), ammoPosition,
+                    tintIndex -> ammoColor(ammoStack, tintIndex)));
         }
         List<BakedQuad> composedQuads = List.copyOf(quads);
         return new BakedModelWrapper<>(base) {
