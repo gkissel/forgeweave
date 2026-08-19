@@ -1,0 +1,7 @@
+{
+  "type": "forgeweave:slime_island",
+  "biomes": "#forgeweave:has_structure/slime_island",
+  "step": "surface_structures",
+  "terrain_adaptation": "none",
+  "spawn_overrides": {}
+}

@@ -195,6 +195,35 @@ class SlimeIslandShapeTest {
         }
     }
 
+    /**
+     * Issue #629: the island is a structure now, and a structure piece is reloaded from nothing but
+     * the bounding box vanilla already writes for it. That only works while the canvas the piece
+     * spans determines the size that produced it, so the round trip is pinned over the whole rolled
+     * range rather than trusted.
+     */
+    @Test
+    void aCanvasSpanRecoversTheSizeThatAskedForIt() {
+        for (int xRange = 20; xRange <= 32; xRange++) {
+            for (int zRange = 20; zRange <= 32; zRange++) {
+                for (int yRange = 11; yRange <= 13; yRange++) {
+                    SlimeIslandShape.Size size = new SlimeIslandShape.Size(xRange, zRange, yRange);
+                    assertEquals(size, SlimeIslandShape.Size.fromCanvasSpan(
+                            size.canvasSizeX(), size.canvasSizeY(), size.canvasSizeZ()));
+                }
+            }
+        }
+    }
+
+    /** The canvas the shape allocates has to be the span the piece's bounding box will claim. */
+    @Test
+    void theCanvasSpanIsTheSpanTheCanvasActuallyCovers() {
+        SlimeIslandShape.Size size = new SlimeIslandShape.Size(24, 27, 12);
+        int pad = SlimeIslandShape.Size.canvasPad();
+        assertEquals(size.xRange() + 1 + 2 * pad, size.canvasSizeX());
+        assertEquals(size.zRange() + 1 + 2 * pad, size.canvasSizeZ());
+        assertEquals(size.canvasTop() + 1, size.canvasSizeY());
+    }
+
     /** One generated island, kept together with the size and palette it was drawn from. */
     private record Island(SlimeIslandShape.Canvas canvas, SlimeIslandShape.Size size, SlimeIslandShape.Palette palette) {
         static Island at(long seed) {
