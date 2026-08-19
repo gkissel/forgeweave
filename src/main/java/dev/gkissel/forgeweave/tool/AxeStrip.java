@@ -10,15 +10,20 @@ import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.LevelEvent;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.gameevent.GameEvent;
+import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.Vec3;
 
 import net.neoforged.neoforge.common.ItemAbilities;
 import net.neoforged.neoforge.common.ItemAbility;
+
+import dev.gkissel.forgeweave.item.ToolItem;
 
 /**
  * Log stripping, copper scraping and wax removal for the axe family (issue #575, follow-up to the
@@ -44,11 +49,15 @@ import net.neoforged.neoforge.common.ItemAbility;
  * the main hand and a shield in the off hand, not sneaking, means the player wants to raise the
  * shield, so nothing is transformed.
  *
- * <p>Unlike {@link ShovelPath} this covers the clicked block alone, not the tool's AoE area. 1.20's
- * {@code BlockTransformModule} does spread over the AoE, but through a transform-specific iterator;
- * {@link AoeHarvest#extraBlocks} is a <em>mining</em> filter and rejects anything the tool is not
- * correct for -- which would silently exclude every copper block from a scrape, since copper is
- * {@code mineable/pickaxe}. Issue #617 tracks the AoE half.
+ * <p>Like {@link ShovelPath}, this also spreads over the tool's AoE area (issue #617): 1.20's {@code
+ * BlockTransformModule#afterBlockUse} does the same, through a transform-specific iterator --
+ * {@code AOEMatchType.TRANSFORM} rather than the mining one {@link AoeHarvest#extraBlocks} answers,
+ * which would silently exclude every copper block from an area scrape, copper being {@code
+ * mineable/pickaxe} rather than {@code mineable/axe}. {@link AoeHarvest#extraTransformBlocks} is that
+ * split ported: the hatchet and battleaxe are {@link AoeHarvest.Shape#SINGLE} and {@link
+ * AoeHarvest.Shape#NONE}, so neither takes anything extra without an expander; the lumber axe is
+ * {@link AoeHarvest.Shape#TREE_FELL}, so a strip on a tree's trunk strips the whole tree -- upstream's
+ * own broad-axe behavior, and what makes this whole issue worth doing.
  */
 public final class AxeStrip {
 
@@ -63,17 +72,44 @@ public final class AxeStrip {
             new Transform(ItemAbilities.AXE_WAX_OFF, SoundEvents.AXE_WAX_OFF, LevelEvent.PARTICLES_WAX_OFF));
 
     /**
-     * Strips, scrapes or wipes the clicked block -- the first of the three that applies -- for one
-     * durability, or {@link InteractionResult#PASS} if none does. The caller has already refused a
-     * Broken tool.
+     * Transforms the block clicked and, following {@code aoeShape}, everything else the tool's AoE
+     * takes along (issue #617). The caller has already refused a Broken tool; a tool that breaks
+     * mid-area stops the area, matching {@link ShovelPath#flattenAt}.
      */
-    public static InteractionResult transformAt(UseOnContext context) {
+    public static InteractionResult transformAt(UseOnContext context, AoeHarvest.Shape aoeShape) {
         Level level = context.getLevel();
-        BlockPos pos = context.getClickedPos();
+        BlockPos origin = context.getClickedPos();
         Player player = context.getPlayer();
         if (wantsToRaiseAShield(context, player)) {
             return InteractionResult.PASS;
         }
+        InteractionResult result = transformOne(context);
+        if (player == null) {
+            return result;
+        }
+        ItemStack stack = context.getItemInHand();
+        BlockState originState = level.getBlockState(origin);
+        for (BlockPos pos : AoeHarvest.extraTransformBlocks(stack, level, player, origin, originState, aoeShape)) {
+            if (ToolItem.isBroken(stack)) {
+                break;
+            }
+            InteractionResult extra = transformOne(contextAt(context, pos));
+            if (!result.consumesAction()) {
+                result = extra;
+            }
+        }
+        return result;
+    }
+
+    /**
+     * Strips, scrapes or wipes one block -- the first of the three transforms that applies -- for one
+     * durability, or {@link InteractionResult#PASS} if none does. Issue #575's original body, now
+     * {@link #transformAt}'s per-block step.
+     */
+    private static InteractionResult transformOne(UseOnContext context) {
+        Level level = context.getLevel();
+        BlockPos pos = context.getClickedPos();
+        Player player = context.getPlayer();
         BlockState state = level.getBlockState(pos);
         for (Transform transform : TRANSFORMS) {
             BlockState transformed = state.getToolModifiedState(context, transform.ability(), false);
@@ -100,6 +136,12 @@ public final class AxeStrip {
     private static boolean wantsToRaiseAShield(UseOnContext context, Player player) {
         return player != null && context.getHand() == InteractionHand.MAIN_HAND
                 && player.getOffhandItem().is(Items.SHIELD) && !player.isSecondaryUseActive();
+    }
+
+    /** The same click, moved to another block of the area: same hand, same stack, same face. */
+    private static UseOnContext contextAt(UseOnContext origin, BlockPos pos) {
+        BlockHitResult hit = new BlockHitResult(Vec3.atCenterOf(pos), origin.getClickedFace(), pos, false);
+        return new UseOnContext(origin.getLevel(), origin.getPlayer(), origin.getHand(), origin.getItemInHand(), hit);
     }
 
     private AxeStrip() {}
