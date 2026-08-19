@@ -312,8 +312,9 @@ public class BowGameTests {
      * and the arrow on show is the arrow that leaves the bow. Two guards of upstream's own: a Broken
      * bow renders no ammo (it cannot fire), and neither does one nobody is holding.
      *
-     * <p>It is not gated on the draw: upstream's undrawn bows carry a root {@code ammoPosition} too,
-     * so a bow held by a player with arrows shows one before the draw starts.
+     * <p>This lookup itself is not gated on the draw -- it is upstream's, and it answers "what would
+     * this bow fire". Whether the model <em>draws</em> the answer is {@code ToolArt#ammoPosition}'s
+     * call, and since #600 that is only while the bow is actually being pulled.
      */
     @GameTest(template = "empty")
     public static void theNockedArrowIsTheArrowTheBowWouldFire(GameTestHelper helper) {

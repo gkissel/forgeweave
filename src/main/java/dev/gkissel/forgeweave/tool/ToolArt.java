@@ -264,12 +264,13 @@ public final class ToolArt {
     }
 
     /**
-     * Where a bow holds its nocked ammo at each pull stage: the {@code x} of {@code ammoPosition.pos}
-     * indexed by stage, {@code y} being its negation and {@code z} {@link #BOW_AMMO_LIFT} throughout.
-     * Whole pixels ({@code 1/16 = 0.0625}, upstream's own rounding), and they shrink as the draw
-     * progresses because the arrow travels back with the string it rides.
+     * Where a bow holds its nocked ammo at each <em>drawn</em> pull stage (1 to {@link #DRAW_STAGES},
+     * so stage {@code n} is index {@code n - 1}): the {@code x} of {@code ammoPosition.pos}, {@code y}
+     * being its negation and {@code z} {@link #BOW_AMMO_LIFT} throughout. Whole pixels
+     * ({@code 1/16 = 0.0625}, upstream's own rounding), and they shrink as the draw progresses
+     * because the arrow travels back with the string it rides.
      */
-    private static final float[] BOW_AMMO_X = {-0.0630f, -0.1880f, -0.1255f, -0.0630f};
+    private static final float[] BOW_AMMO_X = {-0.1880f, -0.1255f, -0.0630f};
 
     /** How far out of the bow's own plane the arrow sits, so the two do not z-fight. */
     private static final float BOW_AMMO_LIFT = 0.01f;
@@ -287,22 +288,28 @@ public final class ToolArt {
      * {@code ammoPosition} blocks, an override's combined with the model root's
      * ({@code AmmoPosition#combine}, which fills a missing entry from the root).
      *
-     * <p>A bow carries one at every stage, its undrawn state included: upstream's
-     * {@code BowCore#getAmmoToRender} is the found ammo whenever the bow is not Broken, so a bow held
-     * by a player with arrows shows a nocked one before the draw starts. The crossbow carries one
-     * only when loaded -- its three cranking overrides have no {@code ammoPosition} key, so upstream
-     * bakes them as plain tool models, and its empty root block never renders because
-     * {@code CrossBow#getAmmoToRender} is empty unless the flag is set.
+     * <p>A bow carries one at each of its three <em>drawn</em> stages and none at stage 0, which is
+     * "this holder is not drawing this bow" ({@code ForgeweaveItemProperties#pulling} 0). The
+     * crossbow carries one only when loaded -- its three cranking overrides have no
+     * {@code ammoPosition} key, so upstream bakes them as plain tool models, and its empty root
+     * block never renders because {@code CrossBow#getAmmoToRender} is empty unless the flag is set.
+     *
+     * <p><b>Deviation from 1.12</b>, on the maintainer's call in playtest issue #600: upstream's bow
+     * model roots carry an {@code ammoPosition} of their own -- the full-draw offset -- and
+     * {@code BowCore#getAmmoToRender} is the found ammo whenever the bow is not Broken, so a 1.12
+     * bow held by a player with arrows shows a nocked one before the draw starts, and in the
+     * inventory icon. Playtest alpha.3 read that as a bug ("the nocked arrow renders at ALL times");
+     * here the arrow appears only once the draw does.
      */
     @Nullable
     public static float[] ammoPosition(String tool, int stage) {
         if (hasLoadedState(tool)) {
             return stage == LOADED_STAGE ? CROSSBOW_LOADED_AMMO.clone() : null;
         }
-        if (!DRAW_THRESHOLDS.containsKey(tool) || stage < 0 || stage > DRAW_STAGES) {
+        if (!DRAW_THRESHOLDS.containsKey(tool) || stage < 1 || stage > DRAW_STAGES) {
             return null;
         }
-        float x = BOW_AMMO_X[stage];
+        float x = BOW_AMMO_X[stage - 1];
         return new float[] {x, -x, BOW_AMMO_LIFT,
                 BOW_AMMO_ROTATION[0], BOW_AMMO_ROTATION[1], BOW_AMMO_ROTATION[2]};
     }
