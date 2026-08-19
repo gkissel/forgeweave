@@ -138,10 +138,6 @@ public class BookScreen extends Screen {
     @Override
     public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
         super.render(graphics, mouseX, mouseY, partialTick);
-        // GuiBook.drawScreen leads with enableAlpha()/enableBlend(): the sheets' anti-aliased edge
-        // pixels need real alpha blending, and the GL blend state is whatever the last draw left.
-        RenderSystem.enableBlend();
-        RenderSystem.defaultBlendFunc();
         if (this.spread < 0) {
             renderCover(graphics);
         } else {
@@ -160,12 +156,11 @@ public class BookScreen extends Screen {
         int y = BookGeometry.spreadTop(this.height);
 
         setColor(graphics, BookGeometry.COVER_COLOR);
-        graphics.blit(TEX_COVER, x, y, 0, 0, BookGeometry.PAGE_WIDTH_UNSCALED,
-                BookGeometry.PAGE_HEIGHT_UNSCALED, BookGeometry.TEX_SIZE, BookGeometry.TEX_SIZE);
+        chromeBlit(graphics, TEX_COVER, x, y, 0, 0,
+                BookGeometry.PAGE_WIDTH_UNSCALED, BookGeometry.PAGE_HEIGHT_UNSCALED);
         graphics.setColor(1.0F, 1.0F, 1.0F, 1.0F);
-        graphics.blit(TEX_COVER, x, y, 0, BookGeometry.PAGE_HEIGHT_UNSCALED,
-                BookGeometry.PAGE_WIDTH_UNSCALED, BookGeometry.PAGE_HEIGHT_UNSCALED,
-                BookGeometry.TEX_SIZE, BookGeometry.TEX_SIZE);
+        chromeBlit(graphics, TEX_COVER, x, y, 0, BookGeometry.PAGE_HEIGHT_UNSCALED,
+                BookGeometry.PAGE_WIDTH_UNSCALED, BookGeometry.PAGE_HEIGHT_UNSCALED);
 
         Component title = Component.translatable(BookContent.TITLE);
         float scale = this.font.width(title) <= 67 ? 2.5F : 2F;
@@ -193,22 +188,21 @@ public class BookScreen extends Screen {
         int top = BookGeometry.spreadTop(this.height);
 
         setColor(graphics, BookGeometry.COVER_COLOR);
-        graphics.blit(TEX_BOOK, left, top, 0, 0, BookGeometry.PAGE_WIDTH_UNSCALED * 2,
-                BookGeometry.PAGE_HEIGHT_UNSCALED, BookGeometry.TEX_SIZE, BookGeometry.TEX_SIZE);
+        chromeBlit(graphics, TEX_BOOK, left, top, 0, 0,
+                BookGeometry.PAGE_WIDTH_UNSCALED * 2, BookGeometry.PAGE_HEIGHT_UNSCALED);
         graphics.setColor(1.0F, 1.0F, 1.0F, 1.0F);
 
         int leftSlot = BookGeometry.leftSlot(this.spread);
         if (leftSlot >= 0) {
-            graphics.blit(TEX_BOOK, left, top, 0, BookGeometry.PAGE_HEIGHT_UNSCALED,
-                    BookGeometry.PAGE_WIDTH_UNSCALED, BookGeometry.PAGE_HEIGHT_UNSCALED,
-                    BookGeometry.TEX_SIZE, BookGeometry.TEX_SIZE);
+            chromeBlit(graphics, TEX_BOOK, left, top, 0, BookGeometry.PAGE_HEIGHT_UNSCALED,
+                    BookGeometry.PAGE_WIDTH_UNSCALED, BookGeometry.PAGE_HEIGHT_UNSCALED);
             renderSlot(graphics, leftSlot, BookGeometry.leftPageX(this.width), BookGeometry.pageY(this.height));
         }
         int rightSlot = BookGeometry.rightSlot(this.spread);
         if (rightSlot < this.slots.size()) {
-            graphics.blit(TEX_BOOK, this.width / 2, top, BookGeometry.PAGE_WIDTH_UNSCALED,
+            chromeBlit(graphics, TEX_BOOK, this.width / 2, top, BookGeometry.PAGE_WIDTH_UNSCALED,
                     BookGeometry.PAGE_HEIGHT_UNSCALED, BookGeometry.PAGE_WIDTH_UNSCALED,
-                    BookGeometry.PAGE_HEIGHT_UNSCALED, BookGeometry.TEX_SIZE, BookGeometry.TEX_SIZE);
+                    BookGeometry.PAGE_HEIGHT_UNSCALED);
             renderSlot(graphics, rightSlot, BookGeometry.rightPageX(this.width), BookGeometry.pageY(this.height));
         }
     }
@@ -278,8 +272,21 @@ public class BookScreen extends Screen {
             int mouseX, int mouseY) {
         boolean hovered = mouseX >= x && mouseY >= y && mouseX < x + w && mouseY < y + h;
         setColor(graphics, hovered ? BookGeometry.ARROW_HOVER_COLOR : BookGeometry.ARROW_COLOR);
-        graphics.blit(TEX_BOOK, x, y, u, v, w, h, BookGeometry.TEX_SIZE, BookGeometry.TEX_SIZE);
+        chromeBlit(graphics, TEX_BOOK, x, y, u, v, w, h);
         graphics.setColor(1.0F, 1.0F, 1.0F, 1.0F);
+    }
+
+    /**
+     * A chrome-sheet blit with blending guaranteed on -- {@code GuiBook.drawScreen} leads with
+     * {@code enableAlpha()/enableBlend()} and re-establishes GL state before each page. The sheets'
+     * anti-aliased edge pixels need real alpha blending, and the GL blend state at blit time is
+     * whatever the last draw (text rendering included) left behind.
+     */
+    private static void chromeBlit(GuiGraphics graphics, ResourceLocation tex, int x, int y,
+            int u, int v, int w, int h) {
+        RenderSystem.enableBlend();
+        RenderSystem.defaultBlendFunc();
+        graphics.blit(tex, x, y, u, v, w, h, BookGeometry.TEX_SIZE, BookGeometry.TEX_SIZE);
     }
 
     private static void setColor(GuiGraphics graphics, int rgb) {
