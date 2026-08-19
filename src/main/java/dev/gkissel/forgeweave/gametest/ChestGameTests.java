@@ -512,24 +512,34 @@ public class ChestGameTests {
         helper.succeed();
     }
 
-    /** With the option off, upstream's chest is a plain container again: the contents spill. */
-    @GameTest(template = "empty")
+    /**
+     * With the option off, upstream's chest is a plain container again: the contents spill.
+     *
+     * <p>Issue #599 made every dropped {@code PartItem} (the pickaxe head, shard stack and tool rod
+     * this test spills) swap for an {@link dev.gkissel.forgeweave.entity.IndestructibleItemEntity} the
+     * same way a dropped tool does -- a tick after it joins the level, not the same tick (see
+     * {@code IndestructibleDropGameTests}'s class javadoc). The assertion waits that tick, same as
+     * every test over there; without it, the swap-in-progress entities are transiently absent from
+     * an immediate query.
+     */
+    @GameTest(template = "empty", timeoutTicks = 100)
     public static void chestsKeepInventoryOffSpillsTheContentsInstead(GameTestHelper helper) {
         ForgeweaveConfig.CHESTS_KEEP_INVENTORY.set(false);
-        try {
-            BlockPos pos = new BlockPos(1, 2, 1);
-            stockedChest(helper, pos);
+        BlockPos pos = new BlockPos(1, 2, 1);
+        stockedChest(helper, pos);
 
-            helper.getLevel().destroyBlock(helper.absolutePos(pos), true);
+        helper.getLevel().destroyBlock(helper.absolutePos(pos), true);
 
-            ItemStack stack = theOneDroppedChest(helper, pos, 4); // the chest plus its three stacks
-            helper.assertTrue(stack.get(DataComponents.CONTAINER) == null,
-                    "expected no contents on the item when the option is off -- they spilled instead");
-        } finally {
-            ForgeweaveConfig.CHESTS_KEEP_INVENTORY.set(true);
-        }
-
-        helper.succeed();
+        helper.runAfterDelay(2, () -> {
+            try {
+                ItemStack stack = theOneDroppedChest(helper, pos, 4); // the chest plus its three stacks
+                helper.assertTrue(stack.get(DataComponents.CONTAINER) == null,
+                        "expected no contents on the item when the option is off -- they spilled instead");
+            } finally {
+                ForgeweaveConfig.CHESTS_KEEP_INVENTORY.set(true);
+            }
+            helper.succeed();
+        });
     }
 
     /**

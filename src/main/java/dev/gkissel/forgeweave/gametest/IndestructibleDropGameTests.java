@@ -28,8 +28,23 @@ import dev.gkissel.forgeweave.item.PartItem;
  * Issue #447 (parity audit T16): upstream 1.12 {@code TinkersItem#hasCustomEntity} makes <b>every</b>
  * dropped tool spawn an {@code IndestructibleEntityItem} instead of a vanilla item entity -- immune to
  * everything but the void, and never despawning. These tests pin that behavior, the void escape hatch,
- * the save round-trip of the new entity, and the upstream scope: {@code ToolPart extends MaterialItem},
- * not {@code TinkersItem}, so a dropped <em>part</em> stays an ordinary item entity.
+ * and the save round-trip of the new entity.
+ *
+ * <h2>Issue #599: parts are indestructible too, by maintainer decision</h2>
+ *
+ * <p>#518 verified upstream 1.12's actual class hierarchy -- {@code ToolPart extends MaterialItem},
+ * not {@code TinkersItem} -- and correctly concluded upstream never makes a dropped tool part
+ * indestructible. This re-verifies the same hierarchy (unchanged in the pinned clone) and reaches the
+ * same conclusion: {@code TinkersItem}, {@code MaterialItem} and {@code ToolPart} do not declare
+ * {@code hasCustomEntity}/{@code createEntity}, and neither of {@code ToolPart}'s two upstream
+ * subclasses ({@code Shard}, {@code SharpeningKit}) adds them. So this <em>is</em> a deviation from
+ * 1.12 parity, not a parity fix -- recorded here because the playtest checklist (0.3.5-alpha.3, item
+ * 8.a) promised parts survive lava/fire/explosions the same way tools do, and a player's hours of
+ * material investment sit in the parts just as much as the assembled tool. {@link PartItem}'s
+ * {@code hasCustomEntity}/{@code createEntity} pair mirrors {@link
+ * dev.gkissel.forgeweave.item.ToolItem}'s exactly, so every {@code PartItem} instance -- pickaxe
+ * heads, rods, bindings, bow limbs/strings, shards, and the sharpening kit (itself a plain
+ * {@code PartItem}, not a subclass, in Forgeweave) -- is covered by the one override.
  */
 @GameTestHolder(Forgeweave.MODID)
 @PrefixGameTestTemplate(false)
@@ -164,21 +179,41 @@ public class IndestructibleDropGameTests {
     }
 
     /**
-     * Upstream scope, and the correction this PR makes to the audit row: {@code ToolPart} extends
-     * {@code MaterialItem}, not {@code TinkersItem}, so 1.12 never made a dropped tool <em>part</em>
-     * indestructible. A dropped part stays a vanilla item entity here too.
+     * Issue #599: a dropped tool part becomes an indestructible entity too, same as a dropped tool
+     * (see the class javadoc for why this is a deliberate deviation from 1.12, not a parity fix).
      */
     @GameTest(template = "empty", timeoutTicks = 100)
-    public static void aDroppedPartStaysAnOrdinaryItemEntity(GameTestHelper helper) {
+    public static void aDroppedPartBecomesAnIndestructibleEntity(GameTestHelper helper) {
         ItemStack head = new ItemStack(ForgeweaveItems.PART_PICKAXE_HEAD.get());
         helper.assertTrue(head.getItem() instanceof PartItem, "the fixture must actually be a tool part");
         ItemEntity vanilla = drop(helper, head);
 
         helper.runAfterDelay(2, () -> {
-            helper.assertFalse(vanilla.isRemoved(), "a dropped part must not be swapped for a custom entity");
-            helper.assertTrue(indestructibles(helper).isEmpty(),
-                    "a dropped part must not spawn an indestructible entity");
-            helper.assertTrue(vanilla.lifespan == 6000, "a dropped part keeps vanilla's five-minute lifespan");
+            helper.assertTrue(vanilla.isRemoved(), "the vanilla item entity must have been replaced");
+            IndestructibleItemEntity replacement = onlyIndestructible(helper);
+            helper.assertTrue(ItemStack.isSameItemSameComponents(replacement.getItem(), head),
+                    "the replacement must carry the very stack that was dropped");
+            helper.assertTrue(replacement.getType() == ForgeweaveEntities.INDESTRUCTIBLE_ITEM.get(),
+                    "the replacement must be this mod's own registered entity type");
+            helper.succeed();
+        });
+    }
+
+    /**
+     * A dropped sharpening kit is also a {@code PartItem} (Forgeweave has no separate class for it, per
+     * the class javadoc), so it must survive lava the same way any other dropped part does.
+     */
+    @GameTest(template = "empty", timeoutTicks = 100)
+    public static void aDroppedSharpeningKitSurvivesLava(GameTestHelper helper) {
+        ServerLevel level = helper.getLevel();
+        ItemStack kit = new ItemStack(ForgeweaveItems.PART_SHARPENING_KIT.get());
+        drop(helper, kit);
+
+        helper.runAfterDelay(2, () -> {
+            IndestructibleItemEntity dropped = onlyIndestructible(helper);
+            helper.assertFalse(dropped.hurt(level.damageSources().lava(), 4.0F),
+                    "a dropped sharpening kit must be immune to lava");
+            helper.assertFalse(dropped.isRemoved(), "lava must not destroy the dropped sharpening kit");
             helper.succeed();
         });
     }

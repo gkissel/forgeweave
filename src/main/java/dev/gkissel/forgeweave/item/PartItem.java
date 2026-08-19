@@ -11,11 +11,14 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
+import net.minecraft.world.level.Level;
 
 import dev.gkissel.forgeweave.client.StationText;
+import dev.gkissel.forgeweave.entity.IndestructibleItemEntity;
 import dev.gkissel.forgeweave.material.Material;
 import dev.gkissel.forgeweave.material.MaterialDisplay;
 
@@ -39,6 +42,19 @@ import dev.gkissel.forgeweave.material.MaterialDisplay;
  * <p>Issue #379 reverses the earlier omission of upstream's "Hold Shift for Stats" hint by
  * maintainer decision: both this item and {@code ToolItem} now close their compact tier with it,
  * gated on the same config the Shift tier reads (see {@link ToolTooltip#shiftHint}).
+ *
+ * <h2>Indestructible when dropped (issue #599)</h2>
+ *
+ * <p>Upstream 1.12 does <em>not</em> give tool parts this: {@code ToolPart extends MaterialItem}, not
+ * {@code TinkersItem}, and neither {@code Shard} nor {@code SharpeningKit} (upstream's only two
+ * {@code ToolPart} subclasses) adds {@code hasCustomEntity}/{@code createEntity} either -- #518
+ * already verified this hierarchy when it made every dropped <em>tool</em> indestructible
+ * ({@link ToolItem#hasCustomEntity}). This is therefore a deliberate deviation from 1.12 parity, by
+ * maintainer decision recorded on issue #599: the playtest checklist (0.3.5-alpha.3, item 8.a)
+ * promised parts survive lava/fire/explosions the same way tools do, and a part represents the same
+ * material investment a tool does. {@link #hasCustomEntity}/{@link #createEntity} mirror {@link
+ * ToolItem}'s pair exactly, so every {@code PartItem} instance is covered -- Forgeweave gives every
+ * part role (including the sharpening kit) the same class rather than upstream's per-role subclasses.
  */
 public class PartItem extends Item {
 
@@ -224,5 +240,20 @@ public class PartItem extends Item {
         List<Component> lines = new ArrayList<>(StationText.headStats(material));
         ToolTooltip.tierLine(material.incorrectForTool()).ifPresent(lines::add);
         return lines;
+    }
+
+    /** See the "Indestructible when dropped" class javadoc, and {@link ToolItem#hasCustomEntity}. */
+    @Override
+    public boolean hasCustomEntity(ItemStack stack) {
+        return true;
+    }
+
+    /** {@link #hasCustomEntity}'s other half -- see {@link IndestructibleItemEntity}. */
+    @Override
+    public Entity createEntity(Level level, Entity location, ItemStack stack) {
+        IndestructibleItemEntity entity =
+                new IndestructibleItemEntity(level, location.getX(), location.getY(), location.getZ(), stack);
+        entity.copyThrowFrom(location);
+        return entity;
     }
 }
