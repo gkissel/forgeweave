@@ -339,4 +339,34 @@ public class BowGameTests {
         helper.assertTrue(item.ammoToRender(bow, player).isEmpty(), "a Broken bow cannot fire, so it nocks nothing");
         helper.succeed();
     }
+
+    /**
+     * Issue #602, the shortbow's half of {@link ForgeBowGameTests#crossbowArrowRotationMatchesItsVelocityAtSpawn}:
+     * {@link BowItem#createArrow} is shared by every bow, so a plain bow shot has the exact same
+     * rotation-vs-deltaMovement mismatch the crossbow does -- the issue's own note that it is "less
+     * visible due to draw pose" rather than absent.
+     */
+    @GameTest(template = "empty")
+    public static void shortbowArrowRotationMatchesItsVelocityAtSpawn(GameTestHelper helper) {
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        player.setYRot(0.0F);
+        player.setXRot(0.0F);
+        player.moveTo(helper.absoluteVec(new Vec3(2.5, 2.0, 2.5)));
+        player.setDeltaMovement(new Vec3(4.0, 0.0, 0.0)); // moving sideways as the shot fires
+        ItemStack bow = shortbow(helper, player, "iron", "bone", "string");
+        giveArrows(player, 5);
+        player.setItemInHand(InteractionHand.MAIN_HAND, bow);
+        player.startUsingItem(InteractionHand.MAIN_HAND);
+        bow.getItem().releaseUsing(bow, helper.getLevel(), player, bow.getUseDuration(player) - 40);
+        player.stopUsingItem();
+
+        List<Arrow> arrows = helper.getLevel().getEntitiesOfClass(Arrow.class,
+                new AABB(player.position(), player.position()).inflate(4.0));
+        helper.assertTrue(arrows.size() == 1, "one arrow, got " + arrows.size());
+        Arrow arrow = arrows.get(0);
+        arrows.forEach(AbstractArrow::discard);
+
+        ForgeBowGameTests.assertRotationMatchesVelocity(helper, arrow);
+        helper.succeed();
+    }
 }
