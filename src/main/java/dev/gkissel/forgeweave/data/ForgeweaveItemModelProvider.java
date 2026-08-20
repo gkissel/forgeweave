@@ -297,6 +297,11 @@ public class ForgeweaveItemModelProvider extends ItemModelProvider {
         for (ForgeweaveItems.SlimeBall ball : ForgeweaveItems.slimeBalls()) {
             singleLayerModel(ball.item(), derivedItem(ball.colour().id() + "_slime_ball"));
         }
+        // #649 (parity audit T57) -- the five slime drops, upstream's items/food/slimedrop_*.png
+        // ports (NOTICE.md).
+        for (ForgeweaveItems.SlimeDrop drop : ForgeweaveItems.slimeDrops()) {
+            singleLayerModel(drop.item(), derivedItem(drop.colour().id() + "_slime_drop"));
+        }
 
         singleLayerModel(ForgeweaveItems.INGOT_KNIGHTSLIME, derivedItem("knightslime_ingot"));
         singleLayerModel(ForgeweaveItems.NUGGET_KNIGHTSLIME, derivedItem("knightslime_nugget"));
@@ -312,22 +317,27 @@ public class ForgeweaveItemModelProvider extends ItemModelProvider {
         // singleLayerModel produces.
         singleLayerModel(ForgeweaveItems.SLIME_BOOTS, derivedItem("slime_boots"));
 
-        // T22 (issue #453) -- the Slimesling, upstream's models/item/slimesling.json: a generated
-        // model over its own sprite (items/gadgets/slimesling.png, NOTICE.md) plus the four held
-        // transforms it carries, which turn the sling sideways in the hand.
-        getBuilder(ForgeweaveItems.SLIME_SLING.getId().toString())
-                .parent(new ModelFile.UncheckedModelFile("item/generated"))
-                .texture("layer0", derivedItem("slime_sling"))
-                .transforms()
-                .transform(ItemDisplayContext.THIRD_PERSON_RIGHT_HAND)
-                .rotation(0, 90, 0).translation(0, 4.0F, 2.5F).scale(0.85F).end()
-                .transform(ItemDisplayContext.THIRD_PERSON_LEFT_HAND)
-                .rotation(0, -90, 0).translation(0, 4.0F, 2.5F).scale(0.85F).end()
-                .transform(ItemDisplayContext.FIRST_PERSON_RIGHT_HAND)
-                .rotation(0, 90, 0).translation(0, 1.6F, 0.8F).scale(0.68F).end()
-                .transform(ItemDisplayContext.FIRST_PERSON_LEFT_HAND)
-                .rotation(0, -90, 0).translation(0, 1.6F, 0.8F).scale(0.68F).end()
-                .end();
+        // T22 (issue #453, six colours by #649) -- the Slimeslings, upstream's
+        // models/item/slimesling.json: a generated model plus the four held transforms it carries,
+        // which turn the sling sideways in the hand. Upstream renders every colour from the one
+        // greyscale sprite through an ItemColors ball-colour tint; here each colour's model takes
+        // its own pre-tinted sprite (scripts/derive_slime_sling_art.py, NOTICE.md), the same
+        // baked-tint adaptation the slime boots made at #452.
+        for (ForgeweaveItems.SlimeSling sling : ForgeweaveItems.slimeSlings()) {
+            getBuilder(sling.item().getId().toString())
+                    .parent(new ModelFile.UncheckedModelFile("item/generated"))
+                    .texture("layer0", derivedItem(sling.item().getId().getPath()))
+                    .transforms()
+                    .transform(ItemDisplayContext.THIRD_PERSON_RIGHT_HAND)
+                    .rotation(0, 90, 0).translation(0, 4.0F, 2.5F).scale(0.85F).end()
+                    .transform(ItemDisplayContext.THIRD_PERSON_LEFT_HAND)
+                    .rotation(0, -90, 0).translation(0, 4.0F, 2.5F).scale(0.85F).end()
+                    .transform(ItemDisplayContext.FIRST_PERSON_RIGHT_HAND)
+                    .rotation(0, 90, 0).translation(0, 1.6F, 0.8F).scale(0.68F).end()
+                    .transform(ItemDisplayContext.FIRST_PERSON_LEFT_HAND)
+                    .rotation(0, -90, 0).translation(0, 1.6F, 0.8F).scale(0.68F).end()
+                    .end();
+        }
 
         // #233 -- pig iron ingot/nugget, straight upstream texture ports (ingot_pigiron.png/
         // nugget_pigiron.png, NOTICE.md). No raw form (alloy-only metal).

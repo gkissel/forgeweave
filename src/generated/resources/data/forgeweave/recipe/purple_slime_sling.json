@@ -3,10 +3,10 @@
   "category": "equipment",
   "key": {
     "B": {
-      "item": "minecraft:slime_ball"
+      "item": "forgeweave:purple_slime_ball"
     },
     "C": {
-      "item": "forgeweave:green_congealed_slime"
+      "item": "forgeweave:purple_congealed_slime"
     },
     "S": {
       "item": "minecraft:string"
@@ -19,6 +19,6 @@
   ],
   "result": {
     "count": 1,
-    "id": "forgeweave:slime_sling"
+    "id": "forgeweave:purple_slime_sling"
   }
 }

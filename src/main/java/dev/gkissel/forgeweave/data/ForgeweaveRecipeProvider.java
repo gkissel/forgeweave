@@ -44,6 +44,7 @@ import dev.gkissel.forgeweave.block.SlimeColour;
 import dev.gkissel.forgeweave.item.ForgeweaveItems;
 import dev.gkissel.forgeweave.recipe.GravelFlintRecipe;
 import dev.gkissel.forgeweave.recipe.MixedSlimeBlockRecipe;
+import dev.gkissel.forgeweave.recipe.MixedSlimeSlingRecipe;
 import dev.gkissel.forgeweave.recipe.RetexturedShapedRecipe;
 import dev.gkissel.forgeweave.recipe.SharpeningKitRepairRecipe;
 
@@ -124,21 +125,32 @@ public class ForgeweaveRecipeProvider extends RecipeProvider {
                 .unlockedBy("has_pattern", has(ForgeweaveItems.PATTERN_BLANK.get()))
                 .save(recipeOutput, ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "book_from_patterns"));
 
-        // The Slimesling (parity audit T22, issue #453): upstream's
-        // recipes/gadgets/slimesling/green.json -- two string over a congealed slime block, three
-        // slime balls around it. #635 replaces #453's vanilla slime block stand-in with the real
-        // green congealed slime; the balls stay the `c:slimeballs` tag, which is what upstream's own
-        // fallback.json widens its ore dict to. Forgeweave still ships one sling where upstream has
-        // five colours -- T22's own reduction, untouched here.
-        ShapedRecipeBuilder.shaped(RecipeCategory.TOOLS, ForgeweaveItems.SLIME_SLING.get())
-                .pattern("SCS")
-                .pattern("B B")
-                .pattern(" B ")
-                .define('S', Items.STRING)
-                .define('C', ForgeweaveBlocks.GREEN_CONGEALED_SLIME.get())
-                .define('B', Tags.Items.SLIMEBALLS)
-                .unlockedBy("has_slime_ball", has(Tags.Items.SLIMEBALLS))
-                .save(recipeOutput);
+        // The five coloured Slimeslings (T22 issue #453, split into colours by #649): upstream's
+        // recipes/gadgets/slimesling/{green,blue,purple,blood,magma}.json all share one shape -- two
+        // string over that colour's congealed slime block, three of that colour's slime balls around
+        // it. #649 reverts #453's one-sling widening of the balls to the whole `c:slimeballs` tag:
+        // each colour takes exactly its own ball, as upstream's per-colour ore dicts do, and the
+        // mixed-colour grids the tag used to absorb are MixedSlimeSlingRecipe's (upstream's
+        // fallback.json). Pink has no shaped recipe of its own upstream and gets none here.
+        for (ForgeweaveItems.SlimeSling sling : ForgeweaveItems.slimeSlings()) {
+            if (sling.colour() == SlimeColour.PINK) {
+                continue;
+            }
+            ItemLike ball = ForgeweaveItems.slimeBall(sling.colour());
+            ShapedRecipeBuilder.shaped(RecipeCategory.TOOLS, sling.item().get())
+                    .pattern("SCS")
+                    .pattern("B B")
+                    .pattern(" B ")
+                    .define('S', Items.STRING)
+                    .define('C', ForgeweaveBlocks.slimeFamily(sling.colour()).congealed().get())
+                    .define('B', ball)
+                    .unlockedBy("has_slime_ball", has(ball))
+                    .save(recipeOutput);
+        }
+        // Upstream's slimesling/fallback.json (NOTICE.md): the same shape over mixed slime colours
+        // makes the pink sling. A special recipe for the same reason as MixedSlimeBlockRecipe.
+        SpecialRecipeBuilder.special(MixedSlimeSlingRecipe::new)
+                .save(recipeOutput, ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "mixed_slime_sling").toString());
 
         // Stencil Table (docs/SCOPE.md M1 issue #44): upstream 1.12's real stencil_table.json recipe
         // is "blank pattern + #STENCIL_TABLE" where that tag resolves to plankWood (NOTICE.md).

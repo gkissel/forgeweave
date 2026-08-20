@@ -27,9 +27,10 @@ import dev.gkissel.forgeweave.sound.ForgeweaveSounds;
  * at a third of that force vertically, and {@link SlimeBounceHandler} keeps the momentum through the
  * flight.
  *
- * <p>Upstream ships one sling per slime colour ({@code SlimeType.VISIBLE_COLORS} metadata subtypes,
- * all named "Slimesling" bar the blood one). Forgeweave has no coloured slimes yet (parity audit
- * T57), so there is one sling, crafted from the green slime the game does have.
+ * <p>Upstream ships one sling per slime colour ({@code SlimeType} metadata subtypes, all named
+ * "Slimesling" bar the blood one) and never reads the colour outside naming, so every colour of
+ * {@code ForgeweaveItems#slimeSlings()} (#649) is this same item; only the recipe, name and tinted
+ * sprite differ.
  */
 public class SlimeSlingItem extends Item {
 

@@ -68,6 +68,40 @@ class SlimeSlingTest {
         assertEquals(1, stack.getMaxStackSize());
     }
 
+    /**
+     * Issue #649 (parity audit T57): upstream's one sling item carries a {@code SlimeType} metadata
+     * subtype per colour -- the five {@code VISIBLE_COLORS} in creative plus the pink one its
+     * {@code fallback.json} crafts from mixed slime. Forgeweave registers six items, all the same
+     * {@link SlimeSlingItem}, and keeps green on the pre-split {@code slime_sling} id (upstream's
+     * meta 0 is green, and the id is in the wild from the 0.3.x alphas).
+     */
+    @Test
+    void theSlingComesInSixColoursWithGreenOnTheOriginalId() {
+        assertEquals(
+                List.of(dev.gkissel.forgeweave.block.SlimeColour.GREEN,
+                        dev.gkissel.forgeweave.block.SlimeColour.BLUE,
+                        dev.gkissel.forgeweave.block.SlimeColour.PURPLE,
+                        dev.gkissel.forgeweave.block.SlimeColour.BLOOD,
+                        dev.gkissel.forgeweave.block.SlimeColour.MAGMA,
+                        dev.gkissel.forgeweave.block.SlimeColour.PINK),
+                ForgeweaveItems.slimeSlings().stream().map(ForgeweaveItems.SlimeSling::colour).toList());
+        assertSame(ForgeweaveItems.SLIME_SLING,
+                ForgeweaveItems.slimeSling(dev.gkissel.forgeweave.block.SlimeColour.GREEN));
+        assertEquals("slime_sling", ForgeweaveItems.SLIME_SLING.getId().getPath());
+        assertEquals("blood_slime_sling",
+                ForgeweaveItems.slimeSling(dev.gkissel.forgeweave.block.SlimeColour.BLOOD).getId().getPath());
+    }
+
+    /** Colour is cosmetic upstream -- every meta shares {@code ItemSlimeSling}'s behaviour. */
+    @Test
+    void everyColourIsTheSameSlingBehaviour() {
+        for (ForgeweaveItems.SlimeSling sling : ForgeweaveItems.slimeSlings()) {
+            ItemStack stack = new ItemStack(sling.item().get());
+            assertSame(UseAnim.BOW, stack.getItem().getUseAnimation(stack), sling.colour() + " use animation");
+            assertEquals(1, stack.getMaxStackSize(), sling.colour() + " stack size");
+        }
+    }
+
     /** Upstream's {@code item.tconstruct.slimesling.tooltip}, both of its lines. */
     @Test
     void theSlingCarriesItsGreyFlavourLine() {
