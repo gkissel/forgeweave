@@ -21,6 +21,7 @@ import net.neoforged.neoforge.registries.DeferredRegister;
 
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.block.ForgeweaveBlocks;
+import dev.gkissel.forgeweave.block.SlimeColour;
 import dev.gkissel.forgeweave.config.ForgeweaveClientConfig; // #276
 import dev.gkissel.forgeweave.fluid.ForgeweaveFluids;
 import dev.gkissel.forgeweave.material.Material;
@@ -222,6 +223,8 @@ public final class ForgeweaveCreativeTab {
 
         // #635 (parity audit T57): the coloured slime balls, upstream's tabGeneral edibles.
         ForgeweaveItems.slimeBalls().forEach(ball -> output.accept(ball.item().get()));
+        // #649 (T57): the slime drops, metas of the same upstream edibles item.
+        ForgeweaveItems.slimeDrops().forEach(drop -> output.accept(drop.item().get()));
 
         output.accept(ForgeweaveItems.GREEN_SLIME_CRYSTAL.get());
         output.accept(ForgeweaveItems.BLUE_SLIME_CRYSTAL.get());
@@ -335,9 +338,17 @@ public final class ForgeweaveCreativeTab {
      * ({@code BlockCasting:50}, {@code BlockFaucet:39}), the casts ({@code Cast:14},
      * {@code CastCustom:16}) and the molten metals ({@code BlockTinkerFluid:22} -- buckets here).
      */
-    /** Upstream's {@code tabGadgets} contents: for now the Slimesling alone ({@code TinkerGadgets:218}). */
+    /**
+     * Upstream's {@code tabGadgets} contents: for now the Slimeslings alone ({@code TinkerGadgets:218}).
+     * {@code ItemSlimeSling#getSubItems} lists {@code SlimeType.VISIBLE_COLORS} -- green, blue,
+     * purple, blood, magma -- leaving the pink fallback sling out of creative (#649).
+     */
     static void addGadgetItems(CreativeModeTab.ItemDisplayParameters parameters, CreativeModeTab.Output rawOutput) {
-        enabledOnly(rawOutput).accept(ForgeweaveItems.SLIME_SLING.get());
+        for (ForgeweaveItems.SlimeSling sling : ForgeweaveItems.slimeSlings()) {
+            if (sling.colour() != SlimeColour.PINK) {
+                enabledOnly(rawOutput).accept(sling.item().get());
+            }
+        }
     }
 
     /**

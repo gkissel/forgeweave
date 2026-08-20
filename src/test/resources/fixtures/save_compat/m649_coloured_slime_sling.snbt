@@ -1,0 +1,11 @@
+{
+    decoder: "item_stack",
+    expect: {
+        id: "forgeweave:blood_slime_sling"
+    },
+    nbt: {
+        count: 1,
+        id: "forgeweave:blood_slime_sling"
+    },
+    what: "#649 (parity audit T57): the Congealed Bloodsling in an inventory. The five-colour Slimesling split keeps green on the pre-split `forgeweave:slime_sling` id (upstream meta 0 is green; the id shipped in the 0.3.x alphas) and adds `<colour>_slime_sling` for the rest, all component-less; the fixture pins one of the new ids."
+}

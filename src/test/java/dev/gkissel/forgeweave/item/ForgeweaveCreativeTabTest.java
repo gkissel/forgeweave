@@ -69,6 +69,24 @@ class ForgeweaveCreativeTabTest {
         assertEquals(List.of("general", "tools", "parts", "smeltery", "gadgets", "world"), ids);
     }
 
+    /**
+     * Issue #649 (parity audit T57): upstream's {@code ItemSlimeSling#getSubItems} lists
+     * {@code SlimeType.VISIBLE_COLORS} -- green, blue, purple, blood, magma -- and leaves the pink
+     * fallback sling out of creative.
+     */
+    @Test
+    void theGadgetsTabShowsTheFiveVisibleSlingColoursButNotPink() {
+        List<Item> gadgets = tab(ForgeweaveCreativeTab::addGadgetItems).stream().map(ItemStack::getItem).toList();
+        for (dev.gkissel.forgeweave.block.SlimeColour colour : dev.gkissel.forgeweave.block.SlimeColour.values()) {
+            Item sling = ForgeweaveItems.slimeSling(colour).get();
+            if (colour == dev.gkissel.forgeweave.block.SlimeColour.PINK) {
+                assertTrue(!gadgets.contains(sling), "the pink fallback sling stays out of creative");
+            } else {
+                assertTrue(gadgets.contains(sling), colour + " sling should be in the Gadgets tab");
+            }
+        }
+    }
+
     /** No item may be filed under two tabs -- upstream picks exactly one per item class. */
     @Test
     void noItemIsListedByTwoTabs() {

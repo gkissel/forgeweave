@@ -812,12 +812,66 @@ public final class ForgeweaveItems {
     }
 
     private static SlimeBall slimeBall(SlimeColour colour, int nutrition, float saturation, MobEffectInstance... effects) {
+        return new SlimeBall(colour, ITEMS.registerSimpleItem(colour.id() + "_slime_ball",
+                new Item.Properties().food(slimeFood(nutrition, saturation, effects))));
+    }
+
+    /**
+     * The five slime drops (issue #649, parity audit T57): upstream 1.12's
+     * {@code TinkerCommons#slimedrop*} ({@code TinkerCommons:373-377}), five more metas of its
+     * {@code ItemEdible} registered behind the Gadgets pulse (NOTICE.md). Each is a food with
+     * upstream's nutrition, saturation and single potion effect, always-edible for the same
+     * {@code addFood} reason as the balls.
+     *
+     * <p>Green gets an item of its own here, unlike the slime balls -- vanilla has no slime drop.
+     *
+     * <p>Upstream's only source for these is its drying rack ({@code TinkerGadgets}'
+     * {@code registerDryingRecipes}, slime ball in, drop out); Forgeweave has no drying rack yet
+     * (the unplanned-gadget roster, T56/#487), so until one lands the drops are obtainable only in
+     * creative -- registering a substitute source would be exactly the "close enough" deviation the
+     * parity directive forbids.
+     */
+    private static final List<SlimeDrop> SLIME_DROPS = registerSlimeDrops();
+
+    /** One colour's slime drop. */
+    public record SlimeDrop(SlimeColour colour, DeferredItem<Item> item) {}
+
+    /** Every slime drop, in declaration order -- datagen and the creative tab walk this. */
+    public static List<SlimeDrop> slimeDrops() {
+        return SLIME_DROPS;
+    }
+
+    /** One colour's slime drop registry entry. Pink has none -- upstream registers five drops. */
+    public static DeferredItem<Item> slimeDrop(SlimeColour colour) {
+        return SLIME_DROPS.stream().filter(drop -> drop.colour() == colour).findFirst()
+                .orElseThrow(() -> new IllegalStateException("no slime drop registered for " + colour))
+                .item();
+    }
+
+    private static List<SlimeDrop> registerSlimeDrops() {
+        List<SlimeDrop> drops = new java.util.ArrayList<>();
+        // Upstream TinkerCommons:373-377 -- addFood(meta, hunger, saturation, name, effect), one
+        // 90-second effect each, durations in upstream's own tick counts.
+        drops.add(slimeDrop(SlimeColour.GREEN, 1, 1f, new MobEffectInstance(MobEffects.MOVEMENT_SPEED, 20 * 90, 2)));
+        drops.add(slimeDrop(SlimeColour.BLUE, 3, 1f, new MobEffectInstance(MobEffects.JUMP, 20 * 90, 2)));
+        drops.add(slimeDrop(SlimeColour.PURPLE, 3, 2f, new MobEffectInstance(MobEffects.LUCK, 20 * 90)));
+        drops.add(slimeDrop(SlimeColour.BLOOD, 3, 1.5f, new MobEffectInstance(MobEffects.HEALTH_BOOST, 20 * 90)));
+        drops.add(slimeDrop(SlimeColour.MAGMA, 6, 1f, new MobEffectInstance(MobEffects.FIRE_RESISTANCE, 20 * 90)));
+        return Collections.unmodifiableList(drops);
+    }
+
+    private static SlimeDrop slimeDrop(SlimeColour colour, int nutrition, float saturation, MobEffectInstance... effects) {
+        return new SlimeDrop(colour, ITEMS.registerSimpleItem(colour.id() + "_slime_drop",
+                new Item.Properties().food(slimeFood(nutrition, saturation, effects))));
+    }
+
+    /** Mantle's {@code ItemEdible#addFood} shape shared by the balls and the drops. */
+    private static FoodProperties slimeFood(int nutrition, float saturation, MobEffectInstance... effects) {
         FoodProperties.Builder food = new FoodProperties.Builder().nutrition(nutrition).saturationModifier(saturation).alwaysEdible();
         for (MobEffectInstance effect : effects) {
             food.effect(() -> new MobEffectInstance(effect), 1.0F);
         }
-        return new SlimeBall(colour, ITEMS.registerSimpleItem(colour.id() + "_slime_ball",
-                new Item.Properties().food(food.build())));
+        return food.build();
     }
 
     // #232 -- knightslime's item forms (docs/SCOPE.md M3.2), alloy-only like manyullyn: no ore, no
@@ -882,8 +936,48 @@ public final class ForgeweaveItems {
     public static final DeferredItem<BlockItem> CLEAR_STAINED_GLASS_BLACK = stainedGlassItem(ForgeweaveBlocks.CLEAR_STAINED_GLASS_BLACK);
 
     // T22 (issue #453) -- the Slimesling, upstream 1.12's `tconstruct:slimesling` and the first of
-    // its Gadgets content to land here. See SlimeSlingItem.
+    // its Gadgets content to land here. See SlimeSlingItem. This id is the green sling: upstream's
+    // meta 0 is `SlimeType.GREEN`, and `forgeweave:slime_sling` is in the wild from the 0.3.x
+    // alphas, so the five-colour split (#649) keeps green here rather than renaming it.
     public static final DeferredItem<SlimeSlingItem> SLIME_SLING = ITEMS.registerItem("slime_sling", SlimeSlingItem::new);
+
+    /**
+     * The six coloured Slimeslings (issue #649, parity audit T57): upstream 1.12 hangs a
+     * {@code SlimeType} metadata subtype per colour off its one {@code ItemSlimeSling} -- the five
+     * {@code VISIBLE_COLORS} it lists in creative plus the pink one its
+     * {@code recipes/gadgets/slimesling/fallback.json} crafts from mixed slime (NOTICE.md).
+     * Behaviour is identical across colours (upstream's item never reads its own meta outside
+     * naming); only the recipe, name and tinted sprite differ, so every entry here is the same
+     * {@link SlimeSlingItem}. Green is {@link #SLIME_SLING}, keeping the pre-split id.
+     */
+    private static final List<SlimeSling> SLIME_SLINGS = registerSlimeSlings();
+
+    /** One colour's Slimesling. */
+    public record SlimeSling(SlimeColour colour, DeferredItem<SlimeSlingItem> item) {}
+
+    /** Every coloured sling, in {@link SlimeColour} order -- datagen and the creative tab walk this. */
+    public static List<SlimeSling> slimeSlings() {
+        return SLIME_SLINGS;
+    }
+
+    /** One colour's Slimesling registry entry; green is the pre-split {@link #SLIME_SLING}. */
+    public static DeferredItem<SlimeSlingItem> slimeSling(SlimeColour colour) {
+        return SLIME_SLINGS.stream().filter(sling -> sling.colour() == colour).findFirst()
+                .orElseThrow(() -> new IllegalStateException("no sling registered for " + colour))
+                .item();
+    }
+
+    private static List<SlimeSling> registerSlimeSlings() {
+        List<SlimeSling> slings = new java.util.ArrayList<>();
+        slings.add(new SlimeSling(SlimeColour.GREEN, SLIME_SLING));
+        for (SlimeColour colour : SlimeColour.values()) {
+            if (colour != SlimeColour.GREEN) {
+                slings.add(new SlimeSling(colour,
+                        ITEMS.registerItem(colour.id() + "_slime_sling", SlimeSlingItem::new)));
+            }
+        }
+        return Collections.unmodifiableList(slings);
+    }
 
     /**
      * T20 (issue #451) -- the blue slime's spawn egg. Upstream 1.12 asks for one in the same call
