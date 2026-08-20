@@ -36,13 +36,19 @@ public sealed interface BookPage {
         }
     }
 
-    /** A tool's page: its icon, registered name, and its Tool Station tab blurb. */
+    /**
+     * A tool's page, upstream's {@code ContentTool} (issue #651): name, Tool Station blurb, the
+     * "Properties:" bullets, and the modify-station diagram of the tool with its parts.
+     */
     record ToolPage(Item tool) implements BookPage {}
 
     /** A material's stat page, rendered live from the datapack {@link Material} registry. */
     record MaterialPage(ResourceLocation id, Material material) implements BookPage {}
 
-    /** A modifier's page: its {@code modifier.forgeweave.<id>.name}/{@code .description} pair. */
+    /**
+     * A modifier's page, upstream's {@code ContentModifier} (issue #651): the coloured name,
+     * description, "Effects:" bullets, and the diagram of a demo pickaxe over the reagent slot.
+     */
     record ModifierPage(ResourceLocation id) implements BookPage {}
 
     /**

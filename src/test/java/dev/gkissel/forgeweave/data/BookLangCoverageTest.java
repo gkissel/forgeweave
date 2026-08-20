@@ -80,4 +80,54 @@ class BookLangCoverageTest {
         assertTrue(missing.isEmpty(),
                 "guide book tool pages reference lang keys with no entry:\n" + String.join("\n", missing));
     }
+
+    /**
+     * Issue #651: the tool pages' "Properties:" bullets (upstream {@code ContentTool#properties},
+     * ported per tool from {@code book/en_us/tools/*.json}) and the modifier pages' "Effects:"
+     * bullets ({@code ContentModifier#effects}, {@code book/en_us/modifiers/*.json}). The screen
+     * collects {@code <base>.property.N} / {@code <base>.effect.N} while the key exists, so a gap in
+     * the run silently truncates the list -- this walks every run for contiguity, and pins that the
+     * port actually happened for the tools and modifiers upstream's book covers.
+     */
+    @Test
+    void theToolPropertyAndModifierEffectRunsAreContiguousAndPorted() throws IOException {
+        JsonObject lang = lang();
+        List<String> problems = new ArrayList<>();
+
+        int toolsWithProperties = 0;
+        for (Supplier<? extends Item> tool : BookContent.TOOLS) {
+            if (checkRun(lang, tool.get().getDescriptionId() + ".property.", problems)) {
+                toolsWithProperties++;
+            }
+        }
+        int modifiersWithEffects = 0;
+        for (net.minecraft.resources.ResourceLocation id : dev.gkissel.forgeweave.modifier.ForgeweaveModifiers.ids()) {
+            if (checkRun(lang, "modifier." + id.getNamespace() + "." + id.getPath() + ".effect.", problems)) {
+                modifiersWithEffects++;
+            }
+        }
+
+        // Non-vacuity: upstream's shipped book has properties for 15 of the tools Forgeweave lists
+        // and effects for 19 of the modifiers Forgeweave ships.
+        assertTrue(toolsWithProperties >= 15,
+                "expected the 1.12 tool property port, saw only " + toolsWithProperties + " tools with properties");
+        assertTrue(modifiersWithEffects >= 19,
+                "expected the 1.12 modifier effect port, saw only " + modifiersWithEffects + " modifiers with effects");
+        assertTrue(problems.isEmpty(), String.join("\n", problems));
+    }
+
+    /** Whether {@code prefix + 0} exists; records a problem if the run has a gap after a hole. */
+    private static boolean checkRun(JsonObject lang, String prefix, List<String> problems) {
+        int n = 0;
+        while (lang.has(prefix + n)) {
+            n++;
+        }
+        // Anything past the first hole is unreachable by the screen's collect-while-exists loop.
+        for (int probe = n + 1; probe <= n + 10; probe++) {
+            if (lang.has(prefix + probe)) {
+                problems.add("gap in bullet run: " + prefix + n + " is missing but " + prefix + probe + " exists");
+            }
+        }
+        return n > 0;
+    }
 }

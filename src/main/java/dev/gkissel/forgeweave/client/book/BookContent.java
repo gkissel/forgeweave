@@ -217,6 +217,10 @@ public final class BookContent {
     public static List<String> staticLangKeys() {
         return List.of(
                 TITLE, SUBTITLE, INDEX_TITLE,
+                // Issue #651: the tool/modifier pages' bullet-list headers (upstream's
+                // tool.properties / modifier.effect book strings).
+                ModifyPageContent.TOOL_PROPERTIES_TITLE,
+                ModifyPageContent.MODIFIER_EFFECTS_TITLE,
                 "book.forgeweave.section.intro",
                 "book.forgeweave.section.tools",
                 "book.forgeweave.section.materials",

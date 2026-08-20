@@ -3,6 +3,9 @@ package dev.gkissel.forgeweave.client.book;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
+import java.util.function.IntFunction;
+import java.util.function.Supplier;
 
 import javax.annotation.Nullable;
 
@@ -19,6 +22,7 @@ import net.minecraft.network.chat.Style;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.FormattedCharSequence;
 import net.minecraft.world.InteractionHand;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 
 import net.neoforged.neoforge.network.PacketDistributor;
@@ -34,10 +38,17 @@ import dev.gkissel.forgeweave.client.book.BookPage.TextPage;
 import dev.gkissel.forgeweave.client.book.BookPage.ToolPage;
 import dev.gkissel.forgeweave.client.book.MaterialPageContent.Icon;
 import dev.gkissel.forgeweave.client.book.MaterialPageContent.StatGroup;
+import dev.gkissel.forgeweave.client.book.ModifyPageContent.Sprite;
+import dev.gkissel.forgeweave.item.ForgeweaveDataComponents;
+import dev.gkissel.forgeweave.item.ForgeweaveItems;
 import dev.gkissel.forgeweave.item.GuideBookItem;
+import dev.gkissel.forgeweave.item.PartItem;
 import dev.gkissel.forgeweave.item.SavedBookPagePayload;
 import dev.gkissel.forgeweave.material.Material;
 import dev.gkissel.forgeweave.menu.ToolAssemblyRecipes;
+import dev.gkissel.forgeweave.modifier.ForgeweaveModifiers;
+import dev.gkissel.forgeweave.modifier.ModifierEntry;
+import dev.gkissel.forgeweave.modifier.ModifierRecipe;
 
 /**
  * The guide book's screen, a 1:1 port of the 1.12 engine's chrome and flow (issue #430): Mantle's
@@ -56,9 +67,11 @@ import dev.gkissel.forgeweave.menu.ToolAssemblyRecipes;
  * {@link BookLayout} fills leaves with them (issue #428). Upstream instead hand-splits its authored
  * content; Forgeweave's pages are generated from live registries, so the split is computed.
  *
- * <p>ponytail: this ports the chrome, geometry and navigation; Mantle's element/content-type
- * system ({@code BookElement}, {@code ContentText}...) and Tinkers' authored book data are the
- * #430 follow-up, so the page kinds below still render through the minimal block model.
+ * <p>ponytail: this ports the chrome, geometry, navigation and (issue #651) the tool/modifier
+ * content layouts ({@code ContentTool}/{@code ContentModifier}); Mantle's literal
+ * {@code BookElement} class tree and the data-driven book JSONs stay unported -- the page kinds
+ * render through the block model, which already carries upstream's actions
+ * ({@code go-to-page-rtn}), item tooltips and cycling item slots.
  */
 public class BookScreen extends Screen {
 
@@ -66,6 +79,9 @@ public class BookScreen extends Screen {
             Forgeweave.MODID, "textures/derived/gui/book/book.png");
     private static final ResourceLocation TEX_COVER = ResourceLocation.fromNamespaceAndPath(
             Forgeweave.MODID, "textures/derived/gui/book/bookfront.png");
+    /** {@code ClientProxy.BOOK_MODIFY}: the tool/modifier pages' station-diagram sheet (issue #651). */
+    private static final ResourceLocation TEX_MODIFY = ResourceLocation.fromNamespaceAndPath(
+            Forgeweave.MODID, "textures/derived/gui/book/modify.png");
 
     private static final int PAGE_TEXT_W = BookLayout.PAGE_TEXT_W;
     private static final int PAGE_TEXT_H = BookLayout.PAGE_TEXT_H;
@@ -113,9 +129,16 @@ public class BookScreen extends Screen {
      * A clickable area inside one block, positioned relative to the block's origin: upstream's
      * {@code go-to-page-rtn:} action, plus the hover text an icon link carries. Compared by
      * identity, so a drawer can ask "am I the hovered one?" without two identical rows shadowing
-     * each other.
+     * each other. The tooltip is a supplier so a cycling item slot ({@code ElementItem}'s reagent
+     * cycle, issue #651) can name the stack currently shown; a fixed tooltip supplies a constant.
      */
-    private record Region(int dx, int dy, int w, int h, int targetPage, @Nullable Component tooltip) {}
+    private record Region(int dx, int dy, int w, int h, int targetPage,
+            @Nullable Supplier<Component> tooltip) {
+
+        static Region of(int dx, int dy, int w, int h, int targetPage, @Nullable Component tooltip) {
+            return new Region(dx, dy, w, h, targetPage, tooltip == null ? null : () -> tooltip);
+        }
+    }
 
     /**
      * The smallest piece of a page that must not be split across leaves: one wrapped body line, a
@@ -303,7 +326,7 @@ public class BookScreen extends Screen {
         }
         renderArrows(graphics, mouseX, mouseY);
         if (this.hovered != null && this.hovered.tooltip() != null) {
-            graphics.renderTooltip(this.font, this.hovered.tooltip(), mouseX, mouseY);
+            graphics.renderTooltip(this.font, this.hovered.tooltip().get(), mouseX, mouseY);
         }
     }
 
@@ -516,24 +539,206 @@ public class BookScreen extends Screen {
             }
             bodyBlocks(blocks, Component.translatable(text.textKey()));
         } else if (page instanceof ToolPage tool) {
-            ItemStack stack = new ItemStack(tool.tool());
-            blocks.add(new Block(36, (graphics, x, y) -> {
-                graphics.pose().pushPose();
-                graphics.pose().translate(x + PAGE_TEXT_W / 2.0F - 16.0F, y, 0.0F);
-                graphics.pose().scale(2.0F, 2.0F, 1.0F);
-                graphics.renderItem(stack, 0, 0);
-                graphics.pose().popPose();
-            }));
-            titleBlock(blocks, tool.tool().getDescription());
-            bodyBlocks(blocks, Component.translatable(tool.tool().getDescriptionId() + ".description"));
+            toolBlocks(blocks, tool.tool());
         } else if (page instanceof MaterialPage material) {
             materialBlocks(blocks, material);
         } else if (page instanceof ModifierPage modifier) {
-            String base = "modifier." + modifier.id().getNamespace() + "." + modifier.id().getPath();
-            titleBlock(blocks, Component.translatable(base + ".name"));
-            bodyBlocks(blocks, Component.translatable(base + ".description"));
+            modifierBlocks(blocks, modifier.id());
         }
         return List.copyOf(blocks);
+    }
+
+    /**
+     * Upstream {@code ContentTool#build} (issue #651): the tool's name, its description text, the
+     * underlined "Properties:" bullet list ({@code tool.properties} + the per-tool {@code properties}
+     * array, ported to {@code <tool>.property.<n>} lang keys and collected while they exist -- a tool
+     * with no ported properties simply has no list, upstream's own {@code properties.length > 0}
+     * gate), then the modify-station diagram: the tool assembled from demo materials at the centre of
+     * the five-part slot ring, its parts around it at upstream's offsets.
+     *
+     * <p>Deviation: upstream pins the diagram to the page's bottom-right corner beside the text;
+     * this engine paginates a single column (issue #428), so the diagram is a centred block after
+     * the text, the same answer every other absolutely-positioned upstream page got.
+     */
+    private void toolBlocks(List<Block> blocks, Item tool) {
+        titleBlock(blocks, tool.getDescription());
+        bodyBlocks(blocks, Component.translatable(tool.getDescriptionId() + ".description"));
+        bulletBlocks(blocks, ModifyPageContent.TOOL_PROPERTIES_TITLE,
+                i -> ModifyPageContent.toolPropertyKey(tool.getDescriptionId(), i));
+        ToolAssemblyRecipes.ENTRIES.stream()
+                .filter(entry -> entry.tool().get() == tool)
+                .findFirst()
+                .ifPresent(entry -> toolDiagramBlock(blocks, entry));
+    }
+
+    /**
+     * Upstream {@code ContentModifier#build} (issue #651): the modifier's name in its own colour
+     * ({@code CustomFontColor.encodeColor(color)}, Forgeweave's {@code ForgeweaveModifiers#color}),
+     * the description, the underlined "Effects:" bullet list ({@code modifier.effect} +
+     * {@code effects}, ported to {@code modifier.<id>.effect.<n>} keys), then the diagram: a demo
+     * pickaxe (upstream's default {@code demoTool}) with the modifier applied resting on the table
+     * over the one-slot plate, the recipe's reagent items cycling in the slot and naming themselves
+     * on hover ({@code ElementItem}'s default tooltip).
+     */
+    private void modifierBlocks(List<Block> blocks, ResourceLocation id) {
+        String base = "modifier." + id.getNamespace() + "." + id.getPath();
+        titleBlock(blocks, Component.translatable(base + ".name")
+                .withStyle(Style.EMPTY.withColor(ForgeweaveModifiers.color(id))));
+        bodyBlocks(blocks, Component.translatable(base + ".description"));
+        bulletBlocks(blocks, ModifyPageContent.MODIFIER_EFFECTS_TITLE,
+                i -> ModifyPageContent.modifierEffectKey(id, i));
+        modifierDiagramBlock(blocks, id);
+    }
+
+    /**
+     * The bullet list both page kinds share -- upstream renders {@code "● "} + line per entry
+     * under the underlined header. Keys are collected while they exist, so the port can cover tools
+     * and modifiers incrementally without a hole ever rendering as a raw key ({@code
+     * BookLangCoverageTest} guards the runs for gaps).
+     */
+    private void bulletBlocks(List<Block> blocks, String titleKey, IntFunction<String> keyOf) {
+        if (!I18n.exists(keyOf.apply(0))) {
+            return;
+        }
+        Component head = Component.translatable(titleKey).withStyle(ChatFormatting.UNDERLINE);
+        blocks.add(new Block(this.font.lineHeight + 4, (graphics, x, y) ->
+                graphics.drawString(this.font, head, x, y + 2, TITLE_COLOR, false)));
+        for (int i = 0; I18n.exists(keyOf.apply(i)); i++) {
+            bodyBlocks(blocks, Component.literal("● ").append(Component.translatable(keyOf.apply(i))));
+        }
+    }
+
+    /**
+     * {@code ContentTool#build}'s diagram, one indivisible block: the tabletop, the 72x72 slot ring
+     * tinted with the appearance slot colour, the demo tool over an untinted single-slot plate at
+     * the centre, and the tool's parts -- each painted with a demo material -- at upstream's five
+     * slot offsets, in upstream's exact draw order. No tooltips: upstream sets {@code noTooltip} on
+     * every item here.
+     */
+    private void toolDiagramBlock(List<Block> blocks, ToolAssemblyRecipes.Entry entry) {
+        int sx = (PAGE_TEXT_W - ModifyPageContent.SLOTS.w()) / 2;
+        int toolDx = sx + (ModifyPageContent.SLOTS.w() - ITEM_SIZE) / 2;
+        int toolDy = 28; // ContentTool: table and tool sit at imgY + 28 inside the ring
+        ItemStack demo = demoTool(entry);
+        List<ItemStack> parts = new ArrayList<>();
+        for (int i = 0; i < entry.slotCount(); i++) {
+            PartItem part = entry.part(i);
+            ItemStack stack = new ItemStack(part);
+            stack.set(ForgeweaveDataComponents.MATERIAL.get(), ModifyPageContent.demoMaterial(part.kind(), i));
+            parts.add(stack);
+        }
+        List<ItemStack> partStacks = List.copyOf(parts);
+        blocks.add(new Block(toolDy + ModifyPageContent.TABLE.h() + 4, (graphics, x, y) -> {
+            spriteBlit(graphics, ModifyPageContent.TABLE,
+                    x + sx + (ModifyPageContent.SLOTS.w() - ModifyPageContent.TABLE.w()) / 2, y + toolDy, 0xFFFFFF);
+            spriteBlit(graphics, ModifyPageContent.SLOTS, x + sx, y, ModifyPageContent.SLOT_COLOR);
+            graphics.renderItem(demo, x + toolDx, y + toolDy);
+            spriteBlit(graphics, ModifyPageContent.SLOT_1, x + toolDx - 3, y + toolDy - 3, 0xFFFFFF);
+            for (int i = 0; i < partStacks.size() && i < ModifyPageContent.TOOL_SLOT_X.length; i++) {
+                graphics.renderItem(partStacks.get(i), x + toolDx + ModifyPageContent.TOOL_SLOT_X[i],
+                        y + toolDy + ModifyPageContent.TOOL_SLOT_Y[i]);
+            }
+        }));
+    }
+
+    /**
+     * {@code ContentModifier#build}'s diagram, one indivisible block. Upstream stacks, top to
+     * bottom: the single-slot plate under the demo tool at {@code imgY - 27}, the tabletop at
+     * {@code imgY - 24}, the tinted slot plate at {@code imgY} with the reagent inside at offset
+     * (3,3). Forgeweave's recipes hold one reagent slot whose accepted items cycle (see
+     * {@link ModifyPageContent#MODIFIER_SLOT_X}), each naming itself on hover.
+     */
+    private void modifierDiagramBlock(List<Block> blocks, ResourceLocation id) {
+        Sprite slot = ModifyPageContent.SLOT_1;
+        int sx = (PAGE_TEXT_W - slot.w()) / 2;
+        int slotDy = 27; // the untinted plate over the demo tool sits 27 above the reagent plate
+        ItemStack demo = modifierDemoTool(id);
+        List<ItemStack> reagents = modifierReagents(id);
+        List<Region> regions = reagents.isEmpty() ? List.of()
+                : List.of(new Region(sx + ModifyPageContent.MODIFIER_SLOT_X, slotDy + ModifyPageContent.MODIFIER_SLOT_Y,
+                        ITEM_SIZE, ITEM_SIZE, NO_TARGET, () -> cycled(reagents).getHoverName()));
+        blocks.add(new Block(slotDy + slot.h() + 4, (graphics, x, y) -> {
+            spriteBlit(graphics, ModifyPageContent.TABLE, x + sx + (slot.w() - ModifyPageContent.TABLE.w()) / 2,
+                    y + 3, 0xFFFFFF);
+            spriteBlit(graphics, slot, x + sx, y + slotDy, ModifyPageContent.SLOT_COLOR);
+            graphics.renderItem(demo, x + sx + (slot.w() - ITEM_SIZE) / 2, y + 3);
+            spriteBlit(graphics, ModifyPageContent.SLOT_1, x + sx, y, 0xFFFFFF);
+            if (!reagents.isEmpty()) {
+                graphics.renderItem(cycled(reagents), x + sx + ModifyPageContent.MODIFIER_SLOT_X,
+                        y + slotDy + ModifyPageContent.MODIFIER_SLOT_Y);
+            }
+        }, regions));
+    }
+
+    /** {@code ElementItem}'s cycle: the stack the current frame shows, advancing every 90 draws. */
+    private ItemStack cycled(List<ItemStack> stacks) {
+        return stacks.get((this.frame / MaterialPageContent.ITEM_SWITCH_TICKS) % stacks.size());
+    }
+
+    /**
+     * The tool assembled from {@link ModifyPageContent#demoMaterial}'s roster -- upstream's
+     * {@code buildItemForRenderingInGui}. Outside a loaded world (no registries) or for a material
+     * missing a slot's stats the plain item stands in, which renders the tool's base art.
+     */
+    private ItemStack demoTool(ToolAssemblyRecipes.Entry entry) {
+        HolderLookup.Provider registries = registries();
+        if (registries != null) {
+            List<ResourceLocation> materials = new ArrayList<>();
+            for (int i = 0; i < entry.slotCount(); i++) {
+                materials.add(ModifyPageContent.demoMaterial(entry.part(i).kind(), i));
+            }
+            Optional<ItemStack> built = ToolAssemblyRecipes.assemble(registries, entry, materials);
+            if (built.isPresent()) {
+                return built.get();
+            }
+        }
+        return new ItemStack(entry.tool().get());
+    }
+
+    /**
+     * {@code ContentModifier#getDemoTools}: a demo pickaxe (upstream's default {@code demoTool})
+     * with one level of the modifier applied, so modifier art and glint show on it.
+     */
+    private ItemStack modifierDemoTool(ResourceLocation id) {
+        ItemStack demo = ToolAssemblyRecipes.ENTRIES.stream()
+                .filter(entry -> entry.tool().get() == ForgeweaveItems.TOOL_PICKAXE.get())
+                .findFirst()
+                .map(this::demoTool)
+                .orElseGet(() -> new ItemStack(ForgeweaveItems.TOOL_PICKAXE.get()));
+        demo.set(ForgeweaveDataComponents.MODIFIERS.get(), List.of(new ModifierEntry(id, 1)));
+        return demo;
+    }
+
+    /**
+     * The items the modifier's slot cycles through: every stack the shipped
+     * {@code modifier_recipe/<id>.json}'s reagents accept -- upstream {@code IModifierDisplay#getItems}.
+     * Empty outside a loaded world, which leaves the slot empty exactly as upstream leaves a
+     * modifier with no display items.
+     */
+    private List<ItemStack> modifierReagents(ResourceLocation id) {
+        if (this.minecraft == null || this.minecraft.level == null) {
+            return List.of();
+        }
+        List<ItemStack> stacks = new ArrayList<>();
+        this.minecraft.level.registryAccess().registryOrThrow(ModifierRecipe.REGISTRY).stream()
+                .filter(recipe -> recipe.modifier().equals(id))
+                .findFirst()
+                .ifPresent(recipe -> {
+                    for (ModifierRecipe.Reagent reagent : recipe.reagents()) {
+                        Collections.addAll(stacks, reagent.ingredient().getItems());
+                    }
+                });
+        return List.copyOf(stacks);
+    }
+
+    /** A tinted region blit from the modify sheet -- {@code ElementImage} with a colour. */
+    private static void spriteBlit(GuiGraphics graphics, Sprite sprite, int x, int y, int tint) {
+        setColor(graphics, tint);
+        RenderSystem.enableBlend();
+        RenderSystem.defaultBlendFunc();
+        graphics.blit(TEX_MODIFY, x, y, sprite.u(), sprite.v(), sprite.w(), sprite.h(),
+                ModifyPageContent.TEX_SIZE, ModifyPageContent.TEX_SIZE);
+        graphics.setColor(1.0F, 1.0F, 1.0F, 1.0F);
     }
 
     /**
@@ -550,7 +755,7 @@ public class BookScreen extends Screen {
         titleBlock(blocks, Component.translatable(titleKey));
         for (BookLink link : links) {
             Component label = Component.translatable(link.labelKey());
-            Region region = new Region(0, 0, PAGE_TEXT_W, this.font.lineHeight,
+            Region region = Region.of(0, 0, PAGE_TEXT_W, this.font.lineHeight,
                     sectionStartPage + link.targetPage(), null);
             blocks.add(new Block(this.font.lineHeight + 1, (graphics, x, y) -> {
                 boolean over = this.hovered == region;
@@ -584,7 +789,7 @@ public class BookScreen extends Screen {
             for (BookLink link : links.subList(first, Math.min(first + columns, links.size()))) {
                 icons.add(link.icon() == null ? ItemStack.EMPTY : link.icon().get());
                 Component name = Component.translatable(link.labelKey());
-                regions.add(new Region(GRID_MARGIN + regions.size() * GRID_CELL, 0, GRID_CELL, GRID_CELL,
+                regions.add(Region.of(GRID_MARGIN + regions.size() * GRID_CELL, 0, GRID_CELL, GRID_CELL,
                         sectionStartPage + link.targetPage(),
                         link.color() == null ? name : name.copy().withStyle(Style.EMPTY.withColor(link.color()))));
             }
@@ -653,7 +858,7 @@ public class BookScreen extends Screen {
         List<Region> regions = new ArrayList<>();
         for (int i = 0; i < bar.size(); i++) {
             Icon icon = bar.get(i);
-            regions.add(new Region(i * ITEM_SIZE, 0, ITEM_SIZE, ITEM_SIZE, NO_TARGET,
+            regions.add(Region.of(i * ITEM_SIZE, 0, ITEM_SIZE, ITEM_SIZE, NO_TARGET,
                     icon.tooltip() == null ? icon.stack().getHoverName() : icon.tooltip()));
         }
         blocks.add(new Block(ITEM_SIZE + 4, (graphics, x, y) -> {
@@ -746,7 +951,7 @@ public class BookScreen extends Screen {
         Component tooltip = line.getStyle().getHoverEvent() == null ? null
                 : line.getStyle().getHoverEvent().getValue(HoverEvent.Action.SHOW_TEXT);
         Block block = lineBlock(line, color);
-        return tooltip == null ? block : new Block(block.height(), block.drawer(), List.of(new Region(
+        return tooltip == null ? block : new Block(block.height(), block.drawer(), List.of(Region.of(
                 0, 0, this.font.width(line), this.font.lineHeight, NO_TARGET, tooltip)));
     }
 
