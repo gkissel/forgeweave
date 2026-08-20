@@ -541,21 +541,175 @@ class MeltingRecipeTest {
 
     /**
      * Upstream's scan aborts a recipe the moment one ingredient neither melts nor sits on the ignore
-     * list, so a golden apple (its apple), flint and steel (its flint) and a piston (its cobblestone,
-     * which is not one of the metal ore-dictionary entries {@code registerOredictMeltingCasting}
-     * feeds the scanner) get no row at all -- and chainmail armor has no 1.12 crafting recipe to
-     * scan. Pinned so nobody "completes the set" later without a maintainer decision.
+     * list, so a golden apple (its apple) and flint and steel (its flint) get no row at all. Pinned
+     * so nobody "completes the set" later without a maintainer decision. The piston and chainmail
+     * armor used to sit on this list too; #639's maintainer decision (2026-08-20) adopted the 1.20
+     * branch's post-1.12 metal-item rows wholesale, which cover both -- see the #639 section below.
      */
     @Test
     void itemsUpstreamsScanAbortsOnGetNoRow() {
         for (String[][] table : new String[][][] {IRON_CRAFTED, GOLD_CRAFTED}) {
             for (String[] row : table) {
                 String inputs = shipped(row[0]).get("input").toString();
-                for (String skipped : new String[] {"golden_apple", "flint_and_steel", "piston", "chainmail"}) {
+                for (String skipped : new String[] {"golden_apple", "flint_and_steel"}) {
                     assertTrue(!inputs.contains(skipped), row[0] + " must not melt " + skipped);
                 }
             }
         }
+    }
+
+    // ------------------------------------------------------------------ #639 (post-1.12 metal items)
+
+    /**
+     * #639: upstream 1.12 has no opinion on items that did not exist yet, so #439's scan stopped at
+     * 1.12's item set. The maintainer decision on #639 (2026-08-20) adopts the 1.20 branch's rows for
+     * the post-1.12 metal-crafted items wholesale ({@code SmelteryRecipeProvider.java:1588-1714},
+     * NOTICE.md), converted from that branch's 90/10 mB ingot/nugget {@code FluidValues} onto the
+     * 1.12 144/16 scale this pack uses -- so "an ingot plus two nuggets" for the chain is 176 here,
+     * not 110. Each entry is {@code file, item, mB}, same shape as {@link #IRON_CRAFTED}.
+     */
+    private static final String[][] POST_112_IRON = {
+            // 1 ingot: the 1.20 branch's iron/ingot_1 row (its piston row supersedes the old
+            // scan-aborts pin; the stonecutter and pistons ride the same row upstream).
+            {"iron_ingot_1", "minecraft:stonecutter", "144"},
+            {"iron_ingot_1", "minecraft:piston", "144"},
+            {"iron_ingot_1", "minecraft:sticky_piston", "144"},
+            // 2 ingots: iron/ingot_2
+            {"iron_ingot_2", "minecraft:smithing_table", "288"},
+            // 5 ingots: iron/ingot_5
+            {"iron_ingot_5", "minecraft:blast_furnace", "720"},
+            // "non-standard": an ingot plus the two nuggets of its crafting recipe
+            {"iron_chain", "minecraft:chain", "176"},
+            // 8 nuggets: iron/lantern
+            {"iron_lantern", "minecraft:lantern", "128"},
+            {"iron_lantern", "minecraft:soul_lantern", "128"},
+            // 13 nuggets: upstream's own comment, "tripwire hook is 4 nuggets, ingot is 9 nuggets"
+            {"iron_crossbow", "minecraft:crossbow", "208"},
+    };
+
+    @Test
+    void everyPost112IronItemMeltsAtTheTwentyBranchsRow() {
+        for (String[] row : POST_112_IRON) {
+            assertMeltsFor(row[0], row[1], Integer.parseInt(row[2]), "forgeweave:molten_iron");
+        }
+    }
+
+    /** The 1.20 branch's gold/bell row: 4 ingots ("bit arbitrary" by its own comment, adopted as-is). */
+    @Test
+    void theBellMeltsIntoFourIngotsOfGold() {
+        assertMeltsFor("gold_bell", "minecraft:bell", MeltingRecipe.VALUE_INGOT * 4, "forgeweave:molten_gold");
+    }
+
+    /** The 1.20 branch's copper/lightning_rod row: the 3 ingots its crafting recipe costs. */
+    @Test
+    void theLightningRodMeltsIntoThreeIngotsOfCopper() {
+        assertMeltsFor("copper_lightning_rod", "minecraft:lightning_rod", MeltingRecipe.VALUE_INGOT * 3, "forgeweave:molten_copper");
+    }
+
+    /**
+     * The 1.20 branch's copper decorative rows: the exposed/weathered/oxidized/waxed block family
+     * melts at a full block, and the cut family at that branch's own flat prices -- 20 nuggets per
+     * cut block or stair, 10 per cut slab. The plain copper block already melts via
+     * {@code copper_block.json}'s {@code c:storage_blocks/copper} row, so it is not repeated here.
+     */
+    @Test
+    void theCopperDecorativeFamiliesMeltAtTheTwentyBranchsAmounts() {
+        JsonObject block = shipped("copper_decorative_block");
+        assertEquals("forgeweave:molten_copper", block.get("fluid").getAsString());
+        assertEquals(MeltingRecipe.VALUE_BLOCK, block.get("amount").getAsInt(), "a decorative copper block is still a full block");
+        assertEquals(7, block.getAsJsonArray("input").size(), "exposed/weathered/oxidized plus the four waxed forms");
+
+        JsonObject cut = shipped("copper_cut_block");
+        assertEquals("forgeweave:molten_copper", cut.get("fluid").getAsString());
+        assertEquals(MeltingRecipe.VALUE_NUGGET * 20, cut.get("amount").getAsInt(), "20 nuggets per cut block");
+        assertEquals(16, cut.getAsJsonArray("input").size(), "4 cut blocks + 4 stairs, each in plain and waxed forms");
+
+        JsonObject slab = shipped("copper_cut_slab");
+        assertEquals("forgeweave:molten_copper", slab.get("fluid").getAsString());
+        assertEquals(MeltingRecipe.VALUE_NUGGET * 10, slab.get("amount").getAsInt(), "half a cut block");
+        assertEquals(8, slab.getAsJsonArray("input").size(), "4 cut slabs, plain and waxed");
+    }
+
+    /**
+     * The 1.20 branch's chainmail rows, byproduct included (the maintainer decision on #639 adopts
+     * it explicitly): each piece melts as iron at 6 nuggets per armor-recipe unit with a molten steel
+     * byproduct of 3 nuggets per unit -- upstream's "working off the assumption that some mods out
+     * there decided to craft chainmail for an ingots worth of material at minimum". Helmet 5 units,
+     * chestplate 8, leggings 7, boots 4, exactly the vanilla armor recipe shapes.
+     */
+    @Test
+    void chainmailMeltsAsIronWithAMoltenSteelByproduct() {
+        String[][] pieces = {
+                {"chainmail_helmet", "5"},
+                {"chainmail_chestplate", "8"},
+                {"chainmail_leggings", "7"},
+                {"chainmail_boots", "4"},
+        };
+        for (String[] piece : pieces) {
+            int units = Integer.parseInt(piece[1]);
+            JsonObject json = shipped(piece[0]);
+            assertEquals("minecraft:" + piece[0], json.getAsJsonObject("input").get("item").getAsString());
+            assertEquals("forgeweave:molten_iron", json.get("fluid").getAsString());
+            assertEquals(MeltingRecipe.VALUE_NUGGET * 6 * units, json.get("amount").getAsInt(),
+                    piece[0] + " melts at 6 iron nuggets per armor-recipe unit");
+            JsonObject byproduct = json.getAsJsonObject("byproduct");
+            assertEquals("forgeweave:molten_steel", byproduct.get("fluid").getAsString());
+            assertEquals(MeltingRecipe.VALUE_NUGGET * 3 * units, byproduct.get("amount").getAsInt(),
+                    piece[0] + " yields 3 steel nuggets per unit as byproduct");
+        }
+    }
+
+    /**
+     * The 1.20 branch's amethyst/spyglass row: one gem of molten amethyst with the two copper ingots
+     * of its crafting recipe as byproduct. Amethyst's gem value is the 1.20 branch's own 100 mB,
+     * carried over directly the way #235's amethyst rows already did.
+     */
+    @Test
+    void theSpyglassMeltsIntoAmethystWithACopperByproduct() {
+        JsonObject json = shipped("spyglass");
+        assertEquals("forgeweave:molten_amethyst", json.get("fluid").getAsString());
+        assertEquals(100, json.get("amount").getAsInt(), "the 1.20 branch's FluidValues.GEM, as #235 established for amethyst");
+        JsonObject byproduct = json.getAsJsonObject("byproduct");
+        assertEquals("forgeweave:molten_copper", byproduct.get("fluid").getAsString());
+        assertEquals(MeltingRecipe.VALUE_INGOT * 2, byproduct.get("amount").getAsInt());
+    }
+
+    /** A crafted item is never ore-class -- #639's rows follow the same rule #439's do. */
+    @Test
+    void noPost112RowIsOreClass() {
+        for (String name : new String[] {"iron_chain", "iron_lantern", "iron_crossbow", "gold_bell",
+                "copper_lightning_rod", "copper_decorative_block", "copper_cut_block", "copper_cut_slab",
+                "chainmail_helmet", "chainmail_chestplate", "chainmail_leggings", "chainmail_boots", "spyglass"}) {
+            assertTrue(!shipped(name).has("ore"), name + " melts a crafted item, so it is not ore-class");
+        }
+    }
+
+    // ------------------------------------------------------------------ the byproduct codec (#639)
+
+    @Test
+    void aByproductParsesAndRoundTripsThroughTheCodec() {
+        MeltingRecipe recipe = parse("""
+                {"input": {"item": "minecraft:chainmail_boots"}, "fluid": "minecraft:lava", "amount": 384,
+                 "byproduct": {"fluid": "minecraft:water", "amount": 192}}
+                """);
+
+        assertTrue(recipe.byproduct().isPresent());
+        assertEquals(Fluids.WATER, recipe.byproduct().orElseThrow().fluid());
+        assertEquals(192, recipe.byproduct().orElseThrow().amount());
+
+        JsonElement encoded = MeltingRecipe.CODEC.encodeStart(ops, recipe).getOrThrow();
+        MeltingRecipe decoded = MeltingRecipe.CODEC.parse(ops, encoded).getOrThrow();
+        assertEquals(recipe.byproduct(), decoded.byproduct(), "a byproduct must survive a codec round trip");
+    }
+
+    /** Every recipe written before #639 -- and any third-party datapack row -- has no byproduct key. */
+    @Test
+    void aRecipeWithoutAByproductParsesToAnEmptyOne() {
+        MeltingRecipe recipe = parse("""
+                {"input": {"item": "minecraft:iron_ingot"}, "fluid": "minecraft:lava", "amount": 144}
+                """);
+
+        assertTrue(recipe.byproduct().isEmpty(), "no byproduct key must mean no byproduct");
     }
 
     private static void assertMeltsFor(String file, String item, int amount, String fluid) {

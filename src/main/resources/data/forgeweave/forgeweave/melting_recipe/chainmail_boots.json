@@ -1,0 +1,6 @@
+{
+  "input": { "item": "minecraft:chainmail_boots" },
+  "fluid": "forgeweave:molten_iron",
+  "amount": 384,
+  "byproduct": { "fluid": "forgeweave:molten_steel", "amount": 192 }
+}

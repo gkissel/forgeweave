@@ -1,0 +1,8 @@
+{
+  "input": [
+    { "item": "minecraft:lantern" },
+    { "item": "minecraft:soul_lantern" }
+  ],
+  "fluid": "forgeweave:molten_iron",
+  "amount": 128
+}

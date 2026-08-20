@@ -2,7 +2,8 @@
   "input": [
     { "item": "minecraft:iron_helmet" },
     { "item": "minecraft:minecart" },
-    { "item": "minecraft:hopper" }
+    { "item": "minecraft:hopper" },
+    { "item": "minecraft:blast_furnace" }
   ],
   "fluid": "forgeweave:molten_iron",
   "amount": 720

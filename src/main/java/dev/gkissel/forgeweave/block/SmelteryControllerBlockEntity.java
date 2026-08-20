@@ -503,7 +503,11 @@ public class SmelteryControllerBlockEntity extends BlockEntity implements Statio
         int amount = recipe.ore() ? oreAmount(recipe.amount(), core.yieldMultiplier(),
                 ForgeweaveConfig.ORE_TO_INGOT_RATIO.get()) : recipe.amount();
         var result = new FluidStack(recipe.fluid(), amount);
-        if (tank.fill(result, IFluidHandler.FluidAction.SIMULATE) != result.getAmount()) {
+        // #639: a byproduct (chainmail's molten steel) shares the tank's one capacity pool with the
+        // main result, so the whole yield must fit or the melt parks -- the same refusal a partial
+        // main result already gets. Byproducts are never ore-scaled (no adopted row is ore-class).
+        int required = amount + recipe.byproduct().map(MeltingRecipe.Byproduct::amount).orElse(0);
+        if (tank.getCapacity() - tank.getFluidAmount() < required) {
             // #290: only sync on the false -> true transition, not on every retry -- a slot can sit
             // stalled for a long time (waiting on a drain), and this runs every melt tick while it is.
             if (!meltStalled[slot]) {
@@ -513,6 +517,7 @@ public class SmelteryControllerBlockEntity extends BlockEntity implements Statio
             return;
         }
         tank.fill(result, IFluidHandler.FluidAction.EXECUTE);
+        recipe.byproduct().ifPresent(byproduct -> tank.fill(byproduct.result(), IFluidHandler.FluidAction.EXECUTE));
         setMeltingItem(slot, ItemStack.EMPTY);
     }
 
