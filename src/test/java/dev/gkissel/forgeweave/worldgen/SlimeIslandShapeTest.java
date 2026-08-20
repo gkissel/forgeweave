@@ -171,6 +171,80 @@ class SlimeIslandShapeTest {
     }
 
     /**
+     * Issue #647: {@code generateIslandInChunk} hands {@code generateIsland}'s trailing
+     * {@code tryPlacingVine} loop the <em>grass</em> colour's stage-one vine --
+     * {@code slimeVineBlue1} on blue and green islands, {@code slimeVinePurple1} on purple -- which
+     * is a different vine from the canopy's mid-stage one of the tree's foliage. The magma island
+     * and a hand-planted sapling both pass {@code null} and hang no island vines at all.
+     */
+    @Test
+    void everyIslandPaletteHangsItsGrassColoursFirstStageVineOffTheIsland() {
+        for (int roll = 0; roll < 10; roll++) {
+            SlimeIslandShape.Palette palette = SlimeIslandShape.paletteFor(roll);
+            ForgeweaveBlocks.SlimePlants grassPlants =
+                    roll <= 1 ? ForgeweaveBlocks.PURPLE_SLIME_PLANTS : ForgeweaveBlocks.BLUE_SLIME_PLANTS;
+            assertNotNull(palette.islandVine(), "roll " + roll);
+            assertSame(grassPlants.vine().get(), palette.islandVine().getBlock(), "roll " + roll);
+        }
+        assertNull(SlimeIslandShape.magmaPalette().islandVine(), "the magma island hangs no island vines");
+        for (FoliageType foliage : FoliageType.values()) {
+            assertNull(SlimeIslandShape.saplingPalette(foliage).islandVine(), foliage.name());
+        }
+    }
+
+    /**
+     * Issue #647: upstream's thirty {@code tryPlacingVine} attempts per island. Every island vine it
+     * hangs is the grass colour's stage chain, carries at least one face, and is held up the way
+     * upstream leaves it -- stuck to something solid or hanging from the vine above it. The growth
+     * loop keeps creeping past the island's bottom plane exactly as upstream's does, so across a few
+     * islands at least one strand has to dangle below it.
+     */
+    @Test
+    void islandsHangFirstStageVinesOffTheirExterior() {
+        int islandsWithIslandVines = 0;
+        int islandsWithATailBelowTheBottom = 0;
+        for (long loopSeed = 1; loopSeed <= 20; loopSeed++) {
+            long seed = loopSeed;
+            Island island = Island.at(seed);
+            FoliageType grassColour = ((SlimeVineBlock) island.palette.islandVine().getBlock()).foliage();
+            List<int[]> vines = new ArrayList<>();
+            island.forEachDrawn((x, y, z, state) -> {
+                if (state.getBlock() instanceof SlimeVineBlock vine && vine.foliage() == grassColour) {
+                    vines.add(new int[] {x, y, z});
+                }
+            });
+            if (!vines.isEmpty()) {
+                islandsWithIslandVines++;
+            }
+            boolean tailBelow = false;
+            for (int[] at : vines) {
+                BlockState state = island.canvas.get(at[0], at[1], at[2]);
+                assertTrue(hasAnyFace(state),
+                        "a faceless island vine at " + at[0] + "," + at[1] + "," + at[2] + " (seed " + seed + ")");
+                boolean hangs = island.canvas.get(at[0], at[1] + 1, at[2]).getBlock() instanceof SlimeVineBlock;
+                // A lit face may point at another slime vine rather than something solid: a later
+                // attempt's candidate can overwrite the very block an earlier vine clung to, and
+                // upstream's flag-2 placements never re-check neighbours during generation -- the
+                // same faithfully ported quirk that lets one canopy strand another's vines.
+                boolean stuck = (state.getValue(VineBlock.NORTH) && supports(island, at[0], at[1], at[2] - 1))
+                        || (state.getValue(VineBlock.EAST) && supports(island, at[0] + 1, at[1], at[2]))
+                        || (state.getValue(VineBlock.SOUTH) && supports(island, at[0], at[1], at[2] + 1))
+                        || (state.getValue(VineBlock.WEST) && supports(island, at[0] - 1, at[1], at[2]));
+                assertTrue(hangs || stuck, "an island vine at " + at[0] + "," + at[1] + "," + at[2]
+                        + " hangs off nothing (seed " + seed + ")");
+                tailBelow |= at[1] < 0;
+            }
+            if (tailBelow) {
+                islandsWithATailBelowTheBottom++;
+            }
+        }
+        assertTrue(islandsWithIslandVines >= 15,
+                "only " + islandsWithIslandVines + "/20 islands hung any island vine at all");
+        assertTrue(islandsWithATailBelowTheBottom >= 1,
+                "no island's vine strand ever crept below the island's bottom plane");
+    }
+
+    /**
      * Upstream's {@code vine != null} branch of {@code placeCanopy}: the canopy corners are hollowed
      * out and vines hang from the skirt instead of leaves filling it. Every vine it hangs carries at
      * least one face -- {@code getRandomizedVine} lights one to three of them -- and is held up by
@@ -181,9 +255,12 @@ class SlimeIslandShapeTest {
         int islandsWithVines = 0;
         for (long seed = 1; seed <= 20; seed++) {
             Island island = Island.at(seed);
+            // Only the canopy's vines: since #647 the island also hangs the *grass* colour's vines
+            // off its exterior, and the two colours never coincide on one island.
+            FoliageType canopyFoliage = foliageOfLeaves(island.palette.leaves().getBlock());
             List<int[]> vines = new ArrayList<>();
             island.forEachDrawn((x, y, z, state) -> {
-                if (state.getBlock() instanceof SlimeVineBlock) {
+                if (state.getBlock() instanceof SlimeVineBlock vine && vine.foliage() == canopyFoliage) {
                     vines.add(new int[] {x, y, z});
                 }
             });
@@ -257,6 +334,12 @@ class SlimeIslandShapeTest {
             // Nothing may escape the canvas the sapling sizes for it.
             assertEquals(drawn.size(), drawn.stream().distinct().count());
         }
+    }
+
+    /** What an island vine's lit face may point at: something solid, or the vine that replaced it. */
+    private static boolean supports(Island island, int x, int y, int z) {
+        BlockState state = island.canvas.get(x, y, z);
+        return state.canOcclude() || state.getBlock() instanceof SlimeVineBlock;
     }
 
     private static boolean hasAnyFace(BlockState state) {
@@ -367,7 +450,9 @@ class SlimeIslandShapeTest {
             island.forEachDrawn((x, y, z, state) -> {
                 assertTrue(x >= -pad && x <= island.size.xRange() + pad, "x " + x + " escaped (seed " + seed + ")");
                 assertTrue(z >= -pad && z <= island.size.zRange() + pad, "z " + z + " escaped (seed " + seed + ")");
-                assertTrue(y >= 0 && y <= island.size.canvasTop(), "y " + y + " escaped (seed " + seed + ")");
+                // #647: only a hanging island vine may reach below the island's bottom plane.
+                int floor = state.getBlock() instanceof SlimeVineBlock ? -SlimeIslandShape.Size.vineHang() : 0;
+                assertTrue(y >= floor && y <= island.size.canvasTop(), "y " + y + " escaped (seed " + seed + ")");
             });
             assertFalse(island.drawn().isEmpty());
         }

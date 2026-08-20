@@ -61,6 +61,16 @@ public class SlimeVineBlock extends VineBlock {
         return foliage;
     }
 
+    /**
+     * The thinner stage a free-hanging column advances into, or {@code null} for the end stage.
+     * {@code SlimeIslandShape}'s island-vine pass (issue #647) re-runs {@link #grow}'s stage chain
+     * against its canvas, which is what needs the chain readable from outside.
+     */
+    @Nullable
+    public Block nextStage() {
+        return nextStage == null ? null : nextStage.get();
+    }
+
     @Override
     public MapCodec<VineBlock> codec() {
         return CODEC;

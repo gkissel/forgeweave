@@ -93,7 +93,9 @@ public class SlimeIslandPiece extends StructurePiece {
         SlimeIslandShape.Canvas canvas = SlimeIslandShape.Canvas.forIsland(size);
         SlimeIslandShape.generate(random, canvas, size, palette);
 
-        // The canvas origin sits one canopy pad inside the bounding box; see Canvas#forIsland.
+        // The canvas origin sits one canopy pad inside the bounding box; see Canvas#forIsland. An
+        // island vine's tail (issue #647) sits at negative canvas y and so lands below the box --
+        // the write box vanilla hands in spans the chunk column's full height, so nothing clips it.
         int pad = SlimeIslandShape.Size.canvasPad();
         BlockPos start = new BlockPos(box.minX() + pad, box.minY(), box.minZ() + pad);
         canvas.forEachDrawn(drawn -> {
