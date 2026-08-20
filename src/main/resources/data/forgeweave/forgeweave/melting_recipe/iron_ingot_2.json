@@ -4,7 +4,8 @@
     { "item": "minecraft:iron_hoe" },
     { "item": "minecraft:shears" },
     { "item": "minecraft:heavy_weighted_pressure_plate" },
-    { "item": "minecraft:iron_door" }
+    { "item": "minecraft:iron_door" },
+    { "item": "minecraft:smithing_table" }
   ],
   "fluid": "forgeweave:molten_iron",
   "amount": 288

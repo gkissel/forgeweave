@@ -64,9 +64,35 @@ import dev.gkissel.forgeweave.menu.PartBuilderRecipes;
  *       multiplies only these by the core's {@code yieldMultiplier} (issue #99). Ingot, nugget, and
  *       storage-block recipes leave this {@code false} so re-melting a refined metal always stays 1:1,
  *       per docs/SCOPE.md M2 ("core tier is the ONLY yield axis; ingot re-melts 1:1").
+ *   <li>{@code byproduct} -- optional, {@code {"fluid": ..., "amount": ...}}: a second fluid layered
+ *       into the tank alongside the main result (#639, the chainmail steel and spyglass copper rows
+ *       adopted from the 1.20 branch). Never ore-scaled; see {@link Byproduct}.
  * </ul>
  */
-public record MeltingRecipe(Ingredient input, Fluid fluid, int amount, int temperature, boolean ore) {
+public record MeltingRecipe(Ingredient input, Fluid fluid, int amount, int temperature, boolean ore,
+        Optional<Byproduct> byproduct) {
+
+    /**
+     * #639 -- a second fluid the melt yields alongside {@link #result}, upstream 1.20's
+     * {@code MeltingRecipeBuilder#addByproduct} (NOTICE.md) cut down to the one shape the adopted
+     * rows need: a single fixed fluid-and-amount (chainmail's molten steel, the spyglass's copper).
+     * Optional in the JSON; every recipe written before #639 parses unchanged.
+     */
+    public record Byproduct(Fluid fluid, int amount) {
+        public static final Codec<Byproduct> CODEC = RecordCodecBuilder.create(instance -> instance.group(
+                BuiltInRegistries.FLUID.byNameCodec().fieldOf("fluid").forGetter(Byproduct::fluid),
+                ExtraCodecs.POSITIVE_INT.fieldOf("amount").forGetter(Byproduct::amount))
+                .apply(instance, Byproduct::new));
+
+        public FluidStack result() {
+            return new FluidStack(fluid, amount);
+        }
+    }
+
+    /** The pre-#639 shape: no byproduct. What every non-chainmail, non-spyglass caller wants. */
+    public MeltingRecipe(Ingredient input, Fluid fluid, int amount, int temperature, boolean ore) {
+        this(input, fluid, amount, temperature, ore, Optional.empty());
+    }
 
     /** Upstream {@code Material.VALUE_Nugget}: a ninth of an ingot. */
     public static final int VALUE_NUGGET = 16;
@@ -113,12 +139,15 @@ public record MeltingRecipe(Ingredient input, Fluid fluid, int amount, int tempe
             BuiltInRegistries.FLUID.byNameCodec().fieldOf("fluid").forGetter(MeltingRecipe::fluid),
             ExtraCodecs.POSITIVE_INT.fieldOf("amount").forGetter(MeltingRecipe::amount),
             ExtraCodecs.POSITIVE_INT.optionalFieldOf("temperature").forGetter(recipe -> Optional.of(recipe.temperature())),
-            Codec.BOOL.optionalFieldOf("ore", Boolean.FALSE).forGetter(MeltingRecipe::ore))
+            Codec.BOOL.optionalFieldOf("ore", Boolean.FALSE).forGetter(MeltingRecipe::ore),
+            Byproduct.CODEC.optionalFieldOf("byproduct").forGetter(MeltingRecipe::byproduct))
             .apply(instance, MeltingRecipe::withDerivedTemperature));
 
-    private static MeltingRecipe withDerivedTemperature(Ingredient input, Fluid fluid, int amount, Optional<Integer> temperature, boolean ore) {
+    private static MeltingRecipe withDerivedTemperature(Ingredient input, Fluid fluid, int amount, Optional<Integer> temperature,
+            boolean ore, Optional<Byproduct> byproduct) {
         return new MeltingRecipe(input, fluid, amount,
-                temperature.orElseGet(() -> calcTemperature(fluid.getFluidType().getTemperature(), oreDoubledAmount(amount, ore))), ore);
+                temperature.orElseGet(() -> calcTemperature(fluid.getFluidType().getTemperature(), oreDoubledAmount(amount, ore))),
+                ore, byproduct);
     }
 
     /**
@@ -252,7 +281,7 @@ public record MeltingRecipe(Ingredient input, Fluid fluid, int amount, int tempe
                 // Non-strict: the part still melts with a custom name or any other component the
                 // casting recipe never asked about.
                 return Optional.of(withDerivedTemperature(DataComponentIngredient.of(false, result),
-                        casting.fluid().get(), casting.amount(), Optional.empty(), false));
+                        casting.fluid().get(), casting.amount(), Optional.empty(), false, Optional.empty()));
             }
         }
         return Optional.empty();
@@ -287,7 +316,7 @@ public record MeltingRecipe(Ingredient input, Fluid fluid, int amount, int tempe
             stonePart.set(ForgeweaveDataComponents.MATERIAL.get(), STONE_MATERIAL_ID);
             int amount = cost * VALUE_SEARED_MATERIAL / PartBuilderRecipes.INGOT_VALUE;
             return withDerivedTemperature(DataComponentIngredient.of(false, stonePart),
-                    ForgeweaveFluids.SEARED_STONE.still().get(), amount, Optional.empty(), false);
+                    ForgeweaveFluids.SEARED_STONE.still().get(), amount, Optional.empty(), false, Optional.empty());
         });
     }
 

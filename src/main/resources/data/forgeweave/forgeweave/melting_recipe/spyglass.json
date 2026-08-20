@@ -1,0 +1,6 @@
+{
+  "input": { "item": "minecraft:spyglass" },
+  "fluid": "forgeweave:molten_amethyst",
+  "amount": 100,
+  "byproduct": { "fluid": "forgeweave:molten_copper", "amount": 288 }
+}

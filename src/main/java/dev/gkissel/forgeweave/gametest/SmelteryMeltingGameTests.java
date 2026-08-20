@@ -538,6 +538,26 @@ public class SmelteryMeltingGameTests {
         helper.succeed();
     }
 
+    /**
+     * #639 (maintainer decision 2026-08-20): the 1.20 branch's chainmail rows, molten-steel
+     * byproduct included -- boots melt as 4 armor-recipe units of 6 iron nuggets (384 mB) plus 3
+     * steel nuggets each (192 mB) layered into the same tank. Live proof that
+     * {@code MeltingRecipe#byproduct} actually reaches the tank, not just the codec.
+     */
+    @GameTest(template = "smeltery", timeoutTicks = 3200)
+    public static void chainmailBootsMeltIntoIronWithAMoltenSteelByproduct(GameTestHelper helper) {
+        SmelteryControllerBlockEntity core = lavaFuelledSmeltery(helper);
+        insert(helper, core, Items.CHAINMAIL_BOOTS);
+
+        helper.succeedWhen(() -> {
+            helper.assertValueEqual(core.tank().getFluidAmount(), 384 + 192, "iron plus the steel byproduct");
+            helper.assertTrue(tankHolds(core, ForgeweaveFluids.IRON.still().get(), 384),
+                    "expected 384 mB of molten iron in the tank");
+            helper.assertTrue(tankHolds(core, ForgeweaveFluids.STEEL.still().get(), 192),
+                    "expected the 192 mB molten steel byproduct in the tank");
+        });
+    }
+
     // ------------------------------------------------------------------ helpers
 
     /** The 1x1x2 minimum smeltery of {@link SmelteryGameTests}, with a Standard Core and its one wall tank full of lava. */
@@ -582,6 +602,12 @@ public class SmelteryMeltingGameTests {
     private static void insert(GameTestHelper helper, SmelteryControllerBlockEntity core, net.minecraft.world.item.Item item) {
         helper.assertTrue(core.insertForMelting(new ItemStack(item)).isEmpty(),
                 "expected " + item + " to go into the smeltery");
+    }
+
+    /** Whether any layer of the multi-fluid tank is exactly {@code amount} of {@code fluid} -- #639's byproduct checks. */
+    private static boolean tankHolds(SmelteryControllerBlockEntity core, Fluid fluid, int amount) {
+        return core.tank().fluids().stream()
+                .anyMatch(stack -> stack.getFluid() == fluid && stack.getAmount() == amount);
     }
 
     private static void assertTankHolds(GameTestHelper helper, SmelteryControllerBlockEntity core, Fluid fluid, int amount) {
