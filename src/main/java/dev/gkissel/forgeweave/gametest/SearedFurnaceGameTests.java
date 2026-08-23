@@ -89,6 +89,39 @@ public class SearedFurnaceGameTests {
         furnace.updateStructure();
         helper.assertTrue(!furnace.isFormed(), "expected a top-half slab in the ceiling to be refused");
         assertReason(helper, furnace, SearedFurnaceScan.KEY_INVALID_CEILING);
+
+        helper.setBlock(new BlockPos(2, 3, 2), bottomStairs.setValue(StairBlock.HALF, Half.TOP));
+        furnace.updateStructure();
+        helper.assertTrue(!furnace.isFormed(), "expected top-half stairs in the ceiling to be refused");
+        assertReason(helper, furnace, SearedFurnaceScan.KEY_INVALID_CEILING);
+        helper.succeed();
+    }
+
+    /**
+     * Issue #369's rule is ceiling-only: upstream's {@code searedStairsSlabs} roster appears in
+     * {@code MultiblockSearedFurnace#isCeilingBlock} alone -- {@code isValidBlock} (walls) and the
+     * floor's interior footprint stay {@code searedBlock} only, so even a bottom-half seared slab
+     * or stairs is refused there.
+     */
+    @GameTest(template = "smeltery")
+    public static void wallsAndFloorRefuseStairsAndSlabs(GameTestHelper helper) {
+        buildFurnace(helper, 3, 3, 2);
+        BlockState bottomStairs = ForgeweaveBlocks.SEARED_STAIRS_BRICKS.get().defaultBlockState().setValue(StairBlock.HALF, Half.BOTTOM);
+        helper.setBlock(new BlockPos(2, 3, 0), bottomStairs);
+        SearedFurnaceBlockEntity furnace = placeController(helper);
+        helper.assertTrue(!furnace.isFormed(), "expected bottom-half seared stairs in a wall to be refused");
+        assertReason(helper, furnace, SearedFurnaceScan.KEY_INVALID_WALL);
+
+        helper.setBlock(new BlockPos(2, 3, 0), ForgeweaveBlocks.SEARED_BRICKS.get());
+        helper.setBlock(new BlockPos(2, 1, 2), ForgeweaveBlocks.SEARED_SLAB_BRICKS.get().defaultBlockState()
+                .setValue(SlabBlock.TYPE, SlabType.BOTTOM));
+        furnace.updateStructure();
+        helper.assertTrue(!furnace.isFormed(), "expected a bottom-half seared slab in the floor to be refused");
+        assertReason(helper, furnace, SearedFurnaceScan.KEY_INVALID_FLOOR);
+
+        helper.setBlock(new BlockPos(2, 1, 2), ForgeweaveBlocks.SEARED_BRICKS.get());
+        furnace.updateStructure();
+        helper.assertTrue(furnace.isFormed(), "expected the repaired furnace to form: " + furnace.lastResult().getString());
         helper.succeed();
     }
 
