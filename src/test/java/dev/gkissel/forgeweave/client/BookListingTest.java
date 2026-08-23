@@ -113,6 +113,39 @@ class BookListingTest {
         }
     }
 
+    /**
+     * Issue #651: upstream {@code BookTransformer.IndexTranformer} makes the index a real generated
+     * section at position 0 -- named "index", one {@code ContentSectionList} page ("page1",
+     * "page2", ... every nine sections) of one linked section button per remaining section, each
+     * carrying the section's icon and title and jumping to its first page. The index leaf stops
+     * being screen chrome.
+     */
+    @Test
+    void theBookOpensOnAGeneratedIndexSection() {
+        List<BookSection> all = sections();
+        BookSection index = all.get(0);
+
+        assertEquals("book.forgeweave.section.index", index.titleKey());
+        assertEquals(1, index.pages().size(),
+                "five sections fit one nine-button ContentSectionList page");
+        BookPage.SectionListPage page = assertInstanceOf(BookPage.SectionListPage.class,
+                index.pages().get(0), "the index page is upstream's ContentSectionList");
+        assertEquals("page1", page.name(), "IndexTranformer names its pages page1, page2, ...");
+        assertEquals(all.size() - 1, page.links().size(),
+                "one button per section, the index never listing itself");
+
+        int firstPage = index.pages().size();
+        for (int i = 1; i < all.size(); i++) {
+            BookLink link = page.links().get(i - 1);
+            assertEquals(all.get(i).titleKey(), link.labelKey(),
+                    "an index button shows its section's title");
+            assertNotNull(link.icon(), "an index button draws its section's icon");
+            assertEquals(firstPage, link.targetPage(),
+                    "the " + all.get(i).titleKey() + " button must jump to the section's first page");
+            firstPage += all.get(i).pages().size();
+        }
+    }
+
     @Test
     void theToolsSectionOpensOnAListingOfEveryToolPage() {
         BookSection tools = section("book.forgeweave.section.tools");

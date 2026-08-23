@@ -149,7 +149,6 @@
   "block.forgeweave.tool_station": "Tool Station",
   "block.forgeweave.white_stained_clear_glass": "White Stained Clear Glass",
   "block.forgeweave.yellow_stained_clear_glass": "Yellow Stained Clear Glass",
-  "book.forgeweave.index.title": "Index",
   "book.forgeweave.intro.welcome.text": "Welcome to Materials and You: surviving the first day and beyond. Within these pages you will find the first steps to making tools from the materials you gather.\n\nThe first step is to craft a blank pattern. It is a blank slate to stamp a shape into, providing a reference for future creations.\n\nThis book grows with the workshop; check back occasionally for new chapters.",
   "book.forgeweave.intro.welcome.title": "Surviving the First Day",
   "book.forgeweave.intro.workshop.text": "Shape a non-metal material in the Part Builder with a pattern, then combine the finished parts at the Tool Station. Patterns keep in the Pattern Chest and spare parts in the Part Chest. A crafting table converts into a Crafting Station that holds an unfinished project while you step away.\n\nTogether these make the Tool Workshop; they work best side by side. The Tool Forge, the station's sturdier sibling, is needed for the largest tools.",

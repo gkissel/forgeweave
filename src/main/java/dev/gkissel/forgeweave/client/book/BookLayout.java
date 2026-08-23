@@ -1,7 +1,10 @@
 package dev.gkissel.forgeweave.client.book;
 
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * The guide book's page-to-slot layout: how much of a page fits on one rendered leaf, and where the
@@ -71,6 +74,35 @@ public final class BookLayout {
             slots.add(new Slot(page, first, blocks.size() - first));
         }
         return List.copyOf(slots);
+    }
+
+    /** An empty filler leaf {@link #padToLeftLeaves} inserts; it renders no source page at all. */
+    public static final Slot FILLER = new Slot(-1, 0, 0);
+
+    /**
+     * The padding transformer (issue #651): slot 0 sits alone on the right leaf of the first
+     * spread and slots {@code 2s-1}/{@code 2s} share spread {@code s}, so a slot is a left leaf
+     * iff its index is odd. This inserts {@link #FILLER} leaves so that every section after the
+     * first starts on a left leaf -- upstream pads at page level (a blank page onto every
+     * odd-paged section); Forgeweave's pages split across slots at layout time (#428), so the
+     * same guarantee has to be enforced after pagination instead.
+     *
+     * @param slots             {@link #paginate}'s output
+     * @param sectionFirstPages the page index each section starts at; the lowest one is the
+     *                          book's first page and is never padded (upstream's index leaf also
+     *                          opens on the right leaf of the first spread)
+     */
+    public static List<Slot> padToLeftLeaves(List<Slot> slots, Collection<Integer> sectionFirstPages) {
+        Set<Integer> starts = new HashSet<>(sectionFirstPages);
+        List<Slot> padded = new ArrayList<>();
+        for (Slot slot : slots) {
+            boolean sectionStart = slot.firstBlock() == 0 && starts.contains(slot.page());
+            if (sectionStart && !padded.isEmpty() && padded.size() % 2 == 0) {
+                padded.add(FILLER);
+            }
+            padded.add(slot);
+        }
+        return List.copyOf(padded);
     }
 
     /**

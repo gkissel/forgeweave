@@ -105,6 +105,56 @@ class BookPaginationTest {
         }
     }
 
+    /**
+     * Issue #651, the padding transformer: slot 0 (the index leaf) sits alone on the right leaf of
+     * the first spread and slots 2s-1/2s share spread s, so a slot is a left leaf iff its index is
+     * odd. Padding inserts empty filler leaves so every section after the first starts on a left
+     * leaf -- the later-Mantle padding transformer's guarantee, applied at slot level because
+     * Forgeweave paginates its generated pages (#428) rather than hand-splitting them.
+     */
+    @Test
+    void sectionsStartOnLeftLeavesAfterPadding() {
+        // Four one-section pages; page 2 spills over two slots, pushing page 3 onto an even slot.
+        List<List<Integer>> pages = List.of(
+                blocks(2, LINE), blocks(2, LINE), blocks(30, LINE), blocks(2, LINE));
+        List<Slot> laid = BookLayout.paginate(pages, BookLayout.PAGE_TEXT_H);
+
+        List<Slot> padded = BookLayout.padToLeftLeaves(laid, List.of(0, 1, 2, 3));
+
+        assertEquals(0, BookLayout.firstSlotOf(padded, 0), "the index leaf stays on the right leaf");
+        for (int page = 1; page < pages.size(); page++) {
+            assertEquals(1, BookLayout.firstSlotOf(padded, page) % 2,
+                    "section page " + page + " must start on a left (odd) slot, got " + padded);
+        }
+        assertEquals(laid.size() + 1, padded.size(), "exactly one filler needed here: " + padded);
+        assertEquals(BookLayout.FILLER, padded.get(2), "the filler sits before page 2's first slot");
+    }
+
+    /** A section already starting on a left leaf gets no filler, and nothing precedes the first page. */
+    @Test
+    void paddingInsertsNothingWhereSectionsAlreadyStartLeft() {
+        List<List<Integer>> pages = List.of(blocks(2, LINE), blocks(2, LINE), blocks(2, LINE));
+        List<Slot> laid = BookLayout.paginate(pages, BookLayout.PAGE_TEXT_H);
+
+        // Sections at 0 (slot 0, right leaf of the first spread) and 1 (slot 1, already left).
+        assertEquals(laid, BookLayout.padToLeftLeaves(laid, List.of(0, 1)));
+    }
+
+    /** A continuation slot mid-page is never a section start, so padding never splits a page. */
+    @Test
+    void paddingNeverSeparatesAPageFromItsContinuation() {
+        List<List<Integer>> pages = List.of(blocks(2, LINE), blocks(30, LINE));
+        List<Slot> laid = BookLayout.paginate(pages, BookLayout.PAGE_TEXT_H);
+
+        List<Slot> padded = BookLayout.padToLeftLeaves(laid, List.of(0, 1));
+
+        List<Slot> pageOneSlots = padded.stream().filter(slot -> slot.page() == 1).toList();
+        assertEquals(2, pageOneSlots.size());
+        int first = padded.indexOf(pageOneSlots.get(0));
+        assertEquals(pageOneSlots.get(1), padded.get(first + 1),
+                "page 1's continuation must follow it immediately: " + padded);
+    }
+
     /** A material with a long trait list -- the registry-driven page kind that grows without notice. */
     @Test
     void aMaterialPageWithTwelveTraitsSplits() {

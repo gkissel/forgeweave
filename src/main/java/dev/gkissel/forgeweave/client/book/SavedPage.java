@@ -26,13 +26,16 @@ import dev.gkissel.forgeweave.client.book.BookPage.ToolPage;
 public final class SavedPage {
 
     /**
-     * The bookmark for the index spread. Upstream's index is a real generated section whose leaf
-     * saves as {@code index.page1} ({@code BookTransformer#IndexTranformer}); Forgeweave's index is
-     * still screen chrome rather than a listing page (PR #631 deviation, rest of #623), so its
-     * bookmark is this literal, which {@link #find} deliberately never matches --
-     * {@code BookScreen} checks it before asking.
+     * The bookmark for the index spread: upstream's, since the index is a real generated section
+     * as of issue #651 ({@code BookTransformer#IndexTranformer} naming its pages {@code page1},
+     * {@code page2}, ...). Books bookmarked before #651 carry the bare literal {@code "index"}
+     * instead; {@link #find} aliases it here so they keep opening on the index spread
+     * ({@code m651_book_saved_index_legacy.snbt}).
      */
-    public static final String INDEX = "index";
+    public static final String INDEX = "index.page1";
+
+    /** The pre-#651 index bookmark, when the index was screen chrome rather than a section. */
+    private static final String LEGACY_INDEX = "index";
 
     private SavedPage() {
     }
@@ -56,6 +59,9 @@ public final class SavedPage {
      */
     public static int find(List<BookSection> sections, String saved) {
         String location = saved.toLowerCase(Locale.ROOT);
+        if (LEGACY_INDEX.equals(location)) {
+            location = INDEX;
+        }
         int dot = location.indexOf('.');
         if (dot < 0) {
             return -1;
@@ -96,6 +102,8 @@ public final class SavedPage {
             case ModifierPage modifier -> modifier.id().getPath();
             case ListingPage listing -> "listing";
             case IconGridPage grid -> "listing";
+            // IndexTranformer names its generated pages page1, page2, ... itself.
+            case BookPage.SectionListPage sectionList -> sectionList.name();
         };
     }
 

@@ -1,0 +1,15 @@
+[
+  {
+    "name": "intro",
+    "type": "image with text below",
+    "image": "forgeweave:textures/derived/gui/book/smeltery.png"
+  },
+  {
+    "name": "structure",
+    "type": "text"
+  },
+  {
+    "name": "working",
+    "type": "text"
+  }
+]

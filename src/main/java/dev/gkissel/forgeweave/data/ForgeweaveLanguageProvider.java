@@ -1518,7 +1518,8 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
                 "A massive blade for hewing through foes. Slow to swing, but a killing blow is far more likely to claim the victim's head.");
         add("book.forgeweave.title", "Materials and You");
         add("book.forgeweave.subtitle", "Surviving the first day and beyond");
-        add("book.forgeweave.index.title", "Index");
+        // book.forgeweave.index.title dropped by #651: the index is upstream's generated
+        // ContentSectionList page, which draws no heading -- only the section buttons.
         // Upstream's book language file, material.craft_partbuilder / material.craft_casting
         // (1.12 clone): the two "how is this material made" tooltips on a material page's display
         // bar (issue #633).

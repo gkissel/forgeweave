@@ -1,0 +1,17 @@
+{
+    decoder: "item_stack",
+    expect: {
+        components: {
+            "forgeweave:book_page": "index"
+        },
+        id: "forgeweave:guide_book"
+    },
+    nbt: {
+        components: {
+            "forgeweave:book_page": "index"
+        },
+        count: 1,
+        id: "forgeweave:guide_book"
+    },
+    what: "#651 (data-driven book slice): a guide book bookmarked on the index spread BEFORE the index became a real generated section. Until #651 the index was screen chrome and BookScreen saved the bare literal `index` (no dot); afterwards the index is upstream's IndexTranformer section and the same spread saves as `index.page1` (Mantle 1.12 @ 340a386, `BookTransformer.IndexTranformer` naming its pages page1, page2, ...). The stored literal changed meaning, so SavedPage#find aliases the legacy dotless `index` to `index.page1` -- this fixture pins that a pre-#651 book still decodes and (SavedPageTest#theLegacyIndexLiteralStillOpensTheIndex) still opens on the index spread rather than the cover."
+}

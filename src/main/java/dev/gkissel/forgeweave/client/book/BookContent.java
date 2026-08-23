@@ -6,81 +6,68 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Supplier;
 
+import javax.annotation.Nullable;
+
 import net.minecraft.core.RegistryAccess;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.Items;
-import net.minecraft.world.item.crafting.Ingredient;
 
-import dev.gkissel.forgeweave.Forgeweave;
-import dev.gkissel.forgeweave.block.ForgeweaveBlocks;
 import dev.gkissel.forgeweave.client.book.BookPage.IconGridPage;
 import dev.gkissel.forgeweave.client.book.BookPage.ListingPage;
 import dev.gkissel.forgeweave.client.book.BookPage.MaterialPage;
 import dev.gkissel.forgeweave.client.book.BookPage.ModifierPage;
+import dev.gkissel.forgeweave.client.book.BookPage.SectionListPage;
 import dev.gkissel.forgeweave.client.book.BookPage.TextPage;
 import dev.gkissel.forgeweave.client.book.BookPage.ToolPage;
+import dev.gkissel.forgeweave.client.book.BookStructure.PageDef;
+import dev.gkissel.forgeweave.client.book.BookStructure.SectionDef;
 import dev.gkissel.forgeweave.item.ForgeweaveItems;
 import dev.gkissel.forgeweave.material.Material;
 import dev.gkissel.forgeweave.modifier.ForgeweaveModifiers;
 
 /**
- * The guide book's section and page structure, following the 1.12 book's shipped organization
- * ({@code resources/assets/tconstruct/book/index.json} and its {@code sections/*.json}, NOTICE.md):
- * intro, tools, materials, modifiers, smeltery, in that order, with the same index icons. The
- * static pages' text lives in {@code book.forgeweave.*} lang keys ({@code ForgeweaveLanguageProvider});
- * the tool, material and modifier listings are generated from Forgeweave's registries at open time
- * -- upstream's {@code ToolSectionTransformer}/{@code MaterialSectionTransformer}/
- * {@code ModifierSectionTransformer} did the same from its registries, so a newly registered
- * material or modifier shows up here without touching this class.
+ * Builds the guide book's page tree from the data-driven structure in
+ * {@code assets/forgeweave/book/} ({@link BookStructure}, issue #651) plus the registry-generated
+ * sections, following the 1.12 book's shipped organization
+ * ({@code resources/assets/tconstruct/book/index.json} and its {@code sections/*.json}, NOTICE.md).
+ * The static pages' text lives in {@code book.forgeweave.*} lang keys
+ * ({@code ForgeweaveLanguageProvider}); the tool, material and modifier listings are generated from
+ * Forgeweave's registries at open time -- upstream's {@code ToolSectionTransformer}/
+ * {@code MaterialSectionTransformer}/{@code ModifierSectionTransformer} did the same from its
+ * registries, so a newly registered material or modifier shows up here without touching this class.
+ * The whole book then opens with the generated index section
+ * ({@code BookTransformer.IndexTranformer}): one {@code ContentSectionList} page per nine sections,
+ * each button jumping to its section's first page.
  *
  * <p>{@code BookLangCoverageTest} walks {@link #staticLangKeys()} and {@link #TOOLS} against the
- * generated {@code en_us.json}, so a page added here without its lang lines fails the build.
+ * generated {@code en_us.json}, so a page added to the JSON without its lang lines fails the build.
  */
 public final class BookContent {
 
     public static final String TITLE = "book.forgeweave.title";
     public static final String SUBTITLE = "book.forgeweave.subtitle";
-    public static final String INDEX_TITLE = "book.forgeweave.index.title";
+
+    /** {@code IndexTranformer}: one {@code ContentSectionList} page holds at most nine sections. */
+    private static final int SECTIONS_PER_INDEX_PAGE = 9;
 
     /**
-     * Every assembled tool the book lists, in the 1.12 tools section's harvest-then-weapons order.
-     * Each entry's page reuses the tool's registered name and its {@code item.forgeweave.<id>.description}
+     * Every assembled tool the book lists, in {@code book/sections/tools.json}'s order -- the 1.12
+     * tools section's harvest-then-weapons order ({@code BookToolsOrderTest} pins it). Each entry's
+     * page reuses the tool's registered name and its {@code item.forgeweave.<id>.description}
      * Tool Station blurb, so the book and the station tab can never disagree about a tool.
      */
-    public static final List<Supplier<? extends Item>> TOOLS = List.of(
-            ForgeweaveItems.TOOL_PICKAXE,
-            ForgeweaveItems.TOOL_SHOVEL,
-            ForgeweaveItems.TOOL_HATCHET,
-            ForgeweaveItems.TOOL_MATTOCK,
-            ForgeweaveItems.TOOL_KAMA,
-            // parity audit 2026-08-18 T77: upstream tools.json:21-124 puts scythe right after
-            // kama, before hammer/excavator/lumberaxe -- it had drifted to the end of the
-            // harvest run.
-            ForgeweaveItems.TOOL_SCYTHE,
-            ForgeweaveItems.TOOL_HAMMER,
-            ForgeweaveItems.TOOL_EXCAVATOR,
-            ForgeweaveItems.TOOL_LUMBERAXE,
-            ForgeweaveItems.TOOL_VEIN_HAMMER,
-            ForgeweaveItems.TOOL_BROADSWORD,
-            ForgeweaveItems.TOOL_LONGSWORD,
-            ForgeweaveItems.TOOL_RAPIER,
-            ForgeweaveItems.TOOL_DAGGER,
-            ForgeweaveItems.TOOL_BATTLESIGN,
-            ForgeweaveItems.TOOL_FRYING_PAN,
-            ForgeweaveItems.TOOL_BATTLEAXE,
-            ForgeweaveItems.TOOL_SCIMITAR,
-            ForgeweaveItems.TOOL_KATANA,
-            ForgeweaveItems.TOOL_WARMACE,
-            ForgeweaveItems.TOOL_CLEAVER,
-            ForgeweaveItems.TOOL_SHORTBOW, // M3.5 #394
-            ForgeweaveItems.TOOL_LONGBOW, // M3.5 #395
-            ForgeweaveItems.TOOL_CROSSBOW); // M3.5 #395
-
-    private static final ResourceLocation SMELTERY_IMAGE =
-            ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "textures/derived/gui/book/smeltery.png");
+    public static final List<Supplier<? extends Item>> TOOLS = BookStructure.load().sections().stream()
+            .filter(section -> section.name().equals("tools"))
+            .flatMap(section -> section.pages().stream())
+            .filter(page -> page.type().equals("tool"))
+            .<Supplier<? extends Item>>map(page -> {
+                ResourceLocation id = ResourceLocation.parse(page.item());
+                return () -> BuiltInRegistries.ITEM.get(id);
+            })
+            .toList();
 
     private BookContent() {
     }
@@ -96,63 +83,109 @@ public final class BookContent {
 
     /**
      * The registry-free half of {@link #sections(RegistryAccess)}: everything but the material list
-     * is fixed, so handing the materials in keeps the whole page tree unit-testable
-     * ({@code BookListingTest}) without standing up a datapack registry.
+     * comes from the structure JSONs and the code registries, so handing the materials in keeps the
+     * whole page tree unit-testable ({@code BookListingTest}) without standing up a datapack
+     * registry.
      *
      * @param materials every material to give a page, already in the order the book shows them
      */
     public static List<BookSection> sections(List<Map.Entry<ResourceLocation, Material>> materials) {
         List<BookSection> sections = new ArrayList<>();
-
-        sections.add(new BookSection("book.forgeweave.section.intro",
-                () -> new ItemStack(ForgeweaveItems.PATTERN_BLANK.get()),
-                List.of(
-                        new TextPage("book.forgeweave.intro.welcome.title", "book.forgeweave.intro.welcome.text"),
-                        new TextPage("book.forgeweave.intro.workshop.title", "book.forgeweave.intro.workshop.text"))));
-
-        List<BookPage> toolPages = new ArrayList<>();
-        toolPages.add(new TextPage("book.forgeweave.tools.repairing.title", "book.forgeweave.tools.repairing.text"));
-        for (Supplier<? extends Item> tool : TOOLS) {
-            toolPages.add(new ToolPage(tool.get()));
+        for (SectionDef def : BookStructure.load().sections()) {
+            String titleKey = "book.forgeweave.section." + def.name();
+            List<BookPage> authored = new ArrayList<>();
+            for (PageDef page : def.pages()) {
+                authored.add(pageOf(def.name(), page));
+            }
+            // The generated halves, hooked by section name exactly as upstream hooks its
+            // SectionTransformers ("tools"/"materials"/"modifiers", TinkerBook:37-40).
+            List<BookPage> pages = switch (def.name()) {
+                case "tools" -> withListing(titleKey, authored);
+                case "materials" -> withMaterials(titleKey, authored, materials);
+                case "modifiers" -> {
+                    ForgeweaveModifiers.ids().stream()
+                            .sorted(Comparator.comparing(ResourceLocation::getPath))
+                            .forEach(id -> authored.add(new ModifierPage(id)));
+                    yield withListing(titleKey, authored);
+                }
+                default -> authored;
+            };
+            sections.add(new BookSection(titleKey, iconOf(def.iconItem()), List.copyOf(pages)));
         }
-        sections.add(new BookSection("book.forgeweave.section.tools",
-                () -> new ItemStack(ForgeweaveItems.TOOL_PICKAXE.get()),
-                withListing("book.forgeweave.section.tools", toolPages)));
+        sections.add(0, indexSection(sections));
+        return List.copyOf(sections);
+    }
 
-        List<BookPage> materialPages = new ArrayList<>();
-        materialPages.add(new TextPage("book.forgeweave.materials.intro.title", "book.forgeweave.materials.intro.text"));
+    /** One authored page def becomes a page; the tool kind reads the registry, text reads lang. */
+    private static BookPage pageOf(String sectionName, PageDef def) {
+        if (def.type().equals("tool")) {
+            ResourceLocation id = ResourceLocation.parse(def.item());
+            return new ToolPage(BuiltInRegistries.ITEM.get(id));
+        }
+        String base = "book.forgeweave." + sectionName + "." + def.name();
+        return new TextPage(base + ".title", base + ".text", imageOf(def.image()));
+    }
+
+    @Nullable
+    private static ResourceLocation imageOf(@Nullable String image) {
+        if (image == null) {
+            return null;
+        }
+        ResourceLocation id = ResourceLocation.parse(image);
+        return ResourceLocation.fromNamespaceAndPath(id.getNamespace(), id.getPath());
+    }
+
+    private static Supplier<ItemStack> iconOf(String itemId) {
+        ResourceLocation id = ResourceLocation.parse(itemId);
+        return () -> new ItemStack(BuiltInRegistries.ITEM.get(id));
+    }
+
+    /**
+     * Upstream {@code BookTransformer.IndexTranformer}: the index becomes the first section, named
+     * {@code index}, its pages named {@code page1}, {@code page2}, ... -- one
+     * {@code ContentSectionList} of up to nine section buttons per page, every section but the
+     * index itself getting a button that jumps to its first page. The buttons' targets are
+     * book-global page indices (the index section starts at page 0, so the screen's
+     * section-relative arithmetic still holds).
+     */
+    private static BookSection indexSection(List<BookSection> others) {
+        int indexPages = Math.max(1,
+                (others.size() + SECTIONS_PER_INDEX_PAGE - 1) / SECTIONS_PER_INDEX_PAGE);
+        List<BookPage> pages = new ArrayList<>();
+        int firstPage = indexPages;
+        int section = 0;
+        for (int page = 0; page < indexPages; page++) {
+            List<BookLink> links = new ArrayList<>();
+            for (int i = 0; i < SECTIONS_PER_INDEX_PAGE && section < others.size(); i++, section++) {
+                BookSection target = others.get(section);
+                links.add(new BookLink(target.titleKey(), null, target.icon(), firstPage));
+                firstPage += target.pages().size();
+            }
+            pages.add(new SectionListPage("page" + (page + 1), List.copyOf(links)));
+        }
+        return new BookSection("book.forgeweave.section.index", () -> ItemStack.EMPTY, List.copyOf(pages));
+    }
+
+    /**
+     * Upstream {@code AbstractMaterialSectionTransformer#transform}: the materials section opens
+     * with a {@code ContentPageIconList} grid of one linked item icon per material, in front of the
+     * authored intro page and the generated material pages (issue #479).
+     */
+    private static List<BookPage> withMaterials(String titleKey, List<BookPage> authored,
+            List<Map.Entry<ResourceLocation, Material>> materials) {
+        List<BookPage> content = new ArrayList<>(authored);
         List<BookLink> grid = new ArrayList<>();
         for (Map.Entry<ResourceLocation, Material> entry : materials) {
             ResourceLocation id = entry.getKey();
             Material material = entry.getValue();
             grid.add(new BookLink("material." + id.getNamespace() + "." + id.getPath(), material.color(),
-                    () -> representativeItem(material), 1 + materialPages.size()));
-            materialPages.add(new MaterialPage(id, material));
+                    () -> representativeItem(material), 1 + content.size()));
+            content.add(new MaterialPage(id, material));
         }
-        List<BookPage> materialSection = new ArrayList<>();
-        materialSection.add(new IconGridPage("book.forgeweave.section.materials", List.copyOf(grid)));
-        materialSection.addAll(materialPages);
-        sections.add(new BookSection("book.forgeweave.section.materials",
-                () -> new ItemStack(Items.IRON_INGOT), List.copyOf(materialSection)));
-
-        List<BookPage> modifierPages = new ArrayList<>();
-        modifierPages.add(new TextPage("book.forgeweave.modifiers.intro.title", "book.forgeweave.modifiers.intro.text"));
-        ForgeweaveModifiers.ids().stream()
-                .sorted(Comparator.comparing(ResourceLocation::getPath))
-                .forEach(id -> modifierPages.add(new ModifierPage(id)));
-        sections.add(new BookSection("book.forgeweave.section.modifiers",
-                () -> new ItemStack(Items.REDSTONE),
-                withListing("book.forgeweave.section.modifiers", modifierPages)));
-
-        sections.add(new BookSection("book.forgeweave.section.smeltery",
-                () -> new ItemStack(ForgeweaveBlocks.STANDARD_CORE.get()),
-                List.of(
-                        new TextPage("book.forgeweave.smeltery.intro.title", "book.forgeweave.smeltery.intro.text",
-                                SMELTERY_IMAGE),
-                        new TextPage("book.forgeweave.smeltery.structure.title", "book.forgeweave.smeltery.structure.text"),
-                        new TextPage("book.forgeweave.smeltery.working.title", "book.forgeweave.smeltery.working.text"))));
-
-        return List.copyOf(sections);
+        List<BookPage> pages = new ArrayList<>();
+        pages.add(new IconGridPage(titleKey, List.copyOf(grid)));
+        pages.addAll(content);
+        return List.copyOf(pages);
     }
 
     /**
@@ -194,6 +227,7 @@ public final class BookContent {
                     "material." + material.id().getNamespace() + "." + material.id().getPath();
             case ListingPage listing -> listing.titleKey();
             case IconGridPage listing -> listing.titleKey();
+            case SectionListPage sectionList -> sectionList.name(); // never listed; exhaustiveness
         };
     }
 
@@ -204,35 +238,33 @@ public final class BookContent {
      * (a tag no pack fills) falls back to the blank pattern rather than rendering nothing.
      */
     private static ItemStack representativeItem(Material material) {
-        Ingredient repair = material.repairItem();
-        ItemStack[] items = repair.getItems();
+        ItemStack[] items = material.repairItem().getItems();
         return items.length > 0 ? items[0] : new ItemStack(ForgeweaveItems.PATTERN_BLANK.get());
     }
 
     /**
-     * Every fixed lang key the book structure references -- the section titles, chrome, and each
-     * static page's title/text pair. {@code BookLangCoverageTest}'s manifest; keep in sync with
-     * {@link #sections}.
+     * Every fixed lang key the book structure references -- the cover, the section titles, and each
+     * authored page's title/text pair, derived from the structure JSONs so a page added there
+     * without its lang lines fails {@code BookLangCoverageTest}. (The generated index section's
+     * title key is a bookmark identifier, never rendered, so it is not in the manifest.)
      */
     public static List<String> staticLangKeys() {
-        return List.of(
-                TITLE, SUBTITLE, INDEX_TITLE,
+        List<String> keys = new ArrayList<>(List.of(
+                TITLE, SUBTITLE,
                 // Issue #651: the tool/modifier pages' bullet-list headers (upstream's
                 // tool.properties / modifier.effect book strings).
                 ModifyPageContent.TOOL_PROPERTIES_TITLE,
-                ModifyPageContent.MODIFIER_EFFECTS_TITLE,
-                "book.forgeweave.section.intro",
-                "book.forgeweave.section.tools",
-                "book.forgeweave.section.materials",
-                "book.forgeweave.section.modifiers",
-                "book.forgeweave.section.smeltery",
-                "book.forgeweave.intro.welcome.title", "book.forgeweave.intro.welcome.text",
-                "book.forgeweave.intro.workshop.title", "book.forgeweave.intro.workshop.text",
-                "book.forgeweave.tools.repairing.title", "book.forgeweave.tools.repairing.text",
-                "book.forgeweave.materials.intro.title", "book.forgeweave.materials.intro.text",
-                "book.forgeweave.modifiers.intro.title", "book.forgeweave.modifiers.intro.text",
-                "book.forgeweave.smeltery.intro.title", "book.forgeweave.smeltery.intro.text",
-                "book.forgeweave.smeltery.structure.title", "book.forgeweave.smeltery.structure.text",
-                "book.forgeweave.smeltery.working.title", "book.forgeweave.smeltery.working.text");
+                ModifyPageContent.MODIFIER_EFFECTS_TITLE));
+        for (SectionDef def : BookStructure.load().sections()) {
+            keys.add("book.forgeweave.section." + def.name());
+            for (PageDef page : def.pages()) {
+                if (!page.type().equals("tool")) {
+                    String base = "book.forgeweave." + def.name() + "." + page.name();
+                    keys.add(base + ".title");
+                    keys.add(base + ".text");
+                }
+            }
+        }
+        return List.copyOf(keys);
     }
 }
