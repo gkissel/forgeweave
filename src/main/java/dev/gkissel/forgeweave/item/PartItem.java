@@ -72,6 +72,15 @@ public class PartItem extends Item {
         SHAFT,
         /** Issue #626: a fletching, off the material's FLETCHING block ({@code FletchingMaterialStats}). */
         FLETCHING,
+        /**
+         * Issue #653: upstream's PROJECTILE stat, "basically a dummy stat type"
+         * ({@code ProjectileMaterialStats}) that every HEAD material carries for free
+         * ({@code TinkerRegistry#addMaterialStats:260-262} auto-adds it). No part item registers
+         * with this kind; it exists as the second scope of the arrow head's two-scope
+         * {@code PartMaterialType(HEAD, PROJECTILE)} read -- the trait scope that keeps endstone's
+         * {@code enderference} on arrow heads ({@code Material.Traits}).
+         */
+        PROJECTILE,
         /** No stat block of its own -- the shard, which is a leftover rather than a buildable part. */
         NONE
     }
@@ -231,7 +240,8 @@ public class PartItem extends Item {
             case BOWSTRING -> StationText.bowstringStats(material);
             case SHAFT -> StationText.shaftStats(material);
             case FLETCHING -> StationText.fletchingStats(material);
-            case NONE -> List.of();
+            // No part item registers as PROJECTILE (a dummy stat scope, #653); nothing to show.
+            case PROJECTILE, NONE -> List.of();
         };
     }
 

@@ -66,11 +66,16 @@ public final class ToolArt {
      */
     private static final Set<String> ORIGINAL_ART = Set.of("katana_binding", "katana_handle");
 
-    /** Back-to-front drawing order of the roles; see the class javadoc. */
+    /**
+     * Back-to-front drawing order of the roles; see the class javadoc. The arrow's three (#653)
+     * follow upstream's {@code arrow.tcon.json}: layer0 shaft, layer1 head, layer2 fletching --
+     * SHAFT before every head role, FLETCHING last on top.
+     */
     private static final List<ToolConstants.Role> LAYER_ORDER =
-            List.of(ToolConstants.Role.HANDLE, ToolConstants.Role.HEAD, ToolConstants.Role.SHURIKEN_BLADE,
+            List.of(ToolConstants.Role.SHAFT, ToolConstants.Role.HANDLE, ToolConstants.Role.HEAD,
+                    ToolConstants.Role.ARROW_HEAD, ToolConstants.Role.SHURIKEN_BLADE,
                     ToolConstants.Role.CROSSBOW_BODY, ToolConstants.Role.LIMB, ToolConstants.Role.EXTRA,
-                    ToolConstants.Role.BOWSTRING);
+                    ToolConstants.Role.BOWSTRING, ToolConstants.Role.FLETCHING);
 
     /**
      * The layer name each part role draws under; see the class javadoc. A shuriken blade draws as a
@@ -85,7 +90,11 @@ public final class ToolArt {
             ToolConstants.Role.LIMB, "limb",
             ToolConstants.Role.BOWSTRING, "string",
             ToolConstants.Role.CROSSBOW_BODY, "body",
-            ToolConstants.Role.SHURIKEN_BLADE, "head"));
+            ToolConstants.Role.SHURIKEN_BLADE, "head",
+            // #653, arrow.tcon.json's own texture names: shaft, head, fletching.
+            ToolConstants.Role.ARROW_HEAD, "head",
+            ToolConstants.Role.SHAFT, "shaft",
+            ToolConstants.Role.FLETCHING, "fletching"));
 
     /**
      * The part slot each model layer draws, in layer order -- the one place the art's back-to-front
@@ -175,7 +184,10 @@ public final class ToolArt {
             // is that Broken shows on the model, so the first blade follows the dominant break-the-
             // head rule with the same chip() treatment the other five art-less tools take
             // (scripts/derive_broken_art.py). Recorded as a deviation in the #448 PR.
-            Map.entry("shuriken", "head"));
+            Map.entry("shuriken", "head"),
+            // #653: the one upstream tool that breaks a layer other than its head or string --
+            // arrow.tcon.json's broken0 is the shaft (items/arrow/shaft_broken.png).
+            Map.entry("arrow", "shaft"));
 
     /**
      * The layer name {@code tool} draws broken art for, or {@code null} if it has none; see

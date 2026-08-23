@@ -212,27 +212,34 @@ public record Material(
      * a stronger head variant simply replaces the general one (iron: {@code magnetic2} on the head,
      * {@code magnetic} everywhere else).
      *
-     * <p>Only {@code head} and {@code shaft} (issue #626: bone re-scopes {@code splitting} to its
-     * arrow shafts, {@code TinkerMaterials:272}) exist as scopes so far, because those are the only
-     * ones Forgeweave's materials use; ponytail: the remaining {@link PartItem.Kind}s -- including
-     * issue #392's {@code BOW}/{@code BOWSTRING} and #626's {@code FLETCHING}, which fall back to
-     * {@code general} exactly as upstream's {@code getAllTraitsForStats} does -- get a field when a
-     * material needs one, and {@link #forPart} is the single place that has to learn about it.
-     * Upstream's one PROJECTILE-scoped trait ({@code endstone.addTrait(enderference, PROJECTILE)},
-     * {@code TinkerMaterials:264}) has no scope here yet: it only ever matters through the arrow
-     * head's two-scope {@code PartMaterialType(HEAD, PROJECTILE)} read -- endstone's head list
-     * ({@code alien}) would otherwise occlude {@code enderference} on arrow heads -- and that
-     * two-scope trait resolution lands with the material arrow itself (#626's follow-up slice),
-     * which is the first place anything reads it.
+     * <p>Only {@code head}, {@code shaft} (issue #626: bone re-scopes {@code splitting} to its
+     * arrow shafts, {@code TinkerMaterials:272}) and {@code projectile} (issue #653) exist as
+     * scopes so far, because those are the only ones Forgeweave's materials use; ponytail: the
+     * remaining {@link PartItem.Kind}s -- including issue #392's {@code BOW}/{@code BOWSTRING} and
+     * #626's {@code FLETCHING}, which fall back to {@code general} exactly as upstream's
+     * {@code getAllTraitsForStats} does -- get a field when a material needs one, and
+     * {@link #forPart} is the single place that has to learn about it. Upstream's one
+     * PROJECTILE-scoped trait is endstone's {@code enderference}
+     * ({@code endstone.addTrait(enderference, PROJECTILE)}, {@code TinkerMaterials:264}), read
+     * through the arrow head's two-scope {@code PartMaterialType(HEAD, PROJECTILE)} -- endstone's
+     * head list ({@code alien}) would otherwise occlude {@code enderference} on arrow heads.
      */
     public record Traits(List<ResourceLocation> general, List<ResourceLocation> head,
-            List<ResourceLocation> shaft) {
+            List<ResourceLocation> shaft, List<ResourceLocation> projectile) {
 
         public static final Codec<Traits> CODEC = RecordCodecBuilder.create(instance -> instance.group(
                 ResourceLocation.CODEC.listOf().optionalFieldOf("general", List.of()).forGetter(Traits::general),
                 ResourceLocation.CODEC.listOf().optionalFieldOf("head", List.of()).forGetter(Traits::head),
-                ResourceLocation.CODEC.listOf().optionalFieldOf("shaft", List.of()).forGetter(Traits::shaft))
+                ResourceLocation.CODEC.listOf().optionalFieldOf("shaft", List.of()).forGetter(Traits::shaft),
+                ResourceLocation.CODEC.listOf().optionalFieldOf("projectile", List.of())
+                        .forGetter(Traits::projectile))
                 .apply(instance, Traits::new));
+
+        /** The pre-#653 shape: no projectile-scoped list, which is every material but endstone. */
+        public Traits(List<ResourceLocation> general, List<ResourceLocation> head,
+                List<ResourceLocation> shaft) {
+            this(general, head, shaft, List.of());
+        }
 
         /** The pre-#626 shape: no shaft-scoped list, which is every material but bone. */
         public Traits(List<ResourceLocation> general, List<ResourceLocation> head) {
@@ -252,12 +259,15 @@ public record Material(
             if (kind == PartItem.Kind.SHAFT && !shaft.isEmpty()) {
                 return shaft;
             }
+            if (kind == PartItem.Kind.PROJECTILE && !projectile.isEmpty()) {
+                return projectile;
+            }
             return general;
         }
 
         /** Every trait id this material can grant through any part, de-duplicated. */
         public List<ResourceLocation> all() {
-            return Stream.of(general, head, shaft).flatMap(List::stream).distinct().toList();
+            return Stream.of(general, head, shaft, projectile).flatMap(List::stream).distinct().toList();
         }
     }
 
@@ -375,6 +385,9 @@ public record Material(
             case BOWSTRING -> bowstring.isPresent();
             case SHAFT -> shaft.isPresent();
             case FLETCHING -> fletching.isPresent();
+            // Upstream auto-adds the dummy PROJECTILE stat to every material given HEAD stats
+            // (TinkerRegistry#addMaterialStats:260-262), so "has HEAD" is the whole answer.
+            case PROJECTILE -> head.isPresent();
             case NONE -> true;
         };
     }

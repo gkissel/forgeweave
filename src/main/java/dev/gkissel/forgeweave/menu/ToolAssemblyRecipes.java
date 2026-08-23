@@ -933,9 +933,14 @@ public final class ToolAssemblyRecipes {
             case BOWSTRING -> List.of(PartItem.Kind.BOWSTRING);
             // #395: PartMaterialType.crossbow names HANDLE and EXTRA, so the body grants both scopes'.
             case CROSSBOW_BODY -> List.of(PartItem.Kind.HANDLE, PartItem.Kind.EXTRA);
-            // #448: upstream's shuriken PartMaterialType names HEAD, EXTRA and PROJECTILE; the
-            // PROJECTILE stat/trait scope is deferred with the arrow follow-up (no material has one).
-            case SHURIKEN_BLADE -> List.of(PartItem.Kind.HEAD, PartItem.Kind.EXTRA);
+            // #448/#653: upstream's shuriken PartMaterialType names HEAD, EXTRA and PROJECTILE --
+            // all three scopes now that #653 wired the projectile one.
+            case SHURIKEN_BLADE -> List.of(PartItem.Kind.HEAD, PartItem.Kind.EXTRA, PartItem.Kind.PROJECTILE);
+            // #653: PartMaterialType.arrowHead names HEAD and PROJECTILE -- the two-scope read that
+            // keeps endstone's PROJECTILE-scoped enderference beside its head-scoped alien.
+            case ARROW_HEAD -> List.of(PartItem.Kind.HEAD, PartItem.Kind.PROJECTILE);
+            case SHAFT -> List.of(PartItem.Kind.SHAFT);
+            case FLETCHING -> List.of(PartItem.Kind.FLETCHING);
         };
     }
 

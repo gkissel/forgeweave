@@ -18,6 +18,7 @@ import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.combat.DamageRamp;
 import dev.gkissel.forgeweave.modifier.ModifierEntry;
 import dev.gkissel.forgeweave.tool.LauncherStats;
+import dev.gkissel.forgeweave.tool.ProjectileStats;
 import dev.gkissel.forgeweave.tool.ToolMaterials;
 import dev.gkissel.forgeweave.tool.ToolStats;
 import dev.gkissel.forgeweave.trait.AlienProgress;
@@ -61,6 +62,16 @@ public final class ForgeweaveDataComponents {
     public static final DeferredHolder<DataComponentType<?>, DataComponentType<LauncherStats>> LAUNCHER_STATS =
             DATA_COMPONENTS.registerComponentType("launcher_stats",
                     builder -> builder.persistent(LauncherStats.CODEC).networkSynchronized(LauncherStats.STREAM_CODEC));
+
+    /**
+     * The ranged half of a projectile's stats -- upstream 1.12's {@code ProjectileNBT#accuracy}
+     * (issue #653, parity audit T17), the fletching's flight accuracy averaged at assembly. Only
+     * the material arrow carries it; fixture {@code m653_tool_arrow.snbt} pins the shape.
+     */
+    public static final DeferredHolder<DataComponentType<?>, DataComponentType<ProjectileStats>> PROJECTILE_STATS =
+            DATA_COMPONENTS.registerComponentType("projectile_stats",
+                    builder -> builder.persistent(ProjectileStats.CODEC)
+                            .networkSynchronized(ProjectileStats.STREAM_CODEC));
 
     /**
      * How well the assembled tool takes vanilla enchantments -- the mean of its parts' materials'

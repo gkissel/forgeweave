@@ -17,7 +17,8 @@
   "incorrect_for_tool": "minecraft:incorrect_for_diamond_tool",
   "traits": {
     "general": ["forgeweave:enderference"],
-    "head": ["forgeweave:alien"]
+    "head": ["forgeweave:alien"],
+    "projectile": ["forgeweave:enderference"]
   },
   "crafting_items": [
     { "ingredient": { "item": "minecraft:end_stone" }, "value": 144 }
