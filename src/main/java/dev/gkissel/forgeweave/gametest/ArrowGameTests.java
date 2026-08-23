@@ -271,9 +271,28 @@ public class ArrowGameTests {
     }
 
     /**
+     * The commanded launch velocity of a full-drawn wood shortbow:
+     * {@code getPowerForTime(20) = 1} x progress 1 x {@code baseProjectileSpeed} 3 x range 1.
+     */
+    private static final double FULL_DRAW_VELOCITY = 3.0;
+
+    /**
+     * Vanilla {@code Projectile#shoot} jitters each axis of the <em>normalized</em> direction by
+     * {@code random.triangle(0, 0.0172275 * inaccuracy)} before scaling by the velocity, so a
+     * shot's actual speed is {@code velocity * |unit + jitter|} -- off the commanded velocity by up
+     * to {@code sqrt(3) * 0.0172275 * inaccuracy} relative (~3% at the shortbow's baseInaccuracy 1;
+     * endspeed's 2/3-eased shot stays under the same bound). This is that bound with a little
+     * float slack, and it is why the assertions below compare each shot against the commanded
+     * velocity rather than against another (independently jittered) shot -- the flake CI caught.
+     */
+    private static final double SHOOT_JITTER_RELATIVE_BOUND = Math.sqrt(3.0) * 0.0172275 + 1.0E-3;
+
+    /**
      * The launch halves of the flight traits ({@code AbstractProjectileTrait#onLaunch}): a blaze
      * shaft (hovering) launches at half speed; an end rod shaft (endspeed) at a tenth with gravity
-     * off. Compared against the wood arrow's own launch speed from the same draw.
+     * off. Each speed is checked against the commanded full-draw velocity within vanilla's own
+     * inaccuracy-jitter bound ({@link #SHOOT_JITTER_RELATIVE_BOUND}) -- the traits scale the
+     * post-jitter vector, so the factor is exact per shot but the magnitude carries the jitter.
      */
     @GameTest(template = "empty")
     public static void hoveringAndEndspeedAdjustTheLaunch(GameTestHelper helper) {
@@ -291,19 +310,25 @@ public class ArrowGameTests {
         helper.assertTrue(plain.size() == 1 && hovering.size() == 1 && endspeed.size() == 1,
                 "one arrow each, got " + plain.size() + "/" + hovering.size() + "/" + endspeed.size());
 
-        double base = plain.get(0).getDeltaMovement().length();
-        double half = hovering.get(0).getDeltaMovement().length();
-        double tenth = endspeed.get(0).getDeltaMovement().length();
-        helper.assertTrue(Math.abs(half - base / 2.0) < 0.01,
-                "hovering launches at half speed (TraitHovering#onLaunch), got " + half + " of " + base);
-        helper.assertTrue(Math.abs(tenth - base / 10.0) < 0.01,
-                "endspeed launches at a tenth (TraitEndspeed#onLaunch), got " + tenth + " of " + base);
+        assertLaunchSpeed(helper, plain.get(0), FULL_DRAW_VELOCITY,
+                "a plain arrow launches at the commanded velocity");
+        assertLaunchSpeed(helper, hovering.get(0), FULL_DRAW_VELOCITY / 2.0,
+                "hovering launches at half speed (TraitHovering#onLaunch)");
+        assertLaunchSpeed(helper, endspeed.get(0), FULL_DRAW_VELOCITY / 10.0,
+                "endspeed launches at a tenth (TraitEndspeed#onLaunch)");
         helper.assertTrue(endspeed.get(0).isNoGravity(),
                 "endspeed turns gravity off (TraitEndspeed#onLaunch setNoGravity)");
         plain.forEach(ArrowEntity::discard);
         hovering.forEach(ArrowEntity::discard);
         endspeed.forEach(ArrowEntity::discard);
         helper.succeed();
+    }
+
+    private static void assertLaunchSpeed(GameTestHelper helper, ArrowEntity arrow, double expected, String what) {
+        double speed = arrow.getDeltaMovement().length();
+        helper.assertTrue(Math.abs(speed - expected) <= expected * SHOOT_JITTER_RELATIVE_BOUND,
+                what + ": expected " + expected + " within the " + SHOOT_JITTER_RELATIVE_BOUND
+                        + " jitter bound, got " + speed);
     }
 
     /**
@@ -332,9 +357,15 @@ public class ArrowGameTests {
                     helper.assertTrue(slowness != null && slowness.getAmplifier() == 0,
                             "the first hit applies Slowness I (30 ticks), got " + slowness);
                 })
-                // Clear the pig's hurt-invulnerability window (10 ticks) but stay inside the first
-                // hit's 30-tick Slowness so the second hit stacks rather than restarts.
-                .thenIdle(15)
+                // Timing budget: the pig blocks equal damage for ~10 ticks after a hit
+                // (LivingEntity#hurt's invulnerableTime > 10 gate) and the first hit's Slowness
+                // lasts 30. The wait above detects the effect at (or one tick after) the hit, so
+                // idling 12 clears the invulnerability with 2 ticks to spare and leaves the second
+                // arrow ~15 ticks of Slowness for its 1-2-tick flight -- the widest margin on both
+                // sides at once. The aim itself is deterministic enough: shoot()'s jitter is at most
+                // ~1.7 degrees (Projectile#shoot's 0.0172275-per-axis triangle), under 0.1 blocks
+                // over this 3-block flight against a 0.9-wide hitbox.
+                .thenIdle(12)
                 .thenExecute(() -> shoot(helper, player, bow, arrow, 11))
                 .thenWaitUntil(() -> {
                     MobEffectInstance slowness = pig.getEffect(MobEffects.MOVEMENT_SLOWDOWN);
