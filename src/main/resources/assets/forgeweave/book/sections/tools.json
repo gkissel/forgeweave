@@ -1,0 +1,126 @@
+[
+  {
+    "name": "repairing",
+    "type": "text"
+  },
+  {
+    "name": "pickaxe",
+    "type": "tool",
+    "item": "forgeweave:pickaxe"
+  },
+  {
+    "name": "shovel",
+    "type": "tool",
+    "item": "forgeweave:shovel"
+  },
+  {
+    "name": "hatchet",
+    "type": "tool",
+    "item": "forgeweave:hatchet"
+  },
+  {
+    "name": "mattock",
+    "type": "tool",
+    "item": "forgeweave:mattock"
+  },
+  {
+    "name": "kama",
+    "type": "tool",
+    "item": "forgeweave:kama"
+  },
+  {
+    "name": "scythe",
+    "type": "tool",
+    "item": "forgeweave:scythe"
+  },
+  {
+    "name": "hammer",
+    "type": "tool",
+    "item": "forgeweave:hammer"
+  },
+  {
+    "name": "excavator",
+    "type": "tool",
+    "item": "forgeweave:excavator"
+  },
+  {
+    "name": "lumberaxe",
+    "type": "tool",
+    "item": "forgeweave:lumberaxe"
+  },
+  {
+    "name": "vein_hammer",
+    "type": "tool",
+    "item": "forgeweave:vein_hammer"
+  },
+  {
+    "name": "broadsword",
+    "type": "tool",
+    "item": "forgeweave:broadsword"
+  },
+  {
+    "name": "longsword",
+    "type": "tool",
+    "item": "forgeweave:longsword"
+  },
+  {
+    "name": "rapier",
+    "type": "tool",
+    "item": "forgeweave:rapier"
+  },
+  {
+    "name": "dagger",
+    "type": "tool",
+    "item": "forgeweave:dagger"
+  },
+  {
+    "name": "battlesign",
+    "type": "tool",
+    "item": "forgeweave:battlesign"
+  },
+  {
+    "name": "frying_pan",
+    "type": "tool",
+    "item": "forgeweave:frying_pan"
+  },
+  {
+    "name": "battleaxe",
+    "type": "tool",
+    "item": "forgeweave:battleaxe"
+  },
+  {
+    "name": "scimitar",
+    "type": "tool",
+    "item": "forgeweave:scimitar"
+  },
+  {
+    "name": "katana",
+    "type": "tool",
+    "item": "forgeweave:katana"
+  },
+  {
+    "name": "warmace",
+    "type": "tool",
+    "item": "forgeweave:warmace"
+  },
+  {
+    "name": "cleaver",
+    "type": "tool",
+    "item": "forgeweave:cleaver"
+  },
+  {
+    "name": "shortbow",
+    "type": "tool",
+    "item": "forgeweave:shortbow"
+  },
+  {
+    "name": "longbow",
+    "type": "tool",
+    "item": "forgeweave:longbow"
+  },
+  {
+    "name": "crossbow",
+    "type": "tool",
+    "item": "forgeweave:crossbow"
+  }
+]

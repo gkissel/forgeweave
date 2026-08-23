@@ -3,7 +3,6 @@ package dev.gkissel.forgeweave.data;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.List;
-import java.util.function.Supplier;
 
 import org.junit.jupiter.api.Test;
 
@@ -25,10 +24,11 @@ class BookToolsOrderTest {
 
     @Test
     void scytheFollowsKamaLikeUpstream() {
-        List<Supplier<? extends Item>> tools = BookContent.TOOLS;
-        int kama = tools.indexOf(ForgeweaveItems.TOOL_KAMA);
-        int scythe = tools.indexOf(ForgeweaveItems.TOOL_SCYTHE);
-        int hammer = tools.indexOf(ForgeweaveItems.TOOL_HAMMER);
+        // BookContent.TOOLS resolves from book/sections/tools.json (#651), so compare the items.
+        List<Item> tools = BookContent.TOOLS.stream().map(supplier -> (Item) supplier.get()).toList();
+        int kama = tools.indexOf(ForgeweaveItems.TOOL_KAMA.get());
+        int scythe = tools.indexOf(ForgeweaveItems.TOOL_SCYTHE.get());
+        int hammer = tools.indexOf(ForgeweaveItems.TOOL_HAMMER.get());
 
         assertEquals(kama + 1, scythe,
                 "upstream tools.json puts scythe immediately after kama, before hammer/excavator/lumberaxe");

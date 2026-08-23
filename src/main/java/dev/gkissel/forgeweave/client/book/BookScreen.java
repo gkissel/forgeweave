@@ -1,6 +1,7 @@
 package dev.gkissel.forgeweave.client.book;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -34,6 +35,7 @@ import dev.gkissel.forgeweave.client.book.BookPage.IconGridPage;
 import dev.gkissel.forgeweave.client.book.BookPage.ListingPage;
 import dev.gkissel.forgeweave.client.book.BookPage.MaterialPage;
 import dev.gkissel.forgeweave.client.book.BookPage.ModifierPage;
+import dev.gkissel.forgeweave.client.book.BookPage.SectionListPage;
 import dev.gkissel.forgeweave.client.book.BookPage.TextPage;
 import dev.gkissel.forgeweave.client.book.BookPage.ToolPage;
 import dev.gkissel.forgeweave.client.book.MaterialPageContent.Icon;
@@ -67,11 +69,11 @@ import dev.gkissel.forgeweave.modifier.ModifierRecipe;
  * {@link BookLayout} fills leaves with them (issue #428). Upstream instead hand-splits its authored
  * content; Forgeweave's pages are generated from live registries, so the split is computed.
  *
- * <p>ponytail: this ports the chrome, geometry, navigation and (issue #651) the tool/modifier
- * content layouts ({@code ContentTool}/{@code ContentModifier}); Mantle's literal
- * {@code BookElement} class tree and the data-driven book JSONs stay unported -- the page kinds
- * render through the block model, which already carries upstream's actions
- * ({@code go-to-page-rtn}), item tooltips and cycling item slots.
+ * <p>ponytail: this ports the chrome, geometry, navigation and the content layouts (issue #651:
+ * {@code ContentTool}/{@code ContentModifier}/{@code ContentSectionList}); Mantle's literal
+ * {@code BookElement} class tree stays unported -- the page kinds render through the block model,
+ * which already carries upstream's actions ({@code go-to-page-rtn}), item tooltips and cycling
+ * item slots. The book's structure itself is data-driven ({@link BookStructure}, issue #651).
  */
 public class BookScreen extends Screen {
 
@@ -151,12 +153,11 @@ public class BookScreen extends Screen {
         }
     }
 
-    /** One rendered leaf. The index is the screen's own page, not a {@link BookPage}, so it has no blocks. */
-    private record PageSlot(List<Block> blocks, boolean index) {}
-
     private final List<BookSection> sections;
-    private final List<PageSlot> slots = new ArrayList<>();
-    private final int[] sectionStartSlot;
+    /** One block list per rendered leaf; a padding filler leaf ({@code BookLayout.FILLER}) is empty. */
+    private final List<List<Block>> slots = new ArrayList<>();
+    /** The data-driven appearance ({@code assets/forgeweave/book/appearance.json}, issue #651). */
+    private final BookStructure.Appearance appearance = BookStructure.load().appearance();
 
     /** -1 is the closed cover; spread s shows slots {@code 2s-1} (none for s=0) and {@code 2s}. */
     private int spread = -1;
@@ -206,7 +207,6 @@ public class BookScreen extends Screen {
     public BookScreen(List<BookSection> sections, String bookmark, @Nullable InteractionHand hand) {
         super(Component.translatable(BookContent.TITLE));
         this.sections = sections;
-        this.sectionStartSlot = new int[sections.size()];
         this.pendingBookmark = bookmark.isEmpty() ? null : bookmark;
         this.hand = hand;
     }
@@ -228,25 +228,25 @@ public class BookScreen extends Screen {
             }
         }
 
-        List<BookLayout.Slot> laid = BookLayout.paginate(
-                blocks.stream().map(page -> page.stream().map(Block::height).toList()).toList(),
-                PAGE_TEXT_H);
+        // The padding transformer (issue #651): filler leaves so every section after the index
+        // starts on a left leaf.
+        List<BookLayout.Slot> laid = BookLayout.padToLeftLeaves(
+                BookLayout.paginate(
+                        blocks.stream().map(page -> page.stream().map(Block::height).toList()).toList(),
+                        PAGE_TEXT_H),
+                Arrays.stream(sectionStartPage).boxed().toList());
 
         this.slots.clear();
-        this.slots.add(new PageSlot(List.of(), true));
-        this.slotPage = new int[1 + laid.size()];
-        this.slotPage[0] = -1;
-        for (BookLayout.Slot slot : laid) {
-            this.slotPage[this.slots.size()] = slot.page();
-            this.slots.add(new PageSlot(blocks.get(slot.page())
-                    .subList(slot.firstBlock(), slot.firstBlock() + slot.blockCount()), false));
+        this.slotPage = new int[laid.size()];
+        for (int i = 0; i < laid.size(); i++) {
+            BookLayout.Slot slot = laid.get(i);
+            this.slotPage[i] = slot.page();
+            this.slots.add(slot.page() < 0 ? List.of()
+                    : blocks.get(slot.page()).subList(slot.firstBlock(), slot.firstBlock() + slot.blockCount()));
         }
         this.pageFirstSlot = new int[blocks.size()];
         for (int page = 0; page < blocks.size(); page++) {
-            this.pageFirstSlot[page] = 1 + BookLayout.firstSlotOf(laid, page);
-        }
-        for (int i = 0; i < this.sections.size(); i++) {
-            this.sectionStartSlot[i] = this.pageFirstSlot[sectionStartPage[i]];
+            this.pageFirstSlot[page] = BookLayout.firstSlotOf(laid, page);
         }
         this.spread = Math.min(this.spread, lastSpread());
 
@@ -255,13 +255,9 @@ public class BookScreen extends Screen {
         if (this.pendingBookmark != null) {
             String bookmark = this.pendingBookmark;
             this.pendingBookmark = null;
-            if (SavedPage.INDEX.equals(bookmark)) {
-                this.spread = 0;
-            } else {
-                int page = SavedPage.find(this.sections, bookmark);
-                if (page >= 0) {
-                    this.spread = BookGeometry.spreadOf(this.pageFirstSlot[page]);
-                }
+            int page = SavedPage.find(this.sections, bookmark);
+            if (page >= 0) {
+                this.spread = BookGeometry.spreadOf(this.pageFirstSlot[page]);
             }
         }
     }
@@ -290,19 +286,27 @@ public class BookScreen extends Screen {
         super.removed();
     }
 
-    /** The bookmark for the current spread -- what upstream saves for {@code this.page}. */
+    /**
+     * The bookmark for the current spread -- what upstream saves for {@code this.page}: the left
+     * leaf's page, or the right leaf's when the left one carries none (upstream's
+     * {@code findPage(...) == null} fallback; here that is the first spread's missing left leaf
+     * and a padding filler).
+     */
     private String bookmark() {
         if (this.spread < 0) {
             return "";
         }
-        if (this.spread == 0) {
-            return SavedPage.INDEX;
-        }
-        int leftSlot = BookGeometry.leftSlot(this.spread);
-        if (leftSlot < 0 || leftSlot >= this.slotPage.length) {
+        int slot = this.spread == 0 ? 0 : BookGeometry.leftSlot(this.spread);
+        if (slot >= this.slotPage.length) {
             return "";
         }
-        return SavedPage.name(this.sections, this.slotPage[leftSlot]);
+        if (this.slotPage[slot] < 0) {
+            slot = BookGeometry.rightSlot(this.spread);
+            if (slot >= this.slotPage.length || this.slotPage[slot] < 0) {
+                return "";
+            }
+        }
+        return SavedPage.name(this.sections, this.slotPage[slot]);
     }
 
     @Override
@@ -355,7 +359,7 @@ public class BookScreen extends Screen {
             return null;
         }
         int cursor = top;
-        for (Block block : this.slots.get(slotIndex).blocks()) {
+        for (Block block : this.slots.get(slotIndex)) {
             for (Region region : block.regions()) {
                 int rx = x + region.dx();
                 int ry = cursor + region.dy();
@@ -378,14 +382,14 @@ public class BookScreen extends Screen {
         int x = this.width / 2 - BookGeometry.PAGE_WIDTH_UNSCALED / 2;
         int y = BookGeometry.spreadTop(this.height);
 
-        setColor(graphics, BookGeometry.COVER_COLOR);
+        setColor(graphics, this.appearance.coverColor());
         chromeBlit(graphics, TEX_COVER, x, y, 0, 0,
                 BookGeometry.PAGE_WIDTH_UNSCALED, BookGeometry.PAGE_HEIGHT_UNSCALED);
         graphics.setColor(1.0F, 1.0F, 1.0F, 1.0F);
         chromeBlit(graphics, TEX_COVER, x, y, 0, BookGeometry.PAGE_HEIGHT_UNSCALED,
                 BookGeometry.PAGE_WIDTH_UNSCALED, BookGeometry.PAGE_HEIGHT_UNSCALED);
 
-        Component title = Component.translatable(BookContent.TITLE);
+        Component title = Component.translatable(this.appearance.title());
         float scale = this.font.width(title) <= 67 ? 2.5F : 2F;
         graphics.pose().pushPose();
         graphics.pose().scale(scale, scale, 1F);
@@ -395,7 +399,7 @@ public class BookScreen extends Screen {
                 BookGeometry.COVER_TEXT_COLOR, true);
         graphics.pose().popPose();
 
-        Component subtitle = Component.translatable(BookContent.SUBTITLE);
+        Component subtitle = Component.translatable(this.appearance.subtitle());
         graphics.pose().pushPose();
         graphics.pose().scale(1.5F, 1.5F, 1F);
         graphics.drawString(this.font, subtitle,
@@ -410,7 +414,7 @@ public class BookScreen extends Screen {
         int left = BookGeometry.spreadLeft(this.width);
         int top = BookGeometry.spreadTop(this.height);
 
-        setColor(graphics, BookGeometry.COVER_COLOR);
+        setColor(graphics, this.appearance.coverColor());
         chromeBlit(graphics, TEX_BOOK, left, top, 0, 0,
                 BookGeometry.PAGE_WIDTH_UNSCALED * 2, BookGeometry.PAGE_HEIGHT_UNSCALED);
         graphics.setColor(1.0F, 1.0F, 1.0F, 1.0F);
@@ -431,16 +435,11 @@ public class BookScreen extends Screen {
     }
 
     private void renderSlot(GuiGraphics graphics, int slotIndex, int x, int y) {
-        PageSlot slot = this.slots.get(slotIndex);
         graphics.enableScissor(x, y, x + PAGE_TEXT_W, y + PAGE_TEXT_H);
-        if (slot.index()) {
-            renderIndex(graphics, x, y);
-        } else {
-            int cursor = y;
-            for (Block block : slot.blocks()) {
-                block.drawer().draw(graphics, x, cursor);
-                cursor += block.height();
-            }
+        int cursor = y;
+        for (Block block : this.slots.get(slotIndex)) {
+            block.drawer().draw(graphics, x, cursor);
+            cursor += block.height();
         }
         graphics.disableScissor();
         // Upstream: pNum centred at PAGE_WIDTH/2, PAGE_HEIGHT - 10, 0xFFAAAAAA, no shadow.
@@ -448,19 +447,6 @@ public class BookScreen extends Screen {
         graphics.drawString(this.font, number,
                 x + BookGeometry.PAGE_WIDTH / 2 - this.font.width(number) / 2,
                 y + BookGeometry.PAGE_HEIGHT - 10, BookGeometry.PAGE_NUMBER_COLOR, false);
-    }
-
-    private void renderIndex(GuiGraphics graphics, int x, int y) {
-        Component title = Component.translatable(BookContent.INDEX_TITLE);
-        graphics.drawString(this.font, title, x + (PAGE_TEXT_W - this.font.width(title)) / 2, y,
-                TITLE_COLOR, false);
-        for (int i = 0; i < this.sections.size(); i++) {
-            int rowY = indexRowY(y, i);
-            ItemStack icon = this.sections.get(i).icon().get();
-            graphics.renderItem(icon, x, rowY);
-            graphics.drawString(this.font, Component.translatable(this.sections.get(i).titleKey()),
-                    x + 20, rowY + 4, TEXT_COLOR, false);
-        }
     }
 
     private void renderArrows(GuiGraphics graphics, int mouseX, int mouseY) {
@@ -525,7 +511,9 @@ public class BookScreen extends Screen {
      */
     private List<Block> blocksOf(BookPage page, int sectionStartPage) {
         List<Block> blocks = new ArrayList<>();
-        if (page instanceof ListingPage listing) {
+        if (page instanceof SectionListPage sectionList) {
+            sectionListBlock(blocks, sectionList.links(), sectionStartPage);
+        } else if (page instanceof ListingPage listing) {
             listingBlocks(blocks, listing.titleKey(), listing.links(), sectionStartPage);
         } else if (page instanceof IconGridPage grid) {
             iconGridBlocks(blocks, grid.titleKey(), grid.links(), sectionStartPage);
@@ -742,6 +730,64 @@ public class BookScreen extends Screen {
     }
 
     /**
+     * The generated index page (issue #651): Mantle's {@code ContentSectionList#build} centres a
+     * 3x3 grid of {@code ElementSection} buttons on the page -- 42x42 cells five pixels apart, the
+     * section's icon item drawn at 2x (32px) in the middle, a hover wash behind it, and, since
+     * Tinkers' {@code appearance.json} sets {@code drawSectionListText}, the section title centred
+     * under the icon at {@code HEIGHT - lineHeight/2}, half-black until hovered. Clicking jumps to
+     * the section's first page; hovering names the section ({@code ElementSection#drawOverlay}).
+     * One indivisible block: the whole grid always fits one leaf.
+     *
+     * <p>Deviation: upstream dims an unhovered icon to 50% alpha; {@code GuiGraphics#renderItem}
+     * takes no colour multiplier in 1.21, so only the hover wash and text colours survive -- the
+     * same recorded limitation as the material grid's icons.
+     */
+    private void sectionListBlock(List<Block> blocks, List<BookLink> links, int sectionStartPage) {
+        final int cell = 42;      // ElementSection.WIDTH == HEIGHT
+        final int icon = 32;      // ElementSection.IMG_SIZE
+        final int pitch = cell + 5;
+        int gridSide = pitch * 3 - 5;
+        int ox = (PAGE_TEXT_W - gridSide) / 2;
+        int oy = (BookGeometry.PAGE_HEIGHT - gridSide) / 2;
+
+        List<Region> regions = new ArrayList<>();
+        for (int i = 0; i < links.size(); i++) {
+            BookLink link = links.get(i);
+            regions.add(Region.of(ox + (i % 3) * pitch, oy + (i / 3) * pitch, cell, cell,
+                    sectionStartPage + link.targetPage(), Component.translatable(link.labelKey())));
+        }
+        List<Region> cells = List.copyOf(regions);
+        int rows = (links.size() + 2) / 3;
+        blocks.add(new Block(oy + rows * pitch - 5, (graphics, x, y) -> {
+            for (int i = 0; i < cells.size(); i++) {
+                Region region = cells.get(i);
+                BookLink link = links.get(i);
+                int cellX = x + region.dx();
+                int cellY = y + region.dy();
+                int iconX = cellX + (cell - icon) / 2;
+                int iconY = cellY + (cell - icon) / 2;
+                boolean over = this.hovered == region;
+                if (over) {
+                    graphics.fill(iconX, iconY, iconX + icon, iconY + icon, HOVER_COLOR);
+                }
+                ItemStack stack = link.icon() == null ? ItemStack.EMPTY : link.icon().get();
+                graphics.pose().pushPose();
+                graphics.pose().translate(iconX, iconY, 0.0F);
+                graphics.pose().scale(2.0F, 2.0F, 1.0F);
+                graphics.renderItem(stack, 0, 0);
+                graphics.pose().popPose();
+                if (this.appearance.drawSectionListText()) {
+                    Component label = Component.translatable(link.labelKey());
+                    graphics.drawString(this.font, label,
+                            cellX + cell / 2 - this.font.width(label) / 2,
+                            cellY + cell - this.font.lineHeight / 2,
+                            over ? 0xFF000000 : 0x7F000000, false);
+                }
+            }
+        }, cells));
+    }
+
+    /**
      * Upstream {@code ContentListing#build}: a titled page of {@code "- "}-bulleted rows, each a
      * link to one page of the section, the bullet turning into {@code " > "} and the row into dark
      * red under the cursor ({@code ElementListingLeft#draw}).
@@ -955,10 +1001,6 @@ public class BookScreen extends Screen {
                 0, 0, this.font.width(line), this.font.lineHeight, NO_TARGET, tooltip)));
     }
 
-    private int indexRowY(int pageY, int row) {
-        return pageY + 16 + row * 20;
-    }
-
     private boolean hasPrev() {
         return this.spread >= 0; // upstream: visible on every spread; from the first it re-closes the cover
     }
@@ -1012,30 +1054,13 @@ public class BookScreen extends Screen {
                     return true;
                 }
                 Region region = regionAt(mouseX, mouseY);
-                if (region != null) {
+                if (region != null && region.targetPage() >= 0) {
                     goToPageReturning(BookGeometry.spreadOf(this.pageFirstSlot[region.targetPage()]));
-                    return true;
-                }
-                if (this.spread == 0 && indexRowClicked(mouseX, mouseY)) {
                     return true;
                 }
             }
         }
         return super.mouseClicked(mouseX, mouseY, button);
-    }
-
-    /** An index jump is upstream's {@code go-to-page-rtn}: it remembers where to return to. */
-    private boolean indexRowClicked(double mouseX, double mouseY) {
-        int x = BookGeometry.rightPageX(this.width);
-        int y = BookGeometry.pageY(this.height);
-        for (int i = 0; i < this.sections.size(); i++) {
-            int rowY = indexRowY(y, i);
-            if (mouseX >= x && mouseX < x + PAGE_TEXT_W && mouseY >= rowY && mouseY < rowY + 18) {
-                goToPageReturning(BookGeometry.spreadOf(this.sectionStartSlot[i]));
-                return true;
-            }
-        }
-        return false;
     }
 
     /**

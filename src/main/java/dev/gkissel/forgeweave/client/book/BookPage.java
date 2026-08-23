@@ -65,4 +65,14 @@ public sealed interface BookPage {
      * instead of a text listing (issue #479).
      */
     record IconGridPage(String titleKey, List<BookLink> links) implements BookPage {}
+
+    /**
+     * One page of the generated index section (issue #651): Mantle's {@code ContentSectionList},
+     * a 3x3 grid of 42x42 section buttons -- each drawing its section's icon at 32px with the
+     * title underneath ({@code ElementSection}) and jumping to the section's first page. Built by
+     * {@code BookTransformer.IndexTranformer}, which names the pages {@code page1}, {@code page2},
+     * ... one per nine sections; the name is the page's bookmark segment ({@code index.page1}).
+     * A link's {@code targetPage} is book-global here, since the index section starts at page 0.
+     */
+    record SectionListPage(String name, List<BookLink> links) implements BookPage {}
 }

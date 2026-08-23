@@ -1,0 +1,47 @@
+[
+  {
+    "name": "intro",
+    "data": "sections/intro.json",
+    "icon": {
+      "item": {
+        "id": "forgeweave:pattern_blank"
+      }
+    }
+  },
+  {
+    "name": "tools",
+    "data": "sections/tools.json",
+    "icon": {
+      "item": {
+        "id": "forgeweave:pickaxe"
+      }
+    }
+  },
+  {
+    "name": "materials",
+    "data": "sections/materials.json",
+    "icon": {
+      "item": {
+        "id": "minecraft:iron_ingot"
+      }
+    }
+  },
+  {
+    "name": "modifiers",
+    "data": "sections/modifiers.json",
+    "icon": {
+      "item": {
+        "id": "minecraft:redstone"
+      }
+    }
+  },
+  {
+    "name": "smeltery",
+    "data": "sections/smeltery.json",
+    "icon": {
+      "item": {
+        "id": "forgeweave:standard_core"
+      }
+    }
+  }
+]

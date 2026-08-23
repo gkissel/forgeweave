@@ -1,0 +1,10 @@
+[
+  {
+    "name": "welcome",
+    "type": "text"
+  },
+  {
+    "name": "workshop",
+    "type": "text"
+  }
+]
