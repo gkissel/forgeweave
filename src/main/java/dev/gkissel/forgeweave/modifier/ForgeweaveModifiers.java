@@ -1123,7 +1123,31 @@ public final class ForgeweaveModifiers {
      */
     public static final Modifier GLOWING = new Modifier() {};
 
+    /**
+     * Fish, two per apply. Upstream {@code ModFins} (issue #653, parity audit T17): a
+     * projectile-only modifier ({@code ModifierAspect.projectileOnly} -- {@link Modifier#projectileOnly})
+     * whose whole behavior is in-water flight -- the arrow keeps nearly all its speed under water
+     * ({@code ModFins#onMovement} cancels the water slowdown and re-applies a slightly-eased air
+     * drag). That flight half lives on {@code ArrowEntity#getWaterInertia}, keyed off
+     * {@link #hasFins}; single application, upstream's {@code ModifierTrait(identifier, color)}
+     * default of no level ladder.
+     */
+    public static final Modifier FINS = new Modifier() {
+        @Override
+        public boolean projectileOnly() {
+            return true;
+        }
+    };
+
+    private static final ResourceLocation FINS_MODIFIER_ID = id("fins");
+
+    /** Whether the projectile tool carries fins -- what {@code ArrowEntity}'s water drag reads. */
+    public static boolean hasFins(ItemStack stack) {
+        return entry(stack, FINS_MODIFIER_ID) != null;
+    }
+
     private static final Map<ResourceLocation, Modifier> REGISTRY = Map.ofEntries(
+            Map.entry(id("fins"), FINS),
             Map.entry(id("harvest_width"), HARVEST_WIDTH),
             Map.entry(id("harvest_height"), HARVEST_HEIGHT),
             Map.entry(id("haste"), HASTE),

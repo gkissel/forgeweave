@@ -46,6 +46,8 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("entity.forgeweave.indestructible_item", "Indestructible Item");
         // #448: the thrown shuriken entity.
         add("entity.forgeweave.shuriken", "Shuriken");
+        // #653: the fired material arrow entity.
+        add("entity.forgeweave.arrow", "Arrow");
         // #451 (parity audit T20): the island's blue slime, named from upstream 1.12's
         // entity.tconstruct.blueslime.name (NOTICE.md), plus its spawn egg.
         add("entity.forgeweave.blue_slime", "Blue Slime");
@@ -459,20 +461,27 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         // ported yet; it now is (BowItem, BowDrawMovement, PR #413/#421), so the upstream
         // sentence is restored.
         addItem(ForgeweaveItems.TOOL_SHORTBOW, "Shortbow");
+        // #653: upstream's closing "Uses Tinkers' Arrows." is restored (Forgeweave vocabulary) now
+        // that the material arrow exists; vanilla arrows still work, as they always have here.
         add("item.forgeweave.shortbow.description",
-                "The Shortbow is a quick and nimble weapon. It allows for fast movements while shooting arrows at a rapid rate. Fires vanilla arrows.");
-        // M3.5 #395: upstream item.tconstruct.longbow.name / .desc and .crossbow.name / .desc, each
-        // minus its closing "Uses Tinkers' Arrows." / "Uses Tinkers' Bolts." -- M3.5 ships no
-        // material projectile, so both fire vanilla arrows (docs/SCOPE.md).
+                "The Shortbow is a quick and nimble weapon. It allows for fast movements while shooting arrows at a rapid rate. Uses material and vanilla arrows.");
+        // M3.5 #395: upstream item.tconstruct.longbow.name / .desc and .crossbow.name / .desc; the
+        // crossbow's closing "Uses Tinkers' Bolts." stays off -- no bolt ships (docs/SCOPE.md).
         addItem(ForgeweaveItems.TOOL_LONGBOW, "Longbow");
         add("item.forgeweave.longbow.description",
-                "The Longbow is a powerful long range weapon. It provides high damage but is less mobile than its short brother. Fires vanilla arrows.");
+                "The Longbow is a powerful long range weapon. It provides high damage but is less mobile than its short brother. Uses material and vanilla arrows.");
         addItem(ForgeweaveItems.TOOL_CROSSBOW, "Crossbow");
         // #448 (parity audit T17): upstream item.tconstruct.shuriken.name / .desc, verbatim.
         addItem(ForgeweaveItems.TOOL_SHURIKEN, "Shuriken");
         add("item.forgeweave.shuriken.description",
                 "The Shuriken is a fast, short ranged throwing weapon. It has high quantities but low "
                         + "damage. Can be thrown from the off-hand.");
+        // #653 (parity audit T17): upstream item.tconstruct.arrow.name / .desc, minus the
+        // avoided-terminology brand word (CONTEXT.md).
+        addItem(ForgeweaveItems.TOOL_ARROW, "Arrow");
+        add("item.forgeweave.arrow.description",
+                "The Arrows are the ammo used for Forgeweave's Bows. One stack provides many shots, "
+                        + "and they can be modified as any tool.");
         // Upstream stat.projectile.ammo.name ("Ammo") and TooltipBuilder#addAmmo's "Ammo: Empty"
         // while broken (tooltip.tool.empty) -- the ProjectileCore tooltip lead, ShurikenItem.
         add("tooltip.forgeweave.ammo", "Ammo: %s/%s");
@@ -1093,6 +1102,14 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
                 "Ka-Boom! Blocks this tool isn't effective on break like normal ones -- but every "
                         + "level is another third of a chance the drops go up with them.");
         add("modifier.forgeweave.blasting.extra", "Blast Power: %s");
+
+        // #653 -- fins. Upstream modifier.fins.name/.desc ("Something's fishy... Attaching fins to
+        // the projectiles makes them travel like normal underwater"), the flavour line folded into
+        // the description as glowing's is.
+        add("modifier.forgeweave.fins.name", "Fins");
+        add("modifier.forgeweave.fins.description",
+                "Something's fishy... Attaching fins to the projectiles makes them travel like "
+                        + "normal underwater.");
 
         add("modifier.forgeweave.wind_burst.name", "Wind Burst");
         add("modifier.forgeweave.wind_burst.description",

@@ -319,8 +319,10 @@ public final class ForgeweaveItems {
     // = 3f (BowCore's default), baseInaccuracy() = 1f, and preventSlowDown(0.5f) -- "shortbows are
     // more mobile than other bows" (#400). Its stat constants are ToolConstants#SHORTBOW; the
     // draw/release cycle is BowItem.
+    // #653: baseProjectileDamage() = 0f, projectileDamageModifier() = 0.8f (ShortBow.java) -- the
+    // launcher-side damage constants a fired material arrow folds in.
     public static final DeferredItem<BowItem> TOOL_SHORTBOW = ITEMS.registerItem("shortbow",
-            properties -> new BowItem(properties, ToolConstants.SHORTBOW, 12, 3.0F, 1.0F, 0.5F),
+            properties -> new BowItem(properties, ToolConstants.SHORTBOW, 12, 3.0F, 1.0F, 0.0F, 0.8F, 0.5F),
             new Item.Properties().stacksTo(1));
 
     // #448 (parity audit T17): the shuriken, upstream tools/ranged/item/Shuriken.java -- four knife
@@ -337,15 +339,27 @@ public final class ForgeweaveItems {
     // LongBow.java: getDrawTime() = 30, baseProjectileSpeed() = 5.5f, baseInaccuracy() = 1.2f, and
     // an onUpdate that overrides the shortbow's preventSlowDown away -- "no speedup on charging",
     // so it draws at vanilla's own 0.2 (#400).
+    // #653: baseProjectileDamage() = 2.5f, projectileDamageModifier() = 1.25f (LongBow.java).
     public static final DeferredItem<BowItem> TOOL_LONGBOW = ITEMS.registerItem("longbow",
-            properties -> new BowItem(properties, ToolConstants.LONGBOW, 30, 5.5F, 1.2F),
+            properties -> new BowItem(properties, ToolConstants.LONGBOW, 30, 5.5F, 1.2F, 2.5F, 1.25F),
             new Item.Properties().stacksTo(1));
 
     // CrossBow.java: getDrawTime() = 45, baseProjectileSpeed() = 7f, and no baseInaccuracy()
     // override at all -- so BowCore's own 0f default, unlike either bow. preventSlowDown(0.195f):
     // barely faster than vanilla's 0.2, i.e. cranking one all but stops you (#400).
+    // #653: baseProjectileDamage() = 3f, projectileDamageModifier() = 1.3f (CrossBow.java).
     public static final DeferredItem<CrossbowItem> TOOL_CROSSBOW = ITEMS.registerItem("crossbow",
-            properties -> new CrossbowItem(properties, ToolConstants.CROSSBOW, 45, 7.0F, 0.0F, 0.195F),
+            properties -> new CrossbowItem(properties, ToolConstants.CROSSBOW, 45, 7.0F, 0.0F, 3.0F, 1.3F, 0.195F),
+            new Item.Properties().stacksTo(1));
+
+    /**
+     * #653 (parity audit T17): the material arrow, upstream {@code tools/ranged/item/Arrow.java} --
+     * shaft, head, fletching at the Tool Station ({@code TinkerRegistry.registerToolCrafting}),
+     * ammo abstracted over durability ({@code AmmoToolItem}), fired by Forgeweave's bows ahead of
+     * vanilla arrows ({@code BowItem#findAmmo}). Constants live on {@code ToolConstants#ARROW}.
+     */
+    public static final DeferredItem<MaterialArrowItem> TOOL_ARROW = ITEMS.registerItem("arrow",
+            properties -> new MaterialArrowItem(properties, ToolConstants.ARROW),
             new Item.Properties().stacksTo(1));
 
     /** A sword-family weapon: upstream {@code SwordCore}'s effective set -- see the block above. */

@@ -101,6 +101,18 @@ public interface Modifier {
     }
 
     /**
+     * Whether this modifier may only be applied to a projectile (an ammo tool -- the arrow, the
+     * shuriken) -- upstream's {@code ModifierAspect.projectileOnly}, i.e.
+     * {@code CategoryAspect(Category.PROJECTILE)}. Fins (issue #653, {@code ModFins}) is the first
+     * shipped user; {@code ModifierApplication} refuses everything that is not an
+     * {@code AmmoToolItem} with the same {@code gui.forgeweave.modifier.unsupported_tool} message
+     * the other category gates use.
+     */
+    default boolean projectileOnly() {
+        return false;
+    }
+
+    /**
      * The tool's attack damage after this modifier has adjusted it -- silky's only shipped user
      * (issue #107): upstream {@code ModSilktouch#applyEffect} takes a flat 3 off both {@code speed}
      * and {@code attack} (floored at 1) the moment the modifier is applied. Same shape as

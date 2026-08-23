@@ -1,0 +1,57 @@
+{
+    decoder: "item_stack",
+    expect: {
+        components: {
+            "forgeweave:projectile_stats": {
+                accuracy: 1.0f
+            },
+            "forgeweave:tool_materials": {
+                head: "forgeweave:wood",
+                parts: [
+                    "forgeweave:wood",
+                    "forgeweave:wood",
+                    "forgeweave:feather"
+                ]
+            },
+            "forgeweave:tool_stats": {
+                attack_damage: 4.0f,
+                durability: 35,
+                mining_speed: 2.0f
+            },
+            "forgeweave:traits": [
+                "forgeweave:ecological"
+            ],
+            "minecraft:damage": 10,
+            "minecraft:max_damage": 35
+        },
+        id: "forgeweave:arrow"
+    },
+    nbt: {
+        components: {
+            "forgeweave:projectile_stats": {
+                accuracy: 1.0f
+            },
+            "forgeweave:tool_materials": {
+                head: "forgeweave:wood",
+                parts: [
+                    "forgeweave:wood",
+                    "forgeweave:wood",
+                    "forgeweave:feather"
+                ]
+            },
+            "forgeweave:tool_stats": {
+                attack_damage: 4.0f,
+                durability: 35,
+                mining_speed: 2.0f
+            },
+            "forgeweave:traits": [
+                "forgeweave:ecological"
+            ],
+            "minecraft:damage": 10,
+            "minecraft:max_damage": 35
+        },
+        count: 1,
+        id: "forgeweave:arrow"
+    },
+    what: "#653 (parity audit T17): a Tool Station material arrow -- wood shaft, wood head, feather fletching -- after one shot. Two things are pinned that no earlier tool could pin: the new `forgeweave:projectile_stats` component (upstream ProjectileNBT's accuracy, the fletching average clamped into [0, 1] -- a feather's 1.0), and a `tool_materials` whose head is the middle slot (the arrow-head slot, upstream's default repair slot {1}) with a shaft and fletching contributing no primary pick. Ammo stays durability exactly as the shuriken's fixture pins (`minecraft:damage` 10 = one shot of the ten-durability ratio, 2 of 3 ammo left); stats are Arrow#buildTagData's chain (head 35 x fletching 1.0 x shaft 1.0 durability, attack 2 + 2). ArrowGameTests#arrowAssemblesAtTheToolStationWithUpstreamStats assembles this exact arrow at a real Tool Station and asserts these numbers."
+}

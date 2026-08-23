@@ -42,6 +42,7 @@ import dev.gkissel.forgeweave.modifier.Modifier;
 import dev.gkissel.forgeweave.modifier.ModifierApplication;
 import dev.gkissel.forgeweave.modifier.ModifierEntry;
 import dev.gkissel.forgeweave.tool.LauncherStats;
+import dev.gkissel.forgeweave.tool.ProjectileStats;
 import dev.gkissel.forgeweave.tool.ToolConstants;
 import dev.gkissel.forgeweave.tool.ToolMaterials;
 import dev.gkissel.forgeweave.tool.ToolRepair;
@@ -235,7 +236,11 @@ public final class ToolAssemblyRecipes {
             // #448: the shuriken -- four knife blades, upstream Shuriken's own PartMaterialType
             // order (the same PMT four times over). Tool Forge tier
             // (TinkerRegistry.registerToolForgeCrafting), so it is in LARGE_TOOLS.
-            new Entry(ToolConstants.SHURIKEN, ForgeweaveItems.TOOL_SHURIKEN));
+            new Entry(ToolConstants.SHURIKEN, ForgeweaveItems.TOOL_SHURIKEN),
+            // #653: the material arrow -- shaft, head, fletching, upstream Arrow's own
+            // PartMaterialType order. A Tool Station tool (TinkerRegistry.registerToolCrafting(arrow)),
+            // so not in LARGE_TOOLS.
+            new Entry(ToolConstants.ARROW, ForgeweaveItems.TOOL_ARROW));
 
     /**
      * The "large tool" classification (docs/SCOPE.md M3 issue #152): tools that can only be assembled
@@ -808,6 +813,10 @@ public final class ToolAssemblyRecipes {
         // a tool with LIMB slots, so every other tool's component set is exactly what it was.
         LauncherStats.of(entry.constants(), materials)
                 .ifPresent(launcher -> result.set(ForgeweaveDataComponents.LAUNCHER_STATS.get(), launcher));
+        // #653: an arrow's ranged half (upstream ProjectileNBT#accuracy) -- present only for a tool
+        // with a FLETCHING slot, so every other tool's component set is exactly what it was.
+        ProjectileStats.of(entry.constants(), materials)
+                .ifPresent(projectile -> result.set(ForgeweaveDataComponents.PROJECTILE_STATS.get(), projectile));
         // Trait ids come along as data so every later trait hook works off the stack alone
         // (ForgeweaveTraits: same id from two parts still counts once, as upstream 1.12 does).
         result.set(ForgeweaveDataComponents.TRAITS.get(), resolveTraits(entry, materials));
@@ -839,7 +848,7 @@ public final class ToolAssemblyRecipes {
         for (int i = 0; i < slots.size(); i++) {
             ToolConstants.Role role = slots.get(i).role();
             if (role == ToolConstants.Role.HEAD || role == ToolConstants.Role.LIMB
-                    || role == ToolConstants.Role.SHURIKEN_BLADE) {
+                    || role == ToolConstants.Role.SHURIKEN_BLADE || role == ToolConstants.Role.ARROW_HEAD) {
                 heads.add(materials.get(i));
             }
         }

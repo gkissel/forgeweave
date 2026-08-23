@@ -57,6 +57,21 @@ public final class ForgeweaveEntities {
                             .updateInterval(20)
                             .build("shuriken"));
 
+    /**
+     * The fired material arrow (issue #653). Upstream 1.12 registers it 64-block tracked at a
+     * 1-tick interval ({@code TinkerRangedWeapons#registerEntities}); the size and tracking numbers
+     * here are vanilla {@code EntityType#ARROW}'s to the number, for the same reason the shuriken's
+     * are vanilla's -- the base class's movement sync is tuned for them.
+     */
+    public static final DeferredHolder<EntityType<?>, EntityType<ArrowEntity>> ARROW =
+            ENTITY_TYPES.register("arrow",
+                    () -> EntityType.Builder.<ArrowEntity>of(ArrowEntity::new, MobCategory.MISC)
+                            .sized(0.5F, 0.5F)
+                            .eyeHeight(0.13F)
+                            .clientTrackingRange(4)
+                            .updateInterval(20)
+                            .build("arrow"));
+
     public static final DeferredHolder<EntityType<?>, EntityType<IndestructibleItemEntity>> INDESTRUCTIBLE_ITEM =
             ENTITY_TYPES.register("indestructible_item",
                     () -> EntityType.Builder.<IndestructibleItemEntity>of(IndestructibleItemEntity::new, MobCategory.MISC)

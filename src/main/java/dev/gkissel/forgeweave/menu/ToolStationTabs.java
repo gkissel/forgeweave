@@ -212,7 +212,12 @@ public final class ToolStationTabs {
             // #448: the shuriken's four blades in a square, upstream's own RangedClientProxy layout
             // from its (32, 41) origin -- (32-12, 41-12), (32+12, 41-12), (32+12, 41+12),
             // (32-12, 41+12) -- minus one on both axes against this table's (33, 42).
-            build(ForgeweaveItems.TOOL_SHURIKEN, at(-13, -13), at(11, -13), at(11, 11), at(-13, 11)));
+            build(ForgeweaveItems.TOOL_SHURIKEN, at(-13, -13), at(11, -13), at(11, 11), at(-13, 11)),
+            // #653: the arrow -- shaft centered, head top right, fletching bottom left, upstream's
+            // own RangedClientProxy layout from its (32, 41) origin -- (32, 41), (32+18, 41-18),
+            // (32-18, 41+18) -- minus one on both axes against this table's (33, 42), in Arrow's
+            // shaft, head, fletching part order.
+            build(ForgeweaveItems.TOOL_ARROW, at(-1, -1), at(17, -19), at(-19, 17)));
 
     /** The repair tab, which is what a freshly opened station shows (as upstream's does). */
     public static final int REPAIR = 0;

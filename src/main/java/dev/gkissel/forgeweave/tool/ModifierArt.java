@@ -47,7 +47,7 @@ public final class ModifierArt {
             id("silky"), id("luck"), id("mending_moss"), id("soulbound"), id("smite"),
             id("bane_of_arthropods"), id("fiery"), id("necrotic"), id("knockback"),
             id("beheading"), id("shulking"), id("webbed"), id("glowing"),
-            id("blasting"), FORTIFICATION);
+            id("blasting"), id("fins"), FORTIFICATION);
 
     /**
      * The texture path (no {@code .png}, no namespace) of {@code modifier}'s overlay on {@code
@@ -88,6 +88,19 @@ public final class ModifierArt {
      */
     private static final Set<String> NO_UPSTREAM_ART = Set.of(
             "shortbow_luck", "longbow_luck",
+            // #653: the arrow, like the shuriken, ships no mod_haste.png upstream (haste refuses
+            // NO_MELEE tools anyway -- ModHaste#canApplyCustom); blasting/fortification below, it is
+            // Category.RANGED, not HARVEST.
+            "arrow_haste", "arrow_blasting", "arrow_fortification",
+            // #653: fins is ModifierAspect.projectileOnly, so upstream ships mod_fins.png in exactly
+            // its three projectile folders (arrow, bolt, shuriken) and nowhere else -- every
+            // non-projectile Forgeweave tool is listed here, mirroring the blasting/fortification
+            // pattern.
+            "pickaxe_fins", "shovel_fins", "hatchet_fins", "mattock_fins", "kama_fins",
+            "hammer_fins", "excavator_fins", "lumberaxe_fins", "scythe_fins", "vein_hammer_fins",
+            "broadsword_fins", "longsword_fins", "rapier_fins", "battlesign_fins", "frying_pan_fins",
+            "battleaxe_fins", "cleaver_fins", "dagger_fins", "scimitar_fins", "katana_fins",
+            "warmace_fins", "shortbow_fins", "longbow_fins", "crossbow_fins",
             // #448: items/shuriken/ ships every other applicable overlay but no mod_haste.png at the
             // pinned commit -- an upstream art absence, mirrored not patched. Blasting/fortification
             // below: the shuriken is Category.RANGED, not HARVEST, like the three bows.
