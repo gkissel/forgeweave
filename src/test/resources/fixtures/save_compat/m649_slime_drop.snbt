@@ -1,0 +1,11 @@
+{
+    decoder: "item_stack",
+    expect: {
+        id: "forgeweave:magma_slime_drop"
+    },
+    nbt: {
+        count: 3,
+        id: "forgeweave:magma_slime_drop"
+    },
+    what: "#649 (parity audit T57): a stack of magma slime drops in an inventory. The drops are plain component-less foods (upstream TinkerCommons:373-377, five ItemEdible metas); the fixture pins the `<colour>_slime_drop` ids a world can now hold."
+}

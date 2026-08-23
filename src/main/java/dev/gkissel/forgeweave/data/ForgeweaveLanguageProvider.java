@@ -1349,6 +1349,15 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         addItem(ForgeweaveItems.slimeBallItem(SlimeColour.BLOOD), "Coagulated Blood");
         addItem(ForgeweaveItems.slimeBallItem(SlimeColour.MAGMA), "Magma Slimeball");
         addItem(ForgeweaveItems.slimeBallItem(SlimeColour.PINK), "Pink Slimeball");
+        // #649 (parity audit T57) -- upstream's item.tconstruct.edible.slimedrop_*.name: every
+        // colour but blood is "Gelatinous Slime Drop" (blood is "Coagulated Blood Drop"), so the
+        // non-green colours take their colour into the name, the #635 reduction again; green keeps
+        // the plain upstream name like green congealed slime does.
+        addItem(ForgeweaveItems.slimeDrop(SlimeColour.GREEN), "Gelatinous Slime Drop");
+        addItem(ForgeweaveItems.slimeDrop(SlimeColour.BLUE), "Gelatinous Blue Slime Drop");
+        addItem(ForgeweaveItems.slimeDrop(SlimeColour.PURPLE), "Gelatinous Purple Slime Drop");
+        addItem(ForgeweaveItems.slimeDrop(SlimeColour.BLOOD), "Coagulated Blood Drop");
+        addItem(ForgeweaveItems.slimeDrop(SlimeColour.MAGMA), "Gelatinous Magma Slime Drop");
         addItem(ForgeweaveItems.INGOT_KNIGHTSLIME, "Knightslime Ingot");
         addItem(ForgeweaveItems.NUGGET_KNIGHTSLIME, "Knightslime Nugget");
 
@@ -1476,8 +1485,15 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         // materials, modifiers) reuse the item/material/modifier/trait families instead of
         // duplicating them here.
         addItem(ForgeweaveItems.GUIDE_BOOK, "Materials and You");
-        // item.tconstruct.slimesling.green.name (T22, issue #453).
+        // item.tconstruct.slimesling.*.name (T22 issue #453, six colours by #649): upstream calls
+        // every colour but blood plainly "Slimesling" (blood is "Congealed Bloodsling"), so the
+        // non-green colours take their colour into the name, as the congealed blocks do.
         addItem(ForgeweaveItems.SLIME_SLING, "Slimesling");
+        addItem(ForgeweaveItems.slimeSling(SlimeColour.BLUE), "Blue Slimesling");
+        addItem(ForgeweaveItems.slimeSling(SlimeColour.PURPLE), "Purple Slimesling");
+        addItem(ForgeweaveItems.slimeSling(SlimeColour.BLOOD), "Congealed Bloodsling");
+        addItem(ForgeweaveItems.slimeSling(SlimeColour.MAGMA), "Magma Slimesling");
+        addItem(ForgeweaveItems.slimeSling(SlimeColour.PINK), "Pink Slimesling");
         add("item.forgeweave.cleaver.description",
                 "A massive blade for hewing through foes. Slow to swing, but a killing blow is far more likely to claim the victim's head.");
         add("book.forgeweave.title", "Materials and You");

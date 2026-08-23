@@ -5,7 +5,7 @@
       "conditions": {
         "items": [
           {
-            "items": "minecraft:slime_ball"
+            "items": "forgeweave:magma_slime_ball"
           }
         ]
       },
@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "forgeweave:slime_sling"
+        "recipe": "forgeweave:magma_slime_sling"
       },
       "trigger": "minecraft:recipe_unlocked"
     }
@@ -26,7 +26,7 @@
   ],
   "rewards": {
     "recipes": [
-      "forgeweave:slime_sling"
+      "forgeweave:magma_slime_sling"
     ]
   }
 }
