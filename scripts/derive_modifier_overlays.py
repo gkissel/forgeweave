@@ -71,6 +71,7 @@ TOOL_SOURCES = {
     "longbow": "longbow",  # M3.5 #395
     "crossbow": "crossbow",  # M3.5 #395
     "shuriken": "shuriken",  # #448 (T17)
+    "arrow": "arrow",  # #653 (T17)
     # Forgeweave-original shapes: closest-upstream donors, issue #198's precedent.
     "dagger": "broadsword",
     "scimitar": "broadsword",
@@ -101,6 +102,7 @@ MODIFIER_SOURCES = {
     "glowing": "mod_glowing",
     "blasting": "mod_blasting",  # T24 (#455); harvest tools only -- see NO_UPSTREAM_ART below
     "fortification": "mod_fortified",  # T70 (#501); harvest tools only -- see NO_UPSTREAM_ART below
+    "fins": "mod_fins",  # #653 (T17); projectile tools only -- see NO_UPSTREAM_ART below
 }
 
 # (tool, modifier) pairs that get no overlay, on purpose. Three reasons, all mirrored by
@@ -120,13 +122,24 @@ MODIFIER_SOURCES = {
 _NON_HARVEST_TOOLS = (
     "broadsword", "longsword", "rapier", "battlesign", "frying_pan", "battleaxe", "cleaver",
     "shortbow", "longbow", "crossbow", "dagger", "scimitar", "katana", "warmace", "shuriken")
-# shuriken_haste (#448): items/shuriken/ ships every other applicable overlay but no mod_haste.png
-# at the pinned commit -- upstream art absence, mirrored not patched (ModifierArt#NO_UPSTREAM_ART).
-NO_UPSTREAM_ART = {("shortbow", "luck"), ("longbow", "luck"), ("shuriken", "haste")} | {
-    (tool, "blasting") for tool in _NON_HARVEST_TOOLS
+# shuriken_haste (#448) / arrow_haste (#653): items/shuriken/ and items/arrow/ ship every other
+# applicable overlay but no mod_haste.png at the pinned commit -- upstream art absence, mirrored
+# not patched (ModifierArt#NO_UPSTREAM_ART).
+# fins (#653) is ModifierAspect.projectileOnly: upstream ships mod_fins.png in exactly its three
+# projectile folders (arrow, bolt, shuriken), so every non-projectile tool is excluded.
+_NON_PROJECTILE_TOOLS = tuple(t for t in (
+    "pickaxe", "shovel", "hatchet", "mattock", "kama", "hammer", "excavator", "lumberaxe",
+    "scythe", "vein_hammer", "broadsword", "longsword", "rapier", "battlesign", "frying_pan",
+    "battleaxe", "cleaver", "dagger", "scimitar", "katana", "warmace",
+    "shortbow", "longbow", "crossbow"))
+NO_UPSTREAM_ART = {("shortbow", "luck"), ("longbow", "luck"), ("shuriken", "haste"),
+                   ("arrow", "haste")} | {
+    (tool, "blasting") for tool in _NON_HARVEST_TOOLS + ("arrow",)
 } | {
-    (tool, "fortification") for tool in _NON_HARVEST_TOOLS
-} | {("mattock", "fortification")}
+    (tool, "fortification") for tool in _NON_HARVEST_TOOLS + ("arrow",)
+} | {("mattock", "fortification")} | {
+    (tool, "fins") for tool in _NON_PROJECTILE_TOOLS
+}
 
 
 def main() -> None:

@@ -51,8 +51,10 @@ import dev.gkissel.forgeweave.tool.ToolConstants;
 public class CrossbowItem extends BowItem {
 
     public CrossbowItem(Properties properties, ToolConstants.Entry constants, int drawTime,
-            float baseProjectileSpeed, float baseInaccuracy, float drawMovementSpeed) {
-        super(properties, constants, drawTime, baseProjectileSpeed, baseInaccuracy, drawMovementSpeed);
+            float baseProjectileSpeed, float baseInaccuracy, float baseProjectileDamage,
+            float projectileDamageModifier, float drawMovementSpeed) {
+        super(properties, constants, drawTime, baseProjectileSpeed, baseInaccuracy, baseProjectileDamage,
+                projectileDamageModifier, drawMovementSpeed);
     }
 
     /** {@code CrossBow#isLoaded}. */

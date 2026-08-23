@@ -866,6 +866,7 @@ public class ToolItem extends Item {
                 ForgeweaveDataComponents.TOOL_MATERIALS.get(), // what it is built from
                 ForgeweaveDataComponents.TOOL_STATS.get(), // its built stats
                 ForgeweaveDataComponents.LAUNCHER_STATS.get(), // ... and a bow's
+                ForgeweaveDataComponents.PROJECTILE_STATS.get(), // ... and an arrow's (#653)
                 ForgeweaveDataComponents.MODIFIERS.get(),
                 ForgeweaveDataComponents.TRAITS.get(),
                 ForgeweaveDataComponents.BROKEN.get(), // swaps the model

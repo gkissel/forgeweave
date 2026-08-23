@@ -73,11 +73,11 @@ import dev.gkissel.forgeweave.trait.ForgeweaveTraits;
  * ponytail: not scaled by draw progress the way upstream's own arrows are ({@code power - 1}
  * multiplier); add that if playtest wants weak draws to carry less bonus.
  *
- * <p>Not ported (deliberately, see the PR): the crosshair, and the multi-projectile
- * {@code TinkerToolEvent.OnBowShoot} hook -- {@link #shoot} fires exactly one arrow. M3.5-5 (issue
- * #396) confirmed against the clone that nothing on a <em>launcher</em> ever raises that count: its
- * only listeners ({@code TraitSplitting}, {@code TraitEndspeed}) key on the <em>ammo's</em> traits,
- * which are Forgeweave's deferred material arrows.
+ * <p>Issue #653 ported the multi-projectile {@code TinkerToolEvent.OnBowShoot} moment into
+ * {@link #shoot} itself: its only upstream listeners key on the <em>ammo's</em> traits
+ * ({@code TraitSplitting} may double the count for one ammo, {@code TraitEndspeed} eases the base
+ * inaccuracy), so the event is stated as two membership checks rather than an event bus. The
+ * crosshair stays not ported.
  *
  * <h2>Rendering and feel (M3.5 issue #400)</h2>
  *
@@ -113,6 +113,8 @@ public class BowItem extends ToolItem {
     private final float baseProjectileSpeed;
     private final float baseInaccuracy;
     private final float drawMovementSpeed;
+    private final float baseProjectileDamage;
+    private final float projectileDamageModifier;
 
     /**
      * @param constants the bow's {@link ToolConstants} entry (attack speed, damage potential, parts)
@@ -121,10 +123,18 @@ public class BowItem extends ToolItem {
      *     before the {@code range} multiplier ({@code 3f} for every bow but the longbow)
      * @param baseInaccuracy {@code BowCore#baseInaccuracy()}, the spread passed to {@link
      *     net.minecraft.world.entity.projectile.Projectile#shoot Projectile#shoot}
+     * @param baseProjectileDamage {@code BowCore#baseProjectileDamage()} (issue #653): flat damage
+     *     the launcher adds to a <em>material</em> arrow, scaled by the draw power -- shortbow 0,
+     *     longbow 2.5, crossbow 3 ({@code ShortBow}/{@code LongBow}/{@code CrossBow})
+     * @param projectileDamageModifier {@code BowCore#projectileDamageModifier()} (issue #653):
+     *     multiplier on a material arrow's whole damage -- shortbow 0.8, longbow 1.25, crossbow 1.3.
+     *     Both reach the world only through {@code ILauncher#modifyProjectileAttributes}, which only
+     *     material projectiles resolve -- a vanilla arrow never sees either, in 1.12 or here.
      */
     public BowItem(Properties properties, ToolConstants.Entry constants, int drawTime, float baseProjectileSpeed,
-            float baseInaccuracy) {
-        this(properties, constants, drawTime, baseProjectileSpeed, baseInaccuracy, VANILLA_DRAW_MOVEMENT_SPEED);
+            float baseInaccuracy, float baseProjectileDamage, float projectileDamageModifier) {
+        this(properties, constants, drawTime, baseProjectileSpeed, baseInaccuracy, baseProjectileDamage,
+                projectileDamageModifier, VANILLA_DRAW_MOVEMENT_SPEED);
     }
 
     /**
@@ -134,7 +144,8 @@ public class BowItem extends ToolItem {
      *     to {@code ToolCore#preventSlowDown} -- see {@link #drawMovementSpeed()}
      */
     public BowItem(Properties properties, ToolConstants.Entry constants, int drawTime, float baseProjectileSpeed,
-            float baseInaccuracy, float drawMovementSpeed) {
+            float baseInaccuracy, float baseProjectileDamage, float projectileDamageModifier,
+            float drawMovementSpeed) {
         // No mineable tag: a bow digs nothing. weapon = false: BowCore adds Category.LAUNCHER, never
         // Category.WEAPON, so a melee hit with it costs full durability and haste's attack-speed
         // half does not apply (its draw-speed half is M3.5-5's).
@@ -142,6 +153,8 @@ public class BowItem extends ToolItem {
         this.drawTime = drawTime;
         this.baseProjectileSpeed = baseProjectileSpeed;
         this.baseInaccuracy = baseInaccuracy;
+        this.baseProjectileDamage = baseProjectileDamage;
+        this.projectileDamageModifier = projectileDamageModifier;
         this.drawMovementSpeed = drawMovementSpeed;
     }
 
@@ -254,10 +267,26 @@ public class BowItem extends ToolItem {
         player.awardStat(Stats.ITEM_USED.get(this));
     }
 
+    /** {@code TraitSplitting#DOUBLESHOT_CHANCE} (issue #653). */
+    private static final float SPLITTING_DOUBLESHOT_CHANCE = 0.5F;
+    /** {@code TraitSplitting#onBowShooting}'s {@code setBonusInaccuracy(3f)}: the extra arrow strays. */
+    private static final float SPLITTING_BONUS_INACCURACY = 3.0F;
+    /** {@code TraitEndspeed#onBowShooting}: {@code baseInaccuracy * 2/3}. */
+    private static final float ENDSPEED_INACCURACY_FACTOR = 2.0F / 3.0F;
+
     /**
-     * {@code BowCore#shootProjectile}, for one projectile. {@code ammo} is the inventory stack the
-     * arrow is drawn from (or a conjured creative arrow); it is consumed here, and the arrow is built
-     * from a copy taken first so a last arrow still fires.
+     * {@code BowCore#shootProjectile}, per-arrow loop included (issue #653). {@code ammo} is the
+     * inventory stack the arrow is drawn from (or a conjured creative arrow); it is consumed here,
+     * and the arrows are built from a copy taken first so a last arrow still fires.
+     *
+     * <p>The {@code TinkerToolEvent.OnBowShoot} moment runs first, stated as the ammo-trait checks
+     * that are its only upstream listeners: endspeed eases the base inaccuracy to two thirds, and
+     * splitting has a 50% chance to fire two arrows for the one ammo -- the second at +3 inaccuracy
+     * and, having consumed nothing, {@code PickupStatus.DISALLOWED} ({@code getProjectileEntity}'s
+     * {@code !usedAmmo} rule, which M3.5's gate already states). The bow pays one durability per
+     * arrow, as upstream's loop does -- its {@code consumeDurabilityPerProjectile} flag is set by
+     * {@code TraitSplitting} but never consulted by {@code BowCore}, an upstream quirk mirrored by
+     * not porting the flag at all.
      */
     protected void shoot(ItemStack ammo, ItemStack bow, Level level, Player player, int useTime) {
         float progress = drawbackProgress(bow, useTime);
@@ -268,18 +297,33 @@ public class BowItem extends ToolItem {
                 * progress * baseProjectileSpeed * range;
 
         if (level instanceof ServerLevel) {
+            // TinkerToolEvent.OnBowShoot, as the two ammo-trait adjustments it exists for.
+            float inaccuracy = this.baseInaccuracy;
+            int projectileCount = 1;
+            if (ForgeweaveTraits.has(ammo, ForgeweaveTraits.ENDSPEED)) {
+                inaccuracy *= ENDSPEED_INACCURACY_FACTOR;
+            }
+            if (ForgeweaveTraits.has(ammo, ForgeweaveTraits.SPLITTING)
+                    && level.getRandom().nextFloat() < SPLITTING_DOUBLESHOT_CHANCE) {
+                projectileCount = 2;
+            }
             ItemStack toShoot = ammo.copy();
-            boolean usedAmmo = consumeAmmo(ammo, player);
-            AbstractArrow arrow = createArrow(toShoot, bow, level, player, velocity, baseInaccuracy, usedAmmo);
-            if (progress >= 1.0F) {
-                arrow.setCritArrow(true);
+            for (int i = 0; i < projectileCount; i++) {
+                // Splitting's consumeAmmoPerProjectile = false: only the first arrow costs ammo.
+                boolean usedAmmo = i == 0 && consumeAmmo(ammo, player);
+                float shotInaccuracy = i == 0 ? inaccuracy : inaccuracy + SPLITTING_BONUS_INACCURACY;
+                AbstractArrow arrow =
+                        createArrow(toShoot, bow, level, player, velocity, shotInaccuracy, usedAmmo, progress);
+                if (progress >= 1.0F) {
+                    arrow.setCritArrow(true);
+                }
+                if (!player.hasInfiniteMaterials()) {
+                    // ToolHelper.damageTool(bow, 1, player); the slot only matters for the break event.
+                    bow.hurtAndBreak(1, player, player.getUsedItemHand() == InteractionHand.OFF_HAND
+                            ? EquipmentSlot.OFFHAND : EquipmentSlot.MAINHAND);
+                }
+                level.addFreshEntity(arrow);
             }
-            if (!player.hasInfiniteMaterials()) {
-                // ToolHelper.damageTool(bow, 1, player); the slot only matters for the break event.
-                bow.hurtAndBreak(1, player, player.getUsedItemHand() == InteractionHand.OFF_HAND
-                        ? EquipmentSlot.OFFHAND : EquipmentSlot.MAINHAND);
-            }
-            level.addFreshEntity(arrow);
         }
         playShootSound(level, player, velocity);
     }
@@ -309,14 +353,29 @@ public class BowItem extends ToolItem {
      * that is what this now does for every bow, not just the crossbow which inherits it.
      */
     protected AbstractArrow createArrow(ItemStack ammo, ItemStack bow, Level level, Player player, float velocity,
-            float inaccuracy, boolean usedAmmo) {
-        ArrowItem arrowItem = ammo.getItem() instanceof ArrowItem item ? item : (ArrowItem) Items.ARROW;
-        AbstractArrow arrow = arrowItem.createArrow(level, ammo, player, bow);
-        Vec3 shotVector = player.getViewVector(1.0F);
-        arrow.shoot(shotVector.x, shotVector.y, shotVector.z, velocity, inaccuracy);
-        LauncherStats stats = launcherStats(bow);
-        if (stats != null && velocity > 0.0F) {
-            arrow.setBaseDamage(arrow.getBaseDamage() + stats.bonusDamage() / velocity);
+            float inaccuracy, boolean usedAmmo, float progress) {
+        AbstractArrow arrow;
+        if (ammo.getItem() instanceof MaterialArrowItem materialArrow) {
+            // BowCore#getProjectileEntity's IAmmo branch (issue #653). power = progress^2, the value
+            // BowCore#shootProjectile passes; the flat damage folds the launcher in exactly as
+            // EntityProjectileBase#onHitEntity's attribute stack does -- the arrow's own attack,
+            // plus baseProjectileDamage * power and the launcher's bonusDamage (op 0), times
+            // projectileDamageModifier (op 1), times power (op 2, the draw scaling).
+            float power = progress * progress;
+            LauncherStats stats = launcherStats(bow);
+            float launcherBonus = stats == null ? 0.0F : stats.bonusDamage();
+            float flatDamage = (materialArrow.attackDamage(ammo) + baseProjectileDamage * power + launcherBonus)
+                    * projectileDamageModifier * power;
+            arrow = materialArrow.createProjectile(ammo, level, player, velocity, inaccuracy, flatDamage);
+        } else {
+            ArrowItem arrowItem = ammo.getItem() instanceof ArrowItem item ? item : (ArrowItem) Items.ARROW;
+            arrow = arrowItem.createArrow(level, ammo, player, bow);
+            Vec3 shotVector = player.getViewVector(1.0F);
+            arrow.shoot(shotVector.x, shotVector.y, shotVector.z, velocity, inaccuracy);
+            LauncherStats stats = launcherStats(bow);
+            if (stats != null && velocity > 0.0F) {
+                arrow.setBaseDamage(arrow.getBaseDamage() + stats.bonusDamage() / velocity);
+            }
         }
         if (player.hasInfiniteMaterials()) {
             arrow.pickup = AbstractArrow.Pickup.CREATIVE_ONLY;
@@ -326,10 +385,17 @@ public class BowItem extends ToolItem {
         return arrow;
     }
 
-    /** {@code BowCore#consumeAmmo}: one off the stack, gone from the inventory when that empties it. */
+    /**
+     * {@code BowCore#consumeAmmo}: a material arrow pays through its ammo counter
+     * ({@code IAmmo#useAmmo} -- one ammo, breaking at empty, #653); vanilla ammo is one off the
+     * stack, gone from the inventory when that empties it.
+     */
     protected boolean consumeAmmo(ItemStack ammo, Player player) {
         if (player.hasInfiniteMaterials()) {
             return false;
+        }
+        if (ammo.getItem() instanceof MaterialArrowItem materialArrow) {
+            return materialArrow.consumeShot(ammo, player);
         }
         ammo.shrink(1);
         if (ammo.isEmpty()) {
@@ -362,18 +428,35 @@ public class BowItem extends ToolItem {
      * {@code BowCore#findAmmo} through {@code AmmoHelper#findAmmoFromInventory}: the held hands first
      * (offhand before main hand, the equipment handler upstream reads first), then the inventory in
      * slot order -- hotbar, then the rest, exactly the order upstream walks it in.
+     *
+     * <p>Issue #653: material arrows join the valid-ammo set ({@code BowCore#getAmmoItems} through
+     * {@code TinkerRangedWeapons#discoverArrows} -- the material arrow plus every vanilla-style
+     * {@code ItemArrow}), an empty one skipped exactly as upstream's {@code AmmoHelper} skips an
+     * {@code IAmmo} at zero ammo. Note the upstream priority this ports is <em>slot order</em>, not
+     * item kind: {@code discoverArrows} lists the material arrow first, but that order can never
+     * matter because a slot holds one item -- a vanilla arrow in an earlier slot beats a material
+     * arrow in a later one, upstream and here alike (#653's ticket text overstated this; corrected
+     * in its PR).
      */
     public static ItemStack findAmmo(Player player) {
-        ItemStack held = ProjectileWeaponItem.getHeldProjectile(player, ProjectileWeaponItem.ARROW_ONLY);
+        ItemStack held = ProjectileWeaponItem.getHeldProjectile(player, BowItem::isAmmo);
         if (!held.isEmpty()) {
             return held;
         }
         for (int slot = 0; slot < player.getInventory().getContainerSize(); slot++) {
             ItemStack candidate = player.getInventory().getItem(slot);
-            if (ProjectileWeaponItem.ARROW_ONLY.test(candidate)) {
+            if (isAmmo(candidate)) {
                 return candidate;
             }
         }
         return ItemStack.EMPTY;
+    }
+
+    /** See {@link #findAmmo}: vanilla arrows, or a material arrow with at least one shot left. */
+    private static boolean isAmmo(ItemStack stack) {
+        if (stack.getItem() instanceof MaterialArrowItem) {
+            return AmmoToolItem.currentAmmo(stack) > 0;
+        }
+        return ProjectileWeaponItem.ARROW_ONLY.test(stack);
     }
 }

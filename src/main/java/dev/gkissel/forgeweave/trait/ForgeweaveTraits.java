@@ -69,6 +69,7 @@ import dev.gkissel.forgeweave.combat.IgniteAttackerSeam;
 import dev.gkissel.forgeweave.combat.Lacerate;
 import dev.gkissel.forgeweave.combat.PotionEffectOnHitSeam;
 import dev.gkissel.forgeweave.combat.StackingHitBonus;
+import dev.gkissel.forgeweave.combat.StackingSlownessOnHitSeam;
 import dev.gkissel.forgeweave.combat.ThornsReflectSeam;
 import dev.gkissel.forgeweave.entity.ForgeweaveEntities;
 import dev.gkissel.forgeweave.item.ForgeweaveDataComponents;
@@ -1410,32 +1411,34 @@ public final class ForgeweaveTraits {
     public static final Trait LACERATING = seamTrait(ForgeweaveInnates.LACERATE_SEAM);
 
     // ---------------------------------------------------------------- #626 (parity audit T17): the
-    // five ammo-side traits, TinkerTraits:106-110. All five are projectile-entity behaviors riding
-    // the carried ammo stack -- TraitBreakable/TraitHovering/TraitEndspeed hook ProjectileEvent /
-    // AbstractProjectileTrait's flight callbacks, TraitFreezing/TraitSplitting fire on the
-    // projectile's hit or launch -- and the material arrow those behaviors ride is #626's follow-up
-    // slice on the #448 ProjectileCore layer. Until it lands no shipped tool can carry any of the
-    // five (blaze/reed/ice/endrod are SHAFT-only materials, bone's splitting is SHAFT-scoped, and
-    // nothing assembles a SHAFT part yet), so they register here with their names and descriptions
-    // and grow their entity-side behavior with the arrow, exactly as #229's combat traits
-    // registered ahead of their material wiring.
+    // five ammo-side traits, TinkerTraits:106-110, registered inert by #626's first slice and given
+    // their entity-side behavior with the material arrow (#653). Freezing rides the combat seams
+    // like any on-hit trait; breakable, hovering and endspeed live on ArrowEntity (the flight
+    // callbacks upstream's AbstractProjectileTrait exposes) and splitting on BowItem#shoot (the
+    // OnBowShoot moment), all keyed off {@link #has} membership.
 
-    /** Reed. Upstream {@code TraitBreakable}: 50% chance the projectile breaks on hitting a block. */
+    /** Reed. Upstream {@code TraitBreakable}: 50% chance the projectile breaks on hitting a block ({@code ArrowEntity}). */
     public static final Trait BREAKABLE = new Trait() {};
 
-    /** Endrod. Upstream {@code TraitEndspeed}: projectiles fly near-instantly to their target. */
+    /** Endrod. Upstream {@code TraitEndspeed}: projectiles fly near-instantly to their target ({@code ArrowEntity}, {@code BowItem}). */
     public static final Trait ENDSPEED = new Trait() {};
+
+    /** {@code TraitFreezing#onHit}: 30 ticks a hit, amplifier capped at 4 (Slowness V). */
+    private static final int FREEZING_TICKS = 30;
+    private static final int FREEZING_MAX_AMPLIFIER = 4;
 
     /**
      * Ice. Upstream {@code TraitFreezing#onHit}: each landed hit stacks Slowness on the target, one
-     * amplifier deeper per hit up to IV, 30 ticks each.
+     * amplifier deeper per hit up to IV, 30 ticks each -- a combat seam, so it rides the arrow's
+     * impact through the same pipeline every on-hit trait does (#653).
      */
-    public static final Trait FREEZING = new Trait() {};
+    public static final Trait FREEZING =
+            seamTrait(new StackingSlownessOnHitSeam(FREEZING_TICKS, FREEZING_MAX_AMPLIFIER));
 
-    /** Blaze. Upstream {@code TraitHovering}: projectiles move slower but barely mind gravity. */
+    /** Blaze. Upstream {@code TraitHovering}: projectiles move slower but barely mind gravity ({@code ArrowEntity}). */
     public static final Trait HOVERING = new Trait() {};
 
-    /** Bone shafts. Upstream {@code TraitSplitting}: a fired arrow may split into two. */
+    /** Bone shafts. Upstream {@code TraitSplitting}: a fired arrow may split into two ({@code BowItem#shoot}). */
     public static final Trait SPLITTING = new Trait() {};
 
     /** One trait whose whole behavior is riding the combat seams -- see {@link Trait#combatSeams}. */
@@ -1672,6 +1675,15 @@ public final class ForgeweaveTraits {
     }
 
     /** The traits of an assembled tool, in the order {@link #resolve} stored them. */
+    /**
+     * Whether {@code stack}'s trait list carries {@code trait} -- what the material arrow's
+     * entity-side behaviors and {@code BowItem}'s shot adjustments key on (#653), upstream's
+     * {@code TinkerUtil.hasTrait} membership check.
+     */
+    public static boolean has(ItemStack stack, Trait trait) {
+        return of(stack).contains(trait);
+    }
+
     public static List<Trait> of(ItemStack stack) {
         List<ResourceLocation> ids = stack.get(ForgeweaveDataComponents.TRAITS.get());
         if (ids == null || ids.isEmpty()) {

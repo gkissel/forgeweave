@@ -203,10 +203,11 @@ public class ForgeweaveItemTagsProvider extends ItemTagsProvider {
         addAll(ItemTags.MINING_LOOT_ENCHANTABLE, miningTools);
         addAll(ItemTags.BOW_ENCHANTABLE, launchers);
         // Unbreaking and Mending (and Curse of Vanishing, whose tag references this one): every tool.
-        // #448: the shuriken joins only this line -- vanilla has no shape for thrown ammo, so the
-        // "everything damageable -> durability" rule is the whole of its vanilla-enchant surface.
+        // #448/#653: the shuriken and the arrow join only this line -- vanilla has no shape for
+        // ammo, so the "everything damageable -> durability" rule is the whole of their
+        // vanilla-enchant surface.
         addAll(ItemTags.DURABILITY_ENCHANTABLE, swords, axes, miningTools, bluntWeapons, launchers,
-                List.of(ForgeweaveItems.TOOL_SHURIKEN.get()));
+                List.of(ForgeweaveItems.TOOL_SHURIKEN.get(), ForgeweaveItems.TOOL_ARROW.get()));
 
         // #464 (parity audit T33) -- tool-class exposure. Upstream 1.12 states a tool's class with
         // Forge's setHarvestLevel("pickaxe"/"shovel"/"axe"/"shears", 0); 1.21 splits that same fact in

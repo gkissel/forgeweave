@@ -102,10 +102,33 @@ public final class ToolConstants {
          * Shuriken#buildTagData} hands all four blades to {@code data.head(...)}) and the EXTRA block
          * ({@code data.extra(...)} over the same four), so it lands in both averages and grants both
          * scopes' traits, the same dual duty {@link #CROSSBOW_BODY} does for HANDLE+EXTRA. Upstream's
-         * third stat type there, PROJECTILE, is deferred with the rest of the projectile stat layer
-         * (the arrow follow-up ticket) -- no Forgeweave material carries a PROJECTILE block yet.
+         * third stat type there, PROJECTILE, is a dummy stat block that only matters as a trait
+         * scope, which issue #653 wired ({@code ToolAssemblyRecipes#kindsOf}); see
+         * {@link #ARROW_HEAD}.
          */
-        SHURIKEN_BLADE
+        SHURIKEN_BLADE,
+        /**
+         * Issue #653 (parity audit T17): the material arrow's head, upstream's
+         * {@code PartMaterialType.arrowHead} -- stat types {@code HEAD, PROJECTILE}. Statwise a
+         * plain {@link #HEAD} ({@code Arrow#buildTagData}'s {@code data.head(head)}); the second
+         * scope only affects which traits the slot grants ({@code ToolAssemblyRecipes#kindsOf}):
+         * endstone's PROJECTILE-scoped {@code enderference} survives its head-scoped {@code alien}
+         * on arrow heads ({@code TinkerMaterials:264}).
+         */
+        ARROW_HEAD,
+        /**
+         * Issue #653: the arrow's shaft, upstream's {@code PartMaterialType.arrowShaft} -- the SHAFT
+         * stat block ({@code ArrowShaftMaterialStats}): a multiplier on the durability the head
+         * produced plus {@code bonusAmmo x DURABILITY_PER_AMMO} flat ({@code ProjectileNBT#shafts}).
+         */
+        SHAFT,
+        /**
+         * Issue #653: the arrow's fletching, upstream's {@code PartMaterialType.fletching} -- the
+         * FLETCHING stat block ({@code FletchingMaterialStats}): another durability multiplier
+         * ({@code ProjectileNBT#fletchings}, which runs <em>before</em> the shaft's), plus the
+         * accuracy that {@link ProjectileStats} stores.
+         */
+        FLETCHING
     }
 
     /**
@@ -244,7 +267,7 @@ public final class ToolConstants {
             if (repairModifiers.isEmpty()) {
                 for (int i = 0; i < parts.size(); i++) {
                     Role role = parts.get(i).role();
-                    if (role == Role.HEAD || role == Role.LIMB) {
+                    if (role == Role.HEAD || role == Role.LIMB || role == Role.ARROW_HEAD) {
                         return List.of(new RepairPart(i, 1.0f));
                     }
                 }
@@ -528,6 +551,29 @@ public final class ToolConstants {
             // modifier override, so all four repair at 1.
             .withRepairModifiers(1f, 1f, 1f, 1f);
 
+    /**
+     * Upstream {@code ProjectileCore}'s durability-per-ammo ratio, 10 for every shipped projectile
+     * (neither the arrow nor the shuriken overrides it). Read by {@link #compute}'s SHAFT arm
+     * ({@code ProjectileNBT#shafts} multiplies {@code bonusAmmo} by it) and by
+     * {@code AmmoToolItem}'s ammo counter.
+     */
+    public static final int DURABILITY_PER_AMMO = 10;
+
+    /**
+     * Upstream {@code tools/ranged/item/Arrow.java} (issue #653, parity audit T17): shaft, head,
+     * fletching -- {@code PartMaterialType.arrowShaft/arrowHead/fletching} in constructor order --
+     * at the Tool Station ({@code TinkerRegistry.registerToolCrafting(arrow)}). Its
+     * {@code buildTagData} is {@code head(head)}, {@code fletchings(fletching)},
+     * {@code shafts(this, shaft)} in that order (the durability chain {@link #compute} reproduces),
+     * then {@code data.attack += 2f} ({@code flatAttackBonus}). {@code damagePotential() = 1f},
+     * {@code attackSpeed() = 1}. The fletching's accuracy is {@link ProjectileStats}' business, and
+     * ammo-over-durability is {@code AmmoToolItem}'s ({@link #DURABILITY_PER_AMMO}).
+     */
+    public static final Entry ARROW = new Entry("arrow", Category.RANGED,
+            List.of(new PartSlot(Role.SHAFT, "arrow_shaft"), new PartSlot(Role.ARROW_HEAD, "arrow_head"),
+                    new PartSlot(Role.FLETCHING, "fletching")),
+            1.0f, 1.0f, 1.0f, 2.0f, 1.0f, 1.0f, false, false);
+
     /** All 18 M3 tools, in docs/SCOPE.md content-manifest order (M3.5's bows are not M3 roster). */
     public static final List<Entry> ALL = List.of(
             BROADSWORD, LONGSWORD, RAPIER, BATTLESIGN, FRYING_PAN, MATTOCK, KAMA, DAGGER,
@@ -559,6 +605,13 @@ public final class ToolConstants {
 
         float bowstringModifierSum = 0f;
         int bowstringCount = 0;
+
+        float fletchingModifierSum = 0f;
+        int fletchingCount = 0;
+
+        float shaftModifierSum = 0f;
+        int shaftBonusAmmoSum = 0;
+        int shaftCount = 0;
 
         for (int i = 0; i < parts.size(); i++) {
             PartSlot slot = parts.get(i);
@@ -603,6 +656,27 @@ public final class ToolConstants {
                             .orElseThrow(() -> ToolStats.noStats("bowstring")).modifier();
                     bowstringCount++;
                 }
+                // Issue #653: the arrow head is statwise a plain head (Arrow#buildTagData's
+                // data.head(head)); its second PROJECTILE scope only matters to trait resolution.
+                case ARROW_HEAD -> {
+                    Material.Head head = material.head().orElseThrow(() -> ToolStats.noStats("head"));
+                    float weight = slot.weight();
+                    headDurabilityWeighted += head.durability() * weight;
+                    headAttackWeighted += head.attackDamage() * weight;
+                    headSpeedWeighted += head.miningSpeed() * weight;
+                    headWeightTotal += weight;
+                }
+                case SHAFT -> {
+                    Material.Shaft shaft = material.shaft().orElseThrow(() -> ToolStats.noStats("shaft"));
+                    shaftModifierSum += shaft.modifier();
+                    shaftBonusAmmoSum += shaft.bonusAmmo();
+                    shaftCount++;
+                }
+                case FLETCHING -> {
+                    fletchingModifierSum += material.fletching()
+                            .orElseThrow(() -> ToolStats.noStats("fletching")).modifier();
+                    fletchingCount++;
+                }
                 // Issue #448: a shuriken blade is both a head and an extra part -- upstream
                 // Shuriken#buildTagData feeds every blade's HEAD block to data.head(...) and its
                 // EXTRA block to data.extra(...), so the slot lands in both averages.
@@ -646,6 +720,17 @@ public final class ToolConstants {
             // above produced, floor 1, and it runs before the per-tool multiplier
             // (LongBow#buildTagData applies its DURABILITY_MODIFIER after bowstring()).
             durability = Math.max(1, Math.round(durability * (bowstringModifierSum / bowstringCount)));
+        }
+        // Issue #653, Arrow#buildTagData's order: head, then fletchings, then shafts -- so the
+        // fletching multiplier runs first (ProjectileNBT#fletchings), then the shaft's multiplier
+        // plus its flat bonusAmmo x DURABILITY_PER_AMMO (ProjectileNBT#shafts), each floored at 1.
+        if (fletchingCount > 0) {
+            durability = Math.max(1, Math.round(durability * (fletchingModifierSum / fletchingCount)));
+        }
+        if (shaftCount > 0) {
+            durability = Math.round(durability * (shaftModifierSum / shaftCount));
+            durability += Math.round((float) (shaftBonusAmmoSum * DURABILITY_PER_AMMO) / shaftCount);
+            durability = Math.max(1, durability);
         }
         durability = Math.max(1, (int) (durability * entry.durabilityMultiplier()));
 

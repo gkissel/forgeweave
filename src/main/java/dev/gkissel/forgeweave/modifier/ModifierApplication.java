@@ -23,6 +23,7 @@ import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.item.enchantment.ItemEnchantments;
 
 import dev.gkissel.forgeweave.config.ForgeweaveConfig;
+import dev.gkissel.forgeweave.item.AmmoToolItem;
 import dev.gkissel.forgeweave.item.BowItem;
 import dev.gkissel.forgeweave.item.ForgeweaveDataComponents;
 import dev.gkissel.forgeweave.item.ToolItem;
@@ -233,6 +234,11 @@ public final class ModifierApplication {
         // ToolBuilder#tryModifyTool silently yields EMPTY; this class's standing deviation is to say
         // why, with the same message the wind burst restriction below uses.
         if (tool.getItem() instanceof BowItem && !modifier.appliesToLaunchers()) {
+            return Optional.of(Component.translatable("gui.forgeweave.modifier.unsupported_tool", name(recipe.modifier())));
+        }
+        // #653: upstream's ModifierAspect.projectileOnly (fins) -- Category.PROJECTILE is exactly
+        // the ammo tools, which is what AmmoToolItem is.
+        if (modifier.projectileOnly() && !(tool.getItem() instanceof AmmoToolItem)) {
             return Optional.of(Component.translatable("gui.forgeweave.modifier.unsupported_tool", name(recipe.modifier())));
         }
         // Issue #438: upstream's ModifierAspect.aoeOnly, the Category.AOE gate the two expanders carry

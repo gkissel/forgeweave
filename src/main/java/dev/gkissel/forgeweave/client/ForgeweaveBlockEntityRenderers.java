@@ -57,6 +57,8 @@ public final class ForgeweaveBlockEntityRenderers {
         event.registerEntityRenderer(ForgeweaveEntities.INDESTRUCTIBLE_ITEM.get(), ItemEntityRenderer::new);
         // #448 -- the thrown shuriken, drawn as its own item model spinning flat (ShurikenRenderer).
         event.registerEntityRenderer(ForgeweaveEntities.SHURIKEN.get(), ShurikenRenderer::new);
+        // #653 -- the fired material arrow, its item model heading the way it flies (ArrowRenderer).
+        event.registerEntityRenderer(ForgeweaveEntities.ARROW.get(), ArrowRenderer::new);
         // #451 (parity audit T20) -- the blue slime, vanilla's slime drawn over upstream's greyscale
         // slime texture and tinted upstream's 0xff67f0f5 (BlueSlimeRenderer).
         event.registerEntityRenderer(ForgeweaveEntities.BLUE_SLIME.get(), BlueSlimeRenderer::new);

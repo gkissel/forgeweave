@@ -1,0 +1,8 @@
+{
+  "parent": "minecraft:item/handheld",
+  "textures": {
+    "layer0": "forgeweave:derived/tools/arrow_shaft_broken",
+    "layer1": "forgeweave:derived/tools/arrow_head",
+    "layer2": "forgeweave:derived/tools/arrow_fletching"
+  }
+}

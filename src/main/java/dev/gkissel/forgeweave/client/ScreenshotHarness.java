@@ -1388,7 +1388,9 @@ public final class ScreenshotHarness {
                                     // stringy one (issue #392's BOWSTRING stat gate), so "wood
                                     // everything else" cannot assemble one.
                                     case BOWSTRING -> material("string");
-                                    default -> material("wood");
+                                    // #653: the arrow's fletching slot likewise takes no wood.
+                                    case FLETCHING -> material("feather");
+                                    default -> material("wood"); // a SHAFT slot: wood has shaft stats
                                 })
                                 .toList()))
                 .orElse(ItemStack.EMPTY);
