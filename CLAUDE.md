@@ -14,6 +14,10 @@ The repository uses the standard `needs-triage`, `needs-info`, `ready-for-agent`
 
 This is a single-context repository. See `docs/agents/domain.md`.
 
+## Agent worktree hygiene
+
+Worktrees under `.claude/worktrees/` are ~250 MB–1.4 GB each and pile up fast. **After merging an agent's PR, the coordinating session removes that agent's worktree** (`git worktree remove --force .claude/worktrees/agent-<id> && git worktree prune`). Removal criterion for sweeps: working tree clean AND the branch's PR is merged (check `gh pr list --state merged --head <branch>`). This repo squash-merges, so `git merge-base --is-ancestor` can NEVER prove a branch merged — don't use it. Keep dirty or PR-less worktrees and report them instead.
+
 ## Upstream reference code
 
 Real Tinkers' Construct source (MIT) is available for reading while implementing Forgeweave. Local read-only clones:
