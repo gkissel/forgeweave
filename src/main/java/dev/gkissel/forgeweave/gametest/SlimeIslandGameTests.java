@@ -180,8 +180,12 @@ public class SlimeIslandGameTests {
                 minX + size.canvasSizeX() - 1, bottom + size.canvasSizeY() - 1, minZ + size.canvasSizeZ() - 1);
 
         SlimeIslandPiece piece = new SlimeIslandPiece(box);
+        // Vanilla hands postProcess a full-height chunk-column write box, never the piece's own --
+        // and since #647 the island's vine tails reach below the piece box on purpose.
+        BoundingBox writeBox = new BoundingBox(box.minX(), level.getMinBuildHeight(), box.minZ(),
+                box.maxX(), level.getMaxBuildHeight(), box.maxZ());
         piece.postProcess(level, level.structureManager(), level.getChunkSource().getGenerator(),
-                RandomSource.create(1234L), box, new ChunkPos(minX >> 4, minZ >> 4), anchor);
+                RandomSource.create(1234L), writeBox, new ChunkPos(minX >> 4, minZ >> 4), anchor);
 
         // The same island the piece just drew, re-rolled from the same two inputs it uses, in the
         // same order: palette first, then the shape. What it contains is what the level must show.
@@ -194,14 +198,17 @@ public class SlimeIslandGameTests {
         boolean expectsTrunk = expectedBlocks.contains(ForgeweaveBlocks.GREEN_CONGEALED_SLIME.get());
         boolean expectsLake = expectedBlocks.contains(ForgeweaveFluids.BLUE_SLIME.block().get())
                 || expectedBlocks.contains(ForgeweaveFluids.PURPLE_SLIME.block().get());
+        // #647: the island's own hanging vines, whose tails reach below the box on purpose.
+        boolean expectsVines = expectedBlocks.stream().anyMatch(block -> block instanceof SlimeVineBlock);
 
         List<BlockPos> islandBlocks = new ArrayList<>();
         boolean sawGrass = false;
         boolean sawTrunk = false;
         boolean sawLake = false;
+        boolean sawVines = false;
         for (int x = box.minX(); x <= box.maxX(); x++) {
             for (int z = box.minZ(); z <= box.maxZ(); z++) {
-                for (int y = box.minY(); y <= box.maxY(); y++) {
+                for (int y = box.minY() - SlimeIslandShape.Size.vineHang(); y <= box.maxY(); y++) {
                     BlockPos pos = new BlockPos(x, y, z);
                     Block block = level.getBlockState(pos).getBlock();
                     if (!isSlimeIslandBlock(block)) {
@@ -212,6 +219,7 @@ public class SlimeIslandGameTests {
                     sawTrunk |= block == ForgeweaveBlocks.GREEN_CONGEALED_SLIME.get();
                     sawLake |= block == ForgeweaveFluids.BLUE_SLIME.block().get()
                             || block == ForgeweaveFluids.PURPLE_SLIME.block().get();
+                    sawVines |= block instanceof SlimeVineBlock;
                 }
             }
         }
@@ -227,6 +235,10 @@ public class SlimeIslandGameTests {
             helper.assertTrue(sawLake == expectsLake, expectsLake
                     ? "this run's island shape pooled a slime lake and the piece did not blit it"
                     : "the piece blitted a slime lake this run's island shape never pooled");
+            // #647: the island's hanging vines really land in a live level, tails below the box too.
+            helper.assertTrue(sawVines == expectsVines, expectsVines
+                    ? "this run's island shape hung vines and the piece did not blit them"
+                    : "the piece blitted vines this run's island shape never hung");
         } finally {
             BlockState air = Blocks.AIR.defaultBlockState();
             for (BlockPos pos : islandBlocks) {
@@ -239,6 +251,10 @@ public class SlimeIslandGameTests {
 
     private static boolean isSlimeIslandBlock(Block block) {
         if (block == ForgeweaveBlocks.GREEN_CONGEALED_SLIME.get() || ForgeweaveBlocks.isSlimeSoil(block)) {
+            return true;
+        }
+        // #647 -- the island's hanging vines (any stage, either colour).
+        if (block instanceof SlimeVineBlock) {
             return true;
         }
         // #625 -- the lake: its two fluids, and the congealed slime its rim is laid in.

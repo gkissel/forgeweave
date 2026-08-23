@@ -18,6 +18,7 @@ import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import dev.gkissel.forgeweave.block.FoliageType;
 import dev.gkissel.forgeweave.block.ForgeweaveBlocks;
 import dev.gkissel.forgeweave.block.ForgeweaveBlocks.SlimeSoil;
+import dev.gkissel.forgeweave.block.SlimeVineBlock;
 import dev.gkissel.forgeweave.fluid.ForgeweaveFluids;
 
 /**
@@ -38,10 +39,10 @@ import dev.gkissel.forgeweave.fluid.ForgeweaveFluids;
  * {@code BlockSlimeSapling} path) and carries no lake, since a sapling grows a tree rather than an
  * island.
  *
- * <p>One pass of upstream's {@code generateIsland} is still missing: its trailing
- * {@code tryPlacingVine} loop, thirty attempts per island at hanging a stage-one vine off a column
- * of the island's exterior. It is tracked separately because a faithful port of it needs vanilla
- * 1.12's own {@code BlockVine#canPlaceBlockOnSide}, which neither reference clone carries.
+ * <p>The last of {@code generateIsland}'s passes arrived with issue #647: its trailing
+ * {@code tryPlacingVine} loop, thirty attempts per island at hanging the grass colour's stage-one
+ * vine off a column of the island's exterior, each strand then grown downwards with
+ * {@code BlockSlimeVine#grow}'s stage chain re-run against the canvas.
  */
 public final class SlimeIslandShape {
     /** Upstream {@code SlimeIslandGenerator.RANDOMNESS}: 2% chance of a stray hole in the eroded surface. */
@@ -55,6 +56,9 @@ public final class SlimeIslandShape {
     private static final int TREES_PER_ISLAND = 3;
     private static final int PLANT_ATTEMPTS = 128;
 
+    /** Upstream's trailing loop makes 30 attempts at hanging a vine off the island (issue #647). */
+    private static final int VINE_ATTEMPTS = 30;
+
     private SlimeIslandShape() {}
 
     /**
@@ -67,10 +71,17 @@ public final class SlimeIslandShape {
      * it to lava, because a Nether island sits sunk in the lava sea (issue #450, parity audit T19).
      * The second erosion pass ignores it and always clears to air, upstream's own hard-coded
      * {@code Blocks.AIR} there.
+     *
+     * <p>The island carries two different vines (issue #647): {@code vine} is the canopy's, the
+     * mid-stage vine of the <em>tree's</em> foliage that {@code placeCanopy} hangs, and
+     * {@code islandVine} is the <em>grass</em> colour's stage-one vine that the trailing
+     * {@code tryPlacingVine} loop hangs off the island's exterior -- upstream's own
+     * {@code slimeVineBlue1}/{@code slimeVinePurple1} pick in {@code generateIslandInChunk}. The
+     * magma island and a hand-planted sapling pass {@code null} for both.
      */
     public record Palette(BlockState dirt, BlockState grass, BlockState log, BlockState leaves,
                           BlockState tallGrass, BlockState fern, @Nullable BlockState vine,
-                          BlockState eroded, @Nullable Lake lake) {}
+                          @Nullable BlockState islandVine, BlockState eroded, @Nullable Lake lake) {}
 
     /**
      * One {@code SlimeLakeGenerator}'s three constructor arguments (issue #625, parity audit T18):
@@ -111,6 +122,7 @@ public final class SlimeIslandShape {
                 plants.leaves().get().defaultBlockState().setValue(LeavesBlock.PERSISTENT, true),
                 plants.tallGrass().get().defaultBlockState(),
                 plants.fern().get().defaultBlockState(),
+                null,
                 null,
                 Blocks.AIR.defaultBlockState(),
                 null);
@@ -164,6 +176,9 @@ public final class SlimeIslandShape {
         // Upstream pairs the foliage the *other* way round from the grass: purple islands grow blue
         // trees and plants, blue and green ones grow purple.
         var plants = purpleIsland ? ForgeweaveBlocks.BLUE_SLIME_PLANTS : ForgeweaveBlocks.PURPLE_SLIME_PLANTS;
+        // The island's own hanging vines follow the *grass*: slimeVineBlue1 on blue and green
+        // islands, slimeVinePurple1 on purple (issue #647).
+        var grassPlants = purpleIsland ? ForgeweaveBlocks.PURPLE_SLIME_PLANTS : ForgeweaveBlocks.BLUE_SLIME_PLANTS;
         return new Palette(
                 soil.dirt().get().defaultBlockState(),
                 grassSoil.grass().get().defaultBlockState(),
@@ -172,6 +187,7 @@ public final class SlimeIslandShape {
                 plants.tallGrass().get().defaultBlockState(),
                 plants.fern().get().defaultBlockState(),
                 plants.vineMid().get().defaultBlockState(),
+                grassPlants.vine().get().defaultBlockState(),
                 Blocks.AIR.defaultBlockState(),
                 purpleIsland ? purpleLake() : blueSlimeLake(soil));
     }
@@ -213,6 +229,7 @@ public final class SlimeIslandShape {
                 plants.tallGrass().get().defaultBlockState(),
                 plants.fern().get().defaultBlockState(),
                 null,
+                null,
                 Blocks.LAVA.defaultBlockState(),
                 magmaLake());
     }
@@ -252,12 +269,31 @@ public final class SlimeIslandShape {
             return 4;
         }
 
+        /**
+         * How far below the island's own bottom an island vine's tail can dangle (issue #647).
+         * Worst case is six: the lowest attached vine extends one stage-one block past its support,
+         * the free-hanging column then keeps its stage for at most two more blocks before a column
+         * of three forces the advance, the middle stage repeats that, and the end stage never
+         * extends -- 1 + 2 + 3, plus two blocks of slack.
+         *
+         * <p>Deliberately <em>not</em> part of {@link #canvasSizeY()}: the piece's bounding box
+         * keeps the span an existing world's saved boxes already have (upstream's own saved
+         * {@code StructureBoundingBox} excludes the vines too), and {@link Canvas#forIsland} simply
+         * reaches this far below y 0.
+         */
+        public static int vineHang() {
+            return 8;
+        }
+
         /** The full width of {@link Canvas#forIsland}'s canvas for this island, canopy pad included. */
         public int canvasSizeX() {
             return xRange + 1 + 2 * canvasPad();
         }
 
-        /** The full height of {@link Canvas#forIsland}'s canvas for this island. */
+        /**
+         * The height the piece's bounding box claims for this island. {@link Canvas#forIsland}'s
+         * canvas is {@link #vineHang} taller, reaching below the box for the vine tails.
+         */
         public int canvasSizeY() {
             return canvasTop() + 1;
         }
@@ -304,10 +340,11 @@ public final class SlimeIslandShape {
             this.states = new BlockState[sizeX * sizeY * sizeZ];
         }
 
-        /** A canvas big enough for an island of {@code size}, including its canopies. */
+        /** A canvas big enough for an island of {@code size}, its canopies and its vine tails. */
         public static Canvas forIsland(Size size) {
             int pad = Size.canvasPad();
-            return new Canvas(-pad, 0, -pad, size.canvasSizeX(), size.canvasSizeY(), size.canvasSizeZ());
+            return new Canvas(-pad, -Size.vineHang(), -pad, size.canvasSizeX(),
+                    size.canvasSizeY() + Size.vineHang(), size.canvasSizeZ());
         }
 
         /** A canvas big enough for one tree grown from a sapling at its origin. */
@@ -395,6 +432,16 @@ public final class SlimeIslandShape {
 
         for (int i = 0; i < TREES_PER_ISLAND; i++) {
             growTree(random, canvas, palette, random.nextInt(xRange), height, random.nextInt(zRange));
+        }
+
+        // Upstream's trailing vine loop (issue #647), last so the random stream stays upstream's:
+        // thirty columns over the footprint plus its -1 margin, each walked up `height` blocks.
+        if (palette.islandVine() != null) {
+            for (int i = 0; i < VINE_ATTEMPTS; i++) {
+                int x = -1 + random.nextInt(xRange + 2);
+                int z = -1 + random.nextInt(zRange + 2);
+                tryPlacingVine(random, canvas, x, z, height, palette.islandVine());
+            }
         }
     }
 
@@ -801,5 +848,130 @@ public final class SlimeIslandShape {
         if (existing.isAir() || existing.getBlock() == palette.leaves().getBlock()) {
             canvas.set(x, y, z, state);
         }
+    }
+
+    /**
+     * Upstream {@code SlimeIslandGenerator#tryPlacingVine} (issue #647): walk the column up
+     * {@code limit} blocks, keep the first position the vine can cling to -- replacing it on a
+     * one-in-ten roll at every later hit -- place the vine there with its faces set the way
+     * {@code getStateForPlacement} would, then let it grow downwards until the block the loop stands
+     * on is no longer a slime vine.
+     *
+     * <p>Upstream's candidate check is {@code canPlaceBlockOnSide} for all four horizontals, whose
+     * vanilla 1.12 half is just {@code side != DOWN && side != UP && this.canAttachTo(world, pos,
+     * side)} -- no more than a dispatch into {@code BlockSlimeVine}'s own {@code canAttachTo}. In
+     * particular it does <em>not</em> test the target position itself (replaceability lives in
+     * {@code World#mayPlace}, which this pass never goes through), so a column buried in the
+     * island's dirt qualifies and the placement overwrites the dirt block -- which is also why most
+     * strands start at the island's underside: walking bottom-up, the bottommost dirt of a solid
+     * column is the first hit.
+     */
+    private static void tryPlacingVine(RandomSource random, Canvas canvas, int x, int z, int limit, BlockState vine) {
+        int candidateY = Integer.MIN_VALUE;
+        for (int y = 0; y < limit; y++) {
+            if (vineCanCling(canvas, x, y, z)) {
+                if (candidateY == Integer.MIN_VALUE || random.nextInt(10) == 0) {
+                    candidateY = y;
+                }
+            }
+        }
+        if (candidateY == Integer.MIN_VALUE) {
+            return;
+        }
+
+        canvas.set(x, candidateY, z, placedVine(canvas, vine, x, candidateY, z));
+
+        // Upstream rolls nextInt(8) as the start of a `for(int size = nextInt(8); size >= 0; size++)`
+        // loop that its own ++ direction can only leave through the break below -- the value is never
+        // used, but the draw has to stay so the random stream does too.
+        random.nextInt(8);
+        int y = candidateY;
+        while (canvas.get(x, y, z).getBlock() instanceof SlimeVineBlock vineBlock) {
+            growVine(random, canvas, x, y, z, vineBlock);
+            y--;
+        }
+    }
+
+    /**
+     * Vanilla 1.12 {@code BlockVine#canPlaceBlockOnSide} ORed over the four horizontals, which
+     * reduces to {@code BlockSlimeVine#canAttachTo}: the shared above-term -- air, another vine, or
+     * a solid top face -- and at least one solid-faced horizontal neighbour to cling to.
+     */
+    private static boolean vineCanCling(Canvas canvas, int x, int y, int z) {
+        BlockState above = canvas.get(x, y + 1, z);
+        if (!(above.isAir() || above.getBlock() instanceof VineBlock || attachable(canvas, x, y + 1, z))) {
+            return false;
+        }
+        return attachable(canvas, x, y, z - 1) || attachable(canvas, x + 1, y, z)
+                || attachable(canvas, x, y, z + 1) || attachable(canvas, x - 1, y, z);
+    }
+
+    /**
+     * 1.12 {@code BlockVine#isAcceptableNeighbor} -- a {@code BlockFaceShape.SOLID} face, none of
+     * its exception blocks -- collapsed to what a canvas can actually hold when the vine pass runs:
+     * of dirt, grass, congealed slime, the lake's liquid and air, {@code canOcclude()} says solid
+     * for exactly the first three, matching 1.12 (leaves, which 1.12 counts solid but this canvas
+     * predicate would not, all sit above the walked columns' reach).
+     */
+    private static boolean attachable(Canvas canvas, int x, int y, int z) {
+        return canvas.get(x, y, z).canOcclude();
+    }
+
+    /**
+     * {@code BlockSlimeVine#getStateForPlacement}: each horizontal face on if that neighbour has a
+     * solid face to hold it. A candidate always had at least one, so no faceless vine is placed.
+     */
+    private static BlockState placedVine(Canvas canvas, BlockState vine, int x, int y, int z) {
+        return vine
+                .setValue(VineBlock.NORTH, attachable(canvas, x, y, z - 1))
+                .setValue(VineBlock.EAST, attachable(canvas, x + 1, y, z))
+                .setValue(VineBlock.SOUTH, attachable(canvas, x, y, z + 1))
+                .setValue(VineBlock.WEST, attachable(canvas, x - 1, y, z));
+    }
+
+    /**
+     * {@code BlockSlimeVine#grow} against the canvas, random stream intact: extend into the air
+     * below carrying the same faces, and once the column hangs free advance to the thinner stage --
+     * certainly at a column of three, on a coin flip before that (the flip is only rolled when the
+     * column test alone does not decide, upstream's own short circuit). The end stage has no next
+     * stage and never extends, which is what bounds every tail.
+     */
+    private static void growVine(RandomSource random, Canvas canvas, int x, int y, int z, SlimeVineBlock block) {
+        Block nextStage = block.nextStage();
+        if (nextStage == null) {
+            return;
+        }
+        if (!canvas.isAir(x, y - 1, z)) {
+            return;
+        }
+        BlockState state = canvas.get(x, y, z);
+        BlockState extension = state;
+        if (vineFreeFloating(canvas, x, y, z, state)) {
+            int length = 0;
+            while (canvas.get(x, y + length, z).getBlock() == block) {
+                length++;
+            }
+            if (length > 2 || random.nextInt(2) == 0) {
+                extension = copyVineFaces(state, nextStage.defaultBlockState());
+            }
+        }
+        canvas.set(x, y - 1, z, extension);
+    }
+
+    /** {@code BlockSlimeVine#freeFloating}: no lit face of this vine has a solid neighbour holding it. */
+    private static boolean vineFreeFloating(Canvas canvas, int x, int y, int z, BlockState state) {
+        return !((state.getValue(VineBlock.NORTH) && attachable(canvas, x, y, z - 1))
+                || (state.getValue(VineBlock.EAST) && attachable(canvas, x + 1, y, z))
+                || (state.getValue(VineBlock.SOUTH) && attachable(canvas, x, y, z + 1))
+                || (state.getValue(VineBlock.WEST) && attachable(canvas, x - 1, y, z)));
+    }
+
+    private static BlockState copyVineFaces(BlockState from, BlockState to) {
+        BlockState copied = to;
+        for (BooleanProperty face : new BooleanProperty[] {
+                VineBlock.NORTH, VineBlock.EAST, VineBlock.SOUTH, VineBlock.WEST}) {
+            copied = copied.setValue(face, from.getValue(face));
+        }
+        return copied;
     }
 }
