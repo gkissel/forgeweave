@@ -1,7 +1,10 @@
 package dev.gkissel.forgeweave.data;
 
+import java.util.function.Supplier;
+
 import net.minecraft.data.PackOutput;
 import net.minecraft.world.item.DyeColor;
+import net.minecraft.world.item.Item;
 
 import net.neoforged.neoforge.common.data.LanguageProvider;
 
@@ -1537,6 +1540,128 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("book.forgeweave.smeltery.working.title", "Working the Smeltery");
         add("book.forgeweave.smeltery.working.text",
                 "Place ore or metal into the smeltery through its core and it slowly melts down. Different molten metals pool together below -- some combinations mix into alloys.\n\nDrain the result through a faucet into a Casting Table holding a cast to shape tool parts and ingots, or into a Casting Basin for full blocks.");
+
+        // Issue #651: the tool pages' "Properties:" and modifier pages' "Effects:" bullet lists --
+        // upstream ContentTool#properties / ContentModifier#effects, headers from the 1.12 book's
+        // language file (tool.properties / modifier.effect), bullets ported per tool/modifier from
+        // `book/en_us/tools/*.json` / `book/en_us/modifiers/*.json` (one NOTICE.md row for the set).
+        // BookScreen collects `<base>.property.N` / `.effect.N` while the key exists, so a tool or
+        // modifier without a run simply shows no list; lines upstream wrote for mechanics Forgeweave
+        // deliberately lacks (the offhand system, bolts, unported incompatibilities) are dropped or
+        // reworded rather than promising behaviour the game doesn't have -- each flagged in the PR.
+        add("book.forgeweave.tool.properties", "Properties:");
+        add("book.forgeweave.modifier.effect", "Effects:");
+        toolProperties(ForgeweaveItems.TOOL_PICKAXE,
+                "Basic mining tool", "It's a pickaxe", "Mines stone blocks and similar");
+        toolProperties(ForgeweaveItems.TOOL_SHOVEL,
+                "Basic mining tool", "Effective on dirt, sand and gravel", "Can create path");
+        toolProperties(ForgeweaveItems.TOOL_HATCHET,
+                "Basic mining tool", "Effective on wood", "Breaks leaves really fast");
+        toolProperties(ForgeweaveItems.TOOL_MATTOCK,
+                "Also a hoe", "Tills the ground", "Effective on dirt and wood");
+        toolProperties(ForgeweaveItems.TOOL_KAMA,
+                "Harvests crops on right click", "Shears sheep", "Effective on plants");
+        toolProperties(ForgeweaveItems.TOOL_SCYTHE,
+                "Requires a Tool Forge", "AOE Attack", "3x3x3 AOE Harvesting",
+                "Effective on crops and plants", "Rightclick: AOE Harvest and replant");
+        toolProperties(ForgeweaveItems.TOOL_HAMMER,
+                "Requires a Tool Forge", "Advanced mining tool", "3x3 AOE Mining",
+                "Effective on stone and ores", "Bonus damage against undead");
+        toolProperties(ForgeweaveItems.TOOL_EXCAVATOR,
+                "Requires a Tool Forge", "Advanced mining tool", "3x3 AOE Mining",
+                "Effective on dirt, sand and gravel", "Can create path");
+        toolProperties(ForgeweaveItems.TOOL_LUMBERAXE,
+                "Requires a Tool Forge", "Advanced mining tool", "Fells whole trees in one swoop",
+                "Effective on wood");
+        toolProperties(ForgeweaveItems.TOOL_BROADSWORD,
+                "Medium Damage", "Sweep attack", "Rightclick: Parry");
+        toolProperties(ForgeweaveItems.TOOL_LONGSWORD,
+                "Above average damage but slower", "Hold rightclick: Charged Leap");
+        toolProperties(ForgeweaveItems.TOOL_RAPIER,
+                "Fast, but low damage", "Hits straight through armour");
+        toolProperties(ForgeweaveItems.TOOL_BATTLESIGN,
+                "Defensive weapon", "Low damage", "Rightclick: Block", "Blocking reflects projectiles");
+        toolProperties(ForgeweaveItems.TOOL_FRYING_PAN,
+                "Medium damage", "Natural knockback", "Rightclick: Charged Blow");
+        toolProperties(ForgeweaveItems.TOOL_CLEAVER,
+                "Requires a Tool Forge", "Offensive weapon", "High damage, but slow", "Beheading II");
+        toolProperties(ForgeweaveItems.TOOL_SHORTBOW,
+                "Fast & mobile", "Can be used with vanilla arrows");
+        toolProperties(ForgeweaveItems.TOOL_LONGBOW,
+                "Requires a Tool Forge", "Slow but hits hard", "Fires vanilla arrows");
+        toolProperties(ForgeweaveItems.TOOL_CROSSBOW,
+                "Requires a Tool Forge", "Needs to be loaded before firing", "Fires vanilla arrows");
+        modifierEffects("haste",
+                "Each redstone dust increases mining speed by a small amount",
+                "Increases attack speed", "Multiple levels");
+        modifierEffects("sharpness",
+                "Increases attack damage", "Different weapons scale differently", "Multiple levels");
+        modifierEffects("diamond",
+                "Extra durability", "Minor stat increase",
+                "Mining level increased by one, up to Obsidian", "Single use", "Fabulous!");
+        modifierEffects("emerald",
+                "50% base durability increase", "Mining level increased to Iron", "Single use",
+                "Outrageous!");
+        modifierEffects("reinforced",
+                "Adds a chance to not consume durability",
+                "Stacks with previous levels of Reinforced", "Multiple levels");
+        modifierEffects("mending_moss",
+                "Stores XP picked up", "Max. Amount stored increases with modifier level",
+                "Slowly repairs the tool over time", "Multiple levels");
+        modifierEffects("silky",
+                "Allows blocks to be harvested directly", "Single use");
+        modifierEffects("soulbound",
+                "Tool remains in your inventory after death", "Single use",
+                "Does NOT require a modifier");
+        modifierEffects("luck",
+                "Adds fortune or looting", "Tool use has a chance to increase the luck",
+                "Adding more lapis only uses one modifier");
+        modifierEffects("smite",
+                "Deals massive damage to undead enemies", "Multiple levels");
+        modifierEffects("bane_of_arthropods",
+                "Deals massive damage to spiders and silverfish", "Multiple levels");
+        modifierEffects("fiery",
+                "Sets enemies on fire", "Deals additional fire damage on hit", "Multiple levels");
+        modifierEffects("necrotic",
+                "Heal when dealing damage", "Add more bones to increase the heal", "Multiple levels");
+        modifierEffects("knockback",
+                "Adds extra knockback", "Each piston increases the knockback distance",
+                "Multiple levels");
+        modifierEffects("shulking",
+                "Each point increases floating duration", "Causes enemies to float away",
+                "Hilarious", "Single level");
+        modifierEffects("webbed",
+                "Each level increases slow duration", "Slow-motion", "Multi level");
+        modifierEffects("blasting",
+                "Breaks blocks fast", "AOE Tools harvest uneffective blocks too",
+                "Will likely destroy harvested blocks", "Requires only 1 modifier",
+                "Multiple levels");
+        modifierEffects("beheading",
+                "Enemies drop their heads",
+                "Adding more Obsidian increases the chance of decapitation", "Multiple levels");
+        modifierEffects("glowing",
+                "Places a lightsource on low light level", "Costs durability");
+        modifierEffects("harvest_width",
+                "Increases the width of the area affected", "Only affects blocks",
+                "Does not work for weapons", "Can be combined with Height++");
+        modifierEffects("harvest_height",
+                "Increases the height of the area affected", "Only affects blocks",
+                "Does not work for weapons", "Can be combined with Width++");
+    }
+
+    /** One tool's ported {@code ContentTool#properties} bullets, keyed {@code <tool>.property.<n>}. */
+    private void toolProperties(Supplier<? extends Item> tool, String... properties) {
+        String base = tool.get().getDescriptionId();
+        for (int i = 0; i < properties.length; i++) {
+            add(base + ".property." + i, properties[i]);
+        }
+    }
+
+    /** One modifier's ported {@code ContentModifier#effects} bullets, keyed {@code modifier.forgeweave.<id>.effect.<n>}. */
+    private void modifierEffects(String id, String... effects) {
+        for (int i = 0; i < effects.length; i++) {
+            add("modifier.forgeweave." + id + ".effect." + i, effects[i]);
+        }
     }
 
     /**
