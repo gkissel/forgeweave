@@ -62,6 +62,7 @@ import dev.gkissel.forgeweave.combat.IgniteOnHitSeam;
 import dev.gkissel.forgeweave.combat.KnockbackOnHitSeam;
 import dev.gkissel.forgeweave.combat.LifestealOnHitSeam;
 import dev.gkissel.forgeweave.combat.PotionEffectOnHitSeam;
+import dev.gkissel.forgeweave.combat.ThornsCounterSeam;
 import dev.gkissel.forgeweave.client.StationText;
 import dev.gkissel.forgeweave.item.BowItem;
 import dev.gkissel.forgeweave.item.ForgeweaveDataComponents;
@@ -1146,7 +1147,131 @@ public final class ForgeweaveModifiers {
         return entry(stack, FINS_MODIFIER_ID) != null;
     }
 
+    // ---------------------------------------------------------------- M4-6 (#681): armor modifiers,
+    // ported from the 1.20 clone (NOTICE.md) -- SCOPE.md D15/D16. Armor did not exist in the 1.12
+    // generation, so tools/data/ModifierProvider.java and recipes/tools/modifiers/defense/*.json are
+    // the source. All seven are Modifier#armorOnly (the clone's `tconstruct:modifiable/armor` recipe
+    // tool tag); the single DEFAULT_SLOTS pool stands in for the clone's defense/upgrade slot types.
+
+    /** Clone {@code IncrementalModifierRecipe} {@code needed_per_level: 5} on every protection. */
+    private static final int PROTECTION_UNITS_PER_LEVEL = 5;
+    /** Clone {@code ProtectionModule.builder().eachLevel(2.5f)} -- fire, blast, magic. */
+    static final float PROTECTION_STRONG_PER_LEVEL = 2.5F;
+    /** Clone {@code eachLevel(2f)} -- melee, projectile. */
+    static final float PROTECTION_WEAK_PER_LEVEL = 2.0F;
+
+    /**
+     * One protection modifier: {@code amountPerLevel} protection points per completed level,
+     * scaling smoothly with the raw application count the way the clone's
+     * {@code IncrementalModifierEntry#getEffectiveLevel} ({@code level - 1 + amount / needed}) does.
+     * The protection value itself is folded into the blow by M4-5's shared level-parameterised
+     * protection seam (issue #680; trait = level 1) -- see {@link #protectionPoints}.
+     */
+    private static Modifier protection() {
+        return new Modifier() {
+            @Override
+            public boolean armorOnly() {
+                return true;
+            }
+
+            @Override
+            public int unitsPerLevel() {
+                return PROTECTION_UNITS_PER_LEVEL;
+            }
+        };
+    }
+
+    /** Clone {@code ProtectionModule#getProtectionModifier}: {@code eachLevel * effectiveLevel}. */
+    static float protectionPoints(float amountPerLevel, int units) {
+        return amountPerLevel * units / PROTECTION_UNITS_PER_LEVEL;
+    }
+
+    /** Seared brick (clone: seared reinforcement), 5 per level. {@code #tconstruct:protection/fire}. */
+    public static final Modifier FIRE_PROTECTION = protection();
+    /** Crying obsidian (clone: obsidian reinforcement), 5 per level. {@code #tconstruct:protection/blast}. */
+    public static final Modifier BLAST_PROTECTION = protection();
+    /** Gold ingot (clone: gold reinforcement), 5 per level. {@code #tconstruct:protection/magic}. */
+    public static final Modifier MAGIC_PROTECTION = protection();
+    /** Cobalt ingot (clone: cobalt reinforcement), 5 per level. {@code #tconstruct:protection/melee}, direct only. */
+    public static final Modifier MELEE_PROTECTION = protection();
+    /** Iron ingot (clone: iron reinforcement), 5 per level. {@code #tconstruct:protection/projectile}. */
+    public static final Modifier PROJECTILE_PROTECTION = protection();
+
+    /** Clone {@code StatBoostModule.add(ToolStats.KNOCKBACK_RESISTANCE).eachLevel(0.1f)}. */
+    static final float KNOCKBACK_RESISTANCE_PER_LEVEL = 0.1F;
+
+    /**
+     * Any anvil (clone recipe: anvil / chipped / damaged), one level per piece. Clone
+     * {@code ModifierIds.knockbackResistance}: +0.1 knockback resistance per level, an attribute
+     * {@code ArmorPieceItem} adds next to the plating's own.
+     */
+    public static final Modifier KNOCKBACK_RESISTANCE = new Modifier() {
+        @Override
+        public boolean armorOnly() {
+            return true;
+        }
+
+        @Override
+        public float knockbackResistanceBonus(int level) {
+            return KNOCKBACK_RESISTANCE_PER_LEVEL * level;
+        }
+    };
+
+    /** Clone thorns recipe: {@code needed_per_level: 25} cactus, {@code max: 3}. */
+    private static final int THORNS_UNITS_PER_LEVEL = 25;
+    /** Clone {@code CounterModule.Builder} default {@code chance = LevelingValue.eachLevel(0.15f)}. */
+    static final float THORNS_CHANCE_PER_LEVEL = 0.15F;
+    /** Clone {@code ThornsModule.type(THORNS).constantFlat(1).randomFlat(3)}. */
+    static final float THORNS_CONSTANT_DAMAGE = 1.0F;
+    static final float THORNS_RANDOM_DAMAGE = 3.0F;
+
+    /**
+     * Cactus, 25 per level, three levels. Clone {@code ModifierIds.thorns}: a 15%-per-level chance
+     * that a direct blow deals 1-4 thorns damage back, costing the piece one durability
+     * ({@link ThornsCounterSeam}).
+     */
+    public static final Modifier THORNS = new Modifier() {
+        @Override
+        public boolean armorOnly() {
+            return true;
+        }
+
+        @Override
+        public int unitsPerLevel() {
+            return THORNS_UNITS_PER_LEVEL;
+        }
+
+        @Override
+        public Optional<CombatSeam> combatSeam(int level) {
+            return Optional.of(new ThornsCounterSeam(thornsChance(level), THORNS_CONSTANT_DAMAGE, THORNS_RANDOM_DAMAGE));
+        }
+    };
+
+    /** {@code 0.15 * effectiveLevel}, the effective level being {@code units / 25} (clone incremental entry). */
+    static float thornsChance(int units) {
+        return THORNS_CHANCE_PER_LEVEL * units / THORNS_UNITS_PER_LEVEL;
+    }
+
+    /** Combined knockback-resistance attribute bonus of the piece's modifiers; 0 when nothing touches it. */
+    public static float knockbackResistanceBonus(ItemStack stack) {
+        float bonus = 0.0F;
+        for (ModifierEntry entry : of(stack)) {
+            Modifier modifier = get(entry.id());
+            if (modifier != null) {
+                bonus += modifier.knockbackResistanceBonus(entry.level());
+            }
+        }
+        return bonus;
+    }
+
     private static final Map<ResourceLocation, Modifier> REGISTRY = Map.ofEntries(
+            Map.entry(id("fire_protection"), FIRE_PROTECTION),
+            Map.entry(id("blast_protection"), BLAST_PROTECTION),
+            Map.entry(id("magic_protection"), MAGIC_PROTECTION),
+            Map.entry(id("melee_protection"), MELEE_PROTECTION),
+            Map.entry(id("projectile_protection"), PROJECTILE_PROTECTION),
+            Map.entry(id("knockback_resistance"), KNOCKBACK_RESISTANCE),
+            Map.entry(id("thorns"), THORNS),
             Map.entry(id("fins"), FINS),
             Map.entry(id("harvest_width"), HARVEST_WIDTH),
             Map.entry(id("harvest_height"), HARVEST_HEIGHT),
@@ -1501,7 +1626,15 @@ public final class ForgeweaveModifiers {
             Map.entry(id("resonant"), TextColor.fromRgb(0x2EBAA4)),
             Map.entry(id("far_reach"), TextColor.fromRgb(0xB180D9)),
             Map.entry(id("wind_burst"), TextColor.fromRgb(0xC0F3F0)),
-            Map.entry(id("extra_slot"), TextColor.fromRgb(0xAAAAAA)));
+            Map.entry(id("extra_slot"), TextColor.fromRgb(0xAAAAAA)),
+            // M4-6 (#681): the 1.20 clone's assets/tconstruct/mantle/colors.json modifier rows.
+            Map.entry(id("fire_protection"), TextColor.fromRgb(0x7F7772)),
+            Map.entry(id("blast_protection"), TextColor.fromRgb(0x9277B2)),
+            Map.entry(id("magic_protection"), TextColor.fromRgb(0xF4D362)),
+            Map.entry(id("melee_protection"), TextColor.fromRgb(0x2376DD)),
+            Map.entry(id("projectile_protection"), TextColor.fromRgb(0xD8D8D8)),
+            Map.entry(id("knockback_resistance"), TextColor.fromRgb(0x4A4A4A)),
+            Map.entry(id("thorns"), TextColor.fromRgb(0x9FA76D)));
 
     /**
      * The tool's stats with its modifiers applied, or {@code null} if it has no stat block at all.

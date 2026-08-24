@@ -258,6 +258,13 @@ public final class ModifierApplication {
                 .orElse(true)) {
             return Optional.of(Component.translatable("gui.forgeweave.modifier.unsupported_tool", name(recipe.modifier())));
         }
+        // M4-6 (#681): the clone's `tconstruct:modifiable/armor` recipe tool tag, D15's armorOnly()
+        // -- the same assembly-entry category read as harvestOnly above.
+        if (modifier.armorOnly() && ToolAssemblyRecipes.entryFor(tool)
+                .map(entry -> entry.constants().category() != ToolConstants.Category.ARMOR)
+                .orElse(true)) {
+            return Optional.of(Component.translatable("gui.forgeweave.modifier.unsupported_tool", name(recipe.modifier())));
+        }
         // The level passed here only decides whether a grant exists at all (every shipped grant is
         // present from level 1 on), not what level it would be -- that's resolved again, for real,
         // once the application actually lands (grantEnchantments).

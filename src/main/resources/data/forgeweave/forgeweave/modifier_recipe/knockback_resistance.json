@@ -1,0 +1,22 @@
+{
+  "modifier": "forgeweave:knockback_resistance",
+  "reagents": [
+    {
+      "ingredient": {
+        "item": "minecraft:anvil"
+      }
+    },
+    {
+      "ingredient": {
+        "item": "minecraft:chipped_anvil"
+      }
+    },
+    {
+      "ingredient": {
+        "item": "minecraft:damaged_anvil"
+      }
+    }
+  ],
+  "cost": 1,
+  "max_level": 1
+}
