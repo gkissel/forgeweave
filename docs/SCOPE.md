@@ -294,6 +294,59 @@ Gating: longbow and crossbow join `forgeweave:large_tools` (#348 mechanism); sho
 - **Manual release checklist adds**: screenshot-harness review of drawn poses (3 stages) and crossbow loaded/unloaded for each bow; third-person hold; JEI shows bow assembly + limb/string casting; previous-release (beta.1) world load with a bow in inventory.
 - Alpha tags during the milestone; post-alpha playtest-fix round; **final tag `mc1.21.1-v0.3.5`** (beta series, since beta.1 precedes it).
 
+## Milestone 4 — armors
+
+Planned 2026-08-24 (grilling session on #25; maintainer decisions recorded inline, numbered D1–D24). Ships under the save-compat promise (after `mc1.21.1-v0.3.5-beta.1`). The alpha.4 playtest-fix round runs in parallel and lands as beta.2 through the normal pipeline (D1).
+
+**Source of truth (D2)**: Tinkers' Construct 1.12 has no armor. Construct's Armory (LGPL) stays *inspire only* — no clone, no NOTICE rows, ideas only. For M4 the **1.20 clone becomes a derivation source by name** — plate armor: part model (plating + maille), `PlatingMaterialStats` values, the layered armor model and its grayscale base textures, the ARMOR-scope material trait table, the defense modifier family — an explicit override of the standing "1.20 never sets feature scope" rule, recorded in § Milestone sources like M3/M3.2. Custom armor models by the maintainer's designer arrive in **M9** (D18), not during M4.
+
+### Acceptance test
+
+Fresh world, dedicated server, no cheats. Craft an **obsidian chestplate plating** at the Part Builder (non-metal platings are Part Builder parts, the cast bootstrap) and a **vine maille**; pour gold over the plating to get the plating cast. Melt iron in the smeltery, cast **iron plating** for all four pieces and an **iron maille**. At the Tool Station, assemble helmet, chestplate, leggings, boots from plating + maille; each piece's tooltip shows armor/toughness/knockback resistance/durability matching the 1.20-derived iron values (chestplate armor 5, durability 240). Wear the set: third-person render shows the iron-tinted plate layer over the maille layer. Take damage: durability drops on the plating, damage is reduced by the computed armor. Break a piece to 0 durability: it stays equipped but protects nothing; repair it with an iron ingot at the Tool Station (5% discount rule). Apply **fire protection** (defense modifier) to the chestplate and **thorns** to the leggings; walk into lava briefly and get hit by a zombie — fire damage is reduced and the zombie takes thorns damage. Assemble a cobalt-plated helmet and observe **melee protection** (cobalt's ARMOR trait). Save, restart, reload: all four pieces keep parts, modifiers and durability. Everything shows in JEI with no JEI code changes; the book's armor section and the armor Ponder scene open.
+
+### Content manifest
+
+| Kind | Contents |
+| --- | --- |
+| Pieces (D3, D9) | Exactly four: helmet, chestplate, leggings, boots. **Two parts each**: `plating_<piece>` (all stats) + `maille` (statless: traits + inner texture layer). No fixed-material sets (travellers' gear, slimesuit, slime wings are non-goals). |
+| Part items | 4 platings + 1 maille; patterns and gold/clay casts for all five; Part Builder recipes for non-cast-only materials; smeltery casting for metals (D12 — same M2 flow, no crafting-table bootstrap). |
+| Plating materials (D10) | The 15 Forgeweave materials with a 1.20 `PlatingMaterialStats` row — iron, copper, cobalt, manyullyn, knightslime, pig iron, steel, bronze, lead, silver, electrum, amethyst bronze, rose gold, obsidian, ancient — with per-piece `durability/armor/toughness/knockback_resistance` derived from the clone; plus **ardite, netherite, nahuatl** by interpolation (ardite ≈ cobalt, netherite > manyullyn, nahuatl ≈ obsidian; values proposed on the issue, maintainer-reviewed). 18 total. Wood/stone/bone/paper/etc. make no plating (parity). |
+| Maille materials (D11) | The 18 above + vine, chorus, **bone, cactus, blue slime vine** = 23. |
+| Material schema (D14, D17) | New `PartItem.Kind.PLATING`/`MAILLE`; `Material` gains `plating{helmet,chestplate,leggings,boots}` blocks, `maille` marker, and `traits.armor` (scoped list read by both plating and maille). New `ARMOR_STATS` data component (precedent `LAUNCHER_STATS`); `TOOL_STATS` shape untouched. `ToolConstants.Category.ARMOR`. |
+| Station (D13) | Tool Station **and** Tool Forge assemble armor (plating + maille, positional `ENTRIES` rows); no `large_tools` gate — the smeltery is the real gate. No armor station: Armory's two-station split existed because it could not touch the Tinkers' station; Forgeweave can. |
+| ARMOR traits (D17) | 12 ported from the clone's ARMOR-scope table: iron projectile_protection · copper depth_protection · obsidian blast_protection · cobalt melee_protection · manyullyn warded · amethyst bronze crystalstrike · silver consecrated · knightslime overshield (overslime not ported — no overslime here) · bone piercing_guard · cactus thorns · chorus enderclearance · blue slime vine skyfall. The four protections share one implementation with the modifier of the same name (trait = level 1, parity). Materials without a clone ARMOR row keep only their general traits; general traits attach unfiltered — hooks that do not apply simply never fire. |
+| Modifiers (D15, D16) | Single slot pool (`DEFAULT_SLOTS`), no DEFENSE slot type (candidate for M7 alongside the cap decision). New armor-only (predicate `armorOnly()` next to `harvestOnly()`): fire/blast/projectile/magic/melee protection, knockback resistance, thorns. Existing generic modifiers (reinforced, mending moss, soulbound, extra slot…) apply where the predicate allows. 1.20 abilities (double jump, zoom, bouncy, flamewake…) are backlog for M5/M6 — bouncy would collide with M5 slime boots. |
+| Defense seam (D8) | `CombatSeams.defensePass` walks the defender's four equipped pieces; new `Trait.onDefend(CombatDefense)` hook. This is also M7's leveling entry point for armor. |
+| Render (D18) | Derive only the clone's **grayscale bases** (plating armor/leggings, maille armor/leggings) + port the generator as `scripts/derive_armor_art.py`, tinting with `Material.color` at generation time — covers ardite/netherite/nahuatl, which have no clone PNG. Two-layer armor model (plating over maille). NOTICE rows for the bases only. |
+| Durability/repair (D19) | Durability = plating's `durability`; repair with the plating material's `repair_item` at the Tool Station, same 5% discount; maille never affects durability. |
+| Enchanting (D20) | Same `allowVanillaEnchanting` flag as tools; `enchantability` from the plating material. |
+| Compat (D7) | Vanilla armor slots only; chestplate excludes Elytra as vanilla does (Elytra stays the flight option for now). Curios, Apotheosis, wings — M8. |
+| Book / Ponder / harness (D21) | Data-driven `armor.json` book section; armor-assembly Ponder scene (second registered storyboard); screenshot-harness scene with the four pieces worn in third person. |
+
+### Non-goals for M4
+
+Travellers' gear, slimesuit, slime wings, shields (1.20 content, not mechanics) · armor station block · DEFENSE slot type · 1.20 armor abilities · plating for non-metal materials beyond obsidian/ancient/nahuatl · Curios/Elytra integration (M8) · custom designer models (M9) · armor leveling (M7 plugs into `onDefend`).
+
+### CI and release gates
+
+- **GameTest coverage (D23)**: assembly of each of the four pieces at the Tool Station and the Forge with derived iron stats; wrong-piece plating rejected (helmet plating in the chestplate row); incoming damage reduces plating durability and is attenuated by the computed armor value; a 0-durability piece stays equipped and protects nothing; repair with `repair_item`; Part Builder accepts obsidian plating and refuses iron plating; plating cast via smeltery; **one test per ARMOR trait (12)** and **one per new modifier (7)**.
+- **Save-compat fixtures (D22, same PR as the format)**: `ARMOR_STATS` component; an `item_stack` fixture per piece with parts + modifiers filled; a `material` fixture with `plating`/`maille`/`traits.armor`; any stateful ARMOR trait component (overshield).
+- **Manual release checklist adds**: screenshot-harness review of the worn set (first + third person) for iron, cobalt, and one non-metal-plated piece; JEI sanity (plating/maille casting, armor assembly); previous-release (beta.1) world load with a worn set; dedicated-server acceptance playthrough.
+- Alpha tags during the milestone; post-alpha playtest-fix round; final tag continues the beta series.
+
+### Issue roadmap (D24)
+
+| # | Deliverable | Depends on |
+| --- | --- | --- |
+| 1 | `PLATING`/`MAILLE` scopes, `Material` schema (`plating` per piece, `maille`, `traits.armor`), data for the 23 materials incl. interpolated ardite/netherite/nahuatl, fixtures | — |
+| 2 | Part items (4 platings + maille), patterns/casts, Part Builder + casting recipes, cast bootstrap via obsidian plating | 1 |
+| 3 | `Category.ARMOR`, `ARMOR_STATS`, part-built `ArmorPieceItem`, Tool Station/Forge assembly rows, repair, enchantability, fixtures | 1 |
+| 4 | Render: grayscale bases + `scripts/derive_armor_art.py`, two-layer tinted armor model, NOTICE | 3 |
+| 5 | `defensePass` per piece, `Trait.onDefend`, the 12 ARMOR traits | 3 |
+| 6 | Armor modifiers: 5 protections + knockback resistance + thorns, `armorOnly()` predicate | 3 |
+| 7 | Book `armor.json`, Ponder armor scene, harness worn-set scene, lang | 4, 5, 6 |
+| 8 | Acceptance playthrough, release-checklist lines, alpha tag | 7 |
+
 ## Milestone ladder
 
 Each milestone ships a playable release under the tag scheme in [releasing.md](releasing.md).
@@ -305,7 +358,7 @@ Each milestone ships a playable release under the tag scheme in [releasing.md](r
 | M3 | Full melee/harvest tool roster incl. modern-era shapes (katana, scimitar, warmace), combat tuning, Tool Forge, embossing (this document, planned 2026-08-12) | M2 |
 | M3.2 | Material roster: the full always-on 1.12 material set with per-part traits, tag-gated compat metals, and four by-name modern-branch additions (this document, planned 2026-08-13; pulled forward from M6 by maintainer decision 2026-08-12) | M3 |
 | M3.5 | Ranged weapons: shortbow, longbow, crossbow firing vanilla arrows (planned 2026-08-15, this document). Material arrows + shuriken deferred to a follow-up; javelin/throwing axe/energy tool to backlog | M3.2 + `mc1.21.1-v0.3.0-beta.1` |
-| M4 | Armors (Construct's Armory-inspired) | M2 (reuses parts/traits/modifiers) |
+| M4 | Armors: part-based plate armor (plating + maille), Armory-inspired, 1.20-derived by name (this document, planned 2026-08-24) | M3.5 (reuses parts/traits/modifiers/combat seams) |
 | M5 | Gadgets: slingshot, slime boots | M2 |
 | M6 | Material expansion at TAIGA scale; modded metals become tool materials via the datapack registry | Stable material data model (M1), metals (M2) |
 | M7 | Tool leveling (derived from Tinkers' Tool Leveling) | M3 |
@@ -324,7 +377,7 @@ Per-milestone source policy, decided from the [addon ecosystem survey](research/
 | M3 | — | PlusTiC: katana as a modern-era shape (Forgeweave's design differs: damage builds while in combat, decided 2026-08-12) · TiC 1.20 branch: vein hammer + dagger shapes and pickaxe-pierce idea (feature-scope deviation authorized by maintainer 2026-08-12 — the standing "1.20 never sets feature scope" rule is explicitly overridden for these three, by name) |
 | M3.2 | — | TiC 1.20 branch: **amethyst bronze, nahuatl, chorus, ancient** as material additions (feature-scope deviation authorized by maintainer 2026-08-13, by name — the standing "1.20 never sets feature scope" rule is explicitly overridden for these four) |
 | M3.5 | — | PlusTiC: energy-consuming ranged tool |
-| M4 | — | Construct's Armory (LGPL): two-station split, exactly four armor slots, variety carried by traits and modifiers |
+| M4 | **TiC 1.20 branch: plate armor** — plating + maille part model, `PlatingMaterialStats` values, layered armor model + grayscale base textures, ARMOR-scope trait table, defense modifier family (feature-scope deviation authorized by maintainer 2026-08-24, by name — the standing "1.20 never sets feature scope" rule is explicitly overridden for plate armor; Tinkers' 1.12 has no armor) | Construct's Armory (LGPL): exactly four armor slots, variety carried by traits and modifiers. Its two-station split was considered and rejected 2026-08-24 (the Tool Station is generic over `ENTRIES`) |
 | M6 | — | TAIGA + Moar Tinkers progression ladders. Sizing target: the material schema and picker UI stay usable at 50–70 materials / 30–45 traits |
 | M7 | **Tinkers' Tool Leveling** (MIT, 16 classes — direct port allowed) | Ships behind a config flag; interaction with the modifier cap is decided at M7 planning, not discovered in play |
 | M1/M8 | **Tinker's JEI** (MIT, 4 classes — reference for the JEI plugin) | — |
