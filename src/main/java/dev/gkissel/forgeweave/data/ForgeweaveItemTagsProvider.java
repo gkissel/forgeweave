@@ -242,6 +242,15 @@ public class ForgeweaveItemTagsProvider extends ItemTagsProvider {
                         ForgeweaveItems.TOOL_SCIMITAR.get(), ForgeweaveItems.TOOL_KATANA.get(),
                         ForgeweaveItems.TOOL_CLEAVER.get());
 
+        // #678 (SCOPE.md D20): the four armor pieces join vanilla's per-slot armor tags, which is
+        // what feeds #minecraft:enchantable/{armor,head_armor,chest_armor,leg_armor,foot_armor,
+        // durability,equippable} -- the supported_items of every vanilla armor enchantment -- and
+        // NeoForge's c:armors. ArmorPieceItem gates all of it on allowVanillaEnchanting like ToolItem.
+        tag(ItemTags.HEAD_ARMOR).add(ForgeweaveItems.ARMOR_HELMET.get());
+        tag(ItemTags.CHEST_ARMOR).add(ForgeweaveItems.ARMOR_CHESTPLATE.get());
+        tag(ItemTags.LEG_ARMOR).add(ForgeweaveItems.ARMOR_LEGGINGS.get());
+        tag(ItemTags.FOOT_ARMOR).add(ForgeweaveItems.ARMOR_BOOTS.get());
+
         // The c: half. NeoForge's own c:tools already reads #minecraft:axes/hoes/pickaxes/shovels/
         // swords plus every c:tools/* leaf below (see its shipped tools.json), so nothing here has to
         // name the parent -- the five tags above and these six put every Forgeweave tool in it.

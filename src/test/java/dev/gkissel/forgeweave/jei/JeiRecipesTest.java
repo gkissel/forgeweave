@@ -32,6 +32,7 @@ import dev.gkissel.forgeweave.item.ForgeweaveDataComponents;
 import dev.gkissel.forgeweave.item.ForgeweaveItems;
 import dev.gkissel.forgeweave.material.Material;
 import dev.gkissel.forgeweave.menu.ToolAssemblyRecipes;
+import dev.gkissel.forgeweave.tool.ToolConstants;
 import dev.gkissel.forgeweave.menu.PartBuilderRecipes;
 import dev.gkissel.forgeweave.modifier.EmbossingRecipe;
 import dev.gkissel.forgeweave.modifier.ModifierRecipe;
@@ -304,8 +305,9 @@ class JeiRecipesTest {
         Map<ResourceLocation, Material> materials = twoMaterials();
         List<AssemblyRecipe> recipes = AssemblyRecipes.build(materials);
 
-        // One per assemblable tool: M1's three plus M3's six station weapons (issue #155).
-        assertEquals(ToolAssemblyRecipes.ENTRIES.size(), recipes.size());
+        // One per assemblable tool: M1's three plus M3's six station weapons (issue #155). The
+        // two test materials carry no plating, so #678's four armor rows are skipped as incomplete.
+        assertEquals(ToolAssemblyRecipes.ENTRIES.size() - ToolConstants.ARMOR.size(), recipes.size());
         for (AssemblyRecipe recipe : recipes) {
             ToolAssemblyRecipes.Entry entry = ToolAssemblyRecipes.entryFor(recipe.result()).orElseThrow();
             assertEquals(entry.slotCount(), recipe.parts().size(),
@@ -569,7 +571,7 @@ class JeiRecipesTest {
     void isLargeResolvesEveryRecipesEntryWithoutThrowing() {
         List<AssemblyRecipe> recipes = AssemblyRecipes.build(twoMaterials());
 
-        assertEquals(ToolAssemblyRecipes.ENTRIES.size(), recipes.size());
+        assertEquals(ToolAssemblyRecipes.ENTRIES.size() - ToolConstants.ARMOR.size(), recipes.size());
         for (AssemblyRecipe recipe : recipes) {
             AssemblyRecipes.isLarge(recipe); // must not throw for any tool in the roster
         }

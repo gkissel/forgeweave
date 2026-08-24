@@ -732,6 +732,15 @@ public class ToolItem extends Item {
                 return 0;
             }
         }
+        return applyDamageKeepingItem(stack, amount, entity);
+    }
+
+    /**
+     * The clamp itself, shared with {@link ArmorPieceItem} (issue #678): never past
+     * {@code maxDamage - 1}, and the {@link ForgeweaveDataComponents#BROKEN} flag (plus upstream's
+     * break sound) the moment the clamp bites. Returns what was actually applied.
+     */
+    public static int applyDamageKeepingItem(ItemStack stack, int amount, @Nullable LivingEntity entity) {
         int brokenAt = stack.getMaxDamage() - 1;
         int applied = Math.max(0, Math.min(amount, brokenAt - stack.getDamageValue()));
         if (stack.getDamageValue() + applied >= brokenAt && !isBroken(stack)) {

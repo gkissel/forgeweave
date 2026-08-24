@@ -40,6 +40,7 @@ import dev.gkissel.forgeweave.item.ToolItem;
 import dev.gkissel.forgeweave.menu.ForgeweaveMenus;
 import dev.gkissel.forgeweave.menu.RenameStationItemPayload;
 import dev.gkissel.forgeweave.menu.StationMenu;
+import dev.gkissel.forgeweave.menu.ToolAssemblyRecipes;
 import dev.gkissel.forgeweave.menu.ToolStationMenu;
 import dev.gkissel.forgeweave.menu.ToolStationTabs;
 import dev.gkissel.forgeweave.menu.ToolStationTabs.Tab;
@@ -176,31 +177,36 @@ public class ToolStationScreen extends StationScreen<ToolStationMenu> implements
      * {@link ToolArt#layers} is: a four-part tool's slot 2 is a second head, and a three-part one's
      * is the binding, so an index would tint the battleaxe's front head binding-blue (issue #159).
      */
-    static final Map<ToolConstants.Role, Integer> TOOL_LAYER_COLORS = new EnumMap<>(Map.of(
-            ToolConstants.Role.HANDLE, 0x684E1E,
-            ToolConstants.Role.HEAD, 0xC1C1C1,
-            ToolConstants.Role.EXTRA, 0x2376DD,
+    static final Map<ToolConstants.Role, Integer> TOOL_LAYER_COLORS = new EnumMap<>(Map.ofEntries(
+            Map.entry(ToolConstants.Role.HANDLE, 0x684E1E),
+            Map.entry(ToolConstants.Role.HEAD, 0xC1C1C1),
+            Map.entry(ToolConstants.Role.EXTRA, 0x2376DD),
             // M3.5 #394, BowCore#getMaterialForPartForGuiRendering: the first limb is RenderMaterials[0]
             // (the handle brown), the string RenderMaterialString (0xffffff). ponytail: upstream paints
             // the second limb RenderMaterials[2] (binding blue); this map is per role, so both limbs
             // take the brown -- a per-occurrence colour if the preview ever needs to tell them apart.
-            ToolConstants.Role.LIMB, 0x684E1E,
-            ToolConstants.Role.BOWSTRING, 0xFFFFFF,
+            Map.entry(ToolConstants.Role.LIMB, 0x684E1E),
+            Map.entry(ToolConstants.Role.BOWSTRING, 0xFFFFFF),
             // #395: the crossbow's body is its slot 0, so RenderMaterials[0] -- the same brown.
-            ToolConstants.Role.CROSSBOW_BODY, 0x684E1E,
+            Map.entry(ToolConstants.Role.CROSSBOW_BODY, 0x684E1E),
             // #448: a shuriken blade is a head as far as the preview is concerned.
-            ToolConstants.Role.SHURIKEN_BLADE, 0xC1C1C1,
+            Map.entry(ToolConstants.Role.SHURIKEN_BLADE, 0xC1C1C1),
             // #653/#669: upstream's Arrow never overrides getMaterialForPartForGuiRendering, so its
             // preview takes TinkersItem's default RenderMaterials[index] by slot -- shaft (slot 0)
             // the handle brown, arrow head (slot 1) the head grey, fletching (slot 2) the binding
             // blue.
-            ToolConstants.Role.SHAFT, 0x684E1E,
-            ToolConstants.Role.ARROW_HEAD, 0xC1C1C1,
-            ToolConstants.Role.FLETCHING, 0x2376DD));
+            Map.entry(ToolConstants.Role.SHAFT, 0x684E1E),
+            Map.entry(ToolConstants.Role.ARROW_HEAD, 0xC1C1C1),
+            Map.entry(ToolConstants.Role.FLETCHING, 0x2376DD),
+            // #678: armor tab previews -- the plating a head grey, the maille a handle brown,
+            // placeholders until #679's render lands (no layer art draws yet: ToolArt#layerSlots
+            // lists neither role).
+            Map.entry(ToolConstants.Role.PLATING, 0xC1C1C1),
+            Map.entry(ToolConstants.Role.MAILLE, 0x684E1E)));
 
     private static final int BUTTON_SIZE = 18;
     private static final int BUTTON_SPACING = 4;
-    private static final int BUTTON_COLUMNS = 5;
+    private static final int BUTTON_COLUMNS = 6; // ToolStationMenu#TAB_BUTTON_COLUMNS, six since #678
     private static final int BUTTONS_Y = 9;
 
     /**
@@ -312,7 +318,7 @@ public class ToolStationScreen extends StationScreen<ToolStationMenu> implements
         Tab tab = menu.tab();
         ItemStack output = menu.getSlot(ToolStationMenu.OUTPUT_SLOT).getItem();
         ItemStack head = menu.getSlot(ToolStationMenu.HEAD_SLOT).getItem();
-        ItemStack subject = !output.isEmpty() ? output : head.getItem() instanceof ToolItem ? head : ItemStack.EMPTY;
+        ItemStack subject = !output.isEmpty() ? output : ToolAssemblyRecipes.isAssembled(head) ? head : ItemStack.EMPTY;
 
         if (!subject.isEmpty()) {
             describeTool(subject);

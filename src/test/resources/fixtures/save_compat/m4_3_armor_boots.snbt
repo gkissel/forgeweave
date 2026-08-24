@@ -1,0 +1,53 @@
+{
+    decoder: "item_stack",
+    expect: {
+        components: {
+            "forgeweave:armor_stats": {
+                armor: 2.0f,
+                durability: 195,
+                knockback_resistance: 0.0f,
+                toughness: 0.0f
+            },
+            "forgeweave:enchantability": 14,
+            "forgeweave:tool_materials": {
+                head: "forgeweave:iron",
+                parts: [
+                    "forgeweave:iron",
+                    "forgeweave:iron"
+                ]
+            },
+            "forgeweave:traits": [
+                "forgeweave:projectile_protection"
+            ],
+            "minecraft:damage": 0,
+            "minecraft:max_damage": 195
+        },
+        id: "forgeweave:boots"
+    },
+    nbt: {
+        components: {
+            "forgeweave:armor_stats": {
+                armor: 2.0f,
+                durability: 195,
+                knockback_resistance: 0.0f,
+                toughness: 0.0f
+            },
+            "forgeweave:enchantability": 14,
+            "forgeweave:tool_materials": {
+                head: "forgeweave:iron",
+                parts: [
+                    "forgeweave:iron",
+                    "forgeweave:iron"
+                ]
+            },
+            "forgeweave:traits": [
+                "forgeweave:projectile_protection"
+            ],
+            "minecraft:damage": 0,
+            "minecraft:max_damage": 195
+        },
+        count: 1,
+        id: "forgeweave:boots"
+    },
+    what: "M4-3 (#678): an iron boots -- iron plating over iron maille -- assembled at a Tool Station. The first armor shape: `forgeweave:armor_stats` (the 1.20 clone's PlatingMaterialStats row for iron's boots, copied verbatim: durability 195, armor 2, toughness 0, knockback resistance 0) beside the same `tool_materials`/`traits`/`enchantability` a tool carries, and NO `tool_stats` at all (SCOPE.md D14). `tool_materials.head` is the plating; the maille is only `parts[1]`. The one trait is iron's ARMOR-scoped projectile_protection, granted by both parts and de-duplicated. `max_damage` is the plating's durability (D19). ArmorGameTests assembles this exact piece and asserts the same numbers."
+}

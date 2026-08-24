@@ -153,7 +153,9 @@ public class ToolStationMenu extends StationMenu {
      */
     private static final int TAB_BUTTON_SIZE = 18;
     private static final int TAB_BUTTON_SPACING = 4;
-    private static final int TAB_BUTTON_COLUMNS = 5;
+    // Six since #678: the four armor tabs take the roster to 31, which five columns fold into
+    // seven rows -- past the side panel's room below the column (ToolStationChromeLayoutTest).
+    private static final int TAB_BUTTON_COLUMNS = 6;
     private static final int TAB_BUTTONS_Y = 9;
 
     /** Where the tool-tab column ends, so the side panel can start below it. */
@@ -324,7 +326,7 @@ public class ToolStationMenu extends StationMenu {
             // take the loaded tool's repair item, any modifier recipe's reagent, or an embossment's
             // donor part and reagents.
             return index == HEAD_SLOT
-                    ? stack.getItem() instanceof ToolItem
+                    ? ToolAssemblyRecipes.isAssembled(stack)
                     : ToolAssemblyRecipes.isRepairItemFor(registries, container.getItem(HEAD_SLOT), stack)
                             || ModifierApplication.isReagent(registries, stack)
                             || Embossing.isReagent(registries, stack)
@@ -381,7 +383,7 @@ public class ToolStationMenu extends StationMenu {
         // loaded into these slots can ever assemble here. Build loadouts only: an assembled tool in
         // the head slot is being repaired, modified or embossed, and an existing tool of an off
         // family keeps every one of those.
-        if (!(tool.getItem() instanceof ToolItem)
+        if (!ToolAssemblyRecipes.isAssembled(tool)
                 && inputSlots().stream().anyMatch(stack -> !ContentFamilies.itemEnabled(stack))) {
             return Rejection.error(ContentFamilies.disabledMessage());
         }
@@ -675,7 +677,7 @@ public class ToolStationMenu extends StationMenu {
      */
     private Optional<ToolAssemblyRecipes.Result> renameOnly(ItemStack head) {
         if (toolName.isBlank()
-                || !(head.getItem() instanceof ToolItem)
+                || !ToolAssemblyRecipes.isAssembled(head)
                 || head.getHoverName().getString().equals(toolName)
                 || rejection() != null) {
             return Optional.empty();
@@ -821,7 +823,7 @@ public class ToolStationMenu extends StationMenu {
             // than an already-assembled tool, ToolAssemblyRecipes#resolve's own assembly-vs-repair
             // discriminator -- and only when the resolved tool is one ToolAssemblyRecipes#LARGE_TOOLS
             // gates to the Tool Forge.
-            if (!(head.getItem() instanceof ToolItem)) {
+            if (!ToolAssemblyRecipes.isAssembled(head)) {
                 resolve().map(ToolAssemblyRecipes.Result::output)
                         .flatMap(ToolAssemblyRecipes::entryFor)
                         .filter(ToolAssemblyRecipes::isLargeTool)

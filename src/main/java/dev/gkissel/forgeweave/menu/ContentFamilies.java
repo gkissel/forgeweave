@@ -8,6 +8,7 @@ import net.minecraft.world.item.ItemStack;
 
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.config.ForgeweaveConfig;
+import dev.gkissel.forgeweave.item.ArmorPieceItem;
 import dev.gkissel.forgeweave.item.PartItem;
 import dev.gkissel.forgeweave.item.ToolItem;
 import dev.gkissel.forgeweave.tool.ToolConstants;
@@ -52,6 +53,7 @@ public final class ContentFamilies {
             case HARVEST -> ForgeweaveConfig.HARVEST_TOOLS;
             case MELEE -> ForgeweaveConfig.MELEE_WEAPONS;
             case RANGED -> ForgeweaveConfig.RANGED_WEAPONS;
+            case ARMOR -> ForgeweaveConfig.ARMOR;
         });
     }
 
@@ -90,7 +92,7 @@ public final class ContentFamilies {
      * {@code ForgeweaveItems} already builds them from.
      */
     public static boolean itemEnabled(Item item) {
-        if (item instanceof ToolItem) {
+        if (item instanceof ToolItem || item instanceof ArmorPieceItem) {
             return ToolAssemblyRecipes.ENTRIES.stream()
                     .filter(entry -> entry.tool().get() == item)
                     .findFirst()

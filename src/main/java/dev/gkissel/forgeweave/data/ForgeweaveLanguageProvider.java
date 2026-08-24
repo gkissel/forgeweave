@@ -494,6 +494,19 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
                         + "damage. Can be thrown from the off-hand.");
         // #653 (parity audit T17): upstream item.tconstruct.arrow.name / .desc, minus the
         // avoided-terminology brand word (CONTEXT.md).
+        // M4 armor (issue #678); the part names are #677's.
+        addItem(ForgeweaveItems.ARMOR_HELMET, "Helmet");
+        add("item.forgeweave.helmet.description",
+                "Plating over maille. The plating sets every stat; the maille brings its material's traits.");
+        addItem(ForgeweaveItems.ARMOR_CHESTPLATE, "Chestplate");
+        add("item.forgeweave.chestplate.description",
+                "Plating over maille. The plating sets every stat; the maille brings its material's traits.");
+        addItem(ForgeweaveItems.ARMOR_LEGGINGS, "Leggings");
+        add("item.forgeweave.leggings.description",
+                "Plating over maille. The plating sets every stat; the maille brings its material's traits.");
+        addItem(ForgeweaveItems.ARMOR_BOOTS, "Boots");
+        add("item.forgeweave.boots.description",
+                "Plating over maille. The plating sets every stat; the maille brings its material's traits.");
         addItem(ForgeweaveItems.TOOL_ARROW, "Arrow");
         add("item.forgeweave.arrow.description",
                 "The Arrows are the ammo used for Forgeweave's Bows. One stack provides many shots, "
@@ -663,6 +676,10 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("gui.forgeweave.stat.bonus_ammo", "Bonus Ammo: %s");
         add("gui.forgeweave.stat.fletching_modifier", "Fletching Modifier: %sx");
         add("gui.forgeweave.stat.accuracy", "Accuracy: %s");
+        // #678, the 1.20 clone's tool_stat.tconstruct.{armor,armor_toughness,knockback_resistance} rows.
+        add("gui.forgeweave.stat.armor", "Armor: %s");
+        add("gui.forgeweave.stat.toughness", "Toughness: %s");
+        add("gui.forgeweave.stat.knockback_resistance", "Knockback Resistance: %s");
 
         // What each stat row says on hover (issue #376), ported from upstream 1.12's
         // stat.head/handle/extra.*.desc entries (NOTICE.md). The underlined heading each group sits
@@ -683,6 +700,9 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("gui.forgeweave.stat.drawspeed.desc", "How fast you can draw the bow.");
         add("gui.forgeweave.stat.range.desc", "How far the projectile can be propelled.");
         add("gui.forgeweave.stat.bonus_damage.desc", "Bonus damage dealt on hit. The force of the arrow.");
+        add("gui.forgeweave.stat.armor.desc", "Armor points this piece adds while worn. Reduces most incoming damage.");
+        add("gui.forgeweave.stat.toughness.desc", "Keeps armor effective against heavy hits.");
+        add("gui.forgeweave.stat.knockback_resistance.desc", "Resistance to being knocked back while worn, in percent.");
         add("gui.forgeweave.stat.bowstring_modifier.desc", "Tool durability will be multiplied by this.");
         // #626, upstream stat.shaft.*.desc / stat.fletching.*.desc.
         add("gui.forgeweave.stat.shaft_modifier.desc",

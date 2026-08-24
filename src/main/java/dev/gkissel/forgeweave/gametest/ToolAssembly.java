@@ -72,6 +72,19 @@ final class ToolAssembly {
         return assemble(helper, player, pos, ForgeweaveBlocks.TOOL_FORGE.get(), entry, materials);
     }
 
+    /** The station table's row built from {@code constants} -- armor rows have no {@code ToolItem} to look up by (#678). */
+    static ToolAssemblyRecipes.Entry entryOf(ToolConstants.Entry constants) {
+        return ToolAssemblyRecipes.ENTRIES.stream()
+                .filter(entry -> entry.constants() == constants)
+                .findFirst()
+                .orElseThrow(() -> new AssertionError("no station entry builds " + constants.id()));
+    }
+
+    static ItemStack assembleAt(GameTestHelper helper, Player player, BlockPos pos, Block station,
+            ToolAssemblyRecipes.Entry entry, List<String> materials) {
+        return assemble(helper, player, pos, station, entry, materials);
+    }
+
     private static ItemStack assemble(GameTestHelper helper, Player player, BlockPos pos, Block station,
             ToolAssemblyRecipes.Entry entry, List<String> materials) {
         helper.setBlock(pos, station);

@@ -27,7 +27,7 @@ class ToolStationChromeLayoutTest {
     private static final int PANEL_HEIGHT = 174;
 
     /** {@code ToolStationScreen}: 5-column GuiSideButtons grid, 2px gap, 2px beam end-cap. */
-    private static final int TAB_COLUMN_LEFT = -(5 * 18 + 4 * 4) - 2 - 2;
+    private static final int TAB_COLUMN_LEFT = -(6 * 18 + 5 * 4) - 2 - 2; // six tab columns since #678
     /** Base panel + 2px gap + InfoPanel.WIDTH + the beam's 2px end-cap. */
     private static final int INFO_PANEL_RIGHT = PANEL_WIDTH + 2 + InfoPanel.WIDTH + 2;
 

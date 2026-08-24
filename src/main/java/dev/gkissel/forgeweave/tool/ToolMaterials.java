@@ -97,14 +97,14 @@ public record ToolMaterials(ResourceLocation head, Optional<ResourceLocation> bi
                 // shurikenPMT leads with MaterialTypes.HEAD).
                 // #653: the arrow's head slot is its primary pick too (upstream's arrowHead PMT
                 // leads with MaterialTypes.HEAD, and default repair keys off slot 1).
-                case HEAD, LIMB, SHURIKEN_BLADE, ARROW_HEAD -> head = head == null ? materialIds.get(i) : head;
+                case HEAD, LIMB, SHURIKEN_BLADE, ARROW_HEAD, PLATING -> head = head == null ? materialIds.get(i) : head;
                 case EXTRA -> binding = binding == null ? materialIds.get(i) : binding;
                 // #395: the crossbow's body is its handle part as far as the primary picks go
                 // (upstream's default getRepairParts() = {1} keys repair off the limb, which is the
                 // head pick above, so nothing else changes).
                 case HANDLE, CROSSBOW_BODY -> handle = handle == null ? materialIds.get(i) : handle;
                 // No primary pick: nothing keys off the string, shaft or fletching material.
-                case BOWSTRING, SHAFT, FLETCHING -> { }
+                case BOWSTRING, SHAFT, FLETCHING, MAILLE -> { }
             }
         }
         if (head == null) {
