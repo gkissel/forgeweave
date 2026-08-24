@@ -28,6 +28,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 
 import dev.gkissel.forgeweave.combat.CombatSeam;
+import dev.gkissel.forgeweave.combat.Protection;
 import dev.gkissel.forgeweave.combat.ThornsCounterSeam;
 import dev.gkissel.forgeweave.item.ForgeweaveDataComponents;
 import dev.gkissel.forgeweave.item.ForgeweaveItems;
@@ -90,6 +91,11 @@ class ArmorModifiersTest {
         assertEquals(0.5F, ForgeweaveModifiers.protectionPoints(ForgeweaveModifiers.PROTECTION_STRONG_PER_LEVEL, 1), 1e-6F);
         assertEquals(4.0F, ForgeweaveModifiers.protectionPoints(ForgeweaveModifiers.PROTECTION_WEAK_PER_LEVEL, 10), 1e-6F);
         for (String name : List.of("fire_protection", "blast_protection", "magic_protection", "melee_protection", "projectile_protection")) {
+            float perLevel = name.startsWith("melee") || name.startsWith("projectile") ? 2.0F : 2.5F;
+            Optional<CombatSeam> seam = ForgeweaveModifiers.get(id(name)).combatSeam(5);
+            assertTrue(seam.isPresent() && seam.get() instanceof Protection, name + " rides the shared Protection seam");
+            assertEquals(perLevel, ((Protection) seam.get()).value(), 1e-6F, name + " at level 1");
+            assertEquals(perLevel * 8, ((Protection) ForgeweaveModifiers.get(id(name)).combatSeam(40).get()).value(), 1e-6F);
             assertEquals(5, ForgeweaveModifiers.get(id(name)).unitsPerLevel(), name + " needed_per_level");
             assertEquals(1, ForgeweaveModifiers.get(id(name)).occupiedSlots(5), name + " one slot per level");
             assertEquals(2, ForgeweaveModifiers.get(id(name)).occupiedSlots(6), name + " the sixth unit starts level 2");

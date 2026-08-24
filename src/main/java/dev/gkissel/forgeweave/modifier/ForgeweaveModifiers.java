@@ -62,6 +62,7 @@ import dev.gkissel.forgeweave.combat.IgniteOnHitSeam;
 import dev.gkissel.forgeweave.combat.KnockbackOnHitSeam;
 import dev.gkissel.forgeweave.combat.LifestealOnHitSeam;
 import dev.gkissel.forgeweave.combat.PotionEffectOnHitSeam;
+import dev.gkissel.forgeweave.combat.Protection;
 import dev.gkissel.forgeweave.combat.ThornsCounterSeam;
 import dev.gkissel.forgeweave.client.StationText;
 import dev.gkissel.forgeweave.item.BowItem;
@@ -1167,7 +1168,7 @@ public final class ForgeweaveModifiers {
      * The protection value itself is folded into the blow by M4-5's shared level-parameterised
      * protection seam (issue #680; trait = level 1) -- see {@link #protectionPoints}.
      */
-    private static Modifier protection() {
+    private static Modifier protection(Protection levelOne) {
         return new Modifier() {
             @Override
             public boolean armorOnly() {
@@ -1178,6 +1179,14 @@ public final class ForgeweaveModifiers {
             public int unitsPerLevel() {
                 return PROTECTION_UNITS_PER_LEVEL;
             }
+
+            @Override
+            public Optional<CombatSeam> combatSeam(int level) {
+                // Protection#level is an int, so the clone's fractional effective level is expressed
+                // as "per unit" x units: value() = perLevel / 5 * units == eachLevel * (units / 5).
+                return Optional.of(new Protection(levelOne.perLevel() / PROTECTION_UNITS_PER_LEVEL, level,
+                        levelOne.sources(), levelOne.attacker()));
+            }
         };
     }
 
@@ -1187,15 +1196,20 @@ public final class ForgeweaveModifiers {
     }
 
     /** Seared brick (clone: seared reinforcement), 5 per level. {@code #tconstruct:protection/fire}. */
-    public static final Modifier FIRE_PROTECTION = protection();
+    public static final Modifier FIRE_PROTECTION =
+            protection(Protection.against(Protection.FIRE_PROTECTION, PROTECTION_STRONG_PER_LEVEL));
     /** Crying obsidian (clone: obsidian reinforcement), 5 per level. {@code #tconstruct:protection/blast}. */
-    public static final Modifier BLAST_PROTECTION = protection();
+    public static final Modifier BLAST_PROTECTION =
+            protection(Protection.against(Protection.BLAST_PROTECTION, PROTECTION_STRONG_PER_LEVEL));
     /** Gold ingot (clone: gold reinforcement), 5 per level. {@code #tconstruct:protection/magic}. */
-    public static final Modifier MAGIC_PROTECTION = protection();
+    public static final Modifier MAGIC_PROTECTION =
+            protection(Protection.against(Protection.MAGIC_PROTECTION, PROTECTION_STRONG_PER_LEVEL));
     /** Cobalt ingot (clone: cobalt reinforcement), 5 per level. {@code #tconstruct:protection/melee}, direct only. */
-    public static final Modifier MELEE_PROTECTION = protection();
+    public static final Modifier MELEE_PROTECTION =
+            protection(Protection.against(Protection.MELEE_PROTECTION, PROTECTION_WEAK_PER_LEVEL).directOnly());
     /** Iron ingot (clone: iron reinforcement), 5 per level. {@code #tconstruct:protection/projectile}. */
-    public static final Modifier PROJECTILE_PROTECTION = protection();
+    public static final Modifier PROJECTILE_PROTECTION =
+            protection(Protection.against(Protection.PROJECTILE_PROTECTION, PROTECTION_WEAK_PER_LEVEL));
 
     /** Clone {@code StatBoostModule.add(ToolStats.KNOCKBACK_RESISTANCE).eachLevel(0.1f)}. */
     static final float KNOCKBACK_RESISTANCE_PER_LEVEL = 0.1F;

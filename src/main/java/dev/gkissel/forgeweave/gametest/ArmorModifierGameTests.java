@@ -24,6 +24,8 @@ import dev.gkissel.forgeweave.block.ToolStationBlockEntity;
 import dev.gkissel.forgeweave.combat.CombatDefense;
 import dev.gkissel.forgeweave.combat.CombatSeam;
 import dev.gkissel.forgeweave.combat.CombatSeams;
+import dev.gkissel.forgeweave.combat.DefendedBlow;
+import dev.gkissel.forgeweave.combat.Protection;
 import dev.gkissel.forgeweave.combat.ThornsCounterSeam;
 import dev.gkissel.forgeweave.item.ForgeweaveItems;
 import dev.gkissel.forgeweave.menu.ToolStationMenu;
@@ -82,7 +84,7 @@ public class ArmorModifierGameTests {
     }
 
     /** Five of a protection's reagent buy level 1 and one slot; the sixth starts a second slot. */
-    private static void assertProtection(GameTestHelper helper, String name, ItemStack reagent) {
+    private static void assertProtection(GameTestHelper helper, String name, float perLevel, ItemStack reagent) {
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         ItemStack piece = chestplate(helper, player);
         helper.assertTrue(ForgeweaveModifiers.freeSlots(piece) == ForgeweaveModifiers.DEFAULT_SLOTS,
@@ -93,6 +95,9 @@ public class ArmorModifierGameTests {
         helper.assertTrue(ForgeweaveModifiers.displayLevel(id(name), 5) == 1, name + " shows level I");
         helper.assertTrue(ForgeweaveModifiers.freeSlots(one) == ForgeweaveModifiers.DEFAULT_SLOTS - 1,
                 name + ": level 1 costs one slot, free " + ForgeweaveModifiers.freeSlots(one));
+        // #680's shared Protection seam, at this modifier's effective level.
+        helper.assertTrue(CombatSeams.seams(one).stream().anyMatch(seam -> seam instanceof Protection protection
+                && Math.abs(protection.value() - perLevel) < 1e-6F), name + " I resolves to " + perLevel + " protection, got " + CombatSeams.seams(one));
         ItemStack two = apply(helper, player, one, reagent.copyWithCount(1));
         helper.assertTrue(ForgeweaveModifiers.freeSlots(two) == ForgeweaveModifiers.DEFAULT_SLOTS - 2,
                 name + ": the sixth unit opens level 2 and charges a second slot");
@@ -101,27 +106,27 @@ public class ArmorModifierGameTests {
 
     @GameTest(template = "empty")
     public static void fiveSearedBricksBuyFireProtectionOne(GameTestHelper helper) {
-        assertProtection(helper, "fire_protection", new ItemStack(ForgeweaveItems.SEARED_BRICK.get()));
+        assertProtection(helper, "fire_protection", 2.5F, new ItemStack(ForgeweaveItems.SEARED_BRICK.get()));
     }
 
     @GameTest(template = "empty")
     public static void fiveCryingObsidianBuyBlastProtectionOne(GameTestHelper helper) {
-        assertProtection(helper, "blast_protection", new ItemStack(Items.CRYING_OBSIDIAN));
+        assertProtection(helper, "blast_protection", 2.5F, new ItemStack(Items.CRYING_OBSIDIAN));
     }
 
     @GameTest(template = "empty")
     public static void fiveGoldIngotsBuyMagicProtectionOne(GameTestHelper helper) {
-        assertProtection(helper, "magic_protection", new ItemStack(Items.GOLD_INGOT));
+        assertProtection(helper, "magic_protection", 2.5F, new ItemStack(Items.GOLD_INGOT));
     }
 
     @GameTest(template = "empty")
     public static void fiveCobaltIngotsBuyMeleeProtectionOne(GameTestHelper helper) {
-        assertProtection(helper, "melee_protection", new ItemStack(ForgeweaveItems.INGOT_COBALT.get()));
+        assertProtection(helper, "melee_protection", 2.0F, new ItemStack(ForgeweaveItems.INGOT_COBALT.get()));
     }
 
     @GameTest(template = "empty")
     public static void fiveIronIngotsBuyProjectileProtectionOne(GameTestHelper helper) {
-        assertProtection(helper, "projectile_protection", new ItemStack(Items.IRON_INGOT));
+        assertProtection(helper, "projectile_protection", 2.0F, new ItemStack(Items.IRON_INGOT));
     }
 
     /**
@@ -132,7 +137,11 @@ public class ArmorModifierGameTests {
     @GameTest(template = "empty")
     public static void anAnvilBuysKnockbackResistanceWornAsAnAttribute(GameTestHelper helper) {
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
-        ItemStack piece = apply(helper, player, chestplate(helper, player), new ItemStack(Items.ANVIL));
+        ItemStack plain = chestplate(helper, player);
+        player.setItemSlot(EquipmentSlot.CHEST, plain);
+        player.tick();
+        double base = player.getAttributeValue(Attributes.KNOCKBACK_RESISTANCE); // the plating's own (#680: iron's trait adds some)
+        ItemStack piece = apply(helper, player, plain, new ItemStack(Items.ANVIL));
         ModifierEntry entry = ForgeweaveModifiers.entry(piece, id("knockback_resistance"));
         helper.assertTrue(entry != null && entry.level() == 1, "an anvil records level 1, got " + entry);
         helper.assertTrue(ForgeweaveModifiers.freeSlots(piece) == ForgeweaveModifiers.DEFAULT_SLOTS - 1, "and takes one slot");
@@ -141,7 +150,7 @@ public class ArmorModifierGameTests {
         player.setItemSlot(EquipmentSlot.CHEST, piece);
         player.tick();
         double resistance = player.getAttributeValue(Attributes.KNOCKBACK_RESISTANCE);
-        helper.assertTrue(Math.abs(resistance - 0.1) < 1e-6, "worn, the piece grants 0.1 knockback resistance, got " + resistance);
+        helper.assertTrue(Math.abs(resistance - base - 0.1) < 1e-6, "worn, the modifier adds 0.1 knockback resistance over " + base + ", got " + resistance);
         helper.succeed();
     }
 
@@ -166,8 +175,9 @@ public class ArmorModifierGameTests {
         float before = zombie.getHealth();
         CombatDefense defense = new CombatDefense(helper.getLevel(), worn, player, zombie,
                 helper.getLevel().damageSources().mobAttack(zombie), false, false);
-        float damage = new ThornsCounterSeam(1.0F, 1.0F, 3.0F).incomingHit(defense, 4.0F, 4.0F);
-        helper.assertTrue(damage == 4.0F, "thorns never changes the incoming blow");
+        DefendedBlow blow = new DefendedBlow(4.0F);
+        new ThornsCounterSeam(1.0F, 1.0F, 3.0F).onDefend(defense, blow);
+        helper.assertTrue(blow.damage() == 4.0F && blow.protection() == 0.0F, "thorns never changes the incoming blow");
         float dealt = before - zombie.getHealth();
         helper.assertTrue(dealt >= 1.0F && dealt <= 4.0F, "a guaranteed roll deals 1 to 4 back, dealt " + dealt);
         helper.assertTrue(worn.getDamageValue() == 1, "the counter costs the piece one durability, got " + worn.getDamageValue());
@@ -176,7 +186,7 @@ public class ArmorModifierGameTests {
         CombatDefense arrow = new CombatDefense(helper.getLevel(), worn, player, zombie,
                 helper.getLevel().damageSources().arrow(null, zombie), false, false);
         float health = zombie.getHealth();
-        new ThornsCounterSeam(1.0F, 1.0F, 3.0F).incomingHit(arrow, 4.0F, 4.0F);
+        new ThornsCounterSeam(1.0F, 1.0F, 3.0F).onDefend(arrow, new DefendedBlow(4.0F));
         helper.assertTrue(zombie.getHealth() == health, "an indirect blow is not countered");
         helper.succeed();
     }
