@@ -240,15 +240,10 @@ public class ForgeweaveItemModelProvider extends ItemModelProvider {
         // one model layer per part, so a two-part M3 weapon gets two layers and a three-part one gets
         // three, and no tool can be registered without a model or vice versa.
         for (ToolAssemblyRecipes.Entry entry : ToolAssemblyRecipes.ENTRIES) {
-            if (entry.constants().category() == ToolConstants.Category.ARMOR) {
-                // ponytail: #678 ships the armor with vanilla's iron item art as a placeholder;
-                // #679 replaces it with the tinted two-layer render.
-                getBuilder(BuiltInRegistries.ITEM.getKey(entry.tool().get()).toString())
-                        .parent(new ModelFile.UncheckedModelFile("item/generated"))
-                        .texture("layer0", mcLoc("item/iron_" + entry.constants().id()));
-                continue;
-            }
-            toolModel(entry.tool(), entry.constants().id(), ToolArt.layers(entry.constants().parts()));
+            // #679: a plate armor piece is the same maille-behind-plating layer stack (ToolArt#layers)
+            // with the same broken-plating override, over the flat item/generated -- it is worn, not held.
+            toolModel(entry.tool(), entry.constants().id(), ToolArt.layers(entry.constants().parts()),
+                    entry.constants().category() == ToolConstants.Category.ARMOR ? "item/generated" : TOOL_MODEL_PARENT);
         }
 
         // The M3 station tools (issue #156) come out of that same loop; their textures are upstream
@@ -417,16 +412,16 @@ public class ForgeweaveItemModelProvider extends ItemModelProvider {
                 .texture("layer0", texture);
     }
 
-    private void toolModel(Supplier<? extends Item> item, String tool, List<String> layers) {
+    private void toolModel(Supplier<? extends Item> item, String tool, List<String> layers, String parent) {
         ItemModelBuilder builder = toolLayerModel(
-                BuiltInRegistries.ITEM.getKey(item.get()).toString(), tool, layers, null);
+                BuiltInRegistries.ITEM.getKey(item.get()).toString(), tool, layers, null, parent);
         drawStageOverrides(builder, tool, layers);
         String broken = ToolArt.brokenLayer(tool);
         if (broken != null) {
             // Last, so it wins: vanilla resolves overrides by "the last entry whose every predicate
             // still matches", and a Broken bow must render broken whatever else is true of it.
             builder.override().predicate(BROKEN_PREDICATE, 1)
-                    .model(toolLayerModel(tool + "_broken", tool, layers, broken)).end();
+                    .model(toolLayerModel(tool + "_broken", tool, layers, broken, parent)).end();
         }
     }
 
@@ -491,9 +486,9 @@ public class ForgeweaveItemModelProvider extends ItemModelProvider {
      * toolMaterialTint}'s tintIndex-to-part mapping keeps working across the swap, and both get the
      * tool's display transforms.
      */
-    private ItemModelBuilder toolLayerModel(String name, String tool, List<String> layers, String brokenLayer) {
-        ItemModelBuilder builder =
-                getBuilder(name).parent(new ModelFile.UncheckedModelFile(TOOL_MODEL_PARENT));
+    private ItemModelBuilder toolLayerModel(String name, String tool, List<String> layers, String brokenLayer,
+            String parent) {
+        ItemModelBuilder builder = getBuilder(name).parent(new ModelFile.UncheckedModelFile(parent));
         for (int layer = 0; layer < layers.size(); layer++) {
             String art = layers.get(layer);
             builder.texture("layer" + layer, art.equals(brokenLayer)

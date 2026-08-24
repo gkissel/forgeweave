@@ -77,6 +77,7 @@ import dev.gkissel.forgeweave.block.SmelteryControllerBlockEntity;
 import dev.gkissel.forgeweave.block.StationMenuHost;
 import dev.gkissel.forgeweave.block.ToolStationBlockEntity;
 import dev.gkissel.forgeweave.fluid.ForgeweaveFluids;
+import dev.gkissel.forgeweave.item.ArmorPieceItem;
 import dev.gkissel.forgeweave.item.BowItem;
 import dev.gkissel.forgeweave.item.CrossbowItem;
 import dev.gkissel.forgeweave.item.ForgeweaveDataComponents;
@@ -385,7 +386,7 @@ public final class ScreenshotHarness {
         PLACE_TABLE_SCENE, SETTLE_TABLE_SCENE, PLACE_SMELTERY_SCENE, SETTLE_SMELTERY_SCENE,
         PLACE_CASTING_SCENE, SETTLE_CASTING_SCENE, PLACE_MATERIAL_SCENE, SETTLE_MATERIAL_SCENE,
         PLACE_PART_TINT_SCENE, SETTLE_PART_TINT_SCENE,
-        HOLD_WEAPON, SETTLE_WEAPON, SETTLE_WEAPON_FIRST_PERSON,
+        HOLD_WEAPON, SETTLE_WEAPON, SETTLE_WEAPON_FIRST_PERSON, WEAR_ARMOR, SETTLE_ARMOR,
         HOLD_BOW_POSE, SETTLE_BOW_POSE, SETTLE_BOW_POSE_THIRD_PERSON,
         FIRE_BOW_SETUP, FIRE_BOW_DRAW, FIRE_BOW_CHECK,
         OPEN_SCREEN, SETTLE_SCREEN, OPEN_BOOK, SETTLE_BOOK, DONE
@@ -468,6 +469,8 @@ public final class ScreenshotHarness {
             case HOLD_WEAPON -> holdWeapon(mc);
             case SETTLE_WEAPON -> settleWeapon(mc);
             case SETTLE_WEAPON_FIRST_PERSON -> settleWeaponFirstPerson(mc);
+            case WEAR_ARMOR -> wearArmor(mc);
+            case SETTLE_ARMOR -> settleArmor(mc);
             case HOLD_BOW_POSE -> holdBowPose(mc);
             case SETTLE_BOW_POSE -> settleBowPose(mc);
             case SETTLE_BOW_POSE_THIRD_PERSON -> settleBowPoseThirdPerson(mc);
@@ -1154,8 +1157,7 @@ public final class ScreenshotHarness {
         // The two indices past the list are the #257 modified-broadsword and #284 broken-broadsword
         // poses; see currentWeaponFileName.
         if (weaponIndex > WEAPONS.size() + 1) {
-            mc.options.setCameraType(CameraType.FIRST_PERSON);
-            advance(Stage.FIRE_BOW_SETUP);
+            advance(Stage.WEAR_ARMOR);
             return;
         }
         ToolItem weapon = currentWeapon();
@@ -1214,6 +1216,73 @@ public final class ScreenshotHarness {
         weaponIndex++;
         advance(Stage.HOLD_WEAPON);
     }
+
+    /**
+     * Issue #679's in-world scene, {@code armor_iron.png}: the full iron plate set (iron plating,
+     * iron maille) worn by the player, captured from the front in third person -- the one render
+     * path that exercises {@code ArmorPieceItem#PLATE_MATERIAL}'s two worn layers and the
+     * per-material texture pick, which no inventory sprite does. The pieces are assembled through
+     * {@link #assembleForDisplay}, the station's own call, so the worn stack carries real materials.
+     * M4-7 extends this stage with more materials.
+     */
+    private static void wearArmor(Minecraft mc) {
+        if (stageTicks < SCREEN_GAP_TICKS) {
+            return;
+        }
+        var server = mc.getSingleplayerServer();
+        LOGGER.info("{}wearing the iron plate set for its third-person capture", LOG_PREFIX);
+        server.execute(() -> {
+            ServerPlayer serverPlayer = server.getPlayerList().getPlayers().get(0);
+            serverPlayer.setItemInHand(InteractionHand.MAIN_HAND, ItemStack.EMPTY);
+            for (Supplier<ArmorPieceItem> piece : ARMOR_SET) {
+                ItemStack stack = assembleForDisplay(serverPlayer, piece.get());
+                if (stack.isEmpty()) {
+                    LOGGER.error("{}#679 scene check FAILED: could not assemble {}", LOG_PREFIX, weaponName(piece.get()));
+                }
+                serverPlayer.setItemSlot(piece.get().getEquipmentSlot(), stack);
+            }
+            BlockPos stand = origin.offset(0, 0, -WEAPON_SCENE_DISTANCE);
+            serverPlayer.teleportTo(stand.getX() + 0.5, stand.getY(), stand.getZ() + 0.5);
+            serverPlayer.setYRot(180.0F);
+            serverPlayer.setXRot(0.0F);
+        });
+        mc.options.setCameraType(CameraType.THIRD_PERSON_FRONT);
+        advance(Stage.SETTLE_ARMOR);
+    }
+
+    private static void settleArmor(Minecraft mc) {
+        if (stageTicks < SCREEN_SETTLE_TICKS) {
+            return;
+        }
+        if (mc.player != null) {
+            for (Supplier<ArmorPieceItem> piece : ARMOR_SET) {
+                ItemStack worn = mc.player.getItemBySlot(piece.get().getEquipmentSlot());
+                if (!worn.is(piece.get())) {
+                    LOGGER.error("{}#679 scene check FAILED: client wears {} where {} was expected", LOG_PREFIX, worn,
+                            weaponName(piece.get()));
+                } else {
+                    LOGGER.info("{}#679 scene check: client wears {} with materials {}", LOG_PREFIX,
+                            weaponName(piece.get()), worn.get(ForgeweaveDataComponents.TOOL_MATERIALS.get()));
+                }
+            }
+        }
+        capture(mc, "armor_iron");
+        // Off again, so the bow frames that follow keep their bare-player silhouette.
+        var server = mc.getSingleplayerServer();
+        server.execute(() -> {
+            ServerPlayer serverPlayer = server.getPlayerList().getPlayers().get(0);
+            for (Supplier<ArmorPieceItem> piece : ARMOR_SET) {
+                serverPlayer.setItemSlot(piece.get().getEquipmentSlot(), ItemStack.EMPTY);
+            }
+        });
+        mc.options.setCameraType(CameraType.FIRST_PERSON);
+        advance(Stage.FIRE_BOW_SETUP);
+    }
+
+    /** The four plate pieces {@link #wearArmor} puts on, in vanilla's slot order. */
+    private static final List<Supplier<ArmorPieceItem>> ARMOR_SET = List.of(
+            ForgeweaveItems.ARMOR_HELMET, ForgeweaveItems.ARMOR_CHESTPLATE,
+            ForgeweaveItems.ARMOR_LEGGINGS, ForgeweaveItems.ARMOR_BOOTS);
 
     /**
      * {@link #WEAPONS} by index, or the broadsword for the two extra poses past the end: #257's
@@ -1419,12 +1488,12 @@ public final class ScreenshotHarness {
     }
 
     /** The tool the Tool Station would build from an iron head and wooden everything else. */
-    private static ItemStack assembleForDisplay(ServerPlayer player, ToolItem weapon) {
+    private static ItemStack assembleForDisplay(ServerPlayer player, Item weapon) {
         return assembleForDisplay(player, weapon, "iron");
     }
 
     /** As above with the head material chosen by the caller -- #236's wall builds one per material. */
-    private static ItemStack assembleForDisplay(ServerPlayer player, ToolItem weapon, String headMaterial) {
+    private static ItemStack assembleForDisplay(ServerPlayer player, Item weapon, String headMaterial) {
         return ToolAssemblyRecipes.entryFor(new ItemStack(weapon))
                 .flatMap(entry -> ToolAssemblyRecipes.assemble(player.registryAccess(), entry,
                         entry.constants().parts().stream()
@@ -1436,6 +1505,8 @@ public final class ScreenshotHarness {
                                     case BOWSTRING -> material("string");
                                     // #653: the arrow's fletching slot likewise takes no wood.
                                     case FLETCHING -> material("feather");
+                                    // #679: the plate set's plating and maille are the head material too.
+                                    case PLATING, MAILLE -> material(headMaterial);
                                     default -> material("wood"); // a SHAFT slot: wood has shaft stats
                                 })
                                 .toList()))
@@ -1446,7 +1517,7 @@ public final class ScreenshotHarness {
         return ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, name);
     }
 
-    private static String weaponName(ToolItem weapon) {
+    private static String weaponName(Item weapon) {
         return BuiltInRegistries.ITEM.getKey(weapon).getPath();
     }
 

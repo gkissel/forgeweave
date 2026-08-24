@@ -245,9 +245,6 @@ class TextureReferenceAuditTest {
     void everyToolLayerHasArt() {
         Path textures = projectRoot().resolve("src/main/resources/assets/forgeweave/textures");
         for (ToolAssemblyRecipes.Entry entry : ToolAssemblyRecipes.ENTRIES) {
-            if (entry.constants().category() == ToolConstants.Category.ARMOR) {
-                continue; // #679 lands the armor render; #678 ships vanilla placeholder art
-            }
             String tool = entry.constants().id();
             for (String layer : ToolArt.layers(entry.constants().parts())) {
                 Path png = textures.resolve(ToolArt.layer(tool, layer) + ".png");
@@ -277,7 +274,7 @@ class TextureReferenceAuditTest {
 
         for (ToolAssemblyRecipes.Entry entry : ToolAssemblyRecipes.ENTRIES) {
             if (entry.constants().category() == ToolConstants.Category.ARMOR) {
-                continue; // #679 lands the armor render; #678 ships vanilla placeholder art
+                continue; // #679: armor is worn, not held -- item/generated, see everyArmorModelIsFlat
             }
             String tool = entry.constants().id();
             Path json = models.resolve(tool + ".json");
@@ -300,6 +297,25 @@ class TextureReferenceAuditTest {
         JsonArray cleaverScale = cleaver.getAsJsonObject("display")
                 .getAsJsonObject("thirdperson_righthand").getAsJsonArray("scale");
         assertEquals(1.5f, cleaverScale.get(0).getAsFloat(), "cleaver third-person scale (upstream cleaver.tcon.json)");
+    }
+
+    /**
+     * Issue #679: a plate armor piece is worn, not swung, so its model is the flat {@code item/generated}
+     * over the same per-part layer stack the tools use (maille behind, plating in front), tinted by
+     * {@code ForgeweaveItemColors#toolMaterialTint} like any tool -- never the handheld transforms
+     * the test above pins for the tools, and never #678's vanilla {@code item/iron_<piece>} placeholder.
+     */
+    @Test
+    void everyArmorModelIsFlatOverItsPartLayers() throws IOException {
+        Path models = projectRoot().resolve("src/generated/resources/assets/forgeweave/models/item");
+        for (ToolConstants.Entry piece : ToolConstants.ARMOR) {
+            JsonObject model = JsonParser.parseString(
+                    Files.readString(models.resolve(piece.id() + ".json"), StandardCharsets.UTF_8)).getAsJsonObject();
+            assertEquals("minecraft:item/generated", model.get("parent").getAsString(), piece.id());
+            JsonObject textures = model.getAsJsonObject("textures");
+            assertEquals("forgeweave:derived/tools/" + piece.id() + "_maille", textures.get("layer0").getAsString(), piece.id());
+            assertEquals("forgeweave:derived/tools/" + piece.id() + "_plating", textures.get("layer1").getAsString(), piece.id());
+        }
     }
 
     /** Sanity check that the scan actually exercises the GUI textures the regression was about. */

@@ -62,6 +62,10 @@ a manual step, not a CI gate; it requires a display (or `xvfb` on a headless box
 and uses `xvfb-run` automatically). New screens register themselves in
 `dev.gkissel.forgeweave.client.ScreenshotHarness`.
 
+Also review `armor_iron.png` (issue #679): the full iron plate set worn in third person. Both layers
+must show -- the maille (chain) visible in the gaps of the plating, both in iron's grey -- with no
+purple missing-texture patches and no layer bleeding through where the plating should cover it.
+
 ## Publishing
 
 From the branch or commit being released:

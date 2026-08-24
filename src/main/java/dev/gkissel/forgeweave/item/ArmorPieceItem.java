@@ -1,6 +1,7 @@
 package dev.gkissel.forgeweave.item;
 
 import java.util.List;
+import java.util.Map;
 import java.util.function.Consumer;
 
 import org.jetbrains.annotations.Nullable;
@@ -9,16 +10,20 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.core.Holder;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.EquipmentSlotGroup;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.item.ArmorItem;
-import net.minecraft.world.item.ArmorMaterials;
+import net.minecraft.world.item.ArmorMaterial;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.component.ItemAttributeModifiers;
+import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.item.enchantment.Enchantment;
 
 import dev.gkissel.forgeweave.Forgeweave;
@@ -43,14 +48,63 @@ import dev.gkissel.forgeweave.tool.ToolMaterials;
  * ({@code #getAttributeModifiers}), durability damage clamps at Broken instead of destroying the
  * piece ({@code #damageItem}), and the anvil never repairs it ({@code #isValidRepairItem}).
  *
- * <p>ponytail: the {@link ArmorMaterials#IRON} holder is a placeholder for the render layer only --
- * #679 lands the two-layer tinted model. Nothing else reads it: defense, toughness, enchantability
- * and repair are all overridden below.
+ * <h2>Worn render (issue #679, D18)</h2>
+ *
+ * <p>The 1.20 clone's {@code ArmorModelProvider} plate model is two texture layers -- {@code
+ * plating_} over {@code maille_}, each palette-baked per material by {@code
+ * MaterialArmorTextureSupplier} -- drawn by its own {@code MultilayerArmorModel}. Vanilla's
+ * {@code HumanoidArmorLayer} already draws one pass per {@link ArmorMaterial.Layer}, so
+ * {@link #plateMaterial} declares exactly those two (maille first, plating on top: with the depth
+ * test at {@code LEQUAL} the later pass wins where they overlap) and {@link #getArmorTexture} swaps
+ * each pass's file for the per-material one {@code scripts/derive_armor_art.py} pre-tints from
+ * {@code Material.color} -- the flat tint every tool layer gets (ADR-0002), baked at generation time
+ * as D18 asks. No custom model class, no data-driven texture manager. The material's stats are dead
+ * weight: defense, toughness, enchantability and repair are all overridden below.
  */
 public class ArmorPieceItem extends ArmorItem {
 
+    private static ResourceLocation id(String path) {
+        return ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, path);
+    }
+
+    /** {@code textures/models/armor/derived/maille_layer_{1,2}.png}, the clone's {@code maille_{armor,leggings}.png}. */
+    private static final ArmorMaterial.Layer MAILLE_LAYER = new ArmorMaterial.Layer(id("derived/maille"));
+    /** {@code textures/models/armor/derived/plating_layer_{1,2}.png}, the clone's {@code plating_{armor,leggings}.png}. */
+    private static final ArmorMaterial.Layer PLATING_LAYER = new ArmorMaterial.Layer(id("derived/plating"));
+
+    /**
+     * {@link ForgeweaveItems#PLATE_ARMOR_MATERIAL}'s value -- registered from there rather than here
+     * because the armor-material registry event fires before the item one that first loads this
+     * class, and a {@code DeferredRegister} entry added after its event is an error.
+     */
+    static ArmorMaterial plateMaterial() {
+        return new ArmorMaterial(Map.of(), 0, SoundEvents.ARMOR_EQUIP_IRON, () -> Ingredient.EMPTY,
+                List.of(MAILLE_LAYER, PLATING_LAYER), 0.0F, 0.0F);
+    }
+
     public ArmorPieceItem(Type type, Properties properties) {
-        super(ArmorMaterials.IRON, type, properties);
+        super(ForgeweaveItems.PLATE_ARMOR_MATERIAL, type, properties);
+    }
+
+    /**
+     * The worn pass's per-material file: {@code textures/models/armor/derived/<part>_<material>_layer_<N>.png},
+     * the plating pass off the stack's plating (head) material and the maille pass off its maille.
+     * A stack without materials (creative-tab dummy, corrupted save) keeps the gray base.
+     */
+    @Nullable
+    @Override
+    public ResourceLocation getArmorTexture(ItemStack stack, Entity entity, EquipmentSlot slot, ArmorMaterial.Layer layer,
+            boolean innerModel) {
+        ToolMaterials materials = stack.get(ForgeweaveDataComponents.TOOL_MATERIALS.get());
+        if (materials == null || materials.parts().size() < 2) {
+            return null;
+        }
+        // ToolConstants#armor: part slot 0 is the plating, slot 1 the maille.
+        ResourceLocation material = materials.parts().get(PLATING_LAYER.equals(layer) ? 0 : 1);
+        String part = PLATING_LAYER.equals(layer) ? "plating" : "maille";
+        // ponytail: a datapack material with no generated file renders vanilla's missing texture,
+        // loudly; the upgrade path is a runtime getArmorLayerTintColor tint over the gray base.
+        return id("textures/models/armor/derived/" + part + "_" + material.getPath() + "_layer_" + (innerModel ? 2 : 1) + ".png");
     }
 
     /** The plating material prefixes the name, as a tool's head does ({@link ToolItem#getName}). */

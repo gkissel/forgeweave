@@ -69,10 +69,12 @@ public final class ToolArt {
     /**
      * Back-to-front drawing order of the roles; see the class javadoc. The arrow's three (#653)
      * follow upstream's {@code arrow.tcon.json}: layer0 shaft, layer1 head, layer2 fletching --
-     * SHAFT before every head role, FLETCHING last on top.
+     * SHAFT before every head role, FLETCHING last on top. Armor (#679, D18): MAILLE behind PLATING,
+     * the 1.20 clone's {@code plate_<piece>.json} layer order (maille layer0, plating layer1).
      */
     private static final List<ToolConstants.Role> LAYER_ORDER =
-            List.of(ToolConstants.Role.SHAFT, ToolConstants.Role.HANDLE, ToolConstants.Role.HEAD,
+            List.of(ToolConstants.Role.MAILLE, ToolConstants.Role.PLATING,
+                    ToolConstants.Role.SHAFT, ToolConstants.Role.HANDLE, ToolConstants.Role.HEAD,
                     ToolConstants.Role.ARROW_HEAD, ToolConstants.Role.SHURIKEN_BLADE,
                     ToolConstants.Role.CROSSBOW_BODY, ToolConstants.Role.LIMB, ToolConstants.Role.EXTRA,
                     ToolConstants.Role.BOWSTRING, ToolConstants.Role.FLETCHING);
@@ -83,18 +85,21 @@ public final class ToolArt {
      * blade each, in slot order -- so the four come out {@code head}..{@code head4}, and the only
      * tool with both roles would have to exist upstream first for the shared name to collide.
      */
-    private static final Map<ToolConstants.Role, String> ROLE_LAYERS = new EnumMap<>(Map.of(
-            ToolConstants.Role.HANDLE, "handle",
-            ToolConstants.Role.HEAD, "head",
-            ToolConstants.Role.EXTRA, "binding",
-            ToolConstants.Role.LIMB, "limb",
-            ToolConstants.Role.BOWSTRING, "string",
-            ToolConstants.Role.CROSSBOW_BODY, "body",
-            ToolConstants.Role.SHURIKEN_BLADE, "head",
+    private static final Map<ToolConstants.Role, String> ROLE_LAYERS = new EnumMap<>(Map.ofEntries(
+            Map.entry(ToolConstants.Role.HANDLE, "handle"),
+            Map.entry(ToolConstants.Role.HEAD, "head"),
+            Map.entry(ToolConstants.Role.EXTRA, "binding"),
+            Map.entry(ToolConstants.Role.LIMB, "limb"),
+            Map.entry(ToolConstants.Role.BOWSTRING, "string"),
+            Map.entry(ToolConstants.Role.CROSSBOW_BODY, "body"),
+            Map.entry(ToolConstants.Role.SHURIKEN_BLADE, "head"),
             // #653, arrow.tcon.json's own texture names: shaft, head, fletching.
-            ToolConstants.Role.ARROW_HEAD, "head",
-            ToolConstants.Role.SHAFT, "shaft",
-            ToolConstants.Role.FLETCHING, "fletching"));
+            Map.entry(ToolConstants.Role.ARROW_HEAD, "head"),
+            Map.entry(ToolConstants.Role.SHAFT, "shaft"),
+            Map.entry(ToolConstants.Role.FLETCHING, "fletching"),
+            // #679: the 1.20 clone's own layer names for plate armor.
+            Map.entry(ToolConstants.Role.PLATING, "plating"),
+            Map.entry(ToolConstants.Role.MAILLE, "maille")));
 
     /**
      * The part slot each model layer draws, in layer order -- the one place the art's back-to-front
@@ -187,7 +192,13 @@ public final class ToolArt {
             Map.entry("shuriken", "head"),
             // #653: the one upstream tool that breaks a layer other than its head or string --
             // arrow.tcon.json's broken0 is the shaft (items/arrow/shaft_broken.png).
-            Map.entry("arrow", "shaft"));
+            Map.entry("arrow", "shaft"),
+            // #679: the 1.20 clone's plate_<piece>.json breaks its plating layer (plating_broken.png
+            // beside plating.png; the maille has broken art only for its _metal palette variant).
+            Map.entry("helmet", "plating"),
+            Map.entry("chestplate", "plating"),
+            Map.entry("leggings", "plating"),
+            Map.entry("boots", "plating"));
 
     /**
      * The layer name {@code tool} draws broken art for, or {@code null} if it has none; see

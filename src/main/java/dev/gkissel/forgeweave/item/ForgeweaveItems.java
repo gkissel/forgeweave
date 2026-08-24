@@ -11,11 +11,13 @@ import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.food.FoodProperties;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.ArmorItem;
+import net.minecraft.world.item.ArmorMaterial;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.Block;
 
 import net.neoforged.neoforge.common.DeferredSpawnEggItem;
 import net.neoforged.neoforge.registries.DeferredBlock;
+import net.neoforged.neoforge.registries.DeferredHolder;
 import net.neoforged.neoforge.registries.DeferredItem;
 import net.neoforged.neoforge.registries.DeferredRegister;
 
@@ -385,6 +387,9 @@ public final class ForgeweaveItems {
     // M4 plate armor (issue #678, SCOPE.md D3): the four pieces, assembled from plating + maille at
     // either station (ToolConstants#ARMOR, ToolAssemblyRecipes#ENTRIES). Vanilla ArmorItems so the
     // slot, equip and armor-damage paths are vanilla's -- see ArmorPieceItem.
+    /** The two-layer worn render (#679): see {@link ArmorPieceItem#plateMaterial}. */
+    public static final DeferredHolder<ArmorMaterial, ArmorMaterial> PLATE_ARMOR_MATERIAL =
+            SlimeBootsItem.ARMOR_MATERIALS.register("plate", ArmorPieceItem::plateMaterial);
     public static final DeferredItem<ArmorPieceItem> ARMOR_HELMET = armor("helmet", ArmorItem.Type.HELMET);
     public static final DeferredItem<ArmorPieceItem> ARMOR_CHESTPLATE = armor("chestplate", ArmorItem.Type.CHESTPLATE);
     public static final DeferredItem<ArmorPieceItem> ARMOR_LEGGINGS = armor("leggings", ArmorItem.Type.LEGGINGS);

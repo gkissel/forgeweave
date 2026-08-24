@@ -61,6 +61,11 @@ public final class ModifierArt {
         // Every forgeweave:fortification.<material> id shares one overlay file per tool; see
         // {@link #FORTIFICATION}.
         ResourceLocation family = Fortification.isFortification(modifier) ? FORTIFICATION : modifier;
+        // #679: upstream 1.12 has no armor, so no armor piece has any modifier overlay art to derive
+        // (M4's defense modifier family renders through the worn layers, not item overlays).
+        if (ToolConstants.ARMOR.stream().anyMatch(piece -> piece.id().equals(tool))) {
+            return null;
+        }
         if (!OVERLAY_MODIFIERS.contains(family) || NO_UPSTREAM_ART.contains(tool + "_" + family.getPath())) {
             return null;
         }
