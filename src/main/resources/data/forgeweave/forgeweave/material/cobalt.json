@@ -14,8 +14,16 @@
     "range": 1.3,
     "bonus_damage": 3.0
   },
+  "plating": {
+    "helmet": { "durability": 330, "armor": 2.0, "toughness": 1.0, "knockback_resistance": 0.05 },
+    "chestplate": { "durability": 480, "armor": 7.0, "toughness": 1.0, "knockback_resistance": 0.05 },
+    "leggings": { "durability": 450, "armor": 5.0, "toughness": 1.0, "knockback_resistance": 0.05 },
+    "boots": { "durability": 390, "armor": 2.0, "toughness": 1.0, "knockback_resistance": 0.05 }
+  },
+  "maille": true,
   "incorrect_for_tool": "minecraft:incorrect_for_netherite_tool",
   "traits": {
+    "armor": ["forgeweave:melee_protection"],
     "general": ["forgeweave:lightweight"],
     "head": ["forgeweave:momentum"]
   },

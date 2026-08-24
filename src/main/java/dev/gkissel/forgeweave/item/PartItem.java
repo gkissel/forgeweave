@@ -81,6 +81,10 @@ public class PartItem extends Item {
          * {@code enderference} on arrow heads ({@code Material.Traits}).
          */
         PROJECTILE,
+        /** Armor plating (issue #676, M4-1): the piece's whole stat block, one part per armor piece. */
+        PLATING,
+        /** Armor maille (issue #676): statless -- traits and the inner texture layer only. */
+        MAILLE,
         /** No stat block of its own -- the shard, which is a leftover rather than a buildable part. */
         NONE
     }
@@ -241,7 +245,8 @@ public class PartItem extends Item {
             case SHAFT -> StationText.shaftStats(material);
             case FLETCHING -> StationText.fletchingStats(material);
             // No part item registers as PROJECTILE (a dummy stat scope, #653); nothing to show.
-            case PROJECTILE, NONE -> List.of();
+            // ponytail: PLATING stat lines land with the part items and StationText rows (#677).
+            case PROJECTILE, PLATING, MAILLE, NONE -> List.of();
         };
     }
 

@@ -129,11 +129,16 @@ public class ModernMaterialGameTests {
                 "chorus", "enderference",
                 "ancient", "vintage");
 
+        // #676 (SCOPE.md D17): chorus and amethyst bronze re-scope on armor parts; the rest fall back.
+        Map<String, String> armor = Map.of("chorus", "enderclearance", "amethyst_bronze", "crystalstrike");
+
         general.forEach((name, trait) -> {
             Material material = materials.get(ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, name));
             helper.assertTrue(material != null, name + " should be in the synced material registry");
-            List<ResourceLocation> expected = List.of(ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, trait));
             for (PartItem.Kind kind : PartItem.Kind.values()) {
+                boolean armorPart = kind == PartItem.Kind.PLATING || kind == PartItem.Kind.MAILLE;
+                List<ResourceLocation> expected = List.of(ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID,
+                        armorPart ? armor.getOrDefault(name, trait) : trait));
                 helper.assertTrue(expected.equals(material.traits().forPart(kind)),
                         name + " through a " + kind + " part should grant " + expected
                                 + ", got " + material.traits().forPart(kind));

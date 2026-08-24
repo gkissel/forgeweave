@@ -14,8 +14,16 @@
     "range": 1.5,
     "bonus_damage": 6.0
   },
+  "plating": {
+    "helmet": { "durability": 308, "armor": 2.0, "toughness": 2.0 },
+    "chestplate": { "durability": 448, "armor": 6.0, "toughness": 2.0 },
+    "leggings": { "durability": 420, "armor": 5.0, "toughness": 2.0 },
+    "boots": { "durability": 364, "armor": 2.0, "toughness": 2.0 }
+  },
+  "maille": true,
   "incorrect_for_tool": "minecraft:incorrect_for_diamond_tool",
   "traits": {
+    "armor": ["forgeweave:crystalstrike"],
     "general": [
       "forgeweave:crumbling"
     ]

@@ -14,8 +14,16 @@
     "range": 1.45,
     "bonus_damage": 5.0
   },
+  "plating": {
+    "helmet": { "durability": 143, "armor": 1.0 },
+    "chestplate": { "durability": 208, "armor": 3.0 },
+    "leggings": { "durability": 195, "armor": 2.0 },
+    "boots": { "durability": 169, "armor": 1.0 }
+  },
+  "maille": true,
   "incorrect_for_tool": "minecraft:incorrect_for_stone_tool",
   "traits": {
+    "armor": ["forgeweave:depth_protection"],
     "general": ["forgeweave:established"]
   },
   "crafting_items": [

@@ -14,6 +14,13 @@
     "range": 0.85,
     "bonus_damage": 0.0
   },
+  "plating": {
+    "helmet": { "durability": 151, "armor": 2.0, "knockback_resistance": 0.1 },
+    "chestplate": { "durability": 220, "armor": 5.0, "knockback_resistance": 0.1 },
+    "leggings": { "durability": 206, "armor": 4.0, "knockback_resistance": 0.1 },
+    "boots": { "durability": 179, "armor": 2.0, "knockback_resistance": 0.1 }
+  },
+  "maille": true,
   "incorrect_for_tool": "minecraft:incorrect_for_diamond_tool",
   "traits": {
     "general": [

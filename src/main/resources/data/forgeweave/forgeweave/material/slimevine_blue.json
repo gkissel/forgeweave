@@ -1,6 +1,7 @@
 {
+  "maille": true,
   "incorrect_for_tool": "minecraft:incorrect_for_stone_tool",
-  "traits": {},
+  "traits": { "armor": ["forgeweave:skyfall"] },
   "crafting_items": [
     { "ingredient": { "item": "forgeweave:blue_slime_vine" }, "value": 144 },
     { "ingredient": { "item": "forgeweave:blue_slime_vine_mid" }, "value": 144 },

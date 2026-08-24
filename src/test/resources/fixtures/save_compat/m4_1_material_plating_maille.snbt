@@ -1,0 +1,105 @@
+{
+    decoder: "material",
+    expect: {
+        maille: 1b,
+        plating: {
+            boots: {
+                armor: 2.0f,
+                durability: 390,
+                knockback_resistance: 0.05f,
+                toughness: 1.0f
+            },
+            chestplate: {
+                armor: 7.0f,
+                durability: 480,
+                knockback_resistance: 0.05f,
+                toughness: 1.0f
+            },
+            helmet: {
+                armor: 2.0f,
+                durability: 330,
+                knockback_resistance: 0.05f,
+                toughness: 1.0f
+            },
+            leggings: {
+                armor: 5.0f,
+                durability: 450
+            }
+        },
+        traits: {
+            armor: [
+                "forgeweave:melee_protection"
+            ],
+            general: [
+                "forgeweave:lightweight"
+            ],
+            head: [
+                "forgeweave:momentum"
+            ]
+        }
+    },
+    nbt: {
+        cast_only: 1b,
+        color: "#2882D4",
+        crafting_items: [
+            {
+                ingredient: {
+                    item: "forgeweave:cobalt_ingot"
+                },
+                value: 144
+            }
+        ],
+        enchantability: 10,
+        extra_durability: 300,
+        handle: {
+            durability: 100,
+            durability_modifier: 0.9f
+        },
+        head: {
+            attack_damage: 4.1f,
+            durability: 780,
+            mining_speed: 12.0f
+        },
+        incorrect_for_tool: "minecraft:incorrect_for_netherite_tool",
+        maille: 1b,
+        plating: {
+            boots: {
+                armor: 2.0f,
+                durability: 390,
+                knockback_resistance: 0.05f,
+                toughness: 1.0f
+            },
+            chestplate: {
+                armor: 7.0f,
+                durability: 480,
+                knockback_resistance: 0.05f,
+                toughness: 1.0f
+            },
+            helmet: {
+                armor: 2.0f,
+                durability: 330,
+                knockback_resistance: 0.05f,
+                toughness: 1.0f
+            },
+            leggings: {
+                armor: 5.0f,
+                durability: 450
+            }
+        },
+        repair_item: {
+            tag: "c:ingots/cobalt"
+        },
+        traits: {
+            armor: [
+                "forgeweave:melee_protection"
+            ],
+            general: [
+                "forgeweave:lightweight"
+            ],
+            head: [
+                "forgeweave:momentum"
+            ]
+        }
+    },
+    what: "M4-1 (#676): a cobalt-shaped material carrying the new plating block (four per-piece rows), the maille marker and the ARMOR-scoped trait list alongside the three tool blocks. Pins that the four plating rows survive a round trip, that a row written without toughness/knockback_resistance still decodes (both default to 0), that maille is a plain boolean, and that traits.armor is a fourth scope beside general/head/shaft/projectile."
+}

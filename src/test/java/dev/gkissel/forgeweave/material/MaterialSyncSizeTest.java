@@ -41,8 +41,15 @@ class MaterialSyncSizeTest {
      * each), so the M3.2 roster's ~33 materials land around 14 KB; x5 the measured size covers that
      * 3x count growth plus headroom for richer entries (more crafting items, per-part traits)
      * while still catching a payload that grows an order of magnitude unnoticed. Rounded to 24 KB.
+     *
+     * <p>Revisited for M4-1 (issue #676): the 43-material roster measured 21,201 bytes before the
+     * armor blocks and 26,797 after -- four per-piece {@code plating} rows on 18 materials plus the
+     * {@code maille} marker and {@code traits.armor} list add ~310 bytes per plating material, a new
+     * stat family rather than an entry growing out of the roster's norm (~620 bytes each now). Same
+     * rule re-applied -- headroom for M4-3's remaining schema work and the M6 roster growth while a
+     * 10x surprise still trips it -- lands at 32 KB, still a fraction of one chunk packet.
      */
-    private static final int SYNC_BUDGET_BYTES = 24 * 1024;
+    private static final int SYNC_BUDGET_BYTES = 32 * 1024;
 
     private static RegistryOps<JsonElement> jsonOps;
     private static RegistryOps<Tag> nbtOps;
