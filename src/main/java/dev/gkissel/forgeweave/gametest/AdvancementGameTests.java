@@ -30,7 +30,7 @@ import dev.gkissel.forgeweave.ponder.ForgeweavePonderHint;
 /**
  * Issue #110's GameTest coverage: the advancement grants that have a real hook to exercise
  * headlessly (structure forming, a melted item, a modifier application), and the Ponder chat hint's
- * one-time-per-player behavior. {@code first_alloy} is covered in {@link SmelteryAlloyGameTests}
+ * silence now that issue #664 embeds Ponder. {@code first_alloy} is covered in {@link SmelteryAlloyGameTests}
  * instead, next to the alloying pass that fires it (#98).
  *
  * <p>Issue #166's M3-17 tail (forge -> large tool -> emboss -> combat modifier) adds a structural
@@ -274,20 +274,28 @@ public class AdvancementGameTests {
         helper.succeed();
     }
 
-    /** Server-side half of the one-time hint: the persisted flag ({@code ForgeweavePonderHint}) is what makes "once" durable. */
+    /**
+     * The install-Ponder chat hint ({@code ForgeweavePonderHint}) must stay silent when Ponder is
+     * present -- and since issue #664 embeds Ponder jar-in-jar (and puts it on this GameTest
+     * server's classpath), presence is the shipped configuration. This replaces issue #110's
+     * shown-only-once test, whose "Ponder absent" premise no longer exists on any runtime this
+     * suite can build: the hint survives only as the degraded fallback for a repackaged install
+     * that strips the embedded jars, and its persisted-flag bookkeeping is unreachable here.
+     */
     @GameTest(template = "smeltery")
-    public static void ponderHintIsShownOnlyOnceForANewPlayer(GameTestHelper helper) {
+    public static void ponderHintStaysSilentWhenPonderIsPresent(GameTestHelper helper) {
         ServerPlayer player = helper.makeMockServerPlayerInLevel();
         SmelteryGameTests.buildWalls(helper, 1, 1, 2);
         SmelteryGameTests.placeCore(helper, ForgeweaveBlocks.STANDARD_CORE.get());
         helper.assertFalse(hintShown(player), "expected a fresh player to not have seen the hint yet");
 
         helper.useBlock(SmelteryGameTests.CORE_POS, player);
-        helper.assertTrue(hintShown(player), "expected the first controller interaction to record the hint as shown");
+        helper.assertFalse(hintShown(player),
+                "expected the hint to stay un-recorded with Ponder loaded (its scenes carry the tutorial)");
 
-        // A second interaction (or a direct call, same as a second controller click) must stay a no-op.
+        // A direct call, same as any further controller click, must stay silent too.
         ForgeweavePonderHint.maybeShow(player);
-        helper.assertTrue(hintShown(player), "expected a second call to remain a no-op rather than un-set the flag");
+        helper.assertFalse(hintShown(player), "expected a direct maybeShow call to remain a no-op with Ponder loaded");
         helper.succeed();
     }
 

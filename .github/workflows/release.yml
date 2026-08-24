@@ -94,6 +94,15 @@ jobs:
           game-versions: ${{ steps.release.outputs.minecraft_version }}
           java: Java 21
 
+          # Explicit list because mc-publish otherwise mirrors neoforge.mods.toml, which would tell
+          # players to install Ponder -- it (and its own required client dependency Flywheel) is
+          # jar-in-jar embedded since issue #664, so the store pages mark both as embedded instead.
+          dependencies: |
+            jei(optional)
+            darkmodeeverywhere(optional)
+            ponder(embedded)
+            flywheel(embedded)
+
           modrinth-id: ${{ vars.MODRINTH_PROJECT_ID }}
           modrinth-token: ${{ secrets.MODRINTH_TOKEN }}
 

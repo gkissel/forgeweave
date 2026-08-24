@@ -221,11 +221,12 @@ public class Forgeweave {
         // #452/#453 -- parity audit T21 and T22: the boots' rebound and the momentum a Slimesling-flung
         // player keeps through the arc, both upstream's shared SlimeBounceHandler. See that class.
         NeoForge.EVENT_BUS.addListener(SlimeBounceHandler::onPlayerTickPost);
-        // #110 -- Ponder is a soft dependency (docs/SCOPE.md M2): only touch its API, and only
-        // register the client-setup listener, when it's actually on the mod list. See
+        // #110/#664 -- Ponder is jar-in-jar embedded now (issue #664), but its API is still only
+        // touched behind this ModList guard, so a repackaged install that strips the embedded jars
+        // degrades to the ForgeweavePonderHint fallback instead of crashing. See
         // ForgeweavePonderPlugin's javadoc for why this isn't an @EventBusSubscriber instead.
         if (ModList.get().isLoaded("ponder")) {
-            modEventBus.addListener(ForgeweavePonderPlugin::registerScenes);
+            modEventBus.addListener(ForgeweavePonderPlugin::onClientSetup);
         }
         // #335 -- DarkModeEverywhere compat is a soft dependency too, same idiom as ponder just above.
         // Unlike FMLClientSetupEvent (inherently client-only), InterModEnqueueEvent is a mod-bus
