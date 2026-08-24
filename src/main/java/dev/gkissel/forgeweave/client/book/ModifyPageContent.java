@@ -78,8 +78,15 @@ public final class ModifyPageContent {
 
     /** The material the diagram paints part slot {@code index} of a demo tool with. */
     public static ResourceLocation demoMaterial(PartItem.Kind kind, int index) {
-        return kind == PartItem.Kind.BOWSTRING ? DEMO_BOWSTRING
-                : DEMO_MATERIALS.get(index % DEMO_MATERIALS.size());
+        if (kind == PartItem.Kind.BOWSTRING) {
+            return DEMO_BOWSTRING;
+        }
+        // #682: a plating slot is slot 0 and wood makes no plating (D10), which would throw out of
+        // ArmorStats#of at page build; cobalt is the roster's first plating material.
+        if (kind == PartItem.Kind.PLATING) {
+            return DEMO_MATERIALS.get(1);
+        }
+        return DEMO_MATERIALS.get(index % DEMO_MATERIALS.size());
     }
 
     /** {@code <tool description id>.property.<n>} -- one "Properties:" bullet, collected while it exists. */
