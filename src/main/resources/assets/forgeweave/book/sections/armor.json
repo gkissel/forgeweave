@@ -1,0 +1,42 @@
+[
+  {
+    "name": "intro",
+    "type": "text"
+  },
+  {
+    "name": "parts",
+    "type": "text"
+  },
+  {
+    "name": "casting",
+    "type": "text"
+  },
+  {
+    "name": "helmet",
+    "type": "tool",
+    "item": "forgeweave:helmet"
+  },
+  {
+    "name": "chestplate",
+    "type": "tool",
+    "item": "forgeweave:chestplate"
+  },
+  {
+    "name": "leggings",
+    "type": "tool",
+    "item": "forgeweave:leggings"
+  },
+  {
+    "name": "boots",
+    "type": "tool",
+    "item": "forgeweave:boots"
+  },
+  {
+    "name": "traits",
+    "type": "text"
+  },
+  {
+    "name": "modifiers",
+    "type": "text"
+  }
+]

@@ -18,6 +18,15 @@
     }
   },
   {
+    "name": "armor",
+    "data": "sections/armor.json",
+    "icon": {
+      "item": {
+        "id": "forgeweave:chestplate"
+      }
+    }
+  },
+  {
     "name": "materials",
     "data": "sections/materials.json",
     "icon": {

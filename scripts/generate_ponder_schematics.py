@@ -35,6 +35,7 @@ SNOW = {"Name": "minecraft:snow_block"}
 CONCRETE = {"Name": "minecraft:white_concrete"}
 BRICKS = {"Name": "forgeweave:seared_bricks"}
 TANK = {"Name": "forgeweave:seared_tank"}
+TOOL_STATION = {"Name": "forgeweave:tool_station", "Properties": {"facing": "south"}}
 CORE = {
     "Name": "forgeweave:standard_core",
     # FACING points out of the structure (south wall -> south); the scene flips ACTIVE on as its
@@ -124,9 +125,22 @@ def write_structure(path: Path, size: list[int], palette: list[dict], blocks: li
     print(f"wrote {path.relative_to(REPO_ROOT)} ({len(blocks)} blocks)")
 
 
+def tool_station_blocks() -> tuple[list[dict], list[dict]]:
+    """The armor assembly scene (#682): a Tool Station alone in the middle of the base plate."""
+    palette: list[dict] = [SNOW, CONCRETE, TOOL_STATION]
+    blocks: list[dict] = []
+    for x in range(5):
+        for z in range(5):
+            blocks.append({"pos": [x, 0, z], "state": 0 if (x + z) % 2 == 0 else 1})
+    blocks.append({"pos": [2, 1, 2], "state": 2})
+    return palette, blocks
+
+
 def main() -> None:
     palette, blocks = smeltery_blocks()
     write_structure(OUTPUT, [5, 4, 5], palette, blocks)
+    palette, blocks = tool_station_blocks()
+    write_structure(OUTPUT.with_name("tool_station.nbt"), [5, 2, 5], palette, blocks)
 
 
 if __name__ == "__main__":
