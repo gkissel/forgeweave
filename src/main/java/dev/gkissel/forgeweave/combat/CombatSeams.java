@@ -264,7 +264,9 @@ public final class CombatSeams {
                 vanilla = EnchantmentHelper.getDamageProtection(level, event.getEntity(), event.getSource());
             }
             float before = 1.0F - Mth.clamp(vanilla, 0.0F, PROTECTION_CAP) / PROTECTION_DIVISOR;
-            float after = 1.0F - Mth.clamp(vanilla + blow.protection(), 0.0F, PROTECTION_CAP) / PROTECTION_DIVISOR;
+            // The clone's ProtectionModifierHook contract: "can also go negative, up to 180% increase
+            // from a modifier value of -20" (depth protection above Y=96).
+            float after = 1.0F - Mth.clamp(vanilla + blow.protection(), -PROTECTION_CAP, PROTECTION_CAP) / PROTECTION_DIVISOR;
             damage = damage / before * after;
         }
         if (blow.flatReduction() > 0.0F) {
