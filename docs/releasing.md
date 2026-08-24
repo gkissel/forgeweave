@@ -70,6 +70,19 @@ missing-texture patches and no layer bleeding through where the plating should c
 lone chestplate must not paint any other body part. `book_armor.png` and `book_armor_chestplate.png`
 are the armor chapter's opening page and a piece page with its parts diagram.
 
+## Release-checklist: manual dedicated-server pass (from M4)
+
+Each release also gets a dated playtest checklist under `docs/playtest/` (pt-BR) run on a dedicated
+server. From the M4 gate (SCOPE.md § "Milestone 4 — armors", D23) every release's checklist must
+carry these lines, in addition to the milestone's own acceptance test:
+
+- **JEI sanity** with JEI installed: plating/maille casting rows, armor assembly rows, and the armor
+  modifier recipes all show with no JEI code changes; without JEI the game still loads.
+- **Previous-release world load** (`mc1.21.1-v0.3.5-beta.1` or later) with a full worn armor set:
+  every piece keeps parts, modifiers and durability; overshield charge survives.
+- **Spark profile** on the idle dedicated server: worn armor adds no per-tick cost beyond the
+  existing formed-smeltery heartbeat; stations idle at 0.
+
 ## Publishing
 
 From the branch or commit being released:
