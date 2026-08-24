@@ -1,0 +1,55 @@
+{
+    decoder: "item_stack",
+    expect: {
+        components: {
+            "forgeweave:armor_stats": {
+                armor: 2.0f,
+                durability: 363,
+                knockback_resistance: 0.1f,
+                toughness: 1.0f
+            },
+            "forgeweave:overshield": 7,
+            "forgeweave:tool_materials": {
+                head: "forgeweave:knightslime",
+                parts: [
+                    "forgeweave:knightslime",
+                    "forgeweave:knightslime"
+                ]
+            },
+            "forgeweave:traits": [
+                "forgeweave:overshield",
+                "forgeweave:unnatural"
+            ],
+            "minecraft:damage": 12,
+            "minecraft:max_damage": 363
+        },
+        id: "forgeweave:helmet"
+    },
+    nbt: {
+        components: {
+            "forgeweave:armor_stats": {
+                armor: 2.0f,
+                durability: 363,
+                knockback_resistance: 0.1f,
+                toughness: 1.0f
+            },
+            "forgeweave:overshield": 7,
+            "forgeweave:tool_materials": {
+                head: "forgeweave:knightslime",
+                parts: [
+                    "forgeweave:knightslime",
+                    "forgeweave:knightslime"
+                ]
+            },
+            "forgeweave:traits": [
+                "forgeweave:overshield",
+                "forgeweave:unnatural"
+            ],
+            "minecraft:damage": 12,
+            "minecraft:max_damage": 363
+        },
+        count: 1,
+        id: "forgeweave:helmet"
+    },
+    what: "M4-5 (#680): a knightslime helmet that has banked 7 of its 10 overshield charges and spent some blows -- the first stateful ARMOR trait shape, `forgeweave:overshield` (a non-negative int; absent means 0). The clone's overshield spends overslime, which Forgeweave does not ship (SCOPE.md D17), so the piece banks its own charge: +1 every 100 ticks in an inventory up to 10, and a protectable blow spends up to 2 for 1.25 protection. Everything else is the #678 armor shape (`m4_3_armor_helmet.snbt`)."
+}

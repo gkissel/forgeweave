@@ -65,6 +65,12 @@ public record CombatDefense(
      * the client gets told about.
      */
     public EquipmentSlot slot() {
+        // #680: since the defensive pass walks worn armor too, the piece's own slot -- head to feet.
+        for (EquipmentSlot slot : EquipmentSlot.values()) {
+            if (slot.getType() == EquipmentSlot.Type.HUMANOID_ARMOR && defender.getItemBySlot(slot) == tool) {
+                return slot;
+            }
+        }
         return defender.getOffhandItem() == tool ? EquipmentSlot.OFFHAND : EquipmentSlot.MAINHAND;
     }
 }

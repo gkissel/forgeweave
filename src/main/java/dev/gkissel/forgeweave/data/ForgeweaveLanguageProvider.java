@@ -1547,6 +1547,37 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("effect.forgeweave.bleed", "Bleeding");
         add("effect.forgeweave.splinter", "Splintered");
         add("effect.forgeweave.enderference", "Enderference");
+        // #680 (M4-5) -- the 1.20 clone's ARMOR-scope traits; names and descriptions from its
+        // modifier.tconstruct.<id>/.description rows (NOTICE.md), reworded only where a mechanic
+        // was not ported (overshield spends its own charge, not overslime; warded's row said 0.5
+        // where its formula is 1).
+        add("trait.forgeweave.projectile_protection.name", "Projectile Protection");
+        add("trait.forgeweave.projectile_protection.description", "Protects against damage from projectiles.");
+        add("trait.forgeweave.depth_protection.name", "Depth Protection");
+        add("trait.forgeweave.depth_protection.description",
+                "Armor has more protection the deeper you mine, but loses effectiveness if you go too high.");
+        add("trait.forgeweave.blast_protection.name", "Blast Protection");
+        add("trait.forgeweave.blast_protection.description", "Protects against explosion damage.");
+        add("trait.forgeweave.melee_protection.name", "Melee Protection");
+        add("trait.forgeweave.melee_protection.description", "Increases protection against direct physical damage.");
+        add("trait.forgeweave.warded.name", "Warded");
+        add("trait.forgeweave.warded.description",
+                "When at full health, reduces incoming damage after armor by 1, down to a minimum of 1.");
+        add("trait.forgeweave.crystalstrike.name", "Crystalstrike");
+        add("trait.forgeweave.crystalstrike.description", "Increases attack speed and steadies the knockback you take.");
+        add("trait.forgeweave.consecrated.name", "Consecrated");
+        add("trait.forgeweave.consecrated.description", "Take less damage from the undead.");
+        add("trait.forgeweave.overshield.name", "Overshield");
+        add("trait.forgeweave.overshield.description", "Slowly banks a charge that is spent to reduce all sources of damage.");
+        add("trait.forgeweave.piercing_guard.name", "Piercing Guard");
+        add("trait.forgeweave.piercing_guard.description", "Cancels out some of the attacker's armor after they hit you.");
+        add("trait.forgeweave.thorns.name", "Thorns");
+        add("trait.forgeweave.thorns.description", "Attackers sometimes take damage.");
+        add("trait.forgeweave.enderclearance.name", "Enderclearance");
+        add("trait.forgeweave.enderclearance.description", "Has a chance to teleport attackers away.");
+        add("trait.forgeweave.skyfall.name", "Skyfall");
+        add("trait.forgeweave.skyfall.description", "Reduces the effect of gravity.");
+        add("effect.forgeweave.pierce", "Pierced");
 
         // The guide book (issue #273). The item name, book title/subtitle and the static pages'
         // text are ported (rewritten in Forgeweave vocabulary) from upstream 1.12's book data tree

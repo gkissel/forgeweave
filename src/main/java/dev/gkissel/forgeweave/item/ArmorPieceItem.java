@@ -10,11 +10,13 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.core.Holder;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.EquipmentSlotGroup;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.item.ArmorItem;
@@ -33,6 +35,7 @@ import dev.gkissel.forgeweave.material.Material;
 import dev.gkissel.forgeweave.material.MaterialDisplay;
 import dev.gkissel.forgeweave.tool.ArmorStats;
 import dev.gkissel.forgeweave.tool.ToolMaterials;
+import dev.gkissel.forgeweave.trait.ForgeweaveTraits;
 
 /**
  * One part-built plate armor piece (issue #678, M4-3; SCOPE.md D3/D7/D14/D19/D20): plating +
@@ -144,7 +147,17 @@ public class ArmorPieceItem extends ArmorItem {
             builder.add(Attributes.KNOCKBACK_RESISTANCE,
                     new AttributeModifier(id, stats.knockbackResistance(), AttributeModifier.Operation.ADD_VALUE), slot);
         }
+        // #680: the ARMOR traits' attribute modifiers (skyfall, crystalstrike, projectile protection).
+        ForgeweaveTraits.armorAttributes(stack, type.getSlot(), builder);
         return builder.build();
+    }
+
+    /** Same seam as {@link ToolItem#inventoryTick}: the piece's traits tick while it is carried or worn (#680, overshield's recharge). */
+    @Override
+    public void inventoryTick(ItemStack stack, Level level, Entity entity, int slotId, boolean isSelected) {
+        if (level instanceof ServerLevel serverLevel && entity instanceof LivingEntity holder && !ToolItem.isBroken(stack)) {
+            ForgeweaveTraits.inventoryTick(stack, serverLevel, holder);
+        }
     }
 
     /** Same clamp as a tool: never destroyed, Broken at {@code max - 1} ({@link ToolItem#damageItem}). */

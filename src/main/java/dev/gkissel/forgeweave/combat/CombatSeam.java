@@ -72,6 +72,20 @@ public interface CombatSeam {
     }
 
     /**
+     * A blow the defender takes while <em>wearing</em> this seam's piece (issue #680, M4-5; SCOPE.md
+     * D8) -- the armor half of {@link #incomingHit}, reached once per worn, non-Broken Forgeweave
+     * armor piece, helmet to boots, with {@link CombatDefense#tool()} the piece. Everything a piece
+     * can do to the blow goes through {@code blow}: shave or cancel the pre-mitigation damage,
+     * add protection, or -- for counters like thorns -- act on {@link CombatDefense#attacker()}
+     * and leave the numbers alone. See {@link DefendedBlow} for when each field is settled.
+     *
+     * <p>This is the one seam armor behavior attaches to: materials' ARMOR traits ride it through
+     * {@code Trait#onDefend}, the #681 modifiers through {@code Modifier#combatSeam}, and M7's
+     * armor leveling plugs in here too.
+     */
+    default void onDefend(CombatDefense defense, DefendedBlow blow) {}
+
+    /**
      * This blow's knockback strength adjusted by this seam, called once per NeoForge {@code
      * LivingKnockBackEvent} that this hit's target's own {@code LivingEntity#hurt} produces -- the flat
      * {@code 0.4f} push vanilla applies to <em>every</em> successful hit from an attacking entity
