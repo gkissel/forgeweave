@@ -1312,13 +1312,13 @@ public final class ScreenshotHarness {
     /**
      * Draws the held bow until it is at exactly the stage this frame is for, then captures.
      *
-     * <p>The draw is started on the <em>client</em> player rather than through the server, because
-     * the two item properties the model branches on read the client-side holder
-     * ({@code ForgeweaveItemProperties#pulling} compares {@code getUseItem()} against the very stack
-     * being rendered), and that is the state a real drawing player has too -- the client predicts its
-     * own use. Capturing on the stage the model itself would resolve, rather than after a fixed
-     * number of ticks, is what makes the frame independent of the assembled bow's draw speed: a
-     * change to the limb materials or to {@code drawTime} moves the tick count, never the frame.
+     * <p>The draw goes through the client's own use loop (use key held, {@code MultiPlayerGameMode#
+     * useItem}), the way {@link #fireBowDraw} does it and a real right-click does: the two item
+     * properties the model branches on read the client-side holder, whose {@code isUsingItem()} is a
+     * server-synced flag that only the real use packet flips (issue #673). Capturing on the stage
+     * the model itself would resolve, rather than after a fixed number of ticks, is what makes the
+     * frame independent of the assembled bow's draw speed: a change to the limb materials or to
+     * {@code drawTime} moves the tick count, never the frame.
      */
     private static void settleBowPose(Minecraft mc) {
         if (stageTicks < SCREEN_SETTLE_TICKS || mc.player == null) {
@@ -1335,18 +1335,27 @@ public final class ScreenshotHarness {
             return;
         }
         if (pose.drawStage() > 0) {
-            if (!mc.player.isUsingItem()) {
-                mc.player.startUsingItem(InteractionHand.MAIN_HAND);
-                return; // The first tick of a draw is progress 0; let it advance before looking.
-            }
             String tool = BuiltInRegistries.ITEM.getKey(bow).getPath();
             float pull = ForgeweaveItemProperties.pull(held, mc.player);
             int reached = ToolArt.drawStage(tool, pull);
-            if (reached < pose.drawStage() && stageTicks < BOW_DRAW_TIMEOUT_TICKS) {
-                return;
+            switch (drawStep(stageTicks, mc.player.isUsingItem(), reached, pose.drawStage())) {
+                case PRESS -> {
+                    // Issue #673: the same real use path as fireBowDraw. A client-only startUsingItem
+                    // never flips isUsingItem() -- that flag is server-synced -- and the use key has
+                    // to read as held or handleKeybinds releases the draw next tick.
+                    KeyMapping.set(mc.options.keyUse.getKey(), true);
+                    mc.gameMode.useItem(mc.player, InteractionHand.MAIN_HAND);
+                    return;
+                }
+                case WAIT -> {
+                    return;
+                }
+                case TIMED_OUT -> LOGGER.error("{}#400 scene check FAILED: {} timed out after {} ticks"
+                        + " (using={}, pull {}, stage {}, wanted {})", LOG_PREFIX, pose.fileName(), stageTicks,
+                        mc.player.isUsingItem(), pull, reached, pose.drawStage());
+                case CAPTURE -> LOGGER.info("{}#400 scene check: {} is at pull {} (stage {}, wanted {})",
+                        LOG_PREFIX, pose.fileName(), pull, reached, pose.drawStage());
             }
-            LOGGER.info("{}#400 scene check: {} is at pull {} (stage {}, wanted {})",
-                    LOG_PREFIX, pose.fileName(), pull, reached, pose.drawStage());
             if (reached != pose.drawStage()) {
                 LOGGER.error("{}#400 scene check FAILED: {} settled at stage {} rather than {} -- the"
                         + " capture shows the wrong draw art no matter what the renderer does",
@@ -1371,8 +1380,8 @@ public final class ScreenshotHarness {
      *
      * <p>The use started by {@link #settleBowPose} is deliberately still running -- {@link
      * #nextBowPose} is what ends it -- because the cranking pose is a pose the holder has to still be
-     * <em>in</em>. Client-side is enough: this is the local player, and {@code PlayerRenderer#
-     * getArmPose} reads the client entity's own use flags, which {@code startUsingItem} set here.
+     * <em>in</em>: {@code PlayerRenderer#getArmPose} reads the client entity's use flags, synced
+     * from the server once the use packet landed.
      */
     private static void settleBowPoseThirdPerson(Minecraft mc) {
         if (stageTicks < SCREEN_SETTLE_TICKS) {
@@ -1382,10 +1391,29 @@ public final class ScreenshotHarness {
         nextBowPose(mc);
     }
 
+    /** What {@link #settleBowPose} does on a given tick of a drawn pose; a seam for the unit test. */
+    enum DrawStep { PRESS, WAIT, CAPTURE, TIMED_OUT }
+
+    static DrawStep drawStep(int stageTicks, boolean using, int reached, int wanted) {
+        if (stageTicks == SCREEN_SETTLE_TICKS) {
+            return DrawStep.PRESS;
+        }
+        if (stageTicks >= BOW_DRAW_TIMEOUT_TICKS) {
+            return DrawStep.TIMED_OUT;
+        }
+        return using && reached >= wanted ? DrawStep.CAPTURE : DrawStep.WAIT;
+    }
+
     private static void nextBowPose(Minecraft mc) {
+        // Stop the use on the server before the key goes up, so handleKeybinds has nothing to release
+        // and the pose does not end in a creative arrow. ponytail: if the release packet wins the
+        // race the bow fires once; harmless, the next pose re-stages the hand anyway.
+        var server = mc.getSingleplayerServer();
+        server.execute(() -> server.getPlayerList().getPlayers().get(0).stopUsingItem());
         if (mc.player != null) {
             mc.player.stopUsingItem();
         }
+        KeyMapping.set(mc.options.keyUse.getKey(), false);
         bowPoseIndex++;
         advance(Stage.HOLD_BOW_POSE);
     }
