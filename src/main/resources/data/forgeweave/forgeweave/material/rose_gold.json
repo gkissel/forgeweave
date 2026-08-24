@@ -14,6 +14,13 @@
     "range": 0.6,
     "bonus_damage": 2.0
   },
+  "plating": {
+    "helmet": { "durability": 99, "armor": 2.0 },
+    "chestplate": { "durability": 144, "armor": 5.0 },
+    "leggings": { "durability": 135, "armor": 3.0 },
+    "boots": { "durability": 117, "armor": 1.0 }
+  },
+  "maille": true,
   "incorrect_for_tool": "minecraft:incorrect_for_wooden_tool",
   "traits": {
     "general": ["forgeweave:quick"]

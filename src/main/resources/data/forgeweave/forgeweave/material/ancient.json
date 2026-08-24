@@ -14,6 +14,13 @@
     "range": 1.05,
     "bonus_damage": 3.0
   },
+  "plating": {
+    "helmet": { "durability": 275, "armor": 2.0, "knockback_resistance": 0.15 },
+    "chestplate": { "durability": 400, "armor": 6.0, "knockback_resistance": 0.15 },
+    "leggings": { "durability": 375, "armor": 4.0, "knockback_resistance": 0.15 },
+    "boots": { "durability": 325, "armor": 2.0, "knockback_resistance": 0.15 }
+  },
+  "maille": true,
   "incorrect_for_tool": "minecraft:incorrect_for_netherite_tool",
   "traits": {
     "general": [

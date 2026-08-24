@@ -14,6 +14,13 @@
     "range": 1.4,
     "bonus_damage": 7.0
   },
+  "plating": {
+    "helmet": { "durability": 253, "armor": 1.0, "toughness": 1.0, "knockback_resistance": 0.1 },
+    "chestplate": { "durability": 368, "armor": 4.0, "toughness": 1.0, "knockback_resistance": 0.1 },
+    "leggings": { "durability": 345, "armor": 3.0, "toughness": 1.0, "knockback_resistance": 0.1 },
+    "boots": { "durability": 299, "armor": 1.0, "toughness": 1.0, "knockback_resistance": 0.1 }
+  },
+  "maille": true,
   "incorrect_for_tool": "minecraft:incorrect_for_iron_tool",
   "traits": {
     "general": ["forgeweave:tasty"],

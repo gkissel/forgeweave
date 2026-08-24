@@ -45,7 +45,9 @@ public record Material(
         boolean castOnly,
         int enchantability,
         Optional<Shaft> shaft,
-        Optional<Fletching> fletching) {
+        Optional<Fletching> fletching,
+        Optional<Plating> plating,
+        boolean maille) {
 
     public static final ResourceKey<Registry<Material>> REGISTRY =
             ResourceKey.createRegistryKey(ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "material"));
@@ -90,6 +92,18 @@ public record Material(
             int enchantability) {
         this(head, handle, extraDurability, incorrectForTool, traits, craftingItems, repairItem, color, bow,
                 bowstring, castOnly, enchantability, Optional.empty(), Optional.empty());
+    }
+
+    /**
+     * Everything except the PLATING block and the MAILLE marker, which issue #676 (M4-1) added last
+     * and which every material Forgeweave shipped before it does not carry.
+     */
+    public Material(Optional<Head> head, Optional<Handle> handle, Optional<Integer> extraDurability,
+            TagKey<Block> incorrectForTool, Traits traits, List<CraftingItem> craftingItems, Ingredient repairItem,
+            TextColor color, Optional<Bow> bow, Optional<Bowstring> bowstring, boolean castOnly,
+            int enchantability, Optional<Shaft> shaft, Optional<Fletching> fletching) {
+        this(head, handle, extraDurability, incorrectForTool, traits, craftingItems, repairItem, color, bow,
+                bowstring, castOnly, enchantability, shaft, fletching, Optional.empty(), false);
     }
 
     /**
@@ -187,6 +201,41 @@ public record Material(
     }
 
     /**
+     * Stats one armor plating part contributes (issue #676, M4-1; SCOPE.md D10/D14), the 1.20 clone's
+     * {@code PlatingMaterialStats} -- {@code library/materials/stats/PlatingMaterialStats.java} and
+     * the generated {@code tinkering/materials/stats/<m>.json} rows, pinned commit in NOTICE.md.
+     * Same four fields and units as vanilla's {@code ArmorMaterial}: {@code armor} is armor points,
+     * {@code toughness} and {@code knockback_resistance} are the attribute values, both 0 for most
+     * materials, so they default to 0 and stay out of the sync payload when absent.
+     */
+    public record PlatingPiece(int durability, float armor, float toughness, float knockbackResistance) {
+        public static final Codec<PlatingPiece> CODEC = RecordCodecBuilder.create(instance -> instance.group(
+                ExtraCodecs.POSITIVE_INT.fieldOf("durability").forGetter(PlatingPiece::durability),
+                Codec.floatRange(0.0F, Float.MAX_VALUE).fieldOf("armor").forGetter(PlatingPiece::armor),
+                Codec.floatRange(0.0F, Float.MAX_VALUE).optionalFieldOf("toughness", 0.0F)
+                        .forGetter(PlatingPiece::toughness),
+                Codec.floatRange(0.0F, 1.0F).optionalFieldOf("knockback_resistance", 0.0F)
+                        .forGetter(PlatingPiece::knockbackResistance))
+                .apply(instance, PlatingPiece::new));
+    }
+
+    /**
+     * The four per-piece plating rows. Upstream registers one stat type per piece
+     * ({@code tconstruct:plating_helmet} ... {@code plating_boots}) and every plating material
+     * carries all four, so one block with four required rows is the same data without four optional
+     * fields to keep in step; {@link #hasStatsFor} treats the block as one answer for
+     * {@link PartItem.Kind#PLATING}.
+     */
+    public record Plating(PlatingPiece helmet, PlatingPiece chestplate, PlatingPiece leggings, PlatingPiece boots) {
+        public static final Codec<Plating> CODEC = RecordCodecBuilder.create(instance -> instance.group(
+                PlatingPiece.CODEC.fieldOf("helmet").forGetter(Plating::helmet),
+                PlatingPiece.CODEC.fieldOf("chestplate").forGetter(Plating::chestplate),
+                PlatingPiece.CODEC.fieldOf("leggings").forGetter(Plating::leggings),
+                PlatingPiece.CODEC.fieldOf("boots").forGetter(Plating::boots))
+                .apply(instance, Plating::new));
+    }
+
+    /**
      * A raw item usable as Part Builder crafting input, and how much of a part's cost one of it
      * pays off (upstream 1.12's `Material#addItem`/`addItemIngot`, {@code TinkerMaterials}).
      * {@code value} is expressed in upstream's own {@code Material.VALUE_*} unit ({@code VALUE_Ingot = 144},
@@ -225,15 +274,26 @@ public record Material(
      * head list ({@code alien}) would otherwise occlude {@code enderference} on arrow heads.
      */
     public record Traits(List<ResourceLocation> general, List<ResourceLocation> head,
-            List<ResourceLocation> shaft, List<ResourceLocation> projectile) {
+            List<ResourceLocation> shaft, List<ResourceLocation> projectile, List<ResourceLocation> armor) {
 
         public static final Codec<Traits> CODEC = RecordCodecBuilder.create(instance -> instance.group(
                 ResourceLocation.CODEC.listOf().optionalFieldOf("general", List.of()).forGetter(Traits::general),
                 ResourceLocation.CODEC.listOf().optionalFieldOf("head", List.of()).forGetter(Traits::head),
                 ResourceLocation.CODEC.listOf().optionalFieldOf("shaft", List.of()).forGetter(Traits::shaft),
                 ResourceLocation.CODEC.listOf().optionalFieldOf("projectile", List.of())
-                        .forGetter(Traits::projectile))
+                        .forGetter(Traits::projectile),
+                ResourceLocation.CODEC.listOf().optionalFieldOf("armor", List.of()).forGetter(Traits::armor))
                 .apply(instance, Traits::new));
+
+        /**
+         * The pre-#676 shape: no armor-scoped list. {@code armor} (issue #676, SCOPE.md D17) is the
+         * 1.20 clone's {@code tconstruct:armor} per-stat scope, read by both PLATING and MAILLE parts
+         * -- one list, not one per kind, because upstream keys it by the shared ARMOR stat type.
+         */
+        public Traits(List<ResourceLocation> general, List<ResourceLocation> head,
+                List<ResourceLocation> shaft, List<ResourceLocation> projectile) {
+            this(general, head, shaft, projectile, List.of());
+        }
 
         /** The pre-#653 shape: no projectile-scoped list, which is every material but endstone. */
         public Traits(List<ResourceLocation> general, List<ResourceLocation> head,
@@ -262,12 +322,15 @@ public record Material(
             if (kind == PartItem.Kind.PROJECTILE && !projectile.isEmpty()) {
                 return projectile;
             }
+            if ((kind == PartItem.Kind.PLATING || kind == PartItem.Kind.MAILLE) && !armor.isEmpty()) {
+                return armor;
+            }
             return general;
         }
 
         /** Every trait id this material can grant through any part, de-duplicated. */
         public List<ResourceLocation> all() {
-            return Stream.of(general, head, shaft, projectile).flatMap(List::stream).distinct().toList();
+            return Stream.of(general, head, shaft, projectile, armor).flatMap(List::stream).distinct().toList();
         }
     }
 
@@ -365,7 +428,9 @@ public record Material(
             ExtraCodecs.POSITIVE_INT.optionalFieldOf("enchantability", DEFAULT_ENCHANTABILITY)
                     .forGetter(Material::enchantability),
             Shaft.CODEC.optionalFieldOf("shaft").forGetter(Material::shaft),
-            Fletching.CODEC.optionalFieldOf("fletching").forGetter(Material::fletching))
+            Fletching.CODEC.optionalFieldOf("fletching").forGetter(Material::fletching),
+            Plating.CODEC.optionalFieldOf("plating").forGetter(Material::plating),
+            Codec.BOOL.optionalFieldOf("maille", false).forGetter(Material::maille))
             .apply(instance, Material::new));
 
     /**
@@ -388,6 +453,8 @@ public record Material(
             // Upstream auto-adds the dummy PROJECTILE stat to every material given HEAD stats
             // (TinkerRegistry#addMaterialStats:260-262), so "has HEAD" is the whole answer.
             case PROJECTILE -> head.isPresent();
+            case PLATING -> plating.isPresent();
+            case MAILLE -> maille;
             case NONE -> true;
         };
     }

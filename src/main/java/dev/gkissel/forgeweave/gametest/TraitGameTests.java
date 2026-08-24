@@ -68,15 +68,18 @@ public class TraitGameTests {
         // #626: bone's SHAFT scope (upstream bone.addTrait(splitting, SHAFT)); the other three fall
         // back to their general list on shafts.
         Map<String, List<String>> shaft = Map.of("bone", List.of("splitting"));
+        // #676 (SCOPE.md D17): bone's ARMOR scope, read by both PLATING and MAILLE parts.
+        Map<String, List<String>> armor = Map.of("bone", List.of("piercing_guard"));
 
         general.forEach((name, generalTraits) -> {
             Material material = materials.get(ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, name));
             helper.assertTrue(material != null, name + " should be in the synced material registry");
             List<ResourceLocation> headIds = head.get(name).stream().map(TraitGameTests::traitId).toList();
             for (PartItem.Kind kind : PartItem.Kind.values()) {
+                boolean armorPart = kind == PartItem.Kind.PLATING || kind == PartItem.Kind.MAILLE;
                 List<String> scoped = kind == PartItem.Kind.SHAFT && shaft.containsKey(name)
                         ? shaft.get(name)
-                        : generalTraits;
+                        : armorPart && armor.containsKey(name) ? armor.get(name) : generalTraits;
                 List<ResourceLocation> expected = kind == PartItem.Kind.HEAD
                         ? headIds
                         : scoped.stream().map(TraitGameTests::traitId).toList();

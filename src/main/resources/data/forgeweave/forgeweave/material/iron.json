@@ -14,8 +14,16 @@
     "range": 1.5,
     "bonus_damage": 7.0
   },
+  "plating": {
+    "helmet": { "durability": 165, "armor": 2.0 },
+    "chestplate": { "durability": 240, "armor": 5.0 },
+    "leggings": { "durability": 225, "armor": 4.0 },
+    "boots": { "durability": 195, "armor": 2.0 }
+  },
+  "maille": true,
   "incorrect_for_tool": "minecraft:incorrect_for_iron_tool",
   "traits": {
+    "armor": ["forgeweave:projectile_protection"],
     "general": ["forgeweave:magnetic"],
     "head": ["forgeweave:magnetic2"]
   },

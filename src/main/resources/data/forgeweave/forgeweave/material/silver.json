@@ -14,8 +14,16 @@
     "range": 0.8,
     "bonus_damage": 2.0
   },
+  "plating": {
+    "helmet": { "durability": 198, "armor": 2.0, "knockback_resistance": 0.05 },
+    "chestplate": { "durability": 288, "armor": 5.0, "knockback_resistance": 0.05 },
+    "leggings": { "durability": 270, "armor": 4.0, "knockback_resistance": 0.05 },
+    "boots": { "durability": 234, "armor": 1.0, "knockback_resistance": 0.05 }
+  },
+  "maille": true,
   "incorrect_for_tool": "minecraft:incorrect_for_stone_tool",
   "traits": {
+    "armor": ["forgeweave:consecrated"],
     "general": ["forgeweave:holy"]
   },
   "crafting_items": [

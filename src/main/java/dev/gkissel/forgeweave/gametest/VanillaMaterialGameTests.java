@@ -81,11 +81,18 @@ public class VanillaMaterialGameTests {
                 "sponge", List.of("squeaky"),
                 "netherrack", List.of("aridiculous", "hellish"));
 
+        // #676 (SCOPE.md D17): the ARMOR scope, read by both PLATING and MAILLE parts; the rest fall back.
+        Map<String, List<String>> armor = Map.of(
+                "cactus", List.of("thorns"),
+                "obsidian", List.of("blast_protection"));
+
         general.forEach((name, generalTraits) -> {
             Material material = materials.get(ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, name));
             helper.assertTrue(material != null, name + " should be in the synced material registry");
             for (PartItem.Kind kind : PartItem.Kind.values()) {
-                List<ResourceLocation> expected = (kind == PartItem.Kind.HEAD ? head.get(name) : generalTraits)
+                boolean armorPart = kind == PartItem.Kind.PLATING || kind == PartItem.Kind.MAILLE;
+                List<ResourceLocation> expected = (kind == PartItem.Kind.HEAD ? head.get(name)
+                        : armorPart ? armor.getOrDefault(name, generalTraits) : generalTraits)
                         .stream().map(VanillaMaterialGameTests::traitId).toList();
                 helper.assertTrue(expected.equals(material.traits().forPart(kind)),
                         name + " through a " + kind + " part should grant " + expected + ", got "
