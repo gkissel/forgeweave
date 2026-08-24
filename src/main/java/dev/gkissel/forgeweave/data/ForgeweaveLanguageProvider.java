@@ -1540,6 +1540,56 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("book.forgeweave.intro.workshop.title", "The Tool Workshop");
         add("book.forgeweave.intro.workshop.text",
                 "Shape a non-metal material in the Part Builder with a pattern, then combine the finished parts at the Tool Station. Patterns keep in the Pattern Chest and spare parts in the Part Chest. A crafting table converts into a Crafting Station that holds an unfinished project while you step away.\n\nTogether these make the Tool Workshop; they work best side by side. The Tool Forge, the station's sturdier sibling, is needed for the largest tools.");
+        // The #651 content tail -- the intro section's per-station pages. Upstream's
+        // sections/intro.json lists these same eight pages after its welcome pair, but their shipped
+        // en_us bodies are unshipped "Text Goes Here" placeholders (the 1.12 book actually opens
+        // through intro_tmp.json instead), so only the page roster and titles are upstream's; every
+        // body below is Forgeweave's own wording, describing the stations as implemented.
+        add("book.forgeweave.intro.blank_pattern.title", "Blank Pattern");
+        add("book.forgeweave.intro.blank_pattern.text",
+                "Two planks and two sticks craft into four blank patterns. A blank pattern is a slate "
+                        + "waiting for a shape: the Stencil Table stamps a part's outline into it, and one "
+                        + "laid over a log or a crafting table builds the workshop's own stations.\n\n"
+                        + "A blank pattern and a book also bind this very guide.");
+        add("book.forgeweave.intro.crafting_station.title", "Crafting Station");
+        add("book.forgeweave.intro.crafting_station.text",
+                "A crafting table converts directly into a Crafting Station. It crafts exactly as the "
+                        + "table it came from, except an unfinished project stays in the grid when you walk "
+                        + "away.\n\nA chest set beside the station shows its contents alongside the grid, so "
+                        + "materials never need to leave storage to be used.");
+        add("book.forgeweave.intro.stencil_table.title", "Stencil Table");
+        add("book.forgeweave.intro.stencil_table.text",
+                "Built from a blank pattern over planks. Place a blank pattern in the table and pick a "
+                        + "shape from the list to stamp it; every part the workshop knows has a stencil "
+                        + "here.\n\nA Pattern Chest beside the table shows on its right, so a fresh stencil "
+                        + "can go straight into storage.");
+        add("book.forgeweave.intro.pattern_chest.title", "Pattern Chest");
+        add("book.forgeweave.intro.pattern_chest.text",
+                "Stores one copy of each pattern -- or, if you would rather, casts; a chest holds one "
+                        + "kind or the other, never both at once.\n\nSet next to a Stencil Table or Part "
+                        + "Builder, its contents appear right in that station's screen.");
+        add("book.forgeweave.intro.part_builder.title", "Part Builder");
+        add("book.forgeweave.intro.part_builder.text",
+                "Built from a blank pattern over a log. Lay a stamped pattern and a non-metal material "
+                        + "on it and it carves the material into that part, showing the cost and the "
+                        + "finished part's stats before you commit.\n\nMetal is not carved; molten metal is "
+                        + "cast into parts at the Smeltery.");
+        add("book.forgeweave.intro.part_chest.title", "Part Chest");
+        add("book.forgeweave.intro.part_chest.text",
+                "Holds spare tool parts, and nothing else. Like the workshop's other chests it shows "
+                        + "its contents in a neighbouring station's side panel, so a part carved yesterday "
+                        + "is at hand when today's tool wants it.");
+        add("book.forgeweave.intro.tool_station.title", "Tool Station");
+        add("book.forgeweave.intro.tool_station.text",
+                "A blank pattern over a crafting table makes the Tool Station, the heart of the "
+                        + "workshop. Pick a tool from its sidebar, set the parts, and read the finished "
+                        + "stats before you build.\n\nThe station also repairs, renames, and applies "
+                        + "modifiers -- the Modifiers chapter covers those.");
+        add("book.forgeweave.intro.tool_forge.title", "Tool Forge");
+        add("book.forgeweave.intro.tool_forge.text",
+                "The Tool Station's sturdier sibling: seared bricks and metal blocks built around a "
+                        + "Tool Station. It does everything the station does, and it alone assembles the "
+                        + "large tools -- the hammer, the cleaver and their kin.");
         add("book.forgeweave.tools.repairing.title", "Repairing");
         add("book.forgeweave.tools.repairing.text",
                 "As you use your tools they take damage, and once all of their durability is gone they break. To fix that, repair your tool -- no need to wait until it breaks.\n\nPut the tool into a Tool Station or Tool Forge and add material matching the tool's head. If the head is made of several materials, any of them will do, and repairing with several at once grants bonus durability.");
@@ -1609,6 +1659,28 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
                 "Requires a Tool Forge", "Slow but hits hard", "Fires vanilla arrows");
         toolProperties(ForgeweaveItems.TOOL_CROSSBOW,
                 "Requires a Tool Forge", "Needs to be loaded before firing", "Fires vanilla arrows");
+        // The #651 content tail -- the six tools upstream's book has no bullets for. Original
+        // wording, one bullet per implemented behavior (ToolConstants, ForgeweaveInnates,
+        // AoeHarvest.Shape.VEIN, WarmaceItem); nothing promised beyond what the code does.
+        toolProperties(ForgeweaveItems.TOOL_DAGGER,
+                "Fast, but low damage", "Backstab: up to double damage from behind");
+        toolProperties(ForgeweaveItems.TOOL_BATTLEAXE,
+                "Requires a Tool Forge", "Two heads, both counted in the damage",
+                "A fully charged swing hits everything in a short arc", "Briefly slows its target");
+        toolProperties(ForgeweaveItems.TOOL_SCIMITAR,
+                "Light, fast blade", "Cuts keep bleeding after the swing",
+                "Fresh cuts stack up to three deep");
+        toolProperties(ForgeweaveItems.TOOL_KATANA,
+                "Every landed hit makes the next hit harder", "Up to +75% damage",
+                "Lapses after five seconds without a hit");
+        toolProperties(ForgeweaveItems.TOOL_WARMACE,
+                "Requires a Tool Forge", "High damage, but slow",
+                "Falling strikes hit far harder and knock everything nearby away",
+                "A landed smash spares you the fall damage");
+        toolProperties(ForgeweaveItems.TOOL_VEIN_HAMMER,
+                "Requires a Tool Forge", "Advanced mining tool",
+                "Mines a whole connected vein at once", "Effective on stone and ores",
+                "Knocks armored targets back harder");
         modifierEffects("haste",
                 "Each redstone dust increases mining speed by a small amount",
                 "Increases attack speed", "Multiple levels");
@@ -1665,6 +1737,29 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         modifierEffects("harvest_height",
                 "Increases the height of the area affected", "Only affects blocks",
                 "Does not work for weapons", "Can be combined with Width++");
+        // The #651 content tail -- the modifiers upstream's book has no bullets for (the #108
+        // modern-vanilla batch, #223's wind burst, the extra slot). Original wording off each
+        // modifier's implementation and its modifier_recipe's max_level (ForgeweaveModifiers).
+        modifierEffects("searing",
+                "Mined blocks drop their smelted result", "Single use");
+        modifierEffects("magnetic_pull",
+                "Block drops go straight into your inventory", "Single use");
+        modifierEffects("aquadynamic",
+                "No mining speed penalty underwater", "Single use");
+        modifierEffects("resonant",
+                "Blocks that drop experience drop more", "Each level adds 50%", "Multiple levels");
+        modifierEffects("far_reach",
+                "Reach further to mine blocks", "Each level adds one block", "Multiple levels");
+        modifierEffects("extra_slot",
+                "Adds an extra modifier slot", "Multiple levels");
+        modifierEffects("wind_burst",
+                "Grants the Wind Burst enchantment", "Each breeze rod is one level",
+                "Only fits the Warmace", "Multiple levels");
+        // Fins is the one gap with an upstream source (book/en_us/modifiers/fins.json, added to the
+        // registry by #654 after #658's port): its three bullets, verbatim -- the first is exactly
+        // what ArrowEntity#getWaterInertia implements, the other two are upstream's own jokes.
+        modifierEffects("fins",
+                "Projectiles ignore water", "Logical", "Makes sense");
     }
 
     /** One tool's ported {@code ContentTool#properties} bullets, keyed {@code <tool>.property.<n>}. */

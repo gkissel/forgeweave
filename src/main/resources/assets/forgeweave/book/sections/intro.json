@@ -6,5 +6,37 @@
   {
     "name": "workshop",
     "type": "text"
+  },
+  {
+    "name": "blank_pattern",
+    "type": "text"
+  },
+  {
+    "name": "crafting_station",
+    "type": "text"
+  },
+  {
+    "name": "stencil_table",
+    "type": "text"
+  },
+  {
+    "name": "pattern_chest",
+    "type": "text"
+  },
+  {
+    "name": "part_builder",
+    "type": "text"
+  },
+  {
+    "name": "part_chest",
+    "type": "text"
+  },
+  {
+    "name": "tool_station",
+    "type": "text"
+  },
+  {
+    "name": "tool_forge",
+    "type": "text"
   }
 ]

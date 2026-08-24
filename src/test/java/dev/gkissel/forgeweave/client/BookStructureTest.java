@@ -88,6 +88,28 @@ class BookStructureTest {
                 "BookContent.TOOLS must be built from the JSON roster");
     }
 
+    /**
+     * The #651 content tail: upstream's {@code sections/intro.json} follows its welcome pages with
+     * one text page per workshop station (blank pattern, crafting station, stencil table, pattern
+     * chest, part builder, part chest, tool station, tool forge) -- Forgeweave keeps its condensed
+     * welcome/workshop pair (#273/#663) and appends the eight station pages, every one a station
+     * Forgeweave actually ships. Upstream's own en_us bodies for these pages are unshipped
+     * {@code "Text Goes Here"} placeholders, so only the roster and titles are upstream's; the body
+     * text is Forgeweave's own.
+     */
+    @Test
+    void theIntroSectionCarriesThePerStationPages() {
+        List<PageDef> pages = section("intro").pages();
+
+        assertEquals(List.of("welcome", "workshop", "blank_pattern", "crafting_station",
+                "stencil_table", "pattern_chest", "part_builder", "part_chest", "tool_station",
+                "tool_forge"), pages.stream().map(PageDef::name).toList(),
+                "the intro section: the condensed welcome pair, then upstream's station pages");
+        for (PageDef def : pages) {
+            assertEquals("text", def.type(), "intro page " + def.name() + " is a plain text page");
+        }
+    }
+
     /** The smeltery intro is upstream's {@code "image with text below"} page type. */
     @Test
     void theSmelteryIntroCarriesItsImage() {
