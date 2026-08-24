@@ -34,6 +34,11 @@
     "forgeweave:clay_cast_sharpening_kit",
     "forgeweave:clay_cast_bow_limb",
     "forgeweave:clay_cast_shard",
-    "forgeweave:clay_cast_arrow_head"
+    "forgeweave:clay_cast_arrow_head",
+    "forgeweave:clay_cast_plating_helmet",
+    "forgeweave:clay_cast_plating_chestplate",
+    "forgeweave:clay_cast_plating_leggings",
+    "forgeweave:clay_cast_plating_boots",
+    "forgeweave:clay_cast_maille"
   ]
 }

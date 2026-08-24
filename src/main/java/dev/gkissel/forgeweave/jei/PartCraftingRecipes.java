@@ -62,6 +62,12 @@ final class PartCraftingRecipes {
             new Entry(ForgeweaveItems.PATTERN_ARROW_HEAD, ForgeweaveItems.PART_ARROW_HEAD, PartBuilderRecipes.HEAD_COST),
             new Entry(ForgeweaveItems.PATTERN_ARROW_SHAFT, ForgeweaveItems.PART_ARROW_SHAFT, PartBuilderRecipes.HEAD_COST),
             new Entry(ForgeweaveItems.PATTERN_FLETCHING, ForgeweaveItems.PART_FLETCHING, PartBuilderRecipes.HEAD_COST),
+            // #677's armor parts, 1.20's per-piece plating costs.
+            new Entry(ForgeweaveItems.PATTERN_PLATING_HELMET, ForgeweaveItems.PART_PLATING_HELMET, PartBuilderRecipes.PLATING_HELMET_COST),
+            new Entry(ForgeweaveItems.PATTERN_PLATING_CHESTPLATE, ForgeweaveItems.PART_PLATING_CHESTPLATE, PartBuilderRecipes.PLATING_CHESTPLATE_COST),
+            new Entry(ForgeweaveItems.PATTERN_PLATING_LEGGINGS, ForgeweaveItems.PART_PLATING_LEGGINGS, PartBuilderRecipes.PLATING_LEGGINGS_COST),
+            new Entry(ForgeweaveItems.PATTERN_PLATING_BOOTS, ForgeweaveItems.PART_PLATING_BOOTS, PartBuilderRecipes.PLATING_BOOTS_COST),
+            new Entry(ForgeweaveItems.PATTERN_MAILLE, ForgeweaveItems.PART_MAILLE, PartBuilderRecipes.MAILLE_COST),
             new Entry(ForgeweaveItems.PATTERN_SHARPENING_KIT, ForgeweaveItems.PART_SHARPENING_KIT, PartBuilderRecipes.HEAD_COST),
             // #605: the shard, upstream's one sub-ingot part cost.
             new Entry(ForgeweaveItems.PATTERN_SHARD, ForgeweaveItems.SHARD, PartBuilderRecipes.SHARD_VALUE));

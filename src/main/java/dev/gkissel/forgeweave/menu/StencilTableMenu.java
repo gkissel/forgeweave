@@ -96,6 +96,12 @@ public class StencilTableMenu extends StationMenu {
             ForgeweaveItems.PATTERN_ARROW_HEAD,
             ForgeweaveItems.PATTERN_ARROW_SHAFT,
             ForgeweaveItems.PATTERN_FLETCHING,
+            // #677: the armor parts.
+            ForgeweaveItems.PATTERN_PLATING_HELMET,
+            ForgeweaveItems.PATTERN_PLATING_CHESTPLATE,
+            ForgeweaveItems.PATTERN_PLATING_LEGGINGS,
+            ForgeweaveItems.PATTERN_PLATING_BOOTS,
+            ForgeweaveItems.PATTERN_MAILLE,
             // #271: upstream registers the sharpening kit's pattern for stencil crafting alongside
             // every other part's (TinkerTools#registerItems).
             ForgeweaveItems.PATTERN_SHARPENING_KIT,

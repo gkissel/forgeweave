@@ -56,6 +56,12 @@ class CastCompositeHoleTest {
         // Issue #626: the arrow head is the T17 part that casts (the shaft and fletching do not --
         // no SHAFT/FLETCHING material melts, the bow-string situation exactly).
         new Part("arrow_head.png", "cast_arrow_head.png"),
+        // Issue #677: the armor parts, the first sprites sourced from the 1.20 clone.
+        new Part("plating_helmet.png", "cast_plating_helmet.png"),
+        new Part("plating_chestplate.png", "cast_plating_chestplate.png"),
+        new Part("plating_leggings.png", "cast_plating_leggings.png"),
+        new Part("plating_boots.png", "cast_plating_boots.png"),
+        new Part("maille.png", "cast_maille.png"),
     };
 
     private static Path projectRoot() {

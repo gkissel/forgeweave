@@ -33,6 +33,11 @@
     "forgeweave:cast_bow_limb",
     "forgeweave:cast_sharpening_kit",
     "forgeweave:cast_shard",
-    "forgeweave:cast_arrow_head"
+    "forgeweave:cast_arrow_head",
+    "forgeweave:cast_plating_helmet",
+    "forgeweave:cast_plating_chestplate",
+    "forgeweave:cast_plating_leggings",
+    "forgeweave:cast_plating_boots",
+    "forgeweave:cast_maille"
   ]
 }

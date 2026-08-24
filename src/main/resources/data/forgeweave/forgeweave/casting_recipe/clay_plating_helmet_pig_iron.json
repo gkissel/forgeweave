@@ -1,0 +1,15 @@
+{
+  "station": "table",
+  "cast": {
+    "item": "forgeweave:clay_cast_plating_helmet"
+  },
+  "fluid": "forgeweave:molten_pig_iron",
+  "amount": 432,
+  "result": {
+    "id": "forgeweave:plating_helmet",
+    "components": {
+      "forgeweave:material": "forgeweave:pig_iron"
+    }
+  },
+  "consumes_cast": true
+}

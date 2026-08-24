@@ -1,0 +1,6 @@
+{
+  "parent": "minecraft:item/generated",
+  "textures": {
+    "layer0": "forgeweave:derived/item/cast_plating_chestplate"
+  }
+}

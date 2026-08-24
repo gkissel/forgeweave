@@ -107,6 +107,14 @@ PARTS = [
     ("arrow_head.png", "pattern_arrow_head.png", TEXTURE_DIR, (0, 0)),
     ("arrow_shaft.png", "pattern_arrow_shaft.png", TEXTURE_DIR, (0, 0)),
     ("fletching.png", "pattern_fletching.png", TEXTURE_DIR, (0, 0)),
+    # #677 (M4-2): the armor parts, from the 1.20 clone (scripts/derive_armor_part_art.py), which has
+    # no tmat offsets at all (its patterns are flat GUI icons). Offsets hand-chosen to center each
+    # silhouette's alpha bbox on the canvas, the vein_hammer_head precedent above.
+    ("plating_helmet.png", "pattern_plating_helmet.png", TEXTURE_DIR, (0, 2)),  # bbox center (8.0, 6.0)
+    ("plating_chestplate.png", "pattern_plating_chestplate.png", TEXTURE_DIR, (0, 0)),  # (8.0, 7.5)
+    ("plating_leggings.png", "pattern_plating_leggings.png", TEXTURE_DIR, (0, 1)),  # (8.0, 6.5)
+    ("plating_boots.png", "pattern_plating_boots.png", TEXTURE_DIR, (0, 0)),  # (8.0, 8.0)
+    ("maille.png", "pattern_maille.png", TEXTURE_DIR, (0, 0)),  # (8.0, 8.5)
 ]
 
 # Upstream ships hand-drawn pattern art for the large plate instead of compositing one; copied
