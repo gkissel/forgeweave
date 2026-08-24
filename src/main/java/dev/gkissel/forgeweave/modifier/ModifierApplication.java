@@ -135,7 +135,9 @@ public final class ModifierApplication {
      */
     public static Optional<Outcome> resolve(HolderLookup.Provider registries, ItemStack tool,
             List<ItemStack> freeSlots) {
-        if (tool.get(ForgeweaveDataComponents.TOOL_STATS.get()) == null) {
+        // M4-6 (#681): an assembled armor piece carries ARMOR_STATS in place of TOOL_STATS.
+        if (tool.get(ForgeweaveDataComponents.TOOL_STATS.get()) == null
+                && tool.get(ForgeweaveDataComponents.ARMOR_STATS.get()) == null) {
             return Optional.empty(); // not an assembled tool; nothing to modify.
         }
         List<ModifierRecipe> recipes = new ArrayList<>(); // distinct, first-slot order
