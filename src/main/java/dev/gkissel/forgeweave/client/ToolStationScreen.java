@@ -176,7 +176,7 @@ public class ToolStationScreen extends StationScreen<ToolStationMenu> implements
      * {@link ToolArt#layers} is: a four-part tool's slot 2 is a second head, and a three-part one's
      * is the binding, so an index would tint the battleaxe's front head binding-blue (issue #159).
      */
-    private static final Map<ToolConstants.Role, Integer> TOOL_LAYER_COLORS = new EnumMap<>(Map.of(
+    static final Map<ToolConstants.Role, Integer> TOOL_LAYER_COLORS = new EnumMap<>(Map.of(
             ToolConstants.Role.HANDLE, 0x684E1E,
             ToolConstants.Role.HEAD, 0xC1C1C1,
             ToolConstants.Role.EXTRA, 0x2376DD,
@@ -189,7 +189,14 @@ public class ToolStationScreen extends StationScreen<ToolStationMenu> implements
             // #395: the crossbow's body is its slot 0, so RenderMaterials[0] -- the same brown.
             ToolConstants.Role.CROSSBOW_BODY, 0x684E1E,
             // #448: a shuriken blade is a head as far as the preview is concerned.
-            ToolConstants.Role.SHURIKEN_BLADE, 0xC1C1C1));
+            ToolConstants.Role.SHURIKEN_BLADE, 0xC1C1C1,
+            // #653/#669: upstream's Arrow never overrides getMaterialForPartForGuiRendering, so its
+            // preview takes TinkersItem's default RenderMaterials[index] by slot -- shaft (slot 0)
+            // the handle brown, arrow head (slot 1) the head grey, fletching (slot 2) the binding
+            // blue.
+            ToolConstants.Role.SHAFT, 0x684E1E,
+            ToolConstants.Role.ARROW_HEAD, 0xC1C1C1,
+            ToolConstants.Role.FLETCHING, 0x2376DD));
 
     private static final int BUTTON_SIZE = 18;
     private static final int BUTTON_SPACING = 4;
