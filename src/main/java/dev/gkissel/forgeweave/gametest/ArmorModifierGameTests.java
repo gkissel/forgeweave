@@ -191,6 +191,39 @@ public class ArmorModifierGameTests {
         helper.succeed();
     }
 
+    /** Vanilla {@code CombatRules#getDamageAfterAbsorb}: 10 damage against the iron chestplate's 5 armor, 0 toughness. */
+    private static final float BLOW = 10.0F;
+    private static final float ABSORBED_BLOW = BLOW * (1.0F - Math.max(5.0F - BLOW / 2.0F, 5.0F * 0.2F) / 25.0F);
+
+    /**
+     * The blow-level effect through #680's real armor pass and damage-type tags: fire protection
+     * III (15 seared bricks, all three slots) is 7.5 protection, i.e. the post-armor fire damage
+     * times {@code 1 - 7.5 / 25} (clone {@code ArmorUtil#getDamageForEvent}).
+     */
+    @GameTest(template = "empty")
+    public static void fireProtectionAttenuatesFireDamageAfterArmor(GameTestHelper helper) {
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        ItemStack piece = apply(helper, player, chestplate(helper, player), new ItemStack(ForgeweaveItems.SEARED_BRICK.get(), 15));
+        helper.assertTrue(ForgeweaveModifiers.freeSlots(piece) == 0, "three levels fill the three slots");
+        player.setItemSlot(EquipmentSlot.CHEST, piece);
+        player.tick();
+        float expected = ABSORBED_BLOW * (1.0F - 7.5F / 25.0F);
+        float unrelated = ABSORBED_BLOW;
+
+        float before = player.getHealth();
+        player.hurt(helper.getLevel().damageSources().inFire(), BLOW);
+        float lost = before - player.getHealth();
+        helper.assertTrue(Math.abs(lost - expected) < 0.01F, "fire III must cut a " + BLOW + " fire blow to " + expected + ", lost " + lost);
+
+        player.setHealth(player.getMaxHealth());
+        player.invulnerableTime = 0;
+        before = player.getHealth();
+        player.hurt(helper.getLevel().damageSources().explosion(null, null), BLOW);
+        lost = before - player.getHealth();
+        helper.assertTrue(Math.abs(lost - unrelated) < 0.01F, "and leave an explosion at the plain armor value " + unrelated + ", lost " + lost);
+        helper.succeed();
+    }
+
     /** D15's {@code armorOnly()}: a seared brick on a pickaxe is refused with the category message. */
     @GameTest(template = "empty")
     public static void aPickaxeRefusesAnArmorOnlyModifier(GameTestHelper helper) {
