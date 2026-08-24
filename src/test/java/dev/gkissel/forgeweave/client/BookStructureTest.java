@@ -121,14 +121,34 @@ class BookStructureTest {
         assertTrue(intro.image().startsWith("forgeweave:textures/derived/"), intro.image());
     }
 
+    /**
+     * The smeltery section ends on upstream's {@code structure} page (issue #651): the rotating 3D
+     * schematic, whose def carries a {@code data} reference to the structure file instead of lang
+     * text -- upstream's own page has no title and no text, so it contributes no lang keys.
+     */
+    @Test
+    void theSmelterySectionEndsOnTheStructurePage() {
+        List<PageDef> pages = section("smeltery").pages();
+        PageDef multiblock = pages.get(pages.size() - 1);
+
+        assertEquals("multiblock", multiblock.name());
+        assertEquals("structure", multiblock.type(), "upstream smeltery.json's structure page type");
+        assertEquals("structure/smeltery.json", multiblock.data(),
+                "the structure page must name its block-span data file");
+        List<String> manifest = BookContent.staticLangKeys();
+        assertFalse(manifest.contains("book.forgeweave.smeltery.multiblock.title"),
+                "upstream's structure page has no title, so the manifest must not demand one");
+        assertFalse(manifest.contains("book.forgeweave.smeltery.multiblock.text"));
+    }
+
     /** A JSON page def with no lang lines must fail {@code BookLangCoverageTest}, not render raw keys. */
     @Test
     void everyAuthoredTextPageHasItsLangKeysInTheManifest() {
         List<String> manifest = BookContent.staticLangKeys();
         for (SectionDef sectionDef : structure().sections()) {
             for (PageDef def : sectionDef.pages()) {
-                if (def.type().equals("tool")) {
-                    continue; // tool pages take their keys from the item, covered separately
+                if (def.type().equals("tool") || def.type().equals("structure")) {
+                    continue; // these page kinds carry no authored title/text lang keys
                 }
                 String base = "book.forgeweave." + sectionDef.name() + "." + def.name();
                 assertTrue(manifest.contains(base + ".title"),
@@ -144,7 +164,7 @@ class BookStructureTest {
     void anUnknownPageTypeFailsTheParse() {
         IllegalStateException thrown = org.junit.jupiter.api.Assertions.assertThrows(
                 IllegalStateException.class,
-                () -> BookStructure.parseSection("bogus", "[{\"name\": \"x\", \"type\": \"structure\"}]"));
-        assertTrue(thrown.getMessage().contains("structure"), thrown.getMessage());
+                () -> BookStructure.parseSection("bogus", "[{\"name\": \"x\", \"type\": \"hologram\"}]"));
+        assertTrue(thrown.getMessage().contains("hologram"), thrown.getMessage());
     }
 }

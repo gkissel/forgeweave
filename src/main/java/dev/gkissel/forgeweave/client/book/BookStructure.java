@@ -34,15 +34,15 @@ import com.google.gson.JsonParser;
  * the book's structure (its text it can, through a lang pack).
  *
  * <p>ponytail: only the page types the shipped Forgeweave book uses parse ({@code text},
- * {@code image with text below}, {@code tool}); an unknown type is an authoring error and fails
- * loudly. Upstream's remaining types are not applicable content-wise -- see the PR.
+ * {@code image with text below}, {@code tool}, {@code structure}); an unknown type is an authoring
+ * error and fails loudly. Upstream's remaining types are not applicable content-wise -- see the PR.
  */
 public record BookStructure(Appearance appearance, List<SectionDef> sections) {
 
     /** Where the book tree lives on the classpath. */
     private static final String ROOT = "/assets/forgeweave/book/";
 
-    private static final Set<String> PAGE_TYPES = Set.of("text", "image with text below", "tool");
+    private static final Set<String> PAGE_TYPES = Set.of("text", "image with text below", "tool", "structure");
 
     /**
      * Upstream {@code AppearanceData}, reduced to the fields Tinkers' {@code appearance.json}
@@ -62,10 +62,13 @@ public record BookStructure(Appearance appearance, List<SectionDef> sections) {
 
     /**
      * One page def: {@code name} (bookmark segment and lang-key segment), upstream's {@code type}
-     * string, the tool item id for {@code tool} pages, and the image for
-     * {@code image with text below} pages.
+     * string, the tool item id for {@code tool} pages, the image for
+     * {@code image with text below} pages, and the block-span data file for {@code structure}
+     * pages (upstream's {@code data} reference, minus its one level of indirection through the
+     * per-language {@code multiblock.json} -- see {@link StructureInfo}).
      */
-    public record PageDef(String name, String type, @Nullable String item, @Nullable String image) {}
+    public record PageDef(String name, String type, @Nullable String item, @Nullable String image,
+            @Nullable String data) {}
 
     /** Parses the whole shipped tree; fails loudly on a missing file or unknown page type. */
     public static BookStructure load() {
@@ -103,12 +106,14 @@ public record BookStructure(Appearance appearance, List<SectionDef> sections) {
                     page.get("name").getAsString(),
                     type,
                     page.has("item") ? page.get("item").getAsString() : null,
-                    page.has("image") ? page.get("image").getAsString() : null));
+                    page.has("image") ? page.get("image").getAsString() : null,
+                    page.has("data") ? page.get("data").getAsString() : null));
         }
         return List.copyOf(pages);
     }
 
-    private static JsonElement read(String path) {
+    /** Reads one file of the shipped book tree; {@link StructureInfo#load} shares it. */
+    static JsonElement read(String path) {
         try (InputStream in = BookStructure.class.getResourceAsStream(ROOT + path)) {
             if (in == null) {
                 throw new IllegalStateException("missing book data file " + ROOT + path);

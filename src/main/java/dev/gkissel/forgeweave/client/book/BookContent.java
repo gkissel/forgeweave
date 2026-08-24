@@ -122,6 +122,9 @@ public final class BookContent {
             ResourceLocation id = ResourceLocation.parse(def.item());
             return new ToolPage(BuiltInRegistries.ITEM.get(id));
         }
+        if (def.type().equals("structure")) {
+            return new BookPage.StructurePage(def.name(), StructureInfo.load(def.data()));
+        }
         String base = "book.forgeweave." + sectionName + "." + def.name();
         return new TextPage(base + ".title", base + ".text", imageOf(def.image()));
     }
@@ -228,6 +231,7 @@ public final class BookContent {
             case ListingPage listing -> listing.titleKey();
             case IconGridPage listing -> listing.titleKey();
             case SectionListPage sectionList -> sectionList.name(); // never listed; exhaustiveness
+            case BookPage.StructurePage structure -> structure.name(); // never listed; exhaustiveness
         };
     }
 
@@ -258,7 +262,9 @@ public final class BookContent {
         for (SectionDef def : BookStructure.load().sections()) {
             keys.add("book.forgeweave.section." + def.name());
             for (PageDef page : def.pages()) {
-                if (!page.type().equals("tool")) {
+                // Tool pages take their keys from the item; a structure page has no title or text
+                // (upstream's multiblock.json carries neither).
+                if (!page.type().equals("tool") && !page.type().equals("structure")) {
                     String base = "book.forgeweave." + def.name() + "." + page.name();
                     keys.add(base + ".title");
                     keys.add(base + ".text");

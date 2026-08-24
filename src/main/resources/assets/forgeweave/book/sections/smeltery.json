@@ -11,5 +11,10 @@
   {
     "name": "working",
     "type": "text"
+  },
+  {
+    "name": "multiblock",
+    "type": "structure",
+    "data": "structure/smeltery.json"
   }
 ]
