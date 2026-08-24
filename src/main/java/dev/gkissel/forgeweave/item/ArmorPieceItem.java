@@ -33,6 +33,7 @@ import dev.gkissel.forgeweave.client.StationText;
 import dev.gkissel.forgeweave.config.ForgeweaveConfig;
 import dev.gkissel.forgeweave.material.Material;
 import dev.gkissel.forgeweave.material.MaterialDisplay;
+import dev.gkissel.forgeweave.modifier.ForgeweaveModifiers;
 import dev.gkissel.forgeweave.tool.ArmorStats;
 import dev.gkissel.forgeweave.tool.ToolMaterials;
 import dev.gkissel.forgeweave.trait.ForgeweaveTraits;
@@ -143,9 +144,11 @@ public class ArmorPieceItem extends ArmorItem {
             builder.add(Attributes.ARMOR_TOUGHNESS,
                     new AttributeModifier(id, stats.toughness(), AttributeModifier.Operation.ADD_VALUE), slot);
         }
-        if (stats.knockbackResistance() > 0) {
+        // M4-6 (#681): the knockback resistance modifier's +0.1/level rides the same attribute line.
+        float knockbackResistance = stats.knockbackResistance() + ForgeweaveModifiers.knockbackResistanceBonus(stack);
+        if (knockbackResistance > 0) {
             builder.add(Attributes.KNOCKBACK_RESISTANCE,
-                    new AttributeModifier(id, stats.knockbackResistance(), AttributeModifier.Operation.ADD_VALUE), slot);
+                    new AttributeModifier(id, knockbackResistance, AttributeModifier.Operation.ADD_VALUE), slot);
         }
         // #680: the ARMOR traits' attribute modifiers (skyfall, crystalstrike, projectile protection).
         ForgeweaveTraits.armorAttributes(stack, type.getSlot(), builder);

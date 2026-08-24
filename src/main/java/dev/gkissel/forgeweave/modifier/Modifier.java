@@ -113,6 +113,30 @@ public interface Modifier {
     }
 
     /**
+     * Whether this modifier may only be applied to a worn plate armor piece (M4-6, issue #681;
+     * SCOPE.md D15) -- {@code Category.ARMOR}, the clone's {@code tconstruct:modifiable/armor}
+     * recipe tool tag on its {@code recipes/tools/modifiers/defense/*.json}. The five protections,
+     * knockback resistance and thorns are the shipped users; {@code ModifierApplication} refuses
+     * everything whose assembly entry is another category with the same
+     * {@code gui.forgeweave.modifier.unsupported_tool} message as {@link #harvestOnly}.
+     */
+    default boolean armorOnly() {
+        return false;
+    }
+
+    /**
+     * Bonus added to the wearer's {@code minecraft:generic.knockback_resistance} attribute while
+     * the piece carrying this modifier is worn -- the clone's {@code StatBoostModule.add(ToolStats.
+     * KNOCKBACK_RESISTANCE)} folded into {@code ModifiableArmorItem#getAttributeModifiers}. Read by
+     * {@code ArmorPieceItem} next to the plating's own {@code ArmorStats#knockbackResistance}.
+     *
+     * @param level accumulated application units (see {@link ModifierEntry#level})
+     */
+    default float knockbackResistanceBonus(int level) {
+        return 0.0F;
+    }
+
+    /**
      * The tool's attack damage after this modifier has adjusted it -- silky's only shipped user
      * (issue #107): upstream {@code ModSilktouch#applyEffect} takes a flat 3 off both {@code speed}
      * and {@code attack} (floored at 1) the moment the modifier is applied. Same shape as

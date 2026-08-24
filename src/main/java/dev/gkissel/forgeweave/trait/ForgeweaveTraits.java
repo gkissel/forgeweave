@@ -66,6 +66,7 @@ import dev.gkissel.forgeweave.combat.CombatHit;
 import dev.gkissel.forgeweave.combat.CombatDefense;
 import dev.gkissel.forgeweave.combat.CombatSeam;
 import dev.gkissel.forgeweave.combat.CombatSeams;
+import dev.gkissel.forgeweave.combat.ThornsCounterSeam;
 import dev.gkissel.forgeweave.combat.ConditionalSeam;
 import dev.gkissel.forgeweave.combat.DefendedBlow;
 import dev.gkissel.forgeweave.combat.FlatBonusDamage;
@@ -1641,15 +1642,12 @@ public final class ForgeweaveTraits {
      * Distinct from spiky, cactus's general trait, which reflects a held tool's own attack damage.
      */
     public static final Trait THORNS = new Trait() {
+        // #681: the thorns modifier's ThornsCounterSeam at level 1 -- one implementation for both.
+        private final ThornsCounterSeam seam = new ThornsCounterSeam(THORNS_CHANCE, THORNS_CONSTANT, THORNS_RANDOM);
+
         @Override
         public void onDefend(CombatDefense defense, DefendedBlow blow) {
-            LivingEntity attacker = directAttacker(defense);
-            if (attacker == null || defense.level().getRandom().nextFloat() >= THORNS_CHANCE) {
-                return;
-            }
-            float damage = THORNS_CONSTANT + defense.level().getRandom().nextFloat() * THORNS_RANDOM;
-            attacker.hurt(defense.level().damageSources().thorns(defense.defender()), damage);
-            defense.tool().hurtAndBreak(COUNTER_DURABILITY, defense.defender(), defense.slot());
+            seam.onDefend(defense, blow);
         }
     };
 

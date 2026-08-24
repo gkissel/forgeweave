@@ -1,0 +1,8 @@
+{
+  "modifier": "forgeweave:fire_protection",
+  "reagent": {
+    "item": "forgeweave:seared_brick"
+  },
+  "cost": 1,
+  "max_level": 40
+}

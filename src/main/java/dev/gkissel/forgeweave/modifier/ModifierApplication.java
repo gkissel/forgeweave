@@ -135,7 +135,9 @@ public final class ModifierApplication {
      */
     public static Optional<Outcome> resolve(HolderLookup.Provider registries, ItemStack tool,
             List<ItemStack> freeSlots) {
-        if (tool.get(ForgeweaveDataComponents.TOOL_STATS.get()) == null) {
+        // M4-6 (#681): an assembled armor piece carries ARMOR_STATS in place of TOOL_STATS.
+        if (tool.get(ForgeweaveDataComponents.TOOL_STATS.get()) == null
+                && tool.get(ForgeweaveDataComponents.ARMOR_STATS.get()) == null) {
             return Optional.empty(); // not an assembled tool; nothing to modify.
         }
         List<ModifierRecipe> recipes = new ArrayList<>(); // distinct, first-slot order
@@ -255,6 +257,13 @@ public final class ModifierApplication {
         // and is refused rather than defaulted in.
         if (modifier.harvestOnly() && ToolAssemblyRecipes.entryFor(tool)
                 .map(entry -> entry.constants().category() != ToolConstants.Category.HARVEST)
+                .orElse(true)) {
+            return Optional.of(Component.translatable("gui.forgeweave.modifier.unsupported_tool", name(recipe.modifier())));
+        }
+        // M4-6 (#681): the clone's `tconstruct:modifiable/armor` recipe tool tag, D15's armorOnly()
+        // -- the same assembly-entry category read as harvestOnly above.
+        if (modifier.armorOnly() && ToolAssemblyRecipes.entryFor(tool)
+                .map(entry -> entry.constants().category() != ToolConstants.Category.ARMOR)
                 .orElse(true)) {
             return Optional.of(Component.translatable("gui.forgeweave.modifier.unsupported_tool", name(recipe.modifier())));
         }

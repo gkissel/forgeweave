@@ -1147,6 +1147,31 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
                 "Something's fishy... Attaching fins to the projectiles makes them travel like "
                         + "normal underwater.");
 
+        // M4-6 (#681) -- the seven armor modifiers, ported from the 1.20 clone's
+        // assets/tconstruct/lang/en_us.json (modifier.tconstruct.<id>.flavor + .description, the
+        // flavour line folded into the description as fins' is).
+        add("modifier.forgeweave.fire_protection.name", "Fire Protection");
+        add("modifier.forgeweave.fire_protection.description",
+                "Become the smeltery! Protects against damage from fire.");
+        add("modifier.forgeweave.blast_protection.name", "Blast Protection");
+        add("modifier.forgeweave.blast_protection.description",
+                "Aw man! Protects against explosion damage.");
+        add("modifier.forgeweave.magic_protection.name", "Magic Protection");
+        add("modifier.forgeweave.magic_protection.description",
+                "Powerful magic requires powerful magic! Protects against damage from magical sources.");
+        add("modifier.forgeweave.melee_protection.name", "Melee Protection");
+        add("modifier.forgeweave.melee_protection.description",
+                "Thwack! Increases protection against direct physical damage.");
+        add("modifier.forgeweave.projectile_protection.name", "Projectile Protection");
+        add("modifier.forgeweave.projectile_protection.description",
+                "Ding! Protects against damage from projectiles.");
+        add("modifier.forgeweave.knockback_resistance.name", "Knockback Resistance");
+        add("modifier.forgeweave.knockback_resistance.description",
+                "A weighty subject. Anvils are heavy, so it should keep you from being knocked back, right?");
+        add("modifier.forgeweave.thorns.name", "Thorns");
+        add("modifier.forgeweave.thorns.description",
+                "Quite metal. Harness the power of the guardian, causing attackers to sometimes take damage.");
+
         add("modifier.forgeweave.wind_burst.name", "Wind Burst");
         add("modifier.forgeweave.wind_burst.description",
                 "Grants Wind Burst on the warmace. Each breeze rod raises it another level, up to III.");
@@ -1829,6 +1854,37 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
                 "No mining speed penalty underwater", "Single use");
         modifierEffects("resonant",
                 "Blocks that drop experience drop more", "Each level adds 50%", "Multiple levels");
+        // M4-6 (#681): the 1.20 clone's book pages (book/encyclopedia/en_us/defense/protection/*,
+        // defense/special/tconstruct_knockback_resistance, upgrades/armor/general/tconstruct_thorns),
+        // minus the secondary effects Forgeweave does not port (fire time, potion duration, use
+        // speed, explosion knockback) and with the single slot pool in place of defense slots.
+        modifierEffects("fire_protection",
+                "Grants +10% resistance against fire damage, such as from lava or blazes",
+                "Caps at 80% across the whole set", "Can apply levels incrementally",
+                "Requires 1 modifier slot per level");
+        modifierEffects("blast_protection",
+                "Grants +10% resistance against explosion damage, such as from creepers or TNT",
+                "Caps at 80% across the whole set", "Can apply levels incrementally",
+                "Requires 1 modifier slot per level");
+        modifierEffects("magic_protection",
+                "Grants +10% resistance against magic damage, such as from poison or thorns",
+                "Caps at 80% across the whole set", "Can apply levels incrementally",
+                "Requires 1 modifier slot per level");
+        modifierEffects("melee_protection",
+                "Grants +8% resistance against melee damage, such as from zombies and swords",
+                "Caps at 80% across the whole set", "Can apply levels incrementally",
+                "Requires 1 modifier slot per level");
+        modifierEffects("projectile_protection",
+                "Grants +8% resistance against projectile damage, such as arrows from skeletons",
+                "Caps at 80% across the whole set", "Can apply levels incrementally",
+                "Requires 1 modifier slot per level");
+        modifierEffects("knockback_resistance",
+                "Reduces the amount of knockback received by 10%", "Maximum of 1 level per piece",
+                "Requires 1 modifier slot");
+        modifierEffects("thorns",
+                "Has a 15% chance per level to apply 1 to 4 damage to the attacker",
+                "Multiple pieces will stack the effect", "Maximum of 3 levels",
+                "Requires 1 modifier slot per level");
         modifierEffects("far_reach",
                 "Reach further to mine blocks", "Each level adds one block", "Multiple levels");
         modifierEffects("extra_slot",
