@@ -26,6 +26,7 @@ import com.google.gson.JsonParser;
 import org.junit.jupiter.api.Test;
 
 import dev.gkissel.forgeweave.menu.ToolAssemblyRecipes;
+import dev.gkissel.forgeweave.tool.ToolConstants;
 import dev.gkissel.forgeweave.tool.ToolArt;
 
 /**
@@ -244,6 +245,9 @@ class TextureReferenceAuditTest {
     void everyToolLayerHasArt() {
         Path textures = projectRoot().resolve("src/main/resources/assets/forgeweave/textures");
         for (ToolAssemblyRecipes.Entry entry : ToolAssemblyRecipes.ENTRIES) {
+            if (entry.constants().category() == ToolConstants.Category.ARMOR) {
+                continue; // #679 lands the armor render; #678 ships vanilla placeholder art
+            }
             String tool = entry.constants().id();
             for (String layer : ToolArt.layers(entry.constants().parts())) {
                 Path png = textures.resolve(ToolArt.layer(tool, layer) + ".png");
@@ -272,6 +276,9 @@ class TextureReferenceAuditTest {
         Set<String> overriding = Set.of("cleaver", "rapier", "battlesign", "shortbow", "longbow", "crossbow");
 
         for (ToolAssemblyRecipes.Entry entry : ToolAssemblyRecipes.ENTRIES) {
+            if (entry.constants().category() == ToolConstants.Category.ARMOR) {
+                continue; // #679 lands the armor render; #678 ships vanilla placeholder art
+            }
             String tool = entry.constants().id();
             Path json = models.resolve(tool + ".json");
             assertTrue(Files.isRegularFile(json), "no generated item model for forgeweave:" + tool + ": " + json);

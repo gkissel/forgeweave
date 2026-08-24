@@ -121,8 +121,9 @@ class ForgeweaveCreativeTabTest {
 
         assertTrue(missing.isEmpty(), () -> "tools missing from the tools tab: "
                 + missing.stream().map(item -> BuiltInRegistries.ITEM.getKey(item)).toList());
-        assertEquals(List.of(), displayed.stream().filter(item -> !(item instanceof ToolItem)).toList(),
-                "the tools tab holds assembled tools only");
+        assertEquals(List.of(), displayed.stream()
+                        .filter(item -> !(item instanceof ToolItem || item instanceof ArmorPieceItem)).toList(),
+                "the tools tab holds assembled tools and armor only");
     }
 
     /** Upstream files every {@code ToolPart} under the Tool Parts tab ({@code ToolPart:41}). */

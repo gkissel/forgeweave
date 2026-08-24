@@ -494,12 +494,7 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
                         + "damage. Can be thrown from the off-hand.");
         // #653 (parity audit T17): upstream item.tconstruct.arrow.name / .desc, minus the
         // avoided-terminology brand word (CONTEXT.md).
-        // M4 armor (issue #678). Part names are #677's (1.20 clone spelling: "Maille").
-        addItem(ForgeweaveItems.PART_PLATING_HELMET, "Helmet Plating");
-        addItem(ForgeweaveItems.PART_PLATING_CHESTPLATE, "Chest Plating");
-        addItem(ForgeweaveItems.PART_PLATING_LEGGINGS, "Leg Plating");
-        addItem(ForgeweaveItems.PART_PLATING_BOOTS, "Boot Plating");
-        addItem(ForgeweaveItems.PART_MAILLE, "Maille");
+        // M4 armor (issue #678); the part names are #677's.
         addItem(ForgeweaveItems.ARMOR_HELMET, "Helmet");
         add("item.forgeweave.helmet.description",
                 "Plating over maille. The plating sets every stat; the maille brings its material's traits.");

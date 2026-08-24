@@ -18,6 +18,7 @@ import org.junit.jupiter.api.Test;
 import net.minecraft.resources.ResourceLocation;
 
 import dev.gkissel.forgeweave.menu.ToolAssemblyRecipes;
+import dev.gkissel.forgeweave.tool.ToolConstants;
 
 /**
  * Guards issue #257's modifier-overlay art the way {@code TextureReferenceAuditTest} guards the tool
@@ -51,6 +52,9 @@ class ModifierArtTest {
     void everyToolHasEveryDeclaredModifierOverlay() {
         List<String> missing = new ArrayList<>();
         for (ToolAssemblyRecipes.Entry entry : ToolAssemblyRecipes.ENTRIES) {
+            if (entry.constants().category() == ToolConstants.Category.ARMOR) {
+                continue; // #679 lands the armor render; #678 ships vanilla placeholder art
+            }
             String tool = entry.constants().id();
             for (ResourceLocation modifier : ModifierArt.OVERLAY_MODIFIERS) {
                 String texture = ModifierArt.overlay(tool, modifier);
@@ -75,6 +79,9 @@ class ModifierArtTest {
     void everyDrawStageOverlayResolvesToDerivedArt() {
         List<String> missing = new ArrayList<>();
         for (ToolAssemblyRecipes.Entry entry : ToolAssemblyRecipes.ENTRIES) {
+            if (entry.constants().category() == ToolConstants.Category.ARMOR) {
+                continue; // #679 lands the armor render; #678 ships vanilla placeholder art
+            }
             String tool = entry.constants().id();
             for (ResourceLocation modifier : ModifierArt.OVERLAY_MODIFIERS) {
                 for (int stage = 0; stage <= ToolArt.DRAW_STAGES; stage++) {

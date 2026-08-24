@@ -19,6 +19,7 @@ import com.google.gson.JsonParser;
 import org.junit.jupiter.api.Test;
 
 import dev.gkissel.forgeweave.menu.ToolAssemblyRecipes;
+import dev.gkissel.forgeweave.tool.ToolConstants;
 import dev.gkissel.forgeweave.tool.ToolArt;
 
 /**
@@ -56,6 +57,9 @@ class BrokenToolModelTest {
     @Test
     void everyToolDeclaresABrokenLayerItActuallyDraws() {
         for (ToolAssemblyRecipes.Entry entry : ToolAssemblyRecipes.ENTRIES) {
+            if (entry.constants().category() == ToolConstants.Category.ARMOR) {
+                continue; // #679 lands the armor render; #678 ships vanilla placeholder art
+            }
             String tool = entry.constants().id();
             String broken = ToolArt.brokenLayer(tool);
             assertNotNull(broken, "forgeweave:" + tool + " declares no broken layer (issue #284)");
@@ -69,6 +73,9 @@ class BrokenToolModelTest {
     void everyBrokenLayerHasArt() {
         Path textures = projectRoot().resolve("src/main/resources/assets/forgeweave/textures");
         for (ToolAssemblyRecipes.Entry entry : ToolAssemblyRecipes.ENTRIES) {
+            if (entry.constants().category() == ToolConstants.Category.ARMOR) {
+                continue; // #679 lands the armor render; #678 ships vanilla placeholder art
+            }
             String tool = entry.constants().id();
             Path png = textures.resolve(ToolArt.brokenLayerTexture(tool, ToolArt.brokenLayer(tool)) + ".png");
             assertTrue(Files.isRegularFile(png),
@@ -88,6 +95,9 @@ class BrokenToolModelTest {
         Path models = projectRoot().resolve("src/generated/resources/assets/forgeweave/models/item");
 
         for (ToolAssemblyRecipes.Entry entry : ToolAssemblyRecipes.ENTRIES) {
+            if (entry.constants().category() == ToolConstants.Category.ARMOR) {
+                continue; // #679 lands the armor render; #678 ships vanilla placeholder art
+            }
             String tool = entry.constants().id();
             List<String> layers = ToolArt.layers(entry.constants().parts());
             String brokenLayer = ToolArt.brokenLayer(tool);

@@ -382,14 +382,6 @@ public final class ForgeweaveItems {
             properties -> new MaterialArrowItem(properties, ToolConstants.ARROW),
             new Item.Properties().stacksTo(1));
 
-    // M4-2 (issue #677) owns these five part registrations; landed here minimally so #678's armor
-    // assembly compiles and tests -- whichever PR merges second keeps #677's block.
-    public static final DeferredItem<PartItem> PART_PLATING_HELMET = part("plating_helmet", PartItem.Kind.PLATING);
-    public static final DeferredItem<PartItem> PART_PLATING_CHESTPLATE = part("plating_chestplate", PartItem.Kind.PLATING);
-    public static final DeferredItem<PartItem> PART_PLATING_LEGGINGS = part("plating_leggings", PartItem.Kind.PLATING);
-    public static final DeferredItem<PartItem> PART_PLATING_BOOTS = part("plating_boots", PartItem.Kind.PLATING);
-    public static final DeferredItem<PartItem> PART_MAILLE = part("maille", PartItem.Kind.MAILLE);
-
     // M4 plate armor (issue #678, SCOPE.md D3): the four pieces, assembled from plating + maille at
     // either station (ToolConstants#ARMOR, ToolAssemblyRecipes#ENTRIES). Vanilla ArmorItems so the
     // slot, equip and armor-damage paths are vanilla's -- see ArmorPieceItem.
