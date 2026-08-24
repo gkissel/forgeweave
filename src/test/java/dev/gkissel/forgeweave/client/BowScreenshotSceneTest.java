@@ -98,6 +98,22 @@ class BowScreenshotSceneTest {
                 "the crank half-wound, the crank finished, and the shouldered one");
     }
 
+    /**
+     * Issue #673: the draw is pressed once, waited on until the server-synced using flag and the
+     * wanted stage are both there, and bounded -- a draw that never syncs times out instead of
+     * hanging the run for good, which is what the client-only {@code startUsingItem} did.
+     */
+    @Test
+    void aDrawnPosePressesOnceWaitsForTheStageAndTimesOut() {
+        assertEquals(ScreenshotHarness.DrawStep.PRESS, ScreenshotHarness.drawStep(15, false, 0, 2));
+        assertEquals(ScreenshotHarness.DrawStep.WAIT, ScreenshotHarness.drawStep(16, false, 0, 2));
+        assertEquals(ScreenshotHarness.DrawStep.WAIT, ScreenshotHarness.drawStep(40, true, 1, 2));
+        assertEquals(ScreenshotHarness.DrawStep.CAPTURE, ScreenshotHarness.drawStep(40, true, 2, 2));
+        assertEquals(ScreenshotHarness.DrawStep.CAPTURE, ScreenshotHarness.drawStep(40, true, 3, 2));
+        assertEquals(ScreenshotHarness.DrawStep.TIMED_OUT, ScreenshotHarness.drawStep(200, false, 0, 2));
+        assertEquals(ScreenshotHarness.DrawStep.TIMED_OUT, ScreenshotHarness.drawStep(500, true, 1, 2));
+    }
+
     /** File names are the frames a reviewer looks for; keep them derived from the item, not hand-typed. */
     @Test
     void poseFileNamesNameTheirBowAndState() {
