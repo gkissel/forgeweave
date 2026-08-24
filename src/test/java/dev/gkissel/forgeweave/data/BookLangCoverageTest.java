@@ -107,12 +107,14 @@ class BookLangCoverageTest {
             }
         }
 
-        // Non-vacuity: upstream's shipped book has properties for 15 of the tools Forgeweave lists
-        // and effects for 19 of the modifiers Forgeweave ships.
-        assertTrue(toolsWithProperties >= 15,
-                "expected the 1.12 tool property port, saw only " + toolsWithProperties + " tools with properties");
-        assertTrue(modifiersWithEffects >= 19,
-                "expected the 1.12 modifier effect port, saw only " + modifiersWithEffects + " modifiers with effects");
+        // The #651 content tail closed the gaps #658 left: every listed tool and every registered
+        // modifier now carries a bullet run -- the 1.12 port where upstream wrote one, Forgeweave's
+        // own bullets for the tools/modifiers upstream doesn't have.
+        org.junit.jupiter.api.Assertions.assertEquals(BookContent.TOOLS.size(), toolsWithProperties,
+                "every tool in the book's roster must have a Properties bullet run");
+        org.junit.jupiter.api.Assertions.assertEquals(
+                dev.gkissel.forgeweave.modifier.ForgeweaveModifiers.ids().size(), modifiersWithEffects,
+                "every registered modifier must have an Effects bullet run");
         assertTrue(problems.isEmpty(), String.join("\n", problems));
     }
 
