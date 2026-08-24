@@ -63,9 +63,12 @@ Forgeweave brings modular tool building, material traits, modifiers, melting, al
     ordering="AFTER"
     side="CLIENT"
 
-# Ponder integration (docs/SCOPE.md M2 issue #110) is optional too: without it, a one-time chat hint
-# takes its place (ForgeweavePonderHint). See ForgeweavePonderPlugin's javadoc for the isolation this
-# soft dependency needs.
+# Ponder integration (docs/SCOPE.md M2 issue #110; issue #664 embeds it jar-in-jar together with its
+# required client dependency Flywheel, so this entry is always satisfied on a normal install). Still
+# declared optional rather than required: the code guards every Ponder touch behind ModList
+# (ForgeweavePonderPlugin), so a repackaged install that strips the embedded jars degrades to the
+# one-time chat hint (ForgeweavePonderHint) instead of refusing to load. Flywheel needs no entry of
+# its own here -- the embedded Ponder jar declares that requirement itself.
 [[dependencies.${mod_id}]]
     modId="ponder"
     type="optional"

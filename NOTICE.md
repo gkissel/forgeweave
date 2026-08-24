@@ -19,6 +19,8 @@ Forgeweave also derives four texture files from [Spartan Weaponry](https://githu
 
 Forgeweave also derives the guide book's engine geometry and chrome art from [Mantle](https://github.com/SlimeKnights/Mantle) by SlimeKnights (branch `1.12`, MIT -- same license text as Tinkers' Construct above), the library the 1.12 book engine actually lives in (issue #430). Its reference clone is pinned in CLAUDE.md's upstream table.
 
+Forgeweave also **embeds** (jar-in-jar, unmodified binaries under `META-INF/jarjar/` in the shipped jar; issue #664) two MIT-licensed libraries by Creators of Create: [Ponder](https://github.com/Creators-of-Create/Ponder) (`net.createmod.ponder:ponder-neoforge`), the in-world animated tutorial system Forgeweave's scenes run on, and [Flywheel](https://github.com/Engine-Room/Flywheel) (`dev.engine-room.flywheel:flywheel-neoforge-1.21.1`), Ponder's own required client-side dependency. This is a dependency relationship, not derivation: no Ponder or Flywheel source or assets are copied into this tree (Forgeweave's scene code and schematics are original), and each embedded jar ships its own MIT license text (`LICENSE_Ponder`, `META-INF/LICENSE.md`), satisfying the MIT notice condition for the binaries.
+
 Note that Spartan Weaponry ships **no scimitar** — verified across every branch of the repository. Forgeweave's `curved_blade` is derived from its *saber*, the only curved single-edged sword it has, under an explicit maintainer decision on issue #375.
 
 ## Derived files

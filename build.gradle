@@ -157,7 +157,16 @@ dependencies {
     // GameTest suite, and scene playback is client-rendered content a headless GameTest can't observe
     // anyway. The "Ponder present" path is exercised by installing it in a real client, per the M2
     // release checklist ("Ponder present/absent both behave").
-    compileOnly "net.createmod.ponder:ponder-neoforge:${ponder_version}+mc${minecraft_version}"
+    // Ponder (issue #664, maintainer-approved additive feature): jar-in-jar embedded so players get
+    // the smeltery scene without a separate install. `implementation` keeps it on every dev/test
+    // runtime (runClient plays the scenes, runData extracts their lang through
+    // ForgeweaveLanguageProvider, runGameTestServer proves both mods load headless on a dedicated
+    // server); `jarJar` embeds it in the shipped jar. Flywheel is Ponder's own required client
+    // dependency (see its neoforge.mods.toml) and arrives transitively for the runtime classpath via
+    // Ponder's pom, but JarJar embeds only what is declared, so it gets its own jarJar line.
+    implementation "net.createmod.ponder:ponder-neoforge:${ponder_version}+mc${minecraft_version}"
+    jarJar "net.createmod.ponder:ponder-neoforge:${ponder_version}+mc${minecraft_version}"
+    jarJar "dev.engine-room.flywheel:flywheel-neoforge-${minecraft_version}:${flywheel_version}"
 
     testImplementation platform('org.junit:junit-bom:6.1.3')
     testImplementation 'org.junit.jupiter:junit-jupiter'

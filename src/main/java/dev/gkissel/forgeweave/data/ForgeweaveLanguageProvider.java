@@ -6,6 +6,8 @@ import net.minecraft.data.PackOutput;
 import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.item.Item;
 
+import net.createmod.ponder.foundation.PonderIndex;
+
 import net.neoforged.neoforge.common.data.LanguageProvider;
 
 import dev.gkissel.forgeweave.Forgeweave;
@@ -17,6 +19,7 @@ import dev.gkissel.forgeweave.block.SlimeSaplingBlock;
 import dev.gkissel.forgeweave.block.SmelteryScan;
 import dev.gkissel.forgeweave.fluid.ForgeweaveFluids;
 import dev.gkissel.forgeweave.item.ForgeweaveItems;
+import dev.gkissel.forgeweave.ponder.ForgeweavePonderPlugin;
 
 /**
  * English translations for the creative tab, every item, and the four M1 materials. Material
@@ -1445,6 +1448,15 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         // A new "chat" family, following vanilla's own chat.* namespace -- none of this file's usual
         // families cover a directly-displayed player chat message.
         add("chat.forgeweave.ponder_hint", "Install Ponder for in-game build tutorials -- recipes are in JEI");
+
+        // #664 -- the Ponder scene text (forgeweave.ponder.<scene>.header/.text_N). Ponder's idiom
+        // keeps the English inline in the storyboards (ForgeweaveSmelteryScenes) and extracts it
+        // through its own datagen hook: provideLang registers our plugin's scenes headlessly and
+        // emits one entry per title()/text() call, so the strings still flow through this provider
+        // and runData like every other player-facing key. Ponder is jar-in-jar embedded (build
+        // .gradle), so its classes are always present on the data run's classpath.
+        PonderIndex.addPlugin(new ForgeweavePonderPlugin());
+        PonderIndex.getLangAccess().provideLang(Forgeweave.MODID, this::add);
 
         // #229 -- the M3.2 combat-seam trait batch. Wording follows upstream 1.12's
         // modifier.<id>.name/.desc entries (NOTICE.md), same as the M1/M2 trait families above;
