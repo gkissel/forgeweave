@@ -61,8 +61,9 @@ class BookStructureTest {
     void theIndexJsonListsTheShippedSectionsInUpstreamOrder() {
         List<String> names = structure().sections().stream().map(SectionDef::name).toList();
 
-        assertEquals(List.of("intro", "tools", "materials", "modifiers", "smeltery"), names,
-                "upstream index.json: intro, tools, materials, modifiers, smeltery");
+        assertEquals(List.of("intro", "tools", "armor", "materials", "modifiers", "smeltery"), names,
+                "upstream index.json: intro, tools, materials, modifiers, smeltery; M4 (#682) slots armor "
+                        + "after tools, where the 1.20 book's materials_and_you/index.json puts it");
         for (SectionDef def : structure().sections()) {
             assertNotNull(def.iconItem(), "index entry " + def.name() + " needs its icon item");
             assertFalse(def.pages().isEmpty(),
@@ -108,6 +109,30 @@ class BookStructureTest {
         for (PageDef def : pages) {
             assertEquals("text", def.type(), "intro page " + def.name() + " is a plain text page");
         }
+    }
+
+    /**
+     * M4-7 (issue #682, docs/SCOPE.md D21): the armor section -- the plating/maille intro, the cast
+     * bootstrap, one {@code tool} page per piece (the same page kind the tools section uses, so the
+     * piece renders with its parts diagram), then the ARMOR traits and the armor modifiers. The
+     * piece pages are not in {@link BookContent#TOOLS} (that roster is the tools section's own), so
+     * {@code BookLangCoverageTest} walks them separately.
+     */
+    @Test
+    void theArmorSectionListsThePiecesBetweenItsTextPages() {
+        List<PageDef> pages = section("armor").pages();
+
+        assertEquals(List.of("intro", "parts", "casting", "helmet", "chestplate", "leggings", "boots",
+                "traits", "modifiers"), pages.stream().map(PageDef::name).toList());
+        assertEquals("forgeweave:chestplate", section("armor").iconItem());
+        for (PageDef def : pages) {
+            if (def.type().equals("tool")) {
+                assertEquals("forgeweave:" + def.name(), def.item(), "armor page " + def.name());
+            } else {
+                assertEquals("text", def.type(), "armor page " + def.name());
+            }
+        }
+        assertEquals(4, pages.stream().filter(def -> def.type().equals("tool")).count());
     }
 
     /** The smeltery intro is upstream's {@code "image with text below"} page type. */

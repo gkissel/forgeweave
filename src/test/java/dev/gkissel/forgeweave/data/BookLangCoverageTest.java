@@ -20,6 +20,7 @@ import net.minecraft.server.Bootstrap;
 import net.minecraft.world.item.Item;
 
 import dev.gkissel.forgeweave.client.book.BookContent;
+import dev.gkissel.forgeweave.client.book.BookStructure;
 
 /**
  * Guards the guide book's content tree (issue #273): every fixed lang key the book structure
@@ -115,6 +116,35 @@ class BookLangCoverageTest {
         org.junit.jupiter.api.Assertions.assertEquals(
                 dev.gkissel.forgeweave.modifier.ForgeweaveModifiers.ids().size(), modifiersWithEffects,
                 "every registered modifier must have an Effects bullet run");
+        assertTrue(problems.isEmpty(), String.join("\n", problems));
+    }
+
+    /**
+     * M4-7 (issue #682): the armor section's four {@code tool} pages sit outside
+     * {@link BookContent#TOOLS} (the tools section's roster), so their name/description pair and
+     * Properties bullet run are walked here.
+     */
+    @Test
+    void theArmorPiecePagesHaveNameDescriptionAndProperties() throws IOException {
+        JsonObject lang = lang();
+        List<String> problems = new ArrayList<>();
+        List<BookStructure.PageDef> pieces = BookStructure.load().sections().stream()
+                .filter(section -> section.name().equals("armor"))
+                .flatMap(section -> section.pages().stream())
+                .filter(page -> page.type().equals("tool"))
+                .toList();
+        assertTrue(pieces.size() == 4, "the armor section lists the four pieces, saw " + pieces.size());
+        for (BookStructure.PageDef piece : pieces) {
+            String base = "item.forgeweave." + piece.name();
+            for (String key : List.of(base, base + ".description")) {
+                if (!lang.has(key)) {
+                    problems.add("missing " + key);
+                }
+            }
+            if (!checkRun(lang, base + ".property.", problems)) {
+                problems.add("no Properties bullet run for " + base);
+            }
+        }
         assertTrue(problems.isEmpty(), String.join("\n", problems));
     }
 

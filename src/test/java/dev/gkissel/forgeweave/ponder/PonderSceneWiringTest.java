@@ -85,12 +85,45 @@ class PonderSceneWiringTest {
         RecordingHelper helper = new RecordingHelper();
         new ForgeweavePonderPlugin().registerScenes(helper);
 
-        assertEquals(1, helper.scenes.size(), "issue #664 ships exactly one scene");
+        assertEquals(2, helper.scenes.size(), "issue #664's smeltery scene and #682's armor scene");
         RegisteredScene scene = helper.scenes.get(0);
         assertEquals(ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "standard_core"), scene.component(),
                 "the scene is registered on the smeltery controller item");
         assertEquals(ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "smeltery"), scene.schematic());
         assertNotNull(scene.board());
+    }
+
+    /**
+     * M4-7 (issue #682, docs/SCOPE.md D21): the armor assembly scene, registered on the Tool Station
+     * item -- the block the scene plays around -- so the hold-W affordance sits where a player who
+     * has the parts and is wondering where they go will look.
+     */
+    @Test
+    void armorAssemblySceneIsRegisteredOnTheToolStationItem() {
+        RecordingHelper helper = new RecordingHelper();
+        new ForgeweavePonderPlugin().registerScenes(helper);
+
+        RegisteredScene scene = helper.scenes.get(1);
+        assertEquals(ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "tool_station"), scene.component());
+        assertEquals(ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "tool_station"), scene.schematic());
+        assertNotNull(scene.board());
+    }
+
+    /** The armor scene's schematic: a Tool Station alone on the base plate. */
+    @Test
+    void toolStationSchematicShipsAndContainsTheStation() throws IOException {
+        CompoundTag root;
+        try (InputStream in = Forgeweave.class.getResourceAsStream("/assets/forgeweave/ponder/tool_station.nbt")) {
+            assertNotNull(in, "assets/forgeweave/ponder/tool_station.nbt is missing");
+            root = NbtIo.readCompressed(in, NbtAccounter.unlimitedHeap());
+        }
+
+        ListTag palette = root.getList("palette", Tag.TAG_COMPOUND);
+        List<String> names = new ArrayList<>();
+        for (int i = 0; i < palette.size(); i++) {
+            names.add(palette.getCompound(i).getString("Name"));
+        }
+        assertTrue(names.contains("forgeweave:tool_station"), "the station is part of the structure: " + names);
     }
 
     /**

@@ -387,6 +387,7 @@ public final class ScreenshotHarness {
         PLACE_CASTING_SCENE, SETTLE_CASTING_SCENE, PLACE_MATERIAL_SCENE, SETTLE_MATERIAL_SCENE,
         PLACE_PART_TINT_SCENE, SETTLE_PART_TINT_SCENE,
         HOLD_WEAPON, SETTLE_WEAPON, SETTLE_WEAPON_FIRST_PERSON, WEAR_ARMOR, SETTLE_ARMOR,
+        SETTLE_ARMOR_FIRST_PERSON,
         HOLD_BOW_POSE, SETTLE_BOW_POSE, SETTLE_BOW_POSE_THIRD_PERSON,
         FIRE_BOW_SETUP, FIRE_BOW_DRAW, FIRE_BOW_CHECK,
         OPEN_SCREEN, SETTLE_SCREEN, OPEN_BOOK, SETTLE_BOOK, DONE
@@ -404,6 +405,8 @@ public final class ScreenshotHarness {
     private static int weaponIndex;
     /** Which of {@link #BOW_POSES} is being posed (#400). */
     private static int bowPoseIndex;
+    /** Which of {@link #ARMOR_SCENES} is being worn (#682). */
+    private static int armorSceneIndex;
     /** Set by {@link #placeTableScene}, checked by {@link #settleTableScene} before capture (#152). */
     private static BlockPos[] tableScenePositions;
     /** Set by {@link #placeSmelteryScene}, checked by {@link #settleSmelteryScene} before capture (#179). */
@@ -439,7 +442,11 @@ public final class ScreenshotHarness {
             new BookScene("book_section", 1),
             // Issue #651: the smeltery multiblock's 3D structure page, the book's one
             // StructureElement render.
-            new BookScene("book_structure", -1, "smeltery.multiblock"));
+            new BookScene("book_structure", -1, "smeltery.multiblock"),
+            // #682 (M4-7): the armor section's opening text page and one piece page, the latter
+            // being the first tool-kind page whose diagram assembles an ArmorPieceItem.
+            new BookScene("book_armor", -1, "armor.intro"),
+            new BookScene("book_armor_chestplate", -1, "armor.chestplate"));
 
     private ScreenshotHarness() {}
 
@@ -471,6 +478,7 @@ public final class ScreenshotHarness {
             case SETTLE_WEAPON_FIRST_PERSON -> settleWeaponFirstPerson(mc);
             case WEAR_ARMOR -> wearArmor(mc);
             case SETTLE_ARMOR -> settleArmor(mc);
+            case SETTLE_ARMOR_FIRST_PERSON -> settleArmorFirstPerson(mc);
             case HOLD_BOW_POSE -> holdBowPose(mc);
             case SETTLE_BOW_POSE -> settleBowPose(mc);
             case SETTLE_BOW_POSE_THIRD_PERSON -> settleBowPoseThirdPerson(mc);
@@ -1218,26 +1226,33 @@ public final class ScreenshotHarness {
     }
 
     /**
-     * Issue #679's in-world scene, {@code armor_iron.png}: the full iron plate set (iron plating,
-     * iron maille) worn by the player, captured from the front in third person -- the one render
-     * path that exercises {@code ArmorPieceItem#PLATE_MATERIAL}'s two worn layers and the
-     * per-material texture pick, which no inventory sprite does. The pieces are assembled through
-     * {@link #assembleForDisplay}, the station's own call, so the worn stack carries real materials.
-     * M4-7 extends this stage with more materials.
+     * Issue #679's in-world scene, {@code armor_<scene>.png}: a plate set worn by the player,
+     * captured from the front in third person -- the one render path that exercises
+     * {@code ArmorPieceItem#PLATE_MATERIAL}'s two worn layers and the per-material texture pick,
+     * which no inventory sprite does -- then again in first person
+     * ({@code armor_<scene>_firstperson.png}, the release checklist's second angle, #682). The
+     * pieces are assembled through {@link #assembleForDisplay}, the station's own call, so the worn
+     * stack carries real materials. One pass per {@link #ARMOR_SCENES} row.
      */
     private static void wearArmor(Minecraft mc) {
         if (stageTicks < SCREEN_GAP_TICKS) {
             return;
         }
+        if (armorSceneIndex >= ARMOR_SCENES.size()) {
+            advance(Stage.FIRE_BOW_SETUP);
+            return;
+        }
+        ArmorScene scene = ARMOR_SCENES.get(armorSceneIndex);
         var server = mc.getSingleplayerServer();
-        LOGGER.info("{}wearing the iron plate set for its third-person capture", LOG_PREFIX);
+        LOGGER.info("{}wearing {} for its third-person capture", LOG_PREFIX, scene.fileName());
         server.execute(() -> {
             ServerPlayer serverPlayer = server.getPlayerList().getPlayers().get(0);
             serverPlayer.setItemInHand(InteractionHand.MAIN_HAND, ItemStack.EMPTY);
-            for (Supplier<ArmorPieceItem> piece : ARMOR_SET) {
-                ItemStack stack = assembleForDisplay(serverPlayer, piece.get());
+            for (Supplier<ArmorPieceItem> piece : scene.pieces()) {
+                ItemStack stack = assembleForDisplay(serverPlayer, piece.get(), scene.material());
                 if (stack.isEmpty()) {
-                    LOGGER.error("{}#679 scene check FAILED: could not assemble {}", LOG_PREFIX, weaponName(piece.get()));
+                    LOGGER.error("{}#679 scene check FAILED: could not assemble {} {}", LOG_PREFIX,
+                            scene.material(), weaponName(piece.get()));
                 }
                 serverPlayer.setItemSlot(piece.get().getEquipmentSlot(), stack);
             }
@@ -1254,8 +1269,9 @@ public final class ScreenshotHarness {
         if (stageTicks < SCREEN_SETTLE_TICKS) {
             return;
         }
+        ArmorScene scene = ARMOR_SCENES.get(armorSceneIndex);
         if (mc.player != null) {
-            for (Supplier<ArmorPieceItem> piece : ARMOR_SET) {
+            for (Supplier<ArmorPieceItem> piece : scene.pieces()) {
                 ItemStack worn = mc.player.getItemBySlot(piece.get().getEquipmentSlot());
                 if (!worn.is(piece.get())) {
                     LOGGER.error("{}#679 scene check FAILED: client wears {} where {} was expected", LOG_PREFIX, worn,
@@ -1266,8 +1282,18 @@ public final class ScreenshotHarness {
                 }
             }
         }
-        capture(mc, "armor_iron");
-        // Off again, so the bow frames that follow keep their bare-player silhouette.
+        capture(mc, scene.fileName());
+        mc.options.setCameraType(CameraType.FIRST_PERSON);
+        advance(Stage.SETTLE_ARMOR_FIRST_PERSON);
+    }
+
+    private static void settleArmorFirstPerson(Minecraft mc) {
+        if (stageTicks < SCREEN_SETTLE_TICKS) {
+            return;
+        }
+        ArmorScene scene = ARMOR_SCENES.get(armorSceneIndex);
+        capture(mc, scene.fileName() + "_firstperson");
+        // Off again, so the next set (and the bow frames after) start from a bare player.
         var server = mc.getSingleplayerServer();
         server.execute(() -> {
             ServerPlayer serverPlayer = server.getPlayerList().getPlayers().get(0);
@@ -1275,14 +1301,28 @@ public final class ScreenshotHarness {
                 serverPlayer.setItemSlot(piece.get().getEquipmentSlot(), ItemStack.EMPTY);
             }
         });
-        mc.options.setCameraType(CameraType.FIRST_PERSON);
-        advance(Stage.FIRE_BOW_SETUP);
+        armorSceneIndex++;
+        advance(Stage.WEAR_ARMOR);
     }
 
-    /** The four plate pieces {@link #wearArmor} puts on, in vanilla's slot order. */
+    /** The four plate pieces, in vanilla's slot order. */
     private static final List<Supplier<ArmorPieceItem>> ARMOR_SET = List.of(
             ForgeweaveItems.ARMOR_HELMET, ForgeweaveItems.ARMOR_CHESTPLATE,
             ForgeweaveItems.ARMOR_LEGGINGS, ForgeweaveItems.ARMOR_BOOTS);
+
+    /** One worn capture pair: the file stem, the plating-and-maille material, and the pieces put on. */
+    private record ArmorScene(String fileName, String material, List<Supplier<ArmorPieceItem>> pieces) {}
+
+    /**
+     * The release checklist's worn sets (docs/SCOPE.md M4 gates, #682): the iron set, the cobalt set
+     * -- a second metal tint over the same grayscale bases -- and one obsidian-plated piece alone,
+     * the non-metal plating the cast bootstrap starts from, worn over a bare body so a plating layer
+     * bleeding outside its piece would show.
+     */
+    private static final List<ArmorScene> ARMOR_SCENES = List.of(
+            new ArmorScene("armor_iron", "iron", ARMOR_SET),
+            new ArmorScene("armor_cobalt", "cobalt", ARMOR_SET),
+            new ArmorScene("armor_obsidian_chestplate", "obsidian", List.of(ForgeweaveItems.ARMOR_CHESTPLATE)));
 
     /**
      * {@link #WEAPONS} by index, or the broadsword for the two extra poses past the end: #257's

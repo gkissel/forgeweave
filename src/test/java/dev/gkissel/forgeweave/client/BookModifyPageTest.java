@@ -65,6 +65,9 @@ class BookModifyPageTest {
         assertEquals(id("wood"), ModifyPageContent.demoMaterial(PartItem.Kind.HEAD, 4));
         // ... except a bowstring slot, which BowCore pins to its string material regardless of index.
         assertEquals(id("string"), ModifyPageContent.demoMaterial(PartItem.Kind.BOWSTRING, 2));
+        // #682: the armor pages' plating slot (slot 0) must not draw wood, which has no plating stats.
+        assertEquals(id("cobalt"), ModifyPageContent.demoMaterial(PartItem.Kind.PLATING, 0));
+        assertEquals(id("cobalt"), ModifyPageContent.demoMaterial(PartItem.Kind.MAILLE, 1));
     }
 
     @Test

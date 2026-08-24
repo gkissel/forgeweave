@@ -62,9 +62,13 @@ a manual step, not a CI gate; it requires a display (or `xvfb` on a headless box
 and uses `xvfb-run` automatically). New screens register themselves in
 `dev.gkissel.forgeweave.client.ScreenshotHarness`.
 
-Also review `armor_iron.png` (issue #679): the full iron plate set worn in third person. Both layers
-must show -- the maille (chain) visible in the gaps of the plating, both in iron's grey -- with no
-purple missing-texture patches and no layer bleeding through where the plating should cover it.
+Also review the worn armor frames (issues #679, #682): `armor_iron.png` and `armor_cobalt.png` (the
+full plate set, third person from the front), `armor_obsidian_chestplate.png` (one obsidian-plated
+piece over a bare body), and each one's `_firstperson` companion. Both layers must show -- the maille
+(chain) visible in the gaps of the plating, both in the material's tint -- with no purple
+missing-texture patches and no layer bleeding through where the plating should cover it, and the
+lone chestplate must not paint any other body part. `book_armor.png` and `book_armor_chestplate.png`
+are the armor chapter's opening page and a piece page with its parts diagram.
 
 ## Publishing
 

@@ -1,5 +1,6 @@
 package dev.gkissel.forgeweave.data;
 
+import java.util.List;
 import java.util.function.Supplier;
 
 import net.minecraft.data.PackOutput;
@@ -1637,6 +1638,7 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("material.forgeweave.stone.flavour", "Patient, heavy, and utterly unimpressed by you.");
         add("book.forgeweave.section.intro", "Introduction");
         add("book.forgeweave.section.tools", "Tools");
+        add("book.forgeweave.section.armor", "Armor");
         add("book.forgeweave.section.materials", "Materials");
         add("book.forgeweave.section.modifiers", "Modifiers");
         add("book.forgeweave.section.smeltery", "Smeltery");
@@ -1699,6 +1701,50 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("book.forgeweave.tools.repairing.title", "Repairing");
         add("book.forgeweave.tools.repairing.text",
                 "As you use your tools they take damage, and once all of their durability is gone they break. To fix that, repair your tool -- no need to wait until it breaks.\n\nPut the tool into a Tool Station or Tool Forge and add material matching the tool's head. If the head is made of several materials, any of them will do, and repairing with several at once grants bonus durability.");
+        // M4-7 (issue #682, docs/SCOPE.md D21) -- the armor section. The intro's first lines and the
+        // piece pages' Properties bullets are rewritten from the 1.20 clone's book
+        // (encyclopedia/en_us/armor/info.json and tconstruct_plate_*.json, NOTICE.md); the rest
+        // describes the M4 mechanics as Forgeweave ships them (D9-D19).
+        add("book.forgeweave.armor.intro.title", "Armor");
+        add("book.forgeweave.armor.intro.text",
+                "Armor is built the way tools are: from parts, at the Tool Station or Tool Forge, out "
+                        + "of the materials you choose. Every piece has a limited number of modifier slots "
+                        + "and carries its materials' traits.\n\nUnlike a tool, armor does nothing in the "
+                        + "hand -- its stats, traits and modifiers only work while it is worn.");
+        add("book.forgeweave.armor.parts.title", "Plating and Maille");
+        add("book.forgeweave.armor.parts.text",
+                "Each piece is two parts. The plating is the outer shell and sets every stat: "
+                        + "durability, armor, toughness and knockback resistance, with a separate plating "
+                        + "shape for the helmet, chestplate, leggings and boots. Only sturdy materials "
+                        + "make plating -- the metals, obsidian and a few others.\n\nThe maille is the "
+                        + "chain worn underneath. It has no stats of its own; it brings its material's "
+                        + "traits and shows through the plating's gaps. Softer materials such as vine, "
+                        + "bone and cactus can be woven into maille.");
+        add("book.forgeweave.armor.casting.title", "Casting Plating");
+        add("book.forgeweave.armor.casting.text",
+                "Metal plating is cast at the Smeltery like any other metal part, which needs a "
+                        + "plating cast -- and a cast is made by pouring gold over a finished part.\n\n"
+                        + "Obsidian plating is the way in: the Part Builder carves obsidian into plating "
+                        + "with a plating pattern. Set that plating on a Casting Table and pour gold over "
+                        + "it for a plating cast, then cast iron and every other metal from there. The "
+                        + "maille cast is made the same way from any Part Builder maille.");
+        add("book.forgeweave.armor.traits.title", "Armor Traits");
+        add("book.forgeweave.armor.traits.text",
+                "Some materials carry a trait that only wakes on armor: iron's plating shrugs off "
+                        + "projectiles, obsidian's explosions, cobalt's blows in melee, copper's the "
+                        + "crushing dark below sea level. Manyullyn is warded against magic, amethyst "
+                        + "bronze strikes back at the crystalline, silver is consecrated against the "
+                        + "undead, knightslime grants an overshield.\n\nMaille brings traits too: cactus "
+                        + "is thorned, bone pierces guards, chorus sends attackers elsewhere, and blue "
+                        + "slime vine slows your fall. Each material's page lists what it grants.");
+        add("book.forgeweave.armor.modifiers.title", "Armor Modifiers");
+        add("book.forgeweave.armor.modifiers.text",
+                "Armor takes modifiers at the Tool Station the way tools do, from the same slot pool. "
+                        + "Some fit armor alone: Fire, Blast, Projectile, Magic and Melee Protection each "
+                        + "reduce one kind of damage, stacking across the worn set up to a cap; Knockback "
+                        + "Resistance keeps you on your feet; Thorns hurts whatever hits you.\n\nThe "
+                        + "general modifiers -- Reinforced, Mending Moss, Soulbound and the extra "
+                        + "modifier slot -- fit armor as well. See the Modifiers chapter for each one.");
         add("book.forgeweave.materials.intro.title", "Materials");
         add("book.forgeweave.materials.intro.text",
                 "Every part of a tool contributes the stats of the material it is made from: the head brings durability, mining speed and attack; the handle multiplies durability; a binding adds a flat bonus.\n\nMaterials also grant traits -- special behaviours listed on the pages that follow.");
@@ -1765,6 +1811,15 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
                 "Requires a Tool Forge", "Slow but hits hard", "Fires vanilla arrows");
         toolProperties(ForgeweaveItems.TOOL_CROSSBOW,
                 "Requires a Tool Forge", "Needs to be loaded before firing", "Fires vanilla arrows");
+        // M4-7 (#682): the four plate pieces, from the 1.20 clone's encyclopedia
+        // armor/tconstruct_plate_*.json bullets, minus the slot kinds Forgeweave lacks (D15: one
+        // shared slot pool, no defense slots) and the chestplate's unarmed-attack line (no such
+        // mechanic here).
+        for (var piece : List.of(ForgeweaveItems.ARMOR_HELMET, ForgeweaveItems.ARMOR_CHESTPLATE,
+                ForgeweaveItems.ARMOR_LEGGINGS, ForgeweaveItems.ARMOR_BOOTS)) {
+            toolProperties(piece, "Material controlled stats", "High protection",
+                    "Plating: stats and traits", "Maille: traits only", "3 Modifier Slots");
+        }
         // The #651 content tail -- the six tools upstream's book has no bullets for. Original
         // wording, one bullet per implemented behavior (ToolConstants, ForgeweaveInnates,
         // AoeHarvest.Shape.VEIN, WarmaceItem); nothing promised beyond what the code does.

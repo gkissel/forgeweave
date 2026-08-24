@@ -20,6 +20,9 @@ EARLY_WINDOW_OFF="-Dfml.earlyprogresswindow=false"
 mkdir -p run
 touch run/options.txt
 grep -q '^onboardAccessibility:' run/options.txt || echo 'onboardAccessibility:false' >> run/options.txt
+# A window that loses focus mid-run (another window popping up) would pause the game and put the
+# pause menu across every in-world capture; the harness never needs the pause.
+grep -q '^pauseOnLostFocus:' run/options.txt || echo 'pauseOnLostFocus:false' >> run/options.txt
 
 # The harness always creates a world by the same name, so a second run lands in the world the first
 # one left behind -- every station, tank and smeltery still standing, in frame behind whatever the

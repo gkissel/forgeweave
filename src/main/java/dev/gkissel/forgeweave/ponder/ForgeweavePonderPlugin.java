@@ -7,6 +7,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
 
 import dev.gkissel.forgeweave.Forgeweave;
+import dev.gkissel.forgeweave.block.ForgeweaveBlocks;
 import dev.gkissel.forgeweave.item.ForgeweaveItems;
 
 /**
@@ -45,6 +46,9 @@ public final class ForgeweavePonderPlugin implements PonderPlugin {
         // stations and structures are follow-up issues, one addStoryBoard line each.
         helper.addStoryBoard(ForgeweaveItems.STANDARD_CORE.getId(), "smeltery",
                 ForgeweaveSmelteryScenes::assembly);
+        // #682 (M4-7, D21) -- armor assembly, on the Tool Station's item.
+        helper.addStoryBoard(ForgeweaveBlocks.TOOL_STATION.getId(), "tool_station",
+                ForgeweaveArmorScenes::assembly);
     }
 
     /**
