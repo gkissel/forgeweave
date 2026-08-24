@@ -7,7 +7,6 @@ import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
-import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.player.Player;
@@ -113,21 +112,38 @@ public class ArmorGameTests {
         helper.succeed();
     }
 
+    /**
+     * A survival mock player wearing a freshly assembled iron piece, ticked once so
+     * {@code LivingEntity#detectEquipmentUpdates} has applied the piece's attribute modifiers -- a
+     * mock player is not in the level's tick list, and a mock <em>server</em> player carries 60
+     * ticks of spawn invulnerability that nothing here would ever count down.
+     */
+    private static Player wearing(GameTestHelper helper, ToolConstants.Entry entry) {
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        player.setItemSlot(EquipmentSlot.CHEST, piece(helper, player, ForgeweaveBlocks.TOOL_STATION.get(), entry));
+        player.tick();
+        return player;
+    }
+
+    /**
+     * A blow armor is allowed to stop: an ownerless explosion. Vanilla's {@code generic} sits in
+     * {@code #minecraft:bypasses_armor}, and a mob attack scales with the difficulty setting.
+     */
+    private static DamageSource blow(GameTestHelper helper) {
+        return helper.getLevel().damageSources().explosion(null, null);
+    }
+
     /** Vanilla {@code CombatRules#getDamageAfterAbsorb}: 4 damage against 5 armor, 0 toughness. */
     private static final float BLOW = 4.0F;
     private static final float ABSORBED_BLOW = BLOW * (1.0F - Math.max(5.0F - BLOW / 2.0F, 5.0F * 0.2F) / 25.0F);
 
     @GameTest(template = "empty")
     public static void damageWearsThePlatingAndIsAttenuatedByItsArmor(GameTestHelper helper) {
-        ServerPlayer player = helper.makeMockServerPlayerInLevel();
-        player.setGameMode(GameType.SURVIVAL);
-        ItemStack chestplate = piece(helper, player, ForgeweaveBlocks.TOOL_STATION.get(), ToolConstants.CHESTPLATE);
-        player.setItemSlot(EquipmentSlot.CHEST, chestplate);
-        DamageSource source = helper.getLevel().damageSources().generic();
+        Player player = wearing(helper, ToolConstants.CHESTPLATE);
+        DamageSource source = blow(helper);
 
         helper.startSequence()
-                // Equipment attribute modifiers land on the next tick's detectEquipmentUpdates.
-                .thenExecuteAfter(2, () -> {
+                .thenExecute(() -> {
                     helper.assertTrue(player.getArmorValue() == 5,
                             "an iron chestplate must give 5 armor, got " + player.getArmorValue());
                     float before = player.getHealth();
@@ -144,18 +160,17 @@ public class ArmorGameTests {
 
     @GameTest(template = "empty")
     public static void aBrokenPieceStaysEquippedAndProtectsNothing(GameTestHelper helper) {
-        ServerPlayer player = helper.makeMockServerPlayerInLevel();
-        player.setGameMode(GameType.SURVIVAL);
-        ItemStack chestplate = piece(helper, player, ForgeweaveBlocks.TOOL_STATION.get(), ToolConstants.CHESTPLATE);
+        Player player = wearing(helper, ToolConstants.CHESTPLATE);
+        ItemStack chestplate = player.getItemBySlot(EquipmentSlot.CHEST);
         // Wear it down through the real path: the clamp stops at max - 1 and raises BROKEN.
         chestplate.hurtAndBreak(chestplate.getMaxDamage() + 50, player, EquipmentSlot.CHEST);
         helper.assertTrue(ToolItem.isBroken(chestplate) && chestplate.getDamageValue() == chestplate.getMaxDamage() - 1,
                 "wearing past its durability must leave the piece Broken, not destroyed: " + chestplate);
-        player.setItemSlot(EquipmentSlot.CHEST, chestplate);
-        DamageSource source = helper.getLevel().damageSources().generic();
+        player.tick(); // re-collects the equipment: the Broken piece's modifiers come off
+        DamageSource source = blow(helper);
 
         helper.startSequence()
-                .thenExecuteAfter(2, () -> {
+                .thenExecute(() -> {
                     helper.assertTrue(player.getArmorValue() == 0,
                             "a Broken piece contributes no armor, got " + player.getArmorValue());
                     float before = player.getHealth();
