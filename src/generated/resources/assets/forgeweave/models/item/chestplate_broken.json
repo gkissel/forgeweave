@@ -1,0 +1,7 @@
+{
+  "parent": "minecraft:item/generated",
+  "textures": {
+    "layer0": "forgeweave:derived/tools/chestplate_maille",
+    "layer1": "forgeweave:derived/tools/chestplate_plating_broken"
+  }
+}

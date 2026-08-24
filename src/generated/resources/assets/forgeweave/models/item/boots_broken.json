@@ -1,0 +1,7 @@
+{
+  "parent": "minecraft:item/generated",
+  "textures": {
+    "layer0": "forgeweave:derived/tools/boots_maille",
+    "layer1": "forgeweave:derived/tools/boots_plating_broken"
+  }
+}

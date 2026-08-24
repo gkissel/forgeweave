@@ -73,9 +73,6 @@ class ItemColorCoverageTest {
     @Test
     void everyToolModelLayerTintsFromARealPartSlot() {
         for (ToolAssemblyRecipes.Entry entry : ToolAssemblyRecipes.ENTRIES) {
-            if (entry.constants().category() == ToolConstants.Category.ARMOR) {
-                continue; // #679 lands the armor render; #678 ships vanilla placeholder art
-            }
             List<ToolConstants.PartSlot> parts = entry.constants().parts();
             List<Integer> slots = ToolArt.layerSlots(parts);
 

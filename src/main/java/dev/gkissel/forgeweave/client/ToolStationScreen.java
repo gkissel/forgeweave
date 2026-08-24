@@ -198,9 +198,8 @@ public class ToolStationScreen extends StationScreen<ToolStationMenu> implements
             Map.entry(ToolConstants.Role.SHAFT, 0x684E1E),
             Map.entry(ToolConstants.Role.ARROW_HEAD, 0xC1C1C1),
             Map.entry(ToolConstants.Role.FLETCHING, 0x2376DD),
-            // #678: armor tab previews -- the plating a head grey, the maille a handle brown,
-            // placeholders until #679's render lands (no layer art draws yet: ToolArt#layerSlots
-            // lists neither role).
+            // #678/#679: armor tab previews -- the plating a head grey, the maille a handle brown,
+            // over the piece's own maille/plating layers (ToolArt#layers).
             Map.entry(ToolConstants.Role.PLATING, 0xC1C1C1),
             Map.entry(ToolConstants.Role.MAILLE, 0x684E1E)));
 
