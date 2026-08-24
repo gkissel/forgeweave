@@ -24,11 +24,15 @@ import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.tags.EntityTypeTags;
+import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.entity.EquipmentSlotGroup;
+import net.minecraft.world.entity.ai.attributes.AttributeModifier;
+import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.monster.Slime;
@@ -36,6 +40,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.food.FoodData;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.item.component.ItemAttributeModifiers;
 import net.minecraft.world.item.component.Tool;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.biome.Biome;
@@ -46,6 +51,7 @@ import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.common.util.FakePlayer;
 import net.neoforged.neoforge.event.entity.EntityTeleportEvent;
 import net.neoforged.neoforge.event.entity.living.LivingExperienceDropEvent;
+import net.neoforged.neoforge.event.entity.living.LivingKnockBackEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 import net.neoforged.neoforge.event.level.BlockDropsEvent;
 
@@ -57,9 +63,11 @@ import dev.gkissel.forgeweave.combat.BlockingDamageReduction;
 import dev.gkissel.forgeweave.combat.BonusDamageFraction;
 import dev.gkissel.forgeweave.combat.BonusDamageVsSeam;
 import dev.gkissel.forgeweave.combat.CombatHit;
+import dev.gkissel.forgeweave.combat.CombatDefense;
 import dev.gkissel.forgeweave.combat.CombatSeam;
 import dev.gkissel.forgeweave.combat.CombatSeams;
 import dev.gkissel.forgeweave.combat.ConditionalSeam;
+import dev.gkissel.forgeweave.combat.DefendedBlow;
 import dev.gkissel.forgeweave.combat.FlatBonusDamage;
 import dev.gkissel.forgeweave.combat.ForgeweaveInnates;
 import dev.gkissel.forgeweave.combat.ForgeweaveMobEffects;
@@ -68,10 +76,12 @@ import dev.gkissel.forgeweave.combat.HitCondition;
 import dev.gkissel.forgeweave.combat.IgniteAttackerSeam;
 import dev.gkissel.forgeweave.combat.Lacerate;
 import dev.gkissel.forgeweave.combat.PotionEffectOnHitSeam;
+import dev.gkissel.forgeweave.combat.Protection;
 import dev.gkissel.forgeweave.combat.StackingHitBonus;
 import dev.gkissel.forgeweave.combat.StackingSlownessOnHitSeam;
 import dev.gkissel.forgeweave.combat.ThornsReflectSeam;
 import dev.gkissel.forgeweave.entity.ForgeweaveEntities;
+import dev.gkissel.forgeweave.item.ArmorPieceItem;
 import dev.gkissel.forgeweave.item.ForgeweaveDataComponents;
 import dev.gkissel.forgeweave.item.PartItem;
 import dev.gkissel.forgeweave.item.ToolItem;
@@ -1441,6 +1451,325 @@ public final class ForgeweaveTraits {
     /** Bone shafts. Upstream {@code TraitSplitting}: a fired arrow may split into two ({@code BowItem#shoot}). */
     public static final Trait SPLITTING = new Trait() {};
 
+
+    // ------------------------------------------------------------------ #680 (M4-5): the 1.20
+    // clone's ARMOR-scope traits (MaterialTraitsDataProvider; behavior per ModifierProvider's
+    // module definitions, NOTICE.md). Each rides Trait#onDefend -- the one armor seam (SCOPE.md
+    // D8) -- or Trait#armorAttributes for the clone's AttributeModules. A trait is the modifier at
+    // level 1, so every magnitude below is the clone's eachLevel constant times one.
+
+    /**
+     * Iron plating/maille. {@code ModifierIds.projectileProtection}: {@link Protection} 2 against
+     * {@code #forgeweave:projectile_protection}, plus the clone's {@code MaxArmorAttributeModule}
+     * of +0.05 knockback resistance.
+     *
+     * <p>Deviation, recorded: the clone takes the <em>maximum</em> 0.05 across worn pieces; here each
+     * piece adds its own 0.05 (ponytail: one attribute hook, no cross-piece max). Four iron pieces
+     * give 0.2 rather than 0.05.
+     */
+    public static final Trait PROJECTILE_PROTECTION = new Trait() {
+        private final Protection protection = Protection.against(Protection.PROJECTILE_PROTECTION, PROJECTILE_PROTECTION_PER_LEVEL);
+
+        @Override
+        public void onDefend(CombatDefense defense, DefendedBlow blow) {
+            protection.onDefend(defense, blow);
+        }
+
+        @Override
+        public void armorAttributes(ResourceLocation id, EquipmentSlot slot, ItemAttributeModifiers.Builder out) {
+            out.add(Attributes.KNOCKBACK_RESISTANCE,
+                    new AttributeModifier(id, PROJECTILE_PROTECTION_KNOCKBACK_RESISTANCE, AttributeModifier.Operation.ADD_VALUE),
+                    EquipmentSlotGroup.bySlot(slot));
+        }
+    };
+
+    private static final float PROJECTILE_PROTECTION_PER_LEVEL = 2.0F;
+    private static final float PROJECTILE_PROTECTION_KNOCKBACK_RESISTANCE = 0.05F;
+
+    private static final float BLAST_PROTECTION_PER_LEVEL = 2.5F;
+
+    /** Obsidian plating/maille. {@code ModifierIds.blastProtection}: {@link Protection} 2.5 against {@code #forgeweave:blast_protection}. */
+    public static final Trait BLAST_PROTECTION = defendTrait(Protection.against(Protection.BLAST_PROTECTION, BLAST_PROTECTION_PER_LEVEL));
+
+    private static final float MELEE_PROTECTION_PER_LEVEL = 2.0F;
+
+    /**
+     * Cobalt plating/maille. {@code ModifierIds.meleeProtection}: {@link Protection} 2 against
+     * direct {@code #forgeweave:melee_protection} blows. The clone's +5% use-item speed per level
+     * rides a Tinkers'-only attribute with no vanilla counterpart and is not ported.
+     */
+    public static final Trait MELEE_PROTECTION = defendTrait(
+            Protection.against(Protection.MELEE_PROTECTION, MELEE_PROTECTION_PER_LEVEL).directOnly());
+
+    private static final float CONSECRATED_PER_LEVEL = 1.25F;
+
+    /** Silver plating/maille. {@code ModifierIds.consecrated}: {@link Protection} 1.25 against undead attackers. */
+    public static final Trait CONSECRATED = defendTrait(
+            Protection.of(CONSECRATED_PER_LEVEL).attacker(Protection.UNDEAD_ATTACKER));
+
+    /**
+     * Copper plating/maille. {@code DepthProtectionModule} (baseline 64, neutral range 32, 1.25 per
+     * level): protection scales with how far below Y=64 the wearer stands, up to 2x at Y=-64 and
+     * below, is nothing up to Y=96, and turns into a penalty above that, down to -1x at Y=160.
+     */
+    public static final Trait DEPTH_PROTECTION = new Trait() {
+        @Override
+        public void onDefend(CombatDefense defense, DefendedBlow blow) {
+            if (Protection.CAN_PROTECT.test(defense.source())) {
+                blow.addProtection(depthMultiplier((float) defense.defender().getY()) * DEPTH_PROTECTION_PER_LEVEL);
+            }
+        }
+    };
+
+    private static final float DEPTH_PROTECTION_PER_LEVEL = 1.25F;
+    private static final float DEPTH_BASELINE_HEIGHT = 64.0F;
+    private static final float DEPTH_NEUTRAL_RANGE = 32.0F;
+
+    /** {@code DepthProtectionModule#getBonusMultiplier}, verbatim. */
+    public static float depthMultiplier(float y) {
+        if (y < DEPTH_BASELINE_HEIGHT) {
+            return Math.min((DEPTH_BASELINE_HEIGHT - y) / DEPTH_BASELINE_HEIGHT, 2.0F);
+        }
+        float debuffHeight = DEPTH_BASELINE_HEIGHT + DEPTH_NEUTRAL_RANGE;
+        if (y > debuffHeight) {
+            return Math.max((debuffHeight - y) / DEPTH_BASELINE_HEIGHT, -1.0F);
+        }
+        return 0.0F;
+    }
+
+    /**
+     * Manyullyn plating/maille. {@code ModifierIds.warded}'s {@code AdjustDamageModule}: at full
+     * health, one damage per level comes off <em>after</em> armor, never below 1 and never above
+     * what the blow was. The clone's lang row says 0.5 per level; its formula
+     * ({@code VALUE - LEVEL, max 1, min VALUE}) is 1, and the formula is what is ported.
+     */
+    public static final Trait WARDED = new Trait() {
+        @Override
+        public void onDefend(CombatDefense defense, DefendedBlow blow) {
+            LivingEntity defender = defense.defender();
+            if (defender.getHealth() >= defender.getMaxHealth()) {
+                blow.addFlatReduction(WARDED_REDUCTION_PER_LEVEL);
+            }
+        }
+    };
+
+    private static final float WARDED_REDUCTION_PER_LEVEL = 1.0F;
+
+    /**
+     * Amethyst bronze plating/maille. {@code ModifierIds.crystalstrike}: +5% attack speed per level
+     * ({@code AttributeModule}, multiply total) and, summed across worn pieces
+     * ({@code ArmorLevelModule} + {@code ModifierEvents#onKnockback}), knockback taken snaps to one
+     * of {@code max(4, 2^(6 - level))} directions ({@link #onArmorKnockback}). The clone's +5% bad
+     * effect duration rides a Tinkers'-only attribute and is not ported.
+     */
+    public static final Trait CRYSTALSTRIKE = new Trait() {
+        @Override
+        public void armorAttributes(ResourceLocation id, EquipmentSlot slot, ItemAttributeModifiers.Builder out) {
+            out.add(Attributes.ATTACK_SPEED,
+                    new AttributeModifier(id, CRYSTALSTRIKE_ATTACK_SPEED, AttributeModifier.Operation.ADD_MULTIPLIED_TOTAL),
+                    EquipmentSlotGroup.bySlot(slot));
+        }
+    };
+
+    private static final float CRYSTALSTRIKE_ATTACK_SPEED = 0.05F;
+
+    /**
+     * Knightslime plating/maille. {@code OvershieldModule} (1.25 protection per level, 2 consumed
+     * per hit): a protectable blow spends up to two charges and gets {@code 1.25 * spent / 2}
+     * protection. The clone spends <em>overslime</em>; Forgeweave has none (SCOPE.md D17), so the
+     * piece carries its own {@code forgeweave:overshield} charge instead, refilled one point every
+     * {@link #OVERSHIELD_RECHARGE_TICKS} ticks it sits in an inventory, up to
+     * {@link #OVERSHIELD_CAPACITY}.
+     *
+     * <p>ponytail: the capacity and recharge rate are Forgeweave's, not the clone's (maintainer
+     * decision recorded in the #680 PR); tune them from playtest, both are constants.
+     */
+    public static final Trait OVERSHIELD = new Trait() {
+        @Override
+        public void onDefend(CombatDefense defense, DefendedBlow blow) {
+            if (!Protection.CAN_PROTECT.test(defense.source())) {
+                return;
+            }
+            ItemStack piece = defense.tool();
+            int charge = piece.getOrDefault(ForgeweaveDataComponents.OVERSHIELD.get(), 0);
+            if (charge <= 0) {
+                return;
+            }
+            int spent = Math.min(charge, OVERSHIELD_CONSUMED_PER_HIT);
+            blow.addProtection(OVERSHIELD_PER_LEVEL * spent / OVERSHIELD_CONSUMED_PER_HIT);
+            piece.set(ForgeweaveDataComponents.OVERSHIELD.get(), charge - spent);
+        }
+
+        @Override
+        public void inventoryTick(ItemStack stack, ServerLevel level, LivingEntity holder) {
+            int charge = stack.getOrDefault(ForgeweaveDataComponents.OVERSHIELD.get(), 0);
+            if (charge < OVERSHIELD_CAPACITY && level.getGameTime() % OVERSHIELD_RECHARGE_TICKS == 0) {
+                stack.set(ForgeweaveDataComponents.OVERSHIELD.get(), charge + 1);
+            }
+        }
+    };
+
+    private static final float OVERSHIELD_PER_LEVEL = 1.25F;
+    private static final int OVERSHIELD_CONSUMED_PER_HIT = 2;
+    /** ponytail: Forgeweave's numbers -- five full-strength blows banked, one charge per five seconds. */
+    public static final int OVERSHIELD_CAPACITY = 10;
+    public static final int OVERSHIELD_RECHARGE_TICKS = 100;
+
+    /**
+     * Bone maille. {@code ModifierIds.piercingGuard}: the pierce counter -- a direct hit's living
+     * attacker gets {@code forgeweave:pierce} (-1 armor per level) for four seconds, always, and
+     * the piece pays one durability ({@code MobEffectModule.Builder#counterDurabilityUsage}).
+     */
+    public static final Trait PIERCING_GUARD = new Trait() {
+        @Override
+        public void onDefend(CombatDefense defense, DefendedBlow blow) {
+            LivingEntity attacker = directAttacker(defense);
+            if (attacker == null) {
+                return;
+            }
+            attacker.addEffect(new MobEffectInstance(ForgeweaveMobEffects.PIERCE, PIERCE_TICKS, 0), defense.defender());
+            defense.tool().hurtAndBreak(COUNTER_DURABILITY, defense.defender(), defense.slot());
+        }
+    };
+
+    private static final int PIERCE_TICKS = 4 * 20;
+    private static final int COUNTER_DURABILITY = 1;
+
+    /**
+     * Cactus maille. {@code ThornsModule} (15% chance per level, 1 + random 3 thorns damage, one
+     * durability): a direct hit's attacker sometimes takes vanilla thorns damage from the wearer.
+     * Distinct from spiky, cactus's general trait, which reflects a held tool's own attack damage.
+     */
+    public static final Trait THORNS = new Trait() {
+        @Override
+        public void onDefend(CombatDefense defense, DefendedBlow blow) {
+            LivingEntity attacker = directAttacker(defense);
+            if (attacker == null || defense.level().getRandom().nextFloat() >= THORNS_CHANCE) {
+                return;
+            }
+            float damage = THORNS_CONSTANT + defense.level().getRandom().nextFloat() * THORNS_RANDOM;
+            attacker.hurt(defense.level().damageSources().thorns(defense.defender()), damage);
+            defense.tool().hurtAndBreak(COUNTER_DURABILITY, defense.defender(), defense.slot());
+        }
+    };
+
+    private static final float THORNS_CHANCE = 0.15F;
+    private static final float THORNS_CONSTANT = 1.0F;
+    private static final float THORNS_RANDOM = 3.0F;
+
+    /**
+     * Chorus maille. {@code EnderclearanceModule} (25% chance per level, diameter 8 + 8 per level,
+     * 16 tries): a direct hit's living attacker is sometimes teleported to a random spot nearby,
+     * the way {@code TeleportHelper#randomNearbyTeleport} does it -- up to 16 random positions
+     * within the diameter, the first the entity fits at wins. The ARMOR scope only: the clone's
+     * same module also teleports what a chorus <em>weapon</em> hits, which is not a trait here.
+     */
+    public static final Trait ENDERCLEARANCE = new Trait() {
+        @Override
+        public void onDefend(CombatDefense defense, DefendedBlow blow) {
+            LivingEntity attacker = directAttacker(defense);
+            if (attacker == null || defense.level().getRandom().nextFloat() >= ENDERCLEARANCE_CHANCE) {
+                return;
+            }
+            RandomSource random = defense.level().getRandom();
+            for (int i = 0; i < ENDERCLEARANCE_TRIES; i++) {
+                double x = attacker.getX() + (random.nextDouble() - 0.5) * ENDERCLEARANCE_DIAMETER;
+                double y = Mth.clamp(attacker.getY() + (random.nextInt(ENDERCLEARANCE_DIAMETER) - ENDERCLEARANCE_DIAMETER / 2),
+                        defense.level().getMinBuildHeight(), defense.level().getMaxBuildHeight() - 1);
+                double z = attacker.getZ() + (random.nextDouble() - 0.5) * ENDERCLEARANCE_DIAMETER;
+                if (attacker.randomTeleport(x, y, z, true)) {
+                    return;
+                }
+            }
+        }
+    };
+
+    private static final float ENDERCLEARANCE_CHANCE = 0.25F;
+    private static final int ENDERCLEARANCE_DIAMETER = 16;
+    private static final int ENDERCLEARANCE_TRIES = 16;
+
+    /**
+     * Blue slime vine maille. {@code ModifierIds.skyfall}: gravity {@code -5% - 10% per level}
+     * (multiply total; -15% at the trait's level 1) and +1 safe fall distance per level -- both
+     * vanilla attributes in 1.21, so no fall-event handler is needed.
+     */
+    public static final Trait SKYFALL = new Trait() {
+        @Override
+        public void armorAttributes(ResourceLocation id, EquipmentSlot slot, ItemAttributeModifiers.Builder out) {
+            EquipmentSlotGroup group = EquipmentSlotGroup.bySlot(slot);
+            out.add(Attributes.GRAVITY,
+                    new AttributeModifier(id, SKYFALL_GRAVITY_FLAT + SKYFALL_GRAVITY_PER_LEVEL, AttributeModifier.Operation.ADD_MULTIPLIED_TOTAL), group);
+            out.add(Attributes.SAFE_FALL_DISTANCE,
+                    new AttributeModifier(id, SKYFALL_SAFE_FALL_PER_LEVEL, AttributeModifier.Operation.ADD_VALUE), group);
+        }
+    };
+
+    private static final float SKYFALL_GRAVITY_FLAT = -0.05F;
+    private static final float SKYFALL_GRAVITY_PER_LEVEL = -0.1F;
+    private static final float SKYFALL_SAFE_FALL_PER_LEVEL = 1.0F;
+
+    /** A trait whose whole behavior is one worn-armor seam (the four protections). */
+    private static Trait defendTrait(CombatSeam seam) {
+        return new Trait() {
+            @Override
+            public void onDefend(CombatDefense defense, DefendedBlow blow) {
+                seam.onDefend(defense, blow);
+            }
+        };
+    }
+
+    /**
+     * The clone's {@code OnAttackedModifierHook#isDirectDamage} gate for counters: a living attacker
+     * that struck the blow itself (no arrow, no potion), and not the wearer.
+     */
+    @Nullable
+    private static LivingEntity directAttacker(CombatDefense defense) {
+        LivingEntity attacker = defense.attacker();
+        if (attacker == null || attacker == defense.defender() || !attacker.isAlive() || !defense.source().isDirect()) {
+            return null;
+        }
+        return attacker;
+    }
+
+    /** Attribute modifiers the traits of a worn piece grant ({@link Trait#armorAttributes}); read by {@code ArmorPieceItem}. */
+    public static void armorAttributes(ItemStack piece, EquipmentSlot slot, ItemAttributeModifiers.Builder out) {
+        List<ResourceLocation> ids = piece.get(ForgeweaveDataComponents.TRAITS.get());
+        if (ids == null) {
+            return;
+        }
+        for (ResourceLocation id : ids) {
+            Trait trait = REGISTRY.get(id);
+            if (trait != null) {
+                trait.armorAttributes(id.withPrefix("trait/").withSuffix("/" + slot.getName()), slot, out);
+            }
+        }
+    }
+
+    /**
+     * Registered on the game event bus in {@code Forgeweave}. Crystalstrike's knockback snap on the
+     * wearer -- the clone's {@code ModifierEvents#onKnockback} + {@code RestrictAngleModule#onKnockback}:
+     * the level is the number of worn pieces carrying it, and the push's horizontal direction is
+     * rounded to the nearest of {@code max(4, 2^(6 - level))} compass directions.
+     */
+    public static void onArmorKnockback(LivingKnockBackEvent event) {
+        int level = 0;
+        for (ItemStack piece : event.getEntity().getArmorSlots()) {
+            if (piece.getItem() instanceof ArmorPieceItem && !ToolItem.isBroken(piece) && has(piece, CRYSTALSTRIKE)) {
+                level++;
+            }
+        }
+        if (level == 0) {
+            return;
+        }
+        double oldAngle = Mth.atan2(event.getRatioX(), event.getRatioZ());
+        int directions = Math.max(4, (int) Math.pow(2, 6 - level));
+        double increment = 2 * Math.PI / directions;
+        double newAngle = Math.round(oldAngle / increment) * increment;
+        Vec3 direction = new Vec3(event.getRatioX(), 0, event.getRatioZ()).yRot((float) (newAngle - oldAngle));
+        event.setRatioX(direction.x);
+        event.setRatioZ(direction.z);
+    }
+
     /** One trait whose whole behavior is riding the combat seams -- see {@link Trait#combatSeams}. */
     private static Trait seamTrait(CombatSeam... seams) {
         List<CombatSeam> list = List.of(seams);
@@ -1554,7 +1883,20 @@ public final class ForgeweaveTraits {
             Map.entry(id("endspeed"), ENDSPEED),
             Map.entry(id("freezing"), FREEZING),
             Map.entry(id("hovering"), HOVERING),
-            Map.entry(id("splitting"), SPLITTING));
+            Map.entry(id("splitting"), SPLITTING),
+            // #680 -- the M4-5 ARMOR-scope traits.
+            Map.entry(id("projectile_protection"), PROJECTILE_PROTECTION),
+            Map.entry(id("depth_protection"), DEPTH_PROTECTION),
+            Map.entry(id("blast_protection"), BLAST_PROTECTION),
+            Map.entry(id("melee_protection"), MELEE_PROTECTION),
+            Map.entry(id("warded"), WARDED),
+            Map.entry(id("crystalstrike"), CRYSTALSTRIKE),
+            Map.entry(id("consecrated"), CONSECRATED),
+            Map.entry(id("overshield"), OVERSHIELD),
+            Map.entry(id("piercing_guard"), PIERCING_GUARD),
+            Map.entry(id("thorns"), THORNS),
+            Map.entry(id("enderclearance"), ENDERCLEARANCE),
+            Map.entry(id("skyfall"), SKYFALL));
 
     // ---------------------------------------------------------------- extra-info lines (parity audit
     // T26, issue #457) -- upstream 1.12's AbstractTrait#getExtraInfo. Traits are modifiers upstream,
@@ -1780,6 +2122,14 @@ public final class ForgeweaveTraits {
             // ride the seam's own on-hit moment; see Trait#onCombatHit for the split from afterHit.
             for (Trait trait : of(hit.weapon())) {
                 trait.onCombatHit(hit, damageDealt);
+            }
+        }
+
+        @Override
+        public void onDefend(CombatDefense defense, DefendedBlow blow) {
+            // #680: a worn piece's traits, in the order the piece stored them (SCOPE.md D8).
+            for (Trait trait : of(defense.tool())) {
+                trait.onDefend(defense, blow);
             }
         }
     };

@@ -1,8 +1,11 @@
 package dev.gkissel.forgeweave.combat;
 
 import net.minecraft.core.registries.Registries;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectCategory;
+import net.minecraft.world.entity.ai.attributes.AttributeModifier;
+import net.minecraft.world.entity.ai.attributes.Attributes;
 
 import net.neoforged.neoforge.registries.DeferredHolder;
 import net.neoforged.neoforge.registries.DeferredRegister;
@@ -37,6 +40,17 @@ public final class ForgeweaveMobEffects {
      */
     public static final DeferredHolder<MobEffect, MarkerEffect> ENDERFERENCE =
             MOB_EFFECTS.register("enderference", () -> new MarkerEffect(MobEffectCategory.HARMFUL, 0x21985F));
+
+    /**
+     * Piercing guard's mark on whoever hit a bone-mailled wearer (issue #680, the 1.20 clone's
+     * {@code TinkerEffects.pierce}: harmful, {@code 0xD1D37A}, -1 armor per level as an attribute
+     * modifier -- vanilla scales the amount by {@code amplifier + 1}).
+     */
+    public static final DeferredHolder<MobEffect, MobEffect> PIERCE =
+            MOB_EFFECTS.register("pierce", () -> new MarkerEffect(MobEffectCategory.HARMFUL, 0xD1D37A)
+                    .addAttributeModifier(Attributes.ARMOR,
+                            ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "effect.pierce"),
+                            -1.0, AttributeModifier.Operation.ADD_VALUE));
 
     private ForgeweaveMobEffects() {}
 }

@@ -15,13 +15,17 @@ import net.neoforged.neoforge.event.entity.living.LivingIncomingDamageEvent;
 import net.neoforged.neoforge.event.entity.living.LivingKnockBackEvent;
 
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.util.Mth;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.UseAnim;
+import net.minecraft.world.item.enchantment.EnchantmentHelper;
 
+import dev.gkissel.forgeweave.item.ArmorPieceItem;
 import dev.gkissel.forgeweave.item.ForgeweaveDataComponents;
 import dev.gkissel.forgeweave.item.ToolItem;
 
@@ -162,7 +166,118 @@ public final class CombatSeams {
                 event.setAmount(damage);
             }
         }
+        armorPass(event);
     }
+
+    /**
+     * The worn half of the defensive pass (issue #680, M4-5; SCOPE.md D8): one {@link CombatSeam#onDefend}
+     * walk over the defender's four armor slots, head to feet, each worn non-Broken
+     * {@link ArmorPieceItem} resolved through the same providers a held tool is -- so materials'
+     * ARMOR traits and #681's modifiers both ride it with no plumbing of their own. What the walk
+     * settles pre-mitigation ({@link DefendedBlow#damage}) is applied here, exactly as the held
+     * pass does; what belongs after armor ({@link DefendedBlow#protection},
+     * {@link DefendedBlow#flatReduction}) waits for {@link #onDamagePre}.
+     */
+    private static void armorPass(LivingIncomingDamageEvent event) {
+        LivingEntity defender = event.getEntity();
+        pendingArmorBlow = null;
+        if (!(defender.level() instanceof ServerLevel level)) {
+            return;
+        }
+        DefendedBlow blow = null;
+        Entity causing = event.getSource().getEntity();
+        LivingEntity attacker = causing instanceof LivingEntity living ? living : null;
+        for (EquipmentSlot slot : ARMOR_SLOTS) {
+            ItemStack piece = defender.getItemBySlot(slot);
+            if (!(piece.getItem() instanceof ArmorPieceItem) || ToolItem.isBroken(piece)) {
+                continue;
+            }
+            List<CombatSeam> seams = seams(piece);
+            if (seams.isEmpty()) {
+                continue;
+            }
+            if (blow == null) {
+                blow = new DefendedBlow(event.getAmount());
+            }
+            CombatDefense defense = new CombatDefense(level, piece, defender, attacker, event.getSource(), false, false);
+            for (CombatSeam seam : seams) {
+                seam.onDefend(defense, blow);
+            }
+        }
+        if (blow == null) {
+            return; // nothing worn: the event is untouched, byte for byte (the #680 regression)
+        }
+        if (blow.damage() <= 0.0F) {
+            event.setCanceled(true);
+            return;
+        }
+        if (blow.damage() != event.getAmount()) {
+            event.setAmount(blow.damage());
+        }
+        if (blow.protection() != 0.0F || blow.flatReduction() > 0.0F) {
+            pendingArmorBlow = blow;
+            pendingArmorDefender = defender;
+        }
+    }
+
+    private static final EquipmentSlot[] ARMOR_SLOTS =
+            {EquipmentSlot.HEAD, EquipmentSlot.CHEST, EquipmentSlot.LEGS, EquipmentSlot.FEET};
+
+    @Nullable
+    private static DefendedBlow pendingArmorBlow;
+    @Nullable
+    private static LivingEntity pendingArmorDefender;
+
+    /**
+     * Registered on the game event bus in {@code Forgeweave}. Settles what {@link #armorPass} left
+     * for after armor, at the moment the 1.20 clone settles it: {@code LivingDamageEvent.Pre} fires
+     * inside {@code actuallyHurt} once vanilla has applied armor, Resistance and its own Protection
+     * enchantments and before absorption -- the clone's {@code ArmorUtil#getDamageForEvent} wants
+     * {@code M(A(x))} and has to invert the armor formula to get it from the earlier event; here
+     * the later event hands {@code A(x)} over directly.
+     *
+     * <p>Protection: vanilla has already taken its Protection levels {@code v} off as
+     * {@code 1 - min(v, 20) / 25} ({@code CombatRules#getDamageAfterMagicAbsorb}); the clone's
+     * total is {@code v} plus every piece's value under the same 20 cap, so the damage is rescaled
+     * to that total. Then warded's flat cut: {@code min(d, max(1, d - flat))}, the clone's
+     * {@code AdjustDamageModule} formula.
+     *
+     * <p>Same one-remembered-blow idiom as {@link #pendingKnockbackHit}: the incoming event and this
+     * one happen back to back on the server thread inside a single {@code LivingEntity#hurt}, and a
+     * blow that never reaches {@code actuallyHurt} (shield, invulnerability) is simply overwritten
+     * by the next; the identity check is only there so it can never leak onto another entity.
+     */
+    public static void onDamagePre(LivingDamageEvent.Pre event) {
+        DefendedBlow blow = pendingArmorBlow;
+        if (blow == null || event.getEntity() != pendingArmorDefender) {
+            return;
+        }
+        pendingArmorBlow = null;
+        pendingArmorDefender = null;
+        float damage = event.getNewDamage();
+        if (damage <= 0.0F) {
+            return;
+        }
+        if (blow.protection() != 0.0F && damage < Float.MAX_VALUE) {
+            float vanilla = 0.0F;
+            if (event.getEntity().level() instanceof ServerLevel level) {
+                vanilla = EnchantmentHelper.getDamageProtection(level, event.getEntity(), event.getSource());
+            }
+            float before = 1.0F - Mth.clamp(vanilla, 0.0F, PROTECTION_CAP) / PROTECTION_DIVISOR;
+            float after = 1.0F - Mth.clamp(vanilla + blow.protection(), 0.0F, PROTECTION_CAP) / PROTECTION_DIVISOR;
+            damage = damage / before * after;
+        }
+        if (blow.flatReduction() > 0.0F) {
+            damage = Math.min(damage, Math.max(1.0F, damage - blow.flatReduction()));
+        }
+        if (damage != event.getNewDamage()) {
+            event.setNewDamage(damage);
+        }
+    }
+
+    /** Vanilla's Protection cap and divisor ({@code CombatRules#getDamageAfterMagicAbsorb}), the clone's too. */
+    private static final float PROTECTION_CAP = 20.0F;
+    private static final float PROTECTION_DIVISOR = 25.0F;
 
     /** Registered on the game event bus in {@code Forgeweave}. See the class javadoc's table. */
     public static void onDamageDealt(LivingDamageEvent.Post event) {

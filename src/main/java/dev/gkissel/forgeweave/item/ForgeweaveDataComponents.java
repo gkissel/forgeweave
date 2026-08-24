@@ -226,6 +226,16 @@ public final class ForgeweaveDataComponents {
                     builder -> builder.persistent(ShockingCharge.CODEC).networkSynchronized(ShockingCharge.STREAM_CODEC));
 
     /**
+     * {@code ForgeweaveTraits#OVERSHIELD}'s banked charge on a knightslime armor piece (issue #680,
+     * M4-5): the clone's overshield spends overslime, which Forgeweave has none of (SCOPE.md D17),
+     * so the piece banks its own 0..{@code OVERSHIELD_CAPACITY} counter instead. Absent means zero;
+     * fixture {@code m4_5_armor_overshield_charge.snbt} pins the shape.
+     */
+    public static final DeferredHolder<DataComponentType<?>, DataComponentType<Integer>> OVERSHIELD =
+            DATA_COMPONENTS.registerComponentType("overshield",
+                    builder -> builder.persistent(ExtraCodecs.NON_NEGATIVE_INT).networkSynchronized(ByteBufCodecs.VAR_INT));
+
+    /**
      * The fluid a broken seared tank/gauge/window was holding, so placing it back restores its
      * contents (docs/SCOPE.md M2 issue #95). Upstream 1.12 stores the same thing as raw stack NBT in
      * {@code BlockTank#getDrops}; this is vanilla 1.21's implicit block-entity component equivalent.

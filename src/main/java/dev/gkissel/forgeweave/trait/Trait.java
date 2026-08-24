@@ -3,15 +3,20 @@ package dev.gkissel.forgeweave.trait;
 import java.util.function.Consumer;
 
 import net.minecraft.core.BlockPos;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.RandomSource;
+import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.component.ItemAttributeModifiers;
 import net.minecraft.world.level.block.state.BlockState;
 
+import dev.gkissel.forgeweave.combat.CombatDefense;
 import dev.gkissel.forgeweave.combat.CombatHit;
 import dev.gkissel.forgeweave.combat.CombatSeam;
+import dev.gkissel.forgeweave.combat.DefendedBlow;
 
 /**
  * A behavior a {@code Material} grants to every Tool containing it (CONTEXT.md glossary). Trait
@@ -294,4 +299,26 @@ public interface Trait {
     default float knockbackResistance() {
         return 0.0F;
     }
+
+    // #680 -- the M4-5 ARMOR traits.
+
+    /**
+     * A blow taken while a piece carrying this trait is <em>worn</em> (issue #680; SCOPE.md D8) --
+     * the trait-side face of {@link CombatSeam#onDefend}, reached through
+     * {@code ForgeweaveTraits#COMBAT_SEAM} once per worn, non-Broken piece. The one seam every ARMOR
+     * trait attaches to, and M7's armor-leveling entry point; see {@link DefendedBlow} for what a
+     * trait may do to the blow.
+     */
+    default void onDefend(CombatDefense defense, DefendedBlow blow) {}
+
+    /**
+     * Attribute modifiers a worn piece carrying this trait grants (issue #680): the clone's
+     * {@code AttributeModule} on an ARMOR trait -- skyfall's gravity and safe-fall distance,
+     * crystalstrike's attack speed, projectile protection's knockback resistance. Read by
+     * {@code ArmorPieceItem#getDefaultAttributeModifiers}, so the modifiers come and go with the
+     * piece exactly like its armor value and vanish while Broken.
+     *
+     * @param id a modifier id unique to this trait and slot, for the trait to reuse on each modifier
+     */
+    default void armorAttributes(ResourceLocation id, EquipmentSlot slot, ItemAttributeModifiers.Builder out) {}
 }

@@ -148,6 +148,11 @@ public class Forgeweave {
         // #465/T34 -- upstream's per-tool knockback() multiplier, riding NeoForge's own knockback
         // event rather than a custom pipeline (ADR-0005); see CombatSeam#knockback.
         NeoForge.EVENT_BUS.addListener(CombatSeams::onKnockback);
+        // #680 -- the worn-armor half of the defensive pass settles its protection after vanilla's
+        // armor math, where the 1.20 clone settles it; see CombatSeams#onDamagePre.
+        NeoForge.EVENT_BUS.addListener(CombatSeams::onDamagePre);
+        // #680 -- crystalstrike's knockback-angle snap on the wearer (ModifierEvents#onKnockback).
+        NeoForge.EVENT_BUS.addListener(ForgeweaveTraits::onArmorKnockback);
         // Providers register here, not in their own static initializers, so the order the pipeline
         // runs them in is visible in one place. Materials' traits are first (COMBAT_SEAM's damage
         // fold plus, since #229, each trait's own seams -- see collectCombatSeams); M3's per-tool
