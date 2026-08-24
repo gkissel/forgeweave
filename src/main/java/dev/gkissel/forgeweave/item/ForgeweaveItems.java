@@ -84,6 +84,12 @@ public final class ForgeweaveItems {
     public static final DeferredItem<Item> PATTERN_ARROW_HEAD = pattern("pattern_arrow_head");
     public static final DeferredItem<Item> PATTERN_ARROW_SHAFT = pattern("pattern_arrow_shaft");
     public static final DeferredItem<Item> PATTERN_FLETCHING = pattern("pattern_fletching");
+    // #677 (M4-2): the four platings and the maille, patterned like every other part.
+    public static final DeferredItem<Item> PATTERN_PLATING_HELMET = pattern("pattern_plating_helmet");
+    public static final DeferredItem<Item> PATTERN_PLATING_CHESTPLATE = pattern("pattern_plating_chestplate");
+    public static final DeferredItem<Item> PATTERN_PLATING_LEGGINGS = pattern("pattern_plating_leggings");
+    public static final DeferredItem<Item> PATTERN_PLATING_BOOTS = pattern("pattern_plating_boots");
+    public static final DeferredItem<Item> PATTERN_MAILLE = pattern("pattern_maille");
     // #271's sharpening kit. Upstream stencils it like any other part
     // (TinkerTools#registerItems: registerStencilTableCrafting(Pattern.setTagForPart(pattern, sharpeningKit))).
     public static final DeferredItem<Item> PATTERN_SHARPENING_KIT = pattern("pattern_sharpening_kit");
@@ -200,6 +206,19 @@ public final class ForgeweaveItems {
      * (see {@code CAST_BOW_LIMB}) never registers one -- only {@code CAST_ARROW_HEAD} exists.
      */
     public static final DeferredItem<PartItem> PART_FLETCHING = part("fletching", PartItem.Kind.FLETCHING);
+
+    /**
+     * The four armor platings and the maille (issue #677, M4-2; docs/SCOPE.md D9/D12), the 1.20
+     * clone's {@code TinkerToolParts#plating} ({@code EnumObject<ArmorItem.Type, ToolPartItem>},
+     * one item per piece) and {@code TinkerToolParts#maille}. A plating is the piece's whole stat
+     * block ({@link PartItem.Kind#PLATING}); the maille is statless ({@link PartItem.Kind#MAILLE}),
+     * traits and the inner texture layer only. Assembly into armor is #678.
+     */
+    public static final DeferredItem<PartItem> PART_PLATING_HELMET = part("plating_helmet", PartItem.Kind.PLATING);
+    public static final DeferredItem<PartItem> PART_PLATING_CHESTPLATE = part("plating_chestplate", PartItem.Kind.PLATING);
+    public static final DeferredItem<PartItem> PART_PLATING_LEGGINGS = part("plating_leggings", PartItem.Kind.PLATING);
+    public static final DeferredItem<PartItem> PART_PLATING_BOOTS = part("plating_boots", PartItem.Kind.PLATING);
+    public static final DeferredItem<PartItem> PART_MAILLE = part("maille", PartItem.Kind.MAILLE);
 
     /**
      * The sharpening kit (issue #271): the one part that belongs to no tool. Upstream's
@@ -695,6 +714,14 @@ public final class ForgeweaveItems {
     // registerToolpartMeltingCasting loop reaches it. The shaft and fletching do not: no molten
     // material carries a SHAFT or FLETCHING block, the same reason the bow string has no cast.
     public static final DeferredItem<Item> CAST_ARROW_HEAD = ITEMS.registerSimpleItem("cast_arrow_head");
+    // #677: the 1.20 clone's {helmet,chestplate,leggings,boots}PlatingCast and mailleCast
+    // (TinkerSmeltery). The first plating cast is moulded from a Part Builder plating (obsidian) --
+    // no crafting-table bootstrap (docs/SCOPE.md D12).
+    public static final DeferredItem<Item> CAST_PLATING_HELMET = ITEMS.registerSimpleItem("cast_plating_helmet");
+    public static final DeferredItem<Item> CAST_PLATING_CHESTPLATE = ITEMS.registerSimpleItem("cast_plating_chestplate");
+    public static final DeferredItem<Item> CAST_PLATING_LEGGINGS = ITEMS.registerSimpleItem("cast_plating_leggings");
+    public static final DeferredItem<Item> CAST_PLATING_BOOTS = ITEMS.registerSimpleItem("cast_plating_boots");
+    public static final DeferredItem<Item> CAST_MAILLE = ITEMS.registerSimpleItem("cast_maille");
     // #271: upstream casts the sharpening kit like any other tool part -- TinkerSmeltery's
     // registerToolpartMeltingCasting loops every registered IToolPart whose canBeCasted() holds, and
     // SharpeningKit never overrides it.
@@ -728,7 +755,9 @@ public final class ForgeweaveItems {
             "cast_pan", "cast_knife_blade", "cast_large_sword_blade", "cast_tough_tool_rod", "cast_tough_binding",
             "cast_large_plate", "cast_hammer_head", "cast_excavator_head", "cast_scythe_head", "cast_kama_head",
             "cast_broad_axe_head", "cast_vein_hammer_head", "cast_war_mace_head", "cast_curved_blade",
-            "cast_katana_blade", "cast_sharpening_kit", "cast_bow_limb", "cast_shard", "cast_arrow_head");
+            "cast_katana_blade", "cast_sharpening_kit", "cast_bow_limb", "cast_shard", "cast_arrow_head",
+            "cast_plating_helmet", "cast_plating_chestplate", "cast_plating_leggings", "cast_plating_boots",
+            "cast_maille");
 
     public static final DeferredItem<BlockItem> CASTING_TABLE = ITEMS.registerSimpleBlockItem("casting_table", ForgeweaveBlocks.CASTING_TABLE);
     public static final DeferredItem<BlockItem> CASTING_BASIN = ITEMS.registerSimpleBlockItem("casting_basin", ForgeweaveBlocks.CASTING_BASIN);

@@ -96,6 +96,11 @@ public class ForgeweaveItemModelProvider extends ItemModelProvider {
         singleLayerModel(ForgeweaveItems.PATTERN_ARROW_HEAD, derivedItem("pattern_arrow_head"));
         singleLayerModel(ForgeweaveItems.PATTERN_ARROW_SHAFT, derivedItem("pattern_arrow_shaft"));
         singleLayerModel(ForgeweaveItems.PATTERN_FLETCHING, derivedItem("pattern_fletching"));
+        singleLayerModel(ForgeweaveItems.PATTERN_PLATING_HELMET, derivedItem("pattern_plating_helmet")); // #677
+        singleLayerModel(ForgeweaveItems.PATTERN_PLATING_CHESTPLATE, derivedItem("pattern_plating_chestplate"));
+        singleLayerModel(ForgeweaveItems.PATTERN_PLATING_LEGGINGS, derivedItem("pattern_plating_leggings"));
+        singleLayerModel(ForgeweaveItems.PATTERN_PLATING_BOOTS, derivedItem("pattern_plating_boots"));
+        singleLayerModel(ForgeweaveItems.PATTERN_MAILLE, derivedItem("pattern_maille"));
         singleLayerModel(ForgeweaveItems.PATTERN_SHARPENING_KIT, derivedItem("pattern_sharpening_kit"));
         singleLayerModel(ForgeweaveItems.PATTERN_SHARD, derivedItem("pattern_shard"));
 
@@ -151,6 +156,13 @@ public class ForgeweaveItemModelProvider extends ItemModelProvider {
         singleLayerModel(ForgeweaveItems.PART_ARROW_HEAD, derivedItem("arrow_head"));
         singleLayerModel(ForgeweaveItems.PART_ARROW_SHAFT, derivedItem("arrow_shaft"));
         singleLayerModel(ForgeweaveItems.PART_FLETCHING, derivedItem("fletching"));
+        // #677: the 1.20 clone's grayscale plating/maille part sprites (scripts/derive_armor_part_art.py,
+        // NOTICE.md), tinted per material like every other PartItem.
+        singleLayerModel(ForgeweaveItems.PART_PLATING_HELMET, derivedItem("plating_helmet"));
+        singleLayerModel(ForgeweaveItems.PART_PLATING_CHESTPLATE, derivedItem("plating_chestplate"));
+        singleLayerModel(ForgeweaveItems.PART_PLATING_LEGGINGS, derivedItem("plating_leggings"));
+        singleLayerModel(ForgeweaveItems.PART_PLATING_BOOTS, derivedItem("plating_boots"));
+        singleLayerModel(ForgeweaveItems.PART_MAILLE, derivedItem("maille"));
         // #271: the sharpening kit's own art, copied straight from the clone (NOTICE.md). Tinted per
         // material by ForgeweaveItemColors like every other PartItem, which is why only the grey base
         // is ported and not upstream's three per-material overrides beside it.
@@ -209,6 +221,11 @@ public class ForgeweaveItemModelProvider extends ItemModelProvider {
         singleLayerModel(ForgeweaveItems.CAST_KATANA_BLADE, derivedItem("cast_katana_blade"));
         singleLayerModel(ForgeweaveItems.CAST_BOW_LIMB, derivedItem("cast_bow_limb"));
         singleLayerModel(ForgeweaveItems.CAST_ARROW_HEAD, derivedItem("cast_arrow_head")); // #626
+        singleLayerModel(ForgeweaveItems.CAST_PLATING_HELMET, derivedItem("cast_plating_helmet")); // #677
+        singleLayerModel(ForgeweaveItems.CAST_PLATING_CHESTPLATE, derivedItem("cast_plating_chestplate"));
+        singleLayerModel(ForgeweaveItems.CAST_PLATING_LEGGINGS, derivedItem("cast_plating_leggings"));
+        singleLayerModel(ForgeweaveItems.CAST_PLATING_BOOTS, derivedItem("cast_plating_boots"));
+        singleLayerModel(ForgeweaveItems.CAST_MAILLE, derivedItem("cast_maille"));
         singleLayerModel(ForgeweaveItems.CAST_SHARPENING_KIT, derivedItem("cast_sharpening_kit"));
         // #471/T40
         singleLayerModel(ForgeweaveItems.CAST_SHARD, derivedItem("cast_shard"));

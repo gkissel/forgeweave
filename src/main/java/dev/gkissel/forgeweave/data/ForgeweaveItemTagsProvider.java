@@ -322,7 +322,10 @@ public class ForgeweaveItemTagsProvider extends ItemTagsProvider {
                         ForgeweaveItems.CAST_WAR_MACE_HEAD.get(), ForgeweaveItems.CAST_CURVED_BLADE.get(),
                         ForgeweaveItems.CAST_KATANA_BLADE.get(), ForgeweaveItems.CAST_BOW_LIMB.get(),
                         ForgeweaveItems.CAST_SHARPENING_KIT.get(), ForgeweaveItems.CAST_SHARD.get(),
-                        ForgeweaveItems.CAST_ARROW_HEAD.get());
+                        ForgeweaveItems.CAST_ARROW_HEAD.get(),
+                        ForgeweaveItems.CAST_PLATING_HELMET.get(), ForgeweaveItems.CAST_PLATING_CHESTPLATE.get(),
+                        ForgeweaveItems.CAST_PLATING_LEGGINGS.get(), ForgeweaveItems.CAST_PLATING_BOOTS.get(),
+                        ForgeweaveItems.CAST_MAILLE.get());
         tag(ChestKind.CASTS).addTag(CASTS_GOLD);
         for (var clayCast : ForgeweaveItems.CLAY_CASTS.values()) {
             tag(ChestKind.CASTS).add(clayCast.get());

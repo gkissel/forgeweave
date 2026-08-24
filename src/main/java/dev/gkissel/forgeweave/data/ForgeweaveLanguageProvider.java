@@ -353,6 +353,12 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         addItem(ForgeweaveItems.PATTERN_ARROW_HEAD, "Arrow Head Pattern");
         addItem(ForgeweaveItems.PATTERN_ARROW_SHAFT, "Arrow Shaft Pattern");
         addItem(ForgeweaveItems.PATTERN_FLETCHING, "Fletching Pattern");
+        // #677: the 1.20 clone's item.tconstruct.{helmet,chestplate,leggings,boots}_plating / maille names.
+        addItem(ForgeweaveItems.PATTERN_PLATING_HELMET, "Helmet Plating Pattern");
+        addItem(ForgeweaveItems.PATTERN_PLATING_CHESTPLATE, "Chest Plating Pattern");
+        addItem(ForgeweaveItems.PATTERN_PLATING_LEGGINGS, "Leg Plating Pattern");
+        addItem(ForgeweaveItems.PATTERN_PLATING_BOOTS, "Boot Plating Pattern");
+        addItem(ForgeweaveItems.PATTERN_MAILLE, "Maille Pattern");
         addItem(ForgeweaveItems.PATTERN_SHARPENING_KIT, "Sharpening Kit Pattern");
         addItem(ForgeweaveItems.PATTERN_SHARD, "Shard Pattern");
 
@@ -386,6 +392,13 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         addItem(ForgeweaveItems.PART_ARROW_HEAD, "Arrow Head");
         addItem(ForgeweaveItems.PART_ARROW_SHAFT, "Arrow Shaft");
         addItem(ForgeweaveItems.PART_FLETCHING, "Fletching");
+        // #677: the 1.20 clone's item.tconstruct.{helmet,chestplate,leggings,boots}_plating and
+        // item.tconstruct.maille, verbatim -- "Chest"/"Leg"/"Boot" are upstream's own spelling.
+        addItem(ForgeweaveItems.PART_PLATING_HELMET, "Helmet Plating");
+        addItem(ForgeweaveItems.PART_PLATING_CHESTPLATE, "Chest Plating");
+        addItem(ForgeweaveItems.PART_PLATING_LEGGINGS, "Leg Plating");
+        addItem(ForgeweaveItems.PART_PLATING_BOOTS, "Boot Plating");
+        addItem(ForgeweaveItems.PART_MAILLE, "Maille");
         // #271: upstream item.tconstruct.sharpening_kit.name.
         addItem(ForgeweaveItems.PART_SHARPENING_KIT, "Sharpening Kit");
 
@@ -1326,6 +1339,11 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         addItem(ForgeweaveItems.CAST_KATANA_BLADE, "Katana Blade Cast");
         addItem(ForgeweaveItems.CAST_BOW_LIMB, "Bowlimb Cast");
         addItem(ForgeweaveItems.CAST_ARROW_HEAD, "Arrow Head Cast"); // #626
+        addItem(ForgeweaveItems.CAST_PLATING_HELMET, "Helmet Plating Cast"); // #677
+        addItem(ForgeweaveItems.CAST_PLATING_CHESTPLATE, "Chest Plating Cast");
+        addItem(ForgeweaveItems.CAST_PLATING_LEGGINGS, "Leg Plating Cast");
+        addItem(ForgeweaveItems.CAST_PLATING_BOOTS, "Boot Plating Cast");
+        addItem(ForgeweaveItems.CAST_MAILLE, "Maille Cast");
         addItem(ForgeweaveItems.CAST_SHARPENING_KIT, "Sharpening Kit Cast");
         addItem(ForgeweaveItems.CAST_SHARD, "Shard Cast"); // #471/T40
 

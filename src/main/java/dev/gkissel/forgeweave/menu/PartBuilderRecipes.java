@@ -81,6 +81,15 @@ public final class PartBuilderRecipes {
     public static final int SMALL_PART_COST = INGOT_VALUE;
     public static final int MEDIUM_PART_COST = 3 * INGOT_VALUE;
     public static final int LARGE_HEAD_COST = 8 * INGOT_VALUE;
+    /**
+     * #677: the 1.20 clone's plating costs ({@code ToolsRecipeProvider#addPartRecipes:451-455},
+     * {@code partWithDummy(..., cost, ...)}): helmet 3, chestplate 6, leggings 5, boots 2; maille 2.
+     */
+    public static final int PLATING_HELMET_COST = 3 * INGOT_VALUE;
+    public static final int PLATING_CHESTPLATE_COST = 6 * INGOT_VALUE;
+    public static final int PLATING_LEGGINGS_COST = 5 * INGOT_VALUE;
+    public static final int PLATING_BOOTS_COST = 2 * INGOT_VALUE;
+    public static final int MAILLE_COST = 2 * INGOT_VALUE;
 
     private record Entry(Supplier<? extends Item> pattern, Supplier<? extends PartItem> part, int cost) {}
 
@@ -133,6 +142,12 @@ public final class PartBuilderRecipes {
             new Entry(ForgeweaveItems.PATTERN_ARROW_HEAD, ForgeweaveItems.PART_ARROW_HEAD, HEAD_COST),
             new Entry(ForgeweaveItems.PATTERN_ARROW_SHAFT, ForgeweaveItems.PART_ARROW_SHAFT, HEAD_COST),
             new Entry(ForgeweaveItems.PATTERN_FLETCHING, ForgeweaveItems.PART_FLETCHING, HEAD_COST),
+            // #677's armor parts.
+            new Entry(ForgeweaveItems.PATTERN_PLATING_HELMET, ForgeweaveItems.PART_PLATING_HELMET, PLATING_HELMET_COST),
+            new Entry(ForgeweaveItems.PATTERN_PLATING_CHESTPLATE, ForgeweaveItems.PART_PLATING_CHESTPLATE, PLATING_CHESTPLATE_COST),
+            new Entry(ForgeweaveItems.PATTERN_PLATING_LEGGINGS, ForgeweaveItems.PART_PLATING_LEGGINGS, PLATING_LEGGINGS_COST),
+            new Entry(ForgeweaveItems.PATTERN_PLATING_BOOTS, ForgeweaveItems.PART_PLATING_BOOTS, PLATING_BOOTS_COST),
+            new Entry(ForgeweaveItems.PATTERN_MAILLE, ForgeweaveItems.PART_MAILLE, MAILLE_COST),
             // #271's sharpening kit. Upstream cost read straight off its constructor:
             // `SharpeningKit() { super(Material.VALUE_Shard * 4); }` with `VALUE_Shard = VALUE_Ingot / 2`
             // (= 72), so 288 = 2 ingots -- the same HEAD_COST every head part uses.

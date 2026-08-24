@@ -77,6 +77,11 @@ public final class ForgeweaveCreativeTab {
             ForgeweaveItems.PART_ARROW_HEAD,
             ForgeweaveItems.PART_ARROW_SHAFT,
             ForgeweaveItems.PART_FLETCHING,
+            ForgeweaveItems.PART_PLATING_HELMET,
+            ForgeweaveItems.PART_PLATING_CHESTPLATE,
+            ForgeweaveItems.PART_PLATING_LEGGINGS,
+            ForgeweaveItems.PART_PLATING_BOOTS,
+            ForgeweaveItems.PART_MAILLE,
             ForgeweaveItems.PART_SHARPENING_KIT);
 
     /** Icons mirror upstream's: slime ball, assembled pickaxe, pickaxe head, seared tank. */
@@ -312,6 +317,11 @@ public final class ForgeweaveCreativeTab {
         output.accept(ForgeweaveItems.PATTERN_ARROW_HEAD.get());
         output.accept(ForgeweaveItems.PATTERN_ARROW_SHAFT.get());
         output.accept(ForgeweaveItems.PATTERN_FLETCHING.get());
+        output.accept(ForgeweaveItems.PATTERN_PLATING_HELMET.get()); // #677
+        output.accept(ForgeweaveItems.PATTERN_PLATING_CHESTPLATE.get());
+        output.accept(ForgeweaveItems.PATTERN_PLATING_LEGGINGS.get());
+        output.accept(ForgeweaveItems.PATTERN_PLATING_BOOTS.get());
+        output.accept(ForgeweaveItems.PATTERN_MAILLE.get());
         output.accept(ForgeweaveItems.PATTERN_SHARPENING_KIT.get());
         output.accept(ForgeweaveItems.PATTERN_SHARD.get());
 
@@ -463,6 +473,11 @@ public final class ForgeweaveCreativeTab {
         output.accept(ForgeweaveItems.CAST_KATANA_BLADE.get());
         output.accept(ForgeweaveItems.CAST_BOW_LIMB.get());
         output.accept(ForgeweaveItems.CAST_ARROW_HEAD.get()); // #626
+        output.accept(ForgeweaveItems.CAST_PLATING_HELMET.get()); // #677
+        output.accept(ForgeweaveItems.CAST_PLATING_CHESTPLATE.get());
+        output.accept(ForgeweaveItems.CAST_PLATING_LEGGINGS.get());
+        output.accept(ForgeweaveItems.CAST_PLATING_BOOTS.get());
+        output.accept(ForgeweaveItems.CAST_MAILLE.get());
         output.accept(ForgeweaveItems.CAST_SHARPENING_KIT.get());
         output.accept(ForgeweaveItems.CAST_SHARD.get()); // #471/T40
 

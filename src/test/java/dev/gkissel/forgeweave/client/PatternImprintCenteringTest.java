@@ -57,7 +57,10 @@ class PatternImprintCenteringTest {
      */
     private static final String[] CENTERED_PARTS =
             {"knife_blade", "curved_blade", "katana_blade", "bow_limb", "bow_string",
-                    "arrow_head", "arrow_shaft", "fletching"};
+                    "arrow_head", "arrow_shaft", "fletching",
+                    // Issue #677: the 1.20 clone's plating/maille sprites carry no tmat offsets at
+                    // all, so every offset in the table is hand-chosen -- exactly what this guards.
+                    "plating_helmet", "plating_chestplate", "plating_leggings", "plating_boots", "maille"};
 
     /**
      * Max allowed distance (in pixels) between the imprint's bounding-box center and the 16x16

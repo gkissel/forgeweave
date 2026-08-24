@@ -91,6 +91,14 @@ PARTS = [
     # #471/T40: the shard, same treatment as the sharpening kit above -- Shard#canUseMaterial is
     # unconditionally true, so it casts for every castable metal, not just head-stat materials.
     ("shard.png", "cast_shard.png"),
+    # #677 (M4-2): the armor parts. The 1.20 clone ships dedicated `item/cast/<piece>_plating.png`
+    # art for these; Forgeweave keeps the 1.12-lineage composite every other part cast uses so the
+    # cast set stays one style.
+    ("plating_helmet.png", "cast_plating_helmet.png"),
+    ("plating_chestplate.png", "cast_plating_chestplate.png"),
+    ("plating_leggings.png", "cast_plating_leggings.png"),
+    ("plating_boots.png", "cast_plating_boots.png"),
+    ("maille.png", "cast_maille.png"),
 ]
 
 BEVEL_MULT = 0.78

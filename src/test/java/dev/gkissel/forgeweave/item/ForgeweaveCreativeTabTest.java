@@ -257,6 +257,13 @@ class ForgeweaveCreativeTabTest {
                 false,
                 Material.DEFAULT_ENCHANTABILITY,
                 Optional.of(new Material.Shaft(1f, 0)),
-                Optional.of(new Material.Fletching(1f, 1f)));
+                Optional.of(new Material.Fletching(1f, 1f)),
+                // #677: the dummy carries every stat block so every PartItem kind lists.
+                Optional.of(new Material.Plating(piece(), piece(), piece(), piece())),
+                true);
+    }
+
+    private static Material.PlatingPiece piece() {
+        return new Material.PlatingPiece(100, 1f, 0f, 0f);
     }
 }

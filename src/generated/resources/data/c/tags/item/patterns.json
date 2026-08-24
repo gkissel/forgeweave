@@ -31,6 +31,11 @@
     "forgeweave:pattern_arrow_head",
     "forgeweave:pattern_arrow_shaft",
     "forgeweave:pattern_fletching",
+    "forgeweave:pattern_plating_helmet",
+    "forgeweave:pattern_plating_chestplate",
+    "forgeweave:pattern_plating_leggings",
+    "forgeweave:pattern_plating_boots",
+    "forgeweave:pattern_maille",
     "forgeweave:pattern_sharpening_kit",
     "forgeweave:pattern_shard"
   ]
