@@ -10,18 +10,15 @@ import net.minecraft.world.item.Item;
 import dev.gkissel.forgeweave.material.Material;
 
 /**
- * One page of the guide book -- the Forgeweave equivalents of the four page types the 1.12 book's
+ * One page of the guide book -- the Forgeweave equivalents of the page types the 1.12 book's
  * shipped sections actually use ({@code sections/*.json} "type" values in
  * {@code resources/assets/tconstruct/book/}: {@code text}, {@code "image with text below"},
- * {@code tool}, {@code modifier}, plus the material stat pages its
+ * {@code tool}, {@code modifier}, {@code structure}, plus the material stat pages its
  * {@code MaterialSectionTransformer} generates). Upstream renders these through Mantle's book
  * engine; Forgeweave's {@link BookScreen} renders them directly, and the registry-driven kinds
  * ({@link ToolPage}, {@link MaterialPage}, {@link ModifierPage}) pull live data instead of static
  * JSON so the book can never drift from what is actually registered.
  *
- * <p>ponytail: no structure/multiblock page type -- the 1.12 smeltery section's rotating 3D
- * structure page needs a schematic renderer nothing else uses; its information is carried by the
- * smeltery section's text pages instead.
  */
 public sealed interface BookPage {
 
@@ -75,4 +72,13 @@ public sealed interface BookPage {
      * A link's {@code targetPage} is book-global here, since the index section starts at page 0.
      */
     record SectionListPage(String name, List<BookLink> links) implements BookPage {}
+
+    /**
+     * The smeltery section's rotating 3D schematic (issue #651): upstream's {@code structure} page
+     * type -- Mantle's {@code ContentStructure} building an {@code ElementStructure} over the
+     * block spans of a structure data file, drag to rotate, the refresh arrow toggling the
+     * build-up animation. The name is the page's bookmark segment; the shipped page has no title
+     * or text, exactly as upstream's {@code smeltery/multiblock.json} carries neither.
+     */
+    record StructurePage(String name, StructureInfo structure) implements BookPage {}
 }

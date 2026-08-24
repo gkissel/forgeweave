@@ -3,7 +3,9 @@ package dev.gkissel.forgeweave.client.book;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.IdentityHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.function.IntFunction;
 import java.util.function.Supplier;
@@ -36,6 +38,7 @@ import dev.gkissel.forgeweave.client.book.BookPage.ListingPage;
 import dev.gkissel.forgeweave.client.book.BookPage.MaterialPage;
 import dev.gkissel.forgeweave.client.book.BookPage.ModifierPage;
 import dev.gkissel.forgeweave.client.book.BookPage.SectionListPage;
+import dev.gkissel.forgeweave.client.book.BookPage.StructurePage;
 import dev.gkissel.forgeweave.client.book.BookPage.TextPage;
 import dev.gkissel.forgeweave.client.book.BookPage.ToolPage;
 import dev.gkissel.forgeweave.client.book.MaterialPageContent.Icon;
@@ -70,10 +73,12 @@ import dev.gkissel.forgeweave.modifier.ModifierRecipe;
  * content; Forgeweave's pages are generated from live registries, so the split is computed.
  *
  * <p>ponytail: this ports the chrome, geometry, navigation and the content layouts (issue #651:
- * {@code ContentTool}/{@code ContentModifier}/{@code ContentSectionList}); Mantle's literal
- * {@code BookElement} class tree stays unported -- the page kinds render through the block model,
- * which already carries upstream's actions ({@code go-to-page-rtn}), item tooltips and cycling
- * item slots. The book's structure itself is data-driven ({@link BookStructure}, issue #651).
+ * {@code ContentTool}/{@code ContentModifier}/{@code ContentSectionList}/{@code ContentStructure});
+ * Mantle's literal {@code BookElement} class tree stays unported -- the page kinds render through
+ * the block model, which already carries upstream's actions ({@code go-to-page-rtn}), item
+ * tooltips and cycling item slots, with the one stateful exception of the smeltery schematic's
+ * {@link StructureElement}. The book's structure itself is data-driven ({@link BookStructure},
+ * issue #651).
  */
 public class BookScreen extends Screen {
 
@@ -191,6 +196,18 @@ public class BookScreen extends Screen {
     private Region hovered;
 
     /**
+     * The structure pages' interactive areas (issue #651): the whole-element drag surface and the
+     * refresh-arrow animation toggle, keyed by the identity of the {@link Region} they registered
+     * in their block. Rebuilt with the layout in {@link #init}.
+     */
+    private final Map<Region, StructureElement> structureBodies = new IdentityHashMap<>();
+    private final Map<Region, StructureElement> structureToggles = new IdentityHashMap<>();
+
+    /** The structure the mouse is currently turning, upstream {@code ElementStructure.lastClick}. */
+    @Nullable
+    private StructureElement draggedStructure;
+
+    /**
      * Frames drawn since the screen opened. Mantle's {@code ElementItem} advances its cycling stack
      * every {@code ITEM_SWITCH_TICKS} draws, not every game tick, so a cycling icon reads this.
      */
@@ -219,6 +236,9 @@ public class BookScreen extends Screen {
     @Override
     protected void init() {
         super.init();
+        this.structureBodies.clear();
+        this.structureToggles.clear();
+        this.draggedStructure = null;
         List<List<Block>> blocks = new ArrayList<>();
         int[] sectionStartPage = new int[this.sections.size()];
         for (int i = 0; i < this.sections.size(); i++) {
@@ -323,6 +343,11 @@ public class BookScreen extends Screen {
         super.render(graphics, mouseX, mouseY, partialTick);
         this.frame++;
         this.hovered = regionAt(mouseX, mouseY);
+        // Upstream applies the structure drag at the top of ElementStructure.draw, every frame the
+        // button stays down, against the cursor's current offset from where it went down.
+        if (this.draggedStructure != null) {
+            this.draggedStructure.drag(mouseX, mouseY);
+        }
         if (this.spread < 0) {
             renderCover(graphics);
         } else {
@@ -526,6 +551,8 @@ public class BookScreen extends Screen {
                         graphics.blit(image, x, y, PAGE_TEXT_W, imageH, 0, 0, 854, 480, 854, 480)));
             }
             bodyBlocks(blocks, Component.translatable(text.textKey()));
+        } else if (page instanceof StructurePage structure) {
+            structureBlocks(blocks, structure);
         } else if (page instanceof ToolPage tool) {
             toolBlocks(blocks, tool.tool());
         } else if (page instanceof MaterialPage material) {
@@ -534,6 +561,44 @@ public class BookScreen extends Screen {
             modifierBlocks(blocks, modifier.id());
         }
         return List.copyOf(blocks);
+    }
+
+    /**
+     * Upstream {@code ContentStructure#build} (issue #651): the shipped structure page has no
+     * title and no text, so the {@link StructureElement} takes the whole leaf -- one indivisible
+     * full-height block, which the paginator gives its own leaf, matching upstream's
+     * {@code PAGE_WIDTH} x {@code PAGE_HEIGHT - 10} element. Since the structure is taller than
+     * one layer, the refresh-arrow animation toggle sits at the page's top-right
+     * ({@code showButtons = size[1] > 1}, {@code ElementAnimationToggle} at
+     * {@code PAGE_WIDTH - REFRESH.w, 0}), tinted with the appearance structure-button colours and
+     * green while toggled on. The whole element is a drag surface; the toggle region is listed
+     * first so it wins the hit-test over it.
+     */
+    private void structureBlocks(List<Block> blocks, StructurePage page) {
+        StructureElement element = new StructureElement(page.structure(), PAGE_TEXT_W, PAGE_TEXT_H);
+        Region body = new Region(0, 0, PAGE_TEXT_W, PAGE_TEXT_H, NO_TARGET, null);
+        this.structureBodies.put(body, element);
+        Region toggle = null;
+        if (page.structure().height() > 1) {
+            toggle = new Region(PAGE_TEXT_W - BookGeometry.REFRESH_SIZE, 0,
+                    BookGeometry.REFRESH_SIZE, BookGeometry.REFRESH_SIZE, NO_TARGET, null);
+            this.structureToggles.put(toggle, element);
+        }
+        Region toggleRegion = toggle;
+        List<Region> regions = toggle == null ? List.of(body) : List.of(toggle, body);
+        blocks.add(new Block(PAGE_TEXT_H, (graphics, x, y) -> {
+            element.render(graphics, x, y);
+            if (toggleRegion != null) {
+                int tint = element.animating() ? BookGeometry.STRUCTURE_BUTTON_TOGGLED_COLOR
+                        : this.hovered == toggleRegion ? BookGeometry.STRUCTURE_BUTTON_HOVER_COLOR
+                                : BookGeometry.STRUCTURE_BUTTON_COLOR;
+                setColor(graphics, tint);
+                chromeBlit(graphics, TEX_BOOK, x + toggleRegion.dx(), y + toggleRegion.dy(),
+                        BookGeometry.REFRESH_U, BookGeometry.REFRESH_V,
+                        BookGeometry.REFRESH_SIZE, BookGeometry.REFRESH_SIZE);
+                graphics.setColor(1.0F, 1.0F, 1.0F, 1.0F);
+            }
+        }, regions));
     }
 
     /**
@@ -1054,13 +1119,40 @@ public class BookScreen extends Screen {
                     return true;
                 }
                 Region region = regionAt(mouseX, mouseY);
-                if (region != null && region.targetPage() >= 0) {
-                    goToPageReturning(BookGeometry.spreadOf(this.pageFirstSlot[region.targetPage()]));
-                    return true;
+                if (region != null) {
+                    // The structure page's clicks (issue #651): the refresh arrow toggles the
+                    // build-up animation (ElementStructure.onButtonClick BUTTON_ID_ANIMATE), and
+                    // pressing anywhere else on the element starts the rotation drag
+                    // (ElementStructure.mouseClicked's lastClick).
+                    StructureElement toggled = this.structureToggles.get(region);
+                    if (toggled != null) {
+                        toggled.toggleAnimation();
+                        return true;
+                    }
+                    StructureElement dragged = this.structureBodies.get(region);
+                    if (dragged != null) {
+                        dragged.beginDrag(mouseX, mouseY);
+                        this.draggedStructure = dragged;
+                        return true;
+                    }
+                    if (region.targetPage() >= 0) {
+                        goToPageReturning(BookGeometry.spreadOf(this.pageFirstSlot[region.targetPage()]));
+                        return true;
+                    }
                 }
             }
         }
         return super.mouseClicked(mouseX, mouseY, button);
+    }
+
+    /** Upstream {@code ElementStructure#mouseReleased}: letting go of the button ends the drag. */
+    @Override
+    public boolean mouseReleased(double mouseX, double mouseY, int button) {
+        if (this.draggedStructure != null) {
+            this.draggedStructure.endDrag();
+            this.draggedStructure = null;
+        }
+        return super.mouseReleased(mouseX, mouseY, button);
     }
 
     /**

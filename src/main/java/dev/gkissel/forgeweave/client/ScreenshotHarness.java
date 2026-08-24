@@ -417,13 +417,25 @@ public final class ScreenshotHarness {
     /** Set by {@link #placePartTintScene}, checked by {@link #settlePartTintScene} before capture (#256). */
     private static AABB partTintSceneBounds;
 
-    /** A guide-book capture: the file name and the spread to open ({@code -1} = the closed cover). */
-    private record BookScene(String fileName, int spread) {}
+    /**
+     * A guide-book capture: the file name and either the spread to open ({@code -1} = the closed
+     * cover) or a {@code section.page} bookmark resolved through the screen's ordinary
+     * bookmark-opening path -- for the pages whose spread number shifts with the registry-generated
+     * content in front of them.
+     */
+    private record BookScene(String fileName, int spread, @Nullable String bookmark) {
+        BookScene(String fileName, int spread) {
+            this(fileName, spread, null);
+        }
+    }
 
     private static final List<BookScene> BOOK_SCENES = List.of(
             new BookScene("book_cover", -1),
             new BookScene("book_index", 0),
-            new BookScene("book_section", 1));
+            new BookScene("book_section", 1),
+            // Issue #651: the smeltery multiblock's 3D structure page, the book's one
+            // StructureElement render.
+            new BookScene("book_structure", -1, "smeltery.multiblock"));
 
     private ScreenshotHarness() {}
 
@@ -1488,8 +1500,9 @@ public final class ScreenshotHarness {
     }
 
     /**
-     * The #430 guide-book scenes: the closed cover, the opened index leaf, and the first full
-     * spread -- the three chrome states the 1.12 parity review compares against Mantle's book. The
+     * The #430 guide-book scenes: the closed cover, the opened index leaf, the first full spread
+     * -- the three chrome states the 1.12 parity review compares against Mantle's book -- and the
+     * #651 smeltery structure spread, opened through its bookmark. The
      * book is a plain screen with no menu behind it, so unlike {@link #openScreen} there is no
      * server-side work: the screen is set directly, and {@link BookScreen#openSpread} turns it to
      * the scene's spread.
@@ -1507,9 +1520,11 @@ public final class ScreenshotHarness {
         }
         BookScene scene = BOOK_SCENES.get(bookSceneIndex);
         LOGGER.info("{}opening the guide book for {}", LOG_PREFIX, scene.fileName());
-        BookScreen screen = new BookScreen(BookContent.sections(mc.level.registryAccess()));
+        BookScreen screen = scene.bookmark() != null
+                ? new BookScreen(BookContent.sections(mc.level.registryAccess()), scene.bookmark(), null)
+                : new BookScreen(BookContent.sections(mc.level.registryAccess()));
         mc.setScreen(screen);
-        if (scene.spread() >= 0) {
+        if (scene.bookmark() == null && scene.spread() >= 0) {
             screen.openSpread(scene.spread());
         }
         advance(Stage.SETTLE_BOOK);

@@ -104,6 +104,8 @@ public final class SavedPage {
             case IconGridPage grid -> "listing";
             // IndexTranformer names its generated pages page1, page2, ... itself.
             case BookPage.SectionListPage sectionList -> sectionList.name();
+            // The structure page carries its authored JSON name, upstream's own source for it.
+            case BookPage.StructurePage structure -> structure.name();
         };
     }
 

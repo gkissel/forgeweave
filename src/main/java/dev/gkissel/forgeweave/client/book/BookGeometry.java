@@ -55,6 +55,15 @@ public final class BookGeometry {
     public static final int ARROW_INDEX_V = 40; // ArrowType.BACK_UP
     public static final int ARROW_INDEX_SIZE = 18;
 
+    // ArrowType.REFRESH -- the structure page's animate-toggle button (issue #651) -- and
+    // AppearanceData's structure-button tints, none of which Tinkers' appearance.json overrides.
+    public static final int REFRESH_U = 412;
+    public static final int REFRESH_V = 76;
+    public static final int REFRESH_SIZE = 18;
+    public static final int STRUCTURE_BUTTON_COLOR = 0xe3E3BC;
+    public static final int STRUCTURE_BUTTON_HOVER_COLOR = 0x76D1E8;
+    public static final int STRUCTURE_BUTTON_TOGGLED_COLOR = 0x67C768;
+
     // AppearanceData defaults (Tinkers' appearance.json overrides only coverColor) and GuiBook's
     // hardcoded text colors.
     public static final int COVER_COLOR = 0xffce85; // tconstruct book/appearance.json

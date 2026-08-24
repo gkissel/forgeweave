@@ -84,4 +84,19 @@ class BookGeometryTest {
         assertEquals(width / 2 - 215, BookGeometry.indexArrowX(width));
         assertEquals(height / 2 - 100, BookGeometry.indexArrowY(height));
     }
+
+    /**
+     * The structure page's animate-toggle button (issue #651): {@code GuiArrow.ArrowType.REFRESH}
+     * is the 18x18 sprite at (412, 76) on book.png, tinted with {@code AppearanceData}'s
+     * structure-button defaults -- Tinkers' {@code appearance.json} overrides none of the three.
+     */
+    @Test
+    void refreshArrowSpriteAndTintsMatchUpstream() {
+        assertEquals(412, BookGeometry.REFRESH_U);
+        assertEquals(76, BookGeometry.REFRESH_V);
+        assertEquals(18, BookGeometry.REFRESH_SIZE);
+        assertEquals(0xe3E3BC, BookGeometry.STRUCTURE_BUTTON_COLOR);
+        assertEquals(0x76D1E8, BookGeometry.STRUCTURE_BUTTON_HOVER_COLOR);
+        assertEquals(0x67C768, BookGeometry.STRUCTURE_BUTTON_TOGGLED_COLOR);
+    }
 }
