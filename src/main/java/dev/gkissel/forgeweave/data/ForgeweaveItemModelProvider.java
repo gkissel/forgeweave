@@ -23,6 +23,7 @@ import dev.gkissel.forgeweave.fluid.ForgeweaveFluids;
 import dev.gkissel.forgeweave.item.ForgeweaveItems;
 import dev.gkissel.forgeweave.menu.ToolAssemblyRecipes;
 import dev.gkissel.forgeweave.tool.ToolArt;
+import dev.gkissel.forgeweave.tool.ToolConstants;
 
 /**
  * Item models for every Forgeweave item (docs/adr/0002): a plain {@code minecraft:item/generated}
@@ -239,6 +240,14 @@ public class ForgeweaveItemModelProvider extends ItemModelProvider {
         // one model layer per part, so a two-part M3 weapon gets two layers and a three-part one gets
         // three, and no tool can be registered without a model or vice versa.
         for (ToolAssemblyRecipes.Entry entry : ToolAssemblyRecipes.ENTRIES) {
+            if (entry.constants().category() == ToolConstants.Category.ARMOR) {
+                // ponytail: #678 ships the armor with vanilla's iron item art as a placeholder;
+                // #679 replaces it with the tinted two-layer render.
+                getBuilder(BuiltInRegistries.ITEM.getKey(entry.tool().get()).toString())
+                        .parent(new ModelFile.UncheckedModelFile("item/generated"))
+                        .texture("layer0", mcLoc("item/iron_" + entry.constants().id()));
+                continue;
+            }
             toolModel(entry.tool(), entry.constants().id(), ToolArt.layers(entry.constants().parts()));
         }
 

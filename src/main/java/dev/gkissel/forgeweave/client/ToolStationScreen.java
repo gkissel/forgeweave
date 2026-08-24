@@ -40,6 +40,7 @@ import dev.gkissel.forgeweave.item.ToolItem;
 import dev.gkissel.forgeweave.menu.ForgeweaveMenus;
 import dev.gkissel.forgeweave.menu.RenameStationItemPayload;
 import dev.gkissel.forgeweave.menu.StationMenu;
+import dev.gkissel.forgeweave.menu.ToolAssemblyRecipes;
 import dev.gkissel.forgeweave.menu.ToolStationMenu;
 import dev.gkissel.forgeweave.menu.ToolStationTabs;
 import dev.gkissel.forgeweave.menu.ToolStationTabs.Tab;
@@ -312,7 +313,7 @@ public class ToolStationScreen extends StationScreen<ToolStationMenu> implements
         Tab tab = menu.tab();
         ItemStack output = menu.getSlot(ToolStationMenu.OUTPUT_SLOT).getItem();
         ItemStack head = menu.getSlot(ToolStationMenu.HEAD_SLOT).getItem();
-        ItemStack subject = !output.isEmpty() ? output : head.getItem() instanceof ToolItem ? head : ItemStack.EMPTY;
+        ItemStack subject = !output.isEmpty() ? output : ToolAssemblyRecipes.isAssembled(head) ? head : ItemStack.EMPTY;
 
         if (!subject.isEmpty()) {
             describeTool(subject);

@@ -9,6 +9,8 @@ import javax.annotation.Nullable;
 import net.minecraft.network.chat.Component;
 
 import dev.gkissel.forgeweave.item.ForgeweaveItems;
+import net.minecraft.world.item.Item;
+
 import dev.gkissel.forgeweave.item.PartItem;
 import dev.gkissel.forgeweave.item.ToolItem;
 
@@ -97,7 +99,7 @@ public final class ToolStationTabs {
             return entry == null;
         }
 
-        public ToolItem tool() {
+        public Item tool() {
             return entry.tool().get();
         }
 
@@ -135,7 +137,7 @@ public final class ToolStationTabs {
      * ahead of it, and a wrong-but-valid index is exactly the kind of drift no conflict marker
      * catches. An unknown tool throws at class-init instead.
      */
-    private static Tab build(Supplier<? extends ToolItem> tool, Pos... slots) {
+    private static Tab build(Supplier<? extends Item> tool, Pos... slots) {
         return new Tab(ToolAssemblyRecipes.ENTRIES.stream()
                 .filter(entry -> entry.tool() == tool)
                 .findFirst()
@@ -217,7 +219,12 @@ public final class ToolStationTabs {
             // own RangedClientProxy layout from its (32, 41) origin -- (32, 41), (32+18, 41-18),
             // (32-18, 41+18) -- minus one on both axes against this table's (33, 42), in Arrow's
             // shaft, head, fletching part order.
-            build(ForgeweaveItems.TOOL_ARROW, at(-1, -1), at(17, -19), at(-19, 17)));
+            build(ForgeweaveItems.TOOL_ARROW, at(-1, -1), at(17, -19), at(-19, 17)),
+            // M4 armor (issue #678): plating above, maille below, on both stations (SCOPE.md D13).
+            build(ForgeweaveItems.ARMOR_HELMET, at(0, -14), at(0, 14)),
+            build(ForgeweaveItems.ARMOR_CHESTPLATE, at(0, -14), at(0, 14)),
+            build(ForgeweaveItems.ARMOR_LEGGINGS, at(0, -14), at(0, 14)),
+            build(ForgeweaveItems.ARMOR_BOOTS, at(0, -14), at(0, 14)));
 
     /** The repair tab, which is what a freshly opened station shows (as upstream's does). */
     public static final int REPAIR = 0;
@@ -265,7 +272,7 @@ public final class ToolStationTabs {
     }
 
     /** The tab index that builds {@code tool}, or -1 if none does. Used by JEI's [+] transfer. */
-    public static int indexOfTool(ToolItem tool) {
+    public static int indexOfTool(Item tool) {
         for (int i = 0; i < TABS.size(); i++) {
             Tab tab = TABS.get(i);
             if (!tab.isRepair() && tab.tool() == tool) {

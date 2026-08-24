@@ -30,6 +30,7 @@ import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.item.enchantment.ItemEnchantments;
 
 import dev.gkissel.forgeweave.Forgeweave;
+import dev.gkissel.forgeweave.item.ArmorPieceItem;
 import dev.gkissel.forgeweave.item.ForgeweaveDataComponents;
 import dev.gkissel.forgeweave.item.ForgeweaveItems;
 import dev.gkissel.forgeweave.item.PartItem;
@@ -41,6 +42,7 @@ import dev.gkissel.forgeweave.modifier.Fortification;
 import dev.gkissel.forgeweave.modifier.Modifier;
 import dev.gkissel.forgeweave.modifier.ModifierApplication;
 import dev.gkissel.forgeweave.modifier.ModifierEntry;
+import dev.gkissel.forgeweave.tool.ArmorStats;
 import dev.gkissel.forgeweave.tool.LauncherStats;
 import dev.gkissel.forgeweave.tool.ProjectileStats;
 import dev.gkissel.forgeweave.tool.ToolConstants;
@@ -101,7 +103,7 @@ public final class ToolAssemblyRecipes {
      * table, keep resolution package-private" pattern as {@link PartBuilderRecipes}'s public cost
      * constants.
      */
-    public record Entry(ToolConstants.Entry constants, Supplier<? extends ToolItem> tool) {
+    public record Entry(ToolConstants.Entry constants, Supplier<? extends Item> tool) {
 
         /** How many of the station's input slots this tool uses (2 to 4 across the M3 roster). */
         public int slotCount() {
@@ -240,7 +242,21 @@ public final class ToolAssemblyRecipes {
             // #653: the material arrow -- shaft, head, fletching, upstream Arrow's own
             // PartMaterialType order. A Tool Station tool (TinkerRegistry.registerToolCrafting(arrow)),
             // so not in LARGE_TOOLS.
-            new Entry(ToolConstants.ARROW, ForgeweaveItems.TOOL_ARROW));
+            new Entry(ToolConstants.ARROW, ForgeweaveItems.TOOL_ARROW),
+            // M4 armor (issue #678, SCOPE.md D13): both stations, no large_tools gate.
+            new Entry(ToolConstants.HELMET, ForgeweaveItems.ARMOR_HELMET),
+            new Entry(ToolConstants.CHESTPLATE, ForgeweaveItems.ARMOR_CHESTPLATE),
+            new Entry(ToolConstants.LEGGINGS, ForgeweaveItems.ARMOR_LEGGINGS),
+            new Entry(ToolConstants.BOOTS, ForgeweaveItems.ARMOR_BOOTS));
+
+    /**
+     * Whether {@code stack} is something the station's head slot works <em>on</em> rather than
+     * builds <em>from</em> -- an assembled tool or armor piece (issue #678): the repair/modify path
+     * of {@link #resolve} and every menu/screen check that used to read {@code instanceof ToolItem}.
+     */
+    public static boolean isAssembled(ItemStack stack) {
+        return stack.getItem() instanceof ToolItem || stack.getItem() instanceof ArmorPieceItem;
+    }
 
     /**
      * The "large tool" classification (docs/SCOPE.md M3 issue #152): tools that can only be assembled
@@ -375,7 +391,7 @@ public final class ToolAssemblyRecipes {
      */
     static Optional<Result> resolve(HolderLookup.Provider registries, ItemStack headStack, List<ItemStack> freeSlots,
             boolean forge) {
-        if (!(headStack.getItem() instanceof ToolItem)) {
+        if (!isAssembled(headStack)) {
             List<ItemStack> inputs = new ArrayList<>(freeSlots.size() + 1);
             inputs.add(headStack);
             inputs.addAll(freeSlots);
@@ -798,10 +814,13 @@ public final class ToolAssemblyRecipes {
             materials.add(material.get());
         }
 
+        if (entry.constants().category() == ToolConstants.Category.ARMOR) {
+            return Optional.of(assembleArmor(entry, materialIds, materials));
+        }
         List<Material> heads = headMaterials(entry, materials);
         ToolStats.Stats stats = statsOf(entry, materials, heads);
 
-        ToolItem tool = entry.tool().get();
+        ToolItem tool = (ToolItem) entry.tool().get();
         ItemStack result = new ItemStack(tool);
         result.set(ForgeweaveDataComponents.TOOL_MATERIALS.get(),
                 ToolMaterials.of(entry.constants().parts(), materialIds));
@@ -842,6 +861,36 @@ public final class ToolAssemblyRecipes {
      * cleaver, battleaxe, excavator, lumber axe, mattock and vein hammer -- and a bow's two limbs
      * (M3.5 #394: {@code ShortBow#buildTagData} hands the limbs' HEAD block to {@code data.head}).
      */
+    /**
+     * The armor half of {@link #assemble} (issue #678, SCOPE.md D14/D19/D20): the same material,
+     * trait and enchantability components a tool gets, {@link ArmorStats} in place of
+     * {@code TOOL_STATS}, and {@code max_damage} from the plating's own durability. No
+     * {@code minecraft:tool} component -- armor mines nothing.
+     */
+    private static ItemStack assembleArmor(Entry entry, List<ResourceLocation> materialIds, List<Material> materials) {
+        ArmorStats stats = ArmorStats.of(entry.constants(), materials)
+                .orElseThrow(() -> new IllegalStateException(entry.constants().id() + " has no plating slot"));
+        ItemStack result = new ItemStack(entry.tool().get());
+        result.set(ForgeweaveDataComponents.TOOL_MATERIALS.get(),
+                ToolMaterials.of(entry.constants().parts(), materialIds));
+        result.set(ForgeweaveDataComponents.ARMOR_STATS.get(), stats);
+        result.set(ForgeweaveDataComponents.ENCHANTABILITY.get(), platingMaterial(entry, materials).enchantability());
+        result.set(ForgeweaveDataComponents.TRAITS.get(), resolveTraits(entry, materials));
+        result.set(DataComponents.MAX_DAMAGE, stats.durability());
+        result.set(DataComponents.DAMAGE, 0);
+        return result;
+    }
+
+    private static Material platingMaterial(Entry entry, List<Material> materials) {
+        List<ToolConstants.PartSlot> slots = entry.constants().parts();
+        for (int i = 0; i < slots.size(); i++) {
+            if (slots.get(i).role() == ToolConstants.Role.PLATING) {
+                return materials.get(i);
+            }
+        }
+        throw new IllegalStateException(entry.constants().id() + " has no plating slot");
+    }
+
     private static List<Material> headMaterials(Entry entry, List<Material> materials) {
         List<ToolConstants.PartSlot> slots = entry.constants().parts();
         List<Material> heads = new ArrayList<>();
@@ -950,6 +999,8 @@ public final class ToolAssemblyRecipes {
             case ARROW_HEAD -> List.of(PartItem.Kind.HEAD, PartItem.Kind.PROJECTILE);
             case SHAFT -> List.of(PartItem.Kind.SHAFT);
             case FLETCHING -> List.of(PartItem.Kind.FLETCHING);
+            case PLATING -> List.of(PartItem.Kind.PLATING);
+            case MAILLE -> List.of(PartItem.Kind.MAILLE);
         };
     }
 
@@ -1131,7 +1182,12 @@ public final class ToolAssemblyRecipes {
                 continue;
             }
             Optional<Material> material = lookupMaterial(registries, parts.get(part.slot()));
-            Optional<Integer> headDurability = material.flatMap(Material::head).map(Material.Head::durability);
+            // Issue #678 (D19): an armor piece repairs off its plating's own per-piece durability,
+            // the 1.20 clone's IRepairableMaterialStats#durability on PlatingMaterialStats.
+            Optional<Integer> headDurability = entry.get().constants().category() == ToolConstants.Category.ARMOR
+                    ? ArmorStats.of(entry.get().constants(), material.map(List::of).orElse(List.of()))
+                            .map(ArmorStats::durability)
+                    : material.flatMap(Material::head).map(Material.Head::durability);
             if (headDurability.isEmpty()) {
                 continue;
             }

@@ -10,6 +10,7 @@ import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.food.FoodProperties;
 import net.minecraft.world.item.BlockItem;
+import net.minecraft.world.item.ArmorItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.Block;
 
@@ -380,6 +381,27 @@ public final class ForgeweaveItems {
     public static final DeferredItem<MaterialArrowItem> TOOL_ARROW = ITEMS.registerItem("arrow",
             properties -> new MaterialArrowItem(properties, ToolConstants.ARROW),
             new Item.Properties().stacksTo(1));
+
+    // M4-2 (issue #677) owns these five part registrations; landed here minimally so #678's armor
+    // assembly compiles and tests -- whichever PR merges second keeps #677's block.
+    public static final DeferredItem<PartItem> PART_PLATING_HELMET = part("plating_helmet", PartItem.Kind.PLATING);
+    public static final DeferredItem<PartItem> PART_PLATING_CHESTPLATE = part("plating_chestplate", PartItem.Kind.PLATING);
+    public static final DeferredItem<PartItem> PART_PLATING_LEGGINGS = part("plating_leggings", PartItem.Kind.PLATING);
+    public static final DeferredItem<PartItem> PART_PLATING_BOOTS = part("plating_boots", PartItem.Kind.PLATING);
+    public static final DeferredItem<PartItem> PART_MAILLE = part("maille", PartItem.Kind.MAILLE);
+
+    // M4 plate armor (issue #678, SCOPE.md D3): the four pieces, assembled from plating + maille at
+    // either station (ToolConstants#ARMOR, ToolAssemblyRecipes#ENTRIES). Vanilla ArmorItems so the
+    // slot, equip and armor-damage paths are vanilla's -- see ArmorPieceItem.
+    public static final DeferredItem<ArmorPieceItem> ARMOR_HELMET = armor("helmet", ArmorItem.Type.HELMET);
+    public static final DeferredItem<ArmorPieceItem> ARMOR_CHESTPLATE = armor("chestplate", ArmorItem.Type.CHESTPLATE);
+    public static final DeferredItem<ArmorPieceItem> ARMOR_LEGGINGS = armor("leggings", ArmorItem.Type.LEGGINGS);
+    public static final DeferredItem<ArmorPieceItem> ARMOR_BOOTS = armor("boots", ArmorItem.Type.BOOTS);
+
+    private static DeferredItem<ArmorPieceItem> armor(String name, ArmorItem.Type type) {
+        return ITEMS.registerItem(name, properties -> new ArmorPieceItem(type, properties),
+                new Item.Properties().stacksTo(1));
+    }
 
     /** A sword-family weapon: upstream {@code SwordCore}'s effective set -- see the block above. */
     private static DeferredItem<ToolItem> sword(String name, ToolConstants.Entry constants,

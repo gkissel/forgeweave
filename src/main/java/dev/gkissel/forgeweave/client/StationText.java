@@ -28,6 +28,7 @@ import dev.gkissel.forgeweave.material.MaterialDisplay;
 import dev.gkissel.forgeweave.modifier.ForgeweaveModifiers;
 import dev.gkissel.forgeweave.modifier.ModifierApplication;
 import dev.gkissel.forgeweave.modifier.ModifierEntry;
+import dev.gkissel.forgeweave.tool.ArmorStats;
 import dev.gkissel.forgeweave.tool.LauncherStats;
 import dev.gkissel.forgeweave.tool.ToolMaterials;
 import dev.gkissel.forgeweave.tool.ToolStats;
@@ -77,6 +78,9 @@ public final class StationText {
     /** Upstream {@code FletchingMaterialStats#COLOR_Accuracy} (205, 170, 205). */
     public static final TextColor ACCURACY_COLOR = TextColor.fromRgb(0xCDAACD);
 
+    /** The 1.20 clone's {@code ToolStats#ARMOR}/{@code ARMOR_TOUGHNESS}/{@code KNOCKBACK_RESISTANCE} colour, {@code 0x8547CC} (issue #678). */
+    public static final TextColor ARMOR_COLOR = TextColor.fromRgb(0x8547CC);
+
     /** Trailing-zero-free numbers, so 1.0 reads "1" and 1.25 reads "1.25" (upstream's {@code Util.df}). */
     private static final DecimalFormat FORMAT =
             new DecimalFormat("#.##", DecimalFormatSymbols.getInstance(Locale.ROOT));
@@ -96,6 +100,9 @@ public final class StationText {
      * it on {@code hasCategory(Category.HARVEST)}, which a launcher never has.
      */
     public static List<Component> toolStats(ItemStack tool) {
+        if (tool.get(ForgeweaveDataComponents.ARMOR_STATS.get()) != null) {
+            return armorStats(tool);
+        }
         ToolStats.Stats stats = ForgeweaveModifiers.effectiveStats(tool);
         if (stats == null) {
             return List.of();
@@ -112,6 +119,24 @@ public final class StationText {
         }
         lines.add(stat("attack_damage", stats.attackDamage(), ATTACK_COLOR));
         return List.copyOf(lines);
+    }
+
+    /**
+     * An assembled armor piece's four stats (issue #678, SCOPE.md D14), the 1.20 clone's
+     * {@code PlatingMaterialStats#getLocalizedInfo} order: durability, armor, toughness, knockback
+     * resistance -- the last shown x10 as upstream does ("as vanilla multiplies toughness by 10
+     * for display"). Shared by the station panel and the piece's own tooltip.
+     */
+    public static List<Component> armorStats(ItemStack piece) {
+        ArmorStats stats = piece.get(ForgeweaveDataComponents.ARMOR_STATS.get());
+        if (stats == null) {
+            return List.of();
+        }
+        return List.of(
+                durabilityStat(piece.getMaxDamage() - piece.getDamageValue(), piece.getMaxDamage()),
+                stat("armor", stats.armor(), ARMOR_COLOR),
+                stat("toughness", stats.toughness(), ARMOR_COLOR),
+                stat("knockback_resistance", stats.knockbackResistance() * 10, ARMOR_COLOR));
     }
 
     /**

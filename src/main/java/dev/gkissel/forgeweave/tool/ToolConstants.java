@@ -70,7 +70,9 @@ public final class ToolConstants {
     public enum Category {
         HARVEST,
         MELEE,
-        RANGED
+        RANGED,
+        /** M4 armor (issue #678, SCOPE.md D13): the four plate pieces, gated by the {@code armor} config key. */
+        ARMOR
     }
 
     /**
@@ -122,6 +124,15 @@ public final class ToolConstants {
          * produced plus {@code bonusAmmo x DURABILITY_PER_AMMO} flat ({@code ProjectileNBT#shafts}).
          */
         SHAFT,
+        /**
+         * Issue #678 (M4-3): an armor piece's plating, the 1.20 clone's {@code plating_<piece>}
+         * stat type -- the slot that carries the piece's whole stat block ({@link Material.Plating},
+         * read per piece by {@link ArmorStats#of}); {@link #compute} never sees it because armor has
+         * no {@link ToolStats.Stats} at all (SCOPE.md D14: {@code TOOL_STATS} untouched).
+         */
+        PLATING,
+        /** Issue #678: the maille, statless -- traits and the inner texture layer only (SCOPE.md D9). */
+        MAILLE,
         /**
          * Issue #653: the arrow's fletching, upstream's {@code PartMaterialType.fletching} -- the
          * FLETCHING stat block ({@code FletchingMaterialStats}): another durability multiplier
@@ -267,7 +278,7 @@ public final class ToolConstants {
             if (repairModifiers.isEmpty()) {
                 for (int i = 0; i < parts.size(); i++) {
                     Role role = parts.get(i).role();
-                    if (role == Role.HEAD || role == Role.LIMB || role == Role.ARROW_HEAD) {
+                    if (role == Role.HEAD || role == Role.LIMB || role == Role.ARROW_HEAD || role == Role.PLATING) {
                         return List.of(new RepairPart(i, 1.0f));
                     }
                 }
@@ -574,6 +585,28 @@ public final class ToolConstants {
                     new PartSlot(Role.FLETCHING, "fletching")),
             1.0f, 1.0f, 1.0f, 2.0f, 1.0f, 1.0f, false, false);
 
+    /**
+     * The four plate armor pieces (issue #678, M4-3; SCOPE.md D3/D9/D13): plating + maille,
+     * positional, the 1.20 clone's {@code ToolDefinitionDataProvider} plate armor rows
+     * ({@code plating_<piece>} then {@code maille}). Every {@code ToolNBT}-shaped constant is the
+     * identity value: an armor piece's stats are {@link ArmorStats}, read straight off the plating
+     * material's per-piece block, never {@link #compute}. Repair (D19) defaults to the plating slot
+     * ({@link Entry#repairSlots()}); the maille repairs nothing.
+     */
+    public static final Entry HELMET = armor("helmet");
+    public static final Entry CHESTPLATE = armor("chestplate");
+    public static final Entry LEGGINGS = armor("leggings");
+    public static final Entry BOOTS = armor("boots");
+
+    /** The four pieces in vanilla's slot order. */
+    public static final List<Entry> ARMOR = List.of(HELMET, CHESTPLATE, LEGGINGS, BOOTS);
+
+    private static Entry armor(String piece) {
+        return new Entry(piece, Category.ARMOR,
+                List.of(new PartSlot(Role.PLATING, "plating_" + piece), new PartSlot(Role.MAILLE, "maille")),
+                1.0f, 1.0f, 1.0f, 0.0f, 1.0f, 1.0f, false, false);
+    }
+
     /** All 18 M3 tools, in docs/SCOPE.md content-manifest order (M3.5's bows are not M3 roster). */
     public static final List<Entry> ALL = List.of(
             BROADSWORD, LONGSWORD, RAPIER, BATTLESIGN, FRYING_PAN, MATTOCK, KAMA, DAGGER,
@@ -677,6 +710,9 @@ public final class ToolConstants {
                             .orElseThrow(() -> ToolStats.noStats("fletching")).modifier();
                     fletchingCount++;
                 }
+                // Issue #678: armor never reaches compute (ToolAssemblyRecipes#assemble branches on
+                // Category.ARMOR first); listed so the switch stays total.
+                case PLATING, MAILLE -> throw new IllegalArgumentException(entry.id() + " is armor, not a tool");
                 // Issue #448: a shuriken blade is both a head and an extra part -- upstream
                 // Shuriken#buildTagData feeds every blade's HEAD block to data.head(...) and its
                 // EXTRA block to data.extra(...), so the slot lands in both averages.

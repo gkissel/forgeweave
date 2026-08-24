@@ -17,6 +17,7 @@ import net.neoforged.neoforge.registries.DeferredRegister;
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.combat.DamageRamp;
 import dev.gkissel.forgeweave.modifier.ModifierEntry;
+import dev.gkissel.forgeweave.tool.ArmorStats;
 import dev.gkissel.forgeweave.tool.LauncherStats;
 import dev.gkissel.forgeweave.tool.ProjectileStats;
 import dev.gkissel.forgeweave.tool.ToolMaterials;
@@ -68,6 +69,14 @@ public final class ForgeweaveDataComponents {
      * (issue #653, parity audit T17), the fletching's flight accuracy averaged at assembly. Only
      * the material arrow carries it; fixture {@code m653_tool_arrow.snbt} pins the shape.
      */
+    /**
+     * An armor piece's stat block (issue #678, M4-3; SCOPE.md D14) -- the parallel to
+     * {@link #LAUNCHER_STATS}: armor never carries {@link #TOOL_STATS}, whose shape stays untouched.
+     */
+    public static final DeferredHolder<DataComponentType<?>, DataComponentType<ArmorStats>> ARMOR_STATS =
+            DATA_COMPONENTS.registerComponentType("armor_stats",
+                    builder -> builder.persistent(ArmorStats.CODEC).networkSynchronized(ArmorStats.STREAM_CODEC));
+
     public static final DeferredHolder<DataComponentType<?>, DataComponentType<ProjectileStats>> PROJECTILE_STATS =
             DATA_COMPONENTS.registerComponentType("projectile_stats",
                     builder -> builder.persistent(ProjectileStats.CODEC)
