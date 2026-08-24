@@ -14,6 +14,7 @@ import com.mojang.logging.LogUtils;
 import org.slf4j.Logger;
 
 import net.minecraft.client.CameraType;
+import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.Screenshot;
 import net.minecraft.client.gui.screens.AccessibilityOnboardingScreen;
@@ -29,6 +30,7 @@ import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.decoration.ItemFrame;
+import net.minecraft.world.entity.projectile.AbstractArrow;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.inventory.ContainerLevelAccess;
 import net.minecraft.server.level.ServerPlayer;
@@ -385,6 +387,7 @@ public final class ScreenshotHarness {
         PLACE_PART_TINT_SCENE, SETTLE_PART_TINT_SCENE,
         HOLD_WEAPON, SETTLE_WEAPON, SETTLE_WEAPON_FIRST_PERSON,
         HOLD_BOW_POSE, SETTLE_BOW_POSE, SETTLE_BOW_POSE_THIRD_PERSON,
+        FIRE_BOW_SETUP, FIRE_BOW_DRAW, FIRE_BOW_CHECK,
         OPEN_SCREEN, SETTLE_SCREEN, OPEN_BOOK, SETTLE_BOOK, DONE
     }
 
@@ -468,6 +471,9 @@ public final class ScreenshotHarness {
             case HOLD_BOW_POSE -> holdBowPose(mc);
             case SETTLE_BOW_POSE -> settleBowPose(mc);
             case SETTLE_BOW_POSE_THIRD_PERSON -> settleBowPoseThirdPerson(mc);
+            case FIRE_BOW_SETUP -> fireBowSetup(mc);
+            case FIRE_BOW_DRAW -> fireBowDraw(mc);
+            case FIRE_BOW_CHECK -> fireBowCheck(mc);
             case OPEN_SCREEN -> openScreen(mc);
             case SETTLE_SCREEN -> settleScreen(mc);
             case OPEN_BOOK -> openBook(mc);
@@ -1149,7 +1155,7 @@ public final class ScreenshotHarness {
         // poses; see currentWeaponFileName.
         if (weaponIndex > WEAPONS.size() + 1) {
             mc.options.setCameraType(CameraType.FIRST_PERSON);
-            advance(Stage.HOLD_BOW_POSE);
+            advance(Stage.FIRE_BOW_SETUP);
             return;
         }
         ToolItem weapon = currentWeapon();
@@ -1565,6 +1571,100 @@ public final class ScreenshotHarness {
     private static void advance(Stage next) {
         stage = next;
         stageTicks = 0;
+    }
+
+    // ---------------------------------------------------------------- issue #670: the real client use loop
+
+    /** The launchers issue #670 reported stuck; each is drawn and released through the real client path. */
+    private static final List<Supplier<? extends BowItem>> FIRE_BOWS = List.of(
+            ForgeweaveItems.TOOL_SHORTBOW, ForgeweaveItems.TOOL_LONGBOW, ForgeweaveItems.TOOL_CROSSBOW);
+    /** Long enough for every one of {@link #FIRE_BOWS} at iron/wood stats (crossbow: 0.5 x 100 / 45 > 1). */
+    private static final int FIRE_BOW_DRAW_TICKS = 100;
+    private static int fireBowIndex;
+
+    /**
+     * Survival, a vanilla arrow in the main inventory, the assembled bow in hand -- the playtest
+     * setup of issue #670, staged on the server exactly as {@link #holdBowPose} stages the poses.
+     */
+    private static void fireBowSetup(Minecraft mc) {
+        if (stageTicks < SCREEN_GAP_TICKS) {
+            return;
+        }
+        if (fireBowIndex >= FIRE_BOWS.size()) {
+            var server = mc.getSingleplayerServer();
+            server.execute(() -> server.getPlayerList().getPlayers().get(0).setGameMode(GameType.CREATIVE));
+            advance(Stage.HOLD_BOW_POSE);
+            return;
+        }
+        BowItem bow = FIRE_BOWS.get(fireBowIndex).get();
+        var server = mc.getSingleplayerServer();
+        LOGGER.info("{}#670 fire check: staging {}", LOG_PREFIX, BuiltInRegistries.ITEM.getKey(bow));
+        server.execute(() -> {
+            ServerPlayer serverPlayer = server.getPlayerList().getPlayers().get(0);
+            serverPlayer.setGameMode(GameType.SURVIVAL);
+            serverPlayer.setItemInHand(InteractionHand.MAIN_HAND, assembleForDisplay(serverPlayer, bow));
+            serverPlayer.setItemInHand(InteractionHand.OFF_HAND, ItemStack.EMPTY);
+            serverPlayer.getInventory().setItem(9, new ItemStack(Items.ARROW, 16));
+            BlockPos stand = origin.offset(0, 0, -WEAPON_SCENE_DISTANCE);
+            serverPlayer.teleportTo(stand.getX() + 0.5, stand.getY(), stand.getZ() + 0.5);
+            serverPlayer.setYRot(180.0F);
+            serverPlayer.setXRot(-20.0F);
+        });
+        advance(Stage.FIRE_BOW_DRAW);
+    }
+
+    /**
+     * The client's own use loop, what {@code Minecraft#startUseItem} and {@code #handleKeybinds} call
+     * on a right-click press and release: {@code MultiPlayerGameMode#useItem} (sends the use packet
+     * and predicts locally) and {@code #releaseUsingItem} (sends {@code RELEASE_USE_ITEM}).
+     */
+    private static void fireBowDraw(Minecraft mc) {
+        if (mc.player == null) {
+            return;
+        }
+        boolean crossbow = FIRE_BOWS.get(fireBowIndex).get() instanceof CrossbowItem;
+        // The use key must read as held for the whole draw: Minecraft#handleKeybinds releases the
+        // use the first tick it sees isUsingItem() with the key up, so a bare useItem() call is a
+        // 0-tick draw (what this stage's first version measured).
+        if (stageTicks == SCREEN_GAP_TICKS) {
+            KeyMapping.set(mc.options.keyUse.getKey(), true);
+            var result = mc.gameMode.useItem(mc.player, InteractionHand.MAIN_HAND);
+            LOGGER.info("{}#670 fire check: client useItem -> {}, client using={}", LOG_PREFIX, result,
+                    mc.player.isUsingItem());
+        } else if (stageTicks == SCREEN_GAP_TICKS + FIRE_BOW_DRAW_TICKS) {
+            LOGGER.info("{}#670 fire check: before release client using={} ticksUsing={} pull={}", LOG_PREFIX,
+                    mc.player.isUsingItem(), mc.player.getTicksUsingItem(),
+                    ForgeweaveItemProperties.pull(mc.player.getMainHandItem(), mc.player));
+            KeyMapping.set(mc.options.keyUse.getKey(), false); // handleKeybinds sends RELEASE_USE_ITEM
+        } else if (crossbow && stageTicks == SCREEN_GAP_TICKS + FIRE_BOW_DRAW_TICKS + 10) {
+            var result = mc.gameMode.useItem(mc.player, InteractionHand.MAIN_HAND);
+            LOGGER.info("{}#670 fire check: loaded crossbow useItem -> {}", LOG_PREFIX, result);
+        } else if (stageTicks == SCREEN_GAP_TICKS + FIRE_BOW_DRAW_TICKS + 20) {
+            advance(Stage.FIRE_BOW_CHECK);
+        }
+    }
+
+    /** What actually happened: arrows in the world, ammo spent, and whether either side still thinks it is drawing. */
+    private static void fireBowCheck(Minecraft mc) {
+        if (stageTicks < SCREEN_SETTLE_TICKS || mc.player == null) {
+            return;
+        }
+        boolean clientUsing = mc.player.isUsingItem();
+        String name = BuiltInRegistries.ITEM.getKey(FIRE_BOWS.get(fireBowIndex).get()).toString();
+        var server = mc.getSingleplayerServer();
+        server.execute(() -> {
+            ServerPlayer serverPlayer = server.getPlayerList().getPlayers().get(0);
+            List<AbstractArrow> arrows = serverPlayer.serverLevel().getEntitiesOfClass(AbstractArrow.class,
+                    serverPlayer.getBoundingBox().inflate(64.0));
+            int ammo = serverPlayer.getInventory().countItem(Items.ARROW);
+            String verdict = arrows.size() == 1 && !clientUsing && !serverPlayer.isUsingItem() ? "OK" : "FAILED";
+            LOGGER.info("{}#670 fire check {}: {} -> arrows={} ammoLeft={} serverUsing={} clientUsing={} held={}",
+                    LOG_PREFIX, verdict, name, arrows.size(), ammo, serverPlayer.isUsingItem(), clientUsing,
+                    serverPlayer.getMainHandItem());
+            arrows.forEach(AbstractArrow::discard);
+        });
+        fireBowIndex++;
+        advance(Stage.FIRE_BOW_SETUP);
     }
 
     /**
