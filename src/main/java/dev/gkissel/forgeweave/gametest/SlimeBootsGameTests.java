@@ -1,11 +1,14 @@
 package dev.gkissel.forgeweave.gametest;
 
+import net.minecraft.core.BlockPos;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.GameType;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.phys.Vec3;
 
 import net.neoforged.neoforge.event.tick.PlayerTickEvent;
 import net.neoforged.neoforge.gametest.GameTestHolder;
@@ -32,6 +35,9 @@ public class SlimeBootsGameTests {
 
     /** Well past vanilla's three-block free fall, so a barefoot control takes real damage. */
     private static final float LONG_FALL = 10.0F;
+
+    /** A horizontal motion the carry would otherwise divide by the air drag. */
+    private static final Vec3 CARRY_PROBE = new Vec3(0.5, 0.0, 0.25);
 
     @GameTest(template = "empty")
     public static void aBootedLandingCostsNoFallDamage(GameTestHelper helper) {
@@ -112,6 +118,46 @@ public class SlimeBootsGameTests {
         helper.succeed();
     }
 
+    /**
+     * Issue #698: creative/spectator flight is not a slime bounce. The air-drag carry must not
+     * stack with {@code abilities.flying}, and the handler lets go so nothing resumes after landing.
+     */
+    @GameTest(template = "empty")
+    public static void aFlyingPlayerGetsNoMomentumCarry(GameTestHelper helper) {
+        Player player = bouncing(helper);
+        player.getAbilities().flying = true;
+        player.setDeltaMovement(CARRY_PROBE);
+
+        tick(player, 1);
+
+        helper.assertTrue(player.getDeltaMovement().equals(CARRY_PROBE),
+                "a flying player's motion must be left alone, got " + player.getDeltaMovement());
+        helper.assertFalse(SlimeBounceHandler.isBouncing(player), "flight must release the bounce handler");
+        helper.succeed();
+    }
+
+    /** Issue #698: the same for a player in a water column -- no carry, no lingering handler. */
+    @GameTest(template = "empty")
+    public static void aPlayerInWaterGetsNoMomentumCarry(GameTestHelper helper) {
+        Player player = bouncing(helper);
+        BlockPos column = new BlockPos(1, 1, 1);
+        helper.setBlock(column, Blocks.WATER);
+        helper.setBlock(column.above(), Blocks.WATER);
+        Vec3 inside = helper.absoluteVec(new Vec3(1.5, 1.0, 1.5));
+        player.moveTo(inside.x, inside.y, inside.z, 0.0F, 0.0F);
+        player.baseTick();
+        helper.assertTrue(player.isInWater(), "the probe player must actually be in water");
+        player.setOnGround(false);
+        player.setDeltaMovement(CARRY_PROBE);
+
+        tick(player, 1);
+
+        helper.assertTrue(player.getDeltaMovement().equals(CARRY_PROBE),
+                "a swimming player's motion must be left alone, got " + player.getDeltaMovement());
+        helper.assertFalse(SlimeBounceHandler.isBouncing(player), "water must release the bounce handler");
+        helper.succeed();
+    }
+
     /** Upstream returns an empty attribute multimap on purpose -- the boots grant no armour at all. */
     @GameTest(template = "empty")
     public static void theBootsGrantNoArmourAndAreWornOnTheFeet(GameTestHelper helper) {
@@ -129,6 +175,15 @@ public class SlimeBootsGameTests {
     private static Player booted(GameTestHelper helper) {
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         player.setItemSlot(EquipmentSlot.FEET, new ItemStack(ForgeweaveItems.SLIME_BOOTS.get()));
+        return player;
+    }
+
+    /** A booted, airborne player mid-bounce -- the handler attached and carrying. */
+    private static Player bouncing(GameTestHelper helper) {
+        Player player = booted(helper);
+        player.causeFallDamage(LONG_FALL, 1.0F, player.damageSources().fall());
+        helper.assertTrue(SlimeBounceHandler.isBouncing(player), "a bounced landing must register the bounce handler");
+        player.setOnGround(false);
         return player;
     }
 

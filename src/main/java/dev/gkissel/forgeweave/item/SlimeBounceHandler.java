@@ -91,7 +91,10 @@ public final class SlimeBounceHandler {
         if (handler == null) {
             return;
         }
-        if (player.isRemoved()) {
+        // #698: flight (creative/spectator) and water are not a slime arc. Upstream only ever checked
+        // onGround, so the air-drag division kept stacking onto creative flight speed and swimming;
+        // drop the carry outright rather than pausing it, so nothing resumes after landing/surfacing.
+        if (player.isRemoved() || player.getAbilities().flying || player.isInWater()) {
             BOUNCING.remove(player);
             return;
         }

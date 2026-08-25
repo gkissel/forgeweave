@@ -80,8 +80,8 @@ public class SlimeSlingGameTests {
         fling(helper, player, 90.0F, true, FULL_CHARGE_TICKS);
 
         Vec3 motion = player.getDeltaMovement();
-        helper.assertTrue(Math.abs(motion.y - SlimeSlingItem.MAX_FORCE / 3.0F) < EPSILON,
-                "looking down, a full charge throws the player up at a third of the force, got " + motion);
+        helper.assertTrue(Math.abs(motion.y - SlimeSlingItem.MAX_FORCE * SlimeSlingItem.VERTICAL_SCALE) < EPSILON,
+                "looking down, a full charge throws the player up at VERTICAL_SCALE of the force, got " + motion);
         helper.assertTrue(Math.abs(motion.x) < EPSILON && Math.abs(motion.z) < EPSILON,
                 "straight down means no horizontal push, got " + motion);
         helper.assertTrue(player.hurtMarked, "the velocity change must be flagged for the client resync");
@@ -97,7 +97,7 @@ public class SlimeSlingGameTests {
         fling(helper, player, 90.0F, true, 10);
 
         Vec3 motion = player.getDeltaMovement();
-        helper.assertTrue(Math.abs(motion.y - SlimeSlingItem.launchForce(10) / 3.0F) < EPSILON,
+        helper.assertTrue(Math.abs(motion.y - SlimeSlingItem.launchForce(10) * SlimeSlingItem.VERTICAL_SCALE) < EPSILON,
                 "half a second of charge is upstream's curve at 10 ticks, got " + motion);
         helper.succeed();
     }
