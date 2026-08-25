@@ -156,6 +156,46 @@ public class BowReleaseGameTests {
         });
     }
 
+    /**
+     * Issue #693: the bolt flies where the player <em>aims</em>, not where the server last saw their
+     * head. {@code ServerGamePacketListenerImpl#handleUseItem} writes the click packet's rotation into
+     * {@code yRot}/{@code xRot} ({@code Entity#absRotateTo}) but not {@code yHeadRot}, which
+     * {@code Player#serverAiStep} only re-syncs on the next tick -- so at fire time
+     * {@code LivingEntity#getViewVector} (head) is a tick stale while {@code getYRot} (aim) is current.
+     * Upstream fires from {@code rotationPitch}/{@code rotationYaw} ({@code BowCore#getProjectileEntity}
+     * via {@code EntityArrow#shoot(entity, pitch, yaw, ...)}), and so must this. Reproduced here by
+     * holding the head where the previous tick left it and turning the aim a quarter turn.
+     */
+    @GameTest(template = "empty", timeoutTicks = 300)
+    public static void crossbowFiresWhereThePlayerAimsNotWhereTheirHeadWas(GameTestHelper helper) {
+        ServerPlayer player = survivalPlayer(helper);
+        ItemStack bow = ToolAssembly.assembleAtForge(helper, player, new BlockPos(1, 1, 1),
+                ToolAssembly.entryFor(ForgeweaveItems.TOOL_CROSSBOW.get()), List.of("iron", "iron", "iron", "string"));
+        player.setItemInHand(InteractionHand.MAIN_HAND, bow);
+        List<AbstractArrow> arrows = captureArrows(helper, player);
+
+        click(helper, player, bow);
+        helper.runAfterDelay(DRAW_TICKS, () -> {
+            player.releaseUsingItem();
+            ItemStack held = player.getMainHandItem();
+            helper.assertTrue(CrossbowItem.isLoaded(held), "the crossbow must be loaded before the aimed shot");
+            // The state handleUseItem leaves: aim updated from the packet, head not yet re-synced.
+            player.absRotateTo(90.0F, 0.0F);
+            player.setYHeadRot(0.0F);
+            player.gameMode.useItem(player, helper.getLevel(), held, InteractionHand.MAIN_HAND);
+            helper.runAfterDelay(2, () -> {
+                helper.assertTrue(arrows.size() == 1, "one bolt, got " + arrows.size());
+                Vec3 flight = arrows.get(0).getDeltaMovement().normalize();
+                Vec3 aim = Vec3.directionFromRotation(0.0F, 90.0F);
+                helper.assertTrue(flight.dot(aim) > 0.95,
+                        "the bolt must follow the aim " + aim + ", got " + flight + " (the stale head points +Z)");
+                arrows.forEach(AbstractArrow::discard);
+                player.discard();
+                helper.succeed();
+            });
+        });
+    }
+
     /** Vanilla's creative rule ({@code BowCore#getCreativeProjectileStack}): no ammo needed, through the real path. */
     @GameTest(template = "empty", timeoutTicks = 300)
     public static void creativeShortbowFiresWithoutAmmoThroughTheRealUsePath(GameTestHelper helper) {
