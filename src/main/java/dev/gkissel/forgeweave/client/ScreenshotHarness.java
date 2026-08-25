@@ -3,6 +3,7 @@ package dev.gkissel.forgeweave.client;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
+import java.util.Set;
 import java.util.function.BiConsumer;
 import java.util.function.Supplier;
 
@@ -386,7 +387,8 @@ public final class ScreenshotHarness {
         PLACE_TABLE_SCENE, SETTLE_TABLE_SCENE, PLACE_SMELTERY_SCENE, SETTLE_SMELTERY_SCENE,
         PLACE_CASTING_SCENE, SETTLE_CASTING_SCENE, PLACE_MATERIAL_SCENE, SETTLE_MATERIAL_SCENE,
         PLACE_PART_TINT_SCENE, SETTLE_PART_TINT_SCENE,
-        HOLD_WEAPON, SETTLE_WEAPON, SETTLE_WEAPON_FIRST_PERSON, WEAR_ARMOR, SETTLE_ARMOR,
+        HOLD_WEAPON, SETTLE_WEAPON, SETTLE_WEAPON_FIRST_PERSON,
+        SETTLE_WEAPON_OFFHAND_FIRST_PERSON, SETTLE_WEAPON_OFFHAND, WEAR_ARMOR, SETTLE_ARMOR,
         SETTLE_ARMOR_FIRST_PERSON,
         HOLD_BOW_POSE, SETTLE_BOW_POSE, SETTLE_BOW_POSE_THIRD_PERSON,
         FIRE_BOW_SETUP, FIRE_BOW_DRAW, FIRE_BOW_CHECK,
@@ -476,6 +478,8 @@ public final class ScreenshotHarness {
             case HOLD_WEAPON -> holdWeapon(mc);
             case SETTLE_WEAPON -> settleWeapon(mc);
             case SETTLE_WEAPON_FIRST_PERSON -> settleWeaponFirstPerson(mc);
+            case SETTLE_WEAPON_OFFHAND_FIRST_PERSON -> settleWeaponOffhandFirstPerson(mc);
+            case SETTLE_WEAPON_OFFHAND -> settleWeaponOffhand(mc);
             case WEAR_ARMOR -> wearArmor(mc);
             case SETTLE_ARMOR -> settleArmor(mc);
             case SETTLE_ARMOR_FIRST_PERSON -> settleArmorFirstPerson(mc);
@@ -1221,6 +1225,59 @@ public final class ScreenshotHarness {
             }
         }
         capture(mc, "weapon_" + currentWeaponFileName());
+        if (weaponIndex < WEAPONS.size() && OFFHAND_WEAPONS.contains(WEAPONS.get(weaponIndex))) {
+            // #699: same stack, other hand. Moved rather than re-assembled so the off-hand frames
+            // show exactly the tool the main-hand frames did.
+            var server = mc.getSingleplayerServer();
+            mc.options.setCameraType(CameraType.FIRST_PERSON);
+            server.execute(() -> {
+                ServerPlayer serverPlayer = server.getPlayerList().getPlayers().get(0);
+                serverPlayer.setItemInHand(InteractionHand.OFF_HAND,
+                        serverPlayer.getItemInHand(InteractionHand.MAIN_HAND));
+                serverPlayer.setItemInHand(InteractionHand.MAIN_HAND, ItemStack.EMPTY);
+            });
+            advance(Stage.SETTLE_WEAPON_OFFHAND_FIRST_PERSON);
+            return;
+        }
+        weaponIndex++;
+        advance(Stage.HOLD_WEAPON);
+    }
+
+    /**
+     * Issue #699's tools, the five whose {@code display} block is upstream 1.12's own rather than
+     * {@code item/handheld}'s and therefore the five whose {@code *_lefthand} entries are transcribed
+     * by hand ({@code ForgeweaveItemModelProvider#TOOL_DISPLAY_OVERRIDES}). Each gets two extra
+     * frames with the tool in the off-hand, {@code weapon_<tool>_offhand_firstperson.png} and
+     * {@code weapon_<tool>_offhand.png} -- the beta.1 playtest caught all five posing wrong there and
+     * nowhere else.
+     */
+    static final Set<Supplier<? extends ToolItem>> OFFHAND_WEAPONS = Set.of(
+            ForgeweaveItems.TOOL_CLEAVER, ForgeweaveItems.TOOL_RAPIER, ForgeweaveItems.TOOL_BATTLESIGN,
+            ForgeweaveItems.TOOL_SHORTBOW, ForgeweaveItems.TOOL_LONGBOW);
+
+    private static void settleWeaponOffhandFirstPerson(Minecraft mc) {
+        if (stageTicks < SCREEN_SETTLE_TICKS) {
+            return;
+        }
+        if (mc.player != null && !mc.player.getOffhandItem().is(currentWeapon())) {
+            LOGGER.error("{}#699 scene check FAILED: client sees {} in off-hand, expected {}",
+                    LOG_PREFIX, mc.player.getOffhandItem(), currentWeaponFileName());
+        }
+        capture(mc, "weapon_" + currentWeaponFileName() + "_offhand_firstperson");
+        // Front rather than back: the off-hand pose is a mirror, and a mirror read edge-on from
+        // behind is the same sliver its main-hand sibling is (see settleWeaponFirstPerson).
+        mc.options.setCameraType(CameraType.THIRD_PERSON_FRONT);
+        advance(Stage.SETTLE_WEAPON_OFFHAND);
+    }
+
+    private static void settleWeaponOffhand(Minecraft mc) {
+        if (stageTicks < SCREEN_SETTLE_TICKS) {
+            return;
+        }
+        capture(mc, "weapon_" + currentWeaponFileName() + "_offhand");
+        var server = mc.getSingleplayerServer();
+        server.execute(() -> server.getPlayerList().getPlayers().get(0)
+                .setItemInHand(InteractionHand.OFF_HAND, ItemStack.EMPTY));
         weaponIndex++;
         advance(Stage.HOLD_WEAPON);
     }
