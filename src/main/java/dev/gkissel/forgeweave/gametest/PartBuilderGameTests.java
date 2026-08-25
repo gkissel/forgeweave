@@ -7,6 +7,7 @@ import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.network.chat.contents.TranslatableContents;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.inventory.ClickType;
 import net.minecraft.world.inventory.ContainerLevelAccess;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -425,4 +426,41 @@ public class PartBuilderGameTests {
 
         helper.succeed();
     }
+
+    /**
+     * Issue #695 (beta.1 §8): shift-clicking the output bulk-crafts. Upstream 1.12 never wrote a
+     * bulk loop of its own -- vanilla {@code Container#slotClick(QUICK_MOVE)} keeps calling
+     * {@code transferStackInSlot} while the output slot refills, and {@code SlotCraftingCustom#onTake}
+     * -> {@code ContainerPartBuilder#onCrafting} -> {@code updateResult()} refills it synchronously.
+     * The Forgeweave output was only recomputed on the next {@code broadcastChanges} tick, so the
+     * vanilla loop saw an empty slot and stopped after one craft.
+     */
+    @GameTest(template = "empty")
+    public static void shiftClickingTheOutputCraftsUntilTheInputsRunOut(GameTestHelper helper) {
+        BlockPos pos = new BlockPos(1, 1, 1);
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        PartBuilderMenu menu = openMenu(helper, pos, player);
+
+        menu.getSlot(PartBuilderMenu.PATTERN_SLOT).set(new ItemStack(ForgeweaveItems.PATTERN_PICKAXE_HEAD.get()));
+        // 3 logs: 3 heads at 2 ingots each, 4 shards of change per craft (see logProducesHeadAndShardChange).
+        menu.getSlot(PartBuilderMenu.MATERIAL_SLOT).set(new ItemStack(Items.OAK_LOG, 3));
+        menu.broadcastChanges();
+
+        menu.clicked(PartBuilderMenu.OUTPUT_SLOT, 0, ClickType.QUICK_MOVE, player);
+
+        helper.assertTrue(menu.getSlot(PartBuilderMenu.MATERIAL_SLOT).getItem().isEmpty(),
+                "expected all 3 logs to be consumed, got " + menu.getSlot(PartBuilderMenu.MATERIAL_SLOT).getItem());
+        int heads = player.getInventory().items.stream()
+                .filter(stack -> stack.is(ForgeweaveItems.PART_PICKAXE_HEAD.get()))
+                .mapToInt(ItemStack::getCount).sum();
+        helper.assertTrue(heads == 3, "expected 3 pickaxe heads in the player inventory, got " + heads);
+        ItemStack change = menu.getSlot(PartBuilderMenu.CHANGE_SLOT).getItem();
+        helper.assertTrue(change.is(ForgeweaveItems.SHARD.get()) && change.getCount() == 12,
+                "expected 12 wood shards of change, got " + change);
+        helper.assertFalse(menu.getSlot(PartBuilderMenu.PATTERN_SLOT).getItem().isEmpty(),
+                "expected the pattern to remain (reusable)");
+
+        helper.succeed();
+    }
+
 }

@@ -325,6 +325,10 @@ public class PartBuilderMenu extends StationMenu {
             materialSlot2.remove(pendingMaterial2ItemsConsumed);
             materialSlot2.setChanged();
             depositChange();
+            // Upstream ContainerPartBuilder#onCrafting ends with updateResult(): refilling the output
+            // synchronously is what lets vanilla's QUICK_MOVE loop keep crafting until the inputs run
+            // out (issue #695). Waiting for the next broadcastChanges tick stopped it after one craft.
+            updateResult();
             super.onTake(player, stack);
         }
 
