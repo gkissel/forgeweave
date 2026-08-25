@@ -164,16 +164,22 @@ public class CraftingStationMenu extends StationMenu {
         int sideEnd = sideInventoryEnd();
         int playerInvEnd = sideEnd + 36;
 
-        if (index < CONTAINER_SLOTS) { // grid or output -> player inventory
-            if (!moveItemStackTo(stackInSlot, CONTAINER_SLOTS, playerInvEnd, true)) {
-                return ItemStack.EMPTY;
-            }
-        } else if (index < sideEnd) { // side inventory -> player inventory
-            if (!moveItemStackTo(stackInSlot, sideEnd, playerInvEnd, false)) {
-                return ItemStack.EMPTY;
-            }
-        } else if (!moveItemStackTo(stackInSlot, 0, GRID_SLOTS, false) // player inventory -> grid, else side inventory
-                && !moveItemStackTo(stackInSlot, CONTAINER_SLOTS, sideEnd, false)) {
+        // Destination order is upstream 1.12's ContainerMultiModule#transferStackInSlot (issue #722);
+        // each leg runs even after a partial move, and only a fully untouched stack is a no-op.
+        // Maintainer deviation (#722): upstream first tops up stacks the side chest already holds;
+        // here the player inventory always comes before the chest, even for a matching stack.
+        boolean moved;
+        if (index < CONTAINER_SLOTS) { // grid or output -> player inventory, then side chest
+            moved = moveItemStackTo(stackInSlot, sideEnd, playerInvEnd, true)
+                    | moveItemStackTo(stackInSlot, CONTAINER_SLOTS, sideEnd, false);
+        } else if (index < sideEnd) { // side inventory -> grid, then player inventory
+            moved = moveItemStackTo(stackInSlot, 0, GRID_SLOTS, false)
+                    | moveItemStackTo(stackInSlot, sideEnd, playerInvEnd, false);
+        } else { // player inventory -> grid, then side inventory
+            moved = moveItemStackTo(stackInSlot, 0, GRID_SLOTS, false)
+                    | moveItemStackTo(stackInSlot, CONTAINER_SLOTS, sideEnd, false);
+        }
+        if (!moved) {
             return ItemStack.EMPTY;
         }
 
