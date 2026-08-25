@@ -13,7 +13,6 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.EquipmentSlotGroup;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.level.Level;
@@ -52,18 +51,20 @@ import dev.gkissel.forgeweave.trait.ForgeweaveTraits;
  * ({@code #getAttributeModifiers}), durability damage clamps at Broken instead of destroying the
  * piece ({@code #damageItem}), and the anvil never repairs it ({@code #isValidRepairItem}).
  *
- * <h2>Worn render (issue #679, D18)</h2>
+ * <h2>Worn render (issue #679, D18; runtime tint #726)</h2>
  *
  * <p>The 1.20 clone's {@code ArmorModelProvider} plate model is two texture layers -- {@code
  * plating_} over {@code maille_}, each palette-baked per material by {@code
  * MaterialArmorTextureSupplier} -- drawn by its own {@code MultilayerArmorModel}. Vanilla's
  * {@code HumanoidArmorLayer} already draws one pass per {@link ArmorMaterial.Layer}, so
  * {@link #plateMaterial} declares exactly those two (maille first, plating on top: with the depth
- * test at {@code LEQUAL} the later pass wins where they overlap) and {@link #getArmorTexture} swaps
- * each pass's file for the per-material one {@code scripts/derive_armor_art.py} pre-tints from
- * {@code Material.color} -- the flat tint every tool layer gets (ADR-0002), baked at generation time
- * as D18 asks. No custom model class, no data-driven texture manager. The material's stats are dead
- * weight: defense, toughness, enchantability and repair are all overridden below.
+ * test at {@code LEQUAL} the later pass wins where they overlap), each pass reading the clone's gray
+ * base straight off the layer id. The colour is applied at render time: {@code
+ * ForgeweaveItemClientExtensions} answers {@code getArmorLayerTintColor} with the {@link
+ * #layerMaterial part's} {@code Material.color} -- the flat tint every tool layer gets (ADR-0002) --
+ * so a datapack material needs no PNG of its own. No custom model class, no data-driven texture
+ * manager, no generated per-material files. The material's stats are dead weight: defense,
+ * toughness, enchantability and repair are all overridden below.
  */
 public class ArmorPieceItem extends ArmorItem {
 
@@ -81,7 +82,7 @@ public class ArmorPieceItem extends ArmorItem {
      * because the armor-material registry event fires before the item one that first loads this
      * class, and a {@code DeferredRegister} entry added after its event is an error.
      */
-    static ArmorMaterial plateMaterial() {
+    public static ArmorMaterial plateMaterial() {
         return new ArmorMaterial(Map.of(), 0, SoundEvents.ARMOR_EQUIP_IRON, () -> Ingredient.EMPTY,
                 List.of(MAILLE_LAYER, PLATING_LAYER), 0.0F, 0.0F);
     }
@@ -91,24 +92,17 @@ public class ArmorPieceItem extends ArmorItem {
     }
 
     /**
-     * The worn pass's per-material file: {@code textures/models/armor/derived/<part>_<material>_layer_<N>.png},
-     * the plating pass off the stack's plating (head) material and the maille pass off its maille.
-     * A stack without materials (creative-tab dummy, corrupted save) keeps the gray base.
+     * The material a worn pass tints with: {@link #plateMaterial}'s layer 0 is the maille (part
+     * slot 1), layer 1 the plating (part slot 0, {@code ToolConstants#armor}). {@code null} for a
+     * stack without materials (creative-tab dummy, corrupted save), which keeps the gray base.
      */
     @Nullable
-    @Override
-    public ResourceLocation getArmorTexture(ItemStack stack, Entity entity, EquipmentSlot slot, ArmorMaterial.Layer layer,
-            boolean innerModel) {
+    public static ResourceLocation layerMaterial(ItemStack stack, int layerIdx) {
         ToolMaterials materials = stack.get(ForgeweaveDataComponents.TOOL_MATERIALS.get());
         if (materials == null || materials.parts().size() < 2) {
             return null;
         }
-        // ToolConstants#armor: part slot 0 is the plating, slot 1 the maille.
-        ResourceLocation material = materials.parts().get(PLATING_LAYER.equals(layer) ? 0 : 1);
-        String part = PLATING_LAYER.equals(layer) ? "plating" : "maille";
-        // ponytail: a datapack material with no generated file renders vanilla's missing texture,
-        // loudly; the upgrade path is a runtime getArmorLayerTintColor tint over the gray base.
-        return id("textures/models/armor/derived/" + part + "_" + material.getPath() + "_layer_" + (innerModel ? 2 : 1) + ".png");
+        return materials.parts().get(layerIdx == 0 ? 1 : 0);
     }
 
     /** The plating material prefixes the name, as a tool's head does ({@link ToolItem#getName}). */
