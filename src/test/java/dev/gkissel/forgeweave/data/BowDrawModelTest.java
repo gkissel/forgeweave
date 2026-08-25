@@ -39,6 +39,7 @@ class BowDrawModelTest {
     private static final String PULL_PREDICATE = "minecraft:pull";
     private static final String LOADED_PREDICATE = "forgeweave:loaded";
     private static final String BROKEN_PREDICATE = "forgeweave:broken";
+    private static final String MODERN_POSE_PREDICATE = "forgeweave:modern_pose";
 
     private static Path projectRoot() {
         Path dir = Path.of("").toAbsolutePath();
@@ -111,18 +112,31 @@ class BowDrawModelTest {
         }
     }
 
-    /** Ascending thresholds, and Broken last -- vanilla resolves overrides by "last one that matches". */
+    /**
+     * Ascending thresholds, and Broken last -- vanilla resolves overrides by "last one that matches".
+     * Checked per pose set (issue #723): the classic entries and the {@code modern_pose} entries are
+     * two independent ladders in the one {@code overrides} array.
+     */
     @Test
     void theBrokenOverrideComesAfterEveryDrawStage() throws IOException {
         for (ToolAssemblyRecipes.Entry entry : bows()) {
-            String tool = entry.constants().id();
-            JsonArray overrides = readJson(models().resolve(tool + ".json")).getAsJsonArray("overrides");
+            for (boolean modern : List.of(false, true)) {
+                assertPoseSetOrdered(entry.constants().id(), modern);
+            }
+        }
+    }
 
+    private static void assertPoseSetOrdered(String tool, boolean modern) throws IOException {
+        JsonArray overrides = readJson(models().resolve(tool + ".json")).getAsJsonArray("overrides");
+        {
             int lastDraw = -1;
             int broken = -1;
             float previousPull = -1.0f;
             for (int i = 0; i < overrides.size(); i++) {
                 JsonObject predicate = overrides.get(i).getAsJsonObject().getAsJsonObject("predicate");
+                if (predicate.has(MODERN_POSE_PREDICATE) != modern) {
+                    continue;
+                }
                 if (predicate.has(PULL_PREDICATE)) {
                     float pull = predicate.get(PULL_PREDICATE).getAsFloat();
                     assertTrue(pull > previousPull,
@@ -135,8 +149,71 @@ class BowDrawModelTest {
                     broken = i;
                 }
             }
-            assertTrue(broken > lastDraw,
-                    tool + "'s forgeweave:broken override must come last, or a Broken bow can render intact");
+            assertTrue(broken > lastDraw, tool + (modern ? " modern" : "")
+                    + "'s forgeweave:broken override must come last, or a Broken bow can render intact");
+        }
+    }
+
+    /**
+     * Issue #723: every bow also carries a second, {@code modern_pose}-gated ladder of the same
+     * states -- idle, each pull stage, loaded, broken -- each pointing at a {@code *_modern} sibling
+     * whose textures are the classic model's and whose {@code display} block is vanilla 1.21.1's own
+     * {@code item/bow.json} (both bows) or {@code item/crossbow.json} (crossbow), in every state.
+     * The classic models above stay upstream 1.12's, so the config's default is untouched.
+     */
+    @Test
+    void everyBowCarriesAModernPoseLadder() throws IOException {
+        for (ToolAssemblyRecipes.Entry entry : bows()) {
+            String tool = entry.constants().id();
+            float[] thresholds = ToolArt.drawThresholds(tool);
+            JsonArray overrides = readJson(models().resolve(tool + ".json")).getAsJsonArray("overrides");
+
+            List<String> states = new ArrayList<>(List.of(""));
+            for (int stage = 1; stage <= ToolArt.DRAW_STAGES; stage++) {
+                states.add("_pulling_" + stage);
+            }
+            if (ToolArt.hasLoadedState(tool)) {
+                states.add("_loaded");
+            }
+            states.add("_broken");
+
+            for (String state : states) {
+                JsonObject predicate = predicateOf(overrides, "forgeweave:item/" + tool + state + "_modern");
+                assertNotNull(predicate, tool + state + " has no modern_pose override");
+                assertEquals(1.0f, predicate.get(MODERN_POSE_PREDICATE).getAsFloat(), 0.0f);
+                if (state.startsWith("_pulling_")) {
+                    int stage = Integer.parseInt(state.substring("_pulling_".length()));
+                    assertEquals(1.0f, predicate.get(PULLING_PREDICATE).getAsFloat(), 0.0f);
+                    assertEquals(thresholds[stage - 1], predicate.get(PULL_PREDICATE).getAsFloat(), 0.0f);
+                } else if (state.equals("_loaded")) {
+                    assertEquals(1.0f, predicate.get(LOADED_PREDICATE).getAsFloat(), 0.0f);
+                } else if (state.equals("_broken")) {
+                    assertEquals(1.0f, predicate.get(BROKEN_PREDICATE).getAsFloat(), 0.0f);
+                }
+
+                JsonObject classic = readJson(models().resolve(tool + state + ".json"));
+                JsonObject modern = readJson(models().resolve(tool + state + "_modern.json"));
+                assertEquals(classic.get("textures"), modern.get("textures"),
+                        tool + state + "_modern must draw exactly the classic model's art");
+                assertEquals(classic.get("parent"), modern.get("parent"));
+                assertVanillaPose(tool, modern.getAsJsonObject("display"), tool + state + "_modern");
+            }
+        }
+    }
+
+    /** Vanilla 1.21.1's {@code item/bow.json} / {@code item/crossbow.json} display blocks, verbatim. */
+    private static void assertVanillaPose(String tool, JsonObject display, String model) {
+        assertNotNull(display, model + " has no display block");
+        if (ToolArt.hasLoadedState(tool)) {
+            assertTransform(display, "thirdperson_righthand", -90, 0, -60, 2, 0.1F, -3, 0.9F);
+            assertTransform(display, "thirdperson_lefthand", -90, 0, 30, 2, 0.1F, -3, 0.9F);
+            assertTransform(display, "firstperson_righthand", -90, 0, -55, 1.13F, 3.2F, 1.13F, 0.68F);
+            assertTransform(display, "firstperson_lefthand", -90, 0, 35, 1.13F, 3.2F, 1.13F, 0.68F);
+        } else {
+            assertTransform(display, "thirdperson_righthand", -80, 260, -40, -1, -2, 2.5F, 0.9F);
+            assertTransform(display, "thirdperson_lefthand", -80, -280, 40, -1, -2, 2.5F, 0.9F);
+            assertTransform(display, "firstperson_righthand", 0, -90, 25, 1.13F, 3.2F, 1.13F, 0.68F);
+            assertTransform(display, "firstperson_lefthand", 0, 90, -25, 1.13F, 3.2F, 1.13F, 0.68F);
         }
     }
 

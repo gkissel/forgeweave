@@ -11,6 +11,7 @@ import net.minecraft.SharedConstants;
 import net.minecraft.server.Bootstrap;
 import net.minecraft.world.item.ItemStack;
 
+import dev.gkissel.forgeweave.config.HeldBowPose;
 import dev.gkissel.forgeweave.item.CrossbowItem;
 import dev.gkissel.forgeweave.item.ForgeweaveDataComponents;
 import dev.gkissel.forgeweave.item.ForgeweaveItems;
@@ -80,5 +81,17 @@ class BowItemPropertiesTest {
         assertEquals(0.0f, ForgeweaveItemProperties.broken(shortbow), 0.0f);
         shortbow.set(ForgeweaveDataComponents.BROKEN.get(), true);
         assertEquals(1.0f, ForgeweaveItemProperties.broken(shortbow), 0.0f);
+    }
+
+    /**
+     * Issue #723: {@code forgeweave:modern_pose} is 1 only under the {@code modern} client setting,
+     * so the default ({@code classic}) never matches a {@code *_modern} override and the 1.12 poses
+     * stay exactly what they were.
+     */
+    @Test
+    void modernPoseFollowsTheClientSetting() {
+        assertEquals(0.0f, ForgeweaveItemProperties.modernPose(HeldBowPose.CLASSIC), 0.0f);
+        assertEquals(1.0f, ForgeweaveItemProperties.modernPose(HeldBowPose.MODERN), 0.0f);
+        assertEquals(HeldBowPose.CLASSIC, HeldBowPose.DEFAULT, "1.12 parity is the default");
     }
 }

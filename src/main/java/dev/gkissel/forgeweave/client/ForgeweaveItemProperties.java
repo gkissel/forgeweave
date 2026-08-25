@@ -14,6 +14,8 @@ import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
 
 import dev.gkissel.forgeweave.Forgeweave;
+import dev.gkissel.forgeweave.config.ForgeweaveClientConfig;
+import dev.gkissel.forgeweave.config.HeldBowPose;
 import dev.gkissel.forgeweave.item.BowItem;
 import dev.gkissel.forgeweave.item.CrossbowItem;
 import dev.gkissel.forgeweave.item.ToolItem;
@@ -68,6 +70,15 @@ public final class ForgeweaveItemProperties {
     private static final ResourceLocation LOADED =
             ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "loaded");
 
+    /**
+     * Issue #723: the held-pose switch. Every bow model carries a second, {@code modern_pose}-gated
+     * ladder of its states pointing at {@code *_modern} siblings ({@code
+     * ForgeweaveItemModelProvider}); this is what makes it fire. A model property rather than a
+     * baked-model swap because it needs no resource reload and no wrapping of the override tree.
+     */
+    private static final ResourceLocation MODERN_POSE =
+            ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "modern_pose");
+
     @SubscribeEvent
     static void registerItemProperties(FMLClientSetupEvent event) {
         // ItemProperties' map is not thread-safe; enqueueWork is the documented way onto the main thread.
@@ -78,6 +89,10 @@ public final class ForgeweaveItemProperties {
                 if (tool instanceof BowItem) {
                     ItemProperties.register(tool, PULLING, (stack, level, holder, seed) -> pulling(stack, holder));
                     ItemProperties.register(tool, PULL, (stack, level, holder, seed) -> pull(stack, holder));
+                    ItemProperties.register(tool, MODERN_POSE, (stack, level, holder, seed) -> modernPose(
+                            ForgeweaveClientConfig.SPEC.isLoaded()
+                                    ? ForgeweaveClientConfig.HELD_BOW_POSE.get()
+                                    : HeldBowPose.DEFAULT));
                 }
                 if (tool instanceof CrossbowItem) {
                     ItemProperties.register(tool, LOADED, (stack, level, holder, seed) -> loaded(stack));
@@ -121,6 +136,11 @@ public final class ForgeweaveItemProperties {
      */
     static float loaded(ItemStack stack) {
         return CrossbowItem.isLoaded(stack) ? 1.0F : 0.0F;
+    }
+
+    /** {@code forgeweave:modern_pose}: 1 under the {@code modern} client setting, 0 under {@code classic}. */
+    static float modernPose(HeldBowPose pose) {
+        return pose == HeldBowPose.MODERN ? 1.0F : 0.0F;
     }
 
     private ForgeweaveItemProperties() {}

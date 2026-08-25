@@ -60,6 +60,14 @@ public final class ForgeweaveClientConfig {
      */
     public static final ModConfigSpec.BooleanValue RENDER_TABLE_ITEMS;
 
+    /**
+     * Issue #723, Forgeweave's own (no upstream counterpart): which display block the three bows
+     * are held with. {@link HeldBowPose#CLASSIC} is upstream 1.12's, {@link HeldBowPose#MODERN}
+     * vanilla 1.21.1's; read once per frame by {@code ForgeweaveItemProperties#modernPose}, which
+     * is how a change applies without a resource reload.
+     */
+    public static final ModConfigSpec.EnumValue<HeldBowPose> HELD_BOW_POSE;
+
     static {
         ModConfigSpec.Builder builder = new ModConfigSpec.Builder();
 
@@ -82,6 +90,10 @@ public final class ForgeweaveClientConfig {
                 .comment("If true, the Crafting Station, Stencil Table, Part Builder and Tool Station draw whatever",
                         "is in their input slots lying on their top. Set to false to render these stations bare.")
                 .define("renderTableItems", true);
+        HELD_BOW_POSE = builder
+                .comment("How the shortbow, longbow and crossbow are held, in every draw state. CLASSIC is",
+                        "the original 1.12-era pose; MODERN is vanilla 1.21.1's own bow/crossbow pose.")
+                .defineEnum("heldBowPose", HeldBowPose.DEFAULT);
 
         SPEC = builder.build();
     }

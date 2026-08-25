@@ -97,6 +97,43 @@
       "predicate": {
         "forgeweave:broken": 1.0
       }
+    },
+    {
+      "model": "forgeweave:item/longbow_modern",
+      "predicate": {
+        "forgeweave:modern_pose": 1.0
+      }
+    },
+    {
+      "model": "forgeweave:item/longbow_pulling_1_modern",
+      "predicate": {
+        "forgeweave:modern_pose": 1.0,
+        "minecraft:pull": 0.0,
+        "minecraft:pulling": 1.0
+      }
+    },
+    {
+      "model": "forgeweave:item/longbow_pulling_2_modern",
+      "predicate": {
+        "forgeweave:modern_pose": 1.0,
+        "minecraft:pull": 0.65,
+        "minecraft:pulling": 1.0
+      }
+    },
+    {
+      "model": "forgeweave:item/longbow_pulling_3_modern",
+      "predicate": {
+        "forgeweave:modern_pose": 1.0,
+        "minecraft:pull": 0.9,
+        "minecraft:pulling": 1.0
+      }
+    },
+    {
+      "model": "forgeweave:item/longbow_broken_modern",
+      "predicate": {
+        "forgeweave:broken": 1.0,
+        "forgeweave:modern_pose": 1.0
+      }
     }
   ],
   "textures": {

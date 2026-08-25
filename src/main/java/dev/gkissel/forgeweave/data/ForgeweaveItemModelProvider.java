@@ -3,6 +3,7 @@ package dev.gkissel.forgeweave.data;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
+import java.util.function.IntFunction;
 import java.util.function.Supplier;
 
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -414,14 +415,18 @@ public class ForgeweaveItemModelProvider extends ItemModelProvider {
 
     private void toolModel(Supplier<? extends Item> item, String tool, List<String> layers, String parent) {
         ItemModelBuilder builder = toolLayerModel(
-                BuiltInRegistries.ITEM.getKey(item.get()).toString(), tool, layers, null, parent);
-        drawStageOverrides(builder, tool, layers);
-        String broken = ToolArt.brokenLayer(tool);
-        if (broken != null) {
-            // Last, so it wins: vanilla resolves overrides by "the last entry whose every predicate
-            // still matches", and a Broken bow must render broken whatever else is true of it.
-            builder.override().predicate(BROKEN_PREDICATE, 1)
-                    .model(toolLayerModel(tool + "_broken", tool, layers, broken, parent)).end();
+                BuiltInRegistries.ITEM.getKey(item.get()).toString(), tool, layers, null, parent,
+                classicPose(tool, 0));
+        stateOverrides(builder, tool, layers, parent, "", stage -> classicPose(tool, stage), false);
+
+        // Issue #723: the same ladder again, gated on forgeweave:modern_pose and pointing at *_modern
+        // siblings that differ only in their display block. Appended after the classic ladder, and
+        // led by the idle entry, so under the modern setting the last-match rule lands on this set.
+        Consumer<ItemModelBuilder> modern = MODERN_DISPLAY_OVERRIDES.get(tool);
+        if (modern != null) {
+            builder.override().predicate(MODERN_POSE_PREDICATE, 1)
+                    .model(toolLayerModel(tool + "_modern", tool, layers, null, parent, modern)).end();
+            stateOverrides(builder, tool, layers, parent, "_modern", stage -> modern, true);
         }
     }
 
@@ -430,46 +435,80 @@ public class ForgeweaveItemModelProvider extends ItemModelProvider {
      * block in vanilla's own format: three {@code {"pulling": 1, "pull": <threshold>}} entries in
      * ascending order, each pointing at a {@code <bow>_pulling_<stage>} model that is the bow's own
      * layer stack with the bent-limb and stretched-string art swapped in
-     * ({@link ToolArt#drawLayer}), plus the crossbow's fourth {@code {"loaded": 1}} entry.
+     * ({@link ToolArt#drawLayer}), plus the crossbow's fourth {@code {"loaded": 1}} entry, and then
+     * the Broken entry (issue #284) last so it wins: vanilla resolves overrides by "the last entry
+     * whose every predicate still matches", and a Broken bow must render broken whatever else is
+     * true of it.
      *
-     * <p>Upstream expresses the same thing as texture <em>patches</em> inside one model, which
+     * <p>Upstream expresses the draw states as texture <em>patches</em> inside one model, which
      * vanilla's format cannot do; whole sibling models are the same translation issue #284's Broken
      * swap already made, and they keep the layer count and order identical so
      * {@code ForgeweaveItemColors}' tintIndex-to-part mapping survives every swap.
      *
-     * <p>A no-op for every tool that is not a bow -- {@link ToolArt#drawThresholds} returns null.
+     * <p>The draw entries are a no-op for every tool that is not a bow -- {@link
+     * ToolArt#drawThresholds} returns null. {@code suffix} and {@code pose} are issue #723's seam:
+     * the modern ladder is this same walk with {@code _modern} names, vanilla's display block for
+     * every state, and {@code forgeweave:modern_pose} on every predicate.
      */
-    private void drawStageOverrides(ItemModelBuilder builder, String tool, List<String> layers) {
+    private void stateOverrides(ItemModelBuilder builder, String tool, List<String> layers, String parent,
+            String suffix, IntFunction<Consumer<ItemModelBuilder>> pose, boolean modern) {
         float[] thresholds = ToolArt.drawThresholds(tool);
-        if (thresholds == null) {
-            return;
+        if (thresholds != null) {
+            for (int stage = 1; stage <= ToolArt.DRAW_STAGES; stage++) {
+                override(builder, modern)
+                        .predicate(PULLING_PREDICATE, 1)
+                        .predicate(PULL_PREDICATE, thresholds[stage - 1])
+                        .model(drawStageModel(tool + "_pulling_" + stage + suffix, tool, layers, stage,
+                                pose.apply(stage)))
+                        .end();
+            }
+            if (ToolArt.hasLoadedState(tool)) {
+                override(builder, modern).predicate(LOADED_PREDICATE, 1)
+                        .model(drawStageModel(tool + "_loaded" + suffix, tool, layers, ToolArt.LOADED_STAGE,
+                                pose.apply(LOADED_POSE)))
+                        .end();
+            }
         }
-        for (int stage = 1; stage <= ToolArt.DRAW_STAGES; stage++) {
-            builder.override()
-                    .predicate(PULLING_PREDICATE, 1)
-                    .predicate(PULL_PREDICATE, thresholds[stage - 1])
-                    .model(drawStageModel(tool + "_pulling_" + stage, tool, layers, stage,
-                            DRAWING_DISPLAY_OVERRIDES.get(tool)))
-                    .end();
-        }
-        if (ToolArt.hasLoadedState(tool)) {
-            builder.override().predicate(LOADED_PREDICATE, 1)
-                    .model(drawStageModel(tool + "_loaded", tool, layers, ToolArt.LOADED_STAGE,
-                            LOADED_DISPLAY_OVERRIDES.get(tool)))
+        String broken = ToolArt.brokenLayer(tool);
+        if (broken != null) {
+            override(builder, modern).predicate(BROKEN_PREDICATE, 1)
+                    .model(toolLayerModel(tool + "_broken" + suffix, tool, layers, broken, parent, pose.apply(0)))
                     .end();
         }
     }
 
-    /** One draw state's model: {@link #toolLayerModel}'s layer stack at {@code stage}'s art. */
+    private static ItemModelBuilder.OverrideBuilder override(ItemModelBuilder builder, boolean modern) {
+        ItemModelBuilder.OverrideBuilder override = builder.override();
+        return modern ? override.predicate(MODERN_POSE_PREDICATE, 1) : override;
+    }
+
+    /** {@link #classicPose}'s stage index for the crossbow's loaded state -- distinct from every draw stage. */
+    private static final int LOADED_POSE = ToolArt.DRAW_STAGES + 1;
+
+    /**
+     * Upstream 1.12's display block for {@code tool} at {@code stage}: {@link #TOOL_DISPLAY_OVERRIDES}
+     * (0 = idle, and what the Broken model wears), with {@link #DRAWING_DISPLAY_OVERRIDES} layered on
+     * for the draw stages and {@link #LOADED_DISPLAY_OVERRIDES} for {@link #LOADED_POSE}.
+     */
+    private static Consumer<ItemModelBuilder> classicPose(String tool, int stage) {
+        Consumer<ItemModelBuilder> extra = stage == LOADED_POSE ? LOADED_DISPLAY_OVERRIDES.get(tool)
+                : stage > 0 ? DRAWING_DISPLAY_OVERRIDES.get(tool)
+                : null;
+        return builder -> {
+            applyDisplayOverrides(builder, TOOL_DISPLAY_OVERRIDES.get(tool));
+            applyDisplayOverrides(builder, extra);
+        };
+    }
+
+    /** One draw state's model: {@link #toolLayerModel}'s layer stack at {@code stage}'s art, under {@code display}. */
     private ItemModelBuilder drawStageModel(String name, String tool, List<String> layers, int stage,
-            Consumer<ItemModelBuilder> extraDisplay) {
+            Consumer<ItemModelBuilder> display) {
         ItemModelBuilder builder =
                 getBuilder(name).parent(new ModelFile.UncheckedModelFile(TOOL_MODEL_PARENT));
         for (int layer = 0; layer < layers.size(); layer++) {
             builder.texture("layer" + layer, modLoc(ToolArt.drawLayer(tool, layers.get(layer), stage)));
         }
-        applyDisplayOverrides(builder, TOOL_DISPLAY_OVERRIDES.get(tool));
-        applyDisplayOverrides(builder, extraDisplay);
+        applyDisplayOverrides(builder, display);
         return builder;
     }
 
@@ -484,10 +523,10 @@ public class ForgeweaveItemModelProvider extends ItemModelProvider {
      * _broken} art instead of its own (null for the intact model) -- see {@link ToolArt#brokenLayer}.
      * Both models carry the same layers in the same order, so {@code ForgeweaveItemColors#
      * toolMaterialTint}'s tintIndex-to-part mapping keeps working across the swap, and both get the
-     * tool's display transforms.
+     * tool's display transforms ({@code display}; a no-op consumer leaves the parent's set).
      */
     private ItemModelBuilder toolLayerModel(String name, String tool, List<String> layers, String brokenLayer,
-            String parent) {
+            String parent, Consumer<ItemModelBuilder> display) {
         ItemModelBuilder builder = getBuilder(name).parent(new ModelFile.UncheckedModelFile(parent));
         for (int layer = 0; layer < layers.size(); layer++) {
             String art = layers.get(layer);
@@ -495,7 +534,7 @@ public class ForgeweaveItemModelProvider extends ItemModelProvider {
                     ? modLoc(ToolArt.brokenLayerTexture(tool, art))
                     : toolLayer(tool, art));
         }
-        applyDisplayOverrides(builder, TOOL_DISPLAY_OVERRIDES.get(tool));
+        applyDisplayOverrides(builder, display);
         return builder;
     }
 
@@ -521,6 +560,10 @@ public class ForgeweaveItemModelProvider extends ItemModelProvider {
     private static final ResourceLocation PULL_PREDICATE = ResourceLocation.withDefaultNamespace("pull");
     private static final ResourceLocation LOADED_PREDICATE =
             ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "loaded");
+
+    /** Issue #723's held-pose switch, {@code ForgeweaveItemProperties#modernPose}'s other half. */
+    private static final ResourceLocation MODERN_POSE_PREDICATE =
+            ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "modern_pose");
 
     /**
      * The held-render transform set every tool inherits (issue #217). Vanilla's {@code item/handheld}
@@ -673,4 +716,40 @@ public class ForgeweaveItemModelProvider extends ItemModelProvider {
                     .transform(ItemDisplayContext.FIRST_PERSON_LEFT_HAND)
                     .rotation(-90, -5, 45).translation(0, 2, 0).scale(0.68F).end()
                     .end());
+
+    /**
+     * Issue #723's {@code modern} pose set: vanilla 1.21.1's own {@code item/bow.json} display block
+     * for the two bows and {@code item/crossbow.json}'s for the crossbow, verbatim on both hands.
+     * Vanilla holds every draw state under the one block (its {@code *_pulling_N} and
+     * {@code crossbow_arrow} models parent the idle model and add no display of their own), so
+     * unlike the classic set there is nothing per state here. Keyed by tool: a tool absent from
+     * this map gets no modern ladder at all.
+     */
+    private static final Map<String, Consumer<ItemModelBuilder>> MODERN_DISPLAY_OVERRIDES = Map.of(
+            "shortbow", ForgeweaveItemModelProvider::vanillaBowDisplay,
+            "longbow", ForgeweaveItemModelProvider::vanillaBowDisplay,
+            "crossbow", builder -> builder.transforms()
+                    .transform(ItemDisplayContext.THIRD_PERSON_RIGHT_HAND)
+                    .rotation(-90, 0, -60).translation(2, 0.1F, -3).scale(0.9F).end()
+                    .transform(ItemDisplayContext.THIRD_PERSON_LEFT_HAND)
+                    .rotation(-90, 0, 30).translation(2, 0.1F, -3).scale(0.9F).end()
+                    .transform(ItemDisplayContext.FIRST_PERSON_RIGHT_HAND)
+                    .rotation(-90, 0, -55).translation(1.13F, 3.2F, 1.13F).scale(0.68F).end()
+                    .transform(ItemDisplayContext.FIRST_PERSON_LEFT_HAND)
+                    .rotation(-90, 0, 35).translation(1.13F, 3.2F, 1.13F).scale(0.68F).end()
+                    .end());
+
+    /** Vanilla 1.21.1's {@code item/bow.json} display block. */
+    private static void vanillaBowDisplay(ItemModelBuilder builder) {
+        builder.transforms()
+                .transform(ItemDisplayContext.THIRD_PERSON_RIGHT_HAND)
+                .rotation(-80, 260, -40).translation(-1, -2, 2.5F).scale(0.9F).end()
+                .transform(ItemDisplayContext.THIRD_PERSON_LEFT_HAND)
+                .rotation(-80, -280, 40).translation(-1, -2, 2.5F).scale(0.9F).end()
+                .transform(ItemDisplayContext.FIRST_PERSON_RIGHT_HAND)
+                .rotation(0, -90, 25).translation(1.13F, 3.2F, 1.13F).scale(0.68F).end()
+                .transform(ItemDisplayContext.FIRST_PERSON_LEFT_HAND)
+                .rotation(0, 90, -25).translation(1.13F, 3.2F, 1.13F).scale(0.68F).end()
+                .end();
+    }
 }

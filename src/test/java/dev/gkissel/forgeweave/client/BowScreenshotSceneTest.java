@@ -128,6 +128,25 @@ class BowScreenshotSceneTest {
         assertEquals(ScreenshotHarness.DrawStep.TIMED_OUT, ScreenshotHarness.drawStep(500, true, 1, 2));
     }
 
+    /**
+     * Issue #723: the modern pass is every classic frame again plus each bow's undrawn pose from
+     * both cameras -- the classic undrawn frames come from the weapons scene, which runs under the
+     * default setting before the config flips.
+     */
+    @Test
+    void theModernPassAddsEachBowsIdlePoseInFrontOfEveryClassicFrame() {
+        List<ScreenshotHarness.BowPose> modern = ScreenshotHarness.MODERN_BOW_POSES;
+        List<String> idle = modern.stream()
+                .filter(pose -> pose.drawStage() == 0 && !pose.loaded())
+                .map(ScreenshotHarness.BowPose::fileName)
+                .toList();
+        assertEquals(List.of("bow_shortbow_idle", "bow_longbow_idle", "bow_crossbow_idle"), idle);
+        assertTrue(modern.stream().filter(pose -> pose.drawStage() == 0 && !pose.loaded())
+                .allMatch(ScreenshotHarness.BowPose::thirdPerson), "an idle pose is captured from both cameras");
+        assertEquals(ScreenshotHarness.BOW_POSES, modern.subList(idle.size(), modern.size()),
+                "after the idle frames, the modern pass is the classic list verbatim");
+    }
+
     /** File names are the frames a reviewer looks for; keep them derived from the item, not hand-typed. */
     @Test
     void poseFileNamesNameTheirBowAndState() {
