@@ -38,20 +38,34 @@ public class SmelteryFuelGameTests {
      * -- 50 mB drained per cycle, one cycle lasting 100 melt ticks (400 real ticks, {@link
      * SmelteryControllerBlockEntity#MELT_INTERVAL_TICKS}). An iron ore recipe (1872 melt-progress
      * needed, far more than one cycle covers) keeps the smeltery working across both checkpoints:
-     * still mid-cycle-one at tick 380 (~95 melt ticks), into cycle two by tick 500 (~125 melt ticks).
+     * still mid-cycle-one at melt tick 95, into cycle two by melt tick 125.
+     *
+     * <p>#715: the melt ticks are driven by calling {@link SmelteryControllerBlockEntity#meltTick()}
+     * directly (as {@link #aFinishOnlyTickConsumesNoFuel} does) rather than sampling the scheduler
+     * at a real-tick offset -- under CI load the scheduled tick lands a cycle late and the second
+     * sample read 50 instead of 100. The mB-per-cycle and melt-ticks-per-cycle numbers are what the
+     * clone pins; the real-tick cadence is {@code MELT_INTERVAL_TICKS}'s own business.
      */
-    @GameTest(template = "smeltery", timeoutTicks = 600)
+    @GameTest(template = "smeltery", timeoutTicks = 100)
     public static void lavaIsConsumedAtTheCloneRate(GameTestHelper helper) {
         SmelteryControllerBlockEntity core = lavaFuelledSmeltery(helper);
         helper.assertTrue(core.insertForMelting(new ItemStack(Items.IRON_ORE)).isEmpty(),
                 "expected the iron ore to go into the smeltery");
 
-        helper.runAfterDelay(380, () -> helper.assertValueEqual(drainedLava(helper), 50,
-                "lava drained after less than one fuel cycle's worth of melt ticks"));
-        helper.runAfterDelay(500, () -> {
-            helper.assertValueEqual(drainedLava(helper), 100, "lava drained one cycle into the second burn");
-            helper.succeed();
-        });
+        meltTicks(helper, core, 95);
+        helper.assertValueEqual(drainedLava(helper), 50,
+                "lava drained after less than one fuel cycle's worth of melt ticks");
+
+        meltTicks(helper, core, 30); // 125 in total: one cycle finished, a second burn under way.
+        helper.assertValueEqual(drainedLava(helper), 100, "lava drained one cycle into the second burn");
+        helper.succeed();
+    }
+
+    /** Drives {@code count} melt ticks, each of which must find heating work to do. */
+    private static void meltTicks(GameTestHelper helper, SmelteryControllerBlockEntity core, int count) {
+        for (int i = 0; i < count; i++) {
+            helper.assertTrue(core.meltTick(), "expected melt tick " + i + " to still be heating the iron ore");
+        }
     }
 
     /** SCOPE.md M2's idle-tick invariant, the fuel half of it: a formed, fuelled, empty smeltery never drains its tank. */

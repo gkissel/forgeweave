@@ -79,9 +79,10 @@ public class SearedChannelBlockEntity extends BlockEntity {
 
     /**
      * One tick of upstream's {@code update}: move what can be moved, age the flow flags, and unlock
-     * whatever was filled in last tick.
+     * whatever was filled in last tick. Public, like {@link SmelteryControllerBlockEntity#meltTick()},
+     * so a GameTest can drive the flow on its own clock instead of the scheduler's (#715).
      */
-    void flowStep() {
+    public void flowStep() {
         if (level == null || level.isClientSide) {
             return;
         }

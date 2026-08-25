@@ -25,6 +25,7 @@ import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.block.CastingBlockEntity;
+import dev.gkissel.forgeweave.block.FaucetBlockEntity;
 import dev.gkissel.forgeweave.block.ForgeweaveBlocks;
 import dev.gkissel.forgeweave.block.SearedChannelBlock;
 import dev.gkissel.forgeweave.block.SearedChannelBlock.ChannelConnection;
@@ -109,7 +110,7 @@ public class SearedChannelGameTests {
     }
 
     /** The bottom pours into whatever is below, which is how a casting basin gets filled. */
-    @GameTest(template = "empty", timeoutTicks = 200)
+    @GameTest(template = "empty")
     public static void anOpenBottomPoursIntoACastingBasin(GameTestHelper helper) {
         helper.setBlock(SOURCE, ForgeweaveBlocks.SEARED_CHANNEL.get().defaultBlockState()
                 .setValue(SearedChannelBlock.DOWN, true));
@@ -118,11 +119,15 @@ public class SearedChannelGameTests {
         // Molten gold rather than water: a casting basin only takes a fluid some recipe wants.
         requireTop(helper, SOURCE).fill(new FluidStack(ForgeweaveFluids.GOLD.still().get(), SOME),
                 IFluidHandler.FluidAction.EXECUTE);
+        // #715: driven directly rather than waited on. A fill is locked for the tick it landed in, so
+        // the first step only unlocks it and the second is the one that pours.
+        SearedChannelBlockEntity channel = helper.getBlockEntity(SOURCE);
+        channel.flowStep();
+        channel.flowStep();
         CastingBlockEntity basin = helper.getBlockEntity(SOURCE.below());
-        helper.startSequence()
-                .thenWaitUntil(() -> helper.assertTrue(!basin.tank().isEmpty(),
-                        "expected the channel to have poured into the basin"))
-                .thenSucceed();
+        helper.assertValueEqual(basin.tank().getFluidAmount(), FaucetBlockEntity.LIQUID_TRANSFER,
+                "one flow step's worth of gold poured into the basin");
+        helper.succeed();
     }
 
     // ------------------------------------------------------------------ redstone
