@@ -21,6 +21,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import net.minecraft.world.item.ItemStack;
 
+import dev.gkissel.forgeweave.item.AmmoToolItem;
 import dev.gkissel.forgeweave.item.BowItem;
 import dev.gkissel.forgeweave.item.ForgeweaveDataComponents;
 import dev.gkissel.forgeweave.material.Material;
@@ -109,7 +110,7 @@ public final class StationText {
         }
         int remaining = stats.durability() - tool.getDamageValue();
         List<Component> lines = new ArrayList<>();
-        lines.add(durabilityStat(remaining, stats.durability()));
+        lines.add(tool.getItem() instanceof AmmoToolItem ? ammoStat(tool) : durabilityStat(remaining, stats.durability()));
         if (tool.getItem() instanceof BowItem bow) {
             // M3.5 #394/#401: upstream's LAUNCHER block, and it *replaces* the harvest one -- see
             // ToolTooltip#append, which reads the same gate for the item tooltip.
@@ -390,6 +391,26 @@ public final class StationText {
         return withHover(Component.translatable("gui.forgeweave.stat." + key,
                 Component.literal(formatPercent(fraction)).withStyle(Style.EMPTY.withColor(color))),
                 Component.translatable("gui.forgeweave.stat." + key + ".desc"));
+    }
+
+    /**
+     * Upstream {@code TooltipBuilder#addAmmo}, the line {@code ProjectileCore#getInformation} leads
+     * with instead of durability (issue #697): {@code Ammo: x/y} in the durability colours, with
+     * {@code x = floor(remaining / ratio)} and {@code y = floor(max / ratio)} -- an emerald's
+     * percentage durability bonus simply floors. {@code Ammo: Empty} while Broken
+     * ({@code textIfEmpty}). Shared by the item tooltip and the station panel.
+     */
+    public static Component ammoStat(ItemStack tool) {
+        if (dev.gkissel.forgeweave.item.ToolItem.isBroken(tool)) {
+            return Component.translatable("tooltip.forgeweave.ammo.empty")
+                    .withStyle(ChatFormatting.DARK_RED, ChatFormatting.BOLD);
+        }
+        int current = AmmoToolItem.currentAmmo(tool);
+        int max = AmmoToolItem.maxAmmo(tool);
+        float ratio = max > 0 ? (float) current / max : 0.0F;
+        return Component.translatable("tooltip.forgeweave.ammo",
+                Component.literal(Integer.toString(current)).withStyle(Style.EMPTY.withColor(durabilityColor(ratio))),
+                Component.literal(Integer.toString(max)).withStyle(Style.EMPTY.withColor(DURABILITY_COLOR)));
     }
 
     /** {@code Durability: 120/160}, the remaining half on upstream's wear ramp and the max on green. */

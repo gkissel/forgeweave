@@ -17,11 +17,16 @@ import net.minecraft.world.item.component.ItemAttributeModifiers;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
+import net.minecraft.network.RegistryFriendlyByteBuf;
 
+import io.netty.buffer.Unpooled;
+
+import net.neoforged.neoforge.entity.IEntityWithComplexSpawn;
 import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 
 import dev.gkissel.forgeweave.Forgeweave;
+import dev.gkissel.forgeweave.entity.ForgeweaveEntities;
 import dev.gkissel.forgeweave.entity.ShurikenEntity;
 import dev.gkissel.forgeweave.item.ForgeweaveDataComponents;
 import dev.gkissel.forgeweave.item.ForgeweaveItems;
@@ -239,6 +244,35 @@ public class ShurikenGameTests {
         shuriken.setDamageValue(0);
         helper.assertTrue(!ShurikenItem.restoreAmmo(player, projectile),
                 "a full shuriken absorbs nothing; vanilla's own pickup branch takes over");
+        helper.succeed();
+    }
+
+    /**
+     * Issue #697: vanilla never syncs {@code AbstractArrow#pickupItemStack} to the client, so the
+     * renderer (which draws that stack's item model) drew air. Upstream 1.12's
+     * {@code EntityProjectileBase} ships the stack in its spawn data ({@code IEntityAdditionalSpawnData});
+     * the NeoForge equivalent is {@code IEntityWithComplexSpawn}. Round-trips the spawn payload into
+     * a fresh entity the way the client constructs one.
+     */
+    @GameTest(template = "empty")
+    public static void spawnDataCarriesTheStackToTheClient(GameTestHelper helper) {
+        BlockPos pos = new BlockPos(1, 1, 1);
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        ItemStack shuriken = shuriken(helper, player, pos);
+        List<ShurikenEntity> thrown = throwOnce(helper, player, shuriken);
+        helper.assertTrue(thrown.size() == 1, "one projectile per throw, got " + thrown.size());
+        ShurikenEntity projectile = thrown.get(0);
+
+        helper.assertTrue(projectile instanceof IEntityWithComplexSpawn,
+                "the shuriken entity must ship its stack in the spawn packet (#697)");
+        RegistryFriendlyByteBuf buf = new RegistryFriendlyByteBuf(Unpooled.buffer(),
+                helper.getLevel().registryAccess());
+        ((IEntityWithComplexSpawn) projectile).writeSpawnData(buf);
+        ShurikenEntity clientSide = ForgeweaveEntities.SHURIKEN.get().create(helper.getLevel());
+        ((IEntityWithComplexSpawn) clientSide).readSpawnData(buf);
+        helper.assertTrue(ItemStack.matches(clientSide.getPickupItemStackOrigin(), projectile.getPickupItemStackOrigin()),
+                "a client-constructed shuriken carries the thrown stack, got " + clientSide.getPickupItemStackOrigin());
+        projectile.discard();
         helper.succeed();
     }
 }

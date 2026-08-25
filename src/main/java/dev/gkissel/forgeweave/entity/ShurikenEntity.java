@@ -1,5 +1,6 @@
 package dev.gkissel.forgeweave.entity;
 
+import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
@@ -7,6 +8,8 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.EntityHitResult;
+
+import net.neoforged.neoforge.entity.IEntityWithComplexSpawn;
 
 import dev.gkissel.forgeweave.item.ShurikenItem;
 
@@ -50,7 +53,8 @@ import dev.gkissel.forgeweave.item.ShurikenItem;
  *       mean forking the whole method for a sound effect.</li>
  * </ul>
  */
-public class ShurikenEntity extends net.minecraft.world.entity.projectile.AbstractArrow {
+public class ShurikenEntity extends net.minecraft.world.entity.projectile.AbstractArrow
+        implements IEntityWithComplexSpawn {
 
     public ShurikenEntity(EntityType<? extends ShurikenEntity> type, Level level) {
         super(type, level);
@@ -128,5 +132,20 @@ public class ShurikenEntity extends net.minecraft.world.entity.projectile.Abstra
      */
     public float rollAngle() {
         return 7 - Math.floorMod(getId(), 14);
+    }
+
+    /**
+     * Issue #697: vanilla never syncs {@code AbstractArrow#pickupItemStack}, and the renderer draws
+     * that stack's item model -- so the client drew air. Upstream 1.12's {@code EntityProjectileBase}
+     * ships the stack in its spawn data ({@code IEntityAdditionalSpawnData}); this is the same.
+     */
+    @Override
+    public void writeSpawnData(RegistryFriendlyByteBuf buffer) {
+        ItemStack.OPTIONAL_STREAM_CODEC.encode(buffer, getPickupItemStackOrigin());
+    }
+
+    @Override
+    public void readSpawnData(RegistryFriendlyByteBuf buffer) {
+        setPickupItemStack(ItemStack.OPTIONAL_STREAM_CODEC.decode(buffer));
     }
 }

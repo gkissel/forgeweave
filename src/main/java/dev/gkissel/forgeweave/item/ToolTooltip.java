@@ -130,7 +130,12 @@ final class ToolTooltip {
             return;
         }
 
-        if (ToolItem.isBroken(stack)) {
+        if (stack.getItem() instanceof AmmoToolItem) {
+            // #697: upstream ProjectileCore#getInformation leads with TooltipBuilder#addAmmo and
+            // never shows the durability line -- ammo is durability / 10, so the raw number read
+            // as "each shot costs 10".
+            tooltip.add(StationText.ammoStat(stack));
+        } else if (ToolItem.isBroken(stack)) {
             // #379: upstream keeps the "Durability: " label on a broken tool and only swaps the
             // number for the bold dark-red word (TooltipBuilder#addDurability(true)), so the line
             // still reads as the durability line it replaces.

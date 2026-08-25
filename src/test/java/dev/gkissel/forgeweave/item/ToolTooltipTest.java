@@ -549,6 +549,54 @@ class ToolTooltipTest {
         assertEquals(List.of(durabilityLine(120, 160), attackLine(3.0F), pierceLine(), slotsLine(3)), tooltip);
     }
 
+    /**
+     * Issue #697: an ammo tool leads with upstream {@code TooltipBuilder#addAmmo}'s {@code Ammo: x/y}
+     * ({@code ProjectileCore#getInformation}) and shows no durability line at all -- the raw
+     * durability (10 per ammo) read as "each shot costs 10". 160 durability at 40 damage is 12/16,
+     * floor division both sides.
+     */
+    @Test
+    void ammoToolTooltipLeadsWithAmmoAndHidesTheDurabilityLine() {
+        ItemStack stack = assembledTool(ForgeweaveItems.TOOL_SHURIKEN.get(), 40, List.of());
+
+        List<Component> tooltip = new ArrayList<>();
+        ToolTooltip.append(stack, null, true, 3.0F, tooltip);
+
+        assertEquals(ammoLine(12, 16), tooltip.get(0));
+        assertTrue(tooltip.stream().noneMatch(line -> line.toString().contains("tooltip.forgeweave.durability")),
+                () -> "no durability line on an ammo tool, got " + tooltip);
+    }
+
+    /** {@code TooltipBuilder#addAmmo}'s {@code textIfEmpty}: a Broken ammo tool reads "Ammo: Empty". */
+    @Test
+    void brokenAmmoToolReadsAmmoEmpty() {
+        ItemStack stack = assembledTool(ForgeweaveItems.TOOL_SHURIKEN.get(), 159, List.of());
+        stack.set(ForgeweaveDataComponents.BROKEN.get(), true);
+
+        List<Component> tooltip = new ArrayList<>();
+        ToolTooltip.append(stack, null, false, 0.0F, tooltip);
+
+        assertEquals(Component.translatable("tooltip.forgeweave.ammo.empty")
+                .withStyle(ChatFormatting.DARK_RED, ChatFormatting.BOLD), tooltip.get(0));
+    }
+
+    /** The station panel swaps the same line (#697): {@code GuiToolStation} shows {@code getInformation} too. */
+    @Test
+    void stationPanelStatsForAnAmmoToolLeadWithAmmo() {
+        List<Component> lines = StationText.toolStats(assembledTool(ForgeweaveItems.TOOL_SHURIKEN.get(), 40, List.of()));
+
+        assertEquals(ammoLine(12, 16), lines.get(0));
+        assertTrue(lines.stream().noneMatch(line -> line.toString().contains("gui.forgeweave.stat.durability")),
+                () -> "no durability row on an ammo tool's panel, got " + lines);
+    }
+
+    private static Component ammoLine(int current, int max) {
+        return Component.translatable("tooltip.forgeweave.ammo",
+                Component.literal(Integer.toString(current))
+                        .withStyle(Style.EMPTY.withColor(StationText.durabilityColor((float) current / max))),
+                Component.literal(Integer.toString(max)).withStyle(Style.EMPTY.withColor(StationText.DURABILITY_COLOR)));
+    }
+
     private static ItemStack assembledPickaxe(int damage, List<ResourceLocation> traits) {
         return assembledTool(ForgeweaveItems.TOOL_PICKAXE.get(), damage, traits);
     }
