@@ -282,15 +282,17 @@ public class SlimeIslandGameTests {
         ServerLevel level = helper.getLevel();
         BlockPos absoluteGrass = helper.absolutePos(grassPos);
         BlockState grass = level.getBlockState(absoluteGrass);
-        for (int i = 0; i < 400; i++) {
-            grass.randomTick(level, absoluteGrass, level.random);
-            if (level.getBlockState(helper.absolutePos(dirtPos)).getBlock()
-                    == ForgeweaveBlocks.PURPLE_SLIME_SOIL.grass().get()) {
-                helper.succeed();
-                return;
+        // #707 -- the spread is light-gated (>= 9 above the grass) and the light engine has not
+        // necessarily lit freshly placed blocks at t=0, so an all-at-once burst of random ticks can
+        // silently do nothing. Retry each tick until the test timeout instead: each tick drives a
+        // burst of random ticks (each has a 1/45 chance per attempt of picking the dirt), then checks.
+        helper.succeedWhen(() -> {
+            for (int i = 0; i < 100; i++) {
+                grass.randomTick(level, absoluteGrass, level.random);
             }
-        }
-        helper.fail("slime grass never spread onto the slime dirt beside it", dirtPos);
+            helper.assertBlock(dirtPos, block -> block == ForgeweaveBlocks.PURPLE_SLIME_SOIL.grass().get(),
+                    "slime grass never spread onto the slime dirt beside it");
+        });
     }
 
     /** Upstream {@code BlockTallSlimeGrass#canPlaceBlockAt}: slime grass or slime dirt, nothing else. */
