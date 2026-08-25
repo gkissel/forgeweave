@@ -1787,9 +1787,33 @@ public final class ScreenshotHarness {
         advance(Stage.OPEN_PONDER);
     }
 
+    /**
+     * The window size {@code build.gradle}'s {@code runScreenshotHarness} asks for. Every
+     * first-person pose is framed against it: a tiling compositor that re-tiles the window into a
+     * portrait column (Hyprland did, #712) pushes anything held at the right edge of the frame --
+     * the undrawn bows, laid across the hand at vanilla's own {@code bow.json} offsets -- clean off
+     * the picture, and the empty frame reads as a model bug. Mirror of the gradle arguments.
+     */
+    static final int EXPECTED_FRAME_WIDTH = 854;
+    static final int EXPECTED_FRAME_HEIGHT = 480;
+
+    /** How far the captured aspect ratio may drift from {@link #EXPECTED_FRAME_WIDTH}:{@link #EXPECTED_FRAME_HEIGHT} (window decorations, HiDPI rounding) before the frame is not the one the poses were tuned against. */
+    static final double FRAME_ASPECT_TOLERANCE = 0.1;
+
+    /** #712: whether a {@code width x height} frame is the shape the harness asked for. */
+    static boolean isExpectedFrameShape(int width, int height) {
+        double expected = (double) EXPECTED_FRAME_WIDTH / EXPECTED_FRAME_HEIGHT;
+        return height > 0 && Math.abs((double) width / height - expected) <= expected * FRAME_ASPECT_TOLERANCE;
+    }
+
     private static void capture(Minecraft mc, String fileName) {
         NativeImage image = Screenshot.takeScreenshot(mc.getMainRenderTarget());
         try {
+            if (!isExpectedFrameShape(image.getWidth(), image.getHeight())) {
+                LOGGER.error("{}#712 scene check FAILED: {} captured at {}x{}, expected the {}x{} window from build.gradle"
+                        + " -- the window manager resized the client; first-person poses at the frame edge are cut off",
+                        LOG_PREFIX, fileName, image.getWidth(), image.getHeight(), EXPECTED_FRAME_WIDTH, EXPECTED_FRAME_HEIGHT);
+            }
             File dir = outputDir(mc);
             dir.mkdirs();
             File file = new File(dir, fileName + ".png");

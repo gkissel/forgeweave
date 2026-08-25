@@ -40,6 +40,20 @@ class BowScreenshotSceneTest {
                 .toList();
     }
 
+    /**
+     * Issue #712: the harness flags a capture whose shape is not the 854x480 window it asked for. A
+     * tiling compositor re-tiling the client into a portrait column is what emptied the undrawn
+     * bows' first-person frames -- the pose is at the right edge of a 16:9 frame -- and an empty
+     * frame must fail a scene check rather than pass for a model bug.
+     */
+    @Test
+    void aReTiledWindowFailsTheFrameShapeCheck() {
+        assertTrue(ScreenshotHarness.isExpectedFrameShape(854, 480), "the requested window");
+        assertTrue(ScreenshotHarness.isExpectedFrameShape(908, 513), "the requested window plus decorations");
+        assertTrue(!ScreenshotHarness.isExpectedFrameShape(908, 1038), "a portrait tile");
+        assertTrue(!ScreenshotHarness.isExpectedFrameShape(854, 0), "an empty frame");
+    }
+
     /** Every bow gets the undrawn third- and first-person pair every other tool on the list gets. */
     @Test
     void everyBowIsPosedUndrawn() {

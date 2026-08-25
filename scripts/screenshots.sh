@@ -30,6 +30,33 @@ grep -q '^pauseOnLostFocus:' run/options.txt || echo 'pauseOnLostFocus:false' >>
 # across it. Start from bare flat ground every time.
 rm -rf run/saves/forgeweave_screenshot_harness*
 
+# The harness asks for an 854x480 window (build.gradle) and its first-person poses are framed
+# against it. A tiling compositor ignores that and re-tiles the client into whatever column is
+# free -- on Hyprland a portrait one, which pushed the undrawn bows (held at the right edge, at
+# vanilla's own bow.json offsets) clean out of frame and read as a model bug (#712). Keep the
+# window floating at its requested size for the run; the harness logs a #712 scene check on every
+# capture whose shape is still wrong.
+if [ -n "${HYPRLAND_INSTANCE_SIGNATURE:-}" ] && command -v hyprctl >/dev/null 2>&1; then
+    (
+        while true; do
+            hyprctl clients -j 2>/dev/null | python3 -c '
+import json, subprocess, sys
+for c in json.load(sys.stdin):
+    if not c.get("class", "").startswith("Minecraft"):
+        continue
+    a = "address:" + c["address"]
+    if not c["floating"]:
+        subprocess.run(["hyprctl", "dispatch", "setfloating", a], capture_output=True)
+    if c["size"] != [854, 480]:
+        subprocess.run(["hyprctl", "dispatch", "resizewindowpixel", "exact 854 480," + a], capture_output=True)
+' 2>/dev/null || true
+            sleep 1
+        done
+    ) &
+    FLOAT_HELPER=$!
+    trap 'kill "$FLOAT_HELPER" 2>/dev/null || true' EXIT
+fi
+
 if [ -n "${DISPLAY:-}" ] || [ -n "${WAYLAND_DISPLAY:-}" ]; then
     ./gradlew runScreenshotHarness $EARLY_WINDOW_OFF
 elif command -v xvfb-run >/dev/null 2>&1; then
