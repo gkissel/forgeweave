@@ -231,6 +231,38 @@ class BowDrawModelTest {
         assertTransform(loaded, "thirdperson_righthand", 90, 180, -225, -1, 0.75F, -2.5F, 0.85F);
     }
 
+    /**
+     * Issue #712: the undrawn shortbow and longbow are held exactly where their draw stages are
+     * held -- one {@code display} block per bow, shared by the idle model and every
+     * {@code _pulling_N} sibling -- and that block's first-person entries are vanilla's own
+     * {@code item/bow.json} numbers ({@code [0,-90,25] / [1.13,3.2,1.13]}, byte-identical in 1.12
+     * and 1.21) as upstream's {@code shortbow.tcon.json}/{@code longbow.tcon.json} author them.
+     * The empty first-person frames that raised #712 were therefore never a model defect: the
+     * screenshot harness's window had been re-tiled to a portrait column, which cuts off anything
+     * held at the frame's right edge ({@code ScreenshotHarness#isExpectedFrameShape}).
+     */
+    @Test
+    void theUndrawnBowsShareTheirDrawStagesFirstPersonPose() throws IOException {
+        for (String bow : List.of("shortbow", "longbow")) {
+            JsonObject idle = readJson(models().resolve(bow + ".json")).getAsJsonObject("display");
+            for (String context : List.of("firstperson_righthand", "firstperson_lefthand")) {
+                JsonObject pose = idle.getAsJsonObject(context);
+                assertNotNull(pose, bow + " " + context);
+                int sign = context.endsWith("righthand") ? 1 : -1;
+                assertEquals(List.of(0F, -90F * sign, 25F * sign), floats(pose, "rotation"),
+                        bow + " " + context + " rotation is vanilla bow.json's");
+                assertEquals(List.of(1.13F, 3.2F, 1.13F), floats(pose, "translation"),
+                        bow + " " + context + " translation is vanilla bow.json's");
+                for (int stage = 1; stage <= ToolArt.DRAW_STAGES; stage++) {
+                    JsonObject drawn = readJson(models().resolve(bow + "_pulling_" + stage + ".json"))
+                            .getAsJsonObject("display");
+                    assertEquals(pose, drawn.getAsJsonObject(context),
+                            bow + " stage " + stage + " must hold the bow where the undrawn model does");
+                }
+            }
+        }
+    }
+
     private static void assertTransform(JsonObject display, String context,
             float rx, float ry, float rz, float tx, float ty, float tz, float scale) {
         JsonObject transform = display.getAsJsonObject(context);
