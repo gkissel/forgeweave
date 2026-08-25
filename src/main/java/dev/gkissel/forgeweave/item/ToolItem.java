@@ -714,6 +714,15 @@ public class ToolItem extends Item {
     /** See the class javadoc: the one place that keeps a Forgeweave tool from ever being destroyed. */
     @Override
     public <T extends LivingEntity> int damageItem(ItemStack stack, int amount, @Nullable T entity, Consumer<Item> onBroken) {
+        return damageKeepingItem(stack, amount, entity);
+    }
+
+    /**
+     * The whole durability-loss seam -- reinforced's negation roll, the durability-economy traits'
+     * repricing, then {@link #applyDamageKeepingItem}'s clamp -- shared with {@link ArmorPieceItem}
+     * (#721: a reinforced or dense-mailled piece was skipping straight to the clamp).
+     */
+    public static int damageKeepingItem(ItemStack stack, int amount, @Nullable LivingEntity entity) {
         if (amount <= 0) {
             return amount; // healing; nothing to cap.
         }

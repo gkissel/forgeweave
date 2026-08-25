@@ -163,10 +163,10 @@ public class ArmorPieceItem extends ArmorItem {
         }
     }
 
-    /** Same clamp as a tool: never destroyed, Broken at {@code max - 1} ({@link ToolItem#damageItem}). */
+    /** The same seam as a tool ({@link ToolItem#damageKeepingItem}): reinforced, durability traits, then the Broken clamp. */
     @Override
     public <T extends LivingEntity> int damageItem(ItemStack stack, int amount, @Nullable T entity, Consumer<Item> onBroken) {
-        return amount <= 0 ? amount : ToolItem.applyDamageKeepingItem(stack, amount, entity);
+        return ToolItem.damageKeepingItem(stack, amount, entity);
     }
 
     @Override
