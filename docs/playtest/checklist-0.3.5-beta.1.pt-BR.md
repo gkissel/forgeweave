@@ -40,31 +40,33 @@ Build: `forgeweave-0.3.5-beta.1.jar` (Release `mc1.21.1-v0.3.5-beta.1`; Modrinth
 23. [✓] **Traits de munição**: *breakable* (≈50% quebra ao bater em bloco), *hovering* e *endspeed* (voo diferente, visível), *freezing* (Slowness acumula até IV), *splitting* (uma vira duas no disparo).
 24. [✓] **Enderference em ponta de endstone** funciona (escopo projectile sobrevive ao head-only alien).
 25. [✓] **Fins** aplica só em projéteis; recusa em arco/picareta.
-26. [ ] **Multishot**: N flechas por uma munição; as extras **não** podem ser pegas do chão; a consumida pode.
+26. [testar depois] **Multishot**: N flechas por uma munição; as extras **não** podem ser pegas do chão; a consumida pode.
 27. [✓] **Aba de flecha na Tool Station** não crasha (#669 era crash); tints de preview da haste/ponta/empena batem com o 1.12.
 28. [✓] **Harness/poses de arco** (#673): só sanidade — arco puxado em 1ª/3ª pessoa não trava o braço.
 
 ## C. Slime drops e Slimesling colorido (#649, PR #657)
-29. [ ] **Cinco slime drops** (azul JUMP III, roxo LUCK, blood HEALTH BOOST, magma FIRE RES, verde) — comer dá o efeito por 90 s; arte/nome por cor.
-30. [ ] **Slimesling por cor** (green/blue/purple/blood/magma): receita com o congealed da cor; comportamento e arte por cor; o antigo sling genérico sumiu/convertido.
+29. [✗] **Cinco slime drops** (azul JUMP III, roxo LUCK, blood HEALTH BOOST, magma FIRE RES, verde) — comer dá o efeito por 90 s; arte/nome por cor.
+   - 29.a Slimes azuis dropam só bola verde → #731
+   - 29.b Bolas coloridas aplicam efeito colateral negativo (Slowness III, Poison III, Bad Luck, Weakness+Wither, Nausea III) → #731
+30. [✓] **Slimesling por cor** (green/blue/purple/blood/magma): receita com o congealed da cor; comportamento e arte por cor; o antigo sling genérico sumiu/convertido.
 
 ## D. Mundo e smeltery (#647, #369, #639)
-31. [ ] **Vinhas na ilha de slime** pendem do exterior da ilha (não só dentro); crescem para baixo.
-32. [ ] **Seared stairs/slabs** contam **só no teto** do smeltery; na parede/piso a estrutura não forma.
-33. [ ] **Melting pós-1.12** (lista 1.20 inteira — sua decisão #639): chain, lantern, crossbow vanilla, chainmail, pistão, spyglass, sino, etc. fundem com os valores certos; **subproduto** de melting aparece quando o item tem mais de um metal.
+31. [✓] **Vinhas na ilha de slime** pendem do exterior da ilha (não só dentro); crescem para baixo.
+32. [✓] **Seared stairs/slabs** contam **só no teto** do smeltery; na parede/piso a estrutura não forma.
+33. [✓] **Melting pós-1.12** (lista 1.20 inteira — sua decisão #639): chain, lantern, crossbow vanilla, chainmail, pistão, spyglass, sino, etc. fundem com os valores certos; **subproduto** de melting aparece quando o item tem mais de um metal.
 
 ## E. Livro e Ponder (#651, #664)
-34. [ ] **Livro data-driven completo**: índice gerado, intros de estação, bullets de propriedade/efeito só do Forgeweave (nada de "tinker"), páginas de tool/modifier com o diagrama de modificação, folha esquerda com padding (texto não encosta na borda).
-35. [ ] **Página de estrutura do smeltery** com o esquema 3D girando; camadas navegáveis; performance ok ao deixar aberta.
-36. [ ] **Ponder** (jar-in-jar com Flywheel): tecla de Ponder sobre o Smeltery Controller abre a cena de montagem; sem crash **sem** Flywheel/Ponder externos instalados; se instalar Create/Ponder por fora, sem conflito de versão.
-37. [ ] **ForgeweavePonderHint** (fallback) ainda aparece onde não há cena.
+34. [✓] **Livro data-driven completo**: índice gerado, intros de estação, bullets de propriedade/efeito só do Forgeweave (nada de "tinker"), páginas de tool/modifier com o diagrama de modificação, folha esquerda com padding (texto não encosta na borda).
+35. [✓] **Página de estrutura do smeltery** com o esquema 3D girando; camadas navegáveis; performance ok ao deixar aberta.
+36. [✓] **Ponder** (jar-in-jar com Flywheel): tecla de Ponder sobre o Smeltery Controller abre a cena de montagem; sem crash **sem** Flywheel/Ponder externos instalados; se instalar Create/Ponder por fora, sem conflito de versão.
+37. [✓] **ForgeweavePonderHint** (fallback) ainda aparece onde não há cena.
 
 ## F. Save-compat e publish (obrigatório — primeira tag com promessa)
-38. [ ] **Mundo da alpha.4** (ou alpha.3) carrega na beta.1: ferramentas mantêm partes/modifiers/durabilidade; besta carregada; katana ramp; shocking charge; smeltery formado com fluidos; livro volta na página marcada.
-39. [ ] **Mundo da beta.1 salvo → reaberto na beta.1** após restart do servidor dedicado (baseline para a beta.2).
-40. [ ] **Jar do Modrinth e do CurseForge** são byte-idênticos ao do GitHub Release (`sha256sum`); dependências listadas nos stores (NeoForge range) batem com `neoforge.mods.toml`.
-41. [ ] **Sem JEI** o jogo carrega; **com JEI** todas as categorias novas aparecem (flecha, melting pós-1.12, slime drops).
-42. [ ] **Spark** no servidor dedicado: smeltery formado ocioso ≈ heartbeat 1/s, estações ociosas 0.
+38. [?] **Mundo da alpha.4** (ou alpha.3) carrega na beta.1: ferramentas mantêm partes/modifiers/durabilidade; besta carregada; katana ramp; shocking charge; smeltery formado com fluidos; livro volta na página marcada.
+39. [?] **Mundo da beta.1 salvo → reaberto na beta.1** após restart do servidor dedicado (baseline para a beta.2).
+40. [?] **Jar do Modrinth e do CurseForge** são byte-idênticos ao do GitHub Release (`sha256sum`); dependências listadas nos stores (NeoForge range) batem com `neoforge.mods.toml`.
+41. [?] **Sem JEI** o jogo carrega; **com JEI** todas as categorias novas aparecem (flecha, melting pós-1.12, slime drops).
+42. [?] **Spark** no servidor dedicado: smeltery formado ocioso ≈ heartbeat 1/s, estações ociosas 0.
 
 ## H. Pontos extras do playtest (2026-08-24)
 - Jade: mostrar % de "secagem" na casting table → decisão pendente (Jade é compat M8).
