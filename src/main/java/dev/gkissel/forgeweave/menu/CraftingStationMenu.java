@@ -249,6 +249,11 @@ public class CraftingStationMenu extends StationMenu {
                     }
                 }
             });
+            // Upstream 1.12's InventoryCraftingPersistent fires onCraftMatrixChanged as the grid is
+            // consumed, refilling the result synchronously; that is what lets vanilla's QUICK_MOVE
+            // loop keep crafting until the inputs run out (issue #706). Waiting for the next
+            // broadcastChanges tick stopped it after one craft.
+            updateResult();
             super.onTake(player, stack);
         }
     }

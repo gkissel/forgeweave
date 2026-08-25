@@ -4,6 +4,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.inventory.ClickType;
 import net.minecraft.world.inventory.ContainerLevelAccess;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -108,6 +109,38 @@ public class CraftingStationGameTests {
             }
         }
         helper.assertTrue(foundDiamond, "expected the chest's diamond to be visible through a side-inventory slot");
+
+        helper.succeed();
+    }
+
+    /**
+     * Issue #706 (same latent defect as #695): shift-clicking the output bulk-crafts. Upstream 1.12's
+     * {@code InventoryCraftingPersistent} calls {@code ContainerCraftingStation#onCraftMatrixChanged}
+     * synchronously as {@code SlotCraftingFastWorkbench#onTake} consumes the grid, so the result slot
+     * is refilled before vanilla's {@code slotClick(QUICK_MOVE)} loop looks at it again. Forgeweave
+     * only recomputed in {@code broadcastChanges} (next tick), so the loop stopped after one craft.
+     */
+    @GameTest(template = "empty")
+    public static void shiftClickingTheOutputCraftsUntilTheInputsRunOut(GameTestHelper helper) {
+        BlockPos pos = new BlockPos(1, 1, 1);
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        CraftingStationMenu menu = openMenu(helper, pos, player);
+
+        // 3 stick crafts' worth of planks: 4 sticks each.
+        menu.getSlot(0).set(new ItemStack(Items.OAK_PLANKS, 3));
+        menu.getSlot(3).set(new ItemStack(Items.OAK_PLANKS, 3));
+        menu.broadcastChanges();
+
+        menu.clicked(CraftingStationMenu.GRID_SLOTS, 0, ClickType.QUICK_MOVE, player);
+
+        helper.assertTrue(menu.getSlot(0).getItem().isEmpty() && menu.getSlot(3).getItem().isEmpty(),
+                "expected all planks to be consumed, got " + menu.getSlot(0).getItem() + " / " + menu.getSlot(3).getItem());
+        int sticks = player.getInventory().items.stream()
+                .filter(stack -> stack.is(Items.STICK))
+                .mapToInt(ItemStack::getCount).sum();
+        helper.assertTrue(sticks == 12, "expected 12 sticks in the player inventory, got " + sticks);
+        helper.assertTrue(menu.getSlot(CraftingStationMenu.GRID_SLOTS).getItem().isEmpty(),
+                "expected the output slot to be empty once the inputs ran out");
 
         helper.succeed();
     }
