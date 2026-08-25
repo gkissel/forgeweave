@@ -17,6 +17,7 @@ import net.minecraft.world.entity.SpawnPlacementTypes;
 import net.minecraft.world.entity.SpawnPlacements;
 import net.minecraft.world.entity.monster.Slime;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.SpawnEggItem;
@@ -36,6 +37,7 @@ import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.block.ForgeweaveBlocks;
+import dev.gkissel.forgeweave.block.SlimeColour;
 import dev.gkissel.forgeweave.entity.ForgeweaveEntities;
 import dev.gkissel.forgeweave.item.ForgeweaveItems;
 
@@ -100,6 +102,10 @@ public class BlueSlimeGameTests {
      * Upstream {@code EntityBlueSlime#getLootTable}: the drop is gated to the smallest slime, every
      * larger one returning {@code LootTableList.EMPTY}. Ported as the size condition on the generated
      * table, so this rolls the real table both ways.
+     *
+     * <p>The drop is the <em>blue</em> slime ball -- upstream's {@code blueslime.json} names
+     * {@code tconstruct:edible} with {@code set_data} 1, {@code matSlimeBallBlue} -- never the
+     * vanilla green one #451 stood in with before the coloured balls existed (#731).
      */
     @GameTest(template = "empty")
     public static void onlyTheSmallestBlueSlimeDropsSlimeBalls(GameTestHelper helper) {
@@ -117,6 +123,8 @@ public class BlueSlimeGameTests {
                 "expected a size-1 blue slime to drop slime balls over " + DROP_ROLLS + " rolls");
         helper.assertTrue(fromBig == 0,
                 "upstream drops nothing above size 1, got " + fromBig);
+        helper.assertTrue(roll(level, tiny, player, Items.SLIME_BALL) == 0,
+                "a blue slime must never drop the vanilla green slime ball (#731)");
 
         tiny.discard();
         big.discard();
@@ -202,6 +210,10 @@ public class BlueSlimeGameTests {
     }
 
     private static int rollSlimeBalls(ServerLevel level, Slime victim, Player killer) {
+        return roll(level, victim, killer, ForgeweaveItems.slimeBallItem(SlimeColour.BLUE).get());
+    }
+
+    private static int roll(ServerLevel level, Slime victim, Player killer, Item wanted) {
         LootTable table = level.getServer().reloadableRegistries()
                 .getLootTable(ForgeweaveEntities.BLUE_SLIME.get().getDefaultLootTable());
         LootParams params = new LootParams.Builder(level)
@@ -214,7 +226,7 @@ public class BlueSlimeGameTests {
         int balls = 0;
         for (int i = 0; i < DROP_ROLLS; i++) {
             for (ItemStack stack : table.getRandomItems(params)) {
-                if (stack.is(Items.SLIME_BALL)) {
+                if (stack.is(wanted)) {
                     balls += stack.getCount();
                 }
             }
