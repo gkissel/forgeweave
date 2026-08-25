@@ -370,7 +370,7 @@ public class BowItem extends ToolItem {
         } else {
             ArrowItem arrowItem = ammo.getItem() instanceof ArrowItem item ? item : (ArrowItem) Items.ARROW;
             arrow = arrowItem.createArrow(level, ammo, player, bow);
-            Vec3 shotVector = player.getViewVector(1.0F);
+            Vec3 shotVector = aimVector(player);
             arrow.shoot(shotVector.x, shotVector.y, shotVector.z, velocity, inaccuracy);
             LauncherStats stats = launcherStats(bow);
             if (stats != null && velocity > 0.0F) {
@@ -383,6 +383,19 @@ public class BowItem extends ToolItem {
             arrow.pickup = AbstractArrow.Pickup.DISALLOWED;
         }
         return arrow;
+    }
+
+    /**
+     * The direction a shot leaves in: the shooter's <em>aim</em> ({@code xRot}/{@code yRot}), the
+     * same pair upstream's {@code EntityArrow#shoot(entity, pitch, yaw, ...)} and vanilla's
+     * {@code Projectile#shootFromRotation} read. Not {@code getViewVector}: for a {@code LivingEntity}
+     * that is the <em>head</em> yaw, and on the server {@code yHeadRot} only follows {@code yRot} in
+     * {@code Player#serverAiStep}, one tick after {@code handleUseItem}'s {@code absRotateTo} has
+     * already written the click packet's aim -- so a click fired from the head flies where the player
+     * looked a tick ago (issue #693, the crossbow's instant fire made it visible).
+     */
+    static Vec3 aimVector(Player player) {
+        return Vec3.directionFromRotation(player.getXRot(), player.getYRot());
     }
 
     /**

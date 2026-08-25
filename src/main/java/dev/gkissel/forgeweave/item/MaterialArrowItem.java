@@ -54,8 +54,8 @@ public class MaterialArrowItem extends AmmoToolItem {
         ItemStack carried = projectileStack(ammo);
         ArrowEntity arrow = new ArrowEntity(ForgeweaveEntities.ARROW.get(), level, player, carried);
         arrow.setFlatDamage(flatDamage);
-        Vec3 view = player.getViewVector(1.0F);
-        arrow.shoot(view.x, view.y, view.z, velocity, inaccuracy);
+        Vec3 aim = BowItem.aimVector(player);
+        arrow.shoot(aim.x, aim.y, aim.z, velocity, inaccuracy);
         // The launch halves of the flight traits (AbstractProjectileTrait#onLaunch).
         if (ForgeweaveTraits.has(carried, ForgeweaveTraits.HOVERING)) {
             arrow.setDeltaMovement(arrow.getDeltaMovement().scale(0.5)); // TraitHovering: /2

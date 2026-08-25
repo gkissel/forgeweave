@@ -139,14 +139,11 @@ class LeftHandDisplayTransformTest {
                 0, 90, -25, 1.13F, 3.2F, 1.13F, 0.875F, 0.875F, 0.7F);
     }
 
-    /**
-     * The crossbow's block is #616's, re-based on vanilla's own crossbow display -- whose left-hand
-     * entries follow the same pre-mirrored convention -- see {@code BowDrawModelTest}.
-     */
+    /** Issue #693: the crossbow's 1.12 left entries, verbatim like every other tool's (#699). */
     @Test
-    void crossbowKeepsItsOwnLeftHandEntriesUnchanged() throws IOException {
+    void crossbowHeldPosesAreUpstreamsVerbatim() throws IOException {
         JsonObject display = displayOf("crossbow");
-        assertTransform(display, "thirdperson_lefthand", -90, 0, 30, 2, 0.1F, -3, 0.9F, 0.9F, 0.9F);
-        assertTransform(display, "firstperson_lefthand", -90, 0, 35, 1.13F, 3.2F, 1.13F, 0.68F, 0.68F, 0.68F);
+        assertTransform(display, "thirdperson_lefthand", 90, 180, 225, 1, 0.75F, -2.5F, 0.85F, 0.85F, 0.85F);
+        assertTransform(display, "firstperson_lefthand", -75, -5, 45, 0, 2, 0, 0.68F, 0.68F, 0.68F);
     }
 }
