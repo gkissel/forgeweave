@@ -3,6 +3,7 @@ package dev.gkissel.forgeweave.entity;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
@@ -12,6 +13,8 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.Vec3;
+
+import net.neoforged.neoforge.entity.IEntityWithComplexSpawn;
 
 import dev.gkissel.forgeweave.item.AmmoToolItem;
 import dev.gkissel.forgeweave.modifier.ForgeweaveModifiers;
@@ -71,7 +74,8 @@ import dev.gkissel.forgeweave.trait.ForgeweaveTraits;
  *       beyond particles -- same posture as the shuriken's recorded vanilla-plumbing deviations.</li>
  * </ul>
  */
-public class ArrowEntity extends net.minecraft.world.entity.projectile.AbstractArrow {
+public class ArrowEntity extends net.minecraft.world.entity.projectile.AbstractArrow
+        implements IEntityWithComplexSpawn {
 
     /** Upstream {@code EntityProjectileBase#getGravity} = 0.05, vanilla's own arrow gravity too. */
     private static final double GRAVITY = 0.05;
@@ -260,5 +264,20 @@ public class ArrowEntity extends net.minecraft.world.entity.projectile.AbstractA
     public void readAdditionalSaveData(CompoundTag tag) {
         super.readAdditionalSaveData(tag);
         this.flatDamage = tag.getFloat("forgeweave:flat_damage");
+    }
+
+    /**
+     * Issue #697, exactly {@code ShurikenEntity#writeSpawnData}: the carried stack reaches the
+     * client only through spawn data, and both the renderer and the client-side hovering flame
+     * trail ({@link #hasTrait}) read it there.
+     */
+    @Override
+    public void writeSpawnData(RegistryFriendlyByteBuf buffer) {
+        ItemStack.OPTIONAL_STREAM_CODEC.encode(buffer, getPickupItemStackOrigin());
+    }
+
+    @Override
+    public void readSpawnData(RegistryFriendlyByteBuf buffer) {
+        setPickupItemStack(ItemStack.OPTIONAL_STREAM_CODEC.decode(buffer));
     }
 }

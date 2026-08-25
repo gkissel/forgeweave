@@ -20,12 +20,17 @@ import net.minecraft.world.item.component.ItemAttributeModifiers;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
+import net.minecraft.network.RegistryFriendlyByteBuf;
 
+import io.netty.buffer.Unpooled;
+
+import net.neoforged.neoforge.entity.IEntityWithComplexSpawn;
 import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.entity.ArrowEntity;
+import dev.gkissel.forgeweave.entity.ForgeweaveEntities;
 import dev.gkissel.forgeweave.item.AmmoToolItem;
 import dev.gkissel.forgeweave.item.BowItem;
 import dev.gkissel.forgeweave.item.ForgeweaveDataComponents;
@@ -413,5 +418,29 @@ public class ArrowGameTests {
                     candidates.forEach(ArrowEntity::discard);
                 })
                 .thenSucceed();
+    }
+
+    /** Issue #697, exactly {@code ShurikenGameTests#spawnDataCarriesTheStackToTheClient} for the arrow. */
+    @GameTest(template = "empty")
+    public static void spawnDataCarriesTheStackToTheClient(GameTestHelper helper) {
+        BlockPos pos = new BlockPos(1, 1, 1);
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        ItemStack bow = shortbow(helper, player, pos);
+        ItemStack arrow = arrow(helper, player, pos, "wood", "wood", "feather");
+        List<ArrowEntity> shot = shoot(helper, player, bow, arrow, 12);
+        helper.assertTrue(shot.size() == 1, "one arrow per shot, got " + shot.size());
+        ArrowEntity entity = shot.get(0);
+
+        helper.assertTrue(entity instanceof IEntityWithComplexSpawn,
+                "the arrow entity must ship its stack in the spawn packet (#697)");
+        RegistryFriendlyByteBuf buf = new RegistryFriendlyByteBuf(Unpooled.buffer(),
+                helper.getLevel().registryAccess());
+        ((IEntityWithComplexSpawn) entity).writeSpawnData(buf);
+        ArrowEntity clientSide = ForgeweaveEntities.ARROW.get().create(helper.getLevel());
+        ((IEntityWithComplexSpawn) clientSide).readSpawnData(buf);
+        helper.assertTrue(ItemStack.matches(clientSide.getPickupItemStackOrigin(), entity.getPickupItemStackOrigin()),
+                "a client-constructed arrow carries the shot stack, got " + clientSide.getPickupItemStackOrigin());
+        entity.discard();
+        helper.succeed();
     }
 }

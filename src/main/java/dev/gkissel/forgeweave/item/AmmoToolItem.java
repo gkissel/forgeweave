@@ -3,13 +3,10 @@ package dev.gkissel.forgeweave.item;
 import java.util.List;
 import java.util.Objects;
 
-import net.minecraft.ChatFormatting;
-import net.minecraft.network.chat.Component;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.component.ItemAttributeModifiers;
 
 import dev.gkissel.forgeweave.tool.ToolConstants;
@@ -112,7 +109,11 @@ public abstract class AmmoToolItem extends ToolItem {
             if (candidate.getDamageValue() <= 0 && !isBroken(candidate)) {
                 continue; // already full
             }
-            candidate.setDamageValue(Math.max(0, candidate.getDamageValue() - DURABILITY_PER_AMMO));
+            // A Broken tool holds whatever ToolItem#damageItem's maxDamage - 1 floor left behind,
+            // not a shot's worth (#697): un-breaking it is "exactly one ammo", upstream setAmmo(1).
+            candidate.setDamageValue(isBroken(candidate)
+                    ? Math.max(0, candidate.getMaxDamage() - DURABILITY_PER_AMMO)
+                    : Math.max(0, candidate.getDamageValue() - DURABILITY_PER_AMMO));
             candidate.remove(ForgeweaveDataComponents.BROKEN.get());
             return true;
         }
@@ -129,22 +130,6 @@ public abstract class AmmoToolItem extends ToolItem {
         return ItemAttributeModifiers.EMPTY;
     }
 
-    /**
-     * Upstream {@code ProjectileCore#getInformation} leads with {@code Ammo: current/max}
-     * ({@code TooltipBuilder#addAmmo}); the standard tool block follows. The durability line in that
-     * block stays -- it is the same number at 10x scale and every other tool shows it.
-     */
-    @Override
-    public void appendHoverText(ItemStack stack, TooltipContext context, List<Component> tooltip, TooltipFlag flag) {
-        if (stack.has(ForgeweaveDataComponents.TOOL_MATERIALS.get())) {
-            // Broken reads "Ammo: Empty" -- upstream TooltipBuilder#addAmmo's textIfEmpty branch,
-            // dark red bold like the durability line's own Broken swap.
-            tooltip.add(isBroken(stack)
-                    ? Component.translatable("tooltip.forgeweave.ammo.empty")
-                            .withStyle(ChatFormatting.DARK_RED, ChatFormatting.BOLD)
-                    : Component.translatable("tooltip.forgeweave.ammo",
-                            currentAmmo(stack), maxAmmo(stack)).withStyle(ChatFormatting.GRAY));
-        }
-        super.appendHoverText(stack, context, tooltip, flag);
-    }
+    // The tooltip's "Ammo: x/y" line (upstream ProjectileCore#getInformation leads with it and
+    // shows no durability line) is ToolTooltip#append's, via StationText#ammoStat (#697).
 }
