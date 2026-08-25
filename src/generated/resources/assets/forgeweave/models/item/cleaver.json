@@ -4,8 +4,8 @@
     "firstperson_lefthand": {
       "rotation": [
         0,
-        -95,
-        30
+        95,
+        -30
       ],
       "scale": [
         1.2,
@@ -13,7 +13,7 @@
         1.2
       ],
       "translation": [
-        -2.13,
+        2.13,
         6,
         0.13
       ]
@@ -33,6 +33,23 @@
         2.13,
         6,
         0.13
+      ]
+    },
+    "thirdperson_lefthand": {
+      "rotation": [
+        0,
+        90,
+        -55
+      ],
+      "scale": [
+        1.5,
+        1.5,
+        1.5
+      ],
+      "translation": [
+        0,
+        10,
+        0.5
       ]
     },
     "thirdperson_righthand": {
