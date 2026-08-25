@@ -28,6 +28,7 @@ import dev.gkissel.forgeweave.item.BowItem;
 import dev.gkissel.forgeweave.item.ForgeweaveDataComponents;
 import dev.gkissel.forgeweave.item.ToolItem;
 import dev.gkissel.forgeweave.menu.ToolAssemblyRecipes;
+import dev.gkissel.forgeweave.tool.ArmorStats;
 import dev.gkissel.forgeweave.tool.ToolConstants;
 import dev.gkissel.forgeweave.tool.ToolStats;
 import dev.gkissel.forgeweave.trait.ForgeweaveTraits;
@@ -500,21 +501,30 @@ public final class ModifierApplication {
      */
     private static void retuneStats(ItemStack stack) {
         ToolStats.Stats effective = ForgeweaveModifiers.effectiveStats(stack);
-        if (effective == null) {
-            return;
-        }
-        Tool component = stack.get(DataComponents.TOOL);
-        if (component != null && stack.getItem() instanceof ToolItem tool) {
-            List<Tool.Rule> rules = new ArrayList<>(
-                    component.rules().stream().filter(rule -> rule.speed().isEmpty()).toList());
-            rules.addAll(tool.miningRules(effective));
-            stack.set(DataComponents.TOOL, new Tool(rules, component.defaultMiningSpeed(), component.damagePerBlock()));
+        int durability;
+        if (effective != null) {
+            durability = effective.durability();
+            Tool component = stack.get(DataComponents.TOOL);
+            if (component != null && stack.getItem() instanceof ToolItem tool) {
+                List<Tool.Rule> rules = new ArrayList<>(
+                        component.rules().stream().filter(rule -> rule.speed().isEmpty()).toList());
+                rules.addAll(tool.miningRules(effective));
+                stack.set(DataComponents.TOOL, new Tool(rules, component.defaultMiningSpeed(), component.damagePerBlock()));
+            }
+        } else {
+            // #721: an armor piece's base is ARMOR_STATS (D14); the modifier pass over its durability
+            // is the same fold a tool's gets, and its max_damage is the same pool.
+            ArmorStats armor = stack.get(ForgeweaveDataComponents.ARMOR_STATS.get());
+            if (armor == null) {
+                return;
+            }
+            durability = ForgeweaveModifiers.modifiedDurability(stack, armor.durability());
         }
         // #230: alien's distributed durability growth lives outside both tool_stats and the modifier
         // list, so it is re-added here the way upstream's TraitProgressiveStats#applyEffect re-adds
         // its bonus on every rebuild -- without this, applying any modifier would shrink max_damage
         // back to the materials-plus-modifiers number and wipe the growth.
-        stack.set(DataComponents.MAX_DAMAGE, effective.durability() + ForgeweaveTraits.maxDurabilityBonus(stack));
+        stack.set(DataComponents.MAX_DAMAGE, durability + ForgeweaveTraits.maxDurabilityBonus(stack));
     }
 
     /**

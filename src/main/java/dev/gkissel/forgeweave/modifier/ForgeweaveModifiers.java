@@ -1664,18 +1664,34 @@ public final class ForgeweaveModifiers {
         }
         float miningSpeed = base.miningSpeed();
         float attackDamage = base.attackDamage();
-        int durability = base.durability();
         for (ModifierEntry entry : of(stack)) {
             Modifier modifier = get(entry.id());
             if (modifier != null) {
                 miningSpeed = modifier.miningSpeed(entry.level(), miningSpeed);
                 attackDamage = modifier.attackDamage(entry.level(), attackDamage, base.attackDamage());
-                durability = modifier.durability(entry.level(), durability, base.durability());
             }
         }
+        int durability = modifiedDurability(stack, base.durability());
         return miningSpeed == base.miningSpeed() && attackDamage == base.attackDamage() && durability == base.durability()
                 ? base
                 : new ToolStats.Stats(durability, miningSpeed, attackDamage);
+    }
+
+    /**
+     * {@code baseDurability} with every modifier's {@link Modifier#durability} folded in, in list
+     * order. The durability half of {@link #effectiveStats}, split out (#721) because an armor
+     * piece keeps its base in {@code ARMOR_STATS} rather than {@code TOOL_STATS} and was getting no
+     * modifier pass at all -- diamond on a chestplate left {@code max_damage} at the plating's number.
+     */
+    public static int modifiedDurability(ItemStack stack, int baseDurability) {
+        int durability = baseDurability;
+        for (ModifierEntry entry : of(stack)) {
+            Modifier modifier = get(entry.id());
+            if (modifier != null) {
+                durability = modifier.durability(entry.level(), durability, baseDurability);
+            }
+        }
+        return durability;
     }
 
     /** Combined attack-speed multiplier of the tool's modifiers; 1 when nothing touches it. */

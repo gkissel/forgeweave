@@ -1,5 +1,6 @@
 package dev.gkissel.forgeweave.item;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Stream;
 
@@ -8,6 +9,7 @@ import net.minecraft.core.HolderSet;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.ItemTags;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.BlockItem;
@@ -27,6 +29,7 @@ import dev.gkissel.forgeweave.fluid.ForgeweaveFluids;
 import dev.gkissel.forgeweave.material.Material;
 import dev.gkissel.forgeweave.menu.ContentFamilies;
 import dev.gkissel.forgeweave.menu.ToolAssemblyRecipes;
+import dev.gkissel.forgeweave.tool.ToolConstants;
 
 /**
  * The Forgeweave creative tabs. Upstream 1.12 splits its content over six tabs
@@ -260,13 +263,26 @@ public final class ForgeweaveCreativeTab {
      * tool, in the Tool Station's own order -- rather than a second hand-kept list, which is how
      * the mattock and the kama went missing from the single tab this replaces (issue #507).
      */
-    static void addToolItems(CreativeModeTab.ItemDisplayParameters parameters, CreativeModeTab.Output rawOutput) {
+    public static void addToolItems(CreativeModeTab.ItemDisplayParameters parameters, CreativeModeTab.Output rawOutput) {
         CreativeModeTab.Output output = enabledOnly(rawOutput);
 
         for (ToolAssemblyRecipes.Entry entry : ToolAssemblyRecipes.ENTRIES) {
+            if (entry.constants().category() == ToolConstants.Category.ARMOR) {
+                // #721: a bare ArmorPieceItem has no stats, traits or durability -- worn, it is a
+                // costume. The tab hands out the acceptance-test piece instead: iron plating over
+                // iron maille, exactly what the Tool Station builds from those parts.
+                ToolAssemblyRecipes.assemble(parameters.holders(), entry,
+                                Collections.nCopies(entry.slotCount(), TAB_ARMOR_MATERIAL))
+                        .ifPresent(output::accept);
+                continue;
+            }
             output.accept(entry.tool().get());
         }
     }
+
+    /** The plating and maille the tab's armor pieces are made of (SCOPE.md M4 acceptance test). */
+    private static final ResourceLocation TAB_ARMOR_MATERIAL =
+            ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "iron");
 
     static void addPartItems(CreativeModeTab.ItemDisplayParameters parameters, CreativeModeTab.Output output) {
         addPartItems(parameters, output, ForgeweaveClientConfig.LIST_ALL_PART_MATERIALS.get());
