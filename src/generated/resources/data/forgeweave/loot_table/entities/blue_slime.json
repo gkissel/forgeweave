@@ -38,7 +38,7 @@
               "function": "minecraft:enchanted_count_increase"
             }
           ],
-          "name": "minecraft:slime_ball"
+          "name": "forgeweave:blue_slime_ball"
         }
       ],
       "rolls": 1.0
