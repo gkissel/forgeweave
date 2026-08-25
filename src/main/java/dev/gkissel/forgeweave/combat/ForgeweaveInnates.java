@@ -528,8 +528,7 @@ public final class ForgeweaveInnates {
             }
             // Upstream clears the same window for the same reason: without it the blow we are riding
             // on has already claimed the target's invulnerability and this one is swallowed whole.
-            target.invulnerableTime = 0;
-            if (target.hurt(armorBypassing(hit.level(), hit.attacker()), bonus)) {
+            if (SecondaryDamage.deal(target, armorBypassing(hit.level(), hit.attacker()), bonus)) {
                 // #482 -- upstream Rapier#dealHybridDamage marks the armour-skipping half with one
                 // HEART_ARMOR per two points of it (its {@code Math.round(damage / 2f)}, where
                 // {@code damage} is that half's own amount). Same rate off this seam's own bonus.

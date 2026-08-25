@@ -39,8 +39,7 @@ public final class GaussianArmorPiercingHit implements CombatSeam {
         if (damage <= 0.0F) {
             return;
         }
-        target.invulnerableTime = 0;
-        if (target.hurt(ForgeweaveInnates.armorBypassing(hit.level(), hit.attacker()), damage)) {
+        if (SecondaryDamage.deal(target, ForgeweaveInnates.armorBypassing(hit.level(), hit.attacker()), damage)) {
             // #482 -- upstream gates its single cactus heart on the same secondary hit landing.
             ForgeweaveParticles.spawnHearts(ForgeweaveParticles.HEART_CACTUS.get(), hit.level(), target, 1);
         }

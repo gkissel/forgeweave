@@ -79,6 +79,7 @@ import dev.gkissel.forgeweave.combat.Lacerate;
 import dev.gkissel.forgeweave.combat.PotionEffectOnHitSeam;
 import dev.gkissel.forgeweave.combat.Protection;
 import dev.gkissel.forgeweave.combat.StackingHitBonus;
+import dev.gkissel.forgeweave.combat.SecondaryDamage;
 import dev.gkissel.forgeweave.combat.StackingSlownessOnHitSeam;
 import dev.gkissel.forgeweave.combat.ThornsReflectSeam;
 import dev.gkissel.forgeweave.entity.ForgeweaveEntities;
@@ -753,8 +754,7 @@ public final class ForgeweaveTraits {
             ShockingCharge charge = shockingCharge(stack, attacker);
             if (charge.isFull()) {
                 LivingEntity target = hit.target();
-                target.invulnerableTime = 0;
-                target.hurt(hit.level().damageSources().lightningBolt(), SHOCKING_DISCHARGE_DAMAGE);
+                SecondaryDamage.deal(target, hit.level().damageSources().lightningBolt(), SHOCKING_DISCHARGE_DAMAGE);
                 attacker.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SPEED, 50, 5));
                 dischargeShockingCharge(stack, hit.level(), target.getX(),
                         target.getY() + target.getBbHeight() * 0.5, target.getZ(), charge);
