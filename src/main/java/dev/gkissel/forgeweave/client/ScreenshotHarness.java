@@ -1253,7 +1253,7 @@ public final class ScreenshotHarness {
      */
     static final Set<Supplier<? extends ToolItem>> OFFHAND_WEAPONS = Set.of(
             ForgeweaveItems.TOOL_CLEAVER, ForgeweaveItems.TOOL_RAPIER, ForgeweaveItems.TOOL_BATTLESIGN,
-            ForgeweaveItems.TOOL_SHORTBOW, ForgeweaveItems.TOOL_LONGBOW);
+            ForgeweaveItems.TOOL_SHORTBOW, ForgeweaveItems.TOOL_LONGBOW, ForgeweaveItems.TOOL_CROSSBOW);
 
     private static void settleWeaponOffhandFirstPerson(Minecraft mc) {
         if (stageTicks < SCREEN_SETTLE_TICKS) {
