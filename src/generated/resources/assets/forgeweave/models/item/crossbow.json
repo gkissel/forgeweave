@@ -103,6 +103,50 @@
       "predicate": {
         "forgeweave:broken": 1.0
       }
+    },
+    {
+      "model": "forgeweave:item/crossbow_modern",
+      "predicate": {
+        "forgeweave:modern_pose": 1.0
+      }
+    },
+    {
+      "model": "forgeweave:item/crossbow_pulling_1_modern",
+      "predicate": {
+        "forgeweave:modern_pose": 1.0,
+        "minecraft:pull": 0.0,
+        "minecraft:pulling": 1.0
+      }
+    },
+    {
+      "model": "forgeweave:item/crossbow_pulling_2_modern",
+      "predicate": {
+        "forgeweave:modern_pose": 1.0,
+        "minecraft:pull": 0.5,
+        "minecraft:pulling": 1.0
+      }
+    },
+    {
+      "model": "forgeweave:item/crossbow_pulling_3_modern",
+      "predicate": {
+        "forgeweave:modern_pose": 1.0,
+        "minecraft:pull": 0.999,
+        "minecraft:pulling": 1.0
+      }
+    },
+    {
+      "model": "forgeweave:item/crossbow_loaded_modern",
+      "predicate": {
+        "forgeweave:loaded": 1.0,
+        "forgeweave:modern_pose": 1.0
+      }
+    },
+    {
+      "model": "forgeweave:item/crossbow_broken_modern",
+      "predicate": {
+        "forgeweave:broken": 1.0,
+        "forgeweave:modern_pose": 1.0
+      }
     }
   ],
   "textures": {

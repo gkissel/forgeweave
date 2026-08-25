@@ -139,6 +139,23 @@ class LeftHandDisplayTransformTest {
                 0, 90, -25, 1.13F, 3.2F, 1.13F, 0.875F, 0.875F, 0.7F);
     }
 
+    /**
+     * Issue #723: the {@code modern} pose set's left entries are vanilla 1.21.1's own
+     * {@code item/bow.json} and {@code item/crossbow.json} entries, verbatim -- the same pre-mirrored
+     * authoring convention, from the other source.
+     */
+    @Test
+    void modernBowPosesLeftEntriesAreVanillasVerbatim() throws IOException {
+        for (String bow : List.of("shortbow", "longbow")) {
+            JsonObject display = displayOf(bow + "_modern");
+            assertTransform(display, "thirdperson_lefthand", -80, -280, 40, -1, -2, 2.5F, 0.9F, 0.9F, 0.9F);
+            assertTransform(display, "firstperson_lefthand", 0, 90, -25, 1.13F, 3.2F, 1.13F, 0.68F, 0.68F, 0.68F);
+        }
+        JsonObject crossbow = displayOf("crossbow_modern");
+        assertTransform(crossbow, "thirdperson_lefthand", -90, 0, 30, 2, 0.1F, -3, 0.9F, 0.9F, 0.9F);
+        assertTransform(crossbow, "firstperson_lefthand", -90, 0, 35, 1.13F, 3.2F, 1.13F, 0.68F, 0.68F, 0.68F);
+    }
+
     /** Issue #693: the crossbow's 1.12 left entries, verbatim like every other tool's (#699). */
     @Test
     void crossbowHeldPosesAreUpstreamsVerbatim() throws IOException {

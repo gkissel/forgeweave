@@ -36,6 +36,11 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
     protected void addTranslations() {
         // #507 -- upstream 1.12's four populated tabs (en_us.lang:919-924, "Tinkers' General
         // Items"/"Tinkers' Tools"/"Tinkers' Toolparts"/"Tinkers' Smeltery").
+        // Issue #723: NeoForge's ConfigurationScreen labels the client config's held-bow-pose entry.
+        add("forgeweave.configuration.heldBowPose", "Held Bow Pose");
+        add("forgeweave.configuration.heldBowPose.tooltip",
+                "How the shortbow, longbow and crossbow are held. Classic is the original 1.12-era pose;"
+                        + " Modern is vanilla's own bow and crossbow pose.");
         add("itemGroup.forgeweave.general", "Forgeweave General Items");
         add("itemGroup.forgeweave.tools", "Forgeweave Tools");
         add("itemGroup.forgeweave.parts", "Forgeweave Tool Parts");

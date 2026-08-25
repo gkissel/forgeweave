@@ -102,7 +102,9 @@ class BrokenToolModelTest {
             for (JsonElement element : overrides) {
                 JsonObject override = element.getAsJsonObject();
                 JsonObject predicate = override.getAsJsonObject("predicate");
-                if (predicate != null && predicate.has(BROKEN_PREDICATE)
+                // The plain {"broken": 1} entry -- a bow also carries a modern_pose-gated one after
+                // it (issue #723), which BowDrawModelTest pins.
+                if (predicate != null && predicate.size() == 1 && predicate.has(BROKEN_PREDICATE)
                         && predicate.get(BROKEN_PREDICATE).getAsInt() == 1) {
                     brokenModel = override.get("model").getAsString();
                 }

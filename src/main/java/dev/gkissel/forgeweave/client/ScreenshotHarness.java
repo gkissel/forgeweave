@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.function.BiConsumer;
 import java.util.function.Supplier;
+import java.util.stream.Stream;
 
 import javax.annotation.Nullable;
 
@@ -79,6 +80,8 @@ import dev.gkissel.forgeweave.block.StationMenuHost;
 import dev.gkissel.forgeweave.block.ToolStationBlockEntity;
 import dev.gkissel.forgeweave.fluid.ForgeweaveFluids;
 import dev.gkissel.forgeweave.item.ArmorPieceItem;
+import dev.gkissel.forgeweave.config.ForgeweaveClientConfig;
+import dev.gkissel.forgeweave.config.HeldBowPose;
 import dev.gkissel.forgeweave.item.BowItem;
 import dev.gkissel.forgeweave.item.CrossbowItem;
 import dev.gkissel.forgeweave.item.ForgeweaveDataComponents;
@@ -310,6 +313,31 @@ public final class ScreenshotHarness {
             new BowPose(ForgeweaveItems.TOOL_CROSSBOW, 0, true, true));
 
     /**
+     * Issue #723: {@link #BOW_POSES} again under {@code heldBowPose = modern}, as {@code
+     * bow_<bow>_<state>_modern[_firstperson].png}, plus each bow's undrawn pose from both cameras
+     * ({@code drawStage} 0, {@code bow_<bow>_idle_modern*.png}) -- the classic undrawn frames are
+     * {@link #WEAPONS}', which runs before the config flips. The config is flipped on the live
+     * spec between the two passes ({@link #holdBowPose}) and restored after, which is exactly what
+     * a player toggling it in the mod-list screen does; no reload is involved because the switch
+     * is an item property ({@code ForgeweaveItemProperties#modernPose}).
+     */
+    static final List<BowPose> MODERN_BOW_POSES = Stream.concat(
+            Stream.of(ForgeweaveItems.TOOL_SHORTBOW, ForgeweaveItems.TOOL_LONGBOW, ForgeweaveItems.TOOL_CROSSBOW)
+                    .map(bow -> new BowPose(bow, 0, false, true)),
+            BOW_POSES.stream()).toList();
+
+    /** Whether {@link #holdBowPose} is on its second, {@link #MODERN_BOW_POSES} pass (#723). */
+    private static boolean modernBowPass;
+
+    private static List<BowPose> bowPoses() {
+        return modernBowPass ? MODERN_BOW_POSES : BOW_POSES;
+    }
+
+    private static String bowPoseFileName() {
+        return bowPoses().get(bowPoseIndex).fileName() + (modernBowPass ? "_modern" : "");
+    }
+
+    /**
      * One {@link #BOW_POSES} frame: which bow, which pull stage (1 to {@link ToolArt#DRAW_STAGES},
      * or 0 for a state that is not a draw), whether the crossbow's {@code loaded} flag is set, and
      * whether the frame is captured from behind as well as from inside the head.
@@ -321,7 +349,7 @@ public final class ScreenshotHarness {
 
         String fileName() {
             String name = BuiltInRegistries.ITEM.getKey(bow.get()).getPath();
-            return "bow_" + name + (loaded ? "_loaded" : "_draw" + drawStage);
+            return "bow_" + name + (loaded ? "_loaded" : drawStage == 0 ? "_idle" : "_draw" + drawStage);
         }
     }
 
@@ -1454,14 +1482,22 @@ public final class ScreenshotHarness {
         if (stageTicks < SCREEN_GAP_TICKS) {
             return;
         }
-        if (bowPoseIndex >= BOW_POSES.size()) {
+        if (bowPoseIndex >= bowPoses().size()) {
+            if (!modernBowPass) {
+                // #723: same scene again under the other setting.
+                modernBowPass = true;
+                bowPoseIndex = 0;
+                ForgeweaveClientConfig.HELD_BOW_POSE.set(HeldBowPose.MODERN);
+                return;
+            }
+            ForgeweaveClientConfig.HELD_BOW_POSE.set(HeldBowPose.DEFAULT);
             advance(Stage.OPEN_SCREEN);
             return;
         }
-        BowPose pose = BOW_POSES.get(bowPoseIndex);
+        BowPose pose = bowPoses().get(bowPoseIndex);
         BowItem bow = pose.bow().get();
         var server = mc.getSingleplayerServer();
-        LOGGER.info("{}holding {} for its first-person capture", LOG_PREFIX, pose.fileName());
+        LOGGER.info("{}holding {} for its first-person capture", LOG_PREFIX, bowPoseFileName());
         mc.options.setCameraType(CameraType.FIRST_PERSON);
         server.execute(() -> {
             ServerPlayer serverPlayer = server.getPlayerList().getPlayers().get(0);
@@ -1497,13 +1533,13 @@ public final class ScreenshotHarness {
         if (stageTicks < SCREEN_SETTLE_TICKS || mc.player == null) {
             return;
         }
-        BowPose pose = BOW_POSES.get(bowPoseIndex);
+        BowPose pose = bowPoses().get(bowPoseIndex);
         BowItem bow = pose.bow().get();
         ItemStack held = mc.player.getMainHandItem();
         if (held.isEmpty() || !held.is(bow)) {
             LOGGER.error("{}#400 scene check FAILED: client sees {} in hand, expected {}",
-                    LOG_PREFIX, held, pose.fileName());
-            capture(mc, pose.fileName() + "_firstperson");
+                    LOG_PREFIX, held, bowPoseFileName());
+            capture(mc, bowPoseFileName() + "_firstperson");
             nextBowPose(mc);
             return;
         }
@@ -1538,7 +1574,7 @@ public final class ScreenshotHarness {
             LOGGER.info("{}#400 scene check: {} loaded={}", LOG_PREFIX, pose.fileName(),
                     ForgeweaveItemProperties.loaded(held));
         }
-        capture(mc, pose.fileName() + "_firstperson");
+        capture(mc, bowPoseFileName() + "_firstperson");
         if (pose.thirdPerson()) {
             mc.options.setCameraType(CameraType.THIRD_PERSON_BACK);
             advance(Stage.SETTLE_BOW_POSE_THIRD_PERSON);
@@ -1560,7 +1596,7 @@ public final class ScreenshotHarness {
         if (stageTicks < SCREEN_SETTLE_TICKS) {
             return;
         }
-        capture(mc, BOW_POSES.get(bowPoseIndex).fileName());
+        capture(mc, bowPoseFileName());
         nextBowPose(mc);
     }
 
