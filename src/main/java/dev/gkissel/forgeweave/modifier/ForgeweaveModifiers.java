@@ -178,6 +178,31 @@ public final class ForgeweaveModifiers {
 
     private static final ResourceLocation BLASTING_ID = id("blasting");
 
+    /** Veinmine (issue #719): each level lets a key-held vein take this many more blocks; see {@code AoeHarvest}. */
+    public static final int VEINMINE_BLOCKS_PER_LEVEL = 4;
+
+    private static final ResourceLocation VEINMINE_ID = id("veinmine");
+
+    /**
+     * Veinmine (issue #719, maintainer decision 2026-08-25; no upstream counterpart): while the
+     * veinmine key is held, a harvest tool takes the connected run of a block its family's
+     * {@code veinmine/<family>} tag whitelists, up to {@link #VEINMINE_BLOCKS_PER_LEVEL} times the
+     * level. Harvest-only like blasting. The behavior lives in {@code AoeHarvest#onBlockBreak},
+     * which reads {@link #veinmineLevel}; the reagent and cap are datapack ({@code veinmine.json}).
+     */
+    public static final Modifier VEINMINE = new Modifier() {
+        @Override
+        public boolean harvestOnly() {
+            return true;
+        }
+    };
+
+    /** Veinmine's level on {@code stack}, or 0 when it has none. */
+    public static int veinmineLevel(ItemStack stack) {
+        ModifierEntry entry = entry(stack, VEINMINE_ID);
+        return entry == null ? 0 : entry.level();
+    }
+
     /**
      * Blasting (parity audit T24, upstream {@code tools/modifiers/ModBlasting.java}): three TNT per
      * level, harvest tools only, and it turns the tool into a demolition charge -- blocks it is not
@@ -1314,7 +1339,8 @@ public final class ForgeweaveModifiers {
             Map.entry(id("beheading"), BEHEADING),
             Map.entry(id("wind_burst"), WIND_BURST),
             Map.entry(id("glowing"), GLOWING),
-            Map.entry(id("blasting"), BLASTING));
+            Map.entry(id("blasting"), BLASTING),
+            Map.entry(id("veinmine"), VEINMINE));
 
     /**
      * docs/SCOPE.md's "8 combat modifiers" (M3 acceptance test 4): the #162/#163 batches' seven
@@ -1631,6 +1657,8 @@ public final class ForgeweaveModifiers {
             Map.entry(id("beheading"), TextColor.fromRgb(0x10574B)),
             Map.entry(id("glowing"), TextColor.fromRgb(0xFFFFAA)),
             Map.entry(id("blasting"), TextColor.fromRgb(0xFFAA23)),
+            // #719 veinmine: no upstream class; its reagent's (prismarine) colour.
+            Map.entry(id("veinmine"), TextColor.fromRgb(0x63C5B5)),
             // Upstream has no modifier for these; the trait of the same name is the nearest source
             // (searing <- TraitAutosmelt 0xff5500, magnetic_pull <- TraitMagnetic 0xdddddd,
             // aquadynamic <- TraitAquadynamic AQUA), the rest are this ticket's own picks.

@@ -98,10 +98,10 @@ class BlastingTest {
 
     /** {@code ModifierAspect.harvestOnly}, and the only shipped modifier that carries it. */
     @Test
-    void blastingIsTheOneHarvestOnlyModifier() {
+    void blastingAndVeinmineAreTheOnlyHarvestOnlyModifiers() {
         assertTrue(ForgeweaveModifiers.BLASTING.harvestOnly());
         for (ResourceLocation id : ForgeweaveModifiers.ids()) {
-            if (!id.equals(BLASTING)) {
+            if (!id.equals(BLASTING) && !id.getPath().equals("veinmine")) { // #719
                 assertFalse(ForgeweaveModifiers.get(id).harvestOnly(), id + " unexpectedly harvest-only");
             }
         }
