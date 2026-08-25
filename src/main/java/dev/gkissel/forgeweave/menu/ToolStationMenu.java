@@ -696,17 +696,24 @@ public class ToolStationMenu extends StationMenu {
         int sideEnd = CONTAINER_SLOTS + sideInventorySlotCount;
         int playerInvEnd = sideEnd + 36;
 
-        if (index < CONTAINER_SLOTS) { // head/binding/handle/output -> player inventory
-            if (!moveItemStackTo(stackInSlot, CONTAINER_SLOTS, playerInvEnd, true)) {
-                return ItemStack.EMPTY;
-            }
-        } else if (index < sideEnd) { // side inventory -> player inventory
-            if (!moveItemStackTo(stackInSlot, sideEnd, playerInvEnd, false)) {
-                return ItemStack.EMPTY;
-            }
-        } else if (!moveItemStackTo(stackInSlot, HEAD_SLOT, INPUT_SLOTS, false)) {
-            // The per-slot filters live in mayPlace, which moveItemStackTo already consults, so the
-            // selected tab decides where (and whether) a shift-clicked stack lands.
+        // Destination order is upstream 1.12's ContainerMultiModule#transferStackInSlot (issue #722);
+        // each leg runs even after a partial move, and only a fully untouched stack is a no-op. The
+        // per-slot filters live in mayPlace, which moveItemStackTo already consults, so the selected
+        // tab decides where (and whether) a stack lands in the input slots.
+        // Maintainer deviation (#722): upstream first tops up stacks the side chest already holds;
+        // here the player inventory always comes before the chest, even for a matching stack.
+        boolean moved;
+        if (index < CONTAINER_SLOTS) { // inputs/output -> player inventory, then side chest
+            moved = moveItemStackTo(stackInSlot, sideEnd, playerInvEnd, true)
+                    | moveItemStackTo(stackInSlot, CONTAINER_SLOTS, sideEnd, false);
+        } else if (index < sideEnd) { // side inventory -> input slots, then player inventory
+            moved = moveItemStackTo(stackInSlot, HEAD_SLOT, INPUT_SLOTS, false)
+                    | moveItemStackTo(stackInSlot, sideEnd, playerInvEnd, false);
+        } else { // player inventory -> input slots, then side inventory
+            moved = moveItemStackTo(stackInSlot, HEAD_SLOT, INPUT_SLOTS, false)
+                    | moveItemStackTo(stackInSlot, CONTAINER_SLOTS, sideEnd, false);
+        }
+        if (!moved) {
             return ItemStack.EMPTY;
         }
 

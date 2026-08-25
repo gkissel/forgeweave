@@ -144,4 +144,71 @@ public class CraftingStationGameTests {
 
         helper.succeed();
     }
+
+    /**
+     * Issue #722 (maintainer decision): shift-clicking the output goes to the player inventory
+     * before the side chest, so a crafted stack never lands in the chest while the player has room.
+     * Upstream 1.12 ({@code ContainerMultiModule#transferStackInSlot}, Mantle) agrees except that it
+     * first tops up a matching stack the chest already holds; the maintainer waived that nuance.
+     * Guards the ordering rather than reproducing a defect: the reverse merge was already player-first.
+     */
+    @GameTest(template = "empty")
+    public static void shiftClickingTheOutputPrefersThePlayerInventoryOverTheSideChest(GameTestHelper helper) {
+        BlockPos stationPos = new BlockPos(1, 1, 1);
+        BlockPos chestPos = stationPos.east();
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        helper.setBlock(chestPos, Blocks.CHEST);
+        CraftingStationMenu menu = openMenu(helper, stationPos, player);
+        helper.assertTrue(menu.sideInventorySlotCount > 0, "expected the adjacent chest to be detected as a side inventory");
+
+        menu.getSlot(0).set(new ItemStack(Items.OAK_PLANKS));
+        menu.getSlot(3).set(new ItemStack(Items.OAK_PLANKS));
+        menu.broadcastChanges();
+
+        menu.clicked(CraftingStationMenu.GRID_SLOTS, 0, ClickType.QUICK_MOVE, player);
+
+        int sticks = player.getInventory().items.stream()
+                .filter(stack -> stack.is(Items.STICK))
+                .mapToInt(ItemStack::getCount).sum();
+        helper.assertTrue(sticks == 4, "expected 4 sticks in the player inventory, got " + sticks);
+        ChestBlockEntity chest = helper.getBlockEntity(chestPos);
+        helper.assertTrue(chest.isEmpty(), "expected the side chest to stay empty, got " + chest.getItem(0));
+
+        helper.succeed();
+    }
+
+    /**
+     * Issue #722: shift-clicking an item in the side chest feeds the grid before the player
+     * inventory -- upstream's {@code ContainerMultiModule#transferStackInSlot} moves a
+     * sub-container (side chest) stack into the tile inventory first.
+     */
+    @GameTest(template = "empty")
+    public static void shiftClickingTheSideChestFeedsTheGrid(GameTestHelper helper) {
+        BlockPos stationPos = new BlockPos(1, 1, 1);
+        BlockPos chestPos = stationPos.east();
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        helper.setBlock(chestPos, Blocks.CHEST);
+        ChestBlockEntity chest = helper.getBlockEntity(chestPos);
+        chest.setItem(0, new ItemStack(Items.OAK_PLANKS, 3));
+        CraftingStationMenu menu = openMenu(helper, stationPos, player);
+
+        int chestSlot = -1;
+        for (int i = CraftingStationMenu.CONTAINER_SLOTS; i < CraftingStationMenu.CONTAINER_SLOTS + menu.sideInventorySlotCount; i++) {
+            if (menu.getSlot(i).getItem().is(Items.OAK_PLANKS)) {
+                chestSlot = i;
+                break;
+            }
+        }
+        helper.assertTrue(chestSlot >= 0, "expected the chest's planks to be visible through a side-inventory slot");
+
+        menu.clicked(chestSlot, 0, ClickType.QUICK_MOVE, player);
+
+        ItemStack gridSlot = menu.getSlot(0).getItem();
+        helper.assertTrue(gridSlot.is(Items.OAK_PLANKS) && gridSlot.getCount() == 3,
+                "expected the planks in the first grid slot, got " + gridSlot);
+        helper.assertTrue(!player.getInventory().contains(new ItemStack(Items.OAK_PLANKS)),
+                "expected the planks to skip the player inventory");
+
+        helper.succeed();
+    }
 }

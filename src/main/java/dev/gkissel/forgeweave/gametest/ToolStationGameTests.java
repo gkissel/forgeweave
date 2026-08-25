@@ -11,6 +11,7 @@ import net.minecraft.network.chat.contents.TranslatableContents;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.inventory.ClickType;
 import net.minecraft.world.inventory.ContainerLevelAccess;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -550,6 +551,47 @@ public class ToolStationGameTests {
                 "a menu opened later must seed its name from the station, got '" + thirdMenu.getToolName() + "'");
         helper.assertTrue(thirdMenu.getSelectedTab() == shovelTab,
                 "a menu opened later must seed its tab from the station, got " + thirdMenu.getSelectedTab());
+        helper.succeed();
+    }
+
+    /**
+     * Issue #722: shift-clicking an item in the side chest feeds the station's own input slots
+     * first. Upstream 1.12 ({@code ContainerMultiModule#transferStackInSlot}, Mantle) moves a
+     * sub-container (side chest) stack into the tile inventory before the player inventory.
+     */
+    @GameTest(template = "empty")
+    public static void shiftClickingTheSideChestFeedsTheStationInputSlots(GameTestHelper helper) {
+        BlockPos stationPos = new BlockPos(1, 1, 1);
+        BlockPos chestPos = stationPos.east();
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        ItemStack pickaxe = ToolAssembly.pickaxe(helper, player, new BlockPos(1, 1, 4), "stone", "wood", "wood");
+
+        helper.setBlock(chestPos, Blocks.CHEST);
+        helper.setBlock(stationPos, ForgeweaveBlocks.TOOL_STATION.get());
+        ChestBlockEntity chest = helper.getBlockEntity(chestPos);
+        chest.setItem(0, pickaxe.copy());
+
+        ToolStationBlockEntity blockEntity = helper.getBlockEntity(stationPos);
+        ToolStationMenu menu = new ToolStationMenu(0, player.getInventory(), blockEntity.container(),
+                ContainerLevelAccess.create(helper.getLevel(), helper.absolutePos(stationPos)), blockEntity.findSideInventory(), blockEntity.isForge());
+        helper.assertTrue(menu.sideInventorySlotCount > 0, "expected the adjacent chest to be detected as a side inventory");
+
+        int chestSlot = -1;
+        for (int i = ToolStationMenu.CONTAINER_SLOTS; i < ToolStationMenu.CONTAINER_SLOTS + menu.sideInventorySlotCount; i++) {
+            if (!menu.getSlot(i).getItem().isEmpty()) {
+                chestSlot = i;
+                break;
+            }
+        }
+        helper.assertTrue(chestSlot >= 0, "expected the chest's pickaxe to be visible through a side-inventory slot");
+
+        menu.clicked(chestSlot, 0, ClickType.QUICK_MOVE, player);
+
+        helper.assertTrue(menu.getSlot(ToolStationMenu.HEAD_SLOT).getItem().is(ForgeweaveItems.TOOL_PICKAXE.get()),
+                "expected the pickaxe in the repair tab's tool slot, got " + menu.getSlot(ToolStationMenu.HEAD_SLOT).getItem());
+        helper.assertTrue(!player.getInventory().contains(pickaxe),
+                "expected the pickaxe to skip the player inventory");
+
         helper.succeed();
     }
 }
