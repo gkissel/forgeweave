@@ -583,6 +583,12 @@ public final class ForgeweaveItems {
     // brick (TinkerCommons#mudBrick, "materials" item meta 1, NOTICE.md) -- cast at a Casting Table
     // from molten dirt, and crafted 2x2 into the mud brick block below.
     public static final DeferredItem<Item> MUD_BRICK = ITEMS.registerSimpleItem("mud_brick");
+
+    // #727: nahuatl board -- molten obsidian poured over any planks at a Casting Table or Basin
+    // (the 1.20 clone's obsidian/nahuatl basin recipe, SmelteryRecipeProvider:1403-1406, as an item
+    // instead of a planks block). Nahuatl's only Part Builder crafting item, one ingot of value each
+    // (MaterialRecipeProvider:170), so nahuatl plating and maille become obtainable.
+    public static final DeferredItem<Item> NAHUATL_BOARD = ITEMS.registerSimpleItem("nahuatl_board");
     public static final DeferredItem<BlockItem> MUD_BRICK_BLOCK =
             ITEMS.registerSimpleBlockItem("mud_brick_block", ForgeweaveBlocks.MUD_BRICK_BLOCK);
 

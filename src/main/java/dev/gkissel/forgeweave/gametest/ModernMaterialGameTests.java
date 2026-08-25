@@ -12,6 +12,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.material.Fluid;
 
@@ -88,6 +89,49 @@ public class ModernMaterialGameTests {
                     "expected the part to come out in nahuatl");
             helper.assertTrue(table.input().isEmpty(), "the wood part is the cast and consumes_cast clears it");
         });
+    }
+
+    /**
+     * #727: the nahuatl board -- the 1.20 clone's {@code obsidian/nahuatl} basin recipe
+     * ({@code SmelteryRecipeProvider:1403-1406}: 250 mB obsidian over any {@code minecraft:planks},
+     * planks consumed) as an item. Same budget as the composite test above.
+     */
+    @GameTest(template = "empty", timeoutTicks = 600)
+    public static void pouringObsidianOverPlanksCastsANahuatlBoard(GameTestHelper helper) {
+        CastingBlockEntity table = rig(helper, ForgeweaveFluids.OBSIDIAN.still().get());
+        insert(helper, table, new ItemStack(Items.OAK_PLANKS));
+        faucet(helper).activate();
+
+        helper.succeedWhen(() -> {
+            helper.assertTrue(table.output().is(ForgeweaveItems.NAHUATL_BOARD.get()),
+                    "expected a nahuatl board in the output slot, found " + table.output());
+            helper.assertTrue(table.input().isEmpty(), "the planks are the cast and consumes_cast clears them");
+        });
+    }
+
+    /**
+     * #727: the board is nahuatl's Part Builder crafting item (one ingot of value, the clone's
+     * {@code MaterialRecipeProvider:170}), so six boards pay a chestplate plating and two a maille
+     * -- the parts the composite flow could never reach because wood has no plating or maille.
+     */
+    @GameTest(template = "empty")
+    public static void partBuilderStampsNahuatlPlatingAndMailleFromBoards(GameTestHelper helper) {
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        ResourceLocation nahuatl = ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "nahuatl");
+
+        ItemStack plating = ArmorPartGameTests.craft(helper, player, ForgeweaveItems.PATTERN_PLATING_CHESTPLATE.get(),
+                new ItemStack(ForgeweaveItems.NAHUATL_BOARD.get(), 6));
+        helper.assertTrue(plating.is(ForgeweaveItems.PART_PLATING_CHESTPLATE.get()),
+                "expected a nahuatl chestplate plating, got " + plating);
+        helper.assertTrue(nahuatl.equals(plating.get(ForgeweaveDataComponents.MATERIAL.get())),
+                "expected forgeweave:nahuatl, got " + plating.get(ForgeweaveDataComponents.MATERIAL.get()));
+
+        ItemStack maille = ArmorPartGameTests.craft(helper, player, ForgeweaveItems.PATTERN_MAILLE.get(),
+                new ItemStack(ForgeweaveItems.NAHUATL_BOARD.get(), 2));
+        helper.assertTrue(maille.is(ForgeweaveItems.PART_MAILLE.get()), "expected a nahuatl maille, got " + maille);
+        helper.assertTrue(nahuatl.equals(maille.get(ForgeweaveDataComponents.MATERIAL.get())),
+                "expected forgeweave:nahuatl, got " + maille.get(ForgeweaveDataComponents.MATERIAL.get()));
+        helper.succeed();
     }
 
     /**

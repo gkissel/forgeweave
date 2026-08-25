@@ -27,11 +27,12 @@
       "forgeweave:lacerating"
     ]
   },
-  "crafting_items": [],
+  "crafting_items": [
+    { "ingredient": { "item": "forgeweave:nahuatl_board" }, "value": 144 }
+  ],
   "repair_item": {
     "item": "minecraft:obsidian"
   },
-  "cast_only": true,
   "enchantability": 12,
   "color": "#3B2754"
 }

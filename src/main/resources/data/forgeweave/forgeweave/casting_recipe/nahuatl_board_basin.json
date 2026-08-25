@@ -1,0 +1,12 @@
+{
+  "station": "basin",
+  "cast": {
+    "tag": "minecraft:planks"
+  },
+  "fluid": "forgeweave:molten_obsidian",
+  "amount": 250,
+  "result": {
+    "id": "forgeweave:nahuatl_board"
+  },
+  "consumes_cast": true
+}
