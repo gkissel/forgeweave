@@ -237,6 +237,42 @@ public class MetalTraitGameTests {
                 .thenSucceed();
     }
 
+    /**
+     * Issue #694: the pull must flag the item as impulsed so the server syncs the new motion to
+     * clients right away. Items sync position/velocity only every 20 ticks
+     * ({@code EntityType.ITEM}'s {@code updateInterval}) unless {@code Entity#hasImpulse} is set, and
+     * {@code ItemEntity#tick} only self-flags when its own tick changed velocity by more than 0.1
+     * blocks/tick -- a 0.07 pull never does. On a dedicated server the client kept simulating its
+     * own gravity between syncs, so the pull looked horizontal-only and jumped every 20 ticks.
+     */
+    @GameTest(template = "empty", timeoutTicks = 1200)
+    public static void magneticPullFlagsItemsForClientSync(GameTestHelper helper) {
+        ServerLevel level = helper.getLevel();
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        BlockPos pos = helper.absolutePos(new BlockPos(2, 2, 2));
+        player.setPos(pos.getX() + 0.5, pos.getY(), pos.getZ() + 0.5);
+        ItemStack pickaxe = pickaxe(List.of(traitId("magnetic2")), 100, 1.0F, 1.0F);
+        ForgeweaveTraits.afterBlockBreak(pickaxe, level, Blocks.STONE.defaultBlockState(), BlockPos.ZERO, player, true);
+
+        ItemEntity item = new ItemEntity(level, player.getX() + 1.0, player.getY(), player.getZ(),
+                new ItemStack(Items.COBBLESTONE));
+        item.setDeltaMovement(Vec3.ZERO);
+        level.addFreshEntity(item);
+
+        helper.startSequence()
+                .thenWaitUntil(() -> SpawnCapture.assertIndexServes(helper, item))
+                .thenExecute(() -> {
+                    item.hasImpulse = false;
+                    pickaxe.getItem().inventoryTick(pickaxe, level, player, 0, false);
+                    helper.assertTrue(item.getDeltaMovement().x < -0.06,
+                            "the item should have been pulled, got " + item.getDeltaMovement());
+                    helper.assertTrue(item.hasImpulse,
+                            "the pull must set hasImpulse so the server syncs the item's motion to clients");
+                    item.discard();
+                })
+                .thenSucceed();
+    }
+
     /** Cobalt, head only -&gt; {@code forgeweave:momentum}: mining speed builds up and decays. */
     @GameTest(template = "empty")
     public static void momentumBuildsAndDecaysMiningSpeed(GameTestHelper helper) {

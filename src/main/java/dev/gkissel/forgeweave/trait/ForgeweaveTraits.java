@@ -323,7 +323,12 @@ public final class ForgeweaveTraits {
             }
             Vec3 delta = center.subtract(item.position());
             if (delta.lengthSqr() > 1.0e-6) {
-                item.setDeltaMovement(item.getDeltaMovement().add(delta.normalize().scale(MAGNETIC_STRENGTH)));
+                // Entity#push, not setDeltaMovement: it also sets hasImpulse, without which the
+                // server only syncs an item's motion every 20 ticks (EntityType.ITEM updateInterval)
+                // and ItemEntity#tick only self-flags on velocity changes > 0.1/tick -- a 0.07 pull
+                // never does. Issue #694: on a dedicated server the client simulated its own gravity
+                // between syncs, so the pull looked horizontal-only and jumped every 20 ticks.
+                item.push(delta.normalize().scale(MAGNETIC_STRENGTH));
             }
             pulled++;
         }
