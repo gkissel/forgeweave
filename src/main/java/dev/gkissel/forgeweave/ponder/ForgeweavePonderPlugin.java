@@ -46,6 +46,14 @@ public final class ForgeweavePonderPlugin implements PonderPlugin {
         // stations and structures are follow-up issues, one addStoryBoard line each.
         helper.addStoryBoard(ForgeweaveItems.STANDARD_CORE.getId(), "smeltery",
                 ForgeweaveSmelteryScenes::assembly);
+        // #700 -- the size variants (and the #369 stairs/slab rule) as the core's second scene, and
+        // the drain -> faucet -> channel -> casting pour on the two blocks it teaches. Two plain
+        // addStoryBoard lines rather than forComponents(): the scene id is the same, so Ponder's
+        // lang extraction sees one "casting" scene either way.
+        helper.addStoryBoard(ForgeweaveItems.STANDARD_CORE.getId(), "smeltery_sizes",
+                ForgeweaveSmelteryScenes::sizes);
+        helper.addStoryBoard(ForgeweaveItems.FAUCET.getId(), "casting", ForgeweaveCastingScenes::pouring);
+        helper.addStoryBoard(ForgeweaveItems.SEARED_CHANNEL.getId(), "casting", ForgeweaveCastingScenes::pouring);
         // #682 (M4-7, D21) -- armor assembly, on the Tool Station's item.
         helper.addStoryBoard(ForgeweaveBlocks.TOOL_STATION.getId(), "tool_station",
                 ForgeweaveArmorScenes::assembly);

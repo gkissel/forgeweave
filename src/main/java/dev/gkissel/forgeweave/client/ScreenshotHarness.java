@@ -392,8 +392,13 @@ public final class ScreenshotHarness {
         SETTLE_ARMOR_FIRST_PERSON,
         HOLD_BOW_POSE, SETTLE_BOW_POSE, SETTLE_BOW_POSE_THIRD_PERSON,
         FIRE_BOW_SETUP, FIRE_BOW_DRAW, FIRE_BOW_CHECK,
-        OPEN_SCREEN, SETTLE_SCREEN, OPEN_BOOK, SETTLE_BOOK, DONE
+        OPEN_SCREEN, SETTLE_SCREEN, OPEN_BOOK, SETTLE_BOOK, OPEN_PONDER, SETTLE_PONDER, DONE
     }
+
+    /** Ceiling on waiting for a Ponder scene's finished frame; the longest scene runs about 900 ticks. */
+    private static final int PONDER_SCENE_TIMEOUT_TICKS = 1500;
+    /** Which of {@link PonderHarnessCaptures#CAPTURES} is playing (#700). */
+    private static int ponderCaptureIndex;
 
     private static Stage stage = Stage.AWAIT_TITLE;
     private static int stageTicks;
@@ -493,6 +498,8 @@ public final class ScreenshotHarness {
             case SETTLE_SCREEN -> settleScreen(mc);
             case OPEN_BOOK -> openBook(mc);
             case SETTLE_BOOK -> settleBook(mc);
+            case OPEN_PONDER -> openPonder(mc);
+            case SETTLE_PONDER -> settlePonder(mc);
             case DONE -> {}
         }
     }
@@ -1714,10 +1721,7 @@ public final class ScreenshotHarness {
             return;
         }
         if (bookSceneIndex >= BOOK_SCENES.size()) {
-            LOGGER.info("{}all {} screens and {} book scenes captured, exiting", LOG_PREFIX,
-                    SCREENS.size(), BOOK_SCENES.size());
-            mc.stop();
-            advance(Stage.DONE);
+            advance(Stage.OPEN_PONDER);
             return;
         }
         BookScene scene = BOOK_SCENES.get(bookSceneIndex);
@@ -1742,6 +1746,45 @@ public final class ScreenshotHarness {
         }
         bookSceneIndex++;
         advance(Stage.OPEN_BOOK);
+    }
+
+    /**
+     * #700: every Ponder scene, opened through Ponder's own UI and captured on its finished frame --
+     * the one frame that shows the whole structure, every directional block included, from the
+     * default camera. See {@link PonderHarnessCaptures}.
+     */
+    private static void openPonder(Minecraft mc) {
+        if (stageTicks < SCREEN_GAP_TICKS) {
+            return;
+        }
+        if (ponderCaptureIndex >= PonderHarnessCaptures.CAPTURES.size()) {
+            LOGGER.info("{}all {} screens, {} book scenes and {} ponder scenes captured, exiting", LOG_PREFIX,
+                    SCREENS.size(), BOOK_SCENES.size(), PonderHarnessCaptures.CAPTURES.size());
+            mc.stop();
+            advance(Stage.DONE);
+            return;
+        }
+        PonderHarnessCaptures.Capture capture = PonderHarnessCaptures.CAPTURES.get(ponderCaptureIndex);
+        LOGGER.info("{}opening ponder scene {}", LOG_PREFIX, capture.fileName());
+        PonderHarnessCaptures.open(capture);
+        advance(Stage.SETTLE_PONDER);
+    }
+
+    private static void settlePonder(Minecraft mc) {
+        if (!PonderHarnessCaptures.finished(mc) && stageTicks < PONDER_SCENE_TIMEOUT_TICKS) {
+            return;
+        }
+        PonderHarnessCaptures.Capture capture = PonderHarnessCaptures.CAPTURES.get(ponderCaptureIndex);
+        if (!PonderHarnessCaptures.finished(mc)) {
+            LOGGER.error("{}ponder scene {} never reached its finished frame; capturing it as is", LOG_PREFIX,
+                    capture.fileName());
+        }
+        capture(mc, capture.fileName());
+        if (mc.screen != null) {
+            mc.screen.onClose();
+        }
+        ponderCaptureIndex++;
+        advance(Stage.OPEN_PONDER);
     }
 
     private static void capture(Minecraft mc, String fileName) {
