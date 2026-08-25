@@ -40,13 +40,10 @@ public record ThornsReflectSeam(float heldFraction) implements CombatSeam {
         if (reflected <= 0.0F) {
             return damage;
         }
-        int invulnerableTime = attacker.invulnerableTime;
-        attacker.invulnerableTime = 0;
-        if (attacker.hurt(ForgeweaveInnates.armorBypassing(defense.level(), defense.defender()), reflected)) {
+        if (SecondaryDamage.deal(attacker, ForgeweaveInnates.armorBypassing(defense.level(), defense.defender()), reflected)) {
             // #482 -- upstream's single cactus heart over whoever got thorned, on the same gate.
             ForgeweaveParticles.spawnHearts(ForgeweaveParticles.HEART_CACTUS.get(), defense.level(), attacker, 1);
         }
-        attacker.invulnerableTime = invulnerableTime;
         return damage;
     }
 

@@ -50,8 +50,8 @@ import dev.gkissel.forgeweave.particle.ForgeweaveParticles;
  *       tick's weapon and every tick re-ran the tool's seams -- a hellish wielder bled for 1 + 4.
  *   <li><b>No invulnerability-window games</b>: upstream saves {@code hurtResistantTime}, deals the
  *       tick ignoring it, and restores it -- so a bleed tick neither gets swallowed by the window a
- *       real blow just opened nor grants a window that would shield the target from real blows. The
- *       zero-then-restore below is the same maneuver on 1.21's {@code invulnerableTime}.
+ *       real blow just opened nor grants a window that would shield the target from real blows.
+ *       {@link SecondaryDamage} is the same maneuver on 1.21's {@code invulnerableTime} and {@code lastHurt}.
  * </ul>
  */
 public class BleedEffect extends MobEffect {
@@ -95,17 +95,14 @@ public class BleedEffect extends MobEffect {
         DamageSource source = attacker != null
                 ? new DamageSource(indirectMagic(entity), null, attacker)
                 : entity.damageSources().magic();
-        int invulnerableTime = entity.invulnerableTime;
-        entity.invulnerableTime = 0;
         AttributeInstance knockbackResistance = disableKnockback(entity);
-        entity.hurt(source, DAMAGE_PER_TICK);
+        SecondaryDamage.deal(entity, source, DAMAGE_PER_TICK);
         // #482 -- upstream TraitSharp#dealDamage puts one blood heart over the target on every tick,
         // ungated (it spawns the particle after attackEntitySecondary without reading its result).
         if (entity.level() instanceof ServerLevel level) {
             ForgeweaveParticles.spawnHearts(ForgeweaveParticles.HEART_BLOOD.get(), level, entity, 1);
         }
         enableKnockback(knockbackResistance);
-        entity.invulnerableTime = invulnerableTime;
         return true;
     }
 

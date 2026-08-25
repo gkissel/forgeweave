@@ -29,8 +29,7 @@ public final class IgniteOnHitSeam implements CombatSeam {
         LivingEntity target = hit.target();
         target.igniteForSeconds(fireSeconds);
         if (trueDamage > 0.0F) {
-            target.invulnerableTime = 0;
-            if (target.hurt(hit.level().damageSources().onFire(), trueDamage)) {
+            if (SecondaryDamage.deal(target, hit.level().damageSources().onFire(), trueDamage)) {
                 // #482 -- upstream ModFiery#dealFireDamage: one fire heart per point of the burn it
                 // just landed ({@code Math.round(fireDamage)}), on the same "did the hit land" gate.
                 ForgeweaveParticles.spawnHearts(ForgeweaveParticles.HEART_FIRE.get(), hit.level(), target,
