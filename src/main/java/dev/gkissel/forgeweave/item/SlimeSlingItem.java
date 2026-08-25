@@ -24,7 +24,7 @@ import dev.gkissel.forgeweave.sound.ForgeweaveSounds;
  * The Slimesling (parity audit T22, issue #453) -- upstream 1.12's
  * {@code gadgets/item/ItemSlimeSling} (NOTICE.md). Charge it like a bow while standing on the
  * ground, aim at a block, and release: the player is flung along the <em>inverted</em> look vector,
- * at a third of that force vertically, and {@link SlimeBounceHandler} keeps the momentum through the
+ * at {@link #VERTICAL_SCALE} of that force vertically and {@link #HORIZONTAL_SCALE} horizontally (#698), and {@link SlimeBounceHandler} keeps the momentum through the
  * flight.
  *
  * <p>Upstream ships one sling per slime colour ({@code SlimeType} metadata subtypes, all named
@@ -39,6 +39,14 @@ public class SlimeSlingItem extends Item {
 
     /** Upstream's {@code if(f > 6f) f = 6f;} -- roughly 1.35s of charge reaches it. */
     public static final float MAX_FORCE = 6.0F;
+
+    /**
+     * Issue #698, maintainer tuning (beta.1 checklist §16) over upstream's {@code x * -f, y * -f / 3f,
+     * z * -f}: horizontal launch force down 15 % (1.0 -> 0.85), vertical up 60 % (1/3 -> 1.6/3).
+     * Shared by every coloured sling.
+     */
+    public static final float HORIZONTAL_SCALE = 0.85F;
+    public static final float VERTICAL_SCALE = 1.6F / 3.0F;
 
     public SlimeSlingItem(Properties properties) {
         super(properties.stacksTo(1));
@@ -93,7 +101,8 @@ public class SlimeSlingItem extends Item {
 
         float force = launchForce(USE_DURATION - timeLeft);
         Vec3 look = player.getLookAngle().normalize();
-        player.push(look.x * -force, look.y * -force / 3.0F, look.z * -force);
+        player.push(look.x * -force * HORIZONTAL_SCALE, look.y * -force * VERTICAL_SCALE,
+                look.z * -force * HORIZONTAL_SCALE);
         player.hurtMarked = true;
         player.playSound(ForgeweaveSounds.SLIME_SLING.get(), 1.0F, 1.0F);
         SlimeBounceHandler.addBounceHandler(player);

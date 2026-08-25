@@ -59,6 +59,13 @@ class SlimeSlingTest {
         assertEquals(6.0F, SlimeSlingItem.launchForce(72000), 1.0E-6F);
     }
 
+    /** Issue #698: maintainer tuning over upstream's 1.0 / (1/3) -- horizontal -15 %, vertical +60 %. */
+    @Test
+    void theLaunchScalesAreTheBetaOneTuning() {
+        assertEquals(0.85F, SlimeSlingItem.HORIZONTAL_SCALE, 1.0E-6F);
+        assertEquals(1.6F / 3.0F, SlimeSlingItem.VERTICAL_SCALE, 1.0E-6F);
+    }
+
     @Test
     void theSlingChargesLikeABowAndDoesNotStack() {
         ItemStack stack = new ItemStack(ForgeweaveItems.SLIME_SLING.get());
