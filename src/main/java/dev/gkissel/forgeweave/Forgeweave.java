@@ -65,6 +65,7 @@ import dev.gkissel.forgeweave.recipe.MeltingRecipe;
 import dev.gkissel.forgeweave.recipe.SmelteryFuel;
 import dev.gkissel.forgeweave.sound.ForgeweaveSounds; // #453
 import dev.gkissel.forgeweave.tool.AoeHarvest;
+import dev.gkissel.forgeweave.tool.VeinmineKey;
 import dev.gkissel.forgeweave.trait.ForgeweaveTraits;
 import dev.gkissel.forgeweave.worldgen.MagmaSlimeIslandPiece; // #450
 import dev.gkissel.forgeweave.worldgen.MagmaSlimeIslandStructure; // #450
@@ -188,6 +189,8 @@ public class Forgeweave {
         // #299 -- the lumber axe's tree fell spreads over ticks rather than felling the whole trunk
         // synchronously; this drains each in-flight chop's budget every level tick. See AoeHarvest.
         NeoForge.EVENT_BUS.addListener(AoeHarvest::onLevelTick);
+        // #719 -- the veinmine key's server-side held flag is dropped when its player leaves.
+        NeoForge.EVENT_BUS.addListener(VeinmineKey::onLogout);
         // established's kill-XP bonus (issue #102): no Item hook for a kill's dropped XP either.
         NeoForge.EVENT_BUS.addListener(ForgeweaveTraits::onExperienceDrop);
         // established's block-break XP bonus (issue #494/T63), riding the same BlockDropsEvent seam
@@ -278,6 +281,7 @@ public class Forgeweave {
     private void registerPayloads(final RegisterPayloadHandlersEvent event) {
         RenameStationItemPayload.register(event.registrar("1"));
         SavedBookPagePayload.register(event.registrar("1"));
+        VeinmineKey.Payload.register(event.registrar("1"));
     }
 
     private void commonSetup(final FMLCommonSetupEvent event) {

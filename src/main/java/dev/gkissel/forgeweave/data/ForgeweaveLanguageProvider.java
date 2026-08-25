@@ -37,6 +37,9 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         // #507 -- upstream 1.12's four populated tabs (en_us.lang:919-924, "Tinkers' General
         // Items"/"Tinkers' Tools"/"Tinkers' Toolparts"/"Tinkers' Smeltery").
         add("itemGroup.forgeweave.general", "Forgeweave General Items");
+        // #719 -- the veinmine hold-key in vanilla's Controls menu (client/VeinmineKeyMapping).
+        add("key.categories.forgeweave", "Forgeweave");
+        add("key.forgeweave.veinmine", "Vein Mine (hold)");
         add("itemGroup.forgeweave.tools", "Forgeweave Tools");
         add("itemGroup.forgeweave.parts", "Forgeweave Tool Parts");
         add("itemGroup.forgeweave.smeltery", "Forgeweave Smeltery");
@@ -1140,6 +1143,12 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
                         + "level is another third of a chance the drops go up with them.");
         add("modifier.forgeweave.blasting.extra", "Blast Power: %s");
 
+        // #719 -- veinmine. No upstream counterpart; the wording is this PR's own.
+        add("modifier.forgeweave.veinmine.name", "Veinmine");
+        add("modifier.forgeweave.veinmine.description",
+                "Hold the Vein Mine key to take a whole run of ore, logs or soil in one swing -- "
+                        + "four more blocks per level.");
+
         // #653 -- fins. Upstream modifier.fins.name/.desc ("Something's fishy... Attaching fins to
         // the projectiles makes them travel like normal underwater"), the flavour line folded into
         // the description as glowing's is.
@@ -1887,6 +1896,9 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
                 "Breaks blocks fast", "AOE Tools harvest uneffective blocks too",
                 "Will likely destroy harvested blocks", "Requires only 1 modifier",
                 "Multiple levels");
+        modifierEffects("veinmine",
+                "Hold the Vein Mine key to mine connected blocks", "Ores, logs and soil only",
+                "4 blocks per level", "Does not work for weapons", "Multiple levels");
         modifierEffects("beheading",
                 "Enemies drop their heads",
                 "Adding more Obsidian increases the chance of decapitation", "Multiple levels");

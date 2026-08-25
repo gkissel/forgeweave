@@ -49,6 +49,7 @@ import dev.gkissel.forgeweave.item.ForgeweaveItems;
 import dev.gkissel.forgeweave.item.ToolItem;
 import dev.gkissel.forgeweave.menu.ToolAssemblyRecipes;
 import dev.gkissel.forgeweave.tool.AoeHarvest;
+import dev.gkissel.forgeweave.tool.VeinmineKey;
 
 /**
  * docs/SCOPE.md M3 issue #157's verification: the five large harvest tools' area behaviors and their
@@ -320,6 +321,7 @@ public class LargeToolGameTests {
     @GameTest(template = "empty")
     public static void veinMineStopsAtTheBlockCap(GameTestHelper helper) {
         ServerPlayer player = holdingLargeTool(helper, ForgeweaveItems.TOOL_VEIN_HAMMER.get(), "stone");
+        VeinmineKey.set(player, true); // #719: the vein only runs while the key is held
         BlockPos center = new BlockPos(3, 3, 3);
         fill(helper, center, 2, Blocks.IRON_ORE.defaultBlockState());
 
@@ -334,6 +336,7 @@ public class LargeToolGameTests {
     @GameTest(template = "empty")
     public static void veinMineTakesOnlyTheConnectedVein(GameTestHelper helper) {
         ServerPlayer player = holdingLargeTool(helper, ForgeweaveItems.TOOL_VEIN_HAMMER.get(), "stone");
+        VeinmineKey.set(player, true); // #719: the vein only runs while the key is held
         helper.setBlock(ORIGIN, Blocks.IRON_ORE);
         helper.setBlock(ORIGIN.offset(1, 0, 0), Blocks.IRON_ORE);
         helper.setBlock(ORIGIN.offset(2, 0, 0), Blocks.STONE);

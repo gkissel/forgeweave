@@ -297,6 +297,11 @@ public class ToolItem extends Item {
         return aoeShape;
     }
 
+    /** The vanilla {@code mineable/*} tags this tool type is for -- the veinmine key's family lookup (issue #719). */
+    public List<TagKey<Block>> mineableBlocks() {
+        return mineableBlocks;
+    }
+
     /** This tool type's innate, or {@code null}. See the constructor. */
     @Nullable
     public ForgeweaveInnates.Innate innate() {

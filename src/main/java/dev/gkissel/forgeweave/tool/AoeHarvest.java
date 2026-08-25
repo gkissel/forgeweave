@@ -188,6 +188,22 @@ public final class AoeHarvest {
             return;
         }
         Shape shape = item.aoeShape();
+        // #719 -- a vein runs only while the veinmine key is held, and only on the blocks the tool
+        // family's veinmine/<family> tag whitelists. The vein hammer's own vein keeps its VEIN_LIMIT;
+        // a single-block tool carrying the veinmine modifier veins VEINMINE_BLOCKS_PER_LEVEL per
+        // level. The large tools' area shapes are untouched. See VeinmineKey, ForgeweaveModifiers.
+        int veinLimit = VEIN_LIMIT;
+        if (shape == Shape.VEIN || shape == Shape.NONE || shape == Shape.SINGLE || shape == Shape.MATTOCK) {
+            int modifierLevel = ForgeweaveModifiers.veinmineLevel(tool);
+            boolean veins = (shape == Shape.VEIN || modifierLevel > 0)
+                    && VeinmineKey.held(player) && VeinmineKey.whitelisted(tool, event.getState());
+            if (veins && shape != Shape.VEIN) {
+                shape = Shape.VEIN;
+                veinLimit = modifierLevel * ForgeweaveModifiers.VEINMINE_BLOCKS_PER_LEVEL;
+            } else if (!veins && shape == Shape.VEIN) {
+                return;
+            }
+        }
         if (shape == Shape.NONE) {
             return;
         }
@@ -196,7 +212,10 @@ public final class AoeHarvest {
         if (isBareSingleBlock(tool, shape)) {
             return;
         }
-        List<BlockPos> extra = extraBlocks(tool, player.level(), player, event.getPos(), event.getState(), shape);
+        List<BlockPos> extra = shape == Shape.VEIN
+                ? breakable(tool, player.level(), player, event.getPos(), event.getState(),
+                        vein(player.level(), event.getPos(), event.getState(), veinLimit))
+                : extraBlocks(tool, player.level(), player, event.getPos(), event.getState(), shape);
         // A tree fell spreads its extra blocks over ticks (issue #299, upstream's own TreeChopTask);
         // every other shape still breaks synchronously with the origin, as before.
         if (shape == Shape.TREE_FELL && player.level() instanceof ServerLevel level && !extra.isEmpty()) {
@@ -255,7 +274,7 @@ public final class AoeHarvest {
             case TREE_FELL -> isTree(level, origin, originState)
                     ? breakable(tool, level, player, origin, originState, trunk(level, origin))
                     : breakable(tool, level, player, origin, originState, box(tool, player, origin, shape));
-            case VEIN -> breakable(tool, level, player, origin, originState, vein(level, origin, originState));
+            case VEIN -> breakable(tool, level, player, origin, originState, vein(level, origin, originState, VEIN_LIMIT));
         };
     }
 
@@ -550,13 +569,13 @@ public final class AoeHarvest {
      * {@link #VEIN_LIMIT} blocks -- the shape of the 1.20 branch's {@code VeiningAOEIterator} with
      * the maintainer's block cap in place of its distance cap (see {@link #VEIN_LIMIT}).
      */
-    private static List<BlockPos> vein(Level level, BlockPos origin, BlockState originState) {
+    private static List<BlockPos> vein(Level level, BlockPos origin, BlockState originState, int limit) {
         List<BlockPos> out = new ArrayList<>();
         Set<BlockPos> visited = new HashSet<>();
         Queue<BlockPos> queue = new ArrayDeque<>();
         visited.add(origin);
         queue.add(origin);
-        while (!queue.isEmpty() && out.size() < VEIN_LIMIT) {
+        while (!queue.isEmpty() && out.size() < limit) {
             BlockPos pos = queue.remove();
             if (!pos.equals(origin)) {
                 if (!level.getBlockState(pos).is(originState.getBlock())) {

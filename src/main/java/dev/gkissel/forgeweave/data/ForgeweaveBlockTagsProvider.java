@@ -11,11 +11,13 @@ import net.minecraft.tags.TagKey;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 
+import net.neoforged.neoforge.common.Tags;
 import net.neoforged.neoforge.common.data.BlockTagsProvider;
 import net.neoforged.neoforge.common.data.ExistingFileHelper;
 
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.block.ForgeweaveBlocks;
+import dev.gkissel.forgeweave.tool.VeinmineKey;
 
 /**
  * Tool-tier gating for the cobalt + ardite nether ore blocks (docs/SCOPE.md M2 issue #104).
@@ -129,6 +131,17 @@ public class ForgeweaveBlockTagsProvider extends BlockTagsProvider {
             glassBlocks.add(color.block().get());
             tag(cTag("dyed/" + color.dye().getSerializedName())).add(color.block().get());
         }
+
+        // #719 -- what each tool family may vein-mine while the veinmine key is held (maintainer
+        // decision, beta.1 playtest 2026-08-25): axes logs only, pickaxes ores only, shovels loose
+        // soil only. Pack-editable under data/forgeweave/tags/block/veinmine/; a family with no tag
+        // here (hoe) never veins. See VeinmineKey.
+        tag(VeinmineKey.family("axe")).addTag(BlockTags.LOGS);
+        tag(VeinmineKey.family("pickaxe")).addTag(Tags.Blocks.ORES)
+                .add(ForgeweaveBlocks.COBALT_ORE.get())
+                .add(ForgeweaveBlocks.ARDITE_ORE.get());
+        tag(VeinmineKey.family("shovel")).addTag(BlockTags.DIRT).addTag(Tags.Blocks.GRAVELS).addTag(Tags.Blocks.SANDS)
+                .add(Blocks.CLAY, Blocks.SOUL_SAND, Blocks.SOUL_SOIL, Blocks.SNOW_BLOCK);
     }
 
     private static TagKey<Block> cTag(String path) {
