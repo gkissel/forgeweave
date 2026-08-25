@@ -1413,6 +1413,7 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         addItem(ForgeweaveItems.INGOT_ARDITE, "Ardite Ingot");
         addItem(ForgeweaveItems.NUGGET_ARDITE, "Ardite Nugget");
         addItem(ForgeweaveItems.RAW_ARDITE, "Raw Ardite");
+        addItem(ForgeweaveItems.NAHUATL_BOARD, "Nahuatl Board"); // #727
         addItem(ForgeweaveItems.INGOT_MANYULLYN, "Manyullyn Ingot");
         addItem(ForgeweaveItems.NUGGET_MANYULLYN, "Manyullyn Nugget");
         addItem(ForgeweaveItems.RAW_MANYULLYN, "Raw Manyullyn");

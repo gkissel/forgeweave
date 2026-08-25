@@ -50,7 +50,7 @@ public class ArmorPartGameTests {
         return ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, name);
     }
 
-    private static ItemStack craft(GameTestHelper helper, Player player, Item pattern, ItemStack material) {
+    static ItemStack craft(GameTestHelper helper, Player player, Item pattern, ItemStack material) {
         BlockPos pos = new BlockPos(1, 1, 1);
         helper.setBlock(pos, ForgeweaveBlocks.PART_BUILDER.get());
         PartBuilderBlockEntity blockEntity = helper.getBlockEntity(pos);

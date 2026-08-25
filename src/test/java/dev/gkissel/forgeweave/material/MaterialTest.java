@@ -516,12 +516,13 @@ class MaterialTest {
      * {@code TinkerIntegration#preInit} hands a fluid and that {@code TinkerMaterials} never calls
      * {@code setCraftable} on. Forgeweave adds the three metals with a full Forgeweave casting
      * chain but no 1.12 counterpart (amethyst bronze, rose gold, netherite -- the 1.20 clone's own
-     * {@code MaterialDataProvider:80-84} marks the first two {@code craftable = false} too) and
-     * nahuatl, which is composite-cast only and already ships an empty {@code crafting_items} list.
+     * {@code MaterialDataProvider:80-84} marks the first two {@code craftable = false} too).
+     * Nahuatl is not here (#727): the 1.20 clone marks it {@code craftable = true}
+     * ({@code MaterialDataProvider:81}) and its Part Builder input is the nahuatl board.
      */
     @ParameterizedTest
     @ValueSource(strings = { "iron", "copper", "cobalt", "ardite", "manyullyn", "pig_iron", "steel",
-            "amethyst_bronze", "rose_gold", "netherite", "nahuatl" })
+            "amethyst_bronze", "rose_gold", "netherite" })
     void castableMetalsAreCastOnly(String name) {
         assertTrue(Material.CODEC.parse(ops, shipped(name)).getOrThrow().castOnly(),
                 name + " is castable and not craftable upstream, so the Part Builder must not take it");
@@ -535,7 +536,7 @@ class MaterialTest {
      */
     @ParameterizedTest
     @ValueSource(strings = { "obsidian", "knightslime", "bronze", "lead", "silver", "electrum",
-            "ancient", "chorus", "wood", "stone" })
+            "ancient", "chorus", "wood", "stone", "nahuatl" })
     void craftableMaterialsStayCraftable(String name) {
         assertFalse(Material.CODEC.parse(ops, shipped(name)).getOrThrow().castOnly(),
                 name + " must stay Part Builder craftable");

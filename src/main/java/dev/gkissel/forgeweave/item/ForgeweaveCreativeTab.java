@@ -196,6 +196,7 @@ public final class ForgeweaveCreativeTab {
 
         output.accept(ForgeweaveItems.MUD_BRICK.get());
         output.accept(ForgeweaveItems.MUD_BRICK_BLOCK.get());
+        output.accept(ForgeweaveItems.NAHUATL_BOARD.get()); // #727
 
         output.accept(ForgeweaveItems.MOSS.get());
         output.accept(ForgeweaveItems.MENDING_MOSS.get());
