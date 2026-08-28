@@ -61,17 +61,29 @@ public class ToolStationBlockEntity extends BlockEntity implements StationMenuHo
 
     /**
      * Whether this is a Tool Forge rather than a Tool Station (issue #152). Read off the block state
-     * rather than stored, because the two blocks share this class and one block entity type: there is
-     * no moment where the state and a stored flag could disagree.
+     * rather than stored, because the three blocks share this class and one block entity type: there
+     * is no moment where the state and a stored flag could disagree.
      */
     public boolean isForge() {
         return getBlockState().is(ForgeweaveBlocks.TOOL_FORGE.get());
     }
 
     /**
+     * Whether this is the Armor Station rather than the Tool Station or Tool Forge (docs/SCOPE.md M4
+     * issue #782, reversing D13). Read off the block state for the same reason {@link #isForge}
+     * is -- one shared block entity type, three blocks.
+     */
+    public boolean isArmorStation() {
+        return getBlockState().is(ForgeweaveBlocks.ARMOR_STATION.get());
+    }
+
+    /**
      * The wood (or metal) a freshly placed station wears before any crafting texture is applied.
      * Upstream's Tool Station is crafted from {@code #minecraft:planks}; upstream's Tool Forge models
-     * its untextured legs and underside in {@code minecraft:blocks/iron_block}.
+     * its untextured legs and underside in {@code minecraft:blocks/iron_block}. The Armor Station's
+     * recipe never carries a TEXTURE component (issue #782: a plain shaped recipe, not a retextured
+     * one -- see ForgeweaveRecipeProvider), so it always keeps this same oak default -- the "Tool
+     * Station body" the art calls for.
      */
     private Block defaultTexture() {
         return isForge() ? Blocks.IRON_BLOCK : Blocks.OAK_PLANKS;
@@ -149,13 +161,15 @@ public class ToolStationBlockEntity extends BlockEntity implements StationMenuHo
     @Override
     public AbstractContainerMenu createMenu(int containerId, Inventory playerInventory, Player player) {
         return new ToolStationMenu(containerId, playerInventory, container,
-                ContainerLevelAccess.create(level, worldPosition), findSideInventory(), isForge());
+                ContainerLevelAccess.create(level, worldPosition), findSideInventory(), isForge(), isArmorStation());
     }
 
     /**
      * Side-inventory slot count first, then the station-group tab row (issue #78), then whether this
      * is a Tool Forge (issue #152 -- the client menu needs it for the "needs a Tool Forge" message
-     * and the screen for its metal styling).
+     * and the screen for its metal styling), then whether this is the Armor Station (issue #782 --
+     * the client menu needs it for the same tab-visibility filter {@link ToolStationTabs#visible}
+     * applies server-side).
      */
     @Override
     public void writeMenuData(RegistryFriendlyByteBuf buf) {
@@ -163,5 +177,6 @@ public class ToolStationBlockEntity extends BlockEntity implements StationMenuHo
         buf.writeVarInt(sideInventory == null ? 0 : sideInventory.getSlots());
         StationGroup.STREAM_CODEC.encode(buf, StationGroup.tabsFor(level, worldPosition));
         buf.writeBoolean(isForge());
+        buf.writeBoolean(isArmorStation());
     }
 }

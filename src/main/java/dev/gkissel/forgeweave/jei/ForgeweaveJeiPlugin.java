@@ -139,6 +139,11 @@ public final class ForgeweaveJeiPlugin implements IModPlugin {
                 new AssemblyCategory(helper, AssemblyCategory.LARGE_TYPE,
                         Component.translatable("jei.category.forgeweave.large_tool_assembly"),
                         new ItemStack(ForgeweaveItems.TOOL_FORGE.get())),
+                // Issue #782 (reversing D13): armor assembles only at the Armor Station now, so its
+                // recipes get their own category/catalyst the same way the Tool Forge tier did above.
+                new AssemblyCategory(helper, AssemblyCategory.ARMOR_TYPE,
+                        Component.translatable("jei.category.forgeweave.armor_assembly"),
+                        new ItemStack(ForgeweaveItems.ARMOR_STATION.get())),
                 new RepairCategory(helper),
                 // #109 -- smeltery/casting/modifier JEI categories (docs/SCOPE.md M2 issue #109).
                 new MeltingCategory(helper),
@@ -183,15 +188,20 @@ public final class ForgeweaveJeiPlugin implements IModPlugin {
                 .filter(recipe -> ContentFamilies.itemEnabled(recipe.result()))
                 .toList());
 
-        // Split by AssemblyRecipes#isLarge (issue #165) so each half lands in the category whose
-        // catalyst list matches where it can actually be built -- see AssemblyCategory's class javadoc.
+        // Split by AssemblyRecipes#isLarge (issue #165) and #isArmor (issue #782) so each third lands
+        // in the category whose catalyst list matches where it can actually be built -- see
+        // AssemblyCategory's class javadoc. No recipe is ever both large and armor (armor pieces
+        // carry no large_tools tag), so TYPE is simply "neither of the other two".
         List<AssemblyRecipe> assembly = AssemblyRecipes.build(materials).stream()
                 .filter(recipe -> ContentFamilies.itemEnabled(recipe.tool()))
                 .toList();
-        registration.addRecipes(AssemblyCategory.TYPE,
-                assembly.stream().filter(recipe -> !AssemblyRecipes.isLarge(recipe)).toList());
+        registration.addRecipes(AssemblyCategory.TYPE, assembly.stream()
+                .filter(recipe -> !AssemblyRecipes.isLarge(recipe) && !AssemblyRecipes.isArmor(recipe))
+                .toList());
         registration.addRecipes(AssemblyCategory.LARGE_TYPE,
                 assembly.stream().filter(AssemblyRecipes::isLarge).toList());
+        registration.addRecipes(AssemblyCategory.ARMOR_TYPE,
+                assembly.stream().filter(AssemblyRecipes::isArmor).toList());
 
         registration.addRecipes(RepairCategory.TYPE, RepairRecipes.build(materials));
 
@@ -258,6 +268,12 @@ public final class ForgeweaveJeiPlugin implements IModPlugin {
         registration.addRecipeCatalyst(ForgeweaveItems.TOOL_FORGE.get(),
                 AssemblyCategory.TYPE, AssemblyCategory.LARGE_TYPE, RepairCategory.TYPE,
                 ModifierApplicationCategory.TYPE, EmbossingCategory.TYPE);
+        // Issue #782: the Armor Station reuses the same repair/modify/emboss machinery (menu.
+        // ToolStationMenu's repair tab is category-agnostic), plus the armor-only assembly category
+        // neither tool block offers anymore.
+        registration.addRecipeCatalyst(ForgeweaveItems.ARMOR_STATION.get(),
+                AssemblyCategory.ARMOR_TYPE, RepairCategory.TYPE, ModifierApplicationCategory.TYPE,
+                EmbossingCategory.TYPE);
         // A shard always pays a part's cost exactly (SHARD_VALUE divides both HEAD_COST and
         // SMALL_PART_COST with no remainder), so it's as legitimate a "what can this craft" lookup
         // target as the station itself (issue #45's Part Crafting rework).
@@ -318,6 +334,8 @@ public final class ForgeweaveJeiPlugin implements IModPlugin {
                 new AssemblyTransferHandler(registration.getTransferHelper(), AssemblyCategory.TYPE), AssemblyCategory.TYPE);
         registration.addRecipeTransferHandler(
                 new AssemblyTransferHandler(registration.getTransferHelper(), AssemblyCategory.LARGE_TYPE), AssemblyCategory.LARGE_TYPE);
+        registration.addRecipeTransferHandler(
+                new AssemblyTransferHandler(registration.getTransferHelper(), AssemblyCategory.ARMOR_TYPE), AssemblyCategory.ARMOR_TYPE);
         registration.addRecipeTransferHandler(new RepairTransferHandler(registration.getTransferHelper()), RepairCategory.TYPE);
 
         // #109 -- modifier application transfer (docs/SCOPE.md M2 issue #109): melting and alloying

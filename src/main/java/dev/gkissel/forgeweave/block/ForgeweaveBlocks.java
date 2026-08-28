@@ -61,6 +61,17 @@ public final class ForgeweaveBlocks {
                     .explosionResistance(10.0F)
                     .sound(SoundType.METAL)));
 
+    // The Armor Station (docs/SCOPE.md M4 issue #782, reversing D13): a Tool Station body wearing a
+    // distinct top so the two are visually related without sharing a texture -- see
+    // ArmorStationBlock's own javadoc for why it subclasses ToolStationBlock exactly as ToolForgeBlock
+    // does. Wood properties, matching the Tool Station rather than the Tool Forge's metal ones: its
+    // recipe is a plain plank-and-pattern shape (issue #782), not a metal one.
+    public static final DeferredBlock<ArmorStationBlock> ARMOR_STATION = BLOCKS.register("armor_station",
+            () -> new ArmorStationBlock(BlockBehaviour.Properties.of()
+                    .mapColor(MapColor.WOOD)
+                    .strength(2.5F)
+                    .sound(SoundType.WOOD)));
+
     public static final DeferredBlock<CraftingStationBlock> CRAFTING_STATION = BLOCKS.register("crafting_station",
             () -> new CraftingStationBlock(BlockBehaviour.Properties.of()
                     .mapColor(MapColor.WOOD)

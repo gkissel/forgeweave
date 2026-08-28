@@ -41,7 +41,7 @@ CONCRETE = {"Name": "minecraft:white_concrete"}
 BRICKS = {"Name": "forgeweave:seared_bricks"}
 TANK = {"Name": "forgeweave:seared_tank"}
 GLASS = {"Name": "forgeweave:seared_glass"}
-TOOL_STATION = {"Name": "forgeweave:tool_station", "Properties": {"facing": "south"}}
+ARMOR_STATION = {"Name": "forgeweave:armor_station", "Properties": {"facing": "south"}}
 CASTING_TABLE = {"Name": "forgeweave:casting_table"}
 CASTING_BASIN = {"Name": "forgeweave:casting_basin"}
 
@@ -167,11 +167,11 @@ def casting_scene() -> Structure:
     return s
 
 
-def tool_station_scene() -> Structure:
-    """The armor assembly scene (#682): a Tool Station alone in the middle of the base plate."""
+def armor_station_scene() -> Structure:
+    """The armor assembly scene (#682, moved by #782): an Armor Station alone on the base plate."""
     s = Structure((5, 2, 5))
     s.base_plate()
-    s.place(2, 1, 2, TOOL_STATION)
+    s.place(2, 1, 2, ARMOR_STATION)
     return s
 
 
@@ -227,7 +227,7 @@ def main() -> None:
     write_structure("smeltery", smeltery_scene())
     write_structure("smeltery_sizes", smeltery_sizes_scene())
     write_structure("casting", casting_scene())
-    write_structure("tool_station", tool_station_scene())
+    write_structure("armor_station", armor_station_scene())
 
 
 if __name__ == "__main__":

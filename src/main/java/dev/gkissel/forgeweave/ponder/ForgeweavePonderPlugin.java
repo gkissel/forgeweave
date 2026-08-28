@@ -54,8 +54,9 @@ public final class ForgeweavePonderPlugin implements PonderPlugin {
                 ForgeweaveSmelteryScenes::sizes);
         helper.addStoryBoard(ForgeweaveItems.FAUCET.getId(), "casting", ForgeweaveCastingScenes::pouring);
         helper.addStoryBoard(ForgeweaveItems.SEARED_CHANNEL.getId(), "casting", ForgeweaveCastingScenes::pouring);
-        // #682 (M4-7, D21) -- armor assembly, on the Tool Station's item.
-        helper.addStoryBoard(ForgeweaveBlocks.TOOL_STATION.getId(), "tool_station",
+        // #682 (M4-7, D21), moved onto the Armor Station's own item by #782 (reversing D13): armor
+        // assembly.
+        helper.addStoryBoard(ForgeweaveBlocks.ARMOR_STATION.getId(), "armor_station",
                 ForgeweaveArmorScenes::assembly);
     }
 

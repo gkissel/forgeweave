@@ -31,10 +31,11 @@ import dev.gkissel.forgeweave.tool.ArmorStats;
 import dev.gkissel.forgeweave.tool.ToolConstants;
 
 /**
- * M4-3 (issue #678; SCOPE.md D13/D14/D19/D23): plate armor assembles at the Tool Station and the
- * Tool Forge from plating + maille with the 1.20 clone's iron {@code PlatingMaterialStats}, the
- * wrong piece's plating is refused, damage taken wears and is attenuated by the plating, a Broken
- * piece stays on and protects nothing, and the station repairs it with the plating's repair item.
+ * M4-3 (issue #678; SCOPE.md D14/D19/D23), moved onto its own block by issue #782 (reversing D13):
+ * plate armor assembles at the Armor Station -- no longer the Tool Station or Tool Forge -- from
+ * plating + maille with the 1.20 clone's iron {@code PlatingMaterialStats}, the wrong piece's
+ * plating is refused, damage taken wears and is attenuated by the plating, a Broken piece stays on
+ * and protects nothing, and the station repairs it with the plating's repair item.
  */
 @GameTestHolder(Forgeweave.MODID)
 @PrefixGameTestTemplate(false)
@@ -69,21 +70,26 @@ public class ArmorGameTests {
     }
 
     @GameTest(template = "empty")
-    public static void everyPieceAssemblesAtTheStationWithIronValues(GameTestHelper helper) {
+    public static void everyPieceAssemblesAtTheArmorStationWithIronValues(GameTestHelper helper) {
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         for (int i = 0; i < 4; i++) {
-            assertIronPiece(helper, piece(helper, player, ForgeweaveBlocks.TOOL_STATION.get(), ToolConstants.ARMOR.get(i)),
-                    i, "the Tool Station");
+            assertIronPiece(helper, piece(helper, player, ForgeweaveBlocks.ARMOR_STATION.get(), ToolConstants.ARMOR.get(i)),
+                    i, "the Armor Station");
         }
         helper.succeed();
     }
 
+    /**
+     * Issue #782 (reversing D13): the Tool Station and the Tool Forge no longer build armor at
+     * all -- the {@code ToolAssemblyRecipes#resolveAssembly} category gate refuses it even when the
+     * parts are loaded directly into the container, bypassing the (now-absent) build tab.
+     */
     @GameTest(template = "empty")
-    public static void everyPieceAssemblesAtTheForgeWithIronValues(GameTestHelper helper) {
+    public static void neitherTheStationNorTheForgeAssembleArmorAnyMore(GameTestHelper helper) {
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
-        for (int i = 0; i < 4; i++) {
-            assertIronPiece(helper, piece(helper, player, ForgeweaveBlocks.TOOL_FORGE.get(), ToolConstants.ARMOR.get(i)),
-                    i, "the Tool Forge");
+        for (Block station : List.of(ForgeweaveBlocks.TOOL_STATION.get(), ForgeweaveBlocks.TOOL_FORGE.get())) {
+            ItemStack output = piece(helper, player, station, ToolConstants.CHESTPLATE);
+            helper.assertTrue(output.isEmpty(), station + " must refuse to assemble armor, got " + output);
         }
         helper.succeed();
     }
@@ -91,7 +97,7 @@ public class ArmorGameTests {
     @GameTest(template = "empty")
     public static void helmetPlatingIsRefusedInTheChestplateRow(GameTestHelper helper) {
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
-        helper.setBlock(STATION, ForgeweaveBlocks.TOOL_STATION.get());
+        helper.setBlock(STATION, ForgeweaveBlocks.ARMOR_STATION.get());
         ToolStationBlockEntity blockEntity = helper.getBlockEntity(STATION);
         ToolStationMenu menu = ToolAssembly.menu(helper, player, STATION, blockEntity);
         int tab = ToolStationTabs.indexOfTool(ForgeweaveItems.ARMOR_CHESTPLATE.get());
@@ -120,7 +126,7 @@ public class ArmorGameTests {
      */
     private static Player wearing(GameTestHelper helper, ToolConstants.Entry entry) {
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
-        player.setItemSlot(EquipmentSlot.CHEST, piece(helper, player, ForgeweaveBlocks.TOOL_STATION.get(), entry));
+        player.setItemSlot(EquipmentSlot.CHEST, piece(helper, player, ForgeweaveBlocks.ARMOR_STATION.get(), entry));
         player.tick();
         return player;
     }
@@ -189,7 +195,7 @@ public class ArmorGameTests {
     @GameTest(template = "empty")
     public static void theStationRepairsAPieceWithThePlatingsRepairItem(GameTestHelper helper) {
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
-        ItemStack chestplate = piece(helper, player, ForgeweaveBlocks.TOOL_STATION.get(), ToolConstants.CHESTPLATE);
+        ItemStack chestplate = piece(helper, player, ForgeweaveBlocks.ARMOR_STATION.get(), ToolConstants.CHESTPLATE);
         chestplate.set(DataComponents.DAMAGE, chestplate.getMaxDamage() - 1);
         chestplate.set(ForgeweaveDataComponents.BROKEN.get(), true);
 

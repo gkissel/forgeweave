@@ -112,6 +112,24 @@ public class ForgeweaveRecipeProvider extends RecipeProvider {
 
         toolForgeRecipe(recipeOutput);
 
+        // Armor Station (docs/SCOPE.md M4 issue #782, reversing D13): a blank pattern over a Tool
+        // Station, the same 1x2 "pattern over the block it upgrades" shape as the Tool Station's own
+        // recipe above, so the two read as siblings at a glance. Deliberately not
+        // retexturedTableRecipe (issue #762 found that helper copies the TEXTURE component off the
+        // first BlockItem ingredient it finds -- exactly the issue #755 defect the Tool Station's own
+        // recipe comment above already documents -- and the Armor Station never retexturing at all
+        // makes that defect pure downside here). A plain ShapedRecipeBuilder call, same as the Tool
+        // Station's own recipe, needs no ingredient distinct from every other 1x2 pattern recipe here:
+        // "pattern over a Tool Station" is not "pattern over a crafting table" or "pattern over
+        // planks/logs" (Stencil Table/Part Builder), so this cannot collide with any of them.
+        ShapedRecipeBuilder.shaped(RecipeCategory.MISC, ForgeweaveItems.ARMOR_STATION.get())
+                .pattern("A")
+                .pattern("B")
+                .define('A', ForgeweaveItems.PATTERN_BLANK.get())
+                .define('B', ForgeweaveItems.TOOL_STATION.get())
+                .unlockedBy("has_tool_station", has(ForgeweaveItems.TOOL_STATION.get()))
+                .save(recipeOutput);
+
         // Crafting Station (docs/SCOPE.md M1 issue #40): upstream's crafting_station.json is a bare
         // shapeless "any workbench", with no pattern and -- unlike part_builder.json and
         // stencil_table.json, the only two upstream table recipes that use its retexturing

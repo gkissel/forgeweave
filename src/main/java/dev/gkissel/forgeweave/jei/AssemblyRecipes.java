@@ -76,5 +76,16 @@ final class AssemblyRecipes {
         return ToolAssemblyRecipes.entryFor(recipe.result()).map(ToolAssemblyRecipes::isLargeTool).orElse(false);
     }
 
+    /**
+     * Whether {@code recipe} is a {@code Category.ARMOR} entry -- the same three-way split
+     * {@link #isLarge} documents, extended by docs/SCOPE.md M4 issue #782: {@link
+     * AssemblyCategory#ARMOR_TYPE} (Armor Station) instead of {@link AssemblyCategory#TYPE} (Tool
+     * Station/Tool Forge). No entry is ever both large and armor (armor pieces carry no
+     * {@code #forgeweave:large_tools} tag), so the two splits never conflict.
+     */
+    static boolean isArmor(AssemblyRecipe recipe) {
+        return ToolAssemblyRecipes.entryFor(recipe.result()).map(ToolAssemblyRecipes::isArmorEntry).orElse(false);
+    }
+
     private AssemblyRecipes() {}
 }

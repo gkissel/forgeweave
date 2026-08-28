@@ -213,6 +213,10 @@ public final class ScreenshotHarness {
                     (level, pos) -> {}, ScreenshotHarness::selectLastTab),
             new HarnessScreen("tool_station_preview", ForgeweaveBlocks.TOOL_STATION,
                     ScreenshotHarness::loadPickaxeParts, ScreenshotHarness::selectPickaxeTab),
+            // Issue #782 (reversing D13): the Armor Station, the Tool Station's own screen class
+            // reused wholesale -- captured next to tool_station.png so a reviewer can check the top
+            // texture is the only thing that differs.
+            new HarnessScreen("armor_station", ForgeweaveBlocks.ARMOR_STATION),
             new HarnessScreen("crafting_station", ForgeweaveBlocks.CRAFTING_STATION),
             new HarnessScreen("stencil_table", ForgeweaveBlocks.STENCIL_TABLE),
             // #101: the smeltery is a multiblock, so unlike every M1 station it needs a structure

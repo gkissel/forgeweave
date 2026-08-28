@@ -21,8 +21,9 @@ import dev.gkissel.forgeweave.menu.ToolAssemblyRecipes;
 import dev.gkissel.forgeweave.tool.ToolConstants;
 
 /**
- * The armor assembly scene (M4-7, issue #682; docs/SCOPE.md D21): a Tool Station on the base plate
- * ({@code assets/forgeweave/ponder/tool_station.nbt}, {@code scripts/generate_ponder_schematics.py}),
+ * The armor assembly scene (M4-7, issue #682; docs/SCOPE.md D21), moved onto the Armor Station by
+ * issue #782 (reversing D13): an Armor Station on the base plate
+ * ({@code assets/forgeweave/ponder/armor_station.nbt}, {@code scripts/generate_ponder_schematics.py}),
  * the chestplate's two parts shown going in, the finished chestplate coming out, and an armor stand
  * wearing it -- Ponder's own way of showing a worn item, since scenes have no player. The piece is
  * built through {@link ToolAssemblyRecipes#assemble}, the station's real call, so the stand wears
@@ -52,7 +53,7 @@ public final class ForgeweaveArmorScenes {
         scene.idle(10);
         scene.overlay().showText(70)
                 .attachKeyFrame()
-                .text("Armor is assembled at the Tool Station or Tool Forge, like any tool")
+                .text("Armor is assembled at the Armor Station, the Tool Station's sibling")
                 .pointAt(util.vector().topOf(STATION))
                 .placeNearTarget();
         scene.idle(80);

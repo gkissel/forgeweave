@@ -98,28 +98,29 @@ class PonderSceneWiringTest {
     }
 
     /**
-     * M4-7 (issue #682, docs/SCOPE.md D21): the armor assembly scene, registered on the Tool Station
-     * item -- the block the scene plays around -- so the hold-W affordance sits where a player who
-     * has the parts and is wondering where they go will look.
+     * M4-7 (issue #682, docs/SCOPE.md D21), moved by #782 (reversing D13): the armor assembly scene,
+     * registered on the Armor Station item -- the block the scene plays around, now that armor
+     * assembles there instead of at the Tool Station -- so the hold-W affordance sits where a player
+     * who has the parts and is wondering where they go will look.
      */
     @Test
-    void armorAssemblySceneIsRegisteredOnTheToolStationItem() {
+    void armorAssemblySceneIsRegisteredOnTheArmorStationItem() {
         RecordingHelper helper = new RecordingHelper();
         new ForgeweavePonderPlugin().registerScenes(helper);
 
         RegisteredScene scene = helper.scenes.stream()
-                .filter(s -> s.schematic().getPath().equals("tool_station")).findFirst().orElseThrow();
-        assertEquals(ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "tool_station"), scene.component());
-        assertEquals(ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "tool_station"), scene.schematic());
+                .filter(s -> s.schematic().getPath().equals("armor_station")).findFirst().orElseThrow();
+        assertEquals(ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "armor_station"), scene.component());
+        assertEquals(ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "armor_station"), scene.schematic());
         assertNotNull(scene.board());
     }
 
-    /** The armor scene's schematic: a Tool Station alone on the base plate. */
+    /** The armor scene's schematic: an Armor Station alone on the base plate. */
     @Test
-    void toolStationSchematicShipsAndContainsTheStation() throws IOException {
+    void armorStationSchematicShipsAndContainsTheStation() throws IOException {
         CompoundTag root;
-        try (InputStream in = Forgeweave.class.getResourceAsStream("/assets/forgeweave/ponder/tool_station.nbt")) {
-            assertNotNull(in, "assets/forgeweave/ponder/tool_station.nbt is missing");
+        try (InputStream in = Forgeweave.class.getResourceAsStream("/assets/forgeweave/ponder/armor_station.nbt")) {
+            assertNotNull(in, "assets/forgeweave/ponder/armor_station.nbt is missing");
             root = NbtIo.readCompressed(in, NbtAccounter.unlimitedHeap());
         }
 
@@ -128,7 +129,7 @@ class PonderSceneWiringTest {
         for (int i = 0; i < palette.size(); i++) {
             names.add(palette.getCompound(i).getString("Name"));
         }
-        assertTrue(names.contains("forgeweave:tool_station"), "the station is part of the structure: " + names);
+        assertTrue(names.contains("forgeweave:armor_station"), "the station is part of the structure: " + names);
     }
 
     /**

@@ -393,14 +393,18 @@ public final class ToolAssemblyRecipes {
      *     T2, issue #434; before it repair and modifiers read only the first two).
      * @param forge whether the station is a Tool Forge (issue #152): gates large-tool assembly and
      *     applies the repair discount. Every other outcome is identical at both blocks.
+     * @param armorStation whether the station is the Armor Station (issue #782): gates which
+     *     assembly entries can come out of this set of parts. Repair, modifier application,
+     *     embossing and fortification all act on an already-assembled stack and stay unaffected --
+     *     they run identically whichever of the three blocks is open.
      */
     static Optional<Result> resolve(HolderLookup.Provider registries, ItemStack headStack, List<ItemStack> freeSlots,
-            boolean forge) {
+            boolean forge, boolean armorStation) {
         if (!isAssembled(headStack)) {
             List<ItemStack> inputs = new ArrayList<>(freeSlots.size() + 1);
             inputs.add(headStack);
             inputs.addAll(freeSlots);
-            return resolveAssembly(registries, inputs, forge);
+            return resolveAssembly(registries, inputs, forge, armorStation);
         }
         Optional<Result> repair = resolveRepair(registries, headStack, freeSlots, forge);
         if (repair.isPresent()) {
@@ -722,6 +726,34 @@ public final class ToolAssemblyRecipes {
         return entry.tool().get().builtInRegistryHolder().is(LARGE_TOOLS);
     }
 
+    /** Whether this entry can only be assembled at the Armor Station (docs/SCOPE.md M4 issue #782). */
+    public static boolean isArmorEntry(Entry entry) {
+        return entry.constants().category() == ToolConstants.Category.ARMOR;
+    }
+
+    /**
+     * The Armor Station analogue of {@link #isLargeToolHead}: whether one of the loaded slots holds
+     * a part that belongs only to entries of the <em>wrong</em> category for {@code armorStation} --
+     * an armor plating/maille loaded at a Tool Station or Tool Forge, or a tool part loaded at the
+     * Armor Station. Used the same way {@link #isLargeToolHead} is, by {@link
+     * ToolStationMenu#rejection} -- a slot filter refusal a GameTest can also assert on directly by
+     * loading the block entity's container without going through it.
+     */
+    public static boolean isWrongStationHead(List<ItemStack> inputs, boolean armorStation) {
+        for (ItemStack stack : inputs) {
+            if (stack.isEmpty()) {
+                continue;
+            }
+            List<Entry> using = ENTRIES.stream()
+                    .filter(entry -> entry.parts().stream().anyMatch(stack::is))
+                    .toList();
+            if (!using.isEmpty() && using.stream().allMatch(entry -> isArmorEntry(entry) != armorStation)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     /**
      * Modifier application (issue #105, ADR-0004) rides the same repair-tab slots: a tool in the
      * first one, reagents in any of the five free ones (#434). Repair is tried first, so an item that
@@ -774,7 +806,7 @@ public final class ToolAssemblyRecipes {
     }
 
     private static Optional<Result> resolveAssembly(HolderLookup.Provider registries, List<ItemStack> inputs,
-            boolean forge) {
+            boolean forge, boolean armorStation) {
         Optional<Entry> match = ENTRIES.stream().filter(entry -> entry.matches(inputs)).findFirst();
         if (match.isEmpty()) {
             return Optional.empty();
@@ -782,6 +814,11 @@ public final class ToolAssemblyRecipes {
         Entry entry = match.get();
         if (!forge && isLargeTool(entry)) {
             return Optional.empty(); // a large tool needs the Tool Forge; ToolStationMenu#rejection says so
+        }
+        if (isArmorEntry(entry) != armorStation) {
+            // issue #782: armor assembles only at the Armor Station, everything else only away from
+            // it; ToolStationMenu#rejection says so via #isWrongStationHead.
+            return Optional.empty();
         }
         if (!ContentFamilies.toolEnabled(entry)) {
             // Content-family toggles ticket: the family is off, so this is unassemblable at either

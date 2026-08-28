@@ -73,7 +73,7 @@ public class ToolStationGameTests {
 
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         ToolStationMenu menu = new ToolStationMenu(0, player.getInventory(), blockEntity.container(),
-                ContainerLevelAccess.create(helper.getLevel(), helper.absolutePos(pos)), blockEntity.findSideInventory(), blockEntity.isForge());
+                ContainerLevelAccess.create(helper.getLevel(), helper.absolutePos(pos)), blockEntity.findSideInventory(), blockEntity.isForge(), blockEntity.isArmorStation());
         menu.broadcastChanges();
 
         ItemStack output = menu.getSlot(ToolStationMenu.OUTPUT_SLOT).getItem();
@@ -414,7 +414,7 @@ public class ToolStationGameTests {
 
         ToolStationBlockEntity blockEntity = helper.getBlockEntity(stationPos);
         ToolStationMenu menu = new ToolStationMenu(0, player.getInventory(), blockEntity.container(),
-                ContainerLevelAccess.create(helper.getLevel(), helper.absolutePos(stationPos)), blockEntity.findSideInventory(), blockEntity.isForge());
+                ContainerLevelAccess.create(helper.getLevel(), helper.absolutePos(stationPos)), blockEntity.findSideInventory(), blockEntity.isForge(), blockEntity.isArmorStation());
 
         helper.assertTrue(menu.sideInventorySlotCount > 0, "expected the adjacent chest to be detected as a side inventory");
 
@@ -573,7 +573,7 @@ public class ToolStationGameTests {
 
         ToolStationBlockEntity blockEntity = helper.getBlockEntity(stationPos);
         ToolStationMenu menu = new ToolStationMenu(0, player.getInventory(), blockEntity.container(),
-                ContainerLevelAccess.create(helper.getLevel(), helper.absolutePos(stationPos)), blockEntity.findSideInventory(), blockEntity.isForge());
+                ContainerLevelAccess.create(helper.getLevel(), helper.absolutePos(stationPos)), blockEntity.findSideInventory(), blockEntity.isForge(), blockEntity.isArmorStation());
         helper.assertTrue(menu.sideInventorySlotCount > 0, "expected the adjacent chest to be detected as a side inventory");
 
         int chestSlot = -1;

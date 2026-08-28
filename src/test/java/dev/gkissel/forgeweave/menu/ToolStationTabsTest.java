@@ -76,6 +76,44 @@ class ToolStationTabsTest {
                 "cleaver: handle, blade, plate, second rod -- MeleeClientProxy verbatim");
     }
 
+    /**
+     * Docs/SCOPE.md M4 issue #782 (reversing D13): the Tool Station/Tool Forge and the Armor Station
+     * now show disjoint build tabs -- {@code Category.ARMOR} entries only at the Armor Station,
+     * everything else only away from it -- with the repair tab shared by all three.
+     */
+    @Test
+    void armorAndToolTabsAreDisjointBetweenTheTwoStationFamilies() {
+        List<Integer> toolStation = ToolStationTabs.visible(false, false);
+        List<Integer> toolForge = ToolStationTabs.visible(true, false);
+        List<Integer> armorStation = ToolStationTabs.visible(false, true);
+
+        for (int index : toolStation) {
+            ToolStationTabs.Tab tab = ToolStationTabs.get(index);
+            assertTrue(tab.isRepair() || !ToolAssemblyRecipes.isArmorEntry(tab.entry()),
+                    () -> "Tool Station must not offer an armor build tab: " + tab);
+        }
+        for (int index : toolForge) {
+            ToolStationTabs.Tab tab = ToolStationTabs.get(index);
+            assertTrue(tab.isRepair() || !ToolAssemblyRecipes.isArmorEntry(tab.entry()),
+                    () -> "Tool Forge must not offer an armor build tab: " + tab);
+        }
+        for (int index : armorStation) {
+            ToolStationTabs.Tab tab = ToolStationTabs.get(index);
+            assertTrue(tab.isRepair() || ToolAssemblyRecipes.isArmorEntry(tab.entry()),
+                    () -> "Armor Station must only offer armor build tabs: " + tab);
+        }
+        assertTrue(toolStation.contains(ToolStationTabs.REPAIR), "repair stays available at the Tool Station");
+        assertTrue(armorStation.contains(ToolStationTabs.REPAIR), "repair stays available at the Armor Station");
+        // Every armor entry must actually be reachable somewhere -- at the Armor Station, since
+        // #782 took it away from both tool blocks.
+        for (ToolAssemblyRecipes.Entry entry : ToolAssemblyRecipes.ENTRIES) {
+            if (ToolAssemblyRecipes.isArmorEntry(entry)) {
+                assertTrue(armorStation.stream().anyMatch(index -> ToolStationTabs.get(index).entry() == entry),
+                        () -> entry.constants().id() + " must have an Armor Station tab");
+            }
+        }
+    }
+
     private static ToolStationTabs.Tab tabFor(String toolId) {
         for (ToolStationTabs.Tab tab : ToolStationTabs.TABS) {
             if (!tab.isRepair() && tab.entry().constants().id().equals(toolId)) {

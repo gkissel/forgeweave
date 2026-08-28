@@ -60,6 +60,12 @@ public class ForgeweaveBlockStateProvider extends BlockStateProvider {
         horizontalBlock(ForgeweaveBlocks.TOOL_FORGE.get(), toolForgeModel);
         simpleBlockItem(ForgeweaveBlocks.TOOL_FORGE.get(), toolForgeModel);
 
+        // The Armor Station (docs/SCOPE.md M4 issue #782): the Tool Station's own model file with a
+        // distinct top -- see block/armor_station.json's own comment.
+        ModelFile armorStationModel = models().getExistingFile(modLoc("block/armor_station"));
+        horizontalBlock(ForgeweaveBlocks.ARMOR_STATION.get(), armorStationModel);
+        simpleBlockItem(ForgeweaveBlocks.ARMOR_STATION.get(), armorStationModel);
+
         ModelFile craftingStationModel = models().getExistingFile(modLoc("block/crafting_station"));
         horizontalBlock(ForgeweaveBlocks.CRAFTING_STATION.get(), craftingStationModel);
         simpleBlockItem(ForgeweaveBlocks.CRAFTING_STATION.get(), craftingStationModel);
