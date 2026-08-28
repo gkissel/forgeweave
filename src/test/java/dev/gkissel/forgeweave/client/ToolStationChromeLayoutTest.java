@@ -73,6 +73,22 @@ class ToolStationChromeLayoutTest {
                 "station chrome runs off the right of a " + window + "px window");
     }
 
+    /**
+     * Issue #733: the selection grid is paged, so its tallest state is {@code MAX_ROWS} rows plus
+     * the arrow row under them -- and that has to end above the side panel's top, or the two
+     * overlap the way #88's side panel overran the window.
+     */
+    @Test
+    void thePagedGridAndItsArrowsEndAboveTheSidePanel() {
+        int rowPitch = 18 + 4;
+        int arrowsBottom = 9 + ToolStationSelection.MAX_ROWS * rowPitch + 18;
+        int sidePanelTop = ToolStationMenu.SIDE_PANEL_Y - SideInventorySlots.SLOT_INSET;
+        assertTrue(arrowsBottom <= sidePanelTop,
+                "the grid's arrow row ends at y " + arrowsBottom + ", past the side panel's top at " + sidePanelTop);
+        assertTrue(arrowsBottom <= PANEL_HEIGHT, "the arrow row runs past the " + PANEL_HEIGHT + "px GUI");
+        assertEquals(6, ToolStationSelection.COLUMNS, "TAB_COLUMN_LEFT above assumes six columns");
+    }
+
     @Test
     void theSidePanelStartsBelowTheTabColumnAndStaysInsideTheGui() {
         int tabColumnBottom = 9 + 18; // one row of tool tabs
