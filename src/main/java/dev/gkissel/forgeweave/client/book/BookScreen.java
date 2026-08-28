@@ -603,26 +603,31 @@ public class BookScreen extends Screen {
     }
 
     /**
-     * Upstream {@code ContentTool#build} (issue #651): the tool's name, its description text, the
-     * underlined "Properties:" bullet list ({@code tool.properties} + the per-tool {@code properties}
-     * array, ported to {@code <tool>.property.<n>} lang keys and collected while they exist -- a tool
-     * with no ported properties simply has no list, upstream's own {@code properties.length > 0}
-     * gate), then the modify-station diagram: the tool assembled from demo materials at the centre of
-     * the five-part slot ring, its parts around it at upstream's offsets.
+     * Upstream {@code ContentTool#build} (issue #651): the tool's name, the modify-station diagram
+     * (the tool assembled from demo materials at the centre of the five-part slot ring, its parts
+     * around it at upstream's offsets), its description text, then the underlined "Properties:"
+     * bullet list ({@code tool.properties} + the per-tool {@code properties} array, ported to
+     * {@code <tool>.property.<n>} lang keys and collected while they exist -- a tool with no ported
+     * properties simply has no list, upstream's own {@code properties.length > 0} gate).
      *
      * <p>Deviation: upstream pins the diagram to the page's bottom-right corner beside the text;
-     * this engine paginates a single column (issue #428), so the diagram is a centred block after
-     * the text, the same answer every other absolutely-positioned upstream page got.
+     * this engine paginates a single column (issue #428), so the diagram is a centred block instead.
+     * Issue #750: it used to come last, after the description and properties, so a tool with enough
+     * text to fill a leaf pushed the diagram onto the facing page alone -- the entry read as an
+     * unrelated description page and image page. The diagram now sits right after the title, the
+     * pair's combined height ({@link #toolDiagramBlock} plus one title line) well inside
+     * {@link BookLayout#PAGE_TEXT_H}, so the title and the diagram can never land on different
+     * leaves; only the description/properties tail ever spills onto a continuation leaf.
      */
     private void toolBlocks(List<Block> blocks, Item tool) {
         titleBlock(blocks, tool.getDescription());
-        bodyBlocks(blocks, Component.translatable(tool.getDescriptionId() + ".description"));
-        bulletBlocks(blocks, ModifyPageContent.TOOL_PROPERTIES_TITLE,
-                i -> ModifyPageContent.toolPropertyKey(tool.getDescriptionId(), i));
         ToolAssemblyRecipes.ENTRIES.stream()
                 .filter(entry -> entry.tool().get() == tool)
                 .findFirst()
                 .ifPresent(entry -> toolDiagramBlock(blocks, entry));
+        bodyBlocks(blocks, Component.translatable(tool.getDescriptionId() + ".description"));
+        bulletBlocks(blocks, ModifyPageContent.TOOL_PROPERTIES_TITLE,
+                i -> ModifyPageContent.toolPropertyKey(tool.getDescriptionId(), i));
     }
 
     /**
