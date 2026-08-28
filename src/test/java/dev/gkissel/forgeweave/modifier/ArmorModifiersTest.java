@@ -46,7 +46,9 @@ class ArmorModifiersTest {
 
     private static final Set<ResourceLocation> ARMOR_ONLY = Set.of(
             id("fire_protection"), id("blast_protection"), id("magic_protection"),
-            id("melee_protection"), id("projectile_protection"), id("knockback_resistance"), id("thorns"));
+            id("melee_protection"), id("projectile_protection"), id("knockback_resistance"), id("thorns"),
+            // #737 (epic #730 slice 2): heavy-chestplate-only, so also armorOnly.
+            id("elytra_flight"), id("creative_flight"));
 
     private static ResourceLocation id(String path) {
         return ResourceLocation.fromNamespaceAndPath("forgeweave", path);
@@ -71,9 +73,12 @@ class ArmorModifiersTest {
         return ModifierRecipe.CODEC.parse(ops, json).getOrThrow();
     }
 
-    /** The clone's {@code tconstruct:modifiable/armor} recipe tool tag: exactly these seven, no other. */
+    /**
+     * The clone's {@code tconstruct:modifiable/armor} recipe tool tag: exactly the original seven,
+     * plus #737's elytra/creative flight (Forgeweave originals, also armorOnly) -- no other.
+     */
     @Test
-    void theSevenArmorModifiersAreTheOnlyArmorOnlyOnes() {
+    void theArmorOnlyModifiersAreExactlyThisSet() {
         for (ResourceLocation id : ForgeweaveModifiers.ids()) {
             assertEquals(ARMOR_ONLY.contains(id), ForgeweaveModifiers.get(id).armorOnly(), id + " armorOnly");
             // #729: the clone's defense recipes add `modifiable/held` for the five protections only.

@@ -43,6 +43,7 @@ import dev.gkissel.forgeweave.config.ForgeweaveConfig;
 import dev.gkissel.forgeweave.data.ForgeweaveDataGenerators;
 import dev.gkissel.forgeweave.entity.ForgeweaveEntities;
 import dev.gkissel.forgeweave.fluid.ForgeweaveFluids;
+import dev.gkissel.forgeweave.item.CreativeFlightHandler;
 import dev.gkissel.forgeweave.item.ForgeweaveCreativeTab;
 import dev.gkissel.forgeweave.item.ForgeweaveDataComponents;
 import dev.gkissel.forgeweave.item.ForgeweaveItems;
@@ -229,6 +230,10 @@ public class Forgeweave {
         // #452/#453 -- parity audit T21 and T22: the boots' rebound and the momentum a Slimesling-flung
         // player keeps through the arc, both upstream's shared SlimeBounceHandler. See that class.
         NeoForge.EVENT_BUS.addListener(SlimeBounceHandler::onPlayerTickPost);
+        // #737 -- creative flight while the full heavy set is worn: needs all four equipment slots at
+        // once, which no per-item hook sees, so it rides the same per-player tick idiom as the bounce
+        // handler just above. See CreativeFlightHandler.
+        NeoForge.EVENT_BUS.addListener(CreativeFlightHandler::onPlayerTickPost);
         // #110/#664 -- Ponder is jar-in-jar embedded now (issue #664), but its API is still only
         // touched behind this ModList guard, so a repackaged install that strips the embedded jars
         // degrades to the ForgeweavePonderHint fallback instead of crashing. See
