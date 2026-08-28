@@ -1,5 +1,6 @@
 package dev.gkissel.forgeweave.gametest;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -174,15 +175,17 @@ public class ModernMaterialGameTests {
                 "ancient", "vintage");
 
         // #676 (SCOPE.md D17): chorus and amethyst bronze re-scope on armor parts; the rest fall back.
-        Map<String, String> armor = Map.of("chorus", "enderclearance", "amethyst_bronze", "crystalstrike");
+        // #728: chorus's ARMOR row also carries overslime_friend, next to enderclearance.
+        Map<String, String> armor = Map.of("chorus", "enderclearance|overslime_friend", "amethyst_bronze", "crystalstrike");
 
         general.forEach((name, trait) -> {
             Material material = materials.get(ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, name));
             helper.assertTrue(material != null, name + " should be in the synced material registry");
             for (PartItem.Kind kind : PartItem.Kind.values()) {
                 boolean armorPart = kind == PartItem.Kind.PLATING || kind == PartItem.Kind.MAILLE;
-                List<ResourceLocation> expected = List.of(ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID,
-                        armorPart ? armor.getOrDefault(name, trait) : trait));
+                List<ResourceLocation> expected = Arrays.stream((armorPart ? armor.getOrDefault(name, trait) : trait).split("\\|"))
+                        .map(id -> ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, id))
+                        .toList();
                 helper.assertTrue(expected.equals(material.traits().forPart(kind)),
                         name + " through a " + kind + " part should grant " + expected
                                 + ", got " + material.traits().forPart(kind));

@@ -1580,15 +1580,10 @@ public final class ForgeweaveTraits {
     private static final float CRYSTALSTRIKE_ATTACK_SPEED = 0.05F;
 
     /**
-     * Knightslime plating/maille. {@code OvershieldModule} (1.25 protection per level, 2 consumed
-     * per hit): a protectable blow spends up to two charges and gets {@code 1.25 * spent / 2}
-     * protection. The clone spends <em>overslime</em>; Forgeweave has none (SCOPE.md D17), so the
-     * piece carries its own {@code forgeweave:overshield} charge instead, refilled one point every
-     * {@link #OVERSHIELD_RECHARGE_TICKS} ticks it sits in an inventory, up to
-     * {@link #OVERSHIELD_CAPACITY}.
-     *
-     * <p>ponytail: the capacity and recharge rate are Forgeweave's, not the clone's (maintainer
-     * decision recorded in the #680 PR); tune them from playtest, both are constants.
+     * Knightslime plating/maille. {@code OvershieldModule} ({@code ModifierProvider}: 1.25
+     * protection per level, 2 overslime consumed per hit): a protectable blow spends up to two
+     * overslime and gets {@code 1.25 * consumed / 2} protection. Issue #728 replaced #690's banked
+     * charge with the clone's real overslime ({@link #OVERSLIME}).
      */
     public static final Trait OVERSHIELD = new Trait() {
         @Override
@@ -1597,29 +1592,91 @@ public final class ForgeweaveTraits {
                 return;
             }
             ItemStack piece = defense.tool();
-            int charge = piece.getOrDefault(ForgeweaveDataComponents.OVERSHIELD.get(), 0);
-            if (charge <= 0) {
+            int consumed = Math.min(overslime(piece), OVERSHIELD_CONSUMED_PER_HIT);
+            if (consumed <= 0) {
                 return;
             }
-            int spent = Math.min(charge, OVERSHIELD_CONSUMED_PER_HIT);
-            blow.addProtection(OVERSHIELD_PER_LEVEL * spent / OVERSHIELD_CONSUMED_PER_HIT);
-            piece.set(ForgeweaveDataComponents.OVERSHIELD.get(), charge - spent);
-        }
-
-        @Override
-        public void inventoryTick(ItemStack stack, ServerLevel level, LivingEntity holder) {
-            int charge = stack.getOrDefault(ForgeweaveDataComponents.OVERSHIELD.get(), 0);
-            if (charge < OVERSHIELD_CAPACITY && level.getGameTime() % OVERSHIELD_RECHARGE_TICKS == 0) {
-                stack.set(ForgeweaveDataComponents.OVERSHIELD.get(), charge + 1);
-            }
+            blow.addProtection(OVERSHIELD_PER_LEVEL * consumed / OVERSHIELD_CONSUMED_PER_HIT);
+            setOverslime(piece, overslime(piece) - consumed);
         }
     };
 
     private static final float OVERSHIELD_PER_LEVEL = 1.25F;
     private static final int OVERSHIELD_CONSUMED_PER_HIT = 2;
-    /** ponytail: Forgeweave's numbers -- five full-strength blows banked, one charge per five seconds. */
-    public static final int OVERSHIELD_CAPACITY = 10;
-    public static final int OVERSHIELD_RECHARGE_TICKS = 100;
+
+    /**
+     * Knightslime plating/maille, next to overshield (issue #728; the clone's
+     * {@code OverslimeModifier} + {@code OverslimeModule}, {@code MaterialTraitsDataProvider}'s
+     * {@code addTraits(knightslime, ARMOR, overshield, overslime)}). A pool of
+     * {@link #OVERSLIME_CAPACITY} points ({@code OVERSLIME_STAT.add(builder, 50)}) that durability
+     * loss is paid from before the piece itself ({@code DurabilityShieldModule#onDamageTool}), at the
+     * cost of {@link #OVERSLIME_ARMOR_PENALTY} armor ({@code ToolStats.ARMOR.add(builder, -0.5f)})
+     * unless an {@link #OVERSLIME_FRIEND} part is on the piece. Refilled with slime at the station
+     * ({@code modifier.OverslimeRefill}). Stored as {@code forgeweave:overslime}.
+     *
+     * <p>Armor only for now (the issue): a tool would get the pool for free through
+     * {@code ToolItem#damageItem}'s trait chain, but there reinforced rolls before it, where the
+     * clone's priority 150 puts overslime first -- revisit if a tool material ever grants it.
+     */
+    public static final Trait OVERSLIME = new Trait() {
+        @Override
+        public int durabilityDamage(ItemStack stack, RandomSource random, int originalAmount, int amount) {
+            int shield = Math.min(overslime(stack), amount);
+            if (shield > 0) {
+                setOverslime(stack, overslime(stack) - shield);
+            }
+            return amount - shield;
+        }
+    };
+
+    /**
+     * Marker: {@code ModifierIds.overslimeFriend}, the clone's tooltip-less tag modifier on the
+     * skyslime and enderslime vines' ARMOR rows (blue slime vine and chorus maille here) that waives
+     * {@link #OVERSLIME}'s armor penalty.
+     */
+    public static final Trait OVERSLIME_FRIEND = new Trait() {};
+
+    /** {@code OverslimeModifier#addToolStats}: 50 capacity per overslime trait. */
+    public static final int OVERSLIME_CAPACITY = 50;
+    /** {@code OverslimeModifier#addToolStats}'s ARMOR row: -0.5 armor without an overslime friend. */
+    public static final float OVERSLIME_ARMOR_PENALTY = 0.5F;
+    /** {@code OverslimeModifier#getDurabilityRGB}: the light blue the overslime bar always draws in. */
+    public static final int OVERSLIME_BAR_COLOR = 0x00A0FF;
+
+    private static final ResourceLocation OVERSLIME_ID = id("overslime");
+    private static final ResourceLocation OVERSLIME_FRIEND_ID = id("overslime_friend");
+
+    /** The piece's current overslime ({@code OverslimeModule#getAmount}); 0 when absent. */
+    public static int overslime(ItemStack stack) {
+        return stack.getOrDefault(ForgeweaveDataComponents.OVERSLIME.get(), 0);
+    }
+
+    /** {@code OverslimeModule#getCapacity}: {@link #OVERSLIME_CAPACITY} if the stack carries the trait, else 0. */
+    public static int overslimeCapacity(ItemStack stack) {
+        return has(stack, OVERSLIME) ? OVERSLIME_CAPACITY : 0;
+    }
+
+    /** {@code PersistentDataCapacityBar#setAmount}: clamped to the capacity, removed at zero. */
+    public static void setOverslime(ItemStack stack, int amount) {
+        int clamped = Math.min(amount, overslimeCapacity(stack));
+        if (clamped <= 0) {
+            stack.remove(ForgeweaveDataComponents.OVERSLIME.get());
+        } else {
+            stack.set(ForgeweaveDataComponents.OVERSLIME.get(), clamped);
+        }
+    }
+
+    /**
+     * What {@link #OVERSLIME} takes off a piece's armor at assembly, given its resolved trait ids:
+     * {@link #OVERSLIME_ARMOR_PENALTY} once (the trait de-duplicates across parts), or nothing with
+     * an {@link #OVERSLIME_FRIEND} aboard ({@code OverslimeModifier#addToolStats}'s
+     * {@code has(OVERSLIME_FRIEND)} gate). Folded into {@code ArmorStats} by
+     * {@code ToolAssemblyRecipes#assembleArmor} so every reader of the stat sees the net value, as
+     * the clone's stat builder does.
+     */
+    public static float overslimeArmorPenalty(List<ResourceLocation> traitIds) {
+        return traitIds.contains(OVERSLIME_ID) && !traitIds.contains(OVERSLIME_FRIEND_ID) ? OVERSLIME_ARMOR_PENALTY : 0.0F;
+    }
 
     /**
      * Bone maille. {@code ModifierIds.piercingGuard}: the pierce counter -- a direct hit's living
@@ -1896,6 +1953,8 @@ public final class ForgeweaveTraits {
             Map.entry(id("crystalstrike"), CRYSTALSTRIKE),
             Map.entry(id("consecrated"), CONSECRATED),
             Map.entry(id("overshield"), OVERSHIELD),
+            Map.entry(id("overslime"), OVERSLIME),
+            Map.entry(id("overslime_friend"), OVERSLIME_FRIEND),
             Map.entry(id("piercing_guard"), PIERCING_GUARD),
             Map.entry(id("thorns"), THORNS),
             Map.entry(id("enderclearance"), ENDERCLEARANCE),

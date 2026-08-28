@@ -205,6 +205,9 @@ public final class ModifierApplication {
      */
     private static Outcome resolveOne(HolderLookup.Provider registries, ModifierRecipe recipe, ItemStack tool,
             int[] available, int[] unitsPerItem) {
+        if (recipe.modifier().equals(OverslimeRefill.ID)) {
+            return OverslimeRefill.apply(tool, available, unitsPerItem); // #728: no modifier entry, a refill.
+        }
         Optional<Component> unsupported = unsupportedToolReason(registries, recipe, tool);
         if (unsupported.isPresent()) {
             return Outcome.rejected(unsupported.get());

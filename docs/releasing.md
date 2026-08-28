@@ -87,7 +87,7 @@ carry these lines, in addition to the milestone's own acceptance test:
 - **JEI sanity** with JEI installed: plating/maille casting rows, armor assembly rows, and the armor
   modifier recipes all show with no JEI code changes; without JEI the game still loads.
 - **Previous-release world load** (`mc1.21.1-v0.3.5-beta.1` or later) with a full worn armor set:
-  every piece keeps parts, modifiers and durability; overshield charge survives.
+  every piece keeps parts, modifiers and durability; overslime survives, and an alpha.1 piece's legacy overshield charge no longer does anything but still loads (#728).
 - **Spark profile** on the idle dedicated server: worn armor adds no per-tick cost beyond the
   existing formed-smeltery heartbeat; stations idle at 0.
 

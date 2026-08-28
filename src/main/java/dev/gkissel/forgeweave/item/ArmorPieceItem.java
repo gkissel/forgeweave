@@ -151,7 +151,7 @@ public class ArmorPieceItem extends ArmorItem {
         return builder.build();
     }
 
-    /** Same seam as {@link ToolItem#inventoryTick}: the piece's traits tick while it is carried or worn (#680, overshield's recharge). */
+    /** Same seam as {@link ToolItem#inventoryTick}: the piece's traits tick while it is carried or worn (#680). */
     @Override
     public void inventoryTick(ItemStack stack, Level level, Entity entity, int slotId, boolean isSelected) {
         if (level instanceof ServerLevel serverLevel && entity instanceof LivingEntity holder && !ToolItem.isBroken(stack)) {
@@ -159,15 +159,33 @@ public class ArmorPieceItem extends ArmorItem {
         }
     }
 
-    /** The same seam as a tool ({@link ToolItem#damageKeepingItem}): reinforced, durability traits, then the Broken clamp. */
+    /**
+     * The same seam as a tool ({@link ToolItem#damageKeepingItem}): reinforced, durability traits
+     * (#728: overslime pays the loss first, same chain as a tool's), then the Broken clamp.
+     */
     @Override
     public <T extends LivingEntity> int damageItem(ItemStack stack, int amount, @Nullable T entity, Consumer<Item> onBroken) {
         return ToolItem.damageKeepingItem(stack, amount, entity);
     }
 
+    // #728: while there is overslime, the bar is its light-blue gauge (the clone's
+    // OverslimeModifier#showDurabilityBar/getDurabilityWidth/getDurabilityRGB); once it is spent the
+    // durability bar takes over as usual.
+
     @Override
     public boolean isBarVisible(ItemStack stack) {
-        return !ToolItem.isBroken(stack) && super.isBarVisible(stack);
+        return !ToolItem.isBroken(stack) && (ForgeweaveTraits.overslime(stack) > 0 || super.isBarVisible(stack));
+    }
+
+    @Override
+    public int getBarWidth(ItemStack stack) {
+        int overslime = ForgeweaveTraits.overslime(stack);
+        return overslime > 0 ? Math.round(13.0F * overslime / ForgeweaveTraits.overslimeCapacity(stack)) : super.getBarWidth(stack);
+    }
+
+    @Override
+    public int getBarColor(ItemStack stack) {
+        return ForgeweaveTraits.overslime(stack) > 0 ? ForgeweaveTraits.OVERSLIME_BAR_COLOR : super.getBarColor(stack);
     }
 
     /** Repair is the station's, off the plating material's {@code repair_item} (D19) -- never the anvil's iron ingot. */

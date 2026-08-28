@@ -81,6 +81,8 @@ public final class StationText {
 
     /** The 1.20 clone's {@code ToolStats#ARMOR}/{@code ARMOR_TOUGHNESS}/{@code KNOCKBACK_RESISTANCE} colour, {@code 0x8547CC} (issue #678). */
     public static final TextColor ARMOR_COLOR = TextColor.fromRgb(0x8547CC);
+    /** #728: the overslime row, {@code ForgeweaveTraits#OVERSLIME_BAR_COLOR}. */
+    public static final TextColor OVERSLIME_COLOR = TextColor.fromRgb(ForgeweaveTraits.OVERSLIME_BAR_COLOR);
 
     /** Trailing-zero-free numbers, so 1.0 reads "1" and 1.25 reads "1.25" (upstream's {@code Util.df}). */
     private static final DecimalFormat FORMAT =
@@ -133,11 +135,23 @@ public final class StationText {
         if (stats == null) {
             return List.of();
         }
-        return List.of(
+        List<Component> lines = new ArrayList<>(List.of(
                 durabilityStat(piece.getMaxDamage() - piece.getDamageValue(), piece.getMaxDamage()),
                 stat("armor", stats.armor(), ARMOR_COLOR),
                 stat("toughness", stats.toughness(), ARMOR_COLOR),
-                stat("knockback_resistance", stats.knockbackResistance() * 10, ARMOR_COLOR));
+                stat("knockback_resistance", stats.knockbackResistance() * 10, ARMOR_COLOR)));
+        // #728: the clone shows the pool in the modifier's name ("Overslime 12 / 50"); here it is one
+        // more stat row, in the bar's own light blue, only on a piece that has the trait.
+        int capacity = ForgeweaveTraits.overslimeCapacity(piece);
+        if (capacity > 0) {
+            Component value = Component.literal(formatNumber(ForgeweaveTraits.overslime(piece)))
+                    .withStyle(Style.EMPTY.withColor(OVERSLIME_COLOR))
+                    .append(Component.literal("/").withStyle(ChatFormatting.GRAY))
+                    .append(Component.literal(formatNumber(capacity)).withStyle(Style.EMPTY.withColor(OVERSLIME_COLOR)));
+            lines.add(withHover(Component.translatable("gui.forgeweave.stat.overslime", value),
+                    Component.translatable("gui.forgeweave.stat.overslime.desc")));
+        }
+        return lines;
     }
 
     /**

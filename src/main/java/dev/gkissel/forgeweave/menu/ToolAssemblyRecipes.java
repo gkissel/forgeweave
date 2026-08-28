@@ -870,12 +870,15 @@ public final class ToolAssemblyRecipes {
     private static ItemStack assembleArmor(Entry entry, List<ResourceLocation> materialIds, List<Material> materials) {
         ArmorStats stats = ArmorStats.of(entry.constants(), materials)
                 .orElseThrow(() -> new IllegalStateException(entry.constants().id() + " has no plating slot"));
+        List<ResourceLocation> traits = resolveTraits(entry, materials);
+        // #728: overslime's -0.5 armor is a build-time stat in the clone, so it lands in the stored stat.
+        stats = stats.withArmor(stats.armor() - ForgeweaveTraits.overslimeArmorPenalty(traits));
         ItemStack result = new ItemStack(entry.tool().get());
         result.set(ForgeweaveDataComponents.TOOL_MATERIALS.get(),
                 ToolMaterials.of(entry.constants().parts(), materialIds));
         result.set(ForgeweaveDataComponents.ARMOR_STATS.get(), stats);
         result.set(ForgeweaveDataComponents.ENCHANTABILITY.get(), platingMaterial(entry, materials).enchantability());
-        result.set(ForgeweaveDataComponents.TRAITS.get(), resolveTraits(entry, materials));
+        result.set(ForgeweaveDataComponents.TRAITS.get(), traits);
         result.set(DataComponents.MAX_DAMAGE, stats.durability());
         result.set(DataComponents.DAMAGE, 0);
         return result;

@@ -20,7 +20,7 @@ Build: `forgeweave-0.4.0-alpha.1.jar` (Release `mc1.21.1-v0.4.0-alpha.1`), MC 1.
 15. [ ] **Livro**: seção de armadura abre (intro, peças com diagrama de partes, traits, modifiers); **Ponder** sobre a Tool Station abre a cena de montagem de armadura; `ForgeweavePonderHint` continua onde não há cena.
 
 ## B. Traits ARMOR (#680) — um material por trait, sanidade rápida
-16. [ ] ferro *projectile protection* · cobre *depth protection* (abaixo de y=0?) · obsidiana *blast protection* · manyullyn *warded* · amethyst bronze *crystalstrike* · prata *consecrated* (undead) · knightslime *overshield* (carga acumula, some com o golpe) · osso *piercing guard* · cacto *thorns* · chorus *enderclearance* (teleporte ao ser atingido) · vinha azul *skyfall* (dano de queda).
+16. [ ] ferro *projectile protection* · cobre *depth protection* (abaixo de y=0?) · obsidiana *blast protection* · manyullyn *warded* · amethyst bronze *crystalstrike* · prata *consecrated* (undead) · knightslime *overshield* + *overslime* (barra azul-clara; slime na estação recarrega, golpe e desgaste gastam) · osso *piercing guard* · cacto *thorns* · chorus *enderclearance* (teleporte ao ser atingido) · vinha azul *skyfall* (dano de queda).
 
 ## C. Modifiers de armadura (#681)
 17. [ ] fire/blast/projectile/magic/melee protection, knockback resistance, thorns aplicam em armadura e **recusam em picareta**; harvest-only (ex. fortify de mineração) **recusa em peitoral**; contagem de slots igual à das ferramentas.
@@ -43,4 +43,4 @@ Build: `forgeweave-0.4.0-alpha.1.jar` (Release `mc1.21.1-v0.4.0-alpha.1`), MC 1.
 28. [ ] Jars GitHub/Modrinth/CurseForge byte-idênticos (`sha256sum`).
 
 ## G. Decisões pendentes (ver comentário em #683)
-- Valores interpolados ardite/netherite/nahuatl · sync budget 32 KB · nahuatl inobtenível · abas 6 colunas · tint em geração vs runtime · constantes do overshield · reagentes/armorOnly · efeitos secundários do clone não portados.
+- Valores interpolados ardite/netherite/nahuatl · sync budget 32 KB · nahuatl inobtenível · abas 6 colunas · tint em geração vs runtime · overslime só em armadura · reagentes/armorOnly · efeitos secundários do clone não portados.

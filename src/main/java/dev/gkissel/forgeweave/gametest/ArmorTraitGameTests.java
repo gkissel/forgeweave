@@ -188,25 +188,60 @@ public class ArmorTraitGameTests {
         helper.succeed();
     }
 
-    /** Knightslime -&gt; overshield: banked charge is spent two per blow for 1.25 protection, and refills over time. */
-    @GameTest(template = "empty", timeoutTicks = 200)
-    public static void overshieldSpendsAndRefillsItsCharge(GameTestHelper helper) {
+    /**
+     * Knightslime -&gt; overslime (#728, the clone's {@code OverslimeModifier}): 50 capacity per
+     * trait, -0.5 armor unless an overslime_friend maille sits under it, and durability loss is
+     * paid from the overslime first ({@code DurabilityShieldModule#onDamageTool}).
+     */
+    @GameTest(template = "empty")
+    public static void overslimeShieldsDurabilityAndCostsHalfAnArmor(GameTestHelper helper) {
+        Player player = wearing(helper, "knightslime", "knightslime");
+        ItemStack piece = worn(player);
+        helper.assertTrue(ForgeweaveTraits.overslimeCapacity(piece) == ForgeweaveTraits.OVERSLIME_CAPACITY,
+                "one overslime trait is 50 capacity, got " + ForgeweaveTraits.overslimeCapacity(piece));
+        helper.assertTrue(ForgeweaveTraits.overslime(piece) == 0, "a fresh piece has no overslime");
+        helper.assertTrue(piece.get(ForgeweaveDataComponents.ARMOR_STATS.get()).armor() == 6.5F,
+                "knightslime's 7 armor minus the overslime penalty, got " + piece.get(ForgeweaveDataComponents.ARMOR_STATS.get()).armor());
+        ForgeweaveTraits.setOverslime(piece, 5);
+        piece.hurtAndBreak(3, player, EquipmentSlot.CHEST);
+        helper.assertTrue(ForgeweaveTraits.overslime(piece) == 2 && piece.getDamageValue() == 0,
+                "3 loss paid from overslime: " + ForgeweaveTraits.overslime(piece) + " left, damage " + piece.getDamageValue());
+        piece.hurtAndBreak(5, player, EquipmentSlot.CHEST);
+        helper.assertTrue(ForgeweaveTraits.overslime(piece) == 0 && piece.getDamageValue() == 3,
+                "the remainder past the overslime hits durability: " + ForgeweaveTraits.overslime(piece) + " left, damage " + piece.getDamageValue());
+
+        Player friend = wearing(helper, "knightslime", "slimevine_blue");
+        helper.assertTrue(worn(friend).get(ForgeweaveDataComponents.ARMOR_STATS.get()).armor() == 7.0F,
+                "blue slime vine maille is an overslime friend: no penalty");
+        helper.succeed();
+    }
+
+    /**
+     * Knightslime -&gt; overshield ({@code OvershieldModule}: 1.25 protection per 2 overslime) and
+     * the absorption order of one blow: the protection hook runs first ({@code CombatSeams}'
+     * defensive pass rides {@code LivingIncomingDamageEvent}, as the clone's rides
+     * {@code LivingHurtEvent} -- both before vanilla's armor wear), then the wear is paid from what
+     * is left. So 3 overslime take one explosion for 2 (shield) + 1 (wear) and leave the piece
+     * undamaged; the next blow is unshielded and wears the piece; 2 overslime shield in full and
+     * leave nothing for the wear.
+     */
+    @GameTest(template = "empty")
+    public static void overshieldSpendsOverslimeBeforeItShieldsWear(GameTestHelper helper) {
         Player player = wearing(helper, "knightslime", "knightslime");
         ItemStack piece = worn(player);
         float without = lostWithoutTraits(player, explosion(helper), BLOW);
-        piece.set(ForgeweaveDataComponents.OVERSHIELD.get(), 3);
-        assertRatio(helper, lost(player, explosion(helper), BLOW), without, 1.25F, "3 charges");
-        helper.assertTrue(piece.getOrDefault(ForgeweaveDataComponents.OVERSHIELD.get(), 0) == 1, "two charges spent");
-        assertRatio(helper, lost(player, explosion(helper), BLOW), without, 0.625F, "1 charge");
-        helper.assertTrue(piece.getOrDefault(ForgeweaveDataComponents.OVERSHIELD.get(), 0) == 0, "last charge spent");
+        piece.setDamageValue(0);
+        ForgeweaveTraits.setOverslime(piece, 3);
+        assertRatio(helper, lost(player, explosion(helper), BLOW), without, 1.25F, "3 overslime");
+        helper.assertTrue(ForgeweaveTraits.overslime(piece) == 0, "two shield plus one wear spent, got " + ForgeweaveTraits.overslime(piece));
+        helper.assertTrue(piece.getDamageValue() == 0, "the overslime paid the wear, damage " + piece.getDamageValue());
         assertRatio(helper, lost(player, explosion(helper), BLOW), without, 0.0F, "empty");
-        helper.startSequence()
-                .thenExecuteFor(ForgeweaveTraits.OVERSHIELD_RECHARGE_TICKS + 1,
-                        () -> piece.getItem().inventoryTick(piece, helper.getLevel(), player, 0, false))
-                .thenExecute(() -> helper.assertTrue(
-                        piece.getOrDefault(ForgeweaveDataComponents.OVERSHIELD.get(), 0) == 1,
-                        "one charge refills per " + ForgeweaveTraits.OVERSHIELD_RECHARGE_TICKS + " ticks"))
-                .thenSucceed();
+        helper.assertTrue(piece.getDamageValue() == 1, "no overslime: the wear hits durability, damage " + piece.getDamageValue());
+        ForgeweaveTraits.setOverslime(piece, 2);
+        assertRatio(helper, lost(player, explosion(helper), BLOW), without, 1.25F, "2 overslime: all to the shield");
+        helper.assertTrue(ForgeweaveTraits.overslime(piece) == 0 && piece.getDamageValue() == 2,
+                "nothing left for the wear: " + ForgeweaveTraits.overslime(piece) + " overslime, damage " + piece.getDamageValue());
+        helper.succeed();
     }
 
     /** Bone maille -&gt; piercing_guard: the attacker loses one armor for four seconds; the piece pays one durability. */

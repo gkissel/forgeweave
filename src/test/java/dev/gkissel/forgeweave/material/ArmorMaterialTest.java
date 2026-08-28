@@ -9,6 +9,7 @@ import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -198,17 +199,19 @@ class ArmorMaterialTest {
     @CsvSource({
             "iron,projectile_protection", "copper,depth_protection", "obsidian,blast_protection",
             "cobalt,melee_protection", "manyullyn,warded", "amethyst_bronze,crystalstrike",
-            "silver,consecrated", "knightslime,overshield", "bone,piercing_guard", "cactus,thorns",
-            "chorus,enderclearance", "slimevine_blue,skyfall",
+            "silver,consecrated", "knightslime,overshield|overslime", "bone,piercing_guard", "cactus,thorns",
+            "chorus,enderclearance|overslime_friend", "slimevine_blue,skyfall|overslime_friend",
     })
-    void armorScopedTraitsApplyToPlatingAndMailleOnly(String name, String trait) {
+    void armorScopedTraitsApplyToPlatingAndMailleOnly(String name, String traits) {
         Material material = shipped(name);
+        // #728: knightslime carries the clone's overshield + overslime pair, the vines overslime_friend.
+        List<ResourceLocation> expected = Arrays.stream(traits.split("\\|")).map(ArmorMaterialTest::id).toList();
 
-        assertEquals(List.of(id(trait)), material.traits().forPart(PartItem.Kind.PLATING), name + " plating");
-        assertEquals(List.of(id(trait)), material.traits().forPart(PartItem.Kind.MAILLE), name + " maille");
+        assertEquals(expected, material.traits().forPart(PartItem.Kind.PLATING), name + " plating");
+        assertEquals(expected, material.traits().forPart(PartItem.Kind.MAILLE), name + " maille");
         assertEquals(material.traits().general(), material.traits().forPart(PartItem.Kind.HANDLE),
                 name + " handle keeps the general list");
-        assertTrue(material.traits().all().contains(id(trait)), name + " all()");
+        assertTrue(material.traits().all().containsAll(expected), name + " all()");
     }
 
     @Test
