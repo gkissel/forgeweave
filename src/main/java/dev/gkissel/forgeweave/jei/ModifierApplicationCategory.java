@@ -57,21 +57,24 @@ final class ModifierApplicationCategory implements IRecipeCategory<ModifierRecip
             new ItemStack(ForgeweaveItems.TOOL_SHOVEL.get()),
             new ItemStack(ForgeweaveItems.TOOL_HATCHET.get()));
 
-    private static final int WIDTH = 140;
-    private static final int HEIGHT = 38;
-    private static final int SLOT_Y = 10;
-    private static final int ARROW_X = 42;
-    private static final int TEXT_X = 66;
-    private static final int NAME_Y = 6;
-    private static final int LEVEL_CAP_Y = 20;
+    private static final int GUTTER = JeiCategoryChrome.GUTTER;
+    private static final int WIDTH = 140 + 2 * GUTTER;
+    private static final int HEIGHT = 38 + 2 * GUTTER;
+    private static final int SLOT_Y = 10 + GUTTER;
+    private static final int ARROW_X = 42 + GUTTER;
+    private static final int TEXT_X = 66 + GUTTER;
+    private static final int NAME_Y = 6 + GUTTER;
+    private static final int LEVEL_CAP_Y = 20 + GUTTER;
     private static final int TEXT_COLOR = 0x404040;
 
     private final IDrawable icon;
     private final IDrawable arrow;
+    private final IDrawable background;
 
     ModifierApplicationCategory(IGuiHelper helper) {
         icon = helper.createDrawableItemStack(new ItemStack(ForgeweaveItems.TOOL_STATION.get()));
         arrow = helper.getRecipeArrow();
+        background = JeiCategoryChrome.panel(WIDTH, HEIGHT);
     }
 
     @Override
@@ -101,10 +104,10 @@ final class ModifierApplicationCategory implements IRecipeCategory<ModifierRecip
 
     @Override
     public void setRecipe(IRecipeLayoutBuilder builder, ModifierRecipe recipe, IFocusGroup focuses) {
-        builder.addSlot(RecipeIngredientRole.RENDER_ONLY, 0, SLOT_Y).addItemStacks(ANY_TOOL);
+        builder.addSlot(RecipeIngredientRole.RENDER_ONLY, GUTTER, SLOT_Y).addItemStacks(ANY_TOOL);
         // Every accepted reagent cycles through the one input slot (issue #259: haste shows redstone
         // dust and the 9-unit redstone block as alternatives, the way a tag ingredient cycles).
-        IIngredientAcceptor<?> reagentSlot = builder.addInputSlot(20, SLOT_Y);
+        IIngredientAcceptor<?> reagentSlot = builder.addInputSlot(GUTTER + 20, SLOT_Y);
         for (ModifierRecipe.Reagent reagent : recipe.reagents()) {
             reagentSlot.addIngredients(reagent.ingredient());
         }
@@ -112,6 +115,7 @@ final class ModifierApplicationCategory implements IRecipeCategory<ModifierRecip
 
     @Override
     public void draw(ModifierRecipe recipe, IRecipeSlotsView recipeSlotsView, GuiGraphics guiGraphics, double mouseX, double mouseY) {
+        background.draw(guiGraphics, 0, 0);
         arrow.draw(guiGraphics, ARROW_X, (HEIGHT - arrow.getHeight()) / 2);
 
         Font font = Minecraft.getInstance().font;

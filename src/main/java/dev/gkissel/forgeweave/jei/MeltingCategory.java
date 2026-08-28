@@ -35,19 +35,27 @@ final class MeltingCategory implements IRecipeCategory<MeltingDisplay> {
     static final RecipeType<MeltingDisplay> TYPE =
             RecipeType.create(Forgeweave.MODID, "melting", MeltingDisplay.class);
 
-    private static final int WIDTH = 110;
-    private static final int HEIGHT = 40;
+    private static final int GUTTER = JeiCategoryChrome.GUTTER;
+    private static final int WIDTH = 110 + 2 * GUTTER;
+    private static final int HEIGHT = 40 + 2 * GUTTER;
     private static final int TANK_SIZE = 16;
-    private static final int ARROW_X = 44;
-    private static final int TEMPERATURE_Y = 23;
+    private static final int ARROW_X = 44 + GUTTER;
+    private static final int TEMPERATURE_Y = 23 + GUTTER;
     private static final int TEXT_COLOR = 0x404040;
+    /** Row band the input slot, flame and arrow share -- matches the input slot's 18px height. */
+    private static final int ROW_HEIGHT = 18;
+    private static final int FLAME_X = GUTTER + 18 + 4;
 
     private final IDrawable icon;
     private final IDrawable arrow;
+    private final IDrawable flame;
+    private final IDrawable background;
 
     MeltingCategory(IGuiHelper helper) {
         icon = helper.createDrawableItemStack(new ItemStack(ForgeweaveItems.STANDARD_CORE.get()));
         arrow = helper.getRecipeArrow();
+        flame = helper.getRecipeFlameFilled();
+        background = JeiCategoryChrome.panel(WIDTH, HEIGHT);
     }
 
     @Override
@@ -77,8 +85,8 @@ final class MeltingCategory implements IRecipeCategory<MeltingDisplay> {
 
     @Override
     public void setRecipe(IRecipeLayoutBuilder builder, MeltingDisplay recipe, IFocusGroup focuses) {
-        builder.addInputSlot(0, 1).addItemStacks(recipe.inputs());
-        builder.addOutputSlot(WIDTH - TANK_SIZE - 2, 1)
+        builder.addInputSlot(GUTTER, GUTTER + 1).addItemStacks(recipe.inputs());
+        builder.addOutputSlot(WIDTH - TANK_SIZE - 2 - GUTTER, GUTTER + 1)
                 .setFluidRenderer(recipe.amount(), false, TANK_SIZE, TANK_SIZE)
                 .addFluidStack(recipe.fluid(), recipe.amount())
                 .addRichTooltipCallback((view, tooltip) -> {
@@ -90,11 +98,13 @@ final class MeltingCategory implements IRecipeCategory<MeltingDisplay> {
 
     @Override
     public void draw(MeltingDisplay recipe, IRecipeSlotsView recipeSlotsView, GuiGraphics guiGraphics, double mouseX, double mouseY) {
-        arrow.draw(guiGraphics, ARROW_X, (18 - arrow.getHeight()) / 2 + 1);
+        background.draw(guiGraphics, 0, 0);
+        flame.draw(guiGraphics, FLAME_X, GUTTER + 1 + (ROW_HEIGHT - flame.getHeight()) / 2);
+        arrow.draw(guiGraphics, ARROW_X, GUTTER + (ROW_HEIGHT - arrow.getHeight()) / 2 + 1);
 
         Font font = Minecraft.getInstance().font;
         Component temperature = Component.translatable("jei.category.forgeweave.melting.temperature",
                 TemperatureText.format(recipe.temperature()));
-        guiGraphics.drawString(font, temperature, 0, TEMPERATURE_Y, TEXT_COLOR, false);
+        guiGraphics.drawString(font, temperature, GUTTER, TEMPERATURE_Y, TEXT_COLOR, false);
     }
 }

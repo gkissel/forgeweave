@@ -32,21 +32,24 @@ import dev.gkissel.forgeweave.casting.CastingRecipe;
  * button (docs/SCOPE.md M1 issue #40's transfer only applies where a menu has slots to fill).
  */
 abstract class CastingCategory implements IRecipeCategory<CastingRecipe> {
-    private static final int WIDTH = 90;
-    private static final int HEIGHT = 40;
+    private static final int GUTTER = JeiCategoryChrome.GUTTER;
+    private static final int WIDTH = 90 + 2 * GUTTER;
+    private static final int HEIGHT = 40 + 2 * GUTTER;
     private static final int TANK_SIZE = 16;
-    private static final int ARROW_X = 36;
+    private static final int ARROW_X = 36 + GUTTER;
 
     private final RecipeType<CastingRecipe> type;
     private final Component title;
     private final IDrawable icon;
     private final IDrawable arrow;
+    private final IDrawable background;
 
     CastingCategory(IGuiHelper helper, RecipeType<CastingRecipe> type, ItemLike iconItem, String titleKey) {
         this.type = type;
         this.title = Component.translatable(titleKey);
         this.icon = helper.createDrawableItemStack(new ItemStack(iconItem));
         this.arrow = helper.getRecipeArrow();
+        this.background = JeiCategoryChrome.panel(WIDTH, HEIGHT);
     }
 
     @Override
@@ -77,16 +80,16 @@ abstract class CastingCategory implements IRecipeCategory<CastingRecipe> {
     @Override
     public void setRecipe(IRecipeLayoutBuilder builder, CastingRecipe recipe, IFocusGroup focuses) {
         recipe.cast().ifPresent(cast -> {
-            IRecipeSlotBuilder castSlot = builder.addInputSlot(0, 1).addIngredients(cast);
+            IRecipeSlotBuilder castSlot = builder.addInputSlot(GUTTER, GUTTER + 1).addIngredients(cast);
             castSlot.addRichTooltipCallback((view, tooltip) -> tooltip.add(Component.translatable(recipe.consumesCast()
                     ? "jei.category.forgeweave.casting.cast_consumed"
                     : "jei.category.forgeweave.casting.cast_reusable")));
         });
         // One fluid for a normal recipe; every fluid the container takes for the fluid-agnostic
         // bucket recipe (#604), which JEI then cycles through in step with its filled results.
-        IRecipeSlotBuilder fluidSlot = builder.addInputSlot(0, 21)
+        IRecipeSlotBuilder fluidSlot = builder.addInputSlot(GUTTER, GUTTER + 21)
                 .setFluidRenderer(recipe.amount(), false, TANK_SIZE, TANK_SIZE);
-        IRecipeSlotBuilder resultSlot = builder.addOutputSlot(WIDTH - 18, 11);
+        IRecipeSlotBuilder resultSlot = builder.addOutputSlot(WIDTH - 18 - GUTTER, GUTTER + 11);
         for (Fluid poured : recipe.displayFluids()) {
             fluidSlot.addFluidStack(poured, recipe.amount());
             resultSlot.addItemStack(recipe.resultFor(poured));
@@ -95,6 +98,7 @@ abstract class CastingCategory implements IRecipeCategory<CastingRecipe> {
 
     @Override
     public void draw(CastingRecipe recipe, IRecipeSlotsView recipeSlotsView, GuiGraphics guiGraphics, double mouseX, double mouseY) {
+        background.draw(guiGraphics, 0, 0);
         arrow.draw(guiGraphics, ARROW_X, (HEIGHT - arrow.getHeight()) / 2);
     }
 }

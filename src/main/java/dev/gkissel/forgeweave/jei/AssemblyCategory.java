@@ -32,21 +32,24 @@ final class AssemblyCategory implements IRecipeCategory<AssemblyRecipe> {
     static final RecipeType<AssemblyRecipe> LARGE_TYPE =
             RecipeType.create(Forgeweave.MODID, "large_tool_assembly", AssemblyRecipe.class);
 
-    private static final int WIDTH = 64;
+    private static final int GUTTER = JeiCategoryChrome.GUTTER;
+    private static final int WIDTH = 64 + 2 * GUTTER;
     private static final int SLOT_PITCH = 20;
     /** Tall enough for the longest part list in the roster (four parts, the Tool Forge tier). */
-    private static final int HEIGHT = 4 * SLOT_PITCH - 2;
+    private static final int HEIGHT = 4 * SLOT_PITCH - 2 + 2 * GUTTER;
 
     private final RecipeType<AssemblyRecipe> type;
     private final Component title;
     private final IDrawable icon;
     private final IDrawable arrow;
+    private final IDrawable background;
 
     AssemblyCategory(IGuiHelper helper, RecipeType<AssemblyRecipe> type, Component title, ItemStack catalystIcon) {
         this.type = type;
         this.title = title;
         icon = helper.createDrawableItemStack(catalystIcon);
         arrow = helper.getRecipeArrow();
+        background = JeiCategoryChrome.panel(WIDTH, HEIGHT);
     }
 
     @Override
@@ -79,13 +82,14 @@ final class AssemblyCategory implements IRecipeCategory<AssemblyRecipe> {
         // One slot per part, stacked in the station's own slot order -- two for M3's two-part
         // weapons, four for the Tool Forge tier (issue #155), so the column grows with the tool.
         for (int slot = 0; slot < recipe.parts().size(); slot++) {
-            builder.addInputSlot(0, slot * SLOT_PITCH).addItemStacks(recipe.parts().get(slot));
+            builder.addInputSlot(GUTTER, GUTTER + slot * SLOT_PITCH).addItemStacks(recipe.parts().get(slot));
         }
-        builder.addOutputSlot(WIDTH - 18, (HEIGHT - 18) / 2).addItemStack(recipe.result());
+        builder.addOutputSlot(WIDTH - 18 - GUTTER, (HEIGHT - 18) / 2).addItemStack(recipe.result());
     }
 
     @Override
     public void draw(AssemblyRecipe recipe, IRecipeSlotsView recipeSlotsView, GuiGraphics guiGraphics, double mouseX, double mouseY) {
-        arrow.draw(guiGraphics, 2 * SLOT_PITCH + 2, (HEIGHT - arrow.getHeight()) / 2);
+        background.draw(guiGraphics, 0, 0);
+        arrow.draw(guiGraphics, GUTTER + 2 * SLOT_PITCH + 2, (HEIGHT - arrow.getHeight()) / 2);
     }
 }

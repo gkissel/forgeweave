@@ -37,26 +37,29 @@ final class EmbossingCategory implements IRecipeCategory<EmbossingDisplay> {
     static final RecipeType<EmbossingDisplay> TYPE =
             RecipeType.create(Forgeweave.MODID, "embossing", EmbossingDisplay.class);
 
-    private static final int WIDTH = 220;
-    private static final int HEIGHT = 38;
+    private static final int GUTTER = JeiCategoryChrome.GUTTER;
     private static final int SLOT_PITCH = 20;
-    private static final int SLOT_Y = 10;
-    private static final int TOOL_X = 0;
-    private static final int DONOR_X = SLOT_PITCH;
+    private static final int SLOT_Y = 10 + GUTTER;
+    private static final int TOOL_X = GUTTER;
+    private static final int DONOR_X = TOOL_X + SLOT_PITCH;
     private static final int REAGENTS_X = DONOR_X + SLOT_PITCH;
     private static final int MAX_REAGENT_SLOTS = 4;
     private static final int ARROW_X = REAGENTS_X + MAX_REAGENT_SLOTS * SLOT_PITCH + 2;
     private static final int TEXT_X = ARROW_X + 24;
-    private static final int NAME_Y = 6;
-    private static final int RULE_Y = 20;
+    private static final int NAME_Y = 6 + GUTTER;
+    private static final int RULE_Y = 20 + GUTTER;
     private static final int TEXT_COLOR = 0x404040;
+    private static final int WIDTH = 220 + 2 * GUTTER;
+    private static final int HEIGHT = 38 + 2 * GUTTER;
 
     private final IDrawable icon;
     private final IDrawable arrow;
+    private final IDrawable background;
 
     EmbossingCategory(IGuiHelper helper) {
         icon = helper.createDrawableItemStack(new ItemStack(ForgeweaveItems.TOOL_STATION.get()));
         arrow = helper.getRecipeArrow();
+        background = JeiCategoryChrome.panel(WIDTH, HEIGHT);
     }
 
     @Override
@@ -95,6 +98,7 @@ final class EmbossingCategory implements IRecipeCategory<EmbossingDisplay> {
 
     @Override
     public void draw(EmbossingDisplay recipe, IRecipeSlotsView recipeSlotsView, GuiGraphics guiGraphics, double mouseX, double mouseY) {
+        background.draw(guiGraphics, 0, 0);
         arrow.draw(guiGraphics, ARROW_X, (HEIGHT - arrow.getHeight()) / 2);
 
         Font font = Minecraft.getInstance().font;
