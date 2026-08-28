@@ -32,6 +32,7 @@ import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.block.ForgeweaveBlocks;
 import dev.gkissel.forgeweave.block.SearedTankBlockEntity;
 import dev.gkissel.forgeweave.block.SmelteryCore;
+import dev.gkissel.forgeweave.block.SmelteryControllerBlock;
 import dev.gkissel.forgeweave.block.SmelteryControllerBlockEntity;
 import dev.gkissel.forgeweave.block.SmelteryScan;
 import dev.gkissel.forgeweave.block.SmelteryStructure;
@@ -130,6 +131,32 @@ public class SmelteryGameTests {
         helper.runAfterDelay(25, () -> {
             helper.assertTrue(structureOf(helper, core) == null, "expected the broken wall to invalidate the structure");
             assertReason(helper, core, SmelteryScan.KEY_INVALID_WALL);
+            helper.succeed();
+        });
+    }
+
+    /**
+     * #757: the mirror image of {@link #breakingADistantWallInvalidatesTheStructure} -- closing the
+     * last gap in a wall four blocks from the core sends it no neighbour update either, and this was
+     * the actual playtest defect: the front's {@code ACTIVE} blockstate (its lit/unlit texture) sat
+     * unformed until a player clicked the controller. Deliberately never reads {@link
+     * SmelteryControllerBlockEntity#structure()} (which would trigger its own revalidation-on-read
+     * and mask the bug being fixed) between closing the gap and asserting -- only {@link
+     * SmelteryControllerBlockEntity#armSettleWindow()}'s bounded recheck tick may notice it.
+     */
+    @GameTest(template = "smeltery", timeoutTicks = 200)
+    public static void closingADistantWallFormsTheStructureWithoutInteraction(GameTestHelper helper) {
+        buildWalls(helper, 3, 3, 2);
+        BlockPos hole = new BlockPos(4, 2, 2);
+        helper.setBlock(hole, Blocks.AIR);
+        BlockPos core = placeCore(helper, ForgeweaveBlocks.STANDARD_CORE.get());
+        helper.assertTrue(!helper.getBlockState(core).getValue(SmelteryControllerBlock.ACTIVE),
+                "expected the hole to leave the controller reading unformed: " + reason(helper, core));
+
+        helper.setBlock(hole, ForgeweaveBlocks.SEARED_BRICKS.get());
+        helper.runAfterDelay(30, () -> {
+            helper.assertTrue(helper.getBlockState(core).getValue(SmelteryControllerBlock.ACTIVE),
+                    "expected the controller's front to relight once the distant wall closed the structure, without any interaction");
             helper.succeed();
         });
     }

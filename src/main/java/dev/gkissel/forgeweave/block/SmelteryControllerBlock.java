@@ -146,11 +146,20 @@ public class SmelteryControllerBlock extends HorizontalDirectionalBlock implemen
         if (!(level.getBlockEntity(pos) instanceof SmelteryControllerBlockEntity core)) {
             return;
         }
+        if (!core.isFormed()) {
+            // #757: this firing only exists to serve armSettleWindow's bounded recheck -- isFormed()
+            // above already forced the rescan (it is always at least RESCAN_INTERVAL_TICKS stale by
+            // the time this runs), so all that is left is deciding whether the window is still open.
+            if (core.settling()) {
+                level.scheduleTick(pos, this, SmelteryControllerBlockEntity.RESCAN_INTERVAL_TICKS);
+            }
+            return;
+        }
         boolean melting = core.meltTick();
         core.sweepInterior();
         if (melting) {
             level.scheduleTick(pos, this, SmelteryControllerBlockEntity.MELT_INTERVAL_TICKS);
-        } else if (core.isFormed()) {
+        } else {
             level.scheduleTick(pos, this, SmelteryControllerBlockEntity.ITEM_PICKUP_INTERVAL_TICKS);
         }
     }
@@ -158,6 +167,7 @@ public class SmelteryControllerBlock extends HorizontalDirectionalBlock implemen
     private static void updateStructure(Level level, BlockPos pos) {
         if (level.getBlockEntity(pos) instanceof SmelteryControllerBlockEntity core) {
             core.updateStructure();
+            core.armSettleWindow();
         }
     }
 
