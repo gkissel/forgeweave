@@ -32,6 +32,26 @@
     "item": "forgeweave:boots"
   },
   {
+    "name": "heavy_helmet",
+    "type": "tool",
+    "item": "forgeweave:heavy_helmet"
+  },
+  {
+    "name": "heavy_chestplate",
+    "type": "tool",
+    "item": "forgeweave:heavy_chestplate"
+  },
+  {
+    "name": "heavy_leggings",
+    "type": "tool",
+    "item": "forgeweave:heavy_leggings"
+  },
+  {
+    "name": "heavy_boots",
+    "type": "tool",
+    "item": "forgeweave:heavy_boots"
+  },
+  {
     "name": "traits",
     "type": "text"
   },

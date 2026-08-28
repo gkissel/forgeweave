@@ -76,7 +76,12 @@ class ItemColorCoverageTest {
             List<ToolConstants.PartSlot> parts = entry.constants().parts();
             List<Integer> slots = ToolArt.layerSlots(parts);
 
-            assertEquals(parts.size(), slots.size(),
+            // #735: a heavy piece's large plate is a real, statless part slot with no rendered layer
+            // of its own -- it shares the plate piece's two-layer art (maille, plating) until M9's
+            // designer art gives it a sprite (ToolArt#layerSlots), so it is one part short of one
+            // layer per part on purpose.
+            int expectedLayers = ToolConstants.isHeavy(entry.constants().id()) ? parts.size() - 1 : parts.size();
+            assertEquals(expectedLayers, slots.size(),
                     entry.constants().id() + ": every part must draw exactly one tinted model layer");
             for (int layer = 0; layer < slots.size(); layer++) {
                 int slot = slots.get(layer);

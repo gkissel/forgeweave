@@ -1,0 +1,57 @@
+{
+    decoder: "item_stack",
+    expect: {
+        components: {
+            "forgeweave:armor_stats": {
+                armor: 7.0f,
+                durability: 240,
+                knockback_resistance: 0.0f,
+                toughness: 0.0f
+            },
+            "forgeweave:enchantability": 14,
+            "forgeweave:tool_materials": {
+                head: "forgeweave:iron",
+                parts: [
+                    "forgeweave:iron",
+                    "forgeweave:iron",
+                    "forgeweave:iron"
+                ]
+            },
+            "forgeweave:traits": [
+                "forgeweave:projectile_protection",
+                "forgeweave:magnetic"
+            ],
+            "minecraft:damage": 0,
+            "minecraft:max_damage": 240
+        },
+        id: "forgeweave:heavy_chestplate"
+    },
+    nbt: {
+        components: {
+            "forgeweave:armor_stats": {
+                armor: 7.0f,
+                durability: 240,
+                knockback_resistance: 0.0f,
+                toughness: 0.0f
+            },
+            "forgeweave:enchantability": 14,
+            "forgeweave:tool_materials": {
+                head: "forgeweave:iron",
+                parts: [
+                    "forgeweave:iron",
+                    "forgeweave:iron",
+                    "forgeweave:iron"
+                ]
+            },
+            "forgeweave:traits": [
+                "forgeweave:projectile_protection",
+                "forgeweave:magnetic"
+            ],
+            "minecraft:damage": 0,
+            "minecraft:max_damage": 240
+        },
+        count: 1,
+        id: "forgeweave:heavy_chestplate"
+    },
+    what: "#735 (epic #730): an iron heavy chestplate -- iron plating over iron maille plus an iron large plate -- assembled at a Tool Station. Same `forgeweave:armor_stats` shape as M4-3, with armor at x1.4 of the plating row (5.0 -> 7.0) and durability/toughness/knockback resistance untouched; `tool_materials.parts` grows to three (the large plate is `parts[2]`, an EXTRA-role slot, so iron's general-scope magnetic joins the ARMOR-scoped projectile_protection). The -5% movement speed is an attribute the item derives from being a heavy piece, not stored data. HeavyArmorGameTests assembles this exact piece and asserts the same numbers."
+}

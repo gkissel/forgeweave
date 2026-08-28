@@ -120,9 +120,9 @@ class BookLangCoverageTest {
     }
 
     /**
-     * M4-7 (issue #682): the armor section's four {@code tool} pages sit outside
-     * {@link BookContent#TOOLS} (the tools section's roster), so their name/description pair and
-     * Properties bullet run are walked here.
+     * M4-7 (issue #682, extended by #735/epic #730 to the four heavy pieces): the armor section's
+     * {@code tool} pages sit outside {@link BookContent#TOOLS} (the tools section's roster), so their
+     * name/description pair and Properties bullet run are walked here.
      */
     @Test
     void theArmorPiecePagesHaveNameDescriptionAndProperties() throws IOException {
@@ -133,7 +133,8 @@ class BookLangCoverageTest {
                 .flatMap(section -> section.pages().stream())
                 .filter(page -> page.type().equals("tool"))
                 .toList();
-        assertTrue(pieces.size() == 4, "the armor section lists the four pieces, saw " + pieces.size());
+        // #735 (epic #730) added the four heavy pieces alongside the original four plate ones.
+        assertTrue(pieces.size() == 8, "the armor section lists the eight pieces, saw " + pieces.size());
         for (BookStructure.PageDef piece : pieces) {
             String base = "item.forgeweave." + piece.name();
             for (String key : List.of(base, base + ".description")) {

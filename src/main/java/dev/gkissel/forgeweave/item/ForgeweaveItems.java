@@ -395,8 +395,21 @@ public final class ForgeweaveItems {
     public static final DeferredItem<ArmorPieceItem> ARMOR_LEGGINGS = armor("leggings", ArmorItem.Type.LEGGINGS);
     public static final DeferredItem<ArmorPieceItem> ARMOR_BOOTS = armor("boots", ArmorItem.Type.BOOTS);
 
+    // #735 (epic #730): the heavy set -- plating + maille + large plate (ToolConstants#HEAVY_ARMOR).
+    // Own ids so M9's designer art can differ; the same ArmorPieceItem, flagged heavy for the speed
+    // debuff, and the plate set's models/sprites/worn layers until then (ToolArt#baseTool).
+    public static final DeferredItem<ArmorPieceItem> ARMOR_HEAVY_HELMET = heavyArmor("helmet", ArmorItem.Type.HELMET);
+    public static final DeferredItem<ArmorPieceItem> ARMOR_HEAVY_CHESTPLATE = heavyArmor("chestplate", ArmorItem.Type.CHESTPLATE);
+    public static final DeferredItem<ArmorPieceItem> ARMOR_HEAVY_LEGGINGS = heavyArmor("leggings", ArmorItem.Type.LEGGINGS);
+    public static final DeferredItem<ArmorPieceItem> ARMOR_HEAVY_BOOTS = heavyArmor("boots", ArmorItem.Type.BOOTS);
+
     private static DeferredItem<ArmorPieceItem> armor(String name, ArmorItem.Type type) {
-        return ITEMS.registerItem(name, properties -> new ArmorPieceItem(type, properties),
+        return ITEMS.registerItem(name, properties -> new ArmorPieceItem(type, false, properties),
+                new Item.Properties().stacksTo(1));
+    }
+
+    private static DeferredItem<ArmorPieceItem> heavyArmor(String name, ArmorItem.Type type) {
+        return ITEMS.registerItem(ToolConstants.HEAVY_PREFIX + name, properties -> new ArmorPieceItem(type, true, properties),
                 new Item.Properties().stacksTo(1));
     }
 

@@ -28,6 +28,10 @@ import dev.gkissel.forgeweave.ponder.ForgeweavePonderPlugin;
  * so their keys are listed explicitly here, same as the hand-written lang file this replaces.
  */
 public class ForgeweaveLanguageProvider extends LanguageProvider {
+
+    /** #735: one description for the four heavy pieces. */
+    private static final String HEAVY_ARMOR_DESCRIPTION =
+            "Plating over maille, backed by a large plate. Armor is 1.4x the plating's; every piece worn slows you by 5%.";
     public ForgeweaveLanguageProvider(PackOutput output) {
         super(output, Forgeweave.MODID, "en_us");
     }
@@ -516,6 +520,15 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         addItem(ForgeweaveItems.ARMOR_BOOTS, "Boots");
         add("item.forgeweave.boots.description",
                 "Plating over maille. The plating sets every stat; the maille brings its material's traits.");
+        // #735 (epic #730): the heavy set.
+        addItem(ForgeweaveItems.ARMOR_HEAVY_HELMET, "Heavy Helmet");
+        add("item.forgeweave.heavy_helmet.description", HEAVY_ARMOR_DESCRIPTION);
+        addItem(ForgeweaveItems.ARMOR_HEAVY_CHESTPLATE, "Heavy Chestplate");
+        add("item.forgeweave.heavy_chestplate.description", HEAVY_ARMOR_DESCRIPTION);
+        addItem(ForgeweaveItems.ARMOR_HEAVY_LEGGINGS, "Heavy Leggings");
+        add("item.forgeweave.heavy_leggings.description", HEAVY_ARMOR_DESCRIPTION);
+        addItem(ForgeweaveItems.ARMOR_HEAVY_BOOTS, "Heavy Boots");
+        add("item.forgeweave.heavy_boots.description", HEAVY_ARMOR_DESCRIPTION);
         addItem(ForgeweaveItems.TOOL_ARROW, "Arrow");
         add("item.forgeweave.arrow.description",
                 "The Arrows are the ammo used for Forgeweave's Bows. One stack provides many shots, "
@@ -1838,6 +1851,14 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
                 ForgeweaveItems.ARMOR_LEGGINGS, ForgeweaveItems.ARMOR_BOOTS)) {
             toolProperties(piece, "Material controlled stats", "High protection",
                     "Plating: stats and traits", "Maille: traits only", "3 Modifier Slots");
+        }
+        // #735 (epic #730): the heavy set -- the plate bullets above, minus the piece's own armor
+        // multiplier and speed cost, plus the large plate slot.
+        for (var piece : List.of(ForgeweaveItems.ARMOR_HEAVY_HELMET, ForgeweaveItems.ARMOR_HEAVY_CHESTPLATE,
+                ForgeweaveItems.ARMOR_HEAVY_LEGGINGS, ForgeweaveItems.ARMOR_HEAVY_BOOTS)) {
+            toolProperties(piece, "Material controlled stats", "Armor is 1.4x the plating's",
+                    "Plating: stats and traits", "Maille: traits only", "Large Plate: no stats",
+                    "-5% Movement Speed per piece worn", "3 Modifier Slots");
         }
         // The #651 content tail -- the six tools upstream's book has no bullets for. Original
         // wording, one bullet per implemented behavior (ToolConstants, ForgeweaveInnates,

@@ -224,7 +224,14 @@ public final class ToolStationTabs {
             build(ForgeweaveItems.ARMOR_HELMET, at(0, -14), at(0, 14)),
             build(ForgeweaveItems.ARMOR_CHESTPLATE, at(0, -14), at(0, 14)),
             build(ForgeweaveItems.ARMOR_LEGGINGS, at(0, -14), at(0, 14)),
-            build(ForgeweaveItems.ARMOR_BOOTS, at(0, -14), at(0, 14)));
+            build(ForgeweaveItems.ARMOR_BOOTS, at(0, -14), at(0, 14)),
+            // #735 heavy armor (epic #730): plating top, maille bottom-left, large plate
+            // bottom-right, in the entry's own plating/maille/large_plate order. No upstream
+            // counterpart to cite (no 1.12 armor at all) -- Forgeweave's own triangular layout.
+            build(ForgeweaveItems.ARMOR_HEAVY_HELMET, at(0, -16), at(-14, 10), at(14, 10)),
+            build(ForgeweaveItems.ARMOR_HEAVY_CHESTPLATE, at(0, -16), at(-14, 10), at(14, 10)),
+            build(ForgeweaveItems.ARMOR_HEAVY_LEGGINGS, at(0, -16), at(-14, 10), at(14, 10)),
+            build(ForgeweaveItems.ARMOR_HEAVY_BOOTS, at(0, -16), at(-14, 10), at(14, 10)));
 
     /** The repair tab, which is what a freshly opened station shows (as upstream's does). */
     public static final int REPAIR = 0;

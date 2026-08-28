@@ -1414,7 +1414,11 @@ public final class ScreenshotHarness {
     private static final List<ArmorScene> ARMOR_SCENES = List.of(
             new ArmorScene("armor_iron", "iron", ARMOR_SET),
             new ArmorScene("armor_cobalt", "cobalt", ARMOR_SET),
-            new ArmorScene("armor_obsidian_chestplate", "obsidian", List.of(ForgeweaveItems.ARMOR_CHESTPLATE)));
+            new ArmorScene("armor_obsidian_chestplate", "obsidian", List.of(ForgeweaveItems.ARMOR_CHESTPLATE)),
+            // #735: the heavy set, iron -- the plate set's layers until M9's own art.
+            new ArmorScene("armor_heavy_iron", "iron", List.of(
+                    ForgeweaveItems.ARMOR_HEAVY_HELMET, ForgeweaveItems.ARMOR_HEAVY_CHESTPLATE,
+                    ForgeweaveItems.ARMOR_HEAVY_LEGGINGS, ForgeweaveItems.ARMOR_HEAVY_BOOTS)));
 
     /**
      * {@link #WEAPONS} by index, or the broadsword for the two extra poses past the end: #257's

@@ -123,6 +123,7 @@ class BookStructureTest {
         List<PageDef> pages = section("armor").pages();
 
         assertEquals(List.of("intro", "parts", "casting", "helmet", "chestplate", "leggings", "boots",
+                "heavy_helmet", "heavy_chestplate", "heavy_leggings", "heavy_boots",
                 "traits", "modifiers"), pages.stream().map(PageDef::name).toList());
         assertEquals("forgeweave:chestplate", section("armor").iconItem());
         for (PageDef def : pages) {
@@ -132,7 +133,7 @@ class BookStructureTest {
                 assertEquals("text", def.type(), "armor page " + def.name());
             }
         }
-        assertEquals(4, pages.stream().filter(def -> def.type().equals("tool")).count());
+        assertEquals(8, pages.stream().filter(def -> def.type().equals("tool")).count());
     }
 
     /** The smeltery intro is upstream's {@code "image with text below"} page type. */

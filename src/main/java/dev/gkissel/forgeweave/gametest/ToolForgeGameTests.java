@@ -135,9 +135,10 @@ public class ToolForgeGameTests {
 
         helper.assertTrue(large == 11,
                 "#forgeweave:large_tools tags exactly the Tool Forge tier's eleven tools, counted " + large);
-        helper.assertTrue(ToolAssemblyRecipes.ENTRIES.size() - large == 19,
-                "the Tool Station's own tab row is the other nineteen (M3.5 #394 added the shortbow, "
-                        + "#678 the four armor pieces, "
+        helper.assertTrue(ToolAssemblyRecipes.ENTRIES.size() - large == 23,
+                "the Tool Station's own tab row is the other twenty-three (M3.5 #394 added the shortbow, "
+                        + "#678 the four armor pieces, #735 the four heavy pieces (buildable at both "
+                        + "stations, so not large_tools either), "
                         + "and #653 the arrow; #395's longbow and crossbow, and #448's shuriken, "
                         + "are forge-only)");
         helper.succeed();
