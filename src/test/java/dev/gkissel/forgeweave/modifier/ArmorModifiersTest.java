@@ -76,6 +76,8 @@ class ArmorModifiersTest {
     void theSevenArmorModifiersAreTheOnlyArmorOnlyOnes() {
         for (ResourceLocation id : ForgeweaveModifiers.ids()) {
             assertEquals(ARMOR_ONLY.contains(id), ForgeweaveModifiers.get(id).armorOnly(), id + " armorOnly");
+            // #729: the clone's defense recipes add `modifiable/held` for the five protections only.
+            assertEquals(id.getPath().endsWith("_protection"), ForgeweaveModifiers.get(id).alsoHeld(), id + " alsoHeld");
             // No shipped modifier is armor-only and harvest/projectile-only at once.
             if (ARMOR_ONLY.contains(id)) {
                 assertFalse(ForgeweaveModifiers.get(id).harvestOnly(), id.toString());

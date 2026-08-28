@@ -171,7 +171,7 @@ public final class CombatSeams {
 
     /**
      * The worn half of the defensive pass (issue #680, M4-5; SCOPE.md D8): one {@link CombatSeam#onDefend}
-     * walk over the defender's four armor slots, head to feet, each worn non-Broken
+     * walk over the defender's two hands (#729) and four armor slots, head to feet, each worn non-Broken
      * {@link ArmorPieceItem} resolved through the same providers a held tool is -- so materials'
      * ARMOR traits and #681's modifiers both ride it with no plumbing of their own. What the walk
      * settles pre-mitigation ({@link DefendedBlow#damage}) is applied here, exactly as the held
@@ -185,6 +185,20 @@ public final class CombatSeams {
             return;
         }
         DefendedBlow blow = null;
+        // #729: held tools first -- the clone's EquipmentContext#iterateTools walks every equipment
+        // slot, hands included, so a protection on a held sword counts like one on a worn piece.
+        for (CombatDefense defense : defenses(event.getSource(), defender)) {
+            List<CombatSeam> seams = seams(defense.tool());
+            if (seams.isEmpty()) {
+                continue;
+            }
+            if (blow == null) {
+                blow = new DefendedBlow(event.getAmount());
+            }
+            for (CombatSeam seam : seams) {
+                seam.onDefend(defense, blow);
+            }
+        }
         Entity causing = event.getSource().getEntity();
         LivingEntity attacker = causing instanceof LivingEntity living ? living : null;
         for (EquipmentSlot slot : ARMOR_SLOTS) {

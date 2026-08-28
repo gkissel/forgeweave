@@ -1253,7 +1253,9 @@ public final class ForgeweaveModifiers {
     // ported from the 1.20 clone (NOTICE.md) -- SCOPE.md D15/D16. Armor did not exist in the 1.12
     // generation, so tools/data/ModifierProvider.java and recipes/tools/modifiers/defense/*.json are
     // the source. All seven are Modifier#armorOnly (the clone's `tconstruct:modifiable/armor` recipe
-    // tool tag); the single DEFAULT_SLOTS pool stands in for the clone's defense/upgrade slot types.
+    // tool tag); the five protections are also Modifier#alsoHeld (#729, the recipes' second tag,
+    // `modifiable/held`); the single DEFAULT_SLOTS pool stands in for the clone's defense/upgrade
+    // slot types.
 
     /** Clone {@code IncrementalModifierRecipe} {@code needed_per_level: 5} on every protection. */
     private static final int PROTECTION_UNITS_PER_LEVEL = 5;
@@ -1273,6 +1275,12 @@ public final class ForgeweaveModifiers {
         return new Modifier() {
             @Override
             public boolean armorOnly() {
+                return true;
+            }
+
+            /** #729: the clone's defense recipes add {@code modifiable/held} for the five protections. */
+            @Override
+            public boolean alsoHeld() {
                 return true;
             }
 
