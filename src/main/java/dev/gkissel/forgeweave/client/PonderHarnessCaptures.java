@@ -32,7 +32,8 @@ final class PonderHarnessCaptures {
             new Capture(ForgeweaveItems.STANDARD_CORE.getId(), 0, "ponder_smeltery"),
             new Capture(ForgeweaveItems.STANDARD_CORE.getId(), 1, "ponder_smeltery_sizes"),
             new Capture(ForgeweaveItems.FAUCET.getId(), 0, "ponder_casting"),
-            new Capture(ForgeweaveBlocks.TOOL_STATION.getId(), 0, "ponder_armor"));
+            // Issue #782 (reversing D13): the armor assembly scene moved onto the Armor Station item.
+            new Capture(ForgeweaveBlocks.ARMOR_STATION.getId(), 0, "ponder_armor"));
 
     /** {@link PonderUI}'s constructor and scene paging are protected; this is the harness's way in. */
     private static final class HarnessPonderUI extends PonderUI {

@@ -17,6 +17,7 @@ import mezz.jei.api.recipe.transfer.IRecipeTransferHandlerHelper;
 import mezz.jei.api.recipe.transfer.IRecipeTransferInfo;
 
 import dev.gkissel.forgeweave.menu.ForgeweaveMenus;
+import dev.gkissel.forgeweave.menu.ToolAssemblyRecipes;
 import dev.gkissel.forgeweave.menu.ToolStationMenu;
 import dev.gkissel.forgeweave.menu.ToolStationTabs;
 
@@ -81,7 +82,14 @@ final class AssemblyTransferHandler implements IRecipeTransferInfo<ToolStationMe
         if (type == AssemblyCategory.LARGE_TYPE && !container.isForge()) {
             return false; // large tools only assemble at the Tool Forge (issue #152)
         }
-        return tabIndexFor(recipe) >= 0;
+        int tabIndex = tabIndexFor(recipe);
+        if (tabIndex < 0) {
+            return false;
+        }
+        // Issue #782: armor recipes only transfer into the Armor Station and vice versa -- the same
+        // category gate ToolStationTabs#visible and ToolAssemblyRecipes#resolveAssembly enforce, so
+        // the [+] button never offers a transfer the open station would only refuse.
+        return ToolAssemblyRecipes.isArmorEntry(ToolStationTabs.get(tabIndex).entry()) == container.isArmorStation();
     }
 
     @Override

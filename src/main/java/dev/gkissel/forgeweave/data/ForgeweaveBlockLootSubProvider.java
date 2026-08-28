@@ -61,6 +61,10 @@ public class ForgeweaveBlockLootSubProvider extends BlockLootSubProvider {
         add(ForgeweaveBlocks.PART_BUILDER.get(), retexturedTableDrop(ForgeweaveBlocks.PART_BUILDER.get()));
         add(ForgeweaveBlocks.TOOL_STATION.get(), retexturedTableDrop(ForgeweaveBlocks.TOOL_STATION.get()));
         add(ForgeweaveBlocks.TOOL_FORGE.get(), retexturedTableDrop(ForgeweaveBlocks.TOOL_FORGE.get()));
+        // Issue #782: same drop shape as the other three table blocks above -- harmless here even
+        // though the Armor Station never actually carries a TEXTURE component (its recipe never sets
+        // one), same as the Crafting Station below.
+        add(ForgeweaveBlocks.ARMOR_STATION.get(), retexturedTableDrop(ForgeweaveBlocks.ARMOR_STATION.get()));
         add(ForgeweaveBlocks.CRAFTING_STATION.get(), retexturedTableDrop(ForgeweaveBlocks.CRAFTING_STATION.get()));
         add(ForgeweaveBlocks.STENCIL_TABLE.get(), retexturedTableDrop(ForgeweaveBlocks.STENCIL_TABLE.get()));
 

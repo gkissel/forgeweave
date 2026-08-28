@@ -128,13 +128,13 @@ public class ContentFamilyGameTests {
      */
     @GameTest(template = "empty")
     public static void disabledFamilyTabsDisappearFromBothBlocks(GameTestHelper helper) {
-        int stationOn = ToolStationTabs.visible(false).size();
-        int forgeOn = ToolStationTabs.visible(true).size();
+        int stationOn = ToolStationTabs.visible(false, false).size();
+        int forgeOn = ToolStationTabs.visible(true, false).size();
 
         ForgeweaveConfig.MELEE_WEAPONS.set(false);
         try {
-            List<Integer> station = ToolStationTabs.visible(false);
-            List<Integer> forge = ToolStationTabs.visible(true);
+            List<Integer> station = ToolStationTabs.visible(false, false);
+            List<Integer> forge = ToolStationTabs.visible(true, false);
 
             helper.assertTrue(station.contains(ToolStationTabs.REPAIR) && forge.contains(ToolStationTabs.REPAIR),
                     "the repair tab is never a family's, so it must survive any toggle");
@@ -154,8 +154,8 @@ public class ContentFamilyGameTests {
             ForgeweaveConfig.MELEE_WEAPONS.set(true);
         }
 
-        helper.assertTrue(ToolStationTabs.visible(false).size() == stationOn
-                        && ToolStationTabs.visible(true).size() == forgeOn,
+        helper.assertTrue(ToolStationTabs.visible(false, false).size() == stationOn
+                        && ToolStationTabs.visible(true, false).size() == forgeOn,
                 "and turning it back on must restore every tab");
         helper.succeed();
     }
@@ -446,7 +446,7 @@ public class ContentFamilyGameTests {
                     "a tool of a switched-off family must still damage what it hits");
             target.discard();
 
-            helper.assertTrue(ToolStationTabs.visible(false).contains(ToolStationTabs.REPAIR),
+            helper.assertTrue(ToolStationTabs.visible(false, false).contains(ToolStationTabs.REPAIR),
                     "and must still have a repair tab to be maintained at");
         } finally {
             ForgeweaveConfig.MELEE_WEAPONS.set(true);

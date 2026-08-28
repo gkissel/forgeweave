@@ -179,6 +179,7 @@ public final class ForgeweaveCreativeTab {
         addTableVariants(output, ForgeweaveItems.PART_BUILDER.get(), ItemTags.LOGS, listAllTableVariants);
         output.accept(ForgeweaveItems.TOOL_STATION.get());
         output.accept(ForgeweaveItems.TOOL_FORGE.get());
+        output.accept(ForgeweaveItems.ARMOR_STATION.get()); // issue #782
         output.accept(ForgeweaveItems.CRAFTING_STATION.get());
         addTableVariants(output, ForgeweaveItems.STENCIL_TABLE.get(), ItemTags.PLANKS, listAllTableVariants);
         output.accept(ForgeweaveItems.PATTERN_CHEST.get());

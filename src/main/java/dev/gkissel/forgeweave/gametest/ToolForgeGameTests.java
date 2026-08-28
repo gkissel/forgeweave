@@ -164,25 +164,38 @@ public class ToolForgeGameTests {
 
     /**
      * Issue #336's tab list: a Tool Station's sidebar offers the repair tab plus only the tools it
-     * can actually build, the Tool Forge's offers every one. Upstream draws the same line in
-     * {@code ContainerToolForge#getBuildableTools}, which overrides the Tool Station's
-     * {@code TinkerRegistry.getToolStationCrafting()} with {@code getToolForgeCrafting()} and is what
-     * {@code GuiToolStation} builds its button column from.
+     * can actually build, the Tool Forge's offers every one <em>except</em> armor (issue #782,
+     * reversing D13, took armor off both tool blocks onto the Armor Station). Upstream draws the
+     * large-tool line in {@code ContainerToolForge#getBuildableTools}, which overrides the Tool
+     * Station's {@code TinkerRegistry.getToolStationCrafting()} with {@code getToolForgeCrafting()}
+     * and is what {@code GuiToolStation} builds its button column from; armor has no upstream
+     * counterpart to cite.
      */
     @GameTest(template = "empty")
     public static void stationTabsOmitTheForgeTier(GameTestHelper helper) {
-        List<Integer> station = ToolStationTabs.visible(false);
-        List<Integer> forge = ToolStationTabs.visible(true);
+        List<Integer> station = ToolStationTabs.visible(false, false);
+        List<Integer> forge = ToolStationTabs.visible(true, false);
+        long armorTabs = ToolStationTabs.TABS.stream()
+                .filter(tab -> !tab.isRepair() && ToolAssemblyRecipes.isArmorEntry(tab.entry()))
+                .count();
 
-        helper.assertTrue(forge.size() == ToolStationTabs.TABS.size(),
-                "the Tool Forge builds the whole roster, got " + forge.size() + " of " + ToolStationTabs.TABS.size());
-        helper.assertTrue(station.size() == ToolStationTabs.TABS.size() - 11,
-                "the Tool Station's sidebar drops the eleven forge-only tools, got " + station.size());
+        helper.assertTrue(forge.size() == ToolStationTabs.TABS.size() - armorTabs,
+                "the Tool Forge builds the whole roster except armor, got " + forge.size() + " of "
+                        + ToolStationTabs.TABS.size());
+        helper.assertTrue(station.size() == ToolStationTabs.TABS.size() - 11 - armorTabs,
+                "the Tool Station's sidebar drops the eleven forge-only tools and armor, got " + station.size());
         helper.assertTrue(station.contains(ToolStationTabs.REPAIR), "every station keeps its repair tab");
         for (int index : station) {
             ToolStationTabs.Tab tab = ToolStationTabs.get(index);
             helper.assertFalse(!tab.isRepair() && ToolAssemblyRecipes.isLargeTool(tab.entry()),
                     "a Tool Station tab must not build a forge-only tool, got " + tab.title().getString());
+            helper.assertFalse(!tab.isRepair() && ToolAssemblyRecipes.isArmorEntry(tab.entry()),
+                    "a Tool Station tab must not build armor, got " + tab.title().getString());
+        }
+        for (int index : forge) {
+            ToolStationTabs.Tab tab = ToolStationTabs.get(index);
+            helper.assertFalse(!tab.isRepair() && ToolAssemblyRecipes.isArmorEntry(tab.entry()),
+                    "a Tool Forge tab must not build armor, got " + tab.title().getString());
         }
         helper.succeed();
     }

@@ -84,6 +84,12 @@ public record StationGroup(List<BlockPos> members, int selected) {
     private static final List<List<Supplier<? extends Block>>> KINDS = List.of(
             List.of(ForgeweaveBlocks.CRAFTING_STATION),
             List.of(ForgeweaveBlocks.TOOL_STATION, ForgeweaveBlocks.TOOL_FORGE),
+            // The Armor Station (docs/SCOPE.md M4 issue #782): no upstream gui number to slot into,
+            // since neither 1.12 nor 1.20 (nor Armory, which is inspire-only) group an armor station
+            // with a tool one. Placed right after the Tool Station/Forge entry -- its nearest sibling,
+            // an assembly station drawing from the same ToolAssemblyRecipes#ENTRIES table -- and ahead
+            // of the Part Builder/storage/Stencil Table entries upstream itself orders last.
+            List.of(ForgeweaveBlocks.ARMOR_STATION),
             List.of(ForgeweaveBlocks.PART_BUILDER),
             List.of(ForgeweaveBlocks.PART_CHEST),
             List.of(ForgeweaveBlocks.PATTERN_CHEST),

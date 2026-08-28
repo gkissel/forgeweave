@@ -46,8 +46,9 @@ public class ElytraCreativeFlightGameTests {
         return ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, path);
     }
 
+    // Issue #782 (reversing D13): armor assembles at the Armor Station now.
     private static ItemStack heavyPiece(GameTestHelper helper, Player player, ToolConstants.Entry entry) {
-        return ToolAssembly.assembleAt(helper, player, STATION, ForgeweaveBlocks.TOOL_STATION.get(),
+        return ToolAssembly.assembleAt(helper, player, STATION, ForgeweaveBlocks.ARMOR_STATION.get(),
                 ToolAssembly.entryOf(entry), List.of("iron", "iron", "iron"));
     }
 
@@ -56,7 +57,7 @@ public class ElytraCreativeFlightGameTests {
     }
 
     private static ItemStack plateChestplate(GameTestHelper helper, Player player) {
-        return ToolAssembly.assembleAt(helper, player, STATION, ForgeweaveBlocks.TOOL_STATION.get(),
+        return ToolAssembly.assembleAt(helper, player, STATION, ForgeweaveBlocks.ARMOR_STATION.get(),
                 ToolAssembly.entryOf(ToolConstants.CHESTPLATE), List.of("iron", "iron"));
     }
 

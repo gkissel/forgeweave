@@ -511,6 +511,10 @@ public final class ForgeweaveItems {
 
     public static final DeferredItem<BlockItem> TOOL_STATION = ITEMS.registerSimpleBlockItem("tool_station", ForgeweaveBlocks.TOOL_STATION);
 
+    // The Armor Station (docs/SCOPE.md M4 issue #782): same plain block-item shape as the Tool
+    // Station above (its recipe never sets a TEXTURE component -- see ArmorStationBlock).
+    public static final DeferredItem<BlockItem> ARMOR_STATION = ITEMS.registerSimpleBlockItem("armor_station", ForgeweaveBlocks.ARMOR_STATION);
+
     // The Crafting Station (docs/SCOPE.md M1 issue #40): same retextured-table item shape as the two
     // blocks above (ForgeweaveDataComponents#TEXTURE carries the crafting wood).
     public static final DeferredItem<BlockItem> CRAFTING_STATION = ITEMS.registerSimpleBlockItem("crafting_station", ForgeweaveBlocks.CRAFTING_STATION);

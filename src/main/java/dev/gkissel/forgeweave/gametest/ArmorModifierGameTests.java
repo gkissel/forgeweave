@@ -37,9 +37,10 @@ import dev.gkissel.forgeweave.tool.ToolConstants;
 import dev.gkissel.forgeweave.trait.ForgeweaveTraits;
 
 /**
- * M4-6 (issue #681; SCOPE.md D15/D16): the seven armor modifiers through the real Tool Station
- * flow -- what a reagent stack buys, what it costs in slots, and the {@code armorOnly()} gate in
- * both directions. The pure arithmetic is {@code modifier.ArmorModifiersTest}.
+ * M4-6 (issue #681; SCOPE.md D15/D16): the seven armor modifiers through the real Armor Station
+ * flow (issue #782 moved assembly/modifier-application off the Tool Station) -- what a reagent
+ * stack buys, what it costs in slots, and the {@code armorOnly()} gate in both directions. The pure
+ * arithmetic is {@code modifier.ArmorModifiersTest}.
  *
  * <p>Clone pinned at {@code de26560d}: {@code recipes/tools/modifiers/defense/*.json},
  * {@code .../upgrade/thorns.json}, {@code tools/data/ModifierProvider.java}.
@@ -59,7 +60,8 @@ public class ArmorModifierGameTests {
     }
 
     private static ItemStack chestplate(GameTestHelper helper, Player player, String material) {
-        return ToolAssembly.assembleAt(helper, player, STATION, ForgeweaveBlocks.TOOL_STATION.get(),
+        // Issue #782 (reversing D13): armor assembles at the Armor Station now.
+        return ToolAssembly.assembleAt(helper, player, STATION, ForgeweaveBlocks.ARMOR_STATION.get(),
                 ToolAssembly.entryOf(ToolConstants.CHESTPLATE), List.of(material, material));
     }
 

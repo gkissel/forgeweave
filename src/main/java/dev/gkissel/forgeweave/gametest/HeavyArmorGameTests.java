@@ -27,10 +27,11 @@ import dev.gkissel.forgeweave.tool.ArmorStats;
 import dev.gkissel.forgeweave.tool.ToolConstants;
 
 /**
- * Issue #735 (epic #730, slice 1): the heavy set assembles from plating + maille + large plate at
- * both stations with armor x1.4 off the plating's block (toughness/knockback resistance/durability
- * unchanged), each worn piece takes 5% off movement speed (the four stack multiplicatively), and a
- * row without its large plate is the plain piece, never the heavy one.
+ * Issue #735 (epic #730, slice 1), moved onto the Armor Station by issue #782 (reversing D13): the
+ * heavy set assembles from plating + maille + large plate with armor x1.4 off the plating's block
+ * (toughness/knockback resistance/durability unchanged), each worn piece takes 5% off movement
+ * speed (the four stack multiplicatively), and a row without its large plate is the plain piece,
+ * never the heavy one.
  */
 @GameTestHolder(Forgeweave.MODID)
 @PrefixGameTestTemplate(false)
@@ -66,21 +67,22 @@ public class HeavyArmorGameTests {
     }
 
     @GameTest(template = "empty")
-    public static void everyHeavyPieceAssemblesAtTheStationWithIronValues(GameTestHelper helper) {
+    public static void everyHeavyPieceAssemblesAtTheArmorStationWithIronValues(GameTestHelper helper) {
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         for (int i = 0; i < 4; i++) {
-            assertIronPiece(helper, piece(helper, player, ForgeweaveBlocks.TOOL_STATION.get(),
-                    ToolConstants.HEAVY_ARMOR.get(i)), i, "the Tool Station");
+            assertIronPiece(helper, piece(helper, player, ForgeweaveBlocks.ARMOR_STATION.get(),
+                    ToolConstants.HEAVY_ARMOR.get(i)), i, "the Armor Station");
         }
         helper.succeed();
     }
 
+    /** Issue #782 (reversing D13): neither tool block builds heavy armor any more either. */
     @GameTest(template = "empty")
-    public static void everyHeavyPieceAssemblesAtTheForgeWithIronValues(GameTestHelper helper) {
+    public static void neitherTheStationNorTheForgeAssembleHeavyArmorAnyMore(GameTestHelper helper) {
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
-        for (int i = 0; i < 4; i++) {
-            assertIronPiece(helper, piece(helper, player, ForgeweaveBlocks.TOOL_FORGE.get(),
-                    ToolConstants.HEAVY_ARMOR.get(i)), i, "the Tool Forge");
+        for (Block station : List.of(ForgeweaveBlocks.TOOL_STATION.get(), ForgeweaveBlocks.TOOL_FORGE.get())) {
+            ItemStack output = piece(helper, player, station, ToolConstants.HEAVY_CHESTPLATE);
+            helper.assertTrue(output.isEmpty(), station + " must refuse to assemble heavy armor, got " + output);
         }
         helper.succeed();
     }
@@ -88,7 +90,7 @@ public class HeavyArmorGameTests {
     @GameTest(template = "empty")
     public static void withoutItsLargePlateTheRowBuildsThePlainPiece(GameTestHelper helper) {
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
-        helper.setBlock(STATION, ForgeweaveBlocks.TOOL_STATION.get());
+        helper.setBlock(STATION, ForgeweaveBlocks.ARMOR_STATION.get());
         ToolStationBlockEntity blockEntity = helper.getBlockEntity(STATION);
         ToolStationMenu menu = ToolAssembly.menu(helper, player, STATION, blockEntity);
         blockEntity.container().setItem(0, ToolAssembly.part(ForgeweaveItems.PART_PLATING_CHESTPLATE.get(), "iron"));
@@ -111,7 +113,7 @@ public class HeavyArmorGameTests {
     private static double speedWearing(GameTestHelper helper, List<ToolConstants.Entry> entries) {
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         for (ToolConstants.Entry entry : entries) {
-            ItemStack stack = piece(helper, player, ForgeweaveBlocks.TOOL_STATION.get(), entry);
+            ItemStack stack = piece(helper, player, ForgeweaveBlocks.ARMOR_STATION.get(), entry);
             player.setItemSlot(((ArmorPieceItem) stack.getItem()).getEquipmentSlot(), stack);
         }
         player.tick();
@@ -141,7 +143,7 @@ public class HeavyArmorGameTests {
     @GameTest(template = "empty")
     public static void aPlainPieceLeavesMovementSpeedAlone(GameTestHelper helper) {
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
-        ItemStack stack = ToolAssembly.assembleAt(helper, player, STATION, ForgeweaveBlocks.TOOL_STATION.get(),
+        ItemStack stack = ToolAssembly.assembleAt(helper, player, STATION, ForgeweaveBlocks.ARMOR_STATION.get(),
                 ToolAssembly.entryOf(ToolConstants.CHESTPLATE), List.of("iron", "iron"));
         player.setItemSlot(EquipmentSlot.CHEST, stack);
         player.tick();

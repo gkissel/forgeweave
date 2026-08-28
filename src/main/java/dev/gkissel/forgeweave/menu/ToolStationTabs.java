@@ -243,33 +243,40 @@ public final class ToolStationTabs {
     /**
      * The tab indices a block offers, in sidebar order (issue #336): the repair tab plus every tool
      * that block can actually assemble. A Tool Station drops the Tool Forge tier; a Tool Forge offers
-     * the whole list.
+     * the whole list; the Armor Station offers only the armor tier and neither Tool Station block
+     * offers it (docs/SCOPE.md M4 issue #782, reversing D13).
      *
      * <p>Upstream 1.12 splits the roster at registration -- {@code
      * TinkerRegistry#registerToolStationCrafting} versus {@code registerToolForgeCrafting} -- and its
      * {@code GuiToolStation} builds its button column from whichever set the container's {@code
      * getBuildableTools()} returns, which {@code ContainerToolForge} is the whole of the override for.
      * Here the same split is already data: the {@link ToolAssemblyRecipes#LARGE_TOOLS} item tag that
-     * {@code ToolAssemblyRecipes#resolveAssembly} refuses on, so this needs no roster of its own and
-     * cannot drift from the one the station actually builds against.
+     * {@code ToolAssemblyRecipes#resolveAssembly} refuses on, and (for armor) each entry's own
+     * {@code ToolConstants.Category} -- {@link ToolAssemblyRecipes#isArmorEntry} -- so this needs no
+     * roster of its own and cannot drift from the one the station actually builds against.
      *
      * <p>Indices into {@link #TABS} rather than a filtered list of tabs: the selected tab travels as a
      * menu-button id and a {@code DataSlot} value, so keeping that number block-independent means the
-     * Tool Station and the Tool Forge can never read the same id as two different tools. That is also
-     * what lets the content-family gate below compose with the large-tool one without either having
-     * to know about the other -- both simply drop indices, and a tab index means the same tool
-     * whichever of them ran.
+     * Tool Station, the Tool Forge and the Armor Station can never read the same id as two different
+     * tools. That is also what lets the content-family gate below compose with the large-tool and
+     * armor-category ones without any of the three having to know about the others -- each simply
+     * drops indices, and a tab index means the same tool whichever of them ran.
      *
      * <p>The repair tab is never dropped: repairing, modifying and embossing an <em>existing</em>
-     * tool stays available whatever a family toggle says (the content-family toggles ticket's
-     * "items already in the world keep working").
+     * tool or armor piece stays available whatever a family toggle says (the content-family toggles
+     * ticket's "items already in the world keep working") and at whichever of the three blocks it is
+     * opened at (issue #782: repair/modify/emboss act on an already-assembled stack, not on a build
+     * tab, so they are never category-gated).
      */
-    public static List<Integer> visible(boolean forge) {
+    public static List<Integer> visible(boolean forge, boolean armorStation) {
         List<Integer> indices = new ArrayList<>(TABS.size());
         for (int i = 0; i < TABS.size(); i++) {
             Tab tab = TABS.get(i);
             if (!tab.isRepair() && !ContentFamilies.toolEnabled(tab.entry())) {
                 continue; // content-family toggles ticket: an off family offers no build tab at all
+            }
+            if (!tab.isRepair() && ToolAssemblyRecipes.isArmorEntry(tab.entry()) != armorStation) {
+                continue; // #782: armor builds only at the Armor Station, everything else only away from it
             }
             if (forge || tab.isRepair() || !ToolAssemblyRecipes.isLargeTool(tab.entry())) {
                 indices.add(i);

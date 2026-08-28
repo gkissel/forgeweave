@@ -104,8 +104,9 @@ class BookStructureTest {
 
         assertEquals(List.of("welcome", "workshop", "blank_pattern", "crafting_station",
                 "stencil_table", "pattern_chest", "part_builder", "part_chest", "tool_station",
-                "tool_forge"), pages.stream().map(PageDef::name).toList(),
-                "the intro section: the condensed welcome pair, then upstream's station pages");
+                "tool_forge", "armor_station"), pages.stream().map(PageDef::name).toList(),
+                "the intro section: the condensed welcome pair, upstream's station pages, then the"
+                        + " Armor Station (issue #782, no upstream page to follow)");
         for (PageDef def : pages) {
             assertEquals("text", def.type(), "intro page " + def.name() + " is a plain text page");
         }

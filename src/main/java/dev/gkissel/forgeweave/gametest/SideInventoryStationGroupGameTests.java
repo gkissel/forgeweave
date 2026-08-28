@@ -67,7 +67,7 @@ public class SideInventoryStationGroupGameTests {
         ToolStationBlockEntity blockEntity = helper.getBlockEntity(STATION_POS);
         ToolStationMenu menu = new ToolStationMenu(0, player.getInventory(), blockEntity.container(),
                 ContainerLevelAccess.create(helper.getLevel(), helper.absolutePos(STATION_POS)),
-                blockEntity.findSideInventory(), blockEntity.isForge());
+                blockEntity.findSideInventory(), blockEntity.isForge(), blockEntity.isArmorStation());
 
         helper.assertTrue(menu.sideInventorySlotCount == 0,
                 "a Pattern Chest that is part of the station's own workshop group should not be the Tool "

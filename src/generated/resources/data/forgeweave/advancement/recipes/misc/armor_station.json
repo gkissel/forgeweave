@@ -1,0 +1,32 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "forgeweave:armor_station"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    },
+    "has_tool_station": {
+      "conditions": {
+        "items": [
+          {
+            "items": "forgeweave:tool_station"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    }
+  },
+  "requirements": [
+    [
+      "has_the_recipe",
+      "has_tool_station"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "forgeweave:armor_station"
+    ]
+  }
+}

@@ -123,7 +123,7 @@ final class ToolAssembly {
     static ToolStationMenu menu(GameTestHelper helper, Player player, BlockPos pos, ToolStationBlockEntity blockEntity) {
         return new ToolStationMenu(0, player.getInventory(), blockEntity.container(),
                 ContainerLevelAccess.create(helper.getLevel(), helper.absolutePos(pos)),
-                blockEntity.findSideInventory(), blockEntity.isForge());
+                blockEntity.findSideInventory(), blockEntity.isForge(), blockEntity.isArmorStation());
     }
 
     static ItemStack part(Item item, String material) {
