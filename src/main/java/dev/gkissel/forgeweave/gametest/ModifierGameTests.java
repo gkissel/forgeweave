@@ -873,4 +873,62 @@ public class ModifierGameTests {
         }
         helper.succeed();
     }
+
+    // ------------------------------------------------------------------ issue #759
+
+    /**
+     * Issue #759 (maintainer playtest): the diamond modifier's one-tier mining-level raise, applied
+     * through the real Tool Station rather than the raw {@code ModifierApplication.apply} unit tests
+     * ({@code ModifierBatch1Test}) already cover. Upstream {@code ModDiamond}'s {@code harvestLevel++}
+     * is a single-rung bump (pinned in {@code ModifierBatch1Test#diamondAddsFiveHundredDurabilityAndBumpsToolTier}),
+     * so it takes an iron-tier head (forgeweave's ladder index 2, {@code incorrect_for_iron_tool} --
+     * a real vanilla iron pickaxe's own ceiling) up to the diamond tag (index 3) -- a real iron
+     * pickaxe cannot mine obsidian; the diamond-modified one now can, exactly what a real diamond
+     * pickaxe mines. A stone-tier head (index 1) only reaches index 2 from one application -- it
+     * still can't mine obsidian, same as upstream's flat, non-compounding +1.
+     */
+    @GameTest(template = "empty")
+    public static void diamondRaisesAnIronPickaxeToRealDiamondMiningLevel(GameTestHelper helper) {
+        BlockPos pos = new BlockPos(1, 1, 1);
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        ItemStack pickaxe = ToolAssembly.pickaxe(helper, player, pos, "iron", "wood", "wood");
+        helper.assertFalse(pickaxe.isCorrectToolForDrops(Blocks.OBSIDIAN.defaultBlockState()),
+                "an iron-tier pickaxe must not yet mine obsidian");
+
+        ToolStationBlockEntity blockEntity = helper.getBlockEntity(pos);
+        blockEntity.container().setItem(0, pickaxe);
+        blockEntity.container().setItem(ToolStationMenu.BINDING_SLOT, new ItemStack(Items.DIAMOND, 1));
+        ToolStationMenu menu = ToolAssembly.menu(helper, player, pos, blockEntity);
+        menu.broadcastChanges();
+
+        ItemStack output = menu.getSlot(ToolStationMenu.OUTPUT_SLOT).getItem().copy();
+        helper.assertFalse(output.isEmpty(), "one diamond must be a valid reagent for the diamond modifier");
+        helper.assertTrue(output.isCorrectToolForDrops(Blocks.OBSIDIAN.defaultBlockState()),
+                "a diamond-modified iron pickaxe must mine what a real diamond pickaxe mines");
+        helper.succeed();
+    }
+
+    /** As above, from a stone-tier head: upstream's bump is flat, so one application is not enough. */
+    @GameTest(template = "empty")
+    public static void diamondOnAStoneHeadOnlyReachesRealIronMiningLevel(GameTestHelper helper) {
+        BlockPos pos = new BlockPos(1, 1, 1);
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        ItemStack pickaxe = ToolAssembly.pickaxe(helper, player, pos, "stone", "wood", "wood");
+        helper.assertFalse(pickaxe.isCorrectToolForDrops(Blocks.DIAMOND_ORE.defaultBlockState()),
+                "a stone-tier pickaxe must not yet mine diamond ore");
+
+        ToolStationBlockEntity blockEntity = helper.getBlockEntity(pos);
+        blockEntity.container().setItem(0, pickaxe);
+        blockEntity.container().setItem(ToolStationMenu.BINDING_SLOT, new ItemStack(Items.DIAMOND, 1));
+        ToolStationMenu menu = ToolAssembly.menu(helper, player, pos, blockEntity);
+        menu.broadcastChanges();
+
+        ItemStack output = menu.getSlot(ToolStationMenu.OUTPUT_SLOT).getItem().copy();
+        helper.assertTrue(output.isCorrectToolForDrops(Blocks.DIAMOND_ORE.defaultBlockState()),
+                "one diamond must raise a stone-tier pickaxe by its one rung, to real iron mining level");
+        helper.assertFalse(output.isCorrectToolForDrops(Blocks.OBSIDIAN.defaultBlockState()),
+                "upstream's harvestLevel++ is a flat, non-compounding +1 -- one diamond from stone-tier "
+                        + "cannot reach real diamond mining level (obsidian) in one shot, same as upstream");
+        helper.succeed();
+    }
 }
