@@ -30,11 +30,11 @@ import dev.gkissel.forgeweave.tool.ToolConstants;
 
 /**
  * Issue #737 (epic #730 slice 2), blocked by #735: elytra flight (an elytra teaches the worn heavy
- * chestplate to glide, via the item hooks in {@code ArmorPieceItem}) and creative flight (a nether
- * star grants creative-style flight while the full heavy set is worn, gated behind elytra flight
- * already being on the same chestplate -- {@code CreativeFlightHandler}'s per-tick grant/revoke).
- * Both are {@code Modifier#armorOnly}/{@code #heavyChestplateOnly}: refused on the plate chestplate
- * (#678's plain piece) and on every tool.
+ * chestplate to glide, via the item hooks in {@code ArmorPieceItem}) and creative flight (issue
+ * #776's end-crystal-and-nether-star combo grants creative-style flight while the full heavy set is
+ * worn, gated behind elytra flight already being on the same chestplate -- {@code
+ * CreativeFlightHandler}'s per-tick grant/revoke). Both are {@code Modifier#armorOnly}/{@code
+ * #heavyChestplateOnly}: refused on the plate chestplate (#678's plain piece) and on every tool.
  */
 @GameTestHolder(Forgeweave.MODID)
 @PrefixGameTestTemplate(false)
@@ -62,21 +62,36 @@ public class ElytraCreativeFlightGameTests {
 
     /** The station loaded with {@code tool} and one reagent stack, output untaken. */
     private static ToolStationMenu load(GameTestHelper helper, Player player, ItemStack tool, ItemStack reagent) {
+        return load(helper, player, tool, reagent, ItemStack.EMPTY);
+    }
+
+    /**
+     * The station loaded with {@code tool} and two reagent stacks in two different free slots (issue
+     * #776: creative flight's end-crystal-and-nether-star combo needs a slot each), output untaken.
+     */
+    private static ToolStationMenu load(GameTestHelper helper, Player player, ItemStack tool,
+            ItemStack firstReagent, ItemStack secondReagent) {
         ToolStationBlockEntity blockEntity = helper.getBlockEntity(STATION);
         for (int i = 0; i < ToolStationMenu.INPUT_SLOTS; i++) {
             blockEntity.container().setItem(i, ItemStack.EMPTY);
         }
         blockEntity.container().setItem(0, tool);
-        blockEntity.container().setItem(1, reagent);
+        blockEntity.container().setItem(1, firstReagent);
+        blockEntity.container().setItem(2, secondReagent);
         ToolStationMenu menu = ToolAssembly.menu(helper, player, STATION, blockEntity);
         menu.broadcastChanges();
         return menu;
     }
 
     private static ItemStack apply(GameTestHelper helper, Player player, ItemStack tool, ItemStack reagent) {
-        ToolStationMenu menu = load(helper, player, tool, reagent);
+        return apply(helper, player, tool, reagent, ItemStack.EMPTY);
+    }
+
+    private static ItemStack apply(GameTestHelper helper, Player player, ItemStack tool,
+            ItemStack firstReagent, ItemStack secondReagent) {
+        ToolStationMenu menu = load(helper, player, tool, firstReagent, secondReagent);
         ItemStack output = menu.getSlot(ToolStationMenu.OUTPUT_SLOT).getItem().copy();
-        helper.assertFalse(output.isEmpty(), "the station must apply " + reagent
+        helper.assertFalse(output.isEmpty(), "the station must apply " + firstReagent + " + " + secondReagent
                 + (menu.rejection() != null ? " (" + menu.rejection().message().getString() + ")" : ""));
         menu.getSlot(ToolStationMenu.OUTPUT_SLOT).onTake(player, output);
         return output;
@@ -127,35 +142,78 @@ public class ElytraCreativeFlightGameTests {
         helper.succeed();
     }
 
-    // ---------------------------------------------------------------- creative flight: no station recipe (#751)
+    // ---------------------------------------------------------------- creative flight: the station recipe (#776)
 
     /**
-     * Issue #751 (playtest defect, following #737/#749): creative flight ships with no obtainable
-     * recipe until the balance is settled -- {@code modifier_recipe/creative_flight.json} is gone.
-     * A nether star is not simply an unrecognized item though: {@code soulbound.json} (issue #107)
-     * ships the exact same reagent, so the station still accepts it, just for soulbound instead of
-     * creative flight -- {@code Modifier#requiresElytraFlightFirst} stays on the modifier's Java
-     * definition for whenever a recipe returns, but nothing today can reach it through the station.
+     * Issue #776 (maintainer decision, supersedes #751's recipeless state): an end crystal and a
+     * nether star together apply creative flight on a heavy chestplate that already has elytra
+     * flight (the proposed balance from #737/#749).
      */
     @GameTest(template = "empty")
-    public static void creativeFlightHasNoStationRecipe(GameTestHelper helper) {
+    public static void endCrystalAndNetherStarGrantCreativeFlight(GameTestHelper helper) {
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         ItemStack flying = apply(helper, player, heavyChestplate(helper, player), new ItemStack(Items.ELYTRA));
+
+        ItemStack output = apply(helper, player, flying, new ItemStack(Items.END_CRYSTAL), new ItemStack(Items.NETHER_STAR));
+
+        ModifierEntry entry = ForgeweaveModifiers.entry(output, id("creative_flight"));
+        helper.assertTrue(entry != null && entry.level() == 1, "the combo grants creative flight level 1, got " + entry);
+        helper.succeed();
+    }
+
+    /**
+     * Issue #776's specificity test: a nether star ships as soulbound's reagent too, so on its own it
+     * must still resolve to soulbound -- only the full end-crystal-and-nether-star combo is specific
+     * enough to win creative flight.
+     */
+    @GameTest(template = "empty")
+    public static void aLoneNetherStarStillGrantsSoulboundNotCreativeFlight(GameTestHelper helper) {
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        ItemStack flying = apply(helper, player, heavyChestplate(helper, player), new ItemStack(Items.ELYTRA));
+
         ItemStack output = apply(helper, player, flying, new ItemStack(Items.NETHER_STAR));
+
         helper.assertTrue(ForgeweaveModifiers.entry(output, id("creative_flight")) == null,
-                "a nether star must not apply creative flight -- issue #751 removed its recipe");
+                "a lone nether star must not apply creative flight -- it is not the specific combo");
         helper.assertTrue(ForgeweaveModifiers.entry(output, id("soulbound")) != null,
-                "it applies soulbound instead, the only other recipe sharing this reagent");
+                "it applies soulbound instead, same as before the combo recipe existed");
+        helper.succeed();
+    }
+
+    /** {@code requiresElytraFlightFirst()}: the combo is still refused without elytra flight already on the piece. */
+    @GameTest(template = "empty")
+    public static void creativeFlightComboStillRequiresElytraFlightFirst(GameTestHelper helper) {
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        ItemStack plain = heavyChestplate(helper, player);
+
+        assertRefused(helper,
+                load(helper, player, plain, new ItemStack(Items.END_CRYSTAL), new ItemStack(Items.NETHER_STAR)),
+                "the combo must not apply before elytra flight is on the same chestplate");
+        helper.succeed();
+    }
+
+    /** {@code heavyChestplateOnly()}: the combo is refused on the plate chestplate (#678) and on every tool. */
+    @GameTest(template = "empty")
+    public static void creativeFlightComboIsRefusedOnThePlateChestplateAndOnTools(GameTestHelper helper) {
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        assertRefused(helper,
+                load(helper, player, plateChestplate(helper, player), new ItemStack(Items.END_CRYSTAL), new ItemStack(Items.NETHER_STAR)),
+                "the plain plate chestplate is not the heavy one");
+        ItemStack pickaxe = ToolAssembly.pickaxe(helper, player, STATION, "stone", "wood", "wood");
+        assertRefused(helper,
+                load(helper, player, pickaxe, new ItemStack(Items.END_CRYSTAL), new ItemStack(Items.NETHER_STAR)),
+                "creative flight is armor-only");
         helper.succeed();
     }
 
     // ---------------------------------------------------------------- creative flight: the worn grant/revoke
 
     /**
-     * A chestplate carrying both modifiers, ready to wear. Creative flight has no station recipe
-     * (issue #751), so it is applied directly to the data component here -- the same pattern already
-     * used by every other GameTest that needs a modifier on a stack with no recipe of its own (e.g.
-     * {@code BeheadingGameTests}, {@code ArmorRealPathGameTests}).
+     * A chestplate carrying both modifiers, ready to wear. Applied directly to the data component
+     * (rather than through the two-station-trip combo recipe the tests above exercise) to keep these
+     * {@code CreativeFlightHandler} tests -- about the worn-set grant/revoke, not the recipe -- short,
+     * the same pattern every other GameTest needing a modifier with no recipe convenient to hand uses
+     * (e.g. {@code BeheadingGameTests}, {@code ArmorRealPathGameTests}).
      */
     private static ItemStack flightChestplate(GameTestHelper helper, Player player) {
         ItemStack flying = apply(helper, player, heavyChestplate(helper, player), new ItemStack(Items.ELYTRA));

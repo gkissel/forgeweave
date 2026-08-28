@@ -170,19 +170,29 @@ class ArmorModifiersTest {
     }
 
     /**
-     * Issue #751: creative flight ships with no obtainable recipe until the balance is settled, so
-     * unlike every other shipped modifier there is no {@code modifier_recipe/creative_flight.json} to
-     * assert against. {@code requiresElytraFlightFirst()} stays on the modifier's Java definition for
-     * whenever a recipe returns -- nothing today can reach it through the station (see
-     * {@code gametest.ElytraCreativeFlightGameTests#creativeFlightHasNoStationRecipe}).
+     * Issue #776 (maintainer decision, supersedes #751's recipeless state): creative flight ships
+     * with an end-crystal-and-nether-star combo, {@code require_all_reagents} true since the two are
+     * distinct required items, not OR-variant forms of one reagent (unlike every other shipped
+     * recipe -- see {@link #theShippedProtectionRecipesAreOneReagentPerUnitFivePerLevel} etc.).
+     * {@code requiresElytraFlightFirst()} still gates the application itself (see
+     * {@code gametest.ElytraCreativeFlightGameTests}).
      */
     @Test
-    void creativeFlightShipsWithNoModifierRecipe() throws Exception {
-        String path = "/data/forgeweave/forgeweave/modifier_recipe/creative_flight.json";
-        try (InputStream in = ArmorModifiersTest.class.getResourceAsStream(path)) {
-            assertTrue(in == null, "creative_flight must not ship a modifier recipe (issue #751)");
-        }
+    void creativeFlightShipsAnEndCrystalAndNetherStarCombo() {
+        ModifierRecipe recipe = shippedRecipe("creative_flight");
+
+        assertEquals(id("creative_flight"), recipe.modifier());
+        assertTrue(recipe.requireAllReagents(), "end crystal and nether star are both required, not alternatives");
+        assertEquals(1, recipe.cost());
+        assertEquals(1, recipe.maxLevel());
+        assertTrue(recipe.matches(new ItemStack(Items.END_CRYSTAL)));
+        assertTrue(recipe.matches(new ItemStack(Items.NETHER_STAR)));
+        assertFalse(recipe.matches(new ItemStack(Items.DIRT)));
+        assertTrue(recipe.isSatisfiedBy(List.of(new ItemStack(Items.END_CRYSTAL), new ItemStack(Items.NETHER_STAR))),
+                "both present together satisfies the combo");
+        assertFalse(recipe.isSatisfiedBy(List.of(new ItemStack(Items.NETHER_STAR))),
+                "a lone nether star is not enough -- issue #776's specificity test");
         assertTrue(ForgeweaveModifiers.get(id("creative_flight")).requiresElytraFlightFirst(),
-                "the gate stays on the modifier itself, ready for whenever a recipe returns");
+                "the elytra-flight-first gate is unrelated to the recipe shape and stays");
     }
 }

@@ -451,6 +451,86 @@ class ModifierRecipeTest {
         assertNull(ForgeweaveModifiers.get(future.modifier()), "and no behavior was invented for it");
     }
 
+    // ------------------------------------------------------------------ #776: AND-type combo recipes
+
+    private static ModifierRecipe combo() {
+        return parse("""
+                {"modifier": "forgeweave:creative_flight",
+                 "reagents": [{"ingredient": {"item": "minecraft:end_crystal"}},
+                              {"ingredient": {"item": "minecraft:nether_star"}}],
+                 "require_all_reagents": true, "max_level": 1}
+                """);
+    }
+
+    /** A pre-#776 recipe with no {@code require_all_reagents} field defaults to the legacy OR reading. */
+    @Test
+    void requireAllReagentsDefaultsToFalse() {
+        assertFalse(shipped().requireAllReagents());
+        assertTrue(combo().requireAllReagents());
+    }
+
+    /**
+     * {@link ModifierRecipe#isSatisfiedBy}: the OR reading (every recipe before this ticket) is
+     * satisfied by any one slot holding any one reagent form, same as {@link ModifierRecipe#matches}
+     * always was. The AND reading (issue #776) needs every declared reagent present at once -- a lone
+     * end crystal is not creative flight, and neither is a lone nether star.
+     */
+    @Test
+    void isSatisfiedByDistinguishesOrFromAndReadings() {
+        ModifierRecipe haste = ModifierRecipe.CODEC.parse(ops, shippedJson()).getOrThrow(); // dust or block, either form
+        assertTrue(haste.isSatisfiedBy(List.of(new ItemStack(Items.REDSTONE))));
+        assertTrue(haste.isSatisfiedBy(List.of(new ItemStack(Items.REDSTONE_BLOCK))),
+                "either OR form alone satisfies a legacy recipe");
+        assertFalse(haste.isSatisfiedBy(List.of(new ItemStack(Items.DIRT))));
+
+        ModifierRecipe combo = combo();
+        assertFalse(combo.isSatisfiedBy(List.of(new ItemStack(Items.END_CRYSTAL))),
+                "the end crystal alone is not enough for an AND recipe");
+        assertFalse(combo.isSatisfiedBy(List.of(new ItemStack(Items.NETHER_STAR))),
+                "nor is the nether star alone");
+        assertTrue(combo.isSatisfiedBy(List.of(new ItemStack(Items.END_CRYSTAL), new ItemStack(Items.NETHER_STAR))),
+                "both together satisfy it");
+    }
+
+    /**
+     * {@link ModifierApplication#mostSpecific}: issue #776's actual collision -- a nether star is both
+     * soulbound's whole reagent and half of creative flight's combo. With only the nether star present,
+     * soulbound is the only satisfied recipe. With the end crystal alongside it, creative flight is
+     * satisfied too and, being more specific (it consumes two matching slots to soulbound's one), wins
+     * the shared nether star; soulbound is dropped rather than applied alongside it.
+     */
+    @Test
+    void mostSpecificPrefersTheLargerReagentSetOverAnOverlappingSmallerOne() {
+        ModifierRecipe soulbound = parse("""
+                {"modifier": "forgeweave:soulbound", "reagent": {"item": "minecraft:nether_star"}, "max_level": 1}
+                """);
+        ModifierRecipe creativeFlight = combo();
+        List<ModifierRecipe> recipes = List.of(soulbound, creativeFlight);
+
+        List<ModifierRecipe> loneStar = ModifierApplication.mostSpecific(recipes, List.of(new ItemStack(Items.NETHER_STAR)));
+        assertEquals(List.of(soulbound), loneStar, "no end crystal: only soulbound is satisfied");
+
+        List<ModifierRecipe> both = ModifierApplication.mostSpecific(recipes,
+                List.of(new ItemStack(Items.END_CRYSTAL), new ItemStack(Items.NETHER_STAR)));
+        assertEquals(List.of(creativeFlight), both,
+                "creative flight's two-reagent match beats soulbound's one-reagent match on the shared star");
+    }
+
+    /** Two satisfied recipes that share no item are both kept -- specificity only breaks a real tie. */
+    @Test
+    void mostSpecificKeepsSatisfiedRecipesThatDoNotOverlap() {
+        ModifierRecipe haste = shipped();
+        ModifierRecipe soulbound = parse("""
+                {"modifier": "forgeweave:soulbound", "reagent": {"item": "minecraft:nether_star"}, "max_level": 1}
+                """);
+
+        List<ModifierRecipe> recipes = ModifierApplication.mostSpecific(List.of(haste, soulbound),
+                List.of(new ItemStack(Items.REDSTONE), new ItemStack(Items.NETHER_STAR)));
+
+        assertEquals(2, recipes.size(), "unrelated reagents in different slots both still apply");
+        assertTrue(recipes.containsAll(List.of(haste, soulbound)));
+    }
+
     private static ModifierRecipe shipped() {
         return parse("""
                 {"modifier": "forgeweave:haste", "reagent": {"item": "minecraft:redstone"},
