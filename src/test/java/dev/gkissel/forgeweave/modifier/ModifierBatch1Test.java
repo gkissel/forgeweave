@@ -383,6 +383,40 @@ class ModifierBatch1Test {
         assertEquals(2, ForgeweaveModifiers.tierIndexOf(denyRule(afterBoth.output()).blocks()));
     }
 
+    // ------------------------------------------------------------------ issue #777 (tier stacking order)
+
+    /**
+     * {@link ForgeweaveModifiers#foldTierIndex}, the order-independent replacement
+     * {@code ModifierApplication} uses once a tool carries {@code BASE_TOOL_TIER} (a real assembled
+     * tool -- {@code ModifierGameTests}'s {@code *ThenDiamondOnA*Head*} GameTests exercise the same
+     * fold through the real Tool Station). Both application orders must fold to the same index, and
+     * that index must be the highest either modifier alone can reach.
+     */
+    @Test
+    void foldTierIndexAgreesRegardlessOfWhichOrderTheEntriesListHasDiamondAndEmeraldIn() {
+        ResourceLocation diamondId = ResourceLocation.fromNamespaceAndPath("forgeweave", "diamond");
+        ResourceLocation emeraldId = ResourceLocation.fromNamespaceAndPath("forgeweave", "emerald");
+        List<ModifierEntry> diamondThenEmerald =
+                List.of(new ModifierEntry(diamondId, 1), new ModifierEntry(emeraldId, 1));
+        List<ModifierEntry> emeraldThenDiamond =
+                List.of(new ModifierEntry(emeraldId, 1), new ModifierEntry(diamondId, 1));
+
+        // Stone-tier base (ladder index 1, issue #777's own report): both orders must reach index 3
+        // (real diamond mining level / obsidian), not the 2 the old one-shot fold stopped at.
+        assertEquals(3, ForgeweaveModifiers.foldTierIndex(1, diamondThenEmerald));
+        assertEquals(3, ForgeweaveModifiers.foldTierIndex(1, emeraldThenDiamond));
+
+        // Iron-tier base (index 2): both orders again agree, at diamond's own cap.
+        assertEquals(3, ForgeweaveModifiers.foldTierIndex(2, diamondThenEmerald));
+        assertEquals(3, ForgeweaveModifiers.foldTierIndex(2, emeraldThenDiamond));
+
+        // Emerald alone never needs order to agree with itself, but pins its cap against each base.
+        assertEquals(1, ForgeweaveModifiers.foldTierIndex(0, List.of(new ModifierEntry(emeraldId, 1))),
+                "a wooden (index 0) head with emerald alone only reaches index 1");
+        assertEquals(2, ForgeweaveModifiers.foldTierIndex(1, List.of(new ModifierEntry(emeraldId, 1))),
+                "a stone (index 1) head with emerald alone reaches emerald's own cap");
+    }
+
     // ------------------------------------------------------------------ helpers
 
     /** A bare pickaxe with no stats -- all the growth tests above need, same as {@code withModifier}. */

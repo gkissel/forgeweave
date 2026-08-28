@@ -99,6 +99,26 @@ public final class ForgeweaveDataComponents {
                             .networkSynchronized(ByteBufCodecs.VAR_INT));
 
     /**
+     * The tier-ladder index ({@code modifier.ForgeweaveModifiers#tierIndexOf}) the assembled head
+     * material(s) started at, before any diamond/emerald/fortification bump -- resolved once at
+     * assembly the same way {@link #ENCHANTABILITY} is, for the same reason: {@code
+     * ModifierApplication}'s reagent-application path receives only an {@code ItemStack} and no
+     * registry to re-derive a head material's tag from (issue #777). Stored so a tier bump can be
+     * recomputed from this untouched base every time rather than folded incrementally off the live,
+     * already-mutated deny-drops rule -- which is what made diamond-then-emerald and
+     * emerald-then-diamond disagree (issue #777's report).
+     *
+     * <p>{@code -1} for a tool whose head material sits off {@link
+     * dev.gkissel.forgeweave.modifier.ForgeweaveModifiers#TIER_TAGS} entirely -- nothing to bump
+     * from, same as {@code tierIndexOf}'s own sentinel. Absent on every tool assembled before #777
+     * (and on any hand-built test stack), which {@code ModifierApplication} reads as "fall back to
+     * the pre-#777 one-shot bump" -- see its {@code modified}/{@code rebake} javadoc.
+     */
+    public static final DeferredHolder<DataComponentType<?>, DataComponentType<Integer>> BASE_TOOL_TIER =
+            DATA_COMPONENTS.registerComponentType("base_tool_tier",
+                    builder -> builder.persistent(Codec.INT).networkSynchronized(ByteBufCodecs.VAR_INT));
+
+    /**
      * The ids of the {@code Trait}s an assembled tool has, resolved from its three materials at
      * assembly time and de-duplicated ({@code ForgeweaveTraits#resolve}). Stored rather than looked
      * up per use because the seams traits hook into -- notably
