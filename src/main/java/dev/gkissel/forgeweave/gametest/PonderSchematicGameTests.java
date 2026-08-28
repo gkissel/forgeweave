@@ -54,6 +54,20 @@ public class PonderSchematicGameTests {
         helper.succeed();
     }
 
+    /**
+     * #754: a playtest defect found the scene's structure was seared bricks apart from one tank and
+     * one core cell, even though the callouts describe distinct components. The generator now also
+     * places a drain and a seared glass pane in the walls; pin their presence so a future regeneration
+     * cannot silently drop back to an all-bricks wall.
+     */
+    @GameTest(template = "smeltery")
+    public static void ponderSchematicShowsDistinctWallBlocksNotJustBricks(GameTestHelper helper) {
+        build(helper, "smeltery");
+        helper.assertBlockPresent(ForgeweaveBlocks.SEARED_DRAIN.get(), new BlockPos(2, 3, 1).offset(OFFSET));
+        helper.assertBlockPresent(ForgeweaveBlocks.SEARED_GLASS.get(), new BlockPos(1, 3, 2).offset(OFFSET));
+        helper.succeed();
+    }
+
     /** #700: the size-variants scene -- the smallest smeltery and a 3x3x3 one on the same plate, both real. */
     @GameTest(template = "smeltery")
     public static void ponderSizesSchematicFormsBothSmelteries(GameTestHelper helper) {
@@ -62,6 +76,15 @@ public class PonderSchematicGameTests {
         // The generator places the small (south-west) smeltery first.
         assertFormed(helper, cores.get(0), 1, 1, 2);
         assertFormed(helper, cores.get(1), 3, 3, 3);
+        helper.succeed();
+    }
+
+    /** #754: the large smeltery's walls also carry a drain and a seared glass pane, not just bricks. */
+    @GameTest(template = "smeltery")
+    public static void ponderSizesSchematicLargeSmelteryShowsDistinctWallBlocks(GameTestHelper helper) {
+        build(helper, "smeltery_sizes");
+        helper.assertBlockPresent(ForgeweaveBlocks.SEARED_DRAIN.get(), new BlockPos(7, 3, 0).offset(OFFSET));
+        helper.assertBlockPresent(ForgeweaveBlocks.SEARED_GLASS.get(), new BlockPos(4, 2, 1).offset(OFFSET));
         helper.succeed();
     }
 
@@ -89,14 +112,22 @@ public class PonderSchematicGameTests {
         helper.succeed();
     }
 
-    /** #700: the faucet-and-channel scene's smeltery forms, with its drain found in the walls. */
+    /**
+     * #700: the faucet-and-channel scene's smeltery forms, with its drain found in the walls.
+     * #754: also pin the tank, channel, table and basin -- the whole point of this scene is that it
+     * is not just seared bricks.
+     */
     @GameTest(template = "smeltery")
     public static void ponderCastingSchematicFormsASmelteryWithItsDrain(GameTestHelper helper) {
         List<BlockPos> cores = build(helper, "casting");
         helper.assertValueEqual(cores.size(), 1, "cores in casting.nbt");
         assertFormed(helper, cores.get(0), 1, 1, 3);
         helper.assertBlockPresent(ForgeweaveBlocks.SEARED_DRAIN.get(), new BlockPos(5, 3, 4).offset(OFFSET));
+        helper.assertBlockPresent(ForgeweaveBlocks.SEARED_TANK.get(), new BlockPos(5, 4, 4).offset(OFFSET));
         helper.assertBlockPresent(ForgeweaveBlocks.FAUCET.get(), new BlockPos(5, 3, 3).offset(OFFSET));
+        helper.assertBlockPresent(ForgeweaveBlocks.SEARED_CHANNEL.get(), new BlockPos(5, 2, 3).offset(OFFSET));
+        helper.assertBlockPresent(ForgeweaveBlocks.CASTING_TABLE.get(), new BlockPos(3, 1, 3).offset(OFFSET));
+        helper.assertBlockPresent(ForgeweaveBlocks.CASTING_BASIN.get(), new BlockPos(5, 1, 2).offset(OFFSET));
         helper.succeed();
     }
 

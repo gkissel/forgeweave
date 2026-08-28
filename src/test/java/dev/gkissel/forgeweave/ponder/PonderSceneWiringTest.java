@@ -157,6 +157,8 @@ class PonderSceneWiringTest {
         }
         assertTrue(names.contains("forgeweave:seared_bricks"), "walls and floor are seared bricks: " + names);
         assertTrue(names.contains("forgeweave:seared_tank"), "the fuel tank is part of the walls: " + names);
+        assertTrue(names.contains("forgeweave:seared_drain"), "#754: a drain is part of the walls, not just bricks: " + names);
+        assertTrue(names.contains("forgeweave:seared_glass"), "#754: a glass pane is part of the walls, not just bricks: " + names);
 
         int coreIndex = names.indexOf("forgeweave:standard_core");
         assertTrue(coreIndex >= 0, "the controller is part of the structure: " + names);
@@ -190,8 +192,12 @@ class PonderSceneWiringTest {
      */
     @Test
     void directionalBlocksFaceTheDefaultCamera() throws IOException {
-        assertFacings("smeltery", Map.of("forgeweave:standard_core", "north"));
-        assertFacings("smeltery_sizes", Map.of("forgeweave:standard_core", "north"));
+        assertFacings("smeltery", Map.of(
+                "forgeweave:standard_core", "north",
+                "forgeweave:seared_drain", "north"));
+        assertFacings("smeltery_sizes", Map.of(
+                "forgeweave:standard_core", "north",
+                "forgeweave:seared_drain", "north"));
         assertFacings("casting", Map.of(
                 "forgeweave:standard_core", "west",
                 "forgeweave:seared_drain", "north",
