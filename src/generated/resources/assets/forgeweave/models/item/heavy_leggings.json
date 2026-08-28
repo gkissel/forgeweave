@@ -1,0 +1,15 @@
+{
+  "parent": "minecraft:item/generated",
+  "overrides": [
+    {
+      "model": "forgeweave:item/heavy_leggings_broken",
+      "predicate": {
+        "forgeweave:broken": 1.0
+      }
+    }
+  ],
+  "textures": {
+    "layer0": "forgeweave:derived/tools/leggings_maille",
+    "layer1": "forgeweave:derived/tools/leggings_plating"
+  }
+}

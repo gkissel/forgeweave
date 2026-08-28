@@ -247,7 +247,12 @@ public final class ToolAssemblyRecipes {
             new Entry(ToolConstants.HELMET, ForgeweaveItems.ARMOR_HELMET),
             new Entry(ToolConstants.CHESTPLATE, ForgeweaveItems.ARMOR_CHESTPLATE),
             new Entry(ToolConstants.LEGGINGS, ForgeweaveItems.ARMOR_LEGGINGS),
-            new Entry(ToolConstants.BOOTS, ForgeweaveItems.ARMOR_BOOTS));
+            new Entry(ToolConstants.BOOTS, ForgeweaveItems.ARMOR_BOOTS),
+            // #735 heavy armor: plating + maille + large plate, both stations.
+            new Entry(ToolConstants.HEAVY_HELMET, ForgeweaveItems.ARMOR_HEAVY_HELMET),
+            new Entry(ToolConstants.HEAVY_CHESTPLATE, ForgeweaveItems.ARMOR_HEAVY_CHESTPLATE),
+            new Entry(ToolConstants.HEAVY_LEGGINGS, ForgeweaveItems.ARMOR_HEAVY_LEGGINGS),
+            new Entry(ToolConstants.HEAVY_BOOTS, ForgeweaveItems.ARMOR_HEAVY_BOOTS));
 
     /**
      * Whether {@code stack} is something the station's head slot works <em>on</em> rather than

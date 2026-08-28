@@ -49,14 +49,18 @@ public record ArmorStats(float armor, float toughness, float knockbackResistance
                 continue;
             }
             Material.Plating plating = partMaterials.get(i).plating().orElseThrow(() -> ToolStats.noStats("plating"));
-            Material.PlatingPiece piece = switch (entry.id()) {
+            // #735: a heavy piece reads its base piece's row, armor x1.4, everything else as-is.
+            boolean heavy = ToolConstants.isHeavy(entry.id());
+            String id = heavy ? entry.id().substring(ToolConstants.HEAVY_PREFIX.length()) : entry.id();
+            Material.PlatingPiece piece = switch (id) {
                 case "helmet" -> plating.helmet();
                 case "chestplate" -> plating.chestplate();
                 case "leggings" -> plating.leggings();
                 case "boots" -> plating.boots();
                 default -> throw new IllegalArgumentException(entry.id() + " is not an armor piece");
             };
-            return Optional.of(new ArmorStats(piece.armor(), piece.toughness(), piece.knockbackResistance(),
+            float armor = heavy ? piece.armor() * ToolConstants.HEAVY_ARMOR_FACTOR : piece.armor();
+            return Optional.of(new ArmorStats(armor, piece.toughness(), piece.knockbackResistance(),
                     piece.durability()));
         }
         return Optional.empty();

@@ -34,6 +34,7 @@ import dev.gkissel.forgeweave.material.Material;
 import dev.gkissel.forgeweave.material.MaterialDisplay;
 import dev.gkissel.forgeweave.modifier.ForgeweaveModifiers;
 import dev.gkissel.forgeweave.tool.ArmorStats;
+import dev.gkissel.forgeweave.tool.ToolConstants;
 import dev.gkissel.forgeweave.tool.ToolMaterials;
 import dev.gkissel.forgeweave.trait.ForgeweaveTraits;
 
@@ -87,8 +88,16 @@ public class ArmorPieceItem extends ArmorItem {
                 List.of(MAILLE_LAYER, PLATING_LAYER), 0.0F, 0.0F);
     }
 
-    public ArmorPieceItem(Type type, Properties properties) {
+    /** #735: a heavy piece (plating + maille + large plate) -- each one worn takes {@link ToolConstants#HEAVY_ARMOR_SPEED} off movement speed. */
+    private final boolean heavy;
+
+    public ArmorPieceItem(Type type, boolean heavy, Properties properties) {
         super(ForgeweaveItems.PLATE_ARMOR_MATERIAL, type, properties);
+        this.heavy = heavy;
+    }
+
+    public boolean isHeavy() {
+        return heavy;
     }
 
     /**
@@ -147,6 +156,12 @@ public class ArmorPieceItem extends ArmorItem {
                     new AttributeModifier(id, knockbackResistance, AttributeModifier.Operation.ADD_VALUE), slot);
         }
         // #680: the ARMOR traits' attribute modifiers (skyfall, crystalstrike, projectile protection).
+        if (heavy) {
+            // #735: -5% per worn heavy piece, multiplicative -- ADD_MULTIPLIED_TOTAL compounds across
+            // the four slots (0.95^4 for the set), the same operation vanilla's speed potions use.
+            builder.add(Attributes.MOVEMENT_SPEED, new AttributeModifier(id, ToolConstants.HEAVY_ARMOR_SPEED,
+                    AttributeModifier.Operation.ADD_MULTIPLIED_TOTAL), slot);
+        }
         ForgeweaveTraits.armorAttributes(stack, type.getSlot(), builder);
         return builder.build();
     }

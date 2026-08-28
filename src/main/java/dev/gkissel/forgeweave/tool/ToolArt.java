@@ -109,7 +109,12 @@ public final class ToolArt {
      */
     public static List<Integer> layerSlots(List<ToolConstants.PartSlot> parts) {
         List<Integer> slots = new ArrayList<>(parts.size());
-        for (ToolConstants.Role role : LAYER_ORDER) {
+        // ponytail (#735): armor draws only its maille and plating -- the heavy set's large plate
+        // has no sprite until M9's designer art; drop this filter when it gets one.
+        boolean armor = parts.stream().anyMatch(part -> part.role() == ToolConstants.Role.PLATING);
+        List<ToolConstants.Role> order = armor
+                ? List.of(ToolConstants.Role.MAILLE, ToolConstants.Role.PLATING) : LAYER_ORDER;
+        for (ToolConstants.Role role : order) {
             for (int i = 0; i < parts.size(); i++) {
                 if (parts.get(i).role() == role) {
                     slots.add(i);
@@ -141,8 +146,16 @@ public final class ToolArt {
      * @param layer one of the names {@link #layers} produced for that tool
      */
     public static String layer(String tool, String layer) {
-        String file = tool + "_" + layer;
+        String file = baseTool(tool) + "_" + layer;
         return (ORIGINAL_ART.contains(file) ? "tools/" : "derived/tools/") + file;
+    }
+
+    /**
+     * The tool whose art {@code tool} draws: itself, except a heavy armor piece (#735) shares its
+     * plate piece's sprites until M9's designer art gives it its own -- then this alias goes.
+     */
+    private static String baseTool(String tool) {
+        return ToolConstants.isHeavy(tool) ? tool.substring(ToolConstants.HEAVY_PREFIX.length()) : tool;
     }
 
     /**
@@ -205,7 +218,7 @@ public final class ToolArt {
      * {@link #BROKEN_LAYERS}.
      */
     public static String brokenLayer(String tool) {
-        return BROKEN_LAYERS.get(tool);
+        return BROKEN_LAYERS.get(baseTool(tool));
     }
 
     /** The texture path of a layer's broken variant -- {@link #layer} with a {@code _broken} suffix. */

@@ -62,8 +62,10 @@ public final class ModifierArt {
         // {@link #FORTIFICATION}.
         ResourceLocation family = Fortification.isFortification(modifier) ? FORTIFICATION : modifier;
         // #679: upstream 1.12 has no armor, so no armor piece has any modifier overlay art to derive
-        // (M4's defense modifier family renders through the worn layers, not item overlays).
-        if (ToolConstants.ARMOR.stream().anyMatch(piece -> piece.id().equals(tool))) {
+        // (M4's defense modifier family renders through the worn layers, not item overlays). #735's
+        // heavy set is the same story -- no upstream counterpart at all.
+        if (ToolConstants.ARMOR.stream().anyMatch(piece -> piece.id().equals(tool))
+                || ToolConstants.HEAVY_ARMOR.stream().anyMatch(piece -> piece.id().equals(tool))) {
             return null;
         }
         if (!OVERLAY_MODIFIERS.contains(family) || NO_UPSTREAM_ART.contains(tool + "_" + family.getPath())) {

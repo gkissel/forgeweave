@@ -607,6 +607,38 @@ public final class ToolConstants {
                 1.0f, 1.0f, 1.0f, 0.0f, 1.0f, 1.0f, false, false);
     }
 
+    /**
+     * The heavy set (issue #735, epic #730; maintainer decision 2026-08-25): the plate row plus a
+     * positional {@code large_plate} third slot. Stats are the plating row's with armor at
+     * {@link #HEAVY_ARMOR_FACTOR} ({@link ArmorStats#of}); each worn piece adds
+     * {@link #HEAVY_ARMOR_SPEED} to movement speed, multiplicatively ({@code ArmorPieceItem}). The
+     * large plate is an EXTRA slot -- statless here, its material's EXTRA/general traits attach --
+     * and it never repairs ({@link Entry#repairSlots()} defaults to the plating). No upstream
+     * counterpart: a Forgeweave feature, no NOTICE row.
+     */
+    public static final String HEAVY_PREFIX = "heavy_";
+    public static final float HEAVY_ARMOR_FACTOR = 1.4f;
+    public static final float HEAVY_ARMOR_SPEED = -0.05f;
+    public static final Entry HEAVY_HELMET = heavyArmor("helmet");
+    public static final Entry HEAVY_CHESTPLATE = heavyArmor("chestplate");
+    public static final Entry HEAVY_LEGGINGS = heavyArmor("leggings");
+    public static final Entry HEAVY_BOOTS = heavyArmor("boots");
+
+    /** The four heavy pieces in vanilla's slot order. */
+    public static final List<Entry> HEAVY_ARMOR = List.of(HEAVY_HELMET, HEAVY_CHESTPLATE, HEAVY_LEGGINGS, HEAVY_BOOTS);
+
+    private static Entry heavyArmor(String piece) {
+        return new Entry(HEAVY_PREFIX + piece, Category.ARMOR,
+                List.of(new PartSlot(Role.PLATING, "plating_" + piece), new PartSlot(Role.MAILLE, "maille"),
+                        new PartSlot(Role.EXTRA, "large_plate")),
+                1.0f, 1.0f, 1.0f, 0.0f, 1.0f, 1.0f, false, false);
+    }
+
+    /** Whether an armor entry id names a heavy piece (#735). */
+    public static boolean isHeavy(String id) {
+        return id.startsWith(HEAVY_PREFIX);
+    }
+
     /** All 18 M3 tools, in docs/SCOPE.md content-manifest order (M3.5's bows are not M3 roster). */
     public static final List<Entry> ALL = List.of(
             BROADSWORD, LONGSWORD, RAPIER, BATTLESIGN, FRYING_PAN, MATTOCK, KAMA, DAGGER,
