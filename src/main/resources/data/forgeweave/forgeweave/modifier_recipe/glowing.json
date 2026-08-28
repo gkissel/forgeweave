@@ -1,8 +1,23 @@
 {
   "modifier": "forgeweave:glowing",
-  "reagent": {
-    "item": "minecraft:ender_eye"
-  },
+  "reagents": [
+    {
+      "ingredient": {
+        "item": "minecraft:glowstone_dust"
+      }
+    },
+    {
+      "ingredient": {
+        "item": "minecraft:ender_eye"
+      }
+    },
+    {
+      "ingredient": {
+        "item": "minecraft:glowstone_dust"
+      }
+    }
+  ],
+  "require_all_reagents": true,
   "cost": 1,
   "max_level": 1
 }

@@ -1,8 +1,18 @@
 {
   "modifier": "forgeweave:netherite",
-  "reagent": {
-    "item": "minecraft:netherite_upgrade_smithing_template"
-  },
+  "reagents": [
+    {
+      "ingredient": {
+        "item": "minecraft:netherite_upgrade_smithing_template"
+      }
+    },
+    {
+      "ingredient": {
+        "item": "minecraft:netherite_ingot"
+      }
+    }
+  ],
+  "require_all_reagents": true,
   "cost": 1,
   "max_level": 1
 }

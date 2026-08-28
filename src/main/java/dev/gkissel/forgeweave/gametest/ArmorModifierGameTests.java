@@ -85,6 +85,31 @@ public class ArmorModifierGameTests {
         return output;
     }
 
+    /** Issue #780: the station loaded with {@code tool} and two reagent stacks in two free slots. */
+    private static ToolStationMenu load(GameTestHelper helper, Player player, ItemStack tool,
+            ItemStack first, ItemStack second) {
+        ToolStationBlockEntity blockEntity = helper.getBlockEntity(STATION);
+        for (int i = 0; i < ToolStationMenu.INPUT_SLOTS; i++) {
+            blockEntity.container().setItem(i, ItemStack.EMPTY);
+        }
+        blockEntity.container().setItem(0, tool);
+        blockEntity.container().setItem(1, first);
+        blockEntity.container().setItem(2, second);
+        ToolStationMenu menu = ToolAssembly.menu(helper, player, STATION, blockEntity);
+        menu.broadcastChanges();
+        return menu;
+    }
+
+    /** Issue #780: two-reagent counterpart to {@link #apply(GameTestHelper, Player, ItemStack, ItemStack)}. */
+    private static ItemStack apply(GameTestHelper helper, Player player, ItemStack tool, ItemStack first, ItemStack second) {
+        ToolStationMenu menu = load(helper, player, tool, first, second);
+        ItemStack output = menu.getSlot(ToolStationMenu.OUTPUT_SLOT).getItem().copy();
+        helper.assertFalse(output.isEmpty(), "the station must apply " + first + " + " + second
+                + (menu.rejection() != null ? " (" + menu.rejection().message().getString() + ")" : ""));
+        menu.getSlot(ToolStationMenu.OUTPUT_SLOT).onTake(player, output);
+        return output;
+    }
+
     private static void assertRefused(GameTestHelper helper, ToolStationMenu menu, String why) {
         helper.assertTrue(menu.getSlot(ToolStationMenu.OUTPUT_SLOT).getItem().isEmpty(), why);
         helper.assertTrue(menu.rejection() != null, "and the station must say why");
@@ -273,16 +298,17 @@ public class ArmorModifierGameTests {
     }
 
     /**
-     * Issue #736: the clone's {@code upgrade/netherite.json} (netherite upgrade smithing template,
-     * max 1) applied <em>slotless</em> (maintainer decision; the clone charges one upgrade slot) --
-     * it lands on a piece with no free slot, grows the pool by 20% of the plating's base, and the
-     * worn piece adds {@code +1} toughness and {@code +0.05} knockback resistance. The reagent is
-     * the template, not a bare netherite ingot: {@code modifier_recipe/extra_slot_netherite.json}
-     * (issue #107/#135) already claims the ingot, and the reagent lookup is first-match, not
-     * modifier-aware (see {@code NetheriteModifierTest#theShippedRecipe}).
+     * Issue #736/#780: the clone's {@code upgrade/netherite.json} (netherite upgrade smithing
+     * template <em>and</em> a netherite ingot, max 1) applied <em>slotless</em> (maintainer decision;
+     * the clone charges one upgrade slot) -- it lands on a piece with no free slot, grows the pool by
+     * 20% of the plating's base, and the worn piece adds {@code +1} toughness and {@code +0.05}
+     * knockback resistance. Issue #780 restored the ingot half of upstream's combo that PR #744 had
+     * dropped; issue #776's specificity rule is what lets the ingot stay shared with
+     * {@code modifier_recipe/extra_slot_netherite.json} (issue #107/#135) without an unreachable
+     * recipe (see {@code NetheriteModifierTest#theShippedRecipe}).
      */
     @GameTest(template = "empty")
-    public static void aNetheriteIngotAppliesOnAFullChestplate(GameTestHelper helper) {
+    public static void aTemplateAndIngotApplyNetheriteOnAFullChestplate(GameTestHelper helper) {
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         ItemStack full = fullChestplate(helper, player);
         int baseDurability = full.getMaxDamage();
@@ -291,9 +317,10 @@ public class ArmorModifierGameTests {
         double toughness = player.getAttributeValue(Attributes.ARMOR_TOUGHNESS);
         double knockback = player.getAttributeValue(Attributes.KNOCKBACK_RESISTANCE);
 
-        ItemStack piece = apply(helper, player, full, new ItemStack(Items.NETHERITE_UPGRADE_SMITHING_TEMPLATE));
+        ItemStack piece = apply(helper, player, full,
+                new ItemStack(Items.NETHERITE_UPGRADE_SMITHING_TEMPLATE), new ItemStack(Items.NETHERITE_INGOT));
         ModifierEntry entry = ForgeweaveModifiers.entry(piece, id("netherite"));
-        helper.assertTrue(entry != null && entry.level() == 1, "a template records level 1, got " + entry);
+        helper.assertTrue(entry != null && entry.level() == 1, "a template and an ingot record level 1, got " + entry);
         helper.assertTrue(ForgeweaveModifiers.freeSlots(piece) == 0, "and occupies no slot");
         helper.assertTrue(piece.getMaxDamage() == baseDurability + baseDurability / 5,
                 "+20% of the base durability, got " + piece.getMaxDamage() + " over " + baseDurability);
@@ -308,12 +335,48 @@ public class ArmorModifierGameTests {
         helper.succeed();
     }
 
-    /** The clone's {@code setMaxLevel(1)}: a second template is refused. */
+    /**
+     * Issue #780's specificity test: a lone netherite ingot, with no template, must still fall
+     * through to {@code extra_slot} exactly as before this ticket -- the two recipes share the
+     * ingot, and only the template's presence tips the match to netherite.
+     */
+    @GameTest(template = "empty")
+    public static void aLoneNetheriteIngotStillGivesExtraSlot(GameTestHelper helper) {
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        ItemStack piece = apply(helper, player, chestplate(helper, player), new ItemStack(Items.NETHERITE_INGOT));
+        helper.assertTrue(ForgeweaveModifiers.entry(piece, id("netherite")) == null, "no template means no netherite");
+        ModifierEntry extraSlot = ForgeweaveModifiers.entry(piece, id("extra_slot"));
+        helper.assertTrue(extraSlot != null && extraSlot.level() == 1,
+                "a lone ingot must still buy extra_slot, got " + extraSlot);
+        helper.succeed();
+    }
+
+    /**
+     * Issue #780's specificity test, the other half: a lone template, with no ingot, satisfies no
+     * recipe at all -- {@code extra_slot}'s own recipe is the bare ingot, not the template -- so the
+     * station stays silent.
+     */
+    @GameTest(template = "empty")
+    public static void aLoneNetheriteTemplateAppliesNothing(GameTestHelper helper) {
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        ToolStationMenu menu = load(helper, player, chestplate(helper, player),
+                new ItemStack(Items.NETHERITE_UPGRADE_SMITHING_TEMPLATE));
+        helper.assertTrue(menu.getSlot(ToolStationMenu.OUTPUT_SLOT).getItem().isEmpty(),
+                "a lone template must not apply netherite");
+        helper.assertTrue(menu.rejection() == null,
+                "no recipe is satisfied at all by a lone template, so the station has nothing to say");
+        helper.succeed();
+    }
+
+    /** The clone's {@code setMaxLevel(1)}: a second template-and-ingot pair is refused. */
     @GameTest(template = "empty")
     public static void aSecondNetheriteIngotIsRefusedPastTheCap(GameTestHelper helper) {
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
-        ItemStack piece = apply(helper, player, fullChestplate(helper, player), new ItemStack(Items.NETHERITE_UPGRADE_SMITHING_TEMPLATE));
-        assertRefused(helper, load(helper, player, piece, new ItemStack(Items.NETHERITE_UPGRADE_SMITHING_TEMPLATE)), "netherite is max level 1");
+        ItemStack piece = apply(helper, player, fullChestplate(helper, player),
+                new ItemStack(Items.NETHERITE_UPGRADE_SMITHING_TEMPLATE), new ItemStack(Items.NETHERITE_INGOT));
+        assertRefused(helper, load(helper, player, piece,
+                new ItemStack(Items.NETHERITE_UPGRADE_SMITHING_TEMPLATE), new ItemStack(Items.NETHERITE_INGOT)),
+                "netherite is max level 1");
         helper.succeed();
     }
 
@@ -321,7 +384,8 @@ public class ArmorModifierGameTests {
     @GameTest(template = "empty")
     public static void aSlottedModifierIsStillRefusedOnTheFullPiece(GameTestHelper helper) {
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
-        ItemStack piece = apply(helper, player, fullChestplate(helper, player), new ItemStack(Items.NETHERITE_UPGRADE_SMITHING_TEMPLATE));
+        ItemStack piece = apply(helper, player, fullChestplate(helper, player),
+                new ItemStack(Items.NETHERITE_UPGRADE_SMITHING_TEMPLATE), new ItemStack(Items.NETHERITE_INGOT));
         assertRefused(helper, load(helper, player, piece, new ItemStack(Items.ANVIL)), "knockback resistance needs a slot the piece no longer has");
         helper.succeed();
     }

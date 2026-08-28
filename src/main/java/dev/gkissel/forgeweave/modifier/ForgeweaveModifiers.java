@@ -526,23 +526,28 @@ public final class ForgeweaveModifiers {
     private static final int NETHERITE_TIER = 4;
 
     /**
-     * Netherite upgrade smithing template, single application (clone {@code ModifierIds.netherite},
-     * its recipe on every {@code #tconstruct:modifiable/durability} tool -- tools and armor alike,
-     * each taking only the stats it has): +20% base durability, +20% base attack, +25% base mining
-     * speed, the harvest tier set to netherite, +1 armor toughness, +0.05 knockback resistance, and
-     * the dropped item survives fire. Not ported: the clone's +10% projectile velocity (no velocity
-     * stat here).
+     * Netherite upgrade smithing template plus a netherite ingot, single application (clone
+     * {@code ModifierIds.netherite}, its recipe on every {@code #tconstruct:modifiable/durability}
+     * tool -- tools and armor alike, each taking only the stats it has): +20% base durability, +20%
+     * base attack, +25% base mining speed, the harvest tier set to netherite, +1 armor toughness,
+     * +0.05 knockback resistance, and the dropped item survives fire. Not ported: the clone's +10%
+     * projectile velocity (no velocity stat here).
      *
      * <p>Issue #736 (maintainer decision, epic #730): applied <em>slotless</em>, the same
      * {@link Modifier#occupiedSlots} = 0 path soulbound already takes -- where the clone charges one
      * upgrade slot. Recorded deviation.
      *
-     * <p>The reagent is the template rather than a bare netherite ingot -- upstream's own combo
-     * input, minus the ingot half -- because {@code modifier_recipe/extra_slot_netherite.json}
-     * (issue #107/#135) already claims a plain ingot as a reagent for {@code extra_slot}, and
-     * {@link ModifierApplication#recipeFor} picks the first recipe whose ingredient matches with no
-     * modifier-aware tie-break: a second recipe on the same bare item would be permanently
-     * unreachable.
+     * <p>Issue #780: the shipped recipe now takes both of upstream's real combo inputs --
+     * {@code modifier_recipe/netherite.json}'s {@code require_all_reagents} true, template and ingot
+     * both required. PR #744 (issue #736) had dropped the ingot half because
+     * {@code modifier_recipe/extra_slot_netherite.json} (issue #107/#135) already claims a bare
+     * ingot as a reagent for {@code extra_slot}, and {@link ModifierApplication#recipeFor}'s
+     * first-match lookup had no modifier-aware tie-break -- a second recipe on the same bare item
+     * would have been permanently unreachable. Issue #776's specificity rule
+     * ({@code ModifierApplication#mostSpecific}) resolves that tie now: this recipe's two-reagent
+     * match beats {@code extra_slot}'s one-reagent match whenever both a template and an ingot are
+     * present, so a lone ingot still falls through to {@code extra_slot} exactly as before, and only
+     * the template-plus-ingot combo reaches this modifier.
      */
     public static final Modifier NETHERITE = new Modifier() {
         @Override
@@ -980,6 +985,21 @@ public final class ForgeweaveModifiers {
      * effect is a combat seam: the chance is rolled once off the sum of this modifier's level and the
      * cleaver's innate levels, and a per-entry seam sees neither the innate nor an unmodified cleaver.
      * {@code Beheading} registers a provider of its own that reads both.
+     *
+     * <p>Issue #780's survey: upstream's real recipe is a genuine combo,
+     * {@code TinkerModifiers:145}'s {@code ItemCombination(1, ENDER_PEARL, OBSIDIAN)}, one of each --
+     * {@code modifier_recipe/beheading.json} still ships the obsidian-alone reduction, deliberately
+     * <b>not</b> converted. Upstream's {@code LevelAspect(this, 10)} grants exactly one level per
+     * station visit ({@code canApply} refuses a jump of more than one), but the shipped recipe pools
+     * every obsidian present into one craft (up to ten at once, see
+     * {@code gametest.BeheadingGameTests#obsidianAppliedAtTheStationBeheads}) -- an existing,
+     * separately-tracked deviation from before this ticket. {@code ModifierApplication#applyCombo}
+     * (issue #776) only ever grants a combo recipe's {@code max_level} outright in one craft, with no
+     * partial-fill stepping; wiring beheading's ender-pearl-plus-obsidian combo through it as shipped
+     * would jump straight to level 10 off a single pair, which is neither upstream's one-per-visit
+     * rule nor Forgeweave's existing ten-per-visit one. Converting it correctly needs partial-fill
+     * stepping added to {@code applyCombo} itself, which is a matching-engine change beyond this
+     * ticket's recipe-data scope -- left for a maintainer decision (see the PR).
      */
     public static final Modifier BEHEADING = new Modifier() {};
 
@@ -1261,12 +1281,20 @@ public final class ForgeweaveModifiers {
     private static final int GLOWING_LIGHT_THRESHOLD = 8;
 
     /**
-     * Ender eye (parity audit T25, issue #456). Upstream {@code ModGlowing}: while the tool is the
-     * held item and the holder stands somewhere darker than light {@value #GLOWING_LIGHT_THRESHOLD},
-     * it drops a light source next to them for one durability. One shot, one slot -- upstream's
-     * aspect set is bare {@code ModifierTrait(identifier, color)} with {@code maxLevel} 0, which
-     * wires {@code DataAspect + freeModifier}, i.e. it applies once and costs one slot (the shipped
+     * Two glowstone dust and an ender eye (parity audit T25, issue #456; issue #780's conversion).
+     * Upstream {@code ModGlowing}: while the tool is the held item and the holder stands somewhere
+     * darker than light {@value #GLOWING_LIGHT_THRESHOLD}, it drops a light source next to them for
+     * one durability. One shot, one slot -- upstream's aspect set is bare
+     * {@code ModifierTrait(identifier, color)} with {@code maxLevel} 0, which wires
+     * {@code DataAspect + freeModifier}, i.e. it applies once and costs one slot (the shipped
      * recipe's {@code max_level: 1} / {@code cost: 1}).
+     *
+     * <p>Issue #780: the shipped recipe now takes upstream's real three-item combo --
+     * {@code modifier_recipe/glowing.json}'s {@code require_all_reagents} true, two glowstone dust
+     * reagent entries plus one ender eye entry, matching {@code TinkerModifiers:163}'s
+     * {@code ItemCombination(1, glowstoneDust, ENDER_EYE, glowstoneDust)} exactly. Parity audit T25
+     * had reduced this to the ender eye alone because {@link ModifierRecipe} had no multi-item
+     * combination form at the time -- issue #776's {@code require_all_reagents} added one.
      *
      * <p>No {@link Modifier} hook carries this: like {@link #MENDING_MOSS} it is a per-tick behavior
      * rather than a function of the tool's stats, so it lives in {@link #inventoryTick} gated by this

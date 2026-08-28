@@ -50,31 +50,62 @@ public class GlowingGameTests {
     private static final BlockPos POCKETED = new BlockPos(13, 2, 1);
 
     /**
-     * Upstream {@code TinkerModifiers:163} binds glowing to a single {@code ItemCombination}, i.e.
-     * one application; the shipped recipe's {@code max_level: 1} is that, and it costs the one slot
-     * upstream's {@code freeModifier} aspect charges.
+     * Issue #780: upstream {@code TinkerModifiers:163} binds glowing to a three-item
+     * {@code ItemCombination} (two glowstone dust, one ender eye), not the ender eye alone -- the
+     * shipped recipe now takes all three ({@code require_all_reagents} true). One application; the
+     * shipped recipe's {@code max_level: 1} is that, and it costs the one slot upstream's
+     * {@code freeModifier} aspect charges.
      */
     @GameTest(template = "empty")
-    public static void anEnderEyeAppliesGlowingOnce(GameTestHelper helper) {
+    public static void twoGlowstoneDustAndAnEnderEyeApplyGlowingOnce(GameTestHelper helper) {
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         ItemStack pickaxe = ToolAssembly.pickaxe(helper, player, STATION, "stone", "wood", "wood");
 
-        ItemStack glowing = applyReagent(helper, player, pickaxe, new ItemStack(Items.ENDER_EYE, 1));
+        ItemStack glowing = applyCombo(helper, player, pickaxe,
+                new ItemStack(Items.GLOWSTONE_DUST), new ItemStack(Items.ENDER_EYE), new ItemStack(Items.GLOWSTONE_DUST));
 
         ModifierEntry entry = ForgeweaveModifiers.entry(glowing, GLOWING);
         helper.assertTrue(entry != null && entry.level() == 1,
-                "one ender eye must record glowing at level 1, got " + entry);
+                "two dust and an eye must record glowing at level 1, got " + entry);
         helper.assertTrue(ForgeweaveModifiers.freeSlots(glowing) == ForgeweaveModifiers.DEFAULT_SLOTS - 1,
                 "glowing must occupy exactly one modifier slot, got "
                         + ForgeweaveModifiers.freeSlots(glowing) + " free");
 
         ToolStationBlockEntity blockEntity = helper.getBlockEntity(STATION);
         blockEntity.container().setItem(0, glowing);
-        blockEntity.container().setItem(1, new ItemStack(Items.ENDER_EYE, 1));
+        blockEntity.container().setItem(1, new ItemStack(Items.GLOWSTONE_DUST, 1));
+        blockEntity.container().setItem(2, new ItemStack(Items.ENDER_EYE, 1));
+        blockEntity.container().setItem(3, new ItemStack(Items.GLOWSTONE_DUST, 1));
         ToolStationMenu menu = ToolAssembly.menu(helper, player, STATION, blockEntity);
         menu.broadcastChanges();
         helper.assertTrue(menu.getSlot(ToolStationMenu.OUTPUT_SLOT).getItem().isEmpty(),
-                "a second ender eye must be refused -- upstream's DataAspect applies once");
+                "a second combo must be refused -- upstream's DataAspect applies once");
+        helper.succeed();
+    }
+
+    /**
+     * Issue #780's specificity test: neither half of the combo alone is enough -- a lone ender eye or
+     * a lone pile of glowstone dust must leave the station silent (no recipe is satisfied at all, so
+     * there is nothing for the menu to reject either).
+     */
+    @GameTest(template = "empty")
+    public static void eitherHalfOfTheComboAloneDoesNotApplyGlowing(GameTestHelper helper) {
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        ItemStack pickaxe = ToolAssembly.pickaxe(helper, player, STATION, "stone", "wood", "wood");
+
+        ToolStationBlockEntity blockEntity = helper.getBlockEntity(STATION);
+        blockEntity.container().setItem(0, pickaxe);
+        blockEntity.container().setItem(1, new ItemStack(Items.ENDER_EYE, 1));
+        ToolStationMenu eyeOnly = ToolAssembly.menu(helper, player, STATION, blockEntity);
+        eyeOnly.broadcastChanges();
+        helper.assertTrue(eyeOnly.getSlot(ToolStationMenu.OUTPUT_SLOT).getItem().isEmpty(),
+                "an ender eye alone must not apply glowing");
+
+        blockEntity.container().setItem(1, new ItemStack(Items.GLOWSTONE_DUST, 2));
+        ToolStationMenu dustOnly = ToolAssembly.menu(helper, player, STATION, blockEntity);
+        dustOnly.broadcastChanges();
+        helper.assertTrue(dustOnly.getSlot(ToolStationMenu.OUTPUT_SLOT).getItem().isEmpty(),
+                "glowstone dust alone must not apply glowing");
         helper.succeed();
     }
 
@@ -142,11 +173,16 @@ public class GlowingGameTests {
         tool.getItem().inventoryTick(tool, helper.getLevel(), player, 0, selected);
     }
 
-    private static ItemStack applyReagent(GameTestHelper helper, Player player, ItemStack tool, ItemStack reagent) {
+    /** Issue #780: the station loaded with {@code tool} plus every reagent, each in its own free slot. */
+    private static ItemStack applyCombo(GameTestHelper helper, Player player, ItemStack tool, ItemStack... reagents) {
         ToolStationBlockEntity blockEntity = helper.getBlockEntity(STATION);
+        for (int i = 0; i < ToolStationMenu.INPUT_SLOTS; i++) {
+            blockEntity.container().setItem(i, ItemStack.EMPTY);
+        }
         blockEntity.container().setItem(0, tool);
-        blockEntity.container().setItem(1, reagent);
-        blockEntity.container().setItem(2, ItemStack.EMPTY);
+        for (int i = 0; i < reagents.length; i++) {
+            blockEntity.container().setItem(i + 1, reagents[i]);
+        }
 
         ToolStationMenu menu = ToolAssembly.menu(helper, player, STATION, blockEntity);
         menu.broadcastChanges();
