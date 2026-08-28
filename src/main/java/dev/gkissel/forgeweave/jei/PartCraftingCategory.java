@@ -2,6 +2,7 @@ package dev.gkissel.forgeweave.jei;
 
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 
 import mezz.jei.api.gui.builder.IRecipeLayoutBuilder;
@@ -20,14 +21,21 @@ import dev.gkissel.forgeweave.item.ForgeweaveItems;
  * {@code menu.PartBuilderMenu}'s four slots (pattern, material, output, change) as a 2x2 grid; the
  * material and change slots cycle together through every crafting-item option the material accepts.
  * Icon is the Part Builder block item.
+ *
+ * <p>Issue #785: upstream's own {@code PartBuilderCategory} lays four slots out in a single row
+ * (pattern, material, pattern-type, output), not this category's 2x2 grid, so it's not a 1:1 layout
+ * match; per the maintainer's decision this instead reuses that category's plain station-panel crop
+ * as its background via {@link JeiCategoryChrome#stationPanel} -- the same crop {@link
+ * RepairCategory} uses -- "so the set reads as one family" rather than a bespoke procedural bevel.
  */
 final class PartCraftingCategory implements IRecipeCategory<PartCraftingRecipe> {
     static final RecipeType<PartCraftingRecipe> TYPE =
             RecipeType.create(Forgeweave.MODID, "part_crafting", PartCraftingRecipe.class);
 
+    static final ResourceLocation BACKGROUND_LOC = JeiCategoryGeometry.PART_CRAFTING.background();
     private static final int GUTTER = JeiCategoryChrome.GUTTER;
-    private static final int WIDTH = 64 + 2 * GUTTER;
-    private static final int HEIGHT = 38 + 2 * GUTTER;
+    static final int WIDTH = JeiCategoryGeometry.PART_CRAFTING.width();
+    static final int HEIGHT = JeiCategoryGeometry.PART_CRAFTING.height();
 
     private final IDrawable icon;
     private final IDrawable arrow;
@@ -36,7 +44,7 @@ final class PartCraftingCategory implements IRecipeCategory<PartCraftingRecipe> 
     PartCraftingCategory(IGuiHelper helper) {
         icon = helper.createDrawableItemStack(new ItemStack(ForgeweaveItems.PART_BUILDER.get()));
         arrow = helper.getRecipeArrow();
-        background = JeiCategoryChrome.panel(WIDTH, HEIGHT);
+        background = JeiCategoryChrome.stationPanel(helper, WIDTH, HEIGHT);
     }
 
     @Override
