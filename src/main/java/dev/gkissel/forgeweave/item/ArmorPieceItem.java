@@ -13,9 +13,11 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.EquipmentSlotGroup;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.gameevent.GameEvent;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.item.ArmorItem;
@@ -201,6 +203,39 @@ public class ArmorPieceItem extends ArmorItem {
     @Override
     public int getBarColor(ItemStack stack) {
         return ForgeweaveTraits.overslime(stack) > 0 ? ForgeweaveTraits.OVERSLIME_BAR_COLOR : super.getBarColor(stack);
+    }
+
+    /**
+     * Issue #737's elytra flight modifier: NeoForge's item hook, checked by {@code Player#
+     * tryToStartFallFlying} on whatever sits in the chest slot -- vanilla itself only ever asks a
+     * real {@code ElytraItem} this, but the hook is on {@code Item}, so a heavy chestplate carrying
+     * the modifier answers the same way a real elytra would. Never while Broken, the same gate every
+     * other worn behavior on this class uses.
+     */
+    @Override
+    public boolean canElytraFly(ItemStack stack, LivingEntity entity) {
+        return ForgeweaveModifiers.grantsElytraFlight(stack) && !ToolItem.isBroken(stack);
+    }
+
+    /**
+     * Vanilla {@code ElytraItem#elytraFlightTick}'s own cadence, mirrored exactly rather than
+     * reinvented: a game event every 10 ticks, one point of durability every 20th. The durability hit
+     * goes through {@link #damageItem} like any other loss on this class (reinforced, durability
+     * traits, the Broken clamp) since {@link ItemStack#hurtAndBreak} always calls back into it, so a
+     * piece never breaks outright mid-glide the way a real elytra could.
+     */
+    @Override
+    public boolean elytraFlightTick(ItemStack stack, LivingEntity entity, int flightTicks) {
+        if (!entity.level().isClientSide) {
+            int nextFlightTick = flightTicks + 1;
+            if (nextFlightTick % 10 == 0) {
+                if (nextFlightTick % 20 == 0) {
+                    stack.hurtAndBreak(1, entity, EquipmentSlot.CHEST);
+                }
+                entity.gameEvent(GameEvent.ELYTRA_GLIDE);
+            }
+        }
+        return true;
     }
 
     /** Repair is the station's, off the plating material's {@code repair_item} (D19) -- never the anvil's iron ingot. */

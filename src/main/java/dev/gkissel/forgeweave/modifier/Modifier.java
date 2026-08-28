@@ -135,6 +135,52 @@ public interface Modifier {
     }
 
     /**
+     * Whether this modifier may only be applied to a worn <b>heavy</b> chestplate (issue #737, epic
+     * #730 slice 2) -- narrower than {@link #armorOnly}: elytra flight and creative flight are
+     * refused on every other armor slot <em>and</em> on the plain plate chestplate (#735's heavy set
+     * is a separate item, {@code ArmorPieceItem#isHeavy}). Checked by {@code ModifierApplication}
+     * off the tool item itself ({@code ArmorPieceItem#isHeavy} plus {@code ArmorItem#getType}) rather
+     * than the {@code ToolConstants.Category} {@link #armorOnly} reads, since "heavy" and "which
+     * slot" are both runtime item properties, not a tool category.
+     */
+    default boolean heavyChestplateOnly() {
+        return false;
+    }
+
+    /**
+     * Whether this modifier grants elytra-style gliding to the piece carrying it (issue #737) --
+     * read by {@code ArmorPieceItem#canElytraFly}, which NeoForge's {@code LivingEntity#
+     * tryToStartFallFlying} calls on whatever item sits in the chest slot regardless of whether it is
+     * a real {@code ElytraItem}. Elytra flight (the shipped user) is the whole grant: no level curve,
+     * so the parameter is unused by it, kept only for the same reason every other hook's is.
+     */
+    default boolean grantsElytraFlight(int level) {
+        return false;
+    }
+
+    /**
+     * Whether this modifier grants creative-style flight while the full heavy set (#735) is worn
+     * (issue #737) -- read by {@code CreativeFlightHandler}'s per-player tick rather than an Item
+     * hook, since unlike {@link #grantsElytraFlight} the grant depends on all four equipment slots at
+     * once, not just the piece carrying the modifier.
+     */
+    default boolean grantsCreativeFlight(int level) {
+        return false;
+    }
+
+    /**
+     * Whether this modifier refuses to apply unless the same tool already carries {@code
+     * forgeweave:elytra_flight} (issue #737's proposed balance: creative flight is gated behind
+     * having already spent a real elytra on the same chestplate, since a nether star alone buys
+     * unconditional creative flight far too cheaply). Checked by {@code ModifierApplication} next to
+     * the other category refusals; creative flight (the shipped user) is the only modifier that ever
+     * reports true.
+     */
+    default boolean requiresElytraFlightFirst() {
+        return false;
+    }
+
+    /**
      * Bonus added to the wearer's {@code minecraft:generic.knockback_resistance} attribute while
      * the piece carrying this modifier is worn -- the clone's {@code StatBoostModule.add(ToolStats.
      * KNOCKBACK_RESISTANCE)} folded into {@code ModifiableArmorItem#getAttributeModifiers}. Read by

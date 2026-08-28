@@ -1410,6 +1410,90 @@ public final class ForgeweaveModifiers {
         return false;
     }
 
+    // ---------------------------------------------------------------- issue #737 (epic #730 slice 2):
+    // elytra flight and creative flight, both heavy-chestplate-only (Modifier#heavyChestplateOnly).
+    // Armor did not exist in either upstream generation, so -- like the #108 batch -- these are
+    // Forgeweave originals with no clone counterpart and no NOTICE.md row.
+
+    /** Exposed so {@code ModifierApplication} can gate {@link #CREATIVE_FLIGHT} on it being present first. */
+    public static final ResourceLocation ELYTRA_FLIGHT_ID = id("elytra_flight");
+
+    /**
+     * Consumes a real elytra to teach the worn heavy chestplate to glide exactly like one, through
+     * NeoForge's {@code canElytraFly}/{@code elytraFlightTick} item hooks ({@code ArmorPieceItem}).
+     * The heavy chestplate still excludes an actual elytra from the chest slot (#735/#678: it is an
+     * {@code ArmorItem} occupying {@code CHEST}, and vanilla only ever has one item there) -- this is
+     * how the set buys back the mobility a real elytra would have cost wearing.
+     */
+    public static final Modifier ELYTRA_FLIGHT = new Modifier() {
+        @Override
+        public boolean armorOnly() {
+            return true;
+        }
+
+        @Override
+        public boolean heavyChestplateOnly() {
+            return true;
+        }
+
+        @Override
+        public boolean grantsElytraFlight(int level) {
+            return true;
+        }
+    };
+
+    /**
+     * Grants creative-style flight while the full heavy set (#735, all four pieces, none Broken) is
+     * worn -- revoked the instant any piece comes off or breaks ({@code CreativeFlightHandler}'s
+     * per-tick recheck). Proposed balance (issue #737's PR): gated behind {@link #ELYTRA_FLIGHT}
+     * already sitting on the same chestplate, so the real price is a spent elytra and two Tool
+     * Station trips, not just the nether star -- a nether star alone would buy unconditional creative
+     * flight far too cheaply for a survival-reachable modifier.
+     */
+    public static final Modifier CREATIVE_FLIGHT = new Modifier() {
+        @Override
+        public boolean armorOnly() {
+            return true;
+        }
+
+        @Override
+        public boolean heavyChestplateOnly() {
+            return true;
+        }
+
+        @Override
+        public boolean requiresElytraFlightFirst() {
+            return true;
+        }
+
+        @Override
+        public boolean grantsCreativeFlight(int level) {
+            return true;
+        }
+    };
+
+    /** Whether the stack carries a modifier granting elytra-style gliding ({@link Modifier#grantsElytraFlight}). */
+    public static boolean grantsElytraFlight(ItemStack stack) {
+        for (ModifierEntry entry : of(stack)) {
+            Modifier modifier = get(entry.id());
+            if (modifier != null && modifier.grantsElytraFlight(entry.level())) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /** Whether the stack carries a modifier granting full-set creative flight ({@link Modifier#grantsCreativeFlight}). */
+    public static boolean grantsCreativeFlight(ItemStack stack) {
+        for (ModifierEntry entry : of(stack)) {
+            Modifier modifier = get(entry.id());
+            if (modifier != null && modifier.grantsCreativeFlight(entry.level())) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     private static final Map<ResourceLocation, Modifier> REGISTRY = Map.ofEntries(
             Map.entry(id("fire_protection"), FIRE_PROTECTION),
             Map.entry(id("blast_protection"), BLAST_PROTECTION),
@@ -1448,7 +1532,9 @@ public final class ForgeweaveModifiers {
             Map.entry(id("wind_burst"), WIND_BURST),
             Map.entry(id("glowing"), GLOWING),
             Map.entry(id("blasting"), BLASTING),
-            Map.entry(id("veinmine"), VEINMINE));
+            Map.entry(id("veinmine"), VEINMINE),
+            Map.entry(ELYTRA_FLIGHT_ID, ELYTRA_FLIGHT),
+            Map.entry(id("creative_flight"), CREATIVE_FLIGHT));
 
     /**
      * docs/SCOPE.md's "8 combat modifiers" (M3 acceptance test 4): the #162/#163 batches' seven

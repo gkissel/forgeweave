@@ -17,6 +17,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Unit;
+import net.minecraft.world.item.ArmorItem;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.component.Tool;
 import net.minecraft.world.item.enchantment.Enchantment;
@@ -25,6 +26,7 @@ import net.minecraft.world.item.enchantment.ItemEnchantments;
 
 import dev.gkissel.forgeweave.config.ForgeweaveConfig;
 import dev.gkissel.forgeweave.item.AmmoToolItem;
+import dev.gkissel.forgeweave.item.ArmorPieceItem;
 import dev.gkissel.forgeweave.item.BowItem;
 import dev.gkissel.forgeweave.item.ForgeweaveDataComponents;
 import dev.gkissel.forgeweave.item.ToolItem;
@@ -230,6 +232,12 @@ public final class ModifierApplication {
      * {@link Modifier#grantsSilkTouch} boolean hook, which predates this method and reports no
      * {@link Modifier#grantedEnchantment}, so it stays unrestricted.
      */
+    /** {@link Modifier#heavyChestplateOnly}'s gate: a {@code #735} heavy piece in the chestplate slot specifically. */
+    private static boolean isHeavyChestplate(ItemStack tool) {
+        return tool.getItem() instanceof ArmorPieceItem armor && armor.isHeavy()
+                && armor.getType() == ArmorItem.Type.CHESTPLATE;
+    }
+
     private static Optional<Component> unsupportedToolReason(HolderLookup.Provider registries,
             ModifierRecipe recipe, ItemStack tool) {
         Modifier modifier = ForgeweaveModifiers.get(recipe.modifier());
@@ -273,6 +281,17 @@ public final class ModifierApplication {
                         && !(modifier.alsoHeld() && entry.constants().category() == ToolConstants.Category.MELEE))
                 .orElse(true)) {
             return Optional.of(Component.translatable("gui.forgeweave.modifier.unsupported_tool", name(recipe.modifier())));
+        }
+        // Issue #737: elytra flight / creative flight -- narrower than armorOnly above, gating on the
+        // specific worn slot (a runtime item property) rather than the whole ARMOR category.
+        if (modifier.heavyChestplateOnly() && !isHeavyChestplate(tool)) {
+            return Optional.of(Component.translatable("gui.forgeweave.modifier.unsupported_tool", name(recipe.modifier())));
+        }
+        // Issue #737's proposed balance: creative flight is refused until the same chestplate already
+        // carries elytra flight.
+        if (modifier.requiresElytraFlightFirst()
+                && ForgeweaveModifiers.entry(tool, ForgeweaveModifiers.ELYTRA_FLIGHT_ID) == null) {
+            return Optional.of(Component.translatable("gui.forgeweave.modifier.requires_elytra_flight"));
         }
         // The level passed here only decides whether a grant exists at all (every shipped grant is
         // present from level 1 on), not what level it would be -- that's resolved again, for real,

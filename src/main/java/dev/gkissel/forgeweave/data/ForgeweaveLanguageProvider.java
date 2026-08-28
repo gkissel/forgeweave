@@ -661,6 +661,8 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         // Issue #223 (wind burst): the tool the loaded modifier's own vanilla enchantment doesn't
         // support -- e.g. a breeze rod on anything but the warmace.
         add("gui.forgeweave.modifier.unsupported_tool", "%s cannot be applied to this tool.");
+        // Issue #737's proposed balance: creative flight refuses to apply before elytra flight does.
+        add("gui.forgeweave.modifier.requires_elytra_flight", "This piece must have Elytra Flight before it can take Creative Flight.");
         // Parity audit T23 (issue #454): upstream gui.error.incompatible_trait / incompatible_modifiers /
         // incompatible_enchantments, Modifier#canApply's three refusals in the order it raises them.
         add("gui.forgeweave.modifier.incompatible_trait", "Modifier %s can not be used together with trait %s");
@@ -1209,6 +1211,16 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("modifier.forgeweave.netherite.name", "Netherite");
         add("modifier.forgeweave.netherite.description",
                 "Refined! Harness the power of ancient metal, making the tool stronger and immune to external damage such as fire.");
+
+        // #737 (epic #730 slice 2) -- Forgeweave originals, no upstream counterpart: elytra flight and
+        // creative flight, both heavy-chestplate-only.
+        add("modifier.forgeweave.elytra_flight.name", "Elytra Flight");
+        add("modifier.forgeweave.elytra_flight.description",
+                "Sacrifice a real elytra to teach the plate to glide just the same, wings or not.");
+        add("modifier.forgeweave.creative_flight.name", "Creative Flight");
+        add("modifier.forgeweave.creative_flight.description",
+                "A fallen star's power, bound to the whole set. Soar freely while every heavy piece "
+                        + "stays worn and unbroken -- requires Elytra Flight first.");
 
         add("modifier.forgeweave.wind_burst.name", "Wind Burst");
         add("modifier.forgeweave.wind_burst.description",
@@ -2009,6 +2021,14 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
                 "Increases the mining level to netherite, and makes the tool immune to fire when dropped",
                 "Tools and armor will only receive applicable stat boosts",
                 "Maximum of 1 level", "Requires no modifier slot");
+        // #737 (epic #730 slice 2) -- Forgeweave originals, no upstream source.
+        modifierEffects("elytra_flight",
+                "Grants gliding, exactly like a worn elytra", "Consumes the elytra reagent outright",
+                "Only fits the heavy chestplate", "Maximum of 1 level");
+        modifierEffects("creative_flight",
+                "Grants creative-style flight while the full heavy set is worn",
+                "Lost the instant a piece is removed or breaks", "Requires Elytra Flight first",
+                "Only fits the heavy chestplate", "Maximum of 1 level");
         modifierEffects("far_reach",
                 "Reach further to mine blocks", "Each level adds one block", "Multiple levels");
         modifierEffects("extra_slot",
