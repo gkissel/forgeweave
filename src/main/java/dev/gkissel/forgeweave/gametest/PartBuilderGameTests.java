@@ -17,6 +17,7 @@ import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 
 import dev.gkissel.forgeweave.Forgeweave;
+import dev.gkissel.forgeweave.block.ChestBlockEntity;
 import dev.gkissel.forgeweave.block.ForgeweaveBlocks;
 import dev.gkissel.forgeweave.block.PartBuilderBlockEntity;
 import dev.gkissel.forgeweave.item.ForgeweaveDataComponents;
@@ -463,4 +464,74 @@ public class PartBuilderGameTests {
         helper.succeed();
     }
 
+    // -------------------------------------------------------------- pattern chest (issue #758)
+
+    /**
+     * Issue #758: "the Part Builder menu does not treat an adjacent pattern chest as an inventory".
+     * Verified against upstream {@code ContainerPartBuilder}'s constructor: {@code
+     * detectTE(TilePatternChest.class)} feeds {@code addSubContainer(sideInventory, true)}
+     * unconditionally whenever a Pattern Chest is found, independent of the {@code partCrafter} flag
+     * (that flag only decides whether the side panel is drawn as ordinary slots or as pattern
+     * buttons -- see {@code StationGroupGameTests#patternSidebarNeedsTheWholeWorkshop}, which already
+     * covers the flag itself). A bare Part Builder with only a Pattern Chest beside it -- no Stencil
+     * Table, no Crafting Station -- must therefore still expose the chest's stored pattern as a real,
+     * synced slot in {@link PartBuilderMenu}, ported by {@link PartBuilderBlockEntity#findSideInventory}
+     * / {@link dev.gkissel.forgeweave.block.SideInventory#find}.
+     */
+    @GameTest(template = "empty")
+    public static void loneAdjacentPatternChestIsReadAsASideInventory(GameTestHelper helper) {
+        BlockPos pos = new BlockPos(1, 1, 1);
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        helper.setBlock(pos.east(), ForgeweaveBlocks.PATTERN_CHEST.get());
+        ChestBlockEntity chest = helper.getBlockEntity(pos.east());
+        chest.container().setItem(0, new ItemStack(ForgeweaveItems.PATTERN_PICKAXE_HEAD.get()));
+
+        PartBuilderMenu menu = openMenu(helper, pos, player);
+
+        helper.assertFalse(menu.partCrafter,
+                "no Crafting Station or Stencil Table here -- this is not upstream's full partCrafter workshop");
+        helper.assertTrue(menu.sideInventorySlotCount > 0, "expected the adjacent Pattern Chest to be read as a "
+                + "side inventory, got " + menu.sideInventorySlotCount + " slots");
+        helper.assertTrue(menu.sideSlots.get(0).getItem().is(ForgeweaveItems.PATTERN_PICKAXE_HEAD.get()),
+                "expected the chest's stored pattern to be visible in the menu's side inventory, got "
+                        + menu.sideSlots.get(0).getItem());
+        helper.succeed();
+    }
+
+    /**
+     * Issue #758's own acceptance criterion, "GameTest for selecting a pattern that lives in the
+     * chest": with the full {@code partCrafter} workshop upstream demands (Pattern Chest + Stencil
+     * Table + Crafting Station), the pattern stored in the chest is offered as a clickable button
+     * and selecting it loads that pattern into the pattern slot without the player moving it by
+     * hand -- upstream's {@code GuiButtonsPartCrafter} / {@code ContainerPartBuilder#setPattern}.
+     * Complements {@code StationGroupGameTests#patternButtonSwapsTheLoadedPattern}, which covers the
+     * same mechanic from the station-group angle; this one lives with the rest of the Part Builder's
+     * own tests, where issue #758 asked for it.
+     */
+    @GameTest(template = "empty")
+    public static void selectingAPatternFromTheAdjacentChestLoadsIt(GameTestHelper helper) {
+        BlockPos pos = new BlockPos(1, 1, 1);
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        helper.setBlock(pos.east(), ForgeweaveBlocks.PATTERN_CHEST.get());
+        helper.setBlock(pos.south(), ForgeweaveBlocks.STENCIL_TABLE.get());
+        helper.setBlock(pos.north(), ForgeweaveBlocks.CRAFTING_STATION.get());
+        ChestBlockEntity chest = helper.getBlockEntity(pos.east());
+        chest.container().setItem(0, new ItemStack(ForgeweaveItems.PATTERN_PICKAXE_HEAD.get()));
+
+        PartBuilderMenu menu = openMenu(helper, pos, player);
+
+        helper.assertTrue(menu.partCrafter,
+                "a Pattern Chest plus Stencil Table and Crafting Station should form upstream's partCrafter workshop");
+        helper.assertTrue(menu.patternButtons().contains(0),
+                "expected a button for the chest's pickaxe-head pattern, got " + menu.patternButtons());
+        helper.assertTrue(menu.getSlot(PartBuilderMenu.PATTERN_SLOT).getItem().isEmpty(),
+                "the pattern slot should start empty -- the pattern lives only in the chest");
+
+        helper.assertTrue(menu.clickMenuButton(player, 0), "clicking the pattern button should succeed");
+
+        helper.assertTrue(menu.getSlot(PartBuilderMenu.PATTERN_SLOT).getItem().is(ForgeweaveItems.PATTERN_PICKAXE_HEAD.get()),
+                "expected the selected pattern to be loaded into the pattern slot without moving it by hand, got "
+                        + menu.getSlot(PartBuilderMenu.PATTERN_SLOT).getItem());
+        helper.succeed();
+    }
 }
