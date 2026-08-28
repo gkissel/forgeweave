@@ -1,11 +1,16 @@
 package dev.gkissel.forgeweave.client.book;
 
 import java.util.List;
+import java.util.function.Predicate;
 
 import net.minecraft.resources.ResourceLocation;
 
 import dev.gkissel.forgeweave.Forgeweave;
+import dev.gkissel.forgeweave.item.AmmoToolItem;
 import dev.gkissel.forgeweave.item.PartItem;
+import dev.gkissel.forgeweave.menu.ToolAssemblyRecipes;
+import dev.gkissel.forgeweave.modifier.Modifier;
+import dev.gkissel.forgeweave.tool.ToolConstants;
 
 /**
  * The tool and modifier pages' modify-station diagram, as data (issue #651): the sprite regions of
@@ -87,6 +92,36 @@ public final class ModifyPageContent {
             return DEMO_MATERIALS.get(1);
         }
         return DEMO_MATERIALS.get(index % DEMO_MATERIALS.size());
+    }
+
+    /**
+     * The demo tool the modifier page's diagram illustrates (issue #760). Upstream's own
+     * {@code ContentModifier} always painted its {@code demoTool} default, a pickaxe, no matter what
+     * the modifier actually applied to; this instead reads the modifier's own predicates -- exactly
+     * the ones {@link dev.gkissel.forgeweave.modifier.ModifierApplication} gates application on --
+     * and returns the first {@link ToolAssemblyRecipes.Entry} of the matching category, so a new
+     * modifier's picture is correct the moment it declares its predicate, with no per-modifier table
+     * to keep in sync: an ammo item for {@link Modifier#projectileOnly} (the same {@code
+     * AmmoToolItem} check {@code ModifierApplication} makes), a harvest tool for {@link
+     * Modifier#harvestOnly}, an armor piece for {@link Modifier#armorOnly}, a melee weapon for
+     * everything else (haste, luck, silky, reinforced, soulbound and the rest, which apply broadly).
+     */
+    public static ToolAssemblyRecipes.Entry representativeEntry(Modifier modifier) {
+        if (modifier.projectileOnly()) {
+            return firstEntry(entry -> entry.tool().get() instanceof AmmoToolItem);
+        }
+        if (modifier.harvestOnly()) {
+            return firstEntry(entry -> entry.constants().category() == ToolConstants.Category.HARVEST);
+        }
+        if (modifier.armorOnly()) {
+            return firstEntry(entry -> entry.constants().category() == ToolConstants.Category.ARMOR);
+        }
+        return firstEntry(entry -> entry.constants().category() == ToolConstants.Category.MELEE);
+    }
+
+    private static ToolAssemblyRecipes.Entry firstEntry(Predicate<ToolAssemblyRecipes.Entry> match) {
+        return ToolAssemblyRecipes.ENTRIES.stream().filter(match).findFirst()
+                .orElseThrow(() -> new IllegalStateException("no assembly entry matches the requested category"));
     }
 
     /** {@code <tool description id>.property.<n>} -- one "Properties:" bullet, collected while it exists. */

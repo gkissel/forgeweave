@@ -52,6 +52,7 @@ import dev.gkissel.forgeweave.item.SavedBookPagePayload;
 import dev.gkissel.forgeweave.material.Material;
 import dev.gkissel.forgeweave.menu.ToolAssemblyRecipes;
 import dev.gkissel.forgeweave.modifier.ForgeweaveModifiers;
+import dev.gkissel.forgeweave.modifier.Modifier;
 import dev.gkissel.forgeweave.modifier.ModifierEntry;
 import dev.gkissel.forgeweave.modifier.ModifierRecipe;
 
@@ -629,9 +630,10 @@ public class BookScreen extends Screen {
      * ({@code CustomFontColor.encodeColor(color)}, Forgeweave's {@code ForgeweaveModifiers#color}),
      * the description, the underlined "Effects:" bullet list ({@code modifier.effect} +
      * {@code effects}, ported to {@code modifier.<id>.effect.<n>} keys), then the diagram: a demo
-     * pickaxe (upstream's default {@code demoTool}) with the modifier applied resting on the table
-     * over the one-slot plate, the recipe's reagent items cycling in the slot and naming themselves
-     * on hover ({@code ElementItem}'s default tooltip).
+     * tool representative of what the modifier actually applies to (issue #760, {@link
+     * ModifyPageContent#representativeEntry}) with the modifier applied resting on the table over
+     * the one-slot plate, the recipe's reagent items cycling in the slot and naming themselves on
+     * hover ({@code ElementItem}'s default tooltip).
      */
     private void modifierBlocks(List<Block> blocks, ResourceLocation id) {
         String base = "modifier." + id.getNamespace() + "." + id.getPath();
@@ -749,15 +751,18 @@ public class BookScreen extends Screen {
     }
 
     /**
-     * {@code ContentModifier#getDemoTools}: a demo pickaxe (upstream's default {@code demoTool})
-     * with one level of the modifier applied, so modifier art and glint show on it.
+     * {@code ContentModifier#getDemoTools}: a demo tool with one level of the modifier applied, so
+     * modifier art and glint show on it. Issue #760: upstream's own {@code demoTool} default was
+     * always a pickaxe, illustrating every modifier -- including armor-only and projectile-only ones
+     * that can never actually take it -- with the wrong picture; {@link
+     * ModifyPageContent#representativeEntry} instead picks the assembly entry the modifier's own
+     * predicates admit.
      */
     private ItemStack modifierDemoTool(ResourceLocation id) {
-        ItemStack demo = ToolAssemblyRecipes.ENTRIES.stream()
-                .filter(entry -> entry.tool().get() == ForgeweaveItems.TOOL_PICKAXE.get())
-                .findFirst()
-                .map(this::demoTool)
-                .orElseGet(() -> new ItemStack(ForgeweaveItems.TOOL_PICKAXE.get()));
+        Modifier modifier = ForgeweaveModifiers.get(id);
+        ToolAssemblyRecipes.Entry entry =
+                ModifyPageContent.representativeEntry(modifier != null ? modifier : new Modifier() {});
+        ItemStack demo = demoTool(entry);
         demo.set(ForgeweaveDataComponents.MODIFIERS.get(), List.of(new ModifierEntry(id, 1)));
         return demo;
     }

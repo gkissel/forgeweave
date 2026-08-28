@@ -496,7 +496,13 @@ public final class ScreenshotHarness {
             // #682 (M4-7): the armor section's opening text page and one piece page, the latter
             // being the first tool-kind page whose diagram assembles an ArmorPieceItem.
             new BookScene("book_armor", -1, "armor.intro"),
-            new BookScene("book_armor_chestplate", -1, "armor.chestplate"));
+            new BookScene("book_armor_chestplate", -1, "armor.chestplate"),
+            // #760: two modifier pages whose diagrams used to always paint a pickaxe regardless of
+            // what the modifier applies to. Fire protection is armor-only (an armor piece is now
+            // correct); fins is projectile-only (an ammo item is now correct) -- neither answer is a
+            // pickaxe, so either capture alone would have caught the old bug.
+            new BookScene("book_modifier_fire_protection", -1, "modifiers.fire_protection"),
+            new BookScene("book_modifier_fins", -1, "modifiers.fins"));
 
     private ScreenshotHarness() {}
 

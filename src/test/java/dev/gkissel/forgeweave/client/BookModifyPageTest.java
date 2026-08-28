@@ -2,14 +2,23 @@ package dev.gkissel.forgeweave.client;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
+import net.minecraft.SharedConstants;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.Bootstrap;
 
 import dev.gkissel.forgeweave.client.book.ModifyPageContent;
 import dev.gkissel.forgeweave.client.book.ModifyPageContent.Sprite;
+import dev.gkissel.forgeweave.item.AmmoToolItem;
+import dev.gkissel.forgeweave.item.ForgeweaveItems;
 import dev.gkissel.forgeweave.item.PartItem;
+import dev.gkissel.forgeweave.menu.ToolAssemblyRecipes;
+import dev.gkissel.forgeweave.modifier.Modifier;
+import dev.gkissel.forgeweave.tool.ToolConstants;
 
 /**
  * Issue #651: the tool and modifier pages render upstream's {@code ContentTool}/{@code
@@ -20,6 +29,12 @@ import dev.gkissel.forgeweave.item.PartItem;
  * in NOTICE.md) so a drive-by "tidy" of a coordinate fails loudly.
  */
 class BookModifyPageTest {
+
+    @BeforeAll
+    static void bootstrapMinecraft() {
+        SharedConstants.tryDetectVersion();
+        Bootstrap.bootStrap();
+    }
 
     @Test
     void theAtlasRegionsAreUpstreamsExactCoordinates() {
@@ -78,6 +93,58 @@ class BookModifyPageTest {
                 ModifyPageContent.modifierEffectKey(id("haste"), 2));
         assertEquals("book.forgeweave.tool.properties", ModifyPageContent.TOOL_PROPERTIES_TITLE);
         assertEquals("book.forgeweave.modifier.effect", ModifyPageContent.MODIFIER_EFFECTS_TITLE);
+    }
+
+    /**
+     * Issue #760: the modifier page's diagram must not always paint a pickaxe. A projectile-only
+     * modifier (fins) illustrates with an ammo item ({@code AmmoToolItem}), the same restriction
+     * {@code ModifierApplication} enforces.
+     */
+    @Test
+    void aProjectileOnlyModifierIsIllustratedWithAnAmmoItem() {
+        ToolAssemblyRecipes.Entry entry = ModifyPageContent.representativeEntry(new Modifier() {
+            @Override
+            public boolean projectileOnly() {
+                return true;
+            }
+        });
+
+        assertTrue(entry.tool().get() instanceof AmmoToolItem, entry.tool().get().toString());
+    }
+
+    /** A harvest-only modifier (blasting, fortification) illustrates with a harvest tool. */
+    @Test
+    void aHarvestOnlyModifierIsIllustratedWithAHarvestTool() {
+        ToolAssemblyRecipes.Entry entry = ModifyPageContent.representativeEntry(new Modifier() {
+            @Override
+            public boolean harvestOnly() {
+                return true;
+            }
+        });
+
+        assertEquals(ToolConstants.Category.HARVEST, entry.constants().category());
+    }
+
+    /** An armor-only modifier (the protections, knockback resistance, thorns) illustrates with an armor piece. */
+    @Test
+    void anArmorOnlyModifierIsIllustratedWithAnArmorPiece() {
+        ToolAssemblyRecipes.Entry entry = ModifyPageContent.representativeEntry(new Modifier() {
+            @Override
+            public boolean armorOnly() {
+                return true;
+            }
+        });
+
+        assertEquals(ToolConstants.Category.ARMOR, entry.constants().category());
+    }
+
+    /** Every other modifier (haste, luck, silky, soulbound, ...) illustrates with a melee weapon. */
+    @Test
+    void anUnrestrictedModifierIsIllustratedWithAMeleeWeapon() {
+        ToolAssemblyRecipes.Entry entry = ModifyPageContent.representativeEntry(new Modifier() {});
+
+        assertEquals(ToolConstants.Category.MELEE, entry.constants().category());
+        assertEquals(ForgeweaveItems.TOOL_BROADSWORD.get(), entry.tool().get());
     }
 
     private static ResourceLocation id(String path) {
