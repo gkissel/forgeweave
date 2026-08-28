@@ -702,6 +702,9 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("gui.forgeweave.stat.armor", "Armor: %s");
         add("gui.forgeweave.stat.toughness", "Toughness: %s");
         add("gui.forgeweave.stat.knockback_resistance", "Knockback Resistance: %s");
+        // #728, tool_stat.tconstruct.overslime/.description.
+        add("gui.forgeweave.stat.overslime", "Overslime: %s");
+        add("gui.forgeweave.stat.overslime.desc", "Overslime is spent before durability; refill it with slime at the Tool Station.");
 
         // What each stat row says on hover (issue #376), ported from upstream 1.12's
         // stat.head/handle/extra.*.desc entries (NOTICE.md). The underlined heading each group sits
@@ -1607,8 +1610,7 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("effect.forgeweave.enderference", "Enderference");
         // #680 (M4-5) -- the 1.20 clone's ARMOR-scope traits; names and descriptions from its
         // modifier.tconstruct.<id>/.description rows (NOTICE.md), reworded only where a mechanic
-        // was not ported (overshield spends its own charge, not overslime; warded's row said 0.5
-        // where its formula is 1).
+        // was not ported (warded's row said 0.5 where its formula is 1).
         add("trait.forgeweave.projectile_protection.name", "Projectile Protection");
         add("trait.forgeweave.projectile_protection.description", "Protects against damage from projectiles.");
         add("trait.forgeweave.depth_protection.name", "Depth Protection");
@@ -1626,7 +1628,21 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("trait.forgeweave.consecrated.name", "Consecrated");
         add("trait.forgeweave.consecrated.description", "Take less damage from the undead.");
         add("trait.forgeweave.overshield.name", "Overshield");
-        add("trait.forgeweave.overshield.description", "Slowly banks a charge that is spent to reduce all sources of damage.");
+        add("trait.forgeweave.overshield.description", "Consumes overslime to reduce all sources of damage.");
+        // #728: modifier.tconstruct.overslime/.description and the overslime_friend marker (which the
+        // clone never shows -- TooltipDisplay.NEVER -- but a trait list here names every id).
+        add("trait.forgeweave.overslime.name", "Overslime");
+        add("trait.forgeweave.overslime.description",
+                "Armor consumes overslime instead of durability, until it runs out! Not friendly towards armor lacking slime");
+        add("trait.forgeweave.overslime_friend.name", "Overslime Friend");
+        add("trait.forgeweave.overslime_friend.description", "Slime feels at home here: overslime costs no armor.");
+        // The refill recipe's JEI/rejection name (modifier.tconstruct.overslime), the at-capacity
+        // refusal (recipe.tconstruct.overslime.at_capacity) and the tool_stat.tconstruct.overslime row.
+        add("modifier.forgeweave.overslime.name", "Overslime");
+        add("modifier.forgeweave.overslime.description",
+                "Refills the piece's overslime with slime balls, congealed slime or slime blocks.");
+        add("gui.forgeweave.modifier.overslime_full", "Armor has no more space for overslime.");
+        add("gui.forgeweave.modifier.overslime_unsupported", "Only armor with the overslime trait takes overslime.");
         add("trait.forgeweave.piercing_guard.name", "Piercing Guard");
         add("trait.forgeweave.piercing_guard.description", "Cancels out some of the attacker's armor after they hit you.");
         add("trait.forgeweave.thorns.name", "Thorns");
@@ -1766,7 +1782,7 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
                         + "projectiles, obsidian's explosions, cobalt's blows in melee, copper's the "
                         + "crushing dark below sea level. Manyullyn is warded against magic, amethyst "
                         + "bronze strikes back at the crystalline, silver is consecrated against the "
-                        + "undead, knightslime grants an overshield.\n\nMaille brings traits too: cactus "
+                        + "undead, knightslime shields with overslime.\n\nMaille brings traits too: cactus "
                         + "is thorned, bone pierces guards, chorus sends attackers elsewhere, and blue "
                         + "slime vine slows your fall. Each material's page lists what it grants.");
         add("book.forgeweave.armor.modifiers.title", "Armor Modifiers");

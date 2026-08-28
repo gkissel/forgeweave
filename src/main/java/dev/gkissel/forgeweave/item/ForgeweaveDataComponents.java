@@ -226,12 +226,24 @@ public final class ForgeweaveDataComponents {
                     builder -> builder.persistent(ShockingCharge.CODEC).networkSynchronized(ShockingCharge.STREAM_CODEC));
 
     /**
-     * {@code ForgeweaveTraits#OVERSHIELD}'s banked charge on a knightslime armor piece (issue #680,
-     * M4-5): the clone's overshield spends overslime, which Forgeweave has none of (SCOPE.md D17),
-     * so the piece banks its own 0..{@code OVERSHIELD_CAPACITY} counter instead. Absent means zero;
-     * fixture {@code m4_5_armor_overshield_charge.snbt} pins the shape.
+     * The piece's current overslime (issue #728; the 1.20 clone's {@code OverslimeModule} persistent
+     * {@code tconstruct:overslime} int): durability loss is paid from it first, and knightslime's
+     * overshield spends it for protection. Absent means zero; the capacity is not stored -- it is
+     * {@code ForgeweaveTraits#overslimeCapacity}, 50 per overslime trait. Fixture
+     * {@code m728_armor_overslime.snbt} pins the shape.
      */
-    public static final DeferredHolder<DataComponentType<?>, DataComponentType<Integer>> OVERSHIELD =
+    public static final DeferredHolder<DataComponentType<?>, DataComponentType<Integer>> OVERSLIME =
+            DATA_COMPONENTS.registerComponentType("overslime",
+                    builder -> builder.persistent(ExtraCodecs.NON_NEGATIVE_INT).networkSynchronized(ByteBufCodecs.VAR_INT));
+
+    /**
+     * Legacy: #690's invented overshield charge, shipped in mc1.21.1-v0.4.0-alpha.1 and replaced by
+     * {@link #OVERSLIME} in #728. Stays registered only so an alpha.1 knightslime piece still decodes
+     * (an unknown component id fails the whole stack); nothing reads or writes it. Fixture
+     * {@code m4_5_armor_overshield_charge.snbt} keeps the old shape decoding.
+     */
+    @Deprecated
+    public static final DeferredHolder<DataComponentType<?>, DataComponentType<Integer>> LEGACY_OVERSHIELD =
             DATA_COMPONENTS.registerComponentType("overshield",
                     builder -> builder.persistent(ExtraCodecs.NON_NEGATIVE_INT).networkSynchronized(ByteBufCodecs.VAR_INT));
 

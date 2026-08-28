@@ -37,6 +37,11 @@ public record ArmorStats(float armor, float toughness, float knockbackResistance
             ByteBufCodecs.VAR_INT, ArmorStats::durability,
             ArmorStats::new);
 
+    /** This block with another armor value (#728: the overslime trait's build-time penalty). */
+    public ArmorStats withArmor(float armor) {
+        return new ArmorStats(armor, toughness, knockbackResistance, durability);
+    }
+
     /**
      * The stats one set of part materials produces, or empty for an entry with no
      * {@link ToolConstants.Role#PLATING} slot (every tool). The piece is the entry's own id --

@@ -3,12 +3,12 @@
     expect: {
         components: {
             "forgeweave:armor_stats": {
-                armor: 2.0f,
-                durability: 363,
+                armor: 6.5f,
+                durability: 528,
                 knockback_resistance: 0.1f,
                 toughness: 1.0f
             },
-            "forgeweave:overshield": 7,
+            "forgeweave:overslime": 37,
             "forgeweave:tool_materials": {
                 head: "forgeweave:knightslime",
                 parts: [
@@ -18,22 +18,23 @@
             },
             "forgeweave:traits": [
                 "forgeweave:overshield",
+                "forgeweave:overslime",
                 "forgeweave:unnatural"
             ],
-            "minecraft:damage": 12,
-            "minecraft:max_damage": 363
+            "minecraft:damage": 0,
+            "minecraft:max_damage": 528
         },
-        id: "forgeweave:helmet"
+        id: "forgeweave:chestplate"
     },
     nbt: {
         components: {
             "forgeweave:armor_stats": {
-                armor: 2.0f,
-                durability: 363,
+                armor: 6.5f,
+                durability: 528,
                 knockback_resistance: 0.1f,
                 toughness: 1.0f
             },
-            "forgeweave:overshield": 7,
+            "forgeweave:overslime": 37,
             "forgeweave:tool_materials": {
                 head: "forgeweave:knightslime",
                 parts: [
@@ -43,13 +44,14 @@
             },
             "forgeweave:traits": [
                 "forgeweave:overshield",
+                "forgeweave:overslime",
                 "forgeweave:unnatural"
             ],
-            "minecraft:damage": 12,
-            "minecraft:max_damage": 363
+            "minecraft:damage": 0,
+            "minecraft:max_damage": 528
         },
         count: 1,
-        id: "forgeweave:helmet"
+        id: "forgeweave:chestplate"
     },
-    what: "M4-5 (#680, shipped in mc1.21.1-v0.4.0-alpha.1): a knightslime helmet with 7 banked overshield charges. #728 replaced that invented mechanic with the clone's overslime (m728_armor_overslime.snbt): forgeweave:overshield is now a legacy component that stays registered so an alpha.1 stack still decodes, but nothing reads it -- the trait list is what makes the piece an overslime piece."
+    what: "#728: a knightslime chestplate holding 37 of its 50 overslime -- the 1.20 clone's overslime ported for armor: forgeweave:overslime is the current amount (a non-negative int; absent means 0), the capacity is 50 per overslime trait and lives nowhere on the stack, and the plating's 7.0 armor is stored net of the trait's -0.5 penalty (no overslime_friend maille). Replaces #690's banked overshield charge (m4_5_armor_overshield_charge.snbt, kept only so alpha.1 stacks still decode)."
 }

@@ -21,6 +21,7 @@ import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.block.ForgeweaveBlocks;
+import dev.gkissel.forgeweave.block.SlimeColour;
 import dev.gkissel.forgeweave.block.ToolStationBlockEntity;
 import dev.gkissel.forgeweave.combat.CombatDefense;
 import dev.gkissel.forgeweave.combat.CombatSeam;
@@ -33,6 +34,7 @@ import dev.gkissel.forgeweave.menu.ToolStationMenu;
 import dev.gkissel.forgeweave.modifier.ForgeweaveModifiers;
 import dev.gkissel.forgeweave.modifier.ModifierEntry;
 import dev.gkissel.forgeweave.tool.ToolConstants;
+import dev.gkissel.forgeweave.trait.ForgeweaveTraits;
 
 /**
  * M4-6 (issue #681; SCOPE.md D15/D16): the seven armor modifiers through the real Tool Station
@@ -53,8 +55,12 @@ public class ArmorModifierGameTests {
     }
 
     private static ItemStack chestplate(GameTestHelper helper, Player player) {
+        return chestplate(helper, player, "iron");
+    }
+
+    private static ItemStack chestplate(GameTestHelper helper, Player player, String material) {
         return ToolAssembly.assembleAt(helper, player, STATION, ForgeweaveBlocks.TOOL_STATION.get(),
-                ToolAssembly.entryOf(ToolConstants.CHESTPLATE), List.of("iron", "iron"));
+                ToolAssembly.entryOf(ToolConstants.CHESTPLATE), List.of(material, material));
     }
 
     /** The station loaded with {@code tool} and one reagent stack, output untaken. */
@@ -313,6 +319,32 @@ public class ArmorModifierGameTests {
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         ItemStack piece = apply(helper, player, fullChestplate(helper, player), new ItemStack(Items.NETHERITE_UPGRADE_SMITHING_TEMPLATE));
         assertRefused(helper, load(helper, player, piece, new ItemStack(Items.ANVIL)), "knockback resistance needs a slot the piece no longer has");
+        helper.succeed();
+    }
+
+    /**
+     * #728, the clone's overslime refill recipes: a slime ball restores its colour's amount (green
+     * 20, blue 50), as many are spent as the missing overslime needs (overshoot wasted), a full
+     * piece refuses, and a piece without the trait refuses.
+     */
+    @GameTest(template = "empty")
+    public static void slimeBallsRefillOverslimeAtTheStation(GameTestHelper helper) {
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        ItemStack piece = chestplate(helper, player, "knightslime");
+        ItemStack two = apply(helper, player, piece, new ItemStack(Items.SLIME_BALL, 2));
+        helper.assertTrue(ForgeweaveTraits.overslime(two) == 40, "two green balls are 40, got " + ForgeweaveTraits.overslime(two));
+        helper.assertTrue(ForgeweaveModifiers.of(two).isEmpty(), "overslime is no modifier entry, got " + ForgeweaveModifiers.of(two));
+        ToolStationBlockEntity station = helper.getBlockEntity(STATION);
+        helper.assertTrue(station.container().getItem(1).isEmpty(), "both balls spent");
+
+        ItemStack blue = ForgeweaveItems.slimeBallItem(SlimeColour.BLUE).toStack(3);
+        ItemStack full = apply(helper, player, two, blue);
+        helper.assertTrue(ForgeweaveTraits.overslime(full) == 50, "capped at 50, got " + ForgeweaveTraits.overslime(full));
+        helper.assertTrue(station.container().getItem(1).getCount() == 2, "one blue ball covers the missing 10");
+
+        assertRefused(helper, load(helper, player, full, new ItemStack(Items.SLIME_BALL)), "a full piece takes no more");
+        assertRefused(helper, load(helper, player, chestplate(helper, player), new ItemStack(Items.SLIME_BALL)),
+                "a piece without the overslime trait takes none");
         helper.succeed();
     }
 }
