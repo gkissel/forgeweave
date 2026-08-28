@@ -104,8 +104,25 @@ public class SmelteryControllerBlockEntity extends BlockEntity implements Statio
      * <p>ponytail: one second, matching upstream's unformed-poll rate and beating its 15-second
      * formed recheck. Drop it to 0 (rescan on every read) if a case turns up where a smeltery
      * working out of a broken structure for up to a second matters.
+     *
+     * <p>Package-private rather than {@code private}: {@link SmelteryControllerBlock#tick} reuses it
+     * as the settle-window poll cadence (#757), so a rescan is always at least this stale by the time
+     * that tick fires and {@link #structure()}'s own staleness check does the actual work.
      */
-    private static final int RESCAN_INTERVAL_TICKS = 20;
+    static final int RESCAN_INTERVAL_TICKS = 20;
+
+    /**
+     * How long an unformed core keeps rechecking itself after a placement or a neighbour change
+     * touches it directly, in ticks (#757 -- "the controller's red visual state updates only when
+     * the player clicks it; assembling ... the structure elsewhere leaves the old visual until
+     * interaction"). {@link SmelteryControllerBlock#onPlace}/{@code neighborChanged} only reach a
+     * block adjacent to the core itself, so finishing a wall a few blocks further out never notifies
+     * it directly -- see {@link #armSettleWindow()}. Bounded rather than upstream's forever-poll, so
+     * a genuinely abandoned unformed structure still goes back to costing nothing (the class
+     * javadoc's "idle unformed = zero tick"); five seconds is comfortably longer than it takes to
+     * close up the last wall of a smeltery someone is actively standing in front of.
+     */
+    private static final int SETTLE_WINDOW_TICKS = 100;
 
     private static final long NEVER_SCANNED = Long.MIN_VALUE;
 
@@ -124,6 +141,9 @@ public class SmelteryControllerBlockEntity extends BlockEntity implements Statio
     private SmelteryStructure structure;
     private Component lastResult = Component.translatable(SmelteryScan.KEY_NOT_SCANNED);
     private long lastScanTick = NEVER_SCANNED;
+
+    /** #757: end of the current settle window, or {@link #NEVER_SCANNED} if none is open. See {@link #armSettleWindow()}. */
+    private long settleUntilTick = NEVER_SCANNED;
 
     // #96 -- melting. One slot per interior block (upstream TileSmeltery's getUpdatedInventorySize),
     // one item per slot, each heating at its own pace towards its recipe's required temperature.
@@ -240,6 +260,30 @@ public class SmelteryControllerBlockEntity extends BlockEntity implements Statio
         if (state.getValue(SmelteryControllerBlock.ACTIVE) != (found != null)) {
             level.setBlock(worldPosition, state.setValue(SmelteryControllerBlock.ACTIVE, found != null), Block.UPDATE_ALL);
         }
+    }
+
+    /**
+     * #757: opens (or extends) a bounded recheck window for an unformed core, and makes sure a tick
+     * is actually scheduled to use it. Called after every {@link #updateStructure()} that {@link
+     * SmelteryControllerBlock#onPlace}/{@code neighborChanged} triggers -- those only reach a block
+     * adjacent to the core itself, so completing the structure a few blocks further out would
+     * otherwise sit unnoticed until a player clicks it. A no-op once formed: {@link #armMeltTick}
+     * already keeps a formed core's own heartbeat alive.
+     */
+    void armSettleWindow() {
+        if (level == null || level.isClientSide || isFormed()) {
+            return;
+        }
+        settleUntilTick = level.getGameTime() + SETTLE_WINDOW_TICKS;
+        Block block = getBlockState().getBlock();
+        if (!level.getBlockTicks().hasScheduledTick(worldPosition, block)) {
+            level.scheduleTick(worldPosition, block, RESCAN_INTERVAL_TICKS);
+        }
+    }
+
+    /** Whether {@link #armSettleWindow()}'s recheck window is still open. */
+    boolean settling() {
+        return level != null && settleUntilTick != NEVER_SCANNED && level.getGameTime() < settleUntilTick;
     }
 
     /**
