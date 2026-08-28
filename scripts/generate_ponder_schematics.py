@@ -1,4 +1,4 @@
-"""Generates the Ponder scene schematics (issues #664, #682, #700).
+"""Generates the Ponder scene schematics (issues #664, #682, #700, #754).
 
 Ponder (net.createmod.ponder, the standalone library extracted from Create) loads a scene's world
 from a gzipped vanilla structure-template NBT at ``assets/<namespace>/ponder/<path>.nbt``
@@ -17,7 +17,10 @@ scenes: the plate is part of the schematic, shown by ``scene.showBasePlate()``),
 smeltery in them is the *finished* structure the scene reveals in stages: a seared floor under the
 interior footprint plus the outer ring a player would actually build (allowed -- the scan never
 looks there), wall rings corners included (``SmelteryScan`` never checks corner columns), at least
-one seared tank, and a core stored inactive (the scene flips ``active`` as its completion cue).
+one seared tank, and a core stored inactive (the scene flips ``active`` as its completion cue). #754:
+a wall that is otherwise all ``forgeweave:seared_bricks`` also carries a drain and a seared glass
+pane, so the multiblock actually shows some of the distinct blocks its callouts describe rather than
+a uniform brick box with two special cells.
 
 ``PonderSchematicGameTests`` rebuilds every smeltery here server-side and asserts the scan accepts it.
 """
@@ -37,6 +40,7 @@ SNOW = {"Name": "minecraft:snow_block"}
 CONCRETE = {"Name": "minecraft:white_concrete"}
 BRICKS = {"Name": "forgeweave:seared_bricks"}
 TANK = {"Name": "forgeweave:seared_tank"}
+GLASS = {"Name": "forgeweave:seared_glass"}
 TOOL_STATION = {"Name": "forgeweave:tool_station", "Properties": {"facing": "south"}}
 CASTING_TABLE = {"Name": "forgeweave:casting_table"}
 CASTING_BASIN = {"Name": "forgeweave:casting_basin"}
@@ -94,12 +98,19 @@ class Structure:
 
 
 def smeltery_scene() -> Structure:
-    """The assembly scene (#664): the minimum structure, 1x1x2 interior at (2, 2..3, 2) on a 5x5 plate."""
+    """The assembly scene (#664): the minimum structure, 1x1x2 interior at (2, 2..3, 2) on a 5x5 plate.
+
+    #754: a drain and a seared glass pane sit above the core and tank so the structure actually shows
+    the range of blocks the callouts and the item preview describe, instead of a wall that is all
+    seared bricks apart from the one tank and one core cell.
+    """
     s = Structure((5, 4, 5))
     s.base_plate()
     s.smeltery(2, 2, 1, 1, 2, {
         (2, 2, 1): core("north"),  # mid-north, facing the default camera
         (1, 2, 2): TANK,  # mid-west, the other face the camera sees
+        (2, 3, 1): drain("north"),  # top layer, mid-north, above the core
+        (1, 3, 2): GLASS,  # top layer, mid-west, above the tank
     })
     return s
 
@@ -112,6 +123,9 @@ def smeltery_sizes_scene() -> Structure:
     """
     s = Structure((9, 5, 9))
     s.base_plate()
+    # The small one stays exactly "one tank, one core" -- that is what its own callout says. The large
+    # one also gets a drain and a seared glass pane (#754) so the scene shows the fuller range of
+    # valid wall blocks somewhere, not just seared bricks everywhere but two cells.
     s.smeltery(2, 6, 1, 1, 2, {
         (2, 2, 5): core("north"),
         (1, 2, 6): TANK,
@@ -119,6 +133,8 @@ def smeltery_sizes_scene() -> Structure:
     s.smeltery(5, 1, 3, 3, 3, {
         (6, 2, 0): core("north"),
         (4, 3, 2): TANK,
+        (7, 3, 0): drain("north"),  # north wall, mid layer
+        (4, 2, 1): GLASS,  # west wall, bottom layer
     })
     return s
 
