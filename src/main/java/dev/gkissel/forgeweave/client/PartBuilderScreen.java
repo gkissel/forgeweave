@@ -209,7 +209,7 @@ public class PartBuilderScreen extends StationScreen<PartBuilderMenu> implements
         if (menu.partCrafter) {
             renderPatternButtons(graphics, mouseX, mouseY);
         } else {
-            sidePanel.render(graphics, menu, leftPos, topPos, imageHeight, menu.sideSlots);
+            sidePanel.render(graphics, menu, leftPos, topPos, imageHeight, menu.sideSlots, menu.sideInventoryLiveSlots());
         }
     }
 
@@ -376,7 +376,7 @@ public class PartBuilderScreen extends StationScreen<PartBuilderMenu> implements
 
     @Override
     public boolean mouseScrolled(double mouseX, double mouseY, double scrollX, double scrollY) {
-        if (sidePanel.mouseScrolled(mouseX, mouseY, scrollY, imageHeight, menu.sideSlots)) {
+        if (sidePanel.mouseScrolled(mouseX, mouseY, scrollY, imageHeight, menu.sideInventoryLiveSlots())) {
             return true;
         }
         if (isHovering(BASE_WIDTH + PANEL_GAP, PANEL_TOP, InfoPanel.WIDTH, PANEL_HEIGHT, mouseX, mouseY)) {

@@ -62,7 +62,7 @@ public class CraftingStationScreen extends StationScreen<CraftingStationMenu> im
     @Override
     protected void renderPanel(GuiGraphics guiGraphics, float partialTick, int mouseX, int mouseY) {
         guiGraphics.blit(TEXTURE, leftPos, topPos, 0, 0, BASE_WIDTH, BASE_HEIGHT, SHEET, SHEET);
-        sidePanel.render(guiGraphics, menu, leftPos, topPos, imageHeight, menu.sideSlots);
+        sidePanel.render(guiGraphics, menu, leftPos, topPos, imageHeight, menu.sideSlots, menu.sideInventorySlotCount);
     }
 
     @Override
@@ -82,7 +82,7 @@ public class CraftingStationScreen extends StationScreen<CraftingStationMenu> im
 
     @Override
     public boolean mouseScrolled(double mouseX, double mouseY, double scrollX, double scrollY) {
-        return sidePanel.mouseScrolled(mouseX, mouseY, scrollY, imageHeight, menu.sideSlots)
+        return sidePanel.mouseScrolled(mouseX, mouseY, scrollY, imageHeight, menu.sideInventorySlotCount)
                 || super.mouseScrolled(mouseX, mouseY, scrollX, scrollY);
     }
 

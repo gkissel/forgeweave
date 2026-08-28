@@ -115,4 +115,33 @@ public final class SideInventory {
         BlockPos neighborPos = blockEntity.getBlockPos().relative(direction);
         return level.getCapability(Capabilities.ItemHandler.BLOCK, neighborPos, direction.getOpposite());
     }
+
+    /**
+     * The slot-count ceiling a {@link #find}-fed side panel (Part Builder, Stencil Table) must
+     * pre-build for {@code sideInventory} (issue #756): a Forgeweave chest keeps growing its {@link
+     * IItemHandler} while the panel's menu is open -- including through insertions made via that
+     * very panel -- because its backing {@link net.minecraft.world.SimpleContainer} array is always
+     * {@link ChestBlockEntity#MAX_SLOTS} regardless of the chest's current logical size ({@link
+     * ChestBlockEntity} class javadoc). A slot count captured once at menu-open time (plain {@link
+     * IItemHandler#getSlots()}) leaves any slot the chest grows into afterward unbacked by a {@code
+     * Slot} in the already-open menu -- unreachable until the GUI is reopened, the reported defect.
+     * Building the whole {@value ChestBlockEntity#MAX_SLOTS}-slot range up front sidesteps that,
+     * mirroring what {@code ChestMenu} already does for the chest's own GUI.
+     *
+     * <p>Any other neighbor's {@link IItemHandler#getSlots()} cannot change once queried -- nothing
+     * else in Forgeweave grows -- so its current count is already the safe ceiling; padding a static,
+     * differently-sized handler (a vanilla chest, a hopper) out to 256 would instead let the panel
+     * address slot indices the real handler doesn't have.
+     */
+    public static int maxSlots(BlockEntity blockEntity, @Nullable IItemHandler sideInventory) {
+        if (sideInventory == null) {
+            return 0;
+        }
+        BlockPos sidePos = findPos(blockEntity);
+        Level level = blockEntity.getLevel();
+        if (sidePos != null && level != null && level.getBlockEntity(sidePos) instanceof ChestBlockEntity) {
+            return ChestBlockEntity.MAX_SLOTS;
+        }
+        return sideInventory.getSlots();
+    }
 }

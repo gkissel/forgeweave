@@ -114,7 +114,7 @@ public class StencilTableScreen extends StationScreen<StencilTableMenu> implemen
         guiGraphics.blit(TEXTURE, leftPos, topPos, 0, 0, BASE_WIDTH, BASE_HEIGHT, BASE_WIDTH, BASE_HEIGHT);
         renderInputIcon(guiGraphics);
         renderPatternButtons(guiGraphics, mouseX, mouseY);
-        sidePanel.render(guiGraphics, menu, leftPos, topPos, imageHeight, menu.sideSlots);
+        sidePanel.render(guiGraphics, menu, leftPos, topPos, imageHeight, menu.sideSlots, menu.sideInventoryLiveSlots());
     }
 
     /**
@@ -202,7 +202,7 @@ public class StencilTableScreen extends StationScreen<StencilTableMenu> implemen
 
     @Override
     public boolean mouseScrolled(double mouseX, double mouseY, double scrollX, double scrollY) {
-        if (sidePanel.mouseScrolled(mouseX, mouseY, scrollY, imageHeight, menu.sideSlots)) {
+        if (sidePanel.mouseScrolled(mouseX, mouseY, scrollY, imageHeight, menu.sideInventoryLiveSlots())) {
             return true;
         }
         return super.mouseScrolled(mouseX, mouseY, scrollX, scrollY);
