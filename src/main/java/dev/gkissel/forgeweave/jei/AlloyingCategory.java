@@ -32,21 +32,27 @@ import dev.gkissel.forgeweave.recipe.AlloyRecipe;
 final class AlloyingCategory implements IRecipeCategory<AlloyRecipe> {
     static final RecipeType<AlloyRecipe> TYPE = RecipeType.create(Forgeweave.MODID, "alloying", AlloyRecipe.class);
 
-    private static final int WIDTH = 90;
-    private static final int HEIGHT = 60;
+    private static final int GUTTER = JeiCategoryChrome.GUTTER;
+    private static final int WIDTH = 90 + 2 * GUTTER;
+    private static final int HEIGHT = 60 + 2 * GUTTER;
     private static final int TANK_SIZE = 16;
     private static final int ROW_HEIGHT = 20;
-    private static final int ARROW_X = 36;
+    private static final int ARROW_X = 36 + GUTTER;
+    private static final int FLAME_X = GUTTER + TANK_SIZE + 4;
 
     /** ponytail: M2 ships exactly two-input alloys; a modpack recipe with more only shows its first three. */
     private static final int MAX_DISPLAYED_INPUTS = 3;
 
     private final IDrawable icon;
     private final IDrawable arrow;
+    private final IDrawable flame;
+    private final IDrawable background;
 
     AlloyingCategory(IGuiHelper helper) {
         icon = helper.createDrawableItemStack(new ItemStack(ForgeweaveItems.STANDARD_CORE.get()));
         arrow = helper.getRecipeArrow();
+        flame = helper.getRecipeFlameFilled();
+        background = JeiCategoryChrome.panel(WIDTH, HEIGHT);
     }
 
     @Override
@@ -79,13 +85,13 @@ final class AlloyingCategory implements IRecipeCategory<AlloyRecipe> {
         int shown = Math.min(recipe.inputs().size(), MAX_DISPLAYED_INPUTS);
         for (int i = 0; i < shown; i++) {
             FluidStack input = recipe.inputs().get(i);
-            builder.addInputSlot(0, i * ROW_HEIGHT)
+            builder.addInputSlot(GUTTER, GUTTER + i * ROW_HEIGHT)
                     .setFluidRenderer(input.getAmount(), false, TANK_SIZE, TANK_SIZE)
                     .addFluidStack(input.getFluid(), input.getAmount());
         }
 
         FluidStack result = recipe.result();
-        builder.addOutputSlot(WIDTH - TANK_SIZE - 2, (HEIGHT - TANK_SIZE) / 2)
+        builder.addOutputSlot(WIDTH - TANK_SIZE - 2 - GUTTER, (HEIGHT - TANK_SIZE) / 2)
                 .setFluidRenderer(result.getAmount(), false, TANK_SIZE, TANK_SIZE)
                 .addFluidStack(result.getFluid(), result.getAmount())
                 .addRichTooltipCallback((view, tooltip) ->
@@ -94,6 +100,8 @@ final class AlloyingCategory implements IRecipeCategory<AlloyRecipe> {
 
     @Override
     public void draw(AlloyRecipe recipe, IRecipeSlotsView recipeSlotsView, GuiGraphics guiGraphics, double mouseX, double mouseY) {
+        background.draw(guiGraphics, 0, 0);
+        flame.draw(guiGraphics, FLAME_X, (HEIGHT - flame.getHeight()) / 2);
         arrow.draw(guiGraphics, ARROW_X, (HEIGHT - arrow.getHeight()) / 2);
     }
 }

@@ -25,15 +25,18 @@ final class PartCraftingCategory implements IRecipeCategory<PartCraftingRecipe> 
     static final RecipeType<PartCraftingRecipe> TYPE =
             RecipeType.create(Forgeweave.MODID, "part_crafting", PartCraftingRecipe.class);
 
-    private static final int WIDTH = 64;
-    private static final int HEIGHT = 38;
+    private static final int GUTTER = JeiCategoryChrome.GUTTER;
+    private static final int WIDTH = 64 + 2 * GUTTER;
+    private static final int HEIGHT = 38 + 2 * GUTTER;
 
     private final IDrawable icon;
     private final IDrawable arrow;
+    private final IDrawable background;
 
     PartCraftingCategory(IGuiHelper helper) {
         icon = helper.createDrawableItemStack(new ItemStack(ForgeweaveItems.PART_BUILDER.get()));
         arrow = helper.getRecipeArrow();
+        background = JeiCategoryChrome.panel(WIDTH, HEIGHT);
     }
 
     @Override
@@ -63,14 +66,15 @@ final class PartCraftingCategory implements IRecipeCategory<PartCraftingRecipe> 
 
     @Override
     public void setRecipe(IRecipeLayoutBuilder builder, PartCraftingRecipe recipe, IFocusGroup focuses) {
-        builder.addInputSlot(0, 0).addItemStack(recipe.pattern());
-        builder.addInputSlot(0, 20).addItemStacks(recipe.materialInputs());
-        builder.addOutputSlot(WIDTH - 18, 0).addItemStack(recipe.result());
-        builder.addOutputSlot(WIDTH - 18, 20).addItemStacks(recipe.changeOutputs());
+        builder.addInputSlot(GUTTER, GUTTER).addItemStack(recipe.pattern());
+        builder.addInputSlot(GUTTER, GUTTER + 20).addItemStacks(recipe.materialInputs());
+        builder.addOutputSlot(WIDTH - 18 - GUTTER, GUTTER).addItemStack(recipe.result());
+        builder.addOutputSlot(WIDTH - 18 - GUTTER, GUTTER + 20).addItemStacks(recipe.changeOutputs());
     }
 
     @Override
     public void draw(PartCraftingRecipe recipe, IRecipeSlotsView recipeSlotsView, GuiGraphics guiGraphics, double mouseX, double mouseY) {
-        arrow.draw(guiGraphics, 22, (HEIGHT - arrow.getHeight()) / 2);
+        background.draw(guiGraphics, 0, 0);
+        arrow.draw(guiGraphics, GUTTER + 22, (HEIGHT - arrow.getHeight()) / 2);
     }
 }
