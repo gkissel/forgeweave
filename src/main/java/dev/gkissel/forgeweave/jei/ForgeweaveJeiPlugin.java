@@ -225,6 +225,16 @@ public final class ForgeweaveJeiPlugin implements IModPlugin {
         registration.addRecipes(EmbossingCategory.TYPE, ForgeweaveConfig.enabled(ForgeweaveConfig.MODIFIERS)
                 ? EmbossingRecipes.build(currentEmbossingRecipes(), materials)
                 : List.of());
+
+        // Issue #752: Mending Moss (moss + 10 XP levels at a bookshelf, ForgeweaveModifiers#
+        // onRightClickBookshelf) is not produced by any datapack recipe, so it would otherwise have
+        // an empty "Recipes" tab with no clue how it's made -- upstream has the identical gap (its
+        // ToolEvents#onInteract bookshelf trick has no NEI/JEI counterpart either). Text-only
+        // ingredient info needs no new category or layout, just this one data line.
+        if (ForgeweaveConfig.enabled(ForgeweaveConfig.MODIFIERS)) {
+            registration.addIngredientInfo(ForgeweaveItems.MENDING_MOSS.get(),
+                    Component.translatable("tooltip.forgeweave.mending_moss.source"));
+        }
     }
 
     /** The casting recipes whose cast and result both belong to families that are currently on. */

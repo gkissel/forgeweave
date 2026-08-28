@@ -115,4 +115,20 @@ class ModifierLangCoverageTest {
         assertTrue(lang.has("modifier.forgeweave.embossment.description"),
                 "modifier.forgeweave.embossment.description missing");
     }
+
+    /**
+     * Issue #752: Mending Moss has no datapack recipe of its own (it's produced by right-clicking a
+     * bookshelf, {@code ForgeweaveModifiers#onRightClickBookshelf}), so {@code ForgeweaveJeiPlugin}
+     * covers it with a plain ingredient-info text line instead of a recipe -- guard that key exists
+     * the same way the coverage tests above guard every other modifier line.
+     */
+    @Test
+    void mendingMossJeiSourceKeyExists() throws IOException {
+        JsonObject lang = JsonParser.parseString(Files.readString(
+                LocalizationAuditTest.projectRoot().resolve(GENERATED_LANG), StandardCharsets.UTF_8))
+                .getAsJsonObject();
+        assertTrue(lang.has("tooltip.forgeweave.mending_moss.source"),
+                "tooltip.forgeweave.mending_moss.source missing -- JEI's Mending Moss info line "
+                        + "reads this key");
+    }
 }
