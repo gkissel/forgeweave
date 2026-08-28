@@ -1209,6 +1209,7 @@
   "tooltip.forgeweave.innate.timber.name": "Timber",
   "tooltip.forgeweave.innate.vital_thrust.description": "Each hit deals a further 5% of the target's remaining health, ignoring armour. Right-click on the ground to hop back out of reach.",
   "tooltip.forgeweave.innate.vital_thrust.name": "Vital Thrust",
+  "tooltip.forgeweave.mending_moss.source": "Right-click a bookshelf while holding Moss with at least 10 experience levels.",
   "tooltip.forgeweave.mining_speed": "Mining Speed",
   "tooltip.forgeweave.modifier_slots": "Modifiers: %s",
   "tooltip.forgeweave.part.missing_info": "Part has no data",

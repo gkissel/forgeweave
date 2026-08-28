@@ -1130,6 +1130,13 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         // Mending moss's acquisition (issue #107): shown when a player right-clicks a bookshelf with
         // moss but fewer than 10 XP levels, ported from upstream's message.mending_moss.not_enough_levels.
         add("message.forgeweave.mending_moss.not_enough_levels", "You need at least %s experience levels.");
+        // Issue #752: upstream itself has no JEI/NEI entry for this conversion either (its
+        // ToolEvents#onInteract has the same bookshelf-only trick with no display-recipe
+        // counterpart), so this is original wording rather than a port -- shown as JEI ingredient
+        // info on the Mending Moss item (ForgeweaveJeiPlugin#registerRecipes) since the bookshelf
+        // interaction is not a datapack recipe of any kind.
+        add("tooltip.forgeweave.mending_moss.source",
+                "Right-click a bookshelf while holding Moss with at least 10 experience levels.");
         // #106 batch: luck, sharpness, diamond, emerald.
         add("modifier.forgeweave.luck.name", "Luck");
         add("modifier.forgeweave.luck.description",
