@@ -1,0 +1,81 @@
+{
+    decoder: "item_stack",
+    expect: {
+        components: {
+            "forgeweave:base_tool_tier": 1,
+            "forgeweave:enchantability": 12,
+            "forgeweave:modifiers": [
+                {
+                    id: "forgeweave:diamond",
+                    level: 1
+                },
+                {
+                    id: "forgeweave:emerald",
+                    level: 1
+                }
+            ],
+            "forgeweave:tool_materials": {
+                binding: "forgeweave:wood",
+                handle: "forgeweave:wood",
+                head: "forgeweave:stone",
+                parts: [
+                    "forgeweave:stone",
+                    "forgeweave:wood",
+                    "forgeweave:wood"
+                ]
+            },
+            "forgeweave:tool_stats": {
+                attack_damage: 3.0f,
+                durability: 128,
+                mining_speed: 4.0f
+            },
+            "forgeweave:traits": [
+                "forgeweave:cheapskate",
+                "forgeweave:ecological"
+            ],
+            "minecraft:damage": 0,
+            "minecraft:max_damage": 692
+        },
+        id: "forgeweave:pickaxe"
+    },
+    nbt: {
+        components: {
+            "forgeweave:base_tool_tier": 1,
+            "forgeweave:enchantability": 12,
+            "forgeweave:modifiers": [
+                {
+                    id: "forgeweave:diamond",
+                    level: 1
+                },
+                {
+                    id: "forgeweave:emerald",
+                    level: 1
+                }
+            ],
+            "forgeweave:tool_materials": {
+                binding: "forgeweave:wood",
+                handle: "forgeweave:wood",
+                head: "forgeweave:stone",
+                parts: [
+                    "forgeweave:stone",
+                    "forgeweave:wood",
+                    "forgeweave:wood"
+                ]
+            },
+            "forgeweave:tool_stats": {
+                attack_damage: 3.0f,
+                durability: 128,
+                mining_speed: 4.0f
+            },
+            "forgeweave:traits": [
+                "forgeweave:cheapskate",
+                "forgeweave:ecological"
+            ],
+            "minecraft:damage": 0,
+            "minecraft:max_damage": 692
+        },
+        count: 1,
+        id: "forgeweave:pickaxe"
+    },
+    what: "#777: a stone-head pickaxe carrying the new forgeweave:base_tool_tier component (1, the stone material's own ladder index) alongside diamond and emerald -- ModifierApplication#foldTierIndex folds them in the fixed emerald-then-diamond order off this base, reaching index 3 (incorrect_for_diamond_tool, real diamond mining level/obsidian) on the vanilla minecraft:tool rule this snapshot leaves out the same way m2_tool_pickaxe_modifiers.snbt does (its block-tag references need the full tag data a real server loads, which this corpus's lightweight registry bootstrap does not). The exact tool ModifierGameTests#diamondThenEmeraldOnAStoneHeadReachesObsidian builds and checks through the real Tool Station and isCorrectToolForDrops. A pre-#777 tool has no base_tool_tier at all -- see m2_tool_pickaxe_modifiers.snbt, still in this corpus with no such component, and ModifierBatch1Test#diamondAndEmeraldStackDurabilityAndEachBumpsTheTierOnce, which pins that ModifierApplication falls back to the old one-shot bump (order-dependent, capped at index 2 for that hand-built wood-tier stack) when the component is absent."
+}
