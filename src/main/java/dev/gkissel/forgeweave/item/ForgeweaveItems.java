@@ -601,7 +601,11 @@ public final class ForgeweaveItems {
     // (the 1.20 clone's obsidian/nahuatl basin recipe, SmelteryRecipeProvider:1403-1406, as an item
     // instead of a planks block). Nahuatl's only Part Builder crafting item, one ingot of value each
     // (MaterialRecipeProvider:170), so nahuatl plating and maille become obtainable.
-    public static final DeferredItem<Item> NAHUATL_BOARD = ITEMS.registerSimpleItem("nahuatl_board");
+    // Issue #783: the Part Builder's crafting material for nahuatl (like the slime crystals'), cast
+    // from obsidian poured over planks rather than mined -- unfamiliar enough as a source that it
+    // had no hover text of its own before this audit.
+    public static final DeferredItem<Item> NAHUATL_BOARD = ITEMS.registerItem("nahuatl_board",
+            p -> new DescribedItem(p, "tooltip.forgeweave.nahuatl_board"));
     public static final DeferredItem<BlockItem> MUD_BRICK_BLOCK =
             ITEMS.registerSimpleBlockItem("mud_brick_block", ForgeweaveBlocks.MUD_BRICK_BLOCK);
 
@@ -683,23 +687,55 @@ public final class ForgeweaveItems {
     // #107 batch: modifier reagent items (docs/SCOPE.md M2 issue #107) -- silky jewel, reinforced
     // plate, mending moss (plus its "moss" precursor), and the extra-slot item. Soulbound reuses the
     // vanilla nether star (modifier.ForgeweaveModifiers) so it needs no item of its own here.
-    public static final DeferredItem<Item> MOSS = ITEMS.registerSimpleItem("moss");
-    public static final DeferredItem<Item> MENDING_MOSS = ITEMS.registerSimpleItem("mending_moss");
-    public static final DeferredItem<Item> REINFORCED_PLATE = ITEMS.registerSimpleItem("reinforced_plate");
-    public static final DeferredItem<Item> SILKY_CLOTH = ITEMS.registerSimpleItem("silky_cloth");
-    public static final DeferredItem<Item> SILKY_JEWEL = ITEMS.registerSimpleItem("silky_jewel");
-    public static final DeferredItem<Item> EXTRA_MODIFIER = ITEMS.registerSimpleItem("extra_modifier");
+    //
+    // Issue #783: every reagent below was a plain Item with no hover text at all -- PR #775 gave
+    // Mending Moss a JEI ingredient-info page, but the in-inventory tooltip was never touched, and
+    // the audit that issue asked for found the same gap on its siblings. Each modifier reagent shows
+    // its own modifier's existing name/description lines (no new text to keep in sync, the repo's
+    // own anti-drift rule, issue #79) plus a shared line naming where it's used; "moss" itself is not
+    // a modifier reagent, so it reuses #752's already-shipped bookshelf-conversion line instead.
+    public static final DeferredItem<Item> MOSS = ITEMS.registerItem("moss",
+            p -> new DescribedItem(p, "tooltip.forgeweave.mending_moss.source"));
+    public static final DeferredItem<Item> MENDING_MOSS = ITEMS.registerItem("mending_moss",
+            p -> new DescribedItem(p, modifierReagentTooltip("mending_moss")));
+    public static final DeferredItem<Item> REINFORCED_PLATE = ITEMS.registerItem("reinforced_plate",
+            p -> new DescribedItem(p, modifierReagentTooltip("reinforced")));
+    // Silky cloth is Silky Jewel's crafting precursor (see ForgeweaveRecipeProvider), not a modifier
+    // reagent of its own -- it names what it's for instead of quoting a modifier.
+    public static final DeferredItem<Item> SILKY_CLOTH = ITEMS.registerItem("silky_cloth",
+            p -> new DescribedItem(p, "tooltip.forgeweave.silky_cloth"));
+    public static final DeferredItem<Item> SILKY_JEWEL = ITEMS.registerItem("silky_jewel",
+            p -> new DescribedItem(p, modifierReagentTooltip("silky")));
+    public static final DeferredItem<Item> EXTRA_MODIFIER = ITEMS.registerItem("extra_modifier",
+            p -> new DescribedItem(p, modifierReagentTooltip("extra_slot")));
 
     // #429 -- the necrotic bone, upstream's own necrotic reagent (TinkerCommons#matNecroticBone,
     // "materials" meta 17). It has no recipe upstream and none here: wither skeletons drop it
     // (data/forgeweave/loot_modifiers/necrotic_bone.json).
-    public static final DeferredItem<Item> NECROTIC_BONE = ITEMS.registerSimpleItem("necrotic_bone");
+    public static final DeferredItem<Item> NECROTIC_BONE = ITEMS.registerItem("necrotic_bone",
+            p -> new DescribedItem(p, modifierReagentTooltip("necrotic")));
     // #438 -- the Width++/Height++ reagents (upstream TinkerCommons' matExpanderW/matExpanderH,
     // materials sheet meta 12 and 13). Registry paths kept as upstream's own, which carry no
     // avoided-vocabulary problem; the player-facing names are "Expander (Horizontal)"/"(Vertical)",
     // upstream's own item.materials.expander_*.name.
-    public static final DeferredItem<Item> EXPANDER_W = ITEMS.registerSimpleItem("expander_w");
-    public static final DeferredItem<Item> EXPANDER_H = ITEMS.registerSimpleItem("expander_h");
+    public static final DeferredItem<Item> EXPANDER_W = ITEMS.registerItem("expander_w",
+            p -> new DescribedItem(p, modifierReagentTooltip("harvest_width")));
+    public static final DeferredItem<Item> EXPANDER_H = ITEMS.registerItem("expander_h",
+            p -> new DescribedItem(p, modifierReagentTooltip("harvest_height")));
+
+    /**
+     * Issue #783: the three-line hover text every modifier reagent above shares -- the modifier's
+     * own {@code .name}/{@code .description} (already guarded by {@code ModifierLangCoverageTest})
+     * plus one shared line saying where the reagent is spent, so the player never has to guess it's
+     * a Tool Station ingredient and not, say, a crafting one.
+     */
+    private static String[] modifierReagentTooltip(String modifierId) {
+        return new String[] {
+                "modifier.forgeweave." + modifierId + ".name",
+                "modifier.forgeweave." + modifierId + ".description",
+                "tooltip.forgeweave.reagent.tool_station"
+        };
+    }
 
     // #100 -- casting (docs/SCOPE.md M2 issue #100). The two casting blocks and the faucet, plus the
     // seven casts. Upstream 1.12 ships one `cast` item whose NBT names the part it was moulded around
@@ -710,74 +746,74 @@ public final class ForgeweaveItems {
     //
     // These casts are gold-only and reusable, which is upstream parity; their single-use clay
     // counterparts are CLAY_CASTS below (issue #292). No sand casts (docs/SCOPE.md M2 non-goals).
-    public static final DeferredItem<Item> CAST_INGOT = ITEMS.registerSimpleItem("cast_ingot");
-    public static final DeferredItem<Item> CAST_NUGGET = ITEMS.registerSimpleItem("cast_nugget");
-    public static final DeferredItem<Item> CAST_PICKAXE_HEAD = ITEMS.registerSimpleItem("cast_pickaxe_head");
-    public static final DeferredItem<Item> CAST_SHOVEL_HEAD = ITEMS.registerSimpleItem("cast_shovel_head");
-    public static final DeferredItem<Item> CAST_AXE_HEAD = ITEMS.registerSimpleItem("cast_axe_head");
-    public static final DeferredItem<Item> CAST_TOOL_BINDING = ITEMS.registerSimpleItem("cast_tool_binding");
-    public static final DeferredItem<Item> CAST_TOOL_HANDLE = ITEMS.registerSimpleItem("cast_tool_handle");
+    public static final DeferredItem<Item> CAST_INGOT = ITEMS.registerItem("cast_ingot", p -> new DescribedItem(p, "tooltip.forgeweave.cast"));
+    public static final DeferredItem<Item> CAST_NUGGET = ITEMS.registerItem("cast_nugget", p -> new DescribedItem(p, "tooltip.forgeweave.cast"));
+    public static final DeferredItem<Item> CAST_PICKAXE_HEAD = ITEMS.registerItem("cast_pickaxe_head", p -> new DescribedItem(p, "tooltip.forgeweave.cast"));
+    public static final DeferredItem<Item> CAST_SHOVEL_HEAD = ITEMS.registerItem("cast_shovel_head", p -> new DescribedItem(p, "tooltip.forgeweave.cast"));
+    public static final DeferredItem<Item> CAST_AXE_HEAD = ITEMS.registerItem("cast_axe_head", p -> new DescribedItem(p, "tooltip.forgeweave.cast"));
+    public static final DeferredItem<Item> CAST_TOOL_BINDING = ITEMS.registerItem("cast_tool_binding", p -> new DescribedItem(p, "tooltip.forgeweave.cast"));
+    public static final DeferredItem<Item> CAST_TOOL_HANDLE = ITEMS.registerItem("cast_tool_handle", p -> new DescribedItem(p, "tooltip.forgeweave.cast"));
 
     // #222 -- casts for every M3 part (docs/SCOPE.md M3 issue #151/#159/#160/#161's roster), the
     // same gold-only reusable idiom as the five above: pour molten gold over the crafted part at the
     // casting table to mould one, then cast any castable metal into that part's shape.
-    public static final DeferredItem<Item> CAST_SWORD_BLADE = ITEMS.registerSimpleItem("cast_sword_blade");
-    public static final DeferredItem<Item> CAST_WIDE_GUARD = ITEMS.registerSimpleItem("cast_wide_guard");
-    public static final DeferredItem<Item> CAST_HAND_GUARD = ITEMS.registerSimpleItem("cast_hand_guard");
-    public static final DeferredItem<Item> CAST_CROSS_GUARD = ITEMS.registerSimpleItem("cast_cross_guard");
-    public static final DeferredItem<Item> CAST_SIGN_PLATE = ITEMS.registerSimpleItem("cast_sign_plate");
-    public static final DeferredItem<Item> CAST_PAN = ITEMS.registerSimpleItem("cast_pan");
-    public static final DeferredItem<Item> CAST_KNIFE_BLADE = ITEMS.registerSimpleItem("cast_knife_blade");
-    public static final DeferredItem<Item> CAST_LARGE_SWORD_BLADE = ITEMS.registerSimpleItem("cast_large_sword_blade");
-    public static final DeferredItem<Item> CAST_TOUGH_TOOL_ROD = ITEMS.registerSimpleItem("cast_tough_tool_rod");
-    public static final DeferredItem<Item> CAST_TOUGH_BINDING = ITEMS.registerSimpleItem("cast_tough_binding");
-    public static final DeferredItem<Item> CAST_LARGE_PLATE = ITEMS.registerSimpleItem("cast_large_plate");
-    public static final DeferredItem<Item> CAST_HAMMER_HEAD = ITEMS.registerSimpleItem("cast_hammer_head");
-    public static final DeferredItem<Item> CAST_EXCAVATOR_HEAD = ITEMS.registerSimpleItem("cast_excavator_head");
-    public static final DeferredItem<Item> CAST_SCYTHE_HEAD = ITEMS.registerSimpleItem("cast_scythe_head");
-    public static final DeferredItem<Item> CAST_KAMA_HEAD = ITEMS.registerSimpleItem("cast_kama_head");
-    public static final DeferredItem<Item> CAST_BROAD_AXE_HEAD = ITEMS.registerSimpleItem("cast_broad_axe_head");
-    public static final DeferredItem<Item> CAST_VEIN_HAMMER_HEAD = ITEMS.registerSimpleItem("cast_vein_hammer_head");
-    public static final DeferredItem<Item> CAST_WAR_MACE_HEAD = ITEMS.registerSimpleItem("cast_war_mace_head");
-    public static final DeferredItem<Item> CAST_CURVED_BLADE = ITEMS.registerSimpleItem("cast_curved_blade");
-    public static final DeferredItem<Item> CAST_KATANA_BLADE = ITEMS.registerSimpleItem("cast_katana_blade");
+    public static final DeferredItem<Item> CAST_SWORD_BLADE = ITEMS.registerItem("cast_sword_blade", p -> new DescribedItem(p, "tooltip.forgeweave.cast"));
+    public static final DeferredItem<Item> CAST_WIDE_GUARD = ITEMS.registerItem("cast_wide_guard", p -> new DescribedItem(p, "tooltip.forgeweave.cast"));
+    public static final DeferredItem<Item> CAST_HAND_GUARD = ITEMS.registerItem("cast_hand_guard", p -> new DescribedItem(p, "tooltip.forgeweave.cast"));
+    public static final DeferredItem<Item> CAST_CROSS_GUARD = ITEMS.registerItem("cast_cross_guard", p -> new DescribedItem(p, "tooltip.forgeweave.cast"));
+    public static final DeferredItem<Item> CAST_SIGN_PLATE = ITEMS.registerItem("cast_sign_plate", p -> new DescribedItem(p, "tooltip.forgeweave.cast"));
+    public static final DeferredItem<Item> CAST_PAN = ITEMS.registerItem("cast_pan", p -> new DescribedItem(p, "tooltip.forgeweave.cast"));
+    public static final DeferredItem<Item> CAST_KNIFE_BLADE = ITEMS.registerItem("cast_knife_blade", p -> new DescribedItem(p, "tooltip.forgeweave.cast"));
+    public static final DeferredItem<Item> CAST_LARGE_SWORD_BLADE = ITEMS.registerItem("cast_large_sword_blade", p -> new DescribedItem(p, "tooltip.forgeweave.cast"));
+    public static final DeferredItem<Item> CAST_TOUGH_TOOL_ROD = ITEMS.registerItem("cast_tough_tool_rod", p -> new DescribedItem(p, "tooltip.forgeweave.cast"));
+    public static final DeferredItem<Item> CAST_TOUGH_BINDING = ITEMS.registerItem("cast_tough_binding", p -> new DescribedItem(p, "tooltip.forgeweave.cast"));
+    public static final DeferredItem<Item> CAST_LARGE_PLATE = ITEMS.registerItem("cast_large_plate", p -> new DescribedItem(p, "tooltip.forgeweave.cast"));
+    public static final DeferredItem<Item> CAST_HAMMER_HEAD = ITEMS.registerItem("cast_hammer_head", p -> new DescribedItem(p, "tooltip.forgeweave.cast"));
+    public static final DeferredItem<Item> CAST_EXCAVATOR_HEAD = ITEMS.registerItem("cast_excavator_head", p -> new DescribedItem(p, "tooltip.forgeweave.cast"));
+    public static final DeferredItem<Item> CAST_SCYTHE_HEAD = ITEMS.registerItem("cast_scythe_head", p -> new DescribedItem(p, "tooltip.forgeweave.cast"));
+    public static final DeferredItem<Item> CAST_KAMA_HEAD = ITEMS.registerItem("cast_kama_head", p -> new DescribedItem(p, "tooltip.forgeweave.cast"));
+    public static final DeferredItem<Item> CAST_BROAD_AXE_HEAD = ITEMS.registerItem("cast_broad_axe_head", p -> new DescribedItem(p, "tooltip.forgeweave.cast"));
+    public static final DeferredItem<Item> CAST_VEIN_HAMMER_HEAD = ITEMS.registerItem("cast_vein_hammer_head", p -> new DescribedItem(p, "tooltip.forgeweave.cast"));
+    public static final DeferredItem<Item> CAST_WAR_MACE_HEAD = ITEMS.registerItem("cast_war_mace_head", p -> new DescribedItem(p, "tooltip.forgeweave.cast"));
+    public static final DeferredItem<Item> CAST_CURVED_BLADE = ITEMS.registerItem("cast_curved_blade", p -> new DescribedItem(p, "tooltip.forgeweave.cast"));
+    public static final DeferredItem<Item> CAST_KATANA_BLADE = ITEMS.registerItem("cast_katana_blade", p -> new DescribedItem(p, "tooltip.forgeweave.cast"));
     // #393: the bow limb casts like any other part. Its string does not, and deliberately so --
     // upstream only ever reaches registerToolpartMeltingCasting through a MaterialIntegration (a
     // material with a molten fluid), and skips any part whose canUseMaterial rejects that material.
     // The only BOWSTRING materials are string and vine (issue #392), neither of which melts, so
     // upstream registers no bow_string cast at all; a cast no fluid could fill is not worth adding.
-    public static final DeferredItem<Item> CAST_BOW_LIMB = ITEMS.registerSimpleItem("cast_bow_limb");
+    public static final DeferredItem<Item> CAST_BOW_LIMB = ITEMS.registerItem("cast_bow_limb", p -> new DescribedItem(p, "tooltip.forgeweave.cast"));
     // #626: the arrow head casts like any other head part -- every castable metal has HEAD stats
     // (and the PROJECTILE stat upstream auto-adds beside them), so canUseMaterial holds and the
     // registerToolpartMeltingCasting loop reaches it. The shaft and fletching do not: no molten
     // material carries a SHAFT or FLETCHING block, the same reason the bow string has no cast.
-    public static final DeferredItem<Item> CAST_ARROW_HEAD = ITEMS.registerSimpleItem("cast_arrow_head");
+    public static final DeferredItem<Item> CAST_ARROW_HEAD = ITEMS.registerItem("cast_arrow_head", p -> new DescribedItem(p, "tooltip.forgeweave.cast"));
     // #677: the 1.20 clone's {helmet,chestplate,leggings,boots}PlatingCast and mailleCast
     // (TinkerSmeltery). The first plating cast is moulded from a Part Builder plating (obsidian) --
     // no crafting-table bootstrap (docs/SCOPE.md D12).
-    public static final DeferredItem<Item> CAST_PLATING_HELMET = ITEMS.registerSimpleItem("cast_plating_helmet");
-    public static final DeferredItem<Item> CAST_PLATING_CHESTPLATE = ITEMS.registerSimpleItem("cast_plating_chestplate");
-    public static final DeferredItem<Item> CAST_PLATING_LEGGINGS = ITEMS.registerSimpleItem("cast_plating_leggings");
-    public static final DeferredItem<Item> CAST_PLATING_BOOTS = ITEMS.registerSimpleItem("cast_plating_boots");
-    public static final DeferredItem<Item> CAST_MAILLE = ITEMS.registerSimpleItem("cast_maille");
+    public static final DeferredItem<Item> CAST_PLATING_HELMET = ITEMS.registerItem("cast_plating_helmet", p -> new DescribedItem(p, "tooltip.forgeweave.cast"));
+    public static final DeferredItem<Item> CAST_PLATING_CHESTPLATE = ITEMS.registerItem("cast_plating_chestplate", p -> new DescribedItem(p, "tooltip.forgeweave.cast"));
+    public static final DeferredItem<Item> CAST_PLATING_LEGGINGS = ITEMS.registerItem("cast_plating_leggings", p -> new DescribedItem(p, "tooltip.forgeweave.cast"));
+    public static final DeferredItem<Item> CAST_PLATING_BOOTS = ITEMS.registerItem("cast_plating_boots", p -> new DescribedItem(p, "tooltip.forgeweave.cast"));
+    public static final DeferredItem<Item> CAST_MAILLE = ITEMS.registerItem("cast_maille", p -> new DescribedItem(p, "tooltip.forgeweave.cast"));
     // #271: upstream casts the sharpening kit like any other tool part -- TinkerSmeltery's
     // registerToolpartMeltingCasting loops every registered IToolPart whose canBeCasted() holds, and
     // SharpeningKit never overrides it.
-    public static final DeferredItem<Item> CAST_SHARPENING_KIT = ITEMS.registerSimpleItem("cast_sharpening_kit");
+    public static final DeferredItem<Item> CAST_SHARPENING_KIT = ITEMS.registerItem("cast_sharpening_kit", p -> new DescribedItem(p, "tooltip.forgeweave.cast"));
     // #471/T40: the shard, like the sharpening kit above, casts like any other tool part --
     // TinkerSmeltery's Shard extends ToolPart (itself a MaterialItem), and Shard#canUseMaterial is
     // unconditionally true (no HEAD-stat gate the way the creative-tab listing has), so every
     // material with a molten fluid gets registered through the generic
     // registerToolpartMeltingCasting loop, not just materials with head stats.
-    public static final DeferredItem<Item> CAST_SHARD = ITEMS.registerSimpleItem("cast_shard");
+    public static final DeferredItem<Item> CAST_SHARD = ITEMS.registerItem("cast_shard", p -> new DescribedItem(p, "tooltip.forgeweave.cast"));
 
     // #272 (M3.4-3) -- the three CastCustom metas upstream ships beyond ingot/nugget (TinkerSmeltery
     // castGem/castPlate/castGear). Same gold-only reusable idiom, straight-ported upstream sprites
     // (like cast_ingot/cast_nugget above, not the compositing script -- upstream ships these three as
     // their own dedicated textures too, NOTICE.md).
-    public static final DeferredItem<Item> CAST_GEM = ITEMS.registerSimpleItem("cast_gem");
-    public static final DeferredItem<Item> CAST_PLATE = ITEMS.registerSimpleItem("cast_plate");
-    public static final DeferredItem<Item> CAST_GEAR = ITEMS.registerSimpleItem("cast_gear");
+    public static final DeferredItem<Item> CAST_GEM = ITEMS.registerItem("cast_gem", p -> new DescribedItem(p, "tooltip.forgeweave.cast"));
+    public static final DeferredItem<Item> CAST_PLATE = ITEMS.registerItem("cast_plate", p -> new DescribedItem(p, "tooltip.forgeweave.cast"));
+    public static final DeferredItem<Item> CAST_GEAR = ITEMS.registerItem("cast_gear", p -> new DescribedItem(p, "tooltip.forgeweave.cast"));
 
     // #292 (M3.4-12) -- one single-use clay counterpart per cast above, keyed by the cast it copies.
     // Upstream ships a second NBT cast item (TinkerSmeltery `clayCast`) moulded from molten clay
@@ -893,7 +929,7 @@ public final class ForgeweaveItems {
     }
 
     private static SlimeBall slimeBall(SlimeColour colour, int nutrition, float saturation, MobEffectInstance... effects) {
-        return new SlimeBall(colour, ITEMS.registerSimpleItem(colour.id() + "_slime_ball",
+        return new SlimeBall(colour, ITEMS.registerItem(colour.id() + "_slime_ball", SlimeFoodItem::new,
                 new Item.Properties().food(slimeFood(nutrition, saturation, effects))));
     }
 
@@ -942,7 +978,7 @@ public final class ForgeweaveItems {
     }
 
     private static SlimeDrop slimeDrop(SlimeColour colour, int nutrition, float saturation, MobEffectInstance... effects) {
-        return new SlimeDrop(colour, ITEMS.registerSimpleItem(colour.id() + "_slime_drop",
+        return new SlimeDrop(colour, ITEMS.registerItem(colour.id() + "_slime_drop", SlimeFoodItem::new,
                 new Item.Properties().food(slimeFood(nutrition, saturation, effects))));
     }
 
