@@ -12,6 +12,7 @@ import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.monster.Zombie;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.HorizontalDirectionalBlock;
 import net.minecraft.world.level.block.SlabBlock;
 import net.minecraft.world.level.block.StairBlock;
@@ -30,6 +31,7 @@ import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.block.ForgeweaveBlocks;
 import dev.gkissel.forgeweave.block.SearedFurnaceBlockEntity;
 import dev.gkissel.forgeweave.block.SearedFurnaceBlockEntity.Progress;
+import dev.gkissel.forgeweave.block.SearedFurnaceControllerBlock;
 import dev.gkissel.forgeweave.block.SearedFurnaceScan;
 import dev.gkissel.forgeweave.block.SearedTankBlockEntity;
 import dev.gkissel.forgeweave.block.SmelteryStructure;
@@ -210,6 +212,31 @@ public class SearedFurnaceGameTests {
         Zombie zombie = helper.spawn(EntityType.ZOMBIE, new BlockPos(2, 2, 2));
         helper.runAfterDelay(45, () -> {
             helper.assertTrue(!zombie.isAlive(), "expected the zombie inside a formed furnace to be gone");
+            helper.succeed();
+        });
+    }
+
+    /**
+     * #772: the same #757 visual-gap defect as {@code SmelteryControllerBlock} -- closing the last
+     * gap in a wall three blocks from the controller sends it no neighbour update either, so nothing
+     * would notice the structure forming until a player interacts. Deliberately never reads {@link
+     * SearedFurnaceBlockEntity#structure()} (which would trigger its own revalidation-on-read and
+     * mask the bug being fixed) between closing the gap and asserting -- only the controller's own
+     * bounded settle-window recheck tick may notice it.
+     */
+    @GameTest(template = "smeltery", timeoutTicks = 200)
+    public static void closingADistantWallFormsTheFurnaceWithoutInteraction(GameTestHelper helper) {
+        buildFurnace(helper, 3, 3, 2);
+        BlockPos hole = new BlockPos(4, 3, 2);
+        helper.setBlock(hole, Blocks.AIR);
+        SearedFurnaceBlockEntity furnace = placeController(helper);
+        helper.assertTrue(!helper.getBlockState(CORE_POS).getValue(SearedFurnaceControllerBlock.ACTIVE),
+                "expected the hole to leave the controller reading unformed: " + furnace.lastResult().getString());
+
+        helper.setBlock(hole, ForgeweaveBlocks.SEARED_BRICKS.get());
+        helper.runAfterDelay(30, () -> {
+            helper.assertTrue(helper.getBlockState(CORE_POS).getValue(SearedFurnaceControllerBlock.ACTIVE),
+                    "expected the controller's front to relight once the distant wall closed the structure, without any interaction");
             helper.succeed();
         });
     }

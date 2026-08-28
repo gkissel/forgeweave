@@ -8,6 +8,7 @@ import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.contents.TranslatableContents;
+import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.HorizontalDirectionalBlock;
 import net.minecraft.world.level.block.SlabBlock;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -24,6 +25,7 @@ import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.block.ForgeweaveBlocks;
 import dev.gkissel.forgeweave.block.SearedReservoirBlockEntity;
+import dev.gkissel.forgeweave.block.SearedReservoirControllerBlock;
 import dev.gkissel.forgeweave.block.SearedReservoirScan;
 import dev.gkissel.forgeweave.block.SmelteryStructure;
 
@@ -157,6 +159,33 @@ public class SearedReservoirGameTests {
         helper.assertValueEqual(drained.getAmount(), 500, "millibuckets drained back out");
         helper.assertValueEqual(reservoir.tank().getFluidAmount(), 1500, "millibuckets left in the reservoir");
         helper.succeed();
+    }
+
+    /**
+     * #772: the same #757 visual-gap defect as {@code SmelteryControllerBlock} -- closing the last
+     * gap in a wall three blocks from the controller sends it no neighbour update either, so nothing
+     * would notice the structure forming until a player interacts. Deliberately never reads {@link
+     * SearedReservoirBlockEntity#structure()} (which would trigger its own revalidation-on-read and
+     * mask the bug being fixed) between closing the gap and asserting -- only the controller's own
+     * bounded settle-window recheck tick may notice it. Meaningful here even though a reservoir never
+     * needs an ongoing heartbeat once formed (nothing to melt or heat): the settle window is what
+     * gets it formed at all without interaction.
+     */
+    @GameTest(template = "smeltery", timeoutTicks = 200)
+    public static void closingADistantWallFormsTheReservoirWithoutInteraction(GameTestHelper helper) {
+        buildReservoir(helper, 3, 3, 2);
+        BlockPos hole = new BlockPos(4, 3, 2);
+        helper.setBlock(hole, Blocks.AIR);
+        SearedReservoirBlockEntity reservoir = placeController(helper);
+        helper.assertTrue(!helper.getBlockState(CORE_POS).getValue(SearedReservoirControllerBlock.ACTIVE),
+                "expected the hole to leave the controller reading unformed: " + reservoir.lastResult().getString());
+
+        helper.setBlock(hole, ForgeweaveBlocks.SEARED_BRICKS.get());
+        helper.runAfterDelay(30, () -> {
+            helper.assertTrue(helper.getBlockState(CORE_POS).getValue(SearedReservoirControllerBlock.ACTIVE),
+                    "expected the controller's front to relight once the distant wall closed the structure, without any interaction");
+            helper.succeed();
+        });
     }
 
     @GameTest(template = "smeltery")

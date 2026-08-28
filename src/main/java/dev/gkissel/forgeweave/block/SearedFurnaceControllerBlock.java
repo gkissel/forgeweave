@@ -29,8 +29,11 @@ import net.minecraft.world.phys.BlockHitResult;
  * and a light level of 15 while active, and its inventory dropped when broken (Mantle's {@code
  * BlockInventory}).
  *
- * <p>Same event-driven, never-ticking shape as {@link SmelteryControllerBlock}: scans on placement,
- * neighbour change and use; a scheduled block tick carries the heating while there is any.
+ * <p>Same event-driven shape as {@link SmelteryControllerBlock}: scans on placement, neighbour
+ * change and use; a scheduled block tick carries the heating while there is any, or -- while
+ * unformed -- serves {@link SearedFurnaceBlockEntity#armSettleWindow()}'s bounded recheck window so
+ * a structure completed a few blocks away is still noticed without interaction (#772, the same gap
+ * #757 fixed for the smeltery core).
  */
 public class SearedFurnaceControllerBlock extends HorizontalDirectionalBlock implements EntityBlock {
     public static final BooleanProperty ACTIVE = SmelteryControllerBlock.ACTIVE;
@@ -103,11 +106,21 @@ public class SearedFurnaceControllerBlock extends HorizontalDirectionalBlock imp
         if (!(level.getBlockEntity(pos) instanceof SearedFurnaceBlockEntity furnace)) {
             return;
         }
+        if (!furnace.isFormed()) {
+            // #772: mirrors SmelteryControllerBlock#tick -- this firing only exists to serve
+            // armSettleWindow's bounded recheck; isFormed() above already forced the rescan (it is
+            // always at least RESCAN_INTERVAL_TICKS stale by the time this runs), so all that is left
+            // is deciding whether the window is still open.
+            if (furnace.settling()) {
+                level.scheduleTick(pos, this, SearedFurnaceBlockEntity.RESCAN_INTERVAL_TICKS);
+            }
+            return;
+        }
         boolean heating = furnace.heatTick();
         furnace.sweepInterior();
         if (heating) {
             level.scheduleTick(pos, this, SearedFurnaceBlockEntity.HEAT_INTERVAL_TICKS);
-        } else if (furnace.isFormed()) {
+        } else {
             level.scheduleTick(pos, this, SearedFurnaceBlockEntity.SWEEP_INTERVAL_TICKS);
         }
     }
@@ -115,6 +128,7 @@ public class SearedFurnaceControllerBlock extends HorizontalDirectionalBlock imp
     private static void updateStructure(Level level, BlockPos pos) {
         if (level.getBlockEntity(pos) instanceof SearedFurnaceBlockEntity furnace) {
             furnace.updateStructure();
+            furnace.armSettleWindow();
         }
     }
 

@@ -45,14 +45,36 @@ import dev.gkissel.forgeweave.menu.SearedReservoirMenu;
  * the walls, floor and ceiling -- upstream's own comment, "otherwise a 3x3x3 tank is way too little
  * capacity". A minimum 1x1x1 reservoir therefore holds 27 blocks' worth, 108 buckets.
  *
- * <p>Like the smeltery core and the seared furnace this block entity never ticks: it rescans on
- * placement, on a neighbour change, on use, and whenever a stale answer is read.
+ * <p>Like the smeltery core and the seared furnace this block entity keeps no ongoing heartbeat once
+ * formed -- there is nothing to melt or heat, so a formed reservoir goes right back to costing
+ * nothing. It rescans on placement, on a neighbour change, on use, and whenever a stale answer is
+ * read; while unformed it also keeps a bounded scheduled-tick recheck window open for a few seconds
+ * after being touched directly (#772, see {@link #armSettleWindow()}), the same #757 gap the
+ * smeltery core and the seared furnace controller both had.
  */
 public class SearedReservoirBlockEntity extends BlockEntity implements StationMenuHost, TankOwner, SmelteryTankHost {
     /** Upstream {@code TileTinkerTank.CAPACITY_PER_BLOCK}: four buckets per block of structure. */
     public static final int CAPACITY_PER_BLOCK = 4 * 1000;
 
-    private static final int RESCAN_INTERVAL_TICKS = 20;
+    /**
+     * How stale {@link #structure()} may be before it rescans.
+     *
+     * <p>Package-private rather than {@code private}: {@link SearedReservoirControllerBlock#tick}
+     * reuses it as the settle-window poll cadence (#772, mirroring {@link
+     * SmelteryControllerBlockEntity#RESCAN_INTERVAL_TICKS}), so a rescan is always at least this
+     * stale by the time that tick fires and {@link #structure()}'s own staleness check does the
+     * actual work.
+     */
+    static final int RESCAN_INTERVAL_TICKS = 20;
+
+    /**
+     * How long an unformed reservoir keeps rechecking itself after a placement or a neighbour change
+     * touches it directly, in ticks (#772 -- the same visual-sync gap #757 fixed for the smeltery
+     * core). See {@link #armSettleWindow()}; same magnitude as {@link
+     * SmelteryControllerBlockEntity#SETTLE_WINDOW_TICKS}.
+     */
+    private static final int SETTLE_WINDOW_TICKS = 100;
+
     private static final long NEVER = Long.MIN_VALUE;
 
     private static final String TAG_STRUCTURE = "structure";
@@ -62,6 +84,8 @@ public class SearedReservoirBlockEntity extends BlockEntity implements StationMe
     private SmelteryStructure structure;
     private Component lastResult = Component.translatable(SearedReservoirScan.KEY_NOT_SCANNED);
     private long lastScanTick = NEVER;
+    /** #772: end of the current settle window, or {@link #NEVER} if none is open. See {@link #armSettleWindow()}. */
+    private long settleUntilTick = NEVER;
 
     private final SmelteryTank tank = new SmelteryTank(0, this::syncToClients);
 
@@ -151,6 +175,31 @@ public class SearedReservoirBlockEntity extends BlockEntity implements StationMe
         if (state.getValue(SearedReservoirControllerBlock.ACTIVE) != (found != null)) {
             level.setBlock(worldPosition, state.setValue(SearedReservoirControllerBlock.ACTIVE, found != null), Block.UPDATE_ALL);
         }
+    }
+
+    /**
+     * #772: opens (or extends) a bounded recheck window for an unformed reservoir, and makes sure a
+     * tick is actually scheduled to use it. Called after every {@link #updateStructure()} that
+     * {@link SearedReservoirControllerBlock#onPlace}/{@code neighborChanged} triggers -- those only
+     * reach a block adjacent to the controller itself, so completing the structure a few blocks
+     * further out would otherwise sit unnoticed until a player clicks it, exactly {@link
+     * SmelteryControllerBlockEntity#armSettleWindow()}'s #757 gap. A no-op once formed: a reservoir
+     * needs no ongoing heartbeat once formed ({@link #armMeltTick} below is itself a no-op).
+     */
+    void armSettleWindow() {
+        if (level == null || level.isClientSide || isFormed()) {
+            return;
+        }
+        settleUntilTick = level.getGameTime() + SETTLE_WINDOW_TICKS;
+        Block block = getBlockState().getBlock();
+        if (!level.getBlockTicks().hasScheduledTick(worldPosition, block)) {
+            level.scheduleTick(worldPosition, block, RESCAN_INTERVAL_TICKS);
+        }
+    }
+
+    /** Whether {@link #armSettleWindow()}'s recheck window is still open. */
+    boolean settling() {
+        return level != null && settleUntilTick != NEVER && level.getGameTime() < settleUntilTick;
     }
 
     /** A reservoir burns nothing, so there is no melt to wake ({@link TankOwner}'s other half). */

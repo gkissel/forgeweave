@@ -6,6 +6,8 @@ import com.mojang.serialization.MapCodec;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.util.RandomSource;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.context.BlockPlaceContext;
@@ -27,8 +29,12 @@ import net.minecraft.world.phys.BlockHitResult;
  *
  * <p>Unlike the smeltery core and the seared furnace controller this block emits no light and no
  * particles while active -- upstream's {@code BlockTinkerTankController} sets neither, because a
- * reservoir holds no fire. It also never ticks: there is nothing to burn or melt, so a scan on
- * placement, on a neighbour change and on use is the whole life cycle.
+ * reservoir holds no fire. It also keeps no ongoing tick heartbeat once formed: there is nothing to
+ * burn or melt. A scan on placement, on a neighbour change and on use covers most of the life cycle;
+ * the remaining sliver is {@link #tick} serving {@link
+ * SearedReservoirBlockEntity#armSettleWindow()}'s bounded recheck window while unformed (#772, the
+ * same gap #757 fixed for the smeltery core), so a structure completed a few blocks away is still
+ * noticed without interaction.
  */
 public class SearedReservoirControllerBlock extends HorizontalDirectionalBlock implements EntityBlock {
     public static final BooleanProperty ACTIVE = SmelteryControllerBlock.ACTIVE;
@@ -88,9 +94,26 @@ public class SearedReservoirControllerBlock extends HorizontalDirectionalBlock i
         return InteractionResult.SUCCESS;
     }
 
+    /**
+     * #772: the only scheduled block tick this controller ever gets, and it exists solely to serve
+     * {@link SearedReservoirBlockEntity#armSettleWindow()}'s bounded recheck -- {@code isFormed()}
+     * below already forces the rescan (it is always at least {@code RESCAN_INTERVAL_TICKS} stale by
+     * the time this runs), so all that is left is deciding whether the window is still open. Once
+     * formed there is nothing left to poll for, so nothing reschedules and this controller falls
+     * silent again, mirroring {@link SmelteryControllerBlock#tick}.
+     */
+    @Override
+    protected void tick(BlockState state, ServerLevel level, BlockPos pos, RandomSource random) {
+        if (level.getBlockEntity(pos) instanceof SearedReservoirBlockEntity reservoir
+                && !reservoir.isFormed() && reservoir.settling()) {
+            level.scheduleTick(pos, this, SearedReservoirBlockEntity.RESCAN_INTERVAL_TICKS);
+        }
+    }
+
     private static void updateStructure(Level level, BlockPos pos) {
         if (level.getBlockEntity(pos) instanceof SearedReservoirBlockEntity reservoir) {
             reservoir.updateStructure();
+            reservoir.armSettleWindow();
         }
     }
 }
