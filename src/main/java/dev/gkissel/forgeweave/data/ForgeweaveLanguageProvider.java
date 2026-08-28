@@ -721,7 +721,7 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("gui.forgeweave.stat.attack_damage.desc",
                 "The base value for attack calculations. The end result depends on the tool and its other parts.");
         add("gui.forgeweave.stat.handle_modifier.desc",
-                "How well this material serves as a handle. The tool's total durability is multiplied by it.");
+                "How suitable this material is as a handle. The tool's total durability is multiplied by it.");
         add("gui.forgeweave.stat.handle_durability.desc",
                 "How well the material can be held. Tool durability is changed by this amount.");
         add("gui.forgeweave.stat.extra_durability.desc",
