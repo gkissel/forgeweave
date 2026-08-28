@@ -179,6 +179,10 @@ public class ArmorModifierGameTests {
         player.setItemSlot(EquipmentSlot.CHEST, piece);
         ItemStack worn = player.getItemBySlot(EquipmentSlot.CHEST);
         Zombie zombie = helper.spawn(EntityType.ZOMBIE, new BlockPos(3, 2, 3));
+        // #767: a vanilla zombie's own base armor (2.0) shaves a hair off a minimum 1.0 thorns
+        // roll via CombatRules#getDamageAfterAbsorb, flaking the >= 1.0F assertion below. Strip it
+        // so the target takes the seam's damage unmitigated -- thorns behaviour is unchanged.
+        zombie.getAttribute(Attributes.ARMOR).setBaseValue(0.0);
         float before = zombie.getHealth();
         CombatDefense defense = new CombatDefense(helper.getLevel(), worn, player, zombie,
                 helper.getLevel().damageSources().mobAttack(zombie), false, false);
