@@ -131,15 +131,21 @@ public class StencilTableBlockEntity extends BlockEntity implements StationMenuH
     @Nullable
     @Override
     public AbstractContainerMenu createMenu(int containerId, Inventory playerInventory, Player player) {
+        IItemHandler sideInventory = findSideInventory();
         return new StencilTableMenu(containerId, playerInventory, container,
-                ContainerLevelAccess.create(level, worldPosition), findSideInventory());
+                ContainerLevelAccess.create(level, worldPosition), sideInventory, SideInventory.maxSlots(this, sideInventory));
     }
 
-    /** Side-inventory slot count first, then the station-group tab row (issue #78/#306). */
+    /**
+     * Side-inventory slot count first, then the station-group tab row (issue #78/#306). The count
+     * sent is {@link SideInventory#maxSlots}'s ceiling, not the chest's current size -- see that
+     * method's javadoc (issue #756): a smaller, snapshot count strands slots the chest grows into
+     * later, out of reach until the GUI is reopened.
+     */
     @Override
     public void writeMenuData(RegistryFriendlyByteBuf buf) {
         IItemHandler sideInventory = findSideInventory();
-        buf.writeVarInt(sideInventory == null ? 0 : sideInventory.getSlots());
+        buf.writeVarInt(SideInventory.maxSlots(this, sideInventory));
         StationGroup.STREAM_CODEC.encode(buf, StationGroup.tabsFor(level, worldPosition));
     }
 }

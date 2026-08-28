@@ -6,6 +6,7 @@ import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.ContainerLevelAccess;
+import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.GameType;
 
@@ -175,6 +176,50 @@ public class StencilTableGameTests {
             }
         }
         helper.assertTrue(foundInChest, "expected the stamped pattern to land in the adjacent Pattern Chest");
+
+        helper.succeed();
+    }
+
+    /**
+     * Issue #756 regression: the adjacent Pattern Chest keeps self-expanding ({@link ChestBlockEntity}
+     * class javadoc) as items reach it -- including through this very side panel, and through any
+     * other insertion source (here simulated directly on the block entity's container, matching
+     * automation or a second player). Before the fix, {@code StencilTableMenu} captured the chest's
+     * slot count once at menu-open time, so a slot the chest grew into afterward had no {@code Slot}
+     * in the already-open menu at all and was unreachable until the Stencil Table's GUI was closed
+     * and reopened. This exercises the production {@code createMenu} path (not the raw constructor
+     * {@link #openMenu} uses) and never reconstructs the menu, so it only passes if the same open
+     * menu instance already has a working slot for the newly-grown capacity.
+     */
+    @GameTest(template = "empty")
+    public static void chestGrowthDuringAnOpenMenuStaysReachableWithoutReopening(GameTestHelper helper) {
+        BlockPos pos = new BlockPos(1, 1, 1);
+        BlockPos chestPos = pos.relative(Direction.EAST);
+        helper.setBlock(pos, ForgeweaveBlocks.STENCIL_TABLE.get());
+        helper.setBlock(chestPos, ForgeweaveBlocks.PATTERN_CHEST.get());
+        StencilTableBlockEntity stencilTable = helper.getBlockEntity(pos);
+        ChestBlockEntity chest = helper.getBlockEntity(chestPos);
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+
+        StencilTableMenu menu = (StencilTableMenu) stencilTable.createMenu(0, player.getInventory(), player);
+        helper.assertFalse(menu.sideSlots.isEmpty(), "expected the adjacent Pattern Chest to be exposed as a side inventory");
+
+        // Fills the chest's only (empty) slot, which grows its capacity by one -- the chest always
+        // keeps exactly one trailing free slot (ChestBlockEntity class javadoc).
+        chest.container().setItem(0, new ItemStack(ForgeweaveItems.PATTERN_PICKAXE_HEAD.get()));
+        helper.assertTrue(chest.container().getContainerSize() == 2, "expected filling the chest's only slot to "
+                + "grow its capacity to 2, got " + chest.container().getContainerSize());
+
+        helper.assertTrue(menu.sideSlots.size() > 1, "expected the still-open Stencil Table menu to already have "
+                + "a Slot for the chest's newly-grown capacity, not just after reopening the GUI -- got only "
+                + menu.sideSlots.size() + " side slot(s)");
+
+        Slot grownSlot = menu.sideSlots.get(1);
+        ItemStack blank = new ItemStack(ForgeweaveItems.PATTERN_BLANK.get());
+        helper.assertTrue(grownSlot.mayPlace(blank), "expected the newly-grown slot to accept a pattern");
+        grownSlot.set(blank);
+        helper.assertTrue(chest.container().getItem(1).is(ForgeweaveItems.PATTERN_BLANK.get()),
+                "expected placing into the newly-grown slot, through the still-open menu, to reach the chest itself");
 
         helper.succeed();
     }

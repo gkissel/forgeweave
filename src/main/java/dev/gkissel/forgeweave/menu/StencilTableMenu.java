@@ -111,7 +111,18 @@ public class StencilTableMenu extends StationMenu {
 
     private final Container container;
     private final ContainerLevelAccess access;
+    @Nullable
+    private final IItemHandler sideInventory;
     private final DataSlot selectedPattern = DataSlot.standalone();
+    /**
+     * How many of {@link #sideSlots} are actually backed by the neighbor right now (issue #756):
+     * {@link #sideSlots} is pre-built up to {@link dev.gkissel.forgeweave.block.SideInventory#maxSlots}'s
+     * ceiling so a growing Pattern Chest never runs out of usable slots mid-session (see that
+     * method's javadoc), but the panel must still only draw/scroll the neighbor's *current* size, or
+     * a nearly-empty chest would show a mostly-empty 256-slot grid. Refreshed every tick in {@link
+     * #broadcastChanges}, exactly how {@code ChestMenu#capacity} tracks the chest's own growth.
+     */
+    private final DataSlot sideInventoryLiveSlots = DataSlot.standalone();
     public final int sideInventorySlotCount;
     /** The side panel's own slots, kept so the client-side panel can lay them out and scroll them (issue #306). */
     public final List<SideInventorySlots.SideSlot> sideSlots;
@@ -129,12 +140,25 @@ public class StencilTableMenu extends StationMenu {
                 sideInventory == null ? 0 : sideInventory.getSlots(), groupAt(access));
     }
 
+    /**
+     * Server-side, issue #756: like the five-arg constructor, but with an explicit
+     * {@code maxSideInventorySlots} ceiling (see {@link dev.gkissel.forgeweave.block.SideInventory#maxSlots})
+     * instead of the neighbor's current, possibly-about-to-grow size. {@code
+     * StencilTableBlockEntity#createMenu} uses this one; the five-arg constructor stays as-is for
+     * every existing GameTest that doesn't care about a growing neighbor.
+     */
+    public StencilTableMenu(int containerId, Inventory playerInventory, Container container, ContainerLevelAccess access,
+            @Nullable IItemHandler sideInventory, int maxSideInventorySlots) {
+        this(containerId, playerInventory, container, access, sideInventory, maxSideInventorySlots, groupAt(access));
+    }
+
     private StencilTableMenu(int containerId, Inventory playerInventory, Container container, ContainerLevelAccess access,
             @Nullable IItemHandler sideInventory, int sideInventorySlotCount, StationGroup stationGroup) {
         super(ForgeweaveMenus.STENCIL_TABLE.get(), containerId, stationGroup);
         checkContainerSize(container, CONTAINER_SLOTS);
         this.container = container;
         this.access = access;
+        this.sideInventory = sideInventory;
         this.sideInventorySlotCount = sideInventorySlotCount;
         container.startOpen(playerInventory.player);
 
@@ -151,8 +175,15 @@ public class StencilTableMenu extends StationMenu {
 
         addDataSlot(selectedPattern);
         selectedPattern.set(-1);
+        addDataSlot(sideInventoryLiveSlots);
+        sideInventoryLiveSlots.set(sideInventory == null ? 0 : sideInventory.getSlots());
 
         layoutPlayerInventorySlots(playerInventory);
+    }
+
+    /** How many of {@link #sideSlots} are currently real, synced live -- see {@link #sideInventoryLiveSlots}. */
+    public int sideInventoryLiveSlots() {
+        return sideInventoryLiveSlots.get();
     }
 
     private void layoutPlayerInventorySlots(Inventory playerInventory) {
@@ -205,6 +236,9 @@ public class StencilTableMenu extends StationMenu {
     @Override
     public void broadcastChanges() {
         updateResult();
+        if (sideInventory != null) {
+            sideInventoryLiveSlots.set(sideInventory.getSlots());
+        }
         super.broadcastChanges();
     }
 

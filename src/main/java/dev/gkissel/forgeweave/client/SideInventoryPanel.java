@@ -106,16 +106,24 @@ final class SideInventoryPanel {
      * Draws the panel and (re)places the slots it shows, hiding the ones scrolled out of view.
      *
      * @param parentHeight the parent screen's {@code imageHeight}, which caps how tall the panel gets
+     * @param liveCount how many of {@code slots} are actually backed by the neighbor right now (issue
+     *     #756): {@code slots} itself may be pre-built bigger than this -- a growing Pattern Chest's
+     *     panel reserves the whole possible range up front (see {@code
+     *     dev.gkissel.forgeweave.block.SideInventory#maxSlots}) -- so sizing the panel off {@code
+     *     slots.size()} would draw a mostly-empty grid for a chest that's still small. {@code slots}
+     *     is still passed in full: {@link SideInventorySlots#layout} needs every pre-built slot to
+     *     park the ones beyond {@code liveCount} off-screen, same as it already does for ones merely
+     *     scrolled out of the visible window.
      */
     void render(GuiGraphics graphics, AbstractContainerMenu menu, int leftPos, int topPos, int parentHeight,
-            List<SideSlot> slots) {
-        if (slots.isEmpty()) {
+            List<SideSlot> slots, int liveCount) {
+        if (liveCount == 0) {
             bounds = new Rect2i(0, 0, 0, 0);
             sliderTrack = new Rect2i(0, 0, 0, 0);
             maxScrollRow = 0;
             return;
         }
-        int totalRows = SideInventorySlots.rows(slots.size());
+        int totalRows = SideInventorySlots.rows(liveCount);
         int visibleRows = visibleRows(totalRows, parentHeight, slotY);
         maxScrollRow = totalRows - visibleRows;
         scrollRow = Math.clamp(scrollRow, 0, maxScrollRow);
@@ -144,7 +152,7 @@ final class SideInventoryPanel {
         renderBorder(graphics, x, y, width, height);
 
         int firstSlot = scrollRow * COLUMNS;
-        int lastSlot = Math.min(slots.size(), firstSlot + visibleRows * COLUMNS);
+        int lastSlot = Math.min(liveCount, firstSlot + visibleRows * COLUMNS);
         for (int row = 0; row < visibleRows; row++) {
             for (int col = 0; col < COLUMNS; col++) {
                 // Upstream draws its "slotEmpty" tile past the end of a partial last row, so the
@@ -263,12 +271,15 @@ final class SideInventoryPanel {
         return Math.clamp(x, 0, Math.max(0, screenWidth - width));
     }
 
-    /** @return true when the wheel was over this panel and consumed, so the screen shouldn't scroll anything else. */
-    boolean mouseScrolled(double mouseX, double mouseY, double scrollY, int parentHeight, List<SideSlot> slots) {
-        if (slots.isEmpty() || !bounds.contains((int) mouseX, (int) mouseY)) {
+    /**
+     * @param liveCount see {@link #render}'s parameter of the same name
+     * @return true when the wheel was over this panel and consumed, so the screen shouldn't scroll anything else
+     */
+    boolean mouseScrolled(double mouseX, double mouseY, double scrollY, int parentHeight, int liveCount) {
+        if (liveCount == 0 || !bounds.contains((int) mouseX, (int) mouseY)) {
             return false;
         }
-        int totalRows = SideInventorySlots.rows(slots.size());
+        int totalRows = SideInventorySlots.rows(liveCount);
         int visibleRows = visibleRows(totalRows, parentHeight, slotY);
         if (visibleRows >= totalRows) {
             return false;

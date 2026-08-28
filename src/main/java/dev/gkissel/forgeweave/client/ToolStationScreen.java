@@ -478,7 +478,7 @@ public class ToolStationScreen extends StationScreen<ToolStationMenu> implements
         renderSlots(graphics);
         renderSidebar(graphics, mouseX, mouseY);
         renderInfoPanels(graphics);
-        sidePanel.render(graphics, menu, leftPos, topPos, imageHeight, menu.sideSlots);
+        sidePanel.render(graphics, menu, leftPos, topPos, imageHeight, menu.sideSlots, menu.sideInventorySlotCount);
         if (nameField != null && nameField.isFocused()) {
             graphics.blit(TEXTURE, leftPos + NAME_FIELD_X - 2, topPos + NAME_FIELD_Y - 1,
                     TEXT_FIELD_U, TEXT_FIELD_V, TEXT_FIELD_W, TEXT_FIELD_H, SHEET, SHEET);
@@ -792,7 +792,7 @@ public class ToolStationScreen extends StationScreen<ToolStationMenu> implements
 
     @Override
     public boolean mouseScrolled(double mouseX, double mouseY, double scrollX, double scrollY) {
-        if (sidePanel.mouseScrolled(mouseX, mouseY, scrollY, imageHeight, menu.sideSlots)) {
+        if (sidePanel.mouseScrolled(mouseX, mouseY, scrollY, imageHeight, menu.sideInventorySlotCount)) {
             return true;
         }
         int panelX = BASE_WIDTH + PANEL_GAP;
