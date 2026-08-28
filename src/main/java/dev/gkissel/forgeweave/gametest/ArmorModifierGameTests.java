@@ -347,4 +347,39 @@ public class ArmorModifierGameTests {
                 "a piece without the overslime trait takes none");
         helper.succeed();
     }
+
+    /**
+     * Issue #729: the clone's defense recipes list {@code #tconstruct:modifiable/held} next to
+     * {@code modifiable/armor} for the five protections only -- a broadsword takes cobalt, and is
+     * still refused an anvil (knockback resistance, armor tag alone) and cactus (thorns, likewise).
+     */
+    @GameTest(template = "empty")
+    public static void aBroadswordTakesAProtectionButNotKnockbackResistanceOrThorns(GameTestHelper helper) {
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        ItemStack sword = ToolAssembly.assemble(helper, player, STATION, ToolAssembly.entryOf(ToolConstants.BROADSWORD),
+                List.of("wood", "iron", "iron"));
+        // Checked before the apply() below: the station's head slot holds `sword` by reference and
+        // a successful application consumes it in place, so a refusal check reusing the same
+        // ItemStack afterwards would see an already-emptied stack rather than the assembled sword.
+        assertRefused(helper, load(helper, player, sword, new ItemStack(Items.ANVIL)),
+                "knockback resistance stays armor-only");
+        assertRefused(helper, load(helper, player, sword, new ItemStack(Items.CACTUS, 25)),
+                "thorns stays armor-only");
+        ItemStack guarded = apply(helper, player, sword, new ItemStack(ForgeweaveItems.INGOT_COBALT.get(), 5));
+        ModifierEntry entry = ForgeweaveModifiers.entry(guarded, id("melee_protection"));
+        helper.assertTrue(entry != null && entry.level() == 5, "melee protection I on a held sword, got " + entry);
+        helper.succeed();
+    }
+
+    /** Issue #729, maintainer decision: held means melee here -- a shortbow is still refused a protection. */
+    @GameTest(template = "empty")
+    public static void aShortbowRefusesAProtection(GameTestHelper helper) {
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        ItemStack bow = ToolAssembly.assemble(helper, player, STATION,
+                ToolAssembly.entryFor(ForgeweaveItems.TOOL_SHORTBOW.get()), List.of("wood", "wood", "string"));
+        helper.assertTrue(bow.is(ForgeweaveItems.TOOL_SHORTBOW.get()), "expected a shortbow, got " + bow);
+        assertRefused(helper, load(helper, player, bow, new ItemStack(ForgeweaveItems.SEARED_BRICK.get(), 5)),
+                "fire protection is armor-or-melee, so a bow must produce nothing");
+        helper.succeed();
+    }
 }

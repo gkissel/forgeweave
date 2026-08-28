@@ -240,4 +240,29 @@ public class ArmorRealPathGameTests {
                 "the tab's chestplate must be the assembled iron one: " + fromTab.getComponents() + " vs " + assembled.getComponents());
         helper.succeed();
     }
+
+    /**
+     * Issue #729: a protection on a <em>held</em> tool counts in the defensive walk -- the clone's
+     * {@code EquipmentContext#iterateTools} covers every equipment slot, hands included. Melee
+     * protection I on a broadsword in the main hand cuts a real bite by {@code 2/25}.
+     */
+    @GameTest(template = "empty")
+    public static void meleeProtectionOnAHeldBroadswordCutsARealBite(GameTestHelper helper) {
+        ServerPlayer assembler = helper.makeMockServerPlayerInLevel();
+        ItemStack sword = ToolAssembly.assembleAt(helper, assembler, STATION, ForgeweaveBlocks.TOOL_STATION.get(),
+                ToolAssembly.entryOf(ToolConstants.BROADSWORD), List.of("wood", "iron", "iron"));
+        sword = modify(helper, assembler, sword, new ItemStack(ForgeweaveItems.INGOT_COBALT.get(), 5));
+        ServerPlayer player = wearing(helper, EquipmentSlot.MAINHAND, sword);
+        ItemStack held = player.getMainHandItem();
+        Zombie zombie = zombie(helper);
+        float with = bitten(helper, player, zombie);
+        List<ModifierEntry> modifiers = held.get(ForgeweaveDataComponents.MODIFIERS.get());
+        held.remove(ForgeweaveDataComponents.MODIFIERS.get());
+        float without = bitten(helper, player, zombie);
+        held.set(ForgeweaveDataComponents.MODIFIERS.get(), modifiers);
+        float expected = without * (1.0F - 2.0F / 25.0F);
+        helper.assertTrue(Math.abs(with - expected) < 0.01F,
+                "melee protection on the held sword must cut the bite to " + expected + " (from " + without + "), lost " + with);
+        helper.succeed();
+    }
 }

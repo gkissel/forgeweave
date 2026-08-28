@@ -266,9 +266,11 @@ public final class ModifierApplication {
             return Optional.of(Component.translatable("gui.forgeweave.modifier.unsupported_tool", name(recipe.modifier())));
         }
         // M4-6 (#681): the clone's `tconstruct:modifiable/armor` recipe tool tag, D15's armorOnly()
-        // -- the same assembly-entry category read as harvestOnly above.
+        // -- the same assembly-entry category read as harvestOnly above. #729: the protections'
+        // second tag, `modifiable/held`, is MELEE here (Modifier#alsoHeld).
         if (modifier.armorOnly() && ToolAssemblyRecipes.entryFor(tool)
-                .map(entry -> entry.constants().category() != ToolConstants.Category.ARMOR)
+                .map(entry -> entry.constants().category() != ToolConstants.Category.ARMOR
+                        && !(modifier.alsoHeld() && entry.constants().category() == ToolConstants.Category.MELEE))
                 .orElse(true)) {
             return Optional.of(Component.translatable("gui.forgeweave.modifier.unsupported_tool", name(recipe.modifier())));
         }

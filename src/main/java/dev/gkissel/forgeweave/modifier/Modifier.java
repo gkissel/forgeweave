@@ -125,6 +125,16 @@ public interface Modifier {
     }
 
     /**
+     * Issue #729: whether an {@link #armorOnly} modifier is also taken by a held melee tool -- the
+     * clone's defense recipes list {@code #tconstruct:modifiable/held} next to {@code modifiable/armor}
+     * for the five protections and for nothing else. Maintainer decision (#729): "held" is
+     * {@code Category.MELEE} here; the clone's tag also spans harvest tools and bows.
+     */
+    default boolean alsoHeld() {
+        return false;
+    }
+
+    /**
      * Bonus added to the wearer's {@code minecraft:generic.knockback_resistance} attribute while
      * the piece carrying this modifier is worn -- the clone's {@code StatBoostModule.add(ToolStats.
      * KNOCKBACK_RESISTANCE)} folded into {@code ModifiableArmorItem#getAttributeModifiers}. Read by
