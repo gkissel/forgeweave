@@ -2,6 +2,7 @@ package dev.gkissel.forgeweave.jei;
 
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 
 import net.neoforged.neoforge.fluids.FluidStack;
@@ -28,20 +29,38 @@ import dev.gkissel.forgeweave.recipe.AlloyRecipe;
  * wrapper record: its {@code inputs()}/{@code result()} are already exactly the ratio the smeltery
  * itself reads (that record's own javadoc warning -- "the amounts are a ratio, not a batch size" --
  * applies unchanged here), so a wrapper would only restate the same two fields.
+ *
+ * <p>Issue #785: the background, arrow and fuel-tank icon are derived from upstream's own {@code
+ * AlloyRecipeCategory} (`~/development/minecraft/references/tinkers-1.20` @ de26560d, MIT --
+ * NOTICE.md), so every coordinate below is upstream's real pixel position rather than a value
+ * computed from {@link JeiCategoryChrome#GUTTER}. Upstream lays two-to-many inputs out horizontally
+ * across a shared width via {@code drawVariableFluids}; this category instead keeps its own fixed
+ * vertical-ish spacing for up to {@link #MAX_DISPLAYED_INPUTS} tanks (M2 ships exactly two), spaced
+ * to land inside upstream's own input zone (x=19..90, y=11) rather than reproducing that variable
+ * width-splitting algorithm for a fixed, small input count.
  */
 final class AlloyingCategory implements IRecipeCategory<AlloyRecipe> {
     static final RecipeType<AlloyRecipe> TYPE = RecipeType.create(Forgeweave.MODID, "alloying", AlloyRecipe.class);
 
-    private static final int GUTTER = JeiCategoryChrome.GUTTER;
-    private static final int WIDTH = 90 + 2 * GUTTER;
-    private static final int HEIGHT = 60 + 2 * GUTTER;
-    private static final int TANK_SIZE = 16;
-    private static final int ROW_HEIGHT = 20;
-    private static final int ARROW_X = 36 + GUTTER;
-    private static final int FLAME_X = GUTTER + TANK_SIZE + 4;
+    /** Upstream {@code AlloyRecipeCategory}'s own background: `textures/gui/jei/alloy.png`, (0,0,172,62). */
+    static final ResourceLocation BACKGROUND_LOC = JeiCategoryGeometry.ALLOYING.background();
+    static final int WIDTH = JeiCategoryGeometry.ALLOYING.width();
+    static final int HEIGHT = JeiCategoryGeometry.ALLOYING.height();
 
+    private static final int TANK_SIZE = 16;
     /** ponytail: M2 ships exactly two-input alloys; a modpack recipe with more only shows its first three. */
     private static final int MAX_DISPLAYED_INPUTS = 3;
+    /** Upstream's input zone starts at x=19,y=11 and spans to x=67 (`drawVariableFluids` width 48). */
+    private static final int[] INPUT_X = {19, 37, 55};
+    private static final int INPUT_Y = 11;
+    /** Upstream's own output slot position -- `builder.addSlot(OUTPUT, 137, 11)`. */
+    private static final int OUTPUT_X = 137;
+    private static final int OUTPUT_Y = 11;
+    /** Upstream's own arrow x -- `arrow.draw(graphics, 90, 21)`. */
+    private static final int ARROW_X = 90;
+    /** Upstream's render-only fuel display slot -- `builder.addSlot(RENDER_ONLY, 94, 43, ...)`. */
+    private static final int FLAME_X = 94;
+    private static final int FLAME_Y = 43;
 
     private final IDrawable icon;
     private final IDrawable arrow;
@@ -52,7 +71,7 @@ final class AlloyingCategory implements IRecipeCategory<AlloyRecipe> {
         icon = helper.createDrawableItemStack(new ItemStack(ForgeweaveItems.STANDARD_CORE.get()));
         arrow = helper.getRecipeArrow();
         flame = helper.getRecipeFlameFilled();
-        background = JeiCategoryChrome.panel(WIDTH, HEIGHT);
+        background = helper.createDrawable(BACKGROUND_LOC, 0, 0, WIDTH, HEIGHT);
     }
 
     @Override
@@ -85,13 +104,13 @@ final class AlloyingCategory implements IRecipeCategory<AlloyRecipe> {
         int shown = Math.min(recipe.inputs().size(), MAX_DISPLAYED_INPUTS);
         for (int i = 0; i < shown; i++) {
             FluidStack input = recipe.inputs().get(i);
-            builder.addInputSlot(GUTTER, GUTTER + i * ROW_HEIGHT)
+            builder.addInputSlot(INPUT_X[i], INPUT_Y)
                     .setFluidRenderer(input.getAmount(), false, TANK_SIZE, TANK_SIZE)
                     .addFluidStack(input.getFluid(), input.getAmount());
         }
 
         FluidStack result = recipe.result();
-        builder.addOutputSlot(WIDTH - TANK_SIZE - 2 - GUTTER, (HEIGHT - TANK_SIZE) / 2)
+        builder.addOutputSlot(OUTPUT_X, OUTPUT_Y)
                 .setFluidRenderer(result.getAmount(), false, TANK_SIZE, TANK_SIZE)
                 .addFluidStack(result.getFluid(), result.getAmount())
                 .addRichTooltipCallback((view, tooltip) ->
@@ -101,7 +120,7 @@ final class AlloyingCategory implements IRecipeCategory<AlloyRecipe> {
     @Override
     public void draw(AlloyRecipe recipe, IRecipeSlotsView recipeSlotsView, GuiGraphics guiGraphics, double mouseX, double mouseY) {
         background.draw(guiGraphics, 0, 0);
-        flame.draw(guiGraphics, FLAME_X, (HEIGHT - flame.getHeight()) / 2);
+        flame.draw(guiGraphics, FLAME_X, FLAME_Y);
         arrow.draw(guiGraphics, ARROW_X, (HEIGHT - arrow.getHeight()) / 2);
     }
 }

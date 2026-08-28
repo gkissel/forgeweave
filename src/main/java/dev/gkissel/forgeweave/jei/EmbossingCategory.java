@@ -4,6 +4,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 
 import mezz.jei.api.gui.builder.IRecipeLayoutBuilder;
@@ -32,11 +33,17 @@ import dev.gkissel.forgeweave.modifier.ModifierApplication;
  * free input slots ({@code menu.ToolAssemblyRecipes}' free-slot javadoc), and the donor part always
  * claims one of them, so {@code modifier.EmbossingRecipe#reagents} can never exceed four entries for
  * any datapack this station's five slots could actually satisfy.
+ *
+ * <p>Issue #785: embossing has no upstream JEI category at all, so per the maintainer's decision this
+ * reuses the closest upstream background -- {@code PartBuilderCategory}'s plain station panel --
+ * tiled to this row's width via {@link JeiCategoryChrome#stationPanel}, the same crop {@link
+ * ModifierApplicationCategory} uses, so the two wide reagent-row categories read as one family.
  */
 final class EmbossingCategory implements IRecipeCategory<EmbossingDisplay> {
     static final RecipeType<EmbossingDisplay> TYPE =
             RecipeType.create(Forgeweave.MODID, "embossing", EmbossingDisplay.class);
 
+    static final ResourceLocation BACKGROUND_LOC = JeiCategoryGeometry.EMBOSSING.background();
     private static final int GUTTER = JeiCategoryChrome.GUTTER;
     private static final int SLOT_PITCH = 20;
     private static final int SLOT_Y = 10 + GUTTER;
@@ -49,8 +56,8 @@ final class EmbossingCategory implements IRecipeCategory<EmbossingDisplay> {
     private static final int NAME_Y = 6 + GUTTER;
     private static final int RULE_Y = 20 + GUTTER;
     private static final int TEXT_COLOR = 0x404040;
-    private static final int WIDTH = 220 + 2 * GUTTER;
-    private static final int HEIGHT = 38 + 2 * GUTTER;
+    static final int WIDTH = JeiCategoryGeometry.EMBOSSING.width();
+    static final int HEIGHT = JeiCategoryGeometry.EMBOSSING.height();
 
     private final IDrawable icon;
     private final IDrawable arrow;
@@ -59,7 +66,7 @@ final class EmbossingCategory implements IRecipeCategory<EmbossingDisplay> {
     EmbossingCategory(IGuiHelper helper) {
         icon = helper.createDrawableItemStack(new ItemStack(ForgeweaveItems.TOOL_STATION.get()));
         arrow = helper.getRecipeArrow();
-        background = JeiCategoryChrome.panel(WIDTH, HEIGHT);
+        background = JeiCategoryChrome.stationPanel(helper, WIDTH, HEIGHT);
     }
 
     @Override

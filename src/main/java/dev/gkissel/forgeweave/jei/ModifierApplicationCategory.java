@@ -6,6 +6,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 
 import mezz.jei.api.gui.builder.IIngredientAcceptor;
@@ -42,10 +43,18 @@ import dev.gkissel.forgeweave.modifier.ModifierRecipe;
  * {@code ToolTooltip} and {@code InfoPanel} already use) and level cap ({@link
  * ModifierRecipe#levelsReached}, the same datapack-driven per-level schedule the Tool Station itself
  * resolves against -- ADR-0004 decision 1) are drawn as text instead.
+ *
+ * <p>Issue #785: modifier application has no upstream JEI category of its own either (upstream's
+ * {@code ModifierRecipeCategory} models a completely different six-slot upgrade-socket layout), so
+ * per the maintainer's decision this reuses the closest upstream background -- {@code
+ * PartBuilderCategory}'s plain station panel -- tiled to this row's width via {@link
+ * JeiCategoryChrome#stationPanel}, the same crop {@link EmbossingCategory} uses.
  */
 final class ModifierApplicationCategory implements IRecipeCategory<ModifierRecipe> {
     static final RecipeType<ModifierRecipe> TYPE =
             RecipeType.create(Forgeweave.MODID, "modifier_application", ModifierRecipe.class);
+
+    static final ResourceLocation BACKGROUND_LOC = JeiCategoryGeometry.MODIFIER_APPLICATION.background();
 
     /**
      * Bare tool icons, same set as {@code RepairRecipes}' -- any tool type accepts any modifier.
@@ -77,8 +86,8 @@ final class ModifierApplicationCategory implements IRecipeCategory<ModifierRecip
     private static final int LEVEL_CAP_Y = 20 + GUTTER;
     private static final int TEXT_COLOR = 0x404040;
     private static final int TEXT_WIDTH = 74;
-    private static final int WIDTH = TEXT_X + TEXT_WIDTH + GUTTER;
-    private static final int HEIGHT = 38 + 2 * GUTTER;
+    static final int WIDTH = TEXT_X + TEXT_WIDTH + GUTTER;
+    static final int HEIGHT = 38 + 2 * GUTTER;
 
     private final IDrawable icon;
     private final IDrawable arrow;
@@ -87,7 +96,7 @@ final class ModifierApplicationCategory implements IRecipeCategory<ModifierRecip
     ModifierApplicationCategory(IGuiHelper helper) {
         icon = helper.createDrawableItemStack(new ItemStack(ForgeweaveItems.TOOL_STATION.get()));
         arrow = helper.getRecipeArrow();
-        background = JeiCategoryChrome.panel(WIDTH, HEIGHT);
+        background = JeiCategoryChrome.stationPanel(helper, WIDTH, HEIGHT);
     }
 
     @Override

@@ -2,6 +2,7 @@ package dev.gkissel.forgeweave.jei;
 
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.ItemLike;
 import net.minecraft.world.level.material.Fluid;
@@ -30,13 +31,30 @@ import dev.gkissel.forgeweave.casting.CastingRecipe;
  * held and pouring a fluid over them, not through a GUI with slots -- so unlike {@link
  * AssemblyCategory}/{@link RepairCategory} neither casting category gets a recipe-click transfer
  * button (docs/SCOPE.md M1 issue #40's transfer only applies where a menu has slots to fill).
+ *
+ * <p>Issue #785: background and arrow are derived from upstream's own {@code
+ * AbstractCastingCategory} (`~/development/minecraft/references/tinkers-1.20` @ de26560d, MIT --
+ * NOTICE.md). Upstream's fluid tank is a 32x32 render with a frame overlay; this category keeps its
+ * own fixed 16x16 tank icon (no overlay asset derived), placed at upstream's tank origin.
  */
 abstract class CastingCategory implements IRecipeCategory<CastingRecipe> {
-    private static final int GUTTER = JeiCategoryChrome.GUTTER;
-    private static final int WIDTH = 90 + 2 * GUTTER;
-    private static final int HEIGHT = 40 + 2 * GUTTER;
+    /** Upstream {@code AbstractCastingCategory}'s own background: `textures/gui/jei/casting.png`, (0,0,117,54). */
+    static final ResourceLocation BACKGROUND_LOC = JeiCategoryGeometry.CASTING.background();
+    static final int WIDTH = JeiCategoryGeometry.CASTING.width();
+    static final int HEIGHT = JeiCategoryGeometry.CASTING.height();
+
     private static final int TANK_SIZE = 16;
-    private static final int ARROW_X = 36 + GUTTER;
+    /** Upstream's cast slot -- `builder.addSlot(..., 38, 19)`. */
+    private static final int CAST_X = 38;
+    private static final int CAST_Y = 3;
+    /** Upstream's fluid tank origin -- `builder.addSlot(INPUT, 3, 3, ...)`. */
+    private static final int FLUID_X = 3;
+    private static final int FLUID_Y = 21;
+    /** Upstream's own output slot -- `builder.addSlot(OUTPUT, 93, 18)`. */
+    private static final int OUTPUT_X = 93;
+    private static final int OUTPUT_Y = 18;
+    /** Upstream's own arrow position -- `cachedArrows...draw(graphics, 58, 18)`. */
+    private static final int ARROW_X = 58;
 
     private final RecipeType<CastingRecipe> type;
     private final Component title;
@@ -49,7 +67,7 @@ abstract class CastingCategory implements IRecipeCategory<CastingRecipe> {
         this.title = Component.translatable(titleKey);
         this.icon = helper.createDrawableItemStack(new ItemStack(iconItem));
         this.arrow = helper.getRecipeArrow();
-        this.background = JeiCategoryChrome.panel(WIDTH, HEIGHT);
+        this.background = helper.createDrawable(BACKGROUND_LOC, 0, 0, WIDTH, HEIGHT);
     }
 
     @Override
@@ -80,16 +98,16 @@ abstract class CastingCategory implements IRecipeCategory<CastingRecipe> {
     @Override
     public void setRecipe(IRecipeLayoutBuilder builder, CastingRecipe recipe, IFocusGroup focuses) {
         recipe.cast().ifPresent(cast -> {
-            IRecipeSlotBuilder castSlot = builder.addInputSlot(GUTTER, GUTTER + 1).addIngredients(cast);
+            IRecipeSlotBuilder castSlot = builder.addInputSlot(CAST_X, CAST_Y).addIngredients(cast);
             castSlot.addRichTooltipCallback((view, tooltip) -> tooltip.add(Component.translatable(recipe.consumesCast()
                     ? "jei.category.forgeweave.casting.cast_consumed"
                     : "jei.category.forgeweave.casting.cast_reusable")));
         });
         // One fluid for a normal recipe; every fluid the container takes for the fluid-agnostic
         // bucket recipe (#604), which JEI then cycles through in step with its filled results.
-        IRecipeSlotBuilder fluidSlot = builder.addInputSlot(GUTTER, GUTTER + 21)
+        IRecipeSlotBuilder fluidSlot = builder.addInputSlot(FLUID_X, FLUID_Y)
                 .setFluidRenderer(recipe.amount(), false, TANK_SIZE, TANK_SIZE);
-        IRecipeSlotBuilder resultSlot = builder.addOutputSlot(WIDTH - 18 - GUTTER, GUTTER + 11);
+        IRecipeSlotBuilder resultSlot = builder.addOutputSlot(OUTPUT_X, OUTPUT_Y);
         for (Fluid poured : recipe.displayFluids()) {
             fluidSlot.addFluidStack(poured, recipe.amount());
             resultSlot.addItemStack(recipe.resultFor(poured));
