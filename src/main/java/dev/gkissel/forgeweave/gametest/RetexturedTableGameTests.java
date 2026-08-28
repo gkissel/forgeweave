@@ -1,12 +1,17 @@
 package dev.gkissel.forgeweave.gametest;
 
+import java.util.List;
+
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.crafting.CraftingInput;
+import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.world.level.block.Blocks;
 
 import net.neoforged.neoforge.gametest.GameTestHolder;
@@ -76,6 +81,48 @@ public class RetexturedTableGameTests {
         ToolStationBlockEntity blockEntity = helper.getBlockEntity(pos);
         helper.assertTrue(blockEntity.getTexture() == Blocks.OAK_PLANKS,
                 "expected the default (unspecified input) texture to be oak_planks, got " + blockEntity.getTexture());
+
+        helper.succeed();
+    }
+
+    /**
+     * Playtest defect, issue #755: the Tool Station is crafted from a pattern over a vanilla
+     * crafting table (its ore-dict {@code workbench} ingredient, matching upstream), but that recipe
+     * used to be a {@code RetexturedShapedRecipe} whose {@code assemble} copies the TEXTURE component
+     * off the first {@code BlockItem} ingredient it finds -- with no other block in the grid, that was
+     * always the crafting table itself. Every crafted Tool Station therefore carried
+     * {@code TEXTURE=minecraft:crafting_table}, and placing it retextured the block's bottom/leg
+     * faces with the crafting table's own sprite instead of oak planks. Crafts through the real
+     * {@code RecipeManager} (the actual repro, not a hand-built {@code ItemStack}) and asserts the
+     * result carries no TEXTURE component at all, so a freshly placed station falls through to
+     * {@link ToolStationBlockEntity}'s oak default.
+     */
+    @GameTest(template = "empty")
+    public static void toolStationRecipeDoesNotCopyTheCraftingTableAsAWood(GameTestHelper helper) {
+        ServerLevel level = helper.getLevel();
+        CraftingInput input = CraftingInput.of(1, 2,
+                List.of(new ItemStack(ForgeweaveItems.PATTERN_BLANK.get()), new ItemStack(Blocks.CRAFTING_TABLE)));
+
+        ItemStack crafted = level.getRecipeManager()
+                .getRecipeFor(RecipeType.CRAFTING, input, level)
+                .map(match -> match.value().assemble(input, level.registryAccess()))
+                .orElse(ItemStack.EMPTY);
+
+        helper.assertTrue(crafted.is(ForgeweaveItems.TOOL_STATION.get()),
+                "expected pattern + crafting table to craft a Tool Station, got " + crafted);
+        helper.assertTrue(crafted.get(ForgeweaveDataComponents.TEXTURE.get()) == null,
+                "expected the crafted Tool Station to carry no TEXTURE component, got "
+                        + crafted.get(ForgeweaveDataComponents.TEXTURE.get()));
+
+        BlockPos pos = new BlockPos(1, 1, 1);
+        helper.setBlock(pos, ForgeweaveBlocks.TOOL_STATION.get());
+        ForgeweaveBlocks.TOOL_STATION.get().setPlacedBy(
+                helper.getLevel(), helper.absolutePos(pos), helper.getBlockState(pos), null, crafted);
+
+        ToolStationBlockEntity blockEntity = helper.getBlockEntity(pos);
+        helper.assertTrue(blockEntity.getTexture() == Blocks.OAK_PLANKS,
+                "expected the placed station crafted from a crafting table to still default to "
+                        + "oak_planks, got " + blockEntity.getTexture());
 
         helper.succeed();
     }

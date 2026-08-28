@@ -93,7 +93,22 @@ public class ForgeweaveRecipeProvider extends RecipeProvider {
         // made this recipe *character for character* the Stencil Table's, so the recipe manager
         // resolved that shared shape to whichever it happened to index first and the Stencil Table
         // became uncraftable (issue #68 fix 7). Upstream's own ingredients keep all four distinct.
-        retexturedTableRecipe(recipeOutput, ForgeweaveItems.TOOL_STATION.get(), ForgeweaveItems.PATTERN_BLANK.get(), Ingredient.of(Blocks.CRAFTING_TABLE));
+        //
+        // Plain shaped recipe, not retexturedTableRecipe (issue #755): upstream's tool_station.json
+        // is a bare forge:ore_shaped recipe -- unlike Part Builder/Stencil Table, it never carries a
+        // tconstruct:table_recipe wood variant, so a Tool Station always wears its default oak look.
+        // retexturedTableRecipe's RetexturedShapedRecipe#assemble copies the TEXTURE component off
+        // the *first* BlockItem ingredient it finds, with no regard for which ingredient that is; the
+        // crafting table used here is that first (and only) BlockItem, so every crafted Tool Station
+        // was retextured to look like a crafting table -- its bottom/leg faces rendered with the
+        // crafting table's own sprite instead of oak planks (playtest defect, issue #755).
+        ShapedRecipeBuilder.shaped(RecipeCategory.MISC, ForgeweaveItems.TOOL_STATION.get())
+                .pattern("A")
+                .pattern("B")
+                .define('A', ForgeweaveItems.PATTERN_BLANK.get())
+                .define('B', Blocks.CRAFTING_TABLE)
+                .unlockedBy("has_pattern_blank", has(ForgeweaveItems.PATTERN_BLANK.get()))
+                .save(recipeOutput);
 
         toolForgeRecipe(recipeOutput);
 
