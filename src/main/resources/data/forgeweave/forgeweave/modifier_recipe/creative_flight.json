@@ -1,0 +1,10 @@
+{
+  "modifier": "forgeweave:creative_flight",
+  "reagents": [
+    {"ingredient": {"item": "minecraft:end_crystal"}},
+    {"ingredient": {"item": "minecraft:nether_star"}}
+  ],
+  "require_all_reagents": true,
+  "cost": 1,
+  "max_level": 1
+}

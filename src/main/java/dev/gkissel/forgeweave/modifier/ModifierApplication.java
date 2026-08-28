@@ -2,6 +2,8 @@ package dev.gkissel.forgeweave.modifier;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.BitSet;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 
@@ -91,23 +93,60 @@ public final class ModifierApplication {
         return recipeFor(registries, stack).isPresent();
     }
 
-    /** The recipe whose reagent {@code stack} matches, if a datapack defines one. */
+    /**
+     * Every loaded modifier recipe, minus fortification's family marker (#271: its recipe holds the
+     * flint half of its cost so the cost stays data and JEI lists it, but its modifier id is never
+     * stored on a tool directly -- every real fortification id is generated per material.
+     * {@code Fortification#resolve} owns that loadout, and {@code ToolAssemblyRecipes} gives it its
+     * turn before this path).
+     */
+    private static List<ModifierRecipe> loadedRecipes(HolderLookup.Provider registries) {
+        return registries.lookup(ModifierRecipe.REGISTRY)
+                .map(lookup -> lookup.listElements()
+                        .map(holder -> holder.value())
+                        .filter(recipe -> !recipe.modifier().equals(Fortification.RECIPE_ID))
+                        .toList())
+                .orElse(List.of());
+    }
+
+    /** The first loaded recipe whose reagent {@code stack} matches, if a datapack defines one. */
     public static Optional<ModifierRecipe> recipeFor(HolderLookup.Provider registries, ItemStack stack) {
         if (stack.isEmpty()) {
             return Optional.empty();
         }
-        return registries.lookup(ModifierRecipe.REGISTRY)
-                .flatMap(lookup -> lookup.listElements()
-                        .map(holder -> holder.value())
-                        // #271: fortification's recipe holds the flint half of its cost so the cost
-                        // stays data and JEI lists it, but its modifier id is a family marker that is
-                        // never stored on a tool -- every real fortification id is generated per
-                        // material. Applying it generically would put the marker itself on the tool
-                        // at level 1, i.e. tier index 0. Fortification#resolve owns that loadout, and
-                        // ToolAssemblyRecipes gives it its turn before this path.
-                        .filter(recipe -> !recipe.modifier().equals(Fortification.RECIPE_ID))
-                        .filter(recipe -> recipe.matches(stack))
-                        .findFirst());
+        return loadedRecipes(registries).stream().filter(recipe -> recipe.matches(stack)).findFirst();
+    }
+
+    /**
+     * Issue #776: which of {@code recipes} the free slots actually complete, preferring the most
+     * specific -- the one consuming the largest matching set of the station's input items -- whenever
+     * two satisfied recipes would otherwise both claim the same item. A lone nether star satisfies
+     * soulbound (one reagent); a nether star beside an end crystal also satisfies creative flight (two
+     * reagents, {@link ModifierRecipe#requireAllReagents} true) -- creative flight's larger matched set
+     * wins the shared nether star, and soulbound is dropped rather than applied alongside it. Two
+     * satisfied recipes that share no item (haste's redstone next to soulbound's nether star, say) are
+     * both kept, same as before this ticket. Package-private and a pure function of the recipe list and
+     * the free slots (no registry access) so it is unit-testable without a running server.
+     */
+    static List<ModifierRecipe> mostSpecific(List<ModifierRecipe> recipes, List<ItemStack> freeSlots) {
+        List<ModifierRecipe> candidates = recipes.stream()
+                .filter(recipe -> recipe.isSatisfiedBy(freeSlots))
+                .sorted(Comparator.comparingInt((ModifierRecipe recipe) -> recipe.matchingSlots(freeSlots).cardinality())
+                        .reversed())
+                .toList();
+        List<ModifierRecipe> accepted = new ArrayList<>();
+        BitSet claimed = new BitSet(freeSlots.size());
+        for (ModifierRecipe candidate : candidates) {
+            BitSet slots = candidate.matchingSlots(freeSlots);
+            if (!slots.intersects(claimed)) {
+                accepted.add(candidate);
+                claimed.or(slots);
+            }
+        }
+        // Restores first-slot order (the resolve() javadoc's existing "order of the first slot it
+        // appears in" rule) now that specificity, not slot order, chose which recipes survived.
+        accepted.sort(Comparator.comparingInt(recipe -> recipe.matchingSlots(freeSlots).nextSetBit(0)));
+        return accepted;
     }
 
     /**
@@ -144,19 +183,15 @@ public final class ModifierApplication {
                 && tool.get(ForgeweaveDataComponents.ARMOR_STATS.get()) == null) {
             return Optional.empty(); // not an assembled tool; nothing to modify.
         }
-        List<ModifierRecipe> recipes = new ArrayList<>(); // distinct, first-slot order
+        List<ModifierRecipe> allRecipes = loadedRecipes(registries);
         boolean foreign = false;
         for (ItemStack stack : freeSlots) {
-            if (stack.isEmpty()) {
-                continue;
-            }
-            Optional<ModifierRecipe> found = recipeFor(registries, stack);
-            if (found.isEmpty()) {
+            if (!stack.isEmpty() && allRecipes.stream().noneMatch(recipe -> recipe.matches(stack))) {
                 foreign = true;
-            } else if (!recipes.contains(found.get())) {
-                recipes.add(found.get());
             }
         }
+        // Issue #776: which recipes the slots complete, specificity-resolved -- see #mostSpecific.
+        List<ModifierRecipe> recipes = mostSpecific(allRecipes, freeSlots);
         if (recipes.isEmpty()) {
             return Optional.empty();
         }
@@ -187,7 +222,7 @@ public final class ModifierApplication {
                 available[i] = reagent != null ? freeSlots.get(i).getCount() : 0;
                 unitsPerItem[i] = reagent != null ? reagent.units() : 1;
             }
-            Outcome outcome = resolveOne(registries, recipe, current, available, unitsPerItem);
+            Outcome outcome = resolveOne(registries, recipe, current, freeSlots, available, unitsPerItem);
             if (outcome.output().isEmpty()) {
                 return Optional.of(outcome); // discards every earlier application: all or none.
             }
@@ -206,7 +241,7 @@ public final class ModifierApplication {
      * {@code apply()}/{@code modified()} below -- see {@code Modifier#fortuneLevel}).
      */
     private static Outcome resolveOne(HolderLookup.Provider registries, ModifierRecipe recipe, ItemStack tool,
-            int[] available, int[] unitsPerItem) {
+            List<ItemStack> freeSlots, int[] available, int[] unitsPerItem) {
         if (recipe.modifier().equals(OverslimeRefill.ID)) {
             return OverslimeRefill.apply(tool, available, unitsPerItem); // #728: no modifier entry, a refill.
         }
@@ -214,11 +249,63 @@ public final class ModifierApplication {
         if (unsupported.isPresent()) {
             return Outcome.rejected(unsupported.get());
         }
-        Outcome outcome = apply(recipe, tool, available, unitsPerItem);
+        // Issue #776: an AND-type combo recipe needs every declared reagent satisfied at once, which
+        // #apply's pooled-currency arithmetic below cannot express (it treats every same-valued slot
+        // as one interchangeable form -- exactly the OR reading #apply was built for).
+        Outcome outcome = recipe.requireAllReagents()
+                ? applyCombo(recipe, tool, freeSlots)
+                : apply(recipe, tool, available, unitsPerItem);
         if (!outcome.output().isEmpty()) {
             applyEnchantmentGrants(registries, recipe, outcome.output());
         }
         return outcome;
+    }
+
+    /**
+     * Issue #776's AND-type recipes: every declared {@link ModifierRecipe.Reagent} must have its own
+     * free slot (creative flight's end crystal <em>and</em> nether star), unlike {@link #apply}'s
+     * pooled OR forms. {@code resolve} only reaches here once {@link ModifierRecipe#isSatisfiedBy} has
+     * already confirmed every reagent is present, so the per-reagent slot search below is a formality
+     * that also picks which exact slot each reagent spends from.
+     *
+     * <p>Ponytail: grants {@link ModifierRecipe#maxLevel()} outright in one craft rather than
+     * reusing {@link #apply}'s partial-fill/slot-budget-affordability stepping -- correct for every
+     * combo recipe shipped today (creative flight, {@code max_level} 1, nothing to partially fill).
+     * A future multi-level combo recipe would need that stepping added here too.
+     */
+    private static Outcome applyCombo(ModifierRecipe recipe, ItemStack tool, List<ItemStack> freeSlots) {
+        Optional<Component> incompatible = ModifierCompatibility.refusal(tool, recipe.modifier(), name(recipe.modifier()));
+        if (incompatible.isPresent()) {
+            return Outcome.rejected(incompatible.get());
+        }
+        ModifierEntry existing = ForgeweaveModifiers.entry(tool, recipe.modifier());
+        int current = existing == null ? 0 : existing.level();
+        if (current >= recipe.maxLevel()) {
+            return Outcome.rejected(Component.translatable("gui.forgeweave.modifier.max_level", name(recipe.modifier())));
+        }
+        int free = Math.max(0, ForgeweaveModifiers.freeSlots(tool));
+        int occupiedNow = ForgeweaveModifiers.occupiedSlots(recipe.modifier(), current);
+        if (ForgeweaveModifiers.occupiedSlots(recipe.modifier(), recipe.maxLevel()) - occupiedNow > free) {
+            return Outcome.rejected(Component.translatable("gui.forgeweave.modifier.no_slots",
+                    ForgeweaveModifiers.DEFAULT_SLOTS));
+        }
+
+        int[] used = new int[freeSlots.size()];
+        for (ModifierRecipe.Reagent reagent : recipe.reagents()) {
+            int slot = -1;
+            for (int i = 0; i < freeSlots.size(); i++) {
+                if (used[i] == 0 && reagent.ingredient().test(freeSlots.get(i))
+                        && freeSlots.get(i).getCount() >= reagent.units()) {
+                    slot = i;
+                    break;
+                }
+            }
+            if (slot < 0) {
+                return Outcome.rejected(Component.translatable("gui.forgeweave.modifier.not_enough_reagents", recipe.cost()));
+            }
+            used[slot] = reagent.units();
+        }
+        return Outcome.applied(modified(tool, recipe.modifier(), recipe.maxLevel()), Arrays.stream(used).boxed().toList());
     }
 
     /**

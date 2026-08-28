@@ -1,5 +1,6 @@
 package dev.gkissel.forgeweave.modifier;
 
+import java.util.BitSet;
 import java.util.List;
 import java.util.function.Function;
 
@@ -59,6 +60,14 @@ import dev.gkissel.forgeweave.Forgeweave;
  *       schedule, is the one shipped case: {@code [60, 120, 180]} reproduces its 60/180/360 cumulative
  *       thresholds exactly (issue #106 review). Empty means "uniform", i.e. whatever
  *       {@link Modifier#unitsPerLevel} says (haste's shipped precedent) -- see {@link #levelsReached}.
+ *   <li>{@code require_all_reagents} -- optional, default {@code false}. Every other recipe's
+ *       {@code reagents} list is OR-variant forms of one conceptual reagent (haste's dust vs. block,
+ *       either alone is enough). Issue #776's creative flight needs the opposite: end crystal
+ *       <em>and</em> nether star, both distinct items required at once, neither substituting for the
+ *       other. {@code true} switches {@code reagents} to that AND reading -- see {@link #isSatisfiedBy}
+ *       and {@link ModifierApplication#resolve}, which prefers whichever satisfied recipe consumes the
+ *       largest matching set of the station's input items when two recipes would otherwise both claim
+ *       the same item (a lone nether star is soulbound's reagent too).
  * </ul>
  *
  * <p>Registered as a NeoForge datapack registry with a network codec, exactly as
@@ -67,10 +76,17 @@ import dev.gkissel.forgeweave.Forgeweave;
  * Station screen explain a rejection without a packet of its own.
  */
 public record ModifierRecipe(
-        ResourceLocation modifier, List<Reagent> reagents, int cost, int maxLevel, List<Integer> costPerLevel) {
+        ResourceLocation modifier, List<Reagent> reagents, int cost, int maxLevel, List<Integer> costPerLevel,
+        boolean requireAllReagents) {
 
     public static final ResourceKey<Registry<ModifierRecipe>> REGISTRY = ResourceKey.createRegistryKey(
             ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "modifier_recipe"));
+
+    /** Pre-#776 recipes: no {@code require_all_reagents} field, so the legacy OR reading applies. */
+    public ModifierRecipe(ResourceLocation modifier, List<Reagent> reagents, int cost, int maxLevel,
+            List<Integer> costPerLevel) {
+        this(modifier, reagents, cost, maxLevel, costPerLevel, false);
+    }
 
     /** One accepted reagent and how many application units a single item of it is worth. */
     public record Reagent(Ingredient ingredient, int units) {
@@ -99,7 +115,8 @@ public record ModifierRecipe(
             ExtraCodecs.POSITIVE_INT.optionalFieldOf("cost", 1).forGetter(ModifierRecipe::cost),
             ExtraCodecs.POSITIVE_INT.fieldOf("max_level").forGetter(ModifierRecipe::maxLevel),
             ExtraCodecs.POSITIVE_INT.listOf().optionalFieldOf("cost_per_level", List.of())
-                    .forGetter(ModifierRecipe::costPerLevel))
+                    .forGetter(ModifierRecipe::costPerLevel),
+            Codec.BOOL.optionalFieldOf("require_all_reagents", false).forGetter(ModifierRecipe::requireAllReagents))
             .apply(instance, ModifierRecipe::new));
 
     /**
@@ -125,6 +142,50 @@ public record ModifierRecipe(
             }
         }
         return null;
+    }
+
+    /** Every free-slot index (issue #776) whose item matches one of this recipe's reagents. */
+    public BitSet matchingSlots(List<ItemStack> freeSlots) {
+        BitSet slots = new BitSet(freeSlots.size());
+        for (int i = 0; i < freeSlots.size(); i++) {
+            ItemStack stack = freeSlots.get(i);
+            if (!stack.isEmpty() && matches(stack)) {
+                slots.set(i);
+            }
+        }
+        return slots;
+    }
+
+    /**
+     * Whether the free slots, as a whole, complete this recipe (issue #776) -- the station-wide
+     * counterpart to {@link #matches}, which only ever asked about one item at a time. The legacy OR
+     * reading ({@link #requireAllReagents} false) is unchanged from before: any one slot holding any
+     * one reagent form is enough, exactly what {@link ModifierApplication#resolve} used to compute
+     * per slot. The AND reading requires every declared {@link Reagent} to have its own matching slot
+     * among the ones already found -- a lone end crystal (creative flight's first reagent) is not
+     * enough without a nether star (its second) also present.
+     */
+    public boolean isSatisfiedBy(List<ItemStack> freeSlots) {
+        BitSet slots = matchingSlots(freeSlots);
+        if (slots.isEmpty()) {
+            return false;
+        }
+        if (!requireAllReagents) {
+            return true;
+        }
+        for (Reagent reagent : reagents) {
+            boolean found = false;
+            for (int i = slots.nextSetBit(0); i >= 0; i = slots.nextSetBit(i + 1)) {
+                if (reagent.ingredient().test(freeSlots.get(i))) {
+                    found = true;
+                    break;
+                }
+            }
+            if (!found) {
+                return false;
+            }
+        }
+        return true;
     }
 
     /**
