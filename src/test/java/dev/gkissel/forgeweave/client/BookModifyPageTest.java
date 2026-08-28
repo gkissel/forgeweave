@@ -62,11 +62,27 @@ class BookModifyPageTest {
     }
 
     @Test
-    void theModifierPageInputSlotSitsAtUpstreamsOffset() {
-        // ContentModifier.build's slotX/slotY inside the slot plate; Forgeweave recipes hold one
-        // reagent slot whose alternatives cycle, so only index 0 is ever drawn.
-        assertEquals(3, ModifyPageContent.MODIFIER_SLOT_X);
-        assertEquals(3, ModifyPageContent.MODIFIER_SLOT_Y);
+    void theModifierPageInputSlotsSitAtUpstreamsOffsets() {
+        // ContentModifier.build's slotX/slotY inside the slot plate. A legacy OR recipe's
+        // alternatives still cycle in index 0 alone; issue #781's AND recipes use more.
+        assertArrayEquals(new int[] {3, 21, 39, 12, 30}, ModifyPageContent.MODIFIER_SLOT_X);
+        assertArrayEquals(new int[] {3, 3, 3, 22, 22}, ModifyPageContent.MODIFIER_SLOT_Y);
+    }
+
+    /**
+     * Issue #781: {@code ContentModifier.build}'s {@code switch(inCount)} picking the plate sized
+     * for that many slots -- {@code IMG_SLOT_1/2/3/5}. 0 reagents (no shipped recipe found) still
+     * gets the smallest plate, matching {@link ModifyPageContent#SLOT_1}'s use as the untinted plate
+     * fallback everywhere else on this page.
+     */
+    @Test
+    void theModifierSlotSpriteMatchesUpstreamsSwitchOnSlotCount() {
+        assertEquals(ModifyPageContent.SLOT_1, ModifyPageContent.modifierSlotSprite(0));
+        assertEquals(ModifyPageContent.SLOT_1, ModifyPageContent.modifierSlotSprite(1));
+        assertEquals(ModifyPageContent.SLOT_2, ModifyPageContent.modifierSlotSprite(2));
+        assertEquals(ModifyPageContent.SLOT_3, ModifyPageContent.modifierSlotSprite(3));
+        assertEquals(ModifyPageContent.SLOT_5, ModifyPageContent.modifierSlotSprite(4));
+        assertEquals(ModifyPageContent.SLOT_5, ModifyPageContent.modifierSlotSprite(5));
     }
 
     @Test

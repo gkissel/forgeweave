@@ -469,6 +469,36 @@ class ModifierRecipeTest {
         assertTrue(combo().requireAllReagents());
     }
 
+    // ------------------------------------------------------------------ #781: AND-layout slot count
+
+    /**
+     * {@link ModifierRecipe#reagentSlotCount}: JEI's {@code ModifierApplicationCategory} and the
+     * guide book's {@code ModifyPageContent} both read this to decide how many reagent slots to draw
+     * side by side. The AND reading needs one slot per declared reagent, since creative flight's end
+     * crystal cannot stand in for its nether star; a single-reagent legacy recipe is the trivial OR
+     * case, always one slot.
+     */
+    @Test
+    void reagentSlotCountIsOneForASingleReagentRecipeAndOnePerReagentForAnAndRecipe() {
+        assertEquals(1, shipped().reagentSlotCount(), "one declared reagent, one slot");
+        assertEquals(2, combo().reagentSlotCount(), "creative flight needs a slot each for crystal and star");
+    }
+
+    /**
+     * A legacy recipe with several OR-alternative reagent entries (issue #259's general list shape,
+     * haste's real shipped dust-or-block pair) must still collapse to one slot -- {@link
+     * #reagentSlotCountIsOneForASingleReagentRecipeAndOnePerReagentForAnAndRecipe} only exercises a
+     * single-entry recipe, so on its own it can't tell "always 1" apart from "always {@code
+     * reagents().size()}". This pins the OR branch directly against a two-entry recipe whose size
+     * must NOT drive the slot count, unlike the AND branch above.
+     */
+    @Test
+    void reagentSlotCountIgnoresReagentListSizeForOrRecipes() {
+        ModifierRecipe haste = ModifierRecipe.CODEC.parse(ops, shippedJson()).getOrThrow();
+        assertEquals(2, haste.reagents().size(), "sanity: haste really does declare two alternative forms");
+        assertEquals(1, haste.reagentSlotCount(), "still one slot -- they are alternatives, not required together");
+    }
+
     /**
      * {@link ModifierRecipe#isSatisfiedBy}: the OR reading (every recipe before this ticket) is
      * satisfied by any one slot holding any one reagent form, same as {@link ModifierRecipe#matches}

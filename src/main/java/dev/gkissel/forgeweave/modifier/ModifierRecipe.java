@@ -144,6 +144,20 @@ public record ModifierRecipe(
         return null;
     }
 
+    /**
+     * How many side-by-side slots a display (JEI, the guide book) needs to draw this recipe without
+     * reading as the wrong logical operator (issue #781): the legacy OR reading has always been one
+     * slot whose accepted alternatives cycle in place (haste's dust vs. block), which is also the
+     * upstream {@code ContentModifier#build} behavior for {@code inCount == 1}. The AND reading
+     * ({@link #requireAllReagents}) needs one slot per declared {@link Reagent} instead, since none
+     * can substitute for another -- creative flight's end crystal and nether star both stay on
+     * screen at once, exactly {@code ContentModifier}'s {@code inCount} for a modifier whose
+     * {@code IModifierDisplay#getItems} returns one list per required slot.
+     */
+    public int reagentSlotCount() {
+        return requireAllReagents ? reagents.size() : 1;
+    }
+
     /** Every free-slot index (issue #776) whose item matches one of this recipe's reagents. */
     public BitSet matchingSlots(List<ItemStack> freeSlots) {
         BitSet slots = new BitSet(freeSlots.size());
