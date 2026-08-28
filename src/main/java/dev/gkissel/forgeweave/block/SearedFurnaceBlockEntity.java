@@ -86,7 +86,27 @@ public class SearedFurnaceBlockEntity extends BlockEntity implements StationMenu
     /** Upstream's once-a-second {@code interactWithEntitiesInside} (and unformed structure re-check). */
     public static final int SWEEP_INTERVAL_TICKS = 20;
 
-    private static final int RESCAN_INTERVAL_TICKS = 20;
+    /**
+     * How stale {@link #structure()} may be before it rescans.
+     *
+     * <p>Package-private rather than {@code private}: {@link SearedFurnaceControllerBlock#tick}
+     * reuses it as the settle-window poll cadence (#772, mirroring {@link
+     * SmelteryControllerBlockEntity#RESCAN_INTERVAL_TICKS}), so a rescan is always at least this
+     * stale by the time that tick fires and {@link #structure()}'s own staleness check does the
+     * actual work.
+     */
+    static final int RESCAN_INTERVAL_TICKS = 20;
+
+    /**
+     * How long an unformed furnace keeps rechecking itself after a placement or a neighbour change
+     * touches it directly, in ticks (#772 -- the same visual-sync gap #757 fixed for the smeltery
+     * core: {@link SearedFurnaceControllerBlock#onPlace}/{@code neighborChanged} only reach a block
+     * adjacent to the controller itself, so finishing a wall a few blocks further out never notifies
+     * it directly). See {@link #armSettleWindow()}; same magnitude as {@link
+     * SmelteryControllerBlockEntity#SETTLE_WINDOW_TICKS}.
+     */
+    private static final int SETTLE_WINDOW_TICKS = 100;
+
     private static final long NEVER = Long.MIN_VALUE;
 
     private static final String TAG_STRUCTURE = "structure";
@@ -123,6 +143,8 @@ public class SearedFurnaceBlockEntity extends BlockEntity implements StationMenu
     private SmelteryStructure structure;
     private Component lastResult = Component.translatable(SearedFurnaceScan.KEY_NOT_SCANNED);
     private long lastScanTick = NEVER;
+    /** #772: end of the current settle window, or {@link #NEVER} if none is open. See {@link #armSettleWindow()}. */
+    private long settleUntilTick = NEVER;
     private List<BlockPos> tanks = new ArrayList<>();
 
     private NonNullList<ItemStack> items = NonNullList.withSize(0, ItemStack.EMPTY);
@@ -217,6 +239,31 @@ public class SearedFurnaceBlockEntity extends BlockEntity implements StationMenu
         if (state.getValue(SearedFurnaceControllerBlock.ACTIVE) != (found != null)) {
             level.setBlock(worldPosition, state.setValue(SearedFurnaceControllerBlock.ACTIVE, found != null), Block.UPDATE_ALL);
         }
+    }
+
+    /**
+     * #772: opens (or extends) a bounded recheck window for an unformed furnace, and makes sure a
+     * tick is actually scheduled to use it. Called after every {@link #updateStructure()} that
+     * {@link SearedFurnaceControllerBlock#onPlace}/{@code neighborChanged} triggers -- those only
+     * reach a block adjacent to the controller itself, so completing the structure a few blocks
+     * further out would otherwise sit unnoticed until a player clicks it, exactly {@link
+     * SmelteryControllerBlockEntity#armSettleWindow()}'s #757 gap. A no-op once formed: {@link
+     * #armMeltTick} already keeps a formed furnace's own heartbeat alive.
+     */
+    void armSettleWindow() {
+        if (level == null || level.isClientSide || isFormed()) {
+            return;
+        }
+        settleUntilTick = level.getGameTime() + SETTLE_WINDOW_TICKS;
+        Block block = getBlockState().getBlock();
+        if (!level.getBlockTicks().hasScheduledTick(worldPosition, block)) {
+            level.scheduleTick(worldPosition, block, RESCAN_INTERVAL_TICKS);
+        }
+    }
+
+    /** Whether {@link #armSettleWindow()}'s recheck window is still open. */
+    boolean settling() {
+        return level != null && settleUntilTick != NEVER && level.getGameTime() < settleUntilTick;
     }
 
     /** Upstream {@code updateStructureInfo}: resize, dropping what no longer fits out of the front. */
