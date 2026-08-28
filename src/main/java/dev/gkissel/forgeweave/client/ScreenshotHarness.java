@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Set;
 import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
@@ -89,6 +90,8 @@ import dev.gkissel.forgeweave.item.ForgeweaveItems;
 import dev.gkissel.forgeweave.item.ToolItem;
 import dev.gkissel.forgeweave.menu.SmelteryMenu;
 import dev.gkissel.forgeweave.menu.ToolAssemblyRecipes;
+import dev.gkissel.forgeweave.menu.ToolStationMenu;
+import dev.gkissel.forgeweave.menu.ToolStationTabs;
 import dev.gkissel.forgeweave.modifier.ModifierEntry;
 import dev.gkissel.forgeweave.tool.ToolArt;
 import dev.gkissel.forgeweave.tool.ToolConstants;
@@ -198,6 +201,12 @@ public final class ScreenshotHarness {
             // purpose -- the two PNGs side by side are how a reviewer checks that only the styling
             // differs and the layout is still upstream's.
             new HarnessScreen("tool_forge", ForgeweaveBlocks.TOOL_FORGE),
+            // #733: the selection grid's second page (the Tool Forge's roster is the one that
+            // overflows a page) and the placed-parts preview on a build tab.
+            new HarnessScreen("tool_forge_selection_page2", ForgeweaveBlocks.TOOL_FORGE,
+                    (level, pos) -> {}, ScreenshotHarness::selectLastTab),
+            new HarnessScreen("tool_station_preview", ForgeweaveBlocks.TOOL_STATION,
+                    ScreenshotHarness::loadPickaxeParts, ScreenshotHarness::selectPickaxeTab),
             new HarnessScreen("crafting_station", ForgeweaveBlocks.CRAFTING_STATION),
             new HarnessScreen("stencil_table", ForgeweaveBlocks.STENCIL_TABLE),
             // #101: the smeltery is a multiblock, so unlike every M1 station it needs a structure
@@ -1729,6 +1738,7 @@ public final class ScreenshotHarness {
             serverPlayer.teleportTo(pos.getX() + 0.5, pos.getY(), pos.getZ() + 1.5);
             if (level.getBlockEntity(pos) instanceof StationMenuHost host) {
                 host.open(serverPlayer);
+                screen.afterOpen().accept(serverPlayer);
             } else {
                 LOGGER.warn("{}{}'s block entity is not a StationMenuHost, skipping", LOG_PREFIX, screen.fileName());
             }
@@ -2091,9 +2101,46 @@ public final class ScreenshotHarness {
      * are all single blocks).
      */
     private record HarnessScreen(String fileName, Supplier<? extends Block> block,
-            BiConsumer<ServerLevel, BlockPos> prepare) {
+            BiConsumer<ServerLevel, BlockPos> prepare, Consumer<ServerPlayer> afterOpen) {
         HarnessScreen(String fileName, Supplier<? extends Block> block) {
             this(fileName, block, (level, pos) -> {});
+        }
+
+        HarnessScreen(String fileName, Supplier<? extends Block> block, BiConsumer<ServerLevel, BlockPos> prepare) {
+            this(fileName, block, prepare, player -> {});
+        }
+    }
+
+    /**
+     * #733's preview scene: a pickaxe tab with an iron head and a wooden handle in their slots and
+     * the binding still missing, so the capture shows the big preview tinted from the placed parts
+     * with the missing layer grey. The parts go straight into the station's container before the
+     * menu opens; the tab is selected through the menu's own button path once it has, which is
+     * what a click on the sidebar does.
+     */
+    private static void loadPickaxeParts(ServerLevel level, BlockPos pos) {
+        if (!(level.getBlockEntity(pos) instanceof ToolStationBlockEntity station)) {
+            return;
+        }
+        ToolStationTabs.Tab tab = ToolStationTabs.get(ToolStationTabs.indexOfTool(ForgeweaveItems.TOOL_PICKAXE.get()));
+        ItemStack head = new ItemStack(tab.part(ToolStationMenu.HEAD_SLOT));
+        head.set(ForgeweaveDataComponents.MATERIAL.get(), material("iron"));
+        ItemStack handle = new ItemStack(tab.part(ToolStationMenu.HANDLE_SLOT));
+        handle.set(ForgeweaveDataComponents.MATERIAL.get(), material("wood"));
+        station.container().setItem(ToolStationMenu.HEAD_SLOT, head);
+        station.container().setItem(ToolStationMenu.HANDLE_SLOT, handle);
+    }
+
+    /** Selects the roster's last tab, so the screen opens on the grid's last page (#733). */
+    private static void selectLastTab(ServerPlayer player) {
+        if (player.containerMenu instanceof ToolStationMenu menu) {
+            menu.clickMenuButton(player, menu.visibleTabs().getLast());
+        }
+    }
+
+    private static void selectPickaxeTab(ServerPlayer player) {
+        if (player.containerMenu instanceof ToolStationMenu menu) {
+            menu.clickMenuButton(player, ToolStationTabs.indexOfTool(ForgeweaveItems.TOOL_PICKAXE.get()));
         }
     }
 }

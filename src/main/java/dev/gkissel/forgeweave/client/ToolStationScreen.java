@@ -12,6 +12,7 @@ import com.mojang.blaze3d.platform.InputConstants;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.renderer.Rect2i;
@@ -205,8 +206,17 @@ public class ToolStationScreen extends StationScreen<ToolStationMenu> implements
 
     private static final int BUTTON_SIZE = 18;
     private static final int BUTTON_SPACING = 4;
-    private static final int BUTTON_COLUMNS = 6; // ToolStationMenu#TAB_BUTTON_COLUMNS, six since #678
+    private static final int BUTTON_COLUMNS = ToolStationSelection.COLUMNS; // ToolStationMenu#TAB_BUTTON_COLUMNS
     private static final int BUTTONS_Y = 9;
+    /**
+     * Issue #733: the sidebar is upstream 1.20's paged selection grid ({@code SideButtonsWidgetPaged},
+     * NOTICE.md) -- {@link ToolStationSelection#MAX_ROWS} rows a page and, once the roster overflows
+     * a page, a previous/next arrow pair. Upstream draws the arrows as plain vanilla buttons above the
+     * grid; here the beam owns that strip, so they sit in the row under the last grid row, previous
+     * under the first column and next under the last, which is where upstream's own
+     * {@code setButtonPositions} puts them horizontally.
+     */
+    private static final int ARROWS_Y = BUTTONS_Y + ToolStationSelection.MAX_ROWS * (BUTTON_SIZE + BUTTON_SPACING);
 
     /**
      * Upstream {@code GuiToolStation#initGui}: {@code buttons.xOffset = -2}, {@code toolInfo.xOffset
@@ -259,6 +269,21 @@ public class ToolStationScreen extends StationScreen<ToolStationMenu> implements
     private int toolScroll;
     private int traitScroll;
     private int draggingPanel = -1;
+    /** The selection grid's page (#733); survives a resize through {@link #init} re-reading the selected tab. */
+    private int page;
+    /**
+     * The roster index {@link #page} was last set for (#733): a station's selected tab can change
+     * from outside a sidebar click on the visible page -- JEI's recipe transfer, another player at
+     * the same station, or (in the screenshot harness) a scripted selection right after open -- and
+     * none of those routes touches {@link #page} on their own. {@link #containerTick} compares this
+     * against the menu's live selection each tick and only jumps the page on the edge, so paging
+     * around to browse a page with nothing selected on it still works.
+     */
+    private int lastSelectedTab = -1;
+    @Nullable
+    private Button previousPage;
+    @Nullable
+    private Button nextPage;
     private final SideInventoryPanel sidePanel =
             new SideInventoryPanel(ToolStationMenu.SIDE_PANEL_X, ToolStationMenu.SIDE_PANEL_Y);
 
@@ -281,7 +306,42 @@ public class ToolStationScreen extends StationScreen<ToolStationMenu> implements
         nameField.setValue(menu.getToolName());
         nameField.setResponder(this::onNameChanged);
         addRenderableWidget(nameField);
+        // #733: open on the page that holds the station's current selection.
+        lastSelectedTab = menu.visibleTabs().indexOf(menu.getSelectedTab());
+        page = ToolStationSelection.pageOf(lastSelectedTab);
+        previousPage = addRenderableWidget(Button.builder(
+                        Component.translatable("gui.forgeweave.tool_station.previous_page"), button -> turnPage(-1))
+                .bounds(leftPos + buttonX(0), topPos + ARROWS_Y, BUTTON_SIZE, BUTTON_SIZE).build());
+        nextPage = addRenderableWidget(Button.builder(
+                        Component.translatable("gui.forgeweave.tool_station.next_page"), button -> turnPage(1))
+                .bounds(leftPos + buttonX(BUTTON_COLUMNS - 1), topPos + ARROWS_Y, BUTTON_SIZE, BUTTON_SIZE).build());
+        updatePageArrows();
         updateInfo();
+    }
+
+    private void turnPage(int delta) {
+        page = ToolStationSelection.clampPage(page + delta, menu.visibleTabs().size());
+        updatePageArrows();
+    }
+
+    /** Upstream's {@code setButtonPositions}: no arrows at all on one page, else each only where it can go. */
+    private void updatePageArrows() {
+        int count = menu.visibleTabs().size();
+        if (previousPage != null) {
+            previousPage.visible = ToolStationSelection.paged(count) && page > 0;
+        }
+        if (nextPage != null) {
+            nextPage.visible = ToolStationSelection.paged(count) && page < ToolStationSelection.pageCount(count) - 1;
+        }
+    }
+
+    /** The roster positions the grid currently shows, {@code [from, to)} in {@link ToolStationMenu#visibleTabs}. */
+    private int pageFrom() {
+        return ToolStationSelection.firstIndex(page);
+    }
+
+    private int pageTo() {
+        return ToolStationSelection.endIndex(page, menu.visibleTabs().size());
     }
 
     private void onNameChanged(String name) {
@@ -307,6 +367,15 @@ public class ToolStationScreen extends StationScreen<ToolStationMenu> implements
         // ToolStationMenu#renameFieldUpdate, where a unit test can reach it (issue #597).
         ToolStationMenu.renameFieldUpdate(menu.getToolName(), nameField.getValue())
                 .ifPresent(nameField::setValue);
+        // #733: follow the selection to whichever page now holds it, but only on the edge -- so
+        // paging around this screen's own arrows to look at a page with nothing selected on it
+        // still works, instead of snapping back every tick.
+        int selectedTab = menu.visibleTabs().indexOf(menu.getSelectedTab());
+        if (selectedTab != lastSelectedTab) {
+            lastSelectedTab = selectedTab;
+            page = ToolStationSelection.pageOf(selectedTab);
+            updatePageArrows();
+        }
         updateInfo();
     }
 
@@ -421,6 +490,11 @@ public class ToolStationScreen extends StationScreen<ToolStationMenu> implements
      * translucent cover so the slots on top of it stay legible. Both branches are drawn at
      * upstream's own {@code 3.7x} from its own {@code (10, 22)} origin -- including the repair tab's
      * anvil, which upstream blows up to the same size as a tool rather than leaving slot-sized.
+     *
+     * <p>Issue #733: a build tab's preview is the piece <em>as the slots would assemble it</em> --
+     * each layer in the colour of the part sitting in its slot, layers whose part is still missing
+     * in {@link ToolStationPreview#MISSING} grey -- where 1.12 painted every preview in the fixed
+     * GUI tints the sidebar icons still use.
      */
     private void renderToolPreview(GuiGraphics graphics) {
         Tab tab = menu.tab();
@@ -430,7 +504,8 @@ public class ToolStationScreen extends StationScreen<ToolStationMenu> implements
         if (tab.isRepair()) {
             graphics.blit(ICONS, 0, 0, ANVIL_U, ANVIL_V, SLOT_SPRITE_SIZE, SLOT_SPRITE_SIZE, SHEET, SHEET);
         } else {
-            renderToolLayers(graphics, tab, 0, 0);
+            renderToolLayers(graphics, tab, 0, 0, ToolStationPreview.layerColors(tab,
+                    slot -> menu.getSlot(slot).getItem(), ForgeweaveItemColors::materialColor));
         }
         graphics.pose().popPose();
 
@@ -448,14 +523,22 @@ public class ToolStationScreen extends StationScreen<ToolStationMenu> implements
      * needed for these).
      */
     private static void renderToolLayers(GuiGraphics graphics, Tab tab, int x, int y) {
+        List<ToolConstants.PartSlot> parts = tab.entry().constants().parts();
+        List<Integer> colors = new ArrayList<>();
+        for (int slot : ToolArt.layerSlots(parts)) {
+            colors.add(TOOL_LAYER_COLORS.get(parts.get(slot).role()));
+        }
+        renderToolLayers(graphics, tab, x, y, colors);
+    }
+
+    /** As above with one 0xRRGGBB per layer, in {@link ToolArt#layers} order. */
+    private static void renderToolLayers(GuiGraphics graphics, Tab tab, int x, int y, List<Integer> colors) {
         String path = BuiltInRegistries.ITEM.getKey(tab.tool()).getPath();
         // One layer per part, which is how every tool's model is built (ToolArt): a two-part weapon
         // (battlesign, frying pan, dagger -- issue #155) simply has no binding layer to draw.
-        List<ToolConstants.PartSlot> parts = tab.entry().constants().parts();
-        List<String> layers = ToolArt.layers(parts);
-        List<Integer> layerSlots = ToolArt.layerSlots(parts);
+        List<String> layers = ToolArt.layers(tab.entry().constants().parts());
         for (int layer = 0; layer < layers.size(); layer++) {
-            int color = TOOL_LAYER_COLORS.get(parts.get(layerSlots.get(layer)).role());
+            int color = colors.get(layer);
             graphics.setColor((color >> 16 & 0xFF) / 255.0F, (color >> 8 & 0xFF) / 255.0F, (color & 0xFF) / 255.0F, 1.0F);
             graphics.blit(
                     ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID,
@@ -523,7 +606,7 @@ public class ToolStationScreen extends StationScreen<ToolStationMenu> implements
         // #336: one button per tab this block offers, packed from the top -- a Tool Station leaves no
         // holes where the Tool Forge tier's tabs would be, it simply has a shorter column.
         List<Integer> tabs = menu.visibleTabs();
-        for (int slot = 0; slot < tabs.size(); slot++) {
+        for (int slot = pageFrom(); slot < pageTo(); slot++) {
             int index = tabs.get(slot);
             int x = leftPos + buttonX(slot);
             int y = topPos + buttonY(slot);
@@ -564,12 +647,21 @@ public class ToolStationScreen extends StationScreen<ToolStationMenu> implements
         return columns * BUTTON_SIZE + (columns - 1) * BUTTON_SPACING;
     }
 
+    /** Grid pixel position of roster position {@code index}, on whichever page holds it (#733). */
     private static int buttonX(int index) {
         return -sidebarWidth() - PANEL_GAP + (index % BUTTON_COLUMNS) * (BUTTON_SIZE + BUTTON_SPACING);
     }
 
     private static int buttonY(int index) {
-        return BUTTONS_Y + (index / BUTTON_COLUMNS) * (BUTTON_SIZE + BUTTON_SPACING);
+        return BUTTONS_Y + (index % ToolStationSelection.PAGE_SIZE / BUTTON_COLUMNS) * (BUTTON_SIZE + BUTTON_SPACING);
+    }
+
+    /** The sidebar's height: the grid's rows on this page, plus the arrow row when paging. */
+    private int sidebarBottom() {
+        int count = menu.visibleTabs().size();
+        return ToolStationSelection.paged(count)
+                ? ARROWS_Y + BUTTON_SIZE
+                : BUTTONS_Y + ToolStationSelection.rowsOn(page, count) * (BUTTON_SIZE + BUTTON_SPACING) - BUTTON_SPACING;
     }
 
     /**
@@ -583,7 +675,7 @@ public class ToolStationScreen extends StationScreen<ToolStationMenu> implements
     public List<Rect2i> extraGuiAreas() {
         List<Rect2i> areas = super.extraGuiAreas(); // the station-group tab row (issue #78)
         areas.add(new Rect2i(leftPos + buttonX(0) - BEAM_END_W, topPos, sidebarWidth() + BEAM_END_W * 2,
-                buttonY(menu.visibleTabs().size() - 1) + BUTTON_SIZE));
+                sidebarBottom()));
         areas.add(new Rect2i(leftPos + BASE_WIDTH + PANEL_GAP - BEAM_END_W, topPos,
                 InfoPanel.WIDTH + BEAM_END_W * 2, PANEL_TOP + InfoPanel.HEIGHT * 2 + PANEL_SPACING));
         if (!menu.sideSlots.isEmpty()) {
@@ -596,7 +688,7 @@ public class ToolStationScreen extends StationScreen<ToolStationMenu> implements
     protected void renderTooltip(GuiGraphics graphics, int mouseX, int mouseY) {
         super.renderTooltip(graphics, mouseX, mouseY);
         List<Integer> tabs = menu.visibleTabs();
-        for (int slot = 0; slot < tabs.size(); slot++) {
+        for (int slot = pageFrom(); slot < pageTo(); slot++) {
             if (isHovering(buttonX(slot), buttonY(slot), BUTTON_SIZE, BUTTON_SIZE, mouseX, mouseY)) {
                 graphics.renderTooltip(font, ToolStationTabs.get(tabs.get(slot)).title(), mouseX, mouseY);
                 return;
@@ -683,7 +775,7 @@ public class ToolStationScreen extends StationScreen<ToolStationMenu> implements
     @Override
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
         List<Integer> tabs = menu.visibleTabs();
-        for (int slot = 0; slot < tabs.size(); slot++) {
+        for (int slot = pageFrom(); slot < pageTo(); slot++) {
             int i = tabs.get(slot);
             if (isHovering(buttonX(slot), buttonY(slot), BUTTON_SIZE, BUTTON_SIZE, mouseX, mouseY)
                     && menu.clickMenuButton(minecraft.player, i)) {

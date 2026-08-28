@@ -621,6 +621,9 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("gui.forgeweave.tool_station.traits", "Traits");
         add("gui.forgeweave.tool_station.no_traits", "None");
         add("gui.forgeweave.tool_station.modifiers", "Modifiers");
+        // #733: the selection grid's page arrows, upstream 1.20's button.tconstruct.previous_page/next_page fallbacks.
+        add("gui.forgeweave.tool_station.previous_page", "<");
+        add("gui.forgeweave.tool_station.next_page", ">");
         // #152: why a large tool refuses to assemble at a Tool Station.
         add("gui.forgeweave.tool_station.needs_forge", "This tool is too large to assemble here. Build it at a Tool Forge.");
         add("gui.forgeweave.tool_station.modifier_slots", "Free slots: %s");
