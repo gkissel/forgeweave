@@ -168,4 +168,21 @@ class ArmorModifiersTest {
         assertTrue(thorns.matches(new ItemStack(Items.CACTUS)));
         assertEquals(3, thorns.levelsReached(75));
     }
+
+    /**
+     * Issue #751: creative flight ships with no obtainable recipe until the balance is settled, so
+     * unlike every other shipped modifier there is no {@code modifier_recipe/creative_flight.json} to
+     * assert against. {@code requiresElytraFlightFirst()} stays on the modifier's Java definition for
+     * whenever a recipe returns -- nothing today can reach it through the station (see
+     * {@code gametest.ElytraCreativeFlightGameTests#creativeFlightHasNoStationRecipe}).
+     */
+    @Test
+    void creativeFlightShipsWithNoModifierRecipe() throws Exception {
+        String path = "/data/forgeweave/forgeweave/modifier_recipe/creative_flight.json";
+        try (InputStream in = ArmorModifiersTest.class.getResourceAsStream(path)) {
+            assertTrue(in == null, "creative_flight must not ship a modifier recipe (issue #751)");
+        }
+        assertTrue(ForgeweaveModifiers.get(id("creative_flight")).requiresElytraFlightFirst(),
+                "the gate stays on the modifier itself, ready for whenever a recipe returns");
+    }
 }

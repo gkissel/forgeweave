@@ -1,5 +1,6 @@
 package dev.gkissel.forgeweave.gametest;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import net.minecraft.core.BlockPos;
@@ -126,41 +127,44 @@ public class ElytraCreativeFlightGameTests {
         helper.succeed();
     }
 
-    // ---------------------------------------------------------------- creative flight: the modifier gate
+    // ---------------------------------------------------------------- creative flight: no station recipe (#751)
 
-    /** The proposed balance: creative flight refuses to apply before elytra flight is already on the piece. */
+    /**
+     * Issue #751 (playtest defect, following #737/#749): creative flight ships with no obtainable
+     * recipe until the balance is settled -- {@code modifier_recipe/creative_flight.json} is gone.
+     * A nether star is not simply an unrecognized item though: {@code soulbound.json} (issue #107)
+     * ships the exact same reagent, so the station still accepts it, just for soulbound instead of
+     * creative flight -- {@code Modifier#requiresElytraFlightFirst} stays on the modifier's Java
+     * definition for whenever a recipe returns, but nothing today can reach it through the station.
+     */
     @GameTest(template = "empty")
-    public static void creativeFlightRequiresElytraFlightFirst(GameTestHelper helper) {
+    public static void creativeFlightHasNoStationRecipe(GameTestHelper helper) {
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
-        ItemStack plain = heavyChestplate(helper, player);
-        assertRefused(helper, load(helper, player, plain, new ItemStack(Items.NETHER_STAR)),
-                "creative flight needs elytra flight first");
-
-        ItemStack flying = apply(helper, player, plain, new ItemStack(Items.ELYTRA));
-        ItemStack both = apply(helper, player, flying, new ItemStack(Items.NETHER_STAR));
-        ModifierEntry entry = ForgeweaveModifiers.entry(both, id("creative_flight"));
-        helper.assertTrue(entry != null && entry.level() == 1, "a nether star records level 1 once elytra flight is present, got " + entry);
-        helper.succeed();
-    }
-
-    /** {@code heavyChestplateOnly()}: refused on the plate chestplate and on every tool, same as elytra flight. */
-    @GameTest(template = "empty")
-    public static void creativeFlightIsRefusedOnThePlateChestplateAndOnTools(GameTestHelper helper) {
-        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
-        assertRefused(helper, load(helper, player, plateChestplate(helper, player), new ItemStack(Items.NETHER_STAR)),
-                "the plain plate chestplate is not the heavy one");
-        ItemStack pickaxe = ToolAssembly.pickaxe(helper, player, STATION, "stone", "wood", "wood");
-        assertRefused(helper, load(helper, player, pickaxe, new ItemStack(Items.NETHER_STAR)),
-                "creative flight is armor-only");
+        ItemStack flying = apply(helper, player, heavyChestplate(helper, player), new ItemStack(Items.ELYTRA));
+        ItemStack output = apply(helper, player, flying, new ItemStack(Items.NETHER_STAR));
+        helper.assertTrue(ForgeweaveModifiers.entry(output, id("creative_flight")) == null,
+                "a nether star must not apply creative flight -- issue #751 removed its recipe");
+        helper.assertTrue(ForgeweaveModifiers.entry(output, id("soulbound")) != null,
+                "it applies soulbound instead, the only other recipe sharing this reagent");
         helper.succeed();
     }
 
     // ---------------------------------------------------------------- creative flight: the worn grant/revoke
 
-    /** A chestplate carrying both modifiers, ready to wear. */
+    /**
+     * A chestplate carrying both modifiers, ready to wear. Creative flight has no station recipe
+     * (issue #751), so it is applied directly to the data component here -- the same pattern already
+     * used by every other GameTest that needs a modifier on a stack with no recipe of its own (e.g.
+     * {@code BeheadingGameTests}, {@code ArmorRealPathGameTests}).
+     */
     private static ItemStack flightChestplate(GameTestHelper helper, Player player) {
         ItemStack flying = apply(helper, player, heavyChestplate(helper, player), new ItemStack(Items.ELYTRA));
-        return apply(helper, player, flying, new ItemStack(Items.NETHER_STAR));
+        ItemStack both = flying.copy();
+        List<ModifierEntry> modifiers = new ArrayList<>(
+                both.getOrDefault(ForgeweaveDataComponents.MODIFIERS.get(), List.of()));
+        modifiers.add(new ModifierEntry(id("creative_flight"), 1));
+        both.set(ForgeweaveDataComponents.MODIFIERS.get(), List.copyOf(modifiers));
+        return both;
     }
 
     private static void tick(Player player) {
