@@ -1137,6 +1137,27 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         // interaction is not a datapack recipe of any kind.
         add("tooltip.forgeweave.mending_moss.source",
                 "Right-click a bookshelf while holding Moss with at least 10 experience levels.");
+
+        // Issue #783: PR #775 gave Mending Moss a JEI info page but never touched any reagent's own
+        // hover text -- the audit that issue asked for. Every modifier reagent's tooltip closes with
+        // this shared line (DescribedItem, ForgeweaveItems#modifierReagentTooltip); the item's own
+        // modifier name/description carries the "what it does" half, already guarded by
+        // ModifierLangCoverageTest, so only the "where" needs a key of its own.
+        add("tooltip.forgeweave.reagent.tool_station", "Applied at the Tool Station.");
+        // Silky Cloth is Silky Jewel's crafting precursor (ForgeweaveRecipeProvider), not a modifier
+        // reagent itself -- upstream 1.12 gives it no tooltip either, so this is original wording.
+        add("tooltip.forgeweave.silky_cloth", "Ground down into a Silky Jewel.");
+        // The nahuatl board (issue #727): the Part Builder's crafting material for nahuatl, cast from
+        // obsidian poured over planks instead of mined -- unfamiliar enough as a source to spell out.
+        add("tooltip.forgeweave.nahuatl_board", "Cast from obsidian poured over planks. Used at the "
+                + "Part Builder like an ingot.");
+        // Every gold cast (ForgeweaveItems#CAST_INGOT and its siblings) and clay cast (ClayCastItem):
+        // upstream 1.12 gives its own single cast item no hover text either (ItemCast/CastCustom
+        // carry none), so both lines are original wording rather than a port.
+        add("tooltip.forgeweave.cast", "Pour molten metal into it at a Casting Table or Basin to cast "
+                + "its shape. Reusable.");
+        add("tooltip.forgeweave.clay_cast", "A single-use clay cast -- it breaks after one pour.");
+
         // #106 batch: luck, sharpness, diamond, emerald.
         add("modifier.forgeweave.luck.name", "Luck");
         add("modifier.forgeweave.luck.description",

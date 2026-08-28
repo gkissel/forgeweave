@@ -131,4 +131,36 @@ class ModifierLangCoverageTest {
                 "tooltip.forgeweave.mending_moss.source missing -- JEI's Mending Moss info line "
                         + "reads this key");
     }
+
+    /**
+     * Issue #783: PR #775 only fixed Mending Moss's JEI info page, never its own hover text, and the
+     * audit that issue asked for found the same gap on every other modifier reagent, precursor, cast
+     * and consumable item. Every one of those items is now a {@code DescribedItem} (or {@code
+     * SlimeFoodItem}) reading one of these keys ({@code dev.gkissel.forgeweave.item.ItemTooltipParityTest}
+     * pins the exact per-item hover text); this guards the keys themselves the same way
+     * {@link #everyRegisteredModifierHasNameAndDescriptionKeys} guards the modifier name/description
+     * pairs those items also read.
+     */
+    @Test
+    void reagentAndConsumableTooltipKeysExist() throws IOException {
+        JsonObject lang = JsonParser.parseString(Files.readString(
+                LocalizationAuditTest.projectRoot().resolve(GENERATED_LANG), StandardCharsets.UTF_8))
+                .getAsJsonObject();
+
+        List<String> missing = new ArrayList<>();
+        for (String key : List.of(
+                "tooltip.forgeweave.reagent.tool_station",
+                "tooltip.forgeweave.silky_cloth",
+                "tooltip.forgeweave.nahuatl_board",
+                "tooltip.forgeweave.cast",
+                "tooltip.forgeweave.clay_cast")) {
+            if (!lang.has(key)) {
+                missing.add(key);
+            }
+        }
+
+        assertTrue(missing.isEmpty(), "reagent/consumable tooltip keys shipped without lang lines "
+                + "(issue #783) -- add them to ForgeweaveLanguageProvider and re-run data generation:\n"
+                + String.join("\n", missing));
+    }
 }
