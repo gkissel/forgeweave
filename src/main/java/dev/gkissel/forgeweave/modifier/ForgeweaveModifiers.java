@@ -460,6 +460,82 @@ public final class ForgeweaveModifiers {
         }
     };
 
+    // ---------------------------------------------------------------- #736: netherite (1.20 clone)
+
+    /** Clone {@code StatBoostModule.multiplyBase(DURABILITY).flat(0.2f)}. */
+    static final float NETHERITE_DURABILITY_FRACTION = 0.2F;
+    /** Clone {@code StatBoostModule.multiplyBase(ATTACK_DAMAGE).flat(0.2f)}. */
+    static final float NETHERITE_ATTACK_FRACTION = 0.2F;
+    /** Clone {@code StatBoostModule.multiplyBase(MINING_SPEED).flat(0.25f)}. */
+    static final float NETHERITE_SPEED_FRACTION = 0.25F;
+    /** Clone {@code StatBoostModule.add(ARMOR_TOUGHNESS).flat(1)}. */
+    static final float NETHERITE_TOUGHNESS_BONUS = 1.0F;
+    /** Clone {@code StatBoostModule.add(KNOCKBACK_RESISTANCE).flat(0.05f)}. */
+    static final float NETHERITE_KNOCKBACK_RESISTANCE_BONUS = 0.05F;
+    /** Clone {@code SetStatModule.set(HARVEST_TIER).value(Tiers.NETHERITE)}: {@link #TIER_TAGS} index 4. */
+    private static final int NETHERITE_TIER = 4;
+
+    /**
+     * Netherite upgrade smithing template, single application (clone {@code ModifierIds.netherite},
+     * its recipe on every {@code #tconstruct:modifiable/durability} tool -- tools and armor alike,
+     * each taking only the stats it has): +20% base durability, +20% base attack, +25% base mining
+     * speed, the harvest tier set to netherite, +1 armor toughness, +0.05 knockback resistance, and
+     * the dropped item survives fire. Not ported: the clone's +10% projectile velocity (no velocity
+     * stat here).
+     *
+     * <p>Issue #736 (maintainer decision, epic #730): applied <em>slotless</em>, the same
+     * {@link Modifier#occupiedSlots} = 0 path soulbound already takes -- where the clone charges one
+     * upgrade slot. Recorded deviation.
+     *
+     * <p>The reagent is the template rather than a bare netherite ingot -- upstream's own combo
+     * input, minus the ingot half -- because {@code modifier_recipe/extra_slot_netherite.json}
+     * (issue #107/#135) already claims a plain ingot as a reagent for {@code extra_slot}, and
+     * {@link ModifierApplication#recipeFor} picks the first recipe whose ingredient matches with no
+     * modifier-aware tie-break: a second recipe on the same bare item would be permanently
+     * unreachable.
+     */
+    public static final Modifier NETHERITE = new Modifier() {
+        @Override
+        public int occupiedSlots(int level) {
+            return 0;
+        }
+
+        @Override
+        public int durability(int level, int durability, int baseDurability) {
+            return durability + (int) (baseDurability * NETHERITE_DURABILITY_FRACTION);
+        }
+
+        @Override
+        public float attackDamage(int level, float attackDamage, float baseAttackDamage) {
+            return attackDamage + baseAttackDamage * NETHERITE_ATTACK_FRACTION;
+        }
+
+        @Override
+        public float miningSpeed(int level, float miningSpeed, float baseMiningSpeed) {
+            return miningSpeed + baseMiningSpeed * NETHERITE_SPEED_FRACTION;
+        }
+
+        @Override
+        public int toolTierIndex(int level, int tierIndex) {
+            return Math.max(tierIndex, NETHERITE_TIER);
+        }
+
+        @Override
+        public float armorToughnessBonus(int level) {
+            return NETHERITE_TOUGHNESS_BONUS;
+        }
+
+        @Override
+        public float knockbackResistanceBonus(int level) {
+            return NETHERITE_KNOCKBACK_RESISTANCE_BONUS;
+        }
+
+        @Override
+        public boolean fireResistant(int level) {
+            return true;
+        }
+    };
+
     /** Upstream {@code TinkerModifiers}: {@code new ModSharpness(72)} -- 72 quartz per level, 5 levels. */
     private static final int SHARPNESS_QUARTZ_PER_LEVEL = 72;
     /** Upstream {@code ModSharpness#applyEffect}'s two diminishing-returns thresholds. */
@@ -1303,6 +1379,29 @@ public final class ForgeweaveModifiers {
         return bonus;
     }
 
+    /** Combined armor-toughness attribute bonus of the piece's modifiers; 0 when nothing touches it (#736). */
+    public static float armorToughnessBonus(ItemStack stack) {
+        float bonus = 0.0F;
+        for (ModifierEntry entry : of(stack)) {
+            Modifier modifier = get(entry.id());
+            if (modifier != null) {
+                bonus += modifier.armorToughnessBonus(entry.level());
+            }
+        }
+        return bonus;
+    }
+
+    /** Whether any of the stack's modifiers makes it survive fire as a dropped item (#736). */
+    public static boolean fireResistant(ItemStack stack) {
+        for (ModifierEntry entry : of(stack)) {
+            Modifier modifier = get(entry.id());
+            if (modifier != null && modifier.fireResistant(entry.level())) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     private static final Map<ResourceLocation, Modifier> REGISTRY = Map.ofEntries(
             Map.entry(id("fire_protection"), FIRE_PROTECTION),
             Map.entry(id("blast_protection"), BLAST_PROTECTION),
@@ -1329,6 +1428,7 @@ public final class ForgeweaveModifiers {
             Map.entry(id("sharpness"), SHARPNESS),
             Map.entry(id("diamond"), DIAMOND),
             Map.entry(id("emerald"), EMERALD),
+            Map.entry(id("netherite"), NETHERITE),
             Map.entry(id("knockback"), KNOCKBACK),
             Map.entry(id("shulking"), SHULKING),
             Map.entry(id("webbed"), WEBBED),
@@ -1647,6 +1747,8 @@ public final class ForgeweaveModifiers {
             Map.entry(id("sharpness"), TextColor.fromRgb(0xFFF6F6)),
             Map.entry(id("diamond"), TextColor.fromRgb(0x8CF4E2)),
             Map.entry(id("emerald"), TextColor.fromRgb(0x41F384)),
+            // 1.20 clone mantle/colors.json "netherite" (#736).
+            Map.entry(id("netherite"), TextColor.fromRgb(0x8E7C7F)),
             Map.entry(id("knockback"), TextColor.fromRgb(0x9F9F9F)),
             Map.entry(id("shulking"), TextColor.fromRgb(0xAACCFF)),
             Map.entry(id("webbed"), TextColor.fromRgb(0xFFFFFF)),
@@ -1695,7 +1797,7 @@ public final class ForgeweaveModifiers {
         for (ModifierEntry entry : of(stack)) {
             Modifier modifier = get(entry.id());
             if (modifier != null) {
-                miningSpeed = modifier.miningSpeed(entry.level(), miningSpeed);
+                miningSpeed = modifier.miningSpeed(entry.level(), miningSpeed, base.miningSpeed());
                 attackDamage = modifier.attackDamage(entry.level(), attackDamage, base.attackDamage());
             }
         }

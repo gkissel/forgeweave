@@ -137,6 +137,46 @@ public interface Modifier {
     }
 
     /**
+     * Bonus added to the wearer's {@code minecraft:generic.armor_toughness} attribute while the
+     * piece carrying this modifier is worn -- the clone's {@code StatBoostModule.add(ToolStats.
+     * ARMOR_TOUGHNESS)} (netherite's +1; issue #736). Read by {@code ArmorPieceItem} next to the
+     * plating's own {@code ArmorStats#toughness}.
+     *
+     * @param level accumulated application units (see {@link ModifierEntry#level})
+     */
+    default float armorToughnessBonus(int level) {
+        return 0.0F;
+    }
+
+    /**
+     * Whether the tool carrying this modifier survives fire and lava as a dropped item -- vanilla's
+     * {@code minecraft:fire_resistant} component, baked onto the stack by {@code ModifierApplication}
+     * the way {@code max_damage} is. The clone's {@code VolatileFlagModule(INDESTRUCTIBLE_ENTITY)}
+     * (netherite, worldbound; issue #736) also survives explosions and cactus; the vanilla component
+     * is the fire half of that, recorded as a deviation.
+     *
+     * @param level accumulated application units
+     */
+    default boolean fireResistant(int level) {
+        return false;
+    }
+
+    /**
+     * {@link #miningSpeed(int, float)} extended with the tool's untouched materials-derived mining
+     * speed, the way {@link #attackDamage} and {@link #durability} already are: the clone's
+     * {@code StatBoostModule.multiplyBase(ToolStats.MINING_SPEED)} (netherite's +25%; issue #736)
+     * scales the base, not the running total. Defaults to the two-argument form so every existing
+     * flat-bonus modifier is untouched.
+     *
+     * @param level accumulated application units
+     * @param miningSpeed the speed so far (base plus every earlier modifier in the list)
+     * @param baseMiningSpeed the tool's untouched materials-derived mining speed
+     */
+    default float miningSpeed(int level, float miningSpeed, float baseMiningSpeed) {
+        return miningSpeed(level, miningSpeed);
+    }
+
+    /**
      * The tool's attack damage after this modifier has adjusted it -- silky's only shipped user
      * (issue #107): upstream {@code ModSilktouch#applyEffect} takes a flat 3 off both {@code speed}
      * and {@code attack} (floored at 1) the moment the modifier is applied. Same shape as

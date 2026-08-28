@@ -134,9 +134,11 @@ public class ArmorPieceItem extends ArmorItem {
         if (stats.armor() > 0) {
             builder.add(Attributes.ARMOR, new AttributeModifier(id, stats.armor(), AttributeModifier.Operation.ADD_VALUE), slot);
         }
-        if (stats.toughness() > 0) {
+        // #736: netherite's +1 toughness rides the same attribute line as the plating's own.
+        float toughness = stats.toughness() + ForgeweaveModifiers.armorToughnessBonus(stack);
+        if (toughness > 0) {
             builder.add(Attributes.ARMOR_TOUGHNESS,
-                    new AttributeModifier(id, stats.toughness(), AttributeModifier.Operation.ADD_VALUE), slot);
+                    new AttributeModifier(id, toughness, AttributeModifier.Operation.ADD_VALUE), slot);
         }
         // M4-6 (#681): the knockback resistance modifier's +0.1/level rides the same attribute line.
         float knockbackResistance = stats.knockbackResistance() + ForgeweaveModifiers.knockbackResistanceBonus(stack);

@@ -3,6 +3,7 @@ package dev.gkissel.forgeweave.gametest;
 import java.util.List;
 
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.resources.ResourceLocation;
@@ -249,6 +250,69 @@ public class ArmorModifierGameTests {
         helper.assertTrue(ForgeweaveModifiers.entry(reinforced, id("reinforced")) != null, "reinforced applies to armor");
         helper.assertTrue(ForgeweaveModifiers.freeSlots(reinforced) == ForgeweaveModifiers.DEFAULT_SLOTS - 1,
                 "at the same one-slot-per-level charge as on a tool");
+        helper.succeed();
+    }
+
+    // ---------------------------------------------------------------- #736: netherite, slotless
+
+    /** The chestplate with its three slots full (fire protection III). */
+    private static ItemStack fullChestplate(GameTestHelper helper, Player player) {
+        ItemStack piece = apply(helper, player, chestplate(helper, player), new ItemStack(ForgeweaveItems.SEARED_BRICK.get(), 15));
+        helper.assertTrue(ForgeweaveModifiers.freeSlots(piece) == 0, "three levels fill the three slots");
+        return piece;
+    }
+
+    /**
+     * Issue #736: the clone's {@code upgrade/netherite.json} (netherite upgrade smithing template,
+     * max 1) applied <em>slotless</em> (maintainer decision; the clone charges one upgrade slot) --
+     * it lands on a piece with no free slot, grows the pool by 20% of the plating's base, and the
+     * worn piece adds {@code +1} toughness and {@code +0.05} knockback resistance. The reagent is
+     * the template, not a bare netherite ingot: {@code modifier_recipe/extra_slot_netherite.json}
+     * (issue #107/#135) already claims the ingot, and the reagent lookup is first-match, not
+     * modifier-aware (see {@code NetheriteModifierTest#theShippedRecipe}).
+     */
+    @GameTest(template = "empty")
+    public static void aNetheriteIngotAppliesOnAFullChestplate(GameTestHelper helper) {
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        ItemStack full = fullChestplate(helper, player);
+        int baseDurability = full.getMaxDamage();
+        player.setItemSlot(EquipmentSlot.CHEST, full);
+        player.tick();
+        double toughness = player.getAttributeValue(Attributes.ARMOR_TOUGHNESS);
+        double knockback = player.getAttributeValue(Attributes.KNOCKBACK_RESISTANCE);
+
+        ItemStack piece = apply(helper, player, full, new ItemStack(Items.NETHERITE_UPGRADE_SMITHING_TEMPLATE));
+        ModifierEntry entry = ForgeweaveModifiers.entry(piece, id("netherite"));
+        helper.assertTrue(entry != null && entry.level() == 1, "a template records level 1, got " + entry);
+        helper.assertTrue(ForgeweaveModifiers.freeSlots(piece) == 0, "and occupies no slot");
+        helper.assertTrue(piece.getMaxDamage() == baseDurability + baseDurability / 5,
+                "+20% of the base durability, got " + piece.getMaxDamage() + " over " + baseDurability);
+        helper.assertTrue(piece.has(DataComponents.FIRE_RESISTANT), "the dropped piece survives fire");
+
+        player.setItemSlot(EquipmentSlot.CHEST, piece);
+        player.tick();
+        helper.assertTrue(Math.abs(player.getAttributeValue(Attributes.ARMOR_TOUGHNESS) - toughness - 1.0) < 1e-6,
+                "worn, +1 toughness over " + toughness + ", got " + player.getAttributeValue(Attributes.ARMOR_TOUGHNESS));
+        helper.assertTrue(Math.abs(player.getAttributeValue(Attributes.KNOCKBACK_RESISTANCE) - knockback - 0.05) < 1e-6,
+                "worn, +0.05 knockback resistance over " + knockback);
+        helper.succeed();
+    }
+
+    /** The clone's {@code setMaxLevel(1)}: a second template is refused. */
+    @GameTest(template = "empty")
+    public static void aSecondNetheriteIngotIsRefusedPastTheCap(GameTestHelper helper) {
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        ItemStack piece = apply(helper, player, fullChestplate(helper, player), new ItemStack(Items.NETHERITE_UPGRADE_SMITHING_TEMPLATE));
+        assertRefused(helper, load(helper, player, piece, new ItemStack(Items.NETHERITE_UPGRADE_SMITHING_TEMPLATE)), "netherite is max level 1");
+        helper.succeed();
+    }
+
+    /** Slotless is per-modifier: the same full piece still refuses a slotted one (an anvil). */
+    @GameTest(template = "empty")
+    public static void aSlottedModifierIsStillRefusedOnTheFullPiece(GameTestHelper helper) {
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        ItemStack piece = apply(helper, player, fullChestplate(helper, player), new ItemStack(Items.NETHERITE_UPGRADE_SMITHING_TEMPLATE));
+        assertRefused(helper, load(helper, player, piece, new ItemStack(Items.ANVIL)), "knockback resistance needs a slot the piece no longer has");
         helper.succeed();
     }
 }

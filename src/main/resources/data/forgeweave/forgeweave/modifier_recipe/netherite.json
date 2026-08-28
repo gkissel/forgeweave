@@ -1,0 +1,8 @@
+{
+  "modifier": "forgeweave:netherite",
+  "reagent": {
+    "item": "minecraft:netherite_upgrade_smithing_template"
+  },
+  "cost": 1,
+  "max_level": 1
+}

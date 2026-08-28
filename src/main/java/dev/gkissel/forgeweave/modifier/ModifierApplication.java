@@ -16,6 +16,7 @@ import net.minecraft.network.chat.CommonComponents;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.util.Unit;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.component.Tool;
 import net.minecraft.world.item.enchantment.Enchantment;
@@ -525,6 +526,10 @@ public final class ModifierApplication {
         // its bonus on every rebuild -- without this, applying any modifier would shrink max_damage
         // back to the materials-plus-modifiers number and wipe the growth.
         stack.set(DataComponents.MAX_DAMAGE, durability + ForgeweaveTraits.maxDurabilityBonus(stack));
+        // #736: netherite's dropped-item fire immunity is vanilla's own component, baked like max_damage.
+        if (ForgeweaveModifiers.fireResistant(stack)) {
+            stack.set(DataComponents.FIRE_RESISTANT, Unit.INSTANCE);
+        }
     }
 
     /**

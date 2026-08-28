@@ -1186,6 +1186,10 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("modifier.forgeweave.thorns.name", "Thorns");
         add("modifier.forgeweave.thorns.description",
                 "Quite metal. Harness the power of the guardian, causing attackers to sometimes take damage.");
+        // #736, the 1.20 clone's modifier.tconstruct.netherite rows.
+        add("modifier.forgeweave.netherite.name", "Netherite");
+        add("modifier.forgeweave.netherite.description",
+                "Refined! Harness the power of ancient metal, making the tool stronger and immune to external damage such as fire.");
 
         add("modifier.forgeweave.wind_burst.name", "Wind Burst");
         add("modifier.forgeweave.wind_burst.description",
@@ -1958,6 +1962,13 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
                 "Has a 15% chance per level to apply 1 to 4 damage to the attacker",
                 "Multiple pieces will stack the effect", "Maximum of 3 levels",
                 "Requires 1 modifier slot per level");
+        // #736: the clone's upgrades/general/tconstruct_netherite.json, minus velocity and the
+        // upgrade slot (slotless here, maintainer decision).
+        modifierEffects("netherite",
+                "Grants +20% durability, +20% attack damage, +25% mining speed, +5% knockback resistance, and +1 armor toughness",
+                "Increases the mining level to netherite, and makes the tool immune to fire when dropped",
+                "Tools and armor will only receive applicable stat boosts",
+                "Maximum of 1 level", "Requires no modifier slot");
         modifierEffects("far_reach",
                 "Reach further to mine blocks", "Each level adds one block", "Multiple levels");
         modifierEffects("extra_slot",
