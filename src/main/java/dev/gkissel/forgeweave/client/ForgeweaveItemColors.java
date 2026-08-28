@@ -1,5 +1,7 @@
 package dev.gkissel.forgeweave.client;
 
+import org.jetbrains.annotations.Nullable;
+
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.resources.ResourceLocation;
@@ -128,7 +130,8 @@ public final class ForgeweaveItemColors {
         return entry == null ? -1 : opaqueMaterialColor(Fortification.materialOf(entry.id()));
     }
 
-    private static int opaqueMaterialColor(ResourceLocation materialId) {
+    /** The material's opaque ARGB colour, or {@code -1} (untinted white) when there is no such material or no level yet. Shared with the worn armor tint ({@code ForgeweaveItemClientExtensions}, #726). */
+    static int opaqueMaterialColor(@Nullable ResourceLocation materialId) {
         ClientLevel level = Minecraft.getInstance().level;
         if (materialId == null || level == null) {
             return -1;

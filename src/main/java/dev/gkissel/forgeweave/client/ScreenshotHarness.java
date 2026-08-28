@@ -1320,7 +1320,7 @@ public final class ScreenshotHarness {
     /**
      * Issue #679's in-world scene, {@code armor_<scene>.png}: a plate set worn by the player,
      * captured from the front in third person -- the one render path that exercises
-     * {@code ArmorPieceItem#PLATE_MATERIAL}'s two worn layers and the per-material texture pick,
+     * {@code ArmorPieceItem#plateMaterial}'s two worn layers and their runtime material tint (#726),
      * which no inventory sprite does -- then again in first person
      * ({@code armor_<scene>_firstperson.png}, the release checklist's second angle, #682). The
      * pieces are assembled through {@link #assembleForDisplay}, the station's own call, so the worn

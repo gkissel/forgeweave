@@ -5,6 +5,7 @@ import org.jetbrains.annotations.Nullable;
 import net.minecraft.client.model.HumanoidModel;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.item.ArmorMaterial;
 import net.minecraft.world.item.ItemStack;
 
 import net.neoforged.api.distmarker.Dist;
@@ -14,11 +15,15 @@ import net.neoforged.neoforge.client.extensions.common.IClientItemExtensions;
 import net.neoforged.neoforge.client.extensions.common.RegisterClientExtensionsEvent;
 
 import dev.gkissel.forgeweave.Forgeweave;
+import dev.gkissel.forgeweave.item.ArmorPieceItem;
 import dev.gkissel.forgeweave.item.CrossbowItem;
 import dev.gkissel.forgeweave.menu.ToolAssemblyRecipes;
 
 /**
- * The crossbow's third-person arm pose (issue #425). {@link ForgeweaveItemProperties} is the
+ * The crossbow's third-person arm pose (issue #425), and the worn plate armor's per-layer tint
+ * (issue #726, see {@link #registerItemClientExtensions}).
+ *
+ * <p>The crossbow's third-person arm pose (issue #425). {@link ForgeweaveItemProperties} is the
  * first-person half of the same story -- what the <em>model</em> resolves to -- and this is what the
  * player's <em>arms</em> do while everybody else watches.
  *
@@ -81,9 +86,24 @@ public final class ForgeweaveItemClientExtensions {
         return !swinging && CrossbowItem.isLoaded(stack) ? HumanoidModel.ArmPose.CROSSBOW_HOLD : null;
     }
 
-    /** Registered off {@link ToolAssemblyRecipes#ENTRIES} for the reason {@link ForgeweaveItemProperties} is. */
+    /**
+     * Registered off {@link ToolAssemblyRecipes#ENTRIES} for the reason {@link ForgeweaveItemProperties} is.
+     *
+     * <p>The armor extension is #726's runtime tint: {@code HumanoidArmorLayer} asks {@code
+     * getArmorLayerTintColor} once per {@link ArmorMaterial.Layer} pass, and each pass gets its own
+     * part's {@code Material.color} over the shared gray base ({@link ArmorPieceItem#layerMaterial}),
+     * the same colour {@link ForgeweaveItemColors} puts on the item sprite. A stack without
+     * materials returns white, vanilla's untinted answer.
+     */
     @SubscribeEvent
     static void registerItemClientExtensions(RegisterClientExtensionsEvent event) {
+        IClientItemExtensions armor = new IClientItemExtensions() {
+            @Override
+            public int getArmorLayerTintColor(ItemStack stack, LivingEntity entity, ArmorMaterial.Layer layer, int layerIdx,
+                    int fallbackColor) {
+                return ForgeweaveItemColors.opaqueMaterialColor(ArmorPieceItem.layerMaterial(stack, layerIdx));
+            }
+        };
         IClientItemExtensions crossbow = new IClientItemExtensions() {
             @Nullable
             @Override
@@ -96,6 +116,8 @@ public final class ForgeweaveItemClientExtensions {
         for (ToolAssemblyRecipes.Entry entry : ToolAssemblyRecipes.ENTRIES) {
             if (entry.tool().get() instanceof CrossbowItem) {
                 event.registerItem(crossbow, entry.tool().get());
+            } else if (entry.tool().get() instanceof ArmorPieceItem) {
+                event.registerItem(armor, entry.tool().get());
             }
         }
     }
