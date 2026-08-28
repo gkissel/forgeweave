@@ -574,9 +574,18 @@ public final class ModifierApplication {
         ItemStack result = tool.copy();
         result.set(ForgeweaveDataComponents.MODIFIERS.get(), List.copyOf(entries));
         retuneStats(result);
-        if (firstApplication) {
-            // #106 batch: diamond/emerald's tier bump. Only on first application -- see
-            // Modifier#toolTierIndex's javadoc for why that is what keeps this from compounding.
+        Integer baseTier = result.get(ForgeweaveDataComponents.BASE_TOOL_TIER.get());
+        if (baseTier != null) {
+            // Issue #777: recomputed from the untouched base every application, folding diamond and
+            // emerald in a fixed order -- see ForgeweaveModifiers#foldTierIndex -- so the result never
+            // depends on which of the two the player applied first.
+            retuneToolTierFromBase(result, baseTier, entries);
+        } else if (firstApplication) {
+            // Pre-#777 fallback for a tool assembled before this fix, or a hand-built test stack that
+            // never went through ToolAssemblyRecipes#assemble (same idiom as ENCHANTABILITY's own
+            // javadoc): the old one-shot bump off the live, already-mutated rule. Only on first
+            // application -- see Modifier#toolTierIndex's javadoc for why that is what keeps this
+            // from compounding.
             Modifier modifier = ForgeweaveModifiers.get(id);
             if (modifier != null) {
                 retuneToolTier(result, modifier, level);
@@ -654,10 +663,19 @@ public final class ModifierApplication {
      */
     public static void rebake(ItemStack stack) {
         retuneStats(stack);
-        for (ModifierEntry entry : ForgeweaveModifiers.of(stack)) {
-            Modifier modifier = ForgeweaveModifiers.get(entry.id());
-            if (modifier != null) {
-                retuneToolTier(stack, modifier, entry.level());
+        List<ModifierEntry> entries = ForgeweaveModifiers.of(stack);
+        Integer baseTier = stack.get(ForgeweaveDataComponents.BASE_TOOL_TIER.get());
+        if (baseTier != null) {
+            // Issue #777: same fixed-order recompute modified() uses, off the base a part exchange's
+            // assemble() call just rebuilt (ToolAssemblyRecipes copies BASE_TOOL_TIER across alongside
+            // TOOL_STATS/ENCHANTABILITY for exactly this).
+            retuneToolTierFromBase(stack, baseTier, entries);
+        } else {
+            for (ModifierEntry entry : entries) {
+                Modifier modifier = ForgeweaveModifiers.get(entry.id());
+                if (modifier != null) {
+                    retuneToolTier(stack, modifier, entry.level());
+                }
             }
         }
     }
@@ -687,6 +705,39 @@ public final class ModifierApplication {
             }
             int newIndex = modifier.toolTierIndex(level, currentIndex);
             if (newIndex != currentIndex) {
+                List<Tool.Rule> updated = new ArrayList<>(rules);
+                updated.set(i, Tool.Rule.deniesDrops(ForgeweaveModifiers.tierTag(newIndex)));
+                stack.set(DataComponents.TOOL, new Tool(updated, component.defaultMiningSpeed(), component.damagePerBlock()));
+            }
+            return;
+        }
+    }
+
+    /**
+     * Issue #777's order-independent replacement for the one-shot {@link #retuneToolTier}: finds the
+     * same deny-drops rule, but recomputes it from {@code baseIndex} -- the material's untouched
+     * ladder index, from before any modifier ever bumped it -- via
+     * {@link ForgeweaveModifiers#foldTierIndex}, rather than bumping whatever the rule currently
+     * holds. Safe to call on every application (not just a modifier's first, unlike
+     * {@link #retuneToolTier}): folding the same {@code entries} twice recomputes the same index, so
+     * an unrelated modifier's application is a no-op here.
+     */
+    private static void retuneToolTierFromBase(ItemStack stack, int baseIndex, List<ModifierEntry> entries) {
+        Tool component = stack.get(DataComponents.TOOL);
+        if (component == null || baseIndex < 0) {
+            return;
+        }
+        int newIndex = ForgeweaveModifiers.foldTierIndex(baseIndex, entries);
+        List<Tool.Rule> rules = component.rules();
+        for (int i = 0; i < rules.size(); i++) {
+            Tool.Rule rule = rules.get(i);
+            if (rule.speed().isPresent()) {
+                continue; // the mining-speed rule, not the deny-drops one.
+            }
+            if (ForgeweaveModifiers.tierIndexOf(rule.blocks()) < 0) {
+                return; // the live rule isn't on the ladder at all -- nothing to bump from.
+            }
+            if (ForgeweaveModifiers.tierIndexOf(rule.blocks()) != newIndex) {
                 List<Tool.Rule> updated = new ArrayList<>(rules);
                 updated.set(i, Tool.Rule.deniesDrops(ForgeweaveModifiers.tierTag(newIndex)));
                 stack.set(DataComponents.TOOL, new Tool(updated, component.defaultMiningSpeed(), component.damagePerBlock()));

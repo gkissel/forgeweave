@@ -396,6 +396,56 @@ public final class ForgeweaveModifiers {
         return TIER_TAGS.get(index);
     }
 
+    private static final ResourceLocation DIAMOND_ID = id("diamond");
+    private static final ResourceLocation EMERALD_ID = id("emerald");
+
+    /**
+     * Issue #777 (maintainer decision, 2026-08-28): diamond's and emerald's capped "+1" tier bumps
+     * must reach the same result regardless of which the player applied first -- upstream's
+     * {@code ModDiamond}/{@code ModEmerald} are two independent one-shot {@code harvestLevel++}
+     * calls with no upstream-defined combination order (1.12 itself is order-dependent here, same
+     * bug), so Forgeweave picks a fixed one instead of inheriting the accident of application order.
+     * The lower cap folds first: folding the higher-cap modifier (diamond, {@link #DIAMOND_TIER_CAP})
+     * first would let it use up its own "+1" reaching a rung emerald's cap can't add to, wasting the
+     * pair's combined reach; emerald first ({@link #EMERALD_TIER_CAP}) always leaves diamond's later
+     * "+1" room to land, so a stone-tier head (index 1) with both reaches index 3 (real obsidian
+     * mining level) in either application order -- see {@link #foldTierIndex}.
+     */
+    private static final List<ResourceLocation> TIER_FOLD_ORDER = List.of(EMERALD_ID, DIAMOND_ID);
+
+    /**
+     * The tier-ladder index a tool with base (pre-modifier) index {@code baseIndex} and
+     * {@code entries} ends up at, folding diamond and emerald in {@link #TIER_FOLD_ORDER} rather
+     * than {@code entries}' own order (issue #777) and every other tier-bumping modifier
+     * (fortification, netherite) in {@code entries}' order afterward, exactly the one-shot order
+     * {@link Modifier#toolTierIndex} already documents for them -- this closes the gap between
+     * diamond and emerald specifically, not every modifier this hook could ever carry.
+     */
+    public static int foldTierIndex(int baseIndex, List<ModifierEntry> entries) {
+        int index = baseIndex;
+        for (ResourceLocation orderedId : TIER_FOLD_ORDER) {
+            for (ModifierEntry entry : entries) {
+                if (entry.id().equals(orderedId)) {
+                    Modifier modifier = get(orderedId);
+                    if (modifier != null) {
+                        index = modifier.toolTierIndex(entry.level(), index);
+                    }
+                    break;
+                }
+            }
+        }
+        for (ModifierEntry entry : entries) {
+            if (TIER_FOLD_ORDER.contains(entry.id())) {
+                continue; // already folded above, in the fixed order.
+            }
+            Modifier modifier = get(entry.id());
+            if (modifier != null) {
+                index = modifier.toolTierIndex(entry.level(), index);
+            }
+        }
+        return index;
+    }
+
     /** Upstream {@code ModDiamond}: {@code data.durability += 500}. */
     private static final int DIAMOND_DURABILITY_BONUS = 500;
     /** Upstream {@code ModDiamond}: {@code data.attack += 1f}. */

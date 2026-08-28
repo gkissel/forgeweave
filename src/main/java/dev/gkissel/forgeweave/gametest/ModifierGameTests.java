@@ -931,4 +931,109 @@ public class ModifierGameTests {
                         + "cannot reach real diamond mining level (obsidian) in one shot, same as upstream");
         helper.succeed();
     }
+
+    // ---------------------------------------------------------------- issue #777 (tier stacking order)
+
+    /** As {@code diamondOnAStoneHeadOnlyReachesRealIronMiningLevel}, for emerald's one-rung-lower cap. */
+    @GameTest(template = "empty")
+    public static void emeraldOnAStoneHeadOnlyReachesRealIronMiningLevel(GameTestHelper helper) {
+        BlockPos pos = new BlockPos(1, 1, 1);
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        ItemStack pickaxe = ToolAssembly.pickaxe(helper, player, pos, "stone", "wood", "wood");
+
+        ItemStack output = applyReagent(helper, player, pos, pickaxe, new ItemStack(Items.EMERALD, 1));
+
+        helper.assertTrue(output.isCorrectToolForDrops(Blocks.DIAMOND_ORE.defaultBlockState()),
+                "one emerald must raise a stone-tier pickaxe by its one rung, to real iron mining level");
+        helper.assertFalse(output.isCorrectToolForDrops(Blocks.OBSIDIAN.defaultBlockState()),
+                "emerald's cap sits one rung below diamond's -- a stone head can't reach obsidian off "
+                        + "emerald alone");
+        helper.succeed();
+    }
+
+    /** An iron head is already at emerald's cap (real iron mining level), so emerald alone is a no-op. */
+    @GameTest(template = "empty")
+    public static void emeraldOnAnIronHeadStaysAtRealIronMiningLevel(GameTestHelper helper) {
+        BlockPos pos = new BlockPos(1, 1, 1);
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        ItemStack pickaxe = ToolAssembly.pickaxe(helper, player, pos, "iron", "wood", "wood");
+
+        ItemStack output = applyReagent(helper, player, pos, pickaxe, new ItemStack(Items.EMERALD, 1));
+
+        helper.assertTrue(output.isCorrectToolForDrops(Blocks.DIAMOND_ORE.defaultBlockState()),
+                "an iron-tier pickaxe already mines diamond ore");
+        helper.assertFalse(output.isCorrectToolForDrops(Blocks.OBSIDIAN.defaultBlockState()),
+                "emerald's cap is real iron mining level -- an iron head was already there, so emerald "
+                        + "alone cannot push it to obsidian");
+        helper.succeed();
+    }
+
+    /**
+     * Issue #777's own report: a stone-head pickaxe (ladder index 1) with both diamond (cap 3) and
+     * emerald (cap 2) must reach real diamond mining level (obsidian, index 3) -- and, per the
+     * maintainer's decision on the issue, it must do so <b>regardless of which reagent the player
+     * applies first</b>. This is diamond-then-emerald; {@link
+     * #emeraldThenDiamondOnAStoneHeadReachesTheSameObsidianLevel} is the same tool, reagents in the
+     * other order, asserting the identical result.
+     */
+    @GameTest(template = "empty")
+    public static void diamondThenEmeraldOnAStoneHeadReachesObsidian(GameTestHelper helper) {
+        BlockPos pos = new BlockPos(1, 1, 1);
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        ItemStack pickaxe = ToolAssembly.pickaxe(helper, player, pos, "stone", "wood", "wood");
+
+        ItemStack afterDiamond = applyReagent(helper, player, pos, pickaxe, new ItemStack(Items.DIAMOND, 1));
+        ItemStack afterBoth = applyReagent(helper, player, pos, afterDiamond, new ItemStack(Items.EMERALD, 1));
+
+        helper.assertTrue(afterBoth.isCorrectToolForDrops(Blocks.OBSIDIAN.defaultBlockState()),
+                "diamond then emerald on a stone head must reach real diamond mining level (obsidian)");
+        helper.succeed();
+    }
+
+    /** {@link #diamondThenEmeraldOnAStoneHeadReachesObsidian}, reagents applied in the other order. */
+    @GameTest(template = "empty")
+    public static void emeraldThenDiamondOnAStoneHeadReachesTheSameObsidianLevel(GameTestHelper helper) {
+        BlockPos pos = new BlockPos(1, 1, 1);
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        ItemStack pickaxe = ToolAssembly.pickaxe(helper, player, pos, "stone", "wood", "wood");
+
+        ItemStack afterEmerald = applyReagent(helper, player, pos, pickaxe, new ItemStack(Items.EMERALD, 1));
+        ItemStack afterBoth = applyReagent(helper, player, pos, afterEmerald, new ItemStack(Items.DIAMOND, 1));
+
+        helper.assertTrue(afterBoth.isCorrectToolForDrops(Blocks.OBSIDIAN.defaultBlockState()),
+                "emerald then diamond on a stone head must reach the same real diamond mining level "
+                        + "(obsidian) as diamond then emerald -- the tier must not depend on application order");
+        helper.succeed();
+    }
+
+    /** As the stone-head pair above, from an iron head -- both orders must agree here too. */
+    @GameTest(template = "empty")
+    public static void diamondThenEmeraldOnAnIronHeadReachesObsidian(GameTestHelper helper) {
+        BlockPos pos = new BlockPos(1, 1, 1);
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        ItemStack pickaxe = ToolAssembly.pickaxe(helper, player, pos, "iron", "wood", "wood");
+
+        ItemStack afterDiamond = applyReagent(helper, player, pos, pickaxe, new ItemStack(Items.DIAMOND, 1));
+        ItemStack afterBoth = applyReagent(helper, player, pos, afterDiamond, new ItemStack(Items.EMERALD, 1));
+
+        helper.assertTrue(afterBoth.isCorrectToolForDrops(Blocks.OBSIDIAN.defaultBlockState()),
+                "diamond then emerald on an iron head must reach real diamond mining level (obsidian)");
+        helper.succeed();
+    }
+
+    /** {@link #diamondThenEmeraldOnAnIronHeadReachesObsidian}, reagents applied in the other order. */
+    @GameTest(template = "empty")
+    public static void emeraldThenDiamondOnAnIronHeadReachesTheSameObsidianLevel(GameTestHelper helper) {
+        BlockPos pos = new BlockPos(1, 1, 1);
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        ItemStack pickaxe = ToolAssembly.pickaxe(helper, player, pos, "iron", "wood", "wood");
+
+        ItemStack afterEmerald = applyReagent(helper, player, pos, pickaxe, new ItemStack(Items.EMERALD, 1));
+        ItemStack afterBoth = applyReagent(helper, player, pos, afterEmerald, new ItemStack(Items.DIAMOND, 1));
+
+        helper.assertTrue(afterBoth.isCorrectToolForDrops(Blocks.OBSIDIAN.defaultBlockState()),
+                "emerald then diamond on an iron head must reach the same real diamond mining level "
+                        + "(obsidian) as diamond then emerald -- the tier must not depend on application order");
+        helper.succeed();
+    }
 }

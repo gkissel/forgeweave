@@ -609,6 +609,10 @@ public final class ToolAssemblyRecipes {
         // exactly like the stat block above rather than riding along on the copy.
         result.set(ForgeweaveDataComponents.ENCHANTABILITY.get(),
                 fresh.get(ForgeweaveDataComponents.ENCHANTABILITY.get()));
+        // #777: the swapped-in head material changes the base tier the same way it changes the mean
+        // enchantability above, so this rides along on the fresh rebuild too rather than the copy.
+        result.set(ForgeweaveDataComponents.BASE_TOOL_TIER.get(),
+                fresh.get(ForgeweaveDataComponents.BASE_TOOL_TIER.get()));
         result.set(ForgeweaveDataComponents.TRAITS.get(), mergedTraits(fresh, oldBase.get(), toolStack));
         result.set(DataComponents.TOOL, fresh.get(DataComponents.TOOL));
         result.set(DataComponents.MAX_DAMAGE, fresh.get(DataComponents.MAX_DAMAGE));
@@ -854,7 +858,13 @@ public final class ToolAssemblyRecipes {
         }
         // Mining tier, mining speed, and the durability bar all ride on vanilla components, so
         // vanilla's own block-breaking and rendering paths need no Forgeweave-specific handling.
-        result.set(DataComponents.TOOL, tool.toolComponent(highestTierHead(heads), stats));
+        Material tierHead = highestTierHead(heads);
+        // Issue #777: the untouched base a later diamond/emerald bump folds from -- see
+        // ForgeweaveDataComponents#BASE_TOOL_TIER's javadoc for why ModifierApplication needs this
+        // stored rather than re-derived, and ForgeweaveModifiers#foldTierIndex for the fold itself.
+        result.set(ForgeweaveDataComponents.BASE_TOOL_TIER.get(),
+                ForgeweaveModifiers.tierIndexOf(tierHead.incorrectForTool()));
+        result.set(DataComponents.TOOL, tool.toolComponent(tierHead, stats));
         result.set(DataComponents.MAX_DAMAGE, stats.durability());
         result.set(DataComponents.DAMAGE, 0);
         return Optional.of(result);
