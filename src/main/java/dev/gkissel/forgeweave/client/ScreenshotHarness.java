@@ -69,6 +69,7 @@ import net.neoforged.neoforge.fluids.capability.templates.FluidTank;
 
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.block.CastingBlockEntity;
+import dev.gkissel.forgeweave.block.ChestBlockEntity;
 import dev.gkissel.forgeweave.client.book.BookContent;
 import dev.gkissel.forgeweave.client.book.BookScreen;
 import dev.gkissel.forgeweave.block.FaucetBlock;
@@ -196,6 +197,11 @@ public final class ScreenshotHarness {
     /** One entry per station screen; see "Extending for M2" above. */
     private static final List<HarnessScreen> SCREENS = List.of(
             new HarnessScreen("part_builder", ForgeweaveBlocks.PART_BUILDER),
+            // #758: a Pattern Chest (plus the Stencil Table and Crafting Station upstream's
+            // partCrafter check also wants) beside the Part Builder, with a pattern already in the
+            // chest -- the capture a reviewer checks the pattern-button sidebar against.
+            new HarnessScreen("part_builder_pattern_chest", ForgeweaveBlocks.PART_BUILDER,
+                    ScreenshotHarness::preparePatternChestScene),
             new HarnessScreen("tool_station", ForgeweaveBlocks.TOOL_STATION),
             // #152: the same screen class in its metal style. Captured next to tool_station.png on
             // purpose -- the two PNGs side by side are how a reviewer checks that only the styling
@@ -2108,6 +2114,21 @@ public final class ScreenshotHarness {
 
         HarnessScreen(String fileName, Supplier<? extends Block> block, BiConsumer<ServerLevel, BlockPos> prepare) {
             this(fileName, block, prepare, player -> {});
+        }
+    }
+
+    /**
+     * #758: the full {@code partCrafter} workshop upstream's {@code ContainerPartBuilder} wants
+     * before it turns the Pattern Chest's slots into a button sidebar -- a Crafting Station and a
+     * Stencil Table alongside the chest, one pattern already sitting in it so the capture shows a
+     * real button rather than an empty row.
+     */
+    private static void preparePatternChestScene(ServerLevel level, BlockPos pos) {
+        level.setBlockAndUpdate(pos.east(), ForgeweaveBlocks.PATTERN_CHEST.get().defaultBlockState());
+        level.setBlockAndUpdate(pos.south(), ForgeweaveBlocks.STENCIL_TABLE.get().defaultBlockState());
+        level.setBlockAndUpdate(pos.north(), ForgeweaveBlocks.CRAFTING_STATION.get().defaultBlockState());
+        if (level.getBlockEntity(pos.east()) instanceof ChestBlockEntity chest) {
+            chest.container().setItem(0, new ItemStack(ForgeweaveItems.PATTERN_PICKAXE_HEAD.get()));
         }
     }
 
