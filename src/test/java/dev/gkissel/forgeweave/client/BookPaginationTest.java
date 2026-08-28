@@ -11,6 +11,7 @@ import org.junit.jupiter.api.Test;
 
 import dev.gkissel.forgeweave.client.book.BookLayout;
 import dev.gkissel.forgeweave.client.book.BookLayout.Slot;
+import dev.gkissel.forgeweave.client.book.ModifyPageContent;
 
 /**
  * Issue #428: guide book pages drew straight past the bottom of the parchment, over the page number
@@ -169,5 +170,32 @@ class BookPaginationTest {
         assertTrue(page.stream().mapToInt(Integer::intValue).sum() > BookLayout.PAGE_TEXT_H,
                 "non-vacuity: a 12-trait material page must be taller than a leaf to be worth testing");
         assertTrue(slots.size() > 1, "a 12-trait material page should paginate, got " + slots);
+    }
+
+    /**
+     * Issue #750: {@code BookScreen#toolBlocks} used to lay a tool page out as title, description,
+     * properties, then the modify-station diagram last. A tool with enough description/properties
+     * text to fill a leaf pushed the diagram alone onto the next leaf -- the facing page of the
+     * spread -- so the entry read as an unrelated description page and image page. The diagram now
+     * sits right behind the title, so the pair can never land on different leaves no matter how long
+     * the description or properties list runs; only the text tail ever spills onto a continuation
+     * leaf, still following the diagram it belongs to.
+     */
+    @Test
+    void theToolDiagramNeverSeparatesFromItsTitle() {
+        int diagramHeight = 28 + ModifyPageContent.TABLE.h() + 4; // BookScreen#toolDiagramBlock
+        List<Integer> page = new ArrayList<>();
+        page.add(TITLE);
+        page.add(diagramHeight);
+        page.addAll(blocks(40, LINE)); // an arbitrarily long description + properties tail
+
+        List<Slot> slots = BookLayout.paginate(List.of(page), BookLayout.PAGE_TEXT_H);
+
+        assertTrue(page.stream().mapToInt(Integer::intValue).sum() > BookLayout.PAGE_TEXT_H,
+                "non-vacuity: this page must be taller than a leaf to be worth testing");
+        Slot first = slots.get(0);
+        assertEquals(0, first.firstBlock());
+        assertTrue(first.blockCount() >= 2,
+                "the title and the diagram must share the first leaf, got " + slots);
     }
 }

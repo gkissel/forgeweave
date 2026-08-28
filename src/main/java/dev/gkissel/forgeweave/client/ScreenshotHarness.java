@@ -502,7 +502,13 @@ public final class ScreenshotHarness {
             // correct); fins is projectile-only (an ammo item is now correct) -- neither answer is a
             // pickaxe, so either capture alone would have caught the old bug.
             new BookScene("book_modifier_fire_protection", -1, "modifiers.fire_protection"),
-            new BookScene("book_modifier_fins", -1, "modifiers.fins"));
+            new BookScene("book_modifier_fins", -1, "modifiers.fins"),
+            // #750: two tool pages -- a short-text tool (pickaxe) and battlesign, whose four
+            // properties plus its longer description used to fill a leaf and push the diagram alone
+            // onto the facing page. Both must show the diagram sharing the leaf with its own title
+            // and description, never on a page by itself.
+            new BookScene("book_tool_pickaxe", -1, "tools.pickaxe"),
+            new BookScene("book_tool_battlesign", -1, "tools.battlesign"));
 
     private ScreenshotHarness() {}
 
