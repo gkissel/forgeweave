@@ -561,6 +561,39 @@ class ModifierRecipeTest {
         assertTrue(recipes.containsAll(List.of(haste, soulbound)));
     }
 
+    /**
+     * Issue #780's real-world instance of the same collision, with the two actually-shipped recipes
+     * rather than synthetic ones: a netherite ingot is {@code extra_slot_netherite.json}'s whole
+     * reagent <em>and</em> half of {@code netherite.json}'s combo. This is the tie PR #744 (issue
+     * #736) worked around by giving netherite the template instead of the ingot; #780 restores the
+     * ingot now that {@link ModifierApplication#mostSpecific} resolves the tie itself.
+     */
+    @Test
+    void mostSpecificResolvesTheRealNetheriteExtraSlotTie() {
+        ModifierRecipe extraSlotNetherite = shippedRecipe("extra_slot_netherite");
+        ModifierRecipe netherite = shippedRecipe("netherite");
+        List<ModifierRecipe> recipes = List.of(extraSlotNetherite, netherite);
+
+        List<ModifierRecipe> loneIngot = ModifierApplication.mostSpecific(recipes, List.of(new ItemStack(Items.NETHERITE_INGOT)));
+        assertEquals(List.of(extraSlotNetherite), loneIngot, "no template: the ingot alone still buys extra_slot");
+
+        List<ModifierRecipe> both = ModifierApplication.mostSpecific(recipes,
+                List.of(new ItemStack(Items.NETHERITE_UPGRADE_SMITHING_TEMPLATE), new ItemStack(Items.NETHERITE_INGOT)));
+        assertEquals(List.of(netherite), both,
+                "netherite's two-reagent match beats extra_slot's one-reagent match on the shared ingot");
+    }
+
+    private static ModifierRecipe shippedRecipe(String name) {
+        String path = "/data/forgeweave/forgeweave/modifier_recipe/" + name + ".json";
+        try (InputStream in = ModifierRecipeTest.class.getResourceAsStream(path)) {
+            assertNotNull(in, "missing shipped modifier recipe: " + path);
+            return ModifierRecipe.CODEC.parse(ops, JsonParser.parseReader(new InputStreamReader(in, StandardCharsets.UTF_8)))
+                    .getOrThrow();
+        } catch (Exception e) {
+            throw new AssertionError("could not read " + path, e);
+        }
+    }
+
     private static ModifierRecipe shipped() {
         return parse("""
                 {"modifier": "forgeweave:haste", "reagent": {"item": "minecraft:redstone"},

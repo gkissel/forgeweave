@@ -8,6 +8,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
+import java.util.List;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
@@ -64,20 +65,29 @@ class GlowingTest {
     }
 
     /**
-     * One ender eye, once. The reagent is the deviation this PR records: upstream's three-item
-     * {@code ItemCombination} has no form in {@link ModifierRecipe}, and {@code beheading.json}
-     * already reduced its own two-item combination to the single distinctive item the same way.
+     * Issue #780: upstream's real three-item combination, restored now that issue #776 gave
+     * {@link ModifierRecipe} a multi-item {@code require_all_reagents} form -- two glowstone dust and
+     * one ender eye, all three required at once. {@code beheading.json} still ships its own
+     * single-item reduction of a genuine upstream combo (see {@code ForgeweaveModifiers.BEHEADING}'s
+     * javadoc for why it isn't converted the same way).
      */
     @Test
-    void theShippedRecipeIsOneEnderEyeAppliedOnce() {
+    void theShippedRecipeIsTwoGlowstoneDustAndAnEnderEyeAppliedOnce() {
         ModifierRecipe recipe = shippedRecipe("/data/forgeweave/forgeweave/modifier_recipe/glowing.json");
 
         assertEquals(GLOWING, recipe.modifier());
         assertEquals(1, recipe.cost());
         assertEquals(1, recipe.maxLevel(), "upstream's DataAspect is one application, never a second");
-        assertTrue(recipe.reagent().test(new ItemStack(Items.ENDER_EYE)));
-        assertFalse(recipe.matches(new ItemStack(Items.GLOWSTONE_DUST)),
-                "glowstone dust alone must not apply glowing");
+        assertTrue(recipe.requireAllReagents(), "dust and eye are both required, not alternatives");
+        assertTrue(recipe.matches(new ItemStack(Items.ENDER_EYE)));
+        assertTrue(recipe.matches(new ItemStack(Items.GLOWSTONE_DUST)));
+        assertFalse(recipe.isSatisfiedBy(List.of(new ItemStack(Items.ENDER_EYE))),
+                "an ender eye alone is not the combo");
+        assertFalse(recipe.isSatisfiedBy(List.of(new ItemStack(Items.GLOWSTONE_DUST, 2))),
+                "glowstone dust alone is not the combo either");
+        assertTrue(recipe.isSatisfiedBy(List.of(
+                new ItemStack(Items.GLOWSTONE_DUST), new ItemStack(Items.ENDER_EYE), new ItemStack(Items.GLOWSTONE_DUST))),
+                "two dust plus the eye together satisfy the combo");
     }
 
     /** {@code DataAspect + freeModifier}: registered, one slot, and no stat hook of its own. */

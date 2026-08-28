@@ -124,14 +124,14 @@ class NetheriteModifierTest {
     }
 
     /**
-     * The clone's {@code upgrade/netherite.json}: one netherite upgrade smithing template, max
-     * level 1. Not a plain netherite ingot -- {@code modifier_recipe/extra_slot_netherite.json}
-     * (issue #107/#135) already claims that item as a reagent, and {@code ModifierApplication
-     * #recipeFor}'s reagent lookup picks the first recipe whose ingredient matches with no
-     * modifier-aware tie-break, so a second recipe on the same bare item would be permanently
-     * unreachable. The template is the one item upstream's own combo ingredient
-     * ({@code NETHERITE_UPGRADE_SMITHING_TEMPLATE} + an ingot) actually adds beyond what
-     * extra_slot already spends, and it collides with nothing else in this mod.
+     * Issue #780: the clone's {@code upgrade/netherite.json} in full -- a netherite upgrade smithing
+     * template <em>and</em> a netherite ingot, {@code require_all_reagents} true, max level 1. A bare
+     * ingot still {@link ModifierRecipe#matches} (it is one of this recipe's reagents too, same as
+     * {@code modifier_recipe/extra_slot_netherite.json}'s), but only the template-plus-ingot pair
+     * {@link ModifierRecipe#isSatisfiedBy} this recipe -- issue #776's specificity rule
+     * ({@code ModifierApplication#mostSpecific}) is what lets that shared ingot resolve to netherite
+     * when the template rides along and to extra_slot when it doesn't, so the two recipes no longer
+     * need mutually exclusive reagents.
      */
     @Test
     void theShippedRecipe() {
@@ -139,9 +139,17 @@ class NetheriteModifierTest {
         assertEquals(NETHERITE, recipe.modifier());
         assertEquals(1, recipe.cost());
         assertEquals(1, recipe.maxLevel());
+        assertTrue(recipe.requireAllReagents(), "template and ingot are both required, not alternatives");
         assertTrue(recipe.matches(new ItemStack(Items.NETHERITE_UPGRADE_SMITHING_TEMPLATE)));
-        assertFalse(recipe.matches(new ItemStack(Items.NETHERITE_INGOT)),
-                "a bare ingot stays extra_slot's reagent (modifier_recipe/extra_slot_netherite.json)");
+        assertTrue(recipe.matches(new ItemStack(Items.NETHERITE_INGOT)),
+                "a bare ingot is also one of this recipe's reagents now (extra_slot's tie is resolved by specificity)");
+        assertFalse(recipe.isSatisfiedBy(List.of(new ItemStack(Items.NETHERITE_UPGRADE_SMITHING_TEMPLATE))),
+                "a lone template is not the combo");
+        assertFalse(recipe.isSatisfiedBy(List.of(new ItemStack(Items.NETHERITE_INGOT))),
+                "a lone ingot is not the combo either -- it falls through to extra_slot instead");
+        assertTrue(recipe.isSatisfiedBy(
+                List.of(new ItemStack(Items.NETHERITE_UPGRADE_SMITHING_TEMPLATE), new ItemStack(Items.NETHERITE_INGOT))),
+                "both together satisfy the combo");
     }
 
     private static String translationKey(ModifierApplication.Outcome outcome) {
