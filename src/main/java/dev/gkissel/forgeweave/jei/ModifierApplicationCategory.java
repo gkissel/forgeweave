@@ -58,14 +58,27 @@ final class ModifierApplicationCategory implements IRecipeCategory<ModifierRecip
             new ItemStack(ForgeweaveItems.TOOL_HATCHET.get()));
 
     private static final int GUTTER = JeiCategoryChrome.GUTTER;
-    private static final int WIDTH = 140 + 2 * GUTTER;
-    private static final int HEIGHT = 38 + 2 * GUTTER;
+    private static final int SLOT_PITCH = 20;
+    private static final int TOOL_X = GUTTER;
+    private static final int REAGENTS_X = TOOL_X + SLOT_PITCH;
+    /**
+     * Issue #781: an AND recipe ({@code require_all_reagents}) needs one slot per declared reagent,
+     * side by side, in place of the OR reading's single cycling slot below -- {@link IRecipeCategory}
+     * has no per-recipe {@code getWidth()}, so the panel is sized for the worst case once, the same
+     * free-slot budget {@link EmbossingCategory} caps its own reagent row at: every one of the Tool
+     * Station's five free input slots ({@code menu.ToolStationMenu#INPUT_SLOTS}) could be a distinct
+     * AND reagent here, since (unlike embossing) no donor part claims one of them first.
+     */
+    private static final int MAX_REAGENT_SLOTS = 5;
     private static final int SLOT_Y = 10 + GUTTER;
-    private static final int ARROW_X = 42 + GUTTER;
-    private static final int TEXT_X = 66 + GUTTER;
+    private static final int ARROW_X = REAGENTS_X + MAX_REAGENT_SLOTS * SLOT_PITCH + 2;
+    private static final int TEXT_X = ARROW_X + 24;
     private static final int NAME_Y = 6 + GUTTER;
     private static final int LEVEL_CAP_Y = 20 + GUTTER;
     private static final int TEXT_COLOR = 0x404040;
+    private static final int TEXT_WIDTH = 74;
+    private static final int WIDTH = TEXT_X + TEXT_WIDTH + GUTTER;
+    private static final int HEIGHT = 38 + 2 * GUTTER;
 
     private final IDrawable icon;
     private final IDrawable arrow;
@@ -104,12 +117,22 @@ final class ModifierApplicationCategory implements IRecipeCategory<ModifierRecip
 
     @Override
     public void setRecipe(IRecipeLayoutBuilder builder, ModifierRecipe recipe, IFocusGroup focuses) {
-        builder.addSlot(RecipeIngredientRole.RENDER_ONLY, GUTTER, SLOT_Y).addItemStacks(ANY_TOOL);
-        // Every accepted reagent cycles through the one input slot (issue #259: haste shows redstone
-        // dust and the 9-unit redstone block as alternatives, the way a tag ingredient cycles).
-        IIngredientAcceptor<?> reagentSlot = builder.addInputSlot(GUTTER + 20, SLOT_Y);
-        for (ModifierRecipe.Reagent reagent : recipe.reagents()) {
-            reagentSlot.addIngredients(reagent.ingredient());
+        builder.addSlot(RecipeIngredientRole.RENDER_ONLY, TOOL_X, SLOT_Y).addItemStacks(ANY_TOOL);
+        if (recipe.requireAllReagents()) {
+            // Issue #781: an AND recipe needs every reagent visible at once, so each gets its own
+            // slot -- unlike the OR reading below, no cycling within a slot. recipe.reagentSlotCount()
+            // (also used by the guide book's ModifyPageContent) agrees this is reagents().size() slots.
+            List<ModifierRecipe.Reagent> reagents = recipe.reagents();
+            for (int i = 0; i < recipe.reagentSlotCount(); i++) {
+                builder.addInputSlot(REAGENTS_X + i * SLOT_PITCH, SLOT_Y).addIngredients(reagents.get(i).ingredient());
+            }
+        } else {
+            // Every accepted reagent cycles through the one input slot (issue #259: haste shows
+            // redstone dust and the 9-unit redstone block as alternatives, the way a tag ingredient cycles).
+            IIngredientAcceptor<?> reagentSlot = builder.addInputSlot(REAGENTS_X, SLOT_Y);
+            for (ModifierRecipe.Reagent reagent : recipe.reagents()) {
+                reagentSlot.addIngredients(reagent.ingredient());
+            }
         }
     }
 

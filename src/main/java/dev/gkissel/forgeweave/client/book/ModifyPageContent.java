@@ -10,6 +10,7 @@ import dev.gkissel.forgeweave.item.AmmoToolItem;
 import dev.gkissel.forgeweave.item.PartItem;
 import dev.gkissel.forgeweave.menu.ToolAssemblyRecipes;
 import dev.gkissel.forgeweave.modifier.Modifier;
+import dev.gkissel.forgeweave.modifier.ModifierRecipe;
 import dev.gkissel.forgeweave.tool.ToolConstants;
 
 /**
@@ -53,13 +54,24 @@ public final class ModifyPageContent {
     public static final int[] TOOL_SLOT_Y = {22, -4, -25, -4, 22};
 
     /**
-     * {@code ContentModifier#build}'s first slot offset inside the slot plate. Upstream sizes the
-     * plate by how many reagents one application consumes at once; every Forgeweave recipe consumes
-     * one (its {@code reagents} list is <em>alternatives</em>, which cycle in the one slot), so only
-     * {@link #SLOT_1} and offset 0 are ever drawn.
+     * {@code ContentModifier#build}'s slot offsets inside the slot plate, index = slot number. Every
+     * legacy OR recipe ({@code ModifierRecipe#requireAllReagents} false) still only ever draws index
+     * 0 -- its {@code reagents} list is <em>alternatives</em> that cycle in that one slot. Issue #781:
+     * an AND recipe needs one slot per declared reagent instead ({@link ModifierRecipe#reagentSlotCount}),
+     * up to the five upstream ever lays out.
      */
-    public static final int MODIFIER_SLOT_X = 3;
-    public static final int MODIFIER_SLOT_Y = 3;
+    public static final int[] MODIFIER_SLOT_X = {3, 21, 39, 12, 30};
+    public static final int[] MODIFIER_SLOT_Y = {3, 3, 3, 22, 22};
+
+    /** {@code ContentModifier#build}'s {@code switch(inCount)}: which plate frames that many slots. */
+    public static Sprite modifierSlotSprite(int slotCount) {
+        return switch (slotCount) {
+            case 0, 1 -> SLOT_1;
+            case 2 -> SLOT_2;
+            case 3 -> SLOT_3;
+            default -> SLOT_5;
+        };
+    }
 
     /** Upstream {@code tool.properties} / {@code modifier.effect}, the bullet lists' headers. */
     public static final String TOOL_PROPERTIES_TITLE = "book.forgeweave.tool.properties";

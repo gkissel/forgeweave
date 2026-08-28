@@ -704,28 +704,39 @@ public class BookScreen extends Screen {
     /**
      * {@code ContentModifier#build}'s diagram, one indivisible block. Upstream stacks, top to
      * bottom: the single-slot plate under the demo tool at {@code imgY - 27}, the tabletop at
-     * {@code imgY - 24}, the tinted slot plate at {@code imgY} with the reagent inside at offset
-     * (3,3). Forgeweave's recipes hold one reagent slot whose accepted items cycle (see
-     * {@link ModifyPageContent#MODIFIER_SLOT_X}), each naming itself on hover.
+     * {@code imgY - 24}, the tinted slot plate at {@code imgY} sized to how many reagent slots this
+     * recipe needs ({@link ModifyPageContent#modifierSlotSprite}), each slot's items inside at
+     * upstream's per-slot offset ({@link ModifyPageContent#MODIFIER_SLOT_X}). Issue #781: an AND
+     * recipe ({@code ModifierRecipe#requireAllReagents}) gets one slot per declared reagent, each
+     * naming itself on hover; the legacy OR reading still draws a single slot whose accepted items
+     * cycle together, exactly as before {@link ModifierRecipe#reagentSlotCount} existed.
      */
     private void modifierDiagramBlock(List<Block> blocks, ResourceLocation id) {
-        Sprite slot = ModifyPageContent.SLOT_1;
+        List<List<ItemStack>> reagentSlots = modifierReagentSlots(id);
+        Sprite slot = ModifyPageContent.modifierSlotSprite(reagentSlots.size());
         int sx = (PAGE_TEXT_W - slot.w()) / 2;
         int slotDy = 27; // the untinted plate over the demo tool sits 27 above the reagent plate
         ItemStack demo = modifierDemoTool(id);
-        List<ItemStack> reagents = modifierReagents(id);
-        List<Region> regions = reagents.isEmpty() ? List.of()
-                : List.of(new Region(sx + ModifyPageContent.MODIFIER_SLOT_X, slotDy + ModifyPageContent.MODIFIER_SLOT_Y,
-                        ITEM_SIZE, ITEM_SIZE, NO_TARGET, () -> cycled(reagents).getHoverName()));
+        List<Region> regions = new ArrayList<>();
+        for (int i = 0; i < reagentSlots.size(); i++) {
+            List<ItemStack> stacks = reagentSlots.get(i);
+            if (!stacks.isEmpty()) {
+                regions.add(new Region(sx + ModifyPageContent.MODIFIER_SLOT_X[i], slotDy + ModifyPageContent.MODIFIER_SLOT_Y[i],
+                        ITEM_SIZE, ITEM_SIZE, NO_TARGET, () -> cycled(stacks).getHoverName()));
+            }
+        }
         blocks.add(new Block(slotDy + slot.h() + 4, (graphics, x, y) -> {
             spriteBlit(graphics, ModifyPageContent.TABLE, x + sx + (slot.w() - ModifyPageContent.TABLE.w()) / 2,
                     y + 3, 0xFFFFFF);
             spriteBlit(graphics, slot, x + sx, y + slotDy, ModifyPageContent.SLOT_COLOR);
             graphics.renderItem(demo, x + sx + (slot.w() - ITEM_SIZE) / 2, y + 3);
             spriteBlit(graphics, ModifyPageContent.SLOT_1, x + sx, y, 0xFFFFFF);
-            if (!reagents.isEmpty()) {
-                graphics.renderItem(cycled(reagents), x + sx + ModifyPageContent.MODIFIER_SLOT_X,
-                        y + slotDy + ModifyPageContent.MODIFIER_SLOT_Y);
+            for (int i = 0; i < reagentSlots.size(); i++) {
+                List<ItemStack> stacks = reagentSlots.get(i);
+                if (!stacks.isEmpty()) {
+                    graphics.renderItem(cycled(stacks), x + sx + ModifyPageContent.MODIFIER_SLOT_X[i],
+                            y + slotDy + ModifyPageContent.MODIFIER_SLOT_Y[i]);
+                }
             }
         }, regions));
     }
@@ -773,25 +784,41 @@ public class BookScreen extends Screen {
     }
 
     /**
-     * The items the modifier's slot cycles through: every stack the shipped
-     * {@code modifier_recipe/<id>.json}'s reagents accept -- upstream {@code IModifierDisplay#getItems}.
-     * Empty outside a loaded world, which leaves the slot empty exactly as upstream leaves a
-     * modifier with no display items.
+     * The items each of the modifier's slots cycles through, one inner list per slot -- upstream
+     * {@code IModifierDisplay#getItems}. Empty outside a loaded world, which leaves every slot empty
+     * exactly as upstream leaves a modifier with no display items.
      */
-    private List<ItemStack> modifierReagents(ResourceLocation id) {
+    private List<List<ItemStack>> modifierReagentSlots(ResourceLocation id) {
         if (this.minecraft == null || this.minecraft.level == null) {
             return List.of();
         }
-        List<ItemStack> stacks = new ArrayList<>();
-        this.minecraft.level.registryAccess().registryOrThrow(ModifierRecipe.REGISTRY).stream()
+        return this.minecraft.level.registryAccess().registryOrThrow(ModifierRecipe.REGISTRY).stream()
                 .filter(recipe -> recipe.modifier().equals(id))
                 .findFirst()
-                .ifPresent(recipe -> {
-                    for (ModifierRecipe.Reagent reagent : recipe.reagents()) {
-                        Collections.addAll(stacks, reagent.ingredient().getItems());
-                    }
-                });
-        return List.copyOf(stacks);
+                .map(BookScreen::reagentSlotsOf)
+                .orElse(List.of());
+    }
+
+    /**
+     * One inner list per displayed slot (issue #781): an AND recipe keeps each declared
+     * {@link ModifierRecipe.Reagent} in its own slot instead of flattening them together, since none
+     * substitutes for another; the legacy OR reading still pools every reagent's items into the one
+     * slot they've always cycled in together. {@link ModifierRecipe#reagentSlotCount} is the same
+     * count this list's size always matches.
+     */
+    private static List<List<ItemStack>> reagentSlotsOf(ModifierRecipe recipe) {
+        if (recipe.requireAllReagents()) {
+            List<List<ItemStack>> slots = new ArrayList<>();
+            for (ModifierRecipe.Reagent reagent : recipe.reagents()) {
+                slots.add(List.of(reagent.ingredient().getItems()));
+            }
+            return slots;
+        }
+        List<ItemStack> cycling = new ArrayList<>();
+        for (ModifierRecipe.Reagent reagent : recipe.reagents()) {
+            Collections.addAll(cycling, reagent.ingredient().getItems());
+        }
+        return List.of(cycling);
     }
 
     /** A tinted region blit from the modify sheet -- {@code ElementImage} with a colour. */
