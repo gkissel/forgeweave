@@ -11,11 +11,13 @@ import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.phys.Vec3;
 
 import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
@@ -291,6 +293,83 @@ public class PartExchangeGameTests {
         ItemStack swapped = take(helper, player, forge);
         helper.assertTrue(IRON.equals(materialsOf(swapped).get(1)),
                 "the Tool Forge must swap the hammer head to iron, got " + materialsOf(swapped));
+        helper.succeed();
+    }
+
+    /**
+     * Issue #813: the part an exchange bumps out of the tool comes back to the player -- a deliberate
+     * deviation from both pinned upstream clones (see {@link ToolAssemblyRecipes#resolveExchange}'s
+     * javadoc), filed from a maintainer playtest and pinned here as the acceptance test the issue
+     * asked for. The tool's other parts, its modifiers and its damage state are untouched by the swap.
+     */
+    @GameTest(template = "empty")
+    public static void swappingAPartReturnsTheDisplacedPartToThePlayer(GameTestHelper helper) {
+        BlockPos pos = new BlockPos(1, 1, 1);
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        ItemStack pickaxe = ToolAssembly.pickaxe(helper, player, pos, "stone", "wood", "wood");
+        pickaxe.set(DataComponents.DAMAGE, 3);
+        pickaxe.set(ForgeweaveDataComponents.MODIFIERS.get(), modifiers("haste"));
+
+        ItemStack swapped = take(helper, player,
+                load(helper, player, pos, ForgeweaveBlocks.TOOL_STATION.get(), pickaxe,
+                        ToolAssembly.part(ForgeweaveItems.PART_PICKAXE_HEAD.get(), "iron")));
+
+        List<ItemStack> stoneHeads = player.getInventory().items.stream()
+                .filter(stack -> stack.is(ForgeweaveItems.PART_PICKAXE_HEAD.get()))
+                .toList();
+        helper.assertTrue(stoneHeads.size() == 1,
+                "the displaced head must land in the player's inventory exactly once, got " + stoneHeads);
+        ItemStack displaced = stoneHeads.get(0);
+        helper.assertTrue(displaced.getCount() == 1, "exactly the one displaced part, got " + displaced.getCount());
+        helper.assertTrue(material("stone").equals(displaced.get(ForgeweaveDataComponents.MATERIAL.get())),
+                "the displaced part must carry its own (old) material, got "
+                        + displaced.get(ForgeweaveDataComponents.MATERIAL.get()));
+
+        helper.assertTrue(material("wood").equals(materialsOf(swapped).get(1))
+                        && material("wood").equals(materialsOf(swapped).get(2)),
+                "the tool must keep its other parts, got " + materialsOf(swapped));
+        helper.assertTrue(modifiers("haste").equals(ForgeweaveModifiers.of(swapped)),
+                "the tool must keep its modifiers, got " + ForgeweaveModifiers.of(swapped));
+        helper.assertTrue(swapped.getDamageValue() == 3,
+                "the tool must keep its durability state, got " + swapped.getDamageValue());
+        helper.succeed();
+    }
+
+    /**
+     * Issue #813's other half: upstream never faces this case (it never gives anything back to not
+     * fit), so there is no clone behavior to mirror. This follows {@code ToolStationMenu
+     * #returnUnusableInputs}'s own precedent elsewhere in this station -- give it to the player if it
+     * fits, drop it at their feet otherwise -- rather than silently destroying the displaced part.
+     */
+    @GameTest(template = "empty")
+    public static void aFullInventoryDropsTheDisplacedPartAtThePlayersFeet(GameTestHelper helper) {
+        BlockPos pos = new BlockPos(1, 1, 1);
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        // SpawnCapture reads world-space position, and a mock player is not placed inside the test
+        // structure by default (see BeheadingGameTests#playerHeadCarriesVictimProfile's own moveTo) --
+        // without this the drop lands wherever the mock spawned and the capture below sees nothing.
+        Vec3 stand = helper.absoluteVec(pos.getCenter());
+        player.moveTo(stand.x, stand.y, stand.z);
+        ItemStack pickaxe = ToolAssembly.pickaxe(helper, player, pos, "stone", "wood", "wood");
+        player.getInventory().items.replaceAll(stack -> new ItemStack(Items.COBBLESTONE, 64));
+
+        ToolStationMenu menu = load(helper, player, pos, ForgeweaveBlocks.TOOL_STATION.get(), pickaxe,
+                ToolAssembly.part(ForgeweaveItems.PART_PICKAXE_HEAD.get(), "iron"));
+        ItemStack output = menu.getSlot(ToolStationMenu.OUTPUT_SLOT).getItem().copy();
+        helper.assertFalse(output.isEmpty(), "expected the station to produce a swap"
+                + (menu.rejection() == null ? "" : "; it says: " + menu.rejection().message().getString()));
+
+        List<ItemEntity> drops = SpawnCapture.spawnedDuring(helper, ItemEntity.class,
+                () -> menu.getSlot(ToolStationMenu.OUTPUT_SLOT).onTake(player, output));
+
+        helper.assertTrue(drops.size() == 1,
+                "a full inventory must drop the displaced part instead of losing it, got " + drops.size());
+        ItemStack dropped = drops.get(0).getItem();
+        helper.assertTrue(dropped.is(ForgeweaveItems.PART_PICKAXE_HEAD.get()),
+                "the dropped stack must be the displaced pickaxe head, got " + dropped);
+        helper.assertTrue(material("stone").equals(dropped.get(ForgeweaveDataComponents.MATERIAL.get())),
+                "the dropped part must carry its own (old) material, got "
+                        + dropped.get(ForgeweaveDataComponents.MATERIAL.get()));
         helper.succeed();
     }
 
