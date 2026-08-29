@@ -1,6 +1,6 @@
-# Forgeweave 0.4.0-beta.2 — checklist de playtest (pt-BR)
+# Forgeweave 0.4.0-beta.3 — checklist de playtest (pt-BR)
 
-Build: `forgeweave-0.4.0-beta.2.jar` (Release `mc1.21.1-v0.4.0-beta.2`), MC 1.21.1 + NeoForge, servidor dedicado, mundo novo, sem cheats. "!" = parcial.
+Build: `forgeweave-0.4.0-beta.3.jar` (Release `mc1.21.1-v0.4.0-beta.3`), MC 1.21.1 + NeoForge, servidor dedicado, mundo novo, sem cheats. "!" = parcial.
 
 Esta tag fecha o **M4 (armors)** e traz a rodada de correções do playtest da beta.1 (#693–#790) mais armadura pesada, voos, Armor Station, JEI reformulado e o novo modifier de veinmine. **A promessa de save-compat vale a partir daqui** (linha 0.4.x): a seção G é obrigatória. Defeitos viram issues `needs-triage`.
 
@@ -51,6 +51,13 @@ Esta tag fecha o **M4 (armors)** e traz a rodada de correções do playtest da b
 32.b [ ] **Pacote Legacy** aparece em Opções > Pacotes de Recursos, liga sem erro e devolve o visual antigo; desligar volta ao Forged.
 32.c [ ] **Itens nas estações ficam sobre a mesa**, não no meio do bloco (Crafting Station, Stencil Table, Part Builder, Tool Station, Tool Forge, Armor Station).
 32.d [ ] **Livro e JEI** ilustram cada modifier com algo que ele aceita: expansores de largura/altura numa ferramenta de mineração, wind burst na warmace, voos na peitoral heavy.
+
+## D3. Arte e JEI (beta.3)
+32.e [ ] **Marcas dos casts centralizadas** no molde, em todas as peças (era o defeito da beta.2).
+32.f [ ] **Katana montada** usa a lâmina, o binding e o cabo novos; a versão quebrada é a desenhada à mão.
+32.g [ ] **Sprites do segundo lote** aparecem: ponta e haste de flecha, cabeça de machado, limbo e corda de arco, cabo de ferramenta, topo da Armor Station. Conferir no item **e** na ferramenta montada.
+32.h [ ] **JEI igual ao 1.20**: cada categoria com o painel do upstream, sem área cinza sobrando, sem slot fantasma, sem seta duplicada; fluidos com textura, não cor chapada. Ver alloying, casting (mesa e bacia), melting, modifiers, embossing, part crafting, reparo e as três de montagem.
+32.i [ ] **Bindings por ferramenta ainda são os antigos** (pickaxe, shovel, hatchet, kama, warmace, battleaxe, excavator, lumberaxe, vein hammer) — esperado, falta arte do designer.
 
 ## E. Revisão visual (nenhum agente conseguiu ver isto rodando)
 33. [ ] Telas do JEI, cenas do Ponder, grid de seleção e preview da Tool/Armor Station, armadura vestida (ferro, cobalto, obsidiana) em 1ª e 3ª pessoa. Compare com `build/screenshots/` rodando `scripts/screenshots.sh`.
