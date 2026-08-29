@@ -770,14 +770,16 @@ public class BookScreen extends Screen {
      * {@code ContentModifier#getDemoTools}: a demo tool with one level of the modifier applied, so
      * modifier art and glint show on it. Issue #760: upstream's own {@code demoTool} default was
      * always a pickaxe, illustrating every modifier -- including armor-only and projectile-only ones
-     * that can never actually take it -- with the wrong picture; {@link
-     * ModifyPageContent#representativeEntry} instead picks the assembly entry the modifier's own
-     * predicates admit.
+     * that can never actually take it -- with the wrong picture. Issue #794: {@link
+     * ModifyPageContent#representativeEntry} originally trusted a category heuristic alone, which was
+     * itself wrong for the width/height expanders and others; it now asks {@link
+     * dev.gkissel.forgeweave.modifier.ModifierApplication#acceptsToolShape} -- the Tool Station's own
+     * gate -- so the picked entry is compatible by construction.
      */
     private ItemStack modifierDemoTool(ResourceLocation id) {
         Modifier modifier = ForgeweaveModifiers.get(id);
         ToolAssemblyRecipes.Entry entry =
-                ModifyPageContent.representativeEntry(modifier != null ? modifier : new Modifier() {});
+                ModifyPageContent.representativeEntry(registries(), modifier != null ? modifier : new Modifier() {});
         ItemStack demo = demoTool(entry);
         demo.set(ForgeweaveDataComponents.MODIFIERS.get(), List.of(new ModifierEntry(id, 1)));
         return demo;
