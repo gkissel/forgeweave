@@ -35,10 +35,13 @@ from pathlib import Path
 
 from PIL import Image
 
+from sprite_sets import legacy_input, save_legacy_if_different
+
 ROOT = Path(__file__).resolve().parent.parent
 UPSTREAM = Path.home() / "development/minecraft/references/tinkers-1.12"
 TEXTURE_DIR = ROOT / "src/main/resources/assets/forgeweave/textures/derived/item"
 CAST_BASE = TEXTURE_DIR / "cast.png"
+LEGACY_SUBDIR = "derived/item"  # issue #796, see scripts/sprite_sets.py
 
 LARGE_PLATE_CAST_SOURCE = UPSTREAM / "resources/assets/tconstruct/textures/items/cast_large_plate.png"
 LARGE_PLATE_CAST_OUTPUT = TEXTURE_DIR / "cast_large_plate.png"
@@ -144,6 +147,15 @@ def main() -> None:
 
     shutil.copyfile(LARGE_PLATE_CAST_SOURCE, LARGE_PLATE_CAST_OUTPUT)
     print(f"wrote {LARGE_PLATE_CAST_OUTPUT.name} (byte-for-byte copy, not composited)")
+
+    # Issue #796: the Legacy pack's pass -- see generate_pattern_textures.py's main() for the shape,
+    # and scripts/sprite_sets.py's module docstring for why most of these end up writing nothing.
+    legacy_cast = Image.open(legacy_input(LEGACY_SUBDIR, "cast.png")).convert("RGBA")
+    for part_name, output_name in PARTS:
+        legacy_part = Image.open(legacy_input(LEGACY_SUBDIR, part_name)).convert("RGBA")
+        save_legacy_if_different(composite(legacy_cast, legacy_part), LEGACY_SUBDIR, output_name)
+    large_plate_cast = Image.open(LARGE_PLATE_CAST_SOURCE).convert("RGBA")
+    save_legacy_if_different(large_plate_cast, LEGACY_SUBDIR, LARGE_PLATE_CAST_OUTPUT.name)
 
 
 if __name__ == "__main__":

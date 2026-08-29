@@ -64,10 +64,13 @@ from pathlib import Path
 
 from PIL import Image
 
+from sprite_sets import legacy_input, save_legacy_if_different
+
 ROOT = Path(__file__).resolve().parent.parent
 UPSTREAM_1_12 = Path.home() / "development/minecraft/references/tinkers-1.12/resources/assets/tconstruct/textures/items"
 
 DERIVED_TOOLS = ROOT / "src/main/resources/assets/forgeweave/textures/derived/tools"
+LEGACY_SUBDIR = "derived/tools"  # issue #796, see scripts/sprite_sets.py
 
 # Forgeweave "<tool>_<layer>" -> upstream file, straight ports. See the module docstring's table.
 PORTED = {
@@ -151,6 +154,14 @@ def main() -> None:
         path.parent.mkdir(parents=True, exist_ok=True)
         image.save(path)
         print(f"wrote {path}")
+
+    # Issue #796: the Legacy pack's pass. Only CHIPPED can ever differ between sets -- each entry
+    # chips whatever derived/tools/<name>.png currently is, and that is the one input here a Forged
+    # sprite could someday override (see scripts/sprite_sets.py). PORTED comes straight from the
+    # upstream clone, which the two sets always share, so it has no Legacy-pack counterpart to derive.
+    for name in CHIPPED:
+        legacy_intact = legacy_input(LEGACY_SUBDIR, f"{name}.png")
+        save_legacy_if_different(chip(Image.open(legacy_intact).convert("RGBA")), LEGACY_SUBDIR, f"{name}_broken.png")
 
 
 if __name__ == "__main__":

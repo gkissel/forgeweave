@@ -28,10 +28,17 @@ from pathlib import Path
 
 from PIL import Image
 
+from sprite_sets import legacy_input, save_legacy_if_different
+
 ROOT = Path(__file__).resolve().parent.parent
 UPSTREAM = Path.home() / "development/minecraft/references/tinkers-1.12"
 TEXTURE_DIR = ROOT / "src/main/resources/assets/forgeweave/textures/derived/item"
 PATTERN_BASE = TEXTURE_DIR / "pattern.png"
+
+# Issue #796: since a Forged sprite replaced it, the shared blank pattern the Legacy pack's part
+# composites below are built from. Falls back to PATTERN_BASE itself once a Forged pattern.png has
+# no Legacy override left to give -- see legacy_input's docstring.
+LEGACY_SUBDIR = "derived/item"
 
 # (part silhouette texture, composite output texture, source directory, (offsetX, offsetY))
 #
@@ -190,6 +197,18 @@ def main() -> None:
 
     shutil.copyfile(LARGE_PLATE_PATTERN_SOURCE, LARGE_PLATE_PATTERN_OUTPUT)
     print(f"wrote {LARGE_PLATE_PATTERN_OUTPUT.name} (byte-for-byte copy, not composited)")
+
+    # Issue #796: the Legacy pack's pass over the same table, reading each input through
+    # legacy_input (the Legacy pack's own override if it has one, else the Forged/default file the
+    # first loop above just used) and only actually writing a Legacy file where the result differs
+    # from what that first loop produced. See scripts/sprite_sets.py's module docstring.
+    legacy_pattern = Image.open(legacy_input(LEGACY_SUBDIR, "pattern.png")).convert("RGBA")
+    for part_name, output_name, _part_dir, offset in PARTS:
+        legacy_part = Image.open(legacy_input(LEGACY_SUBDIR, part_name)).convert("RGBA")
+        legacy_composite = composite(legacy_pattern, legacy_part, offset)
+        save_legacy_if_different(legacy_composite, LEGACY_SUBDIR, output_name)
+    large_plate_pattern = Image.open(LARGE_PLATE_PATTERN_SOURCE).convert("RGBA")
+    save_legacy_if_different(large_plate_pattern, LEGACY_SUBDIR, LARGE_PLATE_PATTERN_OUTPUT.name)
 
 
 if __name__ == "__main__":

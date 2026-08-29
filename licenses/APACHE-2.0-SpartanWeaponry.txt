@@ -29,7 +29,7 @@ responsible for and do not endorse the modified results.
 
 Derived files, and the upstream file each comes from:
 
-    src/main/resources/assets/forgeweave/textures/derived/item/katana_blade.png
+    src/main/resources/resourcepacks/legacy/assets/forgeweave/textures/derived/item/katana_blade.png
     src/main/resources/assets/forgeweave/textures/derived/tools/katana_head.png
         <- assets/spartanweaponry/textures/items/custom/katana_layer_1.png
 
@@ -37,9 +37,13 @@ Derived files, and the upstream file each comes from:
     src/main/resources/assets/forgeweave/textures/derived/tools/scimitar_head.png
         <- assets/spartanweaponry/textures/items/custom/saber_layer_1.png
 
-(The two Forgeweave files in each pair are the same pixels written to two paths: a part icon and a
-tool layer, the one-file-serves-both convention the rest of the pack uses. The broken-tool and
-composite textures generated from them are listed as separate rows in NOTICE.md.)
+(The two Forgeweave files in each pair started as the same pixels written to two paths: a part icon
+and a tool layer, the one-file-serves-both convention the rest of the pack uses. Issue #796's Forged
+sprite batch replaced `katana_blade.png` at its default path with original art, so its modified
+Spartan Weaponry pixels now ship only under the built-in Legacy resource pack -- see
+`ForgeweaveResourcePacks` and NOTICE.md's `katana_blade.png` row; `katana_head.png` is unaffected and
+still ships at its original default path. The broken-tool and composite textures generated from
+these are listed as separate rows in NOTICE.md.)
 
 The modifications, all performed by scripts/derive_spartan_blade_art.py:
 
