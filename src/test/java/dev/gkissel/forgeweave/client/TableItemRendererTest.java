@@ -45,15 +45,15 @@ class TableItemRendererTest {
 
     @Test
     void flatCenterIsAConstantIndependentOfScale() {
-        assertEquals(0.53125f, TableItemRenderer.FLAT_CENTER_Y, TOLERANCE);
+        assertEquals(1.03125f, TableItemRenderer.FLAT_CENTER_Y, TOLERANCE);
         assertEquals(TableItemRenderer.centerY(new ItemStack(Items.PAPER), 0.1f),
                 TableItemRenderer.centerY(new ItemStack(Items.PAPER), 0.8f), TOLERANCE);
     }
 
-    /** Upstream's default standing case: {@code y=-0.3125f} -> block-local {@code 0.6875f} at scale 0.375f. */
+    /** Upstream's default standing case: {@code y=-0.3125f} -> block-local {@code 1.1875f} at scale 0.375f. */
     @Test
     void standingCubeSitsWithItsOwnBottomOnTheSurface() {
-        assertEquals(0.6875f, TableItemRenderer.standingCenterY(0.375f), TOLERANCE);
+        assertEquals(1.1875f, TableItemRenderer.standingCenterY(0.375f), TOLERANCE);
         assertEquals(TableItemRenderer.SURFACE_Y,
                 TableItemRenderer.standingCenterY(0.375f) - 0.375f / 2f, TOLERANCE);
     }

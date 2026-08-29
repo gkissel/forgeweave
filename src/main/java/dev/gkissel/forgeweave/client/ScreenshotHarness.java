@@ -70,15 +70,18 @@ import net.neoforged.neoforge.fluids.capability.templates.FluidTank;
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.block.CastingBlockEntity;
 import dev.gkissel.forgeweave.block.ChestBlockEntity;
+import dev.gkissel.forgeweave.block.CraftingStationBlockEntity;
 import dev.gkissel.forgeweave.client.book.BookContent;
 import dev.gkissel.forgeweave.client.book.BookScreen;
 import dev.gkissel.forgeweave.block.FaucetBlock;
 import dev.gkissel.forgeweave.block.FaucetBlockEntity;
 import dev.gkissel.forgeweave.block.ForgeweaveBlocks;
+import dev.gkissel.forgeweave.block.PartBuilderBlockEntity;
 import dev.gkissel.forgeweave.block.SearedTankBlockEntity;
 import dev.gkissel.forgeweave.block.SmelteryControllerBlock;
 import dev.gkissel.forgeweave.block.SmelteryControllerBlockEntity;
 import dev.gkissel.forgeweave.block.StationMenuHost;
+import dev.gkissel.forgeweave.block.StencilTableBlockEntity;
 import dev.gkissel.forgeweave.block.ToolStationBlockEntity;
 import dev.gkissel.forgeweave.fluid.ForgeweaveFluids;
 import dev.gkissel.forgeweave.item.ArmorPieceItem;
@@ -89,7 +92,9 @@ import dev.gkissel.forgeweave.item.CrossbowItem;
 import dev.gkissel.forgeweave.item.ForgeweaveDataComponents;
 import dev.gkissel.forgeweave.item.ForgeweaveItems;
 import dev.gkissel.forgeweave.item.ToolItem;
+import dev.gkissel.forgeweave.menu.PartBuilderMenu;
 import dev.gkissel.forgeweave.menu.SmelteryMenu;
+import dev.gkissel.forgeweave.menu.StencilTableMenu;
 import dev.gkissel.forgeweave.menu.ToolAssemblyRecipes;
 import dev.gkissel.forgeweave.menu.ToolStationMenu;
 import dev.gkissel.forgeweave.menu.ToolStationTabs;
@@ -194,6 +199,14 @@ public final class ScreenshotHarness {
     private static final int TABLE_SCENE_DISTANCE = 4;
     private static final int TABLE_SCENE_SPACING = 2;
     private static final int TABLE_SCENE_CAMERA_PULLBACK = 2;
+    /**
+     * #795's row -- Crafting Station, Stencil Table and Part Builder, the three table stations with
+     * no existing no-GUI world scene to add an item to. Offset well clear of every other scene the
+     * same way {@link #CASTING_SCENE_OFFSET_X} and {@link #TOOL_SCENE_OFFSET} are.
+     */
+    private static final int STATION_ITEMS_SCENE_OFFSET_X = 20;
+    private static final int STATION_ITEMS_SCENE_SPACING = 2;
+    private static final int STATION_ITEMS_SCENE_CAMERA_PULLBACK = 3;
     /** One entry per station screen; see "Extending for M2" above. */
     private static final List<HarnessScreen> SCREENS = List.of(
             new HarnessScreen("part_builder", ForgeweaveBlocks.PART_BUILDER),
@@ -431,7 +444,8 @@ public final class ScreenshotHarness {
 
     private enum Stage {
         AWAIT_TITLE, AWAIT_WORLD, SETTLE_WORLD, PLACE_TANK_SCENE, SETTLE_TANK_SCENE,
-        PLACE_TABLE_SCENE, SETTLE_TABLE_SCENE, PLACE_SMELTERY_SCENE, SETTLE_SMELTERY_SCENE,
+        PLACE_TABLE_SCENE, SETTLE_TABLE_SCENE, PLACE_STATION_ITEMS_SCENE, SETTLE_STATION_ITEMS_SCENE,
+        PLACE_SMELTERY_SCENE, SETTLE_SMELTERY_SCENE,
         PLACE_CASTING_SCENE, SETTLE_CASTING_SCENE, PLACE_MATERIAL_SCENE, SETTLE_MATERIAL_SCENE,
         PLACE_PART_TINT_SCENE, SETTLE_PART_TINT_SCENE,
         HOLD_WEAPON, SETTLE_WEAPON, SETTLE_WEAPON_FIRST_PERSON,
@@ -463,6 +477,12 @@ public final class ScreenshotHarness {
     private static int armorSceneIndex;
     /** Set by {@link #placeTableScene}, checked by {@link #settleTableScene} before capture (#152). */
     private static BlockPos[] tableScenePositions;
+    /**
+     * Set by {@link #placeStationItemsScene}, checked by {@link #settleStationItemsScene} before
+     * capture (#795: an item sitting in each of these so a playtest can eyeball the table-surface
+     * fix without having to open a menu first).
+     */
+    private static BlockPos[] stationItemsScenePositions;
     /** Set by {@link #placeSmelteryScene}, checked by {@link #settleSmelteryScene} before capture (#179). */
     private static BlockPos smelteryScenePos;
     /** Set by {@link #placeCastingScene}, checked by {@link #settleCastingScene} before capture (#182). */
@@ -531,6 +551,8 @@ public final class ScreenshotHarness {
             case SETTLE_TANK_SCENE -> settleTankScene(mc);
             case PLACE_TABLE_SCENE -> placeTableScene(mc);
             case SETTLE_TABLE_SCENE -> settleTableScene(mc);
+            case PLACE_STATION_ITEMS_SCENE -> placeStationItemsScene(mc);
+            case SETTLE_STATION_ITEMS_SCENE -> settleStationItemsScene(mc);
             case PLACE_SMELTERY_SCENE -> placeSmelteryScene(mc);
             case SETTLE_SMELTERY_SCENE -> settleSmelteryScene(mc);
             case PLACE_CASTING_SCENE -> placeCastingScene(mc);
@@ -751,6 +773,11 @@ public final class ScreenshotHarness {
             level.setBlockAndUpdate(stationPos, ForgeweaveBlocks.TOOL_STATION.get().defaultBlockState());
             level.setBlockAndUpdate(forgePos, ForgeweaveBlocks.TOOL_FORGE.get().defaultBlockState());
             LOGGER.info("{}placed station={} forge={}", LOG_PREFIX, stationPos, forgePos);
+            // #795: a head+handle in each, reusing #733's own loader, so this no-GUI capture also
+            // shows an item sitting on the table surface (the Armor Station shares this same block
+            // entity and renderer, so it needs no scene of its own).
+            loadPickaxeParts(level, stationPos);
+            loadPickaxeParts(level, forgePos);
 
             // Between the two, so neither is seen edge-on, and far enough back that both fit.
             BlockPos cameraPos = stationPos.offset(TABLE_SCENE_SPACING / 2, 0,
@@ -783,6 +810,73 @@ public final class ScreenshotHarness {
             }
         }
         capture(mc, "tool_forge_world");
+        advance(Stage.PLACE_STATION_ITEMS_SCENE);
+    }
+
+    /**
+     * Issue #795's world scene: Crafting Station, Stencil Table and Part Builder in a row, each
+     * holding an item, captured with no GUI open as {@code station_items_world.png} -- the artifact
+     * for "an item on a table top sits flush with the surface, not embedded down in the leg". The
+     * Tool Station/Tool Forge/Armor Station family shares one block entity and renderer ({@link
+     * ToolStationBlockEntity}), so {@link #placeTableScene} above carries an item too instead of
+     * this scene duplicating a fourth station.
+     */
+    private static void placeStationItemsScene(Minecraft mc) {
+        var server = mc.getSingleplayerServer();
+        LOGGER.info("{}placing Crafting Station/Stencil Table/Part Builder item world scene near {}",
+                LOG_PREFIX, origin);
+        server.execute(() -> {
+            ServerPlayer serverPlayer = server.getPlayerList().getPlayers().get(0);
+            ServerLevel level = serverPlayer.serverLevel();
+            BlockPos craftingPos = origin.offset(-STATION_ITEMS_SCENE_OFFSET_X, 0, 0);
+            BlockPos stencilPos = craftingPos.offset(STATION_ITEMS_SCENE_SPACING, 0, 0);
+            BlockPos partBuilderPos = stencilPos.offset(STATION_ITEMS_SCENE_SPACING, 0, 0);
+            stationItemsScenePositions = new BlockPos[] {craftingPos, stencilPos, partBuilderPos};
+
+            level.setBlockAndUpdate(craftingPos, ForgeweaveBlocks.CRAFTING_STATION.get().defaultBlockState());
+            level.setBlockAndUpdate(stencilPos, ForgeweaveBlocks.STENCIL_TABLE.get().defaultBlockState());
+            level.setBlockAndUpdate(partBuilderPos, ForgeweaveBlocks.PART_BUILDER.get().defaultBlockState());
+
+            // One standing block and one flat item so the capture shows both of
+            // TableItemRenderer's orientations, not just one.
+            if (level.getBlockEntity(craftingPos) instanceof CraftingStationBlockEntity crafting) {
+                crafting.container().setItem(0, new ItemStack(Items.IRON_BLOCK));
+                crafting.container().setItem(1, new ItemStack(ForgeweaveItems.PATTERN_PICKAXE_HEAD.get()));
+            }
+            if (level.getBlockEntity(stencilPos) instanceof StencilTableBlockEntity stencil) {
+                stencil.container().setItem(StencilTableMenu.INPUT_SLOT,
+                        new ItemStack(ForgeweaveItems.PATTERN_PICKAXE_HEAD.get()));
+            }
+            if (level.getBlockEntity(partBuilderPos) instanceof PartBuilderBlockEntity partBuilder) {
+                partBuilder.container().setItem(PartBuilderMenu.MATERIAL_SLOT, new ItemStack(Items.IRON_BLOCK));
+            }
+
+            BlockPos cameraPos = stencilPos.offset(0, 0, -STATION_ITEMS_SCENE_CAMERA_PULLBACK);
+            serverPlayer.teleportTo(cameraPos.getX() + 0.5, cameraPos.getY(), cameraPos.getZ() + 0.5);
+            serverPlayer.lookAt(EntityAnchorArgument.Anchor.EYES,
+                    new Vec3(stencilPos.getX() + 0.5, stencilPos.getY() + 0.6, stencilPos.getZ() + 0.5));
+        });
+        advance(Stage.SETTLE_STATION_ITEMS_SCENE);
+    }
+
+    private static void settleStationItemsScene(Minecraft mc) {
+        if (stageTicks < SCREEN_SETTLE_TICKS) {
+            return;
+        }
+        if (mc.level != null && stationItemsScenePositions != null) {
+            for (BlockPos pos : stationItemsScenePositions) {
+                var block = mc.level.getBlockState(pos).getBlock();
+                if (block == Blocks.AIR) {
+                    LOGGER.error("{}#795 scene check FAILED: client sees air at {}", LOG_PREFIX, pos);
+                } else if (mc.level.getBlockEntity(pos) == null) {
+                    LOGGER.error("{}#795 scene check FAILED: client sees {} at {} but no block entity",
+                            LOG_PREFIX, block, pos);
+                } else {
+                    LOGGER.info("{}#795 scene check: client sees {} at {}", LOG_PREFIX, block, pos);
+                }
+            }
+        }
+        capture(mc, "station_items_world");
         advance(Stage.PLACE_SMELTERY_SCENE);
     }
 
