@@ -3,13 +3,18 @@ package dev.gkissel.forgeweave.client.book;
 import java.util.List;
 import java.util.function.Predicate;
 
+import javax.annotation.Nullable;
+
+import net.minecraft.core.HolderLookup;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.item.ItemStack;
 
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.item.AmmoToolItem;
 import dev.gkissel.forgeweave.item.PartItem;
 import dev.gkissel.forgeweave.menu.ToolAssemblyRecipes;
 import dev.gkissel.forgeweave.modifier.Modifier;
+import dev.gkissel.forgeweave.modifier.ModifierApplication;
 import dev.gkissel.forgeweave.modifier.ModifierRecipe;
 import dev.gkissel.forgeweave.tool.ToolConstants;
 
@@ -107,33 +112,60 @@ public final class ModifyPageContent {
     }
 
     /**
-     * The demo tool the modifier page's diagram illustrates (issue #760). Upstream's own
-     * {@code ContentModifier} always painted its {@code demoTool} default, a pickaxe, no matter what
-     * the modifier actually applied to; this instead reads the modifier's own predicates -- exactly
-     * the ones {@link dev.gkissel.forgeweave.modifier.ModifierApplication} gates application on --
-     * and returns the first {@link ToolAssemblyRecipes.Entry} of the matching category, so a new
-     * modifier's picture is correct the moment it declares its predicate, with no per-modifier table
-     * to keep in sync: an ammo item for {@link Modifier#projectileOnly} (the same {@code
-     * AmmoToolItem} check {@code ModifierApplication} makes), a harvest tool for {@link
-     * Modifier#harvestOnly}, an armor piece for {@link Modifier#armorOnly}, a melee weapon for
-     * everything else (haste, luck, silky, reinforced, soulbound and the rest, which apply broadly).
+     * The demo tool the modifier page's diagram illustrates, first of {@link #compatibleEntries}.
+     * Issue #760 picked a category by the modifier's predicates alone (projectileOnly, harvestOnly,
+     * armorOnly, else melee) and trusted every entry of that category to accept it; issue #794 found
+     * that false for the width/height expanders (Category.AOE, no melee weapon has an expandable
+     * area) and, the same hole, wind burst (mace-only) and elytra/creative flight (heavy-chestplate-
+     * only) -- see {@link #compatibleEntries}'s javadoc for the fix.
      */
-    public static ToolAssemblyRecipes.Entry representativeEntry(Modifier modifier) {
-        if (modifier.projectileOnly()) {
-            return firstEntry(entry -> entry.tool().get() instanceof AmmoToolItem);
-        }
-        if (modifier.harvestOnly()) {
-            return firstEntry(entry -> entry.constants().category() == ToolConstants.Category.HARVEST);
-        }
-        if (modifier.armorOnly()) {
-            return firstEntry(entry -> entry.constants().category() == ToolConstants.Category.ARMOR);
-        }
-        return firstEntry(entry -> entry.constants().category() == ToolConstants.Category.MELEE);
+    public static ToolAssemblyRecipes.Entry representativeEntry(@Nullable HolderLookup.Provider registries, Modifier modifier) {
+        return compatibleEntries(registries, modifier).stream().findFirst()
+                .orElseThrow(() -> new IllegalStateException("no assembly entry accepts this modifier"));
     }
 
-    private static ToolAssemblyRecipes.Entry firstEntry(Predicate<ToolAssemblyRecipes.Entry> match) {
-        return ToolAssemblyRecipes.ENTRIES.stream().filter(match).findFirst()
-                .orElseThrow(() -> new IllegalStateException("no assembly entry matches the requested category"));
+    /**
+     * Every {@link ToolAssemblyRecipes.Entry} this modifier actually accepts, in assembly-entry
+     * order (issue #794). {@link #representativeEntry} is just this list's first element; the JEI
+     * {@code ModifierApplicationCategory} uses the whole list to cycle its render-only tool slot
+     * through nothing but tools the recipe applies to.
+     *
+     * <p>Prefers a natural example when the modifier's own predicates narrow it to one category --
+     * an ammo item for {@link Modifier#projectileOnly} (the same {@code AmmoToolItem} check {@link
+     * ModifierApplication#acceptsToolShape} makes), a harvest tool for {@link Modifier#harvestOnly},
+     * an armor piece for {@link Modifier#armorOnly}, a melee weapon for everything else (haste, luck,
+     * silky, reinforced, soulbound and the rest, which apply broadly) -- then falls back to scanning
+     * every entry when nothing in that preferred category actually qualifies: the two AoE expanders
+     * (no melee weapon has an expandable area; a harvest tool does), wind burst (no plain sword is
+     * {@code #minecraft:enchantable/mace}; the warmace is), and elytra/creative flight ({@link
+     * Modifier#heavyChestplateOnly} rules out every plain armor piece; the heavy chestplate qualifies).
+     * A modifier that fits nothing at all ({@link ModifierApplication#acceptsToolShape} refuses every
+     * entry) is a data bug this throws loudly on rather than illustrating with the wrong item anyway.
+     */
+    public static List<ToolAssemblyRecipes.Entry> compatibleEntries(@Nullable HolderLookup.Provider registries, Modifier modifier) {
+        Predicate<ToolAssemblyRecipes.Entry> preferredCategory;
+        if (modifier.projectileOnly()) {
+            preferredCategory = entry -> entry.tool().get() instanceof AmmoToolItem;
+        } else if (modifier.harvestOnly()) {
+            preferredCategory = entry -> entry.constants().category() == ToolConstants.Category.HARVEST;
+        } else if (modifier.armorOnly()) {
+            preferredCategory = entry -> entry.constants().category() == ToolConstants.Category.ARMOR;
+        } else {
+            preferredCategory = entry -> entry.constants().category() == ToolConstants.Category.MELEE;
+        }
+        List<ToolAssemblyRecipes.Entry> preferred = matching(registries, modifier, preferredCategory);
+        if (!preferred.isEmpty()) {
+            return preferred;
+        }
+        return matching(registries, modifier, entry -> true);
+    }
+
+    private static List<ToolAssemblyRecipes.Entry> matching(@Nullable HolderLookup.Provider registries, Modifier modifier,
+            Predicate<ToolAssemblyRecipes.Entry> category) {
+        return ToolAssemblyRecipes.ENTRIES.stream()
+                .filter(category)
+                .filter(entry -> ModifierApplication.acceptsToolShape(registries, modifier, new ItemStack(entry.tool().get())))
+                .toList();
     }
 
     /** {@code <tool description id>.property.<n>} -- one "Properties:" bullet, collected while it exists. */

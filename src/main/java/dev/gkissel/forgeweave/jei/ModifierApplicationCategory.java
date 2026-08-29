@@ -5,6 +5,7 @@ import java.util.List;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
@@ -20,7 +21,10 @@ import mezz.jei.api.recipe.RecipeType;
 import mezz.jei.api.recipe.category.IRecipeCategory;
 
 import dev.gkissel.forgeweave.Forgeweave;
+import dev.gkissel.forgeweave.client.book.ModifyPageContent;
 import dev.gkissel.forgeweave.item.ForgeweaveItems;
+import dev.gkissel.forgeweave.modifier.ForgeweaveModifiers;
+import dev.gkissel.forgeweave.modifier.Modifier;
 import dev.gkissel.forgeweave.modifier.ModifierApplication;
 import dev.gkissel.forgeweave.modifier.ModifierRecipe;
 
@@ -57,9 +61,16 @@ final class ModifierApplicationCategory implements IRecipeCategory<ModifierRecip
     static final ResourceLocation BACKGROUND_LOC = JeiCategoryGeometry.MODIFIER_APPLICATION.background();
 
     /**
-     * Bare tool icons, same set as {@code RepairRecipes}' -- any tool type accepts any modifier.
-     * Package-visible so {@link EmbossingCategory} -- the repair tab's third RENDER_ONLY tool
-     * mechanic -- reuses it rather than redeclaring the same three-item list (issue #165).
+     * Bare tool icons, same set as {@code RepairRecipes}' -- repair (unlike modifier application) has
+     * no per-recipe restriction on which tool it targets. Package-visible so {@link EmbossingCategory}
+     * -- the repair tab's third RENDER_ONLY tool mechanic, which likewise applies to any tool -- reuses
+     * it rather than redeclaring the same three-item list (issue #165).
+     *
+     * <p>Issue #794: this catalog is <b>not</b> "any tool accepts any modifier" -- the three harvest
+     * tools here are all {@code Category.HARVEST}, so before this issue's fix they were the row shown
+     * for every modifier recipe here regardless of restriction, including armor-only and
+     * projectile-only ones no harvest tool could ever take. {@link #setRecipe} now asks {@link
+     * ModifyPageContent#compatibleEntries} per recipe instead of reusing this constant.
      */
     static final List<ItemStack> ANY_TOOL = List.of(
             new ItemStack(ForgeweaveItems.TOOL_PICKAXE.get()),
@@ -126,7 +137,7 @@ final class ModifierApplicationCategory implements IRecipeCategory<ModifierRecip
 
     @Override
     public void setRecipe(IRecipeLayoutBuilder builder, ModifierRecipe recipe, IFocusGroup focuses) {
-        builder.addSlot(RecipeIngredientRole.RENDER_ONLY, TOOL_X, SLOT_Y).addItemStacks(ANY_TOOL);
+        builder.addSlot(RecipeIngredientRole.RENDER_ONLY, TOOL_X, SLOT_Y).addItemStacks(catalystTools(recipe));
         if (recipe.requireAllReagents()) {
             // Issue #781: an AND recipe needs every reagent visible at once, so each gets its own
             // slot -- unlike the OR reading below, no cycling within a slot. recipe.reagentSlotCount()
@@ -156,5 +167,26 @@ final class ModifierApplicationCategory implements IRecipeCategory<ModifierRecip
                 "jei.category.forgeweave.modifier_application.level_cap", recipe.levelsReached(recipe.maxLevel()));
         guiGraphics.drawString(font, name, TEXT_X, NAME_Y, TEXT_COLOR, false);
         guiGraphics.drawString(font, levelCap, TEXT_X, LEVEL_CAP_Y, TEXT_COLOR, false);
+    }
+
+    /**
+     * The render-only tool slot's cycling catalog for {@code recipe} (issue #794): every tool this
+     * recipe's modifier actually accepts ({@link ModifyPageContent#compatibleEntries}), the same set
+     * the guide book's modifier page picks its single illustration from -- {@link #ANY_TOOL} is not a
+     * safe default here since it is all {@code Category.HARVEST} and an armor-only or projectile-only
+     * modifier accepts none of them. Falls back to {@link #ANY_TOOL} only when the recipe's modifier
+     * id isn't registered at all (a stale/malformed recipe JSON), so the slot still shows something
+     * rather than an empty cycle.
+     */
+    private static List<ItemStack> catalystTools(ModifierRecipe recipe) {
+        Modifier modifier = ForgeweaveModifiers.get(recipe.modifier());
+        if (modifier == null) {
+            return ANY_TOOL;
+        }
+        HolderLookup.Provider registries = Minecraft.getInstance().level == null ? null
+                : Minecraft.getInstance().level.registryAccess();
+        return ModifyPageContent.compatibleEntries(registries, modifier).stream()
+                .map(entry -> new ItemStack(entry.tool().get()))
+                .toList();
     }
 }

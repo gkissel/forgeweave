@@ -4,20 +4,28 @@ import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.List;
+
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import net.minecraft.SharedConstants;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.Bootstrap;
+import net.minecraft.world.item.ArmorItem;
+import net.minecraft.world.item.ItemStack;
 
 import dev.gkissel.forgeweave.client.book.ModifyPageContent;
 import dev.gkissel.forgeweave.client.book.ModifyPageContent.Sprite;
 import dev.gkissel.forgeweave.item.AmmoToolItem;
+import dev.gkissel.forgeweave.item.ArmorPieceItem;
 import dev.gkissel.forgeweave.item.ForgeweaveItems;
 import dev.gkissel.forgeweave.item.PartItem;
+import dev.gkissel.forgeweave.item.ToolItem;
 import dev.gkissel.forgeweave.menu.ToolAssemblyRecipes;
+import dev.gkissel.forgeweave.modifier.ForgeweaveModifiers;
 import dev.gkissel.forgeweave.modifier.Modifier;
+import dev.gkissel.forgeweave.modifier.ModifierApplication;
 import dev.gkissel.forgeweave.tool.ToolConstants;
 
 /**
@@ -118,7 +126,7 @@ class BookModifyPageTest {
      */
     @Test
     void aProjectileOnlyModifierIsIllustratedWithAnAmmoItem() {
-        ToolAssemblyRecipes.Entry entry = ModifyPageContent.representativeEntry(new Modifier() {
+        ToolAssemblyRecipes.Entry entry = ModifyPageContent.representativeEntry(null, new Modifier() {
             @Override
             public boolean projectileOnly() {
                 return true;
@@ -131,7 +139,7 @@ class BookModifyPageTest {
     /** A harvest-only modifier (blasting, fortification) illustrates with a harvest tool. */
     @Test
     void aHarvestOnlyModifierIsIllustratedWithAHarvestTool() {
-        ToolAssemblyRecipes.Entry entry = ModifyPageContent.representativeEntry(new Modifier() {
+        ToolAssemblyRecipes.Entry entry = ModifyPageContent.representativeEntry(null, new Modifier() {
             @Override
             public boolean harvestOnly() {
                 return true;
@@ -144,7 +152,7 @@ class BookModifyPageTest {
     /** An armor-only modifier (the protections, knockback resistance, thorns) illustrates with an armor piece. */
     @Test
     void anArmorOnlyModifierIsIllustratedWithAnArmorPiece() {
-        ToolAssemblyRecipes.Entry entry = ModifyPageContent.representativeEntry(new Modifier() {
+        ToolAssemblyRecipes.Entry entry = ModifyPageContent.representativeEntry(null, new Modifier() {
             @Override
             public boolean armorOnly() {
                 return true;
@@ -157,10 +165,71 @@ class BookModifyPageTest {
     /** Every other modifier (haste, luck, silky, soulbound, ...) illustrates with a melee weapon. */
     @Test
     void anUnrestrictedModifierIsIllustratedWithAMeleeWeapon() {
-        ToolAssemblyRecipes.Entry entry = ModifyPageContent.representativeEntry(new Modifier() {});
+        ToolAssemblyRecipes.Entry entry = ModifyPageContent.representativeEntry(null, new Modifier() {});
 
         assertEquals(ToolConstants.Category.MELEE, entry.constants().category());
         assertEquals(ForgeweaveItems.TOOL_BROADSWORD.get(), entry.tool().get());
+    }
+
+    /**
+     * Issue #794: the bug report itself. Width++/Height++ ({@link ForgeweaveModifiers#HARVEST_WIDTH}/
+     * {@link ForgeweaveModifiers#HARVEST_HEIGHT}) declare no {@link Modifier#harvestOnly}/{@link
+     * Modifier#armorOnly}/{@link Modifier#projectileOnly} predicate at all -- only {@link
+     * Modifier#aoeExpansion} -- so #760's category heuristic fell through to its melee-weapon default
+     * (a sword), which no expander can ever actually widen ({@code ModifierApplication}'s
+     * {@code aoeOnly} gate refuses every tool whose {@code aoeShape} isn't expandable, and no melee
+     * weapon's is). The fix must pick a tool the expander actually accepts instead.
+     */
+    @Test
+    void aWidthOrHeightExpanderIsIllustratedWithAnExpandableHarvestTool() {
+        for (Modifier expander : List.of(ForgeweaveModifiers.HARVEST_WIDTH, ForgeweaveModifiers.HARVEST_HEIGHT)) {
+            ToolAssemblyRecipes.Entry entry = ModifyPageContent.representativeEntry(null, expander);
+            ItemStack tool = new ItemStack(entry.tool().get());
+
+            assertTrue(tool.getItem() instanceof ToolItem toolItem && toolItem.aoeShape().expandable(),
+                    entry.tool().get() + " has no expandable area, so " + expander + " would refuse it");
+        }
+    }
+
+    /**
+     * Issue #794's second offender: elytra flight and creative flight are {@link
+     * Modifier#heavyChestplateOnly}, narrower than {@link Modifier#armorOnly} above -- the plain
+     * helmet #760's armor-only bucket would pick (first {@code Category.ARMOR} entry) is refused by
+     * {@code ModifierApplication} just as surely as a sword is refused for the expanders; only the
+     * heavy chestplate qualifies.
+     */
+    @Test
+    void aHeavyChestplateOnlyModifierIsIllustratedWithTheHeavyChestplate() {
+        for (Modifier modifier : List.of(ForgeweaveModifiers.ELYTRA_FLIGHT, ForgeweaveModifiers.CREATIVE_FLIGHT)) {
+            ToolAssemblyRecipes.Entry entry = ModifyPageContent.representativeEntry(null, modifier);
+
+            assertTrue(entry.tool().get() instanceof ArmorPieceItem armor && armor.isHeavy()
+                            && armor.getType() == ArmorItem.Type.CHESTPLATE,
+                    entry.tool().get() + " is not the heavy chestplate, so " + modifier + " would refuse it");
+        }
+    }
+
+    /**
+     * Issue #794's regression guard: every modifier {@link ForgeweaveModifiers} registers illustrates
+     * with an item {@link ModifierApplication#acceptsToolShape} -- the same gate the Tool Station
+     * checks before a real application -- actually accepts, so a future modifier with a new predicate
+     * combination fails this loudly instead of shipping a wrong picture. {@code null} registries: this
+     * is a plain unit test with no world, so wind burst's mace-tag check ({@link
+     * ModifierApplication#acceptsToolShape}'s javadoc) is not exercised here -- {@code
+     * gametest.ModifierIllustrationGameTests} covers that with a real registry.
+     */
+    @Test
+    void everyRegisteredModifierIllustratesWithAnItemItAccepts() {
+        for (ResourceLocation modifierId : ForgeweaveModifiers.ids()) {
+            Modifier modifier = ForgeweaveModifiers.get(modifierId);
+            assertTrue(modifier != null, modifierId + " is a registered id with no Modifier behind it");
+
+            ToolAssemblyRecipes.Entry entry = ModifyPageContent.representativeEntry(null, modifier);
+            ItemStack tool = new ItemStack(entry.tool().get());
+
+            assertTrue(ModifierApplication.acceptsToolShape(null, modifier, tool),
+                    modifierId + " is illustrated with " + entry.tool().get() + ", which it would refuse");
+        }
     }
 
     private static ResourceLocation id(String path) {

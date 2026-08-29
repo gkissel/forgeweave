@@ -308,40 +308,42 @@ public final class ModifierApplication {
         return Outcome.applied(modified(tool, recipe.modifier(), recipe.maxLevel()), Arrays.stream(used).boxed().toList());
     }
 
-    /**
-     * Issue #223's wind burst restriction, read off vanilla itself rather than a Forgeweave-side item
-     * check: if the modifier grants a vanilla enchantment ({@link Modifier#grantedEnchantment}), that
-     * enchantment's own {@code supported_items} ({@code Enchantment#getSupportedItems}) is the one
-     * true answer for which tools it works on -- wind burst's is {@code #minecraft:enchantable/mace},
-     * so the warmace has to be a member of that tag ({@code ForgeweaveItemTagsProvider}) for this to
-     * pass. Generic on purpose: a future enchantment-granting modifier is restricted the same way with
-     * no code here to touch. Silky (issue #107) grants Silk Touch through its own
-     * {@link Modifier#grantsSilkTouch} boolean hook, which predates this method and reports no
-     * {@link Modifier#grantedEnchantment}, so it stays unrestricted.
-     */
     /** {@link Modifier#heavyChestplateOnly}'s gate: a {@code #735} heavy piece in the chestplate slot specifically. */
     private static boolean isHeavyChestplate(ItemStack tool) {
         return tool.getItem() instanceof ArmorPieceItem armor && armor.isHeavy()
                 && armor.getType() == ArmorItem.Type.CHESTPLATE;
     }
 
-    private static Optional<Component> unsupportedToolReason(HolderLookup.Provider registries,
-            ModifierRecipe recipe, ItemStack tool) {
-        Modifier modifier = ForgeweaveModifiers.get(recipe.modifier());
-        if (modifier == null) {
-            return Optional.empty();
-        }
+    /**
+     * Whether {@code tool} is an item {@code modifier} could ever be applied to -- issue #794: every
+     * item-shape gate {@link #unsupportedToolReason} enforces for a real application, pulled out so
+     * {@code client.book.ModifyPageContent} and the JEI {@code ModifierApplicationCategory} can pick
+     * an illustration/catalyst item the modifier actually accepts instead of duplicating (and
+     * drifting from) these gates as a standalone category heuristic -- the bug #764 shipped, where the
+     * width/height expanders (Category.AOE, no melee weapon qualifies) fell back to a sword anyway.
+     *
+     * <p>Deliberately omits {@link Modifier#requiresElytraFlightFirst}: that gate is about which
+     * <em>other</em> modifiers already sit on the specific stack being modified (creative flight
+     * needs elytra flight applied first), not a property of the item itself, so a fresh demo/catalyst
+     * stack with no modifiers yet can never satisfy it -- checking it here would make creative
+     * flight's own illustration impossible to find. {@code registries} may be {@code null} (a book
+     * page rendered outside a loaded world, or a plain unit test): the one check that needs it --
+     * {@link Modifier#grantedEnchantment}'s {@code supported_items} tag, wind burst's mace-only
+     * restriction -- is skipped rather than failing closed, same as every other registry-dependent
+     * book lookup already tolerates a null world.
+     */
+    public static boolean acceptsToolShape(@Nullable HolderLookup.Provider registries, Modifier modifier, ItemStack tool) {
         // M3.5 #396: upstream's category aspects (ModLuck's CategoryAnyAspect(HARVEST, WEAPON,
         // PROJECTILE) -- a bow is TOOL + LAUNCHER only). Upstream's aspect returns false and
         // ToolBuilder#tryModifyTool silently yields EMPTY; this class's standing deviation is to say
         // why, with the same message the wind burst restriction below uses.
         if (tool.getItem() instanceof BowItem && !modifier.appliesToLaunchers()) {
-            return Optional.of(Component.translatable("gui.forgeweave.modifier.unsupported_tool", name(recipe.modifier())));
+            return false;
         }
         // #653: upstream's ModifierAspect.projectileOnly (fins) -- Category.PROJECTILE is exactly
         // the ammo tools, which is what AmmoToolItem is.
         if (modifier.projectileOnly() && !(tool.getItem() instanceof AmmoToolItem)) {
-            return Optional.of(Component.translatable("gui.forgeweave.modifier.unsupported_tool", name(recipe.modifier())));
+            return false;
         }
         // Issue #438: upstream's ModifierAspect.aoeOnly, the Category.AOE gate the two expanders carry
         // -- every AoeToolCore subclass passes it and nothing else does. Stated here as "the tool has
@@ -349,7 +351,7 @@ public final class ModifierApplication {
         // vein hammer) is refused rather than silently doing nothing.
         if (modifier.aoeExpansion(1).isPresent()
                 && !(tool.getItem() instanceof ToolItem toolItem && toolItem.aoeShape().expandable())) {
-            return Optional.of(Component.translatable("gui.forgeweave.modifier.unsupported_tool", name(recipe.modifier())));
+            return false;
         }
         // T24: upstream's ModifierAspect.harvestOnly, CategoryAspect(Category.HARVEST) -- blasting's
         // gate. Read off the tool's own assembly entry, which is where Forgeweave records the same
@@ -358,7 +360,7 @@ public final class ModifierApplication {
         if (modifier.harvestOnly() && ToolAssemblyRecipes.entryFor(tool)
                 .map(entry -> entry.constants().category() != ToolConstants.Category.HARVEST)
                 .orElse(true)) {
-            return Optional.of(Component.translatable("gui.forgeweave.modifier.unsupported_tool", name(recipe.modifier())));
+            return false;
         }
         // M4-6 (#681): the clone's `tconstruct:modifiable/armor` recipe tool tag, D15's armorOnly()
         // -- the same assembly-entry category read as harvestOnly above. #729: the protections'
@@ -367,11 +369,32 @@ public final class ModifierApplication {
                 .map(entry -> entry.constants().category() != ToolConstants.Category.ARMOR
                         && !(modifier.alsoHeld() && entry.constants().category() == ToolConstants.Category.MELEE))
                 .orElse(true)) {
-            return Optional.of(Component.translatable("gui.forgeweave.modifier.unsupported_tool", name(recipe.modifier())));
+            return false;
         }
         // Issue #737: elytra flight / creative flight -- narrower than armorOnly above, gating on the
         // specific worn slot (a runtime item property) rather than the whole ARMOR category.
         if (modifier.heavyChestplateOnly() && !isHeavyChestplate(tool)) {
+            return false;
+        }
+        // The level passed here only decides whether a grant exists at all (every shipped grant is
+        // present from level 1 on), not what level it would be -- that's resolved again, for real,
+        // once the application actually lands (grantEnchantments).
+        Optional<Modifier.EnchantmentGrant> grant = modifier.grantedEnchantment(1);
+        if (grant.isEmpty() || registries == null) {
+            return true;
+        }
+        Optional<Holder.Reference<Enchantment>> enchantment = registries.lookup(Registries.ENCHANTMENT)
+                .flatMap(lookup -> lookup.get(grant.get().enchantment()));
+        return enchantment.isEmpty() || tool.is(enchantment.get().value().getSupportedItems());
+    }
+
+    private static Optional<Component> unsupportedToolReason(HolderLookup.Provider registries,
+            ModifierRecipe recipe, ItemStack tool) {
+        Modifier modifier = ForgeweaveModifiers.get(recipe.modifier());
+        if (modifier == null) {
+            return Optional.empty();
+        }
+        if (!acceptsToolShape(registries, modifier, tool)) {
             return Optional.of(Component.translatable("gui.forgeweave.modifier.unsupported_tool", name(recipe.modifier())));
         }
         // Issue #737's proposed balance: creative flight is refused until the same chestplate already
@@ -380,19 +403,7 @@ public final class ModifierApplication {
                 && ForgeweaveModifiers.entry(tool, ForgeweaveModifiers.ELYTRA_FLIGHT_ID) == null) {
             return Optional.of(Component.translatable("gui.forgeweave.modifier.requires_elytra_flight"));
         }
-        // The level passed here only decides whether a grant exists at all (every shipped grant is
-        // present from level 1 on), not what level it would be -- that's resolved again, for real,
-        // once the application actually lands (grantEnchantments).
-        Optional<Modifier.EnchantmentGrant> grant = modifier.grantedEnchantment(1);
-        if (grant.isEmpty()) {
-            return Optional.empty();
-        }
-        Optional<Holder.Reference<Enchantment>> enchantment = registries.lookup(Registries.ENCHANTMENT)
-                .flatMap(lookup -> lookup.get(grant.get().enchantment()));
-        if (enchantment.isEmpty() || tool.is(enchantment.get().value().getSupportedItems())) {
-            return Optional.empty();
-        }
-        return Optional.of(Component.translatable("gui.forgeweave.modifier.unsupported_tool", name(recipe.modifier())));
+        return Optional.empty();
     }
 
     /**
