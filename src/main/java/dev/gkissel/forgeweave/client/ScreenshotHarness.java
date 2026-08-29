@@ -230,6 +230,12 @@ public final class ScreenshotHarness {
             // reused wholesale -- captured next to tool_station.png so a reviewer can check the top
             // texture is the only thing that differs.
             new HarnessScreen("armor_station", ForgeweaveBlocks.ARMOR_STATION),
+            // #796: every item icon a Forged sprite in that issue's first batch replaced, one
+            // capture -- see prepareForgedLegacyCompareScene's javadoc. Enabling the built-in Legacy
+            // resource pack and re-running this one capture is the release-checklist comparison the
+            // issue asked for; no display was available to run it here, so it is wired but uncaptured.
+            new HarnessScreen("forged_legacy_compare", ForgeweaveBlocks.PART_CHEST,
+                    ScreenshotHarness::prepareForgedLegacyCompareScene),
             new HarnessScreen("crafting_station", ForgeweaveBlocks.CRAFTING_STATION),
             new HarnessScreen("stencil_table", ForgeweaveBlocks.STENCIL_TABLE),
             // #101: the smeltery is a multiblock, so unlike every M1 station it needs a structure
@@ -2240,6 +2246,37 @@ public final class ScreenshotHarness {
         if (level.getBlockEntity(pos.east()) instanceof ChestBlockEntity chest) {
             chest.container().setItem(0, new ItemStack(ForgeweaveItems.PATTERN_PICKAXE_HEAD.get()));
         }
+    }
+
+    /**
+     * Issue #796: one capture of every raw item icon a Forged sprite in that issue's first batch
+     * replaced, so a reviewer who enables the built-in Legacy resource pack (see
+     * {@code ForgeweaveResourcePacks}) and re-runs this one capture gets a direct side-by-side of
+     * the two art sets. The Part Chest at {@code pos} -- this scene's own {@link HarnessScreen#block}
+     * -- holds the three part icons {@code tool_binding}/{@code tough_binding}/{@code katana_blade}
+     * feed ({@link dev.gkissel.forgeweave.item.PartItem} icons, {@link
+     * dev.gkissel.forgeweave.block.ChestKind#PART}); a Pattern Chest beside it holds the blank
+     * pattern, and a second Pattern Chest holds a cast -- one each, since a single Pattern Chest
+     * refuses to mix the two ({@link dev.gkissel.forgeweave.block.ChestKind#PATTERN}); the Armor
+     * Station beside those carries {@code armor_station_top.png} on its own top face, visible in the
+     * world behind the opened chest GUI the same way the existing "armor_station" scene's own block
+     * is.
+     */
+    private static void prepareForgedLegacyCompareScene(ServerLevel level, BlockPos pos) {
+        if (level.getBlockEntity(pos) instanceof ChestBlockEntity partChest) {
+            partChest.container().setItem(0, new ItemStack(ForgeweaveItems.PART_TOOL_BINDING.get()));
+            partChest.container().setItem(1, new ItemStack(ForgeweaveItems.PART_TOUGH_BINDING.get()));
+            partChest.container().setItem(2, new ItemStack(ForgeweaveItems.PART_KATANA_BLADE.get()));
+        }
+        level.setBlockAndUpdate(pos.east(), ForgeweaveBlocks.PATTERN_CHEST.get().defaultBlockState());
+        if (level.getBlockEntity(pos.east()) instanceof ChestBlockEntity patternChest) {
+            patternChest.container().setItem(0, new ItemStack(ForgeweaveItems.PATTERN_BLANK.get()));
+        }
+        level.setBlockAndUpdate(pos.south(), ForgeweaveBlocks.PATTERN_CHEST.get().defaultBlockState());
+        if (level.getBlockEntity(pos.south()) instanceof ChestBlockEntity castChest) {
+            castChest.container().setItem(0, new ItemStack(ForgeweaveItems.CAST_TOOL_BINDING.get()));
+        }
+        level.setBlockAndUpdate(pos.north(), ForgeweaveBlocks.ARMOR_STATION.get().defaultBlockState());
     }
 
     /**

@@ -1164,6 +1164,7 @@
   "modifier.forgeweave.wind_burst.effect.2": "Only fits the Warmace",
   "modifier.forgeweave.wind_burst.effect.3": "Multiple levels",
   "modifier.forgeweave.wind_burst.name": "Wind Burst",
+  "resourcepack.forgeweave.legacy": "Forgeweave Legacy Art",
   "tooltip.forgeweave.ammo": "Ammo: %s/%s",
   "tooltip.forgeweave.ammo.empty": "Ammo: Empty",
   "tooltip.forgeweave.attack_damage": "Attack Damage",

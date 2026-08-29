@@ -18,7 +18,10 @@ from pathlib import Path
 
 from PIL import Image
 
+from sprite_sets import legacy_input, save_legacy_if_different
+
 TEXTURE_DIR = Path(__file__).resolve().parent.parent / "src/main/resources/assets/forgeweave/textures/derived/item"
+LEGACY_SUBDIR = "derived/item"  # issue #796, see scripts/sprite_sets.py
 
 # Upstream's clay-cast quad colour (SmelteryClientEvents#registerModels).
 CLAY_TINT = (0xA7, 0x74, 0x98)
@@ -39,10 +42,18 @@ def tint(cast: Image.Image) -> Image.Image:
 
 
 def main() -> None:
-    for cast in sorted(TEXTURE_DIR.glob("cast_*.png")):
-        output = TEXTURE_DIR / f"clay_{cast.name}"
-        tint(Image.open(cast).convert("RGBA")).save(output)
+    names = [cast.name for cast in sorted(TEXTURE_DIR.glob("cast_*.png"))]
+    for name in names:
+        output = TEXTURE_DIR / f"clay_{name}"
+        tint(Image.open(TEXTURE_DIR / name).convert("RGBA")).save(output)
         print(f"wrote {output.name}")
+
+    # Issue #796: the Legacy pack's pass over the same names, reusing whatever cast_*.png
+    # generate_cast_textures.py's own Legacy pass left behind (or the shared Forged one, via
+    # legacy_input's fallback) rather than re-deriving the cast/part inputs itself.
+    for name in names:
+        legacy_cast = Image.open(legacy_input(LEGACY_SUBDIR, name)).convert("RGBA")
+        save_legacy_if_different(tint(legacy_cast), LEGACY_SUBDIR, f"clay_{name}")
 
 
 if __name__ == "__main__":

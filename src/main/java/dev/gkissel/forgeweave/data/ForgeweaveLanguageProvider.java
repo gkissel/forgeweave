@@ -2087,6 +2087,11 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         // what ArrowEntity#getWaterInertia implements, the other two are upstream's own jokes.
         modifierEffects("fins",
                 "Projectiles ignore water", "Logical", "Makes sense");
+
+        // Issue #796: the built-in Legacy resource pack's display name (Options > Resource Packs).
+        // Not an item/block/trait key family -- ForgeweaveResourcePacks#addPackFinders is the only
+        // reader, via a bare Component.translatable, same as any other lang-keyed Component here.
+        add("resourcepack.forgeweave.legacy", "Forgeweave Legacy Art");
     }
 
     /** One tool's ported {@code ContentTool#properties} bullets, keyed {@code <tool>.property.<n>}. */

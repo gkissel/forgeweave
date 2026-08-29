@@ -363,7 +363,7 @@ Each milestone ships a playable release under the tag scheme in [releasing.md](r
 | M6 | Material expansion at TAIGA scale; modded metals become tool materials via the datapack registry | Stable material data model (M1), metals (M2) |
 | M7 | Tool leveling (derived from Tinkers' Tool Leveling) | M3 |
 | M8 | Deep compat: Apotheosis, Curios, Jade/WTHIT, EMI, Mekanism, and other major mods by adoption | M4 (Curios needs armors/gadgets) |
-| M9 | Original-asset rewrite (removes upstream-derived assets) | Content freeze of M1–M8 |
+| M9 | Original-asset rewrite. **Premise changed 2026-08-28 (issue #796, maintainer decision):** rather than a single milestone that removes upstream-derived assets outright, Forgeweave ships two art sets as each Forged sprite arrives -- **Forged** (new original art, the default) and **Legacy** (the pre-#796 look, demoted to an optional built-in resource pack, not deleted). M9 as "remove the derived tree" no longer happens; the rewrite instead proceeds incrementally, sprite batch by sprite batch, through the machinery #796 built (see `scripts/sprite_sets.py`, `ForgeweaveResourcePacks`). This row stays as the historical record of the milestone; new sprite batches ship as their own issues rather than waiting on an M9 freeze | Content freeze of M1–M8 |
 
 ### Milestone sources
 
