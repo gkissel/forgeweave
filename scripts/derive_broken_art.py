@@ -98,11 +98,22 @@ PORTED = {
 }
 
 # The five Forgeweave-only tools; their broken layer is chip() applied to their own head layer.
+# Issue #809: katana_head is no longer chip()'d at its *default* path -- see HAND_DRAWN_DEFAULT
+# below -- but stays here because the Legacy pass still needs to chip() the Legacy head.
 CHIPPED = ["dagger_head", "katana_head", "scimitar_head", "vein_hammer_head", "warmace_head",
            # #448: upstream's shuriken.tcon.json declares no broken<N> key at all (a spent one
            # reads "Ammo: Empty"), but Forgeweave's #284 invariant is that Broken is visible on
            # the model, so the first blade takes the same chip() the other art-less tools use.
            "shuriken_head"]
+
+# Issue #809: the second Forged sprite batch shipped a hand-drawn katana_head_broken.png rather
+# than an algorithmic chip() of the (now Forged) katana_head.png -- the same "dedicated hand-drawn
+# art the script must never overwrite" shape generate_pattern_textures.py already gives the large
+# plate's pattern (LARGE_PLATE_PATTERN_SOURCE/OUTPUT, handled outside its PARTS loop). The default
+# derived/tools/katana_head_broken.png is that hand-drawn file, committed directly and excluded
+# from the CHIPPED default pass below; only the Legacy pack's own katana_head_broken.png (chipped
+# from the pre-#807 Spartan-derived head, via legacy_input's fallback) is still generated.
+HAND_DRAWN_DEFAULT = ["katana_head"]
 
 # How much of the part chip() erases at each end of its principal axis. See the module docstring.
 CHIP_FRACTION = 0.15
@@ -145,6 +156,8 @@ def main() -> None:
     for name, upstream in PORTED.items():
         outputs[DERIVED_TOOLS / f"{name}_broken.png"] = Image.open(UPSTREAM_1_12 / upstream).convert("RGBA")
     for name in CHIPPED:
+        if name in HAND_DRAWN_DEFAULT:
+            continue  # issue #809: the default file is hand-drawn art; never regenerate it here
         intact = DERIVED_TOOLS / f"{name}.png"
         if not intact.is_file():
             raise SystemExit(f"expected {intact} to exist")
@@ -154,6 +167,8 @@ def main() -> None:
         path.parent.mkdir(parents=True, exist_ok=True)
         image.save(path)
         print(f"wrote {path}")
+    for name in HAND_DRAWN_DEFAULT:
+        print(f"skipped {DERIVED_TOOLS / f'{name}_broken.png'} (hand-drawn, issue #809)")
 
     # Issue #796: the Legacy pack's pass. Only CHIPPED can ever differ between sets -- each entry
     # chips whatever derived/tools/<name>.png currently is, and that is the one input here a Forged
