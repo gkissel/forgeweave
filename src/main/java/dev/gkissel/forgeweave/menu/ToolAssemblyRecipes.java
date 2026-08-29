@@ -477,12 +477,15 @@ public final class ToolAssemblyRecipes {
     /**
      * A part exchange's outcome (issue #264). Same contract as {@code Embossing.Outcome}: exactly one
      * of {@code output} and {@code rejection} is meaningful, and {@code slotsUsed} is indexed like
-     * {@link Result#slotsUsed} (slot 0 is the tool).
+     * {@link Result#slotsUsed} (slot 0 is the tool). {@code displacedParts} is the part(s) the
+     * exchange bumped out of the tool (issue #813), one fresh {@code ItemStack} per swapped slot;
+     * empty on a rejection.
      */
-    public record Exchange(ItemStack output, List<Integer> slotsUsed, @Nullable Component rejection) {
+    public record Exchange(ItemStack output, List<Integer> slotsUsed, List<ItemStack> displacedParts,
+            @Nullable Component rejection) {
 
         static Exchange rejected(String key, Object... args) {
-            return new Exchange(ItemStack.EMPTY, List.of(), Component.translatable(key, args));
+            return new Exchange(ItemStack.EMPTY, List.of(), List.of(), Component.translatable(key, args));
         }
     }
 
@@ -526,6 +529,18 @@ public final class ToolAssemblyRecipes {
      *       those carry over on the copy.
      *   <li><b>Large tools exchange at the Tool Forge only</b> -- a Forgeweave decision matching the
      *       assembly gate (issue #152); upstream's stations have no such split for exchanges.
+     *   <li><b>The displaced part comes back to the player (issue #813), a deliberate deviation.</b>
+     *       Neither pinned clone gives it back: 1.12's {@code tryReplaceToolParts} only overwrites the
+     *       material identifier in {@code materialList} and shrinks the new part's stack by one --
+     *       there is no code path anywhere in that method, {@code ContainerToolStation}, or its
+     *       {@code SlotToolStationOut}/{@code SlotToolStationIn} that ever reconstructs an
+     *       {@code ItemStack} for the material being replaced. 1.20's rewritten equivalent
+     *       ({@code MaterialSwappingRecipe#swapMaterial}) is the same: {@code copy.replaceMaterial}
+     *       overwrites the slot and only the new part is shrunk. The issue's own acceptance test
+     *       (a GameTest asserting the swap returns exactly the displaced part) is the maintainer
+     *       decision this deviation rests on -- filed from a playtest expectation that turned out not
+     *       to match either upstream generation's actual source, corrected here per this file's own
+     *       "ticket can be wrong, verify against the clone" standing instruction.
      * </ul>
      */
     public static Optional<Exchange> resolveExchange(HolderLookup.Provider registries, ItemStack toolStack,
@@ -648,7 +663,17 @@ public final class ToolAssemblyRecipes {
         for (int input : assigned.keySet()) {
             used[1 + input] = 1;
         }
-        return Optional.of(new Exchange(result, Arrays.stream(used).boxed().toList(), null));
+        // #813: one fresh part stack per swapped slot, carrying the material that slot held before
+        // this exchange overwrote it in newIds above -- ids itself is never mutated, so it still
+        // reads as the pre-swap state here.
+        List<ItemStack> displacedParts = assigned.values().stream()
+                .map(slot -> {
+                    ItemStack part = new ItemStack(entry.part(slot));
+                    part.set(ForgeweaveDataComponents.MATERIAL.get(), ids.get(slot));
+                    return part;
+                })
+                .toList();
+        return Optional.of(new Exchange(result, Arrays.stream(used).boxed().toList(), displacedParts, null));
     }
 
     /**

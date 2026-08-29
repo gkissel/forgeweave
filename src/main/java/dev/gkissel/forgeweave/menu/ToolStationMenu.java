@@ -790,12 +790,28 @@ public class ToolStationMenu extends StationMenu {
                 grantAdvancements(serverPlayer);
                 grantVanillaStoryAdvancements(serverPlayer, stack);
             }
+            // #813: a part exchange bumps a part out of the tool; read before consume() below shrinks
+            // the free slots out from under it, same "read live slots before they're spent" shape as
+            // resolve() itself.
+            List<ItemStack> displacedParts = ToolAssemblyRecipes
+                    .resolveExchange(registries, slots.get(HEAD_SLOT).getItem(), freeSlotContents(), forge)
+                    .map(ToolAssemblyRecipes.Exchange::displacedParts)
+                    .orElse(List.of());
             resolve().ifPresent(result -> {
                 List<Integer> used = result.slotsUsed();
                 for (int i = 0; i < used.size(); i++) {
                     consume(i, used.get(i));
                 }
             });
+            // Server-authoritative, like returnUnusableInputs: the client mirror predicts nothing here
+            // and gets the result over the ordinary slot/inventory sync instead.
+            if (access != ContainerLevelAccess.NULL) {
+                for (ItemStack part : displacedParts) {
+                    if (!player.getInventory().add(part)) {
+                        player.drop(part, false);
+                    }
+                }
+            }
             playCraftSound(player);
             super.onTake(player, stack);
         }
