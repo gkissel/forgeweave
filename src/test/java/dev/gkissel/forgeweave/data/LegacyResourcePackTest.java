@@ -2,7 +2,9 @@ package dev.gkissel.forgeweave.data;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.awt.image.BufferedImage;
 import java.io.IOException;
+import java.nio.ByteBuffer;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.MessageDigest;
@@ -13,6 +15,8 @@ import java.util.HexFormat;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
+
+import javax.imageio.ImageIO;
 
 import org.junit.jupiter.api.Test;
 
@@ -115,6 +119,14 @@ class LegacyResourcePackTest {
      * Forged sprite *has* replaced (and therefore has a Legacy-pack row) can trigger this check, and
      * only when a *different* default-tree file -- not its own already-verified-different counterpart
      * above -- still carries its exact retired bytes.
+     *
+     * <p>Issue #809: the comparison hashes decoded pixel data, not raw file bytes. A raw-byte hash
+     * missed {@code derived/item/arrow_shaft.png}'s sibling, {@code derived/tools/arrow_shaft.png} --
+     * both are the same upstream pixels, but were saved through different code paths with different
+     * PNG encodings, so their file bytes never matched even though every pixel did. This is the same
+     * decode-before-comparing contract {@code scripts/sprite_sets.py#save_legacy_if_different} already
+     * uses when it decides whether a Legacy override differs from the Forged default -- this test now
+     * checks retirement the same way production decides replacement.
      */
     @Test
     void noOtherDefaultFileStillCarriesRetiredLegacyBytes() throws IOException {
@@ -123,7 +135,7 @@ class LegacyResourcePackTest {
         try (Stream<Path> files = Files.walk(legacy)) {
             for (Path file : files.filter(Files::isRegularFile).toList()) {
                 String relative = legacy.relativize(file).toString();
-                legacyHashToPaths.computeIfAbsent(sha256(file), key -> new ArrayList<>()).add(relative);
+                legacyHashToPaths.computeIfAbsent(pixelHash(file), key -> new ArrayList<>()).add(relative);
             }
         }
 
@@ -132,7 +144,7 @@ class LegacyResourcePackTest {
         try (Stream<Path> files = Files.walk(defaultRoot)) {
             for (Path file : files.filter(Files::isRegularFile).toList()) {
                 String relative = defaultRoot.relativize(file).toString();
-                List<String> retiredPaths = legacyHashToPaths.get(sha256(file));
+                List<String> retiredPaths = legacyHashToPaths.get(pixelHash(file));
                 if (retiredPaths == null) {
                     continue;
                 }
@@ -146,6 +158,37 @@ class LegacyResourcePackTest {
         assertTrue(staleCopies.isEmpty(),
                 "Default-tree files that still carry pre-Forged/Legacy bytes a sprite swap should have retired:\n"
                         + String.join("\n", staleCopies));
+    }
+
+    /**
+     * Hashes a PNG's decoded ARGB pixel data (plus its dimensions) rather than its raw file bytes, so
+     * two PNGs encoding the exact same image differently (palette vs. truecolor, different compressor,
+     * stray metadata) still compare equal -- see issue #809's javadoc note above. Non-PNG files under
+     * the textures tree (an animation `.mcmeta` sidecar, for instance) are not images to decode, so
+     * they fall back to a plain byte hash -- the same comparison this test used everywhere before.
+     */
+    private static String pixelHash(Path file) throws IOException {
+        if (!file.toString().endsWith(".png")) {
+            return sha256(file);
+        }
+        BufferedImage image = ImageIO.read(file.toFile());
+        if (image == null) {
+            throw new IOException("could not decode PNG: " + file);
+        }
+        int width = image.getWidth();
+        int height = image.getHeight();
+        int[] pixels = image.getRGB(0, 0, width, height, null, 0, width);
+        ByteBuffer buffer = ByteBuffer.allocate(8 + pixels.length * 4);
+        buffer.putInt(width).putInt(height);
+        for (int pixel : pixels) {
+            buffer.putInt(pixel);
+        }
+        try {
+            MessageDigest digest = MessageDigest.getInstance("SHA-256");
+            return HexFormat.of().formatHex(digest.digest(buffer.array()));
+        } catch (NoSuchAlgorithmException e) {
+            throw new AssertionError("SHA-256 must be available on every JVM", e);
+        }
     }
 
     private static String sha256(Path file) throws IOException {
