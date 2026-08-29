@@ -7,7 +7,6 @@ import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 
 import mezz.jei.api.gui.builder.IIngredientAcceptor;
@@ -37,28 +36,22 @@ import dev.gkissel.forgeweave.modifier.ModifierRecipe;
  *
  * <p>The tool slot has no recipe-specific input -- any assembled tool with a free modifier slot
  * qualifies ({@code modifier.ModifierApplication#resolve}) -- so it is a {@link
- * RecipeIngredientRole#RENDER_ONLY} slot cycling the same bare representative tool stacks {@link
- * RepairCategory} uses, shown purely for context; {@link ModifierApplicationTransferHandler} never
- * targets it, and being {@code RENDER_ONLY} rather than an input keeps the recipe's one real input
- * (the reagent) the only slot that transfer has to account for.
+ * RecipeIngredientRole#RENDER_ONLY} slot cycling the representative tool stacks this recipe's
+ * modifier actually accepts, shown purely for context; {@link ModifierApplicationTransferHandler}
+ * never targets it, and being {@code RENDER_ONLY} rather than an input keeps the recipe's real
+ * inputs (the reagents) the only slots transfer has to account for.
  *
  * <p>The resulting modifier has no item form for an output slot, so its name ({@link
  * ModifierApplication#name}, the same trait-style {@code modifier.<namespace>.<path>.name} key
  * {@code ToolTooltip} and {@code InfoPanel} already use) and level cap ({@link
  * ModifierRecipe#levelsReached}, the same datapack-driven per-level schedule the Tool Station itself
- * resolves against -- ADR-0004 decision 1) are drawn as text instead.
- *
- * <p>Issue #785: modifier application has no upstream JEI category of its own either (upstream's
- * {@code ModifierRecipeCategory} models a completely different six-slot upgrade-socket layout), so
- * per the maintainer's decision this reuses the closest upstream background -- {@code
- * PartBuilderCategory}'s plain station panel -- tiled to this row's width via {@link
- * JeiCategoryChrome#stationPanel}, the same crop {@link EmbossingCategory} uses.
+ * resolves against -- ADR-0004 decision 1) are drawn as text instead -- in exactly the two places
+ * upstream draws a modifier's name and level line. See {@link ModifierPanel} for the layout and for
+ * why #785's "no upstream counterpart" reading of {@code ModifierRecipeCategory} was wrong.
  */
 final class ModifierApplicationCategory implements IRecipeCategory<ModifierRecipe> {
     static final RecipeType<ModifierRecipe> TYPE =
             RecipeType.create(Forgeweave.MODID, "modifier_application", ModifierRecipe.class);
-
-    static final ResourceLocation BACKGROUND_LOC = JeiCategoryGeometry.MODIFIER_APPLICATION.background();
 
     /**
      * Bare tool icons, same set as {@code RepairRecipes}' -- repair (unlike modifier application) has
@@ -77,37 +70,25 @@ final class ModifierApplicationCategory implements IRecipeCategory<ModifierRecip
             new ItemStack(ForgeweaveItems.TOOL_SHOVEL.get()),
             new ItemStack(ForgeweaveItems.TOOL_HATCHET.get()));
 
-    private static final int GUTTER = JeiCategoryChrome.GUTTER;
-    private static final int SLOT_PITCH = 20;
-    private static final int TOOL_X = GUTTER;
-    private static final int REAGENTS_X = TOOL_X + SLOT_PITCH;
     /**
      * Issue #781: an AND recipe ({@code require_all_reagents}) needs one slot per declared reagent,
-     * side by side, in place of the OR reading's single cycling slot below -- {@link IRecipeCategory}
-     * has no per-recipe {@code getWidth()}, so the panel is sized for the worst case once, the same
-     * free-slot budget {@link EmbossingCategory} caps its own reagent row at: every one of the Tool
-     * Station's five free input slots ({@code menu.ToolStationMenu#INPUT_SLOTS}) could be a distinct
-     * AND reagent here, since (unlike embossing) no donor part claims one of them first.
+     * side by side, in place of the OR reading's single cycling slot -- and {@link IRecipeCategory}
+     * has no per-recipe {@code getWidth()}, so the panel is sized for the worst case once. Upstream's
+     * own five input slots are exactly that worst case: every one of the Tool Station's five free
+     * input slots ({@code menu.ToolStationMenu#INPUT_SLOTS}) could be a distinct AND reagent here,
+     * since (unlike embossing) no donor part claims one of them first.
      */
-    private static final int MAX_REAGENT_SLOTS = 5;
-    private static final int SLOT_Y = 10 + GUTTER;
-    private static final int ARROW_X = REAGENTS_X + MAX_REAGENT_SLOTS * SLOT_PITCH + 2;
-    private static final int TEXT_X = ARROW_X + 24;
-    private static final int NAME_Y = 6 + GUTTER;
-    private static final int LEVEL_CAP_Y = 20 + GUTTER;
-    private static final int TEXT_COLOR = 0x404040;
-    private static final int TEXT_WIDTH = 74;
-    static final int WIDTH = TEXT_X + TEXT_WIDTH + GUTTER;
-    static final int HEIGHT = 38 + 2 * GUTTER;
+    private static final int MAX_REAGENT_SLOTS = ModifierPanel.INPUT_SLOTS.length;
+
+    private static final int WIDTH = ModifierPanel.WIDTH;
+    private static final int HEIGHT = ModifierPanel.HEIGHT;
 
     private final IDrawable icon;
-    private final IDrawable arrow;
     private final IDrawable background;
 
     ModifierApplicationCategory(IGuiHelper helper) {
         icon = helper.createDrawableItemStack(new ItemStack(ForgeweaveItems.TOOL_STATION.get()));
-        arrow = helper.getRecipeArrow();
-        background = JeiCategoryChrome.stationPanel(helper, WIDTH, HEIGHT);
+        background = JeiCategoryChrome.panel(helper, ModifierPanel.PANEL);
     }
 
     @Override
@@ -137,36 +118,49 @@ final class ModifierApplicationCategory implements IRecipeCategory<ModifierRecip
 
     @Override
     public void setRecipe(IRecipeLayoutBuilder builder, ModifierRecipe recipe, IFocusGroup focuses) {
-        builder.addSlot(RecipeIngredientRole.RENDER_ONLY, TOOL_X, SLOT_Y).addItemStacks(catalystTools(recipe));
+        List<ItemStack> tools = catalystTools(recipe);
+        builder.addSlot(RecipeIngredientRole.RENDER_ONLY, ModifierPanel.TOOL_X, ModifierPanel.TOOL_Y)
+                .addItemStacks(tools);
         if (recipe.requireAllReagents()) {
             // Issue #781: an AND recipe needs every reagent visible at once, so each gets its own
             // slot -- unlike the OR reading below, no cycling within a slot. recipe.reagentSlotCount()
             // (also used by the guide book's ModifyPageContent) agrees this is reagents().size() slots.
             List<ModifierRecipe.Reagent> reagents = recipe.reagents();
-            for (int i = 0; i < recipe.reagentSlotCount(); i++) {
-                builder.addInputSlot(REAGENTS_X + i * SLOT_PITCH, SLOT_Y).addIngredients(reagents.get(i).ingredient());
+            int shown = Math.min(recipe.reagentSlotCount(), MAX_REAGENT_SLOTS);
+            for (int i = 0; i < shown; i++) {
+                builder.addInputSlot(ModifierPanel.INPUT_SLOTS[i][0], ModifierPanel.INPUT_SLOTS[i][1])
+                        .addIngredients(reagents.get(i).ingredient());
             }
         } else {
             // Every accepted reagent cycles through the one input slot (issue #259: haste shows
             // redstone dust and the 9-unit redstone block as alternatives, the way a tag ingredient cycles).
-            IIngredientAcceptor<?> reagentSlot = builder.addInputSlot(REAGENTS_X, SLOT_Y);
+            IIngredientAcceptor<?> reagentSlot =
+                    builder.addInputSlot(ModifierPanel.INPUT_SLOTS[0][0], ModifierPanel.INPUT_SLOTS[0][1]);
             for (ModifierRecipe.Reagent reagent : recipe.reagents()) {
                 reagentSlot.addIngredients(reagent.ingredient());
             }
         }
+        // Upstream's own second tool slot: the same tool, now carrying the modifier. Forgeweave has no
+        // "tool with modifier" stack to build, so this shows the same catalog -- RENDER_ONLY like the
+        // input side, so an item lookup never claims modifier application produces a bare tool (#794).
+        builder.addSlot(RecipeIngredientRole.RENDER_ONLY, ModifierPanel.RESULT_X, ModifierPanel.RESULT_Y)
+                .addItemStacks(tools);
     }
 
     @Override
     public void draw(ModifierRecipe recipe, IRecipeSlotsView recipeSlotsView, GuiGraphics guiGraphics, double mouseX, double mouseY) {
         background.draw(guiGraphics, 0, 0);
-        arrow.draw(guiGraphics, ARROW_X, (HEIGHT - arrow.getHeight()) / 2);
 
         Font font = Minecraft.getInstance().font;
         Component name = ModifierApplication.name(recipe.modifier());
         Component levelCap = Component.translatable(
                 "jei.category.forgeweave.modifier_application.level_cap", recipe.levelsReached(recipe.maxLevel()));
-        guiGraphics.drawString(font, name, TEXT_X, NAME_Y, TEXT_COLOR, false);
-        guiGraphics.drawString(font, levelCap, TEXT_X, LEVEL_CAP_Y, TEXT_COLOR, false);
+        JeiCategoryChrome.drawCentered(guiGraphics, font,
+                JeiCategoryChrome.trimToWidth(font, name, ModifierPanel.NAME_WIDTH),
+                ModifierPanel.NAME_CENTER_X, ModifierPanel.NAME_Y, ModifierPanel.NAME_COLOR, true);
+        JeiCategoryChrome.drawCentered(guiGraphics, font,
+                JeiCategoryChrome.trimToWidth(font, levelCap, ModifierPanel.LEVEL_WIDTH),
+                ModifierPanel.LEVEL_CENTER_X, ModifierPanel.LEVEL_Y, ModifierPanel.TEXT_COLOR, false);
     }
 
     /**

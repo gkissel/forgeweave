@@ -4,7 +4,6 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 
 import mezz.jei.api.gui.builder.IRecipeLayoutBuilder;
@@ -26,47 +25,35 @@ import dev.gkissel.forgeweave.modifier.ModifierApplication;
  * the donor's material's traits to any assembled tool, without touching its stats -- {@code
  * modifier.Embossing}'s whole mechanic. Rides the same repair tab, and so the same station icon and
  * {@code RENDER_ONLY} "any tool" slot, as {@link RepairCategory}/{@link ModifierApplicationCategory}
- * ({@link ModifierApplicationCategory#ANY_TOOL} -- embossing has no recipe-specific tool requirement
+ * ({@link ModifierApplicationCategory#ANY_TOOL}) -- embossing has no recipe-specific tool requirement
  * either, only "not already embossed" (see the drawn rule below).
  *
  * <p>At most four reagent slots are ever laid out: embossing spends every one of the station's five
  * free input slots ({@code menu.ToolAssemblyRecipes}' free-slot javadoc), and the donor part always
  * claims one of them, so {@code modifier.EmbossingRecipe#reagents} can never exceed four entries for
- * any datapack this station's five slots could actually satisfy.
- *
- * <p>Issue #785: embossing has no upstream JEI category at all, so per the maintainer's decision this
- * reuses the closest upstream background -- {@code PartBuilderCategory}'s plain station panel --
- * tiled to this row's width via {@link JeiCategoryChrome#stationPanel}, the same crop {@link
- * ModifierApplicationCategory} uses, so the two wide reagent-row categories read as one family.
+ * any datapack this station's five slots could actually satisfy. The donor takes the first of
+ * upstream's five ring slots and the reagents take the rest -- see {@link ModifierPanel}, which
+ * issue #804 adopted for this category and {@link ModifierApplicationCategory} alike: embossing is
+ * the same picture as a modifier recipe (reagents plus a tool produce a named modifier on that
+ * tool), so it borrows that panel rather than the tiled Part Builder row #785 gave it.
  */
 final class EmbossingCategory implements IRecipeCategory<EmbossingDisplay> {
     static final RecipeType<EmbossingDisplay> TYPE =
             RecipeType.create(Forgeweave.MODID, "embossing", EmbossingDisplay.class);
 
-    static final ResourceLocation BACKGROUND_LOC = JeiCategoryGeometry.EMBOSSING.background();
-    private static final int GUTTER = JeiCategoryChrome.GUTTER;
-    private static final int SLOT_PITCH = 20;
-    private static final int SLOT_Y = 10 + GUTTER;
-    private static final int TOOL_X = GUTTER;
-    private static final int DONOR_X = TOOL_X + SLOT_PITCH;
-    private static final int REAGENTS_X = DONOR_X + SLOT_PITCH;
-    private static final int MAX_REAGENT_SLOTS = 4;
-    private static final int ARROW_X = REAGENTS_X + MAX_REAGENT_SLOTS * SLOT_PITCH + 2;
-    private static final int TEXT_X = ARROW_X + 24;
-    private static final int NAME_Y = 6 + GUTTER;
-    private static final int RULE_Y = 20 + GUTTER;
-    private static final int TEXT_COLOR = 0x404040;
-    static final int WIDTH = JeiCategoryGeometry.EMBOSSING.width();
-    static final int HEIGHT = JeiCategoryGeometry.EMBOSSING.height();
+    /** The donor part claims upstream's top ring slot; reagents fill the rest. */
+    private static final int DONOR_SLOT = 0;
+    private static final int MAX_REAGENT_SLOTS = ModifierPanel.INPUT_SLOTS.length - 1;
+
+    private static final int WIDTH = ModifierPanel.WIDTH;
+    private static final int HEIGHT = ModifierPanel.HEIGHT;
 
     private final IDrawable icon;
-    private final IDrawable arrow;
     private final IDrawable background;
 
     EmbossingCategory(IGuiHelper helper) {
         icon = helper.createDrawableItemStack(new ItemStack(ForgeweaveItems.TOOL_STATION.get()));
-        arrow = helper.getRecipeArrow();
-        background = JeiCategoryChrome.stationPanel(helper, WIDTH, HEIGHT);
+        background = JeiCategoryChrome.panel(helper, ModifierPanel.PANEL);
     }
 
     @Override
@@ -96,22 +83,32 @@ final class EmbossingCategory implements IRecipeCategory<EmbossingDisplay> {
 
     @Override
     public void setRecipe(IRecipeLayoutBuilder builder, EmbossingDisplay recipe, IFocusGroup focuses) {
-        builder.addSlot(RecipeIngredientRole.RENDER_ONLY, TOOL_X, SLOT_Y).addItemStacks(ModifierApplicationCategory.ANY_TOOL);
-        builder.addInputSlot(DONOR_X, SLOT_Y).addItemStacks(recipe.donorParts());
-        for (int i = 0; i < recipe.reagents().size(); i++) {
-            builder.addInputSlot(REAGENTS_X + i * SLOT_PITCH, SLOT_Y).addIngredients(recipe.reagents().get(i));
+        builder.addSlot(RecipeIngredientRole.RENDER_ONLY, ModifierPanel.TOOL_X, ModifierPanel.TOOL_Y)
+                .addItemStacks(ModifierApplicationCategory.ANY_TOOL);
+        builder.addInputSlot(ModifierPanel.INPUT_SLOTS[DONOR_SLOT][0], ModifierPanel.INPUT_SLOTS[DONOR_SLOT][1])
+                .addItemStacks(recipe.donorParts());
+        int shown = Math.min(recipe.reagents().size(), MAX_REAGENT_SLOTS);
+        for (int i = 0; i < shown; i++) {
+            int[] slot = ModifierPanel.INPUT_SLOTS[DONOR_SLOT + 1 + i];
+            builder.addInputSlot(slot[0], slot[1]).addIngredients(recipe.reagents().get(i));
         }
+        // The same tool, now embossed; see ModifierApplicationCategory's own note on this slot.
+        builder.addSlot(RecipeIngredientRole.RENDER_ONLY, ModifierPanel.RESULT_X, ModifierPanel.RESULT_Y)
+                .addItemStacks(ModifierApplicationCategory.ANY_TOOL);
     }
 
     @Override
     public void draw(EmbossingDisplay recipe, IRecipeSlotsView recipeSlotsView, GuiGraphics guiGraphics, double mouseX, double mouseY) {
         background.draw(guiGraphics, 0, 0);
-        arrow.draw(guiGraphics, ARROW_X, (HEIGHT - arrow.getHeight()) / 2);
 
         Font font = Minecraft.getInstance().font;
         Component name = ModifierApplication.name(Embossing.idFor(recipe.material()));
         Component rule = Component.translatable("jei.category.forgeweave.embossing.one_per_tool");
-        guiGraphics.drawString(font, name, TEXT_X, NAME_Y, TEXT_COLOR, false);
-        guiGraphics.drawString(font, rule, TEXT_X, RULE_Y, TEXT_COLOR, false);
+        JeiCategoryChrome.drawCentered(guiGraphics, font,
+                JeiCategoryChrome.trimToWidth(font, name, ModifierPanel.NAME_WIDTH),
+                ModifierPanel.NAME_CENTER_X, ModifierPanel.NAME_Y, ModifierPanel.NAME_COLOR, true);
+        JeiCategoryChrome.drawCentered(guiGraphics, font,
+                JeiCategoryChrome.trimToWidth(font, rule, ModifierPanel.LEVEL_WIDTH),
+                ModifierPanel.LEVEL_CENTER_X, ModifierPanel.LEVEL_Y, ModifierPanel.TEXT_COLOR, false);
     }
 }

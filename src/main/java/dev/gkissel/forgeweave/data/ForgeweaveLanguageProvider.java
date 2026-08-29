@@ -1367,19 +1367,24 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         // issue #99) -- ingots, nuggets and blocks always melt 1:1, so they get no note.
         add("jei.category.forgeweave.melting.core_multiplier",
                 "Base yield: your smeltery's core tier multiplies ore inputs (Standard 1.5x, Nether 2x).");
-        add("jei.category.forgeweave.melting.temperature", "Temperature: %s");
         add("jei.category.forgeweave.alloying", "Alloying");
         add("jei.category.forgeweave.alloying.ratio_note",
                 "Shown as a ratio: the smeltery alloys as many whole batches as the tank holds.");
         add("jei.category.forgeweave.casting_table", "Casting Table");
         add("jei.category.forgeweave.casting_basin", "Casting Basin");
+        // Issue #804: upstream's own centred cooling row (jei.tconstruct.time, "%s s"), which the
+        // casting panel's top band is drawn for and which #785 left blank.
+        add("jei.category.forgeweave.casting.cooling_time", "%s s");
         add("jei.category.forgeweave.casting.cast_reusable", "Cast is not consumed");
         add("jei.category.forgeweave.casting.cast_consumed", "Cast is consumed");
         add("jei.category.forgeweave.modifier_application", "Modifier Application");
         add("jei.category.forgeweave.modifier_application.level_cap", "Level cap: %s");
         // #165: embossing category (issue #154's mechanic).
         add("jei.category.forgeweave.embossing", "Embossing");
-        add("jei.category.forgeweave.embossing.one_per_tool", "One embossment per tool");
+        // Issue #804: shortened from "One embossment per tool". It is drawn centred in the same
+        // narrow band upstream's ModifierRecipeCategory draws its "Max Level: 5" line in, next to
+        // the slot ring -- the sentence did not fit and had to be ellipsized on every row.
+        add("jei.category.forgeweave.embossing.one_per_tool", "One per tool");
 
         // The nine molten metal fluids (docs/SCOPE.md M2 issue #92) and everything added since.
         // See addFluid: each call names both the fluid and its bucket (#286).

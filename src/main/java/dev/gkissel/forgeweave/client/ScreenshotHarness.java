@@ -59,6 +59,7 @@ import net.minecraft.world.phys.Vec3;
 
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.ModList;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.client.event.ClientTickEvent;
@@ -92,6 +93,7 @@ import dev.gkissel.forgeweave.item.CrossbowItem;
 import dev.gkissel.forgeweave.item.ForgeweaveDataComponents;
 import dev.gkissel.forgeweave.item.ForgeweaveItems;
 import dev.gkissel.forgeweave.item.ToolItem;
+import dev.gkissel.forgeweave.jei.JeiScreenshotHarness;
 import dev.gkissel.forgeweave.menu.PartBuilderMenu;
 import dev.gkissel.forgeweave.menu.SmelteryMenu;
 import dev.gkissel.forgeweave.menu.StencilTableMenu;
@@ -122,6 +124,12 @@ import dev.gkissel.forgeweave.tool.ToolConstants;
  * frames holding a tinted pickaxe head and an assembled pickaxe for every M3.2 material (issue
  * #236). Those are the release-checklist artifacts for in-world block rendering the same way
  * {@link #SCREENS} is for GUIs.
+ *
+ * <p>After the Ponder scenes, it opens JEI's own Recipes GUI on every registered category in turn --
+ * {@code jei_<category>.png} (issue #804) -- the real screen a player gets pressing R/U on a
+ * catalyst, which is what actually exposed the oversized-panel/mis-cropped-background/overlapping-
+ * text defects two source-only review passes (#753, #785) missed. See
+ * {@link dev.gkissel.forgeweave.jei.JeiScreenshotHarness}.
  *
  * <h2>Why this is inert by default</h2>
  *
@@ -459,13 +467,18 @@ public final class ScreenshotHarness {
         SETTLE_ARMOR_FIRST_PERSON,
         HOLD_BOW_POSE, SETTLE_BOW_POSE, SETTLE_BOW_POSE_THIRD_PERSON,
         FIRE_BOW_SETUP, FIRE_BOW_DRAW, FIRE_BOW_CHECK,
-        OPEN_SCREEN, SETTLE_SCREEN, OPEN_BOOK, SETTLE_BOOK, OPEN_PONDER, SETTLE_PONDER, DONE
+        OPEN_SCREEN, SETTLE_SCREEN, OPEN_BOOK, SETTLE_BOOK, OPEN_PONDER, SETTLE_PONDER,
+        OPEN_JEI, SETTLE_JEI, DONE
     }
 
     /** Ceiling on waiting for a Ponder scene's finished frame; the longest scene runs about 900 ticks. */
     private static final int PONDER_SCENE_TIMEOUT_TICKS = 1500;
     /** Which of {@link PonderHarnessCaptures#CAPTURES} is playing (#700). */
     private static int ponderCaptureIndex;
+    /** Which JEI category (#804) is on screen; see {@link dev.gkissel.forgeweave.jei.JeiScreenshotHarness}. */
+    private static int jeiCaptureIndex;
+    /** Opt-in: skip straight to the JEI captures, see {@link #settleWorld}. Off unless set. */
+    private static final String JEI_ONLY_PROPERTY = "forgeweave.screenshot_harness_jei_only";
 
     private static Stage stage = Stage.AWAIT_TITLE;
     private static int stageTicks;
@@ -587,6 +600,8 @@ public final class ScreenshotHarness {
             case SETTLE_BOOK -> settleBook(mc);
             case OPEN_PONDER -> openPonder(mc);
             case SETTLE_PONDER -> settlePonder(mc);
+            case OPEN_JEI -> openJei(mc);
+            case SETTLE_JEI -> settleJei(mc);
             case DONE -> {}
         }
     }
@@ -640,6 +655,13 @@ public final class ScreenshotHarness {
 
     private static void settleWorld() {
         if (stageTicks >= WORLD_SETTLE_TICKS) {
+            // Issue #804: the JEI captures are at the very end of a run that also plays every
+            // ponder scene, so re-checking a JEI layout costs ten minutes of unrelated capture.
+            // -Dforgeweave.screenshot_harness_jei_only=true jumps straight to them.
+            if (Boolean.getBoolean(JEI_ONLY_PROPERTY)) {
+                advance(Stage.OPEN_JEI);
+                return;
+            }
             advance(Stage.PLACE_TANK_SCENE);
         }
     }
@@ -1930,10 +1952,7 @@ public final class ScreenshotHarness {
             return;
         }
         if (ponderCaptureIndex >= PonderHarnessCaptures.CAPTURES.size()) {
-            LOGGER.info("{}all {} screens, {} book scenes and {} ponder scenes captured, exiting", LOG_PREFIX,
-                    SCREENS.size(), BOOK_SCENES.size(), PonderHarnessCaptures.CAPTURES.size());
-            mc.stop();
-            advance(Stage.DONE);
+            advance(Stage.OPEN_JEI);
             return;
         }
         PonderHarnessCaptures.Capture capture = PonderHarnessCaptures.CAPTURES.get(ponderCaptureIndex);
@@ -1957,6 +1976,56 @@ public final class ScreenshotHarness {
         }
         ponderCaptureIndex++;
         advance(Stage.OPEN_PONDER);
+    }
+
+    /**
+     * Issue #804: JEI's own Recipes GUI, one capture per registered category -- exactly the screen
+     * an R/U lookup shows a player, and the only way the layout bugs two from-the-source-only passes
+     * (#753, #785) shipped would ever have surfaced before playtest. See {@link
+     * JeiScreenshotHarness}'s own javadoc for why this class only ever calls it through plain
+     * int/String/boolean signatures.
+     */
+    private static void openJei(Minecraft mc) {
+        if (stageTicks < SCREEN_GAP_TICKS) {
+            return;
+        }
+        // Guard the very first touch of JeiScreenshotHarness: loading it verifies the category
+        // classes it names, every one of which pulls JEI's API in. JEI is always present in the dev
+        // runtime this harness runs under, so this only matters for a stripped-down one.
+        if (!ModList.get().isLoaded("jei")) {
+            LOGGER.warn("{}JEI is not installed, skipping the JEI category captures", LOG_PREFIX);
+            mc.stop();
+            advance(Stage.DONE);
+            return;
+        }
+        if (jeiCaptureIndex >= JeiScreenshotHarness.categoryCount()) {
+            LOGGER.info("{}all {} screens, {} book scenes, {} ponder scenes and {} JEI categories captured, exiting",
+                    LOG_PREFIX, SCREENS.size(), BOOK_SCENES.size(), PonderHarnessCaptures.CAPTURES.size(),
+                    JeiScreenshotHarness.categoryCount());
+            mc.stop();
+            advance(Stage.DONE);
+            return;
+        }
+        String fileName = JeiScreenshotHarness.categoryFileName(jeiCaptureIndex);
+        if (!JeiScreenshotHarness.openCategory(jeiCaptureIndex)) {
+            LOGGER.error("{}JEI runtime not available, skipping {}", LOG_PREFIX, fileName);
+            jeiCaptureIndex++;
+            return;
+        }
+        LOGGER.info("{}opening JEI category {}", LOG_PREFIX, fileName);
+        advance(Stage.SETTLE_JEI);
+    }
+
+    private static void settleJei(Minecraft mc) {
+        if (stageTicks < SCREEN_SETTLE_TICKS) {
+            return;
+        }
+        capture(mc, JeiScreenshotHarness.categoryFileName(jeiCaptureIndex));
+        if (mc.screen != null) {
+            mc.screen.onClose();
+        }
+        jeiCaptureIndex++;
+        advance(Stage.OPEN_JEI);
     }
 
     /**
