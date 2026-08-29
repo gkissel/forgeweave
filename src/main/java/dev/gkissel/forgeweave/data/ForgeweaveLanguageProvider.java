@@ -1162,7 +1162,7 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         // carry none), so both lines are original wording rather than a port.
         add("tooltip.forgeweave.cast", "Pour molten metal into it at a Casting Table or Basin to cast "
                 + "its shape. Reusable.");
-        add("tooltip.forgeweave.clay_cast", "A single-use clay cast -- it breaks after one pour.");
+        add("tooltip.forgeweave.clay_cast", "A single-use clay cast: it breaks after one pour.");
 
         // #106 batch: luck, sharpness, diamond, emerald.
         add("modifier.forgeweave.luck.name", "Luck");
@@ -1199,15 +1199,15 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         // the extra line is its modifier.blasting.extra verbatim.
         add("modifier.forgeweave.blasting.name", "Blasting");
         add("modifier.forgeweave.blasting.description",
-                "Ka-Boom! Blocks this tool isn't effective on break like normal ones -- but every "
-                        + "level is another third of a chance the drops go up with them.");
+                "Ka-Boom! Breaks blocks this tool isn't normally effective on, but every level is "
+                        + "another one-in-three chance the drops don't survive.");
         add("modifier.forgeweave.blasting.extra", "Blast Power: %s");
 
         // #719 -- veinmine. No upstream counterpart; the wording is this PR's own.
         add("modifier.forgeweave.veinmine.name", "Veinmine");
         add("modifier.forgeweave.veinmine.description",
-                "Hold the Vein Mine key to take a whole run of ore, logs or soil in one swing -- "
-                        + "four more blocks per level.");
+                "Hold the Vein Mine key to take a whole run of ore, logs or soil in one swing; "
+                        + "each level adds four more blocks.");
 
         // #653 -- fins. Upstream modifier.fins.name/.desc ("Something's fishy... Attaching fins to
         // the projectiles makes them travel like normal underwater"), the flavour line folded into
@@ -1254,7 +1254,7 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("modifier.forgeweave.creative_flight.name", "Creative Flight");
         add("modifier.forgeweave.creative_flight.description",
                 "A fallen star's power, bound to the whole set. Soar freely while every heavy piece "
-                        + "stays worn and unbroken -- requires Elytra Flight first.");
+                        + "stays worn and unbroken; requires Elytra Flight first.");
 
         add("modifier.forgeweave.wind_burst.name", "Wind Burst");
         add("modifier.forgeweave.wind_burst.description",
@@ -1366,11 +1366,11 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         // Shown on the melting category's fluid slot only for ore inputs (SmelteryCore#yieldMultiplier,
         // issue #99) -- ingots, nuggets and blocks always melt 1:1, so they get no note.
         add("jei.category.forgeweave.melting.core_multiplier",
-                "Base yield -- your smeltery's core tier multiplies ore inputs (Standard 1.5x, Nether 2x).");
+                "Base yield: your smeltery's core tier multiplies ore inputs (Standard 1.5x, Nether 2x).");
         add("jei.category.forgeweave.melting.temperature", "Temperature: %s");
         add("jei.category.forgeweave.alloying", "Alloying");
         add("jei.category.forgeweave.alloying.ratio_note",
-                "Shown as a ratio -- the smeltery alloys as many whole batches as the tank holds.");
+                "Shown as a ratio: the smeltery alloys as many whole batches as the tank holds.");
         add("jei.category.forgeweave.casting_table", "Casting Table");
         add("jei.category.forgeweave.casting_basin", "Casting Basin");
         add("jei.category.forgeweave.casting.cast_reusable", "Cast is not consumed");
@@ -1598,7 +1598,7 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         // smeltery controller interaction only when Ponder isn't installed (ForgeweavePonderHint).
         // A new "chat" family, following vanilla's own chat.* namespace -- none of this file's usual
         // families cover a directly-displayed player chat message.
-        add("chat.forgeweave.ponder_hint", "Install Ponder for in-game build tutorials -- recipes are in JEI");
+        add("chat.forgeweave.ponder_hint", "Install Ponder for in-game build tutorials. Recipes are in JEI");
 
         // #664 -- the Ponder scene text (forgeweave.ponder.<scene>.header/.text_N). Ponder's idiom
         // keeps the English inline in the storyboards (ForgeweaveSmelteryScenes) and extracts it
@@ -1773,7 +1773,7 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
                         + "can go straight into storage.");
         add("book.forgeweave.intro.pattern_chest.title", "Pattern Chest");
         add("book.forgeweave.intro.pattern_chest.text",
-                "Stores one copy of each pattern -- or, if you would rather, casts; a chest holds one "
+                "Stores one copy of each pattern, or of casts if you would rather; a chest holds one "
                         + "kind or the other, never both at once.\n\nSet next to a Stencil Table or Part "
                         + "Builder, its contents appear right in that station's screen.");
         add("book.forgeweave.intro.part_builder.title", "Part Builder");
@@ -1792,23 +1792,23 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
                 "A blank pattern over a crafting table makes the Tool Station, the heart of the "
                         + "workshop. Pick a tool from its sidebar, set the parts, and read the finished "
                         + "stats before you build.\n\nThe station also repairs, renames, and applies "
-                        + "modifiers -- the Modifiers chapter covers those.");
+                        + "modifiers; the Modifiers chapter covers those.");
         add("book.forgeweave.intro.tool_forge.title", "Tool Forge");
         add("book.forgeweave.intro.tool_forge.text",
                 "The Tool Station's sturdier sibling: seared bricks and metal blocks built around a "
                         + "Tool Station. It does everything the station does, and it alone assembles the "
-                        + "large tools -- the hammer, the cleaver and their kin.");
+                        + "large tools: the hammer, the cleaver and their kin.");
         // Issue #782 (reversing D13): armor moved off the Tool Station/Tool Forge onto its own block.
         add("book.forgeweave.intro.armor_station.title", "Armor Station");
         add("book.forgeweave.intro.armor_station.text",
-                "A blank pattern over a Tool Station makes the Armor Station -- the Tool Station's "
+                "A blank pattern over a Tool Station makes the Armor Station, the Tool Station's "
                         + "sibling for plating and maille. It builds every armor piece, repairs and "
                         + "renames them, and applies their modifiers, the same way the Tool Station does "
                         + "for tools.\n\nThe Tool Station and Tool Forge no longer build armor at all; "
                         + "the two families finally each have their own workbench.");
         add("book.forgeweave.tools.repairing.title", "Repairing");
         add("book.forgeweave.tools.repairing.text",
-                "As you use your tools they take damage, and once all of their durability is gone they break. To fix that, repair your tool -- no need to wait until it breaks.\n\nPut the tool into a Tool Station or Tool Forge and add material matching the tool's head. If the head is made of several materials, any of them will do, and repairing with several at once grants bonus durability.");
+                "As you use your tools they take damage, and once all of their durability is gone they break. To fix that, repair your tool; there is no need to wait until it breaks.\n\nPut the tool into a Tool Station or Tool Forge and add material matching the tool's head. If the head is made of several materials, any of them will do, and repairing with several at once grants bonus durability.");
         // M4-7 (issue #682, docs/SCOPE.md D21) -- the armor section. The intro's first lines and the
         // piece pages' Properties bullets are rewritten from the 1.20 clone's book
         // (encyclopedia/en_us/armor/info.json and tconstruct_plate_*.json, NOTICE.md); the rest
@@ -1818,20 +1818,20 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
                 "Armor is built the way tools are: from parts, at the Armor Station, out of the "
                         + "materials you choose. Every piece has a limited number of modifier slots and "
                         + "carries its materials' traits.\n\nUnlike a tool, armor does nothing in the "
-                        + "hand -- its stats, traits and modifiers only work while it is worn.");
+                        + "hand: its stats, traits and modifiers only work while it is worn.");
         add("book.forgeweave.armor.parts.title", "Plating and Maille");
         add("book.forgeweave.armor.parts.text",
                 "Each piece is two parts. The plating is the outer shell and sets every stat: "
                         + "durability, armor, toughness and knockback resistance, with a separate plating "
                         + "shape for the helmet, chestplate, leggings and boots. Only sturdy materials "
-                        + "make plating -- the metals, obsidian and a few others.\n\nThe maille is the "
+                        + "make plating: the metals, obsidian and a few others.\n\nThe maille is the "
                         + "chain worn underneath. It has no stats of its own; it brings its material's "
                         + "traits and shows through the plating's gaps. Softer materials such as vine, "
                         + "bone and cactus can be woven into maille.");
         add("book.forgeweave.armor.casting.title", "Casting Plating");
         add("book.forgeweave.armor.casting.text",
                 "Metal plating is cast at the Smeltery like any other metal part, which needs a "
-                        + "plating cast -- and a cast is made by pouring gold over a finished part.\n\n"
+                        + "plating cast, and a cast is made by pouring gold over a finished part.\n\n"
                         + "Obsidian plating is the way in: the Part Builder carves obsidian into plating "
                         + "with a plating pattern. Set that plating on a Casting Table and pour gold over "
                         + "it for a plating cast, then cast iron and every other metal from there. The "
@@ -1852,23 +1852,23 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
                         + "Some fit armor alone: Fire, Blast, Projectile, Magic and Melee Protection each "
                         + "reduce one kind of damage, stacking across the worn set up to a cap; Knockback "
                         + "Resistance keeps you on your feet; Thorns hurts whatever hits you.\n\nThe "
-                        + "general modifiers -- Reinforced, Mending Moss, Soulbound and the extra "
-                        + "modifier slot -- fit armor as well. See the Modifiers chapter for each one.");
+                        + "general modifiers (Reinforced, Mending Moss, Soulbound and the extra "
+                        + "modifier slot) fit armor as well. See the Modifiers chapter for each one.");
         add("book.forgeweave.materials.intro.title", "Materials");
         add("book.forgeweave.materials.intro.text",
-                "Every part of a tool contributes the stats of the material it is made from: the head brings durability, mining speed and attack; the handle multiplies durability; a binding adds a flat bonus.\n\nMaterials also grant traits -- special behaviours listed on the pages that follow.");
+                "Every part of a tool contributes the stats of the material it is made from: the head brings durability, mining speed and attack; the handle multiplies durability; a binding adds a flat bonus.\n\nMaterials also grant traits: special behaviours listed on the pages that follow.");
         add("book.forgeweave.modifiers.intro.title", "Modifiers");
         add("book.forgeweave.modifiers.intro.text",
                 "A finished tool is never truly finished. At the Tool Station or Tool Forge, sacrifice items to imbue a tool with modifiers. Each tool starts with a limited number of free slots, and some modifiers can be applied repeatedly for a stronger effect.\n\nThe pages that follow list every modifier known to this workshop.");
         add("book.forgeweave.smeltery.intro.title", "The Smeltery");
         add("book.forgeweave.smeltery.intro.text",
-                "There are many smelteries, but this one is yours -- and it melts things really well.");
+                "There are many smelteries, but this one is yours, and it melts things really well.");
         add("book.forgeweave.smeltery.structure.title", "Building the Smeltery");
         add("book.forgeweave.smeltery.structure.text",
-                "The smeltery's interior can be any size up to 9x9, with walls as short as a single block or as tall as you like. A larger structure holds more molten metal at once. The structure needs a complete seared floor, but no ceiling.\n\nThe walls are built from seared bricks, seared glass, tanks and drains, with the core set into a wall; the floor must be solely seared blocks. At least one seared tank is required to hold fuel -- lava works nicely -- and faucets attach to drains to pour fluids out.");
+                "The smeltery's interior can be any size up to 9x9, with walls as short as a single block or as tall as you like. A larger structure holds more molten metal at once. The structure needs a complete seared floor, but no ceiling.\n\nThe walls are built from seared bricks, seared glass, tanks and drains, with the core set into a wall; the floor must be solely seared blocks. At least one seared tank is required to hold fuel (lava works nicely), and faucets attach to drains to pour fluids out.");
         add("book.forgeweave.smeltery.working.title", "Working the Smeltery");
         add("book.forgeweave.smeltery.working.text",
-                "Place ore or metal into the smeltery through its core and it slowly melts down. Different molten metals pool together below -- some combinations mix into alloys.\n\nDrain the result through a faucet into a Casting Table holding a cast to shape tool parts and ingots, or into a Casting Basin for full blocks.");
+                "Place ore or metal into the smeltery through its core and it slowly melts down. Different molten metals pool together below; some combinations mix into alloys.\n\nDrain the result through a faucet into a Casting Table holding a cast to shape tool parts and ingots, or into a Casting Basin for full blocks.");
 
         // Issue #651: the tool pages' "Properties:" and modifier pages' "Effects:" bullet lists --
         // upstream ContentTool#properties / ContentModifier#effects, headers from the 1.12 book's
