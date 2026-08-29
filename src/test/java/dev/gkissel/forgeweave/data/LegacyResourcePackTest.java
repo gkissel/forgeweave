@@ -5,20 +5,28 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HexFormat;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Stream;
 
 import org.junit.jupiter.api.Test;
 
 /**
- * Guards Forgeweave's built-in Legacy resource pack (issue #796) against the two failure modes its
- * own issue calls out: a file it ships that overrides nothing real (an orphan -- a stray leftover, a
- * typo'd path, or a sprite swap that got reverted without cleaning up), and the inverse mistake of a
- * pack file that is actually byte-identical to what the default Forged tree already ships (dead
- * weight -- see {@code scripts/sprite_sets.py}'s dedup contract, which every generator script is
- * supposed to uphold). A plain filesystem walk and byte comparison, no resource-pack loading, the
- * same "fast, catches drift without a running client" shape {@link TextureReferenceAuditTest} uses.
+ * Guards Forgeweave's built-in Legacy resource pack (issue #796) against the failure modes its own
+ * issue -- and issue #807, filed after one slipped through -- call out: a file it ships that
+ * overrides nothing real (an orphan -- a stray leftover, a typo'd path, or a sprite swap that got
+ * reverted without cleaning up), the inverse mistake of a pack file that is actually byte-identical
+ * to what the default Forged tree already ships (dead weight -- see
+ * {@code scripts/sprite_sets.py}'s dedup contract, which every generator script is supposed to
+ * uphold), and issue #807's own miss: pre-#796 art still shipping somewhere in the *default* tree,
+ * at a path a Forged sprite swap did not touch. A plain filesystem walk and byte comparison, no
+ * resource-pack loading, the same "fast, catches drift without a running client" shape
+ * {@link TextureReferenceAuditTest} uses.
  */
 class LegacyResourcePackTest {
 
@@ -88,6 +96,65 @@ class LegacyResourcePackTest {
         assertTrue(duplicates.isEmpty(),
                 "Legacy pack files byte-identical to the Forged default (should not ship at all):\n"
                         + String.join("\n", duplicates));
+    }
+
+    /**
+     * Issue #807: a Forged sprite that replaces a part's *item icon* does not automatically replace
+     * a byte-identical *tool layer* at a different path and different file name -- {@code #796}'s
+     * first batch swapped {@code derived/item/katana_blade.png} but missed that
+     * {@code derived/tools/katana_head.png} carried the exact same pre-#796 pixels under a name that
+     * does not match, so the old art kept shipping in the default tree under a name nobody thought to
+     * check. Every file the Legacy pack carries is, by definition, pre-#796/pre-Forged art that a
+     * sprite swap was supposed to retire from the default tree entirely. If any *other* file in the
+     * default tree still carries those exact bytes, some sibling of the swapped file was missed the
+     * same way {@code katana_head.png} was.
+     *
+     * <p>This does not fire on legitimately shared art: an unswapped part (say {@code large_plate.png})
+     * whose item icon and tool layer are still identical today has no Legacy-pack entry at all -- it
+     * was never overridden, so its hash never enters the comparison set below. Only a file that some
+     * Forged sprite *has* replaced (and therefore has a Legacy-pack row) can trigger this check, and
+     * only when a *different* default-tree file -- not its own already-verified-different counterpart
+     * above -- still carries its exact retired bytes.
+     */
+    @Test
+    void noOtherDefaultFileStillCarriesRetiredLegacyBytes() throws IOException {
+        Map<String, List<String>> legacyHashToPaths = new HashMap<>();
+        Path legacy = legacyTextures();
+        try (Stream<Path> files = Files.walk(legacy)) {
+            for (Path file : files.filter(Files::isRegularFile).toList()) {
+                String relative = legacy.relativize(file).toString();
+                legacyHashToPaths.computeIfAbsent(sha256(file), key -> new ArrayList<>()).add(relative);
+            }
+        }
+
+        List<String> staleCopies = new ArrayList<>();
+        Path defaultRoot = defaultTextures();
+        try (Stream<Path> files = Files.walk(defaultRoot)) {
+            for (Path file : files.filter(Files::isRegularFile).toList()) {
+                String relative = defaultRoot.relativize(file).toString();
+                List<String> retiredPaths = legacyHashToPaths.get(sha256(file));
+                if (retiredPaths == null) {
+                    continue;
+                }
+                for (String retiredPath : retiredPaths) {
+                    if (!retiredPath.equals(relative)) {
+                        staleCopies.add(relative + " still carries the bytes retired at " + retiredPath);
+                    }
+                }
+            }
+        }
+        assertTrue(staleCopies.isEmpty(),
+                "Default-tree files that still carry pre-Forged/Legacy bytes a sprite swap should have retired:\n"
+                        + String.join("\n", staleCopies));
+    }
+
+    private static String sha256(Path file) throws IOException {
+        try {
+            MessageDigest digest = MessageDigest.getInstance("SHA-256");
+            return HexFormat.of().formatHex(digest.digest(Files.readAllBytes(file)));
+        } catch (NoSuchAlgorithmException e) {
+            throw new AssertionError("SHA-256 must be available on every JVM", e);
+        }
     }
 
     /** The pack needs valid metadata or {@code Pack.readMetaAndCreate} (see {@code ForgeweaveResourcePacks}) fails to load it at all. */

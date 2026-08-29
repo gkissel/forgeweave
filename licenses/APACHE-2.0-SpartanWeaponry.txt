@@ -30,7 +30,7 @@ responsible for and do not endorse the modified results.
 Derived files, and the upstream file each comes from:
 
     src/main/resources/resourcepacks/legacy/assets/forgeweave/textures/derived/item/katana_blade.png
-    src/main/resources/assets/forgeweave/textures/derived/tools/katana_head.png
+    src/main/resources/resourcepacks/legacy/assets/forgeweave/textures/derived/tools/katana_head.png
         <- assets/spartanweaponry/textures/items/custom/katana_layer_1.png
 
     src/main/resources/assets/forgeweave/textures/derived/item/curved_blade.png
@@ -40,10 +40,14 @@ Derived files, and the upstream file each comes from:
 (The two Forgeweave files in each pair started as the same pixels written to two paths: a part icon
 and a tool layer, the one-file-serves-both convention the rest of the pack uses. Issue #796's Forged
 sprite batch replaced `katana_blade.png` at its default path with original art, so its modified
-Spartan Weaponry pixels now ship only under the built-in Legacy resource pack -- see
-`ForgeweaveResourcePacks` and NOTICE.md's `katana_blade.png` row; `katana_head.png` is unaffected and
-still ships at its original default path. The broken-tool and composite textures generated from
-these are listed as separate rows in NOTICE.md.)
+Spartan Weaponry pixels shipped only under the built-in Legacy resource pack from then on -- see
+`ForgeweaveResourcePacks` and NOTICE.md's `katana_blade.png` row. At the time, `katana_head.png` was
+unaffected and still shipped at its original default path -- #796's sprite swap only replaced the
+item-icon path, and missed that `katana_head.png`'s tool layer had always carried the same pixels.
+Issue #807 caught that miss: the same Forged sprite now also replaces `katana_head.png` at its
+default path, so its modified Spartan Weaponry pixels moved into the Legacy pack too, both files
+now living at the same two Legacy-pack paths above. The broken-tool and composite textures generated
+from these are listed as separate rows in NOTICE.md.)
 
 The modifications, all performed by scripts/derive_spartan_blade_art.py:
 
