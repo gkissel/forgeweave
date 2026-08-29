@@ -12,6 +12,6 @@ final class CastingBasinCategory extends CastingCategory {
     static final RecipeType<CastingRecipe> TYPE = RecipeType.create(Forgeweave.MODID, "casting_basin", CastingRecipe.class);
 
     CastingBasinCategory(IGuiHelper helper) {
-        super(helper, TYPE, ForgeweaveItems.CASTING_BASIN.get(), "jei.category.forgeweave.casting_basin");
+        super(helper, TYPE, ForgeweaveItems.CASTING_BASIN.get(), "jei.category.forgeweave.casting_basin", BLOCK_V_BASIN);
     }
 }

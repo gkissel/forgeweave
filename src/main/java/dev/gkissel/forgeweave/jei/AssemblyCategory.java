@@ -1,10 +1,7 @@
 package dev.gkissel.forgeweave.jei;
 
-import java.util.List;
-
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 
 import mezz.jei.api.gui.builder.IRecipeLayoutBuilder;
@@ -28,15 +25,20 @@ import dev.gkissel.forgeweave.Forgeweave;
  * categories instead of one is what lets JEI show the right station as each recipe's location; there
  * is no single-category way to vary a recipe's catalyst list by the recipe.
  *
- * <p>Issue #785: the background is derived from upstream's own {@code ToolBuildingCategory}
- * (`~/development/minecraft/references/tinkers-1.20` @ de26560d, MIT -- NOTICE.md), the closest
- * upstream analog for "parts assemble into a tool". Upstream renders a scaled 3D preview of the
- * finished tool over a fixed 134x66 panel with fading slot-border overlays; this category keeps its
- * own flat item-slot column instead (upstream's panel has no room for a growing four-part list, and
- * the 3D-render/overlay machinery is not worth reproducing for a fixed background swap), so only
- * {@link #WIDTH} (upstream's real 134) is a direct derivation -- {@link #HEIGHT} still grows with the
- * tool's own part count the way it did before #785. {@link #ARMOR_TYPE} reuses the same background;
- * armor entries top out at three parts (heavy pieces), well inside the tool roster's four.
+ * <p>Issue #785 derived the background from upstream's own {@code ToolBuildingCategory}
+ * (`~/development/minecraft/references/tinkers-1.20` @ de26560d, MIT -- NOTICE.md) but kept a height
+ * (86) that grew with the part count, so the crop read 20 rows past the end of upstream's real
+ * 134x66 panel and pulled in whatever was underneath it in the atlas. Issue #804 pins the panel to
+ * upstream's own `createDrawable(tinker_station.png, 122, 77, 134, 66)` and instead fits the part
+ * column inside it: the parts fill the same blank left-hand zone upstream reserves for its 3D tool
+ * preview (upstream's {@code itemCover} is 70x60 at (5,6)), as a centred grid at most two columns
+ * wide, and the result goes in upstream's own output slot at {@code (WIDTH - 26, 23)}.
+ *
+ * <p>Deviation: upstream renders a big scaled 3D preview of the finished tool behind those slots and
+ * takes each slot's position from the tool's own station layout. Forgeweave's parts have no such
+ * per-tool layout to read, so the grid below is derived from the part count instead, and each slot
+ * gets upstream's own 18x18 slot frame ({@code slotBorder}, which upstream likewise draws over that
+ * zone because the art there has no frames).
  */
 final class AssemblyCategory implements IRecipeCategory<AssemblyRecipe> {
     static final RecipeType<AssemblyRecipe> TYPE =
@@ -46,30 +48,32 @@ final class AssemblyCategory implements IRecipeCategory<AssemblyRecipe> {
     static final RecipeType<AssemblyRecipe> ARMOR_TYPE =
             RecipeType.create(Forgeweave.MODID, "armor_assembly", AssemblyRecipe.class);
 
-    /** Upstream {@code ToolBuildingCategory}'s own background rect inside `tinker_station.png`. */
-    static final ResourceLocation BACKGROUND_LOC = JeiCategoryGeometry.ASSEMBLY.background();
-    private static final int BACKGROUND_U = 122;
-    private static final int BACKGROUND_V = 77;
+    private static final JeiCategoryGeometry.Panel PANEL = JeiCategoryGeometry.ASSEMBLY;
+    private static final int WIDTH = PANEL.width();
+    private static final int HEIGHT = PANEL.height();
 
-    private static final int GUTTER = JeiCategoryChrome.GUTTER;
-    /** Upstream {@code ToolBuildingCategory}'s own background width. */
-    static final int WIDTH = JeiCategoryGeometry.ASSEMBLY.width();
+    /** Upstream's own result slot -- `addSlot(OUTPUT, WIDTH - 26, 23)`. */
+    private static final int RESULT_X = WIDTH - 26;
+    private static final int RESULT_Y = 23;
+    /** The blank zone upstream fills with its 3D preview -- `itemCover.draw(graphics, 5, 6)`, 70x60. */
+    private static final int PART_ZONE_WIDTH = 70;
+    /** One 16x16 slot plus the 1px its 18x18 frame adds on each side, plus 2px of breathing room. */
     private static final int SLOT_PITCH = 20;
-    /** Tall enough for the longest part list in the roster (four parts, the Tool Forge tier). */
-    static final int HEIGHT = JeiCategoryGeometry.ASSEMBLY.height();
+    /** Two columns keep four parts (the Tool Forge tier) clear of upstream's arrow at x=74. */
+    private static final int MAX_COLUMNS = 2;
 
     private final RecipeType<AssemblyRecipe> type;
     private final Component title;
     private final IDrawable icon;
-    private final IDrawable arrow;
     private final IDrawable background;
+    private final IDrawable slotFrame;
 
     AssemblyCategory(IGuiHelper helper, RecipeType<AssemblyRecipe> type, Component title, ItemStack catalystIcon) {
         this.type = type;
         this.title = title;
         icon = helper.createDrawableItemStack(catalystIcon);
-        arrow = helper.getRecipeArrow();
-        background = helper.createDrawable(BACKGROUND_LOC, BACKGROUND_U, BACKGROUND_V, WIDTH, HEIGHT);
+        background = JeiCategoryChrome.panel(helper, PANEL);
+        slotFrame = JeiCategoryChrome.slotFrame(helper);
     }
 
     @Override
@@ -99,17 +103,34 @@ final class AssemblyCategory implements IRecipeCategory<AssemblyRecipe> {
 
     @Override
     public void setRecipe(IRecipeLayoutBuilder builder, AssemblyRecipe recipe, IFocusGroup focuses) {
-        // One slot per part, stacked in the station's own slot order -- two for M3's two-part
-        // weapons, four for the Tool Forge tier (issue #155), so the column grows with the tool.
-        for (int slot = 0; slot < recipe.parts().size(); slot++) {
-            builder.addInputSlot(GUTTER, GUTTER + slot * SLOT_PITCH).addItemStacks(recipe.parts().get(slot));
+        // One slot per part, in the station's own slot order -- two for M3's two-part weapons, four
+        // for the Tool Forge tier (issue #155), so the grid grows with the tool.
+        int count = recipe.parts().size();
+        for (int slot = 0; slot < count; slot++) {
+            builder.addInputSlot(partX(count, slot), partY(count, slot)).addItemStacks(recipe.parts().get(slot));
         }
-        builder.addOutputSlot(WIDTH - 18 - GUTTER, (HEIGHT - 18) / 2).addItemStack(recipe.result());
+        builder.addOutputSlot(RESULT_X, RESULT_Y).addItemStack(recipe.result());
     }
 
     @Override
     public void draw(AssemblyRecipe recipe, IRecipeSlotsView recipeSlotsView, GuiGraphics guiGraphics, double mouseX, double mouseY) {
+        // The arrow and the output slot's frame are baked into upstream's own panel; the part zone is blank.
         background.draw(guiGraphics, 0, 0);
-        arrow.draw(guiGraphics, GUTTER + 2 * SLOT_PITCH + 2, (HEIGHT - arrow.getHeight()) / 2);
+        int count = recipe.parts().size();
+        for (int slot = 0; slot < count; slot++) {
+            JeiCategoryChrome.drawSlotFrame(slotFrame, guiGraphics, partX(count, slot), partY(count, slot));
+        }
+    }
+
+    /** The grid is centred in {@link #PART_ZONE_WIDTH}, so two parts sit either side of its middle. */
+    private static int partX(int count, int slot) {
+        int columns = Math.min(count, MAX_COLUMNS);
+        return (PART_ZONE_WIDTH - columns * SLOT_PITCH) / 2 + (slot % MAX_COLUMNS) * SLOT_PITCH;
+    }
+
+    /** ...and centred in the panel's own height, so a two-part tool lines up with the output slot. */
+    private static int partY(int count, int slot) {
+        int rows = (count + MAX_COLUMNS - 1) / MAX_COLUMNS;
+        return (HEIGHT - rows * SLOT_PITCH) / 2 + (slot / MAX_COLUMNS) * SLOT_PITCH;
     }
 }

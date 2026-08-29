@@ -4,11 +4,11 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 
 import mezz.jei.api.gui.builder.IRecipeLayoutBuilder;
 import mezz.jei.api.gui.drawable.IDrawable;
+import mezz.jei.api.gui.drawable.IDrawableAnimated.StartDirection;
 import mezz.jei.api.gui.ingredient.IRecipeSlotsView;
 import mezz.jei.api.helpers.IGuiHelper;
 import mezz.jei.api.recipe.IFocusGroup;
@@ -32,34 +32,65 @@ import dev.gkissel.forgeweave.item.ForgeweaveItems;
  * displayed number this category explains it via a tooltip on the fluid slot -- shown only for ore
  * inputs, matching docs/SCOPE.md M2's "ingot re-melts 1:1" rule for everything else.
  *
- * <p>Issue #785: background, arrow, flame column and the temperature text row are derived from
- * upstream's own {@code AbstractMeltingCategory}/{@code MeltingCategory}
- * (`~/development/minecraft/references/tinkers-1.20` @ de26560d, MIT -- NOTICE.md). Upstream's fuel
- * tank is 12px wide and its output a 32x32 fluid render with a frame overlay; this category keeps its
- * own fixed 16x16 icons at those same origins rather than deriving the overlay/fuel-strip assets too.
+ * <p>Issue #785 derived this category's background from upstream's own {@code
+ * AbstractMeltingCategory}/{@code MeltingCategory} (`~/development/minecraft/references/tinkers-1.20`
+ * @ de26560d, MIT -- NOTICE.md). Issue #804 finishes the job:
+ *
+ * <ul>
+ *   <li>The output is upstream's real {@code setFluidRenderer(.., 32, 32).setOverlay(tankOverlay, 0,
+ *       0)} rather than a flat 16x16 swatch adrift in a mostly-empty tank silhouette. The overlay
+ *       crop is already inside the derived `melting.png` (it is the same 256x256 upstream file), so
+ *       drawing it needs no new asset and no new NOTICE.md row.
+ *   <li>The arrow is upstream's own animated crop drawn at its (56,18), not JEI's generic arrow
+ *       drawn vertically centred on top of the arrow the background already has baked in.
+ *   <li>The temperature is centred on x=56 the way {@code AbstractMeltingCategory#draw} centres it,
+ *       and is the bare "309°C" {@link TemperatureText} already produces for the smeltery tooltip.
+ *       It used to be drawn left-anchored with an added "Temperature: " label, which ran the string
+ *       across the whole row and under the output fluid.
+ * </ul>
+ *
+ * <p>Deviation: upstream's fuel column is a live tank cycling every fluid fuel hot enough for the
+ * recipe (plus a solid-fuel slot below it). Forgeweave has no fuel registry to read, so that column
+ * keeps JEI's flame icon, centred in the same 12x32 recess upstream's tank fills.
  */
 final class MeltingCategory implements IRecipeCategory<MeltingDisplay> {
     static final RecipeType<MeltingDisplay> TYPE =
             RecipeType.create(Forgeweave.MODID, "melting", MeltingDisplay.class);
 
-    /** Upstream {@code AbstractMeltingCategory}'s own background: `textures/gui/jei/melting.png`, (0,0,132,40). */
-    static final ResourceLocation BACKGROUND_LOC = JeiCategoryGeometry.MELTING.background();
-    static final int WIDTH = JeiCategoryGeometry.MELTING.width();
-    static final int HEIGHT = JeiCategoryGeometry.MELTING.height();
+    private static final JeiCategoryGeometry.Panel PANEL = JeiCategoryGeometry.MELTING;
+    private static final int WIDTH = PANEL.width();
+    private static final int HEIGHT = PANEL.height();
 
-    private static final int TANK_SIZE = 16;
     /** Upstream's own item input slot -- `builder.addSlot(INPUT, 24, 18)`. */
     private static final int INPUT_X = 24;
     private static final int INPUT_Y = 18;
-    /** Upstream's own fluid output origin -- `builder.addSlot(OUTPUT, 96, 4, ...)`. */
+    /** Upstream's own fluid output -- `builder.addSlot(OUTPUT, 96, 4).setFluidRenderer(.., 32, 32)`. */
     private static final int OUTPUT_X = 96;
     private static final int OUTPUT_Y = 4;
-    /** Upstream's own arrow position -- `cachedArrows...draw(graphics, 56, 18)`. */
+    private static final int OUTPUT_SIZE = 32;
+    /** Upstream's own tank overlay -- `createDrawable(melting.png, 132, 0, 32, 32)`. */
+    private static final int OVERLAY_U = 132;
+    private static final int OVERLAY_V = 0;
+    /** Upstream's own arrow -- `drawableBuilder(melting.png, 150, 41, 24, 17)`, drawn at (56,18). */
+    private static final int ARROW_U = 150;
+    private static final int ARROW_V = 41;
+    private static final int ARROW_WIDTH = 24;
+    private static final int ARROW_HEIGHT = 17;
     private static final int ARROW_X = 56;
-    /** Upstream's own fuel-tank column, to the left of the item slot -- `builder.addSlot(RENDER_ONLY, 4, 4, ...)`. */
-    private static final int FLAME_X = 4;
-    /** Upstream's own temperature text row -- `graphics.drawString(..., x, 3, ...)`. */
-    private static final int TEMPERATURE_X = 4;
+    private static final int ARROW_Y = 18;
+    /**
+     * Upstream animates this arrow over the recipe's own melting time; {@code MeltingDisplay} carries
+     * no time (Forgeweave's smeltery melts on a fixed tick budget, docs/SCOPE.md M2 #96), so the
+     * sweep runs on one fixed period for every row instead.
+     */
+    private static final int ARROW_TICKS = 100;
+    /** Upstream's own liquid-fuel tank -- `builder.addSlot(RENDER_ONLY, 4, 4).setFluidRenderer(1, false, 12, 32)`. */
+    private static final int FUEL_X = 4;
+    private static final int FUEL_Y = 4;
+    private static final int FUEL_WIDTH = 12;
+    private static final int FUEL_HEIGHT = 32;
+    /** Upstream's own temperature row -- `int x = 56 - font.width(tempString) / 2; drawString(.., x, 3, ..)`. */
+    private static final int TEMPERATURE_CENTER_X = 56;
     private static final int TEMPERATURE_Y = 3;
     private static final int TEXT_COLOR = 0x404040;
 
@@ -67,12 +98,15 @@ final class MeltingCategory implements IRecipeCategory<MeltingDisplay> {
     private final IDrawable arrow;
     private final IDrawable flame;
     private final IDrawable background;
+    private final IDrawable tankOverlay;
 
     MeltingCategory(IGuiHelper helper) {
         icon = helper.createDrawableItemStack(new ItemStack(ForgeweaveItems.STANDARD_CORE.get()));
-        arrow = helper.getRecipeArrow();
+        arrow = helper.drawableBuilder(PANEL.background(), ARROW_U, ARROW_V, ARROW_WIDTH, ARROW_HEIGHT)
+                .buildAnimated(ARROW_TICKS, StartDirection.LEFT, false);
         flame = helper.getRecipeFlameFilled();
-        background = helper.createDrawable(BACKGROUND_LOC, 0, 0, WIDTH, HEIGHT);
+        background = JeiCategoryChrome.panel(helper, PANEL);
+        tankOverlay = helper.createDrawable(PANEL.background(), OVERLAY_U, OVERLAY_V, OUTPUT_SIZE, OUTPUT_SIZE);
     }
 
     @Override
@@ -104,7 +138,8 @@ final class MeltingCategory implements IRecipeCategory<MeltingDisplay> {
     public void setRecipe(IRecipeLayoutBuilder builder, MeltingDisplay recipe, IFocusGroup focuses) {
         builder.addInputSlot(INPUT_X, INPUT_Y).addItemStacks(recipe.inputs());
         builder.addOutputSlot(OUTPUT_X, OUTPUT_Y)
-                .setFluidRenderer(recipe.amount(), false, TANK_SIZE, TANK_SIZE)
+                .setFluidRenderer(recipe.amount(), false, OUTPUT_SIZE, OUTPUT_SIZE)
+                .setOverlay(tankOverlay, 0, 0)
                 .addFluidStack(recipe.fluid(), recipe.amount())
                 .addRichTooltipCallback((view, tooltip) -> {
                     if (recipe.ore()) {
@@ -116,12 +151,13 @@ final class MeltingCategory implements IRecipeCategory<MeltingDisplay> {
     @Override
     public void draw(MeltingDisplay recipe, IRecipeSlotsView recipeSlotsView, GuiGraphics guiGraphics, double mouseX, double mouseY) {
         background.draw(guiGraphics, 0, 0);
-        flame.draw(guiGraphics, FLAME_X, (HEIGHT - flame.getHeight()) / 2);
-        arrow.draw(guiGraphics, ARROW_X, (HEIGHT - arrow.getHeight()) / 2);
+        arrow.draw(guiGraphics, ARROW_X, ARROW_Y);
+        flame.draw(guiGraphics,
+                FUEL_X + (FUEL_WIDTH - flame.getWidth()) / 2,
+                FUEL_Y + (FUEL_HEIGHT - flame.getHeight()) / 2);
 
         Font font = Minecraft.getInstance().font;
-        Component temperature = Component.translatable("jei.category.forgeweave.melting.temperature",
-                TemperatureText.format(recipe.temperature()));
-        guiGraphics.drawString(font, temperature, TEMPERATURE_X, TEMPERATURE_Y, TEXT_COLOR, false);
+        JeiCategoryChrome.drawCentered(guiGraphics, font, TemperatureText.format(recipe.temperature()),
+                TEMPERATURE_CENTER_X, TEMPERATURE_Y, TEXT_COLOR, false);
     }
 }

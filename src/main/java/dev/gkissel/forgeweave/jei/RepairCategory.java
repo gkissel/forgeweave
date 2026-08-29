@@ -2,7 +2,6 @@ package dev.gkissel.forgeweave.jei;
 
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 
 import mezz.jei.api.gui.builder.IRecipeLayoutBuilder;
@@ -20,29 +19,42 @@ import dev.gkissel.forgeweave.item.ForgeweaveItems;
  * Tool Station repair recipes: damaged tool + head-material repair item -> repaired tool. Icon is
  * the Tool Station block item.
  *
- * <p>Issue #785: upstream has no repair JEI category of its own (its Tool Station repair is handled
- * entirely in-GUI, no recipe view), so per the maintainer's decision this reuses the closest upstream
- * background -- {@code PartBuilderCategory}'s plain station panel -- via {@link
- * JeiCategoryChrome#stationPanel}, the same crop {@link PartCraftingCategory} uses, so the two read
- * as one family.
+ * <p>Upstream has no repair JEI category of its own -- its Tool Station repair is handled entirely
+ * in-GUI, with no recipe view -- so per issue #804's rule for a category upstream lacks, this takes
+ * the nearest upstream panel's conventions: {@code SeveringCategory}'s plain "inputs, arrow, one
+ * output" row, `createDrawable(tinker_station.png, 0, 78, 100, 38)`
+ * (`~/development/minecraft/references/tinkers-1.20` @ de26560d, MIT -- NOTICE.md), with the output
+ * at that category's own (76,11). Its input side is blank art -- upstream renders a 32x32 entity
+ * there -- so the two input slots get upstream's own 18x18 slot frame drawn under them, the way
+ * {@code ToolBuildingCategory} frames its own frameless slots ({@link JeiCategoryChrome#slotFrame}).
+ *
+ * <p>#785 instead cropped the Part Builder row to 72px, which cut it off mid-arrow and left the
+ * output frame's left edge dangling at the row's right border.
  */
 final class RepairCategory implements IRecipeCategory<RepairRecipe> {
     static final RecipeType<RepairRecipe> TYPE =
             RecipeType.create(Forgeweave.MODID, "tool_repair", RepairRecipe.class);
 
-    static final ResourceLocation BACKGROUND_LOC = JeiCategoryGeometry.REPAIR.background();
-    private static final int GUTTER = JeiCategoryChrome.GUTTER;
-    static final int WIDTH = JeiCategoryGeometry.REPAIR.width();
-    static final int HEIGHT = JeiCategoryGeometry.REPAIR.height();
+    private static final JeiCategoryGeometry.Panel PANEL = JeiCategoryGeometry.REPAIR;
+    private static final int WIDTH = PANEL.width();
+    private static final int HEIGHT = PANEL.height();
+
+    /** Aligned on upstream's own output row so the whole line reads across the baked arrow. */
+    private static final int TOOL_X = 3;
+    private static final int REPAIR_ITEM_X = 25;
+    private static final int INPUT_Y = 11;
+    /** Upstream {@code SeveringCategory}'s own output slot -- `addSlot(OUTPUT, 76, 11)`. */
+    private static final int RESULT_X = 76;
+    private static final int RESULT_Y = 11;
 
     private final IDrawable icon;
-    private final IDrawable arrow;
     private final IDrawable background;
+    private final IDrawable slotFrame;
 
     RepairCategory(IGuiHelper helper) {
         icon = helper.createDrawableItemStack(new ItemStack(ForgeweaveItems.TOOL_STATION.get()));
-        arrow = helper.getRecipeArrow();
-        background = JeiCategoryChrome.stationPanel(helper, WIDTH, HEIGHT);
+        background = JeiCategoryChrome.panel(helper, PANEL);
+        slotFrame = JeiCategoryChrome.slotFrame(helper);
     }
 
     @Override
@@ -72,14 +84,16 @@ final class RepairCategory implements IRecipeCategory<RepairRecipe> {
 
     @Override
     public void setRecipe(IRecipeLayoutBuilder builder, RepairRecipe recipe, IFocusGroup focuses) {
-        builder.addInputSlot(GUTTER, GUTTER).addItemStacks(recipe.tools());
-        builder.addInputSlot(GUTTER, GUTTER + 20).addItemStacks(recipe.repairItems());
-        builder.addOutputSlot(WIDTH - 18 - GUTTER, (HEIGHT - 18) / 2).addItemStacks(recipe.repairedTools());
+        builder.addInputSlot(TOOL_X, INPUT_Y).addItemStacks(recipe.tools());
+        builder.addInputSlot(REPAIR_ITEM_X, INPUT_Y).addItemStacks(recipe.repairItems());
+        builder.addOutputSlot(RESULT_X, RESULT_Y).addItemStacks(recipe.repairedTools());
     }
 
     @Override
     public void draw(RepairRecipe recipe, IRecipeSlotsView recipeSlotsView, GuiGraphics guiGraphics, double mouseX, double mouseY) {
+        // The arrow and the output slot's frame are baked into the panel; the input side is blank art.
         background.draw(guiGraphics, 0, 0);
-        arrow.draw(guiGraphics, GUTTER + 22, (HEIGHT - arrow.getHeight()) / 2);
+        JeiCategoryChrome.drawSlotFrame(slotFrame, guiGraphics, TOOL_X, INPUT_Y);
+        JeiCategoryChrome.drawSlotFrame(slotFrame, guiGraphics, REPAIR_ITEM_X, INPUT_Y);
     }
 }

@@ -12,6 +12,6 @@ final class CastingTableCategory extends CastingCategory {
     static final RecipeType<CastingRecipe> TYPE = RecipeType.create(Forgeweave.MODID, "casting_table", CastingRecipe.class);
 
     CastingTableCategory(IGuiHelper helper) {
-        super(helper, TYPE, ForgeweaveItems.CASTING_TABLE.get(), "jei.category.forgeweave.casting_table");
+        super(helper, TYPE, ForgeweaveItems.CASTING_TABLE.get(), "jei.category.forgeweave.casting_table", BLOCK_V_TABLE);
     }
 }

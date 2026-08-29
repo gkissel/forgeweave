@@ -24,6 +24,7 @@ import mezz.jei.api.registration.IRecipeCategoryRegistration;
 import mezz.jei.api.registration.IRecipeRegistration;
 import mezz.jei.api.registration.IRecipeTransferRegistration;
 import mezz.jei.api.registration.ISubtypeRegistration;
+import mezz.jei.api.runtime.IJeiRuntime;
 
 import net.neoforged.neoforge.registries.DeferredHolder;
 
@@ -78,9 +79,31 @@ import dev.gkissel.forgeweave.recipe.MeltingRecipe;
 public final class ForgeweaveJeiPlugin implements IModPlugin {
     private static final ResourceLocation UID = ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "jei_plugin");
 
+    /**
+     * Issue #804: {@link JeiScreenshotHarness} needs a live runtime to open a category's real
+     * Recipes GUI for a capture. Rebuilt every session (class javadoc above), so this is cleared on
+     * {@link #onRuntimeUnavailable} the same way JEI itself tears the rest of its runtime down.
+     */
+    private static volatile IJeiRuntime runtimeForHarness;
+
     @Override
     public ResourceLocation getPluginUid() {
         return UID;
+    }
+
+    @Override
+    public void onRuntimeAvailable(IJeiRuntime jeiRuntime) {
+        runtimeForHarness = jeiRuntime;
+    }
+
+    @Override
+    public void onRuntimeUnavailable() {
+        runtimeForHarness = null;
+    }
+
+    /** Package-private: only {@link JeiScreenshotHarness} reads this. */
+    static IJeiRuntime runtimeForHarness() {
+        return runtimeForHarness;
     }
 
     /**
