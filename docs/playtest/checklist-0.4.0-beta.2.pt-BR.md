@@ -1,6 +1,6 @@
-# Forgeweave 0.4.0-beta.1 — checklist de playtest (pt-BR)
+# Forgeweave 0.4.0-beta.2 — checklist de playtest (pt-BR)
 
-Build: `forgeweave-0.4.0-beta.1.jar` (Release `mc1.21.1-v0.4.0-beta.1`), MC 1.21.1 + NeoForge, servidor dedicado, mundo novo, sem cheats. "!" = parcial.
+Build: `forgeweave-0.4.0-beta.2.jar` (Release `mc1.21.1-v0.4.0-beta.2`), MC 1.21.1 + NeoForge, servidor dedicado, mundo novo, sem cheats. "!" = parcial.
 
 Esta tag fecha o **M4 (armors)** e traz a rodada de correções do playtest da beta.1 (#693–#790) mais armadura pesada, voos, Armor Station, JEI reformulado e o novo modifier de veinmine. **A promessa de save-compat vale a partir daqui** (linha 0.4.x): a seção G é obrigatória. Defeitos viram issues `needs-triage`.
 
@@ -45,6 +45,12 @@ Esta tag fecha o **M4 (armors)** e traz a rodada de correções do playtest da b
 30. [ ] **Ponder**: cena do smeltery mostra dreno e vidro de verdade (não tudo seared bricks); cenas novas de tamanhos e de channels/faucets; blocos virados para a câmera.
 31. [ ] **JEI**: categorias com a arte do 1.20 (alloy, casting, melting, station); receitas **E** (netherite, glowing, creative flight) mostram **um slot por reagente**; sem JEI o jogo carrega.
 32. [ ] **Hover**: Mending Moss, casts, bolas/drops de slime, tábua de nahuatl e demais reagentes têm descrição.
+
+## D2. Arte Forged e Legacy (beta.2)
+32.a [ ] **Padrão é a arte Forged**: pattern e cast em branco, tool binding, tough binding, lâmina de katana e topo da Armor Station com os sprites novos, incluindo os padrões e casts compostos a partir deles.
+32.b [ ] **Pacote Legacy** aparece em Opções > Pacotes de Recursos, liga sem erro e devolve o visual antigo; desligar volta ao Forged.
+32.c [ ] **Itens nas estações ficam sobre a mesa**, não no meio do bloco (Crafting Station, Stencil Table, Part Builder, Tool Station, Tool Forge, Armor Station).
+32.d [ ] **Livro e JEI** ilustram cada modifier com algo que ele aceita: expansores de largura/altura numa ferramenta de mineração, wind burst na warmace, voos na peitoral heavy.
 
 ## E. Revisão visual (nenhum agente conseguiu ver isto rodando)
 33. [ ] Telas do JEI, cenas do Ponder, grid de seleção e preview da Tool/Armor Station, armadura vestida (ferro, cobalto, obsidiana) em 1ª e 3ª pessoa. Compare com `build/screenshots/` rodando `scripts/screenshots.sh`.
