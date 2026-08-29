@@ -14,6 +14,14 @@ its rim per-direction from the part's alpha edges; this script uses a simpler un
 reproducing that per-direction shading exactly. Run once here and committed as static PNGs instead of
 composited at runtime (Forgeweave has no dynamic-texture system).
 
+Issue #802: the hole used to be punched at the part silhouette's own coordinates in its 16x16 canvas,
+with no attempt to center it on the cast base. That happened to look fine against the old (now Legacy)
+`cast.png` -- a flat gold square with no distinct cavity face -- but not against the new Forged one,
+which draws an inset flat mold face that an off-center hole visibly misses. `composite()` now takes an
+`(offset_x, offset_y)` (`sprite_sets.centering_offset`, computed per base/part pair from the base's own
+opaque footprint) and applies it the same way `generate_pattern_textures.py` already applies its
+per-part offset, so the hole lands centered on whichever base is actually in play.
+
 Issue #628: the large plate is the one part upstream ships DEDICATED hand-drawn cast art for
 (`cast_large_plate.png`, carrying a creeper face) instead of relying on the runtime composite --
 `CustomTextureCreator.java` skips `CastTexture` for it the same way it does for the pattern (see
@@ -35,7 +43,7 @@ from pathlib import Path
 
 from PIL import Image
 
-from sprite_sets import legacy_input, save_legacy_if_different
+from sprite_sets import centering_offset, legacy_input, save_legacy_if_different
 
 ROOT = Path(__file__).resolve().parent.parent
 UPSTREAM = Path.home() / "development/minecraft/references/tinkers-1.12"
@@ -107,12 +115,21 @@ PARTS = [
 BEVEL_MULT = 0.78
 
 
-def composite(cast: Image.Image, part: Image.Image) -> Image.Image:
+def composite(cast: Image.Image, part: Image.Image, offset: tuple[int, int] = (0, 0)) -> Image.Image:
     width, height = cast.size
+    offset_x, offset_y = offset
     cast_px = cast.load()
     part_px = part.load()
 
-    mask = [[part_px[x, y][3] > 0 for x in range(width)] for y in range(height)]
+    def part_opaque(x: int, y: int) -> bool:
+        # Issue #802: sample the part at (x - offset_x, y - offset_y), same lookup direction
+        # generate_pattern_textures.py's composite() uses for its own per-part offset, so the
+        # part's silhouette lands centered on the cast base instead of at its own raw coordinates.
+        x -= offset_x
+        y -= offset_y
+        return 0 <= x < width and 0 <= y < height and part_px[x, y][3] > 0
+
+    mask = [[part_opaque(x, y) for x in range(width)] for y in range(height)]
 
     def in_hole(x: int, y: int) -> bool:
         return 0 <= x < width and 0 <= y < height and mask[y][x]
@@ -142,18 +159,23 @@ def main() -> None:
     cast = Image.open(CAST_BASE).convert("RGBA")
     for part_name, output_name in PARTS:
         part = Image.open(TEXTURE_DIR / part_name).convert("RGBA")
-        composite(cast, part).save(TEXTURE_DIR / output_name)
-        print(f"wrote {output_name}")
+        offset = centering_offset(cast, part)
+        composite(cast, part, offset).save(TEXTURE_DIR / output_name)
+        print(f"wrote {output_name} (offset {offset})")
 
     shutil.copyfile(LARGE_PLATE_CAST_SOURCE, LARGE_PLATE_CAST_OUTPUT)
     print(f"wrote {LARGE_PLATE_CAST_OUTPUT.name} (byte-for-byte copy, not composited)")
 
     # Issue #796: the Legacy pack's pass -- see generate_pattern_textures.py's main() for the shape,
     # and scripts/sprite_sets.py's module docstring for why most of these end up writing nothing.
+    # Issue #802: the offset is recomputed against the Legacy set's own cast/part inputs (usually the
+    # same part art as the Forged pass, but never assume that -- the base differs, so its own opaque
+    # footprint decides its own centering).
     legacy_cast = Image.open(legacy_input(LEGACY_SUBDIR, "cast.png")).convert("RGBA")
     for part_name, output_name in PARTS:
         legacy_part = Image.open(legacy_input(LEGACY_SUBDIR, part_name)).convert("RGBA")
-        save_legacy_if_different(composite(legacy_cast, legacy_part), LEGACY_SUBDIR, output_name)
+        legacy_offset = centering_offset(legacy_cast, legacy_part)
+        save_legacy_if_different(composite(legacy_cast, legacy_part, legacy_offset), LEGACY_SUBDIR, output_name)
     large_plate_cast = Image.open(LARGE_PLATE_CAST_SOURCE).convert("RGBA")
     save_legacy_if_different(large_plate_cast, LEGACY_SUBDIR, LARGE_PLATE_CAST_OUTPUT.name)
 
