@@ -34,7 +34,7 @@ Derived files, and the upstream file each comes from:
         <- assets/spartanweaponry/textures/items/custom/katana_layer_1.png
 
     src/main/resources/assets/forgeweave/textures/derived/item/curved_blade.png
-    src/main/resources/assets/forgeweave/textures/derived/tools/scimitar_head.png
+    src/main/resources/resourcepacks/legacy/assets/forgeweave/textures/derived/tools/scimitar_head.png
         <- assets/spartanweaponry/textures/items/custom/saber_layer_1.png
 
 (The two Forgeweave files in each pair started as the same pixels written to two paths: a part icon
