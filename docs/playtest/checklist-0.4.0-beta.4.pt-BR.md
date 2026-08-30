@@ -1,6 +1,6 @@
-# Forgeweave 0.4.0-beta.3 — checklist de playtest (pt-BR)
+# Forgeweave 0.4.0-beta.4 — checklist de playtest (pt-BR)
 
-Build: `forgeweave-0.4.0-beta.3.jar` (Release `mc1.21.1-v0.4.0-beta.3`), MC 1.21.1 + NeoForge, servidor dedicado, mundo novo, sem cheats. "!" = parcial.
+Build: `forgeweave-0.4.0-beta.4.jar` (Release `mc1.21.1-v0.4.0-beta.4`), MC 1.21.1 + NeoForge, servidor dedicado, mundo novo, sem cheats. "!" = parcial.
 
 Esta tag fecha o **M4 (armors)** e traz a rodada de correções do playtest da beta.1 (#693–#790) mais armadura pesada, voos, Armor Station, JEI reformulado e o novo modifier de veinmine. **A promessa de save-compat vale a partir daqui** (linha 0.4.x): a seção G é obrigatória. Defeitos viram issues `needs-triage`.
 
@@ -58,6 +58,10 @@ Esta tag fecha o **M4 (armors)** e traz a rodada de correções do playtest da b
 32.g [ ] **Sprites do segundo lote** aparecem: ponta e haste de flecha, cabeça de machado, limbo e corda de arco, cabo de ferramenta, topo da Armor Station. Conferir no item **e** na ferramenta montada.
 32.h [ ] **JEI igual ao 1.20**: cada categoria com o painel do upstream, sem área cinza sobrando, sem slot fantasma, sem seta duplicada; fluidos com textura, não cor chapada. Ver alloying, casting (mesa e bacia), melting, modifiers, embossing, part crafting, reparo e as três de montagem.
 32.i [ ] **Bindings por ferramenta ainda são os antigos** (pickaxe, shovel, hatchet, kama, warmace, battleaxe, excavator, lumberaxe, vein hammer) — esperado, falta arte do designer.
+
+## D4. Beta.4
+32.j [ ] **Troca de peça devolve a peça trocada** ao inventário (ou no chão se estiver cheio), na Tool Station, no Tool Forge e na Armor Station. Desvio consciente: o upstream destrói a peça nas duas gerações.
+32.k [ ] **Katana refeita**: lâmina com corpo de 2 px, guarda e cabo novos. Conferir com material escuro (obsidiana) e claro (ferro) — a cor do material tem que aparecer na lâmina.
 
 ## E. Revisão visual (nenhum agente conseguiu ver isto rodando)
 33. [ ] Telas do JEI, cenas do Ponder, grid de seleção e preview da Tool/Armor Station, armadura vestida (ferro, cobalto, obsidiana) em 1ª e 3ª pessoa. Compare com `build/screenshots/` rodando `scripts/screenshots.sh`.
