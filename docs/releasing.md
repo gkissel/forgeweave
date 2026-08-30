@@ -1,6 +1,8 @@
 # Releasing Forgeweave
 
 Forgeweave publishes the same built JAR to GitHub Releases, Modrinth, and CurseForge through `.github/workflows/release.yml`.
+The workflow asks GitHub to generate release notes from the tag, verifies that the result is non-empty,
+and sends that same Markdown changelog to all three platforms.
 
 ## Version branches
 

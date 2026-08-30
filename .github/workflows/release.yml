@@ -81,6 +81,21 @@ jobs:
       - name: Build
         run: ./gradlew build -Pmod_version=${{ steps.release.outputs.mod_version }}
 
+      - name: Generate shared changelog
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          mkdir -p build/release
+          gh api --method POST \
+            -H "Accept: application/vnd.github+json" \
+            "/repos/${GITHUB_REPOSITORY}/releases/generate-notes" \
+            -f tag_name="${GITHUB_REF_NAME}" \
+            -f target_commitish="${GITHUB_SHA}" \
+            --jq '.body' > build/release/changelog.md
+
+          test -s build/release/changelog.md
+
       - name: Publish everywhere
         uses: Kira-NT/mc-publish@52307b03863581dec6b652b83e597aec02ebb075 # v3
         with:
@@ -89,6 +104,7 @@ jobs:
           name: Forgeweave ${{ steps.release.outputs.mod_version }} for Minecraft ${{ steps.release.outputs.minecraft_version }}
           version: ${{ github.ref_name }}
           version-type: ${{ steps.release.outputs.release_type }}
+          changelog-file: build/release/changelog.md
 
           loaders: neoforge
           game-versions: ${{ steps.release.outputs.minecraft_version }}
@@ -113,7 +129,7 @@ jobs:
           github-tag: ${{ github.ref_name }}
           github-draft: false
           github-prerelease: ${{ steps.release.outputs.release_type != 'release' }}
-          github-generate-changelog: true
+          github-generate-changelog: false
 
           retry-attempts: 2
           fail-mode: fail
