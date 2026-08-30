@@ -14,6 +14,7 @@ import java.util.HashMap;
 import java.util.HexFormat;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Stream;
 
 import javax.imageio.ImageIO;
@@ -33,6 +34,25 @@ import org.junit.jupiter.api.Test;
  * {@link TextureReferenceAuditTest} uses.
  */
 class LegacyResourcePackTest {
+
+    /**
+     * The 32px weapon batch deliberately replaced assembled-tool renders only. These item icons and
+     * other tools still reuse the old 16px donor pixels until their own Forged sprites arrive.
+     */
+    private static final Map<String, Set<String>> INTENTIONAL_UNSWAPPED_SIBLINGS = Map.of(
+            "derived/tools/scimitar_binding.png", Set.of(
+                    "derived/item/cross_guard.png",
+                    "derived/tools/rapier_binding.png"),
+            "derived/tools/scimitar_handle.png", Set.of(
+                    "derived/tools/broadsword_handle.png",
+                    "derived/tools/cleaver_handle.png",
+                    "derived/tools/frying_pan_handle.png",
+                    "derived/tools/longsword_handle.png",
+                    "derived/tools/rapier_handle.png"),
+            "derived/tools/scimitar_head.png", Set.of("derived/item/curved_blade.png"),
+            "derived/tools/warmace_binding.png", Set.of("derived/tools/hammer_head3.png"),
+            "derived/tools/warmace_handle.png", Set.of("derived/tools/hammer_handle.png"),
+            "derived/tools/warmace_head.png", Set.of("derived/item/war_mace_head.png"));
 
     private static Path projectRoot() {
         Path dir = Path.of("").toAbsolutePath();
@@ -149,7 +169,9 @@ class LegacyResourcePackTest {
                     continue;
                 }
                 for (String retiredPath : retiredPaths) {
-                    if (!retiredPath.equals(relative)) {
+                    Set<String> intentionalSiblings = INTENTIONAL_UNSWAPPED_SIBLINGS
+                            .getOrDefault(retiredPath, Set.of());
+                    if (!retiredPath.equals(relative) && !intentionalSiblings.contains(relative)) {
                         staleCopies.add(relative + " still carries the bytes retired at " + retiredPath);
                     }
                 }
