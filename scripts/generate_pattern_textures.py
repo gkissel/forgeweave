@@ -93,7 +93,7 @@ PARTS = [
     # so derived art in TEXTURE_DIR now rather than the lone authored part base it used to be. It
     # sits one row lower and one column right of the blade it replaces: bbox (5, 1)-(15, 9), center
     # (10.5, 5.5) -> (-2, 2), where the authored blade's (9.5, 4.5) wanted (-2, 4).
-    ("katana_blade.png", "pattern_katana_blade.png", TEXTURE_DIR, (-2, 2)),
+    ("katana_blade.png", "pattern_katana_blade.png", TEXTURE_DIR, (-3, 3)),
     # Issue #271: the sharpening kit, the one part that belongs to no tool (upstream's SharpeningKit
     # is registered as a tool part but never appears in a ToolCore's required components). Its
     # sharpening_kit.tmat.json carries no "offset" field upstream, so (0, 0), and the art needs none:
