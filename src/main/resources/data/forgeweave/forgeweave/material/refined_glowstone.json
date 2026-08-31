@@ -1,0 +1,41 @@
+{
+  "head": {
+    "durability": 420,
+    "mining_speed": 9.5,
+    "attack_damage": 3.3
+  },
+  "handle": {
+    "durability_modifier": 1.0,
+    "durability": 35
+  },
+  "extra_durability": 85,
+  "bow": {
+    "drawspeed": 0.65,
+    "range": 1.5,
+    "bonus_damage": 3.0
+  },
+  "plating": {
+    "helmet": { "durability": 286, "armor": 2.0 },
+    "chestplate": { "durability": 420, "armor": 5.0 },
+    "leggings": { "durability": 395, "armor": 4.0 },
+    "boots": { "durability": 336, "armor": 2.0 }
+  },
+  "maille": true,
+  "incorrect_for_tool": "minecraft:incorrect_for_diamond_tool",
+  "traits": {
+    "general": ["forgeweave:revealing"]
+  },
+  "crafting_items": [
+    { "ingredient": { "tag": "c:ingots/refined_glowstone" }, "value": 144 },
+    { "ingredient": { "tag": "c:nuggets/refined_glowstone" }, "value": 16 },
+    { "ingredient": { "tag": "c:storage_blocks/refined_glowstone" }, "value": 1296 }
+  ],
+  "repair_item": {
+    "tag": "c:ingots/refined_glowstone"
+  },
+  "enchantability": 16,
+  "color": "#F9E75B",
+  "neoforge:conditions": [
+    { "type": "neoforge:item_exists", "item": "mekanism:ingot_refined_glowstone" }
+  ]
+}

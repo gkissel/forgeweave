@@ -145,7 +145,10 @@ class MaterialTest {
     @ValueSource(strings = { "wood", "stone", "flint", "bone", "bronze", "lead", "silver", "electrum",
             // #833 M6 Track A batch 1: generic tech metals, re-homed across 1.21.1 providers.
             "tin", "aluminium", "nickel", "constantan", "invar", "platinum", "titanium", "tungsten",
-            "iridium", "uranium", "graphite" })
+            "iridium", "uranium", "graphite",
+            // #834 M6 Track A batch 2: Mekanism, AE2 and Occultism.
+            "osmium", "refined_obsidian", "refined_glowstone", "hdpe", "fluorite", "certus_quartz",
+            "fluix", "sky_stone", "iesnium", "dragonyst" })
     void shippedMaterialsParse(String name) {
         Material.CODEC.parse(ops, shipped(name)).getOrThrow();
     }
@@ -162,7 +165,10 @@ class MaterialTest {
             // #833 M6 Track A batch 1: same neoforge:conditions convention, one or more
             // item_exists primitives (uranium is an neoforge:or over three providers).
             "tin", "aluminium", "nickel", "constantan", "invar", "platinum", "titanium", "tungsten",
-            "iridium", "uranium", "graphite" })
+            "iridium", "uranium", "graphite",
+            // #834 M6 Track A batch 2: Mekanism, AE2 and Occultism.
+            "osmium", "refined_obsidian", "refined_glowstone", "hdpe", "fluorite", "certus_quartz",
+            "fluix", "sky_stone", "iesnium", "dragonyst" })
     void conditionalMaterialsCarryAWellFormedConditionsBlockAndStillParse(String name) {
         JsonObject json = shipped(name).getAsJsonObject();
         assertTrue(json.has("neoforge:conditions"), name + " must carry a neoforge:conditions block (issue #826)");

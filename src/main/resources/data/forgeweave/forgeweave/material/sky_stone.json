@@ -1,0 +1,39 @@
+{
+  "head": {
+    "durability": 260,
+    "mining_speed": 4.0,
+    "attack_damage": 3.0
+  },
+  "handle": {
+    "durability_modifier": 0.8,
+    "durability": 10
+  },
+  "extra_durability": 40,
+  "bow": {
+    "drawspeed": 0.5,
+    "range": 0.7,
+    "bonus_damage": 0.5
+  },
+  "plating": {
+    "helmet": { "durability": 177, "armor": 2.0, "knockback_resistance": 0.05 },
+    "chestplate": { "durability": 260, "armor": 4.0, "knockback_resistance": 0.05 },
+    "leggings": { "durability": 244, "armor": 3.0, "knockback_resistance": 0.05 },
+    "boots": { "durability": 208, "armor": 1.0, "knockback_resistance": 0.05 }
+  },
+  "maille": true,
+  "incorrect_for_tool": "minecraft:incorrect_for_stone_tool",
+  "traits": {
+    "general": ["forgeweave:writable"]
+  },
+  "crafting_items": [
+    { "ingredient": { "tag": "c:dusts/sky_stone" }, "value": 36 }
+  ],
+  "repair_item": {
+    "tag": "c:dusts/sky_stone"
+  },
+  "enchantability": 12,
+  "color": "#4A4A52",
+  "neoforge:conditions": [
+    { "type": "neoforge:item_exists", "item": "ae2:sky_stone_block" }
+  ]
+}

@@ -1,0 +1,38 @@
+{
+  "head": {
+    "durability": 150,
+    "mining_speed": 5.0,
+    "attack_damage": 3.0
+  },
+  "handle": {
+    "durability_modifier": 0.9,
+    "durability": 20
+  },
+  "extra_durability": 30,
+  "bow": {
+    "drawspeed": 0.9,
+    "range": 0.8,
+    "bonus_damage": 1.0
+  },
+  "plating": {
+    "helmet": { "durability": 102, "armor": 2.0 },
+    "chestplate": { "durability": 150, "armor": 4.0 },
+    "leggings": { "durability": 141, "armor": 3.0 },
+    "boots": { "durability": 120, "armor": 1.0 }
+  },
+  "maille": true,
+  "incorrect_for_tool": "minecraft:incorrect_for_stone_tool",
+  "traits": {},
+  "crafting_items": [
+    { "ingredient": { "tag": "c:gems/fluorite" }, "value": 144 },
+    { "ingredient": { "tag": "c:storage_blocks/fluorite" }, "value": 1296 }
+  ],
+  "repair_item": {
+    "tag": "c:gems/fluorite"
+  },
+  "enchantability": 14,
+  "color": "#8FB8E0",
+  "neoforge:conditions": [
+    { "type": "neoforge:item_exists", "item": "mekanism:fluorite_gem" }
+  ]
+}

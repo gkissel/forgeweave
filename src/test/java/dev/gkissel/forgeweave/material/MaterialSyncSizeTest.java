@@ -58,6 +58,10 @@ class MaterialSyncSizeTest {
      * preset batches (#834-#837) to land without tripping the budget on every PR, while a further
      * 10x surprise (a material accidentally carrying a huge field) still catches it. Still a small
      * fraction of one chunk packet.
+     *
+     * <p>Batch 2 (issue #834) landed on top of batch 1 without needing another revisit: the combined
+     * 67-material roster (46 pre-M6 plus batch 1's 11 plus this batch's 10 Mekanism/AE2/Occultism
+     * materials) stays under the 64 KB line #833 already drew.
      */
     private static final int SYNC_BUDGET_BYTES = 64 * 1024;
 
