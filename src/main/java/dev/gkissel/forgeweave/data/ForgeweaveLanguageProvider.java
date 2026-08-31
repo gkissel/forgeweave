@@ -1029,6 +1029,41 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("material.forgeweave.blutonium", "Blutonium");
         add("material.forgeweave.ludicrite", "Ludicrite");
 
+        // #841 -- M6 Track B: the self-contained tool material roster (epic #824). 12 ore-sourced
+        // metals (TrackBOre) plus 18 alloy metals (TrackBAlloy); ids and naming are the epic's JC9
+        // answer (original Forgeweave coinages, docs/research/m6-material-expansion-references.md
+        // &sect;7.3), display names are each id's own title-cased form.
+        add("material.forgeweave.cinderstone", "Cinderstone");
+        add("material.forgeweave.fulmenite", "Fulmenite");
+        add("material.forgeweave.duskspar", "Duskspar");
+        add("material.forgeweave.voltcinder", "Voltcinder");
+        add("material.forgeweave.murkiron", "Murkiron");
+        add("material.forgeweave.hardcinder", "Hardcinder");
+        add("material.forgeweave.nightshale", "Nightshale");
+        add("material.forgeweave.warspar", "Warspar");
+        add("material.forgeweave.hollowstone", "Hollowstone");
+        add("material.forgeweave.resonite", "Resonite");
+        add("material.forgeweave.starfall_stone", "Starfall Stone");
+        add("material.forgeweave.voidglass", "Voidglass");
+        add("material.forgeweave.ironbrand", "Ironbrand");
+        add("material.forgeweave.quakestone", "Quakestone");
+        add("material.forgeweave.shardline", "Shardline");
+        add("material.forgeweave.embercast", "Embercast");
+        add("material.forgeweave.riftalloy", "Riftalloy");
+        add("material.forgeweave.tideiron", "Tideiron");
+        add("material.forgeweave.cinderforge", "Cinderforge");
+        add("material.forgeweave.dreadalloy", "Dreadalloy");
+        add("material.forgeweave.sunsteel", "Sunsteel");
+        add("material.forgeweave.hollowsteel", "Hollowsteel");
+        add("material.forgeweave.truesteel", "Truesteel");
+        add("material.forgeweave.stormalloy", "Stormalloy");
+        add("material.forgeweave.glowveil", "Glowveil");
+        add("material.forgeweave.daybrass", "Daybrass");
+        add("material.forgeweave.faultsteel", "Faultsteel");
+        add("material.forgeweave.skipalloy", "Skipalloy");
+        add("material.forgeweave.mendalloy", "Mendalloy");
+        add("material.forgeweave.mendstone", "Mendstone");
+
         // #392 -- the two bowstring materials (docs/SCOPE.md M3.5). Names are upstream 1.12's
         // material.string.name / material.vine.name. Neither carries any tool stat block, so they
         // only ever surface on a bow string.

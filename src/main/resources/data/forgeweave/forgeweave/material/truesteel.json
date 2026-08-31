@@ -1,0 +1,39 @@
+{
+  "head": {
+    "durability": 1050,
+    "mining_speed": 10.0,
+    "attack_damage": 9.0
+  },
+  "handle": {
+    "durability_modifier": 1.0,
+    "durability": 140
+  },
+  "extra_durability": 310,
+  "bow": {
+    "drawspeed": 0.45,
+    "range": 1.4,
+    "bonus_damage": 6.5
+  },
+  "plating": {
+    "helmet": { "durability": 444, "armor": 3.0, "toughness": 3.0, "knockback_resistance": 0.1 },
+    "chestplate": { "durability": 646, "armor": 8.0, "toughness": 3.0, "knockback_resistance": 0.1 },
+    "leggings": { "durability": 606, "armor": 6.0, "toughness": 3.0, "knockback_resistance": 0.1 },
+    "boots": { "durability": 525, "armor": 3.0, "toughness": 3.0, "knockback_resistance": 0.1 }
+  },
+  "maille": true,
+  "incorrect_for_tool": "minecraft:incorrect_for_netherite_tool",
+  "traits": {
+    "general": ["forgeweave:surging2"]
+  },
+  "crafting_items": [
+    { "ingredient": { "item": "forgeweave:truesteel_ingot" }, "value": 144 },
+    { "ingredient": { "item": "forgeweave:truesteel_nugget" }, "value": 16 },
+    { "ingredient": { "item": "forgeweave:truesteel_block" }, "value": 1296 }
+  ],
+  "repair_item": {
+    "tag": "c:ingots/truesteel"
+  },
+  "cast_only": true,
+  "enchantability": 10,
+  "color": "#C7D6E8"
+}

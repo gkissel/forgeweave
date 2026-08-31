@@ -1,0 +1,39 @@
+{
+  "head": {
+    "durability": 960,
+    "mining_speed": 9.3,
+    "attack_damage": 8.0
+  },
+  "handle": {
+    "durability_modifier": 1.1,
+    "durability": 120
+  },
+  "extra_durability": 290,
+  "bow": {
+    "drawspeed": 0.5,
+    "range": 1.3,
+    "bonus_damage": 5.5
+  },
+  "plating": {
+    "helmet": { "durability": 406, "armor": 3.0, "toughness": 2.0, "knockback_resistance": 0.1 },
+    "chestplate": { "durability": 590, "armor": 8.0, "toughness": 2.0, "knockback_resistance": 0.1 },
+    "leggings": { "durability": 554, "armor": 6.0, "toughness": 2.0, "knockback_resistance": 0.1 },
+    "boots": { "durability": 480, "armor": 3.0, "toughness": 2.0, "knockback_resistance": 0.1 }
+  },
+  "maille": true,
+  "incorrect_for_tool": "minecraft:incorrect_for_netherite_tool",
+  "traits": {
+    "general": ["forgeweave:crumbling"]
+  },
+  "crafting_items": [
+    { "ingredient": { "item": "forgeweave:sunsteel_ingot" }, "value": 144 },
+    { "ingredient": { "item": "forgeweave:sunsteel_nugget" }, "value": 16 },
+    { "ingredient": { "item": "forgeweave:sunsteel_block" }, "value": 1296 }
+  ],
+  "repair_item": {
+    "tag": "c:ingots/sunsteel"
+  },
+  "cast_only": true,
+  "enchantability": 10,
+  "color": "#E6C64A"
+}

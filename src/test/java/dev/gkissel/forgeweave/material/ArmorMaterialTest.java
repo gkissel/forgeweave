@@ -78,7 +78,14 @@ class ArmorMaterialTest {
             Stream.of("black_quartz", "restonia_crystal", "palis_crystal", "diamatine_crystal",
                     "void_crystal", "emeradic_crystal", "enori_crystal", "uraninite", "psimetal",
                     "psigem", "ivory_psimetal", "ebony_psimetal", "pink_slime", "cyanite", "blutonium",
-                    "ludicrite"))
+                    "ludicrite"),
+            // #841 M6 Track B: every one of the 30 self-contained materials ships a full plating +
+            // maille block, same shape as the Track A preset batches and the original metal roster.
+            Stream.of("cinderstone", "fulmenite", "duskspar", "voltcinder", "murkiron", "hardcinder",
+                    "nightshale", "warspar", "hollowstone", "resonite", "starfall_stone", "voidglass",
+                    "ironbrand", "quakestone", "shardline", "embercast", "riftalloy", "tideiron",
+                    "cinderforge", "dreadalloy", "sunsteel", "hollowsteel", "truesteel", "stormalloy",
+                    "glowveil", "daybrass", "faultsteel", "skipalloy", "mendalloy", "mendstone"))
             .flatMap(java.util.function.Function.identity())
             .collect(java.util.stream.Collectors.toSet());
 

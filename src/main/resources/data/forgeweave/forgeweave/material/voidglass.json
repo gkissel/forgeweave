@@ -1,0 +1,39 @@
+{
+  "head": {
+    "durability": 740,
+    "mining_speed": 7.0,
+    "attack_damage": 4.5
+  },
+  "handle": {
+    "durability_modifier": 1.0,
+    "durability": 80
+  },
+  "extra_durability": 220,
+  "bow": {
+    "drawspeed": 0.65,
+    "range": 1.25,
+    "bonus_damage": 3.5
+  },
+  "plating": {
+    "helmet": { "durability": 313, "armor": 2.0, "toughness": 1.0, "knockback_resistance": 0.05 },
+    "chestplate": { "durability": 455, "armor": 7.0, "toughness": 1.0, "knockback_resistance": 0.05 },
+    "leggings": { "durability": 427, "armor": 5.0, "toughness": 1.0, "knockback_resistance": 0.05 },
+    "boots": { "durability": 370, "armor": 2.0, "toughness": 1.0, "knockback_resistance": 0.05 }
+  },
+  "maille": true,
+  "incorrect_for_tool": "minecraft:incorrect_for_netherite_tool",
+  "traits": {
+    "general": ["forgeweave:alien"]
+  },
+  "crafting_items": [
+    { "ingredient": { "item": "forgeweave:voidglass_ingot" }, "value": 144 },
+    { "ingredient": { "item": "forgeweave:voidglass_nugget" }, "value": 16 },
+    { "ingredient": { "item": "forgeweave:voidglass_block" }, "value": 1296 }
+  ],
+  "repair_item": {
+    "tag": "c:ingots/voidglass"
+  },
+  "cast_only": true,
+  "enchantability": 10,
+  "color": "#2A1740"
+}

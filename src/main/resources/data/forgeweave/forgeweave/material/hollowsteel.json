@@ -1,0 +1,39 @@
+{
+  "head": {
+    "durability": 1000,
+    "mining_speed": 9.6,
+    "attack_damage": 8.5
+  },
+  "handle": {
+    "durability_modifier": 1.0,
+    "durability": 130
+  },
+  "extra_durability": 300,
+  "bow": {
+    "drawspeed": 0.5,
+    "range": 1.35,
+    "bonus_damage": 6.0
+  },
+  "plating": {
+    "helmet": { "durability": 423, "armor": 3.0, "toughness": 3.0, "knockback_resistance": 0.1 },
+    "chestplate": { "durability": 615, "armor": 8.0, "toughness": 3.0, "knockback_resistance": 0.1 },
+    "leggings": { "durability": 577, "armor": 6.0, "toughness": 3.0, "knockback_resistance": 0.1 },
+    "boots": { "durability": 500, "armor": 3.0, "toughness": 3.0, "knockback_resistance": 0.1 }
+  },
+  "maille": true,
+  "incorrect_for_tool": "minecraft:incorrect_for_netherite_tool",
+  "traits": {
+    "general": ["forgeweave:ruthless"]
+  },
+  "crafting_items": [
+    { "ingredient": { "item": "forgeweave:hollowsteel_ingot" }, "value": 144 },
+    { "ingredient": { "item": "forgeweave:hollowsteel_nugget" }, "value": 16 },
+    { "ingredient": { "item": "forgeweave:hollowsteel_block" }, "value": 1296 }
+  ],
+  "repair_item": {
+    "tag": "c:ingots/hollowsteel"
+  },
+  "cast_only": true,
+  "enchantability": 10,
+  "color": "#9FB6C2"
+}

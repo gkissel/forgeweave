@@ -162,7 +162,14 @@ class MaterialTest {
             // Foregoing, Extreme Reactors (yellorium skipped, see PresetBatch5GameTests).
             "black_quartz", "restonia_crystal", "palis_crystal", "diamatine_crystal", "void_crystal",
             "emeradic_crystal", "enori_crystal", "uraninite", "psimetal", "psigem", "ivory_psimetal",
-            "ebony_psimetal", "pink_slime", "cyanite", "blutonium", "ludicrite" })
+            "ebony_psimetal", "pink_slime", "cyanite", "blutonium", "ludicrite",
+            // #841 M6 Track B: the self-contained tool material roster -- 12 ore-sourced metals
+            // (TrackBOre) plus 18 alloy metals (TrackBAlloy), no neoforge:conditions (they always exist).
+            "cinderstone", "fulmenite", "duskspar", "voltcinder", "murkiron", "hardcinder", "nightshale",
+            "warspar", "hollowstone", "resonite", "starfall_stone", "voidglass",
+            "ironbrand", "quakestone", "shardline", "embercast", "riftalloy", "tideiron", "cinderforge",
+            "dreadalloy", "sunsteel", "hollowsteel", "truesteel", "stormalloy", "glowveil", "daybrass",
+            "faultsteel", "skipalloy", "mendalloy", "mendstone" })
     void shippedMaterialsParse(String name) {
         Material.CODEC.parse(ops, shipped(name)).getOrThrow();
     }
@@ -281,7 +288,22 @@ class MaterialTest {
             "uraninite,diamond",
             "psimetal,iron", "psigem,diamond", "ivory_psimetal,diamond", "ebony_psimetal,diamond",
             "pink_slime,diamond",
-            "cyanite,diamond", "blutonium,diamond", "ludicrite,netherite"
+            "cyanite,diamond", "blutonium,diamond", "ludicrite,netherite",
+            // #841 M6 Track B: the self-contained tool material roster's tier scaffold (docs/research/
+            // m6-material-expansion-references.md &sect;7.1, JC10 = no new tags). cinderstone is the
+            // reference ladder's own "stone" rung; fulmenite/quakestone/shardline are its "diamond"
+            // rung; every other Track B material collapses onto the shared top rung with
+            // cobalt/manyullyn/netherite/ancient, per JC10's "progression pressure lives in stats,
+            // traits and obtainability, not new tiers."
+            "cinderstone,stone",
+            "fulmenite,diamond", "quakestone,diamond", "shardline,diamond",
+            "duskspar,netherite", "voltcinder,netherite", "murkiron,netherite", "hardcinder,netherite",
+            "nightshale,netherite", "warspar,netherite", "hollowstone,netherite", "resonite,netherite",
+            "starfall_stone,netherite", "voidglass,netherite",
+            "ironbrand,netherite", "embercast,netherite", "riftalloy,netherite", "tideiron,netherite",
+            "cinderforge,netherite", "dreadalloy,netherite", "sunsteel,netherite", "hollowsteel,netherite",
+            "truesteel,netherite", "stormalloy,netherite", "glowveil,netherite", "daybrass,netherite",
+            "faultsteel,netherite", "skipalloy,netherite", "mendalloy,netherite", "mendstone,netherite"
     })
     void shippedMaterialsSitOnUpstreamsHarvestTier(String name, String tier) {
         Material material = Material.CODEC.parse(ops, shipped(name)).getOrThrow();
@@ -499,7 +521,14 @@ class MaterialTest {
             "soularium", "dark_steel", "end_steel",
             // #836 M6 Track A batch 4: Draconic Evolution ships c:nuggets/draconium and
             // c:nuggets/draconium_awakened (verified against the mod's own 3.1.4.632 jar).
-            "draconium", "draconium_awakened" })
+            "draconium", "draconium_awakened",
+            // #841 M6 Track B: every one of the 30 self-contained materials gets a Forgeweave-minted
+            // ingot and nugget item (TrackBOre/TrackBAlloy), same shape as cobalt/ardite/manyullyn.
+            "cinderstone", "fulmenite", "duskspar", "voltcinder", "murkiron", "hardcinder", "nightshale",
+            "warspar", "hollowstone", "resonite", "starfall_stone", "voidglass",
+            "ironbrand", "quakestone", "shardline", "embercast", "riftalloy", "tideiron", "cinderforge",
+            "dreadalloy", "sunsteel", "hollowsteel", "truesteel", "stormalloy", "glowveil", "daybrass",
+            "faultsteel", "skipalloy", "mendalloy", "mendstone" })
     void addCommonItemsMetalsListIngotAndNugget(String name) {
         Material material = Material.CODEC.parse(ops, shipped(name)).getOrThrow();
 
@@ -635,7 +664,14 @@ class MaterialTest {
             // issue #843 (closes #180): the alloy-only half of the 1.20-branch material gap --
             // queen's slime and hepatizon have no raw form, same as amethyst bronze/rose gold above;
             // slimewood has no wood item of its own either (audit table), same cast-only shape.
-            "queens_slime", "hepatizon", "slimewood" })
+            "queens_slime", "hepatizon", "slimewood",
+            // #841 M6 Track B: the self-contained material roster gets full smeltery integration
+            // (#840) but no Part Builder path, same cast-only shape as cobalt/ardite/manyullyn/steel.
+            "cinderstone", "fulmenite", "duskspar", "voltcinder", "murkiron", "hardcinder", "nightshale",
+            "warspar", "hollowstone", "resonite", "starfall_stone", "voidglass",
+            "ironbrand", "quakestone", "shardline", "embercast", "riftalloy", "tideiron", "cinderforge",
+            "dreadalloy", "sunsteel", "hollowsteel", "truesteel", "stormalloy", "glowveil", "daybrass",
+            "faultsteel", "skipalloy", "mendalloy", "mendstone" })
     void castableMetalsAreCastOnly(String name) {
         assertTrue(Material.CODEC.parse(ops, shipped(name)).getOrThrow().castOnly(),
                 name + " is castable and not craftable upstream, so the Part Builder must not take it");

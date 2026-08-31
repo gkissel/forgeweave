@@ -1,0 +1,39 @@
+{
+  "head": {
+    "durability": 590,
+    "mining_speed": 7.0,
+    "attack_damage": 6.6
+  },
+  "handle": {
+    "durability_modifier": 0.9,
+    "durability": 150
+  },
+  "extra_durability": 40,
+  "bow": {
+    "drawspeed": 0.4,
+    "range": 2.0,
+    "bonus_damage": 9.0
+  },
+  "plating": {
+    "helmet": { "durability": 250, "armor": 2.0 },
+    "chestplate": { "durability": 363, "armor": 7.0 },
+    "leggings": { "durability": 340, "armor": 5.0 },
+    "boots": { "durability": 295, "armor": 2.0 }
+  },
+  "maille": true,
+  "incorrect_for_tool": "minecraft:incorrect_for_diamond_tool",
+  "traits": {
+    "general": ["forgeweave:cascading"]
+  },
+  "crafting_items": [
+    { "ingredient": { "item": "forgeweave:shardline_ingot" }, "value": 144 },
+    { "ingredient": { "item": "forgeweave:shardline_nugget" }, "value": 16 },
+    { "ingredient": { "item": "forgeweave:shardline_block" }, "value": 1296 }
+  ],
+  "repair_item": {
+    "tag": "c:ingots/shardline"
+  },
+  "cast_only": true,
+  "enchantability": 12,
+  "color": "#A9D8E0"
+}

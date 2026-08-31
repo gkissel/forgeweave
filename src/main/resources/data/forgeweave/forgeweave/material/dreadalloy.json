@@ -1,0 +1,39 @@
+{
+  "head": {
+    "durability": 880,
+    "mining_speed": 8.0,
+    "attack_damage": 7.2
+  },
+  "handle": {
+    "durability_modifier": 1.05,
+    "durability": 110
+  },
+  "extra_durability": 280,
+  "bow": {
+    "drawspeed": 0.55,
+    "range": 1.25,
+    "bonus_damage": 5.0
+  },
+  "plating": {
+    "helmet": { "durability": 372, "armor": 2.0, "toughness": 2.0, "knockback_resistance": 0.05 },
+    "chestplate": { "durability": 541, "armor": 7.0, "toughness": 2.0, "knockback_resistance": 0.05 },
+    "leggings": { "durability": 508, "armor": 5.0, "toughness": 2.0, "knockback_resistance": 0.05 },
+    "boots": { "durability": 440, "armor": 2.0, "toughness": 2.0, "knockback_resistance": 0.05 }
+  },
+  "maille": true,
+  "incorrect_for_tool": "minecraft:incorrect_for_netherite_tool",
+  "traits": {
+    "general": ["forgeweave:shackling"]
+  },
+  "crafting_items": [
+    { "ingredient": { "item": "forgeweave:dreadalloy_ingot" }, "value": 144 },
+    { "ingredient": { "item": "forgeweave:dreadalloy_nugget" }, "value": 16 },
+    { "ingredient": { "item": "forgeweave:dreadalloy_block" }, "value": 1296 }
+  ],
+  "repair_item": {
+    "tag": "c:ingots/dreadalloy"
+  },
+  "cast_only": true,
+  "enchantability": 10,
+  "color": "#2B3B2B"
+}

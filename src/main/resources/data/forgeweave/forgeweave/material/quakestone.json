@@ -1,0 +1,39 @@
+{
+  "head": {
+    "durability": 560,
+    "mining_speed": 7.2,
+    "attack_damage": 6.2
+  },
+  "handle": {
+    "durability_modifier": 0.9,
+    "durability": 150
+  },
+  "extra_durability": 35,
+  "bow": {
+    "drawspeed": 0.45,
+    "range": 1.95,
+    "bonus_damage": 8.5
+  },
+  "plating": {
+    "helmet": { "durability": 237, "armor": 2.0 },
+    "chestplate": { "durability": 344, "armor": 7.0 },
+    "leggings": { "durability": 323, "armor": 5.0 },
+    "boots": { "durability": 280, "armor": 2.0 }
+  },
+  "maille": true,
+  "incorrect_for_tool": "minecraft:incorrect_for_diamond_tool",
+  "traits": {
+    "general": ["forgeweave:cascading"]
+  },
+  "crafting_items": [
+    { "ingredient": { "item": "forgeweave:quakestone_ingot" }, "value": 144 },
+    { "ingredient": { "item": "forgeweave:quakestone_nugget" }, "value": 16 },
+    { "ingredient": { "item": "forgeweave:quakestone_block" }, "value": 1296 }
+  ],
+  "repair_item": {
+    "tag": "c:ingots/quakestone"
+  },
+  "cast_only": true,
+  "enchantability": 12,
+  "color": "#8FA35E"
+}
