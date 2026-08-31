@@ -1,0 +1,40 @@
+{
+  "variants": {
+    "enabled=false,facing=down": {
+      "model": "forgeweave:block/wooden_hopper"
+    },
+    "enabled=false,facing=east": {
+      "model": "forgeweave:block/wooden_hopper_side",
+      "y": 90
+    },
+    "enabled=false,facing=north": {
+      "model": "forgeweave:block/wooden_hopper_side"
+    },
+    "enabled=false,facing=south": {
+      "model": "forgeweave:block/wooden_hopper_side",
+      "y": 180
+    },
+    "enabled=false,facing=west": {
+      "model": "forgeweave:block/wooden_hopper_side",
+      "y": 270
+    },
+    "enabled=true,facing=down": {
+      "model": "forgeweave:block/wooden_hopper"
+    },
+    "enabled=true,facing=east": {
+      "model": "forgeweave:block/wooden_hopper_side",
+      "y": 90
+    },
+    "enabled=true,facing=north": {
+      "model": "forgeweave:block/wooden_hopper_side"
+    },
+    "enabled=true,facing=south": {
+      "model": "forgeweave:block/wooden_hopper_side",
+      "y": 180
+    },
+    "enabled=true,facing=west": {
+      "model": "forgeweave:block/wooden_hopper_side",
+      "y": 270
+    }
+  }
+}

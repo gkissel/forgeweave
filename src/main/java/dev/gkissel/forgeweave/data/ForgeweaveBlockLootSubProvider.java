@@ -74,6 +74,11 @@ public class ForgeweaveBlockLootSubProvider extends BlockLootSubProvider {
         add(ForgeweaveBlocks.PATTERN_CHEST.get(), chestDrop(ForgeweaveBlocks.PATTERN_CHEST.get()));
         add(ForgeweaveBlocks.PART_CHEST.get(), chestDrop(ForgeweaveBlocks.PART_CHEST.get()));
 
+        // The Wooden Hopper (docs/SCOPE.md M5, issue #822): matches vanilla's own hopper loot table
+        // exactly (createNameableBlockEntityTable copies only a custom name, never the contents --
+        // unlike the chests above, a broken hopper spills its items instead of keeping them).
+        add(ForgeweaveBlocks.WOODEN_HOPPER.get(), this::createNameableBlockEntityTable);
+
         // Grout (docs/SCOPE.md M2 issue #93; issue #129): drops itself, matching upstream's BlockSoil
         // (no getDrops override for the GROUT type).
         dropSelf(ForgeweaveBlocks.GROUT.get());

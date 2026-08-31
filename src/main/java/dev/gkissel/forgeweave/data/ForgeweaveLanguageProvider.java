@@ -78,6 +78,7 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         addBlock(ForgeweaveBlocks.STENCIL_TABLE, "Stencil Table");
         addBlock(ForgeweaveBlocks.PATTERN_CHEST, "Pattern Chest");
         addBlock(ForgeweaveBlocks.PART_CHEST, "Part Chest");
+        addBlock(ForgeweaveBlocks.WOODEN_HOPPER, "Wooden Hopper"); // #822
 
         // Grout (docs/SCOPE.md M2 issue #93; block per issue #129), name ported from upstream 1.12's
         // tile.tconstruct.soil.grout.name entry (NOTICE.md).

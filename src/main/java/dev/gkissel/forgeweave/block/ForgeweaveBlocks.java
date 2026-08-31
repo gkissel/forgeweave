@@ -96,6 +96,15 @@ public final class ForgeweaveBlocks {
                     .strength(2.5F)
                     .sound(SoundType.WOOD), ChestKind.PART));
 
+    // The Wooden Hopper (docs/SCOPE.md M5, issue #822). Upstream 1.12's BlockWoodenHopper: hardness
+    // 3.0, resistance 8.0, SoundType.WOOD (NOTICE.md) -- ported verbatim; the half-speed transfer
+    // behavior lives in WoodenHopperBlock/WoodenHopperBlockEntity, not in these properties.
+    public static final DeferredBlock<WoodenHopperBlock> WOODEN_HOPPER = BLOCKS.register("wooden_hopper",
+            () -> new WoodenHopperBlock(BlockBehaviour.Properties.of()
+                    .mapColor(MapColor.WOOD)
+                    .strength(3.0F, 8.0F)
+                    .sound(SoundType.WOOD)));
+
     // Grout (docs/SCOPE.md M2 issue #93; issue #129 fix). Upstream 1.12 ships it as one state of
     // BlockSoil (SoilTypes.GROUT, NOTICE.md): Material.SAND, hardness 3.0, SoundType.SAND, and a
     // slipperiness of 0.8 (default is 0.6) -- ported via soilProperties() below. Harvest level

@@ -1,0 +1,9 @@
+{
+  "parent": "minecraft:block/hopper",
+  "textures": {
+    "inside": "forgeweave:derived/block/wooden_hopper_inside",
+    "particle": "forgeweave:derived/block/wooden_hopper_outside",
+    "side": "forgeweave:derived/block/wooden_hopper_outside",
+    "top": "forgeweave:derived/block/wooden_hopper_top"
+  }
+}

@@ -149,6 +149,7 @@
   "block.forgeweave.tool_forge": "Tool Forge",
   "block.forgeweave.tool_station": "Tool Station",
   "block.forgeweave.white_stained_clear_glass": "White Stained Clear Glass",
+  "block.forgeweave.wooden_hopper": "Wooden Hopper",
   "block.forgeweave.yellow_stained_clear_glass": "Yellow Stained Clear Glass",
   "book.forgeweave.armor.casting.text": "Metal plating is cast at the Smeltery like any other metal part, which needs a plating cast, and a cast is made by pouring gold over a finished part.\n\nObsidian plating is the way in: the Part Builder carves obsidian into plating with a plating pattern. Set that plating on a Casting Table and pour gold over it for a plating cast, then cast iron and every other metal from there. The maille cast is made the same way from any Part Builder maille.",
   "book.forgeweave.armor.casting.title": "Casting Plating",
