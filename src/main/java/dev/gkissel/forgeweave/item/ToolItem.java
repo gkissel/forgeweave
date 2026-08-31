@@ -38,11 +38,14 @@ import net.minecraft.world.item.component.ItemAttributeModifiers;
 import net.minecraft.world.item.component.Tool;
 import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.context.UseOnContext;
+import net.minecraft.world.level.ItemLike;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 
+import net.neoforged.neoforge.capabilities.Capabilities;
+import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
 import net.neoforged.neoforge.common.ItemAbilities;
 import net.neoforged.neoforge.common.ItemAbility;
 
@@ -65,6 +68,7 @@ import dev.gkissel.forgeweave.tool.ShovelPath;
 import dev.gkissel.forgeweave.tool.ToolConstants;
 import dev.gkissel.forgeweave.tool.ToolMaterials;
 import dev.gkissel.forgeweave.tool.ToolStats;
+import dev.gkissel.forgeweave.trait.EnergyBuffer;
 import dev.gkissel.forgeweave.trait.ForgeweaveTraits;
 
 /**
@@ -315,6 +319,28 @@ public class ToolItem extends Item {
 
     public static boolean isBroken(ItemStack stack) {
         return stack.getOrDefault(ForgeweaveDataComponents.BROKEN.get(), false);
+    }
+
+    /**
+     * Wires {@code Capabilities.EnergyStorage.ITEM} onto every assembled Forgeweave tool and armor
+     * piece item (issue #830), so any mod's cable, charger, generator or capacitor can fill a tool's
+     * stored-energy buffer with no per-mod code -- Forge Energy is NeoForge-standard. Called from
+     * {@code Forgeweave}'s constructor, same idiom as {@code ChestBlockEntity#registerCapabilities}.
+     *
+     * <p>Every assembled tool item comes from {@link ToolAssemblyRecipes#ENTRIES}, the same
+     * enumeration {@code ContentFamilies#itemEnabled} walks to find every tool/armor item, rather
+     * than a fresh {@code BuiltInRegistries.ITEM} scan. The provider itself is per-stack ({@link
+     * EnergyBuffer#capability}): it returns {@code null} -- capability absent -- for a stack whose
+     * traits carry no energy capacity, which is what keeps a tool with no energy trait from costing
+     * anything (issue #830 deliverable 1).
+     */
+    public static void registerCapabilities(RegisterCapabilitiesEvent event) {
+        ItemLike[] items = ToolAssemblyRecipes.ENTRIES.stream()
+                .map(entry -> (ItemLike) entry.tool().get())
+                .distinct()
+                .toArray(ItemLike[]::new);
+        event.registerItem(Capabilities.EnergyStorage.ITEM,
+                (stack, context) -> EnergyBuffer.capability(stack), items);
     }
 
     /**

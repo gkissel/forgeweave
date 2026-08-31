@@ -52,6 +52,7 @@ import dev.gkissel.forgeweave.item.GuideBookGift;
 import dev.gkissel.forgeweave.item.SavedBookPagePayload;
 import dev.gkissel.forgeweave.item.SlimeBootsItem;
 import dev.gkissel.forgeweave.item.SlimeBounceHandler;
+import dev.gkissel.forgeweave.item.ToolItem;
 import dev.gkissel.forgeweave.material.Material;
 import dev.gkissel.forgeweave.menu.ForgeweaveMenus;
 import dev.gkissel.forgeweave.menu.RenameStationItemPayload;
@@ -143,6 +144,9 @@ public class Forgeweave {
         modEventBus.addListener(SmelteryControllerBlockEntity::registerCapabilities);
         // #100 -- a faucet pours into a casting table/basin through its fluid handler.
         modEventBus.addListener(CastingBlockEntity::registerCapabilities);
+        // #830 -- a tool carrying the energized trait exposes a Forge-Energy buffer any mod's
+        // charger can fill.
+        modEventBus.addListener(ToolItem::registerCapabilities);
         modEventBus.addListener(ForgeweaveDataGenerators::gatherData);
         NeoForge.EVENT_BUS.addListener(this::onServerStarted);
         // #150 -- the shared per-hit pipeline (ADR-0005 decision 3): pre-hit, on-hit and post-kill

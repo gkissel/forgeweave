@@ -291,5 +291,14 @@ public final class ForgeweaveDataComponents {
                     builder -> builder.persistent(Codec.STRING)
                             .networkSynchronized(ByteBufCodecs.STRING_UTF8));
 
+    /**
+     * A tool's stored Forge Energy (issue #830, {@code trait.EnergyBuffer}'s {@code energized}):
+     * only the current amount persists, never the capacity -- {@code EnergyBuffer}'s class javadoc
+     * explains why. Absent means zero, same as {@link #OVERSLIME}.
+     */
+    public static final DeferredHolder<DataComponentType<?>, DataComponentType<Integer>> ENERGY =
+            DATA_COMPONENTS.registerComponentType("energy",
+                    builder -> builder.persistent(ExtraCodecs.NON_NEGATIVE_INT).networkSynchronized(ByteBufCodecs.VAR_INT));
+
     private ForgeweaveDataComponents() {}
 }

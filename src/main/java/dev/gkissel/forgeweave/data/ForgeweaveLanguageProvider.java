@@ -1747,6 +1747,16 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("trait.forgeweave.escalating.name", "Escalating");
         add("trait.forgeweave.escalating.description",
                 "Consecutive fully-charged hits deal more and more damage, fading if you stop landing them.");
+        // #830 -- the M6 energy buffer trait behavior library (ADR-0004). Own names, own wording;
+        // not assigned to a material yet, so no ported upstream row applies here.
+        add("trait.forgeweave.energized.name", "Energized");
+        add("trait.forgeweave.energized.description",
+                "Carries a Forge Energy buffer that is spent before durability.");
+        add("trait.forgeweave.solar_recharge.name", "Solar Recharge");
+        add("trait.forgeweave.solar_recharge.description", "Slowly refills its energy buffer in daylight.");
+        add("trait.forgeweave.kinetic_charge.name", "Kinetic Charge");
+        add("trait.forgeweave.kinetic_charge.description", "Converts a share of damage dealt into stored energy.");
+        add("tooltip.forgeweave.energy", "Stored Energy");
 
         // The guide book (issue #273). The item name, book title/subtitle and the static pages'
         // text are ported (rewritten in Forgeweave vocabulary) from upstream 1.12's book data tree
