@@ -68,6 +68,11 @@ public class ForgeweaveItemModelProvider extends ItemModelProvider {
         singleLayerModel(ForgeweaveItems.PART_TOOL_HANDLE, derivedItem("tool_handle"));
         singleLayerModel(ForgeweaveItems.SHARD, derivedItem("shard"));
 
+        // The Wooden Hopper (docs/SCOPE.md M5, issue #822): a flat derived sprite, matching both
+        // vanilla's own hopper item and upstream 1.12's items/wooden_hopper.png (NOTICE.md), not the
+        // 3D block model -- see ForgeweaveBlockStateProvider's own wooden hopper block models.
+        singleLayerModel(ForgeweaveItems.WOODEN_HOPPER, derivedItem("wooden_hopper"));
+
         // M3 tool parts + patterns (docs/SCOPE.md M3 issue #151). All patterns are composited PNGs
         // (scripts/generate_pattern_textures.py, same algorithm as the five above). Every part's base
         // texture is a straight upstream port under derived/item/ (issue #198: vein_hammer_head,

@@ -529,6 +529,11 @@ public final class ForgeweaveItems {
     public static final DeferredItem<BlockItem> PATTERN_CHEST = ITEMS.registerSimpleBlockItem("pattern_chest", ForgeweaveBlocks.PATTERN_CHEST);
     public static final DeferredItem<BlockItem> PART_CHEST = ITEMS.registerSimpleBlockItem("part_chest", ForgeweaveBlocks.PART_CHEST);
 
+    // The Wooden Hopper (docs/SCOPE.md M5, issue #822): its item model is a flat derived sprite, not
+    // the block model, matching both vanilla's own hopper item and upstream 1.12's
+    // items/wooden_hopper.png (see ForgeweaveItemModelProvider).
+    public static final DeferredItem<BlockItem> WOODEN_HOPPER = ITEMS.registerSimpleBlockItem("wooden_hopper", ForgeweaveBlocks.WOODEN_HOPPER);
+
     // Grout (docs/SCOPE.md M2 issue #93; placeable block per issue #129, overruling PR #115's
     // "plain item" deviation). Upstream 1.12 ships grout as one state of a multi-purpose "soil"
     // block shared with graveyard/consecrated soil and slimy mud (BlockSoil.SoilTypes, NOTICE.md) --

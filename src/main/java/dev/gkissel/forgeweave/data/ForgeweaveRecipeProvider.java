@@ -232,6 +232,18 @@ public class ForgeweaveRecipeProvider extends RecipeProvider {
                 .unlockedBy("has_pattern_blank", has(ForgeweaveItems.PATTERN_BLANK.get()))
                 .save(recipeOutput);
 
+        // The Wooden Hopper (docs/SCOPE.md M5, issue #822): upstream's real wooden_hopper.json
+        // shape, ported verbatim (NOTICE.md) -- five planks around a chest, unlike vanilla's own
+        // hopper recipe (five iron ingots).
+        ShapedRecipeBuilder.shaped(RecipeCategory.REDSTONE, ForgeweaveItems.WOODEN_HOPPER.get())
+                .pattern("W W")
+                .pattern("WCW")
+                .pattern(" W ")
+                .define('W', ItemTags.PLANKS)
+                .define('C', Items.CHEST)
+                .unlockedBy("has_chest", has(Items.CHEST))
+                .save(recipeOutput);
+
         buildSearedRecipes(recipeOutput);
         buildModifierRecipes(recipeOutput);
         buildStorageBlockRecipes(recipeOutput);

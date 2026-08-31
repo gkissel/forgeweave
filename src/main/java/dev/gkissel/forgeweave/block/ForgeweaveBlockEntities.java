@@ -128,5 +128,13 @@ public final class ForgeweaveBlockEntities {
                     .of(FaucetBlockEntity::new, ForgeweaveBlocks.FAUCET.get())
                     .build(null));
 
+    // The Wooden Hopper (docs/SCOPE.md M5, issue #822): its own type rather than reusing vanilla's
+    // BlockEntityType.HOPPER, so a saved Wooden Hopper decodes back as one on reload instead of
+    // silently downgrading to a plain vanilla hopper (see WoodenHopperBlockEntity#getType's javadoc).
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<WoodenHopperBlockEntity>> WOODEN_HOPPER =
+            BLOCK_ENTITIES.register("wooden_hopper", () -> BlockEntityType.Builder
+                    .of(WoodenHopperBlockEntity::new, ForgeweaveBlocks.WOODEN_HOPPER.get())
+                    .build(null));
+
     private ForgeweaveBlockEntities() {}
 }

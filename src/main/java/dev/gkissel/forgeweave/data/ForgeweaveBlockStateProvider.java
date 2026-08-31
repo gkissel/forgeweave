@@ -4,6 +4,7 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.data.PackOutput;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.HopperBlock;
 import net.minecraft.world.level.block.SlabBlock;
 import net.minecraft.world.level.block.StairBlock;
 import net.minecraft.world.level.block.VineBlock;
@@ -257,6 +258,30 @@ public class ForgeweaveBlockStateProvider extends BlockStateProvider {
             default -> ConfiguredModel.builder().modelFile(faucet).build();
         });
         simpleBlockItem(ForgeweaveBlocks.FAUCET.get(), faucet);
+
+        // The Wooden Hopper (docs/SCOPE.md M5, issue #822): parents vanilla's own two hopper models
+        // (block/hopper for the down-facing orientation, block/hopper_side for the four horizontal
+        // ones) and swaps their three texture variables for the derived wood-themed sprites
+        // (NOTICE.md) -- the geometry itself is unmodified vanilla. The item model is a separate flat
+        // sprite registered in ForgeweaveItemModelProvider, matching vanilla's own hopper item.
+        ModelFile woodenHopperDown = models().withExistingParent("wooden_hopper", mcLoc("block/hopper"))
+                .texture("top", modLoc("derived/block/wooden_hopper_top"))
+                .texture("side", modLoc("derived/block/wooden_hopper_outside"))
+                .texture("inside", modLoc("derived/block/wooden_hopper_inside"))
+                .texture("particle", modLoc("derived/block/wooden_hopper_outside"));
+        ModelFile woodenHopperSide = models().withExistingParent("wooden_hopper_side", mcLoc("block/hopper_side"))
+                .texture("top", modLoc("derived/block/wooden_hopper_top"))
+                .texture("side", modLoc("derived/block/wooden_hopper_outside"))
+                .texture("inside", modLoc("derived/block/wooden_hopper_inside"))
+                .texture("particle", modLoc("derived/block/wooden_hopper_outside"));
+        getVariantBuilder(ForgeweaveBlocks.WOODEN_HOPPER.get()).forAllStates(state -> switch (state.getValue(HopperBlock.FACING)) {
+            case DOWN -> ConfiguredModel.builder().modelFile(woodenHopperDown).build();
+            case NORTH -> ConfiguredModel.builder().modelFile(woodenHopperSide).build();
+            case SOUTH -> ConfiguredModel.builder().modelFile(woodenHopperSide).rotationY(180).build();
+            case WEST -> ConfiguredModel.builder().modelFile(woodenHopperSide).rotationY(270).build();
+            case EAST -> ConfiguredModel.builder().modelFile(woodenHopperSide).rotationY(90).build();
+            default -> ConfiguredModel.builder().modelFile(woodenHopperDown).build();
+        });
 
         // #104 -- cobalt + ardite nether ore (docs/SCOPE.md M2 issue #104): plain cube_all geometry,
         // like the seared brick family, with one composited derived texture per ore (NOTICE.md).
