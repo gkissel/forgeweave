@@ -48,9 +48,16 @@ import dev.gkissel.forgeweave.item.PartItem;
 class ArmorMaterialTest {
 
     /** D10: the 15 clone-derived plating materials plus ardite, netherite and nahuatl. */
-    private static final Set<String> PLATING = Set.of("iron", "copper", "cobalt", "manyullyn", "knightslime",
-            "pig_iron", "steel", "bronze", "lead", "silver", "electrum", "amethyst_bronze", "rose_gold",
-            "obsidian", "ancient", "ardite", "netherite", "nahuatl");
+    private static final Set<String> PLATING = Stream.concat(
+            Stream.of("iron", "copper", "cobalt", "manyullyn", "knightslime",
+                    "pig_iron", "steel", "bronze", "lead", "silver", "electrum", "amethyst_bronze", "rose_gold",
+                    "obsidian", "ancient", "ardite", "netherite", "nahuatl"),
+            // #833 M6 Track A batch 1: every material but graphite gets plating, matching the four
+            // existing compat metals' precedent; graphite is a soft, brittle mineral with no plausible
+            // armor use and is left off both this set and MAILLE below.
+            Stream.of("tin", "aluminium", "nickel", "constantan", "invar", "platinum", "titanium",
+                    "tungsten", "iridium", "uranium"))
+            .collect(java.util.stream.Collectors.toSet());
 
     /** D11: every plating material plus the five maille-only ones. */
     private static final Set<String> MAILLE = Stream.concat(PLATING.stream(),

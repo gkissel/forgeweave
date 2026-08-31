@@ -1,0 +1,41 @@
+{
+  "head": {
+    "durability": 260,
+    "mining_speed": 6.0,
+    "attack_damage": 4.0
+  },
+  "handle": {
+    "durability_modifier": 1.0,
+    "durability": 40
+  },
+  "extra_durability": 90,
+  "bow": {
+    "drawspeed": 0.55,
+    "range": 1.4,
+    "bonus_damage": 4.5
+  },
+  "plating": {
+    "helmet": { "durability": 176, "armor": 2.0 },
+    "chestplate": { "durability": 256, "armor": 6.0 },
+    "leggings": { "durability": 240, "armor": 5.0 },
+    "boots": { "durability": 208, "armor": 2.0 }
+  },
+  "maille": true,
+  "incorrect_for_tool": "minecraft:incorrect_for_iron_tool",
+  "traits": {
+    "general": ["forgeweave:magnetic"]
+  },
+  "crafting_items": [
+    { "ingredient": { "tag": "c:ingots/nickel" }, "value": 144 },
+    { "ingredient": { "tag": "c:nuggets/nickel" }, "value": 16 },
+    { "ingredient": { "tag": "c:storage_blocks/nickel" }, "value": 1296 }
+  ],
+  "repair_item": {
+    "tag": "c:ingots/nickel"
+  },
+  "enchantability": 13,
+  "color": "#BFC2C2",
+  "neoforge:conditions": [
+    { "type": "neoforge:item_exists", "item": "immersiveengineering:ingot_nickel" }
+  ]
+}

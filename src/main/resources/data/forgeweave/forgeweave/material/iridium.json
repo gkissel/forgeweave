@@ -1,0 +1,41 @@
+{
+  "head": {
+    "durability": 720,
+    "mining_speed": 6.0,
+    "attack_damage": 6.5
+  },
+  "handle": {
+    "durability_modifier": 1.05,
+    "durability": 60
+  },
+  "extra_durability": 30,
+  "bow": {
+    "drawspeed": 0.38,
+    "range": 1.8,
+    "bonus_damage": 7.5
+  },
+  "plating": {
+    "helmet": { "durability": 374, "armor": 3.0, "toughness": 3.0, "knockback_resistance": 0.1 },
+    "chestplate": { "durability": 544, "armor": 8.0, "toughness": 3.0, "knockback_resistance": 0.1 },
+    "leggings": { "durability": 510, "armor": 6.0, "toughness": 3.0, "knockback_resistance": 0.1 },
+    "boots": { "durability": 442, "armor": 3.0, "toughness": 3.0, "knockback_resistance": 0.1 }
+  },
+  "maille": true,
+  "incorrect_for_tool": "minecraft:incorrect_for_netherite_tool",
+  "traits": {
+    "general": ["forgeweave:kinetic"]
+  },
+  "crafting_items": [
+    { "ingredient": { "tag": "c:ingots/iridium" }, "value": 144 },
+    { "ingredient": { "tag": "c:nuggets/iridium" }, "value": 16 },
+    { "ingredient": { "tag": "c:storage_blocks/iridium" }, "value": 1296 }
+  ],
+  "repair_item": {
+    "tag": "c:ingots/iridium"
+  },
+  "enchantability": 20,
+  "color": "#E4E4EC",
+  "neoforge:conditions": [
+    { "type": "neoforge:item_exists", "item": "modern_industrialization:iridium_ingot" }
+  ]
+}
