@@ -941,6 +941,19 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("material.forgeweave.uranium", "Uranium");
         add("material.forgeweave.graphite", "Graphite");
 
+        // #835 -- M6 Track A batch 3: Ender IO's eight surviving 1.21.1 alloy ingots (the roster
+        // renamed pulsating_iron/conductive_iron to pulsating_alloy/conductive_alloy and dropped
+        // electrical_steel entirely -- see EnderIoAlloyGameTests). Single-provider item_exists
+        // conditions like the batch 1 metals above; no Forgeweave item/fluid of their own.
+        add("material.forgeweave.redstone_alloy", "Redstone Alloy");
+        add("material.forgeweave.energetic_alloy", "Energetic Alloy");
+        add("material.forgeweave.pulsating_alloy", "Pulsating Alloy");
+        add("material.forgeweave.conductive_alloy", "Conductive Alloy");
+        add("material.forgeweave.vibrant_alloy", "Vibrant Alloy");
+        add("material.forgeweave.soularium", "Soularium");
+        add("material.forgeweave.dark_steel", "Dark Steel");
+        add("material.forgeweave.end_steel", "End Steel");
+
         // #231 -- the seven vanilla-sourced M3.2 materials. Names are upstream 1.12's
         // material.<id>.name entries verbatim, including endstone's odd "End" ("End Pickaxe Head"
         // is how upstream reads).

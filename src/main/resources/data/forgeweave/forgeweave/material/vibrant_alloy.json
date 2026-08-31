@@ -1,0 +1,41 @@
+{
+  "head": {
+    "durability": 500,
+    "mining_speed": 6.6,
+    "attack_damage": 5.4
+  },
+  "handle": {
+    "durability_modifier": 0.9,
+    "durability": 60
+  },
+  "extra_durability": 45,
+  "bow": {
+    "drawspeed": 0.42,
+    "range": 1.7,
+    "bonus_damage": 6.5
+  },
+  "plating": {
+    "helmet": { "durability": 300, "armor": 3.0, "toughness": 2.0, "knockback_resistance": 0.05 },
+    "chestplate": { "durability": 436, "armor": 8.0, "toughness": 2.0, "knockback_resistance": 0.05 },
+    "leggings": { "durability": 409, "armor": 6.0, "toughness": 2.0, "knockback_resistance": 0.05 },
+    "boots": { "durability": 354, "armor": 3.0, "toughness": 2.0, "knockback_resistance": 0.05 }
+  },
+  "maille": true,
+  "incorrect_for_tool": "minecraft:incorrect_for_diamond_tool",
+  "traits": {
+    "general": ["forgeweave:stormcaller"]
+  },
+  "crafting_items": [
+    { "ingredient": { "tag": "c:ingots/vibrant_alloy" }, "value": 144 },
+    { "ingredient": { "tag": "c:nuggets/vibrant_alloy" }, "value": 16 },
+    { "ingredient": { "tag": "c:storage_blocks/vibrant_alloy" }, "value": 1296 }
+  ],
+  "repair_item": {
+    "tag": "c:ingots/vibrant_alloy"
+  },
+  "enchantability": 20,
+  "color": "#4FD8B0",
+  "neoforge:conditions": [
+    { "type": "neoforge:item_exists", "item": "enderio:vibrant_alloy_ingot" }
+  ]
+}

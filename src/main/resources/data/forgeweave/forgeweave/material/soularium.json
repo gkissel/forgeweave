@@ -1,0 +1,41 @@
+{
+  "head": {
+    "durability": 450,
+    "mining_speed": 5.6,
+    "attack_damage": 5.6
+  },
+  "handle": {
+    "durability_modifier": 1.0,
+    "durability": 65
+  },
+  "extra_durability": 55,
+  "bow": {
+    "drawspeed": 0.46,
+    "range": 1.55,
+    "bonus_damage": 6.2
+  },
+  "plating": {
+    "helmet": { "durability": 270, "armor": 3.0, "toughness": 2.0, "knockback_resistance": 0.05 },
+    "chestplate": { "durability": 392, "armor": 8.0, "toughness": 2.0, "knockback_resistance": 0.05 },
+    "leggings": { "durability": 368, "armor": 6.0, "toughness": 2.0, "knockback_resistance": 0.05 },
+    "boots": { "durability": 319, "armor": 3.0, "toughness": 2.0, "knockback_resistance": 0.05 }
+  },
+  "maille": true,
+  "incorrect_for_tool": "minecraft:incorrect_for_diamond_tool",
+  "traits": {
+    "general": ["forgeweave:leeching"]
+  },
+  "crafting_items": [
+    { "ingredient": { "tag": "c:ingots/soularium" }, "value": 144 },
+    { "ingredient": { "tag": "c:nuggets/soularium" }, "value": 16 },
+    { "ingredient": { "tag": "c:storage_blocks/soularium" }, "value": 1296 }
+  ],
+  "repair_item": {
+    "tag": "c:ingots/soularium"
+  },
+  "enchantability": 22,
+  "color": "#D9C98A",
+  "neoforge:conditions": [
+    { "type": "neoforge:item_exists", "item": "enderio:soularium_ingot" }
+  ]
+}

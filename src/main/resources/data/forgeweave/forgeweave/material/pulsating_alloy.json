@@ -1,0 +1,41 @@
+{
+  "head": {
+    "durability": 245,
+    "mining_speed": 5.8,
+    "attack_damage": 3.8
+  },
+  "handle": {
+    "durability_modifier": 1.0,
+    "durability": 30
+  },
+  "extra_durability": 95,
+  "bow": {
+    "drawspeed": 0.6,
+    "range": 1.25,
+    "bonus_damage": 4.0
+  },
+  "plating": {
+    "helmet": { "durability": 178, "armor": 2.0 },
+    "chestplate": { "durability": 259, "armor": 6.0 },
+    "leggings": { "durability": 243, "armor": 5.0 },
+    "boots": { "durability": 210, "armor": 2.0 }
+  },
+  "maille": true,
+  "incorrect_for_tool": "minecraft:incorrect_for_iron_tool",
+  "traits": {
+    "general": ["forgeweave:enderference"]
+  },
+  "crafting_items": [
+    { "ingredient": { "tag": "c:ingots/pulsating_alloy" }, "value": 144 },
+    { "ingredient": { "tag": "c:nuggets/pulsating_alloy" }, "value": 16 },
+    { "ingredient": { "tag": "c:storage_blocks/pulsating_alloy" }, "value": 1296 }
+  ],
+  "repair_item": {
+    "tag": "c:ingots/pulsating_alloy"
+  },
+  "enchantability": 16,
+  "color": "#8C5FBA",
+  "neoforge:conditions": [
+    { "type": "neoforge:item_exists", "item": "enderio:pulsating_alloy_ingot" }
+  ]
+}

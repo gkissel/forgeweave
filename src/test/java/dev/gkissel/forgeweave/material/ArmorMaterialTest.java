@@ -60,8 +60,12 @@ class ArmorMaterialTest {
             // Issue #834 (M6 preset batch 2): every Mekanism/AE2/Occultism preset ships a full
             // plating + maille block, same as the original four compat metals did.
             Stream.of("osmium", "refined_obsidian", "refined_glowstone", "hdpe", "fluorite",
-                    "certus_quartz", "fluix", "sky_stone", "iesnium", "dragonyst"))
-            .flatMap(s -> s)
+                    "certus_quartz", "fluix", "sky_stone", "iesnium", "dragonyst"),
+            // #835 M6 Track A batch 3: all eight Ender IO alloys are proper metal ingots, so they get
+            // plating like the batch 1 roster above.
+            Stream.of("redstone_alloy", "energetic_alloy", "pulsating_alloy", "conductive_alloy",
+                    "vibrant_alloy", "soularium", "dark_steel", "end_steel"))
+            .flatMap(java.util.function.Function.identity())
             .collect(java.util.stream.Collectors.toSet());
 
     /** D11: every plating material plus the five maille-only ones. */
