@@ -154,7 +154,10 @@ class MaterialTest {
             "fluix", "sky_stone", "iesnium", "dragonyst",
             // #835 M6 Track A batch 3: Ender IO's eight surviving 1.21.1 alloy ingots.
             "redstone_alloy", "energetic_alloy", "pulsating_alloy", "conductive_alloy", "vibrant_alloy",
-            "soularium", "dark_steel", "end_steel" })
+            "soularium", "dark_steel", "end_steel",
+            // #836 M6 Track A batch 4: the Draconic Evolution pair (the endgame tier's only shippable
+            // materials -- ProjectE and Avaritia ship no c: tags at all, see MaterialTest javadoc below).
+            "draconium", "draconium_awakened" })
     void shippedMaterialsParse(String name) {
         Material.CODEC.parse(ops, shipped(name)).getOrThrow();
     }
@@ -178,7 +181,10 @@ class MaterialTest {
             // #835 M6 Track A batch 3: single item_exists each, verified against Ender IO's own
             // 1.21.1 tree (EnderIoAlloyGameTests).
             "redstone_alloy", "energetic_alloy", "pulsating_alloy", "conductive_alloy", "vibrant_alloy",
-            "soularium", "dark_steel", "end_steel" })
+            "soularium", "dark_steel", "end_steel",
+            // #836 M6 Track A batch 4: single item_exists each, verified against Draconic Evolution's
+            // own 3.1.4.632 jar (DraconicEvolutionGameTests).
+            "draconium", "draconium_awakened" })
     void conditionalMaterialsCarryAWellFormedConditionsBlockAndStillParse(String name) {
         JsonObject json = shipped(name).getAsJsonObject();
         assertTrue(json.has("neoforge:conditions"), name + " must carry a neoforge:conditions block (issue #826)");
@@ -246,6 +252,10 @@ class MaterialTest {
             "energetic_alloy,iron", "pulsating_alloy,iron", "conductive_alloy,iron",
             "vibrant_alloy,diamond", "soularium,diamond",
             "dark_steel,netherite", "end_steel,netherite",
+            // #836 M6 Track A batch 4: the endgame tier -- both sit at the same top rung as
+            // manyullyn/ancient/netherite (JC10: no mining tiers above netherite), differentiated by
+            // stats and traits instead (the PR body's stat table).
+            "draconium,netherite", "draconium_awakened,netherite",
             // issue #843 (closes #180): the 1.20-branch material gap's five by-name additions.
             "seared_stone,iron", "necrotic_bone,iron", "slimewood,iron",
             "queens_slime,netherite", "hepatizon,netherite"
@@ -463,7 +473,10 @@ class MaterialTest {
             "iridium", "uranium",
             // #835 M6 Track A batch 3: Ender IO ships a c:nuggets/<name> tag for all eight alloys.
             "redstone_alloy", "energetic_alloy", "pulsating_alloy", "conductive_alloy", "vibrant_alloy",
-            "soularium", "dark_steel", "end_steel" })
+            "soularium", "dark_steel", "end_steel",
+            // #836 M6 Track A batch 4: Draconic Evolution ships c:nuggets/draconium and
+            // c:nuggets/draconium_awakened (verified against the mod's own 3.1.4.632 jar).
+            "draconium", "draconium_awakened" })
     void addCommonItemsMetalsListIngotAndNugget(String name) {
         Material material = Material.CODEC.parse(ops, shipped(name)).getOrThrow();
 
@@ -621,6 +634,9 @@ class MaterialTest {
             // #835 M6 Track A batch 3: same JC3 Part-Builder-only rule.
             "redstone_alloy", "energetic_alloy", "pulsating_alloy", "conductive_alloy", "vibrant_alloy",
             "soularium", "dark_steel", "end_steel",
+            // #836 M6 Track A batch 4: same JC3 Part-Builder-only rule -- no molten fluid or casting
+            // for either Draconic Evolution material.
+            "draconium", "draconium_awakened",
             // issue #843 (closes #180): seared stone and necrotic bone both keep the Part Builder
             // item-based route the audit found already sourceable -- seared stone additionally sets
             // <em>both</em> upstream flags like obsidian/knightslime (full smeltery casting too), and
@@ -682,6 +698,75 @@ class MaterialTest {
         assertTrue(offenders.isEmpty(),
                 "these shipped materials condition on enderio:electrical_steel_ingot, which does not "
                         + "exist on Ender IO's 1.21.1 tree (issue #835): " + offenders);
+    }
+
+    /**
+     * Issue #836's own guard against the mistake it names as the one this batch is most likely to
+     * make: {@code crafting_items}/{@code repair_item} must key on a {@code c:} tag (or a vanilla
+     * item), never a concrete modded item id, because this test (and {@link #shippedMaterialsParse})
+     * parse every shipped JSON straight through {@link Material#CODEC} with plain {@link #ops} --
+     * no {@code ConditionalOps}, no mod loaded -- so an {@code Ingredient} naming an unregistered
+     * modded item id fails to parse outright (batch 2's Refined Storage precedent, PR #860). ProjectE
+     * ({@code sinkillerj/ProjectE}'s {@code mc1.21.1} branch) and Avaritia
+     * ({@code AquaThree/AvaritiaNeo}'s {@code main} branch) were verified directly against their own
+     * trees to ship <em>zero</em> {@code c:} tags for dark matter, red matter, crystal matrix, cosmic
+     * neutronium or infinity -- there is no tag to key on, so all five are skipped rather than shipped
+     * with a concrete id that would break this exact test the moment someone tried. This walks every
+     * shipped material's raw {@code crafting_items} and {@code repair_item} ingredients (not
+     * {@code neoforge:conditions}, which concrete modded ids belong in) for a {@code projecte:} or
+     * {@code avaritia:} item, so a future attempt to re-add one the wrong way fails loudly here.
+     */
+    @Test
+    void noShippedMaterialCraftingItemsNameAConcreteProjectEOrAvaritiaItem() throws Exception {
+        Path materialDir = projectRoot().resolve("src/main/resources/data/forgeweave/forgeweave/material");
+        List<String> offenders = new java.util.ArrayList<>();
+
+        try (Stream<Path> files = Files.list(materialDir)) {
+            for (Path file : files.filter(p -> p.toString().endsWith(".json")).sorted().toList()) {
+                JsonObject json = JsonParser.parseString(Files.readString(file, StandardCharsets.UTF_8)).getAsJsonObject();
+                List<JsonElement> ingredients = new java.util.ArrayList<>();
+                if (json.has("repair_item")) {
+                    ingredients.add(json.get("repair_item"));
+                }
+                if (json.has("crafting_items")) {
+                    for (JsonElement entry : json.getAsJsonArray("crafting_items")) {
+                        if (entry.getAsJsonObject().has("ingredient")) {
+                            ingredients.add(entry.getAsJsonObject().get("ingredient"));
+                        }
+                    }
+                }
+                for (JsonElement ingredient : ingredients) {
+                    if (ingredient.isJsonObject() && ingredient.getAsJsonObject().has("item")) {
+                        String item = ingredient.getAsJsonObject().get("item").getAsString();
+                        if (item.startsWith("projecte:") || item.startsWith("avaritia:")) {
+                            offenders.add(file.getFileName() + " -> " + item);
+                        }
+                    }
+                }
+            }
+        }
+
+        assertTrue(offenders.isEmpty(),
+                "these shipped materials key crafting_items/repair_item on a concrete ProjectE/Avaritia "
+                        + "item id, which fails to parse without the mod (issue #836): " + offenders);
+    }
+
+    /**
+     * The other half of #836's finding: none of the five ProjectE/Avaritia materials the issue named
+     * (dark matter, red matter, crystal matrix, cosmic neutronium, infinity) may exist as a shipped
+     * material file at all -- both mods ship zero {@code c:} tags, so there is no way to source them
+     * that survives {@link #noShippedMaterialCraftingItemsNameAConcreteProjectEOrAvaritiaItem} above.
+     */
+    @Test
+    void projectEAndAvaritiaMaterialsStayUnshipped() {
+        Path materialDir = projectRoot().resolve("src/main/resources/data/forgeweave/forgeweave/material");
+        List<String> shouldNotExist = List.of("dark_matter", "red_matter", "crystal_matrix",
+                "cosmic_neutronium", "infinity", "neutronium");
+
+        for (String name : shouldNotExist) {
+            assertTrue(Files.notExists(materialDir.resolve(name + ".json")),
+                    name + ".json must not be shipped -- ProjectE/Avaritia ship no c: tag for it (issue #836)");
+        }
     }
 
     private static Path projectRoot() {

@@ -1,0 +1,41 @@
+{
+  "head": {
+    "durability": 900,
+    "mining_speed": 7.2,
+    "attack_damage": 7.5
+  },
+  "handle": {
+    "durability_modifier": 1.0,
+    "durability": 60
+  },
+  "extra_durability": 80,
+  "bow": {
+    "drawspeed": 0.5,
+    "range": 1.3,
+    "bonus_damage": 6.0
+  },
+  "plating": {
+    "helmet": { "durability": 400, "armor": 3.0, "toughness": 3.0, "knockback_resistance": 0.1 },
+    "chestplate": { "durability": 580, "armor": 8.0, "toughness": 3.0, "knockback_resistance": 0.1 },
+    "leggings": { "durability": 545, "armor": 6.0, "toughness": 3.0, "knockback_resistance": 0.1 },
+    "boots": { "durability": 470, "armor": 3.0, "toughness": 3.0, "knockback_resistance": 0.1 }
+  },
+  "maille": true,
+  "incorrect_for_tool": "minecraft:incorrect_for_netherite_tool",
+  "traits": {
+    "general": ["forgeweave:surging"]
+  },
+  "crafting_items": [
+    { "ingredient": { "tag": "c:ingots/draconium" }, "value": 144 },
+    { "ingredient": { "tag": "c:nuggets/draconium" }, "value": 16 },
+    { "ingredient": { "tag": "c:storage_blocks/draconium" }, "value": 1296 }
+  ],
+  "repair_item": {
+    "tag": "c:ingots/draconium"
+  },
+  "enchantability": 14,
+  "color": "#2FBFA0",
+  "neoforge:conditions": [
+    { "type": "neoforge:item_exists", "item": "draconicevolution:draconium_ingot" }
+  ]
+}
