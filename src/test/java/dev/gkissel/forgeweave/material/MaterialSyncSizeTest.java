@@ -75,9 +75,16 @@ class MaterialSyncSizeTest {
      * revisit is due.
      *
      * <p>Issue #841 (Track B's own 30-material roster, closing the epic) landed on top of the above
-     * without tripping the line: the combined 130-material roster -- exactly the ~128 the epic
-     * projected -- stays under the 96 KB budget #837 already drew, the same "landed without another
+     * without tripping the line: the combined roster -- 128 materials, matching the epic's own ~128
+     * projection -- stays under the 96 KB budget #837 already drew, the same "landed without another
      * revisit" shape #834 saw at the Track A midpoint.
+     *
+     * <p>Issue #846 (M6-18, UI/schema hardening at the final roster scale) re-measured the shipped
+     * 128-material roster precisely: 95,235 bytes, ~93 KB, against the 96 KB (98,304-byte) budget --
+     * about 3 KB (3%) of headroom left. Left as-is rather than raised: the roster is now final (the
+     * epic's own closing issue), there is no further planned growth to budget headroom for, and the
+     * measured payload is still comfortably a small fraction of one chunk packet. A future material
+     * roster expansion should re-measure and raise deliberately rather than assume this margin holds.
      */
     private static final int SYNC_BUDGET_BYTES = 96 * 1024;
 
@@ -110,6 +117,8 @@ class MaterialSyncSizeTest {
 
         // Non-vacuity: an empty walk encoding zero bytes would prove nothing.
         assertTrue(materials >= 11, "expected at least the 11 pre-M3.2 materials, walked only " + materials);
+        System.out.println("[#846] material sync payload: " + materials + " materials encode to "
+                + buf.readableBytes() + " bytes (budget " + SYNC_BUDGET_BYTES + ")");
         assertTrue(buf.readableBytes() <= SYNC_BUDGET_BYTES,
                 materials + " materials encode to " + buf.readableBytes() + " bytes of registry-sync payload, "
                         + "over the " + SYNC_BUDGET_BYTES + "-byte budget -- either a material grew far beyond "
