@@ -218,6 +218,9 @@ public class Forgeweave {
         // NeoForge splits 1.12's one EnderTeleportEvent into per-cause subevents.
         NeoForge.EVENT_BUS.addListener(ForgeweaveTraits::onEnderTeleport);
         NeoForge.EVENT_BUS.addListener(ForgeweaveTraits::onChorusFruitTeleport);
+        // #828 -- grievous's mark: the combat half rides the seams; this listener only reads the
+        // mark the seam left, same idiom as the two teleport listeners just above.
+        NeoForge.EVENT_BUS.addListener(ForgeweaveTraits::onLivingHeal);
         // #108 batch: Searing/Magnetic Pull/Resonant key off what a mined block drops, which has no
         // Item hook either (see ForgeweaveModifiers#onBlockDrops).
         NeoForge.EVENT_BUS.addListener(ForgeweaveModifiers::onBlockDrops);

@@ -51,7 +51,15 @@ public enum HitCondition {
      * equally meaningful from {@link CombatSeam#preHit} or {@link CombatSeam#onHit}: the charge is
      * fixed for the whole hit, not a target-state read that can move between the two hooks.
      */
-    FULL_CHARGE;
+    FULL_CHARGE,
+    /**
+     * The <em>attacker's</em> current health is at or above their own max -- the wielder-side mirror
+     * of {@link #FULL_HEALTH} (which reads the target), {@code lightning_on_hit}'s gate (issue #828,
+     * "Thundergod's Wrath"'s "fires only while the wielder is at full health"). {@code false} when
+     * the blow has no attacker to read (a projectile, a mob's own attack), the same no-attacker
+     * default {@link #BELOW_WIELDER_HEALTH} uses.
+     */
+    WIELDER_FULL_HEALTH;
 
     /**
      * Evaluated before the blow's damage is applied for {@link CombatSeam#preHit}, and immediately
@@ -70,6 +78,7 @@ public enum HitCondition {
             case HARMFUL_EFFECT -> hit.target().getActiveEffects().stream()
                     .anyMatch(effect -> effect.getEffect().value().getCategory() == MobEffectCategory.HARMFUL);
             case FULL_CHARGE -> hit.isFullCharge();
+            case WIELDER_FULL_HEALTH -> hit.attacker() != null && hit.attacker().getHealth() >= hit.attacker().getMaxHealth();
         };
     }
 }

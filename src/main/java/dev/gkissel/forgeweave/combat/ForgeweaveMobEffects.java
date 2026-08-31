@@ -52,5 +52,14 @@ public final class ForgeweaveMobEffects {
                             ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "effect.pierce"),
                             -1.0, AttributeModifier.Operation.ADD_VALUE));
 
+    /**
+     * {@code grievous}'s mark (issue #828, M6 on-hit effect library, {@code reduce_target_healing}):
+     * an inert marker whose amplifier is read back as a 0-100 percent healing reduction by {@code
+     * ForgeweaveTraits#onLivingHeal} -- see {@link dev.gkissel.forgeweave.combat.ReduceTargetHealing}
+     * for why the amplifier carries the fraction instead of a new data component.
+     */
+    public static final DeferredHolder<MobEffect, MobEffect> REDUCED_HEALING =
+            MOB_EFFECTS.register("reduced_healing", () -> new MarkerEffect(MobEffectCategory.HARMFUL, 0x7A1F3D));
+
     private ForgeweaveMobEffects() {}
 }

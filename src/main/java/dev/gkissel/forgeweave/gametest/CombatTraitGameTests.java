@@ -17,6 +17,7 @@ import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.entity.LightningBolt;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
@@ -31,10 +32,12 @@ import net.minecraft.world.item.Items;
 import net.minecraft.world.item.component.ItemAttributeModifiers;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.level.GameType;
+import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.entity.EntityTeleportEvent;
+import net.neoforged.neoforge.event.entity.living.LivingHealEvent;
 import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 
@@ -806,6 +809,261 @@ public class CombatTraitGameTests {
         float bonused = preHitCharged(helper, player, hatchet, target, 1.0F, 1.0F);
         helper.assertTrue(Math.abs(bonused - 1.3F) < 0.001F,
                 "expected +0.30 from two stacks (1 -> 1.3), got " + bonused);
+
+        target.discard();
+        helper.succeed();
+    }
+
+    // ------------------------------------------------------------------ M6 on-hit effect trait
+    // behavior library (issue #828, ADR-0004): one test per registered instance, same shape as the
+    // #827 batch above -- ids set directly on a hatchet (no material grants these yet).
+
+    /** {@code forgeweave:blighted}: repeated hits stack Wither up to III instead of only refreshing. */
+    @GameTest(template = "empty")
+    public static void blightedStacksWitherUpToIIIOnRepeatHits(GameTestHelper helper) {
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        ItemStack hatchet = tool(ForgeweaveItems.TOOL_HATCHET.get(), List.of(traitId("blighted")), 3.0F);
+        Pig pig = noAi(helper.spawn(EntityType.PIG, new BlockPos(2, 2, 2)));
+
+        onHit(helper, player, hatchet, pig);
+        MobEffectInstance first = pig.getEffect(MobEffects.WITHER);
+        helper.assertTrue(first != null && first.getAmplifier() == 0,
+                "the first blighted hit must leave Wither I, got " + (first == null ? "none" : first.getAmplifier()));
+
+        onHit(helper, player, hatchet, pig);
+        onHit(helper, player, hatchet, pig);
+        MobEffectInstance capped = pig.getEffect(MobEffects.WITHER);
+        helper.assertTrue(capped != null && capped.getAmplifier() == 2,
+                "three hits must cap at Wither III (amplifier 2), got "
+                        + (capped == null ? "none" : capped.getAmplifier()));
+
+        pig.discard();
+        helper.succeed();
+    }
+
+    /** {@code forgeweave:enfeebling}: Weakness I on every landed hit. */
+    @GameTest(template = "empty")
+    public static void enfeeblingWeakensOnHit(GameTestHelper helper) {
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        ItemStack hatchet = tool(ForgeweaveItems.TOOL_HATCHET.get(), List.of(traitId("enfeebling")), 3.0F);
+        Pig pig = noAi(helper.spawn(EntityType.PIG, new BlockPos(2, 2, 2)));
+
+        onHit(helper, player, hatchet, pig);
+        MobEffectInstance weakness = pig.getEffect(MobEffects.WEAKNESS);
+        helper.assertTrue(weakness != null && weakness.getAmplifier() == 0,
+                "an enfeebling hit must leave Weakness I, got " + (weakness == null ? "none" : weakness.getAmplifier()));
+
+        pig.discard();
+        helper.succeed();
+    }
+
+    /** {@code forgeweave:shackling}: a brief, deep Slowness on every landed hit. */
+    @GameTest(template = "empty")
+    public static void shacklingRootsBrieflyOnHit(GameTestHelper helper) {
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        ItemStack hatchet = tool(ForgeweaveItems.TOOL_HATCHET.get(), List.of(traitId("shackling")), 3.0F);
+        Pig pig = noAi(helper.spawn(EntityType.PIG, new BlockPos(2, 2, 2)));
+
+        onHit(helper, player, hatchet, pig);
+        MobEffectInstance slow = pig.getEffect(MobEffects.MOVEMENT_SLOWDOWN);
+        helper.assertTrue(slow != null && slow.getAmplifier() == 3,
+                "a shackling hit must leave Slowness IV, got " + (slow == null ? "none" : slow.getAmplifier()));
+        helper.assertTrue(slow.getDuration() <= 20 && slow.getDuration() > 10,
+                "expected a short ~1-second root, got " + slow.getDuration());
+
+        pig.discard();
+        helper.succeed();
+    }
+
+    /** {@code forgeweave:revealing}: a landed hit leaves the target Glowing. */
+    @GameTest(template = "empty")
+    public static void revealingMarksTheTargetWithGlowOnHit(GameTestHelper helper) {
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        ItemStack hatchet = tool(ForgeweaveItems.TOOL_HATCHET.get(), List.of(traitId("revealing")), 3.0F);
+        Pig pig = noAi(helper.spawn(EntityType.PIG, new BlockPos(2, 2, 2)));
+
+        onHit(helper, player, hatchet, pig);
+        helper.assertTrue(pig.hasEffect(MobEffects.GLOWING), "a revealing hit must leave the target glowing");
+
+        pig.discard();
+        helper.succeed();
+    }
+
+    /** {@code forgeweave:merciful}: heals whatever it hits -- a deliberately unhelpful novelty. */
+    @GameTest(template = "empty")
+    public static void mercifulRegeneratesTheTargetOnHit(GameTestHelper helper) {
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        ItemStack hatchet = tool(ForgeweaveItems.TOOL_HATCHET.get(), List.of(traitId("merciful")), 3.0F);
+        Pig pig = noAi(helper.spawn(EntityType.PIG, new BlockPos(2, 2, 2)));
+
+        onHit(helper, player, hatchet, pig);
+        MobEffectInstance regen = pig.getEffect(MobEffects.REGENERATION);
+        helper.assertTrue(regen != null && regen.getAmplifier() == 0,
+                "a merciful hit must regenerate the target it just struck, got "
+                        + (regen == null ? "none" : regen.getAmplifier()));
+
+        pig.discard();
+        helper.succeed();
+    }
+
+    /** {@code forgeweave:quickstep}: a fully-charged hit grants the wielder Speed II, briefly. */
+    @GameTest(template = "empty")
+    public static void quickstepGrantsSpeedOnlyOnAFullyChargedHit(GameTestHelper helper) {
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        ItemStack hatchet = tool(ForgeweaveItems.TOOL_HATCHET.get(), List.of(traitId("quickstep")), 3.0F);
+        Pig pig = noAi(helper.spawn(EntityType.PIG, new BlockPos(2, 2, 2)));
+
+        onHitCharged(helper, player, hatchet, pig, 0.5F);
+        helper.assertFalse(player.hasEffect(MobEffects.MOVEMENT_SPEED),
+                "a non-full-charge hit must not grant quickstep's speed burst");
+
+        onHitCharged(helper, player, hatchet, pig, 1.0F);
+        MobEffectInstance speed = player.getEffect(MobEffects.MOVEMENT_SPEED);
+        helper.assertTrue(speed != null && speed.getAmplifier() == 1,
+                "a fully-charged quickstep hit must grant Speed II, got " + (speed == null ? "none" : speed.getAmplifier()));
+
+        pig.discard();
+        helper.succeed();
+    }
+
+    /**
+     * {@code forgeweave:unraveling3} (and, deterministically, every level's charge gate):
+     * non-full-charge hits never strip, and a fully-charged hit strips a beneficial effect with
+     * enough attempts that only astronomical bad luck fails ({@link #pricklyLandsARandomArmorBypassingFollowup}'s
+     * same statistical shape).
+     */
+    @GameTest(template = "empty")
+    public static void unravelingStripsABeneficialEffectOnlyOnAFullyChargedHit(GameTestHelper helper) {
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        ItemStack hatchet3 = tool(ForgeweaveItems.TOOL_HATCHET.get(), List.of(traitId("unraveling3")), 3.0F);
+        // A pig, not a zombie: undead entities are tagged minecraft:ignores_poison_and_regen and
+        // silently refuse Regeneration outright (LivingEntity#canBeAffected), which would make this
+        // test measure vanilla immunity rather than unraveling's own strip.
+        Pig target = noAi(helper.spawn(EntityType.PIG, new BlockPos(2, 2, 2)));
+
+        target.addEffect(new MobEffectInstance(MobEffects.REGENERATION, 200));
+        onHitCharged(helper, player, hatchet3, target, 0.5F);
+        helper.assertTrue(target.hasEffect(MobEffects.REGENERATION),
+                "the FULL_CHARGE gate must reject a non-full-charge swing before any chance is rolled");
+
+        boolean stripped = false;
+        for (int attempt = 0; attempt < 40 && !stripped; attempt++) {
+            target.addEffect(new MobEffectInstance(MobEffects.REGENERATION, 200));
+            onHitCharged(helper, player, hatchet3, target, 1.0F);
+            stripped = !target.hasEffect(MobEffects.REGENERATION);
+        }
+        // unraveling3's 75% chance failing 40 times running is on the order of 1e-5.
+        helper.assertTrue(stripped, "expected unraveling3 to eventually strip the buff at 75% a swing");
+
+        target.discard();
+        helper.succeed();
+    }
+
+    /** {@code forgeweave:grievous}: marks the target so incoming heals are shaved for a few seconds. */
+    @GameTest(template = "empty")
+    public static void grievousShavesHealingOnTheMarkedTarget(GameTestHelper helper) {
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        ItemStack hatchet = tool(ForgeweaveItems.TOOL_HATCHET.get(), List.of(traitId("grievous")), 3.0F);
+        Pig marked = noAi(helper.spawn(EntityType.PIG, new BlockPos(2, 2, 2)));
+        Pig unmarked = noAi(helper.spawn(EntityType.PIG, new BlockPos(4, 2, 4)));
+
+        onHit(helper, player, hatchet, marked);
+        helper.assertTrue(marked.hasEffect(ForgeweaveMobEffects.REDUCED_HEALING), "a grievous hit must leave the mark");
+
+        LivingHealEvent shaved = new LivingHealEvent(marked, 4.0F);
+        NeoForge.EVENT_BUS.post(shaved);
+        helper.assertTrue(Math.abs(shaved.getAmount() - 2.0F) < 0.001F,
+                "expected a marked heal of 4 shaved by 50% to 2, got " + shaved.getAmount());
+
+        LivingHealEvent untouched = new LivingHealEvent(unmarked, 4.0F);
+        NeoForge.EVENT_BUS.post(untouched);
+        helper.assertTrue(Math.abs(untouched.getAmount() - 4.0F) < 0.001F,
+                "an unmarked heal must be untouched, got " + untouched.getAmount());
+
+        marked.discard();
+        unmarked.discard();
+        helper.succeed();
+    }
+
+    /** {@code forgeweave:harrying}: shaves 10 ticks off the target's post-hit invulnerability window. */
+    @GameTest(template = "empty")
+    public static void harryingShortensTheTargetsInvulnerabilityWindow(GameTestHelper helper) {
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        ItemStack hatchet = tool(ForgeweaveItems.TOOL_HATCHET.get(), List.of(traitId("harrying")), 3.0F);
+        Pig pig = noAi(helper.spawn(EntityType.PIG, new BlockPos(2, 2, 2)));
+
+        pig.hurt(helper.getLevel().damageSources().generic(), 1.0F);
+        int before = pig.invulnerableTime;
+        helper.assertTrue(before > 0, "a landed blow must have opened an invulnerability window to shorten");
+
+        onHit(helper, player, hatchet, pig);
+        int after = pig.invulnerableTime;
+        // The proposed magnitude (ShortenInvulnerability's javadoc): 10 ticks, half vanilla's default.
+        helper.assertTrue(before - after == 10,
+                "expected harrying to shave exactly 10 ticks (" + before + " -> " + after + ")");
+
+        pig.discard();
+        helper.succeed();
+    }
+
+    /** {@code forgeweave:leeching}: heals the wielder for a share of the damage just dealt. */
+    @GameTest(template = "empty")
+    public static void leechingHealsTheWielderByAFractionOfDamageDealt(GameTestHelper helper) {
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        ItemStack hatchet = tool(ForgeweaveItems.TOOL_HATCHET.get(), List.of(traitId("leeching")), 3.0F);
+        Zombie target = noAi(helper.spawn(EntityType.ZOMBIE, new BlockPos(2, 2, 2)));
+
+        player.setHealth(player.getMaxHealth() - 5.0F);
+        float before = player.getHealth();
+        onHit(helper, player, hatchet, target); // 1.0 damage dealt, per the onHit helper
+        float healed = player.getHealth() - before;
+        // The proposed magnitude (leeching's javadoc): 15% of 1.0 damage, well under the 4.0 cap.
+        helper.assertTrue(Math.abs(healed - 0.15F) < 0.01F, "expected a 0.15 lifesteal heal, got " + healed);
+
+        target.discard();
+        helper.succeed();
+    }
+
+    /** {@code forgeweave:arcing}: a fully-charged hit has a chance to arc to a nearby enemy. */
+    @GameTest(template = "empty")
+    public static void arcingReachesANearbyEnemyOnAFullyChargedHit(GameTestHelper helper) {
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        ItemStack hatchet = tool(ForgeweaveItems.TOOL_HATCHET.get(), List.of(traitId("arcing")), 3.0F);
+        Zombie primary = noAi(helper.spawn(EntityType.ZOMBIE, new BlockPos(2, 2, 2)));
+        Zombie nearby = noAi(helper.spawn(EntityType.ZOMBIE, new BlockPos(4, 2, 2)));
+
+        boolean arced = false;
+        for (int attempt = 0; attempt < 40 && !arced; attempt++) {
+            float before = nearby.getHealth();
+            nearby.invulnerableTime = 0;
+            onHitCharged(helper, player, hatchet, primary, 1.0F);
+            arced = nearby.getHealth() < before;
+        }
+        // arcing's proposed 35% chance failing 40 times running is on the order of 1e-7.
+        helper.assertTrue(arced, "expected arcing to eventually reach the nearby zombie at 35% a swing");
+
+        primary.discard();
+        nearby.discard();
+        helper.succeed();
+    }
+
+    /** {@code forgeweave:stormcaller}: strikes lightning on the target, but only at full wielder health. */
+    @GameTest(template = "empty")
+    public static void stormcallerStrikesLightningOnlyAtFullWielderHealth(GameTestHelper helper) {
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        ItemStack hatchet = tool(ForgeweaveItems.TOOL_HATCHET.get(), List.of(traitId("stormcaller")), 3.0F);
+        Pig target = noAi(helper.spawn(EntityType.PIG, new BlockPos(2, 2, 2)));
+        AABB nearTarget = target.getBoundingBox().inflate(2.0);
+
+        player.setHealth(player.getMaxHealth() - 5.0F);
+        onHit(helper, player, hatchet, target);
+        helper.assertTrue(helper.getLevel().getEntitiesOfClass(LightningBolt.class, nearTarget).isEmpty(),
+                "no lightning while the wielder is short of full health");
+
+        player.setHealth(player.getMaxHealth());
+        onHit(helper, player, hatchet, target);
+        helper.assertFalse(helper.getLevel().getEntitiesOfClass(LightningBolt.class, nearTarget).isEmpty(),
+                "expected a lightning bolt once the wielder is at full health");
 
         target.discard();
         helper.succeed();
