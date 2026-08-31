@@ -307,6 +307,9 @@ public final class ForgeweaveJeiPlugin implements IModPlugin {
         // melt and alloy, so both are catalysts for both categories.
         registration.addRecipeCatalyst(ForgeweaveItems.STANDARD_CORE.get(), MeltingCategory.TYPE, AlloyingCategory.TYPE);
         registration.addRecipeCatalyst(ForgeweaveItems.NETHER_CORE.get(), MeltingCategory.TYPE, AlloyingCategory.TYPE);
+        // #845 -- the End and Deep Core melt and alloy too.
+        registration.addRecipeCatalyst(ForgeweaveItems.END_CORE.get(), MeltingCategory.TYPE, AlloyingCategory.TYPE);
+        registration.addRecipeCatalyst(ForgeweaveItems.DEEP_CORE.get(), MeltingCategory.TYPE, AlloyingCategory.TYPE);
         // #442 -- upstream JEIPlugin: the seared furnace controller is a catalyst of vanilla smelting.
         registration.addRecipeCatalyst(ForgeweaveItems.SEARED_FURNACE_CONTROLLER.get(), RecipeTypes.SMELTING);
         registration.addRecipeCatalyst(ForgeweaveItems.CASTING_TABLE.get(), CastingTableCategory.TYPE);

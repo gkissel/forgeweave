@@ -62,6 +62,7 @@ import dev.gkissel.forgeweave.modifier.ModifierRecipe;
 import dev.gkissel.forgeweave.particle.ForgeweaveParticles; // #482
 import dev.gkissel.forgeweave.ponder.ForgeweavePonderPlugin;
 import dev.gkissel.forgeweave.recipe.AlloyRecipe; // #98
+import dev.gkissel.forgeweave.recipe.CoreTransformRecipe; // #845
 import dev.gkissel.forgeweave.recipe.EntityMeltingRecipe; // #270
 import dev.gkissel.forgeweave.recipe.ForgeweaveRecipeSerializers;
 import dev.gkissel.forgeweave.recipe.MeltingRecipe;
@@ -294,6 +295,10 @@ public class Forgeweave {
         // #154 -- what an embossment costs, same idiom again: the client needs it so the Tool
         // Station screen can say "already embossed" without a payload of its own.
         event.dataPackRegistry(EmbossingRecipe.REGISTRY, EmbossingRecipe.CODEC, EmbossingRecipe.CODEC);
+        // #845 -- what pouring a fluid over a smeltery core transforms it into, same idiom again: the
+        // client needs it so the smeltery screen (or a future tooltip) could explain what a core's
+        // next tier costs without a payload of its own.
+        event.dataPackRegistry(CoreTransformRecipe.REGISTRY, CoreTransformRecipe.CODEC, CoreTransformRecipe.CODEC);
     }
 
     /** The Tool Station's rename field and the guide book's bookmark ride custom payloads. */

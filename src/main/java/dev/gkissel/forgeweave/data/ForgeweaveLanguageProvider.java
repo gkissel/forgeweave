@@ -199,6 +199,9 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         // 1.12's tile.tconstruct.*.name entries; the two core tiers are SCOPE.md's own vocabulary.
         addBlock(ForgeweaveBlocks.STANDARD_CORE, "Standard Core");
         addBlock(ForgeweaveBlocks.NETHER_CORE, "Nether Core");
+        // #845 -- the top two tiers, SCOPE.md's own vocabulary same as the two above.
+        addBlock(ForgeweaveBlocks.END_CORE, "End Core");
+        addBlock(ForgeweaveBlocks.DEEP_CORE, "Deep Core");
         addBlock(ForgeweaveBlocks.SEARED_FURNACE_CONTROLLER, "Seared Furnace Controller"); // #442, upstream's tile name
         // T44/#475 -- upstream's tile.tconstruct.tinker_tank_controller.name is "Tinker Tank
         // Controller"; CONTEXT.md's avoided terminology rules "Tinker" out, so the Forgeweave name

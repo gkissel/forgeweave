@@ -1,0 +1,37 @@
+{
+    block: "forgeweave:end_core",
+    decoder: "block_entity",
+    expect: {
+        id: "forgeweave:end_core",
+        structure: {
+            interior_max: [I; 0, 1, 1],
+            interior_min: [I; 0, 0, 1]
+        },
+        tank: {
+            fluids: [
+                {
+                    amount: 288,
+                    id: "forgeweave:molten_iron"
+                }
+            ]
+        },
+        transform_progress: 640
+    },
+    nbt: {
+        id: "forgeweave:end_core",
+        structure: {
+            interior_max: [I; 0, 1, 1],
+            interior_min: [I; 0, 0, 1]
+        },
+        tank: {
+            fluids: [
+                {
+                    amount: 288,
+                    id: "forgeweave:molten_iron"
+                }
+            ]
+        },
+        transform_progress: 640
+    },
+    what: "M6 (#845): a formed End Core smeltery holding molten iron, mid-way through a deep-blood pour that has not yet crossed the Deep Core transform threshold. Pins the new `transform_progress` field (SmelteryControllerBlockEntity#TAG_TRANSFORM_PROGRESS) added for the new End/Deep core block-entity types, so a reload never silently refunds -- or silently completes -- an in-flight pour."
+}

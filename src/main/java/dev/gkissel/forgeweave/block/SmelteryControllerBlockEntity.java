@@ -54,6 +54,7 @@ import dev.gkissel.forgeweave.advancement.ForgeweaveCriteriaTriggers;
 import dev.gkissel.forgeweave.config.ForgeweaveConfig; // #276
 import dev.gkissel.forgeweave.fluid.ForgeweaveFluids; // #276
 import dev.gkissel.forgeweave.recipe.AlloyRecipe; // #98
+import dev.gkissel.forgeweave.recipe.CoreTransformRecipe; // #845
 import dev.gkissel.forgeweave.recipe.EntityMeltingRecipe; // #270
 import dev.gkissel.forgeweave.recipe.MeltingRecipe;
 import dev.gkissel.forgeweave.recipe.SmelteryFuel;
@@ -128,6 +129,8 @@ public class SmelteryControllerBlockEntity extends BlockEntity implements Statio
 
     private static final String TAG_STRUCTURE = "structure";
     private static final String TAG_TANK = "tank";
+    // #845 -- how far the current pour-to-transform is towards its recipe's threshold.
+    private static final String TAG_TRANSFORM_PROGRESS = "transform_progress";
 
     private final SmelteryCore core;
     /**
@@ -158,6 +161,11 @@ public class SmelteryControllerBlockEntity extends BlockEntity implements Statio
     private boolean[] meltStalled = new boolean[0];
     @Nullable
     private BlockPos fuelTank;
+
+    // #845 -- accumulated mB of whatever CoreTransformRecipe fluid is currently being poured over
+    // this core, towards that recipe's own amount(). Reset to 0 by transformTo(); a mismatched fluid
+    // never reaches this at all (the handler rejects it before accumulating anything).
+    private int transformProgress;
 
     // #290 -- dropped-item pickup. Upstream's TileSmeltery#interactWithEntitiesInside, once a second.
     private long lastItemPickupTick = NEVER_SCANNED;
@@ -978,6 +986,8 @@ public class SmelteryControllerBlockEntity extends BlockEntity implements Statio
         // #97 follow-up: the fuel gauge's live snapshot, so it has something to show the instant a
         // reopened screen loads rather than waiting for the next refresh.
         tag.put(TAG_FUEL_DISPLAY, fuelDisplayFluid.saveOptional(registries));
+        // #845: a pour left mid-transaction survives a reload rather than quietly refunding itself.
+        tag.putInt(TAG_TRANSFORM_PROGRESS, transformProgress);
     }
 
     @Override
@@ -1000,6 +1010,7 @@ public class SmelteryControllerBlockEntity extends BlockEntity implements Statio
         fuelBurnTicksRemaining = tag.getInt(TAG_FUEL_BURN_TICKS);
         fuelTemperature = tag.getInt(TAG_FUEL_TEMPERATURE);
         fuelDisplayFluid = FluidStack.parseOptional(registries, tag.getCompound(TAG_FUEL_DISPLAY));
+        transformProgress = tag.getInt(TAG_TRANSFORM_PROGRESS);
     }
 
     /** Structure bounds and tank contents are what the client needs for the smeltery GUI and fluid rendering (#101). */
@@ -1267,6 +1278,126 @@ public class SmelteryControllerBlockEntity extends BlockEntity implements Statio
                 (blockEntity, side) -> blockEntity.itemHandler());
         event.registerBlockEntity(Capabilities.ItemHandler.BLOCK, ForgeweaveBlockEntities.NETHER_CORE.get(),
                 (blockEntity, side) -> blockEntity.itemHandler());
+        // #845: every tier exposes the transform fluid handler, including Deep (which has no
+        // CoreTransformRecipe of its own to match against yet -- its handler simply refuses
+        // everything, the same answer any tier gives a fluid nothing pours into it).
+        event.registerBlockEntity(Capabilities.FluidHandler.BLOCK, ForgeweaveBlockEntities.STANDARD_CORE.get(),
+                (blockEntity, side) -> blockEntity.transformHandler());
+        event.registerBlockEntity(Capabilities.FluidHandler.BLOCK, ForgeweaveBlockEntities.NETHER_CORE.get(),
+                (blockEntity, side) -> blockEntity.transformHandler());
+        event.registerBlockEntity(Capabilities.FluidHandler.BLOCK, ForgeweaveBlockEntities.END_CORE.get(),
+                (blockEntity, side) -> blockEntity.transformHandler());
+        event.registerBlockEntity(Capabilities.FluidHandler.BLOCK, ForgeweaveBlockEntities.DEEP_CORE.get(),
+                (blockEntity, side) -> blockEntity.transformHandler());
+    }
+
+    // ---------------------------------------------------------------- #845: pour-to-transform
+
+    /**
+     * The faucet -> block-entity path a faucet already pours through (drain, casting table/basin):
+     * a faucet sitting above a core looks up this capability on the block below it and pours into it
+     * exactly like any other target. No bespoke "pour onto any block in the world" mechanic exists or
+     * is needed -- see {@link CoreTransformRecipe}'s javadoc.
+     *
+     * <p>Built fresh each call like {@link #itemHandler()}: it is a thin, stateless view over this
+     * block entity's own fields ({@link #transformProgress}), not a resource worth caching.
+     */
+    public IFluidHandler transformHandler() {
+        return new CoreTransformHandler();
+    }
+
+    /**
+     * Swaps this core's block for {@code toBlock}, carrying the old block entity's saved state
+     * across via the same NBT {@link #saveAdditional}/{@link #loadAdditional} shape a chunk reload
+     * uses -- structure, tank contents, melting progress and fuel all survive, whether the smeltery
+     * was formed or not (issue #845's "does it work formed or unformed" decision: either, uniformly,
+     * because copying the whole saved state does not need to know which). {@code level.setBlock}
+     * replaces the block entity outright (different {@link SmelteryCore}s are different registered
+     * {@link Block}s), which also re-triggers {@link SmelteryControllerBlock#onPlace}'s own rescan on
+     * the new instance -- walls and tanks did not move, so the structure it finds is the same one,
+     * and the NBT load right after simply restores what that fresh scan could not know: what was
+     * actually inside.
+     */
+    private void transformTo(Block toBlock) {
+        if (level == null || level.isClientSide) {
+            return;
+        }
+        CompoundTag saved = saveWithoutMetadata(level.registryAccess());
+        BlockState oldState = getBlockState();
+        BlockState newState = toBlock.defaultBlockState()
+                .setValue(SmelteryControllerBlock.FACING, oldState.getValue(SmelteryControllerBlock.FACING))
+                .setValue(SmelteryControllerBlock.ACTIVE, oldState.getValue(SmelteryControllerBlock.ACTIVE));
+        level.setBlock(worldPosition, newState, Block.UPDATE_ALL);
+        if (level.getBlockEntity(worldPosition) instanceof SmelteryControllerBlockEntity newCore) {
+            newCore.loadAdditional(saved, level.registryAccess());
+            newCore.transformProgress = 0; // irreversible (#845): the new tier starts owing nothing.
+            newCore.setChanged();
+            newCore.level.sendBlockUpdated(worldPosition, newState, newState, Block.UPDATE_CLIENTS);
+        }
+    }
+
+    /**
+     * @see #transformHandler()
+     */
+    private final class CoreTransformHandler implements IFluidHandler {
+        @Override
+        public int getTanks() {
+            return 1;
+        }
+
+        @Override
+        public FluidStack getFluidInTank(int tank) {
+            return FluidStack.EMPTY; // #845: a running total, not a fluid anyone can see or drain back out.
+        }
+
+        @Override
+        public int getTankCapacity(int tank) {
+            return Integer.MAX_VALUE;
+        }
+
+        @Override
+        public boolean isFluidValid(int tank, FluidStack stack) {
+            return level != null && CoreTransformRecipe.find(level.registryAccess(), stack.getFluid(), getBlockState().getBlock()).isPresent();
+        }
+
+        /**
+         * Accepts the whole offered amount whenever a {@link CoreTransformRecipe} matches this
+         * core's current block, regardless of how far past the recipe's own {@code amount} it runs --
+         * discarding the overshoot rather than leaving a remainder in the faucet's own buffer for a
+         * transformed (and now differently-gated) core to get stuck refusing forever. Anything that
+         * does not match is refused outright (0), which is what stops a faucet mid-pour and is also
+         * how the wrong fluid, or the right fluid on the wrong tier, becomes a no-op (#845's test
+         * strategy).
+         */
+        @Override
+        public int fill(FluidStack resource, FluidAction action) {
+            if (level == null || level.isClientSide || resource.isEmpty()) {
+                return 0;
+            }
+            var recipe = CoreTransformRecipe.find(level.registryAccess(), resource.getFluid(), getBlockState().getBlock());
+            if (recipe.isEmpty()) {
+                return 0;
+            }
+            if (action.execute()) {
+                transformProgress += resource.getAmount();
+                if (transformProgress >= recipe.get().amount()) {
+                    transformTo(recipe.get().toBlock());
+                } else {
+                    setChanged();
+                }
+            }
+            return resource.getAmount();
+        }
+
+        @Override
+        public FluidStack drain(FluidStack resource, FluidAction action) {
+            return FluidStack.EMPTY;
+        }
+
+        @Override
+        public FluidStack drain(int maxDrain, FluidAction action) {
+            return FluidStack.EMPTY;
+        }
     }
 
     /** @see #meltingContainer() */

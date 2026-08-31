@@ -68,6 +68,19 @@ public final class ForgeweaveBlockEntities {
                             ForgeweaveBlocks.NETHER_CORE.get())
                     .build(null));
 
+    // #845 -- the End and Deep Core, one type each like the two tiers above.
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<SmelteryControllerBlockEntity>> END_CORE =
+            BLOCK_ENTITIES.register("end_core", () -> BlockEntityType.Builder
+                    .of((pos, state) -> new SmelteryControllerBlockEntity(pos, state, SmelteryCore.END),
+                            ForgeweaveBlocks.END_CORE.get())
+                    .build(null));
+
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<SmelteryControllerBlockEntity>> DEEP_CORE =
+            BLOCK_ENTITIES.register("deep_core", () -> BlockEntityType.Builder
+                    .of((pos, state) -> new SmelteryControllerBlockEntity(pos, state, SmelteryCore.DEEP),
+                            ForgeweaveBlocks.DEEP_CORE.get())
+                    .build(null));
+
     // #442 -- the seared furnace controller (upstream's TileSearedFurnace).
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<SearedFurnaceBlockEntity>> SEARED_FURNACE =
             BLOCK_ENTITIES.register("seared_furnace_controller", () -> BlockEntityType.Builder

@@ -30,6 +30,11 @@ public final class ForgeweaveBlockEntityRenderers {
                 SmelteryControllerBlockEntityRenderer::new);
         event.registerBlockEntityRenderer(ForgeweaveBlockEntities.NETHER_CORE.get(),
                 SmelteryControllerBlockEntityRenderer::new);
+        // #845 -- the End and Deep Core, same renderer as the two tiers above.
+        event.registerBlockEntityRenderer(ForgeweaveBlockEntities.END_CORE.get(),
+                SmelteryControllerBlockEntityRenderer::new);
+        event.registerBlockEntityRenderer(ForgeweaveBlockEntities.DEEP_CORE.get(),
+                SmelteryControllerBlockEntityRenderer::new);
         // #182: two instances of one renderer rather than two classes -- upstream's Table/Basin
         // subclasses differ only in the four numbers each passes up its constructor.
         event.registerBlockEntityRenderer(ForgeweaveBlockEntities.CASTING_TABLE.get(),

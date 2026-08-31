@@ -1,0 +1,6 @@
+{
+  "fluid": "forgeweave:deep_blood",
+  "from_block": "forgeweave:end_core",
+  "to_block": "forgeweave:deep_core",
+  "amount": 2000
+}
