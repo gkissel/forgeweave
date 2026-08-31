@@ -315,6 +315,14 @@ public class ForgeweaveItemModelProvider extends ItemModelProvider {
         singleLayerModel(ForgeweaveItems.INGOT_STEEL, derivedItem("steel_ingot"));
         singleLayerModel(ForgeweaveItems.NUGGET_STEEL, derivedItem("steel_nugget"));
 
+        // #843 (closes #180) -- queen's slime and hepatizon (the 1.20-branch material gap): same
+        // recolor-of-manyullyn treatment as rose gold/steel above (scripts/recolor_raw_ore.py, no
+        // upstream art to derive since neither material has 1.12-generation art).
+        singleLayerModel(ForgeweaveItems.INGOT_QUEENS_SLIME, derivedItem("queens_slime_ingot"));
+        singleLayerModel(ForgeweaveItems.NUGGET_QUEENS_SLIME, derivedItem("queens_slime_nugget"));
+        singleLayerModel(ForgeweaveItems.INGOT_HEPATIZON, derivedItem("hepatizon_ingot"));
+        singleLayerModel(ForgeweaveItems.NUGGET_HEPATIZON, derivedItem("hepatizon_nugget"));
+
         // #232 -- slime crystals and knightslime (docs/SCOPE.md M3.2): straight upstream texture
         // ports, slimecrystal_{green,blue,magma} and ingot/nugget_knightslime (NOTICE.md).
         singleLayerModel(ForgeweaveItems.GREEN_SLIME_CRYSTAL, derivedItem("green_slime_crystal"));

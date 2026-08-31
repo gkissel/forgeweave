@@ -1,0 +1,7 @@
+{
+  "input": {
+    "item": "minecraft:quartz"
+  },
+  "fluid": "forgeweave:molten_quartz",
+  "amount": 100
+}

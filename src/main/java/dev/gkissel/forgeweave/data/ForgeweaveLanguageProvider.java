@@ -983,6 +983,14 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("material.forgeweave.chorus", "Chorus");
         add("material.forgeweave.ancient", "Ancient");
 
+        // #843 -- the 1.20-branch material gap's five by-name additions (closes #180, docs/SCOPE.md
+        // M6 row). Names are the 1.20 clone's material.tconstruct.<id> entries verbatim (NOTICE.md).
+        add("material.forgeweave.seared_stone", "Seared Stone");
+        add("material.forgeweave.necrotic_bone", "Necrotic Bone");
+        add("material.forgeweave.queens_slime", "Queen's Slime");
+        add("material.forgeweave.hepatizon", "Hepatizon");
+        add("material.forgeweave.slimewood", "Slimewood");
+
         // #392 -- the two bowstring materials (docs/SCOPE.md M3.5). Names are upstream 1.12's
         // material.string.name / material.vine.name. Neither carries any tool stat block, so they
         // only ever surface on a bow string.
@@ -1487,6 +1495,13 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         addFluid(ForgeweaveFluids.BLUE_SLIME, "Liquid Blue Slime");
         addFluid(ForgeweaveFluids.PURPLE_SLIME, "Liquid Purple Slime");
 
+        // #843 -- the 1.20-branch material gap's two new alloy fluids and their two prerequisite
+        // fluids (closes #180). Names follow the 1.20 clone's own material names.
+        addFluid(ForgeweaveFluids.QUEENS_SLIME, "Molten Queen's Slime");
+        addFluid(ForgeweaveFluids.HEPATIZON, "Molten Hepatizon");
+        addFluid(ForgeweaveFluids.MAGMA_CREAM, "Molten Magma Cream");
+        addFluid(ForgeweaveFluids.QUARTZ, "Molten Quartz");
+
         // #100 -- casting (docs/SCOPE.md M2 issue #100). Names follow upstream 1.12's
         // tile.casting.{table,basin}.name / tile.faucet.name and its cast item names.
         addBlock(ForgeweaveBlocks.CASTING_TABLE, "Casting Table");
@@ -1565,6 +1580,13 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         // #235 -- amethyst bronze (M3.2): the 1.20 clone's own item names.
         addItem(ForgeweaveItems.INGOT_AMETHYST_BRONZE, "Amethyst Bronze Ingot");
         addItem(ForgeweaveItems.NUGGET_AMETHYST_BRONZE, "Amethyst Bronze Nugget");
+        // #843 -- queen's slime and hepatizon (closes #180): the 1.20 clone's own item names.
+        addItem(ForgeweaveItems.INGOT_QUEENS_SLIME, "Queen's Slime Ingot");
+        addItem(ForgeweaveItems.NUGGET_QUEENS_SLIME, "Queen's Slime Nugget");
+        addItem(ForgeweaveItems.INGOT_HEPATIZON, "Hepatizon Ingot");
+        addItem(ForgeweaveItems.NUGGET_HEPATIZON, "Hepatizon Nugget");
+        addBlock(ForgeweaveBlocks.QUEENS_SLIME_BLOCK, "Block of Queen's Slime");
+        addBlock(ForgeweaveBlocks.HEPATIZON_BLOCK, "Block of Hepatizon");
 
         // #232 -- slime crystals and knightslime's item forms (docs/SCOPE.md M3.2), names following
         // upstream 1.12's item.tconstruct.materials.{slimecrystal*,knightslime_*}.name entries.
@@ -1752,6 +1774,21 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
                 "Refills the piece's overslime with slime balls, congealed slime or slime blocks.");
         add("gui.forgeweave.modifier.overslime_full", "Armor has no more space for overslime.");
         add("gui.forgeweave.modifier.overslime_unsupported", "Only armor with the overslime trait takes overslime.");
+
+        // #843 -- the 1.20-branch material gap's four new traits (closes #180). Names are the 1.20
+        // clone's modifier.tconstruct.<id> entries verbatim; descriptions restate this port's
+        // simplified level-1-only mechanics (see ForgeweaveTraits for the exact numbers and the
+        // deviations from the clone's leveled/persistent-buff versions).
+        add("trait.forgeweave.overgrowth.name", "Overgrowth");
+        add("trait.forgeweave.overgrowth.description", "A 5% chance each second of regenerating one point of overslime.");
+        add("trait.forgeweave.overlord.name", "Overlord");
+        add("trait.forgeweave.overlord.description", "Reduces durability by 15% and grants overslime in exchange.");
+        add("trait.forgeweave.restore.name", "Restore");
+        add("trait.forgeweave.restore.description",
+                "Has a 15% chance when hit to heal a portion of the damage taken, consuming durability.");
+        add("trait.forgeweave.recurrent_protection.name", "Recurrent");
+        add("trait.forgeweave.recurrent_protection.description",
+                "Converts half of a blow's damage into flat damage reduction for that hit.");
         add("trait.forgeweave.piercing_guard.name", "Piercing Guard");
         add("trait.forgeweave.piercing_guard.description", "Cancels out some of the attacker's armor after they hit you.");
         add("trait.forgeweave.thorns.name", "Thorns");

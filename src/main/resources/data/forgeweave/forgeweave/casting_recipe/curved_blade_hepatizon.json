@@ -1,0 +1,14 @@
+{
+  "station": "table",
+  "cast": {
+    "item": "forgeweave:cast_curved_blade"
+  },
+  "fluid": "forgeweave:molten_hepatizon",
+  "amount": 288,
+  "result": {
+    "id": "forgeweave:curved_blade",
+    "components": {
+      "forgeweave:material": "forgeweave:hepatizon"
+    }
+  }
+}

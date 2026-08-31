@@ -1,0 +1,15 @@
+{
+  "station": "table",
+  "cast": {
+    "item": "forgeweave:clay_cast_scythe_head"
+  },
+  "fluid": "forgeweave:molten_seared_stone",
+  "amount": 1152,
+  "result": {
+    "id": "forgeweave:scythe_head",
+    "components": {
+      "forgeweave:material": "forgeweave:seared_stone"
+    }
+  },
+  "consumes_cast": true
+}

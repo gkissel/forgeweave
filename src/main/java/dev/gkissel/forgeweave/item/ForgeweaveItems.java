@@ -1011,6 +1011,16 @@ public final class ForgeweaveItems {
     public static final DeferredItem<Item> INGOT_AMETHYST_BRONZE = ITEMS.registerSimpleItem("amethyst_bronze_ingot");
     public static final DeferredItem<Item> NUGGET_AMETHYST_BRONZE = ITEMS.registerSimpleItem("amethyst_bronze_nugget");
 
+    // #843 -- queen's slime and hepatizon (closes #180, the 1.20-branch material gap): FW-native
+    // ingot/nugget, alloyed at the smeltery (queen's slime from molten cobalt + gold + magma cream;
+    // hepatizon from molten copper + cobalt + quartz), so no raw form and no ore, same shape as
+    // amethyst bronze above. Textures are recolors of manyullyn's own art (no 1.20-generation art
+    // exists for either), scripts/recolor_raw_ore.py.
+    public static final DeferredItem<Item> INGOT_QUEENS_SLIME = ITEMS.registerSimpleItem("queens_slime_ingot");
+    public static final DeferredItem<Item> NUGGET_QUEENS_SLIME = ITEMS.registerSimpleItem("queens_slime_nugget");
+    public static final DeferredItem<Item> INGOT_HEPATIZON = ITEMS.registerSimpleItem("hepatizon_ingot");
+    public static final DeferredItem<Item> NUGGET_HEPATIZON = ITEMS.registerSimpleItem("hepatizon_nugget");
+
     // #104 -- cobalt + ardite nether ore block items (docs/SCOPE.md M2 issue #104).
     public static final DeferredItem<BlockItem> COBALT_ORE = ITEMS.registerSimpleBlockItem("cobalt_ore", ForgeweaveBlocks.COBALT_ORE);
     public static final DeferredItem<BlockItem> ARDITE_ORE = ITEMS.registerSimpleBlockItem("ardite_ore", ForgeweaveBlocks.ARDITE_ORE);
@@ -1023,6 +1033,10 @@ public final class ForgeweaveItems {
     public static final DeferredItem<BlockItem> ROSE_GOLD_BLOCK = ITEMS.registerSimpleBlockItem("rose_gold_block", ForgeweaveBlocks.ROSE_GOLD_BLOCK);
     public static final DeferredItem<BlockItem> STEEL_BLOCK = ITEMS.registerSimpleBlockItem("steel_block", ForgeweaveBlocks.STEEL_BLOCK);
     public static final DeferredItem<BlockItem> AMETHYST_BRONZE_BLOCK = ITEMS.registerSimpleBlockItem("amethyst_bronze_block", ForgeweaveBlocks.AMETHYST_BRONZE_BLOCK);
+
+    // #843 -- queen's slime and hepatizon storage block items (closes #180).
+    public static final DeferredItem<BlockItem> QUEENS_SLIME_BLOCK = ITEMS.registerSimpleBlockItem("queens_slime_block", ForgeweaveBlocks.QUEENS_SLIME_BLOCK);
+    public static final DeferredItem<BlockItem> HEPATIZON_BLOCK = ITEMS.registerSimpleBlockItem("hepatizon_block", ForgeweaveBlocks.HEPATIZON_BLOCK);
 
     // #232 -- knightslime's storage block item (docs/SCOPE.md M3.2).
     public static final DeferredItem<BlockItem> KNIGHTSLIME_BLOCK = ITEMS.registerSimpleBlockItem("knightslime_block", ForgeweaveBlocks.KNIGHTSLIME_BLOCK);

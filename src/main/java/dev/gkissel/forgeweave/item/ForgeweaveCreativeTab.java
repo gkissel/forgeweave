@@ -258,6 +258,10 @@ public final class ForgeweaveCreativeTab {
         output.accept(ForgeweaveItems.FIREWOOD.get());
 
         output.accept(ForgeweaveItems.AMETHYST_BRONZE_BLOCK.get());
+
+        // #843 -- queen's slime and hepatizon storage blocks (closes #180).
+        output.accept(ForgeweaveItems.QUEENS_SLIME_BLOCK.get());
+        output.accept(ForgeweaveItems.HEPATIZON_BLOCK.get());
     }
 
     /**

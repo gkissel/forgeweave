@@ -1,0 +1,14 @@
+{
+  "station": "table",
+  "cast": {
+    "item": "forgeweave:cast_hand_guard"
+  },
+  "fluid": "forgeweave:molten_seared_stone",
+  "amount": 144,
+  "result": {
+    "id": "forgeweave:hand_guard",
+    "components": {
+      "forgeweave:material": "forgeweave:seared_stone"
+    }
+  }
+}

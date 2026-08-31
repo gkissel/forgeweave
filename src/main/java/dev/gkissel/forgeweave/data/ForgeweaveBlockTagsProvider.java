@@ -118,10 +118,14 @@ public class ForgeweaveBlockTagsProvider extends BlockTagsProvider {
         tag(cTag("storage_blocks/pig_iron")).add(ForgeweaveBlocks.PIG_IRON_BLOCK.get());
         // #235 -- amethyst bronze's storage block, block side.
         tag(cTag("storage_blocks/amethyst_bronze")).add(ForgeweaveBlocks.AMETHYST_BRONZE_BLOCK.get());
+        // #843 -- queen's slime and hepatizon storage blocks, block side (closes #180).
+        tag(cTag("storage_blocks/queens_slime")).add(ForgeweaveBlocks.QUEENS_SLIME_BLOCK.get());
+        tag(cTag("storage_blocks/hepatizon")).add(ForgeweaveBlocks.HEPATIZON_BLOCK.get());
         tag(cTag("storage_blocks")).addTag(cTag("storage_blocks/cobalt")).addTag(cTag("storage_blocks/ardite"))
                 .addTag(cTag("storage_blocks/manyullyn")).addTag(cTag("storage_blocks/rose_gold"))
                 .addTag(cTag("storage_blocks/steel")).addTag(cTag("storage_blocks/knightslime"))
-                .addTag(cTag("storage_blocks/pig_iron")).addTag(cTag("storage_blocks/amethyst_bronze"));
+                .addTag(cTag("storage_blocks/pig_iron")).addTag(cTag("storage_blocks/amethyst_bronze"))
+                .addTag(cTag("storage_blocks/queens_slime")).addTag(cTag("storage_blocks/hepatizon"));
 
         // T79 (parity audit 2026-08-18, issue #510) -- the block-side half of
         // ForgeweaveItemTagsProvider's c:glass_blocks/c:dyed additions (TinkerOredict registerCommon():

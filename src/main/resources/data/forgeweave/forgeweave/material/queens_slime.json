@@ -1,0 +1,34 @@
+{
+  "head": {
+    "durability": 1650,
+    "mining_speed": 6.0,
+    "attack_damage": 2.0
+  },
+  "handle": {
+    "durability_modifier": 1.35,
+    "durability": 0
+  },
+  "extra_durability": 165,
+  "plating": {
+    "helmet": { "durability": 550, "armor": 2.0, "toughness": 1.0 },
+    "chestplate": { "durability": 800, "armor": 7.0, "toughness": 1.0 },
+    "leggings": { "durability": 750, "armor": 5.0, "toughness": 1.0 },
+    "boots": { "durability": 650, "armor": 2.0, "toughness": 1.0 }
+  },
+  "maille": true,
+  "incorrect_for_tool": "minecraft:incorrect_for_netherite_tool",
+  "traits": {
+    "general": ["forgeweave:overlord", "forgeweave:overslime"]
+  },
+  "crafting_items": [
+    { "ingredient": { "item": "forgeweave:queens_slime_ingot" }, "value": 144 },
+    { "ingredient": { "item": "forgeweave:queens_slime_nugget" }, "value": 16 },
+    { "ingredient": { "item": "forgeweave:queens_slime_block" }, "value": 1296 }
+  ],
+  "repair_item": {
+    "tag": "c:ingots/queens_slime"
+  },
+  "cast_only": true,
+  "enchantability": 9,
+  "color": "#236C45"
+}

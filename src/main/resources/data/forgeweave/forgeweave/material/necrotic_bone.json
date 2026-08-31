@@ -1,0 +1,26 @@
+{
+  "head": {
+    "durability": 125,
+    "mining_speed": 4.0,
+    "attack_damage": 2.25
+  },
+  "handle": {
+    "durability_modifier": 0.7,
+    "durability": 0
+  },
+  "extra_durability": 13,
+  "maille": true,
+  "incorrect_for_tool": "minecraft:incorrect_for_iron_tool",
+  "traits": {
+    "general": ["forgeweave:necrotic"],
+    "armor": ["forgeweave:restore"]
+  },
+  "crafting_items": [
+    { "ingredient": { "item": "forgeweave:necrotic_bone" }, "value": 144 }
+  ],
+  "repair_item": {
+    "item": "forgeweave:necrotic_bone"
+  },
+  "enchantability": 15,
+  "color": "#4D4D4D"
+}

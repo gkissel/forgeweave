@@ -1,0 +1,15 @@
+{
+  "station": "table",
+  "cast": {
+    "item": "forgeweave:clay_cast_tough_tool_rod"
+  },
+  "fluid": "forgeweave:molten_hepatizon",
+  "amount": 432,
+  "result": {
+    "id": "forgeweave:tough_tool_rod",
+    "components": {
+      "forgeweave:material": "forgeweave:hepatizon"
+    }
+  },
+  "consumes_cast": true
+}

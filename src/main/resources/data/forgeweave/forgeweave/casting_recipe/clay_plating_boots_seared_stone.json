@@ -1,0 +1,15 @@
+{
+  "station": "table",
+  "cast": {
+    "item": "forgeweave:clay_cast_plating_boots"
+  },
+  "fluid": "forgeweave:molten_seared_stone",
+  "amount": 288,
+  "result": {
+    "id": "forgeweave:plating_boots",
+    "components": {
+      "forgeweave:material": "forgeweave:seared_stone"
+    }
+  },
+  "consumes_cast": true
+}

@@ -300,6 +300,10 @@ public class ForgeweaveBlockStateProvider extends BlockStateProvider {
         // #233 -- pig iron's storage block and firewood, both plain cube_all with one derived
         // texture each (block_pigiron.png; firewood.png + its animation mcmeta, NOTICE.md).
         cubeAllBlock("pig_iron_block", ForgeweaveBlocks.PIG_IRON_BLOCK.get());
+        // #843 (closes #180) -- queen's slime and hepatizon storage blocks (the 1.20-branch material
+        // gap), same recolor-of-manyullyn treatment as rose_gold_block/amethyst_bronze_block above.
+        cubeAllBlock("queens_slime_block", ForgeweaveBlocks.QUEENS_SLIME_BLOCK.get());
+        cubeAllBlock("hepatizon_block", ForgeweaveBlocks.HEPATIZON_BLOCK.get());
         cubeAllBlock("firewood", ForgeweaveBlocks.FIREWOOD.get());
 
         cubeAllBlock("amethyst_bronze_block", ForgeweaveBlocks.AMETHYST_BRONZE_BLOCK.get());
