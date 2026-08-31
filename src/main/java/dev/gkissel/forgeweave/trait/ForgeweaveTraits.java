@@ -68,6 +68,9 @@ import dev.gkissel.forgeweave.combat.CombatSeam;
 import dev.gkissel.forgeweave.combat.CombatSeams;
 import dev.gkissel.forgeweave.combat.ThornsCounterSeam;
 import dev.gkissel.forgeweave.combat.ConditionalSeam;
+import dev.gkissel.forgeweave.combat.CritMultiplierBonus;
+import dev.gkissel.forgeweave.combat.DamageRamp;
+import dev.gkissel.forgeweave.combat.DamageScalesWith;
 import dev.gkissel.forgeweave.combat.DefendedBlow;
 import dev.gkissel.forgeweave.combat.FlatBonusDamage;
 import dev.gkissel.forgeweave.combat.ForgeweaveInnates;
@@ -1426,6 +1429,127 @@ public final class ForgeweaveTraits {
      */
     public static final Trait LACERATING = seamTrait(ForgeweaveInnates.LACERATE_SEAM);
 
+    // ---------------------------------------------------------------- M6 damage-scaling trait
+    // behavior library (issue #827, ADR-0004). Ideas are inspiration-only (TAIGA/PlusTiC/Moar
+    // Tinkers/Tinkers' Evolution, all non-MIT -- CLAUDE.md); every name, description and magnitude
+    // below is Forgeweave's own, not ported. Material wiring is a later M6 issue -- these are
+    // registered but not yet assigned to any material. Magnitudes are proposed here and flagged for
+    // a maintainer decision on issue #827, the same pattern issue #160's DamageRamp.KATANA numbers
+    // and #103's metal traits used.
+
+    /** Proposed (issue #827 maintainer decision): +3 at full durability, scaling to 0 as it wears. */
+    private static final float PRISTINE_COEFFICIENT = 3.0F;
+    private static final float PRISTINE_CAP = 3.0F;
+
+    /**
+     * {@code damage_scales_with(REMAINING_DURABILITY, coefficient, cap)}: bonus damage rises with
+     * how undamaged the weapon still is. See {@link DamageScalesWith} for why {@code jagged}'s
+     * inverse-durability curve was not folded into this same class.
+     */
+    public static final Trait PRISTINE = seamTrait(
+            new DamageScalesWith(DamageScalesWith.Source.REMAINING_DURABILITY, PRISTINE_COEFFICIENT, PRISTINE_CAP));
+
+    /** Proposed (issue #827 maintainer decision): +2 at full health, scaling to 0 near death. */
+    private static final float VIGOROUS_COEFFICIENT = 2.0F;
+    private static final float VIGOROUS_CAP = 2.0F;
+
+    /** {@code damage_scales_with(WIELDER_HEALTH, coefficient, cap)}: hit harder while healthy. */
+    public static final Trait VIGOROUS = seamTrait(
+            new DamageScalesWith(DamageScalesWith.Source.WIELDER_HEALTH, VIGOROUS_COEFFICIENT, VIGOROUS_CAP));
+
+    /** Proposed (issue #827 maintainer decision): +0.15 per point of health the target already lost. */
+    private static final float PREDATORY_COEFFICIENT = 0.15F;
+    private static final float PREDATORY_CAP = 4.0F;
+
+    /**
+     * {@code damage_scales_with(TARGET_MISSING_HEALTH, coefficient, cap)}: finishing blows against
+     * an already-wounded target hit harder.
+     */
+    public static final Trait PREDATORY = seamTrait(new DamageScalesWith(
+            DamageScalesWith.Source.TARGET_MISSING_HEALTH, PREDATORY_COEFFICIENT, PREDATORY_CAP));
+
+    /** Proposed (issue #827 maintainer decision): +0.05 per point of the target's own max health. */
+    private static final float COLOSSAL_COEFFICIENT = 0.05F;
+    private static final float COLOSSAL_CAP = 6.0F;
+
+    /**
+     * {@code damage_scales_with(TARGET_MAX_HEALTH, coefficient, cap)}: bonus damage against
+     * naturally tough targets (an iron golem, a wither) that a fixed number can't scale down for.
+     */
+    public static final Trait COLOSSAL = seamTrait(
+            new DamageScalesWith(DamageScalesWith.Source.TARGET_MAX_HEALTH, COLOSSAL_COEFFICIENT, COLOSSAL_CAP));
+
+    /** Proposed (issue #827 maintainer decision): +3 per block/tick of the wielder's own motion. */
+    private static final float KINETIC_COEFFICIENT = 3.0F;
+    private static final float KINETIC_CAP = 6.0F;
+
+    /**
+     * {@code damage_scales_with(IMPACT_VELOCITY, coefficient, cap)}: a falling or sprinting blow
+     * lands harder.
+     */
+    public static final Trait KINETIC = seamTrait(
+            new DamageScalesWith(DamageScalesWith.Source.IMPACT_VELOCITY, KINETIC_COEFFICIENT, KINETIC_CAP));
+
+    /** Proposed (issue #827 maintainer decision): a flat +2 for each {@code bonus_damage_vs} instance below. */
+    private static final float BONUS_DAMAGE_VS_AMOUNT = 2.0F;
+
+    /**
+     * {@code bonus_damage_vs(BELOW_WIELDER_HEALTH, amount)}: bonus damage against a target already
+     * weaker than the wielder. {@link HitCondition}/{@link ConditionalSeam} already generalize
+     * "vs what" for a flat bonus ({@link FlatBonusDamage}'s javadoc), so {@code bonus_damage_vs}'s
+     * three M6 predicates ride that existing pair rather than a fourth near-identical damage class.
+     */
+    public static final Trait DOMINANT = seamTrait(new ConditionalSeam(
+            HitCondition.BELOW_WIELDER_HEALTH, 1.0F, new FlatBonusDamage(BONUS_DAMAGE_VS_AMOUNT)));
+
+    /** {@code bonus_damage_vs(ARMORED, amount)}: bonus damage against an armored target. */
+    public static final Trait ARMOR_BREAKER = seamTrait(
+            new ConditionalSeam(HitCondition.ARMORED, 1.0F, new FlatBonusDamage(BONUS_DAMAGE_VS_AMOUNT)));
+
+    /** {@code bonus_damage_vs(HARMFUL_EFFECT, amount)}: bonus damage against an already-debuffed target. */
+    public static final Trait OPPORTUNIST = seamTrait(
+            new ConditionalSeam(HitCondition.HARMFUL_EFFECT, 1.0F, new FlatBonusDamage(BONUS_DAMAGE_VS_AMOUNT)));
+
+    /** Proposed (issue #827 maintainer decision): +1.5 damage per level on a fully-charged swing. */
+    private static final float CHARGED_BONUS_PER_LEVEL = 1.5F;
+
+    /**
+     * {@code charged_bonus_damage(I)}: extra damage on a fully-charged swing only ({@link
+     * CombatHit#attackStrengthScale} past {@link CombatHit#FULL_CHARGE}) -- the "radioactive I-III"
+     * leveled-instances-share-one-class shape ADR-0004 asks for, {@link #chargedStrike(int)} the
+     * shared factory ({@code MAGNETIC}/{@code MAGNETIC2}'s precedent).
+     */
+    public static final Trait SURGING = chargedStrike(1);
+
+    /** {@code charged_bonus_damage(II)}. */
+    public static final Trait SURGING2 = chargedStrike(2);
+
+    /** {@code charged_bonus_damage(III)}. */
+    public static final Trait SURGING3 = chargedStrike(3);
+
+    private static Trait chargedStrike(int level) {
+        return seamTrait(new ConditionalSeam(HitCondition.FULL_CHARGE, 1.0F,
+                new FlatBonusDamage(CHARGED_BONUS_PER_LEVEL * level)));
+    }
+
+    /** Proposed (issue #827 maintainer decision): +0.5 to the effective crit multiplier. */
+    private static final float RUTHLESS_CRIT_BONUS = 0.5F;
+
+    /**
+     * {@code crit_multiplier_bonus(extra)}: a critical hit lands for even more. See {@link
+     * CritMultiplierBonus} for the arithmetic against {@link CombatSeams}' attackStrengthScale x
+     * critMultiplier unwind (issue #422).
+     */
+    public static final Trait RUTHLESS = seamTrait(new CritMultiplierBonus(RUTHLESS_CRIT_BONUS));
+
+    /**
+     * The M6 "consecutive-charge ramp" library instance: stacks build only from consecutive
+     * fully-charged landed hits and decay the same way the katana's ramp does -- {@link
+     * DamageRamp#ESCALATING}, sharing its component and machinery rather than adding a second
+     * stateful ramp (issue #827's instruction, followed literally).
+     */
+    public static final Trait ESCALATING = seamTrait(DamageRamp.ESCALATING);
+
     // ---------------------------------------------------------------- #626 (parity audit T17): the
     // five ammo-side traits, TinkerTraits:106-110, registered inert by #626's first slice and given
     // their entity-side behavior with the material arrow (#653). Freezing rides the combat seams
@@ -1938,6 +2062,21 @@ public final class ForgeweaveTraits {
             Map.entry(id("flammable"), FLAMMABLE),
             Map.entry(id("enderference"), ENDERFERENCE),
             Map.entry(id("lacerating"), LACERATING),
+            // #827 M6 damage-scaling trait behavior library (ADR-0004); not yet assigned to a
+            // material -- that wiring is a later M6 issue.
+            Map.entry(id("pristine"), PRISTINE),
+            Map.entry(id("vigorous"), VIGOROUS),
+            Map.entry(id("predatory"), PREDATORY),
+            Map.entry(id("colossal"), COLOSSAL),
+            Map.entry(id("kinetic"), KINETIC),
+            Map.entry(id("dominant"), DOMINANT),
+            Map.entry(id("armor_breaker"), ARMOR_BREAKER),
+            Map.entry(id("opportunist"), OPPORTUNIST),
+            Map.entry(id("surging"), SURGING),
+            Map.entry(id("surging2"), SURGING2),
+            Map.entry(id("surging3"), SURGING3),
+            Map.entry(id("ruthless"), RUTHLESS),
+            Map.entry(id("escalating"), ESCALATING),
             // #626 T17 ammo traits; entity-side behavior lands with the material arrow.
             Map.entry(id("breakable"), BREAKABLE),
             Map.entry(id("endspeed"), ENDSPEED),
