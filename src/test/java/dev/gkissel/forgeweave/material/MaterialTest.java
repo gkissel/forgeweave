@@ -142,7 +142,10 @@ class MaterialTest {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = { "wood", "stone", "flint", "bone", "bronze", "lead", "silver", "electrum" })
+    @ValueSource(strings = { "wood", "stone", "flint", "bone", "bronze", "lead", "silver", "electrum",
+            // #833 M6 Track A batch 1: generic tech metals, re-homed across 1.21.1 providers.
+            "tin", "aluminium", "nickel", "constantan", "invar", "platinum", "titanium", "tungsten",
+            "iridium", "uranium", "graphite" })
     void shippedMaterialsParse(String name) {
         Material.CODEC.parse(ops, shipped(name)).getOrThrow();
     }
@@ -155,7 +158,11 @@ class MaterialTest {
      * no {@code ConditionalOps}) to pin that tolerance down, rather than assume it.
      */
     @ParameterizedTest
-    @ValueSource(strings = { "bronze", "lead", "silver", "electrum" })
+    @ValueSource(strings = { "bronze", "lead", "silver", "electrum",
+            // #833 M6 Track A batch 1: same neoforge:conditions convention, one or more
+            // item_exists primitives (uranium is an neoforge:or over three providers).
+            "tin", "aluminium", "nickel", "constantan", "invar", "platinum", "titanium", "tungsten",
+            "iridium", "uranium", "graphite" })
     void conditionalMaterialsCarryAWellFormedConditionsBlockAndStillParse(String name) {
         JsonObject json = shipped(name).getAsJsonObject();
         assertTrue(json.has("neoforge:conditions"), name + " must carry a neoforge:conditions block (issue #826)");
@@ -206,7 +213,15 @@ class MaterialTest {
             "obsidian,netherite", "cobalt,netherite", "ardite,netherite", "manyullyn,netherite",
             // no 1.12 counterpart -- 1.20 clone's modern Tiers value
             "chorus,stone", "rose_gold,wooden", "amethyst_bronze,diamond", "nahuatl,diamond",
-            "ancient,netherite", "netherite,netherite"
+            "ancient,netherite", "netherite,netherite",
+            // #833 M6 Track A batch 1: no upstream counterpart either, so tiers here are Forgeweave's
+            // own placement (proposed on the PR) rather than a ported HarvestLevels row -- tin/
+            // aluminium/graphite at stone, nickel/constantan/invar at iron, platinum/titanium/
+            // tungsten/uranium at diamond, iridium at netherite (its historical IC2 endgame role).
+            "tin,stone", "aluminium,stone", "graphite,stone",
+            "nickel,iron", "constantan,iron", "invar,iron",
+            "platinum,diamond", "titanium,diamond", "tungsten,diamond", "uranium,diamond",
+            "iridium,netherite"
     })
     void shippedMaterialsSitOnUpstreamsHarvestTier(String name, String tier) {
         Material material = Material.CODEC.parse(ops, shipped(name)).getOrThrow();
@@ -414,7 +429,11 @@ class MaterialTest {
 
     @ParameterizedTest
     @ValueSource(strings = { "iron", "pig_iron", "cobalt", "ardite", "manyullyn", "copper", "bronze", "lead",
-            "silver", "electrum", "steel", "knightslime" })
+            "silver", "electrum", "steel", "knightslime",
+            // #833 M6 Track A batch 1: every provider ships a c:nuggets/<name> tag except graphite's
+            // (no nugget item exists for a non-metal mineral, so it is excluded from this list).
+            "tin", "aluminium", "nickel", "constantan", "invar", "platinum", "titanium", "tungsten",
+            "iridium", "uranium" })
     void addCommonItemsMetalsListIngotAndNugget(String name) {
         Material material = Material.CODEC.parse(ops, shipped(name)).getOrThrow();
 
@@ -560,7 +579,11 @@ class MaterialTest {
      */
     @ParameterizedTest
     @ValueSource(strings = { "obsidian", "knightslime", "bronze", "lead", "silver", "electrum",
-            "ancient", "chorus", "wood", "stone", "nahuatl" })
+            "ancient", "chorus", "wood", "stone", "nahuatl",
+            // #833 M6 Track A batch 1: Part-Builder-only like the four compat metals above (JC3), no
+            // Forgeweave fluid or casting recipe at all.
+            "tin", "aluminium", "nickel", "constantan", "invar", "platinum", "titanium", "tungsten",
+            "iridium", "uranium", "graphite" })
     void craftableMaterialsStayCraftable(String name) {
         assertFalse(Material.CODEC.parse(ops, shipped(name)).getOrThrow().castOnly(),
                 name + " must stay Part Builder craftable");

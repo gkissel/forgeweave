@@ -926,6 +926,21 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("material.forgeweave.silver", "Silver");
         add("material.forgeweave.electrum", "Electrum");
 
+        // #833 -- M6 Track A batch 1: generic tech metals, existence-gated (neoforge:conditions) on
+        // every known 1.21.1 provider's ingot rather than tag-obtainability alone (issue #826). Like
+        // the four compat metals above, these have no Forgeweave item/fluid of their own.
+        add("material.forgeweave.tin", "Tin");
+        add("material.forgeweave.aluminium", "Aluminium");
+        add("material.forgeweave.nickel", "Nickel");
+        add("material.forgeweave.constantan", "Constantan");
+        add("material.forgeweave.invar", "Invar");
+        add("material.forgeweave.platinum", "Platinum");
+        add("material.forgeweave.titanium", "Titanium");
+        add("material.forgeweave.tungsten", "Tungsten");
+        add("material.forgeweave.iridium", "Iridium");
+        add("material.forgeweave.uranium", "Uranium");
+        add("material.forgeweave.graphite", "Graphite");
+
         // #231 -- the seven vanilla-sourced M3.2 materials. Names are upstream 1.12's
         // material.<id>.name entries verbatim, including endstone's odd "End" ("End Pickaxe Head"
         // is how upstream reads).

@@ -1,0 +1,41 @@
+{
+  "head": {
+    "durability": 240,
+    "mining_speed": 5.6,
+    "attack_damage": 4.0
+  },
+  "handle": {
+    "durability_modifier": 0.95,
+    "durability": 45
+  },
+  "extra_durability": 100,
+  "bow": {
+    "drawspeed": 0.55,
+    "range": 1.3,
+    "bonus_damage": 4.0
+  },
+  "plating": {
+    "helmet": { "durability": 187, "armor": 2.0 },
+    "chestplate": { "durability": 272, "armor": 6.0 },
+    "leggings": { "durability": 255, "armor": 5.0 },
+    "boots": { "durability": 221, "armor": 2.0 }
+  },
+  "maille": true,
+  "incorrect_for_tool": "minecraft:incorrect_for_iron_tool",
+  "traits": {
+    "general": ["forgeweave:energized"]
+  },
+  "crafting_items": [
+    { "ingredient": { "tag": "c:ingots/constantan" }, "value": 144 },
+    { "ingredient": { "tag": "c:nuggets/constantan" }, "value": 16 },
+    { "ingredient": { "tag": "c:storage_blocks/constantan" }, "value": 1296 }
+  ],
+  "repair_item": {
+    "tag": "c:ingots/constantan"
+  },
+  "enchantability": 15,
+  "color": "#A8794A",
+  "neoforge:conditions": [
+    { "type": "neoforge:item_exists", "item": "immersiveengineering:ingot_constantan" }
+  ]
+}

@@ -48,8 +48,18 @@ class MaterialSyncSizeTest {
      * stat family rather than an entry growing out of the roster's norm (~620 bytes each now). Same
      * rule re-applied -- headroom for M4-3's remaining schema work and the M6 roster growth while a
      * 10x surprise still trips it -- lands at 32 KB, still a fraction of one chunk packet.
+     *
+     * <p>Revisited again for M6 Track A batch 1 (issue #833): the 54-material roster (43 plus this
+     * batch's 11 generic tech metals, 10 of them with a full plating block) measured 36,504 bytes,
+     * over the 32 KB budget -- expected, since the epic (#824) sizes M6's eventual roster near 170
+     * materials and this batch is "the first big step toward the ~140-material sync payload" (issue
+     * #833's own test-strategy note). Rather than re-derive a multiplier, this raises the budget to
+     * 64 KB: roughly 1.8x the newly-measured payload, i.e. enough headroom for the remaining M6
+     * preset batches (#834-#837) to land without tripping the budget on every PR, while a further
+     * 10x surprise (a material accidentally carrying a huge field) still catches it. Still a small
+     * fraction of one chunk packet.
      */
-    private static final int SYNC_BUDGET_BYTES = 32 * 1024;
+    private static final int SYNC_BUDGET_BYTES = 64 * 1024;
 
     private static RegistryOps<JsonElement> jsonOps;
     private static RegistryOps<Tag> nbtOps;

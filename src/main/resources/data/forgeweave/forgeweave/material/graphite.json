@@ -1,0 +1,33 @@
+{
+  "head": {
+    "durability": 130,
+    "mining_speed": 7.0,
+    "attack_damage": 1.8
+  },
+  "handle": {
+    "durability_modifier": 0.9,
+    "durability": 0
+  },
+  "extra_durability": 50,
+  "bow": {
+    "drawspeed": 0.8,
+    "range": 1.0,
+    "bonus_damage": 2.0
+  },
+  "incorrect_for_tool": "minecraft:incorrect_for_stone_tool",
+  "traits": {
+    "general": ["forgeweave:cascading"]
+  },
+  "crafting_items": [
+    { "ingredient": { "tag": "c:ingots/graphite" }, "value": 144 },
+    { "ingredient": { "tag": "c:storage_blocks/graphite" }, "value": 1296 }
+  ],
+  "repair_item": {
+    "tag": "c:ingots/graphite"
+  },
+  "enchantability": 6,
+  "color": "#36393B",
+  "neoforge:conditions": [
+    { "type": "neoforge:item_exists", "item": "bigreactors:graphite_ingot" }
+  ]
+}

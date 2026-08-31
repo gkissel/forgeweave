@@ -1,0 +1,41 @@
+{
+  "head": {
+    "durability": 140,
+    "mining_speed": 6.0,
+    "attack_damage": 2.0
+  },
+  "handle": {
+    "durability_modifier": 0.9,
+    "durability": 10
+  },
+  "extra_durability": 60,
+  "bow": {
+    "drawspeed": 0.7,
+    "range": 1.1,
+    "bonus_damage": 2.5
+  },
+  "plating": {
+    "helmet": { "durability": 88, "armor": 2.0 },
+    "chestplate": { "durability": 128, "armor": 4.0 },
+    "leggings": { "durability": 120, "armor": 3.0 },
+    "boots": { "durability": 104, "armor": 1.0 }
+  },
+  "maille": true,
+  "incorrect_for_tool": "minecraft:incorrect_for_stone_tool",
+  "traits": {
+    "general": ["forgeweave:crumbling"]
+  },
+  "crafting_items": [
+    { "ingredient": { "tag": "c:ingots/tin" }, "value": 144 },
+    { "ingredient": { "tag": "c:nuggets/tin" }, "value": 16 },
+    { "ingredient": { "tag": "c:storage_blocks/tin" }, "value": 1296 }
+  ],
+  "repair_item": {
+    "tag": "c:ingots/tin"
+  },
+  "enchantability": 8,
+  "color": "#D8D8D8",
+  "neoforge:conditions": [
+    { "type": "neoforge:item_exists", "item": "mekanism:ingot_tin" }
+  ]
+}
