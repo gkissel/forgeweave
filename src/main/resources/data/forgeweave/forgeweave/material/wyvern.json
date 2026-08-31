@@ -1,0 +1,39 @@
+{
+  "head": {
+    "durability": 940,
+    "mining_speed": 7.4,
+    "attack_damage": 8.0
+  },
+  "handle": {
+    "durability_modifier": 1.0,
+    "durability": 72
+  },
+  "extra_durability": 75,
+  "bow": {
+    "drawspeed": 0.4,
+    "range": 1.5,
+    "bonus_damage": 7.2
+  },
+  "plating": {
+    "helmet": { "durability": 405, "armor": 3.5, "toughness": 3.5, "knockback_resistance": 0.15 },
+    "chestplate": { "durability": 585, "armor": 8.5, "toughness": 3.5, "knockback_resistance": 0.15 },
+    "leggings": { "durability": 550, "armor": 6.5, "toughness": 3.5, "knockback_resistance": 0.15 },
+    "boots": { "durability": 475, "armor": 3.5, "toughness": 3.5, "knockback_resistance": 0.15 }
+  },
+  "maille": true,
+  "incorrect_for_tool": "minecraft:incorrect_for_netherite_tool",
+  "traits": {
+    "general": ["forgeweave:surging2"]
+  },
+  "crafting_items": [
+    { "ingredient": { "item": "draconicevolution:wyvern_core" }, "value": 144 }
+  ],
+  "repair_item": {
+    "item": "draconicevolution:wyvern_core"
+  },
+  "enchantability": 16,
+  "color": "#1F7A4D",
+  "neoforge:conditions": [
+    { "type": "neoforge:item_exists", "item": "draconicevolution:wyvern_core" }
+  ]
+}

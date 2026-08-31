@@ -1,0 +1,39 @@
+{
+  "head": {
+    "durability": 860,
+    "mining_speed": 7.0,
+    "attack_damage": 7.0
+  },
+  "handle": {
+    "durability_modifier": 0.95,
+    "durability": 55
+  },
+  "extra_durability": 140,
+  "bow": {
+    "drawspeed": 0.55,
+    "range": 1.3,
+    "bonus_damage": 5.5
+  },
+  "plating": {
+    "helmet": { "durability": 330, "armor": 3.0, "toughness": 2.0, "knockback_resistance": 0.1 },
+    "chestplate": { "durability": 480, "armor": 7.0, "toughness": 2.0, "knockback_resistance": 0.1 },
+    "leggings": { "durability": 450, "armor": 5.0, "toughness": 2.0, "knockback_resistance": 0.1 },
+    "boots": { "durability": 390, "armor": 3.0, "toughness": 2.0, "knockback_resistance": 0.1 }
+  },
+  "maille": true,
+  "incorrect_for_tool": "minecraft:incorrect_for_netherite_tool",
+  "traits": {
+    "general": ["forgeweave:vigorous"]
+  },
+  "crafting_items": [
+    { "ingredient": { "item": "avaritia:crystal_matrix_ingot" }, "value": 144 }
+  ],
+  "repair_item": {
+    "item": "avaritia:crystal_matrix_ingot"
+  },
+  "enchantability": 12,
+  "color": "#7FD9F5",
+  "neoforge:conditions": [
+    { "type": "neoforge:item_exists", "item": "avaritia:crystal_matrix_ingot" }
+  ]
+}

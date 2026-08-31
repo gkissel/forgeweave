@@ -1,0 +1,39 @@
+{
+  "head": {
+    "durability": 870,
+    "mining_speed": 7.0,
+    "attack_damage": 7.2
+  },
+  "handle": {
+    "durability_modifier": 0.92,
+    "durability": 65
+  },
+  "extra_durability": 170,
+  "bow": {
+    "drawspeed": 0.48,
+    "range": 1.35,
+    "bonus_damage": 6.5
+  },
+  "plating": {
+    "helmet": { "durability": 360, "armor": 3.0, "toughness": 2.0, "knockback_resistance": 0.1 },
+    "chestplate": { "durability": 530, "armor": 7.5, "toughness": 2.0, "knockback_resistance": 0.1 },
+    "leggings": { "durability": 500, "armor": 5.5, "toughness": 2.0, "knockback_resistance": 0.1 },
+    "boots": { "durability": 430, "armor": 3.0, "toughness": 2.0, "knockback_resistance": 0.1 }
+  },
+  "maille": true,
+  "incorrect_for_tool": "minecraft:incorrect_for_netherite_tool",
+  "traits": {
+    "general": ["forgeweave:shackling", "forgeweave:opportunist"]
+  },
+  "crafting_items": [
+    { "ingredient": { "item": "projecte:red_matter" }, "value": 144 }
+  ],
+  "repair_item": {
+    "item": "projecte:red_matter"
+  },
+  "enchantability": 12,
+  "color": "#B3122B",
+  "neoforge:conditions": [
+    { "type": "neoforge:item_exists", "item": "projecte:red_matter" }
+  ]
+}

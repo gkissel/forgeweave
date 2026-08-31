@@ -1,0 +1,39 @@
+{
+  "head": {
+    "durability": 990,
+    "mining_speed": 7.7,
+    "attack_damage": 9.0
+  },
+  "handle": {
+    "durability_modifier": 1.05,
+    "durability": 68
+  },
+  "extra_durability": 95,
+  "bow": {
+    "drawspeed": 0.46,
+    "range": 1.4,
+    "bonus_damage": 7.0
+  },
+  "plating": {
+    "helmet": { "durability": 425, "armor": 4.0, "toughness": 4.0, "knockback_resistance": 0.15 },
+    "chestplate": { "durability": 610, "armor": 9.0, "toughness": 4.0, "knockback_resistance": 0.15 },
+    "leggings": { "durability": 575, "armor": 7.0, "toughness": 4.0, "knockback_resistance": 0.15 },
+    "boots": { "durability": 495, "armor": 4.0, "toughness": 4.0, "knockback_resistance": 0.15 }
+  },
+  "maille": true,
+  "incorrect_for_tool": "minecraft:incorrect_for_netherite_tool",
+  "traits": {
+    "general": ["forgeweave:escalating"]
+  },
+  "crafting_items": [
+    { "ingredient": { "item": "avaritia:infinity_ingot" }, "value": 144 }
+  ],
+  "repair_item": {
+    "item": "avaritia:infinity_ingot"
+  },
+  "enchantability": 17,
+  "color": "#F5E9C8",
+  "neoforge:conditions": [
+    { "type": "neoforge:item_exists", "item": "avaritia:infinity_ingot" }
+  ]
+}

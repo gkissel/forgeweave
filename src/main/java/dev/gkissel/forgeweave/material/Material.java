@@ -7,6 +7,7 @@ import java.util.stream.Stream;
 
 import com.mojang.datafixers.util.Either;
 import com.mojang.serialization.Codec;
+import com.mojang.serialization.DataResult;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 
@@ -14,6 +15,7 @@ import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.item.PartItem;
 
 import net.minecraft.core.Registry;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.TextColor;
 import net.minecraft.resources.ResourceKey;
@@ -60,6 +62,13 @@ import net.minecraft.world.level.block.Block;
  * another mod's ingot once the existence condition has already let the material register. The two
  * gates answer different questions: existence ("does this metal's mod exist") and obtainability
  * ("does the Part Builder currently have an item to accept").
+ *
+ * <p><b>A concrete item id is fine too (issue #872).</b> Not every provider ships a {@code c:} tag
+ * for its metal (ProjectE, AvaritiaNeo and Refined Storage ship none at all) -- {@link
+ * #craftingItems}/{@link #repairItem} may key on a concrete {@code {"item": "modid:path"}} instead
+ * of a tag. An unregistered id resolves leniently, the same way an unfilled tag already does: the
+ * material still parses, the ingredient just never matches a real item stack until its mod is
+ * actually loaded (see {@code Material.LENIENT_INGREDIENT_CODEC}'s javadoc).
  *
  * <p><b>Companion registry entries.</b> {@code melting_recipe}, {@code casting_recipe}, {@code
  * alloy_recipe}, {@code entity_melting_recipe}, {@code smeltery_fuel}, {@code modifier_recipe} and
@@ -274,6 +283,46 @@ public record Material(
     }
 
     /**
+     * The single {@code {"item": "<id>"}} shape {@link Ingredient.ItemValue} accepts, minus the
+     * registry lookup -- see {@link #LENIENT_INGREDIENT_CODEC}.
+     */
+    private record UnresolvedItem(ResourceLocation id) {
+        static final Codec<UnresolvedItem> CODEC = RecordCodecBuilder.create(instance -> instance
+                .group(ResourceLocation.CODEC.fieldOf("item").forGetter(UnresolvedItem::id))
+                .apply(instance, UnresolvedItem::new));
+    }
+
+    /**
+     * Same JSON shapes {@link Ingredient#CODEC} accepts, except a concrete (non-vanilla) item id
+     * that is not currently registered decodes to {@link Ingredient#EMPTY} instead of failing the
+     * whole material's parse (issue #872, following the constraint #826 hit in #860 and again in
+     * #865/#866). Vanilla's own codec resolves a {@code {"item": "..."}} entry through {@code
+     * BuiltInRegistries.ITEM.holderByNameCodec()}, which errors on an unknown id -- correct for a
+     * hand-typed recipe, wrong for a Track A compat material whose crafting item only exists once
+     * its provider mod is loaded.
+     *
+     * <p>This is never reachable for an absent-mod material in a real game: the registry element's
+     * own {@code neoforge:conditions} block (the existence gate) is evaluated by {@code
+     * ConditionalOps} before this codec ever runs, so the id always resolves whenever the payload
+     * actually decodes. The only place an unknown id reaches this codec is a mod-less parse of the
+     * raw JSON -- this repo's own test suite -- and the fallback gives it exactly the behavior an
+     * empty {@code c:} tag already has: it parses fine and simply never matches a real item stack
+     * ({@link Ingredient#EMPTY}'s {@code test} always answers {@code false} for a non-empty stack).
+     *
+     * <p>Tries the unresolved-item shape first and only accepts it when the id is genuinely
+     * unregistered ({@link UnresolvedItem#CODEC}'s {@code validate} step) -- a known item, a tag, or
+     * the array syntax all fall through to the real {@link Ingredient#CODEC} unchanged, so nothing
+     * about a normal material's parse or its registry-sync payload shape changes.
+     */
+    private static final Codec<Ingredient> LENIENT_INGREDIENT_CODEC = Codec.either(
+            UnresolvedItem.CODEC.validate(unresolved -> BuiltInRegistries.ITEM.containsKey(unresolved.id())
+                    ? DataResult.error(() -> "known item id, defer to the real ingredient codec")
+                    : DataResult.success(unresolved)),
+            Ingredient.CODEC)
+            .xmap(either -> either.map(unresolved -> Ingredient.EMPTY, ingredient -> ingredient),
+                    ingredient -> Either.right(ingredient));
+
+    /**
      * A raw item usable as Part Builder crafting input, and how much of a part's cost one of it
      * pays off (upstream 1.12's `Material#addItem`/`addItemIngot`, {@code TinkerMaterials}).
      * {@code value} is expressed in upstream's own {@code Material.VALUE_*} unit ({@code VALUE_Ingot = 144},
@@ -281,7 +330,7 @@ public record Material(
      */
     public record CraftingItem(Ingredient ingredient, int value) {
         public static final Codec<CraftingItem> CODEC = RecordCodecBuilder.create(instance -> instance.group(
-                Ingredient.CODEC.fieldOf("ingredient").forGetter(CraftingItem::ingredient),
+                LENIENT_INGREDIENT_CODEC.fieldOf("ingredient").forGetter(CraftingItem::ingredient),
                 ExtraCodecs.POSITIVE_INT.fieldOf("value").forGetter(CraftingItem::value))
                 .apply(instance, CraftingItem::new));
     }
@@ -458,7 +507,7 @@ public record Material(
             // Part Builder crafting inputs and their values (issue #45; upstream units since #489); repair_item below
             // is a separate, single-ingredient concept used only for Tool Station repair.
             CraftingItem.CODEC.listOf().fieldOf("crafting_items").forGetter(Material::craftingItems),
-            Ingredient.CODEC.fieldOf("repair_item").forGetter(Material::repairItem),
+            LENIENT_INGREDIENT_CODEC.fieldOf("repair_item").forGetter(Material::repairItem),
             TextColor.CODEC.fieldOf("color").forGetter(Material::color),
             Bow.CODEC.optionalFieldOf("bow").forGetter(Material::bow),
             Bowstring.CODEC.optionalFieldOf("bowstring").forGetter(Material::bowstring),

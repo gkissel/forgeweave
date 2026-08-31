@@ -169,7 +169,12 @@ class MaterialTest {
             "warspar", "hollowstone", "resonite", "starfall_stone", "voidglass",
             "ironbrand", "quakestone", "shardline", "embercast", "riftalloy", "tideiron", "cinderforge",
             "dreadalloy", "sunsteel", "hollowsteel", "truesteel", "stormalloy", "glowveil", "daybrass",
-            "faultsteel", "skipalloy", "mendalloy", "mendstone" })
+            "faultsteel", "skipalloy", "mendalloy", "mendstone",
+            // #872 M6 recovery batch: concrete item ids in crafting_items/repair_item, unblocked by
+            // the LENIENT_INGREDIENT_CODEC schema change -- ProjectE, AvaritiaNeo, Draconic Evolution's
+            // core-tier pair, Refined Storage and Powah.
+            "dark_matter", "red_matter", "crystal_matrix", "cosmic_neutronium", "infinity",
+            "wyvern", "chaotic", "quartz_enriched_iron", "silicon", "energised_steel" })
     void shippedMaterialsParse(String name) {
         Material.CODEC.parse(ops, shipped(name)).getOrThrow();
     }
@@ -201,7 +206,11 @@ class MaterialTest {
             // 1.21.1 tree (PresetBatch5GameTests).
             "black_quartz", "restonia_crystal", "palis_crystal", "diamatine_crystal", "void_crystal",
             "emeradic_crystal", "enori_crystal", "uraninite", "psimetal", "psigem", "ivory_psimetal",
-            "ebony_psimetal", "pink_slime", "cyanite", "blutonium", "ludicrite" })
+            "ebony_psimetal", "pink_slime", "cyanite", "blutonium", "ludicrite",
+            // #872 M6 recovery batch: single item_exists each, verified against each mod's own
+            // 1.21.1 tree (RecoveryBatchGameTests, DraconicEvolutionGameTests).
+            "dark_matter", "red_matter", "crystal_matrix", "cosmic_neutronium", "infinity",
+            "wyvern", "chaotic", "quartz_enriched_iron", "silicon", "energised_steel" })
     void conditionalMaterialsCarryAWellFormedConditionsBlockAndStillParse(String name) {
         JsonObject json = shipped(name).getAsJsonObject();
         assertTrue(json.has("neoforge:conditions"), name + " must carry a neoforge:conditions block (issue #826)");
@@ -303,7 +312,20 @@ class MaterialTest {
             "ironbrand,netherite", "embercast,netherite", "riftalloy,netherite", "tideiron,netherite",
             "cinderforge,netherite", "dreadalloy,netherite", "sunsteel,netherite", "hollowsteel,netherite",
             "truesteel,netherite", "stormalloy,netherite", "glowveil,netherite", "daybrass,netherite",
-            "faultsteel,netherite", "skipalloy,netherite", "mendalloy,netherite", "mendstone,netherite"
+            "faultsteel,netherite", "skipalloy,netherite", "mendalloy,netherite", "mendstone,netherite",
+            // #872 M6 recovery batch: no upstream counterpart, so tiers here are Forgeweave's own
+            // placement (proposed on the PR). ProjectE's dark/red matter and Avaritia's escalating
+            // crystal_matrix/cosmic_neutronium/infinity ladder and Draconic Evolution's wyvern/chaotic
+            // core pair all sit at the same top rung as draconium/manyullyn/ancient/netherite (JC10:
+            // no mining tiers above netherite), differentiated by stats and traits instead. Refined
+            // Storage's quartz enriched iron sits at stone (an iron-adjacent utility component, not a
+            // combat metal); silicon, its lower-value byproduct, at the same rung as fluorite/graphite.
+            // Powah's energised steel is diamond, a step above plain steel.
+            "dark_matter,netherite", "red_matter,netherite",
+            "crystal_matrix,netherite", "cosmic_neutronium,netherite", "infinity,netherite",
+            "wyvern,netherite", "chaotic,netherite",
+            "quartz_enriched_iron,stone", "silicon,stone",
+            "energised_steel,diamond"
     })
     void shippedMaterialsSitOnUpstreamsHarvestTier(String name, String tier) {
         Material material = Material.CODEC.parse(ops, shipped(name)).getOrThrow();
@@ -705,7 +727,11 @@ class MaterialTest {
             // recipe at all.
             "black_quartz", "restonia_crystal", "palis_crystal", "diamatine_crystal", "void_crystal",
             "emeradic_crystal", "enori_crystal", "uraninite", "psimetal", "psigem", "ivory_psimetal",
-            "ebony_psimetal", "pink_slime", "cyanite", "blutonium", "ludicrite" })
+            "ebony_psimetal", "pink_slime", "cyanite", "blutonium", "ludicrite",
+            // #872 M6 recovery batch: same JC3 Part-Builder-only rule, no Forgeweave fluid or casting
+            // recipe at all.
+            "dark_matter", "red_matter", "crystal_matrix", "cosmic_neutronium", "infinity",
+            "wyvern", "chaotic", "quartz_enriched_iron", "silicon", "energised_steel" })
     void craftableMaterialsStayCraftable(String name) {
         assertFalse(Material.CODEC.parse(ops, shipped(name)).getOrThrow().castOnly(),
                 name + " must stay Part Builder craftable");
@@ -765,72 +791,63 @@ class MaterialTest {
     }
 
     /**
-     * Issue #836's own guard against the mistake it names as the one this batch is most likely to
-     * make: {@code crafting_items}/{@code repair_item} must key on a {@code c:} tag (or a vanilla
-     * item), never a concrete modded item id, because this test (and {@link #shippedMaterialsParse})
-     * parse every shipped JSON straight through {@link Material#CODEC} with plain {@link #ops} --
-     * no {@code ConditionalOps}, no mod loaded -- so an {@code Ingredient} naming an unregistered
-     * modded item id fails to parse outright (batch 2's Refined Storage precedent, PR #860). ProjectE
-     * ({@code sinkillerj/ProjectE}'s {@code mc1.21.1} branch) and Avaritia
-     * ({@code AquaThree/AvaritiaNeo}'s {@code main} branch) were verified directly against their own
-     * trees to ship <em>zero</em> {@code c:} tags for dark matter, red matter, crystal matrix, cosmic
-     * neutronium or infinity -- there is no tag to key on, so all five are skipped rather than shipped
-     * with a concrete id that would break this exact test the moment someone tried. This walks every
-     * shipped material's raw {@code crafting_items} and {@code repair_item} ingredients (not
-     * {@code neoforge:conditions}, which concrete modded ids belong in) for a {@code projecte:} or
-     * {@code avaritia:} item, so a future attempt to re-add one the wrong way fails loudly here.
+     * Issue #872's schema fix, proven directly against the mechanism rather than the shipped
+     * roster: {@code projecte:dark_matter} is guaranteed unregistered in this mod-less test JVM
+     * (ProjectE is not a build/test dependency, see build.gradle), so this pins both halves of the
+     * new {@code Material.LENIENT_INGREDIENT_CODEC} contract down -- the material still parses (it
+     * used to fail outright here, the #836/#860 constraint this issue closes), and the resulting
+     * {@link Ingredient} never matches a real item stack, exactly like an unfilled {@code c:} tag
+     * already behaves.
      */
     @Test
-    void noShippedMaterialCraftingItemsNameAConcreteProjectEOrAvaritiaItem() throws Exception {
-        Path materialDir = projectRoot().resolve("src/main/resources/data/forgeweave/forgeweave/material");
-        List<String> offenders = new java.util.ArrayList<>();
+    void unregisteredConcreteItemIdParsesLenientlyAndNeverMatches() {
+        Material material = Material.CODEC.parse(ops, parse("""
+                {
+                  "head": {"durability": 35, "mining_speed": 2.0, "attack_damage": 2.0},
+                  "handle": {"durability_modifier": 1.0, "durability": 25},
+                  "extra_durability": 15,
+                  "incorrect_for_tool": "minecraft:incorrect_for_wooden_tool",
+                  "traits": {},
+                  "crafting_items": [{"ingredient": {"item": "projecte:dark_matter"}, "value": 144}],
+                  "repair_item": {"item": "projecte:dark_matter"},
+                  "color": "#8E661B"
+                }""")).getOrThrow();
 
-        try (Stream<Path> files = Files.list(materialDir)) {
-            for (Path file : files.filter(p -> p.toString().endsWith(".json")).sorted().toList()) {
-                JsonObject json = JsonParser.parseString(Files.readString(file, StandardCharsets.UTF_8)).getAsJsonObject();
-                List<JsonElement> ingredients = new java.util.ArrayList<>();
-                if (json.has("repair_item")) {
-                    ingredients.add(json.get("repair_item"));
-                }
-                if (json.has("crafting_items")) {
-                    for (JsonElement entry : json.getAsJsonArray("crafting_items")) {
-                        if (entry.getAsJsonObject().has("ingredient")) {
-                            ingredients.add(entry.getAsJsonObject().get("ingredient"));
-                        }
-                    }
-                }
-                for (JsonElement ingredient : ingredients) {
-                    if (ingredient.isJsonObject() && ingredient.getAsJsonObject().has("item")) {
-                        String item = ingredient.getAsJsonObject().get("item").getAsString();
-                        if (item.startsWith("projecte:") || item.startsWith("avaritia:")) {
-                            offenders.add(file.getFileName() + " -> " + item);
-                        }
-                    }
-                }
-            }
-        }
-
-        assertTrue(offenders.isEmpty(),
-                "these shipped materials key crafting_items/repair_item on a concrete ProjectE/Avaritia "
-                        + "item id, which fails to parse without the mod (issue #836): " + offenders);
+        assertEquals(1, material.craftingItems().size());
+        assertFalse(material.craftingItems().get(0).ingredient().test(new ItemStack(Items.IRON_INGOT)),
+                "an unresolved item id must never match a real item stack (Part Builder matching)");
+        assertFalse(material.repairItem().test(new ItemStack(Items.DIAMOND)),
+                "an unresolved item id must never match a real item stack (Tool Station repair)");
     }
 
     /**
-     * The other half of #836's finding: none of the five ProjectE/Avaritia materials the issue named
-     * (dark matter, red matter, crystal matrix, cosmic neutronium, infinity) may exist as a shipped
-     * material file at all -- both mods ship zero {@code c:} tags, so there is no way to source them
-     * that survives {@link #noShippedMaterialCraftingItemsNameAConcreteProjectEOrAvaritiaItem} above.
+     * Issue #872's own inversion of the guard #836 shipped when the concrete-item-id constraint
+     * still stood: ProjectE ({@code sinkillerj/ProjectE}'s {@code mc1.21.1} branch) and Avaritia
+     * ({@code AquaThree/AvaritiaNeo}'s {@code main} branch) ship zero {@code c:} tags for any of
+     * these five materials, but {@code Material.LENIENT_INGREDIENT_CODEC} means that no longer
+     * blocks shipping them -- each keys {@code crafting_items}/{@code repair_item} on its provider's
+     * real concrete item id instead of a tag, verified directly against each mod's own tree (PR body).
      */
-    @Test
-    void projectEAndAvaritiaMaterialsStayUnshipped() {
-        Path materialDir = projectRoot().resolve("src/main/resources/data/forgeweave/forgeweave/material");
-        List<String> shouldNotExist = List.of("dark_matter", "red_matter", "crystal_matrix",
-                "cosmic_neutronium", "infinity", "neutronium");
+    @ParameterizedTest
+    @CsvSource({
+            "dark_matter,projecte:dark_matter",
+            "red_matter,projecte:red_matter",
+            "crystal_matrix,avaritia:crystal_matrix_ingot",
+            "cosmic_neutronium,avaritia:neutronium_ingot",
+            "infinity,avaritia:infinity_ingot",
+    })
+    void projectEAndAvaritiaMaterialsCarryTheirConcreteItemId(String name, String expectedItem) {
+        JsonObject json = shipped(name).getAsJsonObject();
 
-        for (String name : shouldNotExist) {
-            assertTrue(Files.notExists(materialDir.resolve(name + ".json")),
-                    name + ".json must not be shipped -- ProjectE/Avaritia ship no c: tag for it (issue #836)");
-        }
+        assertEquals(expectedItem, json.getAsJsonObject("repair_item").get("item").getAsString(),
+                name + "'s repair_item must key on its provider's concrete item id");
+        assertEquals(expectedItem,
+                json.getAsJsonArray("crafting_items").get(0).getAsJsonObject()
+                        .getAsJsonObject("ingredient").get("item").getAsString(),
+                name + "'s crafting_items must key on its provider's concrete item id");
+
+        // Still parses cleanly through the real codec, matching #shippedMaterialsParse.
+        Material.CODEC.parse(ops, json).getOrThrow();
     }
 
     /**
@@ -852,20 +869,22 @@ class MaterialTest {
     }
 
     /**
-     * Issue #837's schema trap, the same one #834's Refined Storage decision hit: Powah ships no
-     * {@code c:ingots/*}/{@code c:gems/*} subtag for {@code steel_energized} or its four crystals
-     * ({@code crystal_blazing}/{@code crystal_niotic}/{@code crystal_nitro}/{@code crystal_spirited}) --
-     * only the flat parent {@code c:ingots}/{@code c:gems} tags, verified against Powah's own
-     * {@code v6.2.10} tree. A concrete id in {@code crafting_items}/{@code repair_item} fails {@link
-     * Material#CODEC}'s mod-less parse the same way Refined Storage's did, so these five are skipped
-     * entirely rather than shipped keyed on an item id -- this guards the skip from silently
-     * regressing, since a wrong id here would not crash, it would just parse into a broken material.
+     * Issue #837's schema trap found four still-unshippable Powah materials, but not all five: its
+     * four crystals ({@code crystal_blazing}/{@code crystal_niotic}/{@code crystal_nitro}/{@code
+     * crystal_spirited}) still ship no per-material {@code c:gems/*} subtag at all, only the flat
+     * parent {@code c:gems} tag, verified against Powah's own {@code v6.2.10} tree -- there is still
+     * no real tag to key {@code crafting_items}/{@code repair_item} on, and a concrete id would let
+     * one player-visible metal (energised steel) work while silently misrepresenting these four as
+     * shippable the same way. {@code steel_energized} itself is the fifth id this test used to guard
+     * -- issue #872's schema fix (concrete item ids are now leniently accepted) unblocked it, so it
+     * is shipped as {@code energised_steel} and removed from this list; see {@link
+     * #energisedSteelCarriesItsConcreteItemId} for its positive coverage.
      */
     @Test
-    void noShippedMaterialConditionsOnPowahsUntaggedEnergisedSteelOrCrystals() throws Exception {
+    void noShippedMaterialConditionsOnPowahsUntaggedCrystals() throws Exception {
         Path materialDir = projectRoot().resolve("src/main/resources/data/forgeweave/forgeweave/material");
         List<String> offenders = new java.util.ArrayList<>();
-        List<String> untaggedPowahIds = List.of("powah:steel_energized", "powah:crystal_blazing",
+        List<String> untaggedPowahIds = List.of("powah:crystal_blazing",
                 "powah:crystal_niotic", "powah:crystal_nitro", "powah:crystal_spirited");
 
         try (Stream<Path> files = Files.list(materialDir)) {
@@ -880,9 +899,27 @@ class MaterialTest {
         }
 
         assertTrue(offenders.isEmpty(),
-                "these shipped materials reference Powah's untagged energised_steel/crystal ids, which "
-                        + "cannot back crafting_items/repair_item without breaking this test suite's "
-                        + "mod-less parse (issue #837): " + offenders);
+                "these shipped materials reference Powah's untagged crystal ids, which have no real "
+                        + "c: tag to key crafting_items/repair_item on (issue #837): " + offenders);
+    }
+
+    /**
+     * Issue #872's positive coverage for the material {@link #noShippedMaterialConditionsOnPowahsUntaggedCrystals}
+     * above no longer guards as unshipped: Powah's real id ({@code powah:steel_energized}, the epic's
+     * table had it backwards) backs both {@code crafting_items} and {@code repair_item} directly,
+     * leniently accepted by {@code Material.LENIENT_INGREDIENT_CODEC} even though this mod-less test
+     * JVM has no Powah item registered under that id.
+     */
+    @Test
+    void energisedSteelCarriesItsConcreteItemId() {
+        JsonObject json = shipped("energised_steel").getAsJsonObject();
+        String expected = "powah:steel_energized";
+
+        assertEquals(expected, json.getAsJsonObject("repair_item").get("item").getAsString());
+        assertEquals(expected, json.getAsJsonArray("crafting_items").get(0).getAsJsonObject()
+                .getAsJsonObject("ingredient").get("item").getAsString());
+
+        Material.CODEC.parse(ops, json).getOrThrow();
     }
 
     private static Path projectRoot() {
