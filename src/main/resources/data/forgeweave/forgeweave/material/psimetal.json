@@ -1,0 +1,40 @@
+{
+  "head": {
+    "durability": 190,
+    "mining_speed": 6.2,
+    "attack_damage": 3.6
+  },
+  "handle": {
+    "durability_modifier": 0.9,
+    "durability": 25
+  },
+  "extra_durability": 35,
+  "bow": {
+    "drawspeed": 0.55,
+    "range": 1.3,
+    "bonus_damage": 3.5
+  },
+  "plating": {
+    "helmet": { "durability": 154, "armor": 2.0 },
+    "chestplate": { "durability": 223, "armor": 5.0 },
+    "leggings": { "durability": 210, "armor": 4.0 },
+    "boots": { "durability": 182, "armor": 2.0 }
+  },
+  "maille": true,
+  "incorrect_for_tool": "minecraft:incorrect_for_iron_tool",
+  "traits": {
+    "general": ["forgeweave:ecological"]
+  },
+  "crafting_items": [
+    { "ingredient": { "tag": "c:ingots/psimetal" }, "value": 144 },
+    { "ingredient": { "tag": "c:storage_blocks/psimetal" }, "value": 1296 }
+  ],
+  "repair_item": {
+    "tag": "c:ingots/psimetal"
+  },
+  "enchantability": 14,
+  "color": "#8CD6C4",
+  "neoforge:conditions": [
+    { "type": "neoforge:item_exists", "item": "psi:psimetal" }
+  ]
+}

@@ -1,0 +1,40 @@
+{
+  "head": {
+    "durability": 360,
+    "mining_speed": 6.2,
+    "attack_damage": 4.0
+  },
+  "handle": {
+    "durability_modifier": 1.0,
+    "durability": 38
+  },
+  "extra_durability": 65,
+  "bow": {
+    "drawspeed": 0.6,
+    "range": 1.3,
+    "bonus_damage": 3.6
+  },
+  "plating": {
+    "helmet": { "durability": 244, "armor": 2.0 },
+    "chestplate": { "durability": 360, "armor": 5.0 },
+    "leggings": { "durability": 338, "armor": 4.0 },
+    "boots": { "durability": 288, "armor": 2.0 }
+  },
+  "maille": true,
+  "incorrect_for_tool": "minecraft:incorrect_for_diamond_tool",
+  "traits": {
+    "general": ["forgeweave:duskmend"]
+  },
+  "crafting_items": [
+    { "ingredient": { "tag": "c:ingots/ebony_psimetal" }, "value": 144 },
+    { "ingredient": { "tag": "c:storage_blocks/ebony_psimetal" }, "value": 1296 }
+  ],
+  "repair_item": {
+    "tag": "c:ingots/ebony_psimetal"
+  },
+  "enchantability": 17,
+  "color": "#221E26",
+  "neoforge:conditions": [
+    { "type": "neoforge:item_exists", "item": "psi:ebony_psimetal" }
+  ]
+}

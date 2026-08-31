@@ -1,0 +1,40 @@
+{
+  "head": {
+    "durability": 300,
+    "mining_speed": 6.0,
+    "attack_damage": 4.2
+  },
+  "handle": {
+    "durability_modifier": 1.0,
+    "durability": 30
+  },
+  "extra_durability": 55,
+  "bow": {
+    "drawspeed": 0.6,
+    "range": 1.25,
+    "bonus_damage": 3.8
+  },
+  "plating": {
+    "helmet": { "durability": 204, "armor": 2.0 },
+    "chestplate": { "durability": 300, "armor": 5.0 },
+    "leggings": { "durability": 282, "armor": 4.0 },
+    "boots": { "durability": 240, "armor": 2.0 }
+  },
+  "maille": true,
+  "incorrect_for_tool": "minecraft:incorrect_for_diamond_tool",
+  "traits": {
+    "general": ["forgeweave:insatiable"]
+  },
+  "crafting_items": [
+    { "ingredient": { "tag": "c:gems/psigem" }, "value": 144 },
+    { "ingredient": { "tag": "c:storage_blocks/psigem" }, "value": 1296 }
+  ],
+  "repair_item": {
+    "tag": "c:gems/psigem"
+  },
+  "enchantability": 16,
+  "color": "#B7E8DC",
+  "neoforge:conditions": [
+    { "type": "neoforge:item_exists", "item": "psi:psigem" }
+  ]
+}

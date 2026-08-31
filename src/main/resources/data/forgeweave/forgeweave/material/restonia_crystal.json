@@ -1,0 +1,39 @@
+{
+  "head": {
+    "durability": 350,
+    "mining_speed": 6.5,
+    "attack_damage": 3.5
+  },
+  "handle": {
+    "durability_modifier": 1.0,
+    "durability": 35
+  },
+  "extra_durability": 60,
+  "bow": {
+    "drawspeed": 0.7,
+    "range": 1.1,
+    "bonus_damage": 2.2
+  },
+  "plating": {
+    "helmet": { "durability": 238, "armor": 2.0 },
+    "chestplate": { "durability": 350, "armor": 5.0 },
+    "leggings": { "durability": 329, "armor": 4.0 },
+    "boots": { "durability": 280, "armor": 2.0 }
+  },
+  "maille": true,
+  "incorrect_for_tool": "minecraft:incorrect_for_diamond_tool",
+  "traits": {
+    "general": ["forgeweave:pristine"]
+  },
+  "crafting_items": [
+    { "ingredient": { "tag": "c:storage_blocks/restonia_crystal" }, "value": 1296 }
+  ],
+  "repair_item": {
+    "tag": "c:storage_blocks/restonia_crystal"
+  },
+  "enchantability": 16,
+  "color": "#C23B3B",
+  "neoforge:conditions": [
+    { "type": "neoforge:item_exists", "item": "actuallyadditions:restonia_crystal" }
+  ]
+}
