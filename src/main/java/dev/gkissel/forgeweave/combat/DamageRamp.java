@@ -52,8 +52,21 @@ import dev.gkissel.forgeweave.item.ForgeweaveDataComponents;
  *
  * <p>ponytail: no separate "in combat" flag, no attacker-scoped bookkeeping, no tick subscription.
  * The last-hit timestamp answers "is the ramp still live?" on its own.
+ *
+ * <h2>{@code requireFullCharge} (issue #827)</h2>
+ *
+ * <p>M6's damage-scaling library batch asks for a second ramp instance that only counts
+ * <em>fully-charged</em> landed hits ({@link CombatHit#isFullCharge}) rather than every one --
+ * "reuse its component and decay machinery rather than adding a second stateful ramp" (issue #827).
+ * {@link #ESCALATING} is that instance: same {@link ForgeweaveDataComponents#KATANA_RAMP}
+ * component and the same read-a-timer {@link #liveStacks}/{@link #bonus} machinery as {@link
+ * #KATANA}, just gated so a hit that was not fully charged neither builds nor refreshes the stack
+ * in {@link #onHit} (the bonus itself still applies to every hit, same as the katana's, once the
+ * ramp is live). Nothing about the serialized {@link State} shape changes, so no new save-compat
+ * fixture is needed -- the existing katana one already pins it.
  */
-public record DamageRamp(float stepPerStack, float maxBonus, int resetTicks) implements CombatSeam {
+public record DamageRamp(float stepPerStack, float maxBonus, int resetTicks, boolean requireFullCharge)
+        implements CombatSeam {
 
     /**
      * One tool's live ramp. Save-compat promised from the first beta -- see the class javadoc before
@@ -76,7 +89,15 @@ public record DamageRamp(float stepPerStack, float maxBonus, int resetTicks) imp
     }
 
     /** The katana's ramp, with the issue #160 decision comment's three numbers. */
-    public static final DamageRamp KATANA = new DamageRamp(0.10F, 0.75F, 5 * 20);
+    public static final DamageRamp KATANA = new DamageRamp(0.10F, 0.75F, 5 * 20, false);
+
+    /**
+     * M6's "consecutive-charge ramp" library instance (issue #827): {@code +15%} damage per
+     * consecutive fully-charged landed hit, capped at {@code +60%}, reset after {@code 4} seconds
+     * without landing one. Proposed magnitudes -- maintainer decision point, same as issue #160's
+     * for {@link #KATANA} and #103/M3's combat innates; not yet confirmed on the issue thread.
+     */
+    public static final DamageRamp ESCALATING = new DamageRamp(0.15F, 0.60F, 4 * 20, true);
 
     /**
      * Where counting stops. The <em>bonus</em> is what the decision caps, so at +10% a step the cap
@@ -118,9 +139,17 @@ public record DamageRamp(float stepPerStack, float maxBonus, int resetTicks) imp
         return damage + originalDamage * bonus(hit.weapon(), hit.level().getGameTime());
     }
 
-    /** A landed hit: one more stack (up to the cap) and the timer restarts from now. */
+    /**
+     * A landed hit: one more stack (up to the cap) and the timer restarts from now -- unless {@link
+     * #requireFullCharge} and this blow was not a fully-charged swing, in which case it neither
+     * builds nor refreshes the ramp (issue #827's {@link #ESCALATING}). The bonus a live ramp grants
+     * still applies to every hit either way; only what counts toward building it differs.
+     */
     @Override
     public void onHit(CombatHit hit, float damageDealt) {
+        if (requireFullCharge && !hit.isFullCharge()) {
+            return;
+        }
         long now = hit.level().getGameTime();
         int next = Math.min(maxStacks(), liveStacks(hit.weapon(), now) + 1);
         hit.weapon().set(ForgeweaveDataComponents.KATANA_RAMP.get(), new State(next, now));

@@ -16,6 +16,7 @@ import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
@@ -30,6 +31,7 @@ import net.minecraft.world.item.Items;
 import net.minecraft.world.item.component.ItemAttributeModifiers;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.level.GameType;
+import net.minecraft.world.phys.Vec3;
 
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.entity.EntityTeleportEvent;
@@ -42,6 +44,7 @@ import dev.gkissel.forgeweave.combat.CombatDefense;
 import dev.gkissel.forgeweave.combat.CombatHit;
 import dev.gkissel.forgeweave.combat.CombatSeam;
 import dev.gkissel.forgeweave.combat.CombatSeams;
+import dev.gkissel.forgeweave.combat.DamageRamp;
 import dev.gkissel.forgeweave.combat.ForgeweaveMobEffects;
 import dev.gkissel.forgeweave.combat.LacerateEffect;
 import dev.gkissel.forgeweave.item.ForgeweaveDataComponents;
@@ -553,6 +556,261 @@ public class CombatTraitGameTests {
         helper.succeed();
     }
 
+    // ------------------------------------------------------------------ M6 damage-scaling trait
+    // behavior library (issue #827, ADR-0004): one test per registered instance, same shape as the
+    // #229 batch above -- ids set directly on a hatchet (no material grants these yet).
+
+    /** {@code forgeweave:pristine}: bonus damage rises with how undamaged the weapon still is. */
+    @GameTest(template = "empty")
+    public static void pristineScalesDamageWithRemainingDurability(GameTestHelper helper) {
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        ItemStack hatchet = tool(ForgeweaveItems.TOOL_HATCHET.get(), List.of(traitId("pristine")), 3.0F);
+        Pig pig = noAi(helper.spawn(EntityType.PIG, new BlockPos(2, 2, 2)));
+
+        float atFullDurability = preHit(helper, player, hatchet, pig, 1.0F);
+        helper.assertTrue(Math.abs(atFullDurability - 4.0F) < 0.001F,
+                "expected the full +3 at full durability (1 -> 4), got " + atFullDurability);
+
+        hatchet.setDamageValue(hatchet.getMaxDamage() / 2);
+        float atHalfDurability = preHit(helper, player, hatchet, pig, 1.0F);
+        helper.assertTrue(Math.abs(atHalfDurability - 2.5F) < 0.001F,
+                "expected half the bonus at half durability (1 -> 2.5), got " + atHalfDurability);
+
+        pig.discard();
+        helper.succeed();
+    }
+
+    /** {@code forgeweave:vigorous}: bonus damage rises with the wielder's own health. */
+    @GameTest(template = "empty")
+    public static void vigorousScalesDamageWithWielderHealth(GameTestHelper helper) {
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        ItemStack hatchet = tool(ForgeweaveItems.TOOL_HATCHET.get(), List.of(traitId("vigorous")), 3.0F);
+        Pig pig = noAi(helper.spawn(EntityType.PIG, new BlockPos(2, 2, 2)));
+
+        float atFullHealth = preHit(helper, player, hatchet, pig, 1.0F);
+        helper.assertTrue(Math.abs(atFullHealth - 3.0F) < 0.001F,
+                "expected the full +2 at full health (1 -> 3), got " + atFullHealth);
+
+        player.setHealth(player.getMaxHealth() / 2.0F);
+        float atHalfHealth = preHit(helper, player, hatchet, pig, 1.0F);
+        helper.assertTrue(Math.abs(atHalfHealth - 2.0F) < 0.001F,
+                "expected half the bonus at half health (1 -> 2), got " + atHalfHealth);
+
+        pig.discard();
+        helper.succeed();
+    }
+
+    /** {@code forgeweave:predatory}: bonus damage rises with how much health the target already lost. */
+    @GameTest(template = "empty")
+    public static void predatoryScalesDamageWithTheTargetsMissingHealth(GameTestHelper helper) {
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        ItemStack hatchet = tool(ForgeweaveItems.TOOL_HATCHET.get(), List.of(traitId("predatory")), 3.0F);
+        Zombie target = noAi(helper.spawn(EntityType.ZOMBIE, new BlockPos(2, 2, 2)));
+
+        float atFullHealth = preHit(helper, player, hatchet, target, 1.0F);
+        helper.assertTrue(Math.abs(atFullHealth - 1.0F) < 0.001F,
+                "predatory must add nothing against an untouched target, got " + atFullHealth);
+
+        target.setHealth(5.0F);
+        float wounded = preHit(helper, player, hatchet, target, 1.0F);
+        helper.assertTrue(Math.abs(wounded - 3.25F) < 0.001F,
+                "expected +2.25 against a target missing 15 health (1 -> 3.25), got " + wounded);
+
+        target.discard();
+        helper.succeed();
+    }
+
+    /** {@code forgeweave:colossal}: bonus damage rises with the target's own max health. */
+    @GameTest(template = "empty")
+    public static void colossalScalesDamageWithTheTargetsMaxHealth(GameTestHelper helper) {
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        ItemStack hatchet = tool(ForgeweaveItems.TOOL_HATCHET.get(), List.of(traitId("colossal")), 3.0F);
+        Pig pig = noAi(helper.spawn(EntityType.PIG, new BlockPos(2, 2, 2)));
+        Zombie zombie = noAi(helper.spawn(EntityType.ZOMBIE, new BlockPos(3, 2, 3)));
+
+        float vsPig = preHit(helper, player, hatchet, pig, 1.0F);
+        helper.assertTrue(Math.abs(vsPig - 1.5F) < 0.001F,
+                "expected +0.5 against a 10-max-health pig (1 -> 1.5), got " + vsPig);
+        float vsZombie = preHit(helper, player, hatchet, zombie, 1.0F);
+        helper.assertTrue(Math.abs(vsZombie - 2.0F) < 0.001F,
+                "expected +1.0 against a 20-max-health zombie (1 -> 2), got " + vsZombie);
+
+        pig.discard();
+        zombie.discard();
+        helper.succeed();
+    }
+
+    /** {@code forgeweave:kinetic}: bonus damage rises with the wielder's own current motion. */
+    @GameTest(template = "empty")
+    public static void kineticScalesDamageWithTheWieldersMotion(GameTestHelper helper) {
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        ItemStack hatchet = tool(ForgeweaveItems.TOOL_HATCHET.get(), List.of(traitId("kinetic")), 3.0F);
+        Pig pig = noAi(helper.spawn(EntityType.PIG, new BlockPos(2, 2, 2)));
+
+        player.setDeltaMovement(Vec3.ZERO);
+        float stationary = preHit(helper, player, hatchet, pig, 1.0F);
+        helper.assertTrue(Math.abs(stationary - 1.0F) < 0.001F,
+                "kinetic must add nothing while the wielder is not moving, got " + stationary);
+
+        player.setDeltaMovement(new Vec3(1.0, 0.0, 0.0));
+        float moving = preHit(helper, player, hatchet, pig, 1.0F);
+        helper.assertTrue(Math.abs(moving - 4.0F) < 0.001F,
+                "expected +3 at 1 block/tick of motion (1 -> 4), got " + moving);
+
+        pig.discard();
+        helper.succeed();
+    }
+
+    /** {@code forgeweave:dominant}: bonus damage against a target already weaker than the wielder. */
+    @GameTest(template = "empty")
+    public static void dominantAddsDamageAgainstATargetWeakerThanTheWielder(GameTestHelper helper) {
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        ItemStack hatchet = tool(ForgeweaveItems.TOOL_HATCHET.get(), List.of(traitId("dominant")), 3.0F);
+        Zombie target = noAi(helper.spawn(EntityType.ZOMBIE, new BlockPos(2, 2, 2)));
+
+        float evenHealth = preHit(helper, player, hatchet, target, 1.0F);
+        helper.assertTrue(Math.abs(evenHealth - 1.0F) < 0.001F,
+                "dominant must not trigger against a target at the wielder's own health, got " + evenHealth);
+
+        target.setHealth(target.getHealth() - 10.0F);
+        float weakerTarget = preHit(helper, player, hatchet, target, 1.0F);
+        helper.assertTrue(Math.abs(weakerTarget - 3.0F) < 0.001F,
+                "expected +2 against a target below the wielder's health (1 -> 3), got " + weakerTarget);
+
+        target.discard();
+        helper.succeed();
+    }
+
+    /** {@code forgeweave:armor_breaker}: bonus damage against an armored target. */
+    @GameTest(template = "empty")
+    public static void armorBreakerAddsDamageAgainstAnArmoredTarget(GameTestHelper helper) {
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        ItemStack hatchet = tool(ForgeweaveItems.TOOL_HATCHET.get(), List.of(traitId("armor_breaker")), 3.0F);
+        // A pig, not a zombie: zombies carry a nonzero base armor value even with no equipped piece,
+        // which would make the "unarmored" half of this test trigger the trait it's meant to rule out.
+        Pig target = noAi(helper.spawn(EntityType.PIG, new BlockPos(2, 2, 2)));
+
+        float unarmored = preHit(helper, player, hatchet, target, 1.0F);
+        helper.assertTrue(Math.abs(unarmored - 1.0F) < 0.001F,
+                "armor_breaker must not trigger against an unarmored target, got " + unarmored);
+
+        // ArmorGameTests#wearing: a tick is what makes LivingEntity#detectEquipmentUpdates apply the
+        // piece's attribute modifiers -- getArmorValue() would still read 0 right after setItemSlot.
+        target.setItemSlot(EquipmentSlot.CHEST, new ItemStack(Items.IRON_CHESTPLATE));
+        target.tick();
+        float armored = preHit(helper, player, hatchet, target, 1.0F);
+        helper.assertTrue(Math.abs(armored - 3.0F) < 0.001F,
+                "expected +2 against an armored target (1 -> 3), got " + armored);
+
+        target.discard();
+        helper.succeed();
+    }
+
+    /** {@code forgeweave:opportunist}: bonus damage against a target already carrying a harmful effect. */
+    @GameTest(template = "empty")
+    public static void opportunistAddsDamageAgainstADebuffedTarget(GameTestHelper helper) {
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        ItemStack hatchet = tool(ForgeweaveItems.TOOL_HATCHET.get(), List.of(traitId("opportunist")), 3.0F);
+        Pig pig = noAi(helper.spawn(EntityType.PIG, new BlockPos(2, 2, 2)));
+
+        float clean = preHit(helper, player, hatchet, pig, 1.0F);
+        helper.assertTrue(Math.abs(clean - 1.0F) < 0.001F,
+                "opportunist must not trigger against a target with no harmful effect, got " + clean);
+
+        pig.addEffect(new MobEffectInstance(MobEffects.POISON, 100));
+        float debuffed = preHit(helper, player, hatchet, pig, 1.0F);
+        helper.assertTrue(Math.abs(debuffed - 3.0F) < 0.001F,
+                "expected +2 against a poisoned target (1 -> 3), got " + debuffed);
+
+        pig.discard();
+        helper.succeed();
+    }
+
+    /** {@code forgeweave:surging}: extra damage on a fully-charged swing only. */
+    @GameTest(template = "empty")
+    public static void surgingAddsDamageOnlyOnAFullyChargedSwing(GameTestHelper helper) {
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        ItemStack hatchet = tool(ForgeweaveItems.TOOL_HATCHET.get(), List.of(traitId("surging")), 3.0F);
+        Pig pig = noAi(helper.spawn(EntityType.PIG, new BlockPos(2, 2, 2)));
+
+        float partial = preHitCharged(helper, player, hatchet, pig, 1.0F, 0.5F);
+        helper.assertTrue(Math.abs(partial - 1.0F) < 0.001F,
+                "surging must not add damage on a partial-charge swing, got " + partial);
+
+        float charged = preHitCharged(helper, player, hatchet, pig, 1.0F, 1.0F);
+        helper.assertTrue(Math.abs(charged - 2.5F) < 0.001F,
+                "expected +1.5 on a fully-charged swing (1 -> 2.5), got " + charged);
+
+        pig.discard();
+        helper.succeed();
+    }
+
+    /** {@code forgeweave:surging2}/{@code surging3}: the same shape, scaled by level. */
+    @GameTest(template = "empty")
+    public static void surging2And3ScaleTheChargedBonusByLevel(GameTestHelper helper) {
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        ItemStack surging2 = tool(ForgeweaveItems.TOOL_HATCHET.get(), List.of(traitId("surging2")), 3.0F);
+        ItemStack surging3 = tool(ForgeweaveItems.TOOL_HATCHET.get(), List.of(traitId("surging3")), 3.0F);
+        Pig pig = noAi(helper.spawn(EntityType.PIG, new BlockPos(2, 2, 2)));
+
+        float levelTwo = preHitCharged(helper, player, surging2, pig, 1.0F, 1.0F);
+        helper.assertTrue(Math.abs(levelTwo - 4.0F) < 0.001F,
+                "expected +3.0 at level II (1 -> 4), got " + levelTwo);
+        float levelThree = preHitCharged(helper, player, surging3, pig, 1.0F, 1.0F);
+        helper.assertTrue(Math.abs(levelThree - 5.5F) < 0.001F,
+                "expected +4.5 at level III (1 -> 5.5), got " + levelThree);
+
+        pig.discard();
+        helper.succeed();
+    }
+
+    /** {@code forgeweave:ruthless}: extra damage only on a critical hit, scaled by the crit multiplier. */
+    @GameTest(template = "empty")
+    public static void ruthlessAddsExtraDamageOnlyOnACriticalHit(GameTestHelper helper) {
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        ItemStack hatchet = tool(ForgeweaveItems.TOOL_HATCHET.get(), List.of(traitId("ruthless")), 3.0F);
+        Pig pig = noAi(helper.spawn(EntityType.PIG, new BlockPos(2, 2, 2)));
+
+        float notCrit = preHitCrit(helper, player, hatchet, pig, 3.0F, 1.0F);
+        helper.assertTrue(Math.abs(notCrit - 3.0F) < 0.001F,
+                "ruthless must not touch a non-critical blow, got " + notCrit);
+
+        float crit = preHitCrit(helper, player, hatchet, pig, 3.0F, 1.5F);
+        helper.assertTrue(Math.abs(crit - 4.0F) < 0.001F,
+                "expected +1.0 on a vanilla 1.5x crit (3 -> 4), got " + crit);
+
+        pig.discard();
+        helper.succeed();
+    }
+
+    /** {@code forgeweave:escalating}: the ramp only builds from consecutive fully-charged landed hits. */
+    @GameTest(template = "empty")
+    public static void escalatingBuildsOnlyFromConsecutiveFullyChargedHits(GameTestHelper helper) {
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        ItemStack hatchet = tool(ForgeweaveItems.TOOL_HATCHET.get(), List.of(traitId("escalating")), 3.0F);
+        Zombie target = noAi(helper.spawn(EntityType.ZOMBIE, new BlockPos(2, 2, 2)));
+
+        onHitCharged(helper, player, hatchet, target, 0.5F); // not fully charged: must not build a stack
+        long gameTime = helper.getLevel().getGameTime();
+        helper.assertTrue(DamageRamp.ESCALATING.liveStacks(hatchet, gameTime) == 0,
+                "a non-full-charge hit must not build the escalating ramp, got "
+                        + DamageRamp.ESCALATING.liveStacks(hatchet, gameTime));
+
+        onHitCharged(helper, player, hatchet, target, 1.0F);
+        onHitCharged(helper, player, hatchet, target, 1.0F);
+        gameTime = helper.getLevel().getGameTime();
+        helper.assertTrue(DamageRamp.ESCALATING.liveStacks(hatchet, gameTime) == 2,
+                "two consecutive fully-charged hits should leave two stacks, got "
+                        + DamageRamp.ESCALATING.liveStacks(hatchet, gameTime));
+
+        float bonused = preHitCharged(helper, player, hatchet, target, 1.0F, 1.0F);
+        helper.assertTrue(Math.abs(bonused - 1.3F) < 0.001F,
+                "expected +0.30 from two stacks (1 -> 1.3), got " + bonused);
+
+        target.discard();
+        helper.succeed();
+    }
+
     // ------------------------------------------------------------------ plumbing
 
     /** The blow's pre-mitigation damage after every seam the stack resolves to adjusted it. */
@@ -565,6 +823,44 @@ public class CombatTraitGameTests {
             result = seam.preHit(hit, damage, result);
         }
         return result;
+    }
+
+    /**
+     * {@link #preHit}, with the swing's charge set explicitly rather than defaulting to a full one
+     * -- {@code surging}/{@code escalating}'s gate ({@link HitCondition#FULL_CHARGE}) is otherwise
+     * unreachable from a test.
+     */
+    private static float preHitCharged(GameTestHelper helper, Player attacker, ItemStack weapon,
+            LivingEntity target, float damage, float attackStrengthScale) {
+        CombatHit hit = new CombatHit(helper.getLevel(), weapon, attacker, target,
+                helper.getLevel().damageSources().playerAttack(attacker), attackStrengthScale);
+        float result = damage;
+        for (CombatSeam seam : CombatSeams.seams(weapon)) {
+            result = seam.preHit(hit, damage, result);
+        }
+        return result;
+    }
+
+    /** {@link #preHit}, with the blow's crit multiplier set explicitly -- {@code ruthless}'s gate. */
+    private static float preHitCrit(GameTestHelper helper, Player attacker, ItemStack weapon, LivingEntity target,
+            float damage, float critMultiplier) {
+        CombatHit hit = new CombatHit(helper.getLevel(), weapon, attacker, target,
+                helper.getLevel().damageSources().playerAttack(attacker), 1.0F, critMultiplier);
+        float result = damage;
+        for (CombatSeam seam : CombatSeams.seams(weapon)) {
+            result = seam.preHit(hit, damage, result);
+        }
+        return result;
+    }
+
+    /** {@link #onHit}, with the swing's charge set explicitly -- {@code escalating}'s build gate. */
+    private static void onHitCharged(GameTestHelper helper, Player attacker, ItemStack weapon, LivingEntity target,
+            float attackStrengthScale) {
+        CombatHit hit = new CombatHit(helper.getLevel(), weapon, attacker, target,
+                helper.getLevel().damageSources().playerAttack(attacker), attackStrengthScale);
+        for (CombatSeam seam : CombatSeams.seams(weapon)) {
+            seam.onHit(hit, 1.0F);
+        }
     }
 
     /** Runs every seam's on-hit for one landed blow, the way {@link CombatSeams#onDamageDealt} would. */

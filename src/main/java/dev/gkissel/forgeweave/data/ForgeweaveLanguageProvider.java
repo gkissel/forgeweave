@@ -1716,6 +1716,35 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("trait.forgeweave.skyfall.name", "Skyfall");
         add("trait.forgeweave.skyfall.description", "Reduces the effect of gravity.");
         add("effect.forgeweave.pierce", "Pierced");
+        // #827 -- the M6 damage-scaling trait behavior library (ADR-0004). Own names, own wording;
+        // not assigned to a material yet, so no ported upstream row applies here.
+        add("trait.forgeweave.pristine.name", "Pristine");
+        add("trait.forgeweave.pristine.description", "Deals more damage the less worn the tool is.");
+        add("trait.forgeweave.vigorous.name", "Vigorous");
+        add("trait.forgeweave.vigorous.description", "Deals more damage while the wielder is healthy.");
+        add("trait.forgeweave.predatory.name", "Predatory");
+        add("trait.forgeweave.predatory.description", "Deals more damage to targets that are already hurt.");
+        add("trait.forgeweave.colossal.name", "Colossal");
+        add("trait.forgeweave.colossal.description", "Deals more damage to targets with a lot of health.");
+        add("trait.forgeweave.kinetic.name", "Kinetic");
+        add("trait.forgeweave.kinetic.description", "Deals more damage the faster the wielder is moving.");
+        add("trait.forgeweave.dominant.name", "Dominant");
+        add("trait.forgeweave.dominant.description", "Deals bonus damage to targets weaker than the wielder.");
+        add("trait.forgeweave.armor_breaker.name", "Armor Breaker");
+        add("trait.forgeweave.armor_breaker.description", "Deals bonus damage to armored targets.");
+        add("trait.forgeweave.opportunist.name", "Opportunist");
+        add("trait.forgeweave.opportunist.description", "Deals bonus damage to targets already suffering a harmful effect.");
+        add("trait.forgeweave.surging.name", "Surging");
+        add("trait.forgeweave.surging.description", "A fully-charged swing deals extra damage.");
+        add("trait.forgeweave.surging2.name", "Surging II");
+        add("trait.forgeweave.surging2.description", "A fully-charged swing deals even more extra damage.");
+        add("trait.forgeweave.surging3.name", "Surging III");
+        add("trait.forgeweave.surging3.description", "A fully-charged swing deals a lot of extra damage.");
+        add("trait.forgeweave.ruthless.name", "Ruthless");
+        add("trait.forgeweave.ruthless.description", "Critical hits deal even more damage.");
+        add("trait.forgeweave.escalating.name", "Escalating");
+        add("trait.forgeweave.escalating.description",
+                "Consecutive fully-charged hits deal more and more damage, fading if you stop landing them.");
 
         // The guide book (issue #273). The item name, book title/subtitle and the static pages'
         // text are ported (rewritten in Forgeweave vocabulary) from upstream 1.12's book data tree
