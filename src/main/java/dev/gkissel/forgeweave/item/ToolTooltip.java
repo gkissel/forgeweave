@@ -29,6 +29,8 @@ import dev.gkissel.forgeweave.modifier.ForgeweaveModifiers;
 import dev.gkissel.forgeweave.modifier.ModifierEntry;
 import dev.gkissel.forgeweave.tool.ToolMaterials;
 import dev.gkissel.forgeweave.tool.ToolStats;
+import dev.gkissel.forgeweave.trait.EnergyBuffer;
+import dev.gkissel.forgeweave.trait.ForgeweaveTraits;
 
 /**
  * Builds the hover-text lines for an assembled {@link ToolItem} stack: durability (broken-integrated),
@@ -145,6 +147,13 @@ final class ToolTooltip {
                             .withStyle(ChatFormatting.DARK_RED, ChatFormatting.BOLD)));
         } else {
             tooltip.add(durabilityLine(stack));
+        }
+        // #830: an energy-buffer trait's stored/capacity, shown right after durability -- the other
+        // resource pool a tool can carry. Absent entirely for a tool with no energy trait (a zero
+        // capacity), so this costs nothing for the vast majority of tools.
+        int energyCapacity = ForgeweaveTraits.energyCapacity(stack);
+        if (energyCapacity > 0) {
+            tooltip.add(energyLine(EnergyBuffer.stored(stack), energyCapacity));
         }
         // M3.5 #394, upstream ToolCore#getInformation's Category.LAUNCHER block: draw speed as
         // seconds to full draw (TooltipBuilder#addDrawSpeed: drawTime / (20 * drawSpeed)), range,
@@ -289,6 +298,17 @@ final class ToolTooltip {
                 .append(Component.literal("/").withStyle(ChatFormatting.GRAY))
                 .append(Component.literal(Integer.toString(max))
                         .withStyle(Style.EMPTY.withColor(StationText.DURABILITY_COLOR)));
+    }
+
+    /** {@code Stored Energy: 12000/32000} -- same shape as {@link #durabilityLine}, in Forge Energy's colour. */
+    private static Component energyLine(int stored, int capacity) {
+        return Component.translatable("tooltip.forgeweave.energy")
+                .append(": ")
+                .append(Component.literal(Integer.toString(stored))
+                        .withStyle(Style.EMPTY.withColor(StationText.ENERGY_COLOR)))
+                .append(Component.literal("/").withStyle(ChatFormatting.GRAY))
+                .append(Component.literal(Integer.toString(capacity))
+                        .withStyle(Style.EMPTY.withColor(StationText.ENERGY_COLOR)));
     }
 
     /** The three launcher lines, for a bow only -- see {@link StationText#launcherStats}. */

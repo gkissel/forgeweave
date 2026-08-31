@@ -1550,6 +1550,49 @@ public final class ForgeweaveTraits {
      */
     public static final Trait ESCALATING = seamTrait(DamageRamp.ESCALATING);
 
+    // ---------------------------------------------------------------- M6 energy buffer trait
+    // behavior library (issue #830, ADR-0004). Ideas are inspiration-only (design pool
+    // docs/research/m6-material-expansion-references.md §3, §6.5 -- TAIGA/PlusTiC/Moar
+    // Tinkers/Tinkers' Evolution, all non-MIT -- CLAUDE.md); every name, description and magnitude
+    // below is Forgeweave's own, not ported. Material wiring is a later M6 issue -- these are
+    // registered but not yet assigned to any material. Magnitudes are proposed here and flagged for
+    // a maintainer decision on issue #830, the pattern issue #160's DamageRamp.KATANA numbers,
+    // #103's metal traits and #827's damage-scaling batch all used.
+
+    /**
+     * Proposed (issue #830 maintainer decision): 32,000 FE capacity, 40 FE buys back one point of
+     * durability -- a full buffer covers 800 durability points before falling back to the tool's
+     * own pool, roughly a diamond tool's whole lifespan.
+     */
+    private static final int ENERGIZED_CAPACITY = 32000;
+    private static final float ENERGIZED_FE_PER_DURABILITY_POINT = 40.0F;
+
+    /**
+     * {@code energized(capacity, perDurabilityPoint)}: the tool spends stored energy before
+     * durability. See {@link EnergyBuffer} for the buffer shape, the item capability and why only
+     * the current amount persists.
+     */
+    public static final Trait ENERGIZED = new EnergyBuffer(ENERGIZED_CAPACITY, ENERGIZED_FE_PER_DURABILITY_POINT);
+
+    /**
+     * Proposed (issue #830 maintainer decision): 2 FE/tick (40 FE/s) -- a full 32,000 FE buffer
+     * takes roughly 13 minutes of continuous daylight, a slow trickle rather than a primary source.
+     */
+    private static final int SOLAR_RECHARGE_RATE = 2;
+
+    /** {@code solar_recharge(ratePerTick)}: refills the buffer while the holder stands in daylight. */
+    public static final Trait SOLAR_RECHARGE = new SolarRecharge(SOLAR_RECHARGE_RATE);
+
+    /**
+     * Proposed (issue #830 maintainer decision): 5 FE stored per point of damage dealt -- a
+     * supplementary top-up, not a primary source; filling the proposed 32,000 FE buffer from combat
+     * alone takes on the order of a hundred solid hits.
+     */
+    private static final float KINETIC_CHARGE_FRACTION = 5.0F;
+
+    /** {@code kinetic_charge(fractionOfDamage)}: converts damage dealt into stored energy. */
+    public static final Trait KINETIC_CHARGE = seamTrait(new KineticCharge(KINETIC_CHARGE_FRACTION));
+
     // ---------------------------------------------------------------- #626 (parity audit T17): the
     // five ammo-side traits, TinkerTraits:106-110, registered inert by #626's first slice and given
     // their entity-side behavior with the material arrow (#653). Freezing rides the combat seams
@@ -1983,6 +2026,20 @@ public final class ForgeweaveTraits {
         return bonus;
     }
 
+    /**
+     * Total FE capacity every trait on {@code stack} contributes ({@link Trait#energyCapacity}),
+     * summed the same way {@link #maxDurabilityBonus} is. Zero for a tool with no energy trait --
+     * what keeps {@code Capabilities.EnergyStorage.ITEM} absent for it (issue #830 deliverable 1,
+     * {@link EnergyBuffer#capability}).
+     */
+    public static int energyCapacity(ItemStack stack) {
+        int capacity = 0;
+        for (Trait trait : of(stack)) {
+            capacity += trait.energyCapacity();
+        }
+        return capacity;
+    }
+
     private static int stackLevel(ItemStack stack, DataComponentType<TraitStacks> component) {
         TraitStacks stacks = stack.get(component);
         return stacks == null ? 0 : stacks.level();
@@ -2077,6 +2134,11 @@ public final class ForgeweaveTraits {
             Map.entry(id("surging3"), SURGING3),
             Map.entry(id("ruthless"), RUTHLESS),
             Map.entry(id("escalating"), ESCALATING),
+            // #830 M6 energy buffer trait behavior library (ADR-0004); not yet assigned to a
+            // material -- that wiring is a later M6 issue.
+            Map.entry(id("energized"), ENERGIZED),
+            Map.entry(id("solar_recharge"), SOLAR_RECHARGE),
+            Map.entry(id("kinetic_charge"), KINETIC_CHARGE),
             // #626 T17 ammo traits; entity-side behavior lands with the material arrow.
             Map.entry(id("breakable"), BREAKABLE),
             Map.entry(id("endspeed"), ENDSPEED),

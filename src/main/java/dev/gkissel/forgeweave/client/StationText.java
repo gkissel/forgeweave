@@ -83,6 +83,8 @@ public final class StationText {
     public static final TextColor ARMOR_COLOR = TextColor.fromRgb(0x8547CC);
     /** #728: the overslime row, {@code ForgeweaveTraits#OVERSLIME_BAR_COLOR}. */
     public static final TextColor OVERSLIME_COLOR = TextColor.fromRgb(ForgeweaveTraits.OVERSLIME_BAR_COLOR);
+    /** #830: the energy-buffer row -- Forge Energy's own conventional orange. */
+    public static final TextColor ENERGY_COLOR = TextColor.fromRgb(0xEE7621);
 
     /** Trailing-zero-free numbers, so 1.0 reads "1" and 1.25 reads "1.25" (upstream's {@code Util.df}). */
     private static final DecimalFormat FORMAT =

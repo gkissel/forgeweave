@@ -220,6 +220,20 @@ public interface Trait {
         return 0;
     }
 
+    // #830 M6 energy buffer trait behavior library.
+
+    /**
+     * FE capacity this trait grants to the tool's stored-energy buffer -- summed across every trait
+     * on the tool by {@code ForgeweaveTraits#energyCapacity}, the same shape {@link
+     * #maxDurabilityBonus} sums. {@code trait.EnergyBuffer} ({@code energized}) is the one shipped
+     * user; a tool with no such trait sums to zero, which is what keeps {@code
+     * Capabilities.EnergyStorage.ITEM} absent for it (issue #830 deliverable 1) -- see {@code
+     * trait.EnergyBuffer#capability}.
+     */
+    default int energyCapacity() {
+        return 0;
+    }
+
     // #228 mining/durability-economy traits (duritos, dense, aquadynamic, aridiculous, crumbling,
     // unnatural, squeaky, autosmelt).
 
