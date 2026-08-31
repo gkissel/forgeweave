@@ -30,6 +30,44 @@ import net.minecraft.world.level.block.Block;
  * <p>Registered as a NeoForge datapack registry with a network codec, so the server loads it on
  * {@code /reload} and syncs it to connecting clients for free. Look entries up through
  * {@code registryAccess().registryOrThrow(Material.REGISTRY)} on either side.
+ *
+ * <h2>Existence-gating a cross-mod material (issue #826, M6)</h2>
+ *
+ * <p>Every datapack-registry element here decodes through NeoForge's own {@code ConditionalOps}
+ * (verified against the {@code neoforge-21.1.248-userdev.jar} patch of {@code
+ * RegistryDataLoader}), so a top-level {@code "neoforge:conditions": [...]} array on a material
+ * JSON makes that material -- and only that material -- not exist at all when the array's
+ * condition fails: not registered, not synced, invisible to every consumer that iterates {@link
+ * #REGISTRY} ({@code ForgeweaveCreativeTab}, {@code ForgeweaveJeiPlugin}, {@code BookContent},
+ * {@code PartBuilderRecipes}) with zero code changes at any of those call sites. This is strictly
+ * stronger than gating only {@link #craftingItems}/{@link #repairItem} on a {@code c:} tag (the
+ * pre-#826 shape bronze/lead/silver/electrum shipped with) -- a tag gate leaves the material
+ * registered but uncraftable, so it still shows up as a ghost entry in creative/JEI/the book
+ * (docs/research/m6-material-expansion-references.md &sect;1.3's cautionary tale).
+ *
+ * <p><b>Which condition primitive.</b> Registry-element conditions evaluate with {@code
+ * ICondition.IContext.TAGS_INVALID}: tags are not loaded yet at this point in startup, so any
+ * tag-based condition (e.g. {@code neoforge:tag_empty}) <em>throws</em>, not just fails. The usable
+ * vocabulary is {@code neoforge:mod_loaded} (a modid), {@code neoforge:item_exists} (a concrete
+ * item id -- the item registry is frozen by now) and the {@code and}/{@code or}/{@code not}/{@code
+ * true}/{@code false} combinators. One provider mod: a single {@code item_exists} (or {@code
+ * mod_loaded}) condition. Several providers of the same metal: an {@code or} of one {@code
+ * item_exists} per provider's concrete ingot id -- never a tag, and never one preset per modid
+ * (JC2, docs/research/m6-material-expansion-references.md).
+ *
+ * <p><b>Keep the obtainability gate too.</b> {@link #craftingItems}/{@link #repairItem} stay
+ * gated on the same {@code c:} tags they always were -- that is still how the Part Builder accepts
+ * another mod's ingot once the existence condition has already let the material register. The two
+ * gates answer different questions: existence ("does this metal's mod exist") and obtainability
+ * ("does the Part Builder currently have an item to accept").
+ *
+ * <p><b>Companion registry entries.</b> {@code melting_recipe}, {@code casting_recipe}, {@code
+ * alloy_recipe}, {@code entity_melting_recipe}, {@code smeltery_fuel}, {@code modifier_recipe} and
+ * {@code embossing_recipe} decode through the same conditional loader and support the same field.
+ * Any entry referencing a conditional material's id or its fluid must carry a matching {@code
+ * neoforge:conditions} block, or it dangles against something that may not exist. The four M3.2
+ * compat metals need none (deliberately: no Forgeweave fluid or casting recipe, Part Builder path
+ * only -- JC3), but a metal with a full smeltery chain will.
  */
 public record Material(
         Optional<Head> head,

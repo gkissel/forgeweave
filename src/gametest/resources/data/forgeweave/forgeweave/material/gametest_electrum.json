@@ -34,8 +34,5 @@
     "tag": "c:ingots/electrum"
   },
   "enchantability": 22,
-  "color": "#E8DB49",
-  "neoforge:conditions": [
-    { "type": "neoforge:item_exists", "item": "immersiveengineering:ingot_electrum" }
-  ]
+  "color": "#E8DB49"
 }

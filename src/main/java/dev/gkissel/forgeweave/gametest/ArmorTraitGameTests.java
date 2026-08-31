@@ -132,7 +132,12 @@ public class ArmorTraitGameTests {
     /** Silver -&gt; consecrated: 1.25 against an undead attacker, nothing against a player. */
     @GameTest(template = "empty")
     public static void consecratedAgainstTheUndead(GameTestHelper helper) {
-        Player player = wearing(helper, "silver", "silver");
+        // "gametest_silver", not "silver": issue #826 existence-gates silver on
+        // immersiveengineering:ingot_silver, which no GameTest server has loaded, so the real
+        // material is absent here. The gametest-only fixture (src/gametest/resources/README.md)
+        // carries silver's exact stats and traits with no condition, so this trait-behavior test
+        // keeps proving what it always proved.
+        Player player = wearing(helper, "gametest_silver", "gametest_silver");
         Zombie zombie = zombie(helper);
         DamageSource bite = helper.getLevel().damageSources().mobAttack(zombie);
         assertRatio(helper, lost(player, bite, BLOW), lostWithoutTraits(player, bite, BLOW), 1.25F, "zombie");

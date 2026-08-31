@@ -35,8 +35,5 @@
     "tag": "c:ingots/silver"
   },
   "enchantability": 20,
-  "color": "#D1ECF6",
-  "neoforge:conditions": [
-    { "type": "neoforge:item_exists", "item": "immersiveengineering:ingot_silver" }
-  ]
+  "color": "#D1ECF6"
 }

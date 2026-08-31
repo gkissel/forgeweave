@@ -34,5 +34,8 @@
     "tag": "c:ingots/bronze"
   },
   "enchantability": 14,
-  "color": "#E3BD68"
+  "color": "#E3BD68",
+  "neoforge:conditions": [
+    { "type": "neoforge:item_exists", "item": "mekanism:ingot_bronze" }
+  ]
 }

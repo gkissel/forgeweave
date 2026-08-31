@@ -50,6 +50,13 @@ import dev.gkissel.forgeweave.trait.ShockingCharge;
  * directly -- an arrow entity built the way {@link BowItem#createArrow} builds it, and the damage
  * source vanilla's {@code AbstractArrow#onHitEntity} would use -- rather than flying one across the
  * structure, so they are deterministic.
+ *
+ * <p>The two shocking-charge tests below build their bow from {@code "gametest_electrum"}, not
+ * {@code "electrum"}: issue #826 existence-gates electrum on {@code immersiveengineering:ingot_electrum},
+ * which no GameTest server has loaded, so the real material is absent here. The gametest-only
+ * fixture (src/gametest/resources/README.md) carries electrum's exact stats and its {@code
+ * shocking} trait with no condition, so these trait-behavior tests keep proving what they always
+ * proved.
  */
 @GameTestHolder(Forgeweave.MODID)
 @PrefixGameTestTemplate(false)
@@ -325,7 +332,7 @@ public class LauncherBranchGameTests {
     @GameTest(template = "empty")
     public static void arrowHitDischargesTheLiveBowNotTheArrowsCopy(GameTestHelper helper) {
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
-        ItemStack bow = shortbow(helper, player, new BlockPos(1, 1, 1), "electrum", "electrum");
+        ItemStack bow = shortbow(helper, player, new BlockPos(1, 1, 1), "gametest_electrum", "gametest_electrum");
         List<ResourceLocation> traits = bow.get(ForgeweaveDataComponents.TRAITS.get());
         helper.assertTrue(traits != null && traits.contains(id("shocking")), "electrum limbs carry shocking, got " + traits);
         player.setItemInHand(InteractionHand.MAIN_HAND, fullyCharged(bow));
@@ -372,7 +379,7 @@ public class LauncherBranchGameTests {
     @GameTest(template = "empty")
     public static void anArrowFromAStowedBowLeavesItAlone(GameTestHelper helper) {
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
-        ItemStack bow = fullyCharged(shortbow(helper, player, new BlockPos(1, 1, 1), "electrum", "electrum"));
+        ItemStack bow = fullyCharged(shortbow(helper, player, new BlockPos(1, 1, 1), "gametest_electrum", "gametest_electrum"));
         player.setItemInHand(InteractionHand.MAIN_HAND, ItemStack.EMPTY);
 
         Pig target = helper.spawn(EntityType.PIG, new BlockPos(2, 2, 2));

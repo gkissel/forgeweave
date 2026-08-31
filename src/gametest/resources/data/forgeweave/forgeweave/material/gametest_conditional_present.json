@@ -1,0 +1,26 @@
+{
+  "head": {
+    "durability": 35,
+    "mining_speed": 2.0,
+    "attack_damage": 2.0
+  },
+  "handle": {
+    "durability_modifier": 1.0,
+    "durability": 25
+  },
+  "extra_durability": 15,
+  "incorrect_for_tool": "minecraft:incorrect_for_wooden_tool",
+  "traits": {
+    "general": ["forgeweave:ecological"]
+  },
+  "crafting_items": [
+    { "ingredient": { "tag": "c:ingots/bronze" }, "value": 144 }
+  ],
+  "repair_item": {
+    "tag": "c:ingots/bronze"
+  },
+  "color": "#8E661B",
+  "neoforge:conditions": [
+    { "type": "neoforge:item_exists", "item": "minecraft:diamond" }
+  ]
+}

@@ -299,8 +299,15 @@ public final class ForgeweaveCreativeTab {
      * the unit tests can drive both settings without standing up a {@code CLIENT}-type config spec
      * -- the same split {@code ToolTooltip#append} already uses for its Shift flag. Only the
      * part-material expansion at the bottom reads it; every plain item here is listed regardless.
+     *
+     * <p>Public (unlike the overload above) for the same reason as {@link #addGeneralItems}'s
+     * 3-arg overload (issue #826): {@code ConditionalMaterialGameTests} drives this from a real
+     * GameTest server's registry access to prove an existence-gated material's parts stay out of the
+     * tab -- the per-material expansion below reads {@link Material#REGISTRY} fresh every call, so a
+     * material a condition kept out of the registry was never a candidate -- without a dedicated
+     * server standing up the {@code CLIENT}-type {@link ForgeweaveClientConfig}.
      */
-    static void addPartItems(CreativeModeTab.ItemDisplayParameters parameters, CreativeModeTab.Output rawOutput,
+    public static void addPartItems(CreativeModeTab.ItemDisplayParameters parameters, CreativeModeTab.Output rawOutput,
             boolean listAllPartMaterials) {
         CreativeModeTab.Output output = enabledOnly(rawOutput);
 

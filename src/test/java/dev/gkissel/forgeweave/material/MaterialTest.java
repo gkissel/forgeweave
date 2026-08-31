@@ -142,8 +142,32 @@ class MaterialTest {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = { "wood", "stone", "flint", "bone" })
+    @ValueSource(strings = { "wood", "stone", "flint", "bone", "bronze", "lead", "silver", "electrum" })
     void shippedMaterialsParse(String name) {
+        Material.CODEC.parse(ops, shipped(name)).getOrThrow();
+    }
+
+    /**
+     * Issue #826 deliverable 2: {@link Material#CODEC} is {@code RecordCodecBuilder}-based, so it
+     * silently ignores a JSON key it does not name -- {@code neoforge:conditions} is stripped by the
+     * real loader's {@code ConditionalOps} before this codec ever sees it, but this test parses the
+     * raw shipped JSON the same way {@link #shippedMaterialsParse} above does (plain {@link #ops},
+     * no {@code ConditionalOps}) to pin that tolerance down, rather than assume it.
+     */
+    @ParameterizedTest
+    @ValueSource(strings = { "bronze", "lead", "silver", "electrum" })
+    void conditionalMaterialsCarryAWellFormedConditionsBlockAndStillParse(String name) {
+        JsonObject json = shipped(name).getAsJsonObject();
+        assertTrue(json.has("neoforge:conditions"), name + " must carry a neoforge:conditions block (issue #826)");
+        assertTrue(json.get("neoforge:conditions").isJsonArray(), name + "'s neoforge:conditions must be an array");
+        for (JsonElement condition : json.getAsJsonArray("neoforge:conditions")) {
+            assertTrue(condition.isJsonObject(), name + "'s condition entries must be objects, got " + condition);
+            String type = condition.getAsJsonObject().get("type").getAsString();
+            assertTrue(type.startsWith("neoforge:"),
+                    name + "'s condition type must be a neoforge: primitive (issue #826, tags throw), got " + type);
+        }
+
+        // The codec ignores the extra key rather than rejecting it -- see the class javadoc above.
         Material.CODEC.parse(ops, shipped(name)).getOrThrow();
     }
 
