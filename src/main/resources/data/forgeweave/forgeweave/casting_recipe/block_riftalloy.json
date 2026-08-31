@@ -1,0 +1,8 @@
+{
+  "station": "basin",
+  "fluid": "forgeweave:molten_riftalloy",
+  "amount": 1296,
+  "result": {
+    "id": "forgeweave:riftalloy_block"
+  }
+}

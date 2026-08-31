@@ -1,0 +1,16 @@
+{
+  "inputs": [
+    {
+      "fluid": "forgeweave:molten_nightshale",
+      "amount": 144
+    },
+    {
+      "fluid": "forgeweave:molten_ironbrand",
+      "amount": 72
+    }
+  ],
+  "result": {
+    "fluid": "forgeweave:molten_daybrass",
+    "amount": 144
+  }
+}

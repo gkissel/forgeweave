@@ -1,0 +1,8 @@
+{
+  "input": {
+    "tag": "c:ores/voidglass"
+  },
+  "fluid": "forgeweave:molten_voidglass",
+  "amount": 144,
+  "ore": true
+}

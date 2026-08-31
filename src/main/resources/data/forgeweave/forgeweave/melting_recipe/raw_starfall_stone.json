@@ -1,0 +1,8 @@
+{
+  "input": {
+    "tag": "c:raw_materials/starfall_stone"
+  },
+  "fluid": "forgeweave:molten_starfall_stone",
+  "amount": 144,
+  "ore": true
+}

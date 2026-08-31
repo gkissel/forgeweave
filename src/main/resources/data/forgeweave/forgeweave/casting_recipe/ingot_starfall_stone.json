@@ -1,0 +1,11 @@
+{
+  "station": "table",
+  "cast": {
+    "item": "forgeweave:cast_ingot"
+  },
+  "fluid": "forgeweave:molten_starfall_stone",
+  "amount": 144,
+  "result": {
+    "id": "forgeweave:starfall_stone_ingot"
+  }
+}

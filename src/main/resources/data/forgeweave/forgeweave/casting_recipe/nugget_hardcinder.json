@@ -1,0 +1,11 @@
+{
+  "station": "table",
+  "cast": {
+    "item": "forgeweave:cast_nugget"
+  },
+  "fluid": "forgeweave:molten_hardcinder",
+  "amount": 16,
+  "result": {
+    "id": "forgeweave:hardcinder_nugget"
+  }
+}

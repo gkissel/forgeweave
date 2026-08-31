@@ -1,0 +1,8 @@
+{
+  "input": {
+    "tag": "c:ores/murkiron"
+  },
+  "fluid": "forgeweave:molten_murkiron",
+  "amount": 144,
+  "ore": true
+}

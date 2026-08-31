@@ -1,0 +1,14 @@
+{
+  "station": "table",
+  "cast": {
+    "item": "forgeweave:cast_large_plate"
+  },
+  "fluid": "forgeweave:molten_ironbrand",
+  "amount": 1152,
+  "result": {
+    "id": "forgeweave:large_plate",
+    "components": {
+      "forgeweave:material": "forgeweave:ironbrand"
+    }
+  }
+}

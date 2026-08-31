@@ -1,0 +1,15 @@
+{
+  "station": "table",
+  "cast": {
+    "item": "forgeweave:clay_cast_shard"
+  },
+  "fluid": "forgeweave:molten_starfall_stone",
+  "amount": 72,
+  "result": {
+    "id": "forgeweave:shard",
+    "components": {
+      "forgeweave:material": "forgeweave:starfall_stone"
+    }
+  },
+  "consumes_cast": true
+}

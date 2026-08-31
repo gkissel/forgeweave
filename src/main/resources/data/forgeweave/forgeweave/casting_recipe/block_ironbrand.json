@@ -1,0 +1,8 @@
+{
+  "station": "basin",
+  "fluid": "forgeweave:molten_ironbrand",
+  "amount": 1296,
+  "result": {
+    "id": "forgeweave:ironbrand_block"
+  }
+}

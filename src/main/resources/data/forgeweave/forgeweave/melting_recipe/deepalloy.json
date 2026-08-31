@@ -1,0 +1,7 @@
+{
+  "input": {
+    "item": "minecraft:echo_shard"
+  },
+  "fluid": "forgeweave:molten_deepalloy",
+  "amount": 32
+}

@@ -21,6 +21,7 @@ import dev.gkissel.forgeweave.block.SmelteryScan;
 import dev.gkissel.forgeweave.fluid.ForgeweaveFluids;
 import dev.gkissel.forgeweave.item.ForgeweaveItems;
 import dev.gkissel.forgeweave.ponder.ForgeweavePonderPlugin;
+import dev.gkissel.forgeweave.trackb.TrackBAlloy;
 import dev.gkissel.forgeweave.trackb.TrackBOre;
 
 /**
@@ -1508,6 +1509,23 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         // #844 -- meltable dragon breath (issue #181), the fluid #845's End-core pour-to-transform pours.
         addFluid(ForgeweaveFluids.DRAGON_BREATH, "Molten Dragon Breath");
 
+        // #840 -- Track B's molten fluids (M6 epic #824): the 12 ore-metal fluids (names are the
+        // research doc §7.3 naming scaffold's own ids, title-cased, "Molten " prefix like every other
+        // metal fluid above), the 18 alloy fluids, and the 7 smeltery-only catalyst fluids.
+        for (TrackBOre ore : TrackBOre.ALL) {
+            addFluid(ForgeweaveFluids.trackBOreFluid(ore.id()), "Molten " + ore.displayName());
+        }
+        for (TrackBAlloy alloy : TrackBAlloy.ALL) {
+            addFluid(ForgeweaveFluids.trackBAlloyFluid(alloy.id()), "Molten " + alloy.displayName());
+        }
+        addFluid(ForgeweaveFluids.FLAREALLOY, "Molten Flarealloy");
+        addFluid(ForgeweaveFluids.DEEPALLOY, "Molten Deepalloy");
+        addFluid(ForgeweaveFluids.SPARKALLOY, "Molten Sparkalloy");
+        addFluid(ForgeweaveFluids.REDCINDER, "Molten Redcinder");
+        addFluid(ForgeweaveFluids.PEARLCINDER, "Molten Pearlcinder");
+        addFluid(ForgeweaveFluids.AMBERCINDER, "Molten Ambercinder");
+        addFluid(ForgeweaveFluids.TWINALLOY, "Molten Twinalloy");
+
         // #232 -- the knightslime alloy chain's three fluids (docs/SCOPE.md M3.2). Upstream calls
         // its seared stone fluid plainly "Seared Stone"; the molten_ prefix names follow this
         // family's convention instead.
@@ -1678,6 +1696,15 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
             addItem(ForgeweaveItems.trackBIngot(ore.id()), name + " Ingot");
             addItem(ForgeweaveItems.trackBNugget(ore.id()), name + " Nugget");
             addItem(ForgeweaveItems.trackBRawItem(ore.id()), "Raw " + name);
+        }
+
+        // #840 -- Track B's 18 alloy tool materials: same naming-scaffold-id-title-cased convention,
+        // alloy-only so ingot/nugget/"Block of <Name>" only, no raw form.
+        for (TrackBAlloy alloy : TrackBAlloy.ALL) {
+            String alloyName = alloy.displayName();
+            addBlock(ForgeweaveBlocks.trackBAlloyBlock(alloy.id()), "Block of " + alloyName);
+            addItem(ForgeweaveItems.trackBAlloyIngot(alloy.id()), alloyName + " Ingot");
+            addItem(ForgeweaveItems.trackBAlloyNugget(alloy.id()), alloyName + " Nugget");
         }
 
         // #233 -- pig iron items + firewood. Ingot/nugget/block names space upstream 1.12's

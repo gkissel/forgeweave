@@ -1,0 +1,14 @@
+{
+  "station": "table",
+  "cast": {
+    "item": "forgeweave:cast_pan"
+  },
+  "fluid": "forgeweave:molten_riftalloy",
+  "amount": 432,
+  "result": {
+    "id": "forgeweave:pan",
+    "components": {
+      "forgeweave:material": "forgeweave:riftalloy"
+    }
+  }
+}

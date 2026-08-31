@@ -1,0 +1,7 @@
+{
+  "input": {
+    "tag": "c:ingots/truesteel"
+  },
+  "fluid": "forgeweave:molten_truesteel",
+  "amount": 144
+}

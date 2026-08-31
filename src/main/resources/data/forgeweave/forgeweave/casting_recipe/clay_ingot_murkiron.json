@@ -1,0 +1,12 @@
+{
+  "station": "table",
+  "cast": {
+    "item": "forgeweave:clay_cast_ingot"
+  },
+  "fluid": "forgeweave:molten_murkiron",
+  "amount": 144,
+  "result": {
+    "id": "forgeweave:murkiron_ingot"
+  },
+  "consumes_cast": true
+}

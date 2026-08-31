@@ -1,0 +1,8 @@
+{
+  "input": {
+    "tag": "c:ores/nightshale"
+  },
+  "fluid": "forgeweave:molten_nightshale",
+  "amount": 144,
+  "ore": true
+}

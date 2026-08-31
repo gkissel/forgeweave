@@ -1,0 +1,14 @@
+{
+  "station": "table",
+  "cast": {
+    "item": "forgeweave:cast_curved_blade"
+  },
+  "fluid": "forgeweave:molten_faultsteel",
+  "amount": 288,
+  "result": {
+    "id": "forgeweave:curved_blade",
+    "components": {
+      "forgeweave:material": "forgeweave:faultsteel"
+    }
+  }
+}

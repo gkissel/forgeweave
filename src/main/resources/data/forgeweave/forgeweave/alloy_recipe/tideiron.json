@@ -1,0 +1,16 @@
+{
+  "inputs": [
+    {
+      "fluid": "forgeweave:molten_cobalt",
+      "amount": 144
+    },
+    {
+      "fluid": "forgeweave:molten_ironbrand",
+      "amount": 72
+    }
+  ],
+  "result": {
+    "fluid": "forgeweave:molten_tideiron",
+    "amount": 144
+  }
+}

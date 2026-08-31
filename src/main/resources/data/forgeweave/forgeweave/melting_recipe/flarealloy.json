@@ -1,0 +1,7 @@
+{
+  "input": {
+    "item": "minecraft:blaze_powder"
+  },
+  "fluid": "forgeweave:molten_flarealloy",
+  "amount": 32
+}

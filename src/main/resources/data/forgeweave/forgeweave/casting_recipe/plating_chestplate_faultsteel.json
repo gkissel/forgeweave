@@ -1,0 +1,14 @@
+{
+  "station": "table",
+  "cast": {
+    "item": "forgeweave:cast_plating_chestplate"
+  },
+  "fluid": "forgeweave:molten_faultsteel",
+  "amount": 864,
+  "result": {
+    "id": "forgeweave:plating_chestplate",
+    "components": {
+      "forgeweave:material": "forgeweave:faultsteel"
+    }
+  }
+}

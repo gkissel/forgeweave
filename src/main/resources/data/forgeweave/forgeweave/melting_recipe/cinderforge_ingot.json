@@ -1,0 +1,7 @@
+{
+  "input": {
+    "tag": "c:ingots/cinderforge"
+  },
+  "fluid": "forgeweave:molten_cinderforge",
+  "amount": 144
+}

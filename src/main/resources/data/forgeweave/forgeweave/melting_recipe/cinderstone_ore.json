@@ -1,0 +1,8 @@
+{
+  "input": {
+    "tag": "c:ores/cinderstone"
+  },
+  "fluid": "forgeweave:molten_cinderstone",
+  "amount": 144,
+  "ore": true
+}

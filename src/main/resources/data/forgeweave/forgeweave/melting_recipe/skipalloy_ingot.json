@@ -1,0 +1,7 @@
+{
+  "input": {
+    "tag": "c:ingots/skipalloy"
+  },
+  "fluid": "forgeweave:molten_skipalloy",
+  "amount": 144
+}

@@ -1,0 +1,15 @@
+{
+  "station": "table",
+  "cast": {
+    "item": "forgeweave:clay_cast_tool_handle"
+  },
+  "fluid": "forgeweave:molten_faultsteel",
+  "amount": 144,
+  "result": {
+    "id": "forgeweave:tool_handle",
+    "components": {
+      "forgeweave:material": "forgeweave:faultsteel"
+    }
+  },
+  "consumes_cast": true
+}

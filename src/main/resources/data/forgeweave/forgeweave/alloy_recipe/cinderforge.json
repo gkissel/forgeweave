@@ -1,0 +1,20 @@
+{
+  "inputs": [
+    {
+      "fluid": "forgeweave:molten_ardite",
+      "amount": 144
+    },
+    {
+      "fluid": "forgeweave:molten_ironbrand",
+      "amount": 72
+    },
+    {
+      "fluid": "forgeweave:molten_flarealloy",
+      "amount": 32
+    }
+  ],
+  "result": {
+    "fluid": "forgeweave:molten_cinderforge",
+    "amount": 144
+  }
+}

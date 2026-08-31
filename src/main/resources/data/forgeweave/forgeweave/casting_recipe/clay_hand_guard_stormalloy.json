@@ -1,0 +1,15 @@
+{
+  "station": "table",
+  "cast": {
+    "item": "forgeweave:clay_cast_hand_guard"
+  },
+  "fluid": "forgeweave:molten_stormalloy",
+  "amount": 144,
+  "result": {
+    "id": "forgeweave:hand_guard",
+    "components": {
+      "forgeweave:material": "forgeweave:stormalloy"
+    }
+  },
+  "consumes_cast": true
+}

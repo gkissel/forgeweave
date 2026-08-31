@@ -30,6 +30,7 @@ import dev.gkissel.forgeweave.material.Material;
 import dev.gkissel.forgeweave.menu.ContentFamilies;
 import dev.gkissel.forgeweave.menu.ToolAssemblyRecipes;
 import dev.gkissel.forgeweave.tool.ToolConstants;
+import dev.gkissel.forgeweave.trackb.TrackBAlloy;
 import dev.gkissel.forgeweave.trackb.TrackBOre;
 
 /**
@@ -274,6 +275,14 @@ public final class ForgeweaveCreativeTab {
         // #843 -- queen's slime and hepatizon storage blocks (closes #180).
         output.accept(ForgeweaveItems.QUEENS_SLIME_BLOCK.get());
         output.accept(ForgeweaveItems.HEPATIZON_BLOCK.get());
+
+        // #840 -- Track B's 18 alloy tool materials (M6 epic #824): alloy-only, so ingot, nugget and
+        // storage block per material, same grouping as the ore family above.
+        for (TrackBAlloy alloy : TrackBAlloy.ALL) {
+            output.accept(ForgeweaveItems.trackBAlloyIngot(alloy.id()).get());
+            output.accept(ForgeweaveItems.trackBAlloyNugget(alloy.id()).get());
+            output.accept(ForgeweaveItems.trackBAlloyBlockItem(alloy.id()).get());
+        }
     }
 
     /**

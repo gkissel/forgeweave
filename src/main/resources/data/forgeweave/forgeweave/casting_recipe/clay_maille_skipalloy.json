@@ -1,0 +1,15 @@
+{
+  "station": "table",
+  "cast": {
+    "item": "forgeweave:clay_cast_maille"
+  },
+  "fluid": "forgeweave:molten_skipalloy",
+  "amount": 288,
+  "result": {
+    "id": "forgeweave:maille",
+    "components": {
+      "forgeweave:material": "forgeweave:skipalloy"
+    }
+  },
+  "consumes_cast": true
+}

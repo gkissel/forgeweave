@@ -1,0 +1,15 @@
+{
+  "station": "table",
+  "cast": {
+    "item": "forgeweave:clay_cast_pickaxe_head"
+  },
+  "fluid": "forgeweave:molten_duskspar",
+  "amount": 288,
+  "result": {
+    "id": "forgeweave:pickaxe_head",
+    "components": {
+      "forgeweave:material": "forgeweave:duskspar"
+    }
+  },
+  "consumes_cast": true
+}

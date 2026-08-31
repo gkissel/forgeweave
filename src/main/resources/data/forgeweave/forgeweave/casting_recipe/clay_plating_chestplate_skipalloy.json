@@ -1,0 +1,15 @@
+{
+  "station": "table",
+  "cast": {
+    "item": "forgeweave:clay_cast_plating_chestplate"
+  },
+  "fluid": "forgeweave:molten_skipalloy",
+  "amount": 864,
+  "result": {
+    "id": "forgeweave:plating_chestplate",
+    "components": {
+      "forgeweave:material": "forgeweave:skipalloy"
+    }
+  },
+  "consumes_cast": true
+}

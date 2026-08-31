@@ -1,0 +1,8 @@
+{
+  "station": "basin",
+  "fluid": "forgeweave:molten_duskspar",
+  "amount": 1296,
+  "result": {
+    "id": "forgeweave:duskspar_block"
+  }
+}

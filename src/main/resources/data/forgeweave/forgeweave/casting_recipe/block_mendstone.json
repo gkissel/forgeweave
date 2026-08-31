@@ -1,0 +1,8 @@
+{
+  "station": "basin",
+  "fluid": "forgeweave:molten_mendstone",
+  "amount": 1296,
+  "result": {
+    "id": "forgeweave:mendstone_block"
+  }
+}

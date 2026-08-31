@@ -1,0 +1,8 @@
+{
+  "station": "basin",
+  "fluid": "forgeweave:molten_skipalloy",
+  "amount": 1296,
+  "result": {
+    "id": "forgeweave:skipalloy_block"
+  }
+}

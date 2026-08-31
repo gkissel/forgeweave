@@ -1,0 +1,12 @@
+{
+  "station": "table",
+  "cast": {
+    "item": "forgeweave:clay_cast_ingot"
+  },
+  "fluid": "forgeweave:molten_dreadalloy",
+  "amount": 144,
+  "result": {
+    "id": "forgeweave:dreadalloy_ingot"
+  },
+  "consumes_cast": true
+}

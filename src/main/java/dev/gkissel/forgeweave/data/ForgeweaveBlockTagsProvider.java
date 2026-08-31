@@ -18,6 +18,7 @@ import net.neoforged.neoforge.common.data.ExistingFileHelper;
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.block.ForgeweaveBlocks;
 import dev.gkissel.forgeweave.tool.VeinmineKey;
+import dev.gkissel.forgeweave.trackb.TrackBAlloy;
 import dev.gkissel.forgeweave.trackb.TrackBOre;
 
 /**
@@ -153,6 +154,13 @@ public class ForgeweaveBlockTagsProvider extends BlockTagsProvider {
             tag(cTag("storage_blocks/" + ore.id())).add(ForgeweaveBlocks.trackBStorageBlock(ore.id()).get());
             tag(cTag("storage_blocks/raw_" + ore.id())).add(ForgeweaveBlocks.trackBRawBlock(ore.id()).get());
             trackBStorageBlocks.addTag(cTag("storage_blocks/" + ore.id())).addTag(cTag("storage_blocks/raw_" + ore.id()));
+        }
+
+        // #840 -- Track B's 18 alloy tool materials, block side: alloy-only, so just the one storage
+        // block's c:storage_blocks/<id> membership, matching pig_iron/hepatizon's own block-side tags.
+        for (TrackBAlloy alloy : TrackBAlloy.ALL) {
+            tag(cTag("storage_blocks/" + alloy.id())).add(ForgeweaveBlocks.trackBAlloyBlock(alloy.id()).get());
+            trackBStorageBlocks.addTag(cTag("storage_blocks/" + alloy.id()));
         }
 
         // T79 (parity audit 2026-08-18, issue #510) -- the block-side half of

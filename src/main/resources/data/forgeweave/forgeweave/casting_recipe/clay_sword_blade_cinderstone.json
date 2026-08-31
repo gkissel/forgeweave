@@ -1,0 +1,15 @@
+{
+  "station": "table",
+  "cast": {
+    "item": "forgeweave:clay_cast_sword_blade"
+  },
+  "fluid": "forgeweave:molten_cinderstone",
+  "amount": 288,
+  "result": {
+    "id": "forgeweave:sword_blade",
+    "components": {
+      "forgeweave:material": "forgeweave:cinderstone"
+    }
+  },
+  "consumes_cast": true
+}

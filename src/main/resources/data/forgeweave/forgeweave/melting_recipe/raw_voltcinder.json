@@ -1,0 +1,8 @@
+{
+  "input": {
+    "tag": "c:raw_materials/voltcinder"
+  },
+  "fluid": "forgeweave:molten_voltcinder",
+  "amount": 144,
+  "ore": true
+}

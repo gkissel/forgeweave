@@ -1,0 +1,12 @@
+{
+  "station": "table",
+  "cast": {
+    "item": "forgeweave:clay_cast_ingot"
+  },
+  "fluid": "forgeweave:molten_hardcinder",
+  "amount": 144,
+  "result": {
+    "id": "forgeweave:hardcinder_ingot"
+  },
+  "consumes_cast": true
+}

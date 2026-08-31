@@ -1,0 +1,14 @@
+{
+  "station": "table",
+  "cast": {
+    "item": "forgeweave:cast_scythe_head"
+  },
+  "fluid": "forgeweave:molten_ironbrand",
+  "amount": 1152,
+  "result": {
+    "id": "forgeweave:scythe_head",
+    "components": {
+      "forgeweave:material": "forgeweave:ironbrand"
+    }
+  }
+}

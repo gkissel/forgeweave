@@ -1,0 +1,15 @@
+{
+  "station": "table",
+  "cast": {
+    "item": "forgeweave:clay_cast_bow_limb"
+  },
+  "fluid": "forgeweave:molten_duskspar",
+  "amount": 432,
+  "result": {
+    "id": "forgeweave:bow_limb",
+    "components": {
+      "forgeweave:material": "forgeweave:duskspar"
+    }
+  },
+  "consumes_cast": true
+}

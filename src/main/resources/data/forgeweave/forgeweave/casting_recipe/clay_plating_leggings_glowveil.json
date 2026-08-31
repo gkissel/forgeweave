@@ -1,0 +1,15 @@
+{
+  "station": "table",
+  "cast": {
+    "item": "forgeweave:clay_cast_plating_leggings"
+  },
+  "fluid": "forgeweave:molten_glowveil",
+  "amount": 720,
+  "result": {
+    "id": "forgeweave:plating_leggings",
+    "components": {
+      "forgeweave:material": "forgeweave:glowveil"
+    }
+  },
+  "consumes_cast": true
+}

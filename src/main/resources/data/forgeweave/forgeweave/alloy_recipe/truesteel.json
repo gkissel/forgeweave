@@ -1,0 +1,21 @@
+{
+  "inputs": [
+    {
+      "fluid": "forgeweave:molten_resonite",
+      "amount": 144
+    },
+    {
+      "fluid": "forgeweave:molten_sunsteel",
+      "amount": 216
+    },
+    {
+      "fluid": "forgeweave:molten_sparkalloy",
+      "amount": 32
+    }
+  ],
+  "result": {
+    "fluid": "forgeweave:molten_truesteel",
+    "amount": 216
+  },
+  "priority": -1
+}

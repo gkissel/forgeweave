@@ -1,0 +1,8 @@
+{
+  "input": {
+    "tag": "c:ores/hollowstone"
+  },
+  "fluid": "forgeweave:molten_hollowstone",
+  "amount": 144,
+  "ore": true
+}

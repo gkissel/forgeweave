@@ -1,0 +1,15 @@
+{
+  "station": "table",
+  "cast": {
+    "item": "forgeweave:clay_cast_tough_binding"
+  },
+  "fluid": "forgeweave:molten_stormalloy",
+  "amount": 432,
+  "result": {
+    "id": "forgeweave:tough_binding",
+    "components": {
+      "forgeweave:material": "forgeweave:stormalloy"
+    }
+  },
+  "consumes_cast": true
+}

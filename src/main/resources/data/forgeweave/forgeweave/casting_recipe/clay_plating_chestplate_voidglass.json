@@ -1,0 +1,15 @@
+{
+  "station": "table",
+  "cast": {
+    "item": "forgeweave:clay_cast_plating_chestplate"
+  },
+  "fluid": "forgeweave:molten_voidglass",
+  "amount": 864,
+  "result": {
+    "id": "forgeweave:plating_chestplate",
+    "components": {
+      "forgeweave:material": "forgeweave:voidglass"
+    }
+  },
+  "consumes_cast": true
+}

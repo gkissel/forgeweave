@@ -1,0 +1,8 @@
+{
+  "input": {
+    "tag": "c:ores/fulmenite"
+  },
+  "fluid": "forgeweave:molten_fulmenite",
+  "amount": 144,
+  "ore": true
+}

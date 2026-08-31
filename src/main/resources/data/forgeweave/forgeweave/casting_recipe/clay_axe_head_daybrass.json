@@ -1,0 +1,15 @@
+{
+  "station": "table",
+  "cast": {
+    "item": "forgeweave:clay_cast_axe_head"
+  },
+  "fluid": "forgeweave:molten_daybrass",
+  "amount": 288,
+  "result": {
+    "id": "forgeweave:axe_head",
+    "components": {
+      "forgeweave:material": "forgeweave:daybrass"
+    }
+  },
+  "consumes_cast": true
+}

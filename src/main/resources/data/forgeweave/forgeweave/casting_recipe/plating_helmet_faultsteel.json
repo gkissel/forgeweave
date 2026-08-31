@@ -1,0 +1,14 @@
+{
+  "station": "table",
+  "cast": {
+    "item": "forgeweave:cast_plating_helmet"
+  },
+  "fluid": "forgeweave:molten_faultsteel",
+  "amount": 432,
+  "result": {
+    "id": "forgeweave:plating_helmet",
+    "components": {
+      "forgeweave:material": "forgeweave:faultsteel"
+    }
+  }
+}

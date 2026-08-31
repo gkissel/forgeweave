@@ -1,0 +1,14 @@
+{
+  "station": "table",
+  "cast": {
+    "item": "forgeweave:cast_axe_head"
+  },
+  "fluid": "forgeweave:molten_sunsteel",
+  "amount": 288,
+  "result": {
+    "id": "forgeweave:axe_head",
+    "components": {
+      "forgeweave:material": "forgeweave:sunsteel"
+    }
+  }
+}

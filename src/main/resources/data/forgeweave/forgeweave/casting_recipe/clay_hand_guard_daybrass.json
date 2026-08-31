@@ -1,0 +1,15 @@
+{
+  "station": "table",
+  "cast": {
+    "item": "forgeweave:clay_cast_hand_guard"
+  },
+  "fluid": "forgeweave:molten_daybrass",
+  "amount": 144,
+  "result": {
+    "id": "forgeweave:hand_guard",
+    "components": {
+      "forgeweave:material": "forgeweave:daybrass"
+    }
+  },
+  "consumes_cast": true
+}

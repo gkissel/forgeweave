@@ -1,0 +1,15 @@
+{
+  "station": "table",
+  "cast": {
+    "item": "forgeweave:clay_cast_shovel_head"
+  },
+  "fluid": "forgeweave:molten_hollowstone",
+  "amount": 288,
+  "result": {
+    "id": "forgeweave:shovel_head",
+    "components": {
+      "forgeweave:material": "forgeweave:hollowstone"
+    }
+  },
+  "consumes_cast": true
+}

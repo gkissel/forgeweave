@@ -1,0 +1,7 @@
+{
+  "input": {
+    "item": "minecraft:ender_pearl"
+  },
+  "fluid": "forgeweave:molten_pearlcinder",
+  "amount": 32
+}

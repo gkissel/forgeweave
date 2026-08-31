@@ -1,0 +1,7 @@
+{
+  "input": {
+    "tag": "c:ingots/sunsteel"
+  },
+  "fluid": "forgeweave:molten_sunsteel",
+  "amount": 144
+}
