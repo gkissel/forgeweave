@@ -607,3 +607,120 @@ materials). If M6 is scoped "the same as" this addon specifically, the realistic
 under half that once leveled variants are counted as one definition each) — above the top of §5's
 band on materials, and confirming that band's own note that PlusTiC's 60+ traits was "reachable," not
 a ceiling.
+
+---
+
+## 7. Track B tier scaffold and naming vocabulary (JC9/JC10 resolution)
+
+Written alongside [#838](https://github.com/gkissel/forgeweave/issues/838) once the maintainer
+answered epic #824's JC9 and JC10 (session 2026-08-31, recorded on #824). This section is a
+**starting scaffold** for #839 (ores/worldgen), #840 (fluids/alloy table) and #841 (the material
+roster) to consume so the three land on one consistent vocabulary — it does not preempt #841's own
+required deliverable, the stat curve, which stays "a single decision" proposed on #841's own thread
+per that issue's text. Nothing here is a stat number, a trait assignment, or a final name; it is an
+id list and a tier mapping so #839–#841 aren't inventing overlapping vocabulary independently.
+
+### 7.1 Tier scaffold — no new block tags (JC10 = a)
+
+Track B mints **zero** new `incorrect_for_*_tool` tags. Every material collapses onto one of
+Forgeweave's five existing rungs (the five values already in use across
+`data/forgeweave/forgeweave/material/*.json`):
+
+| Rung (`incorrect_for_tool`) | Existing Forgeweave materials on this rung |
+| --- | --- |
+| `minecraft:incorrect_for_wooden_tool` | (wood-tier materials) |
+| `minecraft:incorrect_for_stone_tool` | most early metals |
+| `minecraft:incorrect_for_iron_tool` | mid metals |
+| `minecraft:incorrect_for_diamond_tool` | upper metals |
+| `minecraft:incorrect_for_netherite_tool` | cobalt, ardite, iridium, manyullyn, netherite, obsidian, ancient — the shared top rung |
+
+The reference ladder's four tiers above its own "diamond" (cobalt/duranite/valyrium/vibranium, §2's
+"Tier" column) all collapse onto Forgeweave's `incorrect_for_netherite_tool` — the same rung as
+cobalt, manyullyn, netherite and ancient today. A Track B material one reference-rung below that
+(the reference ladder's "diamond") maps to Forgeweave's `incorrect_for_diamond_tool`; one further
+below ("stone") maps to `incorrect_for_stone_tool`. Every Forgeweave tool that can mine netherite-tier
+ore today can mine every Track B ore — progression pressure lives entirely in stats, traits and
+obtainability (ore depth/biome/vein rarity, alloy chain length), per JC10(a).
+
+### 7.2 Ore→alloy progression skeleton
+
+Shape only (§2's own tables carry the reference ladder's actual input lists — read there for detail,
+not reproduced here since the alloy ratios are #840's deliverable):
+
+- **12 ore-sourced tool materials** — mined directly, tool stats on their own. Two of them (the
+  reference ladder's meteor-fall pair) source from a rare ore vein or a rare surface feature instead
+  of a meteor event, per JC11.
+- **7 smeltery-only ingredients** — no tool stats of their own; exist purely as alloy inputs/catalysts
+  in the melting/alloy table. Not part of #841's material roster; #840's alloy-table concern.
+- **18 alloy tool materials** — each combines two or more of the above (ore-sourced metals,
+  smeltery-only ingredients, and in a few cases each other) at the smeltery's alloy table. This is
+  where progression pressure concentrates: reaching the top-rung alloys requires working through
+  several intermediate alloys first, exactly the "progression pressure moves to the alloy chain"
+  language of JC10's decision.
+
+### 7.3 Naming vocabulary (JC9 = original Forgeweave names)
+
+JC9's answer: mechanics, magnitudes and progression shape mirror the reference ladder; **identifiers
+and player-facing text are minted fresh**. The table below proposes one original snake_case id per
+reference-ladder entry from §2, grouped the same way, so #839/#840/#841 share one map instead of each
+picking names independently. Ids are working proposals, not locked — #841 (or the maintainer) may
+rename before the material JSONs land; what matters is that all three issues start from the same
+sheet. No lang keys yet: display names/tooltips are `material.forgeweave.<id>` entries added by
+whichever issue actually registers the material, per CLAUDE.md's localization rule.
+
+**Ore-sourced (feeds #839 ore blocks + #841 tool materials):**
+
+| Reference idea | Forgeweave id | Tier (§7.1) |
+| --- | --- | --- |
+| Basalt (heals digging dirt-like blocks) | `cinderstone` | stone |
+| Tiberium (unstable, random explosions) | `fulmenite` | diamond |
+| Aurorium (self-repairs at night) | `duskspar` | netherite (top) |
+| Eezo (feast/famine XP, digging fatigue) | `voltcinder` | netherite (top) |
+| Prometheum (handle darkness debuff, captures mobs) | `murkiron` | netherite (top) |
+| Duranite (fewer drops, more XP) | `hardcinder` | netherite (top) |
+| Palladium (stronger at night, self-harm risk) | `nightshale` | netherite (top) |
+| Valyrium (bonus damage vs. fought enemy types) | `warspar` | netherite (top) |
+| Uru (blocks yield XP instead of loot) | `hollowstone` | netherite (top) |
+| Vibranium (handle flings enemies, stronger near death) | `resonite` | netherite (top) |
+| Meteorite (faster on soft blocks, smashes some drops) — rare surface feature per JC11 | `starfall_stone` | netherite (top) |
+| Obsidiorite (stats drift upward over time) — rare vein per JC11 | `voidglass` | netherite (top) |
+
+**Alloy (feeds #840 alloy table + #841 tool materials):**
+
+| Reference idea | Forgeweave id | Tier (§7.1) |
+| --- | --- | --- |
+| Terrax (kills drop extra meat, not XP) | `ironbrand` | netherite (top) |
+| Triberium (mining cracks nearby blocks) | `quakestone` | diamond |
+| Fractum (breaks blocks onward in a line) | `shardline` | diamond |
+| Violium (night-time durability regen) | `embercast` | netherite (top) |
+| Proxii (random teleport effects) | `riftalloy` | netherite (top) |
+| Tritonite (clears water while mining) | `tideiron` | netherite (top) |
+| Ignitz (melts mined blocks to lava) | `cinderforge` | netherite (top) |
+| Imperomite (AI-numbing debuffs on hit) | `dreadalloy` | netherite (top) |
+| Solarium (mining fatigue, stone crumbles to gravel/sand) | `sunsteel` | netherite (top) |
+| Nihilite (permanently strengthens with kill count) | `hollowsteel` | netherite (top) |
+| Adamant (activatable berserk mode) | `truesteel` | netherite (top) |
+| Dyonite (stores explosions, releases later) | `stormalloy` | netherite (top) |
+| Nucleum (radioactive decay, mutates mined blocks) | `glowveil` | netherite (top) |
+| Lumix (daytime glow, night-vision chance) | `daybrass` | netherite (top) |
+| Seismum (earthquake chained block breaking) | `faultsteel` | netherite (top) |
+| Astrium (unreliable escape teleport) | `skipalloy` | netherite (top) |
+| Niob (struck enemies get back up) | `mendalloy` | netherite (top) |
+| Yrdeen (repairs from breaking natural blocks) | `mendstone` | netherite (top) |
+
+**Smeltery-only ingredients (feeds #840 alloy table only, no tool stats, not in #841's roster):**
+
+| Reference idea | Forgeweave id |
+| --- | --- |
+| Osram | `flarealloy` |
+| Abyssum | `deepalloy` |
+| Iox | `sparkalloy` |
+| Karmesine | `redcinder` |
+| Ovium | `pearlcinder` |
+| Jauxum | `ambercinder` |
+| Dilithium | `twinalloy` |
+
+Two names flagged on the epic thread as Marvel trademarks (vibranium, uru) and one as
+Tolkien-adjacent (adamant) are **not reused** above — every id in this table is an original coinage,
+sidestepping the naming concern regardless of which specific reference names it would have applied
+to.
