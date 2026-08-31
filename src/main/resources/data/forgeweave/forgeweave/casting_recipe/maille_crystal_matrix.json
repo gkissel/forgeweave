@@ -1,0 +1,20 @@
+{
+  "station": "table",
+  "cast": {
+    "item": "forgeweave:cast_maille"
+  },
+  "fluid": "forgeweave:molten_crystal_matrix",
+  "amount": 288,
+  "result": {
+    "id": "forgeweave:maille",
+    "components": {
+      "forgeweave:material": "forgeweave:crystal_matrix"
+    }
+  },
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "avaritia:crystal_matrix_ingot"
+    }
+  ]
+}

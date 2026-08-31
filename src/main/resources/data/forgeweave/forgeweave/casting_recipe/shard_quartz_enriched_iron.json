@@ -1,0 +1,20 @@
+{
+  "station": "table",
+  "cast": {
+    "item": "forgeweave:cast_shard"
+  },
+  "fluid": "forgeweave:molten_quartz_enriched_iron",
+  "amount": 72,
+  "result": {
+    "id": "forgeweave:shard",
+    "components": {
+      "forgeweave:material": "forgeweave:quartz_enriched_iron"
+    }
+  },
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "refinedstorage:quartz_enriched_iron"
+    }
+  ]
+}

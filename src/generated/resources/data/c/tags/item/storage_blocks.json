@@ -51,6 +51,9 @@
     "#c:storage_blocks/faultsteel",
     "#c:storage_blocks/skipalloy",
     "#c:storage_blocks/mendalloy",
-    "#c:storage_blocks/mendstone"
+    "#c:storage_blocks/mendstone",
+    "#c:storage_blocks/alumite",
+    "#c:storage_blocks/osgloglas",
+    "#c:storage_blocks/osmiridium"
   ]
 }

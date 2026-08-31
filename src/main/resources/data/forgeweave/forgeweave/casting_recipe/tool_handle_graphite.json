@@ -1,0 +1,20 @@
+{
+  "station": "table",
+  "cast": {
+    "item": "forgeweave:cast_tool_handle"
+  },
+  "fluid": "forgeweave:molten_graphite",
+  "amount": 144,
+  "result": {
+    "id": "forgeweave:tool_handle",
+    "components": {
+      "forgeweave:material": "forgeweave:graphite"
+    }
+  },
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "bigreactors:graphite_ingot"
+    }
+  ]
+}

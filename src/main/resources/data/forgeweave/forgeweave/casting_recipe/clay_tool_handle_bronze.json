@@ -1,0 +1,21 @@
+{
+  "station": "table",
+  "cast": {
+    "item": "forgeweave:clay_cast_tool_handle"
+  },
+  "fluid": "forgeweave:molten_bronze",
+  "amount": 144,
+  "result": {
+    "id": "forgeweave:tool_handle",
+    "components": {
+      "forgeweave:material": "forgeweave:bronze"
+    }
+  },
+  "consumes_cast": true,
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "mekanism:ingot_bronze"
+    }
+  ]
+}

@@ -1,0 +1,20 @@
+{
+  "station": "table",
+  "cast": {
+    "item": "forgeweave:cast_plating_helmet"
+  },
+  "fluid": "forgeweave:molten_uraninite",
+  "amount": 432,
+  "result": {
+    "id": "forgeweave:plating_helmet",
+    "components": {
+      "forgeweave:material": "forgeweave:uraninite"
+    }
+  },
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "powah:uraninite_raw"
+    }
+  ]
+}

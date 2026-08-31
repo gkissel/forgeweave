@@ -1,0 +1,20 @@
+{
+  "station": "table",
+  "cast": {
+    "item": "forgeweave:cast_maille"
+  },
+  "fluid": "forgeweave:molten_wyvern",
+  "amount": 288,
+  "result": {
+    "id": "forgeweave:maille",
+    "components": {
+      "forgeweave:material": "forgeweave:wyvern"
+    }
+  },
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "draconicevolution:wyvern_core"
+    }
+  ]
+}

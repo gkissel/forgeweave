@@ -15,33 +15,80 @@
     "bonus_damage": 6.5
   },
   "plating": {
-    "helmet": { "durability": 275, "armor": 3.0, "toughness": 2.0, "knockback_resistance": 0.05 },
-    "chestplate": { "durability": 400, "armor": 8.0, "toughness": 2.0, "knockback_resistance": 0.05 },
-    "leggings": { "durability": 375, "armor": 6.0, "toughness": 2.0, "knockback_resistance": 0.05 },
-    "boots": { "durability": 325, "armor": 3.0, "toughness": 2.0, "knockback_resistance": 0.05 }
+    "helmet": {
+      "durability": 275,
+      "armor": 3.0,
+      "toughness": 2.0,
+      "knockback_resistance": 0.05
+    },
+    "chestplate": {
+      "durability": 400,
+      "armor": 8.0,
+      "toughness": 2.0,
+      "knockback_resistance": 0.05
+    },
+    "leggings": {
+      "durability": 375,
+      "armor": 6.0,
+      "toughness": 2.0,
+      "knockback_resistance": 0.05
+    },
+    "boots": {
+      "durability": 325,
+      "armor": 3.0,
+      "toughness": 2.0,
+      "knockback_resistance": 0.05
+    }
   },
   "maille": true,
   "incorrect_for_tool": "minecraft:incorrect_for_diamond_tool",
   "traits": {
-    "general": ["forgeweave:enfeebling"]
+    "general": [
+      "forgeweave:enfeebling"
+    ]
   },
   "crafting_items": [
-    { "ingredient": { "tag": "c:ingots/uranium" }, "value": 144 },
-    { "ingredient": { "tag": "c:nuggets/uranium" }, "value": 16 },
-    { "ingredient": { "tag": "c:storage_blocks/uranium" }, "value": 1296 }
+    {
+      "ingredient": {
+        "tag": "c:ingots/uranium"
+      },
+      "value": 144
+    },
+    {
+      "ingredient": {
+        "tag": "c:nuggets/uranium"
+      },
+      "value": 16
+    },
+    {
+      "ingredient": {
+        "tag": "c:storage_blocks/uranium"
+      },
+      "value": 1296
+    }
   ],
   "repair_item": {
     "tag": "c:ingots/uranium"
   },
+  "cast_only": true,
   "enchantability": 12,
   "color": "#A8B84B",
   "neoforge:conditions": [
     {
       "type": "neoforge:or",
       "values": [
-        { "type": "neoforge:item_exists", "item": "mekanism:ingot_uranium" },
-        { "type": "neoforge:item_exists", "item": "immersiveengineering:ingot_uranium" },
-        { "type": "neoforge:item_exists", "item": "bigreactors:yellorium_ingot" }
+        {
+          "type": "neoforge:item_exists",
+          "item": "mekanism:ingot_uranium"
+        },
+        {
+          "type": "neoforge:item_exists",
+          "item": "immersiveengineering:ingot_uranium"
+        },
+        {
+          "type": "neoforge:item_exists",
+          "item": "bigreactors:yellorium_ingot"
+        }
       ]
     }
   ]

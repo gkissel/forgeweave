@@ -1,0 +1,36 @@
+{
+  "head": {
+    "durability": 260,
+    "mining_speed": 6.5,
+    "attack_damage": 3.0
+  },
+  "handle": {
+    "durability_modifier": 0.9,
+    "durability": 30
+  },
+  "extra_durability": 50,
+  "bow": {
+    "drawspeed": 0.75,
+    "range": 1.2,
+    "bonus_damage": 2.0
+  },
+  "plating": {
+    "helmet": { "durability": 200, "armor": 2.0 },
+    "chestplate": { "durability": 290, "armor": 5.0 },
+    "leggings": { "durability": 270, "armor": 4.0 },
+    "boots": { "durability": 235, "armor": 2.0 }
+  },
+  "maille": true,
+  "incorrect_for_tool": "minecraft:incorrect_for_diamond_tool",
+  "traits": {
+    "general": ["forgeweave:pristine"]
+  },
+  "crafting_items": [
+    { "ingredient": { "tag": "c:gems/emerald" }, "value": 666 }
+  ],
+  "repair_item": {
+    "tag": "c:gems/emerald"
+  },
+  "enchantability": 20,
+  "color": "#58E78E"
+}

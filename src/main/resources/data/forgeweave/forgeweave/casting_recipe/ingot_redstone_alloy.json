@@ -1,0 +1,17 @@
+{
+  "station": "table",
+  "cast": {
+    "item": "forgeweave:cast_ingot"
+  },
+  "fluid": "forgeweave:molten_redstone_alloy",
+  "amount": 144,
+  "result": {
+    "id": "enderio:redstone_alloy_ingot"
+  },
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "enderio:redstone_alloy_ingot"
+    }
+  ]
+}

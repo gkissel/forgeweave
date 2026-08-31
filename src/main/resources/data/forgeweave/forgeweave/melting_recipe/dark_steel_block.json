@@ -1,0 +1,13 @@
+{
+  "input": {
+    "tag": "c:storage_blocks/dark_steel"
+  },
+  "fluid": "forgeweave:molten_dark_steel",
+  "amount": 1296,
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "enderio:dark_steel_ingot"
+    }
+  ]
+}

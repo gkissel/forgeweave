@@ -1,0 +1,10 @@
+{
+  "station": "table",
+  "cast": { "item": "forgeweave:cast_ingot" },
+  "fluid": "forgeweave:molten_bronze",
+  "amount": 144,
+  "result": { "id": "minecraft:gold_ingot" },
+  "neoforge:conditions": [
+    { "type": "neoforge:item_exists", "item": "minecraft:diamond" }
+  ]
+}

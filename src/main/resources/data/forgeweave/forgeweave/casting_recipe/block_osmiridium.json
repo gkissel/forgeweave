@@ -1,0 +1,18 @@
+{
+  "station": "basin",
+  "fluid": "forgeweave:molten_osmiridium",
+  "amount": 1296,
+  "result": {
+    "id": "forgeweave:osmiridium_block"
+  },
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "mekanism:ingot_osmium"
+    },
+    {
+      "type": "neoforge:item_exists",
+      "item": "modern_industrialization:iridium_ingot"
+    }
+  ]
+}

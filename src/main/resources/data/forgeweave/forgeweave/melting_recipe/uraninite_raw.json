@@ -1,0 +1,13 @@
+{
+  "input": {
+    "tag": "c:raw_materials/uraninite"
+  },
+  "fluid": "forgeweave:molten_uraninite",
+  "amount": 144,
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "powah:uraninite_raw"
+    }
+  ]
+}

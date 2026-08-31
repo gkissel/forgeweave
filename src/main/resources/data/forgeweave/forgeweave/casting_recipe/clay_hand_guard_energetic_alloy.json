@@ -1,0 +1,21 @@
+{
+  "station": "table",
+  "cast": {
+    "item": "forgeweave:clay_cast_hand_guard"
+  },
+  "fluid": "forgeweave:molten_energetic_alloy",
+  "amount": 144,
+  "result": {
+    "id": "forgeweave:hand_guard",
+    "components": {
+      "forgeweave:material": "forgeweave:energetic_alloy"
+    }
+  },
+  "consumes_cast": true,
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "enderio:energetic_alloy_ingot"
+    }
+  ]
+}

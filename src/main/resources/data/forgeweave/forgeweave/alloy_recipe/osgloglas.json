@@ -1,0 +1,12 @@
+{
+  "inputs": [
+    { "fluid": "forgeweave:molten_osmium", "amount": 144 },
+    { "fluid": "forgeweave:molten_refined_obsidian", "amount": 144 },
+    { "fluid": "forgeweave:molten_glass", "amount": 144 }
+  ],
+  "result": { "fluid": "forgeweave:molten_osgloglas", "amount": 216 },
+  "neoforge:conditions": [
+    { "type": "neoforge:item_exists", "item": "mekanism:ingot_osmium" },
+    { "type": "neoforge:item_exists", "item": "mekanism:ingot_refined_obsidian" }
+  ]
+}

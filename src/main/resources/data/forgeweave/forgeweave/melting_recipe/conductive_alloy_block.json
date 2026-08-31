@@ -1,0 +1,13 @@
+{
+  "input": {
+    "tag": "c:storage_blocks/conductive_alloy"
+  },
+  "fluid": "forgeweave:molten_conductive_alloy",
+  "amount": 1296,
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "enderio:conductive_alloy_ingot"
+    }
+  ]
+}

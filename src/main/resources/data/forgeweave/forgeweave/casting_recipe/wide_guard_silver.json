@@ -1,0 +1,20 @@
+{
+  "station": "table",
+  "cast": {
+    "item": "forgeweave:cast_wide_guard"
+  },
+  "fluid": "forgeweave:molten_silver",
+  "amount": 144,
+  "result": {
+    "id": "forgeweave:wide_guard",
+    "components": {
+      "forgeweave:material": "forgeweave:silver"
+    }
+  },
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "immersiveengineering:ingot_silver"
+    }
+  ]
+}

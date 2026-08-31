@@ -27,6 +27,7 @@ import dev.gkissel.forgeweave.block.SlimeColour;
 import dev.gkissel.forgeweave.config.ForgeweaveClientConfig; // #276
 import dev.gkissel.forgeweave.fluid.ForgeweaveFluids;
 import dev.gkissel.forgeweave.material.Material;
+import dev.gkissel.forgeweave.material.CompatMaterialAvailability;
 import dev.gkissel.forgeweave.menu.ContentFamilies;
 import dev.gkissel.forgeweave.menu.ToolAssemblyRecipes;
 import dev.gkissel.forgeweave.tool.ToolConstants;
@@ -277,8 +278,14 @@ public final class ForgeweaveCreativeTab {
         output.accept(ForgeweaveItems.HEPATIZON_BLOCK.get());
 
         // #840 -- Track B's 18 alloy tool materials (M6 epic #824): alloy-only, so ingot, nugget and
-        // storage block per material, same grouping as the ore family above.
+        // storage block per material, same grouping as the ore family above. #873 adds three more
+        // (alumite, osgloglas, osmiridium) that reuse this exact roster/wiring but are compat-gated --
+        // CompatMaterialAvailability#isAvailable is a no-op (always true) for every Track-B-only id
+        // here, so this guard changes nothing for the original 18.
         for (TrackBAlloy alloy : TrackBAlloy.ALL) {
+            if (!CompatMaterialAvailability.isAvailable(alloy.id())) {
+                continue;
+            }
             output.accept(ForgeweaveItems.trackBAlloyIngot(alloy.id()).get());
             output.accept(ForgeweaveItems.trackBAlloyNugget(alloy.id()).get());
             output.accept(ForgeweaveItems.trackBAlloyBlockItem(alloy.id()).get());
@@ -541,6 +548,16 @@ public final class ForgeweaveCreativeTab {
         ForgeweaveItems.CLAY_CASTS.values().forEach(clay -> output.accept(clay.get()));
 
         for (ForgeweaveFluids.MoltenMetal fluid : ForgeweaveFluids.all()) {
+            // #873 -- a compat fluid's bucket is registered unconditionally (NeoForge platform
+            // constraint) but only listed here when its backing material's provider is actually
+            // present; every native/Track B fluid's name has no entry in
+            // CompatMaterialAvailability's tables, so this is a no-op for them. Every fluid name in
+            // this file is "molten_" + the material id (a couple, like OBSIDIAN, already pass their
+            // full "molten_..." name to register(), so the strip is still correct there).
+            String materialId = fluid.name().startsWith("molten_") ? fluid.name().substring("molten_".length()) : fluid.name();
+            if (!CompatMaterialAvailability.isAvailable(materialId)) {
+                continue;
+            }
             output.accept(fluid.bucket().get());
         }
     }

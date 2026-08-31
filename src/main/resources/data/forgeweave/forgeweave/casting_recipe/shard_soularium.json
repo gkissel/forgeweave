@@ -1,0 +1,20 @@
+{
+  "station": "table",
+  "cast": {
+    "item": "forgeweave:cast_shard"
+  },
+  "fluid": "forgeweave:molten_soularium",
+  "amount": 72,
+  "result": {
+    "id": "forgeweave:shard",
+    "components": {
+      "forgeweave:material": "forgeweave:soularium"
+    }
+  },
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "enderio:soularium_ingot"
+    }
+  ]
+}

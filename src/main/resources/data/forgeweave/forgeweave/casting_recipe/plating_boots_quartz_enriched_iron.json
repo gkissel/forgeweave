@@ -1,0 +1,20 @@
+{
+  "station": "table",
+  "cast": {
+    "item": "forgeweave:cast_plating_boots"
+  },
+  "fluid": "forgeweave:molten_quartz_enriched_iron",
+  "amount": 288,
+  "result": {
+    "id": "forgeweave:plating_boots",
+    "components": {
+      "forgeweave:material": "forgeweave:quartz_enriched_iron"
+    }
+  },
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "refinedstorage:quartz_enriched_iron"
+    }
+  ]
+}

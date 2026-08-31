@@ -1,0 +1,17 @@
+{
+  "input": {
+    "tag": "c:ingots/osmiridium"
+  },
+  "fluid": "forgeweave:molten_osmiridium",
+  "amount": 144,
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "mekanism:ingot_osmium"
+    },
+    {
+      "type": "neoforge:item_exists",
+      "item": "modern_industrialization:iridium_ingot"
+    }
+  ]
+}

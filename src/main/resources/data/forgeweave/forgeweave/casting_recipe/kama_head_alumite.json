@@ -1,0 +1,20 @@
+{
+  "station": "table",
+  "cast": {
+    "item": "forgeweave:cast_kama_head"
+  },
+  "fluid": "forgeweave:molten_alumite",
+  "amount": 288,
+  "result": {
+    "id": "forgeweave:kama_head",
+    "components": {
+      "forgeweave:material": "forgeweave:alumite"
+    }
+  },
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "immersiveengineering:ingot_aluminum"
+    }
+  ]
+}

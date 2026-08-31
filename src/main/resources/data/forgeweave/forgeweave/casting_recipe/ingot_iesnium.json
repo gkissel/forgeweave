@@ -1,0 +1,17 @@
+{
+  "station": "table",
+  "cast": {
+    "item": "forgeweave:cast_ingot"
+  },
+  "fluid": "forgeweave:molten_iesnium",
+  "amount": 144,
+  "result": {
+    "id": "occultism:iesnium_ingot"
+  },
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "occultism:iesnium_ingot"
+    }
+  ]
+}

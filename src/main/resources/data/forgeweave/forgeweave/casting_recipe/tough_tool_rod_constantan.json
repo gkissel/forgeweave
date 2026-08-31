@@ -1,0 +1,20 @@
+{
+  "station": "table",
+  "cast": {
+    "item": "forgeweave:cast_tough_tool_rod"
+  },
+  "fluid": "forgeweave:molten_constantan",
+  "amount": 432,
+  "result": {
+    "id": "forgeweave:tough_tool_rod",
+    "components": {
+      "forgeweave:material": "forgeweave:constantan"
+    }
+  },
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "immersiveengineering:ingot_constantan"
+    }
+  ]
+}

@@ -15,27 +15,60 @@
     "bonus_damage": 4.0
   },
   "plating": {
-    "helmet": { "durability": 187, "armor": 2.0 },
-    "chestplate": { "durability": 272, "armor": 6.0 },
-    "leggings": { "durability": 255, "armor": 5.0 },
-    "boots": { "durability": 221, "armor": 2.0 }
+    "helmet": {
+      "durability": 187,
+      "armor": 2.0
+    },
+    "chestplate": {
+      "durability": 272,
+      "armor": 6.0
+    },
+    "leggings": {
+      "durability": 255,
+      "armor": 5.0
+    },
+    "boots": {
+      "durability": 221,
+      "armor": 2.0
+    }
   },
   "maille": true,
   "incorrect_for_tool": "minecraft:incorrect_for_iron_tool",
   "traits": {
-    "general": ["forgeweave:energized"]
+    "general": [
+      "forgeweave:energized"
+    ]
   },
   "crafting_items": [
-    { "ingredient": { "tag": "c:ingots/constantan" }, "value": 144 },
-    { "ingredient": { "tag": "c:nuggets/constantan" }, "value": 16 },
-    { "ingredient": { "tag": "c:storage_blocks/constantan" }, "value": 1296 }
+    {
+      "ingredient": {
+        "tag": "c:ingots/constantan"
+      },
+      "value": 144
+    },
+    {
+      "ingredient": {
+        "tag": "c:nuggets/constantan"
+      },
+      "value": 16
+    },
+    {
+      "ingredient": {
+        "tag": "c:storage_blocks/constantan"
+      },
+      "value": 1296
+    }
   ],
   "repair_item": {
     "tag": "c:ingots/constantan"
   },
+  "cast_only": true,
   "enchantability": 15,
   "color": "#A8794A",
   "neoforge:conditions": [
-    { "type": "neoforge:item_exists", "item": "immersiveengineering:ingot_constantan" }
+    {
+      "type": "neoforge:item_exists",
+      "item": "immersiveengineering:ingot_constantan"
+    }
   ]
 }

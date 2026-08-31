@@ -1,0 +1,13 @@
+{
+  "input": {
+    "tag": "c:ingots/blutonium"
+  },
+  "fluid": "forgeweave:molten_blutonium",
+  "amount": 144,
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "bigreactors:blutonium_ingot"
+    }
+  ]
+}

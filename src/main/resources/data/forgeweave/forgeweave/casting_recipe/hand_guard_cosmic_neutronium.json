@@ -1,0 +1,20 @@
+{
+  "station": "table",
+  "cast": {
+    "item": "forgeweave:cast_hand_guard"
+  },
+  "fluid": "forgeweave:molten_cosmic_neutronium",
+  "amount": 144,
+  "result": {
+    "id": "forgeweave:hand_guard",
+    "components": {
+      "forgeweave:material": "forgeweave:cosmic_neutronium"
+    }
+  },
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "avaritia:neutronium_ingot"
+    }
+  ]
+}

@@ -1,0 +1,20 @@
+{
+  "station": "table",
+  "cast": {
+    "item": "forgeweave:cast_shard"
+  },
+  "fluid": "forgeweave:molten_energised_steel",
+  "amount": 72,
+  "result": {
+    "id": "forgeweave:shard",
+    "components": {
+      "forgeweave:material": "forgeweave:energised_steel"
+    }
+  },
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "powah:steel_energized"
+    }
+  ]
+}

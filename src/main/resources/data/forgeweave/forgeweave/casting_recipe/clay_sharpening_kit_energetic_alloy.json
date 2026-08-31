@@ -1,0 +1,21 @@
+{
+  "station": "table",
+  "cast": {
+    "item": "forgeweave:clay_cast_sharpening_kit"
+  },
+  "fluid": "forgeweave:molten_energetic_alloy",
+  "amount": 288,
+  "result": {
+    "id": "forgeweave:sharpening_kit",
+    "components": {
+      "forgeweave:material": "forgeweave:energetic_alloy"
+    }
+  },
+  "consumes_cast": true,
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "enderio:energetic_alloy_ingot"
+    }
+  ]
+}

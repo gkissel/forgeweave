@@ -1,0 +1,21 @@
+{
+  "station": "table",
+  "cast": {
+    "item": "forgeweave:clay_cast_plating_boots"
+  },
+  "fluid": "forgeweave:molten_blutonium",
+  "amount": 288,
+  "result": {
+    "id": "forgeweave:plating_boots",
+    "components": {
+      "forgeweave:material": "forgeweave:blutonium"
+    }
+  },
+  "consumes_cast": true,
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "bigreactors:blutonium_ingot"
+    }
+  ]
+}

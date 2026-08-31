@@ -1,0 +1,13 @@
+{
+  "input": {
+    "tag": "c:nuggets/invar"
+  },
+  "fluid": "forgeweave:molten_invar",
+  "amount": 16,
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "modern_industrialization:invar_ingot"
+    }
+  ]
+}

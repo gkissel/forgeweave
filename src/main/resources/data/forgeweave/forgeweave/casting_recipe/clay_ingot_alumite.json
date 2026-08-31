@@ -1,0 +1,18 @@
+{
+  "station": "table",
+  "cast": {
+    "item": "forgeweave:clay_cast_ingot"
+  },
+  "fluid": "forgeweave:molten_alumite",
+  "amount": 144,
+  "result": {
+    "id": "forgeweave:alumite_ingot"
+  },
+  "consumes_cast": true,
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "immersiveengineering:ingot_aluminum"
+    }
+  ]
+}

@@ -1,0 +1,20 @@
+{
+  "station": "table",
+  "cast": {
+    "item": "forgeweave:cast_axe_head"
+  },
+  "fluid": "forgeweave:molten_silicon",
+  "amount": 288,
+  "result": {
+    "id": "forgeweave:axe_head",
+    "components": {
+      "forgeweave:material": "forgeweave:silicon"
+    }
+  },
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "refinedstorage:silicon"
+    }
+  ]
+}

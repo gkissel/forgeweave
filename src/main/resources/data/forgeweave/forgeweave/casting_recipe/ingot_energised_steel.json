@@ -1,0 +1,17 @@
+{
+  "station": "table",
+  "cast": {
+    "item": "forgeweave:cast_ingot"
+  },
+  "fluid": "forgeweave:molten_energised_steel",
+  "amount": 144,
+  "result": {
+    "id": "powah:steel_energized"
+  },
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "powah:steel_energized"
+    }
+  ]
+}

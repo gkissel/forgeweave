@@ -1,0 +1,13 @@
+{
+  "input": {
+    "item": "powah:steel_energized"
+  },
+  "fluid": "forgeweave:molten_energised_steel",
+  "amount": 144,
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "powah:steel_energized"
+    }
+  ]
+}

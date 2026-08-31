@@ -15,27 +15,60 @@
     "bonus_damage": 2.5
   },
   "plating": {
-    "helmet": { "durability": 99, "armor": 2.0 },
-    "chestplate": { "durability": 144, "armor": 4.0 },
-    "leggings": { "durability": 135, "armor": 3.0 },
-    "boots": { "durability": 117, "armor": 1.0 }
+    "helmet": {
+      "durability": 99,
+      "armor": 2.0
+    },
+    "chestplate": {
+      "durability": 144,
+      "armor": 4.0
+    },
+    "leggings": {
+      "durability": 135,
+      "armor": 3.0
+    },
+    "boots": {
+      "durability": 117,
+      "armor": 1.0
+    }
   },
   "maille": true,
   "incorrect_for_tool": "minecraft:incorrect_for_stone_tool",
   "traits": {
-    "general": ["forgeweave:lightweight"]
+    "general": [
+      "forgeweave:lightweight"
+    ]
   },
   "crafting_items": [
-    { "ingredient": { "tag": "c:ingots/aluminum" }, "value": 144 },
-    { "ingredient": { "tag": "c:nuggets/aluminum" }, "value": 16 },
-    { "ingredient": { "tag": "c:storage_blocks/aluminum" }, "value": 1296 }
+    {
+      "ingredient": {
+        "tag": "c:ingots/aluminum"
+      },
+      "value": 144
+    },
+    {
+      "ingredient": {
+        "tag": "c:nuggets/aluminum"
+      },
+      "value": 16
+    },
+    {
+      "ingredient": {
+        "tag": "c:storage_blocks/aluminum"
+      },
+      "value": 1296
+    }
   ],
   "repair_item": {
     "tag": "c:ingots/aluminum"
   },
+  "cast_only": true,
   "enchantability": 9,
   "color": "#C6C7C8",
   "neoforge:conditions": [
-    { "type": "neoforge:item_exists", "item": "immersiveengineering:ingot_aluminum" }
+    {
+      "type": "neoforge:item_exists",
+      "item": "immersiveengineering:ingot_aluminum"
+    }
   ]
 }

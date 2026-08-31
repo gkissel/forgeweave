@@ -33,6 +33,7 @@ import dev.gkissel.forgeweave.casting.CastingRecipe;
 import dev.gkissel.forgeweave.fluid.ForgeweaveFluids;
 import dev.gkissel.forgeweave.item.ForgeweaveDataComponents;
 import dev.gkissel.forgeweave.item.ForgeweaveItems;
+import dev.gkissel.forgeweave.material.CompatMaterialAvailability;
 import dev.gkissel.forgeweave.recipe.MeltingRecipe;
 import dev.gkissel.forgeweave.trackb.TrackBAlloy;
 import dev.gkissel.forgeweave.trackb.TrackBOre;
@@ -177,6 +178,14 @@ public class TrackBAlloyGameTests {
     @GameTest(template = "empty")
     public static void everyTrackBAlloyIngotNuggetBlockMeltAtFixedAmounts(GameTestHelper helper) {
         for (TrackBAlloy alloy : TrackBAlloy.ALL) {
+            // #873 -- alumite/osgloglas/osmiridium (added to TrackBAlloy.ALL) carry the same
+            // `neoforge:conditions` gate their alloy_recipe/material do; none of their compat inputs'
+            // provider mods is a build/test dependency, so their melting recipes correctly do not
+            // register in this GameTest server. CompatCastOnlyGameTests covers their gated shape
+            // directly (positive path with the gametest fixture provider, negative path here).
+            if (!CompatMaterialAvailability.isAvailable(alloy.id())) {
+                continue;
+            }
             Fluid fluid = ForgeweaveFluids.trackBAlloyFluid(alloy.id()).still().get();
             assertMelting(helper, alloy.ingotId(), fluid, MeltingRecipe.VALUE_INGOT, false);
             assertMelting(helper, alloy.nuggetId(), fluid, MeltingRecipe.VALUE_NUGGET, false);

@@ -1,0 +1,33 @@
+{
+  "station": "table",
+  "cast": {
+    "item": "forgeweave:cast_sharpening_kit"
+  },
+  "fluid": "forgeweave:molten_uranium",
+  "amount": 288,
+  "result": {
+    "id": "forgeweave:sharpening_kit",
+    "components": {
+      "forgeweave:material": "forgeweave:uranium"
+    }
+  },
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:or",
+      "values": [
+        {
+          "type": "neoforge:item_exists",
+          "item": "mekanism:ingot_uranium"
+        },
+        {
+          "type": "neoforge:item_exists",
+          "item": "immersiveengineering:ingot_uranium"
+        },
+        {
+          "type": "neoforge:item_exists",
+          "item": "bigreactors:yellorium_ingot"
+        }
+      ]
+    }
+  ]
+}

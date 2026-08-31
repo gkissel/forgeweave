@@ -1,0 +1,13 @@
+{
+  "input": {
+    "item": "refinedstorage:quartz_enriched_iron"
+  },
+  "fluid": "forgeweave:molten_quartz_enriched_iron",
+  "amount": 144,
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "refinedstorage:quartz_enriched_iron"
+    }
+  ]
+}

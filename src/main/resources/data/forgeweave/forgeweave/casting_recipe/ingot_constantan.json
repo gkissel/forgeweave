@@ -1,0 +1,17 @@
+{
+  "station": "table",
+  "cast": {
+    "item": "forgeweave:cast_ingot"
+  },
+  "fluid": "forgeweave:molten_constantan",
+  "amount": 144,
+  "result": {
+    "id": "immersiveengineering:ingot_constantan"
+  },
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "immersiveengineering:ingot_constantan"
+    }
+  ]
+}

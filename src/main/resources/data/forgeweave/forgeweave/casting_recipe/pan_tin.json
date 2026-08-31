@@ -1,0 +1,20 @@
+{
+  "station": "table",
+  "cast": {
+    "item": "forgeweave:cast_pan"
+  },
+  "fluid": "forgeweave:molten_tin",
+  "amount": 432,
+  "result": {
+    "id": "forgeweave:pan",
+    "components": {
+      "forgeweave:material": "forgeweave:tin"
+    }
+  },
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "mekanism:ingot_tin"
+    }
+  ]
+}

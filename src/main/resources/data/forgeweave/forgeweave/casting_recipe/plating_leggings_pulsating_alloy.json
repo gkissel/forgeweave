@@ -1,0 +1,20 @@
+{
+  "station": "table",
+  "cast": {
+    "item": "forgeweave:cast_plating_leggings"
+  },
+  "fluid": "forgeweave:molten_pulsating_alloy",
+  "amount": 720,
+  "result": {
+    "id": "forgeweave:plating_leggings",
+    "components": {
+      "forgeweave:material": "forgeweave:pulsating_alloy"
+    }
+  },
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "enderio:pulsating_alloy_ingot"
+    }
+  ]
+}

@@ -1,0 +1,21 @@
+{
+  "station": "table",
+  "cast": {
+    "item": "forgeweave:clay_cast_plating_chestplate"
+  },
+  "fluid": "forgeweave:molten_vibrant_alloy",
+  "amount": 864,
+  "result": {
+    "id": "forgeweave:plating_chestplate",
+    "components": {
+      "forgeweave:material": "forgeweave:vibrant_alloy"
+    }
+  },
+  "consumes_cast": true,
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "enderio:vibrant_alloy_ingot"
+    }
+  ]
+}

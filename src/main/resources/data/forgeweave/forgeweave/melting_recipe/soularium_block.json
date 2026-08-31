@@ -1,0 +1,13 @@
+{
+  "input": {
+    "tag": "c:storage_blocks/soularium"
+  },
+  "fluid": "forgeweave:molten_soularium",
+  "amount": 1296,
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "enderio:soularium_ingot"
+    }
+  ]
+}

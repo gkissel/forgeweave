@@ -1,0 +1,30 @@
+{
+  "station": "table",
+  "cast": {
+    "item": "forgeweave:clay_cast_war_mace_head"
+  },
+  "fluid": "forgeweave:molten_lead",
+  "amount": 1152,
+  "result": {
+    "id": "forgeweave:war_mace_head",
+    "components": {
+      "forgeweave:material": "forgeweave:lead"
+    }
+  },
+  "consumes_cast": true,
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:or",
+      "values": [
+        {
+          "type": "neoforge:item_exists",
+          "item": "mekanism:ingot_lead"
+        },
+        {
+          "type": "neoforge:item_exists",
+          "item": "immersiveengineering:ingot_lead"
+        }
+      ]
+    }
+  ]
+}

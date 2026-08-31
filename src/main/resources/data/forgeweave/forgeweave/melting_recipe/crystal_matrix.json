@@ -1,0 +1,13 @@
+{
+  "input": {
+    "item": "avaritia:crystal_matrix_ingot"
+  },
+  "fluid": "forgeweave:molten_crystal_matrix",
+  "amount": 144,
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "avaritia:crystal_matrix_ingot"
+    }
+  ]
+}

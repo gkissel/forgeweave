@@ -1,0 +1,13 @@
+{
+  "input": {
+    "tag": "c:nuggets/platinum"
+  },
+  "fluid": "forgeweave:molten_platinum",
+  "amount": 16,
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "modern_industrialization:platinum_ingot"
+    }
+  ]
+}

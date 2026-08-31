@@ -1,0 +1,20 @@
+{
+  "station": "table",
+  "cast": {
+    "item": "forgeweave:cast_cross_guard"
+  },
+  "fluid": "forgeweave:molten_titanium",
+  "amount": 144,
+  "result": {
+    "id": "forgeweave:cross_guard",
+    "components": {
+      "forgeweave:material": "forgeweave:titanium"
+    }
+  },
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "modern_industrialization:titanium_ingot"
+    }
+  ]
+}

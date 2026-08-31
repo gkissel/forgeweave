@@ -88,7 +88,12 @@ class ArmorMaterialTest {
                     "glowveil", "daybrass", "faultsteel", "skipalloy", "mendalloy", "mendstone"),
             // #872 M6 recovery batch: same full plating + maille shape as every other Track A preset.
             Stream.of("dark_matter", "red_matter", "crystal_matrix", "cosmic_neutronium", "infinity",
-                    "wyvern", "chaotic", "quartz_enriched_iron", "silicon", "energised_steel"))
+                    "wyvern", "chaotic", "quartz_enriched_iron", "silicon", "energised_steel"),
+            // #873 (M6 epic #824's JC3 reversal): the three PlusTiC-inspiration alloys ship full
+            // plating + maille like every other metal, and the two new vanilla-gem materials get a
+            // lighter gem-tier plating block (certus_quartz/fluorite precedent above already does the
+            // same for a non-metal gem).
+            Stream.of("alumite", "osgloglas", "osmiridium", "emerald", "amethyst"))
             .flatMap(java.util.function.Function.identity())
             .collect(java.util.stream.Collectors.toSet());
 

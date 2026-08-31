@@ -1,0 +1,25 @@
+{
+  "station": "table",
+  "cast": {
+    "item": "forgeweave:clay_cast_kama_head"
+  },
+  "fluid": "forgeweave:molten_osmiridium",
+  "amount": 288,
+  "result": {
+    "id": "forgeweave:kama_head",
+    "components": {
+      "forgeweave:material": "forgeweave:osmiridium"
+    }
+  },
+  "consumes_cast": true,
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "mekanism:ingot_osmium"
+    },
+    {
+      "type": "neoforge:item_exists",
+      "item": "modern_industrialization:iridium_ingot"
+    }
+  ]
+}

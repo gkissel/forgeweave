@@ -1,0 +1,21 @@
+{
+  "station": "table",
+  "cast": {
+    "item": "forgeweave:clay_cast_plating_helmet"
+  },
+  "fluid": "forgeweave:molten_iesnium",
+  "amount": 432,
+  "result": {
+    "id": "forgeweave:plating_helmet",
+    "components": {
+      "forgeweave:material": "forgeweave:iesnium"
+    }
+  },
+  "consumes_cast": true,
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "occultism:iesnium_ingot"
+    }
+  ]
+}

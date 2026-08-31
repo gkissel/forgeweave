@@ -1,0 +1,20 @@
+{
+  "station": "table",
+  "cast": {
+    "item": "forgeweave:cast_pan"
+  },
+  "fluid": "forgeweave:molten_cyanite",
+  "amount": 432,
+  "result": {
+    "id": "forgeweave:pan",
+    "components": {
+      "forgeweave:material": "forgeweave:cyanite"
+    }
+  },
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "bigreactors:cyanite_ingot"
+    }
+  ]
+}

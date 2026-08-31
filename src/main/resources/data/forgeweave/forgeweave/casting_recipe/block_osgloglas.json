@@ -1,0 +1,18 @@
+{
+  "station": "basin",
+  "fluid": "forgeweave:molten_osgloglas",
+  "amount": 1296,
+  "result": {
+    "id": "forgeweave:osgloglas_block"
+  },
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "mekanism:ingot_osmium"
+    },
+    {
+      "type": "neoforge:item_exists",
+      "item": "mekanism:ingot_refined_obsidian"
+    }
+  ]
+}

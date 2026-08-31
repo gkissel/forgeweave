@@ -1,0 +1,21 @@
+{
+  "station": "table",
+  "cast": {
+    "item": "forgeweave:clay_cast_pan"
+  },
+  "fluid": "forgeweave:molten_psimetal",
+  "amount": 432,
+  "result": {
+    "id": "forgeweave:pan",
+    "components": {
+      "forgeweave:material": "forgeweave:psimetal"
+    }
+  },
+  "consumes_cast": true,
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "psi:psimetal"
+    }
+  ]
+}

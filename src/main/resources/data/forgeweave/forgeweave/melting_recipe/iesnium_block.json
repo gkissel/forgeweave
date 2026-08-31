@@ -1,0 +1,13 @@
+{
+  "input": {
+    "tag": "c:storage_blocks/iesnium"
+  },
+  "fluid": "forgeweave:molten_iesnium",
+  "amount": 1296,
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "occultism:iesnium_ingot"
+    }
+  ]
+}

@@ -1,0 +1,21 @@
+{
+  "station": "table",
+  "cast": {
+    "item": "forgeweave:clay_cast_wide_guard"
+  },
+  "fluid": "forgeweave:molten_refined_obsidian",
+  "amount": 144,
+  "result": {
+    "id": "forgeweave:wide_guard",
+    "components": {
+      "forgeweave:material": "forgeweave:refined_obsidian"
+    }
+  },
+  "consumes_cast": true,
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "mekanism:ingot_refined_obsidian"
+    }
+  ]
+}

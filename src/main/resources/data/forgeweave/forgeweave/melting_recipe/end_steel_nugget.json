@@ -1,0 +1,13 @@
+{
+  "input": {
+    "tag": "c:nuggets/end_steel"
+  },
+  "fluid": "forgeweave:molten_end_steel",
+  "amount": 16,
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "enderio:end_steel_ingot"
+    }
+  ]
+}

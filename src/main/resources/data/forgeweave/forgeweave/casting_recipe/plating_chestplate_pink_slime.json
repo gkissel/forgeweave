@@ -1,0 +1,20 @@
+{
+  "station": "table",
+  "cast": {
+    "item": "forgeweave:cast_plating_chestplate"
+  },
+  "fluid": "forgeweave:molten_pink_slime",
+  "amount": 864,
+  "result": {
+    "id": "forgeweave:plating_chestplate",
+    "components": {
+      "forgeweave:material": "forgeweave:pink_slime"
+    }
+  },
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "industrialforegoing:pink_slime_ingot"
+    }
+  ]
+}

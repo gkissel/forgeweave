@@ -15,25 +15,56 @@
     "bonus_damage": 6.0
   },
   "plating": {
-    "helmet": { "durability": 340, "armor": 3.0, "toughness": 2.0, "knockback_resistance": 0.1 },
-    "chestplate": { "durability": 500, "armor": 7.0, "toughness": 2.0, "knockback_resistance": 0.1 },
-    "leggings": { "durability": 470, "armor": 5.0, "toughness": 2.0, "knockback_resistance": 0.1 },
-    "boots": { "durability": 400, "armor": 3.0, "toughness": 2.0, "knockback_resistance": 0.1 }
+    "helmet": {
+      "durability": 340,
+      "armor": 3.0,
+      "toughness": 2.0,
+      "knockback_resistance": 0.1
+    },
+    "chestplate": {
+      "durability": 500,
+      "armor": 7.0,
+      "toughness": 2.0,
+      "knockback_resistance": 0.1
+    },
+    "leggings": {
+      "durability": 470,
+      "armor": 5.0,
+      "toughness": 2.0,
+      "knockback_resistance": 0.1
+    },
+    "boots": {
+      "durability": 400,
+      "armor": 3.0,
+      "toughness": 2.0,
+      "knockback_resistance": 0.1
+    }
   },
   "maille": true,
   "incorrect_for_tool": "minecraft:incorrect_for_netherite_tool",
   "traits": {
-    "general": ["forgeweave:shackling"]
+    "general": [
+      "forgeweave:shackling"
+    ]
   },
   "crafting_items": [
-    { "ingredient": { "item": "projecte:dark_matter" }, "value": 144 }
+    {
+      "ingredient": {
+        "item": "projecte:dark_matter"
+      },
+      "value": 144
+    }
   ],
   "repair_item": {
     "item": "projecte:dark_matter"
   },
+  "cast_only": true,
   "enchantability": 10,
   "color": "#1A0A26",
   "neoforge:conditions": [
-    { "type": "neoforge:item_exists", "item": "projecte:dark_matter" }
+    {
+      "type": "neoforge:item_exists",
+      "item": "projecte:dark_matter"
+    }
   ]
 }

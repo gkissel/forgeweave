@@ -1,0 +1,24 @@
+{
+  "station": "table",
+  "cast": {
+    "item": "forgeweave:cast_large_sword_blade"
+  },
+  "fluid": "forgeweave:molten_osgloglas",
+  "amount": 1152,
+  "result": {
+    "id": "forgeweave:large_sword_blade",
+    "components": {
+      "forgeweave:material": "forgeweave:osgloglas"
+    }
+  },
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "mekanism:ingot_osmium"
+    },
+    {
+      "type": "neoforge:item_exists",
+      "item": "mekanism:ingot_refined_obsidian"
+    }
+  ]
+}

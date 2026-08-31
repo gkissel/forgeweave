@@ -1,0 +1,21 @@
+{
+  "station": "table",
+  "cast": {
+    "item": "forgeweave:clay_cast_sign_plate"
+  },
+  "fluid": "forgeweave:molten_energised_steel",
+  "amount": 432,
+  "result": {
+    "id": "forgeweave:sign_plate",
+    "components": {
+      "forgeweave:material": "forgeweave:energised_steel"
+    }
+  },
+  "consumes_cast": true,
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "powah:steel_energized"
+    }
+  ]
+}

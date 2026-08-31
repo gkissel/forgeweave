@@ -1,0 +1,20 @@
+{
+  "station": "table",
+  "cast": {
+    "item": "forgeweave:cast_plating_leggings"
+  },
+  "fluid": "forgeweave:molten_redstone_alloy",
+  "amount": 720,
+  "result": {
+    "id": "forgeweave:plating_leggings",
+    "components": {
+      "forgeweave:material": "forgeweave:redstone_alloy"
+    }
+  },
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "enderio:redstone_alloy_ingot"
+    }
+  ]
+}

@@ -1,0 +1,13 @@
+{
+  "input": {
+    "tag": "c:storage_blocks/tungsten"
+  },
+  "fluid": "forgeweave:molten_tungsten",
+  "amount": 1296,
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "modern_industrialization:tungsten_ingot"
+    }
+  ]
+}

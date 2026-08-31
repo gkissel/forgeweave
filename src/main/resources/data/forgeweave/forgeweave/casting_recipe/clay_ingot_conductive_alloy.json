@@ -1,0 +1,18 @@
+{
+  "station": "table",
+  "cast": {
+    "item": "forgeweave:clay_cast_ingot"
+  },
+  "fluid": "forgeweave:molten_conductive_alloy",
+  "amount": 144,
+  "result": {
+    "id": "enderio:conductive_alloy_ingot"
+  },
+  "consumes_cast": true,
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "enderio:conductive_alloy_ingot"
+    }
+  ]
+}

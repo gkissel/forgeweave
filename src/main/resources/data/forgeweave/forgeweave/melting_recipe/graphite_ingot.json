@@ -1,0 +1,13 @@
+{
+  "input": {
+    "tag": "c:ingots/graphite"
+  },
+  "fluid": "forgeweave:molten_graphite",
+  "amount": 144,
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "bigreactors:graphite_ingot"
+    }
+  ]
+}

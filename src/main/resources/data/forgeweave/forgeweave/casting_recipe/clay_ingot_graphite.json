@@ -1,0 +1,18 @@
+{
+  "station": "table",
+  "cast": {
+    "item": "forgeweave:clay_cast_ingot"
+  },
+  "fluid": "forgeweave:molten_graphite",
+  "amount": 144,
+  "result": {
+    "id": "bigreactors:graphite_ingot"
+  },
+  "consumes_cast": true,
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "bigreactors:graphite_ingot"
+    }
+  ]
+}

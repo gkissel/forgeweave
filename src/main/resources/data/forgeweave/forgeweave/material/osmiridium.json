@@ -1,0 +1,43 @@
+{
+  "head": {
+    "durability": 950,
+    "mining_speed": 8.0,
+    "attack_damage": 5.5
+  },
+  "handle": {
+    "durability_modifier": 1.0,
+    "durability": 100
+  },
+  "extra_durability": 240,
+  "bow": {
+    "drawspeed": 0.55,
+    "range": 1.2,
+    "bonus_damage": 5.0
+  },
+  "plating": {
+    "helmet": { "durability": 400, "armor": 3.0, "toughness": 1.0, "knockback_resistance": 0.05 },
+    "chestplate": { "durability": 580, "armor": 8.0, "toughness": 1.0, "knockback_resistance": 0.05 },
+    "leggings": { "durability": 545, "armor": 6.0, "toughness": 1.0, "knockback_resistance": 0.05 },
+    "boots": { "durability": 470, "armor": 3.0, "toughness": 1.0, "knockback_resistance": 0.05 }
+  },
+  "maille": true,
+  "incorrect_for_tool": "minecraft:incorrect_for_netherite_tool",
+  "traits": {
+    "general": ["forgeweave:dense"]
+  },
+  "crafting_items": [
+    { "ingredient": { "item": "forgeweave:osmiridium_ingot" }, "value": 144 },
+    { "ingredient": { "item": "forgeweave:osmiridium_nugget" }, "value": 16 },
+    { "ingredient": { "item": "forgeweave:osmiridium_block" }, "value": 1296 }
+  ],
+  "repair_item": {
+    "tag": "c:ingots/osmiridium"
+  },
+  "cast_only": true,
+  "enchantability": 16,
+  "color": "#C9C2D6",
+  "neoforge:conditions": [
+    { "type": "neoforge:item_exists", "item": "mekanism:ingot_osmium" },
+    { "type": "neoforge:item_exists", "item": "modern_industrialization:iridium_ingot" }
+  ]
+}

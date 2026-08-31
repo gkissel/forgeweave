@@ -1,0 +1,17 @@
+{
+  "station": "table",
+  "cast": {
+    "item": "forgeweave:cast_ingot"
+  },
+  "fluid": "forgeweave:molten_infinity",
+  "amount": 144,
+  "result": {
+    "id": "avaritia:infinity_ingot"
+  },
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "avaritia:infinity_ingot"
+    }
+  ]
+}

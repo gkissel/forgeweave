@@ -693,7 +693,24 @@ class MaterialTest {
             "warspar", "hollowstone", "resonite", "starfall_stone", "voidglass",
             "ironbrand", "quakestone", "shardline", "embercast", "riftalloy", "tideiron", "cinderforge",
             "dreadalloy", "sunsteel", "hollowsteel", "truesteel", "stormalloy", "glowveil", "daybrass",
-            "faultsteel", "skipalloy", "mendalloy", "mendstone" })
+            "faultsteel", "skipalloy", "mendalloy", "mendstone",
+            // #873 (M6 epic #824's JC3 reversal): every compat metal now gets full smeltery
+            // integration and flips to cast_only -- the Part-Builder-only exception these materials
+            // used to be listed under (see craftableMaterialsStayCraftable's own #873 note) no longer
+            // applies. The three PlusTiC-inspiration alloys this issue also ships (alumite,
+            // osgloglas, osmiridium) are cast_only the same way every other TrackBAlloy-shaped metal
+            // is, so they are listed here too.
+            "bronze", "lead", "silver", "electrum",
+            "alumite", "osgloglas", "osmiridium",
+            "tin", "aluminium", "nickel", "constantan", "invar", "platinum", "titanium", "tungsten",
+            "iridium", "uranium", "graphite",
+            "redstone_alloy", "energetic_alloy", "pulsating_alloy", "conductive_alloy", "vibrant_alloy",
+            "soularium", "dark_steel", "end_steel",
+            "draconium", "draconium_awakened",
+            "uraninite", "psimetal", "ivory_psimetal", "ebony_psimetal", "pink_slime", "cyanite",
+            "blutonium", "ludicrite",
+            "dark_matter", "red_matter", "crystal_matrix", "cosmic_neutronium", "infinity",
+            "wyvern", "chaotic", "quartz_enriched_iron", "silicon", "energised_steel" })
     void castableMetalsAreCastOnly(String name) {
         assertTrue(Material.CODEC.parse(ops, shipped(name)).getOrThrow().castOnly(),
                 name + " is castable and not craftable upstream, so the Part Builder must not take it");
@@ -701,37 +718,29 @@ class MaterialTest {
 
     /**
      * The deliberate exceptions. Obsidian and knightslime set <em>both</em> upstream flags
-     * ({@code TinkerMaterials:236-237,299}), so they stay craftable however the config is set; the
-     * four tag-gated compat metals have no Forgeweave fluid or casting recipe at all (docs/SCOPE.md
-     * M3.2 "Part Builder path only"), so cast-only would make them unobtainable.
+     * ({@code TinkerMaterials:236-237,299}), so they stay craftable however the config is set.
+     *
+     * <p>#873 (M6 epic #824's JC3 reversal) removed the compat-metal exception this javadoc used to
+     * document: every compat metal now gets full smeltery integration and moved to
+     * {@link #castableMetalsAreCastOnly}. What is left here is materials with no molten form at
+     * all -- the gems/crystals/organics #873's own PR lists as excluded (upstream never treats them
+     * as meltable) plus a few non-metal survivors from earlier milestones.
      */
     @ParameterizedTest
-    @ValueSource(strings = { "obsidian", "knightslime", "bronze", "lead", "silver", "electrum",
+    @ValueSource(strings = { "obsidian", "knightslime",
             "ancient", "chorus", "wood", "stone", "nahuatl",
-            // #833 M6 Track A batch 1: Part-Builder-only like the four compat metals above (JC3), no
-            // Forgeweave fluid or casting recipe at all.
-            "tin", "aluminium", "nickel", "constantan", "invar", "platinum", "titanium", "tungsten",
-            "iridium", "uranium", "graphite",
-            // #835 M6 Track A batch 3: same JC3 Part-Builder-only rule.
-            "redstone_alloy", "energetic_alloy", "pulsating_alloy", "conductive_alloy", "vibrant_alloy",
-            "soularium", "dark_steel", "end_steel",
-            // #836 M6 Track A batch 4: same JC3 Part-Builder-only rule -- no molten fluid or casting
-            // for either Draconic Evolution material.
-            "draconium", "draconium_awakened",
             // issue #843 (closes #180): seared stone and necrotic bone both keep the Part Builder
             // item-based route the audit found already sourceable -- seared stone additionally sets
             // <em>both</em> upstream flags like obsidian/knightslime (full smeltery casting too), and
             // necrotic bone has no smeltery integration at all, same shape as bone.
             "seared_stone", "necrotic_bone",
-            // #837 M6 Track A batch 5: same JC3 Part-Builder-only rule, no Forgeweave fluid or casting
-            // recipe at all.
+            // #873: excluded gems/crystals/organics (upstream never melts them) -- black_quartz,
+            // restonia_crystal, palis_crystal, diamatine_crystal, void_crystal, emeradic_crystal and
+            // enori_crystal are Actually Additions' crystal-tier roster (#837 batch 5); psigem is
+            // Psi's gem. Listed in #873's PR body alongside certus_quartz/fluix/fluorite/dragonyst/
+            // sky_stone/hdpe, which are not in this parametrized list at all (never were).
             "black_quartz", "restonia_crystal", "palis_crystal", "diamatine_crystal", "void_crystal",
-            "emeradic_crystal", "enori_crystal", "uraninite", "psimetal", "psigem", "ivory_psimetal",
-            "ebony_psimetal", "pink_slime", "cyanite", "blutonium", "ludicrite",
-            // #872 M6 recovery batch: same JC3 Part-Builder-only rule, no Forgeweave fluid or casting
-            // recipe at all.
-            "dark_matter", "red_matter", "crystal_matrix", "cosmic_neutronium", "infinity",
-            "wyvern", "chaotic", "quartz_enriched_iron", "silicon", "energised_steel" })
+            "emeradic_crystal", "enori_crystal", "psigem" })
     void craftableMaterialsStayCraftable(String name) {
         assertFalse(Material.CODEC.parse(ops, shipped(name)).getOrThrow().castOnly(),
                 name + " must stay Part Builder craftable");

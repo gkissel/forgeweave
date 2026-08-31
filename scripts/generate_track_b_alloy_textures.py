@@ -43,6 +43,12 @@ ALLOYS = [
     ("skipalloy", 0x6FD1D1),
     ("mendalloy", 0x7FBF6B),
     ("mendstone", 0xC2A878),
+    # #873 -- the three PlusTiC-inspiration alloys (M6 epic #824's JC3 reversal). Compat-gated
+    # (dev.gkissel.forgeweave.trackb.TrackBAlloy's own javadoc), but their items reuse this exact
+    # generator since item/block registration is unconditional either way.
+    ("alumite", 0xB8B2C9),
+    ("osgloglas", 0x7FA8A3),
+    ("osmiridium", 0xC9C2D6),
 ]
 
 

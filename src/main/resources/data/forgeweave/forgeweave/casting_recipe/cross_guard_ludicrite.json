@@ -1,0 +1,20 @@
+{
+  "station": "table",
+  "cast": {
+    "item": "forgeweave:cast_cross_guard"
+  },
+  "fluid": "forgeweave:molten_ludicrite",
+  "amount": 144,
+  "result": {
+    "id": "forgeweave:cross_guard",
+    "components": {
+      "forgeweave:material": "forgeweave:ludicrite"
+    }
+  },
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "bigreactors:ludicrite_ingot"
+    }
+  ]
+}

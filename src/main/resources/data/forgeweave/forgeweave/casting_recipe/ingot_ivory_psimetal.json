@@ -1,0 +1,17 @@
+{
+  "station": "table",
+  "cast": {
+    "item": "forgeweave:cast_ingot"
+  },
+  "fluid": "forgeweave:molten_ivory_psimetal",
+  "amount": 144,
+  "result": {
+    "id": "psi:ivory_psimetal"
+  },
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "psi:ivory_psimetal"
+    }
+  ]
+}

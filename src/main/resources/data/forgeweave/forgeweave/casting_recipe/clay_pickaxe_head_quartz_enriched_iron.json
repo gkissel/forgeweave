@@ -1,0 +1,21 @@
+{
+  "station": "table",
+  "cast": {
+    "item": "forgeweave:clay_cast_pickaxe_head"
+  },
+  "fluid": "forgeweave:molten_quartz_enriched_iron",
+  "amount": 288,
+  "result": {
+    "id": "forgeweave:pickaxe_head",
+    "components": {
+      "forgeweave:material": "forgeweave:quartz_enriched_iron"
+    }
+  },
+  "consumes_cast": true,
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "refinedstorage:quartz_enriched_iron"
+    }
+  ]
+}

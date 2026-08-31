@@ -1,0 +1,13 @@
+{
+  "input": {
+    "tag": "c:storage_blocks/cyanite"
+  },
+  "fluid": "forgeweave:molten_cyanite",
+  "amount": 1296,
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "bigreactors:cyanite_ingot"
+    }
+  ]
+}

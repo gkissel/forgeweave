@@ -1,0 +1,8 @@
+{
+  "station": "basin",
+  "fluid": "forgeweave:molten_amethyst",
+  "amount": 400,
+  "result": {
+    "id": "minecraft:amethyst_block"
+  }
+}

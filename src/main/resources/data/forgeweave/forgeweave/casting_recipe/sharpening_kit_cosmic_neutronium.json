@@ -1,0 +1,20 @@
+{
+  "station": "table",
+  "cast": {
+    "item": "forgeweave:cast_sharpening_kit"
+  },
+  "fluid": "forgeweave:molten_cosmic_neutronium",
+  "amount": 288,
+  "result": {
+    "id": "forgeweave:sharpening_kit",
+    "components": {
+      "forgeweave:material": "forgeweave:cosmic_neutronium"
+    }
+  },
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "avaritia:neutronium_ingot"
+    }
+  ]
+}

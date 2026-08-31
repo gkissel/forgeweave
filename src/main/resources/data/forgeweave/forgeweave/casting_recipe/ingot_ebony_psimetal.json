@@ -1,0 +1,17 @@
+{
+  "station": "table",
+  "cast": {
+    "item": "forgeweave:cast_ingot"
+  },
+  "fluid": "forgeweave:molten_ebony_psimetal",
+  "amount": 144,
+  "result": {
+    "id": "psi:ebony_psimetal"
+  },
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "psi:ebony_psimetal"
+    }
+  ]
+}

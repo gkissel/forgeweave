@@ -1,0 +1,13 @@
+{
+  "input": {
+    "tag": "c:nuggets/bronze"
+  },
+  "fluid": "forgeweave:molten_bronze",
+  "amount": 16,
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "mekanism:ingot_bronze"
+    }
+  ]
+}

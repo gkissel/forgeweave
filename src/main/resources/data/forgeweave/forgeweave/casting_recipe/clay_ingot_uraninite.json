@@ -1,0 +1,18 @@
+{
+  "station": "table",
+  "cast": {
+    "item": "forgeweave:clay_cast_ingot"
+  },
+  "fluid": "forgeweave:molten_uraninite",
+  "amount": 144,
+  "result": {
+    "id": "powah:uraninite_raw"
+  },
+  "consumes_cast": true,
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "powah:uraninite_raw"
+    }
+  ]
+}

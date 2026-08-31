@@ -1,0 +1,20 @@
+{
+  "station": "table",
+  "cast": {
+    "item": "forgeweave:cast_cross_guard"
+  },
+  "fluid": "forgeweave:molten_ebony_psimetal",
+  "amount": 144,
+  "result": {
+    "id": "forgeweave:cross_guard",
+    "components": {
+      "forgeweave:material": "forgeweave:ebony_psimetal"
+    }
+  },
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "psi:ebony_psimetal"
+    }
+  ]
+}

@@ -1,0 +1,18 @@
+{
+  "station": "table",
+  "cast": {
+    "item": "forgeweave:clay_cast_ingot"
+  },
+  "fluid": "forgeweave:molten_refined_glowstone",
+  "amount": 144,
+  "result": {
+    "id": "mekanism:ingot_refined_glowstone"
+  },
+  "consumes_cast": true,
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "mekanism:ingot_refined_glowstone"
+    }
+  ]
+}

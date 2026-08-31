@@ -1,0 +1,20 @@
+{
+  "station": "table",
+  "cast": {
+    "item": "forgeweave:cast_plating_chestplate"
+  },
+  "fluid": "forgeweave:molten_energetic_alloy",
+  "amount": 864,
+  "result": {
+    "id": "forgeweave:plating_chestplate",
+    "components": {
+      "forgeweave:material": "forgeweave:energetic_alloy"
+    }
+  },
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "enderio:energetic_alloy_ingot"
+    }
+  ]
+}

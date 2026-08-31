@@ -1,0 +1,20 @@
+{
+  "station": "table",
+  "cast": {
+    "item": "forgeweave:cast_plating_boots"
+  },
+  "fluid": "forgeweave:molten_infinity",
+  "amount": 288,
+  "result": {
+    "id": "forgeweave:plating_boots",
+    "components": {
+      "forgeweave:material": "forgeweave:infinity"
+    }
+  },
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "avaritia:infinity_ingot"
+    }
+  ]
+}

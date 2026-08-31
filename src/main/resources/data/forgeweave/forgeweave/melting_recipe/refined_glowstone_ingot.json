@@ -1,0 +1,13 @@
+{
+  "input": {
+    "tag": "c:ingots/refined_glowstone"
+  },
+  "fluid": "forgeweave:molten_refined_glowstone",
+  "amount": 144,
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "mekanism:ingot_refined_glowstone"
+    }
+  ]
+}

@@ -1,0 +1,13 @@
+{
+  "input": {
+    "tag": "c:storage_blocks/platinum"
+  },
+  "fluid": "forgeweave:molten_platinum",
+  "amount": 1296,
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "modern_industrialization:platinum_ingot"
+    }
+  ]
+}

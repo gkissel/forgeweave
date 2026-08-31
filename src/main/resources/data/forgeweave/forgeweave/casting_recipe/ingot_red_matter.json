@@ -1,0 +1,17 @@
+{
+  "station": "table",
+  "cast": {
+    "item": "forgeweave:cast_ingot"
+  },
+  "fluid": "forgeweave:molten_red_matter",
+  "amount": 144,
+  "result": {
+    "id": "projecte:red_matter"
+  },
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "projecte:red_matter"
+    }
+  ]
+}

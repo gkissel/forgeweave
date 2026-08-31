@@ -1,0 +1,24 @@
+{
+  "station": "table",
+  "cast": {
+    "item": "forgeweave:cast_arrow_head"
+  },
+  "fluid": "forgeweave:molten_osmiridium",
+  "amount": 288,
+  "result": {
+    "id": "forgeweave:arrow_head",
+    "components": {
+      "forgeweave:material": "forgeweave:osmiridium"
+    }
+  },
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "mekanism:ingot_osmium"
+    },
+    {
+      "type": "neoforge:item_exists",
+      "item": "modern_industrialization:iridium_ingot"
+    }
+  ]
+}

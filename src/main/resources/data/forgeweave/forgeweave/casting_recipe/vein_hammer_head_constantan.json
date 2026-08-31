@@ -1,0 +1,20 @@
+{
+  "station": "table",
+  "cast": {
+    "item": "forgeweave:cast_vein_hammer_head"
+  },
+  "fluid": "forgeweave:molten_constantan",
+  "amount": 1152,
+  "result": {
+    "id": "forgeweave:vein_hammer_head",
+    "components": {
+      "forgeweave:material": "forgeweave:constantan"
+    }
+  },
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "immersiveengineering:ingot_constantan"
+    }
+  ]
+}

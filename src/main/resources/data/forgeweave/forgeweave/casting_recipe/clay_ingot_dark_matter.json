@@ -1,0 +1,18 @@
+{
+  "station": "table",
+  "cast": {
+    "item": "forgeweave:clay_cast_ingot"
+  },
+  "fluid": "forgeweave:molten_dark_matter",
+  "amount": 144,
+  "result": {
+    "id": "projecte:dark_matter"
+  },
+  "consumes_cast": true,
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "projecte:dark_matter"
+    }
+  ]
+}

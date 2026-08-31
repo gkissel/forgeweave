@@ -1,0 +1,21 @@
+{
+  "station": "table",
+  "cast": {
+    "item": "forgeweave:clay_cast_cross_guard"
+  },
+  "fluid": "forgeweave:molten_draconium",
+  "amount": 144,
+  "result": {
+    "id": "forgeweave:cross_guard",
+    "components": {
+      "forgeweave:material": "forgeweave:draconium"
+    }
+  },
+  "consumes_cast": true,
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "draconicevolution:draconium_ingot"
+    }
+  ]
+}

@@ -1,0 +1,13 @@
+{
+  "input": {
+    "tag": "c:storage_blocks/psimetal"
+  },
+  "fluid": "forgeweave:molten_psimetal",
+  "amount": 1296,
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "psi:psimetal"
+    }
+  ]
+}

@@ -1,0 +1,17 @@
+{
+  "station": "table",
+  "cast": {
+    "item": "forgeweave:cast_nugget"
+  },
+  "fluid": "forgeweave:molten_alumite",
+  "amount": 16,
+  "result": {
+    "id": "forgeweave:alumite_nugget"
+  },
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "immersiveengineering:ingot_aluminum"
+    }
+  ]
+}

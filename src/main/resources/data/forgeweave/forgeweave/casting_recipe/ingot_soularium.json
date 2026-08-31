@@ -1,0 +1,17 @@
+{
+  "station": "table",
+  "cast": {
+    "item": "forgeweave:cast_ingot"
+  },
+  "fluid": "forgeweave:molten_soularium",
+  "amount": 144,
+  "result": {
+    "id": "enderio:soularium_ingot"
+  },
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "enderio:soularium_ingot"
+    }
+  ]
+}

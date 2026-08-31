@@ -15,24 +15,50 @@
     "bonus_damage": 3.6
   },
   "plating": {
-    "helmet": { "durability": 251, "armor": 2.0 },
-    "chestplate": { "durability": 370, "armor": 5.0 },
-    "leggings": { "durability": 347, "armor": 4.0 },
-    "boots": { "durability": 296, "armor": 2.0 }
+    "helmet": {
+      "durability": 251,
+      "armor": 2.0
+    },
+    "chestplate": {
+      "durability": 370,
+      "armor": 5.0
+    },
+    "leggings": {
+      "durability": 347,
+      "armor": 4.0
+    },
+    "boots": {
+      "durability": 296,
+      "armor": 2.0
+    }
   },
   "maille": true,
   "incorrect_for_tool": "minecraft:incorrect_for_diamond_tool",
   "traits": {},
   "crafting_items": [
-    { "ingredient": { "tag": "c:ingots/cyanite" }, "value": 144 },
-    { "ingredient": { "tag": "c:storage_blocks/cyanite" }, "value": 1296 }
+    {
+      "ingredient": {
+        "tag": "c:ingots/cyanite"
+      },
+      "value": 144
+    },
+    {
+      "ingredient": {
+        "tag": "c:storage_blocks/cyanite"
+      },
+      "value": 1296
+    }
   ],
   "repair_item": {
     "tag": "c:ingots/cyanite"
   },
+  "cast_only": true,
   "enchantability": 13,
   "color": "#1B1F3B",
   "neoforge:conditions": [
-    { "type": "neoforge:item_exists", "item": "bigreactors:cyanite_ingot" }
+    {
+      "type": "neoforge:item_exists",
+      "item": "bigreactors:cyanite_ingot"
+    }
   ]
 }

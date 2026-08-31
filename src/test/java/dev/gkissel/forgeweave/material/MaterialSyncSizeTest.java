@@ -94,8 +94,14 @@ class MaterialSyncSizeTest {
      * above the new measurement -- deliberately tight rather than another multiplier-based jump,
      * since this really is the epic's closing batch (#824's child issue list has nothing left that
      * ships a material) and there is no further planned growth to budget for.
+     *
+     * <p>Issue #873 (M6 epic #824's JC3 reversal) turned out to be one more: the two new
+     * unconditional gem materials (emerald, amethyst) and the three PlusTiC-inspiration alloys
+     * (alumite, osgloglas, osmiridium) push the roster to 143 materials, 106,921 bytes -- just over
+     * the 104 KB line. Raised to 108 KB (110,592 bytes), ~3.6 KB (3%) of headroom above the new
+     * measurement, same deliberately-tight-rather-than-multiplier approach as the #872 raise above.
      */
-    private static final int SYNC_BUDGET_BYTES = 104 * 1024;
+    private static final int SYNC_BUDGET_BYTES = 108 * 1024;
 
     private static RegistryOps<JsonElement> jsonOps;
     private static RegistryOps<Tag> nbtOps;

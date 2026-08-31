@@ -1,0 +1,21 @@
+{
+  "station": "table",
+  "cast": {
+    "item": "forgeweave:clay_cast_arrow_head"
+  },
+  "fluid": "forgeweave:molten_cosmic_neutronium",
+  "amount": 288,
+  "result": {
+    "id": "forgeweave:arrow_head",
+    "components": {
+      "forgeweave:material": "forgeweave:cosmic_neutronium"
+    }
+  },
+  "consumes_cast": true,
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "avaritia:neutronium_ingot"
+    }
+  ]
+}

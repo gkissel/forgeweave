@@ -1,0 +1,20 @@
+{
+  "station": "table",
+  "cast": {
+    "item": "forgeweave:cast_cross_guard"
+  },
+  "fluid": "forgeweave:molten_osmium",
+  "amount": 144,
+  "result": {
+    "id": "forgeweave:cross_guard",
+    "components": {
+      "forgeweave:material": "forgeweave:osmium"
+    }
+  },
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "mekanism:ingot_osmium"
+    }
+  ]
+}

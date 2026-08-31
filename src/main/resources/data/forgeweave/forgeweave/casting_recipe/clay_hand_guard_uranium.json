@@ -1,0 +1,34 @@
+{
+  "station": "table",
+  "cast": {
+    "item": "forgeweave:clay_cast_hand_guard"
+  },
+  "fluid": "forgeweave:molten_uranium",
+  "amount": 144,
+  "result": {
+    "id": "forgeweave:hand_guard",
+    "components": {
+      "forgeweave:material": "forgeweave:uranium"
+    }
+  },
+  "consumes_cast": true,
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:or",
+      "values": [
+        {
+          "type": "neoforge:item_exists",
+          "item": "mekanism:ingot_uranium"
+        },
+        {
+          "type": "neoforge:item_exists",
+          "item": "immersiveengineering:ingot_uranium"
+        },
+        {
+          "type": "neoforge:item_exists",
+          "item": "bigreactors:yellorium_ingot"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,20 @@
+{
+  "station": "table",
+  "cast": {
+    "item": "forgeweave:cast_plating_boots"
+  },
+  "fluid": "forgeweave:molten_graphite",
+  "amount": 288,
+  "result": {
+    "id": "forgeweave:plating_boots",
+    "components": {
+      "forgeweave:material": "forgeweave:graphite"
+    }
+  },
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "bigreactors:graphite_ingot"
+    }
+  ]
+}

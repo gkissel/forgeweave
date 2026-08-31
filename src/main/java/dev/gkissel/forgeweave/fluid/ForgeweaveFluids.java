@@ -285,6 +285,96 @@ public final class ForgeweaveFluids {
         return TRACK_B_ALLOY_FLUIDS.get(id);
     }
 
+    // #873 -- the JC3 reversal (M6 epic #824, session 2 2026-08-31): every Track A / recovery compat
+    // metal gets full smeltery integration instead of Part-Builder-only. Registered unconditionally in
+    // Java (the same NeoForge platform constraint every fluid in this file lives under) and hidden from
+    // creative/JEI when the backing material's own provider is absent -- see
+    // dev.gkissel.forgeweave.material.CompatMaterialAvailability, consulted by ForgeweaveCreativeTab
+    // rather than duplicated here. Colors are each material's own existing `color` field (its Part
+    // Builder tint); temperatures are this issue's own design pick (deliverable 1), banded by the
+    // material's harvest tier on the established 700-1330 sub-lava-to-near-blazing-blood scale (stone
+    // ~720-810, iron ~900-1030, diamond ~1040-1140, netherite ~1150-1330) with a small per-tier spread
+    // so same-tier metals do not all melt at one identical temperature -- the same spread technique
+    // TRACK_B_ORE_TEMPERATURES above already uses. Excluded (gems/crystals/organics upstream never
+    // treated as meltable, or a non-metal synthetic -- listed in the PR): black_quartz, certus_quartz,
+    // diamatine_crystal, dragonyst, emeradic_crystal, enori_crystal, fluix, fluorite, hdpe,
+    // palis_crystal, psigem, restonia_crystal, sky_stone, void_crystal.
+    public static final MoltenMetal ALUMINIUM = register("aluminium", 0xC6C7C8, 720);
+    public static final MoltenMetal BRONZE = register("bronze", 0xE3BD68, 900);
+    public static final MoltenMetal CONDUCTIVE_ALLOY = register("conductive_alloy", 0xC4732E, 916);
+    public static final MoltenMetal CONSTANTAN = register("constantan", 0xA8794A, 932);
+    public static final MoltenMetal DARK_STEEL = register("dark_steel", 0x2C2A2E, 1160);
+    public static final MoltenMetal DRACONIUM_AWAKENED = register("draconium_awakened", 0x9B2FD9, 1172);
+    public static final MoltenMetal DRACONIUM = register("draconium", 0x2FBFA0, 1184);
+    public static final MoltenMetal ELECTRUM = register("electrum", 0xE8DB49, 738);
+    public static final MoltenMetal END_STEEL = register("end_steel", 0xB29FE0, 1196);
+    public static final MoltenMetal ENERGETIC_ALLOY = register("energetic_alloy", 0xD8A23C, 948);
+    public static final MoltenMetal IESNIUM = register("iesnium", 0x5C3A21, 1208);
+    public static final MoltenMetal INVAR = register("invar", 0xD6D2C4, 964);
+    public static final MoltenMetal IRIDIUM = register("iridium", 0xE4E4EC, 1220);
+    public static final MoltenMetal LEAD = register("lead", 0x4D4968, 756);
+    public static final MoltenMetal NICKEL = register("nickel", 0xBFC2C2, 980);
+    public static final MoltenMetal OSMIUM = register("osmium", 0x5B6EE1, 996);
+    public static final MoltenMetal PLATINUM = register("platinum", 0xE5E4E2, 1040);
+    public static final MoltenMetal PSIMETAL = register("psimetal", 0x8CD6C4, 1012);
+    public static final MoltenMetal EBONY_PSIMETAL = register("ebony_psimetal", 0x221E26, 1054);
+    public static final MoltenMetal IVORY_PSIMETAL = register("ivory_psimetal", 0xF5F0E1, 1068);
+    public static final MoltenMetal PULSATING_ALLOY = register("pulsating_alloy", 0x8C5FBA, 1028);
+    public static final MoltenMetal REDSTONE_ALLOY = register("redstone_alloy", 0xB0413E, 774);
+    public static final MoltenMetal REFINED_GLOWSTONE = register("refined_glowstone", 0xF9E75B, 1082);
+    public static final MoltenMetal REFINED_OBSIDIAN = register("refined_obsidian", 0x2B1B3D, 1232);
+    public static final MoltenMetal SILVER = register("silver", 0xD1ECF6, 792);
+    public static final MoltenMetal SOULARIUM = register("soularium", 0xD9C98A, 1096);
+    public static final MoltenMetal TIN = register("tin", 0xD8D8D8, 810);
+    public static final MoltenMetal TITANIUM = register("titanium", 0x8A8F92, 1110);
+    public static final MoltenMetal TUNGSTEN = register("tungsten", 0x4F4E4A, 1124);
+    public static final MoltenMetal URANIUM = register("uranium", 0xA8B84B, 1138);
+    public static final MoltenMetal VIBRANT_ALLOY = register("vibrant_alloy", 0x4FD8B0, 1152);
+    public static final MoltenMetal PINK_SLIME = register("pink_slime", 0xF49AC1, 1166);
+    public static final MoltenMetal GRAPHITE = register("graphite", 0x36393B, 828);
+    public static final MoltenMetal DARK_MATTER = register("dark_matter", 0x1A0A26, 1244);
+    public static final MoltenMetal RED_MATTER = register("red_matter", 0xB3122B, 1256);
+    public static final MoltenMetal COSMIC_NEUTRONIUM = register("cosmic_neutronium", 0x3D1A5C, 1268);
+    public static final MoltenMetal CRYSTAL_MATRIX = register("crystal_matrix", 0x7FD9F5, 1280);
+    public static final MoltenMetal INFINITY = register("infinity", 0xF5E9C8, 1292);
+    public static final MoltenMetal CHAOTIC = register("chaotic", 0x6A1B9A, 1304);
+    public static final MoltenMetal WYVERN = register("wyvern", 0x1F7A4D, 1316);
+    public static final MoltenMetal QUARTZ_ENRICHED_IRON = register("quartz_enriched_iron", 0xC9A96A, 846);
+    public static final MoltenMetal SILICON = register("silicon", 0x4A4A4A, 864);
+    public static final MoltenMetal ENERGISED_STEEL = register("energised_steel", 0xF2C744, 1180);
+    public static final MoltenMetal BLUTONIUM = register("blutonium", 0x3A5FE0, 1194);
+    public static final MoltenMetal CYANITE = register("cyanite", 0x1B1F3B, 1208);
+    public static final MoltenMetal LUDICRITE = register("ludicrite", 0xE066CC, 1328);
+    public static final MoltenMetal URANINITE = register("uraninite", 0x7FA83B, 1222);
+
+    private static final Map<String, MoltenMetal> COMPAT_METAL_FLUIDS = Map.ofEntries(
+            Map.entry("aluminium", ALUMINIUM), Map.entry("bronze", BRONZE),
+            Map.entry("conductive_alloy", CONDUCTIVE_ALLOY), Map.entry("constantan", CONSTANTAN),
+            Map.entry("dark_steel", DARK_STEEL), Map.entry("draconium_awakened", DRACONIUM_AWAKENED),
+            Map.entry("draconium", DRACONIUM), Map.entry("electrum", ELECTRUM),
+            Map.entry("end_steel", END_STEEL), Map.entry("energetic_alloy", ENERGETIC_ALLOY),
+            Map.entry("iesnium", IESNIUM), Map.entry("invar", INVAR), Map.entry("iridium", IRIDIUM),
+            Map.entry("lead", LEAD), Map.entry("nickel", NICKEL), Map.entry("osmium", OSMIUM),
+            Map.entry("platinum", PLATINUM), Map.entry("psimetal", PSIMETAL),
+            Map.entry("ebony_psimetal", EBONY_PSIMETAL), Map.entry("ivory_psimetal", IVORY_PSIMETAL),
+            Map.entry("pulsating_alloy", PULSATING_ALLOY), Map.entry("redstone_alloy", REDSTONE_ALLOY),
+            Map.entry("refined_glowstone", REFINED_GLOWSTONE), Map.entry("refined_obsidian", REFINED_OBSIDIAN),
+            Map.entry("silver", SILVER), Map.entry("soularium", SOULARIUM), Map.entry("tin", TIN),
+            Map.entry("titanium", TITANIUM), Map.entry("tungsten", TUNGSTEN), Map.entry("uranium", URANIUM),
+            Map.entry("vibrant_alloy", VIBRANT_ALLOY), Map.entry("pink_slime", PINK_SLIME),
+            Map.entry("graphite", GRAPHITE), Map.entry("dark_matter", DARK_MATTER),
+            Map.entry("red_matter", RED_MATTER), Map.entry("cosmic_neutronium", COSMIC_NEUTRONIUM),
+            Map.entry("crystal_matrix", CRYSTAL_MATRIX), Map.entry("infinity", INFINITY),
+            Map.entry("chaotic", CHAOTIC), Map.entry("wyvern", WYVERN),
+            Map.entry("quartz_enriched_iron", QUARTZ_ENRICHED_IRON), Map.entry("silicon", SILICON),
+            Map.entry("energised_steel", ENERGISED_STEEL), Map.entry("blutonium", BLUTONIUM),
+            Map.entry("cyanite", CYANITE), Map.entry("ludicrite", LUDICRITE), Map.entry("uraninite", URANINITE));
+
+    /** A compat metal's molten fluid by material id (e.g. {@code "bronze"}), or {@code null} if unknown. */
+    public static MoltenMetal compatMetalFluid(String id) {
+        return COMPAT_METAL_FLUIDS.get(id);
+    }
+
     // The 7 smeltery-only catalysts (research doc §7.3 "Smeltery-only ingredients"): no tool stats,
     // no ingot/nugget/block item of their own -- deliverable 5's "fluids/items with no Material entry
     // at all" branch, picked over a stats-less Material JSON because nothing ever needs to carry one

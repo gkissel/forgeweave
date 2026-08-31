@@ -1,0 +1,20 @@
+{
+  "station": "table",
+  "cast": {
+    "item": "forgeweave:cast_plating_chestplate"
+  },
+  "fluid": "forgeweave:molten_end_steel",
+  "amount": 864,
+  "result": {
+    "id": "forgeweave:plating_chestplate",
+    "components": {
+      "forgeweave:material": "forgeweave:end_steel"
+    }
+  },
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "enderio:end_steel_ingot"
+    }
+  ]
+}

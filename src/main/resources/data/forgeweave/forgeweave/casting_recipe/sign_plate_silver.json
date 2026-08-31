@@ -1,0 +1,20 @@
+{
+  "station": "table",
+  "cast": {
+    "item": "forgeweave:cast_sign_plate"
+  },
+  "fluid": "forgeweave:molten_silver",
+  "amount": 432,
+  "result": {
+    "id": "forgeweave:sign_plate",
+    "components": {
+      "forgeweave:material": "forgeweave:silver"
+    }
+  },
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "immersiveengineering:ingot_silver"
+    }
+  ]
+}

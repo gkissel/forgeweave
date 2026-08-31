@@ -15,27 +15,64 @@
     "bonus_damage": 6.5
   },
   "plating": {
-    "helmet": { "durability": 286, "armor": 3.0, "toughness": 2.0 },
-    "chestplate": { "durability": 416, "armor": 8.0, "toughness": 2.0 },
-    "leggings": { "durability": 390, "armor": 6.0, "toughness": 2.0 },
-    "boots": { "durability": 338, "armor": 3.0, "toughness": 2.0 }
+    "helmet": {
+      "durability": 286,
+      "armor": 3.0,
+      "toughness": 2.0
+    },
+    "chestplate": {
+      "durability": 416,
+      "armor": 8.0,
+      "toughness": 2.0
+    },
+    "leggings": {
+      "durability": 390,
+      "armor": 6.0,
+      "toughness": 2.0
+    },
+    "boots": {
+      "durability": 338,
+      "armor": 3.0,
+      "toughness": 2.0
+    }
   },
   "maille": true,
   "incorrect_for_tool": "minecraft:incorrect_for_diamond_tool",
   "traits": {
-    "general": ["forgeweave:vigorous"]
+    "general": [
+      "forgeweave:vigorous"
+    ]
   },
   "crafting_items": [
-    { "ingredient": { "tag": "c:ingots/titanium" }, "value": 144 },
-    { "ingredient": { "tag": "c:nuggets/titanium" }, "value": 16 },
-    { "ingredient": { "tag": "c:storage_blocks/titanium" }, "value": 1296 }
+    {
+      "ingredient": {
+        "tag": "c:ingots/titanium"
+      },
+      "value": 144
+    },
+    {
+      "ingredient": {
+        "tag": "c:nuggets/titanium"
+      },
+      "value": 16
+    },
+    {
+      "ingredient": {
+        "tag": "c:storage_blocks/titanium"
+      },
+      "value": 1296
+    }
   ],
   "repair_item": {
     "tag": "c:ingots/titanium"
   },
+  "cast_only": true,
   "enchantability": 15,
   "color": "#8A8F92",
   "neoforge:conditions": [
-    { "type": "neoforge:item_exists", "item": "modern_industrialization:titanium_ingot" }
+    {
+      "type": "neoforge:item_exists",
+      "item": "modern_industrialization:titanium_ingot"
+    }
   ]
 }

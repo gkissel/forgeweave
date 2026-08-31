@@ -1,0 +1,20 @@
+{
+  "station": "table",
+  "cast": {
+    "item": "forgeweave:cast_pan"
+  },
+  "fluid": "forgeweave:molten_energetic_alloy",
+  "amount": 432,
+  "result": {
+    "id": "forgeweave:pan",
+    "components": {
+      "forgeweave:material": "forgeweave:energetic_alloy"
+    }
+  },
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "enderio:energetic_alloy_ingot"
+    }
+  ]
+}

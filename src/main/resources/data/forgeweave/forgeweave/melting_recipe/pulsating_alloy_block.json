@@ -1,0 +1,13 @@
+{
+  "input": {
+    "tag": "c:storage_blocks/pulsating_alloy"
+  },
+  "fluid": "forgeweave:molten_pulsating_alloy",
+  "amount": 1296,
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "enderio:pulsating_alloy_ingot"
+    }
+  ]
+}

@@ -1,0 +1,21 @@
+{
+  "station": "table",
+  "cast": {
+    "item": "forgeweave:clay_cast_sharpening_kit"
+  },
+  "fluid": "forgeweave:molten_iridium",
+  "amount": 288,
+  "result": {
+    "id": "forgeweave:sharpening_kit",
+    "components": {
+      "forgeweave:material": "forgeweave:iridium"
+    }
+  },
+  "consumes_cast": true,
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "modern_industrialization:iridium_ingot"
+    }
+  ]
+}

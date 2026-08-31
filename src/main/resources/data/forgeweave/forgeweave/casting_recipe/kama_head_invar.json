@@ -1,0 +1,20 @@
+{
+  "station": "table",
+  "cast": {
+    "item": "forgeweave:cast_kama_head"
+  },
+  "fluid": "forgeweave:molten_invar",
+  "amount": 288,
+  "result": {
+    "id": "forgeweave:kama_head",
+    "components": {
+      "forgeweave:material": "forgeweave:invar"
+    }
+  },
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "modern_industrialization:invar_ingot"
+    }
+  ]
+}

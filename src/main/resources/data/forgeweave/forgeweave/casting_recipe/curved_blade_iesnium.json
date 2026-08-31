@@ -1,0 +1,20 @@
+{
+  "station": "table",
+  "cast": {
+    "item": "forgeweave:cast_curved_blade"
+  },
+  "fluid": "forgeweave:molten_iesnium",
+  "amount": 288,
+  "result": {
+    "id": "forgeweave:curved_blade",
+    "components": {
+      "forgeweave:material": "forgeweave:iesnium"
+    }
+  },
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "occultism:iesnium_ingot"
+    }
+  ]
+}

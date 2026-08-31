@@ -1,0 +1,21 @@
+{
+  "station": "table",
+  "cast": {
+    "item": "forgeweave:clay_cast_broad_axe_head"
+  },
+  "fluid": "forgeweave:molten_iridium",
+  "amount": 1152,
+  "result": {
+    "id": "forgeweave:broad_axe_head",
+    "components": {
+      "forgeweave:material": "forgeweave:iridium"
+    }
+  },
+  "consumes_cast": true,
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "modern_industrialization:iridium_ingot"
+    }
+  ]
+}
