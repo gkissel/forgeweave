@@ -347,6 +347,61 @@ Travellers' gear, slimesuit, slime wings, shields (1.20 content, not mechanics) 
 | 7 | Book `armor.json`, Ponder armor scene, harness worn-set scene, lang | 4, 5, 6 |
 | 8 | Acceptance playthrough, release-checklist lines, alpha tag | 7 |
 
+## Milestone 6 — material expansion: existence-gated compat + a self-contained ladder
+
+Planned 2026-08-31 (epic [#824](https://github.com/gkissel/forgeweave/issues/824); prep doc [docs/research/m6-material-expansion-references.md](research/m6-material-expansion-references.md)). M6 has two content tracks. **Track A — cross-mod compat**: existence-gated materials sourced from other mods' metals, with Tinkers' Evolution's 97-material roster (prep doc §6) as the parity target; needs the `neoforge:conditions` mechanism, since every material must be absent unless its provider mod is installed. **Track B — self-contained original materials**: a TAIGA-style ladder of Forgeweave's own — own ores, own worldgen, own alloy table, own traits, no external mod required; this is the half a Forgeweave-only install actually sees. The two tracks share the ADR-0004 trait behavior library and the UI/schema-hardening work; everything else is independent, and the conditions mechanism blocks only Track A. Epic #824's "Scope (decided — do not relitigate)" section and its judgment calls JC1–JC11 are the source of truth for what follows; JCs without a settled answer are called out as open below rather than guessed at.
+
+### Acceptance test
+
+Fresh 1.21.1 world, dedicated server, no cheats. Draft — tune while writing the child issues:
+
+1. With **no** compat mods installed, open creative / JEI / the guide book / the Part Builder and confirm that **no** modded-metal material exists anywhere — not an unobtainable ghost entry, absent. This is M6's headline, and it reverses M3.2's tag-gated behavior for bronze/lead/silver/electrum.
+2. With one supported mod installed (Mekanism is the reference), its materials appear in all four surfaces and craft into parts at the Part Builder from that mod's own ingots.
+3. Assemble a tool from a modded material and observe its trait firing.
+4. Assemble a tool carrying one of the new parameterized behaviors from each library batch.
+5. Charge a tool carrying the energy trait from any Forge Energy source and observe energy spent before durability.
+6. Melt an overworld mob in the smeltery for blood; melt a blaze for blazing blood and burn it as a fuel hotter than lava.
+7. Transform a Nether Core into an End Core and then a Deep Core, and observe the yield step at each tier.
+8. Load a world saved on the previous release.
+
+All new melting, alloying, casting, existence-gated Part Builder, and trait-application recipes are visible in JEI with no JEI code changes.
+
+### Content manifest
+
+| Kind | Contents |
+| --- | --- |
+| Materials (Track A, ~35–45) | Existence-gated presets sourced from 1.21.1 NeoForge mods verified against the Modrinth API and each mod's own git tree (epic #824 availability table): Mekanism, AE2, Immersive Engineering, Occultism, Modern Industrialization, Twilight Forest, Mystical Agriculture, Powah, Create, Silent Gear, Ad Astra, Allthemodium as the stable core; Ender IO, Draconic Evolution, Industrial Foregoing, Actually Additions, ProjectE gated with care (beta/renamed/no-`c:`-tag callouts per mod). Batched across #833–#837. |
+| Materials (Track B, ~30) | Self-contained ladder, own ores/alloys, TAIGA-inspired shape, no mining tiers above netherite (JC10) and no meteor-fall sourcing (JC11) — #838–#841 |
+| Trait/behavior classes (~30 new Java) | ADR-0004 parameterized-behavior-library batches: damage-scaling (#827), on-hit effect (#828), utility/economy + reuse audit (#829), Forge Energy tool buffer + energy/solar/kinetic behaviors (#830); armor behaviors on the M4 `onDefend` seam (#831) are JC8-gated, not committed to M6 yet |
+| Blocks/fluids | Track B ore blocks and worldgen features; Track B molten fluids, melting/casting rows, and alloy table (#840); End Core and Deep Core smeltery tiers with a pour-to-transform mechanic (#845) |
+| World content | Generic overworld-mob blood melting and a `smeltery_fuel` entry for blazing blood, plus a meltable dragon breath (#844) — the remaining pieces of #181; blood/blazing blood/deep blood items and their entity-melting recipes already shipped via #270 |
+| Schema | `neoforge:conditions` on `Material` and its companion melting/casting/alloy/embossing datapack-registry entries (existence gating, mechanism already in NeoForge 21.1's `RegistryDataLoader`, prep doc §1.4); bronze/lead/silver/electrum migrate off tag-only gating to conditions (#826); ADR-0004 parameterized behavior classes with `id + level` serialization; a Forge Energy tool-component buffer |
+| Compat mechanism | `neoforge:mod_loaded` / `neoforge:item_exists` conditions, `or`-combined across every known 1.21.1 provider of a metal name for re-homed materials (JC2, #833) rather than one preset per modid |
+
+### In scope (systems)
+
+`neoforge:conditions` existence gating on datapack-registry entries, covering every consuming surface (creative tab, JEI, guide book, Part Builder, tool assembly) with zero call-site changes (prep doc §1.4). The ADR-0004 parameterized behavior library (three non-armor batches committed; the armor batch is JC8-gated). The Forge Energy tool buffer and its energy/solar/kinetic behaviors. Track B's own ore/alloy/trait ladder with full smeltery integration (Track B materials always exist, so JC3's Part-Builder-only reasoning does not apply to them). The two new smeltery core tiers (End, Deep) with pour-to-transform. Generic overworld blood melting and the blazing-blood fuel entry. UI/schema hardening at the ~170-material scale (#846): creative-tab part-variant volume, registry sync payload size, guide-book material-section pagination, Part Builder `crafting_items` match performance.
+
+### Non-goals for M6
+
+Bolts (cut earlier, unrelated to M6) · mining tiers above netherite — JC10's recommended answer is no new tool-tier block tags, differentiate Track B by stats/traits/obtainability instead (epic #824, #838 records the decision) · meteor-fall ore sourcing — JC11's recommended answer cuts it for M6 in favor of ore veins or a rare surface feature (#839) · slime islands, purple/blue slime spawns (world-content milestone, unchanged non-goal since M2/M3.2) · the parity target's non-material mechanics — sceptres, Artifacts, fusion crafting, an in-game materials handbook, the melt-speed multiplier, and the damage-cap toggle are split per JC7 (#847): the two config tweaks and the handbook audit may ride any M6 batch, but sceptres/Artifacts/fusion crafting belong to their own milestone · Track A dedicated molten fluids/casting per modded metal — JC3's recommended answer keeps Track A Part-Builder-only, matching the four existing compat metals, revisited at M8 · GTCEu (skip until ids can be dumped from a running instance, JC5).
+
+**Open — maintainer decisions pending, tracked on their epic #824 child issue, not guessed at here:**
+
+- JC1 (#842) — whether the ~54 Tinkers' Evolution materials with no 1.21.1 mod build (Botania, Blood Magic, Thermal Series, Thaumcraft, IndustrialCraft 2, Environmental Tech, Natura, Astral Sorcery, Forestry, Advanced Solar Panels, AE2's fluix-steel) ship as dormant condition-gated presets or are skipped entirely.
+- JC4 — whether mods with no 1.12-addon-roster ancestor (Create, Ars Nouveau, Twilight Forest, Ad Astra, Allthemodium, Silent Gear, Mystical Agriculture, Powah, Occultism, Modern Industrialization, GTCEu) are in scope beyond Modern Industrialization and Powah.
+- JC6 (#832) — whether ADR-0004's datapack-creatable trait-definition registry ships in M6 (scoped to traits) or the ADR is amended to defer it.
+- JC8 (#831) — whether the armor trait behavior library ships in M6 or a later armor milestone.
+- JC9 (#841) — Track B material names: reused recognisable names from the reference ladder, or original Forgeweave coinages (two candidate names are Marvel trademarks and are off the table regardless).
+
+### CI and release gates
+
+- **GameTest coverage**: existence-gating negative path (a conditioned material is absent from the synced registry, creative tab, JEI, and book) and positive path (`mod_loaded`/`item_exists` against a modid loaded in the dev/test environment or a gametest-registered item, prep doc §1.4 item 6); one test per new parameterized behavior class per library batch; Forge Energy spent before durability; each smeltery core tier's yield and the End→Deep pour-to-transform step; generic overworld-mob blood melting; blazing-blood `smeltery_fuel` entry burns hotter than lava; Track B alloy ratios and ore-to-ingot yield.
+- **Unit gates**: `MaterialSyncSizeTest`'s budget re-measured at M6 scale (11 materials measured ~430 B each at 32 KiB; ~170 materials projects to ~73 KiB, over twice the current budget — #846 resolves the budget itself).
+- **Save-compat fixtures (same PR as the format; corpus is CI-gating)**: any new tool-component fields from the Forge Energy buffer and new leveled trait definitions; End Core/Deep Core block-entity NBT (structure bounds, tier state); a fixture snapshotting a tool built from a Track A and a Track B material each.
+- **Manual release checklist adds**: JEI-installed sanity check twice — once with Mekanism present (Track A reference mod, materials appear) and once absent (confirm existence gating: no ghost entries in creative, JEI, the book, or the Part Builder); spark profile at ~170-material scale; dedicated-server acceptance playthrough; previous-release world load.
+- Alpha tags during the milestone; the save-compat promise stays binding throughout (M6 ships after `mc1.21.1-v0.4.0-beta.4`).
+
 ## Milestone ladder
 
 Each milestone ships a playable release under the tag scheme in [releasing.md](releasing.md).
@@ -359,8 +414,8 @@ Each milestone ships a playable release under the tag scheme in [releasing.md](r
 | M3.2 | Material roster: the full always-on 1.12 material set with per-part traits, tag-gated compat metals, and four by-name modern-branch additions (this document, planned 2026-08-13; pulled forward from M6 by maintainer decision 2026-08-12) | M3 |
 | M3.5 | Ranged weapons: shortbow, longbow, crossbow firing vanilla arrows (planned 2026-08-15, this document). Material arrows + shuriken deferred to a follow-up; javelin/throwing axe/energy tool to backlog | M3.2 + `mc1.21.1-v0.3.0-beta.1` |
 | M4 | Armors: part-based plate armor (plating + maille), Armory-inspired, 1.20-derived by name (this document, planned 2026-08-24) | M3.5 (reuses parts/traits/modifiers/combat seams) |
-| M5 | Gadgets: slingshot, slime boots | M2 |
-| M6 | Material expansion at TAIGA scale; modded metals become tool materials via the datapack registry | Stable material data model (M1), metals (M2) |
+| M5 | Gadgets: slime sling (#453), slime boots (#452), wooden hopper (#822, half-speed 1:1 port). The rest of the parity audit's unplanned gadget roster — piggyback pack, punji sticks, item/drying racks, glow ball, EFLN, fancy frames, wooden rails, stone torch/ladder, dried clay and brownstone families, spaghetti, slime channels — stays open in [#487](https://github.com/gkissel/forgeweave/issues/487) | M2 |
+| M6 | Material expansion: existence-gated modded materials (Track A) plus a self-contained TAIGA-style ladder (Track B), at Tinkers'-Evolution-scale parity, folding in the deferred #180/#181 world content (this document, planned 2026-08-31; epic [#824](https://github.com/gkissel/forgeweave/issues/824)) | Stable material data model (M1), metals (M2), armor traits and the `onDefend` seam this milestone's armor library extends (M4) |
 | M7 | Tool leveling (derived from Tinkers' Tool Leveling) | M3 |
 | M8 | Deep compat: Apotheosis, Curios, Jade/WTHIT, EMI, Mekanism, and other major mods by adoption | M4 (Curios needs armors/gadgets) |
 | M9 | Original-asset rewrite. **Premise changed 2026-08-28 (issue #796, maintainer decision):** rather than a single milestone that removes upstream-derived assets outright, Forgeweave ships two art sets as each Forged sprite arrives -- **Forged** (new original art, the default) and **Legacy** (the pre-#796 look, demoted to an optional built-in resource pack, not deleted). M9 as "remove the derived tree" no longer happens; the rewrite instead proceeds incrementally, sprite batch by sprite batch, through the machinery #796 built (see `scripts/sprite_sets.py`, `ForgeweaveResourcePacks`). This row stays as the historical record of the milestone; new sprite batches ship as their own issues rather than waiting on an M9 freeze | Content freeze of M1–M8 |
@@ -378,7 +433,7 @@ Per-milestone source policy, decided from the [addon ecosystem survey](research/
 | M3.2 | — | TiC 1.20 branch: **amethyst bronze, nahuatl, chorus, ancient** as material additions (feature-scope deviation authorized by maintainer 2026-08-13, by name — the standing "1.20 never sets feature scope" rule is explicitly overridden for these four) |
 | M3.5 | — | PlusTiC: energy-consuming ranged tool |
 | M4 | **TiC 1.20 branch: plate armor** — plating + maille part model, `PlatingMaterialStats` values, layered armor model + grayscale base textures, ARMOR-scope trait table, defense modifier family (feature-scope deviation authorized by maintainer 2026-08-24, by name — the standing "1.20 never sets feature scope" rule is explicitly overridden for plate armor; Tinkers' 1.12 has no armor) | Construct's Armory (LGPL): exactly four armor slots, variety carried by traits and modifiers. Its two-station split was considered and rejected 2026-08-24 (the Tool Station is generic over `ENTRIES`) |
-| M6 | — | TAIGA + Moar Tinkers progression ladders. Sizing target: the material schema and picker UI stay usable at 50–70 materials / 30–45 traits |
+| M6 | — | TAIGA, PlusTiC, Moar Tinkers and Tinkers' Evolution progression ladders and rosters — the last is Track A's parity target specifically (epic #824), MIT text plus a "Good, not Evil" clause, so inspiration-only like the other three, not plain MIT. Sizing target (rewritten from the old single-number band, [research/m6-material-expansion-references.md](research/m6-material-expansion-references.md) §5 and §6.7): budget **distinct behaviors** and **trait definitions** separately, since M6's own library batches reach a large definition count by instantiating one parameterized behavior at several levels (radioactive I–III, aftershock I–III), exactly like the 1.12 addons surveyed. Distinct behavior classes: ~25–35 (the four ADR-0004 library batches land near 30). Trait definitions: ~110, once every leveled instance and Track A/B material assignment is counted (`ForgeweaveTraits` already registers 67 at M4 — the old 30–45 band was exceeded two milestones ago). Materials: Forgeweave ships 46 material JSONs today; M6's parity target (Tinkers' Evolution's 97-material roster) plus the Track B ladder lands the total near **170**, well above the old 50–70 plateau — the number the schema, sync payload, creative tab, book and Part Builder are sized against (#846) |
 | M7 | **Tinkers' Tool Leveling** (MIT, 16 classes — direct port allowed) | Ships behind a config flag; interaction with the modifier cap is decided at M7 planning, not discovered in play |
 | M1/M8 | **Tinker's JEI** (MIT, 4 classes — reference for the JEI plugin) | — |
 
@@ -421,7 +476,7 @@ No milestone-specific CI infrastructure beyond that.
 - Shape of Apotheosis integration: vanilla-enchanting flag interplay vs. gem sockets as Modifiers (revisit at M8, seam exists via `allowVanillaEnchanting` and the Modifier system).
 - Which additional 1.12.2 addons beyond TAIGA and Tool Leveling to mine for inspiration.
 - EMI support vs. JEI-only long-term (revisit at M8).
-- **World-content milestone** (candidate, scoped at M6 planning): End core (~2.5×, dragon breath/skull) and Ancient core (~3×, warden kill / rare loot) smeltery tiers, a new End ore, slime islands. Explicit non-goal everywhere until then.
+- **World-content milestone** (candidate; scoped at M6 planning, epic #824): the End Core and Deep Core smeltery tiers and generic blood melting move into M6 itself (#844, #845), settling the part of this open question M6 planning could answer. A new End ore and slime islands remain unscoped and stay an explicit non-goal everywhere until a future milestone picks them up.
 - **In-game guide**: JEI + advancements + Ponder scenes carry discovery through M2–M7; a full GuideME-based guide is revisited at M8.
 
 ## Deferred backlog (decided, awaiting a milestone)
