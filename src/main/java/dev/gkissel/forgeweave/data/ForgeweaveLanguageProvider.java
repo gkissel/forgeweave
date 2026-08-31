@@ -1078,6 +1078,16 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("material.forgeweave.mendalloy", "Mendalloy");
         add("material.forgeweave.mendstone", "Mendstone");
 
+        // #873 -- the three PlusTiC-inspiration alloys (M6 epic #824's JC3 reversal, deliverable 4).
+        add("material.forgeweave.alumite", "Alumite");
+        add("material.forgeweave.osgloglas", "Osgloglas");
+        add("material.forgeweave.osmiridium", "Osmiridium");
+
+        // #873 -- the two unconditional vanilla-gem materials (PlusTiC/Moar pickup batch, maintainer
+        // decision recorded on issue #873's comments).
+        add("material.forgeweave.emerald", "Emerald");
+        add("material.forgeweave.amethyst", "Amethyst");
+
         // #392 -- the two bowstring materials (docs/SCOPE.md M3.5). Names are upstream 1.12's
         // material.string.name / material.vine.name. Neither carries any tool stat block, so they
         // only ever surface on a bow string.
@@ -1570,6 +1580,59 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         for (TrackBAlloy alloy : TrackBAlloy.ALL) {
             addFluid(ForgeweaveFluids.trackBAlloyFluid(alloy.id()), "Molten " + alloy.displayName());
         }
+        // #873 -- the JC3 reversal (M6 epic #824): every compat metal's own molten fluid + bucket.
+        // Display names are each material's own display name with a "Molten " prefix, same convention
+        // as every fluid above; the three PlusTiC-inspiration alloys (alumite/osgloglas/osmiridium)
+        // already get theirs for free from the TrackBAlloy loop below since they were added to that
+        // roster.
+        addFluid(ForgeweaveFluids.ALUMINIUM, "Molten Aluminium");
+        addFluid(ForgeweaveFluids.BRONZE, "Molten Bronze");
+        addFluid(ForgeweaveFluids.CONDUCTIVE_ALLOY, "Molten Conductive Alloy");
+        addFluid(ForgeweaveFluids.CONSTANTAN, "Molten Constantan");
+        addFluid(ForgeweaveFluids.DARK_STEEL, "Molten Dark Steel");
+        addFluid(ForgeweaveFluids.DRACONIUM_AWAKENED, "Molten Draconium Awakened");
+        addFluid(ForgeweaveFluids.DRACONIUM, "Molten Draconium");
+        addFluid(ForgeweaveFluids.ELECTRUM, "Molten Electrum");
+        addFluid(ForgeweaveFluids.END_STEEL, "Molten End Steel");
+        addFluid(ForgeweaveFluids.ENERGETIC_ALLOY, "Molten Energetic Alloy");
+        addFluid(ForgeweaveFluids.IESNIUM, "Molten Iesnium");
+        addFluid(ForgeweaveFluids.INVAR, "Molten Invar");
+        addFluid(ForgeweaveFluids.IRIDIUM, "Molten Iridium");
+        addFluid(ForgeweaveFluids.LEAD, "Molten Lead");
+        addFluid(ForgeweaveFluids.NICKEL, "Molten Nickel");
+        addFluid(ForgeweaveFluids.OSMIUM, "Molten Osmium");
+        addFluid(ForgeweaveFluids.PLATINUM, "Molten Platinum");
+        addFluid(ForgeweaveFluids.PSIMETAL, "Molten Psimetal");
+        addFluid(ForgeweaveFluids.EBONY_PSIMETAL, "Molten Ebony Psimetal");
+        addFluid(ForgeweaveFluids.IVORY_PSIMETAL, "Molten Ivory Psimetal");
+        addFluid(ForgeweaveFluids.PULSATING_ALLOY, "Molten Pulsating Alloy");
+        addFluid(ForgeweaveFluids.REDSTONE_ALLOY, "Molten Redstone Alloy");
+        addFluid(ForgeweaveFluids.REFINED_GLOWSTONE, "Molten Refined Glowstone");
+        addFluid(ForgeweaveFluids.REFINED_OBSIDIAN, "Molten Refined Obsidian");
+        addFluid(ForgeweaveFluids.SILVER, "Molten Silver");
+        addFluid(ForgeweaveFluids.SOULARIUM, "Molten Soularium");
+        addFluid(ForgeweaveFluids.TIN, "Molten Tin");
+        addFluid(ForgeweaveFluids.TITANIUM, "Molten Titanium");
+        addFluid(ForgeweaveFluids.TUNGSTEN, "Molten Tungsten");
+        addFluid(ForgeweaveFluids.URANIUM, "Molten Uranium");
+        addFluid(ForgeweaveFluids.VIBRANT_ALLOY, "Molten Vibrant Alloy");
+        addFluid(ForgeweaveFluids.PINK_SLIME, "Molten Pink Slime");
+        addFluid(ForgeweaveFluids.GRAPHITE, "Molten Graphite");
+        addFluid(ForgeweaveFluids.DARK_MATTER, "Molten Dark Matter");
+        addFluid(ForgeweaveFluids.RED_MATTER, "Molten Red Matter");
+        addFluid(ForgeweaveFluids.COSMIC_NEUTRONIUM, "Molten Cosmic Neutronium");
+        addFluid(ForgeweaveFluids.CRYSTAL_MATRIX, "Molten Crystal Matrix");
+        addFluid(ForgeweaveFluids.INFINITY, "Molten Infinity");
+        addFluid(ForgeweaveFluids.CHAOTIC, "Molten Chaotic");
+        addFluid(ForgeweaveFluids.WYVERN, "Molten Wyvern");
+        addFluid(ForgeweaveFluids.QUARTZ_ENRICHED_IRON, "Molten Quartz Enriched Iron");
+        addFluid(ForgeweaveFluids.SILICON, "Molten Silicon");
+        addFluid(ForgeweaveFluids.ENERGISED_STEEL, "Molten Energised Steel");
+        addFluid(ForgeweaveFluids.BLUTONIUM, "Molten Blutonium");
+        addFluid(ForgeweaveFluids.CYANITE, "Molten Cyanite");
+        addFluid(ForgeweaveFluids.LUDICRITE, "Molten Ludicrite");
+        addFluid(ForgeweaveFluids.URANINITE, "Molten Uraninite");
+
         addFluid(ForgeweaveFluids.FLAREALLOY, "Molten Flarealloy");
         addFluid(ForgeweaveFluids.DEEPALLOY, "Molten Deepalloy");
         addFluid(ForgeweaveFluids.SPARKALLOY, "Molten Sparkalloy");

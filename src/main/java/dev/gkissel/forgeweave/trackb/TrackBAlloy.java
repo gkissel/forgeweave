@@ -45,9 +45,25 @@ public record TrackBAlloy(String id, int color, int temperature) {
     public static final TrackBAlloy MENDALLOY = new TrackBAlloy("mendalloy", 0x7FBF6B, 1240);
     public static final TrackBAlloy MENDSTONE = new TrackBAlloy("mendstone", 0xC2A878, 1280);
 
+    // #873 -- the three PlusTiC-inspiration alloys (M6 epic #824's JC3-reversal deliverable 5):
+    // alumite (aluminium + iron + obsidian), osgloglas (osmium + refined obsidian + glass), osmiridium
+    // (osmium + iridium). Unlike every entry above, these are Track A-adjacent -- at least one input
+    // is a compat metal, so the {@code alloy_recipe} and {@code material} JSON that back them carry a
+    // {@code neoforge:conditions} gate on that input's provider (deliverable 4 of #873's issue text).
+    // They still reuse this class and every wiring loop keyed off {@link #ALL}: item/block
+    // registration is unconditional Java either way (the same NeoForge platform constraint every
+    // other fluid/item in this file lives under), so nothing about *this* roster's shape changes --
+    // only the datapack recipes gate. Colors are a blend of each alloy's own inputs' existing material
+    // colors (aluminium/iron/obsidian; osmium/refined_obsidian/glass; osmium/iridium); temperatures
+    // continue this class's own "alloys run hotter than their inputs" scale.
+    public static final TrackBAlloy ALUMITE = new TrackBAlloy("alumite", 0xB8B2C9, 1120);
+    public static final TrackBAlloy OSGLOGLAS = new TrackBAlloy("osgloglas", 0x7FA8A3, 1180);
+    public static final TrackBAlloy OSMIRIDIUM = new TrackBAlloy("osmiridium", 0xC9C2D6, 1260);
+
     public static final List<TrackBAlloy> ALL = List.of(IRONBRAND, QUAKESTONE, SHARDLINE, EMBERCAST,
             RIFTALLOY, TIDEIRON, CINDERFORGE, DREADALLOY, SUNSTEEL, HOLLOWSTEEL, TRUESTEEL, STORMALLOY,
-            GLOWVEIL, DAYBRASS, FAULTSTEEL, SKIPALLOY, MENDALLOY, MENDSTONE);
+            GLOWVEIL, DAYBRASS, FAULTSTEEL, SKIPALLOY, MENDALLOY, MENDSTONE,
+            ALUMITE, OSGLOGLAS, OSMIRIDIUM);
 
     public String ingotId() {
         return id + "_ingot";
