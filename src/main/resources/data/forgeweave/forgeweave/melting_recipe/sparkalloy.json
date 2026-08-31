@@ -1,0 +1,7 @@
+{
+  "input": {
+    "item": "minecraft:glowstone_dust"
+  },
+  "fluid": "forgeweave:molten_sparkalloy",
+  "amount": 32
+}

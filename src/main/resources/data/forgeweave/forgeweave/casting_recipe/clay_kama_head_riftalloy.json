@@ -1,0 +1,15 @@
+{
+  "station": "table",
+  "cast": {
+    "item": "forgeweave:clay_cast_kama_head"
+  },
+  "fluid": "forgeweave:molten_riftalloy",
+  "amount": 288,
+  "result": {
+    "id": "forgeweave:kama_head",
+    "components": {
+      "forgeweave:material": "forgeweave:riftalloy"
+    }
+  },
+  "consumes_cast": true
+}

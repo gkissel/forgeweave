@@ -1,0 +1,12 @@
+{
+  "station": "table",
+  "cast": {
+    "item": "forgeweave:clay_cast_nugget"
+  },
+  "fluid": "forgeweave:molten_ironbrand",
+  "amount": 16,
+  "result": {
+    "id": "forgeweave:ironbrand_nugget"
+  },
+  "consumes_cast": true
+}

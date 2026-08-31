@@ -1,0 +1,15 @@
+{
+  "station": "table",
+  "cast": {
+    "item": "forgeweave:clay_cast_hammer_head"
+  },
+  "fluid": "forgeweave:molten_riftalloy",
+  "amount": 1152,
+  "result": {
+    "id": "forgeweave:hammer_head",
+    "components": {
+      "forgeweave:material": "forgeweave:riftalloy"
+    }
+  },
+  "consumes_cast": true
+}

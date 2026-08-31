@@ -2,7 +2,9 @@ package dev.gkissel.forgeweave.fluid;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Supplier;
 
 import net.minecraft.core.registries.Registries;
@@ -29,6 +31,8 @@ import net.neoforged.neoforge.registries.DeferredRegister;
 import net.neoforged.neoforge.registries.NeoForgeRegistries;
 
 import dev.gkissel.forgeweave.Forgeweave;
+import dev.gkissel.forgeweave.trackb.TrackBAlloy;
+import dev.gkissel.forgeweave.trackb.TrackBOre;
 
 /**
  * The nine molten metal fluids (docs/SCOPE.md M2 issue #92): iron, copper, gold, cobalt, ardite,
@@ -242,6 +246,59 @@ public final class ForgeweaveFluids {
     // tone.
     public static final MoltenMetal MAGMA_CREAM = register("magma_cream", 0xFF960D, 300);
     public static final MoltenMetal QUARTZ = register("quartz", 0xE8D5C4, 637);
+
+    // #840 -- Track B's molten fluids (M6 epic #824, closing the loop #839/#864 left open: ore/ingot/
+    // nugget/raw items existed with no molten form). Ore-metal fluids reuse each TrackBOre's own
+    // ore-block tint (dev.gkissel.forgeweave.trackb.TrackBOre) rather than picking a second color, the
+    // same "one color per material" precedent QUARTZ/MAGMA_CREAM's own picks already set; temperatures
+    // are this issue's own design decision (deliverable 2), placed on the existing lava(1000)/blazing
+    // blood(1500) scale by tier -- the one stone-tier ore lands below lava, the one diamond-tier ore
+    // near it, and the ten netherite-tier ores spread across 1080-1280.
+    private static final Map<String, Integer> TRACK_B_ORE_TEMPERATURES = Map.ofEntries(
+            Map.entry("cinderstone", 850), Map.entry("fulmenite", 980),
+            Map.entry("duskspar", 1080), Map.entry("voltcinder", 1100), Map.entry("murkiron", 1120),
+            Map.entry("hardcinder", 1140), Map.entry("nightshale", 1160), Map.entry("warspar", 1180),
+            Map.entry("hollowstone", 1200), Map.entry("resonite", 1220), Map.entry("starfall_stone", 1240),
+            Map.entry("voidglass", 1260));
+
+    private static final Map<String, MoltenMetal> TRACK_B_ORE_FLUIDS = new LinkedHashMap<>();
+    private static final Map<String, MoltenMetal> TRACK_B_ALLOY_FLUIDS = new LinkedHashMap<>();
+
+    static {
+        for (TrackBOre ore : TrackBOre.ALL) {
+            TRACK_B_ORE_FLUIDS.put(ore.id(), register(ore.id(), ore.color(), TRACK_B_ORE_TEMPERATURES.get(ore.id())));
+        }
+        // The 18 alloy tool materials (research doc §7.3 "Alloy" table): see TrackBAlloy's own javadoc
+        // for the color/temperature design rationale.
+        for (TrackBAlloy alloy : TrackBAlloy.ALL) {
+            TRACK_B_ALLOY_FLUIDS.put(alloy.id(), register(alloy.id(), alloy.color(), alloy.temperature()));
+        }
+    }
+
+    /** A Track B ore-metal fluid by material id (e.g. {@code "cinderstone"}), or {@code null} if unknown. */
+    public static MoltenMetal trackBOreFluid(String id) {
+        return TRACK_B_ORE_FLUIDS.get(id);
+    }
+
+    /** A Track B alloy fluid by material id, or {@code null} if unknown. */
+    public static MoltenMetal trackBAlloyFluid(String id) {
+        return TRACK_B_ALLOY_FLUIDS.get(id);
+    }
+
+    // The 7 smeltery-only catalysts (research doc §7.3 "Smeltery-only ingredients"): no tool stats,
+    // no ingot/nugget/block item of their own -- deliverable 5's "fluids/items with no Material entry
+    // at all" branch, picked over a stats-less Material JSON because nothing ever needs to carry one
+    // of these as a solid item outside the smeltery (see the melting_recipe rows this issue ships,
+    // which source each one straight from a common vanilla item rather than a Forgeweave ore/ingot).
+    // Colors/temperatures are this issue's own pick, themed to each id; none needs a TrackBOre-style
+    // roster class since nothing else in the codebase has to walk this list of seven by material id.
+    public static final MoltenMetal FLAREALLOY = register("flarealloy", 0xFF7A1A, 900);
+    public static final MoltenMetal DEEPALLOY = register("deepalloy", 0x123A3A, 950);
+    public static final MoltenMetal SPARKALLOY = register("sparkalloy", 0xF2E63D, 920);
+    public static final MoltenMetal REDCINDER = register("redcinder", 0xB22222, 880);
+    public static final MoltenMetal PEARLCINDER = register("pearlcinder", 0xE8C9D6, 860);
+    public static final MoltenMetal AMBERCINDER = register("ambercinder", 0xC9862A, 870);
+    public static final MoltenMetal TWINALLOY = register("twinalloy", 0x9B59D0, 910);
 
     private static MoltenMetal register(String metalId, int color, int temperature) {
         return register("molten_" + metalId, color, temperature, () -> moltenFluidType(temperature),

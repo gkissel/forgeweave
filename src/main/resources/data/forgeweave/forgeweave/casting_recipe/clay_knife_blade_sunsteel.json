@@ -1,0 +1,15 @@
+{
+  "station": "table",
+  "cast": {
+    "item": "forgeweave:clay_cast_knife_blade"
+  },
+  "fluid": "forgeweave:molten_sunsteel",
+  "amount": 144,
+  "result": {
+    "id": "forgeweave:knife_blade",
+    "components": {
+      "forgeweave:material": "forgeweave:sunsteel"
+    }
+  },
+  "consumes_cast": true
+}

@@ -1,0 +1,20 @@
+{
+  "inputs": [
+    {
+      "fluid": "forgeweave:molten_hollowstone",
+      "amount": 144
+    },
+    {
+      "fluid": "forgeweave:molten_warspar",
+      "amount": 144
+    },
+    {
+      "fluid": "forgeweave:molten_deepalloy",
+      "amount": 32
+    }
+  ],
+  "result": {
+    "fluid": "forgeweave:molten_mendstone",
+    "amount": 144
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "station": "table",
+  "cast": {
+    "item": "forgeweave:clay_cast_plating_helmet"
+  },
+  "fluid": "forgeweave:molten_glowveil",
+  "amount": 432,
+  "result": {
+    "id": "forgeweave:plating_helmet",
+    "components": {
+      "forgeweave:material": "forgeweave:glowveil"
+    }
+  },
+  "consumes_cast": true
+}

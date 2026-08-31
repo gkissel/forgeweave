@@ -1,0 +1,20 @@
+{
+  "inputs": [
+    {
+      "fluid": "forgeweave:molten_redcinder",
+      "amount": 32
+    },
+    {
+      "fluid": "forgeweave:molten_pearlcinder",
+      "amount": 32
+    },
+    {
+      "fluid": "forgeweave:molten_ambercinder",
+      "amount": 32
+    }
+  ],
+  "result": {
+    "fluid": "forgeweave:molten_ironbrand",
+    "amount": 72
+  }
+}

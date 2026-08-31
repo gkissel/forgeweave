@@ -1,0 +1,15 @@
+{
+  "station": "table",
+  "cast": {
+    "item": "forgeweave:clay_cast_maille"
+  },
+  "fluid": "forgeweave:molten_starfall_stone",
+  "amount": 288,
+  "result": {
+    "id": "forgeweave:maille",
+    "components": {
+      "forgeweave:material": "forgeweave:starfall_stone"
+    }
+  },
+  "consumes_cast": true
+}

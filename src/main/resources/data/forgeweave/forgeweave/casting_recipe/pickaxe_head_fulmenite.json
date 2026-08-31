@@ -1,0 +1,14 @@
+{
+  "station": "table",
+  "cast": {
+    "item": "forgeweave:cast_pickaxe_head"
+  },
+  "fluid": "forgeweave:molten_fulmenite",
+  "amount": 288,
+  "result": {
+    "id": "forgeweave:pickaxe_head",
+    "components": {
+      "forgeweave:material": "forgeweave:fulmenite"
+    }
+  }
+}

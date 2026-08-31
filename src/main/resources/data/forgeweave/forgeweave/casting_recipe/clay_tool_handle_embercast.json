@@ -1,0 +1,15 @@
+{
+  "station": "table",
+  "cast": {
+    "item": "forgeweave:clay_cast_tool_handle"
+  },
+  "fluid": "forgeweave:molten_embercast",
+  "amount": 144,
+  "result": {
+    "id": "forgeweave:tool_handle",
+    "components": {
+      "forgeweave:material": "forgeweave:embercast"
+    }
+  },
+  "consumes_cast": true
+}

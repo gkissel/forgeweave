@@ -1,0 +1,12 @@
+{
+  "station": "table",
+  "cast": {
+    "item": "forgeweave:clay_cast_ingot"
+  },
+  "fluid": "forgeweave:molten_truesteel",
+  "amount": 144,
+  "result": {
+    "id": "forgeweave:truesteel_ingot"
+  },
+  "consumes_cast": true
+}

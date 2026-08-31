@@ -1,0 +1,15 @@
+{
+  "station": "table",
+  "cast": {
+    "item": "forgeweave:clay_cast_bow_limb"
+  },
+  "fluid": "forgeweave:molten_cinderforge",
+  "amount": 432,
+  "result": {
+    "id": "forgeweave:bow_limb",
+    "components": {
+      "forgeweave:material": "forgeweave:cinderforge"
+    }
+  },
+  "consumes_cast": true
+}

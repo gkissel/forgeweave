@@ -1,0 +1,8 @@
+{
+  "station": "basin",
+  "fluid": "forgeweave:molten_starfall_stone",
+  "amount": 1296,
+  "result": {
+    "id": "forgeweave:starfall_stone_block"
+  }
+}

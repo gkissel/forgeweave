@@ -1,0 +1,20 @@
+{
+  "inputs": [
+    {
+      "fluid": "forgeweave:molten_warspar",
+      "amount": 144
+    },
+    {
+      "fluid": "forgeweave:molten_hollowstone",
+      "amount": 144
+    },
+    {
+      "fluid": "forgeweave:molten_glowveil",
+      "amount": 144
+    }
+  ],
+  "result": {
+    "fluid": "forgeweave:molten_sunsteel",
+    "amount": 216
+  }
+}

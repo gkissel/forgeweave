@@ -1,0 +1,8 @@
+{
+  "input": {
+    "tag": "c:raw_materials/warspar"
+  },
+  "fluid": "forgeweave:molten_warspar",
+  "amount": 144,
+  "ore": true
+}

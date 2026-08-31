@@ -1,0 +1,20 @@
+{
+  "inputs": [
+    {
+      "fluid": "forgeweave:molten_murkiron",
+      "amount": 144
+    },
+    {
+      "fluid": "forgeweave:molten_nightshale",
+      "amount": 144
+    },
+    {
+      "fluid": "forgeweave:molten_voltcinder",
+      "amount": 144
+    }
+  ],
+  "result": {
+    "fluid": "forgeweave:molten_riftalloy",
+    "amount": 216
+  }
+}

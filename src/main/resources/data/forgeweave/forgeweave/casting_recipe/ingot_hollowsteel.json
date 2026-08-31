@@ -1,0 +1,11 @@
+{
+  "station": "table",
+  "cast": {
+    "item": "forgeweave:cast_ingot"
+  },
+  "fluid": "forgeweave:molten_hollowsteel",
+  "amount": 144,
+  "result": {
+    "id": "forgeweave:hollowsteel_ingot"
+  }
+}

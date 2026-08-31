@@ -21,6 +21,7 @@ import net.minecraft.world.level.storage.loot.providers.number.ConstantValue;
 import dev.gkissel.forgeweave.block.ForgeweaveBlocks;
 import dev.gkissel.forgeweave.item.ForgeweaveDataComponents;
 import dev.gkissel.forgeweave.item.ForgeweaveItems;
+import dev.gkissel.forgeweave.trackb.TrackBAlloy;
 import dev.gkissel.forgeweave.trackb.TrackBOre;
 
 /**
@@ -235,6 +236,12 @@ public class ForgeweaveBlockLootSubProvider extends BlockLootSubProvider {
                     oreDrop(ForgeweaveBlocks.trackBOre(ore.id()).get(), ForgeweaveItems.trackBRawItem(ore.id()).get()));
             dropSelf(ForgeweaveBlocks.trackBStorageBlock(ore.id()).get());
             dropSelf(ForgeweaveBlocks.trackBRawBlock(ore.id()).get());
+        }
+
+        // #840 -- Track B's 18 alloy tool materials: alloy-only, so just the one storage block's
+        // plain self-drop, matching pig_iron/hepatizon's own metal-block loot above.
+        for (TrackBAlloy alloy : TrackBAlloy.ALL) {
+            dropSelf(ForgeweaveBlocks.trackBAlloyBlock(alloy.id()).get());
         }
     }
 

@@ -1,0 +1,15 @@
+{
+  "station": "table",
+  "cast": {
+    "item": "forgeweave:clay_cast_broad_axe_head"
+  },
+  "fluid": "forgeweave:molten_truesteel",
+  "amount": 1152,
+  "result": {
+    "id": "forgeweave:broad_axe_head",
+    "components": {
+      "forgeweave:material": "forgeweave:truesteel"
+    }
+  },
+  "consumes_cast": true
+}

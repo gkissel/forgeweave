@@ -25,6 +25,7 @@ import dev.gkissel.forgeweave.block.SearedDuctBlockEntity;
 import dev.gkissel.forgeweave.item.ForgeweaveItems;
 import dev.gkissel.forgeweave.item.PatternItem;
 import dev.gkissel.forgeweave.menu.ToolAssemblyRecipes;
+import dev.gkissel.forgeweave.trackb.TrackBAlloy;
 import dev.gkissel.forgeweave.trackb.TrackBOre;
 import net.neoforged.neoforge.registries.DeferredHolder;
 
@@ -135,6 +136,15 @@ public class ForgeweaveItemTagsProvider extends ItemTagsProvider {
             tag("storage_blocks/" + ore.id()).add(ForgeweaveItems.trackBStorageBlockItem(ore.id()).get());
             tag("storage_blocks/raw_" + ore.id()).add(ForgeweaveItems.trackBRawBlockItem(ore.id()).get());
             trackBStorageBlocksItem.addTag(storageBlock(ore.id())).addTag(storageBlock("raw_" + ore.id()));
+        }
+
+        // #840 -- Track B's 18 alloy tool materials, item side of the same c: convention: alloy-only,
+        // so ingots/nuggets/storage_blocks only, matching pig_iron/knightslime's own tag set above.
+        for (TrackBAlloy alloy : TrackBAlloy.ALL) {
+            tag("ingots/" + alloy.id()).add(ForgeweaveItems.trackBAlloyIngot(alloy.id()).get());
+            tag("nuggets/" + alloy.id()).add(ForgeweaveItems.trackBAlloyNugget(alloy.id()).get());
+            tag("storage_blocks/" + alloy.id()).add(ForgeweaveItems.trackBAlloyBlockItem(alloy.id()).get());
+            trackBStorageBlocksItem.addTag(storageBlock(alloy.id()));
         }
 
         // #152 -- the "large tool" classification: tools only the Tool Forge can assemble. See

@@ -1,0 +1,8 @@
+{
+  "station": "basin",
+  "fluid": "forgeweave:molten_cinderforge",
+  "amount": 1296,
+  "result": {
+    "id": "forgeweave:cinderforge_block"
+  }
+}

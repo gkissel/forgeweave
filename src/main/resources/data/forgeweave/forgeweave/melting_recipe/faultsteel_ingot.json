@@ -1,0 +1,7 @@
+{
+  "input": {
+    "tag": "c:ingots/faultsteel"
+  },
+  "fluid": "forgeweave:molten_faultsteel",
+  "amount": 144
+}

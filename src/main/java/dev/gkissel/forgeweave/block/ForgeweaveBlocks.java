@@ -24,6 +24,7 @@ import net.neoforged.neoforge.registries.DeferredRegister;
 
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.casting.CastingRecipe;
+import dev.gkissel.forgeweave.trackb.TrackBAlloy;
 import dev.gkissel.forgeweave.trackb.TrackBOre;
 
 /**
@@ -356,6 +357,23 @@ public final class ForgeweaveBlocks {
             TRACK_B_STORAGE_BLOCKS.put(ore.id(), metalBlock(ore.storageBlockId()));
             TRACK_B_RAW_BLOCKS.put(ore.id(), metalBlock(ore.rawBlockId()));
         }
+    }
+
+    // #840 -- Track B's 18 alloy tool materials (M6 epic #824). See
+    // dev.gkissel.forgeweave.trackb.TrackBAlloy for the roster; every one is alloy-only (no ore block,
+    // no raw-storage block), so it needs only the one metalBlock() storage block the pattern
+    // pig_iron/knightslime already use above.
+    private static final Map<String, DeferredBlock<Block>> TRACK_B_ALLOY_BLOCKS = new LinkedHashMap<>();
+
+    static {
+        for (TrackBAlloy alloy : TrackBAlloy.ALL) {
+            TRACK_B_ALLOY_BLOCKS.put(alloy.id(), metalBlock(alloy.blockId()));
+        }
+    }
+
+    /** A Track B alloy's storage block by material id, or {@code null} if unknown. */
+    public static DeferredBlock<Block> trackBAlloyBlock(String id) {
+        return TRACK_B_ALLOY_BLOCKS.get(id);
     }
 
     private static DeferredBlock<Block> trackBOreBlock(String name, MapColor mapColor) {

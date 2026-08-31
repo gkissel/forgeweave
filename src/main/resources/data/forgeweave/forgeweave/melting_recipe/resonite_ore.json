@@ -1,0 +1,8 @@
+{
+  "input": {
+    "tag": "c:ores/resonite"
+  },
+  "fluid": "forgeweave:molten_resonite",
+  "amount": 144,
+  "ore": true
+}

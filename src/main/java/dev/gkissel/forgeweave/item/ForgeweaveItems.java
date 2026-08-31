@@ -28,6 +28,7 @@ import dev.gkissel.forgeweave.combat.ForgeweaveInnates;
 import dev.gkissel.forgeweave.entity.ForgeweaveEntities;
 import dev.gkissel.forgeweave.tool.AoeHarvest;
 import dev.gkissel.forgeweave.tool.ToolConstants;
+import dev.gkissel.forgeweave.trackb.TrackBAlloy;
 import dev.gkissel.forgeweave.trackb.TrackBOre;
 
 /**
@@ -1086,6 +1087,34 @@ public final class ForgeweaveItems {
 
     public static DeferredItem<BlockItem> trackBRawBlockItem(String id) {
         return TRACK_B_RAW_BLOCK_ITEMS.get(id);
+    }
+
+    // #840 -- Track B's 18 alloy tool materials (M6 epic #824). See
+    // dev.gkissel.forgeweave.trackb.TrackBAlloy for the roster. Alloy-only, same "ingot/nugget/block
+    // item, no raw form" shape pig iron and knightslime already use above -- no material.json yet
+    // either (that is #841's deliverable), same as the ore family's own items.
+    private static final Map<String, DeferredItem<Item>> TRACK_B_ALLOY_INGOTS = new LinkedHashMap<>();
+    private static final Map<String, DeferredItem<Item>> TRACK_B_ALLOY_NUGGETS = new LinkedHashMap<>();
+    private static final Map<String, DeferredItem<BlockItem>> TRACK_B_ALLOY_BLOCK_ITEMS = new LinkedHashMap<>();
+
+    static {
+        for (TrackBAlloy alloy : TrackBAlloy.ALL) {
+            TRACK_B_ALLOY_INGOTS.put(alloy.id(), ITEMS.registerSimpleItem(alloy.ingotId()));
+            TRACK_B_ALLOY_NUGGETS.put(alloy.id(), ITEMS.registerSimpleItem(alloy.nuggetId()));
+            TRACK_B_ALLOY_BLOCK_ITEMS.put(alloy.id(), ITEMS.registerSimpleBlockItem(alloy.blockId(), ForgeweaveBlocks.trackBAlloyBlock(alloy.id())));
+        }
+    }
+
+    public static DeferredItem<Item> trackBAlloyIngot(String id) {
+        return TRACK_B_ALLOY_INGOTS.get(id);
+    }
+
+    public static DeferredItem<Item> trackBAlloyNugget(String id) {
+        return TRACK_B_ALLOY_NUGGETS.get(id);
+    }
+
+    public static DeferredItem<BlockItem> trackBAlloyBlockItem(String id) {
+        return TRACK_B_ALLOY_BLOCK_ITEMS.get(id);
     }
 
     // #452 -- the slime boots (parity audit T21), upstream 1.12's `gadgets/item/ItemSlimeBoots`.

@@ -33,6 +33,24 @@
     "#c:storage_blocks/starfall_stone",
     "#c:storage_blocks/raw_starfall_stone",
     "#c:storage_blocks/voidglass",
-    "#c:storage_blocks/raw_voidglass"
+    "#c:storage_blocks/raw_voidglass",
+    "#c:storage_blocks/ironbrand",
+    "#c:storage_blocks/quakestone",
+    "#c:storage_blocks/shardline",
+    "#c:storage_blocks/embercast",
+    "#c:storage_blocks/riftalloy",
+    "#c:storage_blocks/tideiron",
+    "#c:storage_blocks/cinderforge",
+    "#c:storage_blocks/dreadalloy",
+    "#c:storage_blocks/sunsteel",
+    "#c:storage_blocks/hollowsteel",
+    "#c:storage_blocks/truesteel",
+    "#c:storage_blocks/stormalloy",
+    "#c:storage_blocks/glowveil",
+    "#c:storage_blocks/daybrass",
+    "#c:storage_blocks/faultsteel",
+    "#c:storage_blocks/skipalloy",
+    "#c:storage_blocks/mendalloy",
+    "#c:storage_blocks/mendstone"
   ]
 }

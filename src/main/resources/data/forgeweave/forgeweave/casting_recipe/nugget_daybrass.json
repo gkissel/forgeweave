@@ -1,0 +1,11 @@
+{
+  "station": "table",
+  "cast": {
+    "item": "forgeweave:cast_nugget"
+  },
+  "fluid": "forgeweave:molten_daybrass",
+  "amount": 16,
+  "result": {
+    "id": "forgeweave:daybrass_nugget"
+  }
+}

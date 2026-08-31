@@ -1,0 +1,14 @@
+{
+  "station": "table",
+  "cast": {
+    "item": "forgeweave:cast_sword_blade"
+  },
+  "fluid": "forgeweave:molten_stormalloy",
+  "amount": 288,
+  "result": {
+    "id": "forgeweave:sword_blade",
+    "components": {
+      "forgeweave:material": "forgeweave:stormalloy"
+    }
+  }
+}

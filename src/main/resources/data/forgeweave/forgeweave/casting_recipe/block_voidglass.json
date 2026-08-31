@@ -1,0 +1,8 @@
+{
+  "station": "basin",
+  "fluid": "forgeweave:molten_voidglass",
+  "amount": 1296,
+  "result": {
+    "id": "forgeweave:voidglass_block"
+  }
+}

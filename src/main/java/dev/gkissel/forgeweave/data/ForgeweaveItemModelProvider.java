@@ -25,6 +25,7 @@ import dev.gkissel.forgeweave.item.ForgeweaveItems;
 import dev.gkissel.forgeweave.menu.ToolAssemblyRecipes;
 import dev.gkissel.forgeweave.tool.ToolArt;
 import dev.gkissel.forgeweave.tool.ToolConstants;
+import dev.gkissel.forgeweave.trackb.TrackBAlloy;
 import dev.gkissel.forgeweave.trackb.TrackBOre;
 
 /**
@@ -315,6 +316,14 @@ public class ForgeweaveItemModelProvider extends ItemModelProvider {
             singleLayerModel(ForgeweaveItems.trackBIngot(ore.id()), itemTexture(ore.ingotId()));
             singleLayerModel(ForgeweaveItems.trackBNugget(ore.id()), itemTexture(ore.nuggetId()));
             singleLayerModel(ForgeweaveItems.trackBRawItem(ore.id()), itemTexture(ore.rawItemId()));
+        }
+
+        // #840 -- Track B's 18 alloy tool materials' ingot/nugget icons, same original,
+        // procedurally-generated art (scripts/generate_track_b_alloy_textures.py). Block item models
+        // come from ForgeweaveBlockStateProvider's cubeAllBlockOriginal instead, same as the ore family.
+        for (TrackBAlloy alloy : TrackBAlloy.ALL) {
+            singleLayerModel(ForgeweaveItems.trackBAlloyIngot(alloy.id()), itemTexture(alloy.ingotId()));
+            singleLayerModel(ForgeweaveItems.trackBAlloyNugget(alloy.id()), itemTexture(alloy.nuggetId()));
         }
         singleLayerModel(ForgeweaveItems.INGOT_MANYULLYN, derivedItem("manyullyn_ingot"));
         singleLayerModel(ForgeweaveItems.NUGGET_MANYULLYN, derivedItem("manyullyn_nugget"));

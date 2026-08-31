@@ -1,0 +1,15 @@
+{
+  "station": "table",
+  "cast": {
+    "item": "forgeweave:clay_cast_cross_guard"
+  },
+  "fluid": "forgeweave:molten_warspar",
+  "amount": 144,
+  "result": {
+    "id": "forgeweave:cross_guard",
+    "components": {
+      "forgeweave:material": "forgeweave:warspar"
+    }
+  },
+  "consumes_cast": true
+}

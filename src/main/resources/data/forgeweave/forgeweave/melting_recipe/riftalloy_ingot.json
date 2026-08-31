@@ -1,0 +1,7 @@
+{
+  "input": {
+    "tag": "c:ingots/riftalloy"
+  },
+  "fluid": "forgeweave:molten_riftalloy",
+  "amount": 144
+}

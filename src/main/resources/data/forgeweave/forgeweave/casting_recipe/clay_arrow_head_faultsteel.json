@@ -1,0 +1,15 @@
+{
+  "station": "table",
+  "cast": {
+    "item": "forgeweave:clay_cast_arrow_head"
+  },
+  "fluid": "forgeweave:molten_faultsteel",
+  "amount": 288,
+  "result": {
+    "id": "forgeweave:arrow_head",
+    "components": {
+      "forgeweave:material": "forgeweave:faultsteel"
+    }
+  },
+  "consumes_cast": true
+}

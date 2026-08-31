@@ -1,0 +1,8 @@
+{
+  "station": "basin",
+  "fluid": "forgeweave:molten_shardline",
+  "amount": 1296,
+  "result": {
+    "id": "forgeweave:shardline_block"
+  }
+}

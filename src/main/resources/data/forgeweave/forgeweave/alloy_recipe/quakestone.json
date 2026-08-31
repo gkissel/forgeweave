@@ -1,0 +1,16 @@
+{
+  "inputs": [
+    {
+      "fluid": "forgeweave:molten_fulmenite",
+      "amount": 144
+    },
+    {
+      "fluid": "forgeweave:molten_cinderstone",
+      "amount": 144
+    }
+  ],
+  "result": {
+    "fluid": "forgeweave:molten_quakestone",
+    "amount": 144
+  }
+}

@@ -23,6 +23,7 @@ import dev.gkissel.forgeweave.block.SearedChannelBlock;
 import dev.gkissel.forgeweave.block.SearedChannelBlock.ChannelConnection;
 import dev.gkissel.forgeweave.block.SearedChuteBlock;
 import dev.gkissel.forgeweave.block.SmelteryControllerBlock;
+import dev.gkissel.forgeweave.trackb.TrackBAlloy;
 import dev.gkissel.forgeweave.trackb.TrackBOre;
 
 /**
@@ -316,6 +317,13 @@ public class ForgeweaveBlockStateProvider extends BlockStateProvider {
             cubeAllBlockOriginal(ore.oreBlockId(), ForgeweaveBlocks.trackBOre(ore.id()).get());
             cubeAllBlockOriginal(ore.storageBlockId(), ForgeweaveBlocks.trackBStorageBlock(ore.id()).get());
             cubeAllBlockOriginal(ore.rawBlockId(), ForgeweaveBlocks.trackBRawBlock(ore.id()).get());
+        }
+
+        // #840 -- Track B's 18 alloy tool materials' storage blocks: same original,
+        // procedurally-generated art as the ore family above (scripts/generate_track_b_alloy_textures.py),
+        // alloy-only so just the one storage block each, no ore/raw block.
+        for (TrackBAlloy alloy : TrackBAlloy.ALL) {
+            cubeAllBlockOriginal(alloy.blockId(), ForgeweaveBlocks.trackBAlloyBlock(alloy.id()).get());
         }
 
         // #275 -- clear glass (cutout, like seared glass above) and its 16 clear stained glass colors

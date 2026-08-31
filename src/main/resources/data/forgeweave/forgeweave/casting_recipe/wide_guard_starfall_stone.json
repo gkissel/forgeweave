@@ -1,0 +1,14 @@
+{
+  "station": "table",
+  "cast": {
+    "item": "forgeweave:cast_wide_guard"
+  },
+  "fluid": "forgeweave:molten_starfall_stone",
+  "amount": 144,
+  "result": {
+    "id": "forgeweave:wide_guard",
+    "components": {
+      "forgeweave:material": "forgeweave:starfall_stone"
+    }
+  }
+}

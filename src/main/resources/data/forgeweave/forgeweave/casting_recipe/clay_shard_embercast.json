@@ -1,0 +1,15 @@
+{
+  "station": "table",
+  "cast": {
+    "item": "forgeweave:clay_cast_shard"
+  },
+  "fluid": "forgeweave:molten_embercast",
+  "amount": 72,
+  "result": {
+    "id": "forgeweave:shard",
+    "components": {
+      "forgeweave:material": "forgeweave:embercast"
+    }
+  },
+  "consumes_cast": true
+}

@@ -1,0 +1,15 @@
+{
+  "station": "table",
+  "cast": {
+    "item": "forgeweave:clay_cast_shard"
+  },
+  "fluid": "forgeweave:molten_hollowstone",
+  "amount": 72,
+  "result": {
+    "id": "forgeweave:shard",
+    "components": {
+      "forgeweave:material": "forgeweave:hollowstone"
+    }
+  },
+  "consumes_cast": true
+}

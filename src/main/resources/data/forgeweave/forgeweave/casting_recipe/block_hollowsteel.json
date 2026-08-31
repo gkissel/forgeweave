@@ -1,0 +1,8 @@
+{
+  "station": "basin",
+  "fluid": "forgeweave:molten_hollowsteel",
+  "amount": 1296,
+  "result": {
+    "id": "forgeweave:hollowsteel_block"
+  }
+}

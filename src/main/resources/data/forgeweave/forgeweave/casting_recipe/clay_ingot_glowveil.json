@@ -1,0 +1,12 @@
+{
+  "station": "table",
+  "cast": {
+    "item": "forgeweave:clay_cast_ingot"
+  },
+  "fluid": "forgeweave:molten_glowveil",
+  "amount": 144,
+  "result": {
+    "id": "forgeweave:glowveil_ingot"
+  },
+  "consumes_cast": true
+}

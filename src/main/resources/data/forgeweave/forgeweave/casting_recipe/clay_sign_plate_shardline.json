@@ -1,0 +1,15 @@
+{
+  "station": "table",
+  "cast": {
+    "item": "forgeweave:clay_cast_sign_plate"
+  },
+  "fluid": "forgeweave:molten_shardline",
+  "amount": 432,
+  "result": {
+    "id": "forgeweave:sign_plate",
+    "components": {
+      "forgeweave:material": "forgeweave:shardline"
+    }
+  },
+  "consumes_cast": true
+}

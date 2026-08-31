@@ -1,0 +1,7 @@
+{
+  "input": {
+    "tag": "c:ingots/stormalloy"
+  },
+  "fluid": "forgeweave:molten_stormalloy",
+  "amount": 144
+}

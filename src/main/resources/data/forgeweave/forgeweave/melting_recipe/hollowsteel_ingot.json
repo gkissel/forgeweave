@@ -1,0 +1,7 @@
+{
+  "input": {
+    "tag": "c:ingots/hollowsteel"
+  },
+  "fluid": "forgeweave:molten_hollowsteel",
+  "amount": 144
+}

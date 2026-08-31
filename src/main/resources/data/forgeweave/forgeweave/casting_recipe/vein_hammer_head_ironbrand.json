@@ -1,0 +1,14 @@
+{
+  "station": "table",
+  "cast": {
+    "item": "forgeweave:cast_vein_hammer_head"
+  },
+  "fluid": "forgeweave:molten_ironbrand",
+  "amount": 1152,
+  "result": {
+    "id": "forgeweave:vein_hammer_head",
+    "components": {
+      "forgeweave:material": "forgeweave:ironbrand"
+    }
+  }
+}

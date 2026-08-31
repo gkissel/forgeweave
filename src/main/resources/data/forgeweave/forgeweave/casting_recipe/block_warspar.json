@@ -1,0 +1,8 @@
+{
+  "station": "basin",
+  "fluid": "forgeweave:molten_warspar",
+  "amount": 1296,
+  "result": {
+    "id": "forgeweave:warspar_block"
+  }
+}
