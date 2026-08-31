@@ -21,6 +21,7 @@ import net.minecraft.world.level.storage.loot.providers.number.ConstantValue;
 import dev.gkissel.forgeweave.block.ForgeweaveBlocks;
 import dev.gkissel.forgeweave.item.ForgeweaveDataComponents;
 import dev.gkissel.forgeweave.item.ForgeweaveItems;
+import dev.gkissel.forgeweave.trackb.TrackBOre;
 
 /**
  * The Part Builder and Tool Station drop themselves, keeping their inventory contents dropped
@@ -224,6 +225,16 @@ public class ForgeweaveBlockLootSubProvider extends BlockLootSubProvider {
         dropSelf(ForgeweaveBlocks.CLEAR_GLASS.get());
         for (ForgeweaveBlocks.StainedGlassColor color : ForgeweaveBlocks.clearStainedGlassColors()) {
             dropSelf(color.block().get());
+        }
+
+        // #839 -- Track B's ore family (M6 epic #824): each ore always drops one raw item, same
+        // unconditional self-drop cobalt/ardite use above (SCOPE.md's "no separate silk-touch yield
+        // axis"); storage and raw-storage blocks are plain self-drops like every other metal block.
+        for (TrackBOre ore : TrackBOre.ALL) {
+            add(ForgeweaveBlocks.trackBOre(ore.id()).get(),
+                    oreDrop(ForgeweaveBlocks.trackBOre(ore.id()).get(), ForgeweaveItems.trackBRawItem(ore.id()).get()));
+            dropSelf(ForgeweaveBlocks.trackBStorageBlock(ore.id()).get());
+            dropSelf(ForgeweaveBlocks.trackBRawBlock(ore.id()).get());
         }
     }
 

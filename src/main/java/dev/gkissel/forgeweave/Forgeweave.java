@@ -75,6 +75,7 @@ import dev.gkissel.forgeweave.worldgen.MagmaSlimeIslandStructure; // #450
 import dev.gkissel.forgeweave.worldgen.NetherOrePlacement; // #276
 import dev.gkissel.forgeweave.worldgen.SlimeIslandPiece;
 import dev.gkissel.forgeweave.worldgen.SlimeIslandStructure;
+import dev.gkissel.forgeweave.worldgen.TrackBOrePlacement; // #839
 
 // The value here must match the modId in META-INF/neoforge.mods.toml.
 @Mod(Forgeweave.MODID)
@@ -100,6 +101,8 @@ public class Forgeweave {
         ForgeweaveCreativeTab.TABS.register(modEventBus);
         // #276 -- the config-aware vein count the Nether ores' placed features use.
         NetherOrePlacement.PLACEMENT_MODIFIERS.register(modEventBus);
+        // #839 -- the grouped config-aware vein count Track B's ore family uses (M6 epic #824).
+        TrackBOrePlacement.PLACEMENT_MODIFIERS.register(modEventBus);
         // #449/#629 (parity audit T18) -- the slime island, a structure so /locate can find it.
         // See SlimeIslandStructure and SlimeIslandPiece.
         SlimeIslandStructure.STRUCTURE_TYPES.register(modEventBus);

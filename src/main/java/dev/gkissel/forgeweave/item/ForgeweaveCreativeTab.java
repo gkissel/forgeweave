@@ -30,6 +30,7 @@ import dev.gkissel.forgeweave.material.Material;
 import dev.gkissel.forgeweave.menu.ContentFamilies;
 import dev.gkissel.forgeweave.menu.ToolAssemblyRecipes;
 import dev.gkissel.forgeweave.tool.ToolConstants;
+import dev.gkissel.forgeweave.trackb.TrackBOre;
 
 /**
  * The Forgeweave creative tabs. Upstream 1.12 splits its content over six tabs
@@ -256,6 +257,17 @@ public final class ForgeweaveCreativeTab {
         output.accept(ForgeweaveItems.NUGGET_PIG_IRON.get());
         output.accept(ForgeweaveItems.PIG_IRON_BLOCK.get());
         output.accept(ForgeweaveItems.FIREWOOD.get());
+
+        // #839 -- Track B's ore family (M6 epic #824): ore block, raw item, raw-storage block, ingot,
+        // nugget and storage block per material, kept together as one visual group.
+        for (TrackBOre ore : TrackBOre.ALL) {
+            output.accept(ForgeweaveItems.trackBOreItem(ore.id()).get());
+            output.accept(ForgeweaveItems.trackBRawItem(ore.id()).get());
+            output.accept(ForgeweaveItems.trackBRawBlockItem(ore.id()).get());
+            output.accept(ForgeweaveItems.trackBIngot(ore.id()).get());
+            output.accept(ForgeweaveItems.trackBNugget(ore.id()).get());
+            output.accept(ForgeweaveItems.trackBStorageBlockItem(ore.id()).get());
+        }
 
         output.accept(ForgeweaveItems.AMETHYST_BRONZE_BLOCK.get());
 

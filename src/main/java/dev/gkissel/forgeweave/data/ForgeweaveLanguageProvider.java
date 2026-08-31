@@ -21,6 +21,7 @@ import dev.gkissel.forgeweave.block.SmelteryScan;
 import dev.gkissel.forgeweave.fluid.ForgeweaveFluids;
 import dev.gkissel.forgeweave.item.ForgeweaveItems;
 import dev.gkissel.forgeweave.ponder.ForgeweavePonderPlugin;
+import dev.gkissel.forgeweave.trackb.TrackBOre;
 
 /**
  * English translations for the creative tab, every item, and the four M1 materials. Material
@@ -1632,6 +1633,19 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         addBlock(ForgeweaveBlocks.ROSE_GOLD_BLOCK, "Block of Rose Gold");
         addBlock(ForgeweaveBlocks.STEEL_BLOCK, "Block of Steel");
         addBlock(ForgeweaveBlocks.KNIGHTSLIME_BLOCK, "Block of Knightslime"); // #232
+
+        // #839 -- Track B's ore family (M6 epic #824). Names are the research doc §7.3 naming
+        // scaffold's own ids, title-cased; "Block of Raw <Name>" follows vanilla's own
+        // "Block of Raw Iron"/"Block of Raw Copper"/"Block of Raw Gold" convention.
+        for (TrackBOre ore : TrackBOre.ALL) {
+            String name = ore.displayName();
+            addBlock(ForgeweaveBlocks.trackBOre(ore.id()), name + " Ore");
+            addBlock(ForgeweaveBlocks.trackBStorageBlock(ore.id()), "Block of " + name);
+            addBlock(ForgeweaveBlocks.trackBRawBlock(ore.id()), "Block of Raw " + name);
+            addItem(ForgeweaveItems.trackBIngot(ore.id()), name + " Ingot");
+            addItem(ForgeweaveItems.trackBNugget(ore.id()), name + " Nugget");
+            addItem(ForgeweaveItems.trackBRawItem(ore.id()), "Raw " + name);
+        }
 
         // #233 -- pig iron items + firewood. Ingot/nugget/block names space upstream 1.12's
         // item.tconstruct.{ingots,nuggets}.pigiron.name / tile.tconstruct.metal.pigiron.name the way

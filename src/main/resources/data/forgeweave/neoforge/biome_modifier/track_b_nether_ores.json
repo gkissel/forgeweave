@@ -1,0 +1,9 @@
+{
+  "type": "neoforge:add_features",
+  "biomes": "#minecraft:is_nether",
+  "features": [
+    "forgeweave:voltcinder_ore",
+    "forgeweave:hardcinder_ore"
+  ],
+  "step": "underground_ores"
+}

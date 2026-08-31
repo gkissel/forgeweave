@@ -47,6 +47,7 @@ import dev.gkissel.forgeweave.recipe.MixedSlimeBlockRecipe;
 import dev.gkissel.forgeweave.recipe.MixedSlimeSlingRecipe;
 import dev.gkissel.forgeweave.recipe.RetexturedShapedRecipe;
 import dev.gkissel.forgeweave.recipe.SharpeningKitRepairRecipe;
+import dev.gkissel.forgeweave.trackb.TrackBOre;
 
 /**
  * Vanilla crafting-table recipes for the blank pattern and the four station blocks (docs/SCOPE.md M1
@@ -294,6 +295,14 @@ public class ForgeweaveRecipeProvider extends RecipeProvider {
         storageBlockRecipes(recipeOutput, ForgeweaveItems.INGOT_KNIGHTSLIME.get(), ForgeweaveItems.KNIGHTSLIME_BLOCK.get()); // #232
         // #233 -- pig iron, same both-ways 9:1 shape.
         storageBlockRecipes(recipeOutput, ForgeweaveItems.INGOT_PIG_IRON.get(), ForgeweaveItems.PIG_IRON_BLOCK.get());
+
+        // #839 -- Track B's ore family (M6 epic #824): same both-ways 9:1 shape for the ingot <->
+        // storage block pair, plus the raw item <-> raw-storage block pair (vanilla's own
+        // raw_iron <-> raw_iron_block compaction, same shape reused).
+        for (TrackBOre ore : TrackBOre.ALL) {
+            storageBlockRecipes(recipeOutput, ForgeweaveItems.trackBIngot(ore.id()).get(), ForgeweaveItems.trackBStorageBlockItem(ore.id()).get());
+            storageBlockRecipes(recipeOutput, ForgeweaveItems.trackBRawItem(ore.id()).get(), ForgeweaveItems.trackBRawBlockItem(ore.id()).get());
+        }
 
         // #233 -- firewood. Upstream 1.12's recipes/common/firewood/firewood.json is shapeless
         // "blaze powder + lavawood + blaze powder", and lavawood itself is basin-cast: any plank

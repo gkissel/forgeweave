@@ -1,0 +1,32 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "forgeweave:voltcinder_block"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    },
+    "has_voltcinder_ingot": {
+      "conditions": {
+        "items": [
+          {
+            "items": "forgeweave:voltcinder_ingot"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    }
+  },
+  "requirements": [
+    [
+      "has_the_recipe",
+      "has_voltcinder_ingot"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "forgeweave:voltcinder_block"
+    ]
+  }
+}

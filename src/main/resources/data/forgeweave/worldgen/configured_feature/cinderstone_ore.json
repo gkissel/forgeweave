@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:ore",
+  "config": {
+    "targets": [
+      {
+        "target": {
+          "predicate_type": "minecraft:block_match",
+          "block": "minecraft:stone"
+        },
+        "state": {
+          "Name": "forgeweave:cinderstone_ore"
+        }
+      }
+    ],
+    "size": 6,
+    "discard_chance_on_air_exposure": 0.0
+  }
+}
