@@ -186,6 +186,8 @@ tasks.named('jar', Jar) {
     exclude 'data/forgeweave/forgeweave/material/gametest_conditional_present.json'
     exclude 'data/forgeweave/forgeweave/material/gametest_silver.json'
     exclude 'data/forgeweave/forgeweave/material/gametest_electrum.json'
+    exclude 'data/forgeweave/forgeweave/melting_recipe/gametest_compat_smeltery_present.json'
+    exclude 'data/forgeweave/forgeweave/casting_recipe/gametest_compat_smeltery_present.json'
 }
 
 tasks.named('test', Test) {

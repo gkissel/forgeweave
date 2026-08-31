@@ -34,7 +34,9 @@ import net.minecraft.world.item.crafting.Ingredient;
 
 import net.neoforged.neoforge.registries.DeferredHolder;
 
+import dev.gkissel.forgeweave.material.CompatMaterialAvailability;
 import dev.gkissel.forgeweave.material.Material;
+import dev.gkissel.forgeweave.trackb.TrackBAlloy;
 
 /**
  * Regression for issue #139: the maintainer could not find the smeltery controller, seared tanks,
@@ -146,9 +148,20 @@ class ForgeweaveCreativeTabTest {
         // An empty Material registry is enough here since this test only cares about plain BlockItems.
         List<Item> displayedItems = build(true).stream().map(ItemStack::getItem).toList();
 
+        // #873 -- alumite/osgloglas/osmiridium (added to TrackBAlloy.ALL) are compat-gated: their
+        // block correctly does NOT appear here, the same way it will not appear in a real game with
+        // no provider mod installed (CompatMaterialAvailability, consulted by
+        // ForgeweaveCreativeTab#addMaterialItems). A unit test JVM never has any mod loaded, so every
+        // gated alloy hides -- exactly the behavior under test everywhere else in this PR.
+        List<Item> gatedBlockItems = TrackBAlloy.ALL.stream()
+                .filter(alloy -> !CompatMaterialAvailability.isAvailable(alloy.id()))
+                .<Item>map(alloy -> ForgeweaveItems.trackBAlloyBlockItem(alloy.id()).get())
+                .toList();
+
         List<Item> missing = ForgeweaveItems.ITEMS.getEntries().stream()
                 .<Item>map(DeferredHolder::get)
                 .filter(item -> item instanceof BlockItem)
+                .filter(item -> !gatedBlockItems.contains(item))
                 .filter(item -> !displayedItems.contains(item))
                 .toList();
 
