@@ -1,0 +1,14 @@
+{
+  "station": "table",
+  "cast": {
+    "item": "forgeweave:cast_tough_binding"
+  },
+  "fluid": "forgeweave:molten_queens_slime",
+  "amount": 432,
+  "result": {
+    "id": "forgeweave:tough_binding",
+    "components": {
+      "forgeweave:material": "forgeweave:queens_slime"
+    }
+  }
+}

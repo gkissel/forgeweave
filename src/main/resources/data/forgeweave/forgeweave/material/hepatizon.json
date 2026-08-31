@@ -1,0 +1,35 @@
+{
+  "head": {
+    "durability": 975,
+    "mining_speed": 8.0,
+    "attack_damage": 2.5
+  },
+  "handle": {
+    "durability_modifier": 1.1,
+    "durability": 0
+  },
+  "extra_durability": 98,
+  "plating": {
+    "helmet": { "durability": 352, "armor": 2.0, "toughness": 2.0, "knockback_resistance": 0.1 },
+    "chestplate": { "durability": 512, "armor": 7.0, "toughness": 2.0, "knockback_resistance": 0.1 },
+    "leggings": { "durability": 480, "armor": 5.0, "toughness": 2.0, "knockback_resistance": 0.1 },
+    "boots": { "durability": 416, "armor": 2.0, "toughness": 2.0, "knockback_resistance": 0.1 }
+  },
+  "maille": true,
+  "incorrect_for_tool": "minecraft:incorrect_for_netherite_tool",
+  "traits": {
+    "general": ["forgeweave:momentum"],
+    "armor": ["forgeweave:recurrent_protection"]
+  },
+  "crafting_items": [
+    { "ingredient": { "item": "forgeweave:hepatizon_ingot" }, "value": 144 },
+    { "ingredient": { "item": "forgeweave:hepatizon_nugget" }, "value": 16 },
+    { "ingredient": { "item": "forgeweave:hepatizon_block" }, "value": 1296 }
+  ],
+  "repair_item": {
+    "tag": "c:ingots/hepatizon"
+  },
+  "cast_only": true,
+  "enchantability": 10,
+  "color": "#60496B"
+}

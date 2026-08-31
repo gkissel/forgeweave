@@ -1,0 +1,14 @@
+{
+  "station": "table",
+  "cast": {
+    "item": "forgeweave:cast_pickaxe_head"
+  },
+  "fluid": "forgeweave:molten_seared_stone",
+  "amount": 288,
+  "result": {
+    "id": "forgeweave:pickaxe_head",
+    "components": {
+      "forgeweave:material": "forgeweave:seared_stone"
+    }
+  }
+}

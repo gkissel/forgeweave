@@ -1,0 +1,7 @@
+{
+  "input": {
+    "item": "minecraft:magma_cream"
+  },
+  "fluid": "forgeweave:molten_magma_cream",
+  "amount": 250
+}

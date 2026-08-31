@@ -2049,6 +2049,96 @@ public final class ForgeweaveTraits {
     }
 
     /**
+     * Slimewood general trait (issue #843, closes #180). Upstream's {@code OvergrowthModule}:
+     * {@code chance.each_level(0.05)}, checked once a second, {@code CapacityBarHook#addAmount(1)}.
+     * A material default trait is level 1 here (no leveled-trait framework for material grants), so
+     * this is a flat 5%-per-second chance to regenerate one point of overslime -- the general-scope
+     * counterpart slimewood pairs with its own {@link #OVERSLIME} grant, the first material to use
+     * that combination off armor (see {@link #OVERSLIME}'s own javadoc, which anticipated this).
+     */
+    public static final Trait OVERGROWTH = new Trait() {
+        @Override
+        public void inventoryTick(ItemStack stack, ServerLevel level, LivingEntity holder) {
+            if (holder.tickCount % OVERGROWTH_TICK_PERIOD != 0) {
+                return;
+            }
+            int capacity = overslimeCapacity(stack);
+            if (capacity <= 0 || overslime(stack) >= capacity) {
+                return;
+            }
+            if (holder.getRandom().nextFloat() < OVERGROWTH_CHANCE) {
+                setOverslime(stack, overslime(stack) + 1);
+            }
+        }
+    };
+
+    private static final int OVERGROWTH_TICK_PERIOD = 20;
+    private static final float OVERGROWTH_CHANCE = 0.05F;
+
+    /**
+     * Queen's slime general trait (issue #843, closes #180). Upstream's {@code overlord.json} pairs
+     * a {@code stat_copy} (10% of durability into overslime capacity) with a {@code stat_boost}
+     * (-15% durability), both leveled. Forgeweave's material defaults are level 1 and there is no
+     * per-trait overslime-capacity-bonus hook ({@link Trait} only sums durability and energy this
+     * way, issue #830's precedent) -- adding one for this single user is not worth a new interface
+     * hook, so the capacity half folds into queen's slime's own {@link #OVERSLIME} grant (a flat
+     * {@link #OVERSLIME_CAPACITY} instead of a dynamic durability-scaled one) and only the durability
+     * trade survives as a distinct effect. Deviation flagged in the PR body.
+     */
+    public static final Trait OVERLORD = new Trait() {
+        @Override
+        public int headDurability(int durability) {
+            return Math.round(durability * OVERLORD_DURABILITY_MULTIPLIER);
+        }
+    };
+
+    private static final float OVERLORD_DURABILITY_MULTIPLIER = 0.85F;
+
+    /**
+     * Necrotic bone plating/maille (issue #843, closes #180). Upstream's {@code RestoreLostHealthModule}
+     * (level-1 defaults from its own builder: {@code chance.flat(0.15)}, {@code percentage.flat(0.25)},
+     * {@code durability_usage.each_level(1)}, {@code effect_level.flat(1)}): a 15% chance on taking
+     * damage to heal 25% of it back as Regeneration, at the cost of 1 durability. Simplified from the
+     * clone's slow-regen-over-time framing to a flat instant heal (no {@code MobEffects.REGENERATION}
+     * scaling curve worth porting for one level), and drops the heal sound.
+     */
+    public static final Trait RESTORE = new Trait() {
+        @Override
+        public void onDefend(CombatDefense defense, DefendedBlow blow) {
+            if (blow.damage() <= 0 || defense.defender().getRandom().nextFloat() >= RESTORE_CHANCE) {
+                return;
+            }
+            int healAmount = Math.round(RESTORE_PERCENT * blow.damage());
+            if (healAmount <= 0) {
+                return;
+            }
+            defense.defender().heal(healAmount);
+            defense.tool().hurtAndBreak(RESTORE_DURABILITY_COST, defense.defender(), defense.slot());
+        }
+    };
+
+    private static final float RESTORE_CHANCE = 0.15F;
+    private static final float RESTORE_PERCENT = 0.25F;
+    private static final int RESTORE_DURABILITY_COST = 1;
+
+    /**
+     * Hepatizon plating/maille (issue #843, closes #180). Upstream's {@code recurrent_protection.json}
+     * ({@code percent.flat(0.5)}, {@code duration.each_level(100)}): taking damage grants a stacking
+     * "momentum" buff that reduces future damage for 5 seconds per level. Forgeweave has no such buff
+     * mob effect, so this ports the 50%-of-damage magnitude onto {@link DefendedBlow#addFlatReduction}
+     * for the blow that triggered it instead of a forward-looking buff -- an instantaneous half-damage
+     * ward rather than a persistent one, the same simplification shape {@link #WARDED} already uses.
+     */
+    public static final Trait RECURRENT_PROTECTION = new Trait() {
+        @Override
+        public void onDefend(CombatDefense defense, DefendedBlow blow) {
+            blow.addFlatReduction(RECURRENT_PROTECTION_PERCENT * blow.damage());
+        }
+    };
+
+    private static final float RECURRENT_PROTECTION_PERCENT = 0.5F;
+
+    /**
      * Bone maille. {@code ModifierIds.piercingGuard}: the pierce counter -- a direct hit's living
      * attacker gets {@code forgeweave:pierce} (-1 armor per level) for four seconds, always, and
      * the piece pays one durability ({@code MobEffectModule.Builder#counterDurabilityUsage}).
@@ -2381,6 +2471,10 @@ public final class ForgeweaveTraits {
             Map.entry(id("overshield"), OVERSHIELD),
             Map.entry(id("overslime"), OVERSLIME),
             Map.entry(id("overslime_friend"), OVERSLIME_FRIEND),
+            Map.entry(id("overgrowth"), OVERGROWTH),
+            Map.entry(id("overlord"), OVERLORD),
+            Map.entry(id("restore"), RESTORE),
+            Map.entry(id("recurrent_protection"), RECURRENT_PROTECTION),
             Map.entry(id("piercing_guard"), PIERCING_GUARD),
             Map.entry(id("thorns"), THORNS),
             Map.entry(id("enderclearance"), ENDERCLEARANCE),

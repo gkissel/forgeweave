@@ -245,7 +245,10 @@ class MaterialTest {
             "redstone_alloy,stone",
             "energetic_alloy,iron", "pulsating_alloy,iron", "conductive_alloy,iron",
             "vibrant_alloy,diamond", "soularium,diamond",
-            "dark_steel,netherite", "end_steel,netherite"
+            "dark_steel,netherite", "end_steel,netherite",
+            // issue #843 (closes #180): the 1.20-branch material gap's five by-name additions.
+            "seared_stone,iron", "necrotic_bone,iron", "slimewood,iron",
+            "queens_slime,netherite", "hepatizon,netherite"
     })
     void shippedMaterialsSitOnUpstreamsHarvestTier(String name, String tier) {
         Material material = Material.CODEC.parse(ops, shipped(name)).getOrThrow();
@@ -592,7 +595,11 @@ class MaterialTest {
      */
     @ParameterizedTest
     @ValueSource(strings = { "iron", "copper", "cobalt", "ardite", "manyullyn", "pig_iron", "steel",
-            "amethyst_bronze", "rose_gold", "netherite" })
+            "amethyst_bronze", "rose_gold", "netherite",
+            // issue #843 (closes #180): the alloy-only half of the 1.20-branch material gap --
+            // queen's slime and hepatizon have no raw form, same as amethyst bronze/rose gold above;
+            // slimewood has no wood item of its own either (audit table), same cast-only shape.
+            "queens_slime", "hepatizon", "slimewood" })
     void castableMetalsAreCastOnly(String name) {
         assertTrue(Material.CODEC.parse(ops, shipped(name)).getOrThrow().castOnly(),
                 name + " is castable and not craftable upstream, so the Part Builder must not take it");
@@ -613,7 +620,12 @@ class MaterialTest {
             "iridium", "uranium", "graphite",
             // #835 M6 Track A batch 3: same JC3 Part-Builder-only rule.
             "redstone_alloy", "energetic_alloy", "pulsating_alloy", "conductive_alloy", "vibrant_alloy",
-            "soularium", "dark_steel", "end_steel" })
+            "soularium", "dark_steel", "end_steel",
+            // issue #843 (closes #180): seared stone and necrotic bone both keep the Part Builder
+            // item-based route the audit found already sourceable -- seared stone additionally sets
+            // <em>both</em> upstream flags like obsidian/knightslime (full smeltery casting too), and
+            // necrotic bone has no smeltery integration at all, same shape as bone.
+            "seared_stone", "necrotic_bone" })
     void craftableMaterialsStayCraftable(String name) {
         assertFalse(Material.CODEC.parse(ops, shipped(name)).getOrThrow().castOnly(),
                 name + " must stay Part Builder craftable");

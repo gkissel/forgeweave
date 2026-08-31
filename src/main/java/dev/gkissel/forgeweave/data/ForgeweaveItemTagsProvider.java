@@ -79,6 +79,12 @@ public class ForgeweaveItemTagsProvider extends ItemTagsProvider {
         tag("ingots/amethyst_bronze").add(ForgeweaveItems.INGOT_AMETHYST_BRONZE.get());
         tag("nuggets/amethyst_bronze").add(ForgeweaveItems.NUGGET_AMETHYST_BRONZE.get());
 
+        // #843 -- queen's slime and hepatizon (closes #180): same convention, alloyed not mined.
+        tag("ingots/queens_slime").add(ForgeweaveItems.INGOT_QUEENS_SLIME.get());
+        tag("nuggets/queens_slime").add(ForgeweaveItems.NUGGET_QUEENS_SLIME.get());
+        tag("ingots/hepatizon").add(ForgeweaveItems.INGOT_HEPATIZON.get());
+        tag("nuggets/hepatizon").add(ForgeweaveItems.NUGGET_HEPATIZON.get());
+
         // #104 -- the cobalt + ardite nether ore blocks' own item forms into c:ores/*, the same
         // convention vanilla iron/copper ore already carry (see the shipped iron_ore.json/
         // copper_ore.json melting rows, issue #96) -- lets a smeltery melt the ore block itself
@@ -99,7 +105,8 @@ public class ForgeweaveItemTagsProvider extends ItemTagsProvider {
         tag("storage_blocks").addTag(storageBlock("cobalt")).addTag(storageBlock("ardite"))
                 .addTag(storageBlock("manyullyn")).addTag(storageBlock("rose_gold"))
                 .addTag(storageBlock("steel")).addTag(storageBlock("knightslime"))
-                .addTag(storageBlock("pig_iron")).addTag(storageBlock("amethyst_bronze"));
+                .addTag(storageBlock("pig_iron")).addTag(storageBlock("amethyst_bronze"))
+                .addTag(storageBlock("queens_slime")).addTag(storageBlock("hepatizon")); // #843
 
         // #233 -- pig iron into the same c: convention tags the other Forgeweave-only metals use.
         // Note storage_blocks/pig_iron also fills in the tool_forge_blocks optional reference below,
@@ -110,6 +117,10 @@ public class ForgeweaveItemTagsProvider extends ItemTagsProvider {
 
         // #235 -- amethyst bronze's storage block, item side (parent-chain membership above).
         tag("storage_blocks/amethyst_bronze").add(ForgeweaveItems.AMETHYST_BRONZE_BLOCK.get());
+
+        // #843 -- queen's slime and hepatizon storage blocks, item side (closes #180).
+        tag("storage_blocks/queens_slime").add(ForgeweaveItems.QUEENS_SLIME_BLOCK.get());
+        tag("storage_blocks/hepatizon").add(ForgeweaveItems.HEPATIZON_BLOCK.get());
 
         // #152 -- the "large tool" classification: tools only the Tool Forge can assemble. See
         // ToolAssemblyRecipes#LARGE_TOOLS, which is the whole gate: a tool issue adds its row here and

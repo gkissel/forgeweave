@@ -1,0 +1,15 @@
+{
+  "station": "table",
+  "cast": {
+    "item": "forgeweave:clay_cast_plating_helmet"
+  },
+  "fluid": "forgeweave:molten_queens_slime",
+  "amount": 432,
+  "result": {
+    "id": "forgeweave:plating_helmet",
+    "components": {
+      "forgeweave:material": "forgeweave:queens_slime"
+    }
+  },
+  "consumes_cast": true
+}

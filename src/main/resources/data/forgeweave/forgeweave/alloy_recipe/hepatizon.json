@@ -1,0 +1,20 @@
+{
+  "inputs": [
+    {
+      "fluid": "forgeweave:molten_copper",
+      "amount": 180
+    },
+    {
+      "fluid": "forgeweave:molten_cobalt",
+      "amount": 90
+    },
+    {
+      "fluid": "forgeweave:molten_quartz",
+      "amount": 100
+    }
+  ],
+  "result": {
+    "fluid": "forgeweave:molten_hepatizon",
+    "amount": 180
+  }
+}

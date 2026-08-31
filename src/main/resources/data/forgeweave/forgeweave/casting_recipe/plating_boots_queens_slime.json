@@ -1,0 +1,14 @@
+{
+  "station": "table",
+  "cast": {
+    "item": "forgeweave:cast_plating_boots"
+  },
+  "fluid": "forgeweave:molten_queens_slime",
+  "amount": 288,
+  "result": {
+    "id": "forgeweave:plating_boots",
+    "components": {
+      "forgeweave:material": "forgeweave:queens_slime"
+    }
+  }
+}

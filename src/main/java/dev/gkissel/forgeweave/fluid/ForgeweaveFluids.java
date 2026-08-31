@@ -226,6 +226,23 @@ public final class ForgeweaveFluids {
     public static final MoltenMetal PURPLE_SLIME = register("purple_slime", 0xD236FF, 370,
             () -> waterLikeSlimeFluidType(370, 1600), LIQUID_STILL, LIQUID_FLOWING);
 
+    // #843 (closes #180) -- the 1.20-branch material gap's two brand-new T4 alloy fluids and their
+    // two prerequisite fluids, all with no 1.12 counterpart, so all four follow the AMETHYST/
+    // AMETHYST_BRONZE precedent (issue #235): the 1.20 clone's own temperatures land 300 degrees
+    // above the 1.12 scale this class uses, so its moltenHepatizon 1700 and moltenQueensSlime 1450
+    // become 1400 and 1150 here. Tints are the clone's mantle/colors.json material colours (NOTICE.md).
+    public static final MoltenMetal QUEENS_SLIME = register("queens_slime", 0x236C45, 1150);
+    public static final MoltenMetal HEPATIZON = register("hepatizon", 0x60496B, 1400);
+    // Prerequisite fluids the audit named: a liquid magma cream (queens slime's alloy input, distinct
+    // from the existing solid magma_slime_crystal item) and molten quartz (hepatizon's alloy input).
+    // Neither carries a 1.12 counterpart either, so both take the same -300 treatment: magma cream's
+    // 600 (TinkerFluids#magma) becomes 300, and quartz's 937 (TinkerFluids#moltenQuartz) becomes 637.
+    // Tints are a maintainer pick (no material JSON of their own to source a colour from): magma
+    // cream reuses the existing magmaslime material's own #ff960d, and quartz takes a pale quartz
+    // tone.
+    public static final MoltenMetal MAGMA_CREAM = register("magma_cream", 0xFF960D, 300);
+    public static final MoltenMetal QUARTZ = register("quartz", 0xE8D5C4, 637);
+
     private static MoltenMetal register(String metalId, int color, int temperature) {
         return register("molten_" + metalId, color, temperature, () -> moltenFluidType(temperature),
                 STILL_TEXTURE, FLOWING_TEXTURE);

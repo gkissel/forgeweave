@@ -328,6 +328,13 @@ public final class ForgeweaveBlocks {
     // #233 -- pig iron's storage block, same BlockMetal-derived properties as the four above.
     public static final DeferredBlock<Block> PIG_IRON_BLOCK = metalBlock("pig_iron_block");
 
+    // #843 (closes #180) -- queen's slime and hepatizon storage blocks, the 1.20-branch material gap's
+    // two brand-new T4 alloy metals (maintainer authorization on the issue). Same BlockMetal-derived
+    // properties as every other Forgeweave metal block; no upstream art to derive (M9's Forged-art
+    // policy applies going forward, CLAUDE.md), so both ride a fresh recolor like rose gold did.
+    public static final DeferredBlock<Block> QUEENS_SLIME_BLOCK = metalBlock("queens_slime_block");
+    public static final DeferredBlock<Block> HEPATIZON_BLOCK = metalBlock("hepatizon_block");
+
     // #233 -- firewood (docs/SCOPE.md M3.2). Upstream 1.12's BlockFirewood (NOTICE.md):
     // Material.WOOD, hardness 2, resistance 7, SoundType.WOOD, setLightLevel(0.5f) -- i.e. light 7
     // -- and setHarvestLevel("axe", -1), meaning no tool is required at all, so like grout it

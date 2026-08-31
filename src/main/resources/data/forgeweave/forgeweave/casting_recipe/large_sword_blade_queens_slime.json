@@ -1,0 +1,14 @@
+{
+  "station": "table",
+  "cast": {
+    "item": "forgeweave:cast_large_sword_blade"
+  },
+  "fluid": "forgeweave:molten_queens_slime",
+  "amount": 1152,
+  "result": {
+    "id": "forgeweave:large_sword_blade",
+    "components": {
+      "forgeweave:material": "forgeweave:queens_slime"
+    }
+  }
+}

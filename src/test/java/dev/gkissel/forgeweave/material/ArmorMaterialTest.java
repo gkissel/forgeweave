@@ -47,7 +47,11 @@ import dev.gkissel.forgeweave.item.PartItem;
  */
 class ArmorMaterialTest {
 
-    /** D10: the 15 clone-derived plating materials plus ardite, netherite and nahuatl. */
+    /**
+     * D10: the 15 clone-derived plating materials plus ardite, netherite and nahuatl, plus M6's
+     * Track A preset batches and issue #843's (closes #180) three plating materials from the
+     * 1.20-branch material gap: seared stone, queen's slime, hepatizon.
+     */
     private static final Set<String> PLATING = Stream.of(
             Stream.of("iron", "copper", "cobalt", "manyullyn", "knightslime",
                     "pig_iron", "steel", "bronze", "lead", "silver", "electrum", "amethyst_bronze", "rose_gold",
@@ -64,13 +68,19 @@ class ArmorMaterialTest {
             // #835 M6 Track A batch 3: all eight Ender IO alloys are proper metal ingots, so they get
             // plating like the batch 1 roster above.
             Stream.of("redstone_alloy", "energetic_alloy", "pulsating_alloy", "conductive_alloy",
-                    "vibrant_alloy", "soularium", "dark_steel", "end_steel"))
+                    "vibrant_alloy", "soularium", "dark_steel", "end_steel"),
+            // issue #843 (closes #180): the 1.20-branch material gap's three plating materials.
+            Stream.of("seared_stone", "queens_slime", "hepatizon"))
             .flatMap(java.util.function.Function.identity())
             .collect(java.util.stream.Collectors.toSet());
 
-    /** D11: every plating material plus the five maille-only ones. */
+    /**
+     * D11: every plating material plus the five maille-only ones, plus #843's necrotic bone
+     * (upstream gives it SHIELD_CORE not PLATING, same shape as bone).
+     */
     private static final Set<String> MAILLE = Stream.concat(PLATING.stream(),
-            Stream.of("vine", "chorus", "bone", "cactus", "slimevine_blue")).collect(java.util.stream.Collectors.toSet());
+            Stream.of("vine", "chorus", "bone", "cactus", "slimevine_blue", "necrotic_bone"))
+            .collect(java.util.stream.Collectors.toSet());
 
     private static RegistryOps<JsonElement> ops;
 

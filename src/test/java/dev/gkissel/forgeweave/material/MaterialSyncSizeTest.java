@@ -62,6 +62,10 @@ class MaterialSyncSizeTest {
      * <p>Batch 2 (issue #834) landed on top of batch 1 without needing another revisit: the combined
      * 67-material roster (46 pre-M6 plus batch 1's 11 plus this batch's 10 Mekanism/AE2/Occultism
      * materials) stays under the 64 KB line #833 already drew.
+     *
+     * <p>Batches 3 (#835, Ender IO), and #843 (closes #180, the 1.20-branch material gap's five
+     * by-name additions) landed the same way: the combined 80-material roster measures 54,283 bytes,
+     * still under the 64 KB line with room for the remaining M6 batches before another revisit is due.
      */
     private static final int SYNC_BUDGET_BYTES = 64 * 1024;
 

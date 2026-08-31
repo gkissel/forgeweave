@@ -1,0 +1,15 @@
+{
+  "station": "table",
+  "cast": {
+    "item": "forgeweave:clay_cast_large_plate"
+  },
+  "fluid": "forgeweave:molten_slime",
+  "amount": 1152,
+  "result": {
+    "id": "forgeweave:large_plate",
+    "components": {
+      "forgeweave:material": "forgeweave:slimewood"
+    }
+  },
+  "consumes_cast": true
+}

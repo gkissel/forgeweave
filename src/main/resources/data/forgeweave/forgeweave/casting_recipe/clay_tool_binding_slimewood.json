@@ -1,0 +1,15 @@
+{
+  "station": "table",
+  "cast": {
+    "item": "forgeweave:clay_cast_tool_binding"
+  },
+  "fluid": "forgeweave:molten_slime",
+  "amount": 144,
+  "result": {
+    "id": "forgeweave:tool_binding",
+    "components": {
+      "forgeweave:material": "forgeweave:slimewood"
+    }
+  },
+  "consumes_cast": true
+}

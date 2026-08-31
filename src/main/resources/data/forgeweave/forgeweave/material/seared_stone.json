@@ -1,0 +1,32 @@
+{
+  "head": {
+    "durability": 225,
+    "mining_speed": 6.5,
+    "attack_damage": 1.5
+  },
+  "handle": {
+    "durability_modifier": 0.85,
+    "durability": 0
+  },
+  "extra_durability": 23,
+  "plating": {
+    "helmet": { "durability": 154, "armor": 2.0, "knockback_resistance": 0.1 },
+    "chestplate": { "durability": 224, "armor": 4.0, "knockback_resistance": 0.1 },
+    "leggings": { "durability": 210, "armor": 3.0, "knockback_resistance": 0.1 },
+    "boots": { "durability": 182, "armor": 1.0, "knockback_resistance": 0.1 }
+  },
+  "maille": true,
+  "incorrect_for_tool": "minecraft:incorrect_for_iron_tool",
+  "traits": {
+    "general": ["forgeweave:searing"],
+    "armor": ["forgeweave:fire_protection"]
+  },
+  "crafting_items": [
+    { "ingredient": { "item": "forgeweave:seared_brick" }, "value": 144 }
+  ],
+  "repair_item": {
+    "item": "forgeweave:seared_brick"
+  },
+  "enchantability": 14,
+  "color": "#4F4A47"
+}

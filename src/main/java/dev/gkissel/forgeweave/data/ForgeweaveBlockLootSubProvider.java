@@ -215,6 +215,9 @@ public class ForgeweaveBlockLootSubProvider extends BlockLootSubProvider {
         dropSelf(ForgeweaveBlocks.FIREWOOD.get());
 
         dropSelf(ForgeweaveBlocks.AMETHYST_BRONZE_BLOCK.get());
+        // #843 -- queen's slime and hepatizon storage blocks (closes #180).
+        dropSelf(ForgeweaveBlocks.QUEENS_SLIME_BLOCK.get());
+        dropSelf(ForgeweaveBlocks.HEPATIZON_BLOCK.get());
 
         // #275 -- clear glass and its 16 clear stained glass colors: plain self-drops, matching
         // upstream's BlockClearGlass/BlockClearStainedGlass (neither overrides loot).

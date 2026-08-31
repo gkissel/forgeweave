@@ -1,0 +1,12 @@
+{
+  "station": "table",
+  "cast": {
+    "item": "forgeweave:clay_cast_ingot"
+  },
+  "fluid": "forgeweave:molten_queens_slime",
+  "amount": 144,
+  "result": {
+    "id": "forgeweave:queens_slime_ingot"
+  },
+  "consumes_cast": true
+}
