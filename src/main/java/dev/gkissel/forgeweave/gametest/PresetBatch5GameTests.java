@@ -51,9 +51,11 @@ import dev.gkissel.forgeweave.material.Material;
  *       crystal_niotic}/{@code crystal_nitro}/{@code crystal_spirited}) ship <em>no</em> per-material
  *       {@code c:ingots/*}/{@code c:gems/*} subtag at all, only the flat parent {@code c:ingots}/{@code
  *       c:gems} tags -- the same "ships zero tags" shape that got Refined Storage skipped in batch 2.
- *       All five are skipped rather than keyed on an item id; {@link
- *       dev.gkissel.forgeweave.material.MaterialTest#noShippedMaterialConditionsOnPowahsUntaggedEnergisedSteelOrCrystals}
- *       guards the skip.
+ *       All five were skipped rather than keyed on an item id at the time; issue #872's recovery
+ *       batch unblocks {@code steel_energized} (shipped as {@code energised_steel}, see {@link
+ *       RecoveryBatchGameTests}), but the four crystals are still tagless and still skipped -- {@link
+ *       dev.gkissel.forgeweave.material.MaterialTest#noShippedMaterialConditionsOnPowahsUntaggedCrystals}
+ *       guards that narrower skip.
  *   <li><b>Industrial Foregoing</b> ({@code 1.21} branch, {@code 1.21-3.6.39}): only {@code pink_slime}
  *       ships, keyed on {@code c:ingots/pink_slime} (condition {@code
  *       industrialforegoing:pink_slime_ingot}) -- no nugget or item-level storage-block tag exists for

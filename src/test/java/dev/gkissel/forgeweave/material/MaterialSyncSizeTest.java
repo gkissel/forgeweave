@@ -85,8 +85,17 @@ class MaterialSyncSizeTest {
      * epic's own closing issue), there is no further planned growth to budget headroom for, and the
      * measured payload is still comfortably a small fraction of one chunk packet. A future material
      * roster expansion should re-measure and raise deliberately rather than assume this margin holds.
+     *
+     * <p>Issue #872 (the M6 recovery batch: concrete item ids in {@code crafting_items}/{@code
+     * repair_item}, unblocking ProjectE/AvaritiaNeo/Refined Storage/Powah's tag-less materials plus
+     * Draconic Evolution's core-tier pair) is exactly the "future material roster expansion" the
+     * note above anticipated -- the 3% margin didn't hold. The combined 138-material roster measures
+     * 102,426 bytes, over the 96 KB line. Raised to 104 KB (106,496 bytes), ~4 KB (4%) of headroom
+     * above the new measurement -- deliberately tight rather than another multiplier-based jump,
+     * since this really is the epic's closing batch (#824's child issue list has nothing left that
+     * ships a material) and there is no further planned growth to budget for.
      */
-    private static final int SYNC_BUDGET_BYTES = 96 * 1024;
+    private static final int SYNC_BUDGET_BYTES = 104 * 1024;
 
     private static RegistryOps<JsonElement> jsonOps;
     private static RegistryOps<Tag> nbtOps;
@@ -117,7 +126,7 @@ class MaterialSyncSizeTest {
 
         // Non-vacuity: an empty walk encoding zero bytes would prove nothing.
         assertTrue(materials >= 11, "expected at least the 11 pre-M3.2 materials, walked only " + materials);
-        System.out.println("[#846] material sync payload: " + materials + " materials encode to "
+        System.out.println("[#872] material sync payload: " + materials + " materials encode to "
                 + buf.readableBytes() + " bytes (budget " + SYNC_BUDGET_BYTES + ")");
         assertTrue(buf.readableBytes() <= SYNC_BUDGET_BYTES,
                 materials + " materials encode to " + buf.readableBytes() + " bytes of registry-sync payload, "

@@ -1,0 +1,37 @@
+{
+  "head": {
+    "durability": 260,
+    "mining_speed": 6.2,
+    "attack_damage": 3.0
+  },
+  "handle": {
+    "durability_modifier": 1.0,
+    "durability": 30
+  },
+  "extra_durability": 40,
+  "bow": {
+    "drawspeed": 0.7,
+    "range": 1.1,
+    "bonus_damage": 2.5
+  },
+  "plating": {
+    "helmet": { "durability": 195, "armor": 2.0 },
+    "chestplate": { "durability": 285, "armor": 5.0 },
+    "leggings": { "durability": 265, "armor": 4.0 },
+    "boots": { "durability": 230, "armor": 2.0 }
+  },
+  "maille": true,
+  "incorrect_for_tool": "minecraft:incorrect_for_stone_tool",
+  "traits": {},
+  "crafting_items": [
+    { "ingredient": { "item": "refinedstorage:quartz_enriched_iron" }, "value": 144 }
+  ],
+  "repair_item": {
+    "item": "refinedstorage:quartz_enriched_iron"
+  },
+  "enchantability": 12,
+  "color": "#C9A96A",
+  "neoforge:conditions": [
+    { "type": "neoforge:item_exists", "item": "refinedstorage:quartz_enriched_iron" }
+  ]
+}

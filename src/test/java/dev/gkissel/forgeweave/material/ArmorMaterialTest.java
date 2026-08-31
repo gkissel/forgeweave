@@ -85,7 +85,10 @@ class ArmorMaterialTest {
                     "nightshale", "warspar", "hollowstone", "resonite", "starfall_stone", "voidglass",
                     "ironbrand", "quakestone", "shardline", "embercast", "riftalloy", "tideiron",
                     "cinderforge", "dreadalloy", "sunsteel", "hollowsteel", "truesteel", "stormalloy",
-                    "glowveil", "daybrass", "faultsteel", "skipalloy", "mendalloy", "mendstone"))
+                    "glowveil", "daybrass", "faultsteel", "skipalloy", "mendalloy", "mendstone"),
+            // #872 M6 recovery batch: same full plating + maille shape as every other Track A preset.
+            Stream.of("dark_matter", "red_matter", "crystal_matrix", "cosmic_neutronium", "infinity",
+                    "wyvern", "chaotic", "quartz_enriched_iron", "silicon", "energised_steel"))
             .flatMap(java.util.function.Function.identity())
             .collect(java.util.stream.Collectors.toSet());
 

@@ -1,0 +1,39 @@
+{
+  "head": {
+    "durability": 560,
+    "mining_speed": 7.2,
+    "attack_damage": 6.2
+  },
+  "handle": {
+    "durability_modifier": 0.92,
+    "durability": 155
+  },
+  "extra_durability": 30,
+  "bow": {
+    "drawspeed": 0.42,
+    "range": 1.9,
+    "bonus_damage": 9.2
+  },
+  "plating": {
+    "helmet": { "durability": 330, "armor": 2.5, "toughness": 2.0 },
+    "chestplate": { "durability": 480, "armor": 7.5, "toughness": 2.0 },
+    "leggings": { "durability": 450, "armor": 5.5, "toughness": 2.0 },
+    "boots": { "durability": 390, "armor": 2.5, "toughness": 2.0 }
+  },
+  "maille": true,
+  "incorrect_for_tool": "minecraft:incorrect_for_diamond_tool",
+  "traits": {
+    "general": ["forgeweave:energized"]
+  },
+  "crafting_items": [
+    { "ingredient": { "item": "powah:steel_energized" }, "value": 144 }
+  ],
+  "repair_item": {
+    "item": "powah:steel_energized"
+  },
+  "enchantability": 13,
+  "color": "#F2C744",
+  "neoforge:conditions": [
+    { "type": "neoforge:item_exists", "item": "powah:steel_energized" }
+  ]
+}

@@ -959,16 +959,30 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("material.forgeweave.dark_steel", "Dark Steel");
         add("material.forgeweave.end_steel", "End Steel");
 
-        // #836 -- M6 Track A batch 4: the endgame tier's Draconic Evolution pair. Draconium/awakened
-        // draconium only -- the wyvern/draconic/chaotic core items are left out (issue #836's own
-        // "simplest answer is two materials, not five"). ProjectE (dark matter, red matter) and
-        // Avaritia (crystal matrix, cosmic neutronium, infinity) are skipped entirely: neither mod
-        // ships a single c: tag (verified against sinkillerj/ProjectE's mc1.21.1 branch and
-        // AquaThree/AvaritiaNeo's main branch), and this repo's material JSONs require a tag in
-        // crafting_items/repair_item to parse without the mod installed (see MaterialTest, and
-        // #834/#860's Refined Storage precedent). Allthemodium is out per the epic's JC4 decision.
+        // #836 -- M6 Track A batch 4: the endgame tier's Draconic Evolution pair. Allthemodium is out
+        // per the epic's JC4 decision. ProjectE, Avaritia, Draconic Evolution's wyvern/chaotic core
+        // pair, Refined Storage and Powah's energised steel were all skipped here at the time -- see
+        // #872's recovery batch below, which unblocks and ships them.
         add("material.forgeweave.draconium", "Draconium");
         add("material.forgeweave.draconium_awakened", "Awakened Draconium");
+
+        // #872 -- the M6 recovery batch: issue #826's constraint (a concrete non-vanilla item id in
+        // crafting_items/repair_item failed to parse without the mod installed) blocked every tag-less
+        // compat provider until this issue's Material.LENIENT_INGREDIENT_CODEC schema fix. ProjectE's
+        // dark/red matter, AvaritiaNeo's escalating crystal_matrix/cosmic_neutronium/infinity ladder,
+        // Draconic Evolution's wyvern/chaotic core-tier pair (#836's "simplest answer is two materials,
+        // not five" deferral, now resolved), Refined Storage's quartz enriched iron and silicon, and
+        // Powah's energised steel (real id powah:steel_energized, the epic's table had it backwards).
+        add("material.forgeweave.dark_matter", "Dark Matter");
+        add("material.forgeweave.red_matter", "Red Matter");
+        add("material.forgeweave.crystal_matrix", "Crystal Matrix");
+        add("material.forgeweave.cosmic_neutronium", "Cosmic Neutronium");
+        add("material.forgeweave.infinity", "Infinity");
+        add("material.forgeweave.wyvern", "Wyvern");
+        add("material.forgeweave.chaotic", "Chaotic");
+        add("material.forgeweave.quartz_enriched_iron", "Quartz Enriched Iron");
+        add("material.forgeweave.silicon", "Silicon");
+        add("material.forgeweave.energised_steel", "Energised Steel");
 
         // #231 -- the seven vanilla-sourced M3.2 materials. Names are upstream 1.12's
         // material.<id>.name entries verbatim, including endstone's odd "End" ("End Pickaxe Head"
