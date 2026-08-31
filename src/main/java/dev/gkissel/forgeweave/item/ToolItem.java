@@ -1123,7 +1123,7 @@ public class ToolItem extends Item {
     }
 
     /**
-     * The two right-click-on-a-block behaviors a tool type can carry, both ports:
+     * The tool-kind-scoped right-click-on-a-block behaviors a tool type can carry, all ports:
      *
      * <ul>
      *   <li>the scythe's harvest (issue #157), upstream 1.12's {@code Kama#onItemRightClick}: only
@@ -1136,8 +1136,12 @@ public class ToolItem extends Item {
      *       trait: gated the same way on {@link ItemAbilities#AXE_STRIP} ({@link AxeStrip}).
      * </ul>
      *
-     * <p>Anything else -- and any Broken tool, upstream's {@code if(isBroken) return FAIL} -- falls
-     * through to vanilla's behavior for a right-click on a block.
+     * <p>Once none of those apply, a fourth, <b>material-driven</b> behavior gets a turn: any trait on
+     * the tool answering {@link dev.gkissel.forgeweave.trait.Trait#useOnBlock} (issue #829's {@code
+     * fertilize_on_use} is the one shipped user so far), routed through {@link
+     * dev.gkissel.forgeweave.trait.ForgeweaveTraits#useOnBlock}. Anything else -- and any Broken tool,
+     * upstream's {@code if(isBroken) return FAIL} -- falls through to vanilla's own right-click
+     * behavior for the block.
      */
     @Override
     public InteractionResult useOn(UseOnContext context) {
@@ -1152,6 +1156,12 @@ public class ToolItem extends Item {
         }
         if (abilities.contains(ItemAbilities.AXE_STRIP)) {
             return AxeStrip.transformAt(context, aoeShape);
+        }
+        // Issue #829: a trait-driven right-click (fertilize_on_use) only for tool kinds with no
+        // dedicated behavior of their own above -- see Trait#useOnBlock's javadoc for the ordering.
+        InteractionResult traitResult = ForgeweaveTraits.useOnBlock(context.getItemInHand(), context);
+        if (traitResult != InteractionResult.PASS) {
+            return traitResult;
         }
         return super.useOn(context);
     }

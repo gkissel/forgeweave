@@ -1757,6 +1757,15 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("trait.forgeweave.kinetic_charge.name", "Kinetic Charge");
         add("trait.forgeweave.kinetic_charge.description", "Converts a share of damage dealt into stored energy.");
         add("tooltip.forgeweave.energy", "Stored Energy");
+        // #829 M6 utility/economy trait behavior library.
+        add("trait.forgeweave.sunmend.name", "Sunmend");
+        add("trait.forgeweave.sunmend.description", "Slowly self-repairs while standing in direct sunlight.");
+        add("trait.forgeweave.duskmend.name", "Duskmend");
+        add("trait.forgeweave.duskmend.description", "Slowly self-repairs at night.");
+        add("trait.forgeweave.cascading.name", "Cascading");
+        add("trait.forgeweave.cascading.description", "Breaks the whole column of falling blocks above what you mine.");
+        add("trait.forgeweave.fertilizing.name", "Fertilizing");
+        add("trait.forgeweave.fertilizing.description", "Right-click can fertilize crops, at a durability cost.");
 
         // The guide book (issue #273). The item name, book title/subtitle and the static pages'
         // text are ported (rewritten in Forgeweave vocabulary) from upstream 1.12's book data tree

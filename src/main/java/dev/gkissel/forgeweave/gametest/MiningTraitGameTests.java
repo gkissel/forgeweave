@@ -274,6 +274,14 @@ public class MiningTraitGameTests {
         helper.assertTrue(ForgeweaveModifiers.freeSlots(pickaxe) == ForgeweaveModifiers.DEFAULT_SLOTS + 3,
                 "expected " + (ForgeweaveModifiers.DEFAULT_SLOTS + 3) + " free slots on an all-paper tool, got "
                         + ForgeweaveModifiers.freeSlots(pickaxe));
+
+        // Issue #829: writable/writable2 are now both built from the extra_modifier_slots(count)
+        // library factory (ForgeweaveTraits#extraModifierSlots) -- pin the +1/+2 split survives the
+        // generalization, not just their combined +3.
+        helper.assertTrue(ForgeweaveTraits.WRITABLE.bonusSlots() == 1,
+                "writable must still grant +1 on its own, got " + ForgeweaveTraits.WRITABLE.bonusSlots());
+        helper.assertTrue(ForgeweaveTraits.WRITABLE2.bonusSlots() == 2,
+                "writable2 must still grant +2 on its own, got " + ForgeweaveTraits.WRITABLE2.bonusSlots());
         helper.succeed();
     }
 

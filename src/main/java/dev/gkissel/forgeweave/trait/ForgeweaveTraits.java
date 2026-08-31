@@ -26,6 +26,7 @@ import net.minecraft.tags.BlockTags;
 import net.minecraft.tags.EntityTypeTags;
 import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
+import net.minecraft.world.InteractionResult;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.EntityType;
@@ -42,8 +43,10 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.component.ItemAttributeModifiers;
 import net.minecraft.world.item.component.Tool;
+import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.biome.Biome;
+import net.minecraft.world.level.block.FallingBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
@@ -125,30 +128,22 @@ public final class ForgeweaveTraits {
     /** Ids already reported as unknown, so a bad material JSON logs once rather than every tick. */
     private static final Set<ResourceLocation> WARNED_UNKNOWN = ConcurrentHashMap.newKeySet();
 
+    /** Upstream {@code TraitEcological#chance}: one durability roughly every 40 seconds (20 ticks/s). */
+    private static final int ECOLOGICAL_TICKS_PER_POINT = 20 * 40;
+
     /**
      * Wood. Upstream {@code TraitEcological}: server side, a 1-in-{@code 20 * 40} chance per tick to
      * regenerate one durability, skipped while the holder is actively using the tool. Upstream
      * routes this through {@code ToolHelper#healTool} -&gt; {@code #damageTool}, which returns early on
      * a broken tool; the {@code ToolItem} seam applies that same guard to every trait.
      *
-     * <p>Healing an already-undamaged tool needs no guard of its own: 1.21's
-     * {@code ItemStack#setDamageValue} clamps to {@code [0, maxDamage]}, exactly as 1.12's
-     * {@code Item#setDamage} clamped at 0 before upstream's own heal path could go negative.
+     * <p>Issue #829's M6 reuse audit: this is now {@link SelfRepairWhen} with {@link
+     * SelfRepairCondition#ALWAYS} rather than its own bespoke implementation -- the M6 utility/economy
+     * library batch's {@code self_repair_when(condition, ticksPerPoint)} generalization, kept under
+     * this same id and magnitude so shipped Wood tools are untouched. See {@link SelfRepairWhen} for
+     * the healing rule itself, including why an already-undamaged tool needs no clamp of its own.
      */
-    public static final Trait ECOLOGICAL = new Trait() {
-        @Override
-        public void inventoryTick(ItemStack stack, ServerLevel level, LivingEntity holder) {
-            if (holder.getUseItem() == stack) {
-                return;
-            }
-            if (level.getRandom().nextInt(20 * ECOLOGICAL_PERIOD_SECONDS) == 0) {
-                stack.setDamageValue(stack.getDamageValue() - 1);
-            }
-        }
-    };
-
-    /** Upstream {@code TraitEcological#chance}: one durability roughly every 40 seconds. */
-    private static final int ECOLOGICAL_PERIOD_SECONDS = 40;
+    public static final Trait ECOLOGICAL = new SelfRepairWhen(SelfRepairCondition.ALWAYS, ECOLOGICAL_TICKS_PER_POINT);
 
     /**
      * Stone, general (issue #493 split; this id used to also carry {@code cheapskate}'s
@@ -1223,24 +1218,30 @@ public final class ForgeweaveTraits {
      * precedent, since {@link #resolve} counts one id once): this id is upstream's
      * {@code writable} (+1), {@link #WRITABLE2} is {@code writable2} (+2), so an all-paper tool
      * totals +3 exactly as upstream (issue #344, reversing the flat-pair +2 deviation).
+     *
+     * <p>Issue #829's M6 reuse audit: {@code writable}/{@code writable2} were already two ids for one
+     * idea ({@link Trait#bonusSlots}, a fixed count), so both are now built from the
+     * {@link #extraModifierSlots} factory -- the M6 utility/economy library batch's {@code
+     * extra_modifier_slots(count)} generalization -- with their existing ids and counts kept exactly,
+     * per the issue's explicit "keep the ids" instruction.
      */
-    public static final Trait WRITABLE = new Trait() {
-        @Override
-        public int bonusSlots() {
-            return 1;
-        }
-    };
+    public static final Trait WRITABLE = extraModifierSlots(1);
 
     /**
      * Paper's head-scoped half: upstream {@code TinkerTraits.writable2 = new TraitWritable(2)},
      * a +2 of its own next to {@link #WRITABLE}'s +1 -- see that javadoc for the whole pair.
      */
-    public static final Trait WRITABLE2 = new Trait() {
-        @Override
-        public int bonusSlots() {
-            return 2;
-        }
-    };
+    public static final Trait WRITABLE2 = extraModifierSlots(2);
+
+    /** The M6 {@code extra_modifier_slots(count)} library shape (issue #829): see {@link #WRITABLE}. */
+    private static Trait extraModifierSlots(int count) {
+        return new Trait() {
+            @Override
+            public int bonusSlots() {
+                return count;
+            }
+        };
+    }
 
     /** Upstream {@code TraitSqueaky#afterHit}: {@code 1.0f} volume, {@code 0.8f + 0.4f * random} pitch. */
     private static final float SQUEAKY_VOLUME = 1.0F;
@@ -1549,6 +1550,54 @@ public final class ForgeweaveTraits {
      * stateful ramp (issue #827's instruction, followed literally).
      */
     public static final Trait ESCALATING = seamTrait(DamageRamp.ESCALATING);
+
+    // ---------------------------------------------------------------- #829 M6 utility/economy trait
+    // behavior library (ADR-0004). Reuse audit, recorded here and on the issue thread: mining/
+    // attacking explosions is ForgeweaveModifiers#BLASTING (#455) -- reuse, no new class; struck
+    // enemies glow is effect_on_hit's job in the sibling on-hit batch (#828), out of scope here;
+    // knockback scaling already rides KnockbackMultiplierSeam (see KnockbackMultiplierGameTests);
+    // drops pulled to the holder is MAGNETIC/MAGNETIC2 above (#102); drops replaced by their smelted
+    // result is AUTOSMELT/ForgeweaveModifiers#SEARING above (#228); faster on blocks needing no tool
+    // is CRUMBLING above (#228); speed rising as the tool wears is STONEBOUND above (#102). None of
+    // the seven get a new class -- the four genuinely new shapes follow.
+
+    /** {@code sunmend}/{@code duskmend}'s own rate: twice ecological's, since each condition holds
+     *  only about half of every day -- proposed to land near the same daily total. */
+    private static final int CONDITIONAL_SELF_REPAIR_TICKS_PER_POINT = ECOLOGICAL_TICKS_PER_POINT / 2;
+
+    /**
+     * The M6 {@code self_repair_when(condition, ticksPerPoint)} instance for direct sunlight -- see
+     * {@link SelfRepairWhen} and {@link SelfRepairCondition#SUNLIT}. Not yet assigned to a material;
+     * that wiring is a later M6 issue.
+     */
+    public static final Trait SUNMEND =
+            new SelfRepairWhen(SelfRepairCondition.SUNLIT, CONDITIONAL_SELF_REPAIR_TICKS_PER_POINT);
+
+    /**
+     * The M6 {@code self_repair_when(condition, ticksPerPoint)} instance for night -- see {@link
+     * SelfRepairWhen} and {@link SelfRepairCondition#NIGHT}. Not yet assigned to a material; that
+     * wiring is a later M6 issue.
+     */
+    public static final Trait DUSKMEND =
+            new SelfRepairWhen(SelfRepairCondition.NIGHT, CONDITIONAL_SELF_REPAIR_TICKS_PER_POINT);
+
+    /**
+     * The M6 {@code cascading_break(blockPredicate)} instance: breaking one gravity-affected block
+     * ({@link FallingBlock}) takes the whole column above it in one swing -- see {@link
+     * CascadingBreak}. Not yet assigned to a material; that wiring is a later M6 issue.
+     */
+    public static final Trait CASCADING = new CascadingBreak(state -> state.getBlock() instanceof FallingBlock);
+
+    /** {@code fertilizing}'s proposed cost/chance -- one crop-harvest durability point (see {@code
+     *  CropHarvest}), a coin-flip success rate so a miss is a real possibility, not a rounding error. */
+    private static final int FERTILIZING_DURABILITY_COST = 1;
+    private static final float FERTILIZING_CHANCE = 0.5F;
+
+    /**
+     * The M6 {@code fertilize_on_use(durabilityCost, chance)} instance -- see {@link FertilizeOnUse}.
+     * Not yet assigned to a material; that wiring is a later M6 issue.
+     */
+    public static final Trait FERTILIZING = new FertilizeOnUse(FERTILIZING_DURABILITY_COST, FERTILIZING_CHANCE);
 
     // ---------------------------------------------------------------- M6 energy buffer trait
     // behavior library (issue #830, ADR-0004). Ideas are inspiration-only (design pool
@@ -2134,6 +2183,12 @@ public final class ForgeweaveTraits {
             Map.entry(id("surging3"), SURGING3),
             Map.entry(id("ruthless"), RUTHLESS),
             Map.entry(id("escalating"), ESCALATING),
+            // #829 M6 utility/economy trait behavior library (ADR-0004); not yet assigned to a
+            // material -- that wiring is a later M6 issue.
+            Map.entry(id("sunmend"), SUNMEND),
+            Map.entry(id("duskmend"), DUSKMEND),
+            Map.entry(id("cascading"), CASCADING),
+            Map.entry(id("fertilizing"), FERTILIZING),
             // #830 M6 energy buffer trait behavior library (ADR-0004); not yet assigned to a
             // material -- that wiring is a later M6 issue.
             Map.entry(id("energized"), ENERGIZED),
@@ -2445,6 +2500,23 @@ public final class ForgeweaveTraits {
         for (Trait trait : of(stack)) {
             trait.afterBlockBreak(stack, level, state, pos, breaker, effective);
         }
+    }
+
+    /**
+     * The first non-{@link InteractionResult#PASS} answer any trait on {@code stack} gives to a
+     * right-click on a block ({@link Trait#useOnBlock}, issue #829's {@code fertilize_on_use}),
+     * called from {@code ToolItem#useOn}'s fallthrough. Unlike {@link #afterBlockBreak}, only one
+     * trait's interaction can consume the click, so the first hit wins rather than every trait
+     * running.
+     */
+    public static InteractionResult useOnBlock(ItemStack stack, UseOnContext context) {
+        for (Trait trait : of(stack)) {
+            InteractionResult result = trait.useOnBlock(stack, context);
+            if (result != InteractionResult.PASS) {
+                return result;
+            }
+        }
+        return InteractionResult.PASS;
     }
 
     /** Fraction the tool's traits add to a launcher's draw speed (M3.5 #396, {@link Trait#drawSpeedBonus}). */
