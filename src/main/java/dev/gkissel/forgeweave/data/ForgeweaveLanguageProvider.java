@@ -954,6 +954,17 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("material.forgeweave.dark_steel", "Dark Steel");
         add("material.forgeweave.end_steel", "End Steel");
 
+        // #836 -- M6 Track A batch 4: the endgame tier's Draconic Evolution pair. Draconium/awakened
+        // draconium only -- the wyvern/draconic/chaotic core items are left out (issue #836's own
+        // "simplest answer is two materials, not five"). ProjectE (dark matter, red matter) and
+        // Avaritia (crystal matrix, cosmic neutronium, infinity) are skipped entirely: neither mod
+        // ships a single c: tag (verified against sinkillerj/ProjectE's mc1.21.1 branch and
+        // AquaThree/AvaritiaNeo's main branch), and this repo's material JSONs require a tag in
+        // crafting_items/repair_item to parse without the mod installed (see MaterialTest, and
+        // #834/#860's Refined Storage precedent). Allthemodium is out per the epic's JC4 decision.
+        add("material.forgeweave.draconium", "Draconium");
+        add("material.forgeweave.draconium_awakened", "Awakened Draconium");
+
         // #231 -- the seven vanilla-sourced M3.2 materials. Names are upstream 1.12's
         // material.<id>.name entries verbatim, including endstone's odd "End" ("End Pickaxe Head"
         // is how upstream reads).

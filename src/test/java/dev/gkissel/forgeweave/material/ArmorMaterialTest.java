@@ -69,6 +69,8 @@ class ArmorMaterialTest {
             // plating like the batch 1 roster above.
             Stream.of("redstone_alloy", "energetic_alloy", "pulsating_alloy", "conductive_alloy",
                     "vibrant_alloy", "soularium", "dark_steel", "end_steel"),
+            // #836 M6 Track A batch 4: the Draconic Evolution pair, same full plating + maille shape.
+            Stream.of("draconium", "draconium_awakened"),
             // issue #843 (closes #180): the 1.20-branch material gap's three plating materials.
             Stream.of("seared_stone", "queens_slime", "hepatizon"))
             .flatMap(java.util.function.Function.identity())
