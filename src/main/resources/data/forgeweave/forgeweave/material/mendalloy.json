@@ -1,0 +1,39 @@
+{
+  "head": {
+    "durability": 860,
+    "mining_speed": 8.3,
+    "attack_damage": 6.5
+  },
+  "handle": {
+    "durability_modifier": 1.0,
+    "durability": 105
+  },
+  "extra_durability": 270,
+  "bow": {
+    "drawspeed": 0.6,
+    "range": 1.3,
+    "bonus_damage": 4.2
+  },
+  "plating": {
+    "helmet": { "durability": 364, "armor": 2.0, "toughness": 1.0, "knockback_resistance": 0.05 },
+    "chestplate": { "durability": 529, "armor": 7.0, "toughness": 1.0, "knockback_resistance": 0.05 },
+    "leggings": { "durability": 496, "armor": 5.0, "toughness": 1.0, "knockback_resistance": 0.05 },
+    "boots": { "durability": 430, "armor": 2.0, "toughness": 1.0, "knockback_resistance": 0.05 }
+  },
+  "maille": true,
+  "incorrect_for_tool": "minecraft:incorrect_for_netherite_tool",
+  "traits": {
+    "general": ["forgeweave:merciful"]
+  },
+  "crafting_items": [
+    { "ingredient": { "item": "forgeweave:mendalloy_ingot" }, "value": 144 },
+    { "ingredient": { "item": "forgeweave:mendalloy_nugget" }, "value": 16 },
+    { "ingredient": { "item": "forgeweave:mendalloy_block" }, "value": 1296 }
+  ],
+  "repair_item": {
+    "tag": "c:ingots/mendalloy"
+  },
+  "cast_only": true,
+  "enchantability": 10,
+  "color": "#7FBF6B"
+}

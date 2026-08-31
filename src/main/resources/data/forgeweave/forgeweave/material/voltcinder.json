@@ -1,0 +1,39 @@
+{
+  "head": {
+    "durability": 820,
+    "mining_speed": 6.5,
+    "attack_damage": 5.0
+  },
+  "handle": {
+    "durability_modifier": 1.1,
+    "durability": 60
+  },
+  "extra_durability": 280,
+  "bow": {
+    "drawspeed": 0.6,
+    "range": 1.2,
+    "bonus_damage": 3.0
+  },
+  "plating": {
+    "helmet": { "durability": 347, "armor": 2.0, "toughness": 1.0, "knockback_resistance": 0.05 },
+    "chestplate": { "durability": 504, "armor": 7.0, "toughness": 1.0, "knockback_resistance": 0.05 },
+    "leggings": { "durability": 473, "armor": 5.0, "toughness": 1.0, "knockback_resistance": 0.05 },
+    "boots": { "durability": 410, "armor": 2.0, "toughness": 1.0, "knockback_resistance": 0.05 }
+  },
+  "maille": true,
+  "incorrect_for_tool": "minecraft:incorrect_for_netherite_tool",
+  "traits": {
+    "general": ["forgeweave:established"]
+  },
+  "crafting_items": [
+    { "ingredient": { "item": "forgeweave:voltcinder_ingot" }, "value": 144 },
+    { "ingredient": { "item": "forgeweave:voltcinder_nugget" }, "value": 16 },
+    { "ingredient": { "item": "forgeweave:voltcinder_block" }, "value": 1296 }
+  ],
+  "repair_item": {
+    "tag": "c:ingots/voltcinder"
+  },
+  "cast_only": true,
+  "enchantability": 10,
+  "color": "#38D9D0"
+}

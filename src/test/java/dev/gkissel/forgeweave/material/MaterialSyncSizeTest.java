@@ -73,6 +73,11 @@ class MaterialSyncSizeTest {
      * rather than a runaway field -- raised to 96 KB, ~1.46x the newly-measured payload, enough
      * headroom for Track B's self-contained ladder (~30 more materials, #838-#841) before another
      * revisit is due.
+     *
+     * <p>Issue #841 (Track B's own 30-material roster, closing the epic) landed on top of the above
+     * without tripping the line: the combined 130-material roster -- exactly the ~128 the epic
+     * projected -- stays under the 96 KB budget #837 already drew, the same "landed without another
+     * revisit" shape #834 saw at the Track A midpoint.
      */
     private static final int SYNC_BUDGET_BYTES = 96 * 1024;
 

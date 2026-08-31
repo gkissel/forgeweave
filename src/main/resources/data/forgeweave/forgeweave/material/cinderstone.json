@@ -1,0 +1,39 @@
+{
+  "head": {
+    "durability": 230,
+    "mining_speed": 6.0,
+    "attack_damage": 3.0
+  },
+  "handle": {
+    "durability_modifier": 1.0,
+    "durability": 35
+  },
+  "extra_durability": 90,
+  "bow": {
+    "drawspeed": 0.6,
+    "range": 1.3,
+    "bonus_damage": 3.5
+  },
+  "plating": {
+    "helmet": { "durability": 97, "armor": 1.0 },
+    "chestplate": { "durability": 141, "armor": 3.0 },
+    "leggings": { "durability": 133, "armor": 2.5 },
+    "boots": { "durability": 115, "armor": 1.0 }
+  },
+  "maille": true,
+  "incorrect_for_tool": "minecraft:incorrect_for_stone_tool",
+  "traits": {
+    "general": ["forgeweave:petramor"]
+  },
+  "crafting_items": [
+    { "ingredient": { "item": "forgeweave:cinderstone_ingot" }, "value": 144 },
+    { "ingredient": { "item": "forgeweave:cinderstone_nugget" }, "value": 16 },
+    { "ingredient": { "item": "forgeweave:cinderstone_block" }, "value": 1296 }
+  ],
+  "repair_item": {
+    "tag": "c:ingots/cinderstone"
+  },
+  "cast_only": true,
+  "enchantability": 12,
+  "color": "#8A8A86"
+}

@@ -1,0 +1,39 @@
+{
+  "head": {
+    "durability": 870,
+    "mining_speed": 8.5,
+    "attack_damage": 7.0
+  },
+  "handle": {
+    "durability_modifier": 1.0,
+    "durability": 105
+  },
+  "extra_durability": 270,
+  "bow": {
+    "drawspeed": 0.55,
+    "range": 1.3,
+    "bonus_damage": 4.8
+  },
+  "plating": {
+    "helmet": { "durability": 368, "armor": 2.0, "toughness": 2.0, "knockback_resistance": 0.05 },
+    "chestplate": { "durability": 535, "armor": 7.0, "toughness": 2.0, "knockback_resistance": 0.05 },
+    "leggings": { "durability": 502, "armor": 5.0, "toughness": 2.0, "knockback_resistance": 0.05 },
+    "boots": { "durability": 435, "armor": 2.0, "toughness": 2.0, "knockback_resistance": 0.05 }
+  },
+  "maille": true,
+  "incorrect_for_tool": "minecraft:incorrect_for_netherite_tool",
+  "traits": {
+    "general": ["forgeweave:cascading"]
+  },
+  "crafting_items": [
+    { "ingredient": { "item": "forgeweave:faultsteel_ingot" }, "value": 144 },
+    { "ingredient": { "item": "forgeweave:faultsteel_nugget" }, "value": 16 },
+    { "ingredient": { "item": "forgeweave:faultsteel_block" }, "value": 1296 }
+  ],
+  "repair_item": {
+    "tag": "c:ingots/faultsteel"
+  },
+  "cast_only": true,
+  "enchantability": 10,
+  "color": "#7A6852"
+}

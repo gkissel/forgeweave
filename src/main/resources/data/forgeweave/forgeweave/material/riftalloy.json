@@ -1,0 +1,39 @@
+{
+  "head": {
+    "durability": 890,
+    "mining_speed": 8.5,
+    "attack_damage": 6.8
+  },
+  "handle": {
+    "durability_modifier": 1.0,
+    "durability": 110
+  },
+  "extra_durability": 280,
+  "bow": {
+    "drawspeed": 0.55,
+    "range": 1.3,
+    "bonus_damage": 4.0
+  },
+  "plating": {
+    "helmet": { "durability": 376, "armor": 2.0, "toughness": 2.0, "knockback_resistance": 0.05 },
+    "chestplate": { "durability": 547, "armor": 7.0, "toughness": 2.0, "knockback_resistance": 0.05 },
+    "leggings": { "durability": 514, "armor": 5.0, "toughness": 2.0, "knockback_resistance": 0.05 },
+    "boots": { "durability": 445, "armor": 2.0, "toughness": 2.0, "knockback_resistance": 0.05 }
+  },
+  "maille": true,
+  "incorrect_for_tool": "minecraft:incorrect_for_netherite_tool",
+  "traits": {
+    "general": ["forgeweave:unraveling3"]
+  },
+  "crafting_items": [
+    { "ingredient": { "item": "forgeweave:riftalloy_ingot" }, "value": 144 },
+    { "ingredient": { "item": "forgeweave:riftalloy_nugget" }, "value": 16 },
+    { "ingredient": { "item": "forgeweave:riftalloy_block" }, "value": 1296 }
+  ],
+  "repair_item": {
+    "tag": "c:ingots/riftalloy"
+  },
+  "cast_only": true,
+  "enchantability": 10,
+  "color": "#7A3FA0"
+}

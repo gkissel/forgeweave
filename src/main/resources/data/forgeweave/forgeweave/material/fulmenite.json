@@ -1,0 +1,39 @@
+{
+  "head": {
+    "durability": 520,
+    "mining_speed": 7.4,
+    "attack_damage": 5.6
+  },
+  "handle": {
+    "durability_modifier": 0.85,
+    "durability": 130
+  },
+  "extra_durability": 35,
+  "bow": {
+    "drawspeed": 0.45,
+    "range": 1.9,
+    "bonus_damage": 8.0
+  },
+  "plating": {
+    "helmet": { "durability": 220, "armor": 2.0 },
+    "chestplate": { "durability": 320, "armor": 7.0 },
+    "leggings": { "durability": 300, "armor": 5.0 },
+    "boots": { "durability": 260, "armor": 2.0 }
+  },
+  "maille": true,
+  "incorrect_for_tool": "minecraft:incorrect_for_diamond_tool",
+  "traits": {
+    "general": ["forgeweave:shocking"]
+  },
+  "crafting_items": [
+    { "ingredient": { "item": "forgeweave:fulmenite_ingot" }, "value": 144 },
+    { "ingredient": { "item": "forgeweave:fulmenite_nugget" }, "value": 16 },
+    { "ingredient": { "item": "forgeweave:fulmenite_block" }, "value": 1296 }
+  ],
+  "repair_item": {
+    "tag": "c:ingots/fulmenite"
+  },
+  "cast_only": true,
+  "enchantability": 12,
+  "color": "#C8D94A"
+}
