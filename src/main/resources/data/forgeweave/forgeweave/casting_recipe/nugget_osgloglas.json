@@ -1,0 +1,21 @@
+{
+  "station": "table",
+  "cast": {
+    "item": "forgeweave:cast_nugget"
+  },
+  "fluid": "forgeweave:molten_osgloglas",
+  "amount": 16,
+  "result": {
+    "id": "forgeweave:osgloglas_nugget"
+  },
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "mekanism:ingot_osmium"
+    },
+    {
+      "type": "neoforge:item_exists",
+      "item": "mekanism:ingot_refined_obsidian"
+    }
+  ]
+}

@@ -1,0 +1,13 @@
+{
+  "input": {
+    "tag": "c:storage_blocks/alumite"
+  },
+  "fluid": "forgeweave:molten_alumite",
+  "amount": 1296,
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "immersiveengineering:ingot_aluminum"
+    }
+  ]
+}

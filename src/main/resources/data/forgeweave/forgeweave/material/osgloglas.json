@@ -1,0 +1,43 @@
+{
+  "head": {
+    "durability": 600,
+    "mining_speed": 7.5,
+    "attack_damage": 4.2
+  },
+  "handle": {
+    "durability_modifier": 1.0,
+    "durability": 65
+  },
+  "extra_durability": 130,
+  "bow": {
+    "drawspeed": 0.65,
+    "range": 1.4,
+    "bonus_damage": 4.2
+  },
+  "plating": {
+    "helmet": { "durability": 345, "armor": 2.0, "toughness": 0.5 },
+    "chestplate": { "durability": 500, "armor": 6.0, "toughness": 0.5 },
+    "leggings": { "durability": 470, "armor": 5.0, "toughness": 0.5 },
+    "boots": { "durability": 405, "armor": 2.0, "toughness": 0.5 }
+  },
+  "maille": true,
+  "incorrect_for_tool": "minecraft:incorrect_for_diamond_tool",
+  "traits": {
+    "general": ["forgeweave:sharp"]
+  },
+  "crafting_items": [
+    { "ingredient": { "item": "forgeweave:osgloglas_ingot" }, "value": 144 },
+    { "ingredient": { "item": "forgeweave:osgloglas_nugget" }, "value": 16 },
+    { "ingredient": { "item": "forgeweave:osgloglas_block" }, "value": 1296 }
+  ],
+  "repair_item": {
+    "tag": "c:ingots/osgloglas"
+  },
+  "cast_only": true,
+  "enchantability": 14,
+  "color": "#7FA8A3",
+  "neoforge:conditions": [
+    { "type": "neoforge:item_exists", "item": "mekanism:ingot_osmium" },
+    { "type": "neoforge:item_exists", "item": "mekanism:ingot_refined_obsidian" }
+  ]
+}

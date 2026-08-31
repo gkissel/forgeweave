@@ -1,0 +1,11 @@
+{
+  "inputs": [
+    { "fluid": "forgeweave:molten_aluminium", "amount": 144 },
+    { "fluid": "forgeweave:molten_iron", "amount": 144 },
+    { "fluid": "forgeweave:molten_obsidian", "amount": 144 }
+  ],
+  "result": { "fluid": "forgeweave:molten_alumite", "amount": 216 },
+  "neoforge:conditions": [
+    { "type": "neoforge:item_exists", "item": "immersiveengineering:ingot_aluminum" }
+  ]
+}
