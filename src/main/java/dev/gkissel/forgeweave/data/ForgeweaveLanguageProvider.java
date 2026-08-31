@@ -1766,6 +1766,37 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("trait.forgeweave.cascading.description", "Breaks the whole column of falling blocks above what you mine.");
         add("trait.forgeweave.fertilizing.name", "Fertilizing");
         add("trait.forgeweave.fertilizing.description", "Right-click can fertilize crops, at a durability cost.");
+        // #828 -- the M6 on-hit effect trait behavior library (ADR-0004). Own names, own wording;
+        // not assigned to a material yet, so no ported upstream row applies here.
+        add("trait.forgeweave.blighted.name", "Blighted");
+        add("trait.forgeweave.blighted.description", "Repeated hits stack a withering effect on the target.");
+        add("trait.forgeweave.enfeebling.name", "Enfeebling");
+        add("trait.forgeweave.enfeebling.description", "Weakens enemies on hit.");
+        add("trait.forgeweave.shackling.name", "Shackling");
+        add("trait.forgeweave.shackling.description", "Briefly roots enemies on hit.");
+        add("trait.forgeweave.revealing.name", "Revealing");
+        add("trait.forgeweave.revealing.description", "Marks struck enemies with a glow, revealing their position.");
+        add("trait.forgeweave.merciful.name", "Merciful");
+        add("trait.forgeweave.merciful.description", "Regenerates whatever it strikes. Not a helpful trait.");
+        add("trait.forgeweave.quickstep.name", "Quickstep");
+        add("trait.forgeweave.quickstep.description", "A fully-charged hit grants the wielder a burst of speed.");
+        add("trait.forgeweave.unraveling.name", "Unraveling");
+        add("trait.forgeweave.unraveling.description", "A fully-charged hit has a chance to strip a beneficial effect from the target.");
+        add("trait.forgeweave.unraveling2.name", "Unraveling II");
+        add("trait.forgeweave.unraveling2.description", "A fully-charged hit has a better chance to strip a beneficial effect from the target.");
+        add("trait.forgeweave.unraveling3.name", "Unraveling III");
+        add("trait.forgeweave.unraveling3.description", "A fully-charged hit is very likely to strip a beneficial effect from the target.");
+        add("trait.forgeweave.grievous.name", "Grievous");
+        add("trait.forgeweave.grievous.description", "Wounds struck by this weapon resist healing for a short time.");
+        add("trait.forgeweave.harrying.name", "Harrying");
+        add("trait.forgeweave.harrying.description", "Shortens the target's invulnerability after being hit, letting follow-up blows land sooner.");
+        add("trait.forgeweave.leeching.name", "Leeching");
+        add("trait.forgeweave.leeching.description", "Heals the wielder for a share of the damage dealt.");
+        add("trait.forgeweave.arcing.name", "Arcing");
+        add("trait.forgeweave.arcing.description", "A fully-charged hit has a chance to arc to nearby enemies.");
+        add("trait.forgeweave.stormcaller.name", "Stormcaller");
+        add("trait.forgeweave.stormcaller.description", "Strikes lightning on enemies hit while the wielder is at full health.");
+        add("effect.forgeweave.reduced_healing", "Grievous Wound");
 
         // The guide book (issue #273). The item name, book title/subtitle and the static pages'
         // text are ported (rewritten in Forgeweave vocabulary) from upstream 1.12's book data tree

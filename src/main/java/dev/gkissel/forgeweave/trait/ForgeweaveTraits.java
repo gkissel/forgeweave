@@ -54,6 +54,7 @@ import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.common.util.FakePlayer;
 import net.neoforged.neoforge.event.entity.EntityTeleportEvent;
 import net.neoforged.neoforge.event.entity.living.LivingExperienceDropEvent;
+import net.neoforged.neoforge.event.entity.living.LivingHealEvent;
 import net.neoforged.neoforge.event.entity.living.LivingKnockBackEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 import net.neoforged.neoforge.event.level.BlockDropsEvent;
@@ -65,6 +66,7 @@ import dev.gkissel.forgeweave.combat.BleedEffect;
 import dev.gkissel.forgeweave.combat.BlockingDamageReduction;
 import dev.gkissel.forgeweave.combat.BonusDamageFraction;
 import dev.gkissel.forgeweave.combat.BonusDamageVsSeam;
+import dev.gkissel.forgeweave.combat.ChainArc;
 import dev.gkissel.forgeweave.combat.CombatHit;
 import dev.gkissel.forgeweave.combat.CombatDefense;
 import dev.gkissel.forgeweave.combat.CombatSeam;
@@ -75,6 +77,8 @@ import dev.gkissel.forgeweave.combat.CritMultiplierBonus;
 import dev.gkissel.forgeweave.combat.DamageRamp;
 import dev.gkissel.forgeweave.combat.DamageScalesWith;
 import dev.gkissel.forgeweave.combat.DefendedBlow;
+import dev.gkissel.forgeweave.combat.EffectOnHit;
+import dev.gkissel.forgeweave.combat.EffectOnSelfOnHit;
 import dev.gkissel.forgeweave.combat.FlatBonusDamage;
 import dev.gkissel.forgeweave.combat.ForgeweaveInnates;
 import dev.gkissel.forgeweave.combat.ForgeweaveMobEffects;
@@ -82,11 +86,16 @@ import dev.gkissel.forgeweave.combat.GaussianArmorPiercingHit;
 import dev.gkissel.forgeweave.combat.HitCondition;
 import dev.gkissel.forgeweave.combat.IgniteAttackerSeam;
 import dev.gkissel.forgeweave.combat.Lacerate;
+import dev.gkissel.forgeweave.combat.Lifesteal;
+import dev.gkissel.forgeweave.combat.LightningOnHit;
 import dev.gkissel.forgeweave.combat.PotionEffectOnHitSeam;
 import dev.gkissel.forgeweave.combat.Protection;
+import dev.gkissel.forgeweave.combat.ReduceTargetHealing;
 import dev.gkissel.forgeweave.combat.StackingHitBonus;
 import dev.gkissel.forgeweave.combat.SecondaryDamage;
+import dev.gkissel.forgeweave.combat.ShortenInvulnerability;
 import dev.gkissel.forgeweave.combat.StackingSlownessOnHitSeam;
+import dev.gkissel.forgeweave.combat.StripEffects;
 import dev.gkissel.forgeweave.combat.ThornsReflectSeam;
 import dev.gkissel.forgeweave.entity.ForgeweaveEntities;
 import dev.gkissel.forgeweave.item.ArmorPieceItem;
@@ -1355,8 +1364,16 @@ public final class ForgeweaveTraits {
     /** Upstream {@code TraitPoisonous#afterHit}: {@code new PotionEffect(POISON, 101)} -- level I. */
     private static final int POISONOUS_TICKS = 101;
 
-    /** Lead. Upstream {@code TraitPoisonous}: Poison I for ~5 seconds on every landed hit. */
-    public static final Trait POISONOUS = seamTrait(new PotionEffectOnHitSeam(MobEffects.POISON, 0, POISONOUS_TICKS));
+    /**
+     * Lead. Upstream {@code TraitPoisonous}: Poison I for ~5 seconds on every landed hit.
+     *
+     * <p><b>Migrated onto {@link EffectOnHit}</b> (issue #828, M6 on-hit effect library): {@code
+     * effect_on_hit(POISON, 101, 0, chance=1, stackingCap=0)}, the same magnitudes {@link
+     * PotionEffectOnHitSeam} carried, so this id's shipped behavior and every existing fixture
+     * (material JSON, saved tools) are unchanged -- {@code poisonousPoisonsOnHit} below still passes
+     * unmodified, which is this migration's own regression test.
+     */
+    public static final Trait POISONOUS = seamTrait(new EffectOnHit(MobEffects.POISON, POISONOUS_TICKS, 0, 0));
 
     /**
      * Lead. Upstream {@code TraitHeavy#getAttributeModifiers}: a flat +1 knockback-resistance
@@ -1641,6 +1658,143 @@ public final class ForgeweaveTraits {
 
     /** {@code kinetic_charge(fractionOfDamage)}: converts damage dealt into stored energy. */
     public static final Trait KINETIC_CHARGE = seamTrait(new KineticCharge(KINETIC_CHARGE_FRACTION));
+
+    // ---------------------------------------------------------------- M6 on-hit effect trait
+    // behavior library (issue #828, ADR-0004). Ideas are inspiration-only (TAIGA/PlusTiC/Moar
+    // Tinkers/Tinkers' Evolution, all non-MIT -- CLAUDE.md); every id, description and magnitude
+    // below is Forgeweave's own, not ported. Material wiring is a later M6 issue -- these are
+    // registered but not yet assigned to any material. Magnitudes are proposed here and flagged for
+    // a maintainer decision on issue #828, the same pattern issue #827's batch used.
+
+    /** Proposed (issue #828 maintainer decision): Wither I, stacking to III, 3 seconds a hit. */
+    private static final int BLIGHTED_TICKS = 60;
+    private static final int BLIGHTED_STACKING_CAP = 2;
+
+    /**
+     * {@code effect_on_hit(WITHER, duration, 0, stackingCap)}: repeat hits stack Wither up to III
+     * instead of only refreshing -- issue #828's "wither-stacking" instance.
+     */
+    public static final Trait BLIGHTED =
+            seamTrait(new EffectOnHit(MobEffects.WITHER, BLIGHTED_TICKS, 0, BLIGHTED_STACKING_CAP));
+
+    /** Proposed (issue #828 maintainer decision): Weakness I for 5 seconds, refreshed each hit. */
+    private static final int ENFEEBLING_TICKS = 100;
+
+    /** {@code effect_on_hit(WEAKNESS, duration, 0, 0)}: issue #828's "weakness" instance. */
+    public static final Trait ENFEEBLING = seamTrait(new EffectOnHit(MobEffects.WEAKNESS, ENFEEBLING_TICKS, 0, 0));
+
+    /** Proposed (issue #828 maintainer decision): Slowness IV for 1 second -- a brief near-root. */
+    private static final int SHACKLING_TICKS = 20;
+    private static final int SHACKLING_AMPLIFIER = 3;
+
+    /** {@code effect_on_hit(SLOWNESS, duration, amplifier, 0)}: issue #828's "brief root/slow" instance. */
+    public static final Trait SHACKLING = seamTrait(
+            new EffectOnHit(MobEffects.MOVEMENT_SLOWDOWN, SHACKLING_TICKS, SHACKLING_AMPLIFIER, 0));
+
+    /** Proposed (issue #828 maintainer decision): 10 seconds of Glowing, refreshed each hit. */
+    private static final int REVEALING_TICKS = 200;
+
+    /** {@code effect_on_hit(GLOWING, duration, 0, 0)}: issue #828's "glowing" instance. */
+    public static final Trait REVEALING = seamTrait(new EffectOnHit(MobEffects.GLOWING, REVEALING_TICKS, 0, 0));
+
+    /** Proposed (issue #828 maintainer decision): Regeneration I for 5 seconds -- on the target, not the wielder. */
+    private static final int MERCIFUL_TICKS = 100;
+
+    /**
+     * {@code effect_on_hit(REGENERATION, duration, 0, 0)}: issue #828's own "deliberately unhelpful"
+     * novelty -- heals whatever it hits, same shape as {@link #ENDERFERENCE}'s upstream-precedented
+     * joke trait.
+     */
+    public static final Trait MERCIFUL = seamTrait(new EffectOnHit(MobEffects.REGENERATION, MERCIFUL_TICKS, 0, 0));
+
+    /** Proposed (issue #828 maintainer decision): Speed II on the wielder for 3 seconds, full charge only. */
+    private static final int QUICKSTEP_TICKS = 60;
+    private static final int QUICKSTEP_AMPLIFIER = 1;
+
+    /**
+     * {@code effect_on_self_on_hit(SPEED, duration, amplifier, chargedOnly=true)}: issue #828's
+     * "Foot Fleet" reference instance, a self speed burst on a fully-charged swing.
+     */
+    public static final Trait QUICKSTEP = seamTrait(new ConditionalSeam(HitCondition.FULL_CHARGE, 1.0F,
+            new EffectOnSelfOnHit(MobEffects.MOVEMENT_SPEED, QUICKSTEP_TICKS, QUICKSTEP_AMPLIFIER)));
+
+    /**
+     * {@code strip_effects(chance, count=1, chargedOnly=true)}: a leveled I-III buff strip on a
+     * fully-charged swing, one class shared across the three levels ({@link #chargedStrike}'s
+     * precedent) -- issue #828's own "Leveled instances share the class" instruction for "Purging".
+     * Proposed chances (issue #828 maintainer decision): 25% / 50% / 75%.
+     */
+    public static final Trait UNRAVELING = purge(1);
+
+    /** {@code strip_effects} level II. */
+    public static final Trait UNRAVELING2 = purge(2);
+
+    /** {@code strip_effects} level III. */
+    public static final Trait UNRAVELING3 = purge(3);
+
+    private static final float UNRAVELING_CHANCE_PER_LEVEL = 0.25F;
+    private static final int UNRAVELING_COUNT = 1;
+
+    private static Trait purge(int level) {
+        return seamTrait(new ConditionalSeam(
+                HitCondition.FULL_CHARGE, UNRAVELING_CHANCE_PER_LEVEL * level, new StripEffects(UNRAVELING_COUNT)));
+    }
+
+    /** Proposed (issue #828 maintainer decision): shave 50% of incoming healing for 5 seconds. */
+    private static final float GRIEVOUS_FRACTION = 0.5F;
+    private static final int GRIEVOUS_TICKS = 100;
+
+    /**
+     * {@code reduce_target_healing(fraction, duration)}: issue #828's "Mortal Wounds" reference
+     * instance. See {@link ReduceTargetHealing} for the per-target-marker mechanism the issue asked
+     * to pick the cheapest of.
+     */
+    public static final Trait GRIEVOUS = seamTrait(new ReduceTargetHealing(GRIEVOUS_FRACTION, GRIEVOUS_TICKS));
+
+    /**
+     * Proposed (issue #828 maintainer decision, <b>flagged for explicit sign-off</b> per the issue's
+     * own instruction): shave 10 of vanilla's default 20-tick post-hit invulnerability window, i.e.
+     * halve it. See {@link ShortenInvulnerability}'s javadoc for why this is the batch's riskiest
+     * magnitude.
+     */
+    private static final int HARRYING_TICKS = 10;
+
+    /** {@code shorten_invulnerability(ticks)}: issue #828's "Relentless" reference instance. */
+    public static final Trait HARRYING = seamTrait(new ShortenInvulnerability(HARRYING_TICKS));
+
+    /** Proposed (issue #828 maintainer decision): heal 15% of damage dealt, capped at 4 (2 hearts). */
+    private static final float LEECHING_FRACTION = 0.15F;
+    private static final float LEECHING_CAP = 4.0F;
+
+    /**
+     * {@code lifesteal(fraction, cap)}: issue #828's "Vampiric" reference instance. Not a migration
+     * of necrotic's {@code LifestealOnHitSeam} -- see {@link Lifesteal}'s javadoc.
+     */
+    public static final Trait LEECHING = seamTrait(new Lifesteal(LEECHING_FRACTION, LEECHING_CAP));
+
+    /**
+     * Proposed (issue #828 maintainer decision): 35% chance on a fully-charged hit, arcing to up to 2
+     * enemies within 3 blocks for half the landed damage.
+     */
+    private static final float ARCING_CHANCE = 0.35F;
+    private static final double ARCING_RANGE = 3.0;
+    private static final float ARCING_DAMAGE_FRACTION = 0.5F;
+    private static final int ARCING_MAX_TARGETS = 2;
+
+    /**
+     * {@code chain_arc(chance, range, damageFraction, maxTargets)}, full charge only: issue #828's
+     * "Chain Lightning" reference instance. Target selection reuses the scythe's AoE box query -- see
+     * {@link ChainArc}.
+     */
+    public static final Trait ARCING = seamTrait(new ConditionalSeam(HitCondition.FULL_CHARGE, ARCING_CHANCE,
+            new ChainArc(ARCING_RANGE, ARCING_DAMAGE_FRACTION, ARCING_MAX_TARGETS)));
+
+    /**
+     * {@code lightning_on_hit(WIELDER_FULL_HEALTH)}: issue #828's "Thundergod's Wrath" reference
+     * instance, unconditional beyond the wielder's own health -- see {@link LightningOnHit}.
+     */
+    public static final Trait STORMCALLER =
+            seamTrait(new ConditionalSeam(HitCondition.WIELDER_FULL_HEALTH, 1.0F, new LightningOnHit()));
 
     // ---------------------------------------------------------------- #626 (parity audit T17): the
     // five ammo-side traits, TinkerTraits:106-110, registered inert by #626's first slice and given
@@ -2194,6 +2348,22 @@ public final class ForgeweaveTraits {
             Map.entry(id("energized"), ENERGIZED),
             Map.entry(id("solar_recharge"), SOLAR_RECHARGE),
             Map.entry(id("kinetic_charge"), KINETIC_CHARGE),
+            // #828 M6 on-hit effect trait behavior library (ADR-0004); not yet assigned to a
+            // material -- that wiring is a later M6 issue.
+            Map.entry(id("blighted"), BLIGHTED),
+            Map.entry(id("enfeebling"), ENFEEBLING),
+            Map.entry(id("shackling"), SHACKLING),
+            Map.entry(id("revealing"), REVEALING),
+            Map.entry(id("merciful"), MERCIFUL),
+            Map.entry(id("quickstep"), QUICKSTEP),
+            Map.entry(id("unraveling"), UNRAVELING),
+            Map.entry(id("unraveling2"), UNRAVELING2),
+            Map.entry(id("unraveling3"), UNRAVELING3),
+            Map.entry(id("grievous"), GRIEVOUS),
+            Map.entry(id("harrying"), HARRYING),
+            Map.entry(id("leeching"), LEECHING),
+            Map.entry(id("arcing"), ARCING),
+            Map.entry(id("stormcaller"), STORMCALLER),
             // #626 T17 ammo traits; entity-side behavior lands with the material arrow.
             Map.entry(id("breakable"), BREAKABLE),
             Map.entry(id("endspeed"), ENDSPEED),
@@ -2692,6 +2862,24 @@ public final class ForgeweaveTraits {
     public static void onChorusFruitTeleport(EntityTeleportEvent.ChorusFruit event) {
         if (event.getEntityLiving().hasEffect(ForgeweaveMobEffects.ENDERFERENCE)) {
             event.setCanceled(true);
+        }
+    }
+
+    /**
+     * {@code forgeweave:grievous}'s mark (issue #828, M6 on-hit effect library, {@code
+     * reduce_target_healing}): while {@link ForgeweaveMobEffects#REDUCED_HEALING} is live, shave the
+     * mark's own amplifier -- read back as a 0-100 percent, {@link ReduceTargetHealing}'s javadoc --
+     * off every heal the marked entity would otherwise receive. Same "the seam leaves a mark, a
+     * listener reads it" idiom as {@link #onEnderTeleport}.
+     */
+    public static void onLivingHeal(LivingHealEvent event) {
+        MobEffectInstance mark = event.getEntity().getEffect(ForgeweaveMobEffects.REDUCED_HEALING);
+        if (mark == null) {
+            return;
+        }
+        float reduced = event.getAmount() * (1.0F - mark.getAmplifier() / 100.0F);
+        if (reduced != event.getAmount()) {
+            event.setAmount(Math.max(0.0F, reduced));
         }
     }
 
