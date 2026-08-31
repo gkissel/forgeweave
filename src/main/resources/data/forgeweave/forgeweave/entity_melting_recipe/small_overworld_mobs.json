@@ -1,0 +1,9 @@
+{
+  "entities": [
+    "minecraft:chicken",
+    "minecraft:rabbit",
+    "minecraft:bat"
+  ],
+  "fluid": "forgeweave:blood",
+  "amount": 10
+}

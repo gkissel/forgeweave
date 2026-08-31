@@ -171,6 +171,48 @@ public class SmelteryFuelGameTests {
         helper.succeed();
     }
 
+    /**
+     * #844 deliverable 2: a real shipped fuel, not the GameTest-only superfuel above, still reaches a
+     * recipe lava cannot. Blazing blood's own {@link net.neoforged.neoforge.fluids.FluidType}
+     * temperature (1500, set on issue #270) sits above lava's 1300 and above the 1400-degree fixture
+     * recipe {@link #aHotterDatapackFuelMeltsARecipeLavaCannotReach} already proves lava cannot touch
+     * -- reusing that fixture rather than inventing a new one, since blazing blood earning the exact
+     * same reach with a real fuel (50 mB / 100-tick cycle, mirroring {@code lava.json}'s own shape) is
+     * the point of #844's {@code smeltery_fuel/blazing_blood.json}.
+     *
+     * <p>Blazing blood's much smaller heat headroom over the fixture recipe than the GameTest
+     * superfuel's (1200 vs. 4700) means the real-tick wall-clock melt the sibling test above waits out
+     * would need roughly 3000 real ticks -- driven directly via {@link
+     * SmelteryControllerBlockEntity#meltTick()} instead, the same way {@link
+     * #aFinishOnlyTickConsumesNoFuel} does, so the assertion does not depend on a timeout margin.
+     */
+    @GameTest(template = "smeltery", timeoutTicks = 100)
+    public static void blazingBloodFuelledSmelteryMeltsARecipeLavaCannotReach(GameTestHelper helper) {
+        SmelteryGameTests.buildWalls(helper, 1, 1, 2);
+        BlockPos corePos = SmelteryGameTests.placeCore(helper, ForgeweaveBlocks.STANDARD_CORE.get());
+
+        SearedTankBlockEntity tank = helper.getBlockEntity(SmelteryGameTests.TANK_POS);
+        tank.tank().fill(new FluidStack(ForgeweaveFluids.BLAZING_BLOOD.still().get(), SearedTankBlockEntity.CAPACITY),
+                IFluidHandler.FluidAction.EXECUTE);
+
+        SmelteryControllerBlockEntity core = helper.getBlockEntity(corePos);
+        helper.assertTrue(core.isFormed(), "expected the test smeltery to form: " + core.lastResult().getString());
+        helper.assertValueEqual(core.currentTemperature(), 1500, "smeltery temperature with blazing blood in the wall tank");
+
+        helper.assertTrue(core.insertForMelting(new ItemStack(Items.BLAZE_ROD)).isEmpty(),
+                "expected the blaze rod to go into the smeltery");
+
+        while (core.meltProgress(0) < 1.0f) {
+            helper.assertTrue(core.meltTick(), "expected blazing blood to keep heating the 1400-degree fixture recipe");
+        }
+        core.meltTick(); // finish-only tick.
+
+        helper.assertValueEqual(core.tank().getFluidAmount(), 144, "molten iron from the 1400-degree fixture recipe");
+        helper.assertTrue(core.tank().getFluid().getFluid() == ForgeweaveFluids.IRON.still().get(),
+                "expected molten iron, lava's own 1300 degrees can never reach this recipe");
+        helper.succeed();
+    }
+
     // ------------------------------------------------------------------ helpers
 
     /** The 1x1x2 minimum smeltery of {@link SmelteryGameTests}, with its one wall tank full of lava. */

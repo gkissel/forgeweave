@@ -199,6 +199,17 @@ public final class ForgeweaveFluids {
     public static final MoltenMetal DEEP_BLOOD = register("deep_blood", 0x1B4B4E, 336,
             () -> new FluidType(FluidType.Properties.create().temperature(336)), LIQUID_STILL, LIQUID_FLOWING);
 
+    // #844 -- meltable dragon breath (issue #181): the sibling issue #845 pours this into a Nether
+    // Core smeltery to transform it into an End Core, but the fluid itself and its melting recipe
+    // belong here with the rest of the fluid work. No counterpart in either upstream clone -- 1.12
+    // has no dragon-breath fluid at all, so temperature and tint are a maintainer pick recorded as a
+    // deviation here rather than a port: BLOOD/DEEP_BLOOD's own non-hazardous water-like FluidType
+    // (a vapor, not a molten metal, so no lava-like burn/drown behavior), tinted the vanilla dragon's
+    // breath particle's own purple, at a mild 400 degrees -- just past ambient, since nothing about
+    // #845's pour-to-transform mechanic depends on this fluid running hot.
+    public static final MoltenMetal DRAGON_BREATH = register("molten_dragon_breath", 0x9B3DA5, 400,
+            () -> new FluidType(FluidType.Properties.create().temperature(400)), LIQUID_STILL, LIQUID_FLOWING);
+
     // #625 (parity audit T18/T57) -- the two cool slime fluids a slime island's lake is filled with,
     // upstream's TinkerFluids#blueslime (0xef67f0f5, temperature 310, viscosity and density 1500) and
     // #purpleSlime (0xefd236ff, 370, 1600), both fluidClassic and so both on the FluidColored
