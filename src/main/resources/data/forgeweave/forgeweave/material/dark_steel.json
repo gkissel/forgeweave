@@ -1,0 +1,41 @@
+{
+  "head": {
+    "durability": 850,
+    "mining_speed": 5.6,
+    "attack_damage": 7.0
+  },
+  "handle": {
+    "durability_modifier": 1.15,
+    "durability": 75
+  },
+  "extra_durability": 20,
+  "bow": {
+    "drawspeed": 0.34,
+    "range": 1.65,
+    "bonus_damage": 7.6
+  },
+  "plating": {
+    "helmet": { "durability": 385, "armor": 3.0, "toughness": 3.0, "knockback_resistance": 0.15 },
+    "chestplate": { "durability": 560, "armor": 8.0, "toughness": 3.0, "knockback_resistance": 0.15 },
+    "leggings": { "durability": 525, "armor": 6.0, "toughness": 3.0, "knockback_resistance": 0.15 },
+    "boots": { "durability": 455, "armor": 3.0, "toughness": 3.0, "knockback_resistance": 0.15 }
+  },
+  "maille": true,
+  "incorrect_for_tool": "minecraft:incorrect_for_netherite_tool",
+  "traits": {
+    "general": ["forgeweave:predatory"]
+  },
+  "crafting_items": [
+    { "ingredient": { "tag": "c:ingots/dark_steel" }, "value": 144 },
+    { "ingredient": { "tag": "c:nuggets/dark_steel" }, "value": 16 },
+    { "ingredient": { "tag": "c:storage_blocks/dark_steel" }, "value": 1296 }
+  ],
+  "repair_item": {
+    "tag": "c:ingots/dark_steel"
+  },
+  "enchantability": 12,
+  "color": "#2C2A2E",
+  "neoforge:conditions": [
+    { "type": "neoforge:item_exists", "item": "enderio:dark_steel_ingot" }
+  ]
+}

@@ -1,0 +1,41 @@
+{
+  "head": {
+    "durability": 235,
+    "mining_speed": 6.2,
+    "attack_damage": 3.9
+  },
+  "handle": {
+    "durability_modifier": 0.9,
+    "durability": 25
+  },
+  "extra_durability": 80,
+  "bow": {
+    "drawspeed": 0.56,
+    "range": 1.3,
+    "bonus_damage": 4.1
+  },
+  "plating": {
+    "helmet": { "durability": 165, "armor": 2.0 },
+    "chestplate": { "durability": 240, "armor": 6.0 },
+    "leggings": { "durability": 225, "armor": 5.0 },
+    "boots": { "durability": 195, "armor": 2.0 }
+  },
+  "maille": true,
+  "incorrect_for_tool": "minecraft:incorrect_for_iron_tool",
+  "traits": {
+    "general": ["forgeweave:arcing"]
+  },
+  "crafting_items": [
+    { "ingredient": { "tag": "c:ingots/conductive_alloy" }, "value": 144 },
+    { "ingredient": { "tag": "c:nuggets/conductive_alloy" }, "value": 16 },
+    { "ingredient": { "tag": "c:storage_blocks/conductive_alloy" }, "value": 1296 }
+  ],
+  "repair_item": {
+    "tag": "c:ingots/conductive_alloy"
+  },
+  "enchantability": 13,
+  "color": "#C4732E",
+  "neoforge:conditions": [
+    { "type": "neoforge:item_exists", "item": "enderio:conductive_alloy_ingot" }
+  ]
+}

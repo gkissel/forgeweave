@@ -7,8 +7,11 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Stream;
 
 import javax.annotation.Nullable;
 
@@ -148,7 +151,10 @@ class MaterialTest {
             "iridium", "uranium", "graphite",
             // #834 M6 Track A batch 2: Mekanism, AE2 and Occultism.
             "osmium", "refined_obsidian", "refined_glowstone", "hdpe", "fluorite", "certus_quartz",
-            "fluix", "sky_stone", "iesnium", "dragonyst" })
+            "fluix", "sky_stone", "iesnium", "dragonyst",
+            // #835 M6 Track A batch 3: Ender IO's eight surviving 1.21.1 alloy ingots.
+            "redstone_alloy", "energetic_alloy", "pulsating_alloy", "conductive_alloy", "vibrant_alloy",
+            "soularium", "dark_steel", "end_steel" })
     void shippedMaterialsParse(String name) {
         Material.CODEC.parse(ops, shipped(name)).getOrThrow();
     }
@@ -168,7 +174,11 @@ class MaterialTest {
             "iridium", "uranium", "graphite",
             // #834 M6 Track A batch 2: Mekanism, AE2 and Occultism.
             "osmium", "refined_obsidian", "refined_glowstone", "hdpe", "fluorite", "certus_quartz",
-            "fluix", "sky_stone", "iesnium", "dragonyst" })
+            "fluix", "sky_stone", "iesnium", "dragonyst",
+            // #835 M6 Track A batch 3: single item_exists each, verified against Ender IO's own
+            // 1.21.1 tree (EnderIoAlloyGameTests).
+            "redstone_alloy", "energetic_alloy", "pulsating_alloy", "conductive_alloy", "vibrant_alloy",
+            "soularium", "dark_steel", "end_steel" })
     void conditionalMaterialsCarryAWellFormedConditionsBlockAndStillParse(String name) {
         JsonObject json = shipped(name).getAsJsonObject();
         assertTrue(json.has("neoforge:conditions"), name + " must carry a neoforge:conditions block (issue #826)");
@@ -227,7 +237,15 @@ class MaterialTest {
             "tin,stone", "aluminium,stone", "graphite,stone",
             "nickel,iron", "constantan,iron", "invar,iron",
             "platinum,diamond", "titanium,diamond", "tungsten,diamond", "uranium,diamond",
-            "iridium,netherite"
+            "iridium,netherite",
+            // #835 M6 Track A batch 3: Ender IO's own alloy chain places redstone alloy as the cheap
+            // entry rung (stone), the mid-chain capacitor/conduit metals at iron, vibrant alloy and
+            // soularium at diamond, and dark steel/end steel as the late-tier pair (netherite) --
+            // proposed on the PR, no upstream HarvestLevels row to port.
+            "redstone_alloy,stone",
+            "energetic_alloy,iron", "pulsating_alloy,iron", "conductive_alloy,iron",
+            "vibrant_alloy,diamond", "soularium,diamond",
+            "dark_steel,netherite", "end_steel,netherite"
     })
     void shippedMaterialsSitOnUpstreamsHarvestTier(String name, String tier) {
         Material material = Material.CODEC.parse(ops, shipped(name)).getOrThrow();
@@ -439,7 +457,10 @@ class MaterialTest {
             // #833 M6 Track A batch 1: every provider ships a c:nuggets/<name> tag except graphite's
             // (no nugget item exists for a non-metal mineral, so it is excluded from this list).
             "tin", "aluminium", "nickel", "constantan", "invar", "platinum", "titanium", "tungsten",
-            "iridium", "uranium" })
+            "iridium", "uranium",
+            // #835 M6 Track A batch 3: Ender IO ships a c:nuggets/<name> tag for all eight alloys.
+            "redstone_alloy", "energetic_alloy", "pulsating_alloy", "conductive_alloy", "vibrant_alloy",
+            "soularium", "dark_steel", "end_steel" })
     void addCommonItemsMetalsListIngotAndNugget(String name) {
         Material material = Material.CODEC.parse(ops, shipped(name)).getOrThrow();
 
@@ -589,7 +610,10 @@ class MaterialTest {
             // #833 M6 Track A batch 1: Part-Builder-only like the four compat metals above (JC3), no
             // Forgeweave fluid or casting recipe at all.
             "tin", "aluminium", "nickel", "constantan", "invar", "platinum", "titanium", "tungsten",
-            "iridium", "uranium", "graphite" })
+            "iridium", "uranium", "graphite",
+            // #835 M6 Track A batch 3: same JC3 Part-Builder-only rule.
+            "redstone_alloy", "energetic_alloy", "pulsating_alloy", "conductive_alloy", "vibrant_alloy",
+            "soularium", "dark_steel", "end_steel" })
     void craftableMaterialsStayCraftable(String name) {
         assertFalse(Material.CODEC.parse(ops, shipped(name)).getOrThrow().castOnly(),
                 name + " must stay Part Builder craftable");
@@ -619,5 +643,42 @@ class MaterialTest {
                         net.minecraft.core.registries.BuiltInRegistries.ITEM.getKey(stack.getItem())));
 
         assertTrue(hasBlockRow, name + " must list its storage block (" + blockId + ") at 9 ingots (VALUE_Block)");
+    }
+
+    /**
+     * Issue #835's trap guard: {@code electrical_steel} no longer exists on Ender IO's 1.21.1 tree
+     * (verified directly against {@code Team-EnderIO/EnderIO}'s {@code 1.21.1} branch -- it shipped
+     * exactly eight alloy ingot tags, not the fifteen the 1.12-era roster had), so no shipped
+     * material's {@code neoforge:conditions} block may ever name it -- a wrong id here would not
+     * crash, it would just silently never register (docs/research/m6-material-expansion-references.md
+     * &sect;1.4), which is exactly the failure mode this test exists to catch before it ships again.
+     */
+    @Test
+    void noShippedMaterialConditionsOnEnderIosRemovedElectricalSteel() throws Exception {
+        Path materialDir = projectRoot().resolve("src/main/resources/data/forgeweave/forgeweave/material");
+        List<String> offenders = new java.util.ArrayList<>();
+
+        try (Stream<Path> files = Files.list(materialDir)) {
+            for (Path file : files.filter(p -> p.toString().endsWith(".json")).sorted().toList()) {
+                String raw = Files.readString(file, StandardCharsets.UTF_8);
+                if (raw.contains("enderio:electrical_steel_ingot")) {
+                    offenders.add(file.getFileName().toString());
+                }
+            }
+        }
+
+        assertTrue(offenders.isEmpty(),
+                "these shipped materials condition on enderio:electrical_steel_ingot, which does not "
+                        + "exist on Ender IO's 1.21.1 tree (issue #835): " + offenders);
+    }
+
+    private static Path projectRoot() {
+        Path dir = Path.of("").toAbsolutePath();
+        for (Path candidate = dir; candidate != null; candidate = candidate.getParent()) {
+            if (Files.exists(candidate.resolve("settings.gradle"))) {
+                return candidate;
+            }
+        }
+        throw new AssertionError("could not locate project root (no settings.gradle found above " + dir + ")");
     }
 }
