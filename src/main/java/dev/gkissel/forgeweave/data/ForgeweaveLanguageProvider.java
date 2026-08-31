@@ -962,7 +962,7 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
 
         // #626 -- the six arrow-only materials (parity audit T17). Names are upstream 1.12's
         // material.<id>.name entries verbatim, including blaze's "Blazerod" and reed's plural
-        // "Reeds". The slimeleaf trio stays deferred with T57's world content.
+        // "Reeds".
         add("material.forgeweave.blaze", "Blazerod");
         add("material.forgeweave.reed", "Reeds");
         add("material.forgeweave.ice", "Ice");
@@ -974,6 +974,12 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         // separate materials to tell apart in the station and in JEI, so each carries its colour.
         add("material.forgeweave.slimevine_blue", "Blue Slimevine");
         add("material.forgeweave.slimevine_purple", "Purple Slimevine");
+        // M6 (issue #180): the slimeleaf trio, deferred out of #626 pending T57's world content.
+        // Upstream aliases all three to "Slimeleaf" (material.slimeleaf_blue.name, orange/purple
+        // aliased to it); Forgeweave gives each its own colour prefix, matching the slimevine pair.
+        add("material.forgeweave.slimeleaf_blue", "Blue Slimeleaf");
+        add("material.forgeweave.slimeleaf_orange", "Orange Slimeleaf");
+        add("material.forgeweave.slimeleaf_purple", "Purple Slimeleaf");
 
         // Trait names and descriptions, keyed by trait id like materials are by material id -- traits
         // are Java behavior selected by data (ADR-0002), so nothing derives these keys for us. The

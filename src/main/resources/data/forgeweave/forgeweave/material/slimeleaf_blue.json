@@ -1,0 +1,16 @@
+{
+  "fletching": {
+    "accuracy": 0.8,
+    "modifier": 1.25
+  },
+  "incorrect_for_tool": "minecraft:incorrect_for_stone_tool",
+  "traits": {},
+  "crafting_items": [
+    { "ingredient": { "item": "forgeweave:blue_slime_leaves" }, "value": 72 }
+  ],
+  "repair_item": {
+    "item": "forgeweave:blue_slime_leaves"
+  },
+  "enchantability": 15,
+  "color": "#74C8C7"
+}
