@@ -1,0 +1,13 @@
+{
+  "input": {
+    "tag": "c:silicon"
+  },
+  "fluid": "forgeweave:molten_silicon",
+  "amount": 144,
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "refinedstorage:silicon"
+    }
+  ]
+}

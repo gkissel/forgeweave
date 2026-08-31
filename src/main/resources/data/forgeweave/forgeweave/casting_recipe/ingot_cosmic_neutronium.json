@@ -1,0 +1,17 @@
+{
+  "station": "table",
+  "cast": {
+    "item": "forgeweave:cast_ingot"
+  },
+  "fluid": "forgeweave:molten_cosmic_neutronium",
+  "amount": 144,
+  "result": {
+    "id": "avaritia:neutronium_ingot"
+  },
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "avaritia:neutronium_ingot"
+    }
+  ]
+}

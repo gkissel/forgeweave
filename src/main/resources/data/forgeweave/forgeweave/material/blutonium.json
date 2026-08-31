@@ -15,24 +15,50 @@
     "bonus_damage": 3.8
   },
   "plating": {
-    "helmet": { "durability": 265, "armor": 2.0 },
-    "chestplate": { "durability": 390, "armor": 5.0 },
-    "leggings": { "durability": 366, "armor": 4.0 },
-    "boots": { "durability": 312, "armor": 2.0 }
+    "helmet": {
+      "durability": 265,
+      "armor": 2.0
+    },
+    "chestplate": {
+      "durability": 390,
+      "armor": 5.0
+    },
+    "leggings": {
+      "durability": 366,
+      "armor": 4.0
+    },
+    "boots": {
+      "durability": 312,
+      "armor": 2.0
+    }
   },
   "maille": true,
   "incorrect_for_tool": "minecraft:incorrect_for_diamond_tool",
   "traits": {},
   "crafting_items": [
-    { "ingredient": { "tag": "c:ingots/blutonium" }, "value": 144 },
-    { "ingredient": { "tag": "c:storage_blocks/blutonium" }, "value": 1296 }
+    {
+      "ingredient": {
+        "tag": "c:ingots/blutonium"
+      },
+      "value": 144
+    },
+    {
+      "ingredient": {
+        "tag": "c:storage_blocks/blutonium"
+      },
+      "value": 1296
+    }
   ],
   "repair_item": {
     "tag": "c:ingots/blutonium"
   },
+  "cast_only": true,
   "enchantability": 14,
   "color": "#3A5FE0",
   "neoforge:conditions": [
-    { "type": "neoforge:item_exists", "item": "bigreactors:blutonium_ingot" }
+    {
+      "type": "neoforge:item_exists",
+      "item": "bigreactors:blutonium_ingot"
+    }
   ]
 }

@@ -1,0 +1,13 @@
+{
+  "input": {
+    "tag": "c:ingots/ebony_psimetal"
+  },
+  "fluid": "forgeweave:molten_ebony_psimetal",
+  "amount": 144,
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "psi:ebony_psimetal"
+    }
+  ]
+}

@@ -1,0 +1,21 @@
+{
+  "station": "table",
+  "cast": {
+    "item": "forgeweave:clay_cast_tough_tool_rod"
+  },
+  "fluid": "forgeweave:molten_chaotic",
+  "amount": 432,
+  "result": {
+    "id": "forgeweave:tough_tool_rod",
+    "components": {
+      "forgeweave:material": "forgeweave:chaotic"
+    }
+  },
+  "consumes_cast": true,
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "draconicevolution:chaotic_core"
+    }
+  ]
+}

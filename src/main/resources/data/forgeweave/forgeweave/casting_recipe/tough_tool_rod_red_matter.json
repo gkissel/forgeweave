@@ -1,0 +1,20 @@
+{
+  "station": "table",
+  "cast": {
+    "item": "forgeweave:cast_tough_tool_rod"
+  },
+  "fluid": "forgeweave:molten_red_matter",
+  "amount": 432,
+  "result": {
+    "id": "forgeweave:tough_tool_rod",
+    "components": {
+      "forgeweave:material": "forgeweave:red_matter"
+    }
+  },
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "projecte:red_matter"
+    }
+  ]
+}

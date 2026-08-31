@@ -15,26 +15,54 @@
     "bonus_damage": 3.6
   },
   "plating": {
-    "helmet": { "durability": 244, "armor": 2.0 },
-    "chestplate": { "durability": 360, "armor": 5.0 },
-    "leggings": { "durability": 338, "armor": 4.0 },
-    "boots": { "durability": 288, "armor": 2.0 }
+    "helmet": {
+      "durability": 244,
+      "armor": 2.0
+    },
+    "chestplate": {
+      "durability": 360,
+      "armor": 5.0
+    },
+    "leggings": {
+      "durability": 338,
+      "armor": 4.0
+    },
+    "boots": {
+      "durability": 288,
+      "armor": 2.0
+    }
   },
   "maille": true,
   "incorrect_for_tool": "minecraft:incorrect_for_diamond_tool",
   "traits": {
-    "general": ["forgeweave:sunmend"]
+    "general": [
+      "forgeweave:sunmend"
+    ]
   },
   "crafting_items": [
-    { "ingredient": { "tag": "c:ingots/ivory_psimetal" }, "value": 144 },
-    { "ingredient": { "tag": "c:storage_blocks/ivory_psimetal" }, "value": 1296 }
+    {
+      "ingredient": {
+        "tag": "c:ingots/ivory_psimetal"
+      },
+      "value": 144
+    },
+    {
+      "ingredient": {
+        "tag": "c:storage_blocks/ivory_psimetal"
+      },
+      "value": 1296
+    }
   ],
   "repair_item": {
     "tag": "c:ingots/ivory_psimetal"
   },
+  "cast_only": true,
   "enchantability": 17,
   "color": "#F5F0E1",
   "neoforge:conditions": [
-    { "type": "neoforge:item_exists", "item": "psi:ivory_psimetal" }
+    {
+      "type": "neoforge:item_exists",
+      "item": "psi:ivory_psimetal"
+    }
   ]
 }

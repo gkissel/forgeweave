@@ -15,27 +15,60 @@
     "bonus_damage": 2.0
   },
   "plating": {
-    "helmet": { "durability": 82, "armor": 2.0 },
-    "chestplate": { "durability": 120, "armor": 4.0 },
-    "leggings": { "durability": 112, "armor": 3.0 },
-    "boots": { "durability": 98, "armor": 1.0 }
+    "helmet": {
+      "durability": 82,
+      "armor": 2.0
+    },
+    "chestplate": {
+      "durability": 120,
+      "armor": 4.0
+    },
+    "leggings": {
+      "durability": 112,
+      "armor": 3.0
+    },
+    "boots": {
+      "durability": 98,
+      "armor": 1.0
+    }
   },
   "maille": true,
   "incorrect_for_tool": "minecraft:incorrect_for_stone_tool",
   "traits": {
-    "general": ["forgeweave:energized"]
+    "general": [
+      "forgeweave:energized"
+    ]
   },
   "crafting_items": [
-    { "ingredient": { "tag": "c:ingots/redstone_alloy" }, "value": 144 },
-    { "ingredient": { "tag": "c:nuggets/redstone_alloy" }, "value": 16 },
-    { "ingredient": { "tag": "c:storage_blocks/redstone_alloy" }, "value": 1296 }
+    {
+      "ingredient": {
+        "tag": "c:ingots/redstone_alloy"
+      },
+      "value": 144
+    },
+    {
+      "ingredient": {
+        "tag": "c:nuggets/redstone_alloy"
+      },
+      "value": 16
+    },
+    {
+      "ingredient": {
+        "tag": "c:storage_blocks/redstone_alloy"
+      },
+      "value": 1296
+    }
   ],
   "repair_item": {
     "tag": "c:ingots/redstone_alloy"
   },
+  "cast_only": true,
   "enchantability": 8,
   "color": "#B0413E",
   "neoforge:conditions": [
-    { "type": "neoforge:item_exists", "item": "enderio:redstone_alloy_ingot" }
+    {
+      "type": "neoforge:item_exists",
+      "item": "enderio:redstone_alloy_ingot"
+    }
   ]
 }

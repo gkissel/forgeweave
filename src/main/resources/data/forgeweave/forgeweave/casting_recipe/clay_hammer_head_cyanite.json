@@ -1,0 +1,21 @@
+{
+  "station": "table",
+  "cast": {
+    "item": "forgeweave:clay_cast_hammer_head"
+  },
+  "fluid": "forgeweave:molten_cyanite",
+  "amount": 1152,
+  "result": {
+    "id": "forgeweave:hammer_head",
+    "components": {
+      "forgeweave:material": "forgeweave:cyanite"
+    }
+  },
+  "consumes_cast": true,
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "bigreactors:cyanite_ingot"
+    }
+  ]
+}

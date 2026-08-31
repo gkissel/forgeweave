@@ -1,0 +1,21 @@
+{
+  "station": "table",
+  "cast": {
+    "item": "forgeweave:clay_cast_wide_guard"
+  },
+  "fluid": "forgeweave:molten_constantan",
+  "amount": 144,
+  "result": {
+    "id": "forgeweave:wide_guard",
+    "components": {
+      "forgeweave:material": "forgeweave:constantan"
+    }
+  },
+  "consumes_cast": true,
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "immersiveengineering:ingot_constantan"
+    }
+  ]
+}

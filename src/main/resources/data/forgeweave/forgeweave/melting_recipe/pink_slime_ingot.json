@@ -1,0 +1,13 @@
+{
+  "input": {
+    "tag": "c:ingots/pink_slime"
+  },
+  "fluid": "forgeweave:molten_pink_slime",
+  "amount": 144,
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "industrialforegoing:pink_slime_ingot"
+    }
+  ]
+}

@@ -1,0 +1,13 @@
+{
+  "input": {
+    "item": "avaritia:neutronium_ingot"
+  },
+  "fluid": "forgeweave:molten_cosmic_neutronium",
+  "amount": 144,
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "avaritia:neutronium_ingot"
+    }
+  ]
+}

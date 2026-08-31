@@ -15,27 +15,68 @@
     "bonus_damage": 5.0
   },
   "plating": {
-    "helmet": { "durability": 612, "armor": 3.0, "toughness": 1.5, "knockback_resistance": 0.1 },
-    "chestplate": { "durability": 900, "armor": 8.0, "toughness": 1.5, "knockback_resistance": 0.1 },
-    "leggings": { "durability": 846, "armor": 6.0, "toughness": 1.5, "knockback_resistance": 0.1 },
-    "boots": { "durability": 720, "armor": 3.0, "toughness": 1.5, "knockback_resistance": 0.1 }
+    "helmet": {
+      "durability": 612,
+      "armor": 3.0,
+      "toughness": 1.5,
+      "knockback_resistance": 0.1
+    },
+    "chestplate": {
+      "durability": 900,
+      "armor": 8.0,
+      "toughness": 1.5,
+      "knockback_resistance": 0.1
+    },
+    "leggings": {
+      "durability": 846,
+      "armor": 6.0,
+      "toughness": 1.5,
+      "knockback_resistance": 0.1
+    },
+    "boots": {
+      "durability": 720,
+      "armor": 3.0,
+      "toughness": 1.5,
+      "knockback_resistance": 0.1
+    }
   },
   "maille": true,
   "incorrect_for_tool": "minecraft:incorrect_for_netherite_tool",
   "traits": {
-    "general": ["forgeweave:shackling"]
+    "general": [
+      "forgeweave:shackling"
+    ]
   },
   "crafting_items": [
-    { "ingredient": { "tag": "c:ingots/refined_obsidian" }, "value": 144 },
-    { "ingredient": { "tag": "c:nuggets/refined_obsidian" }, "value": 16 },
-    { "ingredient": { "tag": "c:storage_blocks/refined_obsidian" }, "value": 1296 }
+    {
+      "ingredient": {
+        "tag": "c:ingots/refined_obsidian"
+      },
+      "value": 144
+    },
+    {
+      "ingredient": {
+        "tag": "c:nuggets/refined_obsidian"
+      },
+      "value": 16
+    },
+    {
+      "ingredient": {
+        "tag": "c:storage_blocks/refined_obsidian"
+      },
+      "value": 1296
+    }
   ],
   "repair_item": {
     "tag": "c:ingots/refined_obsidian"
   },
+  "cast_only": true,
   "enchantability": 8,
   "color": "#2B1B3D",
   "neoforge:conditions": [
-    { "type": "neoforge:item_exists", "item": "mekanism:ingot_refined_obsidian" }
+    {
+      "type": "neoforge:item_exists",
+      "item": "mekanism:ingot_refined_obsidian"
+    }
   ]
 }

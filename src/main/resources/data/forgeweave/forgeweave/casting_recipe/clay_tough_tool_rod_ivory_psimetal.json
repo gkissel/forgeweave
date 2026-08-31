@@ -1,0 +1,21 @@
+{
+  "station": "table",
+  "cast": {
+    "item": "forgeweave:clay_cast_tough_tool_rod"
+  },
+  "fluid": "forgeweave:molten_ivory_psimetal",
+  "amount": 432,
+  "result": {
+    "id": "forgeweave:tough_tool_rod",
+    "components": {
+      "forgeweave:material": "forgeweave:ivory_psimetal"
+    }
+  },
+  "consumes_cast": true,
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "psi:ivory_psimetal"
+    }
+  ]
+}

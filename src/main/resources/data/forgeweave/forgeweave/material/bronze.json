@@ -15,27 +15,64 @@
     "bonus_damage": 6.0
   },
   "plating": {
-    "helmet": { "durability": 308, "armor": 2.0, "knockback_resistance": 0.1 },
-    "chestplate": { "durability": 448, "armor": 6.0, "knockback_resistance": 0.1 },
-    "leggings": { "durability": 420, "armor": 5.0, "knockback_resistance": 0.1 },
-    "boots": { "durability": 364, "armor": 2.0, "knockback_resistance": 0.1 }
+    "helmet": {
+      "durability": 308,
+      "armor": 2.0,
+      "knockback_resistance": 0.1
+    },
+    "chestplate": {
+      "durability": 448,
+      "armor": 6.0,
+      "knockback_resistance": 0.1
+    },
+    "leggings": {
+      "durability": 420,
+      "armor": 5.0,
+      "knockback_resistance": 0.1
+    },
+    "boots": {
+      "durability": 364,
+      "armor": 2.0,
+      "knockback_resistance": 0.1
+    }
   },
   "maille": true,
   "incorrect_for_tool": "minecraft:incorrect_for_iron_tool",
   "traits": {
-    "general": ["forgeweave:dense"]
+    "general": [
+      "forgeweave:dense"
+    ]
   },
   "crafting_items": [
-    { "ingredient": { "tag": "c:ingots/bronze" }, "value": 144 },
-    { "ingredient": { "tag": "c:nuggets/bronze" }, "value": 16 },
-    { "ingredient": { "tag": "c:storage_blocks/bronze" }, "value": 1296 }
+    {
+      "ingredient": {
+        "tag": "c:ingots/bronze"
+      },
+      "value": 144
+    },
+    {
+      "ingredient": {
+        "tag": "c:nuggets/bronze"
+      },
+      "value": 16
+    },
+    {
+      "ingredient": {
+        "tag": "c:storage_blocks/bronze"
+      },
+      "value": 1296
+    }
   ],
   "repair_item": {
     "tag": "c:ingots/bronze"
   },
+  "cast_only": true,
   "enchantability": 14,
   "color": "#E3BD68",
   "neoforge:conditions": [
-    { "type": "neoforge:item_exists", "item": "mekanism:ingot_bronze" }
+    {
+      "type": "neoforge:item_exists",
+      "item": "mekanism:ingot_bronze"
+    }
   ]
 }

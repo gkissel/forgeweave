@@ -1,0 +1,20 @@
+{
+  "station": "table",
+  "cast": {
+    "item": "forgeweave:cast_katana_blade"
+  },
+  "fluid": "forgeweave:molten_chaotic",
+  "amount": 432,
+  "result": {
+    "id": "forgeweave:katana_blade",
+    "components": {
+      "forgeweave:material": "forgeweave:chaotic"
+    }
+  },
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "draconicevolution:chaotic_core"
+    }
+  ]
+}

@@ -1,0 +1,20 @@
+{
+  "station": "table",
+  "cast": {
+    "item": "forgeweave:cast_curved_blade"
+  },
+  "fluid": "forgeweave:molten_constantan",
+  "amount": 288,
+  "result": {
+    "id": "forgeweave:curved_blade",
+    "components": {
+      "forgeweave:material": "forgeweave:constantan"
+    }
+  },
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "immersiveengineering:ingot_constantan"
+    }
+  ]
+}

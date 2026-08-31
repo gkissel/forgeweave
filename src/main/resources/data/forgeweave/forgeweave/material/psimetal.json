@@ -15,26 +15,54 @@
     "bonus_damage": 3.5
   },
   "plating": {
-    "helmet": { "durability": 154, "armor": 2.0 },
-    "chestplate": { "durability": 223, "armor": 5.0 },
-    "leggings": { "durability": 210, "armor": 4.0 },
-    "boots": { "durability": 182, "armor": 2.0 }
+    "helmet": {
+      "durability": 154,
+      "armor": 2.0
+    },
+    "chestplate": {
+      "durability": 223,
+      "armor": 5.0
+    },
+    "leggings": {
+      "durability": 210,
+      "armor": 4.0
+    },
+    "boots": {
+      "durability": 182,
+      "armor": 2.0
+    }
   },
   "maille": true,
   "incorrect_for_tool": "minecraft:incorrect_for_iron_tool",
   "traits": {
-    "general": ["forgeweave:ecological"]
+    "general": [
+      "forgeweave:ecological"
+    ]
   },
   "crafting_items": [
-    { "ingredient": { "tag": "c:ingots/psimetal" }, "value": 144 },
-    { "ingredient": { "tag": "c:storage_blocks/psimetal" }, "value": 1296 }
+    {
+      "ingredient": {
+        "tag": "c:ingots/psimetal"
+      },
+      "value": 144
+    },
+    {
+      "ingredient": {
+        "tag": "c:storage_blocks/psimetal"
+      },
+      "value": 1296
+    }
   ],
   "repair_item": {
     "tag": "c:ingots/psimetal"
   },
+  "cast_only": true,
   "enchantability": 14,
   "color": "#8CD6C4",
   "neoforge:conditions": [
-    { "type": "neoforge:item_exists", "item": "psi:psimetal" }
+    {
+      "type": "neoforge:item_exists",
+      "item": "psi:psimetal"
+    }
   ]
 }

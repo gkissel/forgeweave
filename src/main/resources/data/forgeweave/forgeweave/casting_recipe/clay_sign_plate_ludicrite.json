@@ -1,0 +1,21 @@
+{
+  "station": "table",
+  "cast": {
+    "item": "forgeweave:clay_cast_sign_plate"
+  },
+  "fluid": "forgeweave:molten_ludicrite",
+  "amount": 432,
+  "result": {
+    "id": "forgeweave:sign_plate",
+    "components": {
+      "forgeweave:material": "forgeweave:ludicrite"
+    }
+  },
+  "consumes_cast": true,
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "bigreactors:ludicrite_ingot"
+    }
+  ]
+}

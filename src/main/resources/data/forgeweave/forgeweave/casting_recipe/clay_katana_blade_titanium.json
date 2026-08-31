@@ -1,0 +1,21 @@
+{
+  "station": "table",
+  "cast": {
+    "item": "forgeweave:clay_cast_katana_blade"
+  },
+  "fluid": "forgeweave:molten_titanium",
+  "amount": 432,
+  "result": {
+    "id": "forgeweave:katana_blade",
+    "components": {
+      "forgeweave:material": "forgeweave:titanium"
+    }
+  },
+  "consumes_cast": true,
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "modern_industrialization:titanium_ingot"
+    }
+  ]
+}

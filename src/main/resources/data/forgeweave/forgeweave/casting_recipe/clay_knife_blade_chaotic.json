@@ -1,0 +1,21 @@
+{
+  "station": "table",
+  "cast": {
+    "item": "forgeweave:clay_cast_knife_blade"
+  },
+  "fluid": "forgeweave:molten_chaotic",
+  "amount": 144,
+  "result": {
+    "id": "forgeweave:knife_blade",
+    "components": {
+      "forgeweave:material": "forgeweave:chaotic"
+    }
+  },
+  "consumes_cast": true,
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "draconicevolution:chaotic_core"
+    }
+  ]
+}

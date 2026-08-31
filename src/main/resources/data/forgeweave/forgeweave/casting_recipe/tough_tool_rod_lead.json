@@ -1,0 +1,29 @@
+{
+  "station": "table",
+  "cast": {
+    "item": "forgeweave:cast_tough_tool_rod"
+  },
+  "fluid": "forgeweave:molten_lead",
+  "amount": 432,
+  "result": {
+    "id": "forgeweave:tough_tool_rod",
+    "components": {
+      "forgeweave:material": "forgeweave:lead"
+    }
+  },
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:or",
+      "values": [
+        {
+          "type": "neoforge:item_exists",
+          "item": "mekanism:ingot_lead"
+        },
+        {
+          "type": "neoforge:item_exists",
+          "item": "immersiveengineering:ingot_lead"
+        }
+      ]
+    }
+  ]
+}

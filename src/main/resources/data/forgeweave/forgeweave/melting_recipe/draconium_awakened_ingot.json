@@ -1,0 +1,13 @@
+{
+  "input": {
+    "tag": "c:ingots/draconium_awakened"
+  },
+  "fluid": "forgeweave:molten_draconium_awakened",
+  "amount": 144,
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "draconicevolution:awakened_draconium_ingot"
+    }
+  ]
+}

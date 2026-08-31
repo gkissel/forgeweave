@@ -1,0 +1,13 @@
+{
+  "input": {
+    "tag": "c:nuggets/energetic_alloy"
+  },
+  "fluid": "forgeweave:molten_energetic_alloy",
+  "amount": 16,
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "enderio:energetic_alloy_ingot"
+    }
+  ]
+}

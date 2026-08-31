@@ -1,0 +1,13 @@
+{
+  "input": {
+    "tag": "c:ingots/ivory_psimetal"
+  },
+  "fluid": "forgeweave:molten_ivory_psimetal",
+  "amount": 144,
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "psi:ivory_psimetal"
+    }
+  ]
+}

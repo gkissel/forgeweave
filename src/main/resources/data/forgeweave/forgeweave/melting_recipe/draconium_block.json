@@ -1,0 +1,13 @@
+{
+  "input": {
+    "tag": "c:storage_blocks/draconium"
+  },
+  "fluid": "forgeweave:molten_draconium",
+  "amount": 1296,
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "draconicevolution:draconium_ingot"
+    }
+  ]
+}

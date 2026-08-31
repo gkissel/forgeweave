@@ -1,0 +1,20 @@
+{
+  "station": "table",
+  "cast": {
+    "item": "forgeweave:cast_tool_binding"
+  },
+  "fluid": "forgeweave:molten_energised_steel",
+  "amount": 144,
+  "result": {
+    "id": "forgeweave:tool_binding",
+    "components": {
+      "forgeweave:material": "forgeweave:energised_steel"
+    }
+  },
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "powah:steel_energized"
+    }
+  ]
+}

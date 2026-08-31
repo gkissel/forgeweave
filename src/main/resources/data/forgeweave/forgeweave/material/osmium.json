@@ -15,27 +15,65 @@
     "bonus_damage": 4.5
   },
   "plating": {
-    "helmet": { "durability": 326, "armor": 2.0, "knockback_resistance": 0.1 },
-    "chestplate": { "durability": 480, "armor": 6.0, "knockback_resistance": 0.1 },
-    "leggings": { "durability": 451, "armor": 5.0, "knockback_resistance": 0.1 },
-    "boots": { "durability": 384, "armor": 2.0, "knockback_resistance": 0.1 }
+    "helmet": {
+      "durability": 326,
+      "armor": 2.0,
+      "knockback_resistance": 0.1
+    },
+    "chestplate": {
+      "durability": 480,
+      "armor": 6.0,
+      "knockback_resistance": 0.1
+    },
+    "leggings": {
+      "durability": 451,
+      "armor": 5.0,
+      "knockback_resistance": 0.1
+    },
+    "boots": {
+      "durability": 384,
+      "armor": 2.0,
+      "knockback_resistance": 0.1
+    }
   },
   "maille": true,
   "incorrect_for_tool": "minecraft:incorrect_for_iron_tool",
   "traits": {
-    "general": ["forgeweave:dense", "forgeweave:heavy"]
+    "general": [
+      "forgeweave:dense",
+      "forgeweave:heavy"
+    ]
   },
   "crafting_items": [
-    { "ingredient": { "tag": "c:ingots/osmium" }, "value": 144 },
-    { "ingredient": { "tag": "c:nuggets/osmium" }, "value": 16 },
-    { "ingredient": { "tag": "c:storage_blocks/osmium" }, "value": 1296 }
+    {
+      "ingredient": {
+        "tag": "c:ingots/osmium"
+      },
+      "value": 144
+    },
+    {
+      "ingredient": {
+        "tag": "c:nuggets/osmium"
+      },
+      "value": 16
+    },
+    {
+      "ingredient": {
+        "tag": "c:storage_blocks/osmium"
+      },
+      "value": 1296
+    }
   ],
   "repair_item": {
     "tag": "c:ingots/osmium"
   },
+  "cast_only": true,
   "enchantability": 12,
   "color": "#5B6EE1",
   "neoforge:conditions": [
-    { "type": "neoforge:item_exists", "item": "mekanism:ingot_osmium" }
+    {
+      "type": "neoforge:item_exists",
+      "item": "mekanism:ingot_osmium"
+    }
   ]
 }

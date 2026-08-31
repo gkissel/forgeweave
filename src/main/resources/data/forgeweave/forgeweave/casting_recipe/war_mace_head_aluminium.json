@@ -1,0 +1,20 @@
+{
+  "station": "table",
+  "cast": {
+    "item": "forgeweave:cast_war_mace_head"
+  },
+  "fluid": "forgeweave:molten_aluminium",
+  "amount": 1152,
+  "result": {
+    "id": "forgeweave:war_mace_head",
+    "components": {
+      "forgeweave:material": "forgeweave:aluminium"
+    }
+  },
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "immersiveengineering:ingot_aluminum"
+    }
+  ]
+}

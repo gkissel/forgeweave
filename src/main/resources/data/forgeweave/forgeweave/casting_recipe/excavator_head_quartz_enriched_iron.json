@@ -1,0 +1,20 @@
+{
+  "station": "table",
+  "cast": {
+    "item": "forgeweave:cast_excavator_head"
+  },
+  "fluid": "forgeweave:molten_quartz_enriched_iron",
+  "amount": 1152,
+  "result": {
+    "id": "forgeweave:excavator_head",
+    "components": {
+      "forgeweave:material": "forgeweave:quartz_enriched_iron"
+    }
+  },
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "refinedstorage:quartz_enriched_iron"
+    }
+  ]
+}

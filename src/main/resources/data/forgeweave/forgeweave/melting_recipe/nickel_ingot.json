@@ -1,0 +1,13 @@
+{
+  "input": {
+    "tag": "c:ingots/nickel"
+  },
+  "fluid": "forgeweave:molten_nickel",
+  "amount": 144,
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "immersiveengineering:ingot_nickel"
+    }
+  ]
+}

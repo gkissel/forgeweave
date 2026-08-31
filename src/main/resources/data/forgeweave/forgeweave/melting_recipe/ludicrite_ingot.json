@@ -1,0 +1,13 @@
+{
+  "input": {
+    "tag": "c:ingots/ludicrite"
+  },
+  "fluid": "forgeweave:molten_ludicrite",
+  "amount": 144,
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "bigreactors:ludicrite_ingot"
+    }
+  ]
+}

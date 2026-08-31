@@ -1,0 +1,20 @@
+{
+  "station": "table",
+  "cast": {
+    "item": "forgeweave:cast_shovel_head"
+  },
+  "fluid": "forgeweave:molten_ludicrite",
+  "amount": 288,
+  "result": {
+    "id": "forgeweave:shovel_head",
+    "components": {
+      "forgeweave:material": "forgeweave:ludicrite"
+    }
+  },
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "bigreactors:ludicrite_ingot"
+    }
+  ]
+}

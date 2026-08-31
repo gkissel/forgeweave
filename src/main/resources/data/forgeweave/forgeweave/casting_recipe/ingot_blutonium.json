@@ -1,0 +1,17 @@
+{
+  "station": "table",
+  "cast": {
+    "item": "forgeweave:cast_ingot"
+  },
+  "fluid": "forgeweave:molten_blutonium",
+  "amount": 144,
+  "result": {
+    "id": "bigreactors:blutonium_ingot"
+  },
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "bigreactors:blutonium_ingot"
+    }
+  ]
+}

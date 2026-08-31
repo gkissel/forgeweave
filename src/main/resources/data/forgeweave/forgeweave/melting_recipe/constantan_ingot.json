@@ -1,0 +1,13 @@
+{
+  "input": {
+    "tag": "c:ingots/constantan"
+  },
+  "fluid": "forgeweave:molten_constantan",
+  "amount": 144,
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "immersiveengineering:ingot_constantan"
+    }
+  ]
+}

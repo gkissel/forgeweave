@@ -1,0 +1,13 @@
+{
+  "input": {
+    "tag": "c:nuggets/electrum"
+  },
+  "fluid": "forgeweave:molten_electrum",
+  "amount": 16,
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "immersiveengineering:ingot_electrum"
+    }
+  ]
+}

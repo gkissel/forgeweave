@@ -15,25 +15,56 @@
     "bonus_damage": 6.5
   },
   "plating": {
-    "helmet": { "durability": 380, "armor": 3.5, "toughness": 3.0, "knockback_resistance": 0.15 },
-    "chestplate": { "durability": 550, "armor": 8.0, "toughness": 3.0, "knockback_resistance": 0.15 },
-    "leggings": { "durability": 515, "armor": 6.0, "toughness": 3.0, "knockback_resistance": 0.15 },
-    "boots": { "durability": 445, "armor": 3.5, "toughness": 3.0, "knockback_resistance": 0.15 }
+    "helmet": {
+      "durability": 380,
+      "armor": 3.5,
+      "toughness": 3.0,
+      "knockback_resistance": 0.15
+    },
+    "chestplate": {
+      "durability": 550,
+      "armor": 8.0,
+      "toughness": 3.0,
+      "knockback_resistance": 0.15
+    },
+    "leggings": {
+      "durability": 515,
+      "armor": 6.0,
+      "toughness": 3.0,
+      "knockback_resistance": 0.15
+    },
+    "boots": {
+      "durability": 445,
+      "armor": 3.5,
+      "toughness": 3.0,
+      "knockback_resistance": 0.15
+    }
   },
   "maille": true,
   "incorrect_for_tool": "minecraft:incorrect_for_netherite_tool",
   "traits": {
-    "general": ["forgeweave:colossal"]
+    "general": [
+      "forgeweave:colossal"
+    ]
   },
   "crafting_items": [
-    { "ingredient": { "item": "avaritia:neutronium_ingot" }, "value": 144 }
+    {
+      "ingredient": {
+        "item": "avaritia:neutronium_ingot"
+      },
+      "value": 144
+    }
   ],
   "repair_item": {
     "item": "avaritia:neutronium_ingot"
   },
+  "cast_only": true,
   "enchantability": 15,
   "color": "#3D1A5C",
   "neoforge:conditions": [
-    { "type": "neoforge:item_exists", "item": "avaritia:neutronium_ingot" }
+    {
+      "type": "neoforge:item_exists",
+      "item": "avaritia:neutronium_ingot"
+    }
   ]
 }

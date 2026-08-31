@@ -1,0 +1,21 @@
+{
+  "station": "table",
+  "cast": {
+    "item": "forgeweave:clay_cast_plating_leggings"
+  },
+  "fluid": "forgeweave:molten_tin",
+  "amount": 720,
+  "result": {
+    "id": "forgeweave:plating_leggings",
+    "components": {
+      "forgeweave:material": "forgeweave:tin"
+    }
+  },
+  "consumes_cast": true,
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "mekanism:ingot_tin"
+    }
+  ]
+}

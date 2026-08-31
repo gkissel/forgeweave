@@ -15,27 +15,68 @@
     "bonus_damage": 6.0
   },
   "plating": {
-    "helmet": { "durability": 264, "armor": 3.0, "toughness": 2.0, "knockback_resistance": 0.1 },
-    "chestplate": { "durability": 384, "armor": 8.0, "toughness": 2.0, "knockback_resistance": 0.1 },
-    "leggings": { "durability": 360, "armor": 6.0, "toughness": 2.0, "knockback_resistance": 0.1 },
-    "boots": { "durability": 312, "armor": 3.0, "toughness": 2.0, "knockback_resistance": 0.1 }
+    "helmet": {
+      "durability": 264,
+      "armor": 3.0,
+      "toughness": 2.0,
+      "knockback_resistance": 0.1
+    },
+    "chestplate": {
+      "durability": 384,
+      "armor": 8.0,
+      "toughness": 2.0,
+      "knockback_resistance": 0.1
+    },
+    "leggings": {
+      "durability": 360,
+      "armor": 6.0,
+      "toughness": 2.0,
+      "knockback_resistance": 0.1
+    },
+    "boots": {
+      "durability": 312,
+      "armor": 3.0,
+      "toughness": 2.0,
+      "knockback_resistance": 0.1
+    }
   },
   "maille": true,
   "incorrect_for_tool": "minecraft:incorrect_for_diamond_tool",
   "traits": {
-    "general": ["forgeweave:dense"]
+    "general": [
+      "forgeweave:dense"
+    ]
   },
   "crafting_items": [
-    { "ingredient": { "tag": "c:ingots/platinum" }, "value": 144 },
-    { "ingredient": { "tag": "c:nuggets/platinum" }, "value": 16 },
-    { "ingredient": { "tag": "c:storage_blocks/platinum" }, "value": 1296 }
+    {
+      "ingredient": {
+        "tag": "c:ingots/platinum"
+      },
+      "value": 144
+    },
+    {
+      "ingredient": {
+        "tag": "c:nuggets/platinum"
+      },
+      "value": 16
+    },
+    {
+      "ingredient": {
+        "tag": "c:storage_blocks/platinum"
+      },
+      "value": 1296
+    }
   ],
   "repair_item": {
     "tag": "c:ingots/platinum"
   },
+  "cast_only": true,
   "enchantability": 18,
   "color": "#E5E4E2",
   "neoforge:conditions": [
-    { "type": "neoforge:item_exists", "item": "modern_industrialization:platinum_ingot" }
+    {
+      "type": "neoforge:item_exists",
+      "item": "modern_industrialization:platinum_ingot"
+    }
   ]
 }

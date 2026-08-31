@@ -15,25 +15,56 @@
     "bonus_damage": 7.0
   },
   "plating": {
-    "helmet": { "durability": 425, "armor": 4.0, "toughness": 4.0, "knockback_resistance": 0.15 },
-    "chestplate": { "durability": 610, "armor": 9.0, "toughness": 4.0, "knockback_resistance": 0.15 },
-    "leggings": { "durability": 575, "armor": 7.0, "toughness": 4.0, "knockback_resistance": 0.15 },
-    "boots": { "durability": 495, "armor": 4.0, "toughness": 4.0, "knockback_resistance": 0.15 }
+    "helmet": {
+      "durability": 425,
+      "armor": 4.0,
+      "toughness": 4.0,
+      "knockback_resistance": 0.15
+    },
+    "chestplate": {
+      "durability": 610,
+      "armor": 9.0,
+      "toughness": 4.0,
+      "knockback_resistance": 0.15
+    },
+    "leggings": {
+      "durability": 575,
+      "armor": 7.0,
+      "toughness": 4.0,
+      "knockback_resistance": 0.15
+    },
+    "boots": {
+      "durability": 495,
+      "armor": 4.0,
+      "toughness": 4.0,
+      "knockback_resistance": 0.15
+    }
   },
   "maille": true,
   "incorrect_for_tool": "minecraft:incorrect_for_netherite_tool",
   "traits": {
-    "general": ["forgeweave:escalating"]
+    "general": [
+      "forgeweave:escalating"
+    ]
   },
   "crafting_items": [
-    { "ingredient": { "item": "avaritia:infinity_ingot" }, "value": 144 }
+    {
+      "ingredient": {
+        "item": "avaritia:infinity_ingot"
+      },
+      "value": 144
+    }
   ],
   "repair_item": {
     "item": "avaritia:infinity_ingot"
   },
+  "cast_only": true,
   "enchantability": 17,
   "color": "#F5E9C8",
   "neoforge:conditions": [
-    { "type": "neoforge:item_exists", "item": "avaritia:infinity_ingot" }
+    {
+      "type": "neoforge:item_exists",
+      "item": "avaritia:infinity_ingot"
+    }
   ]
 }

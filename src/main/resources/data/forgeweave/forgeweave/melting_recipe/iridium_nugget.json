@@ -1,0 +1,13 @@
+{
+  "input": {
+    "tag": "c:nuggets/iridium"
+  },
+  "fluid": "forgeweave:molten_iridium",
+  "amount": 16,
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "modern_industrialization:iridium_ingot"
+    }
+  ]
+}

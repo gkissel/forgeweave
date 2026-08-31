@@ -15,32 +15,73 @@
     "bonus_damage": 3.0
   },
   "plating": {
-    "helmet": { "durability": 132, "armor": 2.0, "knockback_resistance": 0.1 },
-    "chestplate": { "durability": 192, "armor": 4.0, "knockback_resistance": 0.1 },
-    "leggings": { "durability": 180, "armor": 3.0, "knockback_resistance": 0.1 },
-    "boots": { "durability": 156, "armor": 1.0, "knockback_resistance": 0.1 }
+    "helmet": {
+      "durability": 132,
+      "armor": 2.0,
+      "knockback_resistance": 0.1
+    },
+    "chestplate": {
+      "durability": 192,
+      "armor": 4.0,
+      "knockback_resistance": 0.1
+    },
+    "leggings": {
+      "durability": 180,
+      "armor": 3.0,
+      "knockback_resistance": 0.1
+    },
+    "boots": {
+      "durability": 156,
+      "armor": 1.0,
+      "knockback_resistance": 0.1
+    }
   },
   "maille": true,
   "incorrect_for_tool": "minecraft:incorrect_for_stone_tool",
   "traits": {
-    "general": ["forgeweave:poisonous", "forgeweave:heavy"]
+    "general": [
+      "forgeweave:poisonous",
+      "forgeweave:heavy"
+    ]
   },
   "crafting_items": [
-    { "ingredient": { "tag": "c:ingots/lead" }, "value": 144 },
-    { "ingredient": { "tag": "c:nuggets/lead" }, "value": 16 },
-    { "ingredient": { "tag": "c:storage_blocks/lead" }, "value": 1296 }
+    {
+      "ingredient": {
+        "tag": "c:ingots/lead"
+      },
+      "value": 144
+    },
+    {
+      "ingredient": {
+        "tag": "c:nuggets/lead"
+      },
+      "value": 16
+    },
+    {
+      "ingredient": {
+        "tag": "c:storage_blocks/lead"
+      },
+      "value": 1296
+    }
   ],
   "repair_item": {
     "tag": "c:ingots/lead"
   },
+  "cast_only": true,
   "enchantability": 9,
   "color": "#4D4968",
   "neoforge:conditions": [
     {
       "type": "neoforge:or",
       "values": [
-        { "type": "neoforge:item_exists", "item": "mekanism:ingot_lead" },
-        { "type": "neoforge:item_exists", "item": "immersiveengineering:ingot_lead" }
+        {
+          "type": "neoforge:item_exists",
+          "item": "mekanism:ingot_lead"
+        },
+        {
+          "type": "neoforge:item_exists",
+          "item": "immersiveengineering:ingot_lead"
+        }
       ]
     }
   ]

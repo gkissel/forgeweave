@@ -1,0 +1,13 @@
+{
+  "input": {
+    "tag": "c:storage_blocks/bronze"
+  },
+  "fluid": "forgeweave:molten_bronze",
+  "amount": 1296,
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "mekanism:ingot_bronze"
+    }
+  ]
+}

@@ -1,0 +1,13 @@
+{
+  "input": {
+    "tag": "c:storage_blocks/graphite"
+  },
+  "fluid": "forgeweave:molten_graphite",
+  "amount": 1296,
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "bigreactors:graphite_ingot"
+    }
+  ]
+}

@@ -1,0 +1,26 @@
+{
+  "input": {
+    "tag": "c:ingots/uranium"
+  },
+  "fluid": "forgeweave:molten_uranium",
+  "amount": 144,
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:or",
+      "values": [
+        {
+          "type": "neoforge:item_exists",
+          "item": "mekanism:ingot_uranium"
+        },
+        {
+          "type": "neoforge:item_exists",
+          "item": "immersiveengineering:ingot_uranium"
+        },
+        {
+          "type": "neoforge:item_exists",
+          "item": "bigreactors:yellorium_ingot"
+        }
+      ]
+    }
+  ]
+}

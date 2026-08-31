@@ -1,0 +1,13 @@
+{
+  "input": {
+    "item": "avaritia:infinity_ingot"
+  },
+  "fluid": "forgeweave:molten_infinity",
+  "amount": 144,
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "avaritia:infinity_ingot"
+    }
+  ]
+}

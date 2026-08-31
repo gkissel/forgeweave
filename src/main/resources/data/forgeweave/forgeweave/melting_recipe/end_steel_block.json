@@ -1,0 +1,13 @@
+{
+  "input": {
+    "tag": "c:storage_blocks/end_steel"
+  },
+  "fluid": "forgeweave:molten_end_steel",
+  "amount": 1296,
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "enderio:end_steel_ingot"
+    }
+  ]
+}

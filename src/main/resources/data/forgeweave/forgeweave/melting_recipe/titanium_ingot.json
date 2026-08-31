@@ -1,0 +1,13 @@
+{
+  "input": {
+    "tag": "c:ingots/titanium"
+  },
+  "fluid": "forgeweave:molten_titanium",
+  "amount": 144,
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "modern_industrialization:titanium_ingot"
+    }
+  ]
+}

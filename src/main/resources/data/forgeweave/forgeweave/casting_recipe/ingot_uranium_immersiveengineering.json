@@ -1,0 +1,17 @@
+{
+  "station": "table",
+  "cast": {
+    "item": "forgeweave:cast_ingot"
+  },
+  "fluid": "forgeweave:molten_uranium",
+  "amount": 144,
+  "result": {
+    "id": "immersiveengineering:ingot_uranium"
+  },
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "immersiveengineering:ingot_uranium"
+    }
+  ]
+}

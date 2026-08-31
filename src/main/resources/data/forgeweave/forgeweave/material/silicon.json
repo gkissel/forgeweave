@@ -15,23 +15,44 @@
     "bonus_damage": 1.0
   },
   "plating": {
-    "helmet": { "durability": 105, "armor": 1.0 },
-    "chestplate": { "durability": 155, "armor": 3.0 },
-    "leggings": { "durability": 145, "armor": 2.0 },
-    "boots": { "durability": 125, "armor": 1.0 }
+    "helmet": {
+      "durability": 105,
+      "armor": 1.0
+    },
+    "chestplate": {
+      "durability": 155,
+      "armor": 3.0
+    },
+    "leggings": {
+      "durability": 145,
+      "armor": 2.0
+    },
+    "boots": {
+      "durability": 125,
+      "armor": 1.0
+    }
   },
   "maille": true,
   "incorrect_for_tool": "minecraft:incorrect_for_stone_tool",
   "traits": {},
   "crafting_items": [
-    { "ingredient": { "tag": "c:silicon" }, "value": 144 }
+    {
+      "ingredient": {
+        "tag": "c:silicon"
+      },
+      "value": 144
+    }
   ],
   "repair_item": {
     "tag": "c:silicon"
   },
+  "cast_only": true,
   "enchantability": 10,
   "color": "#4A4A4A",
   "neoforge:conditions": [
-    { "type": "neoforge:item_exists", "item": "refinedstorage:silicon" }
+    {
+      "type": "neoforge:item_exists",
+      "item": "refinedstorage:silicon"
+    }
   ]
 }

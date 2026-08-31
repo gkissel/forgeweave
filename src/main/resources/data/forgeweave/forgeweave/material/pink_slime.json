@@ -15,25 +15,48 @@
     "bonus_damage": 3.0
   },
   "plating": {
-    "helmet": { "durability": 272, "armor": 2.0 },
-    "chestplate": { "durability": 400, "armor": 5.0 },
-    "leggings": { "durability": 376, "armor": 4.0 },
-    "boots": { "durability": 320, "armor": 2.0 }
+    "helmet": {
+      "durability": 272,
+      "armor": 2.0
+    },
+    "chestplate": {
+      "durability": 400,
+      "armor": 5.0
+    },
+    "leggings": {
+      "durability": 376,
+      "armor": 4.0
+    },
+    "boots": {
+      "durability": 320,
+      "armor": 2.0
+    }
   },
   "maille": true,
   "incorrect_for_tool": "minecraft:incorrect_for_diamond_tool",
   "traits": {
-    "general": ["forgeweave:slimey_green"]
+    "general": [
+      "forgeweave:slimey_green"
+    ]
   },
   "crafting_items": [
-    { "ingredient": { "tag": "c:ingots/pink_slime" }, "value": 144 }
+    {
+      "ingredient": {
+        "tag": "c:ingots/pink_slime"
+      },
+      "value": 144
+    }
   ],
   "repair_item": {
     "tag": "c:ingots/pink_slime"
   },
+  "cast_only": true,
   "enchantability": 13,
   "color": "#F49AC1",
   "neoforge:conditions": [
-    { "type": "neoforge:item_exists", "item": "industrialforegoing:pink_slime_ingot" }
+    {
+      "type": "neoforge:item_exists",
+      "item": "industrialforegoing:pink_slime_ingot"
+    }
   ]
 }

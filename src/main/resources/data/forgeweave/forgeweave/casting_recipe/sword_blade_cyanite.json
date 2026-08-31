@@ -1,0 +1,20 @@
+{
+  "station": "table",
+  "cast": {
+    "item": "forgeweave:cast_sword_blade"
+  },
+  "fluid": "forgeweave:molten_cyanite",
+  "amount": 288,
+  "result": {
+    "id": "forgeweave:sword_blade",
+    "components": {
+      "forgeweave:material": "forgeweave:cyanite"
+    }
+  },
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "bigreactors:cyanite_ingot"
+    }
+  ]
+}

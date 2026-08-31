@@ -1,0 +1,29 @@
+{
+  "station": "table",
+  "cast": {
+    "item": "forgeweave:cast_vein_hammer_head"
+  },
+  "fluid": "forgeweave:molten_lead",
+  "amount": 1152,
+  "result": {
+    "id": "forgeweave:vein_hammer_head",
+    "components": {
+      "forgeweave:material": "forgeweave:lead"
+    }
+  },
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:or",
+      "values": [
+        {
+          "type": "neoforge:item_exists",
+          "item": "mekanism:ingot_lead"
+        },
+        {
+          "type": "neoforge:item_exists",
+          "item": "immersiveengineering:ingot_lead"
+        }
+      ]
+    }
+  ]
+}

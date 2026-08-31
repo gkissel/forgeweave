@@ -1,0 +1,13 @@
+{
+  "input": {
+    "tag": "c:nuggets/silver"
+  },
+  "fluid": "forgeweave:molten_silver",
+  "amount": 16,
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "immersiveengineering:ingot_silver"
+    }
+  ]
+}

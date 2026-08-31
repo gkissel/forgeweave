@@ -1,0 +1,22 @@
+{
+  "input": {
+    "tag": "c:ingots/lead"
+  },
+  "fluid": "forgeweave:molten_lead",
+  "amount": 144,
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:or",
+      "values": [
+        {
+          "type": "neoforge:item_exists",
+          "item": "mekanism:ingot_lead"
+        },
+        {
+          "type": "neoforge:item_exists",
+          "item": "immersiveengineering:ingot_lead"
+        }
+      ]
+    }
+  ]
+}
