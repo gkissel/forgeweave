@@ -1,0 +1,36 @@
+{
+  "head": {
+    "durability": 190,
+    "mining_speed": 6.0,
+    "attack_damage": 2.5
+  },
+  "handle": {
+    "durability_modifier": 0.85,
+    "durability": 25
+  },
+  "extra_durability": 35,
+  "bow": {
+    "drawspeed": 0.8,
+    "range": 1.15,
+    "bonus_damage": 1.5
+  },
+  "plating": {
+    "helmet": { "durability": 170, "armor": 1.0 },
+    "chestplate": { "durability": 245, "armor": 4.0 },
+    "leggings": { "durability": 230, "armor": 3.0 },
+    "boots": { "durability": 200, "armor": 1.0 }
+  },
+  "maille": true,
+  "incorrect_for_tool": "minecraft:incorrect_for_diamond_tool",
+  "traits": {
+    "general": ["forgeweave:warded"]
+  },
+  "crafting_items": [
+    { "ingredient": { "tag": "c:gems/amethyst" }, "value": 100 }
+  ],
+  "repair_item": {
+    "tag": "c:gems/amethyst"
+  },
+  "enchantability": 22,
+  "color": "#B38EF1"
+}
