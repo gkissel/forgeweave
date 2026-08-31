@@ -133,14 +133,18 @@ class ArrowMaterialTest {
     }
 
     /**
-     * The whole FLETCHING table ({@code TinkerMaterials.java:597-598}): {@code new
-     * FletchingMaterialStats(accuracy, modifier)}. The slimeleaf trio stays deferred with T57's
-     * world content, exactly as issue #626 scopes it.
+     * The whole FLETCHING table ({@code TinkerMaterials.java:597-602}): {@code new
+     * FletchingMaterialStats(accuracy, modifier)}. The slimeleaf trio (M6, issue #180) shares one
+     * stats instance upstream -- {@code slimeLeafStats = new FletchingMaterialStats(0.8f, 1.25f)},
+     * applied to all three colours identically.
      */
     @ParameterizedTest
     @CsvSource({
             "feather,1.0,1.0",
             "leaf,0.5,1.5",
+            "slimeleaf_blue,0.8,1.25",
+            "slimeleaf_orange,0.8,1.25",
+            "slimeleaf_purple,0.8,1.25",
     })
     void shippedMaterialsMatchUpstreamFletchingStats(String name, float accuracy, float modifier) {
         assertEquals(Optional.of(new Material.Fletching(accuracy, modifier)), shipped(name).fletching());
@@ -152,7 +156,8 @@ class ArrowMaterialTest {
      * binding or bow part.
      */
     @ParameterizedTest
-    @ValueSource(strings = { "blaze", "reed", "ice", "endrod", "feather", "leaf" })
+    @ValueSource(strings = { "blaze", "reed", "ice", "endrod", "feather", "leaf",
+            "slimeleaf_blue", "slimeleaf_orange", "slimeleaf_purple" })
     void arrowOnlyMaterialsCarryNoToolStatBlocks(String name) {
         Material material = shipped(name);
 
@@ -163,7 +168,10 @@ class ArrowMaterialTest {
         assertTrue(material.bowstring().isEmpty(), name + " must have no bowstring stats");
     }
 
-    /** Colors verbatim from {@code TinkerMaterials.java:164-171}'s {@code mat(name, color)} calls. */
+    /**
+     * Colors verbatim from {@code TinkerMaterials.java:164-174}'s {@code mat(name, color)} calls.
+     * The slimeleaf trio reuses its slime colour's tint, exactly like the slimevine pair.
+     */
     @ParameterizedTest
     @CsvSource({
             "blaze,#FFC100",
@@ -172,6 +180,9 @@ class ArrowMaterialTest {
             "endrod,#E8FFD6",
             "feather,#EEEEEE",
             "leaf,#1D730C",
+            "slimeleaf_blue,#74C8C7",
+            "slimeleaf_orange,#FF960D",
+            "slimeleaf_purple,#C873C8",
     })
     void arrowMaterialsCarryUpstreamsColor(String name, String color) {
         assertEquals(TextColor.parseColor(color).getOrThrow(), shipped(name).color());
