@@ -3,14 +3,12 @@ package dev.gkissel.forgeweave.gametest;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Registry;
-import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.ContainerLevelAccess;
-import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.GameType;
@@ -40,11 +38,22 @@ import dev.gkissel.forgeweave.tool.ToolStats;
 
 /**
  * Covers issue #234's verification: steel as an FW-native metal (carbon alloy ratio, casting, the
- * clone's exact material stats) and the four tag-gated compat metals (bronze/lead/silver/electrum)
- * gated both ways -- with a synthetic {@code c:ingots/bronze} entry supplied by the GameTest-only
- * datapack (see src/gametest/resources/README.md) the Part Builder crafts bronze parts, and the
- * three metals whose tags nothing supplies stay unobtainable, which is docs/SCOPE.md M3.2's
- * intended upstream-ore-dict-parity gating.
+ * clone's exact material stats).
+ *
+ * <p>The four compat metals (bronze/lead/silver/electrum) were originally gated here too, on
+ * obtainability alone (docs/SCOPE.md M3.2: registered but unobtainable without a supplying mod's
+ * {@code c:} ingot tag). Issue #826 (M6) reverses that: they now carry {@code neoforge:conditions}
+ * existence gates keyed on a real provider's item id ({@code mekanism:ingot_bronze},
+ * {@code immersiveengineering:ingot_lead}, ...), so without that mod loaded the material is not in
+ * the registry at all -- not merely uncraftable. {@link #unsuppliedCompatMetalsDoNotExistAtAll}
+ * covers that negative path directly: neither Mekanism nor Immersive Engineering is a build
+ * dependency, so all four are absent in this GameTest server exactly as they would be in a
+ * Forgeweave-only install. The positive existence path (and the tag-obtainability path layered on
+ * top of it) can't be demonstrated with the real four -- a GameTest server can fake a {@code c:} tag
+ * but not a modid or another mod's item id (docs/research/m6-material-expansion-references.md
+ * &sect;1.4) -- so {@code ConditionalMaterialGameTests} covers it with a gametest-only conditional
+ * material instead, reusing this class's synthetic {@code c:ingots/bronze} fixture for the
+ * obtainability half.
  */
 @GameTestHolder(Forgeweave.MODID)
 @PrefixGameTestTemplate(false)
@@ -133,58 +142,19 @@ public class SteelAndTagGatedGameTests {
     }
 
     /**
-     * Tag-gating, lit side: the GameTest-only datapack plants {@code minecraft:nether_brick} in
-     * {@code c:ingots/bronze}, standing in for a modded bronze ingot. Bronze's {@code
-     * crafting_items} keys on that tag at value 2, so two of them cover a pickaxe head's cost of 4
-     * and the Part Builder produces a bronze part -- no Forgeweave item, recipe, or code names
-     * nether brick anywhere.
+     * Issue #826's negative existence path for the real four: neither {@code mekanism} nor
+     * {@code immersiveengineering} is a build dependency (see build.gradle), so every one of
+     * bronze/lead/silver/electrum's {@code neoforge:item_exists}/{@code neoforge:or} conditions
+     * fails here exactly as it would in a Forgeweave-only install -- the material is absent from the
+     * registry entirely, not merely present-and-uncraftable the way docs/SCOPE.md M3.2 originally
+     * shipped it. An arbitrary item still crafts nothing at the Part Builder either way.
      */
     @GameTest(template = "empty")
-    public static void aModSuppliedBronzeIngotTagLightsUpThePartBuilder(GameTestHelper helper) {
-        BlockPos pos = new BlockPos(1, 1, 1);
-        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
-        PartBuilderMenu menu = openMenu(helper, pos, player);
-
-        menu.getSlot(PartBuilderMenu.PATTERN_SLOT).set(new ItemStack(ForgeweaveItems.PATTERN_PICKAXE_HEAD.get()));
-        menu.getSlot(PartBuilderMenu.MATERIAL_SLOT).set(new ItemStack(Items.NETHER_BRICK, 2));
-        menu.broadcastChanges();
-
-        ItemStack output = menu.getSlot(PartBuilderMenu.OUTPUT_SLOT).getItem();
-        helper.assertTrue(output.is(ForgeweaveItems.PART_PICKAXE_HEAD.get()),
-                "expected a pickaxe head part from two tag-supplied bronze ingots, got " + output);
-        helper.assertTrue(materialId("bronze").equals(output.get(ForgeweaveDataComponents.MATERIAL.get())),
-                "expected the part's material to be forgeweave:bronze, got "
-                        + output.get(ForgeweaveDataComponents.MATERIAL.get()));
-        helper.succeed();
-    }
-
-    /**
-     * Tag-gating, dark side: lead/silver/electrum load as materials (stats, traits, lang -- ready
-     * for a supplying mod) but their {@code c:} ingot and storage-block tags are empty in a
-     * Forgeweave-only install, so no item in existence pays their part cost and the Part Builder
-     * ignores them -- the material is unobtainable by design, and an arbitrary untagged item still
-     * crafts nothing.
-     */
-    @GameTest(template = "empty")
-    public static void untaggedCompatMetalsStayUnobtainable(GameTestHelper helper) {
+    public static void unsuppliedCompatMetalsDoNotExistAtAll(GameTestHelper helper) {
         Registry<Material> materials = helper.getLevel().registryAccess().registryOrThrow(Material.REGISTRY);
-        for (String name : new String[] {"lead", "silver", "electrum"}) {
-            Material material = materials.get(materialId(name));
-            helper.assertTrue(material != null, "expected the " + name + " material to be registered");
-            // What "unobtainable" means is that no item in the game passes the ingredient. The one
-            // exclusion is vanilla's own dev-runtime artifact: Ingredient.TagValue pads an empty
-            // tag with a barrier placeholder under SharedConstants.IS_RUNNING_IN_IDE (it even
-            // test()s true against a real barrier there), which a production install never has.
-            for (Item item : BuiltInRegistries.ITEM) {
-                if (item == Items.BARRIER) {
-                    continue;
-                }
-                for (Material.CraftingItem craftingItem : material.craftingItems()) {
-                    helper.assertFalse(craftingItem.ingredient().test(new ItemStack(item)),
-                            "expected " + name + "'s crafting tag to match nothing in a Forgeweave-only install, "
-                                    + "but it matches " + item);
-                }
-            }
+        for (String name : new String[] {"bronze", "lead", "silver", "electrum"}) {
+            helper.assertTrue(materials.get(materialId(name)) == null,
+                    "expected the " + name + " material to be absent without its supplying mod, found it registered");
         }
 
         BlockPos pos = new BlockPos(1, 1, 1);
@@ -195,25 +165,6 @@ public class SteelAndTagGatedGameTests {
         menu.broadcastChanges();
         helper.assertTrue(menu.getSlot(PartBuilderMenu.OUTPUT_SLOT).getItem().isEmpty(),
                 "expected no part from an item no material's crafting_items names");
-        helper.succeed();
-    }
-
-    /**
-     * A tag-gated material is a full material once its parts exist (the gate is acquisition, not
-     * behavior): a bronze tool assembled from parts carries the clone's exact stat line
-     * (430/6.8/3.5 head, 1.1/+70 handle, 80 extra) -> round((430 + 80) * 1.1f) + 70 = 631.
-     */
-    @GameTest(template = "empty")
-    public static void bronzeToolCarriesTheClonesExactStats(GameTestHelper helper) {
-        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
-        ItemStack pickaxe = ToolAssembly.pickaxe(helper, player, new BlockPos(1, 1, 1), "bronze", "bronze", "bronze");
-
-        ToolStats.Stats stats = pickaxe.get(ForgeweaveDataComponents.TOOL_STATS.get());
-        helper.assertTrue(stats != null, "an assembled tool must carry its computed stats");
-        helper.assertTrue(stats.durability() == Math.round((430 + 80) * 1.1F) + 70,
-                "expected round((430 + 80) * 1.1) + 70 durability, got " + stats.durability());
-        helper.assertTrue(Math.abs(stats.miningSpeed() - 6.8F) < 0.001F,
-                "expected bronze's 6.8 mining speed, got " + stats.miningSpeed());
         helper.succeed();
     }
 

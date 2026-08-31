@@ -34,5 +34,14 @@
     "tag": "c:ingots/lead"
   },
   "enchantability": 9,
-  "color": "#4D4968"
+  "color": "#4D4968",
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:or",
+      "values": [
+        { "type": "neoforge:item_exists", "item": "mekanism:ingot_lead" },
+        { "type": "neoforge:item_exists", "item": "immersiveengineering:ingot_lead" }
+      ]
+    }
+  ]
 }

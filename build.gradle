@@ -182,6 +182,10 @@ tasks.named('jar', Jar) {
     exclude 'data/c/tags/item/ingots/bronze.json'
     exclude 'data/forgeweave/forgeweave/melting_recipe/gametest_above_lava.json'
     exclude 'data/forgeweave/forgeweave/smeltery_fuel/gametest_super_fuel.json'
+    exclude 'data/forgeweave/forgeweave/material/gametest_conditional_absent.json'
+    exclude 'data/forgeweave/forgeweave/material/gametest_conditional_present.json'
+    exclude 'data/forgeweave/forgeweave/material/gametest_silver.json'
+    exclude 'data/forgeweave/forgeweave/material/gametest_electrum.json'
 }
 
 tasks.named('test', Test) {
