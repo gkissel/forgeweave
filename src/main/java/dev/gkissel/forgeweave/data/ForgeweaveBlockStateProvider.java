@@ -153,6 +153,11 @@ public class ForgeweaveBlockStateProvider extends BlockStateProvider {
         // the front) instead of the shared seared brick.
         coreBlock("standard_core", ForgeweaveBlocks.STANDARD_CORE.get(), "seared_bricks");
         coreBlock("nether_core", ForgeweaveBlocks.NETHER_CORE.get(), "nether_core_side");
+        // #845 -- the End and Deep Core, same shared coreBlock() helper and the same "own side/top
+        // texture" treatment #143 gave the Nether Core, so all four tiers keep reading as distinct
+        // from any angle.
+        coreBlock("end_core", ForgeweaveBlocks.END_CORE.get(), "end_core_side");
+        coreBlock("deep_core", ForgeweaveBlocks.DEEP_CORE.get(), "deep_core_side");
         // #442 -- upstream's seared_furnace_controller blockstate is the same orientable shape over
         // seared brick, front swapping on `active` (NOTICE.md).
         coreBlock("seared_furnace_controller", ForgeweaveBlocks.SEARED_FURNACE_CONTROLLER.get(), "seared_bricks");

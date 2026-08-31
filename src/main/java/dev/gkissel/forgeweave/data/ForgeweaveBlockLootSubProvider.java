@@ -172,6 +172,8 @@ public class ForgeweaveBlockLootSubProvider extends BlockLootSubProvider {
         // BlockTank#getDrops writes the same thing onto the dropped stack (NOTICE.md).
         dropSelf(ForgeweaveBlocks.STANDARD_CORE.get());
         dropSelf(ForgeweaveBlocks.NETHER_CORE.get());
+        dropSelf(ForgeweaveBlocks.END_CORE.get()); // #845
+        dropSelf(ForgeweaveBlocks.DEEP_CORE.get()); // #845
         dropSelf(ForgeweaveBlocks.SEARED_FURNACE_CONTROLLER.get()); // #442
         dropSelf(ForgeweaveBlocks.SEARED_RESERVOIR_CONTROLLER.get()); // T44/#475
         dropSelf(ForgeweaveBlocks.SEARED_DRAIN.get());

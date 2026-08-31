@@ -1,0 +1,8 @@
+{
+  "parent": "minecraft:block/orientable",
+  "textures": {
+    "front": "forgeweave:derived/block/deep_core_front_active",
+    "side": "forgeweave:derived/block/deep_core_side",
+    "top": "forgeweave:derived/block/deep_core_side"
+  }
+}

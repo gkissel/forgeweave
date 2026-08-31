@@ -672,6 +672,11 @@ public final class ForgeweaveItems {
     public static final DeferredItem<BlockItem> SEARED_FURNACE_CONTROLLER =
             ITEMS.registerSimpleBlockItem("seared_furnace_controller", ForgeweaveBlocks.SEARED_FURNACE_CONTROLLER);
     public static final DeferredItem<BlockItem> NETHER_CORE = ITEMS.registerSimpleBlockItem("nether_core", ForgeweaveBlocks.NETHER_CORE);
+    // #845 -- the End and Deep Core. Block items only: neither is obtainable via a crafting recipe,
+    // just pour-to-transform (CoreTransformRecipe), so there is nothing in ForgeweaveRecipeProvider
+    // for them.
+    public static final DeferredItem<BlockItem> END_CORE = ITEMS.registerSimpleBlockItem("end_core", ForgeweaveBlocks.END_CORE);
+    public static final DeferredItem<BlockItem> DEEP_CORE = ITEMS.registerSimpleBlockItem("deep_core", ForgeweaveBlocks.DEEP_CORE);
     // T44/#475 -- the seared reservoir controller.
     public static final DeferredItem<BlockItem> SEARED_RESERVOIR_CONTROLLER =
             ITEMS.registerSimpleBlockItem("seared_reservoir_controller", ForgeweaveBlocks.SEARED_RESERVOIR_CONTROLLER);

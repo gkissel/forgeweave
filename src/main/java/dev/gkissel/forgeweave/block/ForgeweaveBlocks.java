@@ -222,6 +222,15 @@ public final class ForgeweaveBlocks {
     public static final DeferredBlock<SmelteryControllerBlock> NETHER_CORE = BLOCKS.register("nether_core",
             () -> new SmelteryControllerBlock(searedProperties(), SmelteryCore.NETHER));
 
+    // #845 -- the top two tiers, reached only by pouring the right fluid over the tier below
+    // (CoreTransformRecipe), never crafted directly -- see ForgeweaveRecipeProvider's smelteryRecipes
+    // javadoc for why only the Standard and Nether Core get a shaped recipe.
+    public static final DeferredBlock<SmelteryControllerBlock> END_CORE = BLOCKS.register("end_core",
+            () -> new SmelteryControllerBlock(searedProperties(), SmelteryCore.END));
+
+    public static final DeferredBlock<SmelteryControllerBlock> DEEP_CORE = BLOCKS.register("deep_core",
+            () -> new SmelteryControllerBlock(searedProperties(), SmelteryCore.DEEP));
+
     // #442 -- the seared furnace controller. Upstream 1.12's BlockSearedFurnaceController
     // (NOTICE.md): Material.ROCK, hardness 3, resistance 20, SoundType.METAL -- deliberately not the
     // seared family's strength, so it is spelled out rather than taken from searedProperties().

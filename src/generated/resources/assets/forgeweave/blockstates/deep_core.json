@@ -1,0 +1,34 @@
+{
+  "variants": {
+    "active=false,facing=east": {
+      "model": "forgeweave:block/deep_core",
+      "y": 90
+    },
+    "active=false,facing=north": {
+      "model": "forgeweave:block/deep_core"
+    },
+    "active=false,facing=south": {
+      "model": "forgeweave:block/deep_core",
+      "y": 180
+    },
+    "active=false,facing=west": {
+      "model": "forgeweave:block/deep_core",
+      "y": 270
+    },
+    "active=true,facing=east": {
+      "model": "forgeweave:block/deep_core_active",
+      "y": 90
+    },
+    "active=true,facing=north": {
+      "model": "forgeweave:block/deep_core_active"
+    },
+    "active=true,facing=south": {
+      "model": "forgeweave:block/deep_core_active",
+      "y": 180
+    },
+    "active=true,facing=west": {
+      "model": "forgeweave:block/deep_core_active",
+      "y": 270
+    }
+  }
+}

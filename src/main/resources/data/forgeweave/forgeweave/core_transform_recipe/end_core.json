@@ -1,0 +1,6 @@
+{
+  "fluid": "forgeweave:molten_dragon_breath",
+  "from_block": "forgeweave:nether_core",
+  "to_block": "forgeweave:end_core",
+  "amount": 1000
+}
