@@ -1,0 +1,32 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_cinderstone_block": {
+      "conditions": {
+        "items": [
+          {
+            "items": "forgeweave:cinderstone_block"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "forgeweave:cinderstone_ingot_from_cinderstone_block"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_the_recipe",
+      "has_cinderstone_block"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "forgeweave:cinderstone_ingot_from_cinderstone_block"
+    ]
+  }
+}

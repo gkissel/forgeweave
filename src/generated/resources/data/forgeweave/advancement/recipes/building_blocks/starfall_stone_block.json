@@ -1,0 +1,32 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_starfall_stone_ingot": {
+      "conditions": {
+        "items": [
+          {
+            "items": "forgeweave:starfall_stone_ingot"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "forgeweave:starfall_stone_block"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_the_recipe",
+      "has_starfall_stone_ingot"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "forgeweave:starfall_stone_block"
+    ]
+  }
+}

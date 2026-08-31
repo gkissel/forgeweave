@@ -1,0 +1,13 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    {
+      "item": "forgeweave:raw_cinderstone_block"
+    }
+  ],
+  "result": {
+    "count": 9,
+    "id": "forgeweave:raw_cinderstone"
+  }
+}

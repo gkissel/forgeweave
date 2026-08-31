@@ -25,6 +25,7 @@ import dev.gkissel.forgeweave.item.ForgeweaveItems;
 import dev.gkissel.forgeweave.menu.ToolAssemblyRecipes;
 import dev.gkissel.forgeweave.tool.ToolArt;
 import dev.gkissel.forgeweave.tool.ToolConstants;
+import dev.gkissel.forgeweave.trackb.TrackBOre;
 
 /**
  * Item models for every Forgeweave item (docs/adr/0002): a plain {@code minecraft:item/generated}
@@ -305,6 +306,16 @@ public class ForgeweaveItemModelProvider extends ItemModelProvider {
         singleLayerModel(ForgeweaveItems.NUGGET_ARDITE, derivedItem("ardite_nugget"));
         singleLayerModel(ForgeweaveItems.RAW_ARDITE, itemTexture("raw_ardite"));
         singleLayerModel(ForgeweaveItems.NAHUATL_BOARD, itemTexture("nahuatl_board")); // #727
+
+        // #839 -- Track B's ore family (M6 epic #824): ingot/nugget/raw item icons, all original,
+        // procedurally-generated art under the standard item texture folder (not derived/) --
+        // scripts/generate_track_b_ore_textures.py. Ore/storage/raw-block item models come from
+        // ForgeweaveBlockStateProvider's simpleBlockWithItem instead, same as every other block item.
+        for (TrackBOre ore : TrackBOre.ALL) {
+            singleLayerModel(ForgeweaveItems.trackBIngot(ore.id()), itemTexture(ore.ingotId()));
+            singleLayerModel(ForgeweaveItems.trackBNugget(ore.id()), itemTexture(ore.nuggetId()));
+            singleLayerModel(ForgeweaveItems.trackBRawItem(ore.id()), itemTexture(ore.rawItemId()));
+        }
         singleLayerModel(ForgeweaveItems.INGOT_MANYULLYN, derivedItem("manyullyn_ingot"));
         singleLayerModel(ForgeweaveItems.NUGGET_MANYULLYN, derivedItem("manyullyn_nugget"));
         singleLayerModel(ForgeweaveItems.RAW_MANYULLYN, itemTexture("raw_manyullyn"));

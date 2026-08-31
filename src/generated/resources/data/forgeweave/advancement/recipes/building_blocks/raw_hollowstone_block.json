@@ -1,0 +1,32 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_raw_hollowstone": {
+      "conditions": {
+        "items": [
+          {
+            "items": "forgeweave:raw_hollowstone"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "forgeweave:raw_hollowstone_block"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_the_recipe",
+      "has_raw_hollowstone"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "forgeweave:raw_hollowstone_block"
+    ]
+  }
+}

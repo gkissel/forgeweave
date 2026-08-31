@@ -1,0 +1,32 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_fulmenite_ingot": {
+      "conditions": {
+        "items": [
+          {
+            "items": "forgeweave:fulmenite_ingot"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "forgeweave:fulmenite_block"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_the_recipe",
+      "has_fulmenite_ingot"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "forgeweave:fulmenite_block"
+    ]
+  }
+}

@@ -18,6 +18,7 @@ import net.neoforged.neoforge.common.data.ExistingFileHelper;
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.block.ForgeweaveBlocks;
 import dev.gkissel.forgeweave.tool.VeinmineKey;
+import dev.gkissel.forgeweave.trackb.TrackBOre;
 
 /**
  * Tool-tier gating for the cobalt + ardite nether ore blocks (docs/SCOPE.md M2 issue #104).
@@ -126,6 +127,33 @@ public class ForgeweaveBlockTagsProvider extends BlockTagsProvider {
                 .addTag(cTag("storage_blocks/steel")).addTag(cTag("storage_blocks/knightslime"))
                 .addTag(cTag("storage_blocks/pig_iron")).addTag(cTag("storage_blocks/amethyst_bronze"))
                 .addTag(cTag("storage_blocks/queens_slime")).addTag(cTag("storage_blocks/hepatizon"));
+
+        // #839 -- Track B's ore family (M6 epic #824): tool-tier gating per material, mapped onto
+        // the M6 tier scaffold's existing rungs (research doc §7.1, no new tags minted). Netherite-tier
+        // ores reuse cobalt/ardite's exact needs_diamond_tool + incorrect_for_diamond_tool combo
+        // (netherite pickaxe only); the diamond-tier ore (fulmenite) needs an iron pickaxe or better,
+        // matching vanilla diamond_ore's own needs_iron_tool; the stone-tier ore (cinderstone) takes
+        // no needs_*_tool tag at all, mineable with any pickaxe, matching vanilla coal/copper ore.
+        var trackBPickaxe = tag(BlockTags.MINEABLE_WITH_PICKAXE);
+        var trackBNeedsDiamond = tag(BlockTags.NEEDS_DIAMOND_TOOL);
+        var trackBIncorrectForDiamond = tag(BlockTags.INCORRECT_FOR_DIAMOND_TOOL);
+        var trackBNeedsIron = tag(BlockTags.NEEDS_IRON_TOOL);
+        var trackBStorageBlocks = tag(cTag("storage_blocks"));
+        for (TrackBOre ore : TrackBOre.ALL) {
+            Block oreBlock = ForgeweaveBlocks.trackBOre(ore.id()).get();
+            trackBPickaxe.add(oreBlock);
+            switch (ore.tier()) {
+                case NETHERITE -> {
+                    trackBNeedsDiamond.add(oreBlock);
+                    trackBIncorrectForDiamond.add(oreBlock);
+                }
+                case DIAMOND -> trackBNeedsIron.add(oreBlock);
+                case STONE -> { /* mineable with any pickaxe, no minimum-tier tag */ }
+            }
+            tag(cTag("storage_blocks/" + ore.id())).add(ForgeweaveBlocks.trackBStorageBlock(ore.id()).get());
+            tag(cTag("storage_blocks/raw_" + ore.id())).add(ForgeweaveBlocks.trackBRawBlock(ore.id()).get());
+            trackBStorageBlocks.addTag(cTag("storage_blocks/" + ore.id())).addTag(cTag("storage_blocks/raw_" + ore.id()));
+        }
 
         // T79 (parity audit 2026-08-18, issue #510) -- the block-side half of
         // ForgeweaveItemTagsProvider's c:glass_blocks/c:dyed additions (TinkerOredict registerCommon():

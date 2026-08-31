@@ -2,7 +2,9 @@ package dev.gkissel.forgeweave.block;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import javax.annotation.Nullable;
@@ -22,6 +24,7 @@ import net.neoforged.neoforge.registries.DeferredRegister;
 
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.casting.CastingRecipe;
+import dev.gkissel.forgeweave.trackb.TrackBOre;
 
 /**
  * Forgeweave's blocks: the Part Builder (docs/SCOPE.md M1 issue #9), Tool Station (issue #10),
@@ -334,6 +337,49 @@ public final class ForgeweaveBlocks {
     // policy applies going forward, CLAUDE.md), so both ride a fresh recolor like rose gold did.
     public static final DeferredBlock<Block> QUEENS_SLIME_BLOCK = metalBlock("queens_slime_block");
     public static final DeferredBlock<Block> HEPATIZON_BLOCK = metalBlock("hepatizon_block");
+
+    // #839 -- Track B's ore family (M6 epic #824, Track B: self-contained materials). See
+    // dev.gkissel.forgeweave.trackb.TrackBOre for the 12-material roster and its distribution table.
+    // Ore blocks reuse cobalt/ardite's oreBlock() strength/sound/requiresCorrectToolForDrops, but the
+    // map color follows each ore's own base rock (stone-look for the ten Overworld ores, the existing
+    // NETHER color for the two Nether ones) rather than hardcoding NETHER for all. Storage and
+    // raw-storage blocks reuse metalBlock() -- same "no per-block property differentiation" precedent
+    // every other Forgeweave metal's storage block already follows.
+    private static final Map<String, DeferredBlock<Block>> TRACK_B_ORE_BLOCKS = new LinkedHashMap<>();
+    private static final Map<String, DeferredBlock<Block>> TRACK_B_STORAGE_BLOCKS = new LinkedHashMap<>();
+    private static final Map<String, DeferredBlock<Block>> TRACK_B_RAW_BLOCKS = new LinkedHashMap<>();
+
+    static {
+        for (TrackBOre ore : TrackBOre.ALL) {
+            MapColor mapColor = ore.host() == TrackBOre.Host.NETHER ? MapColor.NETHER : MapColor.STONE;
+            TRACK_B_ORE_BLOCKS.put(ore.id(), trackBOreBlock(ore.oreBlockId(), mapColor));
+            TRACK_B_STORAGE_BLOCKS.put(ore.id(), metalBlock(ore.storageBlockId()));
+            TRACK_B_RAW_BLOCKS.put(ore.id(), metalBlock(ore.rawBlockId()));
+        }
+    }
+
+    private static DeferredBlock<Block> trackBOreBlock(String name, MapColor mapColor) {
+        return BLOCKS.registerSimpleBlock(name, BlockBehaviour.Properties.of()
+                .mapColor(mapColor)
+                .strength(10.0F)
+                .sound(SoundType.STONE)
+                .requiresCorrectToolForDrops());
+    }
+
+    /** A Track B ore block by material id (e.g. {@code "cinderstone"}), or {@code null} if unknown. */
+    public static DeferredBlock<Block> trackBOre(String id) {
+        return TRACK_B_ORE_BLOCKS.get(id);
+    }
+
+    /** A Track B storage block by material id, or {@code null} if unknown. */
+    public static DeferredBlock<Block> trackBStorageBlock(String id) {
+        return TRACK_B_STORAGE_BLOCKS.get(id);
+    }
+
+    /** A Track B raw-storage block by material id, or {@code null} if unknown. */
+    public static DeferredBlock<Block> trackBRawBlock(String id) {
+        return TRACK_B_RAW_BLOCKS.get(id);
+    }
 
     // #233 -- firewood (docs/SCOPE.md M3.2). Upstream 1.12's BlockFirewood (NOTICE.md):
     // Material.WOOD, hardness 2, resistance 7, SoundType.WOOD, setLightLevel(0.5f) -- i.e. light 7

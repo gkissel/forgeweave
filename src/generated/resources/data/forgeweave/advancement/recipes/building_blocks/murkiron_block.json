@@ -1,0 +1,32 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_murkiron_ingot": {
+      "conditions": {
+        "items": [
+          {
+            "items": "forgeweave:murkiron_ingot"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "forgeweave:murkiron_block"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_the_recipe",
+      "has_murkiron_ingot"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "forgeweave:murkiron_block"
+    ]
+  }
+}

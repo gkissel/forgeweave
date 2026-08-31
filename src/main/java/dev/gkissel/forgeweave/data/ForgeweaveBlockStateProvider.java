@@ -23,6 +23,7 @@ import dev.gkissel.forgeweave.block.SearedChannelBlock;
 import dev.gkissel.forgeweave.block.SearedChannelBlock.ChannelConnection;
 import dev.gkissel.forgeweave.block.SearedChuteBlock;
 import dev.gkissel.forgeweave.block.SmelteryControllerBlock;
+import dev.gkissel.forgeweave.trackb.TrackBOre;
 
 /**
  * Blockstate and item model for the Part Builder (docs/SCOPE.md M1 issue #9), the Tool Station
@@ -308,6 +309,15 @@ public class ForgeweaveBlockStateProvider extends BlockStateProvider {
 
         cubeAllBlock("amethyst_bronze_block", ForgeweaveBlocks.AMETHYST_BRONZE_BLOCK.get());
 
+        // #839 -- Track B's ore family (M6 epic #824): plain cube_all geometry like the rest of this
+        // provider's ore/storage blocks, but from the standard textures/block/ folder -- original,
+        // procedurally-generated art (scripts/generate_track_b_ore_textures.py), not a derived sprite.
+        for (TrackBOre ore : TrackBOre.ALL) {
+            cubeAllBlockOriginal(ore.oreBlockId(), ForgeweaveBlocks.trackBOre(ore.id()).get());
+            cubeAllBlockOriginal(ore.storageBlockId(), ForgeweaveBlocks.trackBStorageBlock(ore.id()).get());
+            cubeAllBlockOriginal(ore.rawBlockId(), ForgeweaveBlocks.trackBRawBlock(ore.id()).get());
+        }
+
         // #275 -- clear glass (cutout, like seared glass above) and its 16 clear stained glass colors
         // (translucent, matching upstream's BlockClearStainedGlass#getBlockLayer -- see
         // cubeAllTranslucentBlock). Every color shares the one derived clear_stained_glass texture,
@@ -475,6 +485,16 @@ public class ForgeweaveBlockStateProvider extends BlockStateProvider {
 
     private void cubeAllBlock(String name, Block block) {
         ModelFile model = models().cubeAll(name, modLoc("derived/block/" + name));
+        simpleBlockWithItem(block, model);
+    }
+
+    /**
+     * A plain cube_all block textured from the standard (non-derived) {@code textures/block/}
+     * folder, for original Forgeweave art rather than an upstream-derived sprite -- e.g. Track B's
+     * ore family (issue #839), whose textures are procedurally generated, not ported.
+     */
+    private void cubeAllBlockOriginal(String name, Block block) {
+        ModelFile model = models().cubeAll(name, modLoc("block/" + name));
         simpleBlockWithItem(block, model);
     }
 

@@ -1,0 +1,32 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "forgeweave:warspar_ingot_from_warspar_block"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    },
+    "has_warspar_block": {
+      "conditions": {
+        "items": [
+          {
+            "items": "forgeweave:warspar_block"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    }
+  },
+  "requirements": [
+    [
+      "has_the_recipe",
+      "has_warspar_block"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "forgeweave:warspar_ingot_from_warspar_block"
+    ]
+  }
+}

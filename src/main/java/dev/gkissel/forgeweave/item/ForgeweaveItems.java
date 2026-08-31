@@ -28,6 +28,7 @@ import dev.gkissel.forgeweave.combat.ForgeweaveInnates;
 import dev.gkissel.forgeweave.entity.ForgeweaveEntities;
 import dev.gkissel.forgeweave.tool.AoeHarvest;
 import dev.gkissel.forgeweave.tool.ToolConstants;
+import dev.gkissel.forgeweave.trackb.TrackBOre;
 
 /**
  * The blank pattern, the five part patterns, the five part items, and the Part Builder block item
@@ -1040,6 +1041,52 @@ public final class ForgeweaveItems {
 
     // #232 -- knightslime's storage block item (docs/SCOPE.md M3.2).
     public static final DeferredItem<BlockItem> KNIGHTSLIME_BLOCK = ITEMS.registerSimpleBlockItem("knightslime_block", ForgeweaveBlocks.KNIGHTSLIME_BLOCK);
+
+    // #839 -- Track B's ore family (M6 epic #824). See dev.gkissel.forgeweave.trackb.TrackBOre for
+    // the 12-material roster. Six registrations per material, same shape as cobalt/ardite/manyullyn's
+    // own ingot/nugget/raw + ore-block-item/storage-block-item pattern above; no material.json exists
+    // yet (that is #841's deliverable), so these are plain items with no stat/trait linkage.
+    private static final Map<String, DeferredItem<Item>> TRACK_B_INGOTS = new LinkedHashMap<>();
+    private static final Map<String, DeferredItem<Item>> TRACK_B_NUGGETS = new LinkedHashMap<>();
+    private static final Map<String, DeferredItem<Item>> TRACK_B_RAW_ITEMS = new LinkedHashMap<>();
+    private static final Map<String, DeferredItem<BlockItem>> TRACK_B_ORE_ITEMS = new LinkedHashMap<>();
+    private static final Map<String, DeferredItem<BlockItem>> TRACK_B_STORAGE_BLOCK_ITEMS = new LinkedHashMap<>();
+    private static final Map<String, DeferredItem<BlockItem>> TRACK_B_RAW_BLOCK_ITEMS = new LinkedHashMap<>();
+
+    static {
+        for (TrackBOre ore : TrackBOre.ALL) {
+            TRACK_B_INGOTS.put(ore.id(), ITEMS.registerSimpleItem(ore.ingotId()));
+            TRACK_B_NUGGETS.put(ore.id(), ITEMS.registerSimpleItem(ore.nuggetId()));
+            TRACK_B_RAW_ITEMS.put(ore.id(), ITEMS.registerSimpleItem(ore.rawItemId()));
+            TRACK_B_ORE_ITEMS.put(ore.id(), ITEMS.registerSimpleBlockItem(ore.oreBlockId(), ForgeweaveBlocks.trackBOre(ore.id())));
+            TRACK_B_STORAGE_BLOCK_ITEMS.put(ore.id(), ITEMS.registerSimpleBlockItem(ore.storageBlockId(), ForgeweaveBlocks.trackBStorageBlock(ore.id())));
+            TRACK_B_RAW_BLOCK_ITEMS.put(ore.id(), ITEMS.registerSimpleBlockItem(ore.rawBlockId(), ForgeweaveBlocks.trackBRawBlock(ore.id())));
+        }
+    }
+
+    public static DeferredItem<Item> trackBIngot(String id) {
+        return TRACK_B_INGOTS.get(id);
+    }
+
+    public static DeferredItem<Item> trackBNugget(String id) {
+        return TRACK_B_NUGGETS.get(id);
+    }
+
+    public static DeferredItem<Item> trackBRawItem(String id) {
+        return TRACK_B_RAW_ITEMS.get(id);
+    }
+
+    public static DeferredItem<BlockItem> trackBOreItem(String id) {
+        return TRACK_B_ORE_ITEMS.get(id);
+    }
+
+    public static DeferredItem<BlockItem> trackBStorageBlockItem(String id) {
+        return TRACK_B_STORAGE_BLOCK_ITEMS.get(id);
+    }
+
+    public static DeferredItem<BlockItem> trackBRawBlockItem(String id) {
+        return TRACK_B_RAW_BLOCK_ITEMS.get(id);
+    }
 
     // #452 -- the slime boots (parity audit T21), upstream 1.12's `gadgets/item/ItemSlimeBoots`.
     // Wearable in the boots slot, no armour of their own; see SlimeBootsItem for the bounce.

@@ -25,6 +25,7 @@ import dev.gkissel.forgeweave.block.SearedDuctBlockEntity;
 import dev.gkissel.forgeweave.item.ForgeweaveItems;
 import dev.gkissel.forgeweave.item.PatternItem;
 import dev.gkissel.forgeweave.menu.ToolAssemblyRecipes;
+import dev.gkissel.forgeweave.trackb.TrackBOre;
 import net.neoforged.neoforge.registries.DeferredHolder;
 
 /**
@@ -121,6 +122,20 @@ public class ForgeweaveItemTagsProvider extends ItemTagsProvider {
         // #843 -- queen's slime and hepatizon storage blocks, item side (closes #180).
         tag("storage_blocks/queens_slime").add(ForgeweaveItems.QUEENS_SLIME_BLOCK.get());
         tag("storage_blocks/hepatizon").add(ForgeweaveItems.HEPATIZON_BLOCK.get());
+
+        // #839 -- Track B's ore family (M6 epic #824), item side of the same c: convention every
+        // other Forgeweave-only metal above already uses: ingot/nugget/raw_materials/ores/
+        // storage_blocks per material, plus a raw_<id> storage_blocks entry for the raw-storage block.
+        var trackBStorageBlocksItem = tag("storage_blocks");
+        for (TrackBOre ore : TrackBOre.ALL) {
+            tag("ingots/" + ore.id()).add(ForgeweaveItems.trackBIngot(ore.id()).get());
+            tag("nuggets/" + ore.id()).add(ForgeweaveItems.trackBNugget(ore.id()).get());
+            tag("raw_materials/" + ore.id()).add(ForgeweaveItems.trackBRawItem(ore.id()).get());
+            tag("ores/" + ore.id()).add(ForgeweaveItems.trackBOreItem(ore.id()).get());
+            tag("storage_blocks/" + ore.id()).add(ForgeweaveItems.trackBStorageBlockItem(ore.id()).get());
+            tag("storage_blocks/raw_" + ore.id()).add(ForgeweaveItems.trackBRawBlockItem(ore.id()).get());
+            trackBStorageBlocksItem.addTag(storageBlock(ore.id())).addTag(storageBlock("raw_" + ore.id()));
+        }
 
         // #152 -- the "large tool" classification: tools only the Tool Forge can assemble. See
         // ToolAssemblyRecipes#LARGE_TOOLS, which is the whole gate: a tool issue adds its row here and

@@ -1,0 +1,24 @@
+{
+  "feature": "forgeweave:starfall_stone_ore",
+  "placement": [
+    {
+      "type": "forgeweave:track_b_ore_rate",
+      "count": 1
+    },
+    {
+      "type": "minecraft:in_square"
+    },
+    {
+      "type": "minecraft:height_range",
+      "height": {
+        "type": "minecraft:uniform",
+        "min_inclusive": {
+          "absolute": 62
+        },
+        "max_inclusive": {
+          "absolute": 90
+        }
+      }
+    }
+  ]
+}

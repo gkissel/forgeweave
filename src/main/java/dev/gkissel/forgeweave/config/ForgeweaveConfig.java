@@ -199,6 +199,15 @@ public final class ForgeweaveConfig {
     /** Upstream {@code arditeRate}: approximate ardite veins per Nether chunk. */
     public static final ModConfigSpec.IntValue ARDITE_RATE;
 
+    /**
+     * Issue #839 (M6 epic #824, Track B): one grouped toggle for all twelve Track B ores
+     * ({@link dev.gkissel.forgeweave.trackb.TrackBOre#ALL}), following {@code genCobalt}/{@code
+     * genArdite}'s naming but -- per #839's own deliverable 3 -- one switch for the whole group
+     * rather than one per ore; each ore's own vein count is fixed in its placed-feature JSON instead
+     * of a per-ore config rate. See {@link dev.gkissel.forgeweave.worldgen.TrackBOrePlacement}.
+     */
+    public static final ModConfigSpec.BooleanValue GEN_TRACK_B_ORES;
+
     /** Upstream {@code generateSlimeIslands} (#449, parity audit T18). */
     public static final ModConfigSpec.BooleanValue GEN_SLIME_ISLANDS;
     /** Upstream {@code generateIslandsInSuperflat}. */
@@ -346,6 +355,12 @@ public final class ForgeweaveConfig {
         ARDITE_RATE = builder
                 .comment("Approximate ardite veins per Nether chunk.")
                 .defineInRange("arditeRate", 20, 0, 256);
+        // #839 -- M6 Track B's own ore family (epic #824): one grouped switch, not one per ore.
+        GEN_TRACK_B_ORES = builder
+                .comment("If true, Track B's self-contained ore ladder (cinderstone, fulmenite, duskspar, ",
+                        "voltcinder, murkiron, hardcinder, nightshale, warspar, hollowstone, resonite, ",
+                        "starfall_stone, voidglass) generates in the world.")
+                .define("genTrackBOres", true);
         // #449 (parity audit T18) and #450 (T19) -- upstream 1.12 Config's six slime island options,
         // verbatim names and defaults except the blacklist's dimension ids (see SlimeIslandStructure).
         GEN_SLIME_ISLANDS = builder

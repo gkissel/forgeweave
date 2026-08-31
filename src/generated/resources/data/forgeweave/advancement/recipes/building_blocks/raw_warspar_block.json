@@ -1,0 +1,32 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_raw_warspar": {
+      "conditions": {
+        "items": [
+          {
+            "items": "forgeweave:raw_warspar"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "forgeweave:raw_warspar_block"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_the_recipe",
+      "has_raw_warspar"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "forgeweave:raw_warspar_block"
+    ]
+  }
+}
