@@ -1,0 +1,39 @@
+{
+  "head": {
+    "durability": 820,
+    "mining_speed": 10.0,
+    "attack_damage": 4.5
+  },
+  "handle": {
+    "durability_modifier": 0.95,
+    "durability": 90
+  },
+  "extra_durability": 240,
+  "bow": {
+    "drawspeed": 0.5,
+    "range": 1.4,
+    "bonus_damage": 5.5
+  },
+  "plating": {
+    "helmet": { "durability": 558, "armor": 3.0, "toughness": 1.0, "knockback_resistance": 0.1 },
+    "chestplate": { "durability": 820, "armor": 8.0, "toughness": 1.0, "knockback_resistance": 0.1 },
+    "leggings": { "durability": 771, "armor": 6.0, "toughness": 1.0, "knockback_resistance": 0.1 },
+    "boots": { "durability": 656, "armor": 3.0, "toughness": 1.0, "knockback_resistance": 0.1 }
+  },
+  "maille": true,
+  "incorrect_for_tool": "minecraft:incorrect_for_netherite_tool",
+  "traits": {},
+  "crafting_items": [
+    { "ingredient": { "tag": "c:ingots/iesnium" }, "value": 144 },
+    { "ingredient": { "tag": "c:nuggets/iesnium" }, "value": 16 },
+    { "ingredient": { "tag": "c:storage_blocks/iesnium" }, "value": 1296 }
+  ],
+  "repair_item": {
+    "tag": "c:ingots/iesnium"
+  },
+  "enchantability": 10,
+  "color": "#5C3A21",
+  "neoforge:conditions": [
+    { "type": "neoforge:item_exists", "item": "occultism:iesnium_ingot" }
+  ]
+}

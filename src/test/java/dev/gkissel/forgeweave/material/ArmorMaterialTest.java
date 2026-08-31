@@ -48,7 +48,7 @@ import dev.gkissel.forgeweave.item.PartItem;
 class ArmorMaterialTest {
 
     /** D10: the 15 clone-derived plating materials plus ardite, netherite and nahuatl. */
-    private static final Set<String> PLATING = Stream.concat(
+    private static final Set<String> PLATING = Stream.of(
             Stream.of("iron", "copper", "cobalt", "manyullyn", "knightslime",
                     "pig_iron", "steel", "bronze", "lead", "silver", "electrum", "amethyst_bronze", "rose_gold",
                     "obsidian", "ancient", "ardite", "netherite", "nahuatl"),
@@ -56,7 +56,12 @@ class ArmorMaterialTest {
             // existing compat metals' precedent; graphite is a soft, brittle mineral with no plausible
             // armor use and is left off both this set and MAILLE below.
             Stream.of("tin", "aluminium", "nickel", "constantan", "invar", "platinum", "titanium",
-                    "tungsten", "iridium", "uranium"))
+                    "tungsten", "iridium", "uranium"),
+            // Issue #834 (M6 preset batch 2): every Mekanism/AE2/Occultism preset ships a full
+            // plating + maille block, same as the original four compat metals did.
+            Stream.of("osmium", "refined_obsidian", "refined_glowstone", "hdpe", "fluorite",
+                    "certus_quartz", "fluix", "sky_stone", "iesnium", "dragonyst"))
+            .flatMap(s -> s)
             .collect(java.util.stream.Collectors.toSet());
 
     /** D11: every plating material plus the five maille-only ones. */

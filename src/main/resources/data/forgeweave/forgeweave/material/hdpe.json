@@ -1,0 +1,39 @@
+{
+  "head": {
+    "durability": 85,
+    "mining_speed": 8.0,
+    "attack_damage": 2.0
+  },
+  "handle": {
+    "durability_modifier": 1.25,
+    "durability": 15
+  },
+  "extra_durability": 30,
+  "bow": {
+    "drawspeed": 1.3,
+    "range": 0.9,
+    "bonus_damage": 0.0
+  },
+  "plating": {
+    "helmet": { "durability": 58, "armor": 1.0 },
+    "chestplate": { "durability": 85, "armor": 3.0 },
+    "leggings": { "durability": 80, "armor": 2.0 },
+    "boots": { "durability": 68, "armor": 1.0 }
+  },
+  "maille": true,
+  "incorrect_for_tool": "minecraft:incorrect_for_wooden_tool",
+  "traits": {
+    "general": ["forgeweave:lightweight"]
+  },
+  "crafting_items": [
+    { "ingredient": { "tag": "c:rods/plastic" }, "value": 144 }
+  ],
+  "repair_item": {
+    "tag": "c:rods/plastic"
+  },
+  "enchantability": 10,
+  "color": "#EDE7D9",
+  "neoforge:conditions": [
+    { "type": "neoforge:item_exists", "item": "mekanism:hdpe_stick" }
+  ]
+}

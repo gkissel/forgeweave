@@ -1,0 +1,39 @@
+{
+  "head": {
+    "durability": 760,
+    "mining_speed": 9.0,
+    "attack_damage": 4.8
+  },
+  "handle": {
+    "durability_modifier": 0.9,
+    "durability": 70
+  },
+  "extra_durability": 200,
+  "bow": {
+    "drawspeed": 0.5,
+    "range": 1.3,
+    "bonus_damage": 5.0
+  },
+  "plating": {
+    "helmet": { "durability": 517, "armor": 3.0, "toughness": 1.0, "knockback_resistance": 0.1 },
+    "chestplate": { "durability": 760, "armor": 7.0, "toughness": 1.0, "knockback_resistance": 0.1 },
+    "leggings": { "durability": 714, "armor": 6.0, "toughness": 1.0, "knockback_resistance": 0.1 },
+    "boots": { "durability": 608, "armor": 3.0, "toughness": 1.0, "knockback_resistance": 0.1 }
+  },
+  "maille": true,
+  "incorrect_for_tool": "minecraft:incorrect_for_netherite_tool",
+  "traits": {
+    "general": ["forgeweave:kinetic_charge"]
+  },
+  "crafting_items": [
+    { "ingredient": { "tag": "c:dusts/dragonyst" }, "value": 36 }
+  ],
+  "repair_item": {
+    "tag": "c:dusts/dragonyst"
+  },
+  "enchantability": 14,
+  "color": "#7A2E8C",
+  "neoforge:conditions": [
+    { "type": "neoforge:item_exists", "item": "occultism:dragonyst_dust" }
+  ]
+}

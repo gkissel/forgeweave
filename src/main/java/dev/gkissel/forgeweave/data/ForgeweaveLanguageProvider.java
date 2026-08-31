@@ -997,6 +997,21 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("material.forgeweave.slimeleaf_orange", "Orange Slimeleaf");
         add("material.forgeweave.slimeleaf_purple", "Purple Slimeleaf");
 
+        // #834 (M6 preset batch 2): Mekanism, Applied Energistics 2 and Occultism, each
+        // existence-gated on its own mod (neoforge:conditions, issue #826). Names follow each
+        // provider's own item name. Refined Storage's quartz_enriched_iron/silicon are not shipped
+        // here -- see PresetBatch2GameTests' class javadoc for why.
+        add("material.forgeweave.osmium", "Osmium");
+        add("material.forgeweave.refined_obsidian", "Refined Obsidian");
+        add("material.forgeweave.refined_glowstone", "Refined Glowstone");
+        add("material.forgeweave.hdpe", "HDPE");
+        add("material.forgeweave.fluorite", "Fluorite");
+        add("material.forgeweave.certus_quartz", "Certus Quartz");
+        add("material.forgeweave.fluix", "Fluix");
+        add("material.forgeweave.sky_stone", "Sky Stone");
+        add("material.forgeweave.iesnium", "Iesnium");
+        add("material.forgeweave.dragonyst", "Dragonyst");
+
         // Trait names and descriptions, keyed by trait id like materials are by material id -- traits
         // are Java behavior selected by data (ADR-0002), so nothing derives these keys for us. The
         // tool info panel (issue #47) is what will display them; wording follows upstream 1.12's
