@@ -178,6 +178,37 @@ public class EntityMeltingGameTests {
         helper.succeed();
     }
 
+    /**
+     * #844 deliverable 1 ("generic overworld-mob blood melting"): a curated small-creature tier at
+     * less than the {@link EntityMeltingRecipe#DEFAULT_AMOUNT} fallback, so this fails if the group
+     * recipe is silently shadowed by the flat default. Decision recorded on issue #844: grouped by
+     * size only, matching the two existing calibration points (iron golem 18 mB, blaze 20 mB) rather
+     * than a hostile/passive split -- there is no upstream precedent for either axis (1.12's own
+     * {@code TileSmeltery} fallback makes no such distinction), so #844 does not introduce one.
+     */
+    @GameTest(template = "smeltery", timeoutTicks = 200)
+    public static void aSmallOverworldMobBleedsLessThanTheDefault(GameTestHelper helper) {
+        SmelteryControllerBlockEntity core = primedSmeltery(helper);
+        spawnInside(helper, EntityType.CHICKEN);
+
+        core.sweepInterior();
+
+        assertTankGained(helper, core, ForgeweaveFluids.BLOOD.still().get(), 10);
+        helper.succeed();
+    }
+
+    /** The other half of the size tier: a large creature bleeds more than the default. */
+    @GameTest(template = "smeltery", timeoutTicks = 200)
+    public static void aLargeOverworldMobBleedsMoreThanTheDefault(GameTestHelper helper) {
+        SmelteryControllerBlockEntity core = primedSmeltery(helper);
+        spawnInside(helper, EntityType.POLAR_BEAR);
+
+        core.sweepInterior();
+
+        assertTankGained(helper, core, ForgeweaveFluids.BLOOD.still().get(), 30);
+        helper.succeed();
+    }
+
     // ------------------------------------------------------------------ helpers
 
     /** {@link SmelteryMeltingGameTests}'s 1x1x2 lava-fuelled smeltery, still with an empty tank. */

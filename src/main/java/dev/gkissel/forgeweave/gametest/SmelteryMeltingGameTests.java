@@ -558,6 +558,20 @@ public class SmelteryMeltingGameTests {
         });
     }
 
+    /**
+     * #844 deliverable 4: bottled dragon's breath melts into {@link ForgeweaveFluids#DRAGON_BREATH},
+     * the fluid #845's End-core pour-to-transform mechanic pours over a Nether Core. No upstream
+     * counterpart in either clone (see the fluid's own javadoc); 250 mB is a maintainer pick with no
+     * downstream consumer inside #844's own scope -- #845 sets the actual pour-to-transform threshold.
+     */
+    @GameTest(template = "smeltery", timeoutTicks = 3200)
+    public static void dragonBreathMeltsIntoMoltenDragonBreath(GameTestHelper helper) {
+        SmelteryControllerBlockEntity core = lavaFuelledSmeltery(helper);
+        insert(helper, core, Items.DRAGON_BREATH);
+
+        helper.succeedWhen(() -> assertTankHolds(helper, core, ForgeweaveFluids.DRAGON_BREATH.still().get(), 250));
+    }
+
     // ------------------------------------------------------------------ helpers
 
     /** The 1x1x2 minimum smeltery of {@link SmelteryGameTests}, with a Standard Core and its one wall tank full of lava. */

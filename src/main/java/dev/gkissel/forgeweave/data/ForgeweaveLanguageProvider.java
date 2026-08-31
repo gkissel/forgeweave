@@ -1420,6 +1420,8 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         addFluid(ForgeweaveFluids.GLASS, "Molten Glass");
         addFluid(ForgeweaveFluids.BLAZING_BLOOD, "Blazing Blood");
         addFluid(ForgeweaveFluids.DEEP_BLOOD, "Deep Blood");
+        // #844 -- meltable dragon breath (issue #181), the fluid #845's End-core pour-to-transform pours.
+        addFluid(ForgeweaveFluids.DRAGON_BREATH, "Molten Dragon Breath");
 
         // #232 -- the knightslime alloy chain's three fluids (docs/SCOPE.md M3.2). Upstream calls
         // its seared stone fluid plainly "Seared Stone"; the molten_ prefix names follow this

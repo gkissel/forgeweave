@@ -1,0 +1,8 @@
+{
+  "entities": [
+    "minecraft:polar_bear",
+    "minecraft:ravager"
+  ],
+  "fluid": "forgeweave:blood",
+  "amount": 30
+}

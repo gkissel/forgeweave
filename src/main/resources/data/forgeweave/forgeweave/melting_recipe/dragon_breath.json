@@ -1,0 +1,7 @@
+{
+  "input": {
+    "item": "minecraft:dragon_breath"
+  },
+  "fluid": "forgeweave:molten_dragon_breath",
+  "amount": 250
+}
