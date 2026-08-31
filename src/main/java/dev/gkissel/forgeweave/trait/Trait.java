@@ -6,11 +6,13 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.RandomSource;
+import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.component.ItemAttributeModifiers;
+import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.block.state.BlockState;
 
 import dev.gkissel.forgeweave.combat.CombatDefense;
@@ -335,4 +337,19 @@ public interface Trait {
      * @param id a modifier id unique to this trait and slot, for the trait to reuse on each modifier
      */
     default void armorAttributes(ResourceLocation id, EquipmentSlot slot, ItemAttributeModifiers.Builder out) {}
+
+    // #829 -- the M6 utility/economy trait behavior library.
+
+    /**
+     * This trait's own right-click-on-a-block behavior ({@code fertilize_on_use}, issue #829),
+     * checked from {@code ToolItem#useOn}'s fallthrough -- after the tool-kind-scoped right-click
+     * behaviors (the scythe/kama's crop harvest, the shovel's path, the axe's strip), so a
+     * trait-driven interaction never shadows one of those, and only for tool kinds that have no
+     * dedicated behavior of their own. A tool with more than one such trait uses whichever comes
+     * first in {@code ForgeweaveTraits#of} order; any answer other than {@link InteractionResult#PASS}
+     * stops the search.
+     */
+    default InteractionResult useOnBlock(ItemStack stack, UseOnContext context) {
+        return InteractionResult.PASS;
+    }
 }

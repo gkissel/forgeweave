@@ -237,6 +237,17 @@ public final class AoeHarvest {
     }
 
     /**
+     * Breaks each position in {@code positions} in turn, exactly as {@link #onBlockBreak}'s own
+     * extra blocks do -- the durability, drop and Broken-tool accounting a second break loop would
+     * otherwise have to re-derive by hand. {@code cascading_break} ({@code CascadingBreak}, issue
+     * #829) is the one caller outside this class's own {@link #onBlockBreak}/{@link TreeChopTask}
+     * flow, reusing this rather than writing a third breaker as that issue asks.
+     */
+    public static void breakEach(ItemStack tool, ServerPlayer player, List<BlockPos> positions) {
+        breakAll(tool, player, positions);
+    }
+
+    /**
      * Breaks each position in turn, exactly as the player breaking one block by hand would. Stops
      * the moment the tool goes Broken, upstream's {@code TreeChopTask}'s own {@code isBroken} check.
      */
