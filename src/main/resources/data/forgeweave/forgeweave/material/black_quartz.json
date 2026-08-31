@@ -1,0 +1,40 @@
+{
+  "head": {
+    "durability": 200,
+    "mining_speed": 6.5,
+    "attack_damage": 3.0
+  },
+  "handle": {
+    "durability_modifier": 0.95,
+    "durability": 30
+  },
+  "extra_durability": 40,
+  "bow": {
+    "drawspeed": 0.6,
+    "range": 1.15,
+    "bonus_damage": 2.0
+  },
+  "plating": {
+    "helmet": { "durability": 162, "armor": 2.0 },
+    "chestplate": { "durability": 235, "armor": 5.0 },
+    "leggings": { "durability": 221, "armor": 4.0 },
+    "boots": { "durability": 191, "armor": 2.0 }
+  },
+  "maille": true,
+  "incorrect_for_tool": "minecraft:incorrect_for_iron_tool",
+  "traits": {
+    "general": ["forgeweave:pristine"]
+  },
+  "crafting_items": [
+    { "ingredient": { "tag": "c:gems/black_quartz" }, "value": 144 },
+    { "ingredient": { "tag": "c:storage_blocks/black_quartz" }, "value": 1296 }
+  ],
+  "repair_item": {
+    "tag": "c:gems/black_quartz"
+  },
+  "enchantability": 12,
+  "color": "#2B2B2E",
+  "neoforge:conditions": [
+    { "type": "neoforge:item_exists", "item": "actuallyadditions:black_quartz" }
+  ]
+}

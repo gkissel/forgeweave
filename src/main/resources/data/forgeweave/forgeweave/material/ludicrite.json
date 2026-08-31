@@ -1,0 +1,38 @@
+{
+  "head": {
+    "durability": 900,
+    "mining_speed": 6.0,
+    "attack_damage": 6.5
+  },
+  "handle": {
+    "durability_modifier": 1.05,
+    "durability": 110
+  },
+  "extra_durability": 220,
+  "bow": {
+    "drawspeed": 0.4,
+    "range": 1.6,
+    "bonus_damage": 6.5
+  },
+  "plating": {
+    "helmet": { "durability": 349, "armor": 3.0, "toughness": 3.0, "knockback_resistance": 0.1 },
+    "chestplate": { "durability": 507, "armor": 8.0, "toughness": 3.0, "knockback_resistance": 0.1 },
+    "leggings": { "durability": 476, "armor": 6.0, "toughness": 3.0, "knockback_resistance": 0.1 },
+    "boots": { "durability": 412, "armor": 3.0, "toughness": 3.0, "knockback_resistance": 0.1 }
+  },
+  "maille": true,
+  "incorrect_for_tool": "minecraft:incorrect_for_netherite_tool",
+  "traits": {},
+  "crafting_items": [
+    { "ingredient": { "tag": "c:ingots/ludicrite" }, "value": 144 },
+    { "ingredient": { "tag": "c:storage_blocks/ludicrite" }, "value": 1296 }
+  ],
+  "repair_item": {
+    "tag": "c:ingots/ludicrite"
+  },
+  "enchantability": 15,
+  "color": "#E066CC",
+  "neoforge:conditions": [
+    { "type": "neoforge:item_exists", "item": "bigreactors:ludicrite_ingot" }
+  ]
+}

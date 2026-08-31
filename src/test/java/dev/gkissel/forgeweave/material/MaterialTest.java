@@ -157,7 +157,12 @@ class MaterialTest {
             "soularium", "dark_steel", "end_steel",
             // #836 M6 Track A batch 4: the Draconic Evolution pair (the endgame tier's only shippable
             // materials -- ProjectE and Avaritia ship no c: tags at all, see MaterialTest javadoc below).
-            "draconium", "draconium_awakened" })
+            "draconium", "draconium_awakened",
+            // #837 M6 Track A batch 5: gem/crystal tier -- Actually Additions, Psi, Powah, Industrial
+            // Foregoing, Extreme Reactors (yellorium skipped, see PresetBatch5GameTests).
+            "black_quartz", "restonia_crystal", "palis_crystal", "diamatine_crystal", "void_crystal",
+            "emeradic_crystal", "enori_crystal", "uraninite", "psimetal", "psigem", "ivory_psimetal",
+            "ebony_psimetal", "pink_slime", "cyanite", "blutonium", "ludicrite" })
     void shippedMaterialsParse(String name) {
         Material.CODEC.parse(ops, shipped(name)).getOrThrow();
     }
@@ -184,7 +189,12 @@ class MaterialTest {
             "soularium", "dark_steel", "end_steel",
             // #836 M6 Track A batch 4: single item_exists each, verified against Draconic Evolution's
             // own 3.1.4.632 jar (DraconicEvolutionGameTests).
-            "draconium", "draconium_awakened" })
+            "draconium", "draconium_awakened",
+            // #837 M6 Track A batch 5: single item_exists each, verified against each mod's own
+            // 1.21.1 tree (PresetBatch5GameTests).
+            "black_quartz", "restonia_crystal", "palis_crystal", "diamatine_crystal", "void_crystal",
+            "emeradic_crystal", "enori_crystal", "uraninite", "psimetal", "psigem", "ivory_psimetal",
+            "ebony_psimetal", "pink_slime", "cyanite", "blutonium", "ludicrite" })
     void conditionalMaterialsCarryAWellFormedConditionsBlockAndStillParse(String name) {
         JsonObject json = shipped(name).getAsJsonObject();
         assertTrue(json.has("neoforge:conditions"), name + " must carry a neoforge:conditions block (issue #826)");
@@ -258,7 +268,20 @@ class MaterialTest {
             "draconium,netherite", "draconium_awakened,netherite",
             // issue #843 (closes #180): the 1.20-branch material gap's five by-name additions.
             "seared_stone,iron", "necrotic_bone,iron", "slimewood,iron",
-            "queens_slime,netherite", "hepatizon,netherite"
+            "queens_slime,netherite", "hepatizon,netherite",
+            // #837 M6 Track A batch 5: no upstream counterpart, so tiers here are Forgeweave's own
+            // placement (proposed on the PR) -- black quartz is the common/low crystal (iron), the six
+            // coloured Actually Additions crystals and Psi's base psimetal/uraninite/pink slime sit at
+            // iron or diamond depending on rarity, Psi's refined ivory/ebony variants and Extreme
+            // Reactors' cyanite/blutonium at diamond, and ludicrite -- its endgame reactor casing --
+            // at netherite.
+            "black_quartz,iron",
+            "restonia_crystal,diamond", "palis_crystal,diamond", "diamatine_crystal,diamond",
+            "void_crystal,diamond", "emeradic_crystal,diamond", "enori_crystal,diamond",
+            "uraninite,diamond",
+            "psimetal,iron", "psigem,diamond", "ivory_psimetal,diamond", "ebony_psimetal,diamond",
+            "pink_slime,diamond",
+            "cyanite,diamond", "blutonium,diamond", "ludicrite,netherite"
     })
     void shippedMaterialsSitOnUpstreamsHarvestTier(String name, String tier) {
         Material material = Material.CODEC.parse(ops, shipped(name)).getOrThrow();
@@ -641,7 +664,12 @@ class MaterialTest {
             // item-based route the audit found already sourceable -- seared stone additionally sets
             // <em>both</em> upstream flags like obsidian/knightslime (full smeltery casting too), and
             // necrotic bone has no smeltery integration at all, same shape as bone.
-            "seared_stone", "necrotic_bone" })
+            "seared_stone", "necrotic_bone",
+            // #837 M6 Track A batch 5: same JC3 Part-Builder-only rule, no Forgeweave fluid or casting
+            // recipe at all.
+            "black_quartz", "restonia_crystal", "palis_crystal", "diamatine_crystal", "void_crystal",
+            "emeradic_crystal", "enori_crystal", "uraninite", "psimetal", "psigem", "ivory_psimetal",
+            "ebony_psimetal", "pink_slime", "cyanite", "blutonium", "ludicrite" })
     void craftableMaterialsStayCraftable(String name) {
         assertFalse(Material.CODEC.parse(ops, shipped(name)).getOrThrow().castOnly(),
                 name + " must stay Part Builder craftable");
@@ -767,6 +795,58 @@ class MaterialTest {
             assertTrue(Files.notExists(materialDir.resolve(name + ".json")),
                     name + ".json must not be shipped -- ProjectE/Avaritia ship no c: tag for it (issue #836)");
         }
+    }
+
+    /**
+     * Issue #837's design note: the parity target gives Actually Additions' black quartz plus its six
+     * coloured crystals one shared damage-scaling trait (reused as {@code forgeweave:pristine}, #827's
+     * {@code damage_scales_with(REMAINING_DURABILITY)} instance) rather than seven bespoke traits --
+     * "the clearest demonstration in the whole milestone that ADR-0004's library was the right call."
+     * This pins that reuse down so it cannot silently drift into seven separate ids.
+     */
+    @ParameterizedTest
+    @ValueSource(strings = { "black_quartz", "restonia_crystal", "palis_crystal", "diamatine_crystal",
+            "void_crystal", "emeradic_crystal", "enori_crystal" })
+    void actuallyAdditionsMaterialsShareTheSamePristineTrait(String name) {
+        Material material = Material.CODEC.parse(ops, shipped(name)).getOrThrow();
+        ResourceLocation pristine = ResourceLocation.fromNamespaceAndPath("forgeweave", "pristine");
+
+        assertTrue(material.traits().general().contains(pristine),
+                name + " must carry the shared forgeweave:pristine trait (issue #837)");
+    }
+
+    /**
+     * Issue #837's schema trap, the same one #834's Refined Storage decision hit: Powah ships no
+     * {@code c:ingots/*}/{@code c:gems/*} subtag for {@code steel_energized} or its four crystals
+     * ({@code crystal_blazing}/{@code crystal_niotic}/{@code crystal_nitro}/{@code crystal_spirited}) --
+     * only the flat parent {@code c:ingots}/{@code c:gems} tags, verified against Powah's own
+     * {@code v6.2.10} tree. A concrete id in {@code crafting_items}/{@code repair_item} fails {@link
+     * Material#CODEC}'s mod-less parse the same way Refined Storage's did, so these five are skipped
+     * entirely rather than shipped keyed on an item id -- this guards the skip from silently
+     * regressing, since a wrong id here would not crash, it would just parse into a broken material.
+     */
+    @Test
+    void noShippedMaterialConditionsOnPowahsUntaggedEnergisedSteelOrCrystals() throws Exception {
+        Path materialDir = projectRoot().resolve("src/main/resources/data/forgeweave/forgeweave/material");
+        List<String> offenders = new java.util.ArrayList<>();
+        List<String> untaggedPowahIds = List.of("powah:steel_energized", "powah:crystal_blazing",
+                "powah:crystal_niotic", "powah:crystal_nitro", "powah:crystal_spirited");
+
+        try (Stream<Path> files = Files.list(materialDir)) {
+            for (Path file : files.filter(p -> p.toString().endsWith(".json")).sorted().toList()) {
+                String raw = Files.readString(file, StandardCharsets.UTF_8);
+                for (String id : untaggedPowahIds) {
+                    if (raw.contains(id)) {
+                        offenders.add(file.getFileName().toString() + " references " + id);
+                    }
+                }
+            }
+        }
+
+        assertTrue(offenders.isEmpty(),
+                "these shipped materials reference Powah's untagged energised_steel/crystal ids, which "
+                        + "cannot back crafting_items/repair_item without breaking this test suite's "
+                        + "mod-less parse (issue #837): " + offenders);
     }
 
     private static Path projectRoot() {

@@ -66,8 +66,15 @@ class MaterialSyncSizeTest {
      * <p>Batches 3 (#835, Ender IO), and #843 (closes #180, the 1.20-branch material gap's five
      * by-name additions) landed the same way: the combined 80-material roster measures 54,283 bytes,
      * still under the 64 KB line with room for the remaining M6 batches before another revisit is due.
+     *
+     * <p>Batches 4 (#836, Draconic Evolution) and 5 (#837, the gem/crystal tier) landed on top of each
+     * other and finally tripped the 64 KB line: the combined 98-material roster measures 67,090 bytes.
+     * That's the last of the Track A preset batches (#833-#837), so this is a real, expected step
+     * rather than a runaway field -- raised to 96 KB, ~1.46x the newly-measured payload, enough
+     * headroom for Track B's self-contained ladder (~30 more materials, #838-#841) before another
+     * revisit is due.
      */
-    private static final int SYNC_BUDGET_BYTES = 64 * 1024;
+    private static final int SYNC_BUDGET_BYTES = 96 * 1024;
 
     private static RegistryOps<JsonElement> jsonOps;
     private static RegistryOps<Tag> nbtOps;

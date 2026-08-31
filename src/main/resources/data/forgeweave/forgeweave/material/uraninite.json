@@ -1,0 +1,38 @@
+{
+  "head": {
+    "durability": 420,
+    "mining_speed": 5.0,
+    "attack_damage": 4.0
+  },
+  "handle": {
+    "durability_modifier": 1.05,
+    "durability": 45
+  },
+  "extra_durability": 90,
+  "bow": {
+    "drawspeed": 0.55,
+    "range": 1.2,
+    "bonus_damage": 3.0
+  },
+  "plating": {
+    "helmet": { "durability": 285, "armor": 2.0 },
+    "chestplate": { "durability": 420, "armor": 5.0 },
+    "leggings": { "durability": 394, "armor": 4.0 },
+    "boots": { "durability": 336, "armor": 2.0 }
+  },
+  "maille": true,
+  "incorrect_for_tool": "minecraft:incorrect_for_diamond_tool",
+  "traits": {},
+  "crafting_items": [
+    { "ingredient": { "tag": "c:raw_materials/uraninite" }, "value": 144 },
+    { "ingredient": { "tag": "c:storage_blocks/uraninite" }, "value": 1296 }
+  ],
+  "repair_item": {
+    "tag": "c:raw_materials/uraninite"
+  },
+  "enchantability": 12,
+  "color": "#7FA83B",
+  "neoforge:conditions": [
+    { "type": "neoforge:item_exists", "item": "powah:uraninite_raw" }
+  ]
+}

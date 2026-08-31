@@ -1,0 +1,39 @@
+{
+  "head": {
+    "durability": 400,
+    "mining_speed": 6.0,
+    "attack_damage": 4.2
+  },
+  "handle": {
+    "durability_modifier": 1.0,
+    "durability": 40
+  },
+  "extra_durability": 70,
+  "bow": {
+    "drawspeed": 0.65,
+    "range": 1.15,
+    "bonus_damage": 3.0
+  },
+  "plating": {
+    "helmet": { "durability": 272, "armor": 2.0 },
+    "chestplate": { "durability": 400, "armor": 5.0 },
+    "leggings": { "durability": 376, "armor": 4.0 },
+    "boots": { "durability": 320, "armor": 2.0 }
+  },
+  "maille": true,
+  "incorrect_for_tool": "minecraft:incorrect_for_diamond_tool",
+  "traits": {
+    "general": ["forgeweave:slimey_green"]
+  },
+  "crafting_items": [
+    { "ingredient": { "tag": "c:ingots/pink_slime" }, "value": 144 }
+  ],
+  "repair_item": {
+    "tag": "c:ingots/pink_slime"
+  },
+  "enchantability": 13,
+  "color": "#F49AC1",
+  "neoforge:conditions": [
+    { "type": "neoforge:item_exists", "item": "industrialforegoing:pink_slime_ingot" }
+  ]
+}

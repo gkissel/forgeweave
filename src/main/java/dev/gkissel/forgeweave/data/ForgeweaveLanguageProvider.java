@@ -1003,6 +1003,28 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("material.forgeweave.hepatizon", "Hepatizon");
         add("material.forgeweave.slimewood", "Slimewood");
 
+        // #837 -- M6 Track A batch 5: the gem/crystal tier. Actually Additions' black quartz plus its
+        // six coloured crystals (storage-block-tagged only -- see PresetBatch5GameTests), Psi's four
+        // metal/gem family, Powah's uraninite, Industrial Foregoing's pink slime, and three of Extreme
+        // Reactors' four ingots (yellorium is skipped: it shares bigreactors:yellorium_ingot with the
+        // already-shipped uranium material's neoforge:or condition, see #833's uranium.json).
+        add("material.forgeweave.black_quartz", "Black Quartz");
+        add("material.forgeweave.restonia_crystal", "Restonia Crystal");
+        add("material.forgeweave.palis_crystal", "Palis Crystal");
+        add("material.forgeweave.diamatine_crystal", "Diamatine Crystal");
+        add("material.forgeweave.void_crystal", "Void Crystal");
+        add("material.forgeweave.emeradic_crystal", "Emeradic Crystal");
+        add("material.forgeweave.enori_crystal", "Enori Crystal");
+        add("material.forgeweave.uraninite", "Uraninite");
+        add("material.forgeweave.psimetal", "Psimetal");
+        add("material.forgeweave.psigem", "Psigem");
+        add("material.forgeweave.ivory_psimetal", "Ivory Psimetal");
+        add("material.forgeweave.ebony_psimetal", "Ebony Psimetal");
+        add("material.forgeweave.pink_slime", "Pink Slime");
+        add("material.forgeweave.cyanite", "Cyanite");
+        add("material.forgeweave.blutonium", "Blutonium");
+        add("material.forgeweave.ludicrite", "Ludicrite");
+
         // #392 -- the two bowstring materials (docs/SCOPE.md M3.5). Names are upstream 1.12's
         // material.string.name / material.vine.name. Neither carries any tool stat block, so they
         // only ever surface on a bow string.

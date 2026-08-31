@@ -72,7 +72,13 @@ class ArmorMaterialTest {
             // #836 M6 Track A batch 4: the Draconic Evolution pair, same full plating + maille shape.
             Stream.of("draconium", "draconium_awakened"),
             // issue #843 (closes #180): the 1.20-branch material gap's three plating materials.
-            Stream.of("seared_stone", "queens_slime", "hepatizon"))
+            Stream.of("seared_stone", "queens_slime", "hepatizon"),
+            // #837 M6 Track A batch 5: every gem/crystal tier material ships a full plating + maille
+            // block, same as the earlier preset batches' precedent (JC3 has no bearing on armor).
+            Stream.of("black_quartz", "restonia_crystal", "palis_crystal", "diamatine_crystal",
+                    "void_crystal", "emeradic_crystal", "enori_crystal", "uraninite", "psimetal",
+                    "psigem", "ivory_psimetal", "ebony_psimetal", "pink_slime", "cyanite", "blutonium",
+                    "ludicrite"))
             .flatMap(java.util.function.Function.identity())
             .collect(java.util.stream.Collectors.toSet());
 

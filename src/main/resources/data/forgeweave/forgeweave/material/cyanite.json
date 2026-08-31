@@ -1,0 +1,38 @@
+{
+  "head": {
+    "durability": 370,
+    "mining_speed": 5.5,
+    "attack_damage": 4.4
+  },
+  "handle": {
+    "durability_modifier": 1.05,
+    "durability": 40
+  },
+  "extra_durability": 70,
+  "bow": {
+    "drawspeed": 0.5,
+    "range": 1.3,
+    "bonus_damage": 3.6
+  },
+  "plating": {
+    "helmet": { "durability": 251, "armor": 2.0 },
+    "chestplate": { "durability": 370, "armor": 5.0 },
+    "leggings": { "durability": 347, "armor": 4.0 },
+    "boots": { "durability": 296, "armor": 2.0 }
+  },
+  "maille": true,
+  "incorrect_for_tool": "minecraft:incorrect_for_diamond_tool",
+  "traits": {},
+  "crafting_items": [
+    { "ingredient": { "tag": "c:ingots/cyanite" }, "value": 144 },
+    { "ingredient": { "tag": "c:storage_blocks/cyanite" }, "value": 1296 }
+  ],
+  "repair_item": {
+    "tag": "c:ingots/cyanite"
+  },
+  "enchantability": 13,
+  "color": "#1B1F3B",
+  "neoforge:conditions": [
+    { "type": "neoforge:item_exists", "item": "bigreactors:cyanite_ingot" }
+  ]
+}
