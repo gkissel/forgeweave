@@ -23,7 +23,7 @@
   "maille": true,
   "incorrect_for_tool": "forgeweave:incorrect_for_hardcinder_tool",
   "traits": {
-    "general": ["forgeweave:insatiable"]
+    "general": ["forgeweave:nocturnal_edge"]
   },
   "crafting_items": [
     { "ingredient": { "item": "forgeweave:nightshale_ingot" }, "value": 144 },

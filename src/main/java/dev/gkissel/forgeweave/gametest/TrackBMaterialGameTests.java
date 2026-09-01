@@ -50,38 +50,45 @@ public class TrackBMaterialGameTests {
             "dreadalloy", "sunsteel", "hollowsteel", "truesteel", "stormalloy", "glowveil", "daybrass",
             "faultsteel", "skipalloy", "mendalloy", "mendstone");
 
-    /** id -&gt; its assigned general trait, the PR body's stat/trait table in code form. */
+    /**
+     * id -&gt; its assigned general trait, the PR body's stat/trait table in code form.
+     *
+     * <p>Issue #876's M6 dedupe batch moved 20 of these off the id this table originally shipped
+     * (several Track B materials shared a trait id with another Track B material or with a base/Track
+     * A material) -- see that issue's PR body for the full before/after roster; each row below still
+     * documents its own material's identity, just under its new, unshared id.
+     */
     private static final Map<String, String> TRAITS = Map.ofEntries(
-            Map.entry("cinderstone", "petramor"),
-            Map.entry("fulmenite", "shocking"),
+            Map.entry("cinderstone", "wellspring"),
+            Map.entry("fulmenite", "unstable_core"),
             Map.entry("duskspar", "duskmend"),
-            Map.entry("voltcinder", "established"),
+            Map.entry("voltcinder", "overburdened"),
             Map.entry("murkiron", "blighted"),
-            Map.entry("hardcinder", "established"),
-            Map.entry("nightshale", "insatiable"),
-            Map.entry("warspar", "escalating"),
+            Map.entry("hardcinder", "emberwake"),
+            Map.entry("nightshale", "nocturnal_edge"),
+            Map.entry("warspar", "warbond"),
             Map.entry("hollowstone", "fertilizing"),
             Map.entry("resonite", "dominant"),
-            Map.entry("starfall_stone", "crumbling"),
-            Map.entry("voidglass", "alien"),
-            Map.entry("ironbrand", "baconlicious"),
-            Map.entry("quakestone", "cascading"),
-            Map.entry("shardline", "cascading"),
-            Map.entry("embercast", "duskmend"),
+            Map.entry("starfall_stone", "obliterate"),
+            Map.entry("voidglass", "unraveling2"),
+            Map.entry("ironbrand", "smokehouse"),
+            Map.entry("quakestone", "stonewake"),
+            Map.entry("shardline", "keenedge"),
+            Map.entry("embercast", "ashenbond"),
             Map.entry("riftalloy", "unraveling3"),
-            Map.entry("tideiron", "aquadynamic"),
-            Map.entry("cinderforge", "superheat"),
-            Map.entry("dreadalloy", "shackling"),
-            Map.entry("sunsteel", "crumbling"),
+            Map.entry("tideiron", "tidebreaker"),
+            Map.entry("cinderforge", "magmaforge"),
+            Map.entry("dreadalloy", "obsidian_heart"),
+            Map.entry("sunsteel", "avalanche"),
             Map.entry("hollowsteel", "ruthless"),
-            Map.entry("truesteel", "surging2"),
+            Map.entry("truesteel", "berserker_stance"),
             Map.entry("stormalloy", "unraveling"),
-            Map.entry("glowveil", "alien"),
-            Map.entry("daybrass", "sunmend"),
+            Map.entry("glowveil", "fallout"),
+            Map.entry("daybrass", "daybound"),
             Map.entry("faultsteel", "cascading"),
             Map.entry("skipalloy", "quickstep"),
             Map.entry("mendalloy", "merciful"),
-            Map.entry("mendstone", "petramor"));
+            Map.entry("mendstone", "tinseeker"));
 
     /** Every Track B material is registered with no supplying mod required -- the Track A contrast. */
     @GameTest(template = "empty")

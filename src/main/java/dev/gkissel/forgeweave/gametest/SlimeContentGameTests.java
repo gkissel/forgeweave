@@ -239,8 +239,10 @@ public class SlimeContentGameTests {
         ItemStack pickaxe = ToolAssembly.pickaxe(helper, player, new BlockPos(1, 1, 1),
                 "knightslime", "knightslime", "knightslime");
 
-        helper.assertTrue(traits(pickaxe).contains(trait("crumbling")),
-                "a knightslime head must carry crumbling, got " + traits(pickaxe));
+        // Issue #876 M6 dedupe batch: knightslime's head moved off the shared crumbling to its own
+        // brittleforce id (amethyst_bronze keeps crumbling -- ModernMaterialGameTests).
+        helper.assertTrue(traits(pickaxe).contains(trait("brittleforce")),
+                "a knightslime head must carry brittleforce, got " + traits(pickaxe));
         helper.assertTrue(traits(pickaxe).contains(trait("unnatural")),
                 "knightslime binding/handle parts must carry unnatural, got " + traits(pickaxe));
         helper.succeed();

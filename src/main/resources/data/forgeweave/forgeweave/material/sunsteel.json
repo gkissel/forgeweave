@@ -23,7 +23,7 @@
   "maille": true,
   "incorrect_for_tool": "forgeweave:incorrect_for_resonite_tool",
   "traits": {
-    "general": ["forgeweave:crumbling"]
+    "general": ["forgeweave:avalanche"]
   },
   "crafting_items": [
     { "ingredient": { "item": "forgeweave:sunsteel_ingot" }, "value": 144 },

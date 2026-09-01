@@ -59,7 +59,21 @@ public enum HitCondition {
      * the blow has no attacker to read (a projectile, a mob's own attack), the same no-attacker
      * default {@link #BELOW_WIELDER_HEALTH} uses.
      */
-    WIELDER_FULL_HEALTH;
+    WIELDER_FULL_HEALTH,
+    /**
+     * It is nighttime in the world the blow lands in -- {@code nocturnal_edge}'s gate (issue #876 M6
+     * dedupe batch, #841 gap 5's day/night combat swing).
+     */
+    NIGHT,
+    /** The mirror of {@link #NIGHT} -- {@code nocturnal_edge}'s daytime penalty half. */
+    DAY,
+    /**
+     * The <em>attacker</em> is sneaking -- {@code berserker_stance}'s gate (issue #876, #841 gap 13:
+     * the closest lightweight analog of a player-activatable stance this library ships, "activate" by
+     * holding crouch through the swing rather than a persistent toggle with its own state). {@code
+     * false} when the blow has no attacker to read, same as {@link #BELOW_WIELDER_HEALTH}.
+     */
+    WIELDER_SNEAKING;
 
     /**
      * Evaluated before the blow's damage is applied for {@link CombatSeam#preHit}, and immediately
@@ -79,6 +93,9 @@ public enum HitCondition {
                     .anyMatch(effect -> effect.getEffect().value().getCategory() == MobEffectCategory.HARMFUL);
             case FULL_CHARGE -> hit.isFullCharge();
             case WIELDER_FULL_HEALTH -> hit.attacker() != null && hit.attacker().getHealth() >= hit.attacker().getMaxHealth();
+            case NIGHT -> hit.level().isNight();
+            case DAY -> hit.level().isDay();
+            case WIELDER_SNEAKING -> hit.attacker() != null && hit.attacker().isShiftKeyDown();
         };
     }
 }

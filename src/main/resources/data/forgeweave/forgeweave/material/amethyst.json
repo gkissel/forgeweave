@@ -23,7 +23,7 @@
   "maille": true,
   "incorrect_for_tool": "minecraft:incorrect_for_diamond_tool",
   "traits": {
-    "general": ["forgeweave:warded"]
+    "general": ["forgeweave:prismward"]
   },
   "crafting_items": [
     { "ingredient": { "tag": "c:gems/amethyst" }, "value": 100 }

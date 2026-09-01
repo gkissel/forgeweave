@@ -352,4 +352,17 @@ public interface Trait {
     default InteractionResult useOnBlock(ItemStack stack, UseOnContext context) {
         return InteractionResult.PASS;
     }
+
+    // #876 -- M6 dedupe batch.
+
+    /**
+     * The chance, 0..1, that a block this tool just mined drops nothing at all -- {@code obliterate}
+     * (#841 gap 7). Read from {@link ForgeweaveTraits#onBlockBreakExperience}, the same {@code
+     * BlockDropsEvent} seam {@link #blockBreakExperience} already rides, so a mined block's XP and its
+     * item drops are decided by the same listener. A tool with more than one such trait uses the
+     * highest chance offered rather than rolling once per trait.
+     */
+    default float dropDestroyChance() {
+        return 0.0F;
+    }
 }

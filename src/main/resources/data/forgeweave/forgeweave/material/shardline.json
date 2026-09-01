@@ -23,7 +23,7 @@
   "maille": true,
   "incorrect_for_tool": "minecraft:incorrect_for_diamond_tool",
   "traits": {
-    "general": ["forgeweave:cascading"]
+    "general": ["forgeweave:keenedge"]
   },
   "crafting_items": [
     { "ingredient": { "item": "forgeweave:shardline_ingot" }, "value": 144 },

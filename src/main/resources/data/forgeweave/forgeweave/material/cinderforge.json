@@ -23,7 +23,7 @@
   "maille": true,
   "incorrect_for_tool": "minecraft:incorrect_for_netherite_tool",
   "traits": {
-    "general": ["forgeweave:superheat"]
+    "general": ["forgeweave:magmaforge"]
   },
   "crafting_items": [
     { "ingredient": { "item": "forgeweave:cinderforge_ingot" }, "value": 144 },

@@ -23,7 +23,7 @@
   "maille": true,
   "incorrect_for_tool": "minecraft:incorrect_for_diamond_tool",
   "traits": {
-    "general": ["forgeweave:shocking"]
+    "general": ["forgeweave:unstable_core"]
   },
   "crafting_items": [
     { "ingredient": { "item": "forgeweave:fulmenite_ingot" }, "value": 144 },

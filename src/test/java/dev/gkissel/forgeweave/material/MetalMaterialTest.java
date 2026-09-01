@@ -106,7 +106,9 @@ class MetalMaterialTest {
         assertEquals(Optional.of(new Material.Handle(0.9f, 100)), cobalt.handle());
         assertEquals(Optional.of(300), cobalt.extraDurability());
         assertEquals(List.of(id("lightweight")), cobalt.traits().general());
-        assertEquals(List.of(id("momentum")), cobalt.traits().head());
+        // Issue #876 M6 dedupe batch: cobalt's head trait moved off the shared momentum to its own
+        // voidwoven id (hepatizon keeps momentum).
+        assertEquals(List.of(id("voidwoven")), cobalt.traits().head());
     }
 
     // new HeadMaterialStats(990, 3.50f, 3.60f, COBALT), new HandleMaterialStats(1.40f, -200), new

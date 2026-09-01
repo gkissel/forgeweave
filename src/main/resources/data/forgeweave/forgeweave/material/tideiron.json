@@ -23,7 +23,7 @@
   "maille": true,
   "incorrect_for_tool": "minecraft:incorrect_for_netherite_tool",
   "traits": {
-    "general": ["forgeweave:aquadynamic"]
+    "general": ["forgeweave:tidebreaker"]
   },
   "crafting_items": [
     { "ingredient": { "item": "forgeweave:tideiron_ingot" }, "value": 144 },
