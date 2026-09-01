@@ -48,7 +48,9 @@ import dev.gkissel.forgeweave.menu.ToolAssemblyRecipes;
 import dev.gkissel.forgeweave.modifier.EmbossingRecipe;
 import dev.gkissel.forgeweave.modifier.ModifierRecipe;
 import dev.gkissel.forgeweave.recipe.AlloyRecipe;
+import dev.gkissel.forgeweave.recipe.CoreTransformRecipe;
 import dev.gkissel.forgeweave.recipe.MeltingRecipe;
+import dev.gkissel.forgeweave.recipe.SmelteryFuel;
 
 /**
  * JEI integration (docs/SCOPE.md M1 issue #11): three display-only recipe categories -- part
@@ -175,7 +177,11 @@ public final class ForgeweaveJeiPlugin implements IModPlugin {
                 new CastingBasinCategory(helper),
                 new ModifierApplicationCategory(helper),
                 // #165: embossing (issue #154's mechanic), the repair tab's fourth recipe.
-                new EmbossingCategory(helper));
+                new EmbossingCategory(helper),
+                // #890: smeltery fuel (what the smeltery burns and at what rate) and pour-to-transform
+                // (#845's core_transform_recipe) -- both previously invisible in JEI.
+                new SmelteryFuelCategory(helper),
+                new CoreTransformCategory(helper));
     }
 
     /**
@@ -259,6 +265,15 @@ public final class ForgeweaveJeiPlugin implements IModPlugin {
                 ? EmbossingRecipes.build(currentEmbossingRecipes(), materials)
                 : List.of());
 
+        // #890: smeltery fuel and pour-to-transform ride the same smeltery gate as the other four
+        // smeltery categories above -- both are smeltery-only mechanics (SmelteryFuel#find and
+        // CoreTransformRecipe#find both check ForgeweaveConfig#SMELTERY themselves at call time, so
+        // this mirrors what the config would refuse anyway rather than introducing a new rule).
+        registration.addRecipes(SmelteryFuelCategory.TYPE,
+                smeltery ? SmelteryFuelRecipes.build(currentSmelteryFuels()) : List.of());
+        registration.addRecipes(CoreTransformCategory.TYPE,
+                smeltery ? CoreTransformRecipes.build(currentCoreTransformRecipes()) : List.of());
+
         // Issue #752: Mending Moss (moss + 10 XP levels at a bookshelf, ForgeweaveModifiers#
         // onRightClickBookshelf) is not produced by any datapack recipe, so it would otherwise have
         // an empty "Recipes" tab with no clue how it's made -- upstream has the identical gap (its
@@ -314,6 +329,16 @@ public final class ForgeweaveJeiPlugin implements IModPlugin {
         registration.addRecipeCatalyst(ForgeweaveItems.SEARED_FURNACE_CONTROLLER.get(), RecipeTypes.SMELTING);
         registration.addRecipeCatalyst(ForgeweaveItems.CASTING_TABLE.get(), CastingTableCategory.TYPE);
         registration.addRecipeCatalyst(ForgeweaveItems.CASTING_BASIN.get(), CastingBasinCategory.TYPE);
+
+        // #890: fuel powers the smeltery regardless of which core tier it is built around, so all
+        // four cores catalyse the fuel category, same reasoning as the melting/alloying catalysts
+        // above. Core transform only ever reads a fromBlock, and today that is Nether Core and End
+        // Core (#845's two shipped rows) -- Standard Core never transforms into anything, and Deep
+        // Core is only ever a toBlock -- so only those two catalyse it.
+        registration.addRecipeCatalyst(ForgeweaveItems.STANDARD_CORE.get(), SmelteryFuelCategory.TYPE);
+        registration.addRecipeCatalyst(ForgeweaveItems.NETHER_CORE.get(), SmelteryFuelCategory.TYPE, CoreTransformCategory.TYPE);
+        registration.addRecipeCatalyst(ForgeweaveItems.END_CORE.get(), SmelteryFuelCategory.TYPE, CoreTransformCategory.TYPE);
+        registration.addRecipeCatalyst(ForgeweaveItems.DEEP_CORE.get(), SmelteryFuelCategory.TYPE);
     }
 
     /**
@@ -458,6 +483,36 @@ public final class ForgeweaveJeiPlugin implements IModPlugin {
         Registry<EmbossingRecipe> registry = level.registryAccess().registryOrThrow(EmbossingRecipe.REGISTRY);
         Map<ResourceLocation, EmbossingRecipe> recipes = new LinkedHashMap<>();
         for (Map.Entry<ResourceKey<EmbossingRecipe>, EmbossingRecipe> entry : registry.entrySet()) {
+            recipes.put(entry.getKey().location(), entry.getValue());
+        }
+        return recipes;
+    }
+
+    // #890 -- same per-session synced-registry read as the others above.
+
+    private static Map<ResourceLocation, SmelteryFuel> currentSmelteryFuels() {
+        ClientLevel level = Minecraft.getInstance().level;
+        if (level == null) {
+            return Map.of();
+        }
+
+        Registry<SmelteryFuel> registry = level.registryAccess().registryOrThrow(SmelteryFuel.REGISTRY);
+        Map<ResourceLocation, SmelteryFuel> fuels = new LinkedHashMap<>();
+        for (Map.Entry<ResourceKey<SmelteryFuel>, SmelteryFuel> entry : registry.entrySet()) {
+            fuels.put(entry.getKey().location(), entry.getValue());
+        }
+        return fuels;
+    }
+
+    private static Map<ResourceLocation, CoreTransformRecipe> currentCoreTransformRecipes() {
+        ClientLevel level = Minecraft.getInstance().level;
+        if (level == null) {
+            return Map.of();
+        }
+
+        Registry<CoreTransformRecipe> registry = level.registryAccess().registryOrThrow(CoreTransformRecipe.REGISTRY);
+        Map<ResourceLocation, CoreTransformRecipe> recipes = new LinkedHashMap<>();
+        for (Map.Entry<ResourceKey<CoreTransformRecipe>, CoreTransformRecipe> entry : registry.entrySet()) {
             recipes.put(entry.getKey().location(), entry.getValue());
         }
         return recipes;

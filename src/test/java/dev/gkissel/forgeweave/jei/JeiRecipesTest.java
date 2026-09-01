@@ -20,6 +20,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.Bootstrap;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Item;
+import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.Ingredient;
@@ -37,7 +38,9 @@ import dev.gkissel.forgeweave.menu.PartBuilderRecipes;
 import dev.gkissel.forgeweave.modifier.EmbossingRecipe;
 import dev.gkissel.forgeweave.modifier.ModifierRecipe;
 import dev.gkissel.forgeweave.recipe.AlloyRecipe;
+import dev.gkissel.forgeweave.recipe.CoreTransformRecipe;
 import dev.gkissel.forgeweave.recipe.MeltingRecipe;
+import dev.gkissel.forgeweave.recipe.SmelteryFuel;
 
 /**
  * Pins the pure recipe-building logic behind the JEI plugin's three categories: given a set of
@@ -578,6 +581,61 @@ class JeiRecipesTest {
         for (AssemblyRecipe recipe : recipes) {
             AssemblyRecipes.isLarge(recipe); // must not throw for any tool in the roster
         }
+    }
+
+    // ------------------------------------------------------------------ #890: smeltery fuel, core transform
+
+    /**
+     * A plain registry snapshot, {@link #hotterThanLavaBy} computed relative to lava's own row: zero
+     * for lava itself and for a fuel no hotter, positive only for a genuine improvement over lava.
+     */
+    @Test
+    void fuelBuildsOneDisplayPerRegistryEntryWithLavaAsTheZeroBaseline() {
+        Map<ResourceLocation, SmelteryFuel> fuels = new LinkedHashMap<>();
+        fuels.put(id("lava"), new SmelteryFuel(Fluids.LAVA, 50, 100, 1300));
+        // A stand-in fluid at blazing blood's real 1500-degree temperature over lava's 1300.
+        fuels.put(id("blazing_blood"), new SmelteryFuel(Fluids.WATER, 50, 100, 1500));
+
+        List<SmelteryFuelDisplay> displays = SmelteryFuelRecipes.build(fuels);
+
+        assertEquals(2, displays.size());
+        SmelteryFuelDisplay lava = displays.stream().filter(d -> d.fluid() == Fluids.LAVA).findFirst().orElseThrow();
+        assertEquals(0, lava.hotterThanLavaBy(), "lava never gets a note about being hotter than itself");
+        SmelteryFuelDisplay hotter = displays.stream().filter(d -> d.fluid() == Fluids.WATER).findFirst().orElseThrow();
+        assertEquals(200, hotter.hotterThanLavaBy(), "1500 - 1300");
+    }
+
+    @Test
+    void fuelNoHotterThanLavaGetsNoNote() {
+        Map<ResourceLocation, SmelteryFuel> fuels = new LinkedHashMap<>();
+        fuels.put(id("lava"), new SmelteryFuel(Fluids.LAVA, 50, 100, 1300));
+        fuels.put(id("cool_fuel"), new SmelteryFuel(Fluids.WATER, 50, 100, 1300));
+
+        List<SmelteryFuelDisplay> displays = SmelteryFuelRecipes.build(fuels);
+
+        SmelteryFuelDisplay cool = displays.stream().filter(d -> d.fluid() == Fluids.WATER).findFirst().orElseThrow();
+        assertEquals(0, cool.hotterThanLavaBy(), "no hotter than lava -- no note");
+    }
+
+    /** No lava row at all (e.g. the smeltery family disabled) falls back to the fluid type's own default. */
+    @Test
+    void fuelFallsBackToTheFluidTypesOwnLavaTemperatureWhenLavaHasNoRegistryRow() {
+        Map<ResourceLocation, SmelteryFuel> fuels = Map.of(id("hot_fuel"),
+                new SmelteryFuel(Fluids.WATER, 50, 100, Fluids.LAVA.getFluidType().getTemperature() + 500));
+
+        List<SmelteryFuelDisplay> displays = SmelteryFuelRecipes.build(fuels);
+
+        assertEquals(1, displays.size());
+        assertEquals(500, displays.get(0).hotterThanLavaBy());
+    }
+
+    @Test
+    void coreTransformIsAPlainRegistrySnapshot() {
+        Map<ResourceLocation, CoreTransformRecipe> recipes = new LinkedHashMap<>();
+        CoreTransformRecipe endCore = new CoreTransformRecipe(Fluids.WATER, Blocks.NETHERRACK, Blocks.STONE, 1000);
+        recipes.put(id("end_core"), endCore);
+
+        assertEquals(List.of(endCore), CoreTransformRecipes.build(recipes));
     }
 
     private static ResourceLocation id(String path) {

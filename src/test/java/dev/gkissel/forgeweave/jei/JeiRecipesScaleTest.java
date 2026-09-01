@@ -1,5 +1,6 @@
 package dev.gkissel.forgeweave.jei;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.nio.charset.StandardCharsets;
@@ -25,6 +26,8 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.Bootstrap;
 
 import dev.gkissel.forgeweave.material.Material;
+import dev.gkissel.forgeweave.recipe.CoreTransformRecipe;
+import dev.gkissel.forgeweave.recipe.SmelteryFuel;
 
 /**
  * Issue #846 (M6 UI/schema hardening), pressure point 5: one JEI subtype per material per part is
@@ -62,6 +65,28 @@ class JeiRecipesScaleTest {
         return materials;
     }
 
+    /**
+     * Issue #890: the same shipped-datapack-directory read {@link #shippedMaterials} uses, generalised
+     * to any of this project's registry codecs. Reading straight off {@code src/main/resources} (never
+     * {@code src/gametest/resources}) is what keeps GameTest-only fixtures -- {@code
+     * smeltery_fuel/gametest_super_fuel.json}, excluded from the published jar by {@code build.gradle}'s
+     * {@code jar} task -- out of these counts without this test needing any id-based filter of its own.
+     */
+    private static <T> Map<ResourceLocation, T> shippedRegistryEntries(String registryPath, com.mojang.serialization.Codec<T> codec) throws Exception {
+        RegistryOps<JsonElement> ops = RegistryOps.create(JsonOps.INSTANCE,
+                RegistryAccess.fromRegistryOfRegistries(BuiltInRegistries.REGISTRY));
+        Path dir = projectRoot().resolve("src/main/resources/data/forgeweave/forgeweave/" + registryPath);
+        Map<ResourceLocation, T> entries = new LinkedHashMap<>();
+        try (Stream<Path> files = Files.list(dir)) {
+            for (Path file : files.filter(p -> p.toString().endsWith(".json")).sorted().toList()) {
+                String name = file.getFileName().toString().replace(".json", "");
+                JsonElement json = JsonParser.parseString(Files.readString(file, StandardCharsets.UTF_8));
+                entries.put(ResourceLocation.fromNamespaceAndPath("forgeweave", name), codec.parse(ops, json).getOrThrow());
+            }
+        }
+        return entries;
+    }
+
     private static Path projectRoot() {
         Path dir = Path.of("").toAbsolutePath();
         for (Path candidate = dir; candidate != null; candidate = candidate.getParent()) {
@@ -92,5 +117,30 @@ class JeiRecipesScaleTest {
         assertTrue(elapsedMillis < BUDGET_MILLIS,
                 "building all three JEI recipe lists for " + shipped.size() + " materials took "
                         + elapsedMillis + "ms, over the " + BUDGET_MILLIS + "ms budget");
+    }
+
+    /**
+     * Issue #890: pins the real shipped counts for the two new categories the same way the test above
+     * pins the original three -- lava and blazing blood ({@code smeltery_fuel}), end_core and
+     * deep_core ({@code core_transform_recipe}, #845). Both registries are small and fixed by design
+     * (docs/SCOPE.md M2/#845 never project either one growing the way the material roster did), so this
+     * is a non-vacuity/regression pin rather than a scale budget -- if a pack or a future milestone adds
+     * a third fuel or transform, updating the expected count here is the intended maintenance, not a
+     * failure of the test.
+     */
+    @Test
+    void theTwoNewCategoriesEnumerateTheRealShippedRegistryContents() throws Exception {
+        Map<ResourceLocation, SmelteryFuel> fuels = shippedRegistryEntries("smeltery_fuel", SmelteryFuel.CODEC);
+        Map<ResourceLocation, CoreTransformRecipe> transforms =
+                shippedRegistryEntries("core_transform_recipe", CoreTransformRecipe.CODEC);
+
+        assertEquals(2, fuels.size(), "lava + blazing_blood -- gametest_super_fuel ships outside src/main/resources");
+        assertEquals(2, transforms.size(), "#845's end_core + deep_core rows");
+
+        List<SmelteryFuelDisplay> fuelDisplays = SmelteryFuelRecipes.build(fuels);
+        List<CoreTransformRecipe> transformDisplays = CoreTransformRecipes.build(transforms);
+
+        assertEquals(2, fuelDisplays.size());
+        assertEquals(2, transformDisplays.size());
     }
 }
