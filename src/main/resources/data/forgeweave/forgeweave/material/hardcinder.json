@@ -23,7 +23,7 @@
   "maille": true,
   "incorrect_for_tool": "forgeweave:incorrect_for_hardcinder_tool",
   "traits": {
-    "general": ["forgeweave:emberwake"]
+    "general": ["forgeweave:leanharvest"]
   },
   "crafting_items": [
     { "ingredient": { "item": "forgeweave:hardcinder_ingot" }, "value": 144 },

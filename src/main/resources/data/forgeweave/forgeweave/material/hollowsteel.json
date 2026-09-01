@@ -23,7 +23,7 @@
   "maille": true,
   "incorrect_for_tool": "forgeweave:incorrect_for_warspar_tool",
   "traits": {
-    "general": ["forgeweave:ruthless"]
+    "general": ["forgeweave:bloodtally"]
   },
   "crafting_items": [
     { "ingredient": { "item": "forgeweave:hollowsteel_ingot" }, "value": 144 },

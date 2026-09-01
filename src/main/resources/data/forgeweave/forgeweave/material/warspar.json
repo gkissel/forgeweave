@@ -23,7 +23,7 @@
   "maille": true,
   "incorrect_for_tool": "forgeweave:incorrect_for_warspar_tool",
   "traits": {
-    "general": ["forgeweave:warbond"]
+    "general": ["forgeweave:warmemory"]
   },
   "crafting_items": [
     { "ingredient": { "item": "forgeweave:warspar_ingot" }, "value": 144 },

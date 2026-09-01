@@ -23,7 +23,7 @@
   "maille": true,
   "incorrect_for_tool": "forgeweave:incorrect_for_warspar_tool",
   "traits": {
-    "general": ["forgeweave:fertilizing"]
+    "general": ["forgeweave:hollowyield"]
   },
   "crafting_items": [
     { "ingredient": { "item": "forgeweave:hollowstone_ingot" }, "value": 144 },

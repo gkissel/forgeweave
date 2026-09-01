@@ -1053,7 +1053,7 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         // metals (TrackBOre) plus 18 alloy metals (TrackBAlloy); ids and naming are the epic's JC9
         // answer (original Forgeweave coinages, docs/research/m6-material-expansion-references.md
         // &sect;7.3), display names are each id's own title-cased form.
-        add("material.forgeweave.cinderstone", "Cinderstone");
+        add("material.forgeweave.basalt", "Basalt");
         add("material.forgeweave.fulmenite", "Fulmenite");
         add("material.forgeweave.duskspar", "Duskspar");
         add("material.forgeweave.voltcinder", "Voltcinder");
@@ -2559,6 +2559,32 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("trait.forgeweave.matrixbloom.description", "A psionic weave that mends best in daylight.");
         add("trait.forgeweave.wellspring.name", "Wellspring");
         add("trait.forgeweave.wellspring.description", "Mining a stone-type block has a chance to heal the wielder.");
+
+        // Issue #884: TAIGA-faithful trait pass.
+        add("trait.forgeweave.earthmend.name", "Earthmend");
+        add("trait.forgeweave.earthmend.description", "Digging a dirt-like block has a chance to heal the wielder.");
+        add("trait.forgeweave.duskgrasp.name", "Duskgrasp");
+        add("trait.forgeweave.duskgrasp.description", "Landing a hit blinds the target with darkness.");
+        add("trait.forgeweave.leanharvest.name", "Lean Harvest");
+        add("trait.forgeweave.leanharvest.description", "Mined blocks sometimes drop nothing, but always grant bonus XP.");
+        add("trait.forgeweave.warmemory.name", "War Memory");
+        add("trait.forgeweave.warmemory.description", "Remembers the entity types it has fought and deals growing bonus damage to them.");
+        add("trait.forgeweave.hollowyield.name", "Hollow Yield");
+        add("trait.forgeweave.hollowyield.description", "Mined blocks always yield bonus XP instead of their loot.");
+        add("trait.forgeweave.swiftdig.name", "Swiftdig");
+        add("trait.forgeweave.swiftdig.description", "Faster on blocks that need no tool at all.");
+        add("trait.forgeweave.alien2.name", "Alien II");
+        add("trait.forgeweave.alien2.description", "Slowly, powerfully grows stronger the longer it is carried.");
+        add("trait.forgeweave.quakecrumble.name", "Quakecrumble");
+        add("trait.forgeweave.quakecrumble.description", "Mining a block has a chance to crack its neighbors loose too.");
+        add("trait.forgeweave.riftstep.name", "Riftstep");
+        add("trait.forgeweave.riftstep.description", "Landing a hit sometimes teleports the target, sometimes the wielder.");
+        add("trait.forgeweave.dreadgrip.name", "Dreadgrip");
+        add("trait.forgeweave.dreadgrip.description", "Landing a hit slows and weakens the target, and can break a beast's focus.");
+        add("trait.forgeweave.bloodtally.name", "Blood Tally");
+        add("trait.forgeweave.bloodtally.description", "Permanently, slightly stronger with every kill.");
+        add("trait.forgeweave.gamedrop.name", "Gamedrop");
+        add("trait.forgeweave.gamedrop.description", "Kills grant no experience, but sometimes drop meat instead.");
         add("trait.forgeweave.unstable_core.name", "Unstable Core");
         add("trait.forgeweave.unstable_core.description",
                 "Using the tool has a small chance of an unstable burst that hurts nearby entities, including the wielder.");
