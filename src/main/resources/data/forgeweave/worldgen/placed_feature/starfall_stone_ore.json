@@ -3,7 +3,7 @@
   "placement": [
     {
       "type": "forgeweave:track_b_ore_rate",
-      "count": 1
+      "count": 2
     },
     {
       "type": "minecraft:in_square"

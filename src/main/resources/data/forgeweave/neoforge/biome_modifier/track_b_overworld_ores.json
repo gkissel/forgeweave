@@ -10,8 +10,7 @@
     "forgeweave:warspar_ore",
     "forgeweave:hollowstone_ore",
     "forgeweave:resonite_ore",
-    "forgeweave:starfall_stone_ore",
-    "forgeweave:voidglass_ore"
+    "forgeweave:starfall_stone_ore"
   ],
   "step": "underground_ores"
 }

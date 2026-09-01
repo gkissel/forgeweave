@@ -692,7 +692,7 @@ whichever issue actually registers the material, per CLAUDE.md's localization ru
 | Uru (blocks yield XP instead of loot) | `hollowstone` | netherite (top) |
 | Vibranium (handle flings enemies, stronger near death) | `resonite` | netherite (top) |
 | Meteorite (faster on soft blocks, smashes some drops) — rare surface feature per JC11 | `starfall_stone` | netherite (top) |
-| Obsidiorite (stats drift upward over time) — rare vein per JC11 | `voidglass` | netherite (top) |
+| Obsidiorite (stats drift upward over time) — rare vein per JC11, moved to the End (issue #883, maintainer directive 2026-08-31) as the game's uniquely rarest ore | `voidglass` | netherite (top) |
 
 **Alloy (feeds #840 alloy table + #841 tool materials):**
 
