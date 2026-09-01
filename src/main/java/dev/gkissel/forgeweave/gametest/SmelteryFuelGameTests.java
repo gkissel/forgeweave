@@ -213,6 +213,58 @@ public class SmelteryFuelGameTests {
         helper.succeed();
     }
 
+    /**
+     * #894 -- TAIGA survey deliverable 2: twinalloy is Track B's mapped equivalent of TAIGA's
+     * Dilithium, the one TAIGA fluid that is both a real ore-sourced tool material there and
+     * registered via {@code TinkerRegistry.registerSmelteryFuel} (NOTICE.md-free: TAIGA is
+     * inspiration-only under CLAUDE.md, no code or numbers copied). {@code smeltery_fuel/twinalloy.json}
+     * ships no {@code temperature} override, the same way {@code lava.json}/{@code blazing_blood.json}
+     * do not, so it burns at twinalloy's own already-registered 910 (dev.gkissel.forgeweave.fluid.
+     * ForgeweaveFluids#TWINALLOY) -- below lava's 1300, mirroring TAIGA's own dilithium fuel sitting
+     * cooler than its magma fuel rather than hotter. This pins that burn temperature directly.
+     */
+    @GameTest(template = "smeltery", timeoutTicks = 100)
+    public static void twinalloyFuelledSmelteryReachesItsOwnTemperature(GameTestHelper helper) {
+        SmelteryGameTests.buildWalls(helper, 1, 1, 2);
+        BlockPos corePos = SmelteryGameTests.placeCore(helper, ForgeweaveBlocks.STANDARD_CORE.get());
+
+        SearedTankBlockEntity tank = helper.getBlockEntity(SmelteryGameTests.TANK_POS);
+        tank.tank().fill(new FluidStack(ForgeweaveFluids.TWINALLOY.still().get(), SearedTankBlockEntity.CAPACITY),
+                IFluidHandler.FluidAction.EXECUTE);
+
+        SmelteryControllerBlockEntity core = helper.getBlockEntity(corePos);
+        helper.assertTrue(core.isFormed(), "expected the test smeltery to form: " + core.lastResult().getString());
+        helper.assertValueEqual(core.currentTemperature(), 910, "smeltery temperature with twinalloy in the wall tank");
+        helper.succeed();
+    }
+
+    /**
+     * #894 -- the deliberate flip side of {@link #blazingBloodFuelledSmelteryMeltsARecipeLavaCannotReach}:
+     * twinalloy's 910 degrees sits below lava's 1300, so it must not reach the same 1400-degree fixture
+     * recipe blazing blood proves it can. This is the concrete evidence behind the PR's progression
+     * claim that twinalloy unlocks nothing new -- it is a cheap early convenience fuel (melted from
+     * amethyst shards), not a headroom tier, matching TAIGA's own dilithium sitting cooler than magma.
+     */
+    @GameTest(template = "smeltery", timeoutTicks = 100)
+    public static void twinalloyCannotReachTheLavaExclusiveFixtureRecipe(GameTestHelper helper) {
+        SmelteryGameTests.buildWalls(helper, 1, 1, 2);
+        BlockPos corePos = SmelteryGameTests.placeCore(helper, ForgeweaveBlocks.STANDARD_CORE.get());
+
+        SearedTankBlockEntity tank = helper.getBlockEntity(SmelteryGameTests.TANK_POS);
+        tank.tank().fill(new FluidStack(ForgeweaveFluids.TWINALLOY.still().get(), SearedTankBlockEntity.CAPACITY),
+                IFluidHandler.FluidAction.EXECUTE);
+
+        SmelteryControllerBlockEntity core = helper.getBlockEntity(corePos);
+        helper.assertTrue(core.isFormed(), "expected the test smeltery to form: " + core.lastResult().getString());
+
+        helper.assertTrue(core.insertForMelting(new ItemStack(Items.BLAZE_ROD)).isEmpty(),
+                "expected the blaze rod to go into the smeltery");
+
+        helper.assertTrue(!core.meltTick(), "twinalloy's 910 degrees must not heat the 1400-degree fixture recipe");
+        helper.assertTrue(core.meltProgress(0) == 0f, "expected no melt progress at all under twinalloy");
+        helper.succeed();
+    }
+
     // ------------------------------------------------------------------ helpers
 
     /** The 1x1x2 minimum smeltery of {@link SmelteryGameTests}, with its one wall tank full of lava. */
