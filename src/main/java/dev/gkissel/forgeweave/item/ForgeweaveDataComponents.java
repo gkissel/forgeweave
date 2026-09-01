@@ -25,6 +25,7 @@ import dev.gkissel.forgeweave.tool.ToolStats;
 import dev.gkissel.forgeweave.trait.AlienProgress;
 import dev.gkissel.forgeweave.trait.ShockingCharge;
 import dev.gkissel.forgeweave.trait.TraitStacks;
+import dev.gkissel.forgeweave.trait.WarMemory;
 
 /** Data components carried by Forgeweave items. */
 public final class ForgeweaveDataComponents {
@@ -298,6 +299,36 @@ public final class ForgeweaveDataComponents {
      */
     public static final DeferredHolder<DataComponentType<?>, DataComponentType<Integer>> ENERGY =
             DATA_COMPONENTS.registerComponentType("energy",
+                    builder -> builder.persistent(ExtraCodecs.NON_NEGATIVE_INT).networkSynchronized(ByteBufCodecs.VAR_INT));
+
+    /**
+     * {@code ForgeweaveTraits#ALIEN2}'s progressive-stat state (issue #884 (12a), voidglass's "much
+     * stronger" alien variant): the same shape as {@link #ALIEN_PROGRESS} but its own component key,
+     * so the two never collide even in principle -- see {@code ForgeweaveTraits#ALIEN2}'s javadoc for
+     * why this is a second copy of {@link AlienProgress} rather than a shared key.
+     */
+    public static final DeferredHolder<DataComponentType<?>, DataComponentType<AlienProgress>> ALIEN_PROGRESS2 =
+            DATA_COMPONENTS.registerComponentType("alien_progress2",
+                    builder -> builder.persistent(AlienProgress.CODEC).networkSynchronized(AlienProgress.STREAM_CODEC));
+
+    /**
+     * {@code ForgeweaveTraits#WARMEMORY}'s per-entity-type fight counters (issue #884 (8a), warspar's
+     * adaptive damage): see {@code trait.WarMemory} for the shape and the save-compat promise it
+     * carries ({@code fixtures/save_compat/m884_tool_war_memory.snbt}). Absent means no fights yet
+     * recorded ({@link WarMemory#EMPTY}).
+     */
+    public static final DeferredHolder<DataComponentType<?>, DataComponentType<WarMemory>> WAR_MEMORY =
+            DATA_COMPONENTS.registerComponentType("war_memory",
+                    builder -> builder.persistent(WarMemory.CODEC).networkSynchronized(WarMemory.STREAM_CODEC));
+
+    /**
+     * {@code ForgeweaveTraits#BLOODTALLY}'s lifetime kill counter (issue #884 (22a), hollowsteel's
+     * permanent kill-count damage growth): never decays, capped at {@code
+     * ForgeweaveTraits#BLOODTALLY_CAP}. Absent means zero, same shape as {@link #OVERSLIME}/{@link
+     * #ENERGY}. Save-compat fixture: {@code fixtures/save_compat/m884_tool_kill_tally.snbt}.
+     */
+    public static final DeferredHolder<DataComponentType<?>, DataComponentType<Integer>> KILL_TALLY =
+            DATA_COMPONENTS.registerComponentType("kill_tally",
                     builder -> builder.persistent(ExtraCodecs.NON_NEGATIVE_INT).networkSynchronized(ByteBufCodecs.VAR_INT));
 
     private ForgeweaveDataComponents() {}

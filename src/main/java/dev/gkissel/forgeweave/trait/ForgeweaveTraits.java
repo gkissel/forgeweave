@@ -18,6 +18,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.component.DataComponentType;
 import net.minecraft.core.component.DataComponents;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
@@ -37,6 +38,7 @@ import net.minecraft.world.entity.EquipmentSlotGroup;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.monster.Slime;
 import net.minecraft.world.entity.player.Player;
@@ -2892,6 +2894,351 @@ public final class ForgeweaveTraits {
         }
     };
 
+    // ---------------------------------------------------------------- issue #884: TAIGA-faithful
+    // trait pass. The maintainer went through the M6 reference doc's §7.3 table material-by-material
+    // and picked the faithful reference behavior over the post-#876 dedupe filler for eleven
+    // materials (§884's own numbering); every id, description and magnitude below is Forgeweave's
+    // own (ADR-0003, inspiration-only -- TAIGA is GPL-3.0, never derived from). The displaced ids
+    // this batch frees up (emberwake, warbond, fertilizing, stonewake, ruthless, obsidian_heart,
+    // unraveling2, unraveling3, smokehouse, plus wellspring, homeless once cinderstone itself is
+    // retired -- see TrackBOre's own javadoc) stay registered but unassigned, per the issue's own
+    // "registered but unassigned is acceptable" clause -- the #876 dedupe regression test
+    // (MaterialTest#noTwoMaterialsShareANonExemptTraitId) only checks for duplicates, not coverage.
+
+    private static final float EARTHMEND_CHANCE = 0.08F;
+    private static final float EARTHMEND_HEAL = 1.0F;
+
+    /**
+     * Basalt. Issue #884 (1): the reference Basalt behavior, wellspring's sibling -- heals the
+     * wielder for digging dirt-like blocks (dirt/grass/gravel/sand family) instead of wellspring's
+     * stone family. Same chance/heal as wellspring; only the block family differs.
+     */
+    public static final Trait EARTHMEND = new Trait() {
+        @Override
+        public void afterBlockBreak(ItemStack stack, ServerLevel level, BlockState state, BlockPos pos,
+                LivingEntity breaker, boolean effective) {
+            if (isDirtLike(state) && level.getRandom().nextFloat() < EARTHMEND_CHANCE) {
+                breaker.heal(EARTHMEND_HEAL);
+            }
+        }
+    };
+
+    private static boolean isDirtLike(BlockState state) {
+        return state.is(BlockTags.DIRT) || state.is(Blocks.GRAVEL) || state.is(Blocks.SAND) || state.is(Blocks.RED_SAND);
+    }
+
+    private static final int DUSKGRASP_TICKS = 100;
+
+    /**
+     * Murkiron. Issue #884 (5a): the reference Prometheum's handle darkness debuff -- one of two
+     * halves the issue asked for, the other being a sneak-triggered mob-capture mechanic. The
+     * capture half was found genuinely out of this batch's scope (a persisted captured-entity item,
+     * a release interaction, non-boss/low-health checks and its own save-compat fixture -- a
+     * mini-feature on its own next to the other ten trait changes this issue already carries) and is
+     * filed as its own follow-up issue instead, named in the PR body, per the issue's own "ship the
+     * debuff, file the capture" escape valve. Applied on the <b>handle</b> slot only, not general --
+     * murkiron's existing {@code blighted}/{@code harrying} traits (general/head) are untouched.
+     */
+    public static final Trait DUSKGRASP = seamTrait(new EffectOnHit(MobEffects.DARKNESS, DUSKGRASP_TICKS, 0, 0));
+
+    private static final float LEANHARVEST_DROP_CHANCE = 0.35F;
+    private static final int LEANHARVEST_XP_BONUS = 2;
+
+    /** Hardcinder. Issue #884 (6a): the reference Duranite's fewer-drops/more-XP mining trade-off. Replaces emberwake. */
+    public static final Trait LEANHARVEST = new Trait() {
+        @Override
+        public float dropDestroyChance() {
+            return LEANHARVEST_DROP_CHANCE;
+        }
+
+        @Override
+        public int blockBreakExperience(RandomSource random, int xp) {
+            return xp + LEANHARVEST_XP_BONUS;
+        }
+    };
+
+    private static final int WAR_MEMORY_CAP = 20;
+    private static final float WAR_MEMORY_PER_FIGHT = 0.15F;
+
+    /**
+     * Warspar. Issue #884 (8a): the reference Valyrium's adaptive damage -- the tool remembers which
+     * entity types it has fought (a per-type counter in {@link WarMemory}, {@code
+     * ForgeweaveDataComponents#WAR_MEMORY}) and deals growing bonus damage to that type on later
+     * fights, capped at {@value #WAR_MEMORY_CAP} counted fights per type. Replaces warbond. Save-compat
+     * fixture: {@code fixtures/save_compat/m884_tool_war_memory.snbt}.
+     */
+    public static final Trait WARMEMORY = new Trait() {
+        @Override
+        public float bonusDamageAgainst(ItemStack stack, LivingEntity target, float damage) {
+            return Math.min(warMemoryCount(stack, target), WAR_MEMORY_CAP) * WAR_MEMORY_PER_FIGHT;
+        }
+
+        @Override
+        public void afterHit(ItemStack stack, ServerLevel level, LivingEntity attacker, LivingEntity target) {
+            recordWarMemory(stack, target);
+        }
+    };
+
+    private static int warMemoryCount(ItemStack stack, LivingEntity target) {
+        WarMemory memory = stack.getOrDefault(ForgeweaveDataComponents.WAR_MEMORY.get(), WarMemory.EMPTY);
+        ResourceLocation type = BuiltInRegistries.ENTITY_TYPE.getKey(target.getType());
+        return memory.count(type);
+    }
+
+    private static void recordWarMemory(ItemStack stack, LivingEntity target) {
+        WarMemory memory = stack.getOrDefault(ForgeweaveDataComponents.WAR_MEMORY.get(), WarMemory.EMPTY);
+        ResourceLocation type = BuiltInRegistries.ENTITY_TYPE.getKey(target.getType());
+        int current = memory.count(type);
+        if (current >= WAR_MEMORY_CAP) {
+            return;
+        }
+        stack.set(ForgeweaveDataComponents.WAR_MEMORY.get(), memory.with(type, current + 1));
+    }
+
+    private static final int HOLLOWYIELD_XP_BONUS = 3;
+
+    /**
+     * Hollowstone. Issue #884 (9a): the reference Uru's loot-to-XP swap -- mined blocks always drop
+     * nothing (the highest {@link Trait#dropDestroyChance}, 1.0) but grant bonus XP instead. Replaces
+     * fertilizing.
+     */
+    public static final Trait HOLLOWYIELD = new Trait() {
+        @Override
+        public float dropDestroyChance() {
+            return 1.0F;
+        }
+
+        @Override
+        public int blockBreakExperience(RandomSource random, int xp) {
+            return xp + HOLLOWYIELD_XP_BONUS;
+        }
+    };
+
+    private static final float SWIFTDIG_SPEED_BONUS = 2.0F;
+
+    /**
+     * Starfall stone. Issue #884 (11a): the reference Meteorite's other half -- faster on soft
+     * (no-tool-needed) blocks, {@link #CRUMBLING}'s own {@code requiresCorrectToolForDrops} check
+     * reused for the same "soft block" meaning. Kept alongside {@link #OBLITERATE} (#876's own
+     * smash-drops half of this material's behavior), not a replacement for it -- starfall_stone
+     * carries both.
+     */
+    public static final Trait SWIFTDIG = new Trait() {
+        @Override
+        public float breakSpeed(ItemStack stack, Player player, BlockState state, float originalSpeed, float speed) {
+            return state.requiresCorrectToolForDrops() ? speed : speed + SWIFTDIG_SPEED_BONUS;
+        }
+    };
+
+    // Voidglass's "much stronger" alien (issue #884 (12a)): triples ALIEN's pool and per-step growth,
+    // duplicated rather than extracted from ALIEN's own block -- ALIEN has no existing parameterization
+    // seam (its constants and AlienProgress component key are baked into one anonymous Trait), and
+    // refactoring a shipped, save-compat-pinned trait to add one is a bigger, riskier diff than a
+    // second self-contained copy with its own component key (ForgeweaveDataComponents#ALIEN_PROGRESS2).
+    private static final int ALIEN2_POOL_POINTS = ALIEN_POOL_POINTS * 3;
+    private static final int ALIEN2_DURABILITY_STEP = ALIEN_DURABILITY_STEP * 3;
+    private static final float ALIEN2_SPEED_STEP = ALIEN_SPEED_STEP * 3;
+    private static final float ALIEN2_ATTACK_STEP = ALIEN_ATTACK_STEP * 3;
+
+    /**
+     * Voidglass. Issue #884 (12a): {@link #ALIEN}'s upward stat drift, amplified -- the maintainer's
+     * explicit "much stronger" call ("alien muito mais forte"). Same mechanic and cadence as
+     * {@link #ALIEN}, {@value #ALIEN2_POOL_POINTS}-point pool (3x) and 3x per-step growth. Replaces
+     * unraveling2.
+     */
+    public static final Trait ALIEN2 = new Trait() {
+        @Override
+        public void inventoryTick(ItemStack stack, ServerLevel level, LivingEntity holder) {
+            if (holder instanceof FakePlayer || holder.tickCount % ALIEN_TICKS_PER_STAT != 0
+                    || holder.getUseItem() == stack) {
+                return;
+            }
+            AlienProgress progress = stack.get(ForgeweaveDataComponents.ALIEN_PROGRESS2.get());
+            if (progress == null) {
+                progress = new AlienProgress(rollAlien2Pool(level.getRandom()), AlienProgress.Portion.ZERO);
+            }
+            AlienProgress.Portion pool = progress.pool();
+            AlienProgress.Portion given = progress.distributed();
+            if (holder.tickCount % (ALIEN_TICKS_PER_STAT * 3) == 0) {
+                if (given.attackDamage() < pool.attackDamage()) {
+                    given = new AlienProgress.Portion(given.durability(), given.miningSpeed(),
+                            given.attackDamage() + ALIEN2_ATTACK_STEP);
+                }
+            } else if (holder.tickCount % (ALIEN_TICKS_PER_STAT * 2) == 0) {
+                if (given.miningSpeed() < pool.miningSpeed()) {
+                    given = new AlienProgress.Portion(given.durability(),
+                            given.miningSpeed() + ALIEN2_SPEED_STEP, given.attackDamage());
+                }
+            } else if (given.durability() < pool.durability()) {
+                given = new AlienProgress.Portion(given.durability() + ALIEN2_DURABILITY_STEP,
+                        given.miningSpeed(), given.attackDamage());
+                stack.set(DataComponents.MAX_DAMAGE, stack.getMaxDamage() + ALIEN2_DURABILITY_STEP);
+            }
+            stack.set(ForgeweaveDataComponents.ALIEN_PROGRESS2.get(), new AlienProgress(pool, given));
+        }
+
+        @Override
+        public float miningSpeed(ItemStack stack, boolean effective, float originalSpeed, float speed) {
+            return speed + alien2Distributed(stack).miningSpeed();
+        }
+
+        @Override
+        public float attackDamageBonus(ItemStack stack) {
+            return alien2Distributed(stack).attackDamage();
+        }
+
+        @Override
+        public int maxDurabilityBonus(ItemStack stack) {
+            return alien2Distributed(stack).durability();
+        }
+    };
+
+    private static AlienProgress.Portion rollAlien2Pool(RandomSource random) {
+        int durability = 0;
+        int speed = 0;
+        int attack = 0;
+        for (int point = 0; point < ALIEN2_POOL_POINTS; point++) {
+            switch (random.nextInt(3)) {
+                case 0 -> durability++;
+                case 1 -> speed++;
+                default -> attack++;
+            }
+        }
+        return new AlienProgress.Portion(durability * ALIEN2_DURABILITY_STEP,
+                speed * ALIEN2_SPEED_STEP, attack * ALIEN2_ATTACK_STEP);
+    }
+
+    private static AlienProgress.Portion alien2Distributed(ItemStack stack) {
+        AlienProgress progress = stack.get(ForgeweaveDataComponents.ALIEN_PROGRESS2.get());
+        return progress == null ? AlienProgress.Portion.ZERO : progress.distributed();
+    }
+
+    private static final float QUAKECRUMBLE_CHANCE = 0.25F;
+
+    /**
+     * Quakestone. Issue #884 (14a): the reference Triberium's mining-cracks-neighbors AoE -- distinct
+     * from {@link #CASCADING}'s falling-column chase, this breaks a chance of the ordinarily-mineable
+     * neighbors of whatever block was just mined, each with its own drops. Replaces stonewake.
+     */
+    public static final Trait QUAKECRUMBLE = new Trait() {
+        @Override
+        public void afterBlockBreak(ItemStack stack, ServerLevel level, BlockState state, BlockPos pos,
+                LivingEntity breaker, boolean effective) {
+            if (!effective) {
+                return;
+            }
+            for (Direction direction : Direction.values()) {
+                BlockPos neighbor = pos.relative(direction);
+                BlockState neighborState = level.getBlockState(neighbor);
+                if (!neighborState.isAir() && neighborState.is(BlockTags.MINEABLE_WITH_PICKAXE)
+                        && level.getRandom().nextFloat() < QUAKECRUMBLE_CHANCE) {
+                    level.destroyBlock(neighbor, true, breaker);
+                }
+            }
+        }
+    };
+
+    private static final float RIFTSTEP_CHANCE = 0.12F;
+    private static final double RIFTSTEP_RANGE = 6.0;
+
+    /**
+     * Riftalloy. Issue #884 (17a): the reference Proxii's random short-range teleport -- a landed hit
+     * sometimes teleports the target, sometimes the wielder, a coin flip either way. Replaces
+     * unraveling3.
+     */
+    public static final Trait RIFTSTEP = new Trait() {
+        @Override
+        public void afterHit(ItemStack stack, ServerLevel level, LivingEntity attacker, LivingEntity target) {
+            if (level.getRandom().nextFloat() >= RIFTSTEP_CHANCE) {
+                return;
+            }
+            randomShortTeleport(level.getRandom().nextBoolean() ? target : attacker, level.getRandom());
+        }
+    };
+
+    private static void randomShortTeleport(LivingEntity entity, RandomSource random) {
+        for (int attempt = 0; attempt < 8; attempt++) {
+            double x = entity.getX() + (random.nextDouble() - 0.5) * 2 * RIFTSTEP_RANGE;
+            double y = entity.getY() + (random.nextDouble() - 0.5) * 2 * RIFTSTEP_RANGE;
+            double z = entity.getZ() + (random.nextDouble() - 0.5) * 2 * RIFTSTEP_RANGE;
+            if (entity.randomTeleport(x, y, z, false)) {
+                return;
+            }
+        }
+    }
+
+    private static final int DREADGRIP_TICKS = 60;
+    private static final int DREADGRIP_SLOW_AMPLIFIER = 1;
+
+    /**
+     * Dreadalloy. Issue #884 (20a): the reference Imperomite's AI-numbing debuffs -- Slowness II and
+     * Weakness I on the target, plus dropping a {@link Mob}'s current target where the API allows it
+     * (the "brief no-target confusion" the issue asked for; a non-Mob {@code LivingEntity}, i.e. a
+     * player, has no AI target to drop). Replaces obsidian_heart.
+     */
+    public static final Trait DREADGRIP = new Trait() {
+        @Override
+        public void afterHit(ItemStack stack, ServerLevel level, LivingEntity attacker, LivingEntity target) {
+            target.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SLOWDOWN, DREADGRIP_TICKS, DREADGRIP_SLOW_AMPLIFIER));
+            target.addEffect(new MobEffectInstance(MobEffects.WEAKNESS, DREADGRIP_TICKS, 0));
+            if (target instanceof Mob mob) {
+                mob.setTarget(null);
+            }
+        }
+    };
+
+    private static final int BLOODTALLY_CAP = 200;
+    private static final float BLOODTALLY_PER_KILL = 0.03F;
+
+    /**
+     * Hollowsteel. Issue #884 (22a): the reference Nihilite's permanent kill-count damage growth -- a
+     * lifetime kill counter ({@code ForgeweaveDataComponents#KILL_TALLY}) that never decays, capped
+     * at {@value #BLOODTALLY_CAP} counted kills (+{@value #BLOODTALLY_CAP}*{@value
+     * #BLOODTALLY_PER_KILL} attack damage at the cap). Replaces ruthless. Save-compat fixture:
+     * {@code fixtures/save_compat/m884_tool_kill_tally.snbt}.
+     */
+    public static final Trait BLOODTALLY = new Trait() {
+        @Override
+        public float attackDamageBonus(ItemStack stack) {
+            int kills = stack.getOrDefault(ForgeweaveDataComponents.KILL_TALLY.get(), 0);
+            return Math.min(kills, BLOODTALLY_CAP) * BLOODTALLY_PER_KILL;
+        }
+
+        @Override
+        public void afterHit(ItemStack stack, ServerLevel level, LivingEntity attacker, LivingEntity target) {
+            if (!target.isDeadOrDying()) {
+                return;
+            }
+            int kills = stack.getOrDefault(ForgeweaveDataComponents.KILL_TALLY.get(), 0);
+            if (kills < BLOODTALLY_CAP) {
+                stack.set(ForgeweaveDataComponents.KILL_TALLY.get(), kills + 1);
+            }
+        }
+    };
+
+    private static final float GAMEDROP_CHANCE = 0.5F;
+
+    /**
+     * Ironbrand. Issue #884 (13a, added mid-batch on maintainer request): the reference Terrax's
+     * kills-drop-meat-not-XP trade -- every kill XP this tool would grant is suppressed
+     * ({@link Trait#killExperience}), and about half the time a kill drops a cooked cut of meat
+     * instead, {@link #BACONLICIOUS}'s drop-an-item-entity mechanism reused for a different theme
+     * and trigger (a chance on every kill, not a chance on every hit/block). Replaces smokehouse.
+     */
+    public static final Trait GAMEDROP = new Trait() {
+        @Override
+        public int killExperience(RandomSource random, int xp) {
+            return 0;
+        }
+
+        @Override
+        public void afterHit(ItemStack stack, ServerLevel level, LivingEntity attacker, LivingEntity target) {
+            if (target.isDeadOrDying() && level.getRandom().nextFloat() < GAMEDROP_CHANCE) {
+                level.addFreshEntity(new ItemEntity(level, target.getX(), target.getY(), target.getZ(),
+                        new ItemStack(Items.COOKED_BEEF)));
+            }
+        }
+    };
 
     private static final Map<ResourceLocation, Trait> REGISTRY = Map.ofEntries(
             Map.entry(id("ecological"), ECOLOGICAL),
@@ -3073,7 +3420,20 @@ public final class ForgeweaveTraits {
             Map.entry(id("rubberize"), RUBBERIZE),
             Map.entry(id("tidebreaker"), TIDEBREAKER),
             Map.entry(id("matrixbloom"), MATRIXBLOOM),
-            Map.entry(id("berserker_stance"), BERSERKER_STANCE));
+            Map.entry(id("berserker_stance"), BERSERKER_STANCE),
+            // #884 TAIGA-faithful trait pass.
+            Map.entry(id("earthmend"), EARTHMEND),
+            Map.entry(id("duskgrasp"), DUSKGRASP),
+            Map.entry(id("leanharvest"), LEANHARVEST),
+            Map.entry(id("warmemory"), WARMEMORY),
+            Map.entry(id("hollowyield"), HOLLOWYIELD),
+            Map.entry(id("swiftdig"), SWIFTDIG),
+            Map.entry(id("alien2"), ALIEN2),
+            Map.entry(id("quakecrumble"), QUAKECRUMBLE),
+            Map.entry(id("riftstep"), RIFTSTEP),
+            Map.entry(id("dreadgrip"), DREADGRIP),
+            Map.entry(id("bloodtally"), BLOODTALLY),
+            Map.entry(id("gamedrop"), GAMEDROP));
 
     // ---------------------------------------------------------------- extra-info lines (parity audit
     // T26, issue #457) -- upstream 1.12's AbstractTrait#getExtraInfo. Traits are modifiers upstream,
