@@ -21,7 +21,7 @@
     "boots": { "durability": 500, "armor": 3.0, "toughness": 3.0, "knockback_resistance": 0.1 }
   },
   "maille": true,
-  "incorrect_for_tool": "minecraft:incorrect_for_netherite_tool",
+  "incorrect_for_tool": "forgeweave:incorrect_for_warspar_tool",
   "traits": {
     "general": ["forgeweave:ruthless"]
   },

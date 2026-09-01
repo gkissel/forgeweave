@@ -21,7 +21,7 @@
     "boots": { "durability": 455, "armor": 2.0, "toughness": 3.0, "knockback_resistance": 0.05 }
   },
   "maille": true,
-  "incorrect_for_tool": "minecraft:incorrect_for_netherite_tool",
+  "incorrect_for_tool": "forgeweave:incorrect_for_hardcinder_tool",
   "traits": {
     "armor": ["forgeweave:warded"],
     "general": ["forgeweave:coldblooded"],

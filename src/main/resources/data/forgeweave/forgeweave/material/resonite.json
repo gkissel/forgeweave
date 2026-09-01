@@ -21,7 +21,7 @@
     "boots": { "durability": 405, "armor": 2.0, "toughness": 1.0, "knockback_resistance": 0.05 }
   },
   "maille": true,
-  "incorrect_for_tool": "minecraft:incorrect_for_netherite_tool",
+  "incorrect_for_tool": "forgeweave:incorrect_for_resonite_tool",
   "traits": {
     "general": ["forgeweave:dominant"]
   },

@@ -70,6 +70,7 @@ import dev.gkissel.forgeweave.item.ForgeweaveDataComponents;
 import dev.gkissel.forgeweave.item.ForgeweaveItems;
 import dev.gkissel.forgeweave.item.ToolItem;
 import dev.gkissel.forgeweave.tool.ToolStats;
+import dev.gkissel.forgeweave.trackb.TrackBOre;
 import dev.gkissel.forgeweave.trait.ForgeweaveTraits;
 import dev.gkissel.forgeweave.trait.Trait;
 
@@ -344,22 +345,32 @@ public final class ForgeweaveModifiers {
     // ---------------------------------------------------------------- #106 batch (luck, sharpness, diamond, emerald)
 
     /**
-     * Vanilla's {@code incorrect_for_*_tool} ladder, ascending tool power -- the vanilla-tag
-     * equivalent of upstream's numeric {@code HarvestLevels} (CONTEXT.md: no numeric harvest levels).
-     * Used only by {@link #DIAMOND}/{@link #EMERALD}'s {@code toolTierIndex}: index {@code n} is "this
-     * tool cannot mine what index {@code n}'s tag denies", so bumping the index is a strict upgrade.
+     * The {@code incorrect_for_*_tool} ladder, ascending tool power -- the tag-based equivalent of
+     * upstream's numeric {@code HarvestLevels} (CONTEXT.md: no numeric harvest levels). Used by
+     * {@link #DIAMOND}/{@link #EMERALD}'s {@code toolTierIndex}, {@code Fortification}'s tier read,
+     * and every other {@code tierIndexOf}/{@code tierTag} caller: index {@code n} is "this tool cannot
+     * mine what index {@code n}'s tag denies", so bumping the index is a strict upgrade.
      *
      * <p>Issue #433: the ladder starts at {@code incorrect_for_wooden_tool}, so index {@code n} is
      * literally upstream's {@code HarvestLevels} number {@code n} -- {@code STONE = 0} (the level
      * that mines stone, which a wooden pickaxe has) through {@code COBALT = 4}. It used to start a
      * rung higher, which made every index one tier too generous.
+     *
+     * <p>Issue #877 (the JC10 reversal) appends three more rungs above netherite --
+     * {@link TrackBOre#INCORRECT_FOR_HARDCINDER_TOOL}, {@code #INCORRECT_FOR_WARSPAR_TOOL} and
+     * {@code #INCORRECT_FOR_RESONITE_TOOL} at indices 5-7 -- superseding #838's "collapse everything
+     * above diamond onto the shared netherite rung" decision. Every caller here is already index-
+     * generic, so the ladder growing by three needed no logic changes, only more entries.
      */
     static final List<TagKey<Block>> TIER_TAGS = List.of(
             BlockTags.INCORRECT_FOR_WOODEN_TOOL,
             BlockTags.INCORRECT_FOR_STONE_TOOL,
             BlockTags.INCORRECT_FOR_IRON_TOOL,
             BlockTags.INCORRECT_FOR_DIAMOND_TOOL,
-            BlockTags.INCORRECT_FOR_NETHERITE_TOOL);
+            BlockTags.INCORRECT_FOR_NETHERITE_TOOL,
+            TrackBOre.INCORRECT_FOR_HARDCINDER_TOOL,
+            TrackBOre.INCORRECT_FOR_WARSPAR_TOOL,
+            TrackBOre.INCORRECT_FOR_RESONITE_TOOL);
 
     /** Upstream {@code ModDiamond}: bumps up to but not past {@code HarvestLevels.OBSIDIAN} (3). */
     private static final int DIAMOND_TIER_CAP = 3;

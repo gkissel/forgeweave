@@ -899,6 +899,12 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         // above which are the only ones M1's own materials start on.
         add("tooltip.forgeweave.tier.diamond", "Diamond");
         add("tooltip.forgeweave.tier.netherite", "Netherite");
+        // Issue #877 (the JC10 reversal): three rungs above netherite, each named after the Track B
+        // material anchoring it (research doc §7.3's renaming of the reference ladder's own
+        // "duranite"/"valyrium"/"vibranium" steps -- TrackBOre.Tier's own javadoc has the mapping).
+        add("tooltip.forgeweave.tier.hardcinder", "Hardcinder");
+        add("tooltip.forgeweave.tier.warspar", "Warspar");
+        add("tooltip.forgeweave.tier.resonite", "Resonite");
 
         // Issue #446 (parity audit T15): the optional per-material name prefix. Upstream 1.12's
         // en_us.lang ships exactly two -- material.wood.prefix=Wooden %s and

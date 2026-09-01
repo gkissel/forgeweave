@@ -620,7 +620,16 @@ required deliverable, the stat curve, which stays "a single decision" proposed o
 per that issue's text. Nothing here is a stat number, a trait assignment, or a final name; it is an
 id list and a tier mapping so #839–#841 aren't inventing overlapping vocabulary independently.
 
-### 7.1 Tier scaffold — no new block tags (JC10 = a)
+> **Amendment (issue #877, 2026-09-01): §7.1's "JC10 = a, no new block tags" decision is reversed.**
+> The maintainer now wants real, separate mining levels for progression. §7.3's naming table below is
+> otherwise unaffected (JC9 stands — original Forgeweave ids, not the reference ladder's own names);
+> only the *tier* each id maps to changed. See #877's PR body and `TrackBOre.Tier`'s own javadoc
+> (`src/main/java/dev/gkissel/forgeweave/trackb/TrackBOre.java`) for the replacement ladder: three new
+> rungs above netherite (`hardcinder`, `warspar`, `resonite`, named after the Track B material that
+> anchors each one), minted as `forgeweave:incorrect_for_<tier>_tool` block tags. §7.1's table below is
+> left as written for historical context; do not treat it as current.
+
+### 7.1 Tier scaffold — no new block tags (JC10 = a) — superseded by #877, see amendment above
 
 Track B mints **zero** new `incorrect_for_*_tool` tags. Every material collapses onto one of
 Forgeweave's five existing rungs (the five values already in use across

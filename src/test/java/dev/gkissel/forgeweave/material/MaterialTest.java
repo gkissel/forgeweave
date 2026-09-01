@@ -244,6 +244,11 @@ class MaterialTest {
      * ({@code MaterialStatsDataProvider}), which is already a tool tier and needs no remapping.
      * String and vine ship no head stats, so their {@code incorrect_for_tool} is inert and is left
      * where it was.
+     *
+     * <p>Issue #877 (the JC10 reversal, superseding #838's original scaffold) appends three rungs
+     * above netherite -- {@code hardcinder}, {@code warspar}, {@code resonite} -- so {@code tier} may
+     * now also be one of those three, which {@link #expectedIncorrectForTool} resolves onto the
+     * {@code forgeweave:} namespace rather than {@code minecraft:}.
      */
     @ParameterizedTest
     @CsvSource({
@@ -257,11 +262,13 @@ class MaterialTest {
             "iron,iron", "pig_iron,iron", "bronze,iron",
             // HarvestLevels.OBSIDIAN (3)
             "endstone,diamond", "knightslime,diamond", "steel,diamond",
-            // HarvestLevels.COBALT (4)
-            "obsidian,netherite", "cobalt,netherite", "ardite,netherite", "manyullyn,netherite",
-            // no 1.12 counterpart -- 1.20 clone's modern Tiers value
+            // HarvestLevels.COBALT (4). manyullyn moved off this rung by issue #877 (the JC10
+            // reversal) -- see the Track B block below, it now sits at "hardcinder" alongside ancient.
+            "obsidian,netherite", "cobalt,netherite", "ardite,netherite",
+            // no 1.12 counterpart -- 1.20 clone's modern Tiers value. ancient moved off this rung by
+            // issue #877 too -- see the Track B block below.
             "chorus,stone", "rose_gold,wooden", "amethyst_bronze,diamond", "nahuatl,diamond",
-            "ancient,netherite", "netherite,netherite",
+            "netherite,netherite",
             // #833 M6 Track A batch 1: no upstream counterpart either, so tiers here are Forgeweave's
             // own placement (proposed on the PR) rather than a ported HarvestLevels row -- tin/
             // aluminium/graphite at stone, nickel/constantan/invar at iron, platinum/titanium/
@@ -278,9 +285,11 @@ class MaterialTest {
             "energetic_alloy,iron", "pulsating_alloy,iron", "conductive_alloy,iron",
             "vibrant_alloy,diamond", "soularium,diamond",
             "dark_steel,netherite", "end_steel,netherite",
-            // #836 M6 Track A batch 4: the endgame tier -- both sit at the same top rung as
-            // manyullyn/ancient/netherite (JC10: no mining tiers above netherite), differentiated by
-            // stats and traits instead (the PR body's stat table).
+            // #836 M6 Track A batch 4: the endgame tier -- both sit at the netherite rung alongside
+            // cobalt/netherite/obsidian. Compat metals stay within vanilla rungs even after #877 (the
+            // JC10 reversal): other mods' blocks and tools are not in Forgeweave's own tier tags, so
+            // moving a compat material's own tools onto a Forgeweave-only rung would gate nothing real
+            // (the PR body's stat table differentiates these instead).
             "draconium,netherite", "draconium_awakened,netherite",
             // issue #843 (closes #180): the 1.20-branch material gap's five by-name additions.
             "seared_stone,iron", "necrotic_bone,iron", "slimewood,iron",
@@ -298,26 +307,35 @@ class MaterialTest {
             "psimetal,iron", "psigem,diamond", "ivory_psimetal,diamond", "ebony_psimetal,diamond",
             "pink_slime,diamond",
             "cyanite,diamond", "blutonium,diamond", "ludicrite,netherite",
-            // #841 M6 Track B: the self-contained tool material roster's tier scaffold (docs/research/
-            // m6-material-expansion-references.md &sect;7.1, JC10 = no new tags). cinderstone is the
-            // reference ladder's own "stone" rung; fulmenite/quakestone/shardline are its "diamond"
-            // rung; every other Track B material collapses onto the shared top rung with
-            // cobalt/manyullyn/netherite/ancient, per JC10's "progression pressure lives in stats,
-            // traits and obtainability, not new tiers."
+            // #841 M6 Track B: the self-contained tool material roster's original tier scaffold
+            // (docs/research/m6-material-expansion-references.md &sect;7.1, JC10 = no new tags) --
+            // superseded by issue #877 (the JC10 reversal). cinderstone is the reference ladder's own
+            // "stone" rung; fulmenite/quakestone/shardline are its "diamond" rung; duskspar/voltcinder/
+            // starfall_stone/voidglass/ironbrand/embercast/tideiron/cinderforge/daybrass/faultsteel/
+            // skipalloy/mendalloy/mendstone stay at netherite (the reference ladder's own
+            // cobalt-equivalent rung, alongside cobalt/ardite/netherite/obsidian/iridium); murkiron/
+            // hardcinder/nightshale/riftalloy/dreadalloy/stormalloy move to the new hardcinder rung
+            // (the reference ladder's duranite-equivalent, alongside manyullyn and ancient -- see
+            // #877's PR body for the "why manyullyn/ancient move" call); warspar/hollowstone/
+            // hollowsteel/glowveil move to the new warspar rung (valyrium-equivalent); resonite/
+            // sunsteel/truesteel move to the new top resonite rung (vibranium-equivalent).
             "cinderstone,stone",
             "fulmenite,diamond", "quakestone,diamond", "shardline,diamond",
-            "duskspar,netherite", "voltcinder,netherite", "murkiron,netherite", "hardcinder,netherite",
-            "nightshale,netherite", "warspar,netherite", "hollowstone,netherite", "resonite,netherite",
-            "starfall_stone,netherite", "voidglass,netherite",
-            "ironbrand,netherite", "embercast,netherite", "riftalloy,netherite", "tideiron,netherite",
-            "cinderforge,netherite", "dreadalloy,netherite", "sunsteel,netherite", "hollowsteel,netherite",
-            "truesteel,netherite", "stormalloy,netherite", "glowveil,netherite", "daybrass,netherite",
-            "faultsteel,netherite", "skipalloy,netherite", "mendalloy,netherite", "mendstone,netherite",
+            "duskspar,netherite", "voltcinder,netherite", "starfall_stone,netherite", "voidglass,netherite",
+            "ironbrand,netherite", "embercast,netherite", "tideiron,netherite", "cinderforge,netherite",
+            "daybrass,netherite", "faultsteel,netherite", "skipalloy,netherite", "mendalloy,netherite",
+            "mendstone,netherite",
+            "murkiron,hardcinder", "hardcinder,hardcinder", "nightshale,hardcinder",
+            "riftalloy,hardcinder", "dreadalloy,hardcinder", "stormalloy,hardcinder",
+            "manyullyn,hardcinder", "ancient,hardcinder",
+            "warspar,warspar", "hollowstone,warspar", "hollowsteel,warspar", "glowveil,warspar",
+            "resonite,resonite", "sunsteel,resonite", "truesteel,resonite",
             // #872 M6 recovery batch: no upstream counterpart, so tiers here are Forgeweave's own
             // placement (proposed on the PR). ProjectE's dark/red matter and Avaritia's escalating
             // crystal_matrix/cosmic_neutronium/infinity ladder and Draconic Evolution's wyvern/chaotic
-            // core pair all sit at the same top rung as draconium/manyullyn/ancient/netherite (JC10:
-            // no mining tiers above netherite), differentiated by stats and traits instead. Refined
+            // core pair all sit at the netherite rung alongside draconium/netherite -- compat metals
+            // stay within vanilla rungs even after #877 (the JC10 reversal), see the batch 4 comment
+            // above -- differentiated by stats and traits instead. Refined
             // Storage's quartz enriched iron sits at stone (an iron-adjacent utility component, not a
             // combat metal); silicon, its lower-value byproduct, at the same rung as fluorite/graphite.
             // Powah's energised steel is diamond, a step above plain steel.
@@ -331,8 +349,15 @@ class MaterialTest {
         Material material = Material.CODEC.parse(ops, shipped(name)).getOrThrow();
 
         assertTrue(material.head().isPresent(), name + " must have head stats to carry a tier");
-        assertEquals("minecraft:incorrect_for_" + tier + "_tool",
-                material.incorrectForTool().location().toString(), name);
+        assertEquals(expectedIncorrectForTool(tier), material.incorrectForTool().location().toString(), name);
+    }
+
+    /** The three rungs #877 mints above netherite live under {@code forgeweave:}, not {@code minecraft:}. */
+    private static final List<String> FORGEWEAVE_TIERS = List.of("hardcinder", "warspar", "resonite");
+
+    private static String expectedIncorrectForTool(String tier) {
+        String namespace = FORGEWEAVE_TIERS.contains(tier) ? "forgeweave" : "minecraft";
+        return namespace + ":incorrect_for_" + tier + "_tool";
     }
 
     @Test
