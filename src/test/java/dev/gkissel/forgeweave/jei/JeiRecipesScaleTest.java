@@ -121,12 +121,16 @@ class JeiRecipesScaleTest {
 
     /**
      * Issue #890: pins the real shipped counts for the two new categories the same way the test above
-     * pins the original three -- lava and blazing blood ({@code smeltery_fuel}), end_core and
-     * deep_core ({@code core_transform_recipe}, #845). Both registries are small and fixed by design
-     * (docs/SCOPE.md M2/#845 never project either one growing the way the material roster did), so this
-     * is a non-vacuity/regression pin rather than a scale budget -- if a pack or a future milestone adds
-     * a third fuel or transform, updating the expected count here is the intended maintenance, not a
-     * failure of the test.
+     * pins the original three -- lava, blazing blood and twinalloy ({@code smeltery_fuel}), end_core
+     * and deep_core ({@code core_transform_recipe}, #845). Both registries are small and fixed by
+     * design (docs/SCOPE.md M2/#845 never project either one growing the way the material roster did),
+     * so this is a non-vacuity/regression pin rather than a scale budget -- if a pack or a future
+     * milestone adds another fuel or transform, updating the expected count here is the intended
+     * maintenance, not a failure of the test.
+     *
+     * <p>#894 added twinalloy (Track B's mapped equivalent of TAIGA's Dilithium, the one TAIGA
+     * material that both has a Forgeweave-minted material id and was itself registered as a smeltery
+     * fuel upstream), bringing the fuel count from 2 to 3.
      */
     @Test
     void theTwoNewCategoriesEnumerateTheRealShippedRegistryContents() throws Exception {
@@ -134,13 +138,13 @@ class JeiRecipesScaleTest {
         Map<ResourceLocation, CoreTransformRecipe> transforms =
                 shippedRegistryEntries("core_transform_recipe", CoreTransformRecipe.CODEC);
 
-        assertEquals(2, fuels.size(), "lava + blazing_blood -- gametest_super_fuel ships outside src/main/resources");
+        assertEquals(3, fuels.size(), "lava + blazing_blood + twinalloy -- gametest_super_fuel ships outside src/main/resources");
         assertEquals(2, transforms.size(), "#845's end_core + deep_core rows");
 
         List<SmelteryFuelDisplay> fuelDisplays = SmelteryFuelRecipes.build(fuels);
         List<CoreTransformRecipe> transformDisplays = CoreTransformRecipes.build(transforms);
 
-        assertEquals(2, fuelDisplays.size());
+        assertEquals(3, fuelDisplays.size());
         assertEquals(2, transformDisplays.size());
     }
 }
