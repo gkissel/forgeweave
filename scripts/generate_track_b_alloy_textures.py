@@ -1,27 +1,51 @@
 #!/usr/bin/env python3
-"""Procedurally generates Track B's 18 alloy tool materials' art (issue #840, epic #824 Track B): the
-ingot, nugget and storage block for each material in dev.gkissel.forgeweave.trackb.TrackBAlloy.
+"""Generates Track B's 18 alloy tool materials' art (issue #840, epic #824 Track B; supersedes the
+procedural approach from this file's own original version) for the ingot, nugget and storage block of
+each material in dev.gkissel.forgeweave.trackb.TrackBAlloy.
 
-Same approach as scripts/generate_track_b_ore_textures.py (issue #839): original art built from flat
-shapes and a small palette derived from each material's own base color, deterministic per material id
-(a fixed RNG seed) so re-running this script reproduces byte-identical output. Committed as static PNGs
-under the standard (non-derived) `textures/block/` and `textures/item/` folders. Unlike the ore family,
-alloys have no ore/raw-storage block, so this script only emits the three shapes an alloy-only metal
-needs (pig_iron/knightslime's own "ingot/nugget/block" shape).
+Maintainer directive (2026-09-01, issue #888): same vanilla-derived treatment as the ore family
+(scripts/generate_track_b_ore_textures.py, issue #878) instead of the flat-shape procedural art this
+script used to draw. Alloys have no raw item to anchor a donor family to (unlike the ore family), so
+issue #888 has each alloy draw an independent deterministic donor from the *same* pools issue #878
+already established -- this script imports and reuses those pools and derivation helpers verbatim
+rather than re-deriving its own, so there is exactly one donor table across both scripts:
+
+  * **Ingot** and **nugget**: donor family drawn from generate_track_b_ore_textures.RAW_POOL (iron,
+    copper, gold -- the only three vanilla metals with ingot/nugget textures), seeded by
+    `_derive_raw_family(alloy_id)`, the same function the ore script uses for its own raw-item donor.
+    Copper has no vanilla nugget texture, so alloys drawn onto copper fall back to iron_nugget for the
+    nugget only, via the same `_nugget_family()` helper the ore script uses.
+  * **Storage block**: donor drawn from generate_track_b_ore_textures.ORE_STORAGE_POOL (iron, copper,
+    gold, diamond, redstone, lapis, emerald), seeded by `_derive_storage_template(alloy_id)`, the same
+    function the ore script uses for its own storage block.
+
+All three are full-image hue-recolors (recolor_pixels/full_mask, imported from the ore script) to the
+material's own flavor color (dev.gkissel.forgeweave.trackb.TrackBAlloy#color) -- shift every opaque
+pixel's hue to the material color's hue, scale saturation/value by the ratio of the material color's
+own saturation/value to the source image's average. Same algorithm, same provenance reasoning as the
+ore script (vanilla-derived, not a Tinkers'/Mantle clone derivation -- no NOTICE.md row).
 
 Usage: python3 scripts/generate_track_b_alloy_textures.py
-Requires Pillow (`pip install pillow`).
+Requires Pillow (`pip install pillow`). Requires a Minecraft 1.21.1 client jar reachable from Gradle's
+caches (present after a `./gradlew build` in this project) -- see
+generate_track_b_ore_textures.find_vanilla_jar().
 """
-import random
 from pathlib import Path
 
-from PIL import Image
+from generate_track_b_ore_textures import (
+    VanillaAssets,
+    _derive_raw_family,
+    _derive_storage_template,
+    _nugget_family,
+    find_vanilla_jar,
+    full_mask,
+    hex_to_rgb,
+    recolor_pixels,
+)
 
 ROOT = Path(__file__).resolve().parent.parent
 BLOCK_DIR = ROOT / "src/main/resources/assets/forgeweave/textures/block"
 ITEM_DIR = ROOT / "src/main/resources/assets/forgeweave/textures/item"
-
-SIZE = 16
 
 # (id, color) -- must match TrackBAlloy.ALL's ids and colors (research doc §7.3's "Alloy" table).
 ALLOYS = [
@@ -51,87 +75,43 @@ ALLOYS = [
     ("osmiridium", 0xC9C2D6),
 ]
 
-
-def hex_to_rgb(color: int) -> tuple[int, int, int]:
-    return (color >> 16) & 0xFF, (color >> 8) & 0xFF, color & 0xFF
-
-
-def shade(rgb: tuple[int, int, int], factor: float) -> tuple[int, int, int]:
-    r, g, b = rgb
-    return (max(0, min(255, int(r * factor))), max(0, min(255, int(g * factor))), max(0, min(255, int(b * factor))))
-
-
-def noisy(rgb: tuple[int, int, int], rng: random.Random, spread: int = 10) -> tuple[int, int, int]:
-    return tuple(max(0, min(255, c + rng.randint(-spread, spread))) for c in rgb)
-
-
-def new_canvas() -> Image.Image:
-    return Image.new("RGBA", (SIZE, SIZE), (0, 0, 0, 0))
-
-
-def metal_block(color: tuple[int, int, int], rng: random.Random) -> Image.Image:
-    """A flat panel with a lighter top-left bevel and a darker bottom-right bevel, like a storage block."""
-    img = new_canvas()
-    px = img.load()
-    for y in range(SIZE):
-        for x in range(SIZE):
-            base = noisy(color, rng, 6)
-            if x == 0 or y == 0:
-                base = shade(base, 1.35)
-            elif x == SIZE - 1 or y == SIZE - 1:
-                base = shade(base, 0.65)
-            px[x, y] = (*base, 255)
-    return img
-
-
-def ingot(color: tuple[int, int, int], rng: random.Random) -> Image.Image:
-    """A trapezoid ingot bar, vanilla-iron-ingot silhouette, flat-shaded in the material color."""
-    img = new_canvas()
-    px = img.load()
-    top_rows = {5: (5, 10), 6: (4, 11)}
-    body_rows = range(7, 12)
-    for y in range(5, 12):
-        if y in top_rows:
-            x0, x1 = top_rows[y]
-        elif y in body_rows:
-            x0, x1 = 3, 12
-        else:
-            continue
-        for x in range(x0, x1):
-            base = noisy(color, rng, 8)
-            if y == 5 or x == x0:
-                base = shade(base, 1.3)
-            elif y == 11 or x == x1 - 1:
-                base = shade(base, 0.7)
-            px[x, y] = (*base, 255)
-    return img
-
-
-def nugget(color: tuple[int, int, int], rng: random.Random) -> Image.Image:
-    """A small cluster of irregular flecks, vanilla-nugget-scaled."""
-    img = new_canvas()
-    px = img.load()
-    cells = [(6, 6), (7, 6), (8, 7), (6, 8), (7, 8), (9, 8), (7, 9)]
-    for x, y in cells:
-        base = noisy(color, rng, 10)
-        if (x + y) % 2 == 0:
-            base = shade(base, 1.25)
-        px[x, y] = (*base, 255)
-    return img
+# Recorded template-assignment table (issue #888), reproducible by re-running the imported _derive_*
+# helpers against ALLOYS's ids -- kept as a literal-shaped dict here so the mapping is reviewable
+# without running anything. family (ingot/nugget donor) + storage per material id.
+TEMPLATES = {
+    alloy_id: {
+        "storage": _derive_storage_template(alloy_id),
+        "family": _derive_raw_family(alloy_id),
+    }
+    for alloy_id, _color in ALLOYS
+}
 
 
 def main() -> None:
     BLOCK_DIR.mkdir(parents=True, exist_ok=True)
     ITEM_DIR.mkdir(parents=True, exist_ok=True)
 
+    assets = VanillaAssets(find_vanilla_jar())
+
     for alloy_id, color_hex in ALLOYS:
         color = hex_to_rgb(color_hex)
-        rng = random.Random(alloy_id)
+        tpl = TEMPLATES[alloy_id]
+        family = tpl["family"]
+        nugget_family = _nugget_family(family)
 
-        metal_block(color, rng).save(BLOCK_DIR / f"{alloy_id}_block.png")
-        ingot(color, rng).save(ITEM_DIR / f"{alloy_id}_ingot.png")
-        nugget(color, rng).save(ITEM_DIR / f"{alloy_id}_nugget.png")
-        print(f"wrote {alloy_id} (3 sprites)")
+        storage_img = assets.block(tpl["storage"])
+        recolor_pixels(storage_img, full_mask(storage_img), color).save(BLOCK_DIR / f"{alloy_id}_block.png")
+
+        ingot_img = assets.item(f"{family}_ingot")
+        recolor_pixels(ingot_img, full_mask(ingot_img), color).save(ITEM_DIR / f"{alloy_id}_ingot.png")
+
+        nugget_img = assets.item(f"{nugget_family}_nugget")
+        recolor_pixels(nugget_img, full_mask(nugget_img), color).save(ITEM_DIR / f"{alloy_id}_nugget.png")
+
+        print(
+            f"wrote {alloy_id}: storage<-{tpl['storage']} ingot<-{family}_ingot "
+            f"nugget<-{nugget_family}_nugget"
+        )
 
 
 if __name__ == "__main__":
