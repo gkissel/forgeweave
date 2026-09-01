@@ -3,16 +3,20 @@ package dev.gkissel.forgeweave.gametest;
 import java.util.List;
 
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
+import net.minecraft.network.chat.TextColor;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.tags.TagKey;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
@@ -26,15 +30,25 @@ import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.block.ForgeweaveBlocks;
 import dev.gkissel.forgeweave.config.ForgeweaveConfig;
 import dev.gkissel.forgeweave.item.ForgeweaveItems;
+import dev.gkissel.forgeweave.item.ToolItem;
+import dev.gkissel.forgeweave.material.Material;
+import dev.gkissel.forgeweave.tool.ToolStats;
 import dev.gkissel.forgeweave.trackb.TrackBOre;
 import dev.gkissel.forgeweave.worldgen.TrackBOrePlacement;
 
 /**
- * Track B's ore family (issue #839, epic #824): every ore's own harvest-tier gate (per the M6 tier
- * scaffold, research doc §7.1) and drop, plus the config-aware group toggle and worldgen JSON's own
- * wiring -- the same split {@link NetherOreGameTests} already draws between "provable without a real
- * chunk" and "needs an actual generated world, left to the manual release checklist" (this class's
- * javadoc there applies here too: only "does a chunk actually contain the ore" is out of reach).
+ * Track B's ore family (issue #839, epic #824): every ore's own harvest-tier gate and drop, plus the
+ * config-aware group toggle and worldgen JSON's own wiring -- the same split {@link NetherOreGameTests}
+ * already draws between "provable without a real chunk" and "needs an actual generated world, left to
+ * the manual release checklist" (this class's javadoc there applies here too: only "does a chunk
+ * actually contain the ore" is out of reach).
+ *
+ * <p>Issue #877 (the JC10 reversal) re-rung six of these ores onto the three new tiers above netherite
+ * (see {@link TrackBOre.Tier}'s own javadoc), so {@link #everyTrackBOreHasTheRightTierGateAndDrop}
+ * now also proves the new rungs gate for real: a netherite pickaxe -- previously correct for every
+ * netherite-and-up Track B ore -- must now refuse the six ores that moved up, and a synthetic pick at
+ * the ore's own new rung ({@link #syntheticPick}, since no vanilla item sits above netherite) must
+ * still succeed.
  */
 @GameTestHolder(Forgeweave.MODID)
 @PrefixGameTestTemplate(false)
@@ -88,11 +102,14 @@ public class TrackBOreGameTests {
     }
 
     /**
-     * Every ore's harvest-tier gate matches the M6 tier scaffold (research doc §7.1): the ten
+     * Every ore's harvest-tier gate matches its {@link TrackBOre.Tier}: the four remaining
      * netherite-tier ores take cobalt/ardite's exact needs_diamond_tool + incorrect_for_diamond_tool
-     * combo (netherite pickaxe only), the one diamond-tier ore (fulmenite) accepts an iron pickaxe
-     * but refuses wood, and the one stone-tier ore (cinderstone) accepts any pickaxe including wood.
-     * Each also drops exactly one raw item, same unconditional self-drop as cobalt/ardite.
+     * combo (netherite pickaxe only, diamond refused); the six ores #877 re-rung above netherite each
+     * refuse the rung directly below them (a netherite pickaxe for hardcinder, a hardcinder-tier
+     * synthetic pick for warspar, a warspar-tier synthetic pick for resonite) and accept only a
+     * synthetic pick at their own rung; the one diamond-tier ore (fulmenite) accepts an iron pickaxe;
+     * the one stone-tier ore (cinderstone) accepts any pickaxe including wood. Each also drops exactly
+     * one raw item, same unconditional self-drop as cobalt/ardite.
      */
     @GameTest(template = "empty")
     public static void everyTrackBOreHasTheRightTierGateAndDrop(GameTestHelper helper) {
@@ -100,38 +117,67 @@ public class TrackBOreGameTests {
             Block oreBlock = ForgeweaveBlocks.trackBOre(ore.id()).get();
             Item rawItem = ForgeweaveItems.trackBRawItem(ore.id()).get();
             switch (ore.tier()) {
-                case NETHERITE -> assertMinimumTier(helper, oreBlock, rawItem, Items.DIAMOND_PICKAXE, false);
-                case DIAMOND -> assertMinimumTier(helper, oreBlock, rawItem, Items.IRON_PICKAXE, true);
-                case STONE -> assertMinimumTier(helper, oreBlock, rawItem, Items.WOODEN_PICKAXE, true);
+                case RESONITE -> assertGate(helper, oreBlock, rawItem,
+                        syntheticPick(TrackBOre.INCORRECT_FOR_WARSPAR_TOOL),
+                        syntheticPick(TrackBOre.INCORRECT_FOR_RESONITE_TOOL));
+                case WARSPAR -> assertGate(helper, oreBlock, rawItem,
+                        syntheticPick(TrackBOre.INCORRECT_FOR_HARDCINDER_TOOL),
+                        syntheticPick(TrackBOre.INCORRECT_FOR_WARSPAR_TOOL));
+                case HARDCINDER -> assertGate(helper, oreBlock, rawItem,
+                        new ItemStack(Items.NETHERITE_PICKAXE),
+                        syntheticPick(TrackBOre.INCORRECT_FOR_HARDCINDER_TOOL));
+                case NETHERITE -> assertGate(helper, oreBlock, rawItem,
+                        new ItemStack(Items.DIAMOND_PICKAXE), new ItemStack(Items.NETHERITE_PICKAXE));
+                case DIAMOND -> assertAccepts(helper, oreBlock, rawItem, new ItemStack(Items.IRON_PICKAXE));
+                case STONE -> assertAccepts(helper, oreBlock, rawItem, new ItemStack(Items.WOODEN_PICKAXE));
             }
         }
         helper.succeed();
     }
 
     /**
-     * Mines {@code oreBlock} with {@code belowThreshold} (a diamond pickaxe for the netherite rung, an
-     * iron pickaxe for the diamond rung, a wood pickaxe for the stone rung) and asserts whether that
-     * tool is correct, then always confirms a netherite pickaxe both is correct and yields exactly one
-     * {@code rawItem}.
+     * A pickaxe with a real vanilla {@code tool} component whose only deny-drops rule is
+     * {@code incorrectForTool}, built the same way {@code ToolItem#toolComponent} builds a real
+     * assembled tool's -- so it stands in for "a tool at this rung" for the three tiers #877 mints
+     * above netherite, where no vanilla item exists to test against.
      */
-    private static void assertMinimumTier(GameTestHelper helper, Block oreBlock, Item rawItem, Item belowThreshold, boolean shouldAccept) {
-        BlockState state = oreBlock.defaultBlockState();
-        ItemStack below = new ItemStack(belowThreshold);
-        ItemStack netherite = new ItemStack(Items.NETHERITE_PICKAXE);
+    private static ItemStack syntheticPick(TagKey<Block> incorrectForTool) {
+        ToolItem toolItem = ForgeweaveItems.TOOL_PICKAXE.get();
+        ToolStats.Stats stats = new ToolStats.Stats(250, 1.0F, 1.0F);
+        Material head = new Material(new Material.Head(250, 1.0F, 1.0F), new Material.Handle(1.0F, 0), 0,
+                incorrectForTool, new Material.Traits(List.of(), List.of()), List.of(), Ingredient.of(Items.STICK),
+                TextColor.fromRgb(0xFFFFFF));
 
-        if (shouldAccept) {
-            helper.assertTrue(below.isCorrectToolForDrops(state), oreBlock + " must accept " + belowThreshold);
-        } else {
-            helper.assertFalse(below.isCorrectToolForDrops(state), oreBlock + " must refuse " + belowThreshold);
+        ItemStack stack = new ItemStack(toolItem);
+        stack.set(DataComponents.TOOL, toolItem.toolComponent(head, stats));
+        stack.set(DataComponents.MAX_DAMAGE, 250);
+        stack.set(DataComponents.DAMAGE, 0);
+        return stack;
+    }
+
+    /** Mines {@code oreBlock} with {@code correct} and asserts it works and yields exactly one {@code rawItem}. */
+    private static void assertAccepts(GameTestHelper helper, Block oreBlock, Item rawItem, ItemStack correct) {
+        assertGate(helper, oreBlock, rawItem, null, correct);
+    }
+
+    /**
+     * Asserts {@code below} (if given) refuses {@code oreBlock}'s drops, then mines it with
+     * {@code correct} and asserts that tool is accepted and yields exactly one {@code rawItem}.
+     */
+    private static void assertGate(GameTestHelper helper, Block oreBlock, Item rawItem, ItemStack below, ItemStack correct) {
+        BlockState state = oreBlock.defaultBlockState();
+
+        if (below != null) {
+            helper.assertFalse(below.isCorrectToolForDrops(state), oreBlock + " must refuse " + below.getItem());
         }
-        helper.assertTrue(netherite.isCorrectToolForDrops(state), oreBlock + " must accept a netherite pickaxe");
+        helper.assertTrue(correct.isCorrectToolForDrops(state), oreBlock + " must accept " + correct.getItem());
 
         BlockPos pos = new BlockPos(1, 1, 1);
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         ServerLevel level = helper.getLevel();
         BlockPos absolute = helper.absolutePos(pos);
         helper.setBlock(pos, state);
-        List<ItemStack> drops = Block.getDrops(state, level, absolute, level.getBlockEntity(absolute), player, netherite);
+        List<ItemStack> drops = Block.getDrops(state, level, absolute, level.getBlockEntity(absolute), player, correct);
         helper.setBlock(pos, Blocks.AIR);
 
         helper.assertTrue(drops.size() == 1, "expected exactly one item stack of drops for " + oreBlock + ", got " + drops.size());

@@ -183,9 +183,12 @@ class MetalMaterialTest {
      * {@code OBSIDIAN -> diamond}, {@code COBALT -> netherite}.
      *
      * <p>So iron/pig iron/bronze ({@code DIAMOND}) mine at iron tier, copper/lead/silver/electrum
-     * ({@code IRON}) at stone tier, steel/knightslime ({@code OBSIDIAN}) at diamond tier, and only
-     * cobalt/ardite/manyullyn/obsidian ({@code COBALT}) reach netherite -- an exact five-for-five
-     * mapping with no ladder-top collapse left to deviate on.
+     * ({@code IRON}) at stone tier, steel/knightslime ({@code OBSIDIAN}) at diamond tier, and
+     * cobalt/ardite/obsidian ({@code COBALT}) reach netherite -- an exact five-for-five mapping with
+     * no ladder-top collapse left to deviate on. Manyullyn is the one exception: issue #877 (the JC10
+     * reversal) moved it up to the new {@code hardcinder} rung above netherite (it is cobalt+ardite's
+     * own alloy, so this is where the new alloy-chain progression pressure lives) -- see
+     * {@code MaterialTest#shippedMaterialsSitOnUpstreamsHarvestTier}'s CSV for that rung's coverage.
      */
     @ParameterizedTest
     @CsvSource({
@@ -200,7 +203,6 @@ class MetalMaterialTest {
             "knightslime,minecraft:incorrect_for_diamond_tool",
             "cobalt,minecraft:incorrect_for_netherite_tool",
             "ardite,minecraft:incorrect_for_netherite_tool",
-            "manyullyn,minecraft:incorrect_for_netherite_tool",
             "netherite,minecraft:incorrect_for_netherite_tool",
             "rose_gold,minecraft:incorrect_for_wooden_tool"
     })

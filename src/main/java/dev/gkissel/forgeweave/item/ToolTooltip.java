@@ -29,6 +29,7 @@ import dev.gkissel.forgeweave.modifier.ForgeweaveModifiers;
 import dev.gkissel.forgeweave.modifier.ModifierEntry;
 import dev.gkissel.forgeweave.tool.ToolMaterials;
 import dev.gkissel.forgeweave.tool.ToolStats;
+import dev.gkissel.forgeweave.trackb.TrackBOre;
 import dev.gkissel.forgeweave.trait.EnergyBuffer;
 import dev.gkissel.forgeweave.trait.ForgeweaveTraits;
 
@@ -362,16 +363,23 @@ final class ToolTooltip {
     }
 
     /**
-     * Vanilla's full {@code incorrect_for_*_tool} ladder mapped to the {@code tooltip.forgeweave.tier.*}
+     * The full {@code incorrect_for_*_tool} ladder mapped to the {@code tooltip.forgeweave.tier.*}
      * keys (issue #254). Gold is deliberately absent -- it is a speed tier, not a mining-capability
      * one -- as is any modded tag, so callers omit the line rather than guess.
+     *
+     * <p>Issue #877 (the JC10 reversal) adds the three rungs above netherite -- {@code hardcinder},
+     * {@code warspar}, {@code resonite} -- {@link TrackBOre}'s own tags, named after the Track B
+     * material anchoring each rung.
      */
     private static final Map<TagKey<Block>, String> TIER_LANG_KEYS = Map.of(
             BlockTags.INCORRECT_FOR_WOODEN_TOOL, "wooden",
             BlockTags.INCORRECT_FOR_STONE_TOOL, "stone",
             BlockTags.INCORRECT_FOR_IRON_TOOL, "iron",
             BlockTags.INCORRECT_FOR_DIAMOND_TOOL, "diamond",
-            BlockTags.INCORRECT_FOR_NETHERITE_TOOL, "netherite");
+            BlockTags.INCORRECT_FOR_NETHERITE_TOOL, "netherite",
+            TrackBOre.INCORRECT_FOR_HARDCINDER_TOOL, "hardcinder",
+            TrackBOre.INCORRECT_FOR_WARSPAR_TOOL, "warspar",
+            TrackBOre.INCORRECT_FOR_RESONITE_TOOL, "resonite");
 
     /**
      * The {@code Tool Tier: X} line for a bare {@code incorrect_for_tool} tag -- head-part tooltips

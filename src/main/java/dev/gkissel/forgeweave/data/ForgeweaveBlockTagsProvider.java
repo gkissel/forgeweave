@@ -129,21 +129,44 @@ public class ForgeweaveBlockTagsProvider extends BlockTagsProvider {
                 .addTag(cTag("storage_blocks/pig_iron")).addTag(cTag("storage_blocks/amethyst_bronze"))
                 .addTag(cTag("storage_blocks/queens_slime")).addTag(cTag("storage_blocks/hepatizon"));
 
-        // #839 -- Track B's ore family (M6 epic #824): tool-tier gating per material, mapped onto
-        // the M6 tier scaffold's existing rungs (research doc §7.1, no new tags minted). Netherite-tier
-        // ores reuse cobalt/ardite's exact needs_diamond_tool + incorrect_for_diamond_tool combo
-        // (netherite pickaxe only); the diamond-tier ore (fulmenite) needs an iron pickaxe or better,
-        // matching vanilla diamond_ore's own needs_iron_tool; the stone-tier ore (cinderstone) takes
-        // no needs_*_tool tag at all, mineable with any pickaxe, matching vanilla coal/copper ore.
+        // #839/#877 -- Track B's ore family (M6 epic #824): tool-tier gating per material. #877 (the
+        // JC10 reversal) mints three rungs above netherite, so an ore at one of those rungs is denied
+        // to every tool at or below it -- the same "add directly to every lower rung's own tag" style
+        // already used for the netherite boundary (needs_diamond_tool + incorrect_for_diamond_tool),
+        // just carried one/two/three rungs further for hardcinder/warspar/resonite. The diamond-tier
+        // ore (fulmenite) needs an iron pickaxe or better, matching vanilla diamond_ore's own
+        // needs_iron_tool; the stone-tier ore (cinderstone) takes no needs_*_tool tag at all, mineable
+        // with any pickaxe, matching vanilla coal/copper ore.
         var trackBPickaxe = tag(BlockTags.MINEABLE_WITH_PICKAXE);
         var trackBNeedsDiamond = tag(BlockTags.NEEDS_DIAMOND_TOOL);
         var trackBIncorrectForDiamond = tag(BlockTags.INCORRECT_FOR_DIAMOND_TOOL);
+        var trackBIncorrectForNetherite = tag(BlockTags.INCORRECT_FOR_NETHERITE_TOOL);
+        var trackBIncorrectForHardcinder = tag(TrackBOre.INCORRECT_FOR_HARDCINDER_TOOL);
+        var trackBIncorrectForWarspar = tag(TrackBOre.INCORRECT_FOR_WARSPAR_TOOL);
         var trackBNeedsIron = tag(BlockTags.NEEDS_IRON_TOOL);
         var trackBStorageBlocks = tag(cTag("storage_blocks"));
         for (TrackBOre ore : TrackBOre.ALL) {
             Block oreBlock = ForgeweaveBlocks.trackBOre(ore.id()).get();
             trackBPickaxe.add(oreBlock);
             switch (ore.tier()) {
+                case RESONITE -> {
+                    trackBNeedsDiamond.add(oreBlock);
+                    trackBIncorrectForDiamond.add(oreBlock);
+                    trackBIncorrectForNetherite.add(oreBlock);
+                    trackBIncorrectForHardcinder.add(oreBlock);
+                    trackBIncorrectForWarspar.add(oreBlock);
+                }
+                case WARSPAR -> {
+                    trackBNeedsDiamond.add(oreBlock);
+                    trackBIncorrectForDiamond.add(oreBlock);
+                    trackBIncorrectForNetherite.add(oreBlock);
+                    trackBIncorrectForHardcinder.add(oreBlock);
+                }
+                case HARDCINDER -> {
+                    trackBNeedsDiamond.add(oreBlock);
+                    trackBIncorrectForDiamond.add(oreBlock);
+                    trackBIncorrectForNetherite.add(oreBlock);
+                }
                 case NETHERITE -> {
                     trackBNeedsDiamond.add(oreBlock);
                     trackBIncorrectForDiamond.add(oreBlock);
