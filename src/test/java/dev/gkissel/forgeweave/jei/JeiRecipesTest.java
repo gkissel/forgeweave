@@ -24,6 +24,7 @@ import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.Ingredient;
+import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.level.material.Fluids;
 
 import net.neoforged.neoforge.fluids.FluidStack;
@@ -384,7 +385,7 @@ class JeiRecipesTest {
         Map<ResourceLocation, MeltingRecipe> recipes = new LinkedHashMap<>();
         recipes.put(id("iron_ingot"), new MeltingRecipe(Ingredient.of(Items.IRON_INGOT), Fluids.LAVA, 144, 534, false));
 
-        List<MeltingDisplay> displays = MeltingRecipes.build(recipes);
+        List<MeltingDisplay> displays = MeltingRecipes.build(recipes, Map.of());
 
         assertEquals(1, displays.size());
         MeltingDisplay display = displays.get(0);
@@ -393,6 +394,33 @@ class JeiRecipesTest {
         assertTrue(!display.ore());
         assertEquals(1, display.inputs().size());
         assertTrue(display.inputs().get(0).is(Items.IRON_INGOT));
+        assertTrue(display.fuels().isEmpty(), "no smeltery_fuel entries were given to build()");
+    }
+
+    /**
+     * Issue #893: 1.12 parity for the melting category's fuel column -- upstream's own
+     * {@code SmeltingRecipeWrapper} filters {@code TinkerRegistry.getSmelteryFuels()} down to whichever
+     * fuels are hot enough for the recipe ({@code fs.getFluid().getTemperature(fs) >= temperature}),
+     * mirrored here by {@code MeltingRecipes#acceptedFuels}. A fuel exactly at the recipe's own
+     * temperature still counts (upstream's comparison is {@code >=}, not {@code >}).
+     */
+    @Test
+    void meltingFuelsAreFilteredToWhicheverFuelsReachTheRecipesTemperature() {
+        Map<ResourceLocation, MeltingRecipe> recipes = new LinkedHashMap<>();
+        recipes.put(id("iron_ingot"), new MeltingRecipe(Ingredient.of(Items.IRON_INGOT), Fluids.LAVA, 144, 1300, false));
+
+        Map<ResourceLocation, SmelteryFuel> fuels = new LinkedHashMap<>();
+        fuels.put(id("lava"), new SmelteryFuel(Fluids.LAVA, 50, 100, 1300)); // exactly at the recipe's temperature
+        fuels.put(id("blazing_blood"), new SmelteryFuel(Fluids.WATER, 50, 100, 1500)); // hotter
+        fuels.put(id("too_cold"), new SmelteryFuel(Fluids.WATER, 50, 100, 1000)); // not hot enough
+
+        List<MeltingDisplay> displays = MeltingRecipes.build(recipes, fuels);
+
+        assertEquals(1, displays.size());
+        List<Fluid> acceptedFluids = displays.get(0).fuels().stream().map(SmelteryFuel::fluid).toList();
+        assertEquals(2, acceptedFluids.size(), "the too-cold fuel is excluded, the exact-temperature one is not");
+        assertTrue(acceptedFluids.contains(Fluids.LAVA));
+        assertTrue(acceptedFluids.contains(Fluids.WATER));
     }
 
     /**
@@ -423,7 +451,7 @@ class JeiRecipesTest {
         recipes.put(id("aaa_specific_override"), specificOverride);
         recipes.put(id("zzz_broad_default"), broadDefault);
 
-        List<MeltingDisplay> displays = MeltingRecipes.build(recipes);
+        List<MeltingDisplay> displays = MeltingRecipes.build(recipes, Map.of());
 
         MeltingRecipe winner = MeltingRecipe.resolve(recipes, new ItemStack(Items.COPPER_INGOT)).orElseThrow();
         List<MeltingDisplay> showingCopper = displays.stream()
@@ -446,7 +474,7 @@ class JeiRecipesTest {
         recipes.put(id("loses_entirely"), new MeltingRecipe(Ingredient.of(Items.COPPER_INGOT), Fluids.LAVA, 100, 500, false));
         recipes.put(id("always_wins"), new MeltingRecipe(Ingredient.of(Items.COPPER_INGOT), Fluids.WATER, 200, 500, false));
 
-        List<MeltingDisplay> displays = MeltingRecipes.build(recipes);
+        List<MeltingDisplay> displays = MeltingRecipes.build(recipes, Map.of());
 
         assertEquals(1, displays.size(), "the recipe that loses every one of its candidate items shows no display at all");
     }

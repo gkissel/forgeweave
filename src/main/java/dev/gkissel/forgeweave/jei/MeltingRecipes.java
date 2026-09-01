@@ -8,6 +8,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 
 import dev.gkissel.forgeweave.recipe.MeltingRecipe;
+import dev.gkissel.forgeweave.recipe.SmelteryFuel;
 
 /**
  * Builds one {@link MeltingDisplay} per melting registry entry that still wins at least one item
@@ -22,16 +23,28 @@ import dev.gkissel.forgeweave.recipe.MeltingRecipe;
  * more specific overrides contributes no display recipe at all.
  */
 final class MeltingRecipes {
-    static List<MeltingDisplay> build(Map<ResourceLocation, MeltingRecipe> recipes) {
+    static List<MeltingDisplay> build(Map<ResourceLocation, MeltingRecipe> recipes, Map<ResourceLocation, SmelteryFuel> fuels) {
         List<MeltingDisplay> displays = new ArrayList<>();
         for (MeltingRecipe recipe : recipes.values()) {
             List<ItemStack> inputs = wonInputs(recipes, recipe);
             if (inputs.isEmpty()) {
                 continue; // every candidate item is won by a more specific override -- nothing to show here.
             }
-            displays.add(new MeltingDisplay(inputs, recipe.fluid(), recipe.amount(), recipe.temperature(), recipe.ore()));
+            displays.add(new MeltingDisplay(inputs, recipe.fluid(), recipe.amount(), recipe.temperature(), recipe.ore(),
+                    acceptedFuels(fuels, recipe.temperature())));
         }
         return displays;
+    }
+
+    /** Issue #893: upstream's own fuel filter -- every registered fuel hot enough to reach this recipe. */
+    private static List<SmelteryFuel> acceptedFuels(Map<ResourceLocation, SmelteryFuel> fuels, int temperature) {
+        List<SmelteryFuel> accepted = new ArrayList<>();
+        for (SmelteryFuel fuel : fuels.values()) {
+            if (fuel.temperature() >= temperature) {
+                accepted.add(fuel);
+            }
+        }
+        return accepted;
     }
 
     private static List<ItemStack> wonInputs(Map<ResourceLocation, MeltingRecipe> recipes, MeltingRecipe recipe) {

@@ -247,8 +247,11 @@ public final class ForgeweaveJeiPlugin implements IModPlugin {
         // an off tool family takes goes with that family rather than with the smeltery.
         boolean smeltery = ForgeweaveConfig.enabled(ForgeweaveConfig.SMELTERY);
         Map<ResourceLocation, CastingRecipe> castingRecipes = smeltery ? currentCastingRecipes() : Map.of();
+        // #893: melting's fuel column reads the same smeltery_fuel registry #890's standalone
+        // category below does, so it is read once here and reused rather than re-synced twice.
+        Map<ResourceLocation, SmelteryFuel> smelteryFuels = smeltery ? currentSmelteryFuels() : Map.of();
         registration.addRecipes(MeltingCategory.TYPE,
-                smeltery ? MeltingRecipes.build(currentMeltingRecipes()) : List.of());
+                smeltery ? MeltingRecipes.build(currentMeltingRecipes(), smelteryFuels) : List.of());
         registration.addRecipes(AlloyingCategory.TYPE,
                 smeltery ? AlloyingRecipes.build(currentAlloyRecipes()) : List.of());
         registration.addRecipes(CastingTableCategory.TYPE, castingEnabled(CastingRecipes.table(castingRecipes)));
@@ -270,7 +273,7 @@ public final class ForgeweaveJeiPlugin implements IModPlugin {
         // CoreTransformRecipe#find both check ForgeweaveConfig#SMELTERY themselves at call time, so
         // this mirrors what the config would refuse anyway rather than introducing a new rule).
         registration.addRecipes(SmelteryFuelCategory.TYPE,
-                smeltery ? SmelteryFuelRecipes.build(currentSmelteryFuels()) : List.of());
+                smeltery ? SmelteryFuelRecipes.build(smelteryFuels) : List.of());
         registration.addRecipes(CoreTransformCategory.TYPE,
                 smeltery ? CoreTransformRecipes.build(currentCoreTransformRecipes()) : List.of());
 

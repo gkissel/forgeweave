@@ -7,17 +7,21 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.ItemStack;
 
 import mezz.jei.api.gui.builder.IRecipeLayoutBuilder;
+import mezz.jei.api.gui.builder.IRecipeSlotBuilder;
 import mezz.jei.api.gui.drawable.IDrawable;
 import mezz.jei.api.gui.drawable.IDrawableAnimated.StartDirection;
 import mezz.jei.api.gui.ingredient.IRecipeSlotsView;
 import mezz.jei.api.helpers.IGuiHelper;
+import mezz.jei.api.neoforge.NeoForgeTypes;
 import mezz.jei.api.recipe.IFocusGroup;
+import mezz.jei.api.recipe.RecipeIngredientRole;
 import mezz.jei.api.recipe.RecipeType;
 import mezz.jei.api.recipe.category.IRecipeCategory;
 
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.client.TemperatureText; // #276
 import dev.gkissel.forgeweave.item.ForgeweaveItems;
+import dev.gkissel.forgeweave.recipe.SmelteryFuel;
 
 /**
  * Smeltery melting recipes: an item melts into a fluid amount at a required temperature
@@ -49,9 +53,12 @@ import dev.gkissel.forgeweave.item.ForgeweaveItems;
  *       across the whole row and under the output fluid.
  * </ul>
  *
- * <p>Deviation: upstream's fuel column is a live tank cycling every fluid fuel hot enough for the
- * recipe (plus a solid-fuel slot below it). Forgeweave has no fuel registry to read, so that column
- * keeps JEI's flame icon, centred in the same 12x32 recess upstream's tank fills.
+ * <p>Issue #893 closes the one deviation #804 above still called out: the fuel column is now upstream's
+ * own live tank, cycling every {@code smeltery_fuel} registry entry hot enough for the recipe
+ * ({@link MeltingRecipes}'s own filter mirrors upstream's {@code SmeltingRecipeWrapper} constructor's
+ * temperature check), in the same 12x32 recess the flame icon used to sit in. Upstream also has a
+ * solid-fuel slot below the tank; Forgeweave's smeltery burns fluids only (docs/SCOPE.md M2), so
+ * there is no second slot to add.
  */
 final class MeltingCategory implements IRecipeCategory<MeltingDisplay> {
     static final RecipeType<MeltingDisplay> TYPE =
@@ -84,11 +91,17 @@ final class MeltingCategory implements IRecipeCategory<MeltingDisplay> {
      * sweep runs on one fixed period for every row instead.
      */
     private static final int ARROW_TICKS = 100;
-    /** Upstream's own liquid-fuel tank -- `builder.addSlot(RENDER_ONLY, 4, 4).setFluidRenderer(1, false, 12, 32)`. */
+    /**
+     * Upstream's own liquid-fuel tank -- `builder.addSlot(RENDER_ONLY, 4, 4).setFluidRenderer(1, false, 12, 32)`.
+     * Issue #893: a real render-only fluid slot now, cycling {@link MeltingDisplay#fuels()} instead of
+     * the flame icon that used to sit here.
+     */
     private static final int FUEL_X = 4;
     private static final int FUEL_Y = 4;
     private static final int FUEL_WIDTH = 12;
     private static final int FUEL_HEIGHT = 32;
+    /** Upstream forces the tank display to always read full regardless of the fuel's own registered amount. */
+    private static final int FUEL_DISPLAY_AMOUNT = 1;
     /** Upstream's own temperature row -- `int x = 56 - font.width(tempString) / 2; drawString(.., x, 3, ..)`. */
     private static final int TEMPERATURE_CENTER_X = 56;
     private static final int TEMPERATURE_Y = 3;
@@ -96,7 +109,6 @@ final class MeltingCategory implements IRecipeCategory<MeltingDisplay> {
 
     private final IDrawable icon;
     private final IDrawable arrow;
-    private final IDrawable flame;
     private final IDrawable background;
     private final IDrawable tankOverlay;
 
@@ -104,7 +116,6 @@ final class MeltingCategory implements IRecipeCategory<MeltingDisplay> {
         icon = helper.createDrawableItemStack(new ItemStack(ForgeweaveItems.STANDARD_CORE.get()));
         arrow = helper.drawableBuilder(PANEL.background(), ARROW_U, ARROW_V, ARROW_WIDTH, ARROW_HEIGHT)
                 .buildAnimated(ARROW_TICKS, StartDirection.LEFT, false);
-        flame = helper.getRecipeFlameFilled();
         background = JeiCategoryChrome.panel(helper, PANEL);
         tankOverlay = helper.createDrawable(PANEL.background(), OVERLAY_U, OVERLAY_V, OUTPUT_SIZE, OUTPUT_SIZE);
     }
@@ -146,15 +157,27 @@ final class MeltingCategory implements IRecipeCategory<MeltingDisplay> {
                         tooltip.add(Component.translatable("jei.category.forgeweave.melting.core_multiplier"));
                     }
                 });
+
+        // Issue #893: the fuel column upstream's own tank cycles -- every smeltery_fuel entry hot
+        // enough for this recipe (MeltingRecipes#acceptedFuels). Render-only: the smeltery reads the
+        // registry directly at melt time, so nothing here is a real recipe input.
+        IRecipeSlotBuilder fuelSlot = builder.addSlot(RecipeIngredientRole.RENDER_ONLY, FUEL_X, FUEL_Y)
+                .setFluidRenderer(FUEL_DISPLAY_AMOUNT, false, FUEL_WIDTH, FUEL_HEIGHT);
+        for (SmelteryFuel fuel : recipe.fuels()) {
+            fuelSlot.addFluidStack(fuel.fluid(), FUEL_DISPLAY_AMOUNT);
+        }
+        fuelSlot.addRichTooltipCallback((view, tooltip) -> view.getDisplayedIngredient(NeoForgeTypes.FLUID_STACK)
+                .ifPresent(displayed -> recipe.fuels().stream()
+                        .filter(fuel -> fuel.fluid() == displayed.getFluid())
+                        .findFirst()
+                        .ifPresent(fuel -> tooltip.add(Component.translatable(
+                                "jei.category.forgeweave.melting.fuel_temperature", TemperatureText.format(fuel.temperature()))))));
     }
 
     @Override
     public void draw(MeltingDisplay recipe, IRecipeSlotsView recipeSlotsView, GuiGraphics guiGraphics, double mouseX, double mouseY) {
         background.draw(guiGraphics, 0, 0);
         arrow.draw(guiGraphics, ARROW_X, ARROW_Y);
-        flame.draw(guiGraphics,
-                FUEL_X + (FUEL_WIDTH - flame.getWidth()) / 2,
-                FUEL_Y + (FUEL_HEIGHT - flame.getHeight()) / 2);
 
         Font font = Minecraft.getInstance().font;
         JeiCategoryChrome.drawCentered(guiGraphics, font, TemperatureText.format(recipe.temperature()),

@@ -1528,6 +1528,8 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         // issue #99) -- ingots, nuggets and blocks always melt 1:1, so they get no note.
         add("jei.category.forgeweave.melting.core_multiplier",
                 "Base yield: your smeltery's core tier multiplies ore inputs (Standard 1.5x, Nether 2x).");
+        // #893: the fuel column's tooltip, one per cycling smeltery_fuel entry hot enough for the recipe.
+        add("jei.category.forgeweave.melting.fuel_temperature", "Burns at %s");
         add("jei.category.forgeweave.alloying", "Alloying");
         add("jei.category.forgeweave.alloying.ratio_note",
                 "Shown as a ratio: the smeltery alloys as many whole batches as the tank holds.");

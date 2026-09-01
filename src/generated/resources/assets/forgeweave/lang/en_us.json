@@ -1184,6 +1184,7 @@
   "jei.category.forgeweave.large_tool_assembly": "Tool Assembly (Tool Forge only)",
   "jei.category.forgeweave.melting": "Melting",
   "jei.category.forgeweave.melting.core_multiplier": "Base yield: your smeltery's core tier multiplies ore inputs (Standard 1.5x, Nether 2x).",
+  "jei.category.forgeweave.melting.fuel_temperature": "Burns at %s",
   "jei.category.forgeweave.modifier_application": "Modifier Application",
   "jei.category.forgeweave.modifier_application.level_cap": "Level cap: %s",
   "jei.category.forgeweave.part_crafting": "Part Crafting",
