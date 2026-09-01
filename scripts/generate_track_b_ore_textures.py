@@ -82,9 +82,9 @@ ROOT = Path(__file__).resolve().parent.parent
 BLOCK_DIR = ROOT / "src/main/resources/assets/forgeweave/textures/block"
 ITEM_DIR = ROOT / "src/main/resources/assets/forgeweave/textures/item"
 
-# (id, color, host) -- host picks the ore block's base rock. Must match TrackBOre.ALL.
+# (id, color, host) -- host picks the ore block's base rock. Must match TrackBOre.ALL. Issue #884
+# (1) removed "cinderstone": basalt replaces it and uses vanilla's own basalt texture, no derived art.
 ORES = [
-    ("cinderstone", 0x8A8A86, "stone"),
     ("fulmenite", 0xC8D94A, "deepslate"),
     ("duskspar", 0x8A5FD9, "deepslate"),
     ("voltcinder", 0x38D9D0, "netherrack"),

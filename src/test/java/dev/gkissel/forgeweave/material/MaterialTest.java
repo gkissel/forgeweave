@@ -163,9 +163,11 @@ class MaterialTest {
             "black_quartz", "restonia_crystal", "palis_crystal", "diamatine_crystal", "void_crystal",
             "emeradic_crystal", "enori_crystal", "uraninite", "psimetal", "psigem", "ivory_psimetal",
             "ebony_psimetal", "pink_slime", "cyanite", "blutonium", "ludicrite",
-            // #841 M6 Track B: the self-contained tool material roster -- 12 ore-sourced metals
-            // (TrackBOre) plus 18 alloy metals (TrackBAlloy), no neoforge:conditions (they always exist).
-            "cinderstone", "fulmenite", "duskspar", "voltcinder", "murkiron", "hardcinder", "nightshale",
+            // #841 M6 Track B: the self-contained tool material roster -- 11 ore-sourced metals
+            // (TrackBOre) plus 18 alloy metals (TrackBAlloy), no neoforge:conditions (they always
+            // exist). Issue #884 (1): "basalt" here (a Part-Builder-only vanilla-item material, not
+            // a TrackBOre) replaces the retired "cinderstone".
+            "basalt", "fulmenite", "duskspar", "voltcinder", "murkiron", "hardcinder", "nightshale",
             "warspar", "hollowstone", "resonite", "starfall_stone", "voidglass",
             "ironbrand", "quakestone", "shardline", "embercast", "riftalloy", "tideiron", "cinderforge",
             "dreadalloy", "sunsteel", "hollowsteel", "truesteel", "stormalloy", "glowveil", "daybrass",
@@ -309,8 +311,9 @@ class MaterialTest {
             "cyanite,diamond", "blutonium,diamond", "ludicrite,netherite",
             // #841 M6 Track B: the self-contained tool material roster's original tier scaffold
             // (docs/research/m6-material-expansion-references.md &sect;7.1, JC10 = no new tags) --
-            // superseded by issue #877 (the JC10 reversal). cinderstone is the reference ladder's own
-            // "stone" rung; fulmenite/quakestone/shardline are its "diamond" rung; duskspar/voltcinder/
+            // superseded by issue #877 (the JC10 reversal). basalt (issue #884 (1), replacing the
+            // retired cinderstone) is the roster's own "stone" rung; fulmenite/quakestone/shardline
+            // are its "diamond" rung; duskspar/voltcinder/
             // starfall_stone/voidglass/ironbrand/embercast/tideiron/cinderforge/daybrass/faultsteel/
             // skipalloy/mendalloy/mendstone stay at netherite (the reference ladder's own
             // cobalt-equivalent rung, alongside cobalt/ardite/netherite/obsidian/iridium); murkiron/
@@ -319,7 +322,7 @@ class MaterialTest {
             // #877's PR body for the "why manyullyn/ancient move" call); warspar/hollowstone/
             // hollowsteel/glowveil move to the new warspar rung (valyrium-equivalent); resonite/
             // sunsteel/truesteel move to the new top resonite rung (vibranium-equivalent).
-            "cinderstone,stone",
+            "basalt,stone",
             "fulmenite,diamond", "quakestone,diamond", "shardline,diamond",
             "duskspar,netherite", "voltcinder,netherite", "starfall_stone,netherite", "voidglass,netherite",
             "ironbrand,netherite", "embercast,netherite", "tideiron,netherite", "cinderforge,netherite",
@@ -569,9 +572,11 @@ class MaterialTest {
             // #836 M6 Track A batch 4: Draconic Evolution ships c:nuggets/draconium and
             // c:nuggets/draconium_awakened (verified against the mod's own 3.1.4.632 jar).
             "draconium", "draconium_awakened",
-            // #841 M6 Track B: every one of the 30 self-contained materials gets a Forgeweave-minted
-            // ingot and nugget item (TrackBOre/TrackBAlloy), same shape as cobalt/ardite/manyullyn.
-            "cinderstone", "fulmenite", "duskspar", "voltcinder", "murkiron", "hardcinder", "nightshale",
+            // #841 M6 Track B: every one of the (now 29, issue #884 (1) retired cinderstone --
+            // basalt replaces it as a Part-Builder-only vanilla-item material, no ingot/nugget of its
+            // own) self-contained materials gets a Forgeweave-minted ingot and nugget item
+            // (TrackBOre/TrackBAlloy), same shape as cobalt/ardite/manyullyn.
+            "fulmenite", "duskspar", "voltcinder", "murkiron", "hardcinder", "nightshale",
             "warspar", "hollowstone", "resonite", "starfall_stone", "voidglass",
             "ironbrand", "quakestone", "shardline", "embercast", "riftalloy", "tideiron", "cinderforge",
             "dreadalloy", "sunsteel", "hollowsteel", "truesteel", "stormalloy", "glowveil", "daybrass",
@@ -714,7 +719,9 @@ class MaterialTest {
             "queens_slime", "hepatizon", "slimewood",
             // #841 M6 Track B: the self-contained material roster gets full smeltery integration
             // (#840) but no Part Builder path, same cast-only shape as cobalt/ardite/manyullyn/steel.
-            "cinderstone", "fulmenite", "duskspar", "voltcinder", "murkiron", "hardcinder", "nightshale",
+            // Issue #884 (1) retired cinderstone from this list -- its replacement, basalt, is the
+            // opposite shape (Part-Builder-only, no smeltery casting at all; see basalt.json).
+            "fulmenite", "duskspar", "voltcinder", "murkiron", "hardcinder", "nightshale",
             "warspar", "hollowstone", "resonite", "starfall_stone", "voidglass",
             "ironbrand", "quakestone", "shardline", "embercast", "riftalloy", "tideiron", "cinderforge",
             "dreadalloy", "sunsteel", "hollowsteel", "truesteel", "stormalloy", "glowveil", "daybrass",

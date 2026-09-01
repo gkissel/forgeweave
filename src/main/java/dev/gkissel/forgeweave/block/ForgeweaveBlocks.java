@@ -398,7 +398,7 @@ public final class ForgeweaveBlocks {
                 .requiresCorrectToolForDrops());
     }
 
-    /** A Track B ore block by material id (e.g. {@code "cinderstone"}), or {@code null} if unknown. */
+    /** A Track B ore block by material id (e.g. {@code "fulmenite"}), or {@code null} if unknown. */
     public static DeferredBlock<Block> trackBOre(String id) {
         return TRACK_B_ORE_BLOCKS.get(id);
     }

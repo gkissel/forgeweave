@@ -24,7 +24,8 @@
   "incorrect_for_tool": "forgeweave:incorrect_for_hardcinder_tool",
   "traits": {
     "general": ["forgeweave:blighted"],
-    "head": ["forgeweave:harrying"]
+    "head": ["forgeweave:harrying"],
+    "handle": ["forgeweave:duskgrasp"]
   },
   "crafting_items": [
     { "ingredient": { "item": "forgeweave:murkiron_ingot" }, "value": 144 },

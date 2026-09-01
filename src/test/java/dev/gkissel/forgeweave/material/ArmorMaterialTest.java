@@ -79,9 +79,11 @@ class ArmorMaterialTest {
                     "void_crystal", "emeradic_crystal", "enori_crystal", "uraninite", "psimetal",
                     "psigem", "ivory_psimetal", "ebony_psimetal", "pink_slime", "cyanite", "blutonium",
                     "ludicrite"),
-            // #841 M6 Track B: every one of the 30 self-contained materials ships a full plating +
-            // maille block, same shape as the Track A preset batches and the original metal roster.
-            Stream.of("cinderstone", "fulmenite", "duskspar", "voltcinder", "murkiron", "hardcinder",
+            // #841 M6 Track B: every one of the (now 29, issue #884 (1) retired cinderstone --
+            // basalt replaces it as a Part-Builder-only material with no plating/maille block at all)
+            // self-contained materials ships a full plating + maille block, same shape as the Track A
+            // preset batches and the original metal roster.
+            Stream.of("fulmenite", "duskspar", "voltcinder", "murkiron", "hardcinder",
                     "nightshale", "warspar", "hollowstone", "resonite", "starfall_stone", "voidglass",
                     "ironbrand", "quakestone", "shardline", "embercast", "riftalloy", "tideiron",
                     "cinderforge", "dreadalloy", "sunsteel", "hollowsteel", "truesteel", "stormalloy",

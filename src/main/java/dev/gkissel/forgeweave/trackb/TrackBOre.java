@@ -114,8 +114,12 @@ public record TrackBOre(String id, Tier tier, Host host, int veinSize, int rateP
     // Research doc §7.3 "Ore-sourced" table, in that table's own order. Colors are this PR's own
     // pick (materials/traits/stat curve are #841's deliverable, not #839's) -- distinct, roughly
     // themed hues for the recolor-from-vanilla art pipeline (scripts/generate_track_b_ore_textures.py).
-    public static final TrackBOre CINDERSTONE =
-            new TrackBOre("cinderstone", Tier.STONE, Host.OVERWORLD_STONE, 6, 12, 0, 128, 0x8A8A86);
+    //
+    // Issue #884 (1): the stone-tier entry this table used to anchor here, "cinderstone", is retired
+    // -- the maintainer wants the stone-tier Basalt-flavored material to BE vanilla basalt, not a
+    // custom Track B ore. See dev.gkissel.forgeweave.material's basalt.json (Part-Builder-only, no
+    // ore/worldgen presence) and ForgeweaveTraits#EARTHMEND for its trait. No replacement TrackBOre
+    // entry was added; Track B's ore-sourced roster is 11 materials as of #884, not 12.
     public static final TrackBOre FULMENITE =
             new TrackBOre("fulmenite", Tier.DIAMOND, Host.OVERWORLD_DEEPSLATE, 5, 6, -24, 32, 0xC8D94A);
     public static final TrackBOre DUSKSPAR =
@@ -142,7 +146,7 @@ public record TrackBOre(String id, Tier tier, Host host, int veinSize, int rateP
     public static final TrackBOre VOIDGLASS =
             new TrackBOre("voidglass", Tier.NETHERITE, Host.END, 3, 1, 0, 255, 0x2A1740);
 
-    public static final List<TrackBOre> ALL = List.of(CINDERSTONE, FULMENITE, DUSKSPAR, VOLTCINDER, MURKIRON,
+    public static final List<TrackBOre> ALL = List.of(FULMENITE, DUSKSPAR, VOLTCINDER, MURKIRON,
             HARDCINDER, NIGHTSHALE, WARSPAR, HOLLOWSTONE, RESONITE, STARFALL_STONE, VOIDGLASS);
 
     public String oreBlockId() {

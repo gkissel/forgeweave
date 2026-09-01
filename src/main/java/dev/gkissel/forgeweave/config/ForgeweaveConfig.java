@@ -357,7 +357,7 @@ public final class ForgeweaveConfig {
                 .defineInRange("arditeRate", 20, 0, 256);
         // #839 -- M6 Track B's own ore family (epic #824): one grouped switch, not one per ore.
         GEN_TRACK_B_ORES = builder
-                .comment("If true, Track B's self-contained ore ladder (cinderstone, fulmenite, duskspar, ",
+                .comment("If true, Track B's self-contained ore ladder (fulmenite, duskspar, ",
                         "voltcinder, murkiron, hardcinder, nightshale, warspar, hollowstone, resonite, ",
                         "starfall_stone, voidglass) generates in the world.")
                 .define("genTrackBOres", true);
