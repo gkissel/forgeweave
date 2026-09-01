@@ -249,11 +249,13 @@ class ArmorMaterialTest {
             "iron,projectile_protection", "copper,depth_protection", "obsidian,blast_protection",
             "cobalt,melee_protection", "manyullyn,warded", "amethyst_bronze,crystalstrike",
             "silver,consecrated", "knightslime,overshield|overslime", "bone,piercing_guard", "cactus,thorns",
-            "chorus,enderclearance|overslime_friend", "slimevine_blue,skyfall|overslime_friend",
+            "chorus,enderclearance|overslime_friend", "slimevine_blue,skyfall|vinewarden",
     })
     void armorScopedTraitsApplyToPlatingAndMailleOnly(String name, String traits) {
         Material material = shipped(name);
-        // #728: knightslime carries the clone's overshield + overslime pair, the vines overslime_friend.
+        // #728: knightslime carries the clone's overshield + overslime pair, chorus overslime_friend.
+        // Issue #876 M6 dedupe batch: slimevine_blue moved off the shared overslime_friend to its own
+        // vinewarden id (chorus keeps overslime_friend).
         List<ResourceLocation> expected = Arrays.stream(traits.split("\\|")).map(ArmorMaterialTest::id).toList();
 
         assertEquals(expected, material.traits().forPart(PartItem.Kind.PLATING), name + " plating");

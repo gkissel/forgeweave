@@ -885,21 +885,32 @@ class MaterialTest {
     }
 
     /**
-     * Issue #837's design note: the parity target gives Actually Additions' black quartz plus its six
-     * coloured crystals one shared damage-scaling trait (reused as {@code forgeweave:pristine}, #827's
-     * {@code damage_scales_with(REMAINING_DURABILITY)} instance) rather than seven bespoke traits --
-     * "the clearest demonstration in the whole milestone that ADR-0004's library was the right call."
-     * This pins that reuse down so it cannot silently drift into seven separate ids.
+     * Issue #876 (M6 dedupe batch) reverses #837's design note: the seven Actually Additions crystals
+     * used to share one damage-scaling trait ({@code forgeweave:pristine}), the exact pattern the
+     * maintainer's "no repeated traits across materials" directive rules out. {@code pristine} now
+     * belongs to {@code emerald} alone (also crystalline, and not part of this AA septet); each of
+     * these seven gets its own id instead -- still mostly the same reused ADR-0004 seams (a couple of
+     * different parameters apiece), just no longer the identical instance under the identical id.
      */
     @ParameterizedTest
-    @ValueSource(strings = { "black_quartz", "restonia_crystal", "palis_crystal", "diamatine_crystal",
-            "void_crystal", "emeradic_crystal", "enori_crystal" })
-    void actuallyAdditionsMaterialsShareTheSamePristineTrait(String name) {
+    @CsvSource({
+            "black_quartz,unyielding",
+            "restonia_crystal,bloodgem",
+            "palis_crystal,stormglass",
+            "diamatine_crystal,radiant_edge",
+            "void_crystal,voidtouched",
+            "emeradic_crystal,verdant_ward",
+            "enori_crystal,luminous",
+    })
+    void actuallyAdditionsCrystalsCarryDistinctTraits(String name, String expectedTrait) {
         Material material = Material.CODEC.parse(ops, shipped(name)).getOrThrow();
         ResourceLocation pristine = ResourceLocation.fromNamespaceAndPath("forgeweave", "pristine");
+        ResourceLocation expected = ResourceLocation.fromNamespaceAndPath("forgeweave", expectedTrait);
 
-        assertTrue(material.traits().general().contains(pristine),
-                name + " must carry the shared forgeweave:pristine trait (issue #837)");
+        assertTrue(material.traits().general().contains(expected),
+                name + " must carry forgeweave:" + expectedTrait + " (issue #876), got " + material.traits().general());
+        assertFalse(material.traits().general().contains(pristine),
+                name + " must no longer carry forgeweave:pristine -- that id now belongs to emerald alone (issue #876)");
     }
 
     /**
@@ -954,6 +965,75 @@ class MaterialTest {
                 .getAsJsonObject("ingredient").get("item").getAsString());
 
         Material.CODEC.parse(ops, json).getOrThrow();
+    }
+
+    /**
+     * Issue #876's regression guard: no two materials may claim the same trait id, except two shared
+     * system mechanics -- discovered necessary while landing the batch, not assumed up front:
+     * <ul>
+     *   <li>the {@code *_protection} armor family (armor needs to cover melee/depth/blast/projectile/
+     *       fire/recurrent independently, one material each);
+     *   <li>{@code overslime} (issue #728): {@code ForgeweaveTraits#overslimeCapacity}/{@code
+     *       #overslimeArmorPenalty} grant a shared durability-shield pool keyed on this exact id, not a
+     *       per-material flavor -- knightslime, queens_slime and slimewood all need the real pool
+     *       {@link net.minecraft.gametest.framework.GameTest}-covered elsewhere
+     *       ({@code M615MaterialGameTests#newMaterialsExposeTheirTraitWiring}), and cloning the
+     *       mechanic under new ids per material would need {@code overslimeCapacity} to recognize a
+     *       whole set of ids for no material-identity benefit (contrast {@code overslime_friend}, a
+     *       pure marker this batch *did* split per material -- see {@code ForgeweaveTraits#VINEWARDEN}).
+     * </ul>
+     * Walks every shipped material JSON directly (not the codec) so a future material with a typo'd or
+     * copy-pasted trait id fails this test the moment its JSON lands, the same "catch it before it
+     * ships" shape {@link #noShippedMaterialConditionsOnEnderIosRemovedElectricalSteel} already uses.
+     *
+     * <p>Leveled variants of one material's own ladder ({@code surging}/{@code surging2}/{@code
+     * surging3}, {@code crude}/{@code crude2}, ...) are not a special case here: each id is still
+     * claimed by exactly one material under this rule, the same as every other id -- the ladder lives
+     * in one material naming multiple ids, not in two materials sharing one id.
+     */
+    @Test
+    void noTwoMaterialsShareANonExemptTraitId() throws Exception {
+        Path materialDir = projectRoot().resolve("src/main/resources/data/forgeweave/forgeweave/material");
+        java.util.Set<String> exempt = java.util.Set.of("forgeweave:overslime");
+        java.util.Map<String, List<String>> claimants = new java.util.TreeMap<>();
+
+        try (Stream<Path> files = Files.list(materialDir)) {
+            for (Path file : files.filter(p -> p.toString().endsWith(".json")).sorted().toList()) {
+                String materialName = file.getFileName().toString().replace(".json", "");
+                JsonObject json = JsonParser.parseString(Files.readString(file, StandardCharsets.UTF_8))
+                        .getAsJsonObject();
+                if (!json.has("traits")) {
+                    continue;
+                }
+                java.util.Set<String> idsOnThisMaterial = new java.util.LinkedHashSet<>();
+                JsonElement traits = json.get("traits");
+                if (traits.isJsonObject()) {
+                    for (var entry : traits.getAsJsonObject().entrySet()) {
+                        for (JsonElement id : entry.getValue().getAsJsonArray()) {
+                            idsOnThisMaterial.add(id.getAsString());
+                        }
+                    }
+                } else if (traits.isJsonArray()) {
+                    for (JsonElement id : traits.getAsJsonArray()) {
+                        idsOnThisMaterial.add(id.getAsString());
+                    }
+                }
+                for (String id : idsOnThisMaterial) {
+                    claimants.computeIfAbsent(id, k -> new java.util.ArrayList<>()).add(materialName);
+                }
+            }
+        }
+
+        List<String> violations = new java.util.ArrayList<>();
+        claimants.forEach((id, materials) -> {
+            if (materials.size() > 1 && !id.endsWith("_protection") && !exempt.contains(id)) {
+                violations.add(id + " -> " + materials);
+            }
+        });
+
+        assertTrue(violations.isEmpty(),
+                "these trait ids are claimed by more than one material (issue #876's dedupe policy -- "
+                        + "*_protection and overslime are the only exemptions): " + violations);
     }
 
     private static Path projectRoot() {
