@@ -1547,6 +1547,15 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         // the slot ring -- the sentence did not fit and had to be ellipsized on every row.
         add("jei.category.forgeweave.embossing.one_per_tool", "One per tool");
 
+        // #890: smeltery fuel (what the smeltery burns and at what rate) and pour-to-transform
+        // (#845's core_transform_recipe, previously invisible in JEI).
+        add("jei.category.forgeweave.smeltery_fuel", "Smeltery Fuel");
+        add("jei.category.forgeweave.smeltery_fuel.duration", "Burns for %s smeltery cycles per drain");
+        // Shown only when the fuel actually outruns lava (SmelteryFuelRecipes#build) -- e.g. blazing
+        // blood's headroom over lava is what lets it reach recipes lava alone cannot.
+        add("jei.category.forgeweave.smeltery_fuel.vs_lava", "%s° hotter than lava -- reaches recipes lava alone cannot");
+        add("jei.category.forgeweave.core_transform", "Core Transform");
+
         // The nine molten metal fluids (docs/SCOPE.md M2 issue #92) and everything added since.
         // See addFluid: each call names both the fluid and its bucket (#286).
         addFluid(ForgeweaveFluids.IRON, "Molten Iron");
