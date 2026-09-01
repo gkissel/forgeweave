@@ -3,6 +3,8 @@ package dev.gkissel.forgeweave.gametest;
 import java.util.List;
 
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Holder;
+import net.minecraft.core.Registry;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.gametest.framework.GameTest;
@@ -18,13 +20,18 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.level.GameType;
+import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.levelgen.GenerationStep;
 import net.minecraft.world.level.levelgen.placement.PlacedFeature;
 
+import net.neoforged.neoforge.common.world.BiomeModifier;
+import net.neoforged.neoforge.common.world.BiomeModifiers;
 import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
+import net.neoforged.neoforge.registries.NeoForgeRegistries;
 
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.block.ForgeweaveBlocks;
@@ -49,6 +56,11 @@ import dev.gkissel.forgeweave.worldgen.TrackBOrePlacement;
  * netherite-and-up Track B ore -- must now refuse the six ores that moved up, and a synthetic pick at
  * the ore's own new rung ({@link #syntheticPick}, since no vanilla item sits above netherite) must
  * still succeed.
+ *
+ * <p>Issue #883 moved voidglass to the End (the game's uniquely rarest ore), off the Overworld biome
+ * modifier and onto its own {@code track_b_end_ores.json} -- {@link #voidglassGeneratesOnlyInTheEndsOuterIslandBiomes}
+ * covers that wiring the same "hand-written JSON resolves against the real registry" way the placed-
+ * feature tests above do, since the biome modifier registry is reachable without a real chunk too.
  */
 @GameTestHolder(Forgeweave.MODID)
 @PrefixGameTestTemplate(false)
@@ -99,6 +111,55 @@ public class TrackBOreGameTests {
         PlacedFeature feature = helper.getLevel().registryAccess().registryOrThrow(Registries.PLACED_FEATURE).get(key);
         helper.assertTrue(feature != null, "expected a placed feature registered as " + key.location());
         return feature;
+    }
+
+    /**
+     * #883: voidglass moves from riding {@code track_b_overworld_ores.json} to its own
+     * {@code track_b_end_ores.json}, wired to exactly the End's four outer-island biomes
+     * (end_highlands, end_midlands, end_barrens, small_end_islands) -- never
+     * {@code minecraft:the_end}, the small central island the dragon fight uses, which the blanket
+     * {@code #minecraft:is_end} tag would have pulled in. Also proves voidglass_ore no longer rides the
+     * Overworld modifier it used to share with the other eleven ores.
+     */
+    @GameTest(template = "empty")
+    public static void voidglassGeneratesOnlyInTheEndsOuterIslandBiomes(GameTestHelper helper) {
+        ServerLevel level = helper.getLevel();
+        var biomeModifiers = level.registryAccess().registryOrThrow(NeoForgeRegistries.Keys.BIOME_MODIFIERS);
+        var biomes = level.registryAccess().registryOrThrow(Registries.BIOME);
+        PlacedFeature voidglassOre = getPlacedFeature(helper, "voidglass_ore");
+
+        BiomeModifiers.AddFeaturesBiomeModifier endModifier =
+                getAddFeaturesBiomeModifier(helper, biomeModifiers, "track_b_end_ores");
+        helper.assertTrue(endModifier.step() == GenerationStep.Decoration.UNDERGROUND_ORES,
+                "expected track_b_end_ores to run in the underground_ores step");
+        helper.assertTrue(endModifier.features().stream().anyMatch(holder -> holder.value() == voidglassOre),
+                "expected track_b_end_ores to add forgeweave:voidglass_ore");
+
+        for (String id : List.of("end_highlands", "end_midlands", "end_barrens", "small_end_islands")) {
+            Holder<Biome> biome = biomes.getHolderOrThrow(ResourceKey.create(Registries.BIOME, ResourceLocation.withDefaultNamespace(id)));
+            helper.assertTrue(endModifier.biomes().contains(biome), "expected track_b_end_ores to include " + id);
+        }
+        Holder<Biome> theEnd = biomes.getHolderOrThrow(ResourceKey.create(Registries.BIOME, ResourceLocation.withDefaultNamespace("the_end")));
+        helper.assertFalse(endModifier.biomes().contains(theEnd),
+                "track_b_end_ores must not include the central the_end island");
+
+        BiomeModifiers.AddFeaturesBiomeModifier overworldModifier =
+                getAddFeaturesBiomeModifier(helper, biomeModifiers, "track_b_overworld_ores");
+        helper.assertFalse(overworldModifier.features().stream().anyMatch(holder -> holder.value() == voidglassOre),
+                "voidglass_ore must no longer ride track_b_overworld_ores");
+
+        helper.succeed();
+    }
+
+    private static BiomeModifiers.AddFeaturesBiomeModifier getAddFeaturesBiomeModifier(
+            GameTestHelper helper, Registry<BiomeModifier> registry, String name) {
+        ResourceKey<BiomeModifier> key = ResourceKey.create(NeoForgeRegistries.Keys.BIOME_MODIFIERS,
+                ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, name));
+        BiomeModifier modifier = registry.get(key);
+        helper.assertTrue(modifier != null, "expected a biome modifier registered as " + key.location());
+        helper.assertTrue(modifier instanceof BiomeModifiers.AddFeaturesBiomeModifier,
+                key.location() + " must be an AddFeaturesBiomeModifier");
+        return (BiomeModifiers.AddFeaturesBiomeModifier) modifier;
     }
 
     /**

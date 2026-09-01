@@ -5,7 +5,7 @@
       {
         "target": {
           "predicate_type": "minecraft:block_match",
-          "block": "minecraft:deepslate"
+          "block": "minecraft:end_stone"
         },
         "state": {
           "Name": "forgeweave:voidglass_ore"

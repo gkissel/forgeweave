@@ -15,6 +15,12 @@ Minecraft texture as its template and recolors it to the material's own flavor c
     netherrack.png) -- verified against every template this script uses: differing pixels cleanly
     separate into "identical to host" (distance 0) and "blob" (distance >= ~12), no middle ground, so a
     distance-10 threshold reliably isolates the blob with no manual touch-up needed on any of the 12.
+    Issue #883 (voidglass's move to the End) is the one exception: there is no vanilla end-stone ore to
+    diff against, so voidglass's blob mask is computed the normal way against its *donor's own* natural
+    host (deepslate, since its ore template is still `deepslate_gold_ore` per TEMPLATES below) and that
+    mask shape is then painted onto end_stone.png instead -- end_stone's own pixels stay intact outside
+    the blob, exactly like every other material's host rock does. See the `host == "end_stone"` branch
+    in `main()`.
   * **Storage block** and **raw-storage block**: a vanilla metal-block/raw-block texture (solid panel,
     no separate host to preserve), recolored across the whole image.
   * **Raw item**: a vanilla raw-ore item icon, recolored across the whole image -- same technique
@@ -38,9 +44,9 @@ template, storage-block template and raw template don't need to agree:
     voltcinder/hardcinder (TrackBOre#host NETHER) aren't stone or deepslate at all, so they draw from a
     separate 2-member nether pool (nether_gold_ore, nether_quartz_ore) instead -- the 7-family pool has
     no netherrack-based member, and a stone/deepslate-templated ore block would look wrong sitting in
-    Nether worldgen. No material in this roster sits at a "deepest band" that isn't already
-    OVERWORLD_DEEPSLATE (voidglass included, host OVERWORLD_DEEPSLATE per TrackBOre), so no further
-    deepslate-forcing is needed beyond the host-driven prefix.
+    Nether worldgen. voidglass (TrackBOre#host END, issue #883) draws its donor template the same way
+    OVERWORLD_DEEPSLATE materials do -- there's no netherrack-style dedicated pool for it, since its
+    donor's *shape*, not its host rock, is what gets reused (see the ore-block bullet above).
   * Storage-block pool: the metal-block half of the same 7 families (iron_block .. emerald_block) --
     independent draw from the ore template, e.g. cinderstone's ore uses gold_ore but its storage block
     uses diamond_block.
@@ -89,26 +95,29 @@ ORES = [
     ("hollowstone", 0xD8D3C2, "deepslate"),
     ("resonite", 0x3FAE9E, "deepslate"),
     ("starfall_stone", 0xBCD6F2, "stone"),
-    ("voidglass", 0x2A1740, "deepslate"),
+    ("voidglass", 0x2A1740, "end_stone"),
 ]
 
 ORE_STORAGE_POOL = ["iron", "copper", "gold", "diamond", "redstone", "lapis", "emerald"]
 NETHER_POOL = ["nether_gold_ore", "nether_quartz_ore"]
 RAW_POOL = ["iron", "copper", "gold"]
 
-HOST_PLAIN_TEXTURE = {"stone": "stone", "deepslate": "deepslate", "netherrack": "netherrack"}
+HOST_PLAIN_TEXTURE = {"stone": "stone", "deepslate": "deepslate", "netherrack": "netherrack", "end_stone": "end_stone"}
 
 BLOB_MASK_THRESHOLD = 10.0
 BLOB_MIN_CONTRAST = 0.18
 
 
 def _derive_ore_template(mat_id: str, host: str) -> str:
-    """Deterministic per (id, host) -- see module docstring's "Template assignment" section."""
+    """Deterministic per (id, host) -- see module docstring's "Template assignment" section. `end_stone`
+    (voidglass, issue #883) reuses the deepslate branch: there is no vanilla end-stone ore to draw a
+    donor from, so the donor stays a deepslate ore family -- only its blob *shape* gets reused, painted
+    onto end_stone.png as the real host instead of deepslate.png (see main()'s `end_stone` branch)."""
     rng = random.Random(f"{mat_id}:ore")
     if host == "netherrack":
         return rng.choice(NETHER_POOL)
     family = rng.choice(ORE_STORAGE_POOL)
-    return f"deepslate_{family}_ore" if host == "deepslate" else f"{family}_ore"
+    return f"deepslate_{family}_ore" if host in ("deepslate", "end_stone") else f"{family}_ore"
 
 
 def _derive_storage_template(mat_id: str) -> str:
@@ -297,10 +306,26 @@ def main() -> None:
         tpl = TEMPLATES[mat_id]
 
         # Ore block: mask the blob against the plain host texture, recolor only the blob.
-        host_img = assets.block(HOST_PLAIN_TEXTURE[host])
-        ore_img = assets.block(tpl["ore"])
-        mask = blob_mask(host_img, ore_img)
-        recolor_pixels(ore_img, mask, color, min_contrast=BLOB_MIN_CONTRAST).save(BLOCK_DIR / f"{mat_id}_ore.png")
+        if host == "end_stone":
+            # #883: no vanilla end-stone ore exists, so the mask comes from the donor's own natural
+            # host (deepslate) instead, then that blob shape is painted onto end_stone.png -- the real
+            # host -- so end_stone's own pixels stay intact everywhere the donor's blob isn't.
+            donor_host_img = assets.block("deepslate")
+            donor_ore_img = assets.block(tpl["ore"])
+            mask = blob_mask(donor_host_img, donor_ore_img)
+            end_stone_img = assets.block(HOST_PLAIN_TEXTURE[host])
+            w, h = donor_ore_img.size
+            composite = Image.new("RGBA", (w, h))
+            comp_px, donor_px, host_px = composite.load(), donor_ore_img.load(), end_stone_img.load()
+            for y in range(h):
+                for x in range(w):
+                    comp_px[x, y] = donor_px[x, y] if mask[y][x] else host_px[x, y]
+            recolor_pixels(composite, mask, color, min_contrast=BLOB_MIN_CONTRAST).save(BLOCK_DIR / f"{mat_id}_ore.png")
+        else:
+            host_img = assets.block(HOST_PLAIN_TEXTURE[host])
+            ore_img = assets.block(tpl["ore"])
+            mask = blob_mask(host_img, ore_img)
+            recolor_pixels(ore_img, mask, color, min_contrast=BLOB_MIN_CONTRAST).save(BLOCK_DIR / f"{mat_id}_ore.png")
 
         # Storage block: full-image recolor, no host to preserve.
         storage_img = assets.block(tpl["storage"])

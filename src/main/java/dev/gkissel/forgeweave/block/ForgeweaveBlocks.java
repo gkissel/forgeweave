@@ -351,17 +351,22 @@ public final class ForgeweaveBlocks {
     // #839 -- Track B's ore family (M6 epic #824, Track B: self-contained materials). See
     // dev.gkissel.forgeweave.trackb.TrackBOre for the 12-material roster and its distribution table.
     // Ore blocks reuse cobalt/ardite's oreBlock() strength/sound/requiresCorrectToolForDrops, but the
-    // map color follows each ore's own base rock (stone-look for the ten Overworld ores, the existing
-    // NETHER color for the two Nether ones) rather than hardcoding NETHER for all. Storage and
-    // raw-storage blocks reuse metalBlock() -- same "no per-block property differentiation" precedent
-    // every other Forgeweave metal's storage block already follows.
+    // map color follows each ore's own base rock (stone-look for the nine Overworld ores, the existing
+    // NETHER color for the two Nether ones, and vanilla end_stone's own MapColor.SAND for the one End
+    // ore, #883) rather than hardcoding NETHER for all. Storage and raw-storage blocks reuse
+    // metalBlock() -- same "no per-block property differentiation" precedent every other Forgeweave
+    // metal's storage block already follows.
     private static final Map<String, DeferredBlock<Block>> TRACK_B_ORE_BLOCKS = new LinkedHashMap<>();
     private static final Map<String, DeferredBlock<Block>> TRACK_B_STORAGE_BLOCKS = new LinkedHashMap<>();
     private static final Map<String, DeferredBlock<Block>> TRACK_B_RAW_BLOCKS = new LinkedHashMap<>();
 
     static {
         for (TrackBOre ore : TrackBOre.ALL) {
-            MapColor mapColor = ore.host() == TrackBOre.Host.NETHER ? MapColor.NETHER : MapColor.STONE;
+            MapColor mapColor = switch (ore.host()) {
+                case NETHER -> MapColor.NETHER;
+                case END -> MapColor.SAND;
+                case OVERWORLD_STONE, OVERWORLD_DEEPSLATE -> MapColor.STONE;
+            };
             TRACK_B_ORE_BLOCKS.put(ore.id(), trackBOreBlock(ore.oreBlockId(), mapColor));
             TRACK_B_STORAGE_BLOCKS.put(ore.id(), metalBlock(ore.storageBlockId()));
             TRACK_B_RAW_BLOCKS.put(ore.id(), metalBlock(ore.rawBlockId()));

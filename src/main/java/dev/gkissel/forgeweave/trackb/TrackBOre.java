@@ -34,8 +34,13 @@ import dev.gkissel.forgeweave.Forgeweave;
  * question"): decided already on #824/#838 as ordinary rare ore veins/features rather than a new
  * falling-entity mechanic, executed here as the same {@code minecraft:ore} feature every other entry
  * uses, just tuned to a shallow near-surface band (starfall_stone, standing in for "rare surface
- * feature") and the deepest rare band (voidglass, "rare vein") respectively -- no bespoke feature type
- * needed for either.
+ * feature").
+ *
+ * <p><b>#883 (maintainer directive, 2026-08-31):</b> {@link #VOIDGLASS} moves from the Overworld
+ * deepslate deepest band to {@link Host#END} ({@code minecraft:end_stone}, generated only in the
+ * End's outer-island biomes via {@code track_b_end_ores.json} -- see {@link Host#END}'s own javadoc),
+ * making it the game's uniquely rarest ore; {@link #STARFALL_STONE} bumps from count 1 to 2 so
+ * voidglass alone keeps count 1.
  */
 public record TrackBOre(String id, Tier tier, Host host, int veinSize, int ratePerChunk, int minY, int maxY, int color) {
 
@@ -85,7 +90,17 @@ public record TrackBOre(String id, Tier tier, Host host, int veinSize, int rateP
     public enum Host {
         OVERWORLD_STONE("minecraft:stone", "minecraft:is_overworld"),
         OVERWORLD_DEEPSLATE("minecraft:deepslate", "minecraft:is_overworld"),
-        NETHER("minecraft:netherrack", "minecraft:is_nether");
+        NETHER("minecraft:netherrack", "minecraft:is_nether"),
+        /**
+         * #883 -- the End's own outer-island biomes only (end_highlands, end_midlands, end_barrens,
+         * small_end_islands), not the blanket {@code minecraft:is_end} tag, which also covers
+         * {@code minecraft:the_end} (the small central island the dragon fight uses). No single
+         * vanilla tag already excludes the central island, so {@code biomeTag} here is a
+         * comma-separated explicit biome id list rather than one tag reference, and
+         * {@code track_b_end_ores.json} lists those four ids directly.
+         */
+        END("minecraft:end_stone",
+                "minecraft:end_highlands,minecraft:end_midlands,minecraft:end_barrens,minecraft:small_end_islands");
 
         public final String targetBlock;
         public final String biomeTag;
@@ -119,11 +134,13 @@ public record TrackBOre(String id, Tier tier, Host host, int veinSize, int rateP
             new TrackBOre("hollowstone", Tier.WARSPAR, Host.OVERWORLD_DEEPSLATE, 4, 3, -64, -16, 0xD8D3C2);
     public static final TrackBOre RESONITE =
             new TrackBOre("resonite", Tier.RESONITE, Host.OVERWORLD_DEEPSLATE, 4, 3, -64, -16, 0x3FAE9E);
-    // JC11 -- former meteor pair, now ordinary rare veins/surface feature (see class javadoc).
+    // JC11 -- former meteor pair, now ordinary rare veins/surface feature (see class javadoc). Counts
+    // rebalanced by #883 (2026-08-31): voidglass alone keeps count 1, moved to the End so it's the
+    // game's uniquely rarest ore; starfall_stone bumps to 2 so it's no longer tied with voidglass.
     public static final TrackBOre STARFALL_STONE =
-            new TrackBOre("starfall_stone", Tier.NETHERITE, Host.OVERWORLD_STONE, 3, 1, 62, 90, 0xBCD6F2);
+            new TrackBOre("starfall_stone", Tier.NETHERITE, Host.OVERWORLD_STONE, 3, 2, 62, 90, 0xBCD6F2);
     public static final TrackBOre VOIDGLASS =
-            new TrackBOre("voidglass", Tier.NETHERITE, Host.OVERWORLD_DEEPSLATE, 3, 1, -64, -48, 0x2A1740);
+            new TrackBOre("voidglass", Tier.NETHERITE, Host.END, 3, 1, 0, 255, 0x2A1740);
 
     public static final List<TrackBOre> ALL = List.of(CINDERSTONE, FULMENITE, DUSKSPAR, VOLTCINDER, MURKIRON,
             HARDCINDER, NIGHTSHALE, WARSPAR, HOLLOWSTONE, RESONITE, STARFALL_STONE, VOIDGLASS);
