@@ -15,6 +15,7 @@ import org.slf4j.Logger;
 import com.mojang.logging.LogUtils;
 
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.core.component.DataComponentType;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.network.chat.Component;
@@ -24,6 +25,7 @@ import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.tags.EntityTypeTags;
+import net.minecraft.tags.FluidTags;
 import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.InteractionResult;
@@ -46,6 +48,7 @@ import net.minecraft.world.item.component.Tool;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.biome.Biome;
+import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.FallingBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
@@ -85,6 +88,7 @@ import dev.gkissel.forgeweave.combat.ForgeweaveMobEffects;
 import dev.gkissel.forgeweave.combat.GaussianArmorPiercingHit;
 import dev.gkissel.forgeweave.combat.HitCondition;
 import dev.gkissel.forgeweave.combat.IgniteAttackerSeam;
+import dev.gkissel.forgeweave.combat.KnockbackOnHitSeam;
 import dev.gkissel.forgeweave.combat.Lacerate;
 import dev.gkissel.forgeweave.combat.Lifesteal;
 import dev.gkissel.forgeweave.combat.LightningOnHit;
@@ -2015,6 +2019,8 @@ public final class ForgeweaveTraits {
 
     private static final ResourceLocation OVERSLIME_ID = id("overslime");
     private static final ResourceLocation OVERSLIME_FRIEND_ID = id("overslime_friend");
+    /** M6 dedupe batch (issue #876): {@link #VINEWARDEN}'s own overslime-friend id. */
+    private static final ResourceLocation VINEWARDEN_ID = id("vinewarden");
 
     /** The piece's current overslime ({@code OverslimeModule#getAmount}); 0 when absent. */
     public static int overslime(ItemStack stack) {
@@ -2045,7 +2051,8 @@ public final class ForgeweaveTraits {
      * the clone's stat builder does.
      */
     public static float overslimeArmorPenalty(List<ResourceLocation> traitIds) {
-        return traitIds.contains(OVERSLIME_ID) && !traitIds.contains(OVERSLIME_FRIEND_ID) ? OVERSLIME_ARMOR_PENALTY : 0.0F;
+        boolean friend = traitIds.contains(OVERSLIME_FRIEND_ID) || traitIds.contains(VINEWARDEN_ID);
+        return traitIds.contains(OVERSLIME_ID) && !friend ? OVERSLIME_ARMOR_PENALTY : 0.0F;
     }
 
     /**
@@ -2355,6 +2362,537 @@ public final class ForgeweaveTraits {
         }
     }
 
+    /** M6 dedupe batch (issue #876): sharper the less worn it is. Original Forgeweave content, no upstream port. */
+    public static final Trait UNYIELDING = new Trait() {
+        @Override
+        public void combatSeams(Consumer<CombatSeam> out) {
+            out.accept(new DamageScalesWith(DamageScalesWith.Source.REMAINING_DURABILITY, 2.0F, 4.0F));
+        }
+    };
+
+    /** M6 dedupe batch (issue #876): a fully-charged swing lands extra damage. Original Forgeweave content, no upstream port. */
+    public static final Trait RADIANT_EDGE = new Trait() {
+        @Override
+        public void combatSeams(Consumer<CombatSeam> out) {
+            out.accept(new ConditionalSeam(HitCondition.FULL_CHARGE, 1.0F, new FlatBonusDamage(3.0F)));
+        }
+    };
+
+    /** M6 dedupe batch (issue #876): a facet of crystal absorbs a blow's shove. Original Forgeweave content, no upstream port. */
+    public static final Trait VERDANT_WARD = new Trait() {
+        @Override
+        public float knockbackResistance() {
+            return 0.15F;
+        }
+    };
+
+    /** M6 dedupe batch (issue #876): a landed hit leaves the target glowing. Original Forgeweave content, no upstream port. */
+    public static final Trait LUMINOUS = new Trait() {
+        @Override
+        public void combatSeams(Consumer<CombatSeam> out) {
+            out.accept(new ConditionalSeam(HitCondition.ANY, 1.0F,
+                    new PotionEffectOnHitSeam(MobEffects.GLOWING, 0, 100)));
+        }
+    };
+
+    /** M6 dedupe batch (issue #876): more damage the faster the wielder is moving. Original Forgeweave content, no upstream port. */
+    public static final Trait STORMGLASS = new Trait() {
+        @Override
+        public void combatSeams(Consumer<CombatSeam> out) {
+            out.accept(new DamageScalesWith(DamageScalesWith.Source.IMPACT_VELOCITY, 5.0F, 3.0F));
+        }
+    };
+
+    /** M6 dedupe batch (issue #876): more damage against tougher targets. Original Forgeweave content, no upstream port. */
+    public static final Trait BLOODGEM = new Trait() {
+        @Override
+        public void combatSeams(Consumer<CombatSeam> out) {
+            out.accept(new DamageScalesWith(DamageScalesWith.Source.TARGET_MAX_HEALTH, 0.04F, 4.0F));
+        }
+    };
+
+    /** M6 dedupe batch (issue #876): a flat void-forged edge. Original Forgeweave content, no upstream port. */
+    public static final Trait VOIDTOUCHED = new Trait() {
+        @Override
+        public float attackDamageBonus(ItemStack stack) {
+            return 1.0F;
+        }
+    };
+
+    /** M6 dedupe batch (issue #876): shatters armored targets a little harder. Original Forgeweave content, no upstream port. */
+    public static final Trait BRITTLEFORCE = new Trait() {
+        @Override
+        public void combatSeams(Consumer<CombatSeam> out) {
+            out.accept(new ConditionalSeam(HitCondition.ARMORED, 1.0F, new FlatBonusDamage(2.0F)));
+        }
+    };
+
+    /** M6 dedupe batch (issue #876): every hit shoves like a rockslide. Original Forgeweave content, no upstream port. */
+    public static final Trait AVALANCHE = new Trait() {
+        @Override
+        public void combatSeams(Consumer<CombatSeam> out) {
+            out.accept(new KnockbackOnHitSeam(0.4F));
+        }
+    };
+
+    /** M6 dedupe batch (issue #876): packed dense, wears slower. Original Forgeweave content, no upstream port. */
+    public static final Trait LANDSLIDE = new Trait() {
+        @Override
+        public int maxDurabilityBonus(ItemStack stack) {
+            return 25;
+        }
+    };
+
+    /** M6 dedupe batch (issue #876): draws a bow noticeably faster. Original Forgeweave content, no upstream port. */
+    public static final Trait SKYBORNE = new Trait() {
+        @Override
+        public float drawSpeedBonus() {
+            return 0.08F;
+        }
+    };
+
+    /** M6 dedupe batch (issue #876): a little extra spring in the step. Original Forgeweave content, no upstream port. */
+    public static final Trait FEATHERFALL = new Trait() {
+        @Override
+        public float movementSpeedBonus() {
+            return 0.03F;
+        }
+    };
+
+    /** M6 dedupe batch (issue #876): light enough to swing faster. Original Forgeweave content, no upstream port. */
+    public static final Trait BUOYANT = new Trait() {
+        @Override
+        public float attackSpeedBonus() {
+            return 0.08F;
+        }
+    };
+
+    /** M6 dedupe batch (issue #876): packs more mass into its durability pool. Original Forgeweave content, no upstream port. */
+    public static final Trait COREBOUND = new Trait() {
+        @Override
+        public int maxDurabilityBonus(ItemStack stack) {
+            return 40;
+        }
+    };
+
+    /** M6 dedupe batch (issue #876): too heavy to be knocked far. Original Forgeweave content, no upstream port. */
+    public static final Trait BALLAST = new Trait() {
+        @Override
+        public float knockbackResistance() {
+            return 0.2F;
+        }
+    };
+
+    /** M6 dedupe batch (issue #876): dense enough to slow the wielder slightly. Original Forgeweave content, no upstream port. */
+    public static final Trait LEADFOOT = new Trait() {
+        @Override
+        public float movementSpeedBonus() {
+            return -0.03F;
+        }
+    };
+
+    /** M6 dedupe batch (issue #876): punishes a target already losing the fight. Original Forgeweave content, no upstream port. */
+    public static final Trait OBSIDIAN_HEART = new Trait() {
+        @Override
+        public void combatSeams(Consumer<CombatSeam> out) {
+            out.accept(new ConditionalSeam(HitCondition.BELOW_WIELDER_HEALTH, 1.0F, new FlatBonusDamage(2.5F)));
+        }
+    };
+
+    /** M6 dedupe batch (issue #876): a hit sometimes saps the target's strength. Original Forgeweave content, no upstream port. */
+    public static final Trait VOIDREND = new Trait() {
+        @Override
+        public void combatSeams(Consumer<CombatSeam> out) {
+            out.accept(new ConditionalSeam(HitCondition.ANY, 0.25F,
+                    new PotionEffectOnHitSeam(MobEffects.WEAKNESS, 0, 60)));
+        }
+    };
+
+    /** M6 dedupe batch (issue #876): a heavy, shove-first strike. Original Forgeweave content, no upstream port. */
+    public static final Trait SEISMIC = new Trait() {
+        @Override
+        public void combatSeams(Consumer<CombatSeam> out) {
+            out.accept(new KnockbackOnHitSeam(0.6F));
+        }
+    };
+
+    /** M6 dedupe batch (issue #876): opens a fight with a harder first strike. Original Forgeweave content, no upstream port. */
+    public static final Trait STONEWAKE = new Trait() {
+        @Override
+        public void combatSeams(Consumer<CombatSeam> out) {
+            out.accept(new ConditionalSeam(HitCondition.FULL_HEALTH, 1.0F, new FlatBonusDamage(2.0F)));
+        }
+    };
+
+    /** M6 dedupe batch (issue #876): keeps a keen edge until it wears down. Original Forgeweave content, no upstream port. */
+    public static final Trait KEENEDGE = new Trait() {
+        @Override
+        public void combatSeams(Consumer<CombatSeam> out) {
+            out.accept(new DamageScalesWith(DamageScalesWith.Source.REMAINING_DURABILITY, 1.5F, 3.0F));
+        }
+    };
+
+    /** M6 dedupe batch (issue #876): a slow, unconditional trickle of self-repair. Original Forgeweave content, no upstream port. */
+    public static final Trait TINSEEKER = new SelfRepairWhen(SelfRepairCondition.ALWAYS, 900);
+
+    /** M6 dedupe batch (issue #876): a quick, disciplined swing. Original Forgeweave content, no upstream port. */
+    public static final Trait STEELFAST = new Trait() {
+        @Override
+        public float attackSpeedBonus() {
+            return 0.06F;
+        }
+    };
+
+    /** M6 dedupe batch (issue #876): a brisk draw. Original Forgeweave content, no upstream port. */
+    public static final Trait BRASSWIND = new Trait() {
+        @Override
+        public float drawSpeedBonus() {
+            return 0.06F;
+        }
+    };
+
+    /** M6 dedupe batch (issue #876): a charged hit sometimes sparks a burst of speed. Original Forgeweave content, no upstream port. */
+    public static final Trait AMBERFLOW = new Trait() {
+        @Override
+        public void combatSeams(Consumer<CombatSeam> out) {
+            out.accept(new ConditionalSeam(HitCondition.ANY, 0.2F,
+                    new PotionEffectOnHitSeam(MobEffects.MOVEMENT_SPEED, 0, 60)));
+        }
+    };
+
+    /** M6 dedupe batch (issue #876): repairs a little faster after dark. Original Forgeweave content, no upstream port. */
+    public static final Trait DUSKBLOOM = new SelfRepairWhen(SelfRepairCondition.NIGHT, 600);
+
+    /** M6 dedupe batch (issue #876): striking a burning target quickens the follow-up. Original Forgeweave content, no upstream port. */
+    public static final Trait EMBERWAKE = new Trait() {
+        @Override
+        public void combatSeams(Consumer<CombatSeam> out) {
+            out.accept(new ConditionalSeam(HitCondition.BURNING, 1.0F,
+                    new PotionEffectOnHitSeam(MobEffects.MOVEMENT_SPEED, 0, 40)));
+        }
+    };
+
+    /** M6 dedupe batch (issue #876): mends faster than duskmend's own base rate at night. Original Forgeweave content, no upstream port. */
+    public static final Trait SMOLDERVEIL = new SelfRepairWhen(SelfRepairCondition.NIGHT, 500);
+
+    /** M6 dedupe batch (issue #876): a slow daylight mend, the mirror of duskmend. Original Forgeweave content, no upstream port. */
+    public static final Trait ASHENBOND = new SelfRepairWhen(SelfRepairCondition.SUNLIT, 700);
+
+    /** M6 dedupe batch (issue #876): a crystalline ward softens incoming force. Original Forgeweave content, no upstream port. */
+    public static final Trait PRISMWARD = new Trait() {
+        @Override
+        public float knockbackResistance() {
+            return 0.1F;
+        }
+    };
+
+    /** M6 dedupe batch (issue #876): cracks armor a little harder than armor_breaker's base. Original Forgeweave content, no upstream port. */
+    public static final Trait SHATTERMAIL = new Trait() {
+        @Override
+        public void combatSeams(Consumer<CombatSeam> out) {
+            out.accept(new ConditionalSeam(HitCondition.ARMORED, 1.0F, new FlatBonusDamage(1.5F)));
+        }
+    };
+
+    /** M6 dedupe batch (issue #876): an unstable strike occasionally disorients the target. Original Forgeweave content, no upstream port. */
+    public static final Trait CHAOSMARK = new Trait() {
+        @Override
+        public void combatSeams(Consumer<CombatSeam> out) {
+            out.accept(new ConditionalSeam(HitCondition.ANY, 0.15F,
+                    new PotionEffectOnHitSeam(MobEffects.CONFUSION, 0, 60)));
+        }
+    };
+
+    /**
+     * M6 dedupe batch (issue #876): slime vine's own overslime-friend marker, split off {@code
+     * overslime_friend} (chorus keeps that id) so the two materials don't share one -- functionally
+     * identical to it (see {@link #overslimeArmorPenalty}'s {@code OR}), since slimevine_blue's whole
+     * point in the roster is waiving the overslime armor penalty and a differently-named but
+     * differently-behaving replacement would silently regress that. Original Forgeweave content, no
+     * upstream port.
+     */
+    public static final Trait VINEWARDEN = new Trait() {};
+
+    /** M6 dedupe batch (issue #876): a dense dark-alloy edge. Original Forgeweave content, no upstream port. */
+    public static final Trait VOIDWOVEN = new Trait() {
+        @Override
+        public float attackDamageBonus(ItemStack stack) {
+            return 1.5F;
+        }
+    };
+
+    /** M6 dedupe batch (issue #876): an end-forged plate turns aside a blow. Original Forgeweave content, no upstream port. */
+    public static final Trait CRYSTALLINE_WARD = new Trait() {
+        @Override
+        public float knockbackResistance() {
+            return 0.18F;
+        }
+    };
+
+    /** M6 dedupe batch (issue #876): hits harder while the wielder is still healthy. Original Forgeweave content, no upstream port. */
+    public static final Trait QUARTZHEART = new Trait() {
+        @Override
+        public void combatSeams(Consumer<CombatSeam> out) {
+            out.accept(new DamageScalesWith(DamageScalesWith.Source.WIELDER_HEALTH, 1.5F, 3.0F));
+        }
+    };
+
+    /** M6 dedupe batch (issue #876): a second, smaller surge on a full-charge swing. Original Forgeweave content, no upstream port. */
+    public static final Trait BATTEREDGE = new Trait() {
+        @Override
+        public void combatSeams(Consumer<CombatSeam> out) {
+            out.accept(new ConditionalSeam(HitCondition.FULL_CHARGE, 1.0F, new FlatBonusDamage(2.5F)));
+        }
+    };
+
+    /** M6 dedupe batch (issue #876): landing a hit sometimes sparks a burst of haste. Original Forgeweave content, no upstream port. */
+    public static final Trait SPARKFORGE = new Trait() {
+        @Override
+        public void combatSeams(Consumer<CombatSeam> out) {
+            out.accept(new ConditionalSeam(HitCondition.ANY, 0.2F,
+                    new PotionEffectOnHitSeam(MobEffects.DIG_SPEED, 0, 60)));
+        }
+    };
+
+    /** M6 dedupe batch (issue #876): bonus damage against a target already losing. Original Forgeweave content, no upstream port. */
+    public static final Trait WARBOND = new Trait() {
+        @Override
+        public void combatSeams(Consumer<CombatSeam> out) {
+            out.accept(new ConditionalSeam(HitCondition.BELOW_WIELDER_HEALTH, 1.0F, new FlatBonusDamage(2.0F)));
+        }
+    };
+
+    /** M6 dedupe batch (issue #876): a stable, oversized durability pool. Original Forgeweave content, no upstream port. */
+    public static final Trait STEADFAST = new Trait() {
+        @Override
+        public int maxDurabilityBonus(ItemStack stack) {
+            return 60;
+        }
+    };
+
+    /** M6 dedupe batch (issue #876): a magnetic-coil jolt on every hit. Original Forgeweave content, no upstream port. */
+    public static final Trait COILCHARGE = new Trait() {
+        @Override
+        public void combatSeams(Consumer<CombatSeam> out) {
+            out.accept(new KnockbackOnHitSeam(0.3F));
+        }
+    };
+
+    /** M6 dedupe batch (issue #876): a very slow smoked-meat self-mend. Original Forgeweave content, no upstream port. */
+    public static final Trait SMOKEHOUSE = new SelfRepairWhen(SelfRepairCondition.ALWAYS, 1000);
+
+    /** M6 dedupe batch (issue #876): leaden weight resists being knocked back. Original Forgeweave content, no upstream port. */
+    public static final Trait GRAVITIC = new Trait() {
+        @Override
+        public float knockbackResistance() {
+            return 0.25F;
+        }
+    };
+
+    /** M6 dedupe batch (issue #876): a keen magnesium-alloy edge. Original Forgeweave content, no upstream port. */
+    public static final Trait ELEKTRONBOND = new Trait() {
+        @Override
+        public float attackDamageBonus(ItemStack stack) {
+            return 1.0F;
+        }
+    };
+
+    /** M6 dedupe batch (issue #876): sky stone takes a repair especially well. Original Forgeweave content, no upstream port. */
+    public static final Trait STARFORGED = new Trait() {
+        @Override
+        public int repairBonus(int amount) {
+            return amount * 10 / 100;
+        }
+    };
+
+    /** M6 dedupe batch (issue #876): a bouncy slime cushions a blow. Original Forgeweave content, no upstream port. */
+    public static final Trait RUBBERIZE = new Trait() {
+        @Override
+        public float knockbackResistance() {
+            return 0.08F;
+        }
+    };
+
+    /** M6 dedupe batch (issue #876): a psionic weave that mends best in daylight. Original Forgeweave content, no upstream port. */
+    public static final Trait MATRIXBLOOM = new SelfRepairWhen(SelfRepairCondition.SUNLIT, 650);
+
+    // ---------------------------------------------------------------- #876 M6 dedupe batch: every
+    // material gets a distinct trait id. 49 of the new ids reuse existing ADR-0004 seams with new
+    // parameters (above, alongside the ids they now stand apart from); the 10 below are the ones
+    // that needed a genuinely new behavior, drawn from issue #841's gap list. Own numbers, own
+    // wording -- inspiration-only per ADR-0003, no upstream port.
+
+    private static final float WELLSPRING_CHANCE = 0.08F;
+    private static final float WELLSPRING_HEAL = 1.0F;
+
+    /** Cinderstone. #841 gap 1: heals the wielder's own health, not the tool's durability. */
+    public static final Trait WELLSPRING = new Trait() {
+        @Override
+        public void afterBlockBreak(ItemStack stack, ServerLevel level, BlockState state, BlockPos pos,
+                LivingEntity breaker, boolean effective) {
+            if (state.is(BlockTags.MINEABLE_WITH_PICKAXE) && level.getRandom().nextFloat() < WELLSPRING_CHANCE) {
+                breaker.heal(WELLSPRING_HEAL);
+            }
+        }
+    };
+
+    private static final int UNSTABLE_CORE_TICK_CHANCE = 400;
+    private static final float UNSTABLE_CORE_SELF_DAMAGE = 2.0F;
+    private static final float UNSTABLE_CORE_SPLASH_DAMAGE = 1.0F;
+    private static final double UNSTABLE_CORE_RADIUS = 2.0;
+
+    /**
+     * Fulmenite. #841 gap 2: while the tool is actively in use, a small per-tick chance of an
+     * unstable burst that hurts the wielder and anything standing close, past invulnerability
+     * ({@link SecondaryDamage}) rather than a real explosion -- no block damage, no launched entities.
+     */
+    public static final Trait UNSTABLE_CORE = new Trait() {
+        @Override
+        public void inventoryTick(ItemStack stack, ServerLevel level, LivingEntity holder) {
+            if (holder.getUseItem() != stack || level.getRandom().nextInt(UNSTABLE_CORE_TICK_CHANCE) != 0) {
+                return;
+            }
+            SecondaryDamage.deal(holder, level.damageSources().magic(), UNSTABLE_CORE_SELF_DAMAGE);
+            for (LivingEntity nearby : level.getEntitiesOfClass(LivingEntity.class,
+                    holder.getBoundingBox().inflate(UNSTABLE_CORE_RADIUS))) {
+                if (nearby != holder) {
+                    SecondaryDamage.deal(nearby, level.damageSources().magic(), UNSTABLE_CORE_SPLASH_DAMAGE);
+                }
+            }
+        }
+    };
+
+    private static final float OVERBURDENED_CHANCE = 0.15F;
+    private static final int OVERBURDENED_DURATION_TICKS = 60;
+
+    /** Voltcinder. #841 gap 3: mining sometimes saddles the wielder with a brief digging slowdown. */
+    public static final Trait OVERBURDENED = new Trait() {
+        @Override
+        public void afterBlockBreak(ItemStack stack, ServerLevel level, BlockState state, BlockPos pos,
+                LivingEntity breaker, boolean effective) {
+            if (effective && level.getRandom().nextFloat() < OVERBURDENED_CHANCE) {
+                breaker.addEffect(new MobEffectInstance(MobEffects.DIG_SLOWDOWN, OVERBURDENED_DURATION_TICKS, 0));
+            }
+        }
+    };
+
+    private static final float NOCTURNAL_EDGE_NIGHT_BONUS = 2.0F;
+    private static final float NOCTURNAL_EDGE_DAY_PENALTY = -1.0F;
+
+    /** Nightshale. #841 gap 5's combat half: stronger by night, a little weaker by day. */
+    public static final Trait NOCTURNAL_EDGE = new Trait() {
+        @Override
+        public void combatSeams(Consumer<CombatSeam> out) {
+            out.accept(new ConditionalSeam(HitCondition.NIGHT, 1.0F, new FlatBonusDamage(NOCTURNAL_EDGE_NIGHT_BONUS)));
+            out.accept(new ConditionalSeam(HitCondition.DAY, 1.0F, new FlatBonusDamage(NOCTURNAL_EDGE_DAY_PENALTY)));
+        }
+    };
+
+    private static final float OBLITERATE_CHANCE = 0.35F;
+
+    /** Starfall stone. #841 gap 7: mined blocks sometimes drop nothing -- see {@link #onBlockBreakExperience}. */
+    public static final Trait OBLITERATE = new Trait() {
+        @Override
+        public float dropDestroyChance() {
+            return OBLITERATE_CHANCE;
+        }
+    };
+
+    /** Tideiron. #841 gap 9: clears the water immediately around a block as it's mined. */
+    public static final Trait TIDEBREAKER = new Trait() {
+        @Override
+        public void afterBlockBreak(ItemStack stack, ServerLevel level, BlockState state, BlockPos pos,
+                LivingEntity breaker, boolean effective) {
+            for (Direction direction : Direction.values()) {
+                BlockPos neighbor = pos.relative(direction);
+                if (level.getFluidState(neighbor).is(FluidTags.WATER)) {
+                    level.setBlockAndUpdate(neighbor, Blocks.AIR.defaultBlockState());
+                }
+            }
+        }
+    };
+
+    private static final float MAGMAFORGE_CHANCE = 0.05F;
+
+    /** Cinderforge. #841 gap 10: mining stone sometimes leaves molten lava in its place. */
+    public static final Trait MAGMAFORGE = new Trait() {
+        @Override
+        public void afterBlockBreak(ItemStack stack, ServerLevel level, BlockState state, BlockPos pos,
+                LivingEntity breaker, boolean effective) {
+            if (state.is(BlockTags.MINEABLE_WITH_PICKAXE) && level.getRandom().nextFloat() < MAGMAFORGE_CHANCE) {
+                level.setBlockAndUpdate(pos, Blocks.LAVA.defaultBlockState());
+            }
+        }
+    };
+
+    private static final int FALLOUT_DECAY_TICK_CHANCE = 1200;
+    private static final int FALLOUT_DECAY_DURATION_TICKS = 40;
+    private static final float FALLOUT_MUTATE_CHANCE = 0.03F;
+
+    /**
+     * Glowveil. #841 gap 15, partial per that gap's own note: a slow self-poison tick stands in for
+     * "radioactive decay", and mining stone has a small chance of mutating an adjacent stone block
+     * into deepslate rather than a bespoke mutation system.
+     */
+    public static final Trait FALLOUT = new Trait() {
+        @Override
+        public void inventoryTick(ItemStack stack, ServerLevel level, LivingEntity holder) {
+            if (level.getRandom().nextInt(FALLOUT_DECAY_TICK_CHANCE) == 0) {
+                holder.addEffect(new MobEffectInstance(MobEffects.POISON, FALLOUT_DECAY_DURATION_TICKS, 0));
+            }
+        }
+
+        @Override
+        public void afterBlockBreak(ItemStack stack, ServerLevel level, BlockState state, BlockPos pos,
+                LivingEntity breaker, boolean effective) {
+            BlockPos above = pos.above();
+            if (level.getBlockState(above).is(Blocks.STONE) && level.getRandom().nextFloat() < FALLOUT_MUTATE_CHANCE) {
+                level.setBlockAndUpdate(above, Blocks.DEEPSLATE.defaultBlockState());
+            }
+        }
+    };
+
+    private static final int DAYBOUND_TICK_PERIOD = 100;
+    private static final int DAYBOUND_GLOW_TICKS = 120;
+    private static final float DAYBOUND_NIGHT_VISION_CHANCE = 0.3F;
+    private static final int DAYBOUND_NIGHT_VISION_TICKS = 220;
+
+    /** Daybrass. #841 gap 16: glows by day, sometimes grants night vision after dark. */
+    public static final Trait DAYBOUND = new Trait() {
+        @Override
+        public void inventoryTick(ItemStack stack, ServerLevel level, LivingEntity holder) {
+            if (holder.tickCount % DAYBOUND_TICK_PERIOD != 0) {
+                return;
+            }
+            if (level.isDay()) {
+                holder.addEffect(new MobEffectInstance(MobEffects.GLOWING, DAYBOUND_GLOW_TICKS, 0));
+            } else if (level.getRandom().nextFloat() < DAYBOUND_NIGHT_VISION_CHANCE) {
+                holder.addEffect(new MobEffectInstance(MobEffects.NIGHT_VISION, DAYBOUND_NIGHT_VISION_TICKS, 0));
+            }
+        }
+    };
+
+    private static final float BERSERKER_STANCE_BONUS = 4.0F;
+    private static final int BERSERKER_STANCE_DURABILITY_COST = 1;
+
+    /**
+     * Truesteel. #841 gap 13, the flagship: the library has no persistent activate/deactivate toggle,
+     * so this "activates" by holding crouch through the swing rather than a stateful stance with its
+     * own data component -- bonus damage, paid for in extra wear, exactly while sneaking.
+     */
+    public static final Trait BERSERKER_STANCE = new Trait() {
+        @Override
+        public void combatSeams(Consumer<CombatSeam> out) {
+            out.accept(new ConditionalSeam(HitCondition.WIELDER_SNEAKING, 1.0F, new FlatBonusDamage(BERSERKER_STANCE_BONUS)));
+        }
+
+        @Override
+        public int attackDurabilityBonus(ItemStack stack) {
+            return BERSERKER_STANCE_DURABILITY_COST;
+        }
+    };
+
+
     private static final Map<ResourceLocation, Trait> REGISTRY = Map.ofEntries(
             Map.entry(id("ecological"), ECOLOGICAL),
             Map.entry(id("cheap"), CHEAP),
@@ -2478,7 +3016,64 @@ public final class ForgeweaveTraits {
             Map.entry(id("piercing_guard"), PIERCING_GUARD),
             Map.entry(id("thorns"), THORNS),
             Map.entry(id("enderclearance"), ENDERCLEARANCE),
-            Map.entry(id("skyfall"), SKYFALL));
+            Map.entry(id("skyfall"), SKYFALL),
+            Map.entry(id("unyielding"), UNYIELDING),
+            Map.entry(id("radiant_edge"), RADIANT_EDGE),
+            Map.entry(id("verdant_ward"), VERDANT_WARD),
+            Map.entry(id("luminous"), LUMINOUS),
+            Map.entry(id("stormglass"), STORMGLASS),
+            Map.entry(id("bloodgem"), BLOODGEM),
+            Map.entry(id("voidtouched"), VOIDTOUCHED),
+            Map.entry(id("brittleforce"), BRITTLEFORCE),
+            Map.entry(id("obliterate"), OBLITERATE),
+            Map.entry(id("avalanche"), AVALANCHE),
+            Map.entry(id("landslide"), LANDSLIDE),
+            Map.entry(id("skyborne"), SKYBORNE),
+            Map.entry(id("featherfall"), FEATHERFALL),
+            Map.entry(id("buoyant"), BUOYANT),
+            Map.entry(id("corebound"), COREBOUND),
+            Map.entry(id("ballast"), BALLAST),
+            Map.entry(id("leadfoot"), LEADFOOT),
+            Map.entry(id("obsidian_heart"), OBSIDIAN_HEART),
+            Map.entry(id("voidrend"), VOIDREND),
+            Map.entry(id("seismic"), SEISMIC),
+            Map.entry(id("stonewake"), STONEWAKE),
+            Map.entry(id("keenedge"), KEENEDGE),
+            Map.entry(id("wellspring"), WELLSPRING),
+            Map.entry(id("tinseeker"), TINSEEKER),
+            Map.entry(id("steelfast"), STEELFAST),
+            Map.entry(id("brasswind"), BRASSWIND),
+            Map.entry(id("amberflow"), AMBERFLOW),
+            Map.entry(id("duskbloom"), DUSKBLOOM),
+            Map.entry(id("emberwake"), EMBERWAKE),
+            Map.entry(id("overburdened"), OVERBURDENED),
+            Map.entry(id("smolderveil"), SMOLDERVEIL),
+            Map.entry(id("ashenbond"), ASHENBOND),
+            Map.entry(id("fallout"), FALLOUT),
+            Map.entry(id("nocturnal_edge"), NOCTURNAL_EDGE),
+            Map.entry(id("prismward"), PRISMWARD),
+            Map.entry(id("shattermail"), SHATTERMAIL),
+            Map.entry(id("chaosmark"), CHAOSMARK),
+            Map.entry(id("vinewarden"), VINEWARDEN),
+            Map.entry(id("magmaforge"), MAGMAFORGE),
+            Map.entry(id("voidwoven"), VOIDWOVEN),
+            Map.entry(id("crystalline_ward"), CRYSTALLINE_WARD),
+            Map.entry(id("quartzheart"), QUARTZHEART),
+            Map.entry(id("daybound"), DAYBOUND),
+            Map.entry(id("batteredge"), BATTEREDGE),
+            Map.entry(id("sparkforge"), SPARKFORGE),
+            Map.entry(id("unstable_core"), UNSTABLE_CORE),
+            Map.entry(id("warbond"), WARBOND),
+            Map.entry(id("steadfast"), STEADFAST),
+            Map.entry(id("coilcharge"), COILCHARGE),
+            Map.entry(id("smokehouse"), SMOKEHOUSE),
+            Map.entry(id("gravitic"), GRAVITIC),
+            Map.entry(id("elektronbond"), ELEKTRONBOND),
+            Map.entry(id("starforged"), STARFORGED),
+            Map.entry(id("rubberize"), RUBBERIZE),
+            Map.entry(id("tidebreaker"), TIDEBREAKER),
+            Map.entry(id("matrixbloom"), MATRIXBLOOM),
+            Map.entry(id("berserker_stance"), BERSERKER_STANCE));
 
     // ---------------------------------------------------------------- extra-info lines (parity audit
     // T26, issue #457) -- upstream 1.12's AbstractTrait#getExtraInfo. Traits are modifiers upstream,
@@ -2926,11 +3521,19 @@ public final class ForgeweaveTraits {
         }
         int xp = event.getDroppedExperience();
         int updated = xp;
+        float destroyChance = 0.0F;
         for (Trait trait : of(tool)) {
             updated = trait.blockBreakExperience(player.getRandom(), updated);
+            destroyChance = Math.max(destroyChance, trait.dropDestroyChance());
         }
         if (updated != xp) {
             event.setDroppedExperience(updated);
+        }
+        if (destroyChance > 0.0F) {
+            // #876 M6 dedupe batch, obliterate (#841 gap 7): a mined block's own drops sometimes
+            // vanish outright, same drop-list mutation ForgeweaveModifiers#onBlockDrops uses.
+            float chance = destroyChance;
+            event.getDrops().removeIf(drop -> player.getRandom().nextFloat() < chance);
         }
     }
 

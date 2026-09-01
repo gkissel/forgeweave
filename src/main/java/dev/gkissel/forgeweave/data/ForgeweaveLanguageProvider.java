@@ -2460,6 +2460,126 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         // Not an item/block/trait key family -- ForgeweaveResourcePacks#addPackFinders is the only
         // reader, via a bare Component.translatable, same as any other lang-keyed Component here.
         add("resourcepack.forgeweave.legacy", "Forgeweave Legacy Art");
+
+        // M6 dedupe batch (issue #876): every material gets a distinct trait id. Own
+        // names, own wording -- see ForgeweaveTraits for the mechanics.
+        add("trait.forgeweave.unyielding.name", "Unyielding");
+        add("trait.forgeweave.unyielding.description", "Sharper the less worn it is.");
+        add("trait.forgeweave.radiant_edge.name", "Radiant Edge");
+        add("trait.forgeweave.radiant_edge.description", "A fully-charged swing lands extra damage.");
+        add("trait.forgeweave.verdant_ward.name", "Verdant Ward");
+        add("trait.forgeweave.verdant_ward.description", "A facet of crystal absorbs a blow's shove.");
+        add("trait.forgeweave.luminous.name", "Luminous");
+        add("trait.forgeweave.luminous.description", "A landed hit leaves the target glowing.");
+        add("trait.forgeweave.stormglass.name", "Stormglass");
+        add("trait.forgeweave.stormglass.description", "More damage the faster the wielder is moving.");
+        add("trait.forgeweave.bloodgem.name", "Bloodgem");
+        add("trait.forgeweave.bloodgem.description", "More damage against tougher targets.");
+        add("trait.forgeweave.voidtouched.name", "Voidtouched");
+        add("trait.forgeweave.voidtouched.description", "A flat void-forged edge.");
+        add("trait.forgeweave.brittleforce.name", "Brittleforce");
+        add("trait.forgeweave.brittleforce.description", "Shatters armored targets a little harder.");
+        add("trait.forgeweave.avalanche.name", "Avalanche");
+        add("trait.forgeweave.avalanche.description", "Every hit shoves like a rockslide.");
+        add("trait.forgeweave.landslide.name", "Landslide");
+        add("trait.forgeweave.landslide.description", "Packed dense, wears slower.");
+        add("trait.forgeweave.skyborne.name", "Skyborne");
+        add("trait.forgeweave.skyborne.description", "Draws a bow noticeably faster.");
+        add("trait.forgeweave.featherfall.name", "Featherfall");
+        add("trait.forgeweave.featherfall.description", "A little extra spring in the step.");
+        add("trait.forgeweave.buoyant.name", "Buoyant");
+        add("trait.forgeweave.buoyant.description", "Light enough to swing faster.");
+        add("trait.forgeweave.corebound.name", "Corebound");
+        add("trait.forgeweave.corebound.description", "Packs more mass into its durability pool.");
+        add("trait.forgeweave.ballast.name", "Ballast");
+        add("trait.forgeweave.ballast.description", "Too heavy to be knocked far.");
+        add("trait.forgeweave.leadfoot.name", "Leadfoot");
+        add("trait.forgeweave.leadfoot.description", "Dense enough to slow the wielder slightly.");
+        add("trait.forgeweave.obsidian_heart.name", "Obsidian Heart");
+        add("trait.forgeweave.obsidian_heart.description", "Punishes a target already losing the fight.");
+        add("trait.forgeweave.voidrend.name", "Voidrend");
+        add("trait.forgeweave.voidrend.description", "A hit sometimes saps the target's strength.");
+        add("trait.forgeweave.seismic.name", "Seismic");
+        add("trait.forgeweave.seismic.description", "A heavy, shove-first strike.");
+        add("trait.forgeweave.stonewake.name", "Stonewake");
+        add("trait.forgeweave.stonewake.description", "Opens a fight with a harder first strike.");
+        add("trait.forgeweave.keenedge.name", "Keenedge");
+        add("trait.forgeweave.keenedge.description", "Keeps a keen edge until it wears down.");
+        add("trait.forgeweave.tinseeker.name", "Tinseeker");
+        add("trait.forgeweave.tinseeker.description", "A slow, unconditional trickle of self-repair.");
+        add("trait.forgeweave.steelfast.name", "Steelfast");
+        add("trait.forgeweave.steelfast.description", "A quick, disciplined swing.");
+        add("trait.forgeweave.brasswind.name", "Brasswind");
+        add("trait.forgeweave.brasswind.description", "A brisk draw.");
+        add("trait.forgeweave.amberflow.name", "Amberflow");
+        add("trait.forgeweave.amberflow.description", "A charged hit sometimes sparks a burst of speed.");
+        add("trait.forgeweave.duskbloom.name", "Duskbloom");
+        add("trait.forgeweave.duskbloom.description", "Repairs a little faster after dark.");
+        add("trait.forgeweave.emberwake.name", "Emberwake");
+        add("trait.forgeweave.emberwake.description", "Striking a burning target quickens the follow-up.");
+        add("trait.forgeweave.smolderveil.name", "Smolderveil");
+        add("trait.forgeweave.smolderveil.description", "Mends faster than duskmend's own base rate at night.");
+        add("trait.forgeweave.ashenbond.name", "Ashenbond");
+        add("trait.forgeweave.ashenbond.description", "A slow daylight mend, the mirror of duskmend.");
+        add("trait.forgeweave.prismward.name", "Prismward");
+        add("trait.forgeweave.prismward.description", "A crystalline ward softens incoming force.");
+        add("trait.forgeweave.shattermail.name", "Shattermail");
+        add("trait.forgeweave.shattermail.description", "Cracks armor a little harder than armor_breaker's base.");
+        add("trait.forgeweave.chaosmark.name", "Chaosmark");
+        add("trait.forgeweave.chaosmark.description", "An unstable strike occasionally disorients the target.");
+        add("trait.forgeweave.vinewarden.name", "Vinewarden");
+        add("trait.forgeweave.vinewarden.description", "Armor with overslime pays no armor penalty for it.");
+        add("trait.forgeweave.voidwoven.name", "Voidwoven");
+        add("trait.forgeweave.voidwoven.description", "A dense dark-alloy edge.");
+        add("trait.forgeweave.crystalline_ward.name", "Crystalline Ward");
+        add("trait.forgeweave.crystalline_ward.description", "An end-forged plate turns aside a blow.");
+        add("trait.forgeweave.quartzheart.name", "Quartzheart");
+        add("trait.forgeweave.quartzheart.description", "Hits harder while the wielder is still healthy.");
+        add("trait.forgeweave.batteredge.name", "Batteredge");
+        add("trait.forgeweave.batteredge.description", "A second, smaller surge on a full-charge swing.");
+        add("trait.forgeweave.sparkforge.name", "Sparkforge");
+        add("trait.forgeweave.sparkforge.description", "Landing a hit sometimes sparks a burst of haste.");
+        add("trait.forgeweave.warbond.name", "Warbond");
+        add("trait.forgeweave.warbond.description", "Bonus damage against a target already losing.");
+        add("trait.forgeweave.steadfast.name", "Steadfast");
+        add("trait.forgeweave.steadfast.description", "A stable, oversized durability pool.");
+        add("trait.forgeweave.coilcharge.name", "Coilcharge");
+        add("trait.forgeweave.coilcharge.description", "A magnetic-coil jolt on every hit.");
+        add("trait.forgeweave.smokehouse.name", "Smokehouse");
+        add("trait.forgeweave.smokehouse.description", "A very slow smoked-meat self-mend.");
+        add("trait.forgeweave.gravitic.name", "Gravitic");
+        add("trait.forgeweave.gravitic.description", "Leaden weight resists being knocked back.");
+        add("trait.forgeweave.elektronbond.name", "Elektronbond");
+        add("trait.forgeweave.elektronbond.description", "A keen magnesium-alloy edge.");
+        add("trait.forgeweave.starforged.name", "Starforged");
+        add("trait.forgeweave.starforged.description", "Sky stone takes a repair especially well.");
+        add("trait.forgeweave.rubberize.name", "Rubberize");
+        add("trait.forgeweave.rubberize.description", "A bouncy slime cushions a blow.");
+        add("trait.forgeweave.matrixbloom.name", "Matrixbloom");
+        add("trait.forgeweave.matrixbloom.description", "A psionic weave that mends best in daylight.");
+        add("trait.forgeweave.wellspring.name", "Wellspring");
+        add("trait.forgeweave.wellspring.description", "Mining a stone-type block has a chance to heal the wielder.");
+        add("trait.forgeweave.unstable_core.name", "Unstable Core");
+        add("trait.forgeweave.unstable_core.description",
+                "Using the tool has a small chance of an unstable burst that hurts nearby entities, including the wielder.");
+        add("trait.forgeweave.overburdened.name", "Overburdened");
+        add("trait.forgeweave.overburdened.description",
+                "Mining has a chance to slow the wielder's own digging speed briefly.");
+        add("trait.forgeweave.nocturnal_edge.name", "Nocturnal Edge");
+        add("trait.forgeweave.nocturnal_edge.description", "Deals bonus damage at night, and a little less by day.");
+        add("trait.forgeweave.obliterate.name", "Obliterate");
+        add("trait.forgeweave.obliterate.description", "Mined blocks sometimes drop nothing at all.");
+        add("trait.forgeweave.tidebreaker.name", "Tidebreaker");
+        add("trait.forgeweave.tidebreaker.description", "Clears the water around a block as you mine it.");
+        add("trait.forgeweave.magmaforge.name", "Magmaforge");
+        add("trait.forgeweave.magmaforge.description", "Mining stone sometimes melts it into lava on the spot.");
+        add("trait.forgeweave.fallout.name", "Fallout");
+        add("trait.forgeweave.fallout.description", "Slowly poisons the wielder and occasionally mutates nearby stone.");
+        add("trait.forgeweave.daybound.name", "Daybound");
+        add("trait.forgeweave.daybound.description", "Glows by day; sometimes grants night vision after dark.");
+        add("trait.forgeweave.berserker_stance.name", "Berserker Stance");
+        add("trait.forgeweave.berserker_stance.description",
+                "Crouch to channel a stance: bonus damage at the cost of extra wear.");
     }
 
     /** One tool's ported {@code ContentTool#properties} bullets, keyed {@code <tool>.property.<n>}. */
