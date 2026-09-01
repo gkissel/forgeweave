@@ -23,7 +23,7 @@
   "maille": true,
   "incorrect_for_tool": "minecraft:incorrect_for_netherite_tool",
   "traits": {
-    "general": ["forgeweave:established"]
+    "general": ["forgeweave:overburdened"]
   },
   "crafting_items": [
     { "ingredient": { "item": "forgeweave:voltcinder_ingot" }, "value": 144 },

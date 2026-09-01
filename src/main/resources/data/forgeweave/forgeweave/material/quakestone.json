@@ -23,7 +23,7 @@
   "maille": true,
   "incorrect_for_tool": "minecraft:incorrect_for_diamond_tool",
   "traits": {
-    "general": ["forgeweave:cascading"]
+    "general": ["forgeweave:stonewake"]
   },
   "crafting_items": [
     { "ingredient": { "item": "forgeweave:quakestone_ingot" }, "value": 144 },

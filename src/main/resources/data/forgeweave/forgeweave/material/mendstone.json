@@ -23,7 +23,7 @@
   "maille": true,
   "incorrect_for_tool": "minecraft:incorrect_for_netherite_tool",
   "traits": {
-    "general": ["forgeweave:petramor"]
+    "general": ["forgeweave:tinseeker"]
   },
   "crafting_items": [
     { "ingredient": { "item": "forgeweave:mendstone_ingot" }, "value": 144 },

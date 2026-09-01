@@ -23,7 +23,7 @@
   "maille": true,
   "incorrect_for_tool": "minecraft:incorrect_for_netherite_tool",
   "traits": {
-    "general": ["forgeweave:baconlicious"]
+    "general": ["forgeweave:smokehouse"]
   },
   "crafting_items": [
     { "ingredient": { "item": "forgeweave:ironbrand_ingot" }, "value": 144 },

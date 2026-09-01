@@ -23,7 +23,7 @@
   "maille": true,
   "incorrect_for_tool": "minecraft:incorrect_for_netherite_tool",
   "traits": {
-    "general": ["forgeweave:duskmend"]
+    "general": ["forgeweave:ashenbond"]
   },
   "crafting_items": [
     { "ingredient": { "item": "forgeweave:embercast_ingot" }, "value": 144 },

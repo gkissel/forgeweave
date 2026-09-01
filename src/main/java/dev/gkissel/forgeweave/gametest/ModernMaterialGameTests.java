@@ -168,10 +168,12 @@ public class ModernMaterialGameTests {
     @GameTest(template = "empty")
     public static void modernMaterialsExposeTheirTraitWiring(GameTestHelper helper) {
         Registry<Material> materials = helper.getLevel().registryAccess().registryOrThrow(Material.REGISTRY);
+        // Issue #876 M6 dedupe batch: chorus moved off the shared enderference to its own steelfast
+        // id (endstone keeps enderference -- see ProjectileTraitScopeTest/VanillaMaterialGameTests).
         Map<String, String> general = Map.of(
                 "amethyst_bronze", "crumbling",
                 "nahuatl", "lacerating",
-                "chorus", "enderference",
+                "chorus", "steelfast",
                 "ancient", "vintage");
 
         // #676 (SCOPE.md D17): chorus and amethyst bronze re-scope on armor parts; the rest fall back.

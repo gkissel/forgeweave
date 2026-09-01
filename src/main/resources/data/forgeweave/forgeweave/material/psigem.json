@@ -23,7 +23,7 @@
   "maille": true,
   "incorrect_for_tool": "minecraft:incorrect_for_diamond_tool",
   "traits": {
-    "general": ["forgeweave:insatiable"]
+    "general": ["forgeweave:solar_recharge"]
   },
   "crafting_items": [
     { "ingredient": { "tag": "c:gems/psigem" }, "value": 144 },

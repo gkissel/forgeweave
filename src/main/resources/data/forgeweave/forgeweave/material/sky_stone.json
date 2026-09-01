@@ -23,7 +23,7 @@
   "maille": true,
   "incorrect_for_tool": "minecraft:incorrect_for_stone_tool",
   "traits": {
-    "general": ["forgeweave:writable"]
+    "general": ["forgeweave:starforged"]
   },
   "crafting_items": [
     { "ingredient": { "tag": "c:dusts/sky_stone" }, "value": 36 }

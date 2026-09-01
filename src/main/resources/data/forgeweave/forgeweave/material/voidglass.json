@@ -23,7 +23,7 @@
   "maille": true,
   "incorrect_for_tool": "minecraft:incorrect_for_netherite_tool",
   "traits": {
-    "general": ["forgeweave:alien"]
+    "general": ["forgeweave:unraveling2"]
   },
   "crafting_items": [
     { "ingredient": { "item": "forgeweave:voidglass_ingot" }, "value": 144 },

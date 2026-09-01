@@ -44,7 +44,7 @@
   "incorrect_for_tool": "minecraft:incorrect_for_netherite_tool",
   "traits": {
     "general": [
-      "forgeweave:shackling"
+      "forgeweave:seismic"
     ]
   },
   "crafting_items": [

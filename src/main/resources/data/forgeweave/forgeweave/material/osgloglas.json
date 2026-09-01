@@ -23,7 +23,7 @@
   "maille": true,
   "incorrect_for_tool": "minecraft:incorrect_for_diamond_tool",
   "traits": {
-    "general": ["forgeweave:sharp"]
+    "general": ["forgeweave:elektronbond"]
   },
   "crafting_items": [
     { "ingredient": { "item": "forgeweave:osgloglas_ingot" }, "value": 144 },

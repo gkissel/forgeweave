@@ -25,7 +25,7 @@
   "traits": {
     "armor": ["forgeweave:melee_protection"],
     "general": ["forgeweave:lightweight"],
-    "head": ["forgeweave:momentum"]
+    "head": ["forgeweave:voidwoven"]
   },
   "crafting_items": [
     { "ingredient": { "item": "forgeweave:cobalt_ingot" }, "value": 144 },

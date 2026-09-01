@@ -36,7 +36,7 @@
   "incorrect_for_tool": "minecraft:incorrect_for_diamond_tool",
   "traits": {
     "general": [
-      "forgeweave:slimey_green"
+      "forgeweave:rubberize"
     ]
   },
   "crafting_items": [

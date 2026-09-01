@@ -23,7 +23,7 @@
   "maille": true,
   "incorrect_for_tool": "minecraft:incorrect_for_stone_tool",
   "traits": {
-    "general": ["forgeweave:petramor"]
+    "general": ["forgeweave:wellspring"]
   },
   "crafting_items": [
     { "ingredient": { "item": "forgeweave:cinderstone_ingot" }, "value": 144 },

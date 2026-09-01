@@ -23,7 +23,7 @@
   "maille": true,
   "incorrect_for_tool": "forgeweave:incorrect_for_resonite_tool",
   "traits": {
-    "general": ["forgeweave:surging2"]
+    "general": ["forgeweave:berserker_stance"]
   },
   "crafting_items": [
     { "ingredient": { "item": "forgeweave:truesteel_ingot" }, "value": 144 },
