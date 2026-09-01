@@ -2,7 +2,6 @@
   "type": "neoforge:add_features",
   "biomes": "#minecraft:is_overworld",
   "features": [
-    "forgeweave:cinderstone_ore",
     "forgeweave:fulmenite_ore",
     "forgeweave:duskspar_ore",
     "forgeweave:murkiron_ore",

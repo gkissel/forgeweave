@@ -110,6 +110,15 @@ public final class ForgeweaveFluids {
     public static final MoltenMetal OBSIDIAN = register("molten_obsidian", 0x2C0D59, 1000,
             () -> moltenFluidType(1000), STONE_STILL, STONE_FLOWING);
 
+    // Issue #884 (1): basalt replaces the retired "cinderstone" Track B ore -- a Part-Builder-only
+    // material (material/basalt.json), not a TrackBOre entry, so it needs its own standalone fluid
+    // registration rather than TRACK_B_ORE_TEMPERATURES' loop. The only thing that consumes this
+    // fluid today is quakestone's alloy recipe (cinderstone's old input, swapped to basalt); rides
+    // obsidian's stone texture pair for the same reason obsidian does -- it is rock, not metal.
+    // Temperature kept at cinderstone's old 850 (below lava, the roster's one stone-tier slot).
+    public static final MoltenMetal BASALT = register("molten_basalt", 0x5C5F66, 850,
+            () -> moltenFluidType(850), STONE_STILL, STONE_FLOWING);
+
     // No 1.12 counterpart -- deviation recorded in the issue #92 PR (see class javadoc).
     public static final MoltenMetal ROSE_GOLD = register("rose_gold", 0xB76E79, 550);
     public static final MoltenMetal NETHERITE_SCRAP = register("netherite_scrap", 0x6B4A34, 1100);
@@ -255,7 +264,7 @@ public final class ForgeweaveFluids {
     // blood(1500) scale by tier -- the one stone-tier ore lands below lava, the one diamond-tier ore
     // near it, and the ten netherite-tier ores spread across 1080-1280.
     private static final Map<String, Integer> TRACK_B_ORE_TEMPERATURES = Map.ofEntries(
-            Map.entry("cinderstone", 850), Map.entry("fulmenite", 980),
+            Map.entry("fulmenite", 980),
             Map.entry("duskspar", 1080), Map.entry("voltcinder", 1100), Map.entry("murkiron", 1120),
             Map.entry("hardcinder", 1140), Map.entry("nightshale", 1160), Map.entry("warspar", 1180),
             Map.entry("hollowstone", 1200), Map.entry("resonite", 1220), Map.entry("starfall_stone", 1240),

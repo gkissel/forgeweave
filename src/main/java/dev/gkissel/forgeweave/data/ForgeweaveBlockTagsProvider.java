@@ -135,8 +135,8 @@ public class ForgeweaveBlockTagsProvider extends BlockTagsProvider {
         // already used for the netherite boundary (needs_diamond_tool + incorrect_for_diamond_tool),
         // just carried one/two/three rungs further for hardcinder/warspar/resonite. The diamond-tier
         // ore (fulmenite) needs an iron pickaxe or better, matching vanilla diamond_ore's own
-        // needs_iron_tool; the stone-tier ore (cinderstone) takes no needs_*_tool tag at all, mineable
-        // with any pickaxe, matching vanilla coal/copper ore.
+        // needs_iron_tool; Track B's own stone-tier ore was retired by issue #884 (1) -- basalt
+        // replaces it as a Part-Builder-only vanilla-item material, no ore/worldgen presence.
         var trackBPickaxe = tag(BlockTags.MINEABLE_WITH_PICKAXE);
         var trackBNeedsDiamond = tag(BlockTags.NEEDS_DIAMOND_TOOL);
         var trackBIncorrectForDiamond = tag(BlockTags.INCORRECT_FOR_DIAMOND_TOOL);

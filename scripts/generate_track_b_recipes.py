@@ -19,9 +19,12 @@ CASTING_DIR = ROOT / "src/main/resources/data/forgeweave/forgeweave/casting_reci
 MELTING_DIR = ROOT / "src/main/resources/data/forgeweave/forgeweave/melting_recipe"
 ALLOY_DIR = ROOT / "src/main/resources/data/forgeweave/forgeweave/alloy_recipe"
 
-# The 12 ore-sourced tool materials (dev.gkissel.forgeweave.trackb.TrackBOre, issue #839).
+# The 11 ore-sourced tool materials (dev.gkissel.forgeweave.trackb.TrackBOre, issue #839). Issue
+# #884 (1) retired "cinderstone" from this roster -- the stone-tier Basalt-flavored material is now
+# vanilla basalt (material/basalt.json), not a TrackBOre entry, so it is Part-Builder-only and gets
+# no casting/melting rows from this script (see BASALT_MELTING below for its one hand-picked recipe).
 ORES = [
-    "cinderstone", "fulmenite", "duskspar", "voltcinder", "murkiron", "hardcinder",
+    "fulmenite", "duskspar", "voltcinder", "murkiron", "hardcinder",
     "nightshale", "warspar", "hollowstone", "resonite", "starfall_stone", "voidglass",
 ]
 
@@ -107,6 +110,15 @@ def catalyst_melting_recipes() -> None:
     print(f"wrote {len(CATALYSTS)} catalyst melting recipes")
 
 
+def basalt_melting_recipe() -> None:
+    """Issue #884 (1): minecraft:basalt -> molten basalt, quakestone's replacement alloy input.
+    Basalt is not a TrackBOre (Part-Builder-only, no ore/raw/nugget/block items of its own), so it
+    gets one hand-picked melting row instead of the ORES loop's five."""
+    write_json(MELTING_DIR / "basalt.json",
+               {"input": {"item": "minecraft:basalt"}, "fluid": "forgeweave:molten_basalt", "amount": VALUE_INGOT})
+    print("wrote 1 basalt melting recipe")
+
+
 def fs(fluid_id: str, amount: int) -> dict:
     return {"fluid": f"forgeweave:molten_{fluid_id}", "amount": amount}
 
@@ -121,7 +133,9 @@ def fs(fluid_id: str, amount: int) -> dict:
 # multi-layer branching shape TAIGA's own graph has.
 ALLOY_RECIPES = [
     ("ironbrand", [([("redcinder", 32), ("pearlcinder", 32), ("ambercinder", 32)], 72)]),
-    ("quakestone", [([("fulmenite", 144), ("cinderstone", 144)], 144),
+    # Issue #884 (1): cinderstone input replaced with basalt (same amount, same alloy-ratio shape) --
+    # basalt melts via BASALT_MELTING below, not this script's ORES loop.
+    ("quakestone", [([("fulmenite", 144), ("basalt", 144)], 144),
                     ([("fulmenite", 144), ("twinalloy", 32)], 144)]),
     ("embercast", [([("duskspar", 144), ("ardite", 144)], 144)]),
     ("riftalloy", [([("murkiron", 144), ("nightshale", 144), ("voltcinder", 144)], 216)]),
@@ -173,6 +187,7 @@ def main() -> None:
 
     clone_casting_recipes()
     ore_melting_recipes()
+    basalt_melting_recipe()
     alloy_melting_recipes()
     catalyst_melting_recipes()
     alloy_table_recipes()

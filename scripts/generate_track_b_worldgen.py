@@ -14,9 +14,9 @@ ROOT = Path(__file__).resolve().parent.parent
 WORLDGEN = ROOT / "src/main/resources/data/forgeweave/worldgen"
 BIOME_MODIFIERS = ROOT / "src/main/resources/data/forgeweave/neoforge/biome_modifier"
 
-# (id, target_block, vein_size, rate_per_chunk, min_y, max_y) -- must match TrackBOre.ALL.
+# (id, target_block, vein_size, rate_per_chunk, min_y, max_y) -- must match TrackBOre.ALL. Issue
+# #884 (1) removed "cinderstone": basalt replaces it and is not an ore (no worldgen presence).
 ORES = [
-    ("cinderstone", "minecraft:stone", 6, 12, 0, 128),
     ("fulmenite", "minecraft:deepslate", 5, 6, -24, 32),
     ("duskspar", "minecraft:deepslate", 4, 3, -64, -16),
     ("voltcinder", "minecraft:netherrack", 4, 6, 0, 127),
