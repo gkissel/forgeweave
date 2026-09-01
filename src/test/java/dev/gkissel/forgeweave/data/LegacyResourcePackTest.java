@@ -41,18 +41,27 @@ class LegacyResourcePackTest {
      */
     private static final Map<String, Set<String>> INTENTIONAL_UNSWAPPED_SIBLINGS = Map.of(
             "derived/tools/scimitar_binding.png", Set.of(
-                    "derived/item/cross_guard.png",
-                    "derived/tools/rapier_binding.png"),
+                    "derived/item/cross_guard.png"),
             "derived/tools/scimitar_handle.png", Set.of(
                     "derived/tools/broadsword_handle.png",
                     "derived/tools/cleaver_handle.png",
                     "derived/tools/frying_pan_handle.png",
-                    "derived/tools/longsword_handle.png",
-                    "derived/tools/rapier_handle.png"),
+                    "derived/tools/longsword_handle.png"),
             "derived/tools/scimitar_head.png", Set.of("derived/item/curved_blade.png"),
             "derived/tools/warmace_binding.png", Set.of("derived/tools/hammer_head3.png"),
             "derived/tools/warmace_handle.png", Set.of("derived/tools/hammer_handle.png"),
-            "derived/tools/warmace_head.png", Set.of("derived/item/war_mace_head.png"));
+            "derived/tools/warmace_head.png", Set.of("derived/item/war_mace_head.png"),
+            // A later Forged sprite batch (dagger and rapier's 16px->32px upgrade) retired
+            // rapier_binding.png/rapier_handle.png to the Legacy pack too. Upstream's rapier reused
+            // the broadsword's guard/handle art (same as the scimitar rows above), so these
+            // default-tree siblings still legitimately carry the same pre-Forged pixels.
+            "derived/tools/rapier_binding.png", Set.of(
+                    "derived/item/cross_guard.png"),
+            "derived/tools/rapier_handle.png", Set.of(
+                    "derived/tools/broadsword_handle.png",
+                    "derived/tools/cleaver_handle.png",
+                    "derived/tools/frying_pan_handle.png",
+                    "derived/tools/longsword_handle.png"));
 
     private static Path projectRoot() {
         Path dir = Path.of("").toAbsolutePath();

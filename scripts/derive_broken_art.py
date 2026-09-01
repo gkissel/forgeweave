@@ -46,6 +46,12 @@ NOTICE.md row cites Spartan Weaponry rather than the 1.12 clone. The katana's *o
 stay authored -- see `ToolArt#ORIGINAL_ART`, which is now keyed per layer -- but neither is a
 CHIPPED entry, so nothing here reads them.
 
+At the *default* (Forged) path specifically, three of the five now skip the chip() transform
+entirely and ship dedicated hand-drawn art instead -- katana (issue #809), then dagger and rapier
+in a later Forged batch that upgraded their whole assembled render from 16px to 32px, the same
+upgrade #818 gave katana/scimitar/warmace. See `HAND_DRAWN_DEFAULT` below; their Legacy-pack
+broken art still comes from chip()-ing the Legacy head, same as every other CHIPPED entry.
+
 The transform, `chip()`: project the layer's opaque pixels onto the shape's principal axis and erase
 the outermost `CHIP_FRACTION` of them at each end. That is what upstream's hand-drawn broken art does
 to a part -- compare `pickaxe/head.png` with `pickaxe/broken_head.png` and the two tips of the pick
@@ -99,7 +105,8 @@ PORTED = {
 
 # The five Forgeweave-only tools; their broken layer is chip() applied to their own head layer.
 # Issue #809: katana_head is no longer chip()'d at its *default* path -- see HAND_DRAWN_DEFAULT
-# below -- but stays here because the Legacy pass still needs to chip() the Legacy head.
+# below, which a later Forged batch also added dagger_head and rapier_head to -- but all three stay
+# here because the Legacy pass still needs to chip() the Legacy head.
 CHIPPED = ["dagger_head", "katana_head", "scimitar_head", "vein_hammer_head", "warmace_head",
            # #448: upstream's shuriken.tcon.json declares no broken<N> key at all (a spent one
            # reads "Ammo: Empty"), but Forgeweave's #284 invariant is that Broken is visible on
@@ -113,7 +120,13 @@ CHIPPED = ["dagger_head", "katana_head", "scimitar_head", "vein_hammer_head", "w
 # derived/tools/katana_head_broken.png is that hand-drawn file, committed directly and excluded
 # from the CHIPPED default pass below; only the Legacy pack's own katana_head_broken.png (chipped
 # from the pre-#807 Spartan-derived head, via legacy_input's fallback) is still generated.
-HAND_DRAWN_DEFAULT = ["katana_head"]
+#
+# A later Forged sprite batch (dagger and rapier's 16px->32px upgrade, the same treatment #818 gave
+# katana/scimitar/warmace) shipped hand-drawn dagger_head_broken.png/rapier_head_broken.png
+# alongside the new head/handle/binding art rather than algorithmic chip()s of the new heads -- the
+# provided sprites do not byte-match chip()'s output, the same signal that flagged katana's hand-
+# drawn art in #809. Same treatment: excluded from the CHIPPED default pass, Legacy pass unaffected.
+HAND_DRAWN_DEFAULT = ["dagger_head", "katana_head", "rapier_head"]
 
 # How much of the part chip() erases at each end of its principal axis. See the module docstring.
 CHIP_FRACTION = 0.15
@@ -154,10 +167,12 @@ def main() -> None:
 
     outputs = {}
     for name, upstream in PORTED.items():
+        if name in HAND_DRAWN_DEFAULT:
+            continue  # the default file is hand-drawn art; never regenerate it here (rapier_head)
         outputs[DERIVED_TOOLS / f"{name}_broken.png"] = Image.open(UPSTREAM_1_12 / upstream).convert("RGBA")
     for name in CHIPPED:
         if name in HAND_DRAWN_DEFAULT:
-            continue  # issue #809: the default file is hand-drawn art; never regenerate it here
+            continue  # the default file is hand-drawn art; never regenerate it here
         intact = DERIVED_TOOLS / f"{name}.png"
         if not intact.is_file():
             raise SystemExit(f"expected {intact} to exist")
@@ -168,7 +183,7 @@ def main() -> None:
         image.save(path)
         print(f"wrote {path}")
     for name in HAND_DRAWN_DEFAULT:
-        print(f"skipped {DERIVED_TOOLS / f'{name}_broken.png'} (hand-drawn, issue #809)")
+        print(f"skipped {DERIVED_TOOLS / f'{name}_broken.png'} (hand-drawn art, not regenerated)")
 
     # Issue #796: the Legacy pack's pass. Only CHIPPED can ever differ between sets -- each entry
     # chips whatever derived/tools/<name>.png currently is, and that is the one input here a Forged
