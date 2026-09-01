@@ -1,21 +1,73 @@
 #!/usr/bin/env python3
-"""Procedurally generates Track B's ore family art (issue #839, epic #824 Track B): the ore block,
-storage block, raw-storage block, ingot, nugget and raw item for each of the 12 materials in
-dev.gkissel.forgeweave.trackb.TrackBOre.
+"""Generates Track B's ore family art (issue #878, epic #824 Track B follow-up; supersedes the
+procedural approach from issue #839 / PR #864) for the ore block, storage block, raw-storage block
+and raw item of each of the 12 materials in dev.gkissel.forgeweave.trackb.TrackBOre. Ingot and nugget
+art is untouched by this script -- issue #878 keeps those as they shipped in #864.
 
-Original art, not a derivation of any Tinkers'/Mantle/Spartan Weaponry clone (CLAUDE.md's provenance
-rules) and not a recolor of a vanilla texture either -- Forgeweave has no in-repo precedent for a
-from-scratch ore family (armor_station_top.png is the only prior original block texture), so this
-script builds each sprite from flat shapes and a small palette derived from each material's own base
-color, deterministic per material id (a fixed RNG seed) so re-running this script reproduces
-byte-identical output. Committed as static PNGs under the standard (non-derived) `textures/block/`
-and `textures/item/` folders, matching how `scripts/recolor_raw_ore.py`'s raw_cobalt/raw_ardite output
-already lives outside `derived/`.
+Maintainer directive (2026-08-31, issue #878): this art is now **vanilla-derived** instead of
+procedurally drawn from flat shapes. Each of the four sprites this script owns takes a real vanilla
+Minecraft texture as its template and recolors it to the material's own flavor color
+(dev.gkissel.forgeweave.trackb.TrackBOre#color, the same hex the old procedural script used):
+
+  * **Ore block**: a vanilla ore texture (stone/deepslate/netherrack host baked in, per the material's
+    TrackBOre#host) with its mineral blob recolored, the host rock pixels left byte-identical. The mask
+    is a straight pixel diff against the matching plain host texture (stone.png/deepslate.png/
+    netherrack.png) -- verified against every template this script uses: differing pixels cleanly
+    separate into "identical to host" (distance 0) and "blob" (distance >= ~12), no middle ground, so a
+    distance-10 threshold reliably isolates the blob with no manual touch-up needed on any of the 12.
+  * **Storage block** and **raw-storage block**: a vanilla metal-block/raw-block texture (solid panel,
+    no separate host to preserve), recolored across the whole image.
+  * **Raw item**: a vanilla raw-ore item icon, recolored across the whole image -- same technique
+    scripts/recolor_raw_ore.py already established for raw_cobalt/raw_ardite (issue #140).
+
+All four use the same hue-recolor: shift every opaque pixel's hue to the material color's hue, and
+scale saturation/value by the ratio of the material color's own saturation/value to the *source
+sub-image's* average (the masked blob's average for the ore block, the whole image's average for the
+other three) -- this preserves the source's shading/highlight variation while landing on the right
+color, exactly recolor_raw_ore.py's algorithm, generalized to operate on a pixel subset.
+
+**Template assignment** is deterministic (seeded by material id + sprite purpose, `random.Random`,
+same reproducible-RNG idiom the old script used) and recorded as a literal table below (TEMPLATES) so
+it's reviewable without re-running anything; re-running the derivation (see the comment above
+TEMPLATES) reproduces the same table byte-for-byte. Three independent pools, since a material's ore
+template, storage-block template and raw template don't need to agree:
+
+  * Ore/storage pool: iron, copper, gold, diamond, redstone, lapis, emerald (issue #878's named
+    "vanilla ore set", 7 families) -- deepslate-prefixed when TrackBOre#host is OVERWORLD_DEEPSLATE
+    (8 of 12 materials), left at the surface family when OVERWORLD_STONE (cinderstone, starfall_stone).
+    voltcinder/hardcinder (TrackBOre#host NETHER) aren't stone or deepslate at all, so they draw from a
+    separate 2-member nether pool (nether_gold_ore, nether_quartz_ore) instead -- the 7-family pool has
+    no netherrack-based member, and a stone/deepslate-templated ore block would look wrong sitting in
+    Nether worldgen. No material in this roster sits at a "deepest band" that isn't already
+    OVERWORLD_DEEPSLATE (voidglass included, host OVERWORLD_DEEPSLATE per TrackBOre), so no further
+    deepslate-forcing is needed beyond the host-driven prefix.
+  * Storage-block pool: the metal-block half of the same 7 families (iron_block .. emerald_block) --
+    independent draw from the ore template, e.g. cinderstone's ore uses gold_ore but its storage block
+    uses diamond_block.
+  * Raw pool: iron, copper, gold only -- the only three vanilla metals with a "raw" item/block pair.
+    Feeds both the raw item and the raw-storage block (same family for both, matching how vanilla's own
+    raw_iron / raw_iron_block are a pair).
+
+Provenance (issue #878 deliverable 3): this derives from Minecraft's own client assets, not from any
+of the MIT Tinkers'/Mantle clones CLAUDE.md's NOTICE.md rule covers -- no NOTICE.md row for this file's
+output. Precedent: #823 (Wooden Hopper) already builds directly off vanilla assets (its blockstate
+parents `block/hopper` and reuses vanilla's own hopper GUI) without a NOTICE.md row, on the reasoning
+that vanilla-derived work sits outside the MIT-clone provenance question CLAUDE.md's rule exists to
+answer. Vanilla textures are never committed to this repo by this script -- they're extracted at
+generation time from the dev environment's own Minecraft client jar (see find_vanilla_jar()) straight
+into memory, and only this script's *recolored* output is written to the working tree.
 
 Usage: python3 scripts/generate_track_b_ore_textures.py
-Requires Pillow (`pip install pillow`).
+Requires Pillow (`pip install pillow`). Requires a Minecraft 1.21.1 client jar reachable from Gradle's
+caches (present after a `./gradlew build` in this project, or any other NeoForge 1.21.1 project sharing
+the same `~/.gradle` home).
 """
+import colorsys
+import glob
+import io
+import os
 import random
+import zipfile
 from pathlib import Path
 
 from PIL import Image
@@ -23,8 +75,6 @@ from PIL import Image
 ROOT = Path(__file__).resolve().parent.parent
 BLOCK_DIR = ROOT / "src/main/resources/assets/forgeweave/textures/block"
 ITEM_DIR = ROOT / "src/main/resources/assets/forgeweave/textures/item"
-
-SIZE = 16
 
 # (id, color, host) -- host picks the ore block's base rock. Must match TrackBOre.ALL.
 ORES = [
@@ -42,10 +92,45 @@ ORES = [
     ("voidglass", 0x2A1740, "deepslate"),
 ]
 
-HOST_BASE = {
-    "stone": (125, 125, 125),
-    "deepslate": (77, 77, 82),
-    "netherrack": (107, 58, 48),
+ORE_STORAGE_POOL = ["iron", "copper", "gold", "diamond", "redstone", "lapis", "emerald"]
+NETHER_POOL = ["nether_gold_ore", "nether_quartz_ore"]
+RAW_POOL = ["iron", "copper", "gold"]
+
+HOST_PLAIN_TEXTURE = {"stone": "stone", "deepslate": "deepslate", "netherrack": "netherrack"}
+
+BLOB_MASK_THRESHOLD = 10.0
+BLOB_MIN_CONTRAST = 0.18
+
+
+def _derive_ore_template(mat_id: str, host: str) -> str:
+    """Deterministic per (id, host) -- see module docstring's "Template assignment" section."""
+    rng = random.Random(f"{mat_id}:ore")
+    if host == "netherrack":
+        return rng.choice(NETHER_POOL)
+    family = rng.choice(ORE_STORAGE_POOL)
+    return f"deepslate_{family}_ore" if host == "deepslate" else f"{family}_ore"
+
+
+def _derive_storage_template(mat_id: str) -> str:
+    rng = random.Random(f"{mat_id}:storage")
+    return f"{rng.choice(ORE_STORAGE_POOL)}_block"
+
+
+def _derive_raw_family(mat_id: str) -> str:
+    rng = random.Random(f"{mat_id}:raw")
+    return rng.choice(RAW_POOL)
+
+
+# Recorded template-assignment table (issue #878 deliverable 2), reproducible by re-running the
+# _derive_* helpers above -- kept as a literal dict here so the mapping is reviewable without running
+# anything. ore/storage/raw_family per material id.
+TEMPLATES = {
+    mat_id: {
+        "ore": _derive_ore_template(mat_id, host),
+        "storage": _derive_storage_template(mat_id),
+        "raw_family": _derive_raw_family(mat_id),
+    }
+    for mat_id, _color, host in ORES
 }
 
 
@@ -53,141 +138,186 @@ def hex_to_rgb(color: int) -> tuple[int, int, int]:
     return (color >> 16) & 0xFF, (color >> 8) & 0xFF, color & 0xFF
 
 
-def shade(rgb: tuple[int, int, int], factor: float) -> tuple[int, int, int]:
-    r, g, b = rgb
-    return (max(0, min(255, int(r * factor))), max(0, min(255, int(g * factor))), max(0, min(255, int(b * factor))))
+# ---------------------------------------------------------------------------
+# Vanilla asset extraction -- never committed, read straight into memory.
+# ---------------------------------------------------------------------------
 
-
-def noisy(rgb: tuple[int, int, int], rng: random.Random, spread: int = 10) -> tuple[int, int, int]:
-    return tuple(max(0, min(255, c + rng.randint(-spread, spread))) for c in rgb)
-
-
-def new_canvas() -> Image.Image:
-    return Image.new("RGBA", (SIZE, SIZE), (0, 0, 0, 0))
-
-
-def ore_block(ore_color: tuple[int, int, int], host_base: tuple[int, int, int], rng: random.Random) -> Image.Image:
-    """Speckled stone/deepslate/netherrack base with 3-4 ore-colored clusters, like a vanilla ore block."""
-    img = new_canvas()
-    px = img.load()
-    for y in range(SIZE):
-        for x in range(SIZE):
-            px[x, y] = (*noisy(host_base, rng, 8), 255)
-    clusters = rng.randint(3, 4)
-    for _ in range(clusters):
-        cx, cy = rng.randint(2, SIZE - 3), rng.randint(2, SIZE - 3)
-        for dx in range(-1, 2):
-            for dy in range(-1, 2):
-                if rng.random() < 0.6:
-                    x, y = cx + dx, cy + dy
-                    if 0 <= x < SIZE and 0 <= y < SIZE:
-                        px[x, y] = (*noisy(ore_color, rng, 14), 255)
-    return img
-
-
-def metal_block(color: tuple[int, int, int], rng: random.Random) -> Image.Image:
-    """A flat panel with a lighter top-left bevel and a darker bottom-right bevel, like a storage block."""
-    img = new_canvas()
-    px = img.load()
-    for y in range(SIZE):
-        for x in range(SIZE):
-            base = noisy(color, rng, 6)
-            if x == 0 or y == 0:
-                base = shade(base, 1.35)
-            elif x == SIZE - 1 or y == SIZE - 1:
-                base = shade(base, 0.65)
-            px[x, y] = (*base, 255)
-    return img
-
-
-def raw_block(color: tuple[int, int, int], rng: random.Random) -> Image.Image:
-    """A rockier, duller panel -- same bevel idiom as metal_block but muted and with a mottled fill."""
-    dull = shade(color, 0.75)
-    img = new_canvas()
-    px = img.load()
-    for y in range(SIZE):
-        for x in range(SIZE):
-            base = noisy(dull, rng, 16)
-            if x == 0 or y == 0:
-                base = shade(base, 1.2)
-            elif x == SIZE - 1 or y == SIZE - 1:
-                base = shade(base, 0.75)
-            px[x, y] = (*base, 255)
-    return img
-
-
-def ingot(color: tuple[int, int, int], rng: random.Random) -> Image.Image:
-    """A trapezoid ingot bar, vanilla-iron-ingot silhouette, flat-shaded in the material color."""
-    img = new_canvas()
-    px = img.load()
-    top_rows = {5: (5, 10), 6: (4, 11)}
-    body_rows = range(7, 12)
-    for y in range(5, 12):
-        if y in top_rows:
-            x0, x1 = top_rows[y]
-        elif y in body_rows:
-            x0, x1 = 3, 12
-        else:
-            continue
-        for x in range(x0, x1):
-            base = noisy(color, rng, 8)
-            if y == 5 or x == x0:
-                base = shade(base, 1.3)
-            elif y == 11 or x == x1 - 1:
-                base = shade(base, 0.7)
-            px[x, y] = (*base, 255)
-    return img
-
-
-def nugget(color: tuple[int, int, int], rng: random.Random) -> Image.Image:
-    """A small cluster of irregular flecks, vanilla-nugget-scaled."""
-    img = new_canvas()
-    px = img.load()
-    cells = [(6, 6), (7, 6), (8, 7), (6, 8), (7, 8), (9, 8), (7, 9)]
-    for x, y in cells:
-        base = noisy(color, rng, 10)
-        if (x + y) % 2 == 0:
-            base = shade(base, 1.25)
-        px[x, y] = (*base, 255)
-    return img
-
-
-def raw_item(color: tuple[int, int, int], rng: random.Random) -> Image.Image:
-    """An irregular chunk, vanilla-raw-ore-scaled, duller than the ingot with a few bright flecks."""
-    dull = shade(color, 0.8)
-    img = new_canvas()
-    px = img.load()
-    cells = [
-        (5, 5), (6, 5), (7, 5), (8, 6), (9, 6),
-        (4, 6), (5, 6), (6, 6), (7, 6), (8, 7),
-        (4, 7), (5, 7), (6, 7), (7, 7), (9, 7),
-        (5, 8), (6, 8), (7, 8), (8, 8),
-        (6, 9), (7, 9),
+def find_vanilla_jar() -> str:
+    """Locates a Minecraft 1.21.1 client jar (with the assets/minecraft/textures tree) reachable from
+    Gradle's caches. Checked in order: this project's own ModDevGradle build artifacts (present after
+    `./gradlew build`), then NeoGradle's ng_execute cache, then the raw NeoFormRuntime client jar --
+    all populated the first time any NeoForge 1.21.1 project in this Gradle home is built.
+    """
+    home = os.environ.get("GRADLE_USER_HOME", str(Path.home() / ".gradle"))
+    candidates = [
+        str(ROOT / "build/moddev/artifacts/neoforge-*-client-extra*.jar"),
+        f"{home}/caches/ng_execute/**/client-extra.jar",
+        f"{home}/caches/neoformruntime/artifacts/minecraft_1.21.1_client.jar",
     ]
-    for x, y in cells:
-        base = noisy(dull, rng, 14)
-        if rng.random() < 0.2:
-            base = shade(color, 1.4)
-        px[x, y] = (*base, 255)
-    return img
+    for pattern in candidates:
+        matches = glob.glob(pattern, recursive=True)
+        if matches:
+            return matches[0]
+    raise FileNotFoundError(
+        "No Minecraft 1.21.1 client jar found in Gradle's caches. Run `./gradlew build` once first "
+        "(populates ~/.gradle/caches and/or build/moddev/artifacts with the vanilla asset jar)."
+    )
+
+
+class VanillaAssets:
+    def __init__(self, jar_path: str):
+        self._zip = zipfile.ZipFile(jar_path)
+        self._cache: dict[str, Image.Image] = {}
+
+    def block(self, name: str) -> Image.Image:
+        return self._get(f"assets/minecraft/textures/block/{name}.png")
+
+    def item(self, name: str) -> Image.Image:
+        return self._get(f"assets/minecraft/textures/item/{name}.png")
+
+    def _get(self, path: str) -> Image.Image:
+        if path not in self._cache:
+            data = self._zip.read(path)
+            self._cache[path] = Image.open(io.BytesIO(data)).convert("RGBA")
+        return self._cache[path]
+
+
+# ---------------------------------------------------------------------------
+# Masking + recolor
+# ---------------------------------------------------------------------------
+
+def blob_mask(host_img: Image.Image, ore_img: Image.Image, threshold: float = BLOB_MASK_THRESHOLD) -> list[list[bool]]:
+    """True where ore_img's pixel differs from host_img's by more than `threshold` (Euclidean RGB
+    distance) -- the mineral blob. See module docstring: every template used here separates cleanly
+    into a distance-0 cluster (host rock) and a distance->=12 cluster (blob), so a threshold of 10
+    reliably isolates the blob with no per-material tuning.
+    """
+    hp, op = host_img.load(), ore_img.load()
+    w, h = ore_img.size
+    mask = [[False] * w for _ in range(h)]
+    for y in range(h):
+        for x in range(w):
+            r1, g1, b1, _ = hp[x, y]
+            r2, g2, b2, _ = op[x, y]
+            dist = ((r1 - r2) ** 2 + (g1 - g2) ** 2 + (b1 - b2) ** 2) ** 0.5
+            mask[y][x] = dist > threshold
+    return mask
+
+
+def recolor_pixels(
+    src: Image.Image,
+    mask: list[list[bool]],
+    target_rgb: tuple[int, int, int],
+    min_contrast: float = 0.0,
+) -> Image.Image:
+    """Hue-recolors src's masked-True pixels to target_rgb's hue, scaling each pixel's saturation/value
+    by the ratio of target_rgb's own saturation/value to the *masked region's* average -- preserves the
+    source's shading while landing on the material color. Pixels where mask is False are copied
+    unchanged (the "host rock stays intact" requirement for ore blocks; irrelevant for the full-image
+    recolors, whose mask is all-True).
+
+    `min_contrast` (0-1, in HSV value terms) guards against a flavor color landing too close to the
+    unmasked host rock's own brightness to read as an ore blob at all -- cinderstone (0x8A8A86, a
+    near-stone gray) is exactly this case: recolored at face value its blob nearly vanished into
+    stone.png's own gray. When the gap between target_v and the unmasked pixels' average value is
+    under this threshold, target_v is pushed further away (same brighter/darker direction, just a
+    bigger gap) before the saturation/value ratios are computed. No-op when mask has no unmasked
+    pixels (the full-image recolor calls) or the source has no unmasked opaque pixels.
+    """
+    w, h = src.size
+    px = src.load()
+    target_h, target_s, target_v = colorsys.rgb_to_hsv(*(c / 255 for c in target_rgb))
+
+    if min_contrast > 0:
+        host_vals = []
+        for y in range(h):
+            for x in range(w):
+                if mask[y][x]:
+                    continue
+                r, g, b, a = px[x, y]
+                if a == 0:
+                    continue
+                _, _, v = colorsys.rgb_to_hsv(r / 255, g / 255, b / 255)
+                host_vals.append(v)
+        if host_vals:
+            host_avg_v = sum(host_vals) / len(host_vals)
+            if abs(target_v - host_avg_v) < min_contrast:
+                target_v = (
+                    min(1.0, host_avg_v + min_contrast)
+                    if target_v >= host_avg_v
+                    else max(0.0, host_avg_v - min_contrast)
+                )
+
+    sats, vals = [], []
+    for y in range(h):
+        for x in range(w):
+            if not mask[y][x]:
+                continue
+            r, g, b, a = px[x, y]
+            if a == 0:
+                continue
+            _, s, v = colorsys.rgb_to_hsv(r / 255, g / 255, b / 255)
+            sats.append(s)
+            vals.append(v)
+    sat_ratio = target_s / (sum(sats) / len(sats)) if sats else 1.0
+    val_ratio = target_v / (sum(vals) / len(vals)) if vals else 1.0
+
+    out = Image.new("RGBA", (w, h))
+    out_px = out.load()
+    for y in range(h):
+        for x in range(w):
+            r, g, b, a = px[x, y]
+            if a == 0:
+                out_px[x, y] = (0, 0, 0, 0)
+                continue
+            if not mask[y][x]:
+                out_px[x, y] = (r, g, b, a)
+                continue
+            _, s, v = colorsys.rgb_to_hsv(r / 255, g / 255, b / 255)
+            new_s = min(1.0, max(0.0, s * sat_ratio))
+            new_v = min(1.0, max(0.0, v * val_ratio))
+            nr, ng, nb = colorsys.hsv_to_rgb(target_h, new_s, new_v)
+            out_px[x, y] = (round(nr * 255), round(ng * 255), round(nb * 255), a)
+    return out
+
+
+def full_mask(img: Image.Image) -> list[list[bool]]:
+    w, h = img.size
+    return [[True] * w for _ in range(h)]
 
 
 def main() -> None:
     BLOCK_DIR.mkdir(parents=True, exist_ok=True)
     ITEM_DIR.mkdir(parents=True, exist_ok=True)
 
-    for ore_id, color_hex, host in ORES:
-        color = hex_to_rgb(color_hex)
-        host_base = HOST_BASE[host]
-        rng = random.Random(ore_id)
+    assets = VanillaAssets(find_vanilla_jar())
 
-        ore_block(color, host_base, rng).save(BLOCK_DIR / f"{ore_id}_ore.png")
-        metal_block(color, rng).save(BLOCK_DIR / f"{ore_id}_block.png")
-        raw_block(color, rng).save(BLOCK_DIR / f"raw_{ore_id}_block.png")
-        ingot(color, rng).save(ITEM_DIR / f"{ore_id}_ingot.png")
-        nugget(color, rng).save(ITEM_DIR / f"{ore_id}_nugget.png")
-        raw_item(color, rng).save(ITEM_DIR / f"raw_{ore_id}.png")
-        print(f"wrote {ore_id} (6 sprites)")
+    for mat_id, color_hex, host in ORES:
+        color = hex_to_rgb(color_hex)
+        tpl = TEMPLATES[mat_id]
+
+        # Ore block: mask the blob against the plain host texture, recolor only the blob.
+        host_img = assets.block(HOST_PLAIN_TEXTURE[host])
+        ore_img = assets.block(tpl["ore"])
+        mask = blob_mask(host_img, ore_img)
+        recolor_pixels(ore_img, mask, color, min_contrast=BLOB_MIN_CONTRAST).save(BLOCK_DIR / f"{mat_id}_ore.png")
+
+        # Storage block: full-image recolor, no host to preserve.
+        storage_img = assets.block(tpl["storage"])
+        recolor_pixels(storage_img, full_mask(storage_img), color).save(BLOCK_DIR / f"{mat_id}_block.png")
+
+        # Raw-storage block + raw item: full-image recolor, same vanilla raw family for both.
+        raw_family = tpl["raw_family"]
+        raw_block_img = assets.block(f"raw_{raw_family}_block")
+        recolor_pixels(raw_block_img, full_mask(raw_block_img), color).save(BLOCK_DIR / f"raw_{mat_id}_block.png")
+
+        raw_item_img = assets.item(f"raw_{raw_family}")
+        recolor_pixels(raw_item_img, full_mask(raw_item_img), color).save(ITEM_DIR / f"raw_{mat_id}.png")
+
+        print(
+            f"wrote {mat_id}: ore<-{tpl['ore']} storage<-{tpl['storage']} "
+            f"raw<-raw_{raw_family}(_block) (ingot/nugget untouched, issue #878)"
+        )
 
 
 if __name__ == "__main__":
