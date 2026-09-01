@@ -1,6 +1,6 @@
 {
   "parent": "neoforge:item/bucket",
   "flip_gas": false,
-  "fluid": "forgeweave:molten_cinderstone",
+  "fluid": "forgeweave:molten_basalt",
   "loader": "neoforge:fluid_container"
 }

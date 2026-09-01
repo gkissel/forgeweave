@@ -1,0 +1,53 @@
+{
+    decoder: "item_stack",
+    expect: {
+        components: {
+            "forgeweave:tool_materials": {
+                binding: "forgeweave:wood",
+                handle: "forgeweave:wood",
+                head: "forgeweave:warspar"
+            },
+            "forgeweave:tool_stats": {
+                attack_damage: 5.0f,
+                durability: 380,
+                mining_speed: 7.0f
+            },
+            "forgeweave:traits": [
+                "forgeweave:warmemory"
+            ],
+            "forgeweave:war_memory": [
+                { count: 6, entity_type: "minecraft:zombie" },
+                { count: 20, entity_type: "minecraft:skeleton" }
+            ],
+            "minecraft:damage": 0,
+            "minecraft:max_damage": 380
+        },
+        id: "forgeweave:broadsword"
+    },
+    nbt: {
+        components: {
+            "forgeweave:tool_materials": {
+                binding: "forgeweave:wood",
+                handle: "forgeweave:wood",
+                head: "forgeweave:warspar"
+            },
+            "forgeweave:tool_stats": {
+                attack_damage: 5.0f,
+                durability: 380,
+                mining_speed: 7.0f
+            },
+            "forgeweave:traits": [
+                "forgeweave:warmemory"
+            ],
+            "forgeweave:war_memory": [
+                { count: 6, entity_type: "minecraft:zombie" },
+                { count: 20, entity_type: "minecraft:skeleton" }
+            ],
+            "minecraft:damage": 0,
+            "minecraft:max_damage": 380
+        },
+        count: 1,
+        id: "forgeweave:broadsword"
+    },
+    what: "#884 (8a): a warspar sword that has fought zombies six times and skeletons twenty (the cap) -- forgeweave:war_memory is a list of {entity_type, count} entries, one per entity type the tool has ever landed a hit on; a type never fought has no entry at all rather than a zero-count one."
+}

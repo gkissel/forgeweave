@@ -107,9 +107,11 @@ public class TrackBOreGameTests {
      * combo (netherite pickaxe only, diamond refused); the six ores #877 re-rung above netherite each
      * refuse the rung directly below them (a netherite pickaxe for hardcinder, a hardcinder-tier
      * synthetic pick for warspar, a warspar-tier synthetic pick for resonite) and accept only a
-     * synthetic pick at their own rung; the one diamond-tier ore (fulmenite) accepts an iron pickaxe;
-     * the one stone-tier ore (cinderstone) accepts any pickaxe including wood. Each also drops exactly
-     * one raw item, same unconditional self-drop as cobalt/ardite.
+     * synthetic pick at their own rung; the one diamond-tier ore (fulmenite) accepts an iron pickaxe.
+     * The roster's former stone-tier ore (cinderstone) was retired by issue #884 (1) -- basalt
+     * replaces it as a Part-Builder-only vanilla-item material, no ore of its own, so {@link
+     * TrackBOre.Tier#STONE} has no member left to test here. Each ore also drops exactly one raw
+     * item, same unconditional self-drop as cobalt/ardite.
      */
     @GameTest(template = "empty")
     public static void everyTrackBOreHasTheRightTierGateAndDrop(GameTestHelper helper) {

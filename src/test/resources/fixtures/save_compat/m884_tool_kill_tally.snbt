@@ -1,0 +1,47 @@
+{
+    decoder: "item_stack",
+    expect: {
+        components: {
+            "forgeweave:tool_materials": {
+                binding: "forgeweave:wood",
+                handle: "forgeweave:wood",
+                head: "forgeweave:hollowsteel"
+            },
+            "forgeweave:tool_stats": {
+                attack_damage: 5.5f,
+                durability: 420,
+                mining_speed: 7.2f
+            },
+            "forgeweave:traits": [
+                "forgeweave:bloodtally"
+            ],
+            "forgeweave:kill_tally": 137,
+            "minecraft:damage": 12,
+            "minecraft:max_damage": 420
+        },
+        id: "forgeweave:broadsword"
+    },
+    nbt: {
+        components: {
+            "forgeweave:tool_materials": {
+                binding: "forgeweave:wood",
+                handle: "forgeweave:wood",
+                head: "forgeweave:hollowsteel"
+            },
+            "forgeweave:tool_stats": {
+                attack_damage: 5.5f,
+                durability: 420,
+                mining_speed: 7.2f
+            },
+            "forgeweave:traits": [
+                "forgeweave:bloodtally"
+            ],
+            "forgeweave:kill_tally": 137,
+            "minecraft:damage": 12,
+            "minecraft:max_damage": 420
+        },
+        count: 1,
+        id: "forgeweave:broadsword"
+    },
+    what: "#884 (22a): a hollowsteel sword with 137 lifetime kills -- forgeweave:kill_tally is a non-negative int, the current lifetime kill count only (capped at 200 by ForgeweaveTraits#BLOODTALLY_CAP); absent means zero, the same shape forgeweave:overslime and forgeweave:energy already use (m830_tool_energy.snbt)."
+}

@@ -42,9 +42,11 @@ import dev.gkissel.forgeweave.trackb.TrackBOre;
 @PrefixGameTestTemplate(false)
 public class TrackBMaterialGameTests {
 
-    /** The full 30-material roster this issue ships, ore-sourced first then alloy, matching the PR's stat table. */
+    /** The roster this issue ships (now 29, issue #884 (1) retired cinderstone -- basalt replaces it
+     * as a Part-Builder-only material outside this cast-only Track B roster), ore-sourced first then
+     * alloy, matching the PR's stat table. */
     private static final List<String> ROSTER = List.of(
-            "cinderstone", "fulmenite", "duskspar", "voltcinder", "murkiron", "hardcinder", "nightshale",
+            "fulmenite", "duskspar", "voltcinder", "murkiron", "hardcinder", "nightshale",
             "warspar", "hollowstone", "resonite", "starfall_stone", "voidglass",
             "ironbrand", "quakestone", "shardline", "embercast", "riftalloy", "tideiron", "cinderforge",
             "dreadalloy", "sunsteel", "hollowsteel", "truesteel", "stormalloy", "glowveil", "daybrass",
@@ -59,28 +61,31 @@ public class TrackBMaterialGameTests {
      * documents its own material's identity, just under its new, unshared id.
      */
     private static final Map<String, String> TRAITS = Map.ofEntries(
-            Map.entry("cinderstone", "wellspring"),
             Map.entry("fulmenite", "unstable_core"),
             Map.entry("duskspar", "duskmend"),
             Map.entry("voltcinder", "overburdened"),
             Map.entry("murkiron", "blighted"),
-            Map.entry("hardcinder", "emberwake"),
+            // Issue #884: hardcinder/warspar/hollowstone/voidglass/ironbrand/quakestone/riftalloy/
+            // dreadalloy/hollowsteel moved onto their reference-faithful trait (see ForgeweaveTraits'
+            // own javadoc on each); nightshale/starfall_stone/sunsteel keep their post-#876 id, per
+            // the maintainer's explicit "b" picks on that issue.
+            Map.entry("hardcinder", "leanharvest"),
             Map.entry("nightshale", "nocturnal_edge"),
-            Map.entry("warspar", "warbond"),
-            Map.entry("hollowstone", "fertilizing"),
+            Map.entry("warspar", "warmemory"),
+            Map.entry("hollowstone", "hollowyield"),
             Map.entry("resonite", "dominant"),
             Map.entry("starfall_stone", "obliterate"),
-            Map.entry("voidglass", "unraveling2"),
-            Map.entry("ironbrand", "smokehouse"),
-            Map.entry("quakestone", "stonewake"),
+            Map.entry("voidglass", "alien2"),
+            Map.entry("ironbrand", "gamedrop"),
+            Map.entry("quakestone", "quakecrumble"),
             Map.entry("shardline", "keenedge"),
             Map.entry("embercast", "ashenbond"),
-            Map.entry("riftalloy", "unraveling3"),
+            Map.entry("riftalloy", "riftstep"),
             Map.entry("tideiron", "tidebreaker"),
             Map.entry("cinderforge", "magmaforge"),
-            Map.entry("dreadalloy", "obsidian_heart"),
+            Map.entry("dreadalloy", "dreadgrip"),
             Map.entry("sunsteel", "avalanche"),
-            Map.entry("hollowsteel", "ruthless"),
+            Map.entry("hollowsteel", "bloodtally"),
             Map.entry("truesteel", "berserker_stance"),
             Map.entry("stormalloy", "unraveling"),
             Map.entry("glowveil", "fallout"),

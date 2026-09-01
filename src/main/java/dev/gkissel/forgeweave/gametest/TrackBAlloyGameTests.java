@@ -81,7 +81,8 @@ public class TrackBAlloyGameTests {
 
     private static final List<AlloyCase> ALLOY_CASES = List.of(
             new AlloyCase("ironbrand", "", List.of(in("redcinder", 32), in("pearlcinder", 32), in("ambercinder", 32)), 72),
-            new AlloyCase("quakestone", "", List.of(in("fulmenite", 144), in("cinderstone", 144)), 144),
+            // Issue #884 (1): quakestone's cinderstone input was replaced with basalt (same amount).
+            new AlloyCase("quakestone", "", List.of(in("fulmenite", 144), in("basalt", 144)), 144),
             new AlloyCase("quakestone", "_alt1", List.of(in("fulmenite", 144), in("twinalloy", 32)), 144),
             new AlloyCase("embercast", "", List.of(in("duskspar", 144), in("ardite", 144)), 144),
             new AlloyCase("riftalloy", "", List.of(in("murkiron", 144), in("nightshale", 144), in("voltcinder", 144)), 216),
@@ -140,6 +141,8 @@ public class TrackBAlloyGameTests {
             case "cobalt" -> ForgeweaveFluids.COBALT.still().get();
             case "ardite" -> ForgeweaveFluids.ARDITE.still().get();
             case "obsidian" -> ForgeweaveFluids.OBSIDIAN.still().get();
+            // Issue #884 (1): basalt replaces cinderstone as a standalone (non-TrackBOre) fluid.
+            case "basalt" -> ForgeweaveFluids.BASALT.still().get();
             case "flarealloy" -> ForgeweaveFluids.FLAREALLOY.still().get();
             case "deepalloy" -> ForgeweaveFluids.DEEPALLOY.still().get();
             case "sparkalloy" -> ForgeweaveFluids.SPARKALLOY.still().get();
@@ -209,26 +212,27 @@ public class TrackBAlloyGameTests {
         helper.succeed();
     }
 
-    /** Every generated {@code casting_recipe} row for one representative ore (cinderstone) and one
-     * alloy (hollowsteel) resolves against the registry with the right fluid -- proof the 73-row
-     * per-material template clone (scripts/generate_track_b_recipes.py) actually landed, without
-     * running all 2190 rows live. */
+    /** Every generated {@code casting_recipe} row for one representative ore (fulmenite -- issue
+     * #884 (1) retired the previous representative, cinderstone) and one alloy (hollowsteel)
+     * resolves against the registry with the right fluid -- proof the 73-row per-material template
+     * clone (scripts/generate_track_b_recipes.py) actually landed, without running all 2190 rows
+     * live. */
     @GameTest(template = "empty")
     public static void theFullPartRosterIsRegisteredForARepresentativeOreAndAlloy(GameTestHelper helper) {
-        assertFullCastingRoster(helper, "cinderstone", ForgeweaveFluids.trackBOreFluid("cinderstone").still().get());
+        assertFullCastingRoster(helper, "fulmenite", ForgeweaveFluids.trackBOreFluid("fulmenite").still().get());
         assertFullCastingRoster(helper, "hollowsteel", ForgeweaveFluids.trackBAlloyFluid("hollowsteel").still().get());
         helper.succeed();
     }
 
-    /** Cinderstone (ore metal) -&gt; its ingot casts from the molten fluid, live. */
+    /** Fulmenite (ore metal) -&gt; its ingot casts from the molten fluid, live. */
     @GameTest(template = "empty", timeoutTicks = 600)
-    public static void cinderstoneCastsIntoAnIngot(GameTestHelper helper) {
-        CastingBlockEntity table = rig(helper, ForgeweaveFluids.trackBOreFluid("cinderstone").still().get());
+    public static void fulmeniteCastsIntoAnIngot(GameTestHelper helper) {
+        CastingBlockEntity table = rig(helper, ForgeweaveFluids.trackBOreFluid("fulmenite").still().get());
         insert(helper, table, new ItemStack(ForgeweaveItems.CAST_INGOT.get()));
         faucet(helper).activate();
 
-        helper.succeedWhen(() -> helper.assertTrue(table.output().is(ForgeweaveItems.trackBIngot("cinderstone").get()),
-                "expected a cinderstone ingot in the output slot, found " + table.output()));
+        helper.succeedWhen(() -> helper.assertTrue(table.output().is(ForgeweaveItems.trackBIngot("fulmenite").get()),
+                "expected a fulmenite ingot in the output slot, found " + table.output()));
     }
 
     /** Hollowsteel (alloy) -&gt; a pickaxe head casts from the molten fluid, live. */
