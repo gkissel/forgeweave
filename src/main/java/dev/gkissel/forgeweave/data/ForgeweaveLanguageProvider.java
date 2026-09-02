@@ -1657,6 +1657,8 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         addFluid(ForgeweaveFluids.PEARLCINDER, "Molten Pearlcinder");
         addFluid(ForgeweaveFluids.AMBERCINDER, "Molten Ambercinder");
         addFluid(ForgeweaveFluids.TWINALLOY, "Molten Twinalloy");
+        // #897 -- the fuel ladder's top rung, alloyed from lava + flarealloy and burned, never cast.
+        addFluid(ForgeweaveFluids.PYREALLOY, "Molten Pyrealloy");
 
         // #232 -- the knightslime alloy chain's three fluids (docs/SCOPE.md M3.2). Upstream calls
         // its seared stone fluid plainly "Seared Stone"; the molten_ prefix names follow this

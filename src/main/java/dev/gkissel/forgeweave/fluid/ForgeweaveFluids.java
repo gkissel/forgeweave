@@ -399,6 +399,16 @@ public final class ForgeweaveFluids {
     public static final MoltenMetal AMBERCINDER = register("ambercinder", 0xC9862A, 870);
     public static final MoltenMetal TWINALLOY = register("twinalloy", 0x9B59D0, 910);
 
+    // #897 -- the smeltery fuel ladder's top rung. Fuel-only like the seven catalysts above (no tool
+    // stats, no ingot/nugget/block, no Material JSON), but unlike them it is never an alloy *input*:
+    // nothing consumes it except smeltery_fuel/pyrealloy.json. Its 2100 is the ladder's own design
+    // number (twinalloy 910 -> lava 1300 -> blazing blood 1500 -> pyrealloy 2100, confirmed by the
+    // maintainer on #897), sitting far enough above blazing blood to be worth the alloy chain and
+    // well short of the 3100 the TAIGA fluid that inspired the rung ran at (inspiration only, see
+    // CLAUDE.md -- no code, numbers or assets taken). Tint is a white-hot step past flarealloy's own
+    // ember orange, the catalyst it is alloyed from.
+    public static final MoltenMetal PYREALLOY = register("pyrealloy", 0xFFE066, 2100);
+
     private static MoltenMetal register(String metalId, int color, int temperature) {
         return register("molten_" + metalId, color, temperature, () -> moltenFluidType(temperature),
                 STILL_TEXTURE, FLOWING_TEXTURE);

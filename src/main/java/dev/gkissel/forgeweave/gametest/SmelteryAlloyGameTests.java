@@ -302,6 +302,23 @@ public class SmelteryAlloyGameTests {
                 .thenSucceed();
     }
 
+    /**
+     * #897: the smeltery fuel ladder's top rung is an alloy rather than a melt --
+     * {@code alloy_recipe/pyrealloy.json}, lava + flarealloy at 6:1 by volume, concentrating 224 mB
+     * of input into 144 mB of 2100-degree fuel. Pinned here because nothing else exercises the row:
+     * pyrealloy is not a Track B material, so {@code TrackBAlloyGameTests}' generated-alloy sweep
+     * never sees it.
+     */
+    @GameTest(template = "smeltery")
+    public static void lavaAndFlarealloyAlloyIntoPyrealloy(GameTestHelper helper) {
+        SmelteryControllerBlockEntity core = smeltery(helper);
+        pour(core, Fluids.LAVA, 192);
+        pour(core, ForgeweaveFluids.FLAREALLOY.still().get(), 32);
+
+        assertTankHoldsOnly(helper, core, ForgeweaveFluids.PYREALLOY.still().get(), MeltingRecipe.VALUE_INGOT);
+        helper.succeed();
+    }
+
     // ------------------------------------------------------------------ helpers
 
     /** The 1x1x2 minimum smeltery of {@link SmelteryGameTests} with a Standard Core, formed and empty. */
