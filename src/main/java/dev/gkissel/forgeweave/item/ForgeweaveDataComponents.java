@@ -331,5 +331,15 @@ public final class ForgeweaveDataComponents {
             DATA_COMPONENTS.registerComponentType("kill_tally",
                     builder -> builder.persistent(ExtraCodecs.NON_NEGATIVE_INT).networkSynchronized(ByteBufCodecs.VAR_INT));
 
+    /**
+     * The mob a {@code DuskCageItem} holds (issue #886, murkiron's {@code dusksnare}): the entity's
+     * registry id plus its full saved NBT -- see {@link CapturedMob} for the shape and
+     * {@code fixtures/save_compat/m886_dusk_cage.snbt} for the save-compat promise it carries.
+     * Absent on a cage with nothing in it, which is only reachable via {@code /give}.
+     */
+    public static final DeferredHolder<DataComponentType<?>, DataComponentType<CapturedMob>> CAPTURED_MOB =
+            DATA_COMPONENTS.registerComponentType("captured_mob",
+                    builder -> builder.persistent(CapturedMob.CODEC).networkSynchronized(CapturedMob.STREAM_CODEC));
+
     private ForgeweaveDataComponents() {}
 }

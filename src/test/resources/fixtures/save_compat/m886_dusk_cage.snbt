@@ -1,0 +1,86 @@
+{
+    decoder: "item_stack",
+    expect: {
+        components: {
+            "forgeweave:captured_mob": {
+                data: {
+                    Health: 2.5f,
+                    IsBaby: 0b,
+                    PersistenceRequired: 1b
+                },
+                entity_type: "minecraft:zombie"
+            }
+        },
+        id: "forgeweave:dusk_cage"
+    },
+    nbt: {
+        components: {
+            "forgeweave:captured_mob": {
+                data: {
+                    AbsorptionAmount: 0.0f,
+                    Air: 300s,
+                    ArmorDropChances: [
+                        0.085f,
+                        0.085f,
+                        0.085f,
+                        0.085f
+                    ],
+                    ArmorItems: [
+                        {},
+                        {},
+                        {},
+                        {}
+                    ],
+                    Brain: {
+                        memories: {}
+                    },
+                    CanBreakDoors: 0b,
+                    CanPickUpLoot: 0b,
+                    DeathTime: 0s,
+                    DrownedConversionTime: -1,
+                    FallDistance: 0.0f,
+                    FallFlying: 0b,
+                    Fire: -1s,
+                    HandDropChances: [
+                        0.085f,
+                        0.085f
+                    ],
+                    HandItems: [
+                        {},
+                        {}
+                    ],
+                    Health: 2.5f,
+                    HurtByTimestamp: 0,
+                    HurtTime: 0s,
+                    InWaterTime: -1,
+                    Invulnerable: 0b,
+                    IsBaby: 0b,
+                    LeftHanded: 0b,
+                    Motion: [
+                        0.0d,
+                        0.0d,
+                        0.0d
+                    ],
+                    OnGround: 0b,
+                    PersistenceRequired: 1b,
+                    PortalCooldown: 0,
+                    Pos: [
+                        8841717.5d,
+                        -58.0d,
+                        1.13990985E7d
+                    ],
+                    Rotation: [
+                        3.691537f,
+                        0.0f
+                    ],
+                    UUID: [I; -311373981, 336677523, -2021263557, 796440487],
+                    attributes: []
+                },
+                entity_type: "minecraft:zombie"
+            }
+        },
+        count: 1,
+        id: "forgeweave:dusk_cage"
+    },
+    what: "#886: a Dusk Cage holding the zombie murkiron's dusksnare snared at 2.5 health -- forgeweave:captured_mob is the entity's registry id plus its full Entity#saveWithoutId tag (maintainer decision, 2026-09-02), which is what makes the released mob come back at the health it was captured at. Printed off the real capture in Issue886GameTests, gametest world coordinates and all; the tag is vanilla's own entity format and is passed through unvalidated, so a field vanilla adds or drops later never breaks this decode."
+}
