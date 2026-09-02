@@ -2626,6 +2626,36 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("trait.forgeweave.bloodtally.description", "Permanently, slightly stronger with every kill.");
         add("trait.forgeweave.gamedrop.name", "Gamedrop");
         add("trait.forgeweave.gamedrop.description", "Kills grant no experience, but sometimes drop meat instead.");
+        // #831 M6-7: the armor trait behavior library on the M4 defense seam.
+        add("trait.forgeweave.bloodtoll.name", "Blood Toll");
+        add("trait.forgeweave.bloodtoll.description", "No blow can ever be reduced to nothing; something always gets through.");
+        add("trait.forgeweave.hexward.name", "Hexward");
+        add("trait.forgeweave.hexward.description", "Attackers who strike you directly are sometimes left weakened.");
+        add("trait.forgeweave.mendbond.name", "Mendbond");
+        add("trait.forgeweave.mendbond.description", "Every point of healing you receive goes further.");
+        add("trait.forgeweave.emberdrink.name", "Emberdrink");
+        add("trait.forgeweave.emberdrink.description", "Fire does not burn you; it feeds you.");
+        add("trait.forgeweave.bracingplate.name", "Bracing Plate");
+        add("trait.forgeweave.bracingplate.description", "Protection builds with every blow taken, and lapses once they stop.");
+        add("trait.forgeweave.sapmend.name", "Sapmend");
+        add("trait.forgeweave.sapmend.description", "Being wounded starts the wound closing.");
+        add("trait.forgeweave.lastbreath.name", "Last Breath");
+        add("trait.forgeweave.lastbreath.description",
+                "A killing blow is spent on the armor instead, at a heavy cost in durability, once in a long while.");
+        add("trait.forgeweave.aegispulse.name", "Aegis Pulse");
+        add("trait.forgeweave.aegispulse.description", "Struck at full health, you shrug off everything for a moment longer.");
+        add("trait.forgeweave.windstep.name", "Windstep");
+        add("trait.forgeweave.windstep.description", "Some blows simply miss you.");
+        add("trait.forgeweave.nightveil.name", "Nightveil");
+        add("trait.forgeweave.nightveil.description", "In the dark, creatures notice you far later.");
+        add("trait.forgeweave.swiftstride.name", "Swiftstride");
+        add("trait.forgeweave.swiftstride.description", "You move faster wearing it.");
+        add("trait.forgeweave.battleworn.name", "Battleworn");
+        add("trait.forgeweave.battleworn.description", "Protects better the more battered it gets.");
+        add("trait.forgeweave.stormrind.name", "Stormrind");
+        add("trait.forgeweave.stormrind.description", "Lightning passes through you harmlessly.");
+        add("trait.forgeweave.blastvent.name", "Blastvent");
+        add("trait.forgeweave.blastvent.description", "Explosions throw you clear instead of tearing into you.");
         add("trait.forgeweave.unstable_core.name", "Unstable Core");
         add("trait.forgeweave.unstable_core.description",
                 "Using the tool has a small chance of an unstable burst that hurts nearby entities, including the wielder.");

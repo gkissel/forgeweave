@@ -26,6 +26,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.tags.BlockTags;
+import net.minecraft.tags.DamageTypeTags;
 import net.minecraft.tags.EntityTypeTags;
 import net.minecraft.tags.FluidTags;
 import net.minecraft.util.Mth;
@@ -62,6 +63,7 @@ import net.neoforged.neoforge.common.Tags;
 import net.neoforged.neoforge.common.util.FakePlayer;
 import net.neoforged.neoforge.event.TagsUpdatedEvent;
 import net.neoforged.neoforge.event.entity.EntityTeleportEvent;
+import net.neoforged.neoforge.event.entity.living.LivingEvent;
 import net.neoforged.neoforge.event.entity.living.LivingExperienceDropEvent;
 import net.neoforged.neoforge.event.entity.living.LivingHealEvent;
 import net.neoforged.neoforge.event.entity.living.LivingKnockBackEvent;
@@ -435,16 +437,13 @@ public final class ForgeweaveTraits {
      * <p>"Effective" is approximated as "this tool type's {@code mineable/*} tag", the same rule
      * {@code ToolItem#toolComponent} already gates drops on; 1.21 has no direct equivalent of
      * upstream's {@code ToolHelper#isToolEffective2}. Recorded in the PR.
+     *
+     * <p>Issue #831 re-expressed this as the M6 armor library's {@link StatScalesWithWear} at
+     * {@code coefficient} 1: the class generalizes exactly this shape (the issue asked whether
+     * stonebound generalizes before adding a second wear-scaling trait), and the numbers are
+     * unchanged -- {@code speed + wearCurve * 1}, effective blocks only.
      */
-    public static final Trait STONEBOUND = new Trait() {
-        @Override
-        public float miningSpeed(ItemStack stack, boolean effective, float originalSpeed, float speed) {
-            if (!effective) {
-                return speed;
-            }
-            return speed + wearCurve(stack);
-        }
-    };
+    public static final Trait STONEBOUND = new StatScalesWithWear(StatScalesWithWear.Stat.MINING_SPEED, 1.0F);
 
     /**
      * The "old tcon" wear curve {@code TraitStonebound} and {@code TraitJagged} share verbatim:
@@ -2243,6 +2242,107 @@ public final class ForgeweaveTraits {
     private static final float SKYFALL_GRAVITY_PER_LEVEL = -0.1F;
     private static final float SKYFALL_SAFE_FALL_PER_LEVEL = 1.0F;
 
+    // ---------------------------------------------------------------- #831 (M6-7): the armor trait
+    // behavior library on the M4 defense seam. Fourteen parameterized behaviour classes, one
+    // registered instance each, all ARMOR scope -- a modifier needs a reagent, a slot cost and a
+    // station recipe (D16) and none of these has one yet, so they are material grants a preset batch
+    // assigns through `traits.armor` (this issue ships no material JSON). Magnitudes are Forgeweave's
+    // own, proposed and accepted on the issue thread; the reference pool (TAIGA, Tinkers' Evolution)
+    // is inspiration only under ADR-0003, so nothing here is derived and no NOTICE.md row applies.
+
+    /** Every blow lands for at least this much, in hearts -- see {@link DamageFloor}. */
+    private static final float BLOODTOLL_MINIMUM_HEARTS = 0.5F;
+
+    /**
+     * {@code damage_floor(0.5 hearts)}: the batch's counterweight -- a wearer stacking defensive
+     * behaviours still takes a half heart from anything that gets through. Never raises a blow above
+     * its own original damage.
+     */
+    public static final Trait BLOODTOLL = new DamageFloor(BLOODTOLL_MINIMUM_HEARTS);
+
+    private static final int HEXWARD_TICKS = 100;
+    private static final float HEXWARD_CHANCE = 0.25F;
+
+    /** {@code effect_on_attacker(weakness I, 100 ticks, 25%)}: a quarter of direct blows weaken whoever landed them. */
+    public static final Trait HEXWARD = new EffectOnAttacker(MobEffects.WEAKNESS, HEXWARD_TICKS, 0, HEXWARD_CHANCE);
+
+    private static final float MENDBOND_FACTOR = 1.25F;
+
+    /** {@code amplify_incoming_healing(1.25)}: every heal the wearer receives is a quarter larger. */
+    public static final Trait MENDBOND = new AmplifyIncomingHealing(MENDBOND_FACTOR);
+
+    private static final float EMBERDRINK_FRACTION = 0.5F;
+
+    /** {@code convert_damage_to_healing(#is_fire, 0.5)}: fire does not burn the wearer, it feeds them half of itself. */
+    public static final Trait EMBERDRINK = new ConvertDamageToHealing(DamageTypeTags.IS_FIRE, EMBERDRINK_FRACTION);
+
+    private static final float BRACINGPLATE_PER_HIT = 0.75F;
+    private static final int BRACINGPLATE_CAP = 6;
+    private static final int BRACINGPLATE_DECAY_TICKS = 100;
+
+    /**
+     * {@code stacking_resistance(0.75, cap 6, decay 100)}: a sustained fight builds up to +4.5
+     * protection (18% off the post-armor blow), and five seconds without a blow drops it all.
+     */
+    public static final Trait BRACINGPLATE =
+            new StackingResistance(BRACINGPLATE_PER_HIT, BRACINGPLATE_CAP, BRACINGPLATE_DECAY_TICKS);
+
+    private static final int SAPMEND_TICKS = 60;
+
+    /** {@code effect_on_hurt(regeneration I, 60 ticks)}: being hit starts the wearer healing. */
+    public static final Trait SAPMEND = new EffectOnHurt(MobEffects.REGENERATION, SAPMEND_TICKS, 0);
+
+    private static final int LASTBREATH_COOLDOWN_TICKS = 6000;
+    private static final int LASTBREATH_DURABILITY_COST = 100;
+
+    /**
+     * {@code death_save(6000 ticks, 100 durability)}: a killing blow is spent on the piece instead,
+     * once every five minutes, and only while the piece can pay without breaking.
+     */
+    public static final Trait LASTBREATH = new DeathSave(LASTBREATH_COOLDOWN_TICKS, LASTBREATH_DURABILITY_COST);
+
+    private static final int AEGISPULSE_TICKS = 40;
+
+    /**
+     * {@code invulnerability_window(40 ticks, full_health)}: a blow that catches the wearer at full
+     * health buys them double vanilla's recovery window. The blow itself still lands.
+     */
+    public static final Trait AEGISPULSE = new InvulnerabilityWindow(AEGISPULSE_TICKS, DefenseCondition.FULL_HEALTH);
+
+    private static final float WINDSTEP_CHANCE = 0.1F;
+
+    /** {@code evasion(10%)}: one blow in ten misses entirely. Stands alone (JC8, 2026-09-02). */
+    public static final Trait WINDSTEP = new Evasion(WINDSTEP_CHANCE);
+
+    private static final int NIGHTVEIL_LIGHT_THRESHOLD = 7;
+    private static final float NIGHTVEIL_VISIBILITY = 0.5F;
+
+    /** {@code conceal_in_darkness(light <= 7, x0.5)}: mobs notice the wearer at half the distance in the dark. */
+    public static final Trait NIGHTVEIL = new ConcealInDarkness(NIGHTVEIL_LIGHT_THRESHOLD, NIGHTVEIL_VISIBILITY);
+
+    private static final float SWIFTSTRIDE_SPEED = 0.05F;
+
+    /** {@code movement_bonus(movement_speed, +5%)} per worn piece -- an attribute grant, no seam. */
+    public static final Trait SWIFTSTRIDE = new MovementBonus(MovementBonus.Kind.MOVEMENT_SPEED, SWIFTSTRIDE_SPEED);
+
+    private static final float BATTLEWORN_COEFFICIENT = 0.5F;
+
+    /**
+     * {@code stat_scales_with_wear(protection, 0.5)}: the defensive mirror of {@link #STONEBOUND},
+     * which is the same class at coefficient 1 on mining speed. About +2 protection on a half-worn
+     * piece, rising as it nears breaking.
+     */
+    public static final Trait BATTLEWORN =
+            new StatScalesWithWear(StatScalesWithWear.Stat.PROTECTION, BATTLEWORN_COEFFICIENT);
+
+    /** {@code damage_type_immunity(#is_lightning)}: lightning does nothing to the wearer. */
+    public static final Trait STORMRIND = new DamageTypeImmunity(DamageTypeTags.IS_LIGHTNING);
+
+    private static final float BLASTVENT_KNOCKBACK_FACTOR = 0.05F;
+
+    /** {@code vent_explosions(0.05)}: a blast throws the wearer instead of hurting them. */
+    public static final Trait BLASTVENT = new VentExplosions(BLASTVENT_KNOCKBACK_FACTOR);
+
     /** A trait whose whole behavior is one worn-armor seam (the four protections). */
     private static Trait defendTrait(CombatSeam seam) {
         return new Trait() {
@@ -2258,7 +2358,7 @@ public final class ForgeweaveTraits {
      * that struck the blow itself (no arrow, no potion), and not the wearer.
      */
     @Nullable
-    private static LivingEntity directAttacker(CombatDefense defense) {
+    static LivingEntity directAttacker(CombatDefense defense) {
         LivingEntity attacker = defense.attacker();
         if (attacker == null || attacker == defense.defender() || !attacker.isAlive() || !defense.source().isDirect()) {
             return null;
@@ -2348,17 +2448,17 @@ public final class ForgeweaveTraits {
         return capacity;
     }
 
-    private static int stackLevel(ItemStack stack, DataComponentType<TraitStacks> component) {
+    static int stackLevel(ItemStack stack, DataComponentType<TraitStacks> component) {
         TraitStacks stacks = stack.get(component);
         return stacks == null ? 0 : stacks.level();
     }
 
-    private static int stackTicksRemaining(ItemStack stack, DataComponentType<TraitStacks> component) {
+    static int stackTicksRemaining(ItemStack stack, DataComponentType<TraitStacks> component) {
         TraitStacks stacks = stack.get(component);
         return stacks == null ? 0 : stacks.ticksRemaining();
     }
 
-    private static void decayStack(ItemStack stack, DataComponentType<TraitStacks> component) {
+    static void decayStack(ItemStack stack, DataComponentType<TraitStacks> component) {
         TraitStacks stacks = stack.get(component);
         if (stacks == null || stacks.level() == 0) {
             return;
@@ -3497,7 +3597,23 @@ public final class ForgeweaveTraits {
             Map.entry(id("riftstep"), RIFTSTEP),
             Map.entry(id("dreadgrip"), DREADGRIP),
             Map.entry(id("bloodtally"), BLOODTALLY),
-            Map.entry(id("gamedrop"), GAMEDROP));
+            Map.entry(id("gamedrop"), GAMEDROP),
+            // #831 M6-7 armor trait library: one instance per parameterized behaviour class, all
+            // ARMOR scope. No material names them yet -- the preset batches assign them.
+            Map.entry(id("bloodtoll"), BLOODTOLL),
+            Map.entry(id("hexward"), HEXWARD),
+            Map.entry(id("mendbond"), MENDBOND),
+            Map.entry(id("emberdrink"), EMBERDRINK),
+            Map.entry(id("bracingplate"), BRACINGPLATE),
+            Map.entry(id("sapmend"), SAPMEND),
+            Map.entry(id("lastbreath"), LASTBREATH),
+            Map.entry(id("aegispulse"), AEGISPULSE),
+            Map.entry(id("windstep"), WINDSTEP),
+            Map.entry(id("nightveil"), NIGHTVEIL),
+            Map.entry(id("swiftstride"), SWIFTSTRIDE),
+            Map.entry(id("battleworn"), BATTLEWORN),
+            Map.entry(id("stormrind"), STORMRIND),
+            Map.entry(id("blastvent"), BLASTVENT));
 
     // ---------------------------------------------------------------- additive trait sources
     // (issue #832, ADR-0004 item 3): datapack definitions and KubeJS script traits.
@@ -4055,14 +4171,51 @@ public final class ForgeweaveTraits {
      */
     public static void onLivingHeal(LivingHealEvent event) {
         MobEffectInstance mark = event.getEntity().getEffect(ForgeweaveMobEffects.REDUCED_HEALING);
-        if (mark == null) {
-            return;
+        float amount = event.getAmount();
+        if (mark != null) {
+            amount = Math.max(0.0F, amount * (1.0F - mark.getAmplifier() / 100.0F));
         }
-        float reduced = event.getAmount() * (1.0F - mark.getAmplifier() / 100.0F);
-        if (reduced != event.getAmount()) {
-            event.setAmount(Math.max(0.0F, reduced));
+        // #831 amplify_incoming_healing: every worn piece's traits scale what is left, multiplied
+        // together the way vanilla's own multiplicative modifiers compose.
+        for (EquipmentSlot slot : ARMOR_SLOTS) {
+            ItemStack piece = event.getEntity().getItemBySlot(slot);
+            if (piece.isEmpty() || ToolItem.isBroken(piece)) {
+                continue;
+            }
+            for (Trait trait : of(piece)) {
+                amount *= trait.healingMultiplier(piece, event.getEntity(), amount);
+            }
+        }
+        if (amount != event.getAmount()) {
+            event.setAmount(Math.max(0.0F, amount));
         }
     }
+
+    /**
+     * Registered on the game event bus in {@code Forgeweave}: {@code conceal_in_darkness} (issue
+     * #831) -- every worn, non-Broken piece's traits multiply how visible the wearer is to whatever
+     * is looking, on the same {@code LivingVisibilityEvent} vanilla's sneaking and mob-head
+     * reductions ride. Fires for every entity in the game, so it exits on the first empty slot walk
+     * for anyone wearing no Forgeweave armor.
+     */
+    public static void onLivingVisibility(LivingEvent.LivingVisibilityEvent event) {
+        for (EquipmentSlot slot : ARMOR_SLOTS) {
+            ItemStack piece = event.getEntity().getItemBySlot(slot);
+            if (piece.isEmpty() || ToolItem.isBroken(piece)) {
+                continue;
+            }
+            for (Trait trait : of(piece)) {
+                float multiplier = trait.visibilityMultiplier(piece, event.getEntity());
+                if (multiplier != 1.0F) {
+                    event.modifyVisibility(multiplier);
+                }
+            }
+        }
+    }
+
+    /** Head to feet, the order {@code CombatSeams#armorPass} walks a wearer's pieces in. */
+    private static final EquipmentSlot[] ARMOR_SLOTS =
+            {EquipmentSlot.HEAD, EquipmentSlot.CHEST, EquipmentSlot.LEGS, EquipmentSlot.FEET};
 
     private static ResourceLocation id(String path) {
         return ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, path);

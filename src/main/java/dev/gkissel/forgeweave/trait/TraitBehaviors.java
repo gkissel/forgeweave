@@ -20,6 +20,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.tags.TagKey;
 import net.minecraft.util.ExtraCodecs;
+import net.minecraft.world.damagesource.DamageType;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
@@ -70,6 +71,8 @@ public final class TraitBehaviors {
 
     /** {@code ExtraCodecs} has the int one but not the float one. */
     private static final Codec<Float> NON_NEGATIVE_FLOAT = Codec.floatRange(0.0F, Float.MAX_VALUE);
+    /** {@code "#minecraft:is_fire"}, the way every other tag field in this file reads. */
+    private static final Codec<TagKey<DamageType>> DAMAGE_TYPE_TAG = TagKey.codec(Registries.DAMAGE_TYPE);
 
     /**
      * The optional {@link ConditionalSeam} gate every combat-seam behaviour accepts.
@@ -210,7 +213,65 @@ public final class TraitBehaviors {
                 ExtraCodecs.POSITIVE_INT.fieldOf("rate_per_tick").xmap(SolarRecharge::new, SolarRecharge::ratePerTick));
         seam("kinetic_charge",
                 NON_NEGATIVE_FLOAT.fieldOf("fraction").xmap(KineticCharge::new, KineticCharge::fractionOfDamage));
+
+        // #831 M6-7 armor library. Registered with register(), not seam(): these are Trait#onDefend
+        // behaviours, and Gate's ConditionalSeam implements neither onDefend nor incomingHit -- a
+        // gated defensive seam would silently never run. The two that carry a roll
+        // (effect_on_attacker, evasion) take their own `chance` field instead.
+        register("damage_floor", NON_NEGATIVE_FLOAT.fieldOf("minimum_hearts")
+                .xmap(DamageFloor::new, DamageFloor::minimumHearts));
+        register("effect_on_attacker", RecordCodecBuilder.<EffectOnAttacker>mapCodec(instance -> instance.group(
+                MobEffect.CODEC.fieldOf("effect").forGetter(EffectOnAttacker::effect),
+                ExtraCodecs.POSITIVE_INT.fieldOf("duration").forGetter(EffectOnAttacker::durationTicks),
+                ExtraCodecs.NON_NEGATIVE_INT.optionalFieldOf("amplifier", 0).forGetter(EffectOnAttacker::amplifier),
+                Codec.floatRange(0.0F, 1.0F).optionalFieldOf("chance", 1.0F).forGetter(EffectOnAttacker::chance))
+                .apply(instance, EffectOnAttacker::new)));
+        register("effect_on_hurt", RecordCodecBuilder.<EffectOnHurt>mapCodec(instance -> instance.group(
+                MobEffect.CODEC.fieldOf("effect").forGetter(EffectOnHurt::effect),
+                ExtraCodecs.POSITIVE_INT.fieldOf("duration").forGetter(EffectOnHurt::durationTicks),
+                ExtraCodecs.NON_NEGATIVE_INT.optionalFieldOf("amplifier", 0).forGetter(EffectOnHurt::amplifier))
+                .apply(instance, EffectOnHurt::new)));
+        register("amplify_incoming_healing", NON_NEGATIVE_FLOAT.fieldOf("factor")
+                .xmap(AmplifyIncomingHealing::new, AmplifyIncomingHealing::factor));
+        register("convert_damage_to_healing",
+                RecordCodecBuilder.<ConvertDamageToHealing>mapCodec(instance -> instance.group(
+                        DAMAGE_TYPE_TAG.fieldOf("damage_type").forGetter(ConvertDamageToHealing::damageType),
+                        Codec.floatRange(0.0F, 1.0F).fieldOf("fraction").forGetter(ConvertDamageToHealing::fraction))
+                        .apply(instance, ConvertDamageToHealing::new)));
+        register("stacking_resistance", RecordCodecBuilder.<StackingResistance>mapCodec(instance -> instance.group(
+                NON_NEGATIVE_FLOAT.fieldOf("per_hit").forGetter(StackingResistance::perHit),
+                ExtraCodecs.POSITIVE_INT.fieldOf("cap").forGetter(StackingResistance::cap),
+                ExtraCodecs.POSITIVE_INT.fieldOf("decay").forGetter(StackingResistance::decayTicks))
+                .apply(instance, StackingResistance::new)));
+        register("death_save", RecordCodecBuilder.<DeathSave>mapCodec(instance -> instance.group(
+                ExtraCodecs.POSITIVE_INT.fieldOf("cooldown").forGetter(DeathSave::cooldownTicks),
+                ExtraCodecs.POSITIVE_INT.fieldOf("cost").forGetter(DeathSave::durabilityCost))
+                .apply(instance, DeathSave::new)));
+        register("invulnerability_window",
+                RecordCodecBuilder.<InvulnerabilityWindow>mapCodec(instance -> instance.group(
+                        ExtraCodecs.POSITIVE_INT.fieldOf("ticks").forGetter(InvulnerabilityWindow::ticks),
+                        enumCodec(DefenseCondition.class).optionalFieldOf("condition", DefenseCondition.ANY)
+                                .forGetter(InvulnerabilityWindow::condition))
+                        .apply(instance, InvulnerabilityWindow::new)));
+        register("evasion", Codec.floatRange(0.0F, 1.0F).fieldOf("chance").xmap(Evasion::new, Evasion::chance));
+        register("conceal_in_darkness", RecordCodecBuilder.<ConcealInDarkness>mapCodec(instance -> instance.group(
+                Codec.intRange(0, 15).fieldOf("light_threshold").forGetter(ConcealInDarkness::lightThreshold),
+                Codec.floatRange(0.0F, 1.0F).fieldOf("visibility").forGetter(ConcealInDarkness::visibility))
+                .apply(instance, ConcealInDarkness::new)));
+        register("movement_bonus", RecordCodecBuilder.<MovementBonus>mapCodec(instance -> instance.group(
+                enumCodec(MovementBonus.Kind.class).fieldOf("kind").forGetter(MovementBonus::kind),
+                Codec.FLOAT.fieldOf("magnitude").forGetter(MovementBonus::magnitude))
+                .apply(instance, MovementBonus::new)));
+        register("stat_scales_with_wear", RecordCodecBuilder.<StatScalesWithWear>mapCodec(instance -> instance.group(
+                enumCodec(StatScalesWithWear.Stat.class).fieldOf("stat").forGetter(StatScalesWithWear::stat),
+                Codec.FLOAT.fieldOf("coefficient").forGetter(StatScalesWithWear::coefficient))
+                .apply(instance, StatScalesWithWear::new)));
+        register("damage_type_immunity", DAMAGE_TYPE_TAG.fieldOf("damage_type")
+                .xmap(DamageTypeImmunity::new, DamageTypeImmunity::damageType));
+        register("vent_explosions", NON_NEGATIVE_FLOAT.fieldOf("knockback_factor")
+                .xmap(VentExplosions::new, VentExplosions::knockbackFactor));
     }
+
 
     /** The {@code behavior} field: a known id or a loud error naming every id that would have worked. */
     private static final Codec<ResourceLocation> TYPE_CODEC = ResourceLocation.CODEC.validate(id -> TYPES.containsKey(id)

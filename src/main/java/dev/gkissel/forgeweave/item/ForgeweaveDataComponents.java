@@ -332,6 +332,27 @@ public final class ForgeweaveDataComponents {
                     builder -> builder.persistent(ExtraCodecs.NON_NEGATIVE_INT).networkSynchronized(ByteBufCodecs.VAR_INT));
 
     /**
+     * {@code trait.StackingResistance}'s build-up (issue #831, M6 armor library): the same
+     * {@link TraitStacks} shape {@link #MOMENTUM_STACKS} and {@link #INSATIABLE_STACKS} use, on a
+     * worn piece instead of a held tool. Absent means no stacks standing. Save-compat fixture:
+     * {@code fixtures/save_compat/m831_armor_stacking_state.snbt}.
+     */
+    public static final DeferredHolder<DataComponentType<?>, DataComponentType<TraitStacks>> RESISTANCE_STACKS =
+            DATA_COMPONENTS.registerComponentType("resistance_stacks",
+                    builder -> builder.persistent(TraitStacks.CODEC).networkSynchronized(TraitStacks.STREAM_CODEC));
+
+    /**
+     * {@code trait.DeathSave}'s per-piece cooldown (issue #831): {@link TraitStacks} again, with
+     * {@code level} always 1 and {@code ticksRemaining} counting the cooldown down through
+     * {@code ForgeweaveTraits#decayStack} -- reusing the existing decaying-counter shape rather than
+     * inventing a second one for a single number. Absent means the save is ready. Same fixture as
+     * {@link #RESISTANCE_STACKS}.
+     */
+    public static final DeferredHolder<DataComponentType<?>, DataComponentType<TraitStacks>> DEATH_SAVE_COOLDOWN =
+            DATA_COMPONENTS.registerComponentType("death_save_cooldown",
+                    builder -> builder.persistent(TraitStacks.CODEC).networkSynchronized(TraitStacks.STREAM_CODEC));
+
+    /**
      * The mob a {@code DuskCageItem} holds (issue #886, murkiron's {@code dusksnare}): the entity's
      * registry id plus its full saved NBT -- see {@link CapturedMob} for the shape and
      * {@code fixtures/save_compat/m886_dusk_cage.snbt} for the save-compat promise it carries.
