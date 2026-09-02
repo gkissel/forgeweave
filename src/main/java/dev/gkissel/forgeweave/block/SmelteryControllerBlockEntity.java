@@ -507,7 +507,10 @@ public class SmelteryControllerBlockEntity extends BlockEntity implements Statio
             return false;
         }
         // Upstream heatSlot: "if your smeltery has <100 heat then it deserves to not create any heat".
-        int step = heat / 100;
+        // #847: ForgeweaveConfig.MELT_SPEED_MULTIPLIER scales this whole-number step (not the raw
+        // heat/100.0 division) so the default 1.0 reproduces upstream's step exactly; a step of 0
+        // (heat under 100) stays 0 at every multiplier.
+        int step = Math.round((heat / 100) * ForgeweaveConfig.MELT_SPEED_MULTIPLIER.get().floatValue());
         boolean working = false;
         for (int slot = 0; slot < meltingItems.size(); slot++) {
             MeltingRecipe recipe = recipeFor(slot);

@@ -179,6 +179,21 @@ public final class ForgeweaveConfig {
     public static final ModConfigSpec.BooleanValue SMELTERY;
 
     /**
+     * Issue #847 (M6 epic #824, JC7 scope call): a global multiplier on the smeltery's per-tick melt
+     * progress. Not a content-family toggle -- melting still resolves the same recipes, just faster or
+     * slower -- but a pack operator reaches for it alongside {@link #SMELTERY}, so it is registered
+     * here rather than opening a new section for one value.
+     *
+     * <p>Applied in {@link dev.gkissel.forgeweave.block.SmelteryControllerBlockEntity#meltTick()} to
+     * the whole-number heat step upstream's {@code TileHeatingStructure#heatItems} derives ({@code
+     * heat / 100}), after that floor division so the default {@code 1.0} reproduces upstream's step
+     * exactly rather than introducing rounding noise no pack asked for. The scaled result is rounded
+     * to the nearest {@code int} ({@link Math#round(double)}); a step of {@code 0} (smeltery heat
+     * under 100) stays {@code 0} at every multiplier, same as upstream's own heat floor.
+     */
+    public static final ModConfigSpec.DoubleValue MELT_SPEED_MULTIPLIER;
+
+    /**
      * Everything that alters a tool at the Tool Station beyond repair and part exchange (maintainer
      * decision): generic modifier application (issue #105), embossing (#154) and fortification
      * (#271). Each is refused where it resolves, with a translatable reason the info panel takes
@@ -335,6 +350,11 @@ public final class ForgeweaveConfig {
                 .comment("If true, the smeltery melts, alloys and casts. With this off its blocks stay placeable",
                         "but no melting, alloying or casting recipe resolves, and the smeltery GUI says so.")
                 .define("smeltery", true);
+        MELT_SPEED_MULTIPLIER = builder
+                .comment("Multiplies the smeltery's per-tick melt progress. 1.0 matches unmodified melt speed;",
+                        "2.0 halves the number of ticks a melt takes, 0.5 doubles it. Does not change what",
+                        "temperature a recipe requires, only how fast progress accumulates once melting.")
+                .defineInRange("meltSpeedMultiplier", 1.0D, 0.01D, 100.0D);
         MODIFIERS = builder
                 .comment("If true, modifiers, embossments and fortifications can be applied to tools at the Tool",
                         "Station. Repair and part exchange are unaffected, and anything already on a tool keeps",
