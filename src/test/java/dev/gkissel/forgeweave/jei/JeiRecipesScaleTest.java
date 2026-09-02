@@ -121,19 +121,24 @@ class JeiRecipesScaleTest {
 
     /**
      * Issue #890: pins the real shipped counts for the two new categories the same way the test above
-     * pins the original three -- lava, blazing blood and twinalloy ({@code smeltery_fuel}), end_core
-     * and deep_core ({@code core_transform_recipe}, #845). Both registries are small and fixed by
+     * pins the original three -- lava and blazing blood ({@code smeltery_fuel}), end_core and
+     * deep_core ({@code core_transform_recipe}, #845). Both registries are small and fixed by
      * design (docs/SCOPE.md M2/#845 never project either one growing the way the material roster did),
      * so this is a non-vacuity/regression pin rather than a scale budget -- if a pack or a future
      * milestone adds another fuel or transform, updating the expected count here is the intended
      * maintenance, not a failure of the test.
      *
-     * <p>#894 added twinalloy (Track B's mapped equivalent of TAIGA's Dilithium, the one TAIGA
-     * material that both has a Forgeweave-minted material id and was itself registered as a smeltery
-     * fuel upstream), bringing the fuel count from 2 to 3. #897 added pyrealloy -- the fuel ladder's
-     * 2100-degree top rung, alloyed from molten magma + flarealloy (#903 re-based it off lava) --
-     * bringing it to 4. #903 added the ladder's two mined rungs, molten magma (melted vanilla magma
-     * blocks, 1700) and molten brimspar (melted Nether crystals, 1900), bringing it to 6.
+     * <p>#894 added twinalloy, bringing the fuel count from 2 to 3; #897 added pyrealloy -- the fuel
+     * ladder's 2100-degree top rung -- bringing it to 4; #903 added the ladder's two mined rungs,
+     * molten magma (melted vanilla magma blocks, 1700) and molten brimspar (melted Nether crystals,
+     * 1900), bringing it to 6. #910 merged twinalloy into brimspar and deleted its row, leaving 5.
+     *
+     * <p>The burn-rate assertions are #910's other half: every fuel drains 50 mB per 100-melt-tick
+     * cycle (the clone's own lava numbers, {@code SmelteryFuelTest}) except pyrealloy, which drains
+     * 100 mB and burns 500 ticks on it -- 2.5x the work per mB, the ladder's only long burn and the
+     * reward for finishing the alloy chain. Pinned here, off the shipped JSON, because the shape of
+     * the claim is "exactly one fuel is special"; {@code SmelteryFuelGameTests} proves the smeltery
+     * actually honours those two numbers.
      */
     @Test
     void theTwoNewCategoriesEnumerateTheRealShippedRegistryContents() throws Exception {
@@ -141,14 +146,20 @@ class JeiRecipesScaleTest {
         Map<ResourceLocation, CoreTransformRecipe> transforms =
                 shippedRegistryEntries("core_transform_recipe", CoreTransformRecipe.CODEC);
 
-        assertEquals(6, fuels.size(),
-                "lava + blazing_blood + twinalloy + magma + brimspar + pyrealloy -- gametest_super_fuel ships outside src/main/resources");
+        assertEquals(5, fuels.size(),
+                "lava + blazing_blood + magma + brimspar + pyrealloy -- gametest_super_fuel ships outside src/main/resources");
         assertEquals(2, transforms.size(), "#845's end_core + deep_core rows");
+
+        fuels.forEach((id, fuel) -> {
+            boolean longBurn = id.getPath().equals("pyrealloy");
+            assertEquals(longBurn ? 100 : 50, fuel.amount(), id + "'s mB drained per burn cycle");
+            assertEquals(longBurn ? 500 : 100, fuel.duration(), id + "'s melt ticks per burn cycle");
+        });
 
         List<SmelteryFuelDisplay> fuelDisplays = SmelteryFuelRecipes.build(fuels);
         List<CoreTransformRecipe> transformDisplays = CoreTransformRecipes.build(transforms);
 
-        assertEquals(6, fuelDisplays.size());
+        assertEquals(5, fuelDisplays.size());
         assertEquals(2, transformDisplays.size());
     }
 }

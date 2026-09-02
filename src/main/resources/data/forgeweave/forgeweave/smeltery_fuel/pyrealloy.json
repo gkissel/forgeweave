@@ -1,5 +1,5 @@
 {
   "fluid": "forgeweave:molten_pyrealloy",
-  "amount": 50,
-  "duration": 100
+  "amount": 100,
+  "duration": 500
 }

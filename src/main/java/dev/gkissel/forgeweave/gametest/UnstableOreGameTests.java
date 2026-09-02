@@ -1,5 +1,6 @@
 package dev.gkissel.forgeweave.gametest;
 
+import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 
@@ -9,6 +10,7 @@ import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.Level;
@@ -23,24 +25,27 @@ import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 
 import dev.gkissel.forgeweave.Forgeweave;
-import dev.gkissel.forgeweave.block.BrimsparOreBlock;
 import dev.gkissel.forgeweave.block.ForgeweaveBlocks;
+import dev.gkissel.forgeweave.block.UnstableOreBlock;
 import dev.gkissel.forgeweave.item.ForgeweaveItems;
 
 /**
- * Issue #903: brimspar ore's instability, both rolls, forced in both directions.
+ * Both unstable ores' instability, both rolls, forced in both directions. Issue #903 shipped this for
+ * brimspar; issue #910 gave fulmenite the same behaviour at its own odds
+ * ({@code ForgeweaveBlocks#FULMENITE_HARVEST_BLAST_CHANCE} and friends), so every test here runs the
+ * whole {@link #unstableOres()} roster rather than naming one block -- a third unstable ore inherits
+ * the coverage by being added to that list.
  *
- * <p>Every test here installs a fixed {@link RandomSource} through
- * {@link BrimsparOreBlock#forceRolls} and clears it in a {@code finally} -- that is the block's own
- * documented test seam, and the reason these assertions are exact instead of statistical. GameTests
- * in one batch tick concurrently and that seam is static, so set/assert/restore has to complete
- * inside a single synchronous test method, the same discipline {@code SmelteryAlloyGameTests} follows
- * for its config flips.
+ * <p>Every test installs a fixed {@link RandomSource} through {@link UnstableOreBlock#forceRolls} and
+ * clears it in a {@code finally} -- that is the block's own documented test seam, and the reason these
+ * assertions are exact instead of statistical. GameTests in one batch tick concurrently and that seam
+ * is static, so set/assert/restore has to complete inside a single synchronous test method, the same
+ * discipline {@code SmelteryAlloyGameTests} follows for its config flips.
  *
  * <p>The harvest tests reproduce {@code ServerPlayerGameMode#destroyBlock}'s tail by hand
  * ({@link #harvest}) rather than driving a real break: {@code GameTestHelper#makeMockServerPlayerInLevel}
  * hardcodes {@code isCreative() == true}, and creative is exactly the case
- * {@link BrimsparOreBlock#playerWillDestroy} skips. The three lines it stands in for are vanilla's own
+ * {@link UnstableOreBlock#playerWillDestroy} skips. The three lines it stands in for are vanilla's own
  * -- {@code playerWillDestroy}, then {@code onDestroyedByPlayer}, then {@code playerDestroy}'s
  * {@code dropResources} against the state {@code playerWillDestroy} returned -- so the "no drop" claim
  * is measured on the same state the real path would drop from, not asserted about the block in
@@ -48,47 +53,61 @@ import dev.gkissel.forgeweave.item.ForgeweaveItems;
  */
 @GameTestHolder(Forgeweave.MODID)
 @PrefixGameTestTemplate(false)
-public class BrimsparOreGameTests {
+public class UnstableOreGameTests {
 
     /** Somewhere well inside the 15x6x9 {@code empty} template, with room for a 2.5-power blast. */
     private static final BlockPos VEIN = new BlockPos(7, 1, 4);
-    /** A second vein one block over, for the chain test: brimspar's blast resistance is 1.5, so a blast at {@link #VEIN} destroys it. */
+    /** A second vein one block over, for the chain test: both ores' blast resistance is 1.5, so a blast at {@link #VEIN} destroys it. */
     private static final BlockPos NEIGHBOUR = new BlockPos(8, 1, 4);
 
-    /** A roll of 0 is below every chance in {@link BrimsparOreBlock}, so the vein always goes off. */
+    /** A roll of 0 is below every chance either ore rolls against, so the vein always goes off. */
     private static final float ALWAYS = 0.0F;
     /** A roll of 0.999 is above every chance there, so it never does. */
     private static final float NEVER = 0.999F;
 
+    /** One unstable ore and the drop a quiet harvest owes the player. */
+    private record UnstableOre(String label, Block block, Item drop) {}
+
+    private static List<UnstableOre> unstableOres() {
+        return List.of(
+                new UnstableOre("brimspar", ForgeweaveBlocks.BRIMSPAR_ORE.get(), ForgeweaveItems.BRIMSPAR_CRYSTAL.get()),
+                new UnstableOre("fulmenite", ForgeweaveBlocks.trackBOre("fulmenite").get(),
+                        ForgeweaveItems.trackBRawItem("fulmenite").get()));
+    }
+
     /**
      * The harvest roll's "boom" branch: the vein is gone, the break path is handed an air state, and
-     * not one crystal reaches the ground. Losing the drop is the entire cost of the gamble, so this is
+     * not one drop reaches the ground. Losing the drop is the entire cost of the gamble, so this is
      * the assertion that matters most.
      */
     @GameTest(template = "empty")
     public static void anExplodingHarvestDropsNothing(GameTestHelper helper) {
-        withRoll(ALWAYS, () -> {
-            helper.setBlock(VEIN, ForgeweaveBlocks.BRIMSPAR_ORE.get());
-            BlockState after = harvest(helper, VEIN);
+        for (UnstableOre ore : unstableOres()) {
+            withRoll(ALWAYS, () -> {
+                helper.setBlock(VEIN, ore.block());
+                BlockState after = harvest(helper, VEIN);
 
-            helper.assertTrue(after.isAir(),
-                    "an exploding harvest must hand the break path an air state so playerDestroy drops nothing, got " + after);
-            helper.assertBlockNotPresent(ForgeweaveBlocks.BRIMSPAR_ORE.get(), VEIN);
-            helper.assertItemEntityNotPresent(ForgeweaveItems.BRIMSPAR_CRYSTAL.get(), VEIN, 6.0);
-        });
+                helper.assertTrue(after.isAir(), ore.label()
+                        + ": an exploding harvest must hand the break path an air state so playerDestroy drops nothing, got " + after);
+                helper.assertBlockNotPresent(ore.block(), VEIN);
+                helper.assertItemEntityNotPresent(ore.drop(), VEIN, 6.0);
+            });
+        }
         helper.succeed();
     }
 
     /** And the other branch: a vein that does not go off pays out exactly like any other ore. */
     @GameTest(template = "empty")
-    public static void aQuietHarvestDropsItsCrystals(GameTestHelper helper) {
-        withRoll(NEVER, () -> {
-            helper.setBlock(VEIN, ForgeweaveBlocks.BRIMSPAR_ORE.get());
-            harvest(helper, VEIN);
+    public static void aQuietHarvestDropsItsOre(GameTestHelper helper) {
+        for (UnstableOre ore : unstableOres()) {
+            withRoll(NEVER, () -> {
+                helper.setBlock(VEIN, ore.block());
+                harvest(helper, VEIN);
 
-            helper.assertBlockNotPresent(ForgeweaveBlocks.BRIMSPAR_ORE.get(), VEIN);
-            helper.assertItemEntityPresent(ForgeweaveItems.BRIMSPAR_CRYSTAL.get(), VEIN, 2.0);
-        });
+                helper.assertBlockNotPresent(ore.block(), VEIN);
+                helper.assertItemEntityPresent(ore.drop(), VEIN, 2.0);
+            });
+        }
         helper.succeed();
     }
 
@@ -100,57 +119,63 @@ public class BrimsparOreGameTests {
      */
     @GameTest(template = "empty")
     public static void aVeinCaughtInABlastChains(GameTestHelper helper) {
-        withRoll(ALWAYS, () -> {
-            helper.setBlock(VEIN, ForgeweaveBlocks.BRIMSPAR_ORE.get());
-            int explosions = countExplosions(helper, () -> detonateAt(helper, VEIN));
+        for (UnstableOre ore : unstableOres()) {
+            withRoll(ALWAYS, () -> {
+                helper.setBlock(VEIN, ore.block());
+                int explosions = countExplosions(helper, () -> detonateAt(helper, VEIN));
 
-            helper.assertValueEqual(explosions, 2, "explosions after a blast catches one brimspar vein");
-            helper.assertBlockNotPresent(ForgeweaveBlocks.BRIMSPAR_ORE.get(), VEIN);
-        });
+                helper.assertValueEqual(explosions, 2, ore.label() + ": explosions after a blast catches one vein");
+                helper.assertBlockNotPresent(ore.block(), VEIN);
+            });
+        }
         helper.succeed();
     }
 
     /** The same blast against a vein whose chain roll misses: one explosion, not two. */
     @GameTest(template = "empty")
     public static void aVeinThatDoesNotChainLeavesOneExplosion(GameTestHelper helper) {
-        withRoll(NEVER, () -> {
-            helper.setBlock(VEIN, ForgeweaveBlocks.BRIMSPAR_ORE.get());
-            int explosions = countExplosions(helper, () -> detonateAt(helper, VEIN));
+        for (UnstableOre ore : unstableOres()) {
+            withRoll(NEVER, () -> {
+                helper.setBlock(VEIN, ore.block());
+                int explosions = countExplosions(helper, () -> detonateAt(helper, VEIN));
 
-            helper.assertValueEqual(explosions, 1, "explosions after a blast catches a vein that does not chain");
-        });
+                helper.assertValueEqual(explosions, 1,
+                        ore.label() + ": explosions after a blast catches a vein that does not chain");
+            });
+        }
         helper.succeed();
     }
 
     /**
      * The cascade the chain rule exists for, end to end from a pickaxe: a player breaks one vein of a
-     * two-block cluster, its harvest blast destroys the neighbour, and the neighbour chains -- three
-     * explosions from one swing, and both veins gone.
+     * two-block cluster, its harvest blast destroys the neighbour, and the neighbour chains -- two
+     * explosions from one swing, and both veins gone. Fulmenite's smaller 2.0 blast (#910) still has
+     * to reach its neighbour for this to hold, which is the real reason both ores run it.
      */
     @GameTest(template = "empty")
     public static void anExplodingHarvestCascadesThroughTheVein(GameTestHelper helper) {
-        withRoll(ALWAYS, () -> {
-            helper.setBlock(VEIN, ForgeweaveBlocks.BRIMSPAR_ORE.get());
-            helper.setBlock(NEIGHBOUR, ForgeweaveBlocks.BRIMSPAR_ORE.get());
+        for (UnstableOre ore : unstableOres()) {
+            withRoll(ALWAYS, () -> {
+                helper.setBlock(VEIN, ore.block());
+                helper.setBlock(NEIGHBOUR, ore.block());
 
-            int explosions = countExplosions(helper, () -> harvest(helper, VEIN));
+                int explosions = countExplosions(helper, () -> harvest(helper, VEIN));
 
-            helper.assertValueEqual(explosions, 2, "the harvest blast plus the neighbour's chain");
-            helper.assertBlockNotPresent(ForgeweaveBlocks.BRIMSPAR_ORE.get(), VEIN);
-            helper.assertBlockNotPresent(ForgeweaveBlocks.BRIMSPAR_ORE.get(), NEIGHBOUR);
-        });
+                helper.assertValueEqual(explosions, 2, ore.label() + ": the harvest blast plus the neighbour's chain");
+                helper.assertBlockNotPresent(ore.block(), VEIN);
+                helper.assertBlockNotPresent(ore.block(), NEIGHBOUR);
+            });
+        }
         helper.succeed();
     }
 
-    // ------------------------------------------------------------------ helpers
-
     /** Installs a {@link RandomSource} whose {@code nextFloat} always answers {@code roll}, runs {@code body}, and clears it. */
     private static void withRoll(float roll, Runnable body) {
-        BrimsparOreBlock.forceRolls(new FixedRoll(roll));
+        UnstableOreBlock.forceRolls(new FixedRoll(roll));
         try {
             body.run();
         } finally {
-            BrimsparOreBlock.forceRolls(null);
+            UnstableOreBlock.forceRolls(null);
         }
     }
 
@@ -171,7 +196,7 @@ public class BrimsparOreGameTests {
         return after;
     }
 
-    /** A vanilla-scale blast centred on {@code relative}; brimspar's 1.5 resistance is well inside its reach. */
+    /** A vanilla-scale blast centred on {@code relative}; both ores' 1.5 resistance is well inside its reach. */
     private static void detonateAt(GameTestHelper helper, BlockPos relative) {
         BlockPos pos = helper.absolutePos(relative);
         helper.getLevel().explode(null, pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5, 3.0F,
@@ -215,5 +240,5 @@ public class BrimsparOreGameTests {
         }
     }
 
-    private BrimsparOreGameTests() {}
+    private UnstableOreGameTests() {}
 }

@@ -41,7 +41,7 @@ import dev.gkissel.forgeweave.trackb.TrackBOre;
 /**
  * Issue #840 (epic #824's Track B): the molten fluids, melting/casting rows and alloy table for the
  * 12 ore-sourced metals ({@link TrackBOre}), the 18 alloy tool materials ({@link TrackBAlloy}) and the
- * 7 smeltery-only catalysts this class's {@link #CATALYST_SOURCE_ITEMS} mirrors from {@code
+ * 6 smeltery-only catalysts this class's {@link #CATALYST_SOURCE_ITEMS} mirrors from {@code
  * scripts/generate_track_b_recipes.py}. Follows two shapes already established in this package:
  * {@code SmelteryAlloyGameTests}' direct tank-fill for exercising the alloy table live, and {@code
  * TrackBOreGameTests}' "walk the roster against the registry" shape for the melting/casting rows --
@@ -56,15 +56,19 @@ public class TrackBAlloyGameTests {
     private static final BlockPos FAUCET = new BlockPos(2, 3, 1);
     private static final BlockPos CASTING = new BlockPos(2, 2, 1);
 
-    /** Mirrors scripts/generate_track_b_recipes.py's CATALYSTS table (id -&gt; source item). */
+    /**
+     * Mirrors scripts/generate_track_b_recipes.py's CATALYSTS table (id -&gt; source item). Six rows
+     * since #910 retired twinalloy: brimspar took over its alloy-input role, and brimspar melts from
+     * its own ore's crystals rather than a vanilla item, so its melting row is
+     * {@code SmelteryFuelGameTests}' to cover, not this table's.
+     */
     private static final Map<String, String> CATALYST_SOURCE_ITEMS = Map.of(
             "flarealloy", "minecraft:blaze_powder",
             "deepalloy", "minecraft:echo_shard",
             "sparkalloy", "minecraft:glowstone_dust",
             "redcinder", "minecraft:redstone",
             "pearlcinder", "minecraft:ender_pearl",
-            "ambercinder", "minecraft:honeycomb",
-            "twinalloy", "minecraft:amethyst_shard");
+            "ambercinder", "minecraft:honeycomb");
 
     private record Input(String id, int amount) {}
 
@@ -83,7 +87,9 @@ public class TrackBAlloyGameTests {
             new AlloyCase("ironbrand", "", List.of(in("redcinder", 32), in("pearlcinder", 32), in("ambercinder", 32)), 72),
             // Issue #884 (1): quakestone's cinderstone input was replaced with basalt (same amount).
             new AlloyCase("quakestone", "", List.of(in("fulmenite", 144), in("basalt", 144)), 144),
-            new AlloyCase("quakestone", "_alt1", List.of(in("fulmenite", 144), in("twinalloy", 32)), 144),
+            // Issue #910: twinalloy merged into brimspar (#903's mined fuel), same 32 mB amounts here
+            // and in both glowveil rows below.
+            new AlloyCase("quakestone", "_alt1", List.of(in("fulmenite", 144), in("brimspar", 32)), 144),
             new AlloyCase("embercast", "", List.of(in("duskspar", 144), in("ardite", 144)), 144),
             new AlloyCase("riftalloy", "", List.of(in("murkiron", 144), in("nightshale", 144), in("voltcinder", 144)), 216),
             new AlloyCase("dreadalloy", "", List.of(in("hardcinder", 144), in("murkiron", 144), in("deepalloy", 32)), 144),
@@ -96,8 +102,8 @@ public class TrackBAlloyGameTests {
             new AlloyCase("daybrass", "", List.of(in("nightshale", 144), in("ironbrand", 72)), 144),
             new AlloyCase("faultsteel", "", List.of(in("obsidian", 144), in("quakestone", 144), in("voltcinder", 144)), 216),
             new AlloyCase("shardline", "", List.of(in("quakestone", 144), in("obsidian", 144), in("deepalloy", 32)), 144),
-            new AlloyCase("glowveil", "", List.of(in("riftalloy", 216), in("sparkalloy", 32), in("twinalloy", 32)), 216),
-            new AlloyCase("glowveil", "_alt1", List.of(in("dreadalloy", 144), in("sparkalloy", 32), in("twinalloy", 32)), 144),
+            new AlloyCase("glowveil", "", List.of(in("riftalloy", 216), in("sparkalloy", 32), in("brimspar", 32)), 216),
+            new AlloyCase("glowveil", "_alt1", List.of(in("dreadalloy", 144), in("sparkalloy", 32), in("brimspar", 32)), 144),
             new AlloyCase("sunsteel", "", List.of(in("warspar", 144), in("hollowstone", 144), in("glowveil", 144)), 216),
             new AlloyCase("hollowsteel", "", List.of(in("resonite", 144), in("sunsteel", 216)), 216),
             // truesteel's inputs are a superset of hollowsteel's (both start from resonite + sunsteel):
@@ -149,7 +155,9 @@ public class TrackBAlloyGameTests {
             case "redcinder" -> ForgeweaveFluids.REDCINDER.still().get();
             case "pearlcinder" -> ForgeweaveFluids.PEARLCINDER.still().get();
             case "ambercinder" -> ForgeweaveFluids.AMBERCINDER.still().get();
-            case "twinalloy" -> ForgeweaveFluids.TWINALLOY.still().get();
+            // #910: twinalloy merged into brimspar, which is both a fuel and (from that issue on) an
+            // alloy input -- the only fluid in this switch that is fed by an ore rather than an item.
+            case "brimspar" -> ForgeweaveFluids.BRIMSPAR.still().get();
             default -> throw new IllegalArgumentException("unknown alloy input id " + id);
         };
     }

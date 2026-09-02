@@ -208,7 +208,7 @@ public class ForgeweaveBlockLootSubProvider extends BlockLootSubProvider {
         // #903 -- brimspar drops crystals rather than a raw ore item, and unlike every ore above it
         // scales with Fortune (the issue's own call: a vein you might lose to its own blast should pay
         // more when it does not). Still no silk-touch branch -- SCOPE.md's "no separate silk-touch
-        // yield axis" holds, and BrimsparOreBlock's harvest blast is rolled before any tool is
+        // yield axis" holds, and UnstableOreBlock's harvest blast is rolled before any tool is
         // consulted, so Silk Touch cannot defuse it either.
         add(ForgeweaveBlocks.BRIMSPAR_ORE.get(),
                 fortuneOreDrop(ForgeweaveBlocks.BRIMSPAR_ORE.get(), ForgeweaveItems.BRIMSPAR_CRYSTAL.get()));

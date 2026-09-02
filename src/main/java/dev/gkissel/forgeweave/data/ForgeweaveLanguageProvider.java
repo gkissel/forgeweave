@@ -1602,7 +1602,8 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
 
         // #840 -- Track B's molten fluids (M6 epic #824): the 12 ore-metal fluids (names are the
         // research doc §7.3 naming scaffold's own ids, title-cased, "Molten " prefix like every other
-        // metal fluid above), the 18 alloy fluids, and the 7 smeltery-only catalyst fluids.
+        // metal fluid above), the 18 alloy fluids, and the 6 smeltery-only catalyst fluids (7 until
+        // #910 merged twinalloy into brimspar).
         for (TrackBOre ore : TrackBOre.ALL) {
             addFluid(ForgeweaveFluids.trackBOreFluid(ore.id()), "Molten " + ore.displayName());
         }
@@ -1668,7 +1669,8 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         addFluid(ForgeweaveFluids.REDCINDER, "Molten Redcinder");
         addFluid(ForgeweaveFluids.PEARLCINDER, "Molten Pearlcinder");
         addFluid(ForgeweaveFluids.AMBERCINDER, "Molten Ambercinder");
-        addFluid(ForgeweaveFluids.TWINALLOY, "Molten Twinalloy");
+        // #910 retired the seventh catalyst fluid, molten twinalloy: brimspar below took over its
+        // alloy-input role, so its lang key (and bucket) go with it.
         // #897 -- the fuel ladder's top rung, alloyed from molten magma + flarealloy (#903 re-based it
         // off lava) and burned, never cast.
         addFluid(ForgeweaveFluids.PYREALLOY, "Molten Pyrealloy");
