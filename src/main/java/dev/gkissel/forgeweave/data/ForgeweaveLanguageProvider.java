@@ -1669,8 +1669,12 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         addFluid(ForgeweaveFluids.PEARLCINDER, "Molten Pearlcinder");
         addFluid(ForgeweaveFluids.AMBERCINDER, "Molten Ambercinder");
         addFluid(ForgeweaveFluids.TWINALLOY, "Molten Twinalloy");
-        // #897 -- the fuel ladder's top rung, alloyed from lava + flarealloy and burned, never cast.
+        // #897 -- the fuel ladder's top rung, alloyed from molten magma + flarealloy (#903 re-based it
+        // off lava) and burned, never cast.
         addFluid(ForgeweaveFluids.PYREALLOY, "Molten Pyrealloy");
+        // #903 -- the ladder's two mined rungs: melted magma blocks and melted brimspar crystals.
+        addFluid(ForgeweaveFluids.MOLTEN_MAGMA, "Molten Magma");
+        addFluid(ForgeweaveFluids.BRIMSPAR, "Molten Brimspar");
 
         // #232 -- the knightslime alloy chain's three fluids (docs/SCOPE.md M3.2). Upstream calls
         // its seared stone fluid plainly "Seared Stone"; the molten_ prefix names follow this
@@ -1823,6 +1827,11 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         // upstream 1.12's tile.tconstruct.ore.{cobalt,ardite}.name entries (NOTICE.md).
         addBlock(ForgeweaveBlocks.COBALT_ORE, "Cobalt Ore");
         addBlock(ForgeweaveBlocks.ARDITE_ORE, "Ardite Ore");
+
+        // #903 -- brimspar, the unstable Nether fuel ore. An original Forgeweave coinage (brimstone +
+        // spar), not a port: the TAIGA ore that inspired the behaviour is inspiration-only (CLAUDE.md).
+        addBlock(ForgeweaveBlocks.BRIMSPAR_ORE, "Brimspar Ore");
+        addItem(ForgeweaveItems.BRIMSPAR_CRYSTAL, "Brimspar Crystal");
 
         // #206 -- storage blocks for cobalt/ardite/manyullyn, names ported from upstream 1.12's
         // tile.tconstruct.metal.{cobalt,ardite,manyullyn}.name entries (NOTICE.md). Rose gold has no

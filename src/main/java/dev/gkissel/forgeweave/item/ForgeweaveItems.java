@@ -1032,6 +1032,12 @@ public final class ForgeweaveItems {
     public static final DeferredItem<BlockItem> COBALT_ORE = ITEMS.registerSimpleBlockItem("cobalt_ore", ForgeweaveBlocks.COBALT_ORE);
     public static final DeferredItem<BlockItem> ARDITE_ORE = ITEMS.registerSimpleBlockItem("ardite_ore", ForgeweaveBlocks.ARDITE_ORE);
 
+    // #903 -- brimspar, the Nether fuel ore. Two items only: the ore block and the crystal it drops,
+    // which exists purely to be melted (melting_recipe/brimspar_crystal.json) -- no ingot, no nugget,
+    // no storage block, since brimspar is a fuel and never a tool material.
+    public static final DeferredItem<BlockItem> BRIMSPAR_ORE = ITEMS.registerSimpleBlockItem("brimspar_ore", ForgeweaveBlocks.BRIMSPAR_ORE);
+    public static final DeferredItem<Item> BRIMSPAR_CRYSTAL = ITEMS.registerSimpleItem("brimspar_crystal");
+
     // #206 -- storage blocks for cobalt, ardite, manyullyn and rose gold: the basin refused every
     // metal but iron/copper/gold/netherite for lack of a block to cast (docs/SCOPE.md M2 metals).
     public static final DeferredItem<BlockItem> COBALT_BLOCK = ITEMS.registerSimpleBlockItem("cobalt_block", ForgeweaveBlocks.COBALT_BLOCK);

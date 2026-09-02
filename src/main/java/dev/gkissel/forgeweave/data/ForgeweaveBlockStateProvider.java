@@ -295,6 +295,11 @@ public class ForgeweaveBlockStateProvider extends BlockStateProvider {
         cubeAllBlock("cobalt_ore", ForgeweaveBlocks.COBALT_ORE.get());
         cubeAllBlock("ardite_ore", ForgeweaveBlocks.ARDITE_ORE.get());
 
+        // #903 -- brimspar ore: same plain cube_all geometry, but from the standard textures/block/
+        // folder like the Track B ores below -- vanilla-derived art (scripts/generate_track_b_ore_textures.py),
+        // not an upstream-derived sprite.
+        cubeAllBlockOriginal("brimspar_ore", ForgeweaveBlocks.BRIMSPAR_ORE.get());
+
         // #206 -- storage blocks for cobalt/ardite/manyullyn/rose gold: plain cube_all geometry like
         // the ore blocks above, one derived texture per metal (NOTICE.md).
         cubeAllBlock("cobalt_block", ForgeweaveBlocks.COBALT_BLOCK.get());

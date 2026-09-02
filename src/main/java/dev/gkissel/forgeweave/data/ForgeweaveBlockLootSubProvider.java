@@ -14,6 +14,7 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.storage.loot.LootPool;
 import net.minecraft.world.level.storage.loot.LootTable;
 import net.minecraft.world.level.storage.loot.entries.LootItem;
+import net.minecraft.world.level.storage.loot.functions.ApplyBonusCount;
 import net.minecraft.world.level.storage.loot.functions.CopyComponentsFunction;
 import net.minecraft.world.level.storage.loot.predicates.BonusLevelTableCondition;
 import net.minecraft.world.level.storage.loot.providers.number.ConstantValue;
@@ -204,6 +205,14 @@ public class ForgeweaveBlockLootSubProvider extends BlockLootSubProvider {
         add(ForgeweaveBlocks.COBALT_ORE.get(), oreDrop(ForgeweaveBlocks.COBALT_ORE.get(), ForgeweaveItems.RAW_COBALT.get()));
         add(ForgeweaveBlocks.ARDITE_ORE.get(), oreDrop(ForgeweaveBlocks.ARDITE_ORE.get(), ForgeweaveItems.RAW_ARDITE.get()));
 
+        // #903 -- brimspar drops crystals rather than a raw ore item, and unlike every ore above it
+        // scales with Fortune (the issue's own call: a vein you might lose to its own blast should pay
+        // more when it does not). Still no silk-touch branch -- SCOPE.md's "no separate silk-touch
+        // yield axis" holds, and BrimsparOreBlock's harvest blast is rolled before any tool is
+        // consulted, so Silk Touch cannot defuse it either.
+        add(ForgeweaveBlocks.BRIMSPAR_ORE.get(),
+                fortuneOreDrop(ForgeweaveBlocks.BRIMSPAR_ORE.get(), ForgeweaveItems.BRIMSPAR_CRYSTAL.get()));
+
         // #206 -- storage blocks for cobalt/ardite/manyullyn/rose gold: plain self-drops, matching
         // vanilla's own iron/gold/copper/netherite storage blocks (no component worth keeping).
         dropSelf(ForgeweaveBlocks.COBALT_BLOCK.get());
@@ -251,6 +260,15 @@ public class ForgeweaveBlockLootSubProvider extends BlockLootSubProvider {
         return LootTable.lootTable().withPool(applyExplosionCondition(block, LootPool.lootPool()
                 .setRolls(ConstantValue.exactly(1.0F))
                 .add(LootItem.lootTableItem(item))));
+    }
+
+    /** {@link #oreDrop} plus vanilla's own ore Fortune curve (#903, brimspar's crystals). */
+    private LootTable.Builder fortuneOreDrop(Block block, Item item) {
+        HolderLookup.RegistryLookup<Enchantment> enchantments = registries.lookupOrThrow(Registries.ENCHANTMENT);
+        return LootTable.lootTable().withPool(applyExplosionCondition(block, LootPool.lootPool()
+                .setRolls(ConstantValue.exactly(1.0F))
+                .add(LootItem.lootTableItem(item)
+                        .apply(ApplyBonusCount.addOreBonusCount(enchantments.getOrThrow(Enchantments.FORTUNE))))));
     }
 
     private LootTable.Builder tankDrop(Block block) {

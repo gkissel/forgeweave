@@ -1,0 +1,8 @@
+{
+  "input": {
+    "item": "minecraft:magma_block"
+  },
+  "fluid": "forgeweave:molten_magma",
+  "amount": 1000,
+  "temperature": 1000
+}
