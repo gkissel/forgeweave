@@ -308,6 +308,20 @@ public final class ForgeweaveBlocks {
     public static final DeferredBlock<Block> COBALT_ORE = oreBlock("cobalt_ore");
     public static final DeferredBlock<Block> ARDITE_ORE = oreBlock("ardite_ore");
 
+    // #903 -- brimspar, the Nether fuel ore whose crystals melt into the ladder's 1900-degree rung.
+    // Cobalt/ardite's own oreBlock() shape (hardness 10, stone sound, requiresCorrectToolForDrops,
+    // MapColor.NETHER) on its own unstable subclass -- see BrimsparOreBlock for the two explosion
+    // rolls and their numbers -- with one deliberate departure: blast resistance 1.5 instead of the
+    // hardness-matching 10 every other ore here carries. A vein that chains when caught in an
+    // explosion has to actually be destructible by one; at resistance 10 its own 2.5-power blast could
+    // not reach the neighbour it is supposed to set off, and the chain rule would be dead code.
+    public static final DeferredBlock<BrimsparOreBlock> BRIMSPAR_ORE = BLOCKS.register("brimspar_ore",
+            () -> new BrimsparOreBlock(BlockBehaviour.Properties.of()
+                    .mapColor(MapColor.NETHER)
+                    .strength(10.0F, 1.5F)
+                    .sound(SoundType.STONE)
+                    .requiresCorrectToolForDrops()));
+
     private static DeferredBlock<Block> oreBlock(String name) {
         return BLOCKS.registerSimpleBlock(name, BlockBehaviour.Properties.of()
                 .mapColor(MapColor.NETHER)

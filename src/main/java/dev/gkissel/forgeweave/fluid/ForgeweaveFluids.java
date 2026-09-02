@@ -399,14 +399,29 @@ public final class ForgeweaveFluids {
     public static final MoltenMetal AMBERCINDER = register("ambercinder", 0xC9862A, 870);
     public static final MoltenMetal TWINALLOY = register("twinalloy", 0x9B59D0, 910);
 
+    // #903 -- the fuel ladder's two mined rungs, both fuel-only like PYREALLOY below (no tool stats,
+    // no ingot/nugget/block, no Material JSON). Their 200-degree steps continue the ladder the
+    // maintainer confirmed on #897 and extended on #903: twinalloy 910 -> lava 1300 -> blazing blood
+    // 1500 -> molten magma 1700 -> molten brimspar 1900 -> pyrealloy 2100.
+    //
+    // Molten magma is what a vanilla magma block melts into (melting_recipe/magma_block.json). Unlike
+    // the two below it is also an alloy *input*: pyrealloy is alloyed from it plus flarealloy (#903
+    // re-bases that recipe off lava). Tint is the magma block's own ember red.
+    public static final MoltenMetal MOLTEN_MAGMA = register("magma", 0xC7431A, 1700);
+    // Molten brimspar is what the Nether's brimspar crystals melt into
+    // (melting_recipe/brimspar_crystal.json, dev.gkissel.forgeweave.block.BrimsparOreBlock). Nothing
+    // consumes it except smeltery_fuel/brimspar.json. Tint is a sulfurous brimstone yellow, the
+    // crystal's own flavor color (the same hex BrimsparOreBlock#CRYSTAL_COLOR feeds the art script).
+    public static final MoltenMetal BRIMSPAR = register("brimspar", 0xE8B923, 1900);
+
     // #897 -- the smeltery fuel ladder's top rung. Fuel-only like the seven catalysts above (no tool
     // stats, no ingot/nugget/block, no Material JSON), but unlike them it is never an alloy *input*:
     // nothing consumes it except smeltery_fuel/pyrealloy.json. Its 2100 is the ladder's own design
-    // number (twinalloy 910 -> lava 1300 -> blazing blood 1500 -> pyrealloy 2100, confirmed by the
-    // maintainer on #897), sitting far enough above blazing blood to be worth the alloy chain and
-    // well short of the 3100 the TAIGA fluid that inspired the rung ran at (inspiration only, see
-    // CLAUDE.md -- no code, numbers or assets taken). Tint is a white-hot step past flarealloy's own
-    // ember orange, the catalyst it is alloyed from.
+    // number (see MOLTEN_MAGMA above for the full six-rung ladder), sitting far enough above the rung
+    // below it to be worth the alloy chain and well short of the 3100 the TAIGA fluid that inspired
+    // the rung ran at (inspiration only, see CLAUDE.md -- no code, numbers or assets taken). Tint is a
+    // white-hot step past flarealloy's own ember orange, the catalyst it is alloyed from. #903
+    // re-bases its alloy_recipe onto molten magma in place of lava, TAIGA's own magma+catalyst shape.
     public static final MoltenMetal PYREALLOY = register("pyrealloy", 0xFFE066, 2100);
 
     private static MoltenMetal register(String metalId, int color, int temperature) {

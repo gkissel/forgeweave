@@ -433,6 +433,9 @@ public final class ForgeweaveCreativeTab {
 
         output.accept(ForgeweaveItems.COBALT_ORE.get());
         output.accept(ForgeweaveItems.ARDITE_ORE.get());
+        // #903 -- brimspar, the third Nether ore, filed with the other two.
+        output.accept(ForgeweaveItems.BRIMSPAR_ORE.get());
+        output.accept(ForgeweaveItems.BRIMSPAR_CRYSTAL.get());
 
         for (var block : ForgeweaveItems.slimeWorldBlocks()) {
             output.accept(block.get());

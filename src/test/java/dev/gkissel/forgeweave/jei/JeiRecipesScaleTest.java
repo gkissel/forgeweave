@@ -131,7 +131,9 @@ class JeiRecipesScaleTest {
      * <p>#894 added twinalloy (Track B's mapped equivalent of TAIGA's Dilithium, the one TAIGA
      * material that both has a Forgeweave-minted material id and was itself registered as a smeltery
      * fuel upstream), bringing the fuel count from 2 to 3. #897 added pyrealloy -- the fuel ladder's
-     * 2100-degree top rung, alloyed from lava + flarealloy -- bringing it to 4.
+     * 2100-degree top rung, alloyed from molten magma + flarealloy (#903 re-based it off lava) --
+     * bringing it to 4. #903 added the ladder's two mined rungs, molten magma (melted vanilla magma
+     * blocks, 1700) and molten brimspar (melted Nether crystals, 1900), bringing it to 6.
      */
     @Test
     void theTwoNewCategoriesEnumerateTheRealShippedRegistryContents() throws Exception {
@@ -139,14 +141,14 @@ class JeiRecipesScaleTest {
         Map<ResourceLocation, CoreTransformRecipe> transforms =
                 shippedRegistryEntries("core_transform_recipe", CoreTransformRecipe.CODEC);
 
-        assertEquals(4, fuels.size(),
-                "lava + blazing_blood + twinalloy + pyrealloy -- gametest_super_fuel ships outside src/main/resources");
+        assertEquals(6, fuels.size(),
+                "lava + blazing_blood + twinalloy + magma + brimspar + pyrealloy -- gametest_super_fuel ships outside src/main/resources");
         assertEquals(2, transforms.size(), "#845's end_core + deep_core rows");
 
         List<SmelteryFuelDisplay> fuelDisplays = SmelteryFuelRecipes.build(fuels);
         List<CoreTransformRecipe> transformDisplays = CoreTransformRecipes.build(transforms);
 
-        assertEquals(4, fuelDisplays.size());
+        assertEquals(6, fuelDisplays.size());
         assertEquals(2, transformDisplays.size());
     }
 }

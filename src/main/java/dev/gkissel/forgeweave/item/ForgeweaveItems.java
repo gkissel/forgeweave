@@ -1032,6 +1032,12 @@ public final class ForgeweaveItems {
     public static final DeferredItem<BlockItem> COBALT_ORE = ITEMS.registerSimpleBlockItem("cobalt_ore", ForgeweaveBlocks.COBALT_ORE);
     public static final DeferredItem<BlockItem> ARDITE_ORE = ITEMS.registerSimpleBlockItem("ardite_ore", ForgeweaveBlocks.ARDITE_ORE);
 
+    // #903 -- brimspar, the Nether fuel ore. Two items only: the ore block and the crystal it drops,
+    // which exists purely to be melted (melting_recipe/brimspar_crystal.json) -- no ingot, no nugget,
+    // no storage block, since brimspar is a fuel and never a tool material.
+    public static final DeferredItem<BlockItem> BRIMSPAR_ORE = ITEMS.registerSimpleBlockItem("brimspar_ore", ForgeweaveBlocks.BRIMSPAR_ORE);
+    public static final DeferredItem<Item> BRIMSPAR_CRYSTAL = ITEMS.registerSimpleItem("brimspar_crystal");
+
     // #206 -- storage blocks for cobalt, ardite, manyullyn and rose gold: the basin refused every
     // metal but iron/copper/gold/netherite for lack of a block to cast (docs/SCOPE.md M2 metals).
     public static final DeferredItem<BlockItem> COBALT_BLOCK = ITEMS.registerSimpleBlockItem("cobalt_block", ForgeweaveBlocks.COBALT_BLOCK);
@@ -1210,6 +1216,13 @@ public final class ForgeweaveItems {
      */
     public static final DeferredItem<DeferredSpawnEggItem> BLUE_SLIME_SPAWN_EGG = ITEMS.registerItem("blue_slime_spawn_egg",
             properties -> new DeferredSpawnEggItem(ForgeweaveEntities.BLUE_SLIME, 0x47eff5, 0xacfff4, properties));
+
+    /**
+     * The Dusk Cage (issue #886) -- what murkiron's {@code dusksnare} handle trait snares a beaten,
+     * non-boss mob into, and the only item in the mod with no recipe and no creative-tab entry: it
+     * only ever exists filled, made by a capture and spent by a release (see {@link DuskCageItem}).
+     */
+    public static final DeferredItem<DuskCageItem> DUSK_CAGE = ITEMS.registerItem("dusk_cage", DuskCageItem::new);
 
     private static DeferredItem<BlockItem> tankItem(DeferredBlock<? extends Block> block) {
         return ITEMS.registerItem(block.getId().getPath(),

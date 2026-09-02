@@ -56,6 +56,9 @@ public class ForgeweaveItemModelProvider extends ItemModelProvider {
     protected void registerModels() {
         // The guide book (issue #273), art derived from upstream 1.12's items/book.png (NOTICE.md).
         singleLayerModel(ForgeweaveItems.GUIDE_BOOK, derivedItem("guide_book"));
+        // The Dusk Cage (issue #886): original art, no upstream equivalent to derive from -- a
+        // procedural sprite under the standard item texture folder, scripts/generate_dusk_cage_texture.py.
+        singleLayerModel(ForgeweaveItems.DUSK_CAGE, itemTexture("dusk_cage"));
         singleLayerModel(ForgeweaveItems.PATTERN_BLANK, derivedItem("pattern"));
         singleLayerModel(ForgeweaveItems.PATTERN_PICKAXE_HEAD, derivedItem("pattern_pickaxe_head"));
         singleLayerModel(ForgeweaveItems.PATTERN_SHOVEL_HEAD, derivedItem("pattern_shovel_head"));
@@ -307,6 +310,10 @@ public class ForgeweaveItemModelProvider extends ItemModelProvider {
         singleLayerModel(ForgeweaveItems.NUGGET_ARDITE, derivedItem("ardite_nugget"));
         singleLayerModel(ForgeweaveItems.RAW_ARDITE, itemTexture("raw_ardite"));
         singleLayerModel(ForgeweaveItems.NAHUATL_BOARD, itemTexture("nahuatl_board")); // #727
+        // #903 -- brimspar's crystal, vanilla-derived art under the standard item texture folder
+        // (scripts/generate_track_b_ore_textures.py). Its ore block item model comes from
+        // ForgeweaveBlockStateProvider's cubeAllBlockOriginal, same as every other block item.
+        singleLayerModel(ForgeweaveItems.BRIMSPAR_CRYSTAL, itemTexture("brimspar_crystal"));
 
         // #839 -- Track B's ore family (M6 epic #824): ingot/nugget/raw item icons, all original,
         // procedurally-generated art under the standard item texture folder (not derived/) --

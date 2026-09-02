@@ -44,6 +44,7 @@ import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.monster.Slime;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.entity.raid.Raider;
 import net.minecraft.world.food.FoodData;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -58,6 +59,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 
+import net.neoforged.neoforge.common.Tags;
 import net.neoforged.neoforge.common.util.FakePlayer;
 import net.neoforged.neoforge.event.TagsUpdatedEvent;
 import net.neoforged.neoforge.event.entity.EntityTeleportEvent;
@@ -109,7 +111,9 @@ import dev.gkissel.forgeweave.combat.StripEffects;
 import dev.gkissel.forgeweave.combat.ThornsReflectSeam;
 import dev.gkissel.forgeweave.entity.ForgeweaveEntities;
 import dev.gkissel.forgeweave.item.ArmorPieceItem;
+import dev.gkissel.forgeweave.item.CapturedMob;
 import dev.gkissel.forgeweave.item.ForgeweaveDataComponents;
+import dev.gkissel.forgeweave.item.ForgeweaveItems;
 import dev.gkissel.forgeweave.item.PartItem;
 import dev.gkissel.forgeweave.item.ToolItem;
 import dev.gkissel.forgeweave.material.Material;
@@ -3043,6 +3047,62 @@ public final class ForgeweaveTraits {
      */
     public static final Trait DUSKGRASP = seamTrait(new EffectOnHit(MobEffects.DARKNESS, DUSKGRASP_TICKS, 0, 0));
 
+    /** Maintainer decision on issue #886 (2026-09-02): a mob is snareable at or below 15% of its max health. */
+    private static final float DUSKSNARE_HEALTH_FRACTION = 0.15F;
+
+    /**
+     * Murkiron. Issue #886, the other half of {@link #DUSKGRASP}'s reference Prometheum: a
+     * <b>sneaking</b> landed hit that leaves a non-boss mob at or below
+     * {@value #DUSKSNARE_HEALTH_FRACTION} of its max health pulls it out of the world into a
+     * {@code DuskCageItem} carrying its full NBT, handed to the wielder.
+     *
+     * <p>A sibling trait on the same <b>handle</b> slot rather than a second behaviour bolted onto
+     * {@code duskgrasp}: #886's own non-goals forbid touching the shipped darkness debuff, and
+     * {@code duskgrasp} is a plain {@link #seamTrait} over a shared {@link EffectOnHit} -- adding
+     * capture to it would mean rewriting it as a bespoke {@link Trait}, changing a shipped id's
+     * implementation for no gameplay reason. Two ids also let a datapack take one without the other.
+     *
+     * <p>The gesture is deliberate by construction: sneaking mid-fight is a choice, and the health
+     * gate means the swing that snares is one that could have killed instead.
+     */
+    public static final Trait DUSKSNARE = new Trait() {
+        @Override
+        public void afterHit(ItemStack stack, ServerLevel level, LivingEntity attacker, LivingEntity target) {
+            if (!(attacker instanceof Player player) || !attacker.isShiftKeyDown() || !snareable(target)) {
+                return;
+            }
+            ItemStack cage = new ItemStack(ForgeweaveItems.DUSK_CAGE.get());
+            cage.set(ForgeweaveDataComponents.CAPTURED_MOB.get(), CapturedMob.of(target));
+            target.discard();
+            if (!player.getInventory().add(cage)) {
+                player.drop(cage, false);
+            }
+        }
+    };
+
+    /**
+     * Whether {@link #DUSKSNARE} may take {@code target}: alive and beaten down to the health gate,
+     * not another player, and not something the ecosystem already marks as un-capturable.
+     *
+     * <p>The boss/deny-list check is NeoForge's own convention tags rather than a Forgeweave list --
+     * {@code c:capturing_not_supported} exists for exactly this ("should not be able to be put into
+     * a mob jar", NeoForge's {@code Tags.EntityTypes}) and {@code c:bosses} carries the ender dragon
+     * and the wither. Raid captains are excluded on top ({@link Raider#isCaptain}, #886's own ask):
+     * captain-hood is per-entity state, not an entity type, so no tag can express it.
+     */
+    private static boolean snareable(LivingEntity target) {
+        if (!target.isAlive() || target instanceof Player) {
+            return false;
+        }
+        if (target.getType().is(Tags.EntityTypes.BOSSES) || target.getType().is(Tags.EntityTypes.CAPTURING_NOT_SUPPORTED)) {
+            return false;
+        }
+        if (target instanceof Raider raider && raider.isCaptain()) {
+            return false;
+        }
+        return target.getHealth() <= target.getMaxHealth() * DUSKSNARE_HEALTH_FRACTION;
+    }
+
     private static final float LEANHARVEST_DROP_CHANCE = 0.35F;
     private static final int LEANHARVEST_XP_BONUS = 2;
 
@@ -3526,6 +3586,8 @@ public final class ForgeweaveTraits {
             // #884 TAIGA-faithful trait pass.
             Map.entry(id("earthmend"), EARTHMEND),
             Map.entry(id("duskgrasp"), DUSKGRASP),
+            // #886: duskgrasp's capture half, split out of #884.
+            Map.entry(id("dusksnare"), DUSKSNARE),
             Map.entry(id("leanharvest"), LEANHARVEST),
             Map.entry(id("warmemory"), WARMEMORY),
             Map.entry(id("hollowyield"), HOLLOWYIELD),

@@ -84,8 +84,30 @@ public class SlimeSlingGameTests {
                 "looking down, a full charge throws the player up at VERTICAL_SCALE of the force, got " + motion);
         helper.assertTrue(Math.abs(motion.x) < EPSILON && Math.abs(motion.z) < EPSILON,
                 "straight down means no horizontal push, got " + motion);
-        helper.assertTrue(player.hurtMarked, "the velocity change must be flagged for the client resync");
+        helper.assertFalse(player.hurtMarked,
+                "issue #902: no hurtMarked, so vanilla never sends the clamped +-3.9 blocks/tick "
+                        + "ClientboundSetEntityMotionPacket that would overwrite the client's own push");
         helper.assertTrue(SlimeBounceHandler.isBouncing(player), "the flung player's momentum must be carried");
+        helper.succeed();
+    }
+
+    /**
+     * Issue #902 (playtest: "vertical launch hits a strange cap"): pins the vertical component to
+     * upstream's literal value rather than to {@link SlimeSlingItem#VERTICAL_SCALE} symbolically, so a
+     * future change to that constant (like #698's since-superseded tuning) fails this test instead of
+     * silently drifting from the {@code y * -f / 3f} upstream ships -- full charge is
+     * {@link SlimeSlingItem#MAX_FORCE} (6.0) over 3, i.e. 2.0 blocks/tick straight up.
+     */
+    @GameTest(template = "empty")
+    public static void fullChargeStraightUpPinsUpstreamsVerticalVelocity(GameTestHelper helper) {
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+
+        fling(helper, player, 90.0F, true, FULL_CHARGE_TICKS);
+
+        Vec3 motion = player.getDeltaMovement();
+        helper.assertTrue(Math.abs(motion.y - 2.0F) < EPSILON,
+                "a full-charge straight-up launch must match upstream's y * -f / 3f = 6.0 / 3 = 2.0, got "
+                        + motion);
         helper.succeed();
     }
 

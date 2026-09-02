@@ -24,7 +24,7 @@ import dev.gkissel.forgeweave.sound.ForgeweaveSounds;
  * The Slimesling (parity audit T22, issue #453) -- upstream 1.12's
  * {@code gadgets/item/ItemSlimeSling} (NOTICE.md). Charge it like a bow while standing on the
  * ground, aim at a block, and release: the player is flung along the <em>inverted</em> look vector,
- * at {@link #VERTICAL_SCALE} of that force vertically and {@link #HORIZONTAL_SCALE} horizontally (#698), and {@link SlimeBounceHandler} keeps the momentum through the
+ * at {@link #VERTICAL_SCALE} of that force vertically and {@link #HORIZONTAL_SCALE} horizontally, and {@link SlimeBounceHandler} keeps the momentum through the
  * flight.
  *
  * <p>Upstream ships one sling per slime colour ({@code SlimeType} metadata subtypes, all named
@@ -41,12 +41,27 @@ public class SlimeSlingItem extends Item {
     public static final float MAX_FORCE = 6.0F;
 
     /**
-     * Issue #698, maintainer tuning (beta.1 checklist §16) over upstream's {@code x * -f, y * -f / 3f,
-     * z * -f}: horizontal launch force down 15 % (1.0 -> 0.85), vertical up 60 % (1/3 -> 1.6/3).
-     * Shared by every coloured sling.
+     * Upstream's {@code x * -f, y * -f / 3f, z * -f} -- horizontal at the full force, vertical at a
+     * third of it. Shared by every coloured sling.
+     *
+     * <p>Issue #698 (beta.1 checklist §16) had replaced these with a maintainer-tuned -15 % horizontal
+     * / +60 % vertical pair (0.85 and 1.6/3). Issue #902 (playtest: "vertical launch hits a strange
+     * cap") supersedes that decision and restores upstream's 1:1 values. Per CLAUDE.md's 1.12-parity
+     * directive, non-1:1 constants are a deviation that needs an active maintainer decision behind
+     * them, and #902 found nothing in #698's own tuning math that explains a vertical-specific cap
+     * (its retune, if anything, raised the vertical ceiling from {@code MAX_FORCE / 3 = 2.0} to
+     * {@code MAX_FORCE * 1.6 / 3 = 3.2}). The more concrete candidate this class's own
+     * {@link #releaseUsing} Javadoc already documents: {@code releaseUsing} relies on vanilla's
+     * {@code hurtMarked} / {@code ClientboundSetEntityMotionPacket} path to push the server's velocity
+     * to the client, and that packet clamps every axis to +-3.9 blocks/tick (Mojang's short-encoded
+     * velocity format). Upstream never had that ceiling because {@code EntityMovementChangePacket}
+     * (NOTICE.md) sent raw, unclamped doubles instead -- which is exactly why it existed. At the
+     * now-restored 1:1 scale a full-charge horizontal launch (6.0) still exceeds 3.9; a second, separate
+     * commit on this same PR removes the packet ceiling itself by no longer setting
+     * {@code entity.hurtMarked} in {@link #releaseUsing} -- see that method's Javadoc.
      */
-    public static final float HORIZONTAL_SCALE = 0.85F;
-    public static final float VERTICAL_SCALE = 1.6F / 3.0F;
+    public static final float HORIZONTAL_SCALE = 1.0F;
+    public static final float VERTICAL_SCALE = 1.0F / 3.0F;
 
     public SlimeSlingItem(Properties properties) {
         super(properties.stacksTo(1));
@@ -83,11 +98,20 @@ public class SlimeSlingItem extends Item {
      * Upstream's {@code onPlayerStoppedUsing}: nothing happens unless the player is on the ground and
      * looking at a block within reach; otherwise they are flung away from what they aimed at.
      *
-     * <p>Runs on both sides, exactly as upstream's does -- the client moves its own player right away
-     * (player movement is client-authoritative), and the server's {@code hurtMarked} makes vanilla
-     * send that player a {@code ClientboundSetEntityMotionPacket} to reconcile. That flag is the
-     * modern stand-in for upstream's hand-rolled {@code EntityMovementChangePacket}, which existed
-     * only because 1.12 had no such hook on the player's own tracker.
+     * <p>Runs on both sides, exactly as upstream's does -- vanilla calls {@code stopUsingItem} on the
+     * client (releasing the use key locally predicts the fling for the local player) and independently
+     * on the server (the {@code RELEASE_USE_ITEM} action packet), so {@code player.push} already runs once
+     * per side against that side's own {@code Player} instance. Issue #902 ("vertical launch hits a
+     * strange cap") found that this class used to also set {@code entity.hurtMarked = true}, which made
+     * vanilla additionally broadcast a {@code ClientboundSetEntityMotionPacket} -- and that packet
+     * clamps every axis to a hard +-3.9 blocks/tick (Mojang's short-encoded velocity wire format) before
+     * overwriting the client's own already-correct, already-applied velocity with the clamped copy.
+     * Upstream 1.12 never had that ceiling: its {@code EntityMovementChangePacket} (NOTICE.md) sent raw
+     * doubles with no clamp, and only to the launching {@code EntityPlayerMP}, not broadcast to every
+     * observer. We don't need a custom packet to match that -- the client-side push above is already
+     * the source of truth for the local player, so simply not setting {@code hurtMarked} means nothing
+     * ever ships a clamped correction to overwrite it. {@link SlimeBounceHandler#addBounceHandler} still
+     * registers per side exactly as before, unaffected by this.
      */
     @Override
     public void releaseUsing(ItemStack stack, Level level, LivingEntity entity, int timeLeft) {
@@ -103,7 +127,6 @@ public class SlimeSlingItem extends Item {
         Vec3 look = player.getLookAngle().normalize();
         player.push(look.x * -force * HORIZONTAL_SCALE, look.y * -force * VERTICAL_SCALE,
                 look.z * -force * HORIZONTAL_SCALE);
-        player.hurtMarked = true;
         player.playSound(ForgeweaveSounds.SLIME_SLING.get(), 1.0F, 1.0F);
         SlimeBounceHandler.addBounceHandler(player);
     }

@@ -93,6 +93,11 @@ public class ForgeweaveItemTagsProvider extends ItemTagsProvider {
         // (e.g. via /give or a future silk-touch path) at the same base amount as its raw drop.
         tag("ores/cobalt").add(ForgeweaveItems.COBALT_ORE.get());
         tag("ores/ardite").add(ForgeweaveItems.ARDITE_ORE.get());
+        // #903 -- brimspar's ore block, same convention. Its crystal takes `c:gems/brimspar` rather
+        // than a raw_materials entry: it is a gem-shaped drop that melts straight into fuel, with no
+        // ingot form to be the "raw" half of.
+        tag("ores/brimspar").add(ForgeweaveItems.BRIMSPAR_ORE.get());
+        tag("gems/brimspar").add(ForgeweaveItems.BRIMSPAR_CRYSTAL.get());
 
         // #206 -- the four new storage blocks' own c:storage_blocks/* membership (item side), plus
         // this pack's own extension of the parent c:storage_blocks tag: NeoForge's own tag only

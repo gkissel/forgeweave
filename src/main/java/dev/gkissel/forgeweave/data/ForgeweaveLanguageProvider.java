@@ -839,6 +839,11 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         // item.tconstruct.book.tooltip, the guide book's grey flavour line.
         add("tooltip.forgeweave.guide_book", "The book every smith needs");
         add("tooltip.forgeweave.slime_boots", "Makes you bounce when landing");
+        // Issue #886: the Dusk Cage. The filled name and tooltip both take the captured mob's own
+        // name; the registered name itself is added with addItem below, like every other item.
+        add("item.forgeweave.dusk_cage.filled", "Dusk Cage (%s)");
+        add("tooltip.forgeweave.dusk_cage", "Holds a snared %s -- right-click a block to let it out");
+        add("tooltip.forgeweave.dusk_cage.empty", "Empty; only a dusksnare hit can fill it");
         // item.tconstruct.slimesling.tooltip, both lines (T22, issue #453) -- the second one names
         // the Slime Boots, which Forgeweave has since T21 (issue #452).
         add("tooltip.forgeweave.slime_sling", "Charge up, aim low, get flinging!");
@@ -1664,8 +1669,12 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         addFluid(ForgeweaveFluids.PEARLCINDER, "Molten Pearlcinder");
         addFluid(ForgeweaveFluids.AMBERCINDER, "Molten Ambercinder");
         addFluid(ForgeweaveFluids.TWINALLOY, "Molten Twinalloy");
-        // #897 -- the fuel ladder's top rung, alloyed from lava + flarealloy and burned, never cast.
+        // #897 -- the fuel ladder's top rung, alloyed from molten magma + flarealloy (#903 re-based it
+        // off lava) and burned, never cast.
         addFluid(ForgeweaveFluids.PYREALLOY, "Molten Pyrealloy");
+        // #903 -- the ladder's two mined rungs: melted magma blocks and melted brimspar crystals.
+        addFluid(ForgeweaveFluids.MOLTEN_MAGMA, "Molten Magma");
+        addFluid(ForgeweaveFluids.BRIMSPAR, "Molten Brimspar");
 
         // #232 -- the knightslime alloy chain's three fluids (docs/SCOPE.md M3.2). Upstream calls
         // its seared stone fluid plainly "Seared Stone"; the molten_ prefix names follow this
@@ -1811,10 +1820,18 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         // item.tconstruct.slime_boots.green.name and .tooltip.
         addItem(ForgeweaveItems.SLIME_BOOTS, "Slime Boots");
 
+        // #886 -- the Dusk Cage, what murkiron's dusksnare handle trait captures a mob into.
+        addItem(ForgeweaveItems.DUSK_CAGE, "Dusk Cage");
+
         // #104 -- cobalt + ardite nether ore (docs/SCOPE.md M2 issue #104), names ported from
         // upstream 1.12's tile.tconstruct.ore.{cobalt,ardite}.name entries (NOTICE.md).
         addBlock(ForgeweaveBlocks.COBALT_ORE, "Cobalt Ore");
         addBlock(ForgeweaveBlocks.ARDITE_ORE, "Ardite Ore");
+
+        // #903 -- brimspar, the unstable Nether fuel ore. An original Forgeweave coinage (brimstone +
+        // spar), not a port: the TAIGA ore that inspired the behaviour is inspiration-only (CLAUDE.md).
+        addBlock(ForgeweaveBlocks.BRIMSPAR_ORE, "Brimspar Ore");
+        addItem(ForgeweaveItems.BRIMSPAR_CRYSTAL, "Brimspar Crystal");
 
         // #206 -- storage blocks for cobalt/ardite/manyullyn, names ported from upstream 1.12's
         // tile.tconstruct.metal.{cobalt,ardite,manyullyn}.name entries (NOTICE.md). Rose gold has no
@@ -2585,6 +2602,10 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("trait.forgeweave.earthmend.description", "Digging a dirt-like block has a chance to heal the wielder.");
         add("trait.forgeweave.duskgrasp.name", "Duskgrasp");
         add("trait.forgeweave.duskgrasp.description", "Landing a hit blinds the target with darkness.");
+        // Issue #886: duskgrasp's capture half.
+        add("trait.forgeweave.dusksnare.name", "Dusksnare");
+        add("trait.forgeweave.dusksnare.description",
+                "Sneaking while landing a hit on a badly wounded, non-boss mob snares it into a Dusk Cage.");
         add("trait.forgeweave.leanharvest.name", "Lean Harvest");
         add("trait.forgeweave.leanharvest.description", "Mined blocks sometimes drop nothing, but always grant bonus XP.");
         add("trait.forgeweave.warmemory.name", "War Memory");
