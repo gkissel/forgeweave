@@ -18,6 +18,7 @@ import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.block.ForgeweaveBlocks;
 import dev.gkissel.forgeweave.block.SearedTankBlockEntity;
 import dev.gkissel.forgeweave.block.SmelteryControllerBlockEntity;
+import dev.gkissel.forgeweave.config.ForgeweaveConfig;
 import dev.gkissel.forgeweave.fluid.ForgeweaveFluids;
 import dev.gkissel.forgeweave.recipe.MeltingRecipe;
 import dev.gkissel.forgeweave.recipe.SmelteryFuel;
@@ -322,6 +323,32 @@ public class SmelteryFuelGameTests {
         helper.assertValueEqual(pyrealloyTicks, 52, "melt ticks under pyrealloy (2100 degrees, 18 progress per tick)");
         helper.assertTrue(pyrealloyTicks < lavaTicks,
                 "pyrealloy must melt the same nugget in fewer ticks than lava, got " + pyrealloyTicks + " vs " + lavaTicks);
+        helper.succeed();
+    }
+
+    /**
+     * Issue #847 (M6 epic #824, JC7): {@link ForgeweaveConfig#MELT_SPEED_MULTIPLIER} scales {@code
+     * meltTick}'s whole-number progress step, so doubling it doubles lava's 10-progress-per-tick step
+     * to 20. The iron nugget's fixed 936 progress requirement ({@link
+     * #pyrealloyMeltsTheSameRecipeInFewerTicksThanLava}'s javadoc) needs 94 ticks at 10/tick (930 &lt;
+     * 936 &le; 940) and 47 ticks at 20/tick (920 &lt; 936 &le; 940) -- exactly half, since 94 is even.
+     */
+    @GameTest(template = "smeltery", timeoutTicks = 200)
+    public static void meltSpeedMultiplierHalvesMeltTicks(GameTestHelper helper) {
+        SmelteryGameTests.buildWalls(helper, 1, 1, 2);
+
+        int baselineTicks = ticksToMeltAnIronNugget(helper, Fluids.LAVA);
+        helper.assertValueEqual(baselineTicks, 94, "melt ticks under lava at the default 1.0 multiplier");
+
+        ForgeweaveConfig.MELT_SPEED_MULTIPLIER.set(2.0D);
+        int doubledSpeedTicks;
+        try {
+            doubledSpeedTicks = ticksToMeltAnIronNugget(helper, Fluids.LAVA);
+        } finally {
+            ForgeweaveConfig.MELT_SPEED_MULTIPLIER.set(1.0D);
+        }
+
+        helper.assertValueEqual(doubledSpeedTicks, 47, "melt ticks under lava at a 2.0 melt-speed multiplier");
         helper.succeed();
     }
 
