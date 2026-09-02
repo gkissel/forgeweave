@@ -1,0 +1,8 @@
+{
+  "input": {
+    "item": "minecraft:nether_star"
+  },
+  "fluid": "forgeweave:molten_iron",
+  "amount": 144,
+  "temperature": 2000
+}

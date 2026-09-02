@@ -47,16 +47,22 @@ public class ForgeweaveBlockTagsProvider extends BlockTagsProvider {
         // #152: upstream 1.12 gives the Tool Forge -- and only it, of the tables -- a
         // setHarvestLevel("pickaxe", 0), so a pickaxe is its correct tool. Level 0 means any
         // pickaxe, i.e. no needs_*_tool tag alongside it.
+        // #903: brimspar ore rides cobalt/ardite's own netherite gate -- it is a late Nether ore whose
+        // crystals feed the fuel ladder's second-from-top rung, so it should not be reachable before
+        // the two Nether ores that share its dimension.
         tag(BlockTags.MINEABLE_WITH_PICKAXE)
                 .add(ForgeweaveBlocks.TOOL_FORGE.get())
                 .add(ForgeweaveBlocks.COBALT_ORE.get())
-                .add(ForgeweaveBlocks.ARDITE_ORE.get());
+                .add(ForgeweaveBlocks.ARDITE_ORE.get())
+                .add(ForgeweaveBlocks.BRIMSPAR_ORE.get());
         tag(BlockTags.NEEDS_DIAMOND_TOOL)
                 .add(ForgeweaveBlocks.COBALT_ORE.get())
-                .add(ForgeweaveBlocks.ARDITE_ORE.get());
+                .add(ForgeweaveBlocks.ARDITE_ORE.get())
+                .add(ForgeweaveBlocks.BRIMSPAR_ORE.get());
         tag(BlockTags.INCORRECT_FOR_DIAMOND_TOOL)
                 .add(ForgeweaveBlocks.COBALT_ORE.get())
-                .add(ForgeweaveBlocks.ARDITE_ORE.get());
+                .add(ForgeweaveBlocks.ARDITE_ORE.get())
+                .add(ForgeweaveBlocks.BRIMSPAR_ORE.get());
 
         // #299 -- upstream LumberAxe#effective_materials (GOURD, CACTUS) at bonus axe speed. Vanilla's
         // own mineable/axe already carries pumpkin and melon (Material.GOURD's two blocks); cactus is
@@ -202,7 +208,8 @@ public class ForgeweaveBlockTagsProvider extends BlockTagsProvider {
         tag(VeinmineKey.family("axe")).addTag(BlockTags.LOGS);
         tag(VeinmineKey.family("pickaxe")).addTag(Tags.Blocks.ORES)
                 .add(ForgeweaveBlocks.COBALT_ORE.get())
-                .add(ForgeweaveBlocks.ARDITE_ORE.get());
+                .add(ForgeweaveBlocks.ARDITE_ORE.get())
+                .add(ForgeweaveBlocks.BRIMSPAR_ORE.get()); // #903 -- vein-mining a vein of it is exactly as risky as it sounds
         tag(VeinmineKey.family("shovel")).addTag(BlockTags.DIRT).addTag(Tags.Blocks.GRAVELS).addTag(Tags.Blocks.SANDS)
                 .add(Blocks.CLAY, Blocks.SOUL_SAND, Blocks.SOUL_SOIL, Blocks.SNOW_BLOCK);
     }

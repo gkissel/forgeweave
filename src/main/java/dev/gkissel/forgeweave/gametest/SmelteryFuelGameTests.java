@@ -19,6 +19,7 @@ import dev.gkissel.forgeweave.block.ForgeweaveBlocks;
 import dev.gkissel.forgeweave.block.SearedTankBlockEntity;
 import dev.gkissel.forgeweave.block.SmelteryControllerBlockEntity;
 import dev.gkissel.forgeweave.fluid.ForgeweaveFluids;
+import dev.gkissel.forgeweave.item.ForgeweaveItems;
 import dev.gkissel.forgeweave.recipe.MeltingRecipe;
 import dev.gkissel.forgeweave.recipe.SmelteryFuel;
 
@@ -30,6 +31,12 @@ import dev.gkissel.forgeweave.recipe.SmelteryFuel;
  * <p>The last test leans on the GameTest-only datapack in {@code src/gametest/resources} (see its
  * README): a 5000-degree fuel riding inert {@code minecraft:water}, and issue #96's 1400-degree
  * fixture recipe that no shipped M2 recipe needs and lava alone can never melt.
+ *
+ * <p>#903 added the three fixture recipes that let the whole six-rung ladder be checked one step at a
+ * time -- 1600, 1800 and 2000, sitting between each adjacent pair of fuel temperatures (twinalloy 910,
+ * lava 1300, blazing blood 1500, molten magma 1700, molten brimspar 1900, pyrealloy 2100). Each
+ * "reaches a recipe the rung below cannot" test runs both halves on one structure, so the negative
+ * half can never pass vacuously.
  */
 @GameTestHolder(Forgeweave.MODID)
 @PrefixGameTestTemplate(false)
@@ -325,7 +332,135 @@ public class SmelteryFuelGameTests {
         helper.succeed();
     }
 
+    /**
+     * #903 rung 4: a vanilla magma block melts into molten magma. {@code melting_recipe/magma_block.json}
+     * carries an explicit 1000-degree {@code temperature} rather than letting {@link MeltingRecipe}
+     * derive one -- a block-sized amount of a 1700-degree fluid would derive to 1700, which is the
+     * fluid's <em>own</em> burn temperature and would make the rung unreachable without already
+     * holding it. 1000 puts it inside lava's reach and outside twinalloy's, so lava is what bootstraps
+     * the ladder's mined half.
+     */
+    @GameTest(template = "smeltery", timeoutTicks = 100)
+    public static void aMagmaBlockMeltsIntoMoltenMagma(GameTestHelper helper) {
+        SmelteryControllerBlockEntity core = lavaFuelledSmeltery(helper);
+        helper.assertTrue(core.insertForMelting(new ItemStack(Items.MAGMA_BLOCK)).isEmpty(),
+                "expected the magma block to go into the smeltery");
+
+        meltToCompletion(helper, core, "lava");
+
+        helper.assertValueEqual(core.tank().getFluidAmount(), 1000, "molten magma from one magma block");
+        helper.assertTrue(core.tank().getFluid().getFluid() == ForgeweaveFluids.MOLTEN_MAGMA.still().get(),
+                "expected molten magma, got " + core.tank().getFluid().getFluid());
+        helper.succeed();
+    }
+
+    /**
+     * #903 rung 5: a brimspar crystal melts into molten brimspar at one ingot's worth per crystal.
+     * That recipe takes no explicit {@code temperature}, so it derives from the fluid's 1900 at an
+     * ingot-sized amount -- {@link MeltingRecipe#calcTemperature} puts an ingot exactly halfway up the
+     * fluid's headroom above ambient, i.e. 1100, which lava clears. Same bootstrap shape as the magma
+     * rung above: mining the ore is the gate, not owning the fuel it produces.
+     */
+    @GameTest(template = "smeltery", timeoutTicks = 100)
+    public static void aBrimsparCrystalMeltsIntoMoltenBrimspar(GameTestHelper helper) {
+        SmelteryControllerBlockEntity core = lavaFuelledSmeltery(helper);
+        helper.assertTrue(core.insertForMelting(new ItemStack(ForgeweaveItems.BRIMSPAR_CRYSTAL.get())).isEmpty(),
+                "expected the brimspar crystal to go into the smeltery");
+
+        meltToCompletion(helper, core, "lava");
+
+        helper.assertValueEqual(core.tank().getFluidAmount(), MeltingRecipe.VALUE_INGOT,
+                "molten brimspar from one crystal");
+        helper.assertTrue(core.tank().getFluid().getFluid() == ForgeweaveFluids.BRIMSPAR.still().get(),
+                "expected molten brimspar, got " + core.tank().getFluid().getFluid());
+        helper.succeed();
+    }
+
+    /**
+     * #903, the ladder's whole point at rung 4: molten magma's 1700 clears the 1600-degree GameTest
+     * fixture recipe ({@code gametest_above_blazing_blood.json}) that blazing blood's 1500 cannot.
+     * Both halves run on one structure so the negative is not vacuous -- the same fuel, the same
+     * fixture, only the temperature differs.
+     */
+    @GameTest(template = "smeltery", timeoutTicks = 100)
+    public static void moltenMagmaReachesARecipeBlazingBloodCannot(GameTestHelper helper) {
+        SmelteryGameTests.buildWalls(helper, 1, 1, 2);
+        assertCannotMelt(helper, ForgeweaveFluids.BLAZING_BLOOD.still().get(), Items.GHAST_TEAR, "blazing blood (1500)");
+        assertMeltsToIron(helper, ForgeweaveFluids.MOLTEN_MAGMA.still().get(), 1700, Items.GHAST_TEAR, "molten magma");
+        helper.succeed();
+    }
+
+    /** #903 rung 5: brimspar's 1900 clears the 1800-degree fixture molten magma's 1700 cannot. */
+    @GameTest(template = "smeltery", timeoutTicks = 100)
+    public static void brimsparReachesARecipeMoltenMagmaCannot(GameTestHelper helper) {
+        SmelteryGameTests.buildWalls(helper, 1, 1, 2);
+        assertCannotMelt(helper, ForgeweaveFluids.MOLTEN_MAGMA.still().get(), Items.PHANTOM_MEMBRANE, "molten magma (1700)");
+        assertMeltsToIron(helper, ForgeweaveFluids.BRIMSPAR.still().get(), 1900, Items.PHANTOM_MEMBRANE, "molten brimspar");
+        helper.succeed();
+    }
+
+    /** #903 rung 6: pyrealloy's 2100 clears the 2000-degree fixture brimspar's 1900 cannot. */
+    @GameTest(template = "smeltery", timeoutTicks = 100)
+    public static void pyrealloyReachesARecipeBrimsparCannot(GameTestHelper helper) {
+        SmelteryGameTests.buildWalls(helper, 1, 1, 2);
+        assertCannotMelt(helper, ForgeweaveFluids.BRIMSPAR.still().get(), Items.NETHER_STAR, "molten brimspar (1900)");
+        assertMeltsToIron(helper, ForgeweaveFluids.PYREALLOY.still().get(), 2100, Items.NETHER_STAR, "pyrealloy");
+        helper.succeed();
+    }
+
     // ------------------------------------------------------------------ helpers
+
+    /** Drives melt ticks until the first slot finishes, then the finish-only tick that fills the tank. */
+    private static void meltToCompletion(GameTestHelper helper, SmelteryControllerBlockEntity core, String fuelName) {
+        while (core.meltProgress(0) < 1.0f) {
+            helper.assertTrue(core.meltTick(), "expected " + fuelName + " to keep heating the smeltery's slot");
+        }
+        core.meltTick();
+    }
+
+    /**
+     * Re-places the core on the caller's walls with {@code fuel} alone in the wall tank. A block entity
+     * carries its in-progress burn -- the locked-in temperature <em>and</em> the ticks left on it --
+     * across a wall-tank swap, so measuring two fuels on one core would credit the second with the
+     * first's leftover burn (the same reason {@link #ticksToMeltAnIronNugget} tears down between runs).
+     */
+    private static SmelteryControllerBlockEntity refuelledSmeltery(GameTestHelper helper, Fluid fuel) {
+        helper.setBlock(SmelteryGameTests.CORE_POS, Blocks.AIR);
+
+        SearedTankBlockEntity tank = helper.getBlockEntity(SmelteryGameTests.TANK_POS);
+        tank.tank().drain(Integer.MAX_VALUE, IFluidHandler.FluidAction.EXECUTE);
+        tank.tank().fill(new FluidStack(fuel, SearedTankBlockEntity.CAPACITY), IFluidHandler.FluidAction.EXECUTE);
+
+        BlockPos corePos = SmelteryGameTests.placeCore(helper, ForgeweaveBlocks.STANDARD_CORE.get());
+        SmelteryControllerBlockEntity core = helper.getBlockEntity(corePos);
+        helper.assertTrue(core.isFormed(), "expected the test smeltery to form: " + core.lastResult().getString());
+        return core;
+    }
+
+    /** The colder half of a rung comparison: this fuel makes no progress at all on the fixture. */
+    private static void assertCannotMelt(GameTestHelper helper, Fluid colder, net.minecraft.world.item.Item fixture, String fuelName) {
+        SmelteryControllerBlockEntity core = refuelledSmeltery(helper, colder);
+        helper.assertTrue(core.insertForMelting(new ItemStack(fixture)).isEmpty(),
+                "expected the fixture item to go into the smeltery");
+        helper.assertTrue(!core.meltTick(), fuelName + " must not heat this fixture recipe");
+        helper.assertTrue(core.meltProgress(0) == 0f, "expected no melt progress at all under " + fuelName);
+    }
+
+    /** The hotter half: this fuel burns at {@code expectedTemperature} and melts the fixture through to iron. */
+    private static void assertMeltsToIron(GameTestHelper helper, Fluid hotter, int expectedTemperature,
+            net.minecraft.world.item.Item fixture, String fuelName) {
+        SmelteryControllerBlockEntity core = refuelledSmeltery(helper, hotter);
+        helper.assertValueEqual(core.currentTemperature(), expectedTemperature,
+                "smeltery temperature with " + fuelName + " in the wall tank");
+        helper.assertTrue(core.insertForMelting(new ItemStack(fixture)).isEmpty(),
+                "expected the fixture item to go into the smeltery");
+
+        meltToCompletion(helper, core, fuelName);
+
+        helper.assertValueEqual(core.tank().getFluidAmount(), 144, "molten iron from the fixture recipe");
+        helper.assertTrue(core.tank().getFluid().getFluid() == ForgeweaveFluids.IRON.still().get(),
+                "expected molten iron, the rung below can never reach this recipe");
+    }
 
     /**
      * Melt ticks a single iron nugget needs with {@code fuel} in the wall tank, measured on a freshly

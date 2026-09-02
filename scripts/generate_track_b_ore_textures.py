@@ -108,6 +108,20 @@ ORES = [
     ("voidglass", 0x2A1740, "end_stone"),
 ]
 
+# Issue #903: brimspar is a Nether *fuel* ore, not a Track B tool material -- no ingot, nugget, raw
+# item or storage block, so it cannot join ORES above (which must mirror TrackBOre.ALL). It needs
+# exactly two of this script's six sprites: the ore block, drawn the same netherrack-hosted way
+# voltcinder/hardcinder already are (the netherrack base the issue asked about is already here --
+# NETHER_POOL below), and a crystal item, which no existing pipeline had a shape for. Its donor is
+# vanilla's own `amethyst_shard`: the one vanilla item icon that is unambiguously a faceted crystal,
+# recolored whole-image exactly like the raw items are. Vanilla-derived like everything else this
+# script writes, so no NOTICE.md row (see the Provenance note in the module docstring) -- and
+# deliberately *not* a hand-authored sprite, per CLAUDE.md's derived-texture rules.
+# (id, color, host, crystal_donor) -- color must match BrimsparOreBlock#CRYSTAL_COLOR.
+STANDALONE_CRYSTAL_ORES = [
+    ("brimspar", 0xE8B923, "netherrack", "amethyst_shard"),
+]
+
 ORE_STORAGE_POOL = ["iron", "copper", "gold", "diamond", "redstone", "lapis", "emerald"]
 NETHER_POOL = ["nether_gold_ore", "nether_quartz_ore"]
 RAW_POOL = ["iron", "copper", "gold"]
@@ -159,6 +173,13 @@ TEMPLATES = {
         "nugget_family": _nugget_family(_derive_raw_family(mat_id)),
     }
     for mat_id, _color, host in ORES
+}
+
+# #903: the standalone crystal ores draw their ore-block donor from the same seeded pools, so their
+# row is reproducible the same way -- only the "ore" column applies (no storage/raw/ingot/nugget).
+CRYSTAL_TEMPLATES = {
+    mat_id: {"ore": _derive_ore_template(mat_id, host), "crystal": crystal_donor}
+    for mat_id, _color, host, crystal_donor in STANDALONE_CRYSTAL_ORES
 }
 
 
@@ -378,6 +399,21 @@ def main() -> None:
             f"wrote {mat_id}: ore<-{tpl['ore']} storage<-{tpl['storage']} raw<-raw_{raw_family}(_block) "
             f"ingot<-{raw_family}_ingot nugget<-{nugget_family}_nugget"
         )
+
+    # #903 -- the standalone crystal ores: ore block + crystal item only.
+    for mat_id, color_hex, host, _donor in STANDALONE_CRYSTAL_ORES:
+        color = hex_to_rgb(color_hex)
+        tpl = CRYSTAL_TEMPLATES[mat_id]
+
+        host_img = assets.block(HOST_PLAIN_TEXTURE[host])
+        ore_img = assets.block(tpl["ore"])
+        mask = blob_mask(host_img, ore_img)
+        recolor_pixels(ore_img, mask, color, min_contrast=BLOB_MIN_CONTRAST).save(BLOCK_DIR / f"{mat_id}_ore.png")
+
+        crystal_img = assets.item(tpl["crystal"])
+        recolor_pixels(crystal_img, full_mask(crystal_img), color).save(ITEM_DIR / f"{mat_id}_crystal.png")
+
+        print(f"wrote {mat_id}: ore<-{tpl['ore']} crystal<-{tpl['crystal']}")
 
 
 if __name__ == "__main__":

@@ -307,6 +307,10 @@ public class ForgeweaveItemModelProvider extends ItemModelProvider {
         singleLayerModel(ForgeweaveItems.NUGGET_ARDITE, derivedItem("ardite_nugget"));
         singleLayerModel(ForgeweaveItems.RAW_ARDITE, itemTexture("raw_ardite"));
         singleLayerModel(ForgeweaveItems.NAHUATL_BOARD, itemTexture("nahuatl_board")); // #727
+        // #903 -- brimspar's crystal, vanilla-derived art under the standard item texture folder
+        // (scripts/generate_track_b_ore_textures.py). Its ore block item model comes from
+        // ForgeweaveBlockStateProvider's cubeAllBlockOriginal, same as every other block item.
+        singleLayerModel(ForgeweaveItems.BRIMSPAR_CRYSTAL, itemTexture("brimspar_crystal"));
 
         // #839 -- Track B's ore family (M6 epic #824): ingot/nugget/raw item icons, all original,
         // procedurally-generated art under the standard item texture folder (not derived/) --

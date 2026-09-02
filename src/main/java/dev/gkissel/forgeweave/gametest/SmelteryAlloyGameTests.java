@@ -303,19 +303,39 @@ public class SmelteryAlloyGameTests {
     }
 
     /**
-     * #897: the smeltery fuel ladder's top rung is an alloy rather than a melt --
-     * {@code alloy_recipe/pyrealloy.json}, lava + flarealloy at 6:1 by volume, concentrating 224 mB
-     * of input into 144 mB of 2100-degree fuel. Pinned here because nothing else exercises the row:
-     * pyrealloy is not a Track B material, so {@code TrackBAlloyGameTests}' generated-alloy sweep
-     * never sees it.
+     * #897, re-based by #903: the smeltery fuel ladder's top rung is an alloy rather than a melt --
+     * {@code alloy_recipe/pyrealloy.json}, <b>molten magma</b> + flarealloy at 6:1 by volume,
+     * concentrating 224 mB of input into 144 mB of 2100-degree fuel. #903 swapped the bulk input from
+     * lava to molten magma (the ladder's own rung 4, melted from vanilla magma blocks) and left the
+     * ratio and the output alone, so this test moves with it. Pinned here because nothing else
+     * exercises the row: pyrealloy is not a Track B material, so {@code TrackBAlloyGameTests}'
+     * generated-alloy sweep never sees it.
      */
     @GameTest(template = "smeltery")
-    public static void lavaAndFlarealloyAlloyIntoPyrealloy(GameTestHelper helper) {
+    public static void magmaAndFlarealloyAlloyIntoPyrealloy(GameTestHelper helper) {
+        SmelteryControllerBlockEntity core = smeltery(helper);
+        pour(core, ForgeweaveFluids.MOLTEN_MAGMA.still().get(), 192);
+        pour(core, ForgeweaveFluids.FLAREALLOY.still().get(), 32);
+
+        assertTankHoldsOnly(helper, core, ForgeweaveFluids.PYREALLOY.still().get(), MeltingRecipe.VALUE_INGOT);
+        helper.succeed();
+    }
+
+    /**
+     * The other half of #903's re-base: lava alone no longer makes pyrealloy. Without this, dropping
+     * {@code minecraft:lava} from the recipe's inputs would be invisible -- the test above would pass
+     * on the new recipe whether or not the old one still existed alongside it.
+     */
+    @GameTest(template = "smeltery")
+    public static void lavaAndFlarealloyNoLongerAlloyIntoPyrealloy(GameTestHelper helper) {
         SmelteryControllerBlockEntity core = smeltery(helper);
         pour(core, Fluids.LAVA, 192);
         pour(core, ForgeweaveFluids.FLAREALLOY.still().get(), 32);
 
-        assertTankHoldsOnly(helper, core, ForgeweaveFluids.PYREALLOY.still().get(), MeltingRecipe.VALUE_INGOT);
+        helper.assertValueEqual(amountOf(core, ForgeweaveFluids.PYREALLOY.still().get()), 0,
+                "lava + flarealloy must no longer alloy into pyrealloy (#903 re-based it onto molten magma)");
+        helper.assertValueEqual(amountOf(core, Fluids.LAVA), 192, "lava left unalloyed");
+        helper.assertValueEqual(amountOf(core, ForgeweaveFluids.FLAREALLOY.still().get()), 32, "flarealloy left unalloyed");
         helper.succeed();
     }
 
