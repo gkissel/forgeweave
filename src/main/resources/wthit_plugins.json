@@ -1,0 +1,6 @@
+{
+  "forgeweave:plugin": {
+    "initializer": "dev.gkissel.forgeweave.wthit.ForgeweaveWthitPlugin",
+    "side": "*"
+  }
+}

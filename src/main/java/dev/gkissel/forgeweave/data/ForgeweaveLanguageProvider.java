@@ -325,6 +325,13 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("gui.forgeweave.temperature.kelvin", "%sK");
         add("tooltip.forgeweave.hold_shift", "Hold Shift for buckets");
 
+        // #720: Jade/WTHIT overlay text -- casting table/basin cooling percentage, and the smeltery
+        // controller's shift-held fluid list (see dev.gkissel.forgeweave.jade and .wthit). Shared by
+        // both compat plugins rather than split into jade.forgeweave.*/waila.forgeweave.* pairs,
+        // since the two overlays show identical wording.
+        add("waila.forgeweave.casting.cooling", "Cooling: %s");
+        add("waila.forgeweave.smeltery.fluid", "%s: %s");
+
         // #477/T46: the Pattern Chest's display name once it holds a cast, upstream's gui.castchest.name.
         add("gui.forgeweave.cast_chest.name", "Cast Chest");
 

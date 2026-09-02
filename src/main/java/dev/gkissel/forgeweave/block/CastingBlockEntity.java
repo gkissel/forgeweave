@@ -58,6 +58,9 @@ public class CastingBlockEntity extends BlockEntity {
     private static final String TAG_INPUT = "input";
     private static final String TAG_OUTPUT = "output";
     private static final String TAG_TANK = "tank";
+    // #720 -- Jade/WTHIT overlay cooling percentage.
+    private static final String TAG_COOL_START = "cool_start";
+    private static final String TAG_COOL_DURATION = "cool_duration";
 
     /** Upstream's slot 0: the cast, or the crafted part a gold pour is moulded around. */
     private static final int SLOT_INPUT = 0;
@@ -72,6 +75,16 @@ public class CastingBlockEntity extends BlockEntity {
 
     private ItemStack input = ItemStack.EMPTY;
     private ItemStack output = ItemStack.EMPTY;
+
+    /**
+     * #720: when the current pour's cooldown started ({@link net.minecraft.world.level.Level#getGameTime()}
+     * at the moment the tank reached {@link CastingRecipe#amount()}) and how long that cooldown lasts,
+     * so a compat overlay (Jade/WTHIT) can show cooling progress as a percentage. {@code -1} means "not
+     * cooling", matching {@link #isCooling()}; a stale pair left over from a cancelled pour is harmless
+     * since {@link #coolingPercent()} only reads them while {@link #isCooling()} is true.
+     */
+    private long coolStartGameTime = -1;
+    private int coolDurationTicks;
 
     public CastingBlockEntity(BlockPos pos, BlockState state, CastingRecipe.Station station) {
         super(station == CastingRecipe.Station.TABLE
@@ -108,6 +121,27 @@ public class CastingBlockEntity extends BlockEntity {
     /** {@link #isCooling(int, int)} against this block entity's own tank. */
     boolean isCooling() {
         return isCooling(tank.getFluidAmount(), tank.getCapacity());
+    }
+
+    /**
+     * Cooling progress as a percentage, 0-100 (issue #720's Jade/WTHIT overlay). {@code 0} whenever
+     * {@link #isCooling()} is false -- there is nothing to show a percentage of. Public: read from the
+     * {@code jade}/{@code wthit} compat packages' server-data providers.
+     */
+    public int coolingPercent() {
+        if (level == null || !isCooling()) {
+            return 0;
+        }
+        return coolingPercent(level.getGameTime() - coolStartGameTime, coolDurationTicks);
+    }
+
+    /** Pure percent math, split out from {@link #coolingPercent()} so it is testable without a level. */
+    static int coolingPercent(long elapsedTicks, int totalTicks) {
+        if (totalTicks <= 0) {
+            return 0;
+        }
+        long percent = elapsedTicks * 100 / totalTicks;
+        return (int) Math.min(100, Math.max(0, percent));
     }
 
     /**
@@ -193,6 +227,7 @@ public class CastingBlockEntity extends BlockEntity {
         level.playSound(null, worldPosition, SoundEvents.LAVA_EXTINGUISH, SoundSource.BLOCKS, 0.07f, 4f);
         tank.setFluid(FluidStack.EMPTY);
         tank.setCapacity(0);
+        coolStartGameTime = -1; // #720: the pour finished, so there is no cooldown left to show progress for.
         contentsChanged();
     }
 
@@ -229,6 +264,9 @@ public class CastingBlockEntity extends BlockEntity {
             tag.put(TAG_OUTPUT, output.save(registries));
         }
         tag.put(TAG_TANK, tank.writeToNBT(registries, new CompoundTag()));
+        // #720: so the Jade/WTHIT overlay's cooling percentage survives a save/reload mid-pour.
+        tag.putLong(TAG_COOL_START, coolStartGameTime);
+        tag.putInt(TAG_COOL_DURATION, coolDurationTicks);
     }
 
     @Override
@@ -237,6 +275,8 @@ public class CastingBlockEntity extends BlockEntity {
         input = tag.contains(TAG_INPUT) ? ItemStack.parseOptional(registries, tag.getCompound(TAG_INPUT)) : ItemStack.EMPTY;
         output = tag.contains(TAG_OUTPUT) ? ItemStack.parseOptional(registries, tag.getCompound(TAG_OUTPUT)) : ItemStack.EMPTY;
         tank.readFromNBT(registries, tag.getCompound(TAG_TANK));
+        coolStartGameTime = tag.contains(TAG_COOL_START) ? tag.getLong(TAG_COOL_START) : -1;
+        coolDurationTicks = tag.getInt(TAG_COOL_DURATION);
         // FluidTank's own NBT carries no capacity, so the capacity the renderer draws its fill
         // fraction against is re-derived here, from the recipe the fluid in the tank is being poured
         // for. #204: doing it in onLoad alone was not enough. A block entity read from disk has no
@@ -335,7 +375,11 @@ public class CastingBlockEntity extends BlockEntity {
             if (filled > 0) {
                 contentsChanged();
                 if (tank.getFluidAmount() >= recipe.amount() && level != null && !level.isClientSide) {
-                    level.scheduleTick(worldPosition, getBlockState().getBlock(), recipe.cooldownTicks(resource.getFluid()));
+                    int cooldown = recipe.cooldownTicks(resource.getFluid());
+                    level.scheduleTick(worldPosition, getBlockState().getBlock(), cooldown);
+                    // #720: the cooldown clock the Jade/WTHIT overlay's percentage reads.
+                    coolStartGameTime = level.getGameTime();
+                    coolDurationTicks = cooldown;
                 }
             }
             return filled;
@@ -354,6 +398,7 @@ public class CastingBlockEntity extends BlockEntity {
             if (!drained.isEmpty() && action.execute()) {
                 if (tank.isEmpty()) {
                     tank.setCapacity(0);
+                    coolStartGameTime = -1; // #720: a mid-pour drain cancels the cooldown, not just the fluid.
                 }
                 contentsChanged();
             }

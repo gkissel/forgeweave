@@ -85,3 +85,26 @@ Forgeweave brings modular tool building, material traits, modifiers, melting, al
     versionRange="[1.21,1.22)"
     ordering="AFTER"
     side="CLIENT"
+
+# Jade compat (issue #720) is optional: without it the mod is unchanged, it only adds the casting
+# table/basin cooling percentage and the smeltery controller's shift-held fluid list to Jade's
+# overlay when Jade happens to be installed. ForgeweaveJadePlugin is the code that guards every
+# Jade touch -- discovered by Jade itself via classpath scanning for @WailaPlugin, so there is no
+# ModList check to write here, just this declaration.
+[[dependencies.${mod_id}]]
+    modId="jade"
+    type="optional"
+    versionRange="[15,)"
+    ordering="AFTER"
+    side="CLIENT"
+
+# WTHIT compat (issue #720), the same ticket's second overlay target: optional for the same reason
+# as Jade above. ForgeweaveWthitPlugin is registered through
+# src/main/resources/wthit_plugins.json rather than a scanned annotation, which is WTHIT's own
+# plugin-discovery mechanism.
+[[dependencies.${mod_id}]]
+    modId="wthit"
+    type="optional"
+    versionRange="[12,)"
+    ordering="AFTER"
+    side="CLIENT"

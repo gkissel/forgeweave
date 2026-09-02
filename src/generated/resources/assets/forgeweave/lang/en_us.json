@@ -2060,5 +2060,7 @@
   "trait.forgeweave.writable.description": "More words. More modifiers. It's only logical!",
   "trait.forgeweave.writable.name": "Writable",
   "trait.forgeweave.writable2.description": "More words. More modifiers. It's only logical!",
-  "trait.forgeweave.writable2.name": "Writable II"
+  "trait.forgeweave.writable2.name": "Writable II",
+  "waila.forgeweave.casting.cooling": "Cooling: %s",
+  "waila.forgeweave.smeltery.fluid": "%s: %s"
 }
