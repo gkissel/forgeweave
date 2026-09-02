@@ -1,0 +1,16 @@
+{
+  "inputs": [
+    {
+      "fluid": "minecraft:lava",
+      "amount": 192
+    },
+    {
+      "fluid": "forgeweave:molten_flarealloy",
+      "amount": 32
+    }
+  ],
+  "result": {
+    "fluid": "forgeweave:molten_pyrealloy",
+    "amount": 144
+  }
+}

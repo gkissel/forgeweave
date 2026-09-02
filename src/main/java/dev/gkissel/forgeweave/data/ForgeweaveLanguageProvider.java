@@ -325,6 +325,13 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("gui.forgeweave.temperature.kelvin", "%sK");
         add("tooltip.forgeweave.hold_shift", "Hold Shift for buckets");
 
+        // #720: Jade/WTHIT overlay text -- casting table/basin cooling percentage, and the smeltery
+        // controller's shift-held fluid list (see dev.gkissel.forgeweave.jade and .wthit). Shared by
+        // both compat plugins rather than split into jade.forgeweave.*/waila.forgeweave.* pairs,
+        // since the two overlays show identical wording.
+        add("waila.forgeweave.casting.cooling", "Cooling: %s");
+        add("waila.forgeweave.smeltery.fluid", "%s: %s");
+
         // #477/T46: the Pattern Chest's display name once it holds a cast, upstream's gui.castchest.name.
         add("gui.forgeweave.cast_chest.name", "Cast Chest");
 
@@ -1657,6 +1664,8 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         addFluid(ForgeweaveFluids.PEARLCINDER, "Molten Pearlcinder");
         addFluid(ForgeweaveFluids.AMBERCINDER, "Molten Ambercinder");
         addFluid(ForgeweaveFluids.TWINALLOY, "Molten Twinalloy");
+        // #897 -- the fuel ladder's top rung, alloyed from lava + flarealloy and burned, never cast.
+        addFluid(ForgeweaveFluids.PYREALLOY, "Molten Pyrealloy");
 
         // #232 -- the knightslime alloy chain's three fluids (docs/SCOPE.md M3.2). Upstream calls
         // its seared stone fluid plainly "Seared Stone"; the molten_ prefix names follow this

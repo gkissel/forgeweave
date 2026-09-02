@@ -5,6 +5,8 @@ import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.level.material.Fluids;
 
 import net.neoforged.neoforge.fluids.FluidStack;
@@ -265,7 +267,92 @@ public class SmelteryFuelGameTests {
         helper.succeed();
     }
 
+    /**
+     * #897 rung 4: pyrealloy ({@code smeltery_fuel/pyrealloy.json}, no {@code temperature} override so
+     * it burns at its fluid's own 2100 -- {@code ForgeweaveFluids#PYREALLOY}) clears the same
+     * 1400-degree fixture recipe lava's 1300 can never reach, the same way blazing blood does above.
+     */
+    @GameTest(template = "smeltery", timeoutTicks = 100)
+    public static void pyrealloyFuelledSmelteryMeltsARecipeLavaCannotReach(GameTestHelper helper) {
+        SmelteryGameTests.buildWalls(helper, 1, 1, 2);
+        BlockPos corePos = SmelteryGameTests.placeCore(helper, ForgeweaveBlocks.STANDARD_CORE.get());
+
+        SearedTankBlockEntity tank = helper.getBlockEntity(SmelteryGameTests.TANK_POS);
+        tank.tank().fill(new FluidStack(ForgeweaveFluids.PYREALLOY.still().get(), SearedTankBlockEntity.CAPACITY),
+                IFluidHandler.FluidAction.EXECUTE);
+
+        SmelteryControllerBlockEntity core = helper.getBlockEntity(corePos);
+        helper.assertTrue(core.isFormed(), "expected the test smeltery to form: " + core.lastResult().getString());
+        helper.assertValueEqual(core.currentTemperature(), 2100, "smeltery temperature with pyrealloy in the wall tank");
+
+        helper.assertTrue(core.insertForMelting(new ItemStack(Items.BLAZE_ROD)).isEmpty(),
+                "expected the blaze rod to go into the smeltery");
+
+        while (core.meltProgress(0) < 1.0f) {
+            helper.assertTrue(core.meltTick(), "expected pyrealloy to keep heating the 1400-degree fixture recipe");
+        }
+        core.meltTick(); // finish-only tick.
+
+        helper.assertValueEqual(core.tank().getFluidAmount(), 144, "molten iron from the 1400-degree fixture recipe");
+        helper.assertTrue(core.tank().getFluid().getFluid() == ForgeweaveFluids.IRON.still().get(),
+                "expected molten iron, lava's own 1300 degrees can never reach this recipe");
+        helper.succeed();
+    }
+
+    /**
+     * #897's whole reason for a temperature ladder: {@code meltTick} adds {@code (temperature - 300)
+     * / 100} progress per melt tick, so a hotter fuel melts the <em>same</em> recipe strictly faster
+     * rather than only reaching more of them. An iron nugget needs 936 progress
+     * ({@code MeltingRecipe#heatRequired}, from its derived 417-degree recipe temperature), which lava
+     * covers 10 at a time and pyrealloy 18 at a time -- 94 melt ticks against 52, a 1.8x speedup.
+     *
+     * <p>The core is torn down and re-placed between the two runs ({@link #ticksToMeltAnIronNugget}):
+     * a block entity carries its in-progress burn -- both the locked-in {@code fuelTemperature} and
+     * the ticks left on it -- across a wall-tank swap, so measuring both fuels on one core would
+     * credit pyrealloy with lava's leftover burn.
+     */
+    @GameTest(template = "smeltery", timeoutTicks = 200)
+    public static void pyrealloyMeltsTheSameRecipeInFewerTicksThanLava(GameTestHelper helper) {
+        SmelteryGameTests.buildWalls(helper, 1, 1, 2);
+
+        int lavaTicks = ticksToMeltAnIronNugget(helper, Fluids.LAVA);
+        int pyrealloyTicks = ticksToMeltAnIronNugget(helper, ForgeweaveFluids.PYREALLOY.still().get());
+
+        helper.assertValueEqual(lavaTicks, 94, "melt ticks under lava (1300 degrees, 10 progress per tick)");
+        helper.assertValueEqual(pyrealloyTicks, 52, "melt ticks under pyrealloy (2100 degrees, 18 progress per tick)");
+        helper.assertTrue(pyrealloyTicks < lavaTicks,
+                "pyrealloy must melt the same nugget in fewer ticks than lava, got " + pyrealloyTicks + " vs " + lavaTicks);
+        helper.succeed();
+    }
+
     // ------------------------------------------------------------------ helpers
+
+    /**
+     * Melt ticks a single iron nugget needs with {@code fuel} in the wall tank, measured on a freshly
+     * placed core (see {@link #pyrealloyMeltsTheSameRecipeInFewerTicksThanLava}). Walls are the
+     * caller's; only the core and the tank's contents are replaced.
+     */
+    private static int ticksToMeltAnIronNugget(GameTestHelper helper, Fluid fuel) {
+        helper.setBlock(SmelteryGameTests.CORE_POS, Blocks.AIR);
+
+        SearedTankBlockEntity tank = helper.getBlockEntity(SmelteryGameTests.TANK_POS);
+        tank.tank().drain(Integer.MAX_VALUE, IFluidHandler.FluidAction.EXECUTE);
+        tank.tank().fill(new FluidStack(fuel, SearedTankBlockEntity.CAPACITY), IFluidHandler.FluidAction.EXECUTE);
+
+        BlockPos corePos = SmelteryGameTests.placeCore(helper, ForgeweaveBlocks.STANDARD_CORE.get());
+        SmelteryControllerBlockEntity core = helper.getBlockEntity(corePos);
+        helper.assertTrue(core.isFormed(), "expected the test smeltery to form: " + core.lastResult().getString());
+        helper.assertTrue(core.insertForMelting(new ItemStack(Items.IRON_NUGGET)).isEmpty(),
+                "expected the iron nugget to go into the smeltery");
+
+        int ticks = 0;
+        while (core.meltProgress(0) < 1.0f) {
+            helper.assertTrue(core.meltTick(), "expected " + fuel + " to keep heating the iron nugget");
+            ticks++;
+        }
+        return ticks;
+    }
+
 
     /** The 1x1x2 minimum smeltery of {@link SmelteryGameTests}, with its one wall tank full of lava. */
     private static SmelteryControllerBlockEntity lavaFuelledSmeltery(GameTestHelper helper) {
