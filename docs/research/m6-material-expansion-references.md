@@ -659,8 +659,10 @@ not reproduced here since the alloy ratios are #840's deliverable):
 - **12 ore-sourced tool materials** — mined directly, tool stats on their own. Two of them (the
   reference ladder's meteor-fall pair) source from a rare ore vein or a rare surface feature instead
   of a meteor event, per JC11.
-- **7 smeltery-only ingredients** — no tool stats of their own; exist purely as alloy inputs/catalysts
-  in the melting/alloy table. Not part of #841's material roster; #840's alloy-table concern.
+- **6 smeltery-only ingredients** — no tool stats of their own; exist purely as alloy inputs/catalysts
+  in the melting/alloy table. Not part of #841's material roster; #840's alloy-table concern. (Seven
+  until issue #910 merged the seventh, `twinalloy`, into the mined `brimspar` — see §7.3's
+  smeltery-only table.)
 - **18 alloy tool materials** — each combines two or more of the above (ore-sourced metals,
   smeltery-only ingredients, and in a few cases each other) at the smeltery's alloy table. This is
   where progression pressure concentrates: reaching the top-rung alloys requires working through
@@ -693,6 +695,10 @@ whichever issue actually registers the material, per CLAUDE.md's localization ru
 | Vibranium (handle flings enemies, stronger near death) | `resonite` | netherite (top) |
 | Meteorite (faster on soft blocks, smashes some drops) — rare surface feature per JC11 | `starfall_stone` | netherite (top) |
 | Obsidiorite (stats drift upward over time) — rare vein per JC11, moved to the End (issue #883, maintainer directive 2026-08-31) as the game's uniquely rarest ore | `voidglass` | netherite (top) |
+
+Issue #910 cashed in the first row's "unstable" gloss where it is actually felt: `fulmenite_ore`
+explodes on harvest and chains through a vein, sharing `UnstableOreBlock` with `brimspar_ore` (#903)
+at its own, gentler odds. The material's *tool* trait is #841's business and unchanged.
 
 **Alloy (feeds #840 alloy table + #841 tool materials):**
 
@@ -727,7 +733,14 @@ whichever issue actually registers the material, per CLAUDE.md's localization ru
 | Karmesine | `redcinder` |
 | Ovium | `pearlcinder` |
 | Jauxum | `ambercinder` |
-| Dilithium | `twinalloy` |
+
+Six rows, not seven: **Dilithium maps to `brimspar`** (issue #910, maintainer directive 2026-09-02),
+not to a catalyst of its own. Brimspar (#903) already plays Dilithium's whole part — a mined ore whose
+fluid is both a smeltery fuel and an alloy input — so the seventh id this table used to mint,
+`twinalloy`, is retired: its fluid, fuel row, amethyst melting recipe, bucket and lang key are gone,
+and every alloy recipe that took `molten_twinalloy` takes `molten_brimspar` at the same amount.
+Brimspar is not a row in this table because it is not smeltery-only in the same sense — it is mined,
+and it is listed with the ore-sourced additions #903 brought in.
 
 Two names flagged on the epic thread as Marvel trademarks (vibranium, uru) and one as
 Tolkien-adjacent (adamant) are **not reused** above — every id in this table is an original coinage,

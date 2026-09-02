@@ -310,17 +310,40 @@ public final class ForgeweaveBlocks {
 
     // #903 -- brimspar, the Nether fuel ore whose crystals melt into the ladder's 1900-degree rung.
     // Cobalt/ardite's own oreBlock() shape (hardness 10, stone sound, requiresCorrectToolForDrops,
-    // MapColor.NETHER) on its own unstable subclass -- see BrimsparOreBlock for the two explosion
-    // rolls and their numbers -- with one deliberate departure: blast resistance 1.5 instead of the
-    // hardness-matching 10 every other ore here carries. A vein that chains when caught in an
-    // explosion has to actually be destructible by one; at resistance 10 its own 2.5-power blast could
-    // not reach the neighbour it is supposed to set off, and the chain rule would be dead code.
-    public static final DeferredBlock<BrimsparOreBlock> BRIMSPAR_ORE = BLOCKS.register("brimspar_ore",
-            () -> new BrimsparOreBlock(BlockBehaviour.Properties.of()
+    // MapColor.NETHER) on the shared unstable ore block -- see UnstableOreBlock for what the two
+    // rolls do -- with one deliberate departure: blast resistance 1.5 instead of the hardness-matching
+    // 10 every other ore here carries. A vein that chains when caught in an explosion has to actually
+    // be destructible by one; at resistance 10 its own 2.5-power blast could not reach the neighbour
+    // it is supposed to set off, and the chain rule would be dead code.
+    //
+    // Brimspar's numbers (#903's own design, TAIGA's unstable ore is inspiration for the behaviour
+    // only -- CLAUDE.md makes that clone inspiration-only, so nothing here is ported): a quarter of
+    // harvests go off, half of caught veins chain, at a power between a creeper's 3 and nothing.
+    public static final float BRIMSPAR_HARVEST_BLAST_CHANCE = 0.25F;
+    public static final float BRIMSPAR_CHAIN_BLAST_CHANCE = 0.5F;
+    public static final float BRIMSPAR_BLAST_POWER = 2.5F;
+
+    public static final DeferredBlock<UnstableOreBlock> BRIMSPAR_ORE = BLOCKS.register("brimspar_ore",
+            () -> new UnstableOreBlock(BlockBehaviour.Properties.of()
                     .mapColor(MapColor.NETHER)
                     .strength(10.0F, 1.5F)
                     .sound(SoundType.STONE)
-                    .requiresCorrectToolForDrops()));
+                    .requiresCorrectToolForDrops(),
+                    BRIMSPAR_HARVEST_BLAST_CHANCE, BRIMSPAR_CHAIN_BLAST_CHANCE, BRIMSPAR_BLAST_POWER));
+
+    // #910 -- fulmenite is Track B's own unstable ore (research doc §7.3 maps it to the reference
+    // ladder's "unstable, random explosions" entry, so it has always been meant to be dangerous;
+    // #903's brimspar just got the mechanic first). Its numbers are this issue's own, pitched softer
+    // than brimspar's on both axes because fulmenite is met far earlier -- a diamond-tier Overworld
+    // deepslate ore, mined in bulk, against brimspar's late Nether fuel crystal:
+    //   * one harvest in ten goes off, not one in four;
+    //   * a caught vein still chains half the time (an unstable vein is an unstable vein, and the
+    //     cascade is the point of the mechanic);
+    //   * power 2.0 rather than 2.5 -- survivable in iron, and still well clear of the 1.5 blast
+    //     resistance a neighbouring vein carries, so the chain actually fires (#907's note).
+    public static final float FULMENITE_HARVEST_BLAST_CHANCE = 0.1F;
+    public static final float FULMENITE_CHAIN_BLAST_CHANCE = 0.5F;
+    public static final float FULMENITE_BLAST_POWER = 2.0F;
 
     private static DeferredBlock<Block> oreBlock(String name) {
         return BLOCKS.registerSimpleBlock(name, BlockBehaviour.Properties.of()
@@ -381,7 +404,9 @@ public final class ForgeweaveBlocks {
                 case END -> MapColor.SAND;
                 case OVERWORLD_STONE, OVERWORLD_DEEPSLATE -> MapColor.STONE;
             };
-            TRACK_B_ORE_BLOCKS.put(ore.id(), trackBOreBlock(ore.oreBlockId(), mapColor));
+            TRACK_B_ORE_BLOCKS.put(ore.id(), ore == TrackBOre.FULMENITE
+                    ? unstableTrackBOreBlock(ore.oreBlockId(), mapColor)
+                    : trackBOreBlock(ore.oreBlockId(), mapColor));
             TRACK_B_STORAGE_BLOCKS.put(ore.id(), metalBlock(ore.storageBlockId()));
             TRACK_B_RAW_BLOCKS.put(ore.id(), metalBlock(ore.rawBlockId()));
         }
@@ -410,6 +435,20 @@ public final class ForgeweaveBlocks {
                 .strength(10.0F)
                 .sound(SoundType.STONE)
                 .requiresCorrectToolForDrops());
+    }
+
+    /**
+     * #910 -- fulmenite's ore block: the same properties as every other Track B ore except brimspar's
+     * own blast-resistance departure (1.5, so a neighbouring vein is destructible by the blast that is
+     * meant to set it off) on the shared {@link UnstableOreBlock}, at fulmenite's own odds.
+     */
+    private static DeferredBlock<Block> unstableTrackBOreBlock(String name, MapColor mapColor) {
+        return BLOCKS.register(name, () -> new UnstableOreBlock(BlockBehaviour.Properties.of()
+                .mapColor(mapColor)
+                .strength(10.0F, 1.5F)
+                .sound(SoundType.STONE)
+                .requiresCorrectToolForDrops(),
+                FULMENITE_HARVEST_BLAST_CHANCE, FULMENITE_CHAIN_BLAST_CHANCE, FULMENITE_BLAST_POWER));
     }
 
     /** A Track B ore block by material id (e.g. {@code "fulmenite"}), or {@code null} if unknown. */

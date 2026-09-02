@@ -33,11 +33,15 @@ import dev.gkissel.forgeweave.recipe.SmelteryFuel;
  * README): a 5000-degree fuel riding inert {@code minecraft:water}, and issue #96's 1400-degree
  * fixture recipe that no shipped M2 recipe needs and lava alone can never melt.
  *
- * <p>#903 added the three fixture recipes that let the whole six-rung ladder be checked one step at a
- * time -- 1600, 1800 and 2000, sitting between each adjacent pair of fuel temperatures (twinalloy 910,
- * lava 1300, blazing blood 1500, molten magma 1700, molten brimspar 1900, pyrealloy 2100). Each
- * "reaches a recipe the rung below cannot" test runs both halves on one structure, so the negative
- * half can never pass vacuously.
+ * <p>#903 added the three fixture recipes that let the whole ladder be checked one step at a time --
+ * 1600, 1800 and 2000, sitting between each adjacent pair of fuel temperatures (lava 1300, blazing
+ * blood 1500, molten magma 1700, molten brimspar 1900, pyrealloy 2100). Each "reaches a recipe the
+ * rung below cannot" test runs both halves on one structure, so the negative half can never pass
+ * vacuously.
+ *
+ * <p>#910 dropped the ladder's old sub-lava rung with the twinalloy fluid itself (merged into
+ * brimspar), and made the top rung the one long-burn fuel -- see
+ * {@link #pyrealloyBurnsTwiceTheFuelForFiveTimesTheCycle}.
  */
 @GameTestHolder(Forgeweave.MODID)
 @PrefixGameTestTemplate(false)
@@ -63,11 +67,11 @@ public class SmelteryFuelGameTests {
                 "expected the iron ore to go into the smeltery");
 
         meltTicks(helper, core, 95);
-        helper.assertValueEqual(drainedLava(helper), 50,
+        helper.assertValueEqual(drainedFuel(helper), 50,
                 "lava drained after less than one fuel cycle's worth of melt ticks");
 
         meltTicks(helper, core, 30); // 125 in total: one cycle finished, a second burn under way.
-        helper.assertValueEqual(drainedLava(helper), 100, "lava drained one cycle into the second burn");
+        helper.assertValueEqual(drainedFuel(helper), 100, "lava drained one cycle into the second burn");
         helper.succeed();
     }
 
@@ -84,7 +88,7 @@ public class SmelteryFuelGameTests {
         lavaFuelledSmeltery(helper);
 
         helper.runAfterDelay(100, () -> {
-            helper.assertValueEqual(drainedLava(helper), 0, "an idle smeltery must never drain its fuel tank");
+            helper.assertValueEqual(drainedFuel(helper), 0, "an idle smeltery must never drain its fuel tank");
             helper.succeed();
         });
     }
@@ -224,54 +228,35 @@ public class SmelteryFuelGameTests {
     }
 
     /**
-     * #894 -- TAIGA survey deliverable 2: twinalloy is Track B's mapped equivalent of TAIGA's
-     * Dilithium, the one TAIGA fluid that is both a real ore-sourced tool material there and
-     * registered via {@code TinkerRegistry.registerSmelteryFuel} (NOTICE.md-free: TAIGA is
-     * inspiration-only under CLAUDE.md, no code or numbers copied). {@code smeltery_fuel/twinalloy.json}
-     * ships no {@code temperature} override, the same way {@code lava.json}/{@code blazing_blood.json}
-     * do not, so it burns at twinalloy's own already-registered 910 (dev.gkissel.forgeweave.fluid.
-     * ForgeweaveFluids#TWINALLOY) -- below lava's 1300, mirroring TAIGA's own dilithium fuel sitting
-     * cooler than its magma fuel rather than hotter. This pins that burn temperature directly.
+     * #910: pyrealloy is the ladder's one long-burn fuel -- {@code smeltery_fuel/pyrealloy.json}
+     * drains 100 mB per cycle and burns 500 melt ticks on it, against every other fuel's 50 mB / 100
+     * ticks ({@link #lavaIsConsumedAtTheCloneRate} pins lava's). Both halves of that claim are
+     * measured the same way that test measures lava, on one iron ore: the first drain is 100 mB, not
+     * 50 (the amount), and 101 melt ticks in there has still been only one drain (the duration -- a
+     * 100-tick fuel would have taken its second charge on tick 101).
+     *
+     * <p>Both checkpoints sit inside the ore's own life: 1872 progress at pyrealloy's 18 a tick is 104
+     * melt ticks, so the smeltery is still heating -- and therefore still burning fuel -- at 101.
      */
-    @GameTest(template = "smeltery", timeoutTicks = 100)
-    public static void twinalloyFuelledSmelteryReachesItsOwnTemperature(GameTestHelper helper) {
+    @GameTest(template = "smeltery", timeoutTicks = 200)
+    public static void pyrealloyBurnsTwiceTheFuelForFiveTimesTheCycle(GameTestHelper helper) {
         SmelteryGameTests.buildWalls(helper, 1, 1, 2);
         BlockPos corePos = SmelteryGameTests.placeCore(helper, ForgeweaveBlocks.STANDARD_CORE.get());
 
         SearedTankBlockEntity tank = helper.getBlockEntity(SmelteryGameTests.TANK_POS);
-        tank.tank().fill(new FluidStack(ForgeweaveFluids.TWINALLOY.still().get(), SearedTankBlockEntity.CAPACITY),
+        tank.tank().fill(new FluidStack(ForgeweaveFluids.PYREALLOY.still().get(), SearedTankBlockEntity.CAPACITY),
                 IFluidHandler.FluidAction.EXECUTE);
 
         SmelteryControllerBlockEntity core = helper.getBlockEntity(corePos);
         helper.assertTrue(core.isFormed(), "expected the test smeltery to form: " + core.lastResult().getString());
-        helper.assertValueEqual(core.currentTemperature(), 910, "smeltery temperature with twinalloy in the wall tank");
-        helper.succeed();
-    }
+        helper.assertTrue(core.insertForMelting(new ItemStack(Items.IRON_ORE)).isEmpty(),
+                "expected the iron ore to go into the smeltery");
 
-    /**
-     * #894 -- the deliberate flip side of {@link #blazingBloodFuelledSmelteryMeltsARecipeLavaCannotReach}:
-     * twinalloy's 910 degrees sits below lava's 1300, so it must not reach the same 1400-degree fixture
-     * recipe blazing blood proves it can. This is the concrete evidence behind the PR's progression
-     * claim that twinalloy unlocks nothing new -- it is a cheap early convenience fuel (melted from
-     * amethyst shards), not a headroom tier, matching TAIGA's own dilithium sitting cooler than magma.
-     */
-    @GameTest(template = "smeltery", timeoutTicks = 100)
-    public static void twinalloyCannotReachTheLavaExclusiveFixtureRecipe(GameTestHelper helper) {
-        SmelteryGameTests.buildWalls(helper, 1, 1, 2);
-        BlockPos corePos = SmelteryGameTests.placeCore(helper, ForgeweaveBlocks.STANDARD_CORE.get());
+        meltTicks(helper, core, 95);
+        helper.assertValueEqual(drainedFuel(helper), 100, "pyrealloy drained on its first burn: 100 mB, not lava's 50");
 
-        SearedTankBlockEntity tank = helper.getBlockEntity(SmelteryGameTests.TANK_POS);
-        tank.tank().fill(new FluidStack(ForgeweaveFluids.TWINALLOY.still().get(), SearedTankBlockEntity.CAPACITY),
-                IFluidHandler.FluidAction.EXECUTE);
-
-        SmelteryControllerBlockEntity core = helper.getBlockEntity(corePos);
-        helper.assertTrue(core.isFormed(), "expected the test smeltery to form: " + core.lastResult().getString());
-
-        helper.assertTrue(core.insertForMelting(new ItemStack(Items.BLAZE_ROD)).isEmpty(),
-                "expected the blaze rod to go into the smeltery");
-
-        helper.assertTrue(!core.meltTick(), "twinalloy's 910 degrees must not heat the 1400-degree fixture recipe");
-        helper.assertTrue(core.meltProgress(0) == 0f, "expected no melt progress at all under twinalloy");
+        meltTicks(helper, core, 6); // 101 in total: past where a 100-tick fuel would take its second charge.
+        helper.assertValueEqual(drainedFuel(helper), 100, "pyrealloy's 500-tick cycle must not have re-drained yet");
         helper.succeed();
     }
 
@@ -338,8 +323,8 @@ public class SmelteryFuelGameTests {
      * carries an explicit 1000-degree {@code temperature} rather than letting {@link MeltingRecipe}
      * derive one -- a block-sized amount of a 1700-degree fluid would derive to 1700, which is the
      * fluid's <em>own</em> burn temperature and would make the rung unreachable without already
-     * holding it. 1000 puts it inside lava's reach and outside twinalloy's, so lava is what bootstraps
-     * the ladder's mined half.
+     * holding it. 1000 puts it inside lava's reach, so lava is what bootstraps the ladder's mined
+     * half.
      */
     @GameTest(template = "smeltery", timeoutTicks = 100)
     public static void aMagmaBlockMeltsIntoMoltenMagma(GameTestHelper helper) {
@@ -529,7 +514,7 @@ public class SmelteryFuelGameTests {
         return core;
     }
 
-    private static int drainedLava(GameTestHelper helper) {
+    private static int drainedFuel(GameTestHelper helper) {
         SearedTankBlockEntity tank = helper.getBlockEntity(SmelteryGameTests.TANK_POS);
         return SearedTankBlockEntity.CAPACITY - tank.tank().getFluidAmount();
     }

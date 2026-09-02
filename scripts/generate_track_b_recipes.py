@@ -35,10 +35,15 @@ ALLOYS = [
     "glowveil", "daybrass", "faultsteel", "skipalloy", "mendalloy", "mendstone",
 ]
 
-# The 7 smeltery-only catalysts: id -> (source vanilla item, amount mB). No ingot/nugget/block item of
+# The 6 smeltery-only catalysts: id -> (source vanilla item, amount mB). No ingot/nugget/block item of
 # their own (deliverable 5's "fluids/items with no Material entry at all" branch, see
-# ForgeweaveFluids' own javadoc on the seven CATALYST fields) -- sourced by melting a common vanilla
+# ForgeweaveFluids' own javadoc on the six CATALYST fields) -- sourced by melting a common vanilla
 # item chosen to fit the id's theme, at a small catalyst-scale amount.
+#
+# Issue #910 retired the seventh, "twinalloy" (and its amethyst-shard melting row): brimspar (#903)
+# already fills the same role -- the mined fuel that is also an alloy input -- so the two merged, and
+# every recipe that took molten_twinalloy now takes molten_brimspar at the same amount. Brimspar is
+# not listed here because it melts from its own ore's crystals, not from a vanilla item.
 CATALYSTS = {
     "flarealloy": ("minecraft:blaze_powder", 32),
     "deepalloy": ("minecraft:echo_shard", 32),
@@ -46,7 +51,6 @@ CATALYSTS = {
     "redcinder": ("minecraft:redstone", 32),
     "pearlcinder": ("minecraft:ender_pearl", 32),
     "ambercinder": ("minecraft:honeycomb", 32),
-    "twinalloy": ("minecraft:amethyst_shard", 32),
 }
 
 VALUE_NUGGET = 16
@@ -135,8 +139,9 @@ ALLOY_RECIPES = [
     ("ironbrand", [([("redcinder", 32), ("pearlcinder", 32), ("ambercinder", 32)], 72)]),
     # Issue #884 (1): cinderstone input replaced with basalt (same amount, same alloy-ratio shape) --
     # basalt melts via BASALT_MELTING below, not this script's ORES loop.
+    # Issue #910: twinalloy merged into brimspar (#903's mined fuel), same amounts throughout.
     ("quakestone", [([("fulmenite", 144), ("basalt", 144)], 144),
-                    ([("fulmenite", 144), ("twinalloy", 32)], 144)]),
+                    ([("fulmenite", 144), ("brimspar", 32)], 144)]),
     ("embercast", [([("duskspar", 144), ("ardite", 144)], 144)]),
     ("riftalloy", [([("murkiron", 144), ("nightshale", 144), ("voltcinder", 144)], 216)]),
     ("dreadalloy", [([("hardcinder", 144), ("murkiron", 144), ("deepalloy", 32)], 144)]),
@@ -149,8 +154,8 @@ ALLOY_RECIPES = [
     ("daybrass", [([("nightshale", 144), ("ironbrand", 72)], 144)]),
     ("faultsteel", [([("obsidian", 144), ("quakestone", 144), ("voltcinder", 144)], 216)]),
     ("shardline", [([("quakestone", 144), ("obsidian", 144), ("deepalloy", 32)], 144)]),
-    ("glowveil", [([("riftalloy", 216), ("sparkalloy", 32), ("twinalloy", 32)], 216),
-                  ([("dreadalloy", 144), ("sparkalloy", 32), ("twinalloy", 32)], 144)]),
+    ("glowveil", [([("riftalloy", 216), ("sparkalloy", 32), ("brimspar", 32)], 216),
+                  ([("dreadalloy", 144), ("sparkalloy", 32), ("brimspar", 32)], 144)]),
     ("sunsteel", [([("warspar", 144), ("hollowstone", 144), ("glowveil", 144)], 216)]),
     ("hollowsteel", [([("resonite", 144), ("sunsteel", 216)], 216)]),
     # truesteel's inputs are a superset of hollowsteel's (both start from resonite + sunsteel), so

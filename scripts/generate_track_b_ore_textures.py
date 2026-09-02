@@ -117,7 +117,7 @@ ORES = [
 # recolored whole-image exactly like the raw items are. Vanilla-derived like everything else this
 # script writes, so no NOTICE.md row (see the Provenance note in the module docstring) -- and
 # deliberately *not* a hand-authored sprite, per CLAUDE.md's derived-texture rules.
-# (id, color, host, crystal_donor) -- color must match BrimsparOreBlock#CRYSTAL_COLOR.
+# (id, color, host, crystal_donor) -- color must match UnstableOreBlock#BRIMSPAR_CRYSTAL_COLOR.
 STANDALONE_CRYSTAL_ORES = [
     ("brimspar", 0xE8B923, "netherrack", "amethyst_shard"),
 ]
