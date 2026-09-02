@@ -25,22 +25,36 @@ import dev.gkissel.forgeweave.Forgeweave;
  * anti-drift shape {@code ForgeweaveFluids#all}/{@code ForgeweaveBlocks#clearStainedGlassColors()}
  * already use for their own per-instance families.
  *
- * <p><b>Distribution table (this PR's own design decision, per #839 deliverable 4 -- JC11 already
- * answered the sourcing-mechanism question on #824/#838, this is only the height/rarity/dimension
- * shape; tier placement is #877's, see {@link Tier}):</b> to avoid trivialising cobalt/ardite's own
- * Nether niche only two entries (voltcinder, hardcinder -- both fire/cinder-flavored names) generate
- * in the Nether; the rest spread across Overworld deepslate at varying rarity. {@link #STARFALL_STONE}
- * and {@link #VOIDGLASS} are the reference ladder's former meteor-fall pair (JC11, #839's "meteor
- * question"): decided already on #824/#838 as ordinary rare ore veins/features rather than a new
- * falling-entity mechanic, executed here as the same {@code minecraft:ore} feature every other entry
- * uses, just tuned to a shallow near-surface band (starfall_stone, standing in for "rare surface
- * feature").
+ * <p><b>Distribution table (per #839 deliverable 4 -- JC11 already answered the sourcing-mechanism
+ * question on #824/#838, this is only the height/rarity/dimension shape; tier placement is #877's,
+ * see {@link Tier}):</b> {@link #STARFALL_STONE} and {@link #VOIDGLASS} are the reference ladder's
+ * former meteor-fall pair (JC11, #839's "meteor question"): decided already on #824/#838 as ordinary
+ * rare ore veins/features rather than a new falling-entity mechanic, executed here as the same
+ * {@code minecraft:ore} feature every other entry uses, just tuned to a shallow near-surface band
+ * (starfall_stone, standing in for "rare surface feature").
  *
  * <p><b>#883 (maintainer directive, 2026-08-31):</b> {@link #VOIDGLASS} moves from the Overworld
  * deepslate deepest band to {@link Host#END} ({@code minecraft:end_stone}, generated only in the
  * End's outer-island biomes via {@code track_b_end_ores.json} -- see {@link Host#END}'s own javadoc),
  * making it the game's uniquely rarest ore; {@link #STARFALL_STONE} bumps from count 1 to 2 so
  * voidglass alone keeps count 1.
+ *
+ * <p><b>#909 (maintainer directive, 2026-09-02, out of the reference-ladder parity audit) supersedes
+ * #839's own dimension split.</b> #839 had kept nine of the eleven in Overworld deepslate and sent
+ * only voltcinder/hardcinder to the Nether, on a "don't trivialise cobalt/ardite's Nether niche"
+ * reading; the maintainer's answer is that each ore should generate where its reference counterpart
+ * does. The roster is now <b>Nether</b> ({@link Host#NETHER}, netherrack): {@link #FULMENITE},
+ * {@link #MURKIRON}, {@link #WARSPAR} -- joining brimspar, the standalone fuel ore, which keeps its
+ * own biome modifier; <b>End</b> ({@link Host#END}, end stone, outer islands only):
+ * {@link #DUSKSPAR}, {@link #NIGHTSHALE}, {@link #HOLLOWSTONE}, {@link #VOIDGLASS};
+ * <b>Overworld</b>: {@link #HARDCINDER}, {@link #VOLTCINDER} and {@link #RESONITE} in deepslate,
+ * {@link #STARFALL_STONE} in surface stone. voidglass is the one deliberate departure from the
+ * reference (which puts it in the Overworld): #883's directive above stands. Each ore's height band
+ * and rate are re-picked for the column it now lives in -- the reference's own 1.12 y ranges are a
+ * guide, not a target, since 1.21's Nether and End columns differ. The per-ore rationale lives with
+ * the table in {@code scripts/generate_track_b_worldgen.py}, which emits the actual worldgen JSON;
+ * this record's own fields must be kept in step with it by hand (see that script's docstring), and
+ * {@code TrackBOreGameTests} fails the build if an ore's host block or biome modifier disagree.
  */
 public record TrackBOre(String id, Tier tier, Host host, int veinSize, int ratePerChunk, int minY, int maxY, int color) {
 
@@ -121,21 +135,21 @@ public record TrackBOre(String id, Tier tier, Host host, int veinSize, int rateP
     // ore/worldgen presence) and ForgeweaveTraits#EARTHMEND for its trait. No replacement TrackBOre
     // entry was added; Track B's ore-sourced roster is 11 materials as of #884, not 12.
     public static final TrackBOre FULMENITE =
-            new TrackBOre("fulmenite", Tier.DIAMOND, Host.OVERWORLD_DEEPSLATE, 5, 6, -24, 32, 0xC8D94A);
+            new TrackBOre("fulmenite", Tier.DIAMOND, Host.NETHER, 5, 6, 10, 108, 0xC8D94A);
     public static final TrackBOre DUSKSPAR =
-            new TrackBOre("duskspar", Tier.NETHERITE, Host.OVERWORLD_DEEPSLATE, 4, 3, -64, -16, 0x8A5FD9);
+            new TrackBOre("duskspar", Tier.NETHERITE, Host.END, 4, 3, 32, 56, 0x8A5FD9);
     public static final TrackBOre VOLTCINDER =
-            new TrackBOre("voltcinder", Tier.NETHERITE, Host.NETHER, 4, 6, 0, 127, 0x38D9D0);
+            new TrackBOre("voltcinder", Tier.NETHERITE, Host.OVERWORLD_DEEPSLATE, 4, 2, -64, -48, 0x38D9D0);
     public static final TrackBOre MURKIRON =
-            new TrackBOre("murkiron", Tier.HARDCINDER, Host.OVERWORLD_DEEPSLATE, 4, 3, -64, -16, 0x3A5C56);
+            new TrackBOre("murkiron", Tier.HARDCINDER, Host.NETHER, 4, 3, 8, 64, 0x3A5C56);
     public static final TrackBOre HARDCINDER =
-            new TrackBOre("hardcinder", Tier.HARDCINDER, Host.NETHER, 4, 6, 0, 127, 0xC23B2B);
+            new TrackBOre("hardcinder", Tier.HARDCINDER, Host.OVERWORLD_DEEPSLATE, 4, 4, -48, 16, 0xC23B2B);
     public static final TrackBOre NIGHTSHALE =
-            new TrackBOre("nightshale", Tier.HARDCINDER, Host.OVERWORLD_DEEPSLATE, 4, 3, -64, -16, 0x3B3F7A);
+            new TrackBOre("nightshale", Tier.HARDCINDER, Host.END, 4, 3, 44, 72, 0x3B3F7A);
     public static final TrackBOre WARSPAR =
-            new TrackBOre("warspar", Tier.WARSPAR, Host.OVERWORLD_DEEPSLATE, 4, 3, -64, -16, 0xA4283F);
+            new TrackBOre("warspar", Tier.WARSPAR, Host.NETHER, 4, 2, 0, 120, 0xA4283F);
     public static final TrackBOre HOLLOWSTONE =
-            new TrackBOre("hollowstone", Tier.WARSPAR, Host.OVERWORLD_DEEPSLATE, 4, 3, -64, -16, 0xD8D3C2);
+            new TrackBOre("hollowstone", Tier.WARSPAR, Host.END, 4, 2, 0, 96, 0xD8D3C2);
     public static final TrackBOre RESONITE =
             new TrackBOre("resonite", Tier.RESONITE, Host.OVERWORLD_DEEPSLATE, 4, 3, -64, -16, 0x3FAE9E);
     // JC11 -- former meteor pair, now ordinary rare veins/surface feature (see class javadoc). Counts

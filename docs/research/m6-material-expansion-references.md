@@ -681,20 +681,28 @@ whichever issue actually registers the material, per CLAUDE.md's localization ru
 
 **Ore-sourced (feeds #839 ore blocks + #841 tool materials):**
 
-| Reference idea | Forgeweave id | Tier (§7.1) |
-| --- | --- | --- |
-| Basalt (heals digging dirt-like blocks) | `cinderstone` | stone |
-| Tiberium (unstable, random explosions) | `fulmenite` | diamond |
-| Aurorium (self-repairs at night) | `duskspar` | netherite (top) |
-| Eezo (feast/famine XP, digging fatigue) | `voltcinder` | netherite (top) |
-| Prometheum (handle darkness debuff, captures mobs) | `murkiron` | netherite (top) |
-| Duranite (fewer drops, more XP) | `hardcinder` | netherite (top) |
-| Palladium (stronger at night, self-harm risk) | `nightshale` | netherite (top) |
-| Valyrium (bonus damage vs. fought enemy types) | `warspar` | netherite (top) |
-| Uru (blocks yield XP instead of loot) | `hollowstone` | netherite (top) |
-| Vibranium (handle flings enemies, stronger near death) | `resonite` | netherite (top) |
-| Meteorite (faster on soft blocks, smashes some drops) — rare surface feature per JC11 | `starfall_stone` | netherite (top) |
-| Obsidiorite (stats drift upward over time) — rare vein per JC11, moved to the End (issue #883, maintainer directive 2026-08-31) as the game's uniquely rarest ore | `voidglass` | netherite (top) |
+The **Dimension** column is issue #909's (maintainer directive, 2026-09-02, out of the reference
+parity audit): each ore generates in the dimension its reference counterpart does, superseding #839's
+own "only the two cinder-named ores go to the Nether" split. `voidglass` is the one deliberate
+departure — the reference puts it in the Overworld, #883's directive keeps it in the End. Host rock,
+height band and veins-per-chunk are Forgeweave's own and live with the table in
+`scripts/generate_track_b_worldgen.py`; `TrackBOre` mirrors them, and `TrackBOreGameTests` fails the
+build if the two disagree with the emitted worldgen JSON.
+
+| Reference idea | Forgeweave id | Tier (§7.1) | Dimension (#909) |
+| --- | --- | --- | --- |
+| Basalt (heals digging dirt-like blocks) | `cinderstone` | stone | — (retired by #884, no ore) |
+| Tiberium (unstable, random explosions) | `fulmenite` | diamond | Nether |
+| Aurorium (self-repairs at night) | `duskspar` | netherite (top) | End |
+| Eezo (feast/famine XP, digging fatigue) | `voltcinder` | netherite (top) | Overworld (deepest deepslate) |
+| Prometheum (handle darkness debuff, captures mobs) | `murkiron` | netherite (top) | Nether |
+| Duranite (fewer drops, more XP) | `hardcinder` | netherite (top) | Overworld |
+| Palladium (stronger at night, self-harm risk) | `nightshale` | netherite (top) | End |
+| Valyrium (bonus damage vs. fought enemy types) | `warspar` | netherite (top) | Nether |
+| Uru (blocks yield XP instead of loot) | `hollowstone` | netherite (top) | End |
+| Vibranium (handle flings enemies, stronger near death) | `resonite` | netherite (top) | Overworld |
+| Meteorite (faster on soft blocks, smashes some drops) — rare surface feature per JC11 | `starfall_stone` | netherite (top) | Overworld (surface stone) |
+| Obsidiorite (stats drift upward over time) — rare vein per JC11, moved to the End (issue #883, maintainer directive 2026-08-31) as the game's uniquely rarest ore | `voidglass` | netherite (top) | End (departure, see above) |
 
 Issue #910 cashed in the first row's "unstable" gloss where it is actually felt: `fulmenite_ore`
 explodes on harvest and chains through a vein, sharing `UnstableOreBlock` with `brimspar_ore` (#903)

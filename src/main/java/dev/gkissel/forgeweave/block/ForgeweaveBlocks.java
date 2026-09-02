@@ -388,9 +388,9 @@ public final class ForgeweaveBlocks {
     // #839 -- Track B's ore family (M6 epic #824, Track B: self-contained materials). See
     // dev.gkissel.forgeweave.trackb.TrackBOre for the 12-material roster and its distribution table.
     // Ore blocks reuse cobalt/ardite's oreBlock() strength/sound/requiresCorrectToolForDrops, but the
-    // map color follows each ore's own base rock (stone-look for the nine Overworld ores, the existing
-    // NETHER color for the two Nether ones, and vanilla end_stone's own MapColor.SAND for the one End
-    // ore, #883) rather than hardcoding NETHER for all. Storage and raw-storage blocks reuse
+    // map color follows each ore's own base rock (stone-look for the four Overworld ores, the existing
+    // NETHER color for the three Nether ones, and vanilla end_stone's own MapColor.SAND for the four
+    // End ores, #883/#909) rather than hardcoding NETHER for all. Storage and raw-storage blocks reuse
     // metalBlock() -- same "no per-block property differentiation" precedent every other Forgeweave
     // metal's storage block already follows.
     private static final Map<String, DeferredBlock<Block>> TRACK_B_ORE_BLOCKS = new LinkedHashMap<>();

@@ -226,10 +226,8 @@ public final class ForgeweaveCreativeTab {
         output.accept(ForgeweaveItems.RAW_ARDITE.get());
         output.accept(ForgeweaveItems.INGOT_MANYULLYN.get());
         output.accept(ForgeweaveItems.NUGGET_MANYULLYN.get());
-        output.accept(ForgeweaveItems.RAW_MANYULLYN.get());
         output.accept(ForgeweaveItems.INGOT_ROSE_GOLD.get());
         output.accept(ForgeweaveItems.NUGGET_ROSE_GOLD.get());
-        output.accept(ForgeweaveItems.RAW_ROSE_GOLD.get());
         output.accept(ForgeweaveItems.INGOT_STEEL.get());
         output.accept(ForgeweaveItems.NUGGET_STEEL.get());
         output.accept(ForgeweaveItems.INGOT_AMETHYST_BRONZE.get());

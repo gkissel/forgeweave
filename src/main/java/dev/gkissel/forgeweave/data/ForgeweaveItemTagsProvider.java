@@ -59,13 +59,12 @@ public class ForgeweaveItemTagsProvider extends ItemTagsProvider {
         tag("nuggets/ardite").add(ForgeweaveItems.NUGGET_ARDITE.get());
         tag("raw_materials/ardite").add(ForgeweaveItems.RAW_ARDITE.get());
 
+        // #911 -- manyullyn and rose gold are alloys made only in the smeltery, so no raw form/tag.
         tag("ingots/manyullyn").add(ForgeweaveItems.INGOT_MANYULLYN.get());
         tag("nuggets/manyullyn").add(ForgeweaveItems.NUGGET_MANYULLYN.get());
-        tag("raw_materials/manyullyn").add(ForgeweaveItems.RAW_MANYULLYN.get());
 
         tag("ingots/rose_gold").add(ForgeweaveItems.INGOT_ROSE_GOLD.get());
         tag("nuggets/rose_gold").add(ForgeweaveItems.NUGGET_ROSE_GOLD.get());
-        tag("raw_materials/rose_gold").add(ForgeweaveItems.RAW_ROSE_GOLD.get());
 
         // #234 -- steel: FW's own ingot/nugget into the same c: convention tags, so the shipped
         // tag-keyed melting rows (steel_ingot.json and friends) pick them up alongside any other

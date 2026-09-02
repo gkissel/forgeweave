@@ -18,12 +18,12 @@ used):
     netherrack.png) -- verified against every template this script uses: differing pixels cleanly
     separate into "identical to host" (distance 0) and "blob" (distance >= ~12), no middle ground, so a
     distance-10 threshold reliably isolates the blob with no manual touch-up needed on any of the 11.
-    Issue #883 (voidglass's move to the End) is the one exception: there is no vanilla end-stone ore to
-    diff against, so voidglass's blob mask is computed the normal way against its *donor's own* natural
-    host (deepslate, since its ore template is still `deepslate_gold_ore` per TEMPLATES below) and that
-    mask shape is then painted onto end_stone.png instead -- end_stone's own pixels stay intact outside
-    the blob, exactly like every other material's host rock does. See the `host == "end_stone"` branch
-    in `main()`.
+    The End ores are the one exception (issue #883 for voidglass, issue #909 for duskspar, nightshale
+    and hollowstone): there is no vanilla end-stone ore to diff against, so an End ore's blob mask is
+    computed the normal way against its *donor's own* natural host (deepslate, since its ore template
+    stays a `deepslate_*_ore` per TEMPLATES below) and that mask shape is then painted onto
+    end_stone.png instead -- end_stone's own pixels stay intact outside the blob, exactly like every
+    other material's host rock does. See the `host == "end_stone"` branch in `main()`.
   * **Storage block** and **raw-storage block**: a vanilla metal-block/raw-block texture (solid panel,
     no separate host to preserve), recolored across the whole image.
   * **Raw item**: a vanilla raw-ore item icon, recolored across the whole image -- same technique
@@ -49,13 +49,15 @@ template, storage-block template and raw template don't need to agree:
 
   * Ore/storage pool: iron, copper, gold, diamond, redstone, lapis, emerald (issue #878's named
     "vanilla ore set", 7 families) -- deepslate-prefixed when TrackBOre#host is OVERWORLD_DEEPSLATE
-    (8 of 11 materials), left at the surface family when OVERWORLD_STONE (starfall_stone).
-    voltcinder/hardcinder (TrackBOre#host NETHER) aren't stone or deepslate at all, so they draw from a
-    separate 2-member nether pool (nether_gold_ore, nether_quartz_ore) instead -- the 7-family pool has
-    no netherrack-based member, and a stone/deepslate-templated ore block would look wrong sitting in
-    Nether worldgen. voidglass (TrackBOre#host END, issue #883) draws its donor template the same way
-    OVERWORLD_DEEPSLATE materials do -- there's no netherrack-style dedicated pool for it, since its
-    donor's *shape*, not its host rock, is what gets reused (see the ore-block bullet above).
+    (3 of 11 materials after issue #909), left at the surface family when OVERWORLD_STONE
+    (starfall_stone). The three Nether ores (TrackBOre#host NETHER: fulmenite, murkiron, warspar)
+    aren't stone or deepslate at all, so they draw from a separate 2-member nether pool
+    (nether_gold_ore, nether_quartz_ore) instead -- the 7-family pool has no netherrack-based member,
+    and a stone/deepslate-templated ore block would look wrong sitting in Nether worldgen. The four
+    End ores (TrackBOre#host END: duskspar, nightshale, hollowstone, voidglass) draw their donor
+    template the same way OVERWORLD_DEEPSLATE materials do -- there's no netherrack-style dedicated
+    pool for them, since a donor's *shape*, not its host rock, is what gets reused (see the ore-block
+    bullet above).
   * Storage-block pool: the metal-block half of the same 7 families (iron_block .. emerald_block) --
     independent draw from the ore template, e.g. a material whose ore uses gold_ore can still have a
     storage block drawn from diamond_block.
@@ -94,18 +96,23 @@ ITEM_DIR = ROOT / "src/main/resources/assets/forgeweave/textures/item"
 
 # (id, color, host) -- host picks the ore block's base rock. Must match TrackBOre.ALL. Issue #884
 # (1) removed "cinderstone": basalt replaces it and uses vanilla's own basalt texture, no derived art.
+# (id, flavor color, host rock) -- the host column mirrors dev.gkissel.forgeweave.trackb.TrackBOre's
+# own Host, and issue #909 re-homed eight of the eleven onto a different dimension (three Nether,
+# four End, four Overworld). Because a material's donor template is drawn from a host-dependent pool
+# (see _derive_ore_template), re-homing an ore also re-draws its ore-block donor -- deterministically,
+# from the same per-material seed, so TEMPLATES below still reproduces byte-for-byte on a re-run.
 ORES = [
-    ("fulmenite", 0xC8D94A, "deepslate"),
-    ("duskspar", 0x8A5FD9, "deepslate"),
-    ("voltcinder", 0x38D9D0, "netherrack"),
-    ("murkiron", 0x3A5C56, "deepslate"),
-    ("hardcinder", 0xC23B2B, "netherrack"),
-    ("nightshale", 0x3B3F7A, "deepslate"),
-    ("warspar", 0xA4283F, "deepslate"),
-    ("hollowstone", 0xD8D3C2, "deepslate"),
+    ("fulmenite", 0xC8D94A, "netherrack"),
+    ("murkiron", 0x3A5C56, "netherrack"),
+    ("warspar", 0xA4283F, "netherrack"),
+    ("duskspar", 0x8A5FD9, "end_stone"),
+    ("nightshale", 0x3B3F7A, "end_stone"),
+    ("hollowstone", 0xD8D3C2, "end_stone"),
+    ("voidglass", 0x2A1740, "end_stone"),
+    ("hardcinder", 0xC23B2B, "deepslate"),
+    ("voltcinder", 0x38D9D0, "deepslate"),
     ("resonite", 0x3FAE9E, "deepslate"),
     ("starfall_stone", 0xBCD6F2, "stone"),
-    ("voidglass", 0x2A1740, "end_stone"),
 ]
 
 # Issue #903: brimspar is a Nether *fuel* ore, not a Track B tool material -- no ingot, nugget, raw
@@ -134,9 +141,10 @@ BLOB_MIN_CONTRAST = 0.18
 
 def _derive_ore_template(mat_id: str, host: str) -> str:
     """Deterministic per (id, host) -- see module docstring's "Template assignment" section. `end_stone`
-    (voidglass, issue #883) reuses the deepslate branch: there is no vanilla end-stone ore to draw a
-    donor from, so the donor stays a deepslate ore family -- only its blob *shape* gets reused, painted
-    onto end_stone.png as the real host instead of deepslate.png (see main()'s `end_stone` branch)."""
+    (voidglass per issue #883; duskspar/nightshale/hollowstone per #909) reuses the deepslate branch:
+    there is no vanilla end-stone ore to draw a donor from, so the donor stays a deepslate ore family
+    -- only its blob *shape* gets reused, painted onto end_stone.png as the real host instead of
+    deepslate.png (see main()'s `end_stone` branch)."""
     rng = random.Random(f"{mat_id}:ore")
     if host == "netherrack":
         return rng.choice(NETHER_POOL)

@@ -2,12 +2,8 @@
   "type": "neoforge:add_features",
   "biomes": "#minecraft:is_overworld",
   "features": [
-    "forgeweave:fulmenite_ore",
-    "forgeweave:duskspar_ore",
-    "forgeweave:murkiron_ore",
-    "forgeweave:nightshale_ore",
-    "forgeweave:warspar_ore",
-    "forgeweave:hollowstone_ore",
+    "forgeweave:hardcinder_ore",
+    "forgeweave:voltcinder_ore",
     "forgeweave:resonite_ore",
     "forgeweave:starfall_stone_ore"
   ],

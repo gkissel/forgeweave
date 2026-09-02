@@ -300,8 +300,8 @@ public class ForgeweaveItemModelProvider extends ItemModelProvider {
         // nuggets are straight upstream texture ports (NOTICE.md); rose gold's are a recoloured
         // derivation of upstream's manyullyn art (NOTICE.md, no 1.12 counterpart otherwise). Raw
         // cobalt/ardite have no upstream art to derive from (1.12 predates raw ores), so per issue
-        // #140 they are vanilla recolors instead (raw_gold/netherite_scrap, NOTICE.md); raw
-        // manyullyn/rose gold stay fresh, non-derived placeholder icons (ForgeweaveItems#RAW_MANYULLYN).
+        // #140 they are vanilla recolors instead (raw_gold/netherite_scrap, NOTICE.md). Manyullyn and
+        // rose gold are alloys made only in the smeltery, so they have no raw form (issue #911).
         // All four live under the standard item texture folder either way.
         singleLayerModel(ForgeweaveItems.INGOT_COBALT, derivedItem("cobalt_ingot"));
         singleLayerModel(ForgeweaveItems.NUGGET_COBALT, derivedItem("cobalt_nugget"));
@@ -334,10 +334,8 @@ public class ForgeweaveItemModelProvider extends ItemModelProvider {
         }
         singleLayerModel(ForgeweaveItems.INGOT_MANYULLYN, derivedItem("manyullyn_ingot"));
         singleLayerModel(ForgeweaveItems.NUGGET_MANYULLYN, derivedItem("manyullyn_nugget"));
-        singleLayerModel(ForgeweaveItems.RAW_MANYULLYN, itemTexture("raw_manyullyn"));
         singleLayerModel(ForgeweaveItems.INGOT_ROSE_GOLD, derivedItem("rose_gold_ingot"));
         singleLayerModel(ForgeweaveItems.NUGGET_ROSE_GOLD, derivedItem("rose_gold_nugget"));
-        singleLayerModel(ForgeweaveItems.RAW_ROSE_GOLD, itemTexture("raw_rose_gold"));
         // #234 -- steel (M3.2), recolor-of-manyullyn derivations like rose gold's (NOTICE.md).
         singleLayerModel(ForgeweaveItems.INGOT_STEEL, derivedItem("steel_ingot"));
         singleLayerModel(ForgeweaveItems.NUGGET_STEEL, derivedItem("steel_nugget"));
