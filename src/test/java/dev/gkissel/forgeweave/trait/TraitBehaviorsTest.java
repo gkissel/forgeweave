@@ -79,7 +79,22 @@ class TraitBehaviorsTest {
             "{\"behavior\":\"forgeweave:extra_modifier_slots\",\"count\":2}",
             "{\"behavior\":\"forgeweave:energized\",\"capacity\":32000,\"energy_per_durability_point\":40.0}",
             "{\"behavior\":\"forgeweave:solar_recharge\",\"rate_per_tick\":2}",
-            "{\"behavior\":\"forgeweave:kinetic_charge\",\"fraction\":5.0}" })
+            "{\"behavior\":\"forgeweave:kinetic_charge\",\"fraction\":5.0}",
+            // #831 M6-7 armor library.
+            "{\"behavior\":\"forgeweave:damage_floor\",\"minimum_hearts\":0.5}",
+            "{\"behavior\":\"forgeweave:effect_on_attacker\",\"effect\":\"minecraft:weakness\",\"duration\":100,\"chance\":0.25}",
+            "{\"behavior\":\"forgeweave:effect_on_hurt\",\"effect\":\"minecraft:regeneration\",\"duration\":60,\"amplifier\":1}",
+            "{\"behavior\":\"forgeweave:amplify_incoming_healing\",\"factor\":1.25}",
+            "{\"behavior\":\"forgeweave:convert_damage_to_healing\",\"damage_type\":\"minecraft:is_fire\",\"fraction\":0.5}",
+            "{\"behavior\":\"forgeweave:stacking_resistance\",\"per_hit\":0.75,\"cap\":6,\"decay\":100}",
+            "{\"behavior\":\"forgeweave:death_save\",\"cooldown\":6000,\"cost\":100}",
+            "{\"behavior\":\"forgeweave:invulnerability_window\",\"ticks\":40,\"condition\":\"full_health\"}",
+            "{\"behavior\":\"forgeweave:evasion\",\"chance\":0.1}",
+            "{\"behavior\":\"forgeweave:conceal_in_darkness\",\"light_threshold\":7,\"visibility\":0.5}",
+            "{\"behavior\":\"forgeweave:movement_bonus\",\"kind\":\"movement_speed\",\"magnitude\":0.05}",
+            "{\"behavior\":\"forgeweave:stat_scales_with_wear\",\"stat\":\"protection\",\"coefficient\":0.5}",
+            "{\"behavior\":\"forgeweave:damage_type_immunity\",\"damage_type\":\"minecraft:is_lightning\"}",
+            "{\"behavior\":\"forgeweave:vent_explosions\",\"knockback_factor\":0.05}" })
     void everyBehaviorRoundTrips(String json) {
         JsonElement input = JsonParser.parseString(json);
         TraitDefinition definition = TraitDefinition.CODEC.parse(ops, input).getOrThrow();
@@ -92,7 +107,7 @@ class TraitBehaviorsTest {
     /** Every registered behaviour id has a row above -- a new entry without a round-trip case fails here. */
     @Test
     void everyRegisteredBehaviorIsCoveredAbove() {
-        assertEquals(18, TraitBehaviors.ids().size(), "add a round-trip case for the new behaviour: " + TraitBehaviors.ids());
+        assertEquals(32, TraitBehaviors.ids().size(), "add a round-trip case for the new behaviour: " + TraitBehaviors.ids());
     }
 
     /**

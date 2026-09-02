@@ -226,6 +226,9 @@ public class Forgeweave {
         // #828 -- grievous's mark: the combat half rides the seams; this listener only reads the
         // mark the seam left, same idiom as the two teleport listeners just above.
         NeoForge.EVENT_BUS.addListener(ForgeweaveTraits::onLivingHeal);
+        // #831 -- conceal_in_darkness: worn pieces scale how visible their wearer is to mobs. The one
+        // hook Trait#onDefend cannot serve, since awareness is decided long before anything is hit.
+        NeoForge.EVENT_BUS.addListener(ForgeweaveTraits::onLivingVisibility);
         // #832 -- datapack trait definitions: the trait hooks get a bare ItemStack and no registry
         // access, so the loaded trait_definition registry is snapshotted into a static lookup here,
         // on both sides, every time data loads or syncs. See ForgeweaveTraits#onTagsUpdated.

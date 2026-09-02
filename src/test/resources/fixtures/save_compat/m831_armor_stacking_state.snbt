@@ -1,0 +1,69 @@
+{
+    decoder: "item_stack",
+    expect: {
+        components: {
+            "forgeweave:armor_stats": {
+                armor: 2.0f,
+                durability: 363,
+                knockback_resistance: 0.1f,
+                toughness: 1.0f
+            },
+            "forgeweave:death_save_cooldown": {
+                level: 1,
+                ticks_remaining: 4287
+            },
+            "forgeweave:resistance_stacks": {
+                level: 4,
+                ticks_remaining: 63
+            },
+            "forgeweave:tool_materials": {
+                head: "forgeweave:cobalt",
+                parts: [
+                    "forgeweave:cobalt",
+                    "forgeweave:cobalt"
+                ]
+            },
+            "forgeweave:traits": [
+                "forgeweave:bracingplate",
+                "forgeweave:lastbreath"
+            ],
+            "minecraft:damage": 118,
+            "minecraft:max_damage": 363
+        },
+        id: "forgeweave:chestplate"
+    },
+    nbt: {
+        components: {
+            "forgeweave:armor_stats": {
+                armor: 2.0f,
+                durability: 363,
+                knockback_resistance: 0.1f,
+                toughness: 1.0f
+            },
+            "forgeweave:death_save_cooldown": {
+                level: 1,
+                ticks_remaining: 4287
+            },
+            "forgeweave:resistance_stacks": {
+                level: 4,
+                ticks_remaining: 63
+            },
+            "forgeweave:tool_materials": {
+                head: "forgeweave:cobalt",
+                parts: [
+                    "forgeweave:cobalt",
+                    "forgeweave:cobalt"
+                ]
+            },
+            "forgeweave:traits": [
+                "forgeweave:bracingplate",
+                "forgeweave:lastbreath"
+            ],
+            "minecraft:damage": 118,
+            "minecraft:max_damage": 363
+        },
+        count: 1,
+        id: "forgeweave:chestplate"
+    },
+    what: "M6-7 (#831): a cobalt chestplate mid-fight -- bracingplate four stacks deep with 63 ticks left on the decay, and lastbreath's death save already spent, 4287 ticks of its cooldown still to run. Both new components are the TraitStacks shape momentum and insatiable already use (level + ticks_remaining), on a worn piece rather than a held tool."
+}

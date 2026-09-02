@@ -228,6 +228,11 @@ public final class CombatSeams {
         if (blow.damage() != event.getAmount()) {
             event.setAmount(blow.damage());
         }
+        // #831: the one thing a worn piece can only settle through the event itself -- vanilla reads
+        // the container's tick count into invulnerableTime right after this event returns.
+        if (blow.invulnerabilityTicks() > 0) {
+            event.setInvulnerabilityTicks(blow.invulnerabilityTicks());
+        }
         if (blow.protection() != 0.0F || blow.flatReduction() > 0.0F) {
             pendingArmorBlow = blow;
             pendingArmorDefender = defender;

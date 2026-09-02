@@ -365,4 +365,33 @@ public interface Trait {
     default float dropDestroyChance() {
         return 0.0F;
     }
+
+    /**
+     * What this worn piece multiplies a heal the wearer receives by ({@code amplify_incoming_healing},
+     * issue #831's M6 armor library) -- {@code 1} for no change, and multiplied together across worn
+     * pieces by {@link ForgeweaveTraits#onLivingHeal}, the {@code LivingHealEvent} listener {@code
+     * grievous}' reduced-healing mark already needed. Added under this interface's standing rule: a
+     * heal is not a blow and never reaches {@link #onDefend}.
+     *
+     * @param piece the worn piece carrying this trait, so a trait can read its own per-piece state
+     * @param wearer who is being healed
+     * @param amount the heal as every earlier piece left it
+     */
+    default float healingMultiplier(ItemStack piece, LivingEntity wearer, float amount) {
+        return 1.0F;
+    }
+
+    /**
+     * What this worn piece multiplies the wearer's visibility to mobs by ({@code conceal_in_darkness},
+     * issue #831) -- {@code 1} for no change, multiplied together across worn pieces by
+     * {@link ForgeweaveTraits#onLivingVisibility} on NeoForge's {@code LivingVisibilityEvent}, the
+     * same event vanilla's sneaking and mob-head reductions ride. Added under the same rule as
+     * {@link #healingMultiplier}: mob awareness is decided long before anything is hit.
+     *
+     * @param piece the worn piece carrying this trait
+     * @param wearer whose visibility is being judged
+     */
+    default float visibilityMultiplier(ItemStack piece, LivingEntity wearer) {
+        return 1.0F;
+    }
 }

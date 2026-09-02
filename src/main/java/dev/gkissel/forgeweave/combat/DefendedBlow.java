@@ -25,6 +25,7 @@ public final class DefendedBlow {
     private float damage;
     private float protection;
     private float flatReduction;
+    private int invulnerabilityTicks;
 
     public DefendedBlow(float damage) {
         this.originalDamage = damage;
@@ -63,5 +64,23 @@ public final class DefendedBlow {
 
     public void addFlatReduction(float amount) {
         this.flatReduction += amount;
+    }
+
+    /**
+     * The post-hit invulnerability window this blow should leave behind, {@code 0} for vanilla's own
+     * 20 ticks -- {@code trait.InvulnerabilityWindow} (issue #831, M6 armor library). Applied by
+     * {@link CombatSeams} through {@code LivingIncomingDamageEvent#setInvulnerabilityTicks}, which
+     * is the only place the number can be set: vanilla writes
+     * {@code DamageContainer#getPostAttackInvulnerabilityTicks} into {@code invulnerableTime} after
+     * the event and before {@code actuallyHurt}, so a piece assigning the field directly would be
+     * overwritten a line later.
+     */
+    public int invulnerabilityTicks() {
+        return invulnerabilityTicks;
+    }
+
+    /** The longest window any piece asked for wins; two pieces do not add up to double immunity. */
+    public void requestInvulnerabilityTicks(int ticks) {
+        this.invulnerabilityTicks = Math.max(this.invulnerabilityTicks, ticks);
     }
 }
