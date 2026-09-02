@@ -1,11 +1,14 @@
 package dev.gkissel.forgeweave.gametest;
 
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
 import net.minecraft.core.Registry;
 import net.minecraft.core.component.DataComponents;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
@@ -25,6 +28,8 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.levelgen.GenerationStep;
+import net.minecraft.world.level.levelgen.feature.ConfiguredFeature;
+import net.minecraft.world.level.levelgen.feature.configurations.OreConfiguration;
 import net.minecraft.world.level.levelgen.placement.PlacedFeature;
 
 import net.neoforged.neoforge.common.world.BiomeModifier;
@@ -58,9 +63,11 @@ import dev.gkissel.forgeweave.worldgen.TrackBOrePlacement;
  * still succeed.
  *
  * <p>Issue #883 moved voidglass to the End (the game's uniquely rarest ore), off the Overworld biome
- * modifier and onto its own {@code track_b_end_ores.json} -- {@link #voidglassGeneratesOnlyInTheEndsOuterIslandBiomes}
- * covers that wiring the same "hand-written JSON resolves against the real registry" way the placed-
- * feature tests above do, since the biome modifier registry is reachable without a real chunk too.
+ * modifier and onto its own {@code track_b_end_ores.json}; issue #909 then re-homed seven more ores
+ * across all three dimensions. {@link #everyTrackBOreGeneratesOnlyInItsHostDimension} covers that
+ * wiring for the whole roster the same "hand-written JSON resolves against the real registry" way the
+ * placed-feature tests above do, since the biome modifier and configured feature registries are both
+ * reachable without a real chunk too.
  */
 @GameTestHolder(Forgeweave.MODID)
 @PrefixGameTestTemplate(false)
@@ -113,28 +120,57 @@ public class TrackBOreGameTests {
         return feature;
     }
 
+    /** The biome modifier that carries a host's ores -- one per dimension (#909). */
+    private static String modifierFor(TrackBOre.Host host) {
+        return switch (host) {
+            case OVERWORLD_STONE, OVERWORLD_DEEPSLATE -> "track_b_overworld_ores";
+            case NETHER -> "track_b_nether_ores";
+            case END -> "track_b_end_ores";
+        };
+    }
+
     /**
-     * #883: voidglass moves from riding {@code track_b_overworld_ores.json} to its own
-     * {@code track_b_end_ores.json}, wired to exactly the End's four outer-island biomes
-     * (end_highlands, end_midlands, end_barrens, small_end_islands) -- never
-     * {@code minecraft:the_end}, the small central island the dragon fight uses, which the blanket
-     * {@code #minecraft:is_end} tag would have pulled in. Also proves voidglass_ore no longer rides the
-     * Overworld modifier it used to share with the other eleven ores.
+     * #909: every ore generates in the dimension {@link TrackBOre#host} names and in no other. For
+     * each of the eleven this checks both halves of "which dimension", since they are separate files
+     * that can drift apart: the placed feature is carried by exactly one of the three biome modifiers
+     * -- the one for its host, and provably <em>not</em> by the other two -- and its configured
+     * feature replaces that host's own rock (netherrack for the three Nether ores, end stone for the
+     * four End ones, deepslate/stone for the four Overworld ones) with that ore's own block. A wrong
+     * host block, a stale modifier entry, or an ore left behind on the modifier it used to ride all
+     * fail here.
+     *
+     * <p>Also keeps #883's End-biome precision: {@code track_b_end_ores} is wired to exactly the
+     * End's four outer-island biomes (end_highlands, end_midlands, end_barrens, small_end_islands),
+     * never {@code minecraft:the_end}, the small central island the dragon fight uses, which the
+     * blanket {@code #minecraft:is_end} tag would have pulled in.
      */
     @GameTest(template = "empty")
-    public static void voidglassGeneratesOnlyInTheEndsOuterIslandBiomes(GameTestHelper helper) {
+    public static void everyTrackBOreGeneratesOnlyInItsHostDimension(GameTestHelper helper) {
         ServerLevel level = helper.getLevel();
         var biomeModifiers = level.registryAccess().registryOrThrow(NeoForgeRegistries.Keys.BIOME_MODIFIERS);
         var biomes = level.registryAccess().registryOrThrow(Registries.BIOME);
-        PlacedFeature voidglassOre = getPlacedFeature(helper, "voidglass_ore");
 
-        BiomeModifiers.AddFeaturesBiomeModifier endModifier =
-                getAddFeaturesBiomeModifier(helper, biomeModifiers, "track_b_end_ores");
-        helper.assertTrue(endModifier.step() == GenerationStep.Decoration.UNDERGROUND_ORES,
-                "expected track_b_end_ores to run in the underground_ores step");
-        helper.assertTrue(endModifier.features().stream().anyMatch(holder -> holder.value() == voidglassOre),
-                "expected track_b_end_ores to add forgeweave:voidglass_ore");
+        Map<String, BiomeModifiers.AddFeaturesBiomeModifier> modifiers = new LinkedHashMap<>();
+        for (String name : List.of("track_b_overworld_ores", "track_b_nether_ores", "track_b_end_ores")) {
+            BiomeModifiers.AddFeaturesBiomeModifier modifier = getAddFeaturesBiomeModifier(helper, biomeModifiers, name);
+            helper.assertTrue(modifier.step() == GenerationStep.Decoration.UNDERGROUND_ORES,
+                    "expected " + name + " to run in the underground_ores step");
+            modifiers.put(name, modifier);
+        }
 
+        for (TrackBOre ore : TrackBOre.ALL) {
+            PlacedFeature placed = getPlacedFeature(helper, ore.oreBlockId());
+            String expected = modifierFor(ore.host());
+            for (var entry : modifiers.entrySet()) {
+                boolean carried = entry.getValue().features().stream().anyMatch(holder -> holder.value() == placed);
+                helper.assertTrue(carried == entry.getKey().equals(expected),
+                        ore.oreBlockId() + " belongs to " + expected + " only, but " + entry.getKey()
+                                + (carried ? " also carries it" : " does not carry it"));
+            }
+            assertReplacesItsHostRock(helper, ore);
+        }
+
+        BiomeModifiers.AddFeaturesBiomeModifier endModifier = modifiers.get("track_b_end_ores");
         for (String id : List.of("end_highlands", "end_midlands", "end_barrens", "small_end_islands")) {
             Holder<Biome> biome = biomes.getHolderOrThrow(ResourceKey.create(Registries.BIOME, ResourceLocation.withDefaultNamespace(id)));
             helper.assertTrue(endModifier.biomes().contains(biome), "expected track_b_end_ores to include " + id);
@@ -143,12 +179,32 @@ public class TrackBOreGameTests {
         helper.assertFalse(endModifier.biomes().contains(theEnd),
                 "track_b_end_ores must not include the central the_end island");
 
-        BiomeModifiers.AddFeaturesBiomeModifier overworldModifier =
-                getAddFeaturesBiomeModifier(helper, biomeModifiers, "track_b_overworld_ores");
-        helper.assertFalse(overworldModifier.features().stream().anyMatch(holder -> holder.value() == voidglassOre),
-                "voidglass_ore must no longer ride track_b_overworld_ores");
-
         helper.succeed();
+    }
+
+    /**
+     * An ore's configured feature swaps its {@link TrackBOre.Host}'s own rock for that ore's block --
+     * the other half of "which dimension does this generate in" (a Nether-registered ore whose
+     * feature still targets deepslate would generate nowhere at all).
+     */
+    private static void assertReplacesItsHostRock(GameTestHelper helper, TrackBOre ore) {
+        ResourceKey<ConfiguredFeature<?, ?>> key = ResourceKey.create(Registries.CONFIGURED_FEATURE,
+                ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, ore.oreBlockId()));
+        ConfiguredFeature<?, ?> configured =
+                helper.getLevel().registryAccess().registryOrThrow(Registries.CONFIGURED_FEATURE).get(key);
+        helper.assertTrue(configured != null, "expected a configured feature registered as " + key.location());
+        helper.assertTrue(configured.config() instanceof OreConfiguration,
+                ore.oreBlockId() + " must be a minecraft:ore feature");
+
+        List<OreConfiguration.TargetBlockState> targets = ((OreConfiguration) configured.config()).targetStates;
+        helper.assertTrue(targets.size() == 1, ore.oreBlockId() + " must have exactly one ore target");
+        OreConfiguration.TargetBlockState target = targets.get(0);
+
+        Block host = BuiltInRegistries.BLOCK.get(ResourceLocation.parse(ore.host().targetBlock));
+        helper.assertTrue(target.target.test(host.defaultBlockState(), helper.getLevel().getRandom()),
+                ore.oreBlockId() + " must replace " + ore.host().targetBlock + ", its " + ore.host() + " host rock");
+        helper.assertTrue(target.state.is(ForgeweaveBlocks.trackBOre(ore.id()).get()),
+                ore.oreBlockId() + " must place its own ore block");
     }
 
     private static BiomeModifiers.AddFeaturesBiomeModifier getAddFeaturesBiomeModifier(
