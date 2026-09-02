@@ -73,11 +73,13 @@ missing-texture patches and no layer bleeding through where the plating should c
 lone chestplate must not paint any other body part. `book_armor.png` and `book_armor_chestplate.png`
 are the armor chapter's opening page and a piece page with its parts diagram.
 
-Also review the Ponder frames (issues #664, #700): `ponder_smeltery.png`, `ponder_smeltery_sizes.png`,
-`ponder_casting.png` and `ponder_armor.png`, each scene captured on its finished frame from Ponder's
-default camera. Every core, drain and faucet must show its front (Ponder looks from the north-west,
+Also review the Ponder frames (issues #664, #700, #891): `ponder_smeltery.png`, `ponder_smeltery_sizes.png`,
+`ponder_casting.png`, `ponder_armor.png`, `ponder_seared_furnace.png`, `ponder_seared_reservoir.png` and
+`ponder_core_tiers.png`, each scene captured on its finished frame from Ponder's
+default camera. Every core, controller, drain and faucet must show its front (Ponder looks from the north-west,
 so directional blocks sit in north and west walls -- #700's defect was a core showing its back), the
-channel run must end over the table and the basin, and no scene may be an empty plate (a schematic
+channel run must end over the table and the basin, the core tiers frame must end on a lit Deep Core
+under its faucet, and no scene may be an empty plate (a schematic
 that failed to load). New scenes register themselves in `PonderHarnessCaptures`.
 
 ## Release-checklist: manual dedicated-server pass (from M4)

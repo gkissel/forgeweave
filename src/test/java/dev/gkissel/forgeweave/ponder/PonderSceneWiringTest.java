@@ -88,8 +88,9 @@ class PonderSceneWiringTest {
         RecordingHelper helper = new RecordingHelper();
         new ForgeweavePonderPlugin().registerScenes(helper);
 
-        assertEquals(5, helper.scenes.size(),
-                "#664's smeltery scene, #700's sizes and casting scenes (casting on faucet and channel), #682's armor scene");
+        assertEquals(11, helper.scenes.size(),
+                "#664's smeltery scene, #700's sizes and casting scenes (casting on faucet and channel), #682's armor scene, "
+                        + "#891's furnace and reservoir scenes and the core tiers scene on all four cores");
         RegisteredScene scene = helper.scenes.get(0);
         assertEquals(ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "standard_core"), scene.component(),
                 "the scene is registered on the smeltery controller item");
@@ -225,6 +226,34 @@ class PonderSceneWiringTest {
         assertTrue(channels.contains(Map.of("down", "false", "east", "in", "west", "out")), "the westward run: " + channels);
         assertTrue(channels.contains(Map.of("down", "true", "east", "in")), "the table's downspout: " + channels);
         assertTrue(channels.contains(Map.of("down", "true", "south", "in")), "the basin's downspout: " + channels);
+    }
+
+    /**
+     * #891: the seared furnace and reservoir scenes sit on their controllers' items; the core tiers
+     * scene on every core's item, since a player holding any tier may wonder what the next one is.
+     * Each schematic ships and keeps its directional blocks facing the camera (#700's rule).
+     */
+    @Test
+    void furnaceReservoirAndCoreTiersScenesAreRegisteredOnTheirBlocks() throws IOException {
+        RecordingHelper helper = new RecordingHelper();
+        new ForgeweavePonderPlugin().registerScenes(helper);
+
+        List<String> pairs = helper.scenes.stream()
+                .map(s -> s.component().getPath() + "->" + s.schematic().getPath()).toList();
+        assertTrue(pairs.contains("seared_furnace_controller->seared_furnace"), pairs.toString());
+        assertTrue(pairs.contains("seared_reservoir_controller->seared_reservoir"), pairs.toString());
+        for (String core : List.of("standard_core", "nether_core", "end_core", "deep_core")) {
+            assertTrue(pairs.contains(core + "->core_tiers"), pairs.toString());
+        }
+
+        assertFacings("seared_furnace", Map.of("forgeweave:seared_furnace_controller", "north"));
+        assertFacings("seared_reservoir", Map.of(
+                "forgeweave:seared_reservoir_controller", "north",
+                "forgeweave:seared_drain", "west",
+                "forgeweave:faucet", "east"));
+        assertFacings("core_tiers", Map.of(
+                "forgeweave:standard_core", "north",
+                "forgeweave:faucet", "east"));
     }
 
     private static void assertFacings(String schematic, Map<String, String> expected) throws IOException {
