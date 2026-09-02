@@ -25,7 +25,7 @@
   "traits": {
     "general": ["forgeweave:blighted"],
     "head": ["forgeweave:harrying"],
-    "handle": ["forgeweave:duskgrasp"]
+    "handle": ["forgeweave:duskgrasp", "forgeweave:dusksnare"]
   },
   "crafting_items": [
     { "ingredient": { "item": "forgeweave:murkiron_ingot" }, "value": 144 },

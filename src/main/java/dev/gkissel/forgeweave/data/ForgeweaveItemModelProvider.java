@@ -56,6 +56,9 @@ public class ForgeweaveItemModelProvider extends ItemModelProvider {
     protected void registerModels() {
         // The guide book (issue #273), art derived from upstream 1.12's items/book.png (NOTICE.md).
         singleLayerModel(ForgeweaveItems.GUIDE_BOOK, derivedItem("guide_book"));
+        // The Dusk Cage (issue #886): original art, no upstream equivalent to derive from -- a
+        // procedural sprite under the standard item texture folder, scripts/generate_dusk_cage_texture.py.
+        singleLayerModel(ForgeweaveItems.DUSK_CAGE, itemTexture("dusk_cage"));
         singleLayerModel(ForgeweaveItems.PATTERN_BLANK, derivedItem("pattern"));
         singleLayerModel(ForgeweaveItems.PATTERN_PICKAXE_HEAD, derivedItem("pattern_pickaxe_head"));
         singleLayerModel(ForgeweaveItems.PATTERN_SHOVEL_HEAD, derivedItem("pattern_shovel_head"));

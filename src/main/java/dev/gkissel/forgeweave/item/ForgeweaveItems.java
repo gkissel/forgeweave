@@ -1217,6 +1217,13 @@ public final class ForgeweaveItems {
     public static final DeferredItem<DeferredSpawnEggItem> BLUE_SLIME_SPAWN_EGG = ITEMS.registerItem("blue_slime_spawn_egg",
             properties -> new DeferredSpawnEggItem(ForgeweaveEntities.BLUE_SLIME, 0x47eff5, 0xacfff4, properties));
 
+    /**
+     * The Dusk Cage (issue #886) -- what murkiron's {@code dusksnare} handle trait snares a beaten,
+     * non-boss mob into, and the only item in the mod with no recipe and no creative-tab entry: it
+     * only ever exists filled, made by a capture and spent by a release (see {@link DuskCageItem}).
+     */
+    public static final DeferredItem<DuskCageItem> DUSK_CAGE = ITEMS.registerItem("dusk_cage", DuskCageItem::new);
+
     private static DeferredItem<BlockItem> tankItem(DeferredBlock<? extends Block> block) {
         return ITEMS.registerItem(block.getId().getPath(),
                 properties -> new SearedTankItem(block.get(), properties));
