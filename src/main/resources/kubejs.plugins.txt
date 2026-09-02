@@ -1,0 +1,3 @@
+# KubeJS plugin discovery (issue #832). KubeJS reads this file from every mod jar and instantiates
+# the named class only when KubeJS itself is installed -- see ForgeweaveKubeJSPlugin's javadoc.
+dev.gkissel.forgeweave.kubejs.ForgeweaveKubeJSPlugin

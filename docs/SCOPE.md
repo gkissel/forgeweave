@@ -386,6 +386,54 @@ All new melting, alloying, casting, existence-gated Part Builder, and trait-appl
 
 **JC10 reversed (#877, 2026-08-31 session 3, post-M6): real mining levels above netherite, not a stats-only ladder.** #838's original decision (no new tool-tier block tags; Track B differentiates by stats/traits/obtainability instead, collapsed onto the five existing vanilla rungs) is superseded. Three `forgeweave:incorrect_for_<tier>_tool` tags now mint above `minecraft:incorrect_for_netherite_tool` — `hardcinder`, `warspar`, `resonite`, each named after the Track B material anchoring it (`TrackBOre.Tier`, `ForgeweaveModifiers#TIER_TAGS`) — and eight of the pre-existing 26 netherite-tier Track B materials plus manyullyn and ancient re-rung onto them (see #877's PR body for the full table). Compat metals (Track A) stay within the five vanilla rungs regardless: other mods' blocks are not in Forgeweave's own tier tags, so moving a compat material's tools onto a Forgeweave-only rung would gate nothing real.
 
+### Datapack trait definitions and KubeJS traits (#832, JC6 resolved 2026-09-02)
+
+ADR-0004 item 3, delivered for traits only (maintainer decision on #832; modifier definitions stay deferred to M8). Two additive ways to create a trait without a Forgeweave code change; both produce an id that material JSON names like any built-in, and the pack supplies the id's `trait.<namespace>.<path>.name` / `.description` lang keys, which is all tooltips, the Tool Station panel and the guide book need. Built-in ids always win a collision; saved tools keep the plain id list.
+
+**Datapack** — one file per trait under `data/<namespace>/forgeweave/trait_definition/<name>.json`, flat: `behavior` picks a parameterized class from the M6 library (`TraitBehaviors`), the other fields are its parameters. Optional `neoforge:conditions` existence-gates it exactly like a material. A wrong `behavior` id or a missing parameter fails the data load with the known ids listed, never a silent no-op trait.
+
+```json
+{ "behavior": "forgeweave:effect_on_hit",
+  "effect": "minecraft:poison", "duration": 100, "amplifier": 0 }
+```
+
+| `behavior` | Parameters (snake_case; `[default]`) |
+| --- | --- |
+| Combat seams, all accepting an optional gate `condition` (a `HitCondition` name: `any`, `full_health`, `armored`, `not_fire_immune`, `burning`, `undead`, `below_wielder_health`, `harmful_effect`, `full_charge`, `wielder_full_health`, `night`, `day`, `wielder_sneaking`) `[any]` and `chance` 0..1 `[1.0]` — so `charged_bonus_damage` is `bonus_damage_vs` + `"condition": "full_charge"`, and the #828 `chargedOnly` flags are the same field | |
+| `damage_scales_with` | `source` (`remaining_durability`, `wielder_health`, `target_missing_health`, `target_max_health`, `impact_velocity`), `coefficient`, `cap` |
+| `bonus_damage_vs` | `amount` |
+| `crit_multiplier_bonus` | `extra` |
+| `effect_on_hit` | `effect` (mob effect id), `duration` (ticks), `amplifier` `[0]`, `stacking_cap` `[0]` |
+| `effect_on_self_on_hit` | `effect`, `duration`, `amplifier` `[0]` |
+| `strip_effects` | `count` `[1]` |
+| `reduce_target_healing` | `fraction` 0..1, `duration` |
+| `shorten_invulnerability` | `ticks` |
+| `lifesteal` | `fraction`, `cap` |
+| `chain_arc` | `range` (blocks), `damage_fraction`, `max_targets` |
+| `lightning_on_hit` | — (gate only) |
+| `kinetic_charge` | `fraction` (FE per point of damage dealt) |
+| Non-seam behaviours | |
+| `self_repair_when` | `condition` (`always`, `sunlit`, `night`) `[always]`, `ticks_per_point` |
+| `cascading_break` | `blocks` (block tag id) `[vanilla gravity blocks]` |
+| `fertilize_on_use` | `durability_cost`, `chance` 0..1 |
+| `extra_modifier_slots` | `count` |
+| `energized` | `capacity` (FE), `energy_per_durability_point` |
+| `solar_recharge` | `rate_per_tick` |
+
+**KubeJS** (optional dependency, `[2101.7,)`; the mod is unchanged without it) — for logic parameters cannot express. One startup event, one builder; every `on*` callback mirrors a `Trait` hook by name and signature (`ScriptTrait` is the full list), the rest set the constant a hook returns.
+
+```js
+// kubejs/startup_scripts/forgeweave_traits.js
+ForgeweaveEvents.traits(event => {
+    event.register('mypack:frosty')
+        .onAfterHit((stack, level, attacker, target) => target.potionEffects.add('minecraft:slowness', 60))
+        .onMiningSpeed((stack, effective, originalSpeed, speed) => level_is_cold(stack) ? speed * 1.25 : speed)
+        .bonusSlots(1)
+})
+```
+
+Verification: `TraitBehaviorsTest` (codec round-trip per behaviour, unknown `behavior` fails loudly, a failing `neoforge:conditions` decodes to nothing), `ScriptTraitTest` and `ForgeweaveKubeJSPluginTest` (plugin loads with KubeJS on the test classpath; no KubeJS import outside the `kubejs` package), `DatapackTraitGameTests` (a gametest-only definition reaches a Tool-Station-assembled tool and fires; a conditioned one never registers).
+
 ### Non-goals for M6
 
 Bolts (cut earlier, unrelated to M6) · Track B material names — JC9 decided: original Forgeweave coinages, not the reference ladder's own names (epic #824; a starting id-vocabulary proposal for #839–#841 to consume is in the [research doc](research/m6-material-expansion-references.md) §7.3) · meteor-fall ore sourcing — JC11's recommended answer cuts it for M6 in favor of ore veins or a rare surface feature (#839) · slime islands, purple/blue slime spawns (world-content milestone, unchanged non-goal since M2/M3.2) · the parity target's non-material mechanics — sceptres, Artifacts, fusion crafting, an in-game materials handbook, the melt-speed multiplier, and the damage-cap toggle are split per JC7 (#847): the two config tweaks and the handbook audit may ride any M6 batch, but sceptres/Artifacts/fusion crafting belong to their own milestone · GTCEu (skip until ids can be dumped from a running instance, JC5). (Track A dedicated molten fluids/casting per modded metal was a non-goal under JC3's original recommendation; JC3 was reversed on #873 — see the JC3-reversal paragraph above — so it is in scope now.)
@@ -394,7 +442,7 @@ Bolts (cut earlier, unrelated to M6) · Track B material names — JC9 decided: 
 
 - JC1 (#842) — whether the ~54 Tinkers' Evolution materials with no 1.21.1 mod build (Botania, Blood Magic, Thermal Series, Thaumcraft, IndustrialCraft 2, Environmental Tech, Natura, Astral Sorcery, Forestry, Advanced Solar Panels, AE2's fluix-steel) ship as dormant condition-gated presets or are skipped entirely.
 - JC4 — whether mods with no 1.12-addon-roster ancestor (Create, Ars Nouveau, Twilight Forest, Ad Astra, Allthemodium, Silent Gear, Mystical Agriculture, Powah, Occultism, Modern Industrialization, GTCEu) are in scope beyond Modern Industrialization and Powah.
-- JC6 (#832) — whether ADR-0004's datapack-creatable trait-definition registry ships in M6 (scoped to traits) or the ADR is amended to defer it.
+- ~~JC6 (#832) — whether ADR-0004's datapack-creatable trait-definition registry ships in M6 (scoped to traits) or the ADR is amended to defer it.~~ Resolved 2026-09-02: ships in M6, traits only, plus the KubeJS binding — see the section above.
 - JC8 (#831) — whether the armor trait behavior library ships in M6 or a later armor milestone.
 
 ### CI and release gates

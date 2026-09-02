@@ -5,14 +5,10 @@ package dev.gkissel.forgeweave.combat;
  * {@code TraitHellish}/{@code TraitHoly} damage hooks ({@code newDamage += bonusDamage}), with the
  * "vs what" lifted out into {@link ConditionalSeam}/{@link HitCondition} the same way
  * {@link BonusDamageFraction} lifted {@link BonusDamageVsBlocking}'s condition. ADR-0004 M6 library
- * shape: one number, nothing else.
+ * shape: one number, nothing else -- a record since issue #832 so the datapack codec can read it
+ * back ({@code TraitBehaviors}' {@code bonus_damage_vs}).
  */
-public final class FlatBonusDamage implements CombatSeam {
-    private final float bonus;
-
-    public FlatBonusDamage(float bonus) {
-        this.bonus = bonus;
-    }
+public record FlatBonusDamage(float bonus) implements CombatSeam {
 
     @Override
     public float preHit(CombatHit hit, float originalDamage, float damage) {

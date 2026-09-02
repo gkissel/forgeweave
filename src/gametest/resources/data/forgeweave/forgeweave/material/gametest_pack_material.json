@@ -1,0 +1,23 @@
+{
+  "head": {
+    "durability": 200,
+    "mining_speed": 4.0,
+    "attack_damage": 3.0
+  },
+  "handle": {
+    "durability_modifier": 1.0,
+    "durability": 20
+  },
+  "extra_durability": 20,
+  "incorrect_for_tool": "minecraft:incorrect_for_stone_tool",
+  "traits": {
+    "general": ["forgeweave:gametest_pack_poison", "forgeweave:gametest_pack_absent"]
+  },
+  "crafting_items": [
+    { "ingredient": { "item": "minecraft:dead_bush" }, "value": 144 }
+  ],
+  "repair_item": {
+    "item": "minecraft:dead_bush"
+  },
+  "color": "#7FBF3F"
+}

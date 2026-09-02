@@ -1,0 +1,8 @@
+{
+  "neoforge:conditions": [
+    { "type": "neoforge:mod_loaded", "modid": "forgeweave_gametest_absent_mod" }
+  ],
+  "behavior": "forgeweave:effect_on_hit",
+  "effect": "minecraft:wither",
+  "duration": 100
+}

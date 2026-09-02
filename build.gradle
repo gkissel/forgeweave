@@ -41,6 +41,12 @@ repositories {
         url = 'https://maven.createmod.net'
     }
     maven {
+        // KubeJS and its Rhino fork (issue #832, script-defined traits), a soft dependency -- see
+        // the compileOnly/localRuntime split below.
+        name = 'Latvian'
+        url = 'https://maven.latvian.dev/releases'
+    }
+    maven {
         // Jade (issue #720, optional client-side integration -- same compileOnly/localRuntime split
         // as JEI below). Modrinth's own Maven proxy; Jade publishes no separate API-only artifact, so
         // both configurations below resolve the same coordinate.
@@ -212,6 +218,25 @@ dependencies {
     jarJar "net.createmod.ponder:ponder-neoforge:${ponder_version}+mc${minecraft_version}"
     jarJar "dev.engine-room.flywheel:flywheel-neoforge-${minecraft_version}:${flywheel_version}"
 
+    // KubeJS (issue #832, ADR-0004 item 3): compileOnly like JEI above -- the mod compiles against
+    // KubeJS's plugin/event API without hard-requiring it (an "optional" entry in
+    // neoforge.mods.toml; the one class touching the API, kubejs.ForgeweaveKubeJSPlugin, is only
+    // ever instantiated by KubeJS itself via kubejs.plugins.txt). Deliberately NO localRuntime pair,
+    // the Ponder reasoning: with KubeJS loaded in runGameTestServer its own kubejs:sync_server_data
+    // payload is refused for the GameTest mock players ("may not be sent to the client") and ~40
+    // unrelated tests fail, so the "KubeJS present" path is exercised by ForgeweaveKubeJSPluginTest
+    // (the test pair below puts the same two jars on the unit-test classpath, where KubeJS loads
+    // cleanly) and by installing it in a real client. Rhino is KubeJS's script engine and its only
+    // compile-scope dependency; its pom excludes everything else and the remaining runtime pieces
+    // are jar-in-jar embedded in the KubeJS jar, hence transitive = false rather than chasing them
+    // through a third maven.
+    compileOnly "dev.latvian.mods:kubejs-neoforge:${kubejs_version}"
+    compileOnly "dev.latvian.mods:rhino:${rhino_version}"
+    testCompileOnly "dev.latvian.mods:kubejs-neoforge:${kubejs_version}"
+    testCompileOnly "dev.latvian.mods:rhino:${rhino_version}"
+    testRuntimeOnly("dev.latvian.mods:kubejs-neoforge:${kubejs_version}") { transitive = false }
+    testRuntimeOnly "dev.latvian.mods:rhino:${rhino_version}"
+
     testImplementation platform('org.junit:junit-bom:6.1.3')
     testImplementation 'org.junit.jupiter:junit-jupiter'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
@@ -232,6 +257,9 @@ tasks.named('jar', Jar) {
     exclude 'data/forgeweave/forgeweave/material/gametest_electrum.json'
     exclude 'data/forgeweave/forgeweave/melting_recipe/gametest_compat_smeltery_present.json'
     exclude 'data/forgeweave/forgeweave/casting_recipe/gametest_compat_smeltery_present.json'
+    exclude 'data/forgeweave/forgeweave/trait_definition/gametest_pack_poison.json'
+    exclude 'data/forgeweave/forgeweave/trait_definition/gametest_pack_absent.json'
+    exclude 'data/forgeweave/forgeweave/material/gametest_pack_material.json'
 }
 
 tasks.named('test', Test) {
