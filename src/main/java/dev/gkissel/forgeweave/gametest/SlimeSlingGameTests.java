@@ -89,6 +89,26 @@ public class SlimeSlingGameTests {
         helper.succeed();
     }
 
+    /**
+     * Issue #902 (playtest: "vertical launch hits a strange cap"): pins the vertical component to
+     * upstream's literal value rather than to {@link SlimeSlingItem#VERTICAL_SCALE} symbolically, so a
+     * future change to that constant (like #698's since-superseded tuning) fails this test instead of
+     * silently drifting from the {@code y * -f / 3f} upstream ships -- full charge is
+     * {@link SlimeSlingItem#MAX_FORCE} (6.0) over 3, i.e. 2.0 blocks/tick straight up.
+     */
+    @GameTest(template = "empty")
+    public static void fullChargeStraightUpPinsUpstreamsVerticalVelocity(GameTestHelper helper) {
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+
+        fling(helper, player, 90.0F, true, FULL_CHARGE_TICKS);
+
+        Vec3 motion = player.getDeltaMovement();
+        helper.assertTrue(Math.abs(motion.y - 2.0F) < EPSILON,
+                "a full-charge straight-up launch must match upstream's y * -f / 3f = 6.0 / 3 = 2.0, got "
+                        + motion);
+        helper.succeed();
+    }
+
     /** Upstream charges the fling off the vanilla bow curve: half the charge is nowhere near half the cap. */
     @GameTest(template = "empty")
     public static void aShorterChargeFlingsThePlayerLessFar(GameTestHelper helper) {

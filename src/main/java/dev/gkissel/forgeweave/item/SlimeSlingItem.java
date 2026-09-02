@@ -24,7 +24,7 @@ import dev.gkissel.forgeweave.sound.ForgeweaveSounds;
  * The Slimesling (parity audit T22, issue #453) -- upstream 1.12's
  * {@code gadgets/item/ItemSlimeSling} (NOTICE.md). Charge it like a bow while standing on the
  * ground, aim at a block, and release: the player is flung along the <em>inverted</em> look vector,
- * at {@link #VERTICAL_SCALE} of that force vertically and {@link #HORIZONTAL_SCALE} horizontally (#698), and {@link SlimeBounceHandler} keeps the momentum through the
+ * at {@link #VERTICAL_SCALE} of that force vertically and {@link #HORIZONTAL_SCALE} horizontally, and {@link SlimeBounceHandler} keeps the momentum through the
  * flight.
  *
  * <p>Upstream ships one sling per slime colour ({@code SlimeType} metadata subtypes, all named
@@ -41,12 +41,27 @@ public class SlimeSlingItem extends Item {
     public static final float MAX_FORCE = 6.0F;
 
     /**
-     * Issue #698, maintainer tuning (beta.1 checklist §16) over upstream's {@code x * -f, y * -f / 3f,
-     * z * -f}: horizontal launch force down 15 % (1.0 -> 0.85), vertical up 60 % (1/3 -> 1.6/3).
-     * Shared by every coloured sling.
+     * Upstream's {@code x * -f, y * -f / 3f, z * -f} -- horizontal at the full force, vertical at a
+     * third of it. Shared by every coloured sling.
+     *
+     * <p>Issue #698 (beta.1 checklist §16) had replaced these with a maintainer-tuned -15 % horizontal
+     * / +60 % vertical pair (0.85 and 1.6/3). Issue #902 (playtest: "vertical launch hits a strange
+     * cap") supersedes that decision and restores upstream's 1:1 values. Per CLAUDE.md's 1.12-parity
+     * directive, non-1:1 constants are a deviation that needs an active maintainer decision behind
+     * them, and #902 found nothing in #698's own tuning math that explains a vertical-specific cap
+     * (its retune, if anything, raised the vertical ceiling from {@code MAX_FORCE / 3 = 2.0} to
+     * {@code MAX_FORCE * 1.6 / 3 = 3.2}). The more concrete candidate this class's own
+     * {@link #releaseUsing} Javadoc already documents: {@code releaseUsing} relies on vanilla's
+     * {@code hurtMarked} / {@code ClientboundSetEntityMotionPacket} path to push the server's velocity
+     * to the client, and that packet clamps every axis to +-3.9 blocks/tick (Mojang's short-encoded
+     * velocity format). Upstream never had that ceiling because {@code EntityMovementChangePacket}
+     * (NOTICE.md) sent raw, unclamped doubles instead -- which is exactly why it existed. At the
+     * now-restored 1:1 scale a full-charge horizontal launch (6.0) still exceeds 3.9 and gets clamped
+     * in transit; this revert removes the recorded #698 deviation but does not itself remove that
+     * packet ceiling, which is tracked as a follow-up rather than folded into this fix.
      */
-    public static final float HORIZONTAL_SCALE = 0.85F;
-    public static final float VERTICAL_SCALE = 1.6F / 3.0F;
+    public static final float HORIZONTAL_SCALE = 1.0F;
+    public static final float VERTICAL_SCALE = 1.0F / 3.0F;
 
     public SlimeSlingItem(Properties properties) {
         super(properties.stacksTo(1));
