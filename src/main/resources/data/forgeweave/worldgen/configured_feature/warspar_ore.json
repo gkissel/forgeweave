@@ -5,7 +5,7 @@
       {
         "target": {
           "predicate_type": "minecraft:block_match",
-          "block": "minecraft:deepslate"
+          "block": "minecraft:netherrack"
         },
         "state": {
           "Name": "forgeweave:warspar_ore"

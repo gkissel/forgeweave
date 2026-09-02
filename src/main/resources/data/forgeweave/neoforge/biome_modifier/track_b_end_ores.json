@@ -7,6 +7,9 @@
     "minecraft:small_end_islands"
   ],
   "features": [
+    "forgeweave:duskspar_ore",
+    "forgeweave:nightshale_ore",
+    "forgeweave:hollowstone_ore",
     "forgeweave:voidglass_ore"
   ],
   "step": "underground_ores"

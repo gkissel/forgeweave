@@ -3,7 +3,7 @@
   "placement": [
     {
       "type": "forgeweave:track_b_ore_rate",
-      "count": 6
+      "count": 2
     },
     {
       "type": "minecraft:in_square"
@@ -13,10 +13,10 @@
       "height": {
         "type": "minecraft:uniform",
         "min_inclusive": {
-          "absolute": 0
+          "absolute": -64
         },
         "max_inclusive": {
-          "absolute": 127
+          "absolute": -48
         }
       }
     }

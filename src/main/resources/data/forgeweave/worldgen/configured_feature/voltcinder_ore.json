@@ -5,7 +5,7 @@
       {
         "target": {
           "predicate_type": "minecraft:block_match",
-          "block": "minecraft:netherrack"
+          "block": "minecraft:deepslate"
         },
         "state": {
           "Name": "forgeweave:voltcinder_ore"
