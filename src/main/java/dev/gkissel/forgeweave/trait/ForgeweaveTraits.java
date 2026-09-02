@@ -1,6 +1,7 @@
 package dev.gkissel.forgeweave.trait;
 
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -57,6 +58,7 @@ import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 
 import net.neoforged.neoforge.common.util.FakePlayer;
+import net.neoforged.neoforge.event.TagsUpdatedEvent;
 import net.neoforged.neoforge.event.entity.EntityTeleportEvent;
 import net.neoforged.neoforge.event.entity.living.LivingExperienceDropEvent;
 import net.neoforged.neoforge.event.entity.living.LivingHealEvent;
@@ -124,6 +126,11 @@ import dev.gkissel.forgeweave.tool.ToolStats;
  * a mod update (ADR-0002), so there is nothing for a registry event to contribute. A material naming
  * an id that isn't here logs once and does nothing, which is what lets a datapack ship a material
  * before the Java that gives it a trait.
+ *
+ * <p>Since issue #832 (ADR-0004 item 3) two additive sources sit behind the same {@link #lookup}:
+ * datapack {@link TraitDefinition}s, snapshotted from the synced registry by {@link #onTagsUpdated},
+ * and KubeJS script traits ({@link #registerScripted}). The Java map always wins for an id it
+ * owns, so the shipped roster is never redefined from data; serialization stays the plain id list.
  *
  * <h2>Stacking</h2>
  *
@@ -1250,12 +1257,7 @@ public final class ForgeweaveTraits {
 
     /** The M6 {@code extra_modifier_slots(count)} library shape (issue #829): see {@link #WRITABLE}. */
     private static Trait extraModifierSlots(int count) {
-        return new Trait() {
-            @Override
-            public int bonusSlots() {
-                return count;
-            }
-        };
+        return new ExtraModifierSlots(count);
     }
 
     /** Upstream {@code TraitSqueaky#afterHit}: {@code 1.0f} volume, {@code 0.8f + 0.4f * random} pitch. */
@@ -2267,7 +2269,7 @@ public final class ForgeweaveTraits {
             return;
         }
         for (ResourceLocation id : ids) {
-            Trait trait = REGISTRY.get(id);
+            Trait trait = lookup(id);
             if (trait != null) {
                 trait.armorAttributes(id.withPrefix("trait/").withSuffix("/" + slot.getName()), slot, out);
             }
@@ -3435,6 +3437,66 @@ public final class ForgeweaveTraits {
             Map.entry(id("bloodtally"), BLOODTALLY),
             Map.entry(id("gamedrop"), GAMEDROP));
 
+    // ---------------------------------------------------------------- additive trait sources
+    // (issue #832, ADR-0004 item 3): datapack definitions and KubeJS script traits.
+
+    /** The loaded {@code trait_definition} registry, re-snapshotted on every data load/sync. */
+    private static volatile Map<ResourceLocation, Trait> DATAPACK = Map.of();
+
+    /** Traits KubeJS startup scripts registered; see {@code kubejs.ForgeweaveKubeJSPlugin}. */
+    private static final Map<ResourceLocation, Trait> SCRIPTED = new ConcurrentHashMap<>();
+
+    /**
+     * The behaviour behind {@code id}: the Java roster first, then the datapack snapshot, then
+     * script traits -- {@code null} for an id no source implements.
+     */
+    @Nullable
+    public static Trait lookup(ResourceLocation id) {
+        Trait trait = REGISTRY.get(id);
+        if (trait == null) {
+            trait = DATAPACK.get(id);
+        }
+        return trait == null ? SCRIPTED.get(id) : trait;
+    }
+
+    /**
+     * A KubeJS startup script's trait. A built-in id is refused rather than shadowed, so a typo
+     * ({@code 'forgeweave:poisonous'}) is a script error in the KubeJS console, not a silent
+     * redefinition of shipped content; re-registering a script id replaces it (script reloads).
+     */
+    public static void registerScripted(ResourceLocation id, Trait trait) {
+        if (REGISTRY.containsKey(id)) {
+            throw new IllegalArgumentException("Trait id '" + id + "' is a built-in Forgeweave trait and cannot be "
+                    + "redefined from a script; pick an id in your own namespace.");
+        }
+        SCRIPTED.put(id, trait);
+    }
+
+    /**
+     * Registered on the game event bus in {@code Forgeweave}: fires on the server after every data
+     * load ({@code /reload} included) and on the client once the synced registries arrive, which
+     * are exactly the two moments the {@link TraitDefinition} registry can change. A datapack id
+     * colliding with a built-in one is logged and ignored -- the built-in wins, per the issue.
+     */
+    public static void onTagsUpdated(TagsUpdatedEvent event) {
+        Map<ResourceLocation, Trait> loaded = new LinkedHashMap<>();
+        event.getRegistryAccess().registry(TraitDefinition.REGISTRY).ifPresent(registry -> registry.entrySet()
+                .forEach(entry -> {
+                    ResourceLocation id = entry.getKey().location();
+                    if (REGISTRY.containsKey(id)) {
+                        LOGGER.warn("Datapack trait definition '{}' names a built-in Forgeweave trait; the built-in "
+                                + "behavior wins and the definition is ignored (issue #832).", id);
+                    } else {
+                        loaded.put(id, entry.getValue().trait());
+                    }
+                }));
+        DATAPACK = Map.copyOf(loaded);
+        WARNED_UNKNOWN.clear();
+        if (!loaded.isEmpty()) {
+            LOGGER.info("Loaded {} datapack trait definitions: {}", loaded.size(), loaded.keySet());
+        }
+    }
+
     // ---------------------------------------------------------------- extra-info lines (parity audit
     // T26, issue #457) -- upstream 1.12's AbstractTrait#getExtraInfo. Traits are modifiers upstream,
     // so their lines come out of the same TooltipBuilder#addModifierInfo call the modifier ones do
@@ -3528,7 +3590,7 @@ public final class ForgeweaveTraits {
      */
     public static int headDurability(List<ResourceLocation> traitIds, int durability) {
         for (ResourceLocation id : traitIds) {
-            Trait trait = REGISTRY.get(id);
+            Trait trait = lookup(id);
             if (trait != null) {
                 durability = trait.headDurability(durability);
             }
@@ -3570,7 +3632,7 @@ public final class ForgeweaveTraits {
         }
         List<Trait> traits = new ArrayList<>(ids.size());
         for (ResourceLocation id : ids) {
-            Trait trait = REGISTRY.get(id);
+            Trait trait = lookup(id);
             if (trait != null) {
                 traits.add(trait);
             } else if (WARNED_UNKNOWN.add(id)) {

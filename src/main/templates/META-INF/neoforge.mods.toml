@@ -76,6 +76,18 @@ Forgeweave brings modular tool building, material traits, modifiers, melting, al
     ordering="AFTER"
     side="CLIENT"
 
+# KubeJS integration (issue #832, ADR-0004 item 3) is optional too: without it the mod works
+# identically and datapack trait definitions still load; with it, startup scripts may define traits
+# through ForgeweaveEvents.traits (dev.gkissel.forgeweave.kubejs.ForgeweaveKubeJSPlugin, which
+# KubeJS instantiates from kubejs.plugins.txt -- nothing in the mod references it). BOTH sides:
+# startup scripts run on client and server alike, and a scripted trait's hooks are read on both.
+[[dependencies.${mod_id}]]
+    modId="kubejs"
+    type="optional"
+    versionRange="[2101.7,)"
+    ordering="NONE"
+    side="BOTH"
+
 # DarkModeEverywhere compat (issue #335) is optional too: without it the mod works identically, it
 # only sends the dme-shaderblacklist IMC entries (ForgeweaveDarkModeCompat) that exclude the
 # meaning-carrying renderers from DME's darkening shader swap when DME happens to be installed.

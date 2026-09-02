@@ -1,0 +1,6 @@
+{
+  "behavior": "forgeweave:effect_on_hit",
+  "effect": "minecraft:poison",
+  "duration": 100,
+  "amplifier": 1
+}

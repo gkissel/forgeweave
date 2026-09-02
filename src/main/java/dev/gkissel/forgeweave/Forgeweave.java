@@ -71,6 +71,7 @@ import dev.gkissel.forgeweave.sound.ForgeweaveSounds; // #453
 import dev.gkissel.forgeweave.tool.AoeHarvest;
 import dev.gkissel.forgeweave.tool.VeinmineKey;
 import dev.gkissel.forgeweave.trait.ForgeweaveTraits;
+import dev.gkissel.forgeweave.trait.TraitDefinition; // #832
 import dev.gkissel.forgeweave.worldgen.MagmaSlimeIslandPiece; // #450
 import dev.gkissel.forgeweave.worldgen.MagmaSlimeIslandStructure; // #450
 import dev.gkissel.forgeweave.worldgen.NetherOrePlacement; // #276
@@ -225,6 +226,10 @@ public class Forgeweave {
         // #828 -- grievous's mark: the combat half rides the seams; this listener only reads the
         // mark the seam left, same idiom as the two teleport listeners just above.
         NeoForge.EVENT_BUS.addListener(ForgeweaveTraits::onLivingHeal);
+        // #832 -- datapack trait definitions: the trait hooks get a bare ItemStack and no registry
+        // access, so the loaded trait_definition registry is snapshotted into a static lookup here,
+        // on both sides, every time data loads or syncs. See ForgeweaveTraits#onTagsUpdated.
+        NeoForge.EVENT_BUS.addListener(ForgeweaveTraits::onTagsUpdated);
         // #108 batch: Searing/Magnetic Pull/Resonant key off what a mined block drops, which has no
         // Item hook either (see ForgeweaveModifiers#onBlockDrops).
         NeoForge.EVENT_BUS.addListener(ForgeweaveModifiers::onBlockDrops);
@@ -299,6 +304,11 @@ public class Forgeweave {
         // client needs it so the smeltery screen (or a future tooltip) could explain what a core's
         // next tier costs without a payload of its own.
         event.dataPackRegistry(CoreTransformRecipe.REGISTRY, CoreTransformRecipe.CODEC, CoreTransformRecipe.CODEC);
+        // #832 -- datapack trait definitions (ADR-0004 item 3, traits only), same idiom again: the
+        // client needs them so a held tool's trait hooks (attack damage, mining speed, ...) answer
+        // the same on both sides, and so neoforge:conditions existence-gates a definition exactly
+        // as it gates a material.
+        event.dataPackRegistry(TraitDefinition.REGISTRY, TraitDefinition.CODEC, TraitDefinition.CODEC);
     }
 
     /** The Tool Station's rename field and the guide book's bookmark ride custom payloads. */
