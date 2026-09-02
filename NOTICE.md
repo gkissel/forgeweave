@@ -2104,15 +2104,15 @@ rather than upstream ports, per the maintainer decision comment on issue #103 (2
   matching on `Ingredient#test`, not by a one-recipe-per-modifier-id assumption, so two registry
   entries naming the same `modifier` field with different reagents already both apply toward the same
   `ModifierEntry`'s level. Verified, not fixed.
-- **The four metals with no vanilla item form** (cobalt, ardite, manyullyn, rose gold) get ingot,
-  nugget and raw-ore item forms. Ingot/nugget art for cobalt/ardite/manyullyn is a straight upstream
-  port (table rows above); rose gold's is a recolour of upstream's manyullyn ingot/nugget art (no
-  1.12 material to derive rose gold's own shape from, per the issue body). The raw-ore forms have no
-  upstream counterpart at all -- 1.12 predates the raw-ore item split introduced in vanilla 1.17.
-  Raw manyullyn and raw rose gold have no ore-block source in this PR's scope either, so they stay
-  freshly authored placeholder icons under the standard `textures/item/` folder rather than
-  `textures/derived/`, and carry no NOTICE row (CLAUDE.md: only derived art gets one). Raw cobalt and
-  raw ardite were switched to maintainer-specified **vanilla** recolors by issue #140 (not an
+- **The four metals with no vanilla item form** (cobalt, ardite, manyullyn, rose gold) get ingot and
+  nugget item forms; cobalt and ardite additionally get raw-ore item forms. Ingot/nugget art for
+  cobalt/ardite/manyullyn is a straight upstream port (table rows above); rose gold's is a recolour of
+  upstream's manyullyn ingot/nugget art (no 1.12 material to derive rose gold's own shape from, per
+  the issue body). The raw-ore forms have no upstream counterpart at all -- 1.12 predates the raw-ore
+  item split introduced in vanilla 1.17. Manyullyn and rose gold never got raw-ore forms: alloys are
+  made only in the smeltery, so `raw_manyullyn`/`raw_rose_gold` (freshly authored placeholder icons
+  this section originally described, carrying no NOTICE row) were removed entirely by issue #911. Raw
+  cobalt and raw ardite were switched to maintainer-specified **vanilla** recolors by issue #140 (not an
   upstream/TiC derivation, so the license table above doesn't apply -- noted here per repo convention
   since no prior vanilla-derived row exists to follow): `raw_cobalt.png` is vanilla's own
   `raw_gold.png` hue-shifted to cobalt's blue, `raw_ardite.png` is vanilla's own

@@ -1771,10 +1771,8 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         addItem(ForgeweaveItems.NAHUATL_BOARD, "Nahuatl Board"); // #727
         addItem(ForgeweaveItems.INGOT_MANYULLYN, "Manyullyn Ingot");
         addItem(ForgeweaveItems.NUGGET_MANYULLYN, "Manyullyn Nugget");
-        addItem(ForgeweaveItems.RAW_MANYULLYN, "Raw Manyullyn");
         addItem(ForgeweaveItems.INGOT_ROSE_GOLD, "Rose Gold Ingot");
         addItem(ForgeweaveItems.NUGGET_ROSE_GOLD, "Rose Gold Nugget");
-        addItem(ForgeweaveItems.RAW_ROSE_GOLD, "Raw Rose Gold");
         // #234 -- steel (M3.2): no upstream item rows to port (1.12 steel items came from other
         // mods' ore dict), so the names follow the same "<Metal> Ingot/Nugget" convention.
         addItem(ForgeweaveItems.INGOT_STEEL, "Steel Ingot");

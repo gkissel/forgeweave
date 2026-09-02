@@ -856,12 +856,12 @@ public final class ForgeweaveItems {
     // #103 -- the four metal materials with no vanilla item forms yet (docs/SCOPE.md M2 issue #103):
     // cobalt, ardite, manyullyn (upstream 1.12 ingot/nugget art, NOTICE.md) and rose gold (no 1.12
     // counterpart -- its ingot/nugget are a recoloured derivation of upstream's copper ones, NOTICE.md).
-    // Iron/copper/gold/netherite are vanilla items already; netherite scrap is vanilla too. Raw forms
-    // have no 1.12 counterpart at all (1.12 predates the raw-ore item split). Raw cobalt/ardite are
-    // maintainer-specified vanilla recolors (issue #140, NOTICE.md: raw_gold hue-shifted blue, and
-    // netherite_scrap recoloured yellowish-orange, both preserving source shading -- see
-    // scripts/recolor_raw_ore.py). Raw manyullyn/rose gold have no ore block source in this PR's
-    // scope either, so they stay freshly authored placeholders, not derived (CLAUDE.md).
+    // Iron/copper/gold/netherite are vanilla items already; netherite scrap is vanilla too. Cobalt and
+    // ardite are mined ores, so they get raw forms with no 1.12 counterpart (1.12 predates the raw-ore
+    // item split); they're maintainer-specified vanilla recolors (issue #140, NOTICE.md: raw_gold
+    // hue-shifted blue, and netherite_scrap recoloured yellowish-orange, both preserving source shading
+    // -- see scripts/recolor_raw_ore.py). Manyullyn and rose gold are alloys made only in the smeltery,
+    // so they have no raw ore form (issue #911).
     public static final DeferredItem<Item> INGOT_COBALT = ITEMS.registerSimpleItem("cobalt_ingot");
     public static final DeferredItem<Item> NUGGET_COBALT = ITEMS.registerSimpleItem("cobalt_nugget");
     public static final DeferredItem<Item> RAW_COBALT = ITEMS.registerSimpleItem("raw_cobalt");
@@ -870,10 +870,8 @@ public final class ForgeweaveItems {
     public static final DeferredItem<Item> RAW_ARDITE = ITEMS.registerSimpleItem("raw_ardite");
     public static final DeferredItem<Item> INGOT_MANYULLYN = ITEMS.registerSimpleItem("manyullyn_ingot");
     public static final DeferredItem<Item> NUGGET_MANYULLYN = ITEMS.registerSimpleItem("manyullyn_nugget");
-    public static final DeferredItem<Item> RAW_MANYULLYN = ITEMS.registerSimpleItem("raw_manyullyn");
     public static final DeferredItem<Item> INGOT_ROSE_GOLD = ITEMS.registerSimpleItem("rose_gold_ingot");
     public static final DeferredItem<Item> NUGGET_ROSE_GOLD = ITEMS.registerSimpleItem("rose_gold_nugget");
-    public static final DeferredItem<Item> RAW_ROSE_GOLD = ITEMS.registerSimpleItem("raw_rose_gold");
 
     // #234 -- steel (M3.2): FW-native ingot/nugget, alloyed from molten iron + carbon rather than
     // mined, so no raw form and no ore. Textures are the same recolor-of-manyullyn derivation as
