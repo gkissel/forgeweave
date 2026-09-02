@@ -58,6 +58,18 @@ public final class ForgeweavePonderPlugin implements PonderPlugin {
         // assembly.
         helper.addStoryBoard(ForgeweaveBlocks.ARMOR_STATION.getId(), "armor_station",
                 ForgeweaveArmorScenes::assembly);
+        // #891 -- the two other seared multiblocks on their controllers' items, and the core tiers
+        // (#845's pour-to-transform ladder) on every core's item: the standard core's third scene,
+        // the other three cores' first. Same scene id on all four, so Ponder's lang extraction sees
+        // one "core_tiers" scene (the casting scene's own idiom above).
+        helper.addStoryBoard(ForgeweaveItems.SEARED_FURNACE_CONTROLLER.getId(), "seared_furnace",
+                ForgeweaveSearedFurnaceScenes::assembly);
+        helper.addStoryBoard(ForgeweaveItems.SEARED_RESERVOIR_CONTROLLER.getId(), "seared_reservoir",
+                ForgeweaveSearedReservoirScenes::assembly);
+        helper.addStoryBoard(ForgeweaveItems.STANDARD_CORE.getId(), "core_tiers", ForgeweaveSmelteryScenes::cores);
+        helper.addStoryBoard(ForgeweaveItems.NETHER_CORE.getId(), "core_tiers", ForgeweaveSmelteryScenes::cores);
+        helper.addStoryBoard(ForgeweaveItems.END_CORE.getId(), "core_tiers", ForgeweaveSmelteryScenes::cores);
+        helper.addStoryBoard(ForgeweaveItems.DEEP_CORE.getId(), "core_tiers", ForgeweaveSmelteryScenes::cores);
     }
 
     /**

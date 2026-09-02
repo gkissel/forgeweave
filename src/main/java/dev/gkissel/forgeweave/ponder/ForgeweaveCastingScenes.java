@@ -9,12 +9,14 @@ import net.createmod.ponder.api.scene.Selection;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.ListTag;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 
 import dev.gkissel.forgeweave.block.CastingBlockEntity;
 import dev.gkissel.forgeweave.block.FaucetBlockEntity;
 import dev.gkissel.forgeweave.block.SearedChannelBlockEntity;
+import dev.gkissel.forgeweave.block.SearedTankBlockEntity;
 import dev.gkissel.forgeweave.block.SmelteryControllerBlock;
 import dev.gkissel.forgeweave.item.ForgeweaveItems;
 
@@ -148,11 +150,28 @@ public final class ForgeweaveCastingScenes {
         scene.markAsFinished();
     }
 
-    /** The faucet's stream: {@code drained} is what is mid-pour, which is all the renderer reads. */
     private static void faucet(SceneBuilder scene, SceneBuildingUtil util, int amount) {
-        scene.world().modifyBlockEntityNBT(util.select().position(FAUCET), FaucetBlockEntity.class, tag -> {
-            tag.put("drained", fluid(amount));
+        faucet(scene, util, FAUCET, MOLTEN_IRON, amount);
+    }
+
+    /** The faucet's stream: {@code drained} is what is mid-pour, which is all the renderer reads. Shared with #891's scenes. */
+    static void faucet(SceneBuilder scene, SceneBuildingUtil util, BlockPos pos, String fluidId, int amount) {
+        scene.world().modifyBlockEntityNBT(util.select().position(pos), FaucetBlockEntity.class, tag -> {
+            tag.put("drained", fluid(fluidId, amount));
             tag.putBoolean("pouring", amount > 0);
+        });
+    }
+
+    /** A seared tank's contents ({@code SmelteryTank.writeToNBT}'s {@code fluids} list; empty at zero). Shared with #891's scenes. */
+    static void searedTank(SceneBuilder scene, SceneBuildingUtil util, BlockPos pos, String fluidId, int amount) {
+        scene.world().modifyBlockEntityNBT(util.select().position(pos), SearedTankBlockEntity.class, tag -> {
+            ListTag fluids = new ListTag();
+            if (amount > 0) {
+                fluids.add(fluid(fluidId, amount));
+            }
+            CompoundTag tank = new CompoundTag();
+            tank.put("fluids", fluids);
+            tag.put("tank", tank);
         });
     }
 
@@ -172,33 +191,38 @@ public final class ForgeweaveCastingScenes {
             }] = FLOW_TICKS;
         }
         Consumer<CompoundTag> edit = tag -> {
-            tag.put("fluid", fluid(flowing.length == 0 ? 0 : SearedChannelBlockEntity.CAPACITY));
+            tag.put("fluid", fluid(MOLTEN_IRON, flowing.length == 0 ? 0 : SearedChannelBlockEntity.CAPACITY));
             tag.putByteArray("is_flowing", flags);
         };
         scene.world().modifyBlockEntityNBT(util.select().position(pos), SearedChannelBlockEntity.class, edit);
     }
 
     private static void tank(SceneBuilder scene, SceneBuildingUtil util, BlockPos pos, int amount) {
+        castingTank(scene, util, pos, MOLTEN_IRON, amount);
+    }
+
+    /** A casting table's or basin's pool. Shared with #891's scenes. */
+    static void castingTank(SceneBuilder scene, SceneBuildingUtil util, BlockPos pos, String fluidId, int amount) {
         scene.world().modifyBlockEntityNBT(util.select().position(pos), CastingBlockEntity.class, tag -> {
             CompoundTag tank = new CompoundTag();
             if (amount > 0) {
-                tank.put("Fluid", fluid(amount));
+                tank.put("Fluid", fluid(fluidId, amount));
             }
             tag.put("tank", tank);
         });
     }
 
     /** A {@code FluidStack} in its own codec's shape ({@code FluidStack.parseOptional}); zero is the empty stack. */
-    private static CompoundTag fluid(int amount) {
+    private static CompoundTag fluid(String fluidId, int amount) {
         CompoundTag tag = new CompoundTag();
         if (amount > 0) {
-            tag.putString("id", MOLTEN_IRON);
+            tag.putString("id", fluidId);
             tag.putInt("amount", amount);
         }
         return tag;
     }
 
-    private static CompoundTag item(String id) {
+    static CompoundTag item(String id) {
         CompoundTag tag = new CompoundTag();
         tag.putString("id", id);
         tag.putInt("count", 1);

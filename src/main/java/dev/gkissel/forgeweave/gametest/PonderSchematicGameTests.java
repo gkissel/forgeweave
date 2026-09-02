@@ -17,6 +17,7 @@ import net.minecraft.nbt.NbtAccounter;
 import net.minecraft.nbt.NbtIo;
 import net.minecraft.nbt.NbtUtils;
 import net.minecraft.nbt.Tag;
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 
@@ -25,19 +26,23 @@ import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.block.ForgeweaveBlocks;
+import dev.gkissel.forgeweave.block.SearedFurnaceBlockEntity;
+import dev.gkissel.forgeweave.block.SearedFurnaceControllerBlock;
+import dev.gkissel.forgeweave.block.SearedReservoirBlockEntity;
+import dev.gkissel.forgeweave.block.SearedReservoirControllerBlock;
 import dev.gkissel.forgeweave.block.SmelteryControllerBlock;
 import dev.gkissel.forgeweave.block.SmelteryControllerBlockEntity;
 import dev.gkissel.forgeweave.block.SmelteryStructure;
 
 /**
- * Issues #664 and #700: the smeltery Ponder scenes must teach structures the real scan accepts.
- * Scene playback is client-only, but each schematic ({@code assets/forgeweave/ponder/*.nbt}, the
- * finished structure the scene reveals in stages) is plain data -- so these tests rebuild it
- * block-for-block on the dedicated GameTest server, place the cores last (exercising the real
- * {@code SmelteryControllerBlock#onPlace} trigger, same as {@code SmelteryGameTests}), and assert
- * every multiblock forms at the size its scene narrates. If the schematic generator and
- * {@code SmelteryScan} ever drift apart, this fails instead of players discovering the tutorial
- * builds an invalid smeltery.
+ * Issues #664, #700 and #891: the multiblock Ponder scenes must teach structures the real scans
+ * accept. Scene playback is client-only, but each schematic ({@code assets/forgeweave/ponder/*.nbt},
+ * the finished structure the scene reveals in stages) is plain data -- so these tests rebuild it
+ * block-for-block on the dedicated GameTest server, place the controllers last (exercising the real
+ * {@code onPlace} trigger, same as {@code SmelteryGameTests}), and assert every multiblock forms at
+ * the size its scene narrates. If the schematic generator and {@code SmelteryScan},
+ * {@code SearedFurnaceScan} or {@code SearedReservoirScan} ever drift apart, this fails instead of
+ * players discovering the tutorial builds an invalid structure.
  */
 @GameTestHolder(Forgeweave.MODID)
 @PrefixGameTestTemplate(false)
@@ -131,7 +136,46 @@ public class PonderSchematicGameTests {
         helper.succeed();
     }
 
-    /** Places every block of the schematic, cores last; returns the core positions in schematic order. */
+    /**
+     * #891: the core tiers scene's smeltery forms 1x1x2 even with the transform faucet and its
+     * source tank standing on the wall ring above the core -- the scan stops below that layer.
+     */
+    @GameTest(template = "smeltery")
+    public static void ponderCoreTiersSchematicFormsASmelteryUnderItsFaucet(GameTestHelper helper) {
+        List<BlockPos> cores = build(helper, "core_tiers");
+        helper.assertValueEqual(cores.size(), 1, "cores in core_tiers.nbt");
+        assertFormed(helper, cores.get(0), 1, 1, 2);
+        helper.assertBlockPresent(ForgeweaveBlocks.FAUCET.get(), cores.get(0).above());
+        helper.assertBlockPresent(ForgeweaveBlocks.SEARED_TANK.get(), cores.get(0).above().east());
+        helper.succeed();
+    }
+
+    /** #891: the seared furnace scene's closed box forms under {@code SearedFurnaceScan}, tank in the corner and slab in the ceiling. */
+    @GameTest(template = "smeltery")
+    public static void ponderSearedFurnaceSchematicFormsARealFurnace(GameTestHelper helper) {
+        List<BlockPos> controllers = build(helper, "seared_furnace");
+        helper.assertValueEqual(controllers.size(), 1, "controllers in seared_furnace.nbt");
+        SearedFurnaceBlockEntity furnace = helper.getBlockEntity(controllers.get(0));
+        assertFormed(helper, furnace.structure(), furnace.lastResult(), 1, 1, 2);
+        helper.assertBlockPresent(ForgeweaveBlocks.SEARED_TANK.get(), new BlockPos(1, 2, 1).offset(OFFSET));
+        helper.assertBlockPresent(ForgeweaveBlocks.SEARED_SLAB_BRICKS.get(), new BlockPos(2, 4, 2).offset(OFFSET));
+        helper.succeed();
+    }
+
+    /** #891: the seared reservoir scene's closed box forms under {@code SearedReservoirScan} with no tank, its drain, faucet and table in place. */
+    @GameTest(template = "smeltery")
+    public static void ponderSearedReservoirSchematicFormsARealReservoir(GameTestHelper helper) {
+        List<BlockPos> controllers = build(helper, "seared_reservoir");
+        helper.assertValueEqual(controllers.size(), 1, "controllers in seared_reservoir.nbt");
+        SearedReservoirBlockEntity reservoir = helper.getBlockEntity(controllers.get(0));
+        assertFormed(helper, reservoir.structure(), reservoir.lastResult(), 1, 1, 2);
+        helper.assertBlockPresent(ForgeweaveBlocks.SEARED_DRAIN.get(), new BlockPos(1, 2, 2).offset(OFFSET));
+        helper.assertBlockPresent(ForgeweaveBlocks.FAUCET.get(), new BlockPos(0, 2, 2).offset(OFFSET));
+        helper.assertBlockPresent(ForgeweaveBlocks.CASTING_TABLE.get(), new BlockPos(0, 1, 2).offset(OFFSET));
+        helper.succeed();
+    }
+
+    /** Places every block of the schematic, controllers last; returns the controller positions in schematic order. */
     private static List<BlockPos> build(GameTestHelper helper, String schematic) {
         CompoundTag root = readSchematic(schematic);
         HolderGetter<Block> blocks = helper.getLevel().holderLookup(Registries.BLOCK);
@@ -148,14 +192,16 @@ public class PonderSchematicGameTests {
             ListTag pos = block.getList("pos", Tag.TAG_INT);
             BlockPos at = new BlockPos(pos.getInt(0), pos.getInt(1), pos.getInt(2)).offset(OFFSET);
             BlockState state = states.get(block.getInt("state"));
-            if (state.getBlock() instanceof SmelteryControllerBlock) {
+            Block placed = state.getBlock();
+            if (placed instanceof SmelteryControllerBlock || placed instanceof SearedFurnaceControllerBlock
+                    || placed instanceof SearedReservoirControllerBlock) {
                 cores.add(at);
                 coreStates.add(state);
             } else {
                 helper.setBlock(at, state);
             }
         }
-        helper.assertFalse(cores.isEmpty(), "the ponder schematic " + schematic + " must contain a core");
+        helper.assertFalse(cores.isEmpty(), "the ponder schematic " + schematic + " must contain a controller");
         for (int i = 0; i < cores.size(); i++) {
             helper.setBlock(cores.get(i), coreStates.get(i));
         }
@@ -164,9 +210,12 @@ public class PonderSchematicGameTests {
 
     private static void assertFormed(GameTestHelper helper, BlockPos corePos, int width, int depth, int height) {
         SmelteryControllerBlockEntity core = helper.getBlockEntity(corePos);
-        SmelteryStructure structure = core.structure();
+        assertFormed(helper, core.structure(), core.lastResult(), width, depth, height);
+    }
+
+    private static void assertFormed(GameTestHelper helper, SmelteryStructure structure, Component lastResult, int width, int depth, int height) {
         helper.assertTrue(structure != null,
-                "expected the ponder schematic's smeltery at " + corePos + " to form: " + core.lastResult().getString());
+                "expected the ponder schematic's structure to form: " + lastResult.getString());
         helper.assertValueEqual(structure.width(), width, "interior width");
         helper.assertValueEqual(structure.depth(), depth, "interior depth");
         helper.assertValueEqual(structure.height(), height, "interior height");

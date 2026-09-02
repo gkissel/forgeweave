@@ -1,4 +1,4 @@
-"""Generates the Ponder scene schematics (issues #664, #682, #700, #754).
+"""Generates the Ponder scene schematics (issues #664, #682, #700, #754, #891).
 
 Ponder (net.createmod.ponder, the standalone library extracted from Create) loads a scene's world
 from a gzipped vanilla structure-template NBT at ``assets/<namespace>/ponder/<path>.nbt``
@@ -44,10 +44,20 @@ GLASS = {"Name": "forgeweave:seared_glass"}
 ARMOR_STATION = {"Name": "forgeweave:armor_station", "Properties": {"facing": "south"}}
 CASTING_TABLE = {"Name": "forgeweave:casting_table"}
 CASTING_BASIN = {"Name": "forgeweave:casting_basin"}
+# #891: a bottom-half seared slab, the one non-full block a seared furnace or reservoir ceiling takes (#369).
+SLAB_BOTTOM = {"Name": "forgeweave:seared_slab_bricks", "Properties": {"type": "bottom", "waterlogged": "false"}}
 
 
 def core(facing: str) -> dict:
     return {"Name": "forgeweave:standard_core", "Properties": {"facing": facing, "active": "false"}}
+
+
+def furnace_controller(facing: str) -> dict:
+    return {"Name": "forgeweave:seared_furnace_controller", "Properties": {"facing": facing, "active": "false"}}
+
+
+def reservoir_controller(facing: str) -> dict:
+    return {"Name": "forgeweave:seared_reservoir_controller", "Properties": {"facing": facing, "active": "false"}}
 
 
 def drain(facing: str) -> dict:
@@ -95,6 +105,18 @@ class Structure:
                     if x0 <= x < x0 + width and z0 <= z < z0 + depth:
                         continue  # the interior
                     self.place(x, y, z, special.get((x, y, z), BRICKS))
+
+    def closed_box(self, x0: int, z0: int, width: int, depth: int, height: int, special: dict[tuple[int, int, int], dict]) -> None:
+        """A seared furnace or reservoir (#891): :meth:`smeltery` plus the ceiling plane that closes it.
+
+        The ceiling covers the interior footprint and its ring, at the layer above the last wall
+        course; ``special`` swaps ceiling cells too (a bottom-half slab over the interior, say).
+        """
+        self.smeltery(x0, z0, width, depth, height, special)
+        y = 2 + height
+        for x in range(x0 - 1, x0 + width + 1):
+            for z in range(z0 - 1, z0 + depth + 1):
+                self.place(x, y, z, special.get((x, y, z), BRICKS))
 
 
 def smeltery_scene() -> Structure:
@@ -175,6 +197,78 @@ def armor_station_scene() -> Structure:
     return s
 
 
+# #891's three scenes. The same 1x1x2 interior at (2, 2..3, 2) on a 5x5 plate as the assembly scene,
+# so all three read as the same family; ForgeweaveSmelteryScenes / ForgeweaveSearedFurnaceScenes /
+# ForgeweaveSearedReservoirScenes mirror these positions.
+
+SEARED_FURNACE_CONTROLLER = (2, 2, 1)
+SEARED_FURNACE_TANK = (1, 2, 1)
+
+
+def seared_furnace_scene() -> Structure:
+    """A closed seared box: the controller mid-north (facing the camera), the one tank in the
+    north-west corner column (the only wall position SearedFurnaceScan lets a tank take), a
+    bottom-half slab over the interior in the ceiling (#369's rule, the furnace being the multiblock
+    that accepts it).
+    """
+    s = Structure((5, 5, 5))
+    s.base_plate()
+    s.closed_box(2, 2, 1, 1, 2, {
+        SEARED_FURNACE_CONTROLLER: furnace_controller("north"),
+        SEARED_FURNACE_TANK: TANK,
+        (2, 4, 2): SLAB_BOTTOM,
+    })
+    return s
+
+
+SEARED_RESERVOIR_CONTROLLER = (2, 2, 1)
+SEARED_RESERVOIR_DRAIN = (1, 2, 2)
+SEARED_RESERVOIR_FAUCET = (0, 2, 2)
+SEARED_RESERVOIR_TABLE = (0, 1, 2)
+
+
+def seared_reservoir_scene() -> Structure:
+    """A closed seared box with no tank at all (a reservoir needs none): the controller mid-north,
+    a drain mid-west with a faucet on it pouring into a casting table on the plate, seared glass
+    above both so the walls show the wider block set the reservoir accepts.
+    """
+    s = Structure((5, 5, 5))
+    s.base_plate()
+    s.closed_box(2, 2, 1, 1, 2, {
+        SEARED_RESERVOIR_CONTROLLER: reservoir_controller("north"),
+        SEARED_RESERVOIR_DRAIN: drain("west"),
+        (2, 3, 1): GLASS,
+        (1, 3, 2): GLASS,
+        (2, 4, 2): SLAB_BOTTOM,
+    })
+    s.place(*SEARED_RESERVOIR_FAUCET, faucet("east"))  # its input is the drain behind it
+    s.place(*SEARED_RESERVOIR_TABLE, CASTING_TABLE)
+    return s
+
+
+CORE_TIERS_CORE = (2, 3, 1)
+CORE_TIERS_FAUCET = (2, 4, 1)
+CORE_TIERS_SOURCE = (3, 4, 1)
+
+
+def core_tiers_scene() -> Structure:
+    """The pour-to-transform ladder (#845): the core in the *top* wall course so the block above it
+    is open for the faucet that pours onto it, fed by a seared tank standing beside the faucet on the
+    wall ring (SmelteryCoreTransformGameTests' rig, turned so the camera sees it). The scan stops
+    below that ring layer, so the smeltery still forms 1x1x2.
+    """
+    s = Structure((5, 5, 5))
+    s.base_plate()
+    s.smeltery(2, 2, 1, 1, 2, {
+        CORE_TIERS_CORE: core("north"),
+        (1, 2, 2): TANK,
+        (1, 3, 2): GLASS,
+    })
+    s.place(*CORE_TIERS_FAUCET, faucet("east"))  # its input is the source tank beside it
+    s.place(*CORE_TIERS_SOURCE, TANK)
+    return s
+
+
 # --- minimal big-endian NBT writer (stdlib only, same idiom as the other scripts/ generators) ---
 
 def _tag(value) -> int:
@@ -228,6 +322,9 @@ def main() -> None:
     write_structure("smeltery_sizes", smeltery_sizes_scene())
     write_structure("casting", casting_scene())
     write_structure("armor_station", armor_station_scene())
+    write_structure("seared_furnace", seared_furnace_scene())
+    write_structure("seared_reservoir", seared_reservoir_scene())
+    write_structure("core_tiers", core_tiers_scene())
 
 
 if __name__ == "__main__":

@@ -33,7 +33,12 @@ final class PonderHarnessCaptures {
             new Capture(ForgeweaveItems.STANDARD_CORE.getId(), 1, "ponder_smeltery_sizes"),
             new Capture(ForgeweaveItems.FAUCET.getId(), 0, "ponder_casting"),
             // Issue #782 (reversing D13): the armor assembly scene moved onto the Armor Station item.
-            new Capture(ForgeweaveBlocks.ARMOR_STATION.getId(), 0, "ponder_armor"));
+            new Capture(ForgeweaveBlocks.ARMOR_STATION.getId(), 0, "ponder_armor"),
+            // Issue #891: the seared furnace and reservoir on their controllers; the core tiers
+            // ladder is on every core, captured through the Nether Core's (its only scene).
+            new Capture(ForgeweaveItems.SEARED_FURNACE_CONTROLLER.getId(), 0, "ponder_seared_furnace"),
+            new Capture(ForgeweaveItems.SEARED_RESERVOIR_CONTROLLER.getId(), 0, "ponder_seared_reservoir"),
+            new Capture(ForgeweaveItems.NETHER_CORE.getId(), 0, "ponder_core_tiers"));
 
     /** {@link PonderUI}'s constructor and scene paging are protected; this is the harness's way in. */
     private static final class HarnessPonderUI extends PonderUI {

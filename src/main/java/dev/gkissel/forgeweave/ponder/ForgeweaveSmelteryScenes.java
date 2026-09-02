@@ -7,18 +7,23 @@ import net.createmod.ponder.api.scene.Selection;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 
+import dev.gkissel.forgeweave.block.FaucetBlockEntity;
 import dev.gkissel.forgeweave.block.ForgeweaveBlocks;
+import dev.gkissel.forgeweave.block.SearedTankBlockEntity;
 import dev.gkissel.forgeweave.block.SmelteryControllerBlock;
 import dev.gkissel.forgeweave.item.ForgeweaveItems;
 
 /**
- * The smeltery scenes on the standard core's item: the multiblock assembly (issue #664) -- the
+ * The smeltery scenes on the cores' items: the multiblock assembly (issue #664) -- the
  * minimum structure {@code SmelteryScan} accepts (a seared floor, walls two blocks tall around a
- * 1x1 interior, one seared tank, the standard core), revealed in build order -- and the size
- * variants (issue #700). The block positions below mirror the schematics
- * {@code assets/forgeweave/ponder/smeltery.nbt} and {@code smeltery_sizes.nbt} -- regenerate them
+ * 1x1 interior, one seared tank, the standard core), revealed in build order -- the size
+ * variants (issue #700), and the four core tiers with #845's pour-to-transform ladder (issue #891).
+ * The block positions below mirror the schematics
+ * {@code assets/forgeweave/ponder/smeltery.nbt}, {@code smeltery_sizes.nbt} and {@code core_tiers.nbt} -- regenerate them
  * with {@code scripts/generate_ponder_schematics.py} if a layout changes, and keep
  * {@code PonderSchematicGameTests} green (it rebuilds the same layouts server-side and asserts the
  * real scan forms them).
@@ -168,6 +173,107 @@ public final class ForgeweaveSmelteryScenes {
         scene.idle(90);
 
         scene.markAsFinished();
+    }
+
+    // -- the core tiers (#891, #845's ladder), on core_tiers.nbt: the assembly scene's 1x1x2 smeltery
+    // with the core in the *top* wall course so the faucet that pours onto it can stand above it, fed
+    // by a seared tank beside it on the wall ring (SmelteryCoreTransformGameTests' rig, turned to
+    // face the camera). Every number below is pinned elsewhere: the multipliers by SmelteryCore, the
+    // 1000 mB / 2000 mB costs by data/forgeweave/forgeweave/core_transform_recipe/*.json, and the
+    // "one and a half ingots' worth from one iron ore" by SmelteryCoreTransformGameTests.
+
+    private static final BlockPos TIERS_CORE = new BlockPos(2, 3, 1);
+    private static final BlockPos TIERS_TANK = new BlockPos(1, 2, 2);
+    private static final BlockPos TIERS_FAUCET = new BlockPos(2, 4, 1);
+    private static final BlockPos TIERS_SOURCE = new BlockPos(3, 4, 1);
+
+    private static final String LAVA = "minecraft:lava";
+    private static final String DRAGON_BREATH = "forgeweave:molten_dragon_breath";
+    private static final String DEEP_BLOOD = "forgeweave:deep_blood";
+    /** The stream's mid-pour buffer, the same fraction of a faucet transaction the casting scene draws. */
+    private static final int STREAM = FaucetBlockEntity.TRANSACTION_AMOUNT / 4;
+
+    public static void cores(SceneBuilder scene, SceneBuildingUtil util) {
+        scene.title("core_tiers", "Smeltery Cores");
+        scene.configureBasePlate(0, 0, 5);
+        scene.showBasePlate();
+        scene.idle(10);
+
+        scene.world().showSection(util.select().fromTo(1, 1, 1, 3, 3, 3), Direction.DOWN);
+        scene.world().modifyBlock(TIERS_CORE, state -> state.setValue(SmelteryControllerBlock.ACTIVE, true), false);
+        ForgeweaveCastingScenes.searedTank(scene, util, TIERS_TANK, LAVA, SearedTankBlockEntity.CAPACITY);
+        scene.idle(10);
+        scene.overlay().showControls(util.vector().blockSurface(TIERS_CORE, Direction.NORTH), Pointing.LEFT, 40)
+                .withItem(new ItemStack(Items.IRON_ORE));
+        scene.overlay().showText(90)
+                .attachKeyFrame()
+                .text("The core in a smeltery's wall sets how much melt each ore gives. Under a Standard Core one iron ore melts to one and a half ingots' worth")
+                .pointAt(util.vector().blockSurface(TIERS_CORE, Direction.NORTH))
+                .placeNearTarget();
+        scene.idle(100);
+
+        swapCore(scene, ForgeweaveBlocks.NETHER_CORE.get());
+        scene.overlay().showText(90)
+                .attachKeyFrame()
+                .text("A Nether Core, seared bricks around a netherite ingot, raises that to two ingots' worth. It is the last core that can be crafted")
+                .pointAt(util.vector().blockSurface(TIERS_CORE, Direction.NORTH))
+                .placeNearTarget();
+        scene.idle(100);
+
+        scene.world().showSection(util.select().position(TIERS_FAUCET).add(util.select().position(TIERS_SOURCE)), Direction.DOWN);
+        ForgeweaveCastingScenes.searedTank(scene, util, TIERS_SOURCE, DRAGON_BREATH, 1000);
+        scene.idle(10);
+        scene.overlay().showText(90)
+                .attachKeyFrame()
+                .text("An End Core is made by pouring instead. Set a Faucet over a Nether Core, fed from a tank of molten dragon breath, and pour a full bucket onto it")
+                .pointAt(util.vector().blockSurface(TIERS_FAUCET, Direction.NORTH))
+                .placeNearTarget();
+        scene.idle(100);
+
+        pourOntoCore(scene, util, DRAGON_BREATH, ForgeweaveBlocks.END_CORE.get());
+        scene.overlay().showText(90)
+                .attachKeyFrame()
+                .text("Once 1,000 mB has gone in the core becomes an End Core: two and a half ingots' worth per ore. The smeltery stays formed and keeps its melt and fuel")
+                .pointAt(util.vector().blockSurface(TIERS_CORE, Direction.NORTH))
+                .placeNearTarget();
+        scene.idle(100);
+
+        ForgeweaveCastingScenes.searedTank(scene, util, TIERS_SOURCE, DEEP_BLOOD, 2000);
+        scene.idle(10);
+        scene.overlay().showText(90)
+                .attachKeyFrame()
+                .text("Two buckets of deep blood poured the same way over an End Core make a Deep Core, the top tier: three ingots' worth from every ore")
+                .pointAt(util.vector().blockSurface(TIERS_FAUCET, Direction.NORTH))
+                .placeNearTarget();
+        scene.idle(100);
+
+        pourOntoCore(scene, util, DEEP_BLOOD, ForgeweaveBlocks.DEEP_CORE.get());
+        scene.overlay().showText(90)
+                .attachKeyFrame()
+                .text("Each step is one way. The wrong fluid, or the right one over any other core, is simply refused: the faucet does not pour and nothing is used up")
+                .pointAt(util.vector().blockSurface(TIERS_CORE, Direction.NORTH))
+                .placeNearTarget();
+        scene.idle(100);
+
+        scene.markAsFinished();
+    }
+
+    /** Right-click the faucet, run the stream for a moment, empty the source, then the core is the next tier. */
+    private static void pourOntoCore(SceneBuilder scene, SceneBuildingUtil util, String fluidId, Block toCore) {
+        scene.overlay().showControls(util.vector().blockSurface(TIERS_FAUCET, Direction.NORTH), Pointing.LEFT, 30).rightClick();
+        scene.idle(20);
+        ForgeweaveCastingScenes.faucet(scene, util, TIERS_FAUCET, fluidId, STREAM);
+        scene.idle(60);
+        ForgeweaveCastingScenes.faucet(scene, util, TIERS_FAUCET, fluidId, 0);
+        ForgeweaveCastingScenes.searedTank(scene, util, TIERS_SOURCE, fluidId, 0);
+        swapCore(scene, toCore);
+    }
+
+    /** The same wall cell, the next tier's block, facing and lit as before ({@code Block.withPropertiesOf}). */
+    private static void swapCore(SceneBuilder scene, Block toCore) {
+        scene.world().modifyBlock(TIERS_CORE, state -> toCore.withPropertiesOf(state), true);
+        scene.effects().indicateSuccess(TIERS_CORE);
+        scene.idle(10);
     }
 
     private ForgeweaveSmelteryScenes() {}
