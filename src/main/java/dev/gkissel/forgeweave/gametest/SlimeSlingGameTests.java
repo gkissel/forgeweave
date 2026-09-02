@@ -84,7 +84,9 @@ public class SlimeSlingGameTests {
                 "looking down, a full charge throws the player up at VERTICAL_SCALE of the force, got " + motion);
         helper.assertTrue(Math.abs(motion.x) < EPSILON && Math.abs(motion.z) < EPSILON,
                 "straight down means no horizontal push, got " + motion);
-        helper.assertTrue(player.hurtMarked, "the velocity change must be flagged for the client resync");
+        helper.assertFalse(player.hurtMarked,
+                "issue #902: no hurtMarked, so vanilla never sends the clamped +-3.9 blocks/tick "
+                        + "ClientboundSetEntityMotionPacket that would overwrite the client's own push");
         helper.assertTrue(SlimeBounceHandler.isBouncing(player), "the flung player's momentum must be carried");
         helper.succeed();
     }
