@@ -162,13 +162,22 @@ public class TrackBAlloyGameTests {
         };
     }
 
-    /** Every ore metal's ore/raw melting rows: ore-class ({@code ore: true}), base amount 144 mB. */
+    /**
+     * Every ore metal's ore/raw melting rows: ore-class ({@code ore: true}), base amount 144 mB --
+     * except fulmenite ({@link TrackBOre#dropsCrystal}), whose ore block has no melting row of its own
+     * (mirroring brimspar, #903): only its crystal melts, not ore-class, at the same base amount
+     * (#929, {@code melting_recipe/fulmenite_crystal.json}).
+     */
     @GameTest(template = "empty")
     public static void everyTrackBOreOreAndRawMeltAsOreClassAtBaseAmount(GameTestHelper helper) {
         for (TrackBOre ore : TrackBOre.ALL) {
             Fluid fluid = ForgeweaveFluids.trackBOreFluid(ore.id()).still().get();
-            assertMelting(helper, ore.oreBlockId(), fluid, MeltingRecipe.VALUE_INGOT, true);
-            assertMelting(helper, "raw_" + ore.id(), fluid, MeltingRecipe.VALUE_INGOT, true);
+            if (ore.dropsCrystal()) {
+                assertMelting(helper, ore.crystalItemId(), fluid, MeltingRecipe.VALUE_INGOT, false);
+            } else {
+                assertMelting(helper, ore.oreBlockId(), fluid, MeltingRecipe.VALUE_INGOT, true);
+                assertMelting(helper, "raw_" + ore.id(), fluid, MeltingRecipe.VALUE_INGOT, true);
+            }
         }
         helper.succeed();
     }

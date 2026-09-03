@@ -1059,6 +1059,9 @@ public final class ForgeweaveItems {
     private static final Map<String, DeferredItem<Item>> TRACK_B_INGOTS = new LinkedHashMap<>();
     private static final Map<String, DeferredItem<Item>> TRACK_B_NUGGETS = new LinkedHashMap<>();
     private static final Map<String, DeferredItem<Item>> TRACK_B_RAW_ITEMS = new LinkedHashMap<>();
+    // #929 -- the crystal a dropsCrystal ore's block drops instead of a raw item (fulmenite; the
+    // brimspar shape, #903).
+    private static final Map<String, DeferredItem<Item>> TRACK_B_CRYSTALS = new LinkedHashMap<>();
     private static final Map<String, DeferredItem<BlockItem>> TRACK_B_ORE_ITEMS = new LinkedHashMap<>();
     private static final Map<String, DeferredItem<BlockItem>> TRACK_B_STORAGE_BLOCK_ITEMS = new LinkedHashMap<>();
     private static final Map<String, DeferredItem<BlockItem>> TRACK_B_RAW_BLOCK_ITEMS = new LinkedHashMap<>();
@@ -1067,10 +1070,16 @@ public final class ForgeweaveItems {
         for (TrackBOre ore : TrackBOre.ALL) {
             TRACK_B_INGOTS.put(ore.id(), ITEMS.registerSimpleItem(ore.ingotId()));
             TRACK_B_NUGGETS.put(ore.id(), ITEMS.registerSimpleItem(ore.nuggetId()));
-            TRACK_B_RAW_ITEMS.put(ore.id(), ITEMS.registerSimpleItem(ore.rawItemId()));
+            // #929 -- fulmenite has no raw item/raw-storage block; it registers a crystal item instead
+            // (TrackBOre#dropsCrystal), the same axis brimspar's own item pair already carries.
+            if (ore.dropsCrystal()) {
+                TRACK_B_CRYSTALS.put(ore.id(), ITEMS.registerSimpleItem(ore.crystalItemId()));
+            } else {
+                TRACK_B_RAW_ITEMS.put(ore.id(), ITEMS.registerSimpleItem(ore.rawItemId()));
+                TRACK_B_RAW_BLOCK_ITEMS.put(ore.id(), ITEMS.registerSimpleBlockItem(ore.rawBlockId(), ForgeweaveBlocks.trackBRawBlock(ore.id())));
+            }
             TRACK_B_ORE_ITEMS.put(ore.id(), ITEMS.registerSimpleBlockItem(ore.oreBlockId(), ForgeweaveBlocks.trackBOre(ore.id())));
             TRACK_B_STORAGE_BLOCK_ITEMS.put(ore.id(), ITEMS.registerSimpleBlockItem(ore.storageBlockId(), ForgeweaveBlocks.trackBStorageBlock(ore.id())));
-            TRACK_B_RAW_BLOCK_ITEMS.put(ore.id(), ITEMS.registerSimpleBlockItem(ore.rawBlockId(), ForgeweaveBlocks.trackBRawBlock(ore.id())));
         }
     }
 
@@ -1084,6 +1093,11 @@ public final class ForgeweaveItems {
 
     public static DeferredItem<Item> trackBRawItem(String id) {
         return TRACK_B_RAW_ITEMS.get(id);
+    }
+
+    /** A Track B crystal item by material id (e.g. {@code "fulmenite"}), or {@code null} if that ore does not drop one. */
+    public static DeferredItem<Item> trackBCrystal(String id) {
+        return TRACK_B_CRYSTALS.get(id);
     }
 
     public static DeferredItem<BlockItem> trackBOreItem(String id) {

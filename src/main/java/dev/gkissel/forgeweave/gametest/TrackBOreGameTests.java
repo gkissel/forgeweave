@@ -227,28 +227,32 @@ public class TrackBOreGameTests {
      * synthetic pick at their own rung; the one diamond-tier ore (fulmenite) accepts an iron pickaxe.
      * The roster's former stone-tier ore (cinderstone) was retired by issue #884 (1) -- basalt
      * replaces it as a Part-Builder-only vanilla-item material, no ore of its own, so {@link
-     * TrackBOre.Tier#STONE} has no member left to test here. Each ore also drops exactly one raw
-     * item, same unconditional self-drop as cobalt/ardite.
+     * TrackBOre.Tier#STONE} has no member left to test here. Each ore drops exactly one raw item, same
+     * unconditional self-drop as cobalt/ardite -- except fulmenite ({@link TrackBOre#dropsCrystal}),
+     * which drops its crystal instead (#929, the brimspar shape); both still come out at count 1 with
+     * no Fortune applied, since {@code correct} here carries no enchantments either way.
      */
     @GameTest(template = "empty")
     public static void everyTrackBOreHasTheRightTierGateAndDrop(GameTestHelper helper) {
         for (TrackBOre ore : TrackBOre.ALL) {
             Block oreBlock = ForgeweaveBlocks.trackBOre(ore.id()).get();
-            Item rawItem = ForgeweaveItems.trackBRawItem(ore.id()).get();
+            Item drop = ore.dropsCrystal()
+                    ? ForgeweaveItems.trackBCrystal(ore.id()).get()
+                    : ForgeweaveItems.trackBRawItem(ore.id()).get();
             switch (ore.tier()) {
-                case RESONITE -> assertGate(helper, oreBlock, rawItem,
+                case RESONITE -> assertGate(helper, oreBlock, drop,
                         syntheticPick(TrackBOre.INCORRECT_FOR_WARSPAR_TOOL),
                         syntheticPick(TrackBOre.INCORRECT_FOR_RESONITE_TOOL));
-                case WARSPAR -> assertGate(helper, oreBlock, rawItem,
+                case WARSPAR -> assertGate(helper, oreBlock, drop,
                         syntheticPick(TrackBOre.INCORRECT_FOR_HARDCINDER_TOOL),
                         syntheticPick(TrackBOre.INCORRECT_FOR_WARSPAR_TOOL));
-                case HARDCINDER -> assertGate(helper, oreBlock, rawItem,
+                case HARDCINDER -> assertGate(helper, oreBlock, drop,
                         new ItemStack(Items.NETHERITE_PICKAXE),
                         syntheticPick(TrackBOre.INCORRECT_FOR_HARDCINDER_TOOL));
-                case NETHERITE -> assertGate(helper, oreBlock, rawItem,
+                case NETHERITE -> assertGate(helper, oreBlock, drop,
                         new ItemStack(Items.DIAMOND_PICKAXE), new ItemStack(Items.NETHERITE_PICKAXE));
-                case DIAMOND -> assertAccepts(helper, oreBlock, rawItem, new ItemStack(Items.IRON_PICKAXE));
-                case STONE -> assertAccepts(helper, oreBlock, rawItem, new ItemStack(Items.WOODEN_PICKAXE));
+                case DIAMOND -> assertAccepts(helper, oreBlock, drop, new ItemStack(Items.IRON_PICKAXE));
+                case STONE -> assertAccepts(helper, oreBlock, drop, new ItemStack(Items.WOODEN_PICKAXE));
             }
         }
         helper.succeed();

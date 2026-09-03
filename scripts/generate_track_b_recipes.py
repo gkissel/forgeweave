@@ -28,6 +28,11 @@ ORES = [
     "nightshale", "warspar", "hollowstone", "resonite", "starfall_stone", "voidglass",
 ]
 
+# Issue #929: fulmenite drops a crystal instead of a raw ore item (the brimspar shape, #903) --
+# TrackBOre#dropsCrystal in Java. Its ore block has no melting row of its own; only the crystal does
+# (crystal_melting_recipes below), at the same ingot value the raw item used to melt for.
+CRYSTAL_ORES = {"fulmenite"}
+
 # The 18 alloy tool materials (dev.gkissel.forgeweave.trackb.TrackBAlloy).
 ALLOYS = [
     "ironbrand", "quakestone", "shardline", "embercast", "riftalloy", "tideiron",
@@ -77,20 +82,37 @@ def clone_casting_recipes() -> None:
 
 
 def ore_melting_recipes() -> None:
-    """Ore/raw/ingot/nugget/block melting rows for the 12 ore metals (deliverable 2)."""
+    """Ore/raw/ingot/nugget/block melting rows for the ore metals (deliverable 2); a CRYSTAL_ORES
+    member (#929) skips the ore-block and raw-item rows -- crystal_melting_recipes() below is its only
+    way into the smeltery."""
+    count = 0
     for ore_id in ORES:
         fluid = f"forgeweave:molten_{ore_id}"
-        write_json(MELTING_DIR / f"{ore_id}_ore.json",
-                   {"input": {"tag": f"c:ores/{ore_id}"}, "fluid": fluid, "amount": VALUE_INGOT, "ore": True})
-        write_json(MELTING_DIR / f"raw_{ore_id}.json",
-                   {"input": {"tag": f"c:raw_materials/{ore_id}"}, "fluid": fluid, "amount": VALUE_INGOT, "ore": True})
+        if ore_id not in CRYSTAL_ORES:
+            write_json(MELTING_DIR / f"{ore_id}_ore.json",
+                       {"input": {"tag": f"c:ores/{ore_id}"}, "fluid": fluid, "amount": VALUE_INGOT, "ore": True})
+            write_json(MELTING_DIR / f"raw_{ore_id}.json",
+                       {"input": {"tag": f"c:raw_materials/{ore_id}"}, "fluid": fluid, "amount": VALUE_INGOT, "ore": True})
+            count += 2
         write_json(MELTING_DIR / f"{ore_id}_ingot.json",
                    {"input": {"tag": f"c:ingots/{ore_id}"}, "fluid": fluid, "amount": VALUE_INGOT})
         write_json(MELTING_DIR / f"{ore_id}_nugget.json",
                    {"input": {"tag": f"c:nuggets/{ore_id}"}, "fluid": fluid, "amount": VALUE_NUGGET})
         write_json(MELTING_DIR / f"{ore_id}_block.json",
                    {"input": {"tag": f"c:storage_blocks/{ore_id}"}, "fluid": fluid, "amount": VALUE_BLOCK})
-    print(f"wrote {len(ORES) * 5} ore melting recipes")
+        count += 3
+    print(f"wrote {count} ore melting recipes")
+
+
+def crystal_melting_recipes() -> None:
+    """One melting row per CRYSTAL_ORES member (#929, the brimspar precedent, #903): the crystal item
+    is the only mined-side input into the smeltery, at ingot value -- same shape as
+    melting_recipe/brimspar_crystal.json."""
+    for ore_id in sorted(CRYSTAL_ORES):
+        write_json(MELTING_DIR / f"{ore_id}_crystal.json",
+                   {"input": {"item": f"forgeweave:{ore_id}_crystal"}, "fluid": f"forgeweave:molten_{ore_id}",
+                    "amount": VALUE_INGOT})
+    print(f"wrote {len(CRYSTAL_ORES)} crystal melting recipes")
 
 
 def alloy_melting_recipes() -> None:
@@ -192,6 +214,7 @@ def main() -> None:
 
     clone_casting_recipes()
     ore_melting_recipes()
+    crystal_melting_recipes()
     basalt_melting_recipe()
     alloy_melting_recipes()
     catalyst_melting_recipes()

@@ -262,8 +262,14 @@ public final class ForgeweaveCreativeTab {
         // nugget and storage block per material, kept together as one visual group.
         for (TrackBOre ore : TrackBOre.ALL) {
             output.accept(ForgeweaveItems.trackBOreItem(ore.id()).get());
-            output.accept(ForgeweaveItems.trackBRawItem(ore.id()).get());
-            output.accept(ForgeweaveItems.trackBRawBlockItem(ore.id()).get());
+            // #929 -- fulmenite has no raw item/raw-storage block (TrackBOre#dropsCrystal); its
+            // crystal fills that slot in the group instead.
+            if (ore.dropsCrystal()) {
+                output.accept(ForgeweaveItems.trackBCrystal(ore.id()).get());
+            } else {
+                output.accept(ForgeweaveItems.trackBRawItem(ore.id()).get());
+                output.accept(ForgeweaveItems.trackBRawBlockItem(ore.id()).get());
+            }
             output.accept(ForgeweaveItems.trackBIngot(ore.id()).get());
             output.accept(ForgeweaveItems.trackBNugget(ore.id()).get());
             output.accept(ForgeweaveItems.trackBStorageBlockItem(ore.id()).get());

@@ -71,8 +71,9 @@ public class UnstableOreGameTests {
     private static List<UnstableOre> unstableOres() {
         return List.of(
                 new UnstableOre("brimspar", ForgeweaveBlocks.BRIMSPAR_ORE.get(), ForgeweaveItems.BRIMSPAR_CRYSTAL.get()),
+                // #929 -- fulmenite drops its own crystal now (TrackBOre#dropsCrystal), not a raw item.
                 new UnstableOre("fulmenite", ForgeweaveBlocks.trackBOre("fulmenite").get(),
-                        ForgeweaveItems.trackBRawItem("fulmenite").get()));
+                        ForgeweaveItems.trackBCrystal("fulmenite").get()));
     }
 
     /**

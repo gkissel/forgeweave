@@ -1,8 +1,0 @@
-{
-  "input": {
-    "tag": "c:raw_materials/fulmenite"
-  },
-  "fluid": "forgeweave:molten_fulmenite",
-  "amount": 144,
-  "ore": true
-}
