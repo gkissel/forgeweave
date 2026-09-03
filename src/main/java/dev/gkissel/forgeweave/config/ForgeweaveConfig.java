@@ -205,6 +205,49 @@ public final class ForgeweaveConfig {
      */
     public static final ModConfigSpec.BooleanValue MODIFIERS;
 
+    /**
+     * Tool and armor leveling (docs/SCOPE.md M7, D-M7-3; issue #918), a port of Tinkers' Tool
+     * Leveling. Off means the mechanic is fully inert -- no XP accrues on any path, and M7-5's
+     * tooltip lines, chat line and chime stay silent. It does <b>not</b> revoke levels: a slot a
+     * tool already earned keeps counting, because a flag flip that invalidated modifiers already
+     * spent into that slot would be a save-corruption bug wearing a config's clothes.
+     */
+    public static final ModConfigSpec.BooleanValue TOOL_LEVELING;
+
+    /**
+     * Upstream {@code defaultBaseXP}: what a tool's first level costs before its own
+     * {@link dev.gkissel.forgeweave.tool.ToolConstants.Entry#baseXpMultiplier()} is applied. Read
+     * through {@link #defaultBaseXp()}, never {@code .get()}.
+     */
+    public static final ModConfigSpec.IntValue DEFAULT_BASE_XP;
+
+    /**
+     * Upstream {@code levelMultiplier}: what each further level multiplies the last one's cost by.
+     * Upstream clamps a value below 2 back up to 2 after loading its config file; the floor is the
+     * range's lower bound here instead, which refuses the value where it is typed rather than
+     * silently rewriting it.
+     */
+    public static final ModConfigSpec.DoubleValue LEVEL_MULTIPLIER;
+
+    /**
+     * Upstream {@code maximumLevels}, with its off-by-one corrected (D-M7-9): a cap of N stops a
+     * tool at exactly N, where upstream's {@code maximumLevels >= currentLevel} let it reach N + 1.
+     * Zero or negative means no cap, which is the default.
+     */
+    public static final ModConfigSpec.IntValue MAXIMUM_LEVELS;
+
+    /** Upstream {@code defaultBaseXP}'s own default -- see {@link #DEFAULT_BASE_XP}. */
+    public static final int DEFAULT_BASE_XP_DEFAULT = 500;
+
+    /**
+     * Upstream {@code levelMultiplier}'s own default, which is also its floor -- see
+     * {@link #LEVEL_MULTIPLIER}.
+     */
+    public static final double LEVEL_MULTIPLIER_FLOOR = 2.0D;
+
+    /** {@link #MAXIMUM_LEVELS}'s default: no cap. */
+    public static final int NO_LEVEL_CAP = -1;
+
     /** Upstream {@code genCobalt}: cobalt ore generates in the Nether. */
     public static final ModConfigSpec.BooleanValue GEN_COBALT;
     /** Upstream {@code cobaltRate}: approximate cobalt veins per Nether chunk. */
@@ -276,6 +319,27 @@ public final class ForgeweaveConfig {
      */
     public static boolean craftCastableMaterials() {
         return SPEC.isLoaded() && CRAFT_CASTABLE_MATERIALS.get();
+    }
+
+    /**
+     * {@link #DEFAULT_BASE_XP}, answering with its own default whenever the spec is not loaded --
+     * the same guard {@link #enabled} exists for, and for the same reason: the leveling curve is
+     * exercised by unit tests that never stand a server up. The three leveling numbers have no
+     * permissive-versus-strict question to settle; the default value simply is the right answer when
+     * no server has spoken.
+     */
+    public static int defaultBaseXp() {
+        return SPEC.isLoaded() ? DEFAULT_BASE_XP.get() : DEFAULT_BASE_XP_DEFAULT;
+    }
+
+    /** @see #defaultBaseXp() */
+    public static double levelMultiplier() {
+        return SPEC.isLoaded() ? LEVEL_MULTIPLIER.get() : LEVEL_MULTIPLIER_FLOOR;
+    }
+
+    /** @see #defaultBaseXp() */
+    public static int maximumLevels() {
+        return SPEC.isLoaded() ? MAXIMUM_LEVELS.get() : NO_LEVEL_CAP;
     }
 
     static {
@@ -360,6 +424,26 @@ public final class ForgeweaveConfig {
                         "Station. Repair and part exchange are unaffected, and anything already on a tool keeps",
                         "working either way -- only applying a new one is refused.")
                 .define("modifiers", true);
+        // M7 (issue #918). The three numbers are not content-family toggles, but a pack operator
+        // reaches for them alongside toolLeveling, so they sit beside it rather than opening a new
+        // section for three values -- the same call meltSpeedMultiplier made above.
+        TOOL_LEVELING = builder
+                .comment("If true, tools and armor gain XP from being used and earn a modifier slot per level.",
+                        "With this off nothing accrues XP and no level-up message, sound or tooltip appears.",
+                        "Slots already earned keep counting either way, so no modifier already applied is lost.")
+                .define("toolLeveling", true);
+        DEFAULT_BASE_XP = builder
+                .comment("How much XP a tool's first level costs. The area-of-effect tools (hammer, excavator,",
+                        "lumber axe, scythe, vein hammer) cost nine times this, since they break nine blocks",
+                        "at a time.")
+                .defineInRange("defaultBaseXP", DEFAULT_BASE_XP_DEFAULT, 1, Integer.MAX_VALUE);
+        LEVEL_MULTIPLIER = builder
+                .comment("How much the XP cost multiplies per level, minimum 2. Note that the first two levels",
+                        "both cost the base amount; the multiplier starts applying from the third.")
+                .defineInRange("levelMultiplier", LEVEL_MULTIPLIER_FLOOR, LEVEL_MULTIPLIER_FLOOR, 100.0D);
+        MAXIMUM_LEVELS = builder
+                .comment("The highest level a tool can reach. Zero or lower means no limit.")
+                .defineInRange("maximumLevels", NO_LEVEL_CAP, NO_LEVEL_CAP, Integer.MAX_VALUE);
         builder.pop();
 
         builder.comment("World generation options").push("worldgen");

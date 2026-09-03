@@ -206,6 +206,13 @@ public final class ToolConstants {
      *     the tool's first HEAD/LIMB slot, which is what slot {@code 1} is for every upstream tool
      *     that keeps the default, and the only sensible reading for the tools with no 1.12
      *     counterpart. Read through {@link Entry#repairSlots()}, never directly.
+     * @param baseXpMultiplier what this tool's first leveling level costs, as a multiple of
+     *     {@code ForgeweaveConfig.defaultBaseXP} (M7 D-M7-5, issue #918): {@link #AOE_BASE_XP}
+     *     for the five area-of-effect shapes, {@code 1} for everything else. A multiple rather than
+     *     upstream's absolute number, because upstream's {@code baseXpForTool} config map was the
+     *     absolute value and Forgeweave keeps {@code defaultBaseXP} in config -- storing 4500 here
+     *     would silently stop a pack that retunes {@code defaultBaseXP} from moving the hammer with
+     *     it. Read through {@code ToolLeveling#baseXp}, which applies the config number.
      */
     public record Entry(
             String id,
@@ -221,7 +228,8 @@ public final class ToolConstants {
             boolean durabilitySkipsExtraAndHandle,
             float damageCutoff,
             float bonusDamageMultiplier,
-            List<Float> repairModifiers) {
+            List<Float> repairModifiers,
+            int baseXpMultiplier) {
 
         public Entry {
             if (!repairModifiers.isEmpty() && repairModifiers.size() != parts.size()) {
@@ -245,7 +253,7 @@ public final class ToolConstants {
                 float damageCutoff) {
             this(id, category, parts, attackSpeed, damagePotential, preAttackMultiplier, flatAttackBonus,
                     durabilityMultiplier, miningSpeedModifier, sumHeadsForAttack, durabilitySkipsExtraAndHandle,
-                    damageCutoff, 1.0f, List.of());
+                    damageCutoff, 1.0f, List.of(), 1);
         }
 
         /** Convenience constructor for the two launchers that need {@code bonusDamageMultiplier} and no repair table. */
@@ -255,7 +263,7 @@ public final class ToolConstants {
                 float damageCutoff, float bonusDamageMultiplier) {
             this(id, category, parts, attackSpeed, damagePotential, preAttackMultiplier, flatAttackBonus,
                     durabilityMultiplier, miningSpeedModifier, sumHeadsForAttack, durabilitySkipsExtraAndHandle,
-                    damageCutoff, bonusDamageMultiplier, List.of());
+                    damageCutoff, bonusDamageMultiplier, List.of(), 1);
         }
 
         /**
@@ -267,7 +275,20 @@ public final class ToolConstants {
         public Entry withRepairModifiers(Float... modifiers) {
             return new Entry(id, category, parts, attackSpeed, damagePotential, preAttackMultiplier,
                     flatAttackBonus, durabilityMultiplier, miningSpeedModifier, sumHeadsForAttack,
-                    durabilitySkipsExtraAndHandle, damageCutoff, bonusDamageMultiplier, List.of(modifiers));
+                    durabilitySkipsExtraAndHandle, damageCutoff, bonusDamageMultiplier, List.of(modifiers),
+                    baseXpMultiplier);
+        }
+
+        /**
+         * This entry with a non-default {@link #baseXpMultiplier()} -- a wither for the same reason
+         * {@link #withRepairModifiers} is one: five of the twenty-odd entries need it, and the other
+         * fifteen should not have to name it.
+         */
+        public Entry withBaseXpMultiplier(int multiplier) {
+            return new Entry(id, category, parts, attackSpeed, damagePotential, preAttackMultiplier,
+                    flatAttackBonus, durabilityMultiplier, miningSpeedModifier, sumHeadsForAttack,
+                    durabilitySkipsExtraAndHandle, damageCutoff, bonusDamageMultiplier, repairModifiers,
+                    multiplier);
         }
 
         /**
@@ -296,6 +317,14 @@ public final class ToolConstants {
 
     /** Upstream {@code ToolCore#damageCutoff()}'s own default -- see {@link Entry#damageCutoff}. */
     public static final float DEFAULT_DAMAGE_CUTOFF = 15.0f;
+
+    /**
+     * What the area-of-effect shapes' first leveling level costs, as a multiple of
+     * {@code defaultBaseXP} -- upstream {@code ConfigFile#getDefaultXp}'s {@code 9 * defaultBaseXP}
+     * for hammer, excavator, lumber axe and scythe, because they break nine blocks at a time. The
+     * vein hammer has no 1.12 counterpart and joins them by shape (M7 D-M7-5, issue #918).
+     */
+    public static final int AOE_BASE_XP = 9;
 
     private static final String TOOL_HANDLE = "tool_handle";
     private static final String TOOL_BINDING = "tool_binding";
@@ -400,7 +429,8 @@ public final class ToolConstants {
             0.8f, 1.2f, 1.0f, 0.0f, 2.5f, 0.4f, false, false)
             // Upstream Hammer: getRepairParts {1, 2, 3}, index 1 -> DURABILITY_MODIFIER (2.5),
             // the two plates -> DURABILITY_MODIFIER * 0.6 (1.5).
-            .withRepairModifiers(0f, 2.5f, 1.5f, 1.5f);
+            .withRepairModifiers(0f, 2.5f, 1.5f, 1.5f)
+            .withBaseXpMultiplier(AOE_BASE_XP);
 
     /** Upstream {@code tools/tools/Excavator.java}: excavator head + large plate, unweighted average. */
     public static final Entry EXCAVATOR = new Entry("excavator", Category.HARVEST,
@@ -409,7 +439,8 @@ public final class ToolConstants {
             0.7f, 1.25f, 1.0f, 0.0f, 1.75f, 0.28f, false, false)
             // Upstream Excavator: getRepairParts {1, 2}, index 1 -> DURABILITY_MODIFIER (1.75),
             // the plate -> DURABILITY_MODIFIER * 0.75 (1.3125).
-            .withRepairModifiers(0f, 1.75f, 1.3125f, 0f);
+            .withRepairModifiers(0f, 1.75f, 1.3125f, 0f)
+            .withBaseXpMultiplier(AOE_BASE_XP);
 
     /** Upstream {@code tools/tools/LumberAxe.java}: broad axe head + large plate, unweighted average. */
     public static final Entry LUMBERAXE = new Entry("lumberaxe", Category.HARVEST,
@@ -418,7 +449,8 @@ public final class ToolConstants {
             0.8f, 1.2f, 1.0f, 2.0f, 2.0f, 0.35f, false, false)
             // Upstream LumberAxe: getRepairParts {1, 2}, index 1 -> DURABILITY_MODIFIER (2),
             // the plate -> DURABILITY_MODIFIER * 0.625 (1.25).
-            .withRepairModifiers(0f, 2f, 1.25f, 0f);
+            .withRepairModifiers(0f, 2f, 1.25f, 0f)
+            .withBaseXpMultiplier(AOE_BASE_XP);
 
     /** Upstream {@code tools/tools/Scythe.java}: single head, two tough handles averaged. */
     public static final Entry SCYTHE = new Entry("scythe", Category.HARVEST,
@@ -429,7 +461,8 @@ public final class ToolConstants {
             // order is (handle, head, binding, handle) -- and it overrides no repair modifier, so
             // both repair at 1 despite DURABILITY_MODIFIER = 2.2. Ported verbatim: the scythe is the
             // only tool upstream lets you repair with a non-head part's material.
-            .withRepairModifiers(0f, 1f, 1f, 0f);
+            .withRepairModifiers(0f, 1f, 1f, 0f)
+            .withBaseXpMultiplier(AOE_BASE_XP);
 
     /**
      * No 1.12 counterpart. Part weights (hammer head 0.75 / large plate 0.25) and stats ported from
@@ -443,7 +476,8 @@ public final class ToolConstants {
             // unchanged. Registered id wins.
             List.of(new PartSlot(Role.HEAD, "vein_hammer_head", 0.75f), new PartSlot(Role.HANDLE, TOUGH_TOOL_HANDLE),
                     new PartSlot(Role.EXTRA, TOUGH_BINDING), new PartSlot(Role.HEAD, "large_plate", 0.25f)),
-            0.85f, 1.25f, 1.0f, 3.0f, 5.0f, 0.3f, false, false);
+            0.85f, 1.25f, 1.0f, 3.0f, 5.0f, 0.3f, false, false)
+            .withBaseXpMultiplier(AOE_BASE_XP);
 
     /**
      * No 1.12 counterpart. Shape from the 1.20 branch's {@code DAGGER} ({@code smallBlade} + handle,
