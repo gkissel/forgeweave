@@ -144,30 +144,30 @@ public record TrackBOre(String id, Tier tier, Host host, int veinSize, int rateP
     // flag instead of special-casing FULMENITE by identity the way the unstable-ore block switch still
     // does below (a separate axis -- whether harvesting can detonate the vein, not what it drops).
     public static final TrackBOre FULMENITE =
-            new TrackBOre("fulmenite", Tier.DIAMOND, Host.NETHER, 5, 6, 10, 108, 0xC8D94A, true);
+            new TrackBOre("fulmenite", Tier.DIAMOND, Host.NETHER, 5, 6, 10, 108, 0xC7FA4F, true);
     public static final TrackBOre DUSKSPAR =
-            new TrackBOre("duskspar", Tier.NETHERITE, Host.END, 4, 3, 32, 56, 0x8A5FD9, false);
+            new TrackBOre("duskspar", Tier.NETHERITE, Host.END, 4, 3, 32, 56, 0x9C67D2, false);
     public static final TrackBOre VOLTCINDER =
-            new TrackBOre("voltcinder", Tier.NETHERITE, Host.OVERWORLD_DEEPSLATE, 4, 2, -64, -48, 0x38D9D0, false);
+            new TrackBOre("voltcinder", Tier.NETHERITE, Host.OVERWORLD_DEEPSLATE, 4, 2, -64, -48, 0x00C9F2, false);
     public static final TrackBOre MURKIRON =
-            new TrackBOre("murkiron", Tier.HARDCINDER, Host.NETHER, 4, 3, 8, 64, 0x3A5C56, false);
+            new TrackBOre("murkiron", Tier.HARDCINDER, Host.NETHER, 4, 3, 8, 64, 0x206553, false);
     public static final TrackBOre HARDCINDER =
-            new TrackBOre("hardcinder", Tier.HARDCINDER, Host.OVERWORLD_DEEPSLATE, 4, 4, -48, 16, 0xC23B2B, false);
+            new TrackBOre("hardcinder", Tier.HARDCINDER, Host.OVERWORLD_DEEPSLATE, 4, 4, -48, 16, 0xC72C20, false);
     public static final TrackBOre NIGHTSHALE =
-            new TrackBOre("nightshale", Tier.HARDCINDER, Host.END, 4, 3, 44, 72, 0x3B3F7A, false);
+            new TrackBOre("nightshale", Tier.HARDCINDER, Host.END, 4, 3, 44, 72, 0x394393, false);
     public static final TrackBOre WARSPAR =
-            new TrackBOre("warspar", Tier.WARSPAR, Host.NETHER, 4, 2, 0, 120, 0xA4283F, false);
+            new TrackBOre("warspar", Tier.WARSPAR, Host.NETHER, 4, 2, 0, 120, 0xA0163A, false);
     public static final TrackBOre HOLLOWSTONE =
-            new TrackBOre("hollowstone", Tier.WARSPAR, Host.END, 4, 2, 0, 96, 0xD8D3C2, false);
+            new TrackBOre("hollowstone", Tier.WARSPAR, Host.END, 4, 2, 0, 96, 0xF8EEB3, false);
     public static final TrackBOre RESONITE =
-            new TrackBOre("resonite", Tier.RESONITE, Host.OVERWORLD_DEEPSLATE, 4, 3, -64, -16, 0x3FAE9E, false);
+            new TrackBOre("resonite", Tier.RESONITE, Host.OVERWORLD_DEEPSLATE, 4, 3, -64, -16, 0x00B5B0, false);
     // JC11 -- former meteor pair, now ordinary rare veins/surface feature (see class javadoc). Counts
     // rebalanced by #883 (2026-08-31): voidglass alone keeps count 1, moved to the End so it's the
     // game's uniquely rarest ore; starfall_stone bumps to 2 so it's no longer tied with voidglass.
     public static final TrackBOre STARFALL_STONE =
-            new TrackBOre("starfall_stone", Tier.NETHERITE, Host.OVERWORLD_STONE, 3, 2, 62, 90, 0xBCD6F2, false);
+            new TrackBOre("starfall_stone", Tier.NETHERITE, Host.OVERWORLD_STONE, 3, 2, 62, 90, 0xA0C4F8, false);
     public static final TrackBOre VOIDGLASS =
-            new TrackBOre("voidglass", Tier.NETHERITE, Host.END, 3, 1, 0, 255, 0x2A1740, false);
+            new TrackBOre("voidglass", Tier.NETHERITE, Host.END, 3, 1, 0, 255, 0x4A1951, false);
 
     public static final List<TrackBOre> ALL = List.of(FULMENITE, DUSKSPAR, VOLTCINDER, MURKIRON,
             HARDCINDER, NIGHTSHALE, WARSPAR, HOLLOWSTONE, RESONITE, STARFALL_STONE, VOIDGLASS);

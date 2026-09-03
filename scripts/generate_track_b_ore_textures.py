@@ -102,17 +102,17 @@ ITEM_DIR = ROOT / "src/main/resources/assets/forgeweave/textures/item"
 # (see _derive_ore_template), re-homing an ore also re-draws its ore-block donor -- deterministically,
 # from the same per-material seed, so TEMPLATES below still reproduces byte-for-byte on a re-run.
 ORES = [
-    ("fulmenite", 0xC8D94A, "netherrack"),
-    ("murkiron", 0x3A5C56, "netherrack"),
-    ("warspar", 0xA4283F, "netherrack"),
-    ("duskspar", 0x8A5FD9, "end_stone"),
-    ("nightshale", 0x3B3F7A, "end_stone"),
-    ("hollowstone", 0xD8D3C2, "end_stone"),
-    ("voidglass", 0x2A1740, "end_stone"),
-    ("hardcinder", 0xC23B2B, "deepslate"),
-    ("voltcinder", 0x38D9D0, "deepslate"),
-    ("resonite", 0x3FAE9E, "deepslate"),
-    ("starfall_stone", 0xBCD6F2, "stone"),
+    ("fulmenite", 0xC7FA4F, "netherrack"),
+    ("murkiron", 0x206553, "netherrack"),
+    ("warspar", 0xA0163A, "netherrack"),
+    ("duskspar", 0x9C67D2, "end_stone"),
+    ("nightshale", 0x394393, "end_stone"),
+    ("hollowstone", 0xF8EEB3, "end_stone"),
+    ("voidglass", 0x4A1951, "end_stone"),
+    ("hardcinder", 0xC72C20, "deepslate"),
+    ("voltcinder", 0x00C9F2, "deepslate"),
+    ("resonite", 0x00B5B0, "deepslate"),
+    ("starfall_stone", 0xA0C4F8, "stone"),
 ]
 
 # Issue #929: fulmenite (still a full ORES member -- it keeps its ore block, storage block, ingot and
@@ -135,7 +135,7 @@ CRYSTAL_DROP_DONORS = {
 # deliberately *not* a hand-authored sprite, per CLAUDE.md's derived-texture rules.
 # (id, color, host, crystal_donor) -- color must match UnstableOreBlock#BRIMSPAR_CRYSTAL_COLOR.
 STANDALONE_CRYSTAL_ORES = [
-    ("brimspar", 0xE8B923, "netherrack", "amethyst_shard"),
+    ("brimspar", 0x0FBD59, "netherrack", "amethyst_shard"),
 ]
 
 ORE_STORAGE_POOL = ["iron", "copper", "gold", "diamond", "redstone", "lapis", "emerald"]

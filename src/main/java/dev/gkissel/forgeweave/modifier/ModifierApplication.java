@@ -561,6 +561,36 @@ public final class ModifierApplication {
     }
 
     /**
+     * Raise {@code modifier} on {@code tool} straight to {@code level}, charging no reagents and no
+     * modifier slot (issue #915). This is the seam Draconic Evolution's fusion compat applies an
+     * upgrade through -- see
+     * {@link dev.gkissel.forgeweave.compat.draconic.FusionUpgradeRecipe#upgrade} -- where the price
+     * is the fusion craft's own materials and RF rather than the station's slot budget.
+     *
+     * <p>Everything else {@link #apply} enforces still holds: {@link ModifierCompatibility}'s
+     * trait/modifier/enchantment refusals run first, and a tool already at or above {@code level} is
+     * refused rather than silently rewritten backwards. What is deliberately not checked here is
+     * {@link ForgeweaveModifiers#freeSlots} and the recipe's {@code max_level} -- the first because
+     * this path does not spend slots, the second because there is no {@link ModifierRecipe} in play
+     * at all. Callers pick levels from the modifier's own shipped cap; nothing here can invent one
+     * the Tool Station could not also reach.
+     *
+     * <p>The shape gate ({@link #acceptsToolShape}) is the caller's too, since it needs registries
+     * this method is not given.
+     */
+    public static Outcome applyLevel(ItemStack tool, ResourceLocation modifier, int level) {
+        Optional<Component> incompatible = ModifierCompatibility.refusal(tool, modifier, name(modifier));
+        if (incompatible.isPresent()) {
+            return Outcome.rejected(incompatible.get());
+        }
+        ModifierEntry existing = ForgeweaveModifiers.entry(tool, modifier);
+        if (existing != null && existing.level() >= level) {
+            return Outcome.rejected(Component.translatable("gui.forgeweave.modifier.max_level", name(modifier)));
+        }
+        return Outcome.applied(modified(tool, modifier, level), List.of());
+    }
+
+    /**
      * The tool with {@code id} set to {@code level}, appended if it is new so the component keeps
      * application order. The vanilla {@code tool} component is rebuilt from the untouched base stats
      * plus the new modifier list, so vanilla's own block-breaking sees the modified mining speed and

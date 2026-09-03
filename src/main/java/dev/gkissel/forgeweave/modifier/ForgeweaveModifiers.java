@@ -69,6 +69,7 @@ import dev.gkissel.forgeweave.item.BowItem;
 import dev.gkissel.forgeweave.item.ForgeweaveDataComponents;
 import dev.gkissel.forgeweave.item.ForgeweaveItems;
 import dev.gkissel.forgeweave.item.ToolItem;
+import dev.gkissel.forgeweave.tool.ToolLevel;
 import dev.gkissel.forgeweave.tool.ToolStats;
 import dev.gkissel.forgeweave.trackb.TrackBOre;
 import dev.gkissel.forgeweave.trait.ForgeweaveTraits;
@@ -1695,7 +1696,15 @@ public final class ForgeweaveModifiers {
 
     /**
      * Modifier slots still available on this tool: the three every tool starts with, plus what its
-     * modifiers grant, minus the one each distinct modifier occupies.
+     * modifiers and traits grant, plus what tool leveling has earned it, minus the one each distinct
+     * modifier occupies.
+     *
+     * <p>Issue #921 (M7-4, docs/SCOPE.md D-M7-1): the level-granted total is
+     * {@link ToolLevel#bonusSlots}, summed in the same way as the trait total below rather than tied
+     * to any {@link ModifierEntry} -- a level comes from XP, not from a modifier application, so it
+     * never occupies a slot of its own. It is read verbatim off the stored component, never
+     * recomputed from {@code level}, so retuning the leveling config can never take back a slot a tool
+     * already earned; the config flag only gates new XP grants (M7-1/M7-2/M7-3), not this read.
      */
     public static int freeSlots(ItemStack stack) {
         int bonus = 0;
@@ -1710,6 +1719,7 @@ public final class ForgeweaveModifiers {
         for (Trait trait : ForgeweaveTraits.of(stack)) {
             bonus += trait.bonusSlots();
         }
+        bonus += ToolLevel.of(stack).bonusSlots();
         return DEFAULT_SLOTS + bonus - occupiedSlots(stack);
     }
 
