@@ -21,5 +21,9 @@ Fixtures that the GameTests need and that must never reach a player's world:
 | `data/forgeweave/forgeweave/trait_definition/gametest_pack_absent.json` | Issue #832: the same shape gated on `neoforge:mod_loaded` for a modid nothing supplies, so `DatapackTraitGameTests` can prove a definition failing its conditions never registers (absent from the registry and from `ForgeweaveTraits.lookup`). |
 | `data/forgeweave/forgeweave/material/gametest_pack_material.json` | Issue #832: the material naming both definitions above, so the tool under test is assembled from a real material the way a player's pack would wire it, and the absent id rides the tool inertly like any unimplemented trait id. Its crafting item is `minecraft:dead_bush`, which no other material names. |
 
-`build.gradle` puts this directory on the run classpath (`sourceSets.main.resources`) and excludes
-exactly these paths from the published `jar`. Adding a file here means adding its exclude there.
+`build.gradle` puts this directory in its own `gametest` source set, wired into the mod's file list
+only for the `gameTestServer` run (a second `mods` entry that folds in `sourceSets.gametest`
+alongside `sourceSets.main`, set as that one run's `loadedMods` override). Every other run
+(`runClient`, `runServer`, `runData`) and the published `jar` -- which packages `sourceSets.main`
+only -- never see this directory (issue #927). `GametestFixturesNotInMainResourcesTest` fails the
+build if that ever regresses. Adding a file here needs no extra wiring; it just needs a row above.
