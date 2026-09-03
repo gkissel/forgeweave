@@ -15,8 +15,10 @@ import dev.gkissel.forgeweave.menu.ToolAssemblyRecipes;
  * and {@code Config#canLevelUp} (MIT).
  *
  * <p>No XP is granted anywhere by this class. {@link #addXp} is the seam the mining, melee, ranged,
- * utility and armor grants land on in the later M7 issues, and the level-up feedback (chat line,
- * chime, tooltip) hangs off its return value rather than being emitted here.
+ * utility and armor grants land on in the later M7 issues. It also fires the level-up feedback
+ * (chat line and chime, {@link ToolLevelFeedback}) once per level a grant crosses -- the tooltip
+ * lines are the one piece that hangs off the stack's state instead, since they render on demand
+ * rather than at the moment XP is granted; see {@link dev.gkissel.forgeweave.item.ToolTooltip}.
  */
 public final class ToolLeveling {
     private ToolLeveling() {}
@@ -78,7 +80,9 @@ public final class ToolLeveling {
      * <p>Inert when {@code toolLeveling} is off (D-M7-3) and inert past the level cap. Levels
      * already earned are never revoked either way: the earned slot count lives on the stack.
      *
-     * @param player the player who earned it, for M7-5's chat line and chime; unused here
+     * @param player the player who earned it -- fed the chat line and chime for each level crossed
+     *     (issue #922); {@code null} skips feedback (a null player means no one to tell) but still
+     *     applies the XP and any levels it buys
      */
     public static boolean addXp(ItemStack stack, int amount, @Nullable ServerPlayer player) {
         return addXp(stack, amount, player, ForgeweaveConfig.enabled(ForgeweaveConfig.TOOL_LEVELING));
@@ -100,6 +104,15 @@ public final class ToolLeveling {
             return false;
         }
         stack.set(ForgeweaveDataComponents.TOOL_LEVEL.get(), after);
-        return after.level() > before.level();
+        boolean leveledUp = after.level() > before.level();
+        // Issue #922: once per level a single grant crosses, not once per grant -- a burst of XP
+        // that buys two levels in one call (ToolLevel#plusXp's own while loop) rings and prints
+        // twice, matching "once per level" rather than "once per addXp call".
+        if (leveledUp && player != null) {
+            for (int level = before.level() + 1; level <= after.level(); level++) {
+                ToolLevelFeedback.onLevelUp(stack, level, player);
+            }
+        }
+        return leveledUp;
     }
 }

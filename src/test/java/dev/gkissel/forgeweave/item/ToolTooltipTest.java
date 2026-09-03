@@ -40,9 +40,12 @@ import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.level.block.Block;
 
 import dev.gkissel.forgeweave.client.StationText;
+import dev.gkissel.forgeweave.config.ForgeweaveConfig;
 import dev.gkissel.forgeweave.material.Material;
 import dev.gkissel.forgeweave.modifier.ModifierEntry;
 import dev.gkissel.forgeweave.tool.LauncherStats;
+import dev.gkissel.forgeweave.tool.ToolLevel;
+import dev.gkissel.forgeweave.tool.ToolLeveling;
 import dev.gkissel.forgeweave.tool.ToolMaterials;
 import dev.gkissel.forgeweave.tool.ToolStats;
 
@@ -144,6 +147,58 @@ class ToolTooltipTest {
                         .append(Component.literal(" (51/100)").withStyle(ChatFormatting.GRAY)),
                 slotsLine(1)),
                 tooltip);
+    }
+
+    /**
+     * Issue #922 (docs/SCOPE.md M7, D-M7-8): the level name and XP lines sit right after the
+     * durability block, upstream's own placement, and are omitted entirely from a tool that has
+     * never earned or banked XP -- {@code ForgeweaveConfig.enabled} answers "on" with no loaded
+     * {@code SERVER} spec (its own javadoc), so this exercises the flag-on path by construction.
+     */
+    @Test
+    void compactTooltipShowsTheLevelNameAndXpRightAfterDurability() {
+        ItemStack stack = assembledPickaxe(40, List.of());
+        stack.set(ForgeweaveDataComponents.TOOL_LEVEL.get(), new ToolLevel(2, 30, 2));
+
+        List<Component> tooltip = new ArrayList<>();
+        ToolTooltip.append(stack, null, false, 3.0F, tooltip);
+
+        int needed = ToolLeveling.xpForLevelup(2, ForgeweaveConfig.DEFAULT_BASE_XP_DEFAULT, ForgeweaveConfig.LEVEL_MULTIPLIER_FLOOR);
+        assertEquals(List.of(
+                durabilityLine(120, 160),
+                levelNameLine(2),
+                xpLine(30, needed),
+                attackLine(3.0F),
+                pierceLine(),
+                slotsLine(5)), // #921: the two level bonus slots count in freeSlots()
+                tooltip);
+    }
+
+    /** A tool that never earned or banked any XP shows neither line -- no {@code tool_level} component at all. */
+    @Test
+    void compactTooltipHidesLevelAndXpWhenTheComponentIsAbsent() {
+        ItemStack stack = assembledPickaxe(40, List.of());
+
+        List<Component> tooltip = new ArrayList<>();
+        ToolTooltip.append(stack, null, false, 3.0F, tooltip);
+
+        assertEquals(List.of(durabilityLine(120, 160), attackLine(3.0F), pierceLine(), slotsLine(3)), tooltip);
+    }
+
+    /**
+     * {@code toolLeveling} off silences both lines even on a stack that already banked XP -- same
+     * test seam {@link ToolLeveling#addXp(ItemStack, int, net.minecraft.server.level.ServerPlayer,
+     * boolean)} uses for its own off path, since a {@code SERVER} spec never loads in a unit test.
+     */
+    @Test
+    void levelAndXpAreHiddenWhenLevelingIsOff() {
+        ItemStack stack = assembledPickaxe(40, List.of());
+        stack.set(ForgeweaveDataComponents.TOOL_LEVEL.get(), new ToolLevel(2, 30, 2));
+
+        List<Component> tooltip = new ArrayList<>();
+        ToolTooltip.appendLevel(stack, false, tooltip);
+
+        assertEquals(List.of(), tooltip);
     }
 
     /**
@@ -674,6 +729,18 @@ class ToolTooltipTest {
 
     private static Component attackLine(float value) {
         return statLine("tooltip.forgeweave.attack_damage", formatNumber(value), ATTACK_COLOR);
+    }
+
+    private static Component levelNameLine(int level) {
+        return Component.translatable("tooltip.forgeweave.level")
+                .append(": ")
+                .append(dev.gkissel.forgeweave.tool.ToolLevelName.name(level));
+    }
+
+    private static Component xpLine(int xp, int needed) {
+        return Component.translatable("tooltip.forgeweave.xp")
+                .append(": ")
+                .append(Component.literal(xp + " / " + needed));
     }
 
     private static Component statLine(String key, String value, TextColor color) {

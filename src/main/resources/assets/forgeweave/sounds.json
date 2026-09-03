@@ -4,5 +4,11 @@
     "sounds": [
       "forgeweave:slime_sling"
     ]
+  },
+  "tool_level_up": {
+    "category": "player",
+    "sounds": [
+      "forgeweave:tool_level_up"
+    ]
   }
 }

@@ -39,6 +39,7 @@ import dev.gkissel.forgeweave.combat.Beheading;
 import dev.gkissel.forgeweave.combat.CombatSeams;
 import dev.gkissel.forgeweave.combat.ForgeweaveInnates;
 import dev.gkissel.forgeweave.combat.ForgeweaveMobEffects;
+import dev.gkissel.forgeweave.compat.draconic.ForgeweaveDraconicCompat;
 import dev.gkissel.forgeweave.config.ForgeweaveClientConfig;
 import dev.gkissel.forgeweave.config.ForgeweaveConfig;
 import dev.gkissel.forgeweave.data.ForgeweaveDataGenerators;
@@ -77,6 +78,7 @@ import dev.gkissel.forgeweave.worldgen.MagmaSlimeIslandStructure; // #450
 import dev.gkissel.forgeweave.worldgen.NetherOrePlacement; // #276
 import dev.gkissel.forgeweave.worldgen.SlimeIslandPiece;
 import dev.gkissel.forgeweave.worldgen.SlimeIslandStructure;
+import dev.gkissel.forgeweave.tool.ForgeweaveAttachments; // #919
 import dev.gkissel.forgeweave.worldgen.TrackBOrePlacement; // #839
 
 // The value here must match the modId in META-INF/neoforge.mods.toml.
@@ -87,6 +89,9 @@ public class Forgeweave {
 
     public Forgeweave(IEventBus modEventBus, ModContainer modContainer) {
         ForgeweaveDataComponents.DATA_COMPONENTS.register(modEventBus);
+        // #919 -- the melee damage ledger M7 pays tool XP out of, an attachment on every
+        // damaged LivingEntity. See DamageXpLedger.
+        ForgeweaveAttachments.ATTACHMENT_TYPES.register(modEventBus);
         ForgeweaveBlocks.BLOCKS.register(modEventBus);
         ForgeweaveBlockEntities.BLOCK_ENTITIES.register(modEventBus);
         ForgeweaveFluids.FLUID_TYPES.register(modEventBus);
@@ -271,6 +276,14 @@ public class Forgeweave {
         // (see ForgeweaveDarkModeCompat's javadoc).
         if (ModList.get().isLoaded("darkmodeeverywhere") && FMLEnvironment.dist == Dist.CLIENT) {
             modEventBus.addListener(ForgeweaveDarkModeCompat::sendShaderBlacklist);
+        }
+        // #915 -- Draconic Evolution's fusion crafting (docs/SCOPE.md M8), the same soft-dependency
+        // idiom again. The guard is load-bearing rather than defensive: the recipe class behind this
+        // call implements a com.brandon3055 interface and cannot link without the mod present, which
+        // is why ForgeweaveDraconicCompat itself names no Draconic type and creates its
+        // DeferredRegister inside the call rather than in a static field.
+        if (ModList.get().isLoaded(ForgeweaveDraconicCompat.MODID)) {
+            ForgeweaveDraconicCompat.register(modEventBus);
         }
     }
 

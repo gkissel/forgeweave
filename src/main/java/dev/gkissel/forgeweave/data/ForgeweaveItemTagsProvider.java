@@ -22,6 +22,7 @@ import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.block.ChestKind;
 import dev.gkissel.forgeweave.block.ForgeweaveBlocks;
 import dev.gkissel.forgeweave.block.SearedDuctBlockEntity;
+import dev.gkissel.forgeweave.compat.draconic.ForgeweaveDraconicCompat;
 import dev.gkissel.forgeweave.item.ForgeweaveItems;
 import dev.gkissel.forgeweave.item.PatternItem;
 import dev.gkissel.forgeweave.menu.ToolAssemblyRecipes;
@@ -189,6 +190,17 @@ public class ForgeweaveItemTagsProvider extends ItemTagsProvider {
                 // #448 -- the shuriken: upstream TinkerRangedWeapons#registerToolBuilding puts it
                 // through registerToolForgeCrafting, same as the two bows above.
                 .add(ForgeweaveItems.TOOL_SHURIKEN.get());
+
+        // #915 -- the Draconic Evolution fusion upgrade ladder's catalyst set (docs/SCOPE.md M8).
+        // Every item either station assembles, read straight off ToolAssemblyRecipes.ENTRIES rather
+        // than listed by hand, so a new tool family joins the ladder with no edit here. Which of
+        // them a given upgrade line actually accepts is the modifier's own gate, not this tag's --
+        // see ForgeweaveDraconicCompat#FUSION_UPGRADABLE.
+        var fusionUpgradable = tag(ForgeweaveDraconicCompat.FUSION_UPGRADABLE);
+        ToolAssemblyRecipes.ENTRIES.stream()
+                .map(entry -> entry.tool().get())
+                .distinct()
+                .forEach(fusionUpgradable::add);
 
         // #223 -- wind burst's own gate: vanilla's wind_burst enchantment names
         // `#minecraft:enchantable/mace` as its supported_items, and ModifierApplication reads that

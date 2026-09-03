@@ -312,37 +312,37 @@ public final class ForgeweaveFluids {
     public static final MoltenMetal BRONZE = register("bronze", 0xE3BD68, 900);
     public static final MoltenMetal CONDUCTIVE_ALLOY = register("conductive_alloy", 0xC4732E, 916);
     public static final MoltenMetal CONSTANTAN = register("constantan", 0xA8794A, 932);
-    public static final MoltenMetal DARK_STEEL = register("dark_steel", 0x2C2A2E, 1160);
-    public static final MoltenMetal DRACONIUM_AWAKENED = register("draconium_awakened", 0x9B2FD9, 1172);
-    public static final MoltenMetal DRACONIUM = register("draconium", 0x2FBFA0, 1184);
+    public static final MoltenMetal DARK_STEEL = register("dark_steel", 0x272727, 1160);
+    public static final MoltenMetal DRACONIUM_AWAKENED = register("draconium_awakened", 0xB813B2, 1172);
+    public static final MoltenMetal DRACONIUM = register("draconium", 0x00BA99, 1184);
     public static final MoltenMetal ELECTRUM = register("electrum", 0xE8DB49, 738);
     public static final MoltenMetal END_STEEL = register("end_steel", 0xB29FE0, 1196);
     public static final MoltenMetal ENERGETIC_ALLOY = register("energetic_alloy", 0xD8A23C, 948);
     public static final MoltenMetal IESNIUM = register("iesnium", 0x5C3A21, 1208);
-    public static final MoltenMetal INVAR = register("invar", 0xD6D2C4, 964);
-    public static final MoltenMetal IRIDIUM = register("iridium", 0xE4E4EC, 1220);
+    public static final MoltenMetal INVAR = register("invar", 0xD1CDB9, 964);
+    public static final MoltenMetal IRIDIUM = register("iridium", 0xEBEBFF, 1220);
     public static final MoltenMetal LEAD = register("lead", 0x4D4968, 756);
-    public static final MoltenMetal NICKEL = register("nickel", 0xBFC2C2, 980);
-    public static final MoltenMetal OSMIUM = register("osmium", 0x5B6EE1, 996);
-    public static final MoltenMetal PLATINUM = register("platinum", 0xE5E4E2, 1040);
-    public static final MoltenMetal PSIMETAL = register("psimetal", 0x8CD6C4, 1012);
+    public static final MoltenMetal NICKEL = register("nickel", 0xC7C2AC, 980);
+    public static final MoltenMetal OSMIUM = register("osmium", 0x5764DB, 996);
+    public static final MoltenMetal PLATINUM = register("platinum", 0xE5E5E5, 1040);
+    public static final MoltenMetal PSIMETAL = register("psimetal", 0x6FCEDF, 1012);
     public static final MoltenMetal EBONY_PSIMETAL = register("ebony_psimetal", 0x221E26, 1054);
     public static final MoltenMetal IVORY_PSIMETAL = register("ivory_psimetal", 0xF5F0E1, 1068);
-    public static final MoltenMetal PULSATING_ALLOY = register("pulsating_alloy", 0x8C5FBA, 1028);
+    public static final MoltenMetal PULSATING_ALLOY = register("pulsating_alloy", 0x7368C7, 1028);
     public static final MoltenMetal REDSTONE_ALLOY = register("redstone_alloy", 0xB0413E, 774);
     public static final MoltenMetal REFINED_GLOWSTONE = register("refined_glowstone", 0xF9E75B, 1082);
-    public static final MoltenMetal REFINED_OBSIDIAN = register("refined_obsidian", 0x2B1B3D, 1232);
+    public static final MoltenMetal REFINED_OBSIDIAN = register("refined_obsidian", 0x2E1743, 1232);
     public static final MoltenMetal SILVER = register("silver", 0xD1ECF6, 792);
     public static final MoltenMetal SOULARIUM = register("soularium", 0xD9C98A, 1096);
-    public static final MoltenMetal TIN = register("tin", 0xD8D8D8, 810);
+    public static final MoltenMetal TIN = register("tin", 0xD4D4D4, 810);
     public static final MoltenMetal TITANIUM = register("titanium", 0x8A8F92, 1110);
-    public static final MoltenMetal TUNGSTEN = register("tungsten", 0x4F4E4A, 1124);
+    public static final MoltenMetal TUNGSTEN = register("tungsten", 0x545454, 1124);
     public static final MoltenMetal URANIUM = register("uranium", 0xA8B84B, 1138);
     public static final MoltenMetal VIBRANT_ALLOY = register("vibrant_alloy", 0x4FD8B0, 1152);
     public static final MoltenMetal PINK_SLIME = register("pink_slime", 0xF49AC1, 1166);
     public static final MoltenMetal GRAPHITE = register("graphite", 0x36393B, 828);
     public static final MoltenMetal DARK_MATTER = register("dark_matter", 0x1A0A26, 1244);
-    public static final MoltenMetal RED_MATTER = register("red_matter", 0xB3122B, 1256);
+    public static final MoltenMetal RED_MATTER = register("red_matter", 0xBD2645, 1256);
     public static final MoltenMetal COSMIC_NEUTRONIUM = register("cosmic_neutronium", 0x3D1A5C, 1268);
     public static final MoltenMetal CRYSTAL_MATRIX = register("crystal_matrix", 0x7FD9F5, 1280);
     public static final MoltenMetal INFINITY = register("infinity", 0xF5E9C8, 1292);
@@ -350,7 +350,7 @@ public final class ForgeweaveFluids {
     public static final MoltenMetal WYVERN = register("wyvern", 0x1F7A4D, 1316);
     public static final MoltenMetal QUARTZ_ENRICHED_IRON = register("quartz_enriched_iron", 0xC9A96A, 846);
     public static final MoltenMetal SILICON = register("silicon", 0x4A4A4A, 864);
-    public static final MoltenMetal ENERGISED_STEEL = register("energised_steel", 0xF2C744, 1180);
+    public static final MoltenMetal ENERGISED_STEEL = register("energised_steel", 0xFACC50, 1180);
     public static final MoltenMetal BLUTONIUM = register("blutonium", 0x3A5FE0, 1194);
     public static final MoltenMetal CYANITE = register("cyanite", 0x1B1F3B, 1208);
     public static final MoltenMetal LUDICRITE = register("ludicrite", 0xE066CC, 1328);
@@ -393,8 +393,8 @@ public final class ForgeweaveFluids {
     // roster class since nothing else in the codebase has to walk this list of seven by material id.
     public static final MoltenMetal FLAREALLOY = register("flarealloy", 0xFF7A1A, 900);
     public static final MoltenMetal DEEPALLOY = register("deepalloy", 0x123A3A, 950);
-    public static final MoltenMetal SPARKALLOY = register("sparkalloy", 0xF2E63D, 920);
-    public static final MoltenMetal REDCINDER = register("redcinder", 0xB22222, 880);
+    public static final MoltenMetal SPARKALLOY = register("sparkalloy", 0xEAE92B, 920);
+    public static final MoltenMetal REDCINDER = register("redcinder", 0xB22621, 880);
     public static final MoltenMetal PEARLCINDER = register("pearlcinder", 0xE8C9D6, 860);
     public static final MoltenMetal AMBERCINDER = register("ambercinder", 0xC9862A, 870);
     // #910 retired the seventh catalyst, twinalloy (a 910-degree fuel melted from amethyst shards):
@@ -412,14 +412,14 @@ public final class ForgeweaveFluids {
     // Molten magma is what a vanilla magma block melts into (melting_recipe/magma_block.json). Unlike
     // the two below it is also an alloy *input*: pyrealloy is alloyed from it plus flarealloy (#903
     // re-bases that recipe off lava). Tint is the magma block's own ember red.
-    public static final MoltenMetal MOLTEN_MAGMA = register("magma", 0xC7431A, 1700);
+    public static final MoltenMetal MOLTEN_MAGMA = register("magma", 0x92002C, 1700);
     // Molten brimspar is what the Nether's brimspar crystals melt into
     // (melting_recipe/brimspar_crystal.json, dev.gkissel.forgeweave.block.UnstableOreBlock). It burns
     // as smeltery_fuel/brimspar.json and, since #910 folded twinalloy into it, is also the catalyst
     // input quakestone's alternate and both glowveil recipes take (32 mB, twinalloy's own old amount).
     // Tint is a sulfurous brimstone yellow, the crystal's own flavor color (the same hex
     // UnstableOreBlock#BRIMSPAR_CRYSTAL_COLOR feeds the art script).
-    public static final MoltenMetal BRIMSPAR = register("brimspar", 0xE8B923, 1900);
+    public static final MoltenMetal BRIMSPAR = register("brimspar", 0x0FBD59, 1900);
 
     // #897 -- the smeltery fuel ladder's top rung. Fuel-only like the six catalysts above (no tool
     // stats, no ingot/nugget/block, no Material JSON), but unlike them it is never an alloy *input*:
@@ -434,7 +434,7 @@ public final class ForgeweaveFluids {
     // 100 mB per cycle but burns for 500 melt ticks, against every other fuel's 50 mB / 100 ticks --
     // twice the fuel for five times the burn, i.e. 2.5x the work per mB, the reward for finishing the
     // alloy chain rather than only a hotter number.
-    public static final MoltenMetal PYREALLOY = register("pyrealloy", 0xFFE066, 2100);
+    public static final MoltenMetal PYREALLOY = register("pyrealloy", 0xFF58C2, 2100);
 
     private static MoltenMetal register(String metalId, int color, int temperature) {
         return register("molten_" + metalId, color, temperature, () -> moltenFluidType(temperature),

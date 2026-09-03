@@ -1,0 +1,36 @@
+{
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:mod_loaded",
+      "modid": "draconicevolution"
+    }
+  ],
+  "type": "forgeweave:draconic_fusion_upgrade",
+  "catalyst": {
+    "tag": "forgeweave:fusion_upgradable"
+  },
+  "ingredients": [
+    {
+      "consume": true,
+      "ingredient": {
+        "tag": "c:ingots/draconium"
+      }
+    },
+    {
+      "consume": true,
+      "ingredient": {
+        "tag": "c:ingots/draconium"
+      }
+    },
+    {
+      "consume": true,
+      "ingredient": {
+        "item": "forgeweave:extra_modifier"
+      }
+    }
+  ],
+  "level": 2,
+  "modifier": "forgeweave:extra_slot",
+  "techLevel": "draconium",
+  "totalEnergy": 2000000
+}

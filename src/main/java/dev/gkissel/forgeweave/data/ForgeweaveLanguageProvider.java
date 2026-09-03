@@ -817,6 +817,28 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         // stat block for this part's Kind (a bowstring-only material stamped into a bow limb, upstream
         // SharpeningKit's own "no head stats" case) says so instead of an empty Shift-tier section.
         add("tooltip.forgeweave.part.missing_stats", "Material is missing the required stats: %s");
+        // Tool level tooltip (docs/SCOPE.md M7, D-M7-8; issue #922), ported from Tinkers' Tool
+        // Leveling's en_us.lang: tooltip.level / tooltip.xp labels, and the 0-11 adjective ladder plus
+        // the four easter-egg levels (19/42/66/99) that name upstream contributors -- kept verbatim as
+        // attribution, per maintainer decision, not renamed or "localised".
+        add("tooltip.forgeweave.level", "Level");
+        add("tooltip.forgeweave.xp", "XP");
+        add("tooltip.forgeweave.level.0", "Like new");
+        add("tooltip.forgeweave.level.1", "Clumsy");
+        add("tooltip.forgeweave.level.2", "Comfortable");
+        add("tooltip.forgeweave.level.3", "Accustomed");
+        add("tooltip.forgeweave.level.4", "Adept");
+        add("tooltip.forgeweave.level.5", "Expert");
+        add("tooltip.forgeweave.level.6", "Master");
+        add("tooltip.forgeweave.level.7", "Grandmaster");
+        add("tooltip.forgeweave.level.8", "Heroic");
+        add("tooltip.forgeweave.level.9", "Legendary");
+        add("tooltip.forgeweave.level.10", "Godlike");
+        add("tooltip.forgeweave.level.11", "Awesome");
+        add("tooltip.forgeweave.level.19", "MoxieGrrl");
+        add("tooltip.forgeweave.level.42", "boni");
+        add("tooltip.forgeweave.level.66", "Jadedcat");
+        add("tooltip.forgeweave.level.99", "Hacker");
         // stat.head.name / stat.handle.name / stat.extra.name -- the underlined heading over a
         // part's Shift-tier stat block, keyed by PartItem.Kind, and (issue #376) over the same stat
         // block in the Part Builder's info panel.
@@ -1315,6 +1337,21 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         // interaction is not a datapack recipe of any kind.
         add("tooltip.forgeweave.mending_moss.source",
                 "Right-click a bookshelf while holding Moss with at least 10 experience levels.");
+
+        // Tool level-up chat lines (docs/SCOPE.md M7, D-M7-8; issue #922), ported from Tinkers' Tool
+        // Leveling's en_us.lang message.levelup.* -- one per level 2-11, plus the generic line every
+        // other level (including the first, level 1) falls back to.
+        add("message.forgeweave.levelup.2", "You begin to feel comfortable handling the %s");
+        add("message.forgeweave.levelup.3", "You are now accustomed to the weight of the %s");
+        add("message.forgeweave.levelup.4", "You have become adept at handling the %s");
+        add("message.forgeweave.levelup.5", "You are now an expert at using the %s!");
+        add("message.forgeweave.levelup.6", "You have mastered the %s!");
+        add("message.forgeweave.levelup.7", "You have grandmastered the %s!");
+        add("message.forgeweave.levelup.8", "You feel like you could fulfill mighty deeds with your %s!");
+        add("message.forgeweave.levelup.9", "You and your %s are living legends!");
+        add("message.forgeweave.levelup.10", "No god could stand in the way of you and your %s!");
+        add("message.forgeweave.levelup.11", "Your %s is pure awesome.");
+        add("message.forgeweave.levelup.generic", "Your %s has reached level %s");
 
         // Issue #783: PR #775 gave Mending Moss a JEI info page but never touched any reagent's own
         // hover text -- the audit that issue asked for. Every modifier reagent's tooltip closes with
