@@ -2,6 +2,7 @@ package dev.gkissel.forgeweave.compat.draconic;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.InputStream;
@@ -30,6 +31,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.Ingredient;
 
+import dev.gkissel.forgeweave.item.ForgeweaveDataComponents;
 import dev.gkissel.forgeweave.item.ForgeweaveItems;
 import dev.gkissel.forgeweave.modifier.ForgeweaveModifiers;
 import dev.gkissel.forgeweave.modifier.ModifierEntry;
@@ -55,6 +57,20 @@ class FusionUpgradeRecipeTest {
         SharedConstants.tryDetectVersion();
         Bootstrap.bootStrap();
         ops = RegistryOps.create(JsonOps.INSTANCE, RegistryAccess.fromRegistryOfRegistries(BuiltInRegistries.REGISTRY));
+    }
+
+    /**
+     * A pickaxe carrying {@code forgeweave:evolved<level>} -- what a tool built out of one of the
+     * three fusion metals looks like by the time it reaches a crafting core (issue #946). Level 0
+     * gives a plain assembled pickaxe with no trait at all, i.e. the "iron tool" case.
+     */
+    private static ItemStack evolvedTool(int level) {
+        ItemStack pickaxe = new ItemStack(ForgeweaveItems.TOOL_PICKAXE.get());
+        if (level > 0) {
+            pickaxe.set(ForgeweaveDataComponents.TRAITS.get(), List.of(ResourceLocation
+                    .fromNamespaceAndPath("forgeweave", level == 1 ? "evolved" : "evolved" + level)));
+        }
+        return pickaxe;
     }
 
     private static FusionUpgradeRecipe decode(JsonObject json) {
@@ -139,11 +155,11 @@ class FusionUpgradeRecipeTest {
     @Test
     void upgradeRaisesTheModifierOnAnAssembledTool() {
         FusionUpgradeRecipe recipe = decode(fixture(100, "wyvern", 8_000_000L));
-        ItemStack pickaxe = new ItemStack(ForgeweaveItems.TOOL_PICKAXE.get());
+        ItemStack pickaxe = evolvedTool(1);
 
         Optional<ItemStack> upgraded = recipe.upgrade(null, pickaxe);
 
-        assertTrue(upgraded.isPresent(), "a bare assembled pickaxe has haste to gain");
+        assertTrue(upgraded.isPresent(), "an evolved pickaxe with no haste yet has haste to gain");
         List<ModifierEntry> entries = ForgeweaveModifiers.of(upgraded.get());
         assertEquals(List.of(new ModifierEntry(HASTE, 100)), entries);
         assertTrue(ForgeweaveModifiers.of(pickaxe).isEmpty(), "the catalyst stack itself is left alone");
@@ -152,7 +168,7 @@ class FusionUpgradeRecipeTest {
     @Test
     void upgradeRefusesAToolAlreadyAtOrAboveTheTiersLevel() {
         FusionUpgradeRecipe wyvern = decode(fixture(100, "wyvern", 8_000_000L));
-        ItemStack pickaxe = wyvern.upgrade(null, new ItemStack(ForgeweaveItems.TOOL_PICKAXE.get())).orElseThrow();
+        ItemStack pickaxe = wyvern.upgrade(null, evolvedTool(3)).orElseThrow();
 
         assertTrue(wyvern.upgrade(null, pickaxe).isEmpty(),
                 "the same rung twice is nothing gained, so the craft must not start");
@@ -177,11 +193,88 @@ class FusionUpgradeRecipeTest {
         json.addProperty("modifier", "forgeweave:veinmine");
         FusionUpgradeRecipe recipe = decode(json);
 
-        assertTrue(recipe.upgrade(null, new ItemStack(ForgeweaveItems.TOOL_PICKAXE.get())).isPresent(),
+        assertTrue(recipe.upgrade(null, evolvedTool(1)).isPresent(),
                 "vein mining is a harvest modifier and a pickaxe harvests");
-        assertTrue(recipe.upgrade(null, new ItemStack(ForgeweaveItems.TOOL_BROADSWORD.get())).isEmpty(),
+        ItemStack sword = new ItemStack(ForgeweaveItems.TOOL_BROADSWORD.get());
+        sword.set(ForgeweaveDataComponents.TRAITS.get(),
+                List.of(ResourceLocation.fromNamespaceAndPath("forgeweave", "evolved")));
+        assertTrue(recipe.upgrade(null, sword).isEmpty(),
                 "vein mining is harvest-only, so the fusion path refuses a weapon the same way the "
                         + "Tool Station does");
+    }
+
+    /**
+     * Issue #946's gate: fusion crafting only upgrades a tool already made of a fusion metal, and
+     * only up to that metal's tier.
+     */
+    @Test
+    void upgradeRefusesAToolThatIsNotEvolvedToTheRungsTier() {
+        FusionUpgradeRecipe wyvern = decode(fixture(100, "wyvern", 8_000_000L));
+        FusionUpgradeRecipe draconic = decode(fixture(175, "draconic", 32_000_000L));
+        FusionUpgradeRecipe chaotic = decode(fixture(250, "chaotic", 128_000_000L));
+
+        assertTrue(wyvern.upgrade(null, evolvedTool(0)).isEmpty(),
+                "a plain assembled tool carries no evolved trait, so no rung takes it");
+        assertTrue(wyvern.upgrade(null, evolvedTool(1)).isPresent(),
+                "an emberweld tool is evolved I and the tier-1 rung asks for exactly that");
+        assertTrue(draconic.upgrade(null, evolvedTool(1)).isEmpty(),
+                "evolved I does not reach the tier-2 rung");
+        assertTrue(draconic.upgrade(null, evolvedTool(2)).isPresent(),
+                "a starweld tool is evolved II and clears tier 2");
+        assertTrue(chaotic.upgrade(null, evolvedTool(2)).isEmpty(),
+                "evolved II does not reach the tier-3 rung");
+        assertTrue(chaotic.upgrade(null, evolvedTool(3)).isPresent(),
+                "a voidweld tool is evolved III and clears every rung");
+        assertTrue(decode(fixture(50, "draconium", 2_000_000L)).upgrade(null, evolvedTool(1)).isPresent(),
+                "the draconium rung is the entry rung and asks for the lowest fusion metal there is");
+    }
+
+    /**
+     * The three {@code draconicevolution:fusion_crafting} rows that make the metals (issue #946),
+     * plus the crafting recipe for the weldheart every one of them consumes.
+     */
+    @Test
+    void everyFusionMetalRowMatchesItsRosterEntry() {
+        for (ForgeweaveDraconicCompat.FusionMetal metal : ForgeweaveDraconicCompat.FUSION_METALS) {
+            String path = "/data/forgeweave/recipe/compat/draconic/" + metal.material() + "_ingot.json";
+            JsonObject json = read(path);
+
+            assertEquals("draconicevolution:fusion_crafting", json.get("type").getAsString(), path);
+            assertEquals(ForgeweaveDraconicCompat.CATALYST,
+                    json.getAsJsonObject("catalyst").get("item").getAsString(),
+                    metal.material() + " is fused onto the weldheart");
+            assertEquals("forgeweave:" + metal.material() + "_ingot",
+                    json.getAsJsonObject("result").get("id").getAsString(), path);
+            assertEquals(metal.techLevel(), json.get("techLevel").getAsString(), path);
+            assertEquals(metal.energy(), json.get("totalEnergy").getAsLong(), path);
+            assertEquals(metal.ingredients().size(), json.getAsJsonArray("ingredients").size(), path);
+            assertEquals("draconicevolution",
+                    json.getAsJsonArray("neoforge:conditions").get(0).getAsJsonObject().get("modid").getAsString(),
+                    path + " must drop out of a Forgeweave-only datapack");
+        }
+    }
+
+    @Test
+    void theWeldheartHasACraftingRecipeOfItsOwn() {
+        JsonObject json = read("/data/forgeweave/recipe/compat/draconic/weldheart.json");
+
+        assertEquals("minecraft:crafting_shaped", json.get("type").getAsString());
+        assertEquals(ForgeweaveDraconicCompat.CATALYST, json.getAsJsonObject("result").get("id").getAsString());
+        assertEquals("c:ingots/draconium",
+                json.getAsJsonObject("key").getAsJsonObject("D").get("tag").getAsString(),
+                "the corners are what keeps this recipe out of a Draconic-free game's recipe book");
+        assertEquals("draconicevolution",
+                json.getAsJsonArray("neoforge:conditions").get(0).getAsJsonObject().get("modid").getAsString());
+    }
+
+    /** The two smeltery-core promotion rows PR #939 shipped are gone (issue #946, work item 1). */
+    @Test
+    void noCorePromotionRowsAreShipped() {
+        for (String core : List.of("end_core", "deep_core")) {
+            assertNull(FusionUpgradeRecipeTest.class
+                    .getResourceAsStream("/data/forgeweave/recipe/compat/draconic/" + core + ".json"),
+                    core + " promotion was removed by the maintainer's 2026-09-03 directive");
+        }
     }
 
     @Test

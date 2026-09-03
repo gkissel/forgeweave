@@ -60,10 +60,30 @@ public record TrackBAlloy(String id, int color, int temperature) {
     public static final TrackBAlloy OSGLOGLAS = new TrackBAlloy("osgloglas", 0x638D76, 1180);
     public static final TrackBAlloy OSMIRIDIUM = new TrackBAlloy("osmiridium", 0xC0A4D5, 1260);
 
+    // #946 -- the three fusion metals (M8, docs/SCOPE.md): emberweld, starweld and voidweld exist
+    // only where Draconic Evolution does, and the only thing that makes their ingot is a fusion
+    // craft on DE's own multiblock (dev.gkissel.forgeweave.compat.draconic.ForgeweaveDraconicCompat
+    // #FUSION_METALS). They are not alloys and get no alloy_recipe row; they are here because this
+    // class is what every "Forgeweave-owned metal with an ingot, a nugget, a storage block and a
+    // molten fluid, and no ore" loop is keyed off, which is exactly their shape. The compat-gated
+    // half of #873's roster above set that precedent: registration stays unconditional Java (the
+    // NeoForge platform constraint every fluid in this mod lives under) and only the datapack rows
+    // carry `neoforge:conditions`, with CompatMaterialAvailability hiding the items in creative and
+    // JEI when Draconic Evolution is absent.
+    //
+    // Colors are this issue's own choice, picked against scripts/audit_palette.py so the three clear
+    // the Track B readability floor: an ember red, a star blue and a void violet, one per tier.
+    // Temperatures sit above every alloy above them, so all three need blazing blood to melt --
+    // still under ForgeweaveFluids#BLAZING_BLOOD's 1500, the headroom that constant reserves.
+    public static final TrackBAlloy EMBERWELD = new TrackBAlloy("emberweld", 0xFF5A4A, 1450);
+    public static final TrackBAlloy STARWELD = new TrackBAlloy("starweld", 0x2832D2, 1470);
+    public static final TrackBAlloy VOIDWELD = new TrackBAlloy("voidweld", 0x8A2BE2, 1490);
+
     public static final List<TrackBAlloy> ALL = List.of(IRONBRAND, QUAKESTONE, SHARDLINE, EMBERCAST,
             RIFTALLOY, TIDEIRON, CINDERFORGE, DREADALLOY, SUNSTEEL, HOLLOWSTEEL, TRUESTEEL, STORMALLOY,
             GLOWVEIL, DAYBRASS, FAULTSTEEL, SKIPALLOY, MENDALLOY, MENDSTONE,
-            ALUMITE, OSGLOGLAS, OSMIRIDIUM);
+            ALUMITE, OSGLOGLAS, OSMIRIDIUM,
+            EMBERWELD, STARWELD, VOIDWELD);
 
     public String ingotId() {
         return id + "_ingot";

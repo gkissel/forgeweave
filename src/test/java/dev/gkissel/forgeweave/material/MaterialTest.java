@@ -176,7 +176,11 @@ class MaterialTest {
             // the LENIENT_INGREDIENT_CODEC schema change -- ProjectE, AvaritiaNeo, Draconic Evolution's
             // core-tier pair, Refined Storage and Powah.
             "dark_matter", "red_matter", "crystal_matrix", "cosmic_neutronium", "infinity",
-            "wyvern", "chaotic", "quartz_enriched_iron", "silicon", "energised_steel" })
+            "wyvern", "chaotic", "quartz_enriched_iron", "silicon", "energised_steel",
+            // #946 M8: the three Draconic Evolution fusion metals, gated on the DE core each one's
+            // fusion recipe consumes. They sit above the wyvern/chaotic preset pair, which stays as
+            // the raw tier under them.
+            "emberweld", "starweld", "voidweld" })
     void shippedMaterialsParse(String name) {
         Material.CODEC.parse(ops, shipped(name)).getOrThrow();
     }
@@ -734,6 +738,9 @@ class MaterialTest {
             // is, so they are listed here too.
             "bronze", "lead", "silver", "electrum",
             "alumite", "osgloglas", "osmiridium",
+            // #946: the three fusion metals are cast-only the same way -- the Part Builder never
+            // takes them, and a fusion craft is the only thing that makes their ingot at all.
+            "emberweld", "starweld", "voidweld",
             "tin", "aluminium", "nickel", "constantan", "invar", "platinum", "titanium", "tungsten",
             "iridium", "uranium", "graphite",
             "redstone_alloy", "energetic_alloy", "pulsating_alloy", "conductive_alloy", "vibrant_alloy",

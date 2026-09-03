@@ -1,0 +1,5 @@
+{
+  "behavior": "forgeweave:lifesteal",
+  "fraction": 0.26,
+  "cap": 7.0
+}

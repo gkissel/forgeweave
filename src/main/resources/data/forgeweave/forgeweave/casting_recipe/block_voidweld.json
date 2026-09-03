@@ -1,0 +1,14 @@
+{
+  "station": "basin",
+  "fluid": "forgeweave:molten_voidweld",
+  "amount": 1296,
+  "result": {
+    "id": "forgeweave:voidweld_block"
+  },
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "draconicevolution:chaotic_core"
+    }
+  ]
+}

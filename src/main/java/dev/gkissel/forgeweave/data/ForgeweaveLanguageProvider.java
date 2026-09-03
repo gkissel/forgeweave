@@ -570,6 +570,8 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         addItem(ForgeweaveItems.MOSS, "Moss");
         addItem(ForgeweaveItems.MENDING_MOSS, "Mending Moss");
         addItem(ForgeweaveItems.REINFORCED_PLATE, "Reinforced Plate");
+        // #946 -- the fusion catalyst.
+        addItem(ForgeweaveItems.WELDHEART, "Weldheart");
         addItem(ForgeweaveItems.SILKY_CLOTH, "Silky Cloth");
         addItem(ForgeweaveItems.SILKY_JEWEL, "Silky Jewel");
         addItem(ForgeweaveItems.EXTRA_MODIFIER, "Extra Modifier");
@@ -1126,6 +1128,11 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         // decision recorded on issue #873's comments).
         add("material.forgeweave.emerald", "Emerald");
         add("material.forgeweave.amethyst", "Amethyst");
+
+        // #946 -- the three Draconic Evolution fusion metals, one per fusion tier.
+        add("material.forgeweave.emberweld", "Emberweld");
+        add("material.forgeweave.starweld", "Starweld");
+        add("material.forgeweave.voidweld", "Voidweld");
 
         // #392 -- the two bowstring materials (docs/SCOPE.md M3.5). Names are upstream 1.12's
         // material.string.name / material.vine.name. Neither carries any tool stat block, so they
@@ -2107,6 +2114,22 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("trait.forgeweave.surging3.description", "A fully-charged swing deals a lot of extra damage.");
         add("trait.forgeweave.ruthless.name", "Ruthless");
         add("trait.forgeweave.ruthless.description", "Critical hits deal even more damage.");
+
+        // #946 -- the three fusion metals' traits. Evolved has no effect of its own; it is what a
+        // fusion upgrade recipe checks before it will take the tool as a catalyst, so its
+        // description says that rather than promising a stat.
+        add("trait.forgeweave.evolved.name", "Evolved");
+        add("trait.forgeweave.evolved.description", "Fusion crafting accepts this tool for a tier I upgrade.");
+        add("trait.forgeweave.evolved2.name", "Evolved II");
+        add("trait.forgeweave.evolved2.description", "Fusion crafting accepts this tool up to a tier II upgrade.");
+        add("trait.forgeweave.evolved3.name", "Evolved III");
+        add("trait.forgeweave.evolved3.description", "Fusion crafting accepts this tool up to a tier III upgrade.");
+        add("trait.forgeweave.soulrend.name", "Soul Rend");
+        add("trait.forgeweave.soulrend.description", "Heals the wielder for a share of the damage dealt.");
+        add("trait.forgeweave.soulrend2.name", "Soul Rend II");
+        add("trait.forgeweave.soulrend2.description", "Heals the wielder for a larger share of the damage dealt.");
+        add("trait.forgeweave.soulrend3.name", "Soul Rend III");
+        add("trait.forgeweave.soulrend3.description", "Heals the wielder for a big share of the damage dealt.");
         add("trait.forgeweave.escalating.name", "Escalating");
         add("trait.forgeweave.escalating.description",
                 "Consecutive fully-charged hits deal more and more damage, fading if you stop landing them.");

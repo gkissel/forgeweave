@@ -154,13 +154,23 @@ public record FusionUpgradeRecipe(Ingredient catalyst, ResourceLocation modifier
 
     /**
      * The upgraded tool, or empty when this recipe has nothing to give {@code tool}: it is not an
-     * assembled Forgeweave tool, the modifier id is not registered, the modifier refuses the tool's
-     * shape ({@link ModifierApplication#acceptsToolShape}), the tool carries something the modifier
-     * cannot sit beside, or the tool already sits at or above this tier's level. The last case is
-     * what keeps a line's four tiers from all matching at once and makes a player climb them in order.
+     * assembled Forgeweave tool, it does not carry {@code evolved} at this tier's level, the
+     * modifier id is not registered, the modifier refuses the tool's shape
+     * ({@link ModifierApplication#acceptsToolShape}), the tool carries something the modifier cannot
+     * sit beside, or the tool already sits at or above this tier's level. The last case is what keeps
+     * a line's four tiers from all matching at once and makes a player climb them in order.
+     *
+     * <p>The {@code evolved} check (issue #946) is the parity target's own rule: fusion crafting
+     * only upgrades a tool already made of a fusion metal, and only up to that metal's tier. It is
+     * read off {@link #techLevel} rather than stored per recipe, since the tier is what decides it --
+     * see {@link ForgeweaveDraconicCompat#requiredEvolved}.
      */
     public Optional<ItemStack> upgrade(HolderLookup.Provider registries, ItemStack tool) {
         if (!ToolAssemblyRecipes.isAssembled(tool)) {
+            return Optional.empty();
+        }
+        if (ForgeweaveDraconicCompat.evolvedLevel(tool)
+                < ForgeweaveDraconicCompat.requiredEvolved(techLevel.getSerializedName())) {
             return Optional.empty();
         }
         Modifier behavior = ForgeweaveModifiers.get(modifier);

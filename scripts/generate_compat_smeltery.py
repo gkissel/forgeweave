@@ -47,6 +47,15 @@ ALLOYS = {
         {"type": "neoforge:item_exists", "item": "mekanism:ingot_osmium"},
         {"type": "neoforge:item_exists", "item": "modern_industrialization:iridium_ingot"},
     ],
+    # Issue #946: the three Draconic Evolution fusion metals. Same treatment as the three alloys
+    # above -- Forgeweave-owned ingot/nugget/block items, so the 73-file casting template clones
+    # unchanged and only the condition is injected -- gated on the DE core each metal's fusion
+    # recipe consumes. They deliberately get no alloy_recipe row anywhere: a fusion craft on DE's
+    # own multiblock is the only thing that makes the ingot, and melting it back down and recasting
+    # it is the only loop the smeltery closes.
+    "emberweld": [{"type": "neoforge:item_exists", "item": "draconicevolution:wyvern_core"}],
+    "starweld": [{"type": "neoforge:item_exists", "item": "draconicevolution:awakened_core"}],
+    "voidweld": [{"type": "neoforge:item_exists", "item": "draconicevolution:chaotic_core"}],
 }
 
 VALUE_NUGGET = 16

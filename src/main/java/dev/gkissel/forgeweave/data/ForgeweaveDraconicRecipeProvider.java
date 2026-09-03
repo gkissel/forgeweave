@@ -15,39 +15,42 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.ItemLike;
 
 import dev.gkissel.forgeweave.Forgeweave;
-import dev.gkissel.forgeweave.block.ForgeweaveBlocks;
 import dev.gkissel.forgeweave.compat.draconic.ForgeweaveDraconicCompat;
+import dev.gkissel.forgeweave.item.ForgeweaveItems;
 import dev.gkissel.forgeweave.modifier.ForgeweaveModifiers;
 
 /**
- * The Draconic Evolution fusion recipes (issue #915, docs/SCOPE.md M8), both layers of them, under
- * {@code data/forgeweave/recipe/compat/draconic/}. Every row carries a {@code neoforge:conditions}
- * {@code mod_loaded} gate, so a Forgeweave-only datapack drops the lot and the mod boots with no
- * Draconic Evolution installed at all -- which is what {@code runGameTestServer} proves on every
- * build.
+ * The Draconic Evolution fusion recipes (issues #915 and #946, docs/SCOPE.md M8), both layers of
+ * them, under {@code data/forgeweave/recipe/compat/draconic/}. Every row carries a
+ * {@code neoforge:conditions} {@code mod_loaded} gate, so a Forgeweave-only datapack drops the lot
+ * and the mod boots with no Draconic Evolution installed at all -- which is what
+ * {@code runGameTestServer} proves on every build.
  *
  * <p><b>Layer 1</b> is plain {@code draconicevolution:fusion_crafting} rows, i.e. Draconic
- * Evolution's own recipe type with no Forgeweave code behind it. Both of them promote a smeltery
- * core, and both exist because those two tiers have exactly one route each today (issue #845): the
- * End Core needs 1000 mB of molten dragon breath poured over a Nether Core, and the Deep Core needs
- * 2000 mB of deep blood, which only melting a Warden produces. Neither is craftable at all
- * ({@code ForgeweaveBlocks.END_CORE}'s comment). A player who has already built a fusion multiblock
- * has demonstrably cleared harder content than either gate, so an alternative route at the matching
- * Draconic tier costs nothing in progression terms and removes a hard blocker from a modpack that
- * happens to ship both mods. The recipes still ask for the thematic item of the tier they unlock --
- * dragon breath for the End Core, an echo shard for the Deep Core -- so the route reads as the same
- * step paid for with Draconic materials rather than as a way around the content.
+ * Evolution's own recipe type with no Forgeweave code behind it. There are three, one per fusion
+ * metal ({@link ForgeweaveDraconicCompat#FUSION_METALS}): a fusion craft is the only thing that
+ * makes an emberweld, starweld or voidweld ingot, which is why those three metals have no alloy
+ * table row and no Part Builder route. The weldheart every one of them puts in the crafting core is
+ * a plain crafting-table recipe, written here too so the whole path lives in one file.
  *
- * <p>No recipe is emitted for the four Draconic-tier materials themselves (draconium, awakened
- * draconium, wyvern, chaotic -- the Track A preset of issues #833-#837). Every one of them is
- * already reachable: Forgeweave melts Draconic Evolution's own ingots and cores and casts parts from
- * the resulting metal, and the cores that gate the top two are Draconic Evolution's own fusion
- * recipes, which it ships itself. Adding Forgeweave rows there would duplicate DE's ladder, not
- * complete it.
+ * <p>Issue #946 replaced what Layer 1 used to be. Until then it was two rows promoting a smeltery
+ * core (Nether to End, End to Deep) on the grounds that those tiers each have a single route today;
+ * the maintainer's 2026-09-03 directive removed them, because promoting Forgeweave's own blocks is
+ * not what the parity target does with fusion crafting. The core tiers keep the pour-to-transform
+ * route issue #845 gave them.
+ *
+ * <p>No recipe is emitted for the four Draconic-tier preset materials (draconium, awakened
+ * draconium, wyvern, chaotic -- the Track A preset of issues #833-#837), which stay exactly as they
+ * were and keep their ids. They are the raw tier the three fusion metals sit above: every one of
+ * them is already reachable by melting Draconic Evolution's own ingots and cores, and the cores that
+ * gate the top two are DE's own fusion recipes, which it ships itself. Adding Forgeweave rows there
+ * would duplicate DE's ladder, not complete it.
  *
  * <p><b>Layer 2</b> is the {@code forgeweave:draconic_fusion_upgrade} ladder --
  * {@link ForgeweaveDraconicCompat#UPGRADE_LINES}, eight modifier lines by four Draconic tech levels
- * -- whose recipe class is {@code compat.draconic.FusionUpgradeRecipe}.
+ * -- whose recipe class is {@code compat.draconic.FusionUpgradeRecipe}. Since #946 every rung also
+ * asks the tool for the {@code evolved} trait at its tier, so the two layers are one path: make the
+ * metal, build the tool, then upgrade it.
  *
  * <p>Written as JSON rather than through a {@code RecipeOutput} because both recipe types need types
  * this provider must not touch: Layer 1's serializer belongs to Draconic Evolution, and Layer 2's
@@ -78,18 +81,14 @@ public class ForgeweaveDraconicRecipeProvider implements DataProvider {
         // Layer 1. Energies follow Draconic Evolution's own recipe datagen: 1,000,000 RF at wyvern is
         // what it charges for the Awakened Core, its other "promote a component one tier" craft, and
         // 32,000,000 at draconic is its draconic-tier equipment and capacitor cost.
-        written.add(save(output, "end_core", fusion(
-                itemId(ForgeweaveBlocks.NETHER_CORE.get()),
-                itemId(ForgeweaveBlocks.END_CORE.get()),
-                "wyvern", 1_000_000L,
-                List.of("draconicevolution:wyvern_core", "minecraft:dragon_breath",
-                        "#c:ingots/draconium", "#c:ingots/draconium"))));
-        written.add(save(output, "deep_core", fusion(
-                itemId(ForgeweaveBlocks.END_CORE.get()),
-                itemId(ForgeweaveBlocks.DEEP_CORE.get()),
-                "draconic", 32_000_000L,
-                List.of("draconicevolution:awakened_core", "minecraft:echo_shard",
-                        "#c:ingots/draconium_awakened", "#c:ingots/draconium_awakened"))));
+        written.add(save(output, "weldheart", weldheart()));
+
+        for (ForgeweaveDraconicCompat.FusionMetal metal : ForgeweaveDraconicCompat.FUSION_METALS) {
+            written.add(save(output, metal.material() + "_ingot", fusion(
+                    ForgeweaveDraconicCompat.CATALYST,
+                    itemId(ForgeweaveItems.trackBAlloyIngot(metal.material()).get()),
+                    metal.techLevel(), metal.energy(), metal.ingredients())));
+        }
 
         // Layer 2.
         for (ForgeweaveDraconicCompat.Line line : ForgeweaveDraconicCompat.UPGRADE_LINES) {
@@ -115,6 +114,38 @@ public class ForgeweaveDraconicRecipeProvider implements DataProvider {
         }
 
         return CompletableFuture.allOf(written.toArray(CompletableFuture[]::new));
+    }
+
+    /**
+     * The weldheart's own crafting recipe (issue #946): four draconium ingots at the corners, four
+     * eyes of ender on the edges, and one Forgeweave ingot cast in the middle -- the cast every
+     * Forgeweave ingot already comes out of, sitting at the heart of the thing the three fusion
+     * ingots come out of. A plain vanilla crafting table recipe, so the only thing gating it is the
+     * draconium the corners ask for, and the {@code mod_loaded} condition every row here carries.
+     */
+    private static JsonObject weldheart() {
+        JsonObject key = new JsonObject();
+        key.add("D", ingredient("#c:ingots/draconium"));
+        key.add("E", ingredient("minecraft:ender_eye"));
+        key.add("C", ingredient(itemId(ForgeweaveItems.CAST_INGOT.get())));
+
+        JsonArray pattern = new JsonArray();
+        pattern.add("DED");
+        pattern.add("ECE");
+        pattern.add("DED");
+
+        JsonObject result = new JsonObject();
+        result.addProperty("id", ForgeweaveDraconicCompat.CATALYST);
+        result.addProperty("count", 1);
+
+        JsonObject json = new JsonObject();
+        json.addProperty("type", "minecraft:crafting_shaped");
+        json.addProperty("category", "misc");
+        json.add("pattern", pattern);
+        json.add("key", key);
+        json.add("result", result);
+        json.add("neoforge:conditions", conditions());
+        return json;
     }
 
     /** One {@code draconicevolution:fusion_crafting} row producing a single {@code result} stack. */

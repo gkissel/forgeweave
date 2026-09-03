@@ -78,7 +78,13 @@ public final class CompatMaterialAvailability {
             entry("blutonium", "bigreactors:blutonium_ingot"),
             entry("cyanite", "bigreactors:cyanite_ingot"),
             entry("ludicrite", "bigreactors:ludicrite_ingot"),
-            entry("uraninite", "powah:uraninite_raw"));
+            entry("uraninite", "powah:uraninite_raw"),
+            // #946 -- the three fusion metals. Each one's gate is the Draconic Evolution core its own
+            // fusion recipe consumes, which is also what its material JSON's `neoforge:item_exists`
+            // names; no DE, no core item, no metal.
+            entry("emberweld", "draconicevolution:wyvern_core"),
+            entry("starweld", "draconicevolution:awakened_core"),
+            entry("voidweld", "draconicevolution:chaotic_core"));
 
     // The three PlusTiC-inspiration alloys (issue #873 deliverable 4): condition is the AND of their
     // compat inputs' own providers (native inputs -- iron, obsidian, glass -- need no entry).

@@ -1,0 +1,17 @@
+{
+  "station": "table",
+  "cast": {
+    "item": "forgeweave:cast_ingot"
+  },
+  "fluid": "forgeweave:molten_emberweld",
+  "amount": 144,
+  "result": {
+    "id": "forgeweave:emberweld_ingot"
+  },
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "draconicevolution:wyvern_core"
+    }
+  ]
+}
