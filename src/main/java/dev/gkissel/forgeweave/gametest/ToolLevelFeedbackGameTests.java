@@ -5,13 +5,18 @@ import java.util.List;
 import net.minecraft.core.BlockPos;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.contents.TranslatableContents;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.TooltipFlag;
 
 import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 
 import dev.gkissel.forgeweave.Forgeweave;
+import dev.gkissel.forgeweave.config.ForgeweaveConfig;
 import dev.gkissel.forgeweave.item.ForgeweaveItems;
 import dev.gkissel.forgeweave.sound.ForgeweaveSounds;
 import dev.gkissel.forgeweave.tool.ToolLevel;
@@ -59,6 +64,44 @@ public class ToolLevelFeedbackGameTests {
         helper.assertTrue(chimes.size() == crossed,
                 "expected one chime per level crossed (" + crossed + "), got " + chimes.size());
 
+        helper.succeed();
+    }
+
+    /** Whether any tooltip line is a translatable component with exactly this key at its root. */
+    private static boolean hasLine(List<Component> lines, String key) {
+        return lines.stream().anyMatch(line -> line.getContents() instanceof TranslatableContents contents
+                && contents.getKey().equals(key));
+    }
+
+    /**
+     * D-M7-9's gate line: {@code maximumLevels = N} stops the tool at exactly N, and the XP line
+     * disappears from its tooltip there because there is no next level to count toward. Both halves
+     * need a loaded {@code SERVER} config spec -- {@code ForgeweaveConfig.maximumLevels()} answers
+     * "no cap" with none loaded, which is every unit test -- so this is the only place the capped
+     * tooltip can be exercised at all. The lines are matched on their translation keys rather than
+     * their rendered text, which a dedicated server resolves through whatever language happens to be
+     * loaded.
+     */
+    @GameTest(template = "empty")
+    public static void aLevelCapStopsTheToolAtTheCapAndHidesTheXpLine(GameTestHelper helper) {
+        ForgeweaveConfig.MAXIMUM_LEVELS.set(2);
+        try {
+            ServerPlayer player = helper.makeMockServerPlayerInLevel();
+            ItemStack pickaxe = ToolAssembly.pickaxe(helper, player, new BlockPos(1, 1, 1), "iron", "wood", "wood");
+
+            ToolLeveling.addXp(pickaxe, 1_000_000, player);
+
+            helper.assertTrue(ToolLevel.of(pickaxe).level() == 2,
+                    "a cap of 2 must stop the tool at exactly 2, got " + ToolLevel.of(pickaxe));
+            List<Component> lines = pickaxe.getTooltipLines(Item.TooltipContext.of(helper.getLevel()), player,
+                    TooltipFlag.NORMAL);
+            helper.assertTrue(hasLine(lines, "tooltip.forgeweave.level"),
+                    "the level name line still shows at the cap, got " + lines);
+            helper.assertFalse(hasLine(lines, "tooltip.forgeweave.xp"),
+                    "the XP line must be hidden at the cap, got " + lines);
+        } finally {
+            ForgeweaveConfig.MAXIMUM_LEVELS.set(ForgeweaveConfig.NO_LEVEL_CAP);
+        }
         helper.succeed();
     }
 

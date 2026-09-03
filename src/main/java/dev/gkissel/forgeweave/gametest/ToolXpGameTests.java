@@ -8,12 +8,14 @@ import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.TextColor;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.damagesource.DamageSource;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.animal.Pig;
 import net.minecraft.world.item.ItemStack;
@@ -32,8 +34,10 @@ import dev.gkissel.forgeweave.item.ForgeweaveDataComponents;
 import dev.gkissel.forgeweave.item.ForgeweaveItems;
 import dev.gkissel.forgeweave.item.ToolItem;
 import dev.gkissel.forgeweave.material.Material;
+import dev.gkissel.forgeweave.modifier.ForgeweaveModifiers;
 import dev.gkissel.forgeweave.tool.ForgeweaveAttachments;
 import dev.gkissel.forgeweave.tool.ToolLevel;
+import dev.gkissel.forgeweave.tool.ToolLeveling;
 import dev.gkissel.forgeweave.tool.ToolStats;
 
 /**
@@ -140,6 +144,71 @@ public class ToolXpGameTests {
                 "the ledger owed this tool 3 + 4 = 7 XP, it was paid " + ToolLevel.of(sword).xp());
         helper.assertTrue(pig.getData(ForgeweaveAttachments.DAMAGE_XP).isEmpty(),
                 "the ledger must be cleared once it has paid out");
+        helper.succeed();
+    }
+
+    /**
+     * The gate line M7's acceptance test opens with (docs/SCOPE.md M7, "CI and release gates"), run
+     * the long way rather than through {@link ToolLeveling#addXp}: 500 effective breaks with a
+     * pickaxe at the default base XP are exactly one level, and that level is exactly one more free
+     * modifier slot. The 499th break must still leave the tool at level 0, or "500" would only mean
+     * "at least 500".
+     */
+    @GameTest(template = "empty", timeoutTicks = 400)
+    public static void fiveHundredEffectiveBreaksLevelThePickaxeOnce(GameTestHelper helper) {
+        ItemStack pickaxe = pickaxe();
+        int slotsBefore = ForgeweaveModifiers.freeSlots(pickaxe);
+        for (int i = 0; i < 499; i++) {
+            mine(helper, pickaxe, Blocks.STONE.defaultBlockState());
+        }
+        helper.assertTrue(ToolLevel.of(pickaxe).level() == 0,
+                "499 breaks must still be level 0, got " + ToolLevel.of(pickaxe));
+
+        mine(helper, pickaxe, Blocks.STONE.defaultBlockState());
+
+        ToolLevel level = ToolLevel.of(pickaxe);
+        helper.assertTrue(level.level() == 1 && level.xp() == 0 && level.bonusSlots() == 1,
+                "the 500th effective break must be level 1 with one earned slot, got " + level);
+        helper.assertTrue(ForgeweaveModifiers.freeSlots(pickaxe) == slotsBefore + 1,
+                "the level must show up as exactly one more free slot, got "
+                        + ForgeweaveModifiers.freeSlots(pickaxe));
+        helper.succeed();
+    }
+
+    /**
+     * The gate line the save-compat corpus cannot carry: the ledger lives in <em>entity</em> NBT, not
+     * on an item stack, so {@code SaveCompatCorpusTest}'s item/block-entity/material walk has no
+     * shape for it and this round trip is where it is pinned instead (that class's javadoc records
+     * the decision; issue #925). What upstream's capability promised and this has to keep: a mob hit
+     * and then saved, unloaded and reloaded still owes the tool that hit it, and still pays out when
+     * it finally dies.
+     */
+    @GameTest(template = "empty")
+    public static void theDamageLedgerSurvivesAnEntitySaveAndReload(GameTestHelper helper) {
+        ServerPlayer player = helper.makeMockServerPlayerInLevel();
+        ItemStack sword = pickaxe();
+        player.setItemInHand(InteractionHand.MAIN_HAND, sword);
+        Pig pig = helper.spawn(EntityType.PIG, new BlockPos(2, 2, 2));
+
+        pig.hurt(helper.getLevel().damageSources().playerAttack(player), 3.0F);
+        helper.assertTrue(pig.isAlive(), "a 3-damage blow must not kill a pig, or this proves nothing");
+        UUID toolId = sword.get(ForgeweaveDataComponents.TOOL_ID.get());
+        helper.assertTrue(toolId != null, "the tool must have been given a ledger id when it banked damage");
+
+        CompoundTag tag = new CompoundTag();
+        helper.assertTrue(pig.save(tag), "a damaged pig must be saved to the region file");
+        pig.discard();
+
+        Entity reloaded = EntityType.loadEntityRecursive(tag, helper.getLevel(), entity -> entity);
+        helper.assertTrue(reloaded instanceof Pig, "the saved pig must reload as a pig");
+        helper.assertTrue(reloaded.getData(ForgeweaveAttachments.DAMAGE_XP).damage(player.getUUID(), toolId) == 3.0F,
+                "the reloaded pig must still owe the tool the 3 damage it banked");
+
+        helper.getLevel().addFreshEntity(reloaded);
+        reloaded.hurt(helper.getLevel().damageSources().generic(), 100.0F);
+        helper.assertFalse(reloaded.isAlive(), "the reloaded pig was meant to be dead by now");
+        helper.assertTrue(ToolLevel.of(sword).xp() == 3,
+                "a ledger that survived the round trip must still pay out, granted " + ToolLevel.of(sword).xp());
         helper.succeed();
     }
 

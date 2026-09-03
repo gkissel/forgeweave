@@ -1,0 +1,97 @@
+{
+    decoder: "item_stack",
+    expect: {
+        components: {
+            "forgeweave:modifiers": [
+                {
+                    id: "forgeweave:searing",
+                    level: 1
+                },
+                {
+                    id: "forgeweave:magnetic_pull",
+                    level: 1
+                },
+                {
+                    id: "forgeweave:resonant",
+                    level: 1
+                },
+                {
+                    id: "forgeweave:aquadynamic",
+                    level: 1
+                }
+            ],
+            "forgeweave:tool_id": [I; 198012532, -1742713160, -1235826181, -1708977648],
+            "forgeweave:tool_level": {
+                bonus_slots: 2,
+                level: 2,
+                xp: 500
+            },
+            "forgeweave:tool_materials": {
+                binding: "forgeweave:wood",
+                handle: "forgeweave:wood",
+                head: "forgeweave:iron",
+                parts: [
+                    "forgeweave:iron",
+                    "forgeweave:wood",
+                    "forgeweave:wood"
+                ]
+            },
+            "minecraft:max_damage": 244
+        },
+        id: "forgeweave:pickaxe"
+    },
+    nbt: {
+        components: {
+            "forgeweave:base_tool_tier": 2,
+            "forgeweave:enchantability": 15,
+            "forgeweave:modifiers": [
+                {
+                    id: "forgeweave:searing",
+                    level: 1
+                },
+                {
+                    id: "forgeweave:magnetic_pull",
+                    level: 1
+                },
+                {
+                    id: "forgeweave:resonant",
+                    level: 1
+                },
+                {
+                    id: "forgeweave:aquadynamic",
+                    level: 1
+                }
+            ],
+            "forgeweave:tool_id": [I; 198012532, -1742713160, -1235826181, -1708977648],
+            "forgeweave:tool_level": {
+                bonus_slots: 2,
+                level: 2,
+                xp: 500
+            },
+            "forgeweave:tool_materials": {
+                binding: "forgeweave:wood",
+                handle: "forgeweave:wood",
+                head: "forgeweave:iron",
+                parts: [
+                    "forgeweave:iron",
+                    "forgeweave:wood",
+                    "forgeweave:wood"
+                ]
+            },
+            "forgeweave:tool_stats": {
+                attack_damage: 4.0f,
+                durability: 244,
+                mining_speed: 6.0f
+            },
+            "forgeweave:traits": [
+                "forgeweave:magnetic2",
+                "forgeweave:ecological"
+            ],
+            "minecraft:damage": 0,
+            "minecraft:max_damage": 244
+        },
+        count: 1,
+        id: "forgeweave:pickaxe"
+    },
+    what: "M7 (#925): an iron pickaxe at level 2 with the fourth modifier spent into a slot leveling granted -- forgeweave:tool_level is {level, xp, bonus_slots} (absent means level 0, so pre-M7 tools need no migration) and bonus_slots is stored rather than recomputed from level, so retuning defaultBaseXP or levelMultiplier never strips a slot a tool already earned (D-M7-1). Three default slots hold searing/magnetic_pull/resonant and aquadynamic sits in the first earned one, which is what makes this fixture prove the slot/modifier interaction decodes and not just the component. forgeweave:tool_id is the ledger UUID DamageXpLedger mints the first time a tool banks damage on a target it did not kill (D-M7-4); the ledger itself lives in entity NBT and is pinned by ToolXpGameTests#theDamageLedgerSurvivesAnEntitySaveAndReload instead -- see SaveCompatCorpusTest's javadoc. Printed off the real stack in a GameTest and then stripped of the vanilla minecraft:tool component, whose block-tag references need the full tag data a real server loads and this corpus's lightweight registry bootstrap does not, the same omission m777_tool_pickaxe_base_tier.snbt and m2_tool_pickaxe_modifiers.snbt make."
+}

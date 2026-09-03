@@ -95,6 +95,27 @@ carry these lines, in addition to the milestone's own acceptance test:
 - **Spark profile** on the idle dedicated server: worn armor adds no per-tick cost beyond the
   existing formed-smeltery heartbeat; stations idle at 0.
 
+## Release-checklist: tool leveling (from M7)
+
+From the M7 gate (SCOPE.md § "Milestone 7 — tool leveling", "CI and release gates"), every release
+from `0.5.0-beta.5` on carries these lines. The automated half is green before any of them is worth
+running: the two save-compat fixtures (`m7_tool_level.snbt`, `m7_armor_level.snbt`) decode in
+`SaveCompatCorpusTest`, `LocalizationAuditTest` passes (no level-up or ladder string is a
+`Component.literal`), and `NOTICE.md` carries a row for every file derived from Tinkers' Tool
+Leveling, the `sounds/chime.ogg` asset included.
+
+- **Level a tool by hand** on the dedicated server: the chat line arrives, the chime plays, and the
+  tooltip level colour actually rotates between levels. The hue is the one thing no automated test
+  can see.
+- **Check the level line at a wrapped and an easter-egg level**: set `tool_level` with `/data` on a
+  held tool to 12 (`Like new+`) and to 42 (its own name), and read both off the tooltip.
+- **JEI sanity**: no new categories appear, and the Tool Station panel shows the slot a level
+  granted.
+- **Previous-release world load** carrying both a pre-M7 tool (still level 0, unchanged, no level
+  lines) and a leveled one (level, XP and earned slot all intact).
+- **Load a world with leveled tools under `toolLeveling = false`**: nothing breaks, no earned slot is
+  lost, and the modifiers spent into those slots still work.
+
 ## Publishing
 
 From the branch or commit being released:
