@@ -170,7 +170,7 @@ class ToolTooltipTest {
                 xpLine(30, needed),
                 attackLine(3.0F),
                 pierceLine(),
-                slotsLine(3)),
+                slotsLine(5)), // #921: the two level bonus slots count in freeSlots()
                 tooltip);
     }
 
