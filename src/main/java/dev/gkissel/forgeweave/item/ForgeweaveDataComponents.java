@@ -20,6 +20,7 @@ import dev.gkissel.forgeweave.modifier.ModifierEntry;
 import dev.gkissel.forgeweave.tool.ArmorStats;
 import dev.gkissel.forgeweave.tool.LauncherStats;
 import dev.gkissel.forgeweave.tool.ProjectileStats;
+import dev.gkissel.forgeweave.tool.ToolLevel;
 import dev.gkissel.forgeweave.tool.ToolMaterials;
 import dev.gkissel.forgeweave.tool.ToolStats;
 import dev.gkissel.forgeweave.trait.AlienProgress;
@@ -361,6 +362,19 @@ public final class ForgeweaveDataComponents {
     public static final DeferredHolder<DataComponentType<?>, DataComponentType<CapturedMob>> CAPTURED_MOB =
             DATA_COMPONENTS.registerComponentType("captured_mob",
                     builder -> builder.persistent(CapturedMob.CODEC).networkSynchronized(CapturedMob.STREAM_CODEC));
+
+    /**
+     * A tool's or armor piece's leveling state (docs/SCOPE.md M7, D-M7-7; issue #918): its level,
+     * the XP banked toward the next one and the modifier slots its levels granted -- see
+     * {@link ToolLevel} for the shape and why the slot count is stored rather than recomputed.
+     * Absent means level 0, so nothing built before M7 needs migrating.
+     *
+     * <p>Named {@code tool_level}, not {@code level}, because "level" already means <em>modifier</em>
+     * level throughout {@code ForgeweaveModifiers}.
+     */
+    public static final DeferredHolder<DataComponentType<?>, DataComponentType<ToolLevel>> TOOL_LEVEL =
+            DATA_COMPONENTS.registerComponentType("tool_level",
+                    builder -> builder.persistent(ToolLevel.CODEC).networkSynchronized(ToolLevel.STREAM_CODEC));
 
     private ForgeweaveDataComponents() {}
 }
