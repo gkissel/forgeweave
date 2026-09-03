@@ -16,6 +16,7 @@ import net.minecraft.core.component.DataComponents;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.tags.TagKey;
@@ -66,6 +67,7 @@ import dev.gkissel.forgeweave.tool.CropHarvest;
 import dev.gkissel.forgeweave.tool.EntityShear;
 import dev.gkissel.forgeweave.tool.ShovelPath;
 import dev.gkissel.forgeweave.tool.ToolConstants;
+import dev.gkissel.forgeweave.tool.ToolLeveling;
 import dev.gkissel.forgeweave.tool.ToolMaterials;
 import dev.gkissel.forgeweave.tool.ToolStats;
 import dev.gkissel.forgeweave.trait.EnergyBuffer;
@@ -1003,6 +1005,13 @@ public class ToolItem extends Item {
                 // Traits that react to an actual block break (issue #102: momentum, petramor;
                 // issue #230: shocking, slimey, baconlicious -- the latter two need pos/effective).
                 ForgeweaveTraits.afterBlockBreak(stack, serverLevel, state, pos, entity, effective);
+                // #919 -- upstream ModToolLeveling#afterBlockBreak: +1 XP per block this tool was
+                // effective against, and nothing at all for one it was not. The area-of-effect
+                // shapes break nine blocks a swing and are already compensated by their x9 base XP
+                // (docs/SCOPE.md D-M7-5), so there is deliberately no second correction here.
+                if (effective && entity instanceof Player) {
+                    ToolLeveling.addXp(stack, 1, entity instanceof ServerPlayer player ? player : null);
+                }
             }
         }
         return true;
