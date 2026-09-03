@@ -26,24 +26,24 @@ import java.util.List;
 public record TrackBAlloy(String id, int color, int temperature) {
 
     // Research doc §7.3 "Alloy" table, in that table's own order.
-    public static final TrackBAlloy IRONBRAND = new TrackBAlloy("ironbrand", 0xB5502C, 1000);
-    public static final TrackBAlloy QUAKESTONE = new TrackBAlloy("quakestone", 0x8FA35E, 1050);
-    public static final TrackBAlloy SHARDLINE = new TrackBAlloy("shardline", 0xA9D8E0, 1130);
-    public static final TrackBAlloy EMBERCAST = new TrackBAlloy("embercast", 0xE0611A, 1150);
-    public static final TrackBAlloy RIFTALLOY = new TrackBAlloy("riftalloy", 0x7A3FA0, 1250);
-    public static final TrackBAlloy TIDEIRON = new TrackBAlloy("tideiron", 0x2F7A7A, 1080);
-    public static final TrackBAlloy CINDERFORGE = new TrackBAlloy("cinderforge", 0xD1350B, 1090);
-    public static final TrackBAlloy DREADALLOY = new TrackBAlloy("dreadalloy", 0x2B3B2B, 1220);
-    public static final TrackBAlloy SUNSTEEL = new TrackBAlloy("sunsteel", 0xE6C64A, 1380);
-    public static final TrackBAlloy HOLLOWSTEEL = new TrackBAlloy("hollowsteel", 0x9FB6C2, 1420);
-    public static final TrackBAlloy TRUESTEEL = new TrackBAlloy("truesteel", 0xC7D6E8, 1440);
-    public static final TrackBAlloy STORMALLOY = new TrackBAlloy("stormalloy", 0x5C5B7A, 1260);
-    public static final TrackBAlloy GLOWVEIL = new TrackBAlloy("glowveil", 0x4AE6C6, 1330);
-    public static final TrackBAlloy DAYBRASS = new TrackBAlloy("daybrass", 0xC9A227, 1230);
-    public static final TrackBAlloy FAULTSTEEL = new TrackBAlloy("faultsteel", 0x7A6852, 1180);
-    public static final TrackBAlloy SKIPALLOY = new TrackBAlloy("skipalloy", 0x6FD1D1, 1160);
-    public static final TrackBAlloy MENDALLOY = new TrackBAlloy("mendalloy", 0x7FBF6B, 1240);
-    public static final TrackBAlloy MENDSTONE = new TrackBAlloy("mendstone", 0xC2A878, 1280);
+    public static final TrackBAlloy IRONBRAND = new TrackBAlloy("ironbrand", 0xBA6749, 1000);
+    public static final TrackBAlloy QUAKESTONE = new TrackBAlloy("quakestone", 0x7A9B44, 1050);
+    public static final TrackBAlloy SHARDLINE = new TrackBAlloy("shardline", 0xADE5FF, 1130);
+    public static final TrackBAlloy EMBERCAST = new TrackBAlloy("embercast", 0xFFA800, 1150);
+    public static final TrackBAlloy RIFTALLOY = new TrackBAlloy("riftalloy", 0xA04C9A, 1250);
+    public static final TrackBAlloy TIDEIRON = new TrackBAlloy("tideiron", 0x007F98, 1080);
+    public static final TrackBAlloy CINDERFORGE = new TrackBAlloy("cinderforge", 0xE07B00, 1090);
+    public static final TrackBAlloy DREADALLOY = new TrackBAlloy("dreadalloy", 0x1E3E23, 1220);
+    public static final TrackBAlloy SUNSTEEL = new TrackBAlloy("sunsteel", 0xDED26D, 1380);
+    public static final TrackBAlloy HOLLOWSTEEL = new TrackBAlloy("hollowsteel", 0x83A3C3, 1420);
+    public static final TrackBAlloy TRUESTEEL = new TrackBAlloy("truesteel", 0xDCFFFF, 1440);
+    public static final TrackBAlloy STORMALLOY = new TrackBAlloy("stormalloy", 0x706DA4, 1260);
+    public static final TrackBAlloy GLOWVEIL = new TrackBAlloy("glowveil", 0x17F3C5, 1330);
+    public static final TrackBAlloy DAYBRASS = new TrackBAlloy("daybrass", 0xB6A643, 1230);
+    public static final TrackBAlloy FAULTSTEEL = new TrackBAlloy("faultsteel", 0x836F40, 1180);
+    public static final TrackBAlloy SKIPALLOY = new TrackBAlloy("skipalloy", 0x76D9D3, 1160);
+    public static final TrackBAlloy MENDALLOY = new TrackBAlloy("mendalloy", 0x87D780, 1240);
+    public static final TrackBAlloy MENDSTONE = new TrackBAlloy("mendstone", 0xE2B288, 1280);
 
     // #873 -- the three PlusTiC-inspiration alloys (M6 epic #824's JC3-reversal deliverable 5):
     // alumite (aluminium + iron + obsidian), osgloglas (osmium + refined obsidian + glass), osmiridium
@@ -56,9 +56,9 @@ public record TrackBAlloy(String id, int color, int temperature) {
     // only the datapack recipes gate. Colors are a blend of each alloy's own inputs' existing material
     // colors (aluminium/iron/obsidian; osmium/refined_obsidian/glass; osmium/iridium); temperatures
     // continue this class's own "alloys run hotter than their inputs" scale.
-    public static final TrackBAlloy ALUMITE = new TrackBAlloy("alumite", 0xB8B2C9, 1120);
-    public static final TrackBAlloy OSGLOGLAS = new TrackBAlloy("osgloglas", 0x7FA8A3, 1180);
-    public static final TrackBAlloy OSMIRIDIUM = new TrackBAlloy("osmiridium", 0xC9C2D6, 1260);
+    public static final TrackBAlloy ALUMITE = new TrackBAlloy("alumite", 0xF5C7F8, 1120);
+    public static final TrackBAlloy OSGLOGLAS = new TrackBAlloy("osgloglas", 0x638D76, 1180);
+    public static final TrackBAlloy OSMIRIDIUM = new TrackBAlloy("osmiridium", 0xC0A4D5, 1260);
 
     public static final List<TrackBAlloy> ALL = List.of(IRONBRAND, QUAKESTONE, SHARDLINE, EMBERCAST,
             RIFTALLOY, TIDEIRON, CINDERFORGE, DREADALLOY, SUNSTEEL, HOLLOWSTEEL, TRUESTEEL, STORMALLOY,
