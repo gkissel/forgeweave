@@ -27,6 +27,7 @@ import net.minecraft.server.Bootstrap;
 
 import dev.gkissel.forgeweave.material.Material;
 import dev.gkissel.forgeweave.recipe.CoreTransformRecipe;
+import dev.gkissel.forgeweave.recipe.EntityMeltingRecipe;
 import dev.gkissel.forgeweave.recipe.SmelteryFuel;
 
 /**
@@ -161,5 +162,27 @@ class JeiRecipesScaleTest {
 
         assertEquals(5, fuelDisplays.size());
         assertEquals(2, transformDisplays.size());
+    }
+
+    /**
+     * Issue #931: pins the real shipped {@code entity_melting_recipe} count the same way the test
+     * above pins the other two smeltery registries -- blaze, emerald_mobs (villager + three illager
+     * types, one file), iron_golem, large_overworld_mobs, small_overworld_mobs, snow_golem and warden,
+     * seven files. {@link EntityMeltingRecipes#build} appends one more synthetic row for {@link
+     * EntityMeltingRecipe#defaultResult}, so the JEI category shows eight rows for seven registry
+     * entries.
+     */
+    @Test
+    void theEntityMeltingCategoryEnumeratesTheRealShippedRegistryContentsPlusTheDefaultRow() throws Exception {
+        Map<ResourceLocation, EntityMeltingRecipe> recipes =
+                shippedRegistryEntries("entity_melting_recipe", EntityMeltingRecipe.CODEC);
+
+        assertEquals(7, recipes.size(),
+                "blaze + emerald_mobs + iron_golem + large_overworld_mobs + small_overworld_mobs + snow_golem + warden");
+
+        List<EntityMeltingDisplay> displays = EntityMeltingRecipes.build(recipes);
+        assertEquals(8, displays.size(), "one row per recipe, plus EntityMeltingRecipe#defaultResult's own row");
+        assertEquals(1, displays.stream().filter(EntityMeltingDisplay::defaultRow).count(),
+                "exactly one row must be the default-rule row");
     }
 }

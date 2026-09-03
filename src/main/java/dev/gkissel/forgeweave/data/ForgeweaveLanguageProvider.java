@@ -1570,6 +1570,15 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("jei.category.forgeweave.smeltery_fuel.vs_lava", "%s° hotter than lava -- reaches recipes lava alone cannot");
         add("jei.category.forgeweave.core_transform", "Core Transform");
 
+        // #931: entity melting (what a living entity standing in the smeltery melts into), the third
+        // and last previously-invisible smeltery mechanic.
+        add("jei.category.forgeweave.entity_melting", "Entity Melting");
+        // Shown only for the one synthetic row built off EntityMeltingRecipe#defaultResult
+        // (EntityMeltingRecipes#build) rather than an actual entity_melting_recipe entry.
+        add("jei.category.forgeweave.entity_melting.default", "Any other living entity");
+        add("jei.category.forgeweave.entity_melting.damage", "%s damage per hit");
+        add("jei.category.forgeweave.entity_melting.per_hit", "Poured once per hit");
+
         // The nine molten metal fluids (docs/SCOPE.md M2 issue #92) and everything added since.
         // See addFluid: each call names both the fluid and its bucket (#286).
         addFluid(ForgeweaveFluids.IRON, "Molten Iron");

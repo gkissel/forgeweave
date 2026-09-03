@@ -26,7 +26,9 @@ public final class JeiScreenshotHarness {
             RepairCategory.TYPE,
             MeltingCategory.TYPE, AlloyingCategory.TYPE,
             CastingTableCategory.TYPE, CastingBasinCategory.TYPE,
-            ModifierApplicationCategory.TYPE, EmbossingCategory.TYPE);
+            ModifierApplicationCategory.TYPE, EmbossingCategory.TYPE,
+            // #931
+            EntityMeltingCategory.TYPE);
 
     private JeiScreenshotHarness() {}
 

@@ -563,10 +563,21 @@ public class SmelteryMeltingGameTests {
      * the fluid #845's End-core pour-to-transform mechanic pours over a Nether Core. No upstream
      * counterpart in either clone (see the fluid's own javadoc); 250 mB is a maintainer pick with no
      * downstream consumer inside #844's own scope -- #845 sets the actual pour-to-transform threshold.
+     *
+     * <p>#931 gave the recipe an explicit {@code "temperature": 1600} (so the End Core step needs a
+     * fuel hot enough to have melted its own dragon breath first) -- lava's 1300 no longer reaches it,
+     * so this now runs on molten magma (1700) instead. {@code SmelteryFuelGameTests}'s
+     * {@code moltenMagmaIsTheFirstFuelThatMeltsDragonBreath} is the ladder proof (blazing blood still
+     * cannot, magma is the first that can); this test only confirms the melt result itself.
+     *
+     * <p>1600's own {@code heatRequired} (10400 progress at magma's 14/melt-tick) needs roughly 743
+     * melt ticks, four real ticks apart ({@link SmelteryControllerBlockEntity#MELT_INTERVAL_TICKS}) --
+     * about 2972 real ticks, so the budget below is well over 3200's old margin (that was sized for
+     * the recipe's previous, much lower derived temperature).
      */
-    @GameTest(template = "smeltery", timeoutTicks = 3200)
+    @GameTest(template = "smeltery", timeoutTicks = 4800)
     public static void dragonBreathMeltsIntoMoltenDragonBreath(GameTestHelper helper) {
-        SmelteryControllerBlockEntity core = lavaFuelledSmeltery(helper);
+        SmelteryControllerBlockEntity core = moltenMagmaFuelledSmeltery(helper);
         insert(helper, core, Items.DRAGON_BREATH);
 
         helper.succeedWhen(() -> assertTankHolds(helper, core, ForgeweaveFluids.DRAGON_BREATH.still().get(), 250));
@@ -577,6 +588,25 @@ public class SmelteryMeltingGameTests {
     /** The 1x1x2 minimum smeltery of {@link SmelteryGameTests}, with a Standard Core and its one wall tank full of lava. */
     private static SmelteryControllerBlockEntity lavaFuelledSmeltery(GameTestHelper helper) {
         return lavaFuelledSmeltery(helper, ForgeweaveBlocks.STANDARD_CORE.get());
+    }
+
+    /**
+     * As {@link #lavaFuelledSmeltery}, but with molten magma (1700) in the wall tank instead of lava
+     * (1300) -- what {@link #dragonBreathMeltsIntoMoltenDragonBreath} needs since #931's
+     * {@code "temperature": 1600} on {@code melting_recipe/dragon_breath.json}.
+     */
+    private static SmelteryControllerBlockEntity moltenMagmaFuelledSmeltery(GameTestHelper helper) {
+        SmelteryGameTests.buildWalls(helper, 1, 1, 2);
+        BlockPos corePos = SmelteryGameTests.placeCore(helper, ForgeweaveBlocks.STANDARD_CORE.get());
+
+        SearedTankBlockEntity tank = helper.getBlockEntity(SmelteryGameTests.TANK_POS);
+        tank.tank().fill(new FluidStack(ForgeweaveFluids.MOLTEN_MAGMA.still().get(), SearedTankBlockEntity.CAPACITY),
+                IFluidHandler.FluidAction.EXECUTE);
+
+        SmelteryControllerBlockEntity core = helper.getBlockEntity(corePos);
+        helper.assertTrue(core.isFormed(), "expected the test smeltery to form: " + core.lastResult().getString());
+        helper.assertValueEqual(core.currentTemperature(), 1700, "smeltery temperature with molten magma in the wall tank");
+        return core;
     }
 
     /** As above, with {@code coreBlock} in place of the Standard Core -- #99's Standard/Nether yield comparisons need both tiers. */

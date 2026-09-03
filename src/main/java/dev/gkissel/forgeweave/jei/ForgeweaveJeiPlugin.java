@@ -49,6 +49,7 @@ import dev.gkissel.forgeweave.modifier.EmbossingRecipe;
 import dev.gkissel.forgeweave.modifier.ModifierRecipe;
 import dev.gkissel.forgeweave.recipe.AlloyRecipe;
 import dev.gkissel.forgeweave.recipe.CoreTransformRecipe;
+import dev.gkissel.forgeweave.recipe.EntityMeltingRecipe;
 import dev.gkissel.forgeweave.recipe.MeltingRecipe;
 import dev.gkissel.forgeweave.recipe.SmelteryFuel;
 
@@ -181,7 +182,10 @@ public final class ForgeweaveJeiPlugin implements IModPlugin {
                 // #890: smeltery fuel (what the smeltery burns and at what rate) and pour-to-transform
                 // (#845's core_transform_recipe) -- both previously invisible in JEI.
                 new SmelteryFuelCategory(helper),
-                new CoreTransformCategory(helper));
+                new CoreTransformCategory(helper),
+                // #931: entity melting (what a living entity standing in the smeltery melts into),
+                // the third and last previously-invisible smeltery mechanic.
+                new EntityMeltingCategory(helper));
     }
 
     /**
@@ -276,6 +280,10 @@ public final class ForgeweaveJeiPlugin implements IModPlugin {
                 smeltery ? SmelteryFuelRecipes.build(smelteryFuels) : List.of());
         registration.addRecipes(CoreTransformCategory.TYPE,
                 smeltery ? CoreTransformRecipes.build(currentCoreTransformRecipes()) : List.of());
+        // #931: entity melting rides the same smeltery gate -- EntityMeltingRecipe#find checks
+        // ForgeweaveConfig#SMELTERY itself too, same reasoning as the two lines above.
+        registration.addRecipes(EntityMeltingCategory.TYPE,
+                smeltery ? EntityMeltingRecipes.build(currentEntityMeltingRecipes()) : List.of());
 
         // Issue #752: Mending Moss (moss + 10 XP levels at a bookshelf, ForgeweaveModifiers#
         // onRightClickBookshelf) is not produced by any datapack recipe, so it would otherwise have
@@ -342,6 +350,14 @@ public final class ForgeweaveJeiPlugin implements IModPlugin {
         registration.addRecipeCatalyst(ForgeweaveItems.NETHER_CORE.get(), SmelteryFuelCategory.TYPE, CoreTransformCategory.TYPE);
         registration.addRecipeCatalyst(ForgeweaveItems.END_CORE.get(), SmelteryFuelCategory.TYPE, CoreTransformCategory.TYPE);
         registration.addRecipeCatalyst(ForgeweaveItems.DEEP_CORE.get(), SmelteryFuelCategory.TYPE);
+
+        // #931: entity melting happens in any formed smeltery regardless of core tier -- the recipe
+        // amount is not scaled by SmelteryCore (EntityMeltingRecipe's own javadoc) -- so all four
+        // cores catalyse it, the same reasoning MeltingCategory/AlloyingCategory's four lines above use.
+        registration.addRecipeCatalyst(ForgeweaveItems.STANDARD_CORE.get(), EntityMeltingCategory.TYPE);
+        registration.addRecipeCatalyst(ForgeweaveItems.NETHER_CORE.get(), EntityMeltingCategory.TYPE);
+        registration.addRecipeCatalyst(ForgeweaveItems.END_CORE.get(), EntityMeltingCategory.TYPE);
+        registration.addRecipeCatalyst(ForgeweaveItems.DEEP_CORE.get(), EntityMeltingCategory.TYPE);
     }
 
     /**
@@ -516,6 +532,22 @@ public final class ForgeweaveJeiPlugin implements IModPlugin {
         Registry<CoreTransformRecipe> registry = level.registryAccess().registryOrThrow(CoreTransformRecipe.REGISTRY);
         Map<ResourceLocation, CoreTransformRecipe> recipes = new LinkedHashMap<>();
         for (Map.Entry<ResourceKey<CoreTransformRecipe>, CoreTransformRecipe> entry : registry.entrySet()) {
+            recipes.put(entry.getKey().location(), entry.getValue());
+        }
+        return recipes;
+    }
+
+    // #931 -- same per-session synced-registry read as the others above.
+
+    private static Map<ResourceLocation, EntityMeltingRecipe> currentEntityMeltingRecipes() {
+        ClientLevel level = Minecraft.getInstance().level;
+        if (level == null) {
+            return Map.of();
+        }
+
+        Registry<EntityMeltingRecipe> registry = level.registryAccess().registryOrThrow(EntityMeltingRecipe.REGISTRY);
+        Map<ResourceLocation, EntityMeltingRecipe> recipes = new LinkedHashMap<>();
+        for (Map.Entry<ResourceKey<EntityMeltingRecipe>, EntityMeltingRecipe> entry : registry.entrySet()) {
             recipes.put(entry.getKey().location(), entry.getValue());
         }
         return recipes;
