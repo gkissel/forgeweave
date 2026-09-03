@@ -1,8 +1,7 @@
 {
   "input": {
-    "tag": "c:ores/fulmenite"
+    "item": "forgeweave:fulmenite_crystal"
   },
   "fluid": "forgeweave:molten_fulmenite",
-  "amount": 144,
-  "ore": true
+  "amount": 144
 }

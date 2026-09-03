@@ -408,7 +408,11 @@ public final class ForgeweaveBlocks {
                     ? unstableTrackBOreBlock(ore.oreBlockId(), mapColor)
                     : trackBOreBlock(ore.oreBlockId(), mapColor));
             TRACK_B_STORAGE_BLOCKS.put(ore.id(), metalBlock(ore.storageBlockId()));
-            TRACK_B_RAW_BLOCKS.put(ore.id(), metalBlock(ore.rawBlockId()));
+            // #929 -- a crystal-dropping ore (fulmenite) has no raw-storage block, the same "no raw
+            // form" shape brimspar's own registration already skips.
+            if (!ore.dropsCrystal()) {
+                TRACK_B_RAW_BLOCKS.put(ore.id(), metalBlock(ore.rawBlockId()));
+            }
         }
     }
 

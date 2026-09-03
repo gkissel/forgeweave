@@ -1859,10 +1859,16 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
             String name = ore.displayName();
             addBlock(ForgeweaveBlocks.trackBOre(ore.id()), name + " Ore");
             addBlock(ForgeweaveBlocks.trackBStorageBlock(ore.id()), "Block of " + name);
-            addBlock(ForgeweaveBlocks.trackBRawBlock(ore.id()), "Block of Raw " + name);
             addItem(ForgeweaveItems.trackBIngot(ore.id()), name + " Ingot");
             addItem(ForgeweaveItems.trackBNugget(ore.id()), name + " Nugget");
-            addItem(ForgeweaveItems.trackBRawItem(ore.id()), "Raw " + name);
+            // #929 -- fulmenite has no raw item/raw-storage block (TrackBOre#dropsCrystal); "<Name>
+            // Crystal" follows brimspar's own "Brimspar Crystal" naming above.
+            if (ore.dropsCrystal()) {
+                addItem(ForgeweaveItems.trackBCrystal(ore.id()), name + " Crystal");
+            } else {
+                addBlock(ForgeweaveBlocks.trackBRawBlock(ore.id()), "Block of Raw " + name);
+                addItem(ForgeweaveItems.trackBRawItem(ore.id()), "Raw " + name);
+            }
         }
 
         // #840 -- Track B's 18 alloy tool materials: same naming-scaffold-id-title-cased convention,

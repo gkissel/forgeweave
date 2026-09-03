@@ -115,6 +115,15 @@ ORES = [
     ("starfall_stone", 0xBCD6F2, "stone"),
 ]
 
+# Issue #929: fulmenite (still a full ORES member -- it keeps its ore block, storage block, ingot and
+# nugget) drops a crystal instead of a raw item/raw-storage block (TrackBOre#dropsCrystal in Java, the
+# brimspar shape from #903). Unlike brimspar it is not *standalone* (it has the other four sprites), so
+# it stays in ORES above and this dict only swaps out the raw-item/raw-block step below for a crystal
+# recolor -- same donor (amethyst_shard) and technique as brimspar's own crystal.
+CRYSTAL_DROP_DONORS = {
+    "fulmenite": "amethyst_shard",
+}
+
 # Issue #903: brimspar is a Nether *fuel* ore, not a Track B tool material -- no ingot, nugget, raw
 # item or storage block, so it cannot join ORES above (which must mirror TrackBOre.ALL). It needs
 # exactly two of this script's six sprites: the ore block, drawn the same netherrack-hosted way
@@ -386,13 +395,22 @@ def main() -> None:
         storage_img = assets.block(tpl["storage"])
         recolor_pixels(storage_img, full_mask(storage_img), color).save(BLOCK_DIR / f"{mat_id}_block.png")
 
-        # Raw-storage block + raw item: full-image recolor, same vanilla raw family for both.
+        # Raw-storage block + raw item: full-image recolor, same vanilla raw family for both. Issue
+        # #929: a CRYSTAL_DROP_DONORS member (fulmenite) skips this pair entirely -- it drops a
+        # crystal instead -- and gets a crystal recolor below instead, same technique as brimspar's.
         raw_family = tpl["raw_family"]
-        raw_block_img = assets.block(f"raw_{raw_family}_block")
-        recolor_pixels(raw_block_img, full_mask(raw_block_img), color).save(BLOCK_DIR / f"raw_{mat_id}_block.png")
+        if mat_id not in CRYSTAL_DROP_DONORS:
+            raw_block_img = assets.block(f"raw_{raw_family}_block")
+            recolor_pixels(raw_block_img, full_mask(raw_block_img), color).save(BLOCK_DIR / f"raw_{mat_id}_block.png")
 
-        raw_item_img = assets.item(f"raw_{raw_family}")
-        recolor_pixels(raw_item_img, full_mask(raw_item_img), color).save(ITEM_DIR / f"raw_{mat_id}.png")
+            raw_item_img = assets.item(f"raw_{raw_family}")
+            recolor_pixels(raw_item_img, full_mask(raw_item_img), color).save(ITEM_DIR / f"raw_{mat_id}.png")
+            raw_desc = f"raw<-raw_{raw_family}(_block) "
+        else:
+            crystal_donor = CRYSTAL_DROP_DONORS[mat_id]
+            crystal_img = assets.item(crystal_donor)
+            recolor_pixels(crystal_img, full_mask(crystal_img), color).save(ITEM_DIR / f"{mat_id}_crystal.png")
+            raw_desc = f"crystal<-{crystal_donor} "
 
         # Ingot + nugget (issue #888): same donor family as the raw item, copper falling back to iron
         # for the nugget since vanilla has no copper_nugget texture.
@@ -404,7 +422,7 @@ def main() -> None:
         recolor_pixels(nugget_img, full_mask(nugget_img), color).save(ITEM_DIR / f"{mat_id}_nugget.png")
 
         print(
-            f"wrote {mat_id}: ore<-{tpl['ore']} storage<-{tpl['storage']} raw<-raw_{raw_family}(_block) "
+            f"wrote {mat_id}: ore<-{tpl['ore']} storage<-{tpl['storage']} {raw_desc}"
             f"ingot<-{raw_family}_ingot nugget<-{nugget_family}_nugget"
         )
 

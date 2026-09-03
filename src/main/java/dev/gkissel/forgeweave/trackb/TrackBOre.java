@@ -56,7 +56,8 @@ import dev.gkissel.forgeweave.Forgeweave;
  * this record's own fields must be kept in step with it by hand (see that script's docstring), and
  * {@code TrackBOreGameTests} fails the build if an ore's host block or biome modifier disagree.
  */
-public record TrackBOre(String id, Tier tier, Host host, int veinSize, int ratePerChunk, int minY, int maxY, int color) {
+public record TrackBOre(String id, Tier tier, Host host, int veinSize, int ratePerChunk, int minY, int maxY,
+        int color, boolean dropsCrystal) {
 
     /**
      * The mining-capability ladder (issue #877, the JC10 reversal): three new rungs mint above
@@ -134,31 +135,39 @@ public record TrackBOre(String id, Tier tier, Host host, int veinSize, int rateP
     // custom Track B ore. See dev.gkissel.forgeweave.material's basalt.json (Part-Builder-only, no
     // ore/worldgen presence) and ForgeweaveTraits#EARTHMEND for its trait. No replacement TrackBOre
     // entry was added; Track B's ore-sourced roster is 11 materials as of #884, not 12.
+    //
+    // #929 -- the trailing boolean is dropsCrystal: true for fulmenite alone, the maintainer's
+    // "materials that are crystals in the reference ladder stay crystals" directive (2026-09-02).
+    // Fulmenite's ore block drops fulmenite_crystal instead of a raw ore item -- brimspar's own shape
+    // (#903) -- while keeping its ingot/nugget/storage block, unlike brimspar (a fuel-only material
+    // with no tool form at all). See ForgeweaveBlocks/ForgeweaveItems' Track B loops, which read this
+    // flag instead of special-casing FULMENITE by identity the way the unstable-ore block switch still
+    // does below (a separate axis -- whether harvesting can detonate the vein, not what it drops).
     public static final TrackBOre FULMENITE =
-            new TrackBOre("fulmenite", Tier.DIAMOND, Host.NETHER, 5, 6, 10, 108, 0xC8D94A);
+            new TrackBOre("fulmenite", Tier.DIAMOND, Host.NETHER, 5, 6, 10, 108, 0xC8D94A, true);
     public static final TrackBOre DUSKSPAR =
-            new TrackBOre("duskspar", Tier.NETHERITE, Host.END, 4, 3, 32, 56, 0x8A5FD9);
+            new TrackBOre("duskspar", Tier.NETHERITE, Host.END, 4, 3, 32, 56, 0x8A5FD9, false);
     public static final TrackBOre VOLTCINDER =
-            new TrackBOre("voltcinder", Tier.NETHERITE, Host.OVERWORLD_DEEPSLATE, 4, 2, -64, -48, 0x38D9D0);
+            new TrackBOre("voltcinder", Tier.NETHERITE, Host.OVERWORLD_DEEPSLATE, 4, 2, -64, -48, 0x38D9D0, false);
     public static final TrackBOre MURKIRON =
-            new TrackBOre("murkiron", Tier.HARDCINDER, Host.NETHER, 4, 3, 8, 64, 0x3A5C56);
+            new TrackBOre("murkiron", Tier.HARDCINDER, Host.NETHER, 4, 3, 8, 64, 0x3A5C56, false);
     public static final TrackBOre HARDCINDER =
-            new TrackBOre("hardcinder", Tier.HARDCINDER, Host.OVERWORLD_DEEPSLATE, 4, 4, -48, 16, 0xC23B2B);
+            new TrackBOre("hardcinder", Tier.HARDCINDER, Host.OVERWORLD_DEEPSLATE, 4, 4, -48, 16, 0xC23B2B, false);
     public static final TrackBOre NIGHTSHALE =
-            new TrackBOre("nightshale", Tier.HARDCINDER, Host.END, 4, 3, 44, 72, 0x3B3F7A);
+            new TrackBOre("nightshale", Tier.HARDCINDER, Host.END, 4, 3, 44, 72, 0x3B3F7A, false);
     public static final TrackBOre WARSPAR =
-            new TrackBOre("warspar", Tier.WARSPAR, Host.NETHER, 4, 2, 0, 120, 0xA4283F);
+            new TrackBOre("warspar", Tier.WARSPAR, Host.NETHER, 4, 2, 0, 120, 0xA4283F, false);
     public static final TrackBOre HOLLOWSTONE =
-            new TrackBOre("hollowstone", Tier.WARSPAR, Host.END, 4, 2, 0, 96, 0xD8D3C2);
+            new TrackBOre("hollowstone", Tier.WARSPAR, Host.END, 4, 2, 0, 96, 0xD8D3C2, false);
     public static final TrackBOre RESONITE =
-            new TrackBOre("resonite", Tier.RESONITE, Host.OVERWORLD_DEEPSLATE, 4, 3, -64, -16, 0x3FAE9E);
+            new TrackBOre("resonite", Tier.RESONITE, Host.OVERWORLD_DEEPSLATE, 4, 3, -64, -16, 0x3FAE9E, false);
     // JC11 -- former meteor pair, now ordinary rare veins/surface feature (see class javadoc). Counts
     // rebalanced by #883 (2026-08-31): voidglass alone keeps count 1, moved to the End so it's the
     // game's uniquely rarest ore; starfall_stone bumps to 2 so it's no longer tied with voidglass.
     public static final TrackBOre STARFALL_STONE =
-            new TrackBOre("starfall_stone", Tier.NETHERITE, Host.OVERWORLD_STONE, 3, 2, 62, 90, 0xBCD6F2);
+            new TrackBOre("starfall_stone", Tier.NETHERITE, Host.OVERWORLD_STONE, 3, 2, 62, 90, 0xBCD6F2, false);
     public static final TrackBOre VOIDGLASS =
-            new TrackBOre("voidglass", Tier.NETHERITE, Host.END, 3, 1, 0, 255, 0x2A1740);
+            new TrackBOre("voidglass", Tier.NETHERITE, Host.END, 3, 1, 0, 255, 0x2A1740, false);
 
     public static final List<TrackBOre> ALL = List.of(FULMENITE, DUSKSPAR, VOLTCINDER, MURKIRON,
             HARDCINDER, NIGHTSHALE, WARSPAR, HOLLOWSTONE, RESONITE, STARFALL_STONE, VOIDGLASS);
@@ -185,6 +194,11 @@ public record TrackBOre(String id, Tier tier, Host host, int veinSize, int rateP
 
     public String rawItemId() {
         return "raw_" + id;
+    }
+
+    /** #929 -- the crystal item {@link #dropsCrystal} ores drop instead of {@link #rawItemId()}. */
+    public String crystalItemId() {
+        return id + "_crystal";
     }
 
     /** Title-cased display name for lang entries, e.g. {@code "starfall_stone"} -> {@code "Starfall Stone"}. */

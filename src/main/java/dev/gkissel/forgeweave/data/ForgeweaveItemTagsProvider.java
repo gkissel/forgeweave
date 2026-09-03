@@ -135,11 +135,18 @@ public class ForgeweaveItemTagsProvider extends ItemTagsProvider {
         for (TrackBOre ore : TrackBOre.ALL) {
             tag("ingots/" + ore.id()).add(ForgeweaveItems.trackBIngot(ore.id()).get());
             tag("nuggets/" + ore.id()).add(ForgeweaveItems.trackBNugget(ore.id()).get());
-            tag("raw_materials/" + ore.id()).add(ForgeweaveItems.trackBRawItem(ore.id()).get());
             tag("ores/" + ore.id()).add(ForgeweaveItems.trackBOreItem(ore.id()).get());
             tag("storage_blocks/" + ore.id()).add(ForgeweaveItems.trackBStorageBlockItem(ore.id()).get());
-            tag("storage_blocks/raw_" + ore.id()).add(ForgeweaveItems.trackBRawBlockItem(ore.id()).get());
-            trackBStorageBlocksItem.addTag(storageBlock(ore.id())).addTag(storageBlock("raw_" + ore.id()));
+            trackBStorageBlocksItem.addTag(storageBlock(ore.id()));
+            // #929 -- fulmenite has no raw item/raw-storage block (TrackBOre#dropsCrystal); it takes
+            // c:gems/<id> instead, the same tag brimspar's own crystal already uses.
+            if (ore.dropsCrystal()) {
+                tag("gems/" + ore.id()).add(ForgeweaveItems.trackBCrystal(ore.id()).get());
+            } else {
+                tag("raw_materials/" + ore.id()).add(ForgeweaveItems.trackBRawItem(ore.id()).get());
+                tag("storage_blocks/raw_" + ore.id()).add(ForgeweaveItems.trackBRawBlockItem(ore.id()).get());
+                trackBStorageBlocksItem.addTag(storageBlock("raw_" + ore.id()));
+            }
         }
 
         // #840 -- Track B's 18 alloy tool materials, item side of the same c: convention: alloy-only,

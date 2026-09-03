@@ -708,6 +708,13 @@ Issue #910 cashed in the first row's "unstable" gloss where it is actually felt:
 explodes on harvest and chains through a vein, sharing `UnstableOreBlock` with `brimspar_ore` (#903)
 at its own, gentler odds. The material's *tool* trait is #841's business and unchanged.
 
+Issue #929 (maintainer directive, 2026-09-02) cashes in the row's other reference detail: Tiberium is
+one of the reference ladder's two crystal materials (dilithium, mapped to brimspar, is the other), so
+`fulmenite_ore` now drops `fulmenite_crystal` instead of a raw ore item -- fortune-scaled, silk touch
+yields the ore block -- and the crystal is the melting input for molten fulmenite at one ingot's worth,
+the same shape #903 already gave brimspar. `raw_fulmenite`/`raw_fulmenite_block` are gone; the ingot,
+nugget and storage block are unchanged, so casting and the material's tool stats do not move.
+
 **Alloy (feeds #840 alloy table + #841 tool materials):**
 
 | Reference idea | Forgeweave id | Tier (§7.1) |

@@ -242,11 +242,22 @@ public class ForgeweaveBlockLootSubProvider extends BlockLootSubProvider {
         // #839 -- Track B's ore family (M6 epic #824): each ore always drops one raw item, same
         // unconditional self-drop cobalt/ardite use above (SCOPE.md's "no separate silk-touch yield
         // axis"); storage and raw-storage blocks are plain self-drops like every other metal block.
+        //
+        // #929 -- fulmenite (TrackBOre#dropsCrystal) departs from that shape: fortune-scaled crystal
+        // count, and silk touch yields the ore block instead -- vanilla's own createOreDrop is exactly
+        // this shape (createSilkTouchDispatchTable + addOreBonusCount(FORTUNE)), so it is used
+        // directly rather than the hand-rolled oreDrop/fortuneOreDrop helpers below. No raw-storage
+        // block to self-drop for it either.
         for (TrackBOre ore : TrackBOre.ALL) {
-            add(ForgeweaveBlocks.trackBOre(ore.id()).get(),
-                    oreDrop(ForgeweaveBlocks.trackBOre(ore.id()).get(), ForgeweaveItems.trackBRawItem(ore.id()).get()));
+            if (ore.dropsCrystal()) {
+                add(ForgeweaveBlocks.trackBOre(ore.id()).get(),
+                        block -> createOreDrop(block, ForgeweaveItems.trackBCrystal(ore.id()).get()));
+            } else {
+                add(ForgeweaveBlocks.trackBOre(ore.id()).get(),
+                        oreDrop(ForgeweaveBlocks.trackBOre(ore.id()).get(), ForgeweaveItems.trackBRawItem(ore.id()).get()));
+                dropSelf(ForgeweaveBlocks.trackBRawBlock(ore.id()).get());
+            }
             dropSelf(ForgeweaveBlocks.trackBStorageBlock(ore.id()).get());
-            dropSelf(ForgeweaveBlocks.trackBRawBlock(ore.id()).get());
         }
 
         // #840 -- Track B's 18 alloy tool materials: alloy-only, so just the one storage block's

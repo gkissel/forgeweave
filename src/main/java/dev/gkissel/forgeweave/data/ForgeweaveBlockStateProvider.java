@@ -326,7 +326,11 @@ public class ForgeweaveBlockStateProvider extends BlockStateProvider {
         for (TrackBOre ore : TrackBOre.ALL) {
             cubeAllBlockOriginal(ore.oreBlockId(), ForgeweaveBlocks.trackBOre(ore.id()).get());
             cubeAllBlockOriginal(ore.storageBlockId(), ForgeweaveBlocks.trackBStorageBlock(ore.id()).get());
-            cubeAllBlockOriginal(ore.rawBlockId(), ForgeweaveBlocks.trackBRawBlock(ore.id()).get());
+            // #929 -- fulmenite has no raw-storage block (TrackBOre#dropsCrystal); its crystal item
+            // model is registered in ForgeweaveItemModelProvider instead, like brimspar's crystal.
+            if (!ore.dropsCrystal()) {
+                cubeAllBlockOriginal(ore.rawBlockId(), ForgeweaveBlocks.trackBRawBlock(ore.id()).get());
+            }
         }
 
         // #840 -- Track B's 18 alloy tool materials' storage blocks: same original,

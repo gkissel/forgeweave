@@ -322,7 +322,13 @@ public class ForgeweaveItemModelProvider extends ItemModelProvider {
         for (TrackBOre ore : TrackBOre.ALL) {
             singleLayerModel(ForgeweaveItems.trackBIngot(ore.id()), itemTexture(ore.ingotId()));
             singleLayerModel(ForgeweaveItems.trackBNugget(ore.id()), itemTexture(ore.nuggetId()));
-            singleLayerModel(ForgeweaveItems.trackBRawItem(ore.id()), itemTexture(ore.rawItemId()));
+            // #929 -- fulmenite has no raw item (TrackBOre#dropsCrystal); its crystal takes the raw
+            // item's place, same standard-item-texture-folder treatment as brimspar's crystal above.
+            if (ore.dropsCrystal()) {
+                singleLayerModel(ForgeweaveItems.trackBCrystal(ore.id()), itemTexture(ore.crystalItemId()));
+            } else {
+                singleLayerModel(ForgeweaveItems.trackBRawItem(ore.id()), itemTexture(ore.rawItemId()));
+            }
         }
 
         // #840 -- Track B's 18 alloy tool materials' ingot/nugget icons, same original,

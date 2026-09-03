@@ -181,8 +181,12 @@ public class ForgeweaveBlockTagsProvider extends BlockTagsProvider {
                 case STONE -> { /* mineable with any pickaxe, no minimum-tier tag */ }
             }
             tag(cTag("storage_blocks/" + ore.id())).add(ForgeweaveBlocks.trackBStorageBlock(ore.id()).get());
-            tag(cTag("storage_blocks/raw_" + ore.id())).add(ForgeweaveBlocks.trackBRawBlock(ore.id()).get());
-            trackBStorageBlocks.addTag(cTag("storage_blocks/" + ore.id())).addTag(cTag("storage_blocks/raw_" + ore.id()));
+            trackBStorageBlocks.addTag(cTag("storage_blocks/" + ore.id()));
+            // #929 -- fulmenite has no raw-storage block (TrackBOre#dropsCrystal).
+            if (!ore.dropsCrystal()) {
+                tag(cTag("storage_blocks/raw_" + ore.id())).add(ForgeweaveBlocks.trackBRawBlock(ore.id()).get());
+                trackBStorageBlocks.addTag(cTag("storage_blocks/raw_" + ore.id()));
+            }
         }
 
         // #840 -- Track B's 18 alloy tool materials, block side: alloy-only, so just the one storage

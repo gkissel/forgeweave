@@ -301,7 +301,11 @@ public class ForgeweaveRecipeProvider extends RecipeProvider {
         // raw_iron <-> raw_iron_block compaction, same shape reused).
         for (TrackBOre ore : TrackBOre.ALL) {
             storageBlockRecipes(recipeOutput, ForgeweaveItems.trackBIngot(ore.id()).get(), ForgeweaveItems.trackBStorageBlockItem(ore.id()).get());
-            storageBlockRecipes(recipeOutput, ForgeweaveItems.trackBRawItem(ore.id()).get(), ForgeweaveItems.trackBRawBlockItem(ore.id()).get());
+            // #929 -- fulmenite has no raw item/raw-storage block (TrackBOre#dropsCrystal), so no
+            // conversion recipe for that pair either.
+            if (!ore.dropsCrystal()) {
+                storageBlockRecipes(recipeOutput, ForgeweaveItems.trackBRawItem(ore.id()).get(), ForgeweaveItems.trackBRawBlockItem(ore.id()).get());
+            }
         }
 
         // #233 -- firewood. Upstream 1.12's recipes/common/firewood/firewood.json is shapeless
