@@ -1111,6 +1111,66 @@ public class CombatTraitGameTests {
         return result;
     }
 
+    /**
+     * Issue #946's soul rend, the three fusion metals' on-hit trait. Shipped as datapack
+     * {@code trait_definition} rows over the {@code lifesteal} behaviour {@code TraitBehaviors}
+     * already had, so this test doubles as proof that a definition Forgeweave itself ships (rather
+     * than the gametest pack's, see {@code DatapackTraitGameTests}) loads and fires.
+     *
+     * <p>Needs no Draconic Evolution: the trait ids go straight onto the tool, the same way every
+     * other test in this class builds one.
+     */
+    @GameTest(template = "empty")
+    public static void soulRendHealsMoreAtEachLevel(GameTestHelper helper) {
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        Zombie target = noAi(helper.spawn(EntityType.ZOMBIE, new BlockPos(2, 2, 2)));
+
+        // The shipped fractions (trait_definition/soulrend*.json) against the onHit helper's 1.0
+        // damage, all well under each level's own cap.
+        float[] expected = { 0.10F, 0.18F, 0.26F };
+        String[] ids = { "soulrend", "soulrend2", "soulrend3" };
+        for (int level = 0; level < ids.length; level++) {
+            helper.assertTrue(ForgeweaveTraits.lookup(traitId(ids[level])) != null,
+                    "expected " + ids[level] + "'s trait definition to resolve to a behaviour after data load");
+            ItemStack hatchet = tool(ForgeweaveItems.TOOL_HATCHET.get(), List.of(traitId(ids[level])), 3.0F);
+            player.setHealth(player.getMaxHealth() - 5.0F);
+            float before = player.getHealth();
+            onHit(helper, player, hatchet, target);
+            float healed = player.getHealth() - before;
+            helper.assertTrue(Math.abs(healed - expected[level]) < 0.01F,
+                    "expected " + ids[level] + " to heal " + expected[level] + ", got " + healed);
+        }
+
+        target.discard();
+        helper.succeed();
+    }
+
+    /**
+     * Issue #946's evolved marker: it is registered, it resolves, and it does nothing. All it exists
+     * for is {@code compat.draconic.FusionUpgradeRecipe}'s catalyst check, so a tool carrying it must
+     * hit exactly like a tool that does not.
+     */
+    @GameTest(template = "empty")
+    public static void evolvedIsRegisteredAndChangesNothingAboutAHit(GameTestHelper helper) {
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        Zombie target = noAi(helper.spawn(EntityType.ZOMBIE, new BlockPos(2, 2, 2)));
+
+        for (String id : List.of("evolved", "evolved2", "evolved3")) {
+            helper.assertTrue(ForgeweaveTraits.lookup(traitId(id)) != null,
+                    "expected " + id + " to be a registered Forgeweave trait");
+            ItemStack hatchet = tool(ForgeweaveItems.TOOL_HATCHET.get(), List.of(traitId(id)), 3.0F);
+            player.setHealth(player.getMaxHealth() - 5.0F);
+            float before = player.getHealth();
+            float targetBefore = target.getHealth();
+            onHit(helper, player, hatchet, target);
+            helper.assertTrue(player.getHealth() == before, id + " must not heal the wielder");
+            helper.assertTrue(target.getHealth() == targetBefore, id + " must not touch the target");
+        }
+
+        target.discard();
+        helper.succeed();
+    }
+
     /** {@link #onHit}, with the swing's charge set explicitly -- {@code escalating}'s build gate. */
     private static void onHitCharged(GameTestHelper helper, Player attacker, ItemStack weapon, LivingEntity target,
             float attackStrengthScale) {

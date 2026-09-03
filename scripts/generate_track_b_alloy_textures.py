@@ -73,6 +73,9 @@ ALLOYS = [
     ("alumite", 0xF5C7F8),
     ("osgloglas", 0x638D76),
     ("osmiridium", 0xC0A4D5),
+    ("emberweld", 0xFF5A4A),
+    ("starweld", 0x2832D2),
+    ("voidweld", 0x8A2BE2),
 ]
 
 # Recorded template-assignment table (issue #888), reproducible by re-running the imported _derive_*

@@ -3402,6 +3402,30 @@ public final class ForgeweaveTraits {
         }
     };
 
+    /**
+     * {@code evolved(I-III)}: the three fusion metals' marker trait (issue #946). It has no hooks
+     * and changes nothing about how a tool swings or mines. Its whole job is to say which tier of
+     * fusion metal a tool is made of, so that
+     * {@code compat.draconic.FusionUpgradeRecipe#upgrade} can refuse a catalyst that has not
+     * earned the rung it is standing on -- a plain iron pickaxe never starts a fusion upgrade, and
+     * an emberweld one never starts a draconic-tier rung.
+     *
+     * <p>Read off the tool's trait list rather than off its materials, which is why it has to be a
+     * trait at all: by the time a stack sits in a Fusion Crafting core, the parts it was built from
+     * are gone and {@code ForgeweaveDataComponents#TRAITS} is the only record of what it is made of.
+     *
+     * <p>The three levels are separate ids sharing one no-op instance, the leveled shape
+     * {@link #SURGING}/{@link #SURGING2}/{@link #SURGING3} already uses. No factory: there is
+     * nothing per level to parameterize.
+     */
+    public static final Trait EVOLVED = new Trait() {};
+
+    /** {@code evolved(II)}; see {@link #EVOLVED}. */
+    public static final Trait EVOLVED2 = new Trait() {};
+
+    /** {@code evolved(III)}; see {@link #EVOLVED}. */
+    public static final Trait EVOLVED3 = new Trait() {};
+
     private static final Map<ResourceLocation, Trait> REGISTRY = Map.ofEntries(
             Map.entry(id("ecological"), ECOLOGICAL),
             Map.entry(id("cheap"), CHEAP),
@@ -3613,7 +3637,13 @@ public final class ForgeweaveTraits {
             Map.entry(id("swiftstride"), SWIFTSTRIDE),
             Map.entry(id("battleworn"), BATTLEWORN),
             Map.entry(id("stormrind"), STORMRIND),
-            Map.entry(id("blastvent"), BLASTVENT));
+            Map.entry(id("blastvent"), BLASTVENT),
+            // #946 -- the fusion metals' gating marker; soul rend, the metals' other trait, is a
+            // datapack trait_definition instead (trait_definition/soulrend*.json) because the
+            // lifesteal behaviour TraitBehaviors already ships fits it exactly.
+            Map.entry(id("evolved"), EVOLVED),
+            Map.entry(id("evolved2"), EVOLVED2),
+            Map.entry(id("evolved3"), EVOLVED3));
 
     // ---------------------------------------------------------------- additive trait sources
     // (issue #832, ADR-0004 item 3): datapack definitions and KubeJS script traits.

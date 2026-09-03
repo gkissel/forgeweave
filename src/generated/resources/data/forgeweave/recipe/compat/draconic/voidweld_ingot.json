@@ -7,19 +7,19 @@
   ],
   "type": "draconicevolution:fusion_crafting",
   "catalyst": {
-    "item": "forgeweave:end_core"
+    "item": "forgeweave:weldheart"
   },
   "ingredients": [
     {
       "consume": true,
       "ingredient": {
-        "item": "draconicevolution:awakened_core"
+        "item": "draconicevolution:chaotic_core"
       }
     },
     {
       "consume": true,
       "ingredient": {
-        "item": "minecraft:echo_shard"
+        "item": "minecraft:nether_star"
       }
     },
     {
@@ -37,8 +37,8 @@
   ],
   "result": {
     "count": 1,
-    "id": "forgeweave:deep_core"
+    "id": "forgeweave:voidweld_ingot"
   },
-  "techLevel": "draconic",
-  "totalEnergy": 32000000
+  "techLevel": "chaotic",
+  "totalEnergy": 64000000
 }

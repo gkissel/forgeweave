@@ -1,0 +1,13 @@
+{
+  "input": {
+    "tag": "c:nuggets/starweld"
+  },
+  "fluid": "forgeweave:molten_starweld",
+  "amount": 16,
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "draconicevolution:awakened_core"
+    }
+  ]
+}

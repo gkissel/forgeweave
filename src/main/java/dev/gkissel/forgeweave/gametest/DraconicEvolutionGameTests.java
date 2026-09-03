@@ -52,7 +52,11 @@ public class DraconicEvolutionGameTests {
      * The Draconic Evolution roster: issue #836's original draconium pair plus #872's wyvern/chaotic
      * core-tier pair, one row per material id.
      */
-    private static final String[] BATCH_4_MATERIALS = { "draconium", "draconium_awakened", "wyvern", "chaotic" };
+    private static final String[] BATCH_4_MATERIALS = { "draconium", "draconium_awakened", "wyvern", "chaotic",
+            // #946 M8: the three fusion metals sit above that preset roster and hide the same way,
+            // each gated on the Draconic Evolution core its own fusion recipe consumes. The four
+            // above are unchanged and keep their ids -- they are the raw tier under these three.
+            "emberweld", "starweld", "voidweld" };
 
     @GameTest(template = "empty")
     public static void unsuppliedDraconicEvolutionMaterialsDoNotExistAtAll(GameTestHelper helper) {

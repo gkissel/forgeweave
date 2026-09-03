@@ -1,0 +1,83 @@
+{
+  "head": {
+    "durability": 1750,
+    "mining_speed": 10.0,
+    "attack_damage": 13.0
+  },
+  "handle": {
+    "durability_modifier": 1.12,
+    "durability": 95
+  },
+  "extra_durability": 155,
+  "bow": {
+    "drawspeed": 0.32,
+    "range": 1.85,
+    "bonus_damage": 9.5
+  },
+  "plating": {
+    "helmet": {
+      "durability": 555,
+      "armor": 5.0,
+      "toughness": 5.0,
+      "knockback_resistance": 0.24
+    },
+    "chestplate": {
+      "durability": 800,
+      "armor": 10.0,
+      "toughness": 5.0,
+      "knockback_resistance": 0.24
+    },
+    "leggings": {
+      "durability": 750,
+      "armor": 8.0,
+      "toughness": 5.0,
+      "knockback_resistance": 0.24
+    },
+    "boots": {
+      "durability": 650,
+      "armor": 5.0,
+      "toughness": 5.0,
+      "knockback_resistance": 0.24
+    }
+  },
+  "maille": true,
+  "incorrect_for_tool": "minecraft:incorrect_for_netherite_tool",
+  "traits": {
+    "general": [
+      "forgeweave:evolved3",
+      "forgeweave:soulrend3"
+    ]
+  },
+  "crafting_items": [
+    {
+      "ingredient": {
+        "item": "forgeweave:voidweld_ingot"
+      },
+      "value": 144
+    },
+    {
+      "ingredient": {
+        "item": "forgeweave:voidweld_nugget"
+      },
+      "value": 16
+    },
+    {
+      "ingredient": {
+        "item": "forgeweave:voidweld_block"
+      },
+      "value": 1296
+    }
+  ],
+  "repair_item": {
+    "tag": "c:ingots/voidweld"
+  },
+  "cast_only": true,
+  "enchantability": 22,
+  "color": "#8A2BE2",
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "draconicevolution:chaotic_core"
+    }
+  ]
+}

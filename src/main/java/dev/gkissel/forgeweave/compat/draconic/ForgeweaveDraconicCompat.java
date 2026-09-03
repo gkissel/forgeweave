@@ -6,12 +6,14 @@ import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.registries.DeferredRegister;
 
 import dev.gkissel.forgeweave.Forgeweave;
+import dev.gkissel.forgeweave.item.ForgeweaveDataComponents;
 
 /**
  * Forgeweave's Draconic Evolution integration (issue #915, docs/SCOPE.md M8): the seam between the
@@ -128,6 +130,101 @@ public final class ForgeweaveDraconicCompat {
                 new Rung("draconic", draconic, DRACONIC_ENERGY),
                 new Rung("chaotic", chaotic, CHAOTIC_ENERGY)));
     }
+
+    /**
+     * One of the three metals a Draconic Evolution fusion craft makes (issue #946), and the whole of
+     * its {@code draconicevolution:fusion_crafting} row.
+     *
+     * <p>The catalyst is always {@link #CATALYST}, the weldheart, and the result is always one ingot
+     * of {@code material}. The shape follows the parity target's -- one craft per DE tier, one DE
+     * core per craft, an escalating vanilla rare alongside it -- with Forgeweave's own metals, ids,
+     * energies and ingredients.
+     *
+     * @param material the metal's id, also its {@code Material} JSON's file name and its item prefix
+     * @param techLevel Draconic Evolution's own tier name, the lowest injector tier the craft needs
+     * @param energy the craft's total RF
+     * @param evolved the level of the {@code evolved} trait the metal grants, and so the highest
+     *     fusion upgrade rung a tool made of it can stand on ({@link #requiredEvolved})
+     * @param gate the DE item whose existence the row and the metal's material JSON are gated on
+     * @param ingredients the injectors, in order
+     */
+    public record FusionMetal(String material, String techLevel, long energy, int evolved, String gate,
+            List<String> ingredients) {}
+
+    /** The catalyst every fusion metal craft puts in the crafting core; {@code ForgeweaveItems#WELDHEART}. */
+    public static final String CATALYST = Forgeweave.MODID + ":weldheart";
+
+    /**
+     * The three fusion metals, lowest tier first.
+     *
+     * <p>Energy is half the {@link #UPGRADE_LINES} rung at the same tech level (4M against 8M, 16M
+     * against 32M, 64M against 128M) -- making the metal costs less than upgrading a finished tool
+     * at the same tier, which is the order a player meets the two in.
+     *
+     * <p>The vanilla rare climbs diamond block, netherite ingot, nether star. The parity target asks
+     * for two dragon eggs at the top tier; Forgeweave does not, because a world has exactly one
+     * dragon egg and that would make the tier uncraftable rather than expensive. One nether star per
+     * craft, on top of a chaotic core, is the same "this is the last thing you build" signal without
+     * the dead end.
+     */
+    public static final List<FusionMetal> FUSION_METALS = List.of(
+            new FusionMetal("emberweld", "wyvern", 4_000_000L, 1, "draconicevolution:wyvern_core",
+                    List.of("draconicevolution:wyvern_core", "minecraft:diamond_block",
+                            "#c:ingots/draconium", "#c:ingots/draconium")),
+            new FusionMetal("starweld", "draconic", 16_000_000L, 2, "draconicevolution:awakened_core",
+                    List.of("draconicevolution:awakened_core", "minecraft:netherite_ingot",
+                            "#c:ingots/draconium_awakened", "#c:ingots/draconium_awakened")),
+            new FusionMetal("voidweld", "chaotic", 64_000_000L, 3, "draconicevolution:chaotic_core",
+                    List.of("draconicevolution:chaotic_core", "minecraft:nether_star",
+                            "#c:ingots/draconium_awakened", "#c:ingots/draconium_awakened")));
+
+    /**
+     * The {@code evolved} level a tool has to carry before a fusion upgrade at {@code techLevel}
+     * will take it as a catalyst (issue #946) -- which is to say, the fusion metal it has to be made
+     * of. Draconium and wyvern rungs both ask for {@code evolved} I, since emberweld is the lowest
+     * fusion metal there is and nothing sits under it.
+     *
+     * <p>This is what turns the {@link #UPGRADE_LINES} ladder from "any assembled tool" into a path
+     * that starts at the smeltery: build a fusion metal tool first, then upgrade it. Without it the
+     * parity target's own rule -- only an "evolved" tool is fusion-upgradable -- is missing.
+     */
+    public static int requiredEvolved(String techLevel) {
+        return switch (techLevel) {
+            case "draconium", "wyvern" -> 1;
+            case "draconic" -> 2;
+            case "chaotic" -> 3;
+            default -> throw new IllegalArgumentException("no Draconic Evolution tech level named " + techLevel);
+        };
+    }
+
+    /**
+     * The {@code evolved} level {@code tool} carries, or 0 for a tool made of anything but a fusion
+     * metal. Read off {@code ForgeweaveDataComponents#TRAITS} rather than off the tool's materials
+     * because by the time a stack is sitting in a crafting core its parts are gone and the trait list
+     * is the only record left of what it was built from.
+     *
+     * <p>Highest wins when a tool carries more than one, which a head-and-handle mix of two fusion
+     * metals does.
+     */
+    public static int evolvedLevel(ItemStack tool) {
+        List<ResourceLocation> traits = tool.get(ForgeweaveDataComponents.TRAITS.get());
+        if (traits == null) {
+            return 0;
+        }
+        int level = 0;
+        for (int i = 0; i < EVOLVED_IDS.size(); i++) {
+            if (traits.contains(EVOLVED_IDS.get(i))) {
+                level = i + 1;
+            }
+        }
+        return level;
+    }
+
+    /** {@code forgeweave:evolved}, {@code evolved2}, {@code evolved3} -- see {@code ForgeweaveTraits#EVOLVED}. */
+    private static final List<ResourceLocation> EVOLVED_IDS = List.of(
+            ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "evolved"),
+            ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "evolved2"),
+            ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "evolved3"));
 
     /**
      * The Draconic Evolution item each tier's craft consumes two of, on top of the line's own reagent.

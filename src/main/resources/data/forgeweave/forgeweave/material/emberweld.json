@@ -1,0 +1,83 @@
+{
+  "head": {
+    "durability": 1150,
+    "mining_speed": 8.4,
+    "attack_damage": 9.6
+  },
+  "handle": {
+    "durability_modifier": 1.06,
+    "durability": 78
+  },
+  "extra_durability": 110,
+  "bow": {
+    "drawspeed": 0.36,
+    "range": 1.6,
+    "bonus_damage": 7.8
+  },
+  "plating": {
+    "helmet": {
+      "durability": 460,
+      "armor": 4.2,
+      "toughness": 4.2,
+      "knockback_resistance": 0.18
+    },
+    "chestplate": {
+      "durability": 660,
+      "armor": 9.2,
+      "toughness": 4.2,
+      "knockback_resistance": 0.18
+    },
+    "leggings": {
+      "durability": 620,
+      "armor": 7.2,
+      "toughness": 4.2,
+      "knockback_resistance": 0.18
+    },
+    "boots": {
+      "durability": 535,
+      "armor": 4.2,
+      "toughness": 4.2,
+      "knockback_resistance": 0.18
+    }
+  },
+  "maille": true,
+  "incorrect_for_tool": "minecraft:incorrect_for_netherite_tool",
+  "traits": {
+    "general": [
+      "forgeweave:evolved",
+      "forgeweave:soulrend"
+    ]
+  },
+  "crafting_items": [
+    {
+      "ingredient": {
+        "item": "forgeweave:emberweld_ingot"
+      },
+      "value": 144
+    },
+    {
+      "ingredient": {
+        "item": "forgeweave:emberweld_nugget"
+      },
+      "value": 16
+    },
+    {
+      "ingredient": {
+        "item": "forgeweave:emberweld_block"
+      },
+      "value": 1296
+    }
+  ],
+  "repair_item": {
+    "tag": "c:ingots/emberweld"
+  },
+  "cast_only": true,
+  "enchantability": 19,
+  "color": "#FF5A4A",
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "draconicevolution:wyvern_core"
+    }
+  ]
+}

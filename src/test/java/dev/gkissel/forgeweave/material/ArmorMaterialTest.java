@@ -95,7 +95,10 @@ class ArmorMaterialTest {
             // plating + maille like every other metal, and the two new vanilla-gem materials get a
             // lighter gem-tier plating block (certus_quartz/fluorite precedent above already does the
             // same for a non-metal gem).
-            Stream.of("alumite", "osgloglas", "osmiridium", "emerald", "amethyst"))
+            Stream.of("alumite", "osgloglas", "osmiridium", "emerald", "amethyst"),
+            // #946 M8: the three Draconic Evolution fusion metals ship full plating + maille, same
+            // shape as every other metal.
+            Stream.of("emberweld", "starweld", "voidweld"))
             .flatMap(java.util.function.Function.identity())
             .collect(java.util.stream.Collectors.toSet());
 

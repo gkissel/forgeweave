@@ -1140,6 +1140,15 @@ public final class ForgeweaveItems {
         return TRACK_B_ALLOY_BLOCK_ITEMS.get(id);
     }
 
+    // #946 -- the weldheart, the catalyst a Draconic Evolution fusion craft puts in the crafting
+    // core to make one of the three fusion metals. A plain item with no behaviour of its own: what
+    // it does is named by the fusion recipes that consume it
+    // (dev.gkissel.forgeweave.compat.draconic.ForgeweaveDraconicCompat#FUSION_METALS). Registered
+    // unconditionally like every other item here, and hidden from creative and JEI by
+    // CompatMaterialAvailability when Draconic Evolution is absent, the same way the three metals'
+    // own ingots are.
+    public static final DeferredItem<Item> WELDHEART = ITEMS.registerSimpleItem("weldheart");
+
     // #452 -- the slime boots (parity audit T21), upstream 1.12's `gadgets/item/ItemSlimeBoots`.
     // Wearable in the boots slot, no armour of their own; see SlimeBootsItem for the bounce.
     public static final DeferredItem<SlimeBootsItem> SLIME_BOOTS = ITEMS.registerItem("slime_boots", SlimeBootsItem::new);

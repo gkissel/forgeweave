@@ -1,0 +1,13 @@
+{
+  "input": {
+    "tag": "c:ingots/starweld"
+  },
+  "fluid": "forgeweave:molten_starweld",
+  "amount": 144,
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "draconicevolution:awakened_core"
+    }
+  ]
+}

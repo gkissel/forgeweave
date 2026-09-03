@@ -1,0 +1,83 @@
+{
+  "head": {
+    "durability": 1400,
+    "mining_speed": 9.2,
+    "attack_damage": 11.0
+  },
+  "handle": {
+    "durability_modifier": 1.09,
+    "durability": 86
+  },
+  "extra_durability": 130,
+  "bow": {
+    "drawspeed": 0.34,
+    "range": 1.7,
+    "bonus_damage": 8.6
+  },
+  "plating": {
+    "helmet": {
+      "durability": 505,
+      "armor": 4.6,
+      "toughness": 4.6,
+      "knockback_resistance": 0.21
+    },
+    "chestplate": {
+      "durability": 725,
+      "armor": 9.6,
+      "toughness": 4.6,
+      "knockback_resistance": 0.21
+    },
+    "leggings": {
+      "durability": 680,
+      "armor": 7.6,
+      "toughness": 4.6,
+      "knockback_resistance": 0.21
+    },
+    "boots": {
+      "durability": 590,
+      "armor": 4.6,
+      "toughness": 4.6,
+      "knockback_resistance": 0.21
+    }
+  },
+  "maille": true,
+  "incorrect_for_tool": "minecraft:incorrect_for_netherite_tool",
+  "traits": {
+    "general": [
+      "forgeweave:evolved2",
+      "forgeweave:soulrend2"
+    ]
+  },
+  "crafting_items": [
+    {
+      "ingredient": {
+        "item": "forgeweave:starweld_ingot"
+      },
+      "value": 144
+    },
+    {
+      "ingredient": {
+        "item": "forgeweave:starweld_nugget"
+      },
+      "value": 16
+    },
+    {
+      "ingredient": {
+        "item": "forgeweave:starweld_block"
+      },
+      "value": 1296
+    }
+  ],
+  "repair_item": {
+    "tag": "c:ingots/starweld"
+  },
+  "cast_only": true,
+  "enchantability": 20,
+  "color": "#2832D2",
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "draconicevolution:awakened_core"
+    }
+  ]
+}

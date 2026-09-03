@@ -1,0 +1,13 @@
+{
+  "input": {
+    "tag": "c:nuggets/emberweld"
+  },
+  "fluid": "forgeweave:molten_emberweld",
+  "amount": 16,
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "draconicevolution:wyvern_core"
+    }
+  ]
+}

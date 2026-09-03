@@ -338,6 +338,8 @@ public class ForgeweaveItemModelProvider extends ItemModelProvider {
             singleLayerModel(ForgeweaveItems.trackBAlloyIngot(alloy.id()), itemTexture(alloy.ingotId()));
             singleLayerModel(ForgeweaveItems.trackBAlloyNugget(alloy.id()), itemTexture(alloy.nuggetId()));
         }
+        // #946 -- the fusion catalyst, original art from scripts/generate_weldheart_texture.py.
+        singleLayerModel(ForgeweaveItems.WELDHEART, itemTexture("weldheart"));
         singleLayerModel(ForgeweaveItems.INGOT_MANYULLYN, derivedItem("manyullyn_ingot"));
         singleLayerModel(ForgeweaveItems.NUGGET_MANYULLYN, derivedItem("manyullyn_nugget"));
         singleLayerModel(ForgeweaveItems.INGOT_ROSE_GOLD, derivedItem("rose_gold_ingot"));
