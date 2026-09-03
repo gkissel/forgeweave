@@ -47,17 +47,18 @@ Esta tag fecha o **M7** (epic [#917](https://github.com/gkissel/forgeweave/issue
 26. [ ] **#931**: dragon breath só funde a partir de 1600, ou seja, lava (1300) e blazing blood (1500) não conseguem e molten magma (1700) é o primeiro que consegue.
 27. [ ] **#932**: toda temperatura na tela é o número cru que as receitas usam. Lava lê 1300, blazing blood 1500, magma 1700, brimspar 1900, pyrealloy 2100, no JEI, na tela da smeltery e nos tooltips. A opção `temperatureCelsius` não muda mais nada.
 
-## H. Compat Draconic Evolution (#915, precisa do DE instalado)
-28. [ ] ⚠ Com o **Draconic Evolution** instalado: as duas receitas de fusão que promovem core aparecem (Nether Core para End Core, End Core para Deep Core) e uma delas roda no multiblock de verdade.
-29. [ ] ⚠ Com o DE instalado: fazer um upgrade de fusão numa ferramenta Forgeweave (haste, sharpness, veinmine...) e confirmar que o modificador sobe para o nível do tier e **não gasta slot**. Uma ferramenta já no nível é recusada.
-30. [ ] **Sem o DE instalado** o jogo carrega normal e nenhuma dessas receitas aparece no JEI. Este é o caso que os testes cobrem, o de cima não.
+## H. Compat Draconic Evolution (#915, #946, precisa do DE instalado)
+28. [ ] ⚠ Com o **Draconic Evolution** instalado: craftar um **Weldheart** (4 lingotes de draconium nos cantos, 4 ender eyes nas bordas, cast de lingote no meio) e, no multiblock de fusão do DE, fazer um lingote de **emberweld** (tier wyvern, 4M RF), depois **starweld** (awakened, 16M RF) e **voidweld** (chaotic, 64M RF). Os três aparecem no JEI, no livro e no Part Builder só com o DE presente.
+29. [ ] ⚠ Ferramenta de emberweld carrega `evolved I` e soul rend I (roubo de vida em acerto); starweld II, voidweld III. Uma ferramenta de ferro **não** entra como catalisador de upgrade de fusão; uma de emberweld passa no tier 1 e é recusada no tier 2.
+30. [ ] ⚠ Fazer um upgrade de fusão numa ferramenta evolved (haste, sharpness, veinmine...) e confirmar que o modificador sobe para o nível do tier e **não gasta slot**. Uma ferramenta já no nível é recusada. Nenhuma receita de fusão promove core de smeltery (removidas no #946).
+31. [ ] **Sem o DE instalado** o jogo carrega normal, os três metais e o Weldheart não existem, e nenhuma receita de fusão aparece no JEI. Este é o caso que os testes cobrem, os de cima não.
 
 ## I. Save-compat e publish (obrigatório)
-31. [ ] **Mundo da `mc1.21.1-v0.5.0-beta.4`** carrega: ferramentas, armaduras (overslime), cores em transformação e buffer de energia intactos.
-32. [ ] O mesmo mundo com uma ferramenta **pré-M7**: ela continua no nível 0, sem linha de nível e sem linha de XP, exatamente como antes. Uma ferramenta nivelada nesta tag mantém nível, XP e slot ganho depois de salvar, sair e voltar.
-33. [ ] Carregar um mundo com ferramentas niveladas usando `toolLeveling = false`: nada quebra, nenhum slot é perdido, os modificadores gastos nos slots ganhos continuam ativos.
-34. [ ] **Spark** no dedicado ocioso: o nivelamento não adiciona custo por tick além do heartbeat da smeltery já conhecido. A ficha de dano só existe em mobs que apanharam de ferramenta Forgeweave.
-35. [ ] Jars GitHub/Modrinth/CurseForge byte-idênticos (`sha256sum`).
+32. [ ] **Mundo da `mc1.21.1-v0.5.0-beta.4`** carrega: ferramentas, armaduras (overslime), cores em transformação e buffer de energia intactos.
+33. [ ] O mesmo mundo com uma ferramenta **pré-M7**: ela continua no nível 0, sem linha de nível e sem linha de XP, exatamente como antes. Uma ferramenta nivelada nesta tag mantém nível, XP e slot ganho depois de salvar, sair e voltar.
+34. [ ] Carregar um mundo com ferramentas niveladas usando `toolLeveling = false`: nada quebra, nenhum slot é perdido, os modificadores gastos nos slots ganhos continuam ativos.
+35. [ ] **Spark** no dedicado ocioso: o nivelamento não adiciona custo por tick além do heartbeat da smeltery já conhecido. A ficha de dano só existe em mobs que apanharam de ferramenta Forgeweave.
+36. [ ] Jars GitHub/Modrinth/CurseForge byte-idênticos (`sha256sum`).
 
 ## J. Decisões pendentes suas
 - **Magnitudes do XP de armadura** (#923): `ARMOR_BASE_XP = 1` para o conjunto leve e o pesado, ou seja, o primeiro nível de uma peça custa os mesmos 500 de uma ferramenta de alvo único. Uma peitoral que absorve 4 de dano por golpe chega ao nível 1 em cerca de 125 golpes tomados; uma bota no piso de 1 leva os 500. Confirmar ou ajustar depois de apanhar bastante.
