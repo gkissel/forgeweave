@@ -36,9 +36,11 @@ import dev.gkissel.forgeweave.client.ForgeweaveDarkModeCompat;
 import dev.gkissel.forgeweave.client.ForgeweaveResourcePacks;
 import dev.gkissel.forgeweave.combat.AttackSlash;
 import dev.gkissel.forgeweave.combat.Beheading;
+import dev.gkissel.forgeweave.combat.BlockingXpSeam;
 import dev.gkissel.forgeweave.combat.CombatSeams;
 import dev.gkissel.forgeweave.combat.ForgeweaveInnates;
 import dev.gkissel.forgeweave.combat.ForgeweaveMobEffects;
+import dev.gkissel.forgeweave.combat.RangedXpSeam;
 import dev.gkissel.forgeweave.compat.draconic.ForgeweaveDraconicCompat;
 import dev.gkissel.forgeweave.config.ForgeweaveClientConfig;
 import dev.gkissel.forgeweave.config.ForgeweaveConfig;
@@ -201,6 +203,11 @@ public class Forgeweave {
         // it rolls on is the cleaver's innate plus the applied modifier summed into one roll, and a
         // per-entry seam sees neither the innate nor an unmodified cleaver. See Beheading.
         CombatSeams.register(Beheading::collect);
+        // M7-3 (issue #920, docs/SCOPE.md D-M7-6) -- ranged XP on projectile impact, off the same
+        // onHit moment that already resolves a projectile's live launcher stack (#416).
+        CombatSeams.register(RangedXpSeam::collect);
+        // M7-3 (issue #920, docs/SCOPE.md D-M7-10) -- blocking XP to the tool actively blocking with.
+        CombatSeams.register(BlockingXpSeam::collect);
         // #157 -- area mining (hammer/excavator 3x3, lumber axe tree fell, scythe 3x3x3, vein hammer
         // vein). NeoForge 1.21 dropped the per-item onBlockStartBreak hook upstream 1.12 uses, so
         // this is the one break event every player break goes through -- see AoeHarvest.

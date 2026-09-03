@@ -4,6 +4,7 @@ import java.util.List;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.EquipmentSlot;
@@ -115,6 +116,13 @@ public final class CropHarvest {
             // moves to a different age, so this never skips their charge.
             if (!replanted || !state.equals(state.getBlock().defaultBlockState())) {
                 tool.hurtAndBreak(1, player, EquipmentSlot.MAINHAND);
+            }
+            // M7-3 (issue #920, docs/SCOPE.md D-M7-10): upstream's onScythe grant, ModToolLeveling
+            // (Tinkers' Tool Leveling, MIT, NOTICE.md) -- per harvested block, so both the kama's
+            // single-block harvest and the scythe's 3x3x3 loop grant once each, same as upstream's
+            // per-block TinkerToolEvent.OnScytheHarvest.
+            if (player instanceof ServerPlayer serverPlayer) {
+                ToolLeveling.addXp(tool, 1, serverPlayer);
             }
         }
         return true;
