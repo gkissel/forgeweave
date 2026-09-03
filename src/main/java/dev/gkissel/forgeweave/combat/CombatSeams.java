@@ -28,6 +28,7 @@ import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import dev.gkissel.forgeweave.item.ArmorPieceItem;
 import dev.gkissel.forgeweave.item.ForgeweaveDataComponents;
 import dev.gkissel.forgeweave.item.ToolItem;
+import dev.gkissel.forgeweave.tool.DamageXpLedger;
 
 /**
  * The per-hit event pipeline (ADR-0005 decision 3): the one place a blow struck with a Forgeweave
@@ -317,6 +318,9 @@ public final class CombatSeams {
         } finally {
             dispatchingOnHit = false;
         }
+        // #919 -- M7's melee XP, which is paid on the kill and never on the hit: a blow the target
+        // survives banks its damage on the target, a killing one pays out here. See DamageXpLedger.
+        DamageXpLedger.afterMeleeHit(hit, event.getNewDamage());
         // The flat push CombatSeam#knockback scales is still ahead of us -- LivingEntity#hurt calls its
         // own this.knockback(0.4F, ...) after actuallyHurt (which posted the event that led here)
         // returns, but before hurt() itself returns. Remember this hit so onKnockback can attribute
@@ -352,6 +356,10 @@ public final class CombatSeams {
 
     /** Registered on the game event bus in {@code Forgeweave}. See the class javadoc's table. */
     public static void onDeath(LivingDeathEvent event) {
+        // #919 -- M7's melee ledger is paid out before the Forgeweave-tool gate below, because what
+        // finally killed the mob is none of its business: a sword that hurt it an hour ago is owed
+        // its XP whether the kill came from another player, a fall, or fire. See DamageXpLedger.
+        DamageXpLedger.payOut(event.getEntity());
         CombatHit hit = hitOf(event.getSource(), event.getEntity());
         if (hit == null) {
             return;

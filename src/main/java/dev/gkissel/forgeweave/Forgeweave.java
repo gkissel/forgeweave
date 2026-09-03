@@ -78,6 +78,7 @@ import dev.gkissel.forgeweave.worldgen.MagmaSlimeIslandStructure; // #450
 import dev.gkissel.forgeweave.worldgen.NetherOrePlacement; // #276
 import dev.gkissel.forgeweave.worldgen.SlimeIslandPiece;
 import dev.gkissel.forgeweave.worldgen.SlimeIslandStructure;
+import dev.gkissel.forgeweave.tool.ForgeweaveAttachments; // #919
 import dev.gkissel.forgeweave.worldgen.TrackBOrePlacement; // #839
 
 // The value here must match the modId in META-INF/neoforge.mods.toml.
@@ -88,6 +89,9 @@ public class Forgeweave {
 
     public Forgeweave(IEventBus modEventBus, ModContainer modContainer) {
         ForgeweaveDataComponents.DATA_COMPONENTS.register(modEventBus);
+        // #919 -- the melee damage ledger M7 pays tool XP out of, an attachment on every
+        // damaged LivingEntity. See DamageXpLedger.
+        ForgeweaveAttachments.ATTACHMENT_TYPES.register(modEventBus);
         ForgeweaveBlocks.BLOCKS.register(modEventBus);
         ForgeweaveBlockEntities.BLOCK_ENTITIES.register(modEventBus);
         ForgeweaveFluids.FLUID_TYPES.register(modEventBus);
