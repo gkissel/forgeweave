@@ -12,31 +12,25 @@ import net.minecraft.network.chat.contents.TranslatableContents;
 import dev.gkissel.forgeweave.recipe.MeltingRecipe;
 
 /**
- * Issue #276: upstream 1.12's {@code temperatureCelsius}, whose "on" branch is
- * {@code temperature - 300} ({@code Util#temperatureString}). Drives the preference as a parameter
- * because it lives in a {@code CLIENT}-type config spec, which no unit test environment -- and no
- * dedicated server, hence no GameTest -- ever loads.
+ * Issue #932: {@link TemperatureText#format} renders the raw effective number, the same one the
+ * recipes and fuels check against -- no unit conversion, no config toggle.
  */
 class TemperatureTextTest {
 
-    /** Molten iron's melting temperature, the number the smeltery and JEI actually draw. */
-    private static final int IRON = 534;
+    /** Lava's smeltery fuel temperature, the number the smeltery and JEI actually draw. */
+    private static final int LAVA = 1300;
 
     @Test
-    void celsiusSubtractsAmbientAndLabelsTheUnit() {
-        assertRenders(TemperatureText.format(IRON, true),
-                "gui.forgeweave.temperature.celsius", IRON - MeltingRecipe.AMBIENT_TEMPERATURE);
+    void formatRendersTheRawNumberUnchanged() {
+        assertRenders(TemperatureText.format(LAVA), "gui.forgeweave.temperature", LAVA);
     }
 
     @Test
-    void kelvinKeepsTheInternalNumber() {
-        assertRenders(TemperatureText.format(IRON, false), "gui.forgeweave.temperature.kelvin", IRON);
-    }
-
-    @Test
-    void ambientIsZeroCelsius() {
-        assertRenders(TemperatureText.format(MeltingRecipe.AMBIENT_TEMPERATURE, true),
-                "gui.forgeweave.temperature.celsius", 0);
+    void formatDoesNotSubtractAmbient() {
+        // Regression guard for the removed offset: this used to render 0 when the temperatureCelsius
+        // preference was on (`kelvin - MeltingRecipe.AMBIENT_TEMPERATURE`).
+        assertRenders(TemperatureText.format(MeltingRecipe.AMBIENT_TEMPERATURE),
+                "gui.forgeweave.temperature", MeltingRecipe.AMBIENT_TEMPERATURE);
     }
 
     private static void assertRenders(Component actual, String key, int value) {

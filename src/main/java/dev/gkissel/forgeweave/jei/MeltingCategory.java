@@ -48,7 +48,7 @@ import dev.gkissel.forgeweave.recipe.SmelteryFuel;
  *   <li>The arrow is upstream's own animated crop drawn at its (56,18), not JEI's generic arrow
  *       drawn vertically centred on top of the arrow the background already has baked in.
  *   <li>The temperature is centred on x=56 the way {@code AbstractMeltingCategory#draw} centres it,
- *       and is the bare "309°C" {@link TemperatureText} already produces for the smeltery tooltip.
+ *       and is the bare number {@link TemperatureText} already produces for the smeltery tooltip.
  *       It used to be drawn left-anchored with an added "Temperature: " label, which ran the string
  *       across the whole row and under the output fluid.
  * </ul>

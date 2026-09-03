@@ -308,9 +308,9 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("gui.forgeweave.smeltery.liquid.millibucket", "mb");
         add("gui.forgeweave.smeltery.fuel", "Fuel");
         add("gui.forgeweave.smeltery.fuel.empty", "No fuel found");
-        // Upstream's gui.smeltery.fuel.heat, shown while a burn is under way (#131). Its %s is a
-        // gui.forgeweave.temperature.* component, so the unit follows the temperatureCelsius
-        // preference (#276, upstream's Util#temperatureString).
+        // Upstream's gui.smeltery.fuel.heat, shown while a burn is under way (#131). Its %s is the
+        // gui.forgeweave.temperature component: the raw recipe/fuel number, no unit conversion
+        // (#932, recorded deviation from upstream's celsius-converting Util#temperatureString).
         add("gui.forgeweave.smeltery.fuel.heat", "Temperature: %s");
         // #377: upstream's gui.smeltery.fuel.invalid, shown when the wall tank holds a fluid the
         // smeltery cannot burn. Its colour comes from the screen (upstream bakes a section sign into
@@ -321,8 +321,7 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("gui.forgeweave.smeltery.progress.no_fuel", "No valid fuel in smeltery");
         add("gui.forgeweave.smeltery.progress.no_heat", "Not enough heat to melt this item");
         add("gui.forgeweave.smeltery.progress.no_space", "Not enough free space in the smeltery");
-        add("gui.forgeweave.temperature.celsius", "%s°C");
-        add("gui.forgeweave.temperature.kelvin", "%sK");
+        add("gui.forgeweave.temperature", "%s°");
         add("tooltip.forgeweave.hold_shift", "Hold Shift for buckets");
 
         // #720: Jade/WTHIT overlay text -- casting table/basin cooling percentage, and the smeltery
