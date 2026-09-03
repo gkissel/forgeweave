@@ -2198,6 +2198,7 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("book.forgeweave.section.materials", "Materials");
         add("book.forgeweave.section.modifiers", "Modifiers");
         add("book.forgeweave.section.smeltery", "Smeltery");
+        add("book.forgeweave.section.leveling", "Leveling");
         add("book.forgeweave.intro.welcome.title", "Surviving the First Day");
         add("book.forgeweave.intro.welcome.text",
                 "Welcome to Materials and You: surviving the first day and beyond. Within these pages you will find the first steps to making tools from the materials you gather.\n\nThe first step is to craft a blank pattern. It is a blank slate to stamp a shape into, providing a reference for future creations.\n\nThis book grows with the workshop; check back occasionally for new chapters.");
@@ -2325,6 +2326,18 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("book.forgeweave.smeltery.working.title", "Working the Smeltery");
         add("book.forgeweave.smeltery.working.text",
                 "Place ore or metal into the smeltery through its core and it slowly melts down. Different molten metals pool together below; some combinations mix into alloys.\n\nDrain the result through a faucet into a Casting Table holding a cast to shape tool parts and ingots, or into a Casting Basin for full blocks.");
+
+        // M7-7 (issue #924, epic #917): the leveling chapter. Original Forgeweave content, not a
+        // derivation -- upstream ships no guide book and no Ponder scenes for this mechanic.
+        add("book.forgeweave.leveling.intro.title", "Tools and Armor Grow With Use");
+        add("book.forgeweave.leveling.intro.text",
+                "A tool or a suit of armor gets better the more you actually use it. Every level it earns grants exactly one modifier slot: no stat bonus, no new ability, nothing else. A pickaxe you have mined with for a week ends up with more room to imbue than one you just built, and that is the whole reward.\n\nLeveling runs on every tool and every armor piece by default. Turn it off with the toolLeveling option if you would rather your gear stay exactly as built; anything you already earned keeps counting even then, so no slot you have spent a modifier into is ever taken back.");
+        add("book.forgeweave.leveling.earning.title", "Earning Experience");
+        add("book.forgeweave.leveling.earning.text",
+                "Tools and armor earn experience by doing what they are built for.\n\nA pickaxe, hatchet, shovel and their kin earn experience for every block they break effectively. A weapon earns experience for the damage it deals in a fight, but only once its target dies: hit a mob and walk away and the weapon has earned nothing yet. The target remembers the damage instead, and every weapon that hurt it collects its own share the moment it finally dies, however long that takes and whatever finishes it off; swap to a second weapon mid-fight and both are paid.\n\nA bow or crossbow earns experience for a shot that lands, scaled by how long it was drawn; a miss earns nothing. A mattock earns experience for tilling soil, a scythe or kama for harvesting a wide swath of crops in one stroke, a shovel for flattening a path, and any tool held to block an attack for the damage that was coming in, not the amount it stopped.\n\nArmor works differently: each of the four worn pieces earns experience for the damage it personally kept off you, as long as it is not broken. A full set does not share one pool; a chestplate doing the real work levels faster than a helmet that rarely gets hit.");
+        add("book.forgeweave.leveling.curve.title", "The Cost of Leveling");
+        add("book.forgeweave.leveling.curve.text",
+                "Leveling gets expensive fast. A tool's or armor piece's first level costs a base amount, and its second level costs that same amount again; every level after that costs twice the one before it, and by default nothing caps how high a level can climb.\n\nA big area-of-effect tool, the hammer, excavator, lumberaxe, scythe and vein hammer, costs nine times as much to level as an ordinary tool at every step, because one swing of it breaks nine times the blocks.\n\nA level-up shows itself three ways: a chime, a line in chat naming the tool, and a new line on the tooltip giving the tool's level a name and its own colour, with the current experience total shown beneath it.");
 
         // Issue #651: the tool pages' "Properties:" and modifier pages' "Effects:" bullet lists --
         // upstream ContentTool#properties / ContentModifier#effects, headers from the 1.12 book's
