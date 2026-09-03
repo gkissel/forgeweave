@@ -35,7 +35,7 @@
   },
   "cast_only": true,
   "enchantability": 12,
-  "color": "#B8B2C9",
+  "color": "#F5C7F8",
   "neoforge:conditions": [
     { "type": "neoforge:item_exists", "item": "immersiveengineering:ingot_aluminum" }
   ]

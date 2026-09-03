@@ -46,7 +46,7 @@ import net.minecraft.world.level.block.state.BlockState;
 public class UnstableOreBlock extends Block {
 
     /** Brimspar's flavor color: what the art script recolors its sprites to, and {@code ForgeweaveFluids#BRIMSPAR}'s own tint. */
-    public static final int BRIMSPAR_CRYSTAL_COLOR = 0xE8B923;
+    public static final int BRIMSPAR_CRYSTAL_COLOR = 0x0FBD59;
 
     /** @see UnstableOreBlock the class javadoc's "Test seam" note. */
     @Nullable
