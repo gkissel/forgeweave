@@ -1,5 +1,10 @@
 package dev.gkissel.forgeweave.combat;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import net.minecraft.world.item.ItemStack;
+
 /**
  * One blow as the defender's <em>worn armor</em> sees it -- the mutable accumulator every
  * {@link CombatSeam#onDefend} call on every worn piece writes into, and the one thing
@@ -17,8 +22,11 @@ package dev.gkissel.forgeweave.combat;
  *       upstream's {@code MODIFY_DAMAGE} hook (warded).
  * </ul>
  *
- * <p>ponytail: a class with three floats, not a builder or a context object. When M7's leveling
- * needs to know which piece contributed what, add the bookkeeping then.
+ * <p>M7-6 (issue #923) added the "which piece contributed what" this class's javadoc used to defer:
+ * {@link #attribute} records one {@link Share} per worn piece the walk visited, so armor leveling can
+ * pay each piece for what it actually took off the blow. The walk measures a piece's leg by reading
+ * the three numbers before and after it rather than by instrumenting the setters, so the accumulator
+ * stays three floats plus a list and no mutator has to know a piece is in progress.
  */
 public final class DefendedBlow {
     private final float originalDamage;
@@ -82,5 +90,29 @@ public final class DefendedBlow {
     /** The longest window any piece asked for wins; two pieces do not add up to double immunity. */
     public void requestInvulnerabilityTicks(int ticks) {
         this.invulnerabilityTicks = Math.max(this.invulnerabilityTicks, ticks);
+    }
+
+    /**
+     * What one worn piece took off this blow during its own leg of the walk (M7-6, issue #923): the
+     * pre-mitigation damage it removed through {@link #setDamage}, and the {@link #addProtection} and
+     * {@link #addFlatReduction} it added, both of which only become a damage number once vanilla's
+     * armor has run -- {@code CombatSeams#onDamagePre} converts them there and pays the piece.
+     *
+     * <p>Overslime needs no field of its own: the only thing that spends it inside {@code onDefend}
+     * is knightslime's overshield, which spends it <em>as</em> protection, so {@link #protection}
+     * already carries it.
+     */
+    public record Share(ItemStack piece, float damageRemoved, float protection, float flatReduction) {}
+
+    private final List<Share> shares = new ArrayList<>();
+
+    /** Records {@code piece}'s leg; called once per worn unbroken piece, contribution or not. */
+    public void attribute(ItemStack piece, float damageRemoved, float protection, float flatReduction) {
+        shares.add(new Share(piece, damageRemoved, protection, flatReduction));
+    }
+
+    /** The worn pieces this blow walked, in slot order. Empty when nothing worn was reached. */
+    public List<Share> shares() {
+        return shares;
     }
 }
