@@ -524,22 +524,22 @@ Any level reward beyond the one modifier slot — no level-gated abilities, no s
 
 - **GameTest coverage**: 500 effective block breaks level a pickaxe 0→1 and add exactly one free slot, which is then spendable at the Tool Station; an *ineffective* break grants nothing · a hammer's first level costs 4500 (AoE ×9) · the curve's shape at the bottom — 0→1 and 1→2 both cost base, 2→3 costs base×2 · a melee kill grants `round(damageDealt)` to the killing weapon · damage that does not kill grants nothing until death, then pays every contributing tool from the attachment, including one the player has since moved out of the main hand · the attachment survives an entity save/load round trip · a ranged impact grants `ceil(5 × drawTime / (20 × drawSpeed))` and a miss grants nothing · blocking grants `max(1, round(damage))` · mattock till, AoE crop harvest and shovel path each grant 1 · a worn armor piece gains XP per D-M7-2 while a broken piece gains none, and an overslime absorb counts · `toolLeveling = false` accrues nothing and shows nothing, while an already-earned `bonus_slots` still counts in `freeSlots()` · `maximumLevels = N` stops the tool at exactly N and hides the XP tooltip line there.
 - **Unit gates**: `forgeweave:tool_level` codec + stream-codec round trip · the level-name ladder — 0–11 direct, 12 wraps to `Like new+`, 19/42/66/99 hit their own keys, 24 gets two `+` · the hue is `frac(0.277777 × level)` · `LocalizationAuditTest` stays green (every ladder and level-up string is a declared lang key, no `Component.literal`).
-- **Save-compat fixtures (same PR as the format)**: `m7_tool_level.snbt` (a pickaxe with `tool_level` filled and a modifier spent into the earned slot) and `m7_armor_level.snbt` (a chestplate ditto). The `LivingEntity` attachment serializes into *entity* NBT, not an item stack, so it does not fit the item/material-shaped corpus — M7-8 confirms whether `SaveCompatCorpusTest` grows an entity-NBT case or the attachment is covered by the save/load GameTest above, and records which.
+- **Save-compat fixtures (same PR as the format)**: `m7_tool_level.snbt` (a pickaxe with `tool_level` filled and a modifier spent into the earned slot) and `m7_armor_level.snbt` (a chestplate ditto). The `LivingEntity` attachment serializes into *entity* NBT, not an item stack, so it does not fit the item/material-shaped corpus — **M7-8 answered that question: the corpus does not grow an entity case**, and the attachment is covered by the save/load GameTest above instead, because the round trip that matters is behavior (a mob saved, reloaded and only then killed still pays the tool) and an entity fixture would need a live `ServerLevel` these plain JUnit tests deliberately avoid. The reasoning is recorded in `SaveCompatCorpusTest`'s javadoc; `m7_tool_level.snbt` still carries the `tool_id` the ledger keys by, so the item-side component is pinned.
 - **Manual release-checklist adds**: level a tool by hand on the dedicated server and confirm the chat line, the chime, and that the tooltip colour actually rotates between levels (a hue no automated test can see) · check the level line at a wrapped level and an easter-egg level by editing `tool_level` with `/data` on a held tool · JEI sanity (no new categories; the Tool Station panel reflects the earned slot) · previous-release world load carrying both a pre-M7 tool and a leveled one · load a world with leveled tools under `toolLeveling = false` and confirm nothing breaks and no slot is lost.
 - Alpha tags during the milestone; the save-compat promise stays binding throughout.
 
 ### Issue roadmap
 
-| # | Deliverable | Depends on |
-| --- | --- | --- |
-| M7-1 | `tool_level` data component, the level curve, `ToolConstants.Entry.baseXp`, the `toolLeveling`/`defaultBaseXP`/`levelMultiplier`/`maximumLevels` config entries, and the shared `addXp` API | — |
-| M7-2 | XP gain: mining + melee, with the `LivingEntity` damage attachment paid out on death | M7-1 |
-| M7-3 | XP gain: ranged impact + the utility grants (mattock till, AoE harvest, shovel path, blocking) | M7-1 |
-| M7-4 | Level-up grants a modifier slot through `freeSlots()`; the Tool Station shows it | M7-1 |
-| M7-5 | Level-up feedback: chat line, `chime.ogg`, the tooltip ladder and its hue | M7-1 |
-| M7-6 | Armor leveling on the defense seam, incl. per-piece attribution in `DefendedBlow` | M7-1, M7-4 |
-| M7-7 | Guide-book page, plus a Ponder scene only if one fits | M7-1 … M7-6 |
-| M7-8 | Save-compat fixtures, GameTest sweep, release-checklist lines, acceptance playthrough | all |
+| # | Deliverable | Depends on | Status |
+| --- | --- | --- | --- |
+| M7-1 | `tool_level` data component, the level curve, `ToolConstants.Entry.baseXp`, the `toolLeveling`/`defaultBaseXP`/`levelMultiplier`/`maximumLevels` config entries, and the shared `addXp` API | — | shipped ([#918](https://github.com/gkissel/forgeweave/issues/918)) |
+| M7-2 | XP gain: mining + melee, with the `LivingEntity` damage attachment paid out on death | M7-1 | shipped ([#919](https://github.com/gkissel/forgeweave/issues/919)) |
+| M7-3 | XP gain: ranged impact + the utility grants (mattock till, AoE harvest, shovel path, blocking) | M7-1 | shipped ([#920](https://github.com/gkissel/forgeweave/issues/920)) |
+| M7-4 | Level-up grants a modifier slot through `freeSlots()`; the Tool Station shows it | M7-1 | shipped ([#921](https://github.com/gkissel/forgeweave/issues/921)) |
+| M7-5 | Level-up feedback: chat line, `chime.ogg`, the tooltip ladder and its hue | M7-1 | shipped ([#922](https://github.com/gkissel/forgeweave/issues/922)) |
+| M7-6 | Armor leveling on the defense seam, incl. per-piece attribution in `DefendedBlow` | M7-1, M7-4 | shipped ([#923](https://github.com/gkissel/forgeweave/issues/923)), magnitudes still the maintainer's call |
+| M7-7 | Guide-book page, plus a Ponder scene only if one fits | M7-1 … M7-6 | in flight ([#924](https://github.com/gkissel/forgeweave/issues/924)) |
+| M7-8 | Save-compat fixtures, GameTest sweep, release-checklist lines, acceptance playthrough | all | fixtures, sweep and checklist lines shipped ([#925](https://github.com/gkissel/forgeweave/issues/925)); the acceptance playthrough and the alpha tag are the maintainer's, run off `docs/playtest/checklist-0.5.0-beta.5.pt-BR.md` |
 
 ## Milestone ladder
 

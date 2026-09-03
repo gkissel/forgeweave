@@ -1,0 +1,70 @@
+{
+    decoder: "item_stack",
+    expect: {
+        components: {
+            "forgeweave:armor_stats": {
+                armor: 5.0f,
+                durability: 240,
+                knockback_resistance: 0.0f,
+                toughness: 0.0f
+            },
+            "forgeweave:modifiers": [
+                {
+                    id: "forgeweave:fire_protection",
+                    level: 20
+                }
+            ],
+            "forgeweave:tool_level": {
+                bonus_slots: 2,
+                level: 2,
+                xp: 500
+            },
+            "forgeweave:tool_materials": {
+                head: "forgeweave:iron",
+                parts: [
+                    "forgeweave:iron",
+                    "forgeweave:iron"
+                ]
+            },
+            "minecraft:max_damage": 240
+        },
+        id: "forgeweave:chestplate"
+    },
+    nbt: {
+        components: {
+            "forgeweave:armor_stats": {
+                armor: 5.0f,
+                durability: 240,
+                knockback_resistance: 0.0f,
+                toughness: 0.0f
+            },
+            "forgeweave:enchantability": 14,
+            "forgeweave:modifiers": [
+                {
+                    id: "forgeweave:fire_protection",
+                    level: 20
+                }
+            ],
+            "forgeweave:tool_level": {
+                bonus_slots: 2,
+                level: 2,
+                xp: 500
+            },
+            "forgeweave:tool_materials": {
+                head: "forgeweave:iron",
+                parts: [
+                    "forgeweave:iron",
+                    "forgeweave:iron"
+                ]
+            },
+            "forgeweave:traits": [
+                "forgeweave:projectile_protection"
+            ],
+            "minecraft:damage": 0,
+            "minecraft:max_damage": 240
+        },
+        count: 1,
+        id: "forgeweave:chestplate"
+    },
+    what: "M7 (#925): an iron chestplate at level 2, the armor half of leveling (D-M7-2, original Forgeweave design -- Tinkers' Tool Leveling has no armor code). Same forgeweave:tool_level component and same curve as a tool's, earned on the M4 defense seam instead: worn, unbroken pieces are paid for what each mitigated. Fire protection is levelled in seared bricks rather than in slots, so the 20 levels here span the three default slots plus one of the two the levels granted -- the same 'a modifier is spent into an earned slot' shape m7_tool_level.snbt pins for tools."
+}

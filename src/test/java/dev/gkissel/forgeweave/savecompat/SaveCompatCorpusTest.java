@@ -91,6 +91,27 @@ import dev.gkissel.forgeweave.material.Material;
  * #152's four-to-six slot growth, the post-#196 {@code parts} list in both its four-part and its
  * absent-and-reconstructed forms, and the three M3 tool formats decoding together on one stack rather
  * than one per file.
+ *
+ * <h2>What the corpus deliberately does not cover: entity NBT</h2>
+ *
+ * <p>M7's damage ledger (docs/SCOPE.md D-M7-4, issue #919) is a NeoForge data attachment on
+ * {@code LivingEntity}: it serializes into <em>entity</em> NBT, not into an item stack, a block
+ * entity or a material, so none of the three decoders above has a shape for it. Issue #925 asked
+ * whether the corpus should grow an entity case; the answer is <b>no</b>, and this paragraph is
+ * where that is recorded so the next milestone does not rediscover the question.
+ *
+ * <p>The reasons: an entity fixture would need a live {@code ServerLevel} to load against, which is
+ * exactly what these plain JUnit tests avoid; the corpus's value is in the committed bytes, and an
+ * attachment's bytes are the codec's own map with nothing Forgeweave-shaped in between; and the
+ * round trip that actually matters -- a mob saved, unloaded, reloaded and only then killed, still
+ * paying the tool that hurt it -- is behavior, not a format, so it is pinned as a GameTest instead
+ * ({@code ToolXpGameTests#theDamageLedgerSurvivesAnEntitySaveAndReload}). The item-side halves of M7
+ * are here, in {@code m7_tool_level.snbt} and {@code m7_armor_level.snbt}, and
+ * {@code m7_tool_level.snbt} carries the {@code forgeweave:tool_id} the ledger keys by, so the
+ * component the corpus <em>can</em> hold is held. The standing rule is unchanged for everything
+ * else: a new persistent data component or a changed block-entity tag still adds a fixture in the
+ * same PR. A future attachment whose shape is richer than a codec-generated map is worth revisiting
+ * this for.
  */
 class SaveCompatCorpusTest {
 
@@ -124,11 +145,13 @@ class SaveCompatCorpusTest {
         assertNotNull(dir, "the corpus directory is missing from the test resources");
         try (Stream<Path> files = Files.list(Path.of(dir.toURI()))) {
             List<Path> snbt = files.filter(path -> path.toString().endsWith(".snbt")).sorted().toList();
-            assertTrue(snbt.size() >= 18,
+            assertTrue(snbt.size() >= 62,
                     "the M2 four, #101's tank, #154's embossment, #160's ramp, #167's audit five, "
                             + "M3.2's two component states, #248's seven-slot station, #237's "
-                            + "audit two (new-roster tool, new-fluid smeltery) and #305's Pattern "
-                            + "Chest inventory; something dropped fixtures");
+                            + "audit two (new-roster tool, new-fluid smeltery), #305's Pattern "
+                            + "Chest inventory and every format each later milestone added, up to "
+                            + "M7's leveled tool and leveled chestplate (#925); something dropped "
+                            + "fixtures");
             return snbt.stream();
         }
     }

@@ -323,5 +323,66 @@ public class ToolLevelingXpGameTests {
         helper.succeed();
     }
 
+    // ------------------------------------------------------------------------------- config off
+
+    /**
+     * D-M7-3 across the paths this class owns, in one run: with {@code toolLeveling} off the mattock
+     * still tills, the kama still harvests, the shovel still makes a path and the battlesign still
+     * blocks -- and none of them writes a single point of XP. The ranged half has its own test above,
+     * mining and melee are {@code ToolXpGameTests#configOffGrantsNothingAnywhere}, armor is {@code
+     * ArmorLevelingGameTests#nothingAccruesWithTheConfigOff}, and the earned slots that keep counting
+     * regardless are {@code ToolLevelSlotGameTests#toolLevelingOffKeepsEarnedSlotsAndTheModifierInThem};
+     * between them the flag is pinned off on every path M7 grants XP on (issue #925's sweep).
+     */
+    @GameTest(template = "empty")
+    public static void toolLevelingOffMakesTheUtilityAndBlockingGrantsInert(GameTestHelper helper) {
+        ForgeweaveConfig.TOOL_LEVELING.set(false);
+        try {
+            BlockPos standPos = new BlockPos(1, 2, 1);
+            ServerPlayer player = helper.makeMockServerPlayerInLevel();
+
+            BlockPos tillPos = new BlockPos(1, 1, 2);
+            ItemStack mattock =
+                    assembleUniform(helper, player, standPos, ForgeweaveItems.TOOL_MATTOCK.get(), "wood", false);
+            player.setItemInHand(InteractionHand.MAIN_HAND, mattock);
+            helper.setBlock(tillPos, Blocks.DIRT);
+            helper.useBlock(tillPos, player);
+            helper.assertBlockPresent(Blocks.FARMLAND, tillPos);
+            helper.assertTrue(ToolLevel.of(player.getMainHandItem()).xp() == 0,
+                    "tilling must grant nothing with toolLeveling off, granted "
+                            + ToolLevel.of(player.getMainHandItem()).xp());
+
+            BlockPos cropPos = new BlockPos(2, 1, 2);
+            ItemStack kama = assembleUniform(helper, player, standPos, ForgeweaveItems.TOOL_KAMA.get(), "wood", false);
+            player.setItemInHand(InteractionHand.MAIN_HAND, kama);
+            helper.setBlock(cropPos, Blocks.WHEAT.defaultBlockState().setValue(CropBlock.AGE, 7));
+            helper.useBlock(cropPos, player);
+            helper.assertTrue(ToolLevel.of(player.getMainHandItem()).xp() == 0,
+                    "harvesting must grant nothing with toolLeveling off, granted "
+                            + ToolLevel.of(player.getMainHandItem()).xp());
+
+            BlockPos pathPos = new BlockPos(3, 1, 2);
+            ItemStack shovel =
+                    assembleUniform(helper, player, standPos, ForgeweaveItems.TOOL_SHOVEL.get(), "wood", false);
+            player.setItemInHand(InteractionHand.MAIN_HAND, shovel);
+            helper.setBlock(pathPos, Blocks.GRASS_BLOCK);
+            helper.useBlock(pathPos, player);
+            helper.assertBlockPresent(Blocks.DIRT_PATH, pathPos);
+            helper.assertTrue(ToolLevel.of(player.getMainHandItem()).xp() == 0,
+                    "pathing must grant nothing with toolLeveling off, granted "
+                            + ToolLevel.of(player.getMainHandItem()).xp());
+
+            ItemStack battlesign = CombatTraitGameTests.tool(ForgeweaveItems.TOOL_BATTLESIGN.get(), List.of(), 3.0F);
+            player.setItemInHand(InteractionHand.MAIN_HAND, battlesign);
+            BlockingXpSeam.INSTANCE.incomingHit(new CombatDefense(helper.getLevel(), battlesign, player, null,
+                    helper.getLevel().damageSources().generic(), true, true), 10.0F, 10.0F);
+            helper.assertTrue(ToolLevel.of(battlesign).xp() == 0,
+                    "blocking must grant nothing with toolLeveling off, granted " + ToolLevel.of(battlesign).xp());
+        } finally {
+            ForgeweaveConfig.TOOL_LEVELING.set(true);
+        }
+        helper.succeed();
+    }
+
     private ToolLevelingXpGameTests() {}
 }
