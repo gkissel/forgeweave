@@ -67,6 +67,13 @@ repositories {
         name = 'BadAsIntended'
         url = 'https://maven.bai.lol'
     }
+    maven {
+        // Draconic Evolution and its BrandonsCore library (issue #915, M8 deep compat), a soft
+        // dependency -- see the compileOnly/test-classpath split on the dependencies below. This is
+        // the maven both mods publish to and the one DE's own build.gradle names.
+        name = 'Covers1624'
+        url = 'https://maven.covers1624.net'
+    }
 }
 
 base {
@@ -269,6 +276,28 @@ dependencies {
     testCompileOnly "dev.latvian.mods:rhino:${rhino_version}"
     testRuntimeOnly("dev.latvian.mods:kubejs-neoforge:${kubejs_version}") { transitive = false }
     testRuntimeOnly "dev.latvian.mods:rhino:${rhino_version}"
+
+    // Issue #915 (M8 deep compat): Draconic Evolution's fusion crafting. compileOnly plus the test
+    // classpath, and deliberately no localRuntime -- the same call Jade and KubeJS made above, for
+    // the same reason: dropping a full third-party content mod into the dev/gametest runtime makes
+    // the gametest server negotiate that mod's own registry and login payloads, a failure surface
+    // this repo's CI has no business owning. Everything the compat layer touches is guarded by
+    // ModList (dev.gkissel.forgeweave.compat.draconic.ForgeweaveDraconicCompat) and by the
+    // `neoforge:conditions` on its generated recipe JSON, so a Forgeweave-only runtime never
+    // classloads a com.brandon3055 type at all -- which is what runGameTestServer proves.
+    //
+    // BrandonsCore is a row of its own because neither published pom declares a single dependency:
+    // nothing here is transitive, and DE's fusion API signatures reference `TechLevel`, which lives
+    // in BrandonsCore rather than in DE. CodeChicken Lib is DE's third runtime dependency, but
+    // nothing on the fusion API's compile surface reaches it (only DE's own datagen recipe builder
+    // does, and this repo emits that JSON directly), so it is not listed.
+    compileOnly "com.brandon3055.draconicevolution:Draconic-Evolution:${draconic_evolution_version}"
+    compileOnly "com.brandon3055.brandonscore:BrandonsCore:${brandons_core_version}"
+    testCompileOnly "com.brandon3055.draconicevolution:Draconic-Evolution:${draconic_evolution_version}"
+    testCompileOnly "com.brandon3055.brandonscore:BrandonsCore:${brandons_core_version}"
+    testRuntimeOnly("com.brandon3055.draconicevolution:Draconic-Evolution:${draconic_evolution_version}") { transitive = false }
+    testRuntimeOnly("com.brandon3055.brandonscore:BrandonsCore:${brandons_core_version}") { transitive = false }
+    testRuntimeOnly("io.codechicken:CodeChickenLib:${codechicken_lib_version}") { transitive = false }
 
     testImplementation platform('org.junit:junit-bom:6.1.3')
     testImplementation 'org.junit.jupiter:junit-jupiter'

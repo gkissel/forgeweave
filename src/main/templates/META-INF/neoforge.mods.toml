@@ -120,3 +120,20 @@ Forgeweave brings modular tool building, material traits, modifiers, melting, al
     versionRange="[12,)"
     ordering="AFTER"
     side="CLIENT"
+
+# Draconic Evolution compat (issue #915, docs/SCOPE.md M8) is optional: without it the mod is
+# unchanged and every recipe this adds is dropped by its own `neoforge:conditions` mod_loaded gate.
+# With it, Forgeweave ships fusion recipes for the two smeltery core tiers that otherwise have a
+# single route each, plus a tool-upgrade ladder on DE's own Fusion Crafting multiblock
+# (dev.gkissel.forgeweave.compat.draconic). BOTH sides: fusion crafting is a server-side machine and
+# its recipes are datapack rows the client needs for JEI, so neither side alone is enough.
+#
+# The lower bound is the first version published for 1.21.1, which is where DE's own `1.21` branch
+# still sits; that port is beta, so the range is left open at the top rather than pinned to a
+# maximum this ticket cannot test against.
+[[dependencies.${mod_id}]]
+    modId="draconicevolution"
+    type="optional"
+    versionRange="[3.1.4.632,)"
+    ordering="AFTER"
+    side="BOTH"

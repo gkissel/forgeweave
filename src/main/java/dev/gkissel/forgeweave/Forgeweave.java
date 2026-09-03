@@ -39,6 +39,7 @@ import dev.gkissel.forgeweave.combat.Beheading;
 import dev.gkissel.forgeweave.combat.CombatSeams;
 import dev.gkissel.forgeweave.combat.ForgeweaveInnates;
 import dev.gkissel.forgeweave.combat.ForgeweaveMobEffects;
+import dev.gkissel.forgeweave.compat.draconic.ForgeweaveDraconicCompat;
 import dev.gkissel.forgeweave.config.ForgeweaveClientConfig;
 import dev.gkissel.forgeweave.config.ForgeweaveConfig;
 import dev.gkissel.forgeweave.data.ForgeweaveDataGenerators;
@@ -271,6 +272,14 @@ public class Forgeweave {
         // (see ForgeweaveDarkModeCompat's javadoc).
         if (ModList.get().isLoaded("darkmodeeverywhere") && FMLEnvironment.dist == Dist.CLIENT) {
             modEventBus.addListener(ForgeweaveDarkModeCompat::sendShaderBlacklist);
+        }
+        // #915 -- Draconic Evolution's fusion crafting (docs/SCOPE.md M8), the same soft-dependency
+        // idiom again. The guard is load-bearing rather than defensive: the recipe class behind this
+        // call implements a com.brandon3055 interface and cannot link without the mod present, which
+        // is why ForgeweaveDraconicCompat itself names no Draconic type and creates its
+        // DeferredRegister inside the call rather than in a static field.
+        if (ModList.get().isLoaded(ForgeweaveDraconicCompat.MODID)) {
+            ForgeweaveDraconicCompat.register(modEventBus);
         }
     }
 
