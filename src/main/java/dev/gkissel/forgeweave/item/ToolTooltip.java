@@ -21,12 +21,16 @@ import net.minecraft.world.level.block.Block;
 
 import dev.gkissel.forgeweave.client.StationText;
 import dev.gkissel.forgeweave.config.ForgeweaveClientConfig; // #276
+import dev.gkissel.forgeweave.config.ForgeweaveConfig;
 import dev.gkissel.forgeweave.combat.ForgeweaveInnates;
 import dev.gkissel.forgeweave.material.Material;
 import dev.gkissel.forgeweave.material.MaterialDisplay;
 import dev.gkissel.forgeweave.menu.ToolAssemblyRecipes;
 import dev.gkissel.forgeweave.modifier.ForgeweaveModifiers;
 import dev.gkissel.forgeweave.modifier.ModifierEntry;
+import dev.gkissel.forgeweave.tool.ToolLevel;
+import dev.gkissel.forgeweave.tool.ToolLevelName;
+import dev.gkissel.forgeweave.tool.ToolLeveling;
 import dev.gkissel.forgeweave.tool.ToolMaterials;
 import dev.gkissel.forgeweave.tool.ToolStats;
 import dev.gkissel.forgeweave.trackb.TrackBOre;
@@ -156,6 +160,7 @@ final class ToolTooltip {
         if (energyCapacity > 0) {
             tooltip.add(energyLine(EnergyBuffer.stored(stack), energyCapacity));
         }
+        appendLevel(stack, ForgeweaveConfig.enabled(ForgeweaveConfig.TOOL_LEVELING), tooltip);
         // M3.5 #394, upstream ToolCore#getInformation's Category.LAUNCHER block: draw speed as
         // seconds to full draw (TooltipBuilder#addDrawSpeed: drawTime / (20 * drawSpeed)), range,
         // bonus damage -- between durability and attack, where upstream puts them.
@@ -310,6 +315,45 @@ final class ToolTooltip {
                 .append(Component.literal("/").withStyle(ChatFormatting.GRAY))
                 .append(Component.literal(Integer.toString(capacity))
                         .withStyle(Style.EMPTY.withColor(StationText.ENERGY_COLOR)));
+    }
+
+    /**
+     * The level name and XP progress lines (docs/SCOPE.md M7, D-M7-8; issue #922), right after the
+     * durability/energy block -- upstream {@code Tooltips#addTooltips}' own placement. Omitted
+     * entirely when {@code toolLeveling} is off, or the stack carries no {@code tool_level} component
+     * at all (a tool that has never earned or banked any XP) -- {@link ToolLevel#of} degrading an
+     * absent component to {@link ToolLevel#NONE} is not distinguishable from an explicit level-0
+     * component here, hence the direct {@code stack.has} check rather than reading through it.
+     *
+     * <p>Package-private overload with the flag passed in, so a unit test can exercise the off path a
+     * {@code SERVER} config spec no test environment loads would otherwise always answer "on" for --
+     * same seam as {@link ToolLeveling#addXp(ItemStack, int, net.minecraft.server.level.ServerPlayer,
+     * boolean)}.
+     */
+    static void appendLevel(ItemStack stack, boolean levelingEnabled, List<Component> tooltip) {
+        if (!levelingEnabled || !stack.has(ForgeweaveDataComponents.TOOL_LEVEL.get())) {
+            return;
+        }
+        ToolLevel level = ToolLevel.of(stack);
+        tooltip.add(levelNameLine(level.level()));
+        if (ToolLeveling.canLevelUp(level.level(), ForgeweaveConfig.maximumLevels())) {
+            int needed = ToolLeveling.xpForLevelup(level.level(), ToolLeveling.baseXp(stack), ForgeweaveConfig.levelMultiplier());
+            tooltip.add(xpLine(level.xp(), needed));
+        }
+    }
+
+    /** {@code Level: Like new}, upstream {@code tooltip.level: <name>} -- the name itself carries {@link ToolLevelName#color}. */
+    private static Component levelNameLine(int level) {
+        return Component.translatable("tooltip.forgeweave.level")
+                .append(": ")
+                .append(ToolLevelName.name(level));
+    }
+
+    /** {@code XP: 120 / 500}, upstream {@code tooltip.xp: <xp> / <needed>} in plain white. */
+    private static Component xpLine(int xp, int needed) {
+        return Component.translatable("tooltip.forgeweave.xp")
+                .append(": ")
+                .append(Component.literal(xp + " / " + needed));
     }
 
     /** The three launcher lines, for a bow only -- see {@link StationText#launcherStats}. */

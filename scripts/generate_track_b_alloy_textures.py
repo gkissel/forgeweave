@@ -49,30 +49,30 @@ ITEM_DIR = ROOT / "src/main/resources/assets/forgeweave/textures/item"
 
 # (id, color) -- must match TrackBAlloy.ALL's ids and colors (research doc §7.3's "Alloy" table).
 ALLOYS = [
-    ("ironbrand", 0xB5502C),
-    ("quakestone", 0x8FA35E),
-    ("shardline", 0xA9D8E0),
-    ("embercast", 0xE0611A),
-    ("riftalloy", 0x7A3FA0),
-    ("tideiron", 0x2F7A7A),
-    ("cinderforge", 0xD1350B),
-    ("dreadalloy", 0x2B3B2B),
-    ("sunsteel", 0xE6C64A),
-    ("hollowsteel", 0x9FB6C2),
-    ("truesteel", 0xC7D6E8),
-    ("stormalloy", 0x5C5B7A),
-    ("glowveil", 0x4AE6C6),
-    ("daybrass", 0xC9A227),
-    ("faultsteel", 0x7A6852),
-    ("skipalloy", 0x6FD1D1),
-    ("mendalloy", 0x7FBF6B),
-    ("mendstone", 0xC2A878),
+    ("ironbrand", 0xBA6749),
+    ("quakestone", 0x7A9B44),
+    ("shardline", 0xADE5FF),
+    ("embercast", 0xFFA800),
+    ("riftalloy", 0xA04C9A),
+    ("tideiron", 0x007F98),
+    ("cinderforge", 0xE07B00),
+    ("dreadalloy", 0x1E3E23),
+    ("sunsteel", 0xDED26D),
+    ("hollowsteel", 0x83A3C3),
+    ("truesteel", 0xDCFFFF),
+    ("stormalloy", 0x706DA4),
+    ("glowveil", 0x17F3C5),
+    ("daybrass", 0xB6A643),
+    ("faultsteel", 0x836F40),
+    ("skipalloy", 0x76D9D3),
+    ("mendalloy", 0x87D780),
+    ("mendstone", 0xE2B288),
     # #873 -- the three PlusTiC-inspiration alloys (M6 epic #824's JC3 reversal). Compat-gated
     # (dev.gkissel.forgeweave.trackb.TrackBAlloy's own javadoc), but their items reuse this exact
     # generator since item/block registration is unconditional either way.
-    ("alumite", 0xB8B2C9),
-    ("osgloglas", 0x7FA8A3),
-    ("osmiridium", 0xC9C2D6),
+    ("alumite", 0xF5C7F8),
+    ("osgloglas", 0x638D76),
+    ("osmiridium", 0xC0A4D5),
 ]
 
 # Recorded template-assignment table (issue #888), reproducible by re-running the imported _derive_*

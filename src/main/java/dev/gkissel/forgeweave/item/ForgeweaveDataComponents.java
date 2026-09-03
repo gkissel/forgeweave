@@ -1,9 +1,11 @@
 package dev.gkissel.forgeweave.item;
 
 import java.util.List;
+import java.util.UUID;
 
 import com.mojang.serialization.Codec;
 
+import net.minecraft.core.UUIDUtil;
 import net.minecraft.core.component.DataComponentType;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.codec.ByteBufCodecs;
@@ -375,6 +377,20 @@ public final class ForgeweaveDataComponents {
     public static final DeferredHolder<DataComponentType<?>, DataComponentType<ToolLevel>> TOOL_LEVEL =
             DATA_COMPONENTS.registerComponentType("tool_level",
                     builder -> builder.persistent(ToolLevel.CODEC).networkSynchronized(ToolLevel.STREAM_CODEC));
+
+    /**
+     * A tool's identity in {@link dev.gkissel.forgeweave.tool.DamageXpLedger} (issue #919), minted
+     * the first time that tool banks damage against a mob it did not kill and never changed after.
+     * Upstream keyed its ledger by the {@code ItemStack} and matched it back with
+     * {@code ToolCore#isEqualTinkersItem}; a 1.21.1 stack's components move on every hit, so the
+     * ledger needs something on the tool that does not -- see that class's javadoc.
+     *
+     * <p>Absent on every tool that has never landed a survivable melee blow, which is all of them
+     * until one does.
+     */
+    public static final DeferredHolder<DataComponentType<?>, DataComponentType<UUID>> TOOL_ID =
+            DATA_COMPONENTS.registerComponentType("tool_id",
+                    builder -> builder.persistent(UUIDUtil.CODEC).networkSynchronized(UUIDUtil.STREAM_CODEC));
 
     private ForgeweaveDataComponents() {}
 }

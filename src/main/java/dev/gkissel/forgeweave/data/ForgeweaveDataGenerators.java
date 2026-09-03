@@ -32,6 +32,10 @@ public final class ForgeweaveDataGenerators {
         generator.addProvider(event.includeClient(), new ForgeweaveBlockStateProvider(output, existingFileHelper));
         generator.addProvider(event.includeClient(), new ForgeweaveLanguageProvider(output));
         generator.addProvider(event.includeServer(), new ForgeweaveRecipeProvider(output, lookupProvider));
+        // #915 -- the Draconic Evolution fusion recipes (docs/SCOPE.md M8). A plain DataProvider
+        // rather than a RecipeProvider: both layers' serializers live behind the mod_loaded gate, so
+        // there is no Recipe object runData could build. See the provider's own javadoc.
+        generator.addProvider(event.includeServer(), new ForgeweaveDraconicRecipeProvider(output));
         generator.addProvider(event.includeServer(), new ForgeweaveLootTableProvider(output, lookupProvider));
         // #104 -- the cobalt + ardite nether ore blocks' tool-tier tags (ForgeweaveBlockTagsProvider
         // javadoc); the first Forgeweave block tags, so ForgeweaveItemTagsProvider's block-tag future
