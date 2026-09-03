@@ -15,6 +15,7 @@ import net.neoforged.neoforge.event.entity.living.LivingIncomingDamageEvent;
 import net.neoforged.neoforge.event.entity.living.LivingKnockBackEvent;
 
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.Mth;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.damagesource.DamageSource;
@@ -28,6 +29,7 @@ import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import dev.gkissel.forgeweave.item.ArmorPieceItem;
 import dev.gkissel.forgeweave.item.ForgeweaveDataComponents;
 import dev.gkissel.forgeweave.item.ToolItem;
+import dev.gkissel.forgeweave.tool.ToolLeveling;
 
 /**
  * The per-hit event pipeline (ADR-0005 decision 3): the one place a blow struck with a Forgeweave
@@ -206,17 +208,24 @@ public final class CombatSeams {
             if (!(piece.getItem() instanceof ArmorPieceItem) || ToolItem.isBroken(piece)) {
                 continue;
             }
-            List<CombatSeam> seams = seams(piece);
-            if (seams.isEmpty()) {
-                continue;
-            }
             if (blow == null) {
                 blow = new DefendedBlow(event.getAmount());
             }
-            CombatDefense defense = new CombatDefense(level, piece, defender, attacker, event.getSource(), false, false);
-            for (CombatSeam seam : seams) {
-                seam.onDefend(defense, blow);
+            // M7-6 (issue #923): the piece's leg is measured as the delta across it, so a piece with
+            // no seams at all still gets a Share -- worn and unbroken is what earns XP, and most
+            // materials grant no ARMOR trait. The blow it opens is a no-op on the event either way.
+            float damageBefore = blow.damage();
+            float protectionBefore = blow.protection();
+            float flatBefore = blow.flatReduction();
+            List<CombatSeam> seams = seams(piece);
+            if (!seams.isEmpty()) {
+                CombatDefense defense = new CombatDefense(level, piece, defender, attacker, event.getSource(), false, false);
+                for (CombatSeam seam : seams) {
+                    seam.onDefend(defense, blow);
+                }
             }
+            blow.attribute(piece, damageBefore - blow.damage(), blow.protection() - protectionBefore,
+                    blow.flatReduction() - flatBefore);
         }
         if (blow == null) {
             return; // nothing worn: the event is untouched, byte for byte (the #680 regression)
@@ -233,10 +242,10 @@ public final class CombatSeams {
         if (blow.invulnerabilityTicks() > 0) {
             event.setInvulnerabilityTicks(blow.invulnerabilityTicks());
         }
-        if (blow.protection() != 0.0F || blow.flatReduction() > 0.0F) {
-            pendingArmorBlow = blow;
-            pendingArmorDefender = defender;
-        }
+        // Remembered unconditionally since M7-6: onDamagePre settles protection and flat reduction
+        // (both no-ops at zero) and is also where armor leveling learns the blow landed at all.
+        pendingArmorBlow = blow;
+        pendingArmorDefender = defender;
     }
 
     private static final EquipmentSlot[] ARMOR_SLOTS =
@@ -275,8 +284,9 @@ public final class CombatSeams {
         pendingArmorDefender = null;
         float damage = event.getNewDamage();
         if (damage <= 0.0F) {
-            return;
+            return; // fully absorbed or immune: nothing was mitigated, so nothing is earned either
         }
+        float armored = damage;
         if (blow.protection() != 0.0F && damage < Float.MAX_VALUE) {
             float vanilla = 0.0F;
             if (event.getEntity().level() instanceof ServerLevel level) {
@@ -288,11 +298,50 @@ public final class CombatSeams {
             float after = 1.0F - Mth.clamp(vanilla + blow.protection(), -PROTECTION_CAP, PROTECTION_CAP) / PROTECTION_DIVISOR;
             damage = damage / before * after;
         }
+        float protectionMitigated = armored - damage;
         if (blow.flatReduction() > 0.0F) {
             damage = Math.min(damage, Math.max(1.0F, damage - blow.flatReduction()));
         }
         if (damage != event.getNewDamage()) {
             event.setNewDamage(damage);
+        }
+        grantArmorXp(blow, event.getEntity(), protectionMitigated, armored - protectionMitigated - damage);
+    }
+
+    /**
+     * M7-6, armor leveling (issue #923; SCOPE.md D-M7-2) -- original Forgeweave design, no upstream
+     * counterpart and no NOTICE row. Every worn unbroken piece that the walk reached earns
+     * {@code max(1, round(what it mitigated))} once the blow has actually dealt damage, through the
+     * same {@link ToolLeveling#addXp} the tool grants use, so the curve, the slot per level and
+     * M7-5's chat line and chime all apply to armor unchanged.
+     *
+     * <p>A piece's mitigation is the pre-mitigation damage it removed itself, plus its share of what
+     * the blow's protection and flat reduction turned out to be worth. Protection and flat reduction
+     * are rates and offsets rather than damage until vanilla's armor has run, which is why the split
+     * happens here and not in the walk: each piece takes the fraction of the settled mitigation its
+     * own contribution is of the blow's total. A held tool's protection is in that total and earns
+     * nothing -- blocking XP is M7-3's -- so its share is simply never paid out.
+     *
+     * <p>The floor of 1 mirrors upstream's blocking grant: a piece that stopped almost nothing still
+     * creeps forward. Inert with {@code toolLeveling} off, because {@link ToolLeveling#addXp} is.
+     */
+    private static void grantArmorXp(DefendedBlow blow, LivingEntity defender, float protectionMitigated,
+            float flatMitigated) {
+        if (blow.shares().isEmpty()) {
+            return;
+        }
+        ServerPlayer player = defender instanceof ServerPlayer serverPlayer ? serverPlayer : null;
+        float totalProtection = blow.protection();
+        float totalFlat = blow.flatReduction();
+        for (DefendedBlow.Share share : blow.shares()) {
+            float mitigated = share.damageRemoved();
+            if (totalProtection != 0.0F) {
+                mitigated += protectionMitigated * (share.protection() / totalProtection);
+            }
+            if (totalFlat > 0.0F) {
+                mitigated += flatMitigated * (share.flatReduction() / totalFlat);
+            }
+            ToolLeveling.addXp(share.piece(), Math.max(1, Math.round(mitigated)), player);
         }
     }
 

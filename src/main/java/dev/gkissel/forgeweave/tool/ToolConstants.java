@@ -620,6 +620,22 @@ public final class ToolConstants {
             1.0f, 1.0f, 1.0f, 2.0f, 1.0f, 1.0f, false, false);
 
     /**
+     * What an armor piece's first leveling level costs, as a multiple of {@code defaultBaseXP}
+     * (M7-6, issue #923; SCOPE.md D-M7-2) -- {@code 1}, the same as a single-target tool's, for
+     * light and heavy pieces alike. Original Forgeweave design: Tinkers' Tool Leveling has no armor,
+     * so there is no upstream number to match and no NOTICE row to write.
+     *
+     * <p>A piece earns {@code max(1, round(what it mitigated))} per blow that lands
+     * ({@code CombatSeams#grantArmorXp}), so a chestplate soaking four damage a hit reaches its
+     * first level in roughly 125 hits taken at the default 500, and a pair of boots that mostly
+     * rides the floor of 1 takes the full 500. That gradient -- torso before feet -- is the point of
+     * per-piece attribution, and it is why the heavy set takes the same base as the light one:
+     * heavy armor already levels more slowly by mitigating in fewer, larger pieces. Written out
+     * rather than left to {@link Entry}'s default so retuning either set is a value change here.
+     */
+    public static final int ARMOR_BASE_XP = 1;
+
+    /**
      * The four plate armor pieces (issue #678, M4-3; SCOPE.md D3/D9/D13): plating + maille,
      * positional, the 1.20 clone's {@code ToolDefinitionDataProvider} plate armor rows
      * ({@code plating_<piece>} then {@code maille}). Every {@code ToolNBT}-shaped constant is the
@@ -638,7 +654,8 @@ public final class ToolConstants {
     private static Entry armor(String piece) {
         return new Entry(piece, Category.ARMOR,
                 List.of(new PartSlot(Role.PLATING, "plating_" + piece), new PartSlot(Role.MAILLE, "maille")),
-                1.0f, 1.0f, 1.0f, 0.0f, 1.0f, 1.0f, false, false);
+                1.0f, 1.0f, 1.0f, 0.0f, 1.0f, 1.0f, false, false)
+                .withBaseXpMultiplier(ARMOR_BASE_XP);
     }
 
     /**
@@ -665,7 +682,8 @@ public final class ToolConstants {
         return new Entry(HEAVY_PREFIX + piece, Category.ARMOR,
                 List.of(new PartSlot(Role.PLATING, "plating_" + piece), new PartSlot(Role.MAILLE, "maille"),
                         new PartSlot(Role.EXTRA, "large_plate")),
-                1.0f, 1.0f, 1.0f, 0.0f, 1.0f, 1.0f, false, false);
+                1.0f, 1.0f, 1.0f, 0.0f, 1.0f, 1.0f, false, false)
+                .withBaseXpMultiplier(ARMOR_BASE_XP);
     }
 
     /** Whether an armor entry id names a heavy piece (#735). */
