@@ -2,6 +2,7 @@ package dev.gkissel.forgeweave.tool;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.InteractionResult;
@@ -114,7 +115,13 @@ public final class ShovelPath {
             level.setBlock(pos, result, 11);
             level.gameEvent(GameEvent.BLOCK_CHANGE, pos, GameEvent.Context.of(player, result));
             if (player != null) {
-                context.getItemInHand().hurtAndBreak(1, player, LivingEntity.getSlotForHand(context.getHand()));
+                ItemStack stack = context.getItemInHand();
+                stack.hurtAndBreak(1, player, LivingEntity.getSlotForHand(context.getHand()));
+                // M7-3 (issue #920, docs/SCOPE.md D-M7-10): upstream's onPath grant, ModToolLeveling
+                // (Tinkers' Tool Leveling, MIT, NOTICE.md).
+                if (player instanceof ServerPlayer serverPlayer) {
+                    ToolLeveling.addXp(stack, 1, serverPlayer);
+                }
             }
         }
         return InteractionResult.sidedSuccess(level.isClientSide);

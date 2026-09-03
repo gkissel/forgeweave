@@ -3,6 +3,7 @@ package dev.gkissel.forgeweave.item;
 import java.util.List;
 import java.util.Set;
 
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.tags.BlockTags;
@@ -20,6 +21,7 @@ import net.neoforged.neoforge.common.ItemAbility;
 import dev.gkissel.forgeweave.combat.ForgeweaveInnates;
 import dev.gkissel.forgeweave.tool.AoeHarvest;
 import dev.gkissel.forgeweave.tool.ToolConstants;
+import dev.gkissel.forgeweave.tool.ToolLeveling;
 
 /**
  * The mattock (docs/SCOPE.md M3 issue #156): upstream {@code tools/tools/Mattock.java}'s axe+shovel
@@ -60,7 +62,13 @@ public class MattockItem extends ToolItem {
         if (!level.isClientSide) {
             level.setBlock(context.getClickedPos(), tilled, 11);
             if (player != null) {
-                context.getItemInHand().hurtAndBreak(1, player, LivingEntity.getSlotForHand(context.getHand()));
+                ItemStack stack = context.getItemInHand();
+                stack.hurtAndBreak(1, player, LivingEntity.getSlotForHand(context.getHand()));
+                // M7-3 (issue #920, docs/SCOPE.md D-M7-10): upstream's onMattock grant, ModToolLeveling
+                // (Tinkers' Tool Leveling, MIT, NOTICE.md).
+                if (player instanceof ServerPlayer serverPlayer) {
+                    ToolLeveling.addXp(stack, 1, serverPlayer);
+                }
             }
         }
         return InteractionResult.sidedSuccess(level.isClientSide);
