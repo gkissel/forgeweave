@@ -1,0 +1,14 @@
+[
+  {
+    "name": "intro",
+    "type": "text"
+  },
+  {
+    "name": "earning",
+    "type": "text"
+  },
+  {
+    "name": "curve",
+    "type": "text"
+  }
+]

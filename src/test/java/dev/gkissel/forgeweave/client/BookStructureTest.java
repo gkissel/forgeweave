@@ -61,9 +61,13 @@ class BookStructureTest {
     void theIndexJsonListsTheShippedSectionsInUpstreamOrder() {
         List<String> names = structure().sections().stream().map(SectionDef::name).toList();
 
-        assertEquals(List.of("intro", "tools", "armor", "materials", "modifiers", "smeltery"), names,
+        assertEquals(
+                List.of("intro", "tools", "armor", "materials", "modifiers", "smeltery", "leveling"),
+                names,
                 "upstream index.json: intro, tools, materials, modifiers, smeltery; M4 (#682) slots armor "
-                        + "after tools, where the 1.20 book's materials_and_you/index.json puts it");
+                        + "after tools, where the 1.20 book's materials_and_you/index.json puts it; M7-7 "
+                        + "(#924) appends leveling last -- it has no upstream section at all, and reads "
+                        + "best as a capstone chapter once every gear kind and modifier slots exist");
         for (SectionDef def : structure().sections()) {
             assertNotNull(def.iconItem(), "index entry " + def.name() + " needs its icon item");
             assertFalse(def.pages().isEmpty(),
@@ -166,6 +170,22 @@ class BookStructureTest {
         assertFalse(manifest.contains("book.forgeweave.smeltery.multiblock.title"),
                 "upstream's structure page has no title, so the manifest must not demand one");
         assertFalse(manifest.contains("book.forgeweave.smeltery.multiblock.text"));
+    }
+
+    /**
+     * M7-7 (issue #924, epic #917): the leveling chapter -- three plain text pages, no upstream
+     * counterpart to follow (Tool Leveling ships no book, and TAIGA/PlusTiC/Moar Tinkers/Tinkers'
+     * Evolution are inspiration-only, so nothing here derives from anywhere).
+     */
+    @Test
+    void theLevelingSectionCarriesItsThreeTextPages() {
+        List<PageDef> pages = section("leveling").pages();
+
+        assertEquals(List.of("intro", "earning", "curve"), pages.stream().map(PageDef::name).toList());
+        assertEquals("minecraft:experience_bottle", section("leveling").iconItem());
+        for (PageDef def : pages) {
+            assertEquals("text", def.type(), "leveling page " + def.name());
+        }
     }
 
     /** A JSON page def with no lang lines must fail {@code BookLangCoverageTest}, not render raw keys. */

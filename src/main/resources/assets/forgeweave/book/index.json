@@ -52,5 +52,14 @@
         "id": "forgeweave:standard_core"
       }
     }
+  },
+  {
+    "name": "leveling",
+    "data": "sections/leveling.json",
+    "icon": {
+      "item": {
+        "id": "minecraft:experience_bottle"
+      }
+    }
   }
 ]
