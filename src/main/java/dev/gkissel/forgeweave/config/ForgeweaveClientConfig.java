@@ -7,6 +7,10 @@ import net.neoforged.neoforge.common.ModConfigSpec;
  * clientside} config category, minus the options whose feature Forgeweave does not have. Each keeps
  * upstream's own default.
  *
+ * <p>{@code temperatureCelsius} is gone (recorded deviation, issue #932): every displayed
+ * temperature is now the same effective number the recipes use, with no unit toggle to display it
+ * differently. See {@link dev.gkissel.forgeweave.client.TemperatureText}.
+ *
  * <p>Registered as a {@code CLIENT}-type config ({@code Forgeweave#Forgeweave}), unlike the
  * gameplay {@link ForgeweaveConfig}: none of these change what the server does, so there is nothing
  * to sync and nothing that could desync -- they are per-player preferences about how the same
@@ -23,13 +27,6 @@ public final class ForgeweaveClientConfig {
 
     /** Upstream {@code extraTooltips}: tools and parts show their detailed Shift tooltip. */
     public static final ModConfigSpec.BooleanValue EXTRA_TOOLTIPS;
-
-    /**
-     * Upstream {@code temperatureCelsius}: smeltery and JEI temperatures render in celsius rather
-     * than the internal kelvin scale whose zero sits at
-     * {@link dev.gkissel.forgeweave.recipe.MeltingRecipe#AMBIENT_TEMPERATURE}.
-     */
-    public static final ModConfigSpec.BooleanValue TEMPERATURE_CELSIUS;
 
     /**
      * Upstream {@code listAllPartMaterials}: the creative tab lists every material variant of every
@@ -74,10 +71,6 @@ public final class ForgeweaveClientConfig {
         EXTRA_TOOLTIPS = builder
                 .comment("If true, tools and tool parts show additional info in their tooltips while Shift is held.")
                 .define("extraTooltips", true);
-        TEMPERATURE_CELSIUS = builder
-                .comment("If true, temperatures in the smeltery and in JEI display in celsius. If false they use",
-                        "the internal units of kelvin, which may be better for pack authors.")
-                .define("temperatureCelsius", true);
         LIST_ALL_PART_MATERIALS = builder
                 .comment("If true, all material variants of every tool part are listed in creative. Set to false to",
                         "list only the first material for each part.")

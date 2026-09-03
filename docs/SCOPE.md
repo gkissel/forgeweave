@@ -81,6 +81,8 @@ All melting, alloying, casting, and modifier recipes are visible in JEI. The adv
 
 Smeltery multiblock ported from the 1.12 clone: rectangular interiors 1×1 to 9×9 (`MAX_SIZE = 9`), automatic in-tank alloying, temperature-gated multi-fuel system (`registerSmelteryFuel` model — fuels have temperature + burn duration, melting recipes have required temperature; lava is the only fuel registered in M2, more fuels are datapack/M6 content). Tiered smeltery cores set ore yield: Standard 1.5×, Nether 2×; melting recipes hold base amounts, the core multiplies. Ore blocks melt as their raw-drop equivalent — no separate silk-touch yield axis. Casts are gold-only and reusable (pure parity). Modifiers per ADR-0004: Java behavior, datapack application recipes, `id + level` serialization, 3 free slots.
 
+**Recorded deviation (maintainer directive, issue #932):** the smeltery screen and JEI display a temperature as the same effective number the recipe/fuel datapack JSON uses, not upstream 1.12's celsius conversion (`Util#temperatureString` subtracting the 300-unit ambient baseline for display only). The `temperatureCelsius` client option is removed; there is one scale everywhere.
+
 ### Non-goals for M2
 
 End/Ancient cores, End ore, slime islands (world-content milestone, scoped at M6 planning) · sand casts (revisit on playtest feedback) · per-smeltery alloy on/off toggle (deferred backlog) · electric/tiered heater (M8) · combat modifiers (smite, bane, fiery, necrotic, knockback, shulking, webbed, beheading) and embossing (M3) · GuideME in-game guide, EMI (M8) · tool forge / large tools (M3).
