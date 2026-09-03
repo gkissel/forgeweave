@@ -3,5 +3,6 @@
     "item": "minecraft:dragon_breath"
   },
   "fluid": "forgeweave:molten_dragon_breath",
-  "amount": 250
+  "amount": 250,
+  "temperature": 1600
 }

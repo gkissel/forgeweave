@@ -395,6 +395,37 @@ public class SmelteryFuelGameTests {
     }
 
     /**
+     * Issue #931: the real dragon breath recipe ({@code melting_recipe/dragon_breath.json}, now
+     * carrying {@code "temperature": 1600} so pouring molten dragon breath onto a Nether Core for the
+     * End Core step ({@code core_transform_recipe/end_core.json}) needs a fuel hot enough to have
+     * melted it in the first place) rather than a GameTest fixture -- blazing blood's 1500 falls one
+     * rung short, molten magma's 1700 is the first fuel that reaches it. Same two-halves-on-one-
+     * structure shape as {@link #moltenMagmaReachesARecipeBlazingBloodCannot}.
+     */
+    @GameTest(template = "smeltery", timeoutTicks = 100)
+    public static void moltenMagmaIsTheFirstFuelThatMeltsDragonBreath(GameTestHelper helper) {
+        SmelteryGameTests.buildWalls(helper, 1, 1, 2);
+        assertCannotMelt(helper, ForgeweaveFluids.BLAZING_BLOOD.still().get(), Items.DRAGON_BREATH, "blazing blood (1500)");
+        assertMeltsToDragonBreath(helper, ForgeweaveFluids.MOLTEN_MAGMA.still().get(), 1700);
+        helper.succeed();
+    }
+
+    /** The hotter half of {@link #moltenMagmaIsTheFirstFuelThatMeltsDragonBreath}: melts the real dragon_breath.json recipe through to molten dragon breath. */
+    private static void assertMeltsToDragonBreath(GameTestHelper helper, Fluid hotter, int expectedTemperature) {
+        SmelteryControllerBlockEntity core = refuelledSmeltery(helper, hotter);
+        helper.assertValueEqual(core.currentTemperature(), expectedTemperature,
+                "smeltery temperature with molten magma in the wall tank");
+        helper.assertTrue(core.insertForMelting(new ItemStack(Items.DRAGON_BREATH)).isEmpty(),
+                "expected the dragon breath to go into the smeltery");
+
+        meltToCompletion(helper, core, "molten magma");
+
+        helper.assertValueEqual(core.tank().getFluidAmount(), 250, "molten dragon breath from one dragon breath");
+        helper.assertTrue(core.tank().getFluid().getFluid() == ForgeweaveFluids.DRAGON_BREATH.still().get(),
+                "expected molten dragon breath, got " + core.tank().getFluid().getFluid());
+    }
+
+    /**
      * Issue #847 (M6 epic #824, JC7): {@link ForgeweaveConfig#MELT_SPEED_MULTIPLIER} scales {@code
      * meltTick}'s whole-number progress step, so doubling it doubles lava's 10-progress-per-tick step
      * to 20. The iron nugget's fixed 936 progress requirement ({@link
