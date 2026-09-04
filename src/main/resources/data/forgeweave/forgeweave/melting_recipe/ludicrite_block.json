@@ -4,6 +4,7 @@
   },
   "fluid": "forgeweave:molten_ludicrite",
   "amount": 1296,
+  "temperature": 1600,
   "neoforge:conditions": [
     {
       "type": "neoforge:item_exists",
