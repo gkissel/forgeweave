@@ -1,0 +1,13 @@
+{
+  "parent": "forgeweave:block/tinted_cube",
+  "render_type": "minecraft:translucent",
+  "textures": {
+    "down": "forgeweave:derived/block/connected/clear_stained_glass/ur",
+    "east": "forgeweave:derived/block/connected/clear_stained_glass/udlr",
+    "north": "forgeweave:derived/block/connected/clear_stained_glass/ul",
+    "particle": "forgeweave:derived/block/connected/clear_stained_glass/normal",
+    "south": "forgeweave:derived/block/connected/clear_stained_glass/udlr",
+    "up": "forgeweave:derived/block/connected/clear_stained_glass/udlr",
+    "west": "forgeweave:derived/block/connected/clear_stained_glass/ur"
+  }
+}

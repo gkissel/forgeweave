@@ -1,0 +1,13 @@
+{
+  "parent": "forgeweave:block/tinted_cube",
+  "render_type": "minecraft:cutout",
+  "textures": {
+    "down": "forgeweave:derived/block/connected/clear_glass/normal",
+    "east": "forgeweave:derived/block/connected/clear_glass/normal",
+    "north": "forgeweave:derived/block/connected/clear_glass/normal",
+    "particle": "forgeweave:derived/block/connected/clear_glass/normal",
+    "south": "forgeweave:derived/block/connected/clear_glass/normal",
+    "up": "forgeweave:derived/block/connected/clear_glass/normal",
+    "west": "forgeweave:derived/block/connected/clear_glass/normal"
+  }
+}

@@ -488,15 +488,15 @@ public final class ForgeweaveBlocks {
     // hardness 0.3, SoundType.GLASS, setHarvestLevel("pickaxe", -1) (no tool required -- same "no
     // mineable tag" reasoning as grout/firewood above), isOpaqueCube/isFullCube false. Upstream ships
     // no glass pane form of either (grep of TinkerCommons -- verified against the clone), so none is
-    // registered here. Connected-texture rendering is left plain, the same simplification #289 already
-    // made for seared glass (PR body): both blocks use upstream's own "no neighbours" sprite as a
-    // single cube_all texture.
-    public static final DeferredBlock<Block> CLEAR_GLASS = BLOCKS.registerSimpleBlock("clear_glass",
-            BlockBehaviour.Properties.of()
+    // registered here. Both draw with upstream's connected textures, which is what ConnectedGlassBlock
+    // carries (issue #951): eleven sprites per glass, picked per face from six same-block neighbour
+    // flags, the way Mantle's BlockConnectedTexture does it.
+    public static final DeferredBlock<Block> CLEAR_GLASS = BLOCKS.<Block>register("clear_glass",
+            () -> new ConnectedGlassBlock(BlockBehaviour.Properties.of()
                     .mapColor(MapColor.NONE)
                     .strength(0.3F)
                     .sound(SoundType.GLASS)
-                    .noOcclusion());
+                    .noOcclusion()));
 
     /**
      * A registered clear stained glass color (issue #275): its {@link DyeColor}, the exact ARGB tint
@@ -820,12 +820,12 @@ public final class ForgeweaveBlocks {
     }
 
     private static DeferredBlock<Block> stainedGlassBlock(DyeColor dye, int tint) {
-        DeferredBlock<Block> block = BLOCKS.registerSimpleBlock(dye.getName() + "_stained_clear_glass",
-                BlockBehaviour.Properties.of()
+        DeferredBlock<Block> block = BLOCKS.<Block>register(dye.getName() + "_stained_clear_glass",
+                () -> new ConnectedGlassBlock(BlockBehaviour.Properties.of()
                         .mapColor(dye.getMapColor())
                         .strength(0.3F)
                         .sound(SoundType.GLASS)
-                        .noOcclusion());
+                        .noOcclusion()));
         CLEAR_STAINED_GLASS.add(new StainedGlassColor(dye, tint, block));
         return block;
     }

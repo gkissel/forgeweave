@@ -71,6 +71,7 @@ import net.neoforged.neoforge.fluids.capability.templates.FluidTank;
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.block.CastingBlockEntity;
 import dev.gkissel.forgeweave.block.ChestBlockEntity;
+import dev.gkissel.forgeweave.block.ConnectedGlassBlock;
 import dev.gkissel.forgeweave.block.CraftingStationBlockEntity;
 import dev.gkissel.forgeweave.client.book.BookContent;
 import dev.gkissel.forgeweave.client.book.BookScreen;
@@ -458,6 +459,9 @@ public final class ScreenshotHarness {
      * width of a {@value #MATERIAL_SCENE_COLUMNS}-wide material wall, so the camera sits further back.
      */
     private static final int GLASS_SCENE_CAMERA_PULLBACK = 13;
+
+    /** Side of the clear glass pane above issue #951's row: three is the smallest that has a middle tile. */
+    private static final int GLASS_SCENE_PANE_SIZE = 3;
 
     /** Ceiling on the attack-cooldown wait before a first-person weapon frame; see {@link #settleWeaponFirstPerson}. */
     private static final int WEAPON_SWING_RESET_TICKS = 60;
@@ -1347,24 +1351,31 @@ public final class ScreenshotHarness {
 
     /**
      * Issue #951's release-checklist scene, {@code clear_stained_glass}: all 16 clear stained glass
-     * colors standing in one row against a smooth stone backing wall, in registry order, west to east.
+     * colors standing in one row against a smooth stone backing wall, in registry order west to east,
+     * with a 3x3 pane of clear glass above them.
      *
-     * <p>The colors are one greyscale sprite tinted 16 ways by {@code ForgeweaveGlassColors}, and a
-     * missing {@code tintindex} on the model makes every one of them render as that bare grey sprite.
-     * Nothing throws when that happens, and a single color in isolation still looks like plausible
-     * glass, so the row is the artifact: 16 distinct hues means the tint reaches the geometry, 16
-     * identical grey cubes means it does not. Same wall staging as the #236 material walls, one wall
-     * further west.
+     * <p>The row answers the tint half. The colors are one greyscale sprite tinted 16 ways by
+     * {@code ForgeweaveGlassColors}, and a missing {@code tintindex} on the model makes every one of
+     * them render as that bare grey sprite. Nothing throws when that happens, and a single color in
+     * isolation still looks like plausible glass, so the row is the artifact: 16 distinct hues means
+     * the tint reaches the geometry, 16 identical grey cubes means it does not.
+     *
+     * <p>The 3x3 pane answers the connected-texture half, which needs more than one block to show at
+     * all: joined panes draw as one sheet with a border only around the outside, and glass without
+     * connected textures draws a border around every tile.
+     *
+     * <p>Same wall staging as the #236 material walls, one wall further west.
      */
     private static void placeGlassScene(Minecraft mc) {
         var server = mc.getSingleplayerServer();
         List<ForgeweaveBlocks.StainedGlassColor> colors = ForgeweaveBlocks.clearStainedGlassColors();
-        LOGGER.info("{}placing #951 clear stained glass row ({} colors)", LOG_PREFIX, colors.size());
+        LOGGER.info("{}placing #951 clear stained glass row ({} colors) and clear glass pane",
+                LOG_PREFIX, colors.size());
         server.execute(() -> {
             ServerPlayer serverPlayer = server.getPlayerList().getPlayers().get(0);
             ServerLevel level = serverPlayer.serverLevel();
             BlockPos wallBase = origin.offset(-2 * MATERIAL_SCENE_GROUP_SPACING, 0, MATERIAL_SCENE_DISTANCE);
-            glassScenePositions = new BlockPos[colors.size()];
+            List<BlockPos> placed = new java.util.ArrayList<>();
 
             for (int i = 0; i < colors.size(); i++) {
                 // Backing stone behind each pane: a translucent block over open air reads as almost
@@ -1373,14 +1384,33 @@ public final class ScreenshotHarness {
                 BlockPos glass = backing.south();
                 level.setBlockAndUpdate(backing, Blocks.SMOOTH_STONE.defaultBlockState());
                 level.setBlockAndUpdate(glass, colors.get(i).block().get().defaultBlockState());
-                glassScenePositions[i] = glass;
+                placed.add(glass);
             }
+
+            // The pane sits above the middle of the row, three wide and three tall.
+            int paneWest = colors.size() / 2 - 1;
+            for (int x = paneWest; x < paneWest + GLASS_SCENE_PANE_SIZE; x++) {
+                for (int y = 2; y < 2 + GLASS_SCENE_PANE_SIZE; y++) {
+                    BlockPos backing = wallBase.offset(x, y, 0);
+                    BlockPos glass = backing.south();
+                    level.setBlockAndUpdate(backing, Blocks.SMOOTH_STONE.defaultBlockState());
+                    level.setBlockAndUpdate(glass, ForgeweaveBlocks.CLEAR_GLASS.get().defaultBlockState());
+                    placed.add(glass);
+                }
+            }
+            // setBlockAndUpdate leaves each block's own connected flags at their placement default and
+            // only reshapes its neighbours, so a pane built this way would be half-joined. This is the
+            // call a player's placement takes anyway, once per block, after the whole pane exists.
+            for (BlockPos pos : placed) {
+                level.setBlock(pos, Block.updateFromNeighbourShapes(level.getBlockState(pos), level, pos), 3);
+            }
+            glassScenePositions = placed.toArray(new BlockPos[0]);
 
             double centerX = wallBase.getX() + colors.size() / 2.0;
             serverPlayer.teleportTo(centerX, wallBase.getY(),
                     wallBase.getZ() + 1 + GLASS_SCENE_CAMERA_PULLBACK + 0.5);
             serverPlayer.lookAt(EntityAnchorArgument.Anchor.EYES,
-                    new Vec3(centerX, wallBase.getY() + 1.5, wallBase.getZ() + 1.0));
+                    new Vec3(centerX, wallBase.getY() + 2.5, wallBase.getZ() + 1.0));
         });
         advance(Stage.SETTLE_GLASS_SCENE);
     }
@@ -1398,9 +1428,13 @@ public final class ScreenshotHarness {
                 if (state.isAir()) {
                     LOGGER.error("{}#951 scene check FAILED: client sees air at {}", LOG_PREFIX, pos);
                 } else {
-                    LOGGER.info("{}#951 scene check: client sees {} at {}, tint {}", LOG_PREFIX,
-                            BuiltInRegistries.BLOCK.getKey(state.getBlock()), pos,
-                            String.format("#%06X", mc.getBlockColors().getColor(state, mc.level, pos, 0) & 0xFFFFFF));
+                    LOGGER.info("{}#951 scene check: client sees {} at {}, tint {}, connected {}",
+                            LOG_PREFIX, BuiltInRegistries.BLOCK.getKey(state.getBlock()), pos,
+                            String.format("#%06X", mc.getBlockColors().getColor(state, mc.level, pos, 0) & 0xFFFFFF),
+                            ConnectedGlassBlock.SIDES.entrySet().stream()
+                                    .filter(side -> state.getValue(side.getValue()))
+                                    .map(side -> side.getKey().getName())
+                                    .toList());
                 }
             }
         }
