@@ -54,6 +54,7 @@ import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.combat.CombatSeam;
 import dev.gkissel.forgeweave.combat.ForgeweaveInnates;
 import dev.gkissel.forgeweave.combat.ToolUseAction;
+import dev.gkissel.forgeweave.compat.draconic.modules.DraconicModules;
 import dev.gkissel.forgeweave.config.ForgeweaveConfig;
 import dev.gkissel.forgeweave.entity.IndestructibleItemEntity;
 import dev.gkissel.forgeweave.material.Material;
@@ -692,7 +693,12 @@ public class ToolItem extends Item {
             return 0.0F;
         }
         float damage = stats.attackDamage() * damagePotential + ForgeweaveTraits.attackDamageBonus(stack);
-        return cutoffDamage(damage);
+        // #956, maintainer decision: a Draconic Evolution damage module adds on top of Forgeweave's
+        // own number, it never replaces it. Added after the cutoff, not before -- that curve exists to
+        // bound Forgeweave's own modifier stacking (issue #295), and running a module's points through
+        // it would quietly eat most of them. 0 without that mod, an evolved tool, or the power to run
+        // the module.
+        return cutoffDamage(damage) + DraconicModules.attackDamageBonus(stack);
     }
 
     /**
@@ -831,7 +837,11 @@ public class ToolItem extends Item {
             return 0.3F;
         }
         float base = super.getDestroySpeed(stack, state);
-        return ForgeweaveTraits.miningSpeed(stack, isEffective(state), base);
+        // #956: a Draconic Evolution speed module multiplies what the tool's own stats and traits
+        // already worked out. 1 without that mod, without an evolved tool, or without the power to
+        // run the module -- see DraconicModuleEffects for the two deviations from DE's own curve.
+        return ForgeweaveTraits.miningSpeed(stack, isEffective(state), base)
+                * DraconicModules.digSpeedMultiplier(stack);
     }
 
     /**
@@ -1001,6 +1011,13 @@ public class ToolItem extends Item {
             if (cost > 0) {
                 stack.hurtAndBreak(cost, entity, EquipmentSlot.MAINHAND);
             }
+            // #956: a running Draconic Evolution mining module spends its own EquipCfg.energyHarvest
+            // out of the shared buffer, per block, exactly as DE's tools do -- so an area module's
+            // nine-block swing costs nine times one block's. 0 with no such module.
+            int moduleEnergy = DraconicModules.miningEnergyCost(stack);
+            if (moduleEnergy > 0) {
+                EnergyBuffer.extract(stack, moduleEnergy, false);
+            }
             if (level instanceof ServerLevel serverLevel) {
                 // Traits that react to an actual block break (issue #102: momentum, petramor;
                 // issue #230: shocking, slimey, baconlicious -- the latter two need pos/effective).
@@ -1025,6 +1042,25 @@ public class ToolItem extends Item {
      */
     protected int miningDurabilityCost(BlockState state, boolean effective) {
         return effective ? 1 : 2;
+    }
+
+    /**
+     * The area sweep of a Draconic Evolution area module on a weapon (issue #956 phase 2), which is
+     * the hook Draconic Evolution's own {@code IModularMelee#onLeftClickEntity} rides. Everything the
+     * sweep does -- radius, the near-full-swing gate, the arc in front of the player, per-entity
+     * energy -- is that mod's own, reached through {@link DraconicModules#meleeAoe}; the damage handed
+     * to it is this tool's own {@link #attackDamage}, which already carries the damage module's bonus.
+     *
+     * <p>Always returns {@code false}: the blow the player actually aimed is vanilla's and is never
+     * cancelled. The sweep is extra, and it never runs on a Broken tool, a tool with no host, or one
+     * out of power.
+     */
+    @Override
+    public boolean onLeftClickEntity(ItemStack stack, Player player, Entity entity) {
+        if (!isBroken(stack) && !player.level().isClientSide) {
+            DraconicModules.meleeAoe(player, entity, stack, attackDamage(stack));
+        }
+        return false;
     }
 
     /** Upstream 1.12 refuses the attack outright while Broken ({@code ToolHelper#attackEntity}). */

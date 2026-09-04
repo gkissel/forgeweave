@@ -52,17 +52,7 @@ class DraconicModuleHostTest {
     /** Leaves the static bridge back where an install without Draconic Evolution has it. */
     @AfterEach
     void clearBridge() {
-        DraconicModules.install(new DraconicModules.Bridge() {
-            @Override
-            public int installedModules(ItemStack stack) {
-                return 0;
-            }
-
-            @Override
-            public int moduleEnergyCapacity(ItemStack stack) {
-                return 0;
-            }
-        });
+        DraconicModules.install(null);
     }
 
     /** A stack of {@code item} carrying {@code forgeweave:evolved<level>}, or none at level 0. */
