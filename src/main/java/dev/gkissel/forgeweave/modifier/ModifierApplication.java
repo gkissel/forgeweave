@@ -575,6 +575,12 @@ public final class ModifierApplication {
      * at all. Callers pick levels from the modifier's own shipped cap; nothing here can invent one
      * the Tool Station could not also reach.
      *
+     * <p>Not spending a slot takes a grant, not just a missing check (issue #952): the entry this
+     * writes occupies a slot the way every entry does, so the tool is handed back exactly as many
+     * through {@code ForgeweaveDataComponents#GRANTED_SLOTS}, which {@code freeSlots} adds in. The
+     * component rides the stack, so the untouched slot is still there after a repair, a part
+     * exchange, a later Tool Station application and a save/reload.
+     *
      * <p>The shape gate ({@link #acceptsToolShape}) is the caller's too, since it needs registries
      * this method is not given.
      */
@@ -587,7 +593,18 @@ public final class ModifierApplication {
         if (existing != null && existing.level() >= level) {
             return Outcome.rejected(Component.translatable("gui.forgeweave.modifier.max_level", name(modifier)));
         }
-        return Outcome.applied(modified(tool, modifier, level), List.of());
+        ItemStack upgraded = modified(tool, modifier, level);
+        // #952: "charges no modifier slot" used to be a promise the arithmetic did not keep -- the
+        // entry this just wrote raises ForgeweaveModifiers#occupiedSlots like any other, so a fusion
+        // upgrade quietly ate a slot the Tool Station would have sold. Handing back exactly what the
+        // application occupied leaves freeSlots reading what it read before, and leaves any slots the
+        // modifier itself grants (extra_slot's) alone.
+        int spent = ForgeweaveModifiers.occupiedSlots(upgraded) - ForgeweaveModifiers.occupiedSlots(tool);
+        if (spent > 0) {
+            upgraded.set(ForgeweaveDataComponents.GRANTED_SLOTS.get(),
+                    upgraded.getOrDefault(ForgeweaveDataComponents.GRANTED_SLOTS.get(), 0) + spent);
+        }
+        return Outcome.applied(upgraded, List.of());
     }
 
     /**

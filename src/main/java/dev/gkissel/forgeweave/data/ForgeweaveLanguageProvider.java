@@ -1633,6 +1633,11 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("jei.category.forgeweave.entity_melting.damage", "%s damage per hit");
         add("jei.category.forgeweave.entity_melting.per_hit", "Poured once per hit");
 
+        // #952: the name a fusion upgrade's result stack carries in Draconic Evolution's own fusion
+        // category, so the row reads as the upgrade it is rather than as the tool that went in --
+        // "Emberweld Pickaxe + Haste II". Forgeweave's own categories never draw this key; DE's does.
+        add("jei.category.forgeweave.fusion_upgrade.result", "%s + %s");
+
         // The nine molten metal fluids (docs/SCOPE.md M2 issue #92) and everything added since.
         // See addFluid: each call names both the fluid and its bucket (#286).
         addFluid(ForgeweaveFluids.IRON, "Molten Iron");

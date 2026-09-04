@@ -1232,6 +1232,7 @@
   "jei.category.forgeweave.entity_melting.damage": "%s damage per hit",
   "jei.category.forgeweave.entity_melting.default": "Any other living entity",
   "jei.category.forgeweave.entity_melting.per_hit": "Poured once per hit",
+  "jei.category.forgeweave.fusion_upgrade.result": "%s + %s",
   "jei.category.forgeweave.large_tool_assembly": "Tool Assembly (Tool Forge only)",
   "jei.category.forgeweave.melting": "Melting",
   "jei.category.forgeweave.melting.core_multiplier": "Base yield: your smeltery's core tier multiplies ore inputs (Standard 1.5x, Nether 2x).",
