@@ -1,5 +1,6 @@
 package dev.gkissel.forgeweave.item;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -36,6 +37,7 @@ import dev.gkissel.forgeweave.tool.ToolStats;
 import dev.gkissel.forgeweave.trackb.TrackBOre;
 import dev.gkissel.forgeweave.trait.EnergyBuffer;
 import dev.gkissel.forgeweave.trait.ForgeweaveTraits;
+import dev.gkissel.forgeweave.trait.Trait;
 
 /**
  * Builds the hover-text lines for an assembled {@link ToolItem} stack: durability (broken-integrated),
@@ -172,6 +174,9 @@ final class ToolTooltip {
         appendModifiers(stack, tooltip);
 
         if (!detailed) {
+            // Issue #955: a trait's live state that fits on one line (bloodtally, evolved) is worth
+            // showing without Shift too; a multi-line breakdown (warmemory) stays Shift-only.
+            appendCompactTraitStateLines(stack, tooltip);
             return;
         }
 
@@ -230,6 +235,7 @@ final class ToolTooltip {
                 // Upstream's usedTraits set: a trait its material grants twice is named once.
                 for (ResourceLocation traitId : resolved.traits().forPart(part.kind()).stream().distinct().toList()) {
                     tooltip.add(traitLine(traitId, color));
+                    appendTraitStateLines(traitId, stack, tooltip);
                 }
             });
         }
@@ -450,6 +456,38 @@ final class ToolTooltip {
         }
         return name.append(Component.literal(": ").withStyle(ChatFormatting.GRAY))
                 .append(Component.translatable(base + ".description").withStyle(ChatFormatting.GRAY));
+    }
+
+    /**
+     * {@link Trait#stateLines}, under {@code traitId}'s own name line (issue #955) -- bloodtally's
+     * kill count and bonus, warmemory's per-type breakdown, evolved's Draconic-upgrade count. A no-op
+     * for every trait that overrides nothing, which is most of them.
+     */
+    private static void appendTraitStateLines(ResourceLocation traitId, ItemStack stack, List<Component> tooltip) {
+        Trait trait = ForgeweaveTraits.lookup(traitId);
+        if (trait != null) {
+            trait.stateLines(stack, tooltip::add);
+        }
+    }
+
+    /**
+     * The compact tier's half of issue #955: every trait the tool carries (read straight off {@code
+     * ForgeweaveDataComponents#TRAITS}, since the compact tier has no per-part sections or material
+     * color to attribute a line to), but only the ones whose {@link Trait#stateLines} comes to exactly
+     * one line -- bloodtally and evolved, never warmemory's multi-line breakdown.
+     */
+    private static void appendCompactTraitStateLines(ItemStack stack, List<Component> tooltip) {
+        for (ResourceLocation traitId : stack.getOrDefault(ForgeweaveDataComponents.TRAITS.get(), List.<ResourceLocation>of())) {
+            Trait trait = ForgeweaveTraits.lookup(traitId);
+            if (trait == null) {
+                continue;
+            }
+            List<Component> lines = new ArrayList<>();
+            trait.stateLines(stack, lines::add);
+            if (lines.size() == 1) {
+                tooltip.add(lines.get(0));
+            }
+        }
     }
 
     /**

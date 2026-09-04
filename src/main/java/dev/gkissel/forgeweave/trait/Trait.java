@@ -3,6 +3,7 @@ package dev.gkissel.forgeweave.trait;
 import java.util.function.Consumer;
 
 import net.minecraft.core.BlockPos;
+import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.RandomSource;
@@ -394,4 +395,18 @@ public interface Trait {
     default float visibilityMultiplier(ItemStack piece, LivingEntity wearer) {
         return 1.0F;
     }
+
+    // #955 -- live state on a kill-counting/tiered trait, shown in the tooltip.
+
+    /**
+     * This trait's live effect on {@code stack} right now, one already-styled line per call to
+     * {@code out} -- bloodtally's current kill count and bonus damage, warmemory's top per-type
+     * entries, evolved's Draconic-upgrade count (issue #955). {@code ToolTooltip} appends whatever
+     * this emits under the trait's own name line in the detailed (Shift) tooltip, and in the compact
+     * tier too when it comes to exactly one line. Default no-op: most traits are a fixed effect with
+     * nothing per-tool to report. A datapack trait built on a {@code TraitBehaviors} behaviour class
+     * gets this the same way it gets every other hook -- by overriding it on that behaviour's own
+     * {@code Trait} implementation.
+     */
+    default void stateLines(ItemStack stack, Consumer<Component> out) {}
 }

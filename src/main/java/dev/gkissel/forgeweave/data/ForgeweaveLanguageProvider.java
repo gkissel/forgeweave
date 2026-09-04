@@ -809,6 +809,11 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         // tooltip.forgeweave.hold_shift is the smeltery's unrelated "for buckets" hint, hence the
         // separate key.
         add("tooltip.forgeweave.hold_shift_stats", "Hold Shift for Stats");
+        // Issue #955: the live state of a kill-counting/tiered trait, under its name line.
+        add("tooltip.forgeweave.trait.bloodtally", "+%s damage, %s kills, max +%s");
+        add("tooltip.forgeweave.trait.warmemory.entry", "%s +%s (%s)");
+        add("tooltip.forgeweave.trait.warmemory.cap", "Max +%s damage per type, %s fights");
+        add("tooltip.forgeweave.trait.evolved", "Draconic upgrades: %s of %s");
         // tooltip.pattern.cost, quoted in ingots off PartBuilderRecipes' own cost constants.
         add("tooltip.forgeweave.pattern_cost", "Material Cost: %s");
         // tooltip.part.missing_material / tooltip.part.missing_info -- a part whose material
