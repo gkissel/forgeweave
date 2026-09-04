@@ -18,6 +18,7 @@ import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 
 import dev.gkissel.forgeweave.Forgeweave;
+import dev.gkissel.forgeweave.block.ConnectedGlassBlock;
 import dev.gkissel.forgeweave.block.ForgeweaveBlocks;
 
 /**
@@ -45,6 +46,32 @@ public class ClearGlassGameTests {
             helper.setBlock(pos, colors.get(i).block().get());
             helper.assertBlockPresent(colors.get(i).block().get(), pos);
         }
+
+        helper.succeed();
+    }
+
+    /**
+     * Issue #951: a pane's six {@code connected_*} flags follow its same-block neighbours, which is
+     * what picks the connected-texture frame for each face. Upstream answers this in
+     * {@code getActualState}; on 1.21 it is {@code updateShape}, reached here through the ordinary
+     * block-placement update the helper's {@code setBlock} performs.
+     */
+    @GameTest(template = "empty")
+    public static void connectedFlagsFollowSameBlockNeighbours(GameTestHelper helper) {
+        BlockPos west = new BlockPos(1, 1, 1);
+        BlockPos middle = new BlockPos(2, 1, 1);
+        BlockPos east = new BlockPos(3, 1, 1);
+
+        helper.setBlock(west, ForgeweaveBlocks.CLEAR_GLASS.get());
+        helper.setBlock(middle, ForgeweaveBlocks.CLEAR_GLASS.get());
+        helper.setBlock(east, ForgeweaveBlocks.CLEAR_STAINED_GLASS_RED.get());
+
+        helper.assertTrue(helper.getBlockState(west).getValue(ConnectedGlassBlock.CONNECTED_EAST),
+                "clear glass next to clear glass must connect east");
+        helper.assertFalse(helper.getBlockState(middle).getValue(ConnectedGlassBlock.CONNECTED_EAST),
+                "clear glass must not connect to a stained pane; upstream's canConnect is same-block only");
+        helper.assertFalse(helper.getBlockState(west).getValue(ConnectedGlassBlock.CONNECTED_UP),
+                "a side with nothing on it must stay unconnected");
 
         helper.succeed();
     }

@@ -1,5 +1,9 @@
 package dev.gkissel.forgeweave.data;
 
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.data.PackOutput;
 import net.minecraft.resources.ResourceLocation;
@@ -17,6 +21,7 @@ import net.neoforged.neoforge.client.model.generators.MultiPartBlockStateBuilder
 import net.neoforged.neoforge.common.data.ExistingFileHelper;
 
 import dev.gkissel.forgeweave.Forgeweave;
+import dev.gkissel.forgeweave.block.ConnectedGlassBlock;
 import dev.gkissel.forgeweave.block.FaucetBlock;
 import dev.gkissel.forgeweave.block.ForgeweaveBlocks;
 import dev.gkissel.forgeweave.block.SearedChannelBlock;
@@ -340,13 +345,16 @@ public class ForgeweaveBlockStateProvider extends BlockStateProvider {
             cubeAllBlockOriginal(alloy.blockId(), ForgeweaveBlocks.trackBAlloyBlock(alloy.id()).get());
         }
 
-        // #275 -- clear glass (cutout, like seared glass above) and its 16 clear stained glass colors
-        // (translucent, matching upstream's BlockClearStainedGlass#getBlockLayer -- see
-        // cubeAllTranslucentBlock). Every color shares the one derived clear_stained_glass texture,
-        // tinted per block instance by ForgeweaveGlassColors.
-        cubeAllCutoutBlock("clear_glass", ForgeweaveBlocks.CLEAR_GLASS.get());
+        // #275/#951 -- clear glass (cutout, like seared glass above) and its 16 clear stained glass
+        // colors (translucent, matching upstream's BlockClearStainedGlass#getBlockLayer). Both draw
+        // with upstream's connected textures; see connectedGlassBlock.
+        connectedGlassBlock(ForgeweaveBlocks.CLEAR_GLASS.get(),
+                connectedGlassModels("clear_glass", "minecraft:cutout"));
+        // All 16 colors share one model set: one texture, tinted apart per block instance by
+        // ForgeweaveGlassColors, exactly as upstream's own blockstate has one file for all 16 metas.
+        Map<String, ModelFile> stained = connectedGlassModels("clear_stained_glass", "minecraft:translucent");
         for (ForgeweaveBlocks.StainedGlassColor color : ForgeweaveBlocks.clearStainedGlassColors()) {
-            cubeAllTranslucentBlock(color.block().get());
+            connectedGlassBlock(color.block().get(), stained);
         }
 
         slimeIslandBlocks(); // #449 (parity audit T18)
@@ -555,16 +563,162 @@ public class ForgeweaveBlockStateProvider extends BlockStateProvider {
     }
 
     /**
-     * A cube_all block sharing the one derived {@code clear_stained_glass} texture across every color
-     * (issue #275) -- each block still gets its own model file, named off its own registry id, but
-     * they all point at the same texture and are tinted apart client-side ({@code
-     * ForgeweaveGlassColors}). {@code minecraft:translucent} matches upstream's {@code
-     * BlockClearStainedGlass#getBlockLayer}, same NeoForge 1.21 model-level render_type deviation as
-     * {@link #tankBlock}/{@link #cubeAllCutoutBlock}.
+     * One connected-texture model, ported 1:1 from Mantle 1.12's {@code models/block/connected_*.json}
+     * (NOTICE.md): the suffix those files carry after {@code connected_}, then the eleven-sprite frame
+     * each of the six faces binds. All of them sit on {@code block/tinted_cube}, Forgeweave's port of
+     * the Mantle parent they inherit upstream, and take {@code normal} as their particle.
      */
-    private void cubeAllTranslucentBlock(Block block) {
-        String name = BuiltInRegistries.BLOCK.getKey(block).getPath();
-        ModelFile model = models().cubeAll(name, modLoc("derived/block/clear_stained_glass")).renderType("minecraft:translucent");
-        simpleBlockWithItem(block, model);
+    private record ConnectedModel(String suffix, String down, String up, String north, String south,
+            String west, String east) {}
+
+    /**
+     * Mantle's nine connected models, transcribed. Nine cover all 64 neighbour combinations because
+     * the blockstate rotates them: see {@link #CONNECTED_VARIANTS}.
+     */
+    private static final List<ConnectedModel> CONNECTED_MODELS = List.of(
+            new ConnectedModel("0", "normal", "normal", "normal", "normal", "normal", "normal"),
+            new ConnectedModel("1", "normal", "udlr", "u", "u", "u", "u"),
+            new ConnectedModel("2", "udlr", "udlr", "ud", "ud", "ud", "ud"),
+            new ConnectedModel("2_angle", "r", "udlr", "ul", "ur", "u", "udlr"),
+            new ConnectedModel("3_t1", "udlr", "udlr", "udr", "udl", "udlr", "ud"),
+            new ConnectedModel("3_t2", "lr", "udlr", "ulr", "ulr", "udlr", "udlr"),
+            new ConnectedModel("3_angle", "ur", "udlr", "ul", "udlr", "ur", "udlr"),
+            new ConnectedModel("4_angle", "udlr", "udlr", "udlr", "udl", "udlr", "udr"),
+            new ConnectedModel("4_cross", "udlr", "udlr", "udlr", "udlr", "udlr", "udlr"));
+
+    /** Which of {@link #CONNECTED_MODELS} a neighbour combination draws, and at what rotation. */
+    private record ConnectedVariant(String suffix, int x, int y) {}
+
+    /**
+     * Upstream's {@code blockstates/clear_stained_glass.json} variant table, transcribed 1:1
+     * (NOTICE.md). The key is the six neighbour flags as bits in the order upstream writes them --
+     * down, east, north, south, up, west -- and the values are its model and its {@code x}/{@code y}
+     * rotations, normalised into the 0-270 range 1.21 accepts (upstream writes some as negatives).
+     * All 64 combinations are listed there, so no fallback is needed here.
+     */
+    private static final Map<String, ConnectedVariant> CONNECTED_VARIANTS = Map.ofEntries(
+            Map.entry("000000", new ConnectedVariant("0", 0, 0)),
+            Map.entry("000001", new ConnectedVariant("1", 90, 270)),
+            Map.entry("000010", new ConnectedVariant("1", 0, 0)),
+            Map.entry("000011", new ConnectedVariant("2_angle", 0, 180)),
+            Map.entry("000100", new ConnectedVariant("1", 270, 0)),
+            Map.entry("000101", new ConnectedVariant("2_angle", 270, 90)),
+            Map.entry("000110", new ConnectedVariant("2_angle", 0, 90)),
+            Map.entry("000111", new ConnectedVariant("3_angle", 0, 90)),
+            Map.entry("001000", new ConnectedVariant("1", 90, 0)),
+            Map.entry("001001", new ConnectedVariant("2_angle", 90, 270)),
+            Map.entry("001010", new ConnectedVariant("2_angle", 0, 270)),
+            Map.entry("001011", new ConnectedVariant("3_angle", 90, 270)),
+            Map.entry("001100", new ConnectedVariant("2", 270, 0)),
+            Map.entry("001101", new ConnectedVariant("3_t1", 270, 0)),
+            Map.entry("001110", new ConnectedVariant("3_t2", 0, 90)),
+            Map.entry("001111", new ConnectedVariant("4_angle", 270, 0)),
+            Map.entry("010000", new ConnectedVariant("1", 90, 90)),
+            Map.entry("010001", new ConnectedVariant("2", 270, 90)),
+            Map.entry("010010", new ConnectedVariant("2_angle", 0, 0)),
+            Map.entry("010011", new ConnectedVariant("3_t2", 0, 0)),
+            Map.entry("010100", new ConnectedVariant("2_angle", 270, 0)),
+            Map.entry("010101", new ConnectedVariant("3_t2", 270, 0)),
+            Map.entry("010110", new ConnectedVariant("3_angle", 0, 0)),
+            Map.entry("010111", new ConnectedVariant("4_angle", 270, 270)),
+            Map.entry("011000", new ConnectedVariant("2_angle", 90, 0)),
+            Map.entry("011001", new ConnectedVariant("3_t2", 90, 0)),
+            Map.entry("011010", new ConnectedVariant("3_angle", 90, 0)),
+            Map.entry("011011", new ConnectedVariant("4_angle", 270, 90)),
+            Map.entry("011100", new ConnectedVariant("3_t1", 270, 180)),
+            Map.entry("011101", new ConnectedVariant("4_cross", 90, 0)),
+            Map.entry("011110", new ConnectedVariant("4_angle", 270, 180)),
+            Map.entry("011111", new ConnectedVariant("4_cross", 0, 0)),
+            Map.entry("100000", new ConnectedVariant("1", 180, 0)),
+            Map.entry("100001", new ConnectedVariant("2_angle", 180, 180)),
+            Map.entry("100010", new ConnectedVariant("2", 0, 0)),
+            Map.entry("100011", new ConnectedVariant("3_t1", 0, 0)),
+            Map.entry("100100", new ConnectedVariant("2_angle", 180, 90)),
+            Map.entry("100101", new ConnectedVariant("3_angle", 180, 180)),
+            Map.entry("100110", new ConnectedVariant("3_t1", 0, 270)),
+            Map.entry("100111", new ConnectedVariant("4_angle", 0, 270)),
+            Map.entry("101000", new ConnectedVariant("2_angle", 180, 270)),
+            Map.entry("101001", new ConnectedVariant("3_angle", 270, 180)),
+            Map.entry("101010", new ConnectedVariant("3_t1", 0, 90)),
+            Map.entry("101011", new ConnectedVariant("4_angle", 0, 0)),
+            Map.entry("101100", new ConnectedVariant("3_t2", 180, 90)),
+            Map.entry("101101", new ConnectedVariant("4_angle", 90, 0)),
+            Map.entry("101110", new ConnectedVariant("4_cross", 0, 90)),
+            Map.entry("101111", new ConnectedVariant("4_cross", 0, 0)),
+            Map.entry("110000", new ConnectedVariant("2_angle", 180, 0)),
+            Map.entry("110001", new ConnectedVariant("3_t2", 180, 0)),
+            Map.entry("110010", new ConnectedVariant("3_t1", 0, 180)),
+            Map.entry("110011", new ConnectedVariant("4_cross", 0, 0)),
+            Map.entry("110100", new ConnectedVariant("3_angle", 270, 0)),
+            Map.entry("110101", new ConnectedVariant("4_angle", 90, 270)),
+            Map.entry("110110", new ConnectedVariant("4_angle", 0, 180)),
+            Map.entry("110111", new ConnectedVariant("4_cross", 0, 0)),
+            Map.entry("111000", new ConnectedVariant("3_angle", 180, 0)),
+            Map.entry("111001", new ConnectedVariant("4_angle", 90, 90)),
+            Map.entry("111010", new ConnectedVariant("4_angle", 0, 90)),
+            Map.entry("111011", new ConnectedVariant("4_cross", 0, 0)),
+            Map.entry("111100", new ConnectedVariant("4_angle", 90, 180)),
+            Map.entry("111101", new ConnectedVariant("4_cross", 0, 0)),
+            Map.entry("111110", new ConnectedVariant("4_cross", 0, 0)),
+            Map.entry("111111", new ConnectedVariant("4_cross", 0, 0)));
+
+    /** The sides in the bit order {@link #CONNECTED_VARIANTS} keys use, which is upstream's own. */
+    private static final List<BooleanProperty> CONNECTED_SIDES = List.of(
+            ConnectedGlassBlock.CONNECTED_DOWN, ConnectedGlassBlock.CONNECTED_EAST,
+            ConnectedGlassBlock.CONNECTED_NORTH, ConnectedGlassBlock.CONNECTED_SOUTH,
+            ConnectedGlassBlock.CONNECTED_UP, ConnectedGlassBlock.CONNECTED_WEST);
+
+    /**
+     * Builds one glass's nine connected models over its eleven sprites under
+     * {@code derived/block/connected/&lt;set&gt;/}, indexed the same way {@link #CONNECTED_MODELS} is.
+     *
+     * <p>Upstream keeps the sprite names in the blockstate file and the face bindings in Mantle's
+     * shared models, which 1.21 has no equivalent for -- a blockstate cannot retexture a model any
+     * more. So each glass gets its own nine concrete models instead, which is the same nine bindings
+     * with the texture paths already resolved.
+     */
+    private Map<String, ModelFile> connectedGlassModels(String set, String renderType) {
+        Map<String, ModelFile> models = new LinkedHashMap<>();
+        for (ConnectedModel model : CONNECTED_MODELS) {
+            models.put(model.suffix(), models().withExistingParent("block/connected/" + set + "/" + model.suffix(),
+                            modLoc("block/tinted_cube"))
+                    .texture("particle", connectedSprite(set, "normal"))
+                    .texture("down", connectedSprite(set, model.down()))
+                    .texture("up", connectedSprite(set, model.up()))
+                    .texture("north", connectedSprite(set, model.north()))
+                    .texture("south", connectedSprite(set, model.south()))
+                    .texture("west", connectedSprite(set, model.west()))
+                    .texture("east", connectedSprite(set, model.east()))
+                    .renderType(renderType));
+        }
+        return models;
+    }
+
+    private ResourceLocation connectedSprite(String set, String frame) {
+        return modLoc("derived/block/connected/" + set + "/" + frame);
+    }
+
+    /**
+     * One connected-texture glass block (issues #275, #951): 64 variants, one per combination of the
+     * six {@code connected_*} flags {@link ConnectedGlassBlock} sets from its same-block neighbours,
+     * each pointing at one of {@code models} at upstream's own rotation.
+     *
+     * <p>The item model is the isolated frame, {@code connected/&lt;set&gt;/0} -- upstream's blockstate
+     * gives {@code inventory} the same {@code mantle:connected_0} it gives a pane with no neighbours.
+     */
+    private void connectedGlassBlock(Block block, Map<String, ModelFile> models) {
+        getVariantBuilder(block).forAllStates(state -> {
+            StringBuilder key = new StringBuilder(CONNECTED_SIDES.size());
+            for (BooleanProperty side : CONNECTED_SIDES) {
+                key.append(state.getValue(side) ? '1' : '0');
+            }
+            ConnectedVariant variant = CONNECTED_VARIANTS.get(key.toString());
+            return ConfiguredModel.builder()
+                    .modelFile(models.get(variant.suffix()))
+                    .rotationX(variant.x())
+                    .rotationY(variant.y())
+                    .build();
+        });
+        simpleBlockItem(block, models.get("0"));
     }
 }
