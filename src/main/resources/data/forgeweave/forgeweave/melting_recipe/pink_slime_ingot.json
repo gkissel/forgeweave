@@ -4,6 +4,7 @@
   },
   "fluid": "forgeweave:molten_pink_slime",
   "amount": 144,
+  "temperature": 1400,
   "neoforge:conditions": [
     {
       "type": "neoforge:item_exists",

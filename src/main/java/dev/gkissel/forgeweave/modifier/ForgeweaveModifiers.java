@@ -1720,6 +1720,9 @@ public final class ForgeweaveModifiers {
             bonus += trait.bonusSlots();
         }
         bonus += ToolLevel.of(stack).bonusSlots();
+        // #952 -- slots granted alongside a slot-free application (a Draconic Evolution fusion
+        // upgrade), which cancel out the entry that application added below. See GRANTED_SLOTS.
+        bonus += stack.getOrDefault(ForgeweaveDataComponents.GRANTED_SLOTS.get(), 0);
         return DEFAULT_SLOTS + bonus - occupiedSlots(stack);
     }
 

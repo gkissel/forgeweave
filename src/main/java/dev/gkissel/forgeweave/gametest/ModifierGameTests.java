@@ -39,6 +39,7 @@ import dev.gkissel.forgeweave.item.ToolItem;
 import dev.gkissel.forgeweave.material.Material;
 import dev.gkissel.forgeweave.menu.ToolStationMenu;
 import dev.gkissel.forgeweave.modifier.ForgeweaveModifiers;
+import dev.gkissel.forgeweave.modifier.ModifierApplication;
 import dev.gkissel.forgeweave.modifier.ModifierEntry;
 import dev.gkissel.forgeweave.tool.ToolStats;
 
@@ -694,6 +695,50 @@ public class ModifierGameTests {
         helper.assertTrue(ForgeweaveModifiers.freeSlots(widened) == 0,
                 "extra_slot plus four other distinct modifiers must exactly fill the widened cap, got "
                         + ForgeweaveModifiers.freeSlots(widened) + " free");
+        helper.succeed();
+    }
+
+    // #952: the slot-free application path a Draconic Evolution fusion upgrade goes through.
+
+    /**
+     * Issue #952: {@link ModifierApplication#applyLevel} promises the application costs no modifier
+     * slot, and the promise now holds -- the entry it writes occupies a slot like any other, so the
+     * tool is handed the same number back through {@code granted_slots}. What that has to mean in
+     * play is this: after the upgrade, the Tool Station's own three slots are all still there to
+     * spend, and spending them does not disturb the upgrade.
+     *
+     * <p>This is the fusion upgrade's own path minus Draconic Evolution itself, which is never on a
+     * GameTest classpath (build.gradle's {@code testRuntimeOnly} rows) --
+     * {@code FusionUpgradeRecipe#upgrade}'s last line is the {@code applyLevel} call below, and
+     * {@code compat.draconic.FusionUpgradeRecipeTest} covers the recipe half with DE loaded.
+     */
+    @GameTest(template = "empty")
+    public static void aSlotFreeApplicationLeavesTheStationsThreeSlotsToSpend(GameTestHelper helper) {
+        BlockPos pos = new BlockPos(1, 1, 1);
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        ItemStack pickaxe = ToolAssembly.pickaxe(helper, player, pos, "stone", "wood", "wood");
+        int before = ForgeweaveModifiers.freeSlots(pickaxe);
+
+        // The draconium rung of the shipped haste line (ForgeweaveDraconicCompat#UPGRADE_LINES).
+        ItemStack upgraded = ModifierApplication.applyLevel(pickaxe, HASTE, 50).output();
+        helper.assertFalse(upgraded.isEmpty(), "the upgrade must produce a tool");
+        ModifierEntry haste = ForgeweaveModifiers.entry(upgraded, HASTE);
+        helper.assertTrue(haste != null && haste.level() == 50,
+                "the upgrade must record haste at the rung's level, got " + haste);
+        helper.assertTrue(ForgeweaveModifiers.freeSlots(upgraded) == before,
+                "a fusion upgrade must spend no slot: " + before + " free before, "
+                        + ForgeweaveModifiers.freeSlots(upgraded) + " after");
+
+        // And the untouched slots are real: three further Tool Station modifiers still fit.
+        ItemStack filled = applyReagent(helper, player, pos, upgraded, new ItemStack(Items.MAGMA_CREAM));
+        filled = applyReagent(helper, player, pos, filled, new ItemStack(Items.ENDER_PEARL));
+        filled = applyReagent(helper, player, pos, filled, new ItemStack(Items.ECHO_SHARD));
+        helper.assertTrue(ForgeweaveModifiers.freeSlots(filled) == 0,
+                "three station modifiers must fit into the slots the upgrade left alone, got "
+                        + ForgeweaveModifiers.freeSlots(filled) + " free");
+        ModifierEntry survived = ForgeweaveModifiers.entry(filled, HASTE);
+        helper.assertTrue(survived != null && survived.level() == 50,
+                "the fusion upgrade must survive the station applications, got " + survived);
         helper.succeed();
     }
 

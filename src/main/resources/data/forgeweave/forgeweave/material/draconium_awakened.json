@@ -44,7 +44,7 @@
   "incorrect_for_tool": "minecraft:incorrect_for_netherite_tool",
   "traits": {
     "general": [
-      "forgeweave:chaosmark"
+      "forgeweave:surging3"
     ]
   },
   "crafting_items": [
@@ -72,7 +72,7 @@
   },
   "cast_only": true,
   "enchantability": 18,
-  "color": "#B813B2",
+  "color": "#F06000",
   "neoforge:conditions": [
     {
       "type": "neoforge:item_exists",

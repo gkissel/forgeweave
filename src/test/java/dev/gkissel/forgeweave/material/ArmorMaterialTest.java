@@ -98,7 +98,11 @@ class ArmorMaterialTest {
             Stream.of("alumite", "osgloglas", "osmiridium", "emerald", "amethyst"),
             // #946 M8: the three Draconic Evolution fusion metals ship full plating + maille, same
             // shape as every other metal.
-            Stream.of("emberweld", "starweld", "voidweld"))
+            Stream.of("emberweld", "starweld", "voidweld"),
+            // #953: the awakened core ships the same plating + maille block as the wyvern and chaotic
+            // cores it sits between. Being Part Builder only changes where the part is made, not
+            // which parts the material has stats for.
+            Stream.of("awakened"))
             .flatMap(java.util.function.Function.identity())
             .collect(java.util.stream.Collectors.toSet());
 

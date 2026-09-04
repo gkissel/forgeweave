@@ -27,6 +27,14 @@ METALS = [
     "uraninite",
 ]
 
+# Issue #953: the Draconic Evolution core materials are Part Builder only -- no fluid, no melting
+# recipe, no casting recipe, no cast_only flag. They stay in METALS so that the per-tier temperature
+# counter below keeps producing the numbers already registered in ForgeweaveFluids for every metal
+# listed after them; SMELTERY_METALS is the list the generator actually walks.
+CORE_ONLY = {"wyvern", "chaotic"}
+
+SMELTERY_METALS = [material_id for material_id in METALS if material_id not in CORE_ONLY]
+
 TIER_BAND = {
     "minecraft:incorrect_for_stone_tool": 720,
     "minecraft:incorrect_for_iron_tool": 900,
@@ -43,6 +51,52 @@ TIER_STEP = {
 
 def load_material(material_id: str) -> dict:
     return json.loads((MATERIAL_DIR / f"{material_id}.json").read_text())
+
+
+# Issue #954: only 7 of 381 melting recipes carried an explicit `temperature` before this; every
+# other recipe (Track A included) fell back to MeltingRecipe#calcTemperature deriving one from the
+# output fluid's own temperature and the item amount, which put nearly every modded ingot within
+# lava's reach (1300) regardless of tool tier -- a full block reached the fluid's own temperature,
+# but an ingot only ever reached about half of it, so the tier gate the fluid temperatures
+# (ForgeweaveFluids, band 700-1330) were meant to express never actually reached the recipe. This
+# table keys a Track A material's melting temperature to its `incorrect_for_tool` tag and the fuel
+# ladder (lava 1300, blazing blood 1500, molten magma 1700, brimspar 1900, pyrealloy 2100) instead,
+# pinned once per material so every form (ingot, nugget, block, raw, dust) needs the same fuel --
+# today a block derives harder than its own ingot, which this also fixes.
+#
+# Bucketed by minecraft's own four harvest tags rather than by amount: `incorrect_for_stone_tool`
+# and `incorrect_for_iron_tool` cover the common iron/gold-tier compat metals (copper, tin, bronze,
+# invar, ...) and stay under lava so they melt exactly as easily as their vanilla counterparts.
+# `incorrect_for_diamond_tool` (the stronger alloys -- platinum, titanium, tungsten, uranium, ...)
+# needs blazing blood. `incorrect_for_netherite_tool` (draconium, the "matter" tier, the fusion
+# metals' base tier, ...) needs molten magma. See TrackAMeltingTemperatureTest (Java mirror) and the
+# #954 PR for the worked table.
+TIER_MELT_TEMPERATURE = {
+    "minecraft:incorrect_for_stone_tool": 1200,
+    "minecraft:incorrect_for_iron_tool": 1200,
+    "minecraft:incorrect_for_diamond_tool": 1400,
+    "minecraft:incorrect_for_netherite_tool": 1600,
+}
+
+# Materials whose lore tier runs hotter than their harvest tag alone would give them. draconium
+# itself needs no entry here -- its netherite_tool tag already lands it on 1600, the "Draconic
+# draconium 1600" the issue calls out explicitly. draconium_awakened and the three Draconic
+# Evolution fusion metals (emberweld/starweld/voidweld, #946) are the endgame tier above that.
+MATERIAL_MELT_TEMPERATURE_OVERRIDES = {
+    "draconium_awakened": 1800,  # brimspar
+    "emberweld": 1800,  # brimspar
+    "starweld": 2000,  # pyrealloy
+    "voidweld": 2000,  # pyrealloy
+}
+
+
+def melt_temperature(material_id: str) -> int:
+    """A Track A material's explicit melting_recipe `temperature` (issue #954): the override table
+    first, else its own material JSON's `incorrect_for_tool` tag looked up in the tier table."""
+    if material_id in MATERIAL_MELT_TEMPERATURE_OVERRIDES:
+        return MATERIAL_MELT_TEMPERATURE_OVERRIDES[material_id]
+    tier = load_material(material_id)["incorrect_for_tool"]
+    return TIER_MELT_TEMPERATURE[tier]
 
 
 def build_table():

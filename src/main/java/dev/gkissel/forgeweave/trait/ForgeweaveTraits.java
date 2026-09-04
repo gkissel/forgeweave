@@ -1,6 +1,7 @@
 package dev.gkissel.forgeweave.trait;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -8,6 +9,7 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.jetbrains.annotations.Nullable;
@@ -15,6 +17,7 @@ import org.slf4j.Logger;
 
 import com.mojang.logging.LogUtils;
 
+import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.component.DataComponentType;
@@ -72,6 +75,7 @@ import net.neoforged.neoforge.event.level.BlockDropsEvent;
 
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.client.StationText;
+import dev.gkissel.forgeweave.compat.draconic.ForgeweaveDraconicCompat;
 import dev.gkissel.forgeweave.combat.AbsorbFireWhileBlocking;
 import dev.gkissel.forgeweave.combat.BleedEffect;
 import dev.gkissel.forgeweave.combat.BlockingDamageReduction;
@@ -119,6 +123,7 @@ import dev.gkissel.forgeweave.item.PartItem;
 import dev.gkissel.forgeweave.item.ToolItem;
 import dev.gkissel.forgeweave.material.Material;
 import dev.gkissel.forgeweave.modifier.ForgeweaveModifiers;
+import dev.gkissel.forgeweave.modifier.ModifierEntry;
 import dev.gkissel.forgeweave.particle.ForgeweaveParticles;
 import dev.gkissel.forgeweave.tool.ToolStats;
 
@@ -3144,7 +3149,47 @@ public final class ForgeweaveTraits {
         public void afterHit(ItemStack stack, ServerLevel level, LivingEntity attacker, LivingEntity target) {
             recordWarMemory(stack, target);
         }
+
+        /**
+         * Issue #955: the top {@value #WAR_MEMORY_TOP_ENTRIES} entity types by bonus damage, highest
+         * first, then the shared per-type cap -- more than one line, so unlike bloodtally this only
+         * shows in the detailed tooltip. Empty tally shows nothing.
+         */
+        @Override
+        public void stateLines(ItemStack stack, Consumer<Component> out) {
+            WarMemory memory = stack.getOrDefault(ForgeweaveDataComponents.WAR_MEMORY.get(), WarMemory.EMPTY);
+            if (memory.fights().isEmpty()) {
+                return;
+            }
+            memory.fights().stream()
+                    .sorted(WAR_MEMORY_ORDER)
+                    .limit(WAR_MEMORY_TOP_ENTRIES)
+                    .forEach(fight -> out.accept(warMemoryEntryLine(fight)));
+            out.accept(Component.translatable("tooltip.forgeweave.trait.warmemory.cap",
+                            StationText.formatNumber(WAR_MEMORY_CAP * WAR_MEMORY_PER_FIGHT), WAR_MEMORY_CAP)
+                    .withStyle(ChatFormatting.GRAY));
+        }
     };
+
+    // ponytail: an arbitrary top-N cap on the tooltip's per-type breakdown -- raise it if playtesting
+    // wants more than the three biggest bonuses shown.
+    private static final int WAR_MEMORY_TOP_ENTRIES = 3;
+
+    private static final Comparator<WarMemory.Fight> WAR_MEMORY_ORDER = Comparator
+            .comparingDouble((WarMemory.Fight fight) -> Math.min(fight.count(), WAR_MEMORY_CAP) * (double) WAR_MEMORY_PER_FIGHT)
+            .reversed()
+            .thenComparing(fight -> fight.entityType().toString());
+
+    /** {@code Zombie +1.5 (12)}: the entity's own translatable name, its current bonus, and the raw fight count. */
+    private static Component warMemoryEntryLine(WarMemory.Fight fight) {
+        float bonus = Math.min(fight.count(), WAR_MEMORY_CAP) * WAR_MEMORY_PER_FIGHT;
+        Component name = BuiltInRegistries.ENTITY_TYPE.getOptional(fight.entityType())
+                .<Component>map(EntityType::getDescription)
+                .orElseGet(() -> Component.literal(fight.entityType().toString()));
+        return Component.translatable("tooltip.forgeweave.trait.warmemory.entry",
+                        name, StationText.formatNumber(bonus), fight.count())
+                .withStyle(ChatFormatting.GRAY);
+    }
 
     private static int warMemoryCount(ItemStack stack, LivingEntity target) {
         WarMemory memory = stack.getOrDefault(ForgeweaveDataComponents.WAR_MEMORY.get(), WarMemory.EMPTY);
@@ -3381,6 +3426,20 @@ public final class ForgeweaveTraits {
                 stack.set(ForgeweaveDataComponents.KILL_TALLY.get(), kills + 1);
             }
         }
+
+        /** Issue #955: one line, so this is one of the traits the compact tooltip shows too. Empty tally shows nothing. */
+        @Override
+        public void stateLines(ItemStack stack, Consumer<Component> out) {
+            int kills = stack.getOrDefault(ForgeweaveDataComponents.KILL_TALLY.get(), 0);
+            if (kills <= 0) {
+                return;
+            }
+            float bonus = Math.min(kills, BLOODTALLY_CAP) * BLOODTALLY_PER_KILL;
+            float cap = BLOODTALLY_CAP * BLOODTALLY_PER_KILL;
+            out.accept(Component.translatable("tooltip.forgeweave.trait.bloodtally",
+                            StationText.formatNumber(bonus), kills, StationText.formatNumber(cap))
+                    .withStyle(ChatFormatting.GRAY));
+        }
     };
 
     private static final float GAMEDROP_CHANCE = 0.5F;
@@ -3423,13 +3482,68 @@ public final class ForgeweaveTraits {
      * {@link #SURGING}/{@link #SURGING2}/{@link #SURGING3} already uses. No factory: there is
      * nothing per level to parameterize.
      */
-    public static final Trait EVOLVED = new Trait() {};
+    public static final Trait EVOLVED = new Trait() {
+        @Override
+        public void stateLines(ItemStack stack, Consumer<Component> out) {
+            evolvedStateLines(1, stack, out);
+        }
+    };
 
     /** {@code evolved(II)}; see {@link #EVOLVED}. */
-    public static final Trait EVOLVED2 = new Trait() {};
+    public static final Trait EVOLVED2 = new Trait() {
+        @Override
+        public void stateLines(ItemStack stack, Consumer<Component> out) {
+            evolvedStateLines(2, stack, out);
+        }
+    };
 
     /** {@code evolved(III)}; see {@link #EVOLVED}. */
-    public static final Trait EVOLVED3 = new Trait() {};
+    public static final Trait EVOLVED3 = new Trait() {
+        @Override
+        public void stateLines(ItemStack stack, Consumer<Component> out) {
+            evolvedStateLines(3, stack, out);
+        }
+    };
+
+    /**
+     * Draconic Evolution's own module-grid allowance per {@code evolved} tier, maintainer decision
+     * (issue #955): tier I allows 2 upgrades, II allows 4, III allows 8, the same count DE's own
+     * tiers grant on its module grid. Index 0 is unused -- there is no tier 0 -- so a tier's own
+     * number lives at its own index. Public and one constant table, per the issue, so the coming
+     * module-host issue can read the same numbers rather than re-deriving them.
+     */
+    public static final int[] EVOLVED_ALLOWANCE = {0, 2, 4, 8};
+
+    /**
+     * The {@link ForgeweaveDraconicCompat#UPGRADE_LINES} modifier ids, i.e. every modifier a Fusion
+     * Crafting upgrade can grant -- read once rather than rebuilt on every tooltip render.
+     */
+    private static final Set<ResourceLocation> FUSION_MODIFIER_IDS = ForgeweaveDraconicCompat.UPGRADE_LINES.stream()
+            .map(line -> ResourceLocation.parse(line.modifier()))
+            .collect(Collectors.toUnmodifiableSet());
+
+    /**
+     * {@code Draconic upgrades: 1 of 4} (issue #955): {@code used} is how many of the tool's Modifiers
+     * are ids {@link #FUSION_MODIFIER_IDS} names -- one used slot per fusion-upgrade line applied,
+     * matching how each occupies one module in Draconic Evolution's own grid, not the modifier's own
+     * (possibly multi-application) level. Highest evolved level wins when a head-and-handle mix
+     * carries more than one: {@code level} only emits a line when it is
+     * {@link ForgeweaveDraconicCompat#evolvedLevel} itself, so a lower or higher {@code evolved} id on
+     * another part stays silent rather than showing a second, contradicting line.
+     */
+    private static void evolvedStateLines(int level, ItemStack stack, Consumer<Component> out) {
+        if (ForgeweaveDraconicCompat.evolvedLevel(stack) != level) {
+            return;
+        }
+        int used = 0;
+        for (ModifierEntry entry : ForgeweaveModifiers.of(stack)) {
+            if (FUSION_MODIFIER_IDS.contains(entry.id())) {
+                used++;
+            }
+        }
+        out.accept(Component.translatable("tooltip.forgeweave.trait.evolved", used, EVOLVED_ALLOWANCE[level])
+                .withStyle(ChatFormatting.GRAY));
+    }
 
     private static final Map<ResourceLocation, Trait> REGISTRY = Map.ofEntries(
             Map.entry(id("ecological"), ECOLOGICAL),

@@ -44,7 +44,8 @@
   "incorrect_for_tool": "minecraft:incorrect_for_netherite_tool",
   "traits": {
     "general": [
-      "forgeweave:surging3"
+      "forgeweave:evolved3",
+      "forgeweave:chaosmark"
     ]
   },
   "crafting_items": [
@@ -58,7 +59,6 @@
   "repair_item": {
     "item": "draconicevolution:chaotic_core"
   },
-  "cast_only": true,
   "enchantability": 17,
   "color": "#6A1B9A",
   "neoforge:conditions": [

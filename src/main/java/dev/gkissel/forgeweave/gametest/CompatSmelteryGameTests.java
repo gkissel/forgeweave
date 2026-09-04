@@ -14,9 +14,11 @@ import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.flag.FeatureFlags;
 import net.minecraft.world.item.CreativeModeTab;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.GameType;
+import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.level.material.Fluids;
 
@@ -148,6 +150,94 @@ public class CompatSmelteryGameTests {
 
         helper.succeedWhen(() -> helper.assertTrue(table.output().is(Items.GOLD_INGOT),
                 "expected the fixture casting recipe to produce a gold ingot, found " + table.output()));
+    }
+
+    /**
+     * Issue #954: a diamond-tier Track A metal's melting temperature (1400, the table's
+     * {@code minecraft:incorrect_for_diamond_tool} bucket) sits strictly between lava (1300) and
+     * blazing blood (1500) -- {@code gametest_track_a_diamond_tier.json} rides the same modid-blind
+     * {@code item_exists minecraft:diamond} condition {@code gametest_compat_smeltery_present.json}
+     * uses above, so this exercises a real <em>conditioned</em> recipe rather than one of {@code
+     * SmelteryFuelGameTests}'s unconditional ladder fixtures. Both halves run on one structure so the
+     * negative half can never pass vacuously.
+     */
+    @GameTest(template = "smeltery", timeoutTicks = 100)
+    public static void diamondTierTrackAMetalFailsUnderLavaMeltsUnderBlazingBlood(GameTestHelper helper) {
+        SmelteryGameTests.buildWalls(helper, 1, 1, 2);
+        Fluid platinum = ForgeweaveFluids.PLATINUM.still().get();
+        assertCannotMeltFixture(helper, Fluids.LAVA, Items.PRISMARINE_SHARD, "lava (1300)");
+        assertMeltsFixtureTo(helper, ForgeweaveFluids.BLAZING_BLOOD.still().get(), 1500, Items.PRISMARINE_SHARD,
+                platinum, "blazing blood");
+        helper.succeed();
+    }
+
+    /**
+     * Issue #954: awakened draconium's melting temperature (1800, the draconic override above the
+     * general netherite-tier rule) sits strictly between molten magma (1700) and brimspar (1900) --
+     * same conditioned-fixture shape as the diamond tier test above.
+     */
+    @GameTest(template = "smeltery", timeoutTicks = 100)
+    public static void awakenedDraconiumFailsUnderMagmaMeltsUnderBrimspar(GameTestHelper helper) {
+        SmelteryGameTests.buildWalls(helper, 1, 1, 2);
+        Fluid draconiumAwakened = ForgeweaveFluids.DRACONIUM_AWAKENED.still().get();
+        assertCannotMeltFixture(helper, ForgeweaveFluids.MOLTEN_MAGMA.still().get(), Items.SHULKER_SHELL, "molten magma (1700)");
+        assertMeltsFixtureTo(helper, ForgeweaveFluids.BRIMSPAR.still().get(), 1900, Items.SHULKER_SHELL,
+                draconiumAwakened, "brimspar");
+        helper.succeed();
+    }
+
+    /**
+     * The colder half of a #954 boundary check: the core is torn down and re-placed on the caller's
+     * existing walls with only {@code colder} in the wall tank (a block entity carries its
+     * in-progress burn across a wall-tank swap, the same reason {@code SmelteryFuelGameTests}'s own
+     * {@code refuelledSmeltery} tears down between runs), and makes no melt progress at all on
+     * {@code fixture}.
+     */
+    private static void assertCannotMeltFixture(GameTestHelper helper, Fluid colder, Item fixture, String fuelName) {
+        SmelteryControllerBlockEntity core = refuelledSmeltery(helper, colder);
+        helper.assertTrue(core.insertForMelting(new ItemStack(fixture)).isEmpty(),
+                "expected the fixture item to go into the smeltery");
+        helper.assertTrue(!core.meltTick(), fuelName + " must not heat this Track A fixture recipe");
+        helper.assertTrue(core.meltProgress(0) == 0f, "expected no melt progress at all under " + fuelName);
+    }
+
+    /**
+     * The hotter half: the core is re-placed with {@code hotter} alone in the wall tank and melts
+     * {@code fixture} through to {@code expectedFluid} at the fixture recipe's 144 mB.
+     */
+    private static void assertMeltsFixtureTo(GameTestHelper helper, Fluid hotter, int expectedTemperature,
+            Item fixture, Fluid expectedFluid, String fuelName) {
+        SmelteryControllerBlockEntity core = refuelledSmeltery(helper, hotter);
+        helper.assertValueEqual(core.currentTemperature(), expectedTemperature,
+                "smeltery temperature with " + fuelName + " in the wall tank");
+        helper.assertTrue(core.insertForMelting(new ItemStack(fixture)).isEmpty(),
+                "expected the fixture item to go into the smeltery");
+
+        while (core.meltProgress(0) < 1.0f) {
+            helper.assertTrue(core.meltTick(), "expected " + fuelName + " to keep heating the fixture recipe");
+        }
+        core.meltTick(); // finish-only tick.
+
+        helper.assertValueEqual(core.tank().getFluidAmount(), 144, "molten output from the fixture recipe");
+        helper.assertTrue(core.tank().getFluid().getFluid() == expectedFluid,
+                "expected " + expectedFluid + ", the rung below can never reach this recipe");
+    }
+
+    /**
+     * Re-places the core on the caller's walls with {@code fuel} alone in the wall tank. Mirrors
+     * {@code SmelteryFuelGameTests}'s own private helper of the same shape.
+     */
+    private static SmelteryControllerBlockEntity refuelledSmeltery(GameTestHelper helper, Fluid fuel) {
+        helper.setBlock(SmelteryGameTests.CORE_POS, Blocks.AIR);
+
+        SearedTankBlockEntity tank = helper.getBlockEntity(SmelteryGameTests.TANK_POS);
+        tank.tank().drain(Integer.MAX_VALUE, IFluidHandler.FluidAction.EXECUTE);
+        tank.tank().fill(new FluidStack(fuel, SearedTankBlockEntity.CAPACITY), IFluidHandler.FluidAction.EXECUTE);
+
+        BlockPos corePos = SmelteryGameTests.placeCore(helper, ForgeweaveBlocks.STANDARD_CORE.get());
+        SmelteryControllerBlockEntity core = helper.getBlockEntity(corePos);
+        helper.assertTrue(core.isFormed(), "expected the test smeltery to form: " + core.lastResult().getString());
+        return core;
     }
 
     private static ResourceLocation id(String name) {

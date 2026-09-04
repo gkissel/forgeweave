@@ -809,6 +809,11 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         // tooltip.forgeweave.hold_shift is the smeltery's unrelated "for buckets" hint, hence the
         // separate key.
         add("tooltip.forgeweave.hold_shift_stats", "Hold Shift for Stats");
+        // Issue #955: the live state of a kill-counting/tiered trait, under its name line.
+        add("tooltip.forgeweave.trait.bloodtally", "+%s damage, %s kills, max +%s");
+        add("tooltip.forgeweave.trait.warmemory.entry", "%s +%s (%s)");
+        add("tooltip.forgeweave.trait.warmemory.cap", "Max +%s damage per type, %s fights");
+        add("tooltip.forgeweave.trait.evolved", "Draconic upgrades: %s of %s");
         // tooltip.pattern.cost, quoted in ingots off PartBuilderRecipes' own cost constants.
         add("tooltip.forgeweave.pattern_cost", "Material Cost: %s");
         // tooltip.part.missing_material / tooltip.part.missing_info -- a part whose material
@@ -1021,6 +1026,12 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("material.forgeweave.infinity", "Infinity");
         add("material.forgeweave.wyvern", "Wyvern");
         add("material.forgeweave.chaotic", "Chaotic");
+
+        // #953 -- the maintainer directive that split the Draconic roster in two: the two ingot metals
+        // above keep the smeltery, and the three core materials (wyvern, this one, chaotic) are Part
+        // Builder only. The awakened core had no material at all before this; the id is new, so no
+        // shipped id moved.
+        add("material.forgeweave.awakened", "Awakened Core");
         add("material.forgeweave.quartz_enriched_iron", "Quartz Enriched Iron");
         add("material.forgeweave.silicon", "Silicon");
         add("material.forgeweave.energised_steel", "Energised Steel");
@@ -1622,6 +1633,11 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("jei.category.forgeweave.entity_melting.damage", "%s damage per hit");
         add("jei.category.forgeweave.entity_melting.per_hit", "Poured once per hit");
 
+        // #952: the name a fusion upgrade's result stack carries in Draconic Evolution's own fusion
+        // category, so the row reads as the upgrade it is rather than as the tool that went in --
+        // "Emberweld Pickaxe + Haste II". Forgeweave's own categories never draw this key; DE's does.
+        add("jei.category.forgeweave.fusion_upgrade.result", "%s + %s");
+
         // The nine molten metal fluids (docs/SCOPE.md M2 issue #92) and everything added since.
         // See addFluid: each call names both the fluid and its bucket (#286).
         addFluid(ForgeweaveFluids.IRON, "Molten Iron");
@@ -1705,8 +1721,6 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         addFluid(ForgeweaveFluids.COSMIC_NEUTRONIUM, "Molten Cosmic Neutronium");
         addFluid(ForgeweaveFluids.CRYSTAL_MATRIX, "Molten Crystal Matrix");
         addFluid(ForgeweaveFluids.INFINITY, "Molten Infinity");
-        addFluid(ForgeweaveFluids.CHAOTIC, "Molten Chaotic");
-        addFluid(ForgeweaveFluids.WYVERN, "Molten Wyvern");
         addFluid(ForgeweaveFluids.QUARTZ_ENRICHED_IRON, "Molten Quartz Enriched Iron");
         addFluid(ForgeweaveFluids.SILICON, "Molten Silicon");
         addFluid(ForgeweaveFluids.ENERGISED_STEEL, "Molten Energised Steel");

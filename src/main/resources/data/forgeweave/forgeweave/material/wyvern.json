@@ -44,7 +44,8 @@
   "incorrect_for_tool": "minecraft:incorrect_for_netherite_tool",
   "traits": {
     "general": [
-      "forgeweave:surging2"
+      "forgeweave:evolved",
+      "forgeweave:stonewake"
     ]
   },
   "crafting_items": [
@@ -58,7 +59,6 @@
   "repair_item": {
     "item": "draconicevolution:wyvern_core"
   },
-  "cast_only": true,
   "enchantability": 16,
   "color": "#1F7A4D",
   "neoforge:conditions": [

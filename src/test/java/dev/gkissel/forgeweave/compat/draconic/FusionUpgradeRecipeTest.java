@@ -1,6 +1,7 @@
 package dev.gkissel.forgeweave.compat.draconic;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -165,6 +166,49 @@ class FusionUpgradeRecipeTest {
         assertTrue(ForgeweaveModifiers.of(pickaxe).isEmpty(), "the catalyst stack itself is left alone");
     }
 
+    /**
+     * Issue #952: the class javadoc's "does not spend a modifier slot" is arithmetic now rather than
+     * a comment. The entry the upgrade writes occupies a slot the way every entry does, so the tool
+     * carries back as many through {@code granted_slots} and {@link ForgeweaveModifiers#freeSlots}
+     * reads what it read before. {@code gametest.ModifierGameTests} spends the untouched slots at a
+     * real Tool Station.
+     */
+    @Test
+    void aFusionUpgradeSpendsNoModifierSlot() {
+        ItemStack pickaxe = evolvedTool(3);
+        int before = ForgeweaveModifiers.freeSlots(pickaxe);
+
+        ItemStack wyvern = decode(fixture(100, "wyvern", 8_000_000L)).upgrade(null, pickaxe).orElseThrow();
+        assertEquals(before, ForgeweaveModifiers.freeSlots(wyvern),
+                "one rung must leave the slot budget where it found it");
+
+        ItemStack chaotic = decode(fixture(250, "chaotic", 128_000_000L)).upgrade(null, wyvern).orElseThrow();
+        assertEquals(before, ForgeweaveModifiers.freeSlots(chaotic),
+                "and so must the next rung up, which rewrites the same entry rather than adding one");
+
+        assertEquals(before, ForgeweaveModifiers.freeSlots(chaotic.copy()),
+                "the grant rides the stack's components, so it survives the copy a repair or a part "
+                        + "exchange rebuilds a tool from");
+    }
+
+    /**
+     * Issue #952's display half, checked from the matching side: the catalyst still accepts exactly
+     * what the tag accepts. All that changed is which stacks it offers a screen to draw
+     * ({@code FusionDisplay}), and those need a loaded material registry this test has none of, so
+     * the ingredient falls back to the tag's own stacks here.
+     */
+    @Test
+    void theDisplayCatalystMatchesExactlyWhatTheTagDoes() {
+        FusionUpgradeRecipe recipe = decode(fixture(100, "wyvern", 8_000_000L));
+        Ingredient display = recipe.getCatalyst();
+
+        assertTrue(display.test(new ItemStack(ForgeweaveItems.TOOL_PICKAXE.get())),
+                "the tag's own item must still match");
+        assertFalse(display.test(new ItemStack(Items.STICK)), "and nothing else may start matching");
+        assertEquals(recipe.catalyst().getItems()[0].getItem(), display.getItems()[0].getItem(),
+                "with no materials loaded the display falls back to the tag's stacks");
+    }
+
     @Test
     void upgradeRefusesAToolAlreadyAtOrAboveTheTiersLevel() {
         FusionUpgradeRecipe wyvern = decode(fixture(100, "wyvern", 8_000_000L));
@@ -285,6 +329,41 @@ class FusionUpgradeRecipeTest {
         assertEquals("draconicevolution",
                 json.getAsJsonArray("neoforge:conditions").get(0).getAsJsonObject().get("modid").getAsString(),
                 "without the mod_loaded gate this row would fail to load on a Forgeweave-only install");
+    }
+
+    /**
+     * Issue #953: the three Draconic core materials carry {@code evolved} at their own tier, so a
+     * tool built out of a core is fusion upgradable without ever touching a fusion metal. This walks
+     * the shipped material JSON rather than a hand-written trait list, so a core that quietly loses
+     * its {@code evolved} entry fails here instead of in a save.
+     */
+    @Test
+    void aToolMadeOfADraconicCoreClearsItsOwnTiersGate() {
+        FusionUpgradeRecipe wyvern = decode(fixture(100, "wyvern", 8_000_000L));
+        FusionUpgradeRecipe draconic = decode(fixture(175, "draconic", 32_000_000L));
+        FusionUpgradeRecipe chaotic = decode(fixture(250, "chaotic", 128_000_000L));
+
+        assertTrue(wyvern.upgrade(null, coreTool("wyvern")).isPresent(),
+                "a wyvern-core head is evolved I and the tier-1 rung asks for exactly that");
+        assertTrue(draconic.upgrade(null, coreTool("wyvern")).isEmpty(),
+                "a wyvern core does not reach the tier-2 rung");
+        assertTrue(draconic.upgrade(null, coreTool("awakened")).isPresent(),
+                "an awakened-core head is evolved II and clears tier 2");
+        assertTrue(chaotic.upgrade(null, coreTool("chaotic")).isPresent(),
+                "a chaotic-core head is evolved III and clears every rung");
+    }
+
+    /**
+     * A pickaxe carrying whatever {@code traits.general} the shipped material JSON for {@code
+     * material} lists -- the trait list an assembled tool made of that material ends up with.
+     */
+    private static ItemStack coreTool(String material) {
+        JsonObject json = read("/data/forgeweave/forgeweave/material/" + material + ".json");
+        List<ResourceLocation> traits = json.getAsJsonObject("traits").getAsJsonArray("general")
+                .asList().stream().map(JsonElement::getAsString).map(ResourceLocation::parse).toList();
+        ItemStack pickaxe = new ItemStack(ForgeweaveItems.TOOL_PICKAXE.get());
+        pickaxe.set(ForgeweaveDataComponents.TRAITS.get(), traits);
+        return pickaxe;
     }
 
     private static JsonObject read(String path) {

@@ -4,6 +4,7 @@
   },
   "fluid": "forgeweave:molten_osmiridium",
   "amount": 16,
+  "temperature": 1600,
   "neoforge:conditions": [
     {
       "type": "neoforge:item_exists",

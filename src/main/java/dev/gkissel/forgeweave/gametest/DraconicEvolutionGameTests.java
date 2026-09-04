@@ -53,6 +53,9 @@ public class DraconicEvolutionGameTests {
      * core-tier pair, one row per material id.
      */
     private static final String[] BATCH_4_MATERIALS = { "draconium", "draconium_awakened", "wyvern", "chaotic",
+            // #953: the awakened core, the rung between wyvern and chaotic that #872 never added. It
+            // hides on `draconicevolution:awakened_core` exactly like its two siblings.
+            "awakened",
             // #946 M8: the three fusion metals sit above that preset roster and hide the same way,
             // each gated on the Draconic Evolution core its own fusion recipe consumes. The four
             // above are unchanged and keep their ids -- they are the raw tier under these three.
