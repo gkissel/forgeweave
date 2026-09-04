@@ -455,10 +455,10 @@ public final class ScreenshotHarness {
     private static final int MATERIAL_SCENE_CAMERA_PULLBACK = 5;
 
     /**
-     * Camera distance south of issue #951's glass row. All 16 colors stand in one line, twice the
-     * width of a {@value #MATERIAL_SCENE_COLUMNS}-wide material wall, so the camera sits further back.
+     * Camera distance south of issue #951's glass row: close enough that each of the 16 panes is
+     * around 45 px across, which is what it takes to judge one tint against its neighbour.
      */
-    private static final int GLASS_SCENE_CAMERA_PULLBACK = 13;
+    private static final int GLASS_SCENE_CAMERA_PULLBACK = 8;
 
     /** Side of the clear glass pane above issue #951's row: three is the smallest that has a middle tile. */
     private static final int GLASS_SCENE_PANE_SIZE = 3;
