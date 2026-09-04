@@ -1021,6 +1021,12 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("material.forgeweave.infinity", "Infinity");
         add("material.forgeweave.wyvern", "Wyvern");
         add("material.forgeweave.chaotic", "Chaotic");
+
+        // #953 -- the maintainer directive that split the Draconic roster in two: the two ingot metals
+        // above keep the smeltery, and the three core materials (wyvern, this one, chaotic) are Part
+        // Builder only. The awakened core had no material at all before this; the id is new, so no
+        // shipped id moved.
+        add("material.forgeweave.awakened", "Awakened Core");
         add("material.forgeweave.quartz_enriched_iron", "Quartz Enriched Iron");
         add("material.forgeweave.silicon", "Silicon");
         add("material.forgeweave.energised_steel", "Energised Steel");
@@ -1705,8 +1711,6 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         addFluid(ForgeweaveFluids.COSMIC_NEUTRONIUM, "Molten Cosmic Neutronium");
         addFluid(ForgeweaveFluids.CRYSTAL_MATRIX, "Molten Crystal Matrix");
         addFluid(ForgeweaveFluids.INFINITY, "Molten Infinity");
-        addFluid(ForgeweaveFluids.CHAOTIC, "Molten Chaotic");
-        addFluid(ForgeweaveFluids.WYVERN, "Molten Wyvern");
         addFluid(ForgeweaveFluids.QUARTZ_ENRICHED_IRON, "Molten Quartz Enriched Iron");
         addFluid(ForgeweaveFluids.SILICON, "Molten Silicon");
         addFluid(ForgeweaveFluids.ENERGISED_STEEL, "Molten Energised Steel");

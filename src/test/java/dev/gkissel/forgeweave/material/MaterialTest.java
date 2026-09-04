@@ -749,7 +749,7 @@ class MaterialTest {
             "uraninite", "psimetal", "ivory_psimetal", "ebony_psimetal", "pink_slime", "cyanite",
             "blutonium", "ludicrite",
             "dark_matter", "red_matter", "crystal_matrix", "cosmic_neutronium", "infinity",
-            "wyvern", "chaotic", "quartz_enriched_iron", "silicon", "energised_steel" })
+            "quartz_enriched_iron", "silicon", "energised_steel" })
     void castableMetalsAreCastOnly(String name) {
         assertTrue(Material.CODEC.parse(ops, shipped(name)).getOrThrow().castOnly(),
                 name + " is castable and not craftable upstream, so the Part Builder must not take it");
@@ -779,7 +779,14 @@ class MaterialTest {
             // Psi's gem. Listed in #873's PR body alongside certus_quartz/fluix/fluorite/dragonyst/
             // sky_stone/hdpe, which are not in this parametrized list at all (never were).
             "black_quartz", "restonia_crystal", "palis_crystal", "diamatine_crystal", "void_crystal",
-            "emeradic_crystal", "enori_crystal", "psigem" })
+            "emeradic_crystal", "enori_crystal", "psigem",
+            // #953 (maintainer directive): the three Draconic Evolution core materials are Part
+            // Builder only. A core is a machine part, not an ingot -- there is nothing to pour it
+            // into and nothing to pour out of it -- so they lost the fluid, the melting recipe, the
+            // casting rows and the cast_only flag #872/#873 had given the pair. `awakened` is this
+            // issue's new material, the rung between wyvern and chaotic; the ingot metals
+            // (draconium, draconium_awakened) are unaffected and stay cast-only above.
+            "wyvern", "awakened", "chaotic" })
     void craftableMaterialsStayCraftable(String name) {
         assertFalse(Material.CODEC.parse(ops, shipped(name)).getOrThrow().castOnly(),
                 name + " must stay Part Builder craftable");
@@ -1008,7 +1015,14 @@ class MaterialTest {
     @Test
     void noTwoMaterialsShareANonExemptTraitId() throws Exception {
         Path materialDir = projectRoot().resolve("src/main/resources/data/forgeweave/forgeweave/material");
-        java.util.Set<String> exempt = java.util.Set.of("forgeweave:overslime");
+        java.util.Set<String> exempt = java.util.Set.of("forgeweave:overslime",
+                // #953 (maintainer directive): evolved I-III is a gate, not a flavor.
+                // ForgeweaveDraconicCompat#evolvedLevel reads these three exact ids off a finished
+                // tool to decide which fusion upgrade rung will take it, so the tier has to be
+                // spelled the same way wherever it is granted -- by a fusion metal (#946) or by the
+                // Draconic core material at the matching tier. Same shape as overslime above: a
+                // shared mechanic keyed on one id, not a per-material name.
+                "forgeweave:evolved", "forgeweave:evolved2", "forgeweave:evolved3");
         java.util.Map<String, List<String>> claimants = new java.util.TreeMap<>();
 
         try (Stream<Path> files = Files.list(materialDir)) {

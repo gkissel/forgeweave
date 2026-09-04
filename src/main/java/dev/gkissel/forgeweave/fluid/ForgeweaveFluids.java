@@ -313,8 +313,8 @@ public final class ForgeweaveFluids {
     public static final MoltenMetal CONDUCTIVE_ALLOY = register("conductive_alloy", 0xC4732E, 916);
     public static final MoltenMetal CONSTANTAN = register("constantan", 0xA8794A, 932);
     public static final MoltenMetal DARK_STEEL = register("dark_steel", 0x272727, 1160);
-    public static final MoltenMetal DRACONIUM_AWAKENED = register("draconium_awakened", 0xB813B2, 1172);
-    public static final MoltenMetal DRACONIUM = register("draconium", 0x00BA99, 1184);
+    public static final MoltenMetal DRACONIUM_AWAKENED = register("draconium_awakened", 0xF06000, 1172);
+    public static final MoltenMetal DRACONIUM = register("draconium", 0x5B4BC4, 1184);
     public static final MoltenMetal ELECTRUM = register("electrum", 0xE8DB49, 738);
     public static final MoltenMetal END_STEEL = register("end_steel", 0xB29FE0, 1196);
     public static final MoltenMetal ENERGETIC_ALLOY = register("energetic_alloy", 0xD8A23C, 948);
@@ -346,8 +346,6 @@ public final class ForgeweaveFluids {
     public static final MoltenMetal COSMIC_NEUTRONIUM = register("cosmic_neutronium", 0x3D1A5C, 1268);
     public static final MoltenMetal CRYSTAL_MATRIX = register("crystal_matrix", 0x7FD9F5, 1280);
     public static final MoltenMetal INFINITY = register("infinity", 0xF5E9C8, 1292);
-    public static final MoltenMetal CHAOTIC = register("chaotic", 0x6A1B9A, 1304);
-    public static final MoltenMetal WYVERN = register("wyvern", 0x1F7A4D, 1316);
     public static final MoltenMetal QUARTZ_ENRICHED_IRON = register("quartz_enriched_iron", 0xC9A96A, 846);
     public static final MoltenMetal SILICON = register("silicon", 0x4A4A4A, 864);
     public static final MoltenMetal ENERGISED_STEEL = register("energised_steel", 0xFACC50, 1180);
@@ -374,7 +372,6 @@ public final class ForgeweaveFluids {
             Map.entry("graphite", GRAPHITE), Map.entry("dark_matter", DARK_MATTER),
             Map.entry("red_matter", RED_MATTER), Map.entry("cosmic_neutronium", COSMIC_NEUTRONIUM),
             Map.entry("crystal_matrix", CRYSTAL_MATRIX), Map.entry("infinity", INFINITY),
-            Map.entry("chaotic", CHAOTIC), Map.entry("wyvern", WYVERN),
             Map.entry("quartz_enriched_iron", QUARTZ_ENRICHED_IRON), Map.entry("silicon", SILICON),
             Map.entry("energised_steel", ENERGISED_STEEL), Map.entry("blutonium", BLUTONIUM),
             Map.entry("cyanite", CYANITE), Map.entry("ludicrite", LUDICRITE), Map.entry("uraninite", URANINITE));

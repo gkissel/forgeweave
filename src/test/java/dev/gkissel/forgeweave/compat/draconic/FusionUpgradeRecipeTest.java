@@ -287,6 +287,41 @@ class FusionUpgradeRecipeTest {
                 "without the mod_loaded gate this row would fail to load on a Forgeweave-only install");
     }
 
+    /**
+     * Issue #953: the three Draconic core materials carry {@code evolved} at their own tier, so a
+     * tool built out of a core is fusion upgradable without ever touching a fusion metal. This walks
+     * the shipped material JSON rather than a hand-written trait list, so a core that quietly loses
+     * its {@code evolved} entry fails here instead of in a save.
+     */
+    @Test
+    void aToolMadeOfADraconicCoreClearsItsOwnTiersGate() {
+        FusionUpgradeRecipe wyvern = decode(fixture(100, "wyvern", 8_000_000L));
+        FusionUpgradeRecipe draconic = decode(fixture(175, "draconic", 32_000_000L));
+        FusionUpgradeRecipe chaotic = decode(fixture(250, "chaotic", 128_000_000L));
+
+        assertTrue(wyvern.upgrade(null, coreTool("wyvern")).isPresent(),
+                "a wyvern-core head is evolved I and the tier-1 rung asks for exactly that");
+        assertTrue(draconic.upgrade(null, coreTool("wyvern")).isEmpty(),
+                "a wyvern core does not reach the tier-2 rung");
+        assertTrue(draconic.upgrade(null, coreTool("awakened")).isPresent(),
+                "an awakened-core head is evolved II and clears tier 2");
+        assertTrue(chaotic.upgrade(null, coreTool("chaotic")).isPresent(),
+                "a chaotic-core head is evolved III and clears every rung");
+    }
+
+    /**
+     * A pickaxe carrying whatever {@code traits.general} the shipped material JSON for {@code
+     * material} lists -- the trait list an assembled tool made of that material ends up with.
+     */
+    private static ItemStack coreTool(String material) {
+        JsonObject json = read("/data/forgeweave/forgeweave/material/" + material + ".json");
+        List<ResourceLocation> traits = json.getAsJsonObject("traits").getAsJsonArray("general")
+                .asList().stream().map(JsonElement::getAsString).map(ResourceLocation::parse).toList();
+        ItemStack pickaxe = new ItemStack(ForgeweaveItems.TOOL_PICKAXE.get());
+        pickaxe.set(ForgeweaveDataComponents.TRAITS.get(), traits);
+        return pickaxe;
+    }
+
     private static JsonObject read(String path) {
         try (InputStream in = FusionUpgradeRecipeTest.class.getResourceAsStream(path)) {
             assertNotNull(in, "missing generated recipe: " + path + " -- run ./gradlew runData");
