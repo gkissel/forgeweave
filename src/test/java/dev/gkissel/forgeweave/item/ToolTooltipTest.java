@@ -48,6 +48,7 @@ import dev.gkissel.forgeweave.tool.ToolLevel;
 import dev.gkissel.forgeweave.tool.ToolLeveling;
 import dev.gkissel.forgeweave.tool.ToolMaterials;
 import dev.gkissel.forgeweave.tool.ToolStats;
+import dev.gkissel.forgeweave.trait.WarMemory;
 
 /**
  * Pins {@link ToolTooltip#append}'s compact-vs-Shift line assembly (issue #54; structure ported
@@ -68,6 +69,10 @@ class ToolTooltipTest {
     private static final ResourceLocation HASTE_ID = ResourceLocation.fromNamespaceAndPath("forgeweave", "haste");
     private static final ResourceLocation ECOLOGICAL_TRAIT =
             ResourceLocation.fromNamespaceAndPath("forgeweave", "ecological");
+    private static final ResourceLocation BLOODTALLY_TRAIT =
+            ResourceLocation.fromNamespaceAndPath("forgeweave", "bloodtally");
+    private static final ResourceLocation WARMEMORY_TRAIT =
+            ResourceLocation.fromNamespaceAndPath("forgeweave", "warmemory");
 
     private static final ToolStats.Stats PICKAXE_STATS = new ToolStats.Stats(160, 4.0F, 3.0F);
     private static final TextColor STONE_COLOR = TextColor.fromRgb(0x999999);
@@ -147,6 +152,92 @@ class ToolTooltipTest {
                         .append(Component.literal(" (51/100)").withStyle(ChatFormatting.GRAY)),
                 slotsLine(1)),
                 tooltip);
+    }
+
+    /**
+     * Issue #955: bloodtally's live state is exactly one line, so the compact tier shows it too, even
+     * with no Shift and no registries -- it's read straight off {@code ForgeweaveDataComponents#TRAITS}
+     * and {@code #KILL_TALLY}, neither of which needs a Material lookup.
+     */
+    @Test
+    void compactTooltipShowsABloodtallyStateLineWhenItFitsOnOneLine() {
+        ItemStack stack = assembledPickaxe(40, List.of(BLOODTALLY_TRAIT));
+        stack.set(ForgeweaveDataComponents.KILL_TALLY.get(), 37);
+
+        List<Component> tooltip = new ArrayList<>();
+        ToolTooltip.append(stack, null, false, 3.0F, tooltip);
+
+        assertEquals(List.of(durabilityLine(120, 160), attackLine(3.0F), pierceLine(), slotsLine(3),
+                        bloodtallyStateLine("1.11", 37, "6")),
+                tooltip);
+    }
+
+    /** ... and a tool with no kills yet shows no extra line, since bloodtally's own state is empty. */
+    @Test
+    void compactTooltipShowsNoBloodtallyLineWithAnEmptyTally() {
+        ItemStack stack = assembledPickaxe(40, List.of(BLOODTALLY_TRAIT));
+
+        List<Component> tooltip = new ArrayList<>();
+        ToolTooltip.append(stack, null, false, 3.0F, tooltip);
+
+        assertEquals(List.of(durabilityLine(120, 160), attackLine(3.0F), pierceLine(), slotsLine(3)), tooltip);
+    }
+
+    /**
+     * Issue #955: warmemory's state comes to more than one line (its per-type entries plus the cap
+     * line), so unlike bloodtally it never shows in the compact tier, only Shift's.
+     */
+    @Test
+    void compactTooltipOmitsWarmemorySinceItsStateIsMoreThanOneLine() {
+        ItemStack stack = assembledPickaxe(40, List.of(WARMEMORY_TRAIT));
+        stack.set(ForgeweaveDataComponents.WAR_MEMORY.get(),
+                WarMemory.EMPTY.with(ResourceLocation.withDefaultNamespace("zombie"), 12));
+
+        List<Component> tooltip = new ArrayList<>();
+        ToolTooltip.append(stack, null, false, 3.0F, tooltip);
+
+        assertEquals(List.of(durabilityLine(120, 160), attackLine(3.0F), pierceLine(), slotsLine(3)), tooltip);
+    }
+
+    /**
+     * Issue #955: in the detailed (Shift) tier, a trait's state line sits directly under its own name
+     * line inside its part section -- here bloodtally granted generally by a wood part, so it shows
+     * once per wood-part section (binding and handle).
+     */
+    @Test
+    void detailedTooltipShowsATraitsStateLineDirectlyUnderItsNameLine() {
+        ItemStack stack = assembledPickaxe(40, List.of());
+        stack.set(ForgeweaveDataComponents.KILL_TALLY.get(), 37);
+
+        MappedRegistry<Material> registry = new MappedRegistry<>(Material.REGISTRY, Lifecycle.stable());
+        registry.register(ResourceKey.create(Material.REGISTRY, STONE_ID), stone(), RegistrationInfo.BUILT_IN);
+        registry.register(ResourceKey.create(Material.REGISTRY, WOOD_ID), woodWithBloodtally(), RegistrationInfo.BUILT_IN);
+        HolderLookup.Provider registries = HolderLookup.Provider.create(Stream.of(registry.asLookup()));
+
+        List<Component> tooltip = new ArrayList<>();
+        ToolTooltip.append(stack, registries, true, 3.0F, tooltip);
+
+        int traitIndex = tooltip.indexOf(traitLine("bloodtally", WOOD_COLOR));
+        assertTrue(traitIndex >= 0, "bloodtally's own name line should be present: " + tooltip);
+        assertEquals(bloodtallyStateLine("1.11", 37, "6"), tooltip.get(traitIndex + 1));
+    }
+
+    private static Component bloodtallyStateLine(String bonus, int kills, String cap) {
+        return Component.translatable("tooltip.forgeweave.trait.bloodtally", bonus, kills, cap)
+                .withStyle(ChatFormatting.GRAY);
+    }
+
+    /** {@link #wood()} with bloodtally in place of ecological -- issue #955's detailed-tier fixture. */
+    private static Material woodWithBloodtally() {
+        return new Material(
+                new Material.Head(35, 2.0F, 2.0F),
+                new Material.Handle(1.0F, 25),
+                15,
+                incorrectForTool("wooden"),
+                Material.Traits.general(BLOODTALLY_TRAIT),
+                List.of(),
+                Ingredient.of(Items.STICK),
+                WOOD_COLOR);
     }
 
     /**
