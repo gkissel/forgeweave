@@ -15,6 +15,7 @@ import net.neoforged.neoforge.registries.DeferredRegister;
 import net.neoforged.neoforge.registries.NeoForgeRegistries;
 
 import dev.gkissel.forgeweave.Forgeweave;
+import dev.gkissel.forgeweave.compat.draconic.modules.DraconicModuleHost;
 import dev.gkissel.forgeweave.item.ForgeweaveDataComponents;
 
 /**
@@ -265,6 +266,9 @@ public final class ForgeweaveDraconicCompat {
                 DeferredRegister.create(Registries.RECIPE_SERIALIZER, Forgeweave.MODID);
         serializers.register(UPGRADE_SERIALIZER_NAME, () -> FusionUpgradeRecipe.Serializer.INSTANCE);
         serializers.register(modEventBus);
+        // #956: evolved gear is also a Draconic Evolution module host. Same guard, same reason -- the
+        // class behind this call names com.brandon3055 types and cannot link without the mod.
+        DraconicModuleHost.register(modEventBus);
 
         // #952: the catalyst an upgrade row hands JEI is a custom ingredient (it matches the tag but
         // draws assembled tools), and NeoForge requires every custom ingredient's type to be
