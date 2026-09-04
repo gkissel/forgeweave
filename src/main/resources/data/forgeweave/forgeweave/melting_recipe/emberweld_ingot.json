@@ -4,6 +4,7 @@
   },
   "fluid": "forgeweave:molten_emberweld",
   "amount": 144,
+  "temperature": 1800,
   "neoforge:conditions": [
     {
       "type": "neoforge:item_exists",

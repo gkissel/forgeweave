@@ -4,6 +4,7 @@
   },
   "fluid": "forgeweave:molten_refined_obsidian",
   "amount": 1296,
+  "temperature": 1600,
   "neoforge:conditions": [
     {
       "type": "neoforge:item_exists",

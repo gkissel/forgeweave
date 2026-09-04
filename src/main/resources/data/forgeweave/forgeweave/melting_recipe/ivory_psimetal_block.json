@@ -4,6 +4,7 @@
   },
   "fluid": "forgeweave:molten_ivory_psimetal",
   "amount": 1296,
+  "temperature": 1400,
   "neoforge:conditions": [
     {
       "type": "neoforge:item_exists",

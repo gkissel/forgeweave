@@ -4,6 +4,7 @@
   },
   "fluid": "forgeweave:molten_refined_glowstone",
   "amount": 16,
+  "temperature": 1400,
   "neoforge:conditions": [
     {
       "type": "neoforge:item_exists",

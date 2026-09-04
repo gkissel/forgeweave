@@ -4,6 +4,7 @@
   },
   "fluid": "forgeweave:molten_energetic_alloy",
   "amount": 16,
+  "temperature": 1200,
   "neoforge:conditions": [
     {
       "type": "neoforge:item_exists",

@@ -4,6 +4,7 @@
   },
   "fluid": "forgeweave:molten_starweld",
   "amount": 144,
+  "temperature": 2000,
   "neoforge:conditions": [
     {
       "type": "neoforge:item_exists",
