@@ -10,7 +10,9 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 
 import net.neoforged.bus.api.IEventBus;
+import net.neoforged.neoforge.common.crafting.IngredientType;
 import net.neoforged.neoforge.registries.DeferredRegister;
+import net.neoforged.neoforge.registries.NeoForgeRegistries;
 
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.item.ForgeweaveDataComponents;
@@ -53,6 +55,9 @@ public final class ForgeweaveDraconicCompat {
 
     /** The registered name of {@link FusionUpgradeRecipe.Serializer}, i.e. the recipes' {@code type}. */
     public static final String UPGRADE_SERIALIZER_NAME = "draconic_fusion_upgrade";
+
+    /** The registered name of {@link FusionUpgradeRecipe.CatalystDisplay}'s ingredient type (issue #952). */
+    public static final String CATALYST_INGREDIENT_NAME = "fusion_catalyst";
 
     /**
      * One rung of one upgrade line: {@code techLevel} is Draconic Evolution's own tier name (the
@@ -198,6 +203,15 @@ public final class ForgeweaveDraconicCompat {
     }
 
     /**
+     * The fusion metal a tool has to be made of to stand on a {@code techLevel} rung -- the material
+     * name behind {@link #requiredEvolved}'s level, since the two are the same fact read two ways.
+     * What {@link FusionDisplay} builds that rung's display tools out of (issue #952).
+     */
+    public static String fusionMetal(String techLevel) {
+        return FUSION_METALS.get(requiredEvolved(techLevel) - 1).material();
+    }
+
+    /**
      * The {@code evolved} level {@code tool} carries, or 0 for a tool made of anything but a fusion
      * metal. Read off {@code ForgeweaveDataComponents#TRAITS} rather than off the tool's materials
      * because by the time a stack is sitting in a crafting core its parts are gone and the trait list
@@ -251,7 +265,17 @@ public final class ForgeweaveDraconicCompat {
                 DeferredRegister.create(Registries.RECIPE_SERIALIZER, Forgeweave.MODID);
         serializers.register(UPGRADE_SERIALIZER_NAME, () -> FusionUpgradeRecipe.Serializer.INSTANCE);
         serializers.register(modEventBus);
+
+        // #952: the catalyst an upgrade row hands JEI is a custom ingredient (it matches the tag but
+        // draws assembled tools), and NeoForge requires every custom ingredient's type to be
+        // registered. Nothing serializes this one -- the recipe's own codec writes the raw tag it
+        // wraps -- but an unregistered type would be a crash waiting for the first thing that tried.
+        DeferredRegister<IngredientType<?>> ingredientTypes =
+                DeferredRegister.create(NeoForgeRegistries.Keys.INGREDIENT_TYPES, Forgeweave.MODID);
+        ingredientTypes.register(CATALYST_INGREDIENT_NAME, () -> FusionUpgradeRecipe.CatalystDisplay.TYPE);
+        ingredientTypes.register(modEventBus);
     }
+
 
     private ForgeweaveDraconicCompat() {}
 }

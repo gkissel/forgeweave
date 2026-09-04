@@ -1,7 +1,9 @@
 package dev.gkissel.forgeweave.compat.draconic;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Stream;
 
 import com.brandon3055.brandonscore.api.TechLevel;
 import com.brandon3055.draconicevolution.api.crafting.IFusionInventory;
@@ -11,8 +13,13 @@ import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 
+import net.neoforged.neoforge.common.crafting.ICustomIngredient;
+import net.neoforged.neoforge.common.crafting.IngredientType;
+
 import net.minecraft.core.HolderLookup;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.chat.Component;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.resources.ResourceLocation;
@@ -79,15 +86,19 @@ import dev.gkissel.forgeweave.modifier.ModifierEntry;
  * that package. Its crafting core resolves an in-world craft through the same recipe type. So
  * implementing the interface and leaving {@link IFusionRecipe#getType()} at its default is the
  * whole of what showing up takes: no {@code IRecipeCategoryExtension}, no plugin class, nothing to
- * keep in step with DE's GUI. What that costs is {@link #getResultItem}, which DE's category draws
- * in the output slot -- see its note.
+ * keep in step with DE's GUI. What that costs is the two things the category draws off the recipe
+ * itself -- {@link #getCatalyst} in the input slot and {@link #getResultItem} in the output one,
+ * which issue #952 had to make readable; see {@link FusionDisplay} and each method's own note.
  *
  * <p><b>Slot budget.</b> A fusion upgrade deliberately does not spend a modifier slot the way the
  * Tool Station's {@link ModifierApplication#apply} does. What it costs instead is the tier's
  * Draconic materials and its RF, which is what a player standing at that tier actually pays with;
  * charging a slot on top would leave the endgame path strictly worse than the Tool Station's. That
  * is the one deviation from Forgeweave's own modifier economy this class makes, and it is why
- * {@link ModifierApplication#applyLevel} sits next to {@code apply} rather than being folded into it.
+ * {@link ModifierApplication#applyLevel} sits next to {@code apply} rather than being folded into
+ * it. Issue #952: {@code applyLevel} makes that true by handing the tool back as many slots as the
+ * entry it wrote occupies, rather than by skipping a check -- {@code freeSlots} counts the entry
+ * either way.
  */
 public record FusionUpgradeRecipe(Ingredient catalyst, ResourceLocation modifier, int level,
         List<Entry> ingredients, long totalEnergy, TechLevel techLevel) implements IFusionRecipe {
@@ -130,9 +141,61 @@ public record FusionUpgradeRecipe(Ingredient catalyst, ResourceLocation modifier
         return List.copyOf(ingredients);
     }
 
+    /**
+     * The recipe's catalyst, wrapped so the display half and the matching half can differ (issue
+     * #952). {@link CatalystDisplay#test} is this recipe's own {@link #catalyst} verbatim -- the tag
+     * of every assembled tool, gated by {@link #upgrade}'s {@code evolved} check in
+     * {@link #matches} -- while the stacks Draconic Evolution's fusion category cycles come from
+     * {@link FusionDisplay}. Nothing about which tools this row accepts changes.
+     */
     @Override
     public Ingredient getCatalyst() {
-        return catalyst;
+        return new CatalystDisplay(catalyst, ForgeweaveDraconicCompat.fusionMetal(techLevel.getSerializedName()))
+                .toVanilla();
+    }
+
+    /**
+     * A catalyst {@link Ingredient} that matches one thing and draws another: the wrapped tag
+     * ingredient decides what the crafting core accepts, {@link FusionDisplay} decides what JEI and
+     * the fusion GUI show. Draconic Evolution's category hands {@code getCatalyst()} straight to
+     * JEI's slot builder, which reads an ingredient's display stacks, and a tag ingredient's are
+     * bare items -- hence this rather than a narrower tag, which would change matching.
+     *
+     * <p>Falls back to the tag's own stacks whenever the materials are not loaded, so a slot is
+     * never left empty.
+     */
+    public record CatalystDisplay(Ingredient catalyst, String material) implements ICustomIngredient {
+
+        /** Registered as {@code forgeweave:fusion_catalyst} -- see {@link ForgeweaveDraconicCompat#register}. */
+        public static final MapCodec<CatalystDisplay> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
+                Ingredient.CODEC_NONEMPTY.fieldOf("catalyst").forGetter(CatalystDisplay::catalyst),
+                Codec.STRING.fieldOf("material").forGetter(CatalystDisplay::material))
+                .apply(instance, CatalystDisplay::new));
+
+        public static final IngredientType<CatalystDisplay> TYPE = new IngredientType<>(CODEC);
+
+        @Override
+        public boolean test(ItemStack stack) {
+            return catalyst.test(stack);
+        }
+
+        @Override
+        public Stream<ItemStack> getItems() {
+            List<ItemStack> display = FusionDisplay.catalysts(material);
+            return display.isEmpty() ? Arrays.stream(catalyst.getItems()) : display.stream();
+        }
+
+        @Override
+        public boolean isSimple() {
+            // The display stacks are assembled tools rather than one stack per accepted item, which
+            // is exactly what a non-simple ingredient is allowed to do (ICustomIngredient#getItems).
+            return false;
+        }
+
+        @Override
+        public IngredientType<?> getType() {
+            return TYPE;
+        }
     }
 
     /**
@@ -184,22 +247,48 @@ public record FusionUpgradeRecipe(Ingredient catalyst, ResourceLocation modifier
     /**
      * What Draconic Evolution's JEI fusion category draws in the output slot. There is no single
      * real result -- it depends on the tool the player brings -- so this is a representative: the
-     * first item the catalyst ingredient accepts, carrying the modifier entry this recipe grants so
-     * the stack's tooltip names the upgrade. The Tool Station's own JEI category already answers the
-     * same question the same way ({@code jei.ModifierApplicationCategory} shows a tool catalog rather
-     * than a built result).
+     * first display catalyst this row would actually take ({@link FusionDisplay}, an assembled tool
+     * of the tier's own fusion metal), run through {@link #upgrade} so the stack really is the
+     * upgraded tool rather than a hand-built imitation of one.
      *
-     * <p>Empty before tags bind, since recipe load runs ahead of the tag sync a tag ingredient needs.
-     * Nothing reads this until a screen asks for it, so that window never shows.
+     * <p>Issue #952 gave it a name of its own on top -- "Emberweld Pickaxe + Haste II" -- because
+     * an upgraded tool and the tool that went in are the same item drawn the same way, and a player
+     * looking at the two slots could not tell what the row did. The Tool Station's own JEI category
+     * has the room to spell that out in a panel; DE's fusion category has one output slot.
+     *
+     * <p>Falls back to the old representative -- the first item the catalyst accepts, carrying the
+     * modifier entry -- before the materials are loaded, and to empty before tags bind, since recipe
+     * load runs ahead of the tag sync a tag ingredient needs. Nothing reads this until a screen asks
+     * for it, so that window never shows.
      */
     @Override
     public ItemStack getResultItem(HolderLookup.Provider registries) {
+        for (ItemStack display : FusionDisplay.catalysts(registries,
+                ForgeweaveDraconicCompat.fusionMetal(techLevel.getSerializedName()))) {
+            Optional<ItemStack> upgraded = upgrade(registries, display);
+            if (upgraded.isPresent()) {
+                return named(upgraded.get());
+            }
+        }
         ItemStack[] items = catalyst.getItems();
         if (items.length == 0) {
             return ItemStack.EMPTY;
         }
         ItemStack display = items[0].copy();
         display.set(ForgeweaveDataComponents.MODIFIERS.get(), List.of(new ModifierEntry(modifier, level)));
+        return named(display);
+    }
+
+    /**
+     * {@code <Tool> + <Modifier> <level>} as the stack's own name, through {@code item_name} rather
+     * than {@code custom_name} so it reads as what the item is called rather than as a rename
+     * someone typed at an anvil.
+     */
+    private ItemStack named(ItemStack tool) {
+        ItemStack display = tool.copy();
+        display.set(DataComponents.ITEM_NAME, Component.translatable("jei.category.forgeweave.fusion_upgrade.result",
+                tool.getHoverName(),
+                ModifierApplication.displayName(modifier, ForgeweaveModifiers.displayLevel(modifier, level))));
         return display;
     }
 

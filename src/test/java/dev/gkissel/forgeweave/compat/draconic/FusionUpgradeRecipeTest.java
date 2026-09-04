@@ -1,6 +1,7 @@
 package dev.gkissel.forgeweave.compat.draconic;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -163,6 +164,49 @@ class FusionUpgradeRecipeTest {
         List<ModifierEntry> entries = ForgeweaveModifiers.of(upgraded.get());
         assertEquals(List.of(new ModifierEntry(HASTE, 100)), entries);
         assertTrue(ForgeweaveModifiers.of(pickaxe).isEmpty(), "the catalyst stack itself is left alone");
+    }
+
+    /**
+     * Issue #952: the class javadoc's "does not spend a modifier slot" is arithmetic now rather than
+     * a comment. The entry the upgrade writes occupies a slot the way every entry does, so the tool
+     * carries back as many through {@code granted_slots} and {@link ForgeweaveModifiers#freeSlots}
+     * reads what it read before. {@code gametest.ModifierGameTests} spends the untouched slots at a
+     * real Tool Station.
+     */
+    @Test
+    void aFusionUpgradeSpendsNoModifierSlot() {
+        ItemStack pickaxe = evolvedTool(3);
+        int before = ForgeweaveModifiers.freeSlots(pickaxe);
+
+        ItemStack wyvern = decode(fixture(100, "wyvern", 8_000_000L)).upgrade(null, pickaxe).orElseThrow();
+        assertEquals(before, ForgeweaveModifiers.freeSlots(wyvern),
+                "one rung must leave the slot budget where it found it");
+
+        ItemStack chaotic = decode(fixture(250, "chaotic", 128_000_000L)).upgrade(null, wyvern).orElseThrow();
+        assertEquals(before, ForgeweaveModifiers.freeSlots(chaotic),
+                "and so must the next rung up, which rewrites the same entry rather than adding one");
+
+        assertEquals(before, ForgeweaveModifiers.freeSlots(chaotic.copy()),
+                "the grant rides the stack's components, so it survives the copy a repair or a part "
+                        + "exchange rebuilds a tool from");
+    }
+
+    /**
+     * Issue #952's display half, checked from the matching side: the catalyst still accepts exactly
+     * what the tag accepts. All that changed is which stacks it offers a screen to draw
+     * ({@code FusionDisplay}), and those need a loaded material registry this test has none of, so
+     * the ingredient falls back to the tag's own stacks here.
+     */
+    @Test
+    void theDisplayCatalystMatchesExactlyWhatTheTagDoes() {
+        FusionUpgradeRecipe recipe = decode(fixture(100, "wyvern", 8_000_000L));
+        Ingredient display = recipe.getCatalyst();
+
+        assertTrue(display.test(new ItemStack(ForgeweaveItems.TOOL_PICKAXE.get())),
+                "the tag's own item must still match");
+        assertFalse(display.test(new ItemStack(Items.STICK)), "and nothing else may start matching");
+        assertEquals(recipe.catalyst().getItems()[0].getItem(), display.getItems()[0].getItem(),
+                "with no materials loaded the display falls back to the tag's stacks");
     }
 
     @Test

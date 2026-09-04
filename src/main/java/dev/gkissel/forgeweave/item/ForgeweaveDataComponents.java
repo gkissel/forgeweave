@@ -171,6 +171,24 @@ public final class ForgeweaveDataComponents {
                     builder -> builder.persistent(ExtraCodecs.NON_NEGATIVE_INT).networkSynchronized(ByteBufCodecs.VAR_INT));
 
     /**
+     * Modifier slots handed to a tool outside the Tool Station's slot budget (issue #952): one per
+     * slot a slot-free application would otherwise have spent, so
+     * {@link dev.gkissel.forgeweave.modifier.ForgeweaveModifiers#freeSlots} nets back out to what it
+     * read before. Today the only thing that grants any is
+     * {@link dev.gkissel.forgeweave.modifier.ModifierApplication#applyLevel}, the seam a Draconic
+     * Evolution fusion upgrade applies through, whose price is the craft's materials and RF instead.
+     *
+     * <p>A stored count rather than a flag on the {@code ModifierEntry} it paid for, for the reason
+     * {@code TOOL_LEVEL#bonusSlots} is stored rather than recomputed: the grant has to survive a
+     * later Tool Station application overwriting that entry's level, a repair, a part exchange and a
+     * save/reload, and all four of those carry the stack's components forward untouched. Absent
+     * means zero, same as {@link #REPAIR_COUNT}.
+     */
+    public static final DeferredHolder<DataComponentType<?>, DataComponentType<Integer>> GRANTED_SLOTS =
+            DATA_COMPONENTS.registerComponentType("granted_slots",
+                    builder -> builder.persistent(ExtraCodecs.NON_NEGATIVE_INT).networkSynchronized(ByteBufCodecs.VAR_INT));
+
+    /**
      * XP banked on a mending-moss-modified tool, spent one at a time to self-repair (issue #107, ADR
      * -0004: this is state beyond {@code id + level}, so it can't live on {@code ModifierEntry} and
      * instead sits here, the same way {@code BROKEN} and {@code REPAIR_COUNT} carry state that isn't
