@@ -23,7 +23,7 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from _compat_smeltery_data import build_table, METALS  # noqa: E402
+from _compat_smeltery_data import build_table, melt_temperature, METALS  # noqa: E402
 
 ROOT = Path(__file__).resolve().parent.parent
 MATERIAL_DIR = ROOT / "src/main/resources/data/forgeweave/forgeweave/material"
@@ -115,6 +115,9 @@ def melting_recipes() -> None:
     for material_id in METALS:
         info = table[material_id]
         fluid = f"forgeweave:molten_{material_id}"
+        # Issue #954: pinned once per material so every form needs the same fuel, rather than each
+        # form deriving its own temperature from its own amount (MeltingRecipe#calcTemperature).
+        temperature = melt_temperature(material_id)
         for entry in info["crafting_items"]:
             suffix = form_suffix(entry["ingredient"])
             name = f"{material_id}{suffix}.json"
@@ -122,6 +125,7 @@ def melting_recipes() -> None:
                 "input": entry["ingredient"],
                 "fluid": fluid,
                 "amount": entry["value"],
+                "temperature": temperature,
                 "neoforge:conditions": info["condition"],
             })
             count += 1
@@ -135,11 +139,13 @@ def alloy_melting_recipes() -> None:
     count = 0
     for alloy_id, condition in ALLOYS.items():
         fluid = f"forgeweave:molten_{alloy_id}"
+        temperature = melt_temperature(alloy_id)  # Issue #954, same one-per-material pin as above.
         for form, value in (("ingot", VALUE_INGOT), ("nugget", VALUE_NUGGET), ("block", VALUE_BLOCK)):
             write_json(MELTING_DIR / f"{alloy_id}_{form}.json", {
                 "input": {"tag": f"c:{ALLOY_FORM_TAGS[form]}/{alloy_id}"},
                 "fluid": fluid,
                 "amount": value,
+                "temperature": temperature,
                 "neoforge:conditions": condition,
             })
             count += 1
