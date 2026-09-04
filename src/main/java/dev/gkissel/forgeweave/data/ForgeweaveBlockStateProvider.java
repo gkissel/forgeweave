@@ -10,6 +10,7 @@ import net.minecraft.world.level.block.StairBlock;
 import net.minecraft.world.level.block.VineBlock;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
 
+import net.neoforged.neoforge.client.model.generators.BlockModelBuilder;
 import net.neoforged.neoforge.client.model.generators.BlockStateProvider;
 import net.neoforged.neoforge.client.model.generators.ConfiguredModel;
 import net.neoforged.neoforge.client.model.generators.ModelFile;
@@ -555,16 +556,36 @@ public class ForgeweaveBlockStateProvider extends BlockStateProvider {
     }
 
     /**
-     * A cube_all block sharing the one derived {@code clear_stained_glass} texture across every color
+     * A cube block sharing the one derived {@code clear_stained_glass} texture across every color
      * (issue #275) -- each block still gets its own model file, named off its own registry id, but
      * they all point at the same texture and are tinted apart client-side ({@code
      * ForgeweaveGlassColors}). {@code minecraft:translucent} matches upstream's {@code
      * BlockClearStainedGlass#getBlockLayer}, same NeoForge 1.21 model-level render_type deviation as
      * {@link #tankBlock}/{@link #cubeAllCutoutBlock}.
+     *
+     * <p>Issue #951: the parent is {@code block/tinted_cube}, Forgeweave's port of the Mantle model
+     * every 1.12 connected-texture block sits on, and not vanilla's {@code block/cube_all}. Vanilla's
+     * faces carry no {@code tintindex}, so the color handlers {@code ForgeweaveGlassColors} registers
+     * were never consulted and all 16 colors rendered as the bare greyscale sprite. Every face binds
+     * the same texture here, which is what {@code cube_all} did; the per-face keys only start to
+     * differ once the connected-texture frames land.
      */
     private void cubeAllTranslucentBlock(Block block) {
         String name = BuiltInRegistries.BLOCK.getKey(block).getPath();
-        ModelFile model = models().cubeAll(name, modLoc("derived/block/clear_stained_glass")).renderType("minecraft:translucent");
+        ModelFile model = tintedCube(name, modLoc("derived/block/clear_stained_glass"))
+                .renderType("minecraft:translucent");
         simpleBlockWithItem(block, model);
+    }
+
+    /** One {@code block/tinted_cube} model with the same texture bound to all six faces and the particle. */
+    private BlockModelBuilder tintedCube(String name, ResourceLocation texture) {
+        return models().withExistingParent(name, modLoc("block/tinted_cube"))
+                .texture("particle", texture)
+                .texture("down", texture)
+                .texture("up", texture)
+                .texture("north", texture)
+                .texture("south", texture)
+                .texture("west", texture)
+                .texture("east", texture);
     }
 }

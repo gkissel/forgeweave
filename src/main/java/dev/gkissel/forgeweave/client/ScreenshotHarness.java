@@ -453,6 +453,12 @@ public final class ScreenshotHarness {
     /** Camera distance south of a wall: close enough that each framed item is ~65 px across. */
     private static final int MATERIAL_SCENE_CAMERA_PULLBACK = 5;
 
+    /**
+     * Camera distance south of issue #951's glass row. All 16 colors stand in one line, twice the
+     * width of a {@value #MATERIAL_SCENE_COLUMNS}-wide material wall, so the camera sits further back.
+     */
+    private static final int GLASS_SCENE_CAMERA_PULLBACK = 13;
+
     /** Ceiling on the attack-cooldown wait before a first-person weapon frame; see {@link #settleWeaponFirstPerson}. */
     private static final int WEAPON_SWING_RESET_TICKS = 60;
 
@@ -462,6 +468,7 @@ public final class ScreenshotHarness {
         PLACE_SMELTERY_SCENE, SETTLE_SMELTERY_SCENE,
         PLACE_CASTING_SCENE, SETTLE_CASTING_SCENE, PLACE_MATERIAL_SCENE, SETTLE_MATERIAL_SCENE,
         PLACE_PART_TINT_SCENE, SETTLE_PART_TINT_SCENE,
+        PLACE_GLASS_SCENE, SETTLE_GLASS_SCENE,
         HOLD_WEAPON, SETTLE_WEAPON, SETTLE_WEAPON_FIRST_PERSON,
         SETTLE_WEAPON_OFFHAND_FIRST_PERSON, SETTLE_WEAPON_OFFHAND, WEAR_ARMOR, SETTLE_ARMOR,
         SETTLE_ARMOR_FIRST_PERSON,
@@ -516,6 +523,8 @@ public final class ScreenshotHarness {
     private static AABB materialSceneBounds;
     /** Set by {@link #placePartTintScene}, checked by {@link #settlePartTintScene} before capture (#256). */
     private static AABB partTintSceneBounds;
+    /** Set by {@link #placeGlassScene}, checked by {@link #settleGlassScene} before capture (#951). */
+    private static BlockPos[] glassScenePositions;
 
     /**
      * A guide-book capture: the file name and either the spread to open ({@code -1} = the closed
@@ -580,6 +589,8 @@ public final class ScreenshotHarness {
             case SETTLE_MATERIAL_SCENE -> settleMaterialScene(mc);
             case PLACE_PART_TINT_SCENE -> placePartTintScene(mc);
             case SETTLE_PART_TINT_SCENE -> settlePartTintScene(mc);
+            case PLACE_GLASS_SCENE -> placeGlassScene(mc);
+            case SETTLE_GLASS_SCENE -> settleGlassScene(mc);
             case HOLD_WEAPON -> holdWeapon(mc);
             case SETTLE_WEAPON -> settleWeapon(mc);
             case SETTLE_WEAPON_FIRST_PERSON -> settleWeaponFirstPerson(mc);
@@ -1331,6 +1342,69 @@ public final class ScreenshotHarness {
             }
         }
         capture(mc, "part_tints");
+        advance(Stage.PLACE_GLASS_SCENE);
+    }
+
+    /**
+     * Issue #951's release-checklist scene, {@code clear_stained_glass}: all 16 clear stained glass
+     * colors standing in one row against a smooth stone backing wall, in registry order, west to east.
+     *
+     * <p>The colors are one greyscale sprite tinted 16 ways by {@code ForgeweaveGlassColors}, and a
+     * missing {@code tintindex} on the model makes every one of them render as that bare grey sprite.
+     * Nothing throws when that happens, and a single color in isolation still looks like plausible
+     * glass, so the row is the artifact: 16 distinct hues means the tint reaches the geometry, 16
+     * identical grey cubes means it does not. Same wall staging as the #236 material walls, one wall
+     * further west.
+     */
+    private static void placeGlassScene(Minecraft mc) {
+        var server = mc.getSingleplayerServer();
+        List<ForgeweaveBlocks.StainedGlassColor> colors = ForgeweaveBlocks.clearStainedGlassColors();
+        LOGGER.info("{}placing #951 clear stained glass row ({} colors)", LOG_PREFIX, colors.size());
+        server.execute(() -> {
+            ServerPlayer serverPlayer = server.getPlayerList().getPlayers().get(0);
+            ServerLevel level = serverPlayer.serverLevel();
+            BlockPos wallBase = origin.offset(-2 * MATERIAL_SCENE_GROUP_SPACING, 0, MATERIAL_SCENE_DISTANCE);
+            glassScenePositions = new BlockPos[colors.size()];
+
+            for (int i = 0; i < colors.size(); i++) {
+                // Backing stone behind each pane: a translucent block over open air reads as almost
+                // nothing, and the point of the frame is to judge the tint.
+                BlockPos backing = wallBase.offset(i, 1, 0);
+                BlockPos glass = backing.south();
+                level.setBlockAndUpdate(backing, Blocks.SMOOTH_STONE.defaultBlockState());
+                level.setBlockAndUpdate(glass, colors.get(i).block().get().defaultBlockState());
+                glassScenePositions[i] = glass;
+            }
+
+            double centerX = wallBase.getX() + colors.size() / 2.0;
+            serverPlayer.teleportTo(centerX, wallBase.getY(),
+                    wallBase.getZ() + 1 + GLASS_SCENE_CAMERA_PULLBACK + 0.5);
+            serverPlayer.lookAt(EntityAnchorArgument.Anchor.EYES,
+                    new Vec3(centerX, wallBase.getY() + 1.5, wallBase.getZ() + 1.0));
+        });
+        advance(Stage.SETTLE_GLASS_SCENE);
+    }
+
+    private static void settleGlassScene(Minecraft mc) {
+        if (stageTicks < SCREEN_SETTLE_TICKS) {
+            return;
+        }
+        // Self-diagnosing like every other world scene: air at a position and an untinted pane look
+        // the same in a PNG at this width, and they need different fixes. The log doubles as the
+        // west-to-east legend for the frame.
+        if (mc.level != null && glassScenePositions != null) {
+            for (BlockPos pos : glassScenePositions) {
+                BlockState state = mc.level.getBlockState(pos);
+                if (state.isAir()) {
+                    LOGGER.error("{}#951 scene check FAILED: client sees air at {}", LOG_PREFIX, pos);
+                } else {
+                    LOGGER.info("{}#951 scene check: client sees {} at {}, tint {}", LOG_PREFIX,
+                            BuiltInRegistries.BLOCK.getKey(state.getBlock()), pos,
+                            String.format("#%06X", mc.getBlockColors().getColor(state, mc.level, pos, 0) & 0xFFFFFF));
+                }
+            }
+        }
+        capture(mc, "clear_stained_glass");
         advance(Stage.HOLD_WEAPON);
     }
 

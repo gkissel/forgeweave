@@ -1,0 +1,18 @@
+{
+  "__comment": "Port of Mantle 1.12's mantle:block/tinted_cube (NOTICE.md, MIT), the parent every connected-texture block model in the 1.12 generation sits on. The only thing it adds over a plain cube is tintindex 0 on all six faces, which is what lets a registered block/item color handler reach the geometry at all -- vanilla's block/cube_all carries none, so ForgeweaveGlassColors was never consulted (issue #951). Each face texture stays a separate key so the connected-texture models can bind a different frame per face.",
+  "parent": "minecraft:block/block",
+  "elements": [
+    {
+      "from": [0, 0, 0],
+      "to": [16, 16, 16],
+      "faces": {
+        "down": { "texture": "#down", "cullface": "down", "tintindex": 0 },
+        "up": { "texture": "#up", "cullface": "up", "tintindex": 0 },
+        "north": { "texture": "#north", "cullface": "north", "tintindex": 0 },
+        "south": { "texture": "#south", "cullface": "south", "tintindex": 0 },
+        "west": { "texture": "#west", "cullface": "west", "tintindex": 0 },
+        "east": { "texture": "#east", "cullface": "east", "tintindex": 0 }
+      }
+    }
+  ]
+}
