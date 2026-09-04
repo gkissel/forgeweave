@@ -27,6 +27,14 @@ METALS = [
     "uraninite",
 ]
 
+# Issue #953: the Draconic Evolution core materials are Part Builder only -- no fluid, no melting
+# recipe, no casting recipe, no cast_only flag. They stay in METALS so that the per-tier temperature
+# counter below keeps producing the numbers already registered in ForgeweaveFluids for every metal
+# listed after them; SMELTERY_METALS is the list the generator actually walks.
+CORE_ONLY = {"wyvern", "chaotic"}
+
+SMELTERY_METALS = [material_id for material_id in METALS if material_id not in CORE_ONLY]
+
 TIER_BAND = {
     "minecraft:incorrect_for_stone_tool": 720,
     "minecraft:incorrect_for_iron_tool": 900,

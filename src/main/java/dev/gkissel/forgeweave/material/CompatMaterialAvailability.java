@@ -72,6 +72,9 @@ public final class CompatMaterialAvailability {
             entry("infinity", "avaritia:infinity_ingot"),
             entry("chaotic", "draconicevolution:chaotic_core"),
             entry("wyvern", "draconicevolution:wyvern_core"),
+            // #953 -- the awakened core, the roster's missing middle rung. Same core-item gate as its
+            // two siblings above; the three of them are Part Builder only and have no molten form.
+            entry("awakened", "draconicevolution:awakened_core"),
             entry("quartz_enriched_iron", "refinedstorage:quartz_enriched_iron"),
             entry("silicon", "refinedstorage:silicon"),
             entry("energised_steel", "powah:steel_energized"),

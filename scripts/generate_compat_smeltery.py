@@ -23,7 +23,7 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from _compat_smeltery_data import build_table, METALS  # noqa: E402
+from _compat_smeltery_data import build_table, SMELTERY_METALS  # noqa: E402
 
 ROOT = Path(__file__).resolve().parent.parent
 MATERIAL_DIR = ROOT / "src/main/resources/data/forgeweave/forgeweave/material"
@@ -90,7 +90,7 @@ def cast_only_flip() -> None:
     `cast_only: true`, mirroring material/cinderstone.json -- crafting_items stays for repair/reference,
     the Part Builder path is what the flag itself removes (PartBuilderRecipes reads it directly)."""
     count = 0
-    for material_id in METALS:
+    for material_id in SMELTERY_METALS:
         path = MATERIAL_DIR / f"{material_id}.json"
         data = json.loads(path.read_text())
         if data.get("cast_only"):
@@ -112,7 +112,7 @@ def cast_only_flip() -> None:
 def melting_recipes() -> None:
     table = build_table()
     count = 0
-    for material_id in METALS:
+    for material_id in SMELTERY_METALS:
         info = table[material_id]
         fluid = f"forgeweave:molten_{material_id}"
         for entry in info["crafting_items"]:
@@ -152,7 +152,7 @@ def casting_recipes() -> None:
     assert len(templates) == 73, f"expected 73 cobalt casting recipes, found {len(templates)}"
 
     total = 0
-    for material_id in METALS:
+    for material_id in SMELTERY_METALS:
         info = table[material_id]
         condition = info["condition"]
         provider_items = info["provider_items"]

@@ -100,8 +100,15 @@ class MaterialSyncSizeTest {
      * (alumite, osgloglas, osmiridium) push the roster to 143 materials, 106,921 bytes -- just over
      * the 104 KB line. Raised to 108 KB (110,592 bytes), ~3.6 KB (3%) of headroom above the new
      * measurement, same deliberately-tight-rather-than-multiplier approach as the #872 raise above.
+     *
+     * <p>Issue #953 (the Draconic roster split, maintainer directive 2026-09-04) spends the last of
+     * that headroom: one new material -- the awakened core, the rung between wyvern and chaotic --
+     * plus a second trait id on each of the three cores takes the 147-material roster to 110,609
+     * bytes, 17 bytes over the 108 KB line. Raised to 112 KB (114,688 bytes), ~4 KB (3.7%) of
+     * headroom above the new measurement, same deliberately-tight step as the #872 and #873 raises
+     * above. Still a small fraction of one chunk packet.
      */
-    private static final int SYNC_BUDGET_BYTES = 108 * 1024;
+    private static final int SYNC_BUDGET_BYTES = 112 * 1024;
 
     private static RegistryOps<JsonElement> jsonOps;
     private static RegistryOps<Tag> nbtOps;
