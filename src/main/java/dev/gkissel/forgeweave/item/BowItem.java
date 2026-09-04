@@ -24,9 +24,12 @@ import net.minecraft.world.phys.Vec3;
 
 import net.neoforged.neoforge.event.EventHooks;
 
+import dev.gkissel.forgeweave.compat.draconic.modules.DraconicModules;
+import dev.gkissel.forgeweave.entity.ArrowEntity;
 import dev.gkissel.forgeweave.modifier.ForgeweaveModifiers;
 import dev.gkissel.forgeweave.tool.LauncherStats;
 import dev.gkissel.forgeweave.tool.ToolConstants;
+import dev.gkissel.forgeweave.trait.EnergyBuffer;
 import dev.gkissel.forgeweave.trait.ForgeweaveTraits;
 
 /**
@@ -295,10 +298,20 @@ public class BowItem extends ToolItem {
         // ItemBow.getArrowVelocity((int)(progress * 20f)) * progress * baseProjectileSpeed() * range
         float velocity = net.minecraft.world.item.BowItem.getPowerForTime((int) (progress * 20.0F))
                 * progress * baseProjectileSpeed * range;
+        // #956 phase 2: a Draconic Evolution projectile module on an evolved bow, as ModularBow's own
+        // release path applies it -- speed times 1 + velocity, inaccuracy times 1 - accuracy, arrow
+        // damage times 1 + damage. NONE without that mod, without a module, or with a buffer too
+        // empty to pay the shot, in which case the bow still fires at exactly its own numbers
+        // (Draconic Evolution's own bow instead refuses to fire; see DraconicModuleEffects).
+        DraconicModules.Projectile projectile = DraconicModules.projectile(bow);
+        velocity *= 1.0F + projectile.velocity();
 
         if (level instanceof ServerLevel) {
+            if (projectile.any()) {
+                EnergyBuffer.extract(bow, DraconicModules.shotEnergyCost(bow), false);
+            }
             // TinkerToolEvent.OnBowShoot, as the two ammo-trait adjustments it exists for.
-            float inaccuracy = this.baseInaccuracy;
+            float inaccuracy = this.baseInaccuracy * (1.0F - projectile.accuracy());
             int projectileCount = 1;
             if (ForgeweaveTraits.has(ammo, ForgeweaveTraits.ENDSPEED)) {
                 inaccuracy *= ENDSPEED_INACCURACY_FACTOR;
@@ -314,6 +327,15 @@ public class BowItem extends ToolItem {
                 float shotInaccuracy = i == 0 ? inaccuracy : inaccuracy + SPLITTING_BONUS_INACCURACY;
                 AbstractArrow arrow =
                         createArrow(toShoot, bow, level, player, velocity, shotInaccuracy, usedAmmo, progress);
+                if (projectile.damage() != 0.0F) {
+                    // A Forgeweave arrow carries its launch damage as flatDamage (ArrowEntity's own
+                    // field, divided by speed on impact); vanilla ammo carries it as baseDamage.
+                    if (arrow instanceof ArrowEntity forgeweaveArrow) {
+                        forgeweaveArrow.setFlatDamage(forgeweaveArrow.flatDamage() * (1.0F + projectile.damage()));
+                    } else {
+                        arrow.setBaseDamage(arrow.getBaseDamage() * (1.0 + projectile.damage()));
+                    }
+                }
                 if (progress >= 1.0F) {
                     arrow.setCritArrow(true);
                 }

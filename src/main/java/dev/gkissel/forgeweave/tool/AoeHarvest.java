@@ -24,6 +24,7 @@ import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
 
+import dev.gkissel.forgeweave.compat.draconic.modules.DraconicModules;
 import dev.gkissel.forgeweave.item.ToolItem;
 import dev.gkissel.forgeweave.modifier.ForgeweaveModifiers;
 import dev.gkissel.forgeweave.modifier.Modifier;
@@ -129,15 +130,20 @@ public final class AoeHarvest {
      * upstream {@code ToolEvents#onExtraBlockBreak}, which is the one place those magnitudes live.
      * Returns {@code {width, height}}.
      */
-    private static int[] expandedDimensions(Shape shape, Set<Modifier.AoeAxis> axes) {
+    private static int[] expandedDimensions(Shape shape, Set<Modifier.AoeAxis> axes, int draconicAoe) {
+        // #956: a Draconic Evolution area module widens the same box. Its AOEData.aoe is a radius --
+        // IModularMiningTool#getMiningArea builds the box that far out in each direction perpendicular
+        // to the face -- so n grows both the width and the height by 2n. 0 without that mod or an
+        // area module, which leaves every number below exactly as it was.
+        int draconic = 2 * draconicAoe;
         if (shape == Shape.MATTOCK) {
             // Upstream's mattock branch grows both axes by the count, not one axis each.
             int both = axes.size();
-            return new int[] {shape.baseWidth + both, shape.baseHeight + both};
+            return new int[] {shape.baseWidth + both + draconic, shape.baseHeight + both + draconic};
         }
         return new int[] {
-            shape.baseWidth + (axes.contains(Modifier.AoeAxis.WIDTH) ? shape.expansion : 0),
-            shape.baseHeight + (axes.contains(Modifier.AoeAxis.HEIGHT) ? shape.expansion : 0)
+            shape.baseWidth + (axes.contains(Modifier.AoeAxis.WIDTH) ? shape.expansion : 0) + draconic,
+            shape.baseHeight + (axes.contains(Modifier.AoeAxis.HEIGHT) ? shape.expansion : 0) + draconic
         };
     }
 
@@ -203,6 +209,11 @@ public final class AoeHarvest {
             } else if (!veins && shape == Shape.VEIN) {
                 return;
             }
+        }
+        // #956: a Draconic Evolution area module gives a shape to a tool that has none of its own,
+        // the way it does for DE's own tools -- the box below then widens from a single block.
+        if (shape == Shape.NONE && DraconicModules.miningAoe(tool) > 0) {
+            shape = Shape.SINGLE;
         }
         if (shape == Shape.NONE) {
             return;
@@ -326,7 +337,8 @@ public final class AoeHarvest {
      */
     private static boolean isBareSingleBlock(ItemStack tool, Shape shape) {
         return (shape == Shape.SINGLE || shape == Shape.MATTOCK)
-                && ForgeweaveModifiers.aoeExpansion(tool).isEmpty();
+                && ForgeweaveModifiers.aoeExpansion(tool).isEmpty()
+                && DraconicModules.miningAoe(tool) == 0;
     }
 
     private static List<BlockPos> breakable(ItemStack tool, Level level, Player player, BlockPos origin,
@@ -393,7 +405,7 @@ public final class AoeHarvest {
      */
     private static List<BlockPos> box(ItemStack tool, Player player, BlockPos origin, Shape shape) {
         Set<Modifier.AoeAxis> axes = ForgeweaveModifiers.aoeExpansion(tool);
-        int[] dimensions = expandedDimensions(shape, axes);
+        int[] dimensions = expandedDimensions(shape, axes, DraconicModules.miningAoe(tool));
         int width = dimensions[0];
         int height = dimensions[1];
         int depth = shape.baseDepth;

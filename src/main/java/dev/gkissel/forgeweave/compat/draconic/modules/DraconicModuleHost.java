@@ -16,6 +16,8 @@ import org.jetbrains.annotations.Nullable;
 
 import net.minecraft.tags.BlockTags;
 import net.minecraft.tags.TagKey;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.ItemLike;
@@ -210,6 +212,45 @@ public final class DraconicModuleHost implements DraconicModules.Bridge {
         try (ModuleHostImpl host = hostFor(stack)) {
             return host == null ? 0 : host.getModuleEntities().size();
         }
+    }
+
+    // The tool-active effects (issue #956 phase 2) all live in DraconicModuleEffects; this class
+    // stays about hosting. Every one of them answers neutrally for a stack that is not a host, which
+    // is what makes a module effect on a tool without one a no-op rather than a crash.
+
+    @Override
+    public float digSpeedMultiplier(ItemStack stack) {
+        return DraconicModuleEffects.digSpeedMultiplier(stack);
+    }
+
+    @Override
+    public int miningAoe(ItemStack stack) {
+        return DraconicModuleEffects.miningAoe(stack);
+    }
+
+    @Override
+    public int miningEnergyCost(ItemStack stack) {
+        return DraconicModuleEffects.miningEnergyCost(stack);
+    }
+
+    @Override
+    public float attackDamageBonus(ItemStack stack) {
+        return DraconicModuleEffects.attackDamageBonus(stack);
+    }
+
+    @Override
+    public boolean meleeAoe(Player player, Entity target, ItemStack stack, float damage) {
+        return DraconicModuleEffects.meleeAoe(player, target, stack, damage);
+    }
+
+    @Override
+    public DraconicModules.Projectile projectile(ItemStack stack) {
+        return DraconicModuleEffects.projectile(stack);
+    }
+
+    @Override
+    public int shotEnergyCost(ItemStack stack) {
+        return DraconicModuleEffects.shotEnergyCost(stack);
     }
 
     @Override
