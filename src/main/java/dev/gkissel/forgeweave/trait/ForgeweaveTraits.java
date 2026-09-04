@@ -109,6 +109,7 @@ import dev.gkissel.forgeweave.combat.ShortenInvulnerability;
 import dev.gkissel.forgeweave.combat.StackingSlownessOnHitSeam;
 import dev.gkissel.forgeweave.combat.StripEffects;
 import dev.gkissel.forgeweave.combat.ThornsReflectSeam;
+import dev.gkissel.forgeweave.compat.draconic.modules.DraconicModules;
 import dev.gkissel.forgeweave.entity.ForgeweaveEntities;
 import dev.gkissel.forgeweave.item.ArmorPieceItem;
 import dev.gkissel.forgeweave.item.CapturedMob;
@@ -2439,9 +2440,13 @@ public final class ForgeweaveTraits {
      * summed the same way {@link #maxDurabilityBonus} is. Zero for a tool with no energy trait --
      * what keeps {@code Capabilities.EnergyStorage.ITEM} absent for it (issue #830 deliverable 1,
      * {@link EnergyBuffer#capability}).
+     *
+     * <p>Draconic Evolution's energy modules add to the same total (issue #956), so one buffer serves
+     * a Forgeweave charger and a Draconic energy module alike rather than the tool carrying two. The
+     * call answers 0 on any install without that mod, and on any stack with no {@code evolved} trait.
      */
     public static int energyCapacity(ItemStack stack) {
-        int capacity = 0;
+        int capacity = DraconicModules.moduleEnergyCapacity(stack);
         for (Trait trait : of(stack)) {
             capacity += trait.energyCapacity();
         }
