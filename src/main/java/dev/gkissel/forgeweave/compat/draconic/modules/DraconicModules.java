@@ -21,30 +21,35 @@ import net.minecraft.world.item.ItemStack;
  *
  * <h2>The grid table</h2>
  *
- * <p>The maintainer's allowance (2026-09-04) is 2 / 4 / 8 modules for {@code evolved} I / II / III.
- * Draconic Evolution spends modules on a grid rather than in slots: a module occupies a
- * width-by-height rectangle of cells, and most of the roster is 1x1. So the allowance becomes a grid
- * whose cell count is exactly that number, 2x1, 2x2 and 4x2. Two of the roster are bigger than one
- * cell (the shield controller is 2x2, the energy link 4x4), which is deliberate: an {@code evolved} I
- * tool cannot fit a shield controller at all, {@code evolved} II fits one and nothing else, and the
- * energy link never fits.
+ * <p>Draconic Evolution spends modules on a grid rather than in slots: a module occupies a
+ * width-by-height rectangle of cells, and most of the roster is 1x1. The maintainer's table (issue
+ * #965, 2026-09-04) is 2x3 inert, 2x6 wyvern, 4x5 awakened and 6x6 chaotic, width by height, so the
+ * 1x1 allowance those grids work out to is 6 / 12 / 20 / 36. It replaces the 2x1 / 2x2 / 4x2 table
+ * issue #962 shipped, which the same maintainer call widened.
+ *
+ * <p>Two of Draconic Evolution's roster are bigger than one cell, and the shapes rather than the
+ * cell counts decide where they land: the shield controller is 2x2 and fits every tier including the
+ * inert one, and the energy link is 4x4, which needs the 4x5 awakened grid or the 6x6 chaotic one --
+ * the 2-wide inert and wyvern grids cannot take it however many cells they have.
  *
  * <p>For scale, Draconic Evolution's own tool grids at the matching tech levels are 4x4 (wyvern),
  * 6x5 (draconic) and 8x6 (chaotic), and its chestpieces 6x5 / 8x6 / 10x8 ({@code ModuleCfg}'s static
- * defaults). Forgeweave's evolved gear is deliberately far tighter than DE's own equipment: modules
- * are a second perk of a fusion metal, not a replacement for building a wyvern pickaxe. Retuning is
- * one edit to {@link #GRIDS}.
+ * defaults). Forgeweave's evolved gear is still under DE's own equipment at every tier, and the
+ * inert tier has no DE counterpart at all. Retuning is one edit to {@link #GRIDS}, which is also
+ * where {@code ForgeweaveTraits}'s tooltip allowance reads its numbers.
  */
 public final class DraconicModules {
 
     /**
-     * Grid width and height per {@code evolved} level, index 0 being level I. The cell counts are the
-     * maintainer's 2 / 4 / 8; read the class javadoc before changing either number.
+     * Grid width and height per {@code evolved} level, index 0 being level 1 (inert). The one table
+     * behind both the {@code ModuleHostImpl} the capability hands out and issue #955's tooltip
+     * allowance; read the class javadoc before changing a number.
      */
     private static final List<int[]> GRIDS = List.of(
-            new int[] {2, 1},
-            new int[] {2, 2},
-            new int[] {4, 2});
+            new int[] {2, 3},
+            new int[] {2, 6},
+            new int[] {4, 5},
+            new int[] {6, 6});
 
     /** The highest {@code evolved} level with a grid, which is also the number of fusion metals. */
     public static final int MAX_EVOLVED = GRIDS.size();
@@ -71,7 +76,8 @@ public final class DraconicModules {
 
     /**
      * How many 1x1 modules the grid holds, which is the maintainer's allowance and the {@code m} in
-     * issue #955's {@code Draconic upgrades: n of m} tooltip line.
+     * issue #955's {@code Draconic upgrades: n of m} tooltip line. 0 for a level with no grid, which
+     * is what a tool carrying no tier marker gets.
      */
     public static int moduleSlots(int evolvedLevel) {
         return gridWidth(evolvedLevel) * gridHeight(evolvedLevel);

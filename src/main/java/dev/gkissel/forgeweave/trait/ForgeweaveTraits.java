@@ -3467,52 +3467,57 @@ public final class ForgeweaveTraits {
     };
 
     /**
-     * {@code evolved(I-III)}: the three fusion metals' marker trait (issue #946). It has no hooks
-     * and changes nothing about how a tool swings or mines. Its whole job is to say which tier of
-     * fusion metal a tool is made of, so that
+     * The four Draconic tier markers (issues #946 and #965). None of them has a hook and none
+     * changes how a tool swings or mines. Their whole job is to say which tier of fusion metal or
+     * Draconic Evolution core a tool is made of, so that
      * {@code compat.draconic.FusionUpgradeRecipe#upgrade} can refuse a catalyst that has not
      * earned the rung it is standing on -- a plain iron pickaxe never starts a fusion upgrade, and
      * an emberweld one never starts a draconic-tier rung.
+     *
+     * <p>{@code evolving} is the inert tier issue #965 added underneath. The three ids above it kept
+     * both their names and their meaning: {@code evolved} is still the wyvern tier, {@code evolved2}
+     * still draconic and {@code evolved3} still chaotic, so a tool already in a save stands exactly
+     * where it stood. That is also why the roman numerals now read one behind the level -- the
+     * ladder grew a rung at the bottom rather than renumbering itself.
      *
      * <p>Read off the tool's trait list rather than off its materials, which is why it has to be a
      * trait at all: by the time a stack sits in a Fusion Crafting core, the parts it was built from
      * are gone and {@code ForgeweaveDataComponents#TRAITS} is the only record of what it is made of.
      *
-     * <p>The three levels are separate ids sharing one no-op instance, the leveled shape
+     * <p>The four levels are separate ids sharing one no-op instance, the leveled shape
      * {@link #SURGING}/{@link #SURGING2}/{@link #SURGING3} already uses. No factory: there is
      * nothing per level to parameterize.
      */
-    public static final Trait EVOLVED = new Trait() {
+    public static final Trait EVOLVING = new Trait() {
         @Override
         public void stateLines(ItemStack stack, Consumer<Component> out) {
             evolvedStateLines(1, stack, out);
         }
     };
 
-    /** {@code evolved(II)}; see {@link #EVOLVED}. */
-    public static final Trait EVOLVED2 = new Trait() {
+    /** {@code evolved}, the wyvern tier; see {@link #EVOLVING}. */
+    public static final Trait EVOLVED = new Trait() {
         @Override
         public void stateLines(ItemStack stack, Consumer<Component> out) {
             evolvedStateLines(2, stack, out);
         }
     };
 
-    /** {@code evolved(III)}; see {@link #EVOLVED}. */
-    public static final Trait EVOLVED3 = new Trait() {
+    /** {@code evolved2}, the draconic tier; see {@link #EVOLVING}. */
+    public static final Trait EVOLVED2 = new Trait() {
         @Override
         public void stateLines(ItemStack stack, Consumer<Component> out) {
             evolvedStateLines(3, stack, out);
         }
     };
 
-    /**
-     * Draconic Evolution's own module-grid allowance per {@code evolved} tier, maintainer decision
-     * (issue #955): tier I allows 2 upgrades, II allows 4, III allows 8, the same count DE's own
-     * tiers grant on its module grid. Index 0 is unused -- there is no tier 0 -- so a tier's own
-     * number lives at its own index. Public and one constant table, per the issue, so the coming
-     * module-host issue can read the same numbers rather than re-deriving them.
-     */
-    public static final int[] EVOLVED_ALLOWANCE = {0, 2, 4, 8};
+    /** {@code evolved3}, the chaotic tier; see {@link #EVOLVING}. */
+    public static final Trait EVOLVED3 = new Trait() {
+        @Override
+        public void stateLines(ItemStack stack, Consumer<Component> out) {
+            evolvedStateLines(4, stack, out);
+        }
+    };
 
     /**
      * The {@link ForgeweaveDraconicCompat#UPGRADE_LINES} modifier ids, i.e. every modifier a Fusion
@@ -3523,13 +3528,17 @@ public final class ForgeweaveTraits {
             .collect(Collectors.toUnmodifiableSet());
 
     /**
-     * {@code Draconic upgrades: 1 of 4} (issue #955): {@code used} is how many of the tool's Modifiers
+     * {@code Draconic upgrades: 1 of 12} (issue #955): {@code used} is how many of the tool's Modifiers
      * are ids {@link #FUSION_MODIFIER_IDS} names -- one used slot per fusion-upgrade line applied,
      * matching how each occupies one module in Draconic Evolution's own grid, not the modifier's own
      * (possibly multi-application) level. Highest evolved level wins when a head-and-handle mix
      * carries more than one: {@code level} only emits a line when it is
      * {@link ForgeweaveDraconicCompat#evolvedLevel} itself, so a lower or higher {@code evolved} id on
      * another part stays silent rather than showing a second, contradicting line.
+     *
+     * <p>The allowance is {@link DraconicModules#moduleSlots} rather than a second table of its own
+     * (issue #965): the tooltip's {@code m} and the module host's grid have to be the same number,
+     * and the grid table is where it lives.
      */
     private static void evolvedStateLines(int level, ItemStack stack, Consumer<Component> out) {
         if (ForgeweaveDraconicCompat.evolvedLevel(stack) != level) {
@@ -3541,7 +3550,8 @@ public final class ForgeweaveTraits {
                 used++;
             }
         }
-        out.accept(Component.translatable("tooltip.forgeweave.trait.evolved", used, EVOLVED_ALLOWANCE[level])
+        out.accept(Component.translatable("tooltip.forgeweave.trait.evolved", used,
+                        DraconicModules.moduleSlots(level))
                 .withStyle(ChatFormatting.GRAY));
     }
 
@@ -3759,7 +3769,9 @@ public final class ForgeweaveTraits {
             Map.entry(id("blastvent"), BLASTVENT),
             // #946 -- the fusion metals' gating marker; soul rend, the metals' other trait, is a
             // datapack trait_definition instead (trait_definition/soulrend*.json) because the
-            // lifesteal behaviour TraitBehaviors already ships fits it exactly.
+            // lifesteal behaviour TraitBehaviors already ships fits it exactly. #965 added
+            // `evolving`, the inert tier, under the three without renumbering them.
+            Map.entry(id("evolving"), EVOLVING),
             Map.entry(id("evolved"), EVOLVED),
             Map.entry(id("evolved2"), EVOLVED2),
             Map.entry(id("evolved3"), EVOLVED3));

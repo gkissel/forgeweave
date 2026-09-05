@@ -177,10 +177,11 @@ class MaterialTest {
             // core-tier pair, Refined Storage and Powah.
             "dark_matter", "red_matter", "crystal_matrix", "cosmic_neutronium", "infinity",
             "wyvern", "chaotic", "quartz_enriched_iron", "silicon", "energised_steel",
-            // #946 M8: the three Draconic Evolution fusion metals, gated on the DE core each one's
+            // #946 M8: the Draconic Evolution fusion metals, gated on the DE core each one's
             // fusion recipe consumes. They sit above the wyvern/chaotic preset pair, which stays as
-            // the raw tier under them.
-            "emberweld", "starweld", "voidweld" })
+            // the raw tier under them. #965 added duskweld at the inert tier under the three, and
+            // the draconium core material beside the other three cores.
+            "duskweld", "emberweld", "starweld", "voidweld", "draconium_core" })
     void shippedMaterialsParse(String name) {
         Material.CODEC.parse(ops, shipped(name)).getOrThrow();
     }
@@ -738,9 +739,10 @@ class MaterialTest {
             // is, so they are listed here too.
             "bronze", "lead", "silver", "electrum",
             "alumite", "osgloglas", "osmiridium",
-            // #946: the three fusion metals are cast-only the same way -- the Part Builder never
-            // takes them, and a fusion craft is the only thing that makes their ingot at all.
-            "emberweld", "starweld", "voidweld",
+            // #946: the fusion metals are cast-only the same way -- the Part Builder never takes
+            // them, and a fusion craft is the only thing that makes their ingot at all. #965 added
+            // duskweld under the three.
+            "duskweld", "emberweld", "starweld", "voidweld",
             "tin", "aluminium", "nickel", "constantan", "invar", "platinum", "titanium", "tungsten",
             "iridium", "uranium", "graphite",
             "redstone_alloy", "energetic_alloy", "pulsating_alloy", "conductive_alloy", "vibrant_alloy",
@@ -785,8 +787,9 @@ class MaterialTest {
             // into and nothing to pour out of it -- so they lost the fluid, the melting recipe, the
             // casting rows and the cast_only flag #872/#873 had given the pair. `awakened` is this
             // issue's new material, the rung between wyvern and chaotic; the ingot metals
-            // (draconium, draconium_awakened) are unaffected and stay cast-only above.
-            "wyvern", "awakened", "chaotic" })
+            // (draconium, draconium_awakened) are unaffected and stay cast-only above. #965 added
+            // draconium_core, the inert tech level's core, on the same terms.
+            "wyvern", "awakened", "chaotic", "draconium_core" })
     void craftableMaterialsStayCraftable(String name) {
         assertFalse(Material.CODEC.parse(ops, shipped(name)).getOrThrow().castOnly(),
                 name + " must stay Part Builder craftable");
@@ -1021,7 +1024,9 @@ class MaterialTest {
                 // tool to decide which fusion upgrade rung will take it, so the tier has to be
                 // spelled the same way wherever it is granted -- by a fusion metal (#946) or by the
                 // Draconic core material at the matching tier. Same shape as overslime above: a
-                // shared mechanic keyed on one id, not a per-material name.
+                // shared mechanic keyed on one id, not a per-material name. #965 added the inert
+                // tier's marker, which the draconium core and duskweld share for the same reason.
+                "forgeweave:evolving",
                 "forgeweave:evolved", "forgeweave:evolved2", "forgeweave:evolved3");
         java.util.Map<String, List<String>> claimants = new java.util.TreeMap<>();
 

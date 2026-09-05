@@ -1,0 +1,83 @@
+{
+  "head": {
+    "durability": 1080,
+    "mining_speed": 8.1,
+    "attack_damage": 9.4
+  },
+  "handle": {
+    "durability_modifier": 1.04,
+    "durability": 74
+  },
+  "extra_durability": 105,
+  "bow": {
+    "drawspeed": 0.38,
+    "range": 1.55,
+    "bonus_damage": 7.5
+  },
+  "plating": {
+    "helmet": {
+      "durability": 445,
+      "armor": 4.1,
+      "toughness": 4.1,
+      "knockback_resistance": 0.16
+    },
+    "chestplate": {
+      "durability": 640,
+      "armor": 9.1,
+      "toughness": 4.1,
+      "knockback_resistance": 0.16
+    },
+    "leggings": {
+      "durability": 600,
+      "armor": 7.1,
+      "toughness": 4.1,
+      "knockback_resistance": 0.16
+    },
+    "boots": {
+      "durability": 518,
+      "armor": 4.1,
+      "toughness": 4.1,
+      "knockback_resistance": 0.16
+    }
+  },
+  "maille": true,
+  "incorrect_for_tool": "minecraft:incorrect_for_netherite_tool",
+  "traits": {
+    "general": [
+      "forgeweave:evolving",
+      "forgeweave:soulwick"
+    ]
+  },
+  "crafting_items": [
+    {
+      "ingredient": {
+        "item": "forgeweave:duskweld_ingot"
+      },
+      "value": 144
+    },
+    {
+      "ingredient": {
+        "item": "forgeweave:duskweld_nugget"
+      },
+      "value": 16
+    },
+    {
+      "ingredient": {
+        "item": "forgeweave:duskweld_block"
+      },
+      "value": 1296
+    }
+  ],
+  "repair_item": {
+    "tag": "c:ingots/duskweld"
+  },
+  "cast_only": true,
+  "enchantability": 18,
+  "color": "#7E2A6E",
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "draconicevolution:draconium_core"
+    }
+  ]
+}

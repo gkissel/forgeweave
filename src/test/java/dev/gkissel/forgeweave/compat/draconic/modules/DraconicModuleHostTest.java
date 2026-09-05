@@ -55,26 +55,60 @@ class DraconicModuleHostTest {
         DraconicModules.install(null);
     }
 
-    /** A stack of {@code item} carrying {@code forgeweave:evolved<level>}, or none at level 0. */
+    /**
+     * A stack of {@code item} carrying the tier marker for {@code level}, or none at level 0. The
+     * ids read one behind the level because issue #965 added {@code evolving} under the three
+     * shipped {@code evolved} ids rather than renumbering them.
+     */
+    private static final List<String> TIER_TRAITS = List.of("evolving", "evolved", "evolved2", "evolved3");
+
     private static ItemStack evolved(net.minecraft.world.level.ItemLike item, int level) {
         ItemStack stack = new ItemStack(item);
         if (level > 0) {
-            stack.set(ForgeweaveDataComponents.TRAITS.get(), List.of(ResourceLocation
-                    .fromNamespaceAndPath("forgeweave", level == 1 ? "evolved" : "evolved" + level)));
+            stack.set(ForgeweaveDataComponents.TRAITS.get(), List.of(
+                    ResourceLocation.fromNamespaceAndPath("forgeweave", TIER_TRAITS.get(level - 1))));
         }
         return stack;
     }
 
+    /** Issue #965's grid table: 2x3, 2x6, 4x5 and 6x6, so 6 / 12 / 20 / 36 one-cell modules. */
     @Test
-    void theGridTableIsTheMaintainersTwoFourEightAllowance() {
-        assertEquals(2, DraconicModules.moduleSlots(1));
-        assertEquals(4, DraconicModules.moduleSlots(2));
-        assertEquals(8, DraconicModules.moduleSlots(3));
+    void theGridTableIsTheMaintainersFourTierTable() {
+        assertEquals(4, DraconicModules.MAX_EVOLVED, "one grid per Draconic Evolution tech level");
+        assertEquals(List.of(2, 3), List.of(DraconicModules.gridWidth(1), DraconicModules.gridHeight(1)));
+        assertEquals(List.of(2, 6), List.of(DraconicModules.gridWidth(2), DraconicModules.gridHeight(2)));
+        assertEquals(List.of(4, 5), List.of(DraconicModules.gridWidth(3), DraconicModules.gridHeight(3)));
+        assertEquals(List.of(6, 6), List.of(DraconicModules.gridWidth(4), DraconicModules.gridHeight(4)));
+
+        assertEquals(List.of(6, 12, 20, 36), List.of(DraconicModules.moduleSlots(1),
+                DraconicModules.moduleSlots(2), DraconicModules.moduleSlots(3), DraconicModules.moduleSlots(4)));
         for (int level = 1; level <= DraconicModules.MAX_EVOLVED; level++) {
             assertEquals(DraconicModules.moduleSlots(level),
                     DraconicModules.gridWidth(level) * DraconicModules.gridHeight(level),
                     "the slot count must be the grid's own cell count at evolved " + level);
         }
+    }
+
+    /**
+     * Where Draconic Evolution's two multi-cell modules land, which is a shape question rather than
+     * a cell-count one. The shield controller is 2x2 and the energy link 4x4, both read off
+     * {@code ModuleTypes} in DE 1.21.1-3.1.4.633: the shield controller fits every tier, and the
+     * energy link needs a grid at least four wide, so the two-wide inert and wyvern grids refuse it
+     * however many cells they hold.
+     */
+    @Test
+    void theShieldControllerFitsEveryTierAndTheEnergyLinkOnlyTheTopTwo() {
+        for (int level = 1; level <= DraconicModules.MAX_EVOLVED; level++) {
+            assertTrue(fits(level, 2, 2), "the 2x2 shield controller must fit at evolved " + level);
+        }
+        assertFalse(fits(1, 4, 4), "the inert 2x3 grid is too narrow for the 4x4 energy link");
+        assertFalse(fits(2, 4, 4), "so is the wyvern 2x6 grid, wide as its cell count is");
+        assertTrue(fits(3, 4, 4), "the awakened 4x5 grid takes it");
+        assertTrue(fits(4, 4, 4), "and so does the chaotic 6x6 one");
+    }
+
+    private static boolean fits(int level, int width, int height) {
+        return DraconicModules.gridWidth(level) >= width && DraconicModules.gridHeight(level) >= height;
     }
 
     @Test
@@ -88,7 +122,8 @@ class DraconicModuleHostTest {
 
     @Test
     void theHostTierAndGridFollowTheEvolvedLevel() {
-        List<TechLevel> expected = List.of(TechLevel.WYVERN, TechLevel.DRACONIC, TechLevel.CHAOTIC);
+        List<TechLevel> expected =
+                List.of(TechLevel.DRACONIUM, TechLevel.WYVERN, TechLevel.DRACONIC, TechLevel.CHAOTIC);
         for (int level = 1; level <= DraconicModules.MAX_EVOLVED; level++) {
             ModuleHostImpl host = DraconicModuleHost.newHost(evolved(ForgeweaveItems.TOOL_PICKAXE.get(), level));
             assertNotNull(host, "evolved " + level + " must be a host");

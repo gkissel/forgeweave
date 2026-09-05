@@ -118,9 +118,12 @@ class TraitStateLinesTest {
     // ---------------------------------------------------------------- evolved
 
     /**
-     * A head-and-handle mix of evolved I and evolved II: the tool's overall level is the higher one
-     * (issue #955's "highest wins"), so only {@code EVOLVED2} emits a line and {@code EVOLVED} stays
-     * silent rather than showing a second, contradicting one.
+     * A head-and-handle mix of the wyvern and draconic markers: the tool's overall level is the
+     * higher one (issue #955's "highest wins"), so only {@code EVOLVED2} emits a line and
+     * {@code EVOLVED} stays silent rather than showing a second, contradicting one.
+     *
+     * <p>The allowance is issue #965's grid table, so the draconic tier reads 20 rather than #955's
+     * original 4.
      */
     @Test
     void evolvedTheHighestLevelAcrossPartsIsTheOnlyOneThatSpeaks() {
@@ -129,16 +132,39 @@ class TraitStateLinesTest {
                 List.of(id("evolved"), id("evolved2")));
 
         assertEquals(List.of(), stateLines(ForgeweaveTraits.EVOLVED, stack),
-                "evolved I is outranked by evolved II on another part");
-        assertEquals(List.of(Component.translatable("tooltip.forgeweave.trait.evolved", 0, 4)
+                "the wyvern marker is outranked by the draconic one on another part");
+        assertEquals(List.of(Component.translatable("tooltip.forgeweave.trait.evolved", 0, 20)
                         .withStyle(ChatFormatting.GRAY)),
                 stateLines(ForgeweaveTraits.EVOLVED2, stack));
     }
 
     /**
+     * Every tier's allowance is the cell count of its own grid in
+     * {@code compat.draconic.modules.DraconicModules} -- 6 / 12 / 20 / 36 since issue #965 -- rather
+     * than a second table beside it.
+     */
+    @Test
+    void evolvedTheAllowanceIsTheModuleGridsOwnCellCount() {
+        List<Integer> allowances = List.of(6, 12, 20, 36);
+        List<String> markers = List.of("evolving", "evolved", "evolved2", "evolved3");
+        List<Trait> traits = List.of(ForgeweaveTraits.EVOLVING, ForgeweaveTraits.EVOLVED,
+                ForgeweaveTraits.EVOLVED2, ForgeweaveTraits.EVOLVED3);
+
+        for (int level = 1; level <= markers.size(); level++) {
+            ItemStack stack = blankStack();
+            stack.set(ForgeweaveDataComponents.TRAITS.get(), List.of(id(markers.get(level - 1))));
+            assertEquals(List.of(Component
+                            .translatable("tooltip.forgeweave.trait.evolved", 0, allowances.get(level - 1))
+                            .withStyle(ChatFormatting.GRAY)),
+                    stateLines(traits.get(level - 1), stack),
+                    markers.get(level - 1) + " must read its own grid's cell count");
+        }
+    }
+
+    /**
      * Two fusion-upgrade modifiers already applied (haste and sharpness, both in
-     * {@code ForgeweaveDraconicCompat.UPGRADE_LINES}) count as two used upgrades against evolved III's
-     * allowance of 8; a non-fusion modifier (soulbound) does not count.
+     * {@code ForgeweaveDraconicCompat.UPGRADE_LINES}) count as two used upgrades against the chaotic
+     * tier's allowance of 36; a non-fusion modifier (soulbound) does not count.
      */
     @Test
     void evolvedCountsOnlyModifiersInTheFusionRoster() {
@@ -149,16 +175,17 @@ class TraitStateLinesTest {
                 new ModifierEntry(id("sharpness"), 144),
                 new ModifierEntry(id("soulbound"), 1)));
 
-        assertEquals(List.of(Component.translatable("tooltip.forgeweave.trait.evolved", 2, 8)
+        assertEquals(List.of(Component.translatable("tooltip.forgeweave.trait.evolved", 2, 36)
                         .withStyle(ChatFormatting.GRAY)),
                 stateLines(ForgeweaveTraits.EVOLVED3, stack));
     }
 
-    /** A tool with no {@code evolved} trait at all: every level stays silent, none of them are "the" level. */
+    /** A tool with no tier marker at all: every level stays silent, none of them are "the" level. */
     @Test
     void evolvedWithNoTraitAtAllShowsNothingFromAnyLevel() {
         ItemStack stack = blankStack();
 
+        assertEquals(List.of(), stateLines(ForgeweaveTraits.EVOLVING, stack));
         assertEquals(List.of(), stateLines(ForgeweaveTraits.EVOLVED, stack));
         assertEquals(List.of(), stateLines(ForgeweaveTraits.EVOLVED2, stack));
         assertEquals(List.of(), stateLines(ForgeweaveTraits.EVOLVED3, stack));

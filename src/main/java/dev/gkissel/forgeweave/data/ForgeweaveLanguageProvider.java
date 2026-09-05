@@ -1032,6 +1032,9 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         // Builder only. The awakened core had no material at all before this; the id is new, so no
         // shipped id moved.
         add("material.forgeweave.awakened", "Awakened Core");
+        // #965 -- the draconium core, the fourth and lowest of Draconic Evolution's tech levels.
+        // Same Part Builder only shape as the three cores above; its id is new too.
+        add("material.forgeweave.draconium_core", "Draconium Core");
         add("material.forgeweave.quartz_enriched_iron", "Quartz Enriched Iron");
         add("material.forgeweave.silicon", "Silicon");
         add("material.forgeweave.energised_steel", "Energised Steel");
@@ -1140,7 +1143,9 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("material.forgeweave.emerald", "Emerald");
         add("material.forgeweave.amethyst", "Amethyst");
 
-        // #946 -- the three Draconic Evolution fusion metals, one per fusion tier.
+        // #946 -- the Draconic Evolution fusion metals, one per fusion tier. #965 added duskweld at
+        // the inert tier under them.
+        add("material.forgeweave.duskweld", "Duskweld");
         add("material.forgeweave.emberweld", "Emberweld");
         add("material.forgeweave.starweld", "Starweld");
         add("material.forgeweave.voidweld", "Voidweld");
@@ -2129,21 +2134,39 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("trait.forgeweave.ruthless.name", "Ruthless");
         add("trait.forgeweave.ruthless.description", "Critical hits deal even more damage.");
 
-        // #946 -- the three fusion metals' traits. Evolved has no effect of its own; it is what a
-        // fusion upgrade recipe checks before it will take the tool as a catalyst, so its
-        // description says that rather than promising a stat.
+        // #946 -- the fusion metals' traits. None of them has an effect of its own; each is what a
+        // fusion upgrade recipe checks before it will take the tool as a catalyst, so the
+        // descriptions say that rather than promising a stat.
+        //
+        // #965 added the inert tier under them and left the three shipped ids alone, so the roman
+        // numerals no longer match the rung. The descriptions name Draconic Evolution's own tier
+        // instead, which is what a player reads them against anyway.
+        add("trait.forgeweave.evolving.name", "Evolving");
+        add("trait.forgeweave.evolving.description",
+                "Fusion crafting accepts this tool for a draconium tier upgrade.");
         add("trait.forgeweave.evolved.name", "Evolved");
-        add("trait.forgeweave.evolved.description", "Fusion crafting accepts this tool for a tier I upgrade.");
+        add("trait.forgeweave.evolved.description",
+                "Fusion crafting accepts this tool up to a wyvern tier upgrade.");
         add("trait.forgeweave.evolved2.name", "Evolved II");
-        add("trait.forgeweave.evolved2.description", "Fusion crafting accepts this tool up to a tier II upgrade.");
+        add("trait.forgeweave.evolved2.description",
+                "Fusion crafting accepts this tool up to a draconic tier upgrade.");
         add("trait.forgeweave.evolved3.name", "Evolved III");
-        add("trait.forgeweave.evolved3.description", "Fusion crafting accepts this tool up to a tier III upgrade.");
+        add("trait.forgeweave.evolved3.description",
+                "Fusion crafting accepts this tool up to a chaotic tier upgrade.");
         add("trait.forgeweave.soulrend.name", "Soul Rend");
         add("trait.forgeweave.soulrend.description", "Heals the wielder for a share of the damage dealt.");
         add("trait.forgeweave.soulrend2.name", "Soul Rend II");
         add("trait.forgeweave.soulrend2.description", "Heals the wielder for a larger share of the damage dealt.");
         add("trait.forgeweave.soulrend3.name", "Soul Rend III");
         add("trait.forgeweave.soulrend3.description", "Heals the wielder for a big share of the damage dealt.");
+        // #965 -- duskweld's own on-hit trait and the draconium core's, both datapack definitions
+        // over behaviours TraitBehaviors already ships, the same shape soul rend uses above. A
+        // material never shares a trait id with another material, so the inert tier gets its own
+        // pair rather than borrowing the tier above's.
+        add("trait.forgeweave.soulwick.name", "Soul Wick");
+        add("trait.forgeweave.soulwick.description", "Heals the wielder for a small share of the damage dealt.");
+        add("trait.forgeweave.coremend.name", "Coremend");
+        add("trait.forgeweave.coremend.description", "Mends itself slowly, with no help from anyone.");
         add("trait.forgeweave.escalating.name", "Escalating");
         add("trait.forgeweave.escalating.description",
                 "Consecutive fully-charged hits deal more and more damage, fading if you stop landing them.");

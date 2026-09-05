@@ -75,6 +75,13 @@ public record TrackBAlloy(String id, int color, int temperature) {
     // the Track B readability floor: an ember red, a star blue and a void violet, one per tier.
     // Temperatures sit above every alloy above them, so all three need blazing blood to melt --
     // still under ForgeweaveFluids#BLAZING_BLOOD's 1500, the headroom that constant reserves.
+    // #965 -- duskweld, the inert-tier sibling the maintainer added under the three above
+    // (2026-09-04). Same shape and same pipeline; its gate is draconicevolution:draconium_core, the
+    // item Draconic Evolution puts at its own lowest tech level. Its dusk plum is the one hue left
+    // free at this end of the palette -- scripts/audit_palette.py puts it 0.107 from the nearest
+    // Track B tint, well over that roster's 0.085 floor -- and its temperature continues the ladder
+    // one step below emberweld.
+    public static final TrackBAlloy DUSKWELD = new TrackBAlloy("duskweld", 0x7E2A6E, 1430);
     public static final TrackBAlloy EMBERWELD = new TrackBAlloy("emberweld", 0xFF5A4A, 1450);
     public static final TrackBAlloy STARWELD = new TrackBAlloy("starweld", 0x2832D2, 1470);
     public static final TrackBAlloy VOIDWELD = new TrackBAlloy("voidweld", 0x8A2BE2, 1490);
@@ -83,7 +90,7 @@ public record TrackBAlloy(String id, int color, int temperature) {
             RIFTALLOY, TIDEIRON, CINDERFORGE, DREADALLOY, SUNSTEEL, HOLLOWSTEEL, TRUESTEEL, STORMALLOY,
             GLOWVEIL, DAYBRASS, FAULTSTEEL, SKIPALLOY, MENDALLOY, MENDSTONE,
             ALUMITE, OSGLOGLAS, OSMIRIDIUM,
-            EMBERWELD, STARWELD, VOIDWELD);
+            DUSKWELD, EMBERWELD, STARWELD, VOIDWELD);
 
     public String ingotId() {
         return id + "_ingot";
