@@ -1127,8 +1127,9 @@ public class CombatTraitGameTests {
 
         // The shipped fractions (trait_definition/soulrend*.json) against the onHit helper's 1.0
         // damage, all well under each level's own cap.
-        float[] expected = { 0.10F, 0.18F, 0.26F };
-        String[] ids = { "soulrend", "soulrend2", "soulrend3" };
+        // Soul wick (#965) is duskweld's own faint rung under the three, shipped the same way.
+        float[] expected = { 0.05F, 0.10F, 0.18F, 0.26F };
+        String[] ids = { "soulwick", "soulrend", "soulrend2", "soulrend3" };
         for (int level = 0; level < ids.length; level++) {
             helper.assertTrue(ForgeweaveTraits.lookup(traitId(ids[level])) != null,
                     "expected " + ids[level] + "'s trait definition to resolve to a behaviour after data load");
@@ -1155,7 +1156,7 @@ public class CombatTraitGameTests {
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         Zombie target = noAi(helper.spawn(EntityType.ZOMBIE, new BlockPos(2, 2, 2)));
 
-        for (String id : List.of("evolved", "evolved2", "evolved3")) {
+        for (String id : List.of("evolving", "evolved", "evolved2", "evolved3")) {
             helper.assertTrue(ForgeweaveTraits.lookup(traitId(id)) != null,
                     "expected " + id + " to be a registered Forgeweave trait");
             ItemStack hatchet = tool(ForgeweaveItems.TOOL_HATCHET.get(), List.of(traitId(id)), 3.0F);

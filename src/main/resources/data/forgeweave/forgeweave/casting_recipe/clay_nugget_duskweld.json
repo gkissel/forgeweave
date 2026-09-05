@@ -1,0 +1,18 @@
+{
+  "station": "table",
+  "cast": {
+    "item": "forgeweave:clay_cast_nugget"
+  },
+  "fluid": "forgeweave:molten_duskweld",
+  "amount": 16,
+  "result": {
+    "id": "forgeweave:duskweld_nugget"
+  },
+  "consumes_cast": true,
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "draconicevolution:draconium_core"
+    }
+  ]
+}

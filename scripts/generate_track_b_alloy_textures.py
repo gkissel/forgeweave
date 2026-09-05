@@ -73,6 +73,8 @@ ALLOYS = [
     ("alumite", 0xF5C7F8),
     ("osgloglas", 0x638D76),
     ("osmiridium", 0xC0A4D5),
+    # #965 -- duskweld, the inert rung under the three fusion metals.
+    ("duskweld", 0x7E2A6E),
     ("emberweld", 0xFF5A4A),
     ("starweld", 0x2832D2),
     ("voidweld", 0x8A2BE2),

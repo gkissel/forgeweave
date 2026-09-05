@@ -85,6 +85,11 @@ public final class CompatMaterialAvailability {
             // #946 -- the three fusion metals. Each one's gate is the Draconic Evolution core its own
             // fusion recipe consumes, which is also what its material JSON's `neoforge:item_exists`
             // names; no DE, no core item, no metal.
+            // #965 -- the draconium core material and duskweld, the inert rung under the three
+            // fusion metals. Both gate on draconicevolution:draconium_core, the item Draconic
+            // Evolution puts at that tech level.
+            entry("draconium_core", "draconicevolution:draconium_core"),
+            entry("duskweld", "draconicevolution:draconium_core"),
             entry("emberweld", "draconicevolution:wyvern_core"),
             entry("starweld", "draconicevolution:awakened_core"),
             entry("voidweld", "draconicevolution:chaotic_core"));

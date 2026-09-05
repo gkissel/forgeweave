@@ -56,10 +56,14 @@ public class DraconicEvolutionGameTests {
             // #953: the awakened core, the rung between wyvern and chaotic that #872 never added. It
             // hides on `draconicevolution:awakened_core` exactly like its two siblings.
             "awakened",
-            // #946 M8: the three fusion metals sit above that preset roster and hide the same way,
-            // each gated on the Draconic Evolution core its own fusion recipe consumes. The four
-            // above are unchanged and keep their ids -- they are the raw tier under these three.
-            "emberweld", "starweld", "voidweld" };
+            // #965: the draconium core, the inert tech level the roster had no material for. Hides
+            // on `draconicevolution:draconium_core`, the same shape as the three cores above.
+            "draconium_core",
+            // #946 M8: the fusion metals sit above that preset roster and hide the same way, each
+            // gated on the Draconic Evolution core its own fusion recipe consumes. The preset
+            // materials above are unchanged and keep their ids -- they are the raw tier under
+            // these. #965 added duskweld at the inert tier.
+            "duskweld", "emberweld", "starweld", "voidweld" };
 
     @GameTest(template = "empty")
     public static void unsuppliedDraconicEvolutionMaterialsDoNotExistAtAll(GameTestHelper helper) {

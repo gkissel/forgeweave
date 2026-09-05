@@ -1,0 +1,14 @@
+{
+  "station": "basin",
+  "fluid": "forgeweave:molten_duskweld",
+  "amount": 1296,
+  "result": {
+    "id": "forgeweave:duskweld_block"
+  },
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "draconicevolution:draconium_core"
+    }
+  ]
+}
