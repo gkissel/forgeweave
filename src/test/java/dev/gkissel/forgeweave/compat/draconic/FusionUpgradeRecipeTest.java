@@ -61,15 +61,22 @@ class FusionUpgradeRecipeTest {
     }
 
     /**
-     * A pickaxe carrying {@code forgeweave:evolved<level>} -- what a tool built out of one of the
-     * three fusion metals looks like by the time it reaches a crafting core (issue #946). Level 0
-     * gives a plain assembled pickaxe with no trait at all, i.e. the "iron tool" case.
+     * The four tier markers in ladder order. The ids read one behind the level they stand on:
+     * issue #965 added {@code evolving} underneath rather than renumbering the three shipped
+     * {@code evolved} ids, so a tool already in a save keeps the tier it was built at.
+     */
+    private static final List<String> TIER_TRAITS = List.of("evolving", "evolved", "evolved2", "evolved3");
+
+    /**
+     * A pickaxe carrying the tier marker for {@code level} -- what a tool built out of one of the
+     * four fusion metals looks like by the time it reaches a crafting core (issues #946, #965).
+     * Level 0 gives a plain assembled pickaxe with no trait at all, i.e. the "iron tool" case.
      */
     private static ItemStack evolvedTool(int level) {
         ItemStack pickaxe = new ItemStack(ForgeweaveItems.TOOL_PICKAXE.get());
         if (level > 0) {
-            pickaxe.set(ForgeweaveDataComponents.TRAITS.get(), List.of(ResourceLocation
-                    .fromNamespaceAndPath("forgeweave", level == 1 ? "evolved" : "evolved" + level)));
+            pickaxe.set(ForgeweaveDataComponents.TRAITS.get(), List.of(
+                    ResourceLocation.fromNamespaceAndPath("forgeweave", TIER_TRAITS.get(level - 1))));
         }
         return pickaxe;
     }
@@ -156,7 +163,7 @@ class FusionUpgradeRecipeTest {
     @Test
     void upgradeRaisesTheModifierOnAnAssembledTool() {
         FusionUpgradeRecipe recipe = decode(fixture(100, "wyvern", 8_000_000L));
-        ItemStack pickaxe = evolvedTool(1);
+        ItemStack pickaxe = evolvedTool(2);
 
         Optional<ItemStack> upgraded = recipe.upgrade(null, pickaxe);
 
@@ -175,7 +182,7 @@ class FusionUpgradeRecipeTest {
      */
     @Test
     void aFusionUpgradeSpendsNoModifierSlot() {
-        ItemStack pickaxe = evolvedTool(3);
+        ItemStack pickaxe = evolvedTool(4);
         int before = ForgeweaveModifiers.freeSlots(pickaxe);
 
         ItemStack wyvern = decode(fixture(100, "wyvern", 8_000_000L)).upgrade(null, pickaxe).orElseThrow();
@@ -212,7 +219,7 @@ class FusionUpgradeRecipeTest {
     @Test
     void upgradeRefusesAToolAlreadyAtOrAboveTheTiersLevel() {
         FusionUpgradeRecipe wyvern = decode(fixture(100, "wyvern", 8_000_000L));
-        ItemStack pickaxe = wyvern.upgrade(null, evolvedTool(3)).orElseThrow();
+        ItemStack pickaxe = wyvern.upgrade(null, evolvedTool(4)).orElseThrow();
 
         assertTrue(wyvern.upgrade(null, pickaxe).isEmpty(),
                 "the same rung twice is nothing gained, so the craft must not start");
@@ -237,7 +244,7 @@ class FusionUpgradeRecipeTest {
         json.addProperty("modifier", "forgeweave:veinmine");
         FusionUpgradeRecipe recipe = decode(json);
 
-        assertTrue(recipe.upgrade(null, evolvedTool(1)).isPresent(),
+        assertTrue(recipe.upgrade(null, evolvedTool(2)).isPresent(),
                 "vein mining is a harvest modifier and a pickaxe harvests");
         ItemStack sword = new ItemStack(ForgeweaveItems.TOOL_BROADSWORD.get());
         sword.set(ForgeweaveDataComponents.TRAITS.get(),
@@ -249,33 +256,55 @@ class FusionUpgradeRecipeTest {
 
     /**
      * Issue #946's gate: fusion crafting only upgrades a tool already made of a fusion metal, and
-     * only up to that metal's tier.
+     * only up to that metal's tier. Four rungs since issue #965 -- one per Draconic Evolution tech
+     * level, where the draconium rung and the wyvern rung used to share level 1.
      */
     @Test
     void upgradeRefusesAToolThatIsNotEvolvedToTheRungsTier() {
+        FusionUpgradeRecipe draconium = decode(fixture(50, "draconium", 2_000_000L));
         FusionUpgradeRecipe wyvern = decode(fixture(100, "wyvern", 8_000_000L));
         FusionUpgradeRecipe draconic = decode(fixture(175, "draconic", 32_000_000L));
         FusionUpgradeRecipe chaotic = decode(fixture(250, "chaotic", 128_000_000L));
 
-        assertTrue(wyvern.upgrade(null, evolvedTool(0)).isEmpty(),
-                "a plain assembled tool carries no evolved trait, so no rung takes it");
-        assertTrue(wyvern.upgrade(null, evolvedTool(1)).isPresent(),
-                "an emberweld tool is evolved I and the tier-1 rung asks for exactly that");
-        assertTrue(draconic.upgrade(null, evolvedTool(1)).isEmpty(),
-                "evolved I does not reach the tier-2 rung");
-        assertTrue(draconic.upgrade(null, evolvedTool(2)).isPresent(),
-                "a starweld tool is evolved II and clears tier 2");
-        assertTrue(chaotic.upgrade(null, evolvedTool(2)).isEmpty(),
-                "evolved II does not reach the tier-3 rung");
-        assertTrue(chaotic.upgrade(null, evolvedTool(3)).isPresent(),
+        assertTrue(draconium.upgrade(null, evolvedTool(0)).isEmpty(),
+                "a plain assembled tool carries no tier marker, so not even the entry rung takes it");
+        assertTrue(draconium.upgrade(null, evolvedTool(1)).isPresent(),
+                "a duskweld tool is evolving and the draconium rung asks for exactly that");
+        assertTrue(wyvern.upgrade(null, evolvedTool(1)).isEmpty(),
+                "the inert tier does not reach the wyvern rung");
+        assertTrue(wyvern.upgrade(null, evolvedTool(2)).isPresent(),
+                "an emberweld tool is evolved and clears the wyvern rung");
+        assertTrue(draconic.upgrade(null, evolvedTool(2)).isEmpty(),
+                "evolved does not reach the draconic rung");
+        assertTrue(draconic.upgrade(null, evolvedTool(3)).isPresent(),
+                "a starweld tool is evolved II and clears the draconic rung");
+        assertTrue(chaotic.upgrade(null, evolvedTool(3)).isEmpty(),
+                "evolved II does not reach the chaotic rung");
+        assertTrue(chaotic.upgrade(null, evolvedTool(4)).isPresent(),
                 "a voidweld tool is evolved III and clears every rung");
-        assertTrue(decode(fixture(50, "draconium", 2_000_000L)).upgrade(null, evolvedTool(1)).isPresent(),
-                "the draconium rung is the entry rung and asks for the lowest fusion metal there is");
     }
 
     /**
-     * The three {@code draconicevolution:fusion_crafting} rows that make the metals (issue #946),
-     * plus the crafting recipe for the weldheart every one of them consumes.
+     * The gate table read the other way round (issue #965): every tech level asks for its own rung,
+     * and the roster's metals line up with it one for one.
+     */
+    @Test
+    void everyTechLevelHasItsOwnRungAndItsOwnMetal() {
+        assertEquals(List.of(1, 2, 3, 4), List.of(
+                ForgeweaveDraconicCompat.requiredEvolved("draconium"),
+                ForgeweaveDraconicCompat.requiredEvolved("wyvern"),
+                ForgeweaveDraconicCompat.requiredEvolved("draconic"),
+                ForgeweaveDraconicCompat.requiredEvolved("chaotic")));
+        assertEquals(List.of("duskweld", "emberweld", "starweld", "voidweld"), List.of(
+                ForgeweaveDraconicCompat.fusionMetal("draconium"),
+                ForgeweaveDraconicCompat.fusionMetal("wyvern"),
+                ForgeweaveDraconicCompat.fusionMetal("draconic"),
+                ForgeweaveDraconicCompat.fusionMetal("chaotic")));
+    }
+
+    /**
+     * The four {@code draconicevolution:fusion_crafting} rows that make the metals (issues #946 and
+     * #965), plus the crafting recipe for the weldheart every one of them consumes.
      */
     @Test
     void everyFusionMetalRowMatchesItsRosterEntry() {
@@ -332,23 +361,28 @@ class FusionUpgradeRecipeTest {
     }
 
     /**
-     * Issue #953: the three Draconic core materials carry {@code evolved} at their own tier, so a
-     * tool built out of a core is fusion upgradable without ever touching a fusion metal. This walks
+     * Issues #953 and #965: the four Draconic core materials carry a tier marker at their own tier,
+     * so a tool built out of a core is fusion upgradable without ever touching a fusion metal. This walks
      * the shipped material JSON rather than a hand-written trait list, so a core that quietly loses
      * its {@code evolved} entry fails here instead of in a save.
      */
     @Test
     void aToolMadeOfADraconicCoreClearsItsOwnTiersGate() {
+        FusionUpgradeRecipe draconium = decode(fixture(50, "draconium", 2_000_000L));
         FusionUpgradeRecipe wyvern = decode(fixture(100, "wyvern", 8_000_000L));
         FusionUpgradeRecipe draconic = decode(fixture(175, "draconic", 32_000_000L));
         FusionUpgradeRecipe chaotic = decode(fixture(250, "chaotic", 128_000_000L));
 
+        assertTrue(draconium.upgrade(null, coreTool("draconium_core")).isPresent(),
+                "a draconium-core head is evolving and the entry rung asks for exactly that");
+        assertTrue(wyvern.upgrade(null, coreTool("draconium_core")).isEmpty(),
+                "the inert core does not reach the wyvern rung");
         assertTrue(wyvern.upgrade(null, coreTool("wyvern")).isPresent(),
-                "a wyvern-core head is evolved I and the tier-1 rung asks for exactly that");
+                "a wyvern-core head is evolved and the wyvern rung asks for exactly that");
         assertTrue(draconic.upgrade(null, coreTool("wyvern")).isEmpty(),
-                "a wyvern core does not reach the tier-2 rung");
+                "a wyvern core does not reach the draconic rung");
         assertTrue(draconic.upgrade(null, coreTool("awakened")).isPresent(),
-                "an awakened-core head is evolved II and clears tier 2");
+                "an awakened-core head is evolved II and clears the draconic rung");
         assertTrue(chaotic.upgrade(null, coreTool("chaotic")).isPresent(),
                 "a chaotic-core head is evolved III and clears every rung");
     }

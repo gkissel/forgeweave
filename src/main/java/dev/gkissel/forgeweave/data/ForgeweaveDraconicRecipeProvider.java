@@ -27,11 +27,11 @@ import dev.gkissel.forgeweave.modifier.ForgeweaveModifiers;
  * {@code runGameTestServer} proves on every build.
  *
  * <p><b>Layer 1</b> is plain {@code draconicevolution:fusion_crafting} rows, i.e. Draconic
- * Evolution's own recipe type with no Forgeweave code behind it. There are three, one per fusion
+ * Evolution's own recipe type with no Forgeweave code behind it. There are four, one per fusion
  * metal ({@link ForgeweaveDraconicCompat#FUSION_METALS}): a fusion craft is the only thing that
- * makes an emberweld, starweld or voidweld ingot, which is why those three metals have no alloy
- * table row and no Part Builder route. The weldheart every one of them puts in the crafting core is
- * a plain crafting-table recipe, written here too so the whole path lives in one file.
+ * makes a duskweld, emberweld, starweld or voidweld ingot, which is why those four metals have no
+ * alloy table row and no Part Builder route. The weldheart every one of them puts in the crafting
+ * core is a plain crafting-table recipe, written here too so the whole path lives in one file.
  *
  * <p>Issue #946 replaced what Layer 1 used to be. Until then it was two rows promoting a smeltery
  * core (Nether to End, End to Deep) on the grounds that those tiers each have a single route today;
@@ -39,12 +39,12 @@ import dev.gkissel.forgeweave.modifier.ForgeweaveModifiers;
  * not what the parity target does with fusion crafting. The core tiers keep the pour-to-transform
  * route issue #845 gave them.
  *
- * <p>No recipe is emitted for the four Draconic-tier preset materials (draconium, awakened
- * draconium, wyvern, chaotic -- the Track A preset of issues #833-#837), which stay exactly as they
- * were and keep their ids. They are the raw tier the three fusion metals sit above: every one of
- * them is already reachable by melting Draconic Evolution's own ingots and cores, and the cores that
- * gate the top two are DE's own fusion recipes, which it ships itself. Adding Forgeweave rows there
- * would duplicate DE's ladder, not complete it.
+ * <p>No recipe is emitted for the Draconic-tier preset materials (draconium, awakened draconium and
+ * the four cores -- the Track A preset of issues #833-#837 plus #953's and #965's core additions),
+ * which stay exactly as they were and keep their ids. They are the raw tier the fusion metals sit
+ * above: every one of them is already reachable by melting Draconic Evolution's own ingots and
+ * cores, and the cores that gate the top tiers are DE's own fusion recipes, which it ships itself.
+ * Adding Forgeweave rows there would duplicate DE's ladder, not complete it.
  *
  * <p><b>Layer 2</b> is the {@code forgeweave:draconic_fusion_upgrade} ladder --
  * {@link ForgeweaveDraconicCompat#UPGRADE_LINES}, eight modifier lines by four Draconic tech levels

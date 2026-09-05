@@ -96,13 +96,13 @@ class ArmorMaterialTest {
             // lighter gem-tier plating block (certus_quartz/fluorite precedent above already does the
             // same for a non-metal gem).
             Stream.of("alumite", "osgloglas", "osmiridium", "emerald", "amethyst"),
-            // #946 M8: the three Draconic Evolution fusion metals ship full plating + maille, same
-            // shape as every other metal.
-            Stream.of("emberweld", "starweld", "voidweld"),
+            // #946 M8: the Draconic Evolution fusion metals ship full plating + maille, same shape
+            // as every other metal. #965 added duskweld under the three.
+            Stream.of("duskweld", "emberweld", "starweld", "voidweld"),
             // #953: the awakened core ships the same plating + maille block as the wyvern and chaotic
             // cores it sits between. Being Part Builder only changes where the part is made, not
-            // which parts the material has stats for.
-            Stream.of("awakened"))
+            // which parts the material has stats for. #965 added the draconium core the same way.
+            Stream.of("awakened", "draconium_core"))
             .flatMap(java.util.function.Function.identity())
             .collect(java.util.stream.Collectors.toSet());
 

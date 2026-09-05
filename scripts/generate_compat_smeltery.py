@@ -53,6 +53,9 @@ ALLOYS = {
     # recipe consumes. They deliberately get no alloy_recipe row anywhere: a fusion craft on DE's
     # own multiblock is the only thing that makes the ingot, and melting it back down and recasting
     # it is the only loop the smeltery closes.
+    # #965 -- duskweld, the inert-tier weld metal, gated on the Draconic Evolution core its own
+    # fusion recipe consumes exactly as the three below it are.
+    "duskweld": [{"type": "neoforge:item_exists", "item": "draconicevolution:draconium_core"}],
     "emberweld": [{"type": "neoforge:item_exists", "item": "draconicevolution:wyvern_core"}],
     "starweld": [{"type": "neoforge:item_exists", "item": "draconicevolution:awakened_core"}],
     "voidweld": [{"type": "neoforge:item_exists", "item": "draconicevolution:chaotic_core"}],

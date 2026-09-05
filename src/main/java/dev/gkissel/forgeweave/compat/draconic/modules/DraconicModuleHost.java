@@ -71,12 +71,13 @@ public final class DraconicModuleHost implements DraconicModules.Bridge {
     public static final DraconicModuleHost INSTANCE = new DraconicModuleHost();
 
     /**
-     * The tech level each {@code evolved} level hosts at, index 0 being level I. Matches
-     * {@code ForgeweaveDraconicCompat#FUSION_METALS}: emberweld is wyvern, starweld draconic,
-     * voidweld chaotic, so a tool hosts at the tier of the metal it is made of.
+     * The tech level each {@code evolved} level hosts at, index 0 being level 1. Matches
+     * {@code ForgeweaveDraconicCompat#FUSION_METALS}: duskweld is draconium, emberweld wyvern,
+     * starweld draconic, voidweld chaotic, so a tool hosts at the tier of the metal it is made of.
+     * Issue #965 added the inert rung; the three above it are unchanged.
      */
     private static final List<TechLevel> TECH_LEVELS =
-            List.of(TechLevel.WYVERN, TechLevel.DRACONIC, TechLevel.CHAOTIC);
+            List.of(TechLevel.DRACONIUM, TechLevel.WYVERN, TechLevel.DRACONIC, TechLevel.CHAOTIC);
 
     /**
      * Installs the bridge and the capability listener. Called from

@@ -138,8 +138,8 @@ public final class ForgeweaveDraconicCompat {
     }
 
     /**
-     * One of the three metals a Draconic Evolution fusion craft makes (issue #946), and the whole of
-     * its {@code draconicevolution:fusion_crafting} row.
+     * One of the four metals a Draconic Evolution fusion craft makes (issues #946 and #965), and the
+     * whole of its {@code draconicevolution:fusion_crafting} row.
      *
      * <p>The catalyst is always {@link #CATALYST}, the weldheart, and the result is always one ingot
      * of {@code material}. The shape follows the parity target's -- one craft per DE tier, one DE
@@ -161,34 +161,42 @@ public final class ForgeweaveDraconicCompat {
     public static final String CATALYST = Forgeweave.MODID + ":weldheart";
 
     /**
-     * The three fusion metals, lowest tier first.
+     * The four fusion metals, lowest tier first.
      *
-     * <p>Energy is half the {@link #UPGRADE_LINES} rung at the same tech level (4M against 8M, 16M
-     * against 32M, 64M against 128M) -- making the metal costs less than upgrading a finished tool
-     * at the same tier, which is the order a player meets the two in.
+     * <p>Energy is half the {@link #UPGRADE_LINES} rung at the same tech level (1M against 2M, 4M
+     * against 8M, 16M against 32M, 64M against 128M) -- making the metal costs less than upgrading a
+     * finished tool at the same tier, which is the order a player meets the two in.
      *
-     * <p>The vanilla rare climbs diamond block, netherite ingot, nether star. The parity target asks
-     * for two dragon eggs at the top tier; Forgeweave does not, because a world has exactly one
-     * dragon egg and that would make the tier uncraftable rather than expensive. One nether star per
-     * craft, on top of a chaotic core, is the same "this is the last thing you build" signal without
-     * the dead end.
+     * <p>The vanilla rare climbs emerald block, diamond block, netherite ingot, nether star. The
+     * parity target asks for two dragon eggs at the top tier; Forgeweave does not, because a world
+     * has exactly one dragon egg and that would make the tier uncraftable rather than expensive. One
+     * nether star per craft, on top of a chaotic core, is the same "this is the last thing you build"
+     * signal without the dead end.
+     *
+     * <p>Duskweld is issue #965's inert-tier sibling, sitting under emberweld at Draconic Evolution's
+     * own fourth tech level. It is the only rung whose Draconic ingredient is a core rather than an
+     * ingot tag on both sides: the draconium core is what DE gates its own inert tier behind.
      */
     public static final List<FusionMetal> FUSION_METALS = List.of(
-            new FusionMetal("emberweld", "wyvern", 4_000_000L, 1, "draconicevolution:wyvern_core",
+            new FusionMetal("duskweld", "draconium", 1_000_000L, 1, "draconicevolution:draconium_core",
+                    List.of("draconicevolution:draconium_core", "minecraft:emerald_block",
+                            "#c:ingots/draconium", "#c:ingots/draconium")),
+            new FusionMetal("emberweld", "wyvern", 4_000_000L, 2, "draconicevolution:wyvern_core",
                     List.of("draconicevolution:wyvern_core", "minecraft:diamond_block",
                             "#c:ingots/draconium", "#c:ingots/draconium")),
-            new FusionMetal("starweld", "draconic", 16_000_000L, 2, "draconicevolution:awakened_core",
+            new FusionMetal("starweld", "draconic", 16_000_000L, 3, "draconicevolution:awakened_core",
                     List.of("draconicevolution:awakened_core", "minecraft:netherite_ingot",
                             "#c:ingots/draconium_awakened", "#c:ingots/draconium_awakened")),
-            new FusionMetal("voidweld", "chaotic", 64_000_000L, 3, "draconicevolution:chaotic_core",
+            new FusionMetal("voidweld", "chaotic", 64_000_000L, 4, "draconicevolution:chaotic_core",
                     List.of("draconicevolution:chaotic_core", "minecraft:nether_star",
                             "#c:ingots/draconium_awakened", "#c:ingots/draconium_awakened")));
 
     /**
      * The {@code evolved} level a tool has to carry before a fusion upgrade at {@code techLevel}
      * will take it as a catalyst (issue #946) -- which is to say, the fusion metal it has to be made
-     * of. Draconium and wyvern rungs both ask for {@code evolved} I, since emberweld is the lowest
-     * fusion metal there is and nothing sits under it.
+     * of. One level per Draconic Evolution tech level since issue #965 gave the ladder its fourth,
+     * inert rung; before that the draconium and wyvern rungs shared level 1, because emberweld was
+     * the lowest fusion metal there was.
      *
      * <p>This is what turns the {@link #UPGRADE_LINES} ladder from "any assembled tool" into a path
      * that starts at the smeltery: build a fusion metal tool first, then upgrade it. Without it the
@@ -196,9 +204,10 @@ public final class ForgeweaveDraconicCompat {
      */
     public static int requiredEvolved(String techLevel) {
         return switch (techLevel) {
-            case "draconium", "wyvern" -> 1;
-            case "draconic" -> 2;
-            case "chaotic" -> 3;
+            case "draconium" -> 1;
+            case "wyvern" -> 2;
+            case "draconic" -> 3;
+            case "chaotic" -> 4;
             default -> throw new IllegalArgumentException("no Draconic Evolution tech level named " + techLevel);
         };
     }
@@ -213,8 +222,9 @@ public final class ForgeweaveDraconicCompat {
     }
 
     /**
-     * The {@code evolved} level {@code tool} carries, or 0 for a tool made of anything but a fusion
-     * metal. Read off {@code ForgeweaveDataComponents#TRAITS} rather than off the tool's materials
+     * The {@code evolved} level {@code tool} carries -- 1 to 4, inert through chaotic -- or 0 for a
+     * tool made of anything but a fusion metal or a Draconic Evolution core. Read off
+     * {@code ForgeweaveDataComponents#TRAITS} rather than off the tool's materials
      * because by the time a stack is sitting in a crafting core its parts are gone and the trait list
      * is the only record left of what it was built from.
      *
@@ -235,8 +245,17 @@ public final class ForgeweaveDraconicCompat {
         return level;
     }
 
-    /** {@code forgeweave:evolved}, {@code evolved2}, {@code evolved3} -- see {@code ForgeweaveTraits#EVOLVED}. */
+    /**
+     * The four tier markers in ladder order -- {@code forgeweave:evolving}, {@code evolved},
+     * {@code evolved2}, {@code evolved3}; see {@code ForgeweaveTraits#EVOLVING}.
+     *
+     * <p>Issue #965 added the inert tier at the bottom under a new id rather than by renumbering the
+     * three above it, so a tool sitting in a save keeps the tier it was built at: {@code evolved} is
+     * still wyvern, {@code evolved2} still draconic, {@code evolved3} still chaotic. That is why the
+     * ids read one rung behind the level they now stand on.
+     */
     private static final List<ResourceLocation> EVOLVED_IDS = List.of(
+            ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "evolving"),
             ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "evolved"),
             ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "evolved2"),
             ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "evolved3"));

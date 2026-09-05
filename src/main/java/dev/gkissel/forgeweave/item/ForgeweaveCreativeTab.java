@@ -295,10 +295,11 @@ public final class ForgeweaveCreativeTab {
             output.accept(ForgeweaveItems.trackBAlloyBlockItem(alloy.id()).get());
         }
 
-        // #946 -- the fusion catalyst rides the lowest fusion metal's gate: the same Draconic
-        // Evolution core that makes emberweld is what the weldheart's own crafting recipe needs, so
-        // if that hides, this has nothing to be used for either.
-        if (CompatMaterialAvailability.isAvailable(TrackBAlloy.EMBERWELD.id())) {
+        // #946 -- the fusion catalyst rides the lowest fusion metal's gate: the Draconic Evolution
+        // core that makes the lowest weld metal is what the weldheart's own crafting recipe needs,
+        // so if that hides, this has nothing to be used for either. #965 moved that floor down a
+        // tier, from emberweld's wyvern core to duskweld's draconium core.
+        if (CompatMaterialAvailability.isAvailable(TrackBAlloy.DUSKWELD.id())) {
             output.accept(ForgeweaveItems.WELDHEART.get());
         }
     }

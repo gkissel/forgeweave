@@ -31,6 +31,11 @@ METALS = [
 # recipe, no casting recipe, no cast_only flag. They stay in METALS so that the per-tier temperature
 # counter below keeps producing the numbers already registered in ForgeweaveFluids for every metal
 # listed after them; SMELTERY_METALS is the list the generator actually walks.
+#
+# `awakened` (#953) and `draconium_core` (#965) are the two later core materials, and neither is in
+# METALS at all: they were added after the counter above was already pinned, so listing them would
+# shift every netherite-tier temperature after them. A core has no fluid to give a temperature to
+# either way, which is why nothing is lost by leaving them out.
 CORE_ONLY = {"wyvern", "chaotic"}
 
 SMELTERY_METALS = [material_id for material_id in METALS if material_id not in CORE_ONLY]

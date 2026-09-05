@@ -1,0 +1,4 @@
+{
+  "behavior": "forgeweave:self_repair_when",
+  "ticks_per_point": 100
+}
