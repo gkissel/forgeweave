@@ -21,7 +21,7 @@ import dev.gkissel.forgeweave.block.ForgeweaveBlocks;
 import dev.gkissel.forgeweave.block.SearedTankBlockEntity;
 import dev.gkissel.forgeweave.block.SmelteryControllerBlock;
 import dev.gkissel.forgeweave.block.SmelteryCore;
-import dev.gkissel.forgeweave.block.TieredSearedBricksBlock;
+import dev.gkissel.forgeweave.block.SearedTier;
 import dev.gkissel.forgeweave.item.ForgeweaveItems;
 
 /**
@@ -278,7 +278,7 @@ public final class ForgeweaveSmelteryScenes {
 
     /**
      * The same wall cell, the next tier's block, facing and lit as before ({@code Block.withPropertiesOf}),
-     * then the walls follow it the way {@link TieredSearedBricksBlock#spreadTier} does in the world.
+     * then the walls follow it the way {@link SearedTier#spreadTier} does in the world.
      */
     private static void swapCore(SceneBuilder scene, Block toCore) {
         scene.world().modifyBlock(TIERS_CORE, state -> toCore.withPropertiesOf(state), true);
@@ -288,9 +288,9 @@ public final class ForgeweaveSmelteryScenes {
     }
 
     /**
-     * The scene's copy of the in-world wave: every seared brick in the 1x1x2 smeltery's shell flips
-     * to {@code tier}, one Manhattan ring from the core at a time, the last ring landing
-     * {@link TieredSearedBricksBlock#WAVE_TICKS} after the first. Scripted here because a Ponder
+     * The scene's copy of the in-world wave: every tiered block in the 1x1x2 smeltery's shell (bricks,
+     * the tank, the glass) flips to {@code tier}, one Manhattan ring from the core at a time, the
+     * last ring landing {@link SearedTier#WAVE_TICKS} after the first. Scripted here because a Ponder
      * scene never runs the core's scan.
      */
     private static void spreadTier(SceneBuilder scene, SmelteryCore tier) {
@@ -301,11 +301,11 @@ public final class ForgeweaveSmelteryScenes {
                 rings.computeIfAbsent(TIERS_CORE.distManhattan(pos), key -> new ArrayList<>()).add(pos.immutable());
             }
         }
-        int step = TieredSearedBricksBlock.WAVE_TICKS / ((TreeMap<Integer, List<BlockPos>>) rings).lastKey();
+        int step = SearedTier.WAVE_TICKS / ((TreeMap<Integer, List<BlockPos>>) rings).lastKey();
         for (List<BlockPos> ring : rings.values()) {
             for (BlockPos pos : ring) {
-                scene.world().modifyBlock(pos, state -> state.getBlock() instanceof TieredSearedBricksBlock
-                        ? state.setValue(TieredSearedBricksBlock.TIER, tier) : state, true);
+                scene.world().modifyBlock(pos, state -> state.hasProperty(SearedTier.TIER)
+                        ? state.setValue(SearedTier.TIER, tier) : state, true);
             }
             scene.idle(step);
         }

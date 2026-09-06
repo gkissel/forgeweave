@@ -1,6 +1,15 @@
 {
   "variants": {
-    "": {
+    "tier=deep": {
+      "model": "forgeweave:block/seared_stone_deep"
+    },
+    "tier=end": {
+      "model": "forgeweave:block/seared_stone_end"
+    },
+    "tier=nether": {
+      "model": "forgeweave:block/seared_stone_nether"
+    },
+    "tier=standard": {
       "model": "forgeweave:block/seared_stone"
     }
   }

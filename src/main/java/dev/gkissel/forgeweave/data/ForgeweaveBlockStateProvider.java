@@ -1,17 +1,22 @@
 package dev.gkissel.forgeweave.data;
 
+import java.util.EnumMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
+import java.util.function.ToIntFunction;
 
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.data.PackOutput;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.HopperBlock;
+import net.minecraft.world.level.block.HorizontalDirectionalBlock;
 import net.minecraft.world.level.block.SlabBlock;
 import net.minecraft.world.level.block.StairBlock;
 import net.minecraft.world.level.block.VineBlock;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
 
 import net.neoforged.neoforge.client.model.generators.BlockStateProvider;
@@ -29,7 +34,7 @@ import dev.gkissel.forgeweave.block.SearedChannelBlock.ChannelConnection;
 import dev.gkissel.forgeweave.block.SearedChuteBlock;
 import dev.gkissel.forgeweave.block.SmelteryControllerBlock;
 import dev.gkissel.forgeweave.block.SmelteryCore;
-import dev.gkissel.forgeweave.block.TieredSearedBricksBlock;
+import dev.gkissel.forgeweave.block.SearedTier;
 import dev.gkissel.forgeweave.trackb.TrackBAlloy;
 import dev.gkissel.forgeweave.trackb.TrackBOre;
 
@@ -110,28 +115,21 @@ public class ForgeweaveBlockStateProvider extends BlockStateProvider {
         // The seared brick block family (docs/SCOPE.md M2 issue #93): plain cube_all blocks, one
         // derived texture per variant (NOTICE.md) -- unlike the tables above, these have no custom
         // geometry, so simpleBlockWithItem covers both the blockstate and the block-item model.
-        cubeAllBlock("seared_stone", ForgeweaveBlocks.SEARED_STONE.get());
-        cubeAllBlock("seared_cobblestone", ForgeweaveBlocks.SEARED_COBBLESTONE.get());
-        cubeAllBlock("seared_paver", ForgeweaveBlocks.SEARED_PAVER.get());
-        // Seared bricks follow their core's tier (TieredSearedBricksBlock): the standard tier is
-        // upstream's seared brick, every other tier wears that core's own side texture so the walls
-        // read as one piece with the core.
-        ModelFile standardBricks = models().cubeAll("seared_bricks", modLoc("derived/block/seared_bricks"));
-        getVariantBuilder(ForgeweaveBlocks.SEARED_BRICKS.get()).forAllStates(state -> {
-            SmelteryCore tier = state.getValue(TieredSearedBricksBlock.TIER);
-            ModelFile model = tier == SmelteryCore.STANDARD ? standardBricks
-                    : models().cubeAll("seared_bricks_" + tier.getSerializedName(), modLoc("derived/block/" + tier.id() + "_side"));
-            return ConfiguredModel.builder().modelFile(model).build();
-        });
-        simpleBlockItem(ForgeweaveBlocks.SEARED_BRICKS.get(), standardBricks);
-        cubeAllBlock("seared_cracked_bricks", ForgeweaveBlocks.SEARED_CRACKED_BRICKS.get());
-        cubeAllBlock("seared_fancy_bricks", ForgeweaveBlocks.SEARED_FANCY_BRICKS.get());
-        cubeAllBlock("seared_square_bricks", ForgeweaveBlocks.SEARED_SQUARE_BRICKS.get());
-        cubeAllBlock("seared_triangle_bricks", ForgeweaveBlocks.SEARED_TRIANGLE_BRICKS.get());
-        cubeAllBlock("seared_small_bricks", ForgeweaveBlocks.SEARED_SMALL_BRICKS.get());
-        cubeAllBlock("seared_road", ForgeweaveBlocks.SEARED_ROAD.get());
-        cubeAllBlock("seared_tile", ForgeweaveBlocks.SEARED_TILE.get());
-        cubeAllBlock("seared_creeper", ForgeweaveBlocks.SEARED_CREEPER.get());
+        // Every seared wall/floor block follows its core's tier (SearedTier): the standard tier is
+        // upstream's own texture, every other tier is scripts/generate_seared_tier_textures.py's
+        // recolour of it in that core's hue, so the whole shell reads as one piece with the core.
+        tieredCubeAll("seared_stone", ForgeweaveBlocks.SEARED_STONE.get(), false);
+        tieredCubeAll("seared_cobblestone", ForgeweaveBlocks.SEARED_COBBLESTONE.get(), false);
+        tieredCubeAll("seared_paver", ForgeweaveBlocks.SEARED_PAVER.get(), false);
+        tieredCubeAll("seared_bricks", ForgeweaveBlocks.SEARED_BRICKS.get(), false);
+        tieredCubeAll("seared_cracked_bricks", ForgeweaveBlocks.SEARED_CRACKED_BRICKS.get(), false);
+        tieredCubeAll("seared_fancy_bricks", ForgeweaveBlocks.SEARED_FANCY_BRICKS.get(), false);
+        tieredCubeAll("seared_square_bricks", ForgeweaveBlocks.SEARED_SQUARE_BRICKS.get(), false);
+        tieredCubeAll("seared_triangle_bricks", ForgeweaveBlocks.SEARED_TRIANGLE_BRICKS.get(), false);
+        tieredCubeAll("seared_small_bricks", ForgeweaveBlocks.SEARED_SMALL_BRICKS.get(), false);
+        tieredCubeAll("seared_road", ForgeweaveBlocks.SEARED_ROAD.get(), false);
+        tieredCubeAll("seared_tile", ForgeweaveBlocks.SEARED_TILE.get(), false);
+        tieredCubeAll("seared_creeper", ForgeweaveBlocks.SEARED_CREEPER.get(), false);
 
         // Seared stairs + slabs (docs/SCOPE.md M3.4-5 issue #274): vanilla's own stairsBlock/slabBlock
         // blockstate helpers, one derived texture per variant reused from the parent cube_all block
@@ -185,32 +183,22 @@ public class ForgeweaveBlockStateProvider extends BlockStateProvider {
         coreBlock("seared_reservoir_controller", ForgeweaveBlocks.SEARED_RESERVOIR_CONTROLLER.get(), "seared_bricks");
 
         // Upstream's seared_tank blockstate: one cube per tank type, side and top textures per type.
-        tankBlock("seared_tank", ForgeweaveBlocks.SEARED_TANK.get(), "seared_tank_side", "seared_tank_top");
-        tankBlock("seared_gauge", ForgeweaveBlocks.SEARED_GAUGE.get(), "seared_gauge_side", "seared_window_top");
-        tankBlock("seared_window", ForgeweaveBlocks.SEARED_WINDOW.get(), "seared_window_side", "seared_window_top");
+        tieredTank("seared_tank", ForgeweaveBlocks.SEARED_TANK.get(), "seared_tank_side", "seared_tank_top");
+        tieredTank("seared_gauge", ForgeweaveBlocks.SEARED_GAUGE.get(), "seared_gauge_side", "seared_window_top");
+        tieredTank("seared_window", ForgeweaveBlocks.SEARED_WINDOW.get(), "seared_window_side", "seared_window_top");
 
         // Plain seared glass (docs/SCOPE.md M3.3 issue #289): cube_all like the seared brick family,
         // but cutout like the tank family -- see cubeAllCutoutBlock.
-        cubeAllCutoutBlock("seared_glass", ForgeweaveBlocks.SEARED_GLASS.get());
+        tieredCubeAll("seared_glass", ForgeweaveBlocks.SEARED_GLASS.get(), true);
 
         // The drain has distinct front and back faces, so it needs the full six-face cube rather than
         // "orientable" (which would repeat the side texture on the back).
-        ResourceLocation drainSide = modLoc("derived/block/seared_bricks");
-        ModelFile drainModel = models().cube("seared_drain", drainSide, drainSide,
-                        modLoc("derived/block/seared_drain_front"), modLoc("derived/block/seared_drain_back"), drainSide, drainSide)
-                .texture("particle", drainSide);
-        horizontalBlock(ForgeweaveBlocks.SEARED_DRAIN.get(), drainModel);
-        simpleBlockItem(ForgeweaveBlocks.SEARED_DRAIN.get(), drainModel);
+        tieredDrainLike("seared_drain", ForgeweaveBlocks.SEARED_DRAIN.get(), "seared_drain_front");
 
         // #277 -- the duct is the drain's geometry with a different front, so it takes the same
         // six-face cube; the 1.20 clone's own duct model does exactly this (its duct_active and
         // drain_active share a template and differ only in the "drain" texture slot, NOTICE.md).
-        ModelFile ductModel = models().cube("seared_duct", drainSide, drainSide,
-                        modLoc("derived/block/seared_duct_front"), modLoc("derived/block/seared_drain_back"),
-                        drainSide, drainSide)
-                .texture("particle", drainSide);
-        horizontalBlock(ForgeweaveBlocks.SEARED_DUCT.get(), ductModel);
-        simpleBlockItem(ForgeweaveBlocks.SEARED_DUCT.get(), ductModel);
+        tieredDrainLike("seared_duct", ForgeweaveBlocks.SEARED_DUCT.get(), "seared_duct_front");
 
         // #277 -- the chute's trough hangs off three faces plus the top and bottom, so its model is
         // hand-authored JSON under models/block/, transcribed from the 1.20 clone's own
@@ -219,11 +207,14 @@ public class ForgeweaveBlockStateProvider extends BlockStateProvider {
         // rotations here are upstream's blockstates/seared_chute.json y-values rather than
         // horizontalBlock's north-facing convention.
         ModelFile chuteModel = models().getExistingFile(modLoc("block/seared_chute"));
-        getVariantBuilder(ForgeweaveBlocks.SEARED_CHUTE.get()).forAllStates(state -> ConfiguredModel.builder()
-                .modelFile(chuteModel)
-                .rotationY((int) state.getValue(SearedChuteBlock.FACING).toYRot())
-                .build());
-        simpleBlockItem(ForgeweaveBlocks.SEARED_CHUTE.get(), chuteModel);
+        tiered(ForgeweaveBlocks.SEARED_CHUTE.get(), tier -> tier == SmelteryCore.STANDARD ? chuteModel
+                : models().withExistingParent("seared_chute_" + tier.getSerializedName(), modLoc("block/seared_chute"))
+                        .texture("particle", tierTexture("seared_chute_side", tier))
+                        .texture("top", tierTexture("seared_chute_top", tier))
+                        .texture("side", tierTexture("seared_chute_side", tier))
+                        .texture("back", tierTexture("seared_drain_back", tier))
+                        .texture("bricks", tierTexture("seared_bricks", tier)),
+                state -> (int) state.getValue(SearedChuteBlock.FACING).toYRot());
 
         // #441 (parity audit T9) -- the seared channel. Its blockstate is upstream 1.12's own
         // multipart channel.json (NOTICE.md): one centre part switched on `down`, and one part per
@@ -512,6 +503,59 @@ public class ForgeweaveBlockStateProvider extends BlockStateProvider {
         ModelFile active = models().orientable(name + "_active", side, modLoc("derived/block/" + name + "_front_active"), side);
         horizontalBlock(block, state -> state.getValue(SmelteryControllerBlock.ACTIVE) ? active : inactive);
         simpleBlockItem(block, inactive);
+    }
+
+    /** {@code derived/block/<base>} at the standard tier, {@code derived/block/<base>_<tier>} otherwise (SearedTier). */
+    private ResourceLocation tierTexture(String base, SmelteryCore tier) {
+        return modLoc("derived/block/" + base + (tier == SmelteryCore.STANDARD ? "" : "_" + tier.getSerializedName()));
+    }
+
+    /** {@code name} at the standard tier, {@code name_<tier>} otherwise -- the model file name per tier. */
+    private static String tierName(String name, SmelteryCore tier) {
+        return tier == SmelteryCore.STANDARD ? name : name + "_" + tier.getSerializedName();
+    }
+
+    /**
+     * One variant per {@link SearedTier#TIER} value (times {@code rotationY} for a facing block),
+     * with the standard tier's model as the block item. Models are built once per tier, not per
+     * state, so a facing block's four rotations share them.
+     */
+    private void tiered(Block block, Function<SmelteryCore, ModelFile> model, ToIntFunction<BlockState> rotationY) {
+        Map<SmelteryCore, ModelFile> models = new EnumMap<>(SmelteryCore.class);
+        for (SmelteryCore tier : SmelteryCore.values()) {
+            models.put(tier, model.apply(tier));
+        }
+        getVariantBuilder(block).forAllStates(state -> ConfiguredModel.builder()
+                .modelFile(models.get(state.getValue(SearedTier.TIER)))
+                .rotationY(rotationY.applyAsInt(state))
+                .build());
+        simpleBlockItem(block, models.get(SmelteryCore.STANDARD));
+    }
+
+    private void tieredCubeAll(String name, Block block, boolean cutout) {
+        tiered(block, tier -> {
+            var model = models().cubeAll(tierName(name, tier), tierTexture(name, tier));
+            return cutout ? model.renderType("minecraft:cutout") : model;
+        }, state -> 0);
+    }
+
+    /** The tank family: side and top textures per type, cutout for the fluid windows (see tankBlock's note). */
+    private void tieredTank(String name, Block block, String sideTexture, String topTexture) {
+        tiered(block, tier -> models().cubeBottomTop(tierName(name, tier), tierTexture(sideTexture, tier),
+                tierTexture(topTexture, tier), tierTexture(topTexture, tier)).renderType("minecraft:cutout"), state -> 0);
+    }
+
+    /**
+     * The drain and duct: distinct front and back faces over seared brick sides, so the full six-face
+     * cube rather than "orientable" (which would repeat the side texture on the back); rotated the
+     * way horizontalBlock rotates a north-authored model.
+     */
+    private void tieredDrainLike(String name, Block block, String frontTexture) {
+        tiered(block, tier -> {
+            ResourceLocation side = tierTexture("seared_bricks", tier);
+            return models().cube(tierName(name, tier), side, side, tierTexture(frontTexture, tier),
+                    tierTexture("seared_drain_back", tier), side, side).texture("particle", side);
+        }, state -> ((int) state.getValue(HorizontalDirectionalBlock.FACING).toYRot() + 180) % 360);
     }
 
     private void tankBlock(String name, Block block, String sideTexture, String topTexture) {

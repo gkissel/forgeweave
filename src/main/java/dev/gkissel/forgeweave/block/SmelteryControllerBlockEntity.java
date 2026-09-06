@@ -259,7 +259,7 @@ public class SmelteryControllerBlockEntity extends BlockEntity implements Statio
             assignIoBlocks(result.io());
             assignTanks(result.tanks());
             // The walls follow the core's tier; a scan is the one moment the core knows its shell.
-            TieredSearedBricksBlock.spreadTier((ServerLevel) level, worldPosition, core, found);
+            SearedTier.spreadTier((ServerLevel) level, worldPosition, core, found);
             // #96: a scan is the one moment the core is guaranteed to hear about the world changing
             // around it, so it is also where melting that stopped for want of heat picks back up.
             armMeltTick();

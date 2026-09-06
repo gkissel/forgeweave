@@ -15,6 +15,9 @@ import net.minecraft.world.level.block.EntityBlock;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.util.RandomSource;
+import net.minecraft.world.level.block.state.StateDefinition;
 
 import net.neoforged.neoforge.fluids.FluidUtil;
 
@@ -36,6 +39,18 @@ public class SearedTankBlock extends Block implements EntityBlock {
 
     public SearedTankBlock(Properties properties) {
         super(properties);
+        registerDefaultState(SearedTier.standard(stateDefinition.any()));
+    }
+
+    @Override
+    protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
+        builder.add(SearedTier.TIER);
+    }
+
+    /** The tier wave's own tick -- see {@link SearedTier#flip}. */
+    @Override
+    protected void tick(BlockState state, ServerLevel level, BlockPos pos, RandomSource random) {
+        SearedTier.flip(state, level, pos);
     }
 
     @Override

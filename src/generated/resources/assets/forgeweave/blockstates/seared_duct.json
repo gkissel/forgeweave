@@ -1,17 +1,62 @@
 {
   "variants": {
-    "facing=east": {
+    "facing=east,tier=deep": {
+      "model": "forgeweave:block/seared_duct_deep",
+      "y": 90
+    },
+    "facing=east,tier=end": {
+      "model": "forgeweave:block/seared_duct_end",
+      "y": 90
+    },
+    "facing=east,tier=nether": {
+      "model": "forgeweave:block/seared_duct_nether",
+      "y": 90
+    },
+    "facing=east,tier=standard": {
       "model": "forgeweave:block/seared_duct",
       "y": 90
     },
-    "facing=north": {
+    "facing=north,tier=deep": {
+      "model": "forgeweave:block/seared_duct_deep"
+    },
+    "facing=north,tier=end": {
+      "model": "forgeweave:block/seared_duct_end"
+    },
+    "facing=north,tier=nether": {
+      "model": "forgeweave:block/seared_duct_nether"
+    },
+    "facing=north,tier=standard": {
       "model": "forgeweave:block/seared_duct"
     },
-    "facing=south": {
+    "facing=south,tier=deep": {
+      "model": "forgeweave:block/seared_duct_deep",
+      "y": 180
+    },
+    "facing=south,tier=end": {
+      "model": "forgeweave:block/seared_duct_end",
+      "y": 180
+    },
+    "facing=south,tier=nether": {
+      "model": "forgeweave:block/seared_duct_nether",
+      "y": 180
+    },
+    "facing=south,tier=standard": {
       "model": "forgeweave:block/seared_duct",
       "y": 180
     },
-    "facing=west": {
+    "facing=west,tier=deep": {
+      "model": "forgeweave:block/seared_duct_deep",
+      "y": 270
+    },
+    "facing=west,tier=end": {
+      "model": "forgeweave:block/seared_duct_end",
+      "y": 270
+    },
+    "facing=west,tier=nether": {
+      "model": "forgeweave:block/seared_duct_nether",
+      "y": 270
+    },
+    "facing=west,tier=standard": {
       "model": "forgeweave:block/seared_duct",
       "y": 270
     }

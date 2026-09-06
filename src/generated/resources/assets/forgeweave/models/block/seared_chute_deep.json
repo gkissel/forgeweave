@@ -1,0 +1,10 @@
+{
+  "parent": "forgeweave:block/seared_chute",
+  "textures": {
+    "back": "forgeweave:derived/block/seared_drain_back_deep",
+    "bricks": "forgeweave:derived/block/seared_bricks_deep",
+    "particle": "forgeweave:derived/block/seared_chute_side_deep",
+    "side": "forgeweave:derived/block/seared_chute_side_deep",
+    "top": "forgeweave:derived/block/seared_chute_top_deep"
+  }
+}

@@ -41,7 +41,7 @@ public enum SmelteryCore implements StringRepresentable {
         return id;
     }
 
-    /** The {@link TieredSearedBricksBlock#TIER} blockstate value: {@code standard}, {@code nether}, {@code end}, {@code deep}. */
+    /** The {@link SearedTier#TIER} blockstate value: {@code standard}, {@code nether}, {@code end}, {@code deep}. */
     @Override
     public String getSerializedName() {
         return name().toLowerCase(Locale.ROOT);

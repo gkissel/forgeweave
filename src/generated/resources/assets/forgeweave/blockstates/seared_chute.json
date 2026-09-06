@@ -1,17 +1,62 @@
 {
   "variants": {
-    "facing=east": {
+    "facing=east,tier=deep": {
+      "model": "forgeweave:block/seared_chute_deep",
+      "y": 270
+    },
+    "facing=east,tier=end": {
+      "model": "forgeweave:block/seared_chute_end",
+      "y": 270
+    },
+    "facing=east,tier=nether": {
+      "model": "forgeweave:block/seared_chute_nether",
+      "y": 270
+    },
+    "facing=east,tier=standard": {
       "model": "forgeweave:block/seared_chute",
       "y": 270
     },
-    "facing=north": {
+    "facing=north,tier=deep": {
+      "model": "forgeweave:block/seared_chute_deep",
+      "y": 180
+    },
+    "facing=north,tier=end": {
+      "model": "forgeweave:block/seared_chute_end",
+      "y": 180
+    },
+    "facing=north,tier=nether": {
+      "model": "forgeweave:block/seared_chute_nether",
+      "y": 180
+    },
+    "facing=north,tier=standard": {
       "model": "forgeweave:block/seared_chute",
       "y": 180
     },
-    "facing=south": {
+    "facing=south,tier=deep": {
+      "model": "forgeweave:block/seared_chute_deep"
+    },
+    "facing=south,tier=end": {
+      "model": "forgeweave:block/seared_chute_end"
+    },
+    "facing=south,tier=nether": {
+      "model": "forgeweave:block/seared_chute_nether"
+    },
+    "facing=south,tier=standard": {
       "model": "forgeweave:block/seared_chute"
     },
-    "facing=west": {
+    "facing=west,tier=deep": {
+      "model": "forgeweave:block/seared_chute_deep",
+      "y": 90
+    },
+    "facing=west,tier=end": {
+      "model": "forgeweave:block/seared_chute_end",
+      "y": 90
+    },
+    "facing=west,tier=nether": {
+      "model": "forgeweave:block/seared_chute_nether",
+      "y": 90
+    },
+    "facing=west,tier=standard": {
       "model": "forgeweave:block/seared_chute",
       "y": 90
     }
