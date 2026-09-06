@@ -17,13 +17,25 @@ colour (the fire in the core's lit front) is left alone. Seared textures are pur
 is why `recolor_raw_ore.py`'s saturation *ratio* cannot be reused here (a ratio over zero
 saturation is undefined).
 
-The cores themselves come out of the same pass (maintainer request, 2026-09-06: the core and its
-walls must match exactly): `<tier>_core_side.png` is `seared_bricks.png` tinted, so it is pixel for
-pixel `seared_bricks_<tier>.png`, and `<tier>_core_front_active/inactive.png` are the Standard
-Core's own fronts tinted. That replaced #143's hand-tinted Nether Core art and #845's shifts of it.
+The cores come out of the same pass (maintainer request, 2026-09-06: the core and its walls must
+match exactly): `<tier>_core_side.png` is `seared_bricks.png` tinted, so it is pixel for pixel
+`seared_bricks_<tier>.png`, and `<tier>_core_front_active/inactive.png` are the Standard Core's own
+fronts tinted.
 
-Output: `derived/block/<base>_<tier>.png` for every base below and every tier, plus the nine core
-files. NOTICE.md carries a row per output, citing the base's own upstream source.
+The Nether and End tiers are the exception since the designer's own art landed (2026-09-06, the
+`searednether` and `searedend` batches): `seared_bricks_<tier>.png`, `<tier>_core_side.png` (the
+same sprite), the two core fronts, and for the Nether Core its hot "v2" lit front, are hand-drawn
+Forged files this script never touches (`HAND_DRAWN`). Every other wall texture of those tiers is
+derived *from that brick* rather than tinted: `palette()` maps each upstream grey to the designer's
+colours by structure -- the mortar line (upstream's grey 38 and darker) takes the designer's mortar
+colours (the Nether's glowing orange, the End's purple), and the brick body follows the designer's
+body ramp by luminance (the Nether's dark purple, the End's pale yellow) -- so glass, tank, drain
+and the rest wear the designer's palette with upstream's shapes. The Deep tier is still a tint of
+the greys until its art arrives.
+
+Output: `derived/block/<base>_<tier>.png` for every base below and every tier, plus the Deep core
+files. NOTICE.md carries a row per generated output, citing the base's own upstream source; the
+hand-drawn files are original art and carry none.
 
 Usage: python3 scripts/generate_seared_tier_textures.py
 Requires Pillow (`pip install pillow`).
@@ -35,17 +47,32 @@ from PIL import Image
 
 ASSETS = Path(__file__).resolve().parent.parent / "src/main/resources/assets/forgeweave/textures/derived/block"
 
-# The Nether Core's "v2" look, worn while the fuel is hotter than 1600 degrees (NetherCoreBlock):
-# a hotter, more saturated orange than the Nether tier. ponytail: placeholder until the designer's
-# own nether_core_v2 sprites land at these paths; drop them in and remove this entry.
-HOT_NETHER = (22.0, 0.85)
-
-# tier -> (hue in degrees, saturation)
+# tier -> (hue in degrees, saturation), for the tinted tiers
 TIERS = {
-    "nether": (6.7, 0.45),
-    "end": (294.2, 0.63),
     "deep": (183.5, 0.65),
 }
+
+# tier -> (mortar colours darkest to brightest, body colours darkest to brightest), read off the
+# designer's seared_bricks_<tier>.png. The Nether's mortar glows brighter than its body; the End's
+# mortar is the dark purple between pale yellow bricks.
+PALETTES = {
+    "nether": (
+        [(197, 63, 8), (206, 84, 15), (213, 108, 26)],
+        [(38, 16, 20), (38, 18, 23), (41, 21, 25), (46, 23, 27), (48, 24, 28),
+         (56, 24, 30), (50, 28, 36), (59, 27, 32), (62, 30, 36), (68, 36, 42)]),
+    "end": (
+        [(154, 53, 115), (170, 86, 126), (178, 119, 150), (198, 155, 182)],
+        [(214, 214, 149), (223, 203, 217), (221, 228, 165), (235, 228, 230),
+         (232, 244, 178), (236, 251, 175), (238, 246, 201)]),
+}
+# Upstream's seared brick: mortar is grey 38 (a few cracks at 28/36), the body runs 46..161.
+MORTAR_MAX = 38
+BODY_RANGE = (46, 161)
+
+# Hand-drawn Forged files under derived/block/ that this script must never overwrite.
+HAND_DRAWN = {"seared_bricks_nether", "nether_core_side", "nether_core_front_active",
+              "nether_core_front_inactive", "nether_core_v2_front_active",
+              "seared_bricks_end", "end_core_side", "end_core_front_active", "end_core_front_inactive"}
 
 # Every texture a tiered wall block's model binds; see ForgeweaveBlockStateProvider's tiered* helpers.
 BASES = [
@@ -59,6 +86,33 @@ BASES = [
 
 # A pixel at or above this saturation is already coloured (the lit core's fire) and is kept as is.
 COLOURED = 0.15
+
+
+def palette_colour(grey: int, mortar: list, body: list) -> tuple[int, int, int]:
+    """The designer's colour for an upstream grey value: a mortar colour for the mortar line (the
+    darkest greys map to the darkest mortar colour), the body ramp by luminance for everything else."""
+    if grey <= MORTAR_MAX:
+        return mortar[min(len(mortar) - 1, max(0, round((grey - 28) / (MORTAR_MAX - 28) * (len(mortar) - 1))))]
+    low, high = BODY_RANGE
+    return body[round((min(max(grey, low), high) - low) / (high - low) * (len(body) - 1))]
+
+
+def palette(src: Path, out: Path, mortar: list, body: list) -> None:
+    im = Image.open(src).convert("RGBA")
+    px = im.load()
+    result = Image.new("RGBA", im.size)
+    out_px = result.load()
+    for y in range(im.height):
+        for x in range(im.width):
+            r, g, b, a = px[x, y]
+            if a == 0:
+                out_px[x, y] = (0, 0, 0, 0)
+            elif r == g == b:
+                out_px[x, y] = palette_colour(r, mortar, body) + (a,)
+            else:
+                out_px[x, y] = (r, g, b, a)  # already coloured (the lit core's fire): kept
+    result.save(out)
+    print(f"wrote {out.relative_to(ASSETS.parents[5])}")
 
 
 def tint(src: Path, out: Path, hue_deg: float, sat: float) -> None:
@@ -84,16 +138,15 @@ def tint(src: Path, out: Path, hue_deg: float, sat: float) -> None:
 
 def main() -> None:
     for base in BASES:
+        for tier, (mortar, body) in PALETTES.items():
+            if f"{base}_{tier}" not in HAND_DRAWN:
+                palette(ASSETS / f"{base}.png", ASSETS / f"{base}_{tier}.png", mortar, body)
         for tier, (hue, sat) in TIERS.items():
             tint(ASSETS / f"{base}.png", ASSETS / f"{base}_{tier}.png", hue, sat)
     for tier, (hue, sat) in TIERS.items():
         tint(ASSETS / "seared_bricks.png", ASSETS / f"{tier}_core_side.png", hue, sat)
         for face in ("front_active", "front_inactive"):
             tint(ASSETS / f"standard_core_{face}.png", ASSETS / f"{tier}_core_{face}.png", hue, sat)
-    hue, sat = HOT_NETHER
-    tint(ASSETS / "seared_bricks.png", ASSETS / "nether_core_v2_side.png", hue, sat)
-    for face in ("front_active", "front_inactive"):
-        tint(ASSETS / f"standard_core_{face}.png", ASSETS / f"nether_core_v2_{face}.png", hue, sat)
 
 
 if __name__ == "__main__":

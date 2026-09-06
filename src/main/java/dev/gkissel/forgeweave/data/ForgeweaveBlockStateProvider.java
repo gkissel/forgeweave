@@ -499,16 +499,19 @@ public class ForgeweaveBlockStateProvider extends BlockStateProvider {
 
     /**
      * The Nether Core is {@link #coreBlock} plus {@link SmelteryControllerBlock#HOT}: the same
-     * orientable shape, the v2 textures ({@code nether_core_v2_*}) while the fuel is hot.
+     * orientable shape over the same side and idle front, with the designer's v2 lit front
+     * ({@code nether_core_v2_front_active}) while the fuel is hot. Hot implies formed, so a hot idle
+     * front is never shown and simply reuses the normal one.
      */
     private void netherCoreBlock() {
+        ResourceLocation side = modLoc("derived/block/nether_core_side");
+        ModelFile inactive = models().orientable("nether_core", side, modLoc("derived/block/nether_core_front_inactive"), side);
         Map<Boolean, Map<Boolean, ModelFile>> models = new java.util.HashMap<>();
         for (boolean hot : new boolean[] {false, true}) {
-            String prefix = hot ? "nether_core_v2" : "nether_core";
-            ResourceLocation side = modLoc("derived/block/" + prefix + "_side");
+            String active = hot ? "nether_core_v2_front_active" : "nether_core_front_active";
             Map<Boolean, ModelFile> byActive = new java.util.HashMap<>();
-            byActive.put(false, models().orientable(prefix, side, modLoc("derived/block/" + prefix + "_front_inactive"), side));
-            byActive.put(true, models().orientable(prefix + "_active", side, modLoc("derived/block/" + prefix + "_front_active"), side));
+            byActive.put(false, inactive);
+            byActive.put(true, models().orientable(hot ? "nether_core_v2_active" : "nether_core_active", side, modLoc("derived/block/" + active), side));
             models.put(hot, byActive);
         }
         getVariantBuilder(ForgeweaveBlocks.NETHER_CORE.get()).forAllStates(state -> ConfiguredModel.builder()

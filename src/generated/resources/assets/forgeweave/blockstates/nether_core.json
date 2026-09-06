@@ -5,21 +5,21 @@
       "y": 90
     },
     "active=false,facing=east,hot=true": {
-      "model": "forgeweave:block/nether_core_v2",
+      "model": "forgeweave:block/nether_core",
       "y": 90
     },
     "active=false,facing=north,hot=false": {
       "model": "forgeweave:block/nether_core"
     },
     "active=false,facing=north,hot=true": {
-      "model": "forgeweave:block/nether_core_v2"
+      "model": "forgeweave:block/nether_core"
     },
     "active=false,facing=south,hot=false": {
       "model": "forgeweave:block/nether_core",
       "y": 180
     },
     "active=false,facing=south,hot=true": {
-      "model": "forgeweave:block/nether_core_v2",
+      "model": "forgeweave:block/nether_core",
       "y": 180
     },
     "active=false,facing=west,hot=false": {
@@ -27,7 +27,7 @@
       "y": 270
     },
     "active=false,facing=west,hot=true": {
-      "model": "forgeweave:block/nether_core_v2",
+      "model": "forgeweave:block/nether_core",
       "y": 270
     },
     "active=true,facing=east,hot=false": {
