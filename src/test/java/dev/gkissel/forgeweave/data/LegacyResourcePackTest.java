@@ -36,32 +36,31 @@ import org.junit.jupiter.api.Test;
 class LegacyResourcePackTest {
 
     /**
-     * The 32px weapon batch deliberately replaced assembled-tool renders only. These item icons and
-     * other tools still reuse the old 16px donor pixels until their own Forged sprites arrive.
+     * Upstream's longsword and rapier reused the broadsword's handle and guard art, so when the
+     * Forged 16px batch retired their layers to the Legacy pack, these default-tree siblings kept the
+     * same pre-Forged pixels on purpose: they are other tools' layers, not the retired tool's.
      */
     private static final Map<String, Set<String>> INTENTIONAL_UNSWAPPED_SIBLINGS = Map.of(
-            "derived/tools/scimitar_binding.png", Set.of(
-                    "derived/item/cross_guard.png"),
-            "derived/tools/scimitar_handle.png", Set.of(
+            "derived/tools/longsword_handle.png", Set.of(
                     "derived/tools/broadsword_handle.png",
                     "derived/tools/cleaver_handle.png",
-                    "derived/tools/frying_pan_handle.png",
-                    "derived/tools/longsword_handle.png"),
-            "derived/tools/scimitar_head.png", Set.of("derived/item/curved_blade.png"),
-            "derived/tools/warmace_binding.png", Set.of("derived/tools/hammer_head3.png"),
-            "derived/tools/warmace_handle.png", Set.of("derived/tools/hammer_handle.png"),
-            "derived/tools/warmace_head.png", Set.of("derived/item/war_mace_head.png"),
-            // A later Forged sprite batch (dagger and rapier's 16px->32px upgrade) retired
-            // rapier_binding.png/rapier_handle.png to the Legacy pack too. Upstream's rapier reused
-            // the broadsword's guard/handle art (same as the scimitar rows above), so these
-            // default-tree siblings still legitimately carry the same pre-Forged pixels.
+                    "derived/tools/frying_pan_handle.png"),
             "derived/tools/rapier_binding.png", Set.of(
                     "derived/item/cross_guard.png"),
             "derived/tools/rapier_handle.png", Set.of(
                     "derived/tools/broadsword_handle.png",
                     "derived/tools/cleaver_handle.png",
-                    "derived/tools/frying_pan_handle.png",
-                    "derived/tools/longsword_handle.png"));
+                    "derived/tools/frying_pan_handle.png"));
+
+    /**
+     * Maintainer constraint (2026-09-05): the Legacy pack is only ever Tinkers'-native art, from
+     * either clone. Forgeweave-only tools -- the katana, scimitar and warmace, and their parts --
+     * always render with Forgeweave's own art, so no file of theirs may ship in the pack. Composites
+     * (a pattern, cast or clay cast) are exempt: their base is the Legacy pack's own Tinkers'-native
+     * blank, the generator scripts recompose them for both sets, and only the base differs.
+     */
+    private static final List<String> FORGEWEAVE_ONLY_STEMS = List.of(
+            "katana_", "scimitar_", "warmace_", "war_mace_", "curved_blade");
 
     private static Path projectRoot() {
         Path dir = Path.of("").toAbsolutePath();
@@ -231,6 +230,25 @@ class LegacyResourcePackTest {
         }
     }
 
+    /** See {@link #FORGEWEAVE_ONLY_STEMS}: a Forgeweave-only tool never has Legacy art. */
+    @Test
+    void legacyShipsNothingForForgeweaveOnlyTools() throws IOException {
+        List<String> offenders = new ArrayList<>();
+        Path legacy = legacyTextures();
+        try (Stream<Path> files = Files.walk(legacy)) {
+            for (Path file : files.filter(Files::isRegularFile).toList()) {
+                String name = file.getFileName().toString();
+                boolean composite = name.startsWith("pattern_") || name.startsWith("cast_") || name.startsWith("clay_cast_");
+                if (!composite && FORGEWEAVE_ONLY_STEMS.stream().anyMatch(name::startsWith)) {
+                    offenders.add(legacy.relativize(file).toString());
+                }
+            }
+        }
+        assertTrue(offenders.isEmpty(),
+                "Legacy pack files for Forgeweave-only tools (the pack is Tinkers'-native art only):\n"
+                        + String.join("\n", offenders));
+    }
+
     /** The pack needs valid metadata or {@code Pack.readMetaAndCreate} (see {@code ForgeweaveResourcePacks}) fails to load it at all. */
     @Test
     void packHasMetadata() throws IOException {
@@ -244,7 +262,7 @@ class LegacyResourcePackTest {
     @Test
     void theLegacyPackShipsAtLeastTheIssue796Sprites() {
         Path legacyItem = legacyTextures().resolve("derived/item");
-        for (String name : List.of("pattern.png", "cast.png", "tool_binding.png", "tough_binding.png", "katana_blade.png")) {
+        for (String name : List.of("pattern.png", "cast.png", "tool_binding.png", "tough_binding.png")) {
             assertTrue(Files.isRegularFile(legacyItem.resolve(name)),
                     "the Legacy pack should carry the pre-#796 " + name);
         }

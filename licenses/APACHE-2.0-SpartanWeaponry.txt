@@ -23,11 +23,17 @@ modified files to carry prominent notices stating that You changed the files").
 MODIFICATION NOTICE (Apache-2.0 section 4(b))
 ---------------------------------------------
 
-The files listed here are MODIFIED derivatives of Spartan Weaponry art. They are not verbatim
+As of the 16px Forged art batch (2026-09-05), NO file in the Forgeweave tree or in its built-in
+Legacy resource pack derives from Spartan Weaponry any more: the katana and scimitar are
+Forgeweave-only tools and every path below now carries original Forgeweave art, in both art sets.
+This file stays as the record of the period (issue #375 to that batch) in which the files below
+did derive from it, and of how they were modified then.
+
+The files listed here WERE modified derivatives of Spartan Weaponry art. They were not verbatim
 copies. Forgeweave changed them; ObliviousSpartan and the Spartan Weaponry contributors are not
 responsible for and do not endorse the modified results.
 
-Derived files, and the upstream file each comes from:
+Files that derived from it during that period, and the upstream file each came from:
 
     src/main/resources/resourcepacks/legacy/assets/forgeweave/textures/derived/item/katana_blade.png
     src/main/resources/resourcepacks/legacy/assets/forgeweave/textures/derived/tools/katana_head.png

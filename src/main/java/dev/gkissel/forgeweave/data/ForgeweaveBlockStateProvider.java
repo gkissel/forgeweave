@@ -28,6 +28,8 @@ import dev.gkissel.forgeweave.block.SearedChannelBlock;
 import dev.gkissel.forgeweave.block.SearedChannelBlock.ChannelConnection;
 import dev.gkissel.forgeweave.block.SearedChuteBlock;
 import dev.gkissel.forgeweave.block.SmelteryControllerBlock;
+import dev.gkissel.forgeweave.block.SmelteryCore;
+import dev.gkissel.forgeweave.block.TieredSearedBricksBlock;
 import dev.gkissel.forgeweave.trackb.TrackBAlloy;
 import dev.gkissel.forgeweave.trackb.TrackBOre;
 
@@ -111,7 +113,17 @@ public class ForgeweaveBlockStateProvider extends BlockStateProvider {
         cubeAllBlock("seared_stone", ForgeweaveBlocks.SEARED_STONE.get());
         cubeAllBlock("seared_cobblestone", ForgeweaveBlocks.SEARED_COBBLESTONE.get());
         cubeAllBlock("seared_paver", ForgeweaveBlocks.SEARED_PAVER.get());
-        cubeAllBlock("seared_bricks", ForgeweaveBlocks.SEARED_BRICKS.get());
+        // Seared bricks follow their core's tier (TieredSearedBricksBlock): the standard tier is
+        // upstream's seared brick, every other tier wears that core's own side texture so the walls
+        // read as one piece with the core.
+        ModelFile standardBricks = models().cubeAll("seared_bricks", modLoc("derived/block/seared_bricks"));
+        getVariantBuilder(ForgeweaveBlocks.SEARED_BRICKS.get()).forAllStates(state -> {
+            SmelteryCore tier = state.getValue(TieredSearedBricksBlock.TIER);
+            ModelFile model = tier == SmelteryCore.STANDARD ? standardBricks
+                    : models().cubeAll("seared_bricks_" + tier.getSerializedName(), modLoc("derived/block/" + tier.id() + "_side"));
+            return ConfiguredModel.builder().modelFile(model).build();
+        });
+        simpleBlockItem(ForgeweaveBlocks.SEARED_BRICKS.get(), standardBricks);
         cubeAllBlock("seared_cracked_bricks", ForgeweaveBlocks.SEARED_CRACKED_BRICKS.get());
         cubeAllBlock("seared_fancy_bricks", ForgeweaveBlocks.SEARED_FANCY_BRICKS.get());
         cubeAllBlock("seared_square_bricks", ForgeweaveBlocks.SEARED_SQUARE_BRICKS.get());
