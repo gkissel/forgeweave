@@ -165,7 +165,9 @@ public final class ForgeweaveBlocks {
     public static final DeferredBlock<Block> SEARED_STONE = searedBlock("seared_stone");
     public static final DeferredBlock<Block> SEARED_COBBLESTONE = searedBlock("seared_cobblestone");
     public static final DeferredBlock<Block> SEARED_PAVER = searedBlock("seared_paver");
-    public static final DeferredBlock<Block> SEARED_BRICKS = searedBlock("seared_bricks");
+    // The one seared block that follows the core's tier (TieredSearedBricksBlock); still a plain
+    // block with no block entity, its tier is a blockstate property.
+    public static final DeferredBlock<TieredSearedBricksBlock> SEARED_BRICKS = BLOCKS.registerBlock("seared_bricks", TieredSearedBricksBlock::new, searedProperties());
     public static final DeferredBlock<Block> SEARED_CRACKED_BRICKS = searedBlock("seared_cracked_bricks");
     public static final DeferredBlock<Block> SEARED_FANCY_BRICKS = searedBlock("seared_fancy_bricks");
     public static final DeferredBlock<Block> SEARED_SQUARE_BRICKS = searedBlock("seared_square_bricks");
@@ -855,7 +857,7 @@ public final class ForgeweaveBlocks {
         return SEARED_STAIRS_SLABS.stream().anyMatch(entry -> entry.get() == block);
     }
 
-    private static DeferredBlock<StairBlock> searedStairs(String name, DeferredBlock<Block> base) {
+    private static DeferredBlock<StairBlock> searedStairs(String name, DeferredBlock<? extends Block> base) {
         DeferredBlock<StairBlock> block = BLOCKS.register(name, () -> new StairBlock(base.get().defaultBlockState(), searedProperties()));
         SEARED_STAIRS_SLABS.add(block);
         return block;

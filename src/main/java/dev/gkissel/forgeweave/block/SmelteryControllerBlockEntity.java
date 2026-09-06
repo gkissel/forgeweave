@@ -18,6 +18,7 @@ import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 import net.minecraft.resources.ResourceKey; // #270
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.Container;
 import net.minecraft.world.ContainerHelper;
@@ -257,6 +258,8 @@ public class SmelteryControllerBlockEntity extends BlockEntity implements Statio
         if (found != null) {
             assignIoBlocks(result.io());
             assignTanks(result.tanks());
+            // The walls follow the core's tier; a scan is the one moment the core knows its shell.
+            TieredSearedBricksBlock.spreadTier((ServerLevel) level, worldPosition, core, found);
             // #96: a scan is the one moment the core is guaranteed to hear about the world changing
             // around it, so it is also where melting that stopped for want of heat picks back up.
             armMeltTick();

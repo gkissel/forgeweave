@@ -1,7 +1,9 @@
 package dev.gkissel.forgeweave.block;
 
+import java.util.Locale;
 import java.util.function.Supplier;
 
+import net.minecraft.util.StringRepresentable;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 
 /**
@@ -21,7 +23,7 @@ import net.minecraft.world.level.block.entity.BlockEntityType;
  * a Deep Core. Their multipliers (2.5x, 3.0x) are the maintainer decision proposed on #845's thread,
  * settling docs/SCOPE.md's long-standing open question -- see that issue for the full four-row table.
  */
-public enum SmelteryCore {
+public enum SmelteryCore implements StringRepresentable {
     STANDARD("standard_core", 1.5F),
     NETHER("nether_core", 2.0F),
     END("end_core", 2.5F),
@@ -37,6 +39,12 @@ public enum SmelteryCore {
 
     public String id() {
         return id;
+    }
+
+    /** The {@link TieredSearedBricksBlock#TIER} blockstate value: {@code standard}, {@code nether}, {@code end}, {@code deep}. */
+    @Override
+    public String getSerializedName() {
+        return name().toLowerCase(Locale.ROOT);
     }
 
     /** Ore yield multiplier applied to a melting recipe's base amount. */

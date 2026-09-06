@@ -1,0 +1,6 @@
+{
+  "parent": "minecraft:block/cube_all",
+  "textures": {
+    "all": "forgeweave:derived/block/deep_core_side"
+  }
+}

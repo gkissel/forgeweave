@@ -46,11 +46,12 @@ NOTICE.md row cites Spartan Weaponry rather than the 1.12 clone. The katana's *o
 stay authored -- see `ToolArt#ORIGINAL_ART`, which is now keyed per layer -- but neither is a
 CHIPPED entry, so nothing here reads them.
 
-At the *default* (Forged) path specifically, three of the five now skip the chip() transform
-entirely and ship dedicated hand-drawn art instead -- katana (issue #809), then dagger and rapier
-in a later Forged batch that upgraded their whole assembled render from 16px to 32px, the same
-upgrade #818 gave katana/scimitar/warmace. See `HAND_DRAWN_DEFAULT` below; their Legacy-pack
-broken art still comes from chip()-ing the Legacy head, same as every other CHIPPED entry.
+At the *default* (Forged) path, every tool the designer has drawn a broken layer for skips the
+chip() transform and ships that hand-drawn art instead -- see `HAND_DRAWN_DEFAULT` below. The
+Legacy pack only carries broken art for a tool whose *head* it also overrides (a Tinkers'-native
+tool such as the dagger, rapier or longsword); a Forgeweave-only tool (katana, scimitar, warmace)
+ships Forged art in both sets and has no Legacy broken layer at all (see
+`LegacyResourcePackTest#legacyShipsNothingForForgeweaveOnlyTools`).
 
 The transform, `chip()`: project the layer's opaque pixels onto the shape's principal axis and erase
 the outermost `CHIP_FRACTION` of them at each end. That is what upstream's hand-drawn broken art does
@@ -70,7 +71,7 @@ from pathlib import Path
 
 from PIL import Image
 
-from sprite_sets import legacy_input, save_legacy_if_different
+from sprite_sets import LEGACY_TEXTURES, save_legacy_if_different
 
 ROOT = Path(__file__).resolve().parent.parent
 UPSTREAM_1_12 = Path.home() / "development/minecraft/references/tinkers-1.12/resources/assets/tconstruct/textures/items"
@@ -113,20 +114,12 @@ CHIPPED = ["dagger_head", "katana_head", "scimitar_head", "vein_hammer_head", "w
            # the model, so the first blade takes the same chip() the other art-less tools use.
            "shuriken_head"]
 
-# Issue #809: the second Forged sprite batch shipped a hand-drawn katana_head_broken.png rather
-# than an algorithmic chip() of the (now Forged) katana_head.png -- the same "dedicated hand-drawn
-# art the script must never overwrite" shape generate_pattern_textures.py already gives the large
-# plate's pattern (LARGE_PLATE_PATTERN_SOURCE/OUTPUT, handled outside its PARTS loop). The default
-# derived/tools/katana_head_broken.png is that hand-drawn file, committed directly and excluded
-# from the CHIPPED default pass below; only the Legacy pack's own katana_head_broken.png (chipped
-# from the pre-#807 Spartan-derived head, via legacy_input's fallback) is still generated.
-#
-# A later Forged sprite batch (dagger and rapier's 16px->32px upgrade, the same treatment #818 gave
-# katana/scimitar/warmace) shipped hand-drawn dagger_head_broken.png/rapier_head_broken.png
-# alongside the new head/handle/binding art rather than algorithmic chip()s of the new heads -- the
-# provided sprites do not byte-match chip()'s output, the same signal that flagged katana's hand-
-# drawn art in #809. Same treatment: excluded from the CHIPPED default pass, Legacy pass unaffected.
-HAND_DRAWN_DEFAULT = ["dagger_head", "katana_head", "rapier_head"]
+# Issue #809 first: the designer ships a hand-drawn <tool>_head_broken.png alongside each Forged
+# head rather than an algorithmic chip() of it -- the same "dedicated hand-drawn art the script must
+# never overwrite" shape generate_pattern_textures.py gives the large plate's pattern. Those default
+# files are committed directly and excluded from both default passes below (PORTED or CHIPPED). The
+# mod's sprite standard is 16x16 and stays 16x16: the 32px renders #818 tried are gone.
+HAND_DRAWN_DEFAULT = ["dagger_head", "katana_head", "longsword_head", "rapier_head", "scimitar_head", "warmace_head"]
 
 # How much of the part chip() erases at each end of its principal axis. See the module docstring.
 CHIP_FRACTION = 0.15
@@ -168,7 +161,7 @@ def main() -> None:
     outputs = {}
     for name, upstream in PORTED.items():
         if name in HAND_DRAWN_DEFAULT:
-            continue  # the default file is hand-drawn art; never regenerate it here (rapier_head)
+            continue  # the default file is hand-drawn art; never regenerate it here
         outputs[DERIVED_TOOLS / f"{name}_broken.png"] = Image.open(UPSTREAM_1_12 / upstream).convert("RGBA")
     for name in CHIPPED:
         if name in HAND_DRAWN_DEFAULT:
@@ -185,13 +178,22 @@ def main() -> None:
     for name in HAND_DRAWN_DEFAULT:
         print(f"skipped {DERIVED_TOOLS / f'{name}_broken.png'} (hand-drawn art, not regenerated)")
 
-    # Issue #796: the Legacy pack's pass. Only CHIPPED can ever differ between sets -- each entry
-    # chips whatever derived/tools/<name>.png currently is, and that is the one input here a Forged
-    # sprite could someday override (see scripts/sprite_sets.py). PORTED comes straight from the
-    # upstream clone, which the two sets always share, so it has no Legacy-pack counterpart to derive.
+    # Issue #796: the Legacy pack's pass. A Legacy broken layer exists exactly when the Legacy pack
+    # overrides that tool's head: chip() of the Legacy head for a CHIPPED entry, upstream's own broken
+    # art for a PORTED entry whose default file is hand-drawn. A tool with no Legacy head (every
+    # Forgeweave-only tool, plus any tool whose head is still shared) gets nothing, and a stale
+    # Legacy broken file left behind by an earlier layout is removed.
     for name in CHIPPED:
-        legacy_intact = legacy_input(LEGACY_SUBDIR, f"{name}.png")
-        save_legacy_if_different(chip(Image.open(legacy_intact).convert("RGBA")), LEGACY_SUBDIR, f"{name}_broken.png")
+        legacy_head = LEGACY_TEXTURES / LEGACY_SUBDIR / f"{name}.png"
+        legacy_broken = LEGACY_TEXTURES / LEGACY_SUBDIR / f"{name}_broken.png"
+        if legacy_head.is_file():
+            save_legacy_if_different(chip(Image.open(legacy_head).convert("RGBA")), LEGACY_SUBDIR, f"{name}_broken.png")
+        elif legacy_broken.is_file():
+            legacy_broken.unlink()
+            print(f"removed stale legacy override {legacy_broken.relative_to(ROOT)}")
+    for name, upstream in PORTED.items():
+        if name in HAND_DRAWN_DEFAULT:
+            save_legacy_if_different(Image.open(UPSTREAM_1_12 / upstream).convert("RGBA"), LEGACY_SUBDIR, f"{name}_broken.png")
 
 
 if __name__ == "__main__":
