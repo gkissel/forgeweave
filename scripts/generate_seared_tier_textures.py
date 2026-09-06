@@ -35,6 +35,11 @@ from PIL import Image
 
 ASSETS = Path(__file__).resolve().parent.parent / "src/main/resources/assets/forgeweave/textures/derived/block"
 
+# The Nether Core's "v2" look, worn while the fuel is hotter than 1600 degrees (NetherCoreBlock):
+# a hotter, more saturated orange than the Nether tier. ponytail: placeholder until the designer's
+# own nether_core_v2 sprites land at these paths; drop them in and remove this entry.
+HOT_NETHER = (22.0, 0.85)
+
 # tier -> (hue in degrees, saturation)
 TIERS = {
     "nether": (6.7, 0.45),
@@ -85,6 +90,10 @@ def main() -> None:
         tint(ASSETS / "seared_bricks.png", ASSETS / f"{tier}_core_side.png", hue, sat)
         for face in ("front_active", "front_inactive"):
             tint(ASSETS / f"standard_core_{face}.png", ASSETS / f"{tier}_core_{face}.png", hue, sat)
+    hue, sat = HOT_NETHER
+    tint(ASSETS / "seared_bricks.png", ASSETS / "nether_core_v2_side.png", hue, sat)
+    for face in ("front_active", "front_inactive"):
+        tint(ASSETS / f"standard_core_{face}.png", ASSETS / f"nether_core_v2_{face}.png", hue, sat)
 
 
 if __name__ == "__main__":

@@ -1,33 +1,63 @@
 {
   "variants": {
-    "active=false,facing=east": {
+    "active=false,facing=east,hot=false": {
       "model": "forgeweave:block/nether_core",
       "y": 90
     },
-    "active=false,facing=north": {
+    "active=false,facing=east,hot=true": {
+      "model": "forgeweave:block/nether_core_v2",
+      "y": 90
+    },
+    "active=false,facing=north,hot=false": {
       "model": "forgeweave:block/nether_core"
     },
-    "active=false,facing=south": {
+    "active=false,facing=north,hot=true": {
+      "model": "forgeweave:block/nether_core_v2"
+    },
+    "active=false,facing=south,hot=false": {
       "model": "forgeweave:block/nether_core",
       "y": 180
     },
-    "active=false,facing=west": {
+    "active=false,facing=south,hot=true": {
+      "model": "forgeweave:block/nether_core_v2",
+      "y": 180
+    },
+    "active=false,facing=west,hot=false": {
       "model": "forgeweave:block/nether_core",
       "y": 270
     },
-    "active=true,facing=east": {
+    "active=false,facing=west,hot=true": {
+      "model": "forgeweave:block/nether_core_v2",
+      "y": 270
+    },
+    "active=true,facing=east,hot=false": {
       "model": "forgeweave:block/nether_core_active",
       "y": 90
     },
-    "active=true,facing=north": {
+    "active=true,facing=east,hot=true": {
+      "model": "forgeweave:block/nether_core_v2_active",
+      "y": 90
+    },
+    "active=true,facing=north,hot=false": {
       "model": "forgeweave:block/nether_core_active"
     },
-    "active=true,facing=south": {
+    "active=true,facing=north,hot=true": {
+      "model": "forgeweave:block/nether_core_v2_active"
+    },
+    "active=true,facing=south,hot=false": {
       "model": "forgeweave:block/nether_core_active",
       "y": 180
     },
-    "active=true,facing=west": {
+    "active=true,facing=south,hot=true": {
+      "model": "forgeweave:block/nether_core_v2_active",
+      "y": 180
+    },
+    "active=true,facing=west,hot=false": {
       "model": "forgeweave:block/nether_core_active",
+      "y": 270
+    },
+    "active=true,facing=west,hot=true": {
+      "model": "forgeweave:block/nether_core_v2_active",
       "y": 270
     }
   }

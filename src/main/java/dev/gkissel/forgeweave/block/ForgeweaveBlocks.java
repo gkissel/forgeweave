@@ -220,7 +220,7 @@ public final class ForgeweaveBlocks {
             () -> new SmelteryControllerBlock(searedProperties(), SmelteryCore.STANDARD));
 
     public static final DeferredBlock<SmelteryControllerBlock> NETHER_CORE = BLOCKS.register("nether_core",
-            () -> new SmelteryControllerBlock(searedProperties(), SmelteryCore.NETHER));
+            () -> new NetherCoreBlock(searedProperties()));
 
     // #845 -- the top two tiers, reached only by pouring the right fluid over the tier below
     // (CoreTransformRecipe), never crafted directly; since 2026-09-06 the Nether Core is reached the
