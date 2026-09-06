@@ -737,9 +737,10 @@ public class ForgeweaveRecipeProvider extends RecipeProvider {
      * blockGlass} ore-dict entry becoming the modern {@code c:glass_blocks} tag. Plain seared glass
      * (issue #289) reuses the same tank-family shape helper: its plus pattern is upstream's own.
      *
-     * <p>The Nether Core has no upstream shape -- tiered cores are SCOPE.md's own addition -- so it
-     * is the Standard Core's ring with a netherite ingot at its heart, matching SCOPE.md's
-     * "netherite-built" and the tank's own brick-ring-around-a-core layout.
+     * <p>Only the Standard Core is crafted. Every higher tier is reached by pouring the tier's fluid
+     * over the one below ({@code CoreTransformRecipe}, {@code data/forgeweave/forgeweave/core_transform_recipe/}):
+     * blazing blood makes a Nether Core (maintainer decision, 2026-09-06, replacing the netherite
+     * shaped recipe), dragon breath an End Core, deep blood a Deep Core.
      */
     private void smelteryRecipes(RecipeOutput recipeOutput) {
         ShapedRecipeBuilder.shaped(RecipeCategory.MISC, ForgeweaveItems.STANDARD_CORE.get())
@@ -770,15 +771,6 @@ public class ForgeweaveRecipeProvider extends RecipeProvider {
                 .define('A', ForgeweaveItems.SEARED_BRICK.get())
                 .define('B', Items.BUCKET)
                 .unlockedBy("has_seared_brick", has(ForgeweaveItems.SEARED_BRICK.get()))
-                .save(recipeOutput);
-
-        ShapedRecipeBuilder.shaped(RecipeCategory.MISC, ForgeweaveItems.NETHER_CORE.get())
-                .pattern("AAA")
-                .pattern("ABA")
-                .pattern("AAA")
-                .define('A', ForgeweaveItems.SEARED_BRICK.get())
-                .define('B', Items.NETHERITE_INGOT)
-                .unlockedBy("has_netherite_ingot", has(Items.NETHERITE_INGOT))
                 .save(recipeOutput);
 
         ShapedRecipeBuilder.shaped(RecipeCategory.MISC, ForgeweaveItems.SEARED_DRAIN.get())

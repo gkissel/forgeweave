@@ -107,6 +107,18 @@ public class SmelteryCoreTransformGameTests {
         helper.succeed();
     }
 
+    /** The first rung (maintainer decision 2026-09-06): blazing blood over a Standard Core yields a Nether Core. */
+    @GameTest(template = "smeltery")
+    public static void pouringBlazingBloodOverAStandardCoreTransformsItIntoANetherCore(GameTestHelper helper) {
+        SmelteryControllerBlockEntity core = formedSmeltery(helper, ForgeweaveBlocks.STANDARD_CORE.get(), 2);
+
+        core.transformHandler().fill(new FluidStack(ForgeweaveFluids.BLAZING_BLOOD.still().get(), 500), IFluidHandler.FluidAction.EXECUTE);
+
+        helper.assertTrue(helper.getBlockState(SmelteryGameTests.CORE_POS).is(ForgeweaveBlocks.NETHER_CORE.get()),
+                "expected the Standard Core to have become a Nether Core");
+        helper.succeed();
+    }
+
     /** Dragon breath is the End tier's fluid, not the Standard tier's -- pouring it there is a no-op. */
     @GameTest(template = "smeltery")
     public static void pouringDragonBreathOverAStandardCoreDoesNothing(GameTestHelper helper) {

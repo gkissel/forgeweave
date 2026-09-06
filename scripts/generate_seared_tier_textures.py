@@ -10,14 +10,20 @@ texture recoloured, never fresh art (CLAUDE.md: new art is the designer's call; 
 provisional recolour idiom `generate_end_deep_core_textures.py` uses for the cores themselves).
 
 The recolour keeps each opaque pixel's value (its shading) and alpha (the tank windows, the glass
-pane) and replaces hue and saturation with the tier's: Nether from `nether_core_side.png`'s own
-median hue and mean saturation (#143's hand-tinted art), End and Deep from the fluids their
-pour-to-transform recipes consume, the same numbers `generate_end_deep_core_textures.py` uses.
-Seared textures are pure greyscale, which is why `recolor_raw_ore.py`'s saturation *ratio* cannot
-be reused here (a ratio over zero saturation is undefined).
+pane) and replaces hue and saturation with the tier's: Nether from the hue #143's hand-tinted
+`nether_core_side.png` used, End and Deep from the fluids their pour-to-transform recipes consume,
+the same numbers the retired `generate_end_deep_core_textures.py` used. A pixel that already has
+colour (the fire in the core's lit front) is left alone. Seared textures are pure greyscale, which
+is why `recolor_raw_ore.py`'s saturation *ratio* cannot be reused here (a ratio over zero
+saturation is undefined).
 
-Output: `derived/block/<base>_<tier>.png` for every base below and every tier. NOTICE.md carries a
-row per output, citing the base's own upstream source.
+The cores themselves come out of the same pass (maintainer request, 2026-09-06: the core and its
+walls must match exactly): `<tier>_core_side.png` is `seared_bricks.png` tinted, so it is pixel for
+pixel `seared_bricks_<tier>.png`, and `<tier>_core_front_active/inactive.png` are the Standard
+Core's own fronts tinted. That replaced #143's hand-tinted Nether Core art and #845's shifts of it.
+
+Output: `derived/block/<base>_<tier>.png` for every base below and every tier, plus the nine core
+files. NOTICE.md carries a row per output, citing the base's own upstream source.
 
 Usage: python3 scripts/generate_seared_tier_textures.py
 Requires Pillow (`pip install pillow`).
@@ -46,6 +52,10 @@ BASES = [
 ]
 
 
+# A pixel at or above this saturation is already coloured (the lit core's fire) and is kept as is.
+COLOURED = 0.15
+
+
 def tint(src: Path, out: Path, hue_deg: float, sat: float) -> None:
     im = Image.open(src).convert("RGBA")
     px = im.load()
@@ -57,7 +67,10 @@ def tint(src: Path, out: Path, hue_deg: float, sat: float) -> None:
             if a == 0:
                 out_px[x, y] = (0, 0, 0, 0)
                 continue
-            _, _, v = colorsys.rgb_to_hsv(r / 255, g / 255, b / 255)
+            _, s, v = colorsys.rgb_to_hsv(r / 255, g / 255, b / 255)
+            if s >= COLOURED:
+                out_px[x, y] = (r, g, b, a)
+                continue
             nr, ng, nb = colorsys.hsv_to_rgb(hue_deg / 360, sat, v)
             out_px[x, y] = (round(nr * 255), round(ng * 255), round(nb * 255), a)
     result.save(out)
@@ -68,6 +81,10 @@ def main() -> None:
     for base in BASES:
         for tier, (hue, sat) in TIERS.items():
             tint(ASSETS / f"{base}.png", ASSETS / f"{base}_{tier}.png", hue, sat)
+    for tier, (hue, sat) in TIERS.items():
+        tint(ASSETS / "seared_bricks.png", ASSETS / f"{tier}_core_side.png", hue, sat)
+        for face in ("front_active", "front_inactive"):
+            tint(ASSETS / f"standard_core_{face}.png", ASSETS / f"{tier}_core_{face}.png", hue, sat)
 
 
 if __name__ == "__main__":
