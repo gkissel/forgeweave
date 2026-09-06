@@ -11,10 +11,17 @@ import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
+
 import dev.gkissel.forgeweave.block.FaucetBlockEntity;
 import dev.gkissel.forgeweave.block.ForgeweaveBlocks;
 import dev.gkissel.forgeweave.block.SearedTankBlockEntity;
 import dev.gkissel.forgeweave.block.SmelteryControllerBlock;
+import dev.gkissel.forgeweave.block.SmelteryCore;
+import dev.gkissel.forgeweave.block.TieredSearedBricksBlock;
 import dev.gkissel.forgeweave.item.ForgeweaveItems;
 
 /**
@@ -215,7 +222,7 @@ public final class ForgeweaveSmelteryScenes {
         swapCore(scene, ForgeweaveBlocks.NETHER_CORE.get());
         scene.overlay().showText(90)
                 .attachKeyFrame()
-                .text("A Nether Core, seared bricks around a netherite ingot, raises that to two ingots' worth. It is the last core that can be crafted")
+                .text("A Nether Core, seared bricks around a netherite ingot, raises that to two ingots' worth. It is the last core that can be crafted. The walls take on the core's look, spreading out from it")
                 .pointAt(util.vector().blockSurface(TIERS_CORE, Direction.NORTH))
                 .placeNearTarget();
         scene.idle(100);
@@ -269,11 +276,39 @@ public final class ForgeweaveSmelteryScenes {
         swapCore(scene, toCore);
     }
 
-    /** The same wall cell, the next tier's block, facing and lit as before ({@code Block.withPropertiesOf}). */
+    /**
+     * The same wall cell, the next tier's block, facing and lit as before ({@code Block.withPropertiesOf}),
+     * then the walls follow it the way {@link TieredSearedBricksBlock#spreadTier} does in the world.
+     */
     private static void swapCore(SceneBuilder scene, Block toCore) {
         scene.world().modifyBlock(TIERS_CORE, state -> toCore.withPropertiesOf(state), true);
         scene.effects().indicateSuccess(TIERS_CORE);
+        spreadTier(scene, ((SmelteryControllerBlock) toCore).core());
         scene.idle(10);
+    }
+
+    /**
+     * The scene's copy of the in-world wave: every seared brick in the 1x1x2 smeltery's shell flips
+     * to {@code tier}, one Manhattan ring from the core at a time, the last ring landing
+     * {@link TieredSearedBricksBlock#WAVE_TICKS} after the first. Scripted here because a Ponder
+     * scene never runs the core's scan.
+     */
+    private static void spreadTier(SceneBuilder scene, SmelteryCore tier) {
+        Map<Integer, List<BlockPos>> rings = new TreeMap<>();
+        for (BlockPos pos : BlockPos.betweenClosed(1, 1, 1, 3, 3, 3)) {
+            boolean interior = pos.getX() == 2 && pos.getZ() == 2 && pos.getY() >= 2;
+            if (!interior) {
+                rings.computeIfAbsent(TIERS_CORE.distManhattan(pos), key -> new ArrayList<>()).add(pos.immutable());
+            }
+        }
+        int step = TieredSearedBricksBlock.WAVE_TICKS / ((TreeMap<Integer, List<BlockPos>>) rings).lastKey();
+        for (List<BlockPos> ring : rings.values()) {
+            for (BlockPos pos : ring) {
+                scene.world().modifyBlock(pos, state -> state.getBlock() instanceof TieredSearedBricksBlock
+                        ? state.setValue(TieredSearedBricksBlock.TIER, tier) : state, true);
+            }
+            scene.idle(step);
+        }
     }
 
     private ForgeweaveSmelteryScenes() {}
