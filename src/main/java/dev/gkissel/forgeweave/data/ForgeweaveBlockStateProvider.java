@@ -167,7 +167,7 @@ public class ForgeweaveBlockStateProvider extends BlockStateProvider {
         // own side/top texture (issue #143: the tiers must read as distinct from any angle, not just
         // the front) instead of the shared seared brick.
         coreBlock("standard_core", ForgeweaveBlocks.STANDARD_CORE.get(), "seared_bricks");
-        coreBlock("nether_core", ForgeweaveBlocks.NETHER_CORE.get(), "nether_core_side");
+        netherCoreBlock();
         // #845 -- the End and Deep Core, same shared coreBlock() helper and the same "own side/top
         // texture" treatment #143 gave the Nether Core, so all four tiers keep reading as distinct
         // from any angle.
@@ -495,6 +495,27 @@ public class ForgeweaveBlockStateProvider extends BlockStateProvider {
                 .texture("drawer_side", modLoc("derived/block/" + name + "_drawer_side"));
         horizontalBlock(block, model);
         simpleBlockItem(block, model);
+    }
+
+    /**
+     * The Nether Core is {@link #coreBlock} plus {@link SmelteryControllerBlock#HOT}: the same
+     * orientable shape, the v2 textures ({@code nether_core_v2_*}) while the fuel is hot.
+     */
+    private void netherCoreBlock() {
+        Map<Boolean, Map<Boolean, ModelFile>> models = new java.util.HashMap<>();
+        for (boolean hot : new boolean[] {false, true}) {
+            String prefix = hot ? "nether_core_v2" : "nether_core";
+            ResourceLocation side = modLoc("derived/block/" + prefix + "_side");
+            Map<Boolean, ModelFile> byActive = new java.util.HashMap<>();
+            byActive.put(false, models().orientable(prefix, side, modLoc("derived/block/" + prefix + "_front_inactive"), side));
+            byActive.put(true, models().orientable(prefix + "_active", side, modLoc("derived/block/" + prefix + "_front_active"), side));
+            models.put(hot, byActive);
+        }
+        getVariantBuilder(ForgeweaveBlocks.NETHER_CORE.get()).forAllStates(state -> ConfiguredModel.builder()
+                .modelFile(models.get(state.getValue(SmelteryControllerBlock.HOT)).get(state.getValue(SmelteryControllerBlock.ACTIVE)))
+                .rotationY(((int) state.getValue(HorizontalDirectionalBlock.FACING).toYRot() + 180) % 360)
+                .build());
+        simpleBlockItem(ForgeweaveBlocks.NETHER_CORE.get(), models.get(false).get(false));
     }
 
     private void coreBlock(String name, Block block, String sideTexture) {

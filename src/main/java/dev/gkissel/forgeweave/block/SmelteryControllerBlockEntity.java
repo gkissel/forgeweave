@@ -271,6 +271,28 @@ public class SmelteryControllerBlockEntity extends BlockEntity implements Statio
         if (state.getValue(SmelteryControllerBlock.ACTIVE) != (found != null)) {
             level.setBlock(worldPosition, state.setValue(SmelteryControllerBlock.ACTIVE, found != null), Block.UPDATE_ALL);
         }
+        syncHot();
+    }
+
+    /**
+     * Keeps a Nether Core's {@link SmelteryControllerBlock#HOT} in step with the fuel: lit while the
+     * structure is formed and {@link #currentTemperature()} is above
+     * {@link SmelteryControllerBlock#HOT_TEMPERATURE}, which reads the burn under way or, idle, the
+     * fuel waiting in a wall tank. A no-op for any core without the property. Called from every scan
+     * and every heartbeat tick, so the look follows the fuel within a second either way.
+     */
+    void syncHot() {
+        if (level == null || level.isClientSide) {
+            return;
+        }
+        BlockState state = getBlockState();
+        if (!state.hasProperty(SmelteryControllerBlock.HOT)) {
+            return;
+        }
+        boolean hot = structure != null && currentTemperature() > SmelteryControllerBlock.HOT_TEMPERATURE;
+        if (state.getValue(SmelteryControllerBlock.HOT) != hot) {
+            level.setBlock(worldPosition, state.setValue(SmelteryControllerBlock.HOT, hot), Block.UPDATE_ALL);
+        }
     }
 
     /**

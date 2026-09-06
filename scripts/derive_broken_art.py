@@ -119,7 +119,8 @@ CHIPPED = ["dagger_head", "katana_head", "scimitar_head", "vein_hammer_head", "w
 # never overwrite" shape generate_pattern_textures.py gives the large plate's pattern. Those default
 # files are committed directly and excluded from both default passes below (PORTED or CHIPPED). The
 # mod's sprite standard is 16x16 and stays 16x16: the 32px renders #818 tried are gone.
-HAND_DRAWN_DEFAULT = ["dagger_head", "katana_head", "longsword_head", "rapier_head", "scimitar_head", "warmace_head"]
+HAND_DRAWN_DEFAULT = ["cleaver_head", "dagger_head", "katana_head", "longsword_head", "lumberaxe_head", "rapier_head",
+                      "scimitar_head", "scythe_head", "warmace_head"]
 
 # How much of the part chip() erases at each end of its principal axis. See the module docstring.
 CHIP_FRACTION = 0.15

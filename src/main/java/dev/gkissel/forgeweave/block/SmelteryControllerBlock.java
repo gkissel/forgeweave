@@ -45,6 +45,16 @@ public class SmelteryControllerBlock extends HorizontalDirectionalBlock implemen
     /** Upstream's {@code BlockMultiblockController.ACTIVE}: whether the structure is currently formed. */
     public static final BooleanProperty ACTIVE = BooleanProperty.create("active");
 
+    /**
+     * Maintainer request, 2026-09-06: the Nether Core has a second look, "v2", that it wears while
+     * the smeltery's fuel is hotter than {@link #HOT_TEMPERATURE}. Only {@link NetherCoreBlock}
+     * carries this property; {@link SmelteryControllerBlockEntity#syncHot()} keeps it current.
+     */
+    public static final BooleanProperty HOT = BooleanProperty.create("hot");
+
+    /** Fuel strictly hotter than this (magma, brimspar, pyrealloy on the fuel ladder) lights the v2 look. */
+    public static final int HOT_TEMPERATURE = 1600;
+
     private final SmelteryCore core;
     private final MapCodec<SmelteryControllerBlock> codec;
 
@@ -157,6 +167,7 @@ public class SmelteryControllerBlock extends HorizontalDirectionalBlock implemen
         }
         boolean melting = core.meltTick();
         core.sweepInterior();
+        core.syncHot();
         if (melting) {
             level.scheduleTick(pos, this, SmelteryControllerBlockEntity.MELT_INTERVAL_TICKS);
         } else {
