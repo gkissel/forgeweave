@@ -1,0 +1,6 @@
+{
+  "fluid": "forgeweave:blazing_blood",
+  "from_block": "forgeweave:standard_core",
+  "to_block": "forgeweave:nether_core",
+  "amount": 500
+}

@@ -133,6 +133,8 @@ class JeiRecipesScaleTest {
      * ladder's 2100-degree top rung -- bringing it to 4; #903 added the ladder's two mined rungs,
      * molten magma (melted vanilla magma blocks, 1700) and molten brimspar (melted Nether crystals,
      * 1900), bringing it to 6. #910 merged twinalloy into brimspar and deleted its row, leaving 5.
+     * The 2026-09-06 maintainer decision made the Nether Core a pour-to-transform tier too (blazing
+     * blood over a Standard Core), bringing the transform count from 2 to 3.
      *
      * <p>The burn-rate assertions are #910's other half: every fuel drains 50 mB per 100-melt-tick
      * cycle (the clone's own lava numbers, {@code SmelteryFuelTest}) except pyrealloy, which drains
@@ -149,7 +151,7 @@ class JeiRecipesScaleTest {
 
         assertEquals(5, fuels.size(),
                 "lava + blazing_blood + magma + brimspar + pyrealloy -- gametest_super_fuel ships outside src/main/resources");
-        assertEquals(2, transforms.size(), "#845's end_core + deep_core rows");
+        assertEquals(3, transforms.size(), "nether_core (blazing blood, 2026-09-06) + #845's end_core + deep_core rows");
 
         fuels.forEach((id, fuel) -> {
             boolean longBurn = id.getPath().equals("pyrealloy");
@@ -161,7 +163,7 @@ class JeiRecipesScaleTest {
         List<CoreTransformRecipe> transformDisplays = CoreTransformRecipes.build(transforms);
 
         assertEquals(5, fuelDisplays.size());
-        assertEquals(2, transformDisplays.size());
+        assertEquals(3, transformDisplays.size());
     }
 
     /**

@@ -195,6 +195,7 @@ public final class ForgeweaveSmelteryScenes {
     private static final BlockPos TIERS_SOURCE = new BlockPos(3, 4, 1);
 
     private static final String LAVA = "minecraft:lava";
+    private static final String BLAZING_BLOOD = "forgeweave:blazing_blood";
     private static final String DRAGON_BREATH = "forgeweave:molten_dragon_breath";
     private static final String DEEP_BLOOD = "forgeweave:deep_blood";
     /** The stream's mid-pour buffer, the same fraction of a faucet transaction the casting scene draws. */
@@ -214,37 +215,39 @@ public final class ForgeweaveSmelteryScenes {
                 .withItem(new ItemStack(Items.IRON_ORE));
         scene.overlay().showText(90)
                 .attachKeyFrame()
-                .text("The core in a smeltery's wall sets how much melt each ore gives. Under a Standard Core one iron ore melts to one and a half ingots' worth")
-                .pointAt(util.vector().blockSurface(TIERS_CORE, Direction.NORTH))
-                .placeNearTarget();
-        scene.idle(100);
-
-        swapCore(scene, ForgeweaveBlocks.NETHER_CORE.get());
-        scene.overlay().showText(90)
-                .attachKeyFrame()
-                .text("A Nether Core, seared bricks around a netherite ingot, raises that to two ingots' worth. It is the last core that can be crafted. The walls take on the core's look, spreading out from it")
+                .text("The core in a smeltery's wall sets how much melt each ore gives. Under a Standard Core, the only core that is crafted, one iron ore melts to one and a half ingots' worth")
                 .pointAt(util.vector().blockSurface(TIERS_CORE, Direction.NORTH))
                 .placeNearTarget();
         scene.idle(100);
 
         scene.world().showSection(util.select().position(TIERS_FAUCET).add(util.select().position(TIERS_SOURCE)), Direction.DOWN);
+        ForgeweaveCastingScenes.searedTank(scene, util, TIERS_SOURCE, BLAZING_BLOOD, 500);
+        scene.idle(10);
+        scene.overlay().showText(90)
+                .attachKeyFrame()
+                .text("Every higher core is made by pouring. Set a Faucet over the core, fed from a tank of the next tier's fluid: half a bucket of blazing blood turns a Standard Core into a Nether Core")
+                .pointAt(util.vector().blockSurface(TIERS_FAUCET, Direction.NORTH))
+                .placeNearTarget();
+        scene.idle(100);
+
+        pourOntoCore(scene, util, BLAZING_BLOOD, ForgeweaveBlocks.NETHER_CORE.get());
+        scene.overlay().showText(90)
+                .attachKeyFrame()
+                .text("A Nether Core melts two ingots' worth per ore. The smeltery stays formed and keeps its melt and fuel, and its walls take on the new core's look, spreading out from it")
+                .pointAt(util.vector().blockSurface(TIERS_CORE, Direction.NORTH))
+                .placeNearTarget();
+        scene.idle(100);
+
         ForgeweaveCastingScenes.searedTank(scene, util, TIERS_SOURCE, DRAGON_BREATH, 1000);
         scene.idle(10);
         scene.overlay().showText(90)
                 .attachKeyFrame()
-                .text("An End Core is made by pouring instead. Set a Faucet over a Nether Core, fed from a tank of molten dragon breath, and pour a full bucket onto it")
+                .text("A full bucket of molten dragon breath poured over a Nether Core makes an End Core: two and a half ingots' worth per ore")
                 .pointAt(util.vector().blockSurface(TIERS_FAUCET, Direction.NORTH))
                 .placeNearTarget();
         scene.idle(100);
 
         pourOntoCore(scene, util, DRAGON_BREATH, ForgeweaveBlocks.END_CORE.get());
-        scene.overlay().showText(90)
-                .attachKeyFrame()
-                .text("Once 1,000 mB has gone in the core becomes an End Core: two and a half ingots' worth per ore. The smeltery stays formed and keeps its melt and fuel")
-                .pointAt(util.vector().blockSurface(TIERS_CORE, Direction.NORTH))
-                .placeNearTarget();
-        scene.idle(100);
-
         ForgeweaveCastingScenes.searedTank(scene, util, TIERS_SOURCE, DEEP_BLOOD, 2000);
         scene.idle(10);
         scene.overlay().showText(90)

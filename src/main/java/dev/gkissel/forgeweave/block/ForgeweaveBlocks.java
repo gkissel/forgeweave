@@ -223,8 +223,9 @@ public final class ForgeweaveBlocks {
             () -> new SmelteryControllerBlock(searedProperties(), SmelteryCore.NETHER));
 
     // #845 -- the top two tiers, reached only by pouring the right fluid over the tier below
-    // (CoreTransformRecipe), never crafted directly -- see ForgeweaveRecipeProvider's smelteryRecipes
-    // javadoc for why only the Standard and Nether Core get a shaped recipe.
+    // (CoreTransformRecipe), never crafted directly; since 2026-09-06 the Nether Core is reached the
+    // same way (blazing blood over a Standard Core) -- see ForgeweaveRecipeProvider's smelteryRecipes
+    // javadoc.
     public static final DeferredBlock<SmelteryControllerBlock> END_CORE = BLOCKS.register("end_core",
             () -> new SmelteryControllerBlock(searedProperties(), SmelteryCore.END));
 
