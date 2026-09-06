@@ -426,7 +426,7 @@
   "forgeweave.ponder.casting.text_6": "Once cooled, right-click to take the result out. The cast stays in the table for the next pour",
   "forgeweave.ponder.core_tiers.header": "Smeltery Cores",
   "forgeweave.ponder.core_tiers.text_1": "The core in a smeltery's wall sets how much melt each ore gives. Under a Standard Core one iron ore melts to one and a half ingots' worth",
-  "forgeweave.ponder.core_tiers.text_2": "A Nether Core, seared bricks around a netherite ingot, raises that to two ingots' worth. It is the last core that can be crafted",
+  "forgeweave.ponder.core_tiers.text_2": "A Nether Core, seared bricks around a netherite ingot, raises that to two ingots' worth. It is the last core that can be crafted. The walls take on the core's look, spreading out from it",
   "forgeweave.ponder.core_tiers.text_3": "An End Core is made by pouring instead. Set a Faucet over a Nether Core, fed from a tank of molten dragon breath, and pour a full bucket onto it",
   "forgeweave.ponder.core_tiers.text_4": "Once 1,000 mB has gone in the core becomes an End Core: two and a half ingots' worth per ore. The smeltery stays formed and keeps its melt and fuel",
   "forgeweave.ponder.core_tiers.text_5": "Two buckets of deep blood poured the same way over an End Core make a Deep Core, the top tier: three ingots' worth from every ore",
