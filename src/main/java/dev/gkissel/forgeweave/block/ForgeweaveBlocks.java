@@ -162,20 +162,18 @@ public final class ForgeweaveBlocks {
     // logic yet (issue #95), so these are decorative cubes only: no BlockEntity, no tool-tier
     // gating, matching how Part Builder/Tool Station also leave tool-tier ungated (issue #9). Strength
     // and sound are ported from BlockSeared's constructor.
-    public static final DeferredBlock<Block> SEARED_STONE = searedBlock("seared_stone");
-    public static final DeferredBlock<Block> SEARED_COBBLESTONE = searedBlock("seared_cobblestone");
-    public static final DeferredBlock<Block> SEARED_PAVER = searedBlock("seared_paver");
-    // The one seared block that follows the core's tier (TieredSearedBricksBlock); still a plain
-    // block with no block entity, its tier is a blockstate property.
-    public static final DeferredBlock<TieredSearedBricksBlock> SEARED_BRICKS = BLOCKS.registerBlock("seared_bricks", TieredSearedBricksBlock::new, searedProperties());
-    public static final DeferredBlock<Block> SEARED_CRACKED_BRICKS = searedBlock("seared_cracked_bricks");
-    public static final DeferredBlock<Block> SEARED_FANCY_BRICKS = searedBlock("seared_fancy_bricks");
-    public static final DeferredBlock<Block> SEARED_SQUARE_BRICKS = searedBlock("seared_square_bricks");
-    public static final DeferredBlock<Block> SEARED_TRIANGLE_BRICKS = searedBlock("seared_triangle_bricks");
-    public static final DeferredBlock<Block> SEARED_SMALL_BRICKS = searedBlock("seared_small_bricks");
-    public static final DeferredBlock<Block> SEARED_ROAD = searedBlock("seared_road");
-    public static final DeferredBlock<Block> SEARED_TILE = searedBlock("seared_tile");
-    public static final DeferredBlock<Block> SEARED_CREEPER = searedBlock("seared_creeper");
+    public static final DeferredBlock<TieredSearedBlock> SEARED_STONE = searedBlock("seared_stone");
+    public static final DeferredBlock<TieredSearedBlock> SEARED_COBBLESTONE = searedBlock("seared_cobblestone");
+    public static final DeferredBlock<TieredSearedBlock> SEARED_PAVER = searedBlock("seared_paver");
+    public static final DeferredBlock<TieredSearedBlock> SEARED_BRICKS = searedBlock("seared_bricks");
+    public static final DeferredBlock<TieredSearedBlock> SEARED_CRACKED_BRICKS = searedBlock("seared_cracked_bricks");
+    public static final DeferredBlock<TieredSearedBlock> SEARED_FANCY_BRICKS = searedBlock("seared_fancy_bricks");
+    public static final DeferredBlock<TieredSearedBlock> SEARED_SQUARE_BRICKS = searedBlock("seared_square_bricks");
+    public static final DeferredBlock<TieredSearedBlock> SEARED_TRIANGLE_BRICKS = searedBlock("seared_triangle_bricks");
+    public static final DeferredBlock<TieredSearedBlock> SEARED_SMALL_BRICKS = searedBlock("seared_small_bricks");
+    public static final DeferredBlock<TieredSearedBlock> SEARED_ROAD = searedBlock("seared_road");
+    public static final DeferredBlock<TieredSearedBlock> SEARED_TILE = searedBlock("seared_tile");
+    public static final DeferredBlock<TieredSearedBlock> SEARED_CREEPER = searedBlock("seared_creeper");
 
     // Seared stairs + slabs (docs/SCOPE.md M3.4-5 issue #274): upstream 1.12's BlockSearedStairs and
     // the two BlockSearedSlab(2) blocks together cover all 12 SearedType variants above, split here
@@ -283,8 +281,8 @@ public final class ForgeweaveBlocks {
     // (SmelteryScan#Valid) -- so this is a plain non-opaque block, same searedProperties() as the
     // rest of the family. The connected-texture rendering itself is left plain (PR #289 body); its
     // single texture is upstream's own "no neighbours" sprite (NOTICE.md).
-    public static final DeferredBlock<Block> SEARED_GLASS = BLOCKS.registerSimpleBlock("seared_glass",
-            searedProperties().noOcclusion());
+    public static final DeferredBlock<TieredSearedBlock> SEARED_GLASS = BLOCKS.registerBlock("seared_glass",
+            TieredSearedBlock::new, searedProperties().noOcclusion());
 
     // #100 -- casting (docs/SCOPE.md M2 issue #100). Same seared strength/sound as the rest of the
     // smeltery; none of the three is a full cube, so all three skip occlusion culling.
@@ -848,8 +846,9 @@ public final class ForgeweaveBlocks {
                 .sound(SoundType.METAL));
     }
 
-    private static DeferredBlock<Block> searedBlock(String name) {
-        return BLOCKS.registerSimpleBlock(name, searedProperties());
+    /** A plain seared block that follows its core's tier (SearedTier); still no block entity. */
+    private static DeferredBlock<TieredSearedBlock> searedBlock(String name) {
+        return BLOCKS.registerBlock(name, TieredSearedBlock::new, searedProperties());
     }
 
     /** Whether {@code block} is one of the seared stairs or slabs (issue #274). */

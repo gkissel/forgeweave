@@ -19,6 +19,8 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.util.RandomSource;
 
 import net.neoforged.neoforge.fluids.FluidActionResult;
 import net.neoforged.neoforge.fluids.FluidType;
@@ -42,7 +44,7 @@ public class SearedDrainBlock extends HorizontalDirectionalBlock implements Enti
 
     public SearedDrainBlock(Properties properties) {
         super(properties);
-        registerDefaultState(defaultBlockState().setValue(FACING, Direction.NORTH));
+        registerDefaultState(SearedTier.standard(defaultBlockState().setValue(FACING, Direction.NORTH)));
     }
 
     @Override
@@ -52,7 +54,13 @@ public class SearedDrainBlock extends HorizontalDirectionalBlock implements Enti
 
     @Override
     protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
-        builder.add(FACING);
+        builder.add(FACING, SearedTier.TIER);
+    }
+
+    /** The tier wave's own tick -- see {@link SearedTier#flip}. */
+    @Override
+    protected void tick(BlockState state, ServerLevel level, BlockPos pos, RandomSource random) {
+        SearedTier.flip(state, level, pos);
     }
 
     @Override

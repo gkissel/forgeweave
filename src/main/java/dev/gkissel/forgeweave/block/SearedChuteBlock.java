@@ -13,6 +13,8 @@ import net.minecraft.world.level.block.HorizontalDirectionalBlock;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.util.RandomSource;
 
 /**
  * The seared chute (docs/SCOPE.md M3.4 issue #277): the item counterpart of the drain, ported from
@@ -27,7 +29,7 @@ public class SearedChuteBlock extends HorizontalDirectionalBlock implements Enti
 
     public SearedChuteBlock(Properties properties) {
         super(properties);
-        registerDefaultState(defaultBlockState().setValue(FACING, Direction.NORTH));
+        registerDefaultState(SearedTier.standard(defaultBlockState().setValue(FACING, Direction.NORTH)));
     }
 
     @Override
@@ -37,7 +39,13 @@ public class SearedChuteBlock extends HorizontalDirectionalBlock implements Enti
 
     @Override
     protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
-        builder.add(FACING);
+        builder.add(FACING, SearedTier.TIER);
+    }
+
+    /** The tier wave's own tick -- see {@link SearedTier#flip}. */
+    @Override
+    protected void tick(BlockState state, ServerLevel level, BlockPos pos, RandomSource random) {
+        SearedTier.flip(state, level, pos);
     }
 
     @Override

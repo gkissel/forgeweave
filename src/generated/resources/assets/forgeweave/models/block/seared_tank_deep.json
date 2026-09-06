@@ -1,0 +1,9 @@
+{
+  "parent": "minecraft:block/cube_bottom_top",
+  "render_type": "minecraft:cutout",
+  "textures": {
+    "bottom": "forgeweave:derived/block/seared_tank_top_deep",
+    "side": "forgeweave:derived/block/seared_tank_side_deep",
+    "top": "forgeweave:derived/block/seared_tank_top_deep"
+  }
+}

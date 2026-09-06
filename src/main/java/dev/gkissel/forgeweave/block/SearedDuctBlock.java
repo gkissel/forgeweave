@@ -19,6 +19,8 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.util.RandomSource;
 
 /**
  * The seared duct (docs/SCOPE.md M3.4 issue #277): a drain that only lets one fluid through, ported
@@ -32,7 +34,7 @@ public class SearedDuctBlock extends HorizontalDirectionalBlock implements Entit
 
     public SearedDuctBlock(Properties properties) {
         super(properties);
-        registerDefaultState(defaultBlockState().setValue(FACING, Direction.NORTH));
+        registerDefaultState(SearedTier.standard(defaultBlockState().setValue(FACING, Direction.NORTH)));
     }
 
     @Override
@@ -42,7 +44,13 @@ public class SearedDuctBlock extends HorizontalDirectionalBlock implements Entit
 
     @Override
     protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
-        builder.add(FACING);
+        builder.add(FACING, SearedTier.TIER);
+    }
+
+    /** The tier wave's own tick -- see {@link SearedTier#flip}. */
+    @Override
+    protected void tick(BlockState state, ServerLevel level, BlockPos pos, RandomSource random) {
+        SearedTier.flip(state, level, pos);
     }
 
     @Override

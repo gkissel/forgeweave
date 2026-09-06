@@ -1,6 +1,15 @@
 {
   "variants": {
-    "": {
+    "tier=deep": {
+      "model": "forgeweave:block/seared_small_bricks_deep"
+    },
+    "tier=end": {
+      "model": "forgeweave:block/seared_small_bricks_end"
+    },
+    "tier=nether": {
+      "model": "forgeweave:block/seared_small_bricks_nether"
+    },
+    "tier=standard": {
       "model": "forgeweave:block/seared_small_bricks"
     }
   }

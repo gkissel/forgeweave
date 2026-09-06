@@ -1,0 +1,12 @@
+{
+  "parent": "minecraft:block/cube",
+  "textures": {
+    "down": "forgeweave:derived/block/seared_bricks_nether",
+    "east": "forgeweave:derived/block/seared_bricks_nether",
+    "north": "forgeweave:derived/block/seared_drain_front_nether",
+    "particle": "forgeweave:derived/block/seared_bricks_nether",
+    "south": "forgeweave:derived/block/seared_drain_back_nether",
+    "up": "forgeweave:derived/block/seared_bricks_nether",
+    "west": "forgeweave:derived/block/seared_bricks_nether"
+  }
+}

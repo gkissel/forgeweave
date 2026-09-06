@@ -1,6 +1,15 @@
 {
   "variants": {
-    "": {
+    "tier=deep": {
+      "model": "forgeweave:block/seared_gauge_deep"
+    },
+    "tier=end": {
+      "model": "forgeweave:block/seared_gauge_end"
+    },
+    "tier=nether": {
+      "model": "forgeweave:block/seared_gauge_nether"
+    },
+    "tier=standard": {
       "model": "forgeweave:block/seared_gauge"
     }
   }
