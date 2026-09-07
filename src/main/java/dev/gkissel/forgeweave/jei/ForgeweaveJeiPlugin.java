@@ -24,6 +24,7 @@ import mezz.jei.api.registration.IRecipeCategoryRegistration;
 import mezz.jei.api.registration.IRecipeRegistration;
 import mezz.jei.api.registration.IRecipeTransferRegistration;
 import mezz.jei.api.registration.ISubtypeRegistration;
+import mezz.jei.api.registration.IVanillaCategoryExtensionRegistration;
 import mezz.jei.api.runtime.IJeiRuntime;
 
 import net.neoforged.neoforge.registries.DeferredHolder;
@@ -36,6 +37,7 @@ import dev.gkissel.forgeweave.client.PartBuilderScreen;
 import dev.gkissel.forgeweave.client.SearedFurnaceScreen;
 import dev.gkissel.forgeweave.client.SmelteryScreen;
 import dev.gkissel.forgeweave.client.StencilTableScreen;
+import dev.gkissel.forgeweave.recipe.RetexturedShapedRecipe;
 import dev.gkissel.forgeweave.client.ToolStationScreen;
 import dev.gkissel.forgeweave.item.ForgeweaveItems;
 import dev.gkissel.forgeweave.item.PartItem;
@@ -390,6 +392,12 @@ public final class ForgeweaveJeiPlugin implements IModPlugin {
      * {@link RepairTransferHandler}), since the tab decides where the input slots sit and what each
      * one accepts.
      */
+    /** See {@link RetexturedCraftingExtension}: the retextured tables show every wood variant as output. */
+    @Override
+    public void registerVanillaCategoryExtensions(IVanillaCategoryExtensionRegistration registration) {
+        registration.getCraftingCategory().addExtension(RetexturedShapedRecipe.class, new RetexturedCraftingExtension());
+    }
+
     @Override
     public void registerRecipeTransferHandlers(IRecipeTransferRegistration registration) {
         registration.addRecipeTransferHandler(new CraftingStationTransferInfo());

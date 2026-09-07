@@ -1,6 +1,10 @@
 package dev.gkissel.forgeweave.recipe;
 
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
@@ -8,6 +12,7 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
 
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
@@ -98,18 +103,50 @@ public class RetexturedShapedRecipe extends ShapedRecipe {
 
     @Override
     public ItemStack assemble(CraftingInput input, HolderLookup.Provider registries) {
-        ItemStack crafted = result.copy();
         for (int i = 0; i < input.size(); i++) {
-            ItemStack ingredient = input.getItem(i);
-            if (ingredient.isEmpty() || !(ingredient.getItem() instanceof BlockItem blockItem)) {
-                continue;
+            Optional<ItemStack> crafted = textured(input.getItem(i));
+            if (crafted.isPresent()) {
+                return crafted.get();
             }
-            if (textureSource.isPresent() && !textureSource.get().test(ingredient)) {
-                continue;
-            }
-            crafted.set(ForgeweaveDataComponents.TEXTURE.get(), BuiltInRegistries.BLOCK.getKey(blockItem.getBlock()));
-            break;
         }
-        return crafted;
+        return result.copy();
+    }
+
+    /**
+     * The result as crafting it with {@code ingredient} in the grid would texture it, or empty when
+     * that ingredient is not a block (or not the {@link #textureSource}) and so decides nothing.
+     */
+    private Optional<ItemStack> textured(ItemStack ingredient) {
+        if (ingredient.isEmpty() || !(ingredient.getItem() instanceof BlockItem blockItem)) {
+            return Optional.empty();
+        }
+        if (textureSource.isPresent() && !textureSource.get().test(ingredient)) {
+            return Optional.empty();
+        }
+        ItemStack crafted = result.copy();
+        crafted.set(ForgeweaveDataComponents.TEXTURE.get(), BuiltInRegistries.BLOCK.getKey(blockItem.getBlock()));
+        return Optional.of(crafted);
+    }
+
+    /**
+     * Every result this recipe can actually produce, one per block its texture ingredient accepts
+     * -- an oak Stencil Table, a birch one, and so on -- for JEI (maintainer report 2026-09-07: the
+     * creative tab lists the tables by wood, JEI keeps those apart by their texture component, and
+     * the recipe's own bare result matched none of them, so "R" on any variant found no craft).
+     * Falls back to the bare result when no ingredient is a block.
+     */
+    public List<ItemStack> displayResults() {
+        List<ItemStack> results = new ArrayList<>();
+        Set<ResourceLocation> seen = new HashSet<>();
+        for (Ingredient ingredient : getIngredients()) {
+            for (ItemStack candidate : ingredient.getItems()) {
+                textured(candidate).ifPresent(crafted -> {
+                    if (seen.add(crafted.get(ForgeweaveDataComponents.TEXTURE.get()))) {
+                        results.add(crafted);
+                    }
+                });
+            }
+        }
+        return results.isEmpty() ? List.of(result.copy()) : results;
     }
 }
