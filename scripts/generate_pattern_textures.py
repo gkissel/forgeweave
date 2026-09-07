@@ -84,11 +84,10 @@ PARTS = [
     # war_mace_head: bbox center (11.0, 5.0) -> (-3, 3) centers it exactly, same hammer lineage
     # (scripts/derive_warmace_art.py derives it from the hammer head).
     ("war_mace_head.png", "pattern_war_mace_head.png", TEXTURE_DIR, (-3, 3)),
-    # curved_blade: Spartan Weaponry's saber blade since #375 (scripts/derive_spartan_blade_art.py),
-    # replacing the 1.12 cutlass blade #279 had put here. Both were drawn in the tool position, up
-    # in the canvas's top-right corner, and both center the same: bbox (4, 1)-(15, 9), center
-    # (10.0, 5.5) -> (-2, 2). The offset is unchanged from #279 even though the art is not.
-    ("curved_blade.png", "pattern_curved_blade.png", TEXTURE_DIR, (-2, 2)),
+    # curved_blade: the Forged scimitar blade (the designer's 2026-09-07 revision, the same sprite as
+    # derived/tools/scimitar_head.png). Drawn nearer the canvas centre than the Spartan-derived
+    # blade #375 put here: bbox (4, 2)-(11, 12), center (8.0, 7.5) -> (0, 0).
+    ("curved_blade.png", "pattern_curved_blade.png", TEXTURE_DIR, (0, 0)),
     # katana_blade: Spartan Weaponry's katana blade since #375, replacing #279's authored one, and
     # so derived art in TEXTURE_DIR now rather than the lone authored part base it used to be. It
     # sits one row lower and one column right of the blade it replaces: bbox (5, 1)-(15, 9), center
