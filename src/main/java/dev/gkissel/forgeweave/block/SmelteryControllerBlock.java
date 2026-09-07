@@ -6,6 +6,7 @@ import com.mojang.serialization.MapCodec;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.particles.ParticleOptions;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -185,6 +186,8 @@ public class SmelteryControllerBlock extends HorizontalDirectionalBlock implemen
     /**
      * T73/issue #504: upstream {@code BlockSmelteryController#randomDisplayTick} -- a formed core
      * puffs flame and smoke out of its front face every client tick, same offsets as upstream's.
+     * Maintainer directive 2026-09-07: the End Core breathes dragon breath instead, the Deep Core
+     * sculk souls, so each tier's front reads like the fluid that made it.
      */
     @Override
     public void animateTick(BlockState state, Level level, BlockPos pos, RandomSource random) {
@@ -194,7 +197,18 @@ public class SmelteryControllerBlock extends HorizontalDirectionalBlock implemen
         double x = pos.getX() + 0.5;
         double y = pos.getY() + 0.5 + random.nextFloat() * 6f / 16f;
         double z = pos.getZ() + 0.5;
-        spawnFireParticles(level, state.getValue(FACING), x, y, z, 0.52, random.nextDouble() * 0.6 - 0.3);
+        double side = random.nextDouble() * 0.6 - 0.3;
+        switch (core) {
+            case END -> spawnFrontParticle(level, ParticleTypes.DRAGON_BREATH, state.getValue(FACING), x, y, z, 0.52, side);
+            case DEEP -> spawnFrontParticle(level, ParticleTypes.SCULK_SOUL, state.getValue(FACING), x, y, z, 0.52, side);
+            default -> spawnFireParticles(level, state.getValue(FACING), x, y, z, 0.52, side);
+        }
+    }
+
+    /** One {@code particle} at the same spot {@link #spawnFireParticles} puts its pair. */
+    private static void spawnFrontParticle(Level level, ParticleOptions particle, Direction facing,
+            double x, double y, double z, double front, double side) {
+        level.addParticle(particle, x + offsetAlong(facing, front, side), y, z + offsetAcross(facing, front, side), 0.0, 0.0, 0.0);
     }
 
     /**
