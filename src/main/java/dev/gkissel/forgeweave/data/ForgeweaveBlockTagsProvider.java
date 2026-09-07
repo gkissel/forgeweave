@@ -10,10 +10,12 @@ import net.minecraft.tags.BlockTags;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.SoundType;
 
 import net.neoforged.neoforge.common.Tags;
 import net.neoforged.neoforge.common.data.BlockTagsProvider;
 import net.neoforged.neoforge.common.data.ExistingFileHelper;
+import net.neoforged.neoforge.registries.DeferredHolder;
 
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.block.ForgeweaveBlocks;
@@ -50,11 +52,21 @@ public class ForgeweaveBlockTagsProvider extends BlockTagsProvider {
         // #903: brimspar ore rides cobalt/ardite's own netherite gate -- it is a late Nether ore whose
         // crystals feed the fuel ladder's second-from-top rung, so it should not be reachable before
         // the two Nether ores that share its dimension.
-        tag(BlockTags.MINEABLE_WITH_PICKAXE)
-                .add(ForgeweaveBlocks.TOOL_FORGE.get())
-                .add(ForgeweaveBlocks.COBALT_ORE.get())
-                .add(ForgeweaveBlocks.ARDITE_ORE.get())
-                .add(ForgeweaveBlocks.BRIMSPAR_ORE.get());
+        // Maintainer report 2026-09-07 ("seared blocks are far too hard to break"): every Forgeweave
+        // block that sounds like stone or metal is pickaxe-mineable. Until now only the Tool Forge
+        // and the ores were tagged, so the seared family, the cores, the casting blocks and every
+        // metal storage block took vanilla's no-correct-tool penalty: five times the hardness, 15 to
+        // 25 seconds per block whatever the pickaxe. Sound type is the one property every block
+        // already declares that says "stone or metal", so the sweep needs no per-block list and a
+        // new block registered with searedProperties() or metalBlock() is covered on its own.
+        var pickaxe = tag(BlockTags.MINEABLE_WITH_PICKAXE);
+        for (DeferredHolder<Block, ? extends Block> entry : ForgeweaveBlocks.BLOCKS.getEntries()) {
+            Block block = entry.get();
+            SoundType sound = block.defaultBlockState().getSoundType();
+            if (block.defaultDestroyTime() > 0 && (sound == SoundType.STONE || sound == SoundType.METAL)) {
+                pickaxe.add(block);
+            }
+        }
         tag(BlockTags.NEEDS_DIAMOND_TOOL)
                 .add(ForgeweaveBlocks.COBALT_ORE.get())
                 .add(ForgeweaveBlocks.ARDITE_ORE.get())
@@ -143,7 +155,6 @@ public class ForgeweaveBlockTagsProvider extends BlockTagsProvider {
         // ore (fulmenite) needs an iron pickaxe or better, matching vanilla diamond_ore's own
         // needs_iron_tool; Track B's own stone-tier ore was retired by issue #884 (1) -- basalt
         // replaces it as a Part-Builder-only vanilla-item material, no ore/worldgen presence.
-        var trackBPickaxe = tag(BlockTags.MINEABLE_WITH_PICKAXE);
         var trackBNeedsDiamond = tag(BlockTags.NEEDS_DIAMOND_TOOL);
         var trackBIncorrectForDiamond = tag(BlockTags.INCORRECT_FOR_DIAMOND_TOOL);
         var trackBIncorrectForNetherite = tag(BlockTags.INCORRECT_FOR_NETHERITE_TOOL);
@@ -153,7 +164,6 @@ public class ForgeweaveBlockTagsProvider extends BlockTagsProvider {
         var trackBStorageBlocks = tag(cTag("storage_blocks"));
         for (TrackBOre ore : TrackBOre.ALL) {
             Block oreBlock = ForgeweaveBlocks.trackBOre(ore.id()).get();
-            trackBPickaxe.add(oreBlock);
             switch (ore.tier()) {
                 case RESONITE -> {
                     trackBNeedsDiamond.add(oreBlock);
