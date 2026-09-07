@@ -66,6 +66,8 @@ class FusionUpgradeRecipeTest {
      * {@code evolved} ids, so a tool already in a save keeps the tier it was built at.
      */
     private static final List<String> TIER_TRAITS = List.of("evolving", "evolved", "evolved2", "evolved3");
+    /** The core marker beside each tier: fusion only takes a core tool (maintainer decision 2026-09-06). */
+    private static final List<String> CORE_TRAITS = List.of("coremend", "stonewake", "ruthless", "chaosmark");
 
     /**
      * A pickaxe carrying the tier marker for {@code level} -- what a tool built out of one of the
@@ -76,7 +78,8 @@ class FusionUpgradeRecipeTest {
         ItemStack pickaxe = new ItemStack(ForgeweaveItems.TOOL_PICKAXE.get());
         if (level > 0) {
             pickaxe.set(ForgeweaveDataComponents.TRAITS.get(), List.of(
-                    ResourceLocation.fromNamespaceAndPath("forgeweave", TIER_TRAITS.get(level - 1))));
+                    ResourceLocation.fromNamespaceAndPath("forgeweave", TIER_TRAITS.get(level - 1)),
+                    ResourceLocation.fromNamespaceAndPath("forgeweave", CORE_TRAITS.get(level - 1))));
         }
         return pickaxe;
     }
@@ -295,11 +298,34 @@ class FusionUpgradeRecipeTest {
                 ForgeweaveDraconicCompat.requiredEvolved("wyvern"),
                 ForgeweaveDraconicCompat.requiredEvolved("draconic"),
                 ForgeweaveDraconicCompat.requiredEvolved("chaotic")));
-        assertEquals(List.of("duskweld", "emberweld", "starweld", "voidweld"), List.of(
-                ForgeweaveDraconicCompat.fusionMetal("draconium"),
-                ForgeweaveDraconicCompat.fusionMetal("wyvern"),
-                ForgeweaveDraconicCompat.fusionMetal("draconic"),
-                ForgeweaveDraconicCompat.fusionMetal("chaotic")));
+        assertEquals(List.of("draconium_core", "wyvern", "awakened", "chaotic"), List.of(
+                ForgeweaveDraconicCompat.catalystMaterial("draconium"),
+                ForgeweaveDraconicCompat.catalystMaterial("wyvern"),
+                ForgeweaveDraconicCompat.catalystMaterial("draconic"),
+                ForgeweaveDraconicCompat.catalystMaterial("chaotic")));
+    }
+
+    /**
+     * Maintainer decision 2026-09-06: fusion upgrades a tool made of a Draconic core and refuses a
+     * weld tool at the same tier, which hosts modules instead. The markers are pinned against the
+     * shipped material JSON so a renamed trait cannot silently unmake the split.
+     */
+    @Test
+    void fusionTakesCoreToolsAndRefusesWeldTools() {
+        FusionUpgradeRecipe wyvern = decode(fixture(100, "wyvern", 8_000_000L));
+        assertTrue(wyvern.upgrade(null, coreTool("wyvern")).isPresent(), "a wyvern-core tool is a catalyst");
+        assertTrue(wyvern.upgrade(null, coreTool("emberweld")).isEmpty(), "an emberweld tool is not");
+        assertTrue(ForgeweaveDraconicCompat.isWeldTool(coreTool("emberweld")));
+        assertFalse(ForgeweaveDraconicCompat.isCoreTool(coreTool("emberweld")));
+        assertTrue(ForgeweaveDraconicCompat.isCoreTool(coreTool("wyvern")));
+        assertFalse(ForgeweaveDraconicCompat.isWeldTool(coreTool("wyvern")));
+
+        List<String> welds = List.of("duskweld", "emberweld", "starweld", "voidweld");
+        List<String> cores = List.of("draconium_core", "wyvern", "awakened", "chaotic");
+        for (int i = 0; i < 4; i++) {
+            assertTrue(materialTraits(welds.get(i)).contains(ForgeweaveDraconicCompat.WELD_MARKERS.get(i)), welds.get(i));
+            assertTrue(materialTraits(cores.get(i)).contains(ForgeweaveDraconicCompat.CORE_MARKERS.get(i)), cores.get(i));
+        }
     }
 
     /**
@@ -392,12 +418,16 @@ class FusionUpgradeRecipeTest {
      * material} lists -- the trait list an assembled tool made of that material ends up with.
      */
     private static ItemStack coreTool(String material) {
-        JsonObject json = read("/data/forgeweave/forgeweave/material/" + material + ".json");
-        List<ResourceLocation> traits = json.getAsJsonObject("traits").getAsJsonArray("general")
-                .asList().stream().map(JsonElement::getAsString).map(ResourceLocation::parse).toList();
         ItemStack pickaxe = new ItemStack(ForgeweaveItems.TOOL_PICKAXE.get());
-        pickaxe.set(ForgeweaveDataComponents.TRAITS.get(), traits);
+        pickaxe.set(ForgeweaveDataComponents.TRAITS.get(), materialTraits(material));
         return pickaxe;
+    }
+
+    /** {@code traits.general} of the shipped material JSON for {@code material}. */
+    private static List<ResourceLocation> materialTraits(String material) {
+        JsonObject json = read("/data/forgeweave/forgeweave/material/" + material + ".json");
+        return json.getAsJsonObject("traits").getAsJsonArray("general")
+                .asList().stream().map(JsonElement::getAsString).map(ResourceLocation::parse).toList();
     }
 
     private static JsonObject read(String path) {

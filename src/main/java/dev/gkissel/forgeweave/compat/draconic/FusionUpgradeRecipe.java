@@ -150,7 +150,7 @@ public record FusionUpgradeRecipe(Ingredient catalyst, ResourceLocation modifier
      */
     @Override
     public Ingredient getCatalyst() {
-        return new CatalystDisplay(catalyst, ForgeweaveDraconicCompat.fusionMetal(techLevel.getSerializedName()))
+        return new CatalystDisplay(catalyst, ForgeweaveDraconicCompat.catalystMaterial(techLevel.getSerializedName()))
                 .toVanilla();
     }
 
@@ -217,7 +217,7 @@ public record FusionUpgradeRecipe(Ingredient catalyst, ResourceLocation modifier
 
     /**
      * The upgraded tool, or empty when this recipe has nothing to give {@code tool}: it is not an
-     * assembled Forgeweave tool, it does not carry {@code evolved} at this tier's level, the
+     * assembled Forgeweave tool, it does not carry {@code evolved} at this tier's level, it is not made of a Draconic core (a weld tool hosts modules instead, maintainer decision 2026-09-06), the
      * modifier id is not registered, the modifier refuses the tool's shape
      * ({@link ModifierApplication#acceptsToolShape}), the tool carries something the modifier cannot
      * sit beside, or the tool already sits at or above this tier's level. The last case is what keeps
@@ -234,6 +234,11 @@ public record FusionUpgradeRecipe(Ingredient catalyst, ResourceLocation modifier
         }
         if (ForgeweaveDraconicCompat.evolvedLevel(tool)
                 < ForgeweaveDraconicCompat.requiredEvolved(techLevel.getSerializedName())) {
+            return Optional.empty();
+        }
+        // Maintainer decision 2026-09-06: only a tool made of a Draconic core takes a fusion
+        // upgrade; a weld tool hosts modules instead (ForgeweaveDraconicCompat#isCoreTool).
+        if (!ForgeweaveDraconicCompat.isCoreTool(tool)) {
             return Optional.empty();
         }
         Modifier behavior = ForgeweaveModifiers.get(modifier);
@@ -264,7 +269,7 @@ public record FusionUpgradeRecipe(Ingredient catalyst, ResourceLocation modifier
     @Override
     public ItemStack getResultItem(HolderLookup.Provider registries) {
         for (ItemStack display : FusionDisplay.catalysts(registries,
-                ForgeweaveDraconicCompat.fusionMetal(techLevel.getSerializedName()))) {
+                ForgeweaveDraconicCompat.catalystMaterial(techLevel.getSerializedName()))) {
             Optional<ItemStack> upgraded = upgrade(registries, display);
             if (upgraded.isPresent()) {
                 return named(upgraded.get());

@@ -5,6 +5,7 @@ import java.util.List;
 import org.jetbrains.annotations.Nullable;
 
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 
@@ -150,6 +151,11 @@ public final class DraconicModules {
         default int shotEnergyCost(ItemStack stack) {
             return 0;
         }
+
+        /** See {@link DraconicModules#drainShield}. */
+        default boolean drainShield(LivingEntity target, double amount) {
+            return false;
+        }
     }
 
     @Nullable
@@ -162,6 +168,16 @@ public final class DraconicModules {
      */
     public static void install(@Nullable Bridge installed) {
         bridge = installed;
+    }
+
+    /**
+     * The {@code shieldbreaker} trait's hit (maintainer request, 2026-09-06): takes {@code amount}
+     * shield points off the Draconic Evolution shield {@code target} is wearing, if any. False when
+     * there is no shield to drain, or no Draconic Evolution.
+     */
+    public static boolean drainShield(LivingEntity target, double amount) {
+        Bridge installed = bridge;
+        return installed != null && installed.drainShield(target, amount);
     }
 
     /** {@code n} in issue #955's tooltip line; 0 with no Draconic Evolution. */

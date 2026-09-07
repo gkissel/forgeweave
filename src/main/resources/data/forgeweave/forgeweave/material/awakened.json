@@ -45,7 +45,8 @@
   "traits": {
     "general": [
       "forgeweave:evolved2",
-      "forgeweave:ruthless"
+      "forgeweave:ruthless",
+      "forgeweave:shieldbreaker"
     ]
   },
   "crafting_items": [

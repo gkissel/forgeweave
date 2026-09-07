@@ -2722,6 +2722,23 @@ public final class ForgeweaveTraits {
     };
 
     /**
+     * Awakened core (maintainer request, 2026-09-06): the anti-shield part. Every hit drains
+     * {@link #SHIELDBREAKER_MULTIPLIER} times the wielder's attack damage off the Draconic Evolution
+     * shield the target wears, through {@link DraconicModules#drainShield}, so a shielded Draconic
+     * suit opens up in a few blows instead of soaking a whole fight. Nothing without Draconic
+     * Evolution installed.
+     */
+    public static final Trait SHIELDBREAKER = new Trait() {
+        @Override
+        public void afterHit(ItemStack stack, ServerLevel level, LivingEntity attacker, LivingEntity target) {
+            DraconicModules.drainShield(target, attacker.getAttributeValue(Attributes.ATTACK_DAMAGE) * SHIELDBREAKER_MULTIPLIER);
+        }
+    };
+
+    /** How many times the attack damage a {@link #SHIELDBREAKER} hit takes off a Draconic shield. */
+    public static final double SHIELDBREAKER_MULTIPLIER = 4.0;
+
+    /**
      * M6 dedupe batch (issue #876): slime vine's own overslime-friend marker, split off {@code
      * overslime_friend} (chorus keeps that id) so the two materials don't share one -- functionally
      * identical to it (see {@link #overslimeArmorPenalty}'s {@code OR}), since slimevine_blue's whole
@@ -3544,15 +3561,24 @@ public final class ForgeweaveTraits {
         if (ForgeweaveDraconicCompat.evolvedLevel(stack) != level) {
             return;
         }
-        int used = 0;
-        for (ModifierEntry entry : ForgeweaveModifiers.of(stack)) {
-            if (FUSION_MODIFIER_IDS.contains(entry.id())) {
-                used++;
-            }
+        // Maintainer decision 2026-09-06: a weld tool hosts modules, a core tool takes fusion
+        // upgrades, so each reads the line for what it can actually do. A mixed tool reads both.
+        if (ForgeweaveDraconicCompat.isWeldTool(stack)) {
+            out.accept(Component.translatable("tooltip.forgeweave.trait.evolved",
+                            DraconicModules.installedModules(stack), DraconicModules.moduleSlots(level))
+                    .withStyle(ChatFormatting.GRAY));
         }
-        out.accept(Component.translatable("tooltip.forgeweave.trait.evolved", used,
-                        DraconicModules.moduleSlots(level))
-                .withStyle(ChatFormatting.GRAY));
+        if (ForgeweaveDraconicCompat.isCoreTool(stack)) {
+            int used = 0;
+            for (ModifierEntry entry : ForgeweaveModifiers.of(stack)) {
+                if (FUSION_MODIFIER_IDS.contains(entry.id())) {
+                    used++;
+                }
+            }
+            out.accept(Component.translatable("tooltip.forgeweave.trait.evolved.fusion", used,
+                            ForgeweaveDraconicCompat.UPGRADE_LINES.size())
+                    .withStyle(ChatFormatting.GRAY));
+        }
     }
 
     private static final Map<ResourceLocation, Trait> REGISTRY = Map.ofEntries(
@@ -3716,6 +3742,7 @@ public final class ForgeweaveTraits {
             Map.entry(id("prismward"), PRISMWARD),
             Map.entry(id("shattermail"), SHATTERMAIL),
             Map.entry(id("chaosmark"), CHAOSMARK),
+            Map.entry(id("shieldbreaker"), SHIELDBREAKER),
             Map.entry(id("vinewarden"), VINEWARDEN),
             Map.entry(id("magmaforge"), MAGMAFORGE),
             Map.entry(id("voidwoven"), VOIDWOVEN),

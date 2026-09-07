@@ -123,13 +123,14 @@ class TraitStateLinesTest {
      * {@code EVOLVED} stays silent rather than showing a second, contradicting one.
      *
      * <p>The allowance is issue #965's grid table, so the draconic tier reads 20 rather than #955's
-     * original 4.
+     * original 4. Both parts are welds (soul rend markers), so the line is the module line
+     * (maintainer decision 2026-09-06: welds host modules, cores take fusion upgrades).
      */
     @Test
     void evolvedTheHighestLevelAcrossPartsIsTheOnlyOneThatSpeaks() {
         ItemStack stack = blankStack();
         stack.set(ForgeweaveDataComponents.TRAITS.get(),
-                List.of(id("evolved"), id("evolved2")));
+                List.of(id("evolved"), id("soulrend"), id("evolved2"), id("soulrend2")));
 
         assertEquals(List.of(), stateLines(ForgeweaveTraits.EVOLVED, stack),
                 "the wyvern marker is outranked by the draconic one on another part");
@@ -147,12 +148,13 @@ class TraitStateLinesTest {
     void evolvedTheAllowanceIsTheModuleGridsOwnCellCount() {
         List<Integer> allowances = List.of(6, 12, 20, 36);
         List<String> markers = List.of("evolving", "evolved", "evolved2", "evolved3");
+        List<String> welds = List.of("soulwick", "soulrend", "soulrend2", "soulrend3");
         List<Trait> traits = List.of(ForgeweaveTraits.EVOLVING, ForgeweaveTraits.EVOLVED,
                 ForgeweaveTraits.EVOLVED2, ForgeweaveTraits.EVOLVED3);
 
         for (int level = 1; level <= markers.size(); level++) {
             ItemStack stack = blankStack();
-            stack.set(ForgeweaveDataComponents.TRAITS.get(), List.of(id(markers.get(level - 1))));
+            stack.set(ForgeweaveDataComponents.TRAITS.get(), List.of(id(markers.get(level - 1)), id(welds.get(level - 1))));
             assertEquals(List.of(Component
                             .translatable("tooltip.forgeweave.trait.evolved", 0, allowances.get(level - 1))
                             .withStyle(ChatFormatting.GRAY)),
@@ -162,22 +164,35 @@ class TraitStateLinesTest {
     }
 
     /**
-     * Two fusion-upgrade modifiers already applied (haste and sharpness, both in
-     * {@code ForgeweaveDraconicCompat.UPGRADE_LINES}) count as two used upgrades against the chaotic
-     * tier's allowance of 36; a non-fusion modifier (soulbound) does not count.
+     * A chaotic-core tool (maintainer decision 2026-09-06: cores take fusion upgrades) reads the
+     * fusion line: two fusion-upgrade modifiers already applied (haste and sharpness, both in
+     * {@code ForgeweaveDraconicCompat.UPGRADE_LINES}) count as two used upgrades of the eight lines;
+     * a non-fusion modifier (soulbound) does not count. No module line, since a core hosts none.
      */
     @Test
     void evolvedCountsOnlyModifiersInTheFusionRoster() {
         ItemStack stack = blankStack();
-        stack.set(ForgeweaveDataComponents.TRAITS.get(), List.of(id("evolved3")));
+        stack.set(ForgeweaveDataComponents.TRAITS.get(), List.of(id("evolved3"), id("chaosmark")));
         stack.set(ForgeweaveDataComponents.MODIFIERS.get(), List.of(
                 new ModifierEntry(id("haste"), 100),
                 new ModifierEntry(id("sharpness"), 144),
                 new ModifierEntry(id("soulbound"), 1)));
 
-        assertEquals(List.of(Component.translatable("tooltip.forgeweave.trait.evolved", 2, 36)
+        assertEquals(List.of(Component.translatable("tooltip.forgeweave.trait.evolved.fusion", 2, 8)
                         .withStyle(ChatFormatting.GRAY)),
                 stateLines(ForgeweaveTraits.EVOLVED3, stack));
+    }
+
+    /** A head-and-handle mix of a core and a weld reads both lines, in that order: modules first. */
+    @Test
+    void evolvedAMixedToolReadsBothLines() {
+        ItemStack stack = blankStack();
+        stack.set(ForgeweaveDataComponents.TRAITS.get(), List.of(id("evolved"), id("stonewake"), id("soulrend")));
+
+        assertEquals(List.of(
+                        Component.translatable("tooltip.forgeweave.trait.evolved", 0, 12).withStyle(ChatFormatting.GRAY),
+                        Component.translatable("tooltip.forgeweave.trait.evolved.fusion", 0, 8).withStyle(ChatFormatting.GRAY)),
+                stateLines(ForgeweaveTraits.EVOLVED, stack));
     }
 
     /** A tool with no tier marker at all: every level stays silent, none of them are "the" level. */
