@@ -85,8 +85,8 @@ PARTS = [
     # (scripts/derive_warmace_art.py derives it from the hammer head).
     ("war_mace_head.png", "pattern_war_mace_head.png", TEXTURE_DIR, (-3, 3)),
     # curved_blade: the Forged scimitar blade (the designer's 2026-09-07 revision, the same sprite as
-    # derived/tools/scimitar_head.png, mirrored so the hilt sits bottom-left like every other tool
-    # layer): bbox (4, 0)-(14, 12), center (9.5, 6.5) -> (-1, 1).
+    # derived/tools/scimitar_head.png, reflected so the hilt sits bottom-left and the curve turns
+    # upward like a sabre held forward): bbox (3, 1)-(15, 11), center (9.5, 6.5) -> (-1, 1).
     ("curved_blade.png", "pattern_curved_blade.png", TEXTURE_DIR, (-1, 1)),
     # katana_blade: Spartan Weaponry's katana blade since #375, replacing #279's authored one, and
     # so derived art in TEXTURE_DIR now rather than the lone authored part base it used to be. It
