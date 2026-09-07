@@ -11,6 +11,7 @@ import net.minecraft.world.item.crafting.RecipeSerializer;
 
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.common.crafting.IngredientType;
+import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.registries.DeferredRegister;
 import net.neoforged.neoforge.registries.NeoForgeRegistries;
 
@@ -213,12 +214,55 @@ public final class ForgeweaveDraconicCompat {
     }
 
     /**
-     * The fusion metal a tool has to be made of to stand on a {@code techLevel} rung -- the material
-     * name behind {@link #requiredEvolved}'s level, since the two are the same fact read two ways.
-     * What {@link FusionDisplay} builds that rung's display tools out of (issue #952).
+     * The Draconic core material a tool has to be made of to stand on a {@code techLevel} rung, and
+     * what {@link FusionDisplay} builds that rung's display tools out of (issue #952). Maintainer
+     * decision 2026-09-06: fusion upgrades take a tool made of a Draconic <em>core</em>
+     * ({@link #isCoreTool}); a tool made of a fusion metal, a weld, hosts Draconic modules instead
+     * ({@link #isWeldTool}) and fusion refuses it. Before that decision the welds were the catalysts.
      */
-    public static String fusionMetal(String techLevel) {
-        return FUSION_METALS.get(requiredEvolved(techLevel) - 1).material();
+    public static String catalystMaterial(String techLevel) {
+        return switch (techLevel) {
+            case "draconium" -> "draconium_core";
+            case "wyvern" -> "wyvern";
+            case "draconic" -> "awakened";
+            case "chaotic" -> "chaotic";
+            default -> throw new IllegalArgumentException("no Draconic Evolution tech level named " + techLevel);
+        };
+    }
+
+    /**
+     * The trait each fusion metal grants beside its tier marker, in {@link #FUSION_METALS} order --
+     * duskweld's soulwick, then emberweld, starweld and voidweld's soul rend ranks. Present on a tool
+     * means "built from a weld"; the parts themselves are gone by the time a stack sits in a crafting
+     * core or a module screen (see {@link #evolvedLevel}), so this is the record that is left.
+     * {@code FusionUpgradeRecipeTest} pins both lists against the shipped material JSON.
+     */
+    public static final List<ResourceLocation> WELD_MARKERS = List.of(
+            ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "soulwick"),
+            ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "soulrend"),
+            ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "soulrend2"),
+            ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "soulrend3"));
+
+    /** The same for the four Draconic core materials: draconium core, wyvern, awakened, chaotic. */
+    public static final List<ResourceLocation> CORE_MARKERS = List.of(
+            ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "coremend"),
+            ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "stonewake"),
+            ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "ruthless"),
+            ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "chaosmark"));
+
+    /** Whether any part of {@code tool} is a fusion metal (a weld) -- the tools that host Draconic modules. */
+    public static boolean isWeldTool(ItemStack tool) {
+        return carriesAny(tool, WELD_MARKERS);
+    }
+
+    /** Whether any part of {@code tool} is a Draconic core -- the tools fusion crafting upgrades. */
+    public static boolean isCoreTool(ItemStack tool) {
+        return carriesAny(tool, CORE_MARKERS);
+    }
+
+    private static boolean carriesAny(ItemStack tool, List<ResourceLocation> markers) {
+        List<ResourceLocation> traits = tool.get(ForgeweaveDataComponents.TRAITS.get());
+        return traits != null && markers.stream().anyMatch(traits::contains);
     }
 
     /**
@@ -288,6 +332,8 @@ public final class ForgeweaveDraconicCompat {
         // #956: evolved gear is also a Draconic Evolution module host. Same guard, same reason -- the
         // class behind this call names com.brandon3055 types and cannot link without the mod.
         DraconicModuleHost.register(modEventBus);
+        // 2026-09-06: a chaotic-tier tool hurts the Chaos Guardian's crystals.
+        NeoForge.EVENT_BUS.addListener(DraconicGuardianCrystals::onAttack);
 
         // #952: the catalyst an upgrade row hands JEI is a custom ingredient (it matches the tag but
         // draws assembled tools), and NeoForge requires every custom ingredient's type to be

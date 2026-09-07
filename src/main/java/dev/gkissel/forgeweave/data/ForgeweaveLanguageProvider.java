@@ -813,7 +813,8 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("tooltip.forgeweave.trait.bloodtally", "+%s damage, %s kills, max +%s");
         add("tooltip.forgeweave.trait.warmemory.entry", "%s +%s (%s)");
         add("tooltip.forgeweave.trait.warmemory.cap", "Max +%s damage per type, %s fights");
-        add("tooltip.forgeweave.trait.evolved", "Draconic upgrades: %s of %s");
+        add("tooltip.forgeweave.trait.evolved", "Draconic modules: %s of %s");
+        add("tooltip.forgeweave.trait.evolved.fusion", "Fusion upgrades: %s of %s");
         // tooltip.pattern.cost, quoted in ingots off PartBuilderRecipes' own cost constants.
         add("tooltip.forgeweave.pattern_cost", "Material Cost: %s");
         // tooltip.part.missing_material / tooltip.part.missing_info -- a part whose material
@@ -2143,16 +2144,16 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         // instead, which is what a player reads them against anyway.
         add("trait.forgeweave.evolving.name", "Evolving");
         add("trait.forgeweave.evolving.description",
-                "Fusion crafting accepts this tool for a draconium tier upgrade.");
+                "Draconium tier. Made of a Draconic core, fusion crafting upgrades this tool; made of a weld, it hosts Draconic modules.");
         add("trait.forgeweave.evolved.name", "Evolved");
         add("trait.forgeweave.evolved.description",
-                "Fusion crafting accepts this tool up to a wyvern tier upgrade.");
+                "Wyvern tier. Made of a Draconic core, fusion crafting upgrades this tool; made of a weld, it hosts Draconic modules.");
         add("trait.forgeweave.evolved2.name", "Evolved II");
         add("trait.forgeweave.evolved2.description",
-                "Fusion crafting accepts this tool up to a draconic tier upgrade.");
+                "Draconic tier. Made of a Draconic core, fusion crafting upgrades this tool; made of a weld, it hosts Draconic modules.");
         add("trait.forgeweave.evolved3.name", "Evolved III");
         add("trait.forgeweave.evolved3.description",
-                "Fusion crafting accepts this tool up to a chaotic tier upgrade.");
+                "Chaotic tier. Made of a Draconic core, fusion crafting upgrades this tool; made of a weld, it hosts Draconic modules. Chaotic hits damage the Chaos Guardian's crystals.");
         add("trait.forgeweave.soulrend.name", "Soul Rend");
         add("trait.forgeweave.soulrend.description", "Heals the wielder for a share of the damage dealt.");
         add("trait.forgeweave.soulrend2.name", "Soul Rend II");
@@ -2686,6 +2687,8 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("trait.forgeweave.prismward.description", "A crystalline ward softens incoming force.");
         add("trait.forgeweave.shattermail.name", "Shattermail");
         add("trait.forgeweave.shattermail.description", "Cracks armor a little harder than armor_breaker's base.");
+        add("trait.forgeweave.shieldbreaker.name", "Shieldbreaker");
+        add("trait.forgeweave.shieldbreaker.description", "Each hit tears four times its damage out of a Draconic shield.");
         add("trait.forgeweave.chaosmark.name", "Chaosmark");
         add("trait.forgeweave.chaosmark.description", "An unstable strike occasionally disorients the target.");
         add("trait.forgeweave.vinewarden.name", "Vinewarden");

@@ -10,6 +10,9 @@ import com.brandon3055.draconicevolution.api.capability.DECapabilities;
 import com.brandon3055.draconicevolution.api.modules.ModuleCategory;
 import com.brandon3055.draconicevolution.api.modules.ModuleTypes;
 import com.brandon3055.draconicevolution.api.modules.data.EnergyData;
+import com.brandon3055.draconicevolution.api.capability.ModuleHost;
+import com.brandon3055.draconicevolution.api.modules.entities.ShieldControlEntity;
+import com.brandon3055.draconicevolution.api.modules.lib.ModuleEntity;
 import com.brandon3055.draconicevolution.api.modules.lib.ModuleHostImpl;
 
 import org.jetbrains.annotations.Nullable;
@@ -22,6 +25,8 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.ItemLike;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.entity.LivingEntity;
 
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
@@ -128,6 +133,11 @@ public final class DraconicModuleHost implements DraconicModules.Bridge {
     public static ModuleHostImpl newHost(ItemStack stack) {
         int evolved = ForgeweaveDraconicCompat.evolvedLevel(stack);
         if (evolved < 1 || evolved > DraconicModules.MAX_EVOLVED) {
+            return null;
+        }
+        // Maintainer decision 2026-09-06: only a tool made of a weld hosts modules; a tool made of a
+        // Draconic core takes fusion upgrades instead (ForgeweaveDraconicCompat#isWeldTool).
+        if (!ForgeweaveDraconicCompat.isWeldTool(stack)) {
             return null;
         }
         Set<ModuleCategory> categories = categories(stack);
@@ -252,6 +262,29 @@ public final class DraconicModuleHost implements DraconicModules.Bridge {
     @Override
     public int shotEnergyCost(ItemStack stack) {
         return DraconicModuleEffects.shotEnergyCost(stack);
+    }
+
+    /**
+     * {@link DraconicModules#drainShield}: the shield controller on the target's chestpiece, if it
+     * wears one with a Draconic module host, loses {@code amount} shield points. Draconic Evolution's
+     * own armor handler blocks incoming damage out of those points, so draining them is what lets
+     * the hit after this one land.
+     */
+    @Override
+    public boolean drainShield(LivingEntity target, double amount) {
+        ItemStack chest = target.getItemBySlot(EquipmentSlot.CHEST);
+        ModuleHost host = chest.isEmpty() ? null : DECapabilities.getHost(chest);
+        if (host == null) {
+            return false;
+        }
+        boolean drained = false;
+        for (ModuleEntity<?> entity : host.getEntitiesByType(ModuleTypes.SHIELD_CONTROLLER).toList()) {
+            if (entity instanceof ShieldControlEntity shield && shield.getShieldPoints() > 0) {
+                shield.subtractShieldPoints(amount);
+                drained = true;
+            }
+        }
+        return drained;
     }
 
     @Override

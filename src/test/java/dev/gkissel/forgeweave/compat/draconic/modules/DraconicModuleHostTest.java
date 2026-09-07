@@ -61,14 +61,27 @@ class DraconicModuleHostTest {
      * shipped {@code evolved} ids rather than renumbering them.
      */
     private static final List<String> TIER_TRAITS = List.of("evolving", "evolved", "evolved2", "evolved3");
+    /** The weld marker beside each tier: only a weld tool hosts modules (maintainer decision 2026-09-06). */
+    private static final List<String> WELD_TRAITS = List.of("soulwick", "soulrend", "soulrend2", "soulrend3");
 
     private static ItemStack evolved(net.minecraft.world.level.ItemLike item, int level) {
         ItemStack stack = new ItemStack(item);
         if (level > 0) {
             stack.set(ForgeweaveDataComponents.TRAITS.get(), List.of(
-                    ResourceLocation.fromNamespaceAndPath("forgeweave", TIER_TRAITS.get(level - 1))));
+                    ResourceLocation.fromNamespaceAndPath("forgeweave", TIER_TRAITS.get(level - 1)),
+                    ResourceLocation.fromNamespaceAndPath("forgeweave", WELD_TRAITS.get(level - 1))));
         }
         return stack;
+    }
+
+    /** Maintainer decision 2026-09-06: a tool made of a Draconic core takes fusion upgrades, not modules. */
+    @Test
+    void aCoreToolHasNoHost() {
+        ItemStack core = new ItemStack(ForgeweaveItems.TOOL_PICKAXE.get());
+        core.set(ForgeweaveDataComponents.TRAITS.get(), List.of(
+                ResourceLocation.fromNamespaceAndPath("forgeweave", "evolved"),
+                ResourceLocation.fromNamespaceAndPath("forgeweave", "stonewake")));
+        assertNull(DraconicModuleHost.newHost(core), "a wyvern-core pickaxe hosts no modules");
     }
 
     /** Issue #965's grid table: 2x3, 2x6, 4x5 and 6x6, so 6 / 12 / 20 / 36 one-cell modules. */
