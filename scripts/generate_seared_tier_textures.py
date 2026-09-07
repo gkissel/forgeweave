@@ -22,20 +22,20 @@ match exactly): `<tier>_core_side.png` is `seared_bricks.png` tinted, so it is p
 `seared_bricks_<tier>.png`, and `<tier>_core_front_active/inactive.png` are the Standard Core's own
 fronts tinted.
 
-The Nether and End tiers are the exception since the designer's own art landed (2026-09-06, the
-`searednether` and `searedend` batches): `seared_bricks_<tier>.png`, `<tier>_core_side.png` (the
-same sprite), the two core fronts, and for the Nether Core its hot "v2" lit front, are hand-drawn
-Forged files this script never touches (`HAND_DRAWN`). Every other wall texture of those tiers is
-derived *from that brick* rather than tinted: `palette()` maps each upstream grey to the designer's
-colours by structure -- the mortar line (upstream's grey 38 and darker) takes the designer's mortar
-colours (the Nether's glowing orange, the End's purple), and the brick body follows the designer's
-body ramp by luminance (the Nether's dark purple, the End's pale yellow) -- so glass, tank, drain
-and the rest wear the designer's palette with upstream's shapes. The Deep tier is still a tint of
-the greys until its art arrives.
+Since the designer's own tier art landed (2026-09-06/07, the `searednether`, `searedend` and
+`seareddeep` batches) every tier works the same way: `seared_bricks_<tier>.png`, `<tier>_core_side.png`
+(the same sprite), the two core fronts, the Nether Core's hot "v2" lit front and the Nether tank's
+side and top are hand-drawn Forged files this script never touches (`HAND_DRAWN`). Every other wall
+texture of a tier is derived *from that tier's brick* rather than tinted: `palette()` maps each
+upstream grey to the designer's colours by structure -- the mortar line (upstream's grey 38 and
+darker) takes the designer's mortar colours (the Nether's glowing orange, the End's purple, the
+Deep's dark teal), and the brick body follows the designer's body ramp by luminance (dark purple,
+pale yellow, grey stone) -- so glass, tank, drain and the rest wear the designer's palette with
+upstream's shapes. `tint()` stays for a tier that has no designer brick yet (none today).
 
-Output: `derived/block/<base>_<tier>.png` for every base below and every tier, plus the Deep core
-files. NOTICE.md carries a row per generated output, citing the base's own upstream source; the
-hand-drawn files are original art and carry none.
+Output: `derived/block/<base>_<tier>.png` for every base below and every tier. NOTICE.md carries a
+row per generated output, citing the base's own upstream source; the hand-drawn files are original
+art and carry none.
 
 Usage: python3 scripts/generate_seared_tier_textures.py
 Requires Pillow (`pip install pillow`).
@@ -47,10 +47,8 @@ from PIL import Image
 
 ASSETS = Path(__file__).resolve().parent.parent / "src/main/resources/assets/forgeweave/textures/derived/block"
 
-# tier -> (hue in degrees, saturation), for the tinted tiers
-TIERS = {
-    "deep": (183.5, 0.65),
-}
+# tier -> (hue in degrees, saturation), for a tier with no designer brick yet (none today)
+TIERS = {}
 
 # tier -> (mortar colours darkest to brightest, body colours darkest to brightest), read off the
 # designer's seared_bricks_<tier>.png. The Nether's mortar glows brighter than its body; the End's
@@ -64,6 +62,10 @@ PALETTES = {
         [(154, 53, 115), (170, 86, 126), (178, 119, 150), (198, 155, 182)],
         [(214, 214, 149), (223, 203, 217), (221, 228, 165), (235, 228, 230),
          (232, 244, 178), (236, 251, 175), (238, 246, 201)]),
+    # The Deep's cyan sculk dots are decoration on the brick face, not part of the ramp.
+    "deep": (
+        [(13, 18, 23), (17, 27, 33), (5, 42, 50)],
+        [(56, 55, 55), (65, 65, 65), (75, 76, 79), (88, 88, 88), (110, 110, 110)]),
 }
 # Upstream's seared brick: mortar is grey 38 (a few cracks at 28/36), the body runs 46..161.
 MORTAR_MAX = 38
@@ -72,7 +74,9 @@ BODY_RANGE = (46, 161)
 # Hand-drawn Forged files under derived/block/ that this script must never overwrite.
 HAND_DRAWN = {"seared_bricks_nether", "nether_core_side", "nether_core_front_active",
               "nether_core_front_inactive", "nether_core_v2_front_active",
-              "seared_bricks_end", "end_core_side", "end_core_front_active", "end_core_front_inactive"}
+              "seared_bricks_end", "end_core_side", "end_core_front_active", "end_core_front_inactive",
+              "seared_bricks_deep", "deep_core_side", "deep_core_front_active", "deep_core_front_inactive",
+              "seared_tank_side_nether", "seared_tank_top_nether"}
 
 # Every texture a tiered wall block's model binds; see ForgeweaveBlockStateProvider's tiered* helpers.
 BASES = [
