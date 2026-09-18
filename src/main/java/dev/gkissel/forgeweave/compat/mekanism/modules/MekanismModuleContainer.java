@@ -194,7 +194,11 @@ public final class MekanismModuleContainer implements MekanismGearModules.Bridge
      */
     @Nullable
     static IModuleContainer containerFor(ItemStack stack) {
-        if (!MekanismGearModules.modulesEnabled() || !ForgeweaveMekanismCompat.isContainerStack(stack)) {
+        // No toggle read here: MekanismGearModules#bridge already answers null while mekanismModules is
+        // off, so every query through the seam short-circuits before it reaches this class. The one
+        // caller that bypasses the seam is the radiation shielding capability provider, which reads the
+        // toggle itself.
+        if (!ForgeweaveMekanismCompat.isContainerStack(stack)) {
             return null;
         }
         return IModuleHelper.INSTANCE.getModuleContainer(stack);

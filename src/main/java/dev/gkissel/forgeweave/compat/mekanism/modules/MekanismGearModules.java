@@ -252,9 +252,19 @@ public final class MekanismGearModules {
         bridge = installed;
     }
 
+    /**
+     * The installed bridge, or {@code null} with no Mekanism <em>or</em> with the toggle off. One read
+     * of the volatile field and one config read per query, and the single place D-M8-5's toggle turns
+     * the container inert -- same shape {@code DraconicModules#bridge} uses for its own.
+     */
+    @Nullable
+    private static Bridge bridge() {
+        return ForgeweaveConfig.enabled(ForgeweaveConfig.MEKANISM_MODULES) ? bridge : null;
+    }
+
     /** How many modules a stack carries; 0 with no Mekanism, no container, or the toggle off. */
     public static int installedModules(ItemStack stack) {
-        Bridge installed = bridge;
+        Bridge installed = bridge();
         return installed == null ? 0 : installed.installedModules(stack);
     }
 
@@ -264,7 +274,7 @@ public final class MekanismGearModules {
      * 0 without Mekanism and 0 for a stack carrying no {@code atomic_matter_alloy} part.
      */
     public static int moduleEnergyCapacity(ItemStack stack) {
-        Bridge installed = bridge;
+        Bridge installed = bridge();
         return installed == null ? 0 : installed.moduleEnergyCapacity(stack);
     }
 
@@ -275,7 +285,7 @@ public final class MekanismGearModules {
      * stats already say and never replaces or subtracts from it.
      */
     public static float digSpeedMultiplier(ItemStack stack) {
-        Bridge installed = bridge;
+        Bridge installed = bridge();
         return installed == null ? 1.0F : installed.digSpeedMultiplier(stack);
     }
 
@@ -285,7 +295,7 @@ public final class MekanismGearModules {
      * {@code 2n}, exactly as a Draconic area module's does. 0 without a module.
      */
     public static int miningAoe(ItemStack stack) {
-        Bridge installed = bridge;
+        Bridge installed = bridge();
         return installed == null ? 0 : installed.miningAoe(stack);
     }
 
@@ -295,7 +305,7 @@ public final class MekanismGearModules {
      * tool's break free.
      */
     public static int miningEnergyCost(ItemStack stack) {
-        Bridge installed = bridge;
+        Bridge installed = bridge();
         return installed == null ? 0 : installed.miningEnergyCost(stack);
     }
 
@@ -306,7 +316,7 @@ public final class MekanismGearModules {
      * Forgeweave-only install sees exactly the component on the stack.
      */
     public static ItemEnchantments moduleEnchantments(ItemStack stack) {
-        Bridge installed = bridge;
+        Bridge installed = bridge();
         return installed == null ? ItemEnchantments.EMPTY : installed.moduleEnchantments(stack);
     }
 
@@ -316,7 +326,7 @@ public final class MekanismGearModules {
      * or when the block at {@code origin} is not one Mekanism will vein.
      */
     public static List<BlockPos> veinPositions(ItemStack stack, Level level, BlockPos origin) {
-        Bridge installed = bridge;
+        Bridge installed = bridge();
         return installed == null ? List.of() : installed.veinPositions(stack, level, origin);
     }
 
@@ -326,7 +336,7 @@ public final class MekanismGearModules {
      * in which case the blow lands at exactly the number Forgeweave's own armour worked out.
      */
     public static Absorption damageAbsorbed(ItemStack piece, LivingEntity defender, float damage) {
-        Bridge installed = bridge;
+        Bridge installed = bridge();
         return installed == null ? Absorption.NONE : installed.damageAbsorbed(piece, defender, damage);
     }
 
@@ -335,7 +345,7 @@ public final class MekanismGearModules {
      * capability answers. 1 for a piece plated in {@code atomic_matter_alloy} per D-M8-15, 0 otherwise.
      */
     public static double radiationShielding(ItemStack stack) {
-        Bridge installed = bridge;
+        Bridge installed = bridge();
         return installed == null ? 0.0D : installed.radiationShielding(stack);
     }
 
@@ -345,7 +355,7 @@ public final class MekanismGearModules {
      * without Mekanism.
      */
     public static void tickModules(ItemStack stack, Player player, boolean serverSide) {
-        Bridge installed = bridge;
+        Bridge installed = bridge();
         if (installed != null) {
             installed.tickModules(stack, player, serverSide);
         }
