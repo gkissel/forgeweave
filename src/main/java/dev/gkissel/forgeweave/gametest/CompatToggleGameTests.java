@@ -277,6 +277,49 @@ public class CompatToggleGameTests {
         helper.succeed();
     }
 
+    /**
+     * Datapack modifier definitions off (issue #973): a pack-defined modifier id resolves to nothing,
+     * so a tool carrying one behaves as if the id had no implementation -- while keeping its entry,
+     * with its level, and the slot it spent. Built-in modifiers are unaffected either way, which is
+     * what proves this gates the datapack source rather than the modifier system.
+     *
+     * <p>The toggle is read at lookup, not at registration: a SERVER config does not exist yet when
+     * datapack registries load and sync, so "registers nothing" is unreachable for a synced registry
+     * and inert-at-lookup is the shape that gives the same player-visible result. The definition
+     * therefore stays in the registry with the toggle off; what changes is what the id resolves to.
+     */
+    @GameTest(template = "empty")
+    public static void modifierDefinitionsOffResolveNoPackDefinedModifier(GameTestHelper helper) {
+        ItemStack tool = ToolAssembly.pickaxe(helper, helper.makeMockPlayer(GameType.SURVIVAL), POS,
+                "iron", "wood", "wood");
+        tool.set(ForgeweaveDataComponents.MODIFIERS.get(),
+                List.of(new ModifierEntry(DatapackModifierGameTests.PACK_CHILL, 1)));
+        List<ModifierEntry> before = tool.get(ForgeweaveDataComponents.MODIFIERS.get());
+
+        helper.assertTrue(ForgeweaveModifiers.get(DatapackModifierGameTests.PACK_CHILL) != null,
+                "a pack-defined modifier resolves while modifierDefinitions is on, or this test proves nothing");
+
+        ForgeweaveConfig.MODIFIER_DEFINITIONS.set(false);
+        try {
+            helper.assertTrue(ForgeweaveModifiers.get(DatapackModifierGameTests.PACK_CHILL) == null,
+                    "no pack-defined modifier may resolve while modifierDefinitions is off");
+            helper.assertTrue(before.equals(tool.get(ForgeweaveDataComponents.MODIFIERS.get())),
+                    "and the entry must stay on the tool with its level, got "
+                            + tool.get(ForgeweaveDataComponents.MODIFIERS.get()));
+            helper.assertTrue(ForgeweaveModifiers.freeSlots(tool) == ForgeweaveModifiers.DEFAULT_SLOTS - 1,
+                    "and keep the slot the player spent, got " + ForgeweaveModifiers.freeSlots(tool));
+            helper.assertTrue(ForgeweaveModifiers.get(
+                            ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "haste")) != null,
+                    "a built-in modifier is not a datapack modifier and must be unaffected");
+        } finally {
+            ForgeweaveConfig.MODIFIER_DEFINITIONS.set(true);
+        }
+
+        helper.assertTrue(ForgeweaveModifiers.get(DatapackModifierGameTests.PACK_CHILL) != null,
+                "turning modifierDefinitions back on must resolve the same modifier again with no reload");
+        helper.succeed();
+    }
+
     /** What the Tool Station makes of {@code reagent} on {@code tool}, empty when it refuses. */
     private static ItemStack socketOutput(GameTestHelper helper, ItemStack tool, ItemStack reagent) {
         return ModifierApplication.resolve(helper.getLevel().registryAccess(), tool, reagent, ItemStack.EMPTY)
