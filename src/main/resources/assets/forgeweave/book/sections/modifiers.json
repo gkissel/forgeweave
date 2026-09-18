@@ -2,5 +2,13 @@
   {
     "name": "intro",
     "type": "text"
+  },
+  {
+    "name": "affixes",
+    "type": "text"
+  },
+  {
+    "name": "enchanting",
+    "type": "text"
   }
 ]

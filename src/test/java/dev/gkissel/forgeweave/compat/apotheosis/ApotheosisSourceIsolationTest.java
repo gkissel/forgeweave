@@ -79,11 +79,17 @@ class ApotheosisSourceIsolationTest {
      * the three mods present.
      */
     @Test
-    void theApotheosisFreeSeamNamesNothingFromThatMod() throws IOException {
-        Path seam = projectRoot().resolve("src/main/java/" + ALLOWED_DIR + "/ApotheosisSockets.java");
-        assertTrue(Files.exists(seam), "missing " + seam);
-        assertTrue(!Files.readString(seam, StandardCharsets.UTF_8).contains("import " + APOTHEOSIS_PACKAGE),
-                "ApotheosisSockets is loaded on every install and must name no " + APOTHEOSIS_PACKAGE
-                        + " type; put the reference in ApotheosisGemBonuses instead");
+    void theApotheosisFreeSeamsNameNothingFromThatMod() throws IOException {
+        // #970 turned the single seam into a list: ApotheosisAffixes holds the affix and enchanting
+        // toggles and is read from ToolItem, ArmorPieceItem and the loot function, so it is loaded on
+        // every install for the same reason ApotheosisSockets is. Any further always-loaded seam in
+        // this package belongs here too.
+        for (String name : List.of("ApotheosisSockets.java", "ApotheosisAffixes.java")) {
+            Path seam = projectRoot().resolve("src/main/java/" + ALLOWED_DIR + "/" + name);
+            assertTrue(Files.exists(seam), "missing " + seam);
+            assertTrue(!Files.readString(seam, StandardCharsets.UTF_8).contains("import " + APOTHEOSIS_PACKAGE),
+                    name + " is loaded on every install and must name no " + APOTHEOSIS_PACKAGE
+                            + " type; put the reference in ApotheosisGemBonuses instead");
+        }
     }
 }

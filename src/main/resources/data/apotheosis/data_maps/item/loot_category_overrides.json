@@ -1,0 +1,14 @@
+{
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:mod_loaded",
+      "modid": "apotheosis"
+    }
+  ],
+  "replace": false,
+  "values": {
+    "forgeweave:shortbow": "apotheosis:bow",
+    "forgeweave:longbow": "apotheosis:bow",
+    "forgeweave:crossbow": "apotheosis:bow"
+  }
+}

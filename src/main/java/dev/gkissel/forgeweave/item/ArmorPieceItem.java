@@ -31,6 +31,7 @@ import net.minecraft.world.item.enchantment.Enchantment;
 
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.client.StationText;
+import dev.gkissel.forgeweave.compat.apotheosis.ApotheosisAffixes; // #970
 import dev.gkissel.forgeweave.compat.apotheosis.ApotheosisSockets;
 import dev.gkissel.forgeweave.config.ForgeweaveConfig;
 import dev.gkissel.forgeweave.material.Material;
@@ -252,16 +253,21 @@ public class ArmorPieceItem extends ArmorItem {
     }
 
     // Vanilla enchanting (D20): the same allowVanillaEnchanting gate as ToolItem, enchantability off
-    // the plating material's component.
+    // the plating material's component. #970 adds the Apotheosis toggle at the same two doors and for
+    // the same reasons -- see ToolItem#isEnchantable and #isBookEnchantable.
 
     @Override
     public boolean isEnchantable(ItemStack stack) {
-        return ForgeweaveConfig.read(ForgeweaveConfig.ALLOW_VANILLA_ENCHANTING) && super.isEnchantable(stack);
+        return ForgeweaveConfig.read(ForgeweaveConfig.ALLOW_VANILLA_ENCHANTING)
+                && ApotheosisAffixes.enchantingEnabled()
+                && super.isEnchantable(stack);
     }
 
     @Override
     public boolean isBookEnchantable(ItemStack stack, ItemStack book) {
-        return ForgeweaveConfig.read(ForgeweaveConfig.ALLOW_VANILLA_ENCHANTING) && super.isBookEnchantable(stack, book);
+        return ForgeweaveConfig.read(ForgeweaveConfig.ALLOW_VANILLA_ENCHANTING)
+                && ApotheosisAffixes.enchantingEnabled()
+                && super.isBookEnchantable(stack, book);
     }
 
     @Override
