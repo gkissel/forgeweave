@@ -938,51 +938,30 @@ class MaterialTest {
     }
 
     /**
-     * Issue #837's schema trap found four still-unshippable Powah materials, but not all five: its
-     * four crystals ({@code crystal_blazing}/{@code crystal_niotic}/{@code crystal_nitro}/{@code
-     * crystal_spirited}) still ship no per-material {@code c:gems/*} subtag at all, only the flat
-     * parent {@code c:gems} tag, verified against Powah's own {@code v6.2.10} tree -- there is still
-     * no real tag to key {@code crafting_items}/{@code repair_item} on, and a concrete id would let
-     * one player-visible metal (energised steel) work while silently misrepresenting these four as
-     * shippable the same way. {@code steel_energized} itself is the fifth id this test used to guard
-     * -- issue #872's schema fix (concrete item ids are now leniently accepted) unblocked it, so it
-     * is shipped as {@code energised_steel} and removed from this list; see {@link
-     * #energisedSteelCarriesItsConcreteItemId} for its positive coverage.
+     * Issue #872's positive coverage for {@code energised_steel}: Powah's real id ({@code
+     * powah:steel_energized}, the epic's table had it backwards) backs both {@code crafting_items}
+     * and {@code repair_item} directly, leniently accepted by {@code Material.LENIENT_INGREDIENT_CODEC}
+     * even though this mod-less test JVM has no Powah item registered under that id.
+     *
+     * <p>Issue #996 (D-M8-17) unblocked Powah's four remaining untagged materials -- the crystals
+     * {@code crystal_blazing}/{@code crystal_niotic}/{@code crystal_spirited}/{@code crystal_nitro} --
+     * the same way: #837's schema trap found they ship no per-material {@code c:gems/*} subtag at
+     * all, only the flat parent {@code c:gems} tag (verified against Powah's own {@code v6.2.10}
+     * tree), so {@code noShippedMaterialConditionsOnPowahsUntaggedCrystals} used to guard every
+     * shipped material JSON against referencing one of those four ids at all. With every one of the
+     * five now shipped on its own concrete id, that guard has nothing left to check; this
+     * parameterized test is its positive replacement, one row per material.
      */
-    @Test
-    void noShippedMaterialConditionsOnPowahsUntaggedCrystals() throws Exception {
-        Path materialDir = projectRoot().resolve("src/main/resources/data/forgeweave/forgeweave/material");
-        List<String> offenders = new java.util.ArrayList<>();
-        List<String> untaggedPowahIds = List.of("powah:crystal_blazing",
-                "powah:crystal_niotic", "powah:crystal_nitro", "powah:crystal_spirited");
-
-        try (Stream<Path> files = Files.list(materialDir)) {
-            for (Path file : files.filter(p -> p.toString().endsWith(".json")).sorted().toList()) {
-                String raw = Files.readString(file, StandardCharsets.UTF_8);
-                for (String id : untaggedPowahIds) {
-                    if (raw.contains(id)) {
-                        offenders.add(file.getFileName().toString() + " references " + id);
-                    }
-                }
-            }
-        }
-
-        assertTrue(offenders.isEmpty(),
-                "these shipped materials reference Powah's untagged crystal ids, which have no real "
-                        + "c: tag to key crafting_items/repair_item on (issue #837): " + offenders);
-    }
-
-    /**
-     * Issue #872's positive coverage for the material {@link #noShippedMaterialConditionsOnPowahsUntaggedCrystals}
-     * above no longer guards as unshipped: Powah's real id ({@code powah:steel_energized}, the epic's
-     * table had it backwards) backs both {@code crafting_items} and {@code repair_item} directly,
-     * leniently accepted by {@code Material.LENIENT_INGREDIENT_CODEC} even though this mod-less test
-     * JVM has no Powah item registered under that id.
-     */
-    @Test
-    void energisedSteelCarriesItsConcreteItemId() {
-        JsonObject json = shipped("energised_steel").getAsJsonObject();
-        String expected = "powah:steel_energized";
+    @ParameterizedTest
+    @CsvSource({
+            "energised_steel,powah:steel_energized",
+            "blazing_crystal,powah:crystal_blazing",
+            "niotic_crystal,powah:crystal_niotic",
+            "spirited_crystal,powah:crystal_spirited",
+            "nitro_crystal,powah:crystal_nitro",
+    })
+    void powahMaterialsCarryTheirConcreteItemId(String name, String expected) {
+        JsonObject json = shipped(name).getAsJsonObject();
 
         assertEquals(expected, json.getAsJsonObject("repair_item").get("item").getAsString());
         assertEquals(expected, json.getAsJsonArray("crafting_items").get(0).getAsJsonObject()

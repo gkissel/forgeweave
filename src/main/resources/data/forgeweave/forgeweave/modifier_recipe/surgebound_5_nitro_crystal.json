@@ -1,0 +1,8 @@
+{
+  "modifier": "forgeweave:surgebound",
+  "reagent": { "item": "powah:crystal_nitro" },
+  "max_level": 5,
+  "neoforge:conditions": [
+    { "type": "neoforge:item_exists", "item": "powah:crystal_nitro" }
+  ]
+}

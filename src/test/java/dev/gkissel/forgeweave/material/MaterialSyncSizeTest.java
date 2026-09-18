@@ -107,8 +107,14 @@ class MaterialSyncSizeTest {
      * bytes, 17 bytes over the 108 KB line. Raised to 112 KB (114,688 bytes), ~4 KB (3.7%) of
      * headroom above the new measurement, same deliberately-tight step as the #872 and #873 raises
      * above. Still a small fraction of one chunk packet.
+     *
+     * <p>Issue #996 (D-M8-17) spends that headroom too: Powah's four remaining crystals (blazing,
+     * niotic, spirited, nitro) take the 153-material roster to 115,544 bytes, 856 bytes over the
+     * 112 KB line. Raised to 116 KB (118,784 bytes), ~3.2 KB (2.8%) of headroom above the new
+     * measurement, same deliberately-tight step as every raise above -- M8-12 is the last Track A
+     * batch D-M8-17 plans, so no further growth is budgeted for beyond this.
      */
-    private static final int SYNC_BUDGET_BYTES = 112 * 1024;
+    private static final int SYNC_BUDGET_BYTES = 116 * 1024;
 
     private static RegistryOps<JsonElement> jsonOps;
     private static RegistryOps<Tag> nbtOps;
