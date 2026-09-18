@@ -66,6 +66,7 @@ import dev.gkissel.forgeweave.menu.ForgeweaveMenus;
 import dev.gkissel.forgeweave.menu.RenameStationItemPayload;
 import dev.gkissel.forgeweave.modifier.EmbossingRecipe;
 import dev.gkissel.forgeweave.modifier.ForgeweaveModifiers;
+import dev.gkissel.forgeweave.modifier.ModifierDefinition; // #973
 import dev.gkissel.forgeweave.modifier.ModifierRecipe;
 import dev.gkissel.forgeweave.particle.ForgeweaveParticles; // #482
 import dev.gkissel.forgeweave.ponder.ForgeweavePonderPlugin;
@@ -266,6 +267,8 @@ public class Forgeweave {
         // access, so the loaded trait_definition registry is snapshotted into a static lookup here,
         // on both sides, every time data loads or syncs. See ForgeweaveTraits#onTagsUpdated.
         NeoForge.EVENT_BUS.addListener(ForgeweaveTraits::onTagsUpdated);
+        // #973 -- datapack modifier definitions, snapshotted the same way and for the same reason.
+        NeoForge.EVENT_BUS.addListener(ForgeweaveModifiers::onTagsUpdated);
         // #108 batch: Searing/Magnetic Pull/Resonant key off what a mined block drops, which has no
         // Item hook either (see ForgeweaveModifiers#onBlockDrops).
         NeoForge.EVENT_BUS.addListener(ForgeweaveModifiers::onBlockDrops);
@@ -366,6 +369,10 @@ public class Forgeweave {
         // the same on both sides, and so neoforge:conditions existence-gates a definition exactly
         // as it gates a material.
         event.dataPackRegistry(TraitDefinition.REGISTRY, TraitDefinition.CODEC, TraitDefinition.CODEC);
+        // #973 -- datapack modifier definitions (ADR-0004 item 3's second half), the same idiom once
+        // more: the client needs them so a held tool's modifier hooks answer the same on both sides,
+        // and so neoforge:conditions existence-gates a definition exactly as it gates a material.
+        event.dataPackRegistry(ModifierDefinition.REGISTRY, ModifierDefinition.CODEC, ModifierDefinition.CODEC);
     }
 
     /** The Tool Station's rename field and the guide book's bookmark ride custom payloads. */

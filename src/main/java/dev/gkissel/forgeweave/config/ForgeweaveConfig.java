@@ -391,6 +391,16 @@ public final class ForgeweaveConfig {
     /** {@link #SURGEBOUND_NITRO_MINING_SPEED_MULTIPLIER}'s own default -- D-M8-17's "nitro doubles both". */
     public static final double SURGEBOUND_NITRO_MINING_SPEED_MULTIPLIER_DEFAULT = 2.0D;
 
+    /**
+     * Datapack modifier definitions (issue #973, {@code forgeweave:modifier_definition}). Off means
+     * a pack-defined modifier id resolves to nothing, so a tool carrying one behaves as if the id
+     * had no implementation -- which is what a tool carrying an unknown modifier already does. The
+     * entry keeps its id and its level either way and acts again when the toggle returns.
+     *
+     * @see #DRACONIC_FUSION
+     */
+    public static final ModConfigSpec.BooleanValue MODIFIER_DEFINITIONS;
+
     /** Upstream {@code genCobalt}: cobalt ore generates in the Nether. */
     public static final ModConfigSpec.BooleanValue GEN_COBALT;
     /** Upstream {@code cobaltRate}: approximate cobalt veins per Nether chunk. */
@@ -877,6 +887,15 @@ public final class ForgeweaveConfig {
                         "a modifier slot. Has no effect without Apothic Enchanting installed, which is the mod",
                         "that owns the table.")
                 .define("apotheosisEnchanting", true);
+        // #973 (M8-5, D-M8-5), the eleventh and last toggle the section was planned with. Appended
+        // for the same reason the two above are, so an existing compat-server.toml keeps its order.
+        MODIFIER_DEFINITIONS = builder
+                .comment("If true, modifiers a datapack defines through forgeweave:modifier_definition take",
+                        "effect. With this off a pack-defined modifier resolves to nothing, so a tool carrying",
+                        "one behaves as if the id had no implementation. The modifier stays on the tool either",
+                        "way, with its level, and acts again the moment the toggle comes back. Built-in",
+                        "modifiers are unaffected either way.")
+                .define("modifierDefinitions", true);
         builder.pop();
         COMPAT_SPEC = builder.build();
 
