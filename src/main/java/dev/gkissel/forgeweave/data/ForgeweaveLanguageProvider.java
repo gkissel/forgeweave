@@ -2460,6 +2460,11 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("book.forgeweave.modifiers.intro.title", "Modifiers");
         add("book.forgeweave.modifiers.intro.text",
                 "A finished tool is never truly finished. At the Tool Station or Tool Forge, sacrifice items to imbue a tool with modifiers. Each tool starts with a limited number of free slots, and some modifiers can be applied repeatedly for a stronger effect.\n\nThe pages that follow list every modifier known to this workshop.");
+        // Issue #999 (D-M8-20): the augment path needs its own page because nothing else in the book
+        // sends a player to another mod's station with Forgeweave gear in hand.
+        add("book.forgeweave.modifiers.augments.title", "Augments");
+        add("book.forgeweave.modifiers.augments.text",
+                "Mystical Agriculture grows essence metals, and gear with a part made from one of them is accepted by that mod's own Tinkering Table. To fit an augment, carry the tool or armor piece there rather than to a Tool Station.\n\nAn augment slot is not a modifier slot. The two are separate pools, so an augment never spends a modifier slot and a modifier never spends an augment slot. Essence gear carries one augment slot, or two from awakened supremium upward.\n\nWhere a modifier and an augment raise the same number, the two add together.");
         add("book.forgeweave.smeltery.intro.title", "The Smeltery");
         add("book.forgeweave.smeltery.intro.text",
                 "There are many smelteries, but this one is yours, and it melts things really well.");

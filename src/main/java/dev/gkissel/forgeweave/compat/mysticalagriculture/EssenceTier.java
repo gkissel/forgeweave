@@ -35,29 +35,51 @@ import dev.gkissel.forgeweave.trackb.TrackBOre;
 public enum EssenceTier {
 
     /** Mystical Agriculture's starter tier. No Forgeweave crop uses it -- see the class javadoc. */
-    INFERIUM("inferium"),
-    PRUDENTIUM("prudentium"),
-    TERTIUM("tertium"),
-    IMPERIUM("imperium"),
-    SUPREMIUM("supremium"),
-    AWAKENED_SUPREMIUM("awakened_supremium"),
+    INFERIUM("inferium", 1),
+    PRUDENTIUM("prudentium", 2),
+    TERTIUM("tertium", 3),
+    IMPERIUM("imperium", 4),
+    SUPREMIUM("supremium", 5),
     /**
-     * Mystical Agradditions' rung above awakened supremium. Not a crop tier and never returned by
-     * {@link #forOre}: it exists for the augment side alone, where it continues awakened's two slots
-     * rather than dropping back to one. See {@link MysticalAugments}'s own roster comment.
+     * Value 5, not 6, and that is Mystical Agriculture's own shape rather than a rounding here:
+     * {@code awakened_supremium_sword} is registered at tinkerable tier 5 with two augment slots,
+     * differing from {@code supremium_sword} only in the slot count, and Mystical Agriculture
+     * registers no sixth crop tier and no awakened farmland (verified against 8.0.28, see the PR).
+     * So an awakened crop grows on supremium farmland and awakened gear takes every augment tier
+     * supremium gear does, plus a second slot.
      */
-    INSANIUM("insanium");
+    AWAKENED_SUPREMIUM("awakened_supremium", 5),
+    /**
+     * Mystical Agradditions' rung above awakened supremium. Never returned by {@link #forOre}: it
+     * exists for the augment side alone, where it continues awakened's two slots rather than dropping
+     * back to one. Value 5 for the same reason awakened's is -- Mystical Agradditions ships a crop
+     * tier 6 but no tier-6 augments and no tier-6 gear, so 5 is already the ceiling.
+     */
+    INSANIUM("insanium", 5);
 
     /** The path of Mystical Agriculture's own registry id for this tier. */
     private final String id;
 
-    EssenceTier(String id) {
+    /** Mystical Agriculture's own 1-to-5 numbering, which it uses for crop tiers and augments alike. */
+    private final int value;
+
+    EssenceTier(String id, int value) {
         this.id = id;
+        this.value = value;
     }
 
     /** The path of Mystical Agriculture's own tier id, e.g. {@code awakened_supremium}. */
     public String id() {
         return id;
+    }
+
+    /**
+     * Mystical Agriculture's own tier number, 1 to 5. It is both the crop tier this essence grows at
+     * ({@code CropTier.ONE} through {@code FIVE}) and the tinkerable tier that gates which augments
+     * may be installed, because Mystical Agriculture numbers the two on the same scale.
+     */
+    public int value() {
+        return value;
     }
 
     /**

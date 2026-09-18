@@ -359,10 +359,13 @@ dependencies {
     // MysticalAgricultureSourceIsolationTest keeps true.
     //
     // The "api" classifier is Mystical Agriculture's own API-only jar. Cucumber is a row of its own
-    // because the published pom declares no dependencies at all, and it is genuinely on the compile
-    // surface: Crop's crafting-material argument is Cucumber's com.blakebr0.cucumber.lib.
-    // LazyIngredient. transitive = false on the runtime rows, the Draconic pattern: nothing else is
-    // needed to put the classes on a classpath.
+    // because the published pom declares no dependencies at all, so nothing arrives transitively. It
+    // is not on Forgeweave's own compile surface -- the crop API's LazyIngredient turned out to be
+    // Mystical Agriculture's own com.blakebr0.mysticalagriculture.api.lib type, not Cucumber's -- and
+    // it is declared anyway because Mystical Agriculture hard-requires it at runtime
+    // (cucumber [8.0.16,) in its own neoforge.mods.toml), so a classpath holding one without the
+    // other is not a configuration any player will ever have. transitive = false on the runtime rows,
+    // the Draconic pattern: nothing else is needed to put the classes on a classpath.
     compileOnly "com.blakebr0.mysticalagriculture:MysticalAgriculture:${mystical_agriculture_version}:api"
     compileOnly "com.blakebr0.cucumber:Cucumber:${cucumber_version}"
     testCompileOnly "com.blakebr0.mysticalagriculture:MysticalAgriculture:${mystical_agriculture_version}:api"
