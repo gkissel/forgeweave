@@ -1115,6 +1115,9 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("material.forgeweave.niotic_crystal", "Niotic Crystal");
         add("material.forgeweave.spirited_crystal", "Spirited Crystal");
         add("material.forgeweave.nitro_crystal", "Nitro Crystal");
+        // Issue #997 (D-M8-18): Occultism's gem, the third of its three Track A presets. Iesnium and
+        // silver already shipped in earlier batches and keep their names above.
+        add("material.forgeweave.spirit_attuned_gem", "Spirit Attuned Gem");
         add("material.forgeweave.psimetal", "Psimetal");
         add("material.forgeweave.psigem", "Psigem");
         add("material.forgeweave.ivory_psimetal", "Ivory Psimetal");
@@ -2267,6 +2270,12 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         // one per Powah crystal, ascending capacity (see trait_definition/*_charge.json).
         add("trait.forgeweave.blazing_charge.name", "Blazing Charge");
         add("trait.forgeweave.blazing_charge.description", "Carries a Forge Energy buffer that is spent before durability.");
+        // #997 (D-M8-18) -- the spirit attuned gem's own trait. A datapack trait_definition instance
+        // of the existing #829 self_repair_when behavior at its own rate, the same way the Powah
+        // crystals' charges are instances of energized: no new Java, and its own id rather than a
+        // share of duskspar's duskmend, which #876's dedupe policy forbids (MaterialTest).
+        add("trait.forgeweave.spiritmend.name", "Spirit Mend");
+        add("trait.forgeweave.spiritmend.description", "Slowly repairs itself after dark.");
         add("trait.forgeweave.niotic_charge.name", "Niotic Charge");
         add("trait.forgeweave.niotic_charge.description", "Carries a larger Forge Energy buffer that is spent before durability.");
         add("trait.forgeweave.spirited_charge.name", "Spirited Charge");
@@ -2491,6 +2500,12 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("book.forgeweave.modifiers.enchanting.title", "Enchanting");
         add("book.forgeweave.modifiers.enchanting.text",
                 "A Forgeweave tool cannot be enchanted by default. An enchanting table will not take it, an anvil turns away an enchanted book, and modifiers are how a tool is meant to improve. Turn on the allowVanillaEnchanting option and both accept it: the table draws on the tool's own enchantability, averaged across the materials of all its parts.\n\nAn enchantment is not a modifier either. It spends no modifier slot and sits beside whatever modifiers, sockets and level the tool already has. Where an enchantment and a modifier grant the same thing, extra damage or more Fortune, the two add together instead of one replacing the other.\n\nApotheosis' own enchanting table reads the same option, and its apotheosisEnchanting toggle as well. Both have to be on. With either one off the tool is turned away there exactly as it is at a vanilla table.");
+        // #997 (D-M8-18) -- the Occultism ritual ladder. One page rather than four, because the four
+        // modifiers it grants already have pages of their own further into this section: what a
+        // reader needs here is that a second route to them exists and what it costs.
+        add("book.forgeweave.modifiers.rituals.title", "Binding a Spirit");
+        add("book.forgeweave.modifiers.rituals.text",
+                "Where Occultism's rituals are practised, a tool is one more thing a spirit will inhabit. Draw a pentacle, set a spirit attuned gem and a measure of otherworld essence on the bowls around it, and lay a finished tool on the Golden Sacrificial Bowl. The tool comes back with the bound spirit's gift already in it, and no reagents ground down to get there.\n\nFour spirits answer, each in its own pentacle. A foliot fetches what the tool breaks. A djinni keeps it whole. An afrit feeds it on what it kills. A marid follows it back out of your own death drop.\n\nThe gift still costs modifier slots, the same as it would at the Tool Station, so no tool holds all four. And a spirit will only ever give as much as the Tool Station could: the ritual spares you the reagents, never the limit.");
         add("book.forgeweave.smeltery.intro.title", "The Smeltery");
         add("book.forgeweave.smeltery.intro.text",
                 "There are many smelteries, but this one is yours, and it melts things really well.");

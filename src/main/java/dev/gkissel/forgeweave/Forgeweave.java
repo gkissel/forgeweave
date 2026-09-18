@@ -46,7 +46,9 @@ import dev.gkissel.forgeweave.combat.RangedXpSeam;
 import dev.gkissel.forgeweave.compat.apotheosis.ApotheosisSockets;
 import dev.gkissel.forgeweave.compat.create.ForgeweaveCreateCompat;
 import dev.gkissel.forgeweave.compat.draconic.ForgeweaveDraconicCompat;
+import dev.gkissel.forgeweave.compat.occultism.ForgeweaveOccultismCompat;
 import dev.gkissel.forgeweave.config.ForgeweaveClientConfig;
+import dev.gkissel.forgeweave.config.ForgeweaveConfigCondition; // #995
 import dev.gkissel.forgeweave.config.ForgeweaveConfigMigration; // #968 -- and the four SERVER specs
 import dev.gkissel.forgeweave.data.ForgeweaveDataGenerators;
 import dev.gkissel.forgeweave.entity.ForgeweaveEntities;
@@ -138,6 +140,9 @@ public class Forgeweave {
         ForgeweaveRecipeSerializers.RECIPE_SERIALIZERS.register(modEventBus);
         // #110 -- the M2 advancement chain's custom criteria (docs/SCOPE.md M2 issue #110).
         ForgeweaveCriteriaTriggers.TRIGGERS.register(modEventBus);
+        // #995 -- the neoforge:conditions predicate the generated Create/Immersive Engineering/
+        // EnderIO recipe JSON and the Powah heat_source data map read their compat toggle through.
+        ForgeweaveConfigCondition.CONDITION_CODECS.register(modEventBus);
         // #968 (D-M8-8) -- carry a pre-folder config/forgeweave-server.toml into config/forgeweave/
         // before anything is registered, so a pack's tuned values survive the split.
         ForgeweaveConfigMigration.run(FMLPaths.CONFIGDIR.get());
@@ -325,6 +330,14 @@ public class Forgeweave {
         // inside a method body rather than a static field.
         if (ModList.get().isLoaded(ApotheosisSockets.MODID)) {
             ApotheosisSockets.installBridge();
+        }
+        // #997 -- Occultism's spirit binding ritual (docs/SCOPE.md M8, D-M8-18). Same load-bearing
+        // guard: the Ritual subclass behind this call extends a com.klikli_dev class and registers
+        // into a com.klikli_dev registry, so neither can link without the mod -- which is why
+        // ForgeweaveOccultismCompat itself names no Occultism type and creates its DeferredRegister
+        // inside the call rather than in a static field.
+        if (ModList.get().isLoaded(ForgeweaveOccultismCompat.MODID)) {
+            ForgeweaveOccultismCompat.register(modEventBus);
         }
     }
 

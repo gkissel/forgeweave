@@ -1,0 +1,61 @@
+{
+    decoder: "item_stack",
+    expect: {
+        components: {
+            "forgeweave:granted_slots": 0,
+            "forgeweave:modifiers": [
+                {
+                    id: "forgeweave:necrotic",
+                    level: 3
+                },
+                {
+                    id: "forgeweave:soulbound",
+                    level: 1
+                }
+            ],
+            "forgeweave:tool_materials": {
+                binding: "forgeweave:wood",
+                handle: "forgeweave:wood",
+                head: "forgeweave:iesnium"
+            },
+            "forgeweave:tool_stats": {
+                attack_damage: 4.5f,
+                durability: 820,
+                mining_speed: 10.0f
+            },
+            "minecraft:damage": 120,
+            "minecraft:max_damage": 820
+        },
+        id: "forgeweave:pickaxe"
+    },
+    nbt: {
+        components: {
+            "forgeweave:granted_slots": 0,
+            "forgeweave:modifiers": [
+                {
+                    id: "forgeweave:necrotic",
+                    level: 3
+                },
+                {
+                    id: "forgeweave:soulbound",
+                    level: 1
+                }
+            ],
+            "forgeweave:tool_materials": {
+                binding: "forgeweave:wood",
+                handle: "forgeweave:wood",
+                head: "forgeweave:iesnium"
+            },
+            "forgeweave:tool_stats": {
+                attack_damage: 4.5f,
+                durability: 820,
+                mining_speed: 10.0f
+            },
+            "minecraft:damage": 120,
+            "minecraft:max_damage": 820
+        },
+        count: 1,
+        id: "forgeweave:pickaxe"
+    },
+    what: "#997 (D-M8-18): an iesnium-headed pickaxe carrying both modifiers a spirit binding ritual can grant it at once -- necrotic at 3 (the afrit pentacle) and soulbound at 1 (the marid one), 3 modifier slots spent between them. forgeweave:modifiers stores id + level only, the same as every other modifier (ADR-0004 item 2), so a ritual-granted modifier needs no new component and no migration: nothing on this stack records that a ritual rather than the Tool Station put it there, and nothing needs to. granted_slots is 0 on purpose, which is the one thing that distinguishes this from a Draconic fusion upgrade's fixture -- a binding spends the slots its entries occupy (ModifierApplication#applyLevelSpendingSlots) rather than handing them back the way applyLevel does. Both modifiers keep working with compat.occultismRituals off, since both are reachable at the Tool Station too; the toggle only stops a new ritual from being performed."
+}
