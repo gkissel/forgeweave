@@ -391,6 +391,25 @@ public final class ForgeweaveConfig {
     /** {@link #SURGEBOUND_NITRO_MINING_SPEED_MULTIPLIER}'s own default -- D-M8-17's "nitro doubles both". */
     public static final double SURGEBOUND_NITRO_MINING_SPEED_MULTIPLIER_DEFAULT = 2.0D;
 
+    /**
+     * Issue #999 (D-M8-20). Covers the Mystical Agriculture crop registrations and the augment seam
+     * that makes Forgeweave gear {@code ITinkerable}, never the Mystical Agriculture material
+     * presets: D-M8-5 is explicit that Track A presets are never toggled, so prosperity, soulium,
+     * the essence ladder and insanium stay active whenever their own item exists.
+     *
+     * <p>Unlike every other flag in this section, this one is read <b>at registration</b> as well as
+     * at the point the integration answers, because the augment seam decides which class a Forgeweave
+     * tool or armour piece is registered as and an item's class cannot change while the game runs.
+     * Flipping it therefore needs a restart to take effect on that half; the crop half and the
+     * runtime augment-tier queries honour it immediately. A stack whose item was registered as the
+     * augment-carrying subclass keeps Mystical Agriculture's own augment component untouched when it
+     * comes back as the plain item -- Forgeweave neither copies nor migrates that data, the rule JC-D
+     * set for Apotheosis affixes.
+     *
+     * @see #DRACONIC_FUSION
+     */
+    public static final ModConfigSpec.BooleanValue MYSTICAL_AGRICULTURE_AUGMENTS;
+
     /** Upstream {@code genCobalt}: cobalt ore generates in the Nether. */
     public static final ModConfigSpec.BooleanValue GEN_COBALT;
     /** Upstream {@code cobaltRate}: approximate cobalt veins per Nether chunk. */
@@ -837,6 +856,20 @@ public final class ForgeweaveConfig {
                         "instead of adding a fifth flat step.")
                 .defineInRange("surgeboundNitroMiningSpeedMultiplier",
                         SURGEBOUND_NITRO_MINING_SPEED_MULTIPLIER_DEFAULT, 0.0D, 100.0D);
+        // Issue #999 (D-M8-20): the one flag in this section whose off path changes what gets
+        // registered, hence the restart sentence in its comment.
+        MYSTICAL_AGRICULTURE_AUGMENTS = builder
+                .comment("If true, Forgeweave works with Mystical Agriculture: the Track B ores and brimspar",
+                        "get resource crops, and gear built from a Mystical Agriculture essence metal is",
+                        "accepted by Mystical Agriculture's own Tinkering Table so augments can be installed.",
+                        "",
+                        "This one takes effect when items are registered, so changing it needs a restart. With",
+                        "it off Forgeweave registers the plain tool and armour items, which the Tinkering Table",
+                        "does not accept, and registers no crops. Nothing is lost either way: augment data is",
+                        "Mystical Agriculture's own, and a stack that already carries it keeps it untouched",
+                        "while the plain item holds it. Turn this back on, restart, and the same stack is",
+                        "augmentable again. The material presets are unaffected: they are never toggled.")
+                .define("mysticalAgricultureAugments", true);
         builder.pop();
         COMPAT_SPEC = builder.build();
 
