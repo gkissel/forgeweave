@@ -72,8 +72,8 @@ public class NetherOrePlacement extends PlacementModifier {
         /** Veins this ore should place in one chunk, or {@code 0} while its generation is switched off. */
         public int veinsPerChunk() {
             return switch (this) {
-                case COBALT -> ForgeweaveConfig.GEN_COBALT.get() ? ForgeweaveConfig.COBALT_RATE.get() : 0;
-                case ARDITE -> ForgeweaveConfig.GEN_ARDITE.get() ? ForgeweaveConfig.ARDITE_RATE.get() : 0;
+                case COBALT -> ForgeweaveConfig.read(ForgeweaveConfig.GEN_COBALT) ? ForgeweaveConfig.read(ForgeweaveConfig.COBALT_RATE) : 0;
+                case ARDITE -> ForgeweaveConfig.read(ForgeweaveConfig.GEN_ARDITE) ? ForgeweaveConfig.read(ForgeweaveConfig.ARDITE_RATE) : 0;
             };
         }
     }

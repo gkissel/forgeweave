@@ -73,7 +73,7 @@ public class MixedSlimeBlockRecipe extends CustomRecipe {
 
     /** Upstream: pink slime block when {@code matchVanillaSlimeblock} is on, vanilla's when it is off. */
     private static ItemStack result() {
-        return ForgeweaveConfig.MATCH_VANILLA_SLIMEBLOCK.get()
+        return ForgeweaveConfig.read(ForgeweaveConfig.MATCH_VANILLA_SLIMEBLOCK)
                 ? new ItemStack(ForgeweaveBlocks.slimeFamily(SlimeColour.PINK).slimeBlock().get())
                 : new ItemStack(Items.SLIME_BLOCK);
     }

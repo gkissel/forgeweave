@@ -96,17 +96,17 @@ public class SlimeIslandStructure extends Structure {
      * now, so the option holds ids like {@code minecraft:the_nether} and keeps the same two defaults.
      */
     public static boolean enabledIn(ServerLevel level, boolean superflat) {
-        if (!ForgeweaveConfig.GEN_SLIME_ISLANDS.get()) {
+        if (!ForgeweaveConfig.read(ForgeweaveConfig.GEN_SLIME_ISLANDS)) {
             return false;
         }
-        if (superflat && !ForgeweaveConfig.GEN_ISLANDS_IN_SUPERFLAT.get()) {
+        if (superflat && !ForgeweaveConfig.read(ForgeweaveConfig.GEN_ISLANDS_IN_SUPERFLAT)) {
             return false;
         }
-        if (ForgeweaveConfig.SLIME_ISLANDS_ONLY_IN_SURFACE_WORLDS.get() && !level.dimensionType().natural()) {
+        if (ForgeweaveConfig.read(ForgeweaveConfig.SLIME_ISLANDS_ONLY_IN_SURFACE_WORLDS) && !level.dimensionType().natural()) {
             return false;
         }
         String dimension = level.dimension().location().toString();
-        return !ForgeweaveConfig.SLIME_ISLAND_BLACKLIST.get().contains(dimension);
+        return !ForgeweaveConfig.read(ForgeweaveConfig.SLIME_ISLAND_BLACKLIST).contains(dimension);
     }
 
     /**
@@ -137,13 +137,13 @@ public class SlimeIslandStructure extends Structure {
         if (level == null) {
             // No running server owns this generator -- a world-creation preview, or a test harness.
             // Answer with the one gate that needs no dimension rather than vetoing generation.
-            return ForgeweaveConfig.GEN_SLIME_ISLANDS.get();
+            return ForgeweaveConfig.read(ForgeweaveConfig.GEN_SLIME_ISLANDS);
         }
         if (!enabledIn(level, generator instanceof FlatLevelSource)) {
             return false;
         }
         // Upstream: one chunk in slimeIslandRate, and nothing at all when the rate is zero or less.
-        int rate = ForgeweaveConfig.SLIME_ISLAND_RATE.get();
+        int rate = ForgeweaveConfig.read(ForgeweaveConfig.SLIME_ISLAND_RATE);
         if (rate <= 0) {
             return false;
         }
