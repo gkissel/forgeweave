@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    {
+      "tag": "c:tiny_dusts/amethyst_bronze"
+    },
+    {
+      "tag": "c:tiny_dusts/amethyst_bronze"
+    },
+    {
+      "tag": "c:tiny_dusts/amethyst_bronze"
+    }
+  ],
+  "result": {
+    "count": 1,
+    "id": "forgeweave:amethyst_bronze_small_dust"
+  }
+}

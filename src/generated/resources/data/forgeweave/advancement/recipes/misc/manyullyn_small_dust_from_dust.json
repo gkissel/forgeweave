@@ -1,0 +1,32 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_dusts_manyullyn": {
+      "conditions": {
+        "items": [
+          {
+            "items": "#c:dusts/manyullyn"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "forgeweave:manyullyn_small_dust_from_dust"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_the_recipe",
+      "has_dusts_manyullyn"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "forgeweave:manyullyn_small_dust_from_dust"
+    ]
+  }
+}

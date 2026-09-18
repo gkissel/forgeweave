@@ -26,6 +26,8 @@ import dev.gkissel.forgeweave.block.ForgeweaveBlocks;
 import dev.gkissel.forgeweave.block.SlimeColour;
 import dev.gkissel.forgeweave.combat.ForgeweaveInnates;
 import dev.gkissel.forgeweave.entity.ForgeweaveEntities;
+import dev.gkissel.forgeweave.material.MaterialForm;
+import dev.gkissel.forgeweave.material.MaterialForms;
 import dev.gkissel.forgeweave.tool.AoeHarvest;
 import dev.gkissel.forgeweave.tool.ToolConstants;
 import dev.gkissel.forgeweave.trackb.TrackBAlloy;
@@ -1138,6 +1140,29 @@ public final class ForgeweaveItems {
 
     public static DeferredItem<BlockItem> trackBAlloyBlockItem(String id) {
         return TRACK_B_ALLOY_BLOCK_ITEMS.get(id);
+    }
+
+    // #992 -- the eight material forms D-M8-6 adds to every metal with an ingot, plus the three dusts
+    // the two gem-type materials get. Registered straight off the roster in
+    // dev.gkissel.forgeweave.material.MaterialForms rather than by hand, so a material added there
+    // inherits its forms with no change here. Keyed by registry path, which is unique across the
+    // whole table.
+    private static final Map<String, DeferredItem<Item>> MATERIAL_FORMS = registerMaterialForms();
+
+    private static Map<String, DeferredItem<Item>> registerMaterialForms() {
+        Map<String, DeferredItem<Item>> forms = new LinkedHashMap<>();
+        for (MaterialForms.FormedMaterial material : MaterialForms.ALL) {
+            for (MaterialForm form : material.forms()) {
+                String id = form.itemId(material.id());
+                forms.put(id, ITEMS.registerSimpleItem(id));
+            }
+        }
+        return Collections.unmodifiableMap(forms);
+    }
+
+    /** A material form item, e.g. {@code materialForm("steel", MaterialForm.GEAR)}; null when that material has no such form. */
+    public static DeferredItem<Item> materialForm(String materialId, MaterialForm form) {
+        return MATERIAL_FORMS.get(form.itemId(materialId));
     }
 
     // #946 -- the weldheart, the catalyst a Draconic Evolution fusion craft puts in the crafting

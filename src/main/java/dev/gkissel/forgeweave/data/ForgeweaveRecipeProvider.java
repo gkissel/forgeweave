@@ -13,6 +13,7 @@ import net.minecraft.advancements.critereon.RecipeUnlockedTrigger;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.NonNullList;
 import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.data.PackOutput;
 import net.minecraft.data.recipes.RecipeCategory;
 import net.minecraft.data.recipes.RecipeOutput;
@@ -42,6 +43,8 @@ import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.block.ForgeweaveBlocks;
 import dev.gkissel.forgeweave.block.SlimeColour;
 import dev.gkissel.forgeweave.item.ForgeweaveItems;
+import dev.gkissel.forgeweave.material.MaterialForm;
+import dev.gkissel.forgeweave.material.MaterialForms;
 import dev.gkissel.forgeweave.recipe.GravelFlintRecipe;
 import dev.gkissel.forgeweave.recipe.MixedSlimeBlockRecipe;
 import dev.gkissel.forgeweave.recipe.MixedSlimeSlingRecipe;
@@ -250,6 +253,91 @@ public class ForgeweaveRecipeProvider extends RecipeProvider {
         buildStorageBlockRecipes(recipeOutput);
         buildSlimeCrystalRecipes(recipeOutput);
         buildClearGlassRecipes(recipeOutput);
+        buildMaterialFormRecipes(recipeOutput);
+    }
+
+    /**
+     * #992 -- crafting-table recipes for D-M8-6's material forms, walked off
+     * {@link MaterialForms#ALL} so a material added there inherits them.
+     *
+     * <p>Every input is a {@code c:} tag rather than a Forgeweave item, the same call M2 made for
+     * ore and ingot melting: another mod's dust of the same material compacts in a Forgeweave
+     * crafting grid with no second recipe.
+     *
+     * <p>The dust ladder converts both ways, at the three-to-one steps the melting amounts already
+     * imply (a dust melts as its ingot, a small dust as a third of one, a tiny dust as a nugget).
+     * The plate family only ever converts <em>into</em> a form: D-M8-6 makes plates, double plates,
+     * rods, gears and wires output rather than currency, so Forgeweave ships nothing that spends
+     * one, uncrafting included. They come from ingots (a wire from nuggets, since a wire is the
+     * thinnest of them), at ratios deliberately worse than a press so Create's and Immersive
+     * Engineering's own machines stay worth building.
+     */
+    private void buildMaterialFormRecipes(RecipeOutput recipeOutput) {
+        for (MaterialForms.FormedMaterial material : MaterialForms.ALL) {
+            dustLadderRecipes(recipeOutput, material);
+            if (material.hasIngot()) {
+                plateFamilyRecipes(recipeOutput, material);
+            }
+        }
+    }
+
+    private void dustLadderRecipes(RecipeOutput recipeOutput, MaterialForms.FormedMaterial material) {
+        TagKey<Item> dusts = conventionTag(MaterialForm.DUST.tagPath(material.id()));
+        TagKey<Item> smallDusts = conventionTag(MaterialForm.SMALL_DUST.tagPath(material.id()));
+        TagKey<Item> tinyDusts = conventionTag(MaterialForm.TINY_DUST.tagPath(material.id()));
+
+        dustStep(recipeOutput, material, MaterialForm.DUST, 1, smallDusts, 3, "");
+        dustStep(recipeOutput, material, MaterialForm.SMALL_DUST, 3, dusts, 1, "_from_dust");
+        dustStep(recipeOutput, material, MaterialForm.SMALL_DUST, 1, tinyDusts, 3, "_from_tiny_dust");
+        dustStep(recipeOutput, material, MaterialForm.TINY_DUST, 3, smallDusts, 1, "");
+    }
+
+    /**
+     * One rung of the dust ladder. {@code suffix} disambiguates the two recipes that both yield a
+     * small dust (from a whole dust, and from three tiny ones) -- their ingredient counts differ, so
+     * both can ship, but they cannot share the default result-named recipe id.
+     */
+    private void dustStep(RecipeOutput recipeOutput, MaterialForms.FormedMaterial material, MaterialForm result,
+            int resultCount, TagKey<Item> input, int inputCount, String suffix) {
+        Item item = ForgeweaveItems.materialForm(material.id(), result).get();
+        ShapelessRecipeBuilder builder = ShapelessRecipeBuilder.shapeless(RecipeCategory.MISC, item, resultCount);
+        for (int i = 0; i < inputCount; i++) {
+            builder.requires(input);
+        }
+        builder.unlockedBy("has_" + input.location().getPath().replace('/', '_'), has(input))
+                .save(recipeOutput, ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID,
+                        result.itemId(material.id()) + suffix));
+    }
+
+    private void plateFamilyRecipes(RecipeOutput recipeOutput, MaterialForms.FormedMaterial material) {
+        TagKey<Item> ingots = conventionTag("ingots/" + material.id());
+        TagKey<Item> nuggets = conventionTag("nuggets/" + material.id());
+
+        // Each shape is distinct so the five never collide: a pair of ingots side by side flattens
+        // into a plate, a pair stacked draws into rods, a 2x2 block presses into a double plate, a
+        // plus cuts a gear's four teeth, and a row of three nuggets is spun into wire.
+        plateFamilyRecipe(recipeOutput, material, MaterialForm.PLATE, 1, ingots, "##");
+        plateFamilyRecipe(recipeOutput, material, MaterialForm.ROD, 2, ingots, "#", "#");
+        plateFamilyRecipe(recipeOutput, material, MaterialForm.DOUBLE_PLATE, 1, ingots, "##", "##");
+        plateFamilyRecipe(recipeOutput, material, MaterialForm.GEAR, 1, ingots, " # ", "# #", " # ");
+        plateFamilyRecipe(recipeOutput, material, MaterialForm.WIRE, 1, nuggets, "###");
+    }
+
+    private void plateFamilyRecipe(RecipeOutput recipeOutput, MaterialForms.FormedMaterial material,
+            MaterialForm result, int resultCount, TagKey<Item> input, String... pattern) {
+        Item item = ForgeweaveItems.materialForm(material.id(), result).get();
+        ShapedRecipeBuilder builder = ShapedRecipeBuilder.shaped(RecipeCategory.MISC, item, resultCount);
+        for (String row : pattern) {
+            builder.pattern(row);
+        }
+        builder.define('#', input)
+                .unlockedBy("has_" + input.location().getPath().replace('/', '_'), has(input))
+                .save(recipeOutput, ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID,
+                        result.itemId(material.id())));
+    }
+
+    private static TagKey<Item> conventionTag(String path) {
+        return TagKey.create(Registries.ITEM, ResourceLocation.fromNamespaceAndPath("c", path));
     }
 
     /**

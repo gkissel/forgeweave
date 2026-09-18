@@ -1,0 +1,32 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_ingots_warspar": {
+      "conditions": {
+        "items": [
+          {
+            "items": "#c:ingots/warspar"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "forgeweave:warspar_rod"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_the_recipe",
+      "has_ingots_warspar"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "forgeweave:warspar_rod"
+    ]
+  }
+}

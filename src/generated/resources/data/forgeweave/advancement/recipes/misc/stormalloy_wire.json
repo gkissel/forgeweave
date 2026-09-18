@@ -1,0 +1,32 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_nuggets_stormalloy": {
+      "conditions": {
+        "items": [
+          {
+            "items": "#c:nuggets/stormalloy"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "forgeweave:stormalloy_wire"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_the_recipe",
+      "has_nuggets_stormalloy"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "forgeweave:stormalloy_wire"
+    ]
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    {
+      "tag": "c:dusts/daybrass"
+    }
+  ],
+  "result": {
+    "count": 3,
+    "id": "forgeweave:daybrass_small_dust"
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    {
+      "tag": "c:small_dusts/shardline"
+    },
+    {
+      "tag": "c:small_dusts/shardline"
+    },
+    {
+      "tag": "c:small_dusts/shardline"
+    }
+  ],
+  "result": {
+    "count": 1,
+    "id": "forgeweave:shardline_dust"
+  }
+}

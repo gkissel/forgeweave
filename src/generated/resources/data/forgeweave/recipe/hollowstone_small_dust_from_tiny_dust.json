@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    {
+      "tag": "c:tiny_dusts/hollowstone"
+    },
+    {
+      "tag": "c:tiny_dusts/hollowstone"
+    },
+    {
+      "tag": "c:tiny_dusts/hollowstone"
+    }
+  ],
+  "result": {
+    "count": 1,
+    "id": "forgeweave:hollowstone_small_dust"
+  }
+}

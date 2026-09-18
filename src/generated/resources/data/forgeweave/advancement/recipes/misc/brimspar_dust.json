@@ -1,0 +1,32 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_small_dusts_brimspar": {
+      "conditions": {
+        "items": [
+          {
+            "items": "#c:small_dusts/brimspar"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "forgeweave:brimspar_dust"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_the_recipe",
+      "has_small_dusts_brimspar"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "forgeweave:brimspar_dust"
+    ]
+  }
+}

@@ -1,0 +1,32 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_ingots_mendalloy": {
+      "conditions": {
+        "items": [
+          {
+            "items": "#c:ingots/mendalloy"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "forgeweave:mendalloy_plate"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_the_recipe",
+      "has_ingots_mendalloy"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "forgeweave:mendalloy_plate"
+    ]
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    {
+      "tag": "c:dusts/quakestone"
+    }
+  ],
+  "result": {
+    "count": 3,
+    "id": "forgeweave:quakestone_small_dust"
+  }
+}

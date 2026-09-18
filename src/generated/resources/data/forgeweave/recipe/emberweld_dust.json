@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    {
+      "tag": "c:small_dusts/emberweld"
+    },
+    {
+      "tag": "c:small_dusts/emberweld"
+    },
+    {
+      "tag": "c:small_dusts/emberweld"
+    }
+  ],
+  "result": {
+    "count": 1,
+    "id": "forgeweave:emberweld_dust"
+  }
+}

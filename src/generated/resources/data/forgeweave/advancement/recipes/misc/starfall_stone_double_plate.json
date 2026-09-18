@@ -1,0 +1,32 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_ingots_starfall_stone": {
+      "conditions": {
+        "items": [
+          {
+            "items": "#c:ingots/starfall_stone"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "forgeweave:starfall_stone_double_plate"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_the_recipe",
+      "has_ingots_starfall_stone"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "forgeweave:starfall_stone_double_plate"
+    ]
+  }
+}

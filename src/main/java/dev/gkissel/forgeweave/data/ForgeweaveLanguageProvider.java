@@ -20,6 +20,8 @@ import dev.gkissel.forgeweave.block.SlimeSaplingBlock;
 import dev.gkissel.forgeweave.block.SmelteryScan;
 import dev.gkissel.forgeweave.fluid.ForgeweaveFluids;
 import dev.gkissel.forgeweave.item.ForgeweaveItems;
+import dev.gkissel.forgeweave.material.MaterialForm;
+import dev.gkissel.forgeweave.material.MaterialForms;
 import dev.gkissel.forgeweave.ponder.ForgeweavePonderPlugin;
 import dev.gkissel.forgeweave.trackb.TrackBAlloy;
 import dev.gkissel.forgeweave.trackb.TrackBOre;
@@ -1941,6 +1943,16 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
             addBlock(ForgeweaveBlocks.trackBAlloyBlock(alloy.id()), "Block of " + alloyName);
             addItem(ForgeweaveItems.trackBAlloyIngot(alloy.id()), alloyName + " Ingot");
             addItem(ForgeweaveItems.trackBAlloyNugget(alloy.id()), alloyName + " Nugget");
+        }
+
+        // #992 -- D-M8-6's material forms, named off the same roster the items are registered from
+        // (dev.gkissel.forgeweave.material.MaterialForms). Each form owns its English pattern, so
+        // "Small <Name> Dust" reads as English rather than "<Name> Small Dust".
+        for (MaterialForms.FormedMaterial material : MaterialForms.ALL) {
+            for (MaterialForm form : material.forms()) {
+                addItem(ForgeweaveItems.materialForm(material.id(), form),
+                        form.displayName(material.displayName()));
+            }
         }
 
         // #233 -- pig iron items + firewood. Ingot/nugget/block names space upstream 1.12's

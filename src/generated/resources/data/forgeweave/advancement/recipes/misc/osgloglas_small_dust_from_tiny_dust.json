@@ -1,0 +1,32 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "forgeweave:osgloglas_small_dust_from_tiny_dust"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    },
+    "has_tiny_dusts_osgloglas": {
+      "conditions": {
+        "items": [
+          {
+            "items": "#c:tiny_dusts/osgloglas"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    }
+  },
+  "requirements": [
+    [
+      "has_the_recipe",
+      "has_tiny_dusts_osgloglas"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "forgeweave:osgloglas_small_dust_from_tiny_dust"
+    ]
+  }
+}
