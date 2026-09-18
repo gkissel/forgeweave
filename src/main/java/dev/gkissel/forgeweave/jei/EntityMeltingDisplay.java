@@ -17,8 +17,12 @@ import net.minecraft.world.level.material.Fluid;
  * {@link dev.gkissel.forgeweave.recipe.EntityMeltingRecipe#defaultResult} rather than an actual
  * registry entry -- {@code entities} for it is a single stand-in type purely so the category has
  * something to render live, not a claim that this type in particular falls to the fallback.
+ *
+ * <p>{@code fuels} is every registered smeltery fuel, the same list on every row: upstream's panel
+ * has a fuel tank under the arrow (issue #1029) and lists the usable fuels there as a catalyst.
  */
-record EntityMeltingDisplay(List<EntityType<?>> entities, Fluid fluid, int amount, boolean defaultRow) {
+record EntityMeltingDisplay(List<EntityType<?>> entities, Fluid fluid, int amount, boolean defaultRow,
+        List<Fluid> fuels) {
 
     /**
      * The entity this row renders -- always the first listed type. ponytail: cycling through every

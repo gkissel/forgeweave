@@ -280,7 +280,8 @@ public final class ForgeweaveJeiPlugin implements IModPlugin {
         // #931: entity melting rides the same smeltery gate -- EntityMeltingRecipe#find checks
         // ForgeweaveConfig#SMELTERY itself too, same reasoning as the two lines above.
         registration.addRecipes(EntityMeltingCategory.TYPE,
-                smeltery ? EntityMeltingRecipes.build(currentEntityMeltingRecipes()) : List.of());
+                smeltery ? EntityMeltingRecipes.build(currentEntityMeltingRecipes(),
+                        smelteryFuels.values().stream().map(SmelteryFuel::fluid).distinct().toList()) : List.of());
 
         // Issue #752: Mending Moss (moss + 10 XP levels at a bookshelf, ForgeweaveModifiers#
         // onRightClickBookshelf) is not produced by any datapack recipe, so it would otherwise have
