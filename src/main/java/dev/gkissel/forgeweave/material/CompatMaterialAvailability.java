@@ -56,7 +56,9 @@ public final class CompatMaterialAvailability {
             entry("redstone_alloy", "enderio:redstone_alloy_ingot"),
             entry("refined_glowstone", "mekanism:ingot_refined_glowstone"),
             entry("refined_obsidian", "mekanism:ingot_refined_obsidian"),
-            entry("silver", "immersiveengineering:ingot_silver"),
+            // #997 (D-M8-18): Occultism ships its own silver ingot in `c:ingots/silver`, so the
+            // preset's gate is an `neoforge:or` across both providers rather than IE alone.
+            entry("silver", "immersiveengineering:ingot_silver", "occultism:silver_ingot"),
             entry("soularium", "enderio:soularium_ingot"),
             entry("tin", "mekanism:ingot_tin"),
             entry("titanium", "modern_industrialization:titanium_ingot"),

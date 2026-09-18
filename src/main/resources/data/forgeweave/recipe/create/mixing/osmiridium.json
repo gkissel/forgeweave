@@ -1,0 +1,27 @@
+{
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:mod_loaded",
+      "modid": "create"
+    },
+    {
+      "type": "forgeweave:compat_toggle",
+      "toggle": "createRecipes"
+    }
+  ],
+  "type": "create:mixing",
+  "heat_requirement": "heated",
+  "ingredients": [
+    {
+      "tag": "c:ingots/osmium"
+    },
+    {
+      "tag": "c:ingots/iridium"
+    }
+  ],
+  "results": [
+    {
+      "id": "forgeweave:osmiridium_ingot"
+    }
+  ]
+}

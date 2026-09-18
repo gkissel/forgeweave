@@ -163,6 +163,23 @@ Forgeweave brings modular tool building, material traits, modifiers, melting, al
     versionRange="[6.0.10,)"
     ordering="AFTER"
     side="BOTH"
+# Occultism compat (issue #997, docs/SCOPE.md M8, D-M8-18) is optional: without it the mod is
+# unchanged and every crushing, miner and ritual row is dropped by its own `neoforge:conditions`
+# mod_loaded gate. With it, Occultism's crusher spirits grind Forgeweave ores, its mining spirits can
+# return them, and a ritual on a Golden Sacrificial Bowl binds a spirit into a Forgeweave tool as a
+# modifier (dev.gkissel.forgeweave.compat.occultism). The three material presets -- iesnium, silver
+# and the spirit attuned gem -- need no dependency entry at all: they are existence-gated datapack
+# rows keyed on Occultism's own item ids, and D-M8-5 keeps material presets off every toggle.
+#
+# BOTH sides: the ritual is a server-side craft, the rows are datapack entries the client needs for
+# JEI, and Occultism's own ritual category draws them client side.
+
+[[dependencies.${mod_id}]]
+    modId="occultism"
+    type="optional"
+    versionRange="[1.205.0,)"
+    ordering="AFTER"
+    side="BOTH"
 
 # Mekanism compat (issue #993, docs/SCOPE.md M8, D-M8-15) is optional: without it the
 # atomic_matter_alloy material still exists and still assembles into tools, but its nucleosynthesizing

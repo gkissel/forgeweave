@@ -1,0 +1,26 @@
+{
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:mod_loaded",
+      "modid": "enderio"
+    },
+    {
+      "type": "forgeweave:compat_toggle",
+      "toggle": "enderIoRecipes"
+    }
+  ],
+  "type": "enderio:sag_milling",
+  "input": {
+    "tag": "c:ores/warspar"
+  },
+  "outputs": [
+    {
+      "item": {
+        "id": "forgeweave:warspar_dust",
+        "count": 2
+      }
+    }
+  ],
+  "energy": 2400,
+  "bonus": "none"
+}

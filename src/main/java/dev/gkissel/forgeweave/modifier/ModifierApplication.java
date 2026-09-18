@@ -664,6 +664,43 @@ public final class ModifierApplication {
     }
 
     /**
+     * {@link #applyLevel}'s sibling for a caller that wants the modifier slot charged (issue #997).
+     * Raises {@code modifier} on {@code tool} straight to {@code level} charging no reagents, but
+     * lets the entry occupy its slots the way a Tool Station application does -- so a tool with no
+     * room left is refused rather than handed a free upgrade.
+     *
+     * <p>That is the one thing an Occultism ritual does differently from a Draconic fusion upgrade,
+     * and the reason both methods exist. A fusion craft's price is the tier's Draconic materials and
+     * its RF, which is why {@link #applyLevel} hands the slots back; a ritual's price is a pentacle
+     * and a sacrifice, which the player pays once and which does not scale with the tool. Charging
+     * the slot is what keeps a ritual from being strictly better than the station route it shortcuts.
+     *
+     * <p>Every other refusal {@link #applyLevel} makes still applies: {@link ModifierCompatibility}
+     * runs first, and a tool already at or above {@code level} is refused rather than rewritten
+     * backwards. The shape gate ({@link #acceptsToolShape}) stays the caller's, since it needs
+     * registries this method is not given.
+     */
+    public static Outcome applyLevelSpendingSlots(ItemStack tool, ResourceLocation modifier, int level) {
+        Optional<Component> incompatible = ModifierCompatibility.refusal(tool, modifier, name(modifier));
+        if (incompatible.isPresent()) {
+            return Outcome.rejected(incompatible.get());
+        }
+        ModifierEntry existing = ForgeweaveModifiers.entry(tool, modifier);
+        int current = existing == null ? 0 : existing.level();
+        if (current >= level) {
+            return Outcome.rejected(Component.translatable("gui.forgeweave.modifier.max_level", name(modifier)));
+        }
+        int free = Math.max(0, ForgeweaveModifiers.freeSlots(tool));
+        int cost = ForgeweaveModifiers.occupiedSlots(modifier, level)
+                - ForgeweaveModifiers.occupiedSlots(modifier, current);
+        if (cost > free) {
+            return Outcome.rejected(Component.translatable("gui.forgeweave.modifier.no_slots",
+                    ForgeweaveModifiers.DEFAULT_SLOTS));
+        }
+        return Outcome.applied(modified(tool, modifier, level), List.of());
+    }
+
+    /**
      * The tool with {@code id} set to {@code level}, appended if it is new so the component keeps
      * application order. The vanilla {@code tool} component is rebuilt from the untouched base stats
      * plus the new modifier list, so vanilla's own block-breaking sees the modified mining speed and

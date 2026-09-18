@@ -23,6 +23,7 @@ import dev.gkissel.forgeweave.block.ChestKind;
 import dev.gkissel.forgeweave.block.ForgeweaveBlocks;
 import dev.gkissel.forgeweave.block.SearedDuctBlockEntity;
 import dev.gkissel.forgeweave.compat.draconic.ForgeweaveDraconicCompat;
+import dev.gkissel.forgeweave.compat.occultism.ForgeweaveOccultismCompat;
 import dev.gkissel.forgeweave.item.ForgeweaveItems;
 import dev.gkissel.forgeweave.item.PatternItem;
 import dev.gkissel.forgeweave.material.MaterialForm;
@@ -217,6 +218,15 @@ public class ForgeweaveItemTagsProvider extends ItemTagsProvider {
                 .map(entry -> entry.tool().get())
                 .distinct()
                 .forEach(fusionUpgradable::add);
+
+        // #997 -- the Occultism spirit binding ritual's item set, the same roster read the same way.
+        // A tag of its own rather than a share of the one above, so the two ladders stay uncoupled:
+        // see ForgeweaveOccultismCompat#RITUAL_BINDABLE.
+        var ritualBindable = tag(ForgeweaveOccultismCompat.RITUAL_BINDABLE);
+        ToolAssemblyRecipes.ENTRIES.stream()
+                .map(entry -> entry.tool().get())
+                .distinct()
+                .forEach(ritualBindable::add);
 
         // #223 -- wind burst's own gate: vanilla's wind_burst enchantment names
         // `#minecraft:enchantable/mace` as its supported_items, and ModifierApplication reads that

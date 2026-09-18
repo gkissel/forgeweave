@@ -7,6 +7,7 @@ import java.util.Map;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.animal.Pig;
+import net.minecraft.world.level.material.Fluid;
 
 import net.neoforged.neoforge.fluids.FluidStack;
 
@@ -28,14 +29,14 @@ final class EntityMeltingRecipes {
      */
     static final EntityType<Pig> DEFAULT_ROW_ENTITY = EntityType.PIG;
 
-    static List<EntityMeltingDisplay> build(Map<ResourceLocation, EntityMeltingRecipe> recipes) {
+    static List<EntityMeltingDisplay> build(Map<ResourceLocation, EntityMeltingRecipe> recipes, List<Fluid> fuels) {
         List<EntityMeltingDisplay> displays = new ArrayList<>();
         for (EntityMeltingRecipe recipe : recipes.values()) {
-            displays.add(new EntityMeltingDisplay(recipe.entities(), recipe.fluid(), recipe.amount(), false));
+            displays.add(new EntityMeltingDisplay(recipe.entities(), recipe.fluid(), recipe.amount(), false, fuels));
         }
 
         FluidStack fallback = EntityMeltingRecipe.defaultResult();
-        displays.add(new EntityMeltingDisplay(List.of(DEFAULT_ROW_ENTITY), fallback.getFluid(), fallback.getAmount(), true));
+        displays.add(new EntityMeltingDisplay(List.of(DEFAULT_ROW_ENTITY), fallback.getFluid(), fallback.getAmount(), true, fuels));
         return displays;
     }
 
