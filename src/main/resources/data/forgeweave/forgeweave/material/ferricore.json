@@ -1,0 +1,45 @@
+{
+  "head": {
+    "durability": 240,
+    "mining_speed": 6.2,
+    "attack_damage": 3.5
+  },
+  "handle": {
+    "durability_modifier": 1.0,
+    "durability": 35
+  },
+  "extra_durability": 80,
+  "bow": {
+    "drawspeed": 0.55,
+    "range": 1.35,
+    "bonus_damage": 4.0
+  },
+  "plating": {
+    "helmet": { "durability": 170, "armor": 2.0 },
+    "chestplate": { "durability": 248, "armor": 5.0 },
+    "leggings": { "durability": 232, "armor": 4.0 },
+    "boots": { "durability": 200, "armor": 2.0 }
+  },
+  "maille": true,
+  "incorrect_for_tool": "minecraft:incorrect_for_iron_tool",
+  "traits": {
+    "general": ["forgeweave:ferricore_footing"]
+  },
+  "crafting_items": [
+    { "ingredient": { "tag": "c:ingots/ferricore" }, "value": 144 },
+    { "ingredient": { "tag": "c:raw_materials/ferricore" }, "value": 144 },
+    { "ingredient": { "item": "justdirethings:ferricore_block" }, "value": 1296 }
+  ],
+  "repair_item": {
+    "tag": "c:ingots/ferricore"
+  },
+  "cast_only": true,
+  "enchantability": 12,
+  "color": "#B85C38",
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "justdirethings:ferricore_ingot"
+    }
+  ]
+}

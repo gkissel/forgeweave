@@ -1242,6 +1242,13 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("material.forgeweave.iesnium", "Iesnium");
         add("material.forgeweave.dragonyst", "Dragonyst");
 
+        // Issue #1031 (D-M8-21): Just Dire Things' four tool tiers, existence-gated on the mod's
+        // own ingot/gem item. Names follow the mod's own registered ids.
+        add("material.forgeweave.ferricore", "Ferricore");
+        add("material.forgeweave.blazegold", "Blazegold");
+        add("material.forgeweave.celestigem", "Celestigem");
+        add("material.forgeweave.eclipsealloy", "Eclipse Alloy");
+
         // Trait names and descriptions, keyed by trait id like materials are by material id -- traits
         // are Java behavior selected by data (ADR-0002), so nothing derives these keys for us. The
         // tool info panel (issue #47) is what will display them; wording follows upstream 1.12's
@@ -2301,6 +2308,21 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         // is what gives the tool the buffer the modules draw from (see trait_definition/infused.json).
         add("trait.forgeweave.infused.name", "Infused");
         add("trait.forgeweave.infused.description", "Carries a deep Forge Energy buffer that is spent before durability.");
+        // Issue #1031 (D-M8-21): Just Dire Things' four tool tiers, each a datapack trait_definition
+        // over an existing TraitBehaviors class echoing that tier's own identity in the source mod --
+        // never a copy of its code. See trait_definition/ferricore_footing.json and siblings.
+        add("trait.forgeweave.ferricore_footing.name", "Sure Footing");
+        add("trait.forgeweave.ferricore_footing.description", "Steps up a full block without jumping.");
+        add("trait.forgeweave.blazegold_ember.name", "Blazegold Ember");
+        add("trait.forgeweave.blazegold_ember.description", "The wielder takes no damage from fire.");
+        add("trait.forgeweave.celestigem_charge.name", "Celestial Charge");
+        add("trait.forgeweave.celestigem_charge.description", "Carries a Forge Energy buffer that is spent before durability.");
+        add("trait.forgeweave.eclipsealloy_charge.name", "Eclipse Charge");
+        add("trait.forgeweave.eclipsealloy_charge.description",
+                "Carries a large Forge Energy buffer that is spent before durability.");
+        add("trait.forgeweave.eclipsealloy_ward.name", "Eclipse Ward");
+        add("trait.forgeweave.eclipsealloy_ward.description",
+                "Once per cooldown, a killing blow spends durability to save the wielder instead.");
         add("tooltip.forgeweave.energy", "Stored Energy");
         // #829 M6 utility/economy trait behavior library.
         add("trait.forgeweave.sunmend.name", "Sunmend");

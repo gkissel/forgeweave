@@ -21,6 +21,10 @@
         },
         {
           "type": "neoforge:item_exists",
+          "item": "eternalores:silver_ingot"
+        },
+        {
+          "type": "neoforge:item_exists",
           "item": "occultism:silver_ingot"
         }
       ]

@@ -11,8 +11,17 @@
   "consumes_cast": true,
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "immersiveengineering:ingot_electrum"
+      "type": "neoforge:or",
+      "values": [
+        {
+          "type": "neoforge:item_exists",
+          "item": "immersiveengineering:ingot_electrum"
+        },
+        {
+          "type": "neoforge:item_exists",
+          "item": "eternalores:electrum_ingot"
+        }
+      ]
     }
   ]
 }

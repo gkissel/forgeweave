@@ -108,6 +108,8 @@ class ArmorMaterialTest {
             // #996 (D-M8-17): Powah's four remaining crystals, same full plating + maille shape as
             // #837's own gem/crystal-tier roster above (diamatine_crystal, uraninite, ...).
             Stream.of("blazing_crystal", "niotic_crystal", "spirited_crystal", "nitro_crystal"),
+            // #1031 (D-M8-21): Just Dire Things' four tool tiers, same full plating + maille shape.
+            Stream.of("ferricore", "blazegold", "celestigem", "eclipsealloy"),
             // #997 (D-M8-18): Occultism's spirit attuned gem, same full plating + maille shape as the
             // rest of the gem/crystal-tier roster above.
             Stream.of("spirit_attuned_gem"),

@@ -13,8 +13,17 @@
   },
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "bigreactors:graphite_ingot"
+      "type": "neoforge:or",
+      "values": [
+        {
+          "type": "neoforge:item_exists",
+          "item": "bigreactors:graphite_ingot"
+        },
+        {
+          "type": "neoforge:item_exists",
+          "item": "eternalores:graphite_ingot"
+        }
+      ]
     }
   ]
 }
