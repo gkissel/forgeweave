@@ -2,6 +2,14 @@
   "values": [
     "forgeweave:warspar_ore",
     "forgeweave:hollowstone_ore",
-    "forgeweave:resonite_ore"
+    "forgeweave:resonite_ore",
+    {
+      "id": "#c:ores/vibranium",
+      "required": false
+    },
+    {
+      "id": "#c:ores/unobtainium",
+      "required": false
+    }
   ]
 }

@@ -1,0 +1,58 @@
+{
+  "head": {
+    "durability": 395,
+    "mining_speed": 5.72,
+    "attack_damage": 4.92
+  },
+  "handle": {
+    "durability_modifier": 0.99,
+    "durability": 46
+  },
+  "extra_durability": 41,
+  "bow": {
+    "drawspeed": 0.43,
+    "range": 1.45,
+    "bonus_damage": 6.54
+  },
+  "incorrect_for_tool": "minecraft:incorrect_for_iron_tool",
+  "traits": {
+    "general": [
+      "forgeweave:smokehouse"
+    ]
+  },
+  "crafting_items": [
+    {
+      "ingredient": {
+        "tag": "c:ingots/palladium"
+      },
+      "value": 144
+    },
+    {
+      "ingredient": {
+        "tag": "c:nuggets/palladium"
+      },
+      "value": 16
+    },
+    {
+      "ingredient": {
+        "tag": "c:storage_blocks/palladium"
+      },
+      "value": 1296
+    }
+  ],
+  "repair_item": {
+    "tag": "c:ingots/palladium"
+  },
+  "cast_only": true,
+  "enchantability": 12,
+  "color": "#CED0CE",
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:mod_loaded",
+      "modid": "elementarium"
+    },
+    {
+      "type": "forgeweave:elementarium_materials_enabled"
+    }
+  ]
+}

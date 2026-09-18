@@ -373,6 +373,34 @@ public final class ForgeweaveConfig {
      */
     public static final ModConfigSpec.BooleanValue POWAH_MODIFIERS;
 
+    /**
+     * Issue #998 (D-M8-19). Covers the Allthemodium tier-equivalence half that has a genuine runtime
+     * hook: {@code TrackBOrePlacement}'s mining-dimension gate. The tag equivalence itself (both
+     * directions) is existence-gated only, the same as every Track A preset (D-M8-5) -- a live
+     * {@code SERVER} config value has no site in a {@code neoforge:conditions} block or in a static
+     * tag file (see the PR body), so there is nothing this flag could switch off there. Off here
+     * means Track B's ore family stops generating in {@code allthemodium:mining}; ore already
+     * generated in an existing chunk is untouched, worldgen is not retroactive.
+     *
+     * @see #DRACONIC_FUSION
+     */
+    public static final ModConfigSpec.BooleanValue ALLTHEMODIUM_TIERS;
+
+    /**
+     * Issue #998 (D-M8-19). The one deliberate exception to "material presets are never toggled"
+     * (D-M8-5): Elementarium's presets are <em>generated</em> from its {@code c:ingots/*} tag family
+     * rather than hand-authored, so a pack that dislikes the interpolation needs a way out that is
+     * not hand-editing generated JSON. Read by {@code ElementariumEnabledCondition}, the existence
+     * condition every generated Elementarium material carries alongside {@code neoforge:mod_loaded}.
+     * Off means none of those materials register -- the same save-compat shape any other
+     * existence-gated Track A preset already has if its provider mod is removed (Material.java's own
+     * javadoc): a tool built from one keeps its stored part components, but the material record they
+     * point at no longer resolves. Turning the toggle back on restores it with no further action.
+     *
+     * @see #DRACONIC_FUSION
+     */
+    public static final ModConfigSpec.BooleanValue ELEMENTARIUM_MATERIALS;
+
     /** The fraction of the tool's trait-derived FE capacity {@code surgebound} adds per level (I-IV). */
     public static final ModConfigSpec.DoubleValue SURGEBOUND_CAPACITY_PER_LEVEL;
     /** The fraction of the tool's base mining speed {@code surgebound} adds per level (I-IV). */
@@ -837,6 +865,21 @@ public final class ForgeweaveConfig {
                         "instead of adding a fifth flat step.")
                 .defineInRange("surgeboundNitroMiningSpeedMultiplier",
                         SURGEBOUND_NITRO_MINING_SPEED_MULTIPLIER_DEFAULT, 0.0D, 100.0D);
+        // Issue #998 (D-M8-19): Allthemodium and Elementarium, the two closed-roster/closed-source
+        // integrations that reach Forgeweave entirely through tags.
+        ALLTHEMODIUM_TIERS = builder
+                .comment("If true, Track B's ore family generates in Allthemodium's mining dimension",
+                        "(allthemodium:mining). The tag-based tier equivalence itself (Forgeweave tools",
+                        "mining Allthemodium ore and Allthemodium tools mining Forgeweave ore) is not",
+                        "covered by this toggle: it is existence-gated only, the same as every material",
+                        "preset (D-M8-5), because a live config value has no site in a static tag file.")
+                .define("allthemodiumTiers", true);
+        ELEMENTARIUM_MATERIALS = builder
+                .comment("If true, the Track A presets generated from Elementarium's c:ingots/* tag family",
+                        "register. Unlike every other material preset (D-M8-5 says presets are never",
+                        "toggled) these are generated rather than authored, so this is the way out of a",
+                        "bad interpolation that is not hand-editing generated JSON.")
+                .define("elementariumMaterials", true);
         builder.pop();
         COMPAT_SPEC = builder.build();
 

@@ -105,7 +105,13 @@ class ArmorMaterialTest {
             Stream.of("awakened", "draconium_core"),
             // #996 (D-M8-17): Powah's four remaining crystals, same full plating + maille shape as
             // #837's own gem/crystal-tier roster above (diamatine_crystal, uraninite, ...).
-            Stream.of("blazing_crystal", "niotic_crystal", "spirited_crystal", "nitro_crystal"))
+            Stream.of("blazing_crystal", "niotic_crystal", "spirited_crystal", "nitro_crystal"),
+            // #998 (D-M8-19): Allthemodium's three metals and three alloys, same full plating +
+            // maille shape as every other Track A preset batch. Elementarium's generated presets are
+            // tool-only (no plating/maille block, see generate_elementarium_materials.py) and are
+            // deliberately absent from both sets below.
+            Stream.of("allthemodium", "vibranium", "unobtainium", "unobtainium_allthemodium_alloy",
+                    "unobtainium_vibranium_alloy", "vibranium_allthemodium_alloy"))
             .flatMap(java.util.function.Function.identity())
             .collect(java.util.stream.Collectors.toSet());
 
