@@ -26,6 +26,7 @@ import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.item.enchantment.ItemEnchantments;
 
+import dev.gkissel.forgeweave.compat.apotheosis.ApotheosisSockets;
 import dev.gkissel.forgeweave.config.ForgeweaveConfig;
 import dev.gkissel.forgeweave.item.AmmoToolItem;
 import dev.gkissel.forgeweave.item.ArmorPieceItem;
@@ -64,11 +65,13 @@ public final class ModifierApplication {
      */
     public record Outcome(ItemStack output, List<Integer> used, @Nullable Component rejection) {
 
-        static Outcome applied(ItemStack output, List<Integer> used) {
+        /** Public since issue #969: the Apotheosis gem-seating action builds its outcome too. */
+        public static Outcome applied(ItemStack output, List<Integer> used) {
             return new Outcome(output, used, null);
         }
 
-        static Outcome rejected(Component reason) {
+        /** @see #applied */
+        public static Outcome rejected(Component reason) {
             return new Outcome(ItemStack.EMPTY, List.of(), reason);
         }
 
@@ -244,6 +247,27 @@ public final class ModifierApplication {
             List<ItemStack> freeSlots, int[] available, int[] unitsPerItem) {
         if (recipe.modifier().equals(OverslimeRefill.ID)) {
             return OverslimeRefill.apply(tool, available, unitsPerItem); // #728: no modifier entry, a refill.
+        }
+        if (recipe.modifier().equals(ApotheosisSockets.SEAT_GEM_ID)) {
+            // #969: seating an Apotheosis gem, the same marker-recipe shape the overslime refill has
+            // -- nothing is stored under this id either; the craft moves the socket component. The
+            // recipe itself only exists with Apotheosis installed (its own `neoforge:conditions`), so
+            // this branch is unreachable without it; the toggle check is the config's, not the mod's.
+            if (!ApotheosisSockets.enabled()) {
+                return Outcome.rejected(
+                        Component.translatable("gui.forgeweave.modifier.apotheosis_sockets_disabled"));
+            }
+            Outcome seated = ApotheosisSockets.seat(tool, freeSlots);
+            if (!seated.output().isEmpty()) {
+                // The gem's durability bonus is part of the pool max_damage carries, so the stack
+                // needs the same rebake a modifier application gets.
+                rebake(seated.output());
+            }
+            return seated;
+        }
+        if (recipe.modifier().equals(ApotheosisSockets.SOCKETED_ID) && !ApotheosisSockets.enabled()) {
+            return Outcome.rejected(
+                    Component.translatable("gui.forgeweave.modifier.apotheosis_sockets_disabled"));
         }
         Optional<Component> unsupported = unsupportedToolReason(registries, recipe, tool);
         if (unsupported.isPresent()) {

@@ -41,6 +41,7 @@ import dev.gkissel.forgeweave.combat.CombatSeams;
 import dev.gkissel.forgeweave.combat.ForgeweaveInnates;
 import dev.gkissel.forgeweave.combat.ForgeweaveMobEffects;
 import dev.gkissel.forgeweave.combat.RangedXpSeam;
+import dev.gkissel.forgeweave.compat.apotheosis.ApotheosisSockets;
 import dev.gkissel.forgeweave.compat.draconic.ForgeweaveDraconicCompat;
 import dev.gkissel.forgeweave.config.ForgeweaveClientConfig;
 import dev.gkissel.forgeweave.config.ForgeweaveConfig;
@@ -208,6 +209,10 @@ public class Forgeweave {
         CombatSeams.register(RangedXpSeam::collect);
         // M7-3 (issue #920, docs/SCOPE.md D-M7-10) -- blocking XP to the tool actively blocking with.
         CombatSeams.register(BlockingXpSeam::collect);
+        // #969 (docs/SCOPE.md M8, D-M8-1) -- Apotheosis gems in sockets: their protection, their
+        // damage reduction and their post-hit effects, on the same pipeline the traits and modifiers
+        // use. Inert with no Apotheosis, since nothing installs the bridge behind it then.
+        CombatSeams.register(ApotheosisSockets.COMBAT_SEAMS);
         // #157 -- area mining (hammer/excavator 3x3, lumber axe tree fell, scythe 3x3x3, vein hammer
         // vein). NeoForge 1.21 dropped the per-item onBlockStartBreak hook upstream 1.12 uses, so
         // this is the one break event every player break goes through -- see AoeHarvest.
@@ -291,6 +296,13 @@ public class Forgeweave {
         // DeferredRegister inside the call rather than in a static field.
         if (ModList.get().isLoaded(ForgeweaveDraconicCompat.MODID)) {
             ForgeweaveDraconicCompat.register(modEventBus);
+        }
+        // #969 -- Apotheosis gem sockets (docs/SCOPE.md M8, D-M8-1). Same load-bearing guard: the
+        // bridge behind this call names dev.shadowsoffire types and cannot link without the mod,
+        // which is why ApotheosisSockets itself names none and reaches its implementation from
+        // inside a method body rather than a static field.
+        if (ModList.get().isLoaded(ApotheosisSockets.MODID)) {
+            ApotheosisSockets.installBridge();
         }
     }
 

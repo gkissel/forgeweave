@@ -54,6 +54,7 @@ import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.combat.CombatSeam;
 import dev.gkissel.forgeweave.combat.ForgeweaveInnates;
 import dev.gkissel.forgeweave.combat.ToolUseAction;
+import dev.gkissel.forgeweave.compat.apotheosis.ApotheosisSockets;
 import dev.gkissel.forgeweave.compat.draconic.modules.DraconicModules;
 import dev.gkissel.forgeweave.config.ForgeweaveConfig;
 import dev.gkissel.forgeweave.entity.IndestructibleItemEntity;
@@ -698,7 +699,10 @@ public class ToolItem extends Item {
         // bound Forgeweave's own modifier stacking (issue #295), and running a module's points through
         // it would quietly eat most of them. 0 without that mod, an evolved tool, or the power to run
         // the module.
-        return cutoffDamage(damage) + DraconicModules.attackDamageBonus(stack);
+        // #969: an Apotheosis attack-damage gem adds on top too, after the cutoff for the same
+        // reason a Draconic damage module's points are. 0 without Apotheosis or without sockets.
+        return cutoffDamage(damage) + DraconicModules.attackDamageBonus(stack)
+                + ApotheosisSockets.attackDamageBonus(stack);
     }
 
     /**
@@ -840,8 +844,11 @@ public class ToolItem extends Item {
         // #956: a Draconic Evolution speed module multiplies what the tool's own stats and traits
         // already worked out. 1 without that mod, without an evolved tool, or without the power to
         // run the module -- see DraconicModuleEffects for the two deviations from DE's own curve.
+        // #969: an Apotheosis mining-speed gem adds to the same number, the way its own attribute
+        // adds to a vanilla tool's dig speed rather than scaling it. 0 without Apotheosis or sockets.
         return ForgeweaveTraits.miningSpeed(stack, isEffective(state), base)
-                * DraconicModules.digSpeedMultiplier(stack);
+                * DraconicModules.digSpeedMultiplier(stack)
+                + ApotheosisSockets.miningSpeedBonus(stack);
     }
 
     /**

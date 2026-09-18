@@ -1,0 +1,15 @@
+{
+  "modifier": "forgeweave:socketed",
+  "reagents": [
+    {
+      "ingredient": {
+        "item": "minecraft:heart_of_the_sea"
+      }
+    }
+  ],
+  "cost": 1,
+  "max_level": 3,
+  "neoforge:conditions": [
+    { "type": "neoforge:item_exists", "item": "minecraft:diamond" }
+  ]
+}

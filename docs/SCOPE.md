@@ -714,7 +714,7 @@ Curios (D-M8-4, until a back or charm item exists) · a Create blaze burner seam
 | # | Deliverable | Depends on | Status |
 | --- | --- | --- | --- |
 | M8-0 | Compat config toggles for the four integrations that shipped before D-M8-5, the `config/forgeweave/` folder split (D-M8-8), and mining level in the Jade and WTHIT overlays (D-M8-9) | — | filed ([#968](https://github.com/gkissel/forgeweave/issues/968)), extended 2026-09-07 |
-| M8-1 | The `socketed` modifier, the socket-contents component, and gem bonuses on the existing seams | — | filed ([#969](https://github.com/gkissel/forgeweave/issues/969)) |
+| M8-1 | The `socketed` modifier, the socket-contents component, and gem bonuses on the existing seams | — | shipped ([#969](https://github.com/gkissel/forgeweave/issues/969)); the gem-effect mapping is `ApotheosisSockets.EFFECT_MAP`, six of Apotheosis' fourteen bonus types mapped and the rest recorded as unmapped, and the config toggle's own key is [#968](https://github.com/gkissel/forgeweave/issues/968)'s |
 | M8-2 | Apotheosis loot affixes on Forgeweave gear, and the `allowVanillaEnchanting` interplay | M8-1 | filed ([#970](https://github.com/gkissel/forgeweave/issues/970)) |
 | M8-3 | EMI bridge spike across all 14 recipe types across the 12 category classes, then a native plugin only for the gaps | — | filed ([#971](https://github.com/gkissel/forgeweave/issues/971)) |
 | M8-4 | Energized tank: the fuel sample, the energy cost per melt tick, the hottest-tank rule, overdrive, the JEI row | — | filed ([#972](https://github.com/gkissel/forgeweave/issues/972)), rewritten in place 2026-09-07 (was the FE heater wall) |
