@@ -21,7 +21,7 @@ import org.junit.jupiter.api.Test;
  * nothing and route 3 is where that issue stops.
  *
  * <p>Two scans hold that finding in place. The first is the isolation rule the other integrations
- * already follow, pre-armed for the day the package exists. The second pins the part-swap answer:
+ * already follow, ready for the day the package exists. The second pins the part-swap answer:
  * Forgeweave keeps no Just Dire Things upgrade state anywhere, so a part replacement has no
  * eligibility to break and no upgrade item to give back.
  *
