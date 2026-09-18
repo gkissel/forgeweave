@@ -648,7 +648,9 @@ All sprites come from the existing vanilla-donor recolor scripts (`generate_trac
 
 Among all tanks on a smeltery the hottest valid fuel wins, and only that tank pays. Cooler tanks contribute nothing and spend nothing. A tank with an empty buffer contributes no heat, which is the same "no partial heat" rule D-M8-3 already set.
 
-An overdrive button on the block, its state saved with the block entity, multiplies both the energy cost and the melt progress per tick by config factors, both defaulting to 2.0. Faster melting, proportionally more expensive, and the player chooses.
+An overdrive button, its state saved with the block entity, multiplies both the energy cost and the melt progress per tick by config factors, both defaulting to 2.0. Faster melting, proportionally more expensive, and the player chooses.
+
+**The tank is a GUI block (maintainer decision 2026-09-18, [#1018](https://github.com/gkissel/forgeweave/issues/1018)).** [#972](https://github.com/gkissel/forgeweave/issues/972) read "a button on the block" literally and shipped overdrive as an empty-hand press with action-bar feedback. That is overruled: right-clicking the tank with anything but a fluid container opens a screen showing the fuel sample as a gauge, the Forge Energy buffer as a bar with its numbers, the heat the sample gives, what a melt cycle costs, and the overdrive button. A bucket still fills and drains the sample without opening it. The saved overdrive flag and the block entity's NBT are unchanged, so the format the fixture pins is the same one.
 
 It gets a JEI row, a mention in the guide book, and a toggle. Why this and not the heater: an RF/t curve is a second temperature scale a player has to learn, while a fuel sample is a fuel they already know, read through a meter they already have.
 
