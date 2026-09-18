@@ -410,6 +410,15 @@ public final class ForgeweaveModifiers {
         return TIER_TAGS.get(index);
     }
 
+    /**
+     * How many rungs the ladder has -- eight since issue #877. Public so a caller that walks the
+     * whole ladder ({@code dev.gkissel.forgeweave.tool.MiningLevel}, issue #968) does not have to
+     * hardcode its length and drift when it grows again.
+     */
+    public static int tierCount() {
+        return TIER_TAGS.size();
+    }
+
     private static final ResourceLocation DIAMOND_ID = id("diamond");
     private static final ResourceLocation EMERALD_ID = id("emerald");
 

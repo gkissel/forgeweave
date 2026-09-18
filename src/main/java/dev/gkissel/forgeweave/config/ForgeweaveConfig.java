@@ -11,10 +11,10 @@ import dev.gkissel.forgeweave.block.EnergizedHeat;
 /**
  * Forgeweave's gameplay config (docs/SCOPE.md M3.4-7 issue #276): the subset of upstream 1.12's
  * {@code common/config/Config.java} that has a behavior site here, each keeping upstream's own
- * default. Purely visual preferences live in {@link ForgeweaveClientConfig} instead -- see that
- * class for the split.
+ * default, plus Forgeweave's own content-family and compat toggles. Purely visual preferences live
+ * in {@link ForgeweaveClientConfig} instead -- see that class for the split.
  *
- * <p>Registered as a {@code SERVER}-type config ({@code Forgeweave#Forgeweave}), not {@code COMMON}:
+ * <p>Registered as {@code SERVER}-type configs ({@code Forgeweave#Forgeweave}), not {@code COMMON}:
  * every option here changes what the server will actually do (what a slot accepts, what a melt
  * yields, what generates in the Nether), and only {@code SERVER} configs are synced from server to
  * client on login (NeoForge's {@code ConfigSync}). The invariant CONTEXT.md requires
@@ -26,9 +26,42 @@ import dev.gkissel.forgeweave.block.EnergizedHeat;
  *
  * <p>None of these need a game restart: every one is read at the moment its behavior runs
  * ({@code worldRestart()} is deliberately unused), which is the runtime-check bucket issue #276
- * asks to prefer. The two upstream options that gate <em>registration</em> rather than behavior are
+ * asks to prefer. The upstream options that gate <em>registration</em> rather than behavior are
  * handled the same way -- {@link #ENABLE_CLAY_CASTS}'s recipes are filtered at lookup time
  * (issue #292) -- so no conditional-recipe machinery is needed anywhere.
+ *
+ * <h2>Four files, not one (D-M8-8, issue #968)</h2>
+ *
+ * <p>One flat {@code forgeweave-server.toml} had grown past the point where a pack operator could
+ * find anything in it, so the spec is split into four, registered under {@code config/forgeweave/}:
+ * {@link #GENERAL_SPEC} ({@code general-server.toml}), {@link #CONTENT_SPEC}
+ * ({@code content-server.toml}), {@link #COMPAT_SPEC} ({@code compat-server.toml}) and
+ * {@link #WORLDGEN_SPEC} ({@code worldgen-server.toml}). NeoForge registers one spec per file, so
+ * these are four {@code registerConfig} calls rather than one spec that happens to be written out
+ * in pieces.
+ *
+ * <p>The split follows the sections the options already grouped into rather than the compat /
+ * smeltery / leveling / materials / worldgen shape D-M8-8 sketched, which the options did not bear
+ * out: there is no materials option at all (materials are never toggled, D-M8-5), and the smeltery
+ * and leveling keys are members of the {@code content} family roster
+ * ({@link #SMELTERY}, {@link #TOOL_LEVELING}), so lifting them into files of their own would split
+ * a family from its siblings. Every option therefore keeps the path it already had inside its
+ * section, and the eleven that used to sit at the top level move under a new {@code general}
+ * section so that each file has exactly one section to carry its header comment.
+ *
+ * <p>Two standing rules ride the header comments, stated there so later issues inherit them.
+ * Everything numeric is a config value, not a constant in Java. And every integration beyond
+ * materials gets a toggle in {@code compat}.
+ *
+ * <p><b>Migration.</b> An existing {@code config/forgeweave-server.toml} is read once and its values
+ * are split into the four new files before anything is registered -- see
+ * {@link ForgeweaveConfigMigration}. Silently resetting a pack's tuned config would be the config
+ * equivalent of eating a save, so the old file is carried over rather than abandoned, and it is
+ * renamed to {@code forgeweave-server.toml.migrated} afterwards instead of deleted.
+ *
+ * <p>{@link ForgeweaveClientConfig} stays where it is, at {@code config/forgeweave-client.toml}: it
+ * is a single short spec of display preferences that is not growing, and D-M8-8 is about the server
+ * file.
  */
 public final class ForgeweaveConfig {
     /**
@@ -38,7 +71,17 @@ public final class ForgeweaveConfig {
      */
     public static final double ORE_TO_INGOT_BASELINE = 2.0D;
 
-    public static final ModConfigSpec SPEC;
+    /** {@code config/forgeweave/general-server.toml} -- the {@code general} section. */
+    public static final ModConfigSpec GENERAL_SPEC;
+
+    /** {@code config/forgeweave/content-server.toml} -- the {@code content} section. */
+    public static final ModConfigSpec CONTENT_SPEC;
+
+    /** {@code config/forgeweave/compat-server.toml} -- the {@code compat} section. */
+    public static final ModConfigSpec COMPAT_SPEC;
+
+    /** {@code config/forgeweave/worldgen-server.toml} -- the {@code worldgen} section. */
+    public static final ModConfigSpec WORLDGEN_SPEC;
 
     /** CONTEXT.md invariant: tools are not enchantable at the vanilla enchanting table by default. */
     public static final ModConfigSpec.BooleanValue ALLOW_VANILLA_ENCHANTING;
@@ -251,11 +294,82 @@ public final class ForgeweaveConfig {
     public static final int NO_LEVEL_CAP = -1;
 
     /**
-     * Issue #996 (D-M8-17). D-M8-5's family-toggle idiom, in the {@code compat} section that toggle
-     * ticket (#968) is expected to grow -- covers only {@code surgebound}'s application recipes and
-     * effect, never the six Powah material presets: D-M8-5 is explicit that Track A material presets
-     * are never toggled, so uraninite/energised_steel/the four crystals stay active whenever Powah's
-     * own item exists regardless of this flag.
+     * Compat toggles (D-M8-5, maintainer decision 2026-09-04): one per integration beyond
+     * materials, so a pack can drop a bridge to another mod without dropping the mod. They live in
+     * {@code compat} rather than {@code content} because {@code content} means "this family of
+     * Forgeweave items exists" while these mean "this bridge to another mod exists".
+     *
+     * <p>Semantics are <b>inert, never destructive</b>, which is D-M7-3's rule applied to compat:
+     * an off toggle stops the integration answering, and nothing else. Gear that already carries a
+     * fusion upgrade or an installed module keeps every component it has, untouched, and works
+     * again the moment the toggle returns. A flag flip that silently discarded that state would be
+     * a save-corruption bug wearing a config's clothes.
+     *
+     * <p>Every one of these is read where the integration answers rather than where it registers,
+     * which is the same runtime-check convention {@link #ADD_FLINT_RECIPE} explains and the only
+     * one a {@code SERVER} spec can honour: a serializer, a capability and an overlay plugin are
+     * all registered during mod loading, and a {@code SERVER} config does not exist until a world
+     * does. Each gate therefore sits at the earliest point the integration is actually asked
+     * anything -- see the PR body for the site chosen per toggle.
+     *
+     * <p>This one: Forgeweave's Draconic Evolution fusion upgrade ladder
+     * ({@code compat.draconic.FusionUpgradeRecipe}). Off means no upgrade row matches, so Draconic
+     * Evolution's fusion crafting multiblock finds no Forgeweave recipe and upgrades nothing.
+     */
+    public static final ModConfigSpec.BooleanValue DRACONIC_FUSION;
+
+    /**
+     * Draconic Evolution module hosting ({@code compat.draconic.modules}). Off means no Forgeweave
+     * stack answers {@code DECapabilities.Host.ITEM}, so Draconic Evolution's module screen does not
+     * open on Forgeweave gear and no module effect is granted.
+     *
+     * @see #DRACONIC_FUSION
+     */
+    public static final ModConfigSpec.BooleanValue DRACONIC_MODULES;
+
+    /**
+     * The Jade and WTHIT block overlays ({@code dev.gkissel.forgeweave.jade} and
+     * {@code dev.gkissel.forgeweave.wthit}). Off means every Forgeweave provider answers empty and
+     * adds no tooltip line to either overlay.
+     *
+     * @see #DRACONIC_FUSION
+     */
+    public static final ModConfigSpec.BooleanValue OVERLAYS;
+
+    /**
+     * The KubeJS trait binding ({@code kubejs.ForgeweaveKubeJSPlugin}). Off means a trait a startup
+     * script registered resolves to nothing, so a material naming it behaves as if the id had no
+     * implementation -- which is what a datapack material naming an unknown trait already does.
+     *
+     * @see #DRACONIC_FUSION
+     */
+    public static final ModConfigSpec.BooleanValue KUBEJS_TRAITS;
+
+    /**
+     * Create's goggle overlays firing for a helmet carrying {@code forgeweave:goggles} (issue
+     * #1007). Off means Create's own overlays ignore Forgeweave helmets; the modifier stays on the
+     * helmet and works again the moment the toggle returns.
+     *
+     * @see #DRACONIC_FUSION
+     */
+    public static final ModConfigSpec.BooleanValue CREATE_GOGGLES;
+
+    /**
+     * Apotheosis gem sockets (issue #969, {@code compat.apotheosis.ApotheosisSockets#enabled}). Off
+     * means no socket can be added and no gem seated, and a seated gem grants nothing; the sockets
+     * already on a stack keep their contents and grant again when the toggle returns.
+     *
+     * @see #DRACONIC_FUSION
+     */
+    public static final ModConfigSpec.BooleanValue APOTHEOSIS_SOCKETS;
+
+    /**
+     * Issue #996 (D-M8-17). Covers only {@code surgebound}'s application recipes and effect, never
+     * the six Powah material presets: D-M8-5 is explicit that Track A material presets are never
+     * toggled, so uraninite, energised_steel and the four crystals stay active whenever Powah's own
+     * item exists regardless of this flag.
+     *
+     * @see #DRACONIC_FUSION
      */
     public static final ModConfigSpec.BooleanValue POWAH_MODIFIERS;
 
@@ -324,8 +438,8 @@ public final class ForgeweaveConfig {
     public static final ModConfigSpec.BooleanValue SLIME_ISLANDS_ONLY_IN_SURFACE_WORLDS;
 
     /**
-     * The energized tank (docs/SCOPE.md M8, D-M8-11; issue #972), the first entry in the new
-     * {@code compat} section D-M8-5 asks for. Off means the block goes inert, not unregistered: it
+     * The energized tank (docs/SCOPE.md M8, D-M8-11; issue #972), in the same {@code compat} section
+     * as every other integration toggle. Off means the block goes inert, not unregistered: it
      * contributes no heat and its crafting recipe stops resolving, but a tank already standing in a
      * world still loads and keeps its fuel sample, its energy buffer and its overdrive setting, so
      * turning the toggle back on restores it intact. A server config is not loaded when registries
@@ -390,29 +504,29 @@ public final class ForgeweaveConfig {
      * JEI's own recipe list are both built without a running server.
      */
     public static int energizedTankBuffer() {
-        return SPEC.isLoaded() ? ENERGIZED_TANK_BUFFER.get() : ENERGIZED_TANK_BUFFER_DEFAULT;
+        return loaded() ? ENERGIZED_TANK_BUFFER.get() : ENERGIZED_TANK_BUFFER_DEFAULT;
     }
 
     /** @see #energizedTankBuffer() */
     public static int energizedTankRfPerMeltTickBase() {
-        return SPEC.isLoaded() ? ENERGIZED_TANK_RF_PER_MELT_TICK_BASE.get()
+        return loaded() ? ENERGIZED_TANK_RF_PER_MELT_TICK_BASE.get()
                 : ENERGIZED_TANK_RF_PER_MELT_TICK_BASE_DEFAULT;
     }
 
     /** @see #energizedTankBuffer() */
     public static int energizedTankTemperatureDivisor() {
-        return SPEC.isLoaded() ? ENERGIZED_TANK_TEMPERATURE_DIVISOR.get()
+        return loaded() ? ENERGIZED_TANK_TEMPERATURE_DIVISOR.get()
                 : ENERGIZED_TANK_TEMPERATURE_DIVISOR_DEFAULT;
     }
 
     /** @see #energizedTankBuffer() */
     public static double energizedTankOverdriveCost() {
-        return SPEC.isLoaded() ? ENERGIZED_TANK_OVERDRIVE_COST.get() : ENERGIZED_TANK_OVERDRIVE_DEFAULT;
+        return loaded() ? ENERGIZED_TANK_OVERDRIVE_COST.get() : ENERGIZED_TANK_OVERDRIVE_DEFAULT;
     }
 
     /** @see #energizedTankBuffer() */
     public static double energizedTankOverdriveProgress() {
-        return SPEC.isLoaded() ? ENERGIZED_TANK_OVERDRIVE_PROGRESS.get() : ENERGIZED_TANK_OVERDRIVE_DEFAULT;
+        return loaded() ? ENERGIZED_TANK_OVERDRIVE_PROGRESS.get() : ENERGIZED_TANK_OVERDRIVE_DEFAULT;
     }
 
     /**
@@ -427,7 +541,19 @@ public final class ForgeweaveConfig {
      * the declared default.
      */
     public static boolean enabled(ModConfigSpec.BooleanValue value) {
-        return !SPEC.isLoaded() || value.get();
+        return !loaded() || value.get();
+    }
+
+    /**
+     * Whether a server has spoken, i.e. whether every one of the four {@code SERVER} files is
+     * loaded. All four are opened by the same {@code ConfigTracker#loadConfigs(SERVER, ...)} call
+     * and delivered to a joining client by the same configuration task, so in practice they are
+     * loaded together or not at all; the conjunction is what makes that safe to rely on, since
+     * {@code .get()} on a value whose own file has not loaded throws.
+     */
+    public static boolean loaded() {
+        return GENERAL_SPEC.isLoaded() && CONTENT_SPEC.isLoaded() && COMPAT_SPEC.isLoaded()
+                && WORLDGEN_SPEC.isLoaded();
     }
 
     /**
@@ -437,9 +563,13 @@ public final class ForgeweaveConfig {
      * query items before that (Replication calls {@code getResultItem} on every recipe from a
      * resource reload listener), and a raw {@code .get()} there throws and takes the client down.
      * {@code ConfigReadAuditTest} fails the build on a new raw read.
+     *
+     * <p>Takes an option from any of the four specs, which is why the guard is {@link #loaded()}
+     * rather than one file's own {@code isLoaded()}: this method cannot tell which file the value it
+     * was handed came from, and the all-four probe is right for every one of them.
      */
     public static <T> T read(ModConfigSpec.ConfigValue<T> value) {
-        return SPEC.isLoaded() ? value.get() : value.getDefault();
+        return loaded() ? value.get() : value.getDefault();
     }
 
     /**
@@ -451,7 +581,7 @@ public final class ForgeweaveConfig {
      * avoid, mirrored.
      */
     public static boolean craftCastableMaterials() {
-        return SPEC.isLoaded() && CRAFT_CASTABLE_MATERIALS.get();
+        return loaded() && CRAFT_CASTABLE_MATERIALS.get();
     }
 
     /**
@@ -462,45 +592,64 @@ public final class ForgeweaveConfig {
      * no server has spoken.
      */
     public static int defaultBaseXp() {
-        return SPEC.isLoaded() ? DEFAULT_BASE_XP.get() : DEFAULT_BASE_XP_DEFAULT;
+        return loaded() ? DEFAULT_BASE_XP.get() : DEFAULT_BASE_XP_DEFAULT;
     }
 
     /** @see #defaultBaseXp() */
     public static double levelMultiplier() {
-        return SPEC.isLoaded() ? LEVEL_MULTIPLIER.get() : LEVEL_MULTIPLIER_FLOOR;
+        return loaded() ? LEVEL_MULTIPLIER.get() : LEVEL_MULTIPLIER_FLOOR;
     }
 
     /** @see #defaultBaseXp() */
     public static int maximumLevels() {
-        return SPEC.isLoaded() ? MAXIMUM_LEVELS.get() : NO_LEVEL_CAP;
+        return loaded() ? MAXIMUM_LEVELS.get() : NO_LEVEL_CAP;
     }
 
     /** {@link #SURGEBOUND_CAPACITY_PER_LEVEL}, answering its own default whenever no server has spoken. */
     public static double surgeboundCapacityPerLevel() {
-        return SPEC.isLoaded() ? SURGEBOUND_CAPACITY_PER_LEVEL.get() : SURGEBOUND_CAPACITY_PER_LEVEL_DEFAULT;
+        return loaded() ? SURGEBOUND_CAPACITY_PER_LEVEL.get() : SURGEBOUND_CAPACITY_PER_LEVEL_DEFAULT;
     }
 
     /** @see #surgeboundCapacityPerLevel() */
     public static double surgeboundMiningSpeedPerLevel() {
-        return SPEC.isLoaded() ? SURGEBOUND_MINING_SPEED_PER_LEVEL.get() : SURGEBOUND_MINING_SPEED_PER_LEVEL_DEFAULT;
+        return loaded() ? SURGEBOUND_MINING_SPEED_PER_LEVEL.get() : SURGEBOUND_MINING_SPEED_PER_LEVEL_DEFAULT;
     }
 
     /** @see #surgeboundCapacityPerLevel() */
     public static double surgeboundNitroCapacityMultiplier() {
-        return SPEC.isLoaded() ? SURGEBOUND_NITRO_CAPACITY_MULTIPLIER.get() : SURGEBOUND_NITRO_CAPACITY_MULTIPLIER_DEFAULT;
+        return loaded() ? SURGEBOUND_NITRO_CAPACITY_MULTIPLIER.get() : SURGEBOUND_NITRO_CAPACITY_MULTIPLIER_DEFAULT;
     }
 
     /** @see #surgeboundCapacityPerLevel() */
     public static double surgeboundNitroMiningSpeedMultiplier() {
-        return SPEC.isLoaded() ? SURGEBOUND_NITRO_MINING_SPEED_MULTIPLIER.get()
+        return loaded() ? SURGEBOUND_NITRO_MINING_SPEED_MULTIPLIER.get()
                 : SURGEBOUND_NITRO_MINING_SPEED_MULTIPLIER_DEFAULT;
     }
 
     static {
+        // One builder per file (D-M8-8): NeoForge registers a config spec per file, so a folder of
+        // files is several specs rather than one spec written out in pieces.
         ModConfigSpec.Builder builder = new ModConfigSpec.Builder();
 
-        // Gameplay options stay at the top level: allowVanillaEnchanting already shipped there, and
-        // pushing a category now would silently reset every existing config file's copy of it.
+        // The gameplay options used to sit at the top level of the one flat file. #968 pushed them
+        // under `general` so this file, like the other three, has a section to carry its header;
+        // ForgeweaveConfigMigration is what carries an existing file's values across that move.
+        builder.comment("Forgeweave gameplay options: the upstream 1.12 options that have a behavior",
+                        "site here, each keeping upstream's own default.",
+                        "",
+                        "This folder replaces the single config/forgeweave-server.toml. An existing copy of",
+                        "that file was read once and its values split across these four files, and it was",
+                        "then renamed to forgeweave-server.toml.migrated; nothing a pack had tuned was reset.",
+                        "",
+                        "Two standing rules for everything added here from Milestone 8 on. Everything numeric",
+                        "is a config value, not a constant in Java. And every integration with another mod",
+                        "beyond a material preset gets its own toggle in compat-server.toml -- material",
+                        "presets are never toggled, because a preset that vanishes takes a material out of a",
+                        "world that was built with it.",
+                        "",
+                        "No option in this folder needs a restart: each is read at the moment its behavior",
+                        "runs, so editing a file and reloading is enough.")
+                .push("general");
         ALLOW_VANILLA_ENCHANTING = builder
                 .comment("If true, Forgeweave tools can be enchanted at the vanilla enchanting table.")
                 .define("allowVanillaEnchanting", false);
@@ -538,7 +687,10 @@ public final class ForgeweaveConfig {
                 .comment("Registry names or block-entity classnames that a station's side-inventory panel",
                         "should never connect to. Mainly for compatibility.")
                 .defineListAllowEmpty("craftingStationBlacklist", List.<String>of(), value -> value instanceof String);
+        builder.pop();
+        GENERAL_SPEC = builder.build();
 
+        builder = new ModConfigSpec.Builder();
         builder.comment("Content family toggles. A family that is off cannot be assembled or obtained,",
                         "its recipes are hidden from JEI and its items from the creative tab, and the",
                         "parts, patterns and casts that serve only it become unobtainable too. Nothing is",
@@ -599,63 +751,62 @@ public final class ForgeweaveConfig {
                 .comment("The highest level a tool can reach. Zero or lower means no limit.")
                 .defineInRange("maximumLevels", NO_LEVEL_CAP, NO_LEVEL_CAP, Integer.MAX_VALUE);
         builder.pop();
+        CONTENT_SPEC = builder.build();
 
-        builder.comment("World generation options").push("worldgen");
-        GEN_COBALT = builder
-                .comment("If true, cobalt ore generates in the Nether.")
-                .define("genCobalt", true);
-        COBALT_RATE = builder
-                .comment("Approximate cobalt veins per Nether chunk.")
-                .defineInRange("cobaltRate", 20, 0, 256);
-        GEN_ARDITE = builder
-                .comment("If true, ardite ore generates in the Nether.")
-                .define("genArdite", true);
-        ARDITE_RATE = builder
-                .comment("Approximate ardite veins per Nether chunk.")
-                .defineInRange("arditeRate", 20, 0, 256);
-        // #839 -- M6 Track B's own ore family (epic #824): one grouped switch, not one per ore.
-        GEN_TRACK_B_ORES = builder
-                .comment("If true, Track B's self-contained ore ladder (fulmenite, duskspar, ",
-                        "voltcinder, murkiron, hardcinder, nightshale, warspar, hollowstone, resonite, ",
-                        "starfall_stone, voidglass) generates in the world.")
-                .define("genTrackBOres", true);
-        // #449 (parity audit T18) and #450 (T19) -- upstream 1.12 Config's six slime island options,
-        // verbatim names and defaults except the blacklist's dimension ids (see SlimeIslandStructure).
-        GEN_SLIME_ISLANDS = builder
-                .comment("If true slime islands will generate.")
-                .define("generateSlimeIslands", true);
-        GEN_ISLANDS_IN_SUPERFLAT = builder
-                .comment("If true slime islands generate in superflat worlds.")
-                .define("generateIslandsInSuperflat", false);
-        SLIME_ISLAND_RATE = builder
-                .comment("One in every X chunks will contain a slime island. Values below 81 are capped",
-                        "at one in 81, the density of the island structure set's candidate grid.")
-                .defineInRange("slimeIslandRate", 730, 0, 100000);
-        MAGMA_ISLAND_RATE = builder
-                .comment("One in every X chunks will contain a magma island in the nether. Values below 81",
-                        "are capped at one in 81, the density of the island structure set's candidate grid.")
-                .defineInRange("magmaIslandRate", 100, 0, 100000);
-        SLIME_ISLAND_BLACKLIST = builder
-                .comment("Prevents generation of slime islands in the listed dimensions.")
-                .defineListAllowEmpty("slimeIslandBlacklist",
-                        List.<String>of("minecraft:the_nether", "minecraft:the_end"),
-                        value -> value instanceof String id && ResourceLocation.tryParse(id) != null);
-        SLIME_ISLANDS_ONLY_IN_SURFACE_WORLDS = builder
-                .comment("If false, slime islands only generate in dimensions which are of type surface. This",
-                        "means they won't generate in modded cave dimensions. Note that the name of this property",
-                        "is inverted: it must be set to false to prevent slime islands from generating in",
-                        "non-surface dimensions.")
-                .define("slimeIslandsOnlyGenerateInSurfaceWorlds", true);
-        builder.pop();
-
-        // M8 (D-M8-5, D-M8-8): bridges to other mods, each with its own toggle. Appended last so
-        // the sections above keep the order every existing config file on disk already has.
-        // Track A material presets never live here -- D-M8-5 is explicit that they are not toggled.
-        builder.comment("Compatibility bridges to other mods. Each bridge has its own toggle, and a",
-                        "bridge that is off goes inert rather than being unregistered: a stack or block",
-                        "that already carries its state keeps it, and turning the toggle back on restores",
-                        "the behaviour with no reload.")
+        // D-M8-5 (issue #968): one toggle per integration beyond materials. Adding the next one is a
+        // single define here plus one enabled(...) read at the point that integration answers.
+        builder = new ModConfigSpec.Builder();
+        builder.comment("Compat toggles: one per integration with another mod. An integration that is off",
+                        "answers nothing and adds nothing, and that is all it does -- gear that already",
+                        "carries a fusion upgrade or an installed module keeps every component it has and",
+                        "works again the moment the toggle comes back. Nothing here can lose saved state.",
+                        "",
+                        "Material presets are deliberately absent: they are never toggled, because a preset",
+                        "that vanishes takes a material out of a world that was built with it.",
+                        "",
+                        "Every option in this folder is numeric where it can be, rather than a constant in",
+                        "Java, so a pack can retune an integration without a fork.")
                 .push("compat");
+        DRACONIC_FUSION = builder
+                .comment("If true, Forgeweave's Draconic Evolution fusion upgrade ladder works: Draconic",
+                        "Evolution's fusion crafting multiblock accepts a Forgeweave tool as a catalyst and",
+                        "raises the rung's modifier. With this off no upgrade row matches, so the multiblock",
+                        "finds no Forgeweave recipe. Upgrades already on a tool are untouched and keep working.",
+                        "Note this does not remove the four fusion-metal ingot recipes: those are Draconic",
+                        "Evolution's own recipe type, so a datapack is what drops them.")
+                .define("draconicFusion", true);
+        DRACONIC_MODULES = builder
+                .comment("If true, Forgeweave gear made of a fusion metal hosts Draconic Evolution modules:",
+                        "Draconic Evolution's module screen opens on it and its modules act on the tool. With",
+                        "this off no Forgeweave stack is a host, so the screen does not open and no module",
+                        "effect applies. Modules already installed stay on the stack, inert, and act again the",
+                        "moment the toggle comes back.")
+                .define("draconicModules", true);
+        OVERLAYS = builder
+                .comment("If true, the Jade and WTHIT block overlays show Forgeweave's own lines: a casting",
+                        "table's cooling progress, a smeltery's molten contents, and the mining level a block",
+                        "needs beside the level of the tool being held. With this off both overlays still work,",
+                        "they just carry no Forgeweave line.")
+                .define("overlays", true);
+        KUBEJS_TRAITS = builder
+                .comment("If true, traits registered from a KubeJS startup script through ForgeweaveEvents.traits",
+                        "take effect. With this off a scripted trait resolves to nothing, so a material naming",
+                        "one behaves as if the id had no implementation. Built-in and datapack traits are",
+                        "unaffected either way.")
+                .define("kubejsTraits", true);
+        CREATE_GOGGLES = builder
+                .comment("If true, Create's goggle overlays (stress readouts, fluid contents, goggle tooltips)",
+                        "fire for a helmet carrying the Forgeweave goggles modifier. With this off Create's",
+                        "overlays ignore Forgeweave helmets; the modifier stays on the helmet either way.")
+                .define("createGoggles", true);
+        APOTHEOSIS_SOCKETS = builder
+                .comment("If true, Forgeweave gear takes Apotheosis gem sockets: the socketed modifier can be",
+                        "applied, a gem can be seated in a socket, and a seated gem's bonus reaches the tool.",
+                        "With this off no socket is added and no gem is seated, and a seated gem grants nothing.",
+                        "The gems already in a stack's sockets stay there and grant again when this comes back.")
+                .define("apotheosisSockets", true);
+        // #1014 (D-M8-11) and #1015 (D-M8-17): the energized tank and surgebound, moved here from
+        // the compat push those PRs opened at the end of the old flat spec.
         ENERGIZED_TANK = builder
                 .comment("If true, the energized tank heats a smeltery to its fuel sample's temperature by",
                         "burning Forge Energy, and its crafting recipe resolves. With this off the block goes",
@@ -726,8 +877,57 @@ public final class ForgeweaveConfig {
                         "that owns the table.")
                 .define("apotheosisEnchanting", true);
         builder.pop();
+        COMPAT_SPEC = builder.build();
 
-        SPEC = builder.build();
+        builder = new ModConfigSpec.Builder();
+        builder.comment("World generation options").push("worldgen");
+        GEN_COBALT = builder
+                .comment("If true, cobalt ore generates in the Nether.")
+                .define("genCobalt", true);
+        COBALT_RATE = builder
+                .comment("Approximate cobalt veins per Nether chunk.")
+                .defineInRange("cobaltRate", 20, 0, 256);
+        GEN_ARDITE = builder
+                .comment("If true, ardite ore generates in the Nether.")
+                .define("genArdite", true);
+        ARDITE_RATE = builder
+                .comment("Approximate ardite veins per Nether chunk.")
+                .defineInRange("arditeRate", 20, 0, 256);
+        // #839 -- M6 Track B's own ore family (epic #824): one grouped switch, not one per ore.
+        GEN_TRACK_B_ORES = builder
+                .comment("If true, Track B's self-contained ore ladder (fulmenite, duskspar, ",
+                        "voltcinder, murkiron, hardcinder, nightshale, warspar, hollowstone, resonite, ",
+                        "starfall_stone, voidglass) generates in the world.")
+                .define("genTrackBOres", true);
+        // #449 (parity audit T18) and #450 (T19) -- upstream 1.12 Config's six slime island options,
+        // verbatim names and defaults except the blacklist's dimension ids (see SlimeIslandStructure).
+        GEN_SLIME_ISLANDS = builder
+                .comment("If true slime islands will generate.")
+                .define("generateSlimeIslands", true);
+        GEN_ISLANDS_IN_SUPERFLAT = builder
+                .comment("If true slime islands generate in superflat worlds.")
+                .define("generateIslandsInSuperflat", false);
+        SLIME_ISLAND_RATE = builder
+                .comment("One in every X chunks will contain a slime island. Values below 81 are capped",
+                        "at one in 81, the density of the island structure set's candidate grid.")
+                .defineInRange("slimeIslandRate", 730, 0, 100000);
+        MAGMA_ISLAND_RATE = builder
+                .comment("One in every X chunks will contain a magma island in the nether. Values below 81",
+                        "are capped at one in 81, the density of the island structure set's candidate grid.")
+                .defineInRange("magmaIslandRate", 100, 0, 100000);
+        SLIME_ISLAND_BLACKLIST = builder
+                .comment("Prevents generation of slime islands in the listed dimensions.")
+                .defineListAllowEmpty("slimeIslandBlacklist",
+                        List.<String>of("minecraft:the_nether", "minecraft:the_end"),
+                        value -> value instanceof String id && ResourceLocation.tryParse(id) != null);
+        SLIME_ISLANDS_ONLY_IN_SURFACE_WORLDS = builder
+                .comment("If false, slime islands only generate in dimensions which are of type surface. This",
+                        "means they won't generate in modded cave dimensions. Note that the name of this property",
+                        "is inverted: it must be set to false to prevent slime islands from generating in",
+                        "non-surface dimensions.")
+                .define("slimeIslandsOnlyGenerateInSurfaceWorlds", true);
+        builder.pop();
+        WORLDGEN_SPEC = builder.build();
     }
 
     private ForgeweaveConfig() {}

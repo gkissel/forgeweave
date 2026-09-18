@@ -13,6 +13,7 @@ import snownee.jade.api.config.IPluginConfig;
 
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.block.SmelteryControllerBlockEntity;
+import dev.gkissel.forgeweave.config.ForgeweaveConfig; // #968
 
 /**
  * Issue #720: the smeltery controller's molten contents while the player holds shift, per the
@@ -36,6 +37,11 @@ public final class SmelteryFluidComponentProvider implements IBlockComponentProv
 
     @Override
     public void appendTooltip(ITooltip tooltip, BlockAccessor accessor, IPluginConfig config) {
+        // #968 (D-M8-5): compat.overlays off means this provider answers nothing, so the
+        // overlay still works and simply carries no Forgeweave line.
+        if (!ForgeweaveConfig.enabled(ForgeweaveConfig.OVERLAYS)) {
+            return;
+        }
         if (!(accessor.getBlockEntity() instanceof SmelteryControllerBlockEntity smeltery)) {
             return;
         }

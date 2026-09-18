@@ -11,6 +11,7 @@ import mcp.mobius.waila.api.IServerAccessor;
 import mcp.mobius.waila.api.ITooltip;
 
 import dev.gkissel.forgeweave.block.CastingBlockEntity;
+import dev.gkissel.forgeweave.config.ForgeweaveConfig; // #968
 
 /**
  * Issue #720: the casting table/basin's cooling progress as a percentage, WTHIT's side of
@@ -27,11 +28,21 @@ public final class CastingCoolingProvider implements IBlockComponentProvider, ID
 
     @Override
     public void appendData(IDataWriter data, IServerAccessor<CastingBlockEntity> accessor, IPluginConfig config) {
+        // #968 (D-M8-5): compat.overlays off means this provider answers nothing, so the
+        // overlay still works and simply carries no Forgeweave line.
+        if (!ForgeweaveConfig.enabled(ForgeweaveConfig.OVERLAYS)) {
+            return;
+        }
         data.raw().putInt(TAG_PERCENT, accessor.getTarget().coolingPercent());
     }
 
     @Override
     public void appendBody(ITooltip tooltip, IBlockAccessor accessor, IPluginConfig config) {
+        // #968 (D-M8-5): compat.overlays off means this provider answers nothing, so the
+        // overlay still works and simply carries no Forgeweave line.
+        if (!ForgeweaveConfig.enabled(ForgeweaveConfig.OVERLAYS)) {
+            return;
+        }
         int percent = accessor.getData().raw().getInt(TAG_PERCENT);
         if (percent > 0) {
             tooltip.addLine(Component.translatable("waila.forgeweave.casting.cooling", percent + "%"));
