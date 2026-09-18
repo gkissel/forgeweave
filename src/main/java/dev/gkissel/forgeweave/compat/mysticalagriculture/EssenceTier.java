@@ -40,7 +40,13 @@ public enum EssenceTier {
     TERTIUM("tertium"),
     IMPERIUM("imperium"),
     SUPREMIUM("supremium"),
-    AWAKENED_SUPREMIUM("awakened_supremium");
+    AWAKENED_SUPREMIUM("awakened_supremium"),
+    /**
+     * Mystical Agradditions' rung above awakened supremium. Not a crop tier and never returned by
+     * {@link #forOre}: it exists for the augment side alone, where it continues awakened's two slots
+     * rather than dropping back to one. See {@link MysticalAugments}'s own roster comment.
+     */
+    INSANIUM("insanium");
 
     /** The path of Mystical Agriculture's own registry id for this tier. */
     private final String id;
@@ -60,7 +66,7 @@ public enum EssenceTier {
      * new tool shape from needing a slot count of its own.
      */
     public int augmentSlots() {
-        return this == AWAKENED_SUPREMIUM ? 2 : 1;
+        return ordinal() >= AWAKENED_SUPREMIUM.ordinal() ? 2 : 1;
     }
 
     /**
