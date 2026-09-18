@@ -65,6 +65,7 @@ import dev.gkissel.forgeweave.combat.PotionEffectOnHitSeam;
 import dev.gkissel.forgeweave.combat.Protection;
 import dev.gkissel.forgeweave.combat.ThornsCounterSeam;
 import dev.gkissel.forgeweave.client.StationText;
+import dev.gkissel.forgeweave.compat.apotheosis.ApotheosisSockets;
 import dev.gkissel.forgeweave.config.ForgeweaveConfig;
 import dev.gkissel.forgeweave.item.BowItem;
 import dev.gkissel.forgeweave.item.ForgeweaveDataComponents;
@@ -1748,6 +1749,10 @@ public final class ForgeweaveModifiers {
             Map.entry(ELYTRA_FLIGHT_ID, ELYTRA_FLIGHT),
             Map.entry(id("creative_flight"), CREATIVE_FLIGHT),
             Map.entry(GOGGLES_ID, GOGGLES),
+            // #969 (M8, D-M8-1): Apotheosis gem sockets. Registered on every install, Apotheosis or
+            // not -- the behavior class names no type from that mod, and an id registered with
+            // nothing to hold reads the same as any modifier whose reagent a pack has removed.
+            Map.entry(ApotheosisSockets.SOCKETED_ID, ApotheosisSockets.SOCKETED),
             Map.entry(SURGEBOUND_ID, SURGEBOUND));
 
     /**
@@ -2005,6 +2010,12 @@ public final class ForgeweaveModifiers {
                     StationText.formatPercent(surgeboundCapacityFraction(level)),
                     StationText.formatPercent(surgeboundSpeedFraction(level))));
         }
+        if (ApotheosisSockets.SOCKETED_ID.equals(id)) {
+            // #969: one line per socket, naming the gem in it. Not in extraInfoIds() because these
+            // lines are not the shared `.extra` key family -- they read
+            // tooltip.forgeweave.socket/socket.empty, which ModifierLangCoverageTest guards by name.
+            return ApotheosisSockets.socketLines(tool);
+        }
         return List.of();
     }
 
@@ -2105,6 +2116,8 @@ public final class ForgeweaveModifiers {
             Map.entry(id("projectile_protection"), TextColor.fromRgb(0xD8D8D8)),
             Map.entry(id("knockback_resistance"), TextColor.fromRgb(0x4A4A4A)),
             Map.entry(id("thorns"), TextColor.fromRgb(0x9FA76D)),
+            // #969: no upstream class and no clone row; Apotheosis' own gem-socket purple.
+            Map.entry(ApotheosisSockets.SOCKETED_ID, TextColor.fromRgb(0xAA5EE0)),
             // Issue #996: Powah's own energized-teal, no upstream class to take a colour from.
             Map.entry(SURGEBOUND_ID, TextColor.fromRgb(0x2FE6B8)));
 
@@ -2149,7 +2162,10 @@ public final class ForgeweaveModifiers {
                 durability = modifier.durability(entry.level(), durability, baseDurability);
             }
         }
-        return durability;
+        // #969: an Apotheosis durability gem is a fraction of the same untouched base an emerald's
+        // +50% reads, so it lands in the same pool rather than on a second one. 0 without Apotheosis,
+        // without sockets, or with nothing durability-shaped seated.
+        return durability + ApotheosisSockets.durabilityBonus(stack, baseDurability);
     }
 
     /** Combined attack-speed multiplier of the tool's modifiers; 1 when nothing touches it. */

@@ -74,6 +74,14 @@ repositories {
         name = 'Covers1624'
         url = 'https://maven.covers1624.net'
     }
+    maven {
+        // Apotheosis and its two required library mods, Placebo and Apothic Attributes (issue #969,
+        // M8 deep compat), a soft dependency -- see the compileOnly/test-classpath split on the
+        // dependencies below. This is the maven all three publish to and the one Apotheosis' own
+        // build.gradle names.
+        name = 'ShadowsOfFire'
+        url = 'https://maven.shadowsoffire.dev/releases'
+    }
 }
 
 base {
@@ -299,6 +307,29 @@ dependencies {
     testRuntimeOnly("com.brandon3055.brandonscore:BrandonsCore:${brandons_core_version}") { transitive = false }
     testRuntimeOnly("io.codechicken:CodeChickenLib:${codechicken_lib_version}") { transitive = false }
 
+    // Issue #969 (M8 deep compat): Apotheosis' gem sockets. Same compileOnly-plus-test-classpath
+    // split as Draconic Evolution above, and deliberately no localRuntime for the same reason --
+    // a full third-party content mod in the gametest runtime is a failure surface this repo's CI
+    // has no business owning. Everything that names a dev.shadowsoffire type lives in
+    // dev.gkissel.forgeweave.compat.apotheosis and is reached only from inside a ModList guard
+    // (ApotheosisSockets), and the application recipes carry `neoforge:conditions` on `apotheosis`,
+    // so a Forgeweave-only runtime never classloads one -- which is what runGameTestServer proves.
+    //
+    // Placebo and Apothic Attributes get rows of their own because both are on the gem API's own
+    // compile surface, not just Apotheosis' runtime: GemItem.getGem returns Placebo's
+    // DynamicHolder, and SocketedGems.addModifiers takes Apothic Attributes'
+    // StackAttributeModifiersEvent (the only way to read what a gem's attribute bonus actually
+    // grants -- AttributeBonus keeps its own attribute field protected). transitive = false on the
+    // runtime rows, the Draconic pattern: nothing else is needed to put the classes on a classpath.
+    compileOnly "dev.shadowsoffire:Apotheosis:${apotheosis_version}"
+    compileOnly "dev.shadowsoffire:Placebo:${placebo_version}"
+    compileOnly "dev.shadowsoffire:ApothicAttributes:${apothic_attributes_version}"
+    testCompileOnly "dev.shadowsoffire:Apotheosis:${apotheosis_version}"
+    testCompileOnly "dev.shadowsoffire:Placebo:${placebo_version}"
+    testCompileOnly "dev.shadowsoffire:ApothicAttributes:${apothic_attributes_version}"
+    testRuntimeOnly("dev.shadowsoffire:Apotheosis:${apotheosis_version}") { transitive = false }
+    testRuntimeOnly("dev.shadowsoffire:Placebo:${placebo_version}") { transitive = false }
+    testRuntimeOnly("dev.shadowsoffire:ApothicAttributes:${apothic_attributes_version}") { transitive = false }
     // Issue #1007 (M8 deep compat): Create's own Engineer's Goggles, read through
     // GogglesItem.addIsWearingPredicate. compileOnly only, no test-classpath pair and no localRuntime --
     // ForgeweaveCreateCompat's own unit coverage stays off Create entirely by testing the ItemStack-only

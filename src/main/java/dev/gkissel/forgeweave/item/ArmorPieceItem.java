@@ -31,6 +31,7 @@ import net.minecraft.world.item.enchantment.Enchantment;
 
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.client.StationText;
+import dev.gkissel.forgeweave.compat.apotheosis.ApotheosisSockets;
 import dev.gkissel.forgeweave.config.ForgeweaveConfig;
 import dev.gkissel.forgeweave.material.Material;
 import dev.gkissel.forgeweave.material.MaterialDisplay;
@@ -142,17 +143,23 @@ public class ArmorPieceItem extends ArmorItem {
         ItemAttributeModifiers.Builder builder = ItemAttributeModifiers.builder();
         EquipmentSlotGroup slot = EquipmentSlotGroup.bySlot(type.getSlot());
         ResourceLocation id = ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "armor." + type.getName());
-        if (stats.armor() > 0) {
-            builder.add(Attributes.ARMOR, new AttributeModifier(id, stats.armor(), AttributeModifier.Operation.ADD_VALUE), slot);
+        // #969: an Apotheosis gem's armour, toughness or knockback-resistance attribute rides the
+        // same three lines the plating and the modifiers already share, rather than adding attribute
+        // modifiers of its own. 0 without Apotheosis or without sockets.
+        float armor = stats.armor() + ApotheosisSockets.armorBonus(stack);
+        if (armor > 0) {
+            builder.add(Attributes.ARMOR, new AttributeModifier(id, armor, AttributeModifier.Operation.ADD_VALUE), slot);
         }
         // #736: netherite's +1 toughness rides the same attribute line as the plating's own.
-        float toughness = stats.toughness() + ForgeweaveModifiers.armorToughnessBonus(stack);
+        float toughness = stats.toughness() + ForgeweaveModifiers.armorToughnessBonus(stack)
+                + ApotheosisSockets.armorToughnessBonus(stack);
         if (toughness > 0) {
             builder.add(Attributes.ARMOR_TOUGHNESS,
                     new AttributeModifier(id, toughness, AttributeModifier.Operation.ADD_VALUE), slot);
         }
         // M4-6 (#681): the knockback resistance modifier's +0.1/level rides the same attribute line.
-        float knockbackResistance = stats.knockbackResistance() + ForgeweaveModifiers.knockbackResistanceBonus(stack);
+        float knockbackResistance = stats.knockbackResistance() + ForgeweaveModifiers.knockbackResistanceBonus(stack)
+                + ApotheosisSockets.knockbackResistanceBonus(stack);
         if (knockbackResistance > 0) {
             builder.add(Attributes.KNOCKBACK_RESISTANCE,
                     new AttributeModifier(id, knockbackResistance, AttributeModifier.Operation.ADD_VALUE), slot);
