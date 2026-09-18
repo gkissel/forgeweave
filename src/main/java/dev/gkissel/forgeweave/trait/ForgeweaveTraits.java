@@ -75,6 +75,7 @@ import net.neoforged.neoforge.event.level.BlockDropsEvent;
 
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.client.StationText;
+import dev.gkissel.forgeweave.config.ForgeweaveConfig; // #968
 import dev.gkissel.forgeweave.compat.draconic.ForgeweaveDraconicCompat;
 import dev.gkissel.forgeweave.combat.AbsorbFireWhileBlocking;
 import dev.gkissel.forgeweave.combat.BleedEffect;
@@ -3832,6 +3833,14 @@ public final class ForgeweaveTraits {
     /**
      * The behaviour behind {@code id}: the Java roster first, then the datapack snapshot, then
      * script traits -- {@code null} for an id no source implements.
+     *
+     * <p>#968 (D-M8-5): {@code compat.kubejsTraits} gates the third source here rather than the
+     * {@code ForgeweaveEvents.traits} post that fills it. KubeJS runs its startup scripts during mod
+     * loading, when a {@code SERVER} config does not exist yet, so the post site cannot read the
+     * toggle at all; the lookup can, and gating it gives the same player-visible result -- a
+     * material naming a scripted trait behaves as if the id had no implementation, which is what a
+     * datapack material naming an unknown trait already does. Nothing on a stack changes either way,
+     * so flipping the toggle back restores the trait with no reload.
      */
     @Nullable
     public static Trait lookup(ResourceLocation id) {
@@ -3839,7 +3848,10 @@ public final class ForgeweaveTraits {
         if (trait == null) {
             trait = DATAPACK.get(id);
         }
-        return trait == null ? SCRIPTED.get(id) : trait;
+        if (trait != null) {
+            return trait;
+        }
+        return ForgeweaveConfig.enabled(ForgeweaveConfig.KUBEJS_TRAITS) ? SCRIPTED.get(id) : null;
     }
 
     /**

@@ -30,6 +30,7 @@ import dev.gkissel.forgeweave.material.MaterialDisplay;
 import dev.gkissel.forgeweave.menu.ToolAssemblyRecipes;
 import dev.gkissel.forgeweave.modifier.ForgeweaveModifiers;
 import dev.gkissel.forgeweave.modifier.ModifierEntry;
+import dev.gkissel.forgeweave.tool.MiningLevel; // #968
 import dev.gkissel.forgeweave.tool.ToolLevel;
 import dev.gkissel.forgeweave.tool.ToolLevelName;
 import dev.gkissel.forgeweave.tool.ToolLeveling;
@@ -513,11 +514,9 @@ final class ToolTooltip {
         return tierNameForTag(tag);
     }
 
+    /** Delegates so the tooltip and the Jade/WTHIT overlays word a rung identically (issue #968). */
     private static Component tierNameForTag(TagKey<Block> tag) {
-        String stripped = tag.location().getPath()
-                .replace("incorrect_for_", "")
-                .replace("_tool", "");
-        return Component.translatable("tooltip.forgeweave.tier." + stripped);
+        return MiningLevel.name(tag);
     }
 
     /** The stack's actual current deny-drops tag, if its vanilla {@code tool} component has one this ladder knows. */

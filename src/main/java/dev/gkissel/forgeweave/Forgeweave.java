@@ -12,6 +12,7 @@ import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.config.ModConfig;
 import net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.neoforged.fml.loading.FMLEnvironment;
+import net.neoforged.fml.loading.FMLPaths;
 import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.server.ServerStartedEvent;
@@ -47,7 +48,7 @@ import dev.gkissel.forgeweave.compat.create.ForgeweaveCreateCompat;
 import dev.gkissel.forgeweave.compat.draconic.ForgeweaveDraconicCompat;
 import dev.gkissel.forgeweave.compat.mekanism.ForgeweaveMekanismCompat;
 import dev.gkissel.forgeweave.config.ForgeweaveClientConfig;
-import dev.gkissel.forgeweave.config.ForgeweaveConfig;
+import dev.gkissel.forgeweave.config.ForgeweaveConfigMigration; // #968 -- and the four SERVER specs
 import dev.gkissel.forgeweave.data.ForgeweaveDataGenerators;
 import dev.gkissel.forgeweave.entity.ForgeweaveEntities;
 import dev.gkissel.forgeweave.fluid.ForgeweaveFluids;
@@ -60,6 +61,7 @@ import dev.gkissel.forgeweave.item.SavedBookPagePayload;
 import dev.gkissel.forgeweave.item.SlimeBootsItem;
 import dev.gkissel.forgeweave.item.SlimeBounceHandler;
 import dev.gkissel.forgeweave.item.ToolItem;
+import dev.gkissel.forgeweave.loot.AssembleTool; // #970
 import dev.gkissel.forgeweave.material.Material;
 import dev.gkissel.forgeweave.menu.ForgeweaveMenus;
 import dev.gkissel.forgeweave.menu.RenameStationItemPayload;
@@ -112,6 +114,10 @@ public class Forgeweave {
         ForgeweaveEntities.ENTITY_TYPES.register(modEventBus);
         ForgeweaveMenus.MENUS.register(modEventBus);
         ForgeweaveCreativeTab.TABS.register(modEventBus);
+        // #970 -- forgeweave:assemble_tool, the loot function that gives a looted tool its parts
+        // (docs/SCOPE.md M8, D-M8-1). Registered unconditionally: it names nothing from any compat
+        // mod, and what it is for -- an affixable assembled tool in a chest -- is a pack's call.
+        AssembleTool.LOOT_FUNCTIONS.register(modEventBus);
         // #276 -- the config-aware vein count the Nether ores' placed features use.
         NetherOrePlacement.PLACEMENT_MODIFIERS.register(modEventBus);
         // #839 -- the grouped config-aware vein count Track B's ore family uses (M6 epic #824).
@@ -133,8 +139,13 @@ public class Forgeweave {
         ForgeweaveRecipeSerializers.RECIPE_SERIALIZERS.register(modEventBus);
         // #110 -- the M2 advancement chain's custom criteria (docs/SCOPE.md M2 issue #110).
         ForgeweaveCriteriaTriggers.TRIGGERS.register(modEventBus);
-        // SERVER type: see ForgeweaveConfig javadoc for why this must sync client<->server.
-        modContainer.registerConfig(ModConfig.Type.SERVER, ForgeweaveConfig.SPEC);
+        // #968 (D-M8-8) -- carry a pre-folder config/forgeweave-server.toml into config/forgeweave/
+        // before anything is registered, so a pack's tuned values survive the split.
+        ForgeweaveConfigMigration.run(FMLPaths.CONFIGDIR.get());
+        // SERVER type: see ForgeweaveConfig javadoc for why these must sync client<->server, and for
+        // why the one flat spec became four files under config/forgeweave/ (#968, D-M8-8).
+        ForgeweaveConfigMigration.FILES.forEach(
+                (fileName, spec) -> modContainer.registerConfig(ModConfig.Type.SERVER, spec, fileName));
         // CLIENT type: display preferences only, never read server-side -- see the class javadoc.
         modContainer.registerConfig(ModConfig.Type.CLIENT, ForgeweaveClientConfig.SPEC);
         modEventBus.addListener(this::registerDataPackRegistries);

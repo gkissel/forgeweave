@@ -30,7 +30,6 @@ import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.level.Level;
 
 import dev.gkissel.forgeweave.item.ForgeweaveDataComponents;
-import dev.gkissel.forgeweave.menu.ToolAssemblyRecipes;
 import dev.gkissel.forgeweave.modifier.ForgeweaveModifiers;
 import dev.gkissel.forgeweave.modifier.Modifier;
 import dev.gkissel.forgeweave.modifier.ModifierApplication;
@@ -229,16 +228,9 @@ public record FusionUpgradeRecipe(Ingredient catalyst, ResourceLocation modifier
      * see {@link ForgeweaveDraconicCompat#requiredEvolved}.
      */
     public Optional<ItemStack> upgrade(HolderLookup.Provider registries, ItemStack tool) {
-        if (!ToolAssemblyRecipes.isAssembled(tool)) {
-            return Optional.empty();
-        }
-        if (ForgeweaveDraconicCompat.evolvedLevel(tool)
-                < ForgeweaveDraconicCompat.requiredEvolved(techLevel.getSerializedName())) {
-            return Optional.empty();
-        }
-        // Maintainer decision 2026-09-06: only a tool made of a Draconic core takes a fusion
-        // upgrade; a weld tool hosts modules instead (ForgeweaveDraconicCompat#isCoreTool).
-        if (!ForgeweaveDraconicCompat.isCoreTool(tool)) {
+        // The shape checks, plus the compat.draconicFusion toggle (#968), all live in the
+        // Draconic-free half of the package so a GameTest can reach them -- see that method.
+        if (!ForgeweaveDraconicCompat.acceptsFusionCatalyst(techLevel.getSerializedName(), tool)) {
             return Optional.empty();
         }
         Modifier behavior = ForgeweaveModifiers.get(modifier);

@@ -12,6 +12,7 @@ import snownee.jade.api.config.IPluginConfig;
 
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.block.CastingBlockEntity;
+import dev.gkissel.forgeweave.config.ForgeweaveConfig; // #968
 
 /**
  * Issue #720: the casting table/basin's cooling progress as a percentage. {@link CastingBlockEntity}
@@ -35,6 +36,11 @@ public final class CastingCoolingProvider implements IBlockComponentProvider, IS
 
     @Override
     public void appendServerData(CompoundTag data, BlockAccessor accessor) {
+        // #968 (D-M8-5): compat.overlays off means this provider answers nothing, so the
+        // overlay still works and simply carries no Forgeweave line.
+        if (!ForgeweaveConfig.enabled(ForgeweaveConfig.OVERLAYS)) {
+            return;
+        }
         if (accessor.getBlockEntity() instanceof CastingBlockEntity casting) {
             data.putInt(TAG_PERCENT, casting.coolingPercent());
         }
@@ -42,6 +48,11 @@ public final class CastingCoolingProvider implements IBlockComponentProvider, IS
 
     @Override
     public void appendTooltip(ITooltip tooltip, BlockAccessor accessor, IPluginConfig config) {
+        // #968 (D-M8-5): compat.overlays off means this provider answers nothing, so the
+        // overlay still works and simply carries no Forgeweave line.
+        if (!ForgeweaveConfig.enabled(ForgeweaveConfig.OVERLAYS)) {
+            return;
+        }
         int percent = accessor.getServerData().getInt(TAG_PERCENT);
         if (percent > 0) {
             tooltip.add(Component.translatable("waila.forgeweave.casting.cooling", percent + "%"));

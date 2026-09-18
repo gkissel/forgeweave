@@ -5,6 +5,8 @@ import snownee.jade.api.IWailaCommonRegistration;
 import snownee.jade.api.IWailaPlugin;
 import snownee.jade.api.WailaPlugin;
 
+import net.minecraft.world.level.block.Block;
+
 import dev.gkissel.forgeweave.block.CastingBlock;
 import dev.gkissel.forgeweave.block.SmelteryControllerBlock;
 
@@ -40,5 +42,8 @@ public final class ForgeweaveJadePlugin implements IWailaPlugin {
     public void registerClient(IWailaClientRegistration registration) {
         registration.registerBlockComponent(CastingCoolingProvider.INSTANCE, CastingBlock.class);
         registration.registerBlockComponent(SmelteryFluidComponentProvider.INSTANCE, SmelteryControllerBlock.class);
+        // D-M8-9 (issue #968) -- against Block itself, not a Forgeweave block: a vanilla pickaxe held
+        // at a vanilla ore has to read correctly too. See MiningLevelProvider.
+        registration.registerBlockComponent(MiningLevelProvider.INSTANCE, Block.class);
     }
 }

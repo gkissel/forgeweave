@@ -67,5 +67,12 @@ public final class ForgeweaveMenus {
             MENUS.register("seared_duct", () -> IMenuTypeExtension.create(
                     (windowId, inventory, buf) -> new SearedDuctMenu(windowId, inventory)));
 
+    // #1018: the energized tank (docs/SCOPE.md M8, D-M8-11). Same payload shape as the reservoir --
+    // the tank's own position and nothing else, since the sample, the buffer and the overdrive flag
+    // all ride the block entity's sync; see EnergizedTankMenu.
+    public static final DeferredHolder<MenuType<?>, MenuType<EnergizedTankMenu>> ENERGIZED_TANK =
+            MENUS.register("energized_tank", () -> IMenuTypeExtension.create(
+                    (windowId, inventory, buf) -> new EnergizedTankMenu(windowId, inventory, buf.readBlockPos())));
+
     private ForgeweaveMenus() {}
 }

@@ -4,6 +4,8 @@ import mcp.mobius.waila.api.IRegistrar;
 import mcp.mobius.waila.api.IWailaPlugin;
 import mcp.mobius.waila.api.TooltipPosition;
 
+import net.minecraft.world.level.block.Block;
+
 import dev.gkissel.forgeweave.block.CastingBlock;
 import dev.gkissel.forgeweave.block.SmelteryControllerBlock;
 
@@ -30,5 +32,7 @@ public final class ForgeweaveWthitPlugin implements IWailaPlugin {
         registrar.addBlockData(CastingCoolingProvider.INSTANCE, CastingBlock.class);
         registrar.addComponent(CastingCoolingProvider.INSTANCE, TooltipPosition.BODY, CastingBlock.class);
         registrar.addComponent(SmelteryFluidComponentProvider.INSTANCE, TooltipPosition.BODY, SmelteryControllerBlock.class);
+        // D-M8-9 (issue #968) -- see the Jade plugin for why this one is against Block itself.
+        registrar.addComponent(MiningLevelProvider.INSTANCE, TooltipPosition.BODY, Block.class);
     }
 }

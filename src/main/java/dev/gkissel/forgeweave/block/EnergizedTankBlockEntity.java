@@ -6,9 +6,15 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtUtils;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.inventory.ContainerLevelAccess;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
@@ -21,6 +27,7 @@ import net.neoforged.neoforge.fluids.FluidStack;
 import net.neoforged.neoforge.fluids.capability.templates.FluidTank;
 
 import dev.gkissel.forgeweave.config.ForgeweaveConfig;
+import dev.gkissel.forgeweave.menu.EnergizedTankMenu;
 import dev.gkissel.forgeweave.recipe.SmelteryFuel;
 
 /**
@@ -53,7 +60,7 @@ import dev.gkissel.forgeweave.recipe.SmelteryFuel;
  * only {@link #temperature()} answers zero, which is what takes it out of the smeltery's heat
  * resolution. That is D-M8-5's inert-not-destructive contract.
  */
-public class EnergizedTankBlockEntity extends BlockEntity {
+public class EnergizedTankBlockEntity extends BlockEntity implements StationMenuHost {
     /** One bucket, which is what "a sample" means; vanilla's own bucket volume, not a balance number. */
     public static final int SAMPLE_CAPACITY = 1000;
 
@@ -193,6 +200,31 @@ public class EnergizedTankBlockEntity extends BlockEntity {
             core.armMeltTick();
         }
     }
+
+    // ------------------------------------------------------------------ menu
+
+    /**
+     * The tank's own block name, so the screen's title and the block in the player's hand can never
+     * disagree. There is no separate GUI-name key to keep in step with it.
+     */
+    @Override
+    public Component getDisplayName() {
+        return getBlockState().getBlock().getName();
+    }
+
+    @Nullable
+    @Override
+    public AbstractContainerMenu createMenu(int containerId, Inventory playerInventory, Player player) {
+        return new EnergizedTankMenu(containerId, playerInventory,
+                ContainerLevelAccess.create(level, worldPosition), worldPosition);
+    }
+
+    @Override
+    public void writeMenuData(RegistryFriendlyByteBuf buf) {
+        buf.writeBlockPos(worldPosition);
+    }
+
+    // ------------------------------------------------------------------ persistence + sync
 
     @Override
     protected void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
