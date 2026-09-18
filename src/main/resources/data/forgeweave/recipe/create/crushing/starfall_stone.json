@@ -1,0 +1,25 @@
+{
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:mod_loaded",
+      "modid": "create"
+    },
+    {
+      "type": "forgeweave:compat_toggle",
+      "toggle": "createRecipes"
+    }
+  ],
+  "type": "create:crushing",
+  "ingredients": [
+    {
+      "tag": "c:ores/starfall_stone"
+    }
+  ],
+  "processing_time": 200,
+  "results": [
+    {
+      "id": "forgeweave:starfall_stone_dust",
+      "count": 2
+    }
+  ]
+}
