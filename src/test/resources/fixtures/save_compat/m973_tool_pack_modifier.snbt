@@ -1,0 +1,57 @@
+{
+    decoder: "item_stack",
+    expect: {
+        components: {
+            "forgeweave:modifiers": [
+                {
+                    id: "forgeweave:haste",
+                    level: 50
+                },
+                {
+                    id: "mypack:frosty",
+                    level: 2
+                }
+            ],
+            "forgeweave:tool_materials": {
+                binding: "forgeweave:wood",
+                handle: "forgeweave:wood",
+                head: "forgeweave:iron"
+            },
+            "forgeweave:tool_stats": {
+                attack_damage: 4.0f,
+                durability: 204,
+                mining_speed: 6.0f
+            },
+            "minecraft:max_damage": 204
+        },
+        id: "forgeweave:pickaxe"
+    },
+    nbt: {
+        components: {
+            "forgeweave:modifiers": [
+                {
+                    id: "forgeweave:haste",
+                    level: 50
+                },
+                {
+                    id: "mypack:frosty",
+                    level: 2
+                }
+            ],
+            "forgeweave:tool_materials": {
+                binding: "forgeweave:wood",
+                handle: "forgeweave:wood",
+                head: "forgeweave:iron"
+            },
+            "forgeweave:tool_stats": {
+                attack_damage: 4.0f,
+                durability: 204,
+                mining_speed: 6.0f
+            },
+            "minecraft:max_damage": 204
+        },
+        count: 1,
+        id: "forgeweave:pickaxe"
+    },
+    what: "#973 (M8-5): an iron-headed pickaxe carrying a modifier a datapack defined (mypack:frosty at level 2) next to a built-in one. ADR-0004 item 3's modifier half changes nothing here, which is the point: a pack-defined modifier is stored as id + level like every other (item 2), in the same list, in application order, with no reference to the definition that gave it behavior. So this stack decodes on an install where mypack is gone -- the entry stays, inert, and acts again once the pack is back -- and it decodes identically whether compat.modifierDefinitions is on or off, since that toggle is read at lookup and never touches stored data."
+}
