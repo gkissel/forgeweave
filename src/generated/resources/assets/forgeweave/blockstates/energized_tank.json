@@ -1,0 +1,10 @@
+{
+  "variants": {
+    "overdrive=false": {
+      "model": "forgeweave:block/energized_tank"
+    },
+    "overdrive=true": {
+      "model": "forgeweave:block/energized_tank_overdrive"
+    }
+  }
+}

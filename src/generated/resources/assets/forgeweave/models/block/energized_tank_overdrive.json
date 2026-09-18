@@ -1,0 +1,8 @@
+{
+  "parent": "minecraft:block/cube_bottom_top",
+  "textures": {
+    "bottom": "forgeweave:block/energized_tank_top",
+    "side": "forgeweave:block/energized_tank_side_overdrive",
+    "top": "forgeweave:block/energized_tank_top"
+  }
+}

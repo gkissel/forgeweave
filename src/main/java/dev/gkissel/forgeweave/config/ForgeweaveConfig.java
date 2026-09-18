@@ -6,6 +6,8 @@ import net.minecraft.resources.ResourceLocation;
 
 import net.neoforged.neoforge.common.ModConfigSpec;
 
+import dev.gkissel.forgeweave.block.EnergizedHeat;
+
 /**
  * Forgeweave's gameplay config (docs/SCOPE.md M3.4-7 issue #276): the subset of upstream 1.12's
  * {@code common/config/Config.java} that has a behavior site here, each keeping upstream's own
@@ -352,6 +354,43 @@ public final class ForgeweaveConfig {
      */
     public static final ModConfigSpec.BooleanValue CREATE_GOGGLES;
 
+    /**
+     * Apotheosis gem sockets (issue #969, {@code compat.apotheosis.ApotheosisSockets#enabled}). Off
+     * means no socket can be added and no gem seated, and a seated gem grants nothing; the sockets
+     * already on a stack keep their contents and grant again when the toggle returns.
+     *
+     * @see #DRACONIC_FUSION
+     */
+    public static final ModConfigSpec.BooleanValue APOTHEOSIS_SOCKETS;
+
+    /**
+     * Issue #996 (D-M8-17). Covers only {@code surgebound}'s application recipes and effect, never
+     * the six Powah material presets: D-M8-5 is explicit that Track A material presets are never
+     * toggled, so uraninite, energised_steel and the four crystals stay active whenever Powah's own
+     * item exists regardless of this flag.
+     *
+     * @see #DRACONIC_FUSION
+     */
+    public static final ModConfigSpec.BooleanValue POWAH_MODIFIERS;
+
+    /** The fraction of the tool's trait-derived FE capacity {@code surgebound} adds per level (I-IV). */
+    public static final ModConfigSpec.DoubleValue SURGEBOUND_CAPACITY_PER_LEVEL;
+    /** The fraction of the tool's base mining speed {@code surgebound} adds per level (I-IV). */
+    public static final ModConfigSpec.DoubleValue SURGEBOUND_MINING_SPEED_PER_LEVEL;
+    /** What the nitro step (level V) multiplies {@link #SURGEBOUND_CAPACITY_PER_LEVEL} by instead of adding a fifth flat step. */
+    public static final ModConfigSpec.DoubleValue SURGEBOUND_NITRO_CAPACITY_MULTIPLIER;
+    /** What the nitro step (level V) multiplies {@link #SURGEBOUND_MINING_SPEED_PER_LEVEL} by instead of adding a fifth flat step. */
+    public static final ModConfigSpec.DoubleValue SURGEBOUND_NITRO_MINING_SPEED_MULTIPLIER;
+
+    /** {@link #SURGEBOUND_CAPACITY_PER_LEVEL}'s own default -- D-M8-17's "+25% energy capacity". */
+    public static final double SURGEBOUND_CAPACITY_PER_LEVEL_DEFAULT = 0.25D;
+    /** {@link #SURGEBOUND_MINING_SPEED_PER_LEVEL}'s own default -- D-M8-17's "+5% mining speed". */
+    public static final double SURGEBOUND_MINING_SPEED_PER_LEVEL_DEFAULT = 0.05D;
+    /** {@link #SURGEBOUND_NITRO_CAPACITY_MULTIPLIER}'s own default -- D-M8-17's "nitro doubles both". */
+    public static final double SURGEBOUND_NITRO_CAPACITY_MULTIPLIER_DEFAULT = 2.0D;
+    /** {@link #SURGEBOUND_NITRO_MINING_SPEED_MULTIPLIER}'s own default -- D-M8-17's "nitro doubles both". */
+    public static final double SURGEBOUND_NITRO_MINING_SPEED_MULTIPLIER_DEFAULT = 2.0D;
+
     /** Upstream {@code genCobalt}: cobalt ore generates in the Nether. */
     public static final ModConfigSpec.BooleanValue GEN_COBALT;
     /** Upstream {@code cobaltRate}: approximate cobalt veins per Nether chunk. */
@@ -397,6 +436,78 @@ public final class ForgeweaveConfig {
      * upstream's is: set it false to let islands into non-surface dimensions.
      */
     public static final ModConfigSpec.BooleanValue SLIME_ISLANDS_ONLY_IN_SURFACE_WORLDS;
+
+    /**
+     * The energized tank (docs/SCOPE.md M8, D-M8-11; issue #972), in the same {@code compat} section
+     * as every other integration toggle. Off means the block goes inert, not unregistered: it
+     * contributes no heat and its crafting recipe stops resolving, but a tank already standing in a
+     * world still loads and keeps its fuel sample, its energy buffer and its overdrive setting, so
+     * turning the toggle back on restores it intact. A server config is not loaded when registries
+     * freeze, so "does not register" is not a state this toggle could reach; dormant is the same
+     * inert-not-destructive contract the rest of D-M8-5 spells out.
+     */
+    public static final ModConfigSpec.BooleanValue ENERGIZED_TANK;
+
+    /** How much Forge Energy one energized tank's buffer holds (#972). */
+    public static final ModConfigSpec.IntValue ENERGIZED_TANK_BUFFER;
+
+    /**
+     * The {@code rfPerMeltTickBase} of the energized tank's cost, {@code base x temperature /
+     * divisor} per melt tick -- see {@link EnergizedHeat#costPerMeltTick}.
+     */
+    public static final ModConfigSpec.IntValue ENERGIZED_TANK_RF_PER_MELT_TICK_BASE;
+
+    /** The divisor of that same cost (#972). */
+    public static final ModConfigSpec.IntValue ENERGIZED_TANK_TEMPERATURE_DIVISOR;
+
+    /** What overdrive multiplies an energized tank's energy cost per melt tick by (#972). */
+    public static final ModConfigSpec.DoubleValue ENERGIZED_TANK_OVERDRIVE_COST;
+
+    /** What overdrive multiplies the smeltery's melt progress per melt tick by (#972). */
+    public static final ModConfigSpec.DoubleValue ENERGIZED_TANK_OVERDRIVE_PROGRESS;
+
+    /** {@link #ENERGIZED_TANK_BUFFER}'s default: a hair over two minutes of melting at lava's heat. */
+    public static final int ENERGIZED_TANK_BUFFER_DEFAULT = 100_000;
+
+    /** {@link #ENERGIZED_TANK_RF_PER_MELT_TICK_BASE}'s default. */
+    public static final int ENERGIZED_TANK_RF_PER_MELT_TICK_BASE_DEFAULT = 100;
+
+    /** {@link #ENERGIZED_TANK_TEMPERATURE_DIVISOR}'s default. */
+    public static final int ENERGIZED_TANK_TEMPERATURE_DIVISOR_DEFAULT = 1000;
+
+    /** The default for both overdrive factors, so overdrive is neither a discount nor a penalty. */
+    public static final double ENERGIZED_TANK_OVERDRIVE_DEFAULT = 2.0D;
+
+    /**
+     * {@link #ENERGIZED_TANK_BUFFER}, answering with its own default whenever no server has spoken
+     * -- {@link #defaultBaseXp()}'s reasoning, for the same reason: {@code EnergizedHeatTest} and
+     * JEI's own recipe list are both built without a running server.
+     */
+    public static int energizedTankBuffer() {
+        return loaded() ? ENERGIZED_TANK_BUFFER.get() : ENERGIZED_TANK_BUFFER_DEFAULT;
+    }
+
+    /** @see #energizedTankBuffer() */
+    public static int energizedTankRfPerMeltTickBase() {
+        return loaded() ? ENERGIZED_TANK_RF_PER_MELT_TICK_BASE.get()
+                : ENERGIZED_TANK_RF_PER_MELT_TICK_BASE_DEFAULT;
+    }
+
+    /** @see #energizedTankBuffer() */
+    public static int energizedTankTemperatureDivisor() {
+        return loaded() ? ENERGIZED_TANK_TEMPERATURE_DIVISOR.get()
+                : ENERGIZED_TANK_TEMPERATURE_DIVISOR_DEFAULT;
+    }
+
+    /** @see #energizedTankBuffer() */
+    public static double energizedTankOverdriveCost() {
+        return loaded() ? ENERGIZED_TANK_OVERDRIVE_COST.get() : ENERGIZED_TANK_OVERDRIVE_DEFAULT;
+    }
+
+    /** @see #energizedTankBuffer() */
+    public static double energizedTankOverdriveProgress() {
+        return loaded() ? ENERGIZED_TANK_OVERDRIVE_PROGRESS.get() : ENERGIZED_TANK_OVERDRIVE_DEFAULT;
+    }
 
     /**
      * One of the {@code content} flags, answering "on" whenever the spec is not loaded.
@@ -456,6 +567,27 @@ public final class ForgeweaveConfig {
     /** @see #defaultBaseXp() */
     public static int maximumLevels() {
         return loaded() ? MAXIMUM_LEVELS.get() : NO_LEVEL_CAP;
+    }
+
+    /** {@link #SURGEBOUND_CAPACITY_PER_LEVEL}, answering its own default whenever no server has spoken. */
+    public static double surgeboundCapacityPerLevel() {
+        return loaded() ? SURGEBOUND_CAPACITY_PER_LEVEL.get() : SURGEBOUND_CAPACITY_PER_LEVEL_DEFAULT;
+    }
+
+    /** @see #surgeboundCapacityPerLevel() */
+    public static double surgeboundMiningSpeedPerLevel() {
+        return loaded() ? SURGEBOUND_MINING_SPEED_PER_LEVEL.get() : SURGEBOUND_MINING_SPEED_PER_LEVEL_DEFAULT;
+    }
+
+    /** @see #surgeboundCapacityPerLevel() */
+    public static double surgeboundNitroCapacityMultiplier() {
+        return loaded() ? SURGEBOUND_NITRO_CAPACITY_MULTIPLIER.get() : SURGEBOUND_NITRO_CAPACITY_MULTIPLIER_DEFAULT;
+    }
+
+    /** @see #surgeboundCapacityPerLevel() */
+    public static double surgeboundNitroMiningSpeedMultiplier() {
+        return loaded() ? SURGEBOUND_NITRO_MINING_SPEED_MULTIPLIER.get()
+                : SURGEBOUND_NITRO_MINING_SPEED_MULTIPLIER_DEFAULT;
     }
 
     static {
@@ -631,6 +763,64 @@ public final class ForgeweaveConfig {
                         "fire for a helmet carrying the Forgeweave goggles modifier. With this off Create's",
                         "overlays ignore Forgeweave helmets; the modifier stays on the helmet either way.")
                 .define("createGoggles", true);
+        APOTHEOSIS_SOCKETS = builder
+                .comment("If true, Forgeweave gear takes Apotheosis gem sockets: the socketed modifier can be",
+                        "applied, a gem can be seated in a socket, and a seated gem's bonus reaches the tool.",
+                        "With this off no socket is added and no gem is seated, and a seated gem grants nothing.",
+                        "The gems already in a stack's sockets stay there and grant again when this comes back.")
+                .define("apotheosisSockets", true);
+        // #1014 (D-M8-11) and #1015 (D-M8-17): the energized tank and surgebound, moved here from
+        // the compat push those PRs opened at the end of the old flat spec.
+        ENERGIZED_TANK = builder
+                .comment("If true, the energized tank heats a smeltery to its fuel sample's temperature by",
+                        "burning Forge Energy, and its crafting recipe resolves. With this off the block goes",
+                        "dormant: it contributes no heat and cannot be crafted, but one already placed still",
+                        "loads and keeps its sample, its buffer and its overdrive setting.")
+                .define("energizedTank", true);
+        ENERGIZED_TANK_BUFFER = builder
+                .comment("How much Forge Energy an energized tank's buffer holds.")
+                .defineInRange("energizedTankBuffer", ENERGIZED_TANK_BUFFER_DEFAULT, 1, Integer.MAX_VALUE);
+        ENERGIZED_TANK_RF_PER_MELT_TICK_BASE = builder
+                .comment("An energized tank spends base x temperature / divisor Forge Energy per melt tick, so",
+                        "a hotter fuel sample costs proportionally more. This is the base; a smeltery melt tick",
+                        "runs once every four game ticks.")
+                .defineInRange("energizedTankRfPerMeltTickBase", ENERGIZED_TANK_RF_PER_MELT_TICK_BASE_DEFAULT,
+                        0, Integer.MAX_VALUE);
+        ENERGIZED_TANK_TEMPERATURE_DIVISOR = builder
+                .comment("The divisor in the cost above. At the default of 1000 the base is what one melt tick",
+                        "costs a tank imitating a fuel that burns at 1000 degrees.")
+                .defineInRange("energizedTankTemperatureDivisor", ENERGIZED_TANK_TEMPERATURE_DIVISOR_DEFAULT,
+                        1, Integer.MAX_VALUE);
+        ENERGIZED_TANK_OVERDRIVE_COST = builder
+                .comment("What pressing an energized tank's overdrive button multiplies its energy cost by.")
+                .defineInRange("energizedTankOverdriveCost", ENERGIZED_TANK_OVERDRIVE_DEFAULT, 1.0D, 100.0D);
+        ENERGIZED_TANK_OVERDRIVE_PROGRESS = builder
+                .comment("What pressing an energized tank's overdrive button multiplies the smeltery's melt",
+                        "progress by. Equal to the cost factor means overdrive is neither a discount nor a",
+                        "penalty, only a choice to go faster.")
+                .defineInRange("energizedTankOverdriveProgress", ENERGIZED_TANK_OVERDRIVE_DEFAULT, 1.0D, 100.0D);
+        // Issue #996 (D-M8-17): surgebound's own flag under the same compat section above.
+        POWAH_MODIFIERS = builder
+                .comment("If true, the surgebound modifier (Powah's crystal ladder) can be applied at",
+                        "the Tool Station. A tool already carrying it keeps the modifier either way --",
+                        "off makes its bonus inert rather than revoking a level already spent on it.")
+                .define("powahModifiers", true);
+        SURGEBOUND_CAPACITY_PER_LEVEL = builder
+                .comment("Fraction of the tool's own FE capacity surgebound adds per level, levels I-IV.")
+                .defineInRange("surgeboundCapacityPerLevel", SURGEBOUND_CAPACITY_PER_LEVEL_DEFAULT, 0.0D, 10.0D);
+        SURGEBOUND_MINING_SPEED_PER_LEVEL = builder
+                .comment("Fraction of the tool's own base mining speed surgebound adds per level, levels I-IV.")
+                .defineInRange("surgeboundMiningSpeedPerLevel", SURGEBOUND_MINING_SPEED_PER_LEVEL_DEFAULT, 0.0D, 10.0D);
+        SURGEBOUND_NITRO_CAPACITY_MULTIPLIER = builder
+                .comment("What the nitro step (level V) multiplies surgeboundCapacityPerLevel by, instead",
+                        "of adding a fifth flat step.")
+                .defineInRange("surgeboundNitroCapacityMultiplier", SURGEBOUND_NITRO_CAPACITY_MULTIPLIER_DEFAULT,
+                        0.0D, 100.0D);
+        SURGEBOUND_NITRO_MINING_SPEED_MULTIPLIER = builder
+                .comment("What the nitro step (level V) multiplies surgeboundMiningSpeedPerLevel by,",
+                        "instead of adding a fifth flat step.")
+                .defineInRange("surgeboundNitroMiningSpeedMultiplier",
+                        SURGEBOUND_NITRO_MINING_SPEED_MULTIPLIER_DEFAULT, 0.0D, 100.0D);
         builder.pop();
         COMPAT_SPEC = builder.build();
 

@@ -219,6 +219,13 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         addBlock(ForgeweaveBlocks.SEARED_DUCT, "Seared Duct");
         addBlock(ForgeweaveBlocks.SEARED_CHUTE, "Seared Chute");
 
+        // #972 (M8, D-M8-11) -- the energized tank and the three action-bar lines its overdrive
+        // button prints. Original Forgeweave block, so the name is ours rather than a clone's.
+        addBlock(ForgeweaveBlocks.ENERGIZED_TANK, "Energized Tank");
+        add("tooltip.forgeweave.energized_tank.overdrive_on", "Overdrive on: melting faster, energy going quicker");
+        add("tooltip.forgeweave.energized_tank.overdrive_off", "Overdrive off");
+        add("tooltip.forgeweave.energized_tank.disabled", "Energized tanks are switched off on this server");
+
         // #441 (parity audit T9) -- the channel, upstream's tile.tconstruct.channel.name, plus the
         // five action-bar messages its connection cycle prints (upstream's channel.connected.*
         // and channel.connected_down.* keys).
@@ -693,6 +700,9 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("gui.forgeweave.modifier.incompatible_trait", "Modifier %s can not be used together with trait %s");
         add("gui.forgeweave.modifier.incompatible_modifiers", "Modifiers %s and %s cannot be applied together");
         add("gui.forgeweave.modifier.incompatible_enchantment", "Modifier %s cannot be combined with enchantment %s");
+        // Issue #996: surgebound's crystal ladder refuses a level out of sequence.
+        add("gui.forgeweave.modifier.surgebound_out_of_order",
+                "Surgebound must be applied in crystal order: this tool needs level %s next, not %s.");
 
         // Why an attempted part exchange was refused (issue #264), same info-panel surface. The
         // durability line mirrors upstream 1.12's gui.error.not_enough_durability.
@@ -1095,6 +1105,13 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("material.forgeweave.emeradic_crystal", "Emeradic Crystal");
         add("material.forgeweave.enori_crystal", "Enori Crystal");
         add("material.forgeweave.uraninite", "Uraninite");
+        // Issue #996 (D-M8-17): the four Powah crystals #837/#872 left unshippable (no per-material
+        // c: tag; see MaterialTest#noShippedMaterialConditionsOnPowahsUntaggedCrystals's old guard),
+        // unblocked the same way #872 unblocked energised_steel -- a concrete item id.
+        add("material.forgeweave.blazing_crystal", "Blazing Crystal");
+        add("material.forgeweave.niotic_crystal", "Niotic Crystal");
+        add("material.forgeweave.spirited_crystal", "Spirited Crystal");
+        add("material.forgeweave.nitro_crystal", "Nitro Crystal");
         add("material.forgeweave.psimetal", "Psimetal");
         add("material.forgeweave.psigem", "Psigem");
         add("material.forgeweave.ivory_psimetal", "Ivory Psimetal");
@@ -1500,6 +1517,15 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
                 "Mounts a pair of Create's goggles on the helmet, so its overlays show while the "
                         + "helmet is worn. A utility: no modifier slot spent.");
 
+        // Issue #996 (D-M8-17): Powah's crystal ladder, one level a step, energy capacity and mining
+        // speed rising with each crystal.
+        add("modifier.forgeweave.surgebound.name", "Surgebound");
+        add("modifier.forgeweave.surgebound.description",
+                "Powah's crystal ladder, applied one level at a time: energized steel, then blazing, "
+                        + "niotic, spirited and nitro crystal. Each level raises the tool's energy "
+                        + "capacity and mining speed; the nitro step is worth double the rest.");
+        add("modifier.forgeweave.surgebound.extra", "Energy Capacity: +%s, Mining Speed: +%s");
+
         add("modifier.forgeweave.wind_burst.name", "Wind Burst");
         add("modifier.forgeweave.wind_burst.description",
                 "Grants Wind Burst on the warmace. Each breeze rod raises it another level, up to III.");
@@ -1639,6 +1665,14 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         // Shown only when the fuel actually outruns lava (SmelteryFuelRecipes#build) -- e.g. blazing
         // blood's headroom over lava is what lets it reach recipes lava alone cannot.
         add("jei.category.forgeweave.smeltery_fuel.vs_lava", "%s° hotter than lava -- reaches recipes lava alone cannot");
+        // #972: the energized tank's own row. Lava is the worked example, so the cost line names the
+        // temperature it was computed at rather than claiming a fixed price.
+        add("jei.category.forgeweave.smeltery_fuel.energized_sample",
+                "An energized tank holds this as a sample and never burns it");
+        add("jei.category.forgeweave.smeltery_fuel.energized_cost",
+                "It burns %s Forge Energy per smeltery cycle at %s°, scaling with the sample");
+        add("jei.category.forgeweave.smeltery_fuel.energized_overdrive",
+                "Overdrive melts faster and costs more per cycle by the same factor");
         add("jei.category.forgeweave.core_transform", "Core Transform");
 
         // #931: entity melting (what a living entity standing in the smeltery melts into), the third
@@ -2096,6 +2130,24 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("gui.forgeweave.modifier.overslime_full", "Armor has no more space for overslime.");
         add("gui.forgeweave.modifier.overslime_unsupported", "Only armor with the overslime trait takes overslime.");
 
+        // #969 (M8, D-M8-1) -- Apotheosis gem sockets. The modifier itself, the marker id the
+        // gem-seating recipe names (JEI and the station rejection both read its name, the way they
+        // read overslime's above), the socket rows on the tooltip and the station panel, and the
+        // four refusals the station can hand back.
+        add("modifier.forgeweave.socketed.name", "Socketed");
+        add("modifier.forgeweave.socketed.description",
+                "Adds an empty gem socket. Each socket holds one gem and costs a modifier slot.");
+        add("modifier.forgeweave.socket_gem.name", "Seat Gem");
+        add("modifier.forgeweave.socket_gem.description",
+                "Seats a gem in the tool's first empty socket. Costs no modifier slot: the socket already paid for it.");
+        add("tooltip.forgeweave.socket", "Socket %s: %s");
+        add("tooltip.forgeweave.socket.empty", "empty");
+        add("gui.forgeweave.modifier.no_sockets", "This tool has no sockets. Add one with Socketed first.");
+        add("gui.forgeweave.modifier.sockets_full", "Every socket on this tool already holds a gem.");
+        add("gui.forgeweave.modifier.gem_refused", "That gem does not fit this kind of item.");
+        add("gui.forgeweave.modifier.apotheosis_sockets_disabled",
+                "Gem sockets are switched off in the server config.");
+
         // #843 -- the 1.20-branch material gap's four new traits (closes #180). Names are the 1.20
         // clone's modifier.tconstruct.<id> entries verbatim; descriptions restate this port's
         // simplified level-1-only mechanics (see ForgeweaveTraits for the exact numbers and the
@@ -2191,6 +2243,16 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("trait.forgeweave.solar_recharge.description", "Slowly refills its energy buffer in daylight.");
         add("trait.forgeweave.kinetic_charge.name", "Kinetic Charge");
         add("trait.forgeweave.kinetic_charge.description", "Converts a share of damage dealt into stored energy.");
+        // Issue #996 (D-M8-17): datapack trait_definition instances of the #830 energized behavior,
+        // one per Powah crystal, ascending capacity (see trait_definition/*_charge.json).
+        add("trait.forgeweave.blazing_charge.name", "Blazing Charge");
+        add("trait.forgeweave.blazing_charge.description", "Carries a Forge Energy buffer that is spent before durability.");
+        add("trait.forgeweave.niotic_charge.name", "Niotic Charge");
+        add("trait.forgeweave.niotic_charge.description", "Carries a larger Forge Energy buffer that is spent before durability.");
+        add("trait.forgeweave.spirited_charge.name", "Spirited Charge");
+        add("trait.forgeweave.spirited_charge.description", "Carries a still larger Forge Energy buffer that is spent before durability.");
+        add("trait.forgeweave.nitro_charge.name", "Nitro Charge");
+        add("trait.forgeweave.nitro_charge.description", "Carries the largest Forge Energy buffer that is spent before durability.");
         add("tooltip.forgeweave.energy", "Stored Energy");
         // #829 M6 utility/economy trait behavior library.
         add("trait.forgeweave.sunmend.name", "Sunmend");
@@ -2398,6 +2460,11 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("book.forgeweave.smeltery.working.title", "Working the Smeltery");
         add("book.forgeweave.smeltery.working.text",
                 "Place ore or metal into the smeltery through its core and it slowly melts down. Different molten metals pool together below; some combinations mix into alloys.\n\nDrain the result through a faucet into a Casting Table holding a cast to shape tool parts and ingots, or into a Casting Basin for full blocks.");
+        // #972 (M8, D-M8-11): the energized tank's page. Original Forgeweave content -- the block
+        // has no upstream counterpart, so nothing here is derived.
+        add("book.forgeweave.smeltery.energized.title", "Heating It With Energy");
+        add("book.forgeweave.smeltery.energized.text",
+                "An Energized Tank set into a wall heats the smeltery without burning anything. Pour in a bucket of any fuel the smeltery accepts and the tank keeps it as a sample: it is never used up, and it simply tells the tank which fuel to imitate. The smeltery then runs at that fuel's temperature.\n\nWhat the tank does burn is Forge Energy, fed in by any cable. A hotter sample costs proportionally more per melt cycle, an empty buffer means no heat at all rather than slow heat, and among several tanks only the hottest one with energy to spend pays anything.\n\nPress the tank with an empty hand for overdrive: melting and spending both double. Look up the tank in the recipe list to read the exact cost.");
 
         // M7-7 (issue #924, epic #917): the leveling chapter. Original Forgeweave content, not a
         // derivation -- upstream ships no guide book and no Ponder scenes for this mechanic.
@@ -2628,11 +2695,30 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         modifierEffects("wind_burst",
                 "Grants the Wind Burst enchantment", "Each breeze rod is one level",
                 "Only fits the Warmace", "Multiple levels");
+        // #969 (M8, D-M8-1) -- the guide book's Socketed page, built like every other modifier page
+        // from these bullets plus the name and description above. Covers what a socket is, how a gem
+        // gets in and what a seated gem grants; the unmapped effects are recorded in
+        // ApotheosisSockets.EFFECT_MAP rather than promised to a player here.
+        modifierEffects("socketed",
+                "Adds one empty gem socket per level",
+                "Each socket costs a modifier slot, so a slot earned by levelling up can buy one",
+                "Seat a gem by putting it in the Tool Station beside a socketed tool",
+                "A seated gem adds its bonus to the tool's own attack damage, mining speed, "
+                        + "durability, armor or protection",
+                "Sockets and gems are kept if Apotheosis is removed, and work again when it is back",
+                "Needs Apotheosis installed", "Maximum of 3 levels");
         // Fins is the one gap with an upstream source (book/en_us/modifiers/fins.json, added to the
         // registry by #654 after #658's port): its three bullets, verbatim -- the first is exactly
         // what ArrowEntity#getWaterInertia implements, the other two are upstream's own jokes.
         modifierEffects("fins",
                 "Projectiles ignore water", "Logical", "Makes sense");
+        // Issue #996 (D-M8-17) -- Forgeweave original built on Powah's own crystal ladder.
+        modifierEffects("surgebound",
+                "Grants +25% energy capacity and +5% mining speed per level",
+                "The nitro step (level V) doubles both instead of adding a fifth flat step",
+                "Applied in crystal order: energized steel, then blazing, niotic, spirited, nitro crystal",
+                "Each level requires the one before it, and costs its own modifier slot",
+                "Five levels");
 
         // Issue #796: the built-in Legacy resource pack's display name (Options > Resource Packs).
         // Not an item/block/trait key family -- ForgeweaveResourcePacks#addPackFinders is the only

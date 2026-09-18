@@ -1,0 +1,15 @@
+{
+  "modifier": "forgeweave:socketed",
+  "reagents": [
+    {
+      "ingredient": {
+        "item": "apotheosis:sigil_of_socketing"
+      }
+    }
+  ],
+  "cost": 1,
+  "max_level": 3,
+  "neoforge:conditions": [
+    { "type": "neoforge:mod_loaded", "modid": "apotheosis" }
+  ]
+}

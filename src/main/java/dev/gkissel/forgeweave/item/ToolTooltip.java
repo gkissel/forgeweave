@@ -21,6 +21,7 @@ import net.minecraft.world.item.component.Tool;
 import net.minecraft.world.level.block.Block;
 
 import dev.gkissel.forgeweave.client.StationText;
+import dev.gkissel.forgeweave.compat.apotheosis.ApotheosisSockets;
 import dev.gkissel.forgeweave.config.ForgeweaveClientConfig; // #276
 import dev.gkissel.forgeweave.config.ForgeweaveConfig;
 import dev.gkissel.forgeweave.combat.ForgeweaveInnates;
@@ -265,6 +266,12 @@ final class ToolTooltip {
     private static void appendModifiers(ItemStack stack, List<Component> tooltip) {
         for (ModifierEntry entry : ForgeweaveModifiers.of(stack)) {
             tooltip.add(modifierLine(entry));
+            if (ApotheosisSockets.SOCKETED_ID.equals(entry.id())) {
+                // #969: the sockets themselves, one indented row each, under the modifier that
+                // granted them. The station panel shows the same lines as that row's hover text
+                // (StationText#toolModifiers reads ForgeweaveModifiers#extraInfo, which builds them).
+                tooltip.addAll(ApotheosisSockets.socketLines(stack));
+            }
         }
         int free = ForgeweaveModifiers.freeSlots(stack);
         if (free > 0) {

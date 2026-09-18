@@ -102,7 +102,10 @@ class ArmorMaterialTest {
             // #953: the awakened core ships the same plating + maille block as the wyvern and chaotic
             // cores it sits between. Being Part Builder only changes where the part is made, not
             // which parts the material has stats for. #965 added the draconium core the same way.
-            Stream.of("awakened", "draconium_core"))
+            Stream.of("awakened", "draconium_core"),
+            // #996 (D-M8-17): Powah's four remaining crystals, same full plating + maille shape as
+            // #837's own gem/crystal-tier roster above (diamatine_crystal, uraninite, ...).
+            Stream.of("blazing_crystal", "niotic_crystal", "spirited_crystal", "nitro_crystal"))
             .flatMap(java.util.function.Function.identity())
             .collect(java.util.stream.Collectors.toSet());
 

@@ -22,6 +22,7 @@ import mezz.jei.api.recipe.category.IRecipeCategory;
 
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.client.TemperatureText;
+import dev.gkissel.forgeweave.item.ForgeweaveItems;
 
 /**
  * Which fluids the smeltery burns as fuel, and at what rate (issue #890, {@code smeltery_fuel}
@@ -111,15 +112,24 @@ final class SmelteryFuelCategory implements IRecipeCategory<SmelteryFuelDisplay>
 
     @Override
     public void setRecipe(IRecipeLayoutBuilder builder, SmelteryFuelDisplay recipe, IFocusGroup focuses) {
-        Item bucket = recipe.fluid().getBucket();
-        if (bucket != Items.AIR) {
-            builder.addInputSlot(BUCKET_X, BUCKET_Y).addItemStack(new ItemStack(bucket));
+        // #972: the energized tank's row shows the tank itself where a fluid row shows the bucket --
+        // the tank is what you pour the sample into, and what the cost formula belongs to.
+        Item input = recipe.energizedTank() ? ForgeweaveItems.ENERGIZED_TANK.get() : recipe.fluid().getBucket();
+        if (input != Items.AIR) {
+            builder.addInputSlot(BUCKET_X, BUCKET_Y).addItemStack(new ItemStack(input));
         }
         builder.addOutputSlot(FLUID_X, FLUID_Y)
                 .setFluidRenderer(recipe.amount(), false, FLUID_SIZE, FLUID_SIZE)
                 .setOverlay(tankOverlay, 0, 0)
                 .addFluidStack(recipe.fluid(), recipe.amount())
                 .addRichTooltipCallback((view, tooltip) -> {
+                    if (recipe.energizedTank()) {
+                        tooltip.add(Component.translatable("jei.category.forgeweave.smeltery_fuel.energized_sample"));
+                        tooltip.add(Component.translatable("jei.category.forgeweave.smeltery_fuel.energized_cost",
+                                recipe.energizedCost(), recipe.temperature()));
+                        tooltip.add(Component.translatable("jei.category.forgeweave.smeltery_fuel.energized_overdrive"));
+                        return;
+                    }
                     tooltip.add(Component.translatable("jei.category.forgeweave.smeltery_fuel.duration", recipe.duration()));
                     if (recipe.hotterThanLavaBy() > 0) {
                         tooltip.add(Component.translatable(

@@ -26,6 +26,7 @@ import dev.gkissel.forgeweave.block.CastingBlockEntity;
 import dev.gkissel.forgeweave.block.ChestBlockEntity;
 import dev.gkissel.forgeweave.block.ForgeweaveBlockEntities;
 import dev.gkissel.forgeweave.block.ForgeweaveBlocks;
+import dev.gkissel.forgeweave.block.EnergizedTankBlockEntity;
 import dev.gkissel.forgeweave.block.SearedChannelBlockEntity;
 import dev.gkissel.forgeweave.block.SearedChuteBlockEntity;
 import dev.gkissel.forgeweave.block.SearedDrainBlockEntity;
@@ -42,6 +43,7 @@ import dev.gkissel.forgeweave.combat.CombatSeams;
 import dev.gkissel.forgeweave.combat.ForgeweaveInnates;
 import dev.gkissel.forgeweave.combat.ForgeweaveMobEffects;
 import dev.gkissel.forgeweave.combat.RangedXpSeam;
+import dev.gkissel.forgeweave.compat.apotheosis.ApotheosisSockets;
 import dev.gkissel.forgeweave.compat.create.ForgeweaveCreateCompat;
 import dev.gkissel.forgeweave.compat.draconic.ForgeweaveDraconicCompat;
 import dev.gkissel.forgeweave.config.ForgeweaveClientConfig;
@@ -158,6 +160,9 @@ public class Forgeweave {
         modEventBus.addListener(SearedChuteBlockEntity::registerCapabilities);
         // #441 (parity audit T9) -- a channel takes fluid on its top and on any side set to `in`.
         modEventBus.addListener(SearedChannelBlockEntity::registerCapabilities);
+        // #972 (M8, D-M8-11) -- the energized tank takes Forge Energy from any mod's cable and its
+        // fuel sample from any mod's fluid pipe.
+        modEventBus.addListener(EnergizedTankBlockEntity::registerCapabilities);
         // #470 -- the core itself also exposes its melting inventory directly, so a hopper feeding it
         // (no chute required) works the way upstream's Mantle-derived TileInventory always did.
         modEventBus.addListener(SmelteryControllerBlockEntity::registerCapabilities);
@@ -215,6 +220,10 @@ public class Forgeweave {
         CombatSeams.register(RangedXpSeam::collect);
         // M7-3 (issue #920, docs/SCOPE.md D-M7-10) -- blocking XP to the tool actively blocking with.
         CombatSeams.register(BlockingXpSeam::collect);
+        // #969 (docs/SCOPE.md M8, D-M8-1) -- Apotheosis gems in sockets: their protection, their
+        // damage reduction and their post-hit effects, on the same pipeline the traits and modifiers
+        // use. Inert with no Apotheosis, since nothing installs the bridge behind it then.
+        CombatSeams.register(ApotheosisSockets.COMBAT_SEAMS);
         // #157 -- area mining (hammer/excavator 3x3, lumber axe tree fell, scythe 3x3x3, vein hammer
         // vein). NeoForge 1.21 dropped the per-item onBlockStartBreak hook upstream 1.12 uses, so
         // this is the one break event every player break goes through -- see AoeHarvest.
@@ -304,6 +313,13 @@ public class Forgeweave {
         // com.simibubi.create type and cannot link without the mod present.
         if (ModList.get().isLoaded(ForgeweaveCreateCompat.MODID)) {
             ForgeweaveCreateCompat.register();
+        }
+        // #969 -- Apotheosis gem sockets (docs/SCOPE.md M8, D-M8-1). Same load-bearing guard: the
+        // bridge behind this call names dev.shadowsoffire types and cannot link without the mod,
+        // which is why ApotheosisSockets itself names none and reaches its implementation from
+        // inside a method body rather than a static field.
+        if (ModList.get().isLoaded(ApotheosisSockets.MODID)) {
+            ApotheosisSockets.installBridge();
         }
     }
 

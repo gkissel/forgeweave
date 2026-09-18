@@ -7,6 +7,9 @@ import java.util.Map;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.material.Fluids;
 
+import dev.gkissel.forgeweave.block.EnergizedHeat;
+import dev.gkissel.forgeweave.block.EnergizedTankBlockEntity;
+import dev.gkissel.forgeweave.config.ForgeweaveConfig;
 import dev.gkissel.forgeweave.recipe.SmelteryFuel;
 
 /**
@@ -21,7 +24,7 @@ import dev.gkissel.forgeweave.recipe.SmelteryFuel;
  * (config-disabled smeltery, or a test registry that never shipped lava).
  */
 final class SmelteryFuelRecipes {
-    static List<SmelteryFuelDisplay> build(Map<ResourceLocation, SmelteryFuel> fuels) {
+    static List<SmelteryFuelDisplay> build(Map<ResourceLocation, SmelteryFuel> fuels, boolean energizedTank) {
         int lavaTemperature = fuels.values().stream()
                 .filter(fuel -> fuel.fluid() == Fluids.LAVA)
                 .mapToInt(SmelteryFuel::temperature)
@@ -35,7 +38,30 @@ final class SmelteryFuelRecipes {
             int hotterThanLavaBy = fuel.fluid() == Fluids.LAVA ? 0 : Math.max(0, fuel.temperature() - lavaTemperature);
             displays.add(new SmelteryFuelDisplay(fuel.fluid(), fuel.amount(), fuel.duration(), fuel.temperature(), hotterThanLavaBy));
         }
+        if (energizedTank) {
+            displays.add(energizedTankRow(lavaTemperature));
+        }
         return displays;
+    }
+
+    /**
+     * The energized tank's own row (issue #972), which is not a registry entry -- the same synthetic
+     * extra row {@link EntityMeltingRecipes} appends for its default rule. Lava is the worked
+     * example: the tank imitates whichever registered fuel it holds a sample of, and every one of
+     * those already has a row above showing the temperature this formula is applied to, so the
+     * arithmetic only needs spelling out once against the fuel every world has.
+     *
+     * <p>{@code amount} is the sample, one bucket, and the tooltip is where the row says it is never
+     * drained. {@code duration} is 1: the tank pays per melt tick rather than buying a run of them
+     * with one drain.
+     */
+    private static SmelteryFuelDisplay energizedTankRow(int lavaTemperature) {
+        int cost = EnergizedHeat.costPerMeltTick(lavaTemperature,
+                ForgeweaveConfig.energizedTankRfPerMeltTickBase(),
+                ForgeweaveConfig.energizedTankTemperatureDivisor(),
+                false, ForgeweaveConfig.energizedTankOverdriveCost());
+        return new SmelteryFuelDisplay(Fluids.LAVA, EnergizedTankBlockEntity.SAMPLE_CAPACITY, 1,
+                lavaTemperature, 0, true, cost);
     }
 
     private SmelteryFuelRecipes() {}

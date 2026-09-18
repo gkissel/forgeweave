@@ -95,7 +95,15 @@ class ModifierLangCoverageTest {
         }
         for (String key : List.of("modifier.forgeweave.fiery.extra2",
                 ForgeweaveModifiers.UNBREAKABLE_KEY,
-                "modifier.forgeweave.sharpness.name5")) {
+                "modifier.forgeweave.sharpness.name5",
+                // #969: socketed's extra lines are per-socket rows rather than the shared `.extra`
+                // key, so they are named here instead of riding extraInfoIds().
+                "tooltip.forgeweave.socket",
+                "tooltip.forgeweave.socket.empty",
+                // And the marker id the gem-seating recipe names, which JEI and the station
+                // rejection read the way they read overslime's.
+                "modifier.forgeweave.socket_gem.name",
+                "modifier.forgeweave.socket_gem.description")) {
             if (!lang.has(key)) {
                 missing.add(key);
             }
