@@ -44,6 +44,8 @@ final class JeiCategoryGeometry {
     static final Panel CASTING = new Panel(derived("casting.png"), 0, 0, 117, 54);
     /** Upstream {@code AbstractMeltingCategory}: `createDrawable(melting.png, 0, 0, 132, 40)`. */
     static final Panel MELTING = new Panel(derived("melting.png"), 0, 0, 132, 40);
+    /** Upstream {@code EntityMeltingRecipeCategory}: `createDrawable(melting.png, 0, 41, 150, 62)` (issue #1029). */
+    static final Panel ENTITY_MELTING = new Panel(derived("melting.png"), 0, 41, 150, 62);
     /** Upstream {@code ToolBuildingCategory}: `createDrawable(tinker_station.png, 122, 77, 134, 66)`. */
     static final Panel ASSEMBLY = new Panel(TINKER_STATION, 122, 77, 134, 66);
     /** Upstream {@code PartBuilderCategory}: `createDrawable(tinker_station.png, 0, 117, 121, 46)`. */
