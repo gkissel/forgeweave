@@ -16,32 +16,39 @@ import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 
 import dev.gkissel.forgeweave.Forgeweave;
+import dev.gkissel.forgeweave.compat.create.CreateGoggles;
 import dev.gkissel.forgeweave.compat.draconic.ForgeweaveDraconicCompat;
 import dev.gkissel.forgeweave.compat.draconic.modules.DraconicModules;
 import dev.gkissel.forgeweave.config.ForgeweaveConfig;
 import dev.gkissel.forgeweave.item.ForgeweaveDataComponents;
+import dev.gkissel.forgeweave.item.ForgeweaveItems;
+import dev.gkissel.forgeweave.modifier.ForgeweaveModifiers;
+import dev.gkissel.forgeweave.modifier.ModifierEntry;
 import dev.gkissel.forgeweave.tool.MiningLevel;
 import dev.gkissel.forgeweave.trait.ForgeweaveTraits;
 import dev.gkissel.forgeweave.trait.Trait;
 
 /**
- * The four {@code compat} toggles issue #968 backfills (D-M8-5), each switched off and back on --
- * {@code ContentFamilyGameTests}' shape applied to compat, including its reason for keeping every
+ * Every {@code compat} toggle (D-M8-5) switched off and back on -- the four issue #968 backfills
+ * plus issue #1007's Create goggles, which that PR left to this mechanism. {@code
+ * ContentFamilyGameTests}' shape applied to compat, including its reason for keeping every
  * set/assert/restore inside one synchronous method: these mutate a global config value and GameTests
  * in a batch tick concurrently, so no other test may ever observe a flipped value.
  *
- * <p>Two of the four are also tested for the half that must <em>not</em> change. Off is inert, never
- * destructive: a stack carrying fusion or module state keeps its components through a toggle-off
- * round trip and works again when the toggle returns, which is D-M7-3's rule applied to compat.
+ * <p>Three of them are also tested for the half that must <em>not</em> change. Off is inert, never
+ * destructive: a stack carrying fusion, module or modifier state keeps its components through a
+ * toggle-off round trip and works again when the toggle returns, which is D-M7-3's rule applied to
+ * compat.
  *
  * <h2>What these tests can and cannot reach</h2>
  *
- * <p>{@code runGameTestServer} runs with none of the four compat mods present, so no test here may
- * touch a class that names one of their types: {@code FusionUpgradeRecipe} and
- * {@code DraconicModuleHost} name {@code com.brandon3055} types, and both overlay plugins are
- * compiled against APIs absent from that run. Each toggle is therefore read at a site in the
- * mod-free half of its integration, and those sites are what these tests exercise:
- * {@code ForgeweaveDraconicCompat#acceptsFusionCatalyst}, {@link DraconicModules}'s bridge queries,
+ * <p>{@code runGameTestServer} runs with none of the compat mods present, so no test here may touch
+ * a class that names one of their types: {@code FusionUpgradeRecipe} and {@code DraconicModuleHost}
+ * name {@code com.brandon3055} types, {@code ForgeweaveCreateCompat} names a
+ * {@code com.simibubi.create} one, and both overlay plugins are compiled against APIs absent from
+ * that run. Each toggle is therefore read at a site in the mod-free half of its integration, and
+ * those sites are what these tests exercise: {@code ForgeweaveDraconicCompat#acceptsFusionCatalyst},
+ * {@link DraconicModules}'s bridge queries, {@link CreateGoggles#isWearingGoggles},
  * {@code MiningLevel#line} and {@code ForgeweaveTraits#lookup}. The remaining per-provider guards
  * and the Draconic capability itself are release-checklist lines on #975, alongside the overlay
  * rendering the issue already notes a GameTest cannot cover.
@@ -196,6 +203,37 @@ public class CompatToggleGameTests {
 
         helper.assertTrue(ForgeweaveTraits.lookup(id) != null,
                 "turning kubejsTraits back on must resolve the same trait again with no reload");
+        helper.succeed();
+    }
+
+    /**
+     * Create's goggles off: a helmet carrying the goggles modifier stops counting as goggles, so
+     * Create's own overlays ignore it -- and the modifier stays on the helmet through the flip, so
+     * the overlays fire for it again when the toggle returns.
+     */
+    @GameTest(template = "empty")
+    public static void createGogglesOffStopCountingAsGoggles(GameTestHelper helper) {
+        ItemStack helmet = new ItemStack(ForgeweaveItems.ARMOR_HELMET.get());
+        helmet.set(ForgeweaveDataComponents.MODIFIERS.get(),
+                List.of(new ModifierEntry(ForgeweaveModifiers.GOGGLES_ID, 1)));
+        List<ModifierEntry> before = helmet.get(ForgeweaveDataComponents.MODIFIERS.get());
+
+        helper.assertTrue(CreateGoggles.isWearingGoggles(helmet),
+                "a goggled helmet counts while createGoggles is on, or this test proves nothing");
+
+        ForgeweaveConfig.CREATE_GOGGLES.set(false);
+        try {
+            helper.assertFalse(CreateGoggles.isWearingGoggles(helmet),
+                    "no helmet may count as goggles while createGoggles is off");
+            helper.assertTrue(before.equals(helmet.get(ForgeweaveDataComponents.MODIFIERS.get())),
+                    "and the modifier must stay on the helmet, got "
+                            + helmet.get(ForgeweaveDataComponents.MODIFIERS.get()));
+        } finally {
+            ForgeweaveConfig.CREATE_GOGGLES.set(true);
+        }
+
+        helper.assertTrue(CreateGoggles.isWearingGoggles(helmet),
+                "turning createGoggles back on must count the same helmet again with no reload");
         helper.succeed();
     }
 

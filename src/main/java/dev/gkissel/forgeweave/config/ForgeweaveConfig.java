@@ -343,6 +343,15 @@ public final class ForgeweaveConfig {
      */
     public static final ModConfigSpec.BooleanValue KUBEJS_TRAITS;
 
+    /**
+     * Create's goggle overlays firing for a helmet carrying {@code forgeweave:goggles} (issue
+     * #1007). Off means Create's own overlays ignore Forgeweave helmets; the modifier stays on the
+     * helmet and works again the moment the toggle returns.
+     *
+     * @see #DRACONIC_FUSION
+     */
+    public static final ModConfigSpec.BooleanValue CREATE_GOGGLES;
+
     /** Upstream {@code genCobalt}: cobalt ore generates in the Nether. */
     public static final ModConfigSpec.BooleanValue GEN_COBALT;
     /** Upstream {@code cobaltRate}: approximate cobalt veins per Nether chunk. */
@@ -617,6 +626,11 @@ public final class ForgeweaveConfig {
                         "one behaves as if the id had no implementation. Built-in and datapack traits are",
                         "unaffected either way.")
                 .define("kubejsTraits", true);
+        CREATE_GOGGLES = builder
+                .comment("If true, Create's goggle overlays (stress readouts, fluid contents, goggle tooltips)",
+                        "fire for a helmet carrying the Forgeweave goggles modifier. With this off Create's",
+                        "overlays ignore Forgeweave helmets; the modifier stays on the helmet either way.")
+                .define("createGoggles", true);
         builder.pop();
         COMPAT_SPEC = builder.build();
 
