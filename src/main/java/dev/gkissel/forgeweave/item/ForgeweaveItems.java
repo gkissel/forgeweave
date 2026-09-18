@@ -77,7 +77,11 @@ public final class ForgeweaveItems {
     public static final DeferredItem<Item> PATTERN_KAMA_HEAD = pattern("pattern_kama_head");
     public static final DeferredItem<Item> PATTERN_BROAD_AXE_HEAD = pattern("pattern_broad_axe_head");
     public static final DeferredItem<Item> PATTERN_VEIN_HAMMER_HEAD = pattern("pattern_vein_hammer_head");
-    // #161's own new-shape head part; see PART_WAR_MACE_HEAD below.
+    // #161's own new-shape head part; see PART_WAR_MACE_HEAD below. #1044: the part became cast
+    // only, so this pattern crafts nothing any more (no Stencil Table entry, no PartBuilderRecipes
+    // Entry, no ForgeweaveRecipeProvider recipe) and is hidden from the creative tab and JEI. Still
+    // registered, unobtainable rather than removed, so an item stack an old world already holds
+    // keeps resolving instead of loading back as air.
     public static final DeferredItem<Item> PATTERN_WAR_MACE_HEAD = pattern("pattern_war_mace_head");
     // #159: the scimitar's own head part. See PART_CURVED_BLADE below for why it lands here rather
     // than with #151's batch.

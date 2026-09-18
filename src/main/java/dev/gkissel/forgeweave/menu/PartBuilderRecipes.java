@@ -120,9 +120,11 @@ public final class PartBuilderRecipes {
             // No upstream cost to read (no 1.12/1.20 counterpart) -- priced like hammer_head, the
             // large-tool head part it's functionally closest to.
             new Entry(ForgeweaveItems.PATTERN_VEIN_HAMMER_HEAD, ForgeweaveItems.PART_VEIN_HAMMER_HEAD, LARGE_HEAD_COST),
-            // #161: likewise no upstream cost to read -- priced like the other large-tool heads,
-            // which is the tier the warmace assembles at (ToolAssemblyRecipes#LARGE_TOOLS).
-            new Entry(ForgeweaveItems.PATTERN_WAR_MACE_HEAD, ForgeweaveItems.PART_WAR_MACE_HEAD, LARGE_HEAD_COST),
+            // #161's war mace head deliberately has no row here any more (issue #1044): the part is
+            // cast only, so there is no pattern that should ever resolve to it at the Part Builder,
+            // in any material. Removing the Entry answers isPattern/findEntry/rejection/patternPart
+            // all at once -- this table is the one shared place the Part Builder asks "can this part
+            // be built from a pattern" (see #findEntry below).
             // #159's new part. No upstream cost to read either (Forgeweave's own shape) -- priced
             // like sword_blade, the one-handed sword blade it stands in for.
             new Entry(ForgeweaveItems.PATTERN_CURVED_BLADE, ForgeweaveItems.PART_CURVED_BLADE, HEAD_COST),
