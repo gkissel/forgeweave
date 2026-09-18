@@ -2185,5 +2185,7 @@
   "trait.forgeweave.writable2.description": "More words. More modifiers. It's only logical!",
   "trait.forgeweave.writable2.name": "Writable II",
   "waila.forgeweave.casting.cooling": "Cooling: %s",
+  "waila.forgeweave.mining_level": "Mining level: %s",
+  "waila.forgeweave.mining_level.held": "Mining level: %s (holding %s)",
   "waila.forgeweave.smeltery.fluid": "%s: %s"
 }

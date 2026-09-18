@@ -9,6 +9,8 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 
+import dev.gkissel.forgeweave.config.ForgeweaveConfig; // #968
+
 /**
  * The Draconic-free half of Forgeweave's module host compat (issue #956): the grid table every
  * caller reads, and the seam the rest of the mod calls into without naming a {@code com.brandon3055}
@@ -171,18 +173,31 @@ public final class DraconicModules {
     }
 
     /**
+     * The installed bridge, or {@code null} when there is none -- and also when
+     * {@code compat.draconicModules} is off (#968, D-M8-5), which is what makes every query below
+     * answer exactly as it does on an install with no Draconic Evolution at all. That is the whole
+     * of the toggle on this side: the queries stop answering and nothing else happens, so a module
+     * already installed stays on its stack and acts again the moment the toggle returns. The
+     * capability half of the same toggle is in {@link DraconicModuleHost#newHost}.
+     */
+    @Nullable
+    private static Bridge bridge() {
+        return ForgeweaveConfig.enabled(ForgeweaveConfig.DRACONIC_MODULES) ? bridge : null;
+    }
+
+    /**
      * The {@code shieldbreaker} trait's hit (maintainer request, 2026-09-06): takes {@code amount}
      * shield points off the Draconic Evolution shield {@code target} is wearing, if any. False when
      * there is no shield to drain, or no Draconic Evolution.
      */
     public static boolean drainShield(LivingEntity target, double amount) {
-        Bridge installed = bridge;
+        Bridge installed = bridge();
         return installed != null && installed.drainShield(target, amount);
     }
 
     /** {@code n} in issue #955's tooltip line; 0 with no Draconic Evolution. */
     public static int installedModules(ItemStack stack) {
-        Bridge installed = bridge;
+        Bridge installed = bridge();
         return installed == null ? 0 : installed.installedModules(stack);
     }
 
@@ -192,7 +207,7 @@ public final class DraconicModules {
      * Draconic Evolution, and 0 for a tool carrying no {@code evolved} trait.
      */
     public static int moduleEnergyCapacity(ItemStack stack) {
-        Bridge installed = bridge;
+        Bridge installed = bridge();
         return installed == null ? 0 : installed.moduleEnergyCapacity(stack);
     }
 
@@ -203,7 +218,7 @@ public final class DraconicModules {
      * to what Forgeweave's own stats already say and never replaces or subtracts from it.
      */
     public static float digSpeedMultiplier(ItemStack stack) {
-        Bridge installed = bridge;
+        Bridge installed = bridge();
         return installed == null ? 1.0F : installed.digSpeedMultiplier(stack);
     }
 
@@ -213,7 +228,7 @@ public final class DraconicModules {
      * both the width and the height by {@code 2n}. 0 without a module.
      */
     public static int miningAoe(ItemStack stack) {
-        Bridge installed = bridge;
+        Bridge installed = bridge();
         return installed == null ? 0 : installed.miningAoe(stack);
     }
 
@@ -223,7 +238,7 @@ public final class DraconicModules {
      * no module would spend it, which is what keeps an ordinary tool's break free.
      */
     public static int miningEnergyCost(ItemStack stack) {
-        Bridge installed = bridge;
+        Bridge installed = bridge();
         return installed == null ? 0 : installed.miningEnergyCost(stack);
     }
 
@@ -233,7 +248,7 @@ public final class DraconicModules {
      * replaces Forgeweave's number). 0 with no module or an empty buffer.
      */
     public static float attackDamageBonus(ItemStack stack) {
-        Bridge installed = bridge;
+        Bridge installed = bridge();
         return installed == null ? 0.0F : installed.attackDamageBonus(stack);
     }
 
@@ -244,7 +259,7 @@ public final class DraconicModules {
      * itself; the caller's own attack is untouched either way.
      */
     public static boolean meleeAoe(Player player, Entity target, ItemStack stack, float damage) {
-        Bridge installed = bridge;
+        Bridge installed = bridge();
         return installed != null && installed.meleeAoe(player, target, stack, damage);
     }
 
@@ -255,7 +270,7 @@ public final class DraconicModules {
      * which is where Forgeweave parts company with Draconic Evolution's own bow (it refuses to fire).
      */
     public static Projectile projectile(ItemStack stack) {
-        Bridge installed = bridge;
+        Bridge installed = bridge();
         return installed == null ? Projectile.NONE : installed.projectile(stack);
     }
 
@@ -264,7 +279,7 @@ public final class DraconicModules {
      * 0 with no projectile module.
      */
     public static int shotEnergyCost(ItemStack stack) {
-        Bridge installed = bridge;
+        Bridge installed = bridge();
         return installed == null ? 0 : installed.shotEnergyCost(stack);
     }
 

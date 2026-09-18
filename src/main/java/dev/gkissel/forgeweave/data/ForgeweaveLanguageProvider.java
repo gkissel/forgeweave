@@ -330,6 +330,11 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         // since the two overlays show identical wording.
         add("waila.forgeweave.casting.cooling", "Cooling: %s");
         add("waila.forgeweave.smeltery.fluid", "%s: %s");
+        // #968 (D-M8-9): the mining level the looked-at block needs, beside the level of the tool in
+        // hand. Two keys rather than one with a blank slot, so nothing reads "holding" with nothing
+        // after it when the player has no tool out.
+        add("waila.forgeweave.mining_level", "Mining level: %s");
+        add("waila.forgeweave.mining_level.held", "Mining level: %s (holding %s)");
 
         // #477/T46: the Pattern Chest's display name once it holds a cast, upstream's gui.castchest.name.
         add("gui.forgeweave.cast_chest.name", "Cast Chest");
