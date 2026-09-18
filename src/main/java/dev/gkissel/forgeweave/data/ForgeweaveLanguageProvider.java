@@ -2469,6 +2469,15 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("book.forgeweave.modifiers.intro.title", "Modifiers");
         add("book.forgeweave.modifiers.intro.text",
                 "A finished tool is never truly finished. At the Tool Station or Tool Forge, sacrifice items to imbue a tool with modifiers. Each tool starts with a limited number of free slots, and some modifiers can be applied repeatedly for a stronger effect.\n\nThe pages that follow list every modifier known to this workshop.");
+        // #970 (M8, D-M8-1): the two pages the #974 book audit asked for -- what an affix is on
+        // Forgeweave gear, and what decides whether a tool can be enchanted. Original Forgeweave
+        // content; upstream ships neither mechanic and no guide book page for either.
+        add("book.forgeweave.modifiers.affixes.title", "Affixes");
+        add("book.forgeweave.modifiers.affixes.text",
+                "With Apotheosis installed, a Forgeweave tool or armor piece that comes out of a chest or off a mob can arrive carrying affixes: the prefixes and suffixes Apotheosis rolls onto loot. Gear you build at the Tool Station is never affixed, because affixes arrive with loot rather than with crafting.\n\nAn affix is not a modifier. It costs no modifier slot, no station applies it, and it never competes with the modifiers you imbue yourself. One tool can carry affixes, modifiers, gems in its sockets and a level all at once, and each of the four keeps its own rules.\n\nThe affixes belong to Apotheosis, not to this workshop. Switch the integration off, or remove the mod outright, and an affixed tool still works: its parts, stats, traits, modifiers and level are all still here and untouched, and the affixes go quiet until the mod comes back.");
+        add("book.forgeweave.modifiers.enchanting.title", "Enchanting");
+        add("book.forgeweave.modifiers.enchanting.text",
+                "A Forgeweave tool cannot be enchanted by default. An enchanting table will not take it, an anvil turns away an enchanted book, and modifiers are how a tool is meant to improve. Turn on the allowVanillaEnchanting option and both accept it: the table draws on the tool's own enchantability, averaged across the materials of all its parts.\n\nAn enchantment is not a modifier either. It spends no modifier slot and sits beside whatever modifiers, sockets and level the tool already has. Where an enchantment and a modifier grant the same thing, extra damage or more Fortune, the two add together instead of one replacing the other.\n\nApotheosis' own enchanting table reads the same option, and its apotheosisEnchanting toggle as well. Both have to be on. With either one off the tool is turned away there exactly as it is at a vanilla table.");
         // #997 (D-M8-18) -- the Occultism ritual ladder. One page rather than four, because the four
         // modifiers it grants already have pages of their own further into this section: what a
         // reader needs here is that a second route to them exists and what it costs.
