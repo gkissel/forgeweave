@@ -652,6 +652,28 @@ An overdrive button on the block, its state saved with the block entity, multipl
 
 It gets a JEI row, a mention in the guide book, and a toggle. Why this and not the heater: an RF/t curve is a second temperature scale a player has to learn, while a fuel sample is a fuel they already know, read through a meter they already have.
 
+**The numbers, settled while building it ([#972](https://github.com/gkissel/forgeweave/issues/972), 2026-09-18).** All six live in a new `compat` section of `ForgeweaveConfig`, and every one of them is pinned by `EnergizedHeatTest`.
+
+| Option | Default | What it means |
+| --- | --- | --- |
+| `energizedTank` | `true` | The D-M8-5 toggle |
+| `energizedTankBuffer` | `100000` FE | About two minutes of melting at lava's heat |
+| `energizedTankRfPerMeltTickBase` | `100` | The `rfPerMeltTickBase` of the cost |
+| `energizedTankTemperatureDivisor` | `1000` | The divisor, so the base is the price at 1000 degrees |
+| `energizedTankOverdriveCost` | `2.0` | What overdrive multiplies the cost by |
+| `energizedTankOverdriveProgress` | `2.0` | What overdrive multiplies melt progress by |
+
+At those defaults one melt tick costs 130 FE on a lava sample, 150 on blazing blood, 170 on molten magma, 190 on brimspar and 210 on pyrealloy. A melt tick runs every four game ticks, so lava works out at roughly 33 FE per game tick.
+
+Four more answers the issue asked for, all settled the same way:
+
+- **It competes with a lit fuel below the smeltery rather than replacing it.** The smeltery runs at whichever of the two is hotter, and only the winner spends anything. A tie goes to the tank.
+- **An invalid sample is refused at the fill**, not accepted and ignored, so a player pouring water in finds out at the moment they try.
+- **A hottest tank with an empty buffer falls through to the next one down.** It is not heating, so it is not the hottest heat source, and a spare tank behind it is what a player built it for.
+- **Overdrive is a property of the paying tank only.** It never stacks across tanks: a second tank idling in the wall with its button pressed changes nothing.
+
+Two more, forced by how the mod is actually built: an energized tank counts as a wall tank on its own, so a smeltery heated entirely by energy forms with no seared tank in its walls; and the toggle makes the block **dormant, not unregistered**, because a server config is not loaded when registries freeze. A dormant tank keeps its sample, its buffer and its overdrive setting and heats nothing, which is D-M8-5's inert-not-destructive contract.
+
 **D-M8-12 — the basic alloys are craftable in other mods' machines.** An alloy qualifies as basic when it takes ingot plus ingot, no catalyst fluid and no fuel material: manyullyn, alumite, rose gold and pig iron. Those get `mod_loaded`-gated recipe JSON for Create's heated mixer, Immersive Engineering's arc furnace and EnderIO's alloy smelter. Alloys that need a catalyst or a fuel stay smeltery-only, because those are the recipes the smeltery is actually for. Nobody should have to build a smeltery to get rose gold if they already run an alloy smelter, and nobody should be able to skip the smeltery for the alloys that are its point.
 
 **D-M8-13 — Forgeweave's molten fluids are Powah thermo generator heat sources.** Registered through Powah's `powah:heat_source` fluid data map: molten magma 1700, brimspar 1900, pyrealloy 2100, and the rest of the ladder in step. The fuel ladder already ranks these fluids by heat; this exposes that ranking to a mod that pays for heat.

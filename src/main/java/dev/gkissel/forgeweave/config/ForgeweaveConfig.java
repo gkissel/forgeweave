@@ -6,6 +6,8 @@ import net.minecraft.resources.ResourceLocation;
 
 import net.neoforged.neoforge.common.ModConfigSpec;
 
+import dev.gkissel.forgeweave.block.EnergizedHeat;
+
 /**
  * Forgeweave's gameplay config (docs/SCOPE.md M3.4-7 issue #276): the subset of upstream 1.12's
  * {@code common/config/Config.java} that has a behavior site here, each keeping upstream's own
@@ -295,6 +297,78 @@ public final class ForgeweaveConfig {
     public static final ModConfigSpec.BooleanValue SLIME_ISLANDS_ONLY_IN_SURFACE_WORLDS;
 
     /**
+     * The energized tank (docs/SCOPE.md M8, D-M8-11; issue #972), the first entry in the new
+     * {@code compat} section D-M8-5 asks for. Off means the block goes inert, not unregistered: it
+     * contributes no heat and its crafting recipe stops resolving, but a tank already standing in a
+     * world still loads and keeps its fuel sample, its energy buffer and its overdrive setting, so
+     * turning the toggle back on restores it intact. A server config is not loaded when registries
+     * freeze, so "does not register" is not a state this toggle could reach; dormant is the same
+     * inert-not-destructive contract the rest of D-M8-5 spells out.
+     */
+    public static final ModConfigSpec.BooleanValue ENERGIZED_TANK;
+
+    /** How much Forge Energy one energized tank's buffer holds (#972). */
+    public static final ModConfigSpec.IntValue ENERGIZED_TANK_BUFFER;
+
+    /**
+     * The {@code rfPerMeltTickBase} of the energized tank's cost, {@code base x temperature /
+     * divisor} per melt tick -- see {@link EnergizedHeat#costPerMeltTick}.
+     */
+    public static final ModConfigSpec.IntValue ENERGIZED_TANK_RF_PER_MELT_TICK_BASE;
+
+    /** The divisor of that same cost (#972). */
+    public static final ModConfigSpec.IntValue ENERGIZED_TANK_TEMPERATURE_DIVISOR;
+
+    /** What overdrive multiplies an energized tank's energy cost per melt tick by (#972). */
+    public static final ModConfigSpec.DoubleValue ENERGIZED_TANK_OVERDRIVE_COST;
+
+    /** What overdrive multiplies the smeltery's melt progress per melt tick by (#972). */
+    public static final ModConfigSpec.DoubleValue ENERGIZED_TANK_OVERDRIVE_PROGRESS;
+
+    /** {@link #ENERGIZED_TANK_BUFFER}'s default: a hair over two minutes of melting at lava's heat. */
+    public static final int ENERGIZED_TANK_BUFFER_DEFAULT = 100_000;
+
+    /** {@link #ENERGIZED_TANK_RF_PER_MELT_TICK_BASE}'s default. */
+    public static final int ENERGIZED_TANK_RF_PER_MELT_TICK_BASE_DEFAULT = 100;
+
+    /** {@link #ENERGIZED_TANK_TEMPERATURE_DIVISOR}'s default. */
+    public static final int ENERGIZED_TANK_TEMPERATURE_DIVISOR_DEFAULT = 1000;
+
+    /** The default for both overdrive factors, so overdrive is neither a discount nor a penalty. */
+    public static final double ENERGIZED_TANK_OVERDRIVE_DEFAULT = 2.0D;
+
+    /**
+     * {@link #ENERGIZED_TANK_BUFFER}, answering with its own default whenever no server has spoken
+     * -- {@link #defaultBaseXp()}'s reasoning, for the same reason: {@code EnergizedHeatTest} and
+     * JEI's own recipe list are both built without a running server.
+     */
+    public static int energizedTankBuffer() {
+        return SPEC.isLoaded() ? ENERGIZED_TANK_BUFFER.get() : ENERGIZED_TANK_BUFFER_DEFAULT;
+    }
+
+    /** @see #energizedTankBuffer() */
+    public static int energizedTankRfPerMeltTickBase() {
+        return SPEC.isLoaded() ? ENERGIZED_TANK_RF_PER_MELT_TICK_BASE.get()
+                : ENERGIZED_TANK_RF_PER_MELT_TICK_BASE_DEFAULT;
+    }
+
+    /** @see #energizedTankBuffer() */
+    public static int energizedTankTemperatureDivisor() {
+        return SPEC.isLoaded() ? ENERGIZED_TANK_TEMPERATURE_DIVISOR.get()
+                : ENERGIZED_TANK_TEMPERATURE_DIVISOR_DEFAULT;
+    }
+
+    /** @see #energizedTankBuffer() */
+    public static double energizedTankOverdriveCost() {
+        return SPEC.isLoaded() ? ENERGIZED_TANK_OVERDRIVE_COST.get() : ENERGIZED_TANK_OVERDRIVE_DEFAULT;
+    }
+
+    /** @see #energizedTankBuffer() */
+    public static double energizedTankOverdriveProgress() {
+        return SPEC.isLoaded() ? ENERGIZED_TANK_OVERDRIVE_PROGRESS.get() : ENERGIZED_TANK_OVERDRIVE_DEFAULT;
+    }
+
+    /**
      * One of the {@code content} flags, answering "on" whenever the spec is not loaded.
      *
      * <p>A {@code SERVER} spec exists only once a world is running, and three of the callers here
@@ -492,6 +566,43 @@ public final class ForgeweaveConfig {
                         "is inverted: it must be set to false to prevent slime islands from generating in",
                         "non-surface dimensions.")
                 .define("slimeIslandsOnlyGenerateInSurfaceWorlds", true);
+        builder.pop();
+
+        // M8 (D-M8-5, D-M8-8): bridges to other mods, each with its own toggle. Appended last so
+        // the sections above keep the order every existing config file on disk already has.
+        builder.comment("Compatibility bridges to other mods. Each bridge has its own toggle, and a",
+                        "bridge that is off goes inert rather than being unregistered: a stack or block",
+                        "that already carries its state keeps it, and turning the toggle back on restores",
+                        "the behaviour with no reload.")
+                .push("compat");
+        ENERGIZED_TANK = builder
+                .comment("If true, the energized tank heats a smeltery to its fuel sample's temperature by",
+                        "burning Forge Energy, and its crafting recipe resolves. With this off the block goes",
+                        "dormant: it contributes no heat and cannot be crafted, but one already placed still",
+                        "loads and keeps its sample, its buffer and its overdrive setting.")
+                .define("energizedTank", true);
+        ENERGIZED_TANK_BUFFER = builder
+                .comment("How much Forge Energy an energized tank's buffer holds.")
+                .defineInRange("energizedTankBuffer", ENERGIZED_TANK_BUFFER_DEFAULT, 1, Integer.MAX_VALUE);
+        ENERGIZED_TANK_RF_PER_MELT_TICK_BASE = builder
+                .comment("An energized tank spends base x temperature / divisor Forge Energy per melt tick, so",
+                        "a hotter fuel sample costs proportionally more. This is the base; a smeltery melt tick",
+                        "runs once every four game ticks.")
+                .defineInRange("energizedTankRfPerMeltTickBase", ENERGIZED_TANK_RF_PER_MELT_TICK_BASE_DEFAULT,
+                        0, Integer.MAX_VALUE);
+        ENERGIZED_TANK_TEMPERATURE_DIVISOR = builder
+                .comment("The divisor in the cost above. At the default of 1000 the base is what one melt tick",
+                        "costs a tank imitating a fuel that burns at 1000 degrees.")
+                .defineInRange("energizedTankTemperatureDivisor", ENERGIZED_TANK_TEMPERATURE_DIVISOR_DEFAULT,
+                        1, Integer.MAX_VALUE);
+        ENERGIZED_TANK_OVERDRIVE_COST = builder
+                .comment("What pressing an energized tank's overdrive button multiplies its energy cost by.")
+                .defineInRange("energizedTankOverdriveCost", ENERGIZED_TANK_OVERDRIVE_DEFAULT, 1.0D, 100.0D);
+        ENERGIZED_TANK_OVERDRIVE_PROGRESS = builder
+                .comment("What pressing an energized tank's overdrive button multiplies the smeltery's melt",
+                        "progress by. Equal to the cost factor means overdrive is neither a discount nor a",
+                        "penalty, only a choice to go faster.")
+                .defineInRange("energizedTankOverdriveProgress", ENERGIZED_TANK_OVERDRIVE_DEFAULT, 1.0D, 100.0D);
         builder.pop();
 
         SPEC = builder.build();

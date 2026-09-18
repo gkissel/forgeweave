@@ -42,6 +42,7 @@ import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.block.ForgeweaveBlocks;
 import dev.gkissel.forgeweave.block.SlimeColour;
 import dev.gkissel.forgeweave.item.ForgeweaveItems;
+import dev.gkissel.forgeweave.recipe.EnergizedTankRecipe;
 import dev.gkissel.forgeweave.recipe.GravelFlintRecipe;
 import dev.gkissel.forgeweave.recipe.MixedSlimeBlockRecipe;
 import dev.gkissel.forgeweave.recipe.MixedSlimeSlingRecipe;
@@ -790,6 +791,11 @@ public class ForgeweaveRecipeProvider extends RecipeProvider {
         ioRecipe(recipeOutput, ForgeweaveItems.SEARED_CHUTE.get(), Tags.Items.INGOTS_COPPER, "has_copper_ingot",
                 "ABA", "   ", "ABA");
 
+        // #972 (M8, D-M8-11) -- the energized tank: a seared tank's ring of bricks around a redstone
+        // block, with a pair of copper ingots for the coil. Original shape; the 1.12 generation has
+        // no energized tank to port a recipe from.
+        energizedTankRecipe(recipeOutput);
+
         tankRecipe(recipeOutput, ForgeweaveItems.SEARED_TANK.get(), "AAA", "ABA", "AAA");
         tankRecipe(recipeOutput, ForgeweaveItems.SEARED_GAUGE.get(), "ABA", "BBB", "ABA");
         tankRecipe(recipeOutput, ForgeweaveItems.SEARED_WINDOW.get(), "ABA", "ABA", "ABA");
@@ -899,6 +905,30 @@ public class ForgeweaveRecipeProvider extends RecipeProvider {
         AdvancementHolder advancement = recipeOutput.advancement()
                 .addCriterion("has_the_recipe", RecipeUnlockedTrigger.unlocked(id))
                 .addCriterion("has_tool_station", has(ForgeweaveItems.TOOL_STATION.get()))
+                .rewards(AdvancementRewards.Builder.recipe(id))
+                .requirements(AdvancementRequirements.Strategy.OR)
+                .build(id.withPrefix("recipes/misc/"));
+        recipeOutput.accept(id, recipe, advancement);
+    }
+
+    /**
+     * The energized tank (#972). Written out rather than going through {@link #ioRecipe} because it
+     * is an {@link EnergizedTankRecipe}, whose only difference from a plain shaped recipe is that its
+     * match reads the {@code energizedTank} toggle -- see that class, and {@link #gravelFlintRecipe}
+     * for the same arrangement on a shapeless one.
+     */
+    private void energizedTankRecipe(RecipeOutput recipeOutput) {
+        ResourceLocation id = BuiltInRegistries.ITEM.getKey(ForgeweaveItems.ENERGIZED_TANK.get());
+        ShapedRecipePattern pattern = ShapedRecipePattern.of(Map.of(
+                        'A', Ingredient.of(ForgeweaveItems.SEARED_BRICK.get()),
+                        'B', Ingredient.of(Items.REDSTONE_BLOCK),
+                        'C', Ingredient.of(Tags.Items.INGOTS_COPPER)),
+                "ACA", "ABA", "ACA");
+        EnergizedTankRecipe recipe = new EnergizedTankRecipe("", CraftingBookCategory.MISC, pattern,
+                new ItemStack(ForgeweaveItems.ENERGIZED_TANK.get()));
+
+        AdvancementHolder advancement = recipeOutput.advancement()
+                .addCriterion("has_seared_brick", has(ForgeweaveItems.SEARED_BRICK.get()))
                 .rewards(AdvancementRewards.Builder.recipe(id))
                 .requirements(AdvancementRequirements.Strategy.OR)
                 .build(id.withPrefix("recipes/misc/"));

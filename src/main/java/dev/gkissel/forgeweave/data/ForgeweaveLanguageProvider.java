@@ -219,6 +219,13 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         addBlock(ForgeweaveBlocks.SEARED_DUCT, "Seared Duct");
         addBlock(ForgeweaveBlocks.SEARED_CHUTE, "Seared Chute");
 
+        // #972 (M8, D-M8-11) -- the energized tank and the three action-bar lines its overdrive
+        // button prints. Original Forgeweave block, so the name is ours rather than a clone's.
+        addBlock(ForgeweaveBlocks.ENERGIZED_TANK, "Energized Tank");
+        add("tooltip.forgeweave.energized_tank.overdrive_on", "Overdrive on: melting faster, energy going quicker");
+        add("tooltip.forgeweave.energized_tank.overdrive_off", "Overdrive off");
+        add("tooltip.forgeweave.energized_tank.disabled", "Energized tanks are switched off on this server");
+
         // #441 (parity audit T9) -- the channel, upstream's tile.tconstruct.channel.name, plus the
         // five action-bar messages its connection cycle prints (upstream's channel.connected.*
         // and channel.connected_down.* keys).
@@ -1628,6 +1635,14 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         // Shown only when the fuel actually outruns lava (SmelteryFuelRecipes#build) -- e.g. blazing
         // blood's headroom over lava is what lets it reach recipes lava alone cannot.
         add("jei.category.forgeweave.smeltery_fuel.vs_lava", "%s° hotter than lava -- reaches recipes lava alone cannot");
+        // #972: the energized tank's own row. Lava is the worked example, so the cost line names the
+        // temperature it was computed at rather than claiming a fixed price.
+        add("jei.category.forgeweave.smeltery_fuel.energized_sample",
+                "An energized tank holds this as a sample and never burns it");
+        add("jei.category.forgeweave.smeltery_fuel.energized_cost",
+                "It burns %s Forge Energy per smeltery cycle at %s°, scaling with the sample");
+        add("jei.category.forgeweave.smeltery_fuel.energized_overdrive",
+                "Overdrive melts faster and costs more per cycle by the same factor");
         add("jei.category.forgeweave.core_transform", "Core Transform");
 
         // #931: entity melting (what a living entity standing in the smeltery melts into), the third
@@ -2387,6 +2402,11 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("book.forgeweave.smeltery.working.title", "Working the Smeltery");
         add("book.forgeweave.smeltery.working.text",
                 "Place ore or metal into the smeltery through its core and it slowly melts down. Different molten metals pool together below; some combinations mix into alloys.\n\nDrain the result through a faucet into a Casting Table holding a cast to shape tool parts and ingots, or into a Casting Basin for full blocks.");
+        // #972 (M8, D-M8-11): the energized tank's page. Original Forgeweave content -- the block
+        // has no upstream counterpart, so nothing here is derived.
+        add("book.forgeweave.smeltery.energized.title", "Heating It With Energy");
+        add("book.forgeweave.smeltery.energized.text",
+                "An Energized Tank set into a wall heats the smeltery without burning anything. Pour in a bucket of any fuel the smeltery accepts and the tank keeps it as a sample: it is never used up, and it simply tells the tank which fuel to imitate. The smeltery then runs at that fuel's temperature.\n\nWhat the tank does burn is Forge Energy, fed in by any cable. A hotter sample costs proportionally more per melt cycle, an empty buffer means no heat at all rather than slow heat, and among several tanks only the hottest one with energy to spend pays anything.\n\nPress the tank with an empty hand for overdrive: melting and spending both double. Look up the tank in the recipe list to read the exact cost.");
 
         // M7-7 (issue #924, epic #917): the leveling chapter. Original Forgeweave content, not a
         // derivation -- upstream ships no guide book and no Ponder scenes for this mechanic.
