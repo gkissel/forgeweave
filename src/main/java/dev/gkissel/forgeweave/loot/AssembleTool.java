@@ -20,6 +20,7 @@ import net.neoforged.neoforge.registries.DeferredHolder;
 import net.neoforged.neoforge.registries.DeferredRegister;
 
 import dev.gkissel.forgeweave.Forgeweave;
+import dev.gkissel.forgeweave.compat.apotheosis.ApotheosisAffixes;
 import dev.gkissel.forgeweave.menu.ToolAssemblyRecipes;
 
 /**
@@ -98,11 +99,18 @@ public class AssembleTool extends LootItemConditionalFunction {
      * material id does not resolve in the loaded datapack. Leaving the stack alone rather than
      * throwing is deliberate: a loot roll is not a place to crash a server over a typo in a pack, and
      * an unassembled tool in a chest is visibly wrong in a way a log line is not.
+     *
+     * <p>{@link ApotheosisAffixes#affixesEnabled()} is the {@code apotheosisAffixes} toggle (#970,
+     * D-M8-5), and this is the only runtime point Forgeweave owns in the affix path -- see that
+     * class for why there is no other. Off leaves the stack bare, which Apotheosis then declines on
+     * its own, since a tool with no parts is {@code apotheosis:none}. Nothing stored is touched
+     * either way, and with Apotheosis absent the toggle never applies, so a Forgeweave-only pack
+     * using this function for its own loot is unaffected by it.
      */
     @Override
     protected ItemStack run(ItemStack stack, LootContext context) {
         Optional<ToolAssemblyRecipes.Entry> entry = ToolAssemblyRecipes.entryFor(stack);
-        if (entry.isEmpty() || materials.isEmpty()) {
+        if (entry.isEmpty() || materials.isEmpty() || !ApotheosisAffixes.affixesEnabled()) {
             return stack;
         }
         ResourceLocation material = materials.get(context.getRandom().nextInt(materials.size()));
