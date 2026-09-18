@@ -1,0 +1,27 @@
+{
+    block: "forgeweave:energized_tank",
+    decoder: "block_entity",
+    expect: {
+        energy: 42000,
+        id: "forgeweave:energized_tank",
+        overdrive: 1b,
+        sample: {
+            Fluid: {
+                amount: 1000,
+                id: "minecraft:lava"
+            }
+        }
+    },
+    nbt: {
+        energy: 42000,
+        id: "forgeweave:energized_tank",
+        overdrive: 1b,
+        sample: {
+            Fluid: {
+                amount: 1000,
+                id: "minecraft:lava"
+            }
+        }
+    },
+    what: "M8 (#972, D-M8-11): an energized tank in the ground with all three of its fields set -- a one-bucket lava fuel sample, 42000 FE in its buffer, and its overdrive button pressed. The format is new in this PR, so `nbt` and `expect` start out identical; the point of pinning it now is that overdrive is a single saved boolean, which is exactly the kind of field a later refactor drops without anyone noticing. The sample is a plain NeoForge `FluidTank` write (`sample.Fluid`), so it shares the shape every other Forgeweave tank fixture uses, and the buffer is a bare int rather than NeoForge's own `EnergyStorage` tag because the tank reads its capacity from config on every query (see `EnergizedTankBlockEntity.Buffer`). The `core` tag a formed smeltery stamps on the tank is deliberately absent: it is re-found by the next scan, so a tank saved before its smeltery formed is the case worth freezing."
+}

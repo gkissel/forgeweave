@@ -624,7 +624,7 @@ class JeiRecipesTest {
         // A stand-in fluid at blazing blood's real 1500-degree temperature over lava's 1300.
         fuels.put(id("blazing_blood"), new SmelteryFuel(Fluids.WATER, 50, 100, 1500));
 
-        List<SmelteryFuelDisplay> displays = SmelteryFuelRecipes.build(fuels);
+        List<SmelteryFuelDisplay> displays = SmelteryFuelRecipes.build(fuels, false);
 
         assertEquals(2, displays.size());
         SmelteryFuelDisplay lava = displays.stream().filter(d -> d.fluid() == Fluids.LAVA).findFirst().orElseThrow();
@@ -639,7 +639,7 @@ class JeiRecipesTest {
         fuels.put(id("lava"), new SmelteryFuel(Fluids.LAVA, 50, 100, 1300));
         fuels.put(id("cool_fuel"), new SmelteryFuel(Fluids.WATER, 50, 100, 1300));
 
-        List<SmelteryFuelDisplay> displays = SmelteryFuelRecipes.build(fuels);
+        List<SmelteryFuelDisplay> displays = SmelteryFuelRecipes.build(fuels, false);
 
         SmelteryFuelDisplay cool = displays.stream().filter(d -> d.fluid() == Fluids.WATER).findFirst().orElseThrow();
         assertEquals(0, cool.hotterThanLavaBy(), "no hotter than lava -- no note");
@@ -651,7 +651,7 @@ class JeiRecipesTest {
         Map<ResourceLocation, SmelteryFuel> fuels = Map.of(id("hot_fuel"),
                 new SmelteryFuel(Fluids.WATER, 50, 100, Fluids.LAVA.getFluidType().getTemperature() + 500));
 
-        List<SmelteryFuelDisplay> displays = SmelteryFuelRecipes.build(fuels);
+        List<SmelteryFuelDisplay> displays = SmelteryFuelRecipes.build(fuels, false);
 
         assertEquals(1, displays.size());
         assertEquals(500, displays.get(0).hotterThanLavaBy());

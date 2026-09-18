@@ -25,6 +25,7 @@ import dev.gkissel.forgeweave.block.CastingBlockEntity;
 import dev.gkissel.forgeweave.block.ChestBlockEntity;
 import dev.gkissel.forgeweave.block.ForgeweaveBlockEntities;
 import dev.gkissel.forgeweave.block.ForgeweaveBlocks;
+import dev.gkissel.forgeweave.block.EnergizedTankBlockEntity;
 import dev.gkissel.forgeweave.block.SearedChannelBlockEntity;
 import dev.gkissel.forgeweave.block.SearedChuteBlockEntity;
 import dev.gkissel.forgeweave.block.SearedDrainBlockEntity;
@@ -152,6 +153,9 @@ public class Forgeweave {
         modEventBus.addListener(SearedChuteBlockEntity::registerCapabilities);
         // #441 (parity audit T9) -- a channel takes fluid on its top and on any side set to `in`.
         modEventBus.addListener(SearedChannelBlockEntity::registerCapabilities);
+        // #972 (M8, D-M8-11) -- the energized tank takes Forge Energy from any mod's cable and its
+        // fuel sample from any mod's fluid pipe.
+        modEventBus.addListener(EnergizedTankBlockEntity::registerCapabilities);
         // #470 -- the core itself also exposes its melting inventory directly, so a hopper feeding it
         // (no chute required) works the way upstream's Mantle-derived TileInventory always did.
         modEventBus.addListener(SmelteryControllerBlockEntity::registerCapabilities);
