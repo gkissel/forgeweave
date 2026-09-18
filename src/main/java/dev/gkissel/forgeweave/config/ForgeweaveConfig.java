@@ -543,9 +543,13 @@ public final class ForgeweaveConfig {
      * query items before that (Replication calls {@code getResultItem} on every recipe from a
      * resource reload listener), and a raw {@code .get()} there throws and takes the client down.
      * {@code ConfigReadAuditTest} fails the build on a new raw read.
+     *
+     * <p>Takes an option from any of the four specs, which is why the guard is {@link #loaded()}
+     * rather than one file's own {@code isLoaded()}: this method cannot tell which file the value it
+     * was handed came from, and the all-four probe is right for every one of them.
      */
     public static <T> T read(ModConfigSpec.ConfigValue<T> value) {
-        return SPEC.isLoaded() ? value.get() : value.getDefault();
+        return loaded() ? value.get() : value.getDefault();
     }
 
     /**
