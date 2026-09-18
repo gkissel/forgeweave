@@ -58,7 +58,9 @@ import dev.gkissel.forgeweave.trackb.TrackBOre;
  * originally shipped it as five blank+wooden-tool/stick shapeless recipes here, but the maintainer
  * decision for #44 replaces them with the Stencil Table's GUI (select a pattern, one-way consuming
  * the blank -- {@code StencilTableMenu}), matching upstream 1.12's real stencil-shaping flow instead
- * of a vanilla-table stand-in. The Stencil Table is now the only conversion path.
+ * of a vanilla-table stand-in. The Stencil Table is now the only conversion path -- except for the
+ * war mace head pattern (issue #989), which the Stencil Table's own {@code PATTERNS} list omits on
+ * purpose and which this class stamps instead, gated behind a vanilla Heavy Core.
  */
 public class ForgeweaveRecipeProvider extends RecipeProvider {
     public ForgeweaveRecipeProvider(PackOutput output, CompletableFuture<HolderLookup.Provider> registries) {
@@ -189,6 +191,19 @@ public class ForgeweaveRecipeProvider extends RecipeProvider {
         // Stencil Table (docs/SCOPE.md M1 issue #44): upstream 1.12's real stencil_table.json recipe
         // is "blank pattern + #STENCIL_TABLE" where that tag resolves to plankWood (NOTICE.md).
         retexturedTableRecipe(recipeOutput, ForgeweaveItems.STENCIL_TABLE.get(), ForgeweaveItems.PATTERN_BLANK.get(), Ingredient.of(ItemTags.PLANKS));
+
+        // War mace head pattern (issue #989, maintainer directive 2026-09-07): the one part pattern
+        // the Stencil Table's own PATTERNS list (StencilTableMenu) deliberately does not offer -- a
+        // blank pattern alone stamps nothing for this part. Instead it is this plain vanilla-table
+        // shapeless recipe, gated behind a vanilla Heavy Core (the mace component from trial
+        // chambers), so a player's first war mace head part always follows finding one. The issue is
+        // silent on whether the core survives the craft; it is consumed here, like every other
+        // ingredient in every other recipe in this class.
+        ShapelessRecipeBuilder.shapeless(RecipeCategory.MISC, ForgeweaveItems.PATTERN_WAR_MACE_HEAD.get())
+                .requires(ForgeweaveItems.PATTERN_BLANK.get())
+                .requires(Items.HEAVY_CORE)
+                .unlockedBy("has_heavy_core", has(Items.HEAVY_CORE))
+                .save(recipeOutput);
 
         // 3 gravel -> 1 flint (parity audit T55, issue #486): upstream's recipes/common/flint.json,
         // gated by addFlintRecipe -- see GravelFlintRecipe's javadoc for why the gate is a match-time

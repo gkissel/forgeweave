@@ -308,15 +308,15 @@ public final class ModifierApplication {
         return Outcome.applied(modified(tool, recipe.modifier(), recipe.maxLevel()), Arrays.stream(used).boxed().toList());
     }
 
-    /** {@link Modifier#heavyChestplateOnly}'s gate: a {@code #735} heavy piece in the chestplate slot specifically. */
-    private static boolean isHeavyChestplate(ItemStack tool) {
-        return tool.getItem() instanceof ArmorPieceItem armor && armor.isHeavy()
-                && armor.getType() == ArmorItem.Type.CHESTPLATE;
+    /** {@link Modifier#chestplateOnly}'s gate: a chestplate slot specifically, heavy or light alike (issue #1005). */
+    private static boolean isChestplate(ItemStack tool) {
+        return tool.getItem() instanceof ArmorPieceItem armor && armor.getType() == ArmorItem.Type.CHESTPLATE;
     }
 
     /**
      * {@link Modifier#helmetOnly}'s gate (issue #1007) -- any helmet-slot {@code ArmorPieceItem},
-     * heavy or light alike, unlike {@link #isHeavyChestplate}'s heavy-only check above.
+     * heavy or light alike, the same weight-blind shape {@link #isChestplate} above has had since
+     * #1005.
      */
     private static boolean isHelmet(ItemStack tool) {
         return tool.getItem() instanceof ArmorPieceItem armor && armor.getType() == ArmorItem.Type.HELMET;
@@ -380,12 +380,13 @@ public final class ModifierApplication {
             return false;
         }
         // Issue #737: elytra flight / creative flight -- narrower than armorOnly above, gating on the
-        // specific worn slot (a runtime item property) rather than the whole ARMOR category.
-        if (modifier.heavyChestplateOnly() && !isHeavyChestplate(tool)) {
+        // specific worn slot (a runtime item property) rather than the whole ARMOR category. Issue
+        // #1005: weight no longer matters here, only the slot.
+        if (modifier.chestplateOnly() && !isChestplate(tool)) {
             return false;
         }
-        // Issue #1007: Create's goggles -- the same worn-slot narrowing as heavyChestplateOnly above,
-        // but on either helmet item.
+        // Issue #1007: Create's goggles -- the same worn-slot narrowing as chestplateOnly above, but
+        // on either helmet item.
         if (modifier.helmetOnly() && !isHelmet(tool)) {
             return false;
         }

@@ -135,25 +135,25 @@ public interface Modifier {
     }
 
     /**
-     * Whether this modifier may only be applied to a worn <b>heavy</b> chestplate (issue #737, epic
-     * #730 slice 2) -- narrower than {@link #armorOnly}: elytra flight and creative flight are
-     * refused on every other armor slot <em>and</em> on the plain plate chestplate (#735's heavy set
-     * is a separate item, {@code ArmorPieceItem#isHeavy}). Checked by {@code ModifierApplication}
-     * off the tool item itself ({@code ArmorPieceItem#isHeavy} plus {@code ArmorItem#getType}) rather
-     * than the {@code ToolConstants.Category} {@link #armorOnly} reads, since "heavy" and "which
-     * slot" are both runtime item properties, not a tool category.
+     * Whether this modifier may only be applied to a worn chestplate, heavy or light alike (issue
+     * #737, epic #730 slice 2; widened to every weight by issue #1005) -- narrower than
+     * {@link #armorOnly}: elytra flight and creative flight are refused on every other armor slot.
+     * Before #1005 this also required {@code ArmorPieceItem#isHeavy}; the maintainer directive
+     * dropped that half of the gate so the modifier only cares which slot the piece occupies, not
+     * its weight. Checked by {@code ModifierApplication} off the tool item itself
+     * ({@code ArmorItem#getType}) rather than the {@code ToolConstants.Category} {@link #armorOnly}
+     * reads, since "which slot" is a runtime item property, not a tool category.
      */
-    default boolean heavyChestplateOnly() {
+    default boolean chestplateOnly() {
         return false;
     }
 
     /**
      * Whether this modifier may only be applied to a worn helmet, heavy or light alike (issue #1007:
      * Create's goggles, the first slot-free utility) -- narrower than {@link #armorOnly} the same way
-     * {@link #heavyChestplateOnly} is, but on {@code ArmorItem.Type.HELMET} regardless of
-     * {@code ArmorPieceItem#isHeavy}, since the goggles overlay makes no distinction between the two
-     * sets. Checked by {@code ModifierApplication} off the tool item itself, next to the chestplate
-     * gate above.
+     * {@link #chestplateOnly} is, on {@code ArmorItem.Type.HELMET} rather than {@code CHESTPLATE},
+     * and caring no more about weight than that gate does since #1005. Checked by
+     * {@code ModifierApplication} off the tool item itself, next to the chestplate gate above.
      */
     default boolean helmetOnly() {
         return false;
@@ -171,10 +171,11 @@ public interface Modifier {
     }
 
     /**
-     * Whether this modifier grants creative-style flight while the full heavy set (#735) is worn
-     * (issue #737) -- read by {@code CreativeFlightHandler}'s per-player tick rather than an Item
-     * hook, since unlike {@link #grantsElytraFlight} the grant depends on all four equipment slots at
-     * once, not just the piece carrying the modifier.
+     * Whether this modifier grants creative-style flight while a full set of armor is worn (issue
+     * #737; any weight since #1005, mixed heavy and light included) -- read by
+     * {@code CreativeFlightHandler}'s per-player tick rather than an Item hook, since unlike
+     * {@link #grantsElytraFlight} the grant depends on all four equipment slots at once, not just the
+     * piece carrying the modifier.
      */
     default boolean grantsCreativeFlight(int level) {
         return false;
