@@ -373,6 +373,15 @@ public final class ForgeweaveConfig {
      */
     public static final ModConfigSpec.BooleanValue POWAH_MODIFIERS;
 
+    /**
+     * Issue #997 (D-M8-18). Covers the Occultism ritual recipe type and the crushing and miner rows,
+     * never the iesnium, silver or spirit attuned gem presets: D-M8-5 keeps Track A material presets
+     * off every toggle, so all three stay active whenever Occultism's own item exists.
+     *
+     * @see #DRACONIC_FUSION
+     */
+    public static final ModConfigSpec.BooleanValue OCCULTISM_RITUALS;
+
     /** The fraction of the tool's trait-derived FE capacity {@code surgebound} adds per level (I-IV). */
     public static final ModConfigSpec.DoubleValue SURGEBOUND_CAPACITY_PER_LEVEL;
     /** The fraction of the tool's base mining speed {@code surgebound} adds per level (I-IV). */
@@ -911,6 +920,14 @@ public final class ForgeweaveConfig {
                         "instead of adding a fifth flat step.")
                 .defineInRange("surgeboundNitroMiningSpeedMultiplier",
                         SURGEBOUND_NITRO_MINING_SPEED_MULTIPLIER_DEFAULT, 0.0D, 100.0D);
+        // Issue #997 (D-M8-18): the Occultism ritual ladder, the crushing rows and the miner rows.
+        OCCULTISM_RITUALS = builder
+                .comment("If true, Forgeweave's Occultism integration works: a ritual binds a spirit into a",
+                        "tool and grants it that ritual's modifier, Occultism's crusher spirits grind",
+                        "Forgeweave ores, and its mining spirits can return them. With this off the ritual",
+                        "recipe type is not registered and none of the three sets of rows load. A tool that",
+                        "already carries a ritual's modifier keeps it and keeps its effect.")
+                .define("occultismRituals", true);
         // #970 (M8-2, D-M8-5), the second and third Apotheosis toggles. Appended rather than grouped
         // beside apotheosisSockets above, so a compat-server.toml written by an earlier build keeps
         // the key order it already has. Both are read through ApotheosisAffixes and nowhere else.
