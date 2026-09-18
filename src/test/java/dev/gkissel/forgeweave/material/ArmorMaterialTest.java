@@ -118,7 +118,12 @@ class ArmorMaterialTest {
             // tool-only (no plating/maille block, see generate_elementarium_materials.py) and are
             // deliberately absent from both sets below.
             Stream.of("allthemodium", "vibranium", "unobtainium", "unobtainium_allthemodium_alloy",
-                    "unobtainium_vibranium_alloy", "vibranium_allthemodium_alloy"))
+                    "unobtainium_vibranium_alloy", "vibranium_allthemodium_alloy"),
+            // #999 (D-M8-20): Mystical Agriculture's own metals, full plating + maille like every
+            // other Track A metal. Armour matters more than usual here -- the augment seam covers
+            // armour as well as tools, so essence gear has to be buildable in the first place.
+            Stream.of("inferium", "prudentium", "tertium", "imperium", "supremium",
+                    "awakened_supremium", "prosperity", "soulium", "insanium"))
             .flatMap(java.util.function.Function.identity())
             .collect(java.util.stream.Collectors.toSet());
 

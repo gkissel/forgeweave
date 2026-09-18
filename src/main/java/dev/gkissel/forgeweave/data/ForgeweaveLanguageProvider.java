@@ -13,6 +13,8 @@ import net.neoforged.neoforge.common.data.LanguageProvider;
 
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.block.ForgeweaveBlocks;
+// Issue #999: the crop roster, whose own class names no Mystical Agriculture type -- see its javadoc.
+import dev.gkissel.forgeweave.compat.mysticalagriculture.ForgeweaveCrop;
 import dev.gkissel.forgeweave.block.SearedFurnaceScan;
 import dev.gkissel.forgeweave.block.SearedReservoirScan;
 import dev.gkissel.forgeweave.block.SlimeColour;
@@ -1111,6 +1113,17 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         // Issue #996 (D-M8-17): the four Powah crystals #837/#872 left unshippable (no per-material
         // c: tag; see MaterialTest#noShippedMaterialConditionsOnPowahsUntaggedCrystals's old guard),
         // unblocked the same way #872 unblocked energised_steel -- a concrete item id.
+        // Issue #999 (D-M8-20): Mystical Agriculture's own metals. Insanium is Mystical Agradditions'
+        // rung above the ladder and gates on that mod rather than on Mystical Agriculture.
+        add("material.forgeweave.inferium", "Inferium");
+        add("material.forgeweave.prudentium", "Prudentium");
+        add("material.forgeweave.tertium", "Tertium");
+        add("material.forgeweave.imperium", "Imperium");
+        add("material.forgeweave.supremium", "Supremium");
+        add("material.forgeweave.awakened_supremium", "Awakened Supremium");
+        add("material.forgeweave.prosperity", "Prosperity");
+        add("material.forgeweave.soulium", "Soulium");
+        add("material.forgeweave.insanium", "Insanium");
         add("material.forgeweave.blazing_crystal", "Blazing Crystal");
         add("material.forgeweave.niotic_crystal", "Niotic Crystal");
         add("material.forgeweave.spirited_crystal", "Spirited Crystal");
@@ -2013,6 +2026,15 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
             }
         }
 
+        // #999 (D-M8-20) -- the crop names Mystical Agriculture asks for. `crop.<modid>.<name>` is
+        // Mystical Agriculture's own default key for a crop's display name (Crop#getDisplayName), and
+        // its auto-registered flower, essence and seed items all compose their own names from it, so
+        // these twelve lines are the whole localisation surface of the crop half. Walked off the
+        // roster rather than listed, like every loop above.
+        for (ForgeweaveCrop crop : ForgeweaveCrop.ALL) {
+            add("crop." + Forgeweave.MODID + "." + crop.id(), crop.displayName());
+        }
+
         // #840 -- Track B's 18 alloy tool materials: same naming-scaffold-id-title-cased convention,
         // alloy-only so ingot/nugget/"Block of <Name>" only, no raw form.
         for (TrackBAlloy alloy : TrackBAlloy.ALL) {
@@ -2522,6 +2544,11 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("book.forgeweave.modifiers.intro.title", "Modifiers");
         add("book.forgeweave.modifiers.intro.text",
                 "A finished tool is never truly finished. At the Tool Station or Tool Forge, sacrifice items to imbue a tool with modifiers. Each tool starts with a limited number of free slots, and some modifiers can be applied repeatedly for a stronger effect.\n\nThe pages that follow list every modifier known to this workshop.");
+        // Issue #999 (D-M8-20): the augment path needs its own page because nothing else in the book
+        // sends a player to another mod's station with Forgeweave gear in hand.
+        add("book.forgeweave.modifiers.augments.title", "Augments");
+        add("book.forgeweave.modifiers.augments.text",
+                "Mystical Agriculture grows essence metals, and gear with a part made from one of them is accepted by that mod's own Tinkering Table. To fit an augment, carry the tool or armor piece there rather than to a Tool Station.\n\nAn augment slot is not a modifier slot. The two are separate pools, so an augment never spends a modifier slot and a modifier never spends an augment slot. Essence gear carries one augment slot, or two from awakened supremium upward.\n\nWhere a modifier and an augment raise the same number, the two add together.");
         // #970 (M8, D-M8-1): the two pages the #974 book audit asked for -- what an affix is on
         // Forgeweave gear, and what decides whether a tool can be enchanted. Original Forgeweave
         // content; upstream ships neither mechanic and no guide book page for either.
