@@ -60,6 +60,7 @@ import dev.gkissel.forgeweave.item.SavedBookPagePayload;
 import dev.gkissel.forgeweave.item.SlimeBootsItem;
 import dev.gkissel.forgeweave.item.SlimeBounceHandler;
 import dev.gkissel.forgeweave.item.ToolItem;
+import dev.gkissel.forgeweave.loot.AssembleTool; // #970
 import dev.gkissel.forgeweave.material.Material;
 import dev.gkissel.forgeweave.menu.ForgeweaveMenus;
 import dev.gkissel.forgeweave.menu.RenameStationItemPayload;
@@ -112,6 +113,10 @@ public class Forgeweave {
         ForgeweaveEntities.ENTITY_TYPES.register(modEventBus);
         ForgeweaveMenus.MENUS.register(modEventBus);
         ForgeweaveCreativeTab.TABS.register(modEventBus);
+        // #970 -- forgeweave:assemble_tool, the loot function that gives a looted tool its parts
+        // (docs/SCOPE.md M8, D-M8-1). Registered unconditionally: it names nothing from any compat
+        // mod, and what it is for -- an affixable assembled tool in a chest -- is a pack's call.
+        AssembleTool.LOOT_FUNCTIONS.register(modEventBus);
         // #276 -- the config-aware vein count the Nether ores' placed features use.
         NetherOrePlacement.PLACEMENT_MODIFIERS.register(modEventBus);
         // #839 -- the grouped config-aware vein count Track B's ore family uses (M6 epic #824).

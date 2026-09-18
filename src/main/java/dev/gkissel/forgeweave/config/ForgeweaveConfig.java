@@ -397,14 +397,14 @@ public final class ForgeweaveConfig {
      * presets: D-M8-5 is explicit that Track A presets are never toggled, so prosperity, soulium,
      * the essence ladder and insanium stay active whenever their own item exists.
      *
-     * <p>Unlike every other flag in this section, this one is read <b>at registration</b> as well as
-     * at the point the integration answers, because the augment seam decides which class a Forgeweave
-     * tool or armour piece is registered as and an item's class cannot change while the game runs.
-     * Flipping it therefore needs a restart to take effect on that half; the crop half and the
-     * runtime augment-tier queries honour it immediately. A stack whose item was registered as the
-     * augment-carrying subclass keeps Mystical Agriculture's own augment component untouched when it
-     * comes back as the plain item -- Forgeweave neither copies nor migrates that data, the rule JC-D
-     * set for Apotheosis affixes.
+     * <p>Read at the point the integration answers, like every other flag here, even though what the
+     * integration does is decide a class: {@code compat.CompatItems} branches on whether Mystical
+     * Agriculture is <em>installed</em>, which is a load-time fact a {@code SERVER} spec cannot
+     * contribute to (#1024), and this flag then zeroes the augment slot count and the tinkerable tier
+     * the registered item reports. Off is therefore inert and needs no restart: nothing can be
+     * installed, nothing installed grants anything, and Mystical Agriculture's own augment component
+     * stays exactly where it is -- Forgeweave neither copies nor migrates that data, the rule JC-D set
+     * for Apotheosis affixes.
      *
      * @see #DRACONIC_FUSION
      */
@@ -466,6 +466,26 @@ public final class ForgeweaveConfig {
      * inert-not-destructive contract the rest of D-M8-5 spells out.
      */
     public static final ModConfigSpec.BooleanValue ENERGIZED_TANK;
+
+    /**
+     * Apotheosis loot affixes on Forgeweave gear (D-M8-5; issue #970), read through
+     * {@code ApotheosisAffixes.affixesEnabled()} and nowhere else. Affixability itself is Apotheosis'
+     * own predicate walk over the item, with no seam a mod can veto at runtime, so what this reaches
+     * is the one runtime point Forgeweave owns: off, no loot roll assembles a Forgeweave tool, and a
+     * tool with no parts is a category Apotheosis declines. Nothing stored is touched either way --
+     * Forgeweave never reads, copies or writes affix state (JC-D), so a tool that already carries it
+     * keeps every component with the toggle in either position.
+     */
+    public static final ModConfigSpec.BooleanValue APOTHEOSIS_AFFIXES;
+
+    /**
+     * Apotheosis enchanting on Forgeweave gear (D-M8-5; issue #970). This does <em>not</em> replace
+     * {@code allowVanillaEnchanting}: enchanting needs both, and the gameplay flag stays exactly what
+     * it was. Off refuses Forgeweave gear at the enchanting table and the anvil the same way
+     * {@code allowVanillaEnchanting = false} refuses it, stripping nothing -- an already enchanted
+     * tool keeps its enchantments and keeps applying them.
+     */
+    public static final ModConfigSpec.BooleanValue APOTHEOSIS_ENCHANTING;
 
     /** How much Forge Energy one energized tank's buffer holds (#972). */
     public static final ModConfigSpec.IntValue ENERGIZED_TANK_BUFFER;
@@ -856,19 +876,41 @@ public final class ForgeweaveConfig {
                         "instead of adding a fifth flat step.")
                 .defineInRange("surgeboundNitroMiningSpeedMultiplier",
                         SURGEBOUND_NITRO_MINING_SPEED_MULTIPLIER_DEFAULT, 0.0D, 100.0D);
-        // Issue #999 (D-M8-20): the one flag in this section whose off path changes what gets
-        // registered, hence the restart sentence in its comment.
+        // #970 (M8-2, D-M8-5), the second and third Apotheosis toggles. Appended rather than grouped
+        // beside apotheosisSockets above, so a compat-server.toml written by an earlier build keeps
+        // the key order it already has. Both are read through ApotheosisAffixes and nowhere else.
+        APOTHEOSIS_AFFIXES = builder
+                .comment("If true, Forgeweave tools and armor that a loot table hands out arrive assembled, which",
+                        "is what makes them eligible for Apotheosis loot affixes: an unassembled tool is a",
+                        "category Apotheosis declines. Apotheosis decides affixability by its own predicate over",
+                        "the item and offers no seam a mod can veto at runtime, so this is the only part of that",
+                        "path Forgeweave owns. Off never discards anything: Forgeweave neither reads nor writes",
+                        "affix state, so a tool already carrying affixes keeps every component either way. Has no",
+                        "effect at all without Apotheosis installed.")
+                .define("apotheosisAffixes", true);
+        APOTHEOSIS_ENCHANTING = builder
+                .comment("If true, Forgeweave gear may be enchanted at Apotheosis' enchanting table. This does not",
+                        "replace allowVanillaEnchanting: enchanting needs both, and with either one off the table",
+                        "and the anvil refuse the item. Nothing is stripped when it is off, and an already",
+                        "enchanted tool keeps its enchantments and keeps applying them. An enchantment never costs",
+                        "a modifier slot. Has no effect without Apothic Enchanting installed, which is the mod",
+                        "that owns the table.")
+                .define("apotheosisEnchanting", true);
+        // Issue #999 (D-M8-20). Appended for the same key-order reason the two above are.
         MYSTICAL_AGRICULTURE_AUGMENTS = builder
                 .comment("If true, Forgeweave works with Mystical Agriculture: the Track B ores and brimspar",
                         "get resource crops, and gear built from a Mystical Agriculture essence metal is",
                         "accepted by Mystical Agriculture's own Tinkering Table so augments can be installed.",
                         "",
-                        "This one takes effect when items are registered, so changing it needs a restart. With",
-                        "it off Forgeweave registers the plain tool and armour items, which the Tinkering Table",
-                        "does not accept, and registers no crops. Nothing is lost either way: augment data is",
-                        "Mystical Agriculture's own, and a stack that already carries it keeps it untouched",
-                        "while the plain item holds it. Turn this back on, restart, and the same stack is",
-                        "augmentable again. The material presets are unaffected: they are never toggled.")
+                        "Off makes the augment seam inert rather than absent: a Forgeweave tool still goes into",
+                        "the Tinkering Table's first slot, but it offers no augment slot, so nothing can be",
+                        "installed and nothing already installed does anything. Augment data is Mystical",
+                        "Agriculture's own and Forgeweave neither copies nor clears it, so a stack that already",
+                        "carries some keeps it and works again the moment this comes back. No restart needed.",
+                        "",
+                        "Whether the crops exist is decided when registries freeze, so adding or removing",
+                        "Mystical Agriculture itself needs a restart -- installing a mod always does. The",
+                        "material presets are unaffected either way: they are never toggled.")
                 .define("mysticalAgricultureAugments", true);
         builder.pop();
         COMPAT_SPEC = builder.build();

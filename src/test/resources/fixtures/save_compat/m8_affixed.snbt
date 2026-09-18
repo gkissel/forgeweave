@@ -1,0 +1,69 @@
+{
+    decoder: "item_stack",
+    expect: {
+        components: {
+            "forgeweave:modifiers": [
+                {
+                    id: "forgeweave:reinforced",
+                    level: 1
+                }
+            ],
+            "forgeweave:tool_materials": {
+                binding: "forgeweave:wood",
+                handle: "forgeweave:wood",
+                head: "forgeweave:iron"
+            },
+            "forgeweave:tool_stats": {
+                attack_damage: 3.5f,
+                durability: 250,
+                mining_speed: 6.0f
+            },
+            "forgeweave:traits": [],
+            "minecraft:custom_data": {
+                "apotheosis:affixes": {
+                    "apotheosis:cleaving": 0.62f,
+                    "apotheosis:sundering": 0.31f
+                },
+                "apotheosis:affix_name": "Cleaving Pickaxe of Sundering",
+                "apotheosis:rarity": "apotheosis:rare"
+            },
+            "minecraft:damage": 0,
+            "minecraft:max_damage": 250
+        },
+        id: "forgeweave:pickaxe"
+    },
+    nbt: {
+        components: {
+            "forgeweave:modifiers": [
+                {
+                    id: "forgeweave:reinforced",
+                    level: 1
+                }
+            ],
+            "forgeweave:tool_materials": {
+                binding: "forgeweave:wood",
+                handle: "forgeweave:wood",
+                head: "forgeweave:iron"
+            },
+            "forgeweave:tool_stats": {
+                attack_damage: 3.5f,
+                durability: 250,
+                mining_speed: 6.0f
+            },
+            "forgeweave:traits": [],
+            "minecraft:custom_data": {
+                "apotheosis:affixes": {
+                    "apotheosis:cleaving": 0.62f,
+                    "apotheosis:sundering": 0.31f
+                },
+                "apotheosis:affix_name": "Cleaving Pickaxe of Sundering",
+                "apotheosis:rarity": "apotheosis:rare"
+            },
+            "minecraft:damage": 0,
+            "minecraft:max_damage": 250
+        },
+        count: 1,
+        id: "forgeweave:pickaxe"
+    },
+    what: "#970 (JC-D): an all-iron pickaxe carrying one Forgeweave modifier and a block of foreign state alongside it, pinning that Forgeweave's decode neither drops the foreign half nor lets it displace its own. The foreign block sits under minecraft:custom_data rather than on Apotheosis' real forgeweave:affixes-shaped component types for the same reason m8_socketed.snbt uses minecraft:diamond for its gems: Apotheosis is compileOnly, so its DataComponentTypes are not in any registry a unit test can reach, and ItemStack.CODEC refuses a component type it cannot resolve. Its keys and shape mirror the three components Apotheosis 8.7.0 actually writes (affixes, rarity, affix_name), so what the fixture pins is the rule -- Forgeweave owns its own components and carries everything else through untouched -- rather than Apotheosis' serialization, which is Apotheosis' to change."
+}

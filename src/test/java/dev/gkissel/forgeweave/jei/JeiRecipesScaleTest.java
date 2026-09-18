@@ -193,7 +193,7 @@ class JeiRecipesScaleTest {
         assertEquals(7, recipes.size(),
                 "blaze + emerald_mobs + iron_golem + large_overworld_mobs + small_overworld_mobs + snow_golem + warden");
 
-        List<EntityMeltingDisplay> displays = EntityMeltingRecipes.build(recipes);
+        List<EntityMeltingDisplay> displays = EntityMeltingRecipes.build(recipes, List.of());
         assertEquals(8, displays.size(), "one row per recipe, plus EntityMeltingRecipe#defaultResult's own row");
         assertEquals(1, displays.stream().filter(EntityMeltingDisplay::defaultRow).count(),
                 "exactly one row must be the default-rule row");
