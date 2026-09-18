@@ -3,6 +3,7 @@ package dev.gkissel.forgeweave.modifier;
 import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -47,6 +48,7 @@ import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 
 import net.neoforged.neoforge.common.util.TriState;
+import net.neoforged.neoforge.event.TagsUpdatedEvent;
 import net.neoforged.neoforge.event.entity.living.LivingDropsEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
@@ -1809,11 +1811,73 @@ public final class ForgeweaveModifiers {
             return Fortification.BEHAVIOR; // #271: likewise generated per-material.
         }
         Modifier modifier = REGISTRY.get(id);
+        if (modifier == null) {
+            modifier = datapackModifier(id); // #973: the second source, below.
+        }
         if (modifier == null && WARNED_UNKNOWN.add(id)) {
             LOGGER.warn("Unknown modifier '{}' on a tool; keeping it as inert data so it works again if a "
                     + "later version implements it (ADR-0004).", id);
         }
         return modifier;
+    }
+
+    // ---------------------------------------------------------------- the datapack source
+    // (issue #973, ADR-0004 item 3): forgeweave:modifier_definition, the modifier-side twin of
+    // #832's trait_definition. Same three rules: a built-in id wins a collision, the loaded
+    // registry is snapshotted on every data load and sync, and the config toggle is read at lookup
+    // rather than at registration.
+
+    /** The loaded {@code modifier_definition} registry, re-snapshotted on every data load/sync. */
+    private static volatile Map<ResourceLocation, Modifier> DATAPACK = Map.of();
+
+    /**
+     * A pack-defined modifier's behavior, or {@code null} when nothing defines {@code id} -- or when
+     * {@code compat.modifierDefinitions} is off.
+     *
+     * <p>The toggle is read here, not where the registry is filled, for {@code
+     * ForgeweaveTraits#lookup}'s reason (#968): a {@code SERVER} config does not exist yet when
+     * datapack registries load and sync, so the load site cannot read it at all. Reading at lookup
+     * gives the same player-visible result -- a pack-defined id behaves as if no source implemented
+     * it, which is what an unknown id already does -- and nothing on a stack changes either way, so
+     * the entry keeps its id and its level and works again the moment the toggle returns, with no
+     * reload. That is D-M8-5's inert-not-destructive contract.
+     *
+     * <p>Issue #995 pinned down exactly when a SERVER config becomes available ({@code
+     * ForgeweaveConfigCondition}'s javadoc: not until {@code handleServerAboutToStart}, which is
+     * after the first datapack load). That is the same fact this lookup rests on, from the other
+     * side: every caller of {@link #get} is a tooltip, a stat fold, a station application or a combat
+     * hook on a running game, all of them long after the config exists, so this read needs none of
+     * #995's read-the-TOML-from-disk machinery. {@link #onTagsUpdated}, which does run during that
+     * early load, only fills the map and never reads the toggle.
+     */
+    @Nullable
+    private static Modifier datapackModifier(ResourceLocation id) {
+        return ForgeweaveConfig.enabled(ForgeweaveConfig.MODIFIER_DEFINITIONS) ? DATAPACK.get(id) : null;
+    }
+
+    /**
+     * Registered on the game event bus in {@code Forgeweave}: fires on the server after every data
+     * load ({@code /reload} included) and on the client once the synced registries arrive, which are
+     * exactly the two moments the {@link ModifierDefinition} registry can change. A datapack id
+     * colliding with a built-in one is logged and ignored -- the built-in wins, per issue #973.
+     */
+    public static void onTagsUpdated(TagsUpdatedEvent event) {
+        Map<ResourceLocation, Modifier> loaded = new LinkedHashMap<>();
+        event.getRegistryAccess().registry(ModifierDefinition.REGISTRY).ifPresent(registry -> registry.entrySet()
+                .forEach(entry -> {
+                    ResourceLocation id = entry.getKey().location();
+                    if (REGISTRY.containsKey(id)) {
+                        LOGGER.warn("Datapack modifier definition '{}' names a built-in Forgeweave modifier; the "
+                                + "built-in behavior wins and the definition is ignored (issue #973).", id);
+                    } else {
+                        loaded.put(id, entry.getValue().modifier());
+                    }
+                }));
+        DATAPACK = Map.copyOf(loaded);
+        WARNED_UNKNOWN.clear();
+        if (!loaded.isEmpty()) {
+            LOGGER.info("Loaded {} datapack modifier definitions: {}", loaded.size(), loaded.keySet());
+        }
     }
 
     /** The modifiers on a tool, in application order; empty for anything unmodified. */

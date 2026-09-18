@@ -113,8 +113,14 @@ class MaterialSyncSizeTest {
      * 112 KB line. Raised to 116 KB (118,784 bytes), ~3.2 KB (2.8%) of headroom above the new
      * measurement, same deliberately-tight step as every raise above -- M8-12 is the last Track A
      * batch D-M8-17 plans, so no further growth is budgeted for beyond this.
+     *
+     * <p>Issue #998 (D-M8-19) is one more: Allthemodium's six presets (three metals, three
+     * pairwise alloys, each with a full plating + maille block) and Elementarium's six generated
+     * presets take the 165-material roster to 123,781 bytes, 4,997 bytes over the 116 KB line.
+     * Raised to 124 KB (126,976 bytes), ~3.2 KB (2.5%) of headroom above the new measurement, same
+     * deliberately-tight step as every raise above.
      */
-    private static final int SYNC_BUDGET_BYTES = 116 * 1024;
+    private static final int SYNC_BUDGET_BYTES = 124 * 1024;
 
     private static RegistryOps<JsonElement> jsonOps;
     private static RegistryOps<Tag> nbtOps;

@@ -151,8 +151,8 @@ class SaveCompatCorpusTest {
                             + "audit two (new-roster tool, new-fluid smeltery), #305's Pattern "
                             + "Chest inventory and every format each later milestone added, up to "
                             + "M7's leveled tool and leveled chestplate (#925) and M8's energized "
-                            + "tank (#972) and M8-9's module-carrying tool (#993); something "
-                            + "dropped fixtures");
+                            + "tank (#972), pack-defined modifier (#973) and M8-9's module-carrying "
+                            + "tool (#993); something dropped fixtures");
             return snbt.stream();
         }
     }

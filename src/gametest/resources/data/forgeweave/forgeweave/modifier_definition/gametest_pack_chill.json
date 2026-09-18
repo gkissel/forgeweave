@@ -1,0 +1,5 @@
+{
+  "behavior": "forgeweave:effect_on_hit",
+  "effect": "minecraft:blindness",
+  "duration_per_unit": 100.0
+}

@@ -1,0 +1,59 @@
+{
+  "head": {
+    "durability": 362,
+    "mining_speed": 5.77,
+    "attack_damage": 4.76
+  },
+  "handle": {
+    "durability_modifier": 0.96,
+    "durability": 49
+  },
+  "extra_durability": 42,
+  "bow": {
+    "drawspeed": 0.44,
+    "range": 1.46,
+    "bonus_damage": 6.62
+  },
+  "incorrect_for_tool": "minecraft:incorrect_for_iron_tool",
+  "traits": {
+    "general": [
+      "forgeweave:obsidian_heart"
+    ]
+  },
+  "crafting_items": [
+    {
+      "ingredient": {
+        "tag": "c:ingots/molybdenum"
+      },
+      "value": 144
+    },
+    {
+      "ingredient": {
+        "tag": "c:nuggets/molybdenum"
+      },
+      "value": 16
+    },
+    {
+      "ingredient": {
+        "tag": "c:storage_blocks/molybdenum"
+      },
+      "value": 1296
+    }
+  ],
+  "repair_item": {
+    "tag": "c:ingots/molybdenum"
+  },
+  "cast_only": true,
+  "enchantability": 12,
+  "color": "#8C9296",
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:mod_loaded",
+      "modid": "elementarium"
+    },
+    {
+      "type": "forgeweave:compat_toggle",
+      "toggle": "elementariumMaterials"
+    }
+  ]
+}

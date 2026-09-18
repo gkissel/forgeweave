@@ -124,12 +124,24 @@ def main() -> None:
     (WORLDGEN / "placed_feature").mkdir(parents=True, exist_ok=True)
     BIOME_MODIFIERS.mkdir(parents=True, exist_ok=True)
 
-    features = {"overworld": [], "nether": [], "end": []}
+    features = {"overworld": [], "nether": [], "end": [], "mining": []}
 
     for ore_id, target, size, rate, min_y, max_y in ORES:
         write_ore_pair(ore_id, target, size, min_y, max_y,
                        {"type": "forgeweave:track_b_ore_rate", "count": rate})
         features[DIMENSION_BY_HOST[target]].append(f"forgeweave:{ore_id}_ore")
+        # #998 (D-M8-19) -- every Track B ore also generates in Allthemodium's own mining dimension,
+        # the same rate as its home dimension (both use forgeweave:track_b_ore_rate on the same
+        # placed feature). Decision, written down: the mining dimension is not a second rate knob.
+        # Its own terrain (data/allthemodium/dimension/mining.json) stacks every vanilla host block
+        # -- end_stone, netherrack, deepslate, then stone -- in flat layers precisely so any ore's
+        # placed feature can find its target block somewhere in the column, regardless of which
+        # dimension it was tuned for; giving it a second, denser rate would make the mining dimension
+        # strictly better than an ore's own home, undercutting the point of going there instead. Real
+        # in-game placement (whether the target block's layer and the feature's own height range
+        # actually overlap in that flat world) is unverified -- a release-checklist line, not
+        # something a unit test can prove, per the issue's own "cannot cover" list.
+        features["mining"].append(f"forgeweave:{ore_id}_ore")
 
     for ore_id, target, size, rate, min_y, max_y in STANDALONE_ORES:
         write_ore_pair(ore_id, target, size, min_y, max_y, {"type": "minecraft:count", "count": rate})
@@ -157,6 +169,21 @@ def main() -> None:
         "biomes": END_BIOMES,
         "features": features["end"],
         "step": "underground_ores",
+    })
+    # #998 (D-M8-19) -- the fourth output tree: Allthemodium's own mining dimension, mod_loaded
+    # gated (unlike the three above, which are all-vanilla and need no gate). The exact biome tag,
+    # #allthemodium:mining_features/mining_biomes, and the neoforge:add_features shape are verified
+    # against the mod's own shipped worldgen data (commit 59e41c60619d) -- it is the same tree
+    # Allthemodium uses for every other mod's ore it welcomes into that dimension
+    # (data/allthemodium/neoforge/biome_modifier/allthemodium/dim_ores/*.json).
+    write_json(BIOME_MODIFIERS / "allthemodium_mining_ores.json", {
+        "type": "neoforge:add_features",
+        "biomes": "#allthemodium:mining_features/mining_biomes",
+        "features": features["mining"],
+        "step": "underground_ores",
+        "neoforge:conditions": [
+            {"type": "neoforge:mod_loaded", "modid": "allthemodium"},
+        ],
     })
 
 
