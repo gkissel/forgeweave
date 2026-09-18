@@ -10,5 +10,9 @@
   {
     "name": "enchanting",
     "type": "text"
+  },
+  {
+    "name": "rituals",
+    "type": "text"
   }
 ]

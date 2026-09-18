@@ -106,6 +106,9 @@ class ArmorMaterialTest {
             // #996 (D-M8-17): Powah's four remaining crystals, same full plating + maille shape as
             // #837's own gem/crystal-tier roster above (diamatine_crystal, uraninite, ...).
             Stream.of("blazing_crystal", "niotic_crystal", "spirited_crystal", "nitro_crystal"),
+            // #997 (D-M8-18): Occultism's spirit attuned gem, same full plating + maille shape as the
+            // rest of the gem/crystal-tier roster above.
+            Stream.of("spirit_attuned_gem"),
             // #998 (D-M8-19): Allthemodium's three metals and three alloys, same full plating +
             // maille shape as every other Track A preset batch. Elementarium's generated presets are
             // tool-only (no plating/maille block, see generate_elementarium_materials.py) and are
