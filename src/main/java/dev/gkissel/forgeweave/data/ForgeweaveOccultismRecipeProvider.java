@@ -27,7 +27,7 @@ import dev.gkissel.forgeweave.trackb.TrackBOre;
  * gate is load-bearing rather than tidy: all three are Occultism's own recipe types, so without the
  * condition an install without it would fail to load the file rather than skip it.
  *
- * <p><b>Crushing.</b> Two {@code occultism:crushing} rows per Track B ore, 21 in all: the ore block
+ * <p><b>Crushing.</b> Two {@code occultism:crushing} rows per Track B ore, 22 in all: the ore block
  * tag and the ore's raw form, each grinding to the metal's own ingot. {@code min_tier} comes from
  * {@link ForgeweaveOccultismCompat#crusherTier}, so a foliot crusher cannot chew through resonite.
  * {@code ignore_crushing_multiplier} is set on the raw row and not on the ore row, which is
