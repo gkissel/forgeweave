@@ -252,6 +252,16 @@ public class ToolStationScreen extends StationScreen<ToolStationMenu> implements
     private static final int NAME_FIELD_H = 12;
     private static final int NAME_MAX_LENGTH = 40;
 
+    /**
+     * Where the {@link StandPreview}'s feet go, in panel pixels (issue #1043). Upstream 1.20's
+     * {@code TinkerStationScreen#init} calls {@code setupArmorStandPreview(-55, 195, 35)} against a
+     * 184px panel, so the stand stands 55px left of the panel and 11px below its bottom edge, tucked
+     * under the selection grid. Both numbers carry over; the 11 is measured from this panel's own
+     * 174px bottom rather than pinned at 195, which is the only thing the shorter 1.12 panel changes.
+     */
+    private static final int PREVIEW_X = -55;
+    private static final int PREVIEW_Y = BASE_HEIGHT + 11;
+
     private static final float GHOST_ALPHA = 0.4F;
     private static final float COVER_ALPHA = 0.82F;
     private static final float SLOT_BACKGROUND_ALPHA = 0.28F;
@@ -286,6 +296,8 @@ public class ToolStationScreen extends StationScreen<ToolStationMenu> implements
     private Button nextPage;
     private final SideInventoryPanel sidePanel =
             new SideInventoryPanel(ToolStationMenu.SIDE_PANEL_X, ToolStationMenu.SIDE_PANEL_Y);
+    /** Issue #1043's armor stand preview; empty-handed and entity-free until {@link #init} opens it. */
+    private final StandPreview preview = new StandPreview();
 
     public ToolStationScreen(ToolStationMenu menu, Inventory playerInventory, Component title) {
         super(menu, playerInventory, title);
@@ -316,7 +328,33 @@ public class ToolStationScreen extends StationScreen<ToolStationMenu> implements
                         Component.translatable("gui.forgeweave.tool_station.next_page"), button -> turnPage(1))
                 .bounds(leftPos + buttonX(BUTTON_COLUMNS - 1), topPos + ARROWS_Y, BUTTON_SIZE, BUTTON_SIZE).build());
         updatePageArrows();
+        openPreview();
         updateInfo();
+    }
+
+    /**
+     * Opens the armor stand preview, unless a neighbour's side inventory is standing where it goes
+     * (issue #1043).
+     *
+     * <p>Upstream 1.20 has the same conflict and settles it the same way: its selection grid is
+     * unpaged, so a long roster pushes the stand down a row and a longer one switches it off outright
+     * ({@code OFFSET_ARMOR_STAND_AFTER}/{@code DISABLE_ARMOR_STAND_AFTER}). Here the grid is paged
+     * (issue #733) and so can never reach the stand, but the side inventory panel can: it starts at
+     * {@code SIDE_PANEL_Y} on the same left edge and runs to the panel's bottom, straight through the
+     * stand's upper half. A station with a chest beside it keeps the chest and loses the preview.
+     */
+    private void openPreview() {
+        preview.close();
+        if (menu.sideSlots.isEmpty()) {
+            preview.open(minecraft == null ? null : minecraft.level,
+                    leftPos + PREVIEW_X, topPos + PREVIEW_Y, StandPreview.SCALE);
+        }
+    }
+
+    @Override
+    public void removed() {
+        super.removed();
+        preview.close(); // no entity outlives the screen
     }
 
     private void turnPage(int delta) {
@@ -387,6 +425,9 @@ public class ToolStationScreen extends StationScreen<ToolStationMenu> implements
         ItemStack output = menu.getSlot(ToolStationMenu.OUTPUT_SLOT).getItem();
         ItemStack head = menu.getSlot(ToolStationMenu.HEAD_SLOT).getItem();
         ItemStack subject = !output.isEmpty() ? output : ToolAssemblyRecipes.isAssembled(head) ? head : ItemStack.EMPTY;
+        // Issue #1043, upstream's own order in ToolTableScreen#updateDisplay: the stand shows the
+        // result, and falls back to the tool already loaded when there is no result to show yet.
+        preview.setItem(subject);
 
         if (!subject.isEmpty()) {
             describeTool(subject);
@@ -483,6 +524,9 @@ public class ToolStationScreen extends StationScreen<ToolStationMenu> implements
             graphics.blit(TEXTURE, leftPos + NAME_FIELD_X - 2, topPos + NAME_FIELD_Y - 1,
                     TEXT_FIELD_U, TEXT_FIELD_V, TEXT_FIELD_W, TEXT_FIELD_H, SHEET, SHEET);
         }
+        // Last, as upstream's renderBg draws its own armor stand last: it is 3D, so it has to land on
+        // top of the flat chrome around it rather than under the next blit.
+        preview.render(graphics);
     }
 
     /**
@@ -681,6 +725,11 @@ public class ToolStationScreen extends StationScreen<ToolStationMenu> implements
         if (!menu.sideSlots.isEmpty()) {
             areas.add(sidePanel.bounds());
         }
+        // Issue #1043: the stand hangs off the panel's bottom-left like the sidebar hangs off its
+        // left, so JEI is told about it the same way. Only while it is actually open.
+        if (preview.isOpen()) {
+            areas.add(preview.bounds());
+        }
         return areas;
     }
 
@@ -693,6 +742,13 @@ public class ToolStationScreen extends StationScreen<ToolStationMenu> implements
                 graphics.renderTooltip(font, ToolStationTabs.get(tabs.get(slot)).title(), mouseX, mouseY);
                 return;
             }
+        }
+        // #1043: upstream leaves the ring under the stand unlabelled, which reads as decoration
+        // rather than as something to drag. One line of hover text is the whole of the deviation.
+        if (preview.isMouseOver(mouseX, mouseY)) {
+            graphics.renderTooltip(font,
+                    Component.translatable("gui.forgeweave.tool_station.rotate_preview"), mouseX, mouseY);
+            return;
         }
         // Hovering a modifier row in the tool info panel explains the effect (issue #258): the rows
         // StationText#toolModifiers builds carry SHOW_TEXT hover events, so this only asks the panel
@@ -774,6 +830,9 @@ public class ToolStationScreen extends StationScreen<ToolStationMenu> implements
 
     @Override
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
+        if (preview.mouseClicked(mouseX, mouseY)) {
+            return true; // grabbed the stand; see StandPreview#mouseClicked for why it is swallowed
+        }
         List<Integer> tabs = menu.visibleTabs();
         for (int slot = pageFrom(); slot < pageTo(); slot++) {
             int i = tabs.get(slot);
@@ -788,6 +847,19 @@ public class ToolStationScreen extends StationScreen<ToolStationMenu> implements
             }
         }
         return super.mouseClicked(mouseX, mouseY, button);
+    }
+
+    /** #1043: every cursor move while the stand is grabbed turns it, as upstream's does. */
+    @Override
+    public boolean mouseDragged(double mouseX, double mouseY, int button, double dragX, double dragY) {
+        preview.mouseDragged(mouseX);
+        return super.mouseDragged(mouseX, mouseY, button, dragX, dragY);
+    }
+
+    @Override
+    public boolean mouseReleased(double mouseX, double mouseY, int button) {
+        preview.mouseReleased();
+        return super.mouseReleased(mouseX, mouseY, button);
     }
 
     @Override
