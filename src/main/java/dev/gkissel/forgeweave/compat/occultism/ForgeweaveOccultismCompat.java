@@ -1,7 +1,12 @@
 package dev.gkissel.forgeweave.compat.occultism;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
+import javax.annotation.Nullable;
+
+import net.minecraft.core.HolderLookup;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.TagKey;
@@ -13,6 +18,9 @@ import net.neoforged.bus.api.IEventBus;
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.config.ForgeweaveConfig;
 import dev.gkissel.forgeweave.menu.ToolAssemblyRecipes;
+import dev.gkissel.forgeweave.modifier.ForgeweaveModifiers;
+import dev.gkissel.forgeweave.modifier.Modifier;
+import dev.gkissel.forgeweave.modifier.ModifierApplication;
 import dev.gkissel.forgeweave.trackb.TrackBOre;
 
 /**
@@ -89,7 +97,7 @@ public final class ForgeweaveOccultismCompat {
 
         /** The ritual's ingredient list, one entry per sacrificial bowl the ritual needs. */
         public List<String> ingredients() {
-            List<String> ingredients = new java.util.ArrayList<>();
+            List<String> ingredients = new ArrayList<>();
             ingredients.add(SPIRIT_GEM);
             for (int i = 0; i < essence; i++) {
                 ingredients.add(OTHERWORLD_ESSENCE);
@@ -121,15 +129,23 @@ public final class ForgeweaveOccultismCompat {
      * issue's "which of the two is it" for every modifier this ladder offers -- all four are the
      * still-working case, and none is the inert one.
      *
-     * <p>Levels: magnetic pull, mending moss and soulbound land at their shipped caps (1, 3 and 1 --
-     * {@code data/forgeweave/forgeweave/modifier_recipe/}), since none of the three has a middle to
-     * stop at. Necrotic caps at 10 and the ritual grants 5, half of it, so the station route still
-     * reaches somewhere a ritual cannot.
+     * <p>Levels, and why they are small. Because a binding spends the modifier slots its entry
+     * occupies ({@link SpiritBindingRitual}'s own note), every level here has to fit the
+     * {@value dev.gkissel.forgeweave.modifier.ForgeweaveModifiers#DEFAULT_SLOTS} a freshly assembled
+     * tool has, or the ritual would refuse the only tool a player is likely to bring it. So magnetic
+     * pull and soulbound land at their shipped caps of 1 (soulbound costing nothing, since its entry
+     * occupies no slot at all -- {@code ForgeweaveModifiers#SOULBOUND}), while mending moss stops at
+     * 2 of its cap of 3 and necrotic at 3 of its cap of 10. The station route still reaches past both,
+     * which is the point: a ritual is a shortcut past the reagent grind, not a way past the cap.
+     *
+     * <p>Spending all four on one tool costs 6 slots against a budget of 3, so a player picks two or
+     * buys the room with {@code extra_slot}. That is a real choice rather than an accident of the
+     * numbers, and it is the price the ritual path pays for asking no reagents.
      */
     public static final List<Ritual> RITUALS = List.of(
             ritual("magnetic_pull", 1, "craft_foliot", 1),
-            ritual("mending_moss", 3, "craft_djinni", 2),
-            ritual("necrotic", 5, "craft_afrit", 3),
+            ritual("mending_moss", 2, "craft_djinni", 2),
+            ritual("necrotic", 3, "craft_afrit", 3),
             ritual("soulbound", 1, "craft_marid", 4));
 
     private static Ritual ritual(String modifier, int level, String pentacle, int essence) {
@@ -152,6 +168,39 @@ public final class ForgeweaveOccultismCompat {
     public static boolean acceptsRitualTool(ItemStack tool) {
         return ForgeweaveConfig.enabled(ForgeweaveConfig.OCCULTISM_RITUALS)
                 && ToolAssemblyRecipes.isAssembled(tool);
+    }
+
+    /**
+     * The bound tool, or empty when a ritual granting {@code modifier} at {@code level} has nothing
+     * to give {@code tool}: it is not an assembled Forgeweave tool or the toggle is off
+     * ({@link #acceptsRitualTool}), the modifier id is not registered, the modifier refuses the
+     * tool's shape ({@link ModifierApplication#acceptsToolShape}), the tool carries something the
+     * modifier cannot sit beside, the tool already sits at or above {@code level}, or the tool has no
+     * modifier slots left to spend.
+     *
+     * <p>The whole of what a binding decides, deliberately on this side of the package's split rather
+     * than inside {@link SpiritBindingRitual}, which is a one-line delegation to it. The ritual class
+     * is only loadable with Occultism installed and Occultism is not loadable on this repo's test
+     * classpath (see build.gradle's comment on the dependency), so a decision left over there could
+     * not be executed by anything -- while everything here runs under both {@code ./gradlew test} and
+     * {@code runGameTestServer}.
+     *
+     * <p>Spends the slots the entry occupies, unlike a Draconic fusion upgrade. See
+     * {@link ModifierApplication#applyLevelSpendingSlots} for why the two differ.
+     */
+    public static Optional<ItemStack> bind(@Nullable HolderLookup.Provider registries,
+            ItemStack tool, ResourceLocation modifier, int level) {
+        if (!acceptsRitualTool(tool)) {
+            return Optional.empty();
+        }
+        Modifier behavior = ForgeweaveModifiers.get(modifier);
+        if (behavior == null || !ModifierApplication.acceptsToolShape(registries, behavior, tool)) {
+            return Optional.empty();
+        }
+        ItemStack one = tool.copy();
+        one.setCount(1);
+        ItemStack bound = ModifierApplication.applyLevelSpendingSlots(one, modifier, level).output();
+        return bound.isEmpty() ? Optional.empty() : Optional.of(bound);
     }
 
     /**

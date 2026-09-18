@@ -360,9 +360,18 @@ dependencies {
     // POM declares GeckoLib, SmartBrainLib, Modonomicon and a curse.maven Jade at runtime scope,
     // and the last of those needs a cursemaven repository this build deliberately does not add.
     // Occultism itself consumes other mods' APIs exactly this way.
+    //
+    // No testRuntimeOnly pair, which is the one place this deviates from Draconic Evolution's and
+    // Apotheosis' rows, and issue #997 asked for one. It does not work: FML loads every mod on the
+    // unit-test classpath, and Occultism refuses to load without Modonomicon, GeckoLib, SmartBrainLib
+    // and Curios, each on a maven of its own. Adding all four to make one test class run is the
+    // "failure surface this repo's CI has no business owning" that Create's comment above declines,
+    // and it would put four content mods in every unit-test run rather than one. Instead the whole of
+    // what the ritual decides lives in ForgeweaveOccultismCompat#bind, the Occultism-free half, where
+    // both a plain unit test (OccultismRitualTest) and a GameTest (OccultismGameTests) can execute it
+    // for real -- more coverage than a loadable jar would have bought, not less.
     compileOnly("com.klikli_dev:occultism-1.21.1-neoforge:${occultism_version}") { transitive = false }
     testCompileOnly("com.klikli_dev:occultism-1.21.1-neoforge:${occultism_version}") { transitive = false }
-    testRuntimeOnly("com.klikli_dev:occultism-1.21.1-neoforge:${occultism_version}") { transitive = false }
 
     testImplementation platform('org.junit:junit-bom:6.1.3')
     testImplementation 'org.junit.jupiter:junit-jupiter'

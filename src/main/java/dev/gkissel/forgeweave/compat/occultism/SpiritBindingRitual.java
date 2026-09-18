@@ -24,8 +24,6 @@ import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.level.Level;
 
 import dev.gkissel.forgeweave.Forgeweave;
-import dev.gkissel.forgeweave.modifier.ForgeweaveModifiers;
-import dev.gkissel.forgeweave.modifier.Modifier;
 import dev.gkissel.forgeweave.modifier.ModifierApplication;
 
 /**
@@ -138,27 +136,14 @@ public class SpiritBindingRitual extends Ritual {
     }
 
     /**
-     * The bound tool, or empty when this ritual has nothing to give {@code tool}: it is not an
-     * assembled Forgeweave tool or the {@code compat.occultismRituals} toggle is off
-     * ({@link ForgeweaveOccultismCompat#acceptsRitualTool}), the modifier id is not registered, the
-     * modifier refuses the tool's shape ({@link ModifierApplication#acceptsToolShape}), the tool
-     * carries something the modifier cannot sit beside, the tool already sits at or above this
-     * ritual's level, or the tool has no modifier slots left to spend.
+     * The bound tool, or empty when this ritual has nothing to give {@code tool}. Every rule behind
+     * that answer lives in {@link ForgeweaveOccultismCompat#bind}, on the Occultism-free side of the
+     * package, and this is the whole of what happens on this side -- because nothing can execute this
+     * class: Occultism is compileOnly and will not load on the unit-test classpath either (see
+     * build.gradle's comment on the dependency), so a decision left here would be untested code.
      */
     public Optional<ItemStack> bind(HolderLookup.Provider registries, ItemStack tool) {
-        // The shape check plus the toggle live in the Occultism-free half of the package so a
-        // GameTest can reach them -- see that method.
-        if (!ForgeweaveOccultismCompat.acceptsRitualTool(tool)) {
-            return Optional.empty();
-        }
-        Modifier behavior = ForgeweaveModifiers.get(modifier);
-        if (behavior == null || !ModifierApplication.acceptsToolShape(registries, behavior, tool)) {
-            return Optional.empty();
-        }
-        ItemStack one = tool.copy();
-        one.setCount(1);
-        ItemStack bound = ModifierApplication.applyLevelSpendingSlots(one, modifier, level).output();
-        return bound.isEmpty() ? Optional.empty() : Optional.of(bound);
+        return ForgeweaveOccultismCompat.bind(registries, tool, modifier, level);
     }
 
     /** The modifier this ritual binds, and the level it binds it at -- read by the GameTests. */

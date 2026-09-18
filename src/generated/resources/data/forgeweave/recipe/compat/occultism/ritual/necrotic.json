@@ -30,7 +30,7 @@
       "forgeweave:modifiers": [
         {
           "id": "forgeweave:necrotic",
-          "level": 5
+          "level": 3
         }
       ]
     },
@@ -42,7 +42,7 @@
       "forgeweave:modifiers": [
         {
           "id": "forgeweave:necrotic",
-          "level": 5
+          "level": 3
         }
       ]
     },
