@@ -608,7 +608,7 @@ public class SmelteryControllerBlockEntity extends BlockEntity implements Statio
         // tank standing idle in the wall with its button pressed changes nothing.
         double overdrive = energizedPays && energized.overdrive()
                 ? ForgeweaveConfig.energizedTankOverdriveProgress() : 1.0D;
-        int step = (int) Math.round((heat / 100) * ForgeweaveConfig.MELT_SPEED_MULTIPLIER.get() * overdrive);
+        int step = (int) Math.round((heat / 100) * ForgeweaveConfig.read(ForgeweaveConfig.MELT_SPEED_MULTIPLIER) * overdrive);
         boolean working = false;
         for (int slot = 0; slot < meltingItems.size(); slot++) {
             MeltingRecipe recipe = recipeFor(slot);
@@ -657,7 +657,7 @@ public class SmelteryControllerBlockEntity extends BlockEntity implements Statio
         // None of the shipped ore-class amounts land fractional at 1.5x/2x (see #99's amounts
         // table), so oreAmount's flooring is unexercised by any shipped recipe at the default ratio.
         int amount = recipe.ore() ? oreAmount(recipe.amount(), core.yieldMultiplier(),
-                ForgeweaveConfig.ORE_TO_INGOT_RATIO.get()) : recipe.amount();
+                ForgeweaveConfig.read(ForgeweaveConfig.ORE_TO_INGOT_RATIO)) : recipe.amount();
         var result = new FluidStack(recipe.fluid(), amount);
         // #639: a byproduct (chainmail's molten steel) shares the tank's one capacity pool with the
         // main result, so the whole yield must fit or the melt parks -- the same refusal a partial
@@ -1256,7 +1256,7 @@ public class SmelteryControllerBlockEntity extends BlockEntity implements Statio
         if (!ForgeweaveConfig.enabled(ForgeweaveConfig.SMELTERY)) {
             return false; // content-family toggles ticket: the whole smeltery family is off
         }
-        return ForgeweaveConfig.OBSIDIAN_ALLOY.get()
+        return ForgeweaveConfig.read(ForgeweaveConfig.OBSIDIAN_ALLOY)
                 || !recipe.result().is(ForgeweaveFluids.OBSIDIAN.still().get());
     }
 

@@ -117,7 +117,7 @@ public record CastingRecipe(Station station, Optional<Ingredient> cast, Optional
         if (!cast.map(ingredient -> ingredient.test(held)).orElseGet(held::isEmpty)) {
             return false;
         }
-        if (usesClayCast(held) && !ForgeweaveConfig.ENABLE_CLAY_CASTS.get()) {
+        if (usesClayCast(held) && !ForgeweaveConfig.read(ForgeweaveConfig.ENABLE_CLAY_CASTS)) {
             return false;
         }
         if (!ForgeweaveConfig.enabled(ForgeweaveConfig.SMELTERY)) {

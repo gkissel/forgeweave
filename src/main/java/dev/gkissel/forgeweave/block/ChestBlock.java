@@ -116,7 +116,7 @@ public class ChestBlock extends HorizontalDirectionalBlock implements EntityBloc
      */
     @Override
     protected void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean movedByPiston) {
-        if (state.getBlock() != newState.getBlock() && !ForgeweaveConfig.CHESTS_KEEP_INVENTORY.get()) {
+        if (state.getBlock() != newState.getBlock() && !ForgeweaveConfig.read(ForgeweaveConfig.CHESTS_KEEP_INVENTORY)) {
             if (level.getBlockEntity(pos) instanceof ChestBlockEntity chest) {
                 Containers.dropContents(level, pos, chest.container());
             }
@@ -135,7 +135,7 @@ public class ChestBlock extends HorizontalDirectionalBlock implements EntityBloc
     @Override
     public BlockState playerWillDestroy(Level level, BlockPos pos, BlockState state, Player player) {
         if (!level.isClientSide && player.isCreative()
-                && ForgeweaveConfig.CHESTS_KEEP_INVENTORY.get()
+                && ForgeweaveConfig.read(ForgeweaveConfig.CHESTS_KEEP_INVENTORY)
                 && level.getBlockEntity(pos) instanceof ChestBlockEntity chest
                 && !chest.container().isEmpty()) {
             ItemStack packed = new ItemStack(this);

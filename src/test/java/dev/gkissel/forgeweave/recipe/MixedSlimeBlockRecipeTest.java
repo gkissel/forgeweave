@@ -1,5 +1,6 @@
 package dev.gkissel.forgeweave.recipe;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -29,7 +30,8 @@ import dev.gkissel.forgeweave.item.ForgeweaveItems;
  * Issue #635 (parity audit T57): the match half of upstream's {@code ShapedFallbackRecipe} for slime
  * blocks ({@code TinkerCommons#registerRecipes}) -- a full 3x3 of slime balls matches, and nine of
  * one colour does not, because that colour's own recipe owns the grid. The output side reads the
- * {@code matchVanillaSlimeblock} config and so belongs to a running game, not here.
+ * {@code matchVanillaSlimeblock} config, which no unit test loads, so the one output test here pins
+ * what the recipe answers without it.
  */
 class MixedSlimeBlockRecipeTest {
 
@@ -84,6 +86,16 @@ class MixedSlimeBlockRecipeTest {
                 new ItemStack(Items.SLIME_BALL), new ItemStack(ball(SlimeColour.BLUE)),
                 new ItemStack(Items.SLIME_BALL), new ItemStack(ball(SlimeColour.PINK)))), null),
                 "the inventory's 2x2 grid, which upstream's canFit also refuses");
+    }
+
+    /**
+     * Issue #1023: Replication asks every recipe for its result from a resource reload listener,
+     * before any world (and so any server config) exists. That used to throw and crash the client;
+     * it answers with the option's default now, which is the vanilla slime block.
+     */
+    @Test
+    void theResultIsReadableBeforeAnyServerConfigIsLoaded() {
+        assertEquals(Items.SLIME_BLOCK, recipe.getResultItem(null).getItem());
     }
 
     private static Item ball(SlimeColour colour) {

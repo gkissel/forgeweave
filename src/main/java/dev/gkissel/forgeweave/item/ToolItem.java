@@ -417,7 +417,7 @@ public class ToolItem extends Item {
      */
     @Override
     public boolean isEnchantable(ItemStack stack) {
-        return ForgeweaveConfig.ALLOW_VANILLA_ENCHANTING.get() && super.isEnchantable(stack);
+        return ForgeweaveConfig.read(ForgeweaveConfig.ALLOW_VANILLA_ENCHANTING) && super.isEnchantable(stack);
     }
 
     /**
@@ -430,7 +430,7 @@ public class ToolItem extends Item {
      */
     @Override
     public boolean isBookEnchantable(ItemStack stack, ItemStack book) {
-        return ForgeweaveConfig.ALLOW_VANILLA_ENCHANTING.get() && super.isBookEnchantable(stack, book);
+        return ForgeweaveConfig.read(ForgeweaveConfig.ALLOW_VANILLA_ENCHANTING) && super.isBookEnchantable(stack, book);
     }
 
     /**
@@ -457,7 +457,7 @@ public class ToolItem extends Item {
      */
     @Override
     public int getEnchantmentValue(ItemStack stack) {
-        if (!ForgeweaveConfig.ALLOW_VANILLA_ENCHANTING.get()) {
+        if (!ForgeweaveConfig.read(ForgeweaveConfig.ALLOW_VANILLA_ENCHANTING)) {
             return 0;
         }
         return stack.getOrDefault(ForgeweaveDataComponents.ENCHANTABILITY.get(), Material.DEFAULT_ENCHANTABILITY);
@@ -480,7 +480,7 @@ public class ToolItem extends Item {
      */
     @Override
     public boolean supportsEnchantment(ItemStack stack, Holder<Enchantment> enchantment) {
-        return ForgeweaveConfig.ALLOW_VANILLA_ENCHANTING.get() && super.supportsEnchantment(stack, enchantment);
+        return ForgeweaveConfig.read(ForgeweaveConfig.ALLOW_VANILLA_ENCHANTING) && super.supportsEnchantment(stack, enchantment);
     }
 
     /**

@@ -36,7 +36,7 @@ public final class GuideBookGift {
 
     /** No-op when the config option is off or the player has already received the book. */
     public static void maybeGrant(ServerPlayer player) {
-        if (!ForgeweaveConfig.SPAWN_WITH_BOOK.get()) {
+        if (!ForgeweaveConfig.read(ForgeweaveConfig.SPAWN_WITH_BOOK)) {
             return;
         }
         CompoundTag root = player.getPersistentData();

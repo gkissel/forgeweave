@@ -132,7 +132,7 @@ public class ChestBlockEntity extends BlockEntity implements StationMenuHost {
     @Override
     protected void collectImplicitComponents(DataComponentMap.Builder builder) {
         super.collectImplicitComponents(builder);
-        if (!ForgeweaveConfig.CHESTS_KEEP_INVENTORY.get() || container.isEmpty()) {
+        if (!ForgeweaveConfig.read(ForgeweaveConfig.CHESTS_KEEP_INVENTORY) || container.isEmpty()) {
             return;
         }
         List<ItemStack> stored = new ArrayList<>(container.getContainerSize());

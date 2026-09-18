@@ -217,7 +217,7 @@ public class StencilTableMenu extends StationMenu {
         if (stack.is(ForgeweaveItems.PATTERN_BLANK.get())) {
             return true;
         }
-        return ForgeweaveConfig.REUSE_STENCILS.get()
+        return ForgeweaveConfig.read(ForgeweaveConfig.REUSE_STENCILS)
                 && PATTERNS.stream().anyMatch(pattern -> stack.is(pattern.get()));
     }
 
