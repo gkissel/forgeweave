@@ -47,6 +47,7 @@ import dev.gkissel.forgeweave.compat.apotheosis.ApotheosisSockets;
 import dev.gkissel.forgeweave.compat.create.ForgeweaveCreateCompat;
 import dev.gkissel.forgeweave.compat.draconic.ForgeweaveDraconicCompat;
 import dev.gkissel.forgeweave.config.ForgeweaveClientConfig;
+import dev.gkissel.forgeweave.config.ForgeweaveConfigCondition; // #995
 import dev.gkissel.forgeweave.config.ForgeweaveConfigMigration; // #968 -- and the four SERVER specs
 import dev.gkissel.forgeweave.data.ForgeweaveDataGenerators;
 import dev.gkissel.forgeweave.entity.ForgeweaveEntities;
@@ -141,6 +142,9 @@ public class Forgeweave {
         ForgeweaveRecipeSerializers.RECIPE_SERIALIZERS.register(modEventBus);
         // #110 -- the M2 advancement chain's custom criteria (docs/SCOPE.md M2 issue #110).
         ForgeweaveCriteriaTriggers.TRIGGERS.register(modEventBus);
+        // #995 -- the neoforge:conditions predicate the generated Create/Immersive Engineering/
+        // EnderIO recipe JSON and the Powah heat_source data map read their compat toggle through.
+        ForgeweaveConfigCondition.CONDITION_CODECS.register(modEventBus);
         // #968 (D-M8-8) -- carry a pre-folder config/forgeweave-server.toml into config/forgeweave/
         // before anything is registered, so a pack's tuned values survive the split.
         ForgeweaveConfigMigration.run(FMLPaths.CONFIGDIR.get());

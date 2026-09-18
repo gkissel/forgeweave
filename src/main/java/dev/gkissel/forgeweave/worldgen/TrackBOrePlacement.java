@@ -6,6 +6,8 @@ import java.util.stream.Stream;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 
+import org.jetbrains.annotations.Nullable;
+
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceKey;
@@ -72,21 +74,28 @@ public class TrackBOrePlacement extends PlacementModifier {
      * generation specifically, without touching the ore's generation anywhere else. This is the one
      * runtime hook the tier-equivalence toggle has -- the tag equivalence itself has none, since a
      * live config value has no site in a static tag file (see the PR body).
+     *
+     * <p>{@code context} is null-tolerant ({@code null} reads as "not the mining dimension"):
+     * {@code TrackBOreGameTests#trackBOreGroupToggleGatesEveryOre} already calls this with a
+     * {@code null} context to exercise {@code genTrackBOres} alone, predating this method needing a
+     * real level at all.
      */
     @Override
     public Stream<BlockPos> getPositions(PlacementContext context, RandomSource random, BlockPos pos) {
-        int effective = allowed(context.getLevel().getLevel().dimension()) ? count : 0;
+        ResourceKey<Level> dimension = context == null ? null : context.getLevel().getLevel().dimension();
+        int effective = allowed(dimension) ? count : 0;
         return IntStream.range(0, effective).mapToObj(i -> pos);
     }
 
     /**
      * The decision {@link #getPositions} makes, pulled out as a pure function of the dimension so it
      * is directly unit- and GameTestable with no {@code WorldGenLevel} to construct
-     * ({@code TrackBOrePlacementTest}, {@code AllthemodiumElementariumGameTests}).
+     * ({@code AllthemodiumElementariumGameTests}). {@code dimension} is {@code null}-tolerant, read
+     * as "not the mining dimension" -- see {@link #getPositions}'s own javadoc for why that matters.
      */
-    public static boolean allowed(ResourceKey<Level> dimension) {
+    public static boolean allowed(@Nullable ResourceKey<Level> dimension) {
         boolean trackBOn = ForgeweaveConfig.read(ForgeweaveConfig.GEN_TRACK_B_ORES);
-        boolean inAllthemodiumMining = dimension.equals(ALLTHEMODIUM_MINING);
+        boolean inAllthemodiumMining = ALLTHEMODIUM_MINING.equals(dimension);
         boolean allowedHere = !inAllthemodiumMining || ForgeweaveConfig.enabled(ForgeweaveConfig.ALLTHEMODIUM_TIERS);
         return trackBOn && allowedHere;
     }

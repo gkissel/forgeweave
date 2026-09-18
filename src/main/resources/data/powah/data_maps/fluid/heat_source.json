@@ -1,0 +1,56 @@
+{
+  "values": {
+    "forgeweave:blazing_blood": {
+      "temperature": 1500,
+      "neoforge:conditions": [
+        {
+          "type": "neoforge:mod_loaded",
+          "modid": "powah"
+        },
+        {
+          "type": "forgeweave:compat_toggle",
+          "toggle": "powahHeatSources"
+        }
+      ]
+    },
+    "forgeweave:molten_magma": {
+      "temperature": 1700,
+      "neoforge:conditions": [
+        {
+          "type": "neoforge:mod_loaded",
+          "modid": "powah"
+        },
+        {
+          "type": "forgeweave:compat_toggle",
+          "toggle": "powahHeatSources"
+        }
+      ]
+    },
+    "forgeweave:molten_brimspar": {
+      "temperature": 1900,
+      "neoforge:conditions": [
+        {
+          "type": "neoforge:mod_loaded",
+          "modid": "powah"
+        },
+        {
+          "type": "forgeweave:compat_toggle",
+          "toggle": "powahHeatSources"
+        }
+      ]
+    },
+    "forgeweave:molten_pyrealloy": {
+      "temperature": 2100,
+      "neoforge:conditions": [
+        {
+          "type": "neoforge:mod_loaded",
+          "modid": "powah"
+        },
+        {
+          "type": "forgeweave:compat_toggle",
+          "toggle": "powahHeatSources"
+        }
+      ]
+    }
+  }
+}
