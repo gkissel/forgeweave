@@ -218,6 +218,15 @@ public class ForgeweaveItemTagsProvider extends ItemTagsProvider {
                 .distinct()
                 .forEach(fusionUpgradable::add);
 
+        // #997 -- the Occultism spirit binding ritual's item set, the same roster read the same way.
+        // A tag of its own rather than a share of the one above, so the two ladders stay uncoupled:
+        // see ForgeweaveOccultismCompat#RITUAL_BINDABLE.
+        var ritualBindable = tag(ForgeweaveOccultismCompat.RITUAL_BINDABLE);
+        ToolAssemblyRecipes.ENTRIES.stream()
+                .map(entry -> entry.tool().get())
+                .distinct()
+                .forEach(ritualBindable::add);
+
         // #223 -- wind burst's own gate: vanilla's wind_burst enchantment names
         // `#minecraft:enchantable/mace` as its supported_items, and ModifierApplication reads that
         // tag directly (no Forgeweave-side item check of its own) to decide what the modifier accepts.

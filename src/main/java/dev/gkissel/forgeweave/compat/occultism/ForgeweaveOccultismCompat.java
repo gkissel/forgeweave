@@ -7,10 +7,8 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.crafting.RecipeSerializer;
 
 import net.neoforged.bus.api.IEventBus;
-import net.neoforged.neoforge.registries.DeferredRegister;
 
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.config.ForgeweaveConfig;
@@ -27,26 +25,29 @@ import dev.gkissel.forgeweave.trackb.TrackBOre;
  * calls {@link #register} behind a {@code ModList.get().isLoaded(MODID)} check, while the datagen and
  * tag providers read {@link #RITUAL_BINDABLE}, {@link #RITUALS}, {@link #crusherTier} and
  * {@link #minerWeight} unconditionally -- so this class is classloaded on every install, including
- * one with no Occultism, and must stay loadable there. The serializer is created inside
- * {@link #register} rather than held in a static field so that {@link SpiritBindingRitual} is only
- * ever reached from inside the guard.
+ * one with no Occultism, and must stay loadable there. Every registration lives inside
+ * {@link SpiritBindingRitual#register}, reached only from inside the guard, so the class that names
+ * {@code com.klikli_dev} types is never linked on an install without them.
  *
  * <p>Same soft-dependency shape as {@code jade}, {@code kubejs}, {@code jei} and Draconic Evolution:
  * a compileOnly dependency, an {@code optional} entry in {@code neoforge.mods.toml}, and
  * {@code neoforge:conditions} on every recipe JSON so a Forgeweave-only datapack drops these rows.
+ *
+ * <p><b>Licensing.</b> Occultism is MIT (its own {@code LICENSE}, pinned below), so an API dependency
+ * carries no question at all -- but nothing here is copied from it either, and no Forgeweave asset
+ * derives from its art. Its {@code THIRD_PARTY_NOTICES.md} puts most textures under the same MIT and
+ * a named handful under CC BY, which is the second reason none of its art is touched. So no
+ * {@code NOTICE.md} row exists for any file in this package.
  */
 public final class ForgeweaveOccultismCompat {
 
     /** Occultism's mod id -- the {@code ModList} guard and every recipe condition key on it. */
     public static final String MODID = "occultism";
 
-    /** The registered name of {@link SpiritBindingRitual.Serializer}, i.e. the recipes' {@code type}. */
-    public static final String RITUAL_SERIALIZER_NAME = "occultism_spirit_binding";
-
     /**
-     * What may be laid in a pentacle as a spirit binding ritual's item: every item either station
-     * assembles ({@code ToolAssemblyRecipes.ENTRIES}, filled in by {@code ForgeweaveItemTagsProvider}),
-     * so a new tool family joins the ladder with no code change.
+     * What may be right-clicked onto a Golden Sacrificial Bowl to start a spirit binding ritual:
+     * every item either station assembles ({@code ToolAssemblyRecipes.ENTRIES}, filled in by
+     * {@code ForgeweaveItemTagsProvider}), so a new tool family joins the ladder with no code change.
      *
      * <p>Deliberately one broad tag rather than a per-ritual tag, and deliberately not shared with
      * {@code ForgeweaveDraconicCompat#FUSION_UPGRADABLE}: which shapes a given ritual actually accepts
@@ -57,21 +58,43 @@ public final class ForgeweaveOccultismCompat {
     public static final TagKey<Item> RITUAL_BINDABLE = TagKey.create(Registries.ITEM,
             ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "ritual_bindable"));
 
+    /** The Occultism item every binding ritual consumes one of: the spirit itself, in gem form. */
+    public static final String SPIRIT_GEM = MODID + ":spirit_attuned_gem";
+
+    /** The Occultism item a binding ritual consumes {@link Ritual#essence} of, scaled by pentacle rank. */
+    public static final String OTHERWORLD_ESSENCE = MODID + ":otherworld_essence";
+
     /**
-     * One spirit binding ritual: the modifier it grants, the level it grants it at, and the pentacle
-     * Occultism asks the player to draw.
+     * One spirit binding ritual: the modifier it grants, the level it grants it at, the Occultism
+     * pentacle the player draws, and how much otherworld essence that pentacle's rank asks for.
      *
      * @param modifier the Forgeweave modifier id the ritual grants, fully qualified
      * @param level the level it lands at, in {@link dev.gkissel.forgeweave.modifier.ModifierEntry}'s
      *     application units -- at or under the modifier's own shipped {@code max_level}
      * @param pentacle the Occultism pentacle id the ritual is performed in
-     * @param sacrifice the item consumed beside the tool, one per ritual
+     * @param essence how many {@link #OTHERWORLD_ESSENCE} the ritual consumes beside one
+     *     {@link #SPIRIT_GEM}, one per rank of {@code pentacle}
      */
-    public record Ritual(String modifier, int level, String pentacle, String sacrifice) {
+    public record Ritual(String modifier, int level, String pentacle, int essence) {
 
-        /** The recipe file's name, and the last segment of its id. */
-        public String recipeName() {
+        /** The modifier's own path -- the recipe file's name and the last segment of the factory id. */
+        public String name() {
             return ResourceLocation.parse(modifier).getPath();
+        }
+
+        /** This ritual's {@code occultism:ritual_factories} entry, i.e. the JSON's {@code ritual_type}. */
+        public String factoryName() {
+            return "bind_" + name();
+        }
+
+        /** The ritual's ingredient list, one entry per sacrificial bowl the ritual needs. */
+        public List<String> ingredients() {
+            List<String> ingredients = new java.util.ArrayList<>();
+            ingredients.add(SPIRIT_GEM);
+            for (int i = 0; i < essence; i++) {
+                ingredients.add(OTHERWORLD_ESSENCE);
+            }
+            return List.copyOf(ingredients);
         }
     }
 
@@ -80,40 +103,37 @@ public final class ForgeweaveOccultismCompat {
      *
      * <p>Deliberately not the Draconic ladder's shape. A fusion upgrade is a tier climb -- eight
      * lines by four tech levels, each rung asking for the next Draconic core -- because Draconic
-     * Evolution's own economy is a tier climb and its multiblock is something a player upgrades
-     * four times. Occultism's is not: a ritual is drawn once, on the ground, for one bound spirit,
-     * and nothing about a pentacle gets a second tier. So each entry here is one ritual granting one
-     * modifier outright, and the roster is four rituals rather than thirty-two rows.
+     * Evolution's economy <em>is</em> a tier climb and its multiblock is a thing a player rebuilds
+     * four times. Occultism's is not. A ritual is drawn once, on the ground, for one bound spirit,
+     * and what escalates in Occultism is the <em>rank of the spirit</em> being contacted, not a
+     * machine tier. So the ladder here is four rituals, one per modifier, climbing Occultism's own
+     * four pentacle ranks -- foliot, djinni, afrit, marid -- with one grant each and no second rung.
      *
      * <p>Every modifier is one Forgeweave already ships and one a bound spirit reads as: a spirit
-     * that follows the tool back from death (soulbound), one that fetches what the tool breaks
-     * (magnetic pull), one that keeps it whole (mending moss), and one that feeds on what it kills
-     * (necrotic). None is a modifier the ritual invents, and none is gated on
-     * {@link ForgeweaveConfig#OCCULTISM_RITUALS}: with the toggle off the ritual cannot be performed,
-     * but a level already granted keeps working, because every one of the four is reachable at the
-     * Tool Station too.
+     * that fetches what the tool breaks (magnetic pull, foliot -- the rank Occultism itself uses for
+     * item transport), one that keeps the tool whole (mending moss, djinni), one that feeds on what
+     * it kills (necrotic, afrit), and one that follows the tool back out of a death drop (soulbound,
+     * marid -- the rank Occultism reserves for its own endgame crafts).
      *
-     * <p>Levels: soulbound, magnetic pull and mending moss land at their shipped caps (1, 1 and 3 --
+     * <p>None of the four is gated on {@link ForgeweaveConfig#OCCULTISM_RITUALS}: with the toggle off
+     * the ritual cannot be performed, but a level already granted keeps <em>working</em>, not merely
+     * its id, because all four are reachable at the Tool Station too. That is the answer to the
+     * issue's "which of the two is it" for every modifier this ladder offers -- all four are the
+     * still-working case, and none is the inert one.
+     *
+     * <p>Levels: magnetic pull, mending moss and soulbound land at their shipped caps (1, 3 and 1 --
      * {@code data/forgeweave/forgeweave/modifier_recipe/}), since none of the three has a middle to
      * stop at. Necrotic caps at 10 and the ritual grants 5, half of it, so the station route still
-     * goes somewhere a ritual cannot.
+     * reaches somewhere a ritual cannot.
      */
     public static final List<Ritual> RITUALS = List.of(
-            // The canonical Occultism act: a spirit bound into the tool, which follows it out of a
-            // death drop. Soulbound occupies no slot of its own (ForgeweaveModifiers#SOULBOUND), so
-            // this is the one ritual a tool with a full slot budget can still take.
-            ritual("soulbound", 1, "bind_foliot", "minecraft:nether_star"),
-            // A transport spirit, the one Occultism already summons to move items: what the tool
-            // breaks comes to the player instead of the floor.
-            ritual("magnetic_pull", 1, "summon_foliot_transport_items", "minecraft:iron_block"),
-            // A spirit kept on to mend the tool, at mending moss's own cap of 3.
-            ritual("mending_moss", 3, "bind_djinni", "minecraft:moss_block"),
-            // The sacrifice ritual: lifesteal, at half necrotic's reachable cap of 10.
-            ritual("necrotic", 5, "summon_afrit_crusher", "minecraft:wither_skeleton_skull"));
+            ritual("magnetic_pull", 1, "craft_foliot", 1),
+            ritual("mending_moss", 3, "craft_djinni", 2),
+            ritual("necrotic", 5, "craft_afrit", 3),
+            ritual("soulbound", 1, "craft_marid", 4));
 
-    private static Ritual ritual(String modifier, int level, String pentacle, String sacrifice) {
-        return new Ritual(Forgeweave.MODID + ":" + modifier, level,
-                MODID + ":" + pentacle, sacrifice);
+    private static Ritual ritual(String modifier, int level, String pentacle, int essence) {
+        return new Ritual(Forgeweave.MODID + ":" + modifier, level, MODID + ":" + pentacle, essence);
     }
 
     /**
@@ -136,55 +156,63 @@ public final class ForgeweaveOccultismCompat {
 
     /**
      * The lowest crusher spirit rank that will grind an ore at {@code tier} -- Occultism's own
-     * {@code min_tier} field, whose four values are its four spirit ranks: {@code 0} foliot,
-     * {@code 1} djinni, {@code 2} afrit, {@code 3} marid.
+     * {@code min_tier} field on an {@code occultism:crushing} row, whose values are its four spirit
+     * ranks: {@code 1} foliot, {@code 2} djinni, {@code 3} afrit, {@code 4} marid (its
+     * {@code OccultismServerConfig} crusher settings, and {@code CrusherJob} compares
+     * {@code minTier <= currentTier}).
      *
      * <p>Written down as a table rather than derived at read time, because the mapping is a design
-     * choice and not arithmetic: what it says is that a foliot grinds the ores a netherite pickaxe
-     * already reaches, a djinni handles the rung above netherite, and only a marid touches the top
-     * two. Without it a foliot would chew through resonite, which is the failure mode that makes the
-     * whole Track B ladder pointless.
+     * choice and not arithmetic. What it says is that a foliot grinds only what a diamond pickaxe
+     * already reaches, a djinni handles the netherite rung, an afrit the one above it, and only a
+     * marid touches the top two. Without it a foliot would chew through resonite, which is the
+     * failure mode that makes the whole Track B ladder pointless.
      */
     public static int crusherTier(TrackBOre.Tier tier) {
         return switch (tier) {
-            case STONE, DIAMOND, NETHERITE -> 0;
-            case HARDCINDER -> 1;
-            case WARSPAR -> 2;
-            case RESONITE -> 3;
+            case STONE, DIAMOND -> 1;
+            case NETHERITE -> 2;
+            case HARDCINDER -> 3;
+            case WARSPAR, RESONITE -> 4;
         };
     }
 
     /**
-     * How often a mining spirit returns an ore at {@code tier}, as Occultism's {@code miner}
-     * {@code weight} -- one entry's share of the weighted pick across every miner row the spirit's
-     * own ore list holds.
+     * How often a mining spirit returns an ore at {@code tier}, as the {@code weight} inside an
+     * {@code occultism:miner} row's result -- one entry's share of the weighted pick Occultism's
+     * Dimensional Mineshaft runs across every miner row the held spirit matches
+     * ({@code DimensionalMineshaftBlockEntity#mine}, vanilla {@code WeightedRandom} over the raw
+     * ints, no normalising).
      *
-     * <p>The ladder is 100 / 60 / 30 / 12 / 5 / 2, strictly decreasing rung by rung, so a higher
+     * <p>The ladder is 300 / 150 / 80 / 40 / 15 / 5, strictly decreasing rung by rung, so a higher
      * rung is never more common than a lower one ({@code OccultismRecipeTest} pins exactly that).
-     * The top three rungs are the low end on purpose: a mining spirit that pulled resonite as often
-     * as fulmenite would hand a player the top of the ladder without ever making them climb it.
+     *
+     * <p>The numbers are picked in Occultism's own units rather than on a scale of their own, since
+     * they are drawn from the same pool as its rows: it gives coal 1000, iron 750, diamond 218,
+     * emerald 156 and titanium 10, and its own iesnium 100. So fulmenite at 150 sits just under
+     * emerald, the netherite rung at 80 under iesnium, and resonite at 5 below titanium -- the
+     * rarest thing a mining spirit can hand back. The top three rungs are the low end on purpose: a
+     * spirit that pulled resonite as often as fulmenite would hand a player the top of the ladder
+     * without ever making them climb it.
      */
     public static int minerWeight(TrackBOre.Tier tier) {
         return switch (tier) {
-            case STONE -> 100;
-            case DIAMOND -> 60;
-            case NETHERITE -> 30;
-            case HARDCINDER -> 12;
-            case WARSPAR -> 5;
-            case RESONITE -> 2;
+            case STONE -> 300;
+            case DIAMOND -> 150;
+            case NETHERITE -> 80;
+            case HARDCINDER -> 40;
+            case WARSPAR -> 15;
+            case RESONITE -> 5;
         };
     }
 
     /**
-     * Registers {@link SpiritBindingRitual.Serializer}. Called from {@link Forgeweave}'s constructor
-     * only when Occultism is present, which is what keeps the ritual class -- and with it every
-     * {@code com.klikli_dev} type it names -- off a Forgeweave-only install's classloader.
+     * Registers the four {@code occultism:ritual_factories} entries. Called from {@link Forgeweave}'s
+     * constructor only when Occultism is present, which is what keeps {@link SpiritBindingRitual} --
+     * and with it every {@code com.klikli_dev} type it names -- off a Forgeweave-only install's
+     * classloader. Nothing is held in a static field here for the same reason.
      */
     public static void register(IEventBus modEventBus) {
-        DeferredRegister<RecipeSerializer<?>> serializers =
-                DeferredRegister.create(Registries.RECIPE_SERIALIZER, Forgeweave.MODID);
-        serializers.register(RITUAL_SERIALIZER_NAME, () -> SpiritBindingRitual.Serializer.INSTANCE);
-        serializers.register(modEventBus);
+        SpiritBindingRitual.register(modEventBus);
     }
 
     private ForgeweaveOccultismCompat() {}
