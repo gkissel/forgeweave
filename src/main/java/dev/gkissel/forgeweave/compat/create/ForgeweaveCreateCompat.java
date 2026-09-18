@@ -5,8 +5,6 @@ import net.minecraft.world.item.ItemStack;
 
 import com.simibubi.create.content.equipment.goggles.GogglesItem;
 
-import dev.gkissel.forgeweave.modifier.ForgeweaveModifiers;
-
 /**
  * Forgeweave's Create integration (issue #1007, docs/SCOPE.md M8): teaches Create's own goggle
  * overlays (stress units, fluid contents, goggle tooltips -- {@code GogglesItem#isWearingGoggles})
@@ -31,9 +29,13 @@ public final class ForgeweaveCreateCompat {
      * the stack so it can be unit tested without Create on the classpath at all. {@link #register}'s
      * lambda is the only place this ever gets wrapped as the {@code Predicate<Player>} Create's API
      * asks for.
+     *
+     * <p>Lives in {@link CreateGoggles} since issue #968 gave it the {@code compat.createGoggles}
+     * toggle, because this class cannot be loaded where that toggle's off path is tested. Kept here
+     * as a delegate so the seam a reader looks for is still next to {@link #register}.
      */
     public static boolean isWearingGoggles(ItemStack helmet) {
-        return ForgeweaveModifiers.entry(helmet, ForgeweaveModifiers.GOGGLES_ID) != null;
+        return CreateGoggles.isWearingGoggles(helmet);
     }
 
     /** Registers {@link #isWearingGoggles} with Create. Called only once Create is confirmed present. */

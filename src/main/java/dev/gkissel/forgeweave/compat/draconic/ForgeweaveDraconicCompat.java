@@ -17,7 +17,9 @@ import net.neoforged.neoforge.registries.NeoForgeRegistries;
 
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.compat.draconic.modules.DraconicModuleHost;
+import dev.gkissel.forgeweave.config.ForgeweaveConfig; // #968
 import dev.gkissel.forgeweave.item.ForgeweaveDataComponents;
+import dev.gkissel.forgeweave.menu.ToolAssemblyRecipes; // #968
 
 /**
  * Forgeweave's Draconic Evolution integration (issue #915, docs/SCOPE.md M8): the seam between the
@@ -211,6 +213,31 @@ public final class ForgeweaveDraconicCompat {
             case "chaotic" -> 4;
             default -> throw new IllegalArgumentException("no Draconic Evolution tech level named " + techLevel);
         };
+    }
+
+    /**
+     * Whether {@code tool} is something a fusion upgrade at {@code techLevel} will take as a
+     * catalyst at all: an assembled Forgeweave tool, made of a Draconic core, carrying
+     * {@code evolved} at least at this tier -- and the {@code compat.draconicFusion} toggle on
+     * (#968, D-M8-5).
+     *
+     * <p>Extracted out of {@link FusionUpgradeRecipe#upgrade} because none of it names a
+     * {@code com.brandon3055} type, which is this class's whole reason for existing: the recipe
+     * class is only loadable with Draconic Evolution installed, so its half of the ladder cannot be
+     * reached by {@code runGameTestServer}, while this method can
+     * ({@code CompatToggleGameTests}). The recipe adds the rest -- the modifier's own gates, and
+     * whether the upgrade would change anything.
+     *
+     * <p>Off is inert, never destructive: a tool refused here keeps every component it has,
+     * upgrades already spent into it included, and is accepted again the moment the toggle returns.
+     */
+    public static boolean acceptsFusionCatalyst(String techLevel, ItemStack tool) {
+        return ForgeweaveConfig.enabled(ForgeweaveConfig.DRACONIC_FUSION)
+                && ToolAssemblyRecipes.isAssembled(tool)
+                && evolvedLevel(tool) >= requiredEvolved(techLevel)
+                // Maintainer decision 2026-09-06: only a tool made of a Draconic core takes a fusion
+                // upgrade; a weld tool hosts modules instead.
+                && isCoreTool(tool);
     }
 
     /**

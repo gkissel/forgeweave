@@ -32,6 +32,7 @@ import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
 
 import dev.gkissel.forgeweave.compat.draconic.ForgeweaveDraconicCompat;
+import dev.gkissel.forgeweave.config.ForgeweaveConfig; // #968
 import dev.gkissel.forgeweave.item.ArmorPieceItem;
 import dev.gkissel.forgeweave.item.ToolItem;
 import dev.gkissel.forgeweave.menu.ToolAssemblyRecipes;
@@ -131,6 +132,13 @@ public final class DraconicModuleHost implements DraconicModules.Bridge {
      */
     @Nullable
     public static ModuleHostImpl newHost(ItemStack stack) {
+        // #968 (D-M8-5): with compat.draconicModules off nothing is a host, so Draconic Evolution's
+        // ModularItemMenu#tryOpenGui finds no capability and its module screen does not open on
+        // Forgeweave gear. The stack's own module data components are left untouched -- not building
+        // a host over them is what makes them inert rather than lost.
+        if (!ForgeweaveConfig.enabled(ForgeweaveConfig.DRACONIC_MODULES)) {
+            return null;
+        }
         int evolved = ForgeweaveDraconicCompat.evolvedLevel(stack);
         if (evolved < 1 || evolved > DraconicModules.MAX_EVOLVED) {
             return null;

@@ -11,6 +11,7 @@ import mcp.mobius.waila.api.IPluginConfig;
 import mcp.mobius.waila.api.ITooltip;
 
 import dev.gkissel.forgeweave.block.SmelteryControllerBlockEntity;
+import dev.gkissel.forgeweave.config.ForgeweaveConfig; // #968
 
 /**
  * Issue #720: the smeltery controller's molten contents while the player holds shift, WTHIT's side
@@ -25,6 +26,11 @@ public final class SmelteryFluidComponentProvider implements IBlockComponentProv
 
     @Override
     public void appendBody(ITooltip tooltip, IBlockAccessor accessor, IPluginConfig config) {
+        // #968 (D-M8-5): compat.overlays off means this provider answers nothing, so the
+        // overlay still works and simply carries no Forgeweave line.
+        if (!ForgeweaveConfig.enabled(ForgeweaveConfig.OVERLAYS)) {
+            return;
+        }
         if (!(accessor.getBlockEntity() instanceof SmelteryControllerBlockEntity smeltery)) {
             return;
         }
