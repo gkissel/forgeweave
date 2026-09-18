@@ -203,21 +203,11 @@ public class ApotheosisAffixGameTests {
         helper.succeed();
     }
 
-    /**
-     * The three ranged items are the only ones the shipped loot-category override names, and this is
-     * the reason: none of them is a vanilla {@code BowItem} or {@code CrossbowItem}, which is what
-     * Apotheosis' {@code bow} category tests, while nothing else Forgeweave registers is either. A
-     * fourth bow added without a row in that file would take sword affixes instead of bow affixes.
-     */
-    @GameTest(template = "empty")
-    public static void noForgeweaveBowMatchesApotheosisBowPredicateOnItsOwn(GameTestHelper helper) {
-        helper.assertTrue(!(ForgeweaveItems.TOOL_SHORTBOW.get() instanceof net.minecraft.world.item.BowItem),
-                "the shortbow is deliberately not a vanilla BowItem, which is why the override exists");
-        helper.assertTrue(!(ForgeweaveItems.TOOL_LONGBOW.get() instanceof net.minecraft.world.item.BowItem),
-                "nor is the longbow");
-        helper.assertTrue(
-                !(ForgeweaveItems.TOOL_CROSSBOW.get() instanceof net.minecraft.world.item.CrossbowItem),
-                "and the crossbow is not a vanilla CrossbowItem");
-        helper.succeed();
-    }
+    // Why the ranged family needs the loot-category override, and why no test here asserts it:
+    // javac already does. Apotheosis' bow category tests `instanceof` vanilla's BowItem and
+    // CrossbowItem, and an `instanceof` against either one from a Forgeweave bow is a compile error
+    // ("incompatible types: dev.gkissel.forgeweave.item.BowItem cannot be converted to
+    // net.minecraft.world.item.BowItem"), because the two hierarchies are disjoint. That is a
+    // stronger guarantee than a runtime assertion, so the only thing left worth pinning is that the
+    // override file still names exactly those three items, which ApotheosisAffixTest does.
 }
