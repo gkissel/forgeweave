@@ -28,7 +28,7 @@ import dev.gkissel.forgeweave.trait.TraitStacks;
 
 /**
  * M6-7 (issue #831): one test per registered instance of the armor trait behavior library, on a real
- * chestplate assembled at the Armor Station and worn by a survival mock player -- the same staging
+ * chestplate assembled at the Tool Station and worn by a survival mock player -- the same staging
  * {@link ArmorTraitGameTests} uses for the M4 ARMOR traits.
  *
  * <p>The one difference from that class: no material grants these traits yet (the issue ships no
@@ -54,7 +54,7 @@ public class ArmorTraitLibraryGameTests {
     /** A survival mock player wearing an iron chestplate whose trait list is exactly {@code traits}. */
     private static Player wearing(GameTestHelper helper, String... traits) {
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
-        ItemStack piece = ToolAssembly.assembleAt(helper, player, STATION, ForgeweaveBlocks.ARMOR_STATION.get(),
+        ItemStack piece = ToolAssembly.assembleAt(helper, player, STATION, ForgeweaveBlocks.TOOL_STATION.get(),
                 ToolAssembly.entryOf(ToolConstants.CHESTPLATE), List.of("iron", "iron"));
         piece.set(ForgeweaveDataComponents.TRAITS.get(), List.of(traits).stream()
                 .map(ArmorTraitLibraryGameTests::id).toList());

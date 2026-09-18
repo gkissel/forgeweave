@@ -517,8 +517,8 @@ public final class ForgeweaveConfig {
      * and melting recipe filters are exercised by unit tests that never stand a server up. The
      * fallback is deliberately the permissive one -- showing or resolving something a joined server
      * would then refuse is a far smaller surprise than hiding content because no server has spoken
-     * yet. The older options above read {@code .get()} directly because every one of their call
-     * sites is already inside a running world.
+     * yet. Options with no permissive reading go through {@link #read} instead, which answers with
+     * the declared default.
      */
     public static boolean enabled(ModConfigSpec.BooleanValue value) {
         return !loaded() || value.get();
@@ -534,6 +534,18 @@ public final class ForgeweaveConfig {
     public static boolean loaded() {
         return GENERAL_SPEC.isLoaded() && CONTENT_SPEC.isLoaded() && COMPAT_SPEC.isLoaded()
                 && WORLDGEN_SPEC.isLoaded();
+    }
+
+    /**
+     * Any option's value, answering with its declared default whenever the spec is not loaded (issue
+     * #1023). Every read outside this package goes through here or through one of the named helpers:
+     * a {@code SERVER} spec exists only while a world is running, but other mods walk recipes and
+     * query items before that (Replication calls {@code getResultItem} on every recipe from a
+     * resource reload listener), and a raw {@code .get()} there throws and takes the client down.
+     * {@code ConfigReadAuditTest} fails the build on a new raw read.
+     */
+    public static <T> T read(ModConfigSpec.ConfigValue<T> value) {
+        return SPEC.isLoaded() ? value.get() : value.getDefault();
     }
 
     /**

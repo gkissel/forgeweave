@@ -68,23 +68,13 @@ final class AssemblyRecipes {
     /**
      * Whether {@code recipe} is one of {@code #forgeweave:large_tools} -- the split {@link
      * ForgeweaveJeiPlugin} uses to route a recipe into {@link AssemblyCategory#TYPE} (Tool Station)
-     * or {@link AssemblyCategory#LARGE_TYPE} (Tool Forge only) (issue #165). Item tags aren't bound
-     * outside a running server, so this is proven correct against the real tag by {@code
-     * gametest.ToolForgeGameTests#exactlySevenToolsAreForgeOnly} rather than a plain unit test here.
+     * or {@link AssemblyCategory#LARGE_TYPE} (Tool Forge only) (issue #165, extended to the heavy
+     * armor set by #1006). Item tags aren't bound outside a running server, so this is proven
+     * correct against the real tag by {@code gametest.ToolForgeGameTests#exactlyElevenEntriesAreForgeOnly}
+     * rather than a plain unit test here.
      */
     static boolean isLarge(AssemblyRecipe recipe) {
         return ToolAssemblyRecipes.entryFor(recipe.result()).map(ToolAssemblyRecipes::isLargeTool).orElse(false);
-    }
-
-    /**
-     * Whether {@code recipe} is a {@code Category.ARMOR} entry -- the same three-way split
-     * {@link #isLarge} documents, extended by docs/SCOPE.md M4 issue #782: {@link
-     * AssemblyCategory#ARMOR_TYPE} (Armor Station) instead of {@link AssemblyCategory#TYPE} (Tool
-     * Station/Tool Forge). No entry is ever both large and armor (armor pieces carry no
-     * {@code #forgeweave:large_tools} tag), so the two splits never conflict.
-     */
-    static boolean isArmor(AssemblyRecipe recipe) {
-        return ToolAssemblyRecipes.entryFor(recipe.result()).map(ToolAssemblyRecipes::isArmorEntry).orElse(false);
     }
 
     private AssemblyRecipes() {}

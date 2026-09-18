@@ -312,7 +312,7 @@ public class M615MaterialGameTests {
     /** A survival mock player wearing a chestplate of {@code plating} over {@code maille}. */
     private static Player wearing(GameTestHelper helper, String plating, String maille) {
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
-        ItemStack piece = ToolAssembly.assembleAt(helper, player, STATION, ForgeweaveBlocks.ARMOR_STATION.get(),
+        ItemStack piece = ToolAssembly.assembleAt(helper, player, STATION, ForgeweaveBlocks.TOOL_STATION.get(),
                 ToolAssembly.entryOf(ToolConstants.CHESTPLATE), List.of(plating, maille));
         player.setItemSlot(EquipmentSlot.CHEST, piece);
         player.tick();

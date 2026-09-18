@@ -87,10 +87,10 @@ public class MagmaSlimeIslandStructure extends Structure {
      * structure's biome tag.
      */
     public static boolean enabledIn(ServerLevel level, boolean superflat) {
-        if (!ForgeweaveConfig.GEN_SLIME_ISLANDS.get()) {
+        if (!ForgeweaveConfig.read(ForgeweaveConfig.GEN_SLIME_ISLANDS)) {
             return false;
         }
-        return !superflat || ForgeweaveConfig.GEN_ISLANDS_IN_SUPERFLAT.get();
+        return !superflat || ForgeweaveConfig.read(ForgeweaveConfig.GEN_ISLANDS_IN_SUPERFLAT);
     }
 
     /** See {@code SlimeIslandStructure#levelOf} -- a generation context does not carry its dimension. */
@@ -114,10 +114,10 @@ public class MagmaSlimeIslandStructure extends Structure {
         if (level != null && !enabledIn(level, generator instanceof FlatLevelSource)) {
             return false;
         }
-        if (level == null && !ForgeweaveConfig.GEN_SLIME_ISLANDS.get()) {
+        if (level == null && !ForgeweaveConfig.read(ForgeweaveConfig.GEN_SLIME_ISLANDS)) {
             return false;
         }
-        int rate = ForgeweaveConfig.MAGMA_ISLAND_RATE.get();
+        int rate = ForgeweaveConfig.read(ForgeweaveConfig.MAGMA_ISLAND_RATE);
         if (rate <= 0) {
             return false;
         }

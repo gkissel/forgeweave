@@ -86,7 +86,7 @@ public class GravelFlintRecipe extends ShapelessRecipe {
     /** Upstream's config check, run every match instead of baked into the datapack load. */
     @Override
     public boolean matches(CraftingInput input, Level level) {
-        return ForgeweaveConfig.ADD_FLINT_RECIPE.get() && super.matches(input, level);
+        return ForgeweaveConfig.read(ForgeweaveConfig.ADD_FLINT_RECIPE) && super.matches(input, level);
     }
 
     @Override

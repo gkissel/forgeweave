@@ -19,10 +19,10 @@ import mezz.jei.api.runtime.IJeiRuntime;
  * referencing this class from there never pulls a JEI type onto that class's own classpath.
  */
 public final class JeiScreenshotHarness {
-    /** One capture per registered category (docs/SCOPE.md M1/M2 issue #109's roster, #165/#782's tiers). */
+    /** One capture per registered category (docs/SCOPE.md M1/M2 issue #109's roster, #165's tiers). */
     private static final List<RecipeType<?>> TYPES = List.of(
             PartCraftingCategory.TYPE,
-            AssemblyCategory.TYPE, AssemblyCategory.LARGE_TYPE, AssemblyCategory.ARMOR_TYPE,
+            AssemblyCategory.TYPE, AssemblyCategory.LARGE_TYPE,
             RepairCategory.TYPE,
             MeltingCategory.TYPE, AlloyingCategory.TYPE,
             CastingTableCategory.TYPE, CastingBasinCategory.TYPE,
