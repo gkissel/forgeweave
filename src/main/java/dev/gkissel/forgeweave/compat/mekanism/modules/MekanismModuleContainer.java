@@ -1,8 +1,10 @@
 package dev.gkissel.forgeweave.compat.mekanism.modules;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import mekanism.api.MekanismIMC;
+import mekanism.api.gear.IModule;
 import mekanism.api.gear.IModuleContainer;
 import mekanism.api.gear.IModuleHelper;
 import mekanism.common.content.gear.ModuleContainer;
@@ -31,6 +33,7 @@ import dev.gkissel.forgeweave.combat.CombatSeams;
 import dev.gkissel.forgeweave.compat.mekanism.ForgeweaveMekanismCompat;
 import dev.gkissel.forgeweave.item.ArmorPieceItem;
 import dev.gkissel.forgeweave.menu.ToolAssemblyRecipes;
+import dev.gkissel.forgeweave.tool.UpgradeHosts;
 
 /**
  * Forgeweave gear made of {@code atomic_matter_alloy} is a Mekanism module container (issue #993,
@@ -100,6 +103,45 @@ public final class MekanismModuleContainer implements MekanismGearModules.Bridge
         // The absorption seam names no mekanism type; it reads the ratio and the cost back across the
         // MekanismGearModules seam, so it is registered here only because this is where the guard is.
         CombatSeams.register(MekanismAbsorption.INSTANCE);
+        // Maintainer rule, 2026-09-18: a part swap that stops the tool being a container gives the
+        // modules back rather than losing or stranding them.
+        UpgradeHosts.register(MekanismModuleContainer::reclaimModules);
+    }
+
+    /**
+     * {@code UpgradeHosts.Host}: the modules a part swap has just invalidated, turned back into items.
+     *
+     * <p>What invalidates them is losing the metal. Mekanism decides which modules an item accepts per
+     * <em>item</em>, off the IMC roster, so a swap can never change what a pickaxe supports -- only
+     * whether the stack is a container at all, which is {@code atomic_matter_alloy} being in its parts.
+     * So: a swap that keeps the metal keeps every module exactly where it was, and a swap that drops
+     * the metal hands all of them back and leaves an empty container behind.
+     *
+     * <p>Returns nothing and strips nothing while {@code mekanismModules} is off. Off is inert, not
+     * destructive: the modules stay on the stack and start working again when the toggle returns.
+     */
+    private static List<ItemStack> reclaimModules(ItemStack original, ItemStack replacement) {
+        if (!MekanismGearModules.modulesEnabled()
+                || !ForgeweaveMekanismCompat.isContainerStack(original)
+                || ForgeweaveMekanismCompat.isContainerStack(replacement)) {
+            return List.of();
+        }
+        IModuleContainer container = IModuleHelper.INSTANCE.getModuleContainer(replacement);
+        if (container == null || container.installedCount() == 0) {
+            return List.of();
+        }
+        List<ItemStack> reclaimed = new ArrayList<>();
+        for (IModule<?> module : container.modules()) {
+            Item item = module.getUntypedData().getItemHolder().value();
+            int remaining = module.getInstalledCount();
+            while (remaining > 0) {
+                int batch = Math.min(remaining, item.getDefaultMaxStackSize());
+                reclaimed.add(new ItemStack(item, batch));
+                remaining -= batch;
+            }
+        }
+        replacement.set(MekanismDataComponents.MODULE_CONTAINER.get(), ModuleContainer.EMPTY);
+        return reclaimed;
     }
 
     /**

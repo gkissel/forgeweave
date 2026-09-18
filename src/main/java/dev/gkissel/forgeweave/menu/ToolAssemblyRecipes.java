@@ -46,6 +46,7 @@ import dev.gkissel.forgeweave.tool.ArmorStats;
 import dev.gkissel.forgeweave.tool.LauncherStats;
 import dev.gkissel.forgeweave.tool.ProjectileStats;
 import dev.gkissel.forgeweave.tool.ToolConstants;
+import dev.gkissel.forgeweave.tool.UpgradeHosts;
 import dev.gkissel.forgeweave.tool.ToolMaterials;
 import dev.gkissel.forgeweave.tool.ToolRepair;
 import dev.gkissel.forgeweave.tool.ToolStats;
@@ -676,7 +677,16 @@ public final class ToolAssemblyRecipes {
                     return part;
                 })
                 .toList();
-        return Optional.of(new Exchange(result, Arrays.stream(used).boxed().toList(), displacedParts, null));
+        // Maintainer rule, 2026-09-18: a partner mod's upgrade that the new part set can no longer
+        // carry comes back to the player as items rather than being lost or stranded. One ask, here,
+        // where the swap is resolved; each compat package registers its own answer (UpgradeHosts).
+        // Empty on a Forgeweave-only install and for a swap every host is happy with, so the common
+        // path keeps exactly the displacedParts list it already had.
+        List<ItemStack> reclaimed = UpgradeHosts.reclaim(toolStack, result);
+        List<ItemStack> returned = reclaimed.isEmpty()
+                ? displacedParts
+                : Stream.concat(displacedParts.stream(), reclaimed.stream()).toList();
+        return Optional.of(new Exchange(result, Arrays.stream(used).boxed().toList(), returned, null));
     }
 
     /**
