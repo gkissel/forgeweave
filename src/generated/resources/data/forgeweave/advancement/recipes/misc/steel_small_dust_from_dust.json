@@ -1,0 +1,32 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_dusts_steel": {
+      "conditions": {
+        "items": [
+          {
+            "items": "#c:dusts/steel"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "forgeweave:steel_small_dust_from_dust"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_the_recipe",
+      "has_dusts_steel"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "forgeweave:steel_small_dust_from_dust"
+    ]
+  }
+}

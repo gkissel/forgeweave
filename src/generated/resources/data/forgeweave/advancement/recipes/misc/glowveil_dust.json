@@ -1,0 +1,32 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_small_dusts_glowveil": {
+      "conditions": {
+        "items": [
+          {
+            "items": "#c:small_dusts/glowveil"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "forgeweave:glowveil_dust"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_the_recipe",
+      "has_small_dusts_glowveil"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "forgeweave:glowveil_dust"
+    ]
+  }
+}

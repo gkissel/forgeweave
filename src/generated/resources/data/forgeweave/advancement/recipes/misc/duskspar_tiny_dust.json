@@ -1,0 +1,32 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_small_dusts_duskspar": {
+      "conditions": {
+        "items": [
+          {
+            "items": "#c:small_dusts/duskspar"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "forgeweave:duskspar_tiny_dust"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_the_recipe",
+      "has_small_dusts_duskspar"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "forgeweave:duskspar_tiny_dust"
+    ]
+  }
+}

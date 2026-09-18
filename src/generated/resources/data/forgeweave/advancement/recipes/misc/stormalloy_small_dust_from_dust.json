@@ -1,0 +1,32 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_dusts_stormalloy": {
+      "conditions": {
+        "items": [
+          {
+            "items": "#c:dusts/stormalloy"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "forgeweave:stormalloy_small_dust_from_dust"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_the_recipe",
+      "has_dusts_stormalloy"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "forgeweave:stormalloy_small_dust_from_dust"
+    ]
+  }
+}

@@ -108,6 +108,14 @@ public final class ModifierApplication {
                 .map(lookup -> lookup.listElements()
                         .map(holder -> holder.value())
                         .filter(recipe -> !recipe.modifier().equals(Fortification.RECIPE_ID))
+                        // Issue #996 (D-M8-17): powahModifiers off means surgebound's application
+                        // recipes are absent, filtered at lookup time rather than through conditional-
+                        // recipe machinery (the ENABLE_CLAY_CASTS precedent the issue itself calls
+                        // for). A tool that already carries the modifier keeps its component; only
+                        // applying a new level is affected, and the effect itself goes inert too
+                        // (ForgeweaveModifiers#SURGEBOUND reads the same flag).
+                        .filter(recipe -> ForgeweaveConfig.enabled(ForgeweaveConfig.POWAH_MODIFIERS)
+                                || !recipe.modifier().equals(ForgeweaveModifiers.SURGEBOUND_ID))
                         .toList())
                 .orElse(List.of());
     }
@@ -532,6 +540,16 @@ public final class ModifierApplication {
         if (current >= recipe.maxLevel()) {
             return Outcome.rejected(Component.translatable("gui.forgeweave.modifier.max_level",
                     name(recipe.modifier())));
+        }
+        // Issue #996: surgebound's own ordering rule (Modifier#outOfOrderRefusal) -- a recipe whose
+        // reagent belongs to a later crystal than the tool has reached yet is refused rather than
+        // silently granting only the units the station has room for under a mismatched reagent.
+        Modifier target = ForgeweaveModifiers.get(recipe.modifier());
+        if (target != null) {
+            Optional<Component> outOfOrder = target.outOfOrderRefusal(current, recipe.maxLevel());
+            if (outOfOrder.isPresent()) {
+                return Outcome.rejected(outOfOrder.get());
+            }
         }
 
         // Issue #344: upstream charges one free modifier per level (MultiAspect#canApply spends

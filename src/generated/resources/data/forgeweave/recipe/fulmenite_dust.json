@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    {
+      "tag": "c:small_dusts/fulmenite"
+    },
+    {
+      "tag": "c:small_dusts/fulmenite"
+    },
+    {
+      "tag": "c:small_dusts/fulmenite"
+    }
+  ],
+  "result": {
+    "count": 1,
+    "id": "forgeweave:fulmenite_dust"
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    {
+      "tag": "c:tiny_dusts/hepatizon"
+    },
+    {
+      "tag": "c:tiny_dusts/hepatizon"
+    },
+    {
+      "tag": "c:tiny_dusts/hepatizon"
+    }
+  ],
+  "result": {
+    "count": 1,
+    "id": "forgeweave:hepatizon_small_dust"
+  }
+}

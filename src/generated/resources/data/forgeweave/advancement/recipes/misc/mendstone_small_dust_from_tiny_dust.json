@@ -1,0 +1,32 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "forgeweave:mendstone_small_dust_from_tiny_dust"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    },
+    "has_tiny_dusts_mendstone": {
+      "conditions": {
+        "items": [
+          {
+            "items": "#c:tiny_dusts/mendstone"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    }
+  },
+  "requirements": [
+    [
+      "has_the_recipe",
+      "has_tiny_dusts_mendstone"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "forgeweave:mendstone_small_dust_from_tiny_dust"
+    ]
+  }
+}

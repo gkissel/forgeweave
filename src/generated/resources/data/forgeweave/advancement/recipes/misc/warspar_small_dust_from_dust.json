@@ -1,0 +1,32 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_dusts_warspar": {
+      "conditions": {
+        "items": [
+          {
+            "items": "#c:dusts/warspar"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "forgeweave:warspar_small_dust_from_dust"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_the_recipe",
+      "has_dusts_warspar"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "forgeweave:warspar_small_dust_from_dust"
+    ]
+  }
+}

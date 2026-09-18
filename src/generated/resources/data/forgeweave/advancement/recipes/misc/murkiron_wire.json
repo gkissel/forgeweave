@@ -1,0 +1,32 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_nuggets_murkiron": {
+      "conditions": {
+        "items": [
+          {
+            "items": "#c:nuggets/murkiron"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "forgeweave:murkiron_wire"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_the_recipe",
+      "has_nuggets_murkiron"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "forgeweave:murkiron_wire"
+    ]
+  }
+}

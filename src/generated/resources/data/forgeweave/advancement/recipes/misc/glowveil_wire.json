@@ -1,0 +1,32 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_nuggets_glowveil": {
+      "conditions": {
+        "items": [
+          {
+            "items": "#c:nuggets/glowveil"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "forgeweave:glowveil_wire"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_the_recipe",
+      "has_nuggets_glowveil"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "forgeweave:glowveil_wire"
+    ]
+  }
+}

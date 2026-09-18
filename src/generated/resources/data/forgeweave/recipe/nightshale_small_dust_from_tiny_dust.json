@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    {
+      "tag": "c:tiny_dusts/nightshale"
+    },
+    {
+      "tag": "c:tiny_dusts/nightshale"
+    },
+    {
+      "tag": "c:tiny_dusts/nightshale"
+    }
+  ],
+  "result": {
+    "count": 1,
+    "id": "forgeweave:nightshale_small_dust"
+  }
+}

@@ -1,0 +1,32 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_nuggets_cinderforge": {
+      "conditions": {
+        "items": [
+          {
+            "items": "#c:nuggets/cinderforge"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "forgeweave:cinderforge_wire"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_the_recipe",
+      "has_nuggets_cinderforge"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "forgeweave:cinderforge_wire"
+    ]
+  }
+}

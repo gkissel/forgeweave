@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    {
+      "tag": "c:tiny_dusts/glowveil"
+    },
+    {
+      "tag": "c:tiny_dusts/glowveil"
+    },
+    {
+      "tag": "c:tiny_dusts/glowveil"
+    }
+  ],
+  "result": {
+    "count": 1,
+    "id": "forgeweave:glowveil_small_dust"
+  }
+}

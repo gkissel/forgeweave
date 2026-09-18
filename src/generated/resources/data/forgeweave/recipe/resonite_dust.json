@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    {
+      "tag": "c:small_dusts/resonite"
+    },
+    {
+      "tag": "c:small_dusts/resonite"
+    },
+    {
+      "tag": "c:small_dusts/resonite"
+    }
+  ],
+  "result": {
+    "count": 1,
+    "id": "forgeweave:resonite_dust"
+  }
+}

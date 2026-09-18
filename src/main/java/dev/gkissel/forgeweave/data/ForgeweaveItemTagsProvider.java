@@ -25,6 +25,8 @@ import dev.gkissel.forgeweave.block.SearedDuctBlockEntity;
 import dev.gkissel.forgeweave.compat.draconic.ForgeweaveDraconicCompat;
 import dev.gkissel.forgeweave.item.ForgeweaveItems;
 import dev.gkissel.forgeweave.item.PatternItem;
+import dev.gkissel.forgeweave.material.MaterialForm;
+import dev.gkissel.forgeweave.material.MaterialForms;
 import dev.gkissel.forgeweave.menu.ToolAssemblyRecipes;
 import dev.gkissel.forgeweave.trackb.TrackBAlloy;
 import dev.gkissel.forgeweave.trackb.TrackBOre;
@@ -158,6 +160,8 @@ public class ForgeweaveItemTagsProvider extends ItemTagsProvider {
             tag("storage_blocks/" + alloy.id()).add(ForgeweaveItems.trackBAlloyBlockItem(alloy.id()).get());
             trackBStorageBlocksItem.addTag(storageBlock(alloy.id()));
         }
+
+        addMaterialFormTags();
 
         // #152 -- the "large tool" classification: what only the Tool Forge can assemble. See
         // ToolAssemblyRecipes#LARGE_TOOLS, which is the whole gate: a tool issue adds its row here and
@@ -474,8 +478,30 @@ public class ForgeweaveItemTagsProvider extends ItemTagsProvider {
     public static final TagKey<Item> CASTS_GOLD =
             TagKey.create(Registries.ITEM, ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "casts/gold"));
 
+    /**
+     * #992 -- the {@code c:} side of D-M8-6/D-M8-7's material forms, walked off
+     * {@link MaterialForms#ALL}. Each form joins its own leaf tag ({@code c:plates/steel}) and then
+     * adds that leaf to the family parent ({@code c:plates}), the same by-hand parent extension the
+     * storage blocks above already need: NeoForge's convention parents only union the children
+     * NeoForge itself knows about, so a mod-only material has to add itself in or stays reachable
+     * only by its leaf.
+     */
+    private void addMaterialFormTags() {
+        for (MaterialForms.FormedMaterial material : MaterialForms.ALL) {
+            for (MaterialForm form : material.forms()) {
+                tag(form.tagPath(material.id()))
+                        .add(ForgeweaveItems.materialForm(material.id(), form).get());
+                tag(form.tagFamily()).addTag(cTag(form.tagPath(material.id())));
+            }
+        }
+    }
+
+    private static TagKey<Item> cTag(String path) {
+        return TagKey.create(Registries.ITEM, ResourceLocation.fromNamespaceAndPath("c", path));
+    }
+
     private static TagKey<Item> storageBlock(String metal) {
-        return TagKey.create(Registries.ITEM, ResourceLocation.fromNamespaceAndPath("c", "storage_blocks/" + metal));
+        return cTag("storage_blocks/" + metal);
     }
 
     private IntrinsicTagAppender<Item> tag(String path) {

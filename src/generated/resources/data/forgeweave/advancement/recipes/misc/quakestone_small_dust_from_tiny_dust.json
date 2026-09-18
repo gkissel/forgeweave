@@ -1,0 +1,32 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "forgeweave:quakestone_small_dust_from_tiny_dust"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    },
+    "has_tiny_dusts_quakestone": {
+      "conditions": {
+        "items": [
+          {
+            "items": "#c:tiny_dusts/quakestone"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    }
+  },
+  "requirements": [
+    [
+      "has_the_recipe",
+      "has_tiny_dusts_quakestone"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "forgeweave:quakestone_small_dust_from_tiny_dust"
+    ]
+  }
+}

@@ -1,0 +1,59 @@
+{
+    decoder: "item_stack",
+    expect: {
+        components: {
+            "forgeweave:energy": 12000,
+            "forgeweave:modifiers": [
+                {
+                    id: "forgeweave:surgebound",
+                    level: 5
+                }
+            ],
+            "forgeweave:tool_materials": {
+                binding: "forgeweave:wood",
+                handle: "forgeweave:wood",
+                head: "forgeweave:constantan"
+            },
+            "forgeweave:tool_stats": {
+                attack_damage: 4.0f,
+                durability: 240,
+                mining_speed: 5.6f
+            },
+            "forgeweave:traits": [
+                "forgeweave:energized"
+            ],
+            "minecraft:damage": 60,
+            "minecraft:max_damage": 240
+        },
+        id: "forgeweave:pickaxe"
+    },
+    nbt: {
+        components: {
+            "forgeweave:energy": 12000,
+            "forgeweave:modifiers": [
+                {
+                    id: "forgeweave:surgebound",
+                    level: 5
+                }
+            ],
+            "forgeweave:tool_materials": {
+                binding: "forgeweave:wood",
+                handle: "forgeweave:wood",
+                head: "forgeweave:constantan"
+            },
+            "forgeweave:tool_stats": {
+                attack_damage: 4.0f,
+                durability: 240,
+                mining_speed: 5.6f
+            },
+            "forgeweave:traits": [
+                "forgeweave:energized"
+            ],
+            "minecraft:damage": 60,
+            "minecraft:max_damage": 240
+        },
+        count: 1,
+        id: "forgeweave:pickaxe"
+    },
+    what: "#996 (D-M8-17): an all-constantan pickaxe carrying surgebound at level V (Powah's crystal ladder's top rung) alongside the #830 energy component -- forgeweave:modifiers stores id + level only, same as every other modifier (ADR-0004 item 2), so surgebound needs no new component and no migration. The 12,000 FE currently banked is unaffected by the level V bonus: surgebound changes the computed capacity (ForgeweaveTraits#energyCapacity), never the stored amount, so retuning its percentages later cannot desync this fixture."
+}

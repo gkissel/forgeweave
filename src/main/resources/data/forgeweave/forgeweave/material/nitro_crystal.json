@@ -1,0 +1,39 @@
+{
+  "head": {
+    "durability": 900,
+    "mining_speed": 9.6,
+    "attack_damage": 7.6
+  },
+  "handle": {
+    "durability_modifier": 0.95,
+    "durability": 85
+  },
+  "extra_durability": 160,
+  "bow": {
+    "drawspeed": 0.49,
+    "range": 1.45,
+    "bonus_damage": 6.4
+  },
+  "plating": {
+    "helmet": { "durability": 430, "armor": 3.0, "toughness": 2.5, "knockback_resistance": 0.1 },
+    "chestplate": { "durability": 620, "armor": 8.0, "toughness": 2.5, "knockback_resistance": 0.1 },
+    "leggings": { "durability": 580, "armor": 6.0, "toughness": 2.5, "knockback_resistance": 0.1 },
+    "boots": { "durability": 495, "armor": 3.0, "toughness": 2.5, "knockback_resistance": 0.1 }
+  },
+  "maille": true,
+  "incorrect_for_tool": "minecraft:incorrect_for_netherite_tool",
+  "traits": {
+    "general": ["forgeweave:nitro_charge"]
+  },
+  "crafting_items": [
+    { "ingredient": { "item": "powah:crystal_nitro" }, "value": 144 }
+  ],
+  "repair_item": {
+    "item": "powah:crystal_nitro"
+  },
+  "enchantability": 16,
+  "color": "#E63946",
+  "neoforge:conditions": [
+    { "type": "neoforge:item_exists", "item": "powah:crystal_nitro" }
+  ]
+}

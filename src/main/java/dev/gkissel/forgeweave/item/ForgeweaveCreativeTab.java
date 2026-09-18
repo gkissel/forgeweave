@@ -28,6 +28,8 @@ import dev.gkissel.forgeweave.config.ForgeweaveClientConfig; // #276
 import dev.gkissel.forgeweave.fluid.ForgeweaveFluids;
 import dev.gkissel.forgeweave.material.Material;
 import dev.gkissel.forgeweave.material.CompatMaterialAvailability;
+import dev.gkissel.forgeweave.material.MaterialForm;
+import dev.gkissel.forgeweave.material.MaterialForms;
 import dev.gkissel.forgeweave.menu.ContentFamilies;
 import dev.gkissel.forgeweave.menu.ToolAssemblyRecipes;
 import dev.gkissel.forgeweave.tool.ToolConstants;
@@ -300,6 +302,19 @@ public final class ForgeweaveCreativeTab {
         // tier, from emberweld's wyvern core to duskweld's draconium core.
         if (CompatMaterialAvailability.isAvailable(TrackBAlloy.DUSKWELD.id())) {
             output.accept(ForgeweaveItems.WELDHEART.get());
+        }
+
+        // #992 -- D-M8-6's material forms, grouped per material after the ingot/nugget/block groups
+        // above so the dust ladder and the plate family read as one block per metal. The same compat
+        // gate the alloy loop uses applies: a form of a material whose provider mod is absent hides
+        // with its ingot rather than sitting in the tab alone.
+        for (MaterialForms.FormedMaterial material : MaterialForms.ALL) {
+            if (!CompatMaterialAvailability.isAvailable(material.id())) {
+                continue;
+            }
+            for (MaterialForm form : material.forms()) {
+                output.accept(ForgeweaveItems.materialForm(material.id(), form).get());
+            }
         }
     }
 

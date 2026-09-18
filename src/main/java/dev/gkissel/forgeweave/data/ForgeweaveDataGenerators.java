@@ -49,6 +49,8 @@ public final class ForgeweaveDataGenerators {
         // #680 -- the five protection damage-type tags the ARMOR traits and #681's modifiers filter on.
         generator.addProvider(event.includeServer(),
                 new ForgeweaveDamageTypeTagsProvider(output, lookupProvider, existingFileHelper));
+        generator.addProvider(event.includeServer(),
+                new ForgeweaveFluidTagsProvider(output, lookupProvider, existingFileHelper)); // #992
         // #110 -- the M2 advancement chain (docs/SCOPE.md M2 issue #110): build smeltery -> first
         // melt -> first cast -> first alloy -> first modifier.
         generator.addProvider(event.includeServer(),
