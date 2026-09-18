@@ -42,15 +42,21 @@ import dev.gkissel.forgeweave.trackb.TrackBOre;
 @PrefixGameTestTemplate(false)
 public class TrackBMaterialGameTests {
 
-    /** The roster this issue ships (now 29, issue #884 (1) retired cinderstone -- basalt replaces it
-     * as a Part-Builder-only material outside this cast-only Track B roster), ore-sourced first then
-     * alloy, matching the PR's stat table. */
+    /** The roster this issue ships (now 30: issue #884 (1) retired cinderstone -- basalt replaces it
+     * as a Part-Builder-only material outside this cast-only Track B roster -- and #993 added atomic
+     * matter alloy at the end), ore-sourced first then alloy, matching the PR's stat table. */
     private static final List<String> ROSTER = List.of(
             "fulmenite", "duskspar", "voltcinder", "murkiron", "hardcinder", "nightshale",
             "warspar", "hollowstone", "resonite", "starfall_stone", "voidglass",
             "ironbrand", "quakestone", "shardline", "embercast", "riftalloy", "tideiron", "cinderforge",
             "dreadalloy", "sunsteel", "hollowsteel", "truesteel", "stormalloy", "glowveil", "daybrass",
-            "faultsteel", "skipalloy", "mendalloy", "mendstone");
+            "faultsteel", "skipalloy", "mendalloy", "mendstone",
+            // #993 (M8, D-M8-13): atomic matter alloy belongs in this roster and not with the four
+            // Draconic Evolution welds, because its material JSON carries no neoforge:conditions --
+            // it registers with no supplying mod, which is the exact property these tests assert and
+            // the reason #993 asks for a GameTest over it in the first place (GameTests run with no
+            // Mekanism on the classpath). Only its item forms, melting rows and casting rows gate.
+            "atomic_matter_alloy");
 
     /**
      * id -&gt; its assigned general trait, the PR body's stat/trait table in code form.
@@ -93,7 +99,10 @@ public class TrackBMaterialGameTests {
             Map.entry("faultsteel", "cascading"),
             Map.entry("skipalloy", "quickstep"),
             Map.entry("mendalloy", "merciful"),
-            Map.entry("mendstone", "tinseeker"));
+            Map.entry("mendstone", "tinseeker"),
+            // #993 (D-M8-13, D-M8-15): infused is the metal's own instance of the #830 energized
+            // behavior, which is the buffer Mekanism's module container draws from.
+            Map.entry("atomic_matter_alloy", "infused"));
 
     /** Every Track B material is registered with no supplying mod required -- the Track A contrast. */
     @GameTest(template = "empty")

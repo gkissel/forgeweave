@@ -1,0 +1,14 @@
+{
+  "input": {
+    "tag": "c:raw_materials/blazegold"
+  },
+  "fluid": "forgeweave:molten_blazegold",
+  "amount": 144,
+  "temperature": 1400,
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "justdirethings:blazegold_ingot"
+    }
+  ]
+}

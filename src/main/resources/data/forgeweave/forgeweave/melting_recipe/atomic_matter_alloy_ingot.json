@@ -1,0 +1,14 @@
+{
+  "input": {
+    "tag": "c:ingots/atomic_matter_alloy"
+  },
+  "fluid": "forgeweave:molten_atomic_matter_alloy",
+  "amount": 144,
+  "temperature": 2000,
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "mekanism:alloy_atomic"
+    }
+  ]
+}

@@ -1,0 +1,53 @@
+{
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:mod_loaded",
+      "modid": "occultism"
+    }
+  ],
+  "type": "occultism:ritual",
+  "activation_item": {
+    "tag": "forgeweave:ritual_bindable"
+  },
+  "duration": 120,
+  "ingredients": [
+    {
+      "item": "occultism:spirit_attuned_gem"
+    },
+    {
+      "item": "occultism:otherworld_essence"
+    },
+    {
+      "item": "occultism:otherworld_essence"
+    },
+    {
+      "item": "occultism:otherworld_essence"
+    }
+  ],
+  "pentacle_id": "occultism:craft_afrit",
+  "result": {
+    "components": {
+      "forgeweave:modifiers": [
+        {
+          "id": "forgeweave:necrotic",
+          "level": 3
+        }
+      ]
+    },
+    "count": 1,
+    "id": "forgeweave:pickaxe"
+  },
+  "ritual_dummy": {
+    "components": {
+      "forgeweave:modifiers": [
+        {
+          "id": "forgeweave:necrotic",
+          "level": 3
+        }
+      ]
+    },
+    "count": 1,
+    "id": "forgeweave:pickaxe"
+  },
+  "ritual_type": "forgeweave:bind_necrotic"
+}

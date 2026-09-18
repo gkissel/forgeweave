@@ -1,0 +1,27 @@
+{
+  "station": "table",
+  "cast": {
+    "item": "forgeweave:clay_cast_ingot"
+  },
+  "fluid": "forgeweave:molten_silver",
+  "amount": 144,
+  "result": {
+    "id": "immersiveengineering:ingot_silver"
+  },
+  "consumes_cast": true,
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:or",
+      "values": [
+        {
+          "type": "neoforge:item_exists",
+          "item": "immersiveengineering:ingot_silver"
+        },
+        {
+          "type": "neoforge:item_exists",
+          "item": "eternalores:silver_ingot"
+        }
+      ]
+    }
+  ]
+}

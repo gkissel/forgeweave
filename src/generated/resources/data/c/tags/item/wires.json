@@ -35,6 +35,7 @@
     "#c:wires/emberweld",
     "#c:wires/starweld",
     "#c:wires/voidweld",
+    "#c:wires/atomic_matter_alloy",
     "#c:wires/cobalt",
     "#c:wires/ardite",
     "#c:wires/manyullyn",

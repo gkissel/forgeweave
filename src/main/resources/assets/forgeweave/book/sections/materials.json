@@ -2,5 +2,9 @@
   {
     "name": "intro",
     "type": "text"
+  },
+  {
+    "name": "tier_equivalence",
+    "type": "text"
   }
 ]

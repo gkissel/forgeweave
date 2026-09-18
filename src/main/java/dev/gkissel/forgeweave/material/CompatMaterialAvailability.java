@@ -56,7 +56,9 @@ public final class CompatMaterialAvailability {
             entry("redstone_alloy", "enderio:redstone_alloy_ingot"),
             entry("refined_glowstone", "mekanism:ingot_refined_glowstone"),
             entry("refined_obsidian", "mekanism:ingot_refined_obsidian"),
-            entry("silver", "immersiveengineering:ingot_silver"),
+            // #997 (D-M8-18): Occultism ships its own silver ingot in `c:ingots/silver`, so the
+            // preset's gate is an `neoforge:or` across both providers rather than IE alone.
+            entry("silver", "immersiveengineering:ingot_silver", "occultism:silver_ingot"),
             entry("soularium", "enderio:soularium_ingot"),
             entry("tin", "mekanism:ingot_tin"),
             entry("titanium", "modern_industrialization:titanium_ingot"),
@@ -92,7 +94,14 @@ public final class CompatMaterialAvailability {
             entry("duskweld", "draconicevolution:draconium_core"),
             entry("emberweld", "draconicevolution:wyvern_core"),
             entry("starweld", "draconicevolution:awakened_core"),
-            entry("voidweld", "draconicevolution:chaotic_core"));
+            entry("voidweld", "draconicevolution:chaotic_core"),
+            // #993 -- atomic matter alloy (D-M8-13). Its material JSON is the one entry here with no
+            // matching `neoforge:conditions` to mirror: the material ships unconditionally so that
+            // #993's GameTest can reach it with no Mekanism on the classpath (TrackBAlloy's own
+            // comment has the reasoning). This row is what still keeps its ingot, nugget and block
+            // out of creative and JEI without Mekanism, and its melting and casting rows carry the
+            // same item_exists gate.
+            entry("atomic_matter_alloy", "mekanism:alloy_atomic"));
 
     // The three PlusTiC-inspiration alloys (issue #873 deliverable 4): condition is the AND of their
     // compat inputs' own providers (native inputs -- iron, obsidian, glass -- need no entry).

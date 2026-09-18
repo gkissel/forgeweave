@@ -1,18 +1,17 @@
 {
   "station": "table",
   "cast": {
-    "item": "forgeweave:clay_cast_ingot"
+    "item": "forgeweave:cast_ingot"
   },
   "fluid": "forgeweave:molten_silver",
   "amount": 144,
   "result": {
-    "id": "immersiveengineering:ingot_silver"
+    "id": "occultism:silver_ingot"
   },
-  "consumes_cast": true,
   "neoforge:conditions": [
     {
       "type": "neoforge:item_exists",
-      "item": "immersiveengineering:ingot_silver"
+      "item": "occultism:silver_ingot"
     }
   ]
 }

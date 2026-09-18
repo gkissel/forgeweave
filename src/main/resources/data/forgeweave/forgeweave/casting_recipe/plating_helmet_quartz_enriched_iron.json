@@ -13,8 +13,17 @@
   },
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "refinedstorage:quartz_enriched_iron"
+      "type": "neoforge:or",
+      "values": [
+        {
+          "type": "neoforge:item_exists",
+          "item": "refinedstorage:quartz_enriched_iron"
+        },
+        {
+          "type": "neoforge:item_exists",
+          "item": "eternalores:quartz_enriched_iron_ingot"
+        }
+      ]
     }
   ]
 }

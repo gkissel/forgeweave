@@ -12,6 +12,10 @@
     "type": "text"
   },
   {
+    "name": "rituals",
+    "type": "text"
+  },
+  {
     "name": "augments",
     "type": "text"
   }

@@ -1,0 +1,14 @@
+{
+  "input": {
+    "item": "justdirethings:eclipsealloy_block"
+  },
+  "fluid": "forgeweave:molten_eclipsealloy",
+  "amount": 1296,
+  "temperature": 1600,
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "justdirethings:eclipsealloy_ingot"
+    }
+  ]
+}

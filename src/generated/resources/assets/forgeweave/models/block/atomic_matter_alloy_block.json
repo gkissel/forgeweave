@@ -1,0 +1,6 @@
+{
+  "parent": "minecraft:block/cube_all",
+  "textures": {
+    "all": "forgeweave:block/atomic_matter_alloy_block"
+  }
+}

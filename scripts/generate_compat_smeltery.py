@@ -32,7 +32,12 @@ MELTING_DIR = ROOT / "src/main/resources/data/forgeweave/forgeweave/melting_reci
 
 # materials whose condition is a `neoforge:or` across more than one provider (JC2): the ingot casting
 # row needs one file per provider instead of one file naming an id that might not be the one installed.
-OR_MATERIALS = {"lead", "uranium"}
+#
+# #997 (D-M8-18) added silver: Occultism ships its own silver ingot and tags it into `c:ingots/silver`
+# exactly as Immersive Engineering does, so the preset is the same material with a widened gate, not
+# a second one. JC2's "gate by material name, not by mod" is the whole point -- a pack with Occultism
+# and no IE still gets silver.
+OR_MATERIALS = {"lead", "uranium", "silver"}
 
 # The three new alumite/osgloglas/osmiridium alloys: Forgeweave-owned ingot/nugget/block items (added
 # to dev.gkissel.forgeweave.trackb.TrackBAlloy.ALL), so their full 73-file casting template needs no
@@ -59,6 +64,12 @@ ALLOYS = {
     "emberweld": [{"type": "neoforge:item_exists", "item": "draconicevolution:wyvern_core"}],
     "starweld": [{"type": "neoforge:item_exists", "item": "draconicevolution:awakened_core"}],
     "voidweld": [{"type": "neoforge:item_exists", "item": "draconicevolution:chaotic_core"}],
+    # Issue #993: atomic matter alloy, the same treatment one mod over. It gets no alloy_recipe row
+    # either -- a nucleosynthesis run on Mekanism's own Antiprotonic Nucleosynthesizer is the only
+    # thing that makes the ingot, and melting it back down and recasting it is the only loop the
+    # smeltery closes. Its material JSON deliberately carries no condition (see TrackBAlloy), but
+    # these recipes do: a melting or casting row keyed on an absent mod's item is a broken recipe.
+    "atomic_matter_alloy": [{"type": "neoforge:item_exists", "item": "mekanism:alloy_atomic"}],
 }
 
 VALUE_NUGGET = 16

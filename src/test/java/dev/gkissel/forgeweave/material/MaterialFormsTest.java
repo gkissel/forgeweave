@@ -74,18 +74,19 @@ class MaterialFormsTest {
     @Test
     void theRosterCoversEveryTrackBMaterialPlusTheTenOwnItemMetalsAndTheTwoGems() {
         assertEquals(11, TrackBOre.ALL.size(), "Track B's ore roster");
-        assertEquals(25, TrackBAlloy.ALL.size(), "Track B's alloy roster, welds included");
+        assertEquals(26, TrackBAlloy.ALL.size(),
+                "Track B's alloy roster, the welds and atomic matter alloy included");
         assertEquals(10, MaterialForms.OWN_ITEM_METALS.size(), "D-M8-7's own-item metals");
         assertEquals(TrackBOre.ALL.size() + TrackBAlloy.ALL.size() + 10 + 1, MaterialForms.ALL.size(),
-                "the roster is Track B's 36, the ten own-item metals and brimspar");
+                "the roster is Track B's 37, the ten own-item metals and brimspar");
 
-        // 36 Track B materials, 35 of them with an ingot: fulmenite's ore drops a crystal (#929).
+        // 37 Track B materials, 36 of them with an ingot: fulmenite's ore drops a crystal (#929).
         long trackBWithIngot = MaterialForms.ALL.stream()
                 .filter(material -> TrackBOre.ALL.stream().anyMatch(ore -> ore.id().equals(material.id()))
                         || TrackBAlloy.ALL.stream().anyMatch(alloy -> alloy.id().equals(material.id())))
                 .filter(MaterialForms.FormedMaterial::hasIngot)
                 .count();
-        assertEquals(35, trackBWithIngot);
+        assertEquals(36, trackBWithIngot);
 
         Set<String> ids = MaterialForms.ALL.stream().map(MaterialForms.FormedMaterial::id)
                 .collect(Collectors.toSet());
@@ -160,7 +161,7 @@ class MaterialFormsTest {
             }
         }
 
-        assertEquals(366, forms, "45 materials with an ingot x 8 forms, plus two gem materials x 3 dusts");
+        assertEquals(374, forms, "46 materials with an ingot x 8 forms, plus two gem materials x 3 dusts");
         assertTrue(problems.isEmpty(), "material forms missing their wiring:\n" + String.join("\n", problems));
     }
 

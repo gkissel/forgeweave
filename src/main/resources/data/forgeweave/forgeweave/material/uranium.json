@@ -88,6 +88,10 @@
         {
           "type": "neoforge:item_exists",
           "item": "bigreactors:yellorium_ingot"
+        },
+        {
+          "type": "neoforge:item_exists",
+          "item": "eternalores:uranium_ingot"
         }
       ]
     }

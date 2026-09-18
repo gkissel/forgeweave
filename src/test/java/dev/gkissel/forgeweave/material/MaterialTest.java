@@ -181,7 +181,14 @@ class MaterialTest {
             // fusion recipe consumes. They sit above the wyvern/chaotic preset pair, which stays as
             // the raw tier under them. #965 added duskweld at the inert tier under the three, and
             // the draconium core material beside the other three cores.
-            "duskweld", "emberweld", "starweld", "voidweld", "draconium_core" })
+            "duskweld", "emberweld", "starweld", "voidweld", "draconium_core",
+            // #993 M8 (D-M8-13): atomic matter alloy, the same shape one mod over -- only a
+            // nucleosynthesis run on Mekanism's own machine makes the ingot. Unlike the welds it
+            // carries no neoforge:conditions at all (see TrackBAlloy), so it parses on the direct
+            // path the Track B roster above uses.
+            "atomic_matter_alloy",
+            // Issue #1031 (D-M8-21): Just Dire Things' four tool tiers.
+            "ferricore", "blazegold", "celestigem", "eclipsealloy" })
     void shippedMaterialsParse(String name) {
         Material.CODEC.parse(ops, shipped(name)).getOrThrow();
     }
@@ -217,7 +224,10 @@ class MaterialTest {
             // #872 M6 recovery batch: single item_exists each, verified against each mod's own
             // 1.21.1 tree (RecoveryBatchGameTests, DraconicEvolutionGameTests).
             "dark_matter", "red_matter", "crystal_matrix", "cosmic_neutronium", "infinity",
-            "wyvern", "chaotic", "quartz_enriched_iron", "silicon", "energised_steel" })
+            "wyvern", "chaotic", "quartz_enriched_iron", "silicon", "energised_steel",
+            // Issue #1031 (D-M8-21): Just Dire Things' four tool tiers, single item_exists each,
+            // verified against Direwolf20-MC/JustDireThings@v1.5.7 (JustDireThingsGameTests).
+            "ferricore", "blazegold", "celestigem", "eclipsealloy" })
     void conditionalMaterialsCarryAWellFormedConditionsBlockAndStillParse(String name) {
         JsonObject json = shipped(name).getAsJsonObject();
         assertTrue(json.has("neoforge:conditions"), name + " must carry a neoforge:conditions block (issue #826)");
@@ -338,6 +348,11 @@ class MaterialTest {
             "manyullyn,hardcinder", "ancient,hardcinder",
             "warspar,warspar", "hollowstone,warspar", "hollowsteel,warspar", "glowveil,warspar",
             "resonite,resonite", "sunsteel,resonite", "truesteel,resonite",
+            // #993 (D-M8-10): atomic matter alloy sits on the top resonite rung with them. The
+            // "compat metals stay within vanilla rungs" call in the batch 4 comment above does not
+            // apply -- the ingot is a Forgeweave item cast from a Forgeweave fluid, so a
+            // Forgeweave-only rung gates something real here.
+            "atomic_matter_alloy,resonite",
             // #872 M6 recovery batch: no upstream counterpart, so tiers here are Forgeweave's own
             // placement (proposed on the PR). ProjectE's dark/red matter and Avaritia's escalating
             // crystal_matrix/cosmic_neutronium/infinity ladder and Draconic Evolution's wyvern/chaotic
@@ -743,6 +758,10 @@ class MaterialTest {
             // them, and a fusion craft is the only thing that makes their ingot at all. #965 added
             // duskweld under the three.
             "duskweld", "emberweld", "starweld", "voidweld",
+            // #993: atomic matter alloy is cast-only for the same reason -- the Part Builder never
+            // takes it, and a nucleosynthesis run on Mekanism's own machine is the only thing that
+            // makes its ingot at all.
+            "atomic_matter_alloy",
             "tin", "aluminium", "nickel", "constantan", "invar", "platinum", "titanium", "tungsten",
             "iridium", "uranium", "graphite",
             "redstone_alloy", "energetic_alloy", "pulsating_alloy", "conductive_alloy", "vibrant_alloy",
@@ -1046,6 +1065,77 @@ class MaterialTest {
         assertTrue(violations.isEmpty(),
                 "these trait ids are claimed by more than one material (issue #876's dedupe policy -- "
                         + "*_protection and overslime are the only exemptions): " + violations);
+    }
+
+    /**
+     * Issue #1031 (D-M8-21): the Eternal Ores dedupe. For every real-world metal Forgeweave already
+     * shipped a Track A material for, where Eternal Ores also supplies that metal under a matching
+     * {@code c:} tag, the material's own existence gate grew an {@code eternalores:<id>_ingot}
+     * branch so the metal's preset -- and every recipe cast from it -- resolves with Eternal Ores as
+     * the only supplying mod, not just the mod(s) it originally shipped keyed on. Walks the shipped
+     * JSON directly (not the codec, which {@code neoforge:conditions} never reaches) so a future
+     * edit that drops the branch fails here rather than only showing up as a silent gap in-game.
+     */
+    @ParameterizedTest
+    @CsvSource({
+            "aluminium,eternalores:aluminum_ingot", "bronze,eternalores:bronze_ingot",
+            "constantan,eternalores:constantan_ingot", "electrum,eternalores:electrum_ingot",
+            "graphite,eternalores:graphite_ingot", "invar,eternalores:invar_ingot",
+            "iridium,eternalores:iridium_ingot", "lead,eternalores:lead_ingot",
+            "nickel,eternalores:nickel_ingot", "osmium,eternalores:osmium_ingot",
+            "platinum,eternalores:platinum_ingot", "silver,eternalores:silver_ingot",
+            "tin,eternalores:tin_ingot", "titanium,eternalores:titanium_ingot",
+            "tungsten,eternalores:tungsten_ingot", "uranium,eternalores:uranium_ingot",
+            "uraninite,eternalores:uraninite_ingot",
+            "quartz_enriched_iron,eternalores:quartz_enriched_iron_ingot",
+            "silicon,eternalores:silicon_ingot" })
+    void eternalOresDedupeMaterialsCarryTheEternalOresBranch(String name, String eoItem) {
+        JsonObject json = shipped(name).getAsJsonObject();
+        assertTrue(conditionNamesItem(json.getAsJsonArray("neoforge:conditions"), eoItem),
+                name + "'s neoforge:conditions must name " + eoItem + " as an additional provider (issue #1031)");
+
+        // The codec ignores the extra key -- see conditionalMaterialsCarryAWellFormedConditionsBlockAndStillParse.
+        Material.CODEC.parse(ops, json).getOrThrow();
+    }
+
+    /** Same walk, over the melting and casting recipe rows the material JSON's own condition mirrors. */
+    @ParameterizedTest
+    @CsvSource({
+            "aluminium,eternalores:aluminum_ingot", "bronze,eternalores:bronze_ingot",
+            "constantan,eternalores:constantan_ingot", "electrum,eternalores:electrum_ingot",
+            "graphite,eternalores:graphite_ingot", "invar,eternalores:invar_ingot",
+            "iridium,eternalores:iridium_ingot", "lead,eternalores:lead_ingot",
+            "nickel,eternalores:nickel_ingot", "osmium,eternalores:osmium_ingot",
+            "platinum,eternalores:platinum_ingot", "silver,eternalores:silver_ingot",
+            "tin,eternalores:tin_ingot", "titanium,eternalores:titanium_ingot",
+            "tungsten,eternalores:tungsten_ingot", "uranium,eternalores:uranium_ingot" })
+    void eternalOresDedupeIngotMeltsBackIntoItsOwnIngot(String name, String eoItem) throws Exception {
+        Path castingFile = projectRoot()
+                .resolve("src/main/resources/data/forgeweave/forgeweave/casting_recipe/ingot_" + name + "_eternalores.json");
+        assertTrue(Files.exists(castingFile), "expected a new ingot_" + name + "_eternalores.json casting row");
+        JsonObject casting = JsonParser.parseString(Files.readString(castingFile, StandardCharsets.UTF_8)).getAsJsonObject();
+        assertEquals(eoItem, casting.getAsJsonObject("result").get("id").getAsString());
+        assertTrue(conditionNamesItem(casting.getAsJsonArray("neoforge:conditions"), eoItem));
+    }
+
+    private static boolean conditionNamesItem(com.google.gson.JsonArray conditions, String item) {
+        for (JsonElement entry : conditions) {
+            JsonObject node = entry.getAsJsonObject();
+            String type = node.get("type").getAsString();
+            if (type.equals("neoforge:item_exists") && node.get("item").getAsString().equals(item)) {
+                return true;
+            }
+            if (type.equals("neoforge:or")) {
+                for (JsonElement branch : node.getAsJsonArray("values")) {
+                    JsonObject branchNode = branch.getAsJsonObject();
+                    if (branchNode.get("type").getAsString().equals("neoforge:item_exists")
+                            && branchNode.get("item").getAsString().equals(item)) {
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
     }
 
     private static Path projectRoot() {

@@ -1,0 +1,7 @@
+{
+  "variants": {
+    "": {
+      "model": "forgeweave:block/atomic_matter_alloy_block"
+    }
+  }
+}
