@@ -1,0 +1,32 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_nuggets_atomic_matter_alloy": {
+      "conditions": {
+        "items": [
+          {
+            "items": "#c:nuggets/atomic_matter_alloy"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "forgeweave:atomic_matter_alloy_wire"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_the_recipe",
+      "has_nuggets_atomic_matter_alloy"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "forgeweave:atomic_matter_alloy_wire"
+    ]
+  }
+}

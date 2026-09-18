@@ -7,6 +7,7 @@ import net.neoforged.bus.api.IEventBus;
 
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.compat.mekanism.modules.MekanismModuleContainer;
+import dev.gkissel.forgeweave.config.ForgeweaveConfig;
 import dev.gkissel.forgeweave.item.ForgeweaveDataComponents;
 import dev.gkissel.forgeweave.tool.ToolMaterials;
 
@@ -59,17 +60,17 @@ public final class ForgeweaveMekanismCompat {
 
     /** How many of Mekanism's atomic alloys one {@code atomic_matter_alloy} ingot takes. */
     public static int nucleosynthesizingAlloyCount() {
-        return NUCLEOSYNTHESIZING_ALLOY_COUNT_DEFAULT; // #993: becomes a ForgeweaveConfig read.
+        return ForgeweaveConfig.mekanismNucleosynthesizingAlloyCount();
     }
 
     /** How much antimatter, in mB, one {@code atomic_matter_alloy} ingot takes. */
     public static int nucleosynthesizingAntimatterAmount() {
-        return NUCLEOSYNTHESIZING_ANTIMATTER_DEFAULT; // #993: becomes a ForgeweaveConfig read.
+        return ForgeweaveConfig.mekanismNucleosynthesizingAntimatter();
     }
 
     /** How long, in ticks, the nucleosynthesizer takes over one ingot. */
     public static int nucleosynthesizingDuration() {
-        return NUCLEOSYNTHESIZING_DURATION_DEFAULT; // #993: becomes a ForgeweaveConfig read.
+        return ForgeweaveConfig.mekanismNucleosynthesizingDuration();
     }
 
     /**
