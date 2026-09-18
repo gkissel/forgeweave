@@ -13,6 +13,7 @@ import mekanism.common.capabilities.radiation.item.RadiationShieldingHandler;
 import org.jetbrains.annotations.Nullable;
 
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
@@ -140,7 +141,10 @@ public final class MekanismModuleContainer implements MekanismGearModules.Bridge
      */
     private static void enqueueImc(InterModEnqueueEvent event) {
         for (Item item : gearItems()) {
-            MekanismIMC.addModuleContainer(item, imcMethod(item));
+            // The Holder overload: Mekanism 10.7.19 marks every ItemLike and Item route deprecated for
+            // removal. Safe to wrap here because this runs on InterModEnqueueEvent, long after the item
+            // registry is frozen.
+            MekanismIMC.addModuleContainer(BuiltInRegistries.ITEM.wrapAsHolder(item), imcMethod(item));
         }
     }
 
