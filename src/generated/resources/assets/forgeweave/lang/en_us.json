@@ -616,6 +616,7 @@
   "gui.forgeweave.tool_station.previous_page": "<",
   "gui.forgeweave.tool_station.repair": "Repair",
   "gui.forgeweave.tool_station.repair.description": "Place a damaged tool in the middle slot and the material its head is made of alongside it to restore durability. A repaired tool keeps its parts, its stats and its traits. The same slots take modifier reagents: a tool has three modifier slots, and levelling a modifier up stays inside the slot it already occupies.",
+  "gui.forgeweave.tool_station.rotate_preview": "Drag to turn",
   "gui.forgeweave.tool_station.traits": "Traits",
   "gui.forgeweave.tool_station.wrong_material_part": "One or multiple items have an unsupported material for this tool.",
   "gui.forgeweave.warning": "WARNING",
