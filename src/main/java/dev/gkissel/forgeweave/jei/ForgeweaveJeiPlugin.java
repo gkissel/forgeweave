@@ -270,8 +270,11 @@ public final class ForgeweaveJeiPlugin implements IModPlugin {
         // smeltery categories above -- both are smeltery-only mechanics (SmelteryFuel#find and
         // CoreTransformRecipe#find both check ForgeweaveConfig#SMELTERY themselves at call time, so
         // this mirrors what the config would refuse anyway rather than introducing a new rule).
+        // #972: the energized tank's own synthetic row rides its own compat toggle on top of the
+        // smeltery gate -- a bridge that is off has nothing to advertise.
         registration.addRecipes(SmelteryFuelCategory.TYPE,
-                smeltery ? SmelteryFuelRecipes.build(smelteryFuels) : List.of());
+                smeltery ? SmelteryFuelRecipes.build(smelteryFuels,
+                        ForgeweaveConfig.enabled(ForgeweaveConfig.ENERGIZED_TANK)) : List.of());
         registration.addRecipes(CoreTransformCategory.TYPE,
                 smeltery ? CoreTransformRecipes.build(currentCoreTransformRecipes()) : List.of());
         // #931: entity melting rides the same smeltery gate -- EntityMeltingRecipe#find checks
@@ -338,6 +341,8 @@ public final class ForgeweaveJeiPlugin implements IModPlugin {
         registration.addRecipeCatalyst(ForgeweaveItems.NETHER_CORE.get(), SmelteryFuelCategory.TYPE, CoreTransformCategory.TYPE);
         registration.addRecipeCatalyst(ForgeweaveItems.END_CORE.get(), SmelteryFuelCategory.TYPE, CoreTransformCategory.TYPE);
         registration.addRecipeCatalyst(ForgeweaveItems.DEEP_CORE.get(), SmelteryFuelCategory.TYPE);
+        // #972: the tank is a fuel source, so looking it up lands on the category that explains it.
+        registration.addRecipeCatalyst(ForgeweaveItems.ENERGIZED_TANK.get(), SmelteryFuelCategory.TYPE);
 
         // #931: entity melting happens in any formed smeltery regardless of core tier -- the recipe
         // amount is not scaled by SmelteryCore (EntityMeltingRecipe's own javadoc) -- so all four

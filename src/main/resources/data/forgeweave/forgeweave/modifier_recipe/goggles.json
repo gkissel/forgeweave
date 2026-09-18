@@ -1,0 +1,14 @@
+{
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:mod_loaded",
+      "modid": "create"
+    }
+  ],
+  "modifier": "forgeweave:goggles",
+  "reagent": {
+    "item": "create:goggles"
+  },
+  "cost": 1,
+  "max_level": 1
+}

@@ -174,6 +174,11 @@ public class ForgeweaveBlockLootSubProvider extends BlockLootSubProvider {
         dropSelf(ForgeweaveBlocks.SEARED_FURNACE_CONTROLLER.get()); // #442
         dropSelf(ForgeweaveBlocks.SEARED_RESERVOIR_CONTROLLER.get()); // T44/#475
         dropSelf(ForgeweaveBlocks.SEARED_DRAIN.get());
+        // #972 -- the energized tank. Its fuel sample and energy buffer stay in the world rather
+        // than riding the dropped stack: a sample is one bucket of a fluid a player can pour back in,
+        // and a buffer that survived being mined would be a free battery. Plain dropSelf, like the
+        // drain, rather than the tank family's tankDrop.
+        dropSelf(ForgeweaveBlocks.ENERGIZED_TANK.get());
         // #277 -- the duct's filter item is dropped by SearedDuctBlock#onRemove, not by this table.
         dropSelf(ForgeweaveBlocks.SEARED_DUCT.get());
         dropSelf(ForgeweaveBlocks.SEARED_CHUTE.get());

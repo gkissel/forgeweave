@@ -27,6 +27,7 @@ import net.neoforged.neoforge.common.data.ExistingFileHelper;
 
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.block.ConnectedGlassBlock;
+import dev.gkissel.forgeweave.block.EnergizedTankBlock;
 import dev.gkissel.forgeweave.block.FaucetBlock;
 import dev.gkissel.forgeweave.block.ForgeweaveBlocks;
 import dev.gkissel.forgeweave.block.SearedChannelBlock;
@@ -193,6 +194,12 @@ public class ForgeweaveBlockStateProvider extends BlockStateProvider {
         // six-face cube; the 1.20 clone's own duct model does exactly this (its duct_active and
         // drain_active share a template and differ only in the "drain" texture slot, NOTICE.md).
         tieredDrainLike("seared_duct", ForgeweaveBlocks.SEARED_DUCT.get(), "seared_duct_front");
+
+        // #972 (M8, D-M8-11) -- the energized tank. Original Forgeweave art in the standard
+        // textures/block folder (no 1.12 equivalent exists to derive from), and not tiered: one look
+        // at every core tier, see the block's own registration comment. Two variants, because the
+        // overdrive button shows which way it is pressed.
+        energizedTank();
 
         // #277 -- the chute's trough hangs off three faces plus the top and bottom, so its model is
         // hand-authored JSON under models/block/, transcribed from the 1.20 clone's own
@@ -555,6 +562,22 @@ public class ForgeweaveBlockStateProvider extends BlockStateProvider {
             var model = models().cubeAll(tierName(name, tier), tierTexture(name, tier));
             return cutout ? model.renderType("minecraft:cutout") : model;
         }, state -> 0);
+    }
+
+    /**
+     * The energized tank (#972): a plain six-face cube whose side texture swaps on
+     * {@link EnergizedTankBlock#OVERDRIVE}, so the button on the block reads as pressed or not. The
+     * block item takes the un-pressed model, which is the state a freshly placed tank is in.
+     */
+    private void energizedTank() {
+        ResourceLocation top = modLoc("block/energized_tank_top");
+        ModelFile off = models().cubeBottomTop("energized_tank", modLoc("block/energized_tank_side"), top, top);
+        ModelFile on = models().cubeBottomTop("energized_tank_overdrive",
+                modLoc("block/energized_tank_side_overdrive"), top, top);
+        getVariantBuilder(ForgeweaveBlocks.ENERGIZED_TANK.get()).forAllStates(state -> ConfiguredModel.builder()
+                .modelFile(state.getValue(EnergizedTankBlock.OVERDRIVE) ? on : off)
+                .build());
+        simpleBlockItem(ForgeweaveBlocks.ENERGIZED_TANK.get(), off);
     }
 
     /** The tank family: side and top textures per type, cutout for the fluid windows (see tankBlock's note). */

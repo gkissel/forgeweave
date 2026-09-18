@@ -12,6 +12,8 @@ import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.ExtraCodecs;
 
+import net.minecraft.world.item.component.ItemContainerContents;
+
 import net.neoforged.neoforge.fluids.SimpleFluidContent;
 import net.neoforged.neoforge.registries.DeferredHolder;
 import net.neoforged.neoforge.registries.DeferredRegister;
@@ -409,6 +411,30 @@ public final class ForgeweaveDataComponents {
     public static final DeferredHolder<DataComponentType<?>, DataComponentType<UUID>> TOOL_ID =
             DATA_COMPONENTS.registerComponentType("tool_id",
                     builder -> builder.persistent(UUIDUtil.CODEC).networkSynchronized(UUIDUtil.STREAM_CODEC));
+
+    /**
+     * What sits in each of a stack's gem sockets (docs/SCOPE.md M8, D-M8-1; issue #969), indexed by
+     * socket. The sockets themselves are the {@code forgeweave:socketed} modifier's level, not part
+     * of this component, so absent means no gems -- and, since a tool with no {@code socketed} entry
+     * has no sockets either, no migration and no backfill: tools built before M8 start with none.
+     *
+     * <p>Vanilla's own {@link ItemContainerContents} rather than a bare {@code List<ItemStack>},
+     * which is also what Apotheosis stores its own sockets in: a raw list would give the component
+     * no usable {@code equals}, and two otherwise-identical tools would stop counting as the same
+     * item. Its codec drops empty sockets and its indices survive the round trip, so a gem in socket
+     * three with sockets one and two empty decodes back into socket three
+     * ({@code ApotheosisSocketTest}).
+     *
+     * <p>Socket contents are <b>Forgeweave state</b>, deliberately not Apotheosis'
+     * {@code apotheosis:socketed_gems}: a save made with the integration on still loads with it off,
+     * with the gems sitting here inert until it comes back
+     * ({@code ApotheosisSocketGameTests}). Save-compat fixture:
+     * {@code fixtures/save_compat/m8_socketed.snbt}.
+     */
+    public static final DeferredHolder<DataComponentType<?>, DataComponentType<ItemContainerContents>> SOCKETS =
+            DATA_COMPONENTS.registerComponentType("sockets",
+                    builder -> builder.persistent(ItemContainerContents.CODEC)
+                            .networkSynchronized(ItemContainerContents.STREAM_CODEC));
 
     private ForgeweaveDataComponents() {}
 }

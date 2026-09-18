@@ -262,6 +262,15 @@ public final class ForgeweaveBlocks {
     public static final DeferredBlock<SearedDrainBlock> SEARED_DRAIN = BLOCKS.register("seared_drain",
             () -> new SearedDrainBlock(searedProperties()));
 
+    // #972 (M8, D-M8-11) -- the energized tank. Same seared strength and sound as the rest of the
+    // smeltery wall family, but deliberately not tiered (no SearedTier.TIER): it is a Forgeweave
+    // machine standing in a seared wall rather than a seared block, so the tier wave passes it over
+    // (SearedTier#spreadTier skips anything without the property) and it keeps one look at every
+    // core tier. ponytail: one texture set instead of four. Give it the tier property if a playtest
+    // says a Nether-core wall with one plain block in it reads wrong.
+    public static final DeferredBlock<EnergizedTankBlock> ENERGIZED_TANK = BLOCKS.register("energized_tank",
+            () -> new EnergizedTankBlock(searedProperties()));
+
     // #277 -- the seared duct and seared chute (docs/SCOPE.md M3.4). Maintainer-approved deviation
     // from the 1.12 parity default, recorded on issue #277: neither block exists in the 1.12
     // generation, so both follow the 1.20 clone's SearedDuctBlock and seared_chute (NOTICE.md). Same

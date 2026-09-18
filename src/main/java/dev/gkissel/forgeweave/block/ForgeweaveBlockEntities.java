@@ -104,6 +104,12 @@ public final class ForgeweaveBlockEntities {
                     .of(SearedDrainBlockEntity::new, ForgeweaveBlocks.SEARED_DRAIN.get())
                     .build(null));
 
+    // #972 (M8, D-M8-11) -- the energized tank's fuel sample, energy buffer and overdrive state.
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<EnergizedTankBlockEntity>> ENERGIZED_TANK =
+            BLOCK_ENTITIES.register("energized_tank", () -> BlockEntityType.Builder
+                    .of(EnergizedTankBlockEntity::new, ForgeweaveBlocks.ENERGIZED_TANK.get())
+                    .build(null));
+
     // #277 -- the duct's filter slot and the chute's item port (docs/SCOPE.md M3.4). Both share the
     // drain's core-linking base (SmelteryIoBlockEntity) but hand out different capabilities, so each
     // gets its own type.

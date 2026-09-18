@@ -652,6 +652,28 @@ An overdrive button on the block, its state saved with the block entity, multipl
 
 It gets a JEI row, a mention in the guide book, and a toggle. Why this and not the heater: an RF/t curve is a second temperature scale a player has to learn, while a fuel sample is a fuel they already know, read through a meter they already have.
 
+**The numbers, settled while building it ([#972](https://github.com/gkissel/forgeweave/issues/972), 2026-09-18).** All six live in a new `compat` section of `ForgeweaveConfig`, and every one of them is pinned by `EnergizedHeatTest`.
+
+| Option | Default | What it means |
+| --- | --- | --- |
+| `energizedTank` | `true` | The D-M8-5 toggle |
+| `energizedTankBuffer` | `100000` FE | About two minutes of melting at lava's heat |
+| `energizedTankRfPerMeltTickBase` | `100` | The `rfPerMeltTickBase` of the cost |
+| `energizedTankTemperatureDivisor` | `1000` | The divisor, so the base is the price at 1000 degrees |
+| `energizedTankOverdriveCost` | `2.0` | What overdrive multiplies the cost by |
+| `energizedTankOverdriveProgress` | `2.0` | What overdrive multiplies melt progress by |
+
+At those defaults one melt tick costs 130 FE on a lava sample, 150 on blazing blood, 170 on molten magma, 190 on brimspar and 210 on pyrealloy. A melt tick runs every four game ticks, so lava works out at roughly 33 FE per game tick.
+
+Four more answers the issue asked for, all settled the same way:
+
+- **It competes with a lit fuel below the smeltery rather than replacing it.** The smeltery runs at whichever of the two is hotter, and only the winner spends anything. A tie goes to the tank.
+- **An invalid sample is refused at the fill**, not accepted and ignored, so a player pouring water in finds out at the moment they try.
+- **A hottest tank with an empty buffer falls through to the next one down.** It is not heating, so it is not the hottest heat source, and a spare tank behind it is what a player built it for.
+- **Overdrive is a property of the paying tank only.** It never stacks across tanks: a second tank idling in the wall with its button pressed changes nothing.
+
+Two more, forced by how the mod is actually built: an energized tank counts as a wall tank on its own, so a smeltery heated entirely by energy forms with no seared tank in its walls; and the toggle makes the block **dormant, not unregistered**, because a server config is not loaded when registries freeze. A dormant tank keeps its sample, its buffer and its overdrive setting and heats nothing, which is D-M8-5's inert-not-destructive contract.
+
 **D-M8-12 — the basic alloys are craftable in other mods' machines.** An alloy qualifies as basic when it takes ingot plus ingot, no catalyst fluid and no fuel material: manyullyn, alumite, rose gold and pig iron. Those get `mod_loaded`-gated recipe JSON for Create's heated mixer, Immersive Engineering's arc furnace and EnderIO's alloy smelter. Alloys that need a catalyst or a fuel stay smeltery-only, because those are the recipes the smeltery is actually for. Nobody should have to build a smeltery to get rose gold if they already run an alloy smelter, and nobody should be able to skip the smeltery for the alloys that are its point.
 
 **D-M8-13 — Forgeweave's molten fluids are Powah thermo generator heat sources.** Registered through Powah's `powah:heat_source` fluid data map: molten magma 1700, brimspar 1900, pyrealloy 2100, and the rest of the ladder in step. The fuel ladder already ranks these fluids by heat; this exposes that ranking to a mod that pays for heat.
@@ -714,7 +736,7 @@ Curios (D-M8-4, until a back or charm item exists) · a Create blaze burner seam
 | # | Deliverable | Depends on | Status |
 | --- | --- | --- | --- |
 | M8-0 | Compat config toggles for the four integrations that shipped before D-M8-5, the `config/forgeweave/` folder split (D-M8-8), and mining level in the Jade and WTHIT overlays (D-M8-9) | — | filed ([#968](https://github.com/gkissel/forgeweave/issues/968)), extended 2026-09-07 |
-| M8-1 | The `socketed` modifier, the socket-contents component, and gem bonuses on the existing seams | — | filed ([#969](https://github.com/gkissel/forgeweave/issues/969)) |
+| M8-1 | The `socketed` modifier, the socket-contents component, and gem bonuses on the existing seams | — | shipped ([#969](https://github.com/gkissel/forgeweave/issues/969)); the gem-effect mapping is `ApotheosisSockets.EFFECT_MAP`, six of Apotheosis' fourteen bonus types mapped and the rest recorded as unmapped, and the config toggle's own key is [#968](https://github.com/gkissel/forgeweave/issues/968)'s |
 | M8-2 | Apotheosis loot affixes on Forgeweave gear, and the `allowVanillaEnchanting` interplay | M8-1 | filed ([#970](https://github.com/gkissel/forgeweave/issues/970)) |
 | M8-3 | EMI bridge spike across all 14 recipe types across the 12 category classes, then a native plugin only for the gaps | — | spike posted, bridge covers everything, no plugin ([#971](https://github.com/gkissel/forgeweave/issues/971)) |
 | M8-4 | Energized tank: the fuel sample, the energy cost per melt tick, the hottest-tank rule, overdrive, the JEI row | — | filed ([#972](https://github.com/gkissel/forgeweave/issues/972)), rewritten in place 2026-09-07 (was the FE heater wall) |

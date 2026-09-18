@@ -1,5 +1,6 @@
 package dev.gkissel.forgeweave.block;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
@@ -162,6 +163,14 @@ public class SmelteryControllerBlockEntity extends BlockEntity implements Statio
     private boolean[] meltStalled = new boolean[0];
     @Nullable
     private BlockPos fuelTank;
+
+    /**
+     * #972: where this structure's energized tanks stand, refreshed by {@link #assignTanks} on every
+     * formed scan. Not saved -- a scan runs on load and after every wall change, which is exactly
+     * when this could go stale, and the positions are cheap to rebuild from the scan that already
+     * walked the shell.
+     */
+    private List<BlockPos> energizedTanks = List.of();
 
     // #845 -- accumulated mB of whatever CoreTransformRecipe fluid is currently being poured over
     // this core, towards that recipe's own amount(). Reset to 0 by transformTo(); a mismatched fluid
@@ -331,13 +340,25 @@ public class SmelteryControllerBlockEntity extends BlockEntity implements Statio
         }
     }
 
-    /** Points every wall tank back at this core so a fuel pour can wake a melt stuck for want of heat (#97). */
+    /**
+     * Points every wall tank back at this core so a fuel pour can wake a melt stuck for want of heat
+     * (#97), and remembers which of them are energized tanks (#972) so
+     * {@link #payingEnergizedTank()} does not have to walk the shell on every temperature read.
+     */
     private void assignTanks(List<BlockPos> tanks) {
+        List<BlockPos> energized = new ArrayList<>();
         for (BlockPos pos : tanks) {
-            if (level != null && level.getBlockEntity(pos) instanceof SearedTankBlockEntity tank) {
+            if (level == null) {
+                continue;
+            }
+            if (level.getBlockEntity(pos) instanceof SearedTankBlockEntity tank) {
                 tank.setCore(worldPosition);
+            } else if (level.getBlockEntity(pos) instanceof EnergizedTankBlockEntity tank) {
+                tank.setCore(worldPosition);
+                energized.add(pos.immutable());
             }
         }
+        energizedTanks = List.copyOf(energized);
     }
 
     /** Capacity follows the interior size; an interior that shrank spills nothing but caps what is held. */
@@ -500,11 +521,50 @@ public class SmelteryControllerBlockEntity extends BlockEntity implements Statio
             return 0;
         }
         refreshFuelDisplay();
+        // #972: the energized tank competes with a lit wall-tank fuel rather than replacing it, so
+        // the smeltery runs at whichever of the two is hotter. Peeking costs no energy; only
+        // meltTick's own charge does.
+        EnergizedTankBlockEntity energized = payingEnergizedTank();
+        return Math.max(liquidTemperature(), energized == null ? 0 : energized.temperature());
+    }
+
+    /**
+     * The temperature the wall-tank fuel path offers: the burn under way, or a peek at whatever
+     * registered fuel is waiting in a tank. Split out of {@link #currentTemperature()} so #972's
+     * energized tank can be compared against it without the comparison reading the maximum it is
+     * itself part of.
+     */
+    private int liquidTemperature() {
         if (fuelBurnTicksRemaining > 0) {
             return fuelTemperature;
         }
         SmelteryFuel fuel = peekFuel();
         return fuel == null ? 0 : fuel.temperature();
+    }
+
+    /**
+     * Which energized tank in these walls would pay for the next melt tick, or {@code null} if none
+     * can -- the hottest valid sample whose buffer covers a whole tick, per
+     * {@link EnergizedHeat#pick}. A pure read: nothing here spends energy.
+     *
+     * <p>Short-circuits on the common case of no energized tank at all, so a smeltery built the
+     * ordinary way pays nothing for this block existing.
+     */
+    @Nullable
+    private EnergizedTankBlockEntity payingEnergizedTank() {
+        if (level == null || energizedTanks.isEmpty()) {
+            return null;
+        }
+        List<EnergizedTankBlockEntity> tanks = new ArrayList<>(energizedTanks.size());
+        List<EnergizedHeat.Source> sources = new ArrayList<>(energizedTanks.size());
+        for (BlockPos pos : energizedTanks) {
+            if (level.getBlockEntity(pos) instanceof EnergizedTankBlockEntity tank) {
+                tanks.add(tank);
+                sources.add(tank.asHeatSource());
+            }
+        }
+        int paying = EnergizedHeat.pick(sources);
+        return paying < 0 ? null : tanks.get(paying);
     }
 
     /**
@@ -520,10 +580,18 @@ public class SmelteryControllerBlockEntity extends BlockEntity implements Statio
         if (level == null || level.isClientSide || structure() == null) {
             return false;
         }
+        // #972: settle which heat source pays before anything is drained. The energized tank and a
+        // lit wall-tank fuel compete, the hotter one wins, and only the winner spends anything -- so
+        // an energized tank at or above the liquid fuel's temperature means no fuel is consumed at
+        // all this tick. A burn already locked in keeps its remaining ticks untouched while the tank
+        // is winning, and picks up where it left off once the buffer runs dry. Ties go to the tank,
+        // which is the cheaper answer to resolve and the one a player who built it expects.
+        EnergizedTankBlockEntity energized = payingEnergizedTank();
+        boolean energizedPays = energized != null && energized.temperature() >= liquidTemperature();
         // #97: refuel before heating, upstream's own needsFuel-driven consumeFuel call. This method
         // only ever runs while armed (see armMeltTick), i.e. while there is melting work queued, so a
         // burn never starts for an idle smeltery.
-        if (fuelBurnTicksRemaining <= 0 && hasMeltableItem()) {
+        if (!energizedPays && fuelBurnTicksRemaining <= 0 && hasMeltableItem()) {
             consumeFuel();
         }
         // Upstream converts the fuel's temperature to its own zero-is-300 scale the moment it burns it.
@@ -535,7 +603,12 @@ public class SmelteryControllerBlockEntity extends BlockEntity implements Statio
         // #847: ForgeweaveConfig.MELT_SPEED_MULTIPLIER scales this whole-number step (not the raw
         // heat/100.0 division) so the default 1.0 reproduces upstream's step exactly; a step of 0
         // (heat under 100) stays 0 at every multiplier.
-        int step = Math.round((heat / 100) * ForgeweaveConfig.MELT_SPEED_MULTIPLIER.get().floatValue());
+        // #972: overdrive multiplies the same step, and only when the overdriven tank is the one
+        // paying -- overdrive is a property of the paying tank, not of the smeltery, so a second
+        // tank standing idle in the wall with its button pressed changes nothing.
+        double overdrive = energizedPays && energized.overdrive()
+                ? ForgeweaveConfig.energizedTankOverdriveProgress() : 1.0D;
+        int step = (int) Math.round((heat / 100) * ForgeweaveConfig.MELT_SPEED_MULTIPLIER.get() * overdrive);
         boolean working = false;
         for (int slot = 0; slot < meltingItems.size(); slot++) {
             MeltingRecipe recipe = recipeFor(slot);
@@ -551,8 +624,11 @@ public class SmelteryControllerBlockEntity extends BlockEntity implements Statio
         }
         if (working) {
             // Upstream's fuel-- inside heatItems: the burn only counts down on a tick that actually
-            // heated something.
-            if (fuelBurnTicksRemaining > 0) {
+            // heated something. #972 puts the tank's charge on the same footing -- energy is spent
+            // for melt progress, never for standing still.
+            if (energizedPays) {
+                energized.payMeltTick();
+            } else if (fuelBurnTicksRemaining > 0) {
                 fuelBurnTicksRemaining--;
             }
             // #101: was setChanged(). The GUI's heat bars and fuel gauge read melt progress and the
