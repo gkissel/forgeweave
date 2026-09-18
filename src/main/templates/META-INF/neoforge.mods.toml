@@ -173,12 +173,32 @@ Forgeweave brings modular tool building, material traits, modifiers, melting, al
 #
 # BOTH sides: the ritual is a server-side craft, the rows are datapack entries the client needs for
 # JEI, and Occultism's own ritual category draws them client side.
-#
-# The lower bound is the version this integration was written against. The range is left open at the
-# top rather than pinned to a maximum this ticket cannot test against.
+
 [[dependencies.${mod_id}]]
     modId="occultism"
     type="optional"
     versionRange="[1.205.0,)"
+    ordering="AFTER"
+    side="BOTH"
+
+# Mekanism compat (issue #993, docs/SCOPE.md M8, D-M8-15) is optional: without it the
+# atomic_matter_alloy material still exists and still assembles into tools, but its nucleosynthesizing
+# recipe is dropped by its own `neoforge:conditions` mod_loaded gate, so the metal is unobtainable, and
+# nothing on a Forgeweave tool answers as a module container. With it, gear carrying an
+# atomic_matter_alloy part is a Mekanism module container: the Modification Station installs MekaTool
+# and MekaSuit modules into it and Forgeweave's own hooks run their effects
+# (dev.gkissel.forgeweave.compat.mekanism). BOTH sides: installing a module is a server-side machine
+# craft, the recipe is a datapack row the client needs for JEI, and the module screen is drawn client
+# side, so neither side alone is enough.
+#
+# Ordering AFTER because the module container's default data component is Mekanism's own, so its
+# registries have to exist before Forgeweave's items are built.
+#
+# The lower bound is the version this integration was written against. The range is left open at the
+# top rather than pinned to a maximum this ticket cannot test against.
+[[dependencies.${mod_id}]]
+    modId="mekanism"
+    type="optional"
+    versionRange="[10.7.19,)"
     ordering="AFTER"
     side="BOTH"

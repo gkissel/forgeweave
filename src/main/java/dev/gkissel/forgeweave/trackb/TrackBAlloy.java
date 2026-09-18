@@ -86,11 +86,32 @@ public record TrackBAlloy(String id, int color, int temperature) {
     public static final TrackBAlloy STARWELD = new TrackBAlloy("starweld", 0x2832D2, 1470);
     public static final TrackBAlloy VOIDWELD = new TrackBAlloy("voidweld", 0x8A2BE2, 1490);
 
+    // #993 -- atomic matter alloy (M8, docs/SCOPE.md D-M8-13). Same shape as the four welds above:
+    // a Forgeweave-owned metal with an ingot, a nugget, a storage block and a molten fluid, no ore,
+    // and no alloy_recipe row anywhere, because the only thing that makes the ingot is a
+    // nucleosynthesis run on Mekanism's own Antiprotonic Nucleosynthesizer. It differs from the
+    // welds in one deliberate way: its material JSON carries no `neoforge:conditions`. #993 makes a
+    // GameTest over the metal a testable requirement, GameTests run with no Mekanism on the
+    // classpath, and D-M8-5 exempts materials from the compat toggle -- so an existence gate would
+    // make the material absent exactly where the test looks for it. The item forms still hide
+    // without Mekanism through CompatMaterialAvailability, and the melting and casting rows still
+    // carry the gate.
+    //
+    // The color is a bright energized azure, the one open slot near Mekanism's own pale blue-white
+    // atomic alloy sprite: scripts/audit_palette.py puts it 0.1009 from the nearest tint anywhere
+    // (hollowsteel), well over the Track B roster's 0.085 floor, where the pale cyan-white corner
+    // truesteel and shardline already occupy is full. The temperature runs above every non-weld
+    // alloy in this file (truesteel's 1440 was the previous high), because the nucleosynthesizer is
+    // the deepest machine in Mekanism's own progression, and stays 40 under
+    // ForgeweaveFluids#BLAZING_BLOOD's 1500 headroom.
+    public static final TrackBAlloy ATOMIC_MATTER_ALLOY = new TrackBAlloy("atomic_matter_alloy", 0x3CA4FC, 1460);
+
     public static final List<TrackBAlloy> ALL = List.of(IRONBRAND, QUAKESTONE, SHARDLINE, EMBERCAST,
             RIFTALLOY, TIDEIRON, CINDERFORGE, DREADALLOY, SUNSTEEL, HOLLOWSTEEL, TRUESTEEL, STORMALLOY,
             GLOWVEIL, DAYBRASS, FAULTSTEEL, SKIPALLOY, MENDALLOY, MENDSTONE,
             ALUMITE, OSGLOGLAS, OSMIRIDIUM,
-            DUSKWELD, EMBERWELD, STARWELD, VOIDWELD);
+            DUSKWELD, EMBERWELD, STARWELD, VOIDWELD,
+            ATOMIC_MATTER_ALLOY);
 
     public String ingotId() {
         return id + "_ingot";

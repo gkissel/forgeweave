@@ -92,6 +92,11 @@ MATERIAL_MELT_TEMPERATURE_OVERRIDES = {
     "emberweld": 1800,  # brimspar
     "starweld": 2000,  # pyrealloy
     "voidweld": 2000,  # pyrealloy
+    # #993: atomic matter alloy sits at the same endgame tier. An entry here is not optional for it
+    # the way it is for draconium -- its `incorrect_for_tool` is forgeweave:incorrect_for_resonite_tool,
+    # one of the three rungs #877 minted above netherite, which TIER_MELT_TEMPERATURE below does not
+    # know, so melt_temperature() would raise a KeyError without this row.
+    "atomic_matter_alloy": 2000,  # pyrealloy
 }
 
 

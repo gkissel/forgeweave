@@ -1196,6 +1196,10 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("material.forgeweave.starweld", "Starweld");
         add("material.forgeweave.voidweld", "Voidweld");
 
+        // #993 -- atomic matter alloy (D-M8-13), the Mekanism-side sibling of the four welds above:
+        // only a nucleosynthesis run on Mekanism's own machine makes the ingot.
+        add("material.forgeweave.atomic_matter_alloy", "Atomic Matter Alloy");
+
         // #392 -- the two bowstring materials (docs/SCOPE.md M3.5). Names are upstream 1.12's
         // material.string.name / material.vine.name. Neither carries any tool stat block, so they
         // only ever surface on a bow string.
@@ -2292,6 +2296,11 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("trait.forgeweave.spirited_charge.description", "Carries a still larger Forge Energy buffer that is spent before durability.");
         add("trait.forgeweave.nitro_charge.name", "Nitro Charge");
         add("trait.forgeweave.nitro_charge.description", "Carries the largest Forge Energy buffer that is spent before durability.");
+        // Issue #993 (D-M8-13 and D-M8-15): atomic matter alloy's own instance of the same #830
+        // behavior. Mekanism's module container runs on the #830 EnergyBuffer, so the metal's trait
+        // is what gives the tool the buffer the modules draw from (see trait_definition/infused.json).
+        add("trait.forgeweave.infused.name", "Infused");
+        add("trait.forgeweave.infused.description", "Carries a deep Forge Energy buffer that is spent before durability.");
         add("tooltip.forgeweave.energy", "Stored Energy");
         // #829 M6 utility/economy trait behavior library.
         add("trait.forgeweave.sunmend.name", "Sunmend");

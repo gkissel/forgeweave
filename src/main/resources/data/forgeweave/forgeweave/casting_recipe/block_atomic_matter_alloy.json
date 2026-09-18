@@ -1,0 +1,14 @@
+{
+  "station": "basin",
+  "fluid": "forgeweave:molten_atomic_matter_alloy",
+  "amount": 1296,
+  "result": {
+    "id": "forgeweave:atomic_matter_alloy_block"
+  },
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "mekanism:alloy_atomic"
+    }
+  ]
+}

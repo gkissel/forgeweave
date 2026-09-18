@@ -1,0 +1,101 @@
+{
+    decoder: "item_stack",
+    expect: {
+        components: {
+            "forgeweave:modifiers": [
+                {
+                    id: "forgeweave:reinforced",
+                    level: 2
+                }
+            ],
+            "forgeweave:tool_materials": {
+                binding: "forgeweave:atomic_matter_alloy",
+                handle: "forgeweave:atomic_matter_alloy",
+                head: "forgeweave:atomic_matter_alloy"
+            },
+            "forgeweave:tool_stats": {
+                attack_damage: 9.35f,
+                durability: 1905,
+                mining_speed: 9.0f
+            },
+            "forgeweave:traits": [
+                "forgeweave:infused"
+            ],
+            "forgeweave:energy": 41250,
+            "minecraft:custom_data": {
+                "mekanism:module_container": {
+                    modules: [
+                        {
+                            installed: 1,
+                            enabled: 1b,
+                            type: "mekanism:vein_mining_unit"
+                        },
+                        {
+                            installed: 4,
+                            enabled: 1b,
+                            type: "mekanism:energy_unit"
+                        },
+                        {
+                            installed: 1,
+                            enabled: 0b,
+                            type: "mekanism:silk_touch_unit"
+                        }
+                    ]
+                }
+            },
+            "minecraft:damage": 0,
+            "minecraft:max_damage": 1905
+        },
+        id: "forgeweave:pickaxe"
+    },
+    nbt: {
+        components: {
+            "forgeweave:modifiers": [
+                {
+                    id: "forgeweave:reinforced",
+                    level: 2
+                }
+            ],
+            "forgeweave:tool_materials": {
+                binding: "forgeweave:atomic_matter_alloy",
+                handle: "forgeweave:atomic_matter_alloy",
+                head: "forgeweave:atomic_matter_alloy"
+            },
+            "forgeweave:tool_stats": {
+                attack_damage: 9.35f,
+                durability: 1905,
+                mining_speed: 9.0f
+            },
+            "forgeweave:traits": [
+                "forgeweave:infused"
+            ],
+            "forgeweave:energy": 41250,
+            "minecraft:custom_data": {
+                "mekanism:module_container": {
+                    modules: [
+                        {
+                            installed: 1,
+                            enabled: 1b,
+                            type: "mekanism:vein_mining_unit"
+                        },
+                        {
+                            installed: 4,
+                            enabled: 1b,
+                            type: "mekanism:energy_unit"
+                        },
+                        {
+                            installed: 1,
+                            enabled: 0b,
+                            type: "mekanism:silk_touch_unit"
+                        }
+                    ]
+                }
+            },
+            "minecraft:damage": 0,
+            "minecraft:max_damage": 1905
+        },
+        count: 1,
+        id: "forgeweave:pickaxe"
+    },
+    what: "#993 (JC-D): an atomic_matter_alloy pickaxe carrying its own modifier, trait, stats and energy buffer, plus a block of Mekanism module state alongside them. What it pins is that Forgeweave's decode neither drops the foreign half nor lets it displace its own -- the same rule m8_affixed.snbt pins for Apotheosis. The module block sits under minecraft:custom_data rather than on Mekanism's real mekanism:module_container component type, for m8_affixed's own reason: Mekanism is compileOnly, its DataComponentTypes are not in a registry every unit test can reach, and ItemStack.CODEC refuses a component type it cannot resolve. Its keys mirror what Mekanism 10.7.19 stores -- one entry per installed module type, with its installed count and its enabled flag -- so the fixture pins Forgeweave's rule rather than Mekanism's serialization, which is Mekanism's to change. One of the three modules is switched off on purpose: Forgeweave must carry that through as faithfully as the two that are on."
+}

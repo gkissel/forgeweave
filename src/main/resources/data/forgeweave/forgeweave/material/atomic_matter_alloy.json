@@ -1,0 +1,76 @@
+{
+  "head": {
+    "durability": 1500,
+    "mining_speed": 9.0,
+    "attack_damage": 8.5
+  },
+  "handle": {
+    "durability_modifier": 1.14,
+    "durability": 88
+  },
+  "extra_durability": 135,
+  "bow": {
+    "drawspeed": 0.42,
+    "range": 1.5,
+    "bonus_damage": 6.8
+  },
+  "plating": {
+    "helmet": {
+      "durability": 480,
+      "armor": 4.4,
+      "toughness": 3.6,
+      "knockback_resistance": 0.15
+    },
+    "chestplate": {
+      "durability": 690,
+      "armor": 9.4,
+      "toughness": 3.6,
+      "knockback_resistance": 0.15
+    },
+    "leggings": {
+      "durability": 647,
+      "armor": 7.4,
+      "toughness": 3.6,
+      "knockback_resistance": 0.15
+    },
+    "boots": {
+      "durability": 561,
+      "armor": 4.4,
+      "toughness": 3.6,
+      "knockback_resistance": 0.15
+    }
+  },
+  "maille": true,
+  "incorrect_for_tool": "forgeweave:incorrect_for_resonite_tool",
+  "traits": {
+    "general": [
+      "forgeweave:infused"
+    ]
+  },
+  "crafting_items": [
+    {
+      "ingredient": {
+        "item": "forgeweave:atomic_matter_alloy_ingot"
+      },
+      "value": 144
+    },
+    {
+      "ingredient": {
+        "item": "forgeweave:atomic_matter_alloy_nugget"
+      },
+      "value": 16
+    },
+    {
+      "ingredient": {
+        "item": "forgeweave:atomic_matter_alloy_block"
+      },
+      "value": 1296
+    }
+  ],
+  "repair_item": {
+    "tag": "c:ingots/atomic_matter_alloy"
+  },
+  "cast_only": true,
+  "enchantability": 23,
+  "color": "#3CA4FC"
+}
