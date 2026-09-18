@@ -2516,6 +2516,8 @@
   "trait.forgeweave.spiky.name": "Spiky",
   "trait.forgeweave.spirited_charge.description": "Carries a still larger Forge Energy buffer that is spent before durability.",
   "trait.forgeweave.spirited_charge.name": "Spirited Charge",
+  "trait.forgeweave.spiritmend.description": "Slowly repairs itself after dark.",
+  "trait.forgeweave.spiritmend.name": "Spirit Mend",
   "trait.forgeweave.splintering.description": "Hit them more to deal more damage.",
   "trait.forgeweave.splintering.name": "Splintering",
   "trait.forgeweave.splitting.description": "The sudden acceleration of releasing an arrow might cause it to split into two.",

@@ -2263,6 +2263,12 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         // one per Powah crystal, ascending capacity (see trait_definition/*_charge.json).
         add("trait.forgeweave.blazing_charge.name", "Blazing Charge");
         add("trait.forgeweave.blazing_charge.description", "Carries a Forge Energy buffer that is spent before durability.");
+        // #997 (D-M8-18) -- the spirit attuned gem's own trait. A datapack trait_definition instance
+        // of the existing #829 self_repair_when behavior at its own rate, the same way the Powah
+        // crystals' charges are instances of energized: no new Java, and its own id rather than a
+        // share of duskspar's duskmend, which #876's dedupe policy forbids (MaterialTest).
+        add("trait.forgeweave.spiritmend.name", "Spirit Mend");
+        add("trait.forgeweave.spiritmend.description", "Slowly repairs itself after dark.");
         add("trait.forgeweave.niotic_charge.name", "Niotic Charge");
         add("trait.forgeweave.niotic_charge.description", "Carries a larger Forge Energy buffer that is spent before durability.");
         add("trait.forgeweave.spirited_charge.name", "Spirited Charge");

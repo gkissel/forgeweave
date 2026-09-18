@@ -23,7 +23,7 @@
   "maille": true,
   "incorrect_for_tool": "minecraft:incorrect_for_diamond_tool",
   "traits": {
-    "general": ["forgeweave:duskmend"]
+    "general": ["forgeweave:spiritmend"]
   },
   "crafting_items": [
     { "ingredient": { "item": "occultism:spirit_attuned_gem" }, "value": 144 }
