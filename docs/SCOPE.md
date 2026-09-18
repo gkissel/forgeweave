@@ -720,6 +720,44 @@ Mystical Agriculture's own metals become Track A presets: prosperity, soulium, t
 
 Augments. A tool or armor with a part made of a Mystical Agriculture essence metal becomes `ITinkerable`, so Mystical Agriculture's own Tinkering Table accepts it. That happens through a compat subclass of `ToolItem` and the armor items, instantiated by a registration factory only when Mystical Agriculture is loaded, so the base classes stay clean. Tier comes from the material, one augment slot, two for awakened.
 
+### Datapack modifier definitions (#973, ADR-0004 item 3 closed 2026-09-18)
+
+ADR-0004 item 3's second half, delivered for modifiers and closing the ADR. One file per modifier under `data/<namespace>/forgeweave/modifier_definition/<name>.json`, flat, shaped exactly like M6's `trait_definition` so a pack author learns one idiom: `behavior` picks a parameterized class from the library (`ModifierLibrary`), the other fields are its parameters. Optional `neoforge:conditions` existence-gates it exactly like a material. Built-in ids always win a collision. A wrong `behavior` id, a missing parameter or an unknown enum value fails the data load with the known ids listed, never a silent no-op modifier. The pack supplies the id's `modifier.<namespace>.<path>.name` / `.description` lang keys, which is all tooltips, the Tool Station panel and the guide book need.
+
+Serialization does not move: a tool stores `id + level` and nothing else (ADR-0004 item 2), so every existing save and every save-compat fixture stays valid, and a tool whose pack is gone keeps the entry inertly the way any unimplemented id already does. Modifiers keep their datapack *application recipes* unchanged -- a pack-defined modifier needs a `modifier_recipe` to reach a tool, the same as a built-in one. **No KubeJS modifier builder**: a `ForgeweaveEvents.modifiers` sibling waits until the first pack author asks for it.
+
+```json
+{ "behavior": "forgeweave:stat_bonus",
+  "stat": "durability", "flat": 500.0 }
+```
+
+| `behavior` | Parameters (snake_case; `[default]`) |
+| --- | --- |
+| Every behavior also accepts the three shared application fields: `units_per_level` `[1]` (how many applications make one displayed level, upstream's `countPerLevel`), `slots` (`per_level`, `first_level_only`, `none`) `[per_level]`, and `tools` (`any`, `harvest`, `armor`, `armor_or_held`, `chestplate`, `helmet`, `projectile`, `not_launcher`) `[any]`. A field named `*_per_level` is per displayed level; a field named `*_per_unit` is per raw application unit | |
+| `stat_bonus` | `stat` (`durability`, `attack_damage`, `mining_speed`), `flat` `[0]`, `per_level` `[0]`, `fraction_of_base` `[0]`, `minimum` `[none]` |
+| `attribute_bonus` | `attribute` (`knockback_resistance`, `armor_toughness`, `submerged_mining_speed`, `block_interaction_range`), `flat` `[0]`, `per_level` `[0]` |
+| `tool_tier` | `bump` `[0]`, `at_least` `[0]`, `cap` `[none]` -- applied as `min(max(tier + bump, at_least), cap)` |
+| `durability_negation` | `chance_per_level` 0..1, capped at a certain 1 |
+| `bonus_slots` | `flat` `[0]`, `per_level` `[0]` |
+| `bonus_experience` | `fraction_per_level` |
+| `grant_enchantment` | `enchantment` (enchantment id), `level` `[the applied display level]`, `max_level` `[none]` |
+| `fire_resistant` | — |
+| `aoe_expansion` | `axis` (`width`, `height`) |
+| Combat seams | |
+| `knockback_on_hit` | `per_unit` |
+| `effect_on_hit` | `effect` (mob effect id), `amplifier` `[0]`, `duration_per_unit` (ticks), `duration_offset` `[0]` |
+| `bonus_damage_vs` | `entities` (entity type tag), `damage_per_level` |
+| `ignite_on_hit` | `seconds_per_unit` `[0]`, `seconds_offset` `[0]`, `damage_per_unit` `[0]` |
+| `lifesteal_on_hit` | `fraction_per_level` |
+| `thorns_counter` | `chance_per_level` 0..1, `constant_damage`, `random_damage` |
+| `protection` | `per_level`, `damage_type` (damage type tag) `[every protectable source]`, `direct_only` `[false]` |
+
+Every one of the sixteen was extracted from a shipped Java modifier -- diamond, emerald, netherite and silky are `stat_bonus`; knockback resistance, netherite's toughness, aquadynamic and far reach are `attribute_bonus`; reinforced is `durability_negation`; extra_slot is `bonus_slots`; resonant is `bonus_experience`; wind burst is `grant_enchantment`; Width++ and Height++ are `aoe_expansion`; knockback, shulking, webbed, smite, bane of arthropods, fiery, necrotic, thorns and the five protections are the seams. Nothing was invented for the library, and the modifiers no parameter set can express stay Java (`ModifierBehaviors`' javadoc lists them): haste's and sharpness's diminishing-returns curves, the event-driven ones (searing, blasting, veinmine, magnetic pull, mending moss, soulbound, glowing, luck's self-growth, beheading), the per-material generated ids (embossment, fortification), and the compat-owned ones.
+
+Toggle: `compat.modifierDefinitions`, default `true` (D-M8-5). Read at lookup rather than at registration, because a SERVER config does not exist yet when datapack registries load and sync -- so "registers nothing" is unreachable for a synced registry, and inert-at-lookup gives the same player-visible result: a pack-defined id resolves to nothing, the entry keeps its id, its level and its slot, and it acts again the moment the toggle returns, with no reload. `ForgeweaveTraits#lookup`'s own precedent (#968) for the same reason.
+
+Verification: `ModifierBehaviorsTest` (codec round trip per behavior, unknown `behavior` and unknown enum value fail loudly with the alternatives listed, a failing `neoforge:conditions` decodes to nothing, a pack-defined entry still saves as `id + level` and still decodes with no definition loaded), `DatapackModifierGameTests` (a gametest-only definition is applied at a real Tool Station and fires; a conditioned one never registers), `CompatToggleGameTests#modifierDefinitionsOffResolveNoPackDefinedModifier`, and the `m973_tool_pack_modifier.snbt` corpus fixture.
+
 ### Non-goals for M8
 
 Curios (D-M8-4, until a back or charm item exists) · a Create blaze burner seam or any other per-mod heat block, superseded by the energized tank (D-M8-3, D-M8-11) · Ars Nouveau · a Create part factory: Forgeweave parts are made at Forgeweave stations (D-M8-16) · a fourth harvest tier above `resonite` (D-M8-10) · liquid or gas forms of any Forgeweave material, which stay molten-only (D-M8-6) · a Mekanism heat handler, since D-M8-11's tank already takes Forge Energy and a second heat protocol buys nothing · Forgeweave recipes that consume its own plates, rods, gears or wires, which exist for other mods (D-M8-6) · item forms for Track A materials, whose own mods own them (D-M8-6) · the tiered smeltery automation block of [#986](https://github.com/gkissel/forgeweave/issues/986), parked (D-M8-14) · GuideME, and any replacement of the in-game book, which already carries the materials handbook, the leveling page and the station pages at 1.12-parity shape ([#974](https://github.com/gkissel/forgeweave/issues/974), confirmed 2026-09-18) · deriving code or assets from Apotheosis, EMI, Curios or Draconic Evolution (JC-A) · toggling Track A material presets (D-M8-5) · activating the Botania and Blood Magic presets, which keep waiting for 1.21.1 artifacts on [#857](https://github.com/gkissel/forgeweave/issues/857) and [#858](https://github.com/gkissel/forgeweave/issues/858) · mirroring, migrating or owning Apotheosis affix data (JC-D) · a Forgeweave enchanting station, or any change to what `allowVanillaEnchanting` means · GameTests that require a live Apotheosis or EMI instance (JC-B: those are checklist lines).
@@ -744,7 +782,7 @@ Curios (D-M8-4, until a back or charm item exists) · a Create blaze burner seam
 | M8-2 | Apotheosis loot affixes on Forgeweave gear, and the `allowVanillaEnchanting` interplay | M8-1 | shipped ([#970](https://github.com/gkissel/forgeweave/issues/970)); the loot-parts answer is the `forgeweave:assemble_tool` loot function, affixability needs nothing registered beyond a three-row loot-category override for the bows, and both toggles live in `ApotheosisAffixes` |
 | M8-3 | EMI bridge spike across all 14 recipe types across the 12 category classes, then a native plugin only for the gaps | — | spike posted, bridge covers everything, no plugin ([#971](https://github.com/gkissel/forgeweave/issues/971)) |
 | M8-4 | Energized tank: the fuel sample, the energy cost per melt tick, the hottest-tank rule, overdrive, the JEI row | — | filed ([#972](https://github.com/gkissel/forgeweave/issues/972)), rewritten in place 2026-09-07 (was the FE heater wall) |
-| M8-5 | Datapack `modifier_definition` registry over the modifier library; ADR-0004 item 3 close-out | — | filed ([#973](https://github.com/gkissel/forgeweave/issues/973)), confirmed by the maintainer 2026-09-18, `ready-for-agent` |
+| M8-5 | Datapack `modifier_definition` registry over the modifier library; ADR-0004 item 3 close-out | — | shipped ([#973](https://github.com/gkissel/forgeweave/issues/973)); sixteen behaviors in `ModifierLibrary`, all extracted from shipped Java modifiers, tabled in the section above, and no KubeJS builder until a pack author asks. ADR-0004 is closed |
 | M8-6 | GuideME decision and the in-game book close-out | — | filed ([#974](https://github.com/gkissel/forgeweave/issues/974)), confirmed by the maintainer 2026-09-18: the book stays |
 | M8-8 | Material forms and `c:` tags for every material with an ingot, the `FluidTagsProvider`, tag-keyed dust melting (D-M8-6, D-M8-7) | — | filed ([#992](https://github.com/gkissel/forgeweave/issues/992)) |
 | M8-9 | Mekanism phase 1: `atomic_matter_alloy`, the module container, the Modification Station, the free effects (D-M8-15) | M8-8 | filed ([#993](https://github.com/gkissel/forgeweave/issues/993)) |
