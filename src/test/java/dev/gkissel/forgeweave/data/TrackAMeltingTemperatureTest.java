@@ -50,9 +50,13 @@ class TrackAMeltingTemperatureTest {
      * The generator's own {@code form_suffix}: a melting recipe file is named {@code
      * <material_id><suffix>.json}, so stripping a known suffix recovers the material id that names
      * the material JSON to look its tier up in. ponytail: fixed-suffix stripping rather than a real
-     * grammar, matches the exact four suffixes the generator ever writes.
+     * grammar, matches the exact four suffixes the generator ever writes, plus {@code _eternalores}
+     * (issue #1031, D-M8-21): the one dedupe fix that needed a second melting row rather than
+     * widening the existing one's {@code neoforge:conditions} in place, because its existing row's
+     * concrete-item input can't safely gain an {@code neoforge:or} branch (see {@code
+     * quartz_enriched_iron_eternalores.json}'s sibling file and {@code EternalOresGameTests}).
      */
-    private static final List<String> FORM_SUFFIXES = List.of("_ingot", "_nugget", "_block", "_raw");
+    private static final List<String> FORM_SUFFIXES = List.of("_ingot", "_nugget", "_block", "_raw", "_eternalores");
 
     @Test
     void everyTrackAMeltingRecipeCarriesItsTableTemperature() throws IOException {

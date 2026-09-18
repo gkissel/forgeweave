@@ -4,7 +4,7 @@
   },
   "fluid": "forgeweave:molten_blazegold",
   "amount": 1296,
-  "temperature": 1200,
+  "temperature": 1400,
   "neoforge:conditions": [
     {
       "type": "neoforge:item_exists",

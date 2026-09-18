@@ -113,8 +113,16 @@ class MaterialSyncSizeTest {
      * 112 KB line. Raised to 116 KB (118,784 bytes), ~3.2 KB (2.8%) of headroom above the new
      * measurement, same deliberately-tight step as every raise above -- M8-12 is the last Track A
      * batch D-M8-17 plans, so no further growth is budgeted for beyond this.
+     *
+     * <p>Issue #1031 (D-M8-21) is exactly the unplanned growth that note anticipated: asked for by
+     * the maintainer after the M8 planning sessions closed, it has no earlier decision to have
+     * budgeted headroom for. Just Dire Things' four tool tiers take the 157-material roster to
+     * 118,963 bytes, 179 bytes over the 116 KB line. Raised to 120 KB (122,880 bytes), ~3.9 KB
+     * (3.3%) of headroom above the new measurement, the same deliberately-tight step every earlier
+     * raise took. The Eternal Ores dedupe alongside it adds no new material, so it costs this
+     * budget nothing.
      */
-    private static final int SYNC_BUDGET_BYTES = 116 * 1024;
+    private static final int SYNC_BUDGET_BYTES = 120 * 1024;
 
     private static RegistryOps<JsonElement> jsonOps;
     private static RegistryOps<Tag> nbtOps;
