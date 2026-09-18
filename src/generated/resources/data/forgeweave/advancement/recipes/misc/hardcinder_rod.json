@@ -1,0 +1,32 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_ingots_hardcinder": {
+      "conditions": {
+        "items": [
+          {
+            "items": "#c:ingots/hardcinder"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "forgeweave:hardcinder_rod"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_the_recipe",
+      "has_ingots_hardcinder"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "forgeweave:hardcinder_rod"
+    ]
+  }
+}

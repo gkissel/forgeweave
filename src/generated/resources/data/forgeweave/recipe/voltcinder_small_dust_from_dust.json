@@ -1,0 +1,13 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    {
+      "tag": "c:dusts/voltcinder"
+    }
+  ],
+  "result": {
+    "count": 3,
+    "id": "forgeweave:voltcinder_small_dust"
+  }
+}

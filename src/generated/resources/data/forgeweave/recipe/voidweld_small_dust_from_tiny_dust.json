@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    {
+      "tag": "c:tiny_dusts/voidweld"
+    },
+    {
+      "tag": "c:tiny_dusts/voidweld"
+    },
+    {
+      "tag": "c:tiny_dusts/voidweld"
+    }
+  ],
+  "result": {
+    "count": 1,
+    "id": "forgeweave:voidweld_small_dust"
+  }
+}

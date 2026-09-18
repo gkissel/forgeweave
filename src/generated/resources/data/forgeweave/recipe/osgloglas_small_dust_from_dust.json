@@ -1,0 +1,13 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    {
+      "tag": "c:dusts/osgloglas"
+    }
+  ],
+  "result": {
+    "count": 3,
+    "id": "forgeweave:osgloglas_small_dust"
+  }
+}

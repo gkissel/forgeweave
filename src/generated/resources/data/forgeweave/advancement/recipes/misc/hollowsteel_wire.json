@@ -1,0 +1,32 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_nuggets_hollowsteel": {
+      "conditions": {
+        "items": [
+          {
+            "items": "#c:nuggets/hollowsteel"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "forgeweave:hollowsteel_wire"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_the_recipe",
+      "has_nuggets_hollowsteel"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "forgeweave:hollowsteel_wire"
+    ]
+  }
+}

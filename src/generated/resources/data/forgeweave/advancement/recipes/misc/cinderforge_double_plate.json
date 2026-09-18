@@ -1,0 +1,32 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_ingots_cinderforge": {
+      "conditions": {
+        "items": [
+          {
+            "items": "#c:ingots/cinderforge"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "forgeweave:cinderforge_double_plate"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_the_recipe",
+      "has_ingots_cinderforge"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "forgeweave:cinderforge_double_plate"
+    ]
+  }
+}

@@ -1,0 +1,32 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "forgeweave:starfall_stone_small_dust_from_tiny_dust"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    },
+    "has_tiny_dusts_starfall_stone": {
+      "conditions": {
+        "items": [
+          {
+            "items": "#c:tiny_dusts/starfall_stone"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    }
+  },
+  "requirements": [
+    [
+      "has_the_recipe",
+      "has_tiny_dusts_starfall_stone"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "forgeweave:starfall_stone_small_dust_from_tiny_dust"
+    ]
+  }
+}

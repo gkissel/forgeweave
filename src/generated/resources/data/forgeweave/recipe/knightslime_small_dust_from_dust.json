@@ -1,0 +1,13 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    {
+      "tag": "c:dusts/knightslime"
+    }
+  ],
+  "result": {
+    "count": 3,
+    "id": "forgeweave:knightslime_small_dust"
+  }
+}

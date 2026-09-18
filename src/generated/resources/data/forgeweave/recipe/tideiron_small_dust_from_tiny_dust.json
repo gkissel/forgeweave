@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    {
+      "tag": "c:tiny_dusts/tideiron"
+    },
+    {
+      "tag": "c:tiny_dusts/tideiron"
+    },
+    {
+      "tag": "c:tiny_dusts/tideiron"
+    }
+  ],
+  "result": {
+    "count": 1,
+    "id": "forgeweave:tideiron_small_dust"
+  }
+}

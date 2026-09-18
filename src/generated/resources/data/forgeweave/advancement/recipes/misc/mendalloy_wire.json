@@ -1,0 +1,32 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_nuggets_mendalloy": {
+      "conditions": {
+        "items": [
+          {
+            "items": "#c:nuggets/mendalloy"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "forgeweave:mendalloy_wire"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_the_recipe",
+      "has_nuggets_mendalloy"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "forgeweave:mendalloy_wire"
+    ]
+  }
+}
