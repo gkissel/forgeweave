@@ -440,6 +440,20 @@ public final class ForgeweaveConfig {
      */
     public static final ModConfigSpec.BooleanValue POWAH_HEAT_SOURCES;
 
+    /**
+     * Datapack modifier definitions (issue #973, {@code forgeweave:modifier_definition}). Off means
+     * a pack-defined modifier id resolves to nothing, so a tool carrying one behaves as if the id
+     * had no implementation -- which is what a tool carrying an unknown modifier already does. The
+     * entry keeps its id and its level either way and acts again when the toggle returns.
+     *
+     * <p>Unlike #995's four toggles above, this one needs no {@link ForgeweaveConfigCondition}: it is
+     * read at lookup, on a running server well after the config exists, rather than while a datapack
+     * is being loaded. See {@code ForgeweaveModifiers#datapackModifier}.
+     *
+     * @see #DRACONIC_FUSION
+     */
+    public static final ModConfigSpec.BooleanValue MODIFIER_DEFINITIONS;
+
     /** Upstream {@code genCobalt}: cobalt ore generates in the Nether. */
     public static final ModConfigSpec.BooleanValue GEN_COBALT;
     /** Upstream {@code cobaltRate}: approximate cobalt veins per Nether chunk. */
@@ -956,6 +970,16 @@ public final class ForgeweaveConfig {
                         "With this off a thermo generator no longer burns them; Powah's own heat sources",
                         "for its own fluids are untouched either way.")
                 .define("powahHeatSources", true);
+        // #973 (M8-5, D-M8-5), the eleventh toggle the section was planned with. Appended after
+        // #995's four for the same reason they were appended, so an existing compat-server.toml
+        // keeps the key order it already has.
+        MODIFIER_DEFINITIONS = builder
+                .comment("If true, modifiers a datapack defines through forgeweave:modifier_definition take",
+                        "effect. With this off a pack-defined modifier resolves to nothing, so a tool carrying",
+                        "one behaves as if the id had no implementation. The modifier stays on the tool either",
+                        "way, with its level, and acts again the moment the toggle comes back. Built-in",
+                        "modifiers are unaffected either way.")
+                .define("modifierDefinitions", true);
         builder.pop();
         COMPAT_SPEC = builder.build();
 
