@@ -8,7 +8,7 @@ Audited at commit [`ba4c0b8d`](https://github.com/gkissel/forgeweave/tree/ba4c0b
 
 ## The rules, in plain words
 
-**Sprites are 16x16.** That is the standard and it is not moving. A batch of 32x32 assembled-tool renders was tried in 2026 and thrown out; whatever resolution you work at, deliver 16x16. The exceptions are not sprites at all: worn armor sheets are 64x32, station GUI panels run 176x166 or 256x256, and the molten metal strips are tall animated films. Each exception is called out where it appears below.
+**Sprites are 16x16.** That is the standard and it is not moving. A batch of 32x32 assembled-tool renders was tried in 2026 and thrown out; whatever resolution you work at, deliver 16x16. The exceptions are not item sprites at all: worn armor sheets are 64x32, station GUI panels run 176x166 or 256x256, the status-effect icon is 18x18, the weapon slash particles are 32x32 and 16x32, and the fluid textures are tall animated strips. Each exception is called out where it appears below.
 
 **Forged is what you draw.** Forgeweave ships two art sets. Forged is the default set, the art every player sees, and it is yours. Legacy is a built-in resource pack, off unless a player turns it on, that preserves the look Forgeweave had before the art rewrite started.
 
@@ -22,7 +22,7 @@ Audited at commit [`ba4c0b8d`](https://github.com/gkissel/forgeweave/tree/ba4c0b
 4. The developer reruns the four generator scripts, so every pattern, cast, clay cast and broken-tool variant built from your sprite gets rebuilt in both sets.
 5. Tests and datagen run, and the file is committed.
 
-You do steps 1 only. Sections 4 and 7 of the art guide spell out the rest if you want to read it.
+Step 1 is yours. Sections 4 and 7 of the art guide cover the rest if you want to read it.
 
 **Greyscale and tinting.** Where an entry below says "tinted", the sprite is drawn in pure grey (R = G = B on every pixel) and the game multiplies it by the material's colour. Lightness is your only tool: a white pixel comes out as the material's raw colour, a mid-grey pixel at half intensity, a black pixel stays black. Use the full range, because your contrast becomes the finished piece's contrast. Where an entry says "not tinted", paint in whatever colours you like.
 
@@ -36,9 +36,9 @@ You do steps 1 only. Sections 4 and 7 of the art guide spell out the rest if you
 
 **Priority** means how often the maintainer sees the asset while playing:
 
-- **Every session** — on screen constantly. Fix these first.
-- **Sometimes** — seen in normal play, not every minute.
-- **Rare** — deep progression, an optional mod pairing, or a corner case.
+- **Every session**: on screen constantly. Fix these first.
+- **Sometimes**: seen in normal play, though not every minute.
+- **Rare**: deep progression, an optional mod pairing, or a corner case.
 
 ## How this list was built
 
@@ -46,21 +46,21 @@ Forgeweave's root `NOTICE.md` carries one row per file that came from somewhere 
 
 The audit covered every PNG in the mod: 1,837 files in total. 1,139 have a `NOTICE.md` row. The remaining 698 are Forgeweave's, 617 of them at the normal default paths and 81 inside the Legacy pack. Those 81 are script-built pattern and cast composites that only exist because the two sets have different blanks; they are not anyone's to draw.
 
-One number matters more than all of these. **Of the 617 sprites Forgeweave owns today, 602 were made by a Python script recolouring a vanilla Minecraft texture.** Almost nothing in this document is authored art being replaced. It is placeholder art being drawn for the first time.
+Of those 617, about 602 were written by a Python script recolouring a vanilla Minecraft texture. So most of this document is not authored art waiting to be improved; it is placeholder art that has never been designed.
 
 ## 1. Material forms
 
-The single biggest item on the list, and the one with the best ratio of effort to result.
+The biggest group on the list, and the cheapest to fix.
 
-Every material in Forgeweave, 46 of them, has a set of intermediate items: dust you grind, plate you press, a rod, a gear, a wire. A player sees these constantly in inventory slots, in recipe books, and in other mods' machines. There are 374 of them and **they are all the same eight shapes in different colours.**
+Every material in Forgeweave, 46 of them, has a set of intermediate items: dust you grind, plate you press, a rod, a gear, a wire. A player sees these constantly in inventory slots, in recipe books, and in other mods' machines. There are 374 of them, and they are all the same eight shapes in different colours.
 
 They are made by [`scripts/generate_material_forms.py`](https://github.com/gkissel/forgeweave/blob/ba4c0b8d53f1cf5dfcd0fe503de287838a819223/scripts/generate_material_forms.py), which takes one vanilla Minecraft item texture per form and hue-shifts it to each material's colour.
 
 | Form | What it is | Count | Current placeholder |
 | --- | --- | --- | --- |
 | Dust | Ground material, the melting feedstock | 48 | Vanilla `glowstone_dust`, recoloured |
-| Small dust | Two thirds of a dust | 48 | Same, shrunk to 10x10 on a 16x16 canvas |
-| Tiny dust | A ninth of a dust | 48 | Same, shrunk to 6x6 |
+| Small dust | A third of a dust, 48 mB against 144 | 48 | Same, shrunk to 10x10 on a 16x16 canvas |
+| Tiny dust | A ninth of a dust, 16 mB | 48 | Same, shrunk to 6x6 |
 | Plate | Pressed sheet, a crafting output | 46 | Vanilla `paper`, recoloured |
 | Double plate | Two plates pressed together | 46 | Two 13x13 `paper` copies offset 3px apart |
 | Rod | Metal rod | 46 | Vanilla `blaze_rod`, recoloured |
@@ -71,9 +71,9 @@ Paths: `src/main/resources/assets/forgeweave/textures/item/<material>_<form>.png
 
 **What you actually draw: eight sprites.** One per form, one time. The gear is the worst offender and the most worth your attention: a recoloured nether star does not read as a gear at any size.
 
-**There are no template files in the repository to open and edit.** This is the one thing about this section that will surprise you. The script reads its donor textures straight out of the Minecraft client jar at generation time, so nothing is checked in. Delivering eight new form shapes therefore also needs a developer to point the script at your files instead of at vanilla's. Draw them as ordinary 16x16 RGBA sprites at the material-neutral end of your palette and hand them over; the wiring is a small change and not your problem.
+**There are no template files in the repository to open and edit.** The script reads its donor textures straight out of the Minecraft client jar at generation time, so nothing is checked in. Delivering eight new form shapes therefore also needs a developer to point the script at your files instead of at vanilla's. Draw them as ordinary 16x16 RGBA sprites in a mid-saturation neutral and hand them over; the wiring is a small change and not your problem.
 
-**Tinting, and the one constraint that matters.** The recolour is not the plain greyscale multiply used for tool parts. The script replaces each pixel's hue with the material's hue and scales its saturation and lightness by the ratio between the material's colour and the sprite's own average. Two consequences for you:
+**Tinting works differently here.** It is not the plain greyscale multiply used for tool parts. The script replaces each pixel's hue with the material's hue and scales its saturation and lightness by the ratio between the material's colour and the sprite's own average. Two consequences for you:
 
 - Do not draw these in pure grey. A fully grey sprite has no saturation to scale, and the script falls back to painting a flat chroma across it, so all of your colour variation is lost. Draw them in colour, in a mid-saturation neutral, and the recolour keeps your shading.
 - Keep clear lightness separation between the form's body and its shadow. The material's lightness is applied as a ratio to your average, so a flat sprite stays flat in all 46 colours.
@@ -141,8 +141,6 @@ The v2 front is the Nether Core's look above 1600 degrees. It is an active-only 
 
 ### The constraint that governs all three tiers
 
-This is the sharpest technical rule in the whole codebase and it is worth reading twice.
-
 When you hand in a tier's brick, the script derives the other 20 faces of that tier from the **standard** seared faces by swapping greys for your brick's colours. It only touches a pixel where red, green and blue are **exactly** equal. A pixel that is off by one in any channel is left as standard-tier grey, and it will show as a grey speck on a red, purple or black wall.
 
 It also reads your brick in two fixed bands: grey 28 to 38 is mortar, grey 46 to 161 is body. Greys in 39 to 45 fall through to the darkest body colour. So when you draw a tier brick, put the mortar lines in the dark end and the block body in the wide middle, and keep both inside those bands.
@@ -181,13 +179,13 @@ The class comment says why outright: a charge level is not a fluid, and none of 
 
 The rest of the right-hand column, for layout: heat at y=16, cost at y=26, the bar at y=36, the charge numbers at y=46, and the overdrive button at y=56, all at x=66 and 102 wide.
 
-**There is no `ScreenshotHarness` frame for this screen.** Every other screen in the mod has one; this is the only way to see it without launching the game and building a tank.
+**There is no `ScreenshotHarness` frame for this screen.** Every other screen in the mod has one, so reviewing this one means launching the game and building a tank.
 
 **Priority: sometimes.** It is the only screen that looks unfinished, so it may be worth more than its play frequency suggests.
 
 ## 6. Tool part silhouettes still waiting on a Forged sprite
 
-Not strictly Forgeweave-made, so not on the maintainer's list, but included because it is the highest-leverage drawing in the repository and it belongs in the same queue.
+These are Tinkers' art, so strictly they sit outside this list. They are here because they belong in the same queue and because one drawing goes a long way.
 
 A tool part's silhouette drives four files. Redraw the part and the scripts rebuild its stencil pattern, its gold cast, its clay cast and, where it has one, its broken art, in both art sets. **17 part silhouettes are still Tinkers' art at their default path:**
 
@@ -231,11 +229,11 @@ All 16x16, all tinted, all on the five-value grey ramp. Frames: `weapon_katana`,
 
 ## 8. Heavy armor
 
-The set exists and is playable. It has no art of its own at all.
+The set is in the game and playable, and it has no art of its own at all: every pixel it shows belongs to the light armor set.
 
 Four items, `heavy_helmet`, `heavy_chestplate`, `heavy_leggings` and `heavy_boots`, built from three materials each: plating, maille, and a third large plate slot that the light set does not have.
 
-Three separate pieces of work, and they should be costed separately:
+That splits into three jobs, worth costing one at a time:
 
 **(a) Item sprites.** The heavy pieces currently render the light set's sprites, because the code strips the `heavy_` prefix before looking up art. So a heavy chestplate and a light chestplate look identical in the inventory. Worse, the third material is invisible: the item model filters the large plate layer out entirely, with a code comment saying it does so because that layer has no sprite. Deliverable: 4 plating layers and, if the third material should show, 4 large plate layers. `textures/derived/tools/<piece>_{plating,maille}.png`, 16x16, tinted, greyscale.
 
@@ -298,7 +296,7 @@ Planning only, issue #990, no code and no art yet. Listed so it can be scheduled
 
 The maintainer asked for a Forgeweave trident. Tinkers' 1.12 predates the vanilla trident, so there is no upstream art and no upstream design. Everything about it, including the art, will be original.
 
-The open questions that affect drawing are still open: how many parts it has (the proposal floats a three-part shape like the deferred javelin), whether the head accepts non-metal materials, and whether riptide, channeling and loyalty become traits or modifiers. Riptide in particular changes whether the tool needs a thrown-entity look distinct from its held look.
+Three questions on that issue decide what gets drawn: how many parts the trident has (the proposal floats a three-part shape like the deferred javelin), whether the head accepts non-metal materials, and whether riptide, channeling and loyalty become traits or modifiers. Riptide in particular decides whether the tool needs a thrown look distinct from its held look.
 
 If the shape settles as head, handle and binding, expect the usual set: three greyscale tinted layers at `textures/derived/tools/trident_{handle,head,binding}.png`, a broken head, and one part silhouette at `textures/derived/item/trident_head.png`. The stencil pattern, gold cast and clay cast come free from the scripts. All 16x16.
 
@@ -318,15 +316,15 @@ If the shape settles as head, handle and binding, expect the usual set: three gr
 | 8. Heavy armor | 0 exist | **4 item layers + up to 8 worn sheets** | Sometimes |
 | 9. Things with no art at all | 0 exist | **6** | Sometimes / rare |
 | 10. One-off items | 3 | **3** | Rare |
-| 11. Already covered | 1,139 rowed + borrowed | 0 | — |
+| 11. Already covered | 1,139 rowed + borrowed | 0 | n/a |
 | 12. Trident family | 0, planning | 0 until #990 closes | Upcoming |
 | **Total** | **617 Forgeweave-owned sprites** | **about 57 drawings** | |
 
-The ratio is the point. 617 sprites ship today with Forgeweave's name on them, and roughly 57 original drawings would replace all of them.
+617 sprites ship today with Forgeweave's name on them, and roughly 57 original drawings would replace all of them.
 
 ## Open questions and things that could not be classified
 
-Nothing in the audit was left unclassified: all 1,837 PNGs resolved to a `NOTICE.md` row, a named generator script, or a specific pull request. Five loose ends are judgement calls rather than classification failures.
+Nothing in the audit was left unclassified: all 1,837 PNGs resolved to a `NOTICE.md` row, a named generator script, or a specific pull request. The six items below are judgement calls rather than classification failures.
 
 1. **`brimspar_ore.png`.** 16x16, full colour, no row, so it is Forgeweave's either way. It arrived in PR #907 with the fuel-ladder work rather than in a Track B texture batch, and the ore script builds its donor table at import time, so whether brimspar is in that roster or was placed by hand could not be read off the table alone. Treat it as section 3 work regardless.
 2. **`slime_layer_2.png`.** Confirmed absent while plating and maille both have their layer pair. Whether slime armor has a leggings piece is a code question and was out of this audit's scope.
