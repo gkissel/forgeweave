@@ -75,8 +75,17 @@
   "color": "#E5E5E5",
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "modern_industrialization:platinum_ingot"
+      "type": "neoforge:or",
+      "values": [
+        {
+          "type": "neoforge:item_exists",
+          "item": "modern_industrialization:platinum_ingot"
+        },
+        {
+          "type": "neoforge:item_exists",
+          "item": "eternalores:platinum_ingot"
+        }
+      ]
     }
   ]
 }

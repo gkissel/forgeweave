@@ -7,8 +7,17 @@
   "temperature": 1200,
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "immersiveengineering:ingot_silver"
+      "type": "neoforge:or",
+      "values": [
+        {
+          "type": "neoforge:item_exists",
+          "item": "immersiveengineering:ingot_silver"
+        },
+        {
+          "type": "neoforge:item_exists",
+          "item": "eternalores:silver_ingot"
+        }
+      ]
     }
   ]
 }

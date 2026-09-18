@@ -44,6 +44,12 @@
     },
     {
       "ingredient": {
+        "tag": "c:ingots/uraninite"
+      },
+      "value": 144
+    },
+    {
+      "ingredient": {
         "tag": "c:storage_blocks/uraninite"
       },
       "value": 1296
@@ -57,8 +63,17 @@
   "color": "#7FA83B",
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "powah:uraninite_raw"
+      "type": "neoforge:or",
+      "values": [
+        {
+          "type": "neoforge:item_exists",
+          "item": "powah:uraninite_raw"
+        },
+        {
+          "type": "neoforge:item_exists",
+          "item": "eternalores:uraninite_ingot"
+        }
+      ]
     }
   ]
 }

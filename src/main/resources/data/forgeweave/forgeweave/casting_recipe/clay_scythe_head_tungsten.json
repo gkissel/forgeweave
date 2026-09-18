@@ -14,8 +14,17 @@
   "consumes_cast": true,
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "modern_industrialization:tungsten_ingot"
+      "type": "neoforge:or",
+      "values": [
+        {
+          "type": "neoforge:item_exists",
+          "item": "modern_industrialization:tungsten_ingot"
+        },
+        {
+          "type": "neoforge:item_exists",
+          "item": "eternalores:tungsten_ingot"
+        }
+      ]
     }
   ]
 }
