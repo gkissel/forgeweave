@@ -13,6 +13,8 @@ import net.neoforged.neoforge.common.data.LanguageProvider;
 
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.block.ForgeweaveBlocks;
+// Issue #999: the crop roster, whose own class names no Mystical Agriculture type -- see its javadoc.
+import dev.gkissel.forgeweave.compat.mysticalagriculture.ForgeweaveCrop;
 import dev.gkissel.forgeweave.block.SearedFurnaceScan;
 import dev.gkissel.forgeweave.block.SearedReservoirScan;
 import dev.gkissel.forgeweave.block.SlimeColour;
@@ -1111,6 +1113,17 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         // Issue #996 (D-M8-17): the four Powah crystals #837/#872 left unshippable (no per-material
         // c: tag; see MaterialTest#noShippedMaterialConditionsOnPowahsUntaggedCrystals's old guard),
         // unblocked the same way #872 unblocked energised_steel -- a concrete item id.
+        // Issue #999 (D-M8-20): Mystical Agriculture's own metals. Insanium is Mystical Agradditions'
+        // rung above the ladder and gates on that mod rather than on Mystical Agriculture.
+        add("material.forgeweave.inferium", "Inferium");
+        add("material.forgeweave.prudentium", "Prudentium");
+        add("material.forgeweave.tertium", "Tertium");
+        add("material.forgeweave.imperium", "Imperium");
+        add("material.forgeweave.supremium", "Supremium");
+        add("material.forgeweave.awakened_supremium", "Awakened Supremium");
+        add("material.forgeweave.prosperity", "Prosperity");
+        add("material.forgeweave.soulium", "Soulium");
+        add("material.forgeweave.insanium", "Insanium");
         add("material.forgeweave.blazing_crystal", "Blazing Crystal");
         add("material.forgeweave.niotic_crystal", "Niotic Crystal");
         add("material.forgeweave.spirited_crystal", "Spirited Crystal");
@@ -1980,6 +1993,15 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
                 addBlock(ForgeweaveBlocks.trackBRawBlock(ore.id()), "Block of Raw " + name);
                 addItem(ForgeweaveItems.trackBRawItem(ore.id()), "Raw " + name);
             }
+        }
+
+        // #999 (D-M8-20) -- the crop names Mystical Agriculture asks for. `crop.<modid>.<name>` is
+        // Mystical Agriculture's own default key for a crop's display name (Crop#getDisplayName), and
+        // its auto-registered flower, essence and seed items all compose their own names from it, so
+        // these twelve lines are the whole localisation surface of the crop half. Walked off the
+        // roster rather than listed, like every loop above.
+        for (ForgeweaveCrop crop : ForgeweaveCrop.ALL) {
+            add("crop." + Forgeweave.MODID + "." + crop.id(), crop.displayName());
         }
 
         // #840 -- Track B's 18 alloy tool materials: same naming-scaffold-id-title-cased convention,

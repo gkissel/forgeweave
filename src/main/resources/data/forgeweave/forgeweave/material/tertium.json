@@ -1,0 +1,62 @@
+{
+  "head": {
+    "durability": 560,
+    "mining_speed": 6.8,
+    "attack_damage": 4.2
+  },
+  "handle": {
+    "durability_modifier": 1.0,
+    "durability": 60
+  },
+  "extra_durability": 140,
+  "bow": {
+    "drawspeed": 0.6,
+    "range": 1.25,
+    "bonus_damage": 3.8
+  },
+  "plating": {
+    "helmet": {
+      "durability": 235,
+      "armor": 2.0,
+      "toughness": 1.0
+    },
+    "chestplate": {
+      "durability": 342,
+      "armor": 6.0,
+      "toughness": 1.0
+    },
+    "leggings": {
+      "durability": 323,
+      "armor": 5.0,
+      "toughness": 1.0
+    },
+    "boots": {
+      "durability": 280,
+      "armor": 2.0,
+      "toughness": 1.0
+    }
+  },
+  "maille": true,
+  "incorrect_for_tool": "minecraft:incorrect_for_diamond_tool",
+  "traits": {},
+  "crafting_items": [
+    {
+      "ingredient": {
+        "item": "mysticalagriculture:tertium_ingot"
+      },
+      "value": 144
+    }
+  ],
+  "repair_item": {
+    "item": "mysticalagriculture:tertium_ingot"
+  },
+  "cast_only": true,
+  "enchantability": 14,
+  "color": "#3FBFC7",
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "mysticalagriculture:tertium_ingot"
+    }
+  ]
+}

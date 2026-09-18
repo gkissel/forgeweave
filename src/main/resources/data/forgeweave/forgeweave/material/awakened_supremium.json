@@ -1,0 +1,66 @@
+{
+  "head": {
+    "durability": 1250,
+    "mining_speed": 9.8,
+    "attack_damage": 7.8
+  },
+  "handle": {
+    "durability_modifier": 1.15,
+    "durability": 125
+  },
+  "extra_durability": 320,
+  "bow": {
+    "drawspeed": 0.48,
+    "range": 1.4,
+    "bonus_damage": 6.6
+  },
+  "plating": {
+    "helmet": {
+      "durability": 525,
+      "armor": 3.0,
+      "toughness": 3.0,
+      "knockback_resistance": 0.15
+    },
+    "chestplate": {
+      "durability": 762,
+      "armor": 8.0,
+      "toughness": 3.0,
+      "knockback_resistance": 0.15
+    },
+    "leggings": {
+      "durability": 721,
+      "armor": 6.0,
+      "toughness": 3.0,
+      "knockback_resistance": 0.15
+    },
+    "boots": {
+      "durability": 625,
+      "armor": 3.0,
+      "toughness": 3.0,
+      "knockback_resistance": 0.15
+    }
+  },
+  "maille": true,
+  "incorrect_for_tool": "forgeweave:incorrect_for_warspar_tool",
+  "traits": {},
+  "crafting_items": [
+    {
+      "ingredient": {
+        "item": "mysticalagriculture:awakened_supremium_ingot"
+      },
+      "value": 144
+    }
+  ],
+  "repair_item": {
+    "item": "mysticalagriculture:awakened_supremium_ingot"
+  },
+  "cast_only": true,
+  "enchantability": 22,
+  "color": "#C77DF2",
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "mysticalagriculture:awakened_supremium_ingot"
+    }
+  ]
+}
