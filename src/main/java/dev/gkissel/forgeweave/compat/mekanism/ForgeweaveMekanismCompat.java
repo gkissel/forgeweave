@@ -1,11 +1,9 @@
 package dev.gkissel.forgeweave.compat.mekanism;
 
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 
 import net.neoforged.bus.api.IEventBus;
-import net.neoforged.fml.ModList;
 
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.compat.mekanism.modules.MekanismModuleContainer;
@@ -75,15 +73,6 @@ public final class ForgeweaveMekanismCompat {
     }
 
     /**
-     * Whether Mekanism is installed at all. Read once per call rather than cached in a static, because
-     * a static initialiser here would run before {@code ModList} exists under some datagen entry
-     * points.
-     */
-    public static boolean loaded() {
-        return ModList.get().isLoaded(MODID);
-    }
-
-    /**
      * Whether any part of {@code stack} is made of {@link #ATOMIC_MATTER_ALLOY} -- the tools and
      * armour pieces that host Mekanism modules. False for a stack with no Forgeweave materials at all,
      * which is what makes a vanilla pickaxe not a container rather than an empty one.
@@ -91,25 +80,6 @@ public final class ForgeweaveMekanismCompat {
     public static boolean isContainerStack(ItemStack stack) {
         ToolMaterials materials = stack.get(ForgeweaveDataComponents.TOOL_MATERIALS.get());
         return materials != null && materials.all().contains(ATOMIC_MATTER_ALLOY);
-    }
-
-    /**
-     * The compat item factory D-M8-15 asks for: every assembled tool and armour piece's
-     * {@code Item.Properties}, with Mekanism's module container component added when Mekanism is
-     * installed and untouched when it is not.
-     *
-     * <p>This has to happen at registration rather than later. The component is a <em>default</em> on
-     * the item, and Mekanism's Modification Station reads it off a freshly crafted stack that has
-     * never held a module; without the default there is nothing for the first module to install into.
-     * Registration runs long before a server config exists, so there is deliberately no toggle on this
-     * branch -- see {@code MekanismGearModules} for what the toggle does instead.
-     *
-     * <p>Guarded here rather than inside {@link MekanismModuleContainer} so the plain {@code ToolItem}
-     * and {@code ForgeweaveItems} stay Mekanism-free: the reference below is resolved the first time
-     * this branch is taken, which is never on a Forgeweave-only install.
-     */
-    public static Item.Properties containerProperties(Item.Properties properties) {
-        return loaded() ? MekanismModuleContainer.applyContainerProperties(properties) : properties;
     }
 
     /**

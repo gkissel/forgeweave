@@ -5,6 +5,8 @@ import java.util.List;
 import mekanism.api.MekanismIMC;
 import mekanism.api.gear.IModuleContainer;
 import mekanism.api.gear.IModuleHelper;
+import mekanism.common.content.gear.ModuleContainer;
+import mekanism.common.registries.MekanismDataComponents;
 import mekanism.common.capabilities.Capabilities;
 import mekanism.common.capabilities.radiation.item.RadiationShieldingHandler;
 
@@ -22,6 +24,7 @@ import net.minecraft.world.level.Level;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.event.lifecycle.InterModEnqueueEvent;
 import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
+import net.neoforged.neoforge.event.ModifyDefaultComponentsEvent;
 
 import dev.gkissel.forgeweave.combat.CombatSeams;
 import dev.gkissel.forgeweave.compat.mekanism.ForgeweaveMekanismCompat;
@@ -84,11 +87,13 @@ public final class MekanismModuleContainer implements MekanismGearModules.Bridge
     public static final MekanismModuleContainer INSTANCE = new MekanismModuleContainer();
 
     /**
-     * Installs the bridge, the IMC pass, the capability listener and the armour defence seam. Called
-     * from {@code ForgeweaveMekanismCompat#register}, which itself only runs with the mod present.
+     * Installs the bridge, the default component pass, the IMC pass, the capability listener and the
+     * armour defence seam. Called from {@code ForgeweaveMekanismCompat#register}, which itself only
+     * runs with the mod present.
      */
     public static void register(IEventBus modEventBus) {
         MekanismGearModules.install(INSTANCE);
+        modEventBus.addListener(MekanismModuleContainer::modifyDefaultComponents);
         modEventBus.addListener(MekanismModuleContainer::enqueueImc);
         modEventBus.addListener(MekanismModuleContainer::registerCapabilities);
         // The absorption seam names no mekanism type; it reads the ratio and the cost back across the
@@ -97,12 +102,36 @@ public final class MekanismModuleContainer implements MekanismGearModules.Bridge
     }
 
     /**
-     * The compat item factory's Mekanism half -- see
-     * {@code ForgeweaveMekanismCompat#containerProperties} for why it has to happen at registration and
-     * why there is no toggle on this branch.
+     * The compat item factory D-M8-15 asks for, as a default component pass: every assembled Forgeweave
+     * tool and armour piece gains Mekanism's {@code module_container} default component, so the
+     * Modification Station has something to install the first module into.
+     *
+     * <p><b>Deviation from D-M8-15's wording, and why.</b> The decision says
+     * {@code IModuleHelper#applyModuleContainerProperties} called at registration through a compat item
+     * factory. That method is exactly
+     * {@code properties.component(MekanismDataComponents.MODULE_CONTAINER, ModuleContainer.EMPTY)} --
+     * verified by disassembling {@code mekanism.common.content.gear.ModuleHelper} -- and
+     * {@code Item.Properties#component} dereferences the holder <em>eagerly</em>. Forgeweave builds
+     * every gear item's {@code Item.Properties} in {@code ForgeweaveItems}' static initialiser, which
+     * runs during mod construction, long before Mekanism's own data component types are bound; calling
+     * the API method there throws "Trying to access unbound value". Mekanism's own items get away with
+     * it because their properties are built inside a {@code DeferredRegister} supplier.
+     *
+     * <p>{@code ModifyDefaultComponentsEvent} is NeoForge's own seam for adding a default component to
+     * an already-registered item, it fires after every registry is populated, and it sets the identical
+     * component. It also leaves {@code ForgeweaveItems} and every item class completely untouched, which
+     * is the point the "compat item factory" wording was making: the plain {@code ToolItem} stays
+     * Mekanism-free.
+     *
+     * <p>No toggle on this pass. A {@code SERVER} config is not loaded this early, and D-M8-5's contract
+     * is inert rather than absent anyway: an empty container component on a tool nobody ever takes to a
+     * Modification Station is invisible.
      */
-    public static Item.Properties applyContainerProperties(Item.Properties properties) {
-        return IModuleHelper.INSTANCE.applyModuleContainerProperties(properties);
+    private static void modifyDefaultComponents(ModifyDefaultComponentsEvent event) {
+        for (Item item : gearItems()) {
+            event.modify(item, patch -> patch.set(MekanismDataComponents.MODULE_CONTAINER.get(),
+                    ModuleContainer.EMPTY));
+        }
     }
 
     /**
