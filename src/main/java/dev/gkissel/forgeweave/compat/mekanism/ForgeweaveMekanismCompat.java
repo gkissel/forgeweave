@@ -1,0 +1,97 @@
+package dev.gkissel.forgeweave.compat.mekanism;
+
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+
+import net.neoforged.bus.api.IEventBus;
+import net.neoforged.fml.ModList;
+
+import dev.gkissel.forgeweave.Forgeweave;
+import dev.gkissel.forgeweave.compat.mekanism.modules.MekanismModuleContainer;
+import dev.gkissel.forgeweave.item.ForgeweaveDataComponents;
+import dev.gkissel.forgeweave.tool.ToolMaterials;
+
+/**
+ * The Mekanism-free half of Forgeweave's module container compat (issue #993, docs/SCOPE.md M8,
+ * D-M8-15): the metal that earns the container, the test for "is this stack one", and the single
+ * entry point {@code Forgeweave}'s constructor calls from inside its {@code ModList} guard.
+ *
+ * <p>Same split {@code ForgeweaveDraconicCompat} uses. This class is classloaded on every install,
+ * Mekanism or not, so it names no {@code mekanism} type: {@link MekanismModuleContainer} does, and is
+ * only ever reached through one of the guards here. {@code MekanismSourceIsolationTest} keeps it that
+ * way.
+ *
+ * <h2>What makes a stack a container</h2>
+ *
+ * <p>A tool with an {@code atomic_matter_alloy} part, and armour whose plating is that metal. Read
+ * off {@code ForgeweaveDataComponents#TOOL_MATERIALS} rather than off the trait list the way
+ * {@code ForgeweaveDraconicCompat#isWeldTool} does: the welds each grant their own {@code evolved}
+ * marker trait, whereas D-M8-13 fixes this metal's trait list at {@code infused} alone, and other
+ * materials may grant that too. Nothing here has to identify a stack whose parts have been stripped,
+ * which is the case the trait-list read exists for.
+ */
+public final class ForgeweaveMekanismCompat {
+
+    /** Mekanism's mod id -- the {@code ModList} guards, the IMC target and every recipe condition key on it. */
+    public static final String MODID = "mekanism";
+
+    /** The metal that earns the module container (D-M8-13). */
+    public static final ResourceLocation ATOMIC_MATTER_ALLOY =
+            ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "atomic_matter_alloy");
+
+    /** Mekanism's own atomic alloy, the nucleosynthesizing recipe's item input. */
+    public static final String ATOMIC_ALLOY_ITEM = MODID + ":alloy_atomic";
+
+    /** Mekanism's antimatter, the nucleosynthesizing recipe's chemical input. */
+    public static final String ANTIMATTER_CHEMICAL = MODID + ":antimatter";
+
+    /**
+     * Whether Mekanism is installed at all. Read once per call rather than cached in a static, because
+     * a static initialiser here would run before {@code ModList} exists under some datagen entry
+     * points.
+     */
+    public static boolean loaded() {
+        return ModList.get().isLoaded(MODID);
+    }
+
+    /**
+     * Whether any part of {@code stack} is made of {@link #ATOMIC_MATTER_ALLOY} -- the tools and
+     * armour pieces that host Mekanism modules. False for a stack with no Forgeweave materials at all,
+     * which is what makes a vanilla pickaxe not a container rather than an empty one.
+     */
+    public static boolean isContainerStack(ItemStack stack) {
+        ToolMaterials materials = stack.get(ForgeweaveDataComponents.TOOL_MATERIALS.get());
+        return materials != null && materials.all().contains(ATOMIC_MATTER_ALLOY);
+    }
+
+    /**
+     * The compat item factory D-M8-15 asks for: every assembled tool and armour piece's
+     * {@code Item.Properties}, with Mekanism's module container component added when Mekanism is
+     * installed and untouched when it is not.
+     *
+     * <p>This has to happen at registration rather than later. The component is a <em>default</em> on
+     * the item, and Mekanism's Modification Station reads it off a freshly crafted stack that has
+     * never held a module; without the default there is nothing for the first module to install into.
+     * Registration runs long before a server config exists, so there is deliberately no toggle on this
+     * branch -- see {@code MekanismGearModules} for what the toggle does instead.
+     *
+     * <p>Guarded here rather than inside {@link MekanismModuleContainer} so the plain {@code ToolItem}
+     * and {@code ForgeweaveItems} stay Mekanism-free: the reference below is resolved the first time
+     * this branch is taken, which is never on a Forgeweave-only install.
+     */
+    public static Item.Properties containerProperties(Item.Properties properties) {
+        return loaded() ? MekanismModuleContainer.applyContainerProperties(properties) : properties;
+    }
+
+    /**
+     * Installs the module container. Called from {@code Forgeweave}'s constructor, inside its
+     * {@code ModList} guard; the class behind this call names {@code mekanism} types and cannot link
+     * without the mod.
+     */
+    public static void register(IEventBus modEventBus) {
+        MekanismModuleContainer.register(modEventBus);
+    }
+
+    private ForgeweaveMekanismCompat() {}
+}
