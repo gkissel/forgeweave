@@ -44,7 +44,11 @@ class TrackAMeltingTemperatureTest {
             "draconium_awakened", 1800,
             "emberweld", 1800,
             "starweld", 2000,
-            "voidweld", 2000);
+            "voidweld", 2000,
+            // #993: atomic matter alloy needs its override for a second reason the four above do not
+            // -- its harvest tag is forgeweave:incorrect_for_resonite_tool, which the tier table has
+            // no row for, so the fallback would have nothing to look up.
+            "atomic_matter_alloy", 2000);
 
     /**
      * The generator's own {@code form_suffix}: a melting recipe file is named {@code

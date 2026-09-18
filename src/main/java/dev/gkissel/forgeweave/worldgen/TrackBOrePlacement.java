@@ -6,9 +6,14 @@ import java.util.stream.Stream;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 
+import org.jetbrains.annotations.Nullable;
+
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.Registries;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.RandomSource;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.levelgen.placement.PlacementContext;
 import net.minecraft.world.level.levelgen.placement.PlacementModifier;
 import net.minecraft.world.level.levelgen.placement.PlacementModifierType;
@@ -44,6 +49,13 @@ public class TrackBOrePlacement extends PlacementModifier {
     public static final DeferredHolder<PlacementModifierType<?>, PlacementModifierType<TrackBOrePlacement>> TYPE =
             PLACEMENT_MODIFIERS.register("track_b_ore_rate", () -> () -> CODEC);
 
+    /**
+     * Allthemodium's own mining dimension (issue #998, D-M8-19), reused unqualified rather than
+     * through a compile dependency -- see the PR body for why this integration never needs one.
+     */
+    public static final ResourceKey<Level> ALLTHEMODIUM_MINING =
+            ResourceKey.create(Registries.DIMENSION, ResourceLocation.fromNamespaceAndPath("allthemodium", "mining"));
+
     private final int count;
 
     public TrackBOrePlacement(int count) {
@@ -54,11 +66,38 @@ public class TrackBOrePlacement extends PlacementModifier {
         return count;
     }
 
-    /** Vanilla {@code CountPlacement}'s own contract, gated to zero while the Track B ore group is switched off. */
+    /**
+     * Vanilla {@code CountPlacement}'s own contract, gated to zero while the Track B ore group is
+     * switched off, and -- issue #998 (D-M8-19) -- gated a second way inside Allthemodium's own
+     * mining dimension, where these same placed features also generate (the biome-modifier tree
+     * {@code generate_track_b_worldgen.py} emits there): {@code allthemodiumTiers} off stops that
+     * generation specifically, without touching the ore's generation anywhere else. This is the one
+     * runtime hook the tier-equivalence toggle has -- the tag equivalence itself has none, since a
+     * live config value has no site in a static tag file (see the PR body).
+     *
+     * <p>{@code context} is null-tolerant ({@code null} reads as "not the mining dimension"):
+     * {@code TrackBOreGameTests#trackBOreGroupToggleGatesEveryOre} already calls this with a
+     * {@code null} context to exercise {@code genTrackBOres} alone, predating this method needing a
+     * real level at all.
+     */
     @Override
     public Stream<BlockPos> getPositions(PlacementContext context, RandomSource random, BlockPos pos) {
-        int effective = ForgeweaveConfig.read(ForgeweaveConfig.GEN_TRACK_B_ORES) ? count : 0;
+        ResourceKey<Level> dimension = context == null ? null : context.getLevel().getLevel().dimension();
+        int effective = allowed(dimension) ? count : 0;
         return IntStream.range(0, effective).mapToObj(i -> pos);
+    }
+
+    /**
+     * The decision {@link #getPositions} makes, pulled out as a pure function of the dimension so it
+     * is directly unit- and GameTestable with no {@code WorldGenLevel} to construct
+     * ({@code AllthemodiumElementariumGameTests}). {@code dimension} is {@code null}-tolerant, read
+     * as "not the mining dimension" -- see {@link #getPositions}'s own javadoc for why that matters.
+     */
+    public static boolean allowed(@Nullable ResourceKey<Level> dimension) {
+        boolean trackBOn = ForgeweaveConfig.read(ForgeweaveConfig.GEN_TRACK_B_ORES);
+        boolean inAllthemodiumMining = ALLTHEMODIUM_MINING.equals(dimension);
+        boolean allowedHere = !inAllthemodiumMining || ForgeweaveConfig.enabled(ForgeweaveConfig.ALLTHEMODIUM_TIERS);
+        return trackBOn && allowedHere;
     }
 
     @Override

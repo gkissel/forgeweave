@@ -199,6 +199,53 @@ public class ForgeweaveBlockTagsProvider extends BlockTagsProvider {
             }
         }
 
+        // #998 (D-M8-19) -- Allthemodium tier equivalence, direction 1: Forgeweave tools at a rung
+        // mine Allthemodium's ores at the equivalent rung (allthemodium ~ hardcinder, vibranium ~
+        // warspar, unobtainium ~ resonite, the issue's own table). Each metal's ore joins the same
+        // ladder positions TrackBOre.ALL's own switch above would give an ore at that tier: below
+        // its own rung's tag, never in it or above. addOptionalTag, not addTag: c:ores/<metal> is
+        // only defined while Allthemodium is loaded (verified against the mod's shipped 1.21.x data,
+        // commit 59e41c60619d) -- the same "a tag reference no loaded mod defines is an error, not an
+        // empty set" reasoning ForgeweaveItemTagsProvider's tool-forge comment gives.
+        TagKey<Block> cOresAllthemodium = cTag("ores/allthemodium");
+        TagKey<Block> cOresVibranium = cTag("ores/vibranium");
+        TagKey<Block> cOresUnobtainium = cTag("ores/unobtainium");
+        // allthemodium ~ hardcinder: denied below hardcinder, open at hardcinder and above.
+        trackBNeedsDiamond.addOptionalTag(cOresAllthemodium);
+        trackBIncorrectForDiamond.addOptionalTag(cOresAllthemodium);
+        trackBIncorrectForNetherite.addOptionalTag(cOresAllthemodium);
+        // vibranium ~ warspar: also denied to a hardcinder-tier tool.
+        trackBNeedsDiamond.addOptionalTag(cOresVibranium);
+        trackBIncorrectForDiamond.addOptionalTag(cOresVibranium);
+        trackBIncorrectForNetherite.addOptionalTag(cOresVibranium);
+        trackBIncorrectForHardcinder.addOptionalTag(cOresVibranium);
+        // unobtainium ~ resonite: also denied to a warspar-tier tool.
+        trackBNeedsDiamond.addOptionalTag(cOresUnobtainium);
+        trackBIncorrectForDiamond.addOptionalTag(cOresUnobtainium);
+        trackBIncorrectForNetherite.addOptionalTag(cOresUnobtainium);
+        trackBIncorrectForHardcinder.addOptionalTag(cOresUnobtainium);
+        trackBIncorrectForWarspar.addOptionalTag(cOresUnobtainium);
+
+        // #998 (D-M8-19) -- direction 2: Forgeweave's own hardcinder/warspar/resonite ores join
+        // whatever c: tag family Allthemodium's own tools check, so an Allthemodium tool at the
+        // equivalent tier (or better) mines them too. hardcinder needs no entry: it sits at
+        // allthemodium's own rung, and its floor (netherite-or-better) is already carried by the
+        // vanilla needsDiamond/incorrectForNetherite membership above -- nothing in Allthemodium's
+        // own family sits below allthemodium tier, so there is no lower rung left to deny it from.
+        // warspar (~vibranium) and resonite (~unobtainium) each join the c: tag Allthemodium's own
+        // same-tier ore already carries (c:needs_vibranium_tool / c:needs_unobtainium_tool, verified
+        // against the mod's shipped data). These are Forgeweave's own block ids, which always exist,
+        // so no addOptional/mod_loaded gate is needed on this half -- an extra tag entry nothing
+        // consumes is harmless when Allthemodium is absent.
+        tag(cTag("needs_vibranium_tool"))
+                .add(ForgeweaveBlocks.trackBOre("warspar").get())
+                .add(ForgeweaveBlocks.trackBStorageBlock("warspar").get())
+                .add(ForgeweaveBlocks.trackBRawBlock("warspar").get());
+        tag(cTag("needs_unobtainium_tool"))
+                .add(ForgeweaveBlocks.trackBOre("resonite").get())
+                .add(ForgeweaveBlocks.trackBStorageBlock("resonite").get())
+                .add(ForgeweaveBlocks.trackBRawBlock("resonite").get());
+
         // #840 -- Track B's 18 alloy tool materials, block side: alloy-only, so just the one storage
         // block's c:storage_blocks/<id> membership, matching pig_iron/hepatizon's own block-side tags.
         for (TrackBAlloy alloy : TrackBAlloy.ALL) {

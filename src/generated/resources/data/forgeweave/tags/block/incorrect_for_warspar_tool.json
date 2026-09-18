@@ -1,5 +1,9 @@
 {
   "values": [
-    "forgeweave:resonite_ore"
+    "forgeweave:resonite_ore",
+    {
+      "id": "#c:ores/unobtainium",
+      "required": false
+    }
   ]
 }

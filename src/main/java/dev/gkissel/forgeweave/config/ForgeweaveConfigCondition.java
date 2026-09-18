@@ -25,10 +25,11 @@ import net.neoforged.neoforge.registries.NeoForgeRegistries;
 import dev.gkissel.forgeweave.Forgeweave;
 
 /**
- * Issue #995 (D-M8-16, D-M8-13): a {@code neoforge:conditions} predicate reading one of the four
- * {@code compat} toggles {@link ForgeweaveConfig#CREATE_RECIPES}, {@link
- * ForgeweaveConfig#IMMERSIVE_ENGINEERING_RECIPES}, {@link ForgeweaveConfig#ENDER_IO_RECIPES} and
- * {@link ForgeweaveConfig#POWAH_HEAT_SOURCES} gate -- {@code {"type": "forgeweave:compat_toggle",
+ * Issue #995 (D-M8-16, D-M8-13): a {@code neoforge:conditions} predicate reading one of the {@code
+ * compat} toggles {@link ForgeweaveConfig#CREATE_RECIPES}, {@link
+ * ForgeweaveConfig#IMMERSIVE_ENGINEERING_RECIPES}, {@link ForgeweaveConfig#ENDER_IO_RECIPES},
+ * {@link ForgeweaveConfig#POWAH_HEAT_SOURCES} and (issue #998) {@link
+ * ForgeweaveConfig#ELEMENTARIUM_MATERIALS} gate -- {@code {"type": "forgeweave:compat_toggle",
  * "toggle": "createRecipes"}}.
  *
  * <p>None of the four rows this issue generates is Forgeweave's own recipe type (they are {@code
@@ -78,7 +79,16 @@ public record ForgeweaveConfigCondition(String toggle) implements ICondition {
             "createRecipes", () -> ForgeweaveConfig.enabled(ForgeweaveConfig.CREATE_RECIPES),
             "immersiveEngineeringRecipes", () -> ForgeweaveConfig.enabled(ForgeweaveConfig.IMMERSIVE_ENGINEERING_RECIPES),
             "enderIoRecipes", () -> ForgeweaveConfig.enabled(ForgeweaveConfig.ENDER_IO_RECIPES),
-            "powahHeatSources", () -> ForgeweaveConfig.enabled(ForgeweaveConfig.POWAH_HEAT_SOURCES));
+            "powahHeatSources", () -> ForgeweaveConfig.enabled(ForgeweaveConfig.POWAH_HEAT_SOURCES),
+            // Issue #998 (D-M8-19): the same trap this class's own javadoc explains -- Elementarium's
+            // presets are a datapack registry, loaded before ForgeweaveConfig.loaded() is ever true, so
+            // ElementariumEnabledCondition (this issue's first attempt) always fell through to
+            // ForgeweaveConfig#enabled's permissive default and the toggle never took effect. Folded
+            // into this class instead of keeping a second one-off condition around.
+            "elementariumMaterials", () -> ForgeweaveConfig.enabled(ForgeweaveConfig.ELEMENTARIUM_MATERIALS),
+            // #993 (D-M8-15): the nucleosynthesizing row is mekanism:nucleosynthesizing, Mekanism's
+            // own recipe type, so it has no Forgeweave-owned lookup site to filter at either.
+            "mekanismModules", () -> ForgeweaveConfig.enabled(ForgeweaveConfig.MEKANISM_MODULES));
 
     public static final MapCodec<ForgeweaveConfigCondition> CODEC = RecordCodecBuilder.mapCodec(instance -> instance
             .group(Codec.STRING.fieldOf("toggle").forGetter(ForgeweaveConfigCondition::toggle))

@@ -1,0 +1,40 @@
+{
+  "head": {
+    "durability": 900,
+    "mining_speed": 9.0,
+    "attack_damage": 7.5
+  },
+  "handle": {
+    "durability_modifier": 1.0,
+    "durability": 95
+  },
+  "extra_durability": 290,
+  "bow": {
+    "drawspeed": 0.6,
+    "range": 1.35,
+    "bonus_damage": 5.5
+  },
+  "plating": {
+    "helmet": { "durability": 365, "armor": 3.0, "toughness": 1.5, "knockback_resistance": 0.05 },
+    "chestplate": { "durability": 530, "armor": 8.0, "toughness": 1.5, "knockback_resistance": 0.05 },
+    "leggings": { "durability": 495, "armor": 6.0, "toughness": 1.5, "knockback_resistance": 0.05 },
+    "boots": { "durability": 430, "armor": 3.0, "toughness": 1.5, "knockback_resistance": 0.05 }
+  },
+  "maille": true,
+  "incorrect_for_tool": "forgeweave:incorrect_for_resonite_tool",
+  "traits": {
+    "armor": ["forgeweave:mendbond"]
+  },
+  "crafting_items": [
+    { "ingredient": { "item": "allthemodium:unobtainium_vibranium_alloy_ingot" }, "value": 144 }
+  ],
+  "repair_item": {
+    "item": "allthemodium:unobtainium_vibranium_alloy_ingot"
+  },
+  "cast_only": true,
+  "enchantability": 10,
+  "color": "#9A3FC0",
+  "neoforge:conditions": [
+    { "type": "neoforge:item_exists", "item": "allthemodium:unobtainium_vibranium_alloy_ingot" }
+  ]
+}

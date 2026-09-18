@@ -1,0 +1,12 @@
+{
+  "modifier": "forgeweave:gametest_pack_chill",
+  "reagents": [
+    {
+      "ingredient": {
+        "item": "minecraft:sea_pickle"
+      }
+    }
+  ],
+  "cost": 1,
+  "max_level": 1
+}

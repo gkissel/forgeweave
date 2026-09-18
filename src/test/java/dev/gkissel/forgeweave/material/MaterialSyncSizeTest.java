@@ -114,6 +114,12 @@ class MaterialSyncSizeTest {
      * measurement, same deliberately-tight step as every raise above -- M8-12 is the last Track A
      * batch D-M8-17 plans, so no further growth is budgeted for beyond this.
      *
+     * <p>Issue #998 (D-M8-19) is one more: Allthemodium's six presets (three metals, three
+     * pairwise alloys, each with a full plating + maille block) and Elementarium's six generated
+     * presets take the 165-material roster to 123,781 bytes, 4,997 bytes over the 116 KB line.
+     * Raised to 124 KB (126,976 bytes), ~3.2 KB (2.5%) of headroom above the new measurement, same
+     * deliberately-tight step as every raise above.
+     *
      * <p>Issue #1031 (D-M8-21) is exactly the unplanned growth that note anticipated: asked for by
      * the maintainer after the M8 planning sessions closed, it has no earlier decision to have
      * budgeted headroom for. Just Dire Things' four tool tiers take the 157-material roster to
@@ -121,8 +127,14 @@ class MaterialSyncSizeTest {
      * (3.3%) of headroom above the new measurement, the same deliberately-tight step every earlier
      * raise took. The Eternal Ores dedupe alongside it adds no new material, so it costs this
      * budget nothing.
+     *
+     * <p>#998, #993 and #1031 landed on master within hours of each other, each measured on its own
+     * branch. Together the roster syncs at 128,825 bytes, so the merge raised the line to 128 KB
+     * (131,072 bytes), ~2.2 KB (1.7%) above that measurement. The next material batch will need a
+     * deliberate raise.
      */
-    private static final int SYNC_BUDGET_BYTES = 120 * 1024;
+    private static final int SYNC_BUDGET_BYTES = 128 * 1024;
+
 
     private static RegistryOps<JsonElement> jsonOps;
     private static RegistryOps<Tag> nbtOps;

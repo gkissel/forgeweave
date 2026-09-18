@@ -124,6 +124,7 @@
     "forgeweave:duskweld_block",
     "forgeweave:emberweld_block",
     "forgeweave:starweld_block",
-    "forgeweave:voidweld_block"
+    "forgeweave:voidweld_block",
+    "forgeweave:atomic_matter_alloy_block"
   ]
 }

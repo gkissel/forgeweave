@@ -99,6 +99,8 @@ class ArmorMaterialTest {
             // #946 M8: the Draconic Evolution fusion metals ship full plating + maille, same shape
             // as every other metal. #965 added duskweld under the three.
             Stream.of("duskweld", "emberweld", "starweld", "voidweld"),
+            // #993 M8 (D-M8-13): atomic matter alloy ships full plating + maille the same way.
+            Stream.of("atomic_matter_alloy"),
             // #953: the awakened core ships the same plating + maille block as the wyvern and chaotic
             // cores it sits between. Being Part Builder only changes where the part is made, not
             // which parts the material has stats for. #965 added the draconium core the same way.
@@ -110,7 +112,13 @@ class ArmorMaterialTest {
             Stream.of("ferricore", "blazegold", "celestigem", "eclipsealloy"),
             // #997 (D-M8-18): Occultism's spirit attuned gem, same full plating + maille shape as the
             // rest of the gem/crystal-tier roster above.
-            Stream.of("spirit_attuned_gem"))
+            Stream.of("spirit_attuned_gem"),
+            // #998 (D-M8-19): Allthemodium's three metals and three alloys, same full plating +
+            // maille shape as every other Track A preset batch. Elementarium's generated presets are
+            // tool-only (no plating/maille block, see generate_elementarium_materials.py) and are
+            // deliberately absent from both sets below.
+            Stream.of("allthemodium", "vibranium", "unobtainium", "unobtainium_allthemodium_alloy",
+                    "unobtainium_vibranium_alloy", "vibranium_allthemodium_alloy"))
             .flatMap(java.util.function.Function.identity())
             .collect(java.util.stream.Collectors.toSet());
 
