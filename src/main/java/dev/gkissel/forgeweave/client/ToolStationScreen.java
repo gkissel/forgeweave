@@ -56,8 +56,9 @@ import dev.gkissel.forgeweave.tool.ToolMaterials;
  * highlight strip, the translucent item cover over the big tool preview, and the slot
  * background/border sprites the dynamic slot positions are drawn with (NOTICE.md). Layout constants
  * below are upstream's own -- the panel is 176x174 (which is why {@link ToolStationMenu} puts the
- * player inventory 8px lower than a stock GUI), the output slot sits where {@code
- * ContainerToolStation} puts it, and the sidebar/info-panel geometry is {@code GuiToolStation}'s.
+ * player inventory 8px lower than a stock GUI) and the sidebar/info-panel geometry is {@code
+ * GuiToolStation}'s. The output slot and the panel arrow beside it are the one pair that follows the
+ * 1.20 branch instead, at the maintainer's request (issue #1043); see {@link ToolStationMenu#OUTPUT_X}.
  *
  * <p>Four things make up the parity work, all reading state the menu owns:
  *
