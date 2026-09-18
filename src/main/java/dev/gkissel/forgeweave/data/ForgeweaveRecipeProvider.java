@@ -45,6 +45,7 @@ import dev.gkissel.forgeweave.block.SlimeColour;
 import dev.gkissel.forgeweave.item.ForgeweaveItems;
 import dev.gkissel.forgeweave.material.MaterialForm;
 import dev.gkissel.forgeweave.material.MaterialForms;
+import dev.gkissel.forgeweave.recipe.EnergizedTankRecipe;
 import dev.gkissel.forgeweave.recipe.GravelFlintRecipe;
 import dev.gkissel.forgeweave.recipe.MixedSlimeBlockRecipe;
 import dev.gkissel.forgeweave.recipe.MixedSlimeSlingRecipe;
@@ -61,7 +62,9 @@ import dev.gkissel.forgeweave.trackb.TrackBOre;
  * originally shipped it as five blank+wooden-tool/stick shapeless recipes here, but the maintainer
  * decision for #44 replaces them with the Stencil Table's GUI (select a pattern, one-way consuming
  * the blank -- {@code StencilTableMenu}), matching upstream 1.12's real stencil-shaping flow instead
- * of a vanilla-table stand-in. The Stencil Table is now the only conversion path.
+ * of a vanilla-table stand-in. The Stencil Table is now the only conversion path -- except for the
+ * war mace head pattern (issue #989), which the Stencil Table's own {@code PATTERNS} list omits on
+ * purpose and which this class stamps instead, gated behind a vanilla Heavy Core.
  */
 public class ForgeweaveRecipeProvider extends RecipeProvider {
     public ForgeweaveRecipeProvider(PackOutput output, CompletableFuture<HolderLookup.Provider> registries) {
@@ -192,6 +195,19 @@ public class ForgeweaveRecipeProvider extends RecipeProvider {
         // Stencil Table (docs/SCOPE.md M1 issue #44): upstream 1.12's real stencil_table.json recipe
         // is "blank pattern + #STENCIL_TABLE" where that tag resolves to plankWood (NOTICE.md).
         retexturedTableRecipe(recipeOutput, ForgeweaveItems.STENCIL_TABLE.get(), ForgeweaveItems.PATTERN_BLANK.get(), Ingredient.of(ItemTags.PLANKS));
+
+        // War mace head pattern (issue #989, maintainer directive 2026-09-07): the one part pattern
+        // the Stencil Table's own PATTERNS list (StencilTableMenu) deliberately does not offer -- a
+        // blank pattern alone stamps nothing for this part. Instead it is this plain vanilla-table
+        // shapeless recipe, gated behind a vanilla Heavy Core (the mace component from trial
+        // chambers), so a player's first war mace head part always follows finding one. The issue is
+        // silent on whether the core survives the craft; it is consumed here, like every other
+        // ingredient in every other recipe in this class.
+        ShapelessRecipeBuilder.shapeless(RecipeCategory.MISC, ForgeweaveItems.PATTERN_WAR_MACE_HEAD.get())
+                .requires(ForgeweaveItems.PATTERN_BLANK.get())
+                .requires(Items.HEAVY_CORE)
+                .unlockedBy("has_heavy_core", has(Items.HEAVY_CORE))
+                .save(recipeOutput);
 
         // 3 gravel -> 1 flint (parity audit T55, issue #486): upstream's recipes/common/flint.json,
         // gated by addFlintRecipe -- see GravelFlintRecipe's javadoc for why the gate is a match-time
@@ -878,6 +894,11 @@ public class ForgeweaveRecipeProvider extends RecipeProvider {
         ioRecipe(recipeOutput, ForgeweaveItems.SEARED_CHUTE.get(), Tags.Items.INGOTS_COPPER, "has_copper_ingot",
                 "ABA", "   ", "ABA");
 
+        // #972 (M8, D-M8-11) -- the energized tank: a seared tank's ring of bricks around a redstone
+        // block, with a pair of copper ingots for the coil. Original shape; the 1.12 generation has
+        // no energized tank to port a recipe from.
+        energizedTankRecipe(recipeOutput);
+
         tankRecipe(recipeOutput, ForgeweaveItems.SEARED_TANK.get(), "AAA", "ABA", "AAA");
         tankRecipe(recipeOutput, ForgeweaveItems.SEARED_GAUGE.get(), "ABA", "BBB", "ABA");
         tankRecipe(recipeOutput, ForgeweaveItems.SEARED_WINDOW.get(), "ABA", "ABA", "ABA");
@@ -987,6 +1008,30 @@ public class ForgeweaveRecipeProvider extends RecipeProvider {
         AdvancementHolder advancement = recipeOutput.advancement()
                 .addCriterion("has_the_recipe", RecipeUnlockedTrigger.unlocked(id))
                 .addCriterion("has_tool_station", has(ForgeweaveItems.TOOL_STATION.get()))
+                .rewards(AdvancementRewards.Builder.recipe(id))
+                .requirements(AdvancementRequirements.Strategy.OR)
+                .build(id.withPrefix("recipes/misc/"));
+        recipeOutput.accept(id, recipe, advancement);
+    }
+
+    /**
+     * The energized tank (#972). Written out rather than going through {@link #ioRecipe} because it
+     * is an {@link EnergizedTankRecipe}, whose only difference from a plain shaped recipe is that its
+     * match reads the {@code energizedTank} toggle -- see that class, and {@link #gravelFlintRecipe}
+     * for the same arrangement on a shapeless one.
+     */
+    private void energizedTankRecipe(RecipeOutput recipeOutput) {
+        ResourceLocation id = BuiltInRegistries.ITEM.getKey(ForgeweaveItems.ENERGIZED_TANK.get());
+        ShapedRecipePattern pattern = ShapedRecipePattern.of(Map.of(
+                        'A', Ingredient.of(ForgeweaveItems.SEARED_BRICK.get()),
+                        'B', Ingredient.of(Items.REDSTONE_BLOCK),
+                        'C', Ingredient.of(Tags.Items.INGOTS_COPPER)),
+                "ACA", "ABA", "ACA");
+        EnergizedTankRecipe recipe = new EnergizedTankRecipe("", CraftingBookCategory.MISC, pattern,
+                new ItemStack(ForgeweaveItems.ENERGIZED_TANK.get()));
+
+        AdvancementHolder advancement = recipeOutput.advancement()
+                .addCriterion("has_seared_brick", has(ForgeweaveItems.SEARED_BRICK.get()))
                 .rewards(AdvancementRewards.Builder.recipe(id))
                 .requirements(AdvancementRequirements.Strategy.OR)
                 .build(id.withPrefix("recipes/misc/"));

@@ -159,11 +159,22 @@ class JeiRecipesScaleTest {
             assertEquals(longBurn ? 500 : 100, fuel.duration(), id + "'s melt ticks per burn cycle");
         });
 
-        List<SmelteryFuelDisplay> fuelDisplays = SmelteryFuelRecipes.build(fuels);
+        List<SmelteryFuelDisplay> fuelDisplays = SmelteryFuelRecipes.build(fuels, false);
         List<CoreTransformRecipe> transformDisplays = CoreTransformRecipes.build(transforms);
 
         assertEquals(5, fuelDisplays.size());
         assertEquals(3, transformDisplays.size());
+
+        // #972: the energized tank adds one synthetic row on top of the registry, the same shape the
+        // entity-melting default row takes below. The registry itself is untouched -- the tank is a
+        // block, not a burnable fluid -- so only the display count moves.
+        List<SmelteryFuelDisplay> withTank = SmelteryFuelRecipes.build(fuels, true);
+        assertEquals(6, withTank.size(), "one row per registry entry, plus the energized tank's own");
+        assertEquals(1, withTank.stream().filter(SmelteryFuelDisplay::energizedTank).count(),
+                "exactly one row must be the energized-tank row");
+        assertTrue(withTank.stream().filter(SmelteryFuelDisplay::energizedTank)
+                        .allMatch(row -> row.energizedCost() > 0),
+                "and it must carry a real per-cycle cost, or the row teaches a player nothing");
     }
 
     /**

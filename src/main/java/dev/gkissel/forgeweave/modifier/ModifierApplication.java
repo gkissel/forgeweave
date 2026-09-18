@@ -26,6 +26,7 @@ import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.item.enchantment.ItemEnchantments;
 
+import dev.gkissel.forgeweave.compat.apotheosis.ApotheosisSockets;
 import dev.gkissel.forgeweave.config.ForgeweaveConfig;
 import dev.gkissel.forgeweave.item.AmmoToolItem;
 import dev.gkissel.forgeweave.item.ArmorPieceItem;
@@ -64,11 +65,13 @@ public final class ModifierApplication {
      */
     public record Outcome(ItemStack output, List<Integer> used, @Nullable Component rejection) {
 
-        static Outcome applied(ItemStack output, List<Integer> used) {
+        /** Public since issue #969: the Apotheosis gem-seating action builds its outcome too. */
+        public static Outcome applied(ItemStack output, List<Integer> used) {
             return new Outcome(output, used, null);
         }
 
-        static Outcome rejected(Component reason) {
+        /** @see #applied */
+        public static Outcome rejected(Component reason) {
             return new Outcome(ItemStack.EMPTY, List.of(), reason);
         }
 
@@ -245,6 +248,27 @@ public final class ModifierApplication {
         if (recipe.modifier().equals(OverslimeRefill.ID)) {
             return OverslimeRefill.apply(tool, available, unitsPerItem); // #728: no modifier entry, a refill.
         }
+        if (recipe.modifier().equals(ApotheosisSockets.SEAT_GEM_ID)) {
+            // #969: seating an Apotheosis gem, the same marker-recipe shape the overslime refill has
+            // -- nothing is stored under this id either; the craft moves the socket component. The
+            // recipe itself only exists with Apotheosis installed (its own `neoforge:conditions`), so
+            // this branch is unreachable without it; the toggle check is the config's, not the mod's.
+            if (!ApotheosisSockets.enabled()) {
+                return Outcome.rejected(
+                        Component.translatable("gui.forgeweave.modifier.apotheosis_sockets_disabled"));
+            }
+            Outcome seated = ApotheosisSockets.seat(tool, freeSlots);
+            if (!seated.output().isEmpty()) {
+                // The gem's durability bonus is part of the pool max_damage carries, so the stack
+                // needs the same rebake a modifier application gets.
+                rebake(seated.output());
+            }
+            return seated;
+        }
+        if (recipe.modifier().equals(ApotheosisSockets.SOCKETED_ID) && !ApotheosisSockets.enabled()) {
+            return Outcome.rejected(
+                    Component.translatable("gui.forgeweave.modifier.apotheosis_sockets_disabled"));
+        }
         Optional<Component> unsupported = unsupportedToolReason(registries, recipe, tool);
         if (unsupported.isPresent()) {
             return Outcome.rejected(unsupported.get());
@@ -308,10 +332,18 @@ public final class ModifierApplication {
         return Outcome.applied(modified(tool, recipe.modifier(), recipe.maxLevel()), Arrays.stream(used).boxed().toList());
     }
 
-    /** {@link Modifier#heavyChestplateOnly}'s gate: a {@code #735} heavy piece in the chestplate slot specifically. */
-    private static boolean isHeavyChestplate(ItemStack tool) {
-        return tool.getItem() instanceof ArmorPieceItem armor && armor.isHeavy()
-                && armor.getType() == ArmorItem.Type.CHESTPLATE;
+    /** {@link Modifier#chestplateOnly}'s gate: a chestplate slot specifically, heavy or light alike (issue #1005). */
+    private static boolean isChestplate(ItemStack tool) {
+        return tool.getItem() instanceof ArmorPieceItem armor && armor.getType() == ArmorItem.Type.CHESTPLATE;
+    }
+
+    /**
+     * {@link Modifier#helmetOnly}'s gate (issue #1007) -- any helmet-slot {@code ArmorPieceItem},
+     * heavy or light alike, the same weight-blind shape {@link #isChestplate} above has had since
+     * #1005.
+     */
+    private static boolean isHelmet(ItemStack tool) {
+        return tool.getItem() instanceof ArmorPieceItem armor && armor.getType() == ArmorItem.Type.HELMET;
     }
 
     /**
@@ -372,8 +404,14 @@ public final class ModifierApplication {
             return false;
         }
         // Issue #737: elytra flight / creative flight -- narrower than armorOnly above, gating on the
-        // specific worn slot (a runtime item property) rather than the whole ARMOR category.
-        if (modifier.heavyChestplateOnly() && !isHeavyChestplate(tool)) {
+        // specific worn slot (a runtime item property) rather than the whole ARMOR category. Issue
+        // #1005: weight no longer matters here, only the slot.
+        if (modifier.chestplateOnly() && !isChestplate(tool)) {
+            return false;
+        }
+        // Issue #1007: Create's goggles -- the same worn-slot narrowing as chestplateOnly above, but
+        // on either helmet item.
+        if (modifier.helmetOnly() && !isHelmet(tool)) {
             return false;
         }
         // The level passed here only decides whether a grant exists at all (every shipped grant is

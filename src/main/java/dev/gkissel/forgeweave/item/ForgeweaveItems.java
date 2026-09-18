@@ -690,6 +690,9 @@ public final class ForgeweaveItems {
     public static final DeferredItem<BlockItem> SEARED_WINDOW = tankItem(ForgeweaveBlocks.SEARED_WINDOW);
     public static final DeferredItem<BlockItem> SEARED_DRAIN = ITEMS.registerSimpleBlockItem("seared_drain", ForgeweaveBlocks.SEARED_DRAIN);
 
+    // #972 (M8, D-M8-11) -- the energized tank.
+    public static final DeferredItem<BlockItem> ENERGIZED_TANK = ITEMS.registerSimpleBlockItem("energized_tank", ForgeweaveBlocks.ENERGIZED_TANK);
+
     // #277 -- filtered fluid I/O and item I/O for the smeltery (docs/SCOPE.md M3.4).
     public static final DeferredItem<BlockItem> SEARED_DUCT = ITEMS.registerSimpleBlockItem("seared_duct", ForgeweaveBlocks.SEARED_DUCT);
     public static final DeferredItem<BlockItem> SEARED_CHUTE = ITEMS.registerSimpleBlockItem("seared_chute", ForgeweaveBlocks.SEARED_CHUTE);

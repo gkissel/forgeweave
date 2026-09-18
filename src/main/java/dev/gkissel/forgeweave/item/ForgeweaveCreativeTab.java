@@ -525,6 +525,7 @@ public final class ForgeweaveCreativeTab {
         output.accept(ForgeweaveItems.SEARED_GAUGE.get());
         output.accept(ForgeweaveItems.SEARED_WINDOW.get());
         output.accept(ForgeweaveItems.SEARED_DRAIN.get());
+        output.accept(ForgeweaveItems.ENERGIZED_TANK.get()); // #972, M8 D-M8-11
         output.accept(ForgeweaveItems.SEARED_DUCT.get());
         output.accept(ForgeweaveItems.SEARED_CHUTE.get());
         output.accept(ForgeweaveItems.SEARED_CHANNEL.get()); // #441, parity audit T9
