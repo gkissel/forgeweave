@@ -9,6 +9,7 @@ import java.util.Optional;
 
 import javax.annotation.Nullable;
 
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.LeavesBlock;
@@ -65,16 +66,18 @@ public final class ForgeweaveBlocks {
                     .explosionResistance(10.0F)
                     .sound(SoundType.METAL)));
 
-    // The Armor Station (docs/SCOPE.md M4 issue #782, reversing D13): a Tool Station body wearing a
-    // distinct top so the two are visually related without sharing a texture -- see
-    // ArmorStationBlock's own javadoc for why it subclasses ToolStationBlock exactly as ToolForgeBlock
-    // does. Wood properties, matching the Tool Station rather than the Tool Forge's metal ones: its
-    // recipe is a plain plank-and-pattern shape (issue #782), not a metal one.
-    public static final DeferredBlock<ArmorStationBlock> ARMOR_STATION = BLOCKS.register("armor_station",
-            () -> new ArmorStationBlock(BlockBehaviour.Properties.of()
-                    .mapColor(MapColor.WOOD)
-                    .strength(2.5F)
-                    .sound(SoundType.WOOD)));
+    static {
+        // The retired Armor Station (issue #1006, undoing #782): armor builds at the Tool Station
+        // and the Tool Forge again, so the block is gone. A registry alias is what makes an old
+        // world load: the chunk palette's "forgeweave:armor_station" resolves to the Tool Station
+        // through MappedRegistry#get, which NeoForge patches to consult these aliases, so the
+        // placed block simply reads back as a Tool Station. Its block entity needs no alias of its
+        // own -- all three blocks always shared ForgeweaveBlockEntities#TOOL_STATION and its saved
+        // "forgeweave:tool_station" id, so the four-slot inventory inside loads untouched and the
+        // items in it stay put. The menu id is shared the same way.
+        BLOCKS.addAlias(ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "armor_station"),
+                ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "tool_station"));
+    }
 
     public static final DeferredBlock<CraftingStationBlock> CRAFTING_STATION = BLOCKS.register("crafting_station",
             () -> new CraftingStationBlock(BlockBehaviour.Properties.of()

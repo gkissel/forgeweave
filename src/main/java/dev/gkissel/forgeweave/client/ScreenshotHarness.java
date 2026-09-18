@@ -235,10 +235,15 @@ public final class ScreenshotHarness {
                     (level, pos) -> {}, ScreenshotHarness::selectLastTab),
             new HarnessScreen("tool_station_preview", ForgeweaveBlocks.TOOL_STATION,
                     ScreenshotHarness::loadPickaxeParts, ScreenshotHarness::selectPickaxeTab),
-            // Issue #782 (reversing D13): the Armor Station, the Tool Station's own screen class
-            // reused wholesale -- captured next to tool_station.png so a reviewer can check the top
-            // texture is the only thing that differs.
-            new HarnessScreen("armor_station", ForgeweaveBlocks.ARMOR_STATION),
+            // Issue #1006: the two armor layouts, now that the Armor Station is gone and armor is
+            // on these two blocks' own sidebars. The Tool Station frame shows a light chestplate
+            // tab (plating above, maille below) and the Tool Forge frame a heavy one (its third
+            // slot, and the piece a Tool Station refuses), so a reviewer can check both ghost-slot
+            // arrangements and both previews against the tool tabs beside them.
+            new HarnessScreen("tool_station_armor", ForgeweaveBlocks.TOOL_STATION,
+                    (level, pos) -> {}, ScreenshotHarness::selectChestplateTab),
+            new HarnessScreen("tool_forge_heavy_armor", ForgeweaveBlocks.TOOL_FORGE,
+                    (level, pos) -> {}, ScreenshotHarness::selectHeavyChestplateTab),
             // #796: every item icon a Forged sprite in that issue's first batch replaced, one
             // capture -- see prepareForgedLegacyCompareScene's javadoc. Enabling the built-in Legacy
             // resource pack and re-running this one capture is the release-checklist comparison the
@@ -817,8 +822,7 @@ public final class ScreenshotHarness {
             level.setBlockAndUpdate(forgePos, ForgeweaveBlocks.TOOL_FORGE.get().defaultBlockState());
             LOGGER.info("{}placed station={} forge={}", LOG_PREFIX, stationPos, forgePos);
             // #795: a head+handle in each, reusing #733's own loader, so this no-GUI capture also
-            // shows an item sitting on the table surface (the Armor Station shares this same block
-            // entity and renderer, so it needs no scene of its own).
+            // shows an item sitting on the table surface.
             loadPickaxeParts(level, stationPos);
             loadPickaxeParts(level, forgePos);
 
@@ -860,9 +864,9 @@ public final class ScreenshotHarness {
      * Issue #795's world scene: Crafting Station, Stencil Table and Part Builder in a row, each
      * holding an item, captured with no GUI open as {@code station_items_world.png} -- the artifact
      * for "an item on a table top sits flush with the surface, not embedded down in the leg". The
-     * Tool Station/Tool Forge/Armor Station family shares one block entity and renderer ({@link
+     * Tool Station and Tool Forge share one block entity and renderer ({@link
      * ToolStationBlockEntity}), so {@link #placeTableScene} above carries an item too instead of
-     * this scene duplicating a fourth station.
+     * this scene duplicating a third station.
      */
     private static void placeStationItemsScene(Minecraft mc) {
         var server = mc.getSingleplayerServer();
@@ -2434,10 +2438,11 @@ public final class ScreenshotHarness {
      * feed ({@link dev.gkissel.forgeweave.item.PartItem} icons, {@link
      * dev.gkissel.forgeweave.block.ChestKind#PART}); a Pattern Chest beside it holds the blank
      * pattern, and a second Pattern Chest holds a cast -- one each, since a single Pattern Chest
-     * refuses to mix the two ({@link dev.gkissel.forgeweave.block.ChestKind#PATTERN}); the Armor
-     * Station beside those carries {@code armor_station_top.png} on its own top face, visible in the
-     * world behind the opened chest GUI the same way the existing "armor_station" scene's own block
-     * is.
+     * refuses to mix the two ({@link dev.gkissel.forgeweave.block.ChestKind#PATTERN}).
+     *
+     * <p>An Armor Station used to stand north of the chests so its {@code armor_station_top.png}
+     * was in shot too; issue #1006 retired that block and deleted the texture, so the scene is the
+     * three chests alone.
      */
     private static void prepareForgedLegacyCompareScene(ServerLevel level, BlockPos pos) {
         if (level.getBlockEntity(pos) instanceof ChestBlockEntity partChest) {
@@ -2453,7 +2458,6 @@ public final class ScreenshotHarness {
         if (level.getBlockEntity(pos.south()) instanceof ChestBlockEntity castChest) {
             castChest.container().setItem(0, new ItemStack(ForgeweaveItems.CAST_TOOL_BINDING.get()));
         }
-        level.setBlockAndUpdate(pos.north(), ForgeweaveBlocks.ARMOR_STATION.get().defaultBlockState());
     }
 
     /**
@@ -2486,6 +2490,22 @@ public final class ScreenshotHarness {
     private static void selectPickaxeTab(ServerPlayer player) {
         if (player.containerMenu instanceof ToolStationMenu menu) {
             menu.clickMenuButton(player, ToolStationTabs.indexOfTool(ForgeweaveItems.TOOL_PICKAXE.get()));
+        }
+    }
+
+    /** #1006: the light chestplate's tab, the armor layout a Tool Station offers. */
+    private static void selectChestplateTab(ServerPlayer player) {
+        selectTab(player, ForgeweaveItems.ARMOR_CHESTPLATE.get());
+    }
+
+    /** #1006: the heavy chestplate's tab, which only the Tool Forge's sidebar carries. */
+    private static void selectHeavyChestplateTab(ServerPlayer player) {
+        selectTab(player, ForgeweaveItems.ARMOR_HEAVY_CHESTPLATE.get());
+    }
+
+    private static void selectTab(ServerPlayer player, Item tool) {
+        if (player.containerMenu instanceof ToolStationMenu menu) {
+            menu.clickMenuButton(player, ToolStationTabs.indexOfTool(tool));
         }
     }
 }

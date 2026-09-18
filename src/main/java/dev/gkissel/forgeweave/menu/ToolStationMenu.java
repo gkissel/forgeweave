@@ -212,12 +212,6 @@ public class ToolStationMenu extends StationMenu {
      * open-menu payload rather than a {@link DataSlot}.
      */
     private final boolean forge;
-    /**
-     * Whether this menu belongs to the Armor Station rather than the Tool Station or Tool Forge
-     * (docs/SCOPE.md M4 issue #782, reversing D13). Same "fixed for the life of the menu, rides the
-     * open-menu payload" treatment as {@link #forge}.
-     */
-    private final boolean armorStation;
     public final int sideInventorySlotCount;
     /** The side panel's own slots, kept so the client-side panel can lay them out and scroll them (issue #68). */
     public final List<SideInventorySlots.SideSlot> sideSlots;
@@ -233,30 +227,28 @@ public class ToolStationMenu extends StationMenu {
 
     /**
      * Client-side: constructed from the open-menu packet, which carries the side-inventory slot
-     * count, the tab row, the Tool Station/Tool Forge flag (issue #152) and the Armor Station flag
-     * (issue #782).
+     * count, the tab row and the Tool Station/Tool Forge flag (issue #152).
      */
     public ToolStationMenu(int containerId, Inventory playerInventory, RegistryFriendlyByteBuf buf) {
         this(containerId, playerInventory, new SimpleContainer(CONTAINER_SLOTS), ContainerLevelAccess.NULL, null,
-                buf.readVarInt(), StationGroup.STREAM_CODEC.decode(buf), buf.readBoolean(), buf.readBoolean());
+                buf.readVarInt(), StationGroup.STREAM_CODEC.decode(buf), buf.readBoolean());
     }
 
     /** Server-side: constructed by {@code ToolStationBlockEntity} with the block's real inventory and detected neighbor. */
     public ToolStationMenu(int containerId, Inventory playerInventory, Container container, ContainerLevelAccess access,
-            @Nullable IItemHandler sideInventory, boolean forge, boolean armorStation) {
+            @Nullable IItemHandler sideInventory, boolean forge) {
         this(containerId, playerInventory, container, access, sideInventory,
-                sideInventory == null ? 0 : sideInventory.getSlots(), groupAt(access), forge, armorStation);
+                sideInventory == null ? 0 : sideInventory.getSlots(), groupAt(access), forge);
     }
 
     private ToolStationMenu(int containerId, Inventory playerInventory, Container container, ContainerLevelAccess access,
-            @Nullable IItemHandler sideInventory, int sideInventorySlotCount, StationGroup stationGroup, boolean forge,
-            boolean armorStation) {
+            @Nullable IItemHandler sideInventory, int sideInventorySlotCount, StationGroup stationGroup,
+            boolean forge) {
         super(ForgeweaveMenus.TOOL_STATION.get(), containerId, stationGroup);
         checkContainerSize(container, CONTAINER_SLOTS);
         this.container = container;
         this.access = access;
         this.forge = forge;
-        this.armorStation = armorStation;
         this.registries = playerInventory.player.level().registryAccess();
         this.sideInventorySlotCount = sideInventorySlotCount;
         this.owner = playerInventory.player;
@@ -358,21 +350,12 @@ public class ToolStationMenu extends StationMenu {
     }
 
     /**
-     * Whether this menu belongs to the Armor Station (issue #782); {@link #visibleTabs} and
-     * {@link #resolve} both read it, and {@link AssemblyTransferHandler}/JEI catalyst wiring read it
-     * too so a [+] transfer can't offer a category the open station would refuse.
-     */
-    public boolean isArmorStation() {
-        return armorStation;
-    }
-
-    /**
      * The tab indices this block offers (issue #336) -- {@link ToolStationTabs#visible} for this
      * menu's block. The screen draws one sidebar button per entry, and {@link #clickMenuButton}
      * accepts nothing outside it.
      */
     public List<Integer> visibleTabs() {
-        return ToolStationTabs.visible(forge, armorStation);
+        return ToolStationTabs.visible(forge);
     }
 
     /**
@@ -396,13 +379,6 @@ public class ToolStationMenu extends StationMenu {
         ItemStack tool = slots.get(HEAD_SLOT).getItem();
         if (!forge && ToolAssemblyRecipes.isLargeToolHead(inputSlots())) {
             return Rejection.error(Component.translatable("gui.forgeweave.tool_station.needs_forge"));
-        }
-        // Issue #782: the Armor Station analogue of the large-tool refusal above -- armor parts
-        // loaded at a Tool Station/Tool Forge, or tool parts loaded at the Armor Station.
-        if (ToolAssemblyRecipes.isWrongStationHead(inputSlots(), armorStation)) {
-            return Rejection.error(Component.translatable(armorStation
-                    ? "gui.forgeweave.armor_station.needs_tool_station"
-                    : "gui.forgeweave.tool_station.needs_armor_station"));
         }
         // Content-family toggles ticket: a part that serves only families the server has switched
         // off. Sits with the large-tool refusal because it is the same kind of hard stop -- nothing
@@ -682,7 +658,7 @@ public class ToolStationMenu extends StationMenu {
 
     private Optional<ToolAssemblyRecipes.Result> resolve() {
         ItemStack head = slots.get(HEAD_SLOT).getItem();
-        return ToolAssemblyRecipes.resolve(registries, head, freeSlotContents(), forge, armorStation)
+        return ToolAssemblyRecipes.resolve(registries, head, freeSlotContents(), forge)
                 .or(() -> renameOnly(head));
     }
 
@@ -757,12 +733,9 @@ public class ToolStationMenu extends StationMenu {
 
     @Override
     public boolean stillValid(Player player) {
-        // The flags came from the block entity at exactly this position, so naming one block is
-        // enough -- there is no state in which one of these three menus is open over a different one
-        // of the three blocks. Armor Station first (issue #782): it is never a forge, so the forge
-        // check below would otherwise wrongly match a plain Tool Station for it.
-        Block block = armorStation ? ForgeweaveBlocks.ARMOR_STATION.get()
-                : forge ? ForgeweaveBlocks.TOOL_FORGE.get() : ForgeweaveBlocks.TOOL_STATION.get();
+        // The flag came from the block entity at exactly this position, so naming one block is
+        // enough -- there is no state in which one of these two menus is open over the other block.
+        Block block = forge ? ForgeweaveBlocks.TOOL_FORGE.get() : ForgeweaveBlocks.TOOL_STATION.get();
         return stillValid(access, player, block);
     }
 

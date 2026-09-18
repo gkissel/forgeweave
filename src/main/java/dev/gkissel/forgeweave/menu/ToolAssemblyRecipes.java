@@ -243,12 +243,14 @@ public final class ToolAssemblyRecipes {
             // PartMaterialType order. A Tool Station tool (TinkerRegistry.registerToolCrafting(arrow)),
             // so not in LARGE_TOOLS.
             new Entry(ToolConstants.ARROW, ForgeweaveItems.TOOL_ARROW),
-            // M4 armor (issue #678, SCOPE.md D13): both stations, no large_tools gate.
+            // M4 armor (issue #678, SCOPE.md D13, restored by #1006): the light set builds at the
+            // Tool Station and the Tool Forge alike, no large_tools gate.
             new Entry(ToolConstants.HELMET, ForgeweaveItems.ARMOR_HELMET),
             new Entry(ToolConstants.CHESTPLATE, ForgeweaveItems.ARMOR_CHESTPLATE),
             new Entry(ToolConstants.LEGGINGS, ForgeweaveItems.ARMOR_LEGGINGS),
             new Entry(ToolConstants.BOOTS, ForgeweaveItems.ARMOR_BOOTS),
-            // #735 heavy armor: plating + maille + large plate, both stations.
+            // #735 heavy armor: plating + maille + large plate. Issue #1006 puts the four pieces in
+            // LARGE_TOOLS, so like the large tools they assemble at the Tool Forge only.
             new Entry(ToolConstants.HEAVY_HELMET, ForgeweaveItems.ARMOR_HEAVY_HELMET),
             new Entry(ToolConstants.HEAVY_CHESTPLATE, ForgeweaveItems.ARMOR_HEAVY_CHESTPLATE),
             new Entry(ToolConstants.HEAVY_LEGGINGS, ForgeweaveItems.ARMOR_HEAVY_LEGGINGS),
@@ -264,8 +266,8 @@ public final class ToolAssemblyRecipes {
     }
 
     /**
-     * The "large tool" classification (docs/SCOPE.md M3 issue #152): tools that can only be assembled
-     * at the Tool Forge. Upstream 1.12 draws this line with two registries -- {@code
+     * The "large tool" classification (docs/SCOPE.md M3 issue #152): entries that can only be
+     * assembled at the Tool Forge. Upstream 1.12 draws this line with two registries -- {@code
      * TinkerRegistry.registerToolCrafting} (Tool Station) and {@code registerToolForgeCrafting} (Tool
      * Forge only) -- and its hammer/excavator/lumber axe/scythe/cleaver/vein hammer register into the
      * second one; {@code ContainerToolForge#getBuildableTools} is the whole of the gate there.
@@ -276,7 +278,10 @@ public final class ToolAssemblyRecipes {
      * GameTest datapack ({@code src/gametest/resources}) puts the hatchet in it to prove the gate.
      *
      * <p>Issue #336 makes it the <em>only</em> roster split: {@link ToolStationTabs#visible} reads it
-     * too, so the tabs a block draws and the assemblies it resolves can never disagree.
+     * too, so the tabs a block draws and the assemblies it resolves can never disagree. Issue #1006
+     * leans on that: retiring the Armor Station left the heavy armor set needing the Tool Forge and
+     * the light set needing nothing, which is this tag's existing question, so the four heavy pieces
+     * joined the tag and no second gate had to be written.
      */
     public static final TagKey<Item> LARGE_TOOLS =
             TagKey.create(Registries.ITEM, ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "large_tools"));
@@ -391,20 +396,18 @@ public final class ToolAssemblyRecipes {
      *     the tool has parts; repair, modifier application, embossing, fortification and part
      *     exchange read all five -- upstream {@code ContainerToolStation#getInputs} (parity audit
      *     T2, issue #434; before it repair and modifiers read only the first two).
-     * @param forge whether the station is a Tool Forge (issue #152): gates large-tool assembly and
-     *     applies the repair discount. Every other outcome is identical at both blocks.
-     * @param armorStation whether the station is the Armor Station (issue #782): gates which
-     *     assembly entries can come out of this set of parts. Repair, modifier application,
-     *     embossing and fortification all act on an already-assembled stack and stay unaffected --
-     *     they run identically whichever of the three blocks is open.
+     * @param forge whether the station is a Tool Forge (issue #152): gates large-tool and heavy
+     *     armor assembly and applies the repair discount. Every other outcome is identical at both
+     *     blocks -- repair, modifier application, embossing, fortification and part exchange act on
+     *     an already-assembled stack, tool or armor piece alike.
      */
     static Optional<Result> resolve(HolderLookup.Provider registries, ItemStack headStack, List<ItemStack> freeSlots,
-            boolean forge, boolean armorStation) {
+            boolean forge) {
         if (!isAssembled(headStack)) {
             List<ItemStack> inputs = new ArrayList<>(freeSlots.size() + 1);
             inputs.add(headStack);
             inputs.addAll(freeSlots);
-            return resolveAssembly(registries, inputs, forge, armorStation);
+            return resolveAssembly(registries, inputs, forge);
         }
         Optional<Result> repair = resolveRepair(registries, headStack, freeSlots, forge);
         if (repair.isPresent()) {
@@ -746,37 +749,13 @@ public final class ToolAssemblyRecipes {
         return false;
     }
 
-    /** Whether this tool can only be assembled at the Tool Forge (issue #152's {@link #LARGE_TOOLS}). */
+    /**
+     * Whether this entry can only be assembled at the Tool Forge (issue #152's {@link #LARGE_TOOLS}).
+     * Since issue #1006 that covers the heavy armor set as well as the large tools -- the tag is the
+     * one roster split, so both inherit the same gate.
+     */
     public static boolean isLargeTool(Entry entry) {
         return entry.tool().get().builtInRegistryHolder().is(LARGE_TOOLS);
-    }
-
-    /** Whether this entry can only be assembled at the Armor Station (docs/SCOPE.md M4 issue #782). */
-    public static boolean isArmorEntry(Entry entry) {
-        return entry.constants().category() == ToolConstants.Category.ARMOR;
-    }
-
-    /**
-     * The Armor Station analogue of {@link #isLargeToolHead}: whether one of the loaded slots holds
-     * a part that belongs only to entries of the <em>wrong</em> category for {@code armorStation} --
-     * an armor plating/maille loaded at a Tool Station or Tool Forge, or a tool part loaded at the
-     * Armor Station. Used the same way {@link #isLargeToolHead} is, by {@link
-     * ToolStationMenu#rejection} -- a slot filter refusal a GameTest can also assert on directly by
-     * loading the block entity's container without going through it.
-     */
-    public static boolean isWrongStationHead(List<ItemStack> inputs, boolean armorStation) {
-        for (ItemStack stack : inputs) {
-            if (stack.isEmpty()) {
-                continue;
-            }
-            List<Entry> using = ENTRIES.stream()
-                    .filter(entry -> entry.parts().stream().anyMatch(stack::is))
-                    .toList();
-            if (!using.isEmpty() && using.stream().allMatch(entry -> isArmorEntry(entry) != armorStation)) {
-                return true;
-            }
-        }
-        return false;
     }
 
     /**
@@ -831,18 +810,15 @@ public final class ToolAssemblyRecipes {
     }
 
     private static Optional<Result> resolveAssembly(HolderLookup.Provider registries, List<ItemStack> inputs,
-            boolean forge, boolean armorStation) {
+            boolean forge) {
         Optional<Entry> match = ENTRIES.stream().filter(entry -> entry.matches(inputs)).findFirst();
         if (match.isEmpty()) {
             return Optional.empty();
         }
         Entry entry = match.get();
         if (!forge && isLargeTool(entry)) {
-            return Optional.empty(); // a large tool needs the Tool Forge; ToolStationMenu#rejection says so
-        }
-        if (isArmorEntry(entry) != armorStation) {
-            // issue #782: armor assembles only at the Armor Station, everything else only away from
-            // it; ToolStationMenu#rejection says so via #isWrongStationHead.
+            // A large tool or a heavy armor piece needs the Tool Forge (#152, #1006);
+            // ToolStationMenu#rejection says so.
             return Optional.empty();
         }
         if (!ContentFamilies.toolEnabled(entry)) {

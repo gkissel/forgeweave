@@ -41,7 +41,7 @@ CONCRETE = {"Name": "minecraft:white_concrete"}
 BRICKS = {"Name": "forgeweave:seared_bricks"}
 TANK = {"Name": "forgeweave:seared_tank"}
 GLASS = {"Name": "forgeweave:seared_glass"}
-ARMOR_STATION = {"Name": "forgeweave:armor_station", "Properties": {"facing": "south"}}
+TOOL_STATION = {"Name": "forgeweave:tool_station", "Properties": {"facing": "south"}}
 CASTING_TABLE = {"Name": "forgeweave:casting_table"}
 CASTING_BASIN = {"Name": "forgeweave:casting_basin"}
 # #891: a bottom-half seared slab, the one non-full block a seared furnace or reservoir ceiling takes (#369).
@@ -189,11 +189,11 @@ def casting_scene() -> Structure:
     return s
 
 
-def armor_station_scene() -> Structure:
-    """The armor assembly scene (#682, moved by #782): an Armor Station alone on the base plate."""
+def armor_assembly_scene() -> Structure:
+    """The armor assembly scene (#682, moved by #782, moved back by #1006): a Tool Station alone on the base plate."""
     s = Structure((5, 2, 5))
     s.base_plate()
-    s.place(2, 1, 2, ARMOR_STATION)
+    s.place(2, 1, 2, TOOL_STATION)
     return s
 
 
@@ -321,7 +321,7 @@ def main() -> None:
     write_structure("smeltery", smeltery_scene())
     write_structure("smeltery_sizes", smeltery_sizes_scene())
     write_structure("casting", casting_scene())
-    write_structure("armor_station", armor_station_scene())
+    write_structure("armor_assembly", armor_assembly_scene())
     write_structure("seared_furnace", seared_furnace_scene())
     write_structure("seared_reservoir", seared_reservoir_scene())
     write_structure("core_tiers", core_tiers_scene())

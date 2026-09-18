@@ -38,9 +38,5 @@
   {
     "name": "tool_forge",
     "type": "text"
-  },
-  {
-    "name": "armor_station",
-    "type": "text"
   }
 ]

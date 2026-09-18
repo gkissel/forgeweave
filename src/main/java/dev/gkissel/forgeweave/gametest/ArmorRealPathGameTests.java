@@ -59,8 +59,8 @@ public class ArmorRealPathGameTests {
 
     private static ItemStack assemble(GameTestHelper helper, Player player, ToolConstants.Entry piece, String plating,
             String maille) {
-        // Issue #782 (reversing D13): armor assembles at the Armor Station now.
-        return ToolAssembly.assembleAt(helper, player, STATION, ForgeweaveBlocks.ARMOR_STATION.get(),
+        // Issue #1006 (retiring #782's Armor Station): light armor assembles at the Tool Station.
+        return ToolAssembly.assembleAt(helper, player, STATION, ForgeweaveBlocks.TOOL_STATION.get(),
                 ToolAssembly.entryOf(piece), List.of(plating, maille));
     }
 

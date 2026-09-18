@@ -97,7 +97,7 @@ class BookStructureTest {
      * The #651 content tail: upstream's {@code sections/intro.json} follows its welcome pages with
      * one text page per workshop station (blank pattern, crafting station, stencil table, pattern
      * chest, part builder, part chest, tool station, tool forge) -- Forgeweave keeps its condensed
-     * welcome/workshop pair (#273/#663) and appends the eight station pages, every one a station
+     * welcome/workshop pair (#273/#663) and appends those eight station pages, every one a station
      * Forgeweave actually ships. Upstream's own en_us bodies for these pages are unshipped
      * {@code "Text Goes Here"} placeholders, so only the roster and titles are upstream's; the body
      * text is Forgeweave's own.
@@ -108,9 +108,9 @@ class BookStructureTest {
 
         assertEquals(List.of("welcome", "workshop", "blank_pattern", "crafting_station",
                 "stencil_table", "pattern_chest", "part_builder", "part_chest", "tool_station",
-                "tool_forge", "armor_station"), pages.stream().map(PageDef::name).toList(),
-                "the intro section: the condensed welcome pair, upstream's station pages, then the"
-                        + " Armor Station (issue #782, no upstream page to follow)");
+                "tool_forge"), pages.stream().map(PageDef::name).toList(),
+                "the intro section: the condensed welcome pair, then upstream's station pages."
+                        + " Issue #782's Armor Station page went with the block in #1006");
         for (PageDef def : pages) {
             assertEquals("text", def.type(), "intro page " + def.name() + " is a plain text page");
         }

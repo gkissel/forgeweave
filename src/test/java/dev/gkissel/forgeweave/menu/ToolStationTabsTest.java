@@ -5,6 +5,8 @@ import java.util.List;
 
 import org.junit.jupiter.api.Test;
 
+import dev.gkissel.forgeweave.tool.ToolConstants;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -77,40 +79,27 @@ class ToolStationTabsTest {
     }
 
     /**
-     * Docs/SCOPE.md M4 issue #782 (reversing D13): the Tool Station/Tool Forge and the Armor Station
-     * now show disjoint build tabs -- {@code Category.ARMOR} entries only at the Armor Station,
-     * everything else only away from it -- with the repair tab shared by all three.
+     * Issue #1006 retired the Armor Station issue #782 added, so the tab row is one row again: every
+     * armor entry has a build tab on the tool blocks' own sidebar, beside the tools, with the repair
+     * tab at its head.
+     *
+     * <p>Only reachability is asserted here. The Tool Station/Tool Forge split is an item tag
+     * ({@code ToolAssemblyRecipes#LARGE_TOOLS}) and tags are unbound outside a running server, so
+     * {@link ToolStationTabs#visible} cannot tell the two apart in a plain unit test -- {@code
+     * gametest.ToolForgeGameTests#stationTabsOmitTheForgeTier} is where that half is checked, against
+     * the real datapack-bound tag.
      */
     @Test
-    void armorAndToolTabsAreDisjointBetweenTheTwoStationFamilies() {
-        List<Integer> toolStation = ToolStationTabs.visible(false, false);
-        List<Integer> toolForge = ToolStationTabs.visible(true, false);
-        List<Integer> armorStation = ToolStationTabs.visible(false, true);
+    void everyArmorEntryHasABuildTabOnTheStationSidebar() {
+        List<Integer> tabs = ToolStationTabs.visible(true);
 
-        for (int index : toolStation) {
-            ToolStationTabs.Tab tab = ToolStationTabs.get(index);
-            assertTrue(tab.isRepair() || !ToolAssemblyRecipes.isArmorEntry(tab.entry()),
-                    () -> "Tool Station must not offer an armor build tab: " + tab);
-        }
-        for (int index : toolForge) {
-            ToolStationTabs.Tab tab = ToolStationTabs.get(index);
-            assertTrue(tab.isRepair() || !ToolAssemblyRecipes.isArmorEntry(tab.entry()),
-                    () -> "Tool Forge must not offer an armor build tab: " + tab);
-        }
-        for (int index : armorStation) {
-            ToolStationTabs.Tab tab = ToolStationTabs.get(index);
-            assertTrue(tab.isRepair() || ToolAssemblyRecipes.isArmorEntry(tab.entry()),
-                    () -> "Armor Station must only offer armor build tabs: " + tab);
-        }
-        assertTrue(toolStation.contains(ToolStationTabs.REPAIR), "repair stays available at the Tool Station");
-        assertTrue(armorStation.contains(ToolStationTabs.REPAIR), "repair stays available at the Armor Station");
-        // Every armor entry must actually be reachable somewhere -- at the Armor Station, since
-        // #782 took it away from both tool blocks.
+        assertTrue(tabs.contains(ToolStationTabs.REPAIR), "repair stays available");
         for (ToolAssemblyRecipes.Entry entry : ToolAssemblyRecipes.ENTRIES) {
-            if (ToolAssemblyRecipes.isArmorEntry(entry)) {
-                assertTrue(armorStation.stream().anyMatch(index -> ToolStationTabs.get(index).entry() == entry),
-                        () -> entry.constants().id() + " must have an Armor Station tab");
+            if (entry.constants().category() != ToolConstants.Category.ARMOR) {
+                continue;
             }
+            assertTrue(tabs.stream().anyMatch(index -> ToolStationTabs.get(index).entry() == entry),
+                    () -> entry.constants().id() + " must have a build tab");
         }
     }
 

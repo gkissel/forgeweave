@@ -37,8 +37,8 @@ import dev.gkissel.forgeweave.tool.ToolConstants;
 import dev.gkissel.forgeweave.trait.ForgeweaveTraits;
 
 /**
- * M4-6 (issue #681; SCOPE.md D15/D16): the seven armor modifiers through the real Armor Station
- * flow (issue #782 moved assembly/modifier-application off the Tool Station) -- what a reagent
+ * M4-6 (issue #681; SCOPE.md D15/D16): the seven armor modifiers through the real Tool Station flow
+ * (issue #782 moved that onto an Armor Station, issue #1006 moved it back) -- what a reagent
  * stack buys, what it costs in slots, and the {@code armorOnly()} gate in both directions. The pure
  * arithmetic is {@code modifier.ArmorModifiersTest}.
  *
@@ -60,8 +60,8 @@ public class ArmorModifierGameTests {
     }
 
     private static ItemStack chestplate(GameTestHelper helper, Player player, String material) {
-        // Issue #782 (reversing D13): armor assembles at the Armor Station now.
-        return ToolAssembly.assembleAt(helper, player, STATION, ForgeweaveBlocks.ARMOR_STATION.get(),
+        // Issue #1006 (retiring #782's Armor Station): light armor assembles at the Tool Station.
+        return ToolAssembly.assembleAt(helper, player, STATION, ForgeweaveBlocks.TOOL_STATION.get(),
                 ToolAssembly.entryOf(ToolConstants.CHESTPLATE), List.of(material, material));
     }
 
@@ -135,6 +135,37 @@ public class ArmorModifierGameTests {
         ItemStack two = apply(helper, player, one, reagent.copyWithCount(1));
         helper.assertTrue(ForgeweaveModifiers.freeSlots(two) == ForgeweaveModifiers.DEFAULT_SLOTS - 2,
                 name + ": the sixth unit opens level 2 and charges a second slot");
+        helper.succeed();
+    }
+
+    /**
+     * Issue #1006: the Tool Forge applies armor modifiers to both sets. It has to for the heavy
+     * pieces -- it is the only block that builds them -- and it does for the light ones too,
+     * because the repair/modify tab was never gated by what a block can assemble. Both pieces are
+     * assembled at the forge and then modified there, all through the real menu.
+     */
+    @GameTest(template = "empty")
+    public static void theToolForgeAppliesModifiersToBothArmorSets(GameTestHelper helper) {
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        ItemStack reagent = new ItemStack(Items.IRON_INGOT);
+
+        ItemStack light = ToolAssembly.assembleAt(helper, player, STATION, ForgeweaveBlocks.TOOL_FORGE.get(),
+                ToolAssembly.entryOf(ToolConstants.CHESTPLATE), List.of("iron", "iron"));
+        helper.assertTrue(light.is(ForgeweaveItems.ARMOR_CHESTPLATE.get()),
+                "the forge must build the light chestplate, got " + light);
+        ItemStack modifiedLight = apply(helper, player, light, reagent.copyWithCount(5));
+        ModifierEntry lightEntry = ForgeweaveModifiers.entry(modifiedLight, id("projectile_protection"));
+        helper.assertTrue(lightEntry != null && lightEntry.level() == 5,
+                "the forge must apply projectile protection to the light piece, got " + lightEntry);
+
+        ItemStack heavy = ToolAssembly.assembleAt(helper, player, STATION, ForgeweaveBlocks.TOOL_FORGE.get(),
+                ToolAssembly.entryOf(ToolConstants.HEAVY_CHESTPLATE), List.of("iron", "iron", "iron"));
+        helper.assertTrue(heavy.is(ForgeweaveItems.ARMOR_HEAVY_CHESTPLATE.get()),
+                "the forge must build the heavy chestplate, got " + heavy);
+        ItemStack modifiedHeavy = apply(helper, player, heavy, reagent.copyWithCount(5));
+        ModifierEntry heavyEntry = ForgeweaveModifiers.entry(modifiedHeavy, id("projectile_protection"));
+        helper.assertTrue(heavyEntry != null && heavyEntry.level() == 5,
+                "the forge must apply it to the heavy piece too, got " + heavyEntry);
         helper.succeed();
     }
 

@@ -159,7 +159,7 @@ public class ForgeweaveItemTagsProvider extends ItemTagsProvider {
             trackBStorageBlocksItem.addTag(storageBlock(alloy.id()));
         }
 
-        // #152 -- the "large tool" classification: tools only the Tool Forge can assemble. See
+        // #152 -- the "large tool" classification: what only the Tool Forge can assemble. See
         // ToolAssemblyRecipes#LARGE_TOOLS, which is the whole gate: a tool issue adds its row here and
         // inherits it with no code change.
         //
@@ -189,7 +189,19 @@ public class ForgeweaveItemTagsProvider extends ItemTagsProvider {
                 .add(ForgeweaveItems.TOOL_CROSSBOW.get())
                 // #448 -- the shuriken: upstream TinkerRangedWeapons#registerToolBuilding puts it
                 // through registerToolForgeCrafting, same as the two bows above.
-                .add(ForgeweaveItems.TOOL_SHURIKEN.get());
+                .add(ForgeweaveItems.TOOL_SHURIKEN.get())
+                // #1006 -- the heavy armor set, on the maintainer's call that retiring the Armor
+                // Station leaves light armor at the Tool Station and both sets at the Tool Forge.
+                // No upstream registration to cite: 1.12 has no armor at all, so this is the same
+                // Forgeweave decision #735 made when it gave the heavy set its third part slot.
+                // The four pieces are not tools, but this tag has only ever meant "Tool Forge only"
+                // and it is the one roster split every gate already reads (ToolStationTabs#visible,
+                // ToolAssemblyRecipes#resolveAssembly, the JEI category routing), so they belong in
+                // it rather than behind a second gate that would have to be kept in step with it.
+                .add(ForgeweaveItems.ARMOR_HEAVY_HELMET.get())
+                .add(ForgeweaveItems.ARMOR_HEAVY_CHESTPLATE.get())
+                .add(ForgeweaveItems.ARMOR_HEAVY_LEGGINGS.get())
+                .add(ForgeweaveItems.ARMOR_HEAVY_BOOTS.get());
 
         // #915 -- the Draconic Evolution fusion upgrade ladder's catalyst set (docs/SCOPE.md M8).
         // Every item either station assembles, read straight off ToolAssemblyRecipes.ENTRIES rather
