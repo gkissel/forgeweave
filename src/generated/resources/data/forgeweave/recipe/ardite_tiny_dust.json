@@ -1,0 +1,13 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    {
+      "tag": "c:small_dusts/ardite"
+    }
+  ],
+  "result": {
+    "count": 3,
+    "id": "forgeweave:ardite_tiny_dust"
+  }
+}

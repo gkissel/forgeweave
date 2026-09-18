@@ -5,6 +5,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
@@ -26,6 +27,8 @@ import dev.gkissel.forgeweave.block.ForgeweaveBlocks;
 import dev.gkissel.forgeweave.block.SlimeColour;
 import dev.gkissel.forgeweave.combat.ForgeweaveInnates;
 import dev.gkissel.forgeweave.entity.ForgeweaveEntities;
+import dev.gkissel.forgeweave.material.MaterialForm;
+import dev.gkissel.forgeweave.material.MaterialForms;
 import dev.gkissel.forgeweave.tool.AoeHarvest;
 import dev.gkissel.forgeweave.tool.ToolConstants;
 import dev.gkissel.forgeweave.trackb.TrackBAlloy;
@@ -513,9 +516,15 @@ public final class ForgeweaveItems {
 
     public static final DeferredItem<BlockItem> TOOL_STATION = ITEMS.registerSimpleBlockItem("tool_station", ForgeweaveBlocks.TOOL_STATION);
 
-    // The Armor Station (docs/SCOPE.md M4 issue #782): same plain block-item shape as the Tool
-    // Station above (its recipe never sets a TEXTURE component -- see ArmorStationBlock).
-    public static final DeferredItem<BlockItem> ARMOR_STATION = ITEMS.registerSimpleBlockItem("armor_station", ForgeweaveBlocks.ARMOR_STATION);
+    static {
+        // The retired Armor Station's item (issue #1006, undoing #782). The block alias in
+        // ForgeweaveBlocks handles placed blocks; this one handles the stacks sitting in old
+        // inventories, chests and ender chests, which read back as Tool Stations. The issue does not
+        // say what to do with them, so they convert the same way the placed block does rather than
+        // vanishing -- an unresolved item id loads as air and the stack is simply lost.
+        ITEMS.addAlias(ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "armor_station"),
+                ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "tool_station"));
+    }
 
     // The Crafting Station (docs/SCOPE.md M1 issue #40): same retextured-table item shape as the two
     // blocks above (ForgeweaveDataComponents#TEXTURE carries the crafting wood).
@@ -1141,6 +1150,29 @@ public final class ForgeweaveItems {
 
     public static DeferredItem<BlockItem> trackBAlloyBlockItem(String id) {
         return TRACK_B_ALLOY_BLOCK_ITEMS.get(id);
+    }
+
+    // #992 -- the eight material forms D-M8-6 adds to every metal with an ingot, plus the three dusts
+    // the two gem-type materials get. Registered straight off the roster in
+    // dev.gkissel.forgeweave.material.MaterialForms rather than by hand, so a material added there
+    // inherits its forms with no change here. Keyed by registry path, which is unique across the
+    // whole table.
+    private static final Map<String, DeferredItem<Item>> MATERIAL_FORMS = registerMaterialForms();
+
+    private static Map<String, DeferredItem<Item>> registerMaterialForms() {
+        Map<String, DeferredItem<Item>> forms = new LinkedHashMap<>();
+        for (MaterialForms.FormedMaterial material : MaterialForms.ALL) {
+            for (MaterialForm form : material.forms()) {
+                String id = form.itemId(material.id());
+                forms.put(id, ITEMS.registerSimpleItem(id));
+            }
+        }
+        return Collections.unmodifiableMap(forms);
+    }
+
+    /** A material form item, e.g. {@code materialForm("steel", MaterialForm.GEAR)}; null when that material has no such form. */
+    public static DeferredItem<Item> materialForm(String materialId, MaterialForm form) {
+        return MATERIAL_FORMS.get(form.itemId(materialId));
     }
 
     // #946 -- the weldheart, the catalyst a Draconic Evolution fusion craft puts in the crafting

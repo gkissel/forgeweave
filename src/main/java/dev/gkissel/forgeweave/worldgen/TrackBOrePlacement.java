@@ -57,7 +57,7 @@ public class TrackBOrePlacement extends PlacementModifier {
     /** Vanilla {@code CountPlacement}'s own contract, gated to zero while the Track B ore group is switched off. */
     @Override
     public Stream<BlockPos> getPositions(PlacementContext context, RandomSource random, BlockPos pos) {
-        int effective = ForgeweaveConfig.GEN_TRACK_B_ORES.get() ? count : 0;
+        int effective = ForgeweaveConfig.read(ForgeweaveConfig.GEN_TRACK_B_ORES) ? count : 0;
         return IntStream.range(0, effective).mapToObj(i -> pos);
     }
 

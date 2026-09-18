@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    {
+      "tag": "c:small_dusts/riftalloy"
+    },
+    {
+      "tag": "c:small_dusts/riftalloy"
+    },
+    {
+      "tag": "c:small_dusts/riftalloy"
+    }
+  ],
+  "result": {
+    "count": 1,
+    "id": "forgeweave:riftalloy_dust"
+  }
+}

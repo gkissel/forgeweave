@@ -22,13 +22,13 @@ public final class ForgeweaveBlockEntities {
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<ToolStationBlockEntity>> TOOL_STATION =
             BLOCK_ENTITIES.register("tool_station", () -> BlockEntityType.Builder
                     // One type for all three blocks (issue #152, extended by issue #782): a Tool
-                    // Forge is a Tool Station with a different material and two behaviour tweaks, an
-                    // Armor Station is one with a different top texture and an assembly-category
-                    // filter, and ToolStationBlockEntity reads which one it is off its own
-                    // BlockState -- so there is nothing for a second block entity class (or type) to
-                    // hold.
-                    .of(ToolStationBlockEntity::new, ForgeweaveBlocks.TOOL_STATION.get(), ForgeweaveBlocks.TOOL_FORGE.get(),
-                            ForgeweaveBlocks.ARMOR_STATION.get())
+                    // Forge is a Tool Station with a different material and two behaviour tweaks,
+                    // and ToolStationBlockEntity reads which one it is off its own BlockState -- so
+                    // there is nothing for a second block entity class (or type) to hold. The
+                    // retired Armor Station (#1006) was a third block on this same type, which is
+                    // why its registry alias needs no block entity alias beside it.
+                    .of(ToolStationBlockEntity::new, ForgeweaveBlocks.TOOL_STATION.get(),
+                            ForgeweaveBlocks.TOOL_FORGE.get())
                     .build(null));
 
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<CraftingStationBlockEntity>> CRAFTING_STATION =

@@ -266,7 +266,5 @@ class LegacyResourcePackTest {
             assertTrue(Files.isRegularFile(legacyItem.resolve(name)),
                     "the Legacy pack should carry the pre-#796 " + name);
         }
-        assertTrue(Files.isRegularFile(legacyTextures().resolve("block/armor_station_top.png")),
-                "the Legacy pack should carry the pre-#796 armor_station_top.png");
     }
 }

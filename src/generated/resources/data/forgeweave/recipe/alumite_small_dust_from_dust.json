@@ -1,0 +1,13 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    {
+      "tag": "c:dusts/alumite"
+    }
+  ],
+  "result": {
+    "count": 3,
+    "id": "forgeweave:alumite_small_dust"
+  }
+}

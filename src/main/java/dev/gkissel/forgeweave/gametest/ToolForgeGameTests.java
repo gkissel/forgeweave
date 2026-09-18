@@ -27,6 +27,7 @@ import dev.gkissel.forgeweave.menu.StationMenu;
 import dev.gkissel.forgeweave.menu.ToolAssemblyRecipes;
 import dev.gkissel.forgeweave.menu.ToolStationMenu;
 import dev.gkissel.forgeweave.menu.ToolStationTabs;
+import dev.gkissel.forgeweave.tool.ToolConstants;
 
 /**
  * docs/SCOPE.md M3 issue #152's verification: the Tool Forge is a Tool Station superset with two
@@ -124,25 +125,31 @@ public class ToolForgeGameTests {
 
     /**
      * The split {@code jei.AssemblyRecipes#isLarge} drives (docs/SCOPE.md M3 issue #165): {@code
-     * jei.AssemblyCategory#TYPE} gets the Tool Station's own tools, {@code LARGE_TYPE} gets only
-     * {@code #forgeweave:large_tools}'. Item tags aren't bound outside a running server ({@code
+     * jei.AssemblyCategory#TYPE} gets what the Tool Station itself builds, {@code LARGE_TYPE} gets
+     * only {@code #forgeweave:large_tools}'. Item tags aren't bound outside a running server ({@code
      * jei.JeiRecipesTest}'s own class javadoc), so this is the one place that predicate is checked
      * against the real, datapack-bound tag rather than a plain unit test.
      */
     @GameTest(template = "empty")
-    public static void exactlyElevenToolsAreForgeOnly(GameTestHelper helper) {
+    public static void exactlyFifteenEntriesAreForgeOnly(GameTestHelper helper) {
         long large = ToolAssemblyRecipes.ENTRIES.stream().filter(ToolAssemblyRecipes::isLargeTool).count();
 
-        helper.assertTrue(large == 11,
-                "#forgeweave:large_tools tags exactly the Tool Forge tier's eleven tools, counted " + large);
-        helper.assertTrue(ToolAssemblyRecipes.ENTRIES.size() - large == 23,
-                "the Tool Station's own tab row is the other twenty-three (M3.5 #394 added the shortbow, "
-                        + "#678 the four armor pieces, #735 the four heavy pieces (buildable at both "
-                        + "stations, so not large_tools either), "
-                        + "and #653 the arrow; #395's longbow and crossbow, and #448's shuriken, "
-                        + "are forge-only)");
+        helper.assertTrue(large == FORGE_ONLY_ENTRIES,
+                "#forgeweave:large_tools tags exactly the Tool Forge tier's " + FORGE_ONLY_ENTRIES
+                        + " entries, counted " + large);
+        helper.assertTrue(ToolAssemblyRecipes.ENTRIES.size() - large == 19,
+                "the Tool Station's own tab row is the other nineteen (M3.5 #394 added the shortbow, "
+                        + "#678 the four light armor pieces and #653 the arrow; #395's longbow and "
+                        + "crossbow, #448's shuriken and #735's four heavy pieces are forge-only)");
         helper.succeed();
     }
+
+    /**
+     * How many {@link ToolAssemblyRecipes#ENTRIES} rows the Tool Forge alone can assemble: issue
+     * #152's eleven large tools plus issue #1006's four heavy armor pieces, which joined {@code
+     * #forgeweave:large_tools} when the Armor Station was retired.
+     */
+    private static final int FORGE_ONLY_ENTRIES = 15;
 
     /**
      * Issue #336: the battleaxe is Tool Forge tier too. Upstream 1.12 never shipped it -- its
@@ -163,39 +170,46 @@ public class ToolForgeGameTests {
     }
 
     /**
-     * Issue #336's tab list: a Tool Station's sidebar offers the repair tab plus only the tools it
-     * can actually build, the Tool Forge's offers every one <em>except</em> armor (issue #782,
-     * reversing D13, took armor off both tool blocks onto the Armor Station). Upstream draws the
-     * large-tool line in {@code ContainerToolForge#getBuildableTools}, which overrides the Tool
-     * Station's {@code TinkerRegistry.getToolStationCrafting()} with {@code getToolForgeCrafting()}
-     * and is what {@code GuiToolStation} builds its button column from; armor has no upstream
-     * counterpart to cite.
+     * Issue #336's tab list: a Tool Station's sidebar offers the repair tab plus only what it can
+     * actually build, the Tool Forge's offers every entry there is. Upstream draws the large-tool
+     * line in {@code ContainerToolForge#getBuildableTools}, which overrides the Tool Station's
+     * {@code TinkerRegistry.getToolStationCrafting()} with {@code getToolForgeCrafting()} and is
+     * what {@code GuiToolStation} builds its button column from.
+     *
+     * <p>Since issue #1006 retired the Armor Station, armor is in this same list rather than off on
+     * a third block: the four light pieces are in the Tool Station's column and the four heavy ones
+     * are behind the forge gate with the large tools, which is the only split left.
      */
     @GameTest(template = "empty")
     public static void stationTabsOmitTheForgeTier(GameTestHelper helper) {
-        List<Integer> station = ToolStationTabs.visible(false, false);
-        List<Integer> forge = ToolStationTabs.visible(true, false);
-        long armorTabs = ToolStationTabs.TABS.stream()
-                .filter(tab -> !tab.isRepair() && ToolAssemblyRecipes.isArmorEntry(tab.entry()))
-                .count();
+        List<Integer> station = ToolStationTabs.visible(false);
+        List<Integer> forge = ToolStationTabs.visible(true);
 
-        helper.assertTrue(forge.size() == ToolStationTabs.TABS.size() - armorTabs,
-                "the Tool Forge builds the whole roster except armor, got " + forge.size() + " of "
+        helper.assertTrue(forge.size() == ToolStationTabs.TABS.size(),
+                "the Tool Forge builds the whole roster, got " + forge.size() + " of "
                         + ToolStationTabs.TABS.size());
-        helper.assertTrue(station.size() == ToolStationTabs.TABS.size() - 11 - armorTabs,
-                "the Tool Station's sidebar drops the eleven forge-only tools and armor, got " + station.size());
+        helper.assertTrue(station.size() == ToolStationTabs.TABS.size() - FORGE_ONLY_ENTRIES,
+                "the Tool Station's sidebar drops the " + FORGE_ONLY_ENTRIES
+                        + " forge-only entries, got " + station.size());
         helper.assertTrue(station.contains(ToolStationTabs.REPAIR), "every station keeps its repair tab");
         for (int index : station) {
             ToolStationTabs.Tab tab = ToolStationTabs.get(index);
             helper.assertFalse(!tab.isRepair() && ToolAssemblyRecipes.isLargeTool(tab.entry()),
-                    "a Tool Station tab must not build a forge-only tool, got " + tab.title().getString());
-            helper.assertFalse(!tab.isRepair() && ToolAssemblyRecipes.isArmorEntry(tab.entry()),
-                    "a Tool Station tab must not build armor, got " + tab.title().getString());
+                    "a Tool Station tab must not build a forge-only entry, got " + tab.title().getString());
         }
-        for (int index : forge) {
-            ToolStationTabs.Tab tab = ToolStationTabs.get(index);
-            helper.assertFalse(!tab.isRepair() && ToolAssemblyRecipes.isArmorEntry(tab.entry()),
-                    "a Tool Forge tab must not build armor, got " + tab.title().getString());
+        // #1006: the light set is on the Tool Station's own column, the heavy set is not.
+        for (ToolConstants.Entry light : List.of(ToolConstants.HELMET, ToolConstants.CHESTPLATE,
+                ToolConstants.LEGGINGS, ToolConstants.BOOTS)) {
+            helper.assertTrue(station.stream()
+                            .anyMatch(index -> !ToolStationTabs.get(index).isRepair()
+                                    && ToolStationTabs.get(index).entry().constants() == light),
+                    "the Tool Station's sidebar must carry " + light.id());
+        }
+        for (ToolConstants.Entry heavy : ToolConstants.HEAVY_ARMOR) {
+            helper.assertFalse(station.stream()
+                            .anyMatch(index -> !ToolStationTabs.get(index).isRepair()
+                                    && ToolStationTabs.get(index).entry().constants() == heavy),
+                    "the Tool Station's sidebar must not carry " + heavy.id());
         }
         helper.succeed();
     }

@@ -43,7 +43,7 @@ public final class ForgeweaveDraconicCompat {
 
     /**
      * What may sit in the Fusion Crafting core as a fusion upgrade's catalyst: every item the Tool
-     * Station and Armor Station can assemble ({@code ToolAssemblyRecipes.ENTRIES}, filled in by
+     * Station and Tool Forge can assemble ({@code ToolAssemblyRecipes.ENTRIES}, filled in by
      * {@code ForgeweaveItemTagsProvider}), so a new tool family joins the ladder with no code change
      * -- the same "roster as a tag" call {@code ToolAssemblyRecipes#LARGE_TOOLS} makes.
      *

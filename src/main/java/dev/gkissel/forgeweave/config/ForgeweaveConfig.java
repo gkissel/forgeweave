@@ -250,6 +250,33 @@ public final class ForgeweaveConfig {
     /** {@link #MAXIMUM_LEVELS}'s default: no cap. */
     public static final int NO_LEVEL_CAP = -1;
 
+    /**
+     * Issue #996 (D-M8-17). D-M8-5's family-toggle idiom, in the {@code compat} section that toggle
+     * ticket (#968) is expected to grow -- covers only {@code surgebound}'s application recipes and
+     * effect, never the six Powah material presets: D-M8-5 is explicit that Track A material presets
+     * are never toggled, so uraninite/energised_steel/the four crystals stay active whenever Powah's
+     * own item exists regardless of this flag.
+     */
+    public static final ModConfigSpec.BooleanValue POWAH_MODIFIERS;
+
+    /** The fraction of the tool's trait-derived FE capacity {@code surgebound} adds per level (I-IV). */
+    public static final ModConfigSpec.DoubleValue SURGEBOUND_CAPACITY_PER_LEVEL;
+    /** The fraction of the tool's base mining speed {@code surgebound} adds per level (I-IV). */
+    public static final ModConfigSpec.DoubleValue SURGEBOUND_MINING_SPEED_PER_LEVEL;
+    /** What the nitro step (level V) multiplies {@link #SURGEBOUND_CAPACITY_PER_LEVEL} by instead of adding a fifth flat step. */
+    public static final ModConfigSpec.DoubleValue SURGEBOUND_NITRO_CAPACITY_MULTIPLIER;
+    /** What the nitro step (level V) multiplies {@link #SURGEBOUND_MINING_SPEED_PER_LEVEL} by instead of adding a fifth flat step. */
+    public static final ModConfigSpec.DoubleValue SURGEBOUND_NITRO_MINING_SPEED_MULTIPLIER;
+
+    /** {@link #SURGEBOUND_CAPACITY_PER_LEVEL}'s own default -- D-M8-17's "+25% energy capacity". */
+    public static final double SURGEBOUND_CAPACITY_PER_LEVEL_DEFAULT = 0.25D;
+    /** {@link #SURGEBOUND_MINING_SPEED_PER_LEVEL}'s own default -- D-M8-17's "+5% mining speed". */
+    public static final double SURGEBOUND_MINING_SPEED_PER_LEVEL_DEFAULT = 0.05D;
+    /** {@link #SURGEBOUND_NITRO_CAPACITY_MULTIPLIER}'s own default -- D-M8-17's "nitro doubles both". */
+    public static final double SURGEBOUND_NITRO_CAPACITY_MULTIPLIER_DEFAULT = 2.0D;
+    /** {@link #SURGEBOUND_NITRO_MINING_SPEED_MULTIPLIER}'s own default -- D-M8-17's "nitro doubles both". */
+    public static final double SURGEBOUND_NITRO_MINING_SPEED_MULTIPLIER_DEFAULT = 2.0D;
+
     /** Upstream {@code genCobalt}: cobalt ore generates in the Nether. */
     public static final ModConfigSpec.BooleanValue GEN_COBALT;
     /** Upstream {@code cobaltRate}: approximate cobalt veins per Nether chunk. */
@@ -396,11 +423,23 @@ public final class ForgeweaveConfig {
      * and melting recipe filters are exercised by unit tests that never stand a server up. The
      * fallback is deliberately the permissive one -- showing or resolving something a joined server
      * would then refuse is a far smaller surprise than hiding content because no server has spoken
-     * yet. The older options above read {@code .get()} directly because every one of their call
-     * sites is already inside a running world.
+     * yet. Options with no permissive reading go through {@link #read} instead, which answers with
+     * the declared default.
      */
     public static boolean enabled(ModConfigSpec.BooleanValue value) {
         return !SPEC.isLoaded() || value.get();
+    }
+
+    /**
+     * Any option's value, answering with its declared default whenever the spec is not loaded (issue
+     * #1023). Every read outside this package goes through here or through one of the named helpers:
+     * a {@code SERVER} spec exists only while a world is running, but other mods walk recipes and
+     * query items before that (Replication calls {@code getResultItem} on every recipe from a
+     * resource reload listener), and a raw {@code .get()} there throws and takes the client down.
+     * {@code ConfigReadAuditTest} fails the build on a new raw read.
+     */
+    public static <T> T read(ModConfigSpec.ConfigValue<T> value) {
+        return SPEC.isLoaded() ? value.get() : value.getDefault();
     }
 
     /**
@@ -434,6 +473,27 @@ public final class ForgeweaveConfig {
     /** @see #defaultBaseXp() */
     public static int maximumLevels() {
         return SPEC.isLoaded() ? MAXIMUM_LEVELS.get() : NO_LEVEL_CAP;
+    }
+
+    /** {@link #SURGEBOUND_CAPACITY_PER_LEVEL}, answering its own default whenever no server has spoken. */
+    public static double surgeboundCapacityPerLevel() {
+        return SPEC.isLoaded() ? SURGEBOUND_CAPACITY_PER_LEVEL.get() : SURGEBOUND_CAPACITY_PER_LEVEL_DEFAULT;
+    }
+
+    /** @see #surgeboundCapacityPerLevel() */
+    public static double surgeboundMiningSpeedPerLevel() {
+        return SPEC.isLoaded() ? SURGEBOUND_MINING_SPEED_PER_LEVEL.get() : SURGEBOUND_MINING_SPEED_PER_LEVEL_DEFAULT;
+    }
+
+    /** @see #surgeboundCapacityPerLevel() */
+    public static double surgeboundNitroCapacityMultiplier() {
+        return SPEC.isLoaded() ? SURGEBOUND_NITRO_CAPACITY_MULTIPLIER.get() : SURGEBOUND_NITRO_CAPACITY_MULTIPLIER_DEFAULT;
+    }
+
+    /** @see #surgeboundCapacityPerLevel() */
+    public static double surgeboundNitroMiningSpeedMultiplier() {
+        return SPEC.isLoaded() ? SURGEBOUND_NITRO_MINING_SPEED_MULTIPLIER.get()
+                : SURGEBOUND_NITRO_MINING_SPEED_MULTIPLIER_DEFAULT;
     }
 
     static {
@@ -590,6 +650,7 @@ public final class ForgeweaveConfig {
 
         // M8 (D-M8-5, D-M8-8): bridges to other mods, each with its own toggle. Appended last so
         // the sections above keep the order every existing config file on disk already has.
+        // Track A material presets never live here -- D-M8-5 is explicit that they are not toggled.
         builder.comment("Compatibility bridges to other mods. Each bridge has its own toggle, and a",
                         "bridge that is off goes inert rather than being unregistered: a stack or block",
                         "that already carries its state keeps it, and turning the toggle back on restores",
@@ -623,6 +684,28 @@ public final class ForgeweaveConfig {
                         "progress by. Equal to the cost factor means overdrive is neither a discount nor a",
                         "penalty, only a choice to go faster.")
                 .defineInRange("energizedTankOverdriveProgress", ENERGIZED_TANK_OVERDRIVE_DEFAULT, 1.0D, 100.0D);
+        // Issue #996 (D-M8-17): surgebound's own flag under the same compat section above.
+        POWAH_MODIFIERS = builder
+                .comment("If true, the surgebound modifier (Powah's crystal ladder) can be applied at",
+                        "the Tool Station. A tool already carrying it keeps the modifier either way --",
+                        "off makes its bonus inert rather than revoking a level already spent on it.")
+                .define("powahModifiers", true);
+        SURGEBOUND_CAPACITY_PER_LEVEL = builder
+                .comment("Fraction of the tool's own FE capacity surgebound adds per level, levels I-IV.")
+                .defineInRange("surgeboundCapacityPerLevel", SURGEBOUND_CAPACITY_PER_LEVEL_DEFAULT, 0.0D, 10.0D);
+        SURGEBOUND_MINING_SPEED_PER_LEVEL = builder
+                .comment("Fraction of the tool's own base mining speed surgebound adds per level, levels I-IV.")
+                .defineInRange("surgeboundMiningSpeedPerLevel", SURGEBOUND_MINING_SPEED_PER_LEVEL_DEFAULT, 0.0D, 10.0D);
+        SURGEBOUND_NITRO_CAPACITY_MULTIPLIER = builder
+                .comment("What the nitro step (level V) multiplies surgeboundCapacityPerLevel by, instead",
+                        "of adding a fifth flat step.")
+                .defineInRange("surgeboundNitroCapacityMultiplier", SURGEBOUND_NITRO_CAPACITY_MULTIPLIER_DEFAULT,
+                        0.0D, 100.0D);
+        SURGEBOUND_NITRO_MINING_SPEED_MULTIPLIER = builder
+                .comment("What the nitro step (level V) multiplies surgeboundMiningSpeedPerLevel by,",
+                        "instead of adding a fifth flat step.")
+                .defineInRange("surgeboundNitroMiningSpeedMultiplier",
+                        SURGEBOUND_NITRO_MINING_SPEED_MULTIPLIER_DEFAULT, 0.0D, 100.0D);
         // #970 (M8-2, D-M8-5). Appended after the tank's keys so an existing config file keeps the
         // order it already has on disk.
         APOTHEOSIS_AFFIXES = builder

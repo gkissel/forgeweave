@@ -1,0 +1,32 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_nuggets_hollowstone": {
+      "conditions": {
+        "items": [
+          {
+            "items": "#c:nuggets/hollowstone"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "forgeweave:hollowstone_wire"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_the_recipe",
+      "has_nuggets_hollowstone"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "forgeweave:hollowstone_wire"
+    ]
+  }
+}

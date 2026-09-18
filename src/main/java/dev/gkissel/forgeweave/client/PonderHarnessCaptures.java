@@ -9,7 +9,6 @@ import net.createmod.ponder.foundation.ui.PonderUI;
 import net.minecraft.client.Minecraft;
 import net.minecraft.resources.ResourceLocation;
 
-import dev.gkissel.forgeweave.block.ForgeweaveBlocks;
 import dev.gkissel.forgeweave.item.ForgeweaveItems;
 
 /**
@@ -32,8 +31,9 @@ final class PonderHarnessCaptures {
             new Capture(ForgeweaveItems.STANDARD_CORE.getId(), 0, "ponder_smeltery"),
             new Capture(ForgeweaveItems.STANDARD_CORE.getId(), 1, "ponder_smeltery_sizes"),
             new Capture(ForgeweaveItems.FAUCET.getId(), 0, "ponder_casting"),
-            // Issue #782 (reversing D13): the armor assembly scene moved onto the Armor Station item.
-            new Capture(ForgeweaveBlocks.ARMOR_STATION.getId(), 0, "ponder_armor"),
+            // Issue #1006 (retiring the Armor Station #782 added): the armor assembly scene is back
+            // on the Tool Station's item, its only scene.
+            new Capture(ForgeweaveItems.TOOL_STATION.getId(), 0, "ponder_armor"),
             // Issue #891: the seared furnace and reservoir on their controllers; the core tiers
             // ladder is on every core, captured through the Nether Core's (its only scene).
             new Capture(ForgeweaveItems.SEARED_FURNACE_CONTROLLER.getId(), 0, "ponder_seared_furnace"),

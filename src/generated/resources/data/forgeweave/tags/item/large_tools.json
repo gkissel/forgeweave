@@ -10,6 +10,10 @@
     "forgeweave:vein_hammer",
     "forgeweave:longbow",
     "forgeweave:crossbow",
-    "forgeweave:shuriken"
+    "forgeweave:shuriken",
+    "forgeweave:heavy_helmet",
+    "forgeweave:heavy_chestplate",
+    "forgeweave:heavy_leggings",
+    "forgeweave:heavy_boots"
   ]
 }

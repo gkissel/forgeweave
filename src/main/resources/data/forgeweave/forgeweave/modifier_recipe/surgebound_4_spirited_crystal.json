@@ -1,0 +1,8 @@
+{
+  "modifier": "forgeweave:surgebound",
+  "reagent": { "item": "powah:crystal_spirited" },
+  "max_level": 4,
+  "neoforge:conditions": [
+    { "type": "neoforge:item_exists", "item": "powah:crystal_spirited" }
+  ]
+}

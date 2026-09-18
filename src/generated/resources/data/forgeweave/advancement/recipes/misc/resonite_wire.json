@@ -1,0 +1,32 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_nuggets_resonite": {
+      "conditions": {
+        "items": [
+          {
+            "items": "#c:nuggets/resonite"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "forgeweave:resonite_wire"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_the_recipe",
+      "has_nuggets_resonite"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "forgeweave:resonite_wire"
+    ]
+  }
+}

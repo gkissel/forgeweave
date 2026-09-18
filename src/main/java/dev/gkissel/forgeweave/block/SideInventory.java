@@ -94,7 +94,7 @@ public final class SideInventory {
 
     /** Upstream {@code ContainerCraftingStation#blacklisted}: registry name first, then classname. */
     private static boolean blacklisted(Level level, BlockPos pos) {
-        List<? extends String> blacklist = ForgeweaveConfig.CRAFTING_STATION_BLACKLIST.get();
+        List<? extends String> blacklist = ForgeweaveConfig.read(ForgeweaveConfig.CRAFTING_STATION_BLACKLIST);
         if (blacklist.isEmpty()) {
             return false;
         }

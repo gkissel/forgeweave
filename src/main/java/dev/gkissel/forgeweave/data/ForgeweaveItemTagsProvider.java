@@ -25,6 +25,8 @@ import dev.gkissel.forgeweave.block.SearedDuctBlockEntity;
 import dev.gkissel.forgeweave.compat.draconic.ForgeweaveDraconicCompat;
 import dev.gkissel.forgeweave.item.ForgeweaveItems;
 import dev.gkissel.forgeweave.item.PatternItem;
+import dev.gkissel.forgeweave.material.MaterialForm;
+import dev.gkissel.forgeweave.material.MaterialForms;
 import dev.gkissel.forgeweave.menu.ToolAssemblyRecipes;
 import dev.gkissel.forgeweave.trackb.TrackBAlloy;
 import dev.gkissel.forgeweave.trackb.TrackBOre;
@@ -159,7 +161,9 @@ public class ForgeweaveItemTagsProvider extends ItemTagsProvider {
             trackBStorageBlocksItem.addTag(storageBlock(alloy.id()));
         }
 
-        // #152 -- the "large tool" classification: tools only the Tool Forge can assemble. See
+        addMaterialFormTags();
+
+        // #152 -- the "large tool" classification: what only the Tool Forge can assemble. See
         // ToolAssemblyRecipes#LARGE_TOOLS, which is the whole gate: a tool issue adds its row here and
         // inherits it with no code change.
         //
@@ -189,7 +193,19 @@ public class ForgeweaveItemTagsProvider extends ItemTagsProvider {
                 .add(ForgeweaveItems.TOOL_CROSSBOW.get())
                 // #448 -- the shuriken: upstream TinkerRangedWeapons#registerToolBuilding puts it
                 // through registerToolForgeCrafting, same as the two bows above.
-                .add(ForgeweaveItems.TOOL_SHURIKEN.get());
+                .add(ForgeweaveItems.TOOL_SHURIKEN.get())
+                // #1006 -- the heavy armor set, on the maintainer's call that retiring the Armor
+                // Station leaves light armor at the Tool Station and both sets at the Tool Forge.
+                // No upstream registration to cite: 1.12 has no armor at all, so this is the same
+                // Forgeweave decision #735 made when it gave the heavy set its third part slot.
+                // The four pieces are not tools, but this tag has only ever meant "Tool Forge only"
+                // and it is the one roster split every gate already reads (ToolStationTabs#visible,
+                // ToolAssemblyRecipes#resolveAssembly, the JEI category routing), so they belong in
+                // it rather than behind a second gate that would have to be kept in step with it.
+                .add(ForgeweaveItems.ARMOR_HEAVY_HELMET.get())
+                .add(ForgeweaveItems.ARMOR_HEAVY_CHESTPLATE.get())
+                .add(ForgeweaveItems.ARMOR_HEAVY_LEGGINGS.get())
+                .add(ForgeweaveItems.ARMOR_HEAVY_BOOTS.get());
 
         // #915 -- the Draconic Evolution fusion upgrade ladder's catalyst set (docs/SCOPE.md M8).
         // Every item either station assembles, read straight off ToolAssemblyRecipes.ENTRIES rather
@@ -462,8 +478,30 @@ public class ForgeweaveItemTagsProvider extends ItemTagsProvider {
     public static final TagKey<Item> CASTS_GOLD =
             TagKey.create(Registries.ITEM, ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "casts/gold"));
 
+    /**
+     * #992 -- the {@code c:} side of D-M8-6/D-M8-7's material forms, walked off
+     * {@link MaterialForms#ALL}. Each form joins its own leaf tag ({@code c:plates/steel}) and then
+     * adds that leaf to the family parent ({@code c:plates}), the same by-hand parent extension the
+     * storage blocks above already need: NeoForge's convention parents only union the children
+     * NeoForge itself knows about, so a mod-only material has to add itself in or stays reachable
+     * only by its leaf.
+     */
+    private void addMaterialFormTags() {
+        for (MaterialForms.FormedMaterial material : MaterialForms.ALL) {
+            for (MaterialForm form : material.forms()) {
+                tag(form.tagPath(material.id()))
+                        .add(ForgeweaveItems.materialForm(material.id(), form).get());
+                tag(form.tagFamily()).addTag(cTag(form.tagPath(material.id())));
+            }
+        }
+    }
+
+    private static TagKey<Item> cTag(String path) {
+        return TagKey.create(Registries.ITEM, ResourceLocation.fromNamespaceAndPath("c", path));
+    }
+
     private static TagKey<Item> storageBlock(String metal) {
-        return TagKey.create(Registries.ITEM, ResourceLocation.fromNamespaceAndPath("c", "storage_blocks/" + metal));
+        return cTag("storage_blocks/" + metal);
     }
 
     private IntrinsicTagAppender<Item> tag(String path) {

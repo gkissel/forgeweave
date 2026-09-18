@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    {
+      "tag": "c:small_dusts/pig_iron"
+    },
+    {
+      "tag": "c:small_dusts/pig_iron"
+    },
+    {
+      "tag": "c:small_dusts/pig_iron"
+    }
+  ],
+  "result": {
+    "count": 1,
+    "id": "forgeweave:pig_iron_dust"
+  }
+}

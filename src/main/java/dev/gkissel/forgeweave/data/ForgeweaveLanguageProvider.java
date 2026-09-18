@@ -20,6 +20,8 @@ import dev.gkissel.forgeweave.block.SlimeSaplingBlock;
 import dev.gkissel.forgeweave.block.SmelteryScan;
 import dev.gkissel.forgeweave.fluid.ForgeweaveFluids;
 import dev.gkissel.forgeweave.item.ForgeweaveItems;
+import dev.gkissel.forgeweave.material.MaterialForm;
+import dev.gkissel.forgeweave.material.MaterialForms;
 import dev.gkissel.forgeweave.ponder.ForgeweavePonderPlugin;
 import dev.gkissel.forgeweave.trackb.TrackBAlloy;
 import dev.gkissel.forgeweave.trackb.TrackBOre;
@@ -31,9 +33,10 @@ import dev.gkissel.forgeweave.trackb.TrackBOre;
  */
 public class ForgeweaveLanguageProvider extends LanguageProvider {
 
-    /** #735: one description for the four heavy pieces. */
+    /** #735: one description for the four heavy pieces. The Tool Forge line is #1006's. */
     private static final String HEAVY_ARMOR_DESCRIPTION =
-            "Plating over maille, backed by a large plate. Armor is 1.4x the plating's; every piece worn slows you by 5%.";
+            "Plating over maille, backed by a large plate. Armor is 1.4x the plating's; every piece "
+                    + "worn slows you by 5%. Assembled at a Tool Forge.";
     public ForgeweaveLanguageProvider(PackOutput output) {
         super(output, Forgeweave.MODID, "en_us");
     }
@@ -74,8 +77,6 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         addBlock(ForgeweaveBlocks.PART_BUILDER, "Part Builder");
         addBlock(ForgeweaveBlocks.TOOL_STATION, "Tool Station");
         addBlock(ForgeweaveBlocks.TOOL_FORGE, "Tool Forge");
-        // Issue #782 (reversing D13): armor assembles at its own station now.
-        addBlock(ForgeweaveBlocks.ARMOR_STATION, "Armor Station");
         addBlock(ForgeweaveBlocks.CRAFTING_STATION, "Crafting Station");
         addBlock(ForgeweaveBlocks.STENCIL_TABLE, "Stencil Table");
         addBlock(ForgeweaveBlocks.PATTERN_CHEST, "Pattern Chest");
@@ -647,12 +648,9 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         // #733: the selection grid's page arrows, upstream 1.20's button.tconstruct.previous_page/next_page fallbacks.
         add("gui.forgeweave.tool_station.previous_page", "<");
         add("gui.forgeweave.tool_station.next_page", ">");
-        // #152: why a large tool refuses to assemble at a Tool Station.
-        add("gui.forgeweave.tool_station.needs_forge", "This tool is too large to assemble here. Build it at a Tool Forge.");
-        // #782 (reversing D13): armor loaded at a Tool Station/Tool Forge, and the mirror image at
-        // the Armor Station -- tool parts loaded there.
-        add("gui.forgeweave.tool_station.needs_armor_station", "Armor assembles at the Armor Station, not here.");
-        add("gui.forgeweave.armor_station.needs_tool_station", "This part belongs at the Tool Station or Tool Forge, not here.");
+        // #152: why a large tool refuses to assemble at a Tool Station. #1006 puts the heavy armor
+        // set behind the same gate, so the wording covers a heavy plating as well as a hammer head.
+        add("gui.forgeweave.tool_station.needs_forge", "This is too large to assemble here. Build it at a Tool Forge.");
         add("gui.forgeweave.tool_station.modifier_slots", "Free slots: %s");
         // Content-family toggles ticket: this kind of tool, or a part only this kind of tool takes,
         // belongs to a content family the server has switched off. Deliberately does not name the
@@ -695,6 +693,9 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("gui.forgeweave.modifier.incompatible_trait", "Modifier %s can not be used together with trait %s");
         add("gui.forgeweave.modifier.incompatible_modifiers", "Modifiers %s and %s cannot be applied together");
         add("gui.forgeweave.modifier.incompatible_enchantment", "Modifier %s cannot be combined with enchantment %s");
+        // Issue #996: surgebound's crystal ladder refuses a level out of sequence.
+        add("gui.forgeweave.modifier.surgebound_out_of_order",
+                "Surgebound must be applied in crystal order: this tool needs level %s next, not %s.");
 
         // Why an attempted part exchange was refused (issue #264), same info-panel surface. The
         // durability line mirrors upstream 1.12's gui.error.not_enough_durability.
@@ -1097,6 +1098,13 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("material.forgeweave.emeradic_crystal", "Emeradic Crystal");
         add("material.forgeweave.enori_crystal", "Enori Crystal");
         add("material.forgeweave.uraninite", "Uraninite");
+        // Issue #996 (D-M8-17): the four Powah crystals #837/#872 left unshippable (no per-material
+        // c: tag; see MaterialTest#noShippedMaterialConditionsOnPowahsUntaggedCrystals's old guard),
+        // unblocked the same way #872 unblocked energised_steel -- a concrete item id.
+        add("material.forgeweave.blazing_crystal", "Blazing Crystal");
+        add("material.forgeweave.niotic_crystal", "Niotic Crystal");
+        add("material.forgeweave.spirited_crystal", "Spirited Crystal");
+        add("material.forgeweave.nitro_crystal", "Nitro Crystal");
         add("material.forgeweave.psimetal", "Psimetal");
         add("material.forgeweave.psigem", "Psigem");
         add("material.forgeweave.ivory_psimetal", "Ivory Psimetal");
@@ -1502,6 +1510,15 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
                 "Mounts a pair of Create's goggles on the helmet, so its overlays show while the "
                         + "helmet is worn. A utility: no modifier slot spent.");
 
+        // Issue #996 (D-M8-17): Powah's crystal ladder, one level a step, energy capacity and mining
+        // speed rising with each crystal.
+        add("modifier.forgeweave.surgebound.name", "Surgebound");
+        add("modifier.forgeweave.surgebound.description",
+                "Powah's crystal ladder, applied one level at a time: energized steel, then blazing, "
+                        + "niotic, spirited and nitro crystal. Each level raises the tool's energy "
+                        + "capacity and mining speed; the nitro step is worth double the rest.");
+        add("modifier.forgeweave.surgebound.extra", "Energy Capacity: +%s, Mining Speed: +%s");
+
         add("modifier.forgeweave.wind_burst.name", "Wind Burst");
         add("modifier.forgeweave.wind_burst.description",
                 "Grants Wind Burst on the warmace. Each breeze rod raises it another level, up to III.");
@@ -1598,13 +1615,13 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         // JEI recipe category titles (issue #11); only shown when JEI is installed, since the
         // integration is optional (neoforge.mods.toml).
         add("jei.category.forgeweave.part_crafting", "Part Crafting");
-        add("jei.category.forgeweave.tool_assembly", "Tool Assembly");
+        // "Assembly" rather than "Tool Assembly": since #1006 retired the Armor Station both of
+        // these categories hold armor pieces beside the tools. The two keys keep their names, which
+        // are the JEI recipe-type ids players' bookmarks are stored against.
+        add("jei.category.forgeweave.tool_assembly", "Assembly");
         // #165: the Tool Forge tier's own category (AssemblyCategory#LARGE_TYPE) -- Tool Station
         // never appears as this one's catalyst, so the title says so up front.
-        add("jei.category.forgeweave.large_tool_assembly", "Tool Assembly (Tool Forge only)");
-        // #782 (reversing D13): armor's own category/catalyst (AssemblyCategory#ARMOR_TYPE), now that
-        // neither Tool Station block builds it.
-        add("jei.category.forgeweave.armor_assembly", "Armor Assembly");
+        add("jei.category.forgeweave.large_tool_assembly", "Assembly (Tool Forge only)");
         add("jei.category.forgeweave.tool_repair", "Tool Repair");
 
         // #109 -- smeltery/casting/modifier JEI categories (docs/SCOPE.md M2 issue #109).
@@ -1964,6 +1981,16 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
             addItem(ForgeweaveItems.trackBAlloyNugget(alloy.id()), alloyName + " Nugget");
         }
 
+        // #992 -- D-M8-6's material forms, named off the same roster the items are registered from
+        // (dev.gkissel.forgeweave.material.MaterialForms). Each form owns its English pattern, so
+        // "Small <Name> Dust" reads as English rather than "<Name> Small Dust".
+        for (MaterialForms.FormedMaterial material : MaterialForms.ALL) {
+            for (MaterialForm form : material.forms()) {
+                addItem(ForgeweaveItems.materialForm(material.id(), form),
+                        form.displayName(material.displayName()));
+            }
+        }
+
         // #233 -- pig iron items + firewood. Ingot/nugget/block names space upstream 1.12's
         // item.tconstruct.{ingots,nuggets}.pigiron.name / tile.tconstruct.metal.pigiron.name the way
         // material.pigiron.name ("Pig Iron") already does; "Firewood" is upstream's
@@ -2219,6 +2246,16 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("trait.forgeweave.solar_recharge.description", "Slowly refills its energy buffer in daylight.");
         add("trait.forgeweave.kinetic_charge.name", "Kinetic Charge");
         add("trait.forgeweave.kinetic_charge.description", "Converts a share of damage dealt into stored energy.");
+        // Issue #996 (D-M8-17): datapack trait_definition instances of the #830 energized behavior,
+        // one per Powah crystal, ascending capacity (see trait_definition/*_charge.json).
+        add("trait.forgeweave.blazing_charge.name", "Blazing Charge");
+        add("trait.forgeweave.blazing_charge.description", "Carries a Forge Energy buffer that is spent before durability.");
+        add("trait.forgeweave.niotic_charge.name", "Niotic Charge");
+        add("trait.forgeweave.niotic_charge.description", "Carries a larger Forge Energy buffer that is spent before durability.");
+        add("trait.forgeweave.spirited_charge.name", "Spirited Charge");
+        add("trait.forgeweave.spirited_charge.description", "Carries a still larger Forge Energy buffer that is spent before durability.");
+        add("trait.forgeweave.nitro_charge.name", "Nitro Charge");
+        add("trait.forgeweave.nitro_charge.description", "Carries the largest Forge Energy buffer that is spent before durability.");
         add("tooltip.forgeweave.energy", "Stored Energy");
         // #829 M6 utility/economy trait behavior library.
         add("trait.forgeweave.sunmend.name", "Sunmend");
@@ -2348,21 +2385,15 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("book.forgeweave.intro.tool_station.text",
                 "A blank pattern over a crafting table makes the Tool Station, the heart of the "
                         + "workshop. Pick a tool from its sidebar, set the parts, and read the finished "
-                        + "stats before you build.\n\nThe station also repairs, renames, and applies "
-                        + "modifiers; the Modifiers chapter covers those.");
+                        + "stats before you build. Armor is on that same sidebar: the helmet, "
+                        + "chestplate, leggings and boots are built here from plating and maille.\n\n"
+                        + "The station also repairs, renames, and applies modifiers, to armor as much "
+                        + "as to tools; the Modifiers chapter covers those.");
         add("book.forgeweave.intro.tool_forge.title", "Tool Forge");
         add("book.forgeweave.intro.tool_forge.text",
                 "The Tool Station's sturdier sibling: seared bricks and metal blocks built around a "
                         + "Tool Station. It does everything the station does, and it alone assembles the "
-                        + "large tools: the hammer, the cleaver and their kin.");
-        // Issue #782 (reversing D13): armor moved off the Tool Station/Tool Forge onto its own block.
-        add("book.forgeweave.intro.armor_station.title", "Armor Station");
-        add("book.forgeweave.intro.armor_station.text",
-                "A blank pattern over a Tool Station makes the Armor Station, the Tool Station's "
-                        + "sibling for plating and maille. It builds every armor piece, repairs and "
-                        + "renames them, and applies their modifiers, the same way the Tool Station does "
-                        + "for tools.\n\nThe Tool Station and Tool Forge no longer build armor at all; "
-                        + "the two families finally each have their own workbench.");
+                        + "large tools (the hammer, the cleaver and their kin) and the heavy armor set.");
         add("book.forgeweave.tools.repairing.title", "Repairing");
         add("book.forgeweave.tools.repairing.text",
                 "As you use your tools they take damage, and once all of their durability is gone they break. To fix that, repair your tool; there is no need to wait until it breaks.\n\nPut the tool into a Tool Station or Tool Forge and add material matching the tool's head. If the head is made of several materials, any of them will do, and repairing with several at once grants bonus durability.");
@@ -2372,10 +2403,12 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         // describes the M4 mechanics as Forgeweave ships them (D9-D19).
         add("book.forgeweave.armor.intro.title", "Armor");
         add("book.forgeweave.armor.intro.text",
-                "Armor is built the way tools are: from parts, at the Armor Station, out of the "
+                "Armor is built the way tools are: from parts, at the Tool Station, out of the "
                         + "materials you choose. Every piece has a limited number of modifier slots and "
-                        + "carries its materials' traits.\n\nUnlike a tool, armor does nothing in the "
-                        + "hand: its stats, traits and modifiers only work while it is worn.");
+                        + "carries its materials' traits.\n\nThe four light pieces build at the Tool "
+                        + "Station or the Tool Forge; the heavy set needs the forge, the way the large "
+                        + "tools do.\n\nUnlike a tool, armor does nothing in the hand: its stats, traits "
+                        + "and modifiers only work while it is worn.");
         add("book.forgeweave.armor.parts.title", "Plating and Maille");
         add("book.forgeweave.armor.parts.text",
                 "Each piece is two parts. The plating is the outer shell and sets every stat: "
@@ -2404,7 +2437,7 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
                         + "slime vine slows your fall. Each material's page lists what it grants.");
         add("book.forgeweave.armor.modifiers.title", "Armor Modifiers");
         add("book.forgeweave.armor.modifiers.text",
-                "Armor takes modifiers at the Armor Station the way tools do at the Tool Station, from "
+                "Armor takes modifiers at the Tool Station and the Tool Forge the way tools do, from "
                         + "the same slot pool. "
                         + "Some fit armor alone: Fire, Blast, Projectile, Magic and Melee Protection each "
                         + "reduce one kind of damage, stacking across the worn set up to a cap; Knockback "
@@ -2687,6 +2720,13 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         // what ArrowEntity#getWaterInertia implements, the other two are upstream's own jokes.
         modifierEffects("fins",
                 "Projectiles ignore water", "Logical", "Makes sense");
+        // Issue #996 (D-M8-17) -- Forgeweave original built on Powah's own crystal ladder.
+        modifierEffects("surgebound",
+                "Grants +25% energy capacity and +5% mining speed per level",
+                "The nitro step (level V) doubles both instead of adding a fifth flat step",
+                "Applied in crystal order: energized steel, then blazing, niotic, spirited, nitro crystal",
+                "Each level requires the one before it, and costs its own modifier slot",
+                "Five levels");
 
         // Issue #796: the built-in Legacy resource pack's display name (Options > Resource Packs).
         // Not an item/block/trait key family -- ForgeweaveResourcePacks#addPackFinders is the only

@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    {
+      "tag": "c:tiny_dusts/steel"
+    },
+    {
+      "tag": "c:tiny_dusts/steel"
+    },
+    {
+      "tag": "c:tiny_dusts/steel"
+    }
+  ],
+  "result": {
+    "count": 1,
+    "id": "forgeweave:steel_small_dust"
+  }
+}

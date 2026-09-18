@@ -22,6 +22,8 @@ import net.neoforged.neoforge.registries.DeferredItem;
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.fluid.ForgeweaveFluids;
 import dev.gkissel.forgeweave.item.ForgeweaveItems;
+import dev.gkissel.forgeweave.material.MaterialForm;
+import dev.gkissel.forgeweave.material.MaterialForms;
 import dev.gkissel.forgeweave.menu.ToolAssemblyRecipes;
 import dev.gkissel.forgeweave.tool.ToolArt;
 import dev.gkissel.forgeweave.tool.ToolConstants;
@@ -338,6 +340,16 @@ public class ForgeweaveItemModelProvider extends ItemModelProvider {
             singleLayerModel(ForgeweaveItems.trackBAlloyIngot(alloy.id()), itemTexture(alloy.ingotId()));
             singleLayerModel(ForgeweaveItems.trackBAlloyNugget(alloy.id()), itemTexture(alloy.nuggetId()));
         }
+        // #992 -- the material forms D-M8-6 adds (dust ladder plus the plate family), one generated
+        // sprite per material and form under the standard item texture folder
+        // (scripts/generate_material_forms.py, vanilla-donor recolors like the two families above).
+        for (MaterialForms.FormedMaterial material : MaterialForms.ALL) {
+            for (MaterialForm form : material.forms()) {
+                String id = form.itemId(material.id());
+                singleLayerModel(ForgeweaveItems.materialForm(material.id(), form), itemTexture(id));
+            }
+        }
+
         // #946 -- the fusion catalyst, original art from scripts/generate_weldheart_texture.py.
         singleLayerModel(ForgeweaveItems.WELDHEART, itemTexture("weldheart"));
         singleLayerModel(ForgeweaveItems.INGOT_MANYULLYN, derivedItem("manyullyn_ingot"));

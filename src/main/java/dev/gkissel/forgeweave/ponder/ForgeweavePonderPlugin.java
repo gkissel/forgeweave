@@ -7,7 +7,6 @@ import net.minecraft.resources.ResourceLocation;
 import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
 
 import dev.gkissel.forgeweave.Forgeweave;
-import dev.gkissel.forgeweave.block.ForgeweaveBlocks;
 import dev.gkissel.forgeweave.item.ForgeweaveItems;
 
 /**
@@ -54,9 +53,9 @@ public final class ForgeweavePonderPlugin implements PonderPlugin {
                 ForgeweaveSmelteryScenes::sizes);
         helper.addStoryBoard(ForgeweaveItems.FAUCET.getId(), "casting", ForgeweaveCastingScenes::pouring);
         helper.addStoryBoard(ForgeweaveItems.SEARED_CHANNEL.getId(), "casting", ForgeweaveCastingScenes::pouring);
-        // #682 (M4-7, D21), moved onto the Armor Station's own item by #782 (reversing D13): armor
-        // assembly.
-        helper.addStoryBoard(ForgeweaveBlocks.ARMOR_STATION.getId(), "armor_station",
+        // #682 (M4-7, D21), moved onto the Armor Station by #782 and back onto the Tool Station by
+        // #1006, which retired that block: armor assembly.
+        helper.addStoryBoard(ForgeweaveItems.TOOL_STATION.getId(), "armor_assembly",
                 ForgeweaveArmorScenes::assembly);
         // #891 -- the two other seared multiblocks on their controllers' items, and the core tiers
         // (#845's pour-to-transform ladder) on every core's item: the standard core's third scene,

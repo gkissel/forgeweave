@@ -123,6 +123,7 @@ import dev.gkissel.forgeweave.item.PartItem;
 import dev.gkissel.forgeweave.item.ToolItem;
 import dev.gkissel.forgeweave.material.Material;
 import dev.gkissel.forgeweave.modifier.ForgeweaveModifiers;
+import dev.gkissel.forgeweave.modifier.Modifier;
 import dev.gkissel.forgeweave.modifier.ModifierEntry;
 import dev.gkissel.forgeweave.particle.ForgeweaveParticles;
 import dev.gkissel.forgeweave.tool.ToolStats;
@@ -2454,6 +2455,17 @@ public final class ForgeweaveTraits {
         int capacity = DraconicModules.moduleEnergyCapacity(stack);
         for (Trait trait : of(stack)) {
             capacity += trait.energyCapacity();
+        }
+        // Issue #996 (D-M8-17): surgebound folds a percentage bonus on top of this trait-derived
+        // total, the same "base plus every modifier in list order" threading Modifier#durability and
+        // Modifier#miningSpeed already use -- base captured before the fold so a percentage scales
+        // the real buffer rather than compounding onto an earlier modifier's own addition.
+        int base = capacity;
+        for (ModifierEntry entry : ForgeweaveModifiers.of(stack)) {
+            Modifier modifier = ForgeweaveModifiers.get(entry.id());
+            if (modifier != null) {
+                capacity = modifier.energyCapacity(entry.level(), capacity, base);
+            }
         }
         return capacity;
     }

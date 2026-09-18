@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    {
+      "tag": "c:small_dusts/queens_slime"
+    },
+    {
+      "tag": "c:small_dusts/queens_slime"
+    },
+    {
+      "tag": "c:small_dusts/queens_slime"
+    }
+  ],
+  "result": {
+    "count": 1,
+    "id": "forgeweave:queens_slime_dust"
+  }
+}

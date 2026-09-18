@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    {
+      "tag": "c:tiny_dusts/starweld"
+    },
+    {
+      "tag": "c:tiny_dusts/starweld"
+    },
+    {
+      "tag": "c:tiny_dusts/starweld"
+    }
+  ],
+  "result": {
+    "count": 1,
+    "id": "forgeweave:starweld_small_dust"
+  }
+}

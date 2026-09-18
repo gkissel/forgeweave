@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    {
+      "tag": "c:tiny_dusts/murkiron"
+    },
+    {
+      "tag": "c:tiny_dusts/murkiron"
+    },
+    {
+      "tag": "c:tiny_dusts/murkiron"
+    }
+  ],
+  "result": {
+    "count": 1,
+    "id": "forgeweave:murkiron_small_dust"
+  }
+}

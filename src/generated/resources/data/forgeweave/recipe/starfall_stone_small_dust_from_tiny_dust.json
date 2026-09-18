@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    {
+      "tag": "c:tiny_dusts/starfall_stone"
+    },
+    {
+      "tag": "c:tiny_dusts/starfall_stone"
+    },
+    {
+      "tag": "c:tiny_dusts/starfall_stone"
+    }
+  ],
+  "result": {
+    "count": 1,
+    "id": "forgeweave:starfall_stone_small_dust"
+  }
+}

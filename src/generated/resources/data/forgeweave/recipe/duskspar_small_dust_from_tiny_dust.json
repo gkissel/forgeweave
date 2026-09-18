@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    {
+      "tag": "c:tiny_dusts/duskspar"
+    },
+    {
+      "tag": "c:tiny_dusts/duskspar"
+    },
+    {
+      "tag": "c:tiny_dusts/duskspar"
+    }
+  ],
+  "result": {
+    "count": 1,
+    "id": "forgeweave:duskspar_small_dust"
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    {
+      "tag": "c:tiny_dusts/hardcinder"
+    },
+    {
+      "tag": "c:tiny_dusts/hardcinder"
+    },
+    {
+      "tag": "c:tiny_dusts/hardcinder"
+    }
+  ],
+  "result": {
+    "count": 1,
+    "id": "forgeweave:hardcinder_small_dust"
+  }
+}

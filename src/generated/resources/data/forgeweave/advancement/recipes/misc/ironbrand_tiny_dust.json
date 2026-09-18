@@ -1,0 +1,32 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_small_dusts_ironbrand": {
+      "conditions": {
+        "items": [
+          {
+            "items": "#c:small_dusts/ironbrand"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "forgeweave:ironbrand_tiny_dust"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_the_recipe",
+      "has_small_dusts_ironbrand"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "forgeweave:ironbrand_tiny_dust"
+    ]
+  }
+}
