@@ -51,8 +51,8 @@ public class ArmorLevelingGameTests {
             {EquipmentSlot.HEAD, EquipmentSlot.CHEST, EquipmentSlot.LEGS, EquipmentSlot.FEET};
 
     private static ItemStack piece(GameTestHelper helper, Player player, ToolConstants.Entry entry, String material) {
-        // Issue #782: armor assembles at the Armor Station.
-        return ToolAssembly.assembleAt(helper, player, STATION, ForgeweaveBlocks.ARMOR_STATION.get(),
+        // Issue #1006: light armor assembles at the Tool Station.
+        return ToolAssembly.assembleAt(helper, player, STATION, ForgeweaveBlocks.TOOL_STATION.get(),
                 ToolAssembly.entryOf(entry), List.of(material, material));
     }
 
@@ -80,7 +80,7 @@ public class ArmorLevelingGameTests {
         return before - player.getHealth();
     }
 
-    /** The Armor Station loaded with {@code tool} and one reagent stack, output untaken. */
+    /** The station loaded with {@code tool} and one reagent stack, output untaken. */
     private static ToolStationMenu load(GameTestHelper helper, Player player, ItemStack tool, ItemStack reagent) {
         ToolStationBlockEntity blockEntity = helper.getBlockEntity(STATION);
         for (int i = 0; i < ToolStationMenu.INPUT_SLOTS; i++) {
@@ -192,12 +192,12 @@ public class ArmorLevelingGameTests {
     }
 
     /**
-     * The level's whole payoff: one more modifier slot on that piece, spendable at the Armor
+     * The level's whole payoff: one more modifier slot on that piece, spendable at the Tool
      * Station. Granted here through {@link ToolLeveling#addXp} -- the same call the defensive pass
      * makes, with the hundreds of hits a real level costs skipped.
      */
     @GameTest(template = "empty")
-    public static void aLevelOpensASlotAtTheArmorStation(GameTestHelper helper) {
+    public static void aLevelOpensASlotAtTheToolStation(GameTestHelper helper) {
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         ItemStack chest = apply(helper, player, piece(helper, player, ToolConstants.CHESTPLATE, "iron"),
                 new ItemStack(ForgeweaveItems.SEARED_BRICK.get(), 15));

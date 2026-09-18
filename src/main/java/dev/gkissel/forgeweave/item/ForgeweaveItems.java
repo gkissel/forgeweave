@@ -5,6 +5,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
@@ -515,9 +516,15 @@ public final class ForgeweaveItems {
 
     public static final DeferredItem<BlockItem> TOOL_STATION = ITEMS.registerSimpleBlockItem("tool_station", ForgeweaveBlocks.TOOL_STATION);
 
-    // The Armor Station (docs/SCOPE.md M4 issue #782): same plain block-item shape as the Tool
-    // Station above (its recipe never sets a TEXTURE component -- see ArmorStationBlock).
-    public static final DeferredItem<BlockItem> ARMOR_STATION = ITEMS.registerSimpleBlockItem("armor_station", ForgeweaveBlocks.ARMOR_STATION);
+    static {
+        // The retired Armor Station's item (issue #1006, undoing #782). The block alias in
+        // ForgeweaveBlocks handles placed blocks; this one handles the stacks sitting in old
+        // inventories, chests and ender chests, which read back as Tool Stations. The issue does not
+        // say what to do with them, so they convert the same way the placed block does rather than
+        // vanishing -- an unresolved item id loads as air and the stack is simply lost.
+        ITEMS.addAlias(ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "armor_station"),
+                ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "tool_station"));
+    }
 
     // The Crafting Station (docs/SCOPE.md M1 issue #40): same retextured-table item shape as the two
     // blocks above (ForgeweaveDataComponents#TEXTURE carries the crafting wood).

@@ -22,12 +22,17 @@ import dev.gkissel.forgeweave.tool.ToolConstants;
 
 /**
  * The armor assembly scene (M4-7, issue #682; docs/SCOPE.md D21), moved onto the Armor Station by
- * issue #782 (reversing D13): an Armor Station on the base plate
- * ({@code assets/forgeweave/ponder/armor_station.nbt}, {@code scripts/generate_ponder_schematics.py}),
+ * issue #782 and back onto the Tool Station by issue #1006, which retired that block: a Tool Station
+ * on the base plate
+ * ({@code assets/forgeweave/ponder/armor_assembly.nbt}, {@code scripts/generate_ponder_schematics.py}),
  * the chestplate's two parts shown going in, the finished chestplate coming out, and an armor stand
  * wearing it -- Ponder's own way of showing a worn item, since scenes have no player. The piece is
  * built through {@link ToolAssemblyRecipes#assemble}, the station's real call, so the stand wears
  * the iron-tinted two-layer render and not a staged stack.
+ *
+ * <p>The scene shows the light chestplate, which is what the Tool Station the schematic places can
+ * actually build. The heavy set needs a Tool Forge (#1006 put it in {@code
+ * ToolAssemblyRecipes#LARGE_TOOLS}), which the Tool Forge's own text covers.
  *
  * <p>The inline English strings are Ponder's localization idiom (see
  * {@link ForgeweaveSmelteryScenes}): each registers a {@code forgeweave.ponder.armor.*} lang key that
@@ -53,7 +58,7 @@ public final class ForgeweaveArmorScenes {
         scene.idle(10);
         scene.overlay().showText(70)
                 .attachKeyFrame()
-                .text("Armor is assembled at the Armor Station, the Tool Station's sibling")
+                .text("Armor is assembled at the Tool Station, beside the tools")
                 .pointAt(util.vector().topOf(STATION))
                 .placeNearTarget();
         scene.idle(80);

@@ -44,8 +44,8 @@ public class ArmorTraitGameTests {
     /** A survival mock player wearing a chestplate of {@code plating} over {@code maille}, ticked once (see ArmorGameTests#wearing). */
     private static Player wearing(GameTestHelper helper, String plating, String maille) {
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
-        // Issue #782 (reversing D13): armor assembles at the Armor Station now.
-        ItemStack piece = ToolAssembly.assembleAt(helper, player, STATION, ForgeweaveBlocks.ARMOR_STATION.get(),
+        // Issue #1006 (retiring #782's Armor Station): light armor assembles at the Tool Station.
+        ItemStack piece = ToolAssembly.assembleAt(helper, player, STATION, ForgeweaveBlocks.TOOL_STATION.get(),
                 ToolAssembly.entryOf(ToolConstants.CHESTPLATE), List.of(plating, maille));
         player.setItemSlot(EquipmentSlot.CHEST, piece);
         player.tick();

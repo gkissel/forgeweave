@@ -49,9 +49,9 @@ public class ElytraCreativeFlightGameTests {
         return ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, path);
     }
 
-    // Issue #782 (reversing D13): armor assembles at the Armor Station now.
+    // Issue #1006 (retiring #782's Armor Station): the heavy set needs a Tool Forge.
     private static ItemStack heavyPiece(GameTestHelper helper, Player player, ToolConstants.Entry entry) {
-        return ToolAssembly.assembleAt(helper, player, STATION, ForgeweaveBlocks.ARMOR_STATION.get(),
+        return ToolAssembly.assembleAt(helper, player, STATION, ForgeweaveBlocks.TOOL_FORGE.get(),
                 ToolAssembly.entryOf(entry), List.of("iron", "iron", "iron"));
     }
 
@@ -65,7 +65,7 @@ public class ElytraCreativeFlightGameTests {
 
     /** Issue #1005: the light counterpart of {@link #heavyPiece}, two parts instead of three. */
     private static ItemStack lightPiece(GameTestHelper helper, Player player, ToolConstants.Entry entry) {
-        return ToolAssembly.assembleAt(helper, player, STATION, ForgeweaveBlocks.ARMOR_STATION.get(),
+        return ToolAssembly.assembleAt(helper, player, STATION, ForgeweaveBlocks.TOOL_STATION.get(),
                 ToolAssembly.entryOf(entry), List.of("iron", "iron"));
     }
 

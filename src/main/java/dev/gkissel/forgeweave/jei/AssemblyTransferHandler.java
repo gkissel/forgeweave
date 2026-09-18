@@ -50,7 +50,9 @@ import dev.gkissel.forgeweave.menu.ToolStationTabs;
  * AssemblyCategory#LARGE_TYPE} (issue #165): {@link #canHandle} refuses the large-tool type outright
  * at a plain Tool Station menu ({@link ToolStationMenu#isForge()}), the same gate {@code
  * menu.ToolAssemblyRecipes#resolveAssembly} itself enforces server-side, so the [+] button never
- * offers a transfer the station would only reject.
+ * offers a transfer the station would only reject. Since issue #1006 that one gate covers armor
+ * too: light pieces are in the plain type and heavy ones in the large type, so no armor-specific
+ * check is needed here.
  */
 final class AssemblyTransferHandler implements IRecipeTransferInfo<ToolStationMenu, AssemblyRecipe>,
         IRecipeTransferHandler<ToolStationMenu, AssemblyRecipe> {
@@ -80,16 +82,10 @@ final class AssemblyTransferHandler implements IRecipeTransferInfo<ToolStationMe
     @Override
     public boolean canHandle(ToolStationMenu container, AssemblyRecipe recipe) {
         if (type == AssemblyCategory.LARGE_TYPE && !container.isForge()) {
-            return false; // large tools only assemble at the Tool Forge (issue #152)
-        }
-        int tabIndex = tabIndexFor(recipe);
-        if (tabIndex < 0) {
+            // Large tools and, since issue #1006, the heavy armor set: Tool Forge only (issue #152).
             return false;
         }
-        // Issue #782: armor recipes only transfer into the Armor Station and vice versa -- the same
-        // category gate ToolStationTabs#visible and ToolAssemblyRecipes#resolveAssembly enforce, so
-        // the [+] button never offers a transfer the open station would only refuse.
-        return ToolAssemblyRecipes.isArmorEntry(ToolStationTabs.get(tabIndex).entry()) == container.isArmorStation();
+        return tabIndexFor(recipe) >= 0;
     }
 
     @Override
