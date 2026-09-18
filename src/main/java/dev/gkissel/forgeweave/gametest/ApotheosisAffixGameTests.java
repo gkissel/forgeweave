@@ -20,7 +20,6 @@ import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.compat.apotheosis.ApotheosisAffixes;
 import dev.gkissel.forgeweave.config.ForgeweaveConfig;
 import dev.gkissel.forgeweave.item.ForgeweaveDataComponents;
-import dev.gkissel.forgeweave.item.ForgeweaveItems;
 import dev.gkissel.forgeweave.modifier.ForgeweaveModifiers;
 import dev.gkissel.forgeweave.modifier.ModifierApplication;
 import dev.gkissel.forgeweave.tool.ToolLevel;
@@ -95,7 +94,10 @@ public class ApotheosisAffixGameTests {
         helper.assertTrue(ApotheosisAffixes.enchantingConfigured(),
                 "apotheosisEnchanting must default to on");
 
-        ItemStack pickaxe = ForgeweaveItems.TOOL_PICKAXE.get().getDefaultInstance();
+        // Assembled, not a bare registered item: vanilla's own isEnchantable wants a damageable
+        // single stack, and a Forgeweave tool only has a durability at all once it has parts.
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        ItemStack pickaxe = ToolAssembly.pickaxe(helper, player, POS, "iron", "wood", "wood");
         ForgeweaveConfig.ALLOW_VANILLA_ENCHANTING.set(true);
         ForgeweaveConfig.APOTHEOSIS_ENCHANTING.set(false);
         try {
