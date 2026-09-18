@@ -114,6 +114,7 @@ import dev.gkissel.forgeweave.combat.StackingSlownessOnHitSeam;
 import dev.gkissel.forgeweave.combat.StripEffects;
 import dev.gkissel.forgeweave.combat.ThornsReflectSeam;
 import dev.gkissel.forgeweave.compat.draconic.modules.DraconicModules;
+import dev.gkissel.forgeweave.compat.mekanism.modules.MekanismGearModules;
 import dev.gkissel.forgeweave.entity.ForgeweaveEntities;
 import dev.gkissel.forgeweave.item.ArmorPieceItem;
 import dev.gkissel.forgeweave.item.CapturedMob;
@@ -2452,7 +2453,11 @@ public final class ForgeweaveTraits {
      * call answers 0 on any install without that mod, and on any stack with no {@code evolved} trait.
      */
     public static int energyCapacity(ItemStack stack) {
-        int capacity = DraconicModules.moduleEnergyCapacity(stack);
+        // #993: a Mekanism energy unit adds to the same total, so one buffer serves the metal's own
+        // infused trait, a Forgeweave charger and an installed module alike rather than the tool
+        // carrying three.
+        int capacity = DraconicModules.moduleEnergyCapacity(stack)
+                + MekanismGearModules.moduleEnergyCapacity(stack);
         for (Trait trait : of(stack)) {
             capacity += trait.energyCapacity();
         }

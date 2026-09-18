@@ -181,7 +181,12 @@ class MaterialTest {
             // fusion recipe consumes. They sit above the wyvern/chaotic preset pair, which stays as
             // the raw tier under them. #965 added duskweld at the inert tier under the three, and
             // the draconium core material beside the other three cores.
-            "duskweld", "emberweld", "starweld", "voidweld", "draconium_core" })
+            "duskweld", "emberweld", "starweld", "voidweld", "draconium_core",
+            // #993 M8 (D-M8-13): atomic matter alloy, the same shape one mod over -- only a
+            // nucleosynthesis run on Mekanism's own machine makes the ingot. Unlike the welds it
+            // carries no neoforge:conditions at all (see TrackBAlloy), so it parses on the direct
+            // path the Track B roster above uses.
+            "atomic_matter_alloy" })
     void shippedMaterialsParse(String name) {
         Material.CODEC.parse(ops, shipped(name)).getOrThrow();
     }
@@ -338,6 +343,11 @@ class MaterialTest {
             "manyullyn,hardcinder", "ancient,hardcinder",
             "warspar,warspar", "hollowstone,warspar", "hollowsteel,warspar", "glowveil,warspar",
             "resonite,resonite", "sunsteel,resonite", "truesteel,resonite",
+            // #993 (D-M8-10): atomic matter alloy sits on the top resonite rung with them. The
+            // "compat metals stay within vanilla rungs" call in the batch 4 comment above does not
+            // apply -- the ingot is a Forgeweave item cast from a Forgeweave fluid, so a
+            // Forgeweave-only rung gates something real here.
+            "atomic_matter_alloy,resonite",
             // #872 M6 recovery batch: no upstream counterpart, so tiers here are Forgeweave's own
             // placement (proposed on the PR). ProjectE's dark/red matter and Avaritia's escalating
             // crystal_matrix/cosmic_neutronium/infinity ladder and Draconic Evolution's wyvern/chaotic
@@ -743,6 +753,10 @@ class MaterialTest {
             // them, and a fusion craft is the only thing that makes their ingot at all. #965 added
             // duskweld under the three.
             "duskweld", "emberweld", "starweld", "voidweld",
+            // #993: atomic matter alloy is cast-only for the same reason -- the Part Builder never
+            // takes it, and a nucleosynthesis run on Mekanism's own machine is the only thing that
+            // makes its ingot at all.
+            "atomic_matter_alloy",
             "tin", "aluminium", "nickel", "constantan", "invar", "platinum", "titanium", "tungsten",
             "iridium", "uranium", "graphite",
             "redstone_alloy", "energetic_alloy", "pulsating_alloy", "conductive_alloy", "vibrant_alloy",

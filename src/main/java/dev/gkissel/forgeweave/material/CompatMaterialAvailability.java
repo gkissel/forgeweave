@@ -92,7 +92,14 @@ public final class CompatMaterialAvailability {
             entry("duskweld", "draconicevolution:draconium_core"),
             entry("emberweld", "draconicevolution:wyvern_core"),
             entry("starweld", "draconicevolution:awakened_core"),
-            entry("voidweld", "draconicevolution:chaotic_core"));
+            entry("voidweld", "draconicevolution:chaotic_core"),
+            // #993 -- atomic matter alloy (D-M8-13). Its material JSON is the one entry here with no
+            // matching `neoforge:conditions` to mirror: the material ships unconditionally so that
+            // #993's GameTest can reach it with no Mekanism on the classpath (TrackBAlloy's own
+            // comment has the reasoning). This row is what still keeps its ingot, nugget and block
+            // out of creative and JEI without Mekanism, and its melting and casting rows carry the
+            // same item_exists gate.
+            entry("atomic_matter_alloy", "mekanism:alloy_atomic"));
 
     // The three PlusTiC-inspiration alloys (issue #873 deliverable 4): condition is the AND of their
     // compat inputs' own providers (native inputs -- iron, obsidian, glass -- need no entry).

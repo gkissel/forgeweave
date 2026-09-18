@@ -1,0 +1,7 @@
+{
+  "input": {
+    "tag": "c:tiny_dusts/atomic_matter_alloy"
+  },
+  "fluid": "forgeweave:molten_atomic_matter_alloy",
+  "amount": 16
+}

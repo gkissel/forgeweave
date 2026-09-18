@@ -26,6 +26,7 @@ import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.block.ForgeweaveBlocks;
 import dev.gkissel.forgeweave.block.SlimeColour;
 import dev.gkissel.forgeweave.combat.ForgeweaveInnates;
+import dev.gkissel.forgeweave.compat.mekanism.ForgeweaveMekanismCompat;
 import dev.gkissel.forgeweave.entity.ForgeweaveEntities;
 import dev.gkissel.forgeweave.material.MaterialForm;
 import dev.gkissel.forgeweave.material.MaterialForms;
@@ -282,17 +283,17 @@ public final class ForgeweaveItems {
     public static final DeferredItem<ToolItem> TOOL_PICKAXE = ITEMS.registerItem("pickaxe",
             properties -> new ToolItem(properties, List.of(BlockTags.MINEABLE_WITH_PICKAXE), 1.2f, 1.0f, 1.0f,
                     false, null, AoeHarvest.Shape.SINGLE),
-            new Item.Properties().stacksTo(1));
+            gear());
     public static final DeferredItem<ToolItem> TOOL_SHOVEL = ITEMS.registerItem("shovel",
             properties -> new ToolItem(properties, List.of(BlockTags.MINEABLE_WITH_SHOVEL), 1.0f, 0.9f, 1.0f,
                     false, null, AoeHarvest.Shape.SINGLE),
-            new Item.Properties().stacksTo(1));
+            gear());
     // HatchetItem, not plain ToolItem: the parity audit's T65 (issue #496) leaf carve-out --
     // full-speed, no-durability-cost leaf digging -- needs a per-block override plain ToolItem can't
     // express. Its own constructor repeats the tag/attack-speed/damage-potential/weapon constants
     // this used to pass here.
     public static final DeferredItem<HatchetItem> TOOL_HATCHET = ITEMS.registerItem("hatchet",
-            HatchetItem::new, new Item.Properties().stacksTo(1));
+            HatchetItem::new, gear());
 
     // M3 station tools (docs/SCOPE.md issue #156): mattock (axe+shovel dual tool, tills soil) and
     // kama (shears, right-click crop harvest). Both take their constants off ToolConstants and their
@@ -301,9 +302,9 @@ public final class ForgeweaveItems {
     // tools/tools/Mattock.java's Category.HARVEST -> weapon=false; Kama.java's Category.HARVEST +
     // Category.WEAPON -> weapon=true).
     public static final DeferredItem<MattockItem> TOOL_MATTOCK = ITEMS.registerItem("mattock",
-            MattockItem::new, new Item.Properties().stacksTo(1));
+            MattockItem::new, gear());
     public static final DeferredItem<KamaItem> TOOL_KAMA = ITEMS.registerItem("kama",
-            KamaItem::new, new Item.Properties().stacksTo(1));
+            KamaItem::new, gear());
 
     // M3 Tool Station weapons (docs/SCOPE.md M3 issue #155). Attack speed and damage potential come
     // from ToolConstants (issue #153) rather than being repeated here, so the numbers the station's
@@ -339,7 +340,7 @@ public final class ForgeweaveItems {
     // It mines nothing for the same reason: vanilla's own mace is new Tool(List.of(), 1.0F, 2).
     public static final DeferredItem<ToolItem> TOOL_WARMACE = ITEMS.registerItem("warmace",
             properties -> new WarmaceItem(properties, ToolConstants.WARMACE, List.of(), true, null),
-            new Item.Properties().stacksTo(1));
+            gear());
 
     // M3.5's shortbow (docs/SCOPE.md M3.5 issue #394): upstream tools/ranged/item/ShortBow.java --
     // getDrawTime() = 12 (BowCore's default is 20; the shortbow overrides it), baseProjectileSpeed()
@@ -350,7 +351,7 @@ public final class ForgeweaveItems {
     // launcher-side damage constants a fired material arrow folds in.
     public static final DeferredItem<BowItem> TOOL_SHORTBOW = ITEMS.registerItem("shortbow",
             properties -> new BowItem(properties, ToolConstants.SHORTBOW, 12, 3.0F, 1.0F, 0.0F, 0.8F, 0.5F),
-            new Item.Properties().stacksTo(1));
+            gear());
 
     // #448 (parity audit T17): the shuriken, upstream tools/ranged/item/Shuriken.java -- four knife
     // blades at the Tool Forge (TinkerRegistry.registerToolForgeCrafting), thrown on right-click,
@@ -358,7 +359,7 @@ public final class ForgeweaveItems {
     // ToolConstants#SHURIKEN.
     public static final DeferredItem<ShurikenItem> TOOL_SHURIKEN = ITEMS.registerItem("shuriken",
             properties -> new ShurikenItem(properties, ToolConstants.SHURIKEN),
-            new Item.Properties().stacksTo(1));
+            gear());
 
     // M3.5's Tool Forge-tier bows (docs/SCOPE.md M3.5 issue #395), both
     // TinkerRegistry.registerToolForgeCrafting upstream.
@@ -369,7 +370,7 @@ public final class ForgeweaveItems {
     // #653: baseProjectileDamage() = 2.5f, projectileDamageModifier() = 1.25f (LongBow.java).
     public static final DeferredItem<BowItem> TOOL_LONGBOW = ITEMS.registerItem("longbow",
             properties -> new BowItem(properties, ToolConstants.LONGBOW, 30, 5.5F, 1.2F, 2.5F, 1.25F),
-            new Item.Properties().stacksTo(1));
+            gear());
 
     // CrossBow.java: getDrawTime() = 45, baseProjectileSpeed() = 7f, and no baseInaccuracy()
     // override at all -- so BowCore's own 0f default, unlike either bow. preventSlowDown(0.195f):
@@ -377,7 +378,7 @@ public final class ForgeweaveItems {
     // #653: baseProjectileDamage() = 3f, projectileDamageModifier() = 1.3f (CrossBow.java).
     public static final DeferredItem<CrossbowItem> TOOL_CROSSBOW = ITEMS.registerItem("crossbow",
             properties -> new CrossbowItem(properties, ToolConstants.CROSSBOW, 45, 7.0F, 0.0F, 3.0F, 1.3F, 0.195F),
-            new Item.Properties().stacksTo(1));
+            gear());
 
     /**
      * #653 (parity audit T17): the material arrow, upstream {@code tools/ranged/item/Arrow.java} --
@@ -387,7 +388,7 @@ public final class ForgeweaveItems {
      */
     public static final DeferredItem<MaterialArrowItem> TOOL_ARROW = ITEMS.registerItem("arrow",
             properties -> new MaterialArrowItem(properties, ToolConstants.ARROW),
-            new Item.Properties().stacksTo(1));
+            gear());
 
     // M4 plate armor (issue #678, SCOPE.md D3): the four pieces, assembled from plating + maille at
     // either station (ToolConstants#ARMOR, ToolAssemblyRecipes#ENTRIES). Vanilla ArmorItems so the
@@ -408,14 +409,31 @@ public final class ForgeweaveItems {
     public static final DeferredItem<ArmorPieceItem> ARMOR_HEAVY_LEGGINGS = heavyArmor("leggings", ArmorItem.Type.LEGGINGS);
     public static final DeferredItem<ArmorPieceItem> ARMOR_HEAVY_BOOTS = heavyArmor("boots", ArmorItem.Type.BOOTS);
 
+    /**
+     * Every assembled tool and armour piece's {@code Item.Properties}: {@code stacksTo(1)} like all
+     * Forgeweave equipment, plus whatever a compat layer has to add at registration time.
+     *
+     * <p>Today that is issue #993's module container -- with Mekanism installed, Mekanism's own
+     * {@code module_container} default data component, so its Modification Station has something to
+     * install the first module into. Identical to a bare {@code stacksTo(1)} without Mekanism, and the
+     * item classes stay Mekanism-free either way: the whole compat item factory D-M8-15 asks for is
+     * behind {@code ForgeweaveMekanismCompat#containerProperties}, guarded by {@code ModList} there.
+     *
+     * <p>A fresh {@code Item.Properties} per call, because {@code DeferredRegister#registerItem}
+     * finishes each one with the item's own id and a shared instance would collide.
+     */
+    private static Item.Properties gear() {
+        return ForgeweaveMekanismCompat.containerProperties(new Item.Properties().stacksTo(1));
+    }
+
     private static DeferredItem<ArmorPieceItem> armor(String name, ArmorItem.Type type) {
         return ITEMS.registerItem(name, properties -> new ArmorPieceItem(type, false, properties),
-                new Item.Properties().stacksTo(1));
+                gear());
     }
 
     private static DeferredItem<ArmorPieceItem> heavyArmor(String name, ArmorItem.Type type) {
         return ITEMS.registerItem(ToolConstants.HEAVY_PREFIX + name, properties -> new ArmorPieceItem(type, true, properties),
-                new Item.Properties().stacksTo(1));
+                gear());
     }
 
     /** A sword-family weapon: upstream {@code SwordCore}'s effective set -- see the block above. */
@@ -423,7 +441,7 @@ public final class ForgeweaveItems {
             ForgeweaveInnates.Innate innate) {
         return ITEMS.registerItem(name,
                 properties -> new MeleeWeaponItem(properties, constants, BlockTags.SWORD_EFFICIENT, true, innate),
-                new Item.Properties().stacksTo(1));
+                gear());
     }
 
     /** A weapon that mines nothing: upstream's plain {@code TinkerToolCore} melee shape. */
@@ -431,7 +449,7 @@ public final class ForgeweaveItems {
             ForgeweaveInnates.Innate innate) {
         return ITEMS.registerItem(name,
                 properties -> new MeleeWeaponItem(properties, constants, List.of(), true, innate),
-                new Item.Properties().stacksTo(1));
+                gear());
     }
 
     // M3 station-tier weapons (docs/SCOPE.md M3 issue #159). Same ToolItem shape as the M1 three:
@@ -443,13 +461,13 @@ public final class ForgeweaveItems {
     public static final DeferredItem<ToolItem> TOOL_BATTLEAXE = ITEMS.registerItem("battleaxe",
             properties -> new ToolItem(properties, ToolConstants.BATTLEAXE, BlockTags.MINEABLE_WITH_AXE,
                     true, ForgeweaveInnates.SWEEPING_BLOW),
-            new Item.Properties().stacksTo(1));
+            gear());
     // SWORD_EFFICIENT rather than a mineable/* tag: the scimitar is a pure weapon, and that is the
     // tag vanilla's own swords carry (cobwebs, bamboo, plants) -- there is no mining role to gate.
     public static final DeferredItem<ToolItem> TOOL_SCIMITAR = ITEMS.registerItem("scimitar",
             properties -> new MeleeWeaponItem(properties, ToolConstants.SCIMITAR, BlockTags.SWORD_EFFICIENT,
                     true, ForgeweaveInnates.LACERATE),
-            new Item.Properties().stacksTo(1));
+            gear());
     // The katana (docs/SCOPE.md M3 issue #160): attack speed and damage potential from
     // ToolConstants#KATANA (issue #153's decision comment), Category.WEAPON like every sword-family
     // shape, and vanilla's SWORD_EFFICIENT as its mineable tag -- a katana is a weapon, so it gets
@@ -459,7 +477,7 @@ public final class ForgeweaveItems {
     public static final DeferredItem<ToolItem> TOOL_KATANA = ITEMS.registerItem("katana",
             properties -> new MeleeWeaponItem(properties, ToolConstants.KATANA, BlockTags.SWORD_EFFICIENT,
                     true, ForgeweaveInnates.DAMAGE_RAMP),
-            new Item.Properties().stacksTo(1));
+            gear());
 
     /**
      * The cleaver (docs/SCOPE.md M3 issue #158): a Tool Forge-tier weapon whose whole point is its
@@ -480,7 +498,7 @@ public final class ForgeweaveItems {
      */
     public static final DeferredItem<ToolItem> TOOL_CLEAVER = ITEMS.registerItem("cleaver",
             properties -> new CleaverItem(properties, ToolConstants.CLEAVER, BlockTags.SWORD_EFFICIENT, true, null),
-            new Item.Properties().stacksTo(1));
+            gear());
 
     // The large harvest tools (docs/SCOPE.md M3 issue #157): Tool Forge tier, four parts each, and
     // the only tools that break more than one block at a time. Everything numeric comes from their
@@ -496,23 +514,23 @@ public final class ForgeweaveItems {
     public static final DeferredItem<ToolItem> TOOL_HAMMER = ITEMS.registerItem("hammer",
             properties -> new ToolItem(properties, ToolConstants.HAMMER, BlockTags.MINEABLE_WITH_PICKAXE, true,
                     ForgeweaveInnates.CONCUSSION, AoeHarvest.Shape.PLANE_3X3),
-            new Item.Properties().stacksTo(1));
+            gear());
     public static final DeferredItem<ToolItem> TOOL_EXCAVATOR = ITEMS.registerItem("excavator",
             properties -> new ToolItem(properties, ToolConstants.EXCAVATOR, BlockTags.MINEABLE_WITH_SHOVEL, false,
                     ForgeweaveInnates.FLAT_SMACK, AoeHarvest.Shape.PLANE_3X3),
-            new Item.Properties().stacksTo(1));
+            gear());
     public static final DeferredItem<ToolItem> TOOL_LUMBERAXE = ITEMS.registerItem("lumberaxe",
             properties -> new ToolItem(properties, ToolConstants.LUMBERAXE, BlockTags.MINEABLE_WITH_AXE, false,
                     ForgeweaveInnates.TIMBER, AoeHarvest.Shape.TREE_FELL),
-            new Item.Properties().stacksTo(1));
+            gear());
     public static final DeferredItem<ToolItem> TOOL_SCYTHE = ITEMS.registerItem("scythe",
             properties -> new ToolItem(properties, ToolConstants.SCYTHE, BlockTags.MINEABLE_WITH_HOE, true,
                     ForgeweaveInnates.SWEEP, AoeHarvest.Shape.CUBE_3X3X3),
-            new Item.Properties().stacksTo(1));
+            gear());
     public static final DeferredItem<ToolItem> TOOL_VEIN_HAMMER = ITEMS.registerItem("vein_hammer",
             properties -> new ToolItem(properties, ToolConstants.VEIN_HAMMER, BlockTags.MINEABLE_WITH_PICKAXE, true,
                     ForgeweaveInnates.CRUSHING_BLOW, AoeHarvest.Shape.VEIN),
-            new Item.Properties().stacksTo(1));
+            gear());
 
     public static final DeferredItem<BlockItem> TOOL_STATION = ITEMS.registerSimpleBlockItem("tool_station", ForgeweaveBlocks.TOOL_STATION);
 

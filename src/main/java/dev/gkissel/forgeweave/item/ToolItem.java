@@ -11,6 +11,7 @@ import org.jetbrains.annotations.Nullable;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.core.component.DataComponentType;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.network.chat.Component;
@@ -38,6 +39,7 @@ import net.minecraft.world.item.UseAnim;
 import net.minecraft.world.item.component.ItemAttributeModifiers;
 import net.minecraft.world.item.component.Tool;
 import net.minecraft.world.item.enchantment.Enchantment;
+import net.minecraft.world.item.enchantment.ItemEnchantments;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.ItemLike;
 import net.minecraft.world.level.Level;
@@ -56,6 +58,7 @@ import dev.gkissel.forgeweave.combat.ForgeweaveInnates;
 import dev.gkissel.forgeweave.combat.ToolUseAction;
 import dev.gkissel.forgeweave.compat.apotheosis.ApotheosisSockets;
 import dev.gkissel.forgeweave.compat.draconic.modules.DraconicModules;
+import dev.gkissel.forgeweave.compat.mekanism.modules.MekanismGearModules;
 import dev.gkissel.forgeweave.config.ForgeweaveConfig;
 import dev.gkissel.forgeweave.entity.IndestructibleItemEntity;
 import dev.gkissel.forgeweave.material.Material;
@@ -827,6 +830,12 @@ public class ToolItem extends Item {
             ForgeweaveTraits.inventoryTick(stack, serverLevel, holder);
             ForgeweaveModifiers.inventoryTick(stack, serverLevel, holder, isSelected);
         }
+        // #993: the free ICustomModule hooks on an installed Mekanism module, which need no interaction
+        // site of their own, only this tick. Both sides, because tickClient is half the pair. Does
+        // nothing without Mekanism, without an atomic_matter_alloy part, or with the toggle off.
+        if (entity instanceof Player player && !isBroken(stack)) {
+            MekanismGearModules.tickModules(stack, player, !level.isClientSide);
+        }
     }
 
     /**
@@ -846,8 +855,12 @@ public class ToolItem extends Item {
         // run the module -- see DraconicModuleEffects for the two deviations from DE's own curve.
         // #969: an Apotheosis mining-speed gem adds to the same number, the way its own attribute
         // adds to a vanilla tool's dig speed rather than scaling it. 0 without Apotheosis or sockets.
+        // #993: a Mekanism excavation escalation unit multiplies the same number, for the same reason
+        // and with the same clamp at 1 -- see MekanismModuleEffects for why Mekanism's own absolute
+        // efficiency becomes a multiplier here rather than replacing the tool's speed.
         return ForgeweaveTraits.miningSpeed(stack, isEffective(state), base)
                 * DraconicModules.digSpeedMultiplier(stack)
+                * MekanismGearModules.digSpeedMultiplier(stack)
                 + ApotheosisSockets.miningSpeedBonus(stack);
     }
 
@@ -914,6 +927,32 @@ public class ToolItem extends Item {
     @Override
     public boolean isFoil(ItemStack stack) {
         return false;
+    }
+
+    /**
+     * The enchantments this tool actually has, plus the ones its installed Mekanism modules grant
+     * (issue #993): silk touch, fortune and frost walker today, and anything else Mekanism ships as an
+     * {@code EnchantmentAwareModule}. Exactly the component on the stack without Mekanism, without an
+     * {@code atomic_matter_alloy} part, or with the compat toggle off.
+     *
+     * <p>Module-granted levels are deliberately exempt from {@code ModifierCompatibility}'s
+     * blasting/silk-touch exclusion. That table exists so one modifier slot cannot buy two
+     * contradictory effects; a module costs no slot, is switched on and off in Mekanism's own module
+     * screen, and is not written to the stack's enchantment component, so nothing here is spending
+     * Forgeweave's own budget twice.
+     */
+    @Override
+    public ItemEnchantments getAllEnchantments(ItemStack stack, HolderLookup.RegistryLookup<Enchantment> lookup) {
+        ItemEnchantments own = super.getAllEnchantments(stack, lookup);
+        ItemEnchantments modules = MekanismGearModules.moduleEnchantments(stack);
+        if (modules.isEmpty()) {
+            return own;
+        }
+        ItemEnchantments.Mutable merged = new ItemEnchantments.Mutable(own);
+        for (Holder<Enchantment> enchantment : modules.keySet()) {
+            merged.upgrade(enchantment, modules.getLevel(enchantment));
+        }
+        return merged.toImmutable();
     }
 
     /**
@@ -1022,6 +1061,9 @@ public class ToolItem extends Item {
             // out of the shared buffer, per block, exactly as DE's tools do -- so an area module's
             // nine-block swing costs nine times one block's. 0 with no such module.
             int moduleEnergy = DraconicModules.miningEnergyCost(stack);
+            // #993: a running Mekanism excavation, blasting or vein mining unit spends out of the same
+            // buffer, per block, the way Mekanism's own tool charges it. 0 with no such module.
+            moduleEnergy += MekanismGearModules.miningEnergyCost(stack);
             if (moduleEnergy > 0) {
                 EnergyBuffer.extract(stack, moduleEnergy, false);
             }

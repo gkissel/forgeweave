@@ -14,6 +14,8 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.enchantment.ItemEnchantments;
 import net.minecraft.world.level.Level;
 
+import dev.gkissel.forgeweave.config.ForgeweaveConfig;
+
 /**
  * The Mekanism-free half of Forgeweave's module container compat (issue #993): the wiring table every
  * reader walks, and the seam the rest of the mod calls into without naming a {@code mekanism} type.
@@ -204,6 +206,39 @@ public final class MekanismGearModules {
         public boolean any() {
             return ratio > 0.0F;
         }
+    }
+
+    /** {@link #energyPerBlock()}'s own default: what one block break costs a running mining module. */
+    public static final int ENERGY_PER_BLOCK_DEFAULT = 400;
+
+    /** {@link #energyPerAbsorbedPoint()}'s own default: FE per half-heart the suit's modules absorb. */
+    public static final int ENERGY_PER_ABSORBED_POINT_DEFAULT = 1000;
+
+    /** {@link #veinMiningMaxBlocks()}'s own default, a cap on top of Mekanism's own traversal limit. */
+    public static final int VEIN_MINING_MAX_BLOCKS_DEFAULT = 64;
+
+    /**
+     * Whether the bridge does anything -- {@code ForgeweaveConfig.MEKANISM_MODULES}, D-M8-5's family
+     * toggle. Off makes the container inert, never absent; see the class javadoc for what that can and
+     * cannot reach.
+     */
+    public static boolean modulesEnabled() {
+        return ForgeweaveConfig.enabled(ForgeweaveConfig.MEKANISM_MODULES);
+    }
+
+    /** FE one block break costs while a powered Mekanism mining module is installed. */
+    public static int energyPerBlock() {
+        return ForgeweaveConfig.mekanismEnergyPerBlock();
+    }
+
+    /** FE the MekaSuit absorption modules spend per point of damage they take off a blow. */
+    public static int energyPerAbsorbedPoint() {
+        return ForgeweaveConfig.mekanismEnergyPerAbsorbedPoint();
+    }
+
+    /** How many blocks one vein mining swing breaks at most, on top of Mekanism's own traversal limit. */
+    public static int veinMiningMaxBlocks() {
+        return ForgeweaveConfig.mekanismVeinMiningMaxBlocks();
     }
 
     @Nullable

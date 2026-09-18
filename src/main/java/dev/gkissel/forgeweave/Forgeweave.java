@@ -45,6 +45,7 @@ import dev.gkissel.forgeweave.combat.RangedXpSeam;
 import dev.gkissel.forgeweave.compat.apotheosis.ApotheosisSockets;
 import dev.gkissel.forgeweave.compat.create.ForgeweaveCreateCompat;
 import dev.gkissel.forgeweave.compat.draconic.ForgeweaveDraconicCompat;
+import dev.gkissel.forgeweave.compat.mekanism.ForgeweaveMekanismCompat;
 import dev.gkissel.forgeweave.config.ForgeweaveClientConfig;
 import dev.gkissel.forgeweave.config.ForgeweaveConfig;
 import dev.gkissel.forgeweave.data.ForgeweaveDataGenerators;
@@ -314,6 +315,13 @@ public class Forgeweave {
         // inside a method body rather than a static field.
         if (ModList.get().isLoaded(ApotheosisSockets.MODID)) {
             ApotheosisSockets.installBridge();
+        }
+        // #993 -- Mekanism module containers (docs/SCOPE.md M8, D-M8-15). Same load-bearing guard
+        // again: the container behind this call names mekanism types and cannot link without the mod,
+        // which is why ForgeweaveMekanismCompat itself names none and reaches its implementation from
+        // inside a method body rather than a static field.
+        if (ModList.get().isLoaded(ForgeweaveMekanismCompat.MODID)) {
+            ForgeweaveMekanismCompat.register(modEventBus);
         }
     }
 

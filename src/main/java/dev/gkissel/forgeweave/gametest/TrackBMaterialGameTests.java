@@ -50,7 +50,13 @@ public class TrackBMaterialGameTests {
             "warspar", "hollowstone", "resonite", "starfall_stone", "voidglass",
             "ironbrand", "quakestone", "shardline", "embercast", "riftalloy", "tideiron", "cinderforge",
             "dreadalloy", "sunsteel", "hollowsteel", "truesteel", "stormalloy", "glowveil", "daybrass",
-            "faultsteel", "skipalloy", "mendalloy", "mendstone");
+            "faultsteel", "skipalloy", "mendalloy", "mendstone",
+            // #993 (M8, D-M8-13): atomic matter alloy belongs in this roster and not with the four
+            // Draconic Evolution welds, because its material JSON carries no neoforge:conditions --
+            // it registers with no supplying mod, which is the exact property these tests assert and
+            // the reason #993 asks for a GameTest over it in the first place (GameTests run with no
+            // Mekanism on the classpath). Only its item forms, melting rows and casting rows gate.
+            "atomic_matter_alloy");
 
     /**
      * id -&gt; its assigned general trait, the PR body's stat/trait table in code form.
