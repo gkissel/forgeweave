@@ -1,0 +1,20 @@
+{
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:mod_loaded",
+      "modid": "occultism"
+    }
+  ],
+  "type": "occultism:crushing",
+  "crushing_time": 200,
+  "ignore_crushing_multiplier": true,
+  "ingredient": {
+    "tag": "c:raw_materials/hollowstone"
+  },
+  "min_tier": 4,
+  "result": {
+    "type": "occultism:tag",
+    "count": 1,
+    "tag": "c:ingots/hollowstone"
+  }
+}

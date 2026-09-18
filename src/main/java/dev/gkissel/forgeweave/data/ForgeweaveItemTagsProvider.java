@@ -23,6 +23,7 @@ import dev.gkissel.forgeweave.block.ChestKind;
 import dev.gkissel.forgeweave.block.ForgeweaveBlocks;
 import dev.gkissel.forgeweave.block.SearedDuctBlockEntity;
 import dev.gkissel.forgeweave.compat.draconic.ForgeweaveDraconicCompat;
+import dev.gkissel.forgeweave.compat.occultism.ForgeweaveOccultismCompat;
 import dev.gkissel.forgeweave.item.ForgeweaveItems;
 import dev.gkissel.forgeweave.item.PatternItem;
 import dev.gkissel.forgeweave.material.MaterialForm;
