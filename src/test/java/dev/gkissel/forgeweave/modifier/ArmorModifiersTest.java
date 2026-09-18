@@ -48,7 +48,9 @@ class ArmorModifiersTest {
             id("fire_protection"), id("blast_protection"), id("magic_protection"),
             id("melee_protection"), id("projectile_protection"), id("knockback_resistance"), id("thorns"),
             // #737 (epic #730 slice 2): chestplate-only (any weight since #1005), so also armorOnly.
-            id("elytra_flight"), id("creative_flight"));
+            id("elytra_flight"), id("creative_flight"),
+            // #1007: helmet-only (heavy or light), so also armorOnly.
+            id("goggles"));
 
     private static ResourceLocation id(String path) {
         return ResourceLocation.fromNamespaceAndPath("forgeweave", path);

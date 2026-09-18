@@ -149,6 +149,17 @@ public interface Modifier {
     }
 
     /**
+     * Whether this modifier may only be applied to a worn helmet, heavy or light alike (issue #1007:
+     * Create's goggles, the first slot-free utility) -- narrower than {@link #armorOnly} the same way
+     * {@link #chestplateOnly} is, on {@code ArmorItem.Type.HELMET} rather than {@code CHESTPLATE},
+     * and caring no more about weight than that gate does since #1005. Checked by
+     * {@code ModifierApplication} off the tool item itself, next to the chestplate gate above.
+     */
+    default boolean helmetOnly() {
+        return false;
+    }
+
+    /**
      * Whether this modifier grants elytra-style gliding to the piece carrying it (issue #737) --
      * read by {@code ArmorPieceItem#canElytraFly}, which NeoForge's {@code LivingEntity#
      * tryToStartFallFlying} calls on whatever item sits in the chest slot regardless of whether it is
@@ -362,9 +373,28 @@ public interface Modifier {
      * {@code FreeFirstModifierAspect} (one slot on first application, later levels free), soulbound's
      * chargeless {@code DataAspect + SingleAspect}, and extra_slot/{@code ModCreative} (no aspects at
      * all -- see {@link #bonusSlots}).
+     *
+     * <p>Issue #1007 adds {@link #utility}, a named flag for the same zero rather than a fourth
+     * ad-hoc override: soulbound and netherite predate it and keep their own direct overrides (no
+     * upstream aspect to name), but a future slot-free add-on only needs to flip the flag.
      */
     default int occupiedSlots(int level) {
+        if (utility()) {
+            return 0;
+        }
         return level <= 0 ? 0 : 1 + (level - 1) / Math.max(1, unitsPerLevel());
+    }
+
+    /**
+     * Whether this modifier is a slot-free utility -- it never occupies a modifier slot, at any level
+     * (issue #1007: Create's goggles, "a general seam, since more utilities will follow"). The single
+     * check lives in {@link #occupiedSlots}'s default above, so a modifier that leaves this
+     * {@code false} (the default) keeps the normal per-level accounting; one that overrides
+     * {@link #occupiedSlots} directly, like {@code soulbound} or {@code netherite}, has no reason to
+     * also flip this flag.
+     */
+    default boolean utility() {
+        return false;
     }
 
     // #108 batch: modern-vanilla modifiers (issue #108) -- Forgeweave originals, not upstream ports,

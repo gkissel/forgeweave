@@ -1585,6 +1585,36 @@ public final class ForgeweaveModifiers {
         return false;
     }
 
+    // ---------------------------------------------------------------- issue #1007 (docs/SCOPE.md M8):
+    // Create's Engineer's Goggles as a helmet modifier. Forgeweave original, no upstream source -- armor
+    // did not exist in either clone generation (same #737 note above).
+
+    /** Exposed so {@code dev.gkissel.forgeweave.compat.create.ForgeweaveCreateCompat} can read the tool's entry. */
+    public static final ResourceLocation GOGGLES_ID = id("goggles");
+
+    /**
+     * Makes the worn helmet count as wearing Create's own goggles for its overlays (stress units,
+     * fluid contents, goggle tooltips) -- {@code GogglesItem.addIsWearingPredicate}, registered from
+     * {@code compat/create} only when Create is loaded. A pure utility: one level, no combat or
+     * mining effect of its own, and {@link Modifier#utility} means it spends no modifier slot.
+     */
+    public static final Modifier GOGGLES = new Modifier() {
+        @Override
+        public boolean armorOnly() {
+            return true;
+        }
+
+        @Override
+        public boolean helmetOnly() {
+            return true;
+        }
+
+        @Override
+        public boolean utility() {
+            return true;
+        }
+    };
+
     private static final Map<ResourceLocation, Modifier> REGISTRY = Map.ofEntries(
             Map.entry(id("fire_protection"), FIRE_PROTECTION),
             Map.entry(id("blast_protection"), BLAST_PROTECTION),
@@ -1625,7 +1655,8 @@ public final class ForgeweaveModifiers {
             Map.entry(id("blasting"), BLASTING),
             Map.entry(id("veinmine"), VEINMINE),
             Map.entry(ELYTRA_FLIGHT_ID, ELYTRA_FLIGHT),
-            Map.entry(id("creative_flight"), CREATIVE_FLIGHT));
+            Map.entry(id("creative_flight"), CREATIVE_FLIGHT),
+            Map.entry(GOGGLES_ID, GOGGLES));
 
     /**
      * docs/SCOPE.md's "8 combat modifiers" (M3 acceptance test 4): the #162/#163 batches' seven
