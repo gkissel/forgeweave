@@ -116,8 +116,8 @@ public final class ModifyPageContent {
      * Issue #760 picked a category by the modifier's predicates alone (projectileOnly, harvestOnly,
      * armorOnly, else melee) and trusted every entry of that category to accept it; issue #794 found
      * that false for the width/height expanders (Category.AOE, no melee weapon has an expandable
-     * area) and, the same hole, wind burst (mace-only) and elytra/creative flight (heavy-chestplate-
-     * only) -- see {@link #compatibleEntries}'s javadoc for the fix.
+     * area) and, the same hole, wind burst (mace-only) and elytra/creative flight (chestplate-only)
+     * -- see {@link #compatibleEntries}'s javadoc for the fix.
      */
     public static ToolAssemblyRecipes.Entry representativeEntry(@Nullable HolderLookup.Provider registries, Modifier modifier) {
         return compatibleEntries(registries, modifier).stream().findFirst()
@@ -138,7 +138,8 @@ public final class ModifyPageContent {
      * every entry when nothing in that preferred category actually qualifies: the two AoE expanders
      * (no melee weapon has an expandable area; a harvest tool does), wind burst (no plain sword is
      * {@code #minecraft:enchantable/mace}; the warmace is), and elytra/creative flight ({@link
-     * Modifier#heavyChestplateOnly} rules out every plain armor piece; the heavy chestplate qualifies).
+     * Modifier#chestplateOnly} rules out every helmet, leggings and boots entry; either chestplate,
+     * heavy or light, qualifies).
      * A modifier that fits nothing at all ({@link ModifierApplication#acceptsToolShape} refuses every
      * entry) is a data bug this throws loudly on rather than illustrating with the wrong item anyway.
      */
