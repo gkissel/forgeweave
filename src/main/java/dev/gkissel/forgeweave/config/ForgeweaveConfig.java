@@ -486,6 +486,25 @@ public final class ForgeweaveConfig {
      */
     public static final ModConfigSpec.BooleanValue MODIFIER_DEFINITIONS;
 
+    /**
+     * Issue #999 (D-M8-20). Covers the Mystical Agriculture crop registrations and the augment seam
+     * that makes Forgeweave gear {@code ITinkerable}, never the Mystical Agriculture material
+     * presets: D-M8-5 is explicit that Track A presets are never toggled, so prosperity, soulium,
+     * the essence ladder and insanium stay active whenever their own item exists.
+     *
+     * <p>Read at the point the integration answers, like every other flag here, even though what the
+     * integration does is decide a class: {@code compat.CompatItems} branches on whether Mystical
+     * Agriculture is <em>installed</em>, which is a load-time fact a {@code SERVER} spec cannot
+     * contribute to (#1024), and this flag then zeroes the augment slot count and the tinkerable tier
+     * the registered item reports. Off is therefore inert and needs no restart: nothing can be
+     * installed, nothing installed grants anything, and Mystical Agriculture's own augment component
+     * stays exactly where it is -- Forgeweave neither copies nor migrates that data, the rule JC-D set
+     * for Apotheosis affixes.
+     *
+     * @see #DRACONIC_FUSION
+     */
+    public static final ModConfigSpec.BooleanValue MYSTICAL_AGRICULTURE_AUGMENTS;
+
     /** Upstream {@code genCobalt}: cobalt ore generates in the Nether. */
     public static final ModConfigSpec.BooleanValue GEN_COBALT;
     /** Upstream {@code cobaltRate}: approximate cobalt veins per Nether chunk. */
@@ -1137,6 +1156,22 @@ public final class ForgeweaveConfig {
                 .comment("How long, in ticks, that craft takes. Mekanism's own longest is 1250.")
                 .defineInRange("mekanismNucleosynthesizingDuration",
                         ForgeweaveMekanismCompat.NUCLEOSYNTHESIZING_DURATION_DEFAULT, 1, 100_000);
+        // Issue #999 (D-M8-20). Appended for the same key-order reason the two above are.
+        MYSTICAL_AGRICULTURE_AUGMENTS = builder
+                .comment("If true, Forgeweave works with Mystical Agriculture: the Track B ores and brimspar",
+                        "get resource crops, and gear built from a Mystical Agriculture essence metal is",
+                        "accepted by Mystical Agriculture's own Tinkering Table so augments can be installed.",
+                        "",
+                        "Off makes the augment seam inert rather than absent: a Forgeweave tool still goes into",
+                        "the Tinkering Table's first slot, but it offers no augment slot, so nothing can be",
+                        "installed and nothing already installed does anything. Augment data is Mystical",
+                        "Agriculture's own and Forgeweave neither copies nor clears it, so a stack that already",
+                        "carries some keeps it and works again the moment this comes back. No restart needed.",
+                        "",
+                        "Whether the crops exist is decided when registries freeze, so adding or removing",
+                        "Mystical Agriculture itself needs a restart -- installing a mod always does. The",
+                        "material presets are unaffected either way: they are never toggled.")
+                .define("mysticalAgricultureAugments", true);
         builder.pop();
         COMPAT_SPEC = builder.build();
 

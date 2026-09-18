@@ -41,6 +41,12 @@
         "item": "refinedstorage:quartz_enriched_iron"
       },
       "value": 144
+    },
+    {
+      "ingredient": {
+        "tag": "c:ingots/quartz_enriched_iron"
+      },
+      "value": 144
     }
   ],
   "repair_item": {
@@ -51,8 +57,17 @@
   "color": "#C9A96A",
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "refinedstorage:quartz_enriched_iron"
+      "type": "neoforge:or",
+      "values": [
+        {
+          "type": "neoforge:item_exists",
+          "item": "refinedstorage:quartz_enriched_iron"
+        },
+        {
+          "type": "neoforge:item_exists",
+          "item": "eternalores:quartz_enriched_iron_ingot"
+        }
+      ]
     }
   ]
 }

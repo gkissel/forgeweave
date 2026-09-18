@@ -13,8 +13,17 @@
   },
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "mekanism:ingot_bronze"
+      "type": "neoforge:or",
+      "values": [
+        {
+          "type": "neoforge:item_exists",
+          "item": "mekanism:ingot_bronze"
+        },
+        {
+          "type": "neoforge:item_exists",
+          "item": "eternalores:bronze_ingot"
+        }
+      ]
     }
   ]
 }

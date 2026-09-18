@@ -81,6 +81,10 @@
         {
           "type": "neoforge:item_exists",
           "item": "immersiveengineering:ingot_lead"
+        },
+        {
+          "type": "neoforge:item_exists",
+          "item": "eternalores:lead_ingot"
         }
       ]
     }

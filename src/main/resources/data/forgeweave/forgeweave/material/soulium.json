@@ -1,0 +1,62 @@
+{
+  "head": {
+    "durability": 460,
+    "mining_speed": 6.5,
+    "attack_damage": 4.6
+  },
+  "handle": {
+    "durability_modifier": 0.95,
+    "durability": 50
+  },
+  "extra_durability": 110,
+  "bow": {
+    "drawspeed": 0.62,
+    "range": 1.25,
+    "bonus_damage": 4.0
+  },
+  "plating": {
+    "helmet": {
+      "durability": 193,
+      "armor": 2.0,
+      "toughness": 1.0
+    },
+    "chestplate": {
+      "durability": 281,
+      "armor": 6.0,
+      "toughness": 1.0
+    },
+    "leggings": {
+      "durability": 265,
+      "armor": 5.0,
+      "toughness": 1.0
+    },
+    "boots": {
+      "durability": 230,
+      "armor": 2.0,
+      "toughness": 1.0
+    }
+  },
+  "maille": true,
+  "incorrect_for_tool": "minecraft:incorrect_for_diamond_tool",
+  "traits": {},
+  "crafting_items": [
+    {
+      "ingredient": {
+        "item": "mysticalagriculture:soulium_ingot"
+      },
+      "value": 144
+    }
+  ],
+  "repair_item": {
+    "item": "mysticalagriculture:soulium_ingot"
+  },
+  "cast_only": true,
+  "enchantability": 18,
+  "color": "#4C3468",
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "mysticalagriculture:soulium_ingot"
+    }
+  ]
+}

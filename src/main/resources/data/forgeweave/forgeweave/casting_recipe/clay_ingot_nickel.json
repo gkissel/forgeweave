@@ -11,8 +11,17 @@
   "consumes_cast": true,
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "immersiveengineering:ingot_nickel"
+      "type": "neoforge:or",
+      "values": [
+        {
+          "type": "neoforge:item_exists",
+          "item": "immersiveengineering:ingot_nickel"
+        },
+        {
+          "type": "neoforge:item_exists",
+          "item": "eternalores:nickel_ingot"
+        }
+      ]
     }
   ]
 }

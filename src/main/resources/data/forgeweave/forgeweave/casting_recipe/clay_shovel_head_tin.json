@@ -14,8 +14,17 @@
   "consumes_cast": true,
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "mekanism:ingot_tin"
+      "type": "neoforge:or",
+      "values": [
+        {
+          "type": "neoforge:item_exists",
+          "item": "mekanism:ingot_tin"
+        },
+        {
+          "type": "neoforge:item_exists",
+          "item": "eternalores:tin_ingot"
+        }
+      ]
     }
   ]
 }

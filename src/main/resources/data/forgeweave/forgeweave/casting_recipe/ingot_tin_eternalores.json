@@ -1,0 +1,17 @@
+{
+  "station": "table",
+  "cast": {
+    "item": "forgeweave:cast_ingot"
+  },
+  "fluid": "forgeweave:molten_tin",
+  "amount": 144,
+  "result": {
+    "id": "eternalores:tin_ingot"
+  },
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "eternalores:tin_ingot"
+    }
+  ]
+}

@@ -67,8 +67,17 @@
   "color": "#A8794A",
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "immersiveengineering:ingot_constantan"
+      "type": "neoforge:or",
+      "values": [
+        {
+          "type": "neoforge:item_exists",
+          "item": "immersiveengineering:ingot_constantan"
+        },
+        {
+          "type": "neoforge:item_exists",
+          "item": "eternalores:constantan_ingot"
+        }
+      ]
     }
   ]
 }

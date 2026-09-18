@@ -1,0 +1,66 @@
+{
+  "head": {
+    "durability": 1600,
+    "mining_speed": 11.0,
+    "attack_damage": 9.2
+  },
+  "handle": {
+    "durability_modifier": 1.2,
+    "durability": 155
+  },
+  "extra_durability": 400,
+  "bow": {
+    "drawspeed": 0.44,
+    "range": 1.45,
+    "bonus_damage": 8.0
+  },
+  "plating": {
+    "helmet": {
+      "durability": 672,
+      "armor": 4.0,
+      "toughness": 3.5,
+      "knockback_resistance": 0.2
+    },
+    "chestplate": {
+      "durability": 976,
+      "armor": 9.0,
+      "toughness": 3.5,
+      "knockback_resistance": 0.2
+    },
+    "leggings": {
+      "durability": 923,
+      "armor": 7.0,
+      "toughness": 3.5,
+      "knockback_resistance": 0.2
+    },
+    "boots": {
+      "durability": 800,
+      "armor": 3.0,
+      "toughness": 3.5,
+      "knockback_resistance": 0.2
+    }
+  },
+  "maille": true,
+  "incorrect_for_tool": "forgeweave:incorrect_for_resonite_tool",
+  "traits": {},
+  "crafting_items": [
+    {
+      "ingredient": {
+        "item": "mysticalagradditions:insanium_ingot"
+      },
+      "value": 144
+    }
+  ],
+  "repair_item": {
+    "item": "mysticalagradditions:insanium_ingot"
+  },
+  "cast_only": true,
+  "enchantability": 26,
+  "color": "#1E1E28",
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "mysticalagradditions:insanium_ingot"
+    }
+  ]
+}
