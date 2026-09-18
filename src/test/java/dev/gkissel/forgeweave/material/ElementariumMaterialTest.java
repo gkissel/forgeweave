@@ -80,6 +80,10 @@ class ElementariumMaterialTest {
 
     @Test
     void everyGeneratedPresetCarriesBothExistenceConditions() throws IOException {
+        // The compat_toggle condition is ForgeweaveConfigCondition, shared with #995's four
+        // processing-mod toggles -- a dedicated ElementariumEnabledCondition was this issue's first
+        // attempt and never actually gated anything (a datapack registry loads before
+        // ForgeweaveConfig.loaded() is ever true), so this pins the fix instead of the mistake.
         for (String id : new String[] {"vanadium", "chromium", "molybdenum", "palladium", "hafnium", "tantalum"}) {
             JsonObject material = readMaterial("elementarium_" + id);
             var conditions = material.getAsJsonArray("neoforge:conditions");
@@ -87,8 +91,8 @@ class ElementariumMaterialTest {
                     "elementarium_" + id + " must carry exactly two conditions, got " + conditions);
             assertEquals("neoforge:mod_loaded", conditions.get(0).getAsJsonObject().get("type").getAsString());
             assertEquals("elementarium", conditions.get(0).getAsJsonObject().get("modid").getAsString());
-            assertEquals("forgeweave:elementarium_materials_enabled",
-                    conditions.get(1).getAsJsonObject().get("type").getAsString());
+            assertEquals("forgeweave:compat_toggle", conditions.get(1).getAsJsonObject().get("type").getAsString());
+            assertEquals("elementariumMaterials", conditions.get(1).getAsJsonObject().get("toggle").getAsString());
         }
     }
 

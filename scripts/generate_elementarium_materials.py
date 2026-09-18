@@ -10,11 +10,17 @@ a vanilla diamond-tier tool (its MiningTier enum caps at DIAMOND, no netherite-o
 
 Registration keys on the tag, not a concrete item id (unlike Allthemodium, whose ingot ids are
 public): each generated material's neoforge:conditions carries neoforge:mod_loaded("elementarium")
-for existence, plus forgeweave:elementarium_materials_enabled (ElementariumEnabledCondition) for the
+for existence, plus {"type": "forgeweave:compat_toggle", "toggle": "elementariumMaterials"}
+(ForgeweaveConfigCondition, shared with #995's four processing-mod toggles) for the
 elementariumMaterials toggle -- D-M8-5's one deliberate exception, since these presets are generated
-rather than hand-authored. crafting_items/repair_item key on the c:ingots/<id> tag itself (the
-"obtainability gate", Material.java's own term): a material still registers if the tag turns out
-empty for a given element, it just never resolves a craft, matching Material.LENIENT_INGREDIENT_CODEC.
+rather than hand-authored. A first attempt at this toggle (ElementariumEnabledCondition, a dedicated
+condition that called ForgeweaveConfig.enabled directly) never actually gated anything: a datapack
+registry loads before ForgeweaveConfig.loaded() is ever true on any boot, so that call always took
+the permissive "spec not loaded" branch. ForgeweaveConfigCondition is the real fix -- see its own
+javadoc -- and this script emits its condition instead. crafting_items/repair_item key on the
+c:ingots/<id> tag itself (the "obtainability gate", Material.java's own term): a material still
+registers if the tag turns out empty for a given element, it just never resolves a craft, matching
+Material.LENIENT_INGREDIENT_CODEC.
 
 Roster and interpolation rule. Elementarium adds all 118 periodic-table elements, but nowhere near
 all of them are metals with a plausible tool-part ingot (noble gases, halogens, etc. are not), and
@@ -127,7 +133,7 @@ def material_json(element_id: str, atomic_number: int, color: str, trait: str) -
         "color": color,
         "neoforge:conditions": [
             {"type": "neoforge:mod_loaded", "modid": "elementarium"},
-            {"type": "forgeweave:elementarium_materials_enabled"},
+            {"type": "forgeweave:compat_toggle", "toggle": "elementariumMaterials"},
         ],
     }
 

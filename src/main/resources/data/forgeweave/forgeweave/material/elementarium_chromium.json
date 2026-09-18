@@ -52,7 +52,8 @@
       "modid": "elementarium"
     },
     {
-      "type": "forgeweave:elementarium_materials_enabled"
+      "type": "forgeweave:compat_toggle",
+      "toggle": "elementariumMaterials"
     }
   ]
 }

@@ -11,15 +11,19 @@ import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 
 import dev.gkissel.forgeweave.Forgeweave;
-import dev.gkissel.forgeweave.condition.ElementariumEnabledCondition;
 import dev.gkissel.forgeweave.config.ForgeweaveConfig;
+import dev.gkissel.forgeweave.config.ForgeweaveConfigCondition;
 import dev.gkissel.forgeweave.worldgen.TrackBOrePlacement;
 
 /**
  * The two D-M8-19 (issue #998) compat toggles' off paths, following {@code CompatToggleGameTests}'
  * own shape: neither integration mod is present in {@code runGameTestServer}, so each is read at a
  * site that needs no mod-free half to exist at all -- {@link TrackBOrePlacement#allowed} is a pure
- * function of a dimension key, and {@link ElementariumEnabledCondition} is a pure config read.
+ * function of a dimension key, and {@link ForgeweaveConfigCondition} is a config read that, inside
+ * a running GameTest server, always takes its {@code ForgeweaveConfig.loaded()} branch. The other
+ * branch -- what it reads before the spec has loaded, which is where {@code elementariumMaterials}
+ * actually spends its first few seconds every boot -- is {@code ForgeweaveConfigConditionTest}'s
+ * subject, not this file's: a GameTest server has no "spec not loaded yet" moment to reach.
  *
  * <p>Kept out of {@code CompatToggleGameTests} itself: that file is a hot spot for the several other
  * PRs landing compat toggles in this milestone (D-M8-5), so a new toggle gets a new file instead of
@@ -82,14 +86,16 @@ public class AllthemodiumElementariumGameTests {
     }
 
     /**
-     * {@code elementariumMaterials} off makes the generated presets' existence condition answer
-     * false, so none of them register; on restores it with no reload. {@code
+     * {@code elementariumMaterials} off makes {@code forgeweave:compat_toggle("elementariumMaterials")}
+     * answer false, so none of the generated presets register; on restores it with no reload. {@code
      * neoforge:mod_loaded("elementarium")}, the other half of every generated preset's condition, is
-     * not this toggle's concern and is not tested here.
+     * not this toggle's concern and is not tested here. The spec is loaded throughout a GameTest
+     * server, so this exercises {@link ForgeweaveConfigCondition}'s {@code ForgeweaveConfig.loaded()}
+     * branch only -- see this class's own javadoc for where the other branch is tested.
      */
     @GameTest(template = "empty")
     public static void elementariumMaterialsOffDisablesTheCondition(GameTestHelper helper) {
-        ElementariumEnabledCondition condition = new ElementariumEnabledCondition();
+        ForgeweaveConfigCondition condition = new ForgeweaveConfigCondition("elementariumMaterials");
 
         helper.assertTrue(condition.test(null),
                 "the condition answers true while elementariumMaterials is on, or this test proves nothing");

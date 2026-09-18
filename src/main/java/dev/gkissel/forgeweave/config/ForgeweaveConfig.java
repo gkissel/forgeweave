@@ -399,9 +399,11 @@ public final class ForgeweaveConfig {
      * Issue #998 (D-M8-19). The one deliberate exception to "material presets are never toggled"
      * (D-M8-5): Elementarium's presets are <em>generated</em> from its {@code c:ingots/*} tag family
      * rather than hand-authored, so a pack that dislikes the interpolation needs a way out that is
-     * not hand-editing generated JSON. Read by {@code ElementariumEnabledCondition}, the existence
-     * condition every generated Elementarium material carries alongside {@code neoforge:mod_loaded}.
-     * Off means none of those materials register -- the same save-compat shape any other
+     * not hand-editing generated JSON. Read by {@link ForgeweaveConfigCondition}
+     * ({@code forgeweave:compat_toggle}, shared with #995's four processing-mod toggles), the
+     * existence condition every generated Elementarium material carries alongside {@code
+     * neoforge:mod_loaded}. Off means none of those materials register -- the same save-compat shape
+     * any other
      * existence-gated Track A preset already has if its provider mod is removed (Material.java's own
      * javadoc): a tool built from one keeps its stored part components, but the material record they
      * point at no longer resolves. Turning the toggle back on restores it with no further action.

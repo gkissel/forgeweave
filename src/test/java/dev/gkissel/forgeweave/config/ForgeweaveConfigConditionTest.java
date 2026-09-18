@@ -56,6 +56,8 @@ class ForgeweaveConfigConditionTest {
         assertTrue(evaluate("immersiveEngineeringRecipes"));
         assertTrue(evaluate("enderIoRecipes"));
         assertTrue(evaluate("powahHeatSources"));
+        // Issue #998 (D-M8-19): elementariumMaterials, added after the four above.
+        assertTrue(evaluate("elementariumMaterials"));
     }
 
     @Test
@@ -93,5 +95,19 @@ class ForgeweaveConfigConditionTest {
         Files.createDirectories(file.getParent());
         Files.writeString(file, "this is not valid = = toml [[[");
         assertTrue(ForgeweaveConfigCondition.readToggleFromDisk(configDir, "createRecipes"));
+    }
+
+    /**
+     * Issue #998 (D-M8-19): the exact scenario a first attempt at this toggle
+     * ({@code ElementariumEnabledCondition}, since replaced) got wrong -- a pack sets {@code
+     * elementariumMaterials = false} on disk, and this is asked before any {@code ModConfigSpec} has
+     * loaded (every generated Elementarium material's own real-world case, since materials are a
+     * datapack registry loaded before {@code ForgeweaveConfig.loaded()} is ever true).
+     */
+    @Test
+    void readToggleFromDiskAnswersFalseForElementariumMaterialsWhenTheFileSaysSo(@TempDir Path configDir)
+            throws IOException {
+        writeCompatToml(configDir, "elementariumMaterials", false);
+        assertFalse(ForgeweaveConfigCondition.readToggleFromDisk(configDir, "elementariumMaterials"));
     }
 }
