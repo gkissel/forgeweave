@@ -2463,6 +2463,12 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("book.forgeweave.modifiers.intro.title", "Modifiers");
         add("book.forgeweave.modifiers.intro.text",
                 "A finished tool is never truly finished. At the Tool Station or Tool Forge, sacrifice items to imbue a tool with modifiers. Each tool starts with a limited number of free slots, and some modifiers can be applied repeatedly for a stronger effect.\n\nThe pages that follow list every modifier known to this workshop.");
+        // #997 (D-M8-18) -- the Occultism ritual ladder. One page rather than four, because the four
+        // modifiers it grants already have pages of their own further into this section: what a
+        // reader needs here is that a second route to them exists and what it costs.
+        add("book.forgeweave.modifiers.rituals.title", "Binding a Spirit");
+        add("book.forgeweave.modifiers.rituals.text",
+                "Where Occultism's rituals are practised, a tool is one more thing a spirit will inhabit. Draw a pentacle, set a spirit attuned gem and a measure of otherworld essence on the bowls around it, and lay a finished tool on the Golden Sacrificial Bowl. The tool comes back with the bound spirit's gift already in it, and no reagents ground down to get there.\n\nFour spirits answer, each in its own pentacle. A foliot fetches what the tool breaks. A djinni keeps it whole. An afrit feeds it on what it kills. A marid follows it back out of your own death drop.\n\nThe gift still costs modifier slots, the same as it would at the Tool Station, so no tool holds all four. And a spirit will only ever give as much as the Tool Station could: the ritual spares you the reagents, never the limit.");
         add("book.forgeweave.smeltery.intro.title", "The Smeltery");
         add("book.forgeweave.smeltery.intro.text",
                 "There are many smelteries, but this one is yours, and it melts things really well.");

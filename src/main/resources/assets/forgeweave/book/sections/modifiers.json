@@ -2,5 +2,9 @@
   {
     "name": "intro",
     "type": "text"
+  },
+  {
+    "name": "rituals",
+    "type": "text"
   }
 ]
