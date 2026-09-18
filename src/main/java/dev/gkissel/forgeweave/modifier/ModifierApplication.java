@@ -315,6 +315,14 @@ public final class ModifierApplication {
     }
 
     /**
+     * {@link Modifier#helmetOnly}'s gate (issue #1007) -- any helmet-slot {@code ArmorPieceItem},
+     * heavy or light alike, unlike {@link #isHeavyChestplate}'s heavy-only check above.
+     */
+    private static boolean isHelmet(ItemStack tool) {
+        return tool.getItem() instanceof ArmorPieceItem armor && armor.getType() == ArmorItem.Type.HELMET;
+    }
+
+    /**
      * Whether {@code tool} is an item {@code modifier} could ever be applied to -- issue #794: every
      * item-shape gate {@link #unsupportedToolReason} enforces for a real application, pulled out so
      * {@code client.book.ModifyPageContent} and the JEI {@code ModifierApplicationCategory} can pick
@@ -374,6 +382,11 @@ public final class ModifierApplication {
         // Issue #737: elytra flight / creative flight -- narrower than armorOnly above, gating on the
         // specific worn slot (a runtime item property) rather than the whole ARMOR category.
         if (modifier.heavyChestplateOnly() && !isHeavyChestplate(tool)) {
+            return false;
+        }
+        // Issue #1007: Create's goggles -- the same worn-slot narrowing as heavyChestplateOnly above,
+        // but on either helmet item.
+        if (modifier.helmetOnly() && !isHelmet(tool)) {
             return false;
         }
         // The level passed here only decides whether a grant exists at all (every shipped grant is

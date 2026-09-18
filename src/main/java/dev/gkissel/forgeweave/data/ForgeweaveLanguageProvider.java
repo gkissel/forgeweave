@@ -1489,6 +1489,12 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
                 "A fallen star's power, bound to the whole set. Soar freely while every heavy piece "
                         + "stays worn and unbroken; requires Elytra Flight first.");
 
+        // #1007 (docs/SCOPE.md M8, Create compat) -- Forgeweave original, no upstream counterpart.
+        add("modifier.forgeweave.goggles.name", "Goggles");
+        add("modifier.forgeweave.goggles.description",
+                "Mounts a pair of Create's goggles on the helmet, so its overlays show while the "
+                        + "helmet is worn. A utility: no modifier slot spent.");
+
         add("modifier.forgeweave.wind_burst.name", "Wind Burst");
         add("modifier.forgeweave.wind_burst.description",
                 "Grants Wind Burst on the warmace. Each breeze rod raises it another level, up to III.");
@@ -2605,6 +2611,10 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
                 "Grants creative-style flight while the full heavy set is worn",
                 "Lost the instant a piece is removed or breaks", "Requires Elytra Flight first",
                 "Only fits the heavy chestplate", "Maximum of 1 level");
+        // #1007 -- Forgeweave original, no upstream counterpart.
+        modifierEffects("goggles",
+                "Makes the helmet count as wearing Create's goggles", "Only fits a helmet, heavy or light",
+                "Requires no modifier slot", "Maximum of 1 level");
         modifierEffects("far_reach",
                 "Reach further to mine blocks", "Each level adds one block", "Multiple levels");
         modifierEffects("extra_slot",
