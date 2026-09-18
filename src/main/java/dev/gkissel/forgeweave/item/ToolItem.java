@@ -54,6 +54,7 @@ import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.combat.CombatSeam;
 import dev.gkissel.forgeweave.combat.ForgeweaveInnates;
 import dev.gkissel.forgeweave.combat.ToolUseAction;
+import dev.gkissel.forgeweave.compat.apotheosis.ApotheosisAffixes; // #970
 import dev.gkissel.forgeweave.compat.apotheosis.ApotheosisSockets;
 import dev.gkissel.forgeweave.compat.draconic.modules.DraconicModules;
 import dev.gkissel.forgeweave.config.ForgeweaveConfig;
@@ -414,10 +415,18 @@ public class ToolItem extends Item {
      * {@code EnchantmentMenu#slotsChanged} to decide whether to offer enchantments at all) calls
      * straight through to this method, so gating it here rejects the item from the table outright
      * when off rather than merely offering zero applicable enchantments.
+     *
+     * <p>#970 (M8, D-M8-1): this is also the whole of the Apotheosis enchanting path, which is why
+     * {@link ApotheosisAffixes#enchantingEnabled()} joins the gate here rather than anywhere else.
+     * Apothic Enchanting replaces the vanilla enchanting table block outright and gates its own input
+     * slot on this same method, so a world with it installed has one table and both flags decide it.
+     * Enchanting needs both, and neither replaces the other.
      */
     @Override
     public boolean isEnchantable(ItemStack stack) {
-        return ForgeweaveConfig.read(ForgeweaveConfig.ALLOW_VANILLA_ENCHANTING) && super.isEnchantable(stack);
+        return ForgeweaveConfig.read(ForgeweaveConfig.ALLOW_VANILLA_ENCHANTING)
+                && ApotheosisAffixes.enchantingEnabled()
+                && super.isEnchantable(stack);
     }
 
     /**
@@ -427,10 +436,20 @@ public class ToolItem extends Item {
      * rather than upstream's hard "always off", so the anvil path -- {@code AnvilMenu#createResult}
      * calls exactly this method -- follows the same flag instead of upstream's unconditional refusal:
      * with the flag off both paths agree with upstream, and with it on both agree with each other.
+     *
+     * <p>#970: the anvil follows the Apotheosis toggle too, for the reason
+     * {@link #isEnchantable} gives. The two remaining overrides below,
+     * {@link #getEnchantmentValue} and {@link #supportsEnchantment}, deliberately do not: they decide
+     * what an enchantment is worth and whether it fits once something has already offered it, and an
+     * Apotheosis affix can grant an enchantment level without any table involved. Refusing the tool
+     * at the two doors is what "enchanting needs both flags" means; making an already granted
+     * enchantment stop working is not.
      */
     @Override
     public boolean isBookEnchantable(ItemStack stack, ItemStack book) {
-        return ForgeweaveConfig.read(ForgeweaveConfig.ALLOW_VANILLA_ENCHANTING) && super.isBookEnchantable(stack, book);
+        return ForgeweaveConfig.read(ForgeweaveConfig.ALLOW_VANILLA_ENCHANTING)
+                && ApotheosisAffixes.enchantingEnabled()
+                && super.isBookEnchantable(stack, book);
     }
 
     /**

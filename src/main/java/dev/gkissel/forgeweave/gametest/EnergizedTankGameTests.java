@@ -3,8 +3,12 @@ package dev.gkissel.forgeweave.gametest;
 import net.minecraft.core.BlockPos;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.inventory.ContainerLevelAccess;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.level.material.Fluids;
@@ -20,6 +24,7 @@ import dev.gkissel.forgeweave.block.ForgeweaveBlocks;
 import dev.gkissel.forgeweave.block.SmelteryControllerBlockEntity;
 import dev.gkissel.forgeweave.config.ForgeweaveConfig;
 import dev.gkissel.forgeweave.fluid.ForgeweaveFluids;
+import dev.gkissel.forgeweave.menu.EnergizedTankMenu;
 
 /**
  * The energized tank in a real formed smeltery on a headless dedicated server (docs/SCOPE.md M8,
@@ -164,7 +169,13 @@ public class EnergizedTankGameTests {
         helper.setBlock(SmelteryGameTests.CORE_POS, Blocks.AIR);
         placeTank(helper, TANK_A, Fluids.LAVA, FULL);
         if (overdrive) {
-            tank(helper, TANK_A).toggleOverdrive();
+            // Pressed through the menu button, which is the only way a player can press it (#1018),
+            // so this test measures the real path rather than the field behind it.
+            Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+            helper.assertTrue(openMenu(helper, TANK_A, player)
+                            .clickMenuButton(player, EnergizedTankMenu.OVERDRIVE_BUTTON),
+                    "expected the menu to accept the overdrive button");
+            helper.assertTrue(tank(helper, TANK_A).overdrive(), "and the press to land on the saved flag");
         }
         SmelteryControllerBlockEntity core = formedCore(helper);
         helper.assertTrue(core.insertForMelting(new ItemStack(Items.IRON_NUGGET)).isEmpty(),
@@ -230,7 +241,128 @@ public class EnergizedTankGameTests {
         helper.succeed();
     }
 
+    // ------------------------------------------------------------------ the screen (#1018)
+
+    /**
+     * The menu is the screen's only window onto the tank, so what it reports is what a player reads:
+     * the sample, the buffer, the heat, the cost and the overdrive state. Pressing its one button
+     * flips the saved flag and doubles the cost; that the progress doubles with it is
+     * {@link #overdriveDoublesBothTheCostAndTheProgress}, which presses the same button.
+     */
+    @GameTest(template = "empty")
+    public static void theMenuExposesTheSampleTheBufferAndTheOverdriveState(GameTestHelper helper) {
+        BlockPos pos = new BlockPos(1, 1, 1);
+        placeTank(helper, pos, Fluids.LAVA, FULL / 2);
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        EnergizedTankMenu menu = openMenu(helper, pos, player);
+
+        helper.assertTrue(menu.sample(helper.getLevel()).is(Fluids.LAVA), "expected the lava sample in the menu");
+        helper.assertValueEqual(menu.sample(helper.getLevel()).getAmount(),
+                EnergizedTankBlockEntity.SAMPLE_CAPACITY, "the sample amount the menu reports");
+        helper.assertValueEqual(menu.energy(helper.getLevel()), FULL / 2, "the buffer the menu reports");
+        helper.assertValueEqual(menu.energyCapacity(helper.getLevel()), FULL, "the buffer capacity the menu reports");
+        helper.assertValueEqual(menu.temperature(helper.getLevel()), LAVA_TEMPERATURE,
+                "the menu reports the same heat every other temperature display shows");
+        helper.assertFalse(menu.overdrive(helper.getLevel()), "a fresh tank has overdrive off");
+        helper.assertTrue(menu.active(), "and energized tanks are switched on for this test");
+
+        int plainCost = menu.costPerMeltTick(helper.getLevel());
+        helper.assertTrue(plainCost > 0, "a lava sample must cost something per melt tick");
+        helper.assertTrue(menu.clickMenuButton(player, EnergizedTankMenu.OVERDRIVE_BUTTON),
+                "expected the menu to accept the overdrive button");
+        helper.assertTrue(tank(helper, pos).overdrive(), "the button flips the tank's own saved flag");
+        helper.assertTrue(menu.overdrive(helper.getLevel()), "and the menu reports it flipped");
+        helper.assertValueEqual(menu.costPerMeltTick(helper.getLevel()), plainCost * 2,
+                "the default overdrive cost factor is 2.0");
+
+        // Pressing it again turns it off, and a button id nobody put there changes nothing.
+        helper.assertTrue(menu.clickMenuButton(player, EnergizedTankMenu.OVERDRIVE_BUTTON), "expected a second press");
+        helper.assertFalse(tank(helper, pos).overdrive(), "which turns overdrive back off");
+        helper.assertFalse(menu.clickMenuButton(player, 99), "a forged button id must be refused");
+        helper.assertFalse(tank(helper, pos).overdrive(), "and must change nothing");
+        helper.succeed();
+    }
+
+    /** The empty-hand press #1014 shipped is gone: an empty hand opens the screen and nothing else. */
+    @GameTest(template = "empty")
+    public static void anEmptyHandNoLongerFlipsOverdrive(GameTestHelper helper) {
+        BlockPos pos = new BlockPos(1, 1, 1);
+        placeTank(helper, pos, Fluids.LAVA, FULL);
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        player.setItemInHand(InteractionHand.MAIN_HAND, ItemStack.EMPTY);
+
+        helper.useBlock(pos, player);
+        helper.assertFalse(tank(helper, pos).overdrive(),
+                "an empty-hand use must not touch overdrive any more -- the button is on the screen");
+        helper.succeed();
+    }
+
+    /**
+     * A fluid container still goes to the sample rather than to the screen, so filling and draining a
+     * tank never has a GUI in the way. Both directions on one tank: a lava bucket fills the empty
+     * sample, and the empty bucket it leaves behind drains it again.
+     */
+    @GameTest(template = "empty")
+    public static void aBucketStillFillsAndDrainsTheSampleWithoutOpeningTheScreen(GameTestHelper helper) {
+        BlockPos pos = new BlockPos(1, 1, 1);
+        helper.setBlock(pos, ForgeweaveBlocks.ENERGIZED_TANK.get());
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        player.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(Items.LAVA_BUCKET));
+
+        helper.useBlock(pos, player);
+        helper.assertValueEqual(tank(helper, pos).sample().getFluidAmount(),
+                EnergizedTankBlockEntity.SAMPLE_CAPACITY, "a lava bucket fills the fuel sample");
+        helper.assertTrue(player.getMainHandItem().is(Items.BUCKET),
+                "and leaves an empty bucket, got " + player.getMainHandItem());
+        helper.assertTrue(player.containerMenu == player.inventoryMenu,
+                "filling the sample must not open the tank's screen");
+
+        helper.useBlock(pos, player);
+        helper.assertValueEqual(tank(helper, pos).sample().getFluidAmount(), 0,
+                "and the empty bucket drains it again");
+        helper.assertTrue(player.getMainHandItem().is(Items.LAVA_BUCKET),
+                "giving the lava back, got " + player.getMainHandItem());
+        helper.assertTrue(player.containerMenu == player.inventoryMenu,
+                "draining the sample must not open the tank's screen either");
+        helper.succeed();
+    }
+
+    /**
+     * A dormant tank still opens and still reads out its preserved sample and buffer (D-M8-5), but
+     * its button is dead on both sides: the screen greys it out from {@link EnergizedTankMenu#active}
+     * and the server refuses the press even if one arrives anyway.
+     */
+    @GameTest(template = "empty")
+    public static void aDormantTankOpensAndRefusesTheOverdriveButton(GameTestHelper helper) {
+        BlockPos pos = new BlockPos(1, 1, 1);
+        placeTank(helper, pos, Fluids.LAVA, FULL);
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        EnergizedTankMenu menu = openMenu(helper, pos, player);
+
+        ForgeweaveConfig.ENERGIZED_TANK.set(false);
+        try {
+            helper.assertFalse(menu.active(), "the screen must know the block is switched off");
+            helper.assertValueEqual(menu.sample(helper.getLevel()).getAmount(),
+                    EnergizedTankBlockEntity.SAMPLE_CAPACITY, "a dormant tank still shows its sample");
+            helper.assertValueEqual(menu.energy(helper.getLevel()), FULL, "and still shows its buffer");
+            helper.assertFalse(menu.clickMenuButton(player, EnergizedTankMenu.OVERDRIVE_BUTTON),
+                    "and refuses the overdrive button");
+            helper.assertFalse(tank(helper, pos).overdrive(), "so the saved flag stays as it was");
+        } finally {
+            ForgeweaveConfig.ENERGIZED_TANK.set(true);
+        }
+        helper.succeed();
+    }
+
     // ------------------------------------------------------------------ rig
+
+    /** The tank's menu as the server builds it, the shape {@code ChestGameTests#openMenu} uses. */
+    private static EnergizedTankMenu openMenu(GameTestHelper helper, BlockPos pos, Player player) {
+        BlockPos absolute = helper.absolutePos(pos);
+        return new EnergizedTankMenu(0, player.getInventory(),
+                ContainerLevelAccess.create(helper.getLevel(), absolute), absolute);
+    }
+
 
     /** The 1x1x2 rig with one energized tank at {@link #TANK_A}, sampled and charged as given. */
     private static SmelteryControllerBlockEntity energizedSmeltery(GameTestHelper helper, Fluid sample, int energy) {

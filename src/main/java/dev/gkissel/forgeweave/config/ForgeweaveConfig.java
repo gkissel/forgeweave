@@ -488,6 +488,26 @@ public final class ForgeweaveConfig {
      */
     public static final ModConfigSpec.BooleanValue ENERGIZED_TANK;
 
+    /**
+     * Apotheosis loot affixes on Forgeweave gear (D-M8-5; issue #970), read through
+     * {@code ApotheosisAffixes.affixesEnabled()} and nowhere else. Affixability itself is Apotheosis'
+     * own predicate walk over the item, with no seam a mod can veto at runtime, so what this reaches
+     * is the one runtime point Forgeweave owns: off, no loot roll assembles a Forgeweave tool, and a
+     * tool with no parts is a category Apotheosis declines. Nothing stored is touched either way --
+     * Forgeweave never reads, copies or writes affix state (JC-D), so a tool that already carries it
+     * keeps every component with the toggle in either position.
+     */
+    public static final ModConfigSpec.BooleanValue APOTHEOSIS_AFFIXES;
+
+    /**
+     * Apotheosis enchanting on Forgeweave gear (D-M8-5; issue #970). This does <em>not</em> replace
+     * {@code allowVanillaEnchanting}: enchanting needs both, and the gameplay flag stays exactly what
+     * it was. Off refuses Forgeweave gear at the enchanting table and the anvil the same way
+     * {@code allowVanillaEnchanting = false} refuses it, stripping nothing -- an already enchanted
+     * tool keeps its enchantments and keeps applying them.
+     */
+    public static final ModConfigSpec.BooleanValue APOTHEOSIS_ENCHANTING;
+
     /** How much Forge Energy one energized tank's buffer holds (#972). */
     public static final ModConfigSpec.IntValue ENERGIZED_TANK_BUFFER;
 
@@ -877,6 +897,26 @@ public final class ForgeweaveConfig {
                         "instead of adding a fifth flat step.")
                 .defineInRange("surgeboundNitroMiningSpeedMultiplier",
                         SURGEBOUND_NITRO_MINING_SPEED_MULTIPLIER_DEFAULT, 0.0D, 100.0D);
+        // #970 (M8-2, D-M8-5), the second and third Apotheosis toggles. Appended rather than grouped
+        // beside apotheosisSockets above, so a compat-server.toml written by an earlier build keeps
+        // the key order it already has. Both are read through ApotheosisAffixes and nowhere else.
+        APOTHEOSIS_AFFIXES = builder
+                .comment("If true, Forgeweave tools and armor that a loot table hands out arrive assembled, which",
+                        "is what makes them eligible for Apotheosis loot affixes: an unassembled tool is a",
+                        "category Apotheosis declines. Apotheosis decides affixability by its own predicate over",
+                        "the item and offers no seam a mod can veto at runtime, so this is the only part of that",
+                        "path Forgeweave owns. Off never discards anything: Forgeweave neither reads nor writes",
+                        "affix state, so a tool already carrying affixes keeps every component either way. Has no",
+                        "effect at all without Apotheosis installed.")
+                .define("apotheosisAffixes", true);
+        APOTHEOSIS_ENCHANTING = builder
+                .comment("If true, Forgeweave gear may be enchanted at Apotheosis' enchanting table. This does not",
+                        "replace allowVanillaEnchanting: enchanting needs both, and with either one off the table",
+                        "and the anvil refuse the item. Nothing is stripped when it is off, and an already",
+                        "enchanted tool keeps its enchantments and keeps applying them. An enchantment never costs",
+                        "a modifier slot. Has no effect without Apothic Enchanting installed, which is the mod",
+                        "that owns the table.")
+                .define("apotheosisEnchanting", true);
         // Issue #995 (D-M8-12, D-M8-13, D-M8-16): the four processing-mod bridges, added last so the
         // sections above keep the order every existing config file on disk already has.
         CREATE_RECIPES = builder
