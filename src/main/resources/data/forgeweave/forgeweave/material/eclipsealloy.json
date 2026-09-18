@@ -1,0 +1,45 @@
+{
+  "head": {
+    "durability": 900,
+    "mining_speed": 7.6,
+    "attack_damage": 6.8
+  },
+  "handle": {
+    "durability_modifier": 1.0,
+    "durability": 110
+  },
+  "extra_durability": 200,
+  "bow": {
+    "drawspeed": 0.4,
+    "range": 2.0,
+    "bonus_damage": 9.0
+  },
+  "plating": {
+    "helmet": { "durability": 380, "armor": 3.0, "toughness": 3.0, "knockback_resistance": 0.1 },
+    "chestplate": { "durability": 560, "armor": 8.0, "toughness": 3.0, "knockback_resistance": 0.1 },
+    "leggings": { "durability": 524, "armor": 6.0, "toughness": 3.0, "knockback_resistance": 0.1 },
+    "boots": { "durability": 456, "armor": 3.0, "toughness": 3.0, "knockback_resistance": 0.1 }
+  },
+  "maille": true,
+  "incorrect_for_tool": "minecraft:incorrect_for_netherite_tool",
+  "traits": {
+    "general": ["forgeweave:eclipsealloy_charge", "forgeweave:eclipsealloy_ward"]
+  },
+  "crafting_items": [
+    { "ingredient": { "tag": "c:ingots/eclipsealloy" }, "value": 144 },
+    { "ingredient": { "tag": "c:raw_materials/eclipsealloy" }, "value": 144 },
+    { "ingredient": { "item": "justdirethings:eclipsealloy_block" }, "value": 1296 }
+  ],
+  "repair_item": {
+    "tag": "c:ingots/eclipsealloy"
+  },
+  "cast_only": true,
+  "enchantability": 15,
+  "color": "#2B1B3D",
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "justdirethings:eclipsealloy_ingot"
+    }
+  ]
+}

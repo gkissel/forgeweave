@@ -1,0 +1,20 @@
+{
+  "station": "table",
+  "cast": {
+    "item": "forgeweave:cast_arrow_head"
+  },
+  "fluid": "forgeweave:molten_ferricore",
+  "amount": 288,
+  "result": {
+    "id": "forgeweave:arrow_head",
+    "components": {
+      "forgeweave:material": "forgeweave:ferricore"
+    }
+  },
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "justdirethings:ferricore_ingot"
+    }
+  ]
+}

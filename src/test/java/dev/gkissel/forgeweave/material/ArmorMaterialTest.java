@@ -105,7 +105,9 @@ class ArmorMaterialTest {
             Stream.of("awakened", "draconium_core"),
             // #996 (D-M8-17): Powah's four remaining crystals, same full plating + maille shape as
             // #837's own gem/crystal-tier roster above (diamatine_crystal, uraninite, ...).
-            Stream.of("blazing_crystal", "niotic_crystal", "spirited_crystal", "nitro_crystal"))
+            Stream.of("blazing_crystal", "niotic_crystal", "spirited_crystal", "nitro_crystal"),
+            // #1031 (D-M8-21): Just Dire Things' four tool tiers, same full plating + maille shape.
+            Stream.of("ferricore", "blazegold", "celestigem", "eclipsealloy"))
             .flatMap(java.util.function.Function.identity())
             .collect(java.util.stream.Collectors.toSet());
 
