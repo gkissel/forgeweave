@@ -99,6 +99,8 @@ class ArmorMaterialTest {
             // #946 M8: the Draconic Evolution fusion metals ship full plating + maille, same shape
             // as every other metal. #965 added duskweld under the three.
             Stream.of("duskweld", "emberweld", "starweld", "voidweld"),
+            // #993 M8 (D-M8-13): atomic matter alloy ships full plating + maille the same way.
+            Stream.of("atomic_matter_alloy"),
             // #953: the awakened core ships the same plating + maille block as the wyvern and chaotic
             // cores it sits between. Being Part Builder only changes where the part is made, not
             // which parts the material has stats for. #965 added the draconium core the same way.
@@ -106,6 +108,8 @@ class ArmorMaterialTest {
             // #996 (D-M8-17): Powah's four remaining crystals, same full plating + maille shape as
             // #837's own gem/crystal-tier roster above (diamatine_crystal, uraninite, ...).
             Stream.of("blazing_crystal", "niotic_crystal", "spirited_crystal", "nitro_crystal"),
+            // #1031 (D-M8-21): Just Dire Things' four tool tiers, same full plating + maille shape.
+            Stream.of("ferricore", "blazegold", "celestigem", "eclipsealloy"),
             // #997 (D-M8-18): Occultism's spirit attuned gem, same full plating + maille shape as the
             // rest of the gem/crystal-tier roster above.
             Stream.of("spirit_attuned_gem"),
@@ -114,7 +118,12 @@ class ArmorMaterialTest {
             // tool-only (no plating/maille block, see generate_elementarium_materials.py) and are
             // deliberately absent from both sets below.
             Stream.of("allthemodium", "vibranium", "unobtainium", "unobtainium_allthemodium_alloy",
-                    "unobtainium_vibranium_alloy", "vibranium_allthemodium_alloy"))
+                    "unobtainium_vibranium_alloy", "vibranium_allthemodium_alloy"),
+            // #999 (D-M8-20): Mystical Agriculture's own metals, full plating + maille like every
+            // other Track A metal. Armour matters more than usual here -- the augment seam covers
+            // armour as well as tools, so essence gear has to be buildable in the first place.
+            Stream.of("inferium", "prudentium", "tertium", "imperium", "supremium",
+                    "awakened_supremium", "prosperity", "soulium", "insanium"))
             .flatMap(java.util.function.Function.identity())
             .collect(java.util.stream.Collectors.toSet());
 

@@ -85,7 +85,10 @@ public record ForgeweaveConfigCondition(String toggle) implements ICondition {
             // ElementariumEnabledCondition (this issue's first attempt) always fell through to
             // ForgeweaveConfig#enabled's permissive default and the toggle never took effect. Folded
             // into this class instead of keeping a second one-off condition around.
-            "elementariumMaterials", () -> ForgeweaveConfig.enabled(ForgeweaveConfig.ELEMENTARIUM_MATERIALS));
+            "elementariumMaterials", () -> ForgeweaveConfig.enabled(ForgeweaveConfig.ELEMENTARIUM_MATERIALS),
+            // #993 (D-M8-15): the nucleosynthesizing row is mekanism:nucleosynthesizing, Mekanism's
+            // own recipe type, so it has no Forgeweave-owned lookup site to filter at either.
+            "mekanismModules", () -> ForgeweaveConfig.enabled(ForgeweaveConfig.MEKANISM_MODULES));
 
     public static final MapCodec<ForgeweaveConfigCondition> CODEC = RecordCodecBuilder.mapCodec(instance -> instance
             .group(Codec.STRING.fieldOf("toggle").forGetter(ForgeweaveConfigCondition::toggle))

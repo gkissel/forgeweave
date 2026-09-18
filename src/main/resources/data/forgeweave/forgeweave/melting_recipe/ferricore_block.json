@@ -1,0 +1,14 @@
+{
+  "input": {
+    "item": "justdirethings:ferricore_block"
+  },
+  "fluid": "forgeweave:molten_ferricore",
+  "amount": 1296,
+  "temperature": 1200,
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "justdirethings:ferricore_ingot"
+    }
+  ]
+}

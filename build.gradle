@@ -90,6 +90,20 @@ repositories {
         url = 'https://dl.cloudsmith.io/public/klikli-dev/mods/maven/'
         content { includeGroup 'com.klikli_dev' }
     }
+    maven {
+        // Mekanism (issue #993, M8 deep compat), a soft dependency -- see the compileOnly/
+        // test-classpath split on the dependencies below. This is the maven Mekanism publishes to and
+        // the one docs/SCOPE.md's D-M8-15 names.
+        name = 'ModMaven'
+        url = 'https://modmaven.dev'
+    }
+    maven {
+        // Mystical Agriculture and its required Cucumber library, both by BlakeBr0 (issue #999,
+        // M8 deep compat), a soft dependency -- see the compileOnly/test-classpath split on the
+        // dependencies below. The maven D-M8-20 names, and the one both mods publish to.
+        name = 'BlakesMods'
+        url = 'https://maven.blakesmods.com/releases'
+    }
 }
 
 base {
@@ -372,6 +386,44 @@ dependencies {
     // for real -- more coverage than a loadable jar would have bought, not less.
     compileOnly("com.klikli_dev:occultism-1.21.1-neoforge:${occultism_version}") { transitive = false }
     testCompileOnly("com.klikli_dev:occultism-1.21.1-neoforge:${occultism_version}") { transitive = false }
+    // Issue #993 (M8 deep compat, D-M8-15): Mekanism's module container, so Forgeweave gear made of
+    // atomic_matter_alloy takes MekaTool and MekaSuit modules. Same compileOnly plus test-classpath
+    // split Draconic Evolution and Apotheosis use above, and for the same reason: nothing here is on
+    // any run classpath, so dev, gametest and the published jar never classload a mekanism type, and
+    // the compat package's unit tests are the only place the bridge actually executes.
+    //
+    // Deliberately no localRuntime: the gametest server would then load Mekanism, and every GameTest
+    // that walks the item roster would start answering for a world Forgeweave does not ship.
+    //
+    // The plain jar rather than the `api` classifier -- see gradle.properties' comment for the three
+    // mekanism.common entry points #993 names. transitive = false on the test-runtime row because
+    // Mekanism's pom lists its own library set, none of which the bridge touches.
+    compileOnly "mekanism:Mekanism:${mekanism_version}"
+    testCompileOnly "mekanism:Mekanism:${mekanism_version}"
+    testRuntimeOnly("mekanism:Mekanism:${mekanism_version}") { transitive = false }
+    // Issue #999 (D-M8-20): Mystical Agriculture's crop registry and its tinkering API. The same
+    // compileOnly-plus-test-classpath split Draconic Evolution and Apotheosis use above, and
+    // deliberately no localRuntime for the same reason -- a full third-party content mod in the
+    // gametest runtime is a failure surface this repo's CI has no business owning. Everything that
+    // names a com.blakebr0 type lives in dev.gkissel.forgeweave.compat.mysticalagriculture and is
+    // reached only through Mystical Agriculture's own plugin scan, so a Forgeweave-only runtime never
+    // classloads one -- which is what runGameTestServer proves, and what
+    // MysticalAgricultureSourceIsolationTest keeps true.
+    //
+    // The "api" classifier is Mystical Agriculture's own API-only jar. Cucumber is a row of its own
+    // because the published pom declares no dependencies at all, so nothing arrives transitively. It
+    // is not on Forgeweave's own compile surface -- the crop API's LazyIngredient turned out to be
+    // Mystical Agriculture's own com.blakebr0.mysticalagriculture.api.lib type, not Cucumber's -- and
+    // it is declared anyway because Mystical Agriculture hard-requires it at runtime
+    // (cucumber [8.0.16,) in its own neoforge.mods.toml), so a classpath holding one without the
+    // other is not a configuration any player will ever have. transitive = false on the runtime rows,
+    // the Draconic pattern: nothing else is needed to put the classes on a classpath.
+    compileOnly "com.blakebr0.mysticalagriculture:MysticalAgriculture:${mystical_agriculture_version}:api"
+    compileOnly "com.blakebr0.cucumber:Cucumber:${cucumber_version}"
+    testCompileOnly "com.blakebr0.mysticalagriculture:MysticalAgriculture:${mystical_agriculture_version}:api"
+    testCompileOnly "com.blakebr0.cucumber:Cucumber:${cucumber_version}"
+    testRuntimeOnly("com.blakebr0.mysticalagriculture:MysticalAgriculture:${mystical_agriculture_version}:api") { transitive = false }
+    testRuntimeOnly("com.blakebr0.cucumber:Cucumber:${cucumber_version}") { transitive = false }
 
     testImplementation platform('org.junit:junit-bom:6.1.3')
     testImplementation 'org.junit.jupiter:junit-jupiter'

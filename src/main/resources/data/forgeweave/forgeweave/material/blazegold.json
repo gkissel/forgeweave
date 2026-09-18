@@ -1,0 +1,45 @@
+{
+  "head": {
+    "durability": 480,
+    "mining_speed": 7.4,
+    "attack_damage": 5.0
+  },
+  "handle": {
+    "durability_modifier": 0.9,
+    "durability": 60
+  },
+  "extra_durability": 40,
+  "bow": {
+    "drawspeed": 0.4,
+    "range": 1.7,
+    "bonus_damage": 6.0
+  },
+  "plating": {
+    "helmet": { "durability": 260, "armor": 3.0, "toughness": 1.0 },
+    "chestplate": { "durability": 380, "armor": 7.0, "toughness": 1.0 },
+    "leggings": { "durability": 356, "armor": 6.0, "toughness": 1.0 },
+    "boots": { "durability": 308, "armor": 3.0, "toughness": 1.0 }
+  },
+  "maille": true,
+  "incorrect_for_tool": "minecraft:incorrect_for_diamond_tool",
+  "traits": {
+    "general": ["forgeweave:blazegold_ember"]
+  },
+  "crafting_items": [
+    { "ingredient": { "tag": "c:ingots/blazegold" }, "value": 144 },
+    { "ingredient": { "tag": "c:raw_materials/blazegold" }, "value": 144 },
+    { "ingredient": { "item": "justdirethings:blazegold_block" }, "value": 1296 }
+  ],
+  "repair_item": {
+    "tag": "c:ingots/blazegold"
+  },
+  "cast_only": true,
+  "enchantability": 22,
+  "color": "#E8871E",
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "justdirethings:blazegold_ingot"
+    }
+  ]
+}

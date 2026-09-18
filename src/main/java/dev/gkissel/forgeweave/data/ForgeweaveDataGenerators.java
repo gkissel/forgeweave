@@ -39,6 +39,10 @@ public final class ForgeweaveDataGenerators {
         // #997 -- the Occultism crushing, miner and ritual rows (docs/SCOPE.md M8). Same shape and
         // same reason: all three serializers are Occultism's, behind the same mod_loaded gate.
         generator.addProvider(event.includeServer(), new ForgeweaveOccultismRecipeProvider(output));
+        // #993 -- the one Mekanism nucleosynthesizing recipe (docs/SCOPE.md M8, D-M8-13). Same shape
+        // and the same reason: Mekanism's serializer is compileOnly, so there is no Recipe object here
+        // either.
+        generator.addProvider(event.includeServer(), new ForgeweaveMekanismRecipeProvider(output));
         generator.addProvider(event.includeServer(), new ForgeweaveLootTableProvider(output, lookupProvider));
         // #104 -- the cobalt + ardite nether ore blocks' tool-tier tags (ForgeweaveBlockTagsProvider
         // javadoc); the first Forgeweave block tags, so ForgeweaveItemTagsProvider's block-tag future

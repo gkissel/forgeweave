@@ -7,8 +7,17 @@
   "temperature": 1400,
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "powah:uraninite_raw"
+      "type": "neoforge:or",
+      "values": [
+        {
+          "type": "neoforge:item_exists",
+          "item": "powah:uraninite_raw"
+        },
+        {
+          "type": "neoforge:item_exists",
+          "item": "eternalores:uraninite_ingot"
+        }
+      ]
     }
   ]
 }

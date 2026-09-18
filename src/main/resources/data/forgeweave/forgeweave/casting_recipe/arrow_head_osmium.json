@@ -13,8 +13,17 @@
   },
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "mekanism:ingot_osmium"
+      "type": "neoforge:or",
+      "values": [
+        {
+          "type": "neoforge:item_exists",
+          "item": "mekanism:ingot_osmium"
+        },
+        {
+          "type": "neoforge:item_exists",
+          "item": "eternalores:osmium_ingot"
+        }
+      ]
     }
   ]
 }

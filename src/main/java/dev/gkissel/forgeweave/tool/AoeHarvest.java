@@ -25,6 +25,7 @@ import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
 
 import dev.gkissel.forgeweave.compat.draconic.modules.DraconicModules;
+import dev.gkissel.forgeweave.compat.mekanism.modules.MekanismGearModules;
 import dev.gkissel.forgeweave.item.ToolItem;
 import dev.gkissel.forgeweave.modifier.ForgeweaveModifiers;
 import dev.gkissel.forgeweave.modifier.Modifier;
@@ -130,20 +131,23 @@ public final class AoeHarvest {
      * upstream {@code ToolEvents#onExtraBlockBreak}, which is the one place those magnitudes live.
      * Returns {@code {width, height}}.
      */
-    private static int[] expandedDimensions(Shape shape, Set<Modifier.AoeAxis> axes, int draconicAoe) {
+    private static int[] expandedDimensions(Shape shape, Set<Modifier.AoeAxis> axes, int draconicAoe,
+            int mekanismAoe) {
         // #956: a Draconic Evolution area module widens the same box. Its AOEData.aoe is a radius --
         // IModularMiningTool#getMiningArea builds the box that far out in each direction perpendicular
         // to the face -- so n grows both the width and the height by 2n. 0 without that mod or an
         // area module, which leaves every number below exactly as it was.
-        int draconic = 2 * draconicAoe;
+        // #993: a Mekanism blasting unit's blast radius is a radius too, and widens the box the same
+        // way, which is how blasting lands on Forgeweave's own sweep rather than on a second breaker.
+        int modules = 2 * (draconicAoe + mekanismAoe);
         if (shape == Shape.MATTOCK) {
             // Upstream's mattock branch grows both axes by the count, not one axis each.
             int both = axes.size();
-            return new int[] {shape.baseWidth + both + draconic, shape.baseHeight + both + draconic};
+            return new int[] {shape.baseWidth + both + modules, shape.baseHeight + both + modules};
         }
         return new int[] {
-            shape.baseWidth + (axes.contains(Modifier.AoeAxis.WIDTH) ? shape.expansion : 0) + draconic,
-            shape.baseHeight + (axes.contains(Modifier.AoeAxis.HEIGHT) ? shape.expansion : 0) + draconic
+            shape.baseWidth + (axes.contains(Modifier.AoeAxis.WIDTH) ? shape.expansion : 0) + modules,
+            shape.baseHeight + (axes.contains(Modifier.AoeAxis.HEIGHT) ? shape.expansion : 0) + modules
         };
     }
 
@@ -210,23 +214,42 @@ public final class AoeHarvest {
                 return;
             }
         }
+        // #993: a Mekanism vein mining unit's own findPositions, broken through the one breaker below
+        // rather than a second one. Deliberately resolved here and not in ToolItem#mineBlock, which is
+        // where issue #993's table names it: mineBlock runs inside breakAll's own destroyBlock loop, so
+        // veining from there would recurse. Empty without Mekanism, without the module, or without the
+        // power to run it.
+        List<BlockPos> mekanismVein = MekanismGearModules.veinPositions(tool, player.level(), event.getPos());
         // #956: a Draconic Evolution area module gives a shape to a tool that has none of its own,
         // the way it does for DE's own tools -- the box below then widens from a single block.
-        if (shape == Shape.NONE && DraconicModules.miningAoe(tool) > 0) {
+        // #993: a Mekanism blasting unit's radius does the same.
+        if (shape == Shape.NONE
+                && (DraconicModules.miningAoe(tool) > 0 || MekanismGearModules.miningAoe(tool) > 0)) {
             shape = Shape.SINGLE;
         }
         if (shape == Shape.NONE) {
+            breakAll(tool, player, mekanismVein);
             return;
         }
         // A small harvest tool with no expander on it still breaks exactly one block, so bail before
         // the re-trace extraBlocks would otherwise do on every pickaxe swing (issue #438).
         if (isBareSingleBlock(tool, shape)) {
+            breakAll(tool, player, mekanismVein);
             return;
         }
         List<BlockPos> extra = shape == Shape.VEIN
                 ? breakable(tool, player.level(), player, event.getPos(), event.getState(),
                         vein(player.level(), event.getPos(), event.getState(), veinLimit))
                 : extraBlocks(tool, player.level(), player, event.getPos(), event.getState(), shape);
+        if (!mekanismVein.isEmpty()) {
+            List<BlockPos> merged = new ArrayList<>(extra);
+            for (BlockPos pos : mekanismVein) {
+                if (!merged.contains(pos)) {
+                    merged.add(pos);
+                }
+            }
+            extra = merged;
+        }
         // A tree fell spreads its extra blocks over ticks (issue #299, upstream's own TreeChopTask);
         // every other shape still breaks synchronously with the origin, as before.
         if (shape == Shape.TREE_FELL && player.level() instanceof ServerLevel level && !extra.isEmpty()) {
@@ -338,7 +361,8 @@ public final class AoeHarvest {
     private static boolean isBareSingleBlock(ItemStack tool, Shape shape) {
         return (shape == Shape.SINGLE || shape == Shape.MATTOCK)
                 && ForgeweaveModifiers.aoeExpansion(tool).isEmpty()
-                && DraconicModules.miningAoe(tool) == 0;
+                && DraconicModules.miningAoe(tool) == 0
+                && MekanismGearModules.miningAoe(tool) == 0;
     }
 
     private static List<BlockPos> breakable(ItemStack tool, Level level, Player player, BlockPos origin,
@@ -405,7 +429,8 @@ public final class AoeHarvest {
      */
     private static List<BlockPos> box(ItemStack tool, Player player, BlockPos origin, Shape shape) {
         Set<Modifier.AoeAxis> axes = ForgeweaveModifiers.aoeExpansion(tool);
-        int[] dimensions = expandedDimensions(shape, axes, DraconicModules.miningAoe(tool));
+        int[] dimensions = expandedDimensions(shape, axes, DraconicModules.miningAoe(tool),
+                MekanismGearModules.miningAoe(tool));
         int width = dimensions[0];
         int height = dimensions[1];
         int depth = shape.baseDepth;

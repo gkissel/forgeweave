@@ -26,6 +26,10 @@ import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.block.ForgeweaveBlocks;
 import dev.gkissel.forgeweave.block.SlimeColour;
 import dev.gkissel.forgeweave.combat.ForgeweaveInnates;
+// Issue #999 (D-M8-20): tools and armour are built through the compat factory rather than by calling
+// their own constructors, so a mod that needs Forgeweave gear to implement its interface gets a
+// subclass without ToolItem or ArmorPieceItem naming that mod. See CompatItems.
+import dev.gkissel.forgeweave.compat.CompatItems;
 import dev.gkissel.forgeweave.entity.ForgeweaveEntities;
 import dev.gkissel.forgeweave.material.MaterialForm;
 import dev.gkissel.forgeweave.material.MaterialForms;
@@ -284,11 +288,11 @@ public final class ForgeweaveItems {
     // it is also what makes these Category.AOE tools, the ones upstream's aoeOnly aspect lets the
     // expanders onto.
     public static final DeferredItem<ToolItem> TOOL_PICKAXE = ITEMS.registerItem("pickaxe",
-            properties -> new ToolItem(properties, List.of(BlockTags.MINEABLE_WITH_PICKAXE), 1.2f, 1.0f, 1.0f,
+            properties -> CompatItems.tool(properties, List.of(BlockTags.MINEABLE_WITH_PICKAXE), 1.2f, 1.0f, 1.0f,
                     false, null, AoeHarvest.Shape.SINGLE),
             new Item.Properties().stacksTo(1));
     public static final DeferredItem<ToolItem> TOOL_SHOVEL = ITEMS.registerItem("shovel",
-            properties -> new ToolItem(properties, List.of(BlockTags.MINEABLE_WITH_SHOVEL), 1.0f, 0.9f, 1.0f,
+            properties -> CompatItems.tool(properties, List.of(BlockTags.MINEABLE_WITH_SHOVEL), 1.0f, 0.9f, 1.0f,
                     false, null, AoeHarvest.Shape.SINGLE),
             new Item.Properties().stacksTo(1));
     // HatchetItem, not plain ToolItem: the parity audit's T65 (issue #496) leaf carve-out --
@@ -413,12 +417,12 @@ public final class ForgeweaveItems {
     public static final DeferredItem<ArmorPieceItem> ARMOR_HEAVY_BOOTS = heavyArmor("boots", ArmorItem.Type.BOOTS);
 
     private static DeferredItem<ArmorPieceItem> armor(String name, ArmorItem.Type type) {
-        return ITEMS.registerItem(name, properties -> new ArmorPieceItem(type, false, properties),
+        return ITEMS.registerItem(name, properties -> CompatItems.armor(type, false, properties),
                 new Item.Properties().stacksTo(1));
     }
 
     private static DeferredItem<ArmorPieceItem> heavyArmor(String name, ArmorItem.Type type) {
-        return ITEMS.registerItem(ToolConstants.HEAVY_PREFIX + name, properties -> new ArmorPieceItem(type, true, properties),
+        return ITEMS.registerItem(ToolConstants.HEAVY_PREFIX + name, properties -> CompatItems.armor(type, true, properties),
                 new Item.Properties().stacksTo(1));
     }
 
@@ -426,7 +430,7 @@ public final class ForgeweaveItems {
     private static DeferredItem<ToolItem> sword(String name, ToolConstants.Entry constants,
             ForgeweaveInnates.Innate innate) {
         return ITEMS.registerItem(name,
-                properties -> new MeleeWeaponItem(properties, constants, BlockTags.SWORD_EFFICIENT, true, innate),
+                properties -> CompatItems.meleeWeapon(properties, constants, BlockTags.SWORD_EFFICIENT, true, innate),
                 new Item.Properties().stacksTo(1));
     }
 
@@ -434,7 +438,7 @@ public final class ForgeweaveItems {
     private static DeferredItem<ToolItem> bludgeon(String name, ToolConstants.Entry constants,
             ForgeweaveInnates.Innate innate) {
         return ITEMS.registerItem(name,
-                properties -> new MeleeWeaponItem(properties, constants, List.of(), true, innate),
+                properties -> CompatItems.meleeWeapon(properties, constants, List.of(), true, innate),
                 new Item.Properties().stacksTo(1));
     }
 
@@ -445,13 +449,13 @@ public final class ForgeweaveItems {
     // is a sword by construction -- so a hit costs them half the durability a harvest tool pays and
     // haste's attack-speed bonus applies (ToolItem#effectiveAttackSpeed).
     public static final DeferredItem<ToolItem> TOOL_BATTLEAXE = ITEMS.registerItem("battleaxe",
-            properties -> new ToolItem(properties, ToolConstants.BATTLEAXE, BlockTags.MINEABLE_WITH_AXE,
+            properties -> CompatItems.tool(properties, ToolConstants.BATTLEAXE, BlockTags.MINEABLE_WITH_AXE,
                     true, ForgeweaveInnates.SWEEPING_BLOW),
             new Item.Properties().stacksTo(1));
     // SWORD_EFFICIENT rather than a mineable/* tag: the scimitar is a pure weapon, and that is the
     // tag vanilla's own swords carry (cobwebs, bamboo, plants) -- there is no mining role to gate.
     public static final DeferredItem<ToolItem> TOOL_SCIMITAR = ITEMS.registerItem("scimitar",
-            properties -> new MeleeWeaponItem(properties, ToolConstants.SCIMITAR, BlockTags.SWORD_EFFICIENT,
+            properties -> CompatItems.meleeWeapon(properties, ToolConstants.SCIMITAR, BlockTags.SWORD_EFFICIENT,
                     true, ForgeweaveInnates.LACERATE),
             new Item.Properties().stacksTo(1));
     // The katana (docs/SCOPE.md M3 issue #160): attack speed and damage potential from
@@ -461,7 +465,7 @@ public final class ForgeweaveItems {
     // damage ramp, is a DamageRamp seam carried on ForgeweaveInnates like every other M3 tool's
     // (ADR-0005 decision 3), not behavior on this class.
     public static final DeferredItem<ToolItem> TOOL_KATANA = ITEMS.registerItem("katana",
-            properties -> new MeleeWeaponItem(properties, ToolConstants.KATANA, BlockTags.SWORD_EFFICIENT,
+            properties -> CompatItems.meleeWeapon(properties, ToolConstants.KATANA, BlockTags.SWORD_EFFICIENT,
                     true, ForgeweaveInnates.DAMAGE_RAMP),
             new Item.Properties().stacksTo(1));
 
@@ -498,23 +502,23 @@ public final class ForgeweaveItems {
     // vanilla has no shears mining tag. The vein hammer has no 1.12 class; it is a hammer variant,
     // so it takes the hammer's pickaxe tag and weapon category (docs/SCOPE.md M3 sources table).
     public static final DeferredItem<ToolItem> TOOL_HAMMER = ITEMS.registerItem("hammer",
-            properties -> new ToolItem(properties, ToolConstants.HAMMER, BlockTags.MINEABLE_WITH_PICKAXE, true,
+            properties -> CompatItems.tool(properties, ToolConstants.HAMMER, BlockTags.MINEABLE_WITH_PICKAXE, true,
                     ForgeweaveInnates.CONCUSSION, AoeHarvest.Shape.PLANE_3X3),
             new Item.Properties().stacksTo(1));
     public static final DeferredItem<ToolItem> TOOL_EXCAVATOR = ITEMS.registerItem("excavator",
-            properties -> new ToolItem(properties, ToolConstants.EXCAVATOR, BlockTags.MINEABLE_WITH_SHOVEL, false,
+            properties -> CompatItems.tool(properties, ToolConstants.EXCAVATOR, BlockTags.MINEABLE_WITH_SHOVEL, false,
                     ForgeweaveInnates.FLAT_SMACK, AoeHarvest.Shape.PLANE_3X3),
             new Item.Properties().stacksTo(1));
     public static final DeferredItem<ToolItem> TOOL_LUMBERAXE = ITEMS.registerItem("lumberaxe",
-            properties -> new ToolItem(properties, ToolConstants.LUMBERAXE, BlockTags.MINEABLE_WITH_AXE, false,
+            properties -> CompatItems.tool(properties, ToolConstants.LUMBERAXE, BlockTags.MINEABLE_WITH_AXE, false,
                     ForgeweaveInnates.TIMBER, AoeHarvest.Shape.TREE_FELL),
             new Item.Properties().stacksTo(1));
     public static final DeferredItem<ToolItem> TOOL_SCYTHE = ITEMS.registerItem("scythe",
-            properties -> new ToolItem(properties, ToolConstants.SCYTHE, BlockTags.MINEABLE_WITH_HOE, true,
+            properties -> CompatItems.tool(properties, ToolConstants.SCYTHE, BlockTags.MINEABLE_WITH_HOE, true,
                     ForgeweaveInnates.SWEEP, AoeHarvest.Shape.CUBE_3X3X3),
             new Item.Properties().stacksTo(1));
     public static final DeferredItem<ToolItem> TOOL_VEIN_HAMMER = ITEMS.registerItem("vein_hammer",
-            properties -> new ToolItem(properties, ToolConstants.VEIN_HAMMER, BlockTags.MINEABLE_WITH_PICKAXE, true,
+            properties -> CompatItems.tool(properties, ToolConstants.VEIN_HAMMER, BlockTags.MINEABLE_WITH_PICKAXE, true,
                     ForgeweaveInnates.CRUSHING_BLOW, AoeHarvest.Shape.VEIN),
             new Item.Properties().stacksTo(1));
 

@@ -1,0 +1,27 @@
+{
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:mod_loaded",
+      "modid": "mekanism"
+    },
+    {
+      "type": "forgeweave:compat_toggle",
+      "toggle": "mekanismModules"
+    }
+  ],
+  "type": "mekanism:nucleosynthesizing",
+  "chemical_input": {
+    "amount": 8,
+    "chemical": "mekanism:antimatter"
+  },
+  "duration": 2000,
+  "item_input": {
+    "count": 1,
+    "item": "mekanism:alloy_atomic"
+  },
+  "output": {
+    "count": 1,
+    "id": "forgeweave:atomic_matter_alloy_ingot"
+  },
+  "per_tick_usage": false
+}

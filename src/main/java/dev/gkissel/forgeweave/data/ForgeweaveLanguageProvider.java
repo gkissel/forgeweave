@@ -13,6 +13,8 @@ import net.neoforged.neoforge.common.data.LanguageProvider;
 
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.block.ForgeweaveBlocks;
+// Issue #999: the crop roster, whose own class names no Mystical Agriculture type -- see its javadoc.
+import dev.gkissel.forgeweave.compat.mysticalagriculture.ForgeweaveCrop;
 import dev.gkissel.forgeweave.block.SearedFurnaceScan;
 import dev.gkissel.forgeweave.block.SearedReservoirScan;
 import dev.gkissel.forgeweave.block.SlimeColour;
@@ -1111,6 +1113,17 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         // Issue #996 (D-M8-17): the four Powah crystals #837/#872 left unshippable (no per-material
         // c: tag; see MaterialTest#noShippedMaterialConditionsOnPowahsUntaggedCrystals's old guard),
         // unblocked the same way #872 unblocked energised_steel -- a concrete item id.
+        // Issue #999 (D-M8-20): Mystical Agriculture's own metals. Insanium is Mystical Agradditions'
+        // rung above the ladder and gates on that mod rather than on Mystical Agriculture.
+        add("material.forgeweave.inferium", "Inferium");
+        add("material.forgeweave.prudentium", "Prudentium");
+        add("material.forgeweave.tertium", "Tertium");
+        add("material.forgeweave.imperium", "Imperium");
+        add("material.forgeweave.supremium", "Supremium");
+        add("material.forgeweave.awakened_supremium", "Awakened Supremium");
+        add("material.forgeweave.prosperity", "Prosperity");
+        add("material.forgeweave.soulium", "Soulium");
+        add("material.forgeweave.insanium", "Insanium");
         add("material.forgeweave.blazing_crystal", "Blazing Crystal");
         add("material.forgeweave.niotic_crystal", "Niotic Crystal");
         add("material.forgeweave.spirited_crystal", "Spirited Crystal");
@@ -1196,6 +1209,10 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("material.forgeweave.starweld", "Starweld");
         add("material.forgeweave.voidweld", "Voidweld");
 
+        // #993 -- atomic matter alloy (D-M8-13), the Mekanism-side sibling of the four welds above:
+        // only a nucleosynthesis run on Mekanism's own machine makes the ingot.
+        add("material.forgeweave.atomic_matter_alloy", "Atomic Matter Alloy");
+
         // #392 -- the two bowstring materials (docs/SCOPE.md M3.5). Names are upstream 1.12's
         // material.string.name / material.vine.name. Neither carries any tool stat block, so they
         // only ever surface on a bow string.
@@ -1237,6 +1254,13 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("material.forgeweave.sky_stone", "Sky Stone");
         add("material.forgeweave.iesnium", "Iesnium");
         add("material.forgeweave.dragonyst", "Dragonyst");
+
+        // Issue #1031 (D-M8-21): Just Dire Things' four tool tiers, existence-gated on the mod's
+        // own ingot/gem item. Names follow the mod's own registered ids.
+        add("material.forgeweave.ferricore", "Ferricore");
+        add("material.forgeweave.blazegold", "Blazegold");
+        add("material.forgeweave.celestigem", "Celestigem");
+        add("material.forgeweave.eclipsealloy", "Eclipse Alloy");
 
         // Trait names and descriptions, keyed by trait id like materials are by material id -- traits
         // are Java behavior selected by data (ADR-0002), so nothing derives these keys for us. The
@@ -2002,6 +2026,15 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
             }
         }
 
+        // #999 (D-M8-20) -- the crop names Mystical Agriculture asks for. `crop.<modid>.<name>` is
+        // Mystical Agriculture's own default key for a crop's display name (Crop#getDisplayName), and
+        // its auto-registered flower, essence and seed items all compose their own names from it, so
+        // these twelve lines are the whole localisation surface of the crop half. Walked off the
+        // roster rather than listed, like every loop above.
+        for (ForgeweaveCrop crop : ForgeweaveCrop.ALL) {
+            add("crop." + Forgeweave.MODID + "." + crop.id(), crop.displayName());
+        }
+
         // #840 -- Track B's 18 alloy tool materials: same naming-scaffold-id-title-cased convention,
         // alloy-only so ingot/nugget/"Block of <Name>" only, no raw form.
         for (TrackBAlloy alloy : TrackBAlloy.ALL) {
@@ -2292,6 +2325,26 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("trait.forgeweave.spirited_charge.description", "Carries a still larger Forge Energy buffer that is spent before durability.");
         add("trait.forgeweave.nitro_charge.name", "Nitro Charge");
         add("trait.forgeweave.nitro_charge.description", "Carries the largest Forge Energy buffer that is spent before durability.");
+        // Issue #993 (D-M8-13 and D-M8-15): atomic matter alloy's own instance of the same #830
+        // behavior. Mekanism's module container runs on the #830 EnergyBuffer, so the metal's trait
+        // is what gives the tool the buffer the modules draw from (see trait_definition/infused.json).
+        add("trait.forgeweave.infused.name", "Infused");
+        add("trait.forgeweave.infused.description", "Carries a deep Forge Energy buffer that is spent before durability.");
+        // Issue #1031 (D-M8-21): Just Dire Things' four tool tiers, each a datapack trait_definition
+        // over an existing TraitBehaviors class echoing that tier's own identity in the source mod --
+        // never a copy of its code. See trait_definition/ferricore_footing.json and siblings.
+        add("trait.forgeweave.ferricore_footing.name", "Sure Footing");
+        add("trait.forgeweave.ferricore_footing.description", "Steps up a full block without jumping.");
+        add("trait.forgeweave.blazegold_ember.name", "Blazegold Ember");
+        add("trait.forgeweave.blazegold_ember.description", "The wielder takes no damage from fire.");
+        add("trait.forgeweave.celestigem_charge.name", "Celestial Charge");
+        add("trait.forgeweave.celestigem_charge.description", "Carries a Forge Energy buffer that is spent before durability.");
+        add("trait.forgeweave.eclipsealloy_charge.name", "Eclipse Charge");
+        add("trait.forgeweave.eclipsealloy_charge.description",
+                "Carries a large Forge Energy buffer that is spent before durability.");
+        add("trait.forgeweave.eclipsealloy_ward.name", "Eclipse Ward");
+        add("trait.forgeweave.eclipsealloy_ward.description",
+                "Once per cooldown, a killing blow spends durability to save the wielder instead.");
         add("tooltip.forgeweave.energy", "Stored Energy");
         // #829 M6 utility/economy trait behavior library.
         add("trait.forgeweave.sunmend.name", "Sunmend");
@@ -2491,6 +2544,11 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("book.forgeweave.modifiers.intro.title", "Modifiers");
         add("book.forgeweave.modifiers.intro.text",
                 "A finished tool is never truly finished. At the Tool Station or Tool Forge, sacrifice items to imbue a tool with modifiers. Each tool starts with a limited number of free slots, and some modifiers can be applied repeatedly for a stronger effect.\n\nThe pages that follow list every modifier known to this workshop.");
+        // Issue #999 (D-M8-20): the augment path needs its own page because nothing else in the book
+        // sends a player to another mod's station with Forgeweave gear in hand.
+        add("book.forgeweave.modifiers.augments.title", "Augments");
+        add("book.forgeweave.modifiers.augments.text",
+                "Mystical Agriculture grows essence metals, and gear with a part made from one of them is accepted by that mod's own Tinkering Table. To fit an augment, carry the tool or armor piece there rather than to a Tool Station.\n\nAn augment slot is not a modifier slot. The two are separate pools, so an augment never spends a modifier slot and a modifier never spends an augment slot. Essence gear carries one augment slot, or two from awakened supremium upward.\n\nWhere a modifier and an augment raise the same number, the two add together.");
         // #970 (M8, D-M8-1): the two pages the #974 book audit asked for -- what an affix is on
         // Forgeweave gear, and what decides whether a tool can be enchanted. Original Forgeweave
         // content; upstream ships neither mechanic and no guide book page for either.
