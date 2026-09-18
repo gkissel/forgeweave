@@ -2,6 +2,7 @@ package dev.gkissel.forgeweave.modifier;
 
 import java.util.Optional;
 
+import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.item.enchantment.Enchantment;
 
@@ -495,6 +496,42 @@ public interface Modifier {
      * @param level accumulated application units (see {@link ModifierEntry#level})
      */
     default Optional<CombatSeam> combatSeam(int level) {
+        return Optional.empty();
+    }
+
+    // ---------------------------------------------------------------- issue #996 (D-M8-17): surgebound
+
+    /**
+     * FE capacity this modifier adds on top of the tool's trait-derived buffer -- {@code surgebound}'s
+     * only shipped user (Powah's crystal ladder). Threaded the same way {@link #durability} and
+     * {@link #miningSpeed(int, float, float)} are: {@code energyCapacity} is the running total (base
+     * plus every earlier modifier in the list), {@code baseEnergyCapacity} is the tool's untouched
+     * trait-derived total ({@code ForgeweaveTraits#energyCapacity} before any modifier pass), so a
+     * percentage bonus scales the real buffer rather than compounding onto an earlier modifier's own
+     * addition. Capacity is never stored (see {@code trait.EnergyBuffer}'s class javadoc), so this
+     * hook is re-evaluated on demand every time the buffer's size is asked for -- retuning the
+     * percentage later needs no save migration.
+     *
+     * @param level accumulated application units (see {@link ModifierEntry#level})
+     */
+    default int energyCapacity(int level, int energyCapacity, int baseEnergyCapacity) {
+        return energyCapacity;
+    }
+
+    /**
+     * Why applying this modifier's recipe capped at {@code targetLevel} is refused given the tool is
+     * currently at {@code currentLevel} -- empty when the application is in order. {@code surgebound}
+     * is the only shipped user: its five levels each spend a distinct reagent from Powah's own crystal
+     * ladder (energized steel, then blazing, niotic, spirited, nitro crystal), and every level but the
+     * first requires the one before it already applied. Every other modifier's fill-up recipe already
+     * enforces its own ordering through {@link ModifierRecipe#maxLevel} alone (haste's redstone can't
+     * overshoot its cap), so this hook only needs an override where <em>which reagent</em> produced a
+     * level matters, not just how many units did.
+     *
+     * @param currentLevel the level already on the tool (0 if none)
+     * @param targetLevel the level the attempted recipe caps out at ({@link ModifierRecipe#maxLevel})
+     */
+    default Optional<Component> outOfOrderRefusal(int currentLevel, int targetLevel) {
         return Optional.empty();
     }
 }

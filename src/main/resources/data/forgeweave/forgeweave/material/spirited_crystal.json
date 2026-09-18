@@ -1,0 +1,39 @@
+{
+  "head": {
+    "durability": 800,
+    "mining_speed": 9.0,
+    "attack_damage": 7.0
+  },
+  "handle": {
+    "durability_modifier": 0.95,
+    "durability": 80
+  },
+  "extra_durability": 140,
+  "bow": {
+    "drawspeed": 0.51,
+    "range": 1.4,
+    "bonus_damage": 5.8
+  },
+  "plating": {
+    "helmet": { "durability": 400, "armor": 3.0, "toughness": 2.0, "knockback_resistance": 0.08 },
+    "chestplate": { "durability": 580, "armor": 8.0, "toughness": 2.0, "knockback_resistance": 0.08 },
+    "leggings": { "durability": 545, "armor": 6.0, "toughness": 2.0, "knockback_resistance": 0.08 },
+    "boots": { "durability": 465, "armor": 3.0, "toughness": 2.0, "knockback_resistance": 0.08 }
+  },
+  "maille": true,
+  "incorrect_for_tool": "minecraft:incorrect_for_netherite_tool",
+  "traits": {
+    "general": ["forgeweave:spirited_charge"]
+  },
+  "crafting_items": [
+    { "ingredient": { "item": "powah:crystal_spirited" }, "value": 144 }
+  ],
+  "repair_item": {
+    "item": "powah:crystal_spirited"
+  },
+  "enchantability": 15,
+  "color": "#3FD9C7",
+  "neoforge:conditions": [
+    { "type": "neoforge:item_exists", "item": "powah:crystal_spirited" }
+  ]
+}

@@ -65,6 +65,7 @@ import dev.gkissel.forgeweave.combat.PotionEffectOnHitSeam;
 import dev.gkissel.forgeweave.combat.Protection;
 import dev.gkissel.forgeweave.combat.ThornsCounterSeam;
 import dev.gkissel.forgeweave.client.StationText;
+import dev.gkissel.forgeweave.config.ForgeweaveConfig;
 import dev.gkissel.forgeweave.item.BowItem;
 import dev.gkissel.forgeweave.item.ForgeweaveDataComponents;
 import dev.gkissel.forgeweave.item.ForgeweaveItems;
@@ -1584,6 +1585,96 @@ public final class ForgeweaveModifiers {
         return false;
     }
 
+    // ---------------------------------------------------------------- issue #996 (D-M8-17): surgebound
+
+    /** Exposed so {@code ModifierApplication#loadedRecipes} can filter its recipes on the compat toggle. */
+    public static final ResourceLocation SURGEBOUND_ID = id("surgebound");
+
+    /**
+     * Powah's crystal ladder (energized steel, then blazing/niotic/spirited/nitro crystal), one level
+     * a step, each spending its own modifier slot ({@link Modifier#occupiedSlots}'s default already
+     * charges one per level at {@code unitsPerLevel() == 1}). Order is enforced by
+     * {@link Modifier#outOfOrderRefusal}: level III cannot be applied before level II, and so on --
+     * see {@code surgebound_1_energized_steel.json} through {@code surgebound_5_nitro_crystal.json}
+     * for the five single-reagent recipes this walks.
+     *
+     * <p>Each level adds {@link ForgeweaveConfig#surgeboundCapacityPerLevel()} of the tool's own
+     * trait-derived FE capacity ({@code ForgeweaveTraits#energyCapacity}, folded in by
+     * {@link Modifier#energyCapacity}) and {@link ForgeweaveConfig#surgeboundMiningSpeedPerLevel()} of
+     * its base mining speed, the same {@code multiplyBase} shape {@code NETHERITE} already uses. The
+     * nitro step (level V) multiplies both per-level fractions by
+     * {@link ForgeweaveConfig#surgeboundNitroCapacityMultiplier()}/
+     * {@link ForgeweaveConfig#surgeboundNitroMiningSpeedMultiplier()} instead of adding another flat
+     * step, so it is worth more than the linear four before it. All four numbers are config
+     * (D-M8-8); {@link #surgeboundCapacityFraction}/{@link #surgeboundSpeedFraction} are the shared
+     * curve both the modifier hooks and the tooltip's extra-info line read.
+     *
+     * <p>The capacity this modifier multiplies is never stored (see {@code trait.EnergyBuffer}'s class
+     * javadoc): it is re-summed on demand every time the buffer's size is asked for, so retuning any
+     * of the four config numbers later needs no save-compat migration -- the same guarantee
+     * {@code ForgeweaveTraits#energyCapacity} already gives the trait side of the same total.
+     *
+     * <p>{@code powahModifiers} off makes every hook below inert (returns the untouched value) on top
+     * of {@code ModifierApplication#loadedRecipes} dropping the application recipes -- D-M7-3's rule
+     * ("off means fully inert, not revoked") applied to a compat toggle: a tool already carrying
+     * {@code surgebound} keeps its {@code id + level} component, which is all that is ever stored.
+     */
+    public static final Modifier SURGEBOUND = new Modifier() {
+        @Override
+        public Optional<Component> outOfOrderRefusal(int currentLevel, int targetLevel) {
+            if (targetLevel - currentLevel == 1) {
+                return Optional.empty();
+            }
+            return Optional.of(Component.translatable("gui.forgeweave.modifier.surgebound_out_of_order",
+                    currentLevel + 1, targetLevel));
+        }
+
+        @Override
+        public float miningSpeed(int level, float miningSpeed, float baseMiningSpeed) {
+            if (level <= 0 || !ForgeweaveConfig.enabled(ForgeweaveConfig.POWAH_MODIFIERS)) {
+                return miningSpeed;
+            }
+            return miningSpeed + baseMiningSpeed * surgeboundSpeedFraction(level);
+        }
+
+        @Override
+        public int energyCapacity(int level, int energyCapacity, int baseEnergyCapacity) {
+            if (level <= 0 || !ForgeweaveConfig.enabled(ForgeweaveConfig.POWAH_MODIFIERS)) {
+                return energyCapacity;
+            }
+            return energyCapacity + Math.round(baseEnergyCapacity * surgeboundCapacityFraction(level));
+        }
+    };
+
+    /**
+     * The fraction of the base FE capacity {@code surgebound} adds at {@code level} -- levels 1-4 each
+     * add {@link ForgeweaveConfig#surgeboundCapacityPerLevel()}, and level 5 (nitro) adds that same
+     * per-level fraction multiplied by {@link ForgeweaveConfig#surgeboundNitroCapacityMultiplier()}
+     * instead of a fifth flat step, so it is worth more than the linear four before it (D-M8-17). Read
+     * by {@link #SURGEBOUND}'s {@link Modifier#energyCapacity} hook and by {@link #extraInfo}'s
+     * tooltip line, kept as a static method (not an instance method on the anonymous
+     * {@link Modifier}) so both callers share one curve without widening {@code SURGEBOUND}'s public
+     * shape past the interface.
+     */
+    public static float surgeboundCapacityFraction(int level) {
+        float fraction = Math.min(level, 4) * (float) ForgeweaveConfig.surgeboundCapacityPerLevel();
+        if (level >= 5) {
+            fraction += (float) (ForgeweaveConfig.surgeboundCapacityPerLevel()
+                    * ForgeweaveConfig.surgeboundNitroCapacityMultiplier());
+        }
+        return fraction;
+    }
+
+    /** As {@link #surgeboundCapacityFraction}, for the mining-speed bonus. */
+    public static float surgeboundSpeedFraction(int level) {
+        float fraction = Math.min(level, 4) * (float) ForgeweaveConfig.surgeboundMiningSpeedPerLevel();
+        if (level >= 5) {
+            fraction += (float) (ForgeweaveConfig.surgeboundMiningSpeedPerLevel()
+                    * ForgeweaveConfig.surgeboundNitroMiningSpeedMultiplier());
+        }
+        return fraction;
+    }
+
     private static final Map<ResourceLocation, Modifier> REGISTRY = Map.ofEntries(
             Map.entry(id("fire_protection"), FIRE_PROTECTION),
             Map.entry(id("blast_protection"), BLAST_PROTECTION),
@@ -1624,7 +1715,8 @@ public final class ForgeweaveModifiers {
             Map.entry(id("blasting"), BLASTING),
             Map.entry(id("veinmine"), VEINMINE),
             Map.entry(ELYTRA_FLIGHT_ID, ELYTRA_FLIGHT),
-            Map.entry(id("creative_flight"), CREATIVE_FLIGHT));
+            Map.entry(id("creative_flight"), CREATIVE_FLIGHT),
+            Map.entry(SURGEBOUND_ID, SURGEBOUND));
 
     /**
      * docs/SCOPE.md's "8 combat modifiers" (M3 acceptance test 4): the #162/#163 batches' seven
@@ -1805,7 +1897,7 @@ public final class ForgeweaveModifiers {
      */
     public static Set<ResourceLocation> extraInfoIds() {
         return Set.of(HASTE_ID, SMITE_ID, BANE_ID, FIERY_ID, NECROTIC_ID, REINFORCED_ID, SHULKING_ID,
-                MENDING_MOSS_ID, BLASTING_ID);
+                MENDING_MOSS_ID, BLASTING_ID, SURGEBOUND_ID);
     }
 
     /**
@@ -1874,6 +1966,12 @@ public final class ForgeweaveModifiers {
             // ModBlasting#getExtraInfo: the destroy chance, as upstream's Util.dfPercent whole percent.
             return List.of(Component.translatable(key,
                     StationText.formatPercent(blastingDestroyChance(level))));
+        }
+        if (SURGEBOUND_ID.equals(id)) {
+            // Issue #996: the two config-driven percentages this level's crystal step is worth.
+            return List.of(Component.translatable(key,
+                    StationText.formatPercent(surgeboundCapacityFraction(level)),
+                    StationText.formatPercent(surgeboundSpeedFraction(level))));
         }
         return List.of();
     }
@@ -1974,7 +2072,9 @@ public final class ForgeweaveModifiers {
             Map.entry(id("melee_protection"), TextColor.fromRgb(0x2376DD)),
             Map.entry(id("projectile_protection"), TextColor.fromRgb(0xD8D8D8)),
             Map.entry(id("knockback_resistance"), TextColor.fromRgb(0x4A4A4A)),
-            Map.entry(id("thorns"), TextColor.fromRgb(0x9FA76D)));
+            Map.entry(id("thorns"), TextColor.fromRgb(0x9FA76D)),
+            // Issue #996: Powah's own energized-teal, no upstream class to take a colour from.
+            Map.entry(SURGEBOUND_ID, TextColor.fromRgb(0x2FE6B8)));
 
     /**
      * The tool's stats with its modifiers applied, or {@code null} if it has no stat block at all.

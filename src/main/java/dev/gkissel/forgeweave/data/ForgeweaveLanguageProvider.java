@@ -688,6 +688,9 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("gui.forgeweave.modifier.incompatible_trait", "Modifier %s can not be used together with trait %s");
         add("gui.forgeweave.modifier.incompatible_modifiers", "Modifiers %s and %s cannot be applied together");
         add("gui.forgeweave.modifier.incompatible_enchantment", "Modifier %s cannot be combined with enchantment %s");
+        // Issue #996: surgebound's crystal ladder refuses a level out of sequence.
+        add("gui.forgeweave.modifier.surgebound_out_of_order",
+                "Surgebound must be applied in crystal order: this tool needs level %s next, not %s.");
 
         // Why an attempted part exchange was refused (issue #264), same info-panel surface. The
         // durability line mirrors upstream 1.12's gui.error.not_enough_durability.
@@ -1090,6 +1093,13 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("material.forgeweave.emeradic_crystal", "Emeradic Crystal");
         add("material.forgeweave.enori_crystal", "Enori Crystal");
         add("material.forgeweave.uraninite", "Uraninite");
+        // Issue #996 (D-M8-17): the four Powah crystals #837/#872 left unshippable (no per-material
+        // c: tag; see MaterialTest#noShippedMaterialConditionsOnPowahsUntaggedCrystals's old guard),
+        // unblocked the same way #872 unblocked energised_steel -- a concrete item id.
+        add("material.forgeweave.blazing_crystal", "Blazing Crystal");
+        add("material.forgeweave.niotic_crystal", "Niotic Crystal");
+        add("material.forgeweave.spirited_crystal", "Spirited Crystal");
+        add("material.forgeweave.nitro_crystal", "Nitro Crystal");
         add("material.forgeweave.psimetal", "Psimetal");
         add("material.forgeweave.psigem", "Psigem");
         add("material.forgeweave.ivory_psimetal", "Ivory Psimetal");
@@ -1488,6 +1498,15 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("modifier.forgeweave.creative_flight.description",
                 "A fallen star's power, bound to the whole set. Soar freely while every heavy piece "
                         + "stays worn and unbroken; requires Elytra Flight first.");
+
+        // Issue #996 (D-M8-17): Powah's crystal ladder, one level a step, energy capacity and mining
+        // speed rising with each crystal.
+        add("modifier.forgeweave.surgebound.name", "Surgebound");
+        add("modifier.forgeweave.surgebound.description",
+                "Powah's crystal ladder, applied one level at a time: energized steel, then blazing, "
+                        + "niotic, spirited and nitro crystal. Each level raises the tool's energy "
+                        + "capacity and mining speed; the nitro step is worth double the rest.");
+        add("modifier.forgeweave.surgebound.extra", "Energy Capacity: +%s, Mining Speed: +%s");
 
         add("modifier.forgeweave.wind_burst.name", "Wind Burst");
         add("modifier.forgeweave.wind_burst.description",
@@ -2180,6 +2199,16 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("trait.forgeweave.solar_recharge.description", "Slowly refills its energy buffer in daylight.");
         add("trait.forgeweave.kinetic_charge.name", "Kinetic Charge");
         add("trait.forgeweave.kinetic_charge.description", "Converts a share of damage dealt into stored energy.");
+        // Issue #996 (D-M8-17): datapack trait_definition instances of the #830 energized behavior,
+        // one per Powah crystal, ascending capacity (see trait_definition/*_charge.json).
+        add("trait.forgeweave.blazing_charge.name", "Blazing Charge");
+        add("trait.forgeweave.blazing_charge.description", "Carries a Forge Energy buffer that is spent before durability.");
+        add("trait.forgeweave.niotic_charge.name", "Niotic Charge");
+        add("trait.forgeweave.niotic_charge.description", "Carries a larger Forge Energy buffer that is spent before durability.");
+        add("trait.forgeweave.spirited_charge.name", "Spirited Charge");
+        add("trait.forgeweave.spirited_charge.description", "Carries a still larger Forge Energy buffer that is spent before durability.");
+        add("trait.forgeweave.nitro_charge.name", "Nitro Charge");
+        add("trait.forgeweave.nitro_charge.description", "Carries the largest Forge Energy buffer that is spent before durability.");
         add("tooltip.forgeweave.energy", "Stored Energy");
         // #829 M6 utility/economy trait behavior library.
         add("trait.forgeweave.sunmend.name", "Sunmend");
@@ -2617,6 +2646,13 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         // what ArrowEntity#getWaterInertia implements, the other two are upstream's own jokes.
         modifierEffects("fins",
                 "Projectiles ignore water", "Logical", "Makes sense");
+        // Issue #996 (D-M8-17) -- Forgeweave original built on Powah's own crystal ladder.
+        modifierEffects("surgebound",
+                "Grants +25% energy capacity and +5% mining speed per level",
+                "The nitro step (level V) doubles both instead of adding a fifth flat step",
+                "Applied in crystal order: energized steel, then blazing, niotic, spirited, nitro crystal",
+                "Each level requires the one before it, and costs its own modifier slot",
+                "Five levels");
 
         // Issue #796: the built-in Legacy resource pack's display name (Options > Resource Packs).
         // Not an item/block/trait key family -- ForgeweaveResourcePacks#addPackFinders is the only
