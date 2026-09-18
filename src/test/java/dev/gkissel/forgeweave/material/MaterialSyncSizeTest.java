@@ -113,8 +113,16 @@ class MaterialSyncSizeTest {
      * 112 KB line. Raised to 116 KB (118,784 bytes), ~3.2 KB (2.8%) of headroom above the new
      * measurement, same deliberately-tight step as every raise above -- M8-12 is the last Track A
      * batch D-M8-17 plans, so no further growth is budgeted for beyond this.
+     *
+     * <p>Issue #999 (D-M8-20) turned out not to be the last after all: Mystical Agriculture's nine
+     * metals (the inferium-to-awakened-supremium ladder, prosperity, soulium, and Mystical
+     * Agradditions' insanium) take the 162-material roster to 121,513 bytes, 2,729 bytes over the
+     * 116 KB line. Raised to 120 KB (122,880 bytes), ~1.3 KB (1.1%) of headroom above the new
+     * measurement -- tighter than the steps above on purpose, because several M8 preset batches are
+     * in flight at once and each should have to look at this number rather than coast on someone
+     * else's slack.
      */
-    private static final int SYNC_BUDGET_BYTES = 116 * 1024;
+    private static final int SYNC_BUDGET_BYTES = 120 * 1024;
 
     private static RegistryOps<JsonElement> jsonOps;
     private static RegistryOps<Tag> nbtOps;
