@@ -391,6 +391,46 @@ public final class ForgeweaveConfig {
     /** {@link #SURGEBOUND_NITRO_MINING_SPEED_MULTIPLIER}'s own default -- D-M8-17's "nitro doubles both". */
     public static final double SURGEBOUND_NITRO_MINING_SPEED_MULTIPLIER_DEFAULT = 2.0D;
 
+    /**
+     * Issue #995 (D-M8-12, D-M8-16): Create's heated mixer, crushing wheels and mechanical press
+     * carrying Forgeweave's generated recipe JSON (the four basic alloys, Track B ore crushing, and
+     * ingot-to-plate pressing). Off means {@link ForgeweaveConfigCondition#COMPAT_TOGGLE} reads false
+     * for {@code "createRecipes"}, so none of those rows resolve; Forgeweave's own items and tags are
+     * untouched either way, so a modpack loses nothing by flipping this and gains the rows back the
+     * moment it flips back and reloads.
+     *
+     * @see #DRACONIC_FUSION
+     */
+    public static final ModConfigSpec.BooleanValue CREATE_RECIPES;
+
+    /**
+     * Issue #995 (D-M8-12, D-M8-16): Immersive Engineering's arc furnace, crusher and metal press
+     * carrying the same generated rows as {@link #CREATE_RECIPES}, for Immersive Engineering's recipe
+     * types instead of Create's.
+     *
+     * @see #DRACONIC_FUSION
+     */
+    public static final ModConfigSpec.BooleanValue IMMERSIVE_ENGINEERING_RECIPES;
+
+    /**
+     * Issue #995 (D-M8-12, D-M8-16): EnderIO's alloy smelter and SAG mill carrying the basic alloys
+     * and Track B ore crushing rows.
+     *
+     * @see #DRACONIC_FUSION
+     */
+    public static final ModConfigSpec.BooleanValue ENDER_IO_RECIPES;
+
+    /**
+     * Issue #995 (D-M8-13): Forgeweave's molten fluids registered as Powah thermo generator heat
+     * sources through {@code powah:heat_source}'s fluid data map. Off means
+     * {@link ForgeweaveConfigCondition#COMPAT_TOGGLE} reads false for {@code "powahHeatSources"} on
+     * every entry Forgeweave contributes, so a thermo generator no longer burns them; the data map
+     * entries Powah ships for its own fluids are untouched either way.
+     *
+     * @see #DRACONIC_FUSION
+     */
+    public static final ModConfigSpec.BooleanValue POWAH_HEAT_SOURCES;
+
     /** Upstream {@code genCobalt}: cobalt ore generates in the Nether. */
     public static final ModConfigSpec.BooleanValue GEN_COBALT;
     /** Upstream {@code cobaltRate}: approximate cobalt veins per Nether chunk. */
@@ -877,6 +917,28 @@ public final class ForgeweaveConfig {
                         "a modifier slot. Has no effect without Apothic Enchanting installed, which is the mod",
                         "that owns the table.")
                 .define("apotheosisEnchanting", true);
+        // Issue #995 (D-M8-12, D-M8-13, D-M8-16): the four processing-mod bridges, added last so the
+        // sections above keep the order every existing config file on disk already has.
+        CREATE_RECIPES = builder
+                .comment("If true, Forgeweave's generated Create recipes resolve: the heated mixer for",
+                        "the basic alloys, crushing wheels for Track B ores, and the mechanical press for",
+                        "ingot-to-plate. With this off none of those rows match; nothing Forgeweave owns",
+                        "changes either way.")
+                .define("createRecipes", true);
+        IMMERSIVE_ENGINEERING_RECIPES = builder
+                .comment("If true, Forgeweave's generated Immersive Engineering recipes resolve: the arc",
+                        "furnace for the basic alloys, the crusher for Track B ores, and the metal press",
+                        "for ingot-to-plate. With this off none of those rows match.")
+                .define("immersiveEngineeringRecipes", true);
+        ENDER_IO_RECIPES = builder
+                .comment("If true, Forgeweave's generated EnderIO recipes resolve: the alloy smelter for",
+                        "the basic alloys and the SAG mill for Track B ores. With this off neither resolves.")
+                .define("enderIoRecipes", true);
+        POWAH_HEAT_SOURCES = builder
+                .comment("If true, Forgeweave's molten fluids read as Powah thermo generator heat sources.",
+                        "With this off a thermo generator no longer burns them; Powah's own heat sources",
+                        "for its own fluids are untouched either way.")
+                .define("powahHeatSources", true);
         builder.pop();
         COMPAT_SPEC = builder.build();
 

@@ -1,0 +1,23 @@
+{
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:mod_loaded",
+      "modid": "create"
+    },
+    {
+      "type": "forgeweave:compat_toggle",
+      "toggle": "createRecipes"
+    }
+  ],
+  "type": "create:pressing",
+  "ingredients": [
+    {
+      "tag": "c:ingots/starfall_stone"
+    }
+  ],
+  "results": [
+    {
+      "id": "forgeweave:starfall_stone_plate"
+    }
+  ]
+}
