@@ -1115,6 +1115,9 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("material.forgeweave.niotic_crystal", "Niotic Crystal");
         add("material.forgeweave.spirited_crystal", "Spirited Crystal");
         add("material.forgeweave.nitro_crystal", "Nitro Crystal");
+        // Issue #997 (D-M8-18): Occultism's gem, the third of its three Track A presets. Iesnium and
+        // silver already shipped in earlier batches and keep their names above.
+        add("material.forgeweave.spirit_attuned_gem", "Spirit Attuned Gem");
         add("material.forgeweave.psimetal", "Psimetal");
         add("material.forgeweave.psigem", "Psigem");
         add("material.forgeweave.ivory_psimetal", "Ivory Psimetal");
