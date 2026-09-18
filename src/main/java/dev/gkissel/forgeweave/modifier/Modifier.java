@@ -136,15 +136,27 @@ public interface Modifier {
     }
 
     /**
-     * Whether this modifier may only be applied to a worn <b>heavy</b> chestplate (issue #737, epic
-     * #730 slice 2) -- narrower than {@link #armorOnly}: elytra flight and creative flight are
-     * refused on every other armor slot <em>and</em> on the plain plate chestplate (#735's heavy set
-     * is a separate item, {@code ArmorPieceItem#isHeavy}). Checked by {@code ModifierApplication}
-     * off the tool item itself ({@code ArmorPieceItem#isHeavy} plus {@code ArmorItem#getType}) rather
-     * than the {@code ToolConstants.Category} {@link #armorOnly} reads, since "heavy" and "which
-     * slot" are both runtime item properties, not a tool category.
+     * Whether this modifier may only be applied to a worn chestplate, heavy or light alike (issue
+     * #737, epic #730 slice 2; widened to every weight by issue #1005) -- narrower than
+     * {@link #armorOnly}: elytra flight and creative flight are refused on every other armor slot.
+     * Before #1005 this also required {@code ArmorPieceItem#isHeavy}; the maintainer directive
+     * dropped that half of the gate so the modifier only cares which slot the piece occupies, not
+     * its weight. Checked by {@code ModifierApplication} off the tool item itself
+     * ({@code ArmorItem#getType}) rather than the {@code ToolConstants.Category} {@link #armorOnly}
+     * reads, since "which slot" is a runtime item property, not a tool category.
      */
-    default boolean heavyChestplateOnly() {
+    default boolean chestplateOnly() {
+        return false;
+    }
+
+    /**
+     * Whether this modifier may only be applied to a worn helmet, heavy or light alike (issue #1007:
+     * Create's goggles, the first slot-free utility) -- narrower than {@link #armorOnly} the same way
+     * {@link #chestplateOnly} is, on {@code ArmorItem.Type.HELMET} rather than {@code CHESTPLATE},
+     * and caring no more about weight than that gate does since #1005. Checked by
+     * {@code ModifierApplication} off the tool item itself, next to the chestplate gate above.
+     */
+    default boolean helmetOnly() {
         return false;
     }
 
@@ -160,10 +172,11 @@ public interface Modifier {
     }
 
     /**
-     * Whether this modifier grants creative-style flight while the full heavy set (#735) is worn
-     * (issue #737) -- read by {@code CreativeFlightHandler}'s per-player tick rather than an Item
-     * hook, since unlike {@link #grantsElytraFlight} the grant depends on all four equipment slots at
-     * once, not just the piece carrying the modifier.
+     * Whether this modifier grants creative-style flight while a full set of armor is worn (issue
+     * #737; any weight since #1005, mixed heavy and light included) -- read by
+     * {@code CreativeFlightHandler}'s per-player tick rather than an Item hook, since unlike
+     * {@link #grantsElytraFlight} the grant depends on all four equipment slots at once, not just the
+     * piece carrying the modifier.
      */
     default boolean grantsCreativeFlight(int level) {
         return false;
@@ -361,9 +374,28 @@ public interface Modifier {
      * {@code FreeFirstModifierAspect} (one slot on first application, later levels free), soulbound's
      * chargeless {@code DataAspect + SingleAspect}, and extra_slot/{@code ModCreative} (no aspects at
      * all -- see {@link #bonusSlots}).
+     *
+     * <p>Issue #1007 adds {@link #utility}, a named flag for the same zero rather than a fourth
+     * ad-hoc override: soulbound and netherite predate it and keep their own direct overrides (no
+     * upstream aspect to name), but a future slot-free add-on only needs to flip the flag.
      */
     default int occupiedSlots(int level) {
+        if (utility()) {
+            return 0;
+        }
         return level <= 0 ? 0 : 1 + (level - 1) / Math.max(1, unitsPerLevel());
+    }
+
+    /**
+     * Whether this modifier is a slot-free utility -- it never occupies a modifier slot, at any level
+     * (issue #1007: Create's goggles, "a general seam, since more utilities will follow"). The single
+     * check lives in {@link #occupiedSlots}'s default above, so a modifier that leaves this
+     * {@code false} (the default) keeps the normal per-level accounting; one that overrides
+     * {@link #occupiedSlots} directly, like {@code soulbound} or {@code netherite}, has no reason to
+     * also flip this flag.
+     */
+    default boolean utility() {
+        return false;
     }
 
     // #108 batch: modern-vanilla modifiers (issue #108) -- Forgeweave originals, not upstream ports,

@@ -137,3 +137,15 @@ Forgeweave brings modular tool building, material traits, modifiers, melting, al
     versionRange="[3.1.4.632,)"
     ordering="AFTER"
     side="BOTH"
+
+# Create compat (issue #1007, docs/SCOPE.md M8) is optional: without it the mod is unchanged and
+# modifier_recipe/goggles.json is dropped by its own `neoforge:conditions` mod_loaded gate. With it, a
+# helmet can take the `goggles` modifier so it counts as wearing Create's own Engineer's Goggles for
+# Create's overlays (dev.gkissel.forgeweave.compat.create). BOTH sides: the recipe is a datapack row
+# the client needs for JEI, and the goggles-worn check itself runs client-side for the overlay.
+[[dependencies.${mod_id}]]
+    modId="create"
+    type="optional"
+    versionRange="[6.0.10,)"
+    ordering="AFTER"
+    side="BOTH"

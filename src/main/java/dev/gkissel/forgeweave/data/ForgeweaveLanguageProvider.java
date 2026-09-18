@@ -1490,14 +1490,20 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
                 "Refined! Harness the power of ancient metal, making the tool stronger and immune to external damage such as fire.");
 
         // #737 (epic #730 slice 2) -- Forgeweave originals, no upstream counterpart: elytra flight and
-        // creative flight, both heavy-chestplate-only.
+        // creative flight, both chestplate-only. #1005 widened both off heavy-only to any weight.
         add("modifier.forgeweave.elytra_flight.name", "Elytra Flight");
         add("modifier.forgeweave.elytra_flight.description",
                 "Sacrifice a real elytra to teach the plate to glide just the same, wings or not.");
         add("modifier.forgeweave.creative_flight.name", "Creative Flight");
         add("modifier.forgeweave.creative_flight.description",
-                "A fallen star's power, bound to the whole set. Soar freely while every heavy piece "
+                "A fallen star's power, bound to the whole set. Soar freely while every piece "
                         + "stays worn and unbroken; requires Elytra Flight first.");
+
+        // #1007 (docs/SCOPE.md M8, Create compat) -- Forgeweave original, no upstream counterpart.
+        add("modifier.forgeweave.goggles.name", "Goggles");
+        add("modifier.forgeweave.goggles.description",
+                "Mounts a pair of Create's goggles on the helmet, so its overlays show while the "
+                        + "helmet is worn. A utility: no modifier slot spent.");
 
         // Issue #996 (D-M8-17): Powah's crystal ladder, one level a step, energy capacity and mining
         // speed rising with each crystal.
@@ -2626,14 +2632,19 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
                 "Increases the mining level to netherite, and makes the tool immune to fire when dropped",
                 "Tools and armor will only receive applicable stat boosts",
                 "Maximum of 1 level", "Requires no modifier slot");
-        // #737 (epic #730 slice 2) -- Forgeweave originals, no upstream source.
+        // #737 (epic #730 slice 2) -- Forgeweave originals, no upstream source. #1005 widened both
+        // off heavy-only to any weight.
         modifierEffects("elytra_flight",
                 "Grants gliding, exactly like a worn elytra", "Consumes the elytra reagent outright",
-                "Only fits the heavy chestplate", "Maximum of 1 level");
+                "Only fits the chestplate", "Maximum of 1 level");
         modifierEffects("creative_flight",
-                "Grants creative-style flight while the full heavy set is worn",
+                "Grants creative-style flight while a full set of armor is worn",
                 "Lost the instant a piece is removed or breaks", "Requires Elytra Flight first",
-                "Only fits the heavy chestplate", "Maximum of 1 level");
+                "Only fits the chestplate", "Maximum of 1 level");
+        // #1007 -- Forgeweave original, no upstream counterpart.
+        modifierEffects("goggles",
+                "Makes the helmet count as wearing Create's goggles", "Only fits a helmet, heavy or light",
+                "Requires no modifier slot", "Maximum of 1 level");
         modifierEffects("far_reach",
                 "Reach further to mine blocks", "Each level adds one block", "Multiple levels");
         modifierEffects("extra_slot",
