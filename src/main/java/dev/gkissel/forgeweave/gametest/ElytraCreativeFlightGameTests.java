@@ -29,12 +29,15 @@ import dev.gkissel.forgeweave.modifier.ModifierEntry;
 import dev.gkissel.forgeweave.tool.ToolConstants;
 
 /**
- * Issue #737 (epic #730 slice 2), blocked by #735: elytra flight (an elytra teaches the worn heavy
+ * Issue #737 (epic #730 slice 2), blocked by #735: elytra flight (an elytra teaches the worn
  * chestplate to glide, via the item hooks in {@code ArmorPieceItem}) and creative flight (issue
- * #776's end-crystal-and-nether-star combo grants creative-style flight while the full heavy set is
+ * #776's end-crystal-and-nether-star combo grants creative-style flight while a full set of armor is
  * worn, gated behind elytra flight already being on the same chestplate -- {@code
  * CreativeFlightHandler}'s per-tick grant/revoke). Both are {@code Modifier#armorOnly}/{@code
- * #heavyChestplateOnly}: refused on the plate chestplate (#678's plain piece) and on every tool.
+ * #chestplateOnly}: refused on every non-chestplate slot and on every tool. Issue #1005 dropped the
+ * heavy-only half of {@code #chestplateOnly} (formerly {@code heavyChestplateOnly}), so the plate
+ * chestplate (#678's plain piece) now works exactly like the heavy one, and
+ * {@code CreativeFlightHandler}'s full-set check no longer cares about weight either.
  */
 @GameTestHolder(Forgeweave.MODID)
 @PrefixGameTestTemplate(false)
@@ -57,8 +60,13 @@ public class ElytraCreativeFlightGameTests {
     }
 
     private static ItemStack plateChestplate(GameTestHelper helper, Player player) {
+        return lightPiece(helper, player, ToolConstants.CHESTPLATE);
+    }
+
+    /** Issue #1005: the light counterpart of {@link #heavyPiece}, two parts instead of three. */
+    private static ItemStack lightPiece(GameTestHelper helper, Player player, ToolConstants.Entry entry) {
         return ToolAssembly.assembleAt(helper, player, STATION, ForgeweaveBlocks.ARMOR_STATION.get(),
-                ToolAssembly.entryOf(ToolConstants.CHESTPLATE), List.of("iron", "iron"));
+                ToolAssembly.entryOf(entry), List.of("iron", "iron"));
     }
 
     /** The station loaded with {@code tool} and one reagent stack, output untaken. */
@@ -131,15 +139,18 @@ public class ElytraCreativeFlightGameTests {
         helper.succeed();
     }
 
-    /** {@code heavyChestplateOnly()}: refused on the plate chestplate (#678) and on every tool. */
+    /** Issue #1005: {@code chestplateOnly()} now takes the plate chestplate (#678) too, but still refuses every tool. */
     @GameTest(template = "empty")
-    public static void elytraFlightIsRefusedOnThePlateChestplateAndOnTools(GameTestHelper helper) {
+    public static void elytraFlightAppliesToThePlateChestplateTooButNotToTools(GameTestHelper helper) {
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
-        assertRefused(helper, load(helper, player, plateChestplate(helper, player), new ItemStack(Items.ELYTRA)),
-                "the plain plate chestplate is not the heavy one");
+        ItemStack flying = apply(helper, player, plateChestplate(helper, player), new ItemStack(Items.ELYTRA));
+        ModifierEntry entry = ForgeweaveModifiers.entry(flying, id("elytra_flight"));
+        helper.assertTrue(entry != null && entry.level() == 1, "the plain plate chestplate takes elytra flight too, got " + entry);
+        helper.assertTrue(flying.canElytraFly(player), "and it glides exactly like the heavy chestplate does");
+
         ItemStack pickaxe = ToolAssembly.pickaxe(helper, player, STATION, "stone", "wood", "wood");
         assertRefused(helper, load(helper, player, pickaxe, new ItemStack(Items.ELYTRA)),
-                "elytra flight is armor-only");
+                "elytra flight is still armor-only");
         helper.succeed();
     }
 
@@ -193,17 +204,20 @@ public class ElytraCreativeFlightGameTests {
         helper.succeed();
     }
 
-    /** {@code heavyChestplateOnly()}: the combo is refused on the plate chestplate (#678) and on every tool. */
+    /** Issue #1005: {@code chestplateOnly()} now takes the plate chestplate (#678) too, but still refuses every tool. */
     @GameTest(template = "empty")
-    public static void creativeFlightComboIsRefusedOnThePlateChestplateAndOnTools(GameTestHelper helper) {
+    public static void creativeFlightComboAppliesToThePlateChestplateTooButNotToTools(GameTestHelper helper) {
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
-        assertRefused(helper,
-                load(helper, player, plateChestplate(helper, player), new ItemStack(Items.END_CRYSTAL), new ItemStack(Items.NETHER_STAR)),
-                "the plain plate chestplate is not the heavy one");
+        ItemStack flying = apply(helper, player, plateChestplate(helper, player), new ItemStack(Items.ELYTRA));
+        ItemStack output = apply(helper, player, flying, new ItemStack(Items.END_CRYSTAL), new ItemStack(Items.NETHER_STAR));
+        ModifierEntry entry = ForgeweaveModifiers.entry(output, id("creative_flight"));
+        helper.assertTrue(entry != null && entry.level() == 1,
+                "the plain plate chestplate takes the creative flight combo too, got " + entry);
+
         ItemStack pickaxe = ToolAssembly.pickaxe(helper, player, STATION, "stone", "wood", "wood");
         assertRefused(helper,
                 load(helper, player, pickaxe, new ItemStack(Items.END_CRYSTAL), new ItemStack(Items.NETHER_STAR)),
-                "creative flight is armor-only");
+                "creative flight is still armor-only");
         helper.succeed();
     }
 
@@ -217,7 +231,12 @@ public class ElytraCreativeFlightGameTests {
      * (e.g. {@code BeheadingGameTests}, {@code ArmorRealPathGameTests}).
      */
     private static ItemStack flightChestplate(GameTestHelper helper, Player player) {
-        ItemStack flying = apply(helper, player, heavyChestplate(helper, player), new ItemStack(Items.ELYTRA));
+        return flightChestplate(helper, player, heavyChestplate(helper, player));
+    }
+
+    /** Issue #1005: same recipe as {@link #flightChestplate(GameTestHelper, Player)}, any starting piece. */
+    private static ItemStack flightChestplate(GameTestHelper helper, Player player, ItemStack plainChestplate) {
+        ItemStack flying = apply(helper, player, plainChestplate, new ItemStack(Items.ELYTRA));
         ItemStack both = flying.copy();
         List<ModifierEntry> modifiers = new ArrayList<>(
                 both.getOrDefault(ForgeweaveDataComponents.MODIFIERS.get(), List.of()));
@@ -244,6 +263,23 @@ public class ElytraCreativeFlightGameTests {
         player.setItemSlot(EquipmentSlot.FEET, heavyPiece(helper, player, ToolConstants.HEAVY_BOOTS));
         tick(player);
         helper.assertTrue(CreativeFlightHandler.isGranted(player), "the full set must grant flight");
+        helper.assertTrue(player.getAbilities().mayfly, "and mayfly must follow");
+        helper.succeed();
+    }
+
+    /**
+     * Issue #1005: {@code wearsFullCreativeFlightSet} dropped its {@code isHeavy()} check, so a set
+     * mixing light and heavy pieces -- not just an all-heavy or all-light one -- grants flight too.
+     */
+    @GameTest(template = "empty")
+    public static void creativeFlightNeedsTheFullSetWornRegardlessOfWeight(GameTestHelper helper) {
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        player.setItemSlot(EquipmentSlot.HEAD, lightPiece(helper, player, ToolConstants.HELMET));
+        player.setItemSlot(EquipmentSlot.CHEST, flightChestplate(helper, player, plateChestplate(helper, player)));
+        player.setItemSlot(EquipmentSlot.LEGS, heavyPiece(helper, player, ToolConstants.HEAVY_LEGGINGS));
+        player.setItemSlot(EquipmentSlot.FEET, lightPiece(helper, player, ToolConstants.BOOTS));
+        tick(player);
+        helper.assertTrue(CreativeFlightHandler.isGranted(player), "a mixed light/heavy full set must grant flight too");
         helper.assertTrue(player.getAbilities().mayfly, "and mayfly must follow");
         helper.succeed();
     }

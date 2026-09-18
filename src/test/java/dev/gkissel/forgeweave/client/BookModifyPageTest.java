@@ -193,19 +193,22 @@ class BookModifyPageTest {
 
     /**
      * Issue #794's second offender: elytra flight and creative flight are {@link
-     * Modifier#heavyChestplateOnly}, narrower than {@link Modifier#armorOnly} above -- the plain
-     * helmet #760's armor-only bucket would pick (first {@code Category.ARMOR} entry) is refused by
-     * {@code ModifierApplication} just as surely as a sword is refused for the expanders; only the
-     * heavy chestplate qualifies.
+     * Modifier#chestplateOnly}, narrower than {@link Modifier#armorOnly} above -- the plain helmet
+     * #760's armor-only bucket would pick (first {@code Category.ARMOR} entry) is refused by
+     * {@code ModifierApplication} just as surely as a sword is refused for the expanders; only a
+     * chestplate qualifies. Issue #1005 dropped the heavy-only half of that gate, so either weight
+     * does now -- the light chestplate illustrates it, being first in {@code Category.ARMOR} order.
      */
     @Test
-    void aHeavyChestplateOnlyModifierIsIllustratedWithTheHeavyChestplate() {
+    void aChestplateOnlyModifierIsIllustratedWithAChestplate() {
         for (Modifier modifier : List.of(ForgeweaveModifiers.ELYTRA_FLIGHT, ForgeweaveModifiers.CREATIVE_FLIGHT)) {
             ToolAssemblyRecipes.Entry entry = ModifyPageContent.representativeEntry(null, modifier);
 
-            assertTrue(entry.tool().get() instanceof ArmorPieceItem armor && armor.isHeavy()
+            assertTrue(entry.tool().get() instanceof ArmorPieceItem armor
                             && armor.getType() == ArmorItem.Type.CHESTPLATE,
-                    entry.tool().get() + " is not the heavy chestplate, so " + modifier + " would refuse it");
+                    entry.tool().get() + " is not a chestplate, so " + modifier + " would refuse it");
+            assertTrue(entry.tool().get() == ForgeweaveItems.ARMOR_CHESTPLATE.get(),
+                    "the light chestplate comes first in Category.ARMOR order, got " + entry.tool().get());
         }
     }
 

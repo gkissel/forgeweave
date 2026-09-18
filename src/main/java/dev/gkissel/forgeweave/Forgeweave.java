@@ -42,6 +42,7 @@ import dev.gkissel.forgeweave.combat.ForgeweaveInnates;
 import dev.gkissel.forgeweave.combat.ForgeweaveMobEffects;
 import dev.gkissel.forgeweave.combat.RangedXpSeam;
 import dev.gkissel.forgeweave.compat.apotheosis.ApotheosisSockets;
+import dev.gkissel.forgeweave.compat.create.ForgeweaveCreateCompat;
 import dev.gkissel.forgeweave.compat.draconic.ForgeweaveDraconicCompat;
 import dev.gkissel.forgeweave.config.ForgeweaveClientConfig;
 import dev.gkissel.forgeweave.config.ForgeweaveConfig;
@@ -296,6 +297,12 @@ public class Forgeweave {
         // DeferredRegister inside the call rather than in a static field.
         if (ModList.get().isLoaded(ForgeweaveDraconicCompat.MODID)) {
             ForgeweaveDraconicCompat.register(modEventBus);
+        }
+        // #1007 -- Create's goggles as a helmet modifier (docs/SCOPE.md M8), the same soft-dependency
+        // idiom again. The guard is load-bearing: ForgeweaveCreateCompat's registration call names a
+        // com.simibubi.create type and cannot link without the mod present.
+        if (ModList.get().isLoaded(ForgeweaveCreateCompat.MODID)) {
+            ForgeweaveCreateCompat.register();
         }
         // #969 -- Apotheosis gem sockets (docs/SCOPE.md M8, D-M8-1). Same load-bearing guard: the
         // bridge behind this call names dev.shadowsoffire types and cannot link without the mod,
