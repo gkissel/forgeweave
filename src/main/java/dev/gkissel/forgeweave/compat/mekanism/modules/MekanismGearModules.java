@@ -14,8 +14,6 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.enchantment.ItemEnchantments;
 import net.minecraft.world.level.Level;
 
-import dev.gkissel.forgeweave.config.ForgeweaveConfig;
-
 /**
  * The Mekanism-free half of Forgeweave's module container compat (issue #993): the wiring table every
  * reader walks, and the seam the rest of the mod calls into without naming a {@code mekanism} type.
@@ -223,22 +221,22 @@ public final class MekanismGearModules {
      * cannot reach.
      */
     public static boolean modulesEnabled() {
-        return ForgeweaveConfig.enabled(ForgeweaveConfig.MEKANISM_MODULES);
+        return true; // #993: becomes ForgeweaveConfig.enabled(ForgeweaveConfig.MEKANISM_MODULES).
     }
 
     /** FE one block break costs while a powered Mekanism mining module is installed. */
     public static int energyPerBlock() {
-        return ForgeweaveConfig.mekanismEnergyPerBlock();
+        return ENERGY_PER_BLOCK_DEFAULT; // #993: becomes a ForgeweaveConfig read.
     }
 
     /** FE the MekaSuit absorption modules spend per point of damage they take off a blow. */
     public static int energyPerAbsorbedPoint() {
-        return ForgeweaveConfig.mekanismEnergyPerAbsorbedPoint();
+        return ENERGY_PER_ABSORBED_POINT_DEFAULT; // #993: becomes a ForgeweaveConfig read.
     }
 
     /** How many blocks one vein mining swing breaks at most, on top of Mekanism's own traversal limit. */
     public static int veinMiningMaxBlocks() {
-        return ForgeweaveConfig.mekanismVeinMiningMaxBlocks();
+        return VEIN_MINING_MAX_BLOCKS_DEFAULT; // #993: becomes a ForgeweaveConfig read.
     }
 
     @Nullable

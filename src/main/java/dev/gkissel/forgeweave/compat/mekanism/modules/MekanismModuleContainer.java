@@ -141,8 +141,7 @@ public final class MekanismModuleContainer implements MekanismGearModules.Bridge
                 .map(entry -> (ItemLike) entry.tool().get())
                 .distinct()
                 .toArray(ItemLike[]::new);
-        event.registerItem(Capabilities.RADIATION_SHIELDING.item(),
-                (stack, context) -> shieldingFor(stack), items);
+        event.registerItem(Capabilities.RADIATION_SHIELDING, (stack, context) -> shieldingFor(stack), items);
     }
 
     @Nullable

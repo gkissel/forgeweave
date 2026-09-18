@@ -42,9 +42,9 @@ import dev.gkissel.forgeweave.trackb.TrackBOre;
 @PrefixGameTestTemplate(false)
 public class TrackBMaterialGameTests {
 
-    /** The roster this issue ships (now 29, issue #884 (1) retired cinderstone -- basalt replaces it
-     * as a Part-Builder-only material outside this cast-only Track B roster), ore-sourced first then
-     * alloy, matching the PR's stat table. */
+    /** The roster this issue ships (now 30: issue #884 (1) retired cinderstone -- basalt replaces it
+     * as a Part-Builder-only material outside this cast-only Track B roster -- and #993 added atomic
+     * matter alloy at the end), ore-sourced first then alloy, matching the PR's stat table. */
     private static final List<String> ROSTER = List.of(
             "fulmenite", "duskspar", "voltcinder", "murkiron", "hardcinder", "nightshale",
             "warspar", "hollowstone", "resonite", "starfall_stone", "voidglass",
@@ -99,7 +99,10 @@ public class TrackBMaterialGameTests {
             Map.entry("faultsteel", "cascading"),
             Map.entry("skipalloy", "quickstep"),
             Map.entry("mendalloy", "merciful"),
-            Map.entry("mendstone", "tinseeker"));
+            Map.entry("mendstone", "tinseeker"),
+            // #993 (D-M8-13, D-M8-15): infused is the metal's own instance of the #830 energized
+            // behavior, which is the buffer Mekanism's module container draws from.
+            Map.entry("atomic_matter_alloy", "infused"));
 
     /** Every Track B material is registered with no supplying mod required -- the Track A contrast. */
     @GameTest(template = "empty")

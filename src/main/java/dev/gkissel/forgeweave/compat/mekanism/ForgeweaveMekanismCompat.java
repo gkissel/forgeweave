@@ -46,6 +46,34 @@ public final class ForgeweaveMekanismCompat {
     /** Mekanism's antimatter, the nucleosynthesizing recipe's chemical input. */
     public static final String ANTIMATTER_CHEMICAL = MODID + ":antimatter";
 
+    /** {@link #nucleosynthesizingAlloyCount()}'s own default: one atomic alloy per ingot. */
+    public static final int NUCLEOSYNTHESIZING_ALLOY_COUNT_DEFAULT = 1;
+
+    /**
+     * {@link #nucleosynthesizingAntimatterAmount()}'s own default, in mB. Mekanism's own hardest
+     * nucleosynthesizing row spends 5, so this is above everything the machine is asked for by the mod
+     * that ships it.
+     */
+    public static final int NUCLEOSYNTHESIZING_ANTIMATTER_DEFAULT = 8;
+
+    /** {@link #nucleosynthesizingDuration()}'s own default, in ticks. Mekanism's own longest row is 1250. */
+    public static final int NUCLEOSYNTHESIZING_DURATION_DEFAULT = 2000;
+
+    /** How many of Mekanism's atomic alloys one {@code atomic_matter_alloy} ingot takes. */
+    public static int nucleosynthesizingAlloyCount() {
+        return NUCLEOSYNTHESIZING_ALLOY_COUNT_DEFAULT; // #993: becomes a ForgeweaveConfig read.
+    }
+
+    /** How much antimatter, in mB, one {@code atomic_matter_alloy} ingot takes. */
+    public static int nucleosynthesizingAntimatterAmount() {
+        return NUCLEOSYNTHESIZING_ANTIMATTER_DEFAULT; // #993: becomes a ForgeweaveConfig read.
+    }
+
+    /** How long, in ticks, the nucleosynthesizer takes over one ingot. */
+    public static int nucleosynthesizingDuration() {
+        return NUCLEOSYNTHESIZING_DURATION_DEFAULT; // #993: becomes a ForgeweaveConfig read.
+    }
+
     /**
      * Whether Mekanism is installed at all. Read once per call rather than cached in a static, because
      * a static initialiser here would run before {@code ModList} exists under some datagen entry

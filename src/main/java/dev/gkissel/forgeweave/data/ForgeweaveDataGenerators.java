@@ -36,6 +36,10 @@ public final class ForgeweaveDataGenerators {
         // rather than a RecipeProvider: both layers' serializers live behind the mod_loaded gate, so
         // there is no Recipe object runData could build. See the provider's own javadoc.
         generator.addProvider(event.includeServer(), new ForgeweaveDraconicRecipeProvider(output));
+        // #993 -- the one Mekanism nucleosynthesizing recipe (docs/SCOPE.md M8, D-M8-13). Same shape
+        // and the same reason: Mekanism's serializer is compileOnly, so there is no Recipe object here
+        // either.
+        generator.addProvider(event.includeServer(), new ForgeweaveMekanismRecipeProvider(output));
         generator.addProvider(event.includeServer(), new ForgeweaveLootTableProvider(output, lookupProvider));
         // #104 -- the cobalt + ardite nether ore blocks' tool-tier tags (ForgeweaveBlockTagsProvider
         // javadoc); the first Forgeweave block tags, so ForgeweaveItemTagsProvider's block-tag future
