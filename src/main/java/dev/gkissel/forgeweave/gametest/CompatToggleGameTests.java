@@ -16,6 +16,7 @@ import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 
 import dev.gkissel.forgeweave.Forgeweave;
+import dev.gkissel.forgeweave.compat.apotheosis.ApotheosisSockets;
 import dev.gkissel.forgeweave.compat.create.CreateGoggles;
 import dev.gkissel.forgeweave.compat.draconic.ForgeweaveDraconicCompat;
 import dev.gkissel.forgeweave.compat.draconic.modules.DraconicModules;
@@ -23,19 +24,23 @@ import dev.gkissel.forgeweave.config.ForgeweaveConfig;
 import dev.gkissel.forgeweave.item.ForgeweaveDataComponents;
 import dev.gkissel.forgeweave.item.ForgeweaveItems;
 import dev.gkissel.forgeweave.modifier.ForgeweaveModifiers;
+import dev.gkissel.forgeweave.modifier.ModifierApplication;
 import dev.gkissel.forgeweave.modifier.ModifierEntry;
 import dev.gkissel.forgeweave.tool.MiningLevel;
 import dev.gkissel.forgeweave.trait.ForgeweaveTraits;
 import dev.gkissel.forgeweave.trait.Trait;
 
 /**
- * Every {@code compat} toggle (D-M8-5) switched off and back on -- the four issue #968 backfills
- * plus issue #1007's Create goggles, which that PR left to this mechanism. {@code
+ * The {@code compat} toggles this PR owns (D-M8-5), switched off and back on: the four issue #968
+ * backfills, plus issue #1007's Create goggles and issue #969's Apotheosis sockets, which their own
+ * PRs left to this mechanism. {@code energizedTank} and {@code powahModifiers} are the other two in
+ * the section and carry their own off-path tests, in {@code EnergizedTankGameTests} and
+ * {@code PowahGameTests}. {@code
  * ContentFamilyGameTests}' shape applied to compat, including its reason for keeping every
  * set/assert/restore inside one synchronous method: these mutate a global config value and GameTests
  * in a batch tick concurrently, so no other test may ever observe a flipped value.
  *
- * <p>Three of them are also tested for the half that must <em>not</em> change. Off is inert, never
+ * <p>Three of them are also tested here for the half that must <em>not</em> change. Off is inert, never
  * destructive: a stack carrying fusion, module or modifier state keeps its components through a
  * toggle-off round trip and works again when the toggle returns, which is D-M7-3's rule applied to
  * compat.
@@ -49,7 +54,8 @@ import dev.gkissel.forgeweave.trait.Trait;
  * that run. Each toggle is therefore read at a site in the mod-free half of its integration, and
  * those sites are what these tests exercise: {@code ForgeweaveDraconicCompat#acceptsFusionCatalyst},
  * {@link DraconicModules}'s bridge queries, {@link CreateGoggles#isWearingGoggles},
- * {@code MiningLevel#line} and {@code ForgeweaveTraits#lookup}. The remaining per-provider guards
+ * {@link ApotheosisSockets#enabled()}, {@code MiningLevel#line} and
+ * {@code ForgeweaveTraits#lookup}. The remaining per-provider guards
  * and the Draconic capability itself are release-checklist lines on #975, alongside the overlay
  * rendering the issue already notes a GameTest cannot cover.
  */
@@ -235,6 +241,47 @@ public class CompatToggleGameTests {
         helper.assertTrue(CreateGoggles.isWearingGoggles(helmet),
                 "turning createGoggles back on must count the same helmet again with no reload");
         helper.succeed();
+    }
+
+    /**
+     * Apotheosis sockets off: the station refuses the socketed modifier and the tool comes back
+     * unchanged. What a socket already holds is {@code ApotheosisSocketGameTests}' subject, which
+     * pins that an already-socketed stack keeps its component inert; this is about the toggle.
+     */
+    @GameTest(template = "empty")
+    public static void apotheosisSocketsOffRefuseTheSocketedModifier(GameTestHelper helper) {
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        ItemStack tool = ToolAssembly.pickaxe(helper, player, POS, "iron", "wood", "wood");
+        // The socket recipe's reagent, the same stand-in ApotheosisSocketGameTests uses.
+        ItemStack sigil = new ItemStack(Items.HEART_OF_THE_SEA);
+
+        helper.assertTrue(ApotheosisSockets.enabled(),
+                "the integration answers on while apotheosisSockets is on, or this test proves nothing");
+        helper.assertFalse(socketOutput(helper, tool, sigil).isEmpty(),
+                "and the station seats a socket, or this test proves nothing");
+
+        ForgeweaveConfig.APOTHEOSIS_SOCKETS.set(false);
+        try {
+            helper.assertFalse(ApotheosisSockets.enabled(),
+                    "the integration must answer off while apotheosisSockets is off");
+            helper.assertTrue(socketOutput(helper, tool, sigil).isEmpty(),
+                    "and no socket may be added, got " + socketOutput(helper, tool, sigil));
+            helper.assertTrue(tool.get(ForgeweaveDataComponents.SOCKETS.get()) == null,
+                    "and the refused tool must be left alone");
+        } finally {
+            ForgeweaveConfig.APOTHEOSIS_SOCKETS.set(true);
+        }
+
+        helper.assertFalse(socketOutput(helper, tool, sigil).isEmpty(),
+                "turning apotheosisSockets back on must seat a socket again with no reload");
+        helper.succeed();
+    }
+
+    /** What the Tool Station makes of {@code reagent} on {@code tool}, empty when it refuses. */
+    private static ItemStack socketOutput(GameTestHelper helper, ItemStack tool, ItemStack reagent) {
+        return ModifierApplication.resolve(helper.getLevel().registryAccess(), tool, reagent, ItemStack.EMPTY)
+                .map(ModifierApplication.Outcome::output)
+                .orElse(ItemStack.EMPTY);
     }
 
     /**

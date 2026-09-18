@@ -23,6 +23,7 @@ import dev.gkissel.forgeweave.combat.CombatHit;
 import dev.gkissel.forgeweave.combat.CombatSeam;
 import dev.gkissel.forgeweave.combat.CombatSeams;
 import dev.gkissel.forgeweave.combat.DefendedBlow;
+import dev.gkissel.forgeweave.config.ForgeweaveConfig; // #968
 import dev.gkissel.forgeweave.item.ForgeweaveDataComponents;
 import dev.gkissel.forgeweave.modifier.ForgeweaveModifiers;
 import dev.gkissel.forgeweave.modifier.Modifier;
@@ -194,9 +195,8 @@ public final class ApotheosisSockets {
     // ---------------------------------------------------------------- the config toggle
 
     /**
-     * Whether the integration is on. Issue #968 owns the {@code compat} config section and its
-     * {@code apotheosisSockets} key (D-M8-5); this is the one place its check lands, and until it
-     * does the integration behaves as it will with the toggle at its {@code true} default.
+     * Whether the integration is on, i.e. {@code compat.apotheosisSockets} (D-M8-5, wired by issue
+     * #968).
      *
      * <p>Every gate reads this: {@link #installBridge}, so an off toggle installs no bridge and every
      * bonus query below answers zero, and {@code ModifierApplication}'s two recipe branches, so an
@@ -205,8 +205,7 @@ public final class ApotheosisSockets {
      * applied to compat, and what {@code ApotheosisSocketGameTests} pins.
      */
     public static boolean enabled() {
-        // #968: becomes ForgeweaveConfig.enabled(ForgeweaveConfig.APOTHEOSIS_SOCKETS).
-        return true;
+        return ForgeweaveConfig.enabled(ForgeweaveConfig.APOTHEOSIS_SOCKETS);
     }
 
     // ---------------------------------------------------------------- the bridge
