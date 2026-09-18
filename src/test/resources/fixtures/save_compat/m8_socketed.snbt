@@ -1,0 +1,85 @@
+{
+    decoder: "item_stack",
+    expect: {
+        components: {
+            "forgeweave:modifiers": [
+                {
+                    id: "forgeweave:socketed",
+                    level: 3
+                }
+            ],
+            "forgeweave:sockets": [
+                {
+                    item: {
+                        count: 1,
+                        id: "minecraft:diamond"
+                    },
+                    slot: 0
+                },
+                {
+                    item: {
+                        count: 1,
+                        id: "minecraft:diamond"
+                    },
+                    slot: 2
+                }
+            ],
+            "forgeweave:tool_materials": {
+                binding: "forgeweave:wood",
+                handle: "forgeweave:wood",
+                head: "forgeweave:iron"
+            },
+            "forgeweave:tool_stats": {
+                attack_damage: 3.5f,
+                durability: 250,
+                mining_speed: 6.0f
+            },
+            "forgeweave:traits": [],
+            "minecraft:damage": 0,
+            "minecraft:max_damage": 250
+        },
+        id: "forgeweave:pickaxe"
+    },
+    nbt: {
+        components: {
+            "forgeweave:modifiers": [
+                {
+                    id: "forgeweave:socketed",
+                    level: 3
+                }
+            ],
+            "forgeweave:sockets": [
+                {
+                    item: {
+                        count: 1,
+                        id: "minecraft:diamond"
+                    },
+                    slot: 0
+                },
+                {
+                    item: {
+                        count: 1,
+                        id: "minecraft:diamond"
+                    },
+                    slot: 2
+                }
+            ],
+            "forgeweave:tool_materials": {
+                binding: "forgeweave:wood",
+                handle: "forgeweave:wood",
+                head: "forgeweave:iron"
+            },
+            "forgeweave:tool_stats": {
+                attack_damage: 3.5f,
+                durability: 250,
+                mining_speed: 6.0f
+            },
+            "forgeweave:traits": [],
+            "minecraft:damage": 0,
+            "minecraft:max_damage": 250
+        },
+        count: 1,
+        id: "forgeweave:pickaxe"
+    },
+    what: "#969: the gem stacks are minecraft:diamond rather than apotheosis:gem because no unit-test item registry holds an Apotheosis item, and what this fixture pins is the shape, not the gem. An all-iron pickaxe carrying three sockets (the socketed modifier at level 3, which is its cap) with gems in the first and third and the second left empty -- forgeweave:sockets is vanilla's ItemContainerContents, so empty sockets are dropped from the encoded form and each gem carries its own slot index, which is what makes a gem in socket three decode back into socket three. The sockets themselves are the modifier's level, not part of this component, so a stack with no socketed entry has no sockets whatever the component says."
+}

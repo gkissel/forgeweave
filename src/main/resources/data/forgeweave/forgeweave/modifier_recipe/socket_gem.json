@@ -1,0 +1,15 @@
+{
+  "modifier": "forgeweave:socket_gem",
+  "reagents": [
+    {
+      "ingredient": {
+        "item": "apotheosis:gem"
+      }
+    }
+  ],
+  "cost": 1,
+  "max_level": 1,
+  "neoforge:conditions": [
+    { "type": "neoforge:mod_loaded", "modid": "apotheosis" }
+  ]
+}

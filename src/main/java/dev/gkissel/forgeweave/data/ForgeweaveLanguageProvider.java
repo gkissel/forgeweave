@@ -2106,6 +2106,24 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("gui.forgeweave.modifier.overslime_full", "Armor has no more space for overslime.");
         add("gui.forgeweave.modifier.overslime_unsupported", "Only armor with the overslime trait takes overslime.");
 
+        // #969 (M8, D-M8-1) -- Apotheosis gem sockets. The modifier itself, the marker id the
+        // gem-seating recipe names (JEI and the station rejection both read its name, the way they
+        // read overslime's above), the socket rows on the tooltip and the station panel, and the
+        // four refusals the station can hand back.
+        add("modifier.forgeweave.socketed.name", "Socketed");
+        add("modifier.forgeweave.socketed.description",
+                "Adds an empty gem socket. Each socket holds one gem and costs a modifier slot.");
+        add("modifier.forgeweave.socket_gem.name", "Seat Gem");
+        add("modifier.forgeweave.socket_gem.description",
+                "Seats a gem in the tool's first empty socket. Costs no modifier slot: the socket already paid for it.");
+        add("tooltip.forgeweave.socket", "Socket %s: %s");
+        add("tooltip.forgeweave.socket.empty", "empty");
+        add("gui.forgeweave.modifier.no_sockets", "This tool has no sockets. Add one with Socketed first.");
+        add("gui.forgeweave.modifier.sockets_full", "Every socket on this tool already holds a gem.");
+        add("gui.forgeweave.modifier.gem_refused", "That gem does not fit this kind of item.");
+        add("gui.forgeweave.modifier.apotheosis_sockets_disabled",
+                "Gem sockets are switched off in the server config.");
+
         // #843 -- the 1.20-branch material gap's four new traits (closes #180). Names are the 1.20
         // clone's modifier.tconstruct.<id> entries verbatim; descriptions restate this port's
         // simplified level-1-only mechanics (see ForgeweaveTraits for the exact numbers and the
@@ -2643,6 +2661,18 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         modifierEffects("wind_burst",
                 "Grants the Wind Burst enchantment", "Each breeze rod is one level",
                 "Only fits the Warmace", "Multiple levels");
+        // #969 (M8, D-M8-1) -- the guide book's Socketed page, built like every other modifier page
+        // from these bullets plus the name and description above. Covers what a socket is, how a gem
+        // gets in and what a seated gem grants; the unmapped effects are recorded in
+        // ApotheosisSockets.EFFECT_MAP rather than promised to a player here.
+        modifierEffects("socketed",
+                "Adds one empty gem socket per level",
+                "Each socket costs a modifier slot, so a slot earned by levelling up can buy one",
+                "Seat a gem by putting it in the Tool Station beside a socketed tool",
+                "A seated gem adds its bonus to the tool's own attack damage, mining speed, "
+                        + "durability, armor or protection",
+                "Sockets and gems are kept if Apotheosis is removed, and work again when it is back",
+                "Needs Apotheosis installed", "Maximum of 3 levels");
         // Fins is the one gap with an upstream source (book/en_us/modifiers/fins.json, added to the
         // registry by #654 after #658's port): its three bullets, verbatim -- the first is exactly
         // what ArrowEntity#getWaterInertia implements, the other two are upstream's own jokes.
