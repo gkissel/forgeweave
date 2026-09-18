@@ -1,0 +1,32 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_nuggets_emberweld": {
+      "conditions": {
+        "items": [
+          {
+            "items": "#c:nuggets/emberweld"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "forgeweave:emberweld_wire"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_the_recipe",
+      "has_nuggets_emberweld"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "forgeweave:emberweld_wire"
+    ]
+  }
+}

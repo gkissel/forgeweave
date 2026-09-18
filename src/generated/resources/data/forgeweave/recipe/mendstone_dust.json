@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    {
+      "tag": "c:small_dusts/mendstone"
+    },
+    {
+      "tag": "c:small_dusts/mendstone"
+    },
+    {
+      "tag": "c:small_dusts/mendstone"
+    }
+  ],
+  "result": {
+    "count": 1,
+    "id": "forgeweave:mendstone_dust"
+  }
+}

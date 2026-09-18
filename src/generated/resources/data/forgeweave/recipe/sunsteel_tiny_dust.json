@@ -1,0 +1,13 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    {
+      "tag": "c:small_dusts/sunsteel"
+    }
+  ],
+  "result": {
+    "count": 3,
+    "id": "forgeweave:sunsteel_tiny_dust"
+  }
+}

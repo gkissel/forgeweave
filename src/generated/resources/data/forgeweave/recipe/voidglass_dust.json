@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    {
+      "tag": "c:small_dusts/voidglass"
+    },
+    {
+      "tag": "c:small_dusts/voidglass"
+    },
+    {
+      "tag": "c:small_dusts/voidglass"
+    }
+  ],
+  "result": {
+    "count": 1,
+    "id": "forgeweave:voidglass_dust"
+  }
+}

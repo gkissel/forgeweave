@@ -1,0 +1,32 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_small_dusts_fulmenite": {
+      "conditions": {
+        "items": [
+          {
+            "items": "#c:small_dusts/fulmenite"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "forgeweave:fulmenite_tiny_dust"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_the_recipe",
+      "has_small_dusts_fulmenite"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "forgeweave:fulmenite_tiny_dust"
+    ]
+  }
+}

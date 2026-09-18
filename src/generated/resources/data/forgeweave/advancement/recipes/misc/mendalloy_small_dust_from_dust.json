@@ -1,0 +1,32 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_dusts_mendalloy": {
+      "conditions": {
+        "items": [
+          {
+            "items": "#c:dusts/mendalloy"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "forgeweave:mendalloy_small_dust_from_dust"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_the_recipe",
+      "has_dusts_mendalloy"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "forgeweave:mendalloy_small_dust_from_dust"
+    ]
+  }
+}

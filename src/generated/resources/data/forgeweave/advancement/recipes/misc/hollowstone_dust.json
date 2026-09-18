@@ -1,0 +1,32 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_small_dusts_hollowstone": {
+      "conditions": {
+        "items": [
+          {
+            "items": "#c:small_dusts/hollowstone"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "forgeweave:hollowstone_dust"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_the_recipe",
+      "has_small_dusts_hollowstone"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "forgeweave:hollowstone_dust"
+    ]
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    {
+      "tag": "c:tiny_dusts/truesteel"
+    },
+    {
+      "tag": "c:tiny_dusts/truesteel"
+    },
+    {
+      "tag": "c:tiny_dusts/truesteel"
+    }
+  ],
+  "result": {
+    "count": 1,
+    "id": "forgeweave:truesteel_small_dust"
+  }
+}

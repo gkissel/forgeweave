@@ -1,0 +1,32 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_nuggets_riftalloy": {
+      "conditions": {
+        "items": [
+          {
+            "items": "#c:nuggets/riftalloy"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "forgeweave:riftalloy_wire"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_the_recipe",
+      "has_nuggets_riftalloy"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "forgeweave:riftalloy_wire"
+    ]
+  }
+}

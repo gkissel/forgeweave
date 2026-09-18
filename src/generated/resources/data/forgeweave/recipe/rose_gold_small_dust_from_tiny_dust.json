@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    {
+      "tag": "c:tiny_dusts/rose_gold"
+    },
+    {
+      "tag": "c:tiny_dusts/rose_gold"
+    },
+    {
+      "tag": "c:tiny_dusts/rose_gold"
+    }
+  ],
+  "result": {
+    "count": 1,
+    "id": "forgeweave:rose_gold_small_dust"
+  }
+}

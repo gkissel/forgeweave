@@ -1,0 +1,32 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_ingots_rose_gold": {
+      "conditions": {
+        "items": [
+          {
+            "items": "#c:ingots/rose_gold"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "forgeweave:rose_gold_rod"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_the_recipe",
+      "has_ingots_rose_gold"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "forgeweave:rose_gold_rod"
+    ]
+  }
+}

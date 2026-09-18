@@ -1,0 +1,32 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_small_dusts_pig_iron": {
+      "conditions": {
+        "items": [
+          {
+            "items": "#c:small_dusts/pig_iron"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "forgeweave:pig_iron_tiny_dust"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_the_recipe",
+      "has_small_dusts_pig_iron"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "forgeweave:pig_iron_tiny_dust"
+    ]
+  }
+}

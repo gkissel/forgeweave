@@ -1,0 +1,32 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_dusts_embercast": {
+      "conditions": {
+        "items": [
+          {
+            "items": "#c:dusts/embercast"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "forgeweave:embercast_small_dust_from_dust"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_the_recipe",
+      "has_dusts_embercast"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "forgeweave:embercast_small_dust_from_dust"
+    ]
+  }
+}

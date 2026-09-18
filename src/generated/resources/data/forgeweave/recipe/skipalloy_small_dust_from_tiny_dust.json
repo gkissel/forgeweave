@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    {
+      "tag": "c:tiny_dusts/skipalloy"
+    },
+    {
+      "tag": "c:tiny_dusts/skipalloy"
+    },
+    {
+      "tag": "c:tiny_dusts/skipalloy"
+    }
+  ],
+  "result": {
+    "count": 1,
+    "id": "forgeweave:skipalloy_small_dust"
+  }
+}

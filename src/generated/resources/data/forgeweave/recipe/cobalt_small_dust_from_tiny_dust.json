@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    {
+      "tag": "c:tiny_dusts/cobalt"
+    },
+    {
+      "tag": "c:tiny_dusts/cobalt"
+    },
+    {
+      "tag": "c:tiny_dusts/cobalt"
+    }
+  ],
+  "result": {
+    "count": 1,
+    "id": "forgeweave:cobalt_small_dust"
+  }
+}

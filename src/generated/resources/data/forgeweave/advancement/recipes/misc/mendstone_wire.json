@@ -1,0 +1,32 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_nuggets_mendstone": {
+      "conditions": {
+        "items": [
+          {
+            "items": "#c:nuggets/mendstone"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "forgeweave:mendstone_wire"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_the_recipe",
+      "has_nuggets_mendstone"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "forgeweave:mendstone_wire"
+    ]
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    {
+      "tag": "c:small_dusts/embercast"
+    },
+    {
+      "tag": "c:small_dusts/embercast"
+    },
+    {
+      "tag": "c:small_dusts/embercast"
+    }
+  ],
+  "result": {
+    "count": 1,
+    "id": "forgeweave:embercast_dust"
+  }
+}
