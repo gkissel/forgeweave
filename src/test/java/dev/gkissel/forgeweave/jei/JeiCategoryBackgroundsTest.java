@@ -56,6 +56,12 @@ class JeiCategoryBackgroundsTest {
         assertPanel(JeiCategoryGeometry.MELTING, "melting.png", 0, 0, 132, 40);
     }
 
+    /** Upstream {@code EntityMeltingRecipeCategory}: `createDrawable(melting.png, 0, 41, 150, 62)` (issue #1029). */
+    @Test
+    void entityMeltingIsUpstreamsOwnPanelRatherThanTheItemMeltingOne() {
+        assertPanel(JeiCategoryGeometry.ENTITY_MELTING, "melting.png", 0, 41, 150, 62);
+    }
+
     /**
      * Upstream {@code ToolBuildingCategory}: `createDrawable(tinker_station.png, 122, 77, 134, 66)`.
      * Issue #804: the height was 86 and the origin (0,0), so the crop was neither this panel nor
@@ -101,6 +107,7 @@ class JeiCategoryBackgroundsTest {
     void noCategoryIsWiderThanUpstreamsWidestPanel() {
         for (Panel panel : new Panel[] {
                 JeiCategoryGeometry.ALLOYING, JeiCategoryGeometry.CASTING, JeiCategoryGeometry.MELTING,
+                JeiCategoryGeometry.ENTITY_MELTING,
                 JeiCategoryGeometry.ASSEMBLY, JeiCategoryGeometry.PART_CRAFTING, JeiCategoryGeometry.REPAIR,
                 JeiCategoryGeometry.MODIFIER_APPLICATION, JeiCategoryGeometry.EMBOSSING}) {
             assertTrue(panel.width() <= JeiCategoryGeometry.ALLOYING.width(),

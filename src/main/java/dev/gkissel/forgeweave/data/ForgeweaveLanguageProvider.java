@@ -220,12 +220,17 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         addBlock(ForgeweaveBlocks.SEARED_DUCT, "Seared Duct");
         addBlock(ForgeweaveBlocks.SEARED_CHUTE, "Seared Chute");
 
-        // #972 (M8, D-M8-11) -- the energized tank and the three action-bar lines its overdrive
-        // button prints. Original Forgeweave block, so the name is ours rather than a clone's.
+        // #972 (M8, D-M8-11) -- the energized tank. Original Forgeweave block, so the name is ours
+        // rather than a clone's. #1018 moved its overdrive button onto a screen, so the three
+        // action-bar lines the old press printed are gone and these are the screen's own labels.
         addBlock(ForgeweaveBlocks.ENERGIZED_TANK, "Energized Tank");
-        add("tooltip.forgeweave.energized_tank.overdrive_on", "Overdrive on: melting faster, energy going quicker");
-        add("tooltip.forgeweave.energized_tank.overdrive_off", "Overdrive off");
-        add("tooltip.forgeweave.energized_tank.disabled", "Energized tanks are switched off on this server");
+        add("gui.forgeweave.energized_tank.heat", "Heat %s");
+        add("gui.forgeweave.energized_tank.cost", "%s FE per cycle");
+        add("gui.forgeweave.energized_tank.energy", "%s/%s FE");
+        add("gui.forgeweave.energized_tank.no_sample", "No fuel sample");
+        add("gui.forgeweave.energized_tank.disabled", "Switched off in the config");
+        add("gui.forgeweave.energized_tank.overdrive.on", "Overdrive on");
+        add("gui.forgeweave.energized_tank.overdrive.off", "Overdrive off");
 
         // #441 (parity audit T9) -- the channel, upstream's tile.tconstruct.channel.name, plus the
         // five action-bar messages its connection cycle prints (upstream's channel.connected.*
@@ -2477,6 +2482,15 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("book.forgeweave.modifiers.intro.title", "Modifiers");
         add("book.forgeweave.modifiers.intro.text",
                 "A finished tool is never truly finished. At the Tool Station or Tool Forge, sacrifice items to imbue a tool with modifiers. Each tool starts with a limited number of free slots, and some modifiers can be applied repeatedly for a stronger effect.\n\nThe pages that follow list every modifier known to this workshop.");
+        // #970 (M8, D-M8-1): the two pages the #974 book audit asked for -- what an affix is on
+        // Forgeweave gear, and what decides whether a tool can be enchanted. Original Forgeweave
+        // content; upstream ships neither mechanic and no guide book page for either.
+        add("book.forgeweave.modifiers.affixes.title", "Affixes");
+        add("book.forgeweave.modifiers.affixes.text",
+                "With Apotheosis installed, a Forgeweave tool or armor piece that comes out of a chest or off a mob can arrive carrying affixes: the prefixes and suffixes Apotheosis rolls onto loot. Gear you build at the Tool Station is never affixed, because affixes arrive with loot rather than with crafting.\n\nAn affix is not a modifier. It costs no modifier slot, no station applies it, and it never competes with the modifiers you imbue yourself. One tool can carry affixes, modifiers, gems in its sockets and a level all at once, and each of the four keeps its own rules.\n\nThe affixes belong to Apotheosis, not to this workshop. Switch the integration off, or remove the mod outright, and an affixed tool still works: its parts, stats, traits, modifiers and level are all still here and untouched, and the affixes go quiet until the mod comes back.");
+        add("book.forgeweave.modifiers.enchanting.title", "Enchanting");
+        add("book.forgeweave.modifiers.enchanting.text",
+                "A Forgeweave tool cannot be enchanted by default. An enchanting table will not take it, an anvil turns away an enchanted book, and modifiers are how a tool is meant to improve. Turn on the allowVanillaEnchanting option and both accept it: the table draws on the tool's own enchantability, averaged across the materials of all its parts.\n\nAn enchantment is not a modifier either. It spends no modifier slot and sits beside whatever modifiers, sockets and level the tool already has. Where an enchantment and a modifier grant the same thing, extra damage or more Fortune, the two add together instead of one replacing the other.\n\nApotheosis' own enchanting table reads the same option, and its apotheosisEnchanting toggle as well. Both have to be on. With either one off the tool is turned away there exactly as it is at a vanilla table.");
         add("book.forgeweave.smeltery.intro.title", "The Smeltery");
         add("book.forgeweave.smeltery.intro.text",
                 "There are many smelteries, but this one is yours, and it melts things really well.");
@@ -2490,7 +2504,7 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         // has no upstream counterpart, so nothing here is derived.
         add("book.forgeweave.smeltery.energized.title", "Heating It With Energy");
         add("book.forgeweave.smeltery.energized.text",
-                "An Energized Tank set into a wall heats the smeltery without burning anything. Pour in a bucket of any fuel the smeltery accepts and the tank keeps it as a sample: it is never used up, and it simply tells the tank which fuel to imitate. The smeltery then runs at that fuel's temperature.\n\nWhat the tank does burn is Forge Energy, fed in by any cable. A hotter sample costs proportionally more per melt cycle, an empty buffer means no heat at all rather than slow heat, and among several tanks only the hottest one with energy to spend pays anything.\n\nPress the tank with an empty hand for overdrive: melting and spending both double. Look up the tank in the recipe list to read the exact cost.");
+                "An Energized Tank set into a wall heats the smeltery without burning anything. Pour in a bucket of any fuel the smeltery accepts and the tank keeps it as a sample: it is never used up, and it simply tells the tank which fuel to imitate. The smeltery then runs at that fuel's temperature.\n\nWhat the tank does burn is Forge Energy, fed in by any cable. A hotter sample costs proportionally more per melt cycle, an empty buffer means no heat at all rather than slow heat, and among several tanks only the hottest one with energy to spend pays anything.\n\nRight-click the tank to open its panel: the sample in a gauge on the left, the buffer in a bar on the right, and beside them the heat the sample gives and what one melt cycle costs. The button underneath turns overdrive on, which doubles both the melting and the spending.");
 
         // M7-7 (issue #924, epic #917): the leveling chapter. Original Forgeweave content, not a
         // derivation -- upstream ships no guide book and no Ponder scenes for this mechanic.
