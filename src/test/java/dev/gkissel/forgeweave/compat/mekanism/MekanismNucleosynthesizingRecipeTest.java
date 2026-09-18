@@ -50,9 +50,17 @@ class MekanismNucleosynthesizingRecipeTest {
         JsonObject json = recipe();
         assertEquals("mekanism:nucleosynthesizing", json.get("type").getAsString());
 
-        JsonObject condition = json.getAsJsonArray("neoforge:conditions").get(0).getAsJsonObject();
-        assertEquals("neoforge:mod_loaded", condition.get("type").getAsString());
-        assertEquals("mekanism", condition.get("modid").getAsString());
+        JsonObject modLoaded = json.getAsJsonArray("neoforge:conditions").get(0).getAsJsonObject();
+        assertEquals("neoforge:mod_loaded", modLoaded.get("type").getAsString());
+        assertEquals("mekanism", modLoaded.get("modid").getAsString());
+    }
+
+    @Test
+    void theRowIsAlsoGatedOnTheMekanismModulesToggle() throws IOException {
+        JsonObject toggle = recipe().getAsJsonArray("neoforge:conditions").get(1).getAsJsonObject();
+        assertEquals("forgeweave:compat_toggle", toggle.get("type").getAsString());
+        assertEquals("mekanismModules", toggle.get("toggle").getAsString(),
+                "issue #993's off path: with the toggle off the recipe is absent, not broken");
     }
 
     @Test

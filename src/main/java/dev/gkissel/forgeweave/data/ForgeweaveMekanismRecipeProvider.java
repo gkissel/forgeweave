@@ -20,9 +20,10 @@ import dev.gkissel.forgeweave.item.ForgeweaveItems;
  * The one Mekanism recipe Forgeweave ships (issue #993, docs/SCOPE.md M8, D-M8-13): an
  * {@code atomic_matter_alloy} ingot out of Mekanism's Antiprotonic Nucleosynthesizer, from its own
  * atomic alloy plus antimatter. Written to
- * {@code data/forgeweave/recipe/compat/mekanism/atomic_matter_alloy_ingot.json} with a
- * {@code neoforge:conditions} {@code mod_loaded} gate, so a Forgeweave-only datapack drops it and the
- * metal becomes unobtainable rather than the recipe becoming a broken row. That is the whole of "only
+ * {@code data/forgeweave/recipe/compat/mekanism/atomic_matter_alloy_ingot.json} behind two
+ * {@code neoforge:conditions} gates: {@code mod_loaded}, so a Forgeweave-only datapack drops it and
+ * the metal becomes unobtainable rather than the recipe becoming a broken row, and issue #995's
+ * {@code forgeweave:compat_toggle}, so {@code mekanismModules = false} drops it too. That is the whole of "only
  * makeable in the nucleosynthesizer": there is no alloy table row, no Part Builder route and no
  * crafting recipe for the ingot anywhere else in the tree.
  *
@@ -89,12 +90,22 @@ public class ForgeweaveMekanismRecipeProvider implements DataProvider {
         return json;
     }
 
+    /**
+     * Two gates, both of which have to pass. {@code mod_loaded} is the one that makes the metal
+     * unobtainable without Mekanism; {@code forgeweave:compat_toggle} is issue #993's
+     * "off means the nucleosynthesizing recipe is absent", reached through issue #995's own condition
+     * because this row is Mekanism's recipe type and so has no Forgeweave lookup site to filter at.
+     */
     private static JsonArray conditions() {
         JsonObject modLoaded = new JsonObject();
         modLoaded.addProperty("type", "neoforge:mod_loaded");
         modLoaded.addProperty("modid", ForgeweaveMekanismCompat.MODID);
+        JsonObject toggle = new JsonObject();
+        toggle.addProperty("type", Forgeweave.MODID + ":compat_toggle");
+        toggle.addProperty("toggle", "mekanismModules");
         JsonArray array = new JsonArray();
         array.add(modLoaded);
+        array.add(toggle);
         return array;
     }
 

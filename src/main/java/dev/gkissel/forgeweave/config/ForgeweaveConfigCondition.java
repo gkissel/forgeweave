@@ -78,7 +78,10 @@ public record ForgeweaveConfigCondition(String toggle) implements ICondition {
             "createRecipes", () -> ForgeweaveConfig.enabled(ForgeweaveConfig.CREATE_RECIPES),
             "immersiveEngineeringRecipes", () -> ForgeweaveConfig.enabled(ForgeweaveConfig.IMMERSIVE_ENGINEERING_RECIPES),
             "enderIoRecipes", () -> ForgeweaveConfig.enabled(ForgeweaveConfig.ENDER_IO_RECIPES),
-            "powahHeatSources", () -> ForgeweaveConfig.enabled(ForgeweaveConfig.POWAH_HEAT_SOURCES));
+            "powahHeatSources", () -> ForgeweaveConfig.enabled(ForgeweaveConfig.POWAH_HEAT_SOURCES),
+            // #993 (D-M8-15): the nucleosynthesizing row is mekanism:nucleosynthesizing, Mekanism's
+            // own recipe type, so it has no Forgeweave-owned lookup site to filter at either.
+            "mekanismModules", () -> ForgeweaveConfig.enabled(ForgeweaveConfig.MEKANISM_MODULES));
 
     public static final MapCodec<ForgeweaveConfigCondition> CODEC = RecordCodecBuilder.mapCodec(instance -> instance
             .group(Codec.STRING.fieldOf("toggle").forGetter(ForgeweaveConfigCondition::toggle))
