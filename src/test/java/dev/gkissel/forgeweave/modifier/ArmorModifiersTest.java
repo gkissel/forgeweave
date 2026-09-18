@@ -47,7 +47,7 @@ class ArmorModifiersTest {
     private static final Set<ResourceLocation> ARMOR_ONLY = Set.of(
             id("fire_protection"), id("blast_protection"), id("magic_protection"),
             id("melee_protection"), id("projectile_protection"), id("knockback_resistance"), id("thorns"),
-            // #737 (epic #730 slice 2): heavy-chestplate-only, so also armorOnly.
+            // #737 (epic #730 slice 2): chestplate-only (any weight since #1005), so also armorOnly.
             id("elytra_flight"), id("creative_flight"));
 
     private static ResourceLocation id(String path) {

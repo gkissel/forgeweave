@@ -308,10 +308,9 @@ public final class ModifierApplication {
         return Outcome.applied(modified(tool, recipe.modifier(), recipe.maxLevel()), Arrays.stream(used).boxed().toList());
     }
 
-    /** {@link Modifier#heavyChestplateOnly}'s gate: a {@code #735} heavy piece in the chestplate slot specifically. */
-    private static boolean isHeavyChestplate(ItemStack tool) {
-        return tool.getItem() instanceof ArmorPieceItem armor && armor.isHeavy()
-                && armor.getType() == ArmorItem.Type.CHESTPLATE;
+    /** {@link Modifier#chestplateOnly}'s gate: a chestplate slot specifically, heavy or light alike (issue #1005). */
+    private static boolean isChestplate(ItemStack tool) {
+        return tool.getItem() instanceof ArmorPieceItem armor && armor.getType() == ArmorItem.Type.CHESTPLATE;
     }
 
     /**
@@ -372,8 +371,9 @@ public final class ModifierApplication {
             return false;
         }
         // Issue #737: elytra flight / creative flight -- narrower than armorOnly above, gating on the
-        // specific worn slot (a runtime item property) rather than the whole ARMOR category.
-        if (modifier.heavyChestplateOnly() && !isHeavyChestplate(tool)) {
+        // specific worn slot (a runtime item property) rather than the whole ARMOR category. Issue
+        // #1005: weight no longer matters here, only the slot.
+        if (modifier.chestplateOnly() && !isChestplate(tool)) {
             return false;
         }
         // The level passed here only decides whether a grant exists at all (every shipped grant is

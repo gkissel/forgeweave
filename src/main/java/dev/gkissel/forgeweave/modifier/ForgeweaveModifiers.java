@@ -1501,17 +1501,18 @@ public final class ForgeweaveModifiers {
     }
 
     // ---------------------------------------------------------------- issue #737 (epic #730 slice 2):
-    // elytra flight and creative flight, both heavy-chestplate-only (Modifier#heavyChestplateOnly).
-    // Armor did not exist in either upstream generation, so -- like the #108 batch -- these are
-    // Forgeweave originals with no clone counterpart and no NOTICE.md row.
+    // elytra flight and creative flight, both chestplate-only (Modifier#chestplateOnly). Issue #1005
+    // widened both off heavy-only to any worn chestplate. Armor did not exist in either upstream
+    // generation, so -- like the #108 batch -- these are Forgeweave originals with no clone
+    // counterpart and no NOTICE.md row.
 
     /** Exposed so {@code ModifierApplication} can gate {@link #CREATIVE_FLIGHT} on it being present first. */
     public static final ResourceLocation ELYTRA_FLIGHT_ID = id("elytra_flight");
 
     /**
-     * Consumes a real elytra to teach the worn heavy chestplate to glide exactly like one, through
+     * Consumes a real elytra to teach the worn chestplate to glide exactly like one, through
      * NeoForge's {@code canElytraFly}/{@code elytraFlightTick} item hooks ({@code ArmorPieceItem}).
-     * The heavy chestplate still excludes an actual elytra from the chest slot (#735/#678: it is an
+     * The chestplate still excludes an actual elytra from the chest slot (#735/#678: it is an
      * {@code ArmorItem} occupying {@code CHEST}, and vanilla only ever has one item there) -- this is
      * how the set buys back the mobility a real elytra would have cost wearing.
      */
@@ -1522,7 +1523,7 @@ public final class ForgeweaveModifiers {
         }
 
         @Override
-        public boolean heavyChestplateOnly() {
+        public boolean chestplateOnly() {
             return true;
         }
 
@@ -1533,8 +1534,8 @@ public final class ForgeweaveModifiers {
     };
 
     /**
-     * Grants creative-style flight while the full heavy set (#735, all four pieces, none Broken) is
-     * worn -- revoked the instant any piece comes off or breaks ({@code CreativeFlightHandler}'s
+     * Grants creative-style flight while a full set of armor (four pieces, any weight, none Broken)
+     * is worn -- revoked the instant any piece comes off or breaks ({@code CreativeFlightHandler}'s
      * per-tick recheck). Proposed balance (issue #737's PR): gated behind {@link #ELYTRA_FLIGHT}
      * already sitting on the same chestplate, so the real price is a spent elytra and two Tool
      * Station trips, not just the nether star -- a nether star alone would buy unconditional creative
@@ -1547,7 +1548,7 @@ public final class ForgeweaveModifiers {
         }
 
         @Override
-        public boolean heavyChestplateOnly() {
+        public boolean chestplateOnly() {
             return true;
         }
 
