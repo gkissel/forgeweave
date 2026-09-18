@@ -857,8 +857,9 @@ public final class ForgeweaveConfig {
                         "instead of adding a fifth flat step.")
                 .defineInRange("surgeboundNitroMiningSpeedMultiplier",
                         SURGEBOUND_NITRO_MINING_SPEED_MULTIPLIER_DEFAULT, 0.0D, 100.0D);
-        // #970 (M8-2, D-M8-5). Appended after the tank's keys so an existing config file keeps the
-        // order it already has on disk.
+        // #970 (M8-2, D-M8-5), the second and third Apotheosis toggles. Appended rather than grouped
+        // beside apotheosisSockets above, so a compat-server.toml written by an earlier build keeps
+        // the key order it already has. Both are read through ApotheosisAffixes and nowhere else.
         APOTHEOSIS_AFFIXES = builder
                 .comment("If true, Forgeweave tools and armor that a loot table hands out arrive assembled, which",
                         "is what makes them eligible for Apotheosis loot affixes: an unassembled tool is a",
