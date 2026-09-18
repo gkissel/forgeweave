@@ -5,9 +5,6 @@ import javax.annotation.Nullable;
 import com.mojang.serialization.MapCodec;
 
 import net.minecraft.core.BlockPos;
-import net.minecraft.network.chat.Component;
-import net.minecraft.sounds.SoundEvents;
-import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.ItemInteractionResult;
@@ -24,8 +21,6 @@ import net.minecraft.world.phys.BlockHitResult;
 
 import net.neoforged.neoforge.fluids.FluidUtil;
 
-import dev.gkissel.forgeweave.config.ForgeweaveConfig;
-
 /**
  * The energized tank (docs/SCOPE.md M8, D-M8-11; issue #972). See
  * {@link EnergizedTankBlockEntity} for what it does; this class is the two ways a player touches it.
@@ -33,11 +28,12 @@ import dev.gkissel.forgeweave.config.ForgeweaveConfig;
  * <ul>
  *   <li><b>With a fluid container</b> -- a bucket, a tank, anything {@link FluidUtil} understands --
  *       fills or empties the fuel sample, the same interaction {@link SearedTankBlock} has. A fluid
- *       the smeltery cannot burn is refused, so the container comes back full.
- *   <li><b>With an empty hand</b> -- presses the overdrive button, which multiplies both the energy
- *       cost per melt tick and the melt progress per melt tick by their config factors. The button
- *       is literally on the block rather than behind a screen: there is no inventory here to open a
- *       container menu over, and a block whose whole interface is one switch does not need one.
+ *       the smeltery cannot burn is refused, so the container comes back full. No screen opens, so a
+ *       player topping the sample up never has one in the way.
+ *   <li><b>With anything else, an empty hand included</b> -- opens the tank's screen, which is where
+ *       the sample gauge, the energy buffer, the heat and cost readouts and the overdrive button
+ *       live. Maintainer decision of 2026-09-18 (issue #1018): the tank is a GUI block, and the
+ *       overdrive button is a button on that screen rather than a press on the block face.
  * </ul>
  *
  * <p>{@link #OVERDRIVE} is the block state the model reads to show which way the button sits. The
@@ -52,10 +48,6 @@ public class EnergizedTankBlock extends Block implements EntityBlock {
     public static final MapCodec<EnergizedTankBlock> CODEC = simpleCodec(EnergizedTankBlock::new);
 
     public static final BooleanProperty OVERDRIVE = BooleanProperty.create("overdrive");
-
-    private static final String KEY_OVERDRIVE_ON = "tooltip.forgeweave.energized_tank.overdrive_on";
-    private static final String KEY_OVERDRIVE_OFF = "tooltip.forgeweave.energized_tank.overdrive_off";
-    private static final String KEY_DISABLED = "tooltip.forgeweave.energized_tank.disabled";
 
     public EnergizedTankBlock(Properties properties) {
         super(properties);
@@ -88,25 +80,20 @@ public class EnergizedTankBlock extends Block implements EntityBlock {
         return super.useItemOn(stack, state, level, pos, player, hand, hit);
     }
 
-    /** The overdrive button. Empty hand only; a held fluid container goes to {@link #useItemOn} first. */
+    /**
+     * Opens the tank's screen. A held fluid container goes to {@link #useItemOn} first and never gets
+     * here; anything else, an empty hand included, opens the screen -- a dormant tank too, which
+     * still has a sample and a buffer worth reading.
+     */
     @Override
     protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player,
                                                BlockHitResult hit) {
         if (!(level.getBlockEntity(pos) instanceof EnergizedTankBlockEntity tank)) {
             return super.useWithoutItem(state, level, pos, player, hit);
         }
-        if (level.isClientSide) {
-            return InteractionResult.SUCCESS;
+        if (!level.isClientSide) {
+            tank.open(player);
         }
-        if (!ForgeweaveConfig.enabled(ForgeweaveConfig.ENERGIZED_TANK)) {
-            // Still a press, still saved -- the toggle makes the block inert, not read-only.
-            player.displayClientMessage(Component.translatable(KEY_DISABLED), true);
-        }
-        boolean overdrive = tank.toggleOverdrive();
-        player.displayClientMessage(Component.translatable(overdrive ? KEY_OVERDRIVE_ON : KEY_OVERDRIVE_OFF), true);
-        // Vanilla's own button click, since that is what this is.
-        level.playSound(null, pos, overdrive ? SoundEvents.STONE_BUTTON_CLICK_ON : SoundEvents.STONE_BUTTON_CLICK_OFF,
-                SoundSource.BLOCKS, 0.3F, 0.6F);
-        return InteractionResult.CONSUME;
+        return InteractionResult.sidedSuccess(level.isClientSide);
     }
 }
