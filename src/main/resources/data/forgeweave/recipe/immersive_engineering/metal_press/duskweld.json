@@ -1,0 +1,21 @@
+{
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:mod_loaded",
+      "modid": "immersiveengineering"
+    },
+    {
+      "type": "forgeweave:compat_toggle",
+      "toggle": "immersiveEngineeringRecipes"
+    }
+  ],
+  "type": "immersiveengineering:metal_press",
+  "input": {
+    "tag": "c:ingots/duskweld"
+  },
+  "mold": "immersiveengineering:mold_plate",
+  "result": {
+    "id": "forgeweave:duskweld_plate"
+  },
+  "energy": 2400
+}

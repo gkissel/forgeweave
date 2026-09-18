@@ -1841,6 +1841,14 @@ public final class ForgeweaveModifiers {
      * it, which is what an unknown id already does -- and nothing on a stack changes either way, so
      * the entry keeps its id and its level and works again the moment the toggle returns, with no
      * reload. That is D-M8-5's inert-not-destructive contract.
+     *
+     * <p>Issue #995 pinned down exactly when a SERVER config becomes available ({@code
+     * ForgeweaveConfigCondition}'s javadoc: not until {@code handleServerAboutToStart}, which is
+     * after the first datapack load). That is the same fact this lookup rests on, from the other
+     * side: every caller of {@link #get} is a tooltip, a stat fold, a station application or a combat
+     * hook on a running game, all of them long after the config exists, so this read needs none of
+     * #995's read-the-TOML-from-disk machinery. {@link #onTagsUpdated}, which does run during that
+     * early load, only fills the map and never reads the toggle.
      */
     @Nullable
     private static Modifier datapackModifier(ResourceLocation id) {

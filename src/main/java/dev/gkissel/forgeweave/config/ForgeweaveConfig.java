@@ -392,10 +392,54 @@ public final class ForgeweaveConfig {
     public static final double SURGEBOUND_NITRO_MINING_SPEED_MULTIPLIER_DEFAULT = 2.0D;
 
     /**
+     * Issue #995 (D-M8-12, D-M8-16): Create's heated mixer, crushing wheels and mechanical press
+     * carrying Forgeweave's generated recipe JSON (the four basic alloys, Track B ore crushing, and
+     * ingot-to-plate pressing). Off means {@link ForgeweaveConfigCondition#COMPAT_TOGGLE} reads false
+     * for {@code "createRecipes"}, so none of those rows resolve; Forgeweave's own items and tags are
+     * untouched either way, so a modpack loses nothing by flipping this and gains the rows back the
+     * moment it flips back and reloads.
+     *
+     * @see #DRACONIC_FUSION
+     */
+    public static final ModConfigSpec.BooleanValue CREATE_RECIPES;
+
+    /**
+     * Issue #995 (D-M8-12, D-M8-16): Immersive Engineering's arc furnace, crusher and metal press
+     * carrying the same generated rows as {@link #CREATE_RECIPES}, for Immersive Engineering's recipe
+     * types instead of Create's.
+     *
+     * @see #DRACONIC_FUSION
+     */
+    public static final ModConfigSpec.BooleanValue IMMERSIVE_ENGINEERING_RECIPES;
+
+    /**
+     * Issue #995 (D-M8-12, D-M8-16): EnderIO's alloy smelter and SAG mill carrying the basic alloys
+     * and Track B ore crushing rows.
+     *
+     * @see #DRACONIC_FUSION
+     */
+    public static final ModConfigSpec.BooleanValue ENDER_IO_RECIPES;
+
+    /**
+     * Issue #995 (D-M8-13): Forgeweave's molten fluids registered as Powah thermo generator heat
+     * sources through {@code powah:heat_source}'s fluid data map. Off means
+     * {@link ForgeweaveConfigCondition#COMPAT_TOGGLE} reads false for {@code "powahHeatSources"} on
+     * every entry Forgeweave contributes, so a thermo generator no longer burns them; the data map
+     * entries Powah ships for its own fluids are untouched either way.
+     *
+     * @see #DRACONIC_FUSION
+     */
+    public static final ModConfigSpec.BooleanValue POWAH_HEAT_SOURCES;
+
+    /**
      * Datapack modifier definitions (issue #973, {@code forgeweave:modifier_definition}). Off means
      * a pack-defined modifier id resolves to nothing, so a tool carrying one behaves as if the id
      * had no implementation -- which is what a tool carrying an unknown modifier already does. The
      * entry keeps its id and its level either way and acts again when the toggle returns.
+     *
+     * <p>Unlike #995's four toggles above, this one needs no {@link ForgeweaveConfigCondition}: it is
+     * read at lookup, on a running server well after the config exists, rather than while a datapack
+     * is being loaded. See {@code ForgeweaveModifiers#datapackModifier}.
      *
      * @see #DRACONIC_FUSION
      */
@@ -887,8 +931,31 @@ public final class ForgeweaveConfig {
                         "a modifier slot. Has no effect without Apothic Enchanting installed, which is the mod",
                         "that owns the table.")
                 .define("apotheosisEnchanting", true);
-        // #973 (M8-5, D-M8-5), the eleventh and last toggle the section was planned with. Appended
-        // for the same reason the two above are, so an existing compat-server.toml keeps its order.
+        // Issue #995 (D-M8-12, D-M8-13, D-M8-16): the four processing-mod bridges, added last so the
+        // sections above keep the order every existing config file on disk already has.
+        CREATE_RECIPES = builder
+                .comment("If true, Forgeweave's generated Create recipes resolve: the heated mixer for",
+                        "the basic alloys, crushing wheels for Track B ores, and the mechanical press for",
+                        "ingot-to-plate. With this off none of those rows match; nothing Forgeweave owns",
+                        "changes either way.")
+                .define("createRecipes", true);
+        IMMERSIVE_ENGINEERING_RECIPES = builder
+                .comment("If true, Forgeweave's generated Immersive Engineering recipes resolve: the arc",
+                        "furnace for the basic alloys, the crusher for Track B ores, and the metal press",
+                        "for ingot-to-plate. With this off none of those rows match.")
+                .define("immersiveEngineeringRecipes", true);
+        ENDER_IO_RECIPES = builder
+                .comment("If true, Forgeweave's generated EnderIO recipes resolve: the alloy smelter for",
+                        "the basic alloys and the SAG mill for Track B ores. With this off neither resolves.")
+                .define("enderIoRecipes", true);
+        POWAH_HEAT_SOURCES = builder
+                .comment("If true, Forgeweave's molten fluids read as Powah thermo generator heat sources.",
+                        "With this off a thermo generator no longer burns them; Powah's own heat sources",
+                        "for its own fluids are untouched either way.")
+                .define("powahHeatSources", true);
+        // #973 (M8-5, D-M8-5), the eleventh toggle the section was planned with. Appended after
+        // #995's four for the same reason they were appended, so an existing compat-server.toml
+        // keeps the key order it already has.
         MODIFIER_DEFINITIONS = builder
                 .comment("If true, modifiers a datapack defines through forgeweave:modifier_definition take",
                         "effect. With this off a pack-defined modifier resolves to nothing, so a tool carrying",
