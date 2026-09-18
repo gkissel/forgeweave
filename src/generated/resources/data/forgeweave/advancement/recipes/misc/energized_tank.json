@@ -1,0 +1,25 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_seared_brick": {
+      "conditions": {
+        "items": [
+          {
+            "items": "forgeweave:seared_brick"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    }
+  },
+  "requirements": [
+    [
+      "has_seared_brick"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "forgeweave:energized_tank"
+    ]
+  }
+}

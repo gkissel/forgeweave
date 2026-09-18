@@ -198,12 +198,15 @@ public final class SmelteryScan {
                 if (!pos.equals(corePos)) {
                     return new Layer(at(KEY_INVALID_WALL, pos), List.of(), List.of());
                 }
-            } else if (!Valid.WALL.contains(block)) {
+            } else if (!Valid.WALL.contains(block) && !Valid.ENERGIZED.contains(block)) {
                 return new Layer(at(KEY_INVALID_WALL, pos), List.of(), List.of());
             } else if (claimedByAnotherCore(level, pos, corePos)) {
                 return new Layer(at(KEY_CLAIMED, pos), List.of(), List.of());
             }
-            if (Valid.TANKS.contains(block)) {
+            // #972: an energized tank joins `tanks`, so it satisfies upstream's hasTank flag on its
+            // own -- it is a wall tank, and a smeltery heated entirely by energy legitimately has no
+            // liquid fuel tank in its walls to satisfy it with.
+            if (Valid.TANKS.contains(block) || Valid.ENERGIZED.contains(block)) {
                 tanks.add(pos);
             } else if (Valid.IO.contains(block)) {
                 io.add(pos);
@@ -249,6 +252,7 @@ public final class SmelteryScan {
     private static BlockPos claimAt(Level level, BlockPos pos) {
         return switch (level.getBlockEntity(pos)) {
             case SearedTankBlockEntity tank -> tank.core();
+            case EnergizedTankBlockEntity tank -> tank.core(); // #972
             case SmelteryIoBlockEntity io -> io.core();
             case null, default -> null;
         };
@@ -345,6 +349,15 @@ public final class SmelteryScan {
         // membership, but never a floor block -- upstream's isFloorBlock override only ever accepts
         // its plain seared blocks (this class's FLOOR set), excluding glass, tanks and the I/O blocks
         // alike.
+        /**
+         * #972 (M8, D-M8-11): the energized tank, kept out of {@link #WALL} on purpose. {@link
+         * SmelteryScan#wallBlocks()} is read by {@link SearedReservoirScan} and {@link
+         * #TANKS} by {@link SearedFurnaceScan}, and a Forge-Energy heat block belongs in neither a
+         * reservoir nor a furnace -- it heats a smeltery. So it is accepted here, in the smeltery's
+         * own layer check, and nowhere else.
+         */
+        static final Set<Block> ENERGIZED = Set.of(ForgeweaveBlocks.ENERGIZED_TANK.get());
+
         static final Set<Block> WALL = Stream.concat(
                         Stream.concat(FLOOR.stream(), TANKS.stream()),
                         Stream.concat(IO.stream(), Stream.of(ForgeweaveBlocks.SEARED_GLASS.get())))
