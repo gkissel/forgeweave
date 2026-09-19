@@ -226,4 +226,28 @@ class DraconicModuleHostTest {
                 "the module's charge is the same component a Forgeweave charger fills");
         assertEquals(27_000, buffer.receiveEnergy(30_000, false), "capacity still caps the buffer");
     }
+
+    /**
+     * Issue #1033's {@code UpgradeHosts.Host} answer, {@link DraconicModuleHost#reclaim}, has two
+     * branches reachable without Draconic Evolution's module registries being populated -- "was there
+     * ever anything to look at" -- which is exactly the same boundary this class's own javadoc draws
+     * for everything else here. An actual module surviving a swap or getting reclaimed by one needs a
+     * real {@code ModuleEntity}, which needs a running install; see the pull request's in-game
+     * checklist line (issue #975) for those three cases.
+     */
+    @Test
+    void reclaimAnswersNothingForAToolThatNeverHostedModules() {
+        ItemStack original = new ItemStack(Items.IRON_PICKAXE);
+        ItemStack replacement = original.copy();
+        assertTrue(DraconicModuleHost.reclaim(original, replacement).isEmpty(),
+                "a tool that was never a module host has nothing to reclaim");
+    }
+
+    @Test
+    void reclaimAnswersNothingWhenNothingWasEverInstalled() {
+        ItemStack original = evolved(ForgeweaveItems.TOOL_PICKAXE.get(), 3);
+        ItemStack replacement = evolved(ForgeweaveItems.TOOL_PICKAXE.get(), 1); // a real tech-level drop
+        assertTrue(DraconicModuleHost.reclaim(original, replacement).isEmpty(),
+                "an empty module list has nothing to reclaim, even across a grid shrink");
+    }
 }
