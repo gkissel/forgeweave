@@ -1,0 +1,23 @@
+{
+  "head": {
+    "durability": 320,
+    "mining_speed": 5.5,
+    "attack_damage": 4.0
+  },
+  "handle": {
+    "durability_modifier": 1.1,
+    "durability": 30
+  },
+  "extra_durability": 25,
+  "incorrect_for_tool": "minecraft:incorrect_for_iron_tool",
+  "traits": {
+    "general": ["gametest_addon:addon_pack_trait", "gametest_addon:addon_java_trait"]
+  },
+  "crafting_items": [
+    { "ingredient": { "item": "minecraft:sniffer_egg" }, "value": 144 }
+  ],
+  "repair_item": {
+    "item": "minecraft:sniffer_egg"
+  },
+  "color": "#4FA3C8"
+}
